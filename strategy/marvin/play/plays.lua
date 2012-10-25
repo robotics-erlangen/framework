@@ -1,0 +1,19 @@
+--- Loads every play and publishes test functions
+local Plays = {
+	Example = require "play/example"
+	-- TODO: add plays
+}
+
+for name,s in pairs(Plays) do
+	if type(s) == "table" then
+		if type(s.test) == "function" then -- check if play has test function
+			Entrypoints["plays/" .. name] = function ()
+				s.test(s)
+			end
+		end
+	else
+		error("Invalid play! " .. name)
+	end
+end
+
+return Plays

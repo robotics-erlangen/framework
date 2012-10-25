@@ -1,0 +1,2 @@
+-- TODO: nice way to provide simple caching for computations
+-- TODO: reset every frame

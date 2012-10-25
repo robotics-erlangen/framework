@@ -1,0 +1,2 @@
+-- TODO: ball owner
+-- TODO: who is the first at the ball
