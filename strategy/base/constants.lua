@@ -1,0 +1,12 @@
+local Constants = {}
+
+-- measured by looking at the ball speed graph in the plotter
+Constants.ballDeceleration = -0.5 -- acceleration which brakes the ball [m/s^2]
+
+Constants.stopBallDistance = 0.5 -- distance to ball during stop [m]
+
+Constants.systemLatency = 0.1 -- total system latency [s]
+
+Constants.positionError = 0.005 -- possible position error from vision [m]
+
+return Constants

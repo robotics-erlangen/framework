@@ -1,0 +1,31 @@
+--[[
+--- Provides robot generations specific classes
+module "Robot.Generation.Gen2010_1"
+]]--
+local Robot = require "../base/robot"
+local Gen2010 = (require "../base/class").new("Robot.Generation.Gen2010_1", Robot)
+
+--- Robot specific constants
+-- @class table
+-- @name Gen2010_1.constants
+Gen2010.constants = {
+	dribblerSpinupTime = math.huge
+}
+
+--- Chip wrapper
+-- @name Gen2010_1:chip
+-- @param distance number - Distance to chip
+function Gen2010:chip(distance) -- not fixable
+	local power = distance / 3
+	self:shootChip(math.bound(0.1, power, 1))
+end
+
+--- Shoot wrapper
+-- @name Gen2010_1:_shoot
+-- @param speed number - Target shoot speed
+function Gen2010:_shoot(speed) -- not fixable
+	local power = (speed - 2) / 2.8
+	self:shootLinear(math.bound(0.1, power, 1))
+end
+
+return Gen2010

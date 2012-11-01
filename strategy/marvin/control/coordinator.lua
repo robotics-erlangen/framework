@@ -3,9 +3,9 @@ local Pool = {
 	Defense = require "pool/defense"
 }
 local TaskManager = require "control/taskmanager"
-local World = require "base/world"
+local World = require "../base/world"
 
-local Coordinator = (require "base/class").new("Control.Coordinator")
+local Coordinator = (require "../base/class").new("Control.Coordinator")
 
 function Coordinator:init()
 	self._taskmanager = TaskManager.create()

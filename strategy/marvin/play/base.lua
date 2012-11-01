@@ -1,4 +1,4 @@
-local Base = (require "base/class").new("Play.Base")
+local Base = (require "../base/class").new("Play.Base")
 
 Base.rating = {
 	no = 0,

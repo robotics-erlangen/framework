@@ -1,6 +1,6 @@
-local ManMark = (require "base/class").new("Task.ManMark", require "task/base")
+local ManMark = (require "../base/class").new("Task.ManMark", require "task/base")
 
-local World = require "base/world"
+local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 
 Base._priority = 3

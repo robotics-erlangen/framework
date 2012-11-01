@@ -1,4 +1,4 @@
-local Base = (require "base/class").new("Pool.Base")
+local Base = (require "../base/class").new("Pool.Base")
 
 -- attackers and defenders must be indexed by robot id
 function Base:init(tm, attackers, defenders)

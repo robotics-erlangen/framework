@@ -1,4 +1,4 @@
-local Attack = (require "base/class").new("Pool.Attack", require "pool/base")
+local Attack = (require "../base/class").new("Pool.Attack", require "pool/base")
 
 function Attack:_init(attackers, defenders)
 	-- TODO: assign attack robots

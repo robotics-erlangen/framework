@@ -1,4 +1,4 @@
-local TaskManager = (require "base/class").new("Control.TaskManager")
+local TaskManager = (require "../base/class").new("Control.TaskManager")
 
 local TaskManager:init()
 	-- TODO: init

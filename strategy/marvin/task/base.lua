@@ -1,4 +1,4 @@
-local Base = (require "base/class").new("Task.Base")
+local Base = (require "../base/class").new("Task.Base")
 
 Base._priority = 0
 
