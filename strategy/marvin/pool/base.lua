@@ -1,5 +1,6 @@
 local Base = (require "base/class").new("Pool.Base")
 
+-- attackers and defenders must be indexed by robot id
 function Base:init(tm, attackers, defenders)
 	self._taskmanager = tm
 	self._robotsDirty = true
@@ -46,8 +47,17 @@ function Base:addRobot(robot)
 	self._robotsDirty = true
 end
 
-function Base:robotCount()
-	return #self._robots
+function Base:removeHiddenRobots()
+	for i, robot in pairs(self._robots) do
+		if not robot.isVisible then
+			self._robots[i] = nil
+			self._robotsDirty = true
+		end
+	end
+end
+
+function Base:robots()
+	return self._robots
 end
 
 return Base

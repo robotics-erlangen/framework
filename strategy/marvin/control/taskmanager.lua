@@ -1,18 +1,17 @@
 local TaskManager = (require "base/class").new("Control.TaskManager")
 
-local TaskManager:init(robots)
-	self._robots = robots
-	-- TODO: !!always check if robot is controlled!!
+local TaskManager:init()
+	-- TODO: init
 end
 
-local TaskManager:assign(robot, tactic)
+local TaskManager:assign(robot, task)
 	-- TODO: set task for robot
-	-- TODO: do nothing if tactic is nil
+	-- TODO: do nothing if task is nil
 	-- TODO: throw error on override!
 end
 
-local TaskManager:tactic(robot)
-	-- TODO: return tactic or nil
+local TaskManager:task(robot)
+	-- TODO: return task or nil
 end
 
 local TaskManager:run()

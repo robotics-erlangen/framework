@@ -1,20 +1,34 @@
+local Pool = {
+	Attack = require "pool/attack",
+	Defense = require "pool/defense"
+}
+local TaskManager = require "control/taskmanager"
+local World = require "base/world"
+
 local Coordinator = (require "base/class").new("Control.Coordinator")
 
 function Coordinator:init()
-	self:assignGoalKeeper()
-	-- TODO: create robot pools
-	-- TODO: the keeper is always a defender!
-	-- TODO: assign robots 3/3
+	self._taskmanager = TaskManager.create()
+	
+	self:_assignGoalKeeper()
+	local attackers, defenders = self:_assignRobots()
+	self._attackPool = Pool.Attack.create(attackers, defenders)
+	self._defensePool = Pool.Defense.create(attackers, defenders)
 	
 	self._play = nil
 	self._forcePlay = nil
-	self._taskmanager = -- TODO: taskmanager
 end
 
 function Coordinator:run()
 	self:assignGoalKeeper()
 	self:observeGameState()
+	
+	self._attackPool:removeHiddenRobots()
+	self._defensePool:removeHiddenRobots()
+	
 	-- TODO: update robot count for pools
+	-- TODO: hysteresis
+	-- TODO: add new robots
 	
 	self._taskmanager:clearAll()
 	self:updatePlaySelection()
@@ -25,7 +39,8 @@ function Coordinator:run()
 		-- TODO: warning
 	end
 	
-	-- TODO: run pools
+	self._defensePool:run()
+	self._attackPool:run()
 	
 	self._taskmanager:run()
 end
@@ -33,10 +48,21 @@ end
 function Coordinator:observeGameState()
 	-- TODO: analyze field, ball owner, ball getter
 	-- TODO: decide how many robots to use for attack / defense
-	-- TODO: hysteresis
+	
+	-- evenly distribute robots between attack and defense
+	self._attackRatio = 0.5
 end
 
-function Coordinator:assignGoalKeeper()
+function Coordinator:_assignRobots()
+	-- assign robots alternating
+	-- start with keeper as defender
+	
+	-- TODO: the keeper is always a defender!
+	-- TODO: return attackers and defenders
+end
+
+function Coordinator:_assignGoalKeeper()
+	
 	-- TODO: tell TaskManager which robot should be the keeper
 end
 

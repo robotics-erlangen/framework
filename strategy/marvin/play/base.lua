@@ -37,7 +37,7 @@ function Base:handle...()
 	error("stub")
 end
 
-function Base:_assignTactics(tactics)
+function Base:_assignTasks(tasks)
 	-- TODO: assign helper function
 	-- TODO: assign according to internal robot list
 end

@@ -6,7 +6,7 @@ require "control/coordinator" -- TODO: include main strategy
 
 -- TODO: include plays
 
--- TODO: include tactics
+-- TODO: include tasks
 
 -- TODO: include tests
 
