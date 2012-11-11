@@ -23,7 +23,8 @@ local Generation = require "../base/generation"
 -- Halt, Stop, Game, GameForce,
 -- KickoffOffensivePrepare, KickoffDefensivePrepare, KickoffOffensive, KickoffDefensive,
 -- PenaltyOffensivePrepare, PenaltyDefensivePrepare, PenaltyOffensive, PenaltyDefensive,
--- DirectOffensive, DirectDefensive, IndirectOffensive, IndirectDefensive
+-- DirectOffensive, DirectDefensive, IndirectOffensive, IndirectDefensive,
+-- TimeoutOffensive, TimeoutDefensive
 
 local World = {}
 
