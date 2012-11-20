@@ -3,7 +3,7 @@ local ManMark = (require "../base/class").new("Task.ManMark", require "task/base
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 
-Base._priority = 3
+ManMark._priority = 3
 
 function ManMark:_init(targetRobot)
 	self._targetRobot = targetRobot
