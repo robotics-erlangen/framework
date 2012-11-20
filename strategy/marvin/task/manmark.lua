@@ -5,11 +5,11 @@ local ToTarget = require "trajectory/totarget"
 
 Base._priority = 3
 
-function Base:_init(targetRobot)
+function ManMark:_init(targetRobot)
 	self._targetRobot = targetRobot
 end
 
-function Base:_run()
+function ManMark:_run()
 	local targetPos = self._targetRobot.pos
 	local ballPos = World.Ball.pos
 	
