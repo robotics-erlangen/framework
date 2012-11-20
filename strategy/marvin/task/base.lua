@@ -1,13 +1,17 @@
 local Base = (require "../base/class").new("Task.Base")
 
-Base._priority = 0
+Base.priority = 0
 
 function Base:init(robot, ...)
 	self._robot = robot
 	self:_init(...)
-	if self._priority == 0 then
+	if self.priority == 0 then
 		error("priority not set")
 	end
+end
+
+function Base:robot()
+	return self._robot
 end
 
 function Base:_init(...)
