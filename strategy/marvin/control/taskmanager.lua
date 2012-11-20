@@ -1,33 +1,72 @@
 local TaskManager = (require "../base/class").new("Control.TaskManager")
 
 local TaskManager:init()
-	-- TODO: init
+	self._assignment = {}
+	self._lastAssignment = {}
+	self._messages = {}
+	self._keeper = nil
 end
 
 local TaskManager:assign(robot, task)
-	-- TODO: set task for robot
-	-- TODO: do nothing if task is nil
-	-- TODO: throw error on override!
+	-- ignore setting a nil task
+	if task == nil then
+		return
+	end
+	if self._assignment[robot] then
+		log(robot)
+		error("Robot assigned twice")
+	end
+	self._assignment[robot] = task
 end
 
 local TaskManager:task(robot)
-	-- TODO: return task or nil
+	return self._assignment[robot]
 end
 
 local TaskManager:run()
-	-- TODO: create message tables for each task - one table for task that have priority and one for the other
-	-- TODO: don't include the tasks own message!!!
-	-- TODO: execute every task
-	-- TODO: save messages from task by robot
-	-- TODO: clear tasks afterwards
+	local messages = {}
+	
+	for robot, task in pairs(self._assignment) do
+		-- verify that each task uses the right robot
+		if task:robot() ~= robot then
+			error("Robot got wrong task")
+		end
+		local priorityMessages = {}
+		local notifications = {}
+		
+		-- create message tables for task
+		for lrobot, message in pairs(self._messages) do
+			local lastTask = self._lastAssignment[lrobot]
+			local currentTask = self._assignment[lrobot]
+			-- drop message if the task for that robot was changed
+			-- don't send own message to task
+			if lastTask == currentTask and currentTask ~= task then
+				-- currentTask has priority if his priority is higher then task's priority or when both are equal and his robot id is lower
+				if currentTask.priority > task.priority
+						or (currentTask.priority == task.priority and lrobot.id < robot.id) then
+					table.insert(priorityMessages, message)
+				else
+					table.insert(notifications, message)
+				end
+			end
+		end
+		
+		messages[robot] = task:run(priorityMessages, notifications)
+	end
+	
+	self._messages = messages
+	
+	-- clear current tasks
+	self._lastAssignment = self._assignment
+	self._assignment = {}
 end
 
 local TaskManager:setKeeper(robot)
-	-- TODO: save keeper
+	self._keeper = robot
 end
 
 local TaskManager:keeper()
-	-- TODO: return keeper
+	return self.keeper
 end
 
 return TaskManager
