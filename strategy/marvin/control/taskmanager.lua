@@ -22,7 +22,7 @@ local TaskManager:run()
 	-- TODO: clear tasks afterwards
 end
 
-local TaskManager:_setKeeper(robot)
+local TaskManager:setKeeper(robot)
 	-- TODO: save keeper
 end
 
