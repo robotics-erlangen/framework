@@ -1,6 +1,6 @@
 --- Loads every play and publishes test functions
 local Plays = {
-	Example = require "play/example"
+	KickoffOffensive = require "play/kickoffoffensive"
 	-- TODO: add plays
 }
 

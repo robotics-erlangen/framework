@@ -1,6 +1,6 @@
 --- Loads every task and publishes test functions
 local Tasks = {
-	Example = require "task/example"
+	ManMark = require "task/manmark"
 	-- TODO add tasks
 }
 
