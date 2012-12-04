@@ -16,6 +16,38 @@ function KickoffOffensive:_init()
 	self:setState("Formation")
 end
 
+function KickoffOffensive.startRating(attackers, defenders, _)
+	-- no minRating required, because rating can reach "referee"
+	if not attackers[1] then
+		return rating.no
+	end
+	if World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
+		return rating.referee
+	else
+		return rating.no
+	end
+end
+
+function KickoffOffensive:currentRating()
+	if not attackers[1] then
+		return rating.no
+	end
+	if World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
+		return rating.referee
+	elseif World.RefereeState == "Game" then
+		-- TODO: 
+		-- Bewertungsfunktionen implementieren:
+		--	Der Play bricht sich ab (Bewertung -> Nein), wenn wir geschossen haben und
+		--		1. Wir den Ball wieder haben
+		--		2. Der Gegner den Ball hat
+		--		3. Der Gegner den Ball haben wird
+		--	ansonsten ja
+	else
+		return rating.no
+	end
+
+end
+
 function KickoffOffensive.selectRobots(attackers, defenders)
 	local robots = table.append(table.copy(attackers), defenders) -- use attackers AND defenders
 	robots, _ = RobotMatcher.match(robots, 4, nil, nil) -- TODO use conditions if needed
@@ -46,6 +78,18 @@ function KickoffOffensive:handleFormation()
 		decideCase()
 	end
 end
+
+--[[
+	TODO
+		- aufs regelkonforme Timing achten:
+			Roboter sollen nicht vorm ersten Schuss über die Mittellinie fahren
+			Idee: vor dem Schuss die gegnerische Spielfeldhälfte als Hindernis übergeben?
+			TESTEN!
+		- Pässe implementieren
+			Anstoß soll möglichst ohne Verzögerung passieren!
+			Startbewertungskategorien: Schiedsrichter, Nein
+			Laufbewertungskategorien: Schiedsrichter, Ja (bei Befehl = Game), Nein
+--]]
 
 function KickoffOffensive:prepareMidEmpty()
 	self._tasks = {self._robots[1] and Task.ShootGoal.create(self._robots[1]) or nil} -- ballie shoots goal
