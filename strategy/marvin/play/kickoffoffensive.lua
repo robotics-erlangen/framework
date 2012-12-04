@@ -73,9 +73,9 @@ function KickoffOffensive:prepareFormation()
 end
 
 function KickoffOffensive:handleFormation()
-	self._assignTasks(tasks)
+	self:_assignTasks(tasks)
 	if World.RefereeState == "KickoffOffensive" then
-		decideCase()
+		self:decideCase()
 	end
 end
 
@@ -96,7 +96,7 @@ function KickoffOffensive:prepareMidEmpty()
 end
 
 function KickoffOffensive:handleMidEmpty()
-	self._assignTasks(tasks)
+	self:_assignTasks(tasks)
 end
 
 function KickoffOffensive:prepareMajority()
@@ -111,7 +111,7 @@ function KickoffOffensive:prepareMajority()
 end
 
 function KickoffOffensive:handleMajority()
-	self._assignTasks(tasks)
+	self:_assignTasks(tasks)
 end
 
 function KickoffOffensive:prepareUseQuarterback()
@@ -126,7 +126,7 @@ function KickoffOffensive:prepareUseQuarterback()
 end
 
 function KickoffOffensive:handleUseQuarterback()
-	self._assignTasks(tasks)
+	self:_assignTasks(tasks)
 end
 
 function KickoffOffensive:prepareDefault()
@@ -141,11 +141,11 @@ function KickoffOffensive:prepareDefault()
 end
 
 function KickoffOffensive:handleDefault()
-	self._assignTasks(tasks)
+	self:_assignTasks(tasks)
 end
 
 
-local function KickoffOffensive:decideCase()
+function KickoffOffensive:decideCase()
 	 -- divide the field into three sectors
 	 -- _________________________ <- opponent's goal line
 	 -- |       |       |       |
