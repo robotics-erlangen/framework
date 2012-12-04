@@ -7,11 +7,12 @@ local TaskManager:init()
 	self._keeper = nil
 end
 
-local TaskManager:assign(robot, task)
+local TaskManager:assign(task)
 	-- ignore setting a nil task
 	if task == nil then
 		return
 	end
+	local robot = task:robot()
 	if self._assignment[robot] then
 		log(robot)
 		error("Robot assigned twice")
@@ -44,9 +45,9 @@ local TaskManager:run()
 				-- currentTask has priority if his priority is higher then task's priority or when both are equal and his robot id is lower
 				if currentTask.priority > task.priority
 						or (currentTask.priority == task.priority and lrobot.id < robot.id) then
-					table.insert(priorityMessages, message)
+					priorityMessages[lrobot] = message
 				else
-					table.insert(notifications, message)
+					notifications[lrobot] = message
 				end
 			end
 		end
