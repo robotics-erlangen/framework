@@ -33,10 +33,10 @@ function KickoffOffensive:prepareFormation()
 	local innerPos = Vector.create((self._side and 1 or -1) * G.FieldWidthHalf * 0.5, -3 * self._robots[4].radius)
 	
 	self._tasks = {
-		Task.MoveToPos.create(self._robots[1], balliePos, math.pi/2),
-		Task.MoveToPos.create(self._robots[2], innerPos, math.pi/2),
-		Task.MoveToPos.create(self._robots[3], quarterbackPos, math.pi/2),
-		Task.MoveToPos.create(self._robots[4], outerPos, math.pi/2),
+		self._robots[1] and Task.MoveToPos.create(self._robots[1], balliePos, math.pi/2) or nil,
+		self._robots[2] and Task.MoveToPos.create(self._robots[2], innerPos, math.pi/2) or nil,
+		self._robots[3] and Task.MoveToPos.create(self._robots[3], quarterbackPos, math.pi/2) or nil,
+		self._robots[4] and Task.MoveToPos.create(self._robots[4], outerPos, math.pi/2) or nil,
 	}
 end
 
@@ -48,38 +48,56 @@ function KickoffOffensive:handleFormation()
 end
 
 function KickoffOffensive:prepareMidEmpty()
-	self._tasks = {Task.ShootGoal.create(self._robots[1])} -- ballie shoots goal
+	self._tasks = {self._robots[1] and Task.ShootGoal.create(self._robots[1]) or nil} -- ballie shoots goal
 end
 
 function KickoffOffensive:handleMidEmpty()
-
+	self._assignTasks(tasks)
 end
 
 function KickoffOffensive:prepareMajority()
+	local mirroredTargetPos = Vector.create((self.side and -1 or 1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
+	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*r[1].radius)
 	self._tasks = {
-	-- 1: Laufpass an 2
-	-- 2: Laufpass von 1 annehmen
-	Task.MoveTo.create(self._robots[3] -- TODO: fertig machen
+		-- 1: Laufpass an 2
+		-- 2: Laufpass von 1 annehmen
+		self._robots[3] and Task.Assistant.create(self._robots[3], mirroredTargetPos, G.FieldWidthQuarter) or nil,
+		self._robots[4] and Task.MoveToPos.create(self._robots[4], backPos, math.pi/2) or nil,
+	}
 end
 
 function KickoffOffensive:handleMajority()
-
+	self._assignTasks(tasks)
 end
 
 function KickoffOffensive:prepareUseQuarterback()
-
+	local mirroredTargetPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
+	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*r[1].radius)
+	self._tasks = {
+		--1: Laufpass an 3
+		self._robots[2] and Task.MoveToPos.create(self._robots[2], backPos, math.pi/2) or nil,
+		--3: Laufpass von 1 annehmen
+		self._robots[4] and Task.Assistant.create(self._robots[4], mirroredTargetPos, G.FieldWidthQuarter),
+	}
 end
 
 function KickoffOffensive:handleUseQuarterback()
-
+	self._assignTasks(tasks)
 end
 
 function KickoffOffensive:prepareDefault()
-
+	local mirroredTargetPos = Vector.create((self.side and -1 or 1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
+	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*r[1].radius)
+	self._tasks = {
+		-- 1: Laufpass an 4
+		self._robots[2] and Task.MoveToPos.create(self._robots[2], backPos, math.pi/2) or nil,
+		self._robots[3] and Task.Assistant.create(self._robots[3], mirroredTargetPos, G.FieldWidthQuarter) or nil,
+		-- 4: Laufpass von 1 annehmen
+	}
 end
 
 function KickoffOffensive:handleDefault()
-
+	self._assignTasks(tasks)
 end
 
 
