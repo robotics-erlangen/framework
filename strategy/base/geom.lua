@@ -113,6 +113,27 @@ function geom.intersectLinesByPoints(p1, p2, q1, q2)
 	return geom.intersectLineLine(p1, p2-p1, q1, q2-q1)
 end
 
+--- Calculates the point on a line with the shortest distance to a given point
+-- the distance between the line and the point equals the result of distanceToLineSegment
+-- @param p Vector - any point
+-- @param lineStart Vector - the start point of the line
+-- @param lineEnd Vector - the end point of the line
+function geom.nearestPosOnLine(p, lineStart, lineEnd)
+	local dir = (lineEnd - lineStart):normalize()
+	if (p - lineStart):dot(dir) < 0 then
+		return lineStart
+	elseif (p - lineEnd):dot(dir) > 0 then
+		return lineEnd
+	end
+	--TODO: test
+	local d1, d2 = dir.x, dir.y
+	local p1, p2 = lineStart.x, lineStart.y
+	local a1, a2 = p.x, p.y
+	local x1 = (d1*d1*a1 + d1*d2*(a2-p2) + d2*d2*p1)/(d1*d1 + d2*d2)
+	local x2 = (d2*d2*a2 + d2*d1*(a1-p1) + d1*d1*p2)/(d2*d2 + d1*d1)
+	return Vector.create(x1, x2)
+end
+
 --- Calculates area of a triangle.
 -- Using cross product.
 -- @param p1 Vector - first corner of triangle

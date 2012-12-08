@@ -1,6 +1,5 @@
 local Ball = {} 
 
--- TODO: ball owner
 -- TODO: who is the first at the ball
 
 local World = require "../base/world"
