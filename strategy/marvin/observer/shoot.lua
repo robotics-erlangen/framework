@@ -57,29 +57,32 @@ end
 -- @param corridorHalf Vector - the ball can only be catched in [catchPos-corridorHalf, catchPos+corridorHalf]
 function Shoot.ballCatchProbability(robot, time, catchPos, corridorHalf)
 	local corridorWidthHalf = corridorHalf:length()
-	local v_toSector = abs(robot.speed:dot(corridorHalf:normalize()))
+	local v_toSector = abs(robot.speed:dot(corridorHalf:normalize())) -- part of robot.speed perpendicular to shoot corridor
 	local maxAcceleration = 3 -- magic constant
 	local maxDeceleration = 5 -- magic constant
-	local expectedPos = v_toSector*time
+	local expectedPos = v_toSector*time -- position, which the robot reaches without changing speed
 	local startReachSector = expectedPos - robot.radius - corridorWidthHalf
 	local exitSector = expectedPos + robot.radius + corridorWidthHalf
-	local furthestTarget = exitSector + 0.5*maxAcceleration*time^2
-	local nearestTarget = startReachSector - 0.5*maxDeceleration*time^2
-	local function _P(x)
+	local furthestTarget = exitSector + 0.5*maxAcceleration*time^2 -- position, which the front of the robot covers with maxAcceleration
+	local nearestTarget = startReachSector - 0.5*maxDeceleration*time^2 -- position, which the back of the robot covers with maxDeceleration
+	
+	local function _P(x) -- TODO: Schauen, ob die Funktion Zugriff auf die lokalen Variablen hat
 		if x > nearestTarget and x < furthestTarget then
 			if x < startReachSector then
-				return (0.5*maxAcceleration*time^2)^(-2)*(x - nearestTarget)^2
+				return (0.5*maxAcceleration*time^2)^(-2)*(x - nearestTarget)^2	-- right half of a parable
 			else if x < exitSector then
-				return 1
+				return 1														-- constant 1
 			else
-				return (0.5*maxDeceleration*time^2)^(-2)*(x - furthestTarget)^2
+				return (0.5*maxDeceleration*time^2)^(-2)*(x - furthestTarget)^2	-- left half of a parable
 			end
 		else
-			return 0
+			return 0															-- constant 0
 		end
-	end
+	end -- continuous function that rates a point on a line perpendicular to the shoot corridor
+	
 	distToSector = (robot.pos - catchPos):length()
-	return max(_P(distToSector+robot.radius+corridorWidthHalf), _P(distToSector-robot.radius-corridorWidthHalf))
+	return max(_P(distToSector + robot.radius + corridorWidthHalf), _P(distToSector - robot.radius - corridorWidthHalf)) -- rate both edges of the shoot corridor
+	-- the higher probability is the one that the opponents desire -> return the higher probability
 end
 
 return Shoot
