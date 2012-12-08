@@ -196,12 +196,16 @@ function Robot:chip(distance)
 	log("Error: no implementation for function chip for robot generation "..self.generation)
 end
 
+function Robot.calculateShootSpeed(destSpeed, distance)
+	distance = distance + destSpeed*destSpeed/(2*math.abs(Constants.ballDeceleration))
+	return math.sqrt(2*math.abs(Constants.ballDeceleration)*distance)
+end
+
 --- Shoot function wrapper
 -- @param destSpeed number - Ball speed at destination
 -- @param distance number - Distance to shoot
 function Robot:shoot(destSpeed, distance)
-	distance = distance + destSpeed*destSpeed/(2*math.abs(Constants.ballDeceleration))
-	local speed = math.sqrt(2*math.abs(Constants.ballDeceleration)*distance)
+	local speed = calculateShootSpeed(destSpeed, distance)
 	self:_shoot(speed)
 end
 
