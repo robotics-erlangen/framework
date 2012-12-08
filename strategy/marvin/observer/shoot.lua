@@ -56,8 +56,30 @@ end
 -- @param catchPos Vector - where the robot might catch the ball
 -- @param corridorHalf Vector - the ball can only be catched in [catchPos-corridorHalf, catchPos+corridorHalf]
 function Shoot.ballCatchProbability(robot, time, catchPos, corridorHalf)
-
-
+	local corridorWidthHalf = corridorHalf:length()
+	local v_toSector = abs(robot.speed:dot(corridorHalf:normalize()))
+	local maxAcceleration = 3 -- magic constant
+	local maxDeceleration = 5 -- magic constant
+	local expectedPos = v_toSector*time
+	local startReachSector = expectedPos - robot.radius - corridorWidthHalf
+	local exitSector = expectedPos + robot.radius + corridorWidthHalf
+	local furthestTarget = exitSector + 0.5*maxAcceleration*time^2
+	local nearestTarget = startReachSector - 0.5*maxDeceleration*time^2
+	local function _P(x)
+		if x > nearestTarget and x < furthestTarget then
+			if x < startReachSector then
+				return (0.5*maxAcceleration*time^2)^(-2)*(x - nearestTarget)^2
+			else if x < exitSector then
+				return 1
+			else
+				return (0.5*maxDeceleration*time^2)^(-2)*(x - furthestTarget)^2
+			end
+		else
+			return 0
+		end
+	end
+	distToSector = (robot.pos - catchPos):length()
+	return max(_P(distToSector+robot.radius+corridorWidthHalf), _P(distToSector-robot.radius-corridorWidthHalf))
 end
 
 return Shoot
