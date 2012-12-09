@@ -125,7 +125,7 @@ function geom.nearestPosOnLine(p, lineStart, lineEnd)
 	elseif (p - lineEnd):dot(dir) > 0 then
 		return lineEnd
 	end
-	--TODO: test
+	--the code below this line does the same as Vector.orthogonalProjection
 	local d1, d2 = dir.x, dir.y
 	local p1, p2 = lineStart.x, lineStart.y
 	local a1, a2 = p.x, p.y

@@ -5,21 +5,24 @@ local World = require "../base/world"
 local Settings = require "settings"
 local Robot = require "observer/robot"
 
--- Idee: statt boolschen Wert eine Wahrscheinlichkeit zurueckgeben
--- gegner kann beschleunigen/bremsen
--- dreieckige Wahrscheinlichkeitsverteilung fuer die zukuenftige Position
--- ueber Schnittmenge mit dem Korridor kann man Wahrscheinlichkeit dafuer berechnen,
--- 		dass der Gegner den Ball abfaengt
--- Gesamtwahrscheinlichkeit fuer den Erfolg des Passes
--- = Produkt ueber (1 - Abfangwahrscheinlichkeit_i)
-function Shoot.checkCorridor(targetRobot, shootTime)
+
+--- Calculates the chance that a pass to the targetRobot will succeed
+-- in terms of opponent robots catching the ball
+-- @param targetRobot Robot - the pass target
+-- @param shootTime number - the time when the ballie shoots
+function Shoot.evaluateCorridor(targetRobot, shootTime)
 	-- TODO: test
-	local corridorWidthHalf = World.Ball.radius + Constants.positionError
-	local corridorHalf = (targetRobot.pos - World.Ball.radius):perpendicular():setLength(corridorWidthHalf)
+	local corridorWidthHalf = World.Ball.radius + Constants.positionError	-- code copy-pasted from wopr/prediction/ball
+
+	local targetPos = targetRobot.trajectory:predictPos(shootTime)
+	local ballPos = Ball.atTime(shootTime)
+
+	local corridorHalf = (targetPos - ballPos):perpendicular():setLength(corridorWidthHalf)
+	
 	local passChance = 1
 	for _, robot in pairs(World.OpponentRobots) do
-		local pointOnLine = geom.nearestPosOnLine(robot.pos, World.Ball.pos, targetRobot.pos)
-		local ballCatchTime = shootTime + Shoot.ballRollTime(targetRobot, (World.Ball.pos - pointOnLine):length())
+		local pointOnLine = geom.nearestPosOnLine(robot.pos, ballPos, targetPos)
+		local ballCatchTime = shootTime + Shoot.ballPassTime(ballPos, targetRobot, targetPos, (ballPos - pointOnLine):length())
 		local ballCatchProbability = Shoot.ballCatchProbability(robot, ballCatchTime, pointOnLine, corridorHalf)
 		passChance = passChance * (1 - ballCatchProbability)
 	end
@@ -27,27 +30,14 @@ function Shoot.checkCorridor(targetRobot, shootTime)
 end
 
 --- Calculates how long the ball will take when passed to travel the given distance
+-- @param futureBallPos Vector - where the ball will be when we shoot
 -- @param targetRobot Robot - the pass target
+-- @param targetPos Vector - where the targetRobot will be
 -- @param distance number - the distance
-function Shoot.ballRollTime(targetRobot, distance) 
-	local a = Constants.ballDeceleration
-	local passDistance = (targetRobot.pos - World.Ball.pos):length()
+function Shoot.ballPassTime(futureBallPos, targetRobot, targetPos, distance) 
+	local passDistance = (targetPos - futureBallPos):length()
 	local v = targetRobot.calculateShootSpeed(targetRobot.passSpeed, passDistance)
-	local discriminant = v*v + 2*a*distance
-	if discriminant < 0 then -- should never happen
-		error("Observer.Shoot.ballRollTime: invalid distance")
-		return math.huge
-	end
-	local discriminantRoot = math.sqrt(discriminant)
-	local t1 = (-v + discriminantRoot)/(2*a)
-	local t2 = (-v - discriminantRoot)/(2*a)
-	if t1 > 0 then
-		return t1
-	else if t2 > 0 then
-		return t2
-	else
-		return math.huge
-	end
+	return Shoot.ballRollTime(v, distance)
 end
  
 --- Calculates the probability that the given opponent robot catches the ball
