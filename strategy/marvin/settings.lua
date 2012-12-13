@@ -6,5 +6,6 @@ Settings.forceKeeperId = nil -- set to robot id to force using this robot as kee
 
 Settings.ballOwnDistance = 0.05
 Settings.ballOwnHysterese = 0.1
+Settings.keeperGoalDistance = 0.05 --used in task/keeper
 
 return Settings
