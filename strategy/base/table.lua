@@ -67,4 +67,16 @@ function table.min(t)
 	return min
 end
 
+--- Maps a function over an array.
+-- @param array table - Array to map over
+-- @param f function - map function
+-- @return table - mapped array
+function table.map(array, f)
+	local mapped = {}
+	for _, entry in pairs(array) do
+		table.insert(mapped, f(entry))
+	end
+	return mapped
+end
+
 return table
