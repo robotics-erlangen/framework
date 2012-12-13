@@ -13,7 +13,7 @@ function Ball.ballOwner()
 	-- tests if the current ball owner still got the ball
 	if lastBallOwner then
 		local distSq = (lastBallOwner.pos - World.Ball.pos):lengthSq()
-		if distSq > (Settings.ballOwnDistance + Settings.ballOwnHysterese)^2 then
+		if distSq > (Settings.ballOwnDistance + Settings.ballOwnHysteresis)^2 then
 			lastBallOwner = nil
 		end
 	end
@@ -46,9 +46,9 @@ function Ball.ballRollTime(v, distance)
 	local discriminantRoot = math.sqrt(discriminant)
 	local t1 = (-v + discriminantRoot)/(2*a)
 	local t2 = (-v - discriminantRoot)/(2*a)
-	if t1 > 0 then
+	if t1 >= 0 then
 		return t1
-	else if t2 > 0 then
+	else if t2 >= 0 then
 		return t2
 	else
 		return math.huge
@@ -63,17 +63,17 @@ function Ball.atTime(t)
 
 	local ballAt = function (t)
 		-- p_b(t) = p_b + v_b(t0) * t + a_b(t0) * t^2/2
-		return World.Ball.pos + World.Ball.speed * t + World.Ball.deceleration * (t^2/2) -- (8)
+		return World.Ball.pos + World.Ball.speed * t + World.Ball.speed:normalized() * World.Ball.deceleration * (t^2/2)
 	end
 	
-	local predicted = { radius = World.Ball.radius, visible = World.Ball.visible }
+	local predicted -- = { radius = World.Ball.radius, visible = World.Ball.visible }
 	if t > World.Ball.brakeTime then -- ball won't move anymore after it has stopped
 		predicted.pos = ballAt(World.Ball.brakeTime)
 		predicted.speed = Vector.create(0, 0)
 		predicted.brakeTime = 0
 	else
 		predicted.pos = ballAt(t)
-		predicted.speed = World.Ball.speed + World.Ball.deceleration * t
+		predicted.speed = World.Ball.speed + World.Ball.speed:normalized() * World.Ball.deceleration * t
 		predicted.brakeTime = World.Ball.brakeTime - t
 	end
 	predicted.deceleration = World.Ball.deceleration

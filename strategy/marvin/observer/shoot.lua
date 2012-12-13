@@ -15,14 +15,14 @@ function Shoot.evaluateCorridor(targetRobot, shootTime)
 	local corridorWidthHalf = World.Ball.radius + Constants.positionError	-- code copy-pasted from wopr/prediction/ball
 
 	local targetPos = targetRobot.trajectory:predictPos(shootTime)
-	local ballPos = Ball.atTime(shootTime)
+	local predictedBallState = Ball.atTime(shootTime)
 
-	local corridorHalf = (targetPos - ballPos):perpendicular():setLength(corridorWidthHalf)
+	local corridorHalf = (targetPos - predictedBallState.pos):perpendicular():setLength(corridorWidthHalf)
 	
 	local passChance = 1
 	for _, robot in pairs(World.OpponentRobots) do
-		local pointOnLine = geom.nearestPosOnLine(robot.pos, ballPos, targetPos)
-		local ballCatchTime = shootTime + Shoot.ballPassTime(ballPos, targetRobot, targetPos, (ballPos - pointOnLine):length())
+		local pointOnLine = geom.nearestPosOnLine(robot.pos, predictedBallState.pos, targetPos)
+		local ballCatchTime = shootTime + Shoot.ballPassTime(predictedBallState.pos, targetRobot, targetPos, (predictedBallState.pos - pointOnLine):length())
 		local ballCatchProbability = Shoot.ballCatchProbability(robot, ballCatchTime, pointOnLine, corridorHalf)
 		passChance = passChance * (1 - ballCatchProbability)
 	end
@@ -37,7 +37,7 @@ end
 function Shoot.ballPassTime(futureBallPos, targetRobot, targetPos, distance) 
 	local passDistance = (targetPos - futureBallPos):length()
 	local v = targetRobot.calculateShootSpeed(targetRobot.passSpeed, passDistance)
-	return Shoot.ballRollTime(v, distance)
+	return Ball.ballRollTime(v, distance)
 end
  
 --- Calculates the probability that the given opponent robot catches the ball
