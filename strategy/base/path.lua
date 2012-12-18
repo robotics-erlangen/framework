@@ -92,6 +92,14 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
+--- Sets robot radius for obstacle checking
+-- @class function
+-- @name path:setRadius
+-- @param radius number - minimum required corridor size
+
+--[[
+separator for luadoc]]--
+
 --- Generates a new path using RRT.
 -- Accounts for obstacles. The returned waypoints include the start point
 -- @class function
@@ -100,7 +108,6 @@ separator for luadoc]]--
 -- @param start_y number - y coordinate of start point
 -- @param end_x number - x coordinate of end point
 -- @param end_y number - y coordinate of end point
--- @param radius number - minimum required corridor size
 -- @return {p_x, p_y, left, right}[] - waypoints and corridor widths for the way to a waypoint
 
 --[[
