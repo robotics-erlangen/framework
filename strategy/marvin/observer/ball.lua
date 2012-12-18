@@ -4,6 +4,7 @@ local Ball = {}
 
 local World = require "../base/world"
 local Settings = require "settings"
+local Field = require "util/field"
 
 
 local lastBallOwner
@@ -80,7 +81,7 @@ function Ball.atTime(t)
 	
 	-- limit ball position to field, keeps reachBallPos from timing out
 	-- makes even much more sense, as the ball can only be catched inside the field
-	predicted.pos = util.limitToField(predicted.pos, World.Geometry.BoundaryWidth - 0.09) -- FIXME magic constant, robot radius
+	predicted.pos = Field.limitToField(predicted.pos, World.Geometry.BoundaryWidth)
 	
 	return predicted
 end
