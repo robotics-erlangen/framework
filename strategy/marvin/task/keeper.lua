@@ -30,4 +30,4 @@ function keeper:_run(priorityMessages, notifications)
 	end
 end
 
-return Goalkeeper
+return keeper
