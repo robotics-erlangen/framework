@@ -70,7 +70,6 @@ function Robot:_update(state, teamIsBlue, time)
 	self:shootDisable()
 	self:setDribblerSpeed(nil)
 	self:setStandby(nil)
-	self._direct = false -- HACK
 
 	if not state then
 		if self.isVisible ~= false then
@@ -129,41 +128,21 @@ function Robot:_setSpecs(specs)
 end
 
 function Robot:_setCommand()
-	if self._direct then
-		amun.setCommand(self.id, -- HACK
-		{
-			v_s = self._v_x,
-			v_f = self._v_y,
-			omega = self._omega,
-			kick_style = self._kickStyle,
-			kick_power = self._kickPower,
-			dribbler = self._dribblerSpeed,
-			standby = self._standby
-		})
-	else
-		amun.setCommand(self.id,
-		{
-			controller = self._controllerInput,
-			kick_style = self._kickStyle,
-			kick_power = self._kickPower,
-			dribbler = self._dribblerSpeed,
-			standby = self._standby
-		})
-	end
-end
-
--- HACK remove together with other hacks!
-function Robot:setDirectControl(v_x,v_y,omega)
-	self._direct = true
-	
-	self._v_x = v_x
-	self._v_y = v_y
-	self._omega = omega
+	amun.setCommand(self.id, {
+		controller = self._controllerInput,
+		kick_style = self._kickStyle,
+		kick_power = self._kickPower,
+		dribbler = self._dribblerSpeed,
+		standby = self._standby
+	})
 end
 
 --- Set output from trajectory planing on robot
 -- @param input Vector[] - Target points for the controller, in global coordinates! (not strategy coordinates)
 function Robot:setControllerInput(input)
+	if input and self._controllerInput then
+		error("Setting controller input twice")
+	end
 	self._controllerInput = input
 end
 
@@ -205,7 +184,7 @@ end
 -- @param destSpeed number - Ball speed at destination
 -- @param distance number - Distance to shoot
 function Robot:shoot(destSpeed, distance)
-	local speed = calculateShootSpeed(destSpeed, distance)
+	local speed = self.calculateShootSpeed(destSpeed, distance)
 	self:_shoot(speed)
 end
 

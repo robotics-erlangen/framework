@@ -8,8 +8,8 @@ local Trajectory =  (require "../base/class").new("Trajectory") -- Trajectory ma
 -- Must only be called by robot class!
 -- @param robot Robot - robot to handle
 function Trajectory:init(robot)
-	self.robot = robot
-	self.handler = nil
+	self._robot = robot
+	self._handler = nil
 end
 
 --- Update trajectory.
@@ -17,10 +17,17 @@ end
 -- @param handlerType Table - must be a subclass of Trajectory.Base
 -- @param ... any - passed on to trajectory handler
 function Trajectory:update(handlerType, ...)
-	if not (self.handler and self.handler:instanceOf(handlerType) and self.handler:canHandle(...)) then
-		self.handler = handlerType.create(self.robot)
+	if not (self._handler and self._handler:instanceOf(handlerType) and self._handler:canHandle(...)) then
+		self._handler = handlerType.create(self._robot)
 	end
-	return self.handler:update(...)
+	local splines, moveDest, moveTime = self._handler:update(...)
+
+	self._robot:setControllerInput(splines)
+
+	local vis = require "../base/vis"
+	vis.addPath("MoveTo", {self._robot.pos, moveDest}, vis.colors.whiteHalf)
+	vis.addCircle("MoveTo", moveDest, self._robot.radius, vis.colors.yellowHalf, true)
+	return moveDest, moveTime
 end
 
 return Trajectory
