@@ -13,8 +13,10 @@ local Generation = require "../base/generation"
 -- @field FriendlyRobots Robot[] - List of own robots in an arbitary order
 -- @field FriendlyInvisibleRobots Robot[] - Own robots which currently aren't tracked
 -- @field FriendlyRobotsById Robot[] - List of own robots with robot id as index
+-- @field FriendlyKeeper Robot - Own keeper if on field or nil
 -- @field OpponentRobots Robot[] - List of opponent robots in an arbitary order
 -- @field OpponentRobotsById Robot[] - List of opponent robots with robot id as index
+-- @field OpponentKeeper Robot - Opponent keeper if on field or nil
 -- @field Robots Robot[] - Every visible robot in an arbitary order
 -- @field TeamIsBlue bool - True if we are the blue team, otherwise were yellow
 -- @field Time number - Current unix timestamp in seconds (with nanoseconds precision)
@@ -190,6 +192,21 @@ function World._updateGameState(state)
 		World.RefereeState = "Halt"
 	end
 
+	local friendlyKeeperId = 1
+	local opponentKeeperId = 1
+
+	local friendlyKeeper = World.FriendlyRobotsById[friendlyKeeperId]
+	if friendlyKeeper and not friendlyKeeper.isVisible then
+		friendlyKeeper = nil
+	end
+
+	local opponentKeeper = World.OpponentRobotsById[opponentKeeperId]
+	if opponentKeeper and not opponentKeeper.isVisible then
+		opponentKeeper = nil
+	end
+
+	World.FriendlyKeeper = friendlyKeeper
+	World.OpponentKeeper = opponentKeeper
 	-- required Phase phase = 1;
 	-- required int32 goals_blue = 3;
 	-- required int32 goals_yellow = 4;
