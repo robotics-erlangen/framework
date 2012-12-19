@@ -186,6 +186,10 @@ function World._updateGameState(state)
 		World.RefereeState = refState:gsub("Yellow", "Offensive"):gsub("Blue", "Defensive")
 	end
 	
+	if World.RefereeState == "TimeoutOffensive" or World.RefereeState == "TimeoutDefensive" then
+		World.RefereeState = "Halt"
+	end
+
 	-- required Phase phase = 1;
 	-- required int32 goals_blue = 3;
 	-- required int32 goals_yellow = 4;
