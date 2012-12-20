@@ -214,42 +214,4 @@ function geom.getAngleDiff(angle1, angle2)
 	return geom.normalizeAngle(diff)
 end
 
-function geom._invertWaypointsToTeam(waypoints, teamIsBlue)
-	if not teamIsBlue then
-		return waypoints
-	end
-	
-	local inverted = {}
-	for k,v in pairs(waypoints) do
-		v.p_x = -v.p_x
-		v.p_y = -v.p_y
-		inverted[k] = v
-	end
-	return inverted
-end
-
-function geom._invertListToTeam(data, teamIsBlue)
-	local inverted = {}
-	for k,v in pairs(data) do
-		inverted[k] = geom._invertToTeam(v, teamIsBlue)
-	end
-	return inverted
-end
-
-function geom._invertToTeam(data, teamIsBlue) -- handles vector or angle, only for use by update functions
-	if teamIsBlue then
-		if type(data) == "number" then
-			if data > math.pi then
-				data = data - math.pi
-			else
-				data = data + math.pi
-			end
-		else
-			
-			data = Vector.create(-data.x, -data.y)
-		end
-	end
-	return data
-end
-
 return geom

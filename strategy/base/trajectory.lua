@@ -2,6 +2,7 @@
 --- Trajectory manager.
 module "Trajectory"
 ]]--
+local vis = require "../base/vis"
 local Trajectory =  (require "../base/class").new("Trajectory") -- Trajectory manager
 
 --- Initialises trajectory manager.
@@ -23,8 +24,6 @@ function Trajectory:update(handlerType, ...)
 	local splines, moveDest, moveTime = self._handler:update(...)
 
 	self._robot:setControllerInput(splines)
-
-	local vis = require "../base/vis"
 	vis.addPath("MoveTo", {self._robot.pos, moveDest}, vis.colors.whiteHalf)
 	vis.addCircle("MoveTo", moveDest, self._robot.radius, vis.colors.yellowHalf, true)
 	return moveDest, moveTime

@@ -3,7 +3,7 @@
 module "Robot"
 ]]--
 local debug = require "../base/debug"
-local geom = require "../base/geom"
+local Coordinates = require "../base/coordinates"
 local Trajectory = require "../base/trajectory"
 local Constants = require "../base/constants"
 
@@ -65,7 +65,7 @@ function Robot.mt:__tostring()
 		self.pos.x, self.pos.y)
 end
 
-function Robot:_update(state, teamIsBlue, time)
+function Robot:_update(state, time)
 	self:setControllerInput(nil)
 	self:shootDisable()
 	self:setDribblerSpeed(nil)
@@ -80,9 +80,9 @@ function Robot:_update(state, teamIsBlue, time)
 	end
 
 	self.isVisible = true
-	self.pos = geom._invertToTeam(Vector.createReadOnly(state.p_x, state.p_y), teamIsBlue)
-	self.dir = geom._invertToTeam(state.phi, teamIsBlue)
-	self.speed = geom._invertToTeam(Vector.createReadOnly(state.v_x, state.v_y), teamIsBlue)
+	self.pos = Coordinates.toLocal(Vector.createReadOnly(state.p_x, state.p_y))
+	self.dir = Coordinates.toLocal(state.phi)
+	self.speed = Coordinates.toLocal(Vector.createReadOnly(state.v_x, state.v_y))
 	self.angularSpeed = state.omega -- do not invert!
 end
 

@@ -119,12 +119,11 @@ separator for luadoc]]--
 
 require "path"
 
+local teamIsBlue = amun.isBlue()
+
 local _addCircle = path.addCircle
-function path:addCircle(x, y, radius, invert, name)
-	if invert == nil then
-		error("nil!")
-	end
-	if invert then
+function path:addCircle(x, y, radius, name)
+	if teamIsBlue then
 		_addCircle(self, -x, -y, radius, name)
 	else
 		_addCircle(self, x, y, radius, name)
@@ -132,11 +131,8 @@ function path:addCircle(x, y, radius, invert, name)
 end
 
 local _addLine = path.addLine
-function path:addLine(start_x, start_y, stop_x, stop_y, radius, invert, name)
-	if invert == nil then
-		error("nil!")
-	end
-	if invert then
+function path:addLine(start_x, start_y, stop_x, stop_y, radius, name)
+	if teamIsBlue then
 		_addLine(self, -start_x, -start_y, -stop_x, -stop_y, radius, name)
 	else
 		_addLine(self, start_x, start_y, stop_x, stop_y, radius, name)
@@ -144,10 +140,7 @@ function path:addLine(start_x, start_y, stop_x, stop_y, radius, invert, name)
 end
 
 local _addRect = path.addRect
-function path:addRect(start_x, start_y, stop_x, stop_y, invert, name)
-	if invert == nil then
-		error("nil!")
-	end
+function path:addRect(start_x, start_y, stop_x, stop_y, name)
 	if invert then
 		_addRect(self, -start_x, -start_y, -stop_x, -stop_y, name)
 	else

@@ -1,4 +1,4 @@
-local geom = require "../base/geom"
+local Coordinates = require "../base/coordinates"
 local Ball = (require "../base/class").new("Ball")
 local Constants = require "../base/constants"
 
@@ -13,7 +13,8 @@ module "Ball"
 -- @field pos Vector - Current ball position
 -- @field speed Vector - Movement direction, length is speed in m/s
 -- @field radius number - Ball radius
--- @field isVisible bool - True if ball is tracked
+-- @field deceleration Vector - Current deceleration that is assumed to brake the ball
+-- @field brakeTime number - Time in seconds until the ball stops moving
 -- @field lostSince number - Time when the ball was lost. Only has meaning when Ball isn't visible
 
 function Ball.mt:__tostring()
@@ -23,7 +24,7 @@ end
 
 function Ball:init()
 	self.radius = 0.0215
-	self.isVisible = false
+	self._isVisible = false
 	self.lostSince = 0
 	self.pos = Vector.createReadOnly(0, 0)
 	self.speed = Vector.createReadOnly(0, 0)
@@ -31,17 +32,17 @@ function Ball:init()
 	self.brakeTime = 0
 end
 
-function Ball:_update(data, teamIsBlue, time)
+function Ball:_update(data, time)
 	if not data then
-		if self.isVisible ~= false then
-			self.isVisible = false
+		if self._isVisible ~= false then
+			self._isVisible = false
 			self.lostSince = time
 		end
 		return
 	end
-	self.isVisible = true
-	self.pos = geom._invertToTeam(Vector.createReadOnly(data.p_x, data.p_y), teamIsBlue)
-	self.speed = geom._invertToTeam(Vector.createReadOnly(data.v_x, data.v_y), teamIsBlue)
+	self._isVisible = true
+	self.pos = Coordinates.toLocal(Vector.createReadOnly(data.p_x, data.p_y))
+	self.speed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y))
 	
 	 -- if ball is too slow then it's movement direction isn't exact enough to be used for prediction the ball
 	if self.speed:length() < 0.05 then
@@ -56,8 +57,10 @@ function Ball:_update(data, teamIsBlue, time)
 	end
 end
 
+--- Checks whether the ball position is valid
+-- @return boolean - True if ball is visible and position and speed are not NaN
 function Ball:isPositionValid()
-	if not self.isVisible then
+	if not self._isVisible then
 		return false
 	end
 	return not self.pos:isNan() and not self.speed:isNan()

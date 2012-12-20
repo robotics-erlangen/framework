@@ -25,10 +25,10 @@ table.insert(obstacles, {type='Line',
 
 for _,obstacle in pairs(obstacles) do
 	if obstacle.type == 'Circle' then
-		p:addCircle(obstacle.pos.x, obstacle.pos.y, obstacle.radius, false)
+		p:addCircle(obstacle.pos.x, obstacle.pos.y, obstacle.radius)
 	elseif obstacle.type == 'Line' then
 		p:addLine(obstacle.posStart.x, obstacle.posStart.y, 
-			obstacle.posEnd.x, obstacle.posEnd.y, obstacle.radius, false, "bla")
+			obstacle.posEnd.x, obstacle.posEnd.y, obstacle.radius)
 	end
 end
 

@@ -2,8 +2,7 @@
 --- Provides functions to draw on the game field
 module "vis"
 ]]--
-local geom = require "../base/geom"
-local World = require "../base/world"
+local Coordinates = require "../base/coordinates"
 
 local gcolor = {}
 local gisFilled = true
@@ -90,7 +89,7 @@ end
 -- @param color table - color (optional)
 -- @param isFilled bool - fill circle (optional)
 function vis.addCircle(name, center, radius, color, isFilled, background, style)
-	vis.addCircleRaw(name, geom._invertToTeam(center, World.TeamIsBlue), radius, color, isFilled, background, style)
+	vis.addCircleRaw(name, Coordinates.toGlobal(center), radius, color, isFilled, background, style)
 end
 
 --- Adds a circle. Requires global coordinates.
@@ -113,7 +112,7 @@ end
 -- @param color table - color (optional)
 -- @param isFilled bool - fill circle (optional)
 function vis.addPolygon(name, points, color, isFilled, background, style)
-	vis.addPolygonRaw(name, geom._invertListToTeam(points, World.TeamIsBlue), color, isFilled, background, style)
+	vis.addPolygonRaw(name, Coordinates.listToGlobal(points), color, isFilled, background, style)
 end
 
 --- Adds a polygon. Requires global coordinates.
@@ -135,7 +134,7 @@ end
 -- @param points Vector[] - Points of the path
 -- @param color table - line color (optional)
 function vis.addPath(name, points, color, background, style)
-	vis.addPathRaw(name, geom._invertListToTeam(points, World.TeamIsBlue), color, background, style)
+	vis.addPathRaw(name, Coordinates.listToGlobal(points), color, background, style)
 end
 
 --- Adds a path. Requires global coordinates.

@@ -18,7 +18,7 @@ local Generation = require "../base/generation"
 -- @field OpponentRobotsById Robot[] - List of opponent robots with robot id as index
 -- @field OpponentKeeper Robot - Opponent keeper if on field or nil
 -- @field Robots Robot[] - Every visible robot in an arbitary order
--- @field TeamIsBlue bool - True if we are the blue team, otherwise were yellow
+-- @field TeamIsBlue bool - True if we are the blue team, otherwise we're yellow
 -- @field Time number - Current unix timestamp in seconds (with nanoseconds precision)
 -- @field TimeDiff number - Time since last update
 -- @field RefereeState string - current refereestate, can be one of these:
@@ -72,9 +72,9 @@ World.Geometry = {}
 -- @field RefereeWidth number - Width of area reserved for referee
 
 function World._init()
+	World.TeamIsBlue = amun.isBlue()
 	World._updateGeometry(amun.getGeometry())
 	World._updateTeam(amun.getTeam())
-	World.TeamIsBlue = amun.isBlue()
 end
 
 function World._update()
@@ -130,14 +130,14 @@ end
 
 function World._updateWorld(state)
 	if World.Time then
-		World.TimeDiff = state.time / 1000000000. - World.Time
+		World.TimeDiff = state.time * 1E-9 - World.Time
 	else
 		World.TimeDiff = 0
 	end
-	World.Time = state.time / 1000000000.
+	World.Time = state.time * 1E-9
 
 	if state.ball then
-		World.Ball:_update(state.ball, World.TeamIsBlue, World.Time)
+		World.Ball:_update(state.ball, World.Time)
 	end
 	
 	local dataFriendly = World.TeamIsBlue and state.blue or state.yellow
@@ -150,7 +150,7 @@ function World._updateWorld(state)
 		World.FriendlyRobots = {}
 		World.FriendlyInvisibleRobots = {}
 		for id, robot in pairs(World.FriendlyRobotsById) do
-			robot:_update(dataById[id], World.TeamIsBlue, World.Time)
+			robot:_update(dataById[id], World.Time)
 			if robot.isVisible then
 				table.insert(World.FriendlyRobots, robot)
 			else
@@ -169,7 +169,7 @@ function World._updateWorld(state)
 			if not robot then
 				robot = Robot.create(rdata.id, false)
 			end
-			robot:_update(rdata, World.TeamIsBlue, World.Time)
+			robot:_update(rdata, World.Time)
 			--TODO keep opponents if invisible for up to 1? second?
 			table.insert(World.OpponentRobots, robot)
 			World.OpponentRobotsById[rdata.id] = robot
