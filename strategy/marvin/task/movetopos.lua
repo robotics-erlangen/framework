@@ -11,10 +11,10 @@ function MoveToPos:_init(pos, dir)
 end
 
 function MoveToPos:_run()
-	-- TODO: parameter erstellen
+	self._robot.path:setDefaultObstacles(self._robot)
+	self._robot.path:addRobotObstacles(self._robot)
 	
-	self._robot.trajectory:update(ToTarget, parameter)
-	
+	self._robot.trajectory:update(ToTarget, self._pos, self._dir)
 end
 
 return MoveToPos

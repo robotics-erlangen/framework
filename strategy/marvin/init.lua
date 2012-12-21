@@ -22,7 +22,7 @@ saveGlobals()
 require "task/tasks"
 require "play/plays"
 require "control/coordinator"
-require "trajectory/obstacle" -- FIXME module name
+require "base/path" -- extend path module
 -- TODO: include tests
 -- TODO: include utils
 

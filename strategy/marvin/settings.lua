@@ -1,8 +1,6 @@
 local Settings = {}
--- TODO: add settings
 
 Settings.positionPadding = 0.02 -- safety distance
-Settings.forceKeeperId = nil -- set to robot id to force using this robot as keeper
 
 Settings.ballOwnDistance = 0.05 -- we own the ball if it was at least once only 5cm away from our robot
 Settings.ballOwnHysteresis = 0.1 -- we loose the ball if it gets 5 + 10 cm away
