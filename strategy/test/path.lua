@@ -32,11 +32,13 @@ for _,obstacle in pairs(obstacles) do
 	end
 end
 
+p:setRadius(0.09)
+
 local function calculateWaypoints ()
 	-- FIXME Bug in Ra: Wegfindungsobjekt ohne Hindernisse, wenn automatisch neu geladen,
 	-- nach einem Reload gehts dann
 
-	local waypoints = p:get(pointA.x, pointA.y, pointB.x, pointB.y, 0.09)
+	local waypoints = p:get(pointA.x, pointA.y, pointB.x, pointB.y)
 	local prev = pointA
 	local dist = 0
 	for i=1,#waypoints do
