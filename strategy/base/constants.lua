@@ -1,3 +1,9 @@
+--[[
+--- Contains system specific constants. That is constants that are due to intrinsic properties of the robots / camera system / game rules.
+-- See source for constant and description
+module "Constants"
+]]--
+
 local Constants = {}
 
 -- measured by looking at the ball speed graph in the plotter

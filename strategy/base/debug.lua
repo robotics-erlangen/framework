@@ -20,6 +20,7 @@ local function prefixName(name)
 end
 
 --- Pushes a new key on the debug stack.
+-- @name push
 -- @param name string - Name of the new subtree
 function debug.push(name)
 	local current = debugStack[#debugStack]
@@ -27,12 +28,14 @@ function debug.push(name)
 end
 
 --- Pushes a root key on the debug stack.
+-- @name pushtop
 -- @param name string - Name of the new root tree
 function debug.pushtop(name)
 	table.insert(debugStack, name)
 end
 
 --- Pops last key from the debug stack.
+-- @name pop
 function debug.pop()
 	if #debugStack > 1 then
 		table.remove(debugStack)
@@ -42,6 +45,7 @@ end
 --- Sets value for the given name.
 -- If value is nil store it as text
 -- For the special value nil the value is set for the current key
+-- @name set
 -- @param name string - Name of the value
 -- @param value string - Value to set
 function debug.set(name, value, visited)
@@ -70,6 +74,7 @@ function debug.set(name, value, visited)
 end
 
 --- Clears the debug stack
+-- @name resetStack
 function debug.resetStack()
 	if #debugStack ~= 1 then
 		log("Unbalanced push/pop on debug stack")

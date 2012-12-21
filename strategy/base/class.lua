@@ -17,7 +17,7 @@ local Class = {}
 -- instanceOf(p, b) == false
 -- @param inst table - Instance to check
 -- @param class Class - Class object as created by define
--- @see define
+-- @see new
 -- @return bool
 function Class.instanceOf(inst, class)
 	return inst.className == class.className or (inst.classParent and Class.instanceOf(inst.classParent, class)) or false
@@ -35,6 +35,7 @@ end
 
 --- Creates a new class.
 -- Supports simple inheritance.
+-- @name new
 -- @see Class
 -- @param name string - name for new class, split at '.'
 -- @param parent Class - parent class object

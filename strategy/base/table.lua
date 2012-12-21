@@ -4,6 +4,7 @@ module "table"
 ]]--
 
 --- Create a shallow copy of the table.
+-- @name copy
 -- @param t table - Table to copy
 -- @return table - shallow copy
 function table.copy(t)
@@ -16,6 +17,7 @@ end
 
 --- Truncates the given array to given length.
 -- If array has less entrys the len, do nothing. Modifies the passed array!
+-- @name truncate
 -- @param array table - Array to truncate
 -- @param len number - target length
 function table.truncate(array, len) -- truncates an array to the first len elements
@@ -25,6 +27,7 @@ function table.truncate(array, len) -- truncates an array to the first len eleme
 end
 
 --- Appends the given array to an array.
+-- @name append
 -- @param t1 table - Array to append to
 -- @param ... table[] - Array to append to t1
 -- @return table - appended array
@@ -40,6 +43,11 @@ function table.append(t1, ...) -- for arrays (non nil)
 	return t1
 end
 
+--- Copy the given array into an array.
+-- @name extend
+-- @param t1 table - Array to copy into
+-- @param t2 table - Array to insert into t1
+-- @return table - combined array
 function table.extend(t1, t2)
 	for k, v in pairs(t2) do
 		t1[k] = v
@@ -47,6 +55,10 @@ function table.extend(t1, t2)
 	return t1
 end
 
+--- Find the maximum in an array
+-- @name max
+-- @param t number[] - Table to search
+-- @return number - maximum
 function table.max(t)
 	local max = t[1]
 	for _,v in ipairs(t) do
@@ -57,6 +69,10 @@ function table.max(t)
 	return max
 end
 
+--- Find the minimum in an array
+-- @name min
+-- @param t number[] - Table to search
+-- @return number - minimum
 function table.min(t)
 	local min = t[1]
 	for _,v in ipairs(t) do
@@ -68,6 +84,7 @@ function table.min(t)
 end
 
 --- Maps a function over an array.
+-- @name map
 -- @param array table - Array to map over
 -- @param f function - map function
 -- @return table - mapped array

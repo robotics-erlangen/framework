@@ -4,6 +4,7 @@ module "math"
 ]]--
 
 --- Limits value to interval [min, max].
+-- @name bound
 -- @param min number - lower bound of interval
 -- @param par number - value to limit to interval
 -- @param max number - upper bound of interval
@@ -14,7 +15,11 @@ function math.bound(min, par, max)
 	return par
 end
 
---- Rounds value towards dest
+--- Rounds value towards dest.
+-- The function provides a helper to implement hysteresis for certain functions.
+-- If the value is in the interval [dest-0.5-spacing/2, dest+0.5+spacing/2] then dest is returned.
+-- Otherwise it behaves like math.round.
+-- @name roundTowards
 -- @param val number - value to round
 -- @param dest number - value to round towards, must be an integer
 -- @param spacing number - spacing between to numbers where we round towards dest

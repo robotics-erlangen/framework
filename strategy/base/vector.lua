@@ -17,10 +17,11 @@ require "vector"
 --[[
 separator for luadoc]]--
 
---- Creates a copy of the current vector. Doesn't copy read-only flag
+--- Creates a copy of the current vector.
+-- Doesn't copy read-only flag
 -- @return Vector - copy
 -- @class function
--- @name Vector.create
+-- @name Vector:copy
 
 --[[
 separator for luadoc]]--
@@ -89,7 +90,7 @@ end
 -- @param other Vector
 -- @return number - distance
 -- @class function
--- @name Vector.distanceTo
+-- @name Vector:distanceTo
 
 --[[
 separator for luadoc]]--
@@ -190,3 +191,23 @@ end
 --[[
 separator for luadoc]]--
 
+--- Calculates the point on a line segment with the shortest distance to a given point.
+-- The distance between the line and the point equals the result of distanceToLineSegment
+-- @param p Vector - any point
+-- @param lineStart Vector - the start point of the line
+-- @param lineEnd Vector - the end point of the line
+function Vector:nearestPosOnLine(lineStart, lineEnd)
+	local dir = (lineEnd - lineStart):normalize()
+	if (self - lineStart):dot(dir) < 0 then
+		return lineStart
+	elseif (self - lineEnd):dot(dir) > 0 then
+		return lineEnd
+	end
+	--the code below this line does the same as Vector.orthogonalProjection
+	local d1, d2 = dir.x, dir.y
+	local p1, p2 = lineStart.x, lineStart.y
+	local a1, a2 = self.x, self.y
+	local x1 = (d1*d1*a1 + d1*d2*(a2-p2) + d2*d2*p1)/(d1*d1 + d2*d2)
+	local x2 = (d2*d2*a2 + d2*d1*(a1-p1) + d1*d1*p2)/(d2*d2 + d1*d1)
+	return Vector.create(x1, x2)
+end

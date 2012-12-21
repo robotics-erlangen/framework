@@ -1,5 +1,9 @@
 --[[
---- API for Ra
+--- API for Ra. <br/>
+-- Amun offers serveral guarantees to the strategy: <br/>
+-- The values returned by getGeometry, getTeam, isBlue are guaranteed to remain constant for the whole strategy runtime.
+-- That is if any of the values changes the strategy is restarted! <br/>
+-- If coordinates are passed via the API these values are using <strong>global</strong> coordinates!
 module "amun"
 ]]--
 

@@ -1,5 +1,8 @@
 --[[
---- Path module provided by Ra
+--- Path module provided by Ra. <br/>
+-- As every data value on the path object is set by the strategy, it would be possible to use strategy coordinates. This however would require further coordinate transformations as the generated controller input has to use global coordinates. <br/>
+-- Thus it is recommened to use global coordinates for everything stored in a path object.
+-- However the functions for adding obstacles require strategy coordinates and handle any neccessary conversions.
 module "path"
 ]]--
 
@@ -35,7 +38,7 @@ separator for luadoc]]--
 separator for luadoc]]--
 
 --- Sets field boundaries.
--- The two points span up a rectangle whose borders are used as field boundaries
+-- The two points span up a rectangle whose borders are used as field boundaries. The boundaries must be specified in global coordinates.
 -- @class function
 -- @name path:setBoundary
 -- @param x1 number - bottom left
@@ -46,7 +49,8 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
---- Adds a circle as an obstacle
+--- Adds a circle as an obstacle.
+-- The circle <strong>must</strong> be passed in strategy coordinates!
 -- @class function
 -- @name path:addCircle
 -- @param x number - x coordinate of circle center
@@ -57,7 +61,8 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
---- Adds a line as an obstacle
+--- Adds a line as an obstacle.
+-- The line <strong>must</strong> be passed in strategy coordinates!
 -- @class function
 -- @name path:addLine
 -- @param start_x number - x coordinate of line start point
@@ -70,7 +75,8 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
---- Adds a rectangle as an obstacle
+--- Adds a rectangle as an obstacle.
+-- The rectangle <strong>must</strong> be passed in strategy coordinates!
 -- @class function
 -- @name path:addRect
 -- @param start_x number - x coordinate of bottom left corner
@@ -82,7 +88,8 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
---- Tests a given path for collisions with any obstacle
+--- Tests a given path for collisions with any obstacle.
+-- The spline is based on the global coordinate system!
 -- @class function
 -- @name path:test
 -- @param path protobuf.robot.Spline
@@ -101,7 +108,7 @@ separator for luadoc]]--
 separator for luadoc]]--
 
 --- Generates a new path using RRT.
--- Accounts for obstacles. The returned waypoints include the start point
+-- Accounts for obstacles. The returned waypoints include the start point. This functions requires and returns global coordinates!
 -- @class function
 -- @name path:get
 -- @param start_x number - x coordinate of start point
@@ -113,7 +120,7 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
---- Generates visualization of the tree.
+--- Generates a visualization of the tree.
 -- @class function
 -- @name path:addTreeVisualization
 
@@ -121,6 +128,7 @@ require "path"
 
 local teamIsBlue = amun.isBlue()
 
+-- wrap add obstacle functions for automatic strategy to global coordinates conversion
 local _addCircle = path.addCircle
 function path:addCircle(x, y, radius, name)
 	if teamIsBlue then

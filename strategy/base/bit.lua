@@ -5,6 +5,7 @@ module "bit"
 local bit = {}
 
 --- Generate the flag for a given index
+-- @name bit
 -- @param p number - index
 -- @return number - flag
 function bit.bit(p)
@@ -12,6 +13,7 @@ function bit.bit(p)
 end
 
 --- Checks if flag p is set on x
+-- @name has
 -- @param x number - bitfield
 -- @param p number - flag to check for
 -- @return bool - x has flag p
@@ -21,6 +23,7 @@ function bit.has(x, p)
 end
 
 --- Sets flag p for x
+-- @name set
 -- @param x number - bitfield
 -- @param p number - flag to set
 -- @return number - x with flag p set
@@ -29,6 +32,7 @@ function bit.set(x, p)
 end
 
 --- Clears flag p for x
+-- @name clear
 -- @param x number - bitfield
 -- @param p number - flag to clear
 -- @return number - x with flag p cleared

@@ -14,6 +14,8 @@ for gen, cls in pairs(Generation) do
 end
 
 --- Creates a new generation specific robot object.
+-- For these robot objects the constants table of robot is overlayed with generations specific constants.
+-- This functions is a factory for constructing robots.
 -- @name create
 -- @param specs table - Specs as returned by getTeam()
 -- @return Robot - Specific generation if available or generic robot object

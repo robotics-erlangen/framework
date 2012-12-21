@@ -1,11 +1,10 @@
-local Coordinates = require "../base/coordinates"
-local Ball = (require "../base/class").new("Ball")
-local Constants = require "../base/constants"
-
 --[[
 --- Ball class.
 module "Ball"
 ]]--
+local Coordinates = require "../base/coordinates"
+local Ball = (require "../base/class").new("Ball")
+local Constants = require "../base/constants"
 
 --- Values provided by Ball
 -- @class table
@@ -22,6 +21,7 @@ function Ball.mt:__tostring()
 		self.pos.x, self.pos.y, self.speed:length())
 end
 
+--- Initializes a new ball, must only be called by world!
 function Ball:init()
 	self.radius = 0.0215
 	self._isVisible = false
@@ -32,8 +32,11 @@ function Ball:init()
 	self.brakeTime = 0
 end
 
+-- Processes ball information from amun, passed by world
 function Ball:_update(data, time)
+	-- if no ball data is available then no ball was tracked
 	if not data then
+		-- set lost timer
 		if self._isVisible ~= false then
 			self._isVisible = false
 			self.lostSince = time
@@ -41,6 +44,7 @@ function Ball:_update(data, time)
 		return
 	end
 	self._isVisible = true
+	-- data from amun is in global coordiantes
 	self.pos = Coordinates.toLocal(Vector.createReadOnly(data.p_x, data.p_y))
 	self.speed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y))
 	

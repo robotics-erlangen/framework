@@ -1,7 +1,7 @@
 require "../base/base"
 local World = require "../base/world"
 local vis = require "../base/vis"
-World._init()
+local Coordinates = require "../base/coordinates"
 local geometry = World.Geometry
 Entrypoints = {}
 local p = path.create()
@@ -12,8 +12,8 @@ p:setBoundary(  -geometry.FieldWidthHalf  - geometry.BoundaryWidth - 0.02,
 
 
 --declare start, end and obstacles here
-local pointA = Vector.create(0,-1)
-local pointB = Vector.create(0, 2)
+local pointA = Coordinates.toGlobal(Vector.create(0,-1))
+local pointB = Coordinates.toGlobal(Vector.create(0, 2))
 local obstacles = {}
 table.insert(obstacles, {type='Circle', pos=Vector.create(0,0), radius=0.1})
 table.insert(obstacles, {type='Line',
@@ -48,14 +48,14 @@ local function calculateWaypoints ()
 end
 
 Entrypoints["main"] = function ()
-	World._update()
+	World.update()
 	calculateWaypoints()
 	p:addTreeVisualization()
 	for _,obstacle in pairs(obstacles) do
 		if obstacle.type == "Circle" then
-			vis.addCircleRaw("obstacles", obstacle.pos, obstacle.radius, vis.colors.blue)
+			vis.addCircle("obstacles", obstacle.pos, obstacle.radius, vis.colors.blue)
 		elseif obstacle.type == "Line" then
-			vis.addPathRaw("obstacles", {obstacle.posStart, obstacle.posEnd}, vis.colors.blue)
+			vis.addPath("obstacles", {obstacle.posStart, obstacle.posEnd}, vis.colors.blue)
 		end
 	end
 end

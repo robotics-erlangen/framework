@@ -21,7 +21,7 @@ function Shoot.evaluateCorridor(targetRobot, shootTime)
 	
 	local passChance = 1
 	for _, robot in pairs(World.OpponentRobots) do
-		local pointOnLine = geom.nearestPosOnLine(robot.pos, predictedBallState.pos, targetPos)
+		local pointOnLine = robot.pos:nearestPosOnLine(predictedBallState.pos, targetPos)
 		local ballCatchTime = shootTime + Shoot.ballPassTime(predictedBallState.pos, targetRobot, targetPos, (predictedBallState.pos - pointOnLine):length())
 		local ballCatchProbability = Shoot.ballCatchProbability(robot, ballCatchTime, pointOnLine, corridorHalf)
 		passChance = passChance * (1 - ballCatchProbability)

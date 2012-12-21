@@ -11,6 +11,7 @@ local vis = {}
 
 --- Joins rgba-value to a color.
 -- Values from 0 to 255
+-- @name fromRGBA
 -- @param red number
 -- @param green number
 -- @param blue number
@@ -21,6 +22,7 @@ function vis.fromRGBA(red, green, blue, alpha)
 end
 
 --- Modifies alpha value on a copy of the given color
+-- @name setAlpha
 -- @param color table - source color
 -- @param alpha number - new alpha value
 -- @return table - color with new alpha
@@ -74,6 +76,7 @@ vis.colors.turqouiseHalf = vis.fromRGBA(0, 255, 255, 127)
 
 --- Sets line and fill color.
 -- If filled is true polygons and circles are filled using color.
+-- @name setColor
 -- @param color table
 -- @param isFilled bool
 function vis.setColor(color, isFilled)
@@ -83,6 +86,7 @@ end
 
 --- Adds a circle.
 -- If color is given use it instead of the global color and use the passed isFilled.
+-- @name addCircle
 -- @param name string - Visualization group
 -- @param center Vector - center of the circle
 -- @param radius number - radius of the circle
@@ -93,6 +97,7 @@ function vis.addCircle(name, center, radius, color, isFilled, background, style)
 end
 
 --- Adds a circle. Requires global coordinates.
+-- @name addCircleRaw
 -- @see addCircle
 function vis.addCircleRaw(name, center, radius, color, isFilled, background, style)
 	isFilled = color and isFilled or gisFilled -- if color is set use passed isFilled
@@ -107,6 +112,7 @@ end
 
 --- Adds a polygon.
 -- If color is given use it instead of the global color and use the passed isFilled.
+-- @name addPolygon
 -- @param name string - Visualization group
 -- @param points Vector[] - Points of the polygon
 -- @param color table - color (optional)
@@ -116,6 +122,7 @@ function vis.addPolygon(name, points, color, isFilled, background, style)
 end
 
 --- Adds a polygon. Requires global coordinates.
+-- @name addPolygonRaw
 -- @see addPolygon
 function vis.addPolygonRaw(name, points, color, isFilled, background, style)
 	isFilled = color and isFilled or gisFilled -- if color is set use passed isFilled
@@ -130,6 +137,7 @@ end
 
 --- Adds a path.
 -- If color is given use it instead of the global color and use the passed isFilled.
+-- @name addPath
 -- @param name string - Visualization group
 -- @param points Vector[] - Points of the path
 -- @param color table - line color (optional)
@@ -138,6 +146,7 @@ function vis.addPath(name, points, color, background, style)
 end
 
 --- Adds a path. Requires global coordinates.
+-- @name addPathRaw
 -- @see addPath
 function vis.addPathRaw(name, points, color, background, style)
 	color = color or gcolor

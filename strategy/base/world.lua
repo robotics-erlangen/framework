@@ -34,8 +34,10 @@ World.Ball = Ball.create()
 World.FriendlyRobots = {}
 World.FriendlyInvisibleRobots = {}
 World.FriendlyRobotsById = {}
+World.FriendlyKeeper = nil
 World.OpponentRobots = {}
 World.OpponentRobotsById = {}
+World.OpponentKeeper = nil
 World.Robots = {}
 World.TeamIsBlue = false
 
@@ -71,18 +73,23 @@ World.Geometry = {}
 -- @field BoundaryWidth number - Free distance around the playing field
 -- @field RefereeWidth number - Width of area reserved for referee
 
+-- initializes Team and Geometry data
 function World._init()
 	World.TeamIsBlue = amun.isBlue()
 	World._updateGeometry(amun.getGeometry())
 	World._updateTeam(amun.getTeam())
 end
 
-function World._update()
+--- Update world state.
+-- Has to be called once each frame
+-- @name update
+function World.update()
 	World._updateWorld(amun.getWorldState())
 	World._updateGameState(amun.getGameState())
 	World._haltHiddenRobots()
 end
 
+-- Creates generation specific robot object for own team
 function World._updateTeam(state)
 	local friendlyRobotsById = {}
 	for _, rdata in pairs(state.robot) do
@@ -91,6 +98,7 @@ function World._updateTeam(state)
 	World.FriendlyRobotsById = friendlyRobotsById
 end
 
+-- Setup field geometry
 function World._updateGeometry(geom)
 	local wgeom = World.Geometry
 	wgeom.FieldWidth = geom.field_width
@@ -116,6 +124,7 @@ function World._updateGeometry(geom)
 	wgeom.OpponentPenaltySpot = Vector.create(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist)
 	wgeom.PenaltyLine = wgeom.OpponentPenaltySpot.y - geom.penalty_line_from_spot_dist
 
+	-- The goal posts are on the field lines
 	wgeom.FriendlyGoal = Vector.create(0, - wgeom.FieldHeightHalf + wgeom.LineWidth)
 	wgeom.FriendlyGoalLeft = Vector.create(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
 	wgeom.FriendlyGoalRight = Vector.create(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
@@ -129,6 +138,7 @@ function World._updateGeometry(geom)
 end
 
 function World._updateWorld(state)
+	-- Get time
 	if World.Time then
 		World.TimeDiff = state.time * 1E-9 - World.Time
 	else
@@ -136,21 +146,25 @@ function World._updateWorld(state)
 	end
 	World.Time = state.time * 1E-9
 
+	-- update ball if available
 	if state.ball then
 		World.Ball:_update(state.ball, World.Time)
 	end
 	
 	local dataFriendly = World.TeamIsBlue and state.blue or state.yellow
 	if dataFriendly then
+		-- sort data by robot id
 		local dataById = {}
 		for _,rdata in pairs(dataFriendly) do
 			dataById[rdata.id] = rdata
 		end
 
+		-- Update data of every own robot
 		World.FriendlyRobots = {}
 		World.FriendlyInvisibleRobots = {}
 		for id, robot in pairs(World.FriendlyRobotsById) do
 			robot:_update(dataById[id], World.Time)
+			-- sort robot into visible / not visible
 			if robot.isVisible then
 				table.insert(World.FriendlyRobots, robot)
 			else
@@ -161,16 +175,18 @@ function World._updateWorld(state)
 
 	local dataOpponent = World.TeamIsBlue and state.yellow or state.blue
 	if dataOpponent then
+		-- only keep robots that are still existent
 		local opponentRobotsById = World.OpponentRobotsById
 		World.OpponentRobots = {}
 		World.OpponentRobotsById = {}
+		-- just update every opponent robot
+		-- robots that are invisible for more than one second are dropped by amun
 		for _,rdata in pairs(dataOpponent) do
 			local robot = opponentRobotsById[rdata.id]
 			if not robot then
 				robot = Robot.create(rdata.id, false)
 			end
 			robot:_update(rdata, World.Time)
-			--TODO keep opponents if invisible for up to 1? second?
 			table.insert(World.OpponentRobots, robot)
 			World.OpponentRobotsById[rdata.id] = robot
 		end
@@ -180,8 +196,10 @@ function World._updateWorld(state)
 	table.append(World.Robots, World.OpponentRobots)
 end
 
+-- updates referee command and keeper information
 function World._updateGameState(state)
 	local refState = state.state
+	-- map referee command to own team
 	if World.TeamIsBlue then
 		World.RefereeState = refState:gsub("Blue", "Offensive"):gsub("Yellow", "Defensive")
 	else
@@ -192,7 +210,7 @@ function World._updateGameState(state)
 		World.RefereeState = "Halt"
 	end
 
-	local friendlyKeeperId = 1
+	local friendlyKeeperId = 1 -- FIXME: get sent keeper id
 	local opponentKeeperId = 1
 
 	local friendlyKeeper = World.FriendlyRobotsById[friendlyKeeperId]
@@ -213,6 +231,8 @@ function World._updateGameState(state)
 	-- required int32 time_remaining = 5;
 end
 
+--- Stops own robots and enables standby
+-- @name haltOwnRobots
 function World.haltOwnRobots()
 	for _, robot in pairs(World.FriendlyRobotsById) do
 		robot:setStandby(true)
@@ -220,16 +240,21 @@ function World.haltOwnRobots()
 	end
 end
 
+-- stops every hidden robot
 function World._haltHiddenRobots()
 	for _, robot in pairs(World.FriendlyInvisibleRobots) do
 		robot:setControllerInput({})
 	end
 end
 
-function World._setRobotCommands()
+--- Set generated commands for our robots
+-- @name setRobotCommands
+function World.setRobotCommands()
 	for _, robot in pairs(World.FriendlyRobotsById) do
 		robot:_setCommand()
 	end
 end
+
+World._init()
 
 return World

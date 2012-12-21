@@ -16,7 +16,7 @@ function keeper:_run(priorityMessages, notifications)
 	local atkPos, atkDir, isShot = Observer.--todo predictShot
 	--Defending possition if ball is allready shot: shortest way to stop the ball
 	if isShot then
-		local movTo = geom.nearestPosOnLine(self._roboter.pos, atkPos, atkPos+atkDir)
+		local movTo = self._robot.pos:nearestPosOnLine(atkPos, atkPos+atkDir)
 		local faceBall = World.Ball.Pos-movTo
 		self._robot.trajectory:update(ToTarget, movTo, faceBall)
 	--Defending possition to block possible Goal shots: Moves along a straigt line in front of the goal: distance to goal: Settings.keeperGoalDistance
