@@ -1,5 +1,7 @@
-local KickoffOffensive = (require "../base/class").new("Play.KickoffOffensive", require "play/base")
+local Base = require "play/base"
+local KickoffOffensive = (require "../base/class").new("Play.KickoffOffensive", Base)
 
+local MoveToPos = require "task/movetopos"
 local Settings = require "settings"
 local World = require "../base/world"
 local RobotMatcher = require "control/robotmatcher"
@@ -16,24 +18,21 @@ function KickoffOffensive:_init()
 	self:setState("Formation")
 end
 
-function KickoffOffensive.startRating(attackers, defenders, _)
-	-- no minRating required, because rating can reach "referee"
-	if not attackers[1] then
-		return rating.no
+function KickoffOffensive.startRating(attackers, defenders, minRating)
+	-- ignore minRating because rating is either no or referee
+	if #attackers < 1 then
+		return Base.rating.no
 	end
 	if World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
-		return rating.referee
+		return Base.rating.referee
 	else
-		return rating.no
+		return Base.rating.no
 	end
 end
 
 function KickoffOffensive:currentRating()
-	if not attackers[1] then
-		return rating.no
-	end
 	if World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
-		return rating.referee
+		return Base.rating.referee
 	elseif World.RefereeState == "Game" then
 		-- TODO: 
 		-- Bewertungsfunktionen implementieren:
@@ -42,14 +41,15 @@ function KickoffOffensive:currentRating()
 		--		2. Der Gegner den Ball hat
 		--		3. Der Gegner den Ball haben wird
 		--	ansonsten ja
+		return Base.rating.no -- FIXME FIXME FIXME
 	else
-		return rating.no
+		return Base.rating.no
 	end
-
 end
 
 function KickoffOffensive.selectRobots(attackers, defenders)
-	local robots = table.append(table.copy(attackers), defenders) -- use attackers AND defenders
+	local robots = table.copy(attackers)
+	robots = table.append(robots, defenders) -- use attackers AND defenders
 	robots, _ = RobotMatcher.match(robots, 4, nil, nil) -- TODO use conditions if needed
 	return robots
 end
@@ -65,15 +65,15 @@ function KickoffOffensive:prepareFormation()
 	local innerPos = Vector.create((self._side and 1 or -1) * G.FieldWidthHalf * 0.5, -3 * self._robots[4].radius)
 	
 	self._tasks = {
-		self._robots[1] and Task.MoveToPos.create(self._robots[1], balliePos, math.pi/2) or nil,
-		self._robots[2] and Task.MoveToPos.create(self._robots[2], innerPos, math.pi/2) or nil,
-		self._robots[3] and Task.MoveToPos.create(self._robots[3], quarterbackPos, math.pi/2) or nil,
-		self._robots[4] and Task.MoveToPos.create(self._robots[4], outerPos, math.pi/2) or nil,
+		self._robots[1] and MoveToPos.create(self._robots[1], balliePos, math.pi/2) or nil,
+		self._robots[2] and MoveToPos.create(self._robots[2], innerPos, math.pi/2) or nil,
+		self._robots[3] and MoveToPos.create(self._robots[3], quarterbackPos, math.pi/2) or nil,
+		self._robots[4] and MoveToPos.create(self._robots[4], outerPos, math.pi/2) or nil,
 	}
 end
 
 function KickoffOffensive:handleFormation()
-	self:_assignTasks(tasks)
+	self:_assignTasks(self._tasks)
 	if World.RefereeState == "KickoffOffensive" then
 		self:decideCase()
 	end
@@ -96,7 +96,7 @@ function KickoffOffensive:prepareMidEmpty()
 end
 
 function KickoffOffensive:handleMidEmpty()
-	self:_assignTasks(tasks)
+	self:_assignTasks(self._tasks)
 end
 
 function KickoffOffensive:prepareMajority()
@@ -106,12 +106,12 @@ function KickoffOffensive:prepareMajority()
 		-- 1: Laufpass an 2
 		-- 2: Laufpass von 1 annehmen
 		self._robots[3] and Task.Assistant.create(self._robots[3], mirroredTargetPos, G.FieldWidthQuarter) or nil,
-		self._robots[4] and Task.MoveToPos.create(self._robots[4], backPos, math.pi/2) or nil,
+		self._robots[4] and MoveToPos.create(self._robots[4], backPos, math.pi/2) or nil,
 	}
 end
 
 function KickoffOffensive:handleMajority()
-	self:_assignTasks(tasks)
+	self:_assignTasks(self._tasks)
 end
 
 function KickoffOffensive:prepareUseQuarterback()
@@ -119,14 +119,14 @@ function KickoffOffensive:prepareUseQuarterback()
 	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*r[1].radius)
 	self._tasks = {
 		--1: Laufpass an 3
-		self._robots[2] and Task.MoveToPos.create(self._robots[2], backPos, math.pi/2) or nil,
+		self._robots[2] and MoveToPos.create(self._robots[2], backPos, math.pi/2) or nil,
 		--3: Laufpass von 1 annehmen
 		self._robots[4] and Task.Assistant.create(self._robots[4], mirroredTargetPos, G.FieldWidthQuarter),
 	}
 end
 
 function KickoffOffensive:handleUseQuarterback()
-	self:_assignTasks(tasks)
+	self:_assignTasks(self._tasks)
 end
 
 function KickoffOffensive:prepareDefault()
@@ -134,14 +134,14 @@ function KickoffOffensive:prepareDefault()
 	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*r[1].radius)
 	self._tasks = {
 		-- 1: Laufpass an 4
-		self._robots[2] and Task.MoveToPos.create(self._robots[2], backPos, math.pi/2) or nil,
+		self._robots[2] and MoveToPos.create(self._robots[2], backPos, math.pi/2) or nil,
 		self._robots[3] and Task.Assistant.create(self._robots[3], mirroredTargetPos, G.FieldWidthQuarter) or nil,
 		-- 4: Laufpass von 1 annehmen
 	}
 end
 
 function KickoffOffensive:handleDefault()
-	self:_assignTasks(tasks)
+	self:_assignTasks(self._tasks)
 end
 
 
@@ -174,10 +174,10 @@ function KickoffOffensive:decideCase()
 	if sector[2] == 0 then -- middle sector empty
 		self:setState("MidEmpty")
 		log("KickoffOffensive: Middle Sector empty => Attack in the Middle")
-	elseif sector[self.side and 3 or 1] <= 1 -- 2v0 or 2v1
+	elseif sector[self.side and 3 or 1] <= 1 then -- 2v0 or 2v1
 		self:setState("Majority")
 		log("KickoffOffensive: 2v"..sector[self.side and 3 or 1].." => Attack on the "..(self.side and "Right" or "Left").." side")
-	elseif sector[self.side and 1 or 3] == 0 -- other side empty
+	elseif sector[self.side and 1 or 3] == 0 then -- other side empty
 		self:setState("UseQuarterback")
 		log("KickoffOffensive: "..(self.side and "Left" or "Right").." side empty => Use quarterback")
 	else -- care only for robots that are close to us
@@ -185,3 +185,5 @@ function KickoffOffensive:decideCase()
 		log("KickoffOffensive: "..sector[1].." Left, "..sector[2].." Middle, "..sector[3].." Right => Default Attack")
 	end		
 end
+
+return KickoffOffensive

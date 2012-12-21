@@ -1,6 +1,6 @@
 local Base = (require "../base/class").new("Pool.Base")
+local RobotMatcher = require "control/robotmatcher"
 
--- attackers and defenders must be indexed by robot id
 function Base:init(tm, attackers, defenders)
 	self._taskmanager = tm
 	self._robotsDirty = true
@@ -13,7 +13,7 @@ function Base:run()
 	end
 	-- TODO: prepare logging
 	
-	if self._robotsDirty or -- TODO: important change then
+	if self._robotsDirty then -- or -- TODO: important change then
 		self:assignRobots(self._robots)
 	end
 	
@@ -31,19 +31,19 @@ function Base:assignRobots(robots)
 end
 
 function Base:_assignRobots(robots, conditions)
-	-- TODO: run robotmatcher
-	self._robots = -- TODO: robots
+	self._robots = Robotmatcher.match(robots, #robots, conditions)
 	self._robotsDirty = false
 end
 
 function Base:releaseRobot()
 	-- TODO: robot with lowest priority
-	-- TODO: return robot which is no longer controlled
+	local lastRobot = table.remove(self._robots)
 	self._robotsDirty = true
+	return lastRobot
 end
 
 function Base:addRobot(robot)
-	-- TODO: take control over robot
+	table.insert(self._robots, robot)
 	self._robotsDirty = true
 end
 

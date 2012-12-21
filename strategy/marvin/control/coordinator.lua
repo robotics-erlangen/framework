@@ -13,21 +13,19 @@ local Coordinator = (require "../base/class").new("Control.Coordinator")
 function Coordinator:init()
 	self._taskmanager = TaskManager.create()
 	
-	self:_assignGoalKeeper()
 	local attackers, defenders = self:_assignRobots()
-	self._attackPool = Pool.Attack.create(attackers, defenders)
-	self._defensePool = Pool.Defense.create(attackers, defenders)
+	self._attackPool = Pool.Attack.create(self._taskmanager, attackers, defenders)
+	self._defensePool = Pool.Defense.create(self._taskmanager, attackers, defenders)
 	
 	self._play = nil
 	self._forcePlay = nil
 end
 
 function Coordinator:run()
-	self:assignGoalKeeper()
-	self:observeGameState()
+	local attackRatio = self:observeGameState()
 	
 	-- calculate how many robots to use for attack / defense
-	local attackers = self.attackRatio * #World.FriendlyRobots
+	local attackers = attackRatio * #World.FriendlyRobots
 	attackers = math.roundTowards(attackers, #self._attackPool:robots(), 0.2)
 	local defenders = #World.FriendlyRobots - attackers
 	
@@ -39,10 +37,10 @@ function Coordinator:run()
 	local currentDefenders = #self._defensePool:robots()
 	
 	local occupiedRobots = {}
-	for _, robot in pairs(self._attackPool.robots()) do
+	for _, robot in pairs(self._attackPool:robots()) do
 		occupiedRobots[robot.id] = true
 	end
-	for _, robot in pairs(self._defensePool.robots()) do
+	for _, robot in pairs(self._defensePool:robots()) do
 		occupiedRobots[robot.id] = true
 	end
 	local unassignedRobots = {}
@@ -53,9 +51,8 @@ function Coordinator:run()
 	end
 	
 	self:_moveRobots(self._attackPool, attackers, self._defensePool, unassignedRobots)
-	self:_moveRobots(self._defensePool, defense, self._attackPool, unassignedRobots)
+	self:_moveRobots(self._defensePool, defenders, self._attackPool, unassignedRobots)
 	
-	self._taskmanager:clearAll()
 	self:updatePlaySelection()
 	
 	if self._play then
@@ -80,19 +77,17 @@ function Coordinator:observeGameState()
 	-- TODO: decide how many robots to use for attack / defense
 	
 	-- evenly distribute robots between attack and defense
-	self._attackRatio = 0.5
+	local attackRatio = 0.5
+	return attackRatio
 end
 
 function Coordinator:_moveRobots(targetPool, targetSize, sourcePool, unassignedRobots)
-	local currentSize = #targetPool.robots()
-	
+	local currentSize = #targetPool:robots()
 	while currentSize < targetSize do
 		if #unassignedRobots > 0 then
-			targetPool:addRobot(unassignedRobots[#unassignedRobots])
-			unassignedRobots[#unassignedRobots] = nil
+			targetPool:addRobot(table.remove(unassignedRobots))
 		else
-			local movedRobot = sourcePool:releaseRobot()
-			targetPool:addRobot(movedRobot)
+			targetPool:addRobot(sourcePool:releaseRobot())
 		end
 		currentSize = currentSize + 1
 	end
@@ -103,13 +98,13 @@ function Coordinator:_assignRobots()
 	local defenders = {}
 	
 	-- start with keeper as defender
-	local keeper = self._taskmanager:keeper()
-	if keeper then
+	local keeper = World.FriendlyRobotsById[World.FriendlyKeeperId]
+	if keeper and keeper.isVisible then
 		table.insert(defenders, keeper)
 	end
 	
 	-- assign robots alternating
-	for _, robot in World.FriendlyRobots do
+	for _, robot in pairs(World.FriendlyRobots) do
 		if not keeper or robot.id ~= keeper.id then
 			if #defenders > #attackers then
 				table.insert(attackers, robot)
@@ -120,30 +115,6 @@ function Coordinator:_assignRobots()
 	end
 	
 	return attackers, defenders
-end
-
-local keeperValid = false -- no valid keeper
-function Coordinator:_assignGoalKeeper()
-	if Settings.forceKeeperId then
-		self._taskmanager:setKeeper(World.FriendlyRobotsById[Settings.forceKeeperId])
-		return
-	end
-	
-	local keeper = self._taskmanager:keeper()
-	-- change keeper if none exists or
-	-- after restarting the game without a visible keeper
-	if not keeperValid and (not keeper or (World.RefereeState ~= "Stop" and World.RefereeState ~= "Halt")) then
-		keeper = -- TODO: robot next to the goal
-		self._taskmanager:setKeeper(keeper)
-	end
-	
-	if keeper then
-		if keeper.isVisible then
-			keeperValid = true
-		elseif World.RefereeState == "Stop" then -- not visible
-			keeperValid = false
-		end
-	end
 end
 
 function Coordinator:updatePlaySelection()
@@ -186,7 +157,7 @@ function Coordinator:updatePlaySelection()
 		local group = ratingGroups[maxRating]
 		local weightSum = 0 -- sum up all weights
 		for _, play in ipairs(group) do
-			weightSum += play.weight
+			weightSum = weightSum + play.weight
 		end
 		local randVal = math.random(0, weightSum)
 		weightSum = 0
@@ -200,13 +171,16 @@ function Coordinator:updatePlaySelection()
 			weightSum = weightSum + play.weight
 		end
 	end
-	
-	-- avoid crash
-	if self._play then
-		self._play:run()
-	end
 end
 
 function Coordinator:test(play)
 	self._forcePlay = play
+end
+
+local coord = nil
+Entrypoints["main"] = function()
+	if not coord then
+		coord = Coordinator.create()
+	end
+	coord:run()
 end

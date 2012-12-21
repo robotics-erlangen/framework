@@ -1,4 +1,5 @@
 local Base = (require "../base/class").new("Play.Base")
+local debug = require "../base/debug"
 
 Base.rating = {
 	no = 0,
@@ -19,43 +20,51 @@ Base.timeout = 15
 
 function Base:init(tm, attackers, defenders)
 	self._taskmanager = tm
-	self:_init()
 	self._robots, _ = self.selectRobots(attackers, defenders) -- assign robots
+	self:_init()
 end
 
 function Base:run()
-	-- TODO: prepare logging
-	-- TODO: state switcher
-	-- TODO: finish logging
+	-- setup logging
+	debug.pushtop("Play")
+	debug.set(nil, self.className)
+	debug.set("robots", self._robots)
+	
+	-- call active state
+	self["handle" .. self._state](self)
+	
+	-- cleanup
+	debug.pop()
 end
 
-function Base:prepare...()
-	error("stub")
-end
+--function Base:prepare...()
+	--error("stub")
+--end
 
-function Base:handle...()
-	error("stub")
-end
+--function Base:handle...()
+	--error("stub")
+--end
 
 function Base:_assignTasks(tasks)
-	-- TODO: assign helper function
-	-- TODO: assign according to internal robot list
+	for _, task in pairs(tasks) do
+		self._taskmanager:assign(task)
+	end
 end
 
 function Base.selectRobots(attackers, defenders)
 	error("stub")
-	local robots = -- robots
+	-- local robots = -- robots
 	-- conditions
 	-- run and return robotmatcher
 end
 
 function Base:state()
-	-- TODO: return state name
+	return self._state
 end
 
 function Base:setState(newState)
-	-- TODO: new state the play is in
-	-- TODO: call prepare...
+	self._state = newState -- change state
+	self["prepare" .. self._state](self)
 end
 
 function Base.startRating(attackers, defenders, minRequiredRating)

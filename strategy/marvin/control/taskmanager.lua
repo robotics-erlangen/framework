@@ -1,37 +1,33 @@
 local TaskManager = (require "../base/class").new("Control.TaskManager")
+local debug = require "../base/debug"
 
-local TaskManager:init()
+function TaskManager:init()
 	self._assignment = {}
 	self._lastAssignment = {}
 	self._messages = {}
-	self._keeper = nil
 end
 
-local TaskManager:assign(task)
+function TaskManager:assign(task)
 	-- ignore setting a nil task
 	if task == nil then
 		return
 	end
 	local robot = task:robot()
 	if self._assignment[robot] then
-		log(robot)
+		log(robot.id)
 		error("Robot assigned twice")
 	end
 	self._assignment[robot] = task
 end
 
-local TaskManager:task(robot)
+function TaskManager:task(robot)
 	return self._assignment[robot]
 end
 
-local TaskManager:run()
+function TaskManager:run()
 	local messages = {}
 	
 	for robot, task in pairs(self._assignment) do
-		-- verify that each task uses the right robot
-		if task:robot() ~= robot then
-			error("Robot got wrong task")
-		end
 		local priorityMessages = {}
 		local notifications = {}
 		
@@ -60,14 +56,6 @@ local TaskManager:run()
 	-- clear current tasks
 	self._lastAssignment = self._assignment
 	self._assignment = {}
-end
-
-local TaskManager:setKeeper(robot)
-	self._keeper = robot
-end
-
-local TaskManager:keeper()
-	return self.keeper
 end
 
 return TaskManager
