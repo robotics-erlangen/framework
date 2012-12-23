@@ -1,9 +1,11 @@
 local Base = (require "../base/class").new("Pool.Base")
 local RobotMatcher = require "control/robotmatcher"
+local debug = require "../base/debug"
 
 function Base:init(tm, attackers, defenders)
 	self._taskmanager = tm
 	self._robotsDirty = true
+	self._tasks = {}
 	self:_init(attackers, defenders)
 end
 
@@ -11,18 +13,35 @@ function Base:run()
 	if not self._robots then
 		error("Initialization fucked up.")
 	end
-	-- TODO: prepare logging
 	
+	debug.pushtop("Pool")
+	debug.push(self.classNameShort)
+	debug.set(nil, "")
+	
+	-- update robot assignment
 	if self._robotsDirty then -- or -- TODO: important change then
 		self:assignRobots(self._robots)
 	end
 	
+	-- update tasks
 	self:_run()
-	-- TODO: finish logging
+	-- apply tasks
+	self:_assignTasks()
+
+	debug.pop()
+	debug.pop()
 end
 
 function Base:_run()
 	error("stub")
+end
+
+function Base:_assignTasks()
+	for _, task in pairs(self._tasks) do
+		if not self._taskmanager:task(task:robot()) then
+			self._taskmanager:assign(task)
+		end
+	end
 end
 
 function Base:assignRobots(robots)
@@ -31,8 +50,18 @@ function Base:assignRobots(robots)
 end
 
 function Base:_assignRobots(robots, conditions)
-	self._robots = Robotmatcher.match(robots, #robots, conditions)
+	self._robots = RobotMatcher.match(robots, #robots, conditions)
 	self._robotsDirty = false
+	
+	--regnerate tasks list
+	local tasksByRobot = {}
+	for _, task in pairs(self._tasks) do
+		tasksByRobot[task:robot()] = task
+	end
+	self._tasks = {}
+	for i, robot in pairs(self._robots) do
+		self._tasks[i] = tasksByRobot[robot]
+	end
 end
 
 function Base:releaseRobot()
