@@ -17,18 +17,23 @@ local refereeDefendStates = {
 	IndirectOffensive = true
 }
 
+local refereeKickoffStates = {
+	KickoffDefensivePrepare = true,
+	KiffoffDefensive = true,
+	KickoffOffensivePrepare = true,
+	KiffoffOffensive = true
+}
+
 function path:setDefaultObstacles(robot, ignoreGoal, ignoreBall, radius)
 	local ballDistance = 0
-	local forbidOppDefenseArea = false
 	radius = radius or robot.radius
+	
+	local forbidOppDefenseArea = refereeDefendStates[World.RefereeState]
+	local forbidOppFieldHalf = refereeKickoffStates[World.RefereeeState]
 	
 	if refereeStopStates[World.RefereeState] then
 		ballDistance = Constants.stopBallDistance
 		ignoreBall = false
-	end
-
-	if refereeDefendStates[World.RefereeState] then
-		forbidOppDefenseArea = true
 	end
 
 	-- clear and add obstacles
@@ -53,6 +58,11 @@ function path:setDefaultObstacles(robot, ignoreGoal, ignoreBall, radius)
 		--self:addRect(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
 			--G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y - G.DefenseRadius - G.FreeKickDefenseDist, "DefenseAreaOpp_Center")
 		self:addCircle(G.OpponentGoal.x, G.OpponentGoal.y, G.DefenseRadius + Settings.positionPadding + G.FreeKickDefenseDist, "DefenseAreaOpp_Center")
+	end
+	
+	if forbidOppDefenseArea then
+		self:addRect(-G.FieldWidthHalf, G.FieldHeightHalf,
+			G.FieldWidthHalf, 0, "OppFieldHalf")
 	end
 
 	if not ignoreGoals then
