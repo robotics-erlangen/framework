@@ -1,6 +1,6 @@
 local Shoot = {}
 
-
+local Constants = require "../base/constants"
 local World = require "../base/world"
 local Settings = require "settings"
 local Robot = require "observer/robot"
@@ -56,17 +56,16 @@ function Shoot.ballCatchProbability(robot, time, catchPos, corridorHalf)
 	local furthestTarget = exitSector + 0.5*maxAcceleration*time^2 -- position, which the front of the robot covers with maxAcceleration
 	local nearestTarget = startReachSector - 0.5*maxDeceleration*time^2 -- position, which the back of the robot covers with maxDeceleration
 	
-	local function _P(x) -- TODO: Schauen, ob die Funktion Zugriff auf die lokalen Variablen hat
-		if x > nearestTarget and x < furthestTarget then
-			if x < startReachSector then
-				return (0.5*maxAcceleration*time^2)^(-2)*(x - nearestTarget)^2	-- right half of a parable
-			elseif x < exitSector then
-				return 1														-- constant 1
-			else
-				return (0.5*maxDeceleration*time^2)^(-2)*(x - furthestTarget)^2	-- left half of a parable
-			end
+	local function _P(x)
+		if x <= nearestTarget or x >= furthestTarget then
+			return 0
+		end
+		if x < startReachSector then
+			return (0.5*maxAcceleration*time^2)^(-2)*(x - nearestTarget)^2 -- right half of a parable
+		elseif x < exitSector then
+			return 1 -- constant 1
 		else
-			return 0															-- constant 0
+			return (0.5*maxDeceleration*time^2)^(-2)*(x - furthestTarget)^2 -- left half of a parable
 		end
 	end -- continuous function that rates a point on a line perpendicular to the shoot corridor
 	

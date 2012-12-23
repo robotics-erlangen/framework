@@ -1,62 +1,57 @@
 local Interval = {}
 
-local table = reqire "../base/table"
-
 --- Merges a list of intervals
--- @param listOfSortedIntervals list (by reference) - the initial intervals ordered after increasing interval start
-function Interval.merge(listOfSortedIntervals)
-	--local mergedIntervals = {}
+-- @param sortedIntervals list (by reference) - the initial intervals ordered by increasing interval start
+function Interval.merge(sortedIntervals)
 	local currentInterval = nil
 	local n = 0
-	for _, interval in ipairs(listOfSortedIntervals)
+	for _, interval in ipairs(sortedIntervals) do
 		if currentInterval then
 			if interval[1] <= currentInterval[2] then
+				-- join overlapping intervals
 				currentInterval[2] = interval[2]
 			else
+				-- save interval if not overlapping
 				n = n + 1
-				listOfSortedIntervals[n] = currentInterval
-				--table.insert(mergedIntervals, currentInterval)
+				sortedIntervals[n] = currentInterval
+				-- get next one for merging
 				currentInterval = interval
 			end
 		else
 			currentInterval = interval
 		end
 	end
+	-- last interval
 	n = n + 1
-	listOfSortedIntervals[n] = currentInterval
-	table.truncate(listOfSortedIntervals, n)
-	--table.insert(mergedIntervals, currentInterval)
-	--return mergedIntervals
+	sortedIntervals[n] = currentInterval
+	
+	table.truncate(sortedIntervals, n)
 end
 
---- Negotiates a list of intervals
--- @param listOfSortedNonOverlappingIntervals list (by reference) - the initial nonoverlapping intervals sorted after increasing interval start
--- @param outerLimits list - interval marking the outer limits of the result (all intervals in listOfSortedNonOverlappingIntervals must be inside outerLimits)
-function Interval.negotiate(listOfSortedNonOverlappingIntervals, outerLimits)
-	local memory1 = nil
-	local memory2 = nil
-	if listOfSortedNonOverlappingIntervals[1][1] > outerLimits[1] then
-		memory1 = {outerLimits[1], listOfSortedNonOverlappingIntervals[1][1]}
-	end
-	maxn = table.maxn(listOfSortedNonOverlappingIntervals)
-	for key = 1, maxn - 1 do
-		if memory1 then
-			memory2 = {listOfSortedNonOverlappingIntervals[key][2], listOfSortedNonOverlappingIntervals[key+1][1]}
-			listOfSortedNonOverlappingIntervals[key] = memory1
-			memory1 = memory2
-		else
-			listOfSortedNonOverlappingIntervals[key] = {listOfSortedNonOverlappingIntervals[key][2], listOfSortedNonOverlappingIntervals[key+1][1]}
+--- Negates a list of intervals
+-- @param mergedIntervals interval[] - list of intervals as returned by merge
+-- @param outerStart number - start of the outer limit of the result
+-- @param outerEnd number - end of the outer limit of the result
+function Interval.negate(mergedIntervals, outerStart, outerEnd)
+	local chunkStart = outerStart -- end of previous sector
+	local negated = {}
+	
+	for i = 1, #mergedIntervals do
+		local interval = mergedIntervals[i]
+		if interval[1] > chunkStart then
+			table.insert(negated, {chunkStart, interval[1]})
+		end 
+		-- limit start to outer limits
+		chunkStart = math.max(interval[2], outerStart)
+		if chunkStart > outerEnd then -- stop after reaching the end
+			break
 		end
 	end
-	if listOfSortedNonOverlappingIntervals[maxn][2] < outerLimits[2] then
-		if memory1 then
-			memory2 = {listOfSortedNonOverlappingIntervals[maxn][2], outerLimits[2]}
-			listOfSortedNonOverlappingIntervals[maxn] = memory1
-			table.insert(listOfSortedNonOverlappingIntervals, memory2)
-		else
-			listOfSortedNonOverlappingIntervals[maxn] = {listOfSortedNonOverlappingIntervals[maxn][2], outerLimits[2]}
-		end
+	
+	if chunkStart < outerEnd then
+		table.insert(negated, {chunkStart, outerEnd})
 	end
+	return negated
 end
 
 
