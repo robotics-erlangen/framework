@@ -1,18 +1,18 @@
-local keeper = (require "../base/class").new("Task.keeper", require "task/base")
+local Keeper = (require "../base/class").new("Task.Keeper", require "task/base")
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Observer = require "observer/ball"
 local geom = require "../base/geom"
 
-Base.priority = 6
+Keeper.priority = 6
 
-function keeper:_init()
+function Keeper:_init()
 
 end
 
 --moves keeper do defending possition
-function keeper:_run(priorityMessages, notifications)
+function Keeper:_run(priorityMessages, notifications)
 	local atkPos, atkDir, isShot = Observer.--todo predictShot
 	--Defending possition if ball is allready shot: shortest way to stop the ball
 	if isShot then
@@ -30,4 +30,4 @@ function keeper:_run(priorityMessages, notifications)
 	end
 end
 
-return keeper
+return Keeper

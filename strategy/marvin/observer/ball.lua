@@ -49,7 +49,7 @@ function Ball.ballRollTime(v, distance)
 	local t2 = (-v - discriminantRoot)/(2*a)
 	if t1 >= 0 then
 		return t1
-	else if t2 >= 0 then
+	elseif t2 >= 0 then
 		return t2
 	else
 		return math.huge

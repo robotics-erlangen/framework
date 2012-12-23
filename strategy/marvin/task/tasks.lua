@@ -1,7 +1,10 @@
 --- Loads every task and publishes test functions
 local Tasks = {
-	ManMark = require "task/manmark"
-	-- TODO add tasks
+	DirectPass = require "task/directpass",
+	Keeper = require "task/keeper",
+	ManMark = require "task/manmark",
+	MoveToPos = require "task/movetopos",
+	ReceivePass = require "task/receivepass"
 }
 
 for name,s in pairs(Tasks) do
