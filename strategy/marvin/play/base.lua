@@ -21,17 +21,26 @@ Base.timeout = 15
 function Base:init(tm, attackers, defenders)
 	self._taskmanager = tm
 	self._robots, _ = self.selectRobots(attackers, defenders) -- assign robots
+	self._tasks = {}
 	self:_init()
+end
+
+function Base:_init()
+	error("stub")
+	-- set initial state
 end
 
 function Base:run()
 	-- setup logging
 	debug.pushtop("Play")
-	debug.set(nil, self.className)
-	debug.set("robots", self._robots)
+	debug.set(nil, self.classNameShort .. "(" .. self._state .. ")")
 	
-	-- call active state
-	self["handle" .. self._state](self)
+	-- switch state if neccessary
+	local switch = "switch" .. self._state
+	if self[switch] then
+		self[switch](self)
+	end
+	self:_assignTasks() -- apply tasks
 	
 	-- cleanup
 	debug.pop()
@@ -41,20 +50,22 @@ end
 	--error("stub")
 --end
 
---function Base:handle...()
+--function Base:switch...()
 	--error("stub")
 --end
 
-function Base:_assignTasks(tasks)
-	for _, task in pairs(tasks) do
+function Base:_assignTasks()
+	for _, task in pairs(self._tasks) do
 		self._taskmanager:assign(task)
 	end
 end
 
+-- the attackers and defenders table are guaranteed to not change for the current frame
 function Base.selectRobots(attackers, defenders)
 	error("stub")
 	-- local robots = -- robots
 	-- conditions
+	-- use STATIC conditions, if possible!
 	-- run and return robotmatcher
 end
 
