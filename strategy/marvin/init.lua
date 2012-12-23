@@ -27,6 +27,7 @@ require "base/path" -- extend path module
 -- TODO: include utils
 
 local debug = require "../base/debug"
+local Cache = require "../base/cache"
 --local Observer = require "observer/observer"
 checkGlobals()
 
@@ -41,6 +42,7 @@ for name, func in pairs(Entrypoints) do
 		end
 		World.setRobotCommands()
 		debug.resetStack()
+		Cache.resetFrame()
 		checkGlobals()
 	end
 end
