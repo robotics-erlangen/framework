@@ -31,4 +31,15 @@ function math.roundTowards(val, dest, spacing)
 	end
 end
 
+--- Round value to idp digits
+-- @usage round(1.23, 1) -- 1.2
+-- @name round
+-- @param val number
+-- @param digits number - digits to keep after decimal dot
+-- @return number - rounded value
+function math.round(val, digits)
+	local fac = 10^(digits or 0)
+	return math.floor(val * fac + 0.5) / fac
+end
+
 return math

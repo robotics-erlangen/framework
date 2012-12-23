@@ -29,7 +29,7 @@ end
 --- Appends the given array to an array.
 -- @name append
 -- @param t1 table - Array to append to
--- @param ... table[] - Array to append to t1
+-- @param ... table[] - Arrays to append to t1
 -- @return table - appended array
 function table.append(t1, ...) -- for arrays (non nil)
 	local param = {...}
