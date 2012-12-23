@@ -4,11 +4,11 @@ local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Observer = require "observer/ball"
 local geom = require "../base/geom"
+local Settings = require "settings"
 
 Keeper.priority = 6
 
 function Keeper:_init()
-
 end
 
 --moves keeper do defending possition
