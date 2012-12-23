@@ -4,6 +4,8 @@
 
 Usage: lualint [-r|-s] filename.lua [ [-r|-s] [filename.lua] ...]
 
+Self-defined ignores: line 105
+
 lualint performs static analysis of Lua source code's usage of global
 variables..  It uses luac's bytecode listing.  It reports all accesses
 to undeclared global variables, which catches many typing errors in
@@ -99,6 +101,11 @@ local ignoreget = Set{
 "pcall", "print", "rawequal", "rawget", "rawset", "require",
 "setfenv", "setmetatable", "string", "table", "tonumber", "tostring",
 "type", "unpack", "xpcall",
+
+--self-defined ignores
+"Entrypoints",
+"log"
+
 }
 
 local function fileexists(fname)
