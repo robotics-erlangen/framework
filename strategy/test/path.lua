@@ -33,12 +33,10 @@ for _,obstacle in pairs(obstacles) do
 end
 
 p:setRadius(0.09)
+-- radius ist uninitialisiert, wenn setRadius nicht verwendet wird
+-- wenn dann check und Fehler
 
-local function calculateWaypoints ()
-	-- FIXME Bug in Ra: Wegfindungsobjekt ohne Hindernisse, wenn automatisch neu geladen,
-	-- nach einem Reload gehts dann
-
-	local waypoints = p:get(pointA.x, pointA.y, pointB.x, pointB.y)
+local function drawWaypoints(waypoints)
 	local prev = pointA
 	local dist = 0
 	for i=1,#waypoints do
@@ -47,20 +45,36 @@ local function calculateWaypoints ()
 		dist = dist + cur:distanceTo(prev)
 		prev = cur
 	end
+	return dist
 end
 
-Entrypoints["main"] = function ()
-	World.update()
-	calculateWaypoints()
-	p:addTreeVisualization()
-	for _,obstacle in pairs(obstacles) do
-		if obstacle.type == "Circle" then
-			vis.addCircle("obstacles", obstacle.pos, obstacle.radius, vis.colors.blue)
-		elseif obstacle.type == "Line" then
-			vis.addPath("obstacles", {obstacle.posStart, obstacle.posEnd}, vis.colors.blue)
+
+Entrypoints["fixed obstacles"] = function ()
+	-- FIXME Bug in Ra: Wegfindungsobjekt ohne Hindernisse, wenn automatisch neu geladen,
+	-- nach einem Reload gehts dann
+
+	local waypoints = p:get(pointA.x, pointA.y, pointB.x, pointB.y)
+	drawWaypoints(waypoints)
+end
+
+Entrypoints["start=stop"] = function ()
+	local waypoints = p:get(pointA.x, pointA.y, pointA.x, pointA.y)
+	drawWaypoints(waypoints)
+end
+
+for name, f in pairs(Entrypoints) do
+	Entrypoints[name] = function()
+		World.update()
+		f()
+		p:addTreeVisualization()
+		for _,obstacle in pairs(obstacles) do
+			if obstacle.type == "Circle" then
+				vis.addCircle("obstacles", obstacle.pos, obstacle.radius, vis.colors.blue)
+			elseif obstacle.type == "Line" then
+				vis.addPath("obstacles", {obstacle.posStart, obstacle.posEnd}, vis.colors.blue)
+			end
 		end
 	end
 end
-
 
 return {name = "path-test", entrypoints = Entrypoints}
