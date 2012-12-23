@@ -184,3 +184,5 @@ Entrypoints["main"] = function()
 	end
 	coord:run()
 end
+
+return Coordinator
