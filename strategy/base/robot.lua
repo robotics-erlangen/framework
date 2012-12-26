@@ -147,7 +147,8 @@ end
 --- Set output from trajectory planing on robot
 -- @param input Spline - Target points for the controller, in global coordinates!
 function Robot:setControllerInput(input)
-	if input and self._controllerInput then
+	-- Forbid overriding controller input except with halt
+	if input and next(input) ~= nil and self._controllerInput then
 		error("Setting controller input twice")
 	end
 	self._controllerInput = input
