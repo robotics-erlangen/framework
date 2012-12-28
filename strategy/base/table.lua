@@ -90,7 +90,7 @@ end
 -- @return table - mapped array
 function table.map(array, f)
 	local mapped = {}
-	for _, entry in pairs(array) do
+	for _, entry in ipairs(array) do
 		table.insert(mapped, f(entry))
 	end
 	return mapped

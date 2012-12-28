@@ -148,7 +148,7 @@ end
 -- @param input Spline - Target points for the controller, in global coordinates!
 function Robot:setControllerInput(input)
 	-- Forbid overriding controller input except with halt
-	if input and next(input) ~= nil and self._controllerInput then
+	if input and input.spline and self._controllerInput then
 		error("Setting controller input twice")
 	end
 	self._controllerInput = input

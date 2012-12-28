@@ -149,7 +149,7 @@ end
 -- @return Vector - geometric center of points
 function geom.center(pointArray)
 	local pos = Vector.create(0,0)
-	for _, point in pairs(pointArray) do
+	for _, point in ipairs(pointArray) do
 		pos = pos + point -- sum up all points
 	end
 	return pos / #pointArray

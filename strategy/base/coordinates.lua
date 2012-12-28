@@ -50,7 +50,7 @@ if teamIsBlue then
 
 	Coordinates.listToGlobal = function(data)
 		local inverted = {}
-		for k,v in pairs(data) do
+		for k,v in ipairs(data) do
 			inverted[k] = Coordinates.toGlobal(v)
 		end
 		return inverted
