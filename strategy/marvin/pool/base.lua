@@ -14,8 +14,7 @@ function Base:run()
 		error("Initialization fucked up.")
 	end
 	
-	debug.pushtop("Pool")
-	debug.push(self.classNameShort)
+	debug.pushtop("Pool-"..self.classNameShort)
 	debug.set(nil, "")
 	
 	-- update robot assignment
@@ -23,12 +22,17 @@ function Base:run()
 		self:assignRobots(self._robots)
 	end
 	
+	debug.push("Robots")
+	for i, robot in ipairs(self._robots) do
+		debug.set(tostring(i), robot.id)
+	end
+	debug.pop()
+	
 	-- update tasks
 	self:_run()
 	-- apply tasks
 	self:_assignTasks()
 
-	debug.pop()
 	debug.pop()
 end
 

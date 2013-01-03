@@ -35,6 +35,12 @@ function Base:run()
 	debug.pushtop("Play")
 	debug.set(nil, self.classNameShort .. "(" .. self._state .. ")")
 	
+	debug.push("Robots")
+	for i, robot in ipairs(self._robots) do
+		debug.set(tostring(i), robot.id)
+	end
+	debug.pop()
+	
 	-- switch state if neccessary
 	local switch = "switch" .. self._state
 	if self[switch] then
