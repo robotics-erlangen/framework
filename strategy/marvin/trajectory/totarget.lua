@@ -61,7 +61,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	table.remove(waypoints, 1) -- remove robot position
 	if #waypoints == 0 then -- no waypoints left
 		if self._robot.pos:distanceTo(targetPos) > 0.01 then
-			vis.addCircleRaw("waypoints", robotPos, 0.05, vis.colors.yellowHalf)
+			vis.addCircleRaw("waypoints", robotPos, 0.05, vis.colors.pinkHalf)
 		end
 		return {}, Coordinates.toGlobal(targetPos), 0
 	end
