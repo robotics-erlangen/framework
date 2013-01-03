@@ -1,3 +1,4 @@
+local World = require "../base/world"
 local Field = {}
 
 --- returns the nearest position inside the field (extended by boundaryWidth)

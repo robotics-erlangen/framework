@@ -24,7 +24,7 @@ local refereeKickoffStates = {
 	KiffoffOffensive = true
 }
 
-function path:setDefaultObstacles(robot, ignoreGoal, ignoreBall, radius)
+function path:setDefaultObstacles(robot, ignoreGoals, ignoreBall, radius)
 	local ballDistance = 0
 	radius = radius or robot.radius
 	

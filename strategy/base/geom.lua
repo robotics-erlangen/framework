@@ -91,7 +91,7 @@ end
 -- @return number] - lambda2, intersection = pos2 + lambda2*dir2
 function geom.intersectLineLine(pos1, dir1, pos2, dir2)
 	if dir1 == dir2 then
-		if pos1 == po2 then
+		if pos1 == pos2 then
 			return pos1, 0, 0
 		else
 			return

@@ -38,7 +38,7 @@ function table.append(t1, ...) -- for arrays (non nil)
 			table.insert(t1, value)
 		end
 	elseif #param > 1 then
-		table.append(append(t1, table.remove(param, 1)), unpack(param))
+		table.append(table.append(t1, table.remove(param, 1)), unpack(param))
 	end
 	return t1
 end

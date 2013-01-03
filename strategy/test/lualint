@@ -104,8 +104,9 @@ local ignoreget = Set{
 
 --self-defined ignores
 "Entrypoints",
-"log"
-
+"log",
+"Vector",
+"amun", "path"
 }
 
 local function fileexists(fname)
@@ -204,7 +205,7 @@ end
 local found_sets = false
 local found_gets = false
 local parse_failed = false
-local import_failed = true
+local import_failed = false
 
 -- print("args", arg[1])
 local function lint(filename, relaxed)

@@ -19,7 +19,7 @@ Gen2012.constants = {
 function Gen2012:chip(distance)
 	if self.maxShotChip == 0 then
 		self:pass(distance)
-		robot:setDribblerSpeed(1)
+		self:setDribblerSpeed(1)
 	else
 		self:shootChip(1) -- chip is too powerless
 	end

@@ -149,7 +149,7 @@ end
 
 local _addRect = path.addRect
 function path:addRect(start_x, start_y, stop_x, stop_y, name)
-	if invert then
+	if teamIsBlue then
 		_addRect(self, -start_x, -start_y, -stop_x, -stop_y, name)
 	else
 		_addRect(self, start_x, start_y, stop_x, stop_y, name)

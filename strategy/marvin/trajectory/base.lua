@@ -11,10 +11,10 @@ end
 
 -- Data has to be in strategy coordinates!!! The trajectory module is responsible for the conversion
 -- between strategy and global coordinates!
--- New data to use for updating, returns controllerInput and optionally additional data
+-- New data to use for updating, returns controllerInput, moveDest and moveTime
 function Base:update(...)
 	error("Trajectory module not implemented")
-	return controllerInput, ...
+	return controllerInput, moveDest, moveTime
 end
 
 -- checks whether trajectory handler is currently able to handle the new data
