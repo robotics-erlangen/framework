@@ -98,7 +98,7 @@ function Coordinator:_assignRobots()
 	local defenders = {}
 	
 	-- start with keeper as defender
-	local keeper = World.FriendlyRobotsById[World.FriendlyKeeperId]
+	local keeper = World.FriendlyKeeper
 	if keeper and keeper.isVisible then
 		table.insert(defenders, keeper)
 	end
