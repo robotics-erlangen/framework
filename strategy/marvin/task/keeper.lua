@@ -15,6 +15,9 @@ end
 function Keeper:_run(priorityMessages, notifications)
 	--TODO: add obstacles if outside keeper area
 	local atkPos, atkDir, isShot = Observer.predictShot()
+	
+	-- ignore goal walls if ball is shot
+	self._robot.path:setDefaultObstacles(self._robot, true, isShot)
 	--Defending possition if ball is allready shot: shortest way to stop the ball
 	if isShot then
 		local movTo = self._robot.pos:nearestPosOnLine(atkPos, atkPos+atkDir)
