@@ -24,7 +24,7 @@ local refereeKickoffStates = {
 	KiffoffOffensive = true
 }
 
-function path:setDefaultObstacles(robot, ignoreGoals, ignoreBall, radius)
+function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, radius)
 	local ballDistance = 0
 	radius = radius or robot.radius
 	
@@ -43,7 +43,7 @@ function path:setDefaultObstacles(robot, ignoreGoals, ignoreBall, radius)
 	self:setRadius(radius)
 	
 	local G = World.Geometry
-	-- only keeper may access friendly defense area
+	-- only keeper may enter friendly defense area
 	if World.FriendlyKeeper ~= robot then
 		self:addCircle(G.FriendlyGoal.x - G.DefenseStretch / 2, G.FriendlyGoal.y, G.DefenseRadius + Settings.positionPadding, "DefenseArea_Left")
 		self:addCircle(G.FriendlyGoal.x + G.DefenseStretch / 2, G.FriendlyGoal.y, G.DefenseRadius + Settings.positionPadding, "DefenseArea_Right")
