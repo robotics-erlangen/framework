@@ -24,6 +24,11 @@ end
 -- @param robotList list - all robot objects that should be considered
 -- @param opp boolean - true for opponent goal, false for friendly goal
 function Goal.freeSectors(viewPos, robotList, opp)
+	if viewPos.y > (opp and 1 or -1)*World.FieldHeigthHalf then
+		log("viewPos is behind the goal.")
+		return nil
+	end
+
 	local goalStart = (World.(opp and OpponentGoalRight or FriendlyGoalLeft) - viewPos):angle() -- direction of the first goalpost
 	local goalEnd = (World.(opp and OpponentGoalLeft or FriendlyGoalRight) - viewPos):angle() -- direction of the other goalpost (is always greater than goalStart, if viewPos is in the field)
 	
