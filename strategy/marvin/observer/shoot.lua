@@ -8,13 +8,14 @@ local Robot = require "observer/robot"
 
 --- Calculates the chance that a pass to the targetRobot will succeed
 -- in terms of opponent robots catching the ball
--- @param targetRobot Robot - the pass target
+-- @param targetRobot Robot - the robot that should receive the pass
 -- @param shootTime number - the time when the ballie shoots
-function Shoot.evaluateCorridor(targetRobot, targetPos, shootTime)
+-- [@param targetPos Vector - the position where the pass should be received]
+function Shoot.evaluateCorridor(targetRobot, shootTime, targetPos)
 	-- TODO: test
 	local corridorWidthHalf = World.Ball.radius + Constants.positionError	
 
-	local targetPos = targetRobot.trajectory:predictPos(shootTime)
+	local targetPos = targetPos or targetRobot.trajectory:predictPos(shootTime)
 	local predictedBallState = Ball.atTime(shootTime)
 
 	local corridorHalf = (targetPos - predictedBallState.pos):perpendicular():setLength(corridorWidthHalf)
@@ -29,12 +30,16 @@ function Shoot.evaluateCorridor(targetRobot, targetPos, shootTime)
 	return passChance
 end
 
-function Shoot.evaluateChipCorridor(targetRobot, targetPos, shootTime)
+--- Calculates the chance that a chipped pass to the targetRobot will succeed in terms of opponent robots catching the ball
+-- @param targetRobot Robot - the robot that should receive the pass
+-- @param shootTime number - the time when the ballie shoots
+-- [@param targetPos Vector - the position where the pass should be received]
+function Shoot.evaluateChipCorridor(targetRobot, shootTime, targetPos)
 	--TODO: test
 	if (targetPos - ballPos):length() > 2 * liftDistance + targetRobot.radius then
 		local corridorWidthHalf = World.Ball.radius + Constants.positionError	
 
-		local targetPos = targetPos or targetRobot.trajectory:predictPos(shootTime)		--FIXME add time needed to reach target
+		targetPos = targetPos or targetRobot.trajectory:predictPos(shootTime)		--FIXME add time needed to reach target
 		local ballPos = Ball.atTime(shootTime)
 
 		local corridorHalf = (targetPos - ballPos):perpendicular():setLength(corridorWidthHalf)
