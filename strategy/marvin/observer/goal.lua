@@ -24,7 +24,7 @@ end
 -- @param robotList list - all robot objects that should be considered
 -- @param opp boolean - true for opponent goal, false for friendly goal
 function Goal.freeSectors(viewPos, robotList, opp)
-	if viewPos.y > (opp and 1 or -1)*World.FieldHeigthHalf then
+	if (opp and 1 or -1)*viewPos.y > World.FieldHeigthHalf then
 		log("viewPos is behind the goal.")
 		return nil
 	end
