@@ -13,13 +13,18 @@ function DirectPass:_init(targetRobot, linearShoot)
 	self._linearShoot = linearShoot
 end
 
-function DirectPass:_successProbability()
+function DirectPass:_successProbability(t)
 	-- FIXME check that robot is oriented towards the target
-	return Shoot.evaluateCorridor(self._targetPos, 0)
+
+	--TODO check if other position would be more efficient
+	if self._linearShoot then
+		return Shoot.evaluateCorridor(self._targetRobot, nil, t)	--check posibility of success at time t for linear shoot
+	else
+		return Shoot.evaluateChipCorridor(self._targetRobot, nil, t)	--check posibility of success at time t for chip
+	end
 end
 
 function DirectPass:_run(priorityMessages, notifications)
-
 	local msg = notifications[self._targetRobot]
 
 	local targetPos = msg and msg.targetPos or self._targetRobot.pos
@@ -27,7 +32,9 @@ function DirectPass:_run(priorityMessages, notifications)
 
 	-- TODO calc shoot target
 	-- TODO get pass speed
-	
+
+	-- check for obstacles
+
 	local passSpeed = 1
 	self:_shoot(targetPos, passSpeed, self._linearShoot, Settings.shootProbabilityThreshold)
 end
