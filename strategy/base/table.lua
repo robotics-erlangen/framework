@@ -96,4 +96,18 @@ function table.map(array, f)
 	return mapped
 end
 
+--- Returns a readonly proxy table.
+-- @name readonlytable
+-- @param table table - Table to write-protect
+-- @return table - readonly proxy table
+function table.readonlytable(table)
+	return setmetatable({}, {
+	__index = table,
+	__newindex = function(table, key, value)
+					error("Attempt to modify read-only table")
+				end,
+	__metatable = false
+	});
+end
+
 return table

@@ -1,5 +1,6 @@
 require "../base/base"
 local World = require "../base/world"
+require "settings"
 
 local globals = {}
 local function saveGlobals()

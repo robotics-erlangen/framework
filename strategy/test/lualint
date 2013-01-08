@@ -1,10 +1,17 @@
 #!/usr/bin/env lua
 
+local custom_ignores = {
+"Entrypoints",
+"log", 
+"Vector",
+"amun", 
+"path",
+"Settings"
+}
+
 --[[ 
 
 Usage: lualint [-r|-s] filename.lua [ [-r|-s] [filename.lua] ...]
-
-Self-defined ignores: line 105
 
 lualint performs static analysis of Lua source code's usage of global
 variables..  It uses luac's bytecode listing.  It reports all accesses
@@ -93,21 +100,18 @@ local function Set(l)
   return t
 end
 
-local ignoreget = Set{
-"LUA_PATH", "_G", "_LOADED", "_TRACEBACK", "_VERSION", "__pow", "arg",
-"assert", "collectgarbage", "coroutine", "debug", "dofile", "error",
-"gcinfo", "getfenv", "getmetatable", "io", "ipairs", "loadfile",
-"loadlib", "loadstring", "math", "newproxy", "next", "os", "pairs",
-"pcall", "print", "rawequal", "rawget", "rawset", "require",
-"setfenv", "setmetatable", "string", "table", "tonumber", "tostring",
-"type", "unpack", "xpcall",
-
---self-defined ignores
-"Entrypoints",
-"log",
-"Vector",
-"amun", "path"
-}
+local ignores = {
+	"LUA_PATH", "_G", "_LOADED", "_TRACEBACK", "_VERSION", "__pow", "arg",
+	"assert", "collectgarbage", "coroutine", "debug", "dofile", "error",
+	"gcinfo", "getfenv", "getmetatable", "io", "ipairs", "loadfile",
+	"loadlib", "loadstring", "math", "newproxy", "next", "os", "pairs",
+	"pcall", "print", "rawequal", "rawget", "rawset", "require",
+	"setfenv", "setmetatable", "string", "table", "tonumber", "tostring",
+	"type", "unpack", "xpcall" }
+for _,v in ipairs(custom_ignores) do
+	table.insert(ignores, v)
+end
+local ignoreget = Set(ignores)
 
 local function fileexists(fname)
   local f = io.open(fname)
