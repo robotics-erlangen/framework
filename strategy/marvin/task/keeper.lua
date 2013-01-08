@@ -5,6 +5,7 @@ local ToTarget = require "trajectory/totarget"
 local Observer = require "observer/ball"
 local geom = require "../base/geom"
 local Settings = require "settings"
+local vis = require "../base/vis"
 
 Keeper.priority = 6
 
@@ -14,24 +15,35 @@ end
 --moves keeper do defending possition
 function Keeper:_run(priorityMessages, notifications)
 	--TODO: add obstacles if outside keeper area
+	local goalLinePos = Vector.create(0 ,World.Geometry.FriendlyGoal.y + Settings.keeperGoalDistance + self._robot.radius)
+	local goalLineDir = Vector.create(1,0)
 	local atkPos, atkDir, isShot = Observer.predictShot()
+	atkPos = atkPos:copy()
+	atkDir = atkDir:copy():setLength(30)
+	local intersectPos = geom.intersectLineLine(atkPos, atkDir, goalLinePos, goalLineDir)
+	
+	--visualization Tool
+	vis.addPath("KeeperShotPrediction",{atkPos,atkPos+atkDir})
+	vis.addPath("KeeperGoalLineIntersect",{intersectPos,atkPos})
 	
 	-- ignore goal walls if ball is shot
 	self._robot.path:setDefaultObstacles(self._robot, true, isShot)
+	
+	local moveTo
 	--Defending possition if ball is allready shot: shortest way to stop the ball
-	if isShot then
-		local movTo = self._robot.pos:nearestPosOnLine(atkPos, atkPos+atkDir)
-		local faceBall = World.Ball.pos-movTo
-		self._robot.trajectory:update(ToTarget, movTo, faceBall:angle())
-	--Defending possition to block possible Goal shots: Moves along a straigt line in front of the goal: distance to goal: Settings.keeperGoalDistance
+	if isShot and atkDir.y < 0 and math.abs(intersectPos.x) < World.Geometry.GoalWidth / 2 then
+		moveTo = self._robot.pos:nearestPosOnLine(atkPos, atkPos+atkDir)
+		moveTo.x = math.bound(-World.Geometry.GoalWidth / 2, moveTo.x, World.Geometry.GoalWidth / 2) --don't move out of the goal
+	--Defending possition to block possible Goal shots: Moves along a straight line in front of the goal: distance to goal: Settings.keeperGoalDistance
+	elseif atkDir.y < 0 then
+			moveTo = intersectPos
+			moveTo.x = math.bound(-World.Geometry.GoalWidth / 2, moveTo.x, World.Geometry.GoalWidth / 2) --don't move out of the goal
+	--Standart Position if no Goal-Shot is expected
 	else
-		local goalLinePos = Vector.create(0 ,World.Geometry.FriendlyGoal.y + Settings.keeperGoalDistance)
-		local goalLineDir = Vector.create(1,0)
-		local movTo = geom.intersectLineLine(atkPos, atkDir, goalLinePos, goalLineDir)
-		movTo.x = math.bound(-World.Geometry.GoalWidth / 2, movTo.x, World.Geometry.GoalWidth / 2) --don't move out of the goal
-		local faceBall = World.Ball.pos-movTo
-		self._robot.trajectory:update(ToTarget, movTo, faceBall:angle())
+			moveTo = goalLinePos
 	end
+	local faceBall = World.Ball.pos-moveTo
+	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
 end
 
 return Keeper
