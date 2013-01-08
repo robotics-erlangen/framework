@@ -53,6 +53,11 @@ function Ball.ballRollTime(v, distance)
 end
 
 
+local function ballAt(ball, t)
+	-- p_b(t) = p_b + v_b(t0) * t + a_b(t0) * t^2/2
+	return ball.pos + ball.speed * t + ball.deceleration * (t^2/2) -- (8)
+end
+
 --- Predicts the ball after a given time interval.
 -- Assumes linear ball movement and linear deceleration
 -- @param t number - time in seconds
@@ -61,18 +66,13 @@ end
 function Ball.atTime(t, ball)
 	ball = ball or World.Ball
 	
-	local ballAt = function (t)
-		-- p_b(t) = p_b + v_b(t0) * t + a_b(t0) * t^2/2
-		return ball.pos + ball.speed * t + ball.deceleration * (t^2/2) -- (8)
-	end
-	
 	local predicted = { radius = ball.radius }
 	if t > ball.brakeTime then -- ball won't move anymore after it has stopped
-		predicted.pos = ballAt(ball.brakeTime)
+		predicted.pos = ballAt(ball, ball.brakeTime)
 		predicted.speed = Vector.create(0, 0)
 		predicted.brakeTime = 0
 	else
-		predicted.pos = ballAt(t)
+		predicted.pos = ballAt(ball, t)
 		predicted.speed = ball.speed + ball.deceleration * t
 		predicted.brakeTime = ball.brakeTime - t
 	end

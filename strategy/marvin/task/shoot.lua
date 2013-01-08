@@ -1,7 +1,7 @@
 local Shoot = (require "../base/class").new("Task.Shoot", require "task/catchball")
 
 local World = require "../base/world"
-local ToTarget = require "trajectory/totarget"
+local TrajectoryDirect = require "trajectory/direct"
 
 function Shoot:_successProbability()
 	error("stub")
@@ -23,12 +23,18 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 		end
 		self._shootProbability = successProbability
 		if self._shootHysteresis > 0 then
-			-- TODO: shoot
+			local speed = World.Ball.pos - self._robot.pos
+			speed:setLength(Settings.shootDriveSpeed)
+			local targetDir = (targetPos-self._robot.pos):angle()
+			self._robot.trajectory:update(TrajectoryDirect, speed, targetDir)
+			
+			local dist = (targetPos-self._robot.pos):length()
+			self._robot:shoot(targetSpeed, dist)
 		end
 	else -- catch the ball
 		self._shootHysteresis = 0
 		self._successProbability = 0
-		-- TODO: catch the ball (movetoball?)
+		self._catchBall(targetPos, Settings.shootDriveSpeed)
 	end
 end
 

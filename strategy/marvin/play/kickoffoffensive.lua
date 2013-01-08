@@ -1,8 +1,8 @@
 local Base = require "play/base"
 local KickoffOffensive = (require "../base/class").new("Play.KickoffOffensive", Base)
 
+local Assistant = require "task/assistant"
 local MoveToPos = require "task/movetopos"
-local Settings = require "settings"
 local World = require "../base/world"
 local RobotMatcher = require "control/robotmatcher"
 local RobotList = require "util/robotlist"
@@ -100,7 +100,7 @@ end
 
 function KickoffOffensive:prepareMajority()
 	local mirroredTargetPos = Vector.create((self.side and -1 or 1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
-	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*r[1].radius)
+	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*self._robots[1].radius)
 	self._tasks = {
 		-- 1: Laufpass an 2
 		-- 2: Laufpass von 1 annehmen
@@ -111,7 +111,7 @@ end
 
 function KickoffOffensive:prepareUseQuarterback()
 	local mirroredTargetPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
-	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*r[1].radius)
+	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*self._robots[1].radius)
 	self._tasks = {
 		--1: Laufpass an 3
 		self._robots[2] and MoveToPos.create(self._robots[2], backPos, math.pi/2) or nil,
@@ -122,7 +122,7 @@ end
 
 function KickoffOffensive:prepareDefault()
 	local mirroredTargetPos = Vector.create((self.side and -1 or 1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
-	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*r[1].radius)
+	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*self._robots[1].radius)
 	self._tasks = {
 		-- 1: Laufpass an 4
 		self._robots[2] and MoveToPos.create(self._robots[2], backPos, math.pi/2) or nil,
