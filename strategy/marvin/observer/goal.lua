@@ -2,6 +2,7 @@ local Goal = {}
 
 local World = require "../base/world"
 local Interval = require "util/interval"
+local vis = requre "../base/vis"
 
 local function getOccupiedSectors(viewPos, robotList, goalStart, goalEnd) -- fills the list of occupied sectors
 	local occupiedSectors = {}
@@ -35,8 +36,18 @@ function Goal.freeSectors(viewPos, robotList, opp)
 	local occupiedSectors = getOccupiedSectors(viewPos, robotList, goalStart, goalEnd)
 	table.sort(occupiedSectors, function (t1, t2) return t1[1] < t2[1] end) -- sort sectors ascending by sectorStart
 	Interval.merge(occupiedSectors) -- merge the sectors
+	local unoccupiedSectors = Interval.negate(occupiedSectors, goalStart, goalEnd)
+	local function _visualize()
+		vis.setColor(vis.fromRGBA(255, 127, 0, 127), true)
+		for _, s in ipairs(unoccupiedSectors) do
+			local pointRight = viewPos + Vector.fromAngle(s[1])*10
+			local pointLeft = viewPos + Vector.fromAngle(s[2])*10
+			vis.addPolygon("Free Sectors", {viewPos, pointRight, point})
+		end
+	end
+	_visualize()
 	-- returns all unoccupied sectors in the interval [right goalpost, left goalpost]
-	return Interval.negate(occupiedSectors, goalStart, goalEnd)
+	return unoccupiedSectors
 end
 
 --- Returns the biggest free sector and its width (angle difference)
