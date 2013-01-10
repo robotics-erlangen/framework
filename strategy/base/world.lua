@@ -5,6 +5,7 @@ module "World"
 local Ball = require "../base/ball"
 local Robot = require "../base/robot"
 local Generation = require "../base/generation"
+local amun = amun
 
 --- Ball and team informations.
 -- @class table

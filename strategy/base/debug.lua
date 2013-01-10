@@ -3,6 +3,7 @@
 module "debug"
 ]]--
 local debug = {}
+local amun = amun
 
 local debugStack = { "" }
 

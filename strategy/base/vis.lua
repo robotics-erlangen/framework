@@ -3,6 +3,7 @@
 module "vis"
 ]]--
 local Coordinates = require "../base/coordinates"
+local amun = amun
 
 local gcolor = {}
 local gisFilled = true

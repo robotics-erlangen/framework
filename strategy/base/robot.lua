@@ -6,6 +6,7 @@ local debug = require "../base/debug"
 local Coordinates = require "../base/coordinates"
 local Trajectory = require "../base/trajectory"
 local Constants = require "../base/constants"
+local amun = amun
 
 local Robot = (require "../base/class").new("Robot")
 
