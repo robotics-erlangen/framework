@@ -13,7 +13,8 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 	self._shootHysteresis = self._shootHysteresis or 0
 	
 	if self._robot:hasBall(World.Ball) then -- if we got the ball
-		local successProbability = self:_successProbability()
+		local successProbability = self:_successProbability(0)
+		-- TODO: check future to see whether probability will decrease
 		-- TODO: test whether to add a delay when probability decreases
 		if successProbability > probabilityThreshold
 				or successProbability <= self._successProbability then
