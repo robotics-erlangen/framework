@@ -6,6 +6,7 @@ local MoveToPos = require "task/movetopos"
 --local ShootGoal = require "task/shootgoal"
 
 local World = require "../base/world"
+local Game = require "observer/game"
 local RobotMatcher = require "control/robotmatcher"
 local RobotList = require "util/robotlist"
 local G = World.Geometry
@@ -135,43 +136,22 @@ end
 
 
 function KickoffOffensive:decideCase()
-	 -- divide the field into three sectors
-	 -- _________________________ <- opponent's goal line
-	 -- |       |       |       |
-	 -- |       |       |       |
-	 -- |_______|   2   |_______|
-	 -- |       |       |       |
-	 -- |   1   |       |   3   |
-	 -- |_______|_______|_______| <- center line
-	 -- |                       |
-	local sector = {0, 0, 0}
-	local border = G.CenterCircleRadius + G.FieldWidthQuarter
-	for _,robot in pairs(World.OpponentRobots) do --counts the opponent robots in each sector
-		if robot.pos.y < border then
-			if robot.pos.x < -G.CenterCircleRadius - robot.radius then
-				sector[1] = sector[1] + 1
-			elseif robot.pos.x > G.CenterCircleRadius + robot.radius then
-				sector[3] = sector[3] + 1
-			end
-		end
-		if robot.pos.x >= -G.CenterCircleRadius - robot.radius
-		and robot.pos.x <= G.CenterCircleRadius + robot.radius then
-			sector[2] = sector[2] + 1
-		end
-	end
-	
-	if sector[2] == 0 then -- middle sector empty
+
+	local sector1list, sector2list, sector3list = Game.devideOpponentsIntoSectors(true)
+	local sector1, sector2, sector3 = #sector1list, #sector2list, #sector3list
+
+	if sector2 == 0 then -- middle sector empty
 		self:setState("MidEmpty")
 		log("KickoffOffensive: Middle Sector empty => Attack in the Middle")
-	elseif sector[self.side and 3 or 1] <= 1 then -- 2v0 or 2v1
+	elseif self.side and sector3 or sector1 <= 1 then -- 2v0 or 2v1
 		self:setState("Majority")
-		log("KickoffOffensive: 2v"..sector[self.side and 3 or 1].." => Attack on the "..(self.side and "Right" or "Left").." side")
-	elseif sector[self.side and 1 or 3] == 0 then -- other side empty
+		log("KickoffOffensive: 2v"..self.side and sector3 or sector1.." => Attack on the "..(self.side and "Right" or "Left").." side")
+	elseif self.side and sector1 or sector3 == 0 then -- other side empty
 		self:setState("UseQuarterback")
 		log("KickoffOffensive: "..(self.side and "Left" or "Right").." side empty => Use quarterback")
 	else -- care only for robots that are close to us
 		self:setState("Default")
-		log("KickoffOffensive: "..sector[1].." Left, "..sector[2].." Middle, "..sector[3].." Right => Default Attack")
+		log("KickoffOffensive: "..sector1.." Left, "..sector2.." Middle, "..sector3.." Right => Default Attack")
 	end		
 end
 
