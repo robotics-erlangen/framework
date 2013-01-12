@@ -9,6 +9,8 @@ settings.slowBall = 0.5 -- consider a ball as fast if faster than this limit [m/
 settings.shootDriveSpeed = 0.2
 settings.shootProbabilityThreshold = 0.8 --we instantly shoot if the probability that no opponent robot blocks it is at least 80% 
 
+settings.distanceHysteresis = 0.03 -- use it as a hysteresis value for all minimum/maximum distance search loops
+
 Settings = table.readonlytable(settings)
 
 return Settings
