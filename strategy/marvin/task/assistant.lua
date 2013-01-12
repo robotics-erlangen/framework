@@ -11,4 +11,4 @@ function Assistant:_run()
 
 end
 
-return MoveToPos
+return Assistant

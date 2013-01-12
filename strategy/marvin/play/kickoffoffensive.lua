@@ -3,6 +3,8 @@ local KickoffOffensive = (require "../base/class").new("Play.KickoffOffensive", 
 
 local Assistant = require "task/assistant"
 local MoveToPos = require "task/movetopos"
+--local ShootGoal = require "task/shootgoal"
+
 local World = require "../base/world"
 local RobotMatcher = require "control/robotmatcher"
 local RobotList = require "util/robotlist"
@@ -95,7 +97,7 @@ end
 --]]
 
 function KickoffOffensive:prepareMidEmpty()
-	self._tasks = {self._robots[1] and Task.ShootGoal.create(self._robots[1]) or nil} -- ballie shoots goal
+	--self._tasks = {self._robots[1] and ShootGoal.create(self._robots[1]) or nil} -- ballie shoots goal
 end
 
 function KickoffOffensive:prepareMajority()
@@ -104,7 +106,7 @@ function KickoffOffensive:prepareMajority()
 	self._tasks = {
 		-- 1: Laufpass an 2
 		-- 2: Laufpass von 1 annehmen
-		self._robots[3] and Task.Assistant.create(self._robots[3], mirroredTargetPos, G.FieldWidthQuarter) or nil,
+		self._robots[3] and Assistant.create(self._robots[3], mirroredTargetPos, G.FieldWidthQuarter) or nil,
 		self._robots[4] and MoveToPos.create(self._robots[4], backPos, math.pi/2) or nil,
 	}
 end
@@ -116,7 +118,7 @@ function KickoffOffensive:prepareUseQuarterback()
 		--1: Laufpass an 3
 		self._robots[2] and MoveToPos.create(self._robots[2], backPos, math.pi/2) or nil,
 		--3: Laufpass von 1 annehmen
-		self._robots[4] and Task.Assistant.create(self._robots[4], mirroredTargetPos, G.FieldWidthQuarter),
+		self._robots[4] and Assistant.create(self._robots[4], mirroredTargetPos, G.FieldWidthQuarter),
 	}
 end
 
@@ -126,7 +128,7 @@ function KickoffOffensive:prepareDefault()
 	self._tasks = {
 		-- 1: Laufpass an 4
 		self._robots[2] and MoveToPos.create(self._robots[2], backPos, math.pi/2) or nil,
-		self._robots[3] and Task.Assistant.create(self._robots[3], mirroredTargetPos, G.FieldWidthQuarter) or nil,
+		self._robots[3] and Assistant.create(self._robots[3], mirroredTargetPos, G.FieldWidthQuarter) or nil,
 		-- 4: Laufpass von 1 annehmen
 	}
 end
