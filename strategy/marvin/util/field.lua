@@ -4,20 +4,64 @@ local Field = {}
 --- returns the nearest position inside the field (extended by boundaryWidth)
 -- @param pos Vector - the position to limit
 -- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @return Vector - limited vector
 function Field.limitToField(pos, boundaryWidth)
-	local extendedFieldWidthHalf = World.Geometry.FieldWidthHalf + boundaryWidth
-	local extendedFieldHeightHalf = World.Geometry.FieldHeightHalf + boundaryWidth
-	if pos.x < -extendedFieldWidthHalf then
-		pos.x = -extendedFieldWidthHalf
-	elseif pos.x > extendedFieldHeightHalf then
-		pos.x = extendedFieldWidthHalf
+	boundaryWidth = boundaryWidth or 0
+
+	local allowedHeight = World.Geometry.FieldHeightHalf + boundaryWidth -- limit height to field
+	local y = math.bound(-allowedHeight, pos.y, allowedHeight)
+
+	local allowedWidth = World.Geometry.FieldWidthHalf + boundaryWidth -- limit width to field
+	local x = math.bound(-allowedWidth, pos.x, allowedWidth)
+
+	return Vector.create(x, y)
+end
+
+--- check if pos is inside the field (extended by boundaryWidth)
+-- @param pos Vector - the position to limit
+-- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @return bool - is in field
+function Field.isInField(pos, boundaryWidth)
+	boundaryWidth = boundaryWidth or 0
+
+	local allowedHeight = World.Geometry.FieldHeightHalf + extra -- limit height to field
+	if math.abs(pos.x) > World.Geometry.GoalWidth / 2 and math.abs(pos.y) > allowedHeight -- check whether robot is inside the goal
+			or math.abs(pos.y) > allowedHeight + World.Geometry.GoalDepth then -- handle area behind goal
+		return false
 	end
-	if pos.y < -extendedFieldHeightHalf then
-		pos.y = -extendedFieldHeightHalf
-	elseif pos.y > extendedFieldHeightHalf then
-		pos.y = extendedFieldHeightHalf
+
+	local allowedWidth = World.Geometry.FieldWidthHalf + extra -- limit width to field
+	if math.abs(pos.x) > allowedWidth then
+		return false
 	end
-	return pos
+
+	return true
+end
+
+function Field.isInFriendlyDefenseArea(pos, radius)
+	local G = World.Geometry
+	local p1 = Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf) -- lower bound of defense stretch
+	local p2 = Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf) -- upper bound of defense stretch
+
+	if (math.abs(pos.x) < G.DefenseStretch/2 + radius and pos.y < G.DefenseRadius - G.FieldHeightHalf + radius) -- check if robot is inside defense stretch
+			or p1:distanceTo(pos) < G.DefenseRadius + radius or p2:distanceTo(pos) < G.DefenseRadius + radius then -- check if robot is inside defense radius
+		return true
+	else
+		return false
+	end
+end
+
+function Field.isInOpponentDefenseArea(pos, radius)
+	local G = World.Geometry
+	local p1 = Vector.create(G.DefenseStretch/2, G.FieldHeightHalf) -- lower bound of defense stretch
+	local p2 = Vector.create(-G.DefenseStretch/2, G.FieldHeightHalf) -- upper bound of defense stretch
+
+	if (math.abs(pos.x) < G.DefenseStretch/2 + radius and pos.y > G.FieldHeightHalf - G.DefenseRadius - radius) -- check if robot is inside defense stretch
+			or p1:distanceTo(pos) < G.DefenseRadius + radius or p2:distanceTo(pos) < G.DefenseRadius + radius then -- check if robot is inside defense radius
+		return true
+	else
+		return false
+	end
 end
 
 return Field
