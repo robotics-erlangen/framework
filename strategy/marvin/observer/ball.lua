@@ -2,6 +2,7 @@ local Ball = {}
 
 -- TODO: who is the first at the ball
 
+local Constants = require "../base/constants"
 local Cache = require "../base/cache"
 local World = require "../base/world"
 local Settings = require "settings"

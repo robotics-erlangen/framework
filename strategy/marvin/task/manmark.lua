@@ -19,11 +19,11 @@ function ManMark:_run()
 	local preferredDir = (ballPos - targetPos):angle()
 	local preferredPos = (ballPos - targetPos):setLength(midpointDistance) + targetPos
 	preferredPos = Field.limitToAllowedField(preferredPos, self._robot.radius)
-
-	self._robot.trajectory:update(ToTarget, preferredPos, preferredDir)
 	
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
+
+	self._robot.trajectory:update(ToTarget, preferredPos, preferredDir)
 end
 
 function ManMark.test()
