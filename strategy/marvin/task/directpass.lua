@@ -39,4 +39,13 @@ function DirectPass:_run(priorityMessages, notifications)
 	self:_shoot(targetPos, passSpeed, self._linearShoot, Settings.shootProbabilityThreshold)
 end
 
+function DirectPass.test()
+	local robot1 = World.FriendlyRobots[1]
+	local robot2 = World.FriendlyRobots[2]
+	if robot1 and robot2 then
+		return DirectPass.create(robot1, robot2, true)
+	end
+end
+
+
 return DirectPass

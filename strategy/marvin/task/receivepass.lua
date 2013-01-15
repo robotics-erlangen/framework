@@ -26,4 +26,11 @@ function ReceivePass:_run(priorityMessages, notifications)
 	end
 end
 
+function ReceivePass.test()
+	local robot = World.FriendlyRobots[1]
+	if robot then
+		return ReceivePass.create(robot)
+	end
+end
+
 return ReceivePass

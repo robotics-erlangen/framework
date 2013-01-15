@@ -46,4 +46,11 @@ function Keeper:_run(priorityMessages, notifications)
 	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
 end
 
+function Keeper.test()
+	local robot = World.FriendlyRobots[1]
+	if robot then
+		return Keeper.create(robot)
+	end
+end
+
 return Keeper

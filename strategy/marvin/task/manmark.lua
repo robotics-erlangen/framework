@@ -25,4 +25,12 @@ function ManMark:_run()
 	
 end
 
+function ManMark.test()
+	local robot = World.FriendlyRobots[1]
+	local oppRobot = World.OpponentRobots[1]
+	if robot and oppRobot then
+		return ManMark.create(robot, oppRobot)
+	end
+end
+
 return ManMark
