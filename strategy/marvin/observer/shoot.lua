@@ -11,7 +11,7 @@ local Robot = require "observer/robot"
 -- @param targetRobot Robot - the robot that should receive the pass
 -- @param shootTime number - the time when the ballie shoots
 -- [@param targetPos Vector - the position where the pass should be received]
-function Shoot.evaluateCorridor(targetRobot, shootTime, targetPos)
+function Shoot.evaluatePassCorridor(targetRobot, shootTime, targetPos)
 	-- TODO: test
 	local corridorWidthHalf = World.Ball.radius + Constants.positionError	
 
@@ -58,7 +58,7 @@ function Shoot.evaluateChipCorridor(targetRobot, shootTime, targetPos)
 			passChance = passChance * (1 - ballCatchProbability)
 		end
 	else 
-		Shoot.evaluateCorridor(targetRobot, targetPos, shootTime)
+		Shoot.evaluatePassCorridor(targetRobot, targetPos, shootTime)
 	end
 	return passChance
 end

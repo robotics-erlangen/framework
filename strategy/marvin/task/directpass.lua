@@ -18,7 +18,7 @@ function DirectPass:_successProbability(t)
 
 	--TODO check if other position would be more efficient
 	if self._linearShoot then
-		return Shoot.evaluateCorridor(self._targetRobot, t)	--check posibility of success at time t for linear shoot
+		return Shoot.evaluatePassCorridor(self._targetRobot, t)	--check posibility of success at time t for linear shoot
 	else
 		return Shoot.evaluateChipCorridor(self._targetRobot, t)	--check posibility of success at time t for chip
 	end
