@@ -18,7 +18,7 @@ end
 
 --- mirrors the opponent that is the closest one to our goal
 function Mirror:_run()
-	local sector1, _, sector3 = Game.devideOpponentsIntoSectors(false)
+	local sector1, _, sector3 = Game.divideOpponentsIntoSectors(false)
 	local sector = self._side and sector3 or sector1
 
 	local targetPosX

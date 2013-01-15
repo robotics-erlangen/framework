@@ -7,11 +7,25 @@ local Game = {}
 local World = require "../base/world"
 local G = World.Geometry
 
+--- calculates the average position of all robots in the given list
+-- @param robots Robot[] - a list of robots
+-- @return Vector - the average position
+function Game.averagePosition(robots)
+	if not robots or not #robots then
+		return nil
+	end
+	local sumX, sumY
+	for _,r in pairs(robots) do
+		sumX = sumX + r.pos.x
+		sumY = sumY + r.pos.y
+	end
+	return Vector.create(sumX/#robots, sumY/#robots)
+end
 
---- devides the field into 3 sectors (1 left, 2 center, 3 right)
+--- divides the field into 3 sectors (1 left, 2 center, 3 right)
 -- @param ignoreCorners bool - if robots which are somewhat away from the center are ignored
 -- @return Robot[], Robot[], Robot[] - 3 lists of robots representing the sectors
-function Game.devideOpponentsIntoSectors(ignoreCorners)
+function Game.divideOpponentsIntoSectors(ignoreCorners)
 	 -- _________________________ <- opponent's goal line
 	 -- |       |       |       |
 	 -- |       |       |       |
