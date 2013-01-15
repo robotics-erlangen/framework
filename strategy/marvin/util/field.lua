@@ -17,6 +17,27 @@ function Field.limitToField(pos, boundaryWidth)
 	return Vector.create(x, y)
 end
 
+--- returns the nearest position inside the field without friendly defense area
+-- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @param pos Vector - the position to limit
+-- @return Vector - limited vector
+function Field.limitToAllowedField(pos, boundaryWidth)
+	local limitedPos = pos
+	boundaryWidth = boundaryWidth or 0
+	
+	if Field.isInFriendlyDefenseArea(pos, boundaryWidth) then
+		if math.abs(pos.x) <= World.Geometry.DefenseStretch/2 then
+			limitedPos = Vector.create(pos.x, -World.Geometry.FieldHeightHalf+World.Geometry.DefenseRadius+boundaryWidth)
+		else
+			local circleMidpoint = Vector.create(
+				World.Geometry.DefenseStretch/2 * pos.x/math.abs(pos.x),-World.Geometry.FieldHeightHalf)
+			limitedPos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+boundaryWidth)
+		end
+	end
+	
+	return limitedPos
+end
+
 --- check if pos is inside the field (extended by boundaryWidth)
 -- @param pos Vector - the position to limit
 -- @param boundaryWidth number - how much the field should be extended beyond the borders
