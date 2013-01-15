@@ -62,20 +62,26 @@ function KickoffOffensive.selectRobots(attackers, defenders)
 end
 
 function KickoffOffensive:prepareFormation()
+	local balliePos, quarterbackPos, outerPos, innerPos
 	-- #1 Ballie
-	local balliePos = Vector.create(0, -World.Ball.radius - self._robots[1].radius - Settings.positionPadding)
+	balliePos = Vector.create(0, -World.Ball.radius - self._robots[1].radius - Settings.positionPadding)
 	-- #2 Quarterback
-	local quarterbackPos = Vector.create(0, -G.CenterCircleRadius - self._robots[2].radius - Settings.positionPadding)
+	if self._robots[2] then
+		quarterbackPos = Vector.create(0, -G.CenterCircleRadius - self._robots[2].radius - Settings.positionPadding)
+	end
 	-- #3 Outer
-	local outerPos = Vector.create((self._side and 1 or -1) * G.FieldWidthHalf * 0.75, -3 * self._robots[3].radius)
+	if self._robots[3] then
+		outerPos = Vector.create((self._side and 1 or -1) * G.FieldWidthHalf * 0.75, -3 * self._robots[3].radius)
+	end
 	-- #4 Inner
-	local innerPos = Vector.create((self._side and 1 or -1) * G.FieldWidthHalf * 0.5, -3 * self._robots[4].radius)
-	
+	if self._robots[4] then
+		innerPos = Vector.create((self._side and 1 or -1) * G.FieldWidthHalf * 0.5, -3 * self._robots[4].radius)
+	end
 	self._tasks = {
 		self._robots[1] and MoveToPos.create(self._robots[1], balliePos, math.pi/2) or nil,
-		self._robots[2] and MoveToPos.create(self._robots[2], innerPos, math.pi/2) or nil,
-		self._robots[3] and MoveToPos.create(self._robots[3], quarterbackPos, math.pi/2) or nil,
-		self._robots[4] and MoveToPos.create(self._robots[4], outerPos, math.pi/2) or nil,
+		self._robots[2] and MoveToPos.create(self._robots[2], quarterbackPos, math.pi/2) or nil,
+		self._robots[3] and MoveToPos.create(self._robots[3], outerPos, math.pi/2) or nil,
+		self._robots[4] and MoveToPos.create(self._robots[4], innerPos, math.pi/2) or nil,
 	}
 end
 
