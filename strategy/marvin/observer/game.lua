@@ -6,18 +6,47 @@ local Game = {}
 
 local World = require "../base/world"
 local G = World.Geometry
+local Robotlist = require "util/robotlist"
+local Ball = require "observer/ball"
+local vis = require "../base/vis"
+
+local function weight(robot)
+	local distanceWeight = 1 -- [0, 1] how important the distance to our goal is, used for avgPos
+	return math.max(2 - robot.pos:distanceTo(G.FriendlyGoal) / G.FieldHeightHalf, 0) * distanceWeight
+end
+
+function Game.gameFocus()
+	-- magic constants
+	local gugugu = 0.5 --the time, how long the ball rolling is calculated 
+	local ballPosWeight = 0.3 -- [0, 1] how much the future ball pos is involved
+
+	-- calculation stuff
+	local opponents = Robotlist.excludeRobot(World.OpponentRobots, World.OpponentKeeper)
+	local avgPos = Game.averagePosition(opponents, weight)
+
+	local futureBallPos = Ball.atTime(gugugu).pos
+	local focusPoint = futureBallPos:scaleLength(ballPosWeight) + avgPos:scaleLength(1 - ballPosWeight)
+	vis.addCircle("Game Focus", focusPoint, 0.1, vis.colors.turquoiseHalf, true)
+	return focusPoint
+end
+
 
 --- calculates the average position of all robots in the given list
 -- @param robots Robot[] - a list of robots
+-- @param weight function - optional parameter, returns the weighting (non-negative) of the robot, expects a robot object
 -- @return Vector - the average position
-function Game.averagePosition(robots)
+function Game.averagePosition(robots, weight)
 	if not robots or not #robots then
 		return nil
 	end
-	local sumX, sumY
+	local sumX, sumY = 0, 0
 	for _,r in pairs(robots) do
-		sumX = sumX + r.pos.x
-		sumY = sumY + r.pos.y
+		local weightFactor = 1
+		if weight then
+			weightFactor = weight(r)
+		end
+		sumX = sumX + r.pos.x * weightFactor
+		sumY = sumY + r.pos.y * weightFactor
 	end
 	return Vector.create(sumX/#robots, sumY/#robots)
 end

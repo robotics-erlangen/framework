@@ -44,7 +44,7 @@ end
 -- @field blue (0,0,255)
 -- @field yellow (255,255,0)
 -- @field pink (255,0,255)
--- @field turqouise (0,255,255)
+-- @field turquoise (0,255,255)
 -- @field blackHalf (0,0,0)
 -- @field whiteHalf (255,255,255)
 -- @field redHalf (255,0,0)
@@ -52,7 +52,7 @@ end
 -- @field blueHalf (0,0,255)
 -- @field yellowHalf (255,255,0)
 -- @field pinkHalf (255,0,255)
--- @field turqouiseHalf (0,255,255)
+-- @field turquoiseHalf (0,255,255)
 
 vis.colors = {}
 
@@ -72,8 +72,8 @@ vis.colors.yellow = vis.fromRGBA(255, 255, 0, 255)
 vis.colors.yellowHalf = vis.fromRGBA(255, 255, 0, 127)
 vis.colors.pink = vis.fromRGBA(255, 0, 255, 255)
 vis.colors.pinkHalf = vis.fromRGBA(255, 0, 255, 127)
-vis.colors.turqouise = vis.fromRGBA(0, 255, 255, 255)
-vis.colors.turqouiseHalf = vis.fromRGBA(0, 255, 255, 127)
+vis.colors.turquoise = vis.fromRGBA(0, 255, 255, 255)
+vis.colors.turquoiseHalf = vis.fromRGBA(0, 255, 255, 127)
 
 --- Sets line and fill color.
 -- If filled is true polygons and circles are filled using color.
