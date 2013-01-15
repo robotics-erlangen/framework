@@ -8,7 +8,7 @@ settings.keeperGoalDistance = 0.02 -- how far the keeper should stay away from t
 settings.slowBall = 0.5 -- consider a ball as fast if faster than this limit [m/s]
 settings.shootDriveSpeed = 0.2
 settings.shootProbabilityThreshold = 0.8 --we instantly shoot if the probability that no opponent robot blocks it is at least 80% 
-
+settings.markingDistance = 0.05 -- close enough
 settings.distanceHysteresis = 0.03 -- use it as a hysteresis value for all minimum/maximum distance search loops
 
 Settings = table.readonlytable(settings)
