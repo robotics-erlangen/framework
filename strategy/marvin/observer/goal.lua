@@ -37,7 +37,7 @@ function Goal.freeSectors(viewPos, robotList, opp)
 	table.sort(occupiedSectors, function (t1, t2) return t1[1] < t2[1] end) -- sort sectors ascending by sectorStart
 	Interval.merge(occupiedSectors) -- merge the sectors
 	local unoccupiedSectors = Interval.negate(occupiedSectors, goalStart, goalEnd)
-	local function _visualize()
+	if true ---------------------------------------------------------------------------------------------visualization here! set false for performance improvement
 		vis.setColor(vis.fromRGBA(255, 127, 0, 127), true)
 		for _, s in ipairs(unoccupiedSectors) do
 			local pointRight = viewPos + Vector.fromAngle(s[1])*10
@@ -45,7 +45,6 @@ function Goal.freeSectors(viewPos, robotList, opp)
 			vis.addPolygon("Free Sectors", {viewPos, pointRight, point})
 		end
 	end
-	_visualize()
 	-- returns all unoccupied sectors in the interval [right goalpost, left goalpost]
 	return unoccupiedSectors
 end
