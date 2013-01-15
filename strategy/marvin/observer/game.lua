@@ -8,32 +8,47 @@ local World = require "../base/world"
 local G = World.Geometry
 
 
+--- devides the field into 3 sectors (1 left, 2 center, 3 right)
+-- @param ignoreCorners bool - if robots which are somewhat away from the center are ignored
+-- @return Robot[], Robot[], Robot[] - 3 lists of robots representing the sectors
 function Game.devideOpponentsIntoSectors(ignoreCorners)
-	 -- divide the field into three sectors
 	 -- _________________________ <- opponent's goal line
 	 -- |       |       |       |
 	 -- |       |       |       |
-	 -- |_______|   2   |_______|
+	 -- |_______|   2   |_______| <- border: field height quarter
 	 -- |       |       |       |
 	 -- |   1   |       |   3   |
 	 -- |_______|_______|_______| <- center line
 	 -- |                       |
-	local sector1, sector2, sector3 = {}, {}, {}
+	local sector = {{}, {}, {}}
 	local border = G.CenterCircleRadius + G.FieldWidthQuarter
 	for _,robot in pairs(World.OpponentRobots) do
-		if robot.pos.y < border or not ignoreCorners then
-			if robot.pos.x < -G.CenterCircleRadius - robot.radius then
-				table.insert(sector1, robot)
-			elseif robot.pos.x > G.CenterCircleRadius + robot.radius then
-				table.insert(sector3, robot)
-			end
-		end
-		if robot.pos.x >= -G.CenterCircleRadius - robot.radius
-		and robot.pos.x <= G.CenterCircleRadius + robot.radius then
-			table.insert(sector2, robot)
+		local sectorNumber = Game.getSector(robot, ignoreCorners)
+		if sectorNumber then
+			table.insert(sector[sectorNumber], robot)
 		end
 	end
-	return sector1, sector2, sector3
+	return sector[1], sector[2], sector[3]
+end
+
+--- returns the sector number where the robot stands
+-- @param robot Robot - the robot
+-- @param ignoreCorners  bool - if the robot must be somewhat near the center
+-- @return number - 1, 2 or 3, depending on the sector, or nil, if ignoreCorners is set and the robot is ignored
+function Game.getSector(robot, ignoreCorners)
+	local border = G.FieldHeightQuarter
+	if robot.pos.y < border or not ignoreCorners then
+		if robot.pos.x < -G.CenterCircleRadius - robot.radius then
+			return 1
+		elseif robot.pos.x > G.CenterCircleRadius + robot.radius then
+			return 3
+		end
+	end
+	if robot.pos.x >= -G.CenterCircleRadius - robot.radius
+	and robot.pos.x <= G.CenterCircleRadius + robot.radius then
+		return 2
+	end
+	return nil
 end
 
 
