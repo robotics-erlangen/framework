@@ -4,6 +4,7 @@ local Constants = require "../base/constants"
 local World = require "../base/world"
 local Settings = require "settings"
 local Robot = require "observer/robot"
+local Ball = require "observer/ball"
 
 
 --- Calculates the chance that a pass to the targetRobot will succeed
@@ -15,7 +16,7 @@ function Shoot.evaluatePassCorridor(targetRobot, shootTime, targetPos)
 	-- TODO: test
 	local corridorWidthHalf = World.Ball.radius + Constants.positionError	
 
-	local targetPos = targetPos or targetRobot.trajectory:predictPos(shootTime)
+	local targetPos = targetPos or (targetRobot.pos + targetRobot.speed*shootTime) -- or targetRobot.trajectory:predictPos(shootTime)
 	local predictedBallState = Ball.atTime(shootTime)
 
 	local corridorHalf = (targetPos - predictedBallState.pos):perpendicular():setLength(corridorWidthHalf)
@@ -70,7 +71,7 @@ end
 -- @param distance number - the distance
 function Shoot.ballPassTime(futureBallPos, targetRobot, targetPos, distance) 
 	local passDistance = (targetPos - futureBallPos):length()
-	local v = targetRobot.calculateShootSpeed(targetRobot.passSpeed, passDistance)
+	local v = targetRobot.calculateShootSpeed(targetRobot.constants.passSpeed, passDistance)
 	return Ball.ballRollTime(v, distance)
 end
  
