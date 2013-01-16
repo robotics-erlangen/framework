@@ -60,9 +60,13 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, radius)
 		self:addCircle(G.OpponentGoal.x, G.OpponentGoal.y, G.DefenseRadius + Settings.positionPadding + G.FreeKickDefenseDist, "DefenseAreaOpp_Center")
 	end
 	
-	if forbidOppDefenseArea then
+	if forbidOppFieldHalf then
 		self:addRect(-G.FieldWidthHalf, G.FieldHeightHalf,
 			G.FieldWidthHalf, 0, "OppFieldHalf")
+	end
+	
+	if not ignoreBall then
+		self:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius, "Ball")
 	end
 
 	if not ignoreGoals then
