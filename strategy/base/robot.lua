@@ -66,6 +66,9 @@ function Robot:init(data, isFriendly, geometry)
 end
 
 function Robot.mt:__tostring()
+	if not self.pos then
+		return "Robot"
+	end
 	return string.format("Robot(pos = (%6.3f, %6.3f))",
 		self.pos.x, self.pos.y)
 end
