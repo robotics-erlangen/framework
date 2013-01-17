@@ -17,10 +17,14 @@ function MoveToPos:_run()
 	self._robot.trajectory:update(ToTarget, self._pos, self._dir)
 end
 
+local inst = nil
 function MoveToPos.test()
 	local robot = World.FriendlyRobots[1]
 	if robot then
-		return MoveToPos.create(robot, Vector.create(0, 0), 0)
+		inst = inst or MoveToPos.create(robot, Vector.create(0, 0), 0)
+		return inst
+	else
+		inst = nil
 	end
 end
 

@@ -55,10 +55,14 @@ function Mirror:_run()
 	self._robot.trajectory:update(ToTarget, pos, math.pi/2)
 end
 
+local inst = nil
 function Mirror.test()
 	local robot = World.FriendlyRobots[1]
 	if robot then
-		return Mirror.create(robot, true, 0.1)
+		inst = inst or Mirror.create(robot, true, 0.1)
+		return inst
+	else
+		inst = nil
 	end
 end
 

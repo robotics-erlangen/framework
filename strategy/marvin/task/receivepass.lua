@@ -26,10 +26,14 @@ function ReceivePass:_run(priorityMessages, notifications)
 	end
 end
 
+local inst = nil
 function ReceivePass.test()
 	local robot = World.FriendlyRobots[1]
 	if robot then
-		return ReceivePass.create(robot)
+		inst = inst or ReceivePass.create(robot)
+		return inst
+	else
+		inst = nil
 	end
 end
 

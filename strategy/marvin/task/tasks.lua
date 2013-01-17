@@ -10,19 +10,46 @@ local Tasks = {
 	ReceivePass = require "task/receivepass",
 	Shoot = require "task/shoot"
 }
-local Test = require "util/test"
 
+local TaskManager = require "control/taskmanager"
 
-for name,s in pairs(Tasks) do
-	if type(s) == "table" then
-		if type(s.test) == "function" then -- check if task has test function
-			s.test = Test.task(s.test)
-			Entrypoints["tasks/" .. name] = function ()
-				s.test()
+local tm = nil
+--- Test the task created by taskProvider
+-- @param taskProvider function - function that creates the task to test
+-- @return function - Test function
+local function testWrapper(taskProvider)
+	return function()
+		tm = tm or TaskManager.create()
+		local tasks = { taskProvider() }
+		
+		if #tasks > 0 then
+			for _, t in ipairs(tasks) do
+				tm:assign(t)
 			end
 		end
-	else
-		error("Invalid task! " .. name)
+		tm:run()
+	end
+end
+
+-- Adds test functions as entrypoints
+-- publishes function test and test_<name>
+for name,s in pairs(Tasks) do
+	for fn,f in pairs(s) do
+		local testname = nil
+		if fn == "test" then
+			testname = ""
+		elseif type(fn) == "string" then
+			testname = fn:match("^test(_.+)")
+		end
+		if testname then
+			if type(f) ~= "function" then
+				error("Invalid test function " .. fn .. " in task " .. name)
+			end
+			local test = testWrapper(f)
+			Entrypoints["tasks/" .. name .. testname] = function ()
+				test()
+			end
+		end
 	end
 end
 
