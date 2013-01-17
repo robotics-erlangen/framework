@@ -35,7 +35,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 	else -- catch the ball
 		self._shootHysteresis = 0
 		self._lastSuccessProbability = 0
-		self._catchBall(targetPos, Settings.shootDriveSpeed)
+		self:_catchBall(targetPos, Settings.shootDriveSpeed)
 	end
 end
 
