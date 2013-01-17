@@ -30,6 +30,8 @@ function DirectPass:_run(priorityMessages, notifications)
 	local targetPos = msg and msg.targetPos or self._targetRobot.pos
 	local targetDir = msg and msg.targetDir or self._targetRobot.dir
 
+	-- shoot ball into robot dribbler
+	targetPos = targetPos + Vector.fromAngle(targetDir) * self._targetRobot.shootRadius
 	-- TODO calc shoot target
 	-- TODO get pass speed
 
