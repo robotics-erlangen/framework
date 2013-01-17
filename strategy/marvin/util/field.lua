@@ -45,13 +45,13 @@ end
 function Field.isInField(pos, boundaryWidth)
 	boundaryWidth = boundaryWidth or 0
 
-	local allowedHeight = World.Geometry.FieldHeightHalf + extra -- limit height to field
+	local allowedHeight = World.Geometry.FieldHeightHalf + boundaryWidth -- limit height to field
 	if math.abs(pos.x) > World.Geometry.GoalWidth / 2 and math.abs(pos.y) > allowedHeight -- check whether robot is inside the goal
 			or math.abs(pos.y) > allowedHeight + World.Geometry.GoalDepth then -- handle area behind goal
 		return false
 	end
 
-	local allowedWidth = World.Geometry.FieldWidthHalf + extra -- limit width to field
+	local allowedWidth = World.Geometry.FieldWidthHalf + boundaryWidth -- limit width to field
 	if math.abs(pos.x) > allowedWidth then
 		return false
 	end
