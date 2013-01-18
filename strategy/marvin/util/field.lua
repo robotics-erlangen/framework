@@ -18,24 +18,24 @@ function Field.limitToField(pos, boundaryWidth)
 end
 
 --- returns the nearest position inside the field without friendly defense area
--- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @param extraLimit number - how much the field should be additionally limited
 -- @param pos Vector - the position to limit
 -- @return Vector - limited vector
-function Field.limitToAllowedField(pos, boundaryWidth)
-	local limitedPos = pos
-	boundaryWidth = boundaryWidth or 0
-	
-	if Field.isInFriendlyDefenseArea(pos, boundaryWidth) then
+function Field.limitToAllowedField(pos, extraLimit)
+	if Field.isInFriendlyDefenseArea(pos, extraLimit) then
+		extraLimit = extraLimit or 0
+		
 		if math.abs(pos.x) <= World.Geometry.DefenseStretch/2 then
-			limitedPos = Vector.create(pos.x, -World.Geometry.FieldHeightHalf+World.Geometry.DefenseRadius+boundaryWidth)
+			pos = Vector.create(pos.x, -World.Geometry.FieldHeightHalf+World.Geometry.DefenseRadius+extraLimit)
 		else
 			local circleMidpoint = Vector.create(
 				World.Geometry.DefenseStretch/2 * pos.x/math.abs(pos.x),-World.Geometry.FieldHeightHalf)
-			limitedPos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+boundaryWidth)
+			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+extraLimit)
 		end
+		return pos
+	else
+		return Field.limitToField(pos)
 	end
-	
-	return limitedPos
 end
 
 --- check if pos is inside the field (extended by boundaryWidth)
@@ -45,13 +45,13 @@ end
 function Field.isInField(pos, boundaryWidth)
 	boundaryWidth = boundaryWidth or 0
 
-	local allowedHeight = World.Geometry.FieldHeightHalf + extra -- limit height to field
+	local allowedHeight = World.Geometry.FieldHeightHalf + boundaryWidth -- limit height to field
 	if math.abs(pos.x) > World.Geometry.GoalWidth / 2 and math.abs(pos.y) > allowedHeight -- check whether robot is inside the goal
 			or math.abs(pos.y) > allowedHeight + World.Geometry.GoalDepth then -- handle area behind goal
 		return false
 	end
 
-	local allowedWidth = World.Geometry.FieldWidthHalf + extra -- limit width to field
+	local allowedWidth = World.Geometry.FieldWidthHalf + boundaryWidth -- limit width to field
 	if math.abs(pos.x) > allowedWidth then
 		return false
 	end

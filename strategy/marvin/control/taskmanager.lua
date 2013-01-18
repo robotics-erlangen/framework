@@ -1,4 +1,5 @@
 local TaskManager = (require "../base/class").new("Control.TaskManager")
+local World = require "../base/world"
 local debug = require "../base/debug"
 
 function TaskManager:init()
@@ -49,6 +50,12 @@ function TaskManager:run()
 		end
 		
 		messages[robot] = task:run(priorityMessages, notifications)
+	end
+	
+	for _, robot in ipairs(World.FriendlyRobots) do
+		if not self._assignment[robot] then
+			robot:setControllerInput({})
+		end
 	end
 	
 	self._messages = messages

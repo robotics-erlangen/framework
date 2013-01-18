@@ -4,6 +4,7 @@ local KickoffDefensive = (require "../base/class").new("Play.KickoffDefensive", 
 local World = require "../base/world"
 local RobotList = require "util/robotlist"
 local RobotMatcher = require "control/robotmatcher"
+local Game = require "observer/game"
 
 local Mirror = require "task/mirror"
 local MoveToPos = require "task/movetopos"
@@ -32,6 +33,7 @@ end
 
 
 function KickoffDefensive:currentRating()
+	Game.gameFocus()
 	if World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
 		return Base.rating.referee
 	elseif World.RefereeState == "Game" then
