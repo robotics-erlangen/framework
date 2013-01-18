@@ -2,7 +2,7 @@ local ManMark = (require "../base/class").new("Task.ManMark", require "task/base
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
-local Field = require "util/field.lua"
+local Field = require "util/field"
 
 ManMark.priority = 3
 
