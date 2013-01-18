@@ -31,6 +31,33 @@ function Shoot.evaluatePassCorridor(targetRobot, shootTime, targetPos)
 	return passChance
 end
 
+--- Calculates the chance that a shot (e.g. on the goal) is successful
+-- @param endPos Vector - the position that is aimed
+-- [@param startPos Vector - the position from where the ball is shot; default = current ball position]
+-- [@param shootTime number - the time from now to the moment when the ball is shot; default = now]
+-- [@param robots object list - all robots that should be regarded; default = all robots]
+function Shoot.evaluateShootCorridor(endPos, speed, startPos, shootTime, robots)
+	startPos = startPos or World.Ball.pos
+	shootTime = shootTime or 0
+	robots = robots or World.Robots
+	local predictedBallPos
+	if shootTime == 0 then
+		predictedBallPos = startPos
+	else
+		predictedBallPos = Ball.atTime(shootTime).pos
+	end
+	local corridorWidthHalf = World.Ball.radius + Constants.positionError
+	local corridorHalf = (endPos - predictedBallPos):perpendicular():setLength(corridorWidthHalf)
+	local passChance = 1
+	for _, r in ipairs(robots) do
+		local pointOnLine = r.pos:nearestPosOnLine(predictedBallPos, endPos)
+		local ballCatchTime = shootTime + Ball.ballRollTime(speed, (endPos - startPos):length())
+		local ballCatchProbability = Shoot.ballCatchProbability(r, ballCatchTime, pointOnLine, corridorHalf)
+		passChance = passChance*(1 - ballCatchProbability)
+	end
+	return passChance
+end
+
 --- Calculates the chance that a chipped pass to the targetRobot will succeed in terms of opponent robots catching the ball
 -- @param targetRobot Robot - the robot that should receive the pass
 -- @param shootTime number - the time when the ballie shoots
@@ -47,7 +74,7 @@ function Shoot.evaluateChipCorridor(targetRobot, shootTime, targetPos)
 
 		local passChance = 1
 		for _, robot in pairs(World.OpponentRobots) do
-			local x = (targetPos - ballPos):setLength(liftDistance)			--liftDistance ist the distance, the ball 														needs to be able to fly over robots 														TODO test liftDistance
+			local x = (targetPos - ballPos):setLength(liftDistance)			--liftDistance ist the distance, the ball needs to be able to fly over robots 														TODO test liftDistance
 			local pointOnLine = geom.nearestPosOnLine(robot.pos, ballPos, ballPos + x)
 			local ballCatchTime = shootTime + Shoot.ballPassTime(ballPos, targetRobot, targetPos, (ballPos - pointOnLine):length())
 			local ballCatchProbability = Shoot.ballCatchProbability(robot, ballCatchTime, pointOnLine, corridorHalf)

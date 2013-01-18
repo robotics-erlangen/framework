@@ -20,7 +20,7 @@ function ShootGoalImmediately.startRating(attackers, defenders, minRating)
 	if ballOwner and ballOwner.isFriendly then
 		local ball = World.Ball
 		if ballOwner:hasBall(ball) then
-			--[[
+			--[[	könnte man noch für ShootGoal gebrauchen
 			local robots = {}
 			for _,r in ipairs(World.Robots) do
 				if r.pos.y > ball.pos.y then
@@ -35,8 +35,11 @@ function ShootGoalImmediately.startRating(attackers, defenders, minRating)
 			end
 			]]--
 			local pointOnGoalLine = geom.intersectLineLine(ballOwner.pos, ballOwner.dir, World.Geometry.OpponentGoal, 0)
-			if Observer.Shoot.evaluateShootCorridor(ballOwner.pos, pointOnGoalLine) > magicConstant then
-				---
+			local goalProbability = Observer.Shoot.evaluateShootCorridor(pointOnGoalLine, ballOwner.maxShotLinear, ball.pos, 0)
+			if goalProbability > 0.92836 then -- warning! magic constant
+				return Base.rating.force
+			elseif goalProbability > 0.79731 then -- warning! magic constant
+				return Base.rating.yes
 			end
 		else
 			return Base.rating.no
