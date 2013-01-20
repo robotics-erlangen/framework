@@ -59,11 +59,11 @@ function geom.intersectLineCircle(offset, dir, center, radius)
 	end
 
 	if det < 0.00001 then
-		return offset + dir * (-b)/(2*a)
+		return offset + dir * ((-b)/(2*a))
 	end
 
-	local point1 = offset + dir * (-b + math.sqrt(det))/(2*a)
-	local point2 = offset + dir * (-b - math.sqrt(det))/(2*a)
+	local point1 = offset + dir * ((-b + math.sqrt(det))/(2*a))
+	local point2 = offset + dir * ((-b - math.sqrt(det))/(2*a))
 	return point1, point2
 end
 
@@ -104,7 +104,7 @@ function geom.intersectLineLine(pos1, dir1, pos2, dir2)
 	local t1 = normal2:dot(diff) / normal2:dot(dir1)
 	local t2 = normal1:dot(diff) / normal1:dot(dir2)
 
-	return pos1 + dir1:copy():scaleLength(t1), t1, t2
+	return pos1 + (dir1 * t1), t1, t2
 end
 
 --- Intersects two lines given as points.
