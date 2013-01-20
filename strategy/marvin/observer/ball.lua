@@ -38,16 +38,18 @@ end
 Ball.ballOwner = Cache.forFrame(Ball.ballOwner)
 
 
---- Calculates how long the ball will take to travel the given distance. This function assumes that the ball is still moving after the given distance!
+--- Calculates how long the ball will take to travel the given distance. Return math.huge if the distance is unreachable.
 -- @param v number - the initial speed
 -- @param distance number - the distance
--- @return number - time the ball need to roll distance
+-- @return number - time the ball needs to roll distance
 function Ball.ballRollTime(v, distance)
 	assert(v >= 0 and distance >=0, "v and distance must be positive")
 	--distance = v*t + a/2*t^2
 	local a = Constants.ballDeceleration
 	local discriminant = v*v + 2*a*distance
-	assert(discriminant >= 0, "Observer.Shoot.ballRollTime: unreachable distance")
+	if discriminant < 0 then
+		return math.huge
+	end
 	
 	local discriminantRoot = math.sqrt(discriminant)
 	return (-v + discriminantRoot)/(2*a)
