@@ -1,17 +1,18 @@
 require "../base/base"
-local World = require "../base/world"
 require "settings"
+require "base/path" -- extend path module
+local World = require "../base/world"
 
 local globals = {}
 local function saveGlobals()
 	globals = {}
-	for k, v in pairs(_G) do
+	for k, _ in pairs(_G) do
 		globals[k] = true
 	end
 end
 
 local function checkGlobals()
-	for k, v in pairs(_G) do
+	for k, _ in pairs(_G) do
 		if not globals[k] then
 			log("Unexpected global: " .. k)
 		end
@@ -23,7 +24,6 @@ saveGlobals()
 require "task/tasks"
 require "play/plays"
 require "control/coordinator"
-require "base/path" -- extend path module
 -- TODO: include tests
 -- TODO: include utils
 
