@@ -186,6 +186,11 @@ function Robot:setDribblerSpeed(speed) -- (0=off, 1=on)
 	self._dribblerSpeed = speed
 end
 
+--- Halts robot
+function Robot:halt()
+	self:setControllerInput({})
+end
+
 --- Set standby
 -- @param standby boolean - enable standy for robot if true
 function Robot:setStandby(standby)
