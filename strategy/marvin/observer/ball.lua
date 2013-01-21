@@ -52,7 +52,7 @@ function Ball.ballRollTime(v, distance)
 	end
 	
 	local discriminantRoot = math.sqrt(discriminant)
-	return (-v + discriminantRoot)/(2*a)
+	return (-v + discriminantRoot)/a
 end
 
 
