@@ -37,7 +37,7 @@ function Base:run()
 	
 	debug.push("Robots")
 	for i, robot in ipairs(self._robots) do
-		debug.set(tostring(i), robot.id)
+		debug.set("Pos " .. tostring(i), robot.id)
 	end
 	debug.pop()
 	
