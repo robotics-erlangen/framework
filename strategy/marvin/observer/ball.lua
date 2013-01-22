@@ -45,14 +45,17 @@ Ball.ballOwner = Cache.forFrame(Ball.ballOwner)
 function Ball.ballRollTime(v, distance)
 	assert(v >= 0 and distance >=0, "v and distance must be positive")
 	--distance = v*t + a/2*t^2
-	local a = Constants.ballDeceleration
-	local discriminant = v*v + 2*a*distance
+	-- a = acceleration/2
+	-- b = v
+	-- c = -distance
+	local acceleration = Constants.ballDeceleration
+	local discriminant = v*v + 2*acceleration*distance
 	if discriminant < 0 then
 		return math.huge
 	end
 	
 	local discriminantRoot = math.sqrt(discriminant)
-	return (-v + discriminantRoot)/a
+	return (-v + discriminantRoot)/acceleration
 end
 
 
