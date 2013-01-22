@@ -6,61 +6,74 @@ local Ball = require "observer/ball"
 local Robot = require "observer/robot"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
+local debug = require "../base/debug"
 
 -- the robot may drive with up to maxEndSpeed or ballSpeed when it catches the ball, depending on which of both is higher
 function CatchBall:_catchBall(targetPos, maxEndSpeed)
+	local ball = World.Ball --Ball.atTime(0.065)
 	if self._catchTime then
 		self._catchTime = math.max(0, self._catchTime - World.TimeDiff)
 	else
-		self._catchTime = self._robot.pos:distanceTo(World.Ball.pos) / self._robot.maxSpeed -- TODO: better estimation
+		self._catchTime = Robot.minTimeToBall(self._robot, ball) -- simple estimation
 	end
 	
-	if World.Ball.speed:length() > Settings.slowBall then
+	-- check for fast ball and that it moves towards the robot
+	if ball.speed:length() > Settings.slowBall
+		and ball.speed:dot(self._robot.pos - ball.pos) > 0 then
 		-- check if robot would be hit by the ball
 		-- limit catchTime to the time the ball would need to hit the robot
-		local hitPoint1, hitPoint2 = geom.intersectLineCircle(World.Ball.pos,
-			World.Ball.speed, self._robot.pos, self._robot.radius)
+		local hitPoint1, hitPoint2 = geom.intersectLineCircle(ball.pos,
+			ball.speed, self._robot.pos, self._robot.radius)
 		if hitPoint1 then
 			vis.addCircle("hitRobot", hitPoint1, 0.05, vis.colors.redHalf, true)
-			local rollDist = World.Ball.pos:distanceTo(hitPoint1)
+			local rollDist = ball.pos:distanceTo(hitPoint1)
 			if hitPoint2 then
-				rollDist = math.min(rollDist, World.Ball.pos:distanceTo(hitPoint2))
+				rollDist = math.min(rollDist, ball.pos:distanceTo(hitPoint2))
 				vis.addCircle("hitRobot", hitPoint2, 0.05, vis.colors.redHalf, true)
 			end
-			rollDist = math.max(rollDist - World.Ball.radius, 0)
-			local timeToRobot = Ball.ballRollTime(World.Ball.speed:length(), rollDist)
+			rollDist = math.max(rollDist - ball.radius, 0)
+			local timeToRobot = Ball.ballRollTime(ball.speed:length(), rollDist)
+			debug.set("oldCatchtime", self._catchTime)
+			debug.set("timeToRobot", timeToRobot)
 			if timeToRobot < self._catchTime then
 				self._catchTime = timeToRobot
 			end
 		end
 	end
 	
-	local predictedBall = Ball.atTime(self._catchTime)
-	local moveDest = predictedBall.pos + (predictedBall.pos - targetPos):setLength(self._robot.radius + World.Ball.radius)
+	local predictedBall = Ball.atTime(self._catchTime, ball)
+	local moveDest = predictedBall.pos + (predictedBall.pos - targetPos):setLength(self._robot.radius + ball.radius)
 	local viewDir = targetPos - predictedBall.pos
 	
 	self._robot.path:setDefaultObstacles(self._robot, true)
 	self._robot.path:addRobotObstacles(self._robot)
-	self:_createBallObstacles(self._robot.path, viewDir:angle(), predictedBall)
+	self:_createBallObstacles(self._robot.path, viewDir:angle(), ball, predictedBall)
 	
 	-- max of endSpeed and ball speed in target direction
 	local endSpeed = math.max(maxEndSpeed, predictedBall.speed:dot(viewDir:normalize()))
 	
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir:angle(), nil, endSpeed)
-	self._catchTime = time
+	-- keep old time if no way was found
+	if time > 0 then
+		-- damp large value changes
+		self._catchTime = 0.9 * self._catchTime + 0.1 * time
+	end
+	debug.set("catchtime", self._catchTime)
+	vis.addCircle("CatchBall", Ball.atTime(self._catchTime, ball).pos, predictedBall.radius, vis.colors.blueHalf)
 	-- TODO Wegpunkt für Roboter nachführen, damit wenn auf den Roboter geschossen wird, der nicht abhaut
 end
 
-function CatchBall:_createBallObstacles(path, robotDir, predictedBall)
+function CatchBall:_createBallObstacles(path, robotDir, currentBall, predictedBall)
 	-- minimum required time to touch the ball
-	local minTimeToBall = math.min(Robot.minTimeToBall(self._robot, World.Ball), self._catchTime)
+	local minTimeToBall = math.min(Robot.minTimeToBall(self._robot, currentBall), self._catchTime)
 	local minBall = Ball.atTime(minTimeToBall)
 
+	-- FIXME magic constant
 	-- block connection between first touch point and target catch pos
 	if predictedBall.pos:distanceTo(minBall.pos) < 0.001 then
-		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius, 'ball')
+		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - 0.001, 'ball')
 	else
-		path:addLine(predictedBall.pos.x, predictedBall.pos.y, minBall.pos.x, minBall.pos.y, predictedBall.radius, 'ball')
+		path:addLine(predictedBall.pos.x, predictedBall.pos.y, minBall.pos.x, minBall.pos.y, predictedBall.radius - 0.001, 'ball')
 	end
 	
 	vis.addCircle("CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.greenHalf)
