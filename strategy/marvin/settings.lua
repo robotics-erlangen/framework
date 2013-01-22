@@ -2,8 +2,8 @@ local settings = {}
 
 settings.positionPadding = 0.02 -- safety distance
 
-settings.ballOwnDistance = 0.05 -- we own the ball if it was at least once only 5cm away from our robot
-settings.ballOwnHysteresis = 0.1 -- we loose the ball if it gets 5 + 10 cm away
+settings.ballOwnDistance = 0.1 -- we own the ball if it was at least once only 10cm away from our robot
+settings.ballOwnHysteresis = 0.05
 settings.keeperGoalDistance = 0.02 -- how far the keeper should stay away from the goal, used in task/keeper
 settings.slowBall = 0.5 -- consider a ball as fast if faster than this limit [m/s]
 settings.shootDriveSpeed = 0.2

@@ -26,7 +26,6 @@ function Game.gameFocus()
 
 	local futureBallPos = Ball.atTime(gugugu).pos
 	local focusPoint = futureBallPos:scaleLength(ballPosWeight) + avgPos:scaleLength(1 - ballPosWeight)
-	vis.addCircle("Game Focus", focusPoint, 0.1, vis.colors.turquoiseHalf, true)
 	return focusPoint
 end
 

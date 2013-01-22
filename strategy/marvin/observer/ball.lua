@@ -14,28 +14,31 @@ local lastBallOwner
 
 --- Returns the ballie that is either a friendly or an opponent robot 
 function Ball.ballOwner()
-	-- tests if the current ball owner still got the ball
+	local minDist = math.huge
+	local ballOwner = nil
+	for _,r in pairs(World.Robots) do
+		local dribblerPos = r.pos + Vector.fromAngle(r.dir):scaleLength(r.shootRadius)
+		local dist = dribblerPos:distanceTo(World.Ball.pos)
+		if dist < minDist and dist <= Settings.ballOwnDistance then
+			minDist = dist
+			ballOwner = r
+		end
+	end
+
+	local lastDist = math.huge
 	if lastBallOwner then
-		local dist = lastBallOwner.pos:distanceTo(World.Ball.pos)
-		if dist > Settings.ballOwnDistance + Settings.ballOwnHysteresis then
-			lastBallOwner = nil
-		end
+		local lastPos = lastBallOwner.pos + 
+			Vector.fromAngle(lastBallOwner.dir):scaleLength(lastBallOwner.shootRadius)
+		lastDist = lastPos:distanceTo(World.Ball.pos)
 	end
-	-- searches for a new ball owner
-	if not lastBallOwner then
-		local minDist = math.huge
-		for _,r in pairs(World.Robots) do
-			local dist = r.pos:distanceTo(World.Ball.pos)
-			-- TODO: prefer robot facing the ball
-			if dist < minDist and dist <= Settings.ballOwnDistance then
-				minDist = dist
-				lastBallOwner = r
-			end
-		end
+
+	if minDist < (lastDist + Settings.ballOwnHysteresis) or not ballOwner then
+		lastBallOwner = ballOwner
 	end
+
 	return lastBallOwner
 end
-Ball.ballOwner = Cache.forFrame(Ball.ballOwner)
+--Ball.ballOwner = Cache.forFrame(Ball.ballOwner)
 
 
 --- Calculates how long the ball will take to travel the given distance. Return math.huge if the distance is unreachable.

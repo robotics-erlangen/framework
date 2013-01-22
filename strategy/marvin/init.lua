@@ -24,7 +24,7 @@ saveGlobals()
 require "task/tasks"
 require "play/plays"
 require "control/coordinator"
--- TODO: include tests
+require "tests/tests"
 -- TODO: include utils
 
 local debug = require "../base/debug"
