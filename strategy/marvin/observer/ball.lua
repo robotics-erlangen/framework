@@ -14,6 +14,7 @@ local lastBallOwner
 
 --- Returns the ballie that is either a friendly or an opponent robot 
 function Ball.ballOwner()
+	--search robot with min dist to ball
 	local minDist = math.huge
 	local ballOwner = nil
 	for _,r in pairs(World.Robots) do
@@ -25,6 +26,7 @@ function Ball.ballOwner()
 		end
 	end
 
+	-- calculate dist from lastBallOwner to ball
 	local lastDist = math.huge
 	if lastBallOwner then
 		local lastPos = lastBallOwner.pos + 
@@ -32,7 +34,8 @@ function Ball.ballOwner()
 		lastDist = lastPos:distanceTo(World.Ball.pos)
 	end
 
-	if minDist < (lastDist + Settings.ballOwnHysteresis) or not ballOwner then
+	-- set new lastBallOwner or nil, if no robot is near ball
+	if minDist < (lastDist - Settings.ballOwnHysteresis) or not ballOwner then
 		lastBallOwner = ballOwner
 	end
 
