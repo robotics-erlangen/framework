@@ -12,9 +12,16 @@ local debug = require "../base/debug"
 function CatchBall:_catchBall(targetPos, maxEndSpeed)
 	local ball = World.Ball --Ball.atTime(0.065)
 	if self._catchTime then
+		-- update time from last frame
 		self._catchTime = math.max(0, self._catchTime - World.TimeDiff)
 	else
-		self._catchTime = Robot.minTimeToBall(self._robot, ball) -- simple estimation
+		-- should estimate the time quite good, but never overestimate it
+		-- that is the guess must be optimistic
+		-- when catching the ball there are two positions with minimal distance to it
+		-- the point where the robot catches the ball directly
+		-- and the point where the robot gets the ball when the ball has stopped
+		-- as the direct catch is preferred we must ensure to start in the correct local minima
+		self._catchTime = Robot.minTimeToBall(self._robot, ball)
 	end
 	
 	-- check for fast ball and that it moves towards the robot
@@ -22,6 +29,7 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed)
 		and ball.speed:dot(self._robot.pos - ball.pos) > 0 then
 		-- check if robot would be hit by the ball
 		-- limit catchTime to the time the ball would need to hit the robot
+		-- prevents the robot from fleeing from the ball
 		local hitPoint1, hitPoint2 = geom.intersectLineCircle(ball.pos,
 			ball.speed, self._robot.pos, self._robot.radius)
 		if hitPoint1 then
@@ -41,18 +49,29 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed)
 		end
 	end
 	
+	-- predict ball and catch it
 	local predictedBall = Ball.atTime(self._catchTime, ball)
 	local moveDest = predictedBall.pos + (predictedBall.pos - targetPos):setLength(self._robot.radius + ball.radius)
-	local viewDir = targetPos - predictedBall.pos
+	local viewLine = (targetPos - predictedBall.pos):normalize()
+	local viewDir = viewLine:angle()
 	
+	-- shift target position towards current position along the dribbler
+	local viewPerpendicular = viewLine:perpendicular()
+	local moveLine = moveDest - self._robot.pos
+	local offset = viewPerpendicular:dot(moveLine)
+	offset = offset * math.min(1, 10 * moveLine:length())
+	offset = math.bound(-self._robot.dribblerWidth/2, offset, self._robot.dribblerWidth/2)
+	moveDest = moveDest - viewPerpendicular:scaleLength(offset)
+	
+	-- setup obstacles
 	self._robot.path:setDefaultObstacles(self._robot, true)
 	self._robot.path:addRobotObstacles(self._robot)
-	self:_createBallObstacles(self._robot.path, viewDir:angle(), ball, predictedBall)
+	self:_createBallObstacles(self._robot.path, viewDir, ball, predictedBall)
 	
 	-- max of endSpeed and ball speed in target direction
-	local endSpeed = math.max(maxEndSpeed, predictedBall.speed:dot(viewDir:normalize()))
+	local endSpeed = math.max(maxEndSpeed, predictedBall.speed:dot(viewLine))
 	
-	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir:angle(), nil, endSpeed)
+	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, nil, endSpeed)
 	-- keep old time if no way was found
 	if time > 0 then
 		-- damp large value changes
