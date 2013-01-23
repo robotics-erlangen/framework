@@ -26,3 +26,5 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 
 amun = nil -- prevent access to the amun api by other code
+package.preload["amun"] = nil
+package.loaded["amun"] = nil
