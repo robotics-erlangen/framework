@@ -42,4 +42,32 @@ function math.round(val, digits)
 	return math.floor(val * fac + 0.5) / fac
 end
 
+--- Solves a*t^2+b*t+c for t
+-- @name solveSq
+-- @param a number
+-- @param b number
+-- @param c number
+-- @return [number - smallest positive solution or largest
+-- @return [number]]
+function math.solveSq(a, b, c)
+	local det = b*b - 4*a*c
+	if det < 0 then
+		return
+	elseif det == 0 then
+		return -b/(2*a)
+	end
+	det = math.sqrt(det)
+	local t1 = (-b+det)/(2*a)
+	local t2 = (-b-det)/(2*a)
+	local min = math.min(t1, t2)
+	-- if both are >= 0 return smallest
+	-- if only one is >= 0 the it's the larger value of both
+	-- and the smallest positive solution
+	if (min >= 0 and t1 < t2) or (min < 0 and t1 >= t2) then
+		return t1, t2
+	else
+		return t2, t1
+	end
+end
+
 return math

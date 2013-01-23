@@ -51,17 +51,9 @@ end
 function Ball.ballRollTime(v, distance)
 	assert(v >= 0 and distance >=0, "v and distance must be positive")
 	--distance = v*t + a/2*t^2
-	-- a = acceleration/2
-	-- b = v
-	-- c = -distance
 	local acceleration = Constants.ballDeceleration
-	local discriminant = v*v + 2*acceleration*distance
-	if discriminant < 0 then
-		return math.huge
-	end
-	
-	local discriminantRoot = math.sqrt(discriminant)
-	return (-v + discriminantRoot)/acceleration
+	local t = math.solveSq(acceleration * 0.5, v, -distance)
+	return t or math.huge
 end
 
 
