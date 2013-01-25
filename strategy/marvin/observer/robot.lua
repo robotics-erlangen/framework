@@ -11,7 +11,7 @@ function Robot.estimateAcceleration() -- opponent robots actual and maximal acce
 	for _, robot in pairs(World.OpponentRobots) do
 		if lastspeed[robot.id] then
 			local accel = (robot.speed - lastspeed[robot.id]) / World.TimeDiff -- classic derivative without smoothing
-			accelerationSmoothed[robot.id] = alpha * accel + (1 - alpha) * accelerationSmoothed[robot.id] -- smoothed acceleration curve
+			accelerationSmoothed[robot.id] = alpha * accel + (1 - alpha) * (accelerationSmoothed[robot.id] or 0) -- smoothed acceleration curve
 		end
 		lastspeed[robot.id]=robot.speed
 		if accelerationSmoothedMax[robot.id] then
