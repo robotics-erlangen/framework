@@ -2,30 +2,27 @@ local Robot = {}
 local World = require "../base/world"
 local Constants = require "../base/constants"
 
-local lastspeed = {}
+local lastSpeed = {}
+local speedSmoothed = {}
 local accelerationSmoothed = {}
 local alpha = 0.1
-local accelerationSmoothedMax = {}
 
-function Robot.estimateAcceleration() -- opponent robots actual and maximal acceleration estimation 
+function Robot.estimateOpponentDynamics()
 	for _, robot in pairs(World.OpponentRobots) do
-		if lastspeed[robot.id] then
-			local accel = (robot.speed - lastspeed[robot.id]) / World.TimeDiff -- classic derivative without smoothing
-			accelerationSmoothed[robot.id] = alpha * accel + (1 - alpha) * (accelerationSmoothed[robot.id] or 0) -- smoothed acceleration curve
+		if lastSpeed[robot] then
+			local accel = (robot.speed - lastSpeed[robot]) / World.TimeDiff -- classic derivative without smoothing
+			accelerationSmoothed[robot] = alpha * accel:length() + (1 - alpha) * (accelerationSmoothed[robot] or 0) -- smoothed acceleration curve
 		end
-		lastspeed[robot.id]=robot.speed
-		if accelerationSmoothedMax[robot.id] then
-			if accelerationSmoothedMax[robot.id] < accelerationSmoothed[robot.id] then
-				accelerationSmoothedMax[robot.id] = accelerationSmoothed[robot.id]
-			end
-		else
-			accelerationSmoothedMax[robot.id] = accelerationSmothed[robot.id]
+		speedSmoothed[robot] = alpha * robot.speed:length() + (1 - alpha) * (speedSmoothed[robot] or 0)
+		lastSpeed[robot] = robot.speed
+		
+		if accelerationSmoothed[robot] and robot.maxAcceleration < accelerationSmoothed[robot] then
+			robot.maxAcceleration = accelerationSmoothed[robot]
+		end
+		if robot.maxSpeed < speedSmoothed[robot] then
+			robot.maxSpeed = speedSmoothed[robot]
 		end
 	end
-end
-
-function Robot.getAcceleration(rID)
-	return accelerationSmoothedMax[rID]
 end
 
 function Robot.minTimeToBall(robot, ball)

@@ -29,13 +29,14 @@ require "tests/tests"
 
 local debug = require "../base/debug"
 local Cache = require "../base/cache"
---local Observer = require "observer/observer"
+local Observer = require "observer/observer"
 checkGlobals()
 
 for name, func in pairs(Entrypoints) do
 	Entrypoints[name] = function ()
 		saveGlobals()
 		World.update()
+		Observer.observe()
 		if not func() then -- Entrypoint has to return true if robots shouldn't be stopped on halt
 			if World.RefereeState == "Halt" then
 				World.haltOwnRobots()
