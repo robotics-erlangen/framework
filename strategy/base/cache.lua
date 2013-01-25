@@ -1,10 +1,14 @@
 local Cache = {}
 
 local cleanup = {}
+local nilObj = {}
 
 local function getFromCache(cached, params)
-	local entry = cached
+	local entry = cached[#params]
 	for i = 1, #params do
+		if params[i] == nil then
+			params[i] = nilObj
+		end
 		entry = cached[params[i]]
 		if entry == nil then
 			return nil
@@ -14,9 +18,16 @@ local function getFromCache(cached, params)
 end
 
 local function setInCache(cached, params, result)
-	local entry = cached
+	local entry = cached[#params]
+	if not entry then
+		entry = {}
+		cached[#params] = entry
+	end
 	local pcount = #params
 	for i = 1, pcount do
+		if params[i] == nil then
+			params[i] = nilObj
+		end
 		entry = cached[params[i]]
 		if i == pcount then
 			cached[params[i]] = result
