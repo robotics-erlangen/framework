@@ -2,7 +2,7 @@ local Keeper = (require "../base/class").new("Task.Keeper", require "task/base")
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
-local Observer = require "observer/ball"
+local Goal = require "observer/goal"
 local geom = require "../base/geom"
 local Settings = require "settings"
 local vis = require "../base/vis"
@@ -17,7 +17,7 @@ function Keeper:_run(priorityMessages, notifications)
 	--TODO: add obstacles if outside keeper area
 	local goalLinePos = Vector.create(0 ,World.Geometry.FriendlyGoal.y + Settings.keeperGoalDistance + self._robot.radius)
 	local goalLineDir = Vector.create(1,0)
-	local atkPos, atkDir, isShot = Observer.predictShot()
+	local atkPos, atkDir, isShot = Goal.predictShot()
 	atkPos = atkPos:copy()
 	atkDir = atkDir:copy():setLength(30)
 	local intersectPos = geom.intersectLineLine(atkPos, atkDir, goalLinePos, goalLineDir)
