@@ -8,7 +8,6 @@ local World = require "../base/world"
 local G = World.Geometry
 local Robotlist = require "util/robotlist"
 local Ball = require "observer/ball"
-local vis = require "../base/vis"
 
 local function weight(robot)
 	local distanceWeight = 1 -- [0, 1] how important the distance to our goal is, used for avgPos

@@ -1,21 +1,32 @@
 local Goal = {}
 
 local World = require "../base/world"
+local G = World.Geometry
 local Interval = require "util/interval"
-local vis = require "../base/vis"
 local Ball = require "observer/ball"
+local geom = require "../base/geom"
 
-local function getOccupiedSectors(viewPos, robotList, goalStart, goalEnd) -- fills the list of occupied sectors
+--- returns a list of all non-free sectors
+-- @param viewPos vector - usually Ball.pos
+-- @param robotList list - all robots that may block the sight
+-- @param goalStartAngle number - the angle of the first goalpost, counter-clockwise
+-- @param goalEndAngle number - the angle of the second goalpost, counter-clockwise
+local function getOccupiedSectors(viewPos, robotList, goalStartAngle, goalEndAngle) -- fills the list of occupied sectors
 	local occupiedSectors = {}
-	local extraRadius = World.Ball.radius/2
+	local extraRadius = World.Ball.radius
 	for _, robot in pairs(robotList) do
-		local robotDiff = robot.pos - viewPos -- vector from viewPos to center of robot
-		local robotDiffAngle = math.asin((robot.radius + extraRadius) / robotDiff:length()) -- min angle between robotDiff and shoot sector
-		local robotAngle = robotDiff:angle() -- direction of the robot
-		local robotStart = robotAngle - robotDiffAngle -- can be < 0
-		local robotEnd = robotAngle + robotDiffAngle -- can be > 2pi
-		if robotStart < goalEnd and robotEnd > goalStart then -- if the robot covers a part of the goal
-			table.insert(occupiedSectors, {math.max(robotStart, goalStart), math.min(robotEnd, goalEnd)}) -- add the occupied sector to the list
+		local toRobot = robot.pos - viewPos -- vector from viewPos to center of robot
+		local robotAngleDiff
+		if robot.radius + extraRadius <= toRobot:length() then
+			robotAngleDiff = math.asin((robot.radius + extraRadius) / toRobot:length()) -- min angle between toRobot and shoot sector
+		else
+			robotAngleDiff = math.pi/2 -- 90 deg, if the ball touches the robot (asin[-1,1]!)
+		end
+		local robotAngle = toRobot:angle() -- direction of the robot
+		local robotStart = robotAngle - robotAngleDiff -- can be < 0
+		local robotEnd = robotAngle + robotAngleDiff -- can be > 2pi
+		if robotStart < goalEndAngle and robotEnd > goalStartAngle then -- if the robot covers a part of the goal
+			table.insert(occupiedSectors, {math.max(robotStart, goalStartAngle), math.min(robotEnd, goalEndAngle)}) -- add the occupied sector to the list
 		end
 	end
 	return occupiedSectors
@@ -25,47 +36,42 @@ end
 -- @param viewPos vector - position from which the free angles should be found
 -- @param robotList list - all robot objects that should be considered
 -- @param opp boolean - true for opponent goal, false for friendly goal
+-- @return list - list of free angles
 function Goal.freeSectors(viewPos, robotList, opp)
-	if (opp and 1 or -1)*viewPos.y > World.FieldHeigthHalf then
+	if (opp and 1 or -1)*viewPos.y > G.FieldHeightHalf then
 		log("viewPos is behind the goal.")
 		return nil
 	end
 
-	local goalStart = ((opp and World.OpponentGoalRight or World.FriendlyGoalLeft) - viewPos):angle() -- direction of the first goalpost
-	local goalEnd = ((opp and World.OpponentGoalLeft or World.FriendlyGoalRight) - viewPos):angle() -- direction of the other goalpost (is always greater than goalStart, if viewPos is in the field)
+	local goalStart = ((opp and G.OpponentGoalRight or G.FriendlyGoalLeft) - viewPos):angle() -- direction of the first goalpost
+	local goalEnd = ((opp and G.OpponentGoalLeft or G.FriendlyGoalRight) - viewPos):angle() -- direction of the other goalpost (is always greater than goalStart, if viewPos is in the field)
 	
 	local occupiedSectors = getOccupiedSectors(viewPos, robotList, goalStart, goalEnd)
 	table.sort(occupiedSectors, function (t1, t2) return t1[1] < t2[1] end) -- sort sectors ascending by sectorStart
 	Interval.merge(occupiedSectors) -- merge the sectors
+
 	local unoccupiedSectors = Interval.negate(occupiedSectors, goalStart, goalEnd)
-	if true then ---------------------------------------------------------------------------------------------visualization here! set false for performance improvement
-		vis.setColor(vis.fromRGBA(255, 127, 0, 127), true)
-		for _, s in ipairs(unoccupiedSectors) do
-			local pointRight = viewPos + Vector.fromAngle(s[1])*10
-			local pointLeft = viewPos + Vector.fromAngle(s[2])*10
-			vis.addPolygon("Free Sectors", {viewPos, pointRight, point})
-		end
-	end
+	log(tostring(goalEnd - goalStart))
 	-- returns all unoccupied sectors in the interval [right goalpost, left goalpost]
 	return unoccupiedSectors
 end
 
---- Returns the biggest free sector and its width (angle difference)
+--- Returns the largest free sector and its width (angle difference)
 -- @param viewPos vector - position from which the free angles should be found
 -- @param robotList list - all robot objects that should be considered
 -- @param opp boolean - true for opponent goal, false for friendly goal
-function Goal.biggestFreeSector(viewPos, robotList, opp)
+function Goal.largestFreeSector(viewPos, robotList, opp)
 	local unoccupiedSectors = Goal.freeSectors(viewPos, robotList, opp) -- get list of all unoccupied sectors
-	local indexBiggest = nil -- index of biggest sector
-	local valueBiggest = 0 -- angle difference of the biggest sector
-	for i = 1, #unoccupiedSectors do -- find the biggest sector
+	local indexLargest = nil -- index of largest sector
+	local valueLargest = 0 -- angle difference of the largest sector
+	for i = 1, #unoccupiedSectors do -- find the largest sector
 		local diff = sector[i][2] - sector[i][1]
-		if diff > valueBiggest then
-			indexBiggest = key
-			valueBiggest = diff
+		if diff > valueLargest then
+			indexLargest = key
+			valueLargest = diff
 		end
 	end
-	return unoccupiedSectors[indexBiggest], valueBiggest -- returns the biggest sector and its angle difference
+	return unoccupiedSectors[indexLargest], valueLargest -- returns the largest sector and its angle difference
 end
 
 
