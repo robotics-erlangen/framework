@@ -11,6 +11,7 @@ local geom = require "../base/geom"
 -- @param robotList list - all robots that may block the sight
 -- @param goalStartAngle number - the angle of the first goalpost, counter-clockwise
 -- @param goalEndAngle number - the angle of the second goalpost, counter-clockwise
+-- @return occupiedSectors list - all unsorted, unmerged occupied sectors
 local function getOccupiedSectors(viewPos, robotList, goalStartAngle, goalEndAngle) -- fills the list of occupied sectors
 	local occupiedSectors = {}
 	local extraRadius = World.Ball.radius
@@ -36,7 +37,7 @@ end
 -- @param viewPos vector - position from which the free angles should be found
 -- @param robotList list - all robot objects that should be considered
 -- @param opp boolean - true for opponent goal, false for friendly goal
--- @return list - list of free angles
+-- @return list - list of free sectors [startAngle, endAngle] ascending by start angle
 function Goal.freeSectors(viewPos, robotList, opp)
 	if (opp and 1 or -1)*viewPos.y > G.FieldHeightHalf then
 		log("viewPos is behind the goal.")
@@ -60,6 +61,7 @@ end
 -- @param viewPos vector - position from which the free angles should be found
 -- @param robotList list - all robot objects that should be considered
 -- @param opp boolean - true for opponent goal, false for friendly goal
+-- @return largestFreeSector list, sectorWidth number - the largest free sector and its angle difference
 function Goal.largestFreeSector(viewPos, robotList, opp)
 	local unoccupiedSectors = Goal.freeSectors(viewPos, robotList, opp) -- get list of all unoccupied sectors
 	local indexLargest = nil -- index of largest sector
@@ -67,7 +69,7 @@ function Goal.largestFreeSector(viewPos, robotList, opp)
 	for i = 1, #unoccupiedSectors do -- find the largest sector
 		local diff = sector[i][2] - sector[i][1]
 		if diff > valueLargest then
-			indexLargest = key
+			indexLargest = i
 			valueLargest = diff
 		end
 	end
