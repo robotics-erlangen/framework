@@ -12,6 +12,7 @@ local Ball = require "observer/ball"
 -- @param targetRobot Robot - the robot that should receive the pass
 -- @param shootTime number - the time when the ballie shoots
 -- [@param targetPos Vector - the position where the pass should be received]
+-- @return passChance number - the calculated chance that the ball reaches the target position
 function Shoot.evaluatePassCorridor(targetRobot, shootTime, targetPos)
 	-- TODO: test
 	local corridorWidthHalf = World.Ball.radius + Constants.positionError	
@@ -36,6 +37,7 @@ end
 -- [@param startPos Vector - the position from where the ball is shot; default = current ball position]
 -- [@param shootTime number - the time from now to the moment when the ball is shot; default = now]
 -- [@param robots object list - all robots that should be regarded; default = all robots]
+-- @return shootChance number - chance that the ball reaches the aimed end position
 function Shoot.evaluateShootCorridor(endPos, speed, startPos, shootTime, robots)
 	startPos = startPos or World.Ball.pos
 	shootTime = shootTime or 0
@@ -48,20 +50,21 @@ function Shoot.evaluateShootCorridor(endPos, speed, startPos, shootTime, robots)
 	end
 	local corridorWidthHalf = World.Ball.radius + Constants.positionError
 	local corridorHalf = (endPos - predictedBallPos):perpendicular():setLength(corridorWidthHalf)
-	local passChance = 1
+	local shootChance = 1
 	for _, r in ipairs(robots) do
 		local pointOnLine = r.pos:nearestPosOnLine(predictedBallPos, endPos)
 		local ballCatchTime = shootTime + Ball.ballRollTime(speed, (endPos - startPos):length())
 		local ballCatchProbability = Shoot.ballCatchProbability(r, ballCatchTime, pointOnLine, corridorHalf)
-		passChance = passChance*(1 - ballCatchProbability)
+		shootChance = shootChance*(1 - ballCatchProbability)
 	end
-	return passChance
+	return shootChance
 end
 
 --- Calculates the chance that a chipped pass to the targetRobot will succeed in terms of opponent robots catching the ball
 -- @param targetRobot Robot - the robot that should receive the pass
 -- @param shootTime number - the time when the ballie shoots
 -- [@param targetPos Vector - the position where the pass should be received]
+-- @return passChance number - the chance that the ball reaches the target position
 function Shoot.evaluateChipCorridor(targetRobot, shootTime, targetPos)
 	--TODO: test
 	if (targetPos - ballPos):length() > 2 * liftDistance + targetRobot.radius then
@@ -93,9 +96,10 @@ end
 
 --- Calculates how long the ball will take when passed to travel the given distance
 -- @param futureBallPos Vector - where the ball will be when we shoot
--- @param targetRobot Robot - the pass target
+-- @param targetRobot Robot - the pass receiver
 -- @param targetPos Vector - where the targetRobot will be
 -- @param distance number - the distance
+-- @return ballRollTime number - the time after which the ball has travelled the given distance
 function Shoot.ballPassTime(futureBallPos, targetRobot, targetPos, distance) 
 	local passDistance = (targetPos - futureBallPos):length()
 	local v = targetRobot.calculateShootSpeed(targetRobot.constants.passSpeed, passDistance)
@@ -107,6 +111,7 @@ end
 -- @param time number - how long the robot can move until the ball reaches the given position
 -- @param catchPos Vector - where the robot might catch the ball
 -- @param corridorHalf Vector - the ball can only be catched in [catchPos-corridorHalf, catchPos+corridorHalf]
+-- @return catchProbability number - the chance that the given opponent robot catches the ball
 function Shoot.ballCatchProbability(robot, time, catchPos, corridorHalf)
 	local corridorWidthHalf = corridorHalf:length()
 	local v_toSector = math.abs(robot.speed:dot(corridorHalf:normalize())) -- part of robot.speed perpendicular to shoot corridor

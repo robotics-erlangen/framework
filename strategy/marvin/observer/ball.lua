@@ -12,7 +12,8 @@ local geom = require "../base/geom"
 
 local lastBallOwner
 
---- Returns the ballie that is either a friendly or an opponent robot 
+--- Returns the ball owner or the robot that was the last ball owner (hysteresis)
+-- @return lastBallOwner robot - the robot that can be seen as ball owner
 function Ball.ballOwner()
 	--search robot with min dist to ball
 	local minDist = math.huge
@@ -56,7 +57,11 @@ function Ball.ballRollTime(v, distance)
 	return t or math.huge
 end
 
-
+--- Calculates the position where the ball will be in a given time
+-- ignores obstacles, also works for imaginary ball objects
+-- @param ball object - the ball object which should be predicted
+-- @param t number - the time after which the ball position is to be calculated
+-- @return futureBallPos vector - the predicted ball position
 local function ballAt(ball, t)
 	-- p_b(t) = p_b + v_b(t0) * t + a_b(t0) * t^2/2
 	return ball.pos + ball.speed * t + ball.deceleration * (t^2/2) -- (8)

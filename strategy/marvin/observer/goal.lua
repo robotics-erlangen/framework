@@ -7,6 +7,8 @@ local Ball = require "observer/ball"
 local geom = require "../base/geom"
 
 --- returns a list of all non-free sectors
+-- but OBACHT! do not use outside of observer/goal.lua
+-- the non-free sectors are not merged and not sorted
 -- @param viewPos vector - usually Ball.pos
 -- @param robotList list - all robots that may block the sight
 -- @param goalStartAngle number - the angle of the first goalpost, counter-clockwise
