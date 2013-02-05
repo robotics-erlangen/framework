@@ -90,8 +90,11 @@ end
 -- @return number - lambda1, intersection = pos1 + lambda1*dir1
 -- @return number] - lambda2, intersection = pos2 + lambda2*dir2
 function geom.intersectLineLine(pos1, dir1, pos2, dir2)
-	if dir1 == dir2 then
-		if pos1 == pos2 then
+	-- check whether the directions are collinear
+	if math.abs(dir1:perpendicular():dot(dir2)) / (dir1:length() * dir2:length()) < 0.0001 then
+		-- check whether connection vector of pos is collinear to dir
+		local d = pos2 - pos1
+		if math.abs(d:perpendicular():dot(dir1)) / (dir1:length() * d:length()) < 0.0001 then
 			return pos1, 0, 0
 		else
 			return
@@ -102,7 +105,7 @@ function geom.intersectLineLine(pos1, dir1, pos2, dir2)
 	local normal2 = dir2:perpendicular()
 	local diff = pos2 - pos1
 	local t1 = normal2:dot(diff) / normal2:dot(dir1)
-	local t2 = normal1:dot(diff) / normal1:dot(dir2)
+	local t2 = -normal1:dot(diff) / normal1:dot(dir2)
 
 	return pos1 + (dir1 * t1), t1, t2
 end
