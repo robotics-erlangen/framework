@@ -46,6 +46,17 @@ function Keeper:_run(priorityMessages, notifications)
 	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
 end
 
+function Keeper:rate()
+	return self._robot == World.FriendlyKeeper and 1 or 0
+end
+
+function Keeper.factory(position)
+	local f = function (robots)
+		return Keeper.create(robots[position])
+	end
+	return f
+end
+
 local inst = nil
 function Keeper.test()
 	local robot = World.FriendlyRobots[1]

@@ -40,4 +40,14 @@ function Base:run(priorityMessages, notifications)
 	return msg
 end
 
+function Base:rate()
+	error("stub")
+	-- generate rating between 0 and 1
+end
+
+function Base.factory(...)
+	error("stub")
+	-- return a function that create a task
+end
+
 return Base

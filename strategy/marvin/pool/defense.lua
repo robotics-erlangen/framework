@@ -1,10 +1,9 @@
 local Defense = (require "../base/class").new("Pool.Defense", require "pool/base")
-local Condition = require "control/condition"
 local Keeper = require "task/keeper"
 
 -- TODO: generate conditions
 Defense._conditions = {
-	Condition.keeperAtPos(1)
+	Keeper.factory(1)
 }
 
 function Defense:_init(attackers, defenders)

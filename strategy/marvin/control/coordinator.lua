@@ -27,14 +27,14 @@ end
 function Coordinator:run()
 	local attackRatio = self:observeGameState()
 	
+	-- remove hidden robots from pools
+	self._attackPool:removeHiddenRobots()
+	self._defensePool:removeHiddenRobots()
+	
 	-- calculate how many robots to use for attack / defense
 	local attackers = attackRatio * #World.FriendlyRobots
 	attackers = math.roundTowards(attackers, #self._attackPool:robots(), 0.2)
 	local defenders = #World.FriendlyRobots - attackers
-	
-	-- remove hidden robots from pools
-	self._attackPool:removeHiddenRobots()
-	self._defensePool:removeHiddenRobots()
 	
 	local currentAttackers = #self._attackPool:robots()
 	local currentDefenders = #self._defensePool:robots()
@@ -49,19 +49,22 @@ function Coordinator:run()
 	local unassignedRobots = {}
 	for _, robot in ipairs(World.FriendlyRobots) do
 		if not occupiedRobots[robot.id] then
-			table.insert(unassignedRobots, robot)
+			-- Always assign the keeper to the defense pool
+			if World.FriendlyKeeper == robot then
+				self._defensePool:addRobot(robot)
+			else
+				table.insert(unassignedRobots, robot)
+			end
 		end
 	end
 	
 	self:_moveRobots(self._attackPool, attackers, self._defensePool, unassignedRobots)
 	self:_moveRobots(self._defensePool, defenders, self._attackPool, unassignedRobots)
 	
-	self:updatePlaySelection()
+	self:_updatePlaySelection()
 	
 	if self._play then
 		self._play:run()
-	else
-		log("no play found")
 	end
 	
 	self._defensePool:run()
@@ -134,41 +137,46 @@ function Coordinator:_assignRobots()
 	return attackers, defenders
 end
 
-function Coordinator:updatePlaySelection()
+function Coordinator:_updatePlaySelection()
 	-- TODO: facilities for learning
 	-- get rating of play currently running
-	local currentRating = self._play and self._play:currentRating() or PlayBase.rating.no
-	
-	-- check for timeout
-	if self._play and self._startTime and self._play.timeout < World.Time - self._startTime then
-		currentRating = PlayBase.rating.no
+	local currentRating = PlayBase.rating.no
+	if self._play then
+		currentRating = self._play:rate()
+		if currentRating == PlayBase.rating.no then
+			self._play = nil
+		end
 	end
 	
 	local ratingGroups = {}
-	local maxRating = -1
+	local maxRating = PlayBase.rating.no
 	
 	if self._forcePlay then
 		-- just one play to force using it if neccessary
-		maxRating = self._forcePlay.startRating(self._attackPool:robots(), self._defensePool:robots(), currentRating)
-		ratingGroups[maxRating] = { self._forcePlay }
+		local play = self._forcePlay.create(self._taskmanager, self._attackPool:robots(), self._defensePool:robots())
+		maxRating = play:rate(currentRating, true)
+		ratingGroups[maxRating] = { play }
 	else
 		for _, play in pairs(Plays) do
 			-- check every play
-			local rating = play.startRating(self._attackPool:robots(), self._defensePool:robots(), currentRating)
+			local playInst = play.create(self._taskmanager, self._attackPool:robots(), self._defensePool:robots())
+			local rating = playInst:rate(currentRating, true)
 			
 			-- group plays by rating
 			if not ratingGroups[rating] then
 				ratingGroups[rating] = {}
 			end
+			table.insert(ratingGroups[rating], playInst)
+			
 			-- track best rating
 			if rating > maxRating then
 				maxRating = rating
 			end
-			table.insert(ratingGroups[rating], play)
 		end
 	end
 	
 	-- only switch play if a new play would be better
+	-- ensures that no play with rating no is started
 	if maxRating > currentRating then
 		-- only check the best group
 		local group = ratingGroups[maxRating]
@@ -178,14 +186,13 @@ function Coordinator:updatePlaySelection()
 		end
 		local randVal = math.random(0, weightSum)
 		weightSum = 0
-		for _, play in ipairs(group) do
+		for _, playInst in ipairs(group) do
 			-- find randomly chosen play
-			if randVal < weightSum + play.weight then
-				self._play = play.create(self._taskmanager, self._attackPool:robots(), self._defensePool:robots())
-				self._startTime = World.Time
+			if randVal < weightSum + playInst.weight then
+				self._play = playInst
 				break
 			end
-			weightSum = weightSum + play.weight
+			weightSum = weightSum + playInst.weight
 		end
 	end
 end

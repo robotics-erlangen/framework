@@ -14,26 +14,25 @@ DirectPassTest.timeout = 60
 DirectPassTest._conditions = {}
 
 function DirectPassTest:_init()
-	self:setState("Default")
 end
 
-function DirectPassTest.startRating(attackers, defenders, minRating)
-	return Base.rating.yes
+function DirectPassTest:_baseRating()
+	return
 end
 
-function DirectPassTest:currentRating()
+function DirectPassTest:_selectRobots(attackers, defenders)
+	local robots, _ = RobotList.join(attackers, defenders)
+	robots, _ = RobotMatcher.match(robots, 2, DirectPassTest._conditions)
+	return robots
+end
+
+function DirectPassTest:rateDefault(isInit)
 	if self:state() == "Active" then
 		if not World.Ball:isPositionValid() or not Field.isInField(World.Ball.pos, -0.2) then
 			return Base.rating.no
 		end
 	end
 	return Base.rating.yes
-end
-
-function DirectPassTest.selectRobots(attackers, defenders)
-	local robots = RobotList.join(attackers, defenders)
-	robots, _ = RobotMatcher.match(robots, 2, DirectPassTest._conditions)
-	return robots
 end
 
 function DirectPassTest:prepareDefault()
@@ -46,7 +45,7 @@ end
 
 function DirectPassTest:switchDefault()
 	if World.Ball.speed:length() > 0.7 and World.Ball.speed:absoluteAngleDiff(self._robots[1].pos - World.Ball.pos) < 20/180*math.pi then
-		self:setState("Active")
+		self:_setState("Active")
 	end
 end
 
