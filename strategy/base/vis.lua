@@ -62,6 +62,8 @@ vis.colors.black = vis.fromRGBA(0, 0, 0, 255)
 vis.colors.blackHalf = vis.fromRGBA(0, 0, 0, 127)
 vis.colors.white = vis.fromRGBA(255, 255, 255, 255)
 vis.colors.whiteHalf = vis.fromRGBA(255, 255, 255, 127)
+vis.colors.grey = vis.fromRGBA(127, 127, 127, 255)
+vis.colors.greyHalf = vis.fromRGBA(127, 127, 127, 127)
 
 vis.colors.red = vis.fromRGBA(255, 0, 0, 255)
 vis.colors.redHalf = vis.fromRGBA(255, 0, 0, 127)
@@ -79,6 +81,10 @@ vis.colors.turquoiseHalf = vis.fromRGBA(0, 255, 255, 127)
 
 vis.colors.orange = vis.fromRGBA(255, 127, 0, 255)
 vis.colors.orangeHalf = vis.fromRGBA(255, 127, 0, 127)
+vis.colors.magenta = vis.fromRGBA(255, 0, 127, 255)
+vis.colors.magentaHalf = vis.fromRGBA(255, 0, 127, 127)
+vis.colors.brown = vis.fromRGBA(127, 255, 0, 255)
+vis.colors.brownHalf = vis.fromRGBA(127, 255, 0, 127)
 
 --- Sets line and fill color.
 -- If filled is true polygons and circles are filled using color.
