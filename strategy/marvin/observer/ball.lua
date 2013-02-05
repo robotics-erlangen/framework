@@ -94,4 +94,35 @@ function Ball.atTime(t, ball)
 	return predicted
 end
 
+local lastBallSpeedLength = -1
+local lastShootTime = 0
+local shootCooldown = 0.1 --ball can be shot at least 0.1s after the last shot
+local speedDiff = 0.1 --ball has to be 0.1m/s faster than the robot
+local accelerationPerFrame = 5 --ball has to accelerate at least x m/s^2 to count as shot
+
+function Ball.isShot() --FIXME doesnt recognize volley shots!!!
+	-- if the ball was not shot in the last tenth second
+	-- if the ball accelerates
+	-- if the ball is fast
+	-- if one robot has the ball
+	-- if this robot looks about in the same direction as the ball rolls
+	-- if the ball is distinctly faster than this robot
+	local robot = nil
+	local ballSpeedLength = World.Ball.speed:length()
+	if lastBallSpeedLength >= 0 and World.Time > lastShootTime + shootCooldown
+			and ballSpeedLength > lastBallSpeedLength + accelerationPerFrame*World.TimeDiff
+			and ballSpeedLength > Settings.fastBall then
+		for _,r in pairs(World.Robots) do
+			if r:hasBall(World.Ball)
+					and math.abs(r.speed:angle() - World.Ball.speed:angle()) < Settings.tiltShotAngle
+					and ballSpeedLength > speedDiff + r.speed:length() then
+				lastShootTime = World.Time
+				robot = r
+			end
+		end
+	end
+	lastBallSpeedLength = World.Ball.speed:length()
+	return robot
+end
+
 return Ball

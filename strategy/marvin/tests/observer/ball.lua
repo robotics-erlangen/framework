@@ -19,4 +19,20 @@ function BallTest.testAtTime()
 	end
 end
 
+local isShotCooldown = 0.3
+local lastShootTime = 0
+local lastShootRobotPos = nil
+
+function BallTest.testIsShot()
+	local time = World.Time
+	local r = Ball.isShot()
+	if r then
+		lastShootTime = World.Time
+		lastShootRobotPos = r.pos
+	end
+	if World.Time <= lastShootTime + isShotCooldown then
+		vis.addCircle("Shoot Robot", lastShootRobotPos, 0.15, vis.colors.magentaHalf, true)
+	end
+end
+
 return BallTest
