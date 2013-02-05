@@ -9,4 +9,8 @@ function Halt:_run()
 	self._robot:halt()
 end
 
+function Halt:rate()
+	return 1
+end
+
 return Halt

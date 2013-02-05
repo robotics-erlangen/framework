@@ -3,10 +3,9 @@ local Tests = {
 	BallTest = require "tests/observer/ball",
 	GameTest = require "tests/observer/game",
 	GoalTest = require "tests/observer/goal",
-	DirectPass = require "tests/task/directpass"
+	DirectPass = require "tests/task/directpass",
+	Passing = require "tests/task/passing"
 }
-
-local coord = nil
 
 for name,s in pairs(Tests) do
 	if type(s) == "table" then
