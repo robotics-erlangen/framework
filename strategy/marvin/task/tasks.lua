@@ -6,6 +6,7 @@ local Tasks = {
 	Keeper = require "task/keeper",
 	ManMark = require "task/manmark",
 	Mirror = require "task/mirror",
+	FarMirror = require "task/farmirror",
 	MoveToPos = require "task/movetopos",
 	ReceivePass = require "task/receivepass",
 	Shoot = require "task/shoot"

@@ -12,9 +12,24 @@ FarMirror.priority = 1
 function FarMirror:_init()
 end 
 
+
+-- gets the y-Value for a given x-Value
+-- returns a V-shape 
+-- @param xPos int
+-- @return int 
+local function getY(xPos) 
+	local height = -World.Geometry.FieldHeightHalf
+	local middleHeight = height / 2
+	local sideHeight = height / 4
+	local width = World.Geometry.FieldWidthHalf
+	
+	return middleHeight - (math.abs(xPos) / width) * sideHeight
+end 
+
 --- does an approximate mirror of the enemy team 
 function FarMirror:_run() 
 	local tmpPos = Game.gameFocus()
+	--TODO increase the variation of the x value (*2 seems quite useful)
 
 	local targetX = tmpPos.x 
 	local targetY = getY(targetX)
@@ -30,15 +45,17 @@ function FarMirror:_run()
 end 
 
 
--- gets the y-Value for a given x-Value
--- returns a V-shape 
--- @param xPos int
--- @return int 
-local function getY(xPos) 
-	local height = World.Geometry.FieldHeightHalf
-	local middleHeight = height / 2
-	local sideHeight = height / 4
-	local width = World.Geometry.FieldWidthHalf
-	
-	return middleHeight - (math.abs(xPos) / width) * sideHeight
-end 
+
+
+local inst
+function FarMirror.test()
+	local robot = World.FriendlyRobots[1]
+	if robot then
+		inst = inst or FarMirror.create(robot)
+		return inst
+	else
+		inst = nil
+	end
+end
+
+return FarMirror
