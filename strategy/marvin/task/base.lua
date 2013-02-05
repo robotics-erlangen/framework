@@ -47,8 +47,8 @@ function Base:run(priorityMessages, notifications)
 end
 
 function Base:rate()
-	self:_rate()
 	self._ratingRun = true
+	return self:_rate()
 end
 
 function Base:_rate()
