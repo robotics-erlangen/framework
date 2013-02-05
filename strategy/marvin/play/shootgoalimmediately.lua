@@ -6,6 +6,9 @@ local Observer = {}
 Observer.Ball = require "observer/ball"
 Observer.Goal = require "observer/goal"
 Observer.Shoot = require "observer/shoot"
+local ShootG = require "task/shootgoalimmediately"
+local RobotList = require "util/robotlist"
+local RobotMatcher = require "control/robotmatcher"
 
 ShootGoalImmediately.timeout = 5
 ShootGoalImmediately._conditions = {}
@@ -13,12 +16,25 @@ ShootGoalImmediately._conditions = {}
 function ShootGoalImmediately:_init()
 end
 
-function ShootGoalImmediately.baseRating(minRequiredRating)
+function ShootGoalImmediately:_baseRating(minRequiredRating)
 	if minRequiredRating >= Base.rating.referee then
 		return Base.rating.no
-	else
-		return 
 	end
+end
+
+function ShootGoalImmediately:_selectRobots(attackers, defenders)
+	local robots, _ = RobotList.join(attackers, defenders)
+	robots = RobotList.excludeRobot(robots, World.FriendlyKeeper)
+	robots, _ = RobotMatcher.match(robots, math.min(1, #robots), ShootGoalImmediately._conditions)
+	return robots
+end
+
+function ShootGoalImmediately:rateDefault(isInit)
+	return Base.rating.force
+end
+
+function ShootGoalImmediately:prepareDefault()
+	self._tasks = { ShootG.create(self._robots[1]) }
 end
 
 function ShootGoalImmediately.rateStart(isInit)
@@ -32,12 +48,7 @@ function ShootGoalImmediately.rateStart(isInit)
 	end
 end
 
-function ShootGoalImmediately.selectRobots(attackers, defenders)
-	local robots = RobotList.join(attackers, defenders)
-	robots = RobotList.excludeRobot(robots, World.FriendlyKeeper)
-	robots, _ = RobotMatcher.match(robots, math.min(1, #robots), ShootGoalImmediately._conditions)
-	return robots
-end
+
 
 function ShootGoalImmediately:shootGoal()
 	self._tasks = { self._robots[1] and ShootDirect.create(self._robots[1], self._robots[1].dir, self._robots[1].maxShotLinear) }
