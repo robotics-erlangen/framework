@@ -27,11 +27,6 @@ function DirectPassTest:_selectRobots(attackers, defenders)
 end
 
 function DirectPassTest:rateDefault(isInit)
-	if self:state() == "Active" then
-		if not World.Ball:isPositionValid() or not Field.isInField(World.Ball.pos, -0.2) then
-			return Base.rating.no
-		end
-	end
 	return Base.rating.yes
 end
 
@@ -47,6 +42,13 @@ function DirectPassTest:switchDefault()
 	if World.Ball.speed:length() > 0.7 and World.Ball.speed:absoluteAngleDiff(self._robots[1].pos - World.Ball.pos) < 20/180*math.pi then
 		self:_setState("Active")
 	end
+end
+
+function DirectPassTest:rateActive()
+	if not World.Ball:isPositionValid() or not Field.isInField(World.Ball.pos, -0.2) then
+		return Base.rating.no
+	end
+	return Base.rating.yes
 end
 
 function DirectPassTest:prepareActive()
