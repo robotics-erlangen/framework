@@ -40,7 +40,7 @@ end
 function Goal.freeSectors(viewPos, robotList, opp)
 	if (opp and 1 or -1)*viewPos.y > G.FieldHeightHalf then
 		log("viewPos is behind the goal.")
-		return nil
+		return {}
 	end
 
 	local goalStart = ((opp and G.OpponentGoalRight or G.FriendlyGoalLeft) - viewPos):angle() -- direction of the first goalpost
@@ -51,7 +51,7 @@ function Goal.freeSectors(viewPos, robotList, opp)
 	Interval.merge(occupiedSectors) -- merge the sectors
 
 	local unoccupiedSectors = Interval.negate(occupiedSectors, goalStart, goalEnd)
-	log(tostring(goalEnd - goalStart))
+	--log(tostring(goalEnd - goalStart))
 	-- returns all unoccupied sectors in the interval [right goalpost, left goalpost]
 	return unoccupiedSectors
 end
