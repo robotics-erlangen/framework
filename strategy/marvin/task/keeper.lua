@@ -21,6 +21,7 @@ function Keeper:_run(priorityMessages, notifications)
 	atkPos = atkPos:copy()
 	atkDir = atkDir:copy():setLength(30)
 	local intersectPos = geom.intersectLineLine(atkPos, atkDir, goalLinePos, goalLineDir)
+	intersectPos = intersectPos or goalLinePos -- ensure there's an intersect pos
 	
 	--visualization Tool
 	vis.addPath("KeeperShotPrediction",{atkPos,atkPos+atkDir})
