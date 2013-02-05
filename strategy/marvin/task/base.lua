@@ -5,6 +5,7 @@ Base.priority = 0
 
 function Base:init(robot, ...)
 	self._robot = robot
+	self._ratingRun = false
 	self:_init(...)
 	if self.priority <= 0 then
 		error("priority not set")
@@ -31,16 +32,26 @@ function Base:run(priorityMessages, notifications)
 	debug.push(tostring(self._robot.id))
 	debug.set(nil, self.className)
 	
+	if not self._ratingRun then
+		self:rate()
+	end
+	
 	local msg = self:_run(priorityMessages, notifications)
 	
 	-- cleanup
 	debug.pop()
 	debug.pop()
+	self._ratingRun = false
 	
 	return msg
 end
 
 function Base:rate()
+	self:_rate()
+	self._ratingRun = true
+end
+
+function Base:_rate()
 	error("stub")
 	-- generate rating between 0 and 1
 end

@@ -46,7 +46,7 @@ function Keeper:_run(priorityMessages, notifications)
 	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
 end
 
-function Keeper:rate()
+function Keeper:_rate()
 	return self._robot == World.FriendlyKeeper and 1 or 0
 end
 
