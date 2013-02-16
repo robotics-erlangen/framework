@@ -7,6 +7,7 @@ local RobotMatcher = require "control/robotmatcher"
 local Game = require "observer/game"
 
 local Mirror = require "task/mirror"
+local FarMirror = require "task/farmirror"
 local MoveToPos = require "task/movetopos"
 
 local G = World.Geometry
@@ -63,7 +64,7 @@ function KickoffDefensive:prepareDefault()
 		self._robots[1] and MoveToPos.create(self._robots[1], quarterbackPos, math.pi/2) or nil,
 		self._robots[2] and Mirror.create(self._robots[2], false, Settings.positionPadding) or nil,
 		self._robots[3] and Mirror.create(self._robots[3], true, Settings.positionPadding) or nil,
-		-- TODO defender that stays back but mirrors the opponent
+		self._robots[4] and FarMirror.create(self._robots[4]) or nil,
 	}
 end
 

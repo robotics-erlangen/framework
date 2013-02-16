@@ -7,11 +7,16 @@ local Game = {}
 local World = require "../base/world"
 local G = World.Geometry
 local Robotlist = require "util/robotlist"
+local Field = require "util/field"
 local Ball = require "observer/ball"
 
 local function weight(robot)
-	local distanceWeight = 1 -- [0, 1] how important the distance to our goal is, used for avgPos
-	return math.max(2 - robot.pos:distanceTo(G.FriendlyGoal) / G.FieldHeightHalf, 0) * distanceWeight
+	if not robot.isFriendly then
+		local distanceWeight = 1 -- [0, 1] how important the distance to our goal is, used for avgPos
+		return math.max(2 - robot.pos:distanceTo(G.FriendlyGoal) / G.FieldHeightHalf, 0) * distanceWeight
+	else
+		return -0.5; --TODO find better weight calculation for 'friendly' case
+	end
 end
 
 function Game.gameFocus()
@@ -20,8 +25,9 @@ function Game.gameFocus()
 	local ballPosWeight = 0.3 -- [0, 1] how much the future ball pos is involved
 
 	-- calculation stuff
-	local opponents = Robotlist.excludeRobot(World.OpponentRobots, World.OpponentKeeper)
-	local avgPos = Game.averagePosition(opponents, weight)
+	local robots = Robotlist.excludeRobot(World.Robots, World.OpponentKeeper)
+	robots = Robotlist.excludeRobot(robots, World.FriendlyKeeper)
+	local avgPos = Game.averagePosition(robots, weight)
 
 	local futureBallPos = Ball.atTime(gugugu).pos
 	local focusPoint = futureBallPos:scaleLength(ballPosWeight) + avgPos:scaleLength(1 - ballPosWeight)
@@ -46,7 +52,7 @@ function Game.averagePosition(robots, weight)
 		sumX = sumX + r.pos.x * weightFactor
 		sumY = sumY + r.pos.y * weightFactor
 	end
-	return Vector.create(sumX/#robots, sumY/#robots)
+	return Field.limitToField(Vector.create(sumX/#robots, sumY/#robots), 0)
 end
 
 --- divides the field into 3 sectors (1 left, 2 center, 3 right)
