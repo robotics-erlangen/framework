@@ -25,20 +25,16 @@ end
 function ShootGoalImmediately:_selectRobots(attackers, defenders)
 	local robots, _ = RobotList.join(attackers, defenders)
 	robots = RobotList.excludeRobot(robots, World.FriendlyKeeper)
-	robots, _ = RobotMatcher.match(robots, math.min(1, #robots), ShootGoalImmediately._conditions)
+	robots, _ = RobotMatcher.match(robots, 1, self._conditions)
 	return robots
-end
-
-function ShootGoalImmediately:rateDefault(isInit)
-	return Base.rating.force
 end
 
 function ShootGoalImmediately:prepareDefault()
 	self._tasks = { ShootG.create(self._robots[1]) }
 end
 
-function ShootGoalImmediately.rateStart(isInit)
-	local goalProbability = self._task[1].rating()
+function ShootGoalImmediately:rateDefault(isInit)
+	local goalProbability = self._task[1]:rating()
 	if goalProbability > 0.92836 then -- warning! magic constant
 		return Base.rating.force
 	elseif goalProbability > 0.79731 then -- warning! magic constant
@@ -46,12 +42,6 @@ function ShootGoalImmediately.rateStart(isInit)
 	else
 		return Base.rating.no
 	end
-end
-
-
-
-function ShootGoalImmediately:shootGoal()
-	self._tasks = { self._robots[1] and ShootDirect.create(self._robots[1], self._robots[1].dir, self._robots[1].maxShotLinear) }
 end
 
 return ShootGoalImmediately
