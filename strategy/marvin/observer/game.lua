@@ -27,7 +27,7 @@ function Game.gameFocus()
 	-- calculation stuff
 	local robots = Robotlist.excludeRobot(World.Robots, World.OpponentKeeper)
 	robots = Robotlist.excludeRobot(robots, World.FriendlyKeeper)
-	local avgPos = Game.averagePosition(robots, weight)
+	local avgPos = Game.averagePosition(robots, weight, weight)
 
 	local futureBallPos = Ball.atTime(gugugu).pos
 	local focusPoint = futureBallPos:scaleLength(ballPosWeight) + avgPos:scaleLength(1 - ballPosWeight)
@@ -37,20 +37,26 @@ end
 
 --- calculates the average position of all robots in the given list
 -- @param robots Robot[] - a list of robots
--- @param weight function - optional parameter, returns the weighting (non-negative) of the robot, expects a robot object
+-- @param weightX function - optional parameter, returns the weighting (non-negative) of the robot in x direction, 
+-- expects a robot object
+-- @param weightY function - same as with weightx, just in x direction 
 -- @return Vector - the average position
-function Game.averagePosition(robots, weight)
+function Game.averagePosition(robots, weightX, weightY) 
 	if not robots or not #robots then
 		return nil
 	end
 	local sumX, sumY = 0, 0
 	for _,r in pairs(robots) do
-		local weightFactor = 1
-		if weight then
-			weightFactor = weight(r)
+		local weightFactorX = 1
+		local weightFactorY = 1
+		if weightX then
+			weightFactorX = weightX(r)
 		end
-		sumX = sumX + r.pos.x * weightFactor
-		sumY = sumY + r.pos.y * weightFactor
+		if weightY then
+			weightFactorY = weightY(r)
+		end
+		sumX = sumX + r.pos.x * weightFactorX
+		sumY = sumY + r.pos.y * weightFactorY
 	end
 	return Field.limitToField(Vector.create(sumX/#robots, sumY/#robots), 0)
 end
