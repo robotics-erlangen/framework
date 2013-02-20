@@ -5,6 +5,7 @@ local Geo = World.Geometry
 local Game = require "observer/game"
 local ToTarget = require "trajectory/totarget"
 local Field = require "util/field"
+local Robotlist = require "util/robotlist"
 
 FarMirror.priority = 1
 
@@ -30,30 +31,23 @@ end
 function FarMirror:_run() 
 	-- determine approximate focus of opponent team
 	local opponents = Robotlist.excludeRobot(World.OpponentRobots, World.OpponentKeeper)
+	local weightX = function(robot)
+		local distanceWeight = 1 -- how important the side robots are 
+		return math.exp(distanceWeight * (math.abs(robot.pos.x) / Geo.FieldWidthHalf))
+	end 
 	local avgPos = Game.averagePosition(opponents, weightX) 
-	--TODO increase the variation of the x value (*2 seems quite useful)
 
+	-- determine pos
 	local targetX = avgPos.x 
 	local targetY = getY(targetX)
-
-	-- copied from mirror task 
 	local pos = Vector.create(targetX, targetY - self._robot.radius) 
 	pos = Field.limitToField(pos, -self._robot.radius) 
 
+	-- assign pos to robot 
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
-
 	self._robot.trajectory:update(ToTarget, pos, math.pi/2)
 end 
-
-
--- gets the weight in x direction
--- exponential, with 1 at center, and e^(val) (greater than 1) at sideline 
-local function weightX(robot) 
-	local distanceWeight = 0.5 -- [0,1] how important the side robots are 
-	return math.exp(fac * (math.abs(robot.pos.x) / Geo.FieldWidthHalf))
-end 
-
 
 
 local inst
