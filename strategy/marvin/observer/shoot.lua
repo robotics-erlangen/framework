@@ -34,6 +34,7 @@ end
 
 --- Calculates the chance that a shot (e.g. on the goal) is successful
 -- @param endPos Vector - the position that is aimed
+-- @param speed number - speed of the ball immediately after the shot
 -- [@param startPos Vector - the position from where the ball is shot; default = current ball position]
 -- [@param shootTime number - the time from now to the moment when the ball is shot; default = now]
 -- [@param robots object list - all robots that should be regarded; default = all robots]
