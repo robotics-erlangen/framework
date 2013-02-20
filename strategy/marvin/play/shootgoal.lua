@@ -6,6 +6,8 @@ local Observer = {}
 Observer.Ball = require "observer/ball"
 Observer.Goal = require "observer/goal"
 Observer.Shoot = require "observer/shoot"
+local CatchBall = require "task/catchball"
+local ShootGoal = require "task/shootgoal"
 
 ShootGoal.timeout = 10
 ShootGoal._conditions = {}
@@ -13,80 +15,61 @@ ShootGoal._conditions = {}
 function ShootGoal:_init()
 end
 
-function ShootGoal.startRating(attackers, defenders, minRating)
-	if #attackers == 0 or minRating >= Base.rating.force then
+function ShootGoal:_baseRating(minRequiredRating)
+	if minRequiredRating >= Base.rating.referee then
 		return Base.rating.no
 	end
-	local ballOwner = Observer.Ball.ballOwner()
-	if ballOwner and ballOwner.isFriendly then
-		local ball = World.Ball
-		if ballOwner:hasBall(ball) then -- or if we will be the first at the ball
-			local robots = {}
-			for _,r in ipairs(World.Robots) do
-				if r.pos.y > ball.pos.y then
-					table.insert(robots, r)
-				end
-			end
-			local freeSectors = Observer.Goal.freeSectors(ball.pos, robots, true)
-			local bestRating, bestSector = 0, 1
-			for k, fs in ipairs(freeSectors) do -- TODO: gescheite Funktion implementieren, die die Zeit abschätzt, die der Roboter braucht, um sich mit dem Ball um einen bestimmten Winkel zu drehen
-				local rating = (fs[2] - fs[1])*(10 - geom.getAngleDiff(ballOwner.dir, 0.5*(fs[1] + fs[2]))^2) -- wie gesagt, nur ganz grobe Abschätzung der Qualität eines Sektors
-				if rating > bestRating then
-					bestRating = rating
-					--bestSector = k
-				end
-			end
-			if bestRating > 1.50861 then -- OBACHT! never tested magic constant
-				return Base.rating.yes
-			elseif bestRating > 0.87350 then -- OBACHT! never tested magic constant
-				return Base.rating.perhaps
-			else
-				return Base.rating.no
-			end
-		else
-			return Base.rating.no
-		end
+end
+
+function ShootGoal:prepareDefault()
+	self._tasks = { CatchBall.create(self._robots[1]) }
+end
+
+function ShootGoal:rateDefault(isInit)
+	catchBallChance = self._tasks[1]:rating()
+	if catchBallChance > 0.87134 then	-- magic constant
+		return Base.rating.yes
+	elseif catchBallChance > 0.72149 then	-- magic constant
+		return Base.rating.perhaps
 	else
 		return Base.rating.no
 	end
 end
 
-function ShootGoal:currentRating()
-	if World.RefereeState ~= "Game" then
-		return Base.rating.no
-	end										-- same as startRating from here
+function ShootGoal:switchDefault()
 	local ballOwner = Observer.Ball.ballOwner()
-	if ballOwner and ballOwner.isFriendly then
-		local ball = World.Ball
-		if ballOwner:hasBall(ball) then
-			local robots = {}
-			for _,r in ipairs(World.Robots) do
-				if r.pos.y > ball.pos.y then
-					table.insert(robots, r)
-				end
-			end
-			local freeSectors = Observer.Goal.freeSectors(ball.pos, robots, true)
-			local bestRating, bestSector = 0, 1
-			for k, fs in ipairs(freeSectors) do
-				local rating = (fs[2] - fs[1])*(10 - geom.getAngleDiff(ballOwner.dir, 0.5*(fs[1] + fs[2]))^2)
-				if rating > bestRating then
-					bestRating = rating
-					--bestSector = k
-				end
-			end
-			if bestRating > 1.50861 then -- OBACHT! never tested magic constant
-				return Base.rating.yes
-			elseif bestRating > 0.87350 then -- OBACHT! never tested magic constant
-				return Base.rating.perhaps
-			else
-				return Base.rating.no
-			end
-		else
-			return Base.rating.no
+	if ballOwner == self._robots[1] then
+		if self._robots[1]:hasBall() then
+			self._setState("Active")
 		end
+	end
+end
+
+function ShootGoal:prepareActive()
+	self._tasks = { ShootGoal.create(self._robots[1]) }
+end
+
+function ShootGoal:rateActive()
+	shootGoalChance = self._tasks[1]:rating()
+	if shootGoalChance > 1.50861 then	-- OBACHT! never tested magic constant
+		return Base.rating.yes
+	elseif shootGoalChance > 0.87350 then	-- OBACHT! never tested magic constant
+		return Base.rating.perhaps
 	else
 		return Base.rating.no
 	end
+end
+
+function ShootGoal:switchActive()
+	if not self._robots[1]:hasBall() then
+		self._setState("Default")
+	end
+end
+
+function ShootGoal:_selectRobots(attackers, defenders)
+	local robots, _ = RobotList.join(attackers, defenders)
+	robots, _ = RobotMatcher.match(robots, 1, self._conditions)
+	return robots
 end
 
 return ShootGoal
