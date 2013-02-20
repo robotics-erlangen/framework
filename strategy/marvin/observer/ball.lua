@@ -104,7 +104,7 @@ local shootCooldown = 0.1 --ball can be shot at least 0.1s after the last shot
 local speedDiff = 0.1 --ball has to be 0.1m/s faster than the robot
 local accelerationPerFrame = 5 --ball has to accelerate at least x m/s^2 to count as shot
 
-function Ball.isShot() --FIXME doesnt recognize volley shots!!!
+function Ball.isShot()
 	if World.Time == lastShootTime then
 		return lastShootRobot
 	end
@@ -131,11 +131,10 @@ function Ball.isShot() --FIXME doesnt recognize volley shots!!!
 		for _,r in pairs(World.Robots) do
 			if r:hasBall(World.Ball) then --FIXME hasBall is not suited for volley shot detection!
 				condHasBall = true
-				local anglediff = r.speed:absoluteAngleDiff(World.Ball.speed)
+				local anglediff = geom.getAngleDiff(r.dir, World.Ball.speed:angle())
 				if anglediff < Settings.tiltShotAngle then
 					condDirection = true
 				end
-				debug.set("cur direction "..(r.id), anglediff)
 				if ballSpeedLength > speedDiff + r.speed:length() then
 					condFasterThanRobot = true
 				end
