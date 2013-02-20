@@ -126,7 +126,7 @@ function Ball.isShot() --FIXME doesnt recognize volley shots!!!
 		for _,r in pairs(World.Robots) do
 			if r:hasBall(World.Ball) then
 				condHasBall = true
-				if math.abs(r.speed:angle() - World.Ball.speed:angle()) < Settings.tiltShotAngle then
+				if r.speed:absoluteAngleDiff(World.Ball.speed) < Settings.tiltShotAngle then
 					condDirection = true
 				end
 				if ballSpeedLength > speedDiff + r.speed:length() then
