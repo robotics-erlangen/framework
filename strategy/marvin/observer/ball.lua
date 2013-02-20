@@ -8,6 +8,9 @@ local World = require "../base/world"
 local Settings = require "settings"
 local Field = require "util/field"
 local geom = require "../base/geom"
+local debug = require "../base/debug"
+
+local DEBUG = true
 
 
 local lastBallOwner
@@ -101,26 +104,52 @@ local speedDiff = 0.1 --ball has to be 0.1m/s faster than the robot
 local accelerationPerFrame = 5 --ball has to accelerate at least x m/s^2 to count as shot
 
 function Ball.isShot() --FIXME doesnt recognize volley shots!!!
-	-- if the ball was not shot in the last tenth second
-	-- if the ball accelerates
-	-- if the ball is fast
-	-- if one robot has the ball
-	-- if this robot looks about in the same direction as the ball rolls
-	-- if the ball is distinctly faster than this robot
-	local robot = nil
 	local ballSpeedLength = World.Ball.speed:length()
-	if lastBallSpeedLength >= 0 and World.Time > lastShootTime + shootCooldown
-			and ballSpeedLength > lastBallSpeedLength + accelerationPerFrame*World.TimeDiff
-			and ballSpeedLength > Settings.fastBall then
+
+	-- if ball is valid
+	local condValid = World.Ball:isPositionValid()
+	-- if the ball was not shot in the last tenth second
+	local condCooldown = (World.Time > lastShootTime + shootCooldown)
+	-- if the ball accelerates
+	local condAccelerates = (ballSpeedLength > lastBallSpeedLength + accelerationPerFrame * World.TimeDiff)
+	-- if the ball is fast
+	local condFast = (ballSpeedLength > Settings.fastBall)	
+	-- if one robot has the ball
+	local condHasBall = false
+	-- if this robot looks about in the same direction as the ball rolls
+	local condDirection = false
+	-- if the ball is distinctly faster than this robot
+	local condFasterThanRobot = false
+
+	local robot = nil
+	if condValid and condCooldown and condAccelerates and condFast then
 		for _,r in pairs(World.Robots) do
-			if r:hasBall(World.Ball)
-					and math.abs(r.speed:angle() - World.Ball.speed:angle()) < Settings.tiltShotAngle
-					and ballSpeedLength > speedDiff + r.speed:length() then
-				lastShootTime = World.Time
-				robot = r
+			if r:hasBall(World.Ball) then
+				condHasBall = true
+				if math.abs(r.speed:angle() - World.Ball.speed:angle()) < Settings.tiltShotAngle then
+					condDirection = true
+				end
+				if ballSpeedLength > speedDiff + r.speed:length() then
+					condFasterThanRobot = true
+				end
+				if condDirection and condFasterThanRobot then
+					lastShootTime = World.Time
+					robot = r
+				end
 			end
 		end
 	end
+
+	if DEBUG then
+		debug.set("valid", condValid)
+		debug.set("cooldown", condCooldown)
+		debug.set("accelerates", condAccelerates)
+		debug.set("fast", condFast)
+		debug.set("hasBall", condHasBall)
+		debug.set("direction", condDirection)
+		debug.set("fasterThanRobot", condFasterThanRobot)	
+	end
+
 	lastBallSpeedLength = World.Ball.speed:length()
 	return robot
 end
