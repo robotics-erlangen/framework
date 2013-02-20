@@ -122,7 +122,7 @@ function Ball.isShot() --FIXME doesnt recognize volley shots!!!
 	local condFasterThanRobot = false
 
 	local robot = nil
-	if condValid and condCooldown and condAccelerates and condFast then
+	if condValid then
 		for _,r in pairs(World.Robots) do
 			if r:hasBall(World.Ball) then
 				condHasBall = true
@@ -132,7 +132,7 @@ function Ball.isShot() --FIXME doesnt recognize volley shots!!!
 				if ballSpeedLength > speedDiff + r.speed:length() then
 					condFasterThanRobot = true
 				end
-				if condDirection and condFasterThanRobot then
+				if condCooldown and condAccelerates and condFast and condDirection and condFasterThanRobot then
 					lastShootTime = World.Time
 					robot = r
 				end
