@@ -26,7 +26,7 @@ function ShootGoalImmediately:rating()
 end
 
 function ShootGoalImmediately:_run(priorityMessages, notifications)
-
+	self._robot:shoot(0, math.huge)
 end
 
 return ShootGoalImmediately
