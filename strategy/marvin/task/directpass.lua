@@ -14,13 +14,37 @@ function DirectPass:_init(targetRobot, linearShoot)
 end
 
 function DirectPass:_successProbability(t)
-	-- FIXME check that robot is oriented towards the target
+	local shootchance
+
+	local startPos = self._robot.pos
+	local targetPos = self._targetRobot.pos
+
+	-- get estimated pos of impact = where the ball will go 
+	local estimatedPos = startPos + Vector.fromAngle(self._robot.dir) * (startPos:distanceTo(targetPos))
+	-- get distance to where it is supposed to go
+	local distanceToTarget = estimatedPos:distanceTo(targetPos) 
+
+	local dribblerWidth = self._targetRobot.dribblerWidth
+	-- if robot is going to hit the dribbler, all good 
+	if (distanceToTarget < dribblerWidth / 2) then
+		shootchance = 1
+	elseif (distanceToTarget < dribblerWidth) then 
+		-- TODO test if the values actuall work and aren't too restrictive / leniate 
+		shootchance  = math.exp(dribblerWidth / 2 - distanceToTarget)
+	else 
+		-- no way of catching the ball (more than dribblerWidth / 2 of course) 
+		return 0 
+	end 
+
 
 	--TODO check if other position would be more efficient
+	-- returns the minimum of shootchance and the following 
 	if self._linearShoot then
-		return Shoot.evaluatePassCorridor(self._targetRobot, t)	--check posibility of success at time t for linear shoot
+		--check posibility of success at time t for linear shoot
+		return math.min(shootchance, passChance Shoot.evaluatePassCorridor(self._targetRobot, t)) 
 	else
-		return Shoot.evaluateChipCorridor(self._targetRobot, t)	--check posibility of success at time t for chip
+		--check posibility of success at time t for chip
+		return math.min(passChance Shoot.evaluateChipCorridor(self._targetRobot, t))
 	end
 end
 
