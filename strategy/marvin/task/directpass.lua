@@ -14,7 +14,8 @@ function DirectPass:_init(targetRobot, linearShoot)
 end
 
 function DirectPass:_successProbability(t)
-	local shootchance
+	-- TODO code only works if the ball and robot are not moving 
+	local shootChance
 
 	local startPos = self._robot.pos
 	local targetPos = self._targetRobot.pos
@@ -27,10 +28,10 @@ function DirectPass:_successProbability(t)
 	local dribblerWidth = self._targetRobot.dribblerWidth
 	-- if robot is going to hit the dribbler, all good 
 	if (distanceToTarget < dribblerWidth / 2) then
-		shootchance = 1
+		shootChance = 1
 	elseif (distanceToTarget < dribblerWidth) then 
 		-- TODO test if the values actuall work and aren't too restrictive / leniate 
-		shootchance  = math.exp(dribblerWidth / 2 - distanceToTarget)
+		shootChance  = math.exp(dribblerWidth / 2 - distanceToTarget)
 	else 
 		-- no way of catching the ball (more than dribblerWidth / 2 of course) 
 		return 0 
@@ -38,14 +39,16 @@ function DirectPass:_successProbability(t)
 
 
 	--TODO check if other position would be more efficient
-	-- returns the minimum of shootchance and the following 
+	-- returns the minimum of shootChance and the following 
+	local evalRet 
 	if self._linearShoot then
 		--check posibility of success at time t for linear shoot
-		return math.min(shootchance, passChance Shoot.evaluatePassCorridor(self._targetRobot, t)) 
+		evalRet = Shoot.evaluatePassCorridor(self._targetRobot, t)
 	else
 		--check posibility of success at time t for chip
-		return math.min(passChance Shoot.evaluateChipCorridor(self._targetRobot, t))
+		evalRet = Shoot.evaluateChipCorridor(self._targetRobot, t)
 	end
+	return math.min(evalRet, shootChance)
 end
 
 function DirectPass:_run(priorityMessages, notifications)
