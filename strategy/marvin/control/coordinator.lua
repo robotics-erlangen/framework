@@ -150,11 +150,12 @@ function Coordinator:_updatePlaySelection()
 	
 	local ratingGroups = {}
 	local maxRating = PlayBase.rating.no
+	local requiredRating = currentRating + 1
 	
 	if self._forcePlay then
 		-- just one play to force using it if neccessary
 		local play = self._forcePlay.create(self._taskmanager, self._attackPool:robots(), self._defensePool:robots())
-		maxRating = play:rate(currentRating, true)
+		maxRating = play:rate(requiredRating, true)
 		ratingGroups[maxRating] = { play }
 	else
 		for _, play in pairs(Plays) do
@@ -169,9 +170,8 @@ function Coordinator:_updatePlaySelection()
 			table.insert(ratingGroups[rating], playInst)
 			
 			-- track best rating
-			if rating > maxRating then
-				maxRating = rating
-			end
+			maxRating = max(rating, maxRating)
+			requiredRating = max(requiredRating, maxRating)
 		end
 	end
 	

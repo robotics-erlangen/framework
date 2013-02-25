@@ -181,8 +181,9 @@ function Robot:shootChip(power)
 end
 
 --- Enable dribbler
+-- (0=off, 1=on)
 -- @param power number - robotspecific value between 0 and 1
-function Robot:setDribblerSpeed(speed) -- (0=off, 1=on)
+function Robot:setDribblerSpeed(speed)
 	self._dribblerSpeed = speed
 end
 

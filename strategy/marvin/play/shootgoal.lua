@@ -1,7 +1,7 @@
 local Base = require "play/base"
 local ShootGoal = (require "../base/class").new("Play.ShootGoal", Base)
 
-local World = local World = require "../base/world"
+local World = require "../base/world"
 local Observer = {}
 Observer.Ball = require "observer/ball"
 Observer.Goal = require "observer/goal"
@@ -16,9 +16,15 @@ function ShootGoal:_init()
 end
 
 function ShootGoal:_baseRating(minRequiredRating)
-	if minRequiredRating >= Base.rating.referee then
+	if minRequiredRating > Base.rating.referee then
 		return Base.rating.no
 	end
+end
+
+function ShootGoal:_selectRobots(attackers, defenders)
+	local robots, _ = RobotList.join(attackers, defenders)
+	robots, _ = RobotMatcher.match(robots, 1, self._conditions)
+	return robots
 end
 
 function ShootGoal:prepareDefault()
@@ -38,10 +44,8 @@ end
 
 function ShootGoal:switchDefault()
 	local ballOwner = Observer.Ball.ballOwner()
-	if ballOwner == self._robots[1] then
-		if self._robots[1]:hasBall() then
-			self._setState("Active")
-		end
+	if ballOwner == self._robots[1] and self._robots[1]:hasBall() then
+		self._setState("Active")
 	end
 end
 
@@ -64,12 +68,6 @@ function ShootGoal:switchActive()
 	if not self._robots[1]:hasBall() then
 		self._setState("Default")
 	end
-end
-
-function ShootGoal:_selectRobots(attackers, defenders)
-	local robots, _ = RobotList.join(attackers, defenders)
-	robots, _ = RobotMatcher.match(robots, 1, self._conditions)
-	return robots
 end
 
 return ShootGoal
