@@ -79,6 +79,24 @@ function geom.getTangentsToCircle(point, centerpoint, radius)
 	return geom.intersectCircleCircle(centerpoint, radius, centerpoint+(point-centerpoint):scaleLength(0.5), 0.5*(centerpoint):distanceTo(point))
 end
 
+--- Calculates the inner tangents of two circles.
+-- Returns the point where the tangents intersect and the two points where they touch circle1. If the two circles are too close to each other, returns nil.
+-- @name getInnerTangentsToCircle
+-- @param centerpoint1 Vector - Centerpoint of circle1
+-- @param radius1 number - Radius of circle1
+-- @param centerpoint2 Vector - Centerpoint of circle2
+-- @param radius2 number - Radius of circle2
+-- @return schnittpunkt Vector - The point, where the two tangents intersect
+-- @return [Vector] - Point, where the first tangent touches circle1
+-- @return [Vector] - Point, where the second tangent touches circle1
+function geom.getInnerTangentsToCircles(centerpoint1, radius1, centerpoint2, radius2)
+	local d = centerpoint2 - centerpoint1
+	if d:length() > radius1 + radius2 then
+		local schnittpunkt = centerpoint1 + d:scaleLength(1 - radius2/radius1)
+		return schnittpunkt, geom.getTangentsToCircle(schnittpunkt, centerpoint1, radius1)
+	end
+end
+
 --- Intersects two lines.
 -- Returns intersection and lambdas for each line. If no intersection exists return nothing!
 -- @name intersectLineLine
