@@ -20,32 +20,14 @@ KickoffDefensive._conditions = {} -- TODO use conditions if needed
 
 
 function KickoffDefensive:_init()
-	self:setState("Default")
 end
 
 
-function KickoffDefensive.startRating(attackers, defenders, minRating)
-	if World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
-		return Base.rating.referee
-	else
+function KickoffDefensive:_baseRating(minRequiredRating) 
+	if minRequiredRating > Base.rating.referee then 
 		return Base.rating.no 
 	end
-end
-
-
-function KickoffDefensive:currentRating()
-	Game.gameFocus()
-	if World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
-		return Base.rating.referee
-	elseif World.RefereeState == "Game" then
-		-- return yes, if play should NOT be killed immediately
-		-- otherwise return no
-		return Base.rating.no
-	else
-		return Base.rating.no 
-	end
-end
-
+end 
 
 function KickoffDefensive.selectRobots(attackers, defenders)
 	-- cacheable array manipulations
@@ -55,6 +37,20 @@ function KickoffDefensive.selectRobots(attackers, defenders)
 	robots, _ = RobotMatcher.match(robots, math.min(4, #robots), KickoffDefensive._conditions)
 	return robots
 end
+
+
+function KickoffDefensive:rateDefault(isInit) 
+	if World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
+		return Base.rating.referee
+	elseif isInit and World.RefereeState == "Game" then 
+		-- return yes, if play should NOT be killed immediately
+		-- otherwise return no
+		return Base.rating.no
+	else 
+		return Base.rating.no 
+	end 
+end 
+
 
 function KickoffDefensive:prepareDefault()
 	-- #1 Quarterback
