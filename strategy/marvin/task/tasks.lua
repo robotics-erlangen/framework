@@ -2,16 +2,17 @@
 local Tasks = {
 	Assistant = require "task/assistant",
 	CatchBall = require "task/catchball",
+	CenterBack = require "task/centerback",
 	DirectPass = require "task/directpass",
+	FarMirror = require "task/farmirror",
 	Keeper = require "task/keeper",
 	ManMark = require "task/manmark",
 	Mirror = require "task/mirror",
-	FarMirror = require "task/farmirror",
 	MoveToPos = require "task/movetopos",
 	ReceivePass = require "task/receivepass",
 	Shoot = require "task/shoot",
 	ShootGoal = require "task/shootgoal",
-	ShootGoalImmediately = require "task/shootgoalimmediately",
+	ShootGoalImmediately = require "task/shootgoalimmediately"
 }
 
 local TaskManager = require "control/taskmanager"
