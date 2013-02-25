@@ -78,6 +78,17 @@ function Goal.largestFreeSector(viewPos, robotList, opp)
 	return unoccupiedSectors[indexLargest], valueLargest -- returns the largest sector and its angle difference
 end
 
+--- Returns sectors, from where there could be scored
+-- @param robotList list - all robots that should be considered; should be only the robots that are closer to the goal than the desired position
+-- @param opp boolean - true for opponent goal, false for friendly goal
+function Goal.searchFreeSectors(robotList, opp)
+	local keeper = opp and World.OpponentKeeper or World.FriendlyKeeper
+	-- right from the keeper (looking from field towards goal)
+	local s_right, p1_right, p2_right = geom.getInnerTangentsToCircles(keeper.pos, keeper.radius + World.Ball.radius, opp and G.OpponentGoalRight or G.FriendlyGoalLeft, World.Ball.radius)
+	local rightSector = { (s_right - p1_right):angle(), (s_right - p2_right) } -- noch nicht fertig
+	--TODO: auf Papier aufmalen, damit man sieht, ob Sonderf‰lle zu beachten sind
+	-- z.B. wenn Torwart auﬂerhalb des Tors, muss der Winkel durch die beiden Torpfosten beschr‰nkt werden
+end
 
 --- Predicts the direction the ball will be shot into.
 -- Checks for ball movement, opponents near the ball, tries to predict passes
