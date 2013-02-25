@@ -1,5 +1,9 @@
 local Assistant = (require "../base/class").new("Task.Assistant", require "task/base")
 
+local World = require "../base/world"
+local ToTarget = require "trajectory/totarget"
+local geom = require "../base/geom"
+
 Assistant.priority = 1
 
 function Assistant:_init(pos, radius)
@@ -7,8 +11,64 @@ function Assistant:_init(pos, radius)
 	self._radius = radius
 end
 
-function Assistant:_run()
+local function vecYComp(vec1, vec2)
+	if vec1.x < vec2.x then
+		return true
+	else
+		return false
+	end
+end
 
+function Assistant:_run()
+	--FIXME don't moves jet
+	self._robot.path:setDefaultObstacles(self._robot, false, false)
+	self._robot.path:addRobotObstacles(self._robot, false, false)
+	local linePos = Vector.create(0, FieldHeigthQuarter)
+	local lineDir = Vector.create(1,0)
+	local intersections = {}
+	table.insert(intersections, Vector.create(-World.Geometry.FieldWidthHalf, World.Geometry.FieldHeigthQuarter))
+	table.insert(intersections, Vector.create(World.Geometry.FieldWidthHalf, World.Geometry.FieldHeigthQuarter))
+	local goalEdgeSouthIntersection = geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, Vector.create(-World.Geometry.GoalWidth / 2, World.Geometry.OpponentGoal.y))
+	local goalEdgeNorthIntersection = geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, Vector.create(World.Geometry.GoalWidth / 2, World.Geometry.OpponentGoal.y))
+	table.insert(intersections, goalEdgeSouth)
+	table.insert(intersections, goalEdgeNorth)
+	local best = 0
+	local bestSpace = -1
+	
+	--scan for relevant robots and intersections points on line
+	for _, robot in ipairs(World.OpponentRobots) do
+		if robot.pos.y < linePos.y and robot.pos.y > Observer.ball.pos.y then
+			table.insert(intersections, geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, robot.pos))
+		end
+	end
+	
+	--sort intersections
+	table.sort (intersections, vecYComp)
+	--FIXME ignore intersections in goal space
+	--takes the biggest free space
+	for i = 1 , #intersections do
+		if i ~= #intersections and intersections[i] ~= goalEdgeSouthIntersection then
+			if intersections[i+1].x - intersections[i].x > bestSpace then
+				best = i
+				bestSpace = intersections[i+1].x - intersections[i].x
+			end
+		end
+	end
+	local moveTo = Vector.create(intersections[best].x + (bestSpace/2), World.Geometry.FieldHeightQuarter)
+	
+	local faceBall = World.Ball.pos-moveTo
+	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
+end
+
+local inst = nil
+function Assistant.test()
+	local robot = World.FriendlyRobots[2]
+	if robot then
+		inst = inst or Assistant.create(robot)
+		return inst
+	else
+		inst = nil
+	end
 end
 
 return Assistant
