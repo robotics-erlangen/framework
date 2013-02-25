@@ -1,7 +1,7 @@
 local Base = require "play/base"
 local ShootGoalImmediately = (require "../base/class").new("Play.ShootGoalImmediately", Base)
 
-local World = local World = require "../base/world"
+local World = require "../base/world"
 local Observer = {}
 Observer.Ball = require "observer/ball"
 Observer.Goal = require "observer/goal"

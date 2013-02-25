@@ -1,7 +1,9 @@
 --- Loads every play and publishes test functions
 local Plays = {
 	KickoffOffensive = require "play/kickoffoffensive",
-	KickoffDefensive = require "play/kickoffdefensive"
+	KickoffDefensive = require "play/kickoffdefensive",
+	ShootGoal = require "play/shootgoal",
+	ShootGoalImmediately = require "play/shootgoalimmediately"
 	-- TODO: add plays
 }
 
