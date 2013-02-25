@@ -5,6 +5,7 @@ local Observer = {}
 Observer.Ball = require "observer/ball"
 Observer.Goal = require "observer/goal"
 Observer.Shoot = require "observer/shoot"
+local RobotList = require "util/robotlist"
 
 ShootGoalImmediately.priority = 5
 
@@ -27,6 +28,13 @@ end
 
 function ShootGoalImmediately:_run(priorityMessages, notifications)
 	self._robot:shoot(0, math.huge)
+end
+
+function ShootGoalImmediately.test()
+	local robot = World.FriendlyRobots[1]
+	if robot then
+		ShootGoalImmediately.create(robot)
+	end
 end
 
 return ShootGoalImmediately

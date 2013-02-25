@@ -9,7 +9,9 @@ local Tasks = {
 	FarMirror = require "task/farmirror",
 	MoveToPos = require "task/movetopos",
 	ReceivePass = require "task/receivepass",
-	Shoot = require "task/shoot"
+	Shoot = require "task/shoot",
+	ShootGoal = require "task/shootgoal",
+	ShootGoalImmediately = require "task/shootgoalimmediately",
 }
 
 local TaskManager = require "control/taskmanager"

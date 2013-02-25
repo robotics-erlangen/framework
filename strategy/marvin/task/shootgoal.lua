@@ -52,12 +52,22 @@ end
 function ShootGoal:_run(priorityMessages, notifications)
 	if mode == 3 then
 		self._robot:shoot(0, math.huge)
+		self._robot:setDribblerSpeed(0)
 	elseif mode == 2 then
+		self._robot:setDribblerSpeed(1)
 		self._robot.trajectory:update(ToTarget, self._robot.pos, (bestSector[0] + bestSector[1])*0.5)
 	elseif mode == 1 then
+		self._robot:setDribblerSpeed(1)
 		self._robot.trajectory:update(ToTarget, self._robot.pos, (bestSector[0] + bestSector[1])*0.5)
 	else
-	
+		self._robot:setDribblerSpeed(1)
+	end
+end
+
+function ShootGoal.test()
+	local robot = World.FriendlyRobots[1]
+	if robot then
+		ShootGoal.create(robot)
 	end
 end
 
