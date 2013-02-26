@@ -104,7 +104,6 @@ function Base:run()
 	-- setup logging
 	debug.pushtop("Play")
 	debug.set(nil, self.classNameShort .. "(" .. self._state .. ")")
-	debug.set("State", self:state())
 	
 	debug.push("Robots")
 	for i, robot in ipairs(self._robots) do
