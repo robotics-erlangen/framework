@@ -14,9 +14,6 @@ function TaskManager:assign(task)
 		return
 	end
 	local robot = task:robot()
-	if robot == nil then
-		error("Task has no robot")
-	end
 	if self._assignment[robot] then
 		log(robot.id)
 		error("Robot assigned twice")

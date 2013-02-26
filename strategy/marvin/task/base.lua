@@ -4,12 +4,11 @@ local debug = require "../base/debug"
 Base.priority = 0
 
 function Base:init(robot, ...)
+	assert(self.priority > 0, "priority not set")
+	assert(robot ~= nil, "no robot passed")
 	self._robot = robot
 	self._ratingRun = false
 	self:_init(...)
-	if self.priority <= 0 then
-		error("priority not set")
-	end
 end
 
 function Base:robot()
