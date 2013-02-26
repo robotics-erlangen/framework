@@ -52,10 +52,9 @@ function KickoffOffensive:currentRating()
 	end
 end
 
-function KickoffOffensive.selectRobots(attackers, defenders)
+function KickoffOffensive.selectRobots(poolRobots)
 	-- cacheable array manipulations
-	local robots = RobotList.join(attackers, defenders)
-	robots = RobotList.excludeRobot(robots, World.FriendlyKeeper)
+	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
 	
 	robots, _ = RobotMatcher.match(robots, math.min(4, #robots), KickoffOffensive._conditions)
 	return robots

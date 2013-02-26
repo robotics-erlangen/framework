@@ -20,10 +20,10 @@ function DirectPassTest:_baseRating()
 	return
 end
 
-function DirectPassTest:_selectRobots(attackers, defenders)
-	local robots, _ = RobotList.join(attackers, defenders)
-	robots, _ = RobotMatcher.match(robots, 2, DirectPassTest._conditions)
-	return robots
+function DirectPassTest:_selectRobots(poolRobots)
+	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
+	robots = RobotList.join(robots, poolRobots.keeper)
+	return RobotMatcher.match(robots, 2, DirectPassTest._conditions)
 end
 
 function DirectPassTest:rateDefault(isInit)

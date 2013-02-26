@@ -2,24 +2,22 @@ local Base = (require "../base/class").new("Pool.Base")
 local RobotMatcher = require "control/robotmatcher"
 local debug = require "../base/debug"
 
-function Base:init(tm, attackers, defenders)
+Base.robotLimit = math.huge
+
+function Base:init(tm)
 	self._taskmanager = tm
 	self._robotsDirty = true
+	self._robots = {}
 	self._tasks = {}
-	self:_init(attackers, defenders)
 end
 
 function Base:run()
-	if not self._robots then
-		error("Initialization fucked up.")
-	end
-	
 	debug.pushtop("Pool-"..self.classNameShort)
 	debug.set(nil, "")
 	
 	-- update robot assignment
 	if self._robotsDirty then -- or -- TODO: important change then
-		self:assignRobots(self._robots)
+		self:_assignRobots()
 	end
 	
 	debug.push("Robots")
@@ -29,14 +27,14 @@ function Base:run()
 	debug.pop()
 	
 	-- update tasks
-	self:_run()
+	self:_updateTasks()
 	-- apply tasks
 	self:_assignTasks()
 
 	debug.pop()
 end
 
-function Base:_run()
+function Base:_updateTasks()
 	error("stub")
 end
 
@@ -48,13 +46,8 @@ function Base:_assignTasks()
 	end
 end
 
-function Base:assignRobots(robots)
-	error("stub")
-	-- generate conditions for robot assignment
-end
-
-function Base:_assignRobots(robots, conditions)
-	self._robots = RobotMatcher.match(robots, #robots, conditions)
+function Base:_assignRobots()
+	self._robots = RobotMatcher.match(self._robots, #self._robots, self._conditions)
 	self._robotsDirty = false
 	
 	--regnerate tasks list
@@ -68,25 +61,39 @@ function Base:_assignRobots(robots, conditions)
 	end
 end
 
-function Base:releaseRobot()
-	-- TODO: robot with lowest priority
-	local lastRobot = table.remove(self._robots)
-	self._robotsDirty = true
-	return lastRobot
-end
-
-function Base:addRobot(robot)
-	table.insert(self._robots, robot)
-	self._robotsDirty = true
-end
-
-function Base:removeHiddenRobots()
-	for i, robot in pairs(self._robots) do
-		if not robot.isVisible then
-			self._robots[i] = nil
-			self._robotsDirty = true
+-- remove robots we no longer want to keep
+-- may be customized as neccessary
+function Base:cleanupRobots()
+	local robots = {}
+	for _, robot in pairs(self._robots) do
+		if robot.isVisible then
+			table.insert(robots, robot)
 		end
 	end
+	while #robots > self.robotLimit do
+		table.remove(robots)
+	end
+	if #robots ~= #self._robots then
+		self._robotsDirty = true
+		self._robots = robots
+	end
+end
+
+function Base:takeRobot(robots)
+	if #self._robots >= self.robotLimit then
+		return
+	end
+	
+	local robot = self:_takeRobot(robots)
+	if robot then
+		table.insert(self._robots, robot)
+		self._robotsDirty = true
+	end
+	return robot
+end
+
+function Base:_takeRobot(robots)
+	error("stub")
 end
 
 function Base:robots()

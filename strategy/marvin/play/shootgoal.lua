@@ -21,8 +21,8 @@ function ShootGoal:_baseRating(minRequiredRating)
 	end
 end
 
-function ShootGoal:_selectRobots(attackers, defenders)
-	local robots, _ = RobotList.join(attackers, defenders)
+function ShootGoal:_selectRobots(poolRobots)
+	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
 	robots, _ = RobotMatcher.match(robots, 1, self._conditions)
 	return robots
 end

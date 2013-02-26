@@ -21,10 +21,10 @@ function PassingTest:_baseRating()
 	return
 end
 
-function PassingTest:_selectRobots(attackers, defenders)
-	local robots, _ = RobotList.join(attackers, defenders)
-	robots, _ = RobotMatcher.match(robots, 2, PassingTest._conditions)
-	return robots
+function PassingTest:_selectRobots(poolRobots)
+	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
+	robots = RobotList.join(robots, poolRobots.keeper)
+	return RobotMatcher.match(robots, 2, PassingTest._conditions)
 end
 
 function PassingTest:rateDefault(isInit)

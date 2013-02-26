@@ -1,6 +1,8 @@
 local Pool = {
 	Attack = require "pool/attack",
-	Defense = require "pool/defense"
+	Defense = require "pool/defense",
+	Keeper = require "pool/keeper",
+	HiddenRobots = require "pool/hiddenrobots"
 }
 local TaskManager = require "control/taskmanager"
 local World = require "../base/world"
@@ -14,9 +16,17 @@ local Coordinator = (require "../base/class").new("Control.Coordinator")
 function Coordinator:init()
 	self._taskmanager = TaskManager.create()
 	
-	local attackers, defenders = self:_assignRobots()
-	self._attackPool = Pool.Attack.create(self._taskmanager, attackers, defenders)
-	self._defensePool = Pool.Defense.create(self._taskmanager, attackers, defenders)
+	self._pools = {
+		keeper = Pool.Keeper.create(self._taskmanager),
+		defense = Pool.Defense.create(self._taskmanager),
+		attack = Pool.Attack.create(self._taskmanager),
+		hidden = Pool.HiddenRobots.create(self._taskmanager)
+	}
+	self._poolGroups = {
+		{ self._pools.keeper },
+		{ self._pools.defense, self._pools.attack },
+		{ self._pools.hidden }
+	}
 	
 	self._play = nil
 	self._forcePlay = nil
@@ -25,53 +35,77 @@ function Coordinator:init()
 end
 
 function Coordinator:run()
-	local attackRatio = self:observeGameState()
-	
-	-- remove hidden robots from pools
-	self._attackPool:removeHiddenRobots()
-	self._defensePool:removeHiddenRobots()
-	
-	-- calculate how many robots to use for attack / defense
-	local attackers = attackRatio * #World.FriendlyRobots
-	attackers = math.roundTowards(attackers, #self._attackPool:robots(), 0.2)
-	local defenders = #World.FriendlyRobots - attackers
-	
-	local currentAttackers = #self._attackPool:robots()
-	local currentDefenders = #self._defensePool:robots()
-	
-	local occupiedRobots = {}
-	for _, robot in pairs(self._attackPool:robots()) do
-		occupiedRobots[robot.id] = true
-	end
-	for _, robot in pairs(self._defensePool:robots()) do
-		occupiedRobots[robot.id] = true
-	end
-	local unassignedRobots = {}
-	for _, robot in ipairs(World.FriendlyRobots) do
-		if not occupiedRobots[robot.id] then
-			-- Always assign the keeper to the defense pool
-			if World.FriendlyKeeper == robot then
-				self._defensePool:addRobot(robot)
-			else
-				table.insert(unassignedRobots, robot)
-			end
-		end
-	end
-	
-	self:_moveRobots(self._attackPool, attackers, self._defensePool, unassignedRobots)
-	self:_moveRobots(self._defensePool, defenders, self._attackPool, unassignedRobots)
-	
+	self:_updatePoolRobots()
 	self:_updatePlaySelection()
+	-- TODO: facilities for learning
 	
 	if self._play then
 		self._play:run()
 	end
 	
-	self._defensePool:run()
-	self._attackPool:run()
+	for _, pool in pairs(self._pools) do
+		pool:run()
+	end
 	self:_haltUnoccupiedRobots()
 	
 	self._taskmanager:run()
+end
+
+function Coordinator:_updatePoolRobots()
+	-- calculate how many robots to use for attack / defense with hysteresis
+	local attackRatio = self:observeGameState()
+	local attackers = attackRatio * #World.FriendlyRobots
+	attackers = math.roundTowards(attackers, #self._pools.attack:robots(), 0.2)
+	local defenders = (1 - attackRatio) * #World.FriendlyRobots
+	defenders = math.roundTowards(defenders, #self._pools.defense:robots(), 0.2)
+	-- if keeper is on the field, it is managed by the keeper pool
+	if World.FriendlyKeeper and World.FriendlyKeeper.isVisible then
+		defenders = defenders - 1
+	end
+	
+	-- limit robot counts on attack/defense pool, causes automatic robot balancing
+	self._pools.attack.robotLimit = attackers
+	self._pools.defense.robotLimit = defenders
+	
+	-- remove no longer needed / surplus robots from pools
+	for _, pool in pairs(self._pools) do
+		pool:cleanupRobots()
+	end
+	
+	-- find unuassigned robots
+	local occupiedRobots = {}
+	for _, pool in pairs(self._pools) do
+		for _, robot in pairs(pool:robots()) do
+			occupiedRobots[robot.id] = true
+		end
+	end
+	local unassignedRobots = {}
+	for _, robot in ipairs(World.FriendlyRobotsById) do
+		if not occupiedRobots[robot.id] then
+			table.insert(unassignedRobots, robot)
+		end
+	end
+	
+	-- assign robots to pools by pool groups
+	-- assign to first group until these pools don't want any further robots
+	-- the continue with the second group and so on
+	-- if a group has multiple pools assignment altnerates between them
+	for _, group in ipairs(self._poolGroups) do
+		local groupFinished
+		repeat
+			groupFinished = true
+			for _, pool in ipairs(group) do
+				if #unassignedRobots == 0 then
+					break
+				end
+				local robot = pool:takeRobot(unassignedRobots)
+				if robot then
+					groupFinished = false
+					table.removeValue(unassignedRobots, robot)
+				end
+			end
+		until groupFinished
+	end
 end
 
 function Coordinator:_haltUnoccupiedRobots()
@@ -101,44 +135,7 @@ function Coordinator:observeGameState()
 	return attackRatio
 end
 
-function Coordinator:_moveRobots(targetPool, targetSize, sourcePool, unassignedRobots)
-	local currentSize = #targetPool:robots()
-	while currentSize < targetSize do
-		if #unassignedRobots > 0 then
-			targetPool:addRobot(table.remove(unassignedRobots))
-		else
-			targetPool:addRobot(sourcePool:releaseRobot())
-		end
-		currentSize = currentSize + 1
-	end
-end
-
-function Coordinator:_assignRobots()
-	local attackers = {}
-	local defenders = {}
-	
-	-- start with keeper as defender
-	local keeper = World.FriendlyKeeper
-	if keeper and keeper.isVisible then
-		table.insert(defenders, keeper)
-	end
-	
-	-- assign robots alternating
-	for _, robot in pairs(World.FriendlyRobots) do
-		if not keeper or robot.id ~= keeper.id then
-			if #defenders > #attackers then
-				table.insert(attackers, robot)
-			else
-				table.insert(defenders, robot)
-			end
-		end
-	end
-	
-	return attackers, defenders
-end
-
 function Coordinator:_updatePlaySelection()
-	-- TODO: facilities for learning
 	-- get rating of play currently running
 	local currentRating = PlayBase.rating.no
 	if self._play then
@@ -148,19 +145,24 @@ function Coordinator:_updatePlaySelection()
 		end
 	end
 	
+	local poolRobots = {}
+	for name, pool in pairs(self._pools) do
+		poolRobots[name] = pool:robots()
+	end
+	
 	local ratingGroups = {}
 	local maxRating = PlayBase.rating.no
 	local requiredRating = currentRating + 1
 	
 	if self._forcePlay then
 		-- just one play to force using it if neccessary
-		local play = self._forcePlay.create(self._taskmanager, self._attackPool:robots(), self._defensePool:robots())
+		local play = self._forcePlay.create(self._taskmanager, poolRobots)
 		maxRating = play:rate(requiredRating, true)
 		ratingGroups[maxRating] = { play }
 	else
 		for _, play in pairs(Plays) do
 			-- check every play
-			local playInst = play.create(self._taskmanager, self._attackPool:robots(), self._defensePool:robots())
+			local playInst = play.create(self._taskmanager, poolRobots)
 			local rating = playInst:rate(currentRating, true)
 			
 			-- group plays by rating
@@ -170,8 +172,8 @@ function Coordinator:_updatePlaySelection()
 			table.insert(ratingGroups[rating], playInst)
 			
 			-- track best rating
-			maxRating = max(rating, maxRating)
-			requiredRating = max(requiredRating, maxRating)
+			maxRating = math.max(rating, maxRating)
+			requiredRating = math.max(requiredRating, maxRating)
 		end
 	end
 	

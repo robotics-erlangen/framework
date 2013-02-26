@@ -20,15 +20,15 @@ Base.weight = 1
 Base.timeout = 15
 Base.startState = "Default"
 
-function Base:init(tm, attackers, defenders)
+function Base:init(tm, poolRobots)
 	self._taskmanager = tm
 	-- keep for lazy initialization
-	self._attackers = attackers
-	self._defenders = defenders
+	self.__poolRobots = poolRobots
 	
 	self._state = nil
 	self._tasks = {}
-	self._startTime = World.Time
+	self._robots = nil
+	self.__startTime = World.Time
 	self._ratingRun = false
 	self:_init()
 end
@@ -39,7 +39,7 @@ end
 
 function Base:rate(minRequired, isInit)
 	-- check for timeout
-	if World.Time > self._startTime + self.timeout then
+	if World.Time > self.__startTime + self.timeout then
 		return Base.rating.no
 	end
 	
@@ -57,13 +57,15 @@ function Base:rate(minRequired, isInit)
 	if not self:state() then
 		self:_initState()
 		
-		if not self._robots then
+		if not self._robots or #self._robots == 0 then
 			return Base.rating.no
 		end
 	end
 	
 	self._ratingRun = true
-	return self["rate" .. self._state](self, isInit)
+	local rating = self["rate" .. self._state](self, isInit)
+	assert(rating ~= nil, "No rating returned!")
+	return rating
 end
 
 function Base:_baseRating(minRequired)
@@ -71,9 +73,8 @@ function Base:_baseRating(minRequired)
 end
 
 function Base:_initState()
-	self._robots = self:_selectRobots(self._attackers, self._defenders) -- assign robots
-	self._attackers = nil
-	self._defenders = nil
+	self._robots = self:_selectRobots(self.__poolRobots) -- assign robots
+	self.__poolRobots = nil
 	
 	if not self._robots then
 		return
@@ -91,8 +92,8 @@ function Base:_hasHiddenRobots()
 	return false
 end
 
--- the attackers and defenders table are guaranteed to not change for the current frame
-function Base:_selectRobots(attackers, defenders)
+-- the robots per pool tables are guaranteed to not change for the current frame
+function Base:_selectRobots(poolRobots)
 	error("stub")
 	-- local robots = -- robots
 	-- conditions
@@ -113,9 +114,7 @@ function Base:run()
 	
 	if not self:state() then
 		self:_initState()
-		if not self._robots then
-			error("Where are my robots?")
-		end
+		assert(not self._robots or #self._robots == 0, "Where are my robots?")
 	end
 	
 	if not self._ratingRun then
@@ -128,7 +127,7 @@ function Base:run()
 		self[switch](self)
 	end
 	
-	-- apply tasks
+	-- assign tasks
 	for _, task in pairs(self._tasks) do
 		self._taskmanager:assign(task)
 	end

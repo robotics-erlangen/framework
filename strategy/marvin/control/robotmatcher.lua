@@ -8,6 +8,8 @@ local Cache = require "../base/cache"
 function RobotMatcher.match(robots, robotCount, conditions, lastMatching)
 	if #robots < robotCount then
 		return
+	elseif robotCount == 0 then
+		return {}
 	end
 	-- TODO: handle hysteresis
 	conditions = conditions or {}
