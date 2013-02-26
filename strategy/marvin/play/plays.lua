@@ -6,11 +6,12 @@ local Plays = {
 	ShootGoalImmediately = require "play/shootgoalimmediately"
 	-- TODO: add plays
 }
+local Base = require "play/base"
 
 local coord = nil
 
 for name,s in pairs(Plays) do
-	if type(s) == "table" then
+	if s:instanceOf(Base) then
 		Entrypoints["plays/" .. name] = function ()
 			if not coord then
 				local Coordinator = require "control/coordinator"

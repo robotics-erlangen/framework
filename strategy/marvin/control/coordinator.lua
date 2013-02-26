@@ -200,6 +200,7 @@ function Coordinator:_updatePlaySelection()
 end
 
 function Coordinator:test(play)
+	assert(play:instanceOf(PlayBase), "This is not a play!")
 	self._forcePlay = play
 end
 
