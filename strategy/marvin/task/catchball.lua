@@ -8,9 +8,13 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
 
+function CatchBall:_init()
+	error("Abstract base class!!!")
+end
+
 -- the robot may drive with up to maxEndSpeed or ballSpeed when it catches the ball, depending on which of both is higher
 function CatchBall:_catchBall(targetPos, maxEndSpeed)
-	local ball = World.Ball --Ball.atTime(0.065)
+	local ball = World.Ball
 	if self._catchTime then
 		-- update time from last frame
 		self._catchTime = math.max(0, self._catchTime - World.TimeDiff)
@@ -25,6 +29,7 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed)
 	end
 	
 	-- check for fast ball and that it moves towards the robot
+	-- in principle this isn't neccessary but it stabilizes the catchtime
 	if ball.speed:length() > Settings.slowBall
 		and ball.speed:dot(self._robot.pos - ball.pos) > 0 then
 		-- check if robot would be hit by the ball
@@ -41,8 +46,8 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed)
 			end
 			rollDist = math.max(rollDist - ball.radius, 0)
 			local timeToRobot = Ball.ballRollTime(ball.speed:length(), rollDist)
-			debug.set("oldCatchtime", self._catchTime)
-			debug.set("timeToRobot", timeToRobot)
+			--debug.set("oldCatchtime", self._catchTime)
+			--debug.set("timeToRobot", timeToRobot)
 			if timeToRobot < self._catchTime then
 				self._catchTime = timeToRobot
 			end
@@ -59,7 +64,7 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed)
 	local viewPerpendicular = viewLine:perpendicular()
 	local moveLine = moveDest - self._robot.pos
 	local offset = viewPerpendicular:dot(moveLine)
-	offset = offset * math.min(1, 10 * moveLine:length())
+	offset = offset * math.min(1, 10 * moveLine:length()) -- FIXME magic constant
 	offset = math.bound(-self._robot.dribblerWidth/2, offset, self._robot.dribblerWidth/2)
 	moveDest = moveDest - viewPerpendicular:scaleLength(offset)
 	
@@ -75,11 +80,12 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed)
 	-- keep old time if no way was found
 	if time > 0 then
 		-- damp large value changes
+		-- the centerpiece of the catchball algorithm
+		-- FIXME better damping for small changes
 		self._catchTime = 0.9 * self._catchTime + 0.1 * time
 	end
 	debug.set("catchtime", self._catchTime)
 	vis.addCircle("CatchBall", Ball.atTime(self._catchTime, ball).pos, predictedBall.radius, vis.colors.blueHalf)
-	-- TODO Wegpunkt für Roboter nachführen, damit wenn auf den Roboter geschossen wird, der nicht abhaut
 end
 
 function CatchBall:_createBallObstacles(path, robotDir, currentBall, predictedBall)
@@ -88,6 +94,7 @@ function CatchBall:_createBallObstacles(path, robotDir, currentBall, predictedBa
 	local minBall = Ball.atTime(minTimeToBall)
 
 	-- FIXME magic constant
+	-- TODO ensure that the obstacles don't interfer with moveDest
 	-- block connection between first touch point and target catch pos
 	if predictedBall.pos:distanceTo(minBall.pos) < 0.001 then
 		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - 0.001, 'ball')
