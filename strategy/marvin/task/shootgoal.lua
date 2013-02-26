@@ -14,7 +14,7 @@ function ShootGoal:_init()
 end
 
 local mode, bestRating, bestSector = 0, 0, 1
-function ShootGoal:rating()	-- bewertet momentan nur, wie wahrscheinlich es ist, aus der jetzigen Position ein Tor zu schieﬂen
+function ShootGoal:_rate()	-- bewertet momentan nur, wie wahrscheinlich es ist, aus der jetzigen Position ein Tor zu schieﬂen
 	local ball = World.Ball
 	local robots = {}
 	for _,r in ipairs(World.Robots) do

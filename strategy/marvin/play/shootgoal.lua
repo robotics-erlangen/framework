@@ -2,12 +2,14 @@ local Base = require "play/base"
 local ShootGoal = (require "../base/class").new("Play.ShootGoal", Base)
 
 local World = require "../base/world"
+local RobotList = require "util/robotlist"
+local RobotMatcher = require "control/robotmatcher"
 local Observer = {}
 Observer.Ball = require "observer/ball"
 Observer.Goal = require "observer/goal"
 Observer.Shoot = require "observer/shoot"
 local CatchBall = require "task/catchball"
-local ShootGoal = require "task/shootgoal"
+local ShootGoalTask = require "task/shootgoal"
 
 ShootGoal.timeout = 10
 ShootGoal._conditions = {}
@@ -28,46 +30,28 @@ function ShootGoal:_selectRobots(poolRobots)
 end
 
 function ShootGoal:prepareDefault()
-	self._tasks = { CatchBall.create(self._robots[1]) }
+	self._tasks = { ShootGoalTask.create(self._robots[1]) }
 end
 
 function ShootGoal:rateDefault(isInit)
-	catchBallChance = self._tasks[1]:rating()
-	if catchBallChance > 0.87134 then	-- magic constant
+	shootGoalChance = self._tasks[1]:rate()
+	if shootGoalChance > 1.50861 then	-- OBACHT! never tested magic constant
 		return Base.rating.yes
-	elseif catchBallChance > 0.72149 then	-- magic constant
-		return Base.rating.perhaps
+	elseif shootGoalChance > 0.87350 then	-- OBACHT! never tested magic constant
+		return isInit and Base.rating.perhaps or Base.rating.yes
 	else
 		return Base.rating.no
 	end
 end
 
 function ShootGoal:switchDefault()
-	local ballOwner = Observer.Ball.ballOwner()
-	if ballOwner == self._robots[1] and self._robots[1]:hasBall() then
-		self._setState("Active")
+	if Observer.Ball.isShot() == self._robots[1] then
+		self:_setState("End")
 	end
 end
 
-function ShootGoal:prepareActive()
-	self._tasks = { ShootGoal.create(self._robots[1]) }
-end
-
-function ShootGoal:rateActive()
-	shootGoalChance = self._tasks[1]:rating()
-	if shootGoalChance > 1.50861 then	-- OBACHT! never tested magic constant
-		return Base.rating.yes
-	elseif shootGoalChance > 0.87350 then	-- OBACHT! never tested magic constant
-		return Base.rating.perhaps
-	else
-		return Base.rating.no
-	end
-end
-
-function ShootGoal:switchActive()
-	if not self._robots[1]:hasBall() then
-		self._setState("Default")
-	end
+function ShootGoal:rateEnd()
+	return Base.rating.no
 end
 
 return ShootGoal
