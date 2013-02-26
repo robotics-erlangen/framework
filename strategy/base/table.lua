@@ -110,4 +110,17 @@ function table.readonlytable(table)
 	});
 end
 
+--- Remove first occurence of a value from the given array
+-- @name removeValue
+-- @param t array - Array to remove from
+-- @param value any - Value to remove
+function table.removeValue(t, value)
+	for i, v in pairs(t) do
+		if v == value then
+			table.remove(t, i)
+			break
+		end
+	end
+end
+
 return table
