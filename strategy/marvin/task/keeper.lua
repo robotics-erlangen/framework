@@ -15,13 +15,19 @@ end
 
 --moves keeper do defending possition
 function Keeper:_run(priorityMessages, notifications)	
-	local goalLinePos = Vector.create(0 ,World.Geometry.FriendlyGoal.y + Settings.keeperGoalDistance + self._robot.radius)
-	local goalLineDir = Vector.create(1,0)
+	local goalLinePos = Vector.create(0, World.Geometry.FriendlyGoal.y + Settings.keeperGoalDistance + self._robot.radius)
+	local goalLineDir = Vector.create(1, 0)
 	local atkPos, atkDir, isShot = Goal.predictShot()
 	atkPos = atkPos:copy()
 	atkDir = atkDir:copy():setLength(30)
 	local intersectPos = geom.intersectLineLine(atkPos, atkDir, goalLinePos, goalLineDir)
-	intersectPos = intersectPos or goalLinePos -- ensure there's an intersect pos
+	if not intersectPos then -- ensure there's an intersect pos
+		if atkDir.x > 0 then
+			intersectPos = intersectPos or Vector.create(World.Geometry.GoalWidth, World.Geometry.FriendlyGoal.y + Settings.keeperGoalDistance + self._robot.radius)
+		else
+			intersectPos = intersectPos or Vector.create(-World.Geometry.GoalWidth, World.Geometry.FriendlyGoal.y + Settings.keeperGoalDistance + self._robot.radius)
+		end
+	end
 	
 	--visualization Tool
 	vis.addPath("KeeperShotPrediction",{atkPos,atkPos+atkDir})

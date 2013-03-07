@@ -3,6 +3,7 @@ local Assistant = (require "../base/class").new("Task.Assistant", require "task/
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local geom = require "../base/geom"
+local vis = require "../base/vis"
 
 Assistant.priority = 1
 
@@ -23,24 +24,33 @@ function Assistant:_run()
 	--FIXME don't moves jet
 	self._robot.path:setDefaultObstacles(self._robot, false, false)
 	self._robot.path:addRobotObstacles(self._robot, false, false)
-	local linePos = Vector.create(0, FieldHeigthQuarter)
+	local linePos = Vector.create(0, World.Geometry.FieldHeightQuarter)
 	local lineDir = Vector.create(1,0)
 	local intersections = {}
-	table.insert(intersections, Vector.create(-World.Geometry.FieldWidthHalf, World.Geometry.FieldHeigthQuarter))
-	table.insert(intersections, Vector.create(World.Geometry.FieldWidthHalf, World.Geometry.FieldHeigthQuarter))
+	table.insert(intersections, Vector.create(-World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightQuarter))
+	table.insert(intersections, Vector.create(World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightQuarter))
 	local goalEdgeSouthIntersection = geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, Vector.create(-World.Geometry.GoalWidth / 2, World.Geometry.OpponentGoal.y))
 	local goalEdgeNorthIntersection = geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, Vector.create(World.Geometry.GoalWidth / 2, World.Geometry.OpponentGoal.y))
-	table.insert(intersections, goalEdgeSouth)
-	table.insert(intersections, goalEdgeNorth)
+	table.insert(intersections, goalEdgeSouthIntersection)
+	table.insert(intersections, goalEdgeNorthIntersection)
 	local best = 0
 	local bestSpace = -1
-	
+
+	vis.addPath("AssistantLine",{linePos,linePos+lineDir})
+
 	--scan for relevant robots and intersections points on line
 	for _, robot in ipairs(World.OpponentRobots) do
-		if robot.pos.y < linePos.y and robot.pos.y > Observer.ball.pos.y then
-			table.insert(intersections, geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, robot.pos))
+		if robot.pos.y < linePos.y and robot.pos.y > World.Ball.pos.y then
+			--FIXME Parallel Lines Exeption
+			local tmp = geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, robot.pos)
+			table.insert(intersections, tmp)
 		end
 	end
+	
+	for _, pos in ipairs(intersections) do
+		vis.addCircle("AssistantIntersections", pos, 0.03, blue, true)
+	end
+
 	
 	--sort intersections
 	table.sort (intersections, vecYComp)
@@ -56,6 +66,7 @@ function Assistant:_run()
 	end
 	local moveTo = Vector.create(intersections[best].x + (bestSpace/2), World.Geometry.FieldHeightQuarter)
 	
+	--FIXME don't leave playing field
 	local faceBall = World.Ball.pos-moveTo
 	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
 end
