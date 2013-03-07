@@ -21,7 +21,7 @@ local function vecYComp(vec1, vec2)
 end
 
 function Assistant:_run()
-	--FIXME don't moves jet
+	--TODO Obstacles in shoting line and chose 1 of 3 assistant lines
 	self._robot.path:setDefaultObstacles(self._robot, false, false)
 	self._robot.path:addRobotObstacles(self._robot, false, false)
 	local linePos = Vector.create(0, World.Geometry.FieldHeightQuarter)
@@ -41,9 +41,14 @@ function Assistant:_run()
 	--scan for relevant robots and intersections points on line
 	for _, robot in ipairs(World.OpponentRobots) do
 		if robot.pos.y < linePos.y and robot.pos.y > World.Ball.pos.y then
-			--FIXME Parallel Lines Exeption
 			local tmp = geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, robot.pos)
-			table.insert(intersections, tmp)
+			if tmp then
+				if tmp.x < goalEdgeSouthIntersection.x or tmp.x > goalEdgeNorthIntersection.x then
+					if tmp.x < World.Geometry.FieldWidthHalf and tmp.x > -World.Geometry.FieldWidthHalf then
+						table.insert(intersections, tmp)
+					end
+				end
+			end
 		end
 	end
 	
@@ -51,10 +56,8 @@ function Assistant:_run()
 		vis.addCircle("AssistantIntersections", pos, 0.03, blue, true)
 	end
 
-	
 	--sort intersections
 	table.sort (intersections, vecYComp)
-	--FIXME ignore intersections in goal space
 	--takes the biggest free space
 	for i = 1 , #intersections do
 		if i ~= #intersections and intersections[i] ~= goalEdgeSouthIntersection then
@@ -65,8 +68,8 @@ function Assistant:_run()
 		end
 	end
 	local moveTo = Vector.create(intersections[best].x + (bestSpace/2), World.Geometry.FieldHeightQuarter)
-	
-	--FIXME don't leave playing field
+
+	moveTo.x = math.bound(-World.Geometry.FieldWidthHalf + 2 * self._robot.radius, moveTo.x, World.Geometry.FieldWidthHalf - 2 * self._robot.radius)
 	local faceBall = World.Ball.pos-moveTo
 	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
 end
