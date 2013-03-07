@@ -25,7 +25,7 @@ end
 
 function ShootGoal:_selectRobots(poolRobots)
 	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
-	robots, _ = RobotMatcher.match(robots, 1, self._conditions)
+	robots = RobotMatcher.match(robots, 1, self._conditions)
 	return robots
 end
 
@@ -34,7 +34,7 @@ function ShootGoal:prepareDefault()
 end
 
 function ShootGoal:rateDefault(isInit)
-	shootGoalChance = self._tasks[1]:rate()
+	local shootGoalChance = self._tasks[1]:rate()
 	if shootGoalChance > 1.50861 then	-- OBACHT! never tested magic constant
 		return Base.rating.yes
 	elseif shootGoalChance > 0.87350 then	-- OBACHT! never tested magic constant
