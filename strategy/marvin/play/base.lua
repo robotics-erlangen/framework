@@ -102,6 +102,11 @@ function Base:_selectRobots(poolRobots)
 end
 
 function Base:run()
+	if not self:state() then
+		self:_initState()
+		assert(self._robots and #self._robots > 0, "Where are my robots?")
+	end
+	
 	-- setup logging
 	debug.pushtop("Play")
 	debug.set(nil, self.classNameShort .. "(" .. self._state .. ")")
@@ -111,11 +116,6 @@ function Base:run()
 		debug.set("Pos " .. tostring(i), robot.id)
 	end
 	debug.pop()
-	
-	if not self:state() then
-		self:_initState()
-		assert(not self._robots or #self._robots == 0, "Where are my robots?")
-	end
 	
 	if not self._ratingRun then
 		self["rate" .. self._state](self)
