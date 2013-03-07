@@ -33,7 +33,7 @@ function ShootGoalImmediately:prepareDefault()
 end
 
 function ShootGoalImmediately:rateDefault(isInit)
-	local goalProbability = self._tasks[1]:rating()
+	local goalProbability = self._tasks[1]:rate()
 	if goalProbability > 0.92836 then -- warning! magic constant
 		return Base.rating.force
 	elseif goalProbability > 0.79731 then -- warning! magic constant

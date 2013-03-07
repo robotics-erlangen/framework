@@ -5,6 +5,7 @@ local Observer = {}
 Observer.Ball = require "observer/ball"
 Observer.Goal = require "observer/goal"
 Observer.Shoot = require "observer/shoot"
+local geom = require "../base/geom"
 local RobotList = require "util/robotlist"
 
 ShootGoalImmediately.priority = 5
@@ -12,10 +13,10 @@ ShootGoalImmediately.priority = 5
 function ShootGoalImmediately:_init()
 end
 
-function ShootGoalImmediately:rating()
+function ShootGoalImmediately:_rate()
 	if self._robot == Observer.Ball.ballOwner() then
 		if self._robot:hasBall(World.Ball) then
-			local pointOnGoalLine = geom.intersectLineLine(self._robot.pos, self._robot.dir, World.Geometry.OpponentGoal, 0)
+			local pointOnGoalLine = geom.intersectLineLine(self._robot.pos, Vector.create(self._robot.dir), World.Geometry.OpponentGoal, Vector.create(1, 0))
 			pointOnGoalLine = pointOnGoalLine or World.Geometry.OpponentGoal -- handle parallel directions
 			return Observer.Shoot.evaluateShootCorridor(pointOnGoalLine, self._robot.maxShotLinear, World.Ball.pos, 0) -- goal probability
 		else
