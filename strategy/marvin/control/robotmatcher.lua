@@ -59,7 +59,9 @@ function RobotMatcher.match(robots, robotCount, conditions, lastMatching)
 					break
 				end
 				local task = cond(match)
-				rating = rating * task:rate()
+				local taskRating = task:rate()
+				assert(taskRating >= 0 and taskRating <= 1, "Invalid task rating!")
+				rating = rating * taskRating
 			end
 			
 			-- only look at possibly better ratings
