@@ -79,15 +79,48 @@ function Goal.largestFreeSector(viewPos, robotList, opp)
 end
 
 --- Returns sectors, from where there could be scored
--- @param robotList list - all robots that should be considered; should be only the robots that are closer to the goal than the desired position
+-- @param robotList list - all robots that should be considered; should be only the robots that are closer to the goal than the desired position (not implemented yet)
 -- @param opp boolean - true for opponent goal, false for friendly goal
+-- @return s_right Vector - the viewpoint for the sectors on the right side
+-- @return rightSector list - the sector on the right side of the keeper
+-- @return s_left Vector - the viewpoint for the sector on the left side
+-- @return leftSector list - the sector on the left side of the keeper
 function Goal.searchFreeSectors(robotList, opp)
+	local rightSector = {}
+	local leftSector = {}
 	local keeper = opp and World.OpponentKeeper or World.FriendlyKeeper
+	local r = World.Ball.radius
+	local m = r/math.sqrt((G.GoalWidth/2)^2 - r^2)	-- always the positive slope	y = m*x + t
+	local t = (G.FieldHeightHalf - math.sqrt((keeper.radius + r)^2 * (1 + m^2))) * (opp and 1 or -1)
+	local th = (G.GoalWidth/2 - (keeper.radius + 2*r)/math.sqrt(1 + m^2))
 	-- right from the keeper (looking from field towards goal)
-	local s_right, p1_right, p2_right = geom.getInnerTangentsToCircles(keeper.pos, keeper.radius + World.Ball.radius, opp and G.OpponentGoalRight or G.FriendlyGoalLeft, World.Ball.radius)
-	local rightSector = { (s_right - p1_right):angle(), (s_right - p2_right) } -- noch nicht fertig
-	--TODO: auf Papier aufmalen, damit man sieht, ob Sonderf‰lle zu beachten sind
-	-- z.B. wenn Torwart auﬂerhalb des Tors, muss der Winkel durch die beiden Torpfosten beschr‰nkt werden
+	local s_right, p1_right, p2_right = geom.getInnerTangentsToCircles(keeper.pos, keeper.radius + r, opp and G.OpponentGoalRight or G.FriendlyGoalLeft, r)	-- p1.x > p2.x
+	if math.abs(keeper.pos.y) < (-m) * keeper.pos.x + t then	-- keeper is far enough out of goal, so that one side of the sector is given by the goalposts
+		rightSector[2] = math.atan(opp and -m or m)
+		rightSector[1] = (s_right - (opp and p1_right or p2_right)):angle()
+	else
+		if keeper.pos.x * (opp and 1 or -1) > th then
+			-- right sector is empty list, because keeper is so far right, that the ball can't pass between him and the right goalpost
+		else
+			rightSector[1] = (s_right - (opp and p1_right or p2_right)):angle()
+			rightSector[2] = ((opp and p2_right or p1_right) - s_right):angle()
+		end
+	end
+	-- left from the keeper (looking from field towards goal)
+	local s_left, p1_left, p2_left = geom.getInnerTangentsToCircles(keeper.pos, keeper.radius + r, opp and G.OpponentGoalLeft or G.FriendlyGoalRight, r)	-- p1.x > p2.x
+	if math.abs(keeper.pos.y) < m * keeper.pos.x + t then
+		leftSector[1] = math.atan(opp and m or -m)
+		leftSector[2] = ((opp and p2_left or p1_left) - s_left):angle()
+	else
+		if keeper.pos.x * (opp and -1 or 1) > th then
+			-- left sector is empty list, because keeper is so far left, that the ball can't pass between him and the left goalpost
+		else
+			leftSector[1] = (s_left - (opp and p1_left or p2_left))
+			leftSector[2] = ((opp and p2_left or p1_left) - s_left):angle()
+		end
+	end
+	return s_right, rightSector, s_left, leftSector
+	-- TODO: robotlist beachten, vorsicht, wenn keeper.pos.y auﬂerhalb des Felds
 end
 
 --- Predicts the direction the ball will be shot into.

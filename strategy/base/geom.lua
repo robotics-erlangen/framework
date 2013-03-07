@@ -11,8 +11,8 @@ local geom = {}
 -- @param r1 number - Radius of first circle
 -- @param c2 Vector - Center of second circle
 -- @param r2 number - Radius of second circle
--- @return [Vector] - first intersection if exists
--- @return [Vector] - second intersection if exists
+-- @return [Vector] - first intersection if exists (the one with higher x-value)
+-- @return [Vector] - second intersection if exists (the one with lower x-value)
 function geom.intersectCircleCircle(c1, r1, c2, r2)
 	local dist = c1:distanceTo(c2)
 	if dist > r1 + r2 then return nil
