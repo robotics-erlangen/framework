@@ -1,6 +1,7 @@
 local TaskManager = (require "../base/class").new("Control.TaskManager")
 local World = require "../base/world"
 local debug = require "../base/debug"
+local Base = require "task/base"
 
 function TaskManager:init()
 	self._assignment = {}
@@ -17,6 +18,10 @@ function TaskManager:assign(task)
 	if self._assignment[robot] then
 		log(robot.id)
 		error("Robot assigned twice")
+	end
+	if not task:instanceOf(Base) then
+		log(task.className)
+		error("This is not a task!")
 	end
 	self._assignment[robot] = task
 end
