@@ -18,27 +18,19 @@ KickoffOffensive.timeout = 20 -- TODO
 KickoffOffensive._conditions = {} -- TODO use conditions if needed
 
 function KickoffOffensive:_init()
-	self._side = math.random(2) == 1 -- true = right, false = left
-	log("KickoffOffensive: Formation "..(self._side and "Right" or "Left"))
-	self:setState("Formation")
 end
 
-function KickoffOffensive.startRating(attackers, defenders, minRating)
-	-- ignore minRating because rating is either no or referee
-	if #attackers < 1 then
-		return Base.rating.no
-	end
+function KickoffOffensive:_baseRating(minRequiredRating)
 	if World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
 		return Base.rating.referee
-	else
+	elseif minRequiredRating > Base.rating.referee then 
 		return Base.rating.no
-	end
-end
+	end 
+end 
 
-function KickoffOffensive:currentRating()
-	if World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
-		return Base.rating.referee
-	elseif World.RefereeState == "Game" then
+
+local function currentRating()
+	if World.RefereeState == "Game" then
 		-- TODO: 
 		-- Bewertungsfunktionen implementieren:
 		--	Der Play bricht sich ab (Bewertung -> Nein), wenn wir geschossen haben und
@@ -55,12 +47,19 @@ end
 function KickoffOffensive.selectRobots(poolRobots)
 	-- cacheable array manipulations
 	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
-	
-	robots, _ = RobotMatcher.match(robots, math.min(4, #robots), KickoffOffensive._conditions)
-	return robots
+	return RobotMatcher.match(robots, math.min(4, #robots), KickoffOffensive._conditions)
 end
 
-function KickoffOffensive:prepareFormation()
+
+function KickoffOffensive:rateDefault(isInit) 
+	return currentRating()	
+end 
+
+function KickoffOffensive:prepareDefault()
+	self._side = math.random(2) == 1 -- true = right, false = left
+	log("KickoffOffensive: Formation "..(self._side and "Right" or "Left"))
+
+
 	local balliePos, quarterbackPos, outerPos, innerPos
 	-- #1 Ballie
 	balliePos = Vector.create(0, -World.Ball.radius - self._robots[1].radius - Settings.positionPadding)
@@ -84,7 +83,7 @@ function KickoffOffensive:prepareFormation()
 	}
 end
 
-function KickoffOffensive:switchFormation()
+function KickoffOffensive:switchDefault()
 	if World.RefereeState == "KickoffOffensive" then
 		self:decideCase()
 	end
@@ -102,9 +101,17 @@ end
 			Laufbewertungskategorien: Schiedsrichter, Ja (bei Befehl = Game), Nein
 --]]
 
+function KickoffOffensive:rateMidEmpty(isInit) 
+	return currentRating()
+end 
+
 function KickoffOffensive:prepareMidEmpty()
 	--self._tasks = {self._robots[1] and ShootGoal.create(self._robots[1]) or nil} -- ballie shoots goal
 end
+
+function KickoffOffensive:rateMajority(isInit) 
+	return currentRating()
+end 
 
 function KickoffOffensive:prepareMajority()
 	local mirroredTargetPos = Vector.create((self.side and -1 or 1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
@@ -117,6 +124,10 @@ function KickoffOffensive:prepareMajority()
 	}
 end
 
+function KickoffOffensive:rateUseQuarterback(isInit) 
+	return currentRating()
+end 
+
 function KickoffOffensive:prepareUseQuarterback()
 	local mirroredTargetPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
 	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*self._robots[1].radius)
@@ -128,7 +139,11 @@ function KickoffOffensive:prepareUseQuarterback()
 	}
 end
 
-function KickoffOffensive:prepareDefault()
+function KickoffOffensive:prepareDefaultOffense(isInit) 
+	return currentRating()
+end
+
+function KickoffOffensive:prepareDefaultOffense()
 	local mirroredTargetPos = Vector.create((self.side and -1 or 1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
 	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*self._robots[1].radius)
 	self._tasks = {
@@ -146,16 +161,16 @@ function KickoffOffensive:decideCase()
 	local sector1, sector2, sector3 = #sector1list, #sector2list, #sector3list
 
 	if sector2 == 0 then -- middle sector empty
-		self:setState("MidEmpty")
+		self:_setState("MidEmpty")
 		log("KickoffOffensive: Middle Sector empty => Attack in the Middle")
 	elseif self.side and sector3 or sector1 <= 1 then -- 2v0 or 2v1
-		self:setState("Majority")
+		self:_setState("Majority")
 		log("KickoffOffensive: 2v"..self.side and sector3 or sector1.." => Attack on the "..(self.side and "Right" or "Left").." side")
 	elseif self.side and sector1 or sector3 == 0 then -- other side empty
-		self:setState("UseQuarterback")
+		self:_setState("UseQuarterback")
 		log("KickoffOffensive: "..(self.side and "Left" or "Right").." side empty => Use quarterback")
 	else -- care only for robots that are close to us
-		self:setState("Default")
+		self:_setState("DefaultOffense")
 		log("KickoffOffensive: "..sector1.." Left, "..sector2.." Middle, "..sector3.." Right => Default Attack")
 	end		
 end

@@ -24,7 +24,9 @@ end
 
 
 function KickoffDefensive:_baseRating(minRequiredRating) 
-	if minRequiredRating > Base.rating.referee then 
+	if World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
+		return Base.rating.referee
+	elseif minRequiredRating > Base.rating.referee then 
 		return Base.rating.no 
 	end
 end 
