@@ -1,12 +1,12 @@
 local Attack = (require "../base/class").new("Pool.Attack", require "pool/base")
+local Assistant = require "task/assistant"
 
--- TODO: generate conditions
 Attack._conditions = {}
 
 function Attack:_updateTasks()
 	for i = 1, #self._robots do
 		if not self._tasks[i] then
-			-- create assistant task
+			self._tasks[i] = Assistant.create(self._robots[i])
 		end
 	end
 end

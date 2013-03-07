@@ -1,12 +1,13 @@
 local Defense = (require "../base/class").new("Pool.Defense", require "pool/base")
+local CenterBack = require "task/centerback"
 
 -- TODO: generate conditions
 Defense._conditions = {}
 
 function Defense:_updateTasks()
-	--if #self._robots > 0 and not self._tasks[1] then
-		--self._tasks[1] = Keeper.create(self._robots[1])
-	--end
+	if #self._robots > 0 and not self._tasks[1] then
+		self._tasks[1] = CenterBack.create(self._robots[1])
+	end
 	-- TODO: default behaviour
 end
 
