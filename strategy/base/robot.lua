@@ -141,6 +141,8 @@ end
 function Robot:_setCommand()
 	amun.setCommand(self.id, {
 		controller = self._controllerInput,
+		v_f = self._controllerInput.v_f,
+		v_s = self._controllerInput.v_s,
 		kick_style = self._kickStyle,
 		kick_power = self._kickPower,
 		dribbler = self._dribblerSpeed,
