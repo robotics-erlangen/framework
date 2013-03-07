@@ -21,7 +21,7 @@ function ShootGoal:_init()
 	self._mode = 0
 	self._bestRating = 0
 	self._bestSector = 1
-	self._pointOnGoalLine
+	self._pointOnGoalLine = nil
 end
 
 function ShootGoal:_rate()
@@ -63,6 +63,7 @@ function ShootGoal:_rate()
 		else
 			self._mode = ShootGoal.Mode.GetTheBall					-- we had the ball, but it must have rolled away
 			return  0
+		end
 	else
 		self._mode = ShootGoal.Mode.GetTheBall						-- someone else has the ball, so let's try to get it. dumb play which called this task...
 		return -1
