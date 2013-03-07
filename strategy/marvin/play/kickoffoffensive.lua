@@ -25,7 +25,7 @@ function KickoffOffensive:_baseRating(minRequiredRating)
 		return Base.rating.referee
 	elseif minRequiredRating > Base.rating.referee then 
 		return Base.rating.no
-	end 
+	end
 end 
 
 
@@ -39,12 +39,12 @@ local function currentRating()
 		--		3. Der Gegner den Ball haben wird
 		--	ansonsten ja
 		return Base.rating.no -- FIXME FIXME FIXME
-	else
-		return Base.rating.no
 	end
+	
+	return Base.rating.no
 end
 
-function KickoffOffensive.selectRobots(poolRobots)
+function KickoffOffensive:_selectRobots(poolRobots)
 	-- cacheable array manipulations
 	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
 	return RobotMatcher.match(robots, math.min(4, #robots), KickoffOffensive._conditions)
@@ -57,7 +57,7 @@ end
 
 function KickoffOffensive:prepareDefault()
 	self._side = math.random(2) == 1 -- true = right, false = left
-	log("KickoffOffensive: Formation "..(self._side and "Right" or "Left"))
+	--log("KickoffOffensive: Formation "..(self._side and "Right" or "Left"))
 
 
 	local balliePos, quarterbackPos, outerPos, innerPos
@@ -101,40 +101,41 @@ end
 			Laufbewertungskategorien: Schiedsrichter, Ja (bei Befehl = Game), Nein
 --]]
 
-function KickoffOffensive:rateMidEmpty(isInit) 
+function KickoffOffensive:rateMidEmpty() 
 	return currentRating()
 end 
 
 function KickoffOffensive:prepareMidEmpty()
+	-- TODO: activate and test
 	--self._tasks = {self._robots[1] and ShootGoal.create(self._robots[1]) or nil} -- ballie shoots goal
 end
 
-function KickoffOffensive:rateMajority(isInit) 
+function KickoffOffensive:rateMajority() 
 	return currentRating()
 end 
 
 function KickoffOffensive:prepareMajority()
-	local mirroredTargetPos = Vector.create((self.side and -1 or 1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
-	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*self._robots[1].radius)
+	local mirroredTargetPos = Vector.create((self._side and -1 or 1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
+	local backPos = Vector.create((self._side and 1 or -1)*G.FieldWidthQuarter, -10*self._robots[1].radius)
 	self._tasks = {
-		-- 1: Laufpass an 2
-		-- 2: Laufpass von 1 annehmen
+		-- TODO: 1: Laufpass an 2
+		-- TODO: 2: Laufpass von 1 annehmen
 		self._robots[3] and Assistant.create(self._robots[3], mirroredTargetPos, G.FieldWidthQuarter) or nil,
 		self._robots[4] and MoveToPos.create(self._robots[4], backPos, math.pi/2) or nil,
 	}
 end
 
-function KickoffOffensive:rateUseQuarterback(isInit) 
+function KickoffOffensive:rateUseQuarterback() 
 	return currentRating()
 end 
 
 function KickoffOffensive:prepareUseQuarterback()
-	local mirroredTargetPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
-	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*self._robots[1].radius)
+	local mirroredTargetPos = Vector.create((self._side and 1 or -1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
+	local backPos = Vector.create((self._side and 1 or -1)*G.FieldWidthQuarter, -10*self._robots[1].radius)
 	self._tasks = {
-		--1: Laufpass an 3
+		-- TODO: 1: Laufpass an 3
 		self._robots[2] and MoveToPos.create(self._robots[2], backPos, math.pi/2) or nil,
-		--3: Laufpass von 1 annehmen
+		-- TODO: 3: Laufpass von 1 annehmen
 		self._robots[4] and Assistant.create(self._robots[4], mirroredTargetPos, G.FieldWidthQuarter),
 	}
 end
@@ -144,31 +145,30 @@ function KickoffOffensive:prepareDefaultOffense(isInit)
 end
 
 function KickoffOffensive:prepareDefaultOffense()
-	local mirroredTargetPos = Vector.create((self.side and -1 or 1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
-	local backPos = Vector.create((self.side and 1 or -1)*G.FieldWidthQuarter, -10*self._robots[1].radius)
+	local mirroredTargetPos = Vector.create((self._side and -1 or 1)*G.FieldWidthQuarter, G.FieldHeightQuarter)
+	local backPos = Vector.create((self._side and 1 or -1)*G.FieldWidthQuarter, -10*self._robots[1].radius)
 	self._tasks = {
-		-- 1: Laufpass an 4
+		-- TODO: 1: Laufpass an 4
 		self._robots[2] and MoveToPos.create(self._robots[2], backPos, math.pi/2) or nil,
 		self._robots[3] and Assistant.create(self._robots[3], mirroredTargetPos, G.FieldWidthQuarter) or nil,
-		-- 4: Laufpass von 1 annehmen
+		-- TODO: 4: Laufpass von 1 annehmen
 	}
 end
 
 
 function KickoffOffensive:decideCase()
-
-	local sector1list, sector2list, sector3list = Game.devideOpponentsIntoSectors(true)
+	local sector1list, sector2list, sector3list = Game.divideOpponentsIntoSectors(true)
 	local sector1, sector2, sector3 = #sector1list, #sector2list, #sector3list
 
 	if sector2 == 0 then -- middle sector empty
 		self:_setState("MidEmpty")
 		log("KickoffOffensive: Middle Sector empty => Attack in the Middle")
-	elseif self.side and sector3 or sector1 <= 1 then -- 2v0 or 2v1
+	elseif self._side and sector3 or sector1 <= 1 then -- 2v0 or 2v1
 		self:_setState("Majority")
-		log("KickoffOffensive: 2v"..self.side and sector3 or sector1.." => Attack on the "..(self.side and "Right" or "Left").." side")
-	elseif self.side and sector1 or sector3 == 0 then -- other side empty
+		log("KickoffOffensive: 2v"..(self._side and sector3 or sector1).." => Attack on the "..(self._side and "Right" or "Left").." side")
+	elseif self._side and sector1 or sector3 == 0 then -- other side empty
 		self:_setState("UseQuarterback")
-		log("KickoffOffensive: "..(self.side and "Left" or "Right").." side empty => Use quarterback")
+		log("KickoffOffensive: "..(self._side and "Left" or "Right").." side empty => Use quarterback")
 	else -- care only for robots that are close to us
 		self:_setState("DefaultOffense")
 		log("KickoffOffensive: "..sector1.." Left, "..sector2.." Middle, "..sector3.." Right => Default Attack")
