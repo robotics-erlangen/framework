@@ -3,6 +3,7 @@ local CenterBack = (require "../base/class").new("Task.CenterBack", require "tas
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local geom = require "../base/geom"
+local vis = require "../base/vis"
 local Goal = require "observer/goal"
 local G = World.Geometry
 
@@ -32,7 +33,7 @@ local function intersectLineWithDefenseArea(onpoint, angle, extraRadius, opp)
 	end
 
 	--left circle intersection
-	local gleft = opp and G.OpponentGoalLeft or G.FriendlyGoalLeft
+	local gleft = Vector.create(-G.DefenseStretch/2, (opp and 1 or -1) * G.FieldHeightHalf)
 	local lintersect1, lintersect2 = geom.intersectLineCircle(onpoint, dir, gleft, G.DefenseRadius + extraRadius)
 	if lintersect1 and lintersect1.x < -G.DefenseStretch/2
 			and lintersect1.y > -G.FieldHeightHalf and lintersect1.y < G.FieldHeightHalf then
@@ -43,7 +44,7 @@ local function intersectLineWithDefenseArea(onpoint, angle, extraRadius, opp)
 	end
 
 	--right circle intersection
-	local gright = opp and G.OpponentGoalRight or G.FriendlyGoalRight
+	local gright = Vector.create(G.DefenseStretch/2, (opp and 1 or -1) * G.FieldHeightHalf)
 	local rintersect1, rintersect2 = geom.intersectLineCircle(onpoint, dir, gright, G.DefenseRadius + extraRadius)
 	if rintersect1 and rintersect1.x > G.DefenseStretch/2
 			and rintersect1.y > -G.FieldHeightHalf and rintersect1.y < G.FieldHeightHalf then
@@ -52,6 +53,7 @@ local function intersectLineWithDefenseArea(onpoint, angle, extraRadius, opp)
 			and rintersect2.y > -G.FieldHeightHalf and rintersect2.y < G.FieldHeightHalf then
 		table.insert(intersections, rintersect2)
 	end	
+
 
 	--min search
 	local minDistance = math.huge
@@ -161,7 +163,7 @@ function CenterBack:_run()
 	end
 
 	--calculate destinationDir
-	local dir = (World.Ball.pos - destinationPos):angle()
+	local dir = (destinationPos - Vector.create(0, -G.FieldHeightHalf)):angle()
 
 	--move robot
 	self._robot.path:setDefaultObstacles(self._robot)
