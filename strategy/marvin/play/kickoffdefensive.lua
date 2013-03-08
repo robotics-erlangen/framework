@@ -43,7 +43,7 @@ end
 
 function KickoffDefensive:prepareDefault()
 	-- #1 Quarterback
-	local quarterbackPos = Vector.create(0, -G.CenterCircleRadius - self._robots[2].radius - Settings.positionPadding)
+	local quarterbackPos = Vector.create(0, -G.CenterCircleRadius - self._robots[1].radius - Settings.positionPadding)
 	-- #2, 3, Mirror
 	self._tasks = {
 		self._robots[1] and MoveToPos.create(self._robots[1], quarterbackPos, math.pi/2) or nil,
