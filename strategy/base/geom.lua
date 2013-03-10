@@ -92,7 +92,7 @@ end
 function geom.getInnerTangentsToCircles(centerpoint1, radius1, centerpoint2, radius2)
 	local d = centerpoint2 - centerpoint1
 	if d:length() > radius1 + radius2 then
-		local schnittpunkt = centerpoint1 + d:scaleLength(1 - radius2/radius1)
+		local schnittpunkt = centerpoint1 + d*(radius1/(radius1 + radius2))
 		return schnittpunkt, geom.getTangentsToCircle(schnittpunkt, centerpoint1, radius1)
 	end
 end

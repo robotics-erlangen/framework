@@ -42,7 +42,7 @@ end
 -- @return list - list of free sectors [startAngle, endAngle] ascending by start angle
 function Goal.freeSectors(viewPos, robotList, opp)
 	if (opp and 1 or -1)*viewPos.y > G.FieldHeightHalf then
-		log("viewPos is behind the goal.")
+		--log("viewPos is behind the goal.")
 		return {}
 	end
 
@@ -90,14 +90,15 @@ function Goal.searchFreeSectors(robotList, opp)
 	local leftSector = {}
 	local keeper = opp and World.OpponentKeeper or World.FriendlyKeeper
 	local r = World.Ball.radius
-	local m = r/math.sqrt((G.GoalWidth/2)^2 - r^2)	-- always the positive slope	y = m*x + t
+	local m = r/math.sqrt((G.GoalWidth)^2 - r^2)	-- always the positive slope	y = m*x + t
 	local t = (G.FieldHeightHalf - math.sqrt((keeper.radius + r)^2 * (1 + m^2))) * (opp and 1 or -1)
 	local th = (G.GoalWidth/2 - (keeper.radius + 2*r)/math.sqrt(1 + m^2))
 	-- right from the keeper (looking from field towards goal)
 	local s_right, p1_right, p2_right = geom.getInnerTangentsToCircles(keeper.pos, keeper.radius + r, opp and G.OpponentGoalRight or G.FriendlyGoalLeft, r)	-- p1.x > p2.x
 	if math.abs(keeper.pos.y) < (-m) * keeper.pos.x + t then	-- keeper is far enough out of goal, so that one side of the sector is given by the goalposts
-		rightSector[2] = math.atan(opp and -m or m)
-		rightSector[1] = (s_right - (opp and p1_right or p2_right)):angle()
+		s_right = geom.intersectLineLine(s_right, (opp and p1_right or p2_right) - s_right, opp and G.OpponentGoalLeft or G.FriendlyGoalRight, Vector.fromAngle(opp and -m or m))
+		rightSector[2] = math.atan2((opp and -m or m), (opp and 1 or -1))
+		rightSector[1] = ((opp and p1_right or p2_right) - s_right):angle()
 	else
 		if keeper.pos.x * (opp and 1 or -1) > th then
 			-- right sector is empty list, because keeper is so far right, that the ball can't pass between him and the right goalpost
@@ -109,7 +110,8 @@ function Goal.searchFreeSectors(robotList, opp)
 	-- left from the keeper (looking from field towards goal)
 	local s_left, p1_left, p2_left = geom.getInnerTangentsToCircles(keeper.pos, keeper.radius + r, opp and G.OpponentGoalLeft or G.FriendlyGoalRight, r)	-- p1.x > p2.x
 	if math.abs(keeper.pos.y) < m * keeper.pos.x + t then
-		leftSector[1] = math.atan(opp and m or -m)
+		s_left = geom.intersectLineLine(s_left, (opp and p2_left or p1_left) - s_left, opp and G.OpponentGoalRight or G.FriendlyGoalLeft, Vector.fromAngle(opp and m or -m))
+		leftSector[1] = math.atan2((opp and -m or m), (opp and -1 or 1))
 		leftSector[2] = ((opp and p2_left or p1_left) - s_left):angle()
 	else
 		if keeper.pos.x * (opp and -1 or 1) > th then

@@ -15,4 +15,23 @@ function GoalTest.testFreeSectors()
 	end
 end
 
+function GoalTest.testSearchFreeSectors()
+	local s_right, a_right, s_left, a_left = Goal.searchFreeSectors({}, true)
+	vis.setColor(vis.colors.turquoiseHalf, true)
+	if a_right[2] then
+		local right_pointRight = s_right + Vector.fromAngle(a_right[1])*10
+		local right_pointLeft = s_right + Vector.fromAngle(a_right[2])*10
+		--log("Right: "..tostring(s_right).." Angles: "..tostring(a_right[1]).." to "..tostring(a_right[2]))
+		vis.addPolygon("Right from the Keeper", {s_right, right_pointRight, right_pointLeft})
+	end
+	if a_left[2] then
+		local left_pointRight = s_left + Vector.fromAngle(a_left[1])*10
+		local left_pointLeft = s_left + Vector.fromAngle(a_left[2])*10
+		--log("Left: "..tostring(s_left).." Angles: "..tostring(a_left[1]).." to "..tostring(a_left[2]))
+		vis.addPolygon("Left from the Keeper", {s_left, left_pointRight, left_pointLeft})
+	end
+	local keeper = World.OpponentKeeper
+	vis.addCircle("Opponent Keeper", keeper.pos, keeper.radius, vis.colors.pinkHalf, true)
+end
+
 return GoalTest
