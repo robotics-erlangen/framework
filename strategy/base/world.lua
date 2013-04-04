@@ -26,8 +26,11 @@ local amun = amun
 -- Halt, Stop, Game, GameForce,
 -- KickoffOffensivePrepare, KickoffDefensivePrepare, KickoffOffensive, KickoffDefensive,
 -- PenaltyOffensivePrepare, PenaltyDefensivePrepare, PenaltyOffensive, PenaltyDefensive,
--- DirectOffensive, DirectDefensive, IndirectOffensive, IndirectDefensive,
--- TimeoutOffensive, TimeoutDefensive
+-- DirectOffensive, DirectDefensive, IndirectOffensive, IndirectDefensive
+-- @field GameStage string - current game stage, can be one of these:
+-- FirstHalfPre, FirstHalf, HalfTime, SecondHalfPre, SecondHalf
+-- ExtraTimeBreak, ExtraFirstHalfPre, ExtraFirstHalf, ExtraHalfTime, ExtraSecondHalfPre, ExtraSecondHalf,
+-- PenaltyShootoutBreak, PenaltyShootout, PostGame
 
 local World = {}
 
@@ -197,6 +200,25 @@ function World._updateWorld(state)
 	table.append(World.Robots, World.OpponentRobots)
 end
 
+local stageMapping = {
+	NORMAL_FIRST_HALF_PRE = "FirstHalfPre",
+	NORMAL_FIRST_HALF = "FirstHalf",
+	NORMAL_HALF_TIME = "HalfTime",
+	NORMAL_SECOND_HALF_PRE = "SecondHalfPre",
+	NORMAL_SECOND_HALF = "SecondHalf",
+	
+	EXTRA_TIME_BREAK = "ExtraTimeBreak",
+	EXTRA_FIRST_HALF_PRE = "ExtraFirstHalfPre",
+	EXTRA_FIRST_HALF = "ExtraFirstHalf",
+	EXTRA_HALF_TIME = "ExtraHalfTime",
+	EXTRA_SECOND_HALF_PRE = "ExtraSecondHalfPre",
+	EXTRA_SECOND_HALF = "ExtraSecondHalf",
+	
+	PENALTY_SHOOTOUT_BREAK = "PenaltyShootoutBreak",
+	PENALTY_SHOOTOUT = "PenaltyShootout",
+	POST_GAME = "PostGame"
+}
+	
 -- updates referee command and keeper information
 function World._updateGameState(state)
 	local refState = state.state
@@ -210,9 +232,14 @@ function World._updateGameState(state)
 	if World.RefereeState == "TimeoutOffensive" or World.RefereeState == "TimeoutDefensive" then
 		World.RefereeState = "Halt"
 	end
+	
+	World.GameStage = stageMapping[state.stage]
 
-	local friendlyKeeperId = 1 -- FIXME: get sent keeper id
-	local opponentKeeperId = 1
+	local friendlyTeamInfo = World.TeamIsBlue and state.blue or state.yellow
+	local opponentTeamInfo = World.TeamIsBlue and state.yellow or state.blue
+	
+	local friendlyKeeperId = friendlyTeamInfo.goalie
+	local opponentKeeperId = opponentTeamInfo.goalie
 
 	local friendlyKeeper = World.FriendlyRobotsById[friendlyKeeperId]
 	if friendlyKeeper and not friendlyKeeper.isVisible then
@@ -226,10 +253,28 @@ function World._updateGameState(state)
 
 	World.FriendlyKeeper = friendlyKeeper
 	World.OpponentKeeper = opponentKeeper
-	-- required Phase phase = 1;
-	-- required int32 goals_blue = 3;
-	-- required int32 goals_yellow = 4;
-	-- required int32 time_remaining = 5;
+	
+	--[[
+    optional sint32 stage_time_left = 2;
+	message TeamInfo {
+		// The team's name (empty string if operator has not typed anything).
+		required string name = 1;
+		// The number of goals scored by the team during normal play and overtime.
+		required uint32 score = 2;
+		// The number of red cards issued to the team since the beginning of the game.
+		required uint32 red_cards = 3;
+		// The amount of time (in microseconds) left on each yellow card issued to the team.
+		// If no yellow cards are issued, this array has no elements.
+		// Otherwise, times are ordered from smallest to largest.
+		repeated uint32 yellow_card_times = 4 [packed=true];
+		// The total number of yellow cards ever issued to the team.
+		required uint32 yellow_cards = 5;
+		// The number of timeouts this team can still call.
+		// If in a timeout right now, that timeout is excluded.
+		required uint32 timeouts = 6;
+		// The number of microseconds of timeout this team can use.
+		required uint32 timeout_time = 7;
+	}]]
 end
 
 --- Stops own robots and enables standby
