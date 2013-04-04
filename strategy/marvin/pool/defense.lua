@@ -1,5 +1,6 @@
 local Defense = (require "../base/class").new("Pool.Defense", require "pool/base")
 local CenterBack = require "task/centerback"
+local World = require "../base/world"
 
 -- TODO: generate conditions
 Defense._conditions = {}
@@ -17,6 +18,10 @@ function Defense:_takeRobot(robots)
 			return robot
 		end
 	end
+end
+
+function Defense:_keepRobot(robot)
+	return robot.isVisible and robot ~= World.FriendlyKeeper
 end
 
 return Defense

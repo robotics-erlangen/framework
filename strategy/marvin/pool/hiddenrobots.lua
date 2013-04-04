@@ -11,17 +11,8 @@ function HiddenRobots:_updateTasks()
 	end
 end
 
-function HiddenRobots:cleanupRobots()
-	local robots = {}
-	for _, robot in pairs(self._robots) do
-		if not robot.isVisible then
-			table.insert(robots, robot)
-		end
-	end
-	if #robots ~= #self._robots then
-		self._robotsDirty = true
-		self._robots = robots
-	end
+function HiddenRobots:_keepRobot(robot)
+	return not robot.isVisible
 end
 
 function HiddenRobots:_takeRobot(robots)

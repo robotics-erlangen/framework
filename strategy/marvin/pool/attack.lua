@@ -1,5 +1,6 @@
 local Attack = (require "../base/class").new("Pool.Attack", require "pool/base")
 local Assistant = require "task/assistant"
+local World = require "../base/world"
 
 Attack._conditions = {}
 
@@ -17,6 +18,10 @@ function Attack:_takeRobot(robots)
 			return robot
 		end
 	end
+end
+
+function Attack:_keepRobot(robot)
+	return robot.isVisible and robot ~= World.FriendlyKeeper
 end
 
 return Attack

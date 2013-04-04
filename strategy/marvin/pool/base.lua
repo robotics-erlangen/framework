@@ -61,12 +61,19 @@ function Base:_assignRobots()
 	end
 end
 
+--- Test whether robot should be kept by cleanupRobots.
+-- May be overwritten by subclasses
+-- @param robot Robot - robot to test
+-- @return bool - Whether to keep robot or not
+function Base:_keepRobot(robot)
+	return robot.isVisible
+end
+
 -- remove robots we no longer want to keep
--- may be customized as neccessary
 function Base:cleanupRobots()
 	local robots = {}
 	for _, robot in pairs(self._robots) do
-		if robot.isVisible then
+		if self:_keepRobot(robot) then
 			table.insert(robots, robot)
 		end
 	end

@@ -21,4 +21,8 @@ function Keeper:_takeRobot(robots)
 	end
 end
 
+function Keeper:_keepRobot(robot)
+	return robot.isVisible and robot == World.FriendlyKeeper
+end
+
 return Keeper
