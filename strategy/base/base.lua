@@ -25,6 +25,20 @@ local Robot = require "../base/robot"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
-amun = nil -- prevent access to the amun api by other code
+-- prevent access to the amun api by other code
+local isDebug = pcall(require, "debug")
+if isDebug then
+	amun = {
+		isDebug = true,
+		sendCommand = amun.sendCommand
+	}
+else
+	amun = {
+		isDebug = false
+	}
+end
+
+-- prevent reloading original api
 package.preload["amun"] = nil
-package.loaded["amun"] = nil
+-- update reference used by require
+package.loaded["amun"] = amun

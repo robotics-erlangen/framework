@@ -1,0 +1,85 @@
+-- Requires Lua Development Tools for Eclipse
+-- http://www.eclipse.org/koneki/ldt/
+-- Requires luasocket2 c library on the lua load path!
+-- See README of ra for further luasocket related information
+
+-- Howto
+-- Create a project for the strategy folder, then connect to ra using "Lua Attach to Application"
+-- Choose the created project as debug target and leave every other setting at its default value!
+
+-- add 'require "../test/debug/enable"' to the entrypoint wrapper or somewhere else inside an entrypoint
+-- adding it outside can require several tries until the connection was successful,
+-- as the strategy may be reloaded during the initial entrypoint selection
+
+-- In ra 'enable debugging' the start the remote debugger in eclipse and reload the strategy
+
+-- During debugging the strategy timeout is disabled, thus if the script has an inifinite loop it will only terminate when stopping it via the debugger!
+-- Debugging is quite slow and currently not working with luajit
+
+-- On windows a cmd window will show for a moment when the debugger is initialized.
+
+-- Possible errors:
+-- Cannot connect to 127.0.0.1:10000 : connection refused
+-- -> Eclipse is not running / debugging was not started
+-- closed
+-- -> Debugging not started or timed out
+-- calling 'getinfo' on bad self (function or level expected)
+-- -> luajit is not working yet
+-- module 'mime.core' not found
+-- -> luasocket2 is missing!
+
+if not amun.isDebug then
+	error("Ra must be run in debug mode")
+end
+
+-- preload socket libraries
+require "../test/debug/ltn12"
+require "../test/debug/mime"
+require "../test/debug/socket"
+
+local initConnection = require "../test/debug/debugger"
+
+-- patch debugger commands
+local cmds = require "debugger.commands"
+
+-- used to stop the simulator while execution is suspended
+local function setScaling(scaling)
+	amun.sendCommand({
+		speed = scaling
+	})
+end
+
+-- handle continuation commands
+local function wrapContinue(t, name)
+	local func = t[name]
+	t[name] = function(...)
+		setScaling(1)
+		return func(...)
+	end
+end
+
+wrapContinue(cmds, "run")
+wrapContinue(cmds, "step_over")
+wrapContinue(cmds, "step_out")
+wrapContinue(cmds, "step_into")
+-- does the same as the os.exit wrapper
+wrapContinue(cmds, "stop")
+
+local core = require "debugger.core"
+-- is always called when execution is suspended
+local pcr = core.previous_context_response
+function core.previous_context_response(...)
+	setScaling(0)
+	return pcr(...)
+end
+	
+-- don't puzzle the user with strategy no longer running
+-- after killing the strategy it was suspended
+local osexit = os.exit
+function os.exit(...)
+	-- restart timer before exiting strategy
+	setScaling(1)
+	return osexit(...)
+end
+
+initConnection()

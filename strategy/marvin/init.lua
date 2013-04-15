@@ -34,6 +34,7 @@ checkGlobals()
 
 for name, func in pairs(Entrypoints) do
 	Entrypoints[name] = function ()
+		-- require "../test/debug/enable"
 		saveGlobals()
 		World.update()
 		Observer.observe()
