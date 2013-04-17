@@ -31,7 +31,7 @@ end
 function KickoffDefensive:_selectRobots(poolRobots)
 	-- cacheable array manipulations
 	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
-	return RobotMatcher.match(robots, math.min(4, #robots), KickoffDefensive._conditions)
+	return RobotMatcher.match(robots, math.max(math.min(4, #robots),1), KickoffDefensive._conditions)
 end
 
 function KickoffDefensive:rateDefault(isInit)
