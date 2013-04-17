@@ -1,7 +1,6 @@
-local Base = require "trajectory/base"
-local OldController = (require "../base/class").new("Trajectory.OldController", Base)
-local geom = require "../base/geom"
+local OldController = (require "../base/class").new("Trajectory.OldController", (require "../base/trajectory").Base)
 local Coordinates = require "../base/coordinates"
+local geom = require "../base/geom"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
 local World = require "../base/world"
@@ -43,7 +42,7 @@ end
 function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	self:reset()
 	if not self.parameters then
-		return
+		return {}, Coordinates.toLocal(targetPos), 0
 	end
 	
 	maxSpeed = maxSpeed or self._robot.maxSpeed
@@ -63,7 +62,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		if self._robot.pos:distanceTo(targetPos) > 0.01 then
 			vis.addCircleRaw("waypoints", robotPos, 0.05, vis.colors.pinkHalf)
 		end
-		return {}, Coordinates.toGlobal(targetPos), 0
+		return {}, Coordinates.toLocal(targetPos), 0
 	end
 	
 	local prev = robotPos
@@ -98,7 +97,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	--log('P=(%f|%f), I=(%f|%f), D=(%f|%f)', speed.x, speed.y, self.intCtrl.x, self.intCtrl.y, robotSpeed.x*self.parameters.factorDiffCtrl, robotSpeed.y*self.parameters.factorDiffCtrl)
 	speed = speed + self.intCtrl - robotSpeed*self.parameters.factorDiffCtrl
 
-	-- bound speed to self.robot.maxSpeed without changing the direction
+	-- bound speed to self._robot.maxSpeed without changing the direction
 	if speed:length() > self._robot.maxSpeed then
 		speed:setLength(self._robot.maxSpeed)
 	end

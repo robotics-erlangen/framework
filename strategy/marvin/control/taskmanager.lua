@@ -57,12 +57,6 @@ function TaskManager:run()
 		messages[robot] = task:run(priorityMessages, notifications)
 	end
 	
-	for _, robot in ipairs(World.FriendlyRobots) do
-		if not self._assignment[robot] then
-			robot:setControllerInput({})
-		end
-	end
-	
 	self._messages = messages
 	
 	-- clear current tasks

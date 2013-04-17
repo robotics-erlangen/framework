@@ -1,5 +1,4 @@
-local Base = require "trajectory/base"
-local Hidden = (require "../base/class").new("Trajectory.Hidden", Base)
+local Hidden = (require "../base/class").new("Trajectory.Hidden", (require "../base/trajectory").Base)
 local Coordinates = require "../base/coordinates"
 
 -- only works for hidden robots
@@ -7,6 +6,7 @@ function Hidden:_init()
 end
 
 function Hidden:update(speedForward, speedSide)
+	assert(not self._robot.isVisible, "can only control invisible robots")
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
 	return { v_f = speedForward, v_s = speedSide }, self._robot.pos, 0
 end

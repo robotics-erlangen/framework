@@ -75,7 +75,8 @@ end
 
 -- reset robot commands and update data
 function Robot:_update(state, time)
-	self:setControllerInput(nil) -- remove controller input
+ 	-- bypass override check in setControllerInput
+	self._controllerInput = {} -- halt robot by default
 	self:shootDisable() -- disable shoot
 	self:setDribblerSpeed(nil) -- stop dribbler
 	self:setStandby(nil) -- activate robot
@@ -151,10 +152,11 @@ function Robot:_setCommand()
 end
 
 --- Set output from trajectory planing on robot
+-- The robot is halted by default if no command is set for it. To tell a robot to follow its old trajectory call robot:setControllerInput(nil)
 -- @param input Spline - Target points for the controller, in global coordinates!
 function Robot:setControllerInput(input)
 	-- Forbid overriding controller input except with halt
-	if input and input.spline and self._controllerInput then
+	if input and input.spline and (not self._controllerInput or self._controllerInput.spline) then
 		error("Setting controller input twice")
 	end
 	self._controllerInput = input

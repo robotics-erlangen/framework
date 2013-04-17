@@ -8,7 +8,6 @@ local TaskManager = require "control/taskmanager"
 local World = require "../base/world"
 local Settings = require "settings"
 local PlayBase = require "play/base"
-local TaskHalt = require "task/halt"
 local Plays = require "play/plays"
 
 local Coordinator = (require "../base/class").new("Control.Coordinator")
@@ -30,8 +29,6 @@ function Coordinator:init()
 	
 	self._play = nil
 	self._forcePlay = nil
-	
-	self._haltTasks = {}
 end
 
 function Coordinator:run()
@@ -46,7 +43,6 @@ function Coordinator:run()
 	for _, pool in pairs(self._pools) do
 		pool:run()
 	end
-	self:_haltUnoccupiedRobots()
 	
 	self._taskmanager:run()
 end
@@ -105,19 +101,6 @@ function Coordinator:_updatePoolRobots()
 				end
 			end
 		until groupFinished
-	end
-end
-
-function Coordinator:_haltUnoccupiedRobots()
-	for _, robot in ipairs(World.FriendlyRobots) do
-		if not self._taskmanager:task(robot) then
-			local haltTask = self._haltTasks[robot]
-			if not haltTask then
-				haltTask = TaskHalt.create(robot)
-				self._haltTasks[robot] = haltTask
-			end
-			self._taskmanager:assign(haltTask)
-		end
 	end
 end
 

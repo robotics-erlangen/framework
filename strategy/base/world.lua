@@ -90,7 +90,6 @@ end
 function World.update()
 	World._updateWorld(amun.getWorldState())
 	World._updateGameState(amun.getGameState())
-	World._haltHiddenRobots()
 end
 
 -- Creates generation specific robot object for own team
@@ -282,18 +281,12 @@ end
 function World.haltOwnRobots()
 	for _, robot in pairs(World.FriendlyRobotsById) do
 		robot:setStandby(true)
-		robot:setControllerInput({})
+		robot:halt()
 	end
 end
 
--- stops every hidden robot
-function World._haltHiddenRobots()
-	for _, robot in pairs(World.FriendlyInvisibleRobots) do
-		robot:setControllerInput({})
-	end
-end
-
---- Set generated commands for our robots
+--- Set generated commands for our robots.
+-- Robots without a command stop by default
 -- @name setRobotCommands
 function World.setRobotCommands()
 	for _, robot in pairs(World.FriendlyRobotsById) do

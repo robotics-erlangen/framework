@@ -1,5 +1,4 @@
-local Base = require "trajectory/base"
-local Direct = (require "../base/class").new("Trajectory.Direct", Base)
+local Direct = (require "../base/class").new("Trajectory.Direct", (require "../base/trajectory").Base)
 local Coordinates = require "../base/coordinates"
 
 function Direct:_init()
