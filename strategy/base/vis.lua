@@ -46,6 +46,10 @@ end
 -- @field pink (255,0,255)
 -- @field turquoise (0,255,255)
 -- @field orange (255, 127, 0)
+-- @field magenta (255, 0, 127)
+-- @field brown (127, 63, 0)
+-- @field skyBlue (127, 191, 255)
+
 -- @field blackHalf (0,0,0)
 -- @field whiteHalf (255,255,255)
 -- @field redHalf (255,0,0)
@@ -55,6 +59,9 @@ end
 -- @field pinkHalf (255,0,255)
 -- @field turquoiseHalf (0,255,255)
 -- @field orangeHalf (255, 127, 0)
+-- @field magentaHalf (255, 0, 127)
+-- @field brownHalf (127, 63, 0)
+-- @field skyBlueHalf (127, 191, 255)
 
 vis.colors = {}
 
