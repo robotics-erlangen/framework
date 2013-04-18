@@ -47,8 +47,10 @@ function Assistant:_run(priorityMessages, notifications)
 	table.insert(intersections, Vector.create(World.Geometry.FieldWidthHalf, linePos.y))
 	local goalEdgeSouthIntersection = geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, Vector.create(-World.Geometry.GoalWidth / 2, World.Geometry.OpponentGoal.y))
 	local goalEdgeNorthIntersection = geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, Vector.create(World.Geometry.GoalWidth / 2, World.Geometry.OpponentGoal.y))
-	table.insert(intersections, goalEdgeSouthIntersection)
-	table.insert(intersections, goalEdgeNorthIntersection)
+	if World.Ball.pos.y < linePos.y then
+		table.insert(intersections, goalEdgeSouthIntersection)
+		table.insert(intersections, goalEdgeNorthIntersection)
+	end
 	local best = 0
 	local bestSpace = -1
 
