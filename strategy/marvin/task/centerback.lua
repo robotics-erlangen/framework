@@ -70,6 +70,10 @@ local function intersectLineWithDefenseArea(onpoint, angle, extraRadius, opp)
 end
 
 function CenterBack:_run()
+	--extra distance to defense area
+	--robot should stay away 1cm from the defense area obstacle specified in base/path
+	local extraDistance = Settings.positionPadding + 0.01
+
 	--get all unoccupied sectors
 	local robots = {}
 	for _,r in ipairs(World.Robots) do
@@ -115,21 +119,21 @@ function CenterBack:_run()
 
 	local selfSectorPos = nil
 	if selfSectorMid then 
-		selfSectorPos = intersectLineWithDefenseArea(World.Ball.pos, selfSectorMid, self._robot.radius, false)
+		selfSectorPos = intersectLineWithDefenseArea(World.Ball.pos, selfSectorMid, self._robot.radius + extraDistance, false)
 	end
 	local maxSectorPos = nil
 	if maxSectorMid then 
-		maxSectorPos = intersectLineWithDefenseArea(World.Ball.pos, maxSectorMid, self._robot.radius, false)
+		maxSectorPos = intersectLineWithDefenseArea(World.Ball.pos, maxSectorMid, self._robot.radius + extraDistance, false)
 	end
 
-	local defaultPos = Vector.create(0, -G.FieldHeightHalf + G.DefenseRadius + self._robot.radius)
+	local defaultPos = Vector.create(0, -G.FieldHeightHalf + G.DefenseRadius + self._robot.radius + extraDistance)
 	if World.Ball.pos.y <= -G.FieldHeightHalf then
 		destinationPos = defaultPos
 	elseif not selfSectorPos then
 		--no free sector
 		if not maxSectorPos then
 			local dir = (Vector.create(0, -G.FieldWidthHalf) - World.Ball.pos):angle()
-			destinationPos = intersectLineWithDefenseArea(World.Ball.pos, dir, self._robot.radius, false)
+			destinationPos = intersectLineWithDefenseArea(World.Ball.pos, dir, self._robot.radius + extraDistance, false)
 		--only one free sector: maxSector
 		else
 			destinationPos = maxSectorPos
