@@ -139,7 +139,7 @@ function Goal.predictShot()
 	local oppBallOwner = Ball.opponentBallOwner()
 	if oppBallOwner and dir:length() <= Settings.slowBall then
 		-- if opponent is close to ball use its orientation
-		dir = Vector.fromAngle(ballOwner.dir)
+		dir = Vector.fromAngle(oppBallOwner.dir)
 	elseif dir:length() > Settings.slowBall then
 		local intersectGoal = geom.intersectLineLine(pos, dir, World.Geometry.FriendlyGoal, Vector.create(1, 0))
 		-- FIXME as the ball is moving also use pass check if it slightly misses the goal
