@@ -2,12 +2,17 @@ local MoveToPos = (require "../base/class").new("Task.MoveToPos", require "task/
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
+local Rating = require "util/rating"
 
 MoveToPos.priority = 1
 
 function MoveToPos:_init(pos, dir)
 	self._pos = pos
 	self._dir = dir
+end
+
+function MoveToPos:_rate()
+	return Rating.posToRating(self._robot, self._pos)
 end
 
 function MoveToPos:_run()
