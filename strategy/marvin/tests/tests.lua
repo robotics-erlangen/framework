@@ -3,6 +3,7 @@ local Tests = {
 	BallTest = require "tests/observer/ball",
 	GameTest = require "tests/observer/game",
 	GoalTest = require "tests/observer/goal",
+	ObserverRobot = require "tests/observer/robot",
 	TaskTests = require "tests/task/tasks"
 }
 
