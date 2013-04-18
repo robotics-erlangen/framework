@@ -16,12 +16,14 @@ local DEBUG = true
 local lastBallOwner
 
 --- Returns the ball owner or the robot that was the last ball owner (hysteresis)
+-- @param robotlist robot[] - the robots which are qualified for being a ball owner (default: World.Robots)
 -- @return lastBallOwner robot - the robot that can be seen as ball owner
-function Ball.ballOwner()
+function Ball.ballOwner(robotlist)
+	robotlist = robotlist or World.Robots
 	--search robot with min dist to ball
 	local minDist = math.huge
 	local ballOwner = nil
-	for _,r in pairs(World.Robots) do
+	for _,r in pairs(robotlist) do
 		local dribblerPos = r.pos + Vector.fromAngle(r.dir):scaleLength(r.shootRadius)
 		local dist = dribblerPos:distanceTo(World.Ball.pos)
 		if dist < minDist and dist <= Settings.ballOwnDistance then
