@@ -53,11 +53,12 @@ function Coordinator:_updatePoolRobots()
 	local attackers = attackRatio * #World.FriendlyRobots
 	attackers = math.roundTowards(attackers, #self._pools.attack:robots(), 0.2)
 	local defenders = (1 - attackRatio) * #World.FriendlyRobots
-	defenders = math.roundTowards(defenders, #self._pools.defense:robots(), 0.2)
+	
 	-- if keeper is on the field, it is managed by the keeper pool
 	if World.FriendlyKeeper and World.FriendlyKeeper.isVisible then
 		defenders = defenders - 1
 	end
+	defenders = math.roundTowards(defenders, #self._pools.defense:robots(), 0.2)
 	
 	-- limit robot counts on attack/defense pool, causes automatic robot balancing
 	self._pools.attack.robotLimit = attackers
@@ -128,9 +129,19 @@ function Coordinator:_updatePlaySelection()
 		end
 	end
 	
+	local hasRobots = false
 	local poolRobots = {}
 	for name, pool in pairs(self._pools) do
-		poolRobots[name] = pool:robots()
+		local robots = pool:robots()
+		poolRobots[name] = robots
+		if #robots > 0 then
+			hasRobots = true
+		end
+	end
+	-- cannot create plays without robots
+	if not hasRobots then
+		self._play = nil
+		return
 	end
 	
 	local ratingGroups = {}
