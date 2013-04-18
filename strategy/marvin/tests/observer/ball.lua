@@ -5,11 +5,15 @@ local World = require "../base/world"
 local vis = require "../base/vis"
 
 function BallTest.testBallOwner()
-	local owner = Ball.ballOwner()
-	if owner then
-		vis.addCircle("Ball Owner", owner.pos, 0.2, vis.colors.pinkHalf, true)
+	local fowner = Ball.friendlyBallOwner()
+	if fowner then
+		vis.addCircle("Ball Owner", fowner.pos, 0.2, vis.colors.skyBlueHalf, true)
 	end
 
+	local oowner = Ball.opponentBallOwner()
+	if oowner then
+		vis.addCircle("Ball Owner", oowner.pos, 0.2, vis.colors.blueHalf, true)
+	end
 end
 
 function BallTest.testAtTime()
