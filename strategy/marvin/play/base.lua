@@ -30,6 +30,7 @@ function Base:init(tm, poolRobots)
 	self._robots = nil
 	self.__startTime = World.Time
 	self._ratingRun = false
+	self._firstRun = true
 	self:_init()
 end
 
@@ -45,6 +46,10 @@ function Base:rate(minRequired, isInit)
 	
 	-- cancel play if a robot is missing
 	if self:state() and self:_hasHiddenRobots() then
+		return Base.rating.no
+	end
+	-- cancel play if it has no robots
+	if (not self._robots or #self._robots == 0) and not self._firstRun then
 		return Base.rating.no
 	end
 
@@ -102,9 +107,14 @@ function Base:_selectRobots(poolRobots)
 end
 
 function Base:run()
+	self._firstRun = false
 	if not self:state() then
 		self:_initState()
-		assert(self._robots and #self._robots > 0, "Where are my robots?")
+		if not self._robots or #self._robots > 0 then
+			-- can only happen for functions enabled via baseRating
+			-- the play is canceled next time
+			return
+		end
 	end
 	
 	-- setup logging
