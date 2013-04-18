@@ -4,6 +4,7 @@ local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
+local Goal = require "observer/goal"
 
 Assistant.priority = 1
 
@@ -22,22 +23,28 @@ local function vecYComp(vec1, vec2)
 end
 
 function Assistant:_run(priorityMessages, notifications)
-	--TODO Obstacles in shoting line and chose 1 of 3 assistant lines
+	--Obstacles
 	self._robot.path:setDefaultObstacles(self._robot, false, false)
 	self._robot.path:addRobotObstacles(self._robot, false, false)
+	local shotPos, shotDir = Goal.predictShot()
+	shotDir = shotDir:copy():setLength(World.Geometry.FieldHeightHalf)
+	local shotTarget = (shotPos+shotDir)
+	self._robot.path:addLine(shotPos.x, shotPos.y, shotTarget.x, shotTarget.y, 0.1)
+	
 	local linePos = Vector.create(0, World.Geometry.FieldHeightQuarter)
 	local lineDir = Vector.create(1,0)
 	--choose 1 of 3 Lines
-	--[[if lineNumber == 0 then
+	if self.lineNumber == 1 then
 		linePos.y = (linePos.y * 0.5)
-	elseif lineNumber == 1 then
+	elseif self.lineNumber == 2 then
 		linePos.y = (linePos.y * 1.0)
 	else
-		linePos.y = (linePos.y * 1.5)
-	end]]--
+		linePos.y = (linePos.y * 1.4)
+	end
+	
 	local intersections = {}
-	table.insert(intersections, Vector.create(-World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightQuarter))
-	table.insert(intersections, Vector.create(World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightQuarter))
+	table.insert(intersections, Vector.create(-World.Geometry.FieldWidthHalf, linePos.y))
+	table.insert(intersections, Vector.create(World.Geometry.FieldWidthHalf, linePos.y))
 	local goalEdgeSouthIntersection = geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, Vector.create(-World.Geometry.GoalWidth / 2, World.Geometry.OpponentGoal.y))
 	local goalEdgeNorthIntersection = geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, Vector.create(World.Geometry.GoalWidth / 2, World.Geometry.OpponentGoal.y))
 	table.insert(intersections, goalEdgeSouthIntersection)
@@ -85,7 +92,7 @@ function Assistant:_run(priorityMessages, notifications)
 			end
 		end
 	end
-	local moveTo = Vector.create(intersections[best].x + (bestSpace/2), World.Geometry.FieldHeightQuarter)
+	local moveTo = Vector.create(intersections[best].x + (bestSpace/2), linePos.y)
 
 	moveTo.x = math.bound(-World.Geometry.FieldWidthHalf + 2 * self._robot.radius, moveTo.x, World.Geometry.FieldWidthHalf - 2 * self._robot.radius)
 	local faceBall = World.Ball.pos-moveTo
