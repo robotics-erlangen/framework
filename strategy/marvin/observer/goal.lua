@@ -91,25 +91,52 @@ function Goal.searchFreeSectors(robotList, opp)
 	local keeper = opp and World.OpponentKeeper or World.FriendlyKeeper
 	local r = World.Ball.radius
 	local m = r/math.sqrt((G.GoalWidth)^2 - r^2)	-- always the positive slope	y = m*x + t
-	local t = (G.FieldHeightHalf - math.sqrt((keeper.radius + r)^2 * (1 + m^2))) * (opp and 1 or -1)
-	local th = (G.GoalWidth/2 - (keeper.radius + 2*r)/math.sqrt(1 + m^2))
-	-- right from the keeper (looking from field towards goal)
-	local s_right, p1_right, p2_right = geom.getInnerTangentsToCircles(keeper.pos, keeper.radius + r, opp and G.OpponentGoalRight or G.FriendlyGoalLeft, r)	-- p1.x > p2.x
-	if math.abs(keeper.pos.y) < (-m) * keeper.pos.x + t then	-- keeper is far enough out of goal, so that one side of the sector is given by the goalposts
-		s_right = geom.intersectLineLine(s_right, (opp and p1_right or p2_right) - s_right, opp and G.OpponentGoalLeft or G.FriendlyGoalRight, Vector.fromAngle(opp and -m or m))
+	--log(tostring(m))
+	if not keeper then	-- no keeper assigned
+		rightSector[1] = math.atan2((opp and -m or m), (opp and -1 or 1))
 		rightSector[2] = math.atan2((opp and -m or m), (opp and 1 or -1))
-		rightSector[1] = ((opp and p1_right or p2_right) - s_right):angle()
-	else
-		if keeper.pos.x * (opp and 1 or -1) > th then
-			-- right sector is empty list, because keeper is so far right, that the ball can't pass between him and the right goalpost
+		local s_right = Vector.create(0, (opp and 1 or -1)*(G.FieldHeightHalf - 0.5*m*G.GoalWidth))
+		return s_right, rightSector, nil, leftSector
+	end
+	log(tostring(keeper.pos))
+	local t = math.sqrt((keeper.radius + r)^2 * (1 + m^2)) * (opp and 1 or -1)
+	local th = (G.GoalWidth/2 - (keeper.radius + 2*r)/math.sqrt(1 + m^2))
+	if (keeper.pos.y - t)*(opp and 1 or -1) > math.abs(m*keeper.pos.x) + G.FieldHeightHalf then
+		rightSector[1] = math.atan2((opp and -m or m), (opp and -1 or 1))
+		rightSector[2] = math.atan2((opp and -m or m), (opp and 1 or -1))
+		local s_right = Vector.create(0, (opp and 1 or -1)*(G.FieldHeightHalf - 0.5*m*G.GoalWidth))
+		return s_right, rightSector, nil, leftSector
+	end
+	-- right from the keeper (looking from field towards goal)
+	local s_right, p1_right, p2_right
+	if keeper.pos:distanceTo(opp and G.OpponentGoalRight or G.FriendlyGoalLeft) > keeper.radius + 2*r then
+		s_right, p1_right, p2_right = geom.getInnerTangentsToCircles(keeper.pos, keeper.radius + r, opp and G.OpponentGoalRight or G.FriendlyGoalLeft, r)	-- p1.x > p2.x
+		if math.abs(keeper.pos.y) < (-m) * keeper.pos.x + G.FieldHeightHalf - t - 0.5*m*G.GoalWidth then	-- keeper is far enough out of goal, so that one side of the sector is given by the goalposts
+			s_right = geom.intersectLineLine(s_right, (opp and p1_right or p2_right) - s_right, opp and G.OpponentGoalLeft or G.FriendlyGoalRight, Vector.fromAngle(opp and -m or m))
+			rightSector[2] = math.atan2((opp and -m or m), (opp and 1 or -1))
+			rightSector[1] = ((opp and p1_right or p2_right) - s_right):angle()
 		else
-			rightSector[1] = (s_right - (opp and p1_right or p2_right)):angle()
-			rightSector[2] = ((opp and p2_right or p1_right) - s_right):angle()
+			if keeper.pos.x * (opp and 1 or -1) > th then
+				-- right sector is empty list, because keeper is so far right, that the ball can't pass between him and the right goalpost
+			else
+				if (p1_right.x - p2_right.x)^2 > 0.0001 then
+					rightSector[1] = (s_right - (opp and p1_right or p2_right)):angle()
+					rightSector[2] = ((opp and p2_right or p1_right) - s_right):angle()
+				else
+				
+				end
+				if keeper.pos.y*(opp and 1 or -1) > G.FieldWidthHalf then
+					p1_right, p2_right = p2_right, p1_right
+				end
+			
+			end
 		end
+	else
+		-- right sector is empty list, because keeper is too close to the right goalpost
 	end
 	-- left from the keeper (looking from field towards goal)
 	local s_left, p1_left, p2_left = geom.getInnerTangentsToCircles(keeper.pos, keeper.radius + r, opp and G.OpponentGoalLeft or G.FriendlyGoalRight, r)	-- p1.x > p2.x
-	if math.abs(keeper.pos.y) < m * keeper.pos.x + t then
+	if math.abs(keeper.pos.y) < m * keeper.pos.x + G.FieldHeightHalf - t - 0.5*m*G.GoalWidth then
 		s_left = geom.intersectLineLine(s_left, (opp and p2_left or p1_left) - s_left, opp and G.OpponentGoalRight or G.FriendlyGoalLeft, Vector.fromAngle(opp and m or -m))
 		leftSector[1] = math.atan2((opp and -m or m), (opp and -1 or 1))
 		leftSector[2] = ((opp and p2_left or p1_left) - s_left):angle()
@@ -117,7 +144,10 @@ function Goal.searchFreeSectors(robotList, opp)
 		if keeper.pos.x * (opp and -1 or 1) > th then
 			-- left sector is empty list, because keeper is so far left, that the ball can't pass between him and the left goalpost
 		else
-			leftSector[1] = (s_left - (opp and p1_left or p2_left))
+			if keeper.pos.y*(opp and 1 or -1) > G.FieldHeightHalf then
+				p1_left, p2_left = p2_left, p1_left
+			end
+			leftSector[1] = (s_left - (opp and p1_left or p2_left)):angle()
 			leftSector[2] = ((opp and p2_left or p1_left) - s_left):angle()
 		end
 	end
