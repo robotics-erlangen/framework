@@ -3,8 +3,7 @@ local Tests = {
 	BallTest = require "tests/observer/ball",
 	GameTest = require "tests/observer/game",
 	GoalTest = require "tests/observer/goal",
-	DirectPass = require "tests/task/directpass",
-	Passing = require "tests/task/passing"
+	TaskTests = require "tests/task/tasks"
 }
 
 for name,s in pairs(Tests) do

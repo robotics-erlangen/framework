@@ -84,12 +84,4 @@ function DirectPassTest:prepareShot()
 	}
 end
 
-local coord = nil
-return { testPlay = function ()
-	if not coord then
-		local Coordinator = require "control/coordinator"
-		coord = Coordinator.create()
-		coord:test(DirectPassTest)
-	end
-	coord:run()
-end}
+return DirectPassTest

@@ -82,12 +82,4 @@ function PassingTest:switchStep2()
 	end
 end
 
-local coord = nil
-return { testPlay = function ()
-	if not coord then
-		local Coordinator = require "control/coordinator"
-		coord = Coordinator.create()
-		coord:test(PassingTest)
-	end
-	coord:run()
-end}
+return PassingTest
