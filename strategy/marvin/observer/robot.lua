@@ -76,4 +76,34 @@ function Robot.minTimeToBall(robot, ball)
 	return distLeft / robot.maxSpeed
 end
 
+-- just an approximation
+function Robot.timeToPos(robot, pos)
+	local moveDir = pos - robot.pos -- assume robot moves directly towards the target
+	local moveLen = moveDir:length()
+	local moveTime = moveLen / robot.maxSpeed
+	if moveLen > robot.maxSpeed then -- use move len as assumed speed
+		moveDir:setLength(robot.maxSpeed) -- v_max
+	end
+	-- v(t) = a_max * t -- movement speed of robot towards it's target. Not fully exact as
+	-- the robot may be moving sidewards, but should be good enough for an estimation
+	
+	-- move to target, but not faster then the robot is capable to drive
+	-- v_max = (p_dest - p_cur):setLength(min(robot.v_max, distToGo)) -- robot won't move with full speed, if near target
+	-- delta_v = v_max - v_cur -- required direction change
+	-- t_accel = |delta_v|/a_max -- time required to accelerate
+	-- t_end = v_max/a_max -- time when the acceleration stops
+	-- d_travel = integrate v(t)dt from (t_end-t_accel) to (t_end) -- distance travelled while accelerating.
+	-- Accounts for robot movment into the wrong direction intially
+	-- solve integrate v_max dt from (0) to (t_min) = d_travel -- time needed for distance if moving with full speed
+	-- t_extra = t_accel - t_min = |delta_v|^2/(2*a_max*v_max) -- extra time needed for accelerating
+	
+	-- if there's no obstacle and were driving towards the target
+	-- then accelTime is nearly zero
+	-- if we have to avoid an obstacle our direction doesn't match what
+	-- is expected thus some time penalty is applied
+	local accelTime = moveDir:distanceTo(robot.speed)^2 / (2 * robot.maxAcceleration * robot.maxSpeed)
+	
+	return moveTime + accelTime
+end
+
 return Robot
