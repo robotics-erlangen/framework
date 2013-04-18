@@ -76,7 +76,7 @@ function Coordinator:_updatePoolRobots()
 		end
 	end
 	local unassignedRobots = {}
-	for _, robot in ipairs(World.FriendlyRobotsById) do
+	for _, robot in pairs(World.FriendlyRobotsById) do
 		if not occupiedRobots[robot.id] then
 			table.insert(unassignedRobots, robot)
 		end
