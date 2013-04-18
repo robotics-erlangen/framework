@@ -26,15 +26,22 @@ function ManMark:_run()
 	self._robot.trajectory:update(ToTarget, preferredPos, preferredDir)
 end
 
-local inst = nil
-function ManMark.test()
-	local robot = World.FriendlyRobots[1]
-	local oppRobot = World.OpponentRobots[1]
-	if robot and oppRobot then
-		inst = inst or ManMark.create(robot, oppRobot)
-		return inst
+function ManMark.factory(position, opponent)
+	local f = function (robots)
+		return ManMark.create(robots[position], opponent)
+	end
+	return f
+end
+
+function ManMark.test(id)
+	if id > 2 then
+		return nil
+	end
+	local opp = World.OpponentRobots[id + 1]
+	if opp then
+		return ManMark.factory(1, opp), 1
 	else
-		inst = nil
+		return nil
 	end
 end
 

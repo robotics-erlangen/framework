@@ -102,15 +102,18 @@ function Assistant:_run(priorityMessages, notifications)
 	return {targetPos = moveTo}
 end
 
-local inst = nil
-function Assistant.test()
-	local robot = World.FriendlyRobots[2]
-	if robot then
-		inst = inst or Assistant.create(robot)
-		return inst
-	else
-		inst = nil
+function Assistant.factory(position)
+	local f = function (robots)
+		return Assistant.create(robots[position])
 	end
+	return f
+end
+
+function Assistant.test(id)
+	if id > 2 then
+		return nil
+	end
+	return Assistant.factory(1), 1
 end
 
 return Assistant

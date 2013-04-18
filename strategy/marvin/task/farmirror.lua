@@ -49,16 +49,18 @@ function FarMirror:_run()
 	self._robot.trajectory:update(ToTarget, pos, math.pi/2)
 end 
 
-
-local inst
-function FarMirror.test()
-	local robot = World.FriendlyRobots[1]
-	if robot then
-		inst = inst or FarMirror.create(robot)
-		return inst
-	else
-		inst = nil
+function FarMirror.factory(position)
+	local f = function (robots)
+		return FarMirror.create(robots[position])
 	end
+	return f
+end
+
+function FarMirror.test(id)
+	if id > 0 then
+		return nil
+	end
+	return FarMirror.factory(1), 1
 end
 
 return FarMirror

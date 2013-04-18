@@ -17,15 +17,18 @@ function MoveToPos:_run()
 	self._robot.trajectory:update(ToTarget, self._pos, self._dir)
 end
 
-local inst = nil
-function MoveToPos.test()
-	local robot = World.FriendlyRobots[1]
-	if robot then
-		inst = inst or MoveToPos.create(robot, Vector.create(0, 0), 0)
-		return inst
-	else
-		inst = nil
+function MoveToPos.factory(position, pos, dir)
+	local f = function (robots)
+		return MoveToPos.create(robots[position], pos, dir)
 	end
+	return f
+end
+
+function MoveToPos.test(id)
+	if id > 2 then
+		return nil
+	end
+	return MoveToPos.factory(1, Vector.create(0, id), 0), 1
 end
 
 return MoveToPos

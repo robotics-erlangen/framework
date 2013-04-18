@@ -175,17 +175,18 @@ function CenterBack:_run()
 	self._robot.trajectory:update(ToTarget, destinationPos, dir)
 end
 
-
-local inst
-function CenterBack.test()
-	local robot = World.FriendlyRobots[2]
-	if robot then
-		inst = inst or CenterBack.create(robot)
-		return inst
-	else
-		inst = nil
+function CenterBack.factory(position)
+	local f = function (robots)
+		return CenterBack.create(robots[position])
 	end
+	return f
 end
 
+function CenterBack.test(id)
+	if id > 0 then
+		return nil
+	end
+	return CenterBack.factory(1), 1
+end
 
 return CenterBack

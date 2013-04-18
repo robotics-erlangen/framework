@@ -31,11 +31,18 @@ function ShootGoalImmediately:_run(priorityMessages, notifications)
 	self._robot:shoot(0, math.huge)
 end
 
-function ShootGoalImmediately.test()
-	local robot = World.FriendlyRobots[1]
-	if robot then
-		ShootGoalImmediately.create(robot)
+function ShootGoalImmediately.factory(position)
+	local f = function (robots)
+		return ShootGoalImmediately.create(robots[position])
 	end
+	return f
+end
+
+function ShootGoalImmediately.test(id)
+	if id > 0 then
+		return nil
+	end
+	return ShootGoalImmediately.factory(1), 1
 end
 
 return ShootGoalImmediately

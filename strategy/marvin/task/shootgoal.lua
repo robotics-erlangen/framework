@@ -90,11 +90,18 @@ function ShootGoal:_run(priorityMessages, notifications)
 	end
 end
 
-function ShootGoal.test()
-	local robot = World.FriendlyRobots[1]
-	if robot then
-		ShootGoal.create(robot)
+function ShootGoal.factory(position)
+	local f = function (robots)
+		return ShootGoal.create(robots[position])
 	end
+	return f
+end
+
+function ShootGoal.test(id)
+	if id > 0 then
+		return nil
+	end
+	return ShootGoal.factory(1), 1
 end
 
 return ShootGoal

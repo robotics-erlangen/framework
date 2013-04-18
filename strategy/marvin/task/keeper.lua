@@ -73,15 +73,11 @@ function Keeper.factory(position)
 	return f
 end
 
-local inst = nil
-function Keeper.test()
-	local robot = World.FriendlyRobots[1]
-	if robot then
-		inst = inst or Keeper.create(robot)
-		return inst
-	else
-		inst = nil
+function Keeper.test(id)
+	if id > 0 then
+		return nil
 	end
+	return Keeper.factory(1), 1
 end
 
 return Keeper

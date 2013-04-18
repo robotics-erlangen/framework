@@ -28,33 +28,18 @@ function ReceivePass:_run(priorityMessages, notifications)
 	end
 end
 
-local inst = nil
-local active = false
-function ReceivePass.test()
-	local robot = World.FriendlyRobots[1]
-	if robot then
-		local MoveToPos = require "task/movetopos"
-		local Field = require "util/field"
-		if World.Ball.speed:length() > 0.7 and World.Ball.speed:absoluteAngleDiff(robot.pos - World.Ball.pos) < 20/180*math.pi then
-			if not active then
-				inst = nil
-			end
-			active = true
-		elseif not World.Ball:isPositionValid() or not Field.isInField(World.Ball.pos, 0) then
-			active = false
-			inst = nil
-		end
-		
-		if active then
-			inst = inst or ReceivePass.create(robot)
-		else
-			inst = inst or MoveToPos.create(robot, Vector.create(1, 2), math.pi)
-		end
-		return inst
-	else
-		inst = nil
-		active = false
+function ReceivePass.factory(position)
+	local f = function (robots)
+		return ReceivePass.create(robots[position])
 	end
+	return f
+end
+
+function ReceivePass.test(id)
+	if id > 0 then
+		return nil
+	end
+	return ReceivePass.factory(1), 1
 end
 
 return ReceivePass

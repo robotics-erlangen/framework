@@ -4,6 +4,7 @@ local Tasks = {
 	CatchBall = require "task/catchball",
 	CenterBack = require "task/centerback",
 	DirectPass = require "task/directpass",
+	Duel = require "task/duel",
 	FarMirror = require "task/farmirror",
 	Keeper = require "task/keeper",
 	ManMark = require "task/manmark",
@@ -16,21 +17,97 @@ local Tasks = {
 }
 
 local TaskManager = require "control/taskmanager"
+local debug = require "../base/debug"
+local World = require "../base/world"
 
 local tm = nil
+local taskFactories = nil
+local instances = {}
 --- Test the task created by taskProvider
 -- @param taskProvider function - function that creates the task to test
 -- @return function - Test function
 local function testWrapper(taskProvider)
 	return function()
 		tm = tm or TaskManager.create()
-		local tasks = { taskProvider() }
-		
-		if #tasks > 0 then
-			for _, t in ipairs(tasks) do
-				tm:assign(t)
+		if not taskFactories then
+			-- get factory functions to create tasks
+			taskFactories = {}
+			while true do
+				-- ask for functions until nil is returned
+				-- taskProvider is called with the current factory id
+				-- has to return a factory function and the required robot count for it
+				local factory, robotCount = taskProvider(#taskFactories)
+				if not factory then
+					break
+				elseif not robotCount then
+					error("robot count missing from task test function")
+				end
+				table.insert(taskFactories, {factory, robotCount})
 			end
 		end
+		
+		local usedRobots = {}
+		local activeInstances = {}
+		-- cleanup old instances
+		for _, inst in ipairs(instances) do
+			local task, robots, fac = inst[1], inst[2], inst[3]
+			local ok = true
+			-- task instance is only kept if all relevant robots are visible
+			for _, r in ipairs(robots) do
+				if not r.isVisible then
+					ok = false
+					break
+				end
+			end
+			if ok then
+				-- keep task instance
+				table.insert(activeInstances, inst)
+				for _, r in ipairs(robots) do
+					usedRobots[r] = true
+				end
+			else
+				-- queue factory for reuse
+				table.insert(taskFactories, fac)
+			end
+		end
+		instances = activeInstances
+		
+		-- get unused robots
+		local unusedRobots = {}
+		for _, r in pairs(World.FriendlyRobots) do
+			if not usedRobots[r] then
+				table.insert(unusedRobots, r)
+			end
+		end
+		
+		-- try to instanties remaining factories
+		while #taskFactories > 0 do
+			local tf = taskFactories[1]
+			local fac, count = tf[1], tf[2]
+			-- check for robot count
+			if #unusedRobots >= count then
+				-- take required robots
+				local robots = {}
+				for i = 1, count do
+					local r = table.remove(unusedRobots, 1)
+					table.insert(robots, r)
+				end
+				-- instantiate task
+				local task = fac(robots)
+				table.remove(taskFactories, 1)
+				table.insert(instances, {task, robots, tf})
+			else
+				break
+			end
+		end
+		
+		-- assign
+		for i, inst in ipairs(instances) do
+			local task = inst[1]
+			debug.set("Task " .. i, task:rate())
+			tm:assign(task)
+		end
+		
 		tm:run()
 	end
 end

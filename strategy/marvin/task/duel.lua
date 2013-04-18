@@ -39,15 +39,18 @@ function Duel:_rate()
 	return Rating.posToRating(self._robot, World.Ball.pos)
 end
 
-local inst
-function Duel.test()
-	local robot = World.FriendlyRobots[1]
-	if robot then
-		inst = inst or Duel.create(robot)
-		return inst
-	else
-		inst = nil
+function Duel.factory(position)
+	local f = function (robots)
+		return Duel.create(robots[position])
 	end
+	return f
+end
+
+function Duel.test(id)
+	if id > 0 then
+		return nil
+	end
+	return Duel.factory(1), 1
 end
 
 return Duel

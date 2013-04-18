@@ -5,7 +5,9 @@ local World = require "../base/world"
 local RobotList = require "util/robotlist"
 local RobotMatcher = require "control/robotmatcher"
 
+local Ball = require "observer/ball"
 local DirectPass = require "task/directpass"
+local ReceivePass = require "task/receivepass"
 local MoveToPos = require "task/movetopos"
 local Field = require "util/field"
 
@@ -55,6 +57,30 @@ function DirectPassTest:prepareActive()
 	self._tasks = {
 		DirectPass.create(self._robots[1], self._robots[2], true),
 		self._tasks[2]
+	}
+end
+
+function DirectPassTest:switchActive()
+	if Ball.isShot() then
+		self:_setState("Shot")
+	end
+end
+
+function DirectPassTest:rateShot()
+	if not World.Ball:isPositionValid() or not Field.isInField(World.Ball.pos, -0.2) then
+		return Base.rating.no
+	end
+	-- end play when the ball was "catched"
+	if self._robots[2]:hasBall(World.Ball) then
+		return Base.rating.no
+	end
+	return Base.rating.yes
+end
+	
+function DirectPassTest:prepareShot()
+	self._tasks = {
+		self._tasks[1],
+		ReceivePass.create(self._robots[2])
 	}
 end
 
