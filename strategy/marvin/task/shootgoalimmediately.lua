@@ -14,7 +14,7 @@ function ShootGoalImmediately:_init()
 end
 
 function ShootGoalImmediately:_rate()
-	if self._robot == Observer.Ball.ballOwner() then
+	if self._robot == Observer.Ball.friendlyBallOwner() then
 		if self._robot:hasBall(World.Ball) then
 			local pointOnGoalLine = geom.intersectLineLine(self._robot.pos, Vector.create(self._robot.dir), World.Geometry.OpponentGoal, Vector.create(1, 0))
 			pointOnGoalLine = pointOnGoalLine or World.Geometry.OpponentGoal -- handle parallel directions
