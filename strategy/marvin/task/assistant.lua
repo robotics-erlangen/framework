@@ -10,6 +10,7 @@ Assistant.priority = 1
 function Assistant:_init(pos, radius)
 	self._pos = pos
 	self._radius = radius
+	self.lineNumber = math.random(3)
 end
 
 local function vecYComp(vec1, vec2)
@@ -20,12 +21,20 @@ local function vecYComp(vec1, vec2)
 	end
 end
 
-function Assistant:_run()
+function Assistant:_run(priorityMessages, notifications)
 	--TODO Obstacles in shoting line and chose 1 of 3 assistant lines
 	self._robot.path:setDefaultObstacles(self._robot, false, false)
 	self._robot.path:addRobotObstacles(self._robot, false, false)
 	local linePos = Vector.create(0, World.Geometry.FieldHeightQuarter)
 	local lineDir = Vector.create(1,0)
+	--choose 1 of 3 Lines
+	--[[if lineNumber == 0 then
+		linePos.y = (linePos.y * 0.5)
+	elseif lineNumber == 1 then
+		linePos.y = (linePos.y * 1.0)
+	else
+		linePos.y = (linePos.y * 1.5)
+	end]]--
 	local intersections = {}
 	table.insert(intersections, Vector.create(-World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightQuarter))
 	table.insert(intersections, Vector.create(World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightQuarter))
@@ -52,6 +61,15 @@ function Assistant:_run()
 		end
 	end
 	
+	--lookup friendly assistants
+	for robot, msg in pairs(priorityMessages) do
+		if msg.targetPos then
+			if msg.targetPos.y < (linePos.y+0.5) and msg.targetPos.y > (linePos.y-0.5) then
+				table.insert(intersections, msg.targetPos)
+			end
+		end
+	end
+	
 	for _, pos in ipairs(intersections) do
 		vis.addCircle("AssistantIntersections", pos, 0.03, blue, true)
 	end
@@ -72,6 +90,7 @@ function Assistant:_run()
 	moveTo.x = math.bound(-World.Geometry.FieldWidthHalf + 2 * self._robot.radius, moveTo.x, World.Geometry.FieldWidthHalf - 2 * self._robot.radius)
 	local faceBall = World.Ball.pos-moveTo
 	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
+	return {targetPos = moveTo}
 end
 
 local inst = nil
