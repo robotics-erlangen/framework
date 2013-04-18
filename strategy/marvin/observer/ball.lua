@@ -10,15 +10,13 @@ local Field = require "util/field"
 local geom = require "../base/geom"
 local debug = require "../base/debug"
 
-local DEBUG = true
 
-
-local lastBallOwner
 
 --- Returns the ball owner or the robot that was the last ball owner (hysteresis)
 -- @param robotlist robot[] - the robots which are qualified for being a ball owner (default: World.Robots)
--- @return lastBallOwner robot - the robot that can be seen as ball owner
-function Ball.ballOwner(robotlist)
+-- @param lastBallOwner - the robot that was the ball owner before, used for hysteresis
+-- @return ballOwner robot - the robot that can be seen as ball owner
+local function ballOwner(robotlist, lastBallOwner)
 	robotlist = robotlist or World.Robots
 	--search robot with min dist to ball
 	local minDist = math.huge
@@ -48,6 +46,24 @@ function Ball.ballOwner(robotlist)
 	return lastBallOwner
 end
 --Ball.ballOwner = Cache.forFrame(Ball.ballOwner)
+
+
+local lastBallOwnerFriendly
+--- Wrapper function for ballOwner
+-- @return ballOwner robot - a friendly robot, or nil
+function Ball.friendlyBallOwner()
+	lastBallOwnerFriendly = ballOwner(World.FriendlyRobots, lastBallOwnerFriendly)
+	return lastBallOwnerFriendly
+end
+
+local lastBallOwnerOpponent
+--- Wrapper function for ballOwner
+-- @return ballOwner robot - an opponent robot, or nil
+function Ball.opponentBallOwner()
+	lastBallOwnerOpponent = ballOwner(World.OpponentRobots, lastBallOwnerOpponent)
+	return lastBallOwnerOpponent
+end
+
 
 
 --- Calculates how long the ball will take to travel the given distance. Return math.huge if the distance is unreachable.
@@ -149,7 +165,7 @@ function Ball.isShot()
 		end
 	end
 
-	if DEBUG then
+	if Settings.DEBUG then
 		debug.set("valid", condValid)
 		debug.set("cooldown", condCooldown)
 		debug.set("accelerates", condAccelerates)

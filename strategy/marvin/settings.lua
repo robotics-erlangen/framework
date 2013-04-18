@@ -1,5 +1,7 @@
 local settings = {}
 
+settings.DEBUG = true -- enables debug output (logs and debug trees)
+
 settings.positionPadding = 0.02 -- safety distance
 
 settings.ballOwnDistance = 0.1 -- we own the ball if it was at least once only 10cm away from our robot

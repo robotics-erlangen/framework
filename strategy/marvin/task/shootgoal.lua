@@ -26,7 +26,7 @@ function ShootGoal:_init()
 end
 
 function ShootGoal:_rate()
-	local ballOwner = Observer.Ball.ballOwner()
+	local ballOwner = Observer.Ball.friendlyBallOwner()
 	if ballOwner == self._robot then
 		if self._robot:hasBall(World.Ball) then
 			local ball = World.Ball
