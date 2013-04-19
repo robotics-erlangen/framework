@@ -12,14 +12,9 @@ local RobotMatcher = require "control/robotmatcher"
 
 ShootGoalImmediately.timeout = 5
 ShootGoalImmediately._conditions = {}
+ShootGoalImmediately.maxRating = Base.rating.force
 
 function ShootGoalImmediately:_init()
-end
-
-function ShootGoalImmediately:_baseRating(minRequiredRating)
-	if minRequiredRating >= Base.rating.referee then
-		return Base.rating.no
-	end
 end
 
 function ShootGoalImmediately:_selectRobots(poolRobots)

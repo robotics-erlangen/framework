@@ -6,16 +6,9 @@ local World = require "../base/world"
 Halt.weight = 100
 Halt.timeout = 3600 -- run "forever"
 Halt.startState = "Halt"
+Halt.maxRating = Base.rating.referee
 
 function Halt:_init()
-end
-
-function Halt:_baseRating(minRequiredRating)
-	if World.RefereeState == "Halt" then
-		return Base.rating.referee
-	else
-		return Base.rating.no
-	end
 end
 
 function Halt:_selectRobots(poolRobots)
@@ -29,6 +22,11 @@ function Halt:_selectRobots(poolRobots)
 end
 
 function Halt:rateHalt()
+	if World.RefereeState == "Halt" then
+		return Base.rating.referee
+	else
+		return Base.rating.no
+	end
 end
 
 function Halt:prepareHalt()

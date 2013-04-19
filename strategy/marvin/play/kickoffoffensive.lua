@@ -14,23 +14,17 @@ local G = World.Geometry
 
 KickoffOffensive.weight = 1000 -- TODO
 KickoffOffensive.timeout = 20 -- TODO
+KickoffOffensive.maxRating = Base.rating.referee
 
 KickoffOffensive._conditions = {} -- TODO use conditions if needed
 
 function KickoffOffensive:_init()
 end
 
-function KickoffOffensive:_baseRating(minRequiredRating)
+local function currentRating()
 	if World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
 		return Base.rating.referee
-	elseif minRequiredRating > Base.rating.referee then 
-		return Base.rating.no
-	end
-end 
-
-
-local function currentRating()
-	if World.RefereeState == "Game" then
+	elseif World.RefereeState == "Game" then
 		-- TODO: 
 		-- Bewertungsfunktionen implementieren:
 		--	Der Play bricht sich ab (Bewertung -> Nein), wenn wir geschossen haben und

@@ -13,14 +13,9 @@ local ShootGoalTask = require "task/shootgoal"
 
 ShootGoal.timeout = 10
 ShootGoal._conditions = {}
+ShootGoal.maxRating = Base.rating.force
 
 function ShootGoal:_init()
-end
-
-function ShootGoal:_baseRating(minRequiredRating)
-	if minRequiredRating > Base.rating.referee then
-		return Base.rating.no
-	end
 end
 
 function ShootGoal:_selectRobots(poolRobots)

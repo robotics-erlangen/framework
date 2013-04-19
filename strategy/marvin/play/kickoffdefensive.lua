@@ -14,19 +14,12 @@ local G = World.Geometry
 
 KickoffDefensive.weight = 1000 -- TODO
 KickoffDefensive.timeout = 20 -- TODO
+KickoffDefensive.maxRating = Base.rating.referee
 
 KickoffDefensive._conditions = {} -- TODO use conditions if needed
 
 function KickoffDefensive:_init()
 end
-
-function KickoffDefensive:_baseRating(minRequiredRating) 
-	if World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
-		return Base.rating.referee
-	elseif minRequiredRating > Base.rating.referee then 
-		return Base.rating.no 
-	end
-end 
 
 function KickoffDefensive:_selectRobots(poolRobots)
 	-- cacheable array manipulations
@@ -35,7 +28,9 @@ function KickoffDefensive:_selectRobots(poolRobots)
 end
 
 function KickoffDefensive:rateDefault(isInit)
-	if World.RefereeState == "Game" then 
+	if World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
+		return Base.rating.referee
+	elseif World.RefereeState == "Game" then 
 		return Base.rating.no 
 	end
 	return Base.rating.no

@@ -19,6 +19,7 @@ Base.reason = {
 Base.weight = 1
 Base.timeout = 15
 Base.startState = "Default"
+Base.maxRating = Base.rating.yes
 
 function Base:init(tm, poolRobots)
 	self._taskmanager = tm
@@ -29,7 +30,6 @@ function Base:init(tm, poolRobots)
 	self._tasks = {}
 	self._robots = nil
 	self.__startTime = World.Time
-	self._ratingRun = false
 	self:_init()
 end
 
@@ -37,6 +37,7 @@ function Base:_init()
 	error("stub")
 end
 
+-- rate[State] is always called if the play is useable
 function Base:rate(minRequired, isInit)
 	-- check for timeout
 	if World.Time > self.__startTime + self.timeout then
@@ -49,38 +50,30 @@ function Base:rate(minRequired, isInit)
 	end
 
 	minRequired = minRequired or Base.rating.no
-	local rating = self:_baseRating(minRequired)
-	if rating then
-		return rating
+	-- check whether play can reach the required rating
+	if minRequired > self.maxRating then
+		return Base.rating.no
 	end
 
+	-- initialize on first run
 	if not self:state() then
-		self:_initState()
+		-- assign robots
+		self._robots = self:_selectRobots(self.__poolRobots)
+		self.__poolRobots = nil
 		
+		-- no suitable robots found -> abort
 		if not self._robots or #self._robots == 0 then
 			return Base.rating.no
 		end
+	
+		-- set state calls switch[State] and thus musn't be called without robots
+		self:_setState(self.startState)
 	end
 	
-	self._ratingRun = true
+	-- get real rating
 	local rating = self["rate" .. self._state](self, isInit)
 	assert(rating ~= nil, "No rating returned!")
 	return rating
-end
-
-function Base:_baseRating(minRequired)
-	error("stub")
-end
-
-function Base:_initState()
-	self._robots = self:_selectRobots(self.__poolRobots) -- assign robots
-	self.__poolRobots = nil
-	
-	if not self._robots then
-		return
-	end
-	
-	self:_setState(self.startState)
 end
 
 function Base:_hasHiddenRobots()
@@ -102,10 +95,7 @@ function Base:_selectRobots(poolRobots)
 end
 
 function Base:run()
-	if not self:state() then
-		self:_initState()
-		assert(self._robots and #self._robots > 0, "Where are my robots?")
-	end
+	assert(self:state(), "A play with rating no must NEVER be run")
 	
 	-- setup logging
 	debug.pushtop("Play")
@@ -116,10 +106,6 @@ function Base:run()
 		debug.set("Pos " .. tostring(i), robot.id)
 	end
 	debug.pop()
-	
-	if not self._ratingRun then
-		self["rate" .. self._state](self)
-	end
 	
 	-- switch state if neccessary
 	local switch = "switch" .. self._state
@@ -134,12 +120,7 @@ function Base:run()
 	
 	-- cleanup
 	debug.pop()
-	self._ratingRun = false
 end
-
---function Base:rate<Default>()
-	--error("stub")
---end
 
 --function Base:rate...()
 	--error("stub")
