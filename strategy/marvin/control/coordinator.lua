@@ -51,14 +51,14 @@ function Coordinator:_updatePoolRobots()
 	-- calculate how many robots to use for attack / defense with hysteresis
 	local attackRatio = self:observeGameState()
 	local attackers = attackRatio * #World.FriendlyRobots
-	attackers = math.roundTowards(attackers, #self._pools.attack:robots(), 0.2)
+	attackers = math.roundUpwards(attackers, 0.1)
 	local defenders = (1 - attackRatio) * #World.FriendlyRobots
 	
 	-- if keeper is on the field, it is managed by the keeper pool
 	if World.FriendlyKeeper and World.FriendlyKeeper.isVisible then
 		defenders = defenders - 1
 	end
-	defenders = math.roundTowards(defenders, #self._pools.defense:robots(), 0.2)
+	defenders = math.roundUpwards(defenders, 0.1)
 	
 	-- limit robot counts on attack/defense pool, causes automatic robot balancing
 	self._pools.attack.robotLimit = attackers
@@ -69,7 +69,7 @@ function Coordinator:_updatePoolRobots()
 		pool:cleanupRobots()
 	end
 	
-	-- find unuassigned robots
+	-- find unassigned robots
 	local occupiedRobots = {}
 	for _, pool in pairs(self._pools) do
 		for _, robot in pairs(pool:robots()) do

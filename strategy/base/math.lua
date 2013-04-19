@@ -31,6 +31,20 @@ function math.roundTowards(val, dest, spacing)
 	end
 end
 
+--- Rounds value upwards.
+-- The function provides a helper to implement hysteresis for certain functions.
+-- Rounds the suffixes in [0.5 - spacing, 1] upwards
+-- @name roundUpwards
+-- @param val number - value to round
+-- @param spacing number - tolerance for rounding up
+function math.roundUpwards(val, spacing)
+	if val + spacing + 0.5 >= math.ceil(val) then
+		return math.ceil(val)
+	else
+		return math.floor(val)
+	end
+end
+
 --- Round value to idp digits
 -- @usage round(1.23, 1) -- 1.2
 -- @name round
