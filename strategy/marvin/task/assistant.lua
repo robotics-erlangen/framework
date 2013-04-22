@@ -89,9 +89,12 @@ function Assistant:_run(priorityMessages, notifications)
 	--takes the biggest free space
 	for i = 1 , #intersections do
 		if i ~= #intersections and intersections[i] ~= goalEdgeSouthIntersection then
-			if intersections[i+1].x - intersections[i].x > bestSpace then
+			local space = intersections[i+1].x - intersections[i].x
+			local distance = math.abs((intersections[i].x + (space / 2)) - self._robot.pos.x)
+			space = space / math.log(distance+math.exp(1))
+			if space > bestSpace then
 				best = i
-				bestSpace = intersections[i+1].x - intersections[i].x
+				bestSpace = space
 			end
 		end
 	end
