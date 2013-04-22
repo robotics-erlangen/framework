@@ -5,6 +5,7 @@ local ToTarget = require "trajectory/totarget"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local Goal = require "observer/goal"
+local Rating = require "util/rating"
 
 Assistant.priority = 1
 
@@ -100,6 +101,11 @@ function Assistant:_run(priorityMessages, notifications)
 	local faceBall = World.Ball.pos-moveTo
 	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
 	return {targetPos = moveTo}
+end
+
+function Assistant:_rate()
+	--(more distance to ball -> 1) * (near the enemy fieldhalf -> 1)
+	return ((1 - Rating.posToRating(self._robot, World.Ball.pos))*math.bound(0, ((self._robot.pos.y+World.Geometry.FieldHeightHalf)/(2.2*World.Geometry.FieldHeightQuarter)), 1))
 end
 
 function Assistant.factory(position)
