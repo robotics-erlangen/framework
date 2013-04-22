@@ -4,6 +4,8 @@ local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Settings = require "settings"
 local Shoot = require "observer/shoot"
+local Robot = require "observer/Robot"
+local Rating = require "util/rating"
 
 
 DirectPass.priority = 4
@@ -66,6 +68,10 @@ function DirectPass:_run(priorityMessages, notifications)
 
 	local passSpeed = 2
 	self:_shoot(targetPos, passSpeed, self._linearShoot, Settings.shootProbabilityThreshold)
+end
+
+function DirectPass:_rate()
+	return Rating.timeToRating(Robot.minTimeToBall(self._robot, World.Ball))
 end
 
 function DirectPass.factory(position, positionTarget, linearShoot)
