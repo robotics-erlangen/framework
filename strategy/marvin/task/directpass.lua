@@ -66,7 +66,7 @@ function DirectPass:_run(priorityMessages, notifications)
 
 	-- check for obstacles
 
-	local passSpeed = 2
+	local passSpeed = 3
 	self:_shoot(targetPos, passSpeed, self._linearShoot, Settings.shootProbabilityThreshold)
 end
 
