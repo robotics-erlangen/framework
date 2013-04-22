@@ -1,5 +1,7 @@
 --- Loads every play and publishes test functions
 local Plays = {
+	DefaultDuel = require "play/defaultduel",
+	DefaultPass = require "play/defaultpass",
 	Halt = require "play/halt",
 	KickoffOffensive = require "play/kickoffoffensive",
 	KickoffDefensive = require "play/kickoffdefensive",
