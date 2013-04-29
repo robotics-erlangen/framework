@@ -4,6 +4,7 @@ local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
+local Rating = require "util/rating"
 local Goal = require "observer/goal"
 local G = World.Geometry
 
@@ -11,6 +12,7 @@ CenterBack.priority = 5
 
 function CenterBack:_init()
 end
+
 
 --- Returns the closest intersection point of a line with the defense area to onpoint
 -- @param onpoint Vector - a point on the line
@@ -69,7 +71,7 @@ local function intersectLineWithDefenseArea(onpoint, angle, extraRadius, opp)
 	return minIntersection
 end
 
-function CenterBack:_run()
+local function calculatePosition(robot)
 	--extra distance to defense area
 	--robot should stay away 1cm from the defense area obstacle specified in base/path
 	local extraDistance = Settings.positionPadding + 0.01
@@ -77,14 +79,14 @@ function CenterBack:_run()
 	--get all unoccupied sectors
 	local robots = {}
 	for _,r in ipairs(World.Robots) do
-		if r ~= self._robot and r.pos.y < World.Ball.pos.y then
+		if r ~= robot and r.pos.y < World.Ball.pos.y then
 			table.insert(robots, r)
 		end
 	end
 	local freeSectors = Goal.freeSectors(World.Ball.pos, robots, false)
 
 	--determine, in which sector the robot stands, if any
-	local selfAngle = (self._robot.pos - World.Ball.pos):angle()
+	local selfAngle = (robot.pos - World.Ball.pos):angle()
 	local isInSector = false
 	local selfSectorIndex
 	local selfSectorSize
@@ -109,7 +111,7 @@ function CenterBack:_run()
 			if size > maxSectorSize then
 				maxSectorIndex = i
 				maxSectorSize = size
-				maxSectorMid = (freeSectors[i][2] + freeSectors[i][1])/2
+				maxSectorMid = (freeSectors[i][2] + freeSectors[i][1])*0.5
 			end
 		end
 	end
@@ -119,21 +121,21 @@ function CenterBack:_run()
 
 	local selfSectorPos = nil
 	if selfSectorMid then 
-		selfSectorPos = intersectLineWithDefenseArea(World.Ball.pos, selfSectorMid, self._robot.radius + extraDistance, false)
+		selfSectorPos = intersectLineWithDefenseArea(World.Ball.pos, selfSectorMid, robot.radius + extraDistance, false)
 	end
 	local maxSectorPos = nil
 	if maxSectorMid then 
-		maxSectorPos = intersectLineWithDefenseArea(World.Ball.pos, maxSectorMid, self._robot.radius + extraDistance, false)
+		maxSectorPos = intersectLineWithDefenseArea(World.Ball.pos, maxSectorMid, robot.radius + extraDistance, false)
 	end
 
-	local defaultPos = Vector.create(0, -G.FieldHeightHalf + G.DefenseRadius + self._robot.radius + extraDistance)
+	local defaultPos = Vector.create(0, -G.FieldHeightHalf + G.DefenseRadius + robot.radius + extraDistance)
 	if World.Ball.pos.y <= -G.FieldHeightHalf then
 		destinationPos = defaultPos
 	elseif not selfSectorPos then
 		--no free sector
 		if not maxSectorPos then
 			local dir = (Vector.create(0, -G.FieldWidthHalf) - World.Ball.pos):angle()
-			destinationPos = intersectLineWithDefenseArea(World.Ball.pos, dir, self._robot.radius + extraDistance, false)
+			destinationPos = intersectLineWithDefenseArea(World.Ball.pos, dir, robot.radius + extraDistance, false)
 		--only one free sector: maxSector
 		else
 			destinationPos = maxSectorPos
@@ -144,7 +146,7 @@ function CenterBack:_run()
 			destinationPos = selfSectorPos
 		--more free sectors
 		else
-			local maxSectorMoreWay = self._robot.pos:distanceTo(maxSectorPos) - self._robot.pos:distanceTo(selfSectorPos)
+			local maxSectorMoreWay = robot.pos:distanceTo(selfSectorPos)
 			if maxSectorMoreWay < 0 then
 				maxSectorMoreWay = 0
 			end
@@ -169,10 +171,25 @@ function CenterBack:_run()
 	--calculate destinationDir
 	local dir = (destinationPos - Vector.create(0, -G.FieldHeightHalf)):angle()
 
+	return destinationPos, dir
+end
+
+function CenterBack:_run()
+	local destinationPos, dir = calculatePosition(self._robot)
+
 	--move robot
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
 	self._robot.trajectory:update(ToTarget, destinationPos, dir)
+end
+
+function CenterBack:_rate()
+	local destinationPos, dir = calculatePosition(self._robot)
+
+	self._preferredDir = dir
+	self._preferredPos = destinationPos
+
+	return Rating.posToRating(self._robot, self._preferredPos)
 end
 
 function CenterBack.factory(position)
