@@ -5,6 +5,7 @@ local G = World.Geometry
 local Interval = require "util/interval"
 local Ball = require "observer/ball"
 local geom = require "../base/geom"
+local vis = require "../base/vis"
 
 --- returns a list of all non-free sectors
 -- but OBACHT! do not use outside of observer/goal.lua
@@ -99,18 +100,46 @@ function Goal.searchFreeSectors(robotList, opp)
 		return s_right, rightSector, nil, leftSector
 	end
 	log(tostring(keeper.pos))
-	local t = math.sqrt((keeper.radius + r)^2 * (1 + m^2)) * (opp and 1 or -1)
-	local th = (G.GoalWidth/2 - (keeper.radius + 2*r)/math.sqrt(1 + m^2))
-	if (keeper.pos.y - t)*(opp and 1 or -1) > math.abs(m*keeper.pos.x) + G.FieldHeightHalf then
+	local R = keeper.radius + r
+	local t = math.sqrt(r^2 * (1 + m^2)) * (opp and 1 or -1)
+	local d = math.sqrt(R^2 * (1 + m^2)) * (opp and 1 or -1)
+	local th = (G.GoalWidth/2 - (R + r)/math.sqrt(1 + m^2))
+	--
+	local midp = Vector.create(0, G.FieldHeightHalf-t+d)
+	local leftp = midp + Vector.fromAngle(math.atan2(-m, -1))*4
+	local rightp = midp + Vector.fromAngle(math.atan2(-m, 1))*4
+	vis.addPath("triangle", {leftp, midp, rightp}, vis.black)
+	--
+	if (keeper.pos.y)*(opp and 1 or -1) > -math.abs(m*keeper.pos.x) + G.FieldHeightHalf -t+d then
 		rightSector[1] = math.atan2((opp and -m or m), (opp and -1 or 1))
 		rightSector[2] = math.atan2((opp and -m or m), (opp and 1 or -1))
 		local s_right = Vector.create(0, (opp and 1 or -1)*(G.FieldHeightHalf - 0.5*m*G.GoalWidth))
 		return s_right, rightSector, nil, leftSector
 	end
+	local mid = Vector.create(0, G.FieldHeightHalf - t)
 	-- right from the keeper (looking from field towards goal)
 	local s_right, p1_right, p2_right
-	if keeper.pos:distanceTo(opp and G.OpponentGoalRight or G.FriendlyGoalLeft) > keeper.radius + 2*r then
-		s_right, p1_right, p2_right = geom.getInnerTangentsToCircles(keeper.pos, keeper.radius + r, opp and G.OpponentGoalRight or G.FriendlyGoalLeft, r)	-- p1.x > p2.x
+	local gright = opp and G.OpponentGoalRight or G.FriendlyGoalLeft
+	local gleft = opp and G.OpponentGoalLeft or G.FriendlyGoalRight
+	if keeper.pos:distanceTo(opp and G.OpponentGoalRight or G.FriendlyGoalLeft) > R + r then
+		local tp1, tp2 = geom.getTangentsToCircle(gright, keeper.pos, R)
+		local tp
+		local diff = tp1.x - tp2.x
+		if diff > 0.01 then
+			tp = opp and tp1 or tp2
+		elseif diff < -0.01 then
+			tp = opp and tp2 or tp1
+		else
+			diff = tp1.y - tp2.y
+			if diff > 0 then
+				tp = opp and tp2 or tp1
+			else
+				tp = opp and tp1 or tp2
+			end
+		end
+		vis.addCircle("c", tp, 0.1)
+		s_right = geom.intersectLinesByPoints(gleft, mid, gright, tp)
+		--[[s_right, p1_right, p2_right = geom.getInnerTangentsToCircles(keeper.pos, keeper.radius + r, opp and G.OpponentGoalRight or G.FriendlyGoalLeft, r)	-- p1.x > p2.x
 		if math.abs(keeper.pos.y) < (-m) * keeper.pos.x + G.FieldHeightHalf - t - 0.5*m*G.GoalWidth then	-- keeper is far enough out of goal, so that one side of the sector is given by the goalposts
 			s_right = geom.intersectLineLine(s_right, (opp and p1_right or p2_right) - s_right, opp and G.OpponentGoalLeft or G.FriendlyGoalRight, Vector.fromAngle(opp and -m or m))
 			rightSector[2] = math.atan2((opp and -m or m), (opp and 1 or -1))
@@ -130,6 +159,17 @@ function Goal.searchFreeSectors(robotList, opp)
 				end
 			
 			end
+		end]]--
+		if keeper.pos.y*(opp and 1 or -1) > G.FieldHeightHalf - m*keeper.pos.x - d - t then
+			if keeper.pos.x * (opp and 1 or -1) > th then
+			
+			else
+				rightSector[2] = (tp - s_right):angle()
+				rightSector[1] = (gright - keeper.pos):angle()
+			end
+		else
+			rightSector[1] = math.atan2(opp and -m or m, opp and 1 or -1)
+			rightSector[2] = (tp - s_right):angle()
 		end
 	else
 		-- right sector is empty list, because keeper is too close to the right goalpost
