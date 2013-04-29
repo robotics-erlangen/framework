@@ -5,9 +5,6 @@ local ToTarget = require "trajectory/totarget"
 local Field = require "util/field"
 local Rating = require "util/rating"
 
-local preferredDir
-local preferredPos
-
 ManMark.priority = 3
 
 function ManMark:_init(targetRobot)
@@ -18,7 +15,7 @@ function ManMark:_run()
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
 
-	self._robot.trajectory:update(ToTarget, preferredPos, preferredDir)
+	self._robot.trajectory:update(ToTarget, self._preferredPos, self._preferredDir)
 end
 
 function ManMark:_rate()
@@ -27,11 +24,11 @@ function ManMark:_rate()
 
 	--preferred position in front of the target robot in direction to the ball
 	local midpointDistance = self._targetRobot.radius + self._robot.radius + Settings.markingDistance
-	preferredDir = (ballPos - targetPos):angle()
-	preferredPos = (ballPos - targetPos):setLength(midpointDistance) + targetPos
-	preferredPos = Field.limitToAllowedField(preferredPos, self._robot.radius)
+	self._preferredDir = (ballPos - targetPos):angle()
+	self._preferredPos = (ballPos - targetPos):setLength(midpointDistance) + targetPos
+	self._preferredPos = Field.limitToAllowedField(self._preferredPos, self._robot.radius)
 	
-	return Rating.posToRating(self._robot, preferredPos)
+	return Rating.posToRating(self._robot, self._preferredPos)
 end
 
 function ManMark.factory(position, opponent)
