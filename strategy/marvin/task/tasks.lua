@@ -104,7 +104,7 @@ local function testWrapper(taskProvider)
 		-- assign
 		for i, inst in ipairs(instances) do
 			local task = inst[1]
-			debug.set("Task " .. i, task:rate())
+			debug.set("Task " .. i, tm:simulate(task))
 			tm:assign(task)
 		end
 		

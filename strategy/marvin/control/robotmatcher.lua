@@ -5,7 +5,7 @@ local Cache = require "../base/cache"
 -- the matches are generated incrementally
 -- conditions are per position, a condition is guaranteed that all positions before the current one are already setup
 -- reuse conditions list whenever possible
-function RobotMatcher.match(robots, robotCount, conditions, lastMatching)
+function RobotMatcher.match(taskmanager, robots, robotCount, conditions, lastMatching)
 	if #robots < robotCount then
 		return
 	elseif robotCount == 0 then
@@ -59,7 +59,7 @@ function RobotMatcher.match(robots, robotCount, conditions, lastMatching)
 					break
 				end
 				local task = cond(match)
-				local taskRating = task:rate()
+				local taskRating = taskmanager:simulate(task)
 				assert(taskRating >= 0 and taskRating <= 1, "Invalid task rating!")
 				rating = rating * taskRating
 			end

@@ -20,7 +20,7 @@ end
 function ShootGoalImmediately:_selectRobots(poolRobots)
 	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
 	robots = RobotList.join(robots, poolRobots.keeper)
-	return RobotMatcher.match(robots, 1, self._conditions)
+	return RobotMatcher.match(self._taskmanager, robots, 1, self._conditions)
 end
 
 function ShootGoalImmediately:prepareDefault()
@@ -28,7 +28,7 @@ function ShootGoalImmediately:prepareDefault()
 end
 
 function ShootGoalImmediately:rateDefault(isInit)
-	local goalProbability = self._tasks[1]:rate()
+	local goalProbability = self._taskmanager:simulate(self._tasks[1])
 	if goalProbability > 0.92836 then -- warning! magic constant
 		return Base.rating.force
 	elseif goalProbability > 0.79731 then -- warning! magic constant

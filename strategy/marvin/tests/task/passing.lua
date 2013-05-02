@@ -24,7 +24,7 @@ end
 function PassingTest:_selectRobots(poolRobots)
 	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
 	robots = RobotList.join(robots, poolRobots.keeper)
-	return RobotMatcher.match(robots, 2, PassingTest._conditions)
+	return RobotMatcher.match(self._taskmanager, robots, 2, PassingTest._conditions)
 end
 
 function PassingTest:rateDefault(isInit)

@@ -64,4 +64,28 @@ function TaskManager:run()
 	self._assignment = {}
 end
 
+function TaskManager:simulate(task)
+	local priorityMessages = {}
+	local notifications = {}
+	local robot = task:robot()
+	
+	-- create message tables for task
+	for lrobot, message in pairs(self._messages) do
+		local currentTask = self._lastAssignment[lrobot]
+		-- dropping messages for tasks that changed can't be done here
+		-- don't send own message to task
+		if currentTask and currentTask:robot() ~= robot then
+			-- currentTask has priority if his priority is higher then task's priority or when both are equal and his robot id is lower
+			if currentTask.priority > task.priority
+					or (currentTask.priority == task.priority and lrobot.id < robot.id) then
+				priorityMessages[lrobot] = message
+			else
+				notifications[lrobot] = message
+			end
+		end
+	end
+	
+	return task:rate(priorityMessages, notifications)
+end
+
 return TaskManager

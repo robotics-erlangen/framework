@@ -32,7 +32,7 @@ function Base:run(priorityMessages, notifications)
 	debug.set(nil, self.className)
 	
 	if not self._ratingRun then
-		self:rate()
+		self:rate(priorityMessages, notifications)
 	end
 	
 	local msg = self:_run(priorityMessages, notifications)
@@ -45,9 +45,10 @@ function Base:run(priorityMessages, notifications)
 	return msg
 end
 
-function Base:rate()
+function Base:rate(priorityMessages, notifications)
+	assert(priorityMessages ~= nil and notifications ~= nil, "rate must be called with messages!")
 	self._ratingRun = true
-	return self:_rate()
+	return self:_rate(priorityMessages, notifications)
 end
 
 function Base:_rate()

@@ -47,7 +47,7 @@ function Base:_assignTasks()
 end
 
 function Base:_assignRobots()
-	self._robots = RobotMatcher.match(self._robots, #self._robots, self._conditions)
+	self._robots = RobotMatcher.match(self._taskmanager, self._robots, #self._robots, self._conditions)
 	self._robotsDirty = false
 	
 	--regnerate tasks list

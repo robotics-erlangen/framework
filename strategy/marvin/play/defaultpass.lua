@@ -24,7 +24,7 @@ end
 function DefaultPass:_selectRobots(poolRobots)
 	-- cacheable array manipulations
 	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
-	return RobotMatcher.match(robots, 2, DefaultPass._conditions)
+	return RobotMatcher.match(self._taskmanager, robots, 2, DefaultPass._conditions)
 end
 
 -- attack no opponent has the ball
