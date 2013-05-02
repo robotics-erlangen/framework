@@ -1,5 +1,6 @@
 local Defense = (require "../base/class").new("Pool.Defense", require "pool/base")
 local CenterBack = require "task/centerback"
+local ManMark = require "task/manmark"
 local World = require "../base/world"
 
 -- TODO: generate conditions
@@ -9,7 +10,12 @@ function Defense:_updateTasks()
 	if #self._robots > 0 and not self._tasks[1] then
 		self._tasks[1] = CenterBack.create(self._robots[1])
 	end
-	-- TODO: default behaviour
+	
+	for i = 2, #self._robots do
+		if not self._tasks[i] then
+			self._tasks[i] = ManMark.create(self._robots[i])
+		end
+	end
 end
 
 function Defense:_takeRobot(robots)
