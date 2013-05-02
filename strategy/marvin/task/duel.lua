@@ -33,6 +33,7 @@ function Duel:_run()
 		-- if we have the ball, but at least one opponent is nearby
 		contest()
 	end
+	return { defendedOpponent = opposer }
 end
 
 function Duel:_rate()
