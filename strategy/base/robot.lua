@@ -128,14 +128,14 @@ function Robot:_setSpecs(specs)
 	end
 	if specs.acceleration then
 		self.acceleration = {}
-		self.acceleration.aSpeedupFMax = specs.acceleration.a_speedup_f_max or 0
-		self.acceleration.aSpeedupSMax = specs.acceleration.a_speedup_s_max or 0
-		self.acceleration.aSpeedupPhiMax = specs.acceleration.a_speedup_phi_max or 0
-		self.acceleration.aBrakePhiMax = specs.acceleration.a_brake_phi_max or 0
-		self.acceleration.aBrakePhiMax = specs.acceleration.a_brake_phi_max or 0
-		self.acceleration.aBrakePhiMax = specs.acceleration.a_brake_phi_max or 0
+		self.acceleration.aSpeedupFMax = specs.acceleration.a_speedup_f_max or 1.0
+		self.acceleration.aSpeedupSMax = specs.acceleration.a_speedup_s_max or 1.0
+		self.acceleration.aSpeedupPhiMax = specs.acceleration.a_speedup_phi_max or 1.0
+		self.acceleration.aBrakeFMax = specs.acceleration.a_brake_f_max or 1.0
+		self.acceleration.aBrakeSMax = specs.acceleration.a_brake_s_max or 1.0
+		self.acceleration.aBrakePhiMax = specs.acceleration.a_brake_phi_max or 1.0
 		
-		self.maxAcceleration = specs.acceleration.a_speedup_f_max or 1.0 -- magic constant
+		self.maxAcceleration = specs.acceleration.a_speedup_f_max or 1.0
 	end
 end
 
