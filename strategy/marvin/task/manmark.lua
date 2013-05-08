@@ -51,9 +51,8 @@ function ManMark:_rate(priorityMessages, notifications)
 	self._targetRobot = nil
 	if #remainingOpponents > 0 then
 		self._targetRobot = remainingOpponents[1]
-	else
-		-- FIXME better fallback
-		self._targetRobot = nil
+	else -- fallback when no opponent
+		self._targetRobot = {pos=Vector.create(0,0), radius=0.15}
 	end
 	
 	-- FIXME place near defense
