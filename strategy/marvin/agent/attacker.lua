@@ -1,4 +1,5 @@
 local Attacker = (require "../base/class").new("Agent.Attacker", require "agent/base")
+local World = require "../base/world"
 local Assistant = require "task/assistant"
 
 function Attacker.takeRobot(robots)
@@ -14,7 +15,9 @@ function Attacker:keepRobot()
 end
 
 function Attacker:_run(priorityMessages, notifications, trainerMessage)
-	self._task = Assistant.create(self._robot)
+	if not self._task then
+		self._task = Assistant.create(self._robot)
+	end
 	return {}
 end
 

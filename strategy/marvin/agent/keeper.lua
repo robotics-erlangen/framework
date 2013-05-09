@@ -13,11 +13,13 @@ function Keeper.takeRobot(robots)
 end
 
 function Keeper:keepRobot()
-	return robot.isVisible and robot == World.FriendlyKeeper
+	return self._robot.isVisible and self._robot == World.FriendlyKeeper
 end
 
 function Keeper:_run(priorityMessages, notifications, trainerMessage)
-	self._task = Assistant.create(self._robot)
+	if not self._task then
+		self._task = KeeperTask.create(self._robot)
+	end
 	return {}
 end
 

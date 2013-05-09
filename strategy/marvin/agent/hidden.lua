@@ -10,11 +10,13 @@ function Hidden.takeRobot(robots)
 end
 
 function Hidden:keepRobot()
-	return not robot.isVisible
+	return not self._robot.isVisible
 end
 
 function Hidden:_run(priorityMessages, notifications, trainerMessage)
-	--self._task = RescueRobot.create(self._robot)
+	if not self._task then
+		--self._task = RescueRobot.create(self._robot)
+	end
 	return {}
 end
 
