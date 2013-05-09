@@ -5,6 +5,9 @@ local Ball = require "observer/ball"
 local Rating = require "util/rating"
 local Learning = require "util/learning"
 local Debug = require "../base/debug"
+local Field = require "util/field"
+local Constants = require "../base/constants"
+local Direct = require "trajectory/direct"
 
 Duel.priority = 4
 
@@ -27,17 +30,36 @@ function Duel:_contest()
 	-- 1. choose duel strategy (learning):
 	if not self.strategy or self.strategy == 0 then
 		self.strategy = Learning.decide(successRates)
+		if Settings.DEBUG then
+			log("duel strategy "..self.strategy)
+		end
 	end
-	if self.strategy == 1 then
-		log("duel strategy: dribbler")
-	--   a)	use dribbler and move backwards
-	--	success, if the ball is still in the dribbler after a short distance
-	--	failure, if we loose the ball
+	if self.strategy == 1 then --dribble backwards and chip over the opponent
+		-- use dribbler
+		self._robot:setDribblerSpeed(1)
+		if not self.backwardsStartPoint then
+			self.backwardsStartPoint = self._robot.pos
+		else
+			-- if moved to illegal positions (out of field, friendly defense area) then fail
+			local movedDist = self.backwardsStartPoint:distanceTo(self._robot.pos)
+			if not Field.isInField(self._robot.pos, 0)
+					or Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
+				self.strategy = 2
+				self:_evaluateStrategy(false)
+				return nil
+			end
+			-- if moved to far then fail (20cm should be enough)
+			if movedDist > 0.2 then
+				self:_evaluateStrategy(false)
+				return nil
+			end
+			-- else move backwards
+			local toBallDir = World.Ball.pos - self._robot.pos
+			local backwards = toBallDir:copy():scaleLength(-Settings.dribbleDriveSpeed)
+			self._robot.trajectory:update(Direct, backwards, toBallDir:angle())
+		end
 	elseif self.strategy == 2 then
-		log("duel strategy: rotate")
 	--   b) use dribbler and rotate/shoot instantly
-	--	success, if a friendly robot gets the ball
-	--	failure, if an opponent gets the ball or the ball leaves the field
 	else
 	--   c) ???
 		error("duel strategy "..self.strategy.." not implemented")
@@ -49,11 +71,16 @@ function Duel:_contest()
 	return assistantPos
 end
 
+function Duel:_reset()
+	self.strategy = 0
+	self.backwardsStartPoint = nil
+end
+
 function Duel:_evaluateStrategy(pwned)
 	if self.strategy and self.strategy ~= 0 then
 		Learning.report(successRates, self.strategy, pwned)	
-		self.strategy = 0
 	end
+	self:_reset()
 end
 
 
