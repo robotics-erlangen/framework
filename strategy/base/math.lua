@@ -84,4 +84,18 @@ function math.solveSq(a, b, c)
 	end
 end
 
+--- "Calculates" the signum of a number
+-- @name sign
+-- @param number number
+-- @return number - 1 for postive number, -1 for negative number, 0 for 0
+function math.sign(number)
+	if number > 0 then
+		return 1
+	elseif number < 0 then
+		return -1
+	else
+		return 0
+	end
+end
+
 return math

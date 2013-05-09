@@ -99,17 +99,17 @@ function Goal.searchFreeSectors(robotList, opp)
 		local s_right = Vector.create(0, (opp and 1 or -1)*(G.FieldHeightHalf - 0.5*m*G.GoalWidth))
 		return s_right, rightSector, nil, leftSector
 	end
-	log(tostring(keeper.pos))
+	--log(tostring(keeper.pos))
 	local R = keeper.radius + r
 	local t = math.sqrt(r^2 * (1 + m^2)) * (opp and 1 or -1)
 	local d = math.sqrt(R^2 * (1 + m^2)) * (opp and 1 or -1)
 	local th = (G.GoalWidth/2 - (R + r)/math.sqrt(1 + m^2))
-	--
+	--[[
 	local midp = Vector.create(0, G.FieldHeightHalf-t+d)
 	local leftp = midp + Vector.fromAngle(math.atan2(-m, -1))*4
 	local rightp = midp + Vector.fromAngle(math.atan2(-m, 1))*4
 	vis.addPath("triangle", {leftp, midp, rightp}, vis.black)
-	--
+	]]--
 	if (keeper.pos.y)*(opp and 1 or -1) > -math.abs(m*keeper.pos.x) + G.FieldHeightHalf -t+d then
 		rightSector[1] = math.atan2((opp and -m or m), (opp and -1 or 1))
 		rightSector[2] = math.atan2((opp and -m or m), (opp and 1 or -1))
@@ -117,79 +117,99 @@ function Goal.searchFreeSectors(robotList, opp)
 		return s_right, rightSector, nil, leftSector
 	end
 	local mid = Vector.create(0, G.FieldHeightHalf - t)
-	-- right from the keeper (looking from field towards goal)
-	local s_right, p1_right, p2_right
 	local gright = opp and G.OpponentGoalRight or G.FriendlyGoalLeft
 	local gleft = opp and G.OpponentGoalLeft or G.FriendlyGoalRight
-	if keeper.pos:distanceTo(opp and G.OpponentGoalRight or G.FriendlyGoalLeft) > R + r then
-		local tp1, tp2 = geom.getTangentsToCircle(gright, keeper.pos, R)
-		local tp
-		local diff = tp1.x - tp2.x
-		if diff > 0.01 then
-			tp = opp and tp1 or tp2
-		elseif diff < -0.01 then
-			tp = opp and tp2 or tp1
+	-- right from the keeper (looking from field towards goal)
+	local s_right
+	if keeper.pos:distanceTo(gright) > R + r then
+		local tp1, tp2 = geom.getTangentsToCircle(gright, keeper.pos, R) -- tangents from the goalpost onto the keeper
+		if geom.checkTriangleOrientation(gright, keeper.pos, tp1) == 1 then
+			-- tp1 = tp1
+		elseif geom.checkTriangleOrientation(gright, keeper.pos, tp2) == 1 then
+			tp1, tp2 = tp2, tp1
 		else
-			diff = tp1.y - tp2.y
-			if diff > 0 then
-				tp = opp and tp2 or tp1
-			else
-				tp = opp and tp1 or tp2
+			if math.abs(tp1.y) > math.abs(tp2.y) then
+				tp1, tp2 = tp2, tp1
 			end
 		end
-		vis.addCircle("c", tp, 0.1)
-		s_right = geom.intersectLinesByPoints(gleft, mid, gright, tp)
-		--[[s_right, p1_right, p2_right = geom.getInnerTangentsToCircles(keeper.pos, keeper.radius + r, opp and G.OpponentGoalRight or G.FriendlyGoalLeft, r)	-- p1.x > p2.x
-		if math.abs(keeper.pos.y) < (-m) * keeper.pos.x + G.FieldHeightHalf - t - 0.5*m*G.GoalWidth then	-- keeper is far enough out of goal, so that one side of the sector is given by the goalposts
-			s_right = geom.intersectLineLine(s_right, (opp and p1_right or p2_right) - s_right, opp and G.OpponentGoalLeft or G.FriendlyGoalRight, Vector.fromAngle(opp and -m or m))
-			rightSector[2] = math.atan2((opp and -m or m), (opp and 1 or -1))
-			rightSector[1] = ((opp and p1_right or p2_right) - s_right):angle()
-		else
-			if keeper.pos.x * (opp and 1 or -1) > th then
-				-- right sector is empty list, because keeper is so far right, that the ball can't pass between him and the right goalpost
+		--vis.addCircle("c", tp1, 0.1)
+		s_right = geom.intersectLinesByPoints(gleft, mid, gright, tp1)
+		if keeper.pos.y*(opp and 1 or -1) > G.FieldHeightHalf - m*keeper.pos.x - d - t then -- wenn der Torwart hinter der vorderen gewinkelten Linie ist
+			if keeper.pos.x * (opp and 1 or -1) > th then -- Wenn der Torwart seitlich vom Tor steht
+				--log("Right: nothing")
 			else
-				if (p1_right.x - p2_right.x)^2 > 0.0001 then
-					rightSector[1] = (s_right - (opp and p1_right or p2_right)):angle()
-					rightSector[2] = ((opp and p2_right or p1_right) - s_right):angle()
+				local posy = keeper.pos.y * (opp and 1 or -1)
+				if math.abs(keeper.pos.x) < th and posy > G.FieldHeightHalf - m*keeper.pos.x - t and posy < G.FieldHeightHalf + G.GoalDepth then -- if keeper is in goal
+					local upperGoalieEnd = Vector.create(keeper.pos.x + r, keeper.pos.y)
+					local pfp1, pfp2 = geom.getTangentsToCircle(upperGoalieEnd, gright, r)
+					if (pfp2.y - pfp1.y)*(opp and 1 or -1) < 0 then
+						pfp1, pfp2 = pfp2, pfp1
+					end
+					s_right = geom.intersectLinesByPoints(pfp1, upperGoalieEnd, gright, tp1)
+					rightSector[2] = (pfp1 - upperGoalieEnd):angle()
+					rightSector[1] = (tp1 - s_right):angle()
 				else
-				
+					rightSector[2] = math.atan2(opp and -m or m, opp and 1 or -1)
+					rightSector[1] = (tp1 - s_right):angle()
 				end
-				if keeper.pos.y*(opp and 1 or -1) > G.FieldWidthHalf then
-					p1_right, p2_right = p2_right, p1_right
-				end
-			
-			end
-		end]]--
-		if keeper.pos.y*(opp and 1 or -1) > G.FieldHeightHalf - m*keeper.pos.x - d - t then
-			if keeper.pos.x * (opp and 1 or -1) > th then
-			
-			else
-				rightSector[2] = (tp - s_right):angle()
-				rightSector[1] = (gright - keeper.pos):angle()
 			end
 		else
-			rightSector[1] = math.atan2(opp and -m or m, opp and 1 or -1)
-			rightSector[2] = (tp - s_right):angle()
+			rightSector[2] = math.atan2(opp and -m or m, opp and 1 or -1)
+			local irgendwas = tp1 - s_right
+			if (gright - tp1):lengthSq() < (gright - s_right):lengthSq() then
+				rightSector[1] = (s_right - tp1):angle()
+			else
+				rightSector[1] = (tp1 - s_right):angle()
+			end
 		end
 	else
 		-- right sector is empty list, because keeper is too close to the right goalpost
 	end
 	-- left from the keeper (looking from field towards goal)
-	local s_left, p1_left, p2_left = geom.getInnerTangentsToCircles(keeper.pos, keeper.radius + r, opp and G.OpponentGoalLeft or G.FriendlyGoalRight, r)	-- p1.x > p2.x
-	if math.abs(keeper.pos.y) < m * keeper.pos.x + G.FieldHeightHalf - t - 0.5*m*G.GoalWidth then
-		s_left = geom.intersectLineLine(s_left, (opp and p2_left or p1_left) - s_left, opp and G.OpponentGoalRight or G.FriendlyGoalLeft, Vector.fromAngle(opp and m or -m))
-		leftSector[1] = math.atan2((opp and -m or m), (opp and -1 or 1))
-		leftSector[2] = ((opp and p2_left or p1_left) - s_left):angle()
-	else
-		if keeper.pos.x * (opp and -1 or 1) > th then
-			-- left sector is empty list, because keeper is so far left, that the ball can't pass between him and the left goalpost
+	local s_left
+	if keeper.pos:distanceTo(gleft) > R + r then
+		local tp1, tp2 = geom.getTangentsToCircle(gleft, keeper.pos, R) -- tangents from the goalpost onto the keeper
+		if geom.checkTriangleOrientation(gleft, keeper.pos, tp1) == 1 then
+			tp1, tp2 = tp2, tp1
+		elseif geom.checkTriangleOrientation(gleft, keeper.pos, tp2) == 1 then
+			-- tp1 = tp1
 		else
-			if keeper.pos.y*(opp and 1 or -1) > G.FieldHeightHalf then
-				p1_left, p2_left = p2_left, p1_left
+			if math.abs(tp1.y) > math.abs(tp2.y) then
+				tp1, tp2 = tp2, tp1
 			end
-			leftSector[1] = (s_left - (opp and p1_left or p2_left)):angle()
-			leftSector[2] = ((opp and p2_left or p1_left) - s_left):angle()
 		end
+		s_left = geom.intersectLinesByPoints(gright, mid, gleft, tp1)
+		if keeper.pos.y*(opp and 1 or -1) > G.FieldHeightHalf + m*keeper.pos.x - d - t then -- wenn der Torwart hinter der vorderen gewinkelten Linie ist
+			if keeper.pos.x * (opp and -1 or 1) > th then -- Wenn der Torwart seitlich vom Tor steht
+				--log("Left: nothing")
+			else
+				local posy = keeper.pos.y * (opp and 1 or -1)
+				if math.abs(keeper.pos.x) < th and posy > G.FieldHeightHalf + m*keeper.pos.x - t and posy < G.FieldHeightHalf + G.GoalDepth then -- if keeper is in goal
+					--log("hier!")
+					local lowerGoalieEnd = Vector.create(keeper.pos.x - r, keeper.pos.y)
+					local pfp1, pfp2 = geom.getTangentsToCircle(lowerGoalieEnd, gleft, r)
+					if (pfp2.y - pfp1.y)*(opp and 1 or -1) < 0 then
+						pfp1, pfp2 = pfp2, pfp1
+					end
+					s_left = geom.intersectLinesByPoints(pfp1, lowerGoalieEnd, gleft, tp1)
+					leftSector[2] = (pfp1 - lowerGoalieEnd):angle()
+					leftSector[1] = (tp1 - s_left):angle()
+				else
+					leftSector[2] = math.atan2(opp and -m or m, opp and -1 or 1)
+					leftSector[1] = (tp1 - s_left):angle()
+				end
+			end
+		else
+			leftSector[2] = math.atan2(opp and -m or m, opp and -1 or 1)
+			--local irgendwas = tp1 - s_left
+			if (gleft - tp1):lengthSq() < (gleft - s_left):lengthSq() then
+				leftSector[1] = (s_left - tp1):angle()
+			else
+				leftSector[1] = (tp1 - s_left):angle()
+			end
+		end
+	else
+		-- left sector is empty list, because keeper is too close to the left goalpost
 	end
 	return s_right, rightSector, s_left, leftSector
 	-- TODO: robotlist beachten, vorsicht, wenn keeper.pos.y außerhalb des Felds
