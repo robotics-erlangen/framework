@@ -20,12 +20,11 @@ function DirectPass:_successProbability(t)
 	local shootChance
 
 	local startPos = self._robot.pos
-	local targetPos = self._targetRobot.pos
 
 	-- get estimated pos of impact = where the ball will go 
-	local estimatedPos = startPos + Vector.fromAngle(self._robot.dir) * (startPos:distanceTo(targetPos))
+	local estimatedPos = startPos + Vector.fromAngle(self._robot.dir) * (startPos:distanceTo(self._targetPos))
 	-- get distance to where it is supposed to go
-	local distanceToTarget = estimatedPos:distanceTo(targetPos) 
+	local distanceToTarget = estimatedPos:distanceTo(self._targetPos) 
 
 	local dribblerWidth = self._targetRobot.dribblerWidth
 	-- if robot is going to hit the dribbler, all good 
@@ -45,10 +44,10 @@ function DirectPass:_successProbability(t)
 	local evalRet 
 	if self._linearShoot then
 		--check posibility of success at time t for linear shoot
-		evalRet = Shoot.evaluatePassCorridor(self._targetRobot, t)
+		evalRet = Shoot.evaluatePassCorridor(self._targetRobot, t, self._targetPos)
 	else
 		--check posibility of success at time t for chip
-		evalRet = Shoot.evaluateChipCorridor(self._targetRobot, t)
+		evalRet = Shoot.evaluateChipCorridor(self._targetRobot, t, self._targetPos)
 	end
 	return math.min(evalRet, shootChance)
 end
@@ -56,18 +55,19 @@ end
 function DirectPass:_run(priorityMessages, notifications)
 	local msg = notifications[self._targetRobot]
 
-	local targetPos = msg and msg.targetPos or self._targetRobot.pos
-	local targetDir = msg and msg.targetDir or self._targetRobot.dir
+	self._targetPos = msg and msg.targetPos or self._targetRobot.pos
+	self._targetDir = msg and msg.targetDir or self._targetRobot.dir
+
 
 	-- shoot ball into robot dribbler
-	targetPos = targetPos + Vector.fromAngle(targetDir) * self._targetRobot.shootRadius
+	self._targetPos = self._targetPos + Vector.fromAngle(self._targetDir) * self._targetRobot.shootRadius
 	-- TODO calc shoot target
 	-- TODO get pass speed
 
 	-- check for obstacles
 
 	local passSpeed = 3
-	self:_shoot(targetPos, passSpeed, self._linearShoot, Settings.shootProbabilityThreshold)
+	self:_shoot(self._targetPos, passSpeed, self._linearShoot, Settings.shootProbabilityThreshold)
 end
 
 function DirectPass:_rate()
