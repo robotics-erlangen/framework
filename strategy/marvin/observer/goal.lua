@@ -101,8 +101,8 @@ function Goal.searchFreeSectors(robotList, opp)
 	end
 	--log(tostring(keeper.pos))
 	local R = keeper.radius + r
-	local t = math.sqrt(r^2 * (1 + m^2)) * (opp and 1 or -1)
-	local d = math.sqrt(R^2 * (1 + m^2)) * (opp and 1 or -1)
+	local t = math.sqrt(r^2 * (1 + m^2))
+	local d = math.sqrt(R^2 * (1 + m^2))
 	local th = (G.GoalWidth/2 - (R + r)/math.sqrt(1 + m^2))
 	--[[
 	local midp = Vector.create(0, G.FieldHeightHalf-t+d)
@@ -116,7 +116,7 @@ function Goal.searchFreeSectors(robotList, opp)
 		local s_right = Vector.create(0, (opp and 1 or -1)*(G.FieldHeightHalf - 0.5*m*G.GoalWidth))
 		return s_right, rightSector, nil, leftSector
 	end
-	local mid = Vector.create(0, G.FieldHeightHalf - t)
+	local mid = Vector.create(0, (G.FieldHeightHalf - t)*(opp and 1 or -1))
 	local gright = opp and G.OpponentGoalRight or G.FriendlyGoalLeft
 	local gleft = opp and G.OpponentGoalLeft or G.FriendlyGoalRight
 	-- right from the keeper (looking from field towards goal)
@@ -134,9 +134,10 @@ function Goal.searchFreeSectors(robotList, opp)
 		end
 		--vis.addCircle("c", tp1, 0.1)
 		s_right = geom.intersectLinesByPoints(gleft, mid, gright, tp1)
-		if keeper.pos.y*(opp and 1 or -1) > G.FieldHeightHalf - m*keeper.pos.x - d - t then -- wenn der Torwart hinter der vorderen gewinkelten Linie ist
+		if keeper.pos.y*(opp and 1 or -1) > G.FieldHeightHalf + (opp and -m or m)*keeper.pos.x - d - t then -- wenn der Torwart hinter der vorderen gewinkelten Linie ist
 			if keeper.pos.x * (opp and 1 or -1) > th then -- Wenn der Torwart seitlich vom Tor steht
 				--log("Right: nothing")
+				
 			else
 				local posy = keeper.pos.y * (opp and 1 or -1)
 				if math.abs(keeper.pos.x) < th and posy > G.FieldHeightHalf - m*keeper.pos.x - t and posy < G.FieldHeightHalf + G.GoalDepth then -- if keeper is in goal
@@ -154,8 +155,8 @@ function Goal.searchFreeSectors(robotList, opp)
 				end
 			end
 		else
+			--log(opp and "" or "hier")
 			rightSector[2] = math.atan2(opp and -m or m, opp and 1 or -1)
-			local irgendwas = tp1 - s_right
 			if (gright - tp1):lengthSq() < (gright - s_right):lengthSq() then
 				rightSector[1] = (s_right - tp1):angle()
 			else
@@ -179,7 +180,7 @@ function Goal.searchFreeSectors(robotList, opp)
 			end
 		end
 		s_left = geom.intersectLinesByPoints(gright, mid, gleft, tp1)
-		if keeper.pos.y*(opp and 1 or -1) > G.FieldHeightHalf + m*keeper.pos.x - d - t then -- wenn der Torwart hinter der vorderen gewinkelten Linie ist
+		if keeper.pos.y*(opp and 1 or -1) > G.FieldHeightHalf + (opp and m or -m)*keeper.pos.x - d - t then -- wenn der Torwart hinter der vorderen gewinkelten Linie ist
 			if keeper.pos.x * (opp and -1 or 1) > th then -- Wenn der Torwart seitlich vom Tor steht
 				--log("Left: nothing")
 			else
@@ -201,7 +202,6 @@ function Goal.searchFreeSectors(robotList, opp)
 			end
 		else
 			leftSector[2] = math.atan2(opp and -m or m, opp and -1 or 1)
-			--local irgendwas = tp1 - s_left
 			if (gleft - tp1):lengthSq() < (gleft - s_left):lengthSq() then
 				leftSector[1] = (s_left - tp1):angle()
 			else
