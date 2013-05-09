@@ -4,6 +4,7 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local Rating = require "util/rating"
 local Learning = require "util/learning"
+local Debug = require "../base/debug"
 
 Duel.priority = 4
 
@@ -24,7 +25,7 @@ end
 local successRates = Learning.init(2)
 function Duel:_contest()
 	-- 1. choose duel strategy (learning):
-	if self.strategy == 0 then
+	if not self.strategy or self.strategy == 0 then
 		self.strategy = Learning.decide(successRates)
 	end
 	if self.strategy == 1 then
@@ -44,8 +45,15 @@ function Duel:_contest()
 
 	-- 2. calculate good assistant positions
 	-- 3. tell at least one assistant to go there
-
+	
 	return assistantPos
+end
+
+function Duel:_evaluateStrategy(pwned)
+	if self.strategy and self.strategy ~= 0 then
+		Learning.report(successRates, self.strategy, pwned)	
+		self.strategy = 0
+	end
 end
 
 
@@ -55,14 +63,18 @@ function Duel:_run()
 	if not self._robot:hasBall(World.Ball) then
 		-- if we dont have the ball yet
 		self:_catchBall(World.Geometry.OpponentGoal, 0)
-		self.strategy = 0
+		self:_evaluateStrategy(false)
 	elseif opposer == nil then
 		-- if no opponent robot is a ball owner
 		self:_passAway()
-		self.strategy = 0
+		self:_evaluateStrategy(true)
 	else
 		-- if we have the ball, but at least one opponent is nearby
 		assistantPos = self:_contest()
+	end
+	if Settings.DEBUG then
+		Debug.set("Duel Dribbler", successRates[1].percentage)
+		Debug.set("Duel Rotate", successRates[2].percentage)
 	end
 	return { defendedOpponent = opposer, duelAssistantPos = assistantPos }
 end
