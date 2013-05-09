@@ -161,7 +161,7 @@ end
 -- @param p2 Vector - second corner of triangle
 -- @param p3 Vector - third corner of triangle
 -- @return number - 1 for clockwise, -1 for counterclockwise, 0 for all points in a line
-function geom.checkTriangleOrientaion(p1, p2, p3)
+function geom.checkTriangleOrientation(p1, p2, p3)
 	local v21 = p2 - p1
 	local v31 = p3 - p1
 	return mathe.sign(v21.x * v31.y - v21.y * v31.x)
