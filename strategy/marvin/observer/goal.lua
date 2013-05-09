@@ -92,14 +92,12 @@ function Goal.searchFreeSectors(robotList, opp)
 	local keeper = opp and World.OpponentKeeper or World.FriendlyKeeper
 	local r = World.Ball.radius
 	local m = r/math.sqrt((G.GoalWidth)^2 - r^2)	-- always the positive slope	y = m*x + t
-	--log(tostring(m))
 	if not keeper then	-- no keeper assigned
 		rightSector[1] = math.atan2((opp and -m or m), (opp and -1 or 1))
 		rightSector[2] = math.atan2((opp and -m or m), (opp and 1 or -1))
 		local s_right = Vector.create(0, (opp and 1 or -1)*(G.FieldHeightHalf - 0.5*m*G.GoalWidth))
-		return s_right, rightSector, nil, leftSector
+		return s_right, {rightSector}, nil, leftSector
 	end
-	--log(tostring(keeper.pos))
 	local R = keeper.radius + r
 	local t = math.sqrt(r^2 * (1 + m^2))
 	local d = math.sqrt(R^2 * (1 + m^2))
@@ -114,7 +112,7 @@ function Goal.searchFreeSectors(robotList, opp)
 		rightSector[1] = math.atan2((opp and -m or m), (opp and -1 or 1))
 		rightSector[2] = math.atan2((opp and -m or m), (opp and 1 or -1))
 		local s_right = Vector.create(0, (opp and 1 or -1)*(G.FieldHeightHalf - 0.5*m*G.GoalWidth))
-		return s_right, rightSector, nil, leftSector
+		return s_right, {rightSector}, nil, leftSector
 	end
 	local mid = Vector.create(0, (G.FieldHeightHalf - t)*(opp and 1 or -1))
 	local gright = opp and G.OpponentGoalRight or G.FriendlyGoalLeft
@@ -132,12 +130,10 @@ function Goal.searchFreeSectors(robotList, opp)
 				tp1, tp2 = tp2, tp1
 			end
 		end
-		--vis.addCircle("c", tp1, 0.1)
 		s_right = geom.intersectLinesByPoints(gleft, mid, gright, tp1)
 		if keeper.pos.y*(opp and 1 or -1) > G.FieldHeightHalf + (opp and -m or m)*keeper.pos.x - d - t then -- wenn der Torwart hinter der vorderen gewinkelten Linie ist
 			if keeper.pos.x * (opp and 1 or -1) > th then -- Wenn der Torwart seitlich vom Tor steht
 				--log("Right: nothing")
-				
 			else
 				local posy = keeper.pos.y * (opp and 1 or -1)
 				if math.abs(keeper.pos.x) < th and posy > G.FieldHeightHalf - m*keeper.pos.x - t and posy < G.FieldHeightHalf + G.GoalDepth then -- if keeper is in goal
@@ -155,7 +151,6 @@ function Goal.searchFreeSectors(robotList, opp)
 				end
 			end
 		else
-			--log(opp and "" or "hier")
 			rightSector[2] = math.atan2(opp and -m or m, opp and 1 or -1)
 			if (gright - tp1):lengthSq() < (gright - s_right):lengthSq() then
 				rightSector[1] = (s_right - tp1):angle()
@@ -165,6 +160,12 @@ function Goal.searchFreeSectors(robotList, opp)
 		end
 	else
 		-- right sector is empty list, because keeper is too close to the right goalpost
+	end
+	if #rightSector == 2 then
+		local occupiedSectors = getOccupiedSectors(s_right, robotList, rightSector[1], rightSector[2])
+		table.sort(occupiedSectors, function (t1, t2) return t1[1] < t2[1] end) -- sort sectors ascending by sectorStart
+		Interval.merge(occupiedSectors) -- merge the sectors
+		rightSector = Interval.negate(occupiedSectors, rightSector[1], rightSector[2])
 	end
 	-- left from the keeper (looking from field towards goal)
 	local s_left
@@ -186,33 +187,38 @@ function Goal.searchFreeSectors(robotList, opp)
 			else
 				local posy = keeper.pos.y * (opp and 1 or -1)
 				if math.abs(keeper.pos.x) < th and posy > G.FieldHeightHalf + m*keeper.pos.x - t and posy < G.FieldHeightHalf + G.GoalDepth then -- if keeper is in goal
-					--log("hier!")
 					local lowerGoalieEnd = Vector.create(keeper.pos.x - r, keeper.pos.y)
 					local pfp1, pfp2 = geom.getTangentsToCircle(lowerGoalieEnd, gleft, r)
 					if (pfp2.y - pfp1.y)*(opp and 1 or -1) < 0 then
 						pfp1, pfp2 = pfp2, pfp1
 					end
 					s_left = geom.intersectLinesByPoints(pfp1, lowerGoalieEnd, gleft, tp1)
-					leftSector[2] = (pfp1 - lowerGoalieEnd):angle()
-					leftSector[1] = (tp1 - s_left):angle()
+					leftSector[1] = (pfp1 - lowerGoalieEnd):angle()
+					leftSector[2] = (tp1 - s_left):angle()
 				else
-					leftSector[2] = math.atan2(opp and -m or m, opp and -1 or 1)
-					leftSector[1] = (tp1 - s_left):angle()
+					leftSector[1] = math.atan2(opp and -m or m, opp and -1 or 1)
+					leftSector[2] = (tp1 - s_left):angle()
 				end
 			end
 		else
-			leftSector[2] = math.atan2(opp and -m or m, opp and -1 or 1)
+			leftSector[1] = math.atan2(opp and -m or m, opp and -1 or 1)
 			if (gleft - tp1):lengthSq() < (gleft - s_left):lengthSq() then
-				leftSector[1] = (s_left - tp1):angle()
+				leftSector[2] = (s_left - tp1):angle()
 			else
-				leftSector[1] = (tp1 - s_left):angle()
+				leftSector[2] = (tp1 - s_left):angle()
 			end
 		end
 	else
 		-- left sector is empty list, because keeper is too close to the left goalpost
 	end
+	if #leftSector == 2 then
+		local occupiedSectors = getOccupiedSectors(s_left, robotList, leftSector[1], leftSector[2])
+		table.sort(occupiedSectors, function (t1, t2) return t1[1] < t2[1] end) -- sort sectors ascending by sectorStart
+		Interval.merge(occupiedSectors) -- merge the sectors
+		leftSector = Interval.negate(occupiedSectors, leftSector[1], leftSector[2])
+	end
 	return s_right, rightSector, s_left, leftSector
-	-- TODO: robotlist beachten, vorsicht, wenn keeper.pos.y außerhalb des Felds
+	-- TODO: robotlist beachten, auch in den Fällen, bei denen bis jetzt sofort returnt wird
 end
 
 --- Searches for robots near goal
@@ -222,7 +228,7 @@ end
 -- @return near list - list of all robots from robotList that are up to distance from the goal
 function Goal.getRobotsNearGoal(distance, robotList, opp)
 	local near = {}
-	for _, r in robotList do
+	for _, r in pairs(robotList) do
 		if r.pos:distanceToLineSegment(opp and G.OpponentGoalRight or G.FriendlyGoalRight, opp and G.OpponentGoalLeft or G.FriendlyGoalLeft) <= distance then
 			table.insert(near, r)
 		end

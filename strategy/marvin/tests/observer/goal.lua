@@ -3,6 +3,7 @@ local GoalTest = {}
 local Goal = require "observer/goal"
 local World = require "../base/world"
 local vis = require "../base/vis"
+local RobotList = require "util/robotlist"
 
 function GoalTest.testFreeSectors()
 	local freeSectors = Goal.freeSectors(World.Ball.pos, World.OpponentRobots, true)
@@ -16,46 +17,58 @@ function GoalTest.testFreeSectors()
 end
 
 function GoalTest.testSearchFreeSectors()
-	local s_right, a_right, s_left, a_left = Goal.searchFreeSectors({}, true)
-	vis.setColor(vis.colors.turquoiseHalf, true)
-	if #a_right == 2 then
-		--log("Right: "..tostring(s_right).." Angles: "..tostring(a_right[1]).." to "..tostring(a_right[2]))
-		local right_pointRight = s_right + Vector.fromAngle(a_right[1])*2
-		local right_pointLeft = s_right + Vector.fromAngle(a_right[2])*2
-		
-		vis.addPolygon("Right from the Keeper", {s_right, right_pointRight, right_pointLeft})
-	end
-	if #a_left == 2 then
-		--log("Left: "..tostring(s_left).." Angles: "..tostring(a_left[1]).." to "..tostring(a_left[2]))
-		local left_pointRight = s_left + Vector.fromAngle(a_left[1])*2
-		local left_pointLeft = s_left + Vector.fromAngle(a_left[2])*2
-		
-		vis.addPolygon("Left from the Keeper", {s_left, left_pointRight, left_pointLeft})
-	end
 	local keeper = World.OpponentKeeper
+	local rlist = Goal.getRobotsNearGoal(2, World.Robots, true)
 	if keeper then
 		vis.addCircle("Opponent Keeper", keeper.pos, keeper.radius, vis.colors.pinkHalf, true)
+		RobotList.excludeRobot(rlist, keeper)
+	end
+	local s_right, a_right, s_left, a_left = Goal.searchFreeSectors(rlist, true)
+	vis.setColor(vis.colors.turquoiseHalf, true)
+	if #a_right >= 1 then
+		--local str = "Right: "..tostring(s_right).." Angles:"
+		for _, a in ipairs(a_right) do
+			--str = str.." "..tostring(a[1]).." to "..tostring(a[2])..","
+			local right_pointRight = s_right + Vector.fromAngle(a[1])*2
+			local right_pointLeft = s_right + Vector.fromAngle(a[2])*2
+			vis.addPolygon("Right from the Keeper", {s_right, right_pointRight, right_pointLeft})
+		end
+		--log(str)
+	end
+	--log(tostring(a_left))
+	if #a_left >= 1 then
+		for _, a in ipairs(a_left) do
+			--log(tostring(a))
+			--log("Left: "..tostring(s_left).." Angles: "..tostring(a[1]).." to "..tostring(a[2]))
+			local left_pointRight = s_left + Vector.fromAngle(a[1])*2
+			local left_pointLeft = s_left + Vector.fromAngle(a[2])*2
+			vis.addPolygon("Left from the Keeper", {s_left, left_pointRight, left_pointLeft})
+		end
 	end
 	
-	local s_right, a_right, s_left, a_left = Goal.searchFreeSectors({}, false)
-	vis.setColor(vis.colors.blueHalf, true)
-	if #a_right == 2 then
-		--log("Right: "..tostring(s_right).." Angles: "..tostring(a_right[1]).." to "..tostring(a_right[2]))
-		local right_pointRight = s_right + Vector.fromAngle(a_right[1])*2
-		local right_pointLeft = s_right + Vector.fromAngle(a_right[2])*2
-		
-		vis.addPolygon("Right from the Keeper", {s_right, right_pointRight, right_pointLeft})
-	end
-	if #a_left == 2 then
-		--log("Left: "..tostring(s_left).." Angles: "..tostring(a_left[1]).." to "..tostring(a_left[2]))
-		local left_pointRight = s_left + Vector.fromAngle(a_left[1])*2
-		local left_pointLeft = s_left + Vector.fromAngle(a_left[2])*2
-		
-		vis.addPolygon("Left from the Keeper", {s_left, left_pointRight, left_pointLeft})
-	end
 	local keeper = World.FriendlyKeeper
+	rlist = Goal.getRobotsNearGoal(2, World.Robots, false)
 	if keeper then
 		vis.addCircle("Friendly Keeper", keeper.pos, keeper.radius, vis.colors.pinkHalf, true)
+		RobotList.excludeRobot(rlist, keeper)
+	end
+	local s_right, a_right, s_left, a_left = Goal.searchFreeSectors(rlist, false)
+	vis.setColor(vis.colors.blueHalf, true)
+	if #a_right >= 1 then
+		for _, a in ipairs(a_right) do
+			--log("Right: "..tostring(s_right).." Angles: "..tostring(a[1]).." to "..tostring(a[2]))
+			local right_pointRight = s_right + Vector.fromAngle(a[1])*2
+			local right_pointLeft = s_right + Vector.fromAngle(a[2])*2
+			vis.addPolygon("Right from the Keeper", {s_right, right_pointRight, right_pointLeft})
+		end
+	end
+	if #a_left >= 1 then
+		for _, a in ipairs(a_left) do
+			--log("Left: "..tostring(s_left).." Angles: "..tostring(a[1]).." to "..tostring(a[2]))
+			local left_pointRight = s_left + Vector.fromAngle(a[1])*2
+			local left_pointLeft = s_left + Vector.fromAngle(a[2])*2
+			vis.addPolygon("Left from the Keeper", {s_left, left_pointRight, left_pointLeft})
+		end
 	end
 end
 
