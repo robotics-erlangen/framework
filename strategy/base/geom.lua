@@ -4,6 +4,8 @@ module "geom"
 ]]--
 local geom = {}
 
+local mathe = require "../base/math"
+
 --- Intersects two circles.
 -- Returns up to two intersections or nothing if no intersections exist.
 -- @name intersectCircleCircle
@@ -150,6 +152,19 @@ function geom.calcTriangleArea(p1, p2, p3)
 	local p21 = p2 - p1
 	local p31 = p3 - p1
 	return 0.5 * math.abs(p21.x * p31.y - p21.y * p31.x)
+end
+
+--- Checks whether the points of a triangle are given clockwise or counterclockwise
+-- using determinant
+-- @name checkTriangleOrientation
+-- @param p1 Vector - first corner of triangle
+-- @param p2 Vector - second corner of triangle
+-- @param p3 Vector - third corner of triangle
+-- @return number - 1 for clockwise, -1 for counterclockwise, 0 for all points in a line
+function geom.checkTriangleOrientaion(p1, p2, p3)
+	local v21 = p2 - p1
+	local v31 = p3 - p1
+	return mathe.sign(v21.x * v31.y - v21.y * v31.x)
 end
 
 --- Calculates area of a quadrangle.
