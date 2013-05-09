@@ -61,7 +61,8 @@ function debug.set(name, value, visited)
 		if rawget(getmetatable(value) or {}, "__tostring") then
 			value = tostring(value)
 		else
-			debug.push(name)
+			debug.push(tostring(name))
+			debug.set(nil, "")
 			for k, v in pairs(value) do
 				debug.set(k, v, visited)
 			end
