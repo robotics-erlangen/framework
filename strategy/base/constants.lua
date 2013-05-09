@@ -17,4 +17,6 @@ Constants.positionError = 0.005 -- possible position error from vision [m]
 
 Constants.maxBallSpeed = 8 -- maximum allowed shooting speed [m/s]
 
+Constants.maxDribbleDistance = 0.5
+
 return Constants
