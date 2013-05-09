@@ -215,6 +215,21 @@ function Goal.searchFreeSectors(robotList, opp)
 	-- TODO: robotlist beachten, vorsicht, wenn keeper.pos.y auﬂerhalb des Felds
 end
 
+--- Searches for robots near goal
+-- @param distance number - the distance to to goal
+-- @param robotList list - the robots to be evaluated
+-- @param opp boolean - true for opponent goal, false for friendly goal
+-- @return near list - list of all robots from robotList that are up to distance from the goal
+function Goal.getRobotsNearGoal(distance, robotList, opp)
+	local near = {}
+	for _, r in robotList do
+		if r.pos:distanceToLineSegment(opp and G.OpponentGoalRight or G.FriendlyGoalRight, opp and G.OpponentGoalLeft or G.FriendlyGoalLeft) <= distance then
+			table.insert(near, r)
+		end
+	end
+	return near
+end
+
 --- Predicts the direction the ball will be shot into.
 -- Checks for ball movement, opponents near the ball, tries to predict passes
 -- @return Vector - origin of movement
