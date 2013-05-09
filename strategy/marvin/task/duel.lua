@@ -15,14 +15,21 @@ Duel.priority = 4
 function Duel:_init()
 end
 
+function Duel:_successProbability()
+	return 1
+end
+
 function Duel:_passAway()
-	--TODO
-	--log("pass away not implemented")
-
-	-- 1. search for assistants
-
-	-- 2. choose the best one
-	-- 3. pass to it
+	if self.strategy and self.strategy >= 1 then -- hurry!
+		self:_shoot(self.chipPos, --where to chip
+			math.huge, --that argument is ignored
+			false, --chip
+			0) --dont care about anything, just shoot. NOW!
+	else -- we dont need to do something special, just pass away and smile :)
+		-- 1. search for assistants
+		-- 2. choose the best one
+		-- 3. pass to it
+	end
 end
 
 local successRates = Learning.init(2)
@@ -46,34 +53,42 @@ function Duel:_contest()
 					or Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
 				self.strategy = 2
 				self:_evaluateStrategy(false)
-				return nil
+				return
 			end
 			-- if moved to far then fail (20cm should be enough)
 			if movedDist > 0.2 then
 				self:_evaluateStrategy(false)
-				return nil
+				return
 			end
 			-- else move backwards
 			local toBallDir = World.Ball.pos - self._robot.pos
 			local backwards = toBallDir:copy():scaleLength(-Settings.dribbleDriveSpeed)
 			self._robot.trajectory:update(Direct, backwards, toBallDir:angle())
+			-- calculate message to assistant
+			-- TODO FIXME implement (observer) function that evaluates where to chip
+			self.chipPos = (World.Geometry.OpponentGoal - World.Ball.pos):setLength(1) --1m towards opponent goal
+			self.assistantPos = self.chipPos + (self.chipPos - World.Ball.pos)
+				:setLength(self._robot.radius + Settings.receiveChipDistance)
+			self.assistantDir = (World.Ball.pos - self.chipPos):angle()
 		end
 	elseif self.strategy == 2 then
 	--   b) use dribbler and rotate/shoot instantly
+	elseif self.strategy == 3 then
+	--   c) push!?	
 	else
-	--   c) ???
 		error("duel strategy "..self.strategy.." not implemented")
 	end
 
 	-- 2. calculate good assistant positions
 	-- 3. tell at least one assistant to go there
-	
-	return assistantPos
 end
 
 function Duel:_reset()
 	self.strategy = 0
 	self.backwardsStartPoint = nil
+	self.assistantPos = nil
+	self.assistantDir = 0
+	self.chipPos = nil
 end
 
 function Duel:_evaluateStrategy(pwned)
@@ -86,7 +101,6 @@ end
 
 function Duel:_run()
 	local opposer = Ball.opponentBallOwner()
-	local assistantPos = nil
 	if not self._robot:hasBall(World.Ball) then
 		-- if we dont have the ball yet
 		self:_catchBall(World.Geometry.OpponentGoal, 0)
@@ -97,13 +111,17 @@ function Duel:_run()
 		self:_evaluateStrategy(true)
 	else
 		-- if we have the ball, but at least one opponent is nearby
-		assistantPos = self:_contest()
+		self:_contest()
 	end
 	if Settings.DEBUG then
 		Debug.set("Duel Dribbler", successRates[1].percentage)
 		Debug.set("Duel Rotate", successRates[2].percentage)
 	end
-	return { defendedOpponent = opposer, duelAssistantPos = assistantPos }
+	return {
+		defendedOpponent = opposer,
+		duelAssistantPos = self.assistantPos,
+		duelAssistantDir = self.assistantDir
+	}
 end
 
 function Duel:_rate()
