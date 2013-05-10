@@ -50,4 +50,8 @@ function Base:run(messages)
 	return {agent = agentMessage or {}, task = taskMessage or {}}, priority
 end
 
+function Base:robot()
+	return self._robot
+end
+
 return Base

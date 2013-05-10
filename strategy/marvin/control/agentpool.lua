@@ -2,58 +2,49 @@ local AgentPool = (require "../base/class").new("AgentPool")
 local debug = require "../base/debug"
 
 function AgentPool:init(agentType)
-	self._robots = {}
+	-- robots and agents are mapped 1:1 to each other
 	self._agents = {}
 	self._agentType = agentType
 	self._robotLimit = math.huge
 end
 
 function AgentPool:run(oldMessages, messages)
-	for _, robot in pairs(self._robots) do
-		if(not self._agents[robot]) then
-			self._agents[robot] = self._agentType.create(robot)
-		end
-	end
-
-	for robot, agent in pairs(self._agents) do
-		messages:addAgent(robot, agent:run(oldMessages))
+	for _, agent in pairs(self._agents) do
+		messages:addAgent(agent:robot(), agent:run(oldMessages))
 	end
 end
 
 -- remove agents and associated robots we no longer want to keep
 function AgentPool:cleanupRobots()
-	local robotsToKeep = {}
-	local agentsToKeep = {}
-	for _, robot in pairs(self._robots) do
-		if(self._agents[robot]:keepRobot()) then
-			table.insert(robotsToKeep, robot)
-			agentsToKeep[robot] = self._agents[robot]
+	local agents = {} -- agents to keep
+	for _, agent in pairs(self._agents) do
+		if(agent:keepRobot()) then
+			table.insert(agents, agent)
 		end
 	end
 	
-	for i = #agentsToKeep, self._robotLimit+1, -1 do -- +1 because of i >= limit
-		agentsToKeep[robotsToKeep[i]] = nil
-		robotsToKeep[i] = nil
-	end
-	
-	self._robots = robotsToKeep
-	self._agents = agentsToKeep
+	table.truncate(agents, self._robotLimit)
+	self._agents = agents
 end
 
 function AgentPool:takeRobot(robots)
-	if #self._robots >= self._robotLimit then
+	if #self._agents >= self._robotLimit then
 		return
 	end
 	
 	local robot = self._agentType.takeRobot(robots)
 	if robot then
-		table.insert(self._robots, robot)
+		table.insert(self._agents, self._agentType.create(robot))
 	end
 	return robot
 end
 
 function AgentPool:robots()
-	return self._robots
+	local robots = {}
+	for _, agent in pairs(self._agents) do
+		table.insert(robots, agent:robot())
+	end
+	return robots
 end
 
 function AgentPool:setRobotLimit(robotLimit)
