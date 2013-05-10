@@ -3,6 +3,7 @@
 module "Trajectory"
 ]]--
 local vis = require "../base/vis"
+local Class = require "../base/class"
 local Trajectory =  (require "../base/class").new("Trajectory") -- Trajectory manager
 
 --- Initialises trajectory manager.
@@ -21,10 +22,10 @@ end
 -- @param ... any - passed on to trajectory handler
 -- @return Vector, number - move destination and time as returned by the trajectory handler
 function Trajectory:update(handlerType, ...)
-	if not handlerType:instanceOf(Trajectory.Base) then
+	if not Class.instanceOf(handlerType, Trajectory.Base) then
 		error("Trajectory module must derive from Trajectory.Base")
 	end
-	if not (self._handler and self._handler:instanceOf(handlerType) and self._handler:canHandle(...)) then
+	if not (self._handler and Class.instanceOf(self._handler, handlerType) and self._handler:canHandle(...)) then
 		self._handler = handlerType.create(self._robot)
 	end
 	local splines, moveDest, moveTime = self._handler:update(...)

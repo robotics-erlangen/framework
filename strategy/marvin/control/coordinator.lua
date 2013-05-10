@@ -4,6 +4,7 @@ local Agent = {
 	Keeper = require "agent/keeper",
 	Hidden = require "agent/hidden"
 }
+local Class = require "../base/class"
 local World = require "../base/world"
 local PlayBase = require "play/base"
 local Plays = require "play/plays"
@@ -233,7 +234,7 @@ function Coordinator:_updatePlaySelection()
 end
 
 function Coordinator:test(play)
-	assert(play:instanceOf(PlayBase), "This is not a play!")
+	assert(Class.instanceOf(play, PlayBase), "This is not a play!")
 	self._forcePlay = play
 end
 

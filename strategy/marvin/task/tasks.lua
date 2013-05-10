@@ -18,6 +18,7 @@ local Tasks = {
 
 local debug = require "../base/debug"
 local World = require "../base/world"
+local Class = require "../base/class"
 local Messages = require "control/messages"
 
 local lastMessages = Messages.create()
@@ -108,7 +109,7 @@ local function testWrapper(taskProvider)
 			local task = inst[1]
 			local priorityMessages, notifications = lastMessages:split(task:robot())
 			debug.push("Task " .. i)
-			debug.set(nil, task.className)
+			debug.set(nil, Class.name(task))
 			debug.set("rating", task:rate(priorityMessages, notifications))
 			local message = { agent = {}, task = task:run(priorityMessages, notifications) or {} }
 			messages:addAgent(task:robot(), message, task.priority)

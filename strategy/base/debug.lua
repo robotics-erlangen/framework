@@ -3,6 +3,7 @@
 module "debug"
 ]]--
 local debug = {}
+local Class = require "../base/class"
 local amun = amun
 
 local debugStack = { "" }
@@ -62,7 +63,8 @@ function debug.set(name, value, visited)
 			value = tostring(value)
 		else
 			debug.push(tostring(name))
-			debug.set(nil, "")
+			local class = Class.toClass(value, true)
+			debug.set(nil, class and Class.name(class) or "")
 			for k, v in pairs(value) do
 				debug.set(k, v, visited)
 			end

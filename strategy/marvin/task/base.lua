@@ -45,7 +45,6 @@ end
 
 function Base:_rate()
 	--FIXME reenable later
-	--log(self.className)
 	--error("stub")
 	-- generate rating between 0 and 1
 end

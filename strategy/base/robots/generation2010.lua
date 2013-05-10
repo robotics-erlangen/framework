@@ -3,7 +3,9 @@
 module "Robot.Generation.Gen2010_1"
 ]]--
 local Robot = require "../base/robot"
-local Gen2010 = (require "../base/class").new("Robot.Generation.Gen2010_1", Robot)
+local Gen2010, Gen2010Mt = (require "../base/class").new("Robot.Generation.Gen2010_1", Robot)
+
+Gen2010Mt.__tostring = Robot.tostring
 
 --- Robot specific constants
 -- @class table

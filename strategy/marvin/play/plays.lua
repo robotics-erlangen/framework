@@ -10,11 +10,12 @@ local Plays = {
 	-- TODO: add plays
 }
 local Base = require "play/base"
+local Class = require "../base/class"
 
 local coord = nil
 
 for name,s in pairs(Plays) do
-	if s:instanceOf(Base) then
+	if Class.instanceOf(s, Base) then
 		Entrypoints["plays/" .. name] = function ()
 			if not coord then
 				local Coordinator = require "control/coordinator"

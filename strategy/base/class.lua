@@ -5,24 +5,6 @@ module "Class"
 
 local Class = {}
 
---- Checks whether the given instance is of type class.
--- Also checks parent class.
--- @usage define("a")
--- define ("b", a)
--- local o = b.create()
--- instanceOf(o, a) == true
--- instanceOf(o, b) == true
--- local p = a.create()
--- instanceOf(p, a) == true
--- instanceOf(p, b) == false
--- @param inst table - Instance to check
--- @param class Class - Class object as created by define
--- @see new
--- @return bool
-function Class.instanceOf(inst, class)
-	return inst.className == class.className or (inst.classParent and Class.instanceOf(inst.classParent, class)) or false
-end
-
 local function getShortname(name)
 	local rev = name:reverse()
 	local sep = rev:find("%.")
@@ -33,35 +15,94 @@ local function getShortname(name)
 	end
 end
 
+function Class.toClass(obj, failsafe)
+	local ctype = rawget(getmetatable(obj) or {}, "type")
+	if ctype == "class" then
+		return obj
+	elseif ctype == "instance" then
+		return rawget(getmetatable(obj) or {}, "__index")
+	else
+		if failsafe then
+			return nil
+		else
+			error("No class or instance")
+		end
+	end
+end
+
+function Class.name(obj, short)
+	local class = Class.toClass(obj)
+	return rawget(getmetatable(class), short and "classNameShort" or "className")
+end
+
+function Class.parent(obj)
+	local class = Class.toClass(obj)
+	return rawget(getmetatable(class), "__index")
+end
+
+--- Checks whether the given instance is of type class.
+-- Also checks parent class.
+-- @usage local a = new("a")
+-- local b = new("b", a)
+-- local o = b()
+-- instanceOf(o, a) == true
+-- instanceOf(o, b) == true
+-- local p = a()
+-- instanceOf(p, a) == true
+-- instanceOf(p, b) == false
+-- @param inst table - Instance to check
+-- @param class Class - Class object as created by define
+-- @see new
+-- @return bool
+function Class.instanceOf(obj, class)
+	local iclass = Class.toClass(obj)
+	if iclass == class then
+		return true
+	else
+		local iparent = Class.parent(obj)
+		return iparent and Class.instanceOf(iparent, class)
+	end
+end
+
 --- Creates a new class.
--- Supports simple inheritance.
+-- Supports single inheritance.
 -- @name new
 -- @see Class
 -- @param name string - name for new class, split at '.'
 -- @param parent Class - parent class object
+-- @retrun class object
+-- @return metatable used for instances
 function Class.new(name, parent)
-	local newClass = {}
-	newClass.mt = { __index = newClass }
-	newClass.mt.__metatable = newClass.mt
-	newClass.className = name
-	newClass.instanceOf = Class.instanceOf
-
+	local class = {}
+	
+	-- setup class type metatable
+	local classMt = {
+		className = name,
+		classNameShort = getShortname(name),
+		type = "class"
+	}
+	classMt.__metatable = classMt
 	if parent then
-		newClass.classParent = parent
-		setmetatable(newClass, parent.mt)
+		classMt.__index = Class.toClass(parent)
 	end
-
-	function newClass.create(...)
+	
+	-- setup instance metatable
+	local classInstMt = {
+		__index = class,
+		type = "instance"
+	}
+	classInstMt.__metatable = classInstMt
+	
+	function class.create(...)
 		local instance = {}
-		setmetatable(instance, newClass.mt)
+		setmetatable(instance, classInstMt)
 		if instance.init then
 			instance:init(...)
 		end
 		return instance
 	end
-	
-	newClass.classNameShort = getShortname(name)
-	return newClass
+	setmetatable(class, classMt)
+	return class, classInstMt
 end
 
 --- Values set on a class

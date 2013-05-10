@@ -8,7 +8,7 @@ local Trajectory = require "../base/trajectory"
 local Constants = require "../base/constants"
 local amun = amun
 
-local Robot = (require "../base/class").new("Robot")
+local Robot, RobotMt = (require "../base/class").new("Robot")
 
 --- Values provided by a robot object.
 --- Fields marked with * are only available for own robots
@@ -65,13 +65,14 @@ function Robot:init(data, isFriendly, geometry)
 	end
 end
 
-function Robot.mt:__tostring()
-	if not self.pos then
-		return "Robot"
+function Robot:tostring()
+	if not self.pos or not self.id then
+		return string.format("Robot(%s)", self.id and tostring(self.id) or "?")
 	end
-	return string.format("Robot(pos = (%6.3f, %6.3f))",
-		self.pos.x, self.pos.y)
+	return string.format("Robot(%d, pos%s)", self.id, tostring(self.pos))
 end
+
+RobotMt.__tostring = Robot.tostring
 
 -- reset robot commands and update data
 function Robot:_update(state, time)

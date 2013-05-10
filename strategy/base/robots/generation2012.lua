@@ -2,9 +2,10 @@
 --- Provides robot generations specific classes
 module "Robot.Generation.Gen2012_2"
 ]]--
-local Constants = require "../base/constants"
 local Robot = require "../base/robot"
-local Gen2012 = (require "../base/class").new("Robot.Generation.Gen2012_2", Robot)
+local Gen2012, Gen2012Mt = (require "../base/class").new("Robot.Generation.Gen2012_2", Robot)
+
+Gen2012Mt.__tostring = Robot.tostring
 
 --- Robot specific constants
 -- @class table

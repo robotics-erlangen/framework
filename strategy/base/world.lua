@@ -96,7 +96,7 @@ end
 function World._updateTeam(state)
 	local friendlyRobotsById = {}
 	for _, rdata in pairs(state.robot) do
-		friendlyRobotsById[rdata.id] = Generation.create(rdata, World.Geometry)
+		friendlyRobotsById[rdata.id] = Generation.factory(rdata, World.Geometry)
 	end
 	World.FriendlyRobotsById = friendlyRobotsById
 end

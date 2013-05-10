@@ -3,7 +3,7 @@
 module "Ball"
 ]]--
 local Coordinates = require "../base/coordinates"
-local Ball = (require "../base/class").new("Ball")
+local Ball, BallMt = (require "../base/class").new("Ball")
 local Constants = require "../base/constants"
 
 --- Values provided by Ball
@@ -16,7 +16,7 @@ local Constants = require "../base/constants"
 -- @field brakeTime number - Time in seconds until the ball stops moving
 -- @field lostSince number - Time when the ball was lost. Only has meaning when Ball isn't visible
 
-function Ball.mt:__tostring()
+function BallMt:__tostring()
 	return string.format("Ball(pos = (%6.3f, %6.3f), speed = %3.1f)",
 		self.pos.x, self.pos.y, self.speed:length())
 end

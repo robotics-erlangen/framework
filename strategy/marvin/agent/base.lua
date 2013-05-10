@@ -1,4 +1,5 @@
 local Base = (require "../base/class").new("Agent.Base")
+local Class = require "../base/class"
 local debug = require "../base/debug"
 
 function Base.takeRobot(robots)
@@ -14,7 +15,7 @@ end
 function Base:run(messages)
 	debug.pushtop("Agents")
 	debug.push("Robot " .. self._robot.id)
-	debug.set(nil, self.classNameShort)
+	debug.set(nil, Class.name(self, true))
 	local agentMessage, taskMessage
 	
 	local priorityMessages, notifications = messages:split(self._robot)
@@ -35,7 +36,7 @@ function Base:run(messages)
 	
 	if self._task then
 		debug.push("Task" .. (self._playControlled and " (Play)" or ""))
-		debug.set(nil, self._task.className)
+		debug.set(nil, Class.name(self._task))
 		taskMessage = self._task:run(priorityMessages, notifications)
 		debug.pop()
 	else

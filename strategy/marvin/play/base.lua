@@ -1,4 +1,5 @@
 local Base = (require "../base/class").new("Play.Base")
+local Class = require "../base/class"
 local World = require "../base/world"
 local debug = require "../base/debug"
 
@@ -99,7 +100,7 @@ function Base:run()
 	
 	-- setup logging
 	debug.pushtop("Play")
-	debug.set(nil, self.classNameShort .. "(" .. self._state .. ")")
+	debug.set(nil, Class.name(self, true) .. "(" .. self._state .. ")")
 	
 	debug.push("Robots")
 	for i, robot in ipairs(self._robots) do
