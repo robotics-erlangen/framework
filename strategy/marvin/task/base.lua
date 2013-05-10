@@ -26,20 +26,12 @@ function Base:_run(priorityMessages, notifications)
 end
 
 function Base:run(priorityMessages, notifications)
-	-- setup logging
-	debug.pushtop("Robots")
-	debug.push(tostring(self._robot.id))
-	debug.set(nil, self.className)
-	
 	if not self._ratingRun then
 		self:rate(priorityMessages, notifications)
 	end
 	
 	local msg = self:_run(priorityMessages, notifications)
 	
-	-- cleanup
-	debug.pop()
-	debug.pop()
 	self._ratingRun = false
 	
 	return msg

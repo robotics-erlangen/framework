@@ -29,7 +29,7 @@ end
 function ManMark:_rate(priorityMessages, notifications)
 	local defendedOpponents = {}
 	for _, msg in pairs(priorityMessages) do
-		local defendedOpponent = msg.defendedOpponent
+		local defendedOpponent = msg.task.defendedOpponent
 		if defendedOpponent then
 			defendedOpponents[defendedOpponent] = true
 		end

@@ -73,10 +73,9 @@ function Assistant:_run(priorityMessages, notifications)
 	
 	--lookup friendly assistants
 	for robot, msg in pairs(priorityMessages) do
-		if msg.targetPos then
-			if msg.targetPos.y < (linePos.y+0.5) and msg.targetPos.y > (linePos.y-0.5) then
-				table.insert(intersections, msg.targetPos)
-			end
+		local targetPos = msg.task.targetPos
+		if targetPos and targetPos.y < (linePos.y+0.5) and targetPos.y > (linePos.y-0.5) then
+			table.insert(intersections, targetPos)
 		end
 	end
 	

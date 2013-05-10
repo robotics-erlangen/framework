@@ -20,7 +20,7 @@ end
 
 function ShootGoal:_selectRobots(poolRobots)
 	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
-	robots = RobotMatcher.match(self._taskmanager, robots, 1, self._conditions)
+	robots = RobotMatcher.match(self._messages, robots, 1, self._conditions)
 	return robots
 end
 

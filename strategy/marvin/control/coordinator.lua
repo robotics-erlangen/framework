@@ -1,31 +1,31 @@
-local Pool = {
-	Attack = require "pool/attack",
-	Defense = require "pool/defense",
-	Keeper = require "pool/keeper",
-	HiddenRobots = require "pool/hiddenrobots"
+local Agent = {
+	Attacker = require "agent/attacker",
+	Defender = require "agent/defender",
+	Keeper = require "agent/keeper",
+	Hidden = require "agent/hidden"
 }
-local TaskManager = require "control/taskmanager"
 local World = require "../base/world"
-local Settings = require "settings"
 local PlayBase = require "play/base"
 local Plays = require "play/plays"
+local AgentPool = require "control/agentpool"
+local Messages = require "control/messages"
 
 local Coordinator = (require "../base/class").new("Control.Coordinator")
 
 function Coordinator:init()
-	self._taskmanager = TaskManager.create()
-	
 	self._pools = {
-		keeper = Pool.Keeper.create(self._taskmanager),
-		defense = Pool.Defense.create(self._taskmanager),
-		attack = Pool.Attack.create(self._taskmanager),
-		hidden = Pool.HiddenRobots.create(self._taskmanager)
+		keeper = AgentPool.create(Agent.Keeper),
+		defense = AgentPool.create(Agent.Defender),
+		attack = AgentPool.create(Agent.Attacker),
+		hidden = AgentPool.create(Agent.Hidden)
 	}
 	self._poolGroups = {
 		{ self._pools.keeper },
 		{ self._pools.defense, self._pools.attack },
 		{ self._pools.hidden }
 	}
+	self._lastMessages = Messages.create()
+	self._specialTasks = {}
 	
 	self._play = nil
 	self._forcePlay = nil
@@ -36,15 +36,27 @@ function Coordinator:run()
 	self:_updatePlaySelection()
 	-- TODO: facilities for learning
 	
+	-- create trainer message
+	local trainerMessage = {}
 	if self._play then
-		self._play:run()
+		trainerMessage.play = self._play:run()
 	end
+	-- decide who gets the special tasks
+	trainerMessage.specialTask = self:_coordinateTasks(self._lastMessages)
+	-- broadcast trainer messages immediatelly
+	self._lastMessages:setTrainer(trainerMessage)
 	
+	-- print in debug tree
+	self._lastMessages:dump()
+	
+	-- run pools and thus every agent
+	local messages = Messages.create()
 	for _, pool in pairs(self._pools) do
-		pool:run()
+		pool:run(self._lastMessages, messages)
 	end
 	
-	self._taskmanager:run()
+	-- store messages
+	self._lastMessages = messages
 end
 
 function Coordinator:_updatePoolRobots()
@@ -61,8 +73,8 @@ function Coordinator:_updatePoolRobots()
 	defenders = math.roundUpwards(defenders, 0.1)
 	
 	-- limit robot counts on attack/defense pool, causes automatic robot balancing
-	self._pools.attack.robotLimit = attackers
-	self._pools.defense.robotLimit = defenders
+	self._pools.attack:setRobotLimit(attackers)
+	self._pools.defense:setRobotLimit(defenders)
 	
 	-- remove no longer needed / surplus robots from pools
 	for _, pool in pairs(self._pools) do
@@ -103,6 +115,33 @@ function Coordinator:_updatePoolRobots()
 			end
 		until groupFinished
 	end
+end
+
+function Coordinator:_coordinateTasks(messages)
+	local messages = messages:all()
+	local specialTasks = {}
+	local specialRating = {}
+	
+	local hysteresis = 0.1 -- magic constant
+	
+	for robot, msg in pairs(messages) do
+		if msg.agent and msg.agent.specialTask then
+			local tasks = msg.agent.specialTask
+			for name, rating in pairs(tasks) do
+				if self._specialTasks[name] == robot then
+					rating = rating + 0.1
+				end
+				
+				if (specialTasks[name] and specialRating[name] < rating) or not specialTasks[name] then
+					specialTasks[name] = robot
+					specialRating[name] = rating
+				end
+			end
+		end
+	end
+	
+	self._specialTasks = specialTasks
+	return specialTasks
 end
 
 function Coordinator:observeGameState()
@@ -150,13 +189,13 @@ function Coordinator:_updatePlaySelection()
 	
 	if self._forcePlay then
 		-- just one play to force using it if neccessary
-		local play = self._forcePlay.create(self._taskmanager, poolRobots)
+		local play = self._forcePlay.create(self._lastMessages, poolRobots)
 		maxRating = play:rate(requiredRating, true)
 		ratingGroups[maxRating] = { play }
 	else
 		for _, play in pairs(Plays) do
 			-- check every play
-			local playInst = play.create(self._taskmanager, poolRobots)
+			local playInst = play.create(self._lastMessages, poolRobots)
 			local rating = playInst:rate(currentRating, true)
 			
 			-- group plays by rating

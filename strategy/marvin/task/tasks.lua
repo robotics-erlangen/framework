@@ -16,11 +16,11 @@ local Tasks = {
 	ShootGoalImmediately = require "task/shootgoalimmediately"
 }
 
-local TaskManager = require "control/taskmanager"
 local debug = require "../base/debug"
 local World = require "../base/world"
+local Messages = require "control/messages"
 
-local tm = nil
+local lastMessages = Messages.create()
 local taskFactories = nil
 local instances = {}
 --- Test the task created by taskProvider
@@ -28,7 +28,6 @@ local instances = {}
 -- @return function - Test function
 local function testWrapper(taskProvider)
 	return function()
-		tm = tm or TaskManager.create()
 		if not taskFactories then
 			-- get factory functions to create tasks
 			taskFactories = {}
@@ -101,14 +100,21 @@ local function testWrapper(taskProvider)
 			end
 		end
 		
-		-- assign
+		lastMessages:setTrainer({})
+		lastMessages:dump()
+		local messages = Messages.create()
+		-- run, fake agent
 		for i, inst in ipairs(instances) do
 			local task = inst[1]
-			debug.set("Task " .. i, tm:simulate(task))
-			tm:assign(task)
+			local priorityMessages, notifications = lastMessages:split(task:robot())
+			debug.push("Task " .. i)
+			debug.set(nil, task.className)
+			debug.set("rating", task:rate(priorityMessages, notifications))
+			local message = { agent = {}, task = task:run(priorityMessages, notifications) or {} }
+			messages:addAgent(task:robot(), message, task.priority)
+			debug.pop()
 		end
-		
-		tm:run()
+		lastMessages = messages
 	end
 end
 

@@ -25,7 +25,7 @@ end
 function DirectPassTest:_selectRobots(poolRobots)
 	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
 	robots = RobotList.join(robots, poolRobots.keeper)
-	return RobotMatcher.match(self._taskmanager, robots, 2, DirectPassTest._conditions)
+	return RobotMatcher.match(self._messages, robots, 2, DirectPassTest._conditions)
 end
 
 function DirectPassTest:rateDefault(isInit)

@@ -55,8 +55,8 @@ end
 function DirectPass:_run(priorityMessages, notifications)
 	local msg = notifications[self._targetRobot]
 
-	self._targetPos = msg and msg.targetPos or self._targetRobot.pos
-	self._targetDir = msg and msg.targetDir or self._targetRobot.dir
+	self._targetPos = msg and msg.task.targetPos or self._targetRobot.pos
+	self._targetDir = msg and msg.task.targetDir or self._targetRobot.dir
 
 
 	-- shoot ball into robot dribbler

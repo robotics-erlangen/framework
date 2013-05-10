@@ -21,9 +21,9 @@ Base.timeout = 15
 Base.startState = "Default"
 Base.maxRating = Base.rating.yes
 
-function Base:init(tm, poolRobots)
-	self._taskmanager = tm
+function Base:init(msg, poolRobots)
 	-- keep for lazy initialization
+	self._messages = msg
 	self.__poolRobots = poolRobots
 	
 	self._state = nil
@@ -59,6 +59,7 @@ function Base:rate(minRequired, isInit)
 	if not self:state() then
 		-- assign robots
 		self._robots = self:_selectRobots(self.__poolRobots)
+		self._messages = nil
 		self.__poolRobots = nil
 		
 		-- no suitable robots found -> abort
@@ -113,13 +114,16 @@ function Base:run()
 		self[switch](self)
 	end
 	
-	-- assign tasks
+	-- create task assignment message
+	local tasks = {}
 	for _, task in pairs(self._tasks) do
-		self._taskmanager:assign(task)
+		tasks[task:robot()] = task
 	end
 	
 	-- cleanup
 	debug.pop()
+	
+	return tasks
 end
 
 --function Base:rate...()

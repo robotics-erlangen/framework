@@ -21,7 +21,7 @@ end
 function DefaultDuel:_selectRobots(poolRobots)
 	-- cacheable array manipulations
 	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
-	return RobotMatcher.match(self._taskmanager, robots, 1, DefaultDuel._conditions)
+	return RobotMatcher.match(self._messages, robots, 1, DefaultDuel._conditions)
 end
 
 -- attack while the opponent has the ball

@@ -35,6 +35,7 @@ function Base:run(messages)
 	
 	if self._task then
 		debug.push("Task" .. (self._playControlled and " (Play)" or ""))
+		debug.set(nil, self._task.className)
 		taskMessage = self._task:run(priorityMessages, notifications)
 		debug.pop()
 	else
