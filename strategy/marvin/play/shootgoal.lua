@@ -50,4 +50,8 @@ function ShootGoal:rateEnd()
 	return Base.rating.no
 end
 
+function ShootGoal:prepareEnd()
+	self._tasks = {}
+end
+
 return ShootGoal
