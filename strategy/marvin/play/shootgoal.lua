@@ -29,7 +29,8 @@ function ShootGoal:prepareDefault()
 end
 
 function ShootGoal:rateDefault(isInit)
-	local shootGoalChance = self._taskmanager:simulate(self._tasks[1])
+	local priorityMessages, notifications = self._messages:split(self._robots[1])
+	local shootGoalChance = self._tasks[1]:rate(priorityMessages, notifications)
 	if shootGoalChance > 1.50861 then	-- OBACHT! never tested magic constant
 		return Base.rating.yes
 	elseif shootGoalChance > 0.87350 then	-- OBACHT! never tested magic constant

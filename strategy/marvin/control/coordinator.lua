@@ -162,7 +162,7 @@ function Coordinator:_updatePlaySelection()
 	-- get rating of play currently running
 	local currentRating = PlayBase.rating.no
 	if self._play then
-		currentRating = self._play:rate()
+		currentRating = self._play:rate(nil, no, self._lastMessages)
 		if currentRating == PlayBase.rating.no then
 			self._play = nil
 		end
@@ -189,14 +189,14 @@ function Coordinator:_updatePlaySelection()
 	
 	if self._forcePlay then
 		-- just one play to force using it if neccessary
-		local play = self._forcePlay.create(self._lastMessages, poolRobots)
-		maxRating = play:rate(requiredRating, true)
+		local play = self._forcePlay.create(poolRobots)
+		maxRating = play:rate(requiredRating, true, self._lastMessages)
 		ratingGroups[maxRating] = { play }
 	else
 		for _, play in pairs(Plays) do
 			-- check every play
-			local playInst = play.create(self._lastMessages, poolRobots)
-			local rating = playInst:rate(currentRating, true)
+			local playInst = play.create(poolRobots)
+			local rating = playInst:rate(currentRating, true, self._lastMessages)
 			
 			-- group plays by rating
 			if not ratingGroups[rating] then

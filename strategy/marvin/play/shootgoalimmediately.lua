@@ -28,7 +28,8 @@ function ShootGoalImmediately:prepareDefault()
 end
 
 function ShootGoalImmediately:rateDefault(isInit)
-	local goalProbability = self._taskmanager:simulate(self._tasks[1])
+	local priorityMessages, notifications = self._messages:split(self._robots[1])
+	local goalProbability = self._tasks[1]:rate(priorityMessages, notifications)
 	if goalProbability > 0.92836 then -- warning! magic constant
 		return Base.rating.force
 	elseif goalProbability > 0.79731 then -- warning! magic constant

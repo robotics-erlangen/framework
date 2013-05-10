@@ -21,9 +21,8 @@ Base.timeout = 15
 Base.startState = "Default"
 Base.maxRating = Base.rating.yes
 
-function Base:init(msg, poolRobots)
+function Base:init(poolRobots)
 	-- keep for lazy initialization
-	self._messages = msg
 	self.__poolRobots = poolRobots
 	
 	self._state = nil
@@ -38,7 +37,8 @@ function Base:_init()
 end
 
 -- rate[State] is always called if the play is useable
-function Base:rate(minRequired, isInit)
+function Base:rate(minRequired, isInit, messages)
+	self._messages = messages
 	-- check for timeout
 	if World.Time > self.__startTime + self.timeout then
 		return Base.rating.no
@@ -59,7 +59,6 @@ function Base:rate(minRequired, isInit)
 	if not self:state() then
 		-- assign robots
 		self._robots = self:_selectRobots(self.__poolRobots)
-		self._messages = nil
 		self.__poolRobots = nil
 		
 		-- no suitable robots found -> abort
