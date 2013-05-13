@@ -9,6 +9,8 @@ local Field = require "util/field"
 local Constants = require "../base/constants"
 local Direct = require "trajectory/direct"
 
+local amun = amun
+
 Duel.priority = 4
 
 
@@ -32,9 +34,62 @@ function Duel:_passAway()
 	end
 end
 
+function Duel:_contestDribble()
+	-- use dribbler
+	self._robot:setDribblerSpeed(1)
+	if not self.backwardsStartPoint then
+		self.backwardsStartPoint = self._robot.pos
+	else
+		-- if moved to illegal positions (out of field, friendly defense area) then fail
+		local movedDist = self.backwardsStartPoint:distanceTo(self._robot.pos)
+		if not Field.isInField(self._robot.pos, 0)
+				or Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
+			self.strategy = 2
+			self:_evaluateStrategy(false)
+			return
+		end
+		-- if moved to far then fail (20cm should be enough)
+		if movedDist > 0.2 then
+			self:_evaluateStrategy(false)
+			return
+		end
+		-- else move backwards
+		local toBallDir = World.Ball.pos - self._robot.pos
+		local backwards = toBallDir:copy():scaleLength(-Settings.dribbleDriveSpeed)
+		self._robot.trajectory:update(Direct, backwards, toBallDir:angle())
+		-- calculate message to assistant
+		-- TODO FIXME implement (observer) function that evaluates where to chip
+		self.assistantPos = self.chipPos + (self.chipPos - World.Ball.pos)
+			:setLength(self._robot.radius + Settings.receiveChipDistance)
+		self.assistantDir = (World.Ball.pos - self.chipPos):angle()
+
+	end	--[[	
+	local spline = self._robot._controllerInput.spline
+	if spline and spline[1] then
+		for k,v in pairs(spline[1]) do
+			if type(v) == 'table' then
+				string = ""
+				for k1,v1 in pairs(v) do
+					string = string .. k1 .. " = " .. v1 .. ", "
+				end
+				log("s1["..k.."] = "..string)
+			else
+				log("s1["..k.."] = "..v)
+			end
+		end
+	end]]
+end
+
+function Duel:_contestRotate()
+	local controllerInput = {spline = nil, omega = 2 * 2*math.pi}
+	self._robot:setControllerInput(controllerInput)
+	self._robot:_setCommand()
+	--log(self._robot._controllerInput.k_omega)
+end
+
 local successRates = Learning.init(2)
 function Duel:_contest()
-	-- 1. choose duel strategy (learning):
+	--choose duel strategy (learning):
 	if not self.strategy or self.strategy == 0 then
 		self.strategy = Learning.decide(successRates)
 		if Settings.DEBUG then
@@ -42,37 +97,9 @@ function Duel:_contest()
 		end
 	end
 	if self.strategy == 1 then --dribble backwards and chip over the opponent
-		-- use dribbler
-		self._robot:setDribblerSpeed(1)
-		if not self.backwardsStartPoint then
-			self.backwardsStartPoint = self._robot.pos
-		else
-			-- if moved to illegal positions (out of field, friendly defense area) then fail
-			local movedDist = self.backwardsStartPoint:distanceTo(self._robot.pos)
-			if not Field.isInField(self._robot.pos, 0)
-					or Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
-				self.strategy = 2
-				self:_evaluateStrategy(false)
-				return
-			end
-			-- if moved to far then fail (20cm should be enough)
-			if movedDist > 0.2 then
-				self:_evaluateStrategy(false)
-				return
-			end
-			-- else move backwards
-			local toBallDir = World.Ball.pos - self._robot.pos
-			local backwards = toBallDir:copy():scaleLength(-Settings.dribbleDriveSpeed)
-			self._robot.trajectory:update(Direct, backwards, toBallDir:angle())
-			-- calculate message to assistant
-			-- TODO FIXME implement (observer) function that evaluates where to chip
-			self.chipPos = (World.Geometry.OpponentGoal - World.Ball.pos):setLength(1) --1m towards opponent goal
-			self.assistantPos = self.chipPos + (self.chipPos - World.Ball.pos)
-				:setLength(self._robot.radius + Settings.receiveChipDistance)
-			self.assistantDir = (World.Ball.pos - self.chipPos):angle()
-		end
+		self:_contestDribble()
 	elseif self.strategy == 2 then
-	--   b) use dribbler and rotate/shoot instantly
+		self:_contestRotate()
 	elseif self.strategy == 3 then
 	--   c) push!?	
 	else
@@ -101,6 +128,8 @@ end
 
 function Duel:_run()
 	local opposer = Ball.opponentBallOwner()
+	self.chipPos = (World.Geometry.OpponentGoal - World.Ball.pos):setLength(1) --1m towards opponent goal
+	
 	if not self._robot:hasBall(World.Ball) then
 		-- if we dont have the ball yet
 		self:_catchBall(World.Geometry.OpponentGoal, 0)
