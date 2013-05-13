@@ -8,8 +8,7 @@ local Debug = require "../base/debug"
 local Field = require "util/field"
 local Constants = require "../base/constants"
 local Direct = require "trajectory/direct"
-
-local amun = amun
+local geom = require "../base/geom"
 
 Duel.priority = 4
 
@@ -63,27 +62,17 @@ function Duel:_contestDribble()
 			:setLength(self._robot.radius + Settings.receiveChipDistance)
 		self.assistantDir = (World.Ball.pos - self.chipPos):angle()
 
-	end	--[[	
-	local spline = self._robot._controllerInput.spline
-	if spline and spline[1] then
-		for k,v in pairs(spline[1]) do
-			if type(v) == 'table' then
-				string = ""
-				for k1,v1 in pairs(v) do
-					string = string .. k1 .. " = " .. v1 .. ", "
-				end
-				log("s1["..k.."] = "..string)
-			else
-				log("s1["..k.."] = "..v)
-			end
-		end
-	end]]
+	end
 end
 
 function Duel:_contestRotate()
-	local controllerInput = {spline = nil, omega = 2 * 2*math.pi}
+	--decide if we should rotate cw or ccw
+	local toOpponentDir = (self.opposer and self.opposer.pos or World.Ball.pos) - self._robot.pos
+	local intersection = geom.intersectLineLine(
+			self._robot.pos, toOpponentDir, World.Geometry.OpponentGoal, Vector.create(1, 0))
+	local ccw = intersection and math.sign(intersection.x) --positive = ccw, negative = cw
+	local controllerInput = {spline = nil, omega = ccw * 2 * 2*math.pi} -- 2 turns per second
 	self._robot:setControllerInput(controllerInput)
-	self._robot:_setCommand()
 	--log(self._robot._controllerInput.k_omega)
 end
 
@@ -127,14 +116,14 @@ end
 
 
 function Duel:_run()
-	local opposer = Ball.opponentBallOwner()
+	self.opposer = Ball.opponentBallOwner()
 	self.chipPos = (World.Geometry.OpponentGoal - World.Ball.pos):setLength(1) --1m towards opponent goal
 	
 	if not self._robot:hasBall(World.Ball) then
 		-- if we dont have the ball yet
 		self:_catchBall(World.Geometry.OpponentGoal, 0)
 		self:_evaluateStrategy(false)
-	elseif opposer == nil then
+	elseif self.opposer == nil then
 		-- if no opponent robot is a ball owner
 		self:_passAway()
 		self:_evaluateStrategy(true)
@@ -147,7 +136,7 @@ function Duel:_run()
 		Debug.set("Duel Rotate", successRates[2].percentage)
 	end
 	return {
-		defendedOpponent = opposer,
+		defendedOpponent = self.opposer,
 		duelAssistantPos = self.assistantPos,
 		duelAssistantDir = self.assistantDir
 	}
