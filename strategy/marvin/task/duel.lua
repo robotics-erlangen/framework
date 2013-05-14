@@ -9,6 +9,7 @@ local Field = require "util/field"
 local Constants = require "../base/constants"
 local Direct = require "trajectory/direct"
 local geom = require "../base/geom"
+local Assistant = require "task/assistant"
 
 Duel.priority = 4
 
@@ -26,10 +27,26 @@ function Duel:_passAway()
 			math.huge, --that argument is ignored
 			false, --chip
 			0) --dont care about anything, just shoot. NOW!
-	else -- we dont need to do something special, just pass away and smile :)
-		-- 1. search for assistants
-		-- 2. choose the best one
-		-- 3. pass to it
+	else -- pass to an assistant and communicate via message passing
+		-- 1. search best assistant
+		local targetAssistant
+		local bestRating = -1
+		for robot, msg in pairs(self._notifications) do
+			if Class.instanceOf(msg.agent.currentTask, Assistant) then
+				local currentRating = msg.agent.currentTask:rate()
+				if currentRating > bestRating then
+					targetAssistant = robot
+					bestRating = currentRating
+				end
+			end
+		end
+		if targetAssistant then
+			-- 2. send message to assistant
+			self.duelAssistantTarget = targetAssistant
+			-- 3. pass to it
+			-- FIXME play pass(inheritance), don't just shoot
+			self:_shoot(targetAssistant.pos, math.huge, true, 0.8)
+		end
 	end
 end
 
@@ -115,7 +132,9 @@ function Duel:_evaluateStrategy(pwned)
 end
 
 
-function Duel:_run()
+function Duel:_run(priorityMessages, notifications)
+	self._priorityMessages = priorityMessages
+	self._notifications = notifications
 	self.opposer = Ball.opponentBallOwner()
 	self.chipPos = (World.Geometry.OpponentGoal - World.Ball.pos):setLength(1) --1m towards opponent goal
 	
@@ -138,7 +157,8 @@ function Duel:_run()
 	return {
 		defendedOpponent = self.opposer,
 		duelAssistantPos = self.assistantPos,
-		duelAssistantDir = self.assistantDir
+		duelAssistantDir = self.assistantDir,
+		duelAssistantTarget = self.duelAssistantTarget
 	}
 end
 

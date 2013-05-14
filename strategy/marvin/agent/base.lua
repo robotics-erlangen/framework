@@ -47,6 +47,7 @@ function Base:run(messages)
 	debug.pop()
 	
 	local priority = self._task and self._task.priority or 0
+	agentMessage = { currentTask = self._task }
 	return {agent = agentMessage or {}, task = taskMessage or {}}, priority
 end
 

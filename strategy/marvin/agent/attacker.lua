@@ -15,6 +15,11 @@ function Attacker:keepRobot()
 end
 
 function Attacker:_run(priorityMessages, notifications, trainerMessage)
+	for robot, msg in pairs(priorityMessages) do
+		if msg.task.duelAssistantTarget == self._robot then
+			self._task = ReceivePass.create(self._robot)
+		end
+	end
 	if not self._task then
 		self._task = Assistant.create(self._robot)
 	end
