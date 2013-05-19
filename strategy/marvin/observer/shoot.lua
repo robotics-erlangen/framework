@@ -115,7 +115,7 @@ end
 -- @return catchProbability number - the chance that the given opponent robot catches the ball
 function Shoot.ballCatchProbability(robot, time, catchPos, corridorHalf)
 	local corridorWidthHalf = corridorHalf:length()
-	local v_toSector = math.abs(robot.speed:dot(corridorHalf:normalize())) -- part of robot.speed perpendicular to shoot corridor
+	local v_toSector = math.abs(robot.speed:dot(corridorHalf) / corridorWidthHalf) -- part of robot.speed perpendicular to shoot corridor
 	local maxAcceleration = robot.maxAcceleration
 	local maxDeceleration = 5 -- magic constant
 	local expectedPos = v_toSector*time -- position, which the robot reaches without changing speed
