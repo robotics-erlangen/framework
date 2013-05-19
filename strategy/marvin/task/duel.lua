@@ -8,6 +8,7 @@ local Debug = require "../base/debug"
 local Field = require "util/field"
 local Constants = require "../base/constants"
 local Direct = require "trajectory/direct"
+local Rotate = require "trajectory/rotate"
 local geom = require "../base/geom"
 local Assistant = require "task/assistant"
 
@@ -87,10 +88,8 @@ function Duel:_contestRotate()
 	local toOpponentDir = (self.opposer and self.opposer.pos or World.Ball.pos) - self._robot.pos
 	local intersection = geom.intersectLineLine(
 			self._robot.pos, toOpponentDir, World.Geometry.OpponentGoal, Vector.create(1, 0))
-	local ccw = intersection and math.sign(intersection.x) --positive = ccw, negative = cw
-	local controllerInput = {spline = nil, omega = ccw * 2 * 2*math.pi} -- 2 turns per second
-	self._robot:setControllerInput(controllerInput)
-	--log(self._robot._controllerInput.k_omega)
+	local ccw = intersection and math.sign(intersection.x) or 1 --positive = ccw, negative = cw
+	self._robot.trajectory:update(Rotate, ccw * 2 * 2*math.pi) -- 2 turns per second
 end
 
 local successRates = Learning.init(2)
