@@ -1,6 +1,8 @@
 local Attacker = (require "../base/class").new("Agent.Attacker", require "agent/base")
 local World = require "../base/world"
 local Assistant = require "task/assistant"
+local ReceivePass = require "task/receivepass"
+local Class = require "../base/class"
 
 function Attacker.takeRobot(robots)
 	for _, robot in pairs(robots) do
@@ -21,7 +23,7 @@ function Attacker:_run(priorityMessages, notifications, trainerMessage)
 			self._task = ReceivePass.create(self._robot)
 		end
 	end
-	if not self._task then
+	if not self._task or not Class.instanceOf(self._task, Assistant) then
 		self._task = Assistant.create(self._robot)
 	end
 	return {}

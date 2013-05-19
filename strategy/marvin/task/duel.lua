@@ -32,7 +32,7 @@ function Duel:_passAway(notifications)
 		local targetAssistant
 		local bestRating = -1
 		for robot, msg in pairs(notifications) do
-			local currentRating = msg.assistantRating
+			local currentRating = msg.task.assistantRating
 			if currentRating and currentRating > bestRating then
 				targetAssistant = robot
 				bestRating = currentRating
