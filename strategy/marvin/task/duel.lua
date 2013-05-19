@@ -10,7 +10,6 @@ local Constants = require "../base/constants"
 local Direct = require "trajectory/direct"
 local Rotate = require "trajectory/rotate"
 local geom = require "../base/geom"
-local Assistant = require "task/assistant"
 
 Duel.priority = 4
 
@@ -22,7 +21,7 @@ function Duel:_successProbability()
 	return 1
 end
 
-function Duel:_passAway()
+function Duel:_passAway(notifications)
 	if self.strategy and self.strategy >= 1 then -- hurry!
 		self:_shoot(self.chipPos, --where to chip
 			math.huge, --that argument is ignored
@@ -32,13 +31,11 @@ function Duel:_passAway()
 		-- 1. search best assistant
 		local targetAssistant
 		local bestRating = -1
-		for robot, msg in pairs(self._notifications) do
-			if Class.instanceOf(msg.agent.currentTask, Assistant) then
-				local currentRating = msg.agent.currentTask:rate()
-				if currentRating > bestRating then
-					targetAssistant = robot
-					bestRating = currentRating
-				end
+		for robot, msg in pairs(notifications) do
+			local currentRating = msg.assistantRating
+			if currentRating and currentRating > bestRating then
+				targetAssistant = robot
+				bestRating = currentRating
 			end
 		end
 		if targetAssistant then
@@ -132,8 +129,6 @@ end
 
 
 function Duel:_run(priorityMessages, notifications)
-	self._priorityMessages = priorityMessages
-	self._notifications = notifications
 	self.opposer = Ball.opponentBallOwner()
 	self.chipPos = (World.Geometry.OpponentGoal - World.Ball.pos):setLength(1) --1m towards opponent goal
 	
@@ -143,7 +138,7 @@ function Duel:_run(priorityMessages, notifications)
 		self:_evaluateStrategy(false)
 	elseif self.opposer == nil then
 		-- if no opponent robot is a ball owner
-		self:_passAway()
+		self:_passAway(notifications)
 		self:_evaluateStrategy(true)
 	else
 		-- if we have the ball, but at least one opponent is nearby
