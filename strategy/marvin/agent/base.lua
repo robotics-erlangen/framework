@@ -1,6 +1,7 @@
 local Base = (require "../base/class").new("Agent.Base")
 local Class = require "../base/class"
 local debug = require "../base/debug"
+local Message = require "agent/message"
 
 function Base.takeRobot(robots)
 	error("stub")
@@ -47,7 +48,7 @@ function Base:run(messages)
 	debug.pop()
 	
 	local priority = self._task and self._task.priority or 0
-	return {agent = agentMessage or {}, task = taskMessage or {}}, priority
+	return Message.Container.create{agent = agentMessage or {}, task = taskMessage or {}}, priority
 end
 
 function Base:robot()
