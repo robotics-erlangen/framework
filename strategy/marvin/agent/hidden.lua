@@ -18,7 +18,7 @@ Hidden._behaviours = {
 }
 
 function Hidden:checkDefault()
-	return true, {}
+	return true
 end
 
 function Hidden:doDefault()

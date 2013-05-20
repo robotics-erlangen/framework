@@ -51,6 +51,16 @@ function Messages:split(robot)
 	return priorityMessages, notifications
 end
 
+function Messages:own(robot)
+	local messages = {}
+	for lrobot, message in pairs(self._messages) do
+		if lrobot ~= robot then
+			messages[lrobot] = message
+		end
+	end
+	return messages
+end
+
 function Messages:all()
 	return self._messages
 end

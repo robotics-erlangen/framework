@@ -1,6 +1,6 @@
 local Defender = (require "../base/class").new("Agent.Defender", require "agent/base")
 local World = require "../base/world"
-local Class = require "../base/class"
+
 local CenterBack = require "task/centerback"
 local ManMark = require "task/manmark"
 
@@ -21,26 +21,26 @@ Defender._behaviours = {
 	"Default"
 }
 
-function Defender:checkCenterBack(priorityMessages, notifications, trainerMessage)
-	local isCenterBack = trainerMessage.specialTask.centerBack == self._robot
+function Defender:checkCenterBack()
+	local isCenterBack = self._trainerMessage.specialTask.centerBack == self._robot
 	local centerBack
 	if isCenterBack and self._behaviour == "CenterBack" then
 		centerBack = self._task
 	else
 		centerBack = CenterBack.create(self._robot)
 	end
-	local centerBackRating = centerBack:rate(priorityMessages, notifications)
+	local centerBackRating = centerBack:rate(self._priorityMessages, self._notifications)
 	return isCenterBack, {specialTask = { centerBack = centerBackRating } }
 end
 
-function Defender:doCenterBack(priorityMessages, notifications, trainerMessage)
+function Defender:doCenterBack()
 	if not self._task then
 		self._task = CenterBack.create(self._robot)
 	end
 end
 
 function Defender:checkDefault()
-	return true, {}
+	return true
 end
 
 function Defender:doDefault()

@@ -1,8 +1,8 @@
 local Attacker = (require "../base/class").new("Agent.Attacker", require "agent/base")
 local World = require "../base/world"
+
 local Assistant = require "task/assistant"
 local ReceivePass = require "task/receivepass"
-local Class = require "../base/class"
 
 function Attacker.takeRobot(robots)
 	for _, robot in pairs(robots) do
@@ -21,13 +21,13 @@ Attacker._behaviours = {
 	"Default"
 }
 
-function Attacker:checkReceivePass(priorityMessages, notifications, trainerMessage)
-	for robot, msg in pairs(priorityMessages) do
+function Attacker:checkReceivePass()
+	for robot, msg in pairs(self._messages) do
 		if msg.task.duelAssistantTarget == self._robot then
-			return true, {}
+			return true
 		end
 	end
-	return false, {}
+	return false
 end
 
 function Attacker:doReceivePass()
@@ -37,7 +37,7 @@ function Attacker:doReceivePass()
 end
 
 function Attacker:checkDefault()
-	return true, {}
+	return true
 end
 
 function Attacker:doDefault()

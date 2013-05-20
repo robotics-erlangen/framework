@@ -21,7 +21,7 @@ Keeper._behaviours = {
 }
 
 function Keeper:checkDefault()
-	return true, {}
+	return true
 end
 
 function Keeper:doDefault()

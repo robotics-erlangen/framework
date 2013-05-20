@@ -11,6 +11,7 @@ function Base.takeRobot(robots)
 end
 
 -- has to be ordered by decreasing priority
+-- may be nested, in that case the first behaviour name is just a check for that group
 Base._behaviours = {}
 
 Base.__basicBehaviours = {
@@ -41,51 +42,70 @@ function Base:do...(priorityMessages, notifications, trainerMessage)
 	-- create task
 end]]--
 
-function Base:checkHalt(priorityMessages, notifications, trainerMessage)
-	return World.RefereeState == "Halt", {}
+function Base:checkHalt()
+	return World.RefereeState == "Halt"
 end
 
-function Base:doHalt(priorityMessages, notifications, trainerMessage)
+function Base:doHalt()
 	if not self._task then
 		self._task = Halt.create(self._robot)
 	end
 end
 
-function Base:checkPlay(priorityMessages, notifications, trainerMessage)
-	local play = trainerMessage.play
-	return play and play[self._robot], {}
+function Base:checkPlay()
+	local play = self._trainerMessage.play
+	return play and play[self._robot]
 end
 
-function Base:doPlay(priorityMessages, notifications, trainerMessage)
-	self._task = trainerMessage.play[self._robot]
+function Base:doPlay()
+	self._task = self._trainerMessage.play[self._robot]
 end
 
-function Base:run(messages)
-	local priorityMessages, notifications = messages:split(self._robot)
-	local trainerMessage = messages:trainer()
-	local agentMessage = {}
-	
-	-- required if no behaviour matches
-	local behaviour = nil
-	for _, name in ipairs(self._behaviours) do
-		if not self["check" .. name] then
-			error("function check" .. name .. " missing in agent " .. Class.name(self, true))
-		end
-		local isApplicable, messages = self["check" .. name](self, priorityMessages, notifications, trainerMessage)
-		table.extend(agentMessage, messages)
-		-- check behaviour until the first matching
-		if isApplicable then
-			behaviour = name
-			break
+function Base:_findBehaviour(behaviours, isNested, agentMessage)
+	for i, name in ipairs(behaviours) do
+		-- skip first check if nested
+		if not (i == 1 and isNested) then
+			local behaviour
+			if type(name) == "table" then
+				behaviour = name[1]
+			else
+				behaviour = name
+			end
+			
+			if not self["check" .. behaviour] then
+				error("function check" .. behaviour .. " missing in agent " .. Class.name(self, true))
+			end
+			local isApplicable, messages = self["check" .. behaviour](self)
+			if messages then
+				table.extendDeep(agentMessage, messages)
+			end
+			if isApplicable and type(name) == "table" then
+				-- behaviour becomes be nil if no subbehaviour matches
+				behaviour = self:_findBehaviour(name, true, agentMessage)
+			end
+			-- check behaviour until the first matching
+			if behaviour and isApplicable then
+				return behaviour
+			end
 		end
 	end
+	return nil
+end
+	
+function Base:run(messages)
+	self._priorityMessages, self._notifications = messages:split(self._robot)
+	self._messages = messages:own(self._robot)
+	self._trainerMessage = messages:trainer()
+	local agentMessage = {}
+	
+	local behaviour = self:_findBehaviour(self._behaviours, false, agentMessage)
 	-- correctly handle no matching behaviour
 	if self._behaviour ~= behaviour or not behaviour then
 		self._task = nil -- reset task when behaviour changes
 	end
 	self._behaviour = behaviour
 	if self._behaviour then
-		self["do" .. self._behaviour](self, priorityMessages, notifications, trainerMessage)
+		self["do" .. self._behaviour](self)
 	end
 	
 	
@@ -95,7 +115,7 @@ function Base:run(messages)
 	local taskMessage
 	if self._task then
 		debug.push("Task" .. ((self._behaviour == "Play") and " (Play)" or ""), Class.name(self._task))
-		taskMessage = self._task:run(priorityMessages, notifications)
+		taskMessage = self._task:run(self._priorityMessages, self._notifications)
 		debug.pop()
 	else
 		debug.set("Task", nil)
