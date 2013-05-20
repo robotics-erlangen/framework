@@ -24,9 +24,13 @@ end
 --- Pushes a new key on the debug stack.
 -- @name push
 -- @param name string - Name of the new subtree
-function debug.push(name)
+-- @param [value string - Value for the subtree header]
+function debug.push(name, value)
 	local current = debugStack[#debugStack]
 	table.insert(debugStack, joinName(current, name))
+	if value then
+		debug.set(nil, value)
+	end
 end
 
 --- Pushes a root key on the debug stack.
