@@ -113,6 +113,7 @@ Task._optional = {
 	defendedOpponent = Robot,
 	duelAssistantPos = "userdata",
 	duelAssistantDir = "number",
+	duelAssistantTarget = Robot,
 	targetPos = "userdata",
 	targetDir = "number"
 }
