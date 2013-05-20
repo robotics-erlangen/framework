@@ -16,27 +16,37 @@ function Defender:keepRobot()
 	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper
 end
 
-function Defender:_run(priorityMessages, notifications, trainerMessage)
+Defender._behaviours = {
+	"CenterBack",
+	"Default"
+}
+
+function Defender:checkCenterBack(priorityMessages, notifications, trainerMessage)
+	local isCenterBack = trainerMessage.specialTask.centerBack == self._robot
 	local centerBack
-	
-	if trainerMessage.specialTask.centerBack == self._robot then
-		-- switch to centerback
-		if not self._task or not Class.instanceOf(self._task, CenterBack) then
-			self._task = CenterBack.create(self._robot)
-		end
+	if isCenterBack and self._behaviour == "CenterBack" then
 		centerBack = self._task
 	else
-		-- switch to manmark
-		if not self._task or not Class.instanceOf(self._task, ManMark) then
-			self._task = ManMark.create(self._robot)
-		end
+		centerBack = CenterBack.create(self._robot)
 	end
-	
-	-- create centerback if neccessary and get rating
-	local centerBack = centerBeck or CenterBack.create(self._robot)
 	local centerBackRating = centerBack:rate(priorityMessages, notifications)
+	return isCenterBack, {specialTask = { centerBack = centerBackRating } }
+end
 
-	return {specialTask = { centerBack = centerBackRating } }
+function Defender:doCenterBack(priorityMessages, notifications, trainerMessage)
+	if not self._task then
+		self._task = CenterBack.create(self._robot)
+	end
+end
+
+function Defender:checkDefault()
+	return true, {}
+end
+
+function Defender:doDefault()
+	if not self._task then
+		self._task = ManMark.create(self._robot)
+	end
 end
 
 return Defender

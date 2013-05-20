@@ -16,17 +16,34 @@ function Attacker:keepRobot()
 	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper
 end
 
-function Attacker:_run(priorityMessages, notifications, trainerMessage)
+Attacker._behaviours = {
+	"ReceivePass",
+	"Default"
+}
+
+function Attacker:checkReceivePass(priorityMessages, notifications, trainerMessage)
 	for robot, msg in pairs(priorityMessages) do
-		if msg.task.duelAssistantTarget == self._robot
-				and (not self._task or not Class.instanceOf(self._task, ReceivePass)) then
-			self._task = ReceivePass.create(self._robot)
+		if msg.task.duelAssistantTarget == self._robot then
+			return true, {}
 		end
 	end
-	if not self._task or not Class.instanceOf(self._task, Assistant) then
+	return false, {}
+end
+
+function Attacker:doReceivePass()
+	if not self._task then
+		self._task = ReceivePass.create(self._robot)
+	end
+end
+
+function Attacker:checkDefault()
+	return true, {}
+end
+
+function Attacker:doDefault()
+	if not self._task then
 		self._task = Assistant.create(self._robot)
 	end
-	return {}
 end
 
 return Attacker

@@ -16,11 +16,18 @@ function Keeper:keepRobot()
 	return self._robot.isVisible and self._robot == World.FriendlyKeeper
 end
 
-function Keeper:_run(priorityMessages, notifications, trainerMessage)
+Keeper._behaviours = {
+	"Default"
+}
+
+function Keeper:checkDefault()
+	return true, {}
+end
+
+function Keeper:doDefault()
 	if not self._task then
 		self._task = KeeperTask.create(self._robot)
 	end
-	return {}
 end
 
 return Keeper
