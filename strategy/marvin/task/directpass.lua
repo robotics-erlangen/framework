@@ -66,7 +66,7 @@ function DirectPass:_run(priorityMessages, notifications)
 
 	-- check for obstacles
 
-	local passSpeed = 3
+	local passSpeed = self._targetRobot.constants.passSpeed
 	self:_shoot(self._targetPos, passSpeed, self._linearShoot, Settings.shootProbabilityThreshold)
 end
 
