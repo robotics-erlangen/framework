@@ -84,7 +84,43 @@ function ShootGoal:_run(priorityMessages, notifications)
 		self._robot.path:addRobotObstacles(self._robot)
 		self._robot.trajectory:update(ToTarget, self._robot.pos, (self._bestSector[1] + self._bestSector[2])*0.5)
 	elseif self._mode == ShootGoal.Mode.SearchBetterPosition then
-		
+		local distToGoal = (World.Ball.pos - World.Geometry.OpponentGoal):length()
+		local robotList = Observer.Goal.getRobotsNearGoal(distToGoal, World.OpponentRobots, true)
+		local rightPoint, rightSectors, leftPoint, leftSectors = Observer.Goal.searchFreeSectors(robotList, true)
+		local best = {}
+		best.rating = 0
+		if #rightSectors >= 1 then
+			for _, s in ipairs(rightSectors) do
+				local mid = 0.5*(s[1] + s[2])
+				local dir = Vector.fromAngle(mid)
+				local betterBallPos = geom.intersectLineLine(rightPoint, dir, World.Ball.pos, dir:perpendicular())
+				local betterRobotPos = betterBallPos + dir:setLength(self._robot.radius)
+				local rating = (s[2] - s[1])/((self._robot.pos - betterRobotPos):length() + 0.1)
+				if rating > best.rating then
+					best.rating = rating
+					best.mid = mid
+					best.betterRobotPos = betterRobotPos
+				end
+			end
+		end
+		if #leftSectors >= 1 then
+			for _, s in ipairs(leftSectors) do
+				local mid = 0.5*(s[1] + s[2])
+				local dir = Vector.fromAngle(mid)
+				local betterBallPos = geom.intersectLineLine(leftPoint, dir, World.Ball.pos, dir:perpendicular())
+				local betterRobotPos = betterBallPos + dir:setLength(self._robot.radius)
+				local rating = (s[2] - s[1])/((self._robot.pos - betterRobotPos):length() + 0.1)
+				if rating > best.rating then
+					best.rating = rating
+					best.mid = mid
+					best.betterRobotPos = betterRobotPos
+				end
+			end
+		end
+		self._robot:setDribblerSpeed(1)
+		self._robot.path:setDefaultObstacles(self._robot, true)
+		self._robot.path:addRobotObstacles(self._robot)
+		self._robot.trajectory:update(ToTarget, best.betterRobotPos, best.mid + math.pi)
 	elseif self._mode == ShootGoal.Mode.GetTheBall then
 		
 	else
