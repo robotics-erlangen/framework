@@ -16,7 +16,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 		local successProbability = self:_successProbability(0)
 		-- TODO: check future to see whether probability will decrease
 		-- TODO: test whether to add a delay when probability decreases
-		if successProbability > probabilityThreshold
+		if successProbability >= probabilityThreshold
 				or successProbability < self._lastSuccessProbability then
 			self._shootHysteresis = self._shootHysteresis + 2
 		else

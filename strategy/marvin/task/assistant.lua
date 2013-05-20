@@ -102,7 +102,7 @@ function Assistant:_run(priorityMessages, notifications)
 	moveTo.x = math.bound(-World.Geometry.FieldWidthHalf + 2 * self._robot.radius, moveTo.x, World.Geometry.FieldWidthHalf - 2 * self._robot.radius)
 	local faceBall = World.Ball.pos-moveTo
 	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
-	return {targetPos = moveTo}
+	return {targetPos = moveTo, assistantRating = self:_rate()}
 end
 
 function Assistant:_rate()

@@ -13,11 +13,19 @@ function Hidden:keepRobot()
 	return not self._robot.isVisible
 end
 
-function Hidden:_run(priorityMessages, notifications, trainerMessage)
+Hidden._behaviours = {
+	"Default"
+}
+
+function Hidden:checkDefault()
+	return true, {}
+end
+
+function Hidden:doDefault()
 	if not self._task then
 		--self._task = RescueRobot.create(self._robot)
 	end
-	return {}
 end
+
 
 return Hidden

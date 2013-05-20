@@ -10,6 +10,7 @@ local PlayBase = require "play/base"
 local Plays = require "play/plays"
 local AgentPool = require "control/agentpool"
 local Messages = require "control/messages"
+local Message = require "agent/message"
 
 local Coordinator = (require "../base/class").new("Control.Coordinator")
 
@@ -45,7 +46,7 @@ function Coordinator:run()
 	-- decide who gets the special tasks
 	trainerMessage.specialTask = self:_coordinateTasks(self._lastMessages)
 	-- broadcast trainer messages immediatelly
-	self._lastMessages:setTrainer(trainerMessage)
+	self._lastMessages:setTrainer(Message.Trainer.create(trainerMessage))
 	
 	-- print in debug tree
 	self._lastMessages:dump()

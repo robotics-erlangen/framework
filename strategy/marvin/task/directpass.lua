@@ -41,7 +41,8 @@ function DirectPass:_successProbability(t)
 
 	--TODO check if other position would be more efficient
 	-- returns the minimum of shootChance and the following 
-	local evalRet 
+	local evalRet
+	-- check for opponents in the pass corridor
 	if self._linearShoot then
 		--check posibility of success at time t for linear shoot
 		evalRet = Shoot.evaluatePassCorridor(self._targetRobot, t, self._targetPos)
@@ -58,15 +59,11 @@ function DirectPass:_run(priorityMessages, notifications)
 	self._targetPos = msg and msg.task.targetPos or self._targetRobot.pos
 	self._targetDir = msg and msg.task.targetDir or self._targetRobot.dir
 
-
 	-- shoot ball into robot dribbler
 	self._targetPos = self._targetPos + Vector.fromAngle(self._targetDir) * self._targetRobot.shootRadius
 	-- TODO calc shoot target
-	-- TODO get pass speed
 
-	-- check for obstacles
-
-	local passSpeed = 3
+	local passSpeed = self._targetRobot.constants.passSpeed
 	self:_shoot(self._targetPos, passSpeed, self._linearShoot, Settings.shootProbabilityThreshold)
 end
 
