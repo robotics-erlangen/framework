@@ -55,6 +55,22 @@ function table.extend(t1, t2)
 	return t1
 end
 
+--- Deep copy the given array into an array.
+-- @name extend
+-- @param t1 table - Array to copy into
+-- @param t2 table - Array to insert into t1
+-- @return table - combined array
+function table.extendDeep(t1, t2)
+	for k, v in pairs(t2) do
+		if t1[k] and type(t1[k]) == "table" and type(v) == "table" then
+			table.extendDeep(t1[k], v)
+		else
+			t1[k] = v
+		end
+	end
+	return t1
+end
+
 --- Find the maximum in an array
 -- @name max
 -- @param t number[] - Table to search
