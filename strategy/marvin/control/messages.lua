@@ -8,7 +8,7 @@ function Messages:init()
 end
 
 function Messages:addAgent(robot, message, priority)
-	assert(priority and priority > 0, "invalid priority")
+	assert(priority and priority >= 0, "invalid priority")
 	if self._messages[robot] then
 		log(robot.id)
 		error("Robot sent two messages")
