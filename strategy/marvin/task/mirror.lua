@@ -4,6 +4,7 @@ local World = require "../base/world"
 local Game = require "observer/game"
 local ToTarget = require "trajectory/totarget"
 local Field = require "util/field"
+local Rating = require "util/rating"
 
 Mirror.priority = 1
 
@@ -17,7 +18,7 @@ function Mirror:_init(side, distanceToCenterLine)
 end
 
 --- mirrors the opponent that is the closest one to our goal
-function Mirror:_run()
+function Mirror:_rate()
 	local sector1, _, sector3 = Game.divideOpponentsIntoSectors(false)
 	local sector = self._side and sector3 or sector1
 
@@ -44,15 +45,16 @@ function Mirror:_run()
 		targetPosX = self._lastTargetRobot.pos.x
 	end	
 
-	
-	
 	local pos = Vector.create(targetPosX, -self._distance - self._robot.radius)
-	pos = Field.limitToField(pos, -self._robot.radius)
+	self._targetPos = Field.limitToField(pos, -self._robot.radius)
+	return Rating.posToRating(self._robot, self._targetPos)
+end
 
+function Mirror:_run()
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
 	
-	self._robot.trajectory:update(ToTarget, pos, math.pi/2)
+	self._robot.trajectory:update(ToTarget, self._targetPos, math.pi/2)
 end
 
 function Mirror.factory(position, side, distanceToCenterLine)
