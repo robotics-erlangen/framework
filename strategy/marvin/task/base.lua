@@ -44,8 +44,7 @@ function Base:rate(priorityMessages, notifications)
 end
 
 function Base:_rate()
-	--FIXME reenable later
-	--error("stub")
+	error("stub")
 	-- generate rating between 0 and 1
 end
 
