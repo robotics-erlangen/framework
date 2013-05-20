@@ -54,8 +54,11 @@ function Shoot.evaluateShootCorridor(endPos, speed, startPos, shootTime, robots)
 	local shootChance = 1
 	for _, r in ipairs(robots) do
 		local pointOnLine = r.pos:nearestPosOnLine(predictedBallPos, endPos)
-		local ballCatchTime = shootTime + Ball.ballRollTime(speed, (endPos - startPos):length())
+		local ballRollTime = Ball.ballRollTime(speed, (pointOnLine - startPos):length())
+		local ballCatchTime = shootTime + ballRollTime
 		local ballCatchProbability = Shoot.ballCatchProbability(r, ballCatchTime, pointOnLine, corridorHalf)
+		--log("Robot "..tostring(r.id)..": Time to reach ShootCorridor "..tostring(ballRollTime))
+		--log("Robot "..tostring(r.id)..": Chance "..tostring(ballCatchProbability))
 		shootChance = shootChance*(1 - ballCatchProbability)
 	end
 	return shootChance
@@ -115,31 +118,35 @@ end
 -- @return catchProbability number - the chance that the given opponent robot catches the ball
 function Shoot.ballCatchProbability(robot, time, catchPos, corridorHalf)
 	local corridorWidthHalf = corridorHalf:length()
-	local v_toSector = math.abs(robot.speed:dot(corridorHalf:normalize())) -- part of robot.speed perpendicular to shoot corridor
+	local distToCorridor = (robot.pos - catchPos):length()
 	local maxAcceleration = robot.maxAcceleration
 	local maxDeceleration = 5 -- magic constant
+	local v_toSector = math.abs(robot.speed:dot(corridorHalf)/corridorWidthHalf) -- part of robot.speed perpendicular to shoot corridor
 	local expectedPos = v_toSector*time -- position, which the robot reaches without changing speed
-	local startReachSector = expectedPos - robot.radius - corridorWidthHalf
-	local exitSector = expectedPos + robot.radius + corridorWidthHalf
-	local furthestTarget = exitSector + 0.5*maxAcceleration*time^2 -- position, which the front of the robot covers with maxAcceleration
-	local nearestTarget = startReachSector - 0.5*maxDeceleration*time^2 -- position, which the back of the robot covers with maxDeceleration
-	
-	local function _P(x)
-		if x <= nearestTarget or x >= furthestTarget then
+	local d0, flagAcc
+	if expectedPos < distToCorridor - corridorWidthHalf then	-- if robot must accelerate to reach corridor in time
+		flagAcc = true
+		d0 = distToCorridor - robot.radius - corridorWidthHalf
+	elseif expectedPos > distToCorridor + corridorWidthHalf then	-- if robot must decelerate to stay in sector
+		flagAcc = false
+		d0 = distToCorridor + robot.radius + corridorWidthHalf
+	else								-- if robot reaches the corridor in time with its current speed
+		return 1
+	end
+	local neededAcc = 2*(d0 - expectedPos)/(time*time)	-- min acceleration or deceleration to reach the sector
+	if flagAcc then
+		if neededAcc >= maxAcceleration then
 			return 0
-		end
-		if x < startReachSector then
-			return (0.5*maxAcceleration*time^2)^(-2)*(x - nearestTarget)^2 -- right half of a parable
-		elseif x < exitSector then
-			return 1 -- constant 1
 		else
-			return (0.5*maxDeceleration*time^2)^(-2)*(x - furthestTarget)^2 -- left half of a parable
+			return math.sqrt((maxAcceleration - neededAcc)/maxAcceleration)
 		end
-	end -- continuous function that rates a point on a line perpendicular to the shoot corridor
-	
-	local distToSector = (robot.pos - catchPos):length()
-	return math.max(_P(distToSector + robot.radius + corridorWidthHalf), _P(distToSector - robot.radius - corridorWidthHalf)) -- rate both edges of the shoot corridor
-	-- the higher probability is the one that the opponents desire -> return the higher probability
+	else
+		if neededAcc <= maxDeceleration then
+			return 0
+		else
+			return math.sqrt((neededAcc - maxDeceleration)/maxDeceleration)
+		end
+	end
 end
 
 return Shoot

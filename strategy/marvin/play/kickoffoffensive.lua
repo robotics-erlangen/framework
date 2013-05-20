@@ -3,7 +3,7 @@ local KickoffOffensive = (require "../base/class").new("Play.KickoffOffensive", 
 
 local Assistant = require "task/assistant"
 local MoveToPos = require "task/movetopos"
---local ShootGoal = require "task/shootgoal"
+local ShootGoal = require "task/shootgoal"
 
 local World = require "../base/world"
 local Game = require "observer/game"
@@ -101,7 +101,7 @@ end
 
 function KickoffOffensive:prepareMidEmpty()
 	-- TODO: activate and test
-	--self._tasks = {self._robots[1] and ShootGoal.create(self._robots[1]) or nil} -- ballie shoots goal
+	self._tasks = {self._robots[1] and ShootGoal.create(self._robots[1]) or nil} -- ballie shoots goal
 end
 
 function KickoffOffensive:rateMajority() 

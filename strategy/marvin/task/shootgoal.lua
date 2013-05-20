@@ -48,11 +48,13 @@ function ShootGoal:_rate()
 			end
 			if self._bestRating > 1.5 then
 				if self._bestSector[1] < self._robot.dir and self._robot.dir < self._bestSector[2] then
-					self._pointOnGoalLine, _, _ = geom.intersectLineLine(self._robot.pos, Vector.fromAngle(self._robot.dir), World.Geometry.OpponentGoal, Vector.fromAngle(0))
-					if Observer.Shoot.evaluateShootCorridor(self._pointOnGoalLine, self._robot.maxShotLinear, ball.pos, 0, robots) > 0.92836 then	-- warning! magic constant
+					self._pointOnGoalLine = geom.intersectLineLine(self._robot.pos, Vector.fromAngle(self._robot.dir), World.Geometry.OpponentGoal, Vector.fromAngle(0))
+					local prob = Observer.Shoot.evaluateShootCorridor(self._pointOnGoalLine, self._robot.maxShotLinear, ball.pos, 0, robots)
+					if prob > 0.92836 then	-- warning! magic constant
 						self._mode = ShootGoal.Mode.ShootNow		-- free corridor to goal in front of the robot
 					else
 						self._mode = ShootGoal.Mode.TurnTowardsGoal	-- turn and shoot (nur dann entscheidend, falls es eine Möglichkeit gibt, im Drehen zu schießen)
+						--log(tostring(prob))
 					end
 				else
 					self._mode = ShootGoal.Mode.TurnTowardsGoal		-- turn a bit more, then shoot
