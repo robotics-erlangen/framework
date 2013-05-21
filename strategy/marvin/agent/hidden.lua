@@ -1,5 +1,6 @@
-local Hidden = (require "../base/class").new("Agent.Hidden", require "agent/base")
---local RescueRobot = require "task/rescuerobot"
+local Hidden = (require "../base/class").new("Agent.Hidden", require "agent/base/agent")
+
+local Default = require "agent/hidden/default"
 
 function Hidden.takeRobot(robots)
 	for _, robot in pairs(robots) do
@@ -13,19 +14,8 @@ function Hidden:keepRobot()
 	return not self._robot.isVisible
 end
 
-Hidden._behaviours = {
-	"Default"
-}
-
-function Hidden:checkDefault()
-	return true
+function Hidden:_initBehaviour()
+	self._behaviours = Default.create(self._robot)
 end
-
-function Hidden:doDefault()
-	if not self._task then
-		--self._task = RescueRobot.create(self._robot)
-	end
-end
-
 
 return Hidden

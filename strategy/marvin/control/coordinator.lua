@@ -10,7 +10,7 @@ local PlayBase = require "play/base"
 local Plays = require "play/plays"
 local AgentPool = require "control/agentpool"
 local Messages = require "control/messages"
-local Message = require "agent/message"
+local Message = require "agent/base/message"
 
 local Coordinator = (require "../base/class").new("Control.Coordinator")
 
@@ -131,7 +131,7 @@ function Coordinator:_coordinateTasks(messages)
 			local tasks = msg.agent.specialTask
 			for name, rating in pairs(tasks) do
 				if self._specialTasks[name] == robot then
-					rating = rating + 0.1
+					rating = rating + hysteresis
 				end
 				
 				if (specialTasks[name] and specialRating[name] < rating) or not specialTasks[name] then

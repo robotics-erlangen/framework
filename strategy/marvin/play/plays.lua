@@ -1,6 +1,5 @@
 --- Loads every play and publishes test functions
 local Plays = {
-	--DefaultPass = require "play/defaultpass",
 	KickoffOffensive = require "play/kickoffoffensive",
 	KickoffDefensive = require "play/kickoffdefensive",
 	ShootGoal = require "play/shootgoal",

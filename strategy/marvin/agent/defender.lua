@@ -1,8 +1,9 @@
-local Defender = (require "../base/class").new("Agent.Defender", require "agent/base")
+local Defender = (require "../base/class").new("Agent.Defender", require "agent/base/agent")
 local World = require "../base/world"
 
-local CenterBack = require "task/centerback"
-local ManMark = require "task/manmark"
+local Group = require "agent/base/group"
+local CenterBack = require "agent/defender/centerback"
+local Default = require "agent/defender/default"
 
 function Defender.takeRobot(robots)
 	for _, robot in pairs(robots) do
@@ -16,37 +17,11 @@ function Defender:keepRobot()
 	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper
 end
 
-Defender._behaviours = {
-	"CenterBack",
-	"Default"
-}
-
-function Defender:checkCenterBack()
-	local isCenterBack = self._trainerMessage.specialTask.centerBack == self._robot
-	local centerBack
-	if isCenterBack and self._behaviour == "CenterBack" then
-		centerBack = self._task
-	else
-		centerBack = CenterBack.create(self._robot)
-	end
-	local centerBackRating = centerBack:rate(self._priorityMessages, self._notifications)
-	return isCenterBack, {specialTask = { centerBack = centerBackRating } }
-end
-
-function Defender:doCenterBack()
-	if not self._task then
-		self._task = CenterBack.create(self._robot)
-	end
-end
-
-function Defender:checkDefault()
-	return true
-end
-
-function Defender:doDefault()
-	if not self._task then
-		self._task = ManMark.create(self._robot)
-	end
+function Defender:_initBehaviour()
+	self._behaviours = Group.create(self._robot, {
+		CenterBack.create(self._robot),
+		Default.create(self._robot)
+	})
 end
 
 return Defender

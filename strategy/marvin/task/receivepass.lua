@@ -36,12 +36,13 @@ end
 
 function ReceivePass:_rate()
 	local ballSpeed = World.Ball.speed:length()
-	-- bei schnellen Baellen in den Weg stellen und abfangen
+	-- catch fast balls by blocking their path
 	if ballSpeed > Settings.slowBall then
 		self.moveTo = self._robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
-	--bei langsamen Baellen entgegenbewegen
 	else
-		self.moveTo = World.Ball.pos - (World.Ball.pos - self._robot.pos):setLength(self._robot.shootRadius)
+		-- don't hunt slow balls, that's the job of someone else
+		--TODO move to a good position 
+		self.moveTo = self._robot.pos
 	end
 	
 	vis.addCircle("RecivePassMoveTo", self.moveTo, 0.03, blue, true)

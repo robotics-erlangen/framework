@@ -65,6 +65,8 @@ function DirectPass:_run(priorityMessages, notifications)
 
 	local passSpeed = self._targetRobot.constants.passSpeed
 	self:_shoot(self._targetPos, passSpeed, self._linearShoot, Settings.shootProbabilityThreshold)
+	
+	return { passTarget = self._targetRobot }
 end
 
 function DirectPass:_rate()

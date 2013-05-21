@@ -1,6 +1,7 @@
-local Keeper = (require "../base/class").new("Agent.Keeper", require "agent/base")
-local KeeperTask = require "task/keeper"
+local Keeper = (require "../base/class").new("Agent.Keeper", require "agent/base/agent")
 local World = require "../base/world"
+
+local Default = require "agent/keeper/default"
 
 Keeper.robotLimit = 1
 
@@ -16,18 +17,8 @@ function Keeper:keepRobot()
 	return self._robot.isVisible and self._robot == World.FriendlyKeeper
 end
 
-Keeper._behaviours = {
-	"Default"
-}
-
-function Keeper:checkDefault()
-	return true
-end
-
-function Keeper:doDefault()
-	if not self._task then
-		self._task = KeeperTask.create(self._robot)
-	end
+function Keeper:_initBehaviour()
+	self._behaviours = Default.create(self._robot)
 end
 
 return Keeper

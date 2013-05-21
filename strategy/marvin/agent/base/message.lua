@@ -113,7 +113,11 @@ Task._optional = {
 	defendedOpponent = Robot,
 	duelAssistantPos = "userdata",
 	duelAssistantDir = "number",
-	duelAssistantTarget = Robot,
+	-- position to chip to
+	chipPos = "userdata",
+	-- position where the ball will be shoot using the linear kicker
+	shootPos = "userdata",
+	passTarget = Robot, -- robot to pass to
 	targetPos = "userdata",
 	targetDir = "number"
 }

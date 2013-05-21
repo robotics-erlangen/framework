@@ -152,7 +152,7 @@ function Duel:_run(priorityMessages, notifications)
 		defendedOpponent = self.opposer,
 		duelAssistantPos = self.assistantPos,
 		duelAssistantDir = self.assistantDir,
-		duelAssistantTarget = self.duelAssistantTarget
+		passTarget = self.duelAssistantTarget
 	}
 end
 
