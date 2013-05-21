@@ -11,6 +11,7 @@ local Tasks = {
 	Mirror = require "task/mirror",
 	MoveToPos = require "task/movetopos",
 	ReceivePass = require "task/receivepass",
+	RescueRobot = require "task/rescuerobot",
 	Shoot = require "task/shoot",
 	ShootGoal = require "task/shootgoal",
 	ShootGoalImmediately = require "task/shootgoalimmediately"
