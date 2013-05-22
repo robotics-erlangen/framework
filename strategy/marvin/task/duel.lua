@@ -14,6 +14,11 @@ local geom = require "../base/geom"
 Duel.priority = 4
 
 
+
+-- ======================
+-- ===== misc stuff =====
+-- ======================
+
 function Duel:_init()
 end
 
@@ -21,35 +26,111 @@ function Duel:_successProbability()
 	return 1
 end
 
-function Duel:_passAway(notifications)
-	if self.strategy and self.strategy >= 1 then -- hurry!
-		self:_shoot(self.chipPos, --where to chip
-			math.huge, --that argument is ignored
-			false, --chip
-			0) --dont care about anything, just shoot. NOW!
-	else -- pass to an assistant and communicate via message passing
-		-- 1. search best assistant
-		local targetAssistant
-		local bestRating = -1
-		for robot, msg in pairs(notifications) do
-			local currentRating = msg.task.assistantRating
-			if currentRating and currentRating > bestRating then
-				targetAssistant = robot
-				bestRating = currentRating
-			end
+function Duel:_rate()
+	return Rating.posToRating(self._robot, World.Ball.pos)
+end
+
+function Duel:_reset()
+	self.strategy = 0
+	self.backwardsStartPoint = nil
+	self.assistantPos = nil
+	self.assistantDir = 0
+	self.chipPos = nil
+end
+
+function Duel.factory(position)
+	local f = function (robots)
+		return Duel.create(robots[position])
+	end
+	return f
+end
+
+function Duel.test(id)
+	if id > 0 then
+		return nil
+	end
+	return Duel.factory(1), 1
+end
+
+
+
+-- ===========================
+-- ===== decision making =====
+-- ===========================
+
+-- decides what to do
+-- [A] catch the ball (see task/shoot)
+-- [B] contest
+-- [C] pass away
+function Duel:_run(priorityMessages, notifications)
+	self.opposer = Ball.opponentBallOwner()
+	self.chipPos = (World.Geometry.OpponentGoal - World.Ball.pos):setLength(1) --1m towards opponent goal
+	
+	if not self._robot:hasBall(World.Ball) then
+		-- if we dont have the ball yet
+		self:_catchBall(World.Geometry.OpponentGoal, 0)
+		self:_evaluateStrategy(false)
+	elseif self.opposer == nil then
+		-- if no opponent robot is a ball owner
+		self:_passAway(notifications)
+		self:_evaluateStrategy(true)
+	else
+		-- if we have the ball, but at least one opponent is nearby
+		self:_contest()
+	end
+	if Settings.DEBUG then
+		Debug.set("Duel Dribbler", successRates[1].percentage)
+		Debug.set("Duel Rotate", successRates[2].percentage)
+	end
+	return {
+		defendedOpponent = self.opposer,
+		duelAssistantPos = self.assistantPos,
+		duelAssistantDir = self.assistantDir,
+		passTarget = self.duelAssistantTarget
+	}
+end
+
+-- [B] contest
+-- decides the duel strategy
+-- (1) dribble and chip
+-- (2) rotate
+-- (3) ???
+local successRates = Learning.init(2)
+function Duel:_contest()
+	if not self.strategy or self.strategy == 0 then
+		self.strategy = Learning.decide(successRates)
+		if Settings.DEBUG then
+			log("duel strategy "..self.strategy)
 		end
-		if targetAssistant then
-			-- 2. send message to assistant
-			self.duelAssistantTarget = targetAssistant
-			-- 3. pass to it
-			-- FIXME play pass(inheritance), don't just shoot
-			self:_shoot(targetAssistant.pos, math.huge, true, 0.8)
-		end
+	end
+	if self.strategy == 1 then
+		self:_contestDribble()
+	elseif self.strategy == 2 then
+		self:_contestRotate()
+	elseif self.strategy == 3 then
+		-- ???	
+	else
+		error("duel strategy "..self.strategy.." not implemented")
 	end
 end
 
+-- tells the learning algorithm if the choice was successful
+function Duel:_evaluateStrategy(pwned)
+	if self.strategy and self.strategy ~= 0 then
+		Learning.report(successRates, self.strategy, pwned)	
+	end
+	self:_reset()
+end
+
+
+
+-- ====================
+-- ===== behavior =====
+-- ====================
+
+-- [B] (1) dribble and chip
+-- move backwards to gain some distance and chip over the opponent robot
 function Duel:_contestDribble()
-	-- use dribbler
 	self._robot:setDribblerSpeed(1)
 	if not self.backwardsStartPoint then
 		self.backwardsStartPoint = self._robot.pos
@@ -80,6 +161,8 @@ function Duel:_contestDribble()
 	end
 end
 
+-- [B] (2) rotate
+-- spin around to kick the ball to the side where another robot can catch it
 function Duel:_contestRotate()
 	--decide if we should rotate cw or ccw
 	local toOpponentDir = (self.opposer and self.opposer.pos or World.Ball.pos) - self._robot.pos
@@ -89,89 +172,39 @@ function Duel:_contestRotate()
 	self._robot.trajectory:update(Rotate, ccw * 2 * 2*math.pi) -- 2 turns per second
 end
 
-local successRates = Learning.init(2)
-function Duel:_contest()
-	--choose duel strategy (learning):
-	if not self.strategy or self.strategy == 0 then
-		self.strategy = Learning.decide(successRates)
-		if Settings.DEBUG then
-			log("duel strategy "..self.strategy)
+-- [C] pass away
+-- passAway is called if we won the duel, ergo no opponent robot is near the ball
+-- 	while self._robot has the ball still in his dribbler
+-- depending on what duel strategy we chose, we have more or less time to shoot the ball away
+-- (1) dribble and chip:
+--	chip the ball immediately over the opponent robot (ca 1m)
+-- (?) otherwise: either the opponent robot is just to bad and moves away or something strange happened
+--		(for example: we spin around like crazy and still got the ball)
+--	pass to the best assistant (analyze notifications)
+function Duel:_passAway(notifications)
+	-- (1) dribble and chip
+	if self.strategy and self.strategy == 1 then
+		self:_shoot(self.chipPos, math.huge, false, 0)
+	-- (?) otherwise
+	else 
+		-- 1. search best assistant
+		local targetAssistant
+		local bestRating = -1
+		for robot, msg in pairs(notifications) do
+			local currentRating = msg.task.assistantRating
+			if currentRating and currentRating > bestRating then
+				targetAssistant = robot
+				bestRating = currentRating
+			end
+		end
+		if targetAssistant then
+			-- 2. send message to assistant
+			self.duelAssistantTarget = targetAssistant
+			-- 3. pass to it
+			-- FIXME play pass(inheritance), don't just shoot
+			self:_shoot(targetAssistant.pos, math.huge, true, 0.8)
 		end
 	end
-	if self.strategy == 1 then --dribble backwards and chip over the opponent
-		self:_contestDribble()
-	elseif self.strategy == 2 then
-		self:_contestRotate()
-	elseif self.strategy == 3 then
-	--   c) push!?	
-	else
-		error("duel strategy "..self.strategy.." not implemented")
-	end
-
-	-- 2. calculate good assistant positions
-	-- 3. tell at least one assistant to go there
-end
-
-function Duel:_reset()
-	self.strategy = 0
-	self.backwardsStartPoint = nil
-	self.assistantPos = nil
-	self.assistantDir = 0
-	self.chipPos = nil
-end
-
-function Duel:_evaluateStrategy(pwned)
-	if self.strategy and self.strategy ~= 0 then
-		Learning.report(successRates, self.strategy, pwned)	
-	end
-	self:_reset()
-end
-
-
-function Duel:_run(priorityMessages, notifications)
-	self.opposer = Ball.opponentBallOwner()
-	self.chipPos = (World.Geometry.OpponentGoal - World.Ball.pos):setLength(1) --1m towards opponent goal
-	
-	if not self._robot:hasBall(World.Ball) then
-		-- if we dont have the ball yet
-		self:_catchBall(World.Geometry.OpponentGoal, 0)
-		self:_evaluateStrategy(false)
-	elseif self.opposer == nil then
-		-- if no opponent robot is a ball owner
-		self:_passAway(notifications)
-		self:_evaluateStrategy(true)
-	else
-		-- if we have the ball, but at least one opponent is nearby
-		self:_contest()
-	end
-	if Settings.DEBUG then
-		Debug.set("Duel Dribbler", successRates[1].percentage)
-		Debug.set("Duel Rotate", successRates[2].percentage)
-	end
-	return {
-		defendedOpponent = self.opposer,
-		duelAssistantPos = self.assistantPos,
-		duelAssistantDir = self.assistantDir,
-		passTarget = self.duelAssistantTarget
-	}
-end
-
-function Duel:_rate()
-	return Rating.posToRating(self._robot, World.Ball.pos)
-end
-
-function Duel.factory(position)
-	local f = function (robots)
-		return Duel.create(robots[position])
-	end
-	return f
-end
-
-function Duel.test(id)
-	if id > 0 then
-		return nil
-	end
-	return Duel.factory(1), 1
 end
 
 return Duel
