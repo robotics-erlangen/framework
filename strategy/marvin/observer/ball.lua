@@ -12,7 +12,7 @@ local debug = require "../base/debug"
 
 
 
---- Returns the ball owner or the robot that was the last ball owner (hysteresis)
+--- Returns the ball owner or nil if noone is nearer than Settings.ballOwnDistance(hysteresis)
 -- @param robotlist robot[] - the robots which are qualified for being a ball owner (default: World.Robots)
 -- @param lastBallOwner - the robot that was the ball owner before, used for hysteresis
 -- @return ballOwner robot - the robot that can be seen as ball owner
