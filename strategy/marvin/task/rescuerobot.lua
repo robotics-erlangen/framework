@@ -14,6 +14,9 @@ RescueRobot._speeds = {
 	Vector.create(0 , 1) -- right
 }
 
+function RescueRobot:_init()
+end
+
 function RescueRobot:_rate()
 	return self._robot.isVisible and 0 or 1
 end
