@@ -16,6 +16,7 @@ settings.shootProbabilityThreshold = 0.8 --we instantly shoot if the probability
 settings.receiveChipDistance = 0.2 --the distance between the landing point of the chipped ball and the pass receiver
 settings.markingDistance = 0.05 -- close enough
 settings.distanceHysteresis = 0.03 -- use it as a hysteresis value for all minimum/maximum distance search loops
+settings.defenseRiskLevel = 1.5 -- if a defender is catching the ball this is the time he shall have in advance before an oppnonent reaches the ball
 
 Settings = table.readonlytable(settings)
 

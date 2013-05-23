@@ -1,0 +1,61 @@
+local ChipAway = (require "../base/class").new("Task.ChipAway", require "task/shoot")
+
+local World = require "../base/world"
+local ToTarget = require "trajectory/totarget"
+local Settings = require "settings"
+local Shoot = require "observer/shoot"
+local Robot = require "observer/robot"
+local Rating = require "util/rating"
+
+
+ChipAway.priority = 4
+
+function ChipAway:_init()
+end
+
+function ChipAway:_successProbability(t)
+	return 1
+end
+
+function ChipAway:_run(priorityMessages, notifications)
+	-- try to hit an assistant
+	local chipTarget = nil
+	local bestRating = -1
+	for robot, msg in pairs(notifications) do
+		if msg.task.assistantRating > bestRating then
+			chipTarget = robot
+			bestRating = msg.task.assistantRating
+		end
+	end
+	if not chipTarget then
+		chipTarget = {pos = World.OpponentGoal}
+	end
+
+	self:_shoot(chipTarget.pos, math.huge, false, 0)
+
+	if bestRating > -1 then
+		return {passTarget = chipTarget}
+	else
+		return {}
+	end
+end
+
+function ChipAway:_rate()
+	return 1
+end
+
+function ChipAway.factory()
+	local f = function (robots)
+		return ChipAway.create()
+	end
+	return f
+end
+
+function ChipAway.test(id)
+	if id > 0 then
+		return nil
+	end
+	return ChipAway.factory(1, 2, true), 2
+end
+
+return ChipAway

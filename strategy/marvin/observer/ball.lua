@@ -1,7 +1,5 @@
 local Ball = {} 
 
--- TODO: who is the first at the ball
-
 local Constants = require "../base/constants"
 local Cache = require "../base/cache"
 local World = require "../base/world"
@@ -9,8 +7,31 @@ local Settings = require "settings"
 local Field = require "util/field"
 local geom = require "../base/geom"
 local debug = require "../base/debug"
+local Learning = require "util/learning"
+local ObserverRobot = require "observer/robot"
 
-
+---
+-- @return robot, number - the first robot to reach the ball together with the time it will have in advance to the next opponent
+function Ball.firstAtBall()
+	local minTime = math.huge
+	local fastestRobot = nil
+	for _, robot in pairs(World.OpponentRobots) do
+		local time = ObserverRobot.minTimeToBall(robot, ball)
+		if time < minTime then 
+			minTime = time
+			fastestRobot = robot
+		end
+	end
+	local opponentTime = minTime
+	for _, robot in pairs(World.FriendlyRobots) do
+		local time = ObserverRobot.minTimeToBall(robot, ball)
+		if time < minTime then 
+			minTime = time
+			fastestRobot = robot
+		end
+	end	
+	return fastestRobot, opponentTime - minTime
+end
 
 --- Returns the ball owner or nil if noone is nearer than Settings.ballOwnDistance(hysteresis)
 -- @param robotlist robot[] - the robots which are qualified for being a ball owner (default: World.Robots)
