@@ -85,4 +85,26 @@ function Field.isInOpponentDefenseArea(pos, radius)
 	end
 end
 
+function Field.distanceToFriendlyDefenseArea(pos, radius)
+	if Field.isInFriendlyDefenseArea(pos, radius) then
+		return 0
+	end
+	local distance
+	if math.abs(pos.x) < G.DefenseStretch/2 then
+		distance = pos.y - G.DefenseRadius - radius
+	elseif pos.x > 0 then
+		local p1 = Vector.create(G.DefenseStretch/2, G.FieldHeightHalf)
+		distance = p1:distanceTo(pos) - G.DefenseRadius - radius
+	else
+		local p2 = Vector.create(-G.DefenseStretch/2, G.FieldHeightHalf)
+		distance = p2:distanceTo(pos) - G.DefenseRadius - radius
+	end
+	if distance < 0 then
+		error("util/field: distanceToFriendlyDefenseArea() becomes negative ("..distance..
+			") for pos = ("..pos.x..", "..pos.y..") and radius = "..radius)
+	end
+	return distance
+end
+
+
 return Field
