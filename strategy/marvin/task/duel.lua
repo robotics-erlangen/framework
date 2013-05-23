@@ -1,4 +1,4 @@
-local Duel = (require "../base/class").new("Task.Duel", require "task/shoot")
+local Duel = (require "../base/class").new("Task.Duel", require "task/directpass")
 
 local World = require "../base/world"
 local Ball = require "observer/ball"
@@ -58,6 +58,9 @@ end
 -- ===== decision making =====
 -- ===========================
 
+-- an array containing all information for the roulette wheel selection algorithm in util/learning
+local successRates = Learning.init(2)
+
 -- decides what to do
 -- [A] catch the ball (see task/shoot)
 -- [B] contest
@@ -95,7 +98,6 @@ end
 -- (1) dribble and chip
 -- (2) rotate
 -- (3) ???
-local successRates = Learning.init(2)
 function Duel:_contest()
 	if not self.strategy or self.strategy == 0 then
 		self.strategy = Learning.decide(successRates)
