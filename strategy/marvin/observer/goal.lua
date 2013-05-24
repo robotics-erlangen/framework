@@ -69,14 +69,16 @@ function Goal.largestFreeSector(viewPos, robotList, opp)
 	local unoccupiedSectors = Goal.freeSectors(viewPos, robotList, opp) -- get list of all unoccupied sectors
 	local indexLargest = nil -- index of largest sector
 	local valueLargest = 0 -- angle difference of the largest sector
-	for i = 1, #unoccupiedSectors do -- find the largest sector
+	for i, sector in ipairs(unoccupiedSectors) do	-- find the largest sector
 		local diff = sector[i][2] - sector[i][1]
 		if diff > valueLargest then
 			indexLargest = i
 			valueLargest = diff
 		end
 	end
-	return unoccupiedSectors[indexLargest], valueLargest -- returns the largest sector and its angle difference
+	if indexLargest then
+		return unoccupiedSectors[indexLargest], valueLargest	-- if there are sectors returns the largest sector and its angle difference
+	end
 end
 
 --- Returns sectors, from where there could be scored
