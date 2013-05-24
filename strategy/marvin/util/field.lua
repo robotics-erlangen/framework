@@ -1,5 +1,8 @@
-local World = require "../base/world"
 local Field = {}
+
+local World = require "../base/world"
+local G = World.Geometry
+
 
 --- returns the nearest position inside the field (extended by boundaryWidth)
 -- @param pos Vector - the position to limit
@@ -91,7 +94,7 @@ function Field.distanceToFriendlyDefenseArea(pos, radius)
 	end
 	local distance
 	if math.abs(pos.x) < G.DefenseStretch/2 then
-		distance = pos.y - G.DefenseRadius - radius
+		distance = pos.y - (-G.FieldHeightHalf + G.DefenseRadius) - radius
 	elseif pos.x > 0 then
 		local p1 = Vector.create(G.DefenseStretch/2, G.FieldHeightHalf)
 		distance = p1:distanceTo(pos) - G.DefenseRadius - radius

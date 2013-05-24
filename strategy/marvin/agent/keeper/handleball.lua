@@ -33,7 +33,7 @@ function HandleBall:_run()
 
 	--track opponent robots in defense area
 	for _,r in pairs(World.OpponentRobots) do
-		if Field.isInFriendlyDefenseArea(r.pos, r.radius) and not table.contains() then
+		if Field.isInFriendlyDefenseArea(r.pos, r.radius) then
 			--if any robot is inside the defense area, it becomes a dangerous one
 			badrobots[r] = true
 			stillDanger = true
@@ -41,7 +41,7 @@ function HandleBall:_run()
 	end
 	
 	--decide whether to chip away or move aggressively to the ball
-	if stillDanger then
+	if not stillDanger then
 		self._task = ChipAway.create(self._robot)
 	else
 		--TODO get off my land!

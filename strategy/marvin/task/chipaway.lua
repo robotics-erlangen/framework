@@ -28,11 +28,9 @@ function ChipAway:_run(priorityMessages, notifications)
 		end
 	end
 	if not chipTarget then
-		log("no chipTarget")
 		chipTarget = {pos = World.Geometry.OpponentGoal}
 	end
 
-	log(chipTarget.pos)
 	self:_shoot(chipTarget.pos, math.huge, false, 0)
 
 	if bestRating > -1 then

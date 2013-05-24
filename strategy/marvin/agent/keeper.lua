@@ -3,6 +3,7 @@ local World = require "../base/world"
 
 local Default = require "agent/keeper/default"
 local HandleBall = require "agent/keeper/handleball"
+local Group = require "agent/base/group"
 
 Keeper.robotLimit = 1
 
