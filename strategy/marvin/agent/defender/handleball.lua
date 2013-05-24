@@ -14,7 +14,7 @@ function HandleBall:_check()
 	-- noone else is there to get the ball and we have enough time to play safely
 	local goodSituation2 = self._robot == firstRobot and (timeAdvance >= Settings.defenseRiskLevel)
 
-	return goodSituation1 or goodSituation2
+	return (goodSituation1 or goodSituation2) and Base.State.Active or Base.State.Inactive
 end
 
 function HandleBall:_run()

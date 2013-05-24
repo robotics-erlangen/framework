@@ -7,7 +7,8 @@ local ChipAway = require "task/chipaway"
 
 function HandleBall:_check()
 	--if a slow ball enters the defense area
-	return Field.isInFriendlyDefenseArea(World.Ball.pos, 0) and World.Ball.speed:length() <= Settings.slowBall
+	local active = Field.isInFriendlyDefenseArea(World.Ball.pos, 0) and World.Ball.speed:length() <= Settings.slowBall
+	return active and Base.State.Active or Base.State.Inactive
 end
 
 local badrobots
