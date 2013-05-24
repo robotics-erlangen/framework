@@ -1,14 +1,14 @@
 local Base = require "agent/base/behaviour"
 local HandleBall = (require "../base/class").new("Agent.Defender.HandleBall", Base)
 
-local Observer = "observer/ball"
+local Observer = require "observer/ball"
 local World = require "../base/world"
 local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
 
 function HandleBall:_check()
 	-- we somehow got the ball
-	local goodSituation1 = self._robot == Observer.ballOwner(table.extend(World.FriendlyRobots, World.OpponentRobots))
+	local goodSituation1 = (self._robot == Observer.friendlyBallOwner()) and not Observer.opponentBallOwner() 
 	
 	local firstRobot, timeAdvance = Observer.firstAtBall()
 	-- noone else is there to get the ball and we have enough time to play safely

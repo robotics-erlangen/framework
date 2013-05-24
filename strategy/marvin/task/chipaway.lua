@@ -22,15 +22,17 @@ function ChipAway:_run(priorityMessages, notifications)
 	local chipTarget = nil
 	local bestRating = -1
 	for robot, msg in pairs(notifications) do
-		if msg.task.assistantRating > bestRating then
+		if msg.task.assistantRating and msg.task.assistantRating > bestRating then
 			chipTarget = robot
 			bestRating = msg.task.assistantRating
 		end
 	end
 	if not chipTarget then
-		chipTarget = {pos = World.OpponentGoal}
+		log("no chipTarget")
+		chipTarget = {pos = World.Geometry.OpponentGoal}
 	end
 
+	log(chipTarget.pos)
 	self:_shoot(chipTarget.pos, math.huge, false, 0)
 
 	if bestRating > -1 then

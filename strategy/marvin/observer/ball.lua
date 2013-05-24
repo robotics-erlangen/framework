@@ -13,6 +13,7 @@ local ObserverRobot = require "observer/robot"
 ---
 -- @return robot, number - the first robot to reach the ball together with the time it will have in advance to the next opponent
 function Ball.firstAtBall()
+	local ball = World.Ball
 	local minTime = math.huge
 	local fastestRobot = nil
 	for _, robot in pairs(World.OpponentRobots) do

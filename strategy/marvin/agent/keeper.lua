@@ -2,6 +2,7 @@ local Keeper = (require "../base/class").new("Agent.Keeper", require "agent/base
 local World = require "../base/world"
 
 local Default = require "agent/keeper/default"
+local HandleBall = require "agent/keeper/handleball"
 
 Keeper.robotLimit = 1
 
@@ -18,7 +19,10 @@ function Keeper:keepRobot()
 end
 
 function Keeper:_initBehaviour()
-	self._behaviours = Default.create(self._robot)
+	self._behaviours = Group.create(self._robot, {
+		HandleBall.create(self._robot),
+		Default.create(self._robot)
+	})
 end
 
 return Keeper
