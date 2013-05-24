@@ -1,12 +1,18 @@
 local Base = require "agent/base/behaviour"
 local HandleBall = (require "../base/class").new("Agent.Defender.HandleBall", Base)
 
-local Ball = require "observer/ball"
 local World = require "../base/world"
+local Ball = require "observer/ball"
+
 local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
 
 function HandleBall:_check()
+	-- Disable when referee sent "stop"
+	if World.RefereeState == "Stop" then
+		return Base.State.Inactive
+	end
+
 	-- we somehow got the ball
 	local goodSituation1 = (self._robot == Ball.friendlyBallOwner()) and not Ball.opponentBallOwner() 
 	

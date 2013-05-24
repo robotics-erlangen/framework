@@ -4,6 +4,9 @@ local CenterBack = (require "../base/class").new("Agent.Defender.CenterBack", Ba
 local CenterBackTask = require "task/centerback"
 
 function CenterBack:_check()
+	-- Stop from Referee is ignored as there's no valid ball position
+	-- that would interfere with the centerback
+	
 	local isCenterBack = self._trainerMessage.specialTask.centerBack == self._robot
 	-- use current task if we're active
 	local centerBack = self._task or CenterBackTask.create(self._robot)

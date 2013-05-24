@@ -10,6 +10,9 @@ function AttackGroup:_check()
 	end
 	
 	local isMainAttacker = self._trainerMessage.specialTask.mainAttacker == self._robot
+	if World.RefereeState == "Stop" then -- Disable when referee sent "stop"
+		isMainAttacker = false
+	end
 	
 	local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
 	local mainAttackerRating = Rating.timeToRating(timeToBall)
