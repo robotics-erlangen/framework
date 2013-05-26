@@ -36,10 +36,12 @@ function HandleBall:_check()
 end
 
 function HandleBall:_run()
-	if false then -- FIXME, same as line 37 in agent/attacker/defaultshoot (commit 3aa317edc92f7b3aeb363c315238c0aad1de327e)
-		self._task = DirectPass.create(self._robot)
-	else -- under pressure
-		self._task = ChipAway.create(self._robot)
+	if not self._task then
+		if false then -- FIXME, same as line 37 in agent/attacker/defaultshoot (commit 3aa317edc92f7b3aeb363c315238c0aad1de327e)
+			self._task = DirectPass.create(self._robot)
+		else -- under pressure
+			self._task = ChipAway.create(self._robot)
+		end
 	end
 end
 
