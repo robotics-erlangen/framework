@@ -2,36 +2,16 @@ local path = path
 local World = require "../base/world"
 local Constants = require "../base/constants"
 local Settings = require "settings"
-
--- states, in which we must keep a dist of 50cm
-local refereeStopStates = {
-	Stop = true,
-	KickoffDefensivePrepare = true,
-	KiffoffDefensive = true,
-	DirectDefensive = true,
-	IndirectDefensive = true
-}
-
-local refereeDefendStates = {
-	DirectOffensive = true,
-	IndirectOffensive = true
-}
-
-local refereeKickoffStates = {
-	KickoffDefensivePrepare = true,
-	KiffoffDefensive = true,
-	KickoffOffensivePrepare = true,
-	KiffoffOffensive = true
-}
+local Referee = require "util/referee"
 
 function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, radius)
 	local ballDistance = 0
 	radius = radius or robot.radius
 	
-	local forbidOppDefenseArea = refereeDefendStates[World.RefereeState]
-	local forbidOppFieldHalf = refereeKickoffStates[World.RefereeeState]
+	local forbidOppDefenseArea = Referee.isDefendState()
+	local forbidOppFieldHalf = Referee.isKickoffState()
 	
-	if refereeStopStates[World.RefereeState] then
+	if Referee.isStopState() then
 		ballDistance = Constants.stopBallDistance
 		ignoreBall = false
 	end
