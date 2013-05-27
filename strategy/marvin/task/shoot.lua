@@ -28,7 +28,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 		local speed = World.Ball.pos - self._robot.pos
 		speed:setLength(Settings.shootDriveSpeed)
 		local targetDir = (targetPos-self._robot.pos):angle()
-		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir)
+		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, 0)
 		
 		if self._shootHysteresis > 0 then
 			local dist = (targetPos-self._robot.pos):length()

@@ -8,7 +8,6 @@ local Debug = require "../base/debug"
 local Field = require "util/field"
 local Constants = require "../base/constants"
 local Direct = require "trajectory/direct"
-local Rotate = require "trajectory/rotate"
 local geom = require "../base/geom"
 
 Duel.priority = 4
@@ -71,7 +70,7 @@ function Duel:_run(priorityMessages, notifications)
 	
 	if not self._robot:hasBall(World.Ball) then
 		-- if we dont have the ball yet
-		self:_catchBall(World.Geometry.OpponentGoal, 0)
+		self:_catchBall(World.Geometry.OpponentGoal, 0.2)
 		self:_evaluateStrategy(false)
 	elseif self.opposer == nil then
 		-- if no opponent robot is a ball owner
@@ -153,7 +152,7 @@ function Duel:_contestDribble()
 		-- else move backwards
 		local toBallDir = World.Ball.pos - self._robot.pos
 		local backwards = toBallDir:copy():scaleLength(-Settings.dribbleDriveSpeed)
-		self._robot.trajectory:update(Direct, backwards, toBallDir:angle())
+		self._robot.trajectory:update(Direct, backwards, toBallDir:angle(), 0)
 		-- calculate message to assistant
 		-- TODO FIXME implement (observer) function that evaluates where to chip
 		self.assistantPos = self.chipPos + (self.chipPos - World.Ball.pos)
@@ -171,7 +170,8 @@ function Duel:_contestRotate()
 	local intersection = geom.intersectLineLine(
 			self._robot.pos, toOpponentDir, World.Geometry.OpponentGoal, Vector.create(1, 0))
 	local ccw = intersection and math.sign(intersection.x) or 1 --positive = ccw, negative = cw
-	self._robot.trajectory:update(Rotate, ccw * 2 * 2*math.pi) -- 2 turns per second
+	local toBall = (World.Ball.pos - self._robot.pos):setLength(0.2)
+	self._robot.trajectory:update(Direct, toBall, self._robot.dir, ccw * 2 * 2*math.pi) -- 2 turns per second
 end
 
 -- [C] pass away
