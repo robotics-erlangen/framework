@@ -9,7 +9,10 @@ function Interval.merge(sortedIntervals)
 		if currentInterval then
 			if interval[1] <= currentInterval[2] then
 				-- join overlapping intervals
-				currentInterval[2] = interval[2]
+				-- ensure that joined interval doesn't shrink
+				if currentInterval[2] < interval[2] then
+					currentInterval[2] = interval[2]
+				end
 			else
 				-- save interval if not overlapping
 				n = n + 1
