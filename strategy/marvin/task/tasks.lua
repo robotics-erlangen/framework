@@ -3,6 +3,7 @@ local Tasks = {
 	Assistant = require "task/assistant",
 	CatchBall = require "task/catchball",
 	CenterBack = require "task/centerback",
+	ChipAway = require "task/chipaway",
 	DirectPass = require "task/directpass",
 	Duel = require "task/duel",
 	FarMirror = require "task/farmirror",

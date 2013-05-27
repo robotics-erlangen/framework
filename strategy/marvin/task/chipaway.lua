@@ -33,20 +33,16 @@ function ChipAway:_run(priorityMessages, notifications)
 
 	self:_shoot(chipTarget.pos, math.huge, false, 0)
 
-	if bestRating > -1 then
-		return {passTarget = chipTarget}
-	else
-		return {}
-	end
+	return {passTarget = chipTarget}
 end
 
 function ChipAway:_rate()
 	return 1
 end
 
-function ChipAway.factory()
+function ChipAway.factory(position)
 	local f = function (robots)
-		return ChipAway.create()
+		return ChipAway.create(robots[position])
 	end
 	return f
 end
@@ -55,7 +51,7 @@ function ChipAway.test(id)
 	if id > 0 then
 		return nil
 	end
-	return ChipAway.factory(1, 2, true), 2
+	return ChipAway.factory(1), 1
 end
 
 return ChipAway
