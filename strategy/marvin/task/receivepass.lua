@@ -72,7 +72,7 @@ function ReceivePass:_run(priorityMessages, notifications)
 	else --play free
 		local vectorToBall = (World.Ball.pos-self._robot.pos)
 		local distanceToBall = vectorToBall:length()
-		local bestSector, width = getBestSector(World.Ball.pos, World.OpponentRobots, self.shotDir:angle()-(math.pi/2), self.shotDir:angle()+(math.pi/2))
+		local bestSector, width = getBestSector(World.Ball.pos, World.OpponentRobots, self.shotDir:angle()-(math.pi/4), self.shotDir:angle()+(math.pi/4))
 		local anglePos = Vector.fromAngle(bestSector[1]+(width/2))
 		local anglePos = anglePos:copy():setLength(distanceToBall)
 		self.moveTo = anglePos + World.Ball.pos
