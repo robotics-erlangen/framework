@@ -107,7 +107,7 @@ function Vector:dot(other)
 end
 
 --- Vector direction in radians
--- @return number - angle
+-- @return number - angle in interval [-pi, +pi]
 function Vector:angle()
 	return math.atan2(self.y, self.x);
 end
