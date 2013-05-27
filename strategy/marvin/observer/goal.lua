@@ -8,14 +8,18 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 
 --- returns a list of all non-free sectors
--- but OBACHT! do not use outside of observer/goal.lua
 -- the non-free sectors are not merged and not sorted
+-- the interval has to be oriented counter-clockwise
 -- @param viewPos vector - usually Ball.pos
 -- @param robotList list - all robots that may block the sight
--- @param goalStartAngle number - the angle of the first goalpost, counter-clockwise
--- @param goalEndAngle number - the angle of the second goalpost, counter-clockwise
+-- @param startAngle number - start angle of the sector to scan
+-- @param endAngle number - end angle of the sector to scan
 -- @return occupiedSectors list - all unsorted, unmerged occupied sectors
-local function getOccupiedSectors(viewPos, robotList, goalStartAngle, goalEndAngle) -- fills the list of occupied sectors
+function Goal.getOccupiedSectors(viewPos, robotList, startAngle, endAngle)
+	if endAngle < startAngle then -- normalize angles
+		endAngle = endAngle + 2 * math.pi
+	end
+
 	local occupiedSectors = {}
 	local extraRadius = World.Ball.radius
 	for _, robot in pairs(robotList) do
@@ -29,11 +33,28 @@ local function getOccupiedSectors(viewPos, robotList, goalStartAngle, goalEndAng
 		local robotAngle = toRobot:angle() -- direction of the robot
 		local robotStart = robotAngle - robotAngleDiff -- can be < 0
 		local robotEnd = robotAngle + robotAngleDiff -- can be > 2pi
-		if robotStart < goalEndAngle and robotEnd > goalStartAngle then -- if the robot covers a part of the goal
-			table.insert(occupiedSectors, {math.max(robotStart, goalStartAngle), math.min(robotEnd, goalEndAngle)}) -- add the occupied sector to the list
+		if robotStart < endAngle and robotEnd > startAngle then -- if the robot covers a part of the goal
+			table.insert(occupiedSectors, {math.max(robotStart, startAngle), math.min(robotEnd, endAngle)}) -- add the occupied sector to the list
+		end
+		if robotStart + 2 * math.pi < endAngle then -- normalize angles
+			-- checking for robotEnd + 2*pi > startAngle is not needed, as robotEnd is always >= 0 and startAngle < 2pi
+			-- and thus is always true
+			robotStart = robotStart + 2 * math.pi
+			robotEnd = robotEnd + 2 * math.pi
+			table.insert(occupiedSectors, {math.max(robotStart, startAngle), math.min(robotEnd, endAngle)}) -- add the occupied sector to the list
 		end
 	end
 	return occupiedSectors
+end
+
+function Goal.getFreeSectors(viewPos, robotList, startAngle, endAngle)
+	if endAngle < startAngle then -- normalize angles
+		endAngle = endAngle + 2 * math.pi
+	end
+	local occupiedSectors = Goal.getOccupiedSectors(viewPos, robotList, startAngle, endAngle)
+	Interval.sort(occupiedSectors) -- sort sectors ascending by sectorStart
+	Interval.merge(occupiedSectors) -- merge the sectors
+	return Interval.negate(occupiedSectors, startAngle, endAngle)
 end
 
 --- Returns a list of all free sectors
@@ -49,12 +70,8 @@ function Goal.freeSectors(viewPos, robotList, opp)
 
 	local goalStart = ((opp and G.OpponentGoalRight or G.FriendlyGoalLeft) - viewPos):angle() -- direction of the first goalpost
 	local goalEnd = ((opp and G.OpponentGoalLeft or G.FriendlyGoalRight) - viewPos):angle() -- direction of the other goalpost (is always greater than goalStart, if viewPos is in the field)
-	
-	local occupiedSectors = getOccupiedSectors(viewPos, robotList, goalStart, goalEnd)
-	table.sort(occupiedSectors, function (t1, t2) return t1[1] < t2[1] end) -- sort sectors ascending by sectorStart
-	Interval.merge(occupiedSectors) -- merge the sectors
 
-	local unoccupiedSectors = Interval.negate(occupiedSectors, goalStart, goalEnd)
+	local unoccupiedSectors = Goal.getFreeSectors(viewPos, robotList, goalStart, goalEnd)
 	--log(tostring(goalEnd - goalStart))
 	-- returns all unoccupied sectors in the interval [right goalpost, left goalpost]
 	return unoccupiedSectors
@@ -64,21 +81,10 @@ end
 -- @param viewPos vector - position from which the free angles should be found
 -- @param robotList list - all robot objects that should be considered
 -- @param opp boolean - true for opponent goal, false for friendly goal
--- @return largestFreeSector list, sectorWidth number - the largest free sector and its angle difference
+-- @return largestFreeSector interval - the largest free sector
 function Goal.largestFreeSector(viewPos, robotList, opp)
 	local unoccupiedSectors = Goal.freeSectors(viewPos, robotList, opp) -- get list of all unoccupied sectors
-	local indexLargest = nil -- index of largest sector
-	local valueLargest = 0 -- angle difference of the largest sector
-	for i, sector in ipairs(unoccupiedSectors) do	-- find the largest sector
-		local diff = sector[i][2] - sector[i][1]
-		if diff > valueLargest then
-			indexLargest = i
-			valueLargest = diff
-		end
-	end
-	if indexLargest then
-		return unoccupiedSectors[indexLargest], valueLargest	-- if there are sectors returns the largest sector and its angle difference
-	end
+	return Interval.getLargest(unoccupiedSectors)
 end
 
 --- Returns sectors, from where there could be scored
@@ -205,18 +211,12 @@ function Goal.searchFreeSectors(robotList, opp)
 				-- left sector is empty list, because keeper is too close to the left goalpost
 			end
 			if #leftSector == 2 then
-				local occupiedSectors = getOccupiedSectors(s_left, robotList, leftSector[1], leftSector[2])
-				table.sort(occupiedSectors, function (t1, t2) return t1[1] < t2[1] end) -- sort sectors ascending by sectorStart
-				Interval.merge(occupiedSectors) -- merge the sectors
-				leftSector = Interval.negate(occupiedSectors, leftSector[1], leftSector[2])
+				leftSector = Goal.getFreeSectors(s_left, robotList, leftSector[1], leftSector[2])
 			end
 		end
 	end
 	if #rightSector == 2 then
-		local occupiedSectors = getOccupiedSectors(s_right, robotList, rightSector[1], rightSector[2])
-		table.sort(occupiedSectors, function (t1, t2) return t1[1] < t2[1] end) -- sort sectors ascending by sectorStart
-		Interval.merge(occupiedSectors) -- merge the sectors
-		rightSector = Interval.negate(occupiedSectors, rightSector[1], rightSector[2])
+		rightSector = Goal.getFreeSectors(s_right, robotList, rightSector[1], rightSector[2])
 	end
 	return s_right, rightSector, s_left, leftSector
 	-- TODO: robotlist beachten, auch in den Fällen, bei denen bis jetzt sofort returnt wird

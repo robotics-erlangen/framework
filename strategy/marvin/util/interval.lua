@@ -57,5 +57,30 @@ function Interval.negate(mergedIntervals, outerStart, outerEnd)
 	return negated
 end
 
+local function intervalOrder(t1, t2)
+	return t1[1] < t2[1]
+end
+
+--- Sorts the given list of intervals, by increasing interval start
+-- @param intervals interval[] - list of intervals (by reference)
+function Interval.sort(intervals)
+	table.sort(intervals, intervalOrder)
+end
+
+--- Returns the largest interval
+-- @param intervals interval[] - list of intervals
+-- @return [interval - largest interval, if one exists]
+function Interval.getLargest(intervals)
+	local largestInterval = nil
+	local valueLargest = -1 -- size of the largest interval
+	for _, interval in ipairs(intervals) do	-- find the largest interval
+		local diff = interval[2] - interval[1]
+		if diff > valueLargest then
+			largestInterval = interval
+			valueLargest = diff
+		end
+	end
+	return largestInterval
+end
 
 return Interval
