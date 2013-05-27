@@ -18,7 +18,7 @@ end
 
 function RescueRobot:_run()
 	-- ignore visible robots
-	if self._robot.isVisible then
+	if self._robot.isVisible or not self._robot.speed then
 		return
 	end
 
@@ -32,15 +32,15 @@ function RescueRobot:_run()
 		if geom.checkTriangleOrientation(self._robot.pos, self._robot.pos + Vector.fromAngle(backwardsDir), Vector.create(0,0)) >= 0 then
 			self._speeds = {
 				Vector.create(1, 0), -- forward
-				Vector.create(0, -1), -- left
 				Vector.create(-1, 0), -- backward
+				Vector.create(0, -1), -- left
 				Vector.create(0 , 1) -- right
 			}
 		else
 			self._speeds = {
 				Vector.create(1, 0), -- forward
-				Vector.create(0 , 1), -- right
 				Vector.create(-1, 0), -- backward
+				Vector.create(0 , 1), -- right
 				Vector.create(0, -1) -- left
 			}
 		end
