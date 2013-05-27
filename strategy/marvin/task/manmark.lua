@@ -52,7 +52,7 @@ function ManMark:_rate(priorityMessages, notifications)
 	if #remainingOpponents > 0 then
 		self._targetRobot = remainingOpponents[1]
 	else -- fallback when no opponent
-		self._targetRobot = {pos=Vector.create(0,0), radius=0.15}
+		self._targetRobot = nil
 	end
 	
 	-- FIXME place near defense
@@ -60,7 +60,7 @@ function ManMark:_rate(priorityMessages, notifications)
 	local ballPos = World.Ball.pos
 
 	--preferred position in front of the target robot in direction to the ball
-	local midpointDistance = self._targetRobot.radius + self._robot.radius + Settings.markingDistance
+	local midpointDistance = (self._targetRobot and self._targetRobot.radius or 0.09) + self._robot.radius + Settings.markingDistance
 	self._preferredDir = (ballPos - targetPos):angle()
 	self._preferredPos = (ballPos - targetPos):setLength(midpointDistance) + targetPos
 	self._preferredPos = Field.limitToAllowedField(self._preferredPos, self._robot.radius)
