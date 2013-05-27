@@ -184,11 +184,8 @@ end
 --		(for example: we spin around like crazy and still got the ball)
 --	pass to the best assistant (analyze notifications)
 function Duel:_passAway(notifications)
-	-- (1) dribble and chip
-	if self.strategy and self.strategy == 1 then
-		self:_shoot(self.chipPos, math.huge, false, 0)
 	-- (?) otherwise
-	else 
+	if not self.strategy or self.strategy ~= 1 then
 		-- 1. search best assistant
 		local targetAssistant
 		local bestRating = -1
@@ -205,8 +202,11 @@ function Duel:_passAway(notifications)
 			-- 3. pass to it
 			-- FIXME play pass(inheritance), don't just shoot
 			self:_shoot(targetAssistant.pos, math.huge, true, 0.8)
+			return
 		end
 	end
+	-- (1) dribble and chip
+	self:_shoot(self.chipPos, math.huge, false, 0)
 end
 
 return Duel
