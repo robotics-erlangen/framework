@@ -7,12 +7,7 @@ local TrajectoryHidden = require "trajectory/hidden"
 RescueRobot.priority = 1
 
 -- list of local speeds: (speedForward, speedSide) 
-RescueRobot._speeds = {
-	Vector.create(1, 0), -- forward
-	Vector.create(0, -1), -- left
-	Vector.create(-1, 0), -- backward
-	Vector.create(0 , 1) -- right
-}
+RescueRobot._speeds = {}
 
 function RescueRobot:_init()
 end
@@ -32,6 +27,23 @@ function RescueRobot:_run()
 		local backwardsDir = self._robot.speed:copy():scaleLength(-1):angle()
 		local frontDir = self._robot.dir
 		self._rotation = geom.getAngleDiff(frontDir, backwardsDir)
+		
+		-- if field center is on the left while moving forward
+		if geom.checkTriangleOrientation(self._robot.pos, self._robot.pos + Vector.fromAngle(backwardsDir), Vector.create(0,0)) >= 0 then
+			self._speeds = {
+				Vector.create(1, 0), -- forward
+				Vector.create(0, -1), -- left
+				Vector.create(-1, 0), -- backward
+				Vector.create(0 , 1) -- right
+			}
+		else
+			self._speeds = {
+				Vector.create(1, 0), -- forward
+				Vector.create(0 , 1), -- right
+				Vector.create(-1, 0), -- backward
+				Vector.create(0, -1) -- left
+			}
+		end
 	end
 
 	-- use time as index, one new vector every second
