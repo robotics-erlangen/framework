@@ -32,7 +32,11 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 		
 		if self._shootHysteresis > 0 then
 			local dist = (targetPos-self._robot.pos):length()
-			self._robot:shoot(targetSpeed, dist)
+			if linearShoot then
+				self._robot:shoot(targetSpeed, dist)
+			else
+				self._robot:chip(dist)
+			end
 		end
 	else -- catch the ball
 		self._shootHysteresis = 0
