@@ -46,7 +46,7 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, radius)
 	end
 	
 	if not ignoreBall then
-		self:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius, "Ball")
+		self:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + ballDistance, "Ball")
 	end
 
 	if not ignoreGoals then
