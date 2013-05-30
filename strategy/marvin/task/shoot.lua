@@ -2,6 +2,9 @@ local Shoot = (require "../base/class").new("Task.Shoot", require "task/catchbal
 
 local World = require "../base/world"
 local TrajectoryDirect = require "trajectory/direct"
+local debug = require "../base/debug"
+local Observer = {}
+Observer.Shoot = require "observer/shoot"
 
 function Shoot:_successProbability()
 	error("stub")
@@ -14,6 +17,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 	
 	if self._robot:hasBall(World.Ball) then -- if we got the ball
 		local successProbability = self:_successProbability(0)
+		debug.set("Success probability", successProbability)
 		-- TODO: check future to see whether probability will decrease
 		-- TODO: test whether to add a delay when probability decreases
 		if successProbability >= probabilityThreshold
@@ -34,6 +38,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 			local dist = (targetPos-self._robot.pos):length()
 			if linearShoot then
 				self._robot:shoot(targetSpeed, dist)
+				--log("Success Probability: "..successProbability)
 			else
 				self._robot:chip(dist)
 			end
