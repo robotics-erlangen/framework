@@ -21,14 +21,14 @@ function OldController:reset()
 			self.parameters.limitRot = 4 * math.pi
 			self.parameters.limitIntCtrl = 0.03 -- limit of integrating part
 			self.parameters.factorIntCtrl = 1 -- factor of integrating part
-			self.parameters.factorDiffCtrl = 0.1 -- factor of differential part
+			self.parameters.factorDiffCtrl = 0.001 -- factor of differential part
 		else
 			self.parameters.factorProp = 5
 			self.parameters.k_omega = 3
 			self.parameters.limitRot = 4 * math.pi
 			self.parameters.limitIntCtrl = 0.03 -- limit of integrating part
 			self.parameters.factorIntCtrl = 1 -- factor of integrating part
-			self.parameters.factorDiffCtrl = 0.7 -- factor of differential part
+			self.parameters.factorDiffCtrl = 0.007 -- factor of differential part
 		end
 	else
 		self.parameters = nil
@@ -98,7 +98,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	
 	local robotAccel
 	if self.lastSpeed then
-		robotAccel = robotSpeed - self.lastSpeed
+		robotAccel = (robotSpeed - self.lastSpeed) / World.TimeDiff
 	else
 		robotAccel = Vector.create(0, 0)
 	end
