@@ -27,11 +27,9 @@ function ChipAway:_run(priorityMessages, notifications)
 			bestRating = msg.task.assistantRating
 		end
 	end
-	if not chipTarget then
-		chipTarget = {pos = World.Geometry.OpponentGoal}
-	end
-
-	self:_shoot(chipTarget.pos, math.huge, false, 0)
+	
+	local chipPos = chipTarget and chipTarget.pos or World.Geometry.OpponentGoal
+	self:_shoot(chipPos, math.huge, false, 0)
 
 	return {passTarget = chipTarget}
 end
