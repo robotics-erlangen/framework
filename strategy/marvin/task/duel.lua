@@ -61,21 +61,26 @@ end
 local successRates = Learning.init(2)
 
 -- decides what to do
--- [A] catch the ball (see task/shoot)
 -- [B] contest
 -- [C] pass away
 function Duel:_run(priorityMessages, notifications)
 	self.opposer = Ball.opponentBallOwner()
 	self.chipPos = (World.Geometry.OpponentGoal - World.Ball.pos):setLength(1) --1m towards opponent goal
 	
-	if not self._robot:hasBall(World.Ball) then
-		-- if we dont have the ball yet
-		self:_catchBall(World.Geometry.OpponentGoal, 0.2)
-		self:_evaluateStrategy(false)
-	elseif self.opposer == nil then
+	if self.opposer == nil then
 		-- if no opponent robot is a ball owner
+		if Settings.DEBUG then
+			Debug.set("Decision", "pass away")
+		end
 		self:_passAway(notifications)
 		self:_evaluateStrategy(true)
+	elseif not self._robot:hasBall(World.Ball) then
+		-- if we don't have the ball yet
+		local viewPos = self:_calculateViewPos(World.Ball.pos)
+		if Settings.DEBUG then
+			Debug.set("Decision", "catch ball")
+		end
+		self:_catchBall(viewPos, 0.2)
 	else
 		-- if we have the ball, but at least one opponent is nearby
 		self:_contest()
@@ -100,13 +105,16 @@ end
 function Duel:_contest()
 	if not self.strategy or self.strategy == 0 then
 		self.strategy = Learning.decide(successRates)
-		if Settings.DEBUG then
-			log("duel strategy "..self.strategy)
-		end
 	end
 	if self.strategy == 1 then
+		if Settings.DEBUG then
+			Debug.set("Decision", "contest dribble")
+		end
 		self:_contestDribble()
 	elseif self.strategy == 2 then
+		if Settings.DEBUG then
+			Debug.set("Decision", "contest rotate")
+		end
 		self:_contestRotate()
 	elseif self.strategy == 3 then
 		-- ???	
@@ -128,6 +136,16 @@ end
 -- ====================
 -- ===== behavior =====
 -- ====================
+
+
+function Duel:_calculateViewPos(targetPos)
+	local k = math.bound(0, targetPos.y / World.Geometry.FieldHeightHalf, 1)
+	local toOpponentGoal = World.Geometry.OpponentGoal - targetPos
+	local fromFriendlyGoal = targetPos - World.Geometry.FriendlyGoal
+	local viewVector = toOpponentGoal:setLength(k) + fromFriendlyGoal:setLength(1-k)
+	local viewPos = targetPos + viewVector
+	return viewPos
+end
 
 -- [B] (1) dribble and chip
 -- move backwards to gain some distance and chip over the opponent robot
