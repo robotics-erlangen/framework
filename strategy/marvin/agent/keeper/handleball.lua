@@ -13,25 +13,24 @@ function HandleBall:_check()
 	end
 	--if a slow ball enters the defense area
 	local active = Field.isInFriendlyDefenseArea(World.Ball.pos, 0) and World.Ball.speed:length() <= Settings.slowBall
-	return (active and World.RefereeStare ~= "Stop") and Base.State.Active or Base.State.Inactive
+	return active and Base.State.Active or Base.State.Inactive
 end
 
-local badrobots
 function HandleBall:_run() 
 	--hysteresis constant
 	local extraDistance = 0.1
 
 	local stillDanger = false
-	if not badrobots then
-		badrobots = {}
+	if not self.badrobots then
+		self.badrobots = {}
 	else
-		for r,_ in pairs(badrobots) do
+		for r,_ in pairs(self.badrobots) do
 			if Field.distanceToFriendlyDefenseArea(r.pos, r.radius) <= extraDistance then
 				--if a dangerous robot is still near the defense area
 				stillDanger = true
 			else
 				--if too far away, remove that robot
-				badrobots[r] = nil
+				self.badrobots[r] = nil
 			end
 		end
 	end
@@ -40,12 +39,13 @@ function HandleBall:_run()
 	for _,r in pairs(World.OpponentRobots) do
 		if Field.isInFriendlyDefenseArea(r.pos, r.radius) then
 			--if any robot is inside the defense area, it becomes a dangerous one
-			badrobots[r] = true
+			self.badrobots[r] = true
 			stillDanger = true
 		end
 	end
 	
 	--decide whether to chip away or move aggressively to the ball
+	-- FIXME don't recreate the task in every frame
 	if not stillDanger then
 		self._task = ChipAway.create(self._robot)
 	else
