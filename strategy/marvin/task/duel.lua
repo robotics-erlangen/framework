@@ -64,6 +64,7 @@ local successRates = Learning.init(2)
 -- [B] contest
 -- [C] pass away
 function Duel:_run(priorityMessages, notifications)
+	self.oldOpposer = self.opposer
 	self.opposer = Ball.opponentBallOwner()
 	self.chipPos = (World.Geometry.OpponentGoal - World.Ball.pos):setLength(1) --1m towards opponent goal
 	
@@ -90,7 +91,7 @@ function Duel:_run(priorityMessages, notifications)
 		Debug.set("Duel Rotate", successRates[2].percentage)
 	end
 	return {
-		defendedOpponent = self.opposer,
+		defendedOpponent = self.opposer or self.oldOpposer,
 		duelAssistantPos = self.assistantPos,
 		duelAssistantDir = self.assistantDir,
 		passTarget = self.duelAssistantTarget

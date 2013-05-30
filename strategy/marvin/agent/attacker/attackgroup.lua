@@ -10,11 +10,10 @@ function AttackGroup:_check()
 	end
 	
 	local message = nil
-	if World.RefereeState ~= "Stop" then -- apply for playing the ball
-		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
-		local mainAttackerRating = Rating.timeToRating(timeToBall)
-		message = { specialTask = { mainAttacker = mainAttackerRating } }
-	end
+	-- apply for playing the ball
+	local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
+	local mainAttackerRating = Rating.timeToRating(timeToBall)
+	message = { specialTask = { mainAttacker = mainAttackerRating } }
 
 	local isMainAttacker = self._trainerMessage.specialTask.mainAttacker == self._robot
 	return isMainAttacker, message

@@ -1,5 +1,7 @@
 local AggressiveKeeper = (require "../base/class").new("Task.AggressiveKeeper", require "task/base")
 
+local World = require "../base/world"
+
 AggressiveKeeper.priority = 6
 
 function AggressiveKeeper:_init()
