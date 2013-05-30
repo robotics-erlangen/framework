@@ -1,9 +1,11 @@
 local ManMark = (require "../base/class").new("Task.ManMark", require "task/base")
 
+local Constants = require "../base/constants"
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Field = require "util/field"
 local Rating = require "util/rating"
+local Referee = require "util/referee"
 
 ManMark.priority = 3
 
@@ -55,16 +57,24 @@ function ManMark:_rate(priorityMessages, notifications)
 		self._targetRobot = nil
 	end
 	
-	-- FIXME place near defense
+	-- FIXME place fallback near defense
 	local targetPos = self._targetRobot and self._targetRobot.pos or Vector.create(0, 0)
 	local ballPos = World.Ball.pos
 
 	--preferred position in front of the target robot in direction to the ball
 	local midpointDistance = (self._targetRobot and self._targetRobot.radius or 0.09) + self._robot.radius + Settings.markingDistance
-	self._preferredDir = (ballPos - targetPos):angle()
-	self._preferredPos = (ballPos - targetPos):setLength(midpointDistance) + targetPos
+	self._preferredPos = targetPos + (ballPos - targetPos):setLength(midpointDistance)
 	self._preferredPos = Field.limitToAllowedField(self._preferredPos, self._robot.radius)
-	
+
+	if Referee.isStopState() then
+		local minDist = World.Ball.radius + self._robot.radius + Constants.stopBallDistance + Settings.positionPadding
+		if self._preferredPos:distanceTo(ballPos) < minDist then
+			self._preferredPos = ballPos + (self._preferredPos - ballPos):setLength(minDist)
+		end
+	end
+
+	self._preferredDir = (ballPos - targetPos):angle()
+
 	return Rating.posToRating(self._robot, self._preferredPos)
 end
 

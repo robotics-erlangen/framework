@@ -3,10 +3,14 @@ local HandleBall = (require "../base/class").new("Agent.Keeper.HandleBall", Base
 
 local World = require "../base/world"
 local Field = require "util/field"
+local Referee = require "util/referee"
 local ChipAway = require "task/chipaway"
 local AggressiveKeeper = require "task/aggressivekeeper"
 
 function HandleBall:_check()
+	if Referee.isStopState() then
+		return Base.State.Inactive
+	end
 	--if a slow ball enters the defense area
 	local active = Field.isInFriendlyDefenseArea(World.Ball.pos, 0) and World.Ball.speed:length() <= Settings.slowBall
 	return (active and World.RefereeStare ~= "Stop") and Base.State.Active or Base.State.Inactive

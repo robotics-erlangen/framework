@@ -5,6 +5,7 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
 local Rating = require "util/rating"
+local Referee = require "util/referee"
 
 local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
@@ -25,7 +26,7 @@ function HandleBall:_check()
 	local goodSituation2 = self._robot == firstRobot and (timeAdvance >= Settings.defenseRiskLevel)
 
 	local message = nil
-	if (goodSituation1 or goodSituation2) and World.RefereeState ~= "Stop" then -- apply for playing the ball
+	if (goodSituation1 or goodSituation2) and not Referee.isStopState() then -- apply for playing the ball
 		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball) * toBallScaling
 		local mainAttackerRating = Rating.timeToRating(timeToBall)
 		message = { specialTask = { mainAttacker = mainAttackerRating } }
