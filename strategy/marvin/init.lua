@@ -25,6 +25,7 @@ require "task/tasks"
 require "play/plays"
 require "control/coordinator"
 require "tests/tests"
+require "tests/agents"
 -- TODO: include utils
 
 local debug = require "../base/debug"
