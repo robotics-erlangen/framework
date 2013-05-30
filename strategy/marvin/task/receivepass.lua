@@ -60,7 +60,7 @@ local function getBestSector(viewPos, robotList, goalStartAngle, goalEndAngle) -
 	if unoccupiedSectors[indexLargest][1] > unoccupiedSectors[indexLargest][2] then
 		unoccupiedSectors[indexLargest][1] = unoccupiedSectors[indexLargest][1] - (2*math.pi)
 	end
-	return unoccupiedSectors[indexLargest], valueLargest -- returns the largest sector and its angle difference
+	return unoccupiedSectors[indexLargest] -- returns the largest sector
 end
 
 function ReceivePass:_run(priorityMessages, notifications)
@@ -70,11 +70,10 @@ function ReceivePass:_run(priorityMessages, notifications)
 		self._robot.path:setDefaultObstacles(self._robot, true)
 		self._robot.path:addRobotObstacles(self._robot)
 	else --play free
-		local vectorToBall = (World.Ball.pos-self._robot.pos)
-		local distanceToBall = vectorToBall:length()
-		local bestSector, width = getBestSector(World.Ball.pos, World.OpponentRobots, self.shotDir:angle()-(math.pi/4), self.shotDir:angle()+(math.pi/4))
-		local anglePos = Vector.fromAngle(bestSector[1]+(width/2))
-		local anglePos = anglePos:copy():setLength(distanceToBall)
+		local distanceToBall = World.Ball.pos:distanceTo(self._robot.pos)
+		local bestSector = getBestSector(World.Ball.pos, World.OpponentRobots, self.shotDir:angle()-(math.pi/4), self.shotDir:angle()+(math.pi/4))
+		local sectorMid = bestSector and (bestSector[1]+bestSector[2])/2 or (World.Ball.pos - self._robot.pos):angle()
+		local anglePos = Vector.fromAngle(sectorMid):setLength(distanceToBall)
 		self.moveTo = anglePos + World.Ball.pos
 	end
 	
