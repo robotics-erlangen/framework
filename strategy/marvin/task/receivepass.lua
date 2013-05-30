@@ -55,6 +55,9 @@ local function getBestSector(viewPos, robotList, goalStartAngle, goalEndAngle) -
 			valueLargest = diff
 		end
 	end
+	if not indexLargest then
+		return
+	end
 	unoccupiedSectors[indexLargest][1] = (unoccupiedSectors[indexLargest][1]+transformAngle)%(2*math.pi)
 	unoccupiedSectors[indexLargest][2] = (unoccupiedSectors[indexLargest][2]+transformAngle)%(2*math.pi)
 	if unoccupiedSectors[indexLargest][1] > unoccupiedSectors[indexLargest][2] then
