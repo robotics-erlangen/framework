@@ -16,14 +16,14 @@ function OldController:reset()
 		self.parameters.factorDiffCtrl = 0 -- factor of differential part
 	elseif (self._robot.generation == 2) then --generation 2011
 		if self._robot == World.FriendlyKeeper then
-			self.parameters.factorProp = 5.5
+			self.parameters.factorProp = 5
 			self.parameters.k_omega = 3
 			self.parameters.limitRot = 4 * math.pi
 			self.parameters.limitIntCtrl = 0.03 -- limit of integrating part
 			self.parameters.factorIntCtrl = 1 -- factor of integrating part
 			self.parameters.factorDiffCtrl = 0.1 -- factor of differential part
 		else
-			self.parameters.factorProp = 5.5
+			self.parameters.factorProp = 5
 			self.parameters.k_omega = 3
 			self.parameters.limitRot = 4 * math.pi
 			self.parameters.limitIntCtrl = 0.03 -- limit of integrating part
@@ -95,7 +95,15 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	--log(self.parameters.factorDiffCtrl)
 	--log('robotSpeed=(%f|%f)', robotSpeed.x, robotSpeed.y)
 	--log('P=(%f|%f), I=(%f|%f), D=(%f|%f)', speed.x, speed.y, self.intCtrl.x, self.intCtrl.y, robotSpeed.x*self.parameters.factorDiffCtrl, robotSpeed.y*self.parameters.factorDiffCtrl)
-	speed = speed + self.intCtrl - robotSpeed*self.parameters.factorDiffCtrl
+	
+	local robotAccel
+	if self.lastSpeed then
+		robotAccel = robotSpeed - self.lastSpeed
+	else
+		robotAccel = Vector.create(0, 0)
+	end
+	self.lastSpeed = robotSpeed
+	speed = speed + self.intCtrl - robotAccel*self.parameters.factorDiffCtrl
 
 	-- bound speed to self._robot.maxSpeed without changing the direction
 	if speed:length() > self._robot.maxSpeed then
