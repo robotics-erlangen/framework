@@ -1,4 +1,4 @@
-local TestAgent = (require "../base/class").new("TestAgent", require "agent/base/agent")
+local TestAgent = (require "../base/class").new("Agent.Test", require "agent/base/agent")
 local debug = require "../base/debug"
 local Class = require "../base/class"
 local Message = require "agent/base/message"
@@ -11,9 +11,9 @@ function TestAgent:init(robot, behaviour)
 end
 
 function TestAgent:run(messages)
-	local ownMessages = messages:own(self._robot)
-	local priorityMessages, notifications = messages:split(self._robot)
-	local trainerMessage = messages:trainer()
+	self._behaviour._messages = messages:own(self._robot)
+	self._behaviour._priorityMessages, self._behaviour._notifications = messages:split(self._robot)
+	self._behaviour._trainerMessage = messages:trainer()
 
 	self._behaviour:_run() -- avoid normal choosing process in run()
 	local task = self._behaviour:task()
@@ -25,7 +25,7 @@ function TestAgent:run(messages)
 	local taskMessage
 	if task then
 		debug.push("Task", Class.name(task))
-		taskMessage = task:run(priorityMessages, notifications)
+		taskMessage = task:run(self._behaviour._priorityMessages, self._behaviour._notifications)
 		debug.pop()
 	else
 		debug.set("Task", nil)
