@@ -2,6 +2,7 @@ local Base = require "agent/base/behaviour"
 local DefaultShoot = (require "../base/class").new("Agent.Attacker.DefaultShoot", Base)
 local Ball = require "observer/ball"
 local World = require "../base/world"
+local Observer = require "observer/ball"
 
 local DirectPass = require "task/directpass"
 local ShootGoal = require "task/shootgoal"
@@ -33,12 +34,11 @@ end
 
 function DefaultShoot:_run()
 	if not self._task then
-		--FIXME check which robot can be passed to
 		local bestRobot = nil
 		local bestRating = -1
 		for robot, msg in pairs(self._messages) do
 			local rating = msg.task.assistantRating
-			if rating and rating > bestRating then
+			if rating and rating > bestRating and Observer.wayToRobotFree(robot, self._robot) then
 				bestRobot = robot
 				bestRating = rating
 			end

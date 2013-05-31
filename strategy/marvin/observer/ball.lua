@@ -10,6 +10,23 @@ local debug = require "../base/debug"
 local Learning = require "util/learning"
 local ObserverRobot = require "observer/robot"
 
+--- checks if the ball can be shot directly to another robot
+-- @param target, robot - robot to which the ball corridor is being tested
+-- @param ignoreRobot, robot - the robot to shoot the ball is not considered to be an obstacle
+-- @return bool - true if way is free, false otherwise
+function Ball.wayToRobotFree(target, ignoreRobot)
+	-- TODO consider speed of robots to look a little into the future
+	local isFree = true
+	for _, robot in pairs(table.combine(World.FriendlyRobots, World.OpponentRobots)) do
+		if robot ~= ignoreRobot and robot ~= target then
+			local _, distToBallCorridor = robot.pos:orthogonalProjection(World.Ball.pos, target.pos)
+			isFree = isFree and (math.abs(distToBallCorridor) > (robot.radius + World.Ball.radius))
+		end
+	end
+	return isFree
+end
+
+
 ---
 -- @return robot, number - the first robot to reach the ball together with the time it will have in advance to the next opponent
 function Ball.firstAtBall()
