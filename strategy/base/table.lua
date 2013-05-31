@@ -55,6 +55,22 @@ function table.extend(t1, t2)
 	return t1
 end
 
+--- Combine two given arrays to a new one
+-- @name combine
+-- @param t1 table - first array
+-- @param t2 table - second array
+-- @return table - combined array
+function table.combine(t1, t2)
+	local combined = {}
+	for _, v in ipairs(t1) do
+		table.insert(combined, v)
+	end
+	for _, v in ipairs(t2) do
+		table.insert(combined, v)
+	end
+	return combined
+end
+
 --- Deep copy the given array into an array.
 -- @name extend
 -- @param t1 table - Array to copy into
