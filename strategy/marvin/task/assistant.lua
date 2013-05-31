@@ -1,113 +1,114 @@
 local Assistant = (require "../base/class").new("Task.Assistant", require "task/base")
 
+local Constants = require "../base/constants"
 local World = require "../base/world"
-local ToTarget = require "trajectory/totarget"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
+local ToTarget = require "trajectory/totarget"
 local Goal = require "observer/goal"
+local Interval = require "util/interval"
 local Rating = require "util/rating"
+local Referee = require "util/referee"
 
 Assistant.priority = 1
 
 function Assistant:_init(pos, radius)
 	self._pos = pos
 	self._radius = radius
-	self.lineNumber = math.random(3)
+	local lineNum = math.random(3)
+
+	local numMapping = { 0.5, 1.0, 1.4}
+	local lineY = World.Geometry.FieldHeightQuarter * numMapping[lineNum]
+
+	self.linePos = Vector.create(-World.Geometry.FieldWidthHalf, lineY)
+	self.lineDir = Vector.create(World.Geometry.FieldWidth, 0)
 end
 
-local function vecYComp(vec1, vec2)
-	if vec1.x < vec2.x then
-		return true
-	else
-		return false
-	end
+function Assistant:_run()
+	self._robot.path:setDefaultObstacles(self._robot)
+	self._robot.path:addRobotObstacles(self._robot)
+	self._robot.trajectory:update(ToTarget, self.targetPos, self.targetDir)
+
+	return {targetPos = self.targetPos, assistantRating = self.rating}
 end
 
-function Assistant:_run(priorityMessages, notifications)
-	--Obstacles
-	self._robot.path:setDefaultObstacles(self._robot, false, false)
-	self._robot.path:addRobotObstacles(self._robot, false, false)
-	local shotPos, shotDir = Goal.predictShot()
+function Assistant:_rate(priorityMessages, notifications)
+	local shotPos, shotDir = Goal.predictShot() --FIXME use suitable function
 	shotDir = shotDir:copy():setLength(World.Geometry.FieldHeightHalf)
 	local shotTarget = (shotPos+shotDir)
 	self._robot.path:addLine(shotPos.x, shotPos.y, shotTarget.x, shotTarget.y, 0.1)
 	
-	local linePos = Vector.create(0, World.Geometry.FieldHeightQuarter)
-	local lineDir = Vector.create(1,0)
-	--choose 1 of 3 Lines
-	if self.lineNumber == 1 then
-		linePos.y = (linePos.y * 0.5)
-	elseif self.lineNumber == 2 then
-		linePos.y = (linePos.y * 1.0)
-	else
-		linePos.y = (linePos.y * 1.4)
-	end
-	
-	local intersections = {}
-	table.insert(intersections, Vector.create(-World.Geometry.FieldWidthHalf, linePos.y))
-	table.insert(intersections, Vector.create(World.Geometry.FieldWidthHalf, linePos.y))
-	local goalEdgeSouthIntersection = geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, Vector.create(-World.Geometry.GoalWidth / 2, World.Geometry.OpponentGoal.y))
-	local goalEdgeNorthIntersection = geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, Vector.create(World.Geometry.GoalWidth / 2, World.Geometry.OpponentGoal.y))
-	if World.Ball.pos.y < linePos.y then
-		table.insert(intersections, goalEdgeSouthIntersection)
-		table.insert(intersections, goalEdgeNorthIntersection)
-	end
-	local best = 0
-	local bestSpace = -1
 
-	vis.addPath("AssistantLine",{linePos,linePos+lineDir})
+	local lineStart = self.linePos
+	local lineEnd = self.linePos + self.lineDir
 
-	--scan for relevant robots and intersections points on line
+	local occupiedSectors = {}
+	if World.Ball.pos.y < lineStart.y then -- don't position between ball and goal
+		local goalLeft = geom.intersectLinesByPoints(lineStart, lineEnd, World.Ball.pos, World.Geometry.OpponentGoalLeft)
+		local goalRight = geom.intersectLinesByPoints(lineStart, lineEnd, World.Ball.pos, World.Geometry.OpponentGoalRight)
+		table.insert(occupiedSectors, {goalLeft.x - self._robot.radius, goalRight.x + self._robot.radius})
+	end
+
+	if Referee.isStopState() then -- keep distance to ball during stop
+		local minDist = World.Ball.radius + self._robot.radius + Constants.stopBallDistance + Settings.positionPadding
+		if math.abs(World.Ball.pos.y - lineStart.y) < minDist then
+			local cut1, cut2 = geom.intersectLineCircle(lineStart, lineEnd - lineStart, World.Ball.pos, minDist)
+			if cut1 and cut2 then
+				table.insert(occupiedSectors, {math.min(cut1.x, cut2.x), math.max(cut1.x, cut2.x)})
+			end
+		end
+	end
+
+	-- consider opponents between ball and our line
 	for _, robot in ipairs(World.OpponentRobots) do
-		if robot.pos.y < linePos.y and robot.pos.y > World.Ball.pos.y then
-			local tmp = geom.intersectLinesByPoints(linePos, linePos+lineDir, World.Ball.pos, robot.pos)
+		if robot.pos.y < lineStart.y and robot.pos.y > World.Ball.pos.y then
+			local tmp = geom.intersectLinesByPoints(lineStart, lineEnd, World.Ball.pos, robot.pos)
 			if tmp then
-				if tmp.x < goalEdgeSouthIntersection.x or tmp.x > goalEdgeNorthIntersection.x then
-					if tmp.x < World.Geometry.FieldWidthHalf and tmp.x > -World.Geometry.FieldWidthHalf then
-						table.insert(intersections, tmp)
-					end
-				end
+				table.insert(occupiedSectors, {tmp.x - self._robot.radius, tmp.x + self._robot.radius})
 			end
 		end
 	end
 	
-	--lookup friendly assistants
+	-- lookup friendly assistants
 	for robot, msg in pairs(priorityMessages) do
 		local targetPos = msg.task.targetPos
-		if targetPos and targetPos.y < (linePos.y+0.5) and targetPos.y > (linePos.y-0.5) then
-			table.insert(intersections, targetPos)
+		if targetPos and math.abs(targetPos.y - lineStart.y) < 0.5 then
+			table.insert(occupiedSectors, {targetPos.x - 2*robot.radius, targetPos.x + 2*robot.radius})
 		end
 	end
+
+	-- get free sectors
+	Interval.sort(occupiedSectors)
+	Interval.merge(occupiedSectors)
+	local widthLimit = World.Geometry.FieldWidthHalf - 2 * self._robot.radius
+	local freeSectors = Interval.negate(occupiedSectors, -widthLimit, widthLimit)
 	
-	for _, pos in ipairs(intersections) do
-		vis.addCircle("AssistantIntersections", pos, 0.03, vis.colors.blue, true)
-	end
+	-- some debug output
+	-- vis.addPath("AssistantLine", {lineStart, lineEnd}, vis.colors.blueHalf, true)
+	-- for _, pos in ipairs(freeSectors) do
+	-- 	vis.addPath("AssistantIntersections" .. self._robot.id, {Vector.create(pos[1], lineStart.y), Vector.create(pos[2], lineStart.y)}, vis.colors.blueHalf, true)
+	-- end
+	
+	local best = nil
+	local bestSpace = -1
 
-	--sort intersections
-	table.sort (intersections, vecYComp)
 	--takes the biggest free space
-	for i = 1 , #intersections do
-		if i ~= #intersections and intersections[i] ~= goalEdgeSouthIntersection then
-			local space = intersections[i+1].x - intersections[i].x
-			local distance = math.abs((intersections[i].x + (space / 2)) - self._robot.pos.x)
-			space = space / math.log(distance+math.exp(1))
-			if space > bestSpace then
-				best = i
-				bestSpace = space
-			end
+	for _, sector in ipairs(freeSectors) do
+		local space = sector[2] - sector[1]
+		local pos = Vector.create((sector[1] + sector[2]) / 2, lineStart.y)
+		local distance = pos:distanceTo(self._robot.pos)
+		space = space / math.log(distance+math.exp(1)) -- weigth by distance
+		if space > bestSpace then
+			best = sector
+			bestSpace = space
 		end
 	end
-	local moveTo = Vector.create(intersections[best].x + (bestSpace/2), linePos.y)
 
-	moveTo.x = math.bound(-World.Geometry.FieldWidthHalf + 2 * self._robot.radius, moveTo.x, World.Geometry.FieldWidthHalf - 2 * self._robot.radius)
-	local faceBall = World.Ball.pos-moveTo
-	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
-	return {targetPos = moveTo, assistantRating = self:_rate()}
-end
-
-function Assistant:_rate()
-	--(more distance to ball -> 1) * (near the enemy fieldhalf -> 1)
-	return ((1 - Rating.posToRating(self._robot, World.Ball.pos))*math.bound(0, ((self._robot.pos.y+World.Geometry.FieldHeightHalf)/(2.2*World.Geometry.FieldHeightQuarter)), 1))
+	local midX = best and (best[1] + best[2]) / 2 or 0 -- fallback to mid
+	self.targetPos = Vector.create(midX, lineStart.y)
+	self.targetDir = (World.Ball.pos - self.targetPos):angle()
+	self.rating = Rating.posToRating(self._robot, self.targetPos)
+	return self.rating
 end
 
 function Assistant.factory(position)
