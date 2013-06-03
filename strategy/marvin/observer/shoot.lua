@@ -120,14 +120,14 @@ function Shoot.ballCatchProbability(robot, time, catchPos, corridorHalf)
 	local corridorWidthHalf = corridorHalf:length()
 	local distToCorridor = (robot.pos - catchPos):length()
 	local maxAcceleration = robot.maxAcceleration
-	local maxDeceleration = 5 -- magic constant
+	local maxDeceleration = -5 -- magic constant
 	local v_toSector = math.abs(robot.speed:dot(corridorHalf)/corridorWidthHalf) -- part of robot.speed perpendicular to shoot corridor
 	local expectedPos = v_toSector*time -- position, which the robot reaches without changing speed
 	local d0, flagAcc
-	if expectedPos < distToCorridor - corridorWidthHalf then	-- if robot must accelerate to reach corridor in time
+	if expectedPos < distToCorridor - corridorWidthHalf - robot.radius then	-- if robot must accelerate to reach corridor in time
 		flagAcc = true
 		d0 = distToCorridor - robot.radius - corridorWidthHalf
-	elseif expectedPos > distToCorridor + corridorWidthHalf then	-- if robot must decelerate to stay in sector
+	elseif expectedPos > distToCorridor + corridorWidthHalf + robot.radius then	-- if robot must decelerate to stay in sector
 		flagAcc = false
 		d0 = distToCorridor + robot.radius + corridorWidthHalf
 	else								-- if robot reaches the corridor in time with its current speed
@@ -144,7 +144,7 @@ function Shoot.ballCatchProbability(robot, time, catchPos, corridorHalf)
 		if neededAcc <= maxDeceleration then
 			return 0
 		else
-			return math.sqrt((neededAcc - maxDeceleration)/maxDeceleration)
+			return math.sqrt((maxDeceleration - neededAcc)/maxDeceleration)
 		end
 	end
 end
