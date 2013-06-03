@@ -164,7 +164,7 @@ function Coordinator:_updatePlaySelection()
 	-- get rating of play currently running
 	local currentRating = PlayBase.rating.no
 	if self._play then
-		currentRating = self._play:rate(nil, no, self._lastMessages)
+		currentRating = self._play:rate(nil, PlayBase.rating.no, self._lastMessages)
 		if currentRating == PlayBase.rating.no then
 			self._play = nil
 		end
