@@ -6,6 +6,7 @@ local Ball = require "observer/ball"
 local Robot = require "observer/robot"
 local Rating = require "util/rating"
 local Referee = require "util/referee"
+local Observer = require "observer/ball"
 
 local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
@@ -38,8 +39,18 @@ end
 
 function HandleBall:_run()
 	if not self._task then
-		if false then -- FIXME, same as line 37 in agent/attacker/defaultshoot (commit 3aa317edc92f7b3aeb363c315238c0aad1de327e)
-			self._task = DirectPass.create(self._robot)
+		local bestRobot = nil
+		local bestRating = -1
+		for robot, msg in pairs(self._messages) do
+			local rating = msg.task.assistantRating
+			if rating and rating > bestRating and Observer.wayToRobotFree(robot, self._robot) then
+				bestRobot = robot
+				bestRating = rating
+			end
+		end
+		self._pass = bestRobot
+		if self._pass then
+			self._task = DirectPass.create(self._robot, bestRobot, true)
 		else -- under pressure
 			self._task = ChipAway.create(self._robot)
 		end
