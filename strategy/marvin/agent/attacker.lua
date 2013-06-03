@@ -7,6 +7,7 @@ local AttackGroup = require "agent/attacker/attackgroup"
 local DefaultStop = require "agent/attacker/defaultstop"
 local DefaultDuel = require "agent/attacker/defaultduel"
 local DefaultShoot = require "agent/attacker/defaultshoot"
+local DefaultFreeKick = require "agent/attacker/defaultfreekick"
 local Default = require "agent/attacker/default"
 
 function Attacker.takeRobot(robots)
@@ -26,6 +27,7 @@ function Attacker:_initBehaviour()
 		ReceivePass.create(self._robot),
 		AttackGroup.create(self._robot, {
 			DefaultStop.create(self._robot),
+			DefaultFreeKick.create(self._robot),
 			DefaultDuel.create(self._robot),
 			DefaultShoot.create(self._robot)
 		}),
