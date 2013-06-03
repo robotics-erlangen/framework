@@ -147,7 +147,6 @@ Trainer._optional = {
 }
 
 local Message = {
-	Wrapper = MessageWrapper,
 	Agent = Agent,
 	Container = Container,
 	Task = Task,

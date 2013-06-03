@@ -67,8 +67,8 @@ local function getBestSector(viewPos, robotList, goalStartAngle, goalEndAngle) -
 end
 
 function ReceivePass:_run(priorityMessages, notifications)
-	if isShot then
-		vis.addCircle("RecivePassMoveTo", self.moveTo, 0.03, blue, true)
+	if self.isShot then
+		vis.addCircle("RecivePassMoveTo", self.moveTo, 0.03, vis.colors.blue, true)
 		
 		self._robot.path:setDefaultObstacles(self._robot, true)
 		self._robot.path:addRobotObstacles(self._robot)
@@ -101,7 +101,7 @@ end
 
 function ReceivePass:_rate()
 	self.shotPos, self.shotDir, self.isShot = Goal.predictShot()
-	if isShot then --catch ball
+	if self.isShot then --catch ball
 		local ballSpeed = World.Ball.speed:length()
 		-- bei schnellen Baellen in den Weg stellen und abfangen
 		if ballSpeed > Settings.slowBall then

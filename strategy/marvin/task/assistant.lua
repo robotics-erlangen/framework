@@ -80,7 +80,7 @@ function Assistant:_run(priorityMessages, notifications)
 	end
 	
 	for _, pos in ipairs(intersections) do
-		vis.addCircle("AssistantIntersections", pos, 0.03, blue, true)
+		vis.addCircle("AssistantIntersections", pos, 0.03, vis.colors.blue, true)
 	end
 
 	--sort intersections
