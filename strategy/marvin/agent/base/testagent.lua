@@ -35,7 +35,7 @@ function TestAgent:run(messages)
 	debug.pop()
 	
 	local priority = task and task.priority or 0
-	return Message.Container.create{agent = agentMessage, task = taskMessage or {}}, priority
+	return Message.Container.create{agent = {}, task = taskMessage or {}}, priority
 end
 
 return TestAgent
