@@ -16,6 +16,7 @@ local Behaviour = {
 	AttackerReceivePass = require "agent/attacker/receivepass",
 	AttackerDefaultDuel = require "agent/attacker/defaultduel",
 	AttackerDefaultShoot = require "agent/attacker/defaultshoot",
+	AttackerDefaultFreeKick = require "agent/attacker/defaultfreekick",
 	AttackerDefault = require "agent/attacker/default",
 	DefenderCenterBack = require "agent/defender/centerback",
 	DefenderDefault = require "agent/defender/default",
@@ -110,6 +111,9 @@ for _, pool in pairs(TestConfig.pools) do
 	end
 end
 for _, behaviour in pairs(TestConfig.behaviours) do
+	if not Behaviour[behaviour] then
+		error("Behaviour not declared in agents-test")
+	end
 	table.insert(behaviours, Behaviour[behaviour])
 end
 

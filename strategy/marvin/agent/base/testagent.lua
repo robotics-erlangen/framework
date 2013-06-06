@@ -8,6 +8,7 @@ function TestAgent:init(robot, behaviour)
 	self._robot = robot
 	-- set the only behaviour
 	self._behaviour = behaviour.create(robot)
+	self._behaviour:_check()
 end
 
 function TestAgent:run(messages)

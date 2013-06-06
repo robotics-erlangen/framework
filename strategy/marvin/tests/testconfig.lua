@@ -7,8 +7,8 @@ local TestConfig = {
 		{ Hidden = 0 },
 	},
 	behaviours = {
-		'AttackerDefaultDuel', -- one robot with specific behaviour (never changes!)
-		'DefenderDefault',
+		'AttackerDefaultFreeKick', -- one robot with specific behaviour (never changes!)
+
 	}
 }
 return TestConfig
