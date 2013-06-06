@@ -19,7 +19,6 @@ function DefaultFreeKick:_check()
 end
 
 function DefaultFreeKick:_run()
-	log(World.Time - self.startTime)
 	if (not self._task or (World.Time - self.startTime < 5)) and not self._robot:hasBall(World.Ball) then
 		self._task = MoveToStaticBall.create(self._robot, World.Geometry.OpponentGoal)
 	elseif not self._task or Class.name(self._task, true) == "MoveToStaticBall" then

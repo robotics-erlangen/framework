@@ -25,9 +25,9 @@ ShootGoal.Mode = {
 function ShootGoal:_init(dontMoveWithBall)
 	self._mode = 0
 	self._bestRating = 0
-	self._bestSector = 1
 	self._pointOnGoalLine = nil
 	self._linearShoot = true
+	self._hysteresis = 0
 	self._dontMoveWithBall = dontMoveWithBall
 end
 
@@ -50,6 +50,7 @@ function ShootGoal:_successProbability(t)
 	end
 end
 
+local crit = math.pi/20
 function ShootGoal:_rate()
 	local ballOwner = Observer.Ball.friendlyBallOwner()
 	if ballOwner == self._robot then
@@ -63,27 +64,53 @@ function ShootGoal:_rate()
 					end
 				end
 			end
-			local freeSectors = Observer.Goal.freeSectors(ball.pos, robots, true)
+			local goalStart = (World.Geometry.OpponentGoalRight - ball.pos):angle() -- direction of the first goalpost
+			local goalEnd = (World.Geometry.OpponentGoalLeft - ball.pos):angle() -- direction of the other goalpost
+			local freeSectors = Observer.Goal.getFreeSectors(ball.pos, robots, goalStart, goalEnd)
+			self._bestRating = 0
 			for k, fs in ipairs(freeSectors) do -- TODO: implement reasonable function that calculates the time needed for the robot to turn with the ball
-				local rating = (fs[2] - fs[1])*(10 - geom.getAngleDiff(self._robot.dir, 0.5*(fs[1] + fs[2]))^2) -- as said - only to guess the needed time
+				local weight = 0.5	-- for weighted average
+				if fs[1] == goalStart then
+					weight = weight + 0.35
+				end
+				if fs[2] == goalEnd then
+					weight = weight - 0.35
+				end
+				local sectorMid = weight*fs[1] + (1 - weight)*fs[2]
+				local rating = (fs[2] - fs[1])*(10 - geom.getAngleDiff(self._robot.dir, sectorMid)^2) -- as said - only to guess the needed time
 				if rating > self._bestRating then
-					self._bestRating = rating
-					self._bestSector = fs
+					if self._bestMid and sectorMid - self._bestMid > crit then	-- other sector better
+						if rating > self._bestRating*(5 - self._hysteresis)*0.25 then
+							self._bestRating = rating
+							self._hysteresis = 0
+							self._bestMid = sectorMid
+						else
+							self._hysteresis = self._hysteresis + 1
+						end
+					else
+						self._bestRating = rating
+						--self._bestSector = fs
+						self._bestMid = sectorMid
+						self._hysteresis = math.max(self._hysteresis - 1, 0)
+					end
 				end
 			end
 			if self._bestRating > 1.5 then
-				self._pointOnGoalLine = geom.intersectLineLine(self._robot.pos, Vector.fromAngle(0.5*(self._bestSector[1] + self._bestSector[2])), World.Geometry.OpponentGoal, Vector.fromAngle(0))
+				self._pointOnGoalLine = geom.intersectLineLine(ball.pos, Vector.fromAngle(self._bestMid), World.Geometry.OpponentGoal, Vector.fromAngle(0))
 				self._mode = ShootGoal.Mode.TurnAndShoot		-- turn and shoot
 			else
 				self._mode = ShootGoal.Mode.SearchBetterPosition	-- from the current position, it is hardly possible to score -> look for better position and move there
+				self._hysteresis = 0
 			end
 			return self._bestRating
 		else
 			self._mode = ShootGoal.Mode.GetTheBall				-- we had the ball, but it must have rolled away
+			self._hysteresis = 0
 			return  0
 		end
 	else
 		self._mode = ShootGoal.Mode.GetTheBall					-- someone else has the ball, so let's try to get it. dumb play which called this task...
+		self._hysteresis = 0
 		return 0
 	end
 end
@@ -95,13 +122,16 @@ function ShootGoal:_run(priorityMessages, notifications)
 		self:_shoot(self._pointOnGoalLine, math.huge, true, 0)	-- threshold is 0 for immediate shooting
 		self._robot:setDribblerSpeed(0)
 	elseif self._mode == ShootGoal.Mode.TurnAndShoot then
-		vis.addPath("ToGoal", {World.Ball.pos, self._pointOnGoalLine})
+		--[[?local left = World.Ball.pos + Vector.fromAngle(self._bestSector[1]) * 3
+		local right = World.Ball.pos + Vector.fromAngle(self._bestSector[2]) * 3
+		vis.addPolygon("Best Sector", {World.Ball.pos, left, right}, vis.orangeHalf, true)]]--
+		vis.addPath("To Goal", {World.Ball.pos, self._pointOnGoalLine})
 		self:_shoot(self._pointOnGoalLine, math.huge, true, shootThresholdProb)	-- from the shoot task
 		self._robot:setDribblerSpeed(0)
 	elseif self._mode == ShootGoal.Mode.SearchBetterPosition then
 		local distToGoal = (World.Ball.pos - World.Geometry.OpponentGoal):length()
 		local robotList = Observer.Goal.getRobotsNearGoal(distToGoal, World.OpponentRobots, true)
-		local rightPoint, rightSectors, leftPoint, leftSectors = Observer.Goal.searchFreeSectors(robotList, true)
+		local rightPoint, rightSectors, leftPoint, leftSectors = Observer.Goal.searchFreeSectors(robotList, true)	--look for other positions
 		local best = {}
 		best.rating = 0
 		if #rightSectors >= 1 then
@@ -135,7 +165,11 @@ function ShootGoal:_run(priorityMessages, notifications)
 		self._robot:setDribblerSpeed(1)
 		self._robot.path:setDefaultObstacles(self._robot, true)
 		self._robot.path:addRobotObstacles(self._robot)
-		self._robot.trajectory:update(ToTarget, best.betterRobotPos, best.mid + math.pi)
+		if best.mid then
+			self._robot.trajectory:update(ToTarget, best.betterRobotPos, best.mid + math.pi)
+		else
+			log("Kein freier Sector.")
+		end
 	elseif self._mode == ShootGoal.Mode.GetTheBall then
 		self:_catchBall(World.Geometry.OpponentGoal, maxEndSpeed)
 		--log("hier")
