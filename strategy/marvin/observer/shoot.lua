@@ -5,6 +5,7 @@ local World = require "../base/world"
 local Settings = require "settings"
 local Robot = require "observer/robot"
 local Ball = require "observer/ball"
+local Geom = require "../base/geom"
 
 
 --- Calculates the chance that a pass to the targetRobot will succeed
@@ -71,7 +72,10 @@ end
 -- @return passChance number - the chance that the ball reaches the target position
 function Shoot.evaluateChipCorridor(targetRobot, shootTime, targetPos)
 	--TODO: test
-	if (targetPos - ballPos):length() > 2 * liftDistance + targetRobot.radius then
+	local passChance = 1
+	-- assuming the chip is shot in 45 degree angle, FIXME get angle from robot
+	local liftDistance = 2 * math.sqrt(targetRobot.height)
+	if (targetPos - World.Ball.pos):length() > 2 * liftDistance + targetRobot.radius then
 		local corridorWidthHalf = World.Ball.radius + Constants.positionError	
 
 		targetPos = targetPos or targetRobot.trajectory:predictPos(shootTime)		--FIXME add time needed to reach target
@@ -79,15 +83,14 @@ function Shoot.evaluateChipCorridor(targetRobot, shootTime, targetPos)
 
 		local corridorHalf = (targetPos - ballPos):perpendicular():setLength(corridorWidthHalf)
 
-		local passChance = 1
 		for _, robot in pairs(World.OpponentRobots) do
 			local x = (targetPos - ballPos):setLength(liftDistance)			--liftDistance ist the distance, the ball needs to be able to fly over robots 														TODO test liftDistance
-			local pointOnLine = geom.nearestPosOnLine(robot.pos, ballPos, ballPos + x)
+			local pointOnLine = Geom.nearestPosOnLine(robot.pos, ballPos, ballPos + x)
 			local ballCatchTime = shootTime + Shoot.ballPassTime(ballPos, targetRobot, targetPos, (ballPos - pointOnLine):length())
 			local ballCatchProbability = Shoot.ballCatchProbability(robot, ballCatchTime, pointOnLine, corridorHalf)
 			passChance = passChance * (1 - ballCatchProbability)
 	
-			local pointOnLine = geom.nearestPosOnLine(robot.pos, targetPos - x, targetPos)
+			local pointOnLine = Geom.nearestPosOnLine(robot.pos, targetPos - x, targetPos)
 			local ballCatchTime = shootTime + Shoot.ballPassTime(ballPos, targetRobot, targetPos, (ballPos - pointOnLine):length())
 			local ballCatchProbability = Shoot.ballCatchProbability(robot, ballCatchTime, pointOnLine, corridorHalf)
 			passChance = passChance * (1 - ballCatchProbability)
