@@ -128,6 +128,21 @@ function table.map(array, f)
 	return mapped
 end
 
+--- Filters an array with a predicate function.
+-- @name filter
+-- @param array table - Array to filter
+-- @param p function - predicate function
+-- @return table - filtered array
+function table.filter(array, p)
+	local filtered = {}
+	for _, entry in ipairs(array) do
+		if p(entry) then
+			table.insert(filtered, entry)
+		end
+	end
+	return filtered
+end
+
 --- Returns a readonly proxy table.
 -- @name readonlytable
 -- @param table table - Table to write-protect

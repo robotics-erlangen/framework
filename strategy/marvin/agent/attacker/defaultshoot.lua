@@ -34,20 +34,22 @@ end
 
 function DefaultShoot:_run()
 	if not self._task then
-		local bestRobot = nil
-		local bestRating = -1
-		for robot, msg in pairs(self._messages) do
-			local rating = msg.task.assistantRating
-			if rating and rating > bestRating and Observer.wayToRobotFree(robot, self._robot) then
-				bestRobot = robot
-				bestRating = rating
-			end
+		local function canPassTo(r)
+			return self._messages[r] and self._messages[r].task.assistantRating and Observer.wayToRobotFree(r, self._robot)
 		end
-		self._pass = bestRobot -- and math.random(100) < 70
+		local freeAssistants = table.filter(World.FriendlyRobots, canPassTo)
+		local robotToAssistantRating = function(r) return self._messages[r].task.assistantRating end
+		local bestRobot = table.max(table.map(freeAssistants, robotToAssistantRating))
+		
+		local shootGoalTask = ShootGoal.create(self._robot)
+		local goalChance = shootGoalTask:rate(self._priorityMessages, self._notifications)
+
+		self._pass = bestRobot and goalChance < 1.5 -- 1.5 MAGIC CONSTANT, Andre fragen
+
 		if self._pass then
 			self._task = DirectPass.create(self._robot, bestRobot, true)
 		else
-			self._task = ShootGoal.create(self._robot)
+			self._task = shootGoalTask
 		end
 	end
 end

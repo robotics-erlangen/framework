@@ -2,7 +2,7 @@ local Base = require "agent/base/behaviour"
 local DefaultFreeKick = (require "../base/class").new("Agent.Attacker.DefaultFreeKick", Base)
 
 local World = require "../base/world"
-local Ball = require "observer/ball"
+local Observer = require "observer/ball"
 local Class = require "../base/class"
 
 local ChipAway = require "task/chipaway"
@@ -36,17 +36,13 @@ function DefaultFreeKick:_run()
 end
 
 function DefaultFreeKick:passOrChipTask()
-	local bestRobot = nil
-	local bestRating = -1
-	for robot, msg in pairs(self._messages) do
-		local rating = msg.task.assistantRating
-		if rating and rating > bestRating and Ball.wayToRobotFree(robot, self._robot) then
-			bestRobot = robot
-			bestRating = rating
-		end
+	local function canPassTo(r)
+		return self._messages[r] and self._messages[r].task.assistantRating and Observer.wayToRobotFree(r, self._robot)
 	end
-	self._pass = bestRobot
-	if self._pass then
+	local freeAssistants = table.filter(World.FriendlyRobots, canPassTo)
+	local robotToAssistantRating = function(r) return self._messages[r].task.assistantRating end
+	local bestRobot = table.max(table.map(freeAssistants, robotToAssistantRating))
+	if bestRobot then
 		self._task = DirectPass.create(self._robot, bestRobot, true)
 	else
 		self._task = ChipAway.create(self._robot)
