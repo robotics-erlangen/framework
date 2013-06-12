@@ -109,7 +109,7 @@ function ReceivePass.test(id)
 end
 
 function ReceivePass:_rate()
-	self.shotPos, self.shotDir, self.isShot = Goal.predictShot() --TODO code zweckentfremdung entfernen
+	self.shotPos, self.shotDir, self.isShot = Goal.predictShot() --?TODO? code zweckentfremdung entfernen
 	self.ballOwner = Observer.friendlyBallOwner()
 	if (self.ballOwner) then
 		self.shotPos = self.ballOwner.pos
@@ -122,7 +122,7 @@ function ReceivePass:_rate()
 	if self.isShot then --catch ball
 		local ballSpeed = World.Ball.speed:length()
 		-- bei schnellen Baellen in den Weg stellen und abfangen
-		if ballSpeed > Settings.slowBall then
+		if ballSpeed > Settings.slowBall then --?TODO? slow ball Verhalten entfernen?
 			self.moveTo = self._robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
 		--bei langsamen Baellen entgegenbewegen
 		else
