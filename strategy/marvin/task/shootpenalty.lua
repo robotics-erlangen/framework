@@ -5,6 +5,7 @@ local distToPost = 0.05 -- distance of the target point on goal line to the post
 local changeThreshold = 0.5 -- set 0 if opponent keeper follows look Dir every time
 local fixedCorner = false -- set to "Right" or "Left" if opponent keeper has fixed behaviour or weakness
 local KeeperPosTolerance = 0.04 -- if keeper's distance to the goals center is bigger, we will choose the big free sector
+local probabilityThreshold = 0.8 -- lower means ealier shot, but less precision
 
 local ShootPenalty = (require "../base/class").new("Task.ShootPenalty", require "task/shoot")
 
@@ -17,15 +18,26 @@ function ShootPenalty:_init(lookDir)
 	self.lookDir = lookDir
 	self.decided = false
 end
-function ShootPenalty:_successProbability(t) return 1 end
+local successProbability = 0
+function ShootPenalty:_successProbability(t)
+	if self.targetPos then
+		local angleDiff = math.abs(self._robot.dir - (self.targetPos - self._robot.pos):angle())
+		local diffRatio = (2*math.pi - angleDiff) / (2*math.pi)
+		local weightedRatio = diffRatio * diffRatio * diffRatio * diffRatio
+		if weightedRatio > successProbability then
+			successProbability = weightedRatio
+		end
+	end
+	return successProbability
+end
 function ShootPenalty:_rate() return 1 end
 
 function ShootPenalty:_run(priorityMessages, notifications)
 	if not self.decided then
 		if fixedCorner then
 			self.lookDir = fixedCorner
-		elseif (World.OpponentKeeper.pos - G.OpponentGoal):length() > KeeperPosTolerance then
-			if (World.OpponentKeeper.pos - G.OpponentGoalRight):length() < G.GoalWidth / 2 then
+		elseif math.abs(World.OpponentKeeper.pos.x) > KeeperPosTolerance then
+			if World.OpponentKeeper.pos.x > 0 then
 				self.lookDir = "Left"
 			else
 				self.lookDir = "Right"
@@ -45,7 +57,7 @@ function ShootPenalty:_run(priorityMessages, notifications)
 		end
 	end
 	vis.addCircle("PenaltyTargetPos", self.targetPos, 0.02, vis.colors.blue, true)
-	self:_shoot(self.targetPos, math.huge, true, 0)
+	self:_shoot(self.targetPos, math.huge, true, probabilityThreshold, true)
 end
 
 function ShootPenalty.test(id)
