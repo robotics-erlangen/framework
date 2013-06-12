@@ -9,7 +9,10 @@ local AggressiveKeeper = require "task/aggressivekeeper"
 
 
 function HandleBall:_check()
-	if Referee.isStopState() then
+	if Referee.isStopState() then 
+		return Base.State.Inactive
+	end
+	if World.RefereeState == "PenaltyDefensive" or World.RefereeState == "PenaltyDefensivePrepare" then
 		return Base.State.Inactive
 	end
 	--if a slow ball enters the defense area
