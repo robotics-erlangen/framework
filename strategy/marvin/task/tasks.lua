@@ -14,8 +14,7 @@ local Tasks = {
 	ReceivePass = require "task/receivepass",
 	RescueRobot = require "task/rescuerobot",
 	Shoot = require "task/shoot",
-	ShootGoal = require "task/shootgoal",
-	ShootGoalImmediately = require "task/shootgoalimmediately"
+	ShootGoal = require "task/shootgoal"
 }
 
 local debug = require "../base/debug"
