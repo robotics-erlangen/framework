@@ -37,11 +37,15 @@ end
 
 function DefaultFreeKick:passOrChipTask()
 	local function canPassTo(r)
-		return self._messages[r] and self._messages[r].task.assistantRating and Observer.wayToRobotFree(r, self._robot)
+		return self._messages[r] and self._messages[r].task.assistantRating 
+			and Observer.wayToRobotFree(r, self._robot)
+	end
+	local function cmpAssistantByRating(r1, r2)
+		return self._messages[r1].task.assistantRating > self._messages[r2].task.assistantRating
 	end
 	local freeAssistants = table.filter(World.FriendlyRobots, canPassTo)
-	local robotToAssistantRating = function(r) return self._messages[r].task.assistantRating end
-	local bestRobot = table.max(table.map(freeAssistants, robotToAssistantRating))
+	table.sort(freeAssistants, cmpAssistantByRating)
+	local bestRobot = freeAssistants[1]
 	if bestRobot then
 		self._task = DirectPass.create(self._robot, bestRobot, true)
 	else

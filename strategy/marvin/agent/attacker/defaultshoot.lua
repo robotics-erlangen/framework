@@ -35,11 +35,15 @@ end
 function DefaultShoot:_run()
 	if not self._task then
 		local function canPassTo(r)
-			return self._messages[r] and self._messages[r].task.assistantRating and Observer.wayToRobotFree(r, self._robot)
+			return self._messages[r] and self._messages[r].task.assistantRating 
+				and Observer.wayToRobotFree(r, self._robot)
+		end
+		local function cmpAssistantByRating(r1, r2)
+			return self._messages[r1].task.assistantRating > self._messages[r2].task.assistantRating
 		end
 		local freeAssistants = table.filter(World.FriendlyRobots, canPassTo)
-		local robotToAssistantRating = function(r) return self._messages[r].task.assistantRating end
-		local bestRobot = table.max(table.map(freeAssistants, robotToAssistantRating))
+		table.sort(freeAssistants, cmpAssistantByRating)
+		local bestRobot = freeAssistants[1]
 		
 		local shootGoalTask = ShootGoal.create(self._robot)
 		local goalChance = shootGoalTask:rate(self._priorityMessages, self._notifications)
