@@ -7,6 +7,7 @@ local Robot = require "observer/robot"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
+local Field = require "util/field"
 
 function CatchBall:_init()
 	error("Abstract base class!!!")
@@ -67,6 +68,7 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed)
 	offset = offset * math.min(1, 10 * moveLine:length()) -- FIXME magic constant
 	offset = math.bound(-self._robot.dribblerWidth/2, offset, self._robot.dribblerWidth/2)
 	moveDest = moveDest - viewPerpendicular:scaleLength(offset)
+	moveDest = Field.limitToField(moveDest, Settings.positionPadding)
 	
 	-- setup obstacles
 	self._robot.path:setDefaultObstacles(self._robot, true)
