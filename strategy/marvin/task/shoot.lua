@@ -38,7 +38,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold,
 			-- double angle between targetDir and speedDir, but limit to 90 degree
 			local speedAngle = targetDir + math.bound(-math.pi/2, 2*geom.getAngleDiff(targetDir, speedDir), math.pi/2)
 			local speed = Vector.fromAngle(speedAngle):setLength(Settings.shootDriveSpeed)
-			self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, 0)
+			self._robot.trajectory:update(TrajectoryDirect, speed, targetDir)
 		end
 
 		if self._shootHysteresis > 0 then

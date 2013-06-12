@@ -1,18 +1,30 @@
 local Direct = (require "../base/class").new("Trajectory.Direct", (require "../base/trajectory").Base)
 local Coordinates = require "../base/coordinates"
+local geom = require "../base/geom"
 
 function Direct:_init()
 end
 
+-- only targetDir or rotateSpeed may be passed!
 function Direct:update(speed, targetDir, rotateSpeed)
 	speed = Coordinates.toGlobal(speed)
 	targetDir = Coordinates.toGlobal(targetDir)
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
+
+	assert(targetDir == nil or rotateSpeed == nil, "rotating while having a fixed direction makes no sense")
 	
+	local robotDir = Coordinates.toGlobal(self._robot.dir)
+	if rotateSpeed == nil then
+		local limitRot = 4 * math.pi
+		local k_omega = 3
+		local error_phi = geom.getAngleDiff(robotDir, targetDir)
+		rotateSpeed = math.bound(-limitRot, error_phi * k_omega, limitRot)
+	end
+
 	local spline = { {t_start = 0, t_end = math.huge,
 		x = { a0 = robotPos.x, a1 = speed.x, a2 = 0, a3 = 0 },
 		y = { a0 = robotPos.y, a1 = speed.y, a2 = 0, a3 = 0 },
-		phi = { a0 = targetDir, a1 = rotateSpeed, a2 = 0, a3 = 0}
+		phi = { a0 = robotDir, a1 = rotateSpeed, a2 = 0, a3 = 0}
 	} }
 
 	return {spline = spline}, self._robot.pos, 0
