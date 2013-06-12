@@ -3,6 +3,7 @@ local Shoot = (require "../base/class").new("Task.Shoot", require "task/catchbal
 local World = require "../base/world"
 local TrajectoryDirect = require "trajectory/direct"
 local debug = require "../base/debug"
+local geom = require "../base/geom"
 local Observer = {}
 Observer.Shoot = require "observer/shoot"
 
@@ -32,9 +33,11 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold,
 
 		if not (distToBall < 0.005 and dontMoveWithBall) then
 			-- FIXME drive towards hit point and not where the ball currently is
-			local speed = World.Ball.pos - self._robot.pos
-			speed:setLength(Settings.shootDriveSpeed)
-			local targetDir = (targetPos-World.Ball.pos):angle()
+			local speedDir = (World.Ball.pos - self._robot.pos):angle()
+			local targetDir = (targetPos - World.Ball.pos):angle()
+			-- double angle between targetDir and speedDir, but limit to 90 degree
+			local speedAngle = targetDir + math.bound(-math.pi/2, 2*geom.getAngleDiff(targetDir, speedDir), math.pi/2)
+			local speed = Vector.fromAngle(speedAngle):setLength(Settings.shootDriveSpeed)
 			self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, 0)
 		end
 
