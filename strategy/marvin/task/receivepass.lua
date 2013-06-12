@@ -9,6 +9,10 @@ local vis = require "../base/vis"
 local Goal = require "observer/goal"
 local Interval = require "util/interval"
 local debug = require "../base/debug"
+local Field = require "util/field"
+
+--Settings
+local distanceToFieldBoundry = -0.2 --have to be negative value
 
 ReceivePass.priority = 5
 
@@ -77,9 +81,12 @@ function ReceivePass:_run(priorityMessages, notifications)
 		local distanceToBall = World.Ball.pos:distanceTo(self._robot.pos)
 		local bestSector = getBestSector(World.Ball.pos, World.OpponentRobots, self.shotDir:angle() - (math.pi/4), self.shotDir:angle() + (math.pi/4), distanceToBall, self._robot)
 		local sectorMid = bestSector and (bestSector[1]+bestSector[2])/2 or (World.Ball.pos - self._robot.pos):angle()
+		repeat
 		local anglePos = Vector.fromAngle(sectorMid):setLength(distanceToBall)
 		vis.addPath("RecivePassSector", {World.Ball.pos, World.Ball.pos + anglePos},vis.colors.red, true)
 		self.moveTo = anglePos + World.Ball.pos
+		distanceToBall = (distanceToBall - 0.1)
+		until(not (Field.isInOpponentDefenseArea(self.moveTo, self._robot.radius)) and Field.isInField(self.moveTo, distanceToFieldBoundry))
 	end
 	
 	local faceBall = (World.Ball.pos-self.moveTo):angle()
@@ -102,7 +109,7 @@ function ReceivePass.test(id)
 end
 
 function ReceivePass:_rate()
-	self.shotPos, self.shotDir, self.isShot = Goal.predictShot()
+	self.shotPos, self.shotDir, self.isShot = Goal.predictShot() --TODO code zweckentfremdung entfernen
 	self.ballOwner = Observer.friendlyBallOwner()
 	if (self.ballOwner) then
 		self.shotPos = self.ballOwner.pos
