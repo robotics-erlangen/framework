@@ -11,7 +11,7 @@ function Shoot:_successProbability()
 end
 
 -- if probability is higher than that threshold, the task will shoot immediatelly
-function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
+function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold, dontMoveWithBall)
 	self._lastSuccessProbability = self._lastSuccessProbability or 0
 	self._shootHysteresis = self._shootHysteresis or 0
 	
@@ -28,12 +28,16 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 		end
 		self._lastSuccessProbability = successProbability
 		
-		-- FIXME drive towards hit point and not where the ball currently is
-		local speed = World.Ball.pos - self._robot.pos
-		speed:setLength(Settings.shootDriveSpeed)
-		local targetDir = (targetPos-World.Ball.pos):angle()
-		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, 0)
-		
+		local distToBall = (self._robot:posToBall(World.Ball)).x
+
+		if not (distToBall < 0.005 and dontMoveWithBall) then
+			-- FIXME drive towards hit point and not where the ball currently is
+			local speed = World.Ball.pos - self._robot.pos
+			speed:setLength(Settings.shootDriveSpeed)
+			local targetDir = (targetPos-World.Ball.pos):angle()
+			self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, 0)
+		end
+
 		if self._shootHysteresis > 0 then
 			local dist = (targetPos-self._robot.pos):length()
 			if linearShoot then
