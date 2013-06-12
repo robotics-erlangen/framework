@@ -15,7 +15,7 @@ ReceivePass.priority = 5
 function ReceivePass:_init()
 end
 
-local function getBestSector(viewPos, robotList, goalStartAngle, goalEndAngle) -- fills the list of occupied sectors
+local function getBestSector(viewPos, robotList, goalStartAngle, goalEndAngle, distanceToBall, SelfRobot) -- fills the list of occupied sectors
 	local occupiedSectors = {}
 	local extraRadius = World.Ball.radius
 	
@@ -24,21 +24,22 @@ local function getBestSector(viewPos, robotList, goalStartAngle, goalEndAngle) -
 	local goalStartAngle = goalStartAngle - transformAngle
 	local goalEndAngle = goalEndAngle - transformAngle
 	
-	for _, robot in pairs(robotList) do --TODO not all robots are relevant
-		local toRobot = robot.pos - viewPos -- vector from viewPos to center of robot
-		local robotAngleDiff
-		if robot.radius + extraRadius <= toRobot:length() then
-			robotAngleDiff = math.asin((robot.radius + extraRadius) / toRobot:length()) -- min angle between toRobot and shoot sector
-		else
-			robotAngleDiff = math.pi/2 -- 90 deg, if the ball touches the robot (asin[-1,1]!)
-		end
-		
-		--transform
-		local robotAngle = (toRobot:angle()-transformAngle)%(2*math.pi) -- direction of the robot
-		local robotStart = math.bound(goalStartAngle, robotAngle - robotAngleDiff, goalEndAngle)
-		local robotEnd = math.bound(goalStartAngle, robotAngle + robotAngleDiff, goalEndAngle)
-		if robotStart < goalEndAngle or robotEnd > goalStartAngle then -- if the robot covers a part of the goal --FIXME: ?could be that everything is occupied?
-			table.insert(occupiedSectors, {math.max(robotStart, goalStartAngle), math.min(robotEnd, goalEndAngle)}) -- add the occupied sector to the list
+	for _, robot in pairs(robotList) do
+		if (((robot.pos - World.Ball.pos):length() <= distanceToBall) and (robot ~= selfRobot)) then
+			local toRobot = robot.pos - viewPos -- vector from viewPos to center of robot
+			local robotAngleDiff
+			if robot.radius + extraRadius <= toRobot:length() then
+				robotAngleDiff = math.asin((robot.radius + extraRadius) / toRobot:length()) -- min angle between toRobot and shoot sector
+			else
+				robotAngleDiff = math.pi/2 -- 90 deg, if the ball touches the robot (asin[-1,1]!)
+			end
+			--transform
+			local robotAngle = (toRobot:angle()-transformAngle)%(2*math.pi) -- direction of the robot
+			local robotStart = math.bound(goalStartAngle, robotAngle - robotAngleDiff, goalEndAngle)
+			local robotEnd = math.bound(goalStartAngle, robotAngle + robotAngleDiff, goalEndAngle)
+			if robotStart < goalEndAngle or robotEnd > goalStartAngle then -- if the robot covers a part of the goal
+				table.insert(occupiedSectors, {math.max(robotStart, goalStartAngle), math.min(robotEnd, goalEndAngle)}) -- add the occupied sector to the list
+			end
 		end
 	end
 
@@ -74,9 +75,10 @@ function ReceivePass:_run(priorityMessages, notifications)
 		self._robot.path:addRobotObstacles(self._robot)
 	else --play free
 		local distanceToBall = World.Ball.pos:distanceTo(self._robot.pos)
-		local bestSector = getBestSector(World.Ball.pos, World.OpponentRobots, self.shotDir:angle()-(math.pi/4), self.shotDir:angle()+(math.pi/4))
+		local bestSector = getBestSector(World.Ball.pos, World.OpponentRobots, self.shotDir:angle() - (math.pi/4), self.shotDir:angle() + (math.pi/4), distanceToBall, self._robot)
 		local sectorMid = bestSector and (bestSector[1]+bestSector[2])/2 or (World.Ball.pos - self._robot.pos):angle()
 		local anglePos = Vector.fromAngle(sectorMid):setLength(distanceToBall)
+		vis.addPath("RecivePassSector", {World.Ball.pos, World.Ball.pos + anglePos},vis.colors.red, true)
 		self.moveTo = anglePos + World.Ball.pos
 	end
 	
@@ -101,6 +103,15 @@ end
 
 function ReceivePass:_rate()
 	self.shotPos, self.shotDir, self.isShot = Goal.predictShot()
+	self.ballOwner = Observer.friendlyBallOwner()
+	if (self.ballOwner) then
+		self.shotPos = self.ballOwner.pos
+		self.shotDir = (World.Ball.pos - self.ballOwner.pos)
+	else
+		self.shotPos = World.Ball.pos
+		self.shotDir = (self._robot.pos - World.Ball.pos)
+	end
+	
 	if self.isShot then --catch ball
 		local ballSpeed = World.Ball.speed:length()
 		-- bei schnellen Baellen in den Weg stellen und abfangen
