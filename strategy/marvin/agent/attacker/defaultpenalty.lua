@@ -32,6 +32,7 @@ end
 
 function DefaultPenalty:_abort()
 	self.lookDir = nil
+	self._state = Base.State.Inactive
 end
 
 return DefaultPenalty
