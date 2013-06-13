@@ -8,7 +8,6 @@ end
 -- only targetDir or rotateSpeed may be passed!
 function Direct:update(speed, targetDir, rotateSpeed)
 	speed = Coordinates.toGlobal(speed)
-	targetDir = Coordinates.toGlobal(targetDir)
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
 
 	assert(targetDir == nil or rotateSpeed == nil, "rotating while having a fixed direction makes no sense")
@@ -17,6 +16,7 @@ function Direct:update(speed, targetDir, rotateSpeed)
 	if rotateSpeed == nil then
 		local limitRot = 4 * math.pi
 		local k_omega = 3
+		targetDir = Coordinates.toGlobal(targetDir)
 		local error_phi = geom.getAngleDiff(robotDir, targetDir)
 		rotateSpeed = math.bound(-limitRot, error_phi * k_omega, limitRot)
 	end
