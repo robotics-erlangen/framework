@@ -34,7 +34,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold,
 		local targetDir = (targetPos - World.Ball.pos):angle()
 		local speed = World.Ball.speed
 		if math.abs(distToBall.y) >= 0.01 then
-			speed = Vector.fromAngle(targetDir):perpendicular():setLength(distToBall.y / 10) -- correct pos error in 100ms
+			speed = Vector.fromAngle(targetDir):perpendicular():setLength(-distToBall.y * 20) -- correct pos error in 100ms
 		end
 
 		if not (distToBall.x < 0.005 and dontMoveWithBall) then
