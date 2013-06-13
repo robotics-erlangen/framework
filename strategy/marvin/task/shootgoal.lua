@@ -28,6 +28,7 @@ function ShootGoal:_init(dontMoveWithBall)
 	self._pointOnGoalLine = nil
 	self._linearShoot = true
 	self._hysteresis = 0
+	self._distanceWithBall = 0	-- assuming robot didn't have the ball before this task
 	self._dontMoveWithBall = dontMoveWithBall
 end
 
@@ -52,6 +53,10 @@ end
 
 local crit = math.pi/20
 function ShootGoal:_rate()
+	if self._lastPos then
+		self._distanceWithBall = self._distanceWithBall + (self._lastPos - self._robot.pos):length()
+	end
+	self._lastPos = self._robot.pos
 	local ballOwner = Observer.Ball.friendlyBallOwner()
 	if ballOwner == self._robot then
 		if self._robot:hasBall(World.Ball) then
@@ -106,17 +111,24 @@ function ShootGoal:_rate()
 		else
 			self._mode = ShootGoal.Mode.GetTheBall				-- we had the ball, but it must have rolled away
 			self._hysteresis = 0
+			self._distanceWithBall = 0
 			return  0
 		end
 	else
 		self._mode = ShootGoal.Mode.GetTheBall					-- someone else has the ball, so let's try to get it. dumb play which called this task...
 		self._hysteresis = 0
+		self._distanceWithBall = 0
 		return 0
 	end
 end
 
 function ShootGoal:_run(priorityMessages, notifications)
 	debug.set("Mode", self._mode)
+	debug.set("Distance with ball", self._distanceWithBall)
+	if self._distanceWithBall >= 0.5 then
+		self._dontMoveWithBall = true
+		--log("muss schiessen")
+	end
 	if self._dontMoveWithBall then
 		vis.addPath("ToGoal", {World.Ball.pos, self._pointOnGoalLine})
 		self:_shoot(self._pointOnGoalLine, math.huge, true, 0)	-- threshold is 0 for immediate shooting
@@ -138,7 +150,7 @@ function ShootGoal:_run(priorityMessages, notifications)
 			for _, s in ipairs(rightSectors) do
 				local mid = 0.5*(s[1] + s[2])
 				local dir = Vector.fromAngle(mid)
-				local betterBallPos = geom.intersectLineLine(rightPoint, dir, World.Ball.pos, dir:perpendicular())
+				local betterBallPos = geom.intersectLineLine(rightPoint, dir, World.Ball.pos, dir:rotate(-math.pi/4))
 				local betterRobotPos = betterBallPos + dir:setLength(self._robot.shootRadius)
 				local rating = (s[2] - s[1])/((self._robot.pos - betterRobotPos):length() + 0.1)
 				if rating > best.rating then
@@ -152,7 +164,7 @@ function ShootGoal:_run(priorityMessages, notifications)
 			for _, s in ipairs(leftSectors) do
 				local mid = 0.5*(s[1] + s[2])
 				local dir = Vector.fromAngle(mid)
-				local betterBallPos = geom.intersectLineLine(leftPoint, dir, World.Ball.pos, dir:perpendicular())
+				local betterBallPos = geom.intersectLineLine(leftPoint, dir, World.Ball.pos, dir:rotate(math.pi/4))
 				local betterRobotPos = betterBallPos + dir:setLength(self._robot.shootRadius)
 				local rating = (s[2] - s[1])/((self._robot.pos - betterRobotPos):length() + 0.1)
 				if rating > best.rating then
@@ -162,6 +174,7 @@ function ShootGoal:_run(priorityMessages, notifications)
 				end
 			end
 		end
+		vis.addCircle("betterPos", best.betterRobotPos, 0.05)
 		self._robot:setDribblerSpeed(1)
 		self._robot.path:setDefaultObstacles(self._robot, true)
 		self._robot.path:addRobotObstacles(self._robot)
