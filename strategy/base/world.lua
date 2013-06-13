@@ -67,7 +67,8 @@ World.Geometry = {}
 -- @field DefenseStretch number - Distance between the defense areas quarter circles
 -- @field FriendlyPenaltySpot Vector - Position of our own penalty spot
 -- @field OpponentPenaltySpot Vector - Position of the opponent's penalty spot
--- @field PenaltyLine number - Maximal distance from centerline during a penalty
+-- @field PenaltyLine number - Maximal distance from centerline during an offensive penalty
+-- @field OwnPenaltyLine number - Maximal distance from centerline during an defensive penalty
 -- @field FriendlyGoal Vector - Center point of the goal on the line
 -- @field FriendlyGoalLeft Vector
 -- @field FriendlyGoalRight Vector
@@ -126,6 +127,7 @@ function World._updateGeometry(geom)
 	wgeom.FriendlyPenaltySpot = Vector.create(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist)
 	wgeom.OpponentPenaltySpot = Vector.create(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist)
 	wgeom.PenaltyLine = wgeom.OpponentPenaltySpot.y - geom.penalty_line_from_spot_dist
+	wgeom.OwnPenaltyLine = wgeom.FriendlyPenaltySpot.y + geom.penalty_line_from_spot_dist
 
 	-- The goal posts are on the field lines
 	wgeom.FriendlyGoal = Vector.create(0, - wgeom.FieldHeightHalf + wgeom.LineWidth)
