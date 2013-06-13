@@ -17,6 +17,10 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold,
 	self._shootHysteresis = self._shootHysteresis or 0
 	
 	if self._robot:hasBall(World.Ball) then -- if we got the ball
+		if not self._lastBallSpeed then
+			self._lastBallSpeed = World.Ball.speed
+		end
+
 		local successProbability = self:_successProbability(0)
 		debug.set("Success probability", successProbability)
 		-- TODO: check future to see whether probability will decrease
@@ -29,20 +33,31 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold,
 		end
 		self._lastSuccessProbability = successProbability
 		
-		-- FIXME drive towards hit point and not where the ball currently is
-		local distToBall = self._robot:posToBall(World.Ball)
-		local targetDir = (targetPos - World.Ball.pos):angle()
+		-- compensate ball movement
 		local speed = World.Ball.speed
+		local speedLimit = self._lastBallSpeed:length()
+		-- prevent ball speed windup
+		if speed:length() > speedLimit then
+			speed:setLength(speedLimit)
+		end
+		-- don't drive backwards if the ball moves towards the robot
+		speed = speed:rotate(-self._robot.dir)
+		if speed.x < 0 then
+			speed.x = 0
+		end
+		speed = speed:rotate(self._robot.dir)
+
+		-- FIXME drive towards hit point and not where the ball currently is
+		local targetDir = (targetPos - World.Ball.pos):angle()
+		local distToBall = self._robot:posToBall(World.Ball)
+		-- sidewards offset
 		if math.abs(distToBall.y) >= 0.01 then
-			speed = Vector.fromAngle(targetDir):perpendicular():setLength(-distToBall.y * 20) -- correct pos error in 100ms
+			speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(-distToBall.y * 20) -- correct pos error in 100ms
 		end
 
-		if not (distToBall.x < 0.005 and dontMoveWithBall) then
-			local speedDir = (World.Ball.pos - self._robot.pos):angle()
-			-- double angle between targetDir and speedDir, but limit to 90 degree
-			local speedAngle = targetDir + math.bound(-math.pi/2, 2*geom.getAngleDiff(targetDir, speedDir), math.pi/2)
-			speed = speed + Vector.fromAngle(speedAngle):setLength(Settings.shootDriveSpeed)
-		end
+		-- speed towards ball
+		local driveSpeed = (distToBall.x < 0.005 and dontMoveWithBall) and 0.05 or Settings.shootDriveSpeed
+		speed = speed + Vector.fromAngle(targetDir):setLength(driveSpeed)
 		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir)
 
 		if self._shootHysteresis > 0 then
@@ -55,6 +70,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold,
 			end
 		end
 	else -- catch the ball
+		self._lastBallSpeed = nil
 		self._shootHysteresis = 0
 		self._lastSuccessProbability = 0
 		self:_catchBall(targetPos, Settings.shootDriveSpeed)
