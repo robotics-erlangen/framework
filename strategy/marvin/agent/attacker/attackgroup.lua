@@ -4,8 +4,8 @@ local Robot = require "observer/robot"
 local Rating = require "util/rating"
 
 function AttackGroup:_check()
-	-- no main attacker if a play is manipulating the ball
-	if self._trainerMessage.play then
+	-- no main attacker if a play is manipulating the ball or there is a penalty against us
+	if self._trainerMessage.play or World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive" then
 		return false
 	end
 	

@@ -157,6 +157,9 @@ function Coordinator:observeGameState()
 	
 	-- evenly distribute robots between attack and defense
 	local attackRatio = 0.5
+	if World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive" then
+		attackRatio = 0.3
+	end
 	return attackRatio
 end
 
