@@ -72,6 +72,9 @@ function ManMark:_rate(priorityMessages, notifications)
 			self._preferredPos = ballPos + (self._preferredPos - ballPos):setLength(minDist)
 		end
 	end
+	if World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive" then
+		self._preferredPos.y = math.min(self._preferredPos.y, World.Geometry.PenaltyLine - Settings.penaltyLineDistance)
+	end
 
 	self._preferredDir = (ballPos - targetPos):angle()
 

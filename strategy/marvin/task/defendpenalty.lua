@@ -14,7 +14,7 @@ end
 
 function DefendPenalty:_run(priorityMessages, notifications)
 	local rr = self._robot.radius --assume all robots have the same radius
-	local penaltyLine = World.Geometry.OwnPenaltyLine + 2*rr 
+	local penaltyLine = World.Geometry.OwnPenaltyLine + Settings.penaltyLineDistance
 	vis.addPath("penaltyDistance", {Vector.create(-2,penaltyLine), Vector.create(2,penaltyLine)}, vis.colors.whiteHalf)
 	-- NOTE: All spots are on the penaltyline, so only x-values are processed
 

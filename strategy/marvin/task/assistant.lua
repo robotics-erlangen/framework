@@ -38,7 +38,9 @@ function Assistant:_rate(priorityMessages, notifications)
 	local shotTarget = (shotPos+shotDir)
 	self._robot.path:addLine(shotPos.x, shotPos.y, shotTarget.x, shotTarget.y, 0.1)
 	
-
+	if World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive" then
+		self.linePos.y = World.Geometry.PenaltyLine - Settings.penaltyLineDistance
+	end
 	local lineStart = self.linePos
 	local lineEnd = self.linePos + self.lineDir
 
@@ -83,11 +85,11 @@ function Assistant:_rate(priorityMessages, notifications)
 	local widthLimit = World.Geometry.FieldWidthHalf - 2 * self._robot.radius
 	local freeSectors = Interval.negate(occupiedSectors, -widthLimit, widthLimit)
 	
-	-- some debug output
-	-- vis.addPath("AssistantLine", {lineStart, lineEnd}, vis.colors.blueHalf, true)
-	-- for _, pos in ipairs(freeSectors) do
-	-- 	vis.addPath("AssistantIntersections" .. self._robot.id, {Vector.create(pos[1], lineStart.y), Vector.create(pos[2], lineStart.y)}, vis.colors.blueHalf, true)
-	-- end
+	--some debug output
+	vis.addPath("AssistantLine", {lineStart, lineEnd}, vis.colors.blueHalf, true)
+	for _, pos in ipairs(freeSectors) do
+		vis.addPath("AssistantIntersections" .. self._robot.id, {Vector.create(pos[1], lineStart.y), Vector.create(pos[2], lineStart.y)}, vis.colors.blueHalf, true)
+	end
 	
 	local best = nil
 	local bestSpace = -1
