@@ -34,7 +34,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold,
 		self._lastSuccessProbability = successProbability
 		
 		-- compensate ball movement
-		local speed = World.Ball.speed
+		local speed = World.Ball.speed:copy()
 		local speedLimit = self._lastBallSpeed:length()
 		-- prevent ball speed windup
 		if speed:length() > speedLimit then
