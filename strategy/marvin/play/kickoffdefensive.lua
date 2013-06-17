@@ -12,11 +12,11 @@ local MoveToPos = require "task/movetopos"
 
 local G = World.Geometry
 
-KickoffDefensive.weight = 1000 -- TODO
-KickoffDefensive.timeout = 20 -- TODO
+KickoffDefensive.weight = 1000
+KickoffDefensive.timeout = 20
 KickoffDefensive.maxRating = Base.rating.referee
 
-KickoffDefensive._conditions = {} -- TODO use conditions if needed
+KickoffDefensive._conditions = {}
 
 function KickoffDefensive:_init()
 end
