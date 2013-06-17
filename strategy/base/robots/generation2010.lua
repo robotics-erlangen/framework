@@ -26,7 +26,9 @@ end
 -- @name Gen2010_1:_shoot
 -- @param speed number - Target shoot speed
 function Gen2010:_shoot(speed) -- not fixable
-	local power = (speed - 2) / 2.8
+	local speedRatio = speed/self.maxShotLinear*8
+	local lim = math.bound(0, 162827-20000*speedRatio, 162827)
+	local power = -(math.sqrt(3)*math.sqrt(lim)-741)/1000
 	self:shootLinear(math.bound(0.1, power, 1))
 end
 
