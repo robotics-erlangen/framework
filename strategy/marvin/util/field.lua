@@ -24,15 +24,23 @@ end
 -- @param extraLimit number - how much the field should be additionally limited
 -- @param pos Vector - the position to limit
 -- @return Vector - limited vector
-function Field.limitToAllowedField(pos, extraLimit)
+function Field.limitToAllowedField(pos, extraLimit, blockOpponentDefenseArea)
+	extraLimit = extraLimit or 0
 	if Field.isInFriendlyDefenseArea(pos, extraLimit) then
-		extraLimit = extraLimit or 0
-		
 		if math.abs(pos.x) <= World.Geometry.DefenseStretch/2 then
 			pos = Vector.create(pos.x, -World.Geometry.FieldHeightHalf+World.Geometry.DefenseRadius+extraLimit)
 		else
 			local circleMidpoint = Vector.create(
-				World.Geometry.DefenseStretch/2 * pos.x/math.abs(pos.x),-World.Geometry.FieldHeightHalf)
+				World.Geometry.DefenseStretch/2*math.sign(pos.x), -World.Geometry.FieldHeightHalf)
+			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+extraLimit)
+		end
+		return pos
+	elseif blockOpponentDefenseArea and Field.isInOpponentDefenseArea(pos, extraLimit) then
+		if math.abs(pos.x) <= World.Geometry.DefenseStretch/2 then
+			pos = Vector.create(pos.x, World.Geometry.FieldHeightHalf-World.Geometry.DefenseRadius-extraLimit)
+		else
+			local circleMidpoint = Vector.create(
+				World.Geometry.DefenseStretch/2*math.sign(pos.x), World.Geometry.FieldHeightHalf)
 			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+extraLimit)
 		end
 		return pos
