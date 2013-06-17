@@ -3,7 +3,8 @@ local ReceivePass = (require "../base/class").new("Agent.Attacker.ReceivePass", 
 local World = require "../base/world"
 local Ball = require "observer/ball"
 
-local ReceivePassTask = require "task/receivepass"
+local PassReceiver = require "task/passreceiver"
+local PassTarget = require "task/passtarget"
 
 function ReceivePass:_init()
 	self._catchingPass = false
@@ -21,12 +22,11 @@ function ReceivePass:_check()
 	if isPassTarget then
 		if Ball.isShot() then
 			self._catchingPass = true
+			self._task = nil
 		end
 		return Base.State.Active
 	elseif self._catchingPass then
-		local friend = Ball.friendlyBallOwner()
-		if Ball.opponentBallOwner() or (friend ~= nil and friend ~= self._robot)
-				or World.Ball.speed:length() < Settings.slowBall then
+		if Ball.opponentBallOwner() or Ball.friendlyBallOwner() then
 			self._catchingPass = false
 			return Base.State.Inactive
 		end
@@ -43,7 +43,11 @@ end
 
 function ReceivePass:_run()
 	if not self._task then
-		self._task = ReceivePassTask.create(self._robot)
+		if self._catchingPass then
+			self._task = PassReceiver.create(self._robot)
+		else
+			self._task = PassTarget.create(self._robot)
+		end
 	end
 end
 

@@ -1,24 +1,21 @@
-local ReceivePass = (require "../base/class").new("Task.ReceivePass", require "task/base")
+local PassTarget = (require "../base/class").new("Task.PassTarget", require "task/base")
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Observer = require "observer/ball"
-local geom = require "../base/geom"
 local Rating = require "util/rating"
 local vis = require "../base/vis"
 local Goal = require "observer/goal"
 local Interval = require "util/interval"
-local debug = require "../base/debug"
 local Field = require "util/field"
 
-ReceivePass.priority = 5
+PassTarget.priority = 5
 
-function ReceivePass:_init()
-	self.isShot = nil
+function PassTarget:_init()
 	self.moveTo = nil
 end
 
-function ReceivePass:_rate(priorityMessages, notifications)
+function PassTarget:_rate(priorityMessages, notifications)
 	local shootPos = nil
 	for robot, msg in pairs(notifications) do
 		local target = msg.task.passTarget
@@ -28,12 +25,7 @@ function ReceivePass:_rate(priorityMessages, notifications)
 		end
 	end
 
-	self.isShot = World.Ball.speed:length() > Settings.slowBall
-	
-	if self.isShot then --catch ball
-		-- block fast balls by moving in their way
-		self.moveTo = self._robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
-	elseif shootPos then
+	if shootPos then
 		self.moveTo = shootPos
 	else --higher rating in robots is more free + in the enemy playing field half
 		local ballOwner = Observer.friendlyBallOwner()
@@ -60,14 +52,9 @@ function ReceivePass:_rate(priorityMessages, notifications)
 	return Rating.posToRating(self._robot, self.moveTo)
 end
 
-function ReceivePass:_run()
-	if self.isShot then
-		vis.addCircle("RecivePassMoveTo", self.moveTo, 0.03, vis.colors.blue, true)
-		self._robot.path:setDefaultObstacles(self._robot, true)
-	else --play free
-		vis.addPath("RecivePassSector", {World.Ball.pos, self.moveTo}, vis.colors.red, true)
-		self._robot.path:setDefaultObstacles(self._robot)
-	end
+function PassTarget:_run()
+	vis.addPath("RecivePassSector", {World.Ball.pos, self.moveTo}, vis.colors.red, true)
+	self._robot.path:setDefaultObstacles(self._robot)
 	
 	self._robot.path:addRobotObstacles(self._robot)
 	local faceBall = (World.Ball.pos-self.moveTo):angle()
@@ -75,18 +62,18 @@ function ReceivePass:_run()
 	return { targetPos = self.moveTo }
 end
 
-function ReceivePass.factory(position)
+function PassTarget.factory(position)
 	local f = function (robots)
-		return ReceivePass.create(robots[position])
+		return PassTarget.create(robots[position])
 	end
 	return f
 end
 
-function ReceivePass.test(id)
+function PassTarget.test(id)
 	if id > 0 then
 		return nil
 	end
-	return ReceivePass.factory(1), 1
+	return PassTarget.factory(1), 1
 end
 
-return ReceivePass
+return PassTarget

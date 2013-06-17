@@ -7,7 +7,7 @@ local RobotMatcher = require "control/robotmatcher"
 
 local Ball = require "observer/ball"
 local DirectPass = require "task/directpass"
-local ReceivePass = require "task/receivepass"
+local PassReceiver = require "task/passreceiver"
 local MoveToPos = require "task/movetopos"
 local Field = require "util/field"
 
@@ -80,7 +80,7 @@ end
 function DirectPassTest:prepareShot()
 	self._tasks = {
 		self._tasks[1],
-		ReceivePass.create(self._robots[2])
+		PassReceiver.create(self._robots[2])
 	}
 end
 

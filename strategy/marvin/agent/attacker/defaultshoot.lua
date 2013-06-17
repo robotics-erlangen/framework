@@ -22,8 +22,8 @@ function DefaultShoot:_check()
 		if Ball.opponentBallOwner() or (friend ~= nil and friend ~= self._robot) then
 			return Base.State.Inactive
 		end
-		-- shootgoal has a timeout of 0.5 seconds, 2 seconds for passing
-		local timeout = self._pass and 2 or 0.5
+		-- shootgoal has a timeout of 0.5 seconds, 1.0 seconds for passing
+		local timeout = self._pass and 1 or 0.5
 		if self._shootTime + timeout < World.Time then
 			return Base.State.Inactive
 		end
