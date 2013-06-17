@@ -190,8 +190,8 @@ function Ball.isShot()
 	local condAccelerates = (ballSpeedLength > lastBallSpeedLength + accelerationPerFrame * World.TimeDiff)
 	-- if the ball is fast
 	local condFast = (ballSpeedLength > Settings.fastBall)	
-	-- if one robot has the ball
-	local condHasBall = false
+	-- if one robot had the ball the last 0.1 seconds (equal to cooldown time)
+	local condHadBall = false
 	-- if this robot looks about in the same direction as the ball rolls
 	local condDirection = false
 	-- if the ball is distinctly faster than this robot
@@ -201,7 +201,7 @@ function Ball.isShot()
 	if condValid then
 		for _,r in pairs(World.Robots) do
 			if ObserverRobot.hadBall(r, shootCooldown) then
-				condHasBall = true
+				condHadBall = true
 				local anglediff = math.abs(geom.getAngleDiff(r.dir, World.Ball.speed:angle()))
 				if anglediff < Settings.tiltShotAngle then
 					condDirection = true
@@ -224,7 +224,7 @@ function Ball.isShot()
 		debug.set("cooldown", condCooldown)
 		debug.set("accelerates", condAccelerates)
 		debug.set("fast", condFast)
-		debug.set("hasBall", condHasBall)
+		debug.set("hadBall", condHadBall)
 		debug.set("direction", condDirection)
 	end
 
