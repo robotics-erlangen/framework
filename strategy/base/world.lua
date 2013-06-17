@@ -28,7 +28,7 @@ local amun = amun
 -- PenaltyOffensivePrepare, PenaltyDefensivePrepare, PenaltyOffensive, PenaltyDefensive,
 -- DirectOffensive, DirectDefensive, IndirectOffensive, IndirectDefensive
 -- @field GameStage string - current game stage, can be one of these:
--- FirstHalfPre, FirstHalf, HalfTime, SecondHalfPre, SecondHalf
+-- FirstHalfPre, FirstHalf, HalfTime, SecondHalfPre, SecondHalf,
 -- ExtraTimeBreak, ExtraFirstHalfPre, ExtraFirstHalf, ExtraHalfTime, ExtraSecondHalfPre, ExtraSecondHalf,
 -- PenaltyShootoutBreak, PenaltyShootout, PostGame
 

@@ -28,10 +28,18 @@ function KickoffDefensive:_selectRobots(poolRobots)
 end
 
 function KickoffDefensive:rateDefault(isInit)
-	if World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
+	local positiveState = {
+		FirstHalfPre = true,
+		SecondHalfPre = true,
+		ExtraFirstHalfPre = true,
+		ExtraSecondHalfPre = true,
+		KickoffDefensivePrepare = true,
+		KickoffDefensive = true,
+	}
+	if positiveState[World.RefereeState] or positiveState[World.GameStage] then
 		return Base.rating.referee
-	elseif World.RefereeState == "Game" then 
-		return Base.rating.no 
+	elseif World.RefereeState == "Game" then
+		return Base.rating.no
 	end
 	return Base.rating.no
 end
