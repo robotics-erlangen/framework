@@ -49,7 +49,9 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold,
 
 		-- FIXME drive towards hit point and not where the ball currently is
 		local targetDir = (targetPos - World.Ball.pos):angle()
-		local distToBall = self._robot:posToBall(World.Ball)
+		local distToBall = (World.Ball.pos - self._robot.pos):rotate(-targetDir)
+		distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
+
 		-- sidewards offset
 		if math.abs(distToBall.y) >= 0.01 then
 			speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(-distToBall.y * 20) -- correct pos error in 100ms
