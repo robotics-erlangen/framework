@@ -19,6 +19,10 @@ function Group:run(isBehaviourChosen, ownMessages, priorityMessages,
 
 	local activeBehaviour = nil
 	local groupActive, agentMessage = self:_check()
+	if isBehaviourChosen then
+		agentMessage = {} -- clear agent message if there's already an active behaviour
+	end
+
 	if not groupActive then
 		isBehaviourChosen = true -- aborts every child behaviour
 	end
