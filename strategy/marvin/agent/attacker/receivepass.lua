@@ -30,7 +30,9 @@ function ReceivePass:_check()
 			self._catchingPass = false
 			return Base.State.Inactive
 		end
-		return Base.State.Active
+		-- force being mainAttacker
+		local message = { specialTask = { mainAttacker = 2 } }
+		return Base.State.Active, message
 	end
 
 	return Base.State.Inactive
