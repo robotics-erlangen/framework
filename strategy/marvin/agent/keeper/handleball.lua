@@ -17,7 +17,12 @@ function HandleBall:_check()
 	end
 	--if a slow ball enters the defense area
 	local active = Field.isInFriendlyDefenseArea(World.Ball.pos, 0) and World.Ball.speed:length() <= Settings.slowBall
-	return active and Base.State.Active or Base.State.Inactive
+	if active then
+		local message = { specialTask = { mainAttacker = 2 } }
+		return Base.State.Active, message
+	else
+		return Base.State.Inactive
+	end
 end
 
 function HandleBall:_run()	
