@@ -6,7 +6,6 @@ local Ball = require "observer/ball"
 local Robot = require "observer/robot"
 local Rating = require "util/rating"
 local Referee = require "util/referee"
-local Observer = require "observer/ball"
 
 local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
@@ -43,7 +42,7 @@ function HandleBall:_run()
 		local bestRating = -1
 		for robot, msg in pairs(self._messages) do
 			local rating = msg.task.assistantRating
-			if rating and rating > bestRating and Observer.wayToRobotFree(robot, self._robot) then
+			if rating and rating > bestRating and Robot.wayToRobotFree(robot, self._robot) then
 				bestRobot = robot
 				bestRating = rating
 			end

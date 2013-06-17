@@ -10,22 +10,6 @@ local debug = require "../base/debug"
 local Learning = require "util/learning"
 local ObserverRobot = require "observer/robot"
 
---- checks if the ball can be shot directly to another robot
--- @param target, robot - robot to which the ball corridor is being tested
--- @param ignoreRobot, robot - the robot to shoot the ball is not considered to be an obstacle
--- @return bool - true if way is free, false otherwise
-function Ball.wayToRobotFree(target, ignoreRobot)
-	-- TODO consider speed of robots to look a little into the future
-	local isFree = true
-	for _, robot in pairs(table.combine(World.FriendlyRobots, World.OpponentRobots)) do
-		if robot ~= ignoreRobot and robot ~= target then
-			local _, distToBallCorridor = robot.pos:orthogonalProjection(World.Ball.pos, target.pos)
-			isFree = isFree and (math.abs(distToBallCorridor) > (robot.radius + World.Ball.radius))
-		end
-	end
-	return isFree
-end
-
 
 ---
 -- @return robot, number - the first robot to reach the ball together with the time it will have in advance to the next opponent
@@ -49,6 +33,33 @@ function Ball.firstAtBall()
 		end
 	end	
 	return fastestRobot, opponentTime - minTime
+end
+
+function Ball.toBall(robot, ball)
+	ball = ball or World.Ball
+	
+	local minTime = ObserverRobot.minTimeToBall(robot, ball)
+	local minPos = Ball.ballAt(ball, minTime)
+	local maxTime = ball.brakeTime + 1
+	local maxPos = Ball.ballAt(ball, maxTime)
+	local bsl = ball.speed:length()
+	local midPos, midTime
+	repeat
+		midPos = (minPos + maxPos)/2
+		midTime = Ball.ballRollTime(bsl, midPos:distanceTo(ball.pos))
+		local robotTime = ObserverRobot.timeToPos(robot, midPos)
+		if robotTime < minTime then
+			minTime = robotTime
+		elseif robotTime > maxTime then
+			maxTime = robotTime
+		end
+		if robotTime < midTime then
+			maxPos = midPos
+		else
+			minPos = midPos
+		end
+	until (maxPos - minPos):lengthSq() < 0.00001 -- 1 cm
+	return midPos, midTime
 end
 
 --- Returns the ball owner or nil if noone is nearer than Settings.ballOwnDistance(hysteresis)
@@ -122,7 +133,7 @@ end
 -- @param ball object - the ball object which should be predicted
 -- @param t number - the time after which the ball position is to be calculated
 -- @return futureBallPos vector - the predicted ball position
-local function ballAt(ball, t)
+function Ball.ballAt(ball, t)
 	-- p_b(t) = p_b + v_b(t0) * t + a_b(t0) * t^2/2
 	return ball.pos + ball.speed * t + ball.deceleration * (t^2/2) -- (8)
 end
@@ -137,11 +148,11 @@ function Ball.atTime(t, ball)
 	
 	local predicted = { radius = ball.radius }
 	if t > ball.brakeTime then -- ball won't move anymore after it has stopped
-		predicted.pos = ballAt(ball, ball.brakeTime)
+		predicted.pos = Ball.ballAt(ball, ball.brakeTime)
 		predicted.speed = Vector.create(0, 0)
 		predicted.brakeTime = 0
 	else
-		predicted.pos = ballAt(ball, t)
+		predicted.pos = Ball.ballAt(ball, t)
 		predicted.speed = ball.speed + ball.deceleration * t
 		predicted.brakeTime = ball.brakeTime - t
 	end
@@ -154,6 +165,7 @@ function Ball.atTime(t, ball)
 	return predicted
 end
 
+
 local lastBallSpeedLength = -1
 local lastShootTime = 0
 local lastShootRobot = nil
@@ -162,6 +174,8 @@ local speedDiff = 0.1 --ball has to be 0.1m/s faster than the robot
 local accelerationPerFrame = 5 --ball has to accelerate at least x m/s^2 to count as shot
 
 function Ball.isShot()
+	local ObserverRobot = require "observer/robot"
+	
 	if World.Time == lastShootTime then
 		return lastShootRobot
 	end
@@ -186,15 +200,16 @@ function Ball.isShot()
 	local robot = nil
 	if condValid then
 		for _,r in pairs(World.Robots) do
-			if r:hasBall(World.Ball) then --FIXME hasBall is not suited for volley shot detection!
+			if ObserverRobot.hadBall(r, shootCooldown) then
 				condHasBall = true
-				local anglediff = geom.getAngleDiff(r.dir, World.Ball.speed:angle())
+				local anglediff = math.abs(geom.getAngleDiff(r.dir, World.Ball.speed:angle()))
 				if anglediff < Settings.tiltShotAngle then
 					condDirection = true
 				end
 				if ballSpeedLength > speedDiff + r.speed:length() then
 					condFasterThanRobot = true
 				end
+				debug.set("robot speed", r.speed:length())
 				if condCooldown and condAccelerates and condFast and condDirection and condFasterThanRobot then
 					lastShootTime = World.Time
 					lastShootRobot = r
@@ -211,7 +226,6 @@ function Ball.isShot()
 		debug.set("fast", condFast)
 		debug.set("hasBall", condHasBall)
 		debug.set("direction", condDirection)
-		debug.set("fasterThanRobot", condFasterThanRobot)	
 	end
 
 	lastBallSpeedLength = World.Ball.speed:length()

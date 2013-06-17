@@ -7,7 +7,9 @@ local Observer = {}
 
 function Observer.observe()
 	Robot.estimateOpponentDynamics()
+	Robot._updateHadBall()
 	Observer._illustrateRefereeStates()
+	
 end
 
 function Observer._illustrateRefereeStates()

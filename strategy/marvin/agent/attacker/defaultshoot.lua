@@ -1,8 +1,8 @@
 local Base = require "agent/base/behaviour"
 local DefaultShoot = (require "../base/class").new("Agent.Attacker.DefaultShoot", Base)
 local Ball = require "observer/ball"
+local Robot = require "observer/robot"
 local World = require "../base/world"
-local Observer = require "observer/ball"
 
 local DirectPass = require "task/directpass"
 local ShootGoal = require "task/shootgoal"
@@ -36,7 +36,7 @@ function DefaultShoot:_run()
 	if not self._task then
 		local function canPassTo(r)
 			return self._messages[r] and self._messages[r].task.assistantRating 
-				and Observer.wayToRobotFree(r, self._robot)
+				and Robot.wayToRobotFree(r, self._robot)
 		end
 		local function cmpAssistantByRating(r1, r2)
 			return self._messages[r1].task.assistantRating > self._messages[r2].task.assistantRating

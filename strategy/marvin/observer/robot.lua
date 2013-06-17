@@ -7,6 +7,24 @@ local speedSmoothed = {}
 local accelerationSmoothed = {}
 local alpha = 0.1
 
+
+--- checks if the ball can be shot directly to another robot
+-- @param target, robot - robot to which the ball corridor is being tested
+-- @param ignoreRobot, robot - the robot to shoot the ball is not considered to be an obstacle
+-- @return bool - true if way is free, false otherwise
+function Robot.wayToRobotFree(target, ignoreRobot)
+	-- TODO consider speed of robots to look a little into the future
+	local isFree = true
+	for _, robot in pairs(table.combine(World.FriendlyRobots, World.OpponentRobots)) do
+		if robot ~= ignoreRobot and robot ~= target then
+			local _, distToBallCorridor = robot.pos:orthogonalProjection(World.Ball.pos, target.pos)
+			isFree = isFree and (math.abs(distToBallCorridor) > (robot.radius + World.Ball.radius))
+		end
+	end
+	return isFree
+end
+
+
 function Robot.estimateOpponentDynamics()
 	for _, robot in pairs(World.OpponentRobots) do
 		if lastSpeed[robot] then
@@ -24,6 +42,20 @@ function Robot.estimateOpponentDynamics()
 		end
 	end
 end
+
+local hadBallTimes = {}
+function Robot.hadBall(robot, time)
+	return hadBallTimes[robot] and World.Time - hadBallTimes[robot] <= time
+end
+
+function Robot._updateHadBall()
+	for _,r in pairs(World.Robots) do
+		if r:hasBall(World.Ball) then
+			hadBallTimes[r] = World.Time
+		end
+	end
+end
+
 
 function Robot.minTimeToBall(robot, ball)
 	local posDiff = (ball.pos - robot.pos):normalize()
