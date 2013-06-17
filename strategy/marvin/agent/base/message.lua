@@ -120,7 +120,6 @@ Task._optional = {
 	passTarget = Robot, -- robot to pass to
 	targetPos = "userdata",
 	targetDir = "number",
-	defPenaltyPos = "number",
 }
 
 local Container = (require "../base/class").new("Message.Container", GenericMessage)

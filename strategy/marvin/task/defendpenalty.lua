@@ -21,8 +21,8 @@ function DefendPenalty:_run(priorityMessages, notifications)
 	local occupiedSpotsFriendly = {} 
 	for robot, msg in pairs(priorityMessages) do
 		-- collect positions of other penalty defenders
-		if msg.task.defPenaltyPos then
-			table.insert(occupiedSpotsFriendly, msg.task.defPenaltyPos)
+		if msg.task.targetPos and math.abs(msg.task.targetPos.y - penaltyLine) < 2*rr then
+			table.insert(occupiedSpotsFriendly, msg.task.targetPos.x)
 		end
 	end
 	local occupiedSpotsOpp = {} -- positions of opponents on the line
@@ -43,7 +43,7 @@ function DefendPenalty:_run(priorityMessages, notifications)
 		end
 	end
 
-	local targetPos = nil
+	self.targetPos = nil
 	-- preference one: next to an opponent on the penaltyLine
 	table.sort(occupiedSpotsOpp)
 	for i = 1, #occupiedSpotsOpp do
@@ -63,18 +63,18 @@ function DefendPenalty:_run(priorityMessages, notifications)
 			-- prefer side to the middle
 			if occupiedSpotsOpp[i] > 0 then -- opponent is on the right side
 				if not left then
-					targetPos = leftPos
+					self.targetPos = leftPos
 					break
 				elseif not right then
-					targetPos = rightPos
+					self.targetPos = rightPos
 					break
 				end
 			else -- opponent is on the left side
 				if not right then
-					targetPos = rightPos
+					self.targetPos = rightPos
 					break
 				elseif not left then
-					targetPos = leftPos
+					self.targetPos = leftPos
 					break
 				end
 			end
@@ -82,7 +82,7 @@ function DefendPenalty:_run(priorityMessages, notifications)
 	end
 
 	local occupiedSpotsAll = table.combine(occupiedSpotsOpp, occupiedSpotsFriendly)
-	if not targetPos then -- preference two: intersection of penaltyLine and line from opponent to friendlyKeeper
+	if not self.targetPos then -- preference two: intersection of penaltyLine and line from opponent to friendlyKeeper
 		for _, prefX in ipairs(preferredSpots) do
 			local noOneNear = true
 			for _, occX in ipairs(occupiedSpotsAll) do
@@ -92,30 +92,30 @@ function DefendPenalty:_run(priorityMessages, notifications)
 				end
 			end
 			if noOneNear then
-				targetPos = prefX
+				self.targetPos = prefX
 			end
 		end
 	end
-	if not targetPos then -- fallback: search free point on penaltyLine, which is closest to the middle
+	if not self.targetPos then -- fallback: search free point on penaltyLine, which is closest to the middle
 		local occupiedSectors = table.map(occupiedSpotsAll, function(x) return {x-rr,x+rr} end)
 		Interval.sort(occupiedSectors)
 		Interval.merge(occupiedSectors)
 		local widthLimit = World.Geometry.FieldWidthHalf - 2 * self._robot.radius
 		local freeSectors = Interval.negate(occupiedSectors, -widthLimit, widthLimit)
-		targetPos = Interval.getClosestPoint(freeSectors, 0, rr)
+		self.targetPos = Interval.getClosestPoint(freeSectors, 0, rr)
 	end
 
-	if not targetPos then --should only occur when all the whole penalty line is full with robots (i.e never)
-		targetPos = Vector.create(0, 0)
+	if not self.targetPos then --should only occur when all the whole penalty line is full with robots (i.e never)
+		self.targetPos = Vector.create(0, 0)
 	else
-		targetPos = Vector.create(targetPos, penaltyLine)
+		self.targetPos = Vector.create(self.targetPos, penaltyLine)
 	end
 	
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
-	self._robot.trajectory:update(ToTarget, targetPos, (World.Ball.pos - self._robot.pos):angle())
+	self._robot.trajectory:update(ToTarget, self.targetPos, (World.Ball.pos - self._robot.pos):angle())
 	
-	return { defPenaltyPos = targetPos.x }
+	return { targetPos = self.targetPos }
 end
 
 
