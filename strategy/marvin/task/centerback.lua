@@ -174,9 +174,15 @@ local function calculatePosition(robot)
 	return destinationPos, dir
 end
 
-function CenterBack:_run()
+function CenterBack:_run(priorityMessages, notifications)
 	local destinationPos, dir = calculatePosition(self._robot)
 
+	for robot, msg in pairs(priorityMessages) do
+		local akpos = msg.task.aggressiveKeeperPos
+		if akpos then
+			self._robot.path:addCircle(akpos.x, akpos.y, 0.27319, "aggressive keeper distance") --MAGIC CONSTANT
+		end
+	end
 	--move robot
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)

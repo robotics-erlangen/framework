@@ -118,6 +118,7 @@ Task._optional = {
 	passTarget = Robot, -- robot to pass to
 	targetPos = "userdata",
 	targetDir = "number",
+	aggressiveKeeperPos = "userdata",
 }
 
 local Container = (require "../base/class").new("Message.Container", GenericMessage)

@@ -8,7 +8,7 @@ local Robot = require "observer/robot"
 local Rating = require "util/rating"
 
 
-ChipAway.priority = 4
+ChipAway.priority = 6
 
 function ChipAway:_init()
 end
