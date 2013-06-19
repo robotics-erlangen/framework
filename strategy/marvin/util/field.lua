@@ -72,6 +72,9 @@ end
 
 function Field.isInFriendlyDefenseArea(pos, radius)
 	local G = World.Geometry
+	if pos.y < -G.FieldHeightHalf then
+		return false
+	end
 	local p1 = Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf) -- lower bound of defense stretch
 	local p2 = Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf) -- upper bound of defense stretch
 
