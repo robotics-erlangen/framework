@@ -71,7 +71,7 @@ local function intersectLineWithDefenseArea(onpoint, angle, extraRadius, opp)
 	return minIntersection
 end
 
-local function calculatePosition(robot)
+local function calculatePosition(robot, keeperPos)
 	--extra distance to defense area
 	--robot should stay away 1cm from the defense area obstacle specified in base/path
 	local extraDistance = Settings.positionPadding + 0.01
@@ -82,6 +82,10 @@ local function calculatePosition(robot)
 		if r ~= robot and r.pos.y < World.Ball.pos.y then
 			table.insert(robots, r)
 		end
+	end
+	if keeperPos then
+		local obstacle = {pos = keeperPos, radius = 0.3}
+		table.insert(robots, obstacle)
 	end
 	local freeSectors = Goal.freeSectors(World.Ball.pos, robots, false)
 
@@ -175,14 +179,16 @@ local function calculatePosition(robot)
 end
 
 function CenterBack:_run(priorityMessages, notifications)
-	local destinationPos, dir = calculatePosition(self._robot)
-
+	local akpos
 	for robot, msg in pairs(priorityMessages) do
-		local akpos = msg.task.aggressiveKeeperPos
+		akpos = msg.task.aggressiveKeeperPos
 		if akpos then
-			self._robot.path:addCircle(akpos.x, akpos.y, 0.27319, "aggressive keeper distance") --MAGIC CONSTANT
+			self._robot.path:addCircle(akpos.x, akpos.y, 0.3)
+			break
 		end
 	end
+	
+	local destinationPos, dir = calculatePosition(self._robot, akpos)
 	--move robot
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
