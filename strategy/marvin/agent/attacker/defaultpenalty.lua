@@ -20,13 +20,21 @@ function DefaultPenalty:_run()
 			self.lookDir = "Left"
 		end
 	end
-	if World.RefereeState == "PenaltyOffensivePrepare" and not self._task then
-		self._task = MoveToStaticBall.create(self._robot, World.Geometry["OpponentGoal"..self.lookDir])
-	elseif World.RefereeState == "PenaltyOffensivePrepare" and self._robot:hasBall(World.Ball) then
-		self._task = Halt.create(self._robot)
-	elseif World.RefereeState == "PenaltyOffensive" and 
-		(self._task and Class.name(self._task, true) ~= "ShootPenalty") then
-		self._task = ShootPenalty.create(self._robot, self.lookDir)
+
+	if World.RefereeState == "PenaltyOffensivePrepare" then
+		if self._robot:hasBall(World.Ball) then
+			if not self._task or Class.name(self._task, true) ~= "Halt" then
+				self._task = Halt.create(self._robot)
+			end
+		else
+			if not self._task or Class.name(self._task, true) ~= "MoveToStaticBall" then
+				self._task = MoveToStaticBall.create(self._robot, World.Geometry["OpponentGoal"..self.lookDir])
+			end
+		end
+	elseif World.RefereeState == "PenaltyOffensive" then
+		if not self._task or Class.name(self._task, true) ~= "ShootPenalty" then
+			self._task = ShootPenalty.create(self._robot, self.lookDir)
+		end
 	end
 end
 
