@@ -9,6 +9,7 @@ local geom = require "../base/geom"
 local debug = require "../base/debug"
 local Learning = require "util/learning"
 local ObserverRobot = require "observer/robot"
+local vis = require "../base/vis"
 
 
 ---
@@ -40,19 +41,16 @@ function Ball.toBall(robot, ball)
 	
 	local minTime = ObserverRobot.minTimeToBall(robot, ball)
 	local minPos = Ball.ballAt(ball, minTime)
-	local maxTime = ball.brakeTime + 1
+	local maxTime = ball.brakeTime > minTime and ball.brakeTime or minTime
 	local maxPos = Ball.ballAt(ball, maxTime)
 	local bsl = ball.speed:length()
 	local midPos, midTime
+	vis.addCircle("to ball", minPos, 0.03, vis.colors.green, true)
+	vis.addCircle("to ball", maxPos, 0.03, vis.colors.red, true)
 	repeat
 		midPos = (minPos + maxPos)/2
 		midTime = Ball.ballRollTime(bsl, midPos:distanceTo(ball.pos))
 		local robotTime = ObserverRobot.timeToPos(robot, midPos)
-		if robotTime < minTime then
-			minTime = robotTime
-		elseif robotTime > maxTime then
-			maxTime = robotTime
-		end
 		if robotTime < midTime then
 			maxPos = midPos
 		else

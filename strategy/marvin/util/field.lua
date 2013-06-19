@@ -72,7 +72,7 @@ end
 
 function Field.isInFriendlyDefenseArea(pos, radius)
 	local G = World.Geometry
-	if pos.y < -G.FieldHeightHalf then
+	if pos.y + radius < -G.FieldHeightHalf then
 		return false
 	end
 	local p1 = Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf) -- lower bound of defense stretch
@@ -100,6 +100,11 @@ function Field.isInOpponentDefenseArea(pos, radius)
 end
 
 function Field.distanceToFriendlyDefenseArea(pos, radius)
+	if pos.y + radius < -G.FieldHeightHalf then
+		local distx = math.max(math.abs(x) - radius - G.DefenseRadius - G.DefenseStretch/2, 0)
+		local disty = -pos.y - radius - G.FieldHeightHalf
+		return math.sqrt(distx^2, disty^2)
+	end
 	if Field.isInFriendlyDefenseArea(pos, radius) then
 		return 0
 	end
@@ -120,5 +125,12 @@ function Field.distanceToFriendlyDefenseArea(pos, radius)
 	return distance
 end
 
+function Field.distanceToFriendlyGoalLine(pos, radius)
+	if math.abs(pos.x) < G.GoalWidth/2 then
+		return math.max(G.FieldHeightHalf + pos.y - radius, 0)
+	end
+	local goalpost = Vector.create(pos.x > 0 and G.GoalWidth/2 or - G.GoalWidth/2, -G.FieldHeightHalf)
+	return goalpost:distanceTo(pos) - radius
+end
 
 return Field

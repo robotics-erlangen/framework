@@ -37,9 +37,14 @@ function HandleBall:_run()
 		end
 	end
 	
+	--check if there is a danger of a own goal
+	local ballDist = Field.distanceToFriendlyGoalLine(World.Ball.pos, 0)
+	local robotDist = Field.distanceToFriendlyGoalLine(self._robot.pos, 0)
+	local owngoal = ballDist < robotDist
+	
 	--decide whether to chip away or move aggressively to the ball
 	if not self._task then
-		if danger then
+		if danger and not owngoal then
 			self._task = AggressiveKeeper.create(self._robot)
 		else
 			self._task = ChipAway.create(self._robot)
