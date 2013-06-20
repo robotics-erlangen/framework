@@ -39,7 +39,7 @@ function ManMark:_rate(priorityMessages, notifications)
 	
 	local remainingOpponents = {}
 	for _, robot in pairs(World.OpponentRobots) do
-		if not defendedOpponents[robot] then
+		if not defendedOpponents[robot] and World.OpponentKeeper ~= robot then
 			table.insert(remainingOpponents, robot)
 		end
 	end
