@@ -41,36 +41,7 @@ function StopAttack:_rate()
 	local target = World.Ball.pos + Vector.fromAngle(targetAngle) * minDist
 
 	
-	limitYPos(target, minDist)
-	local changedX = false
-	if target.x > World.Geometry.FieldWidthHalf then 
-		target.x = World.Geometry.FieldWidthHalf
-		changedX = true
-	end 
-	
-	if target.x < -World.Geometry.FieldWidthHalf then 
-		target.x = -World.Geometry.FieldWidthHalf
-		changedX = true
-	end 
-	if changedX then 
-		if target.y - World.Ball.pos.y > 0 then 
-			target.y = World.Ball.pos.y + minDist
-		else 
-			target.y = World.Ball.pos.y - minDist
-		end 
-	end 
-	limitYPos(target, minDist)
-	 
-
-
-	self._pos = target
-	self._dir = (World.Ball.pos - self._pos):angle()
-
-	return Rating.posToRating(self._robot, self._pos)
-end
-
-
-function limitYPos(target, minDist)
+	-- stop attacker moving out to the left / right 
 	local changedY = false
 	if target.y > World.Geometry.FieldHeightHalf then 
 		target.y = World.Geometry.FieldHeightHalf
@@ -88,11 +59,51 @@ function limitYPos(target, minDist)
 			target.x = target.x - minDist
 		end 
 	end 
-end 
 
 
+	-- stop attacker moving out to the left / right 
+	local changedX = false
+	if target.x > World.Geometry.FieldWidthHalf then 
+		target.x = World.Geometry.FieldWidthHalf
+		changedX = true
+	end 
+	
+	if target.x < -World.Geometry.FieldWidthHalf then 
+		target.x = -World.Geometry.FieldWidthHalf
+		changedX = true
+	end 
+	if changedX then 
+		if target.y - World.Ball.pos.y > 0 then 
+			target.y = World.Ball.pos.y + minDist
+		else 
+			target.y = World.Ball.pos.y - minDist
+		end 
+	end 
 
+	-- check if ball is in corner (if true, move towards goal) 
+	if target.y > World.Geometry.FieldHeightHalf then 
+		target.y = World.Geometry.FieldHeightHalf
+		if target.x > 0 then 
+			target.x = World.Ball.pos.x - minDist
+		else
+			target.x = World.Ball.pos.x + minDist
+		end 
+	end 
+	if target.y < -World.Geometry.FieldHeightHalf then 
+		target.y = -World.Geometry.FieldHeightHalf
+		if target.x > 0 then 
+			target.x = World.Ball.pos.x - minDist
+		else
+			target.x = World.Ball.pos.x + minDist
+		end 
+	end 
+	 
 
+	self._pos = target
+	self._dir = (World.Ball.pos - self._pos):angle()
+
+	return Rating.posToRating(self._robot, self._pos)
+end
 
 function StopAttack:_run()
 	self._robot.path:setDefaultObstacles(self._robot)
