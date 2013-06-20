@@ -170,4 +170,20 @@ function table.removeValue(t, value)
 	end
 end
 
+--- Shuffles a table
+-- @name shuffle
+-- @param t table - Array to shuffle
+-- @return table - table with elements in random order
+function table.shuffle(t)
+	local n, order, res = #t, {}, {}
+	for i=1,n do 
+		order[i] = { rnd = math.random(), idx = i } 
+	end
+	table.sort(order, function(a,b) return a.rnd < b.rnd end)
+	for i=1,n do 
+		res[i] = t[order[i].idx]
+	end
+	return res
+end
+
 return table

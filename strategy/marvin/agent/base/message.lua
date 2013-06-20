@@ -104,7 +104,8 @@ AgentSpecialTask._valueType = "number"
 
 local Agent = (require "../base/class").new("Message.Agent", GenericMessage)
 Agent._optional = {
-	specialTask = AgentSpecialTask
+	specialTask = AgentSpecialTask,
+	targetPos = "userdata"
 }
 
 local Task = (require "../base/class").new("Message.Task", GenericMessage)

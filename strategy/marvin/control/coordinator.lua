@@ -159,6 +159,8 @@ function Coordinator:observeGameState()
 	local attackRatio = 0.5
 	if World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive" then
 		attackRatio = 0.3
+	elseif World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
+		attackRatio = 0.7
 	end
 	return attackRatio
 end

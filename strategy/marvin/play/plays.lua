@@ -1,6 +1,5 @@
 --- Loads every play and publishes test functions
 local Plays = {
-	KickoffOffensive = require "play/kickoffoffensive",
 	KickoffDefensive = require "play/kickoffdefensive",
 }
 local Base = require "play/base"
