@@ -101,7 +101,7 @@ end
 
 function Field.distanceToFriendlyDefenseArea(pos, radius)
 	if pos.y + radius < -G.FieldHeightHalf then
-		local distx = math.max(math.abs(x) - radius - G.DefenseRadius - G.DefenseStretch/2, 0)
+		local distx = math.max(math.abs(pos.x) - radius - G.DefenseRadius - G.DefenseStretch/2, 0)
 		local disty = -pos.y - radius - G.FieldHeightHalf
 		return math.sqrt(distx^2, disty^2)
 	end
@@ -112,10 +112,10 @@ function Field.distanceToFriendlyDefenseArea(pos, radius)
 	if math.abs(pos.x) < G.DefenseStretch/2 then
 		distance = pos.y - (-G.FieldHeightHalf + G.DefenseRadius) - radius
 	elseif pos.x > 0 then
-		local p1 = Vector.create(G.DefenseStretch/2, G.FieldHeightHalf)
+		local p1 = Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf)
 		distance = p1:distanceTo(pos) - G.DefenseRadius - radius
 	else
-		local p2 = Vector.create(-G.DefenseStretch/2, G.FieldHeightHalf)
+		local p2 = Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf)
 		distance = p2:distanceTo(pos) - G.DefenseRadius - radius
 	end
 	if distance < 0 then
