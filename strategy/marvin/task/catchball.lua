@@ -57,7 +57,8 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed)
 	
 	-- predict ball and catch it
 	local predictedBall = Ball.atTime(self._catchTime, ball)
-	local moveDest = predictedBall.pos + (predictedBall.pos - targetPos):setLength(self._robot.radius + ball.radius)
+	local moveDest = predictedBall.pos + (predictedBall.pos - targetPos):setLength(
+			self._robot.shootRadius + Settings.catchBallDistance + ball.radius)
 	local viewLine = (targetPos - predictedBall.pos):normalize()
 	local viewDir = viewLine:angle()
 	

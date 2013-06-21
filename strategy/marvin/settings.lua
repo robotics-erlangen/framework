@@ -18,6 +18,7 @@ settings.markingDistance = 0.05 -- close enough
 settings.distanceHysteresis = 0.03 -- use it as a hysteresis value for all minimum/maximum distance search loops
 settings.defenseRiskLevel = 1.5 -- if a defender is catching the ball this is the time he shall have in advance before an oppnonent reaches the ball
 settings.penaltyLineDistance = 0.35 -- prevent robots from crossing the penalty line
+settings.catchBallDistance = 0.015 -- distance to ball kept by catchBall task
 
 Settings = table.readonlytable(settings)
 
