@@ -97,7 +97,7 @@ end
 -- @return [number]]
 function math.solveSq(a, b, c)
 	if a == 0 then
-		return solveLin(b, c)
+		return math.solveLin(b, c)
 	end
 	
 	local det = b*b - 4*a*c
@@ -107,9 +107,10 @@ function math.solveSq(a, b, c)
 		return -b/(2*a)
 	end
 	det = math.sqrt(det)
-	local t1 = (-b+det)/(2*a)
-	local t2 = (-b-det)/(2*a)
+	local t2 = (-b-math.sign(b)*det)/(2*a)
+	local t1 = c/(a*t2)
 	local min = math.min(t1, t2)
+
 	-- if both are >= 0 return smallest
 	-- if only one is >= 0 the it's the larger value of both
 	-- and the smallest positive solution
