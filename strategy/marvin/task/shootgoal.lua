@@ -51,7 +51,7 @@ function ShootGoal:_successProbability(t)
 	end
 end
 
-local crit = math.pi/20
+local crit = math.pi/20 -- 9 degrees
 function ShootGoal:_rate()
 	if self._lastPos then
 		self._distanceWithBall = self._distanceWithBall + (self._lastPos - self._robot.pos):length()
@@ -73,6 +73,7 @@ function ShootGoal:_rate()
 			local goalEnd = (World.Geometry.OpponentGoalLeft - ball.pos):angle() -- direction of the other goalpost
 			local freeSectors = Observer.Goal.getFreeSectors(ball.pos, robots, goalStart, goalEnd)
 			self._bestRating = 0
+			self._bestMid = (goalStart + goalEnd)/2
 			for k, fs in ipairs(freeSectors) do -- TODO: implement reasonable function that calculates the time needed for the robot to turn with the ball
 				local weight = 0.5	-- for weighted average
 				if fs[1] == goalStart then
@@ -100,18 +101,24 @@ function ShootGoal:_rate()
 					end
 				end
 			end
-			if self._bestRating > 1.5 then
+			local bestRatingHysteresis = self._bestRating
+			if self._mode == ShootGoal.Mode.SearchBetterPosition then
+				bestRatingHysteresis = bestRatingHysteresis
+			end
+--			if bestRatingHysteresis > 1.5 then --XXX
 				self._pointOnGoalLine = geom.intersectLineLine(ball.pos, Vector.fromAngle(self._bestMid), World.Geometry.OpponentGoal, Vector.fromAngle(0))
 				self._mode = ShootGoal.Mode.TurnAndShoot		-- turn and shoot
-			else
+--[[			else
 				self._mode = ShootGoal.Mode.SearchBetterPosition	-- from the current position, it is hardly possible to score -> look for better position and move there
 				self._hysteresis = 0
 			end
-			return self._bestRating
+			log(self._bestRating)
+]]			return self._bestRating
 		else
 			self._mode = ShootGoal.Mode.GetTheBall				-- we had the ball, but it must have rolled away
 			self._hysteresis = 0
 			self._distanceWithBall = 0
+--			log(0)
 			return  0
 		end
 	else
