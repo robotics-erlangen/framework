@@ -29,7 +29,7 @@ function PassInTheRun:_successProbability(t)
 end
 
 function PassInTheRun:_run(priorityMessages, notifications)
-	local passSpeed = self._targetRobot.constants.passSpeed
+	local passSpeed = self._robot.constants.passSpeed
 	self:_shoot(self._shootPos, passSpeed, true, Settings.shootProbabilityThreshold, true)
 	
 	return { passTarget = self._targetRobot, shootPos = self._shootPos }

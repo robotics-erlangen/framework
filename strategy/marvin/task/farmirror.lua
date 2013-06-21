@@ -50,6 +50,9 @@ function FarMirror:_run()
 	-- assign pos to robot 
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
+	if self._targetPos:isNan() then
+		self._targetPos = Vector.create(0,-1.5)
+	end
 	self._robot.trajectory:update(ToTarget, self._targetPos, math.pi/2)
 end 
 
