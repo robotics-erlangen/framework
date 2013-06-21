@@ -12,7 +12,7 @@ function Shoot:_successProbability()
 end
 
 -- if probability is higher than that threshold, the task will shoot immediatelly
-function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold, dontMoveWithBall)
+function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 	self._lastSuccessProbability = self._lastSuccessProbability or 0
 	self._shootHysteresis = self._shootHysteresis or 0
 	
@@ -57,12 +57,10 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold,
 			speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(-distToBall.y * 20) -- correct pos error in 100ms
 		end
 
-		-- speed towards ball
-		local driveSpeed = (distToBall.x < 0.005 and dontMoveWithBall) and 0.05 or Settings.shootDriveSpeed
-		speed = speed + Vector.fromAngle(targetDir):setLength(driveSpeed)
-		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir)
-
 		if self._shootHysteresis > 0 then
+			-- speed towards ball
+			speed = speed + Vector.fromAngle(targetDir):setLength(Settings.shootDriveSpeed)
+
 			local dist = (targetPos-self._robot.pos):length()
 			if linearShoot then
 				self._robot:shoot(targetSpeed, dist)
@@ -70,7 +68,16 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold,
 			else
 				self._robot:chip(dist)
 			end
+		else
+			-- keep away from ball
+			if distToBall.x < Settings.catchBallDistance then
+				local distError = Settings.catchBallDistance - distToBall.x
+				speed = speed - Vector.fromAngle(targetDir):setLength(distError * 20)
+			end
 		end
+
+		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir)
+
 	else -- catch the ball
 		self._lastBallSpeed = nil
 		self._shootHysteresis = 0
