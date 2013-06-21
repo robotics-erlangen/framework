@@ -7,7 +7,7 @@ local TestConfig = {
 		{ Hidden = 0 },
 	},
 	behaviours = {
-		'AttackerDefaultFreeKick', -- one robot with specific behaviour (never changes!)
+		'AttackerFreeKick', -- one robot with specific behaviour (never changes!)
 
 	}
 }

@@ -1,5 +1,5 @@
 local Base = require "agent/base/behaviour"
-local DefaultShoot = (require "../base/class").new("Agent.Attacker.DefaultShoot", Base)
+local Shoot = (require "../base/class").new("Agent.Attacker.Shoot", Base)
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
 local World = require "../base/world"
@@ -7,13 +7,13 @@ local World = require "../base/world"
 local DirectPass = require "task/directpass"
 local ShootGoal = require "task/shootgoal"
 
-function DefaultShoot:_init()
+function Shoot:_init()
 	-- these values are only used during cool down
 	self._pass = false
 	self._shootTime = 0
 end
 
-function DefaultShoot:_check()
+function Shoot:_check()
 	if self._state == Base.State.Active and Ball.isShot() then -- I've shot the ball
 		self._shootTime = World.Time
 		return Base.State.CoolDown
@@ -32,7 +32,7 @@ function DefaultShoot:_check()
 	return Base.State.Active
 end
 
-function DefaultShoot:_run()
+function Shoot:_run()
 	if not self._task then
 		local function canPassTo(r)
 			return self._messages[r] and self._messages[r].task.assistantRating 
@@ -58,4 +58,4 @@ function DefaultShoot:_run()
 	end
 end
 
-return DefaultShoot
+return Shoot

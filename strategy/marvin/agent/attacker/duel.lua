@@ -1,10 +1,10 @@
 local Base = require "agent/base/behaviour"
-local DefaultDuel = (require "../base/class").new("Agent.Attacker.DefaultDuel", Base)
+local Duel = (require "../base/class").new("Agent.Attacker.Duel", Base)
 local Ball = require "observer/ball"
 
 local Duel = require "task/duel"
 
-function DefaultDuel:_check()
+function Duel:_check()
 	if Ball.opponentBallOwner() then
 		return Base.State.Active
 	elseif self._state == Base.State.Active and Ball.friendlyBallOwner() == self._robot then
@@ -14,10 +14,10 @@ function DefaultDuel:_check()
 	end
 end
 
-function DefaultDuel:_run()
+function Duel:_run()
 	if not self._task then
 		self._task = Duel.create(self._robot)
 	end
 end
 
-return DefaultDuel
+return Duel

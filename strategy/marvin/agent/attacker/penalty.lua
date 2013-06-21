@@ -1,5 +1,5 @@
 local Base = require "agent/base/behaviour"
-local DefaultPenalty = (require "../base/class").new("Agent.Attacker.DefaultPenalty", Base)
+local Penalty = (require "../base/class").new("Agent.Attacker.Penalty", Base)
 
 local World = require "../base/world"
 local Class = require "../base/class"
@@ -8,12 +8,12 @@ local ShootPenalty = require "task/shootpenalty"
 local Halt = require "task/halt"
 local MoveToStaticBall = require "task/movetostaticball"
 
-function DefaultPenalty:_check()
+function Penalty:_check()
 	local isPenalty = World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive"
 	return isPenalty and Base.State.Active or Base.State.Inactive
 end
 
-function DefaultPenalty:_run()
+function Penalty:_run()
 	if not self.lookDir then
 		self.lookDir = "Right"
 		if math.random() < 0.5 then
@@ -38,9 +38,9 @@ function DefaultPenalty:_run()
 	end
 end
 
-function DefaultPenalty:_abort()
+function Penalty:_abort()
 	self.lookDir = nil
 	self._state = Base.State.Inactive
 end
 
-return DefaultPenalty
+return Penalty

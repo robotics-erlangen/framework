@@ -1,5 +1,5 @@
 local Base = require "agent/base/behaviour"
-local DefaultFreeKick = (require "../base/class").new("Agent.Attacker.DefaultFreeKick", Base)
+local FreeKick = (require "../base/class").new("Agent.Attacker.FreeKick", Base)
 
 local World = require "../base/world"
 local Robot = require "observer/robot"
@@ -10,7 +10,7 @@ local DirectPass = require "task/directpass"
 local ShootGoal = require "task/shootgoal"
 local MoveToStaticBall = require "task/movetostaticball"
  
-function DefaultFreeKick:_check()
+function FreeKick:_check()
 	local isFreeKick = World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive"
 	if self._state ~= Base.State.Active then
 		self.startTime = World.Time
@@ -18,7 +18,7 @@ function DefaultFreeKick:_check()
 	return isFreeKick and Base.State.Active or Base.State.Inactive
 end
 
-function DefaultFreeKick:_run()
+function FreeKick:_run()
 	if (not self._task or (World.Time - self.startTime < 5)) and not self._robot:hasBall(World.Ball) then
 		self._task = MoveToStaticBall.create(self._robot, World.Geometry.OpponentGoal)
 	elseif not self._task or Class.name(self._task, true) == "MoveToStaticBall" then
@@ -35,7 +35,7 @@ function DefaultFreeKick:_run()
 	end
 end
 
-function DefaultFreeKick:passOrChipTask()
+function FreeKick:passOrChipTask()
 	local function canPassTo(r)
 		return self._messages[r] and self._messages[r].task.assistantRating 
 			and Robot.wayToRobotFree(r, self._robot)
@@ -53,4 +53,4 @@ function DefaultFreeKick:passOrChipTask()
 	end
 end
 
-return DefaultFreeKick
+return FreeKick

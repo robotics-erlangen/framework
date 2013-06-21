@@ -6,11 +6,11 @@ local ReceivePass = require "agent/attacker/receivepass"
 local KickoffAssistant = require "agent/attacker/kickoffassistant"
 local AttackGroup = require "agent/attacker/attackgroup"
 local Kickoff = require "agent/attacker/kickoff"
-local DefaultStop = require "agent/attacker/defaultstop"
-local DefaultDuel = require "agent/attacker/defaultduel"
-local DefaultShoot = require "agent/attacker/defaultshoot"
-local DefaultPenalty = require "agent/attacker/defaultpenalty"
-local DefaultFreeKick = require "agent/attacker/defaultfreekick"
+local Stop = require "agent/attacker/stop"
+local Duel = require "agent/attacker/duel"
+local Shoot = require "agent/attacker/shoot"
+local Penalty = require "agent/attacker/penalty"
+local FreeKick = require "agent/attacker/freekick"
 local Default = require "agent/attacker/default"
 
 function Attacker.takeRobot(robots)
@@ -29,12 +29,12 @@ function Attacker:_initBehaviour()
 	self._behaviours = Group.create(self._robot, {
 		ReceivePass.create(self._robot),
 		AttackGroup.create(self._robot, {
-			DefaultStop.create(self._robot),
+			Stop.create(self._robot),
 			Kickoff.create(self._robot),
-			DefaultPenalty.create(self._robot),
-			DefaultFreeKick.create(self._robot),
-			DefaultDuel.create(self._robot),
-			DefaultShoot.create(self._robot)
+			Penalty.create(self._robot),
+			FreeKick.create(self._robot),
+			Duel.create(self._robot),
+			Shoot.create(self._robot)
 		}),
 		KickoffAssistant.create(self._robot),
 		Default.create(self._robot)
