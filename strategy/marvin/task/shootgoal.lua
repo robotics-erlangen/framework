@@ -1,201 +1,141 @@
-local ShootGoal = (require "../base/class").new("Task.ShootGoal", require "task/shoot")	-- inherits from Shoot task
+local ShootGoal = (require "../base/class").new("Task.ShootGoal", require "task/shoot")
+
+local Robot = require "observer/robot"
+local Goal = require "observer/goal"
+local Shoot = require "observer/shoot"
 
 local World = require "../base/world"
-local Observer = {}
-Observer.Ball = require "observer/ball"
-Observer.Goal = require "observer/goal"
-Observer.Shoot = require "observer/shoot"
+local G = World.Geometry
+local ball = World.Ball
 local geom = require "../base/geom"
-local ToTarget = require "trajectory/totarget"
-local debug = require "../base/debug"
 local vis = require "../base/vis"
+
 
 ShootGoal.priority = 5
 
--- local constants
-local maxEndSpeed = 0.2	-- max end speed for catchBall
-local shootThresholdProb = 0.8	-- required probability to shoot
+-- how much to move the shoot pos towards the corner
+-- (0 = mid of sector, 1 = straight towards the corner) 
+local cornerWeight = 0.6
 
-ShootGoal.Mode = {
-	GetTheBall = 0,
-	SearchBetterPosition = 1,
-	TurnAndShoot = 2
-}
+-- how much a new best sector should be better than the old one
+local sectorRatingHysteresis = 1
 
-function ShootGoal:_init(dontMoveWithBall)
-	self._mode = 0
-	self._bestRating = 0
-	self._pointOnGoalLine = nil
-	self._linearShoot = true
-	self._hysteresis = 0
-	self._distanceWithBall = 0	-- assuming robot didn't have the ball before this task
-	self._dontMoveWithBall = dontMoveWithBall
+
+local function robotList(selfRobot, viewPos)
+	local robots = {}
+	for _,r in pairs(World.Robots) do
+		if r.pos.y > viewPos.y and r ~= selfRobot then
+			table.insert(robots, r)
+		end
+	end
+	return robots
 end
 
-function ShootGoal:_successProbability(t)
-	if self._linearShoot then
-		-- TODO: use positions predicted for now+t
-		local goalStart = (World.Geometry.OpponentGoalRight - self._robot.pos):angle()
-		local goalEnd = (World.Geometry.OpponentGoalLeft - self._robot.pos):angle()
-		if self._robot.dir < goalEnd and self._robot.dir > goalStart then
-			local ballPos = World.Ball.pos
-			local pointOnGoalLine = geom.intersectLineLine(self._robot.pos, Vector.fromAngle(self._robot.dir), World.Geometry.OpponentGoal, Vector.create(1, 0))
-			local dist = (ballPos - pointOnGoalLine):length()
-			local startSpeed = math.min(self._robot.maxShotLinear, self._robot.calculateShootSpeed(math.huge, dist))
-			return Observer.Shoot.evaluateShootCorridor(pointOnGoalLine, startSpeed, ballPos, t, World.OpponentRobots)
-		else
-			return 0
-		end
-	else
-		-- TODO: implement chipkick
+
+-- updates at most once per frame:
+-- self.freeSectors (number, number)[] - list of angle pairs
+function ShootGoal:updateFreeSectors()
+	if self.timestamp ~= World.Time then
+		local goalStart = (World.Geometry.OpponentGoalRight - ball.pos):angle() -- direction of the first goalpost
+		local goalEnd = (World.Geometry.OpponentGoalLeft - ball.pos):angle() -- direction of the other goalpost
+		local viewPos = ball.pos --FIXME take future ball pos instead
+		self.freeSectors = Goal.getFreeSectors(viewPos, robotList(self._robot, viewPos), goalStart, goalEnd)
+		self.timestamp = World.Time
 	end
 end
 
-local crit = math.pi/20 -- 9 degrees
+-- updates at most once per frame:
+-- self.bestIndex number - which index in self.freeSectors is the best one, if any
+-- self.bestMid number - the angle towards the best point in the goal (from ball pos)
+-- self.targetPoint - the best point in the goal
+function ShootGoal:updateDestination()
+	if self.timestamp2 == World.Time then
+		return
+	end
+	
+	local goalStart = (World.Geometry.OpponentGoalRight - ball.pos):angle() -- direction of the first goalpost
+	local goalEnd = (World.Geometry.OpponentGoalLeft - ball.pos):angle() -- direction of the other goalpost
+		
+	local oldBestRating = 0
+	local oldBestMid = nil
+	
+	local bestRating = 0
+	local bestIndex = 0
+	local bestMid = nil
+	
+	for index,sector in pairs(self.freeSectors) do
+		
+		-- calculate shoot angle (mid of sector, near corner if possible)
+		local weight = 0.5
+		if sector[1] == goalStart then
+			weight = weight + cornerWeight/2
+		end
+		if sector[2] == goalEnd then
+			weight = weight - cornerWeight/2
+		end
+		local sectorMid = weight*sector[1] + (1 - weight)*sector[2]
+	
+		-- calculate rating
+		local rotateAngle = math.abs(geom.getAngleDiff(self._robot.dir, sectorMid))
+		local sectorWidth = sector[2] - sector[1]
+		local rating = (math.pi^2 - rotateAngle^2) * sectorWidth
+		
+		-- reevaluate the old sector
+		-- (assuming the angles are between 0 and pi)
+		if oldBestMid and oldBestMid > sector[1] and oldBestMid < sector[2] then
+			oldBestRating = rating
+			oldBestMid = sectorMid
+		end
+		
+		-- search best sector
+		if rating > bestRating then
+			bestRating = rating
+			bestIndex = index
+			bestMid = sectorMid
+		end	
+	end
+	
+	-- decide if changing to the new best sector is needed
+	if oldBestRating == 0 or bestRating > oldBestRating + sectorRatingHysteresis then
+		self.bestIndex = bestIndex
+		self.bestMid = bestMid
+	end
+	
+	
+	self.targetPoint = self.bestMid and geom.intersectLineLine(ball.pos, Vector.fromAngle(self.bestMid), 
+			G.OpponentGoal, Vector.create(1, 0)) or self.targetPoint or G.OpponentGoal
+	
+	self.timestamp2 = World.Time
+end
+
+function ShootGoal:_init(dontMove)
+	self._dontMove = dontMove
+	self._bestMid = G.OpponentGoal
+	self._bestIndex = 0
+end
+
 function ShootGoal:_rate()
-	if self._lastPos then
-		self._distanceWithBall = self._distanceWithBall + (self._lastPos - self._robot.pos):length()
-	end
-	self._lastPos = self._robot.pos
-	local ballOwner = Observer.Ball.friendlyBallOwner()
-	if ballOwner == self._robot then
-		if self._robot:hasBall(World.Ball) then
-			local ball = World.Ball
-			local robots = {}
-			for _,r in ipairs(World.Robots) do
-				if r.pos.y > ball.pos.y then
-					if r ~= self._robot then
-						table.insert(robots, r)
-					end
-				end
-			end
-			local goalStart = (World.Geometry.OpponentGoalRight - ball.pos):angle() -- direction of the first goalpost
-			local goalEnd = (World.Geometry.OpponentGoalLeft - ball.pos):angle() -- direction of the other goalpost
-			local freeSectors = Observer.Goal.getFreeSectors(ball.pos, robots, goalStart, goalEnd)
-			self._bestRating = 0
-			self._bestMid = (goalStart + goalEnd)/2
-			for k, fs in ipairs(freeSectors) do -- TODO: implement reasonable function that calculates the time needed for the robot to turn with the ball
-				local weight = 0.5	-- for weighted average
-				if fs[1] == goalStart then
-					weight = weight + 0.35
-				end
-				if fs[2] == goalEnd then
-					weight = weight - 0.35
-				end
-				local sectorMid = weight*fs[1] + (1 - weight)*fs[2]
-				local rating = (fs[2] - fs[1])*(10 - geom.getAngleDiff(self._robot.dir, sectorMid)^2) -- as said - only to guess the needed time
-				if rating > self._bestRating then
-					if self._bestMid and sectorMid - self._bestMid > crit then	-- other sector better
-						if rating > self._bestRating*(5 - self._hysteresis)*0.25 then
-							self._bestRating = rating
-							self._hysteresis = 0
-							self._bestMid = sectorMid
-						else
-							self._hysteresis = self._hysteresis + 1
-						end
-					else
-						self._bestRating = rating
-						--self._bestSector = fs
-						self._bestMid = sectorMid
-						self._hysteresis = math.max(self._hysteresis - 1, 0)
-					end
-				end
-			end
-			local bestRatingHysteresis = self._bestRating
-			if self._mode == ShootGoal.Mode.SearchBetterPosition then
-				bestRatingHysteresis = bestRatingHysteresis
-			end
---			if bestRatingHysteresis > 1.5 then --XXX
-				self._pointOnGoalLine = geom.intersectLineLine(ball.pos, Vector.fromAngle(self._bestMid), World.Geometry.OpponentGoal, Vector.fromAngle(0))
-				self._mode = ShootGoal.Mode.TurnAndShoot		-- turn and shoot
---[[			else
-				self._mode = ShootGoal.Mode.SearchBetterPosition	-- from the current position, it is hardly possible to score -> look for better position and move there
-				self._hysteresis = 0
-			end
-			log(self._bestRating)
-]]			return self._bestRating
-		else
-			self._mode = ShootGoal.Mode.GetTheBall				-- we had the ball, but it must have rolled away
-			self._hysteresis = 0
-			self._distanceWithBall = 0
---			log(0)
-			return  0
-		end
-	else
-		self._mode = ShootGoal.Mode.GetTheBall					-- someone else has the ball, so let's try to get it. dumb play which called this task...
-		self._hysteresis = 0
-		self._distanceWithBall = 0
-		return 0
-	end
+	return Robot.minTimeToBall(self._robot, World.Ball) 
 end
 
-function ShootGoal:_run(priorityMessages, notifications)
-	debug.set("Mode", self._mode)
-	debug.set("Distance with ball", self._distanceWithBall)
-	if self._distanceWithBall >= 0.5 then
-		self._dontMoveWithBall = true
-		--log("muss schiessen")
-	end
-	if self._dontMoveWithBall then
-		vis.addPath("ToGoal", {World.Ball.pos, self._pointOnGoalLine})
-		self:_shoot(self._pointOnGoalLine, math.huge, true, 0)	-- threshold is 0 for immediate shooting
-		self._robot:setDribblerSpeed(0)
-	elseif self._mode == ShootGoal.Mode.TurnAndShoot then
-		--[[?local left = World.Ball.pos + Vector.fromAngle(self._bestSector[1]) * 3
-		local right = World.Ball.pos + Vector.fromAngle(self._bestSector[2]) * 3
-		vis.addPolygon("Best Sector", {World.Ball.pos, left, right}, vis.orangeHalf, true)]]--
-		vis.addPath("To Goal", {World.Ball.pos, self._pointOnGoalLine})
-		self:_shoot(self._pointOnGoalLine, math.huge, true, shootThresholdProb)	-- from the shoot task
-		self._robot:setDribblerSpeed(0)
-	elseif self._mode == ShootGoal.Mode.SearchBetterPosition then
-		local distToGoal = (World.Ball.pos - World.Geometry.OpponentGoal):length()
-		local robotList = Observer.Goal.getRobotsNearGoal(distToGoal, World.OpponentRobots, true)
-		local rightPoint, rightSectors, leftPoint, leftSectors = Observer.Goal.searchFreeSectors(robotList, true)	--look for other positions
-		local best = {}
-		best.rating = 0
-		if #rightSectors >= 1 then
-			for _, s in ipairs(rightSectors) do
-				local mid = 0.5*(s[1] + s[2])
-				local dir = Vector.fromAngle(mid)
-				local betterBallPos = geom.intersectLineLine(rightPoint, dir, World.Ball.pos, dir:rotate(-math.pi/4))
-				local betterRobotPos = betterBallPos + dir:setLength(self._robot.shootRadius)
-				local rating = (s[2] - s[1])/((self._robot.pos - betterRobotPos):length() + 0.1)
-				if rating > best.rating then
-					best.rating = rating
-					best.mid = mid
-					best.betterRobotPos = betterRobotPos
-				end
-			end
-		end
-		if #leftSectors >= 1 then
-			for _, s in ipairs(leftSectors) do
-				local mid = 0.5*(s[1] + s[2])
-				local dir = Vector.fromAngle(mid)
-				local betterBallPos = geom.intersectLineLine(leftPoint, dir, World.Ball.pos, dir:rotate(math.pi/4))
-				local betterRobotPos = betterBallPos + dir:setLength(self._robot.shootRadius)
-				local rating = (s[2] - s[1])/((self._robot.pos - betterRobotPos):length() + 0.1)
-				if rating > best.rating then
-					best.rating = rating
-					best.mid = mid
-					best.betterRobotPos = betterRobotPos
-				end
-			end
-		end
-		vis.addCircle("betterPos", best.betterRobotPos, 0.05)
-		self._robot:setDribblerSpeed(1)
-		self._robot.path:setDefaultObstacles(self._robot, true)
-		self._robot.path:addRobotObstacles(self._robot)
-		if best.mid then
-			self._robot.trajectory:update(ToTarget, best.betterRobotPos, best.mid + math.pi)
-		else
-			log("Kein freier Sector.")
-		end
-	elseif self._mode == ShootGoal.Mode.GetTheBall then
-		self:_catchBall(World.Geometry.OpponentGoal, maxEndSpeed)
-		--log("hier")
-	else
-		self._robot:setDribblerSpeed(1)
-	end
+function ShootGoal:canShoot()	
+	self:updateFreeSectors()
+	return #self.freeSectors > 0
+end
+
+function ShootGoal:_successProbability(time)
+	self:updateFreeSectors()
+	self:updateDestination()
+	return Shoot.evaluateShootCorridor(self.targetPoint, self._robot.maxShotLinear, ball.pos, time, World.OpponentRobots) 
+end
+
+function ShootGoal:_run()
+	self:updateFreeSectors()
+	self:updateDestination()
+	
+	-- shoot
+	self._robot:setDribblerSpeed(0)
+	self:_shoot(self.targetPoint, math.huge, true, 0, self.dontMove)
 end
 
 function ShootGoal.factory(position)
