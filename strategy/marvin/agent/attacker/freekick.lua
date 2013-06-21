@@ -26,7 +26,7 @@ function FreeKick:_run()
 			self:passOrChipTask()
 		elseif World.RefereeState == "DirectOffensive" then
 			local shootGoal = ShootGoal.create(self._robot, true)
-			if shootGoal:rate(self._priorityMessages, self._notifications) > 1.5 then -- 1.5 MAGIC CONSTANT, Andre fragen
+			if shootGoal:canShoot() then
 				self._task = shootGoal
 			else 
 				self:passOrChipTask()

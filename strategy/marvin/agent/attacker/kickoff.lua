@@ -77,8 +77,7 @@ function Kickoff:_run()
 		end
 	elseif World.RefereeState == "KickoffOffensive" then
 		local shootGoalTask = ShootGoal.create(self._robot)
-		-- 1.5 MAGIC CONSTANT, Andre fragen
-		if shootGoalTask:rate(self._priorityMessages, self._notifications) > 1.5 then 
+		if shootGoalTask:canShoot() then 
 			if not self._task or Class.name(self._task, true) ~= "ShootGoal" then
 				self._task = shootGoalTask
 			end

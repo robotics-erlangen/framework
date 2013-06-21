@@ -46,9 +46,8 @@ function Shoot:_run()
 		local bestRobot = freeAssistants[1]
 		
 		local shootGoalTask = ShootGoal.create(self._robot)
-		local goalChance = shootGoalTask:rate(self._priorityMessages, self._notifications)
 
-		self._pass = bestRobot and goalChance < 1.5 -- 1.5 MAGIC CONSTANT, Andre fragen
+		self._pass = bestRobot and not shootGoalTask:canShoot()
 
 		if self._pass then
 			self._task = DirectPass.create(self._robot, bestRobot, true)
