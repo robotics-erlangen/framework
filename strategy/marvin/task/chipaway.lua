@@ -11,6 +11,7 @@ local Rating = require "util/rating"
 ChipAway.priority = 6
 
 function ChipAway:_init()
+	self._chipTarget = nil
 end
 
 function ChipAway:_successProbability(t)
@@ -18,20 +19,21 @@ function ChipAway:_successProbability(t)
 end
 
 function ChipAway:_run(priorityMessages, notifications)
-	-- try to hit an assistant
-	local chipTarget = nil
-	local bestRating = -1
-	for robot, msg in pairs(notifications) do
-		if msg.task.assistantRating and msg.task.assistantRating > bestRating then
-			chipTarget = robot
-			bestRating = msg.task.assistantRating
+	-- try to hit an assistant	
+	if not self._chipTarget then
+		local bestRating = -1
+		for robot, msg in pairs(notifications) do
+			if msg.task.assistantRating and msg.task.assistantRating > bestRating then
+				self._chipTarget = robot
+				bestRating = msg.task.assistantRating
+			end
 		end
 	end
 	
-	local chipPos = chipTarget and chipTarget.pos or World.Geometry.OpponentGoal
+	local chipPos = self._chipTarget and self._chipTarget.pos or World.Geometry.OpponentGoal
 	self:_shoot(chipPos, math.huge, false, 0)
 
-	return {passTarget = chipTarget}
+	return {passTarget = self._chipTarget}
 end
 
 function ChipAway:_rate()
