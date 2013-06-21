@@ -7,7 +7,6 @@ local Shoot = require "observer/shoot"
 local Robot = require "observer/robot"
 local Rating = require "util/rating"
 
-
 DirectPass.priority = 4
 
 function DirectPass:_init(targetRobot, linearShoot)
@@ -16,28 +15,19 @@ function DirectPass:_init(targetRobot, linearShoot)
 end
 
 function DirectPass:_successProbability(t)
-	-- TODO code only works if the ball and robot are not moving 
-	local shootChance
-
-	local startPos = self._robot.pos
-
 	-- get estimated pos of impact = where the ball will go 
-	local estimatedPos = startPos + Vector.fromAngle(self._robot.dir) * (startPos:distanceTo(self._targetPos))
+	local estimatedPos = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.pos:distanceTo(self._targetPos))
 	-- get distance to where it is supposed to go
 	local distanceToTarget = estimatedPos:distanceTo(self._targetPos) 
 
 	local dribblerWidth = self._targetRobot.dribblerWidth
 	-- if robot is going to hit the dribbler, all good 
+	local shootChance
 	if (distanceToTarget < dribblerWidth / 2) then
 		shootChance = 1
-	elseif (distanceToTarget < dribblerWidth) then 
-		-- TODO test if the values actuall work and aren't too restrictive / leniate 
+	else
 		shootChance  = math.exp(dribblerWidth / 2 - distanceToTarget)
-	else 
-		-- no way of catching the ball (more than dribblerWidth / 2 of course) 
-		return 0 
 	end 
-
 
 	--TODO check if other position would be more efficient
 	-- returns the minimum of shootChance and the following 
