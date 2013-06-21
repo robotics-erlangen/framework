@@ -19,6 +19,7 @@ Duel.priority = 4
 -- ======================
 
 function Duel:_init()
+	self.isAtBall = false
 end
 
 function Duel:_successProbability()
@@ -35,6 +36,7 @@ function Duel:_reset()
 	self.assistantPos = nil
 	self.assistantDir = 0
 	self.chipPos = nil
+	self.isAtBall = true
 end
 
 function Duel.factory(position)
@@ -76,6 +78,7 @@ function Duel:_run(priorityMessages, notifications)
 		self:_passAway(notifications)
 		self:_evaluateStrategy(true)
 	elseif not self._robot:hasBall(World.Ball) then
+		self.isAtBall = false
 		-- if we don't have the ball yet
 		local viewPos = self:_calculateViewPos(World.Ball.pos)
 		if Settings.DEBUG then
@@ -107,6 +110,7 @@ function Duel:_contest()
 	if not self.strategy or self.strategy == 0 then
 		self.strategy = Learning.decide(successRates)
 	end
+	
 	if self.strategy == 1 then
 		if Settings.DEBUG then
 			Debug.set("Decision", "contest dribble")
@@ -151,6 +155,12 @@ end
 -- [B] (1) dribble and chip
 -- move backwards to gain some distance and chip over the opponent robot
 function Duel:_contestDribble()
+	if self.isAtBall and self._robot:distToBall(World.Ball) > self._robot.constants.hasBallDistance then
+		self.isAtBall = false
+	elseif self._robot:distToBall(World.Ball) < Constants.positionError then
+		self.isAtBall = true
+	end
+	
 	self._robot:setDribblerSpeed(1)
 	if not self.backwardsStartPoint then
 		self.backwardsStartPoint = self._robot.pos
@@ -168,10 +178,16 @@ function Duel:_contestDribble()
 			self:_evaluateStrategy(false)
 			return
 		end
+		
+		local toBallDir = (World.Ball.pos - self._robot.pos):setLength(Settings.dribbleDriveSpeed)
+		if not self.isAtBall then
+		-- if not at ball yet then move a few cm forwards
+			self._robot.trajectory:update(Direct, toBallDir, toBallDir:angle())
+		else
 		-- else move backwards
-		local toBallDir = World.Ball.pos - self._robot.pos
-		local backwards = toBallDir:copy():scaleLength(-Settings.dribbleDriveSpeed)
-		self._robot.trajectory:update(Direct, backwards, toBallDir:angle())
+			local backwards = toBallDir:copy():setLength(-Settings.dribbleDriveSpeed)
+			self._robot.trajectory:update(Direct, backwards, toBallDir:angle())
+		end
 		-- calculate message to assistant
 		-- TODO FIXME implement (observer) function that evaluates where to chip
 		self.assistantPos = self.chipPos + (self.chipPos - World.Ball.pos)
