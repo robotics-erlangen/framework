@@ -20,6 +20,9 @@ local cornerWeight = 0.6
 -- how much a new best sector should be better than the old one
 local sectorRatingHysteresis = 1
 
+-- we can try to shoot at the goal if the probability of a success is > minSuccessProbability
+local minSuccessProbability = 0.2
+
 
 local function robotList(selfRobot, viewPos)
 	local robots = {}
@@ -119,8 +122,7 @@ function ShootGoal:_rate()
 end
 
 function ShootGoal:canShoot()	
-	self:updateFreeSectors()
-	return #self.freeSectors > 0
+	return self:_successProbability(0) > minSuccessProbability
 end
 
 function ShootGoal:_successProbability(time)
