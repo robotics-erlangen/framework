@@ -80,6 +80,7 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed)
 	local endSpeed = math.max(maxEndSpeed, predictedBall.speed:dot(viewLine))
 	
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, nil, endSpeed)
+	--		predictedBall.speed + Vector.fromAngle(viewDir):setLength(endSpeed))
 	-- keep old time if no way was found
 	if time > 0 then
 		-- damp large value changes
