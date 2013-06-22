@@ -5,12 +5,13 @@ local distToPost = 0.05 -- distance of the target point on goal line to the post
 local changeThreshold = 0.5 -- set 0 if opponent keeper follows look Dir every time
 local fixedCorner = false -- set to "Right" or "Left" if opponent keeper has fixed behaviour or weakness
 local KeeperPosTolerance = 0.04 -- if keeper's distance to the goals center is bigger, we will choose the big free sector
-local probabilityThreshold = 0.8 -- lower means ealier shot, but less precision
+local probabilityThreshold = 0.5 -- lower means ealier shot, but less precision
 
 local ShootPenalty = (require "../base/class").new("Task.ShootPenalty", require "task/shoot")
 
 local World = require "../base/world"
 local G = World.Geometry
+local geom = require "../base/geom"
 local vis = require "../base/vis"
 
 ShootPenalty.priority = 5
@@ -21,12 +22,12 @@ end
 local successProbability = 0
 function ShootPenalty:_successProbability(t)
 	if self.targetPos then
-		local angleDiff = math.abs(self._robot.dir - (self.targetPos - self._robot.pos):angle())
-		local diffRatio = (2*math.pi - angleDiff) / (2*math.pi)
-		local weightedRatio = diffRatio * diffRatio * diffRatio * diffRatio
-		if weightedRatio > successProbability then
-			successProbability = weightedRatio
-		end
+		local roboDir = Vector.fromAngle(self._robot.dir)
+		local goalLineDir = Vector.fromAngle(0)
+		local lookPos = geom.intersectLineLine(self._robot.pos, roboDir, G.OpponentGoal, goalLineDir)
+		vis.addCircle("LookPos", lookPos, 0.02, vis.colors.red, true)
+		local diff = math.abs((lookPos - self.targetPos):length())
+		successProbability = G.GoalWidth - diff
 	end
 	return successProbability
 end
