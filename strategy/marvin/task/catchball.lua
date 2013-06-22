@@ -14,7 +14,7 @@ function CatchBall:_init()
 end
 
 -- the robot may drive with up to maxEndSpeed or ballSpeed when it catches the ball, depending on which of both is higher
-function CatchBall:_catchBall(targetPos, maxEndSpeed)
+function CatchBall:_catchBall(targetPos, maxEndSpeed, keepDistanceToBall)
 	local ball = World.Ball
 	if self._catchTime then
 		-- update time from last frame
@@ -57,8 +57,9 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed)
 	
 	-- predict ball and catch it
 	local predictedBall = Ball.atTime(self._catchTime, ball)
+	local extraDist = keepDistanceToBall and Settings.catchBallDistance or 0
 	local moveDest = predictedBall.pos + (predictedBall.pos - targetPos):setLength(
-			self._robot.shootRadius + Settings.catchBallDistance + ball.radius)
+			self._robot.shootRadius + extraDist + ball.radius)
 	local viewLine = (targetPos - predictedBall.pos):normalize()
 	local viewDir = viewLine:angle()
 	

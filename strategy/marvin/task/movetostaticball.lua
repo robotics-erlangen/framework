@@ -13,7 +13,7 @@ function MoveToStaticBall:_successProbability(t)
 end
 
 function MoveToStaticBall:_run(priorityMessages, notifications)
-	self:_catchBall(self._targetPos, 0)
+	self:_catchBall(self._targetPos, 0, true)
 	return {}
 end
 
