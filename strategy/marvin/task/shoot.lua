@@ -13,7 +13,6 @@ end
 
 -- if probability is higher than that threshold, the task will shoot immediatelly
 function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
-	self._lastSuccessProbability = self._lastSuccessProbability or 0
 	self._shootHysteresis = self._shootHysteresis or 0
 	
 	if self._robot:hasBall(World.Ball) then -- if we got the ball
@@ -25,13 +24,11 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 		debug.set("Success probability", successProbability)
 		-- TODO: check future to see whether probability will decrease
 		-- TODO: test whether to add a delay when probability decreases
-		if successProbability >= probabilityThreshold
-				or successProbability < self._lastSuccessProbability then
+		if successProbability >= probabilityThreshold then
 			self._shootHysteresis = self._shootHysteresis + 2
 		else
 			self._shootHysteresis = math.max(self._shootHysteresis - 1, 0)
 		end
-		self._lastSuccessProbability = successProbability
 		
 		-- compensate ball movement
 		local speed = World.Ball.speed:copy()
@@ -81,7 +78,6 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 	else -- catch the ball
 		self._lastBallSpeed = nil
 		self._shootHysteresis = 0
-		self._lastSuccessProbability = 0
 		self:_catchBall(targetPos, Settings.shootDriveSpeed)
 	end
 end
