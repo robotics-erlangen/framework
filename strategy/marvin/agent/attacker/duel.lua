@@ -2,7 +2,7 @@ local Base = require "agent/base/behaviour"
 local Duel = (require "../base/class").new("Agent.Attacker.Duel", Base)
 local Ball = require "observer/ball"
 
-local Duel = require "task/duel"
+local TaskDuel = require "task/duel"
 
 function Duel:_check()
 	if Ball.opponentBallOwner() then
@@ -16,7 +16,7 @@ end
 
 function Duel:_run()
 	if not self._task then
-		self._task = Duel.create(self._robot)
+		self._task = TaskDuel.create(self._robot)
 	end
 end
 
