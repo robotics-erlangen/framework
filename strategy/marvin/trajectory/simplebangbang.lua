@@ -52,6 +52,7 @@ function SimpleBangBang:_create1DProfile(currentSpeed, endSpeed, maxSpeed, accel
 	-- FIXME handle moving into the opposite direction
 	-- gracefully handle robot being too fast
 	currentSpeed = math.bound(-maxSpeed, currentSpeed, maxSpeed)
+	endSpeed = math.bound(-maxSpeed, endSpeed, maxSpeed)
 	local speeds = nil
 	-- check if robot is still able to reach its end speed
 	if currentSpeed < endSpeed then
@@ -177,16 +178,15 @@ function SimpleBangBang:_createTrajectory(path, speeds, angularSpeeds, angularDi
 		end
 		-- FIXME distLeft == accelDist
 
-		local t_end = curTime
 		local speed = (curPos - oldCurPos):setLength(oldCurSpeed)
-		local accelLen = (curSpeed - oldCurSpeed)/(t_end - t_start)
+		local accelLen = (curSpeed - oldCurSpeed)/(curTime - t_start)
 		if accelLen ~= accelLen then
 			accelLen = 0
 		end
 		local accel = (curPos - oldCurPos):setLength(accelLen)
-		table.insert(spline, { t_start = t_start - 0.02, t_end = t_end - 0.02,
-			x = offsetTime({ a0 = oldCurPos.x, a1 = speed.x, a2 = accel.x, a3 = 0 }, t_start - 0.02),
-			y = offsetTime({ a0 = oldCurPos.y, a1 = speed.y, a2 = accel.y, a3 = 0 }, t_start - 0.02),
+		table.insert(spline, { t_start = t_start - 0.02, t_end = curTime - 0.02,
+			x = offsetTime({ a0 = oldCurPos.x, a1 = speed.x, a2 = accel.x/2, a3 = 0 }, t_start - 0.02),
+			y = offsetTime({ a0 = oldCurPos.y, a1 = speed.y, a2 = accel.y/2, a3 = 0 }, t_start - 0.02),
 			phi = { a0 = targetDir, a1 = 0, a2 = 0, a3 = 0}
 		})
 
