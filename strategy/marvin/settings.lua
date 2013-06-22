@@ -11,6 +11,7 @@ settings.slowBall = 0.5 -- consider a ball as moving if faster than this limit [
 settings.fastBall = 1.5 -- consider a ball as fast if faster than this limit [m/s]
 settings.tiltShotAngle = 45/180*math.pi -- the max offset angle for tilted and volley shots
 settings.shootDriveSpeed = 1
+settings.shootSideOffset = 0.03 -- extends the hasBall sidewards
 settings.dribbleDriveSpeed = 1 -- we can dribble backwards with approximately 1 m/s
 settings.shootProbabilityThreshold = 0.8 --we instantly shoot if the probability that no opponent robot blocks it is at least 80% 
 settings.receiveChipDistance = 0.2 --the distance between the landing point of the chipped ball and the pass receiver

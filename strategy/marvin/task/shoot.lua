@@ -15,19 +15,9 @@ end
 function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 	self._shootHysteresis = self._shootHysteresis or 0
 	
-	if self._robot:hasBall(World.Ball) then -- if we got the ball
+	if self._robot:hasBall(World.Ball, Settings.shootSideOffset) then -- if we got the ball
 		if not self._lastBallSpeed then
 			self._lastBallSpeed = World.Ball.speed
-		end
-
-		local successProbability = self:_successProbability(0)
-		debug.set("Success probability", successProbability)
-		-- TODO: check future to see whether probability will decrease
-		-- TODO: test whether to add a delay when probability decreases
-		if successProbability >= probabilityThreshold then
-			self._shootHysteresis = self._shootHysteresis + 2
-		else
-			self._shootHysteresis = math.max(self._shootHysteresis - 1, 0)
 		end
 		
 		-- compensate ball movement
@@ -51,17 +41,28 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 
 		-- sidewards offset
 		if math.abs(distToBall.y) >= 0.01 then
-			speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(-distToBall.y * 20) -- correct pos error in 100ms
+			speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(math.bound(-1, -distToBall.y * 20, 1)) -- correct pos error in 100ms
+		end
+
+		local successProbability = self:_successProbability(0)
+		debug.set("Success probability", successProbability)
+		-- TODO: check future to see whether probability will decrease
+		-- TODO: test whether to add a delay when probability decreases
+
+		-- only start kicking if the robot got the ball
+		if self._robot:hasBall(World.Ball) and successProbability >= probabilityThreshold then
+			self._shootHysteresis = self._shootHysteresis + 2
+		else
+			self._shootHysteresis = math.max(self._shootHysteresis - 1, 0)
 		end
 
 		if self._shootHysteresis > 0 then
 			-- speed towards ball
 			speed = speed + Vector.fromAngle(targetDir):setLength(Settings.shootDriveSpeed)
 
-			local dist = (targetPos-self._robot.pos):length()
+			local dist = targetPos:distanceTo(self._robot.pos)
 			if linearShoot then
 				self._robot:shoot(targetSpeed, dist)
-				--log("Success Probability: "..successProbability)
 			else
 				self._robot:chip(dist)
 			end

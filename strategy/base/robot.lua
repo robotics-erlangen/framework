@@ -54,6 +54,7 @@ function Robot:init(data, isFriendly, geometry)
 		self.maxAcceleration = 1
 	end
 	self.isFriendly = isFriendly
+	self._hasBall = {}
 	if self.isFriendly then -- setup trajectory and path objects
 		self.trajectory = Trajectory.create(self)
 		self.path = path.create()
@@ -253,21 +254,25 @@ end
 --- Check whether the robot has the given ball.
 -- Checks whether the ball is in rectangle in front of the dribbler with hasBallDistance depth. Uses hysteresis for the left and right side of that rectangle
 -- @param ball Ball - ball object to check
+-- @param [sideOffset number - extends the hasBall area sidewards]
 -- @return boolean - has ball
-function Robot:hasBall(ball)
+function Robot:hasBall(ball, sideOffset)
+	sideOffset = sideOffset or 0
 	local relpos = self:posToBall(ball)
 	local offset = math.abs(relpos.y)
 	-- if too far to the sides
-	if offset > self.dribblerWidth / 2 + Constants.positionError then
+	if offset > self.dribblerWidth / 2 + Constants.positionError + sideOffset then
 		return false
 	-- in hysteresis area without having had the ball
-	elseif offset >= self.dribblerWidth / 2 - Constants.positionError and not self._hasBall then
+	elseif offset >= self.dribblerWidth / 2 - Constants.positionError + sideOffset
+			and not self._hasBall[sideOffset] then
 		return false
 	end
 	
 	-- FIXME remove partial system latency hack
-	self._hasBall = relpos.x > -self.shootRadius and relpos.x < self.constants.hasBallDistance + ball.speed:length() * Constants.systemLatency
-	return self._hasBall
+	self._hasBall[sideOffset] = relpos.x > -self.shootRadius 
+			and relpos.x < self.constants.hasBallDistance + ball.speed:length() * Constants.systemLatency
+	return self._hasBall[sideOffset]
 end
 
 return Robot
