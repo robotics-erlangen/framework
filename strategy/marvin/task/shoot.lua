@@ -1,5 +1,6 @@
 local Shoot = (require "../base/class").new("Task.Shoot", require "task/catchball")
 
+local Constants = require "../base/constants"
 local World = require "../base/world"
 local TrajectoryDirect = require "trajectory/direct"
 local debug = require "../base/debug"
@@ -18,6 +19,10 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 	if self._robot:hasBall(World.Ball, Settings.shootSideOffset) then -- if we got the ball
 		if not self._lastBallSpeed then
 			self._lastBallSpeed = World.Ball.speed
+		end
+		if not self._travelStart then
+			self._travelStart = self._robot.pos
+			self._travelLimit = false
 		end
 		
 		-- compensate ball movement
@@ -56,7 +61,11 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 			self._shootHysteresis = math.max(self._shootHysteresis - 1, 0)
 		end
 
-		if self._shootHysteresis > 0 then
+		-- debug.set("travelDist", self._travelStart:distanceTo(self._robot.pos))
+		if self._travelStart:distanceTo(self._robot.pos) >= Constants.maxDribbleDistance then
+			self._travelLimit = true
+		end
+		if self._shootHysteresis > 0 and not self._travelLimit then
 			-- speed towards ball
 			speed = speed + Vector.fromAngle(targetDir):setLength(Settings.shootDriveSpeed)
 
@@ -67,6 +76,13 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 				self._robot:chip(dist)
 			end
 		else
+			-- slowly dissolve travel distance
+			local travelDist = math.max(self._travelStart:distanceTo(self._robot.pos) - 0.05, 0)
+			self._travelStart = self._robot.pos + (self._travelStart - self._robot.pos):setLength(travelDist)
+			if travelDist == 0 then
+				self._travelLimit = false
+			end
+
 			-- keep away from ball
 			if distToBall.x < Settings.catchBallDistance then
 				local distError = Settings.catchBallDistance - distToBall.x
@@ -79,6 +95,8 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 	else -- catch the ball
 		self._lastBallSpeed = nil
 		self._shootHysteresis = 0
+		self._travelStart = nil
+		self._travelLimit = false
 		self:_catchBall(targetPos, Settings.shootDriveSpeed)
 	end
 end
