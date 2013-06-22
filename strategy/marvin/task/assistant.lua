@@ -107,6 +107,8 @@ function Assistant:_rate(priorityMessages, notifications)
 	end
 
 	local midX = best and (best[1] + best[2]) / 2 or 0 -- fallback to mid
+	local bound = World.Geometry.FieldWidthHalf - self._robot.radius
+	midX = math.bound(-bound, midX, bound)
 	self.targetPos = Vector.create(midX, lineStart.y)
 	self.targetDir = (World.Ball.pos - self.targetPos):angle()
 	self.rating = Rating.posToRating(self._robot, self.targetPos)
