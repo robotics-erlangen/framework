@@ -23,10 +23,13 @@ function ChipAway:_run(priorityMessages, notifications)
 	if not self._chipTarget then
 		local bestRating = -1
 		for robot, msg in pairs(notifications) do
-			if msg.task.assistantRating and msg.task.assistantRating > bestRating then
-				self._chipTarget = robot
-				bestRating = msg.task.assistantRating
+			if msg.task.assistantRating and Robot.wayToRobotFree(robot, self._robot, true) then
+				if  msg.task.assistantRating > bestRating then
+					self._chipTarget = robot
+					bestRating = msg.task.assistantRating
+				end
 			end
+
 		end
 	end
 	

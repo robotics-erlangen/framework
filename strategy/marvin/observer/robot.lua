@@ -11,19 +11,29 @@ local alpha = 0.1
 --- checks if the ball can be shot directly to another robot
 -- @param target, robot - robot to which the ball corridor is being tested
 -- @param ignoreRobot, robot - the robot to shoot the ball is not considered to be an obstacle
+-- @param chipkick, bool - do not consider robots as obstacle which can be chipped over
 -- @return bool - true if way is free, false otherwise
-function Robot.wayToRobotFree(target, ignoreRobot)
+function Robot.wayToRobotFree(target, ignoreRobot, chipkick)
 	-- TODO consider speed of robots to look a little into the future
 	local isFree = true
 	for _, robot in pairs(table.combine(World.FriendlyRobots, World.OpponentRobots)) do
 		if robot ~= ignoreRobot and robot ~= target then
 			local _, distToBallCorridor = robot.pos:orthogonalProjection(World.Ball.pos, target.pos)
-			isFree = isFree and (math.abs(distToBallCorridor) > (robot.radius + World.Ball.radius))
+			local targetDist = math.abs((World.Ball.pos - target.pos):length())
+			local isInTheWay = math.abs(distToBallCorridor) < (robot.radius + World.Ball.radius) 
+				and robot.pos:distanceTo(World.Ball.pos) < targetDist
+				and robot.pos:distanceTo(target.pos) < targetDist
+			if chipkick then
+				isInTheWay = isInTheWay and robot.pos:distanceTo(World.Ball.pos) > Settings.chipDistance
+			end
+			if isInTheWay then
+				isFree = false
+				break
+			end
 		end
 	end
 	return isFree
 end
-
 
 function Robot.estimateOpponentDynamics()
 	for _, robot in pairs(World.OpponentRobots) do

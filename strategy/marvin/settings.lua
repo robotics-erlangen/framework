@@ -14,6 +14,7 @@ settings.shootDriveSpeed = 1
 settings.shootSideOffset = 0.03 -- extends the hasBall sidewards
 settings.dribbleDriveSpeed = 1 -- we can dribble backwards with approximately 1 m/s
 settings.shootProbabilityThreshold = 0.8 --we instantly shoot if the probability that no opponent robot blocks it is at least 80% 
+settings.chipDistance = 0.4 -- the distance which a robot can have to the ball so that the chip kick goes over this robot
 settings.receiveChipDistance = 0.2 --the distance between the landing point of the chipped ball and the pass receiver
 settings.markingDistance = 0.05 -- close enough
 settings.distanceHysteresis = 0.03 -- use it as a hysteresis value for all minimum/maximum distance search loops
