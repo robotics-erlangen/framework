@@ -1,8 +1,8 @@
 local Base = require "agent/base/behaviour"
 local Shoot = (require "../base/class").new("Agent.Attacker.Shoot", Base)
 local Ball = require "observer/ball"
-local Robot = require "observer/robot"
 local World = require "../base/world"
+local ObserverShoot = require "observer/shoot"
 
 local DirectPass = require "task/directpass"
 local ShootGoal = require "task/shootgoal"
@@ -34,23 +34,11 @@ end
 
 function Shoot:_run()
 	if not self._task then
-		local function canPassTo(r)
-			return self._messages[r] and self._messages[r].task.assistantRating 
-				and Robot.wayToRobotFree(r, self._robot)
-		end
-		local function cmpAssistantByRating(r1, r2)
-			return self._messages[r1].task.assistantRating > self._messages[r2].task.assistantRating
-		end
-		local freeAssistants = table.filter(World.FriendlyRobots, canPassTo)
-		table.sort(freeAssistants, cmpAssistantByRating)
-		local bestRobot = freeAssistants[1]
-		
+		local bestAssistant = ObserverShoot.bestFreeAssistant(self._robot, self._messages)
 		local shootGoalTask = ShootGoal.create(self._robot)
-
-		self._pass = bestRobot and not shootGoalTask:canShoot()
-
+		self._pass = bestAssistant and not shootGoalTask:canShoot()
 		if self._pass then
-			self._task = DirectPass.create(self._robot, bestRobot, true)
+			self._task = DirectPass.create(self._robot, bestAssistant, true)
 		else
 			self._task = shootGoalTask
 		end

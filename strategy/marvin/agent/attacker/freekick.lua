@@ -3,6 +3,7 @@ local FreeKick = (require "../base/class").new("Agent.Attacker.FreeKick", Base)
 
 local World = require "../base/world"
 local Robot = require "observer/robot"
+local Shoot = require "observer/shoot"
 local Class = require "../base/class"
 
 local ChipAway = require "task/chipaway"
@@ -36,16 +37,7 @@ function FreeKick:_run()
 end
 
 function FreeKick:passOrChipTask()
-	local function canPassTo(r)
-		return self._messages[r] and self._messages[r].task.assistantRating 
-			and Robot.wayToRobotFree(r, self._robot)
-	end
-	local function cmpAssistantByRating(r1, r2)
-		return self._messages[r1].task.assistantRating > self._messages[r2].task.assistantRating
-	end
-	local freeAssistants = table.filter(World.FriendlyRobots, canPassTo)
-	table.sort(freeAssistants, cmpAssistantByRating)
-	local bestRobot = freeAssistants[1]
+	local bestRobot = Shoot.bestFreeAssistant(self._robot, self._messages)
 	if bestRobot then
 		self._task = DirectPass.create(self._robot, bestRobot, true)
 	else

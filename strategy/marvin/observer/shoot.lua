@@ -5,6 +5,7 @@ local World = require "../base/world"
 local Settings = require "settings"
 local Robot = require "observer/robot"
 local Ball = require "observer/ball"
+local Goal = require "observer/goal"
 local Geom = require "../base/geom"
 
 
@@ -150,6 +151,31 @@ function Shoot.ballCatchProbability(robot, time, catchPos, corridorHalf)
 			return math.sqrt((maxDeceleration - neededAcc)/maxDeceleration)
 		end
 	end
+end
+
+--- returns nil or a robot which can be passed to and, if there a more of them, the one who is closest to the opponent goal in combination with the biggest free goal sectors
+-- @param activeRobot - the robot who is searching for a pass receiver
+-- @param messages - the messages object of a behaviour
+-- @return robot or nil - the most suitable robot, if any 
+function Shoot.bestFreeAssistant(activeRobot, messages)
+	local function canPassTo(r)
+		return messages[r] and messages[r].task.assistantRating 
+			and Robot.wayToRobotFree(r, activeRobot)
+	end
+	local function rateAssi(robot)
+		local fs = Goal.freeSectors(robot.pos, World.OpponentRobots, true)
+		local biggestSector = table.max(table.map(fs, function(s) return s[2]-s[1] end))
+		local goalDist = robot.pos:distanceTo(World.Geometry.OpponentGoal)
+		local rating = World.Geometry.FieldHeight - goalDist
+		if biggestSector then
+			rating = rating + biggestSector * 2 * World.Geometry.FieldHeight
+		end
+		-- log("robot " .. robot.id .. ", rating " .. rating)	
+		return rating
+	end
+	local freeAssistants = table.filter(World.FriendlyRobots, canPassTo)
+	table.sort(freeAssistants, function(r1,r2) return rateAssi(r1) > rateAssi(r2) end)
+	return freeAssistants[1]
 end
 
 return Shoot
