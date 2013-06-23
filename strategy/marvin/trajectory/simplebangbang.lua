@@ -110,9 +110,7 @@ local function offsetTime(param, o) -- o = time offset
 	}
 end
 
-function SimpleBangBang:_createTrajectory(path, speeds, targetPos)
-	targetPos = Coordinates.toGlobal(targetPos)
-
+function SimpleBangBang:_createTrajectory(path, speeds, endSpeed)
 	local pathIdx = 2
 	local speedIdx = 2
 
@@ -123,6 +121,7 @@ function SimpleBangBang:_createTrajectory(path, speeds, targetPos)
 	local curTime = 0
 
 	local spline = {}
+	local offset = -0.02
 
 	local ctr = 0
 	while true do
@@ -181,86 +180,102 @@ function SimpleBangBang:_createTrajectory(path, speeds, targetPos)
 			accelLen = 0
 		end
 		local accel = (curPos - oldCurPos):setLength(accelLen)
-		table.insert(spline, { t_start = t_start - 0.02, t_end = curTime - 0.02,
-			x = offsetTime({ a0 = oldCurPos.x, a1 = speed.x, a2 = accel.x/2, a3 = 0 }, t_start - 0.02),
-			y = offsetTime({ a0 = oldCurPos.y, a1 = speed.y, a2 = accel.y/2, a3 = 0 }, t_start - 0.02),
+		table.insert(spline, { t_start = t_start + offset, t_end = curTime + offset,
+			x = offsetTime({ a0 = oldCurPos.x, a1 = speed.x, a2 = accel.x/2, a3 = 0 }, t_start + offset),
+			y = offsetTime({ a0 = oldCurPos.y, a1 = speed.y, a2 = accel.y/2, a3 = 0 }, t_start + offset),
 			phi = { a0 = targetDir, a1 = 0, a2 = 0, a3 = 0}
 		})
 
 		if speedIdx >= #speeds and pathIdx >= #path then
 			break
 		end
-		if (speedIdx >= #speeds and targetPos:distanceTo(curPos) < 0.001) then
-			error("abcd")
-			break
-		end
 	end
 
-	return spline, curPos
+	local endTime = curTime + offset
+	local endPos = curPos
+	table.insert(spline, { t_start = endTime, t_end = math.huge,
+		x = offsetTime({ a0 = endPos.x, a1 = endSpeed.x, a2 = 0, a3 = 0 }, endTime),
+		y = offsetTime({ a0 = endPos.y, a1 = endSpeed.y, a2 = 0, a3 = 0 }, endTime)
+	})
+
+	return spline, endPos, endTime
 end
 
-function SimpleBangBang:_injectAngularSpeeds(spline, angularSpeeds, angularDirection, startAngle)
-	local angularIdx = 2
-	local newSpline = {}
+function SimpleBangBang:_createAngleTrajectory(angularSpeeds, angularDirection, startAngle, targetDir)
+	local spline = {}
 
+	local currentTime = 0
 	local currentDir = startAngle
 	local currentOmega = angularSpeeds[1][2]
-	local currentTime = -0.02
 
-	for _, chunk in ipairs(spline) do
-		local isEnd = false
-		while not isEnd and currentTime ~= math.huge do
+	local offset = -0.02
+
+	for _, chunk in pairs(angularSpeeds) do
+		if chunk[1] > 0 then
+			local t_start = currentTime
 			local oldDir = currentDir
 			local oldOmega = currentOmega
-			local t_start = currentTime
-			local angularEntry = (angularIdx > #angularSpeeds) and angularSpeeds[#angularSpeeds] or angularSpeeds[angularIdx]
 
-			if angularIdx <= #angularSpeeds and angularEntry[1] - 0.02 < chunk.t_end then
-				currentTime = angularEntry[1] - 0.02
-				angularIdx = angularIdx + 1
-			else
-				isEnd = true
-				currentTime = chunk.t_end
-			end
-
+			currentTime = chunk[1]
+			currentOmega = chunk[2] * angularDirection
 			local timeDiff = currentTime - t_start
-			if timeDiff == math.huge then
-				timeDiff = 0
-			end
-			local nextOmega = angularDirection * angularEntry[2]
-			local angleAccel = (nextOmega - oldOmega) / (angularEntry[1] - 0.02 - t_start) 
-			if angularEntry[1] - 0.02 <= t_start then
-				angleAccel = 0
-			end
-			currentOmega = oldOmega + timeDiff * angleAccel
+			local angleAccel = (currentOmega - oldOmega) / timeDiff
 			currentDir = oldDir + timeDiff * oldOmega + timeDiff * timeDiff / 2 * angleAccel
 
-			
-			if currentOmega > 20 then
-				msg = "old" .. t_start .. " " .. oldDir .. " " .. oldOmega
-				msg = msg + "\n" + ("t" .. currentTime .. " " .. currentDir .. " " .. currentOmega .. " " .. nextOmega .. " " .. oldOmega)
-				for i, s in pairs(angularSpeeds) do
-					msg = msg + "\n" + (i .. " " .. s[1] .. " " .. s[2])
-				end
-				for _, p in pairs(newSpline) do
-					msg = msg + "\n" + (p.t_start .. " " .. p.t_end .. " " .. p.phi.a0 .. " " .. p.phi.a1 .. " " .. p.phi.a2)
-				end
-				error(msg)
-			end
-
-			table.insert(newSpline, { t_start = t_start, t_end = currentTime,
-				x = chunk.x, y = chunk.y,
-				phi = offsetTime({ a0 = oldDir, a1 = oldOmega, a2 = angleAccel/2, a3 = 0}, currentTime)
+			table.insert(spline, { t_start = t_start + offset, t_end = currentTime + offset,
+				phi = offsetTime({ a0 = oldDir, a1 = oldOmega, a2 = angleAccel, a3 = 0}, t_start + offset)
 			})
 		end
 	end
 
-	return newSpline
+	local endTime = currentTime + offset
+	table.insert(spline, { t_start = endTime, t_end = math.huge,
+		phi = offsetTime({ a0 = targetDir, a1 = 0, a2 = 0, a3 = 0 }, endTime)
+	})
+
+	--if math.abs(currentDir) > 10 then
+	--[[	for _, s in pairs(spline) do
+			log(s.t_start .. " " .. s.t_end .. " " .. s.phi.a0 .. " " .. s.phi.a1 .. " " .. s.phi.a2)
+		end
+		for _, s in pairs(angularSpeeds) do
+			log(s[1] .. " " .. s[2])
+		end
+		error("abc")]]
+	--end
+	return spline
 end
 
---FIXME pos trajektorie erzeugen
---FIXME phi trajektorie erzeugen
---FIXME beides mergen
+function SimpleBangBang:_mergeTrajectories(posSpline, phiSpline)
+	local posIdx = 1
+	local phiIdx = 1
+
+	local spline = {}
+
+	local currentTime = -0.02
+	while posIdx <= #posSpline and phiIdx <= #phiSpline do
+		local pos = posSpline[posIdx]
+		local phi = phiSpline[phiIdx]
+		local t_end
+		if pos.t_end < phi.t_end then
+			t_end = pos.t_end
+			posIdx = posIdx + 1
+		elseif pos.t_end > phi.t_end then
+			t_end = phi.t_end
+			phiIdx = phiIdx + 1
+		else
+			t_end = pos.t_end
+			posIdx = posIdx + 1
+			phiIdx = phiIdx + 1
+		end
+
+		table.insert(spline, { t_start = currentTime, t_end = t_end,
+			x = pos.x, y = pos.y,
+			phi = phi.phi
+		})
+		currentTime = t_end
+	end
+	return spline
+end
 
 function SimpleBangBang:update(targetPos, targetDir, maxSpeed, endSpeed)
 	maxSpeed = maxSpeed or self._robot.maxSpeed
@@ -299,16 +314,11 @@ function SimpleBangBang:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local angularSpeeds = self:_create1DProfile(math.sign(angleError) * rotateSpeed, 0, maxRotateSpeed,
 			rotateAccel, rotateBrake, absAngleError)
 
-	local spline, endPos = self:_createTrajectory(waypoints, speeds, targetPos)
-	local endTime = spline[#spline].t_end
-	table.insert(spline, { t_start = endTime, t_end = math.huge,
-		x = offsetTime({ a0 = endPos.x, a1 = endSpeed.x, a2 = 0, a3 = 0 }, endTime),
-		y = offsetTime({ a0 = endPos.y, a1 = endSpeed.y, a2 = 0, a3 = 0 }, endTime)
-	})
+	local spline, endPos, endTime = self:_createTrajectory(waypoints, speeds, endSpeed)
+	local phiSpline = self:_createAngleTrajectory(angularSpeeds, math.sign(angleError), robotDir, targetDir)
+	local spline = self:_mergeTrajectories(spline, phiSpline)
 
-	spline = self:_injectAngularSpeeds(spline, angularSpeeds, math.sign(angleError), robotDir)
-
-	return {spline = spline}, targetPos, endTime
+	return {spline = spline}, Coordinates.toLocal(endPos), endTime
 end
 
 function SimpleBangBang:canHandle(targetPos, targetDir, maxSpeed, endSpeed)
