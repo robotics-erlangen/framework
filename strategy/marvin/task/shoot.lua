@@ -17,6 +17,10 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, probabilityThreshold)
 	self._shootHysteresis = self._shootHysteresis or 0
 	
 	if self._robot:hasBall(World.Ball, Settings.shootSideOffset) then -- if we got the ball
+		if not linearShoot then
+			self._robot:setDribblerSpeed(1)
+		end
+		
 		if not self._lastBallSpeed then
 			self._lastBallSpeed = World.Ball.speed
 		end
