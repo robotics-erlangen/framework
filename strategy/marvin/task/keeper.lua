@@ -11,7 +11,6 @@ local Field = require "util/field"
 Keeper.priority = 6
 
 function Keeper:_init()
-	self._ballPos = World.Ball.pos -- save position for vision problems
 end
 
 --moves keeper do defending possition
@@ -59,10 +58,7 @@ function Keeper:_run(priorityMessages, notifications)
 	moveTo.y = moveTo.y - (math.abs(moveTo.x) - (World.Geometry.GoalWidth / 2 - Settings.keeperGoalDistance))
 	end
 	
-	if World.Ball:isPositionValid() then
-		self._ballPos = World.Ball.pos
-	end
-	local faceBall = self._ballPos-moveTo
+	local faceBall = World.Ball.pos-moveTo
 	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
 end
 
