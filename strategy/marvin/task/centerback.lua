@@ -5,6 +5,7 @@ local ToTarget = require "trajectory/totarget"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local Rating = require "util/rating"
+local Field = require "util/field"
 local Goal = require "observer/goal"
 local G = World.Geometry
 
@@ -189,9 +190,13 @@ function CenterBack:_run(priorityMessages, notifications)
 	end
 	
 	local destinationPos, dir = calculatePosition(self._robot, akpos)
+	
+	local ignoreOpponents
+		= Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) < 2*self._robot.radius
+	
 	--move robot
 	self._robot.path:setDefaultObstacles(self._robot)
-	self._robot.path:addRobotObstacles(self._robot)
+	self._robot.path:addRobotObstacles(self._robot, false, ignoreOpponents)
 	self._robot.trajectory:update(ToTarget, destinationPos, dir)
 end
 
