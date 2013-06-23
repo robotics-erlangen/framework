@@ -214,9 +214,29 @@ end
 -- @param destSpeed number - Ball speed at destination [m/s]
 -- @param distance number - Distance to chip [m]
 -- @return number - Speed to shoot with [m/s]
-function Robot.calculateShootSpeed(destSpeed, distance)
-	distance = distance + destSpeed*destSpeed/(2*math.abs(Constants.ballDeceleration))
-	return math.sqrt(2*math.abs(Constants.ballDeceleration)*distance)
+function Robot:calculateShootSpeed(destSpeed, distance)
+	local fastBallBrake = Constants.fastBallDeceleration
+	local slowBallBrake = Constants.ballDeceleration
+	local ballSwitchRatio = Constants.ballSwitchRatio
+	local v_fast = math.sqrt(destSpeed * destSpeed + 2 * math.abs(fastBallBrake) * distance)
+
+	if v_fast < self.maxShotLinear and v_fast * accelSwitchRatio < destSpeed then
+		return v_fast
+	end
+
+	-- solve(v_0*switch=v_0+a_f*t_mid, t_mid);
+	-- solve(v_0+a_f*t_mid+a_s*(t_end-t_mid)=v_d, t_end);
+	-- solve(integrate(v_0*t+a_f,t,0,t_mid)+integrate(v_0*t+a_s,t,t_mid,t_end)=d, v_0);
+	local a_s = slowBallBrake
+	local a_f = fastBallBrake
+	local switch = accelSwitchRatio
+	local d = distance
+	local v_d = destSpeed
+	local v_0 = math.solveEquation(a_f^2*a_s^2*(2*v_d-2*d), a_f^2*(v_d^2-2*a_s^2),
+			((2*a_f*a_s-2*a_f^2)*switch-2*a_f*a_s)*v_d,
+			(a_s^2-2*a_f*a_s+a_f^2)*switch^2+(2*a_f*a_s-2*a_s^2)*switch+a_s^2)
+
+	return v_0 or self.maxShotLinear
 end
 
 --- Shoot function wrapper.
@@ -224,7 +244,7 @@ end
 -- @param destSpeed number - Ball speed at destination [m/s]
 -- @param distance number - Distance to shoot [m]
 function Robot:shoot(destSpeed, distance)
-	local speed = self.calculateShootSpeed(destSpeed, distance)
+	local speed = self:calculateShootSpeed(destSpeed, distance)
 	self:_shoot(speed)
 end
 

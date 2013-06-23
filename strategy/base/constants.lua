@@ -8,6 +8,8 @@ local Constants = {}
 
 -- measured by looking at the ball speed graph in the plotter
 Constants.ballDeceleration = -0.5 -- acceleration which brakes the ball [m/s^2]
+Constants.fastBallDeceleration = -5.0 -- accerlation which brakes the ball until it is rolling [m/s^2]
+Constants.ballSwitchRatio = 0.6 -- if ball is slower than switchRatio * shootSpeed then switch from fast to normal ball deceleration
 
 Constants.stopBallDistance = 0.5 -- distance to ball during stop [m]
 

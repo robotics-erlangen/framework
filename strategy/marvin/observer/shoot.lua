@@ -110,7 +110,7 @@ end
 -- @return ballRollTime number - the time after which the ball has travelled the given distance
 function Shoot.ballPassTime(futureBallPos, targetRobot, targetPos, distance) 
 	local passDistance = (targetPos - futureBallPos):length()
-	local v = targetRobot.calculateShootSpeed(targetRobot.constants.passSpeed, passDistance)
+	local v = targetRobot:calculateShootSpeed(targetRobot.constants.passSpeed, passDistance)
 	return Ball.ballRollTime(v, distance)
 end
  
