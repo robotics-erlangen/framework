@@ -35,8 +35,9 @@ function DefendPenalty:_run(priorityMessages, notifications)
 	for _, robot in ipairs(World.OpponentRobots) do
 		if robot ~= World.OpponentKeeper and (robot.pos.y+rr) > penaltyLine then
 			-- prefer spot between own keeper and opponent to catch rebound
-			local keeperOppDir = robot.pos - World.FriendlyKeeper.pos
-			local prefSpot = (geom.intersectLineLine(World.FriendlyKeeper.pos, keeperOppDir, Vector.create(0, penaltyLine), Vector.fromAngle(math.pi)))
+			local ownKeeperPos = World.FriendlyKeeper and World.FriendlyKeeper.pos or World.Geometry.FriendlyGoal
+			local keeperOppDir = robot.pos - ownKeeperPos
+			local prefSpot = (geom.intersectLineLine(ownKeeperPos, keeperOppDir, Vector.create(0, penaltyLine), Vector.fromAngle(math.pi)))
 			if prefSpot then
 				table.insert(preferredSpots, prefSpot.x)
 			end
