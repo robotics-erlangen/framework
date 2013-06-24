@@ -36,7 +36,13 @@ function KickoffDefensive:rateDefault(isInit)
 		KickoffDefensivePrepare = true,
 		KickoffDefensive = true,
 	}
-	if positiveState[World.RefereeState] or positiveState[World.GameStage] then
+	local blockState = {
+		KickoffOffensive = true,
+		KickoffOffensivePrepare = true
+	}
+
+	if (positiveState[World.RefereeState] or positiveState[World.GameStage])
+			and not blockState[World.RefereeState] then
 		return Base.rating.referee
 	elseif World.RefereeState == "Game" then
 		return Base.rating.no
