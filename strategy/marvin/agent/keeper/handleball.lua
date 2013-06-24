@@ -12,7 +12,8 @@ function HandleBall:_check()
 	if Referee.isStopState() then 
 		return Base.State.Inactive
 	end
-	if World.RefereeState == "PenaltyDefensive" or World.RefereeState == "PenaltyDefensivePrepare" then
+	if World.RefereeState == "PenaltyDefensive" or World.RefereeState == "PenaltyDefensivePrepare"
+			or World.GameStage == "PenaltyShootout" then
 		return Base.State.Inactive
 	end
 	--if a slow ball enters the defense area
