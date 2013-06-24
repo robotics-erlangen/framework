@@ -20,9 +20,13 @@ function FreeKick:_check()
 end
 
 function FreeKick:_run()
-	if (not self._task or (World.Time - self.startTime < 5)) and not self._robot:hasBall(World.Ball) then
-		self._task = MoveToStaticBall.create(self._robot, World.Geometry.OpponentGoal)
-	elseif not self._task or Class.name(self._task, true) == "MoveToStaticBall" then
+	-- if there's still time and we don't have the ball
+	if (World.Time - self.startTime < 5 and not self._robot:hasBall(World.Ball)) or not self._robot:isCharged() then
+		if not self._task or not Class.instanceOf(self._task, MoveToStaticBall) then
+			self._task = MoveToStaticBall.create(self._robot, World.Geometry.OpponentGoal)
+		end
+	-- otherwise, we can do the freekick
+	elseif not self._task or Class.instanceOf(self._task, MoveToStaticBall) then
 		if World.RefereeState == "IndirectOffensive" then
 			self:passOrChipTask()
 		elseif World.RefereeState == "DirectOffensive" then

@@ -38,9 +38,8 @@ function Penalty:_run()
 	end
 end
 
-function Penalty:_abort()
+function Penalty:_stop()
 	self.lookDir = nil
-	self._state = Base.State.Inactive
 end
 
 return Penalty

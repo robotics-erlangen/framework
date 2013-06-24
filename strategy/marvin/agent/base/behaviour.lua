@@ -7,15 +7,14 @@ Base.State = {
 	CoolDown = 2
 }
 
+Base._abortState = Base.State.Inactive
+
 -- see Behaviour.Group for details about using multiple behaviours
 function Base:init(robot)
 	self._task = nil
 	self._state = Base.State.Inactive
 	self._robot = robot
-	self:_init()
-end
-
-function Base:_init()
+	self:_stop()
 end
 
 -- isBehaviourChosen tells whether a behaviour has been selected yet
@@ -28,7 +27,7 @@ function Base:run(isBehaviourChosen, ownMessages, priorityMessages, notification
 	local messages
 	 -- abort if another behaviour was actived
 	if self._state == Base.State.Active and isBehaviourChosen then
-		self:_abort()
+		self:__stop(true)
 	end
 	if not isBehaviourChosen or self._state ~= Base.State.Inactive then
 		self._state, messages = self:_check()
@@ -39,7 +38,7 @@ function Base:run(isBehaviourChosen, ownMessages, priorityMessages, notification
 		self:_run()
 		return self, messages
 	else
-		self._task = nil -- reset task
+		self:__stop(false)
 		return nil, messages
 	end
 end
@@ -64,9 +63,17 @@ function Base:_run()
 	-- self._task = ...
 end
 
+function Base:__stop(isAborted)
+	if isAborted then
+		self._state = self._abortState
+	end
+	self._task = nil -- reset task
+	self:_stop(isAborted)
+end
+
 -- can be overwritten
-function Base:_abort()
-	self._state = Base.State.Inactive
+function Base:_stop(isAborted)
+	-- custom cleanups
 end
 
 function Base:task()

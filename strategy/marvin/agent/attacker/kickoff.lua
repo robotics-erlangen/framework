@@ -15,18 +15,23 @@ function Kickoff:_check()
 	return (isKickoff and Base.State.Active or Base.State.Inactive)
 end
 
-function Kickoff:_run()
-	if World.RefereeState == "KickoffOffensivePrepare" then
-		if self._robot:hasBall(World.Ball) then
-			if not self._task or Class.name(self._task, true) ~= "Halt" then
-				self._task = Halt.create(self._robot)
-			end
-		else
-			if not self._task or Class.name(self._task, true) ~= "MoveToStaticBall" then
-				self._task = MoveToStaticBall.create(self._robot, World.Geometry.OpponentGoal)
-			end
+local function minOppDist(pos)
+	local minDistance = math.huge
+	for _, robot in ipairs(World.OpponentRobots) do
+		if robot ~= World.OpponentKeeper then
+			minDistance = math.min(minDistance, robot.pos:distanceTo(pos))
 		end
+	end
+	return minDistance
+end
 
+local function cmpByOpponentDist(pos1, pos2) 
+	return minOppDist(pos1) > minOppDist(pos2)
+end
+
+function Kickoff:_run()
+	-- decide once we switch to KickoffOffensive
+	if (not self._targetRobot or not self._shootPos) and World.RefereeState == "KickoffOffensive" then
 		-- search pos for pass in the run
 		local nicePositions = {
 			Vector.create(-1.5, 1.4),
@@ -36,24 +41,11 @@ function Kickoff:_run()
 			Vector.create(1.0, 1.4),
 			Vector.create(1.5, 1.4),
 		}
-		local function cmpByOpponentDist(pos1, pos2) 
-			local minDistance1 = math.huge
-			for _, robot in ipairs(World.OpponentRobots) do
-				if robot ~= World.OpponentKeeper then
-					minDistance1 = math.min(minDistance1, (robot.pos - pos1):length())
-				end
-			end
-			local minDistance2 = math.huge
-			for _, robot in ipairs(World.OpponentRobots) do
-				if robot ~= World.OpponentKeeper then
-					minDistance2 = math.min(minDistance1, (robot.pos - pos1):length())
-				end
-			end
-			return minDistance1 > minDistance2
-		end
+		table.sort(nicePositions, cmpByOpponentDist)
+
 		local function isReachable(pos)
 			local isFree = true
-			for _, robot in pairs(table.combine(World.FriendlyRobots, World.OpponentRobots)) do
+			for _, robot in pairs(World.Robots) do
 				if robot ~= self._robot then
 					local _, distToBallCorridor = robot.pos:orthogonalProjection(World.Ball.pos, pos)
 					isFree = isFree and (math.abs(distToBallCorridor) > (robot.radius + World.Ball.radius))
@@ -61,7 +53,7 @@ function Kickoff:_run()
 			end
 			return isFree
 		end
-		table.sort(nicePositions, cmpByOpponentDist)
+
 		self._shootPos = table.filter(nicePositions, isReachable)[1] or nicePositions[1]
 		vis.addCircle("PassInTheRun", self._shootPos, 0.2, vis.colors.Red, true)
 		-- search nearest kickoff assi
@@ -75,22 +67,27 @@ function Kickoff:_run()
 				end
 			end
 		end
+	end
+
+	if World.RefereeState == "KickoffOffensivePrepare" or not self._robot:isCharged() then
+		if not self._task or not Class.instanceOf(self._task, MoveToStaticBall) then
+			self._task = MoveToStaticBall.create(self._robot, World.Geometry.OpponentGoal)
+		end
 	elseif World.RefereeState == "KickoffOffensive" then
 		local shootGoalTask = ShootGoal.create(self._robot)
 		if shootGoalTask:canShoot() then 
-			if not self._task or Class.name(self._task, true) ~= "ShootGoal" then
+			if not self._task or not Class.instanceOf(self._task, ShootGoal) then
 				self._task = shootGoalTask
 			end
 		else
-			if not self._task or Class.name(self._task, true) ~= "ShootGoal" then
+			if not self._task or not Class.instanceOf(self._task, PassInTheRun) then
 				self._task = PassInTheRun.create(self._robot, self._targetRobot, self._shootPos)
 			end
 		end
-	end		
+	end
 end
 
-function Kickoff:_abort()
-	self._state = Base.State.Inactive
+function Kickoff:_stop(isAborted)
 	self._shootPos = nil
 	self._targetRobot = nil
 end

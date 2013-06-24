@@ -32,7 +32,7 @@ local Robot, RobotMt = (require "../base/class").new("Robot")
 -- @field maxAngularSpeed number - maximum angular speed *
 Robot.constants = {
 	hasBallDistance = 0.03, -- 3 cm, robots where the balls distance to the dribbler is less than 2cm are considered to have the ball [m]
-	passSpeed = 1.8, -- speed with which the ball should arrive at the pass target  [m/s]
+	passSpeed = 1, -- speed with which the ball should arrive at the pass target  [m/s]
 	shootDriveSpeed = 0.2, -- how fast the shoot task drives at the ball [m/s]
 	minAngleError = 4/180 * math.pi -- minimal angular precision that the shoot task guarantees [in radians]
 }
@@ -53,6 +53,7 @@ function Robot:init(data, isFriendly, geometry)
 		self.maxSpeed = 1 -- Init max speed and acceleration for opponents
 		self.maxAcceleration = 1
 	end
+	self.lostSince = 0
 	self.isFriendly = isFriendly
 	self._hasBall = {}
 	if self.isFriendly then -- setup trajectory and path objects
@@ -77,6 +78,8 @@ RobotMt.__tostring = Robot.tostring
 
 -- reset robot commands and update data
 function Robot:_update(state, time)
+	-- keep current time for use by setStandby
+	self._currentTime = time
  	-- bypass override check in setControllerInput
 	self._controllerInput = {} -- halt robot by default
 	self:shootDisable() -- disable shoot
@@ -200,8 +203,33 @@ end
 
 --- Set standby
 -- @param standby boolean - enable standy for robot if true
-function Robot:setStandby(standby)
-	self._standby = standby
+function Robot:setStandby(standby, noDelay)
+	if not standby then
+		-- delay deleting the standby timer
+		if not self._standby then
+			self._standbyTimer = nil
+		end
+		self._standby = nil
+	else
+		if not self._standbyTimer then
+			self._standbyTimer = self._currentTime
+		end
+		if self._currentTime - self._standbyTimer > 30 then
+			self._standby = true
+		end
+	end
+	debug.set("standby", self._standbyTimer)
+end
+
+function Robot:isCharged()
+	-- assume that recently invisble robots are not charged
+	if self._currentTime - self.lostSince < 3 then
+		return false
+	-- robot is discharged during standby
+	elseif self._standbyTimer and self._currentTime - self._standbyTimer < 5 then
+		return false
+	end
+	return true
 end
 
 --- Chip function
@@ -215,12 +243,16 @@ end
 -- @param distance number - Distance to chip [m]
 -- @return number - Speed to shoot with [m/s]
 function Robot:calculateShootSpeed(destSpeed, distance)
+	if destSpeed >= self.maxShotLinear then
+		return destSpeed
+	end
+
 	local fastBallBrake = Constants.fastBallDeceleration
 	local slowBallBrake = Constants.ballDeceleration
 	local ballSwitchRatio = Constants.ballSwitchRatio
 	local v_fast = math.sqrt(destSpeed * destSpeed + 2 * math.abs(fastBallBrake) * distance)
 
-	if v_fast < self.maxShotLinear and v_fast * accelSwitchRatio < destSpeed then
+	if v_fast < self.maxShotLinear and v_fast * ballSwitchRatio < destSpeed then
 		return v_fast
 	end
 
@@ -229,14 +261,18 @@ function Robot:calculateShootSpeed(destSpeed, distance)
 	-- solve(integrate(v_0*t+a_f,t,0,t_mid)+integrate(v_0*t+a_s,t,t_mid,t_end)=d, v_0);
 	local a_s = slowBallBrake
 	local a_f = fastBallBrake
-	local switch = accelSwitchRatio
+	local switch = ballSwitchRatio
 	local d = distance
 	local v_d = destSpeed
 	local v_0 = math.solveEquation(a_f^2*a_s^2*(2*v_d-2*d), a_f^2*(v_d^2-2*a_s^2),
 			((2*a_f*a_s-2*a_f^2)*switch-2*a_f*a_s)*v_d,
 			(a_s^2-2*a_f*a_s+a_f^2)*switch^2+(2*a_f*a_s-2*a_s^2)*switch+a_s^2)
 
-	return v_0 or self.maxShotLinear
+	if not v_0 then
+		return self.maxShotLinear
+	else
+		return v_0
+	end
 end
 
 --- Shoot function wrapper.
