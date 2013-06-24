@@ -53,6 +53,7 @@ function Robot:init(data, isFriendly, geometry)
 		self.maxSpeed = 1 -- Init max speed and acceleration for opponents
 		self.maxAcceleration = 1
 	end
+	self.lostSince = 0
 	self.isFriendly = isFriendly
 	self._hasBall = {}
 	if self.isFriendly then -- setup trajectory and path objects
@@ -200,8 +201,32 @@ end
 
 --- Set standby
 -- @param standby boolean - enable standy for robot if true
-function Robot:setStandby(standby)
-	self._standby = standby
+function Robot:setStandby(standby, noDelay)
+	if not standby then
+		-- delay deleting the standby timer
+		if not self._standby then
+			self._standbyTimer = nil
+		end
+		self._standby = nil
+	else
+		if not self._standbyTimer then
+			self._standbyTimer = World.Time
+		end
+		if World.Time - self._standbyTimer > 30 then
+			self._standby = true
+		end
+	end
+end
+
+function Robot:isCharged()
+	-- assume that recently invisble robots are not charged
+	if World.Time - self.lostSince < 3 then
+		return false
+	-- robot is discharged during standby
+	elseif World.Time - self._standbyTimer < 5 then
+		return false
+	end
+	return true
 end
 
 --- Chip function
