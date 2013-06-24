@@ -220,7 +220,7 @@ function Robot:calculateShootSpeed(destSpeed, distance)
 	local ballSwitchRatio = Constants.ballSwitchRatio
 	local v_fast = math.sqrt(destSpeed * destSpeed + 2 * math.abs(fastBallBrake) * distance)
 
-	if v_fast < self.maxShotLinear and v_fast * accelSwitchRatio < destSpeed then
+	if v_fast < self.maxShotLinear and v_fast * ballSwitchRatio < destSpeed then
 		return v_fast
 	end
 
@@ -229,7 +229,7 @@ function Robot:calculateShootSpeed(destSpeed, distance)
 	-- solve(integrate(v_0*t+a_f,t,0,t_mid)+integrate(v_0*t+a_s,t,t_mid,t_end)=d, v_0);
 	local a_s = slowBallBrake
 	local a_f = fastBallBrake
-	local switch = accelSwitchRatio
+	local switch = ballSwitchRatio
 	local d = distance
 	local v_d = destSpeed
 	local v_0 = math.solveEquation(a_f^2*a_s^2*(2*v_d-2*d), a_f^2*(v_d^2-2*a_s^2),
