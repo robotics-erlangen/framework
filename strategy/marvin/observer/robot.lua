@@ -15,11 +15,10 @@ local alpha = 0.1
 -- @return bool - true if way is free, false otherwise
 function Robot.wayToRobotFree(target, ignoreRobot, chipkick)
 	-- TODO consider speed of robots to look a little into the future
-	local isFree = true
-	for _, robot in pairs(table.combine(World.FriendlyRobots, World.OpponentRobots)) do
+	for _, robot in pairs(World.Robots) do
 		if robot ~= ignoreRobot and robot ~= target then
 			local _, distToBallCorridor = robot.pos:orthogonalProjection(World.Ball.pos, target.pos)
-			local targetDist = math.abs((World.Ball.pos - target.pos):length())
+			local targetDist = World.Ball.pos:distanceTo(target.pos)
 			local isInTheWay = math.abs(distToBallCorridor) < (robot.radius + World.Ball.radius) 
 				and robot.pos:distanceTo(World.Ball.pos) < targetDist
 				and robot.pos:distanceTo(target.pos) < targetDist
@@ -27,12 +26,11 @@ function Robot.wayToRobotFree(target, ignoreRobot, chipkick)
 				isInTheWay = isInTheWay and robot.pos:distanceTo(World.Ball.pos) > Settings.chipDistance
 			end
 			if isInTheWay then
-				isFree = false
-				break
+				return false
 			end
 		end
 	end
-	return isFree
+	return true
 end
 
 function Robot.estimateOpponentDynamics()
