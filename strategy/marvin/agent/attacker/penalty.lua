@@ -22,17 +22,11 @@ function Penalty:_run()
 	end
 
 	if World.RefereeState == "PenaltyOffensivePrepare" then
-		if self._robot:hasBall(World.Ball) then
-			if not self._task or Class.name(self._task, true) ~= "Halt" then
-				self._task = Halt.create(self._robot)
-			end
-		else
-			if not self._task or Class.name(self._task, true) ~= "MoveToStaticBall" then
-				self._task = MoveToStaticBall.create(self._robot, World.Geometry["OpponentGoal"..self.lookDir])
-			end
+		if not self._task or not Class.instanceOf(self._task, MoveToStaticBall) then
+			self._task = MoveToStaticBall.create(self._robot, World.Geometry["OpponentGoal"..self.lookDir])
 		end
 	elseif World.RefereeState == "PenaltyOffensive" then
-		if not self._task or Class.name(self._task, true) ~= "ShootPenalty" then
+		if not self._task or not Class.instanceOf(self._task, ShootPenalty) then
 			self._task = ShootPenalty.create(self._robot, self.lookDir)
 		end
 	end
