@@ -6,10 +6,6 @@ local Ball = require "observer/ball"
 local PassReceiver = require "task/passreceiver"
 local PassTarget = require "task/passtarget"
 
-function ReceivePass:_init()
-	self._catchingPass = false
-end
-
 function ReceivePass:_check()
 	local isPassTarget = false
 	for robot, msg in pairs(self._messages) do
@@ -27,7 +23,6 @@ function ReceivePass:_check()
 		return Base.State.Active
 	elseif self._catchingPass then
 		if Ball.opponentBallOwner() or Ball.friendlyBallOwner() then
-			self._catchingPass = false
 			return Base.State.Inactive
 		end
 		-- force being mainAttacker
@@ -38,8 +33,7 @@ function ReceivePass:_check()
 	return Base.State.Inactive
 end
 
-function ReceivePass:_abort()
-	self._state = Base.State.Inactive
+function ReceivePass:_stop(isAborted)
 	self._catchingPass = false
 end
 

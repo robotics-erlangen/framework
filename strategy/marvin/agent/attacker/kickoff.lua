@@ -86,11 +86,10 @@ function Kickoff:_run()
 				self._task = PassInTheRun.create(self._robot, self._targetRobot, self._shootPos)
 			end
 		end
-	end		
+	end
 end
 
-function Kickoff:_abort()
-	self._state = Base.State.Inactive
+function Kickoff:_stop(isAborted)
 	self._shootPos = nil
 	self._targetRobot = nil
 end

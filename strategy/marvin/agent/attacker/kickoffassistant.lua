@@ -9,13 +9,7 @@ local Ball = require "observer/ball"
 local ShootGoal = require "task/shootgoal"
 local MoveToPos = require "task/movetopos"
 
-function KickoffAssistant:_init()
-	self._targetPos = nil
-	self._movePos = nil
-end
-
 function KickoffAssistant:_check()
-
 	-- try every position in random order, take first free one
 	local positionClash = false
 	for robot, msg in pairs(self._priorityMessages) do
@@ -45,8 +39,7 @@ function KickoffAssistant:_run()
 	end
 end
 
-function  KickoffAssistant:_abort()
-	self._state = Base.State.Inactive
+function  KickoffAssistant:_stop(isAborted)
 	self._targetPos = nil
 	self._movePos = nil
 end
