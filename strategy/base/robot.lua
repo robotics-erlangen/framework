@@ -215,6 +215,10 @@ end
 -- @param distance number - Distance to chip [m]
 -- @return number - Speed to shoot with [m/s]
 function Robot:calculateShootSpeed(destSpeed, distance)
+	if destSpeed >= self.maxShotLinear then
+		return destSpeed
+	end
+
 	local fastBallBrake = Constants.fastBallDeceleration
 	local slowBallBrake = Constants.ballDeceleration
 	local ballSwitchRatio = Constants.ballSwitchRatio
@@ -236,7 +240,11 @@ function Robot:calculateShootSpeed(destSpeed, distance)
 			((2*a_f*a_s-2*a_f^2)*switch-2*a_f*a_s)*v_d,
 			(a_s^2-2*a_f*a_s+a_f^2)*switch^2+(2*a_f*a_s-2*a_s^2)*switch+a_s^2)
 
-	return v_0 or self.maxShotLinear
+	if not v_0 then
+		return self.maxShotLinear
+	else
+		return v_0
+	end
 end
 
 --- Shoot function wrapper.
