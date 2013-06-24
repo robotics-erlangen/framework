@@ -37,7 +37,7 @@ function ShootPenalty:_run(priorityMessages, notifications)
 	if not self.decided then
 		if fixedCorner then
 			self.lookDir = fixedCorner
-		elseif math.abs(World.OpponentKeeper.pos.x) > KeeperPosTolerance then
+		elseif World.OpponentKeeper and  math.abs(World.OpponentKeeper.pos.x) > KeeperPosTolerance then
 			if World.OpponentKeeper.pos.x > 0 then
 				self.lookDir = "Left"
 			else
