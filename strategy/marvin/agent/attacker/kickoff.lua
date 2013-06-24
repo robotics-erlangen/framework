@@ -16,17 +16,8 @@ function Kickoff:_check()
 end
 
 function Kickoff:_run()
-	if World.RefereeState == "KickoffOffensivePrepare" then
-		if self._robot:hasBall(World.Ball) then
-			if not self._task or Class.name(self._task, true) ~= "Halt" then
-				self._task = Halt.create(self._robot)
-			end
-		else
-			if not self._task or Class.name(self._task, true) ~= "MoveToStaticBall" then
-				self._task = MoveToStaticBall.create(self._robot, World.Geometry.OpponentGoal)
-			end
-		end
-
+	if not self._targetRobot or not self._shootPos 
+		or World.RefereeState == "KickoffOffensivePrepare" then
 		-- search pos for pass in the run
 		local nicePositions = {
 			Vector.create(-1.5, 1.4),
@@ -37,19 +28,16 @@ function Kickoff:_run()
 			Vector.create(1.5, 1.4),
 		}
 		local function cmpByOpponentDist(pos1, pos2) 
-			local minDistance1 = math.huge
-			for _, robot in ipairs(World.OpponentRobots) do
-				if robot ~= World.OpponentKeeper then
-					minDistance1 = math.min(minDistance1, (robot.pos - pos1):length())
+			local function minOppDist(pos)
+				local minDistance = math.huge
+				for _, robot in ipairs(World.OpponentRobots) do
+					if robot ~= World.OpponentKeeper then
+						minDistance = math.min(minDistance, (robot.pos - pos):length())
+					end
 				end
+				return minDistance
 			end
-			local minDistance2 = math.huge
-			for _, robot in ipairs(World.OpponentRobots) do
-				if robot ~= World.OpponentKeeper then
-					minDistance2 = math.min(minDistance1, (robot.pos - pos1):length())
-				end
-			end
-			return minDistance1 > minDistance2
+			return minOppDist(pos1) > minOppDist(pos2)
 		end
 		local function isReachable(pos)
 			local isFree = true
@@ -62,6 +50,7 @@ function Kickoff:_run()
 			return isFree
 		end
 		table.sort(nicePositions, cmpByOpponentDist)
+
 		self._shootPos = table.filter(nicePositions, isReachable)[1] or nicePositions[1]
 		vis.addCircle("PassInTheRun", self._shootPos, 0.2, vis.colors.Red, true)
 		-- search nearest kickoff assi
@@ -75,6 +64,12 @@ function Kickoff:_run()
 				end
 			end
 		end
+	end
+
+	if World.RefereeState == "KickoffOffensivePrepare" then
+		if not self._task or Class.name(self._task, true) ~= "MoveToStaticBall" then
+			self._task = MoveToStaticBall.create(self._robot, World.Geometry.OpponentGoal)
+		end
 	elseif World.RefereeState == "KickoffOffensive" then
 		local shootGoalTask = ShootGoal.create(self._robot)
 		if shootGoalTask:canShoot() then 
@@ -82,7 +77,7 @@ function Kickoff:_run()
 				self._task = shootGoalTask
 			end
 		else
-			if not self._task or Class.name(self._task, true) ~= "ShootGoal" then
+			if not self._task or Class.name(self._task, true) ~= "PassInTheRun" then
 				self._task = PassInTheRun.create(self._robot, self._targetRobot, self._shootPos)
 			end
 		end
