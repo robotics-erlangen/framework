@@ -22,7 +22,6 @@ function Assistant:_init(pos, radius)
 
 	self.linePos = Vector.create(-World.Geometry.FieldWidthHalf, lineY)
 	self.lineDir = Vector.create(World.Geometry.FieldWidth, 0)
-
 end
 
 function Assistant:_run()
@@ -42,7 +41,6 @@ function Assistant:_rate(priorityMessages, notifications)
 			robotsInWay = true
 		end
 	end
-	log(robotsInWay)
 	if robotsInWay and World.Ball.speed:length() < Settings.slowBall then
 		if self.lineNum == 3 then
 			self.linePos.y = self.linePos.y - 0.3

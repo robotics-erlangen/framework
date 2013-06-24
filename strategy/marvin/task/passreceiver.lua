@@ -1,9 +1,10 @@
-local PassReceiver = (require "../base/class").new("Task.PassReceiver", require "task/base")
+local PassReceiver = (require "../base/class").new("Task.PassReceiver", require "task/catchball")
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Rating = require "util/rating"
 local vis = require "../base/vis"
+local Settings = require "settings"
 
 PassReceiver.priority = 5
 
@@ -20,13 +21,18 @@ function PassReceiver:_rate(priorityMessages, notifications)
 end
 
 function PassReceiver:_run()
-	vis.addCircle("ReceivePassMoveTo", self.moveTo, 0.03, vis.colors.blue, true)
-	self._robot.path:setDefaultObstacles(self._robot, true)
-	
-	self._robot.path:addRobotObstacles(self._robot)
-	local faceBall = (World.Ball.pos-self._robot.pos):angle()
-	self._robot.trajectory:update(ToTarget, self.moveTo, faceBall)
-	return { targetPos = self.moveTo }
+	if World.Ball.speed:length() < Settings.slowBall then
+		local tPos = tPos or World.Ball.pos
+		self:_catchBall(tPos, 1, 0)
+	else
+		vis.addCircle("ReceivePassMoveTo", self.moveTo, 0.03, vis.colors.blue, true)
+		self._robot.path:setDefaultObstacles(self._robot, true)
+		
+		self._robot.path:addRobotObstacles(self._robot)
+		local faceBall = (World.Ball.pos-self._robot.pos):angle()
+		self._robot.trajectory:update(ToTarget, self.moveTo, faceBall)
+		return { targetPos = self.moveTo }
+	end
 end
 
 function PassReceiver.factory(position)
