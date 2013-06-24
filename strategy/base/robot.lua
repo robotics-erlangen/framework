@@ -78,6 +78,8 @@ RobotMt.__tostring = Robot.tostring
 
 -- reset robot commands and update data
 function Robot:_update(state, time)
+	-- keep current time for use by setStandby
+	self._currentTime = time
  	-- bypass override check in setControllerInput
 	self._controllerInput = {} -- halt robot by default
 	self:shootDisable() -- disable shoot
@@ -210,20 +212,21 @@ function Robot:setStandby(standby, noDelay)
 		self._standby = nil
 	else
 		if not self._standbyTimer then
-			self._standbyTimer = World.Time
+			self._standbyTimer = self._currentTime
 		end
-		if World.Time - self._standbyTimer > 30 then
+		if self._currentTime - self._standbyTimer > 30 then
 			self._standby = true
 		end
 	end
+	debug.set("standby", self._standbyTimer)
 end
 
 function Robot:isCharged()
 	-- assume that recently invisble robots are not charged
-	if World.Time - self.lostSince < 3 then
+	if self._currentTime - self.lostSince < 3 then
 		return false
 	-- robot is discharged during standby
-	elseif World.Time - self._standbyTimer < 5 then
+	elseif self._standbyTimer and self._currentTime - self._standbyTimer < 5 then
 		return false
 	end
 	return true
