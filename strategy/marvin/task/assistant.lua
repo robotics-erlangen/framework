@@ -15,13 +15,14 @@ Assistant.priority = 1
 function Assistant:_init(pos, radius)
 	self._pos = pos
 	self._radius = radius
-	local lineNum = math.random(3)
+	self.lineNum = math.random(3)
 
-	local numMapping = { 0.5, 1.0, 1.4}
-	local lineY = World.Geometry.FieldHeightQuarter * numMapping[lineNum]
+	self.numMapping = { 0.5, 1.0, 1.4}
+	local lineY = World.Geometry.FieldHeightQuarter * self.numMapping[self.lineNum]
 
 	self.linePos = Vector.create(-World.Geometry.FieldWidthHalf, lineY)
 	self.lineDir = Vector.create(World.Geometry.FieldWidth, 0)
+
 end
 
 function Assistant:_run()
@@ -33,6 +34,23 @@ function Assistant:_run()
 end
 
 function Assistant:_rate(priorityMessages, notifications)
+	local lineY = World.Geometry.FieldHeightQuarter * self.numMapping[self.lineNum]
+	self.linePos = Vector.create(-World.Geometry.FieldWidthHalf, lineY)
+	local robotsInWay = false
+	for _, robot in ipairs(World.OpponentRobots) do
+		if World.Ball.pos.y < (self.linePos.y + 0.2) and World.Ball.pos.y > (self.linePos.y - 0.2) and robot.pos.y < (self.linePos.y + 0.2) and robot.pos.y > (self.linePos.y - 0.2) and ((self._robot.pos.x > World.Ball.pos.x and robot.pos.x > World.Ball.pos.x and robot.pos.x < self._robot.pos.x) or (self._robot.pos.x > World.Ball.pos.x and robot.pos.x < World.Ball.pos.x and robot.pos.x > self._robot.pos.x)) then
+			robotsInWay = true
+		end
+	end
+	log(robotsInWay)
+	if robotsInWay and World.Ball.speed:length() < Settings.slowBall then
+		if self.lineNum == 3 then
+			self.linePos.y = self.linePos.y - 0.3
+		else
+			self.linePos.y = self.linePos.y + 0.3
+		end
+	end
+	
 	local shotPos, shotDir = Goal.predictShot() --FIXME use suitable function
 	shotDir = shotDir:copy():setLength(World.Geometry.FieldHeightHalf)
 	local shotTarget = (shotPos+shotDir)
