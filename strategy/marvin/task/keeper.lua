@@ -54,8 +54,10 @@ function Keeper:_run(priorityMessages, notifications)
 			moveTo = goalLinePos
 	end
 	--bound at goal edges
-	if moveTo.x < -World.Geometry.GoalWidth / 2 + Settings.keeperGoalDistance or moveTo.x > World.Geometry.GoalWidth / 2 - Settings.keeperGoalDistance then
-	moveTo.y = moveTo.y - (math.abs(moveTo.x) - (World.Geometry.GoalWidth / 2 - Settings.keeperGoalDistance))
+	if World.RefereeState == "PenaltyDefensive" or World.RefereeState == "PenaltyDefensivePrepare" then
+		moveTo.x = math.bound((-World.Geometry.GoalWidth / 2) - self._robot.radius, moveTo.x, (World.Geometry.GoalWidth / 2) - self._robot.radius)
+	elseif moveTo.x < -World.Geometry.GoalWidth / 2 + Settings.keeperGoalDistance or moveTo.x > World.Geometry.GoalWidth / 2 - Settings.keeperGoalDistance then
+		moveTo.y = moveTo.y - (math.abs(moveTo.x) - (World.Geometry.GoalWidth / 2 - Settings.keeperGoalDistance))
 	end
 	
 	local faceBall = World.Ball.pos-moveTo
