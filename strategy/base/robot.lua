@@ -206,19 +206,24 @@ end
 function Robot:setStandby(standby, noDelay)
 	if not standby then
 		-- delay deleting the standby timer
-		if not self._standby then
+		if not self._standbyTick then
 			self._standbyTimer = nil
 		end
 		self._standby = nil
 	else
+		-- start timer
 		if not self._standbyTimer then
 			self._standbyTimer = self._currentTime
 		end
-		if self._currentTime - self._standbyTimer > 30 then
+		if self._currentTime - self._standbyTimer > 30 or noDelay then
+			-- log when standby was enabled
+			if not self._standbyStart or not self._standby then
+				self._standbyEnd = self._currentTime
+			end
 			self._standby = true
 		end
 	end
-	debug.set("standby", self._standbyTimer)
+	self._standbyTick = standby
 end
 
 function Robot:isCharged()
@@ -226,7 +231,7 @@ function Robot:isCharged()
 	if self._currentTime - self.lostSince < 3 then
 		return false
 	-- robot is discharged during standby
-	elseif self._standbyTimer and self._currentTime - self._standbyTimer < 5 then
+	elseif self._standbyEnd and self._currentTime - self._standbyEnd < 5 then
 		return false
 	end
 	return true
