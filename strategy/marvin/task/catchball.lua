@@ -1,6 +1,7 @@
 local CatchBall = (require "../base/class").new("Task.CatchBall", require "task/base")
 
 local World = require "../base/world"
+local Constants = require "../base/constants"
 local ToTarget = require "trajectory/totarget"
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
@@ -57,7 +58,7 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed, keepDistanceToBall)
 	
 	-- predict ball and catch it
 	local predictedBall = Ball.atTime(self._catchTime, ball)
-	local extraDist = keepDistanceToBall and Settings.catchBallDistance or 0
+	local extraDist = keepDistanceToBall and Settings.catchBallDistance or Constants.positionError
 	local moveDest = predictedBall.pos + (predictedBall.pos - targetPos):setLength(
 			self._robot.shootRadius + extraDist + ball.radius)
 	local viewLine = (targetPos - predictedBall.pos):normalize()
