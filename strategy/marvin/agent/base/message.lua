@@ -120,6 +120,7 @@ Task._optional = {
 	targetPos = "userdata",
 	targetDir = "number",
 	aggressiveKeeperPos = "userdata",
+	distractedIndex = "number",
 }
 
 local Container = (require "../base/class").new("Message.Container", GenericMessage)
