@@ -5,6 +5,7 @@ local ToTarget = require "trajectory/totarget"
 local Rating = require "util/rating"
 local vis = require "../base/vis"
 local Settings = require "settings"
+local debug = require "../base/debug"
 
 PassReceiver.priority = 5
 
@@ -21,8 +22,9 @@ function PassReceiver:_rate(priorityMessages, notifications)
 end
 
 function PassReceiver:_run()
-	if World.Ball.speed:length() < Settings.slowBall then
+	if World.Ball.speed:length() < Settings.fastBall then
 		local tPos = tPos or World.Ball.pos
+		debug.set("ChatchBallTargetPos", tPos)
 		self._robot:setDribblerSpeed(1)
 		self:_catchBall(tPos, 0.2, false)
 	else
