@@ -9,9 +9,10 @@ local Rating = require "util/rating"
 
 DirectPass.priority = 4
 
-function DirectPass:_init(targetRobot, linearShoot)
+function DirectPass:_init(targetRobot, linearShoot, passSpeed)
 	self._targetRobot = targetRobot
 	self._linearShoot = linearShoot
+	self._passSpeed = passSpeed
 end
 
 function DirectPass:_canShoot()
@@ -38,7 +39,7 @@ function DirectPass:_run(priorityMessages, notifications)
 	self._targetPos = self._targetPos + Vector.fromAngle(self._targetDir) * self._targetRobot.shootRadius
 	-- TODO calc shoot target
 
-	local passSpeed = self._targetRobot.constants.passSpeed
+	local passSpeed = self._passSpeed or self._targetRobot.constants.passSpeed
 	self:_shoot(self._targetPos, passSpeed, self._linearShoot)
 	
 	return { passTarget = self._targetRobot }
