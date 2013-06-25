@@ -114,6 +114,7 @@ end
 function ShootGoal:_run()
 	self:updateDestination()
 	-- shoot
+	self._robot:setDribblerSpeed(1)
 	self:_shoot(self.targetPoint, math.huge, true)
 end
 
