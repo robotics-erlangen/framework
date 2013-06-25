@@ -33,6 +33,18 @@ function Robot.wayToRobotFree(target, ignoreRobot, chipkick)
 	return true
 end
 
+function Robot.probableManMarker(robot)
+	for _,r in pairs(World.OpponentRobots) do
+		if r.pos:distanceTo(robot.pos) < 2*robot.radius + 2*r.radius then -- distance = 1 robot diameter
+			if (r.pos - robot.pos):absoluteAngleDiff(World.Ball.pos - robot.pos) < 45 /180*math.pi then
+				return r
+			end
+		end
+	end
+	return nil
+end
+
+
 function Robot.estimateOpponentDynamics()
 	for _, robot in pairs(World.OpponentRobots) do
 		if lastSpeed[robot] then
