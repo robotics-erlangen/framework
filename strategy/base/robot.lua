@@ -32,7 +32,7 @@ local Robot, RobotMt = (require "../base/class").new("Robot")
 -- @field maxAngularSpeed number - maximum angular speed *
 Robot.constants = {
 	hasBallDistance = 0.03, -- 3 cm, robots where the balls distance to the dribbler is less than 2cm are considered to have the ball [m]
-	passSpeed = 1, -- speed with which the ball should arrive at the pass target  [m/s]
+	passSpeed = 2, -- speed with which the ball should arrive at the pass target  [m/s]
 	shootDriveSpeed = 0.2, -- how fast the shoot task drives at the ball [m/s]
 	minAngleError = 4/180 * math.pi -- minimal angular precision that the shoot task guarantees [in radians]
 }
