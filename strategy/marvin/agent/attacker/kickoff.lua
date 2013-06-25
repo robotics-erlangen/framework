@@ -19,8 +19,8 @@ function Kickoff:_stop(isAborted)
 end
 
 function Kickoff:_check()
-	-- mostly copied from shoot behaviour commit 8a6b0bd364abfb27
 	if self._state == Base.State.Active and Ball.isShot() then -- I've shot the ball
+		self._passActive = false
 		self._shootTime = World.Time
 		return Base.State.CoolDown
 	elseif self._state == Base.State.CoolDown then
@@ -28,13 +28,13 @@ function Kickoff:_check()
 		if Ball.opponentBallOwner() or (friend ~= nil and friend ~= self._robot) then
 			return Base.State.Inactive
 		end
-		-- shootgoal has a timeout of 0.5 seconds, 1.0 seconds for passing
-		local timeout = self._passActive and 1 or 0.5
-		if self._shootTime + timeout < World.Time then
+		if self._shootTime + 3 < World.Time then
 			return Base.State.Inactive
 		end
 		return Base.State.CoolDown
 	elseif World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
+		return Base.State.Active
+	elseif self._passActive then
 		return Base.State.Active
 	end
 	return Base.State.Inactive

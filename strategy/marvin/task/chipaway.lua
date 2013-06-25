@@ -34,6 +34,7 @@ function ChipAway:_run(priorityMessages, notifications)
 	end
 	
 	local chipPos = self._chipTarget and self._chipTarget.pos or World.Geometry.OpponentGoal
+	self._robot:setDribblerSpeed(1)
 	self:_shoot(chipPos, math.huge, false)
 
 	return {passTarget = self._chipTarget}

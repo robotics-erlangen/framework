@@ -40,6 +40,7 @@ function DirectPass:_run(priorityMessages, notifications)
 	-- TODO calc shoot target
 
 	local passSpeed = self._passSpeed or self._targetRobot.constants.passSpeed
+	self._robot:setDribblerSpeed(1)
 	self:_shoot(self._targetPos, passSpeed, self._linearShoot)
 	
 	return { passTarget = self._targetRobot }
