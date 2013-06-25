@@ -5,7 +5,7 @@ local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Goal = require "observer/goal"
 local Rating = require "util/rating"
-
+local Field = require "util/field"
 
 StopAttack.priority = 4
 
@@ -100,6 +100,7 @@ function StopAttack:_rate()
 	 
 
 	self._pos = target
+	self._pos = Field.limitToAllowedField(self._pos, 0.1, true)
 	self._dir = (World.Ball.pos - self._pos):angle()
 
 	return Rating.posToRating(self._robot, self._pos)
