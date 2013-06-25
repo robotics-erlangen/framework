@@ -13,7 +13,7 @@ local vis = require "../base/vis"
 
 Volley.priority = 5
 
-local t = 0.35
+local t = 0.72
 
 local function robotList(selfRobot, viewPos)
 	local robots = {}
@@ -48,14 +48,31 @@ end
 function Volley:_run()
 	self:updateDestination()
 	-- viewPos
-	local minViewX = -World.Geometry.FieldWidthHalf
-	local maxViewX = World.Geometry.FieldWidthHalf
-	local midX = minViewX * (1-self._t) + maxViewX * self._t
-	if self._origBallPos.x > 0 then
-		midX = -midX
+	local bla = self._robot.pos
+	self._robot.pos = Vector.create(0, 0)
+	local t = self._t
+	local minPhi = (self._origBallPos - self._robot.pos):angle()
+	local maxPhi = (self.targetPoint - self._robot.pos):angle()
+	local min = geom.intersectLineLine(World.Geometry.OpponentGoal, Vector.create(1, 0), 
+			self._robot.pos, Vector.fromAngle(minPhi))
+	local max = geom.intersectLineLine(World.Geometry.OpponentGoal, Vector.create(1, 0), 
+			self._robot.pos, Vector.fromAngle(maxPhi))
+	if self._origBallPos.x < 0 then
+		min, max = max, min
+		t = 1-self._t
 	end
-	self._viewPos = Vector.create(midX, World.Geometry.FieldHeightHalf)
+	self._viewPos = min * (1-t) + max * t
+	
+	if not self._viewPos then
+		self._viewPos = World.Geometry.OpponentGoal
+	end
+	
+	self._robot.pos = bla
+	
 	vis.addCircle("Volley ViewPos", self._viewPos, 0.2, vis.colors.redHalf, true)
+	vis.addCircle("Volley ViewPos", self.targetPoint, 0.1, vis.colors.redHalf, true)
+	vis.addCircle("Volley ViewPos", min, 0.1, vis.colors.greenHalf, true)
+	vis.addCircle("Volley ViewPos", max, 0.1, vis.colors.greenHalf, true)
 	
 	-- shoot
 	self._robot:shoot(math.huge, 0)
