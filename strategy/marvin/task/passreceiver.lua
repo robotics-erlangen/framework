@@ -23,6 +23,7 @@ end
 function PassReceiver:_run()
 	if World.Ball.speed:length() < Settings.slowBall then
 		local tPos = tPos or World.Ball.pos
+		self._robot:setDribblerSpeed(1)
 		self:_catchBall(tPos, 0.2, false)
 	else
 		vis.addCircle("ReceivePassMoveTo", self.moveTo, 0.03, vis.colors.blue, true)
