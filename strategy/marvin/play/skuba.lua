@@ -28,7 +28,7 @@ end
 function Skuba:_selectRobots(poolRobots)
 	-- cacheable array manipulations
 	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
-	return RobotMatcher.match(self._messages, robots, math.bound(1, #robots, 4), Skuba._conditions)
+	return RobotMatcher.match(self._messages, robots, math.bound(2, #robots, 4), Skuba._conditions)
 end
 
 function Skuba:rateDefault(isInit)
