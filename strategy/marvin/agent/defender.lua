@@ -24,8 +24,8 @@ function Defender:_initBehaviour()
 	self._behaviours = Group.create(self._robot, {
 		Penalty.create(self._robot),
 		Kickoff.create(self._robot),
-		CenterBack.create(self._robot),
 		HandleBall.create(self._robot),
+		CenterBack.create(self._robot),
 		Default.create(self._robot)
 	})
 end
