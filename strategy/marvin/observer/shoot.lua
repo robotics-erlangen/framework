@@ -7,6 +7,7 @@ local Robot = require "observer/robot"
 local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Geom = require "../base/geom"
+local Field = require "util/field"
 
 
 --- Calculates the chance that a pass to the targetRobot will succeed
@@ -159,7 +160,7 @@ end
 -- @return robot or nil - the most suitable robot, if any 
 function Shoot.bestFreeAssistant(activeRobot, messages)
 	local function canPassTo(r)
-		return messages[r] and messages[r].task.assistantRating 
+		return messages[r] and messages[r].task.assistantRating and Field.isInField(r.pos)
 			and Robot.wayToRobotFree(r, activeRobot)
 	end
 	local function rateAssi(robot)
