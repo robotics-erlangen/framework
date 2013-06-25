@@ -4,7 +4,7 @@ local Penalty = (require "../base/class").new("Agent.Attacker.Penalty", Base)
 local World = require "../base/world"
 local Class = require "../base/class"
 
-local ShootPenalty = require "task/shootpenalty"
+local ShootGoal = require "task/shootgoal"
 local Halt = require "task/halt"
 local MoveToStaticBall = require "task/movetostaticball"
 
@@ -26,8 +26,8 @@ function Penalty:_run()
 			self._task = MoveToStaticBall.create(self._robot, World.Geometry["OpponentGoal"..self.lookDir])
 		end
 	elseif World.RefereeState == "PenaltyOffensive" then
-		if not self._task or not Class.instanceOf(self._task, ShootPenalty) then
-			self._task = ShootPenalty.create(self._robot, self.lookDir)
+		if not self._task or not Class.instanceOf(self._task, ShootGoal) then
+			self._task = ShootGoal.create(self._robot, self.lookDir)
 		end
 	end
 end
