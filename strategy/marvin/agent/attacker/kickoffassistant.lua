@@ -27,9 +27,10 @@ function KickoffAssistant:_check()
 		}
 		self._targetPos = table.shuffle(positions)[1]
 	end
-	
-	local isPrepare = World.RefereeState == "KickoffOffensivePrepare"
-	return (isPrepare and Base.State.Active or Base.State.Inactive), { targetPos = self._targetPos }
+
+	local isActive = World.RefereeState == "KickoffOffensivePrepare" or 
+		(self._state == Base.State.Active and not Ball.isShot())
+	return (isActive and Base.State.Active or Base.State.Inactive), { targetPos = self._targetPos }
 end
 
 function KickoffAssistant:_run()

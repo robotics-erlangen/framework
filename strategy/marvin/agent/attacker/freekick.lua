@@ -4,6 +4,7 @@ local FreeKick = (require "../base/class").new("Agent.Attacker.FreeKick", Base)
 local World = require "../base/world"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
+local Ball = require "observer/ball"
 local Class = require "../base/class"
 
 local ChipAway = require "task/chipaway"
@@ -12,11 +13,28 @@ local ShootGoal = require "task/shootgoal"
 local MoveToStaticBall = require "task/movetostaticball"
  
 function FreeKick:_check()
-	local isFreeKick = World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive"
 	if self._state ~= Base.State.Active then
 		self.startTime = World.Time
 	end
-	return isFreeKick and Base.State.Active or Base.State.Inactive
+	-- mostly copied from shoot behaviour commit 8a6b0bd364abfb27
+	if self._state == Base.State.Active and Ball.isShot() then -- I've shot the ball
+		self._shootTime = World.Time
+		return Base.State.CoolDown
+	elseif self._state == Base.State.CoolDown then
+		local friend = Ball.friendlyBallOwner()
+		if Ball.opponentBallOwner() or (friend ~= nil and friend ~= self._robot) then
+			return Base.State.Inactive
+		end
+		-- shootgoal has a timeout of 0.5 seconds, 1.0 seconds for passing
+		local timeout = self._pass and 1 or 0.5
+		if self._shootTime + timeout < World.Time then
+			return Base.State.Inactive
+		end
+		return Base.State.CoolDown
+	elseif World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
+		return Base.State.Active
+	end
+	return Base.State.Inactive
 end
 
 function FreeKick:_run()
@@ -34,6 +52,7 @@ function FreeKick:_run()
 			if shootGoal:canShoot() then
 				self._task = shootGoal
 			else 
+				self._pass = true
 				self:passOrChipTask()
 			end
 		end
@@ -47,6 +66,11 @@ function FreeKick:passOrChipTask()
 	else
 		self._task = ChipAway.create(self._robot)
 	end
+end
+
+function FreeKick:_stop()
+	self._pass = false
+	self._shootTime = 0
 end
 
 return FreeKick

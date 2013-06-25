@@ -4,15 +4,40 @@ local Kickoff = (require "../base/class").new("Agent.Attacker.Kickoff", Base)
 local World = require "../base/world"
 local Class = require "../base/class"
 local vis = require "../base/vis"
+local Ball = require "observer/ball"
 
 local PassInTheRun = require "task/passintherun"
 local ShootGoal = require "task/shootgoal"
 local Halt = require "task/halt"
 local MoveToStaticBall = require "task/movetostaticball"
 
+function Kickoff:_stop(isAborted)
+	self._shootPos = nil
+	self._targetRobot = nil
+	self._passActive = nil
+	self._shootTime = 0
+end
+
 function Kickoff:_check()
-	local isKickoff = World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive"
-	return (isKickoff and Base.State.Active or Base.State.Inactive)
+	-- mostly copied from shoot behaviour commit 8a6b0bd364abfb27
+	if self._state == Base.State.Active and Ball.isShot() then -- I've shot the ball
+		self._shootTime = World.Time
+		return Base.State.CoolDown
+	elseif self._state == Base.State.CoolDown then
+		local friend = Ball.friendlyBallOwner()
+		if Ball.opponentBallOwner() or (friend ~= nil and friend ~= self._robot) then
+			return Base.State.Inactive
+		end
+		-- shootgoal has a timeout of 0.5 seconds, 1.0 seconds for passing
+		local timeout = self._passActive and 1 or 0.5
+		if self._shootTime + timeout < World.Time then
+			return Base.State.Inactive
+		end
+		return Base.State.CoolDown
+	elseif World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
+		return Base.State.Active
+	end
+	return Base.State.Inactive
 end
 
 local function minOppDist(pos)
@@ -82,14 +107,10 @@ function Kickoff:_run()
 		else
 			if not self._task or not Class.instanceOf(self._task, PassInTheRun) then
 				self._task = PassInTheRun.create(self._robot, self._targetRobot, self._shootPos)
+				self._passActive = true
 			end
 		end
 	end
-end
-
-function Kickoff:_stop(isAborted)
-	self._shootPos = nil
-	self._targetRobot = nil
 end
 
 return Kickoff
