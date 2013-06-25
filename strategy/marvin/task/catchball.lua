@@ -80,8 +80,13 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed, keepDistanceToBall, maxSpe
 		-- damp large value changes
 		-- the centerpiece of the catchball algorithm
 		-- FIXME better damping for small changes
-		self._catchTime = 0.9 * self._catchTime + 0.1 * time
+		if time < self._catchTime then
+			self._catchTime = time
+		else
+			self._catchTime = 0.9 * self._catchTime + 0.1 * time
+		end
 	end
+	debug.set("time", time)
 	debug.set("catchtime", self._catchTime)
 	vis.addCircle("CatchBall", Ball.atTime(self._catchTime, ball).pos, predictedBall.radius, vis.colors.blueHalf)
 end
