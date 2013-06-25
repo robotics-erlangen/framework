@@ -6,6 +6,7 @@ local Rating = require "util/rating"
 local vis = require "../base/vis"
 local Settings = require "settings"
 local debug = require "../base/debug"
+local vis = require "../base/vis"
 
 PassReceiver.priority = 5
 
@@ -23,10 +24,11 @@ end
 
 function PassReceiver:_run()
 	if World.Ball.speed:length() < Settings.fastBall then
-		local tPos = tPos or World.Ball.pos
-		debug.set("ChatchBallTargetPos", tPos)
+		self.tPos = self.tPos or World.Ball.pos
+		debug.set("CatchBallTargetPos", tPos)
+		vis.addCircle("PassReceiverCatchBallTargetPos", self.tPos, 0.01)
 		self._robot:setDribblerSpeed(1)
-		self:_catchBall(tPos, 0.2, false)
+		self:_catchBall(self.tPos, 0.2, false)
 	else
 		vis.addCircle("ReceivePassMoveTo", self.moveTo, 0.03, vis.colors.blue, true)
 		self._robot.path:setDefaultObstacles(self._robot, true)
