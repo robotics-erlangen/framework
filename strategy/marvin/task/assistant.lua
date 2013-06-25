@@ -46,9 +46,25 @@ function Assistant:_rate(priorityMessages, notifications)
 		end
 	end
 	
-	local shotPos, shotDir = Goal.predictShot() --FIXME use suitable function
+	local atkPos
+	for _, msg in pairs(priorityMessages) do
+		if msg.task.shotTarget then
+			atkPos = msg.task.shotTarget
+		end
+	end
+	local atkRobot
+	for _, msg in pairs(priorityMessages) do
+		if msg.task.passRobot then
+			atkRobotPos = msg.task.passRobot.pos
+		end
+	end
+	
+	local shotPos, shotDir = Goal.predictShot() --only used as backup guessing
+	shotPos = World.Ball.pos or shotPos or Vector.create(0, 0)
+	shotDir = shotDir or Vector.create(0, 1)
 	shotDir = shotDir:copy():setLength(World.Geometry.FieldHeightHalf)
-	local shotTarget = (shotPos+shotDir)
+	
+	local shotTarget = atkPos or atkRobotPos or (shotPos+shotDir)
 	self._robot.path:addLine(shotPos.x, shotPos.y, shotTarget.x, shotTarget.y, 0.1)
 	
 	if World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive" then
