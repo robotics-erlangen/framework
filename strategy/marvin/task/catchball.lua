@@ -63,14 +63,6 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed, keepDistanceToBall, maxSpe
 			self._robot.shootRadius + extraDist + ball.radius)
 	local viewLine = (targetPos - predictedBall.pos):normalize()
 	local viewDir = viewLine:angle()
-	
-	-- shift target position towards current position along the dribbler
-	local viewPerpendicular = viewLine:perpendicular()
-	local moveLine = moveDest - self._robot.pos
-	local offset = viewPerpendicular:dot(moveLine)
-	offset = offset * math.min(1, 10 * moveLine:length()) -- FIXME magic constant
-	offset = math.bound(-self._robot.dribblerWidth/2, offset, self._robot.dribblerWidth/2)
-	moveDest = moveDest - viewPerpendicular:scaleLength(offset)
 	moveDest = Field.limitToField(moveDest, Settings.positionPadding)
 	
 	-- setup obstacles
