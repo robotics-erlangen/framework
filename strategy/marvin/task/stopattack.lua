@@ -100,7 +100,7 @@ function StopAttack:_rate()
 	 
 
 	self._pos = target
-	self._pos = Field.limitToAllowedField(self._pos, 0.1, true)
+	self._pos = Field.limitToAllowedField(self._pos, 0.03, true)
 	self._dir = (World.Ball.pos - self._pos):angle()
 
 	return Rating.posToRating(self._robot, self._pos)
