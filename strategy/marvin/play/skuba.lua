@@ -39,10 +39,11 @@ function Skuba:rateDefault(isInit)
 	if positiveState[World.RefereeState] then
 		if (World.Geometry.FieldWidthHalf - math.abs(World.Ball.pos.x))^2
 			+ (World.Geometry.FieldHeightHalf - World.Ball.pos.y)^2 < 1 then
+			self._virgin = true
 			return Base.rating.referee
 		end
 	elseif World.RefereeState == "Game" then
-		if Field.isInField(World.Ball.pos) then
+		if Field.isInField(World.Ball.pos) and self._virgin then
 			return Base.rating.yes		
 		end
 	end
@@ -54,7 +55,7 @@ function Skuba:prepareDefault()
 	local right = World.Ball.pos.x > 0
 	local volleyAngle = (right and G.OpponentGoalRight or G.OpponentGoalLeft):angle()
 	local volleyPos = Vector.create(0, 0)
-	local distractor1 = Vector.create((right and -1 or 1) * 1, 2.5)	
+	local distractor1 = Vector.create((right and -1 or 1) * 1, 1)	
 	local distractor2 = Vector.create((right and -1 or 1) * 1.1, 2.7)	
 	self._tasks = {
 		self._robots[1] and DirectPass.create(self._robots[1], self._robots[2], true, 3) or nil,
@@ -66,8 +67,8 @@ end
 
 function Skuba:switchDefault()
 	if Ball.isShot(World.Ball) then
-		log("change to volley")
 		self:_setState("Volley")
+		self._virgin = false
 	end
 end
 
@@ -77,6 +78,9 @@ function Skuba:rateVolley()
 		IndirectOffensive = true,
 		Game = true,
 	}
+	if World.Ball.pos:distanceTo(self._origBallPos) > 1 and Ball.isShot(World.Ball) then
+		return Base.rating.no
+	end
 	if positiveState[World.RefereeState] then
 		if Field.isInField(World.Ball.pos) then
 			return Base.rating.yes		
@@ -89,7 +93,7 @@ function Skuba:prepareVolley()
 	local right = World.Ball.pos.x > 0
 	local volleyAngle = (right and G.OpponentGoalRight or G.OpponentGoalLeft):angle()
 	local volleyPos = Vector.create(0, 0)
-	local distractor1 = Vector.create((right and -1 or 1) * 1, 2.5)	
+	local distractor1 = Vector.create((right and -1 or 1) * 1, 1)	
 	local distractor2 = Vector.create((right and -1 or 1) * 1.1, 2.7)	
 	self._tasks = {
 		self._robots[1] and Assistant.create(self._robots[1]) or nil,
