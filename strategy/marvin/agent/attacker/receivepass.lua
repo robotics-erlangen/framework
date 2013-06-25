@@ -24,7 +24,7 @@ function ReceivePass:_check()
 		end
 		return Base.State.Active
 	elseif self._catchingPass then
-		if Ball.opponentBallOwner() or Ball.friendlyBallOwner() then
+		if Ball.opponentBallOwner() or Ball.friendlyBallOwner() or World.Ball.speed:length() < Settings.slowBall then
 			return Base.State.Inactive
 		end
 		-- force being mainAttacker
