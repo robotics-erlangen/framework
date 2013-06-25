@@ -2,6 +2,8 @@ local Base = require "agent/base/behaviour"
 local ReceivePass = (require "../base/class").new("Agent.Attacker.ReceivePass", Base)
 local World = require "../base/world"
 local Ball = require "observer/ball"
+local Referee = require "util/referee"
+
 
 local PassReceiver = require "task/passreceiver"
 local PassTarget = require "task/passtarget"
@@ -27,9 +29,10 @@ function ReceivePass:_check()
 		end
 		-- force being mainAttacker
 		local message = { specialTask = { mainAttacker = 2 } }
-		return Base.State.Active, message
+		if not Referee.isStopState() then
+			return Base.State.Active, message
+		end
 	end
-
 	return Base.State.Inactive
 end
 
