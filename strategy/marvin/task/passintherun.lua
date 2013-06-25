@@ -10,10 +10,11 @@ local geom = require "../base/geom"
 
 PassInTheRun.priority = 4
 
-function PassInTheRun:_init(targetRobot, shootPos)
+function PassInTheRun:_init(targetRobot, shootPos, passSpeed)
 	assert(shootPos, "shoot pos is missing")
 	self._targetRobot = targetRobot
 	self._shootPos = shootPos
+	self._passSpeed = passSpeed or self._robot.constants.passSpeed/2
 	self._isShooting = false
 end
 
@@ -23,9 +24,10 @@ function PassInTheRun:_canShoot()
 end
 
 function PassInTheRun:_run(priorityMessages, notifications)
-	local passInTheRunSpeed = self._robot.constants.passSpeed / 2
+	local passInTheRunSpeed = self._passSpeed
 	self._robot:setDribblerSpeed(1)
-	local isShooting = self:_shoot(self._shootPos, passInTheRunSpeed, true)
+	local linear = Shoot.evaluatePassCorridor(self._robot, 0, self._shootPos) > 0.2
+	local isShooting = self:_shoot(self._shootPos, passInTheRunSpeed, linear)
 	self._isShooting = self._isShooting or isShooting
 	
 	local msg = { shootPos = self._shootPos }
