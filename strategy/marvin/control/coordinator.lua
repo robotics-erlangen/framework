@@ -180,7 +180,7 @@ function Coordinator:observeGameState()
 		-- corner kick: 70 cm from field edges
 		if (World.Geometry.FieldWidthHalf - math.abs(World.Ball.pos.x))^2
 			+ (-World.Geometry.FieldHeightHalf - World.Ball.pos.y)^2 < 1 then
-			attackRatio = 0
+			attackRatio = 0.2
 		else
 			attackRatio = 0.3
 		end
