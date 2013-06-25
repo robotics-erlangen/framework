@@ -322,10 +322,10 @@ function Robot:hasBall(ball, sideOffset)
 	local relpos = self:posToBall(ball)
 	local offset = math.abs(relpos.y)
 	-- if too far to the sides
-	if offset > self.dribblerWidth / 2 + Constants.positionError + sideOffset then
+	if offset > self.dribblerWidth / 2 + sideOffset then
 		return false
 	-- in hysteresis area without having had the ball
-	elseif offset >= self.dribblerWidth / 2 - Constants.positionError + sideOffset
+	elseif offset >= self.dribblerWidth / 2 - 2*Constants.positionError + sideOffset
 			and not self._hasBall[sideOffset] then
 		return false
 	end
