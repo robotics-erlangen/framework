@@ -14,7 +14,7 @@ local MoveToStaticBall = require "task/movetostaticball"
 function Kickoff:_stop(isAborted)
 	self._shootPos = nil
 	self._targetRobot = nil
-	self._passActive = nil
+	self._passActiveSince = 0
 	self._shootTime = 0
 end
 
@@ -34,7 +34,7 @@ function Kickoff:_check()
 		return Base.State.CoolDown
 	elseif World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
 		return Base.State.Active
-	elseif self._passActive then
+	elseif self._passActiveSince + 5 > World.Time then
 		return Base.State.Active
 	end
 	return Base.State.Inactive
@@ -107,7 +107,7 @@ function Kickoff:_run()
 		else
 			if not self._task or not Class.instanceOf(self._task, PassInTheRun) then
 				self._task = PassInTheRun.create(self._robot, self._targetRobot, self._shootPos)
-				self._passActive = true
+				self._passActiveSince = World.Time
 			end
 		end
 	end
