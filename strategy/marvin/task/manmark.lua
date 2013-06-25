@@ -21,10 +21,22 @@ function ManMark:_run(priorityMessages, notifications)
 	return { defendedOpponent = self._targetRobot }
 end
 
-local function rateOpp(own, opp)
+local function rateOpp(own, remainingOpponents, opp)
 	local goalDist = opp.pos:distanceTo(World.Geometry.FriendlyGoal)
 	local robotDist = opp.pos:distanceTo(own.pos)
 	-- FIXME better metrik
+	if Referee.isStopState() then
+		local dist, nearestToBall = math.huge, nil
+		for _, robot in ipairs(remainingOpponents) do
+			if robot.pos:distanceTo(World.Ball.pos) < dist then
+				dist = robot.pos:distanceTo(World.Ball.pos)
+				nearestToBall = robot
+			end
+		end
+		if opp == nearestToBall then
+			return math.huge
+		end
+	end
 	return goalDist + 0.5*robotDist
 end
 
@@ -45,11 +57,11 @@ function ManMark:_rate(priorityMessages, notifications)
 	end
 	
 	local oppOrder = function(opp1, opp2)
-		return rateOpp(self._robot, opp1) < rateOpp(self._robot, opp2)
+		return rateOpp(self._robot, remainingOpponents, opp1) < rateOpp(self._robot, remainingOpponents, opp2)
 	end
 	
 	table.sort(remainingOpponents, oppOrder)
-	
+
 	self._targetRobot = nil
 	if #remainingOpponents > 0 then
 		self._targetRobot = remainingOpponents[1]
