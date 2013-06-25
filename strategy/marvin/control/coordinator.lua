@@ -155,12 +155,35 @@ function Coordinator:observeGameState()
 	-- TODO: analyze field, ball owner, ball getter
 	-- TODO: decide how many robots to use for attack / defense
 	
+	-- ratio   defenders
+	-- 0.0	-> 6
+	-- 0.2	-> 5
+	-- 0.3	-> 4
+	-- 0.5	-> 3
+	-- 0.7	-> 2
+	-- 0.8	-> 1
+	-- 1.0	-> 0
+	
 	-- evenly distribute robots between attack and defense
 	local attackRatio = 0.5
 	if World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive" then
 		attackRatio = 0.3
 	elseif World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
 		attackRatio = 0.7
+	elseif World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
+		-- corner kick: 70 cm from field edges
+		if (World.Geometry.FieldWidthHalf - math.abs(World.Ball.pos.x))^2
+			+ (World.Geometry.FieldHeightHalf - World.Ball.pos.y)^2 < 1 then
+			attackRatio = 0.7
+		end
+	elseif World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
+		-- corner kick: 70 cm from field edges
+		if (World.Geometry.FieldWidthHalf - math.abs(World.Ball.pos.x))^2
+			+ (-World.Geometry.FieldHeightHalf - World.Ball.pos.y)^2 < 1 then
+			attackRatio = 0
+		else
+			attackRatio = 0.3
+		end
 	end
 	if World.GameStage == "PenaltyShootout" then
 		attackRatio = 1
