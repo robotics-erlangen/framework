@@ -8,7 +8,7 @@ settings.ballOwnDistance = 0.07 -- we own the ball if it was at least once only 
 settings.ballOwnHysteresis = 0.03
 settings.keeperGoalDistance = 0.02 -- how far the keeper should stay away from the goal, used in task/keeper
 settings.slowBall = 0.5 -- consider a ball as moving if faster than this limit [m/s]
-settings.fastBall = 1.5 -- consider a ball as fast if faster than this limit [m/s]
+settings.fastBall = 1.0 -- consider a ball as fast if faster than this limit [m/s]
 settings.tiltShotAngle = 45/180*math.pi -- the max offset angle for tilted and volley shots
 -- we can try to shoot at the goal if the probability of a success is > minSuccessProbability
 settings.minAnglePrecision = 2 / 180 * math.pi
