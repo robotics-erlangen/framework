@@ -67,7 +67,7 @@ function ShootGoal:updateDestination()
 
 		-- reevaluate the old sector
 		-- (assuming the angles are between 0 and pi)		
-		if self._oldBestMid and self._oldBestMid > sector[1] and self._oldBestMid < sector[2] then
+		if self.bestMid and self.bestMid > sector[1] and self.bestMid < sector[2] then
 			rating = rating * (1 + sectorRatingHysteresis)
 		end
 
@@ -80,9 +80,10 @@ function ShootGoal:updateDestination()
 		end	
 	end
 	
+	self.bestMid = bestMid
 	self.targetPoint = bestMid and geom.intersectLineLine(ball.pos, Vector.fromAngle(bestMid), 
-			G.OpponentGoal, Vector.create(1, 0)) or self.targetPoint or G.OpponentGoal
-	self.maxAngleError = bestAngleError or self.maxAngleError or 5 / 180 * math.pi
+			G.OpponentGoal, Vector.create(1, 0)) or G.OpponentGoal
+	self.maxAngleError = bestAngleError
 	
 	self.timestamp = World.Time
 end
@@ -96,13 +97,18 @@ function ShootGoal:_rate()
 end
 
 function ShootGoal:canShoot()
-	return self:_canShoot()
+	self:updateDestination()
+	return self.maxAngleError and self.maxAngleError > 1.8/180*math.pi
 end
 
 function ShootGoal:_canShoot()
 	self:updateDestination()
 	local angleDiff = math.abs(geom.getAngleDiff((self.targetPoint - World.Ball.pos):angle(), self._robot.dir))
-	return angleDiff < self.maxAngleError or angleDiff < Settings.minAnglePrecision
+	if self.maxAngleError then
+		return angleDiff < self.maxAngleError or angleDiff < Settings.minAnglePrecision
+	else
+		return angleDiff < 5 / 180 * math.pi or angleDiff < Settings.minAnglePrecision
+	end
 end
 
 function ShootGoal:_run()
