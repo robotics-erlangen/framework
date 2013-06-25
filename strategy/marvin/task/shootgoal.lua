@@ -18,7 +18,7 @@ ShootGoal.priority = 5
 local cornerWeight = 0.4
 
 -- how much a new best sector should be better than the old one
-local sectorRatingHysteresis = 1
+local sectorRatingHysteresis = 2
 
 local function robotList(selfRobot, viewPos)
 	local robots = {}
