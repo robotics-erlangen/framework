@@ -75,7 +75,7 @@ end
 local function calculatePosition(robot, keeperPos)
 	--extra distance to defense area
 	--robot should stay away 1cm from the defense area obstacle specified in base/path
-	local extraDistance = Settings.positionPadding + 0.01
+	local extraDistance = Settings.positionPadding + 0.05
 
 	--get all unoccupied sectors
 	local robots = {}
