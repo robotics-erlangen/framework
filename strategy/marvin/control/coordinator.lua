@@ -184,6 +184,16 @@ function Coordinator:observeGameState()
 		else
 			attackRatio = 0.3
 		end
+	elseif World.RefereeState == "Stop" then
+		if self._front == nil then
+			self._front = false
+		end
+		if self._front and World.Ball.pos.y < -0.2 or not self._front and World.Ball.pos.y > 0.2 then
+			self._front = not self._front
+		end
+		if not self._front then
+			attackRatio = 0.3
+		end
 	end
 	if World.GameStage == "PenaltyShootout" then
 		attackRatio = 1
