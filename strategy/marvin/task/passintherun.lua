@@ -23,8 +23,9 @@ function PassInTheRun:_canShoot()
 end
 
 function PassInTheRun:_run(priorityMessages, notifications)
-	local passSpeed = self._robot.constants.passSpeed
-	local isShooting = self:_shoot(self._shootPos, passSpeed, true)
+	local passInTheRunSpeed = self._robot.constants.passSpeed / 2
+	self._robot:setDribblerSpeed(1)
+	local isShooting = self:_shoot(self._shootPos, passInTheRunSpeed, true)
 	self._isShooting = self._isShooting or isShooting
 	
 	local msg = { shootPos = self._shootPos }
