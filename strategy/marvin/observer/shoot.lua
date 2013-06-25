@@ -161,7 +161,7 @@ end
 function Shoot.bestFreeAssistant(activeRobot, messages)
 	local function canPassTo(r)
 		return messages[r] and messages[r].task.assistantRating and Field.isInField(r.pos)
-			and Robot.wayToRobotFree(r, activeRobot)
+			and Robot.wayToRobotFree(r, activeRobot) and r.pos:distanceTo(World.Ball.pos) > 0.5
 	end
 	local function rateAssi(robot)
 		local fs = Goal.freeSectors(robot.pos, World.OpponentRobots, true)
