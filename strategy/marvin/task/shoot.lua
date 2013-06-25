@@ -89,8 +89,8 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 			end
 
 			-- keep away from ball
-			if distToBall.x < Settings.catchBallDistance then
-				local distError = Settings.catchBallDistance - distToBall.x
+			if distToBall.x < Settings.catchBallDistance + 0.018 then
+				local distError = Settings.catchBallDistance + 0.018 - distToBall.x
 				speed = speed - Vector.fromAngle(targetDir):setLength(distError * 20)
 			end
 		end
