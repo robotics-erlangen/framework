@@ -5,7 +5,7 @@ local distToPost = 0.05 -- distance of the target point on goal line to the post
 local changeThreshold = 0.5 -- set 0 if opponent keeper follows look Dir every time
 local fixedCorner = false -- set to "Right" or "Left" if opponent keeper has fixed behaviour or weakness
 local KeeperPosTolerance = 0.04 -- if keeper's distance to the goals center is bigger, we will choose the big free sector
-local probabilityThreshold = 0.5 -- lower means ealier shot, but less precision
+local shootErrorThreshold = 0.1 -- maximum position error
 
 local ShootPenalty = (require "../base/class").new("Task.ShootPenalty", require "task/shoot")
 
@@ -17,34 +17,33 @@ local vis = require "../base/vis"
 ShootPenalty.priority = 5
 function ShootPenalty:_init(lookDir) 
 	self.lookDir = lookDir
-	self.decided = false
+	self.targetPos = nil
 end
-local successProbability = 0
-function ShootPenalty:_successProbability(t)
-	if self.targetPos then
-		local roboDir = Vector.fromAngle(self._robot.dir)
-		local goalLineDir = Vector.fromAngle(0)
-		local lookPos = geom.intersectLineLine(self._robot.pos, roboDir, G.OpponentGoal, goalLineDir)
-		vis.addCircle("LookPos", lookPos, 0.02, vis.colors.red, true)
-		local diff = math.abs((lookPos - self.targetPos):length())
-		successProbability = G.GoalWidth - diff
+
+function ShootPenalty:_canShoot()
+	local roboDir = Vector.fromAngle(self._robot.dir)
+	local goalLineDir = Vector.create(1, 0)
+	local lookPos = geom.intersectLineLine(self._robot.pos, roboDir, G.OpponentGoal, goalLineDir)
+	if not lookPos then
+		return false
 	end
-	return successProbability
+	vis.addCircle("LookPos", lookPos, 0.02, vis.colors.red, true)
+	return lookPos:distanceTo(self.targetPos) < shootErrorThreshold
 end
 function ShootPenalty:_rate() return 1 end
 
 function ShootPenalty:_run(priorityMessages, notifications)
-	if not self.decided then
+	if not self.targetPos then
 		if fixedCorner then
 			self.lookDir = fixedCorner
-		elseif World.OpponentKeeper and  math.abs(World.OpponentKeeper.pos.x) > KeeperPosTolerance then
+		elseif World.OpponentKeeper and math.abs(World.OpponentKeeper.pos.x) > KeeperPosTolerance then
 			if World.OpponentKeeper.pos.x > 0 then
 				self.lookDir = "Left"
 			else
 				self.lookDir = "Right"
 			end
 		else
-			local otherDir = "Left" and "Right" or "Left"
+			local otherDir = (self.lookdir == "Left") and "Right" or "Left"
 			if math.random() > changeThreshold then
 				self.lookDir = otherDir
 			end
@@ -59,7 +58,7 @@ function ShootPenalty:_run(priorityMessages, notifications)
 	end
 	vis.addCircle("PenaltyTargetPos", self.targetPos, 0.02, vis.colors.blue, true)
 	self._robot:setDribblerSpeed(1)
-	self:_shoot(self.targetPos, math.huge, true, probabilityThreshold, true)
+	self:_shoot(self.targetPos, math.huge, true)
 end
 
 function ShootPenalty.test(id)

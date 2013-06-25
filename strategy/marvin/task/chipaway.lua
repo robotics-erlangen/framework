@@ -14,8 +14,8 @@ function ChipAway:_init()
 	self._chipTarget = nil
 end
 
-function ChipAway:_successProbability(t)
-	return 1
+function ChipAway:_canShoot()
+	return true
 end
 
 function ChipAway:_run(priorityMessages, notifications)
@@ -34,7 +34,7 @@ function ChipAway:_run(priorityMessages, notifications)
 	end
 	
 	local chipPos = self._chipTarget and self._chipTarget.pos or World.Geometry.OpponentGoal
-	self:_shoot(chipPos, math.huge, false, 0)
+	self:_shoot(chipPos, math.huge, false)
 
 	return {passTarget = self._chipTarget}
 end

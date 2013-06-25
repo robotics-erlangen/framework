@@ -10,10 +10,12 @@ settings.keeperGoalDistance = 0.02 -- how far the keeper should stay away from t
 settings.slowBall = 0.5 -- consider a ball as moving if faster than this limit [m/s]
 settings.fastBall = 1.5 -- consider a ball as fast if faster than this limit [m/s]
 settings.tiltShotAngle = 45/180*math.pi -- the max offset angle for tilted and volley shots
-settings.shootDriveSpeed = 1
+-- we can try to shoot at the goal if the probability of a success is > minSuccessProbability
+settings.minAnglePrecision = 2 / 180 * math.pi
+settings.shootDriveSpeed = 0.6
 settings.shootSideOffset = 0.05 -- extends the hasBall sidewards
 settings.dribbleDriveSpeed = 1 -- we can dribble backwards with approximately 1 m/s
-settings.shootProbabilityThreshold = 0.8 --we instantly shoot if the probability that no opponent robot blocks it is at least 80% 
+settings.passPrecision = 0.1 -- maximum position error allowed for a pass
 settings.chipDistance = 0.4 -- the distance which a robot can have to the ball so that the chip kick goes over this robot
 settings.receiveChipDistance = 0.2 --the distance between the landing point of the chipped ball and the pass receiver
 settings.markingDistance = 0.05 -- close enough

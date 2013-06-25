@@ -22,8 +22,8 @@ function Duel:_init()
 	self.isAtBall = false
 end
 
-function Duel:_successProbability()
-	return 1
+function Duel:_canShoot()
+	return true
 end
 
 function Duel:_rate()

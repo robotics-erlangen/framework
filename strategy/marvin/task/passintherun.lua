@@ -6,33 +6,32 @@ local Shoot = require "observer/shoot"
 local Rating = require "util/rating"
 local Robot = require "observer/robot"
 local vis = require "../base/vis"
+local geom = require "../base/geom"
 
 PassInTheRun.priority = 4
 
 function PassInTheRun:_init(targetRobot, shootPos)
+	assert(shootPos, "shoot pos is missing")
 	self._targetRobot = targetRobot
 	self._shootPos = shootPos
-	self._succProbability = 0
+	self._isShooting = false
 end
 
-local successProbability = 0
-function PassInTheRun:_successProbability(t)
-	if self._shootPos then
-		local angleDiff = math.abs(self._robot.dir - (self._shootPos - self._robot.pos):angle())
-		local diffRatio = (2*math.pi - angleDiff) / (2*math.pi)
-		local weightedRatio = diffRatio * diffRatio
-		if weightedRatio > successProbability then
-			successProbability = weightedRatio
-		end
-	end
-	return successProbability
+function PassInTheRun:_canShoot()
+	local angleDiff = geom.getAngleDiff(self._robot.dir, (self._shootPos - self._robot.pos):angle())
+	return math.abs(angleDiff) < 6 / 180 * math.pi
 end
 
 function PassInTheRun:_run(priorityMessages, notifications)
 	local passSpeed = self._robot.constants.passSpeed
-	self:_shoot(self._shootPos, passSpeed, true, Settings.shootProbabilityThreshold, true)
+	local isShooting = self:_shoot(self._shootPos, passSpeed, true)
+	self._isShooting = self._isShooting or isShooting
 	
-	return { passTarget = self._targetRobot, shootPos = self._shootPos }
+	local msg = { shootPos = self._shootPos }
+	if self._isShooting then
+		msg.passTarget = self._targetRobot
+	end
+	return msg
 end
 
 function PassInTheRun:_rate()

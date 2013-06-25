@@ -8,8 +8,8 @@ function MoveToStaticBall:_init(targetPos)
 	self._targetPos = targetPos
 end
 
-function MoveToStaticBall:_successProbability(t)
-	return 1
+function MoveToStaticBall:_canShoot()
+	return true
 end
 
 function MoveToStaticBall:_run(priorityMessages, notifications)
