@@ -13,7 +13,7 @@ local vis = require "../base/vis"
 
 Volley.priority = 5
 
-local t = 0.42
+local t = 0.62
 
 local function robotList(selfRobot, viewPos)
 	local robots = {}
@@ -42,7 +42,8 @@ end
 function Volley:_canShoot()
 	self:updateDestination()
 	local angleDiff = math.abs(geom.getAngleDiff((self.targetPoint - World.Ball.pos):angle(), self._robot.dir))
-	return angleDiff < self.maxAngleError or angleDiff < Settings.minAnglePrecision
+	
+	return self.maxAngleError and angleDiff < self.maxAngleError or angleDiff < Settings.minAnglePrecision
 end
 
 function Volley:_run()

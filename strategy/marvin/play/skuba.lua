@@ -10,6 +10,7 @@ local Robot = require "observer/robot"
 local Field = require "util/field"
 
 local MoveToPos = require "task/movetopos"
+local MoveToStaticBall = require "task/movetostaticball"
 local DirectPass = require "task/directpass"
 local Assistant = require "task/assistant"
 local Volley = require "task/volley"
@@ -24,6 +25,11 @@ Skuba.maxRating = Base.rating.referee
 
 Skuba._conditions = {}
 
+
+-- =================
+-- ===== STUFF =====
+-- =================
+
 function Skuba:_init()
 	self._origBallPos = World.Ball.pos
 	self._startTime = World.Time
@@ -35,23 +41,39 @@ function Skuba:_selectRobots(poolRobots)
 	return RobotMatcher.match(self._messages, robots, math.bound(2, #robots, 4), Skuba._conditions)
 end
 
-
 function Skuba:switchDefault()
+	if self._robots[1]:hasBall(World.Ball) then
+		log("Prepare -> PassToMid")
+		self:_setState("PassToMid")
+	end
+end
+
+function Skuba:switchPassToMid()
 	if Ball.isShot(World.Ball) then
-		log("Skuba -> Volley")
+		log("PassToMid -> Volley")
 		self:_setState("Volley")
 		self._virgin = false
 	end
 	if (World.Time - self._startTime) > 5 then
 		if Robot.probableManMarker(self._robots[2]) ~= nil and self._robots[3] then
-			log("Skuba -> PassToDistractors")
+			log("PassToMid -> PassToDistractors")
 			self:_setState("PassToDistractors")	
 		else
-			log("Skuba -> Chip")
+			log("PassToMid -> Chip")
 			self:_setState("Chip")
 		end
 	end
 end
+
+function Skuba:_update()
+	self._linear = not chip
+	self._right = World.Ball.pos.x > 0
+	self._volleyAngle = (right and G.OpponentGoalRight or G.OpponentGoalLeft):angle()
+	self._volleyPos = Vector.create(0, 0)
+	self._distractor1 = Vector.create((right and -1 or 1) * 1, 1)	
+	self._distractor2 = Vector.create((right and -1 or 1) * 1.1, 2.7)	
+end
+
 
 -- ================
 -- ===== RATE =====
@@ -97,6 +119,10 @@ function Skuba:rateDefault()
 	return rate(self, "Default")
 end
 
+function Skuba:ratePassToMid()
+	return rate(self, "PassToMid")
+end
+
 function Skuba:rateVolley()
 	return rate(self, "Volley")
 end
@@ -110,59 +136,55 @@ function Skuba:ratePassToDistractors()
 end
 
 
--- ===================
--- ===== PREPARE =====
--- ===================
+-- ==================
+-- ===== ACTION =====
+-- ==================
 
 
-function Skuba:prepareDefault(chip)
-	local linear = not chip
-	local right = World.Ball.pos.x > 0
-	local volleyAngle = (right and G.OpponentGoalRight or G.OpponentGoalLeft):angle()
-	local volleyPos = Vector.create(0, 0)
-	local distractor1 = Vector.create((right and -1 or 1) * 1, 1)	
-	local distractor2 = Vector.create((right and -1 or 1) * 1.1, 2.7)	
+function Skuba:prepareDefault()
+	self:_update()
 	self._tasks = {
-		self._robots[1] and DirectPass.create(self._robots[1], self._robots[2], linear, 3) or nil,
-		self._robots[2] and MoveToPos.create(self._robots[2], volleyPos, volleyAngle) or nil,
-		self._robots[3] and MoveToPos.create(self._robots[3], distractor1, (World.Ball.pos - distractor1):angle()) or nil, 
-		self._robots[4] and MoveToPos.create(self._robots[4], distractor2, (World.Ball.pos - distractor2):angle()) or nil,
+		self._robots[1] and MoveToStaticBall.create(self._robots[1], World.Geometry.OpponentGoal) or nil,
+		self._robots[2] and MoveToPos.create(self._robots[2], self._volleyPos, self._volleyAngle) or nil,
+		self._robots[3] and MoveToPos.create(self._robots[3], self._distractor1, (World.Ball.pos - self._distractor1):angle()) or nil, 
+		self._robots[4] and MoveToPos.create(self._robots[4], self._distractor2, (World.Ball.pos - self._distractor2):angle()) or nil,
+	}
+end
+
+function Skuba:preparePassToMid(chip)
+	self:_update()
+	self._tasks = {
+		self._robots[1] and DirectPass.create(self._robots[1], self._robots[2], self._linear, 3) or nil,
+		self._robots[2] and MoveToPos.create(self._robots[2], self._volleyPos, self._volleyAngle) or nil,
+		self._robots[3] and MoveToPos.create(self._robots[3], self._distractor1, (World.Ball.pos - self._distractor1):angle()) or nil, 
+		self._robots[4] and MoveToPos.create(self._robots[4], self._distractor2, (World.Ball.pos - self._distractor2):angle()) or nil,
 	}
 end
 
 
 function Skuba:prepareVolley()
-	local right = World.Ball.pos.x > 0
-	local volleyAngle = (right and G.OpponentGoalRight or G.OpponentGoalLeft):angle()
-	local volleyPos = Vector.create(0, 0)
-	local distractor1 = Vector.create((right and -1 or 1) * 1, 1)	
-	local distractor2 = Vector.create((right and -1 or 1) * 1.1, 2.7)	
+	self:_update()
 	self._tasks = {
 		self._robots[1] and Assistant.create(self._robots[1]) or nil,
 		self._robots[2] and Volley.create(self._robots[2], self._origBallPos) or nil,
-		self._robots[3] and MoveToPos.create(self._robots[3], distractor1, (World.Ball.pos - distractor1):angle()) or nil, 
-		self._robots[4] and MoveToPos.create(self._robots[4], distractor2, (World.Ball.pos - distractor2):angle()) or nil,
+		self._robots[3] and MoveToPos.create(self._robots[3], self._distractor1, (World.Ball.pos - self._distractor1):angle()) or nil, 
+		self._robots[4] and MoveToPos.create(self._robots[4], self._distractor2, (World.Ball.pos - self._distractor2):angle()) or nil,
 	}
 end
 
 function Skuba:prepareChip()
-	self:prepareDefault(true)
+	self:preparePassToMid(true)
 end
 
 function Skuba:preparePassToDistractors()
-	local linear = not chip
-	local right = World.Ball.pos.x > 0
-	local volleyAngle = (right and G.OpponentGoalRight or G.OpponentGoalLeft):angle()
-	local volleyPos = Vector.create(0, 0)
-	local distractor1 = Vector.create((right and -1 or 1) * 1, 1)	
-	local distractor2 = Vector.create((right and -1 or 1) * 1.1, 2.7)
-	local passPos = Vector.create((right and -1 or 1) * 1, 1.8)
+	self:_update()
+	local passPos = Vector.create((self._right and -1 or 1) * 1, 1.8)
 	self._tasks = {
 		self._robots[1] and PassInTheRun.create(self._robots[1], self._robots[2], 
-				passPos, self._robots[2].constants.passSpeed) or nil,
-		self._robots[2] and MoveToPos.create(self._robots[2], volleyPos, volleyAngle) or nil,
-		self._robots[3] and MoveToPos.create(self._robots[3], passPos, volleyAngle) or nil, 
-		self._robots[4] and MoveToPos.create(self._robots[4], distractor2, (World.Ball.pos - distractor2):angle()) or nil,
+				self._passPos, 0) or nil,
+		self._robots[2] and MoveToPos.create(self._robots[2], self._volleyPos, self._volleyAngle) or nil,
+		self._robots[3] and MoveToPos.create(self._robots[3], passPos, self._volleyAngle) or nil, 
+		self._robots[4] and MoveToPos.create(self._robots[4], self._distractor2, (World.Ball.pos - self._distractor2):angle()) or nil,
 	}
 end
 
