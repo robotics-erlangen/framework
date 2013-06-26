@@ -54,6 +54,7 @@ function Skuba:switchPassToMid()
 		log("PassToMid -> Volley")
 		self:_setState("Volley")
 		self._virgin = false
+		self._volleyStartTime = World.Time
 	end
 	if (World.Time - self._startTime) > 5 then
 		if Robot.probableManMarker(self._robots[2]) ~= nil and self._robots[3] then
@@ -106,7 +107,8 @@ local function rate(self, state)
 		return Base.rating.no
 	end
 	if state == "Volley" then
-		if World.Ball.pos:distanceTo(self._origBallPos) > 1 and Ball.isShot(World.Ball) then
+		local time = World.Time - self._volleyStartTime
+		if time > 1 and Ball.isShot(World.Ball) or time > 5 then
 			return Base.rating.no
 		elseif Field.isInField(World.Ball.pos) and
 				not (Ball.opponentBallOwner() and Ball.friendlyBallOwner()) then
