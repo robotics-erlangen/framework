@@ -17,7 +17,9 @@ end
 -- the robot may drive with up to maxEndSpeed or ballSpeed when it catches the ball, depending on which of both is higher
 function CatchBall:_catchBall(targetPos, maxEndSpeed, keepDistanceToBall, maxSpeed)
 	local ball = World.Ball
-	if self._catchTime then
+	self._lastBallSpeed = self._lastBallSpeed or ball.speed
+	-- ball is slowing down
+	if self._catchTime and World.Ball.speed:length() < self._lastBallSpeed:length() + 0.1 then
 		-- update time from last frame
 		self._catchTime = math.max(0, self._catchTime - World.TimeDiff)
 	else
@@ -83,12 +85,13 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed, keepDistanceToBall, maxSpe
 		if time < self._catchTime then
 			self._catchTime = time
 		else
-			self._catchTime = 0.9 * self._catchTime + 0.1 * time
+			self._catchTime = 0.95 * self._catchTime + 0.05 * time
 		end
 	end
 	debug.set("time", time)
 	debug.set("catchtime", self._catchTime)
 	vis.addCircle("CatchBall", Ball.atTime(self._catchTime, ball).pos, predictedBall.radius, vis.colors.blueHalf)
+	self._lastBallSpeed = ball.speed
 end
 
 function CatchBall:_createBallObstacles(path, robotDir, currentBall, predictedBall)
