@@ -133,4 +133,12 @@ function Field.distanceToFriendlyGoalLine(pos, radius)
 	return goalpost:distanceTo(pos) - radius
 end
 
+function Field.isInOwnCorner(pos, opp)
+	local oppfac = opp and 1 or -1
+	return (World.Geometry.FieldWidthHalf - math.abs(World.Ball.pos.x))^2
+		+ (oppfac * World.Geometry.FieldHeightHalf - World.Ball.pos.y)^2 < 1
+end
+	
+
+
 return Field

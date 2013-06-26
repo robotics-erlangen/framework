@@ -6,6 +6,8 @@ local Agent = {
 }
 local Class = require "../base/class"
 local World = require "../base/world"
+local debug = require "../base/debug"
+local Field = require "util/field"
 local PlayBase = require "play/base"
 local Plays = require "play/plays"
 local AgentPool = require "control/agentpool"
@@ -147,57 +149,96 @@ function Coordinator:_coordinateTasks(messages)
 end
 
 function Coordinator:observeGameState()
+	-- original thoughts:
 	-- if opponent has ball and is in our half -> 5 defenders
 	-- if opponent has ball and is in his half -> 3-4 defenders
 	-- if we have ball in our half -> 3-4 defenders
 	-- if we have ball in opponent half -> 3 defenders
 	-- if we are in the opponent half and we've got a freekick -> 2-3 defenders
-	-- TODO: analyze field, ball owner, ball getter
-	-- TODO: decide how many robots to use for attack / defense
 	
-	-- ratio   defenders
-	-- 0.0	-> 6
-	-- 0.2	-> 5
-	-- 0.3	-> 4
-	-- 0.5	-> 3
-	-- 0.7	-> 2
-	-- 0.8	-> 1
-	-- 1.0	-> 0
-	
+	-- ===== 
 	-- evenly distribute robots between attack and defense
-	local attackRatio = 0.5
-	if World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive" then
-		attackRatio = 0.3
-	elseif World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
+	-- ratio	attackers/defenders
+	--  0.0				0/6
+	--  0.2				1/5
+	--  0.3				2/4
+	--  0.5				3/3
+	--  0.7				4/2
+	--  0.8				5/1
+	--  1.0				6/0
+
+	-- ===== current implementation =====
+	-- General (ie Game, Stop)
+	-- 3/3 if Ball is at opponent field half (self._front == true)
+	-- 2/4 if Ball is at our field half
+	-- 
+	-- Kickoff Offensive
+	-- 4/2
+	-- Kickoff Defensive
+	-- 3/3
+	-- 
+	-- Goal-Kick Offensive
+	-- 3/3
+	-- Goal-Kick Defensive
+	-- 2/4
+	-- 
+	-- Corner-Kick Offensive
+	-- 4/2
+	-- Corner-Kick Defensive
+	-- 1/5
+	-- 
+	-- Throw-In Offensive
+	-- 3/3
+	-- Throw-In Defensive
+	-- 2/4
+	-- 
+	-- Penalty Shootout
+	-- 6/0
+
+	-- Calculations
+	if self._front == nil then
+		self._front = false
+	end
+	if self._front and World.Ball.pos.y < -0.5 or not self._front and World.Ball.pos.y > 0.5 then
+		self._front = not self._front
+	end
+	local friendlyCorner = Field.isInOwnCorner(World.Ball.pos, false)
+	local opponentCorner = Field.isInOwnCorner(World.Ball.pos, true)
+	
+	-- General
+	local attackRatio = self._front and 0.5 or 0.3	
+	
+	-- Kickoff
+	if World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
 		attackRatio = 0.7
+	elseif World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
+		attackRatio = 0.5
+		
+	-- FreeKick
 	elseif World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
-		-- corner kick: 70 cm from field edges
-		if (World.Geometry.FieldWidthHalf - math.abs(World.Ball.pos.x))^2
-			+ (World.Geometry.FieldHeightHalf - World.Ball.pos.y)^2 < 1 then
+		if friendlyCorner then
+			attackRatio = 0.5
+		elseif opponentCorner then
 			attackRatio = 0.7
+		else
+			attackRatio = 0.5
 		end
 	elseif World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
-		-- corner kick: 70 cm from field edges
-		if (World.Geometry.FieldWidthHalf - math.abs(World.Ball.pos.x))^2
-			+ (-World.Geometry.FieldHeightHalf - World.Ball.pos.y)^2 < 1 then
+		if friendlyCorner then
+			attackRatio = 0.3
+		elseif opponentCorner then
 			attackRatio = 0.2
 		else
 			attackRatio = 0.3
 		end
-	elseif World.RefereeState == "Stop" then
-		if self._front == nil then
-			self._front = false
-		end
-		if self._front and World.Ball.pos.y < -0.2 or not self._front and World.Ball.pos.y > 0.2 then
-			self._front = not self._front
-		end
-		if not self._front then
-			attackRatio = 0.3
-		end
 	end
+	
+	-- Penalty Shootout
 	if World.GameStage == "PenaltyShootout" then
 		attackRatio = 1
 	end
+	
+	debug.set("AttackRatio", attackRatio)
 	return attackRatio
 end
 
