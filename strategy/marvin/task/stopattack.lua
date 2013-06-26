@@ -6,31 +6,55 @@ local ToTarget = require "trajectory/totarget"
 local Goal = require "observer/goal"
 local Rating = require "util/rating"
 local Field = require "util/field"
+local debug = require "../base/debug"
 
 StopAttack.priority = 4
 
 function StopAttack:_init()
 	self._pos = nil
 	self._dir = nil
+	self.framePfush = 0
 end
 
 function StopAttack:_rate()
-	-- scan for a free sector in our own half
-	local freeSectors = Goal.getFreeSectors(World.Ball.pos, World.OpponentRobots, -math.pi, 0)
-
-	local ballAngle = (self._robot.pos - World.Ball.pos):angle()
-
+	self.offensive = self.offensive or World.Ball.pos.y > 0
+	if World.Ball.pos.y > 0.2 then
+		self.offensive = true
+	elseif World.Ball.pos.y < -0.2 then
+		self.offensive = false
+	end
+	debug.set("OffensiveStop", self.offensive)
+	
 	local largestInterval = nil
-	local valueLargest = -1 -- size of the largest interval
-	for _, interval in ipairs(freeSectors) do	-- find the largest interval
-		local diff = interval[2] - interval[1]
-		if interval[1] <= ballAngle and ballAngle <= interval[2] then
-			diff = diff * 1.1 -- hysteresis
+	if self.offensive then
+		-- scan for a free sector in our own half
+		--local freeSectors = Goal.getFreeSectors(World.Ball.pos, World.OpponentRobots, -math.pi, 0)
+
+		--local ballAngle = (self._robot.pos - World.Ball.pos):angle()
+
+		--local valueLargest = -1 -- size of the largest interval
+		--for _, interval in ipairs(freeSectors) do	-- find the largest interval
+		--	local diff = interval[2] - interval[1]
+		--	if interval[1] <= ballAngle and ballAngle <= interval[2] then
+		--		diff = diff * 1.1 -- hysteresis
+		--	end
+		--	if diff > valueLargest then
+		--		largestInterval = interval
+		--		valueLargest = diff
+		--	end
+		--end
+		local largest = Goal.largestFreeSector(World.Ball.pos, World.OpponentRobots, true)
+		largestInterval = largest or largestInterval
+		if largestInterval then
+			largestInterval[1] = largestInterval[1] - math.pi
+			largestInterval[2] = largestInterval[2] - math.pi
 		end
-		if diff > valueLargest then
-			largestInterval = interval
-			valueLargest = diff
+	else
+		local largest = Goal.largestFreeSector(World.Ball.pos, World.FriendlyRobots, false)
+		if largest and self.framePfush == 0 then
+			largestInterval = largest
 		end
+		self.framePfush = (self.framePfush + 1) % 100 --FIXME pfush
 	end
 
 	-- defend goal as fallback
