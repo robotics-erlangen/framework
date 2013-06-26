@@ -80,13 +80,12 @@ function Assistant:_rate(priorityMessages, notifications)
 		table.insert(occupiedSectors, {goalLeft.x - self._robot.radius, goalRight.x + self._robot.radius})
 	end
 
-	if Referee.isStopState() then -- keep distance to ball during stop
-		local minDist = World.Ball.radius + self._robot.radius + Constants.stopBallDistance + Settings.positionPadding
-		if math.abs(World.Ball.pos.y - lineStart.y) < minDist then
-			local cut1, cut2 = geom.intersectLineCircle(lineStart, lineEnd - lineStart, World.Ball.pos, minDist)
-			if cut1 and cut2 then
-				table.insert(occupiedSectors, {math.min(cut1.x, cut2.x), math.max(cut1.x, cut2.x)})
-			end
+	-- always keep distance to ball
+	local minDist = World.Ball.radius + self._robot.radius + Constants.stopBallDistance + Settings.positionPadding
+	if math.abs(World.Ball.pos.y - lineStart.y) < minDist then
+		local cut1, cut2 = geom.intersectLineCircle(lineStart, lineEnd - lineStart, World.Ball.pos, minDist)
+		if cut1 and cut2 then
+			table.insert(occupiedSectors, {math.min(cut1.x, cut2.x), math.max(cut1.x, cut2.x)})
 		end
 	end
 
