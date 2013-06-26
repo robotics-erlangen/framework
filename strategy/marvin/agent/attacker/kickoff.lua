@@ -2,6 +2,7 @@ local Base = require "agent/base/behaviour"
 local Kickoff = (require "../base/class").new("Agent.Attacker.Kickoff", Base)
 
 local World = require "../base/world"
+local G = World.Geometry
 local Class = require "../base/class"
 local vis = require "../base/vis"
 local Ball = require "observer/ball"
@@ -59,12 +60,12 @@ function Kickoff:_run()
 	if (not self._targetRobot or not self._shootPos) and World.RefereeState == "KickoffOffensive" then
 		-- search pos for pass in the run
 		local nicePositions = {
-			Vector.create(-1.5, 1.4),
-			Vector.create(-1, 1.4),
-			Vector.create(-0.5, 1.45),
-			Vector.create(0.5, 1.45),
-			Vector.create(1.0, 1.4),
-			Vector.create(1.5, 1.4),
+			Vector.create(-G.FieldWidthQuarter*1.5, G.FieldHeightQuarter-0.1),
+			Vector.create(-G.FieldWidthQuarter*1, G.FieldHeightQuarter-0.1),
+			Vector.create(-G.FieldWidthQuarter*0.5, G.FieldHeightQuarter-0.05),
+			Vector.create(G.FieldWidthQuarter*0.5, G.FieldHeightQuarter-0.05),
+			Vector.create(G.FieldWidthQuarter*1, G.FieldHeightQuarter-0.1),
+			Vector.create(G.FieldWidthQuarter*1.5, G.FieldHeightQuarter-0.1),
 		}
 		table.sort(nicePositions, cmpByOpponentDist)
 
