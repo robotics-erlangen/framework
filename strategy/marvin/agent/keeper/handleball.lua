@@ -31,7 +31,7 @@ function HandleBall:_run()
 	--track opponent robots in defense area
 	local danger = false
 	for _,r in pairs(World.OpponentRobots) do
-		if Field.isInFriendlyDefenseArea(r.pos, r.radius) then
+		if Field.distanceToFriendlyDefenseArea(r.pos, r.radius) < 2*r.radius then
 			danger = true
 			
 			--set the task to nil to ensure that a new task (AggressiveKeeper) will be created
