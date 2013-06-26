@@ -14,7 +14,6 @@ end
 
 -- if probability is higher than that threshold, the task will shoot immediatelly
 function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
-	self._shootHysteresis = self._shootHysteresis or 0
 	local isShooting = false
 	
 	if self._robot:hasBall(World.Ball, Settings.shootSideOffset) then -- if we got the ball
@@ -60,16 +59,14 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 
 		-- only start kicking if the robot got the ball
 		if self._robot:hasBall(World.Ball) and canShoot then
-			self._shootHysteresis = self._shootHysteresis + 2
-		else
-			self._shootHysteresis = math.max(self._shootHysteresis - 1, 0)
+			self._shootHysteresis = true
 		end
 
 		-- debug.set("travelDist", self._travelStart:distanceTo(self._robot.pos))
 		if self._travelStart:distanceTo(self._robot.pos) >= Constants.maxDribbleDistance then
 			self._travelLimit = true
 		end
-		if self._shootHysteresis > 0 and not self._travelLimit then
+		if self._shootHysteresis and not self._travelLimit then
 			isShooting = true
 			-- speed towards ball
 			speed = speed + Vector.fromAngle(targetDir):setLength(Settings.shootDriveSpeed)
@@ -81,6 +78,8 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 				self._robot:chip(dist)
 			end
 		else
+			self._shootHysteresis = false
+
 			-- slowly dissolve travel distance
 			local travelDist = math.max(self._travelStart:distanceTo(self._robot.pos) - 0.05, 0)
 			self._travelStart = self._robot.pos + (self._travelStart - self._robot.pos):setLength(travelDist)
@@ -99,7 +98,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 
 	else -- catch the ball
 		self._lastBallSpeed = nil
-		self._shootHysteresis = 0
+		self._shootHysteresis = false
 		self._travelStart = nil
 		self._travelLimit = false
 		self:_catchBall(targetPos, Settings.shootDriveSpeed)
