@@ -4,6 +4,7 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
 local World = require "../base/world"
+local Referee = require "util/referee"
 
 function OldController:reset()
 	self.parameters = {}
@@ -44,7 +45,9 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	if not self.parameters then
 		return {}, Coordinates.toLocal(targetPos), 0
 	end
-	
+	if Referee.isStopState() then
+		maxSpeed = 1
+	end
 	maxSpeed = maxSpeed or self._robot.maxSpeed
 	endSpeed = endSpeed or 0
 	

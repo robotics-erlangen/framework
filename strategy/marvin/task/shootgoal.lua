@@ -98,7 +98,7 @@ end
 
 function ShootGoal:canShoot()
 	self:updateDestination()
-	return self.maxAngleError and self.maxAngleError > 1.8/180*math.pi
+	return self.maxAngleError and self.maxAngleError > 1.5/180*math.pi
 end
 
 function ShootGoal:_canShoot()

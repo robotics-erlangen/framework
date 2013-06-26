@@ -13,7 +13,7 @@ local vis = require "../base/vis"
 
 Volley.priority = 5
 
-local t = 0.72
+local t = 0.42
 
 local function robotList(selfRobot, viewPos)
 	local robots = {}
