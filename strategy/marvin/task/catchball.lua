@@ -68,7 +68,7 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed, keepDistanceToBall, maxSpe
 	moveDest = Field.limitToField(moveDest, Settings.positionPadding)
 	
 	-- setup obstacles
-	self._robot.path:setDefaultObstacles(self._robot, true)
+	self._robot.path:setDefaultObstacles(self._robot, true, false, self._robot.shootRadius)
 	self._robot.path:addRobotObstacles(self._robot)
 	self:_createBallObstacles(self._robot.path, viewDir, ball, predictedBall)
 	
@@ -118,14 +118,16 @@ function CatchBall:_createBallObstacles(path, robotDir, currentBall, predictedBa
 	local corridorOffset = self._robot.dribblerWidth / 2 + extraDist / 2
 	local corridorDir = math.acos(corridorOffset / (self._robot.shootRadius + predictedBall.radius - extraDist))
 
+	local radiusCompensation = self._robot.radius - self._robot.shootRadius
+
 	local corridorLeftDir = Vector.fromAngle(robotDir):rotate(corridorDir):scaleLength(self._robot.radius)
 	local corridorEndLeft = predictedBall.pos + corridorLeftDir
-	local corridorStartLeft = corridorEndLeft + corridorLeftDir:perpendicular():setLength(-(self._robot.shootRadius + predictedBall.radius)*0.5)
+	local corridorStartLeft = corridorEndLeft + corridorLeftDir:perpendicular():setLength(-(self._robot.shootRadius + predictedBall.radius)*0.5 + radiusCompensation)
 	corridorEndLeft = corridorEndLeft - corridorLeftDir:perpendicular():setLength(-(self._robot.shootRadius + predictedBall.radius)*0.3)
 
 	local corridorRightDir = Vector.fromAngle(robotDir):rotate(-corridorDir):scaleLength(self._robot.radius)
 	local corridorEndRight = predictedBall.pos + corridorRightDir
-	local corridorStartRight = corridorEndRight + corridorRightDir:perpendicular():setLength((self._robot.shootRadius + predictedBall.radius)*0.5)
+	local corridorStartRight = corridorEndRight + corridorRightDir:perpendicular():setLength((self._robot.shootRadius + predictedBall.radius)*0.5 + radiusCompensation)
 	corridorEndRight = corridorEndRight - corridorRightDir:perpendicular():setLength((self._robot.shootRadius + predictedBall.radius)*0.3)
 
 	-- just block half of the extra dist
