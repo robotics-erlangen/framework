@@ -71,7 +71,7 @@ function Skuba:_update(chip)
 	self._linear = not chip
 	self._right = World.Ball.pos.x > 0
 	self._volleyAngle = (self._right and G.OpponentGoalRight or G.OpponentGoalLeft):angle()
-	self._volleyPos = Vector.create(0, 0)
+	self._volleyPos = Vector.create((self._right and -1 or 1) * 0.2, 0.5)
 	self._distractor1 = Vector.create((self._right and -1 or 1) * 1, 1)	
 	self._distractor2 = Vector.create((self._right and -1 or 1) * 1.1, 2.7)	
 end
@@ -91,6 +91,7 @@ local function rate(self, state)
 		if state ~= "Volley" then
 			if (World.Geometry.FieldWidthHalf - math.abs(World.Ball.pos.x))^2
 				+ (World.Geometry.FieldHeightHalf - World.Ball.pos.y)^2 < 1 then
+--			if (World.Ball.pos.y > 0) then
 				self._virgin = true
 				return Base.rating.referee
 			end	
