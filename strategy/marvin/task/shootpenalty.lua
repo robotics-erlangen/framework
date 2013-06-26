@@ -57,7 +57,6 @@ function ShootPenalty:_run(priorityMessages, notifications)
 		end
 	end
 	vis.addCircle("PenaltyTargetPos", self.targetPos, 0.02, vis.colors.blue, true)
-	self._robot:setDribblerSpeed(1)
 	self:_shoot(self.targetPos, math.huge, true)
 end
 
