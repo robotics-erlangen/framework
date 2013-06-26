@@ -12,7 +12,8 @@ settings.fastBall = 1.0 -- consider a ball as fast if faster than this limit [m/
 settings.tiltShotAngle = 45/180*math.pi -- the max offset angle for tilted and volley shots
 -- we can try to shoot at the goal if the probability of a success is > minSuccessProbability
 settings.minAnglePrecision = 2 / 180 * math.pi
-settings.shootDriveSpeed = 0.6
+settings.shootDriveSpeed = 0.5
+settings.penaltyShootDriveSpeed = 1
 settings.shootSideOffset = 0.05 -- extends the hasBall sidewards
 settings.dribbleDriveSpeed = 1 -- we can dribble backwards with approximately 1 m/s
 settings.passPrecision = 0.05 -- maximum position error allowed for a pass

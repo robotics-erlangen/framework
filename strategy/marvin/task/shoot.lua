@@ -15,6 +15,8 @@ end
 -- if probability is higher than that threshold, the task will shoot immediatelly
 function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 	local isShooting = false
+	local shootDriveSpeed = (World.RefereeState == "PenaltyOffensive")
+			and Settings.penaltyShootDriveSpeed or Settings.shootDriveSpeed
 	
 	if self._robot:hasBall(World.Ball, Settings.shootSideOffset) then -- if we got the ball
 		if not linearShoot then
@@ -69,7 +71,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		if self._shootHysteresis and not self._travelLimit then
 			isShooting = true
 			-- speed towards ball
-			speed = speed + Vector.fromAngle(targetDir):setLength(Settings.shootDriveSpeed)
+			speed = speed + Vector.fromAngle(targetDir):setLength(shootDriveSpeed)
 
 			local dist = targetPos:distanceTo(self._robot.pos)
 			if linearShoot then
@@ -101,7 +103,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		self._shootHysteresis = false
 		self._travelStart = nil
 		self._travelLimit = false
-		self:_catchBall(targetPos, Settings.shootDriveSpeed)
+		self:_catchBall(targetPos, shootDriveSpeed)
 	end
 
 	return isShooting
