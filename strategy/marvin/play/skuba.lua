@@ -67,13 +67,13 @@ function Skuba:switchPassToMid()
 	end
 end
 
-function Skuba:_update()
+function Skuba:_update(chip)
 	self._linear = not chip
 	self._right = World.Ball.pos.x > 0
-	self._volleyAngle = (right and G.OpponentGoalRight or G.OpponentGoalLeft):angle()
+	self._volleyAngle = (self._right and G.OpponentGoalRight or G.OpponentGoalLeft):angle()
 	self._volleyPos = Vector.create(0, 0)
-	self._distractor1 = Vector.create((right and -1 or 1) * 1, 1)	
-	self._distractor2 = Vector.create((right and -1 or 1) * 1.1, 2.7)	
+	self._distractor1 = Vector.create((self._right and -1 or 1) * 1, 1)	
+	self._distractor2 = Vector.create((self._right and -1 or 1) * 1.1, 2.7)	
 end
 
 
@@ -155,7 +155,7 @@ function Skuba:prepareDefault()
 end
 
 function Skuba:preparePassToMid(chip)
-	self:_update()
+	self:_update(chip)
 	self._tasks = {
 		self._robots[1] and DirectPass.create(self._robots[1], self._robots[2], self._linear, 3) or nil,
 		self._robots[2] and MoveToPos.create(self._robots[2], self._volleyPos, self._volleyAngle) or nil,
