@@ -95,7 +95,7 @@ function Kickoff:_run()
 		end
 	end
 
-	if World.RefereeState == "KickoffOffensivePrepare" or not self._robot:isCharged() then
+	if World.RefereeState == "KickoffOffensivePrepare" then
 		if not self._task or not Class.instanceOf(self._task, MoveToStaticBall) then
 			self._task = MoveToStaticBall.create(self._robot, World.Geometry.OpponentGoal)
 		end

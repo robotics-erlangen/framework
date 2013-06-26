@@ -24,7 +24,6 @@ settings.distanceHysteresis = 0.03 -- use it as a hysteresis value for all minim
 settings.defenseRiskLevel = 1.5 -- if a defender is catching the ball this is the time he shall have in advance before an oppnonent reaches the ball
 settings.penaltyLineDistance = 0.35 -- prevent robots from crossing the penalty line
 settings.catchBallDistance = 0.02 -- distance to ball kept by catchBall task
-settings.partnerRobots = nil -- set an array of partner ids for a mixed team challenge, e.g. {3,5,6,8}
 
 Settings = table.readonlytable(settings)
 
