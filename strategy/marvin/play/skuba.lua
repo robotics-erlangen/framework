@@ -56,7 +56,7 @@ function Skuba:switchPassToMid()
 		self._virgin = false
 		self._volleyStartTime = World.Time
 	end
-	if (World.Time - self._startTime) > 5 then
+	if (World.Time - self._startTime) > 7 then
 		if Robot.probableManMarker(self._robots[2]) ~= nil and self._robots[3] then
 			log("PassToMid -> PassToDistractors")
 			self:_setState("PassToDistractors")	
@@ -71,9 +71,9 @@ function Skuba:_update(chip)
 	self._linear = not chip
 	self._right = World.Ball.pos.x > 0
 	self._volleyAngle = (self._right and G.OpponentGoalRight or G.OpponentGoalLeft):angle()
-	self._volleyPos = Vector.create((self._right and -1 or 1) * 0.2, 0.5)
-	self._distractor1 = Vector.create((self._right and -1 or 1) * 1, 1)	
-	self._distractor2 = Vector.create((self._right and -1 or 1) * 1.1, 2.7)	
+	self._volleyPos = Vector.create((self._right and -1 or 1) * 0.2, World.Geometry.FieldHeightHalf/6)
+	self._distractor1 = Vector.create((self._right and -1 or 1) * World.Geometry.FieldWidthHalf/2, World.Geometry.FieldHeightHalf/3)	
+	self._distractor2 = Vector.create((self._right and -1 or 1) * World.Geometry.FieldWidthHalf/2+0.2, World.Geometry.FieldHeightHalf/3*2)	
 end
 
 
@@ -165,7 +165,6 @@ function Skuba:preparePassToMid(chip)
 	}
 end
 
-
 function Skuba:prepareVolley()
 	self:_update()
 	self._tasks = {
@@ -185,7 +184,7 @@ function Skuba:preparePassToDistractors()
 	local passPos = Vector.create((self._right and -1 or 1) * 1, 1.8)
 	self._tasks = {
 		self._robots[1] and PassInTheRun.create(self._robots[1], self._robots[2], 
-				passPos, 0) or nil,
+				passPos) or nil,
 		self._robots[2] and MoveToPos.create(self._robots[2], self._volleyPos, self._volleyAngle) or nil,
 		self._robots[3] and MoveToPos.create(self._robots[3], passPos, self._volleyAngle) or nil, 
 		self._robots[4] and MoveToPos.create(self._robots[4], self._distractor2, (World.Ball.pos - self._distractor2):angle()) or nil,
