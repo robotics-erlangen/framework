@@ -45,7 +45,7 @@ function FreeKick:_run()
 		end
 	-- otherwise, we can do the freekick
 	elseif not self._task or Class.instanceOf(self._task, MoveToStaticBall) then
-		if World.RefereeState == "IndirectOffensive" then
+		if World.RefereeState == "IndirectOffensive" or Settings.partnerRobots then
 			self:passOrChipTask()
 		elseif World.RefereeState == "DirectOffensive" then
 			local shootGoal = ShootGoal.create(self._robot, true)

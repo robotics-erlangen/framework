@@ -2,6 +2,7 @@ local Robot = require "observer/robot"
 local World = require "../base/world"
 local Referee = require "util/referee"
 local vis = require "../base/vis"
+local MixedTeam = require "observer/mixedteam"
 
 local Observer = {}
 
@@ -9,7 +10,9 @@ function Observer.observe()
 	Robot.estimateOpponentDynamics()
 	Robot._updateHadBall()
 	Observer._illustrateRefereeStates()
-	
+	if Settings.partnerRobots then
+		MixedTeam.noPartnerTouched() -- sets global 'noPartnerTouched'
+	end
 end
 
 function Observer._illustrateRefereeStates()

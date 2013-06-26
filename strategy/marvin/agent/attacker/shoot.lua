@@ -3,6 +3,7 @@ local Shoot = (require "../base/class").new("Agent.Attacker.Shoot", Base)
 local Ball = require "observer/ball"
 local World = require "../base/world"
 local ObserverShoot = require "observer/shoot"
+local MixedTeam = require "observer/mixedteam"
 
 local DirectPass = require "task/directpass"
 local ShootGoal = require "task/shootgoal"
@@ -37,7 +38,15 @@ function Shoot:_run()
 		local bestAssistant = ObserverShoot.bestFreeAssistant(self._robot, self._messages)
 		local shootGoalTask = ShootGoal.create(self._robot)
 		self._pass = bestAssistant and not shootGoalTask:canShoot()
-		if self._pass then
+
+		if noPartnerTouched then
+			local passPartner = MixedTeam.bestPassPartner(self._robot)
+			if passPartner then
+				self._task = DirectPass.create(self._robot, passPartner, true)
+			else
+				self._task = shootGoalTask
+			end
+		elseif self._pass then
 			self._task = DirectPass.create(self._robot, bestAssistant, true)
 		else
 			self._task = shootGoalTask

@@ -100,7 +100,7 @@ function Kickoff:_run()
 		end
 	elseif World.RefereeState == "KickoffOffensive" then
 		local shootGoalTask = ShootGoal.create(self._robot)
-		if shootGoalTask:canShoot() then 
+		if shootGoalTask:canShoot() and not Settings.partnerRobots then 
 			if not self._task or not Class.instanceOf(self._task, ShootGoal) then
 				self._task = shootGoalTask
 			end
