@@ -37,12 +37,13 @@ end
 
 function Skuba:_selectRobots(poolRobots)
 	-- cacheable array manipulations
-	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
+--	local robots = RobotList.join(poolRobots.attack, poolRobots.defense)
+	local robots = poolRobots.attack
 	return RobotMatcher.match(self._messages, robots, math.bound(2, #robots, 4), Skuba._conditions)
 end
 
 function Skuba:switchDefault()
-	if self._robots[1]:hasBall(World.Ball) then
+	if Ball.friendlyBallOwner() == self._robots[1] then
 		log("Prepare -> PassToMid")
 		self:_setState("PassToMid")
 	end
@@ -181,7 +182,7 @@ function Skuba:preparePassToDistractors()
 	local passPos = Vector.create((self._right and -1 or 1) * 1, 1.8)
 	self._tasks = {
 		self._robots[1] and PassInTheRun.create(self._robots[1], self._robots[2], 
-				self._passPos, 0) or nil,
+				passPos, 0) or nil,
 		self._robots[2] and MoveToPos.create(self._robots[2], self._volleyPos, self._volleyAngle) or nil,
 		self._robots[3] and MoveToPos.create(self._robots[3], passPos, self._volleyAngle) or nil, 
 		self._robots[4] and MoveToPos.create(self._robots[4], self._distractor2, (World.Ball.pos - self._distractor2):angle()) or nil,
