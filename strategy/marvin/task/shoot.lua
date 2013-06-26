@@ -50,7 +50,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 
 		-- sidewards offset
 		if math.abs(distToBall.y) >= 0.01 then
-			local speedLimit = 0.6
+			local speedLimit = 0.5
 			speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(math.bound(-speedLimit, -distToBall.y * 20, speedLimit)) -- correct pos error in 100ms
 		end
 
@@ -88,8 +88,8 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 			end
 
 			-- keep away from ball
-			if distToBall.x < Settings.catchBallDistance + 0.015 then
-				local distError = Settings.catchBallDistance + 0.015 - distToBall.x
+			if distToBall.x < Settings.catchBallDistance + 0.018 then
+				local distError = Settings.catchBallDistance + 0.018 - distToBall.x
 				speed = speed - Vector.fromAngle(targetDir):setLength(distError * 20)
 			end
 		end
