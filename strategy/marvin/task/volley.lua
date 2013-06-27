@@ -77,7 +77,7 @@ function Volley:_run()
 	
 	-- shoot
 	self._robot:shoot(math.huge, 0)
-	self:_catchBall(self._viewPos, math.huge, true)
+	self:_catchBall(self._viewPos, 0)
 end
 
 function Volley.factory(position)
