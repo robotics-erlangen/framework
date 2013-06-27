@@ -103,7 +103,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		self._shootHysteresis = false
 		self._travelStart = nil
 		self._travelLimit = false
-		self:_catchBall(targetPos, shootDriveSpeed)
+		self:_catchBall(targetPos, shootDriveSpeed, true)
 	end
 
 	return isShooting
