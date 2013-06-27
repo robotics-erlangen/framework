@@ -22,21 +22,19 @@ function ManMark:_run(priorityMessages, notifications)
 end
 
 local function rateOpp(own, remainingOpponents, opp)
+	local offFreeKick = World.RefereeState == "IndirectOffensive" 
+		or World.RefereeState == "DirectOffensive"
+	if Referee.isStopState() or offFreeKick then
+		for _, robot in ipairs(remainingOpponents) do
+			if robot.pos:distanceTo(World.Ball.pos) < 0.5 + 2*robot.radius then
+				return math.huge
+			end
+		end
+	end
+
 	local goalDist = opp.pos:distanceTo(World.Geometry.FriendlyGoal)
 	local robotDist = opp.pos:distanceTo(own.pos)
 	-- FIXME better metrik
-	if Referee.isStopState() then
-		local dist, nearestToBall = math.huge, nil
-		for _, robot in ipairs(remainingOpponents) do
-			if robot.pos:distanceTo(World.Ball.pos) < dist then
-				dist = robot.pos:distanceTo(World.Ball.pos)
-				nearestToBall = robot
-			end
-		end
-		if opp == nearestToBall then
-			return math.huge
-		end
-	end
 	return goalDist + 0.5*robotDist
 end
 
