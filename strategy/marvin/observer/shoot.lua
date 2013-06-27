@@ -180,12 +180,22 @@ function Shoot.rateAssistant(robot)
 	if ballDist < 0.5 then
 		distRateFactor = 0
 	elseif ballDist < 1 then
-		distRateFactor = ballDist
+		distRateFactor = 2*ballDist - 1
 	else
 		distRateFactor = 1
 	end
+	local backPassDist = robot.pos:distanceTo(World.Geometry.OpponentGoal) - World.Ball.pos:distanceTo(World.Geometry.OpponentGoal)
+	local backRateFactor
+	if backPassDist > 1 then
+		backRateFactor = 0
+	elseif backPassDist > 0.5 then
+		backRateFactor = 2 - 2*backPassDist
+	else
+		backRateFactor = 0
+	end
+		
 	if biggestSector then
-		rating = (rating + biggestSector * 2 * World.Geometry.FieldHeight) * distRateFactor
+		rating = (rating + biggestSector * 2 * World.Geometry.FieldHeight) * distRateFactor * backRateFactor
 	end
 	-- log("robot " .. robot.id .. ", rating " .. rating)	
 	return rating
