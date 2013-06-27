@@ -25,8 +25,7 @@ end
 
 function PassInTheRun:_run(priorityMessages, notifications)
 	local passInTheRunSpeed = self._passSpeed
-	local linear = Shoot.evaluatePassCorridor(self._robot, 0, self._shootPos) > 0.2
-	local isShooting = self:_shoot(self._shootPos, passInTheRunSpeed, linear)
+	local isShooting = self:_shoot(self._shootPos, passInTheRunSpeed, true)
 	self._isShooting = self._isShooting or isShooting
 	
 	local msg = { shootPos = self._shootPos }

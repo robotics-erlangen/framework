@@ -9,6 +9,7 @@ local Ball = require "observer/ball"
 
 local PassInTheRun = require "task/passintherun"
 local ShootGoal = require "task/shootgoal"
+local ChipAway = require "task/chipaway"
 local Halt = require "task/halt"
 local MoveToStaticBall = require "task/movetostaticball"
 
@@ -80,16 +81,18 @@ function Kickoff:_run()
 			return isFree
 		end
 
-		self._shootPos = table.filter(nicePositions, isReachable)[1] or nicePositions[1]
-		vis.addCircle("PassInTheRun", self._shootPos, 0.2, vis.colors.Red, true)
+		self._shootPos = table.filter(nicePositions, isReachable)[1]
 		-- search nearest kickoff assi
-		local minDist = math.huge
-		for robot, msg in pairs(self._messages) do
-			if msg.agent.targetPos then
-				local dist = (msg.agent.targetPos-self._shootPos):length()
-				if dist < minDist then
-					minDist = dist
-					self._targetRobot = robot
+		if self._shootPos then
+			vis.addCircle("PassInTheRun", self._shootPos, 0.2, vis.colors.Red, true)
+			local minDist = math.huge
+			for robot, msg in pairs(self._messages) do
+				if msg.agent.targetPos then
+					local dist = (msg.agent.targetPos-self._shootPos):length()
+					if dist < minDist then
+						minDist = dist
+						self._targetRobot = robot
+					end
 				end
 			end
 		end
@@ -101,14 +104,18 @@ function Kickoff:_run()
 		end
 	elseif World.RefereeState == "KickoffOffensive" then
 		local shootGoalTask = ShootGoal.create(self._robot)
-		if shootGoalTask:canShoot() and not Settings.partnerRobots then 
+		if shootGoalTask:canShoot() then 
 			if not self._task or not Class.instanceOf(self._task, ShootGoal) then
 				self._task = shootGoalTask
 			end
-		else
+		elseif self._shootPos then
 			if not self._task or not Class.instanceOf(self._task, PassInTheRun) then
 				self._task = PassInTheRun.create(self._robot, self._targetRobot, self._shootPos)
 				self._passActiveSince = World.Time
+			end
+		else
+			if not self._task or not Class.instanceOf(self._task, ChipAway) then
+				self._task = ChipAway.create(self._robot)
 			end
 		end
 	end
