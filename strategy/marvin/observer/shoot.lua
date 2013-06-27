@@ -159,24 +159,36 @@ end
 -- @param messages - the messages object of a behaviour
 -- @return robot or nil - the most suitable robot, if any 
 function Shoot.bestFreeAssistant(activeRobot, messages)
+	-- !!! ATTENTION !!! Assumes we are already at the ball 
 	local function canPassTo(r)
 		return messages[r] and messages[r].task.assistantRating and Field.isInField(r.pos)
-			and Robot.wayToRobotFree(r, activeRobot) and r.pos:distanceTo(World.Ball.pos) > 0.5
+			and Robot.wayToRobotFree(r, activeRobot)
 	end
-	local function rateAssi(robot)
-		local fs = Goal.freeSectors(robot.pos, World.OpponentRobots, true)
-		local biggestSector = table.max(table.map(fs, function(s) return s[2]-s[1] end))
-		local goalDist = robot.pos:distanceTo(World.Geometry.OpponentGoal)
-		local rating = World.Geometry.FieldHeight - goalDist
-		if biggestSector then
-			rating = rating + biggestSector * 2 * World.Geometry.FieldHeight
-		end
-		-- log("robot " .. robot.id .. ", rating " .. rating)	
-		return rating
-	end
+	
 	local freeAssistants = table.filter(World.FriendlyRobots, canPassTo)
-	table.sort(freeAssistants, function(r1,r2) return rateAssi(r1) > rateAssi(r2) end)
+	table.sort(freeAssistants, function(r1,r2) return Shoot.rateAssistant(r1) > Shoot.rateAssistant(r2) end)
 	return freeAssistants[1]
+end
+
+function Shoot.rateAssistant(robot)
+	local fs = Goal.freeSectors(robot.pos, World.OpponentRobots, true)
+	local biggestSector = table.max(table.map(fs, function(s) return s[2]-s[1] end))
+	local goalDist = robot.pos:distanceTo(World.Geometry.OpponentGoal)
+	local rating = World.Geometry.FieldHeight - goalDist
+	local ballDist = robot.pos:distanceTo(World.Ball.pos)
+	local distRateFactor
+	if ballDist < 0.5 then
+		distRateFactor = 0
+	elseif ballDist < 1 then
+		distRateFactor = ballDist
+	else
+		distRateFactor = 1
+	end
+	if biggestSector then
+		rating = (rating + biggestSector * 2 * World.Geometry.FieldHeight) * distRateFactor
+	end
+	-- log("robot " .. robot.id .. ", rating " .. rating)	
+	return rating
 end
 
 return Shoot

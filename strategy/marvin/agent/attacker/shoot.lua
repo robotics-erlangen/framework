@@ -9,6 +9,7 @@ local ShootGoal = require "task/shootgoal"
 
 function Shoot:_init()
 	-- these values are only used during cool down
+	self._bestAssistant = nil
 	self._pass = false
 	self._shootTime = 0
 end
@@ -33,8 +34,16 @@ function Shoot:_check()
 end
 
 function Shoot:_run()
-	if not self._task then
-		local bestAssistant = ObserverShoot.bestFreeAssistant(self._robot, self._messages)
+	local bestAssistant = ObserverShoot.bestFreeAssistant(self._robot, self._messages)
+	
+	local rating = bestAssistant and ObserverShoot.rateAssistant(bestAssistant) or 0
+	local oldRating = self._bestAssistant and ObserverShoot.rateAssistant(self._bestAssistant) or 0 
+	local hyst = World.Geometry.FieldHeightQuarter / 2
+
+	if not self._task or 
+		(self._bestAssistant ~= bestAssistant and rating > oldRating+hyst) then
+		
+		self._bestAssistant = bestAssistant
 		local shootGoalTask = ShootGoal.create(self._robot)
 		self._pass = bestAssistant and not shootGoalTask:canShoot()
 
