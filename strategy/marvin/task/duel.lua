@@ -110,22 +110,22 @@ function Duel:_contest()
 	if not self.strategy or self.strategy == 0 then
 		self.strategy = Learning.decide(successRates)
 	end
-	
+--[[	
 	if self.strategy == 1 then
 		if Settings.DEBUG then
 			Debug.set("Decision", "contest dribble")
 		end
 		self:_contestDribble()
-	elseif self.strategy == 2 then
+	elseif self.strategy == 2 then]]
 		if Settings.DEBUG then
 			Debug.set("Decision", "contest rotate")
 		end
-		self:_contestRotate()
+		self:_contestRotate()--[[
 	elseif self.strategy == 3 then
 		-- ???	
 	else
 		error("duel strategy "..self.strategy.." not implemented")
-	end
+	end]]
 end
 
 -- tells the learning algorithm if the choice was successful
