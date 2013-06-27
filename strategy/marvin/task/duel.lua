@@ -1,14 +1,16 @@
 local Duel = (require "../base/class").new("Task.Duel", require "task/directpass")
 
 local World = require "../base/world"
-local Ball = require "observer/ball"
+local Constants = require "../base/constants"
+local geom = require "../base/geom"
+local Debug = require "../base/debug"
 local Rating = require "util/rating"
 local Learning = require "util/learning"
-local Debug = require "../base/debug"
 local Field = require "util/field"
-local Constants = require "../base/constants"
 local Direct = require "trajectory/direct"
-local geom = require "../base/geom"
+local DirectPass = require "task/directpass"
+local Shoot = require "observer/shoot"
+local Ball = require "observer/ball"
 
 Duel.priority = 4
 
@@ -75,7 +77,7 @@ function Duel:_run(priorityMessages, notifications)
 		if Settings.DEBUG then
 			Debug.set("Decision", "pass away")
 		end
-		self:_passAway(notifications)
+		self:_passAway(priorityMessages, notifications)
 		self:_evaluateStrategy(true)
 	elseif not self._robot:hasBall(World.Ball) then
 		self.isAtBall = false
@@ -218,30 +220,22 @@ end
 -- (?) otherwise: either the opponent robot is just to bad and moves away or something strange happened
 --		(for example: we spin around like crazy and still got the ball)
 --	pass to the best assistant (analyze notifications)
-function Duel:_passAway(notifications)
-	-- (?) otherwise
-	if not self.strategy or self.strategy ~= 1 then
-		-- 1. search best assistant
-		local targetAssistant
-		local bestRating = -1
-		for robot, msg in pairs(notifications) do
-			local currentRating = msg.task.assistantRating
-			if currentRating and currentRating > bestRating then
-				targetAssistant = robot
-				bestRating = currentRating
-			end
-		end
-		if targetAssistant then
-			-- 2. send message to assistant
-			self.duelAssistantTarget = targetAssistant
-			-- 3. pass to it
-			-- FIXME play pass(inheritance), don't just shoot
-			self:_shoot(targetAssistant.pos, math.huge, true, 0.8)
-			return
-		end
-	end
-	-- (1) dribble and chip
-	self:_shoot(self.chipPos, math.huge, false, 0)
-end
+function Duel:_passAway(priorityMessages, notifications)
+	local bestAssistant = Shoot.bestFreeAssistant(self._robot, notifications)
+	
+	local rating = bestAssistant and Shoot.rateAssistant(bestAssistant) or 0
+	local oldRating = self._bestAssistant and Shoot.rateAssistant(self._bestAssistant) or 0 
+	local hyst = World.Geometry.FieldHeightQuarter / 2
 
+	if self._bestAssistant ~= bestAssistant and rating > oldRating+hyst then
+		self._bestAssistant = bestAssistant
+	end
+		
+	if self._bestAssistant then
+		DirectPass._init(self, self._bestAssistant, true)
+		DirectPass._run(self, priorityMessages, notifications)
+	else
+		self:_shoot(World.Geometry.OpponentPenaltySpot, math.huge, false) 
+	end
+end
 return Duel
