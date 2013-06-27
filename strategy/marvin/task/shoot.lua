@@ -60,8 +60,12 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		debug.set("Success probability", canShoot)
 
 		-- only start kicking if the robot got the ball
-		if self._robot:hasBall(World.Ball) and canShoot then
-			self._shootHysteresis = true
+		if self._robot:hasBall(World.Ball) then
+			if canShoot then
+				self._shootHysteresis = true
+			end
+		else
+			self._shootHysteresis = false
 		end
 
 		-- debug.set("travelDist", self._travelStart:distanceTo(self._robot.pos))
@@ -73,6 +77,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 			-- speed towards ball
 			speed = speed + Vector.fromAngle(targetDir):setLength(shootDriveSpeed)
 
+			debug.set("shoot", true)
 			local dist = targetPos:distanceTo(self._robot.pos)
 			if linearShoot then
 				self._robot:shoot(targetSpeed, dist)
@@ -80,6 +85,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 				self._robot:chip(dist)
 			end
 		else
+			debug.set("shoot", false)
 			self._shootHysteresis = false
 
 			-- slowly dissolve travel distance
