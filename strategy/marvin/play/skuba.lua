@@ -89,9 +89,10 @@ local function rate(self, state)
 	}
 	if positiveState[World.RefereeState] then
 		if state ~= "Volley" then
+--[
 			if (World.Geometry.FieldWidthHalf - math.abs(World.Ball.pos.x))^2
 				+ (World.Geometry.FieldHeightHalf - World.Ball.pos.y)^2 < 1 then
---			if (World.Ball.pos.y > 0) then
+--]]		if (World.Ball.pos.y > 0) then
 				self._virgin = true
 				return Base.rating.referee
 			end	
@@ -158,7 +159,7 @@ end
 function Skuba:preparePassToMid(chip)
 	self:_update(chip)
 	self._tasks = {
-		self._robots[1] and DirectPass.create(self._robots[1], self._robots[2], self._linear, 3) or nil,
+		self._robots[1] and DirectPass.create(self._robots[1], self._robots[2], self._linear, 2) or nil,
 		self._robots[2] and MoveToPos.create(self._robots[2], self._volleyPos, self._volleyAngle) or nil,
 		self._robots[3] and MoveToPos.create(self._robots[3], self._distractor1, (World.Ball.pos - self._distractor1):angle()) or nil, 
 		self._robots[4] and MoveToPos.create(self._robots[4], self._distractor2, (World.Ball.pos - self._distractor2):angle()) or nil,
