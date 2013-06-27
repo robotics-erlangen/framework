@@ -1,12 +1,12 @@
 local Base = require "agent/base/behaviour"
-local Default = (require "../base/class").new("Agent.Defender.Default", Base)
+local Freekick = (require "../base/class").new("Agent.Defender.Freekick", Base)
 
 local World = require "../base/world"
 local Class = require "../base/class"
 local ManMark = require "task/manmark"
 local MoveToPos = require "task/movetopos"
 
-function Default:_check()
+function Freekick:_check()
 	if World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
 		return Base.State.Active
 	else
@@ -14,7 +14,7 @@ function Default:_check()
 	end
 end
 
-function Default:_run()
+function Freekick:_run()
 	local absX = World.Geometry.FieldWidthQuarter
 	local x = World.Ball.pos.x > 0 and -absX or absX
 	local preferredPos = Vector.create(x, World.Ball.pos.y)
@@ -43,4 +43,4 @@ function Default:_run()
 	end
 end
 
-return Default
+return Freekick
