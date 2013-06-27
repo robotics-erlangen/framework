@@ -15,8 +15,8 @@ function CatchBall:_init()
 	error("Abstract base class!!!")
 end
 
--- the robot may drive with up to maxEndSpeed or ballSpeed when it catches the ball, depending on which of both is higher
-function CatchBall:_catchBall(targetPos, maxEndSpeed, keepDistanceToBall, maxSpeed)
+-- the robot may drive with up to endSpeed or ballSpeed when it catches the ball, depending on which of both is higher
+function CatchBall:_catchBall(targetPos, endSpeed, keepDistanceToBall, maxSpeed)
 	if Referee.isStopState() or Referee.isDefendState() then
 		maxSpeed = math.bound(0.5, self._robot.pos:distanceTo(World.Ball.pos)/2, maxSpeed or 1)
 	end
@@ -78,7 +78,7 @@ function CatchBall:_catchBall(targetPos, maxEndSpeed, keepDistanceToBall, maxSpe
 	self:_createBallObstacles(self._robot.path, viewDir, ball, predictedBall)
 	
 	-- max of endSpeed and ball speed in target direction
-	local endSpeed = math.max(maxEndSpeed, predictedBall.speed:dot(viewLine))
+	local endSpeed = math.max(endSpeed, predictedBall.speed:dot(viewLine))
 	
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
 	--		predictedBall.speed + Vector.fromAngle(viewDir):setLength(endSpeed))
