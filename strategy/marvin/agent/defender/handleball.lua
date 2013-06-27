@@ -6,9 +6,14 @@ local Ball = require "observer/ball"
 local Robot = require "observer/robot"
 local Rating = require "util/rating"
 local Referee = require "util/referee"
+local Shoot = require "observer/shoot"
 
 local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
+
+function HandleBall:_stop()
+	self._timeAdvance = 0
+end
 
 function HandleBall:_check()
 	local toBallScaling = 2 -- scale time to ball, to prefer attackers
@@ -21,9 +26,10 @@ function HandleBall:_check()
 	-- we somehow got the ball
 	local goodSituation1 = (self._robot == Ball.friendlyBallOwner()) and not Ball.opponentBallOwner() 
 	
-	local firstRobot, timeAdvance = Ball.firstAtBall()
-	-- noone else is there to get the ball and we have enough time to play safely
-	local goodSituation2 = self._robot == firstRobot and (timeAdvance >= Settings.defenseRiskLevel)
+	-- we are the first at ball
+	local firstRobot
+	firstRobot, self._timeAdvance = Ball.firstAtBall()
+	local goodSituation2 = self._robot == firstRobot
 
 	local message = nil
 	if (goodSituation1 or goodSituation2) and not Referee.isStopState() then -- apply for playing the ball
@@ -38,18 +44,9 @@ end
 
 function HandleBall:_run()
 	if not self._task then
-		local bestRobot = nil
-		local bestRating = -1
-		for robot, msg in pairs(self._messages) do
-			local rating = msg.task.assistantRating
-			if rating and rating > bestRating and Robot.wayToRobotFree(robot, self._robot) then
-				bestRobot = robot
-				bestRating = rating
-			end
-		end
-		self._pass = bestRobot
-		if self._pass then
-			self._task = DirectPass.create(self._robot, bestRobot, true)
+		local bestAssi = Shoot.bestFreeAssistant(self._robot, self._messages)
+		if bestAssi and self._timeAdvance > Settings.defenseRiskLevel then
+			self._task = DirectPass.create(self._robot, bestAssi, true)
 		else -- under pressure
 			self._task = ChipAway.create(self._robot)
 		end

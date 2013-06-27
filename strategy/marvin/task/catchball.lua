@@ -9,6 +9,7 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
 local Field = require "util/field"
+local Referee = require "util/referee"
 
 function CatchBall:_init()
 	error("Abstract base class!!!")
@@ -16,6 +17,10 @@ end
 
 -- the robot may drive with up to maxEndSpeed or ballSpeed when it catches the ball, depending on which of both is higher
 function CatchBall:_catchBall(targetPos, maxEndSpeed, keepDistanceToBall, maxSpeed)
+	if Referee.isStopState() or Referee.isDefendState() then
+		maxSpeed = math.bound(0.5, self._robot.pos:distanceTo(World.Ball.pos), maxSpeed or 2)
+	end
+
 	local ball = World.Ball
 	self._lastBallSpeed = self._lastBallSpeed or ball.speed
 	-- ball is slowing down
