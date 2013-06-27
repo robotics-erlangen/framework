@@ -11,6 +11,7 @@ local Field = require "util/field"
 Keeper.priority = 6
 
 function Keeper:_init()
+	self._defendShortCorner = false
 end
 
 --moves keeper do defending possition
@@ -34,11 +35,39 @@ function Keeper:_run(priorityMessages, notifications)
 	vis.addPath("KeeperGoalLineIntersect",{intersectPos,atkPos})
 	
 	--add obstacles if outside keeper area
-	if Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) == false then
-	self._robot.path:addRobotObstacles(self._robot, false, false)
+	if not Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
+		self._robot.path:addRobotObstacles(self._robot, false, false)
 	end
 	-- ignore goal walls if ball is shot
 	self._robot.path:setDefaultObstacles(self._robot, true, isShot)
+	
+	
+	if math.abs(World.Ball.pos.x) > World.Geometry.GoalWidth / 2 then
+		-- check whether we should defend the short corner
+		local side = math.sign(World.Ball.pos.x)
+		local shortCorner = Vector.create(side * World.Geometry.GoalWidth/2,
+				World.Geometry.FriendlyGoal.y + self._robot.radius)
+		local otherGoalPost = (side > 0) and World.Geometry.FriendlyGoalLeft or World.Geometry.FriendlyGoalRight
+		
+		-- tangent from other corner over robot towards the ball
+		local innerTangent1, innerTangent2 = geom.getTangentsToCircle(otherGoalPost, shortCorner, self._robot.radius)
+		local innerTangent = (innerTangent1.y > innerTangent2.y) and innerTangent1 or innerTangent2
+		
+		-- get tangent point inside the field
+		local outerTangent1, outerTangent2 = geom.getTangentsToCircle(otherGoalPost, shortCorner,
+				self._robot.radius + World.Ball.radius)
+		local outerTangent = (outerTangent1.y > outerTangent2.y) and outerTangent1 or outerTangent2
+		
+		-- cw(-1) if ball is on the right of the goal, ccw(1) if on the left
+		-- check if we can block the whole goal by staying in the short angle
+		if geom.checkTriangleOrientation(otherGoalPost, innerTangent, World.Ball.pos) == -side then
+			self._defendShortCorner = true
+		-- ccw(1) if ball is on the right of the goal, cw(-1) if on the left
+		-- blocking the whole goal is not possible
+		elseif geom.checkTriangleOrientation(otherGoalPost, outerTangent, World.Ball.pos) == side then
+			self._defendShortCorner = false
+		end
+	end
 	
 	local moveTo
 	--defending possition if ball is allready shot: shortest way to stop the ball
@@ -47,12 +76,19 @@ function Keeper:_run(priorityMessages, notifications)
 		moveTo.x = math.bound(-World.Geometry.GoalWidth / 2, moveTo.x, World.Geometry.GoalWidth / 2) --don't move out of the goal
 	--defending possition to block possible Goal shots: moves along a straight line in front of the goal: distance to goal: Settings.keeperGoalDistance
 	elseif atkDir.y < 0 then
-			moveTo = intersectPos
-			moveTo.x = math.bound(-World.Geometry.GoalWidth / 2, moveTo.x, World.Geometry.GoalWidth / 2) --don't move out of the goal
-	--standart possition if no Goal-Shot is expected
+		moveTo = intersectPos
+		moveTo.x = math.bound(-World.Geometry.GoalWidth / 2, moveTo.x, World.Geometry.GoalWidth / 2) --don't move out of the goal
+	--standard position if no Goal-Shot is expected
+		if self._defendShortCorner then
+			moveTo.x = math.bound(-World.Geometry.GoalWidth / 2, World.Ball.pos.x, World.Geometry.GoalWidth / 2)
+		end
 	else
-			moveTo = goalLinePos
+		moveTo = goalLinePos
+		if self._defendShortCorner then
+			moveTo.x = math.bound(-World.Geometry.GoalWidth / 2, World.Ball.pos.x, World.Geometry.GoalWidth / 2)
+		end
 	end
+	
 	--bound at goal edges
 	if World.RefereeState == "PenaltyDefensive" or World.RefereeState == "PenaltyDefensivePrepare" then
 		moveTo.x = math.bound((-World.Geometry.GoalWidth / 2) + self._robot.radius, moveTo.x, (World.Geometry.GoalWidth / 2) - self._robot.radius)
