@@ -29,6 +29,10 @@ function Assistant:_run()
 end
 
 function Assistant:_rate(priorityMessages, notifications)
+	local offFreeKick = World.RefereeState == "IndirectOffensive" 
+		or World.RefereeState == "DirectOffensive"
+	self.numMapping[3] = (Referee.isStopState() or offFreeKick) and 1.25 or 1.4
+
 	--special case robot is on a line with ball and enemy robot too
 	local lineY = World.Geometry.FieldHeightQuarter * self.numMapping[self.lineNum]
 	local linePos = Vector.create(-World.Geometry.FieldWidthHalf, lineY)
