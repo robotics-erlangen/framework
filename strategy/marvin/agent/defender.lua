@@ -7,6 +7,7 @@ local Default = require "agent/defender/default"
 local HandleBall = require "agent/defender/handleball"
 local Penalty = require "agent/defender/penalty"
 local Kickoff = require "agent/defender/kickoff"
+local FreeKick = require "agent/defender/freekick"
 
 function Defender.takeRobot(robots)
 	for _, robot in pairs(robots) do
@@ -26,6 +27,7 @@ function Defender:_initBehaviour()
 		Kickoff.create(self._robot),
 		HandleBall.create(self._robot),
 		CenterBack.create(self._robot),
+		FreeKick.create(self._robot),		
 		Default.create(self._robot)
 	})
 end
