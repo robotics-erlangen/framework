@@ -25,10 +25,8 @@ local function rateOpp(own, remainingOpponents, opp)
 	local offFreeKick = World.RefereeState == "IndirectOffensive" 
 		or World.RefereeState == "DirectOffensive"
 	if Referee.isStopState() or offFreeKick then
-		for _, robot in ipairs(remainingOpponents) do
-			if robot.pos:distanceTo(World.Ball.pos) < 0.5 + 2*robot.radius then
-				return math.huge
-			end
+		if opp.pos:distanceTo(World.Ball.pos) < 0.5 + 2*opp.radius then
+			return math.huge
 		end
 	end
 
