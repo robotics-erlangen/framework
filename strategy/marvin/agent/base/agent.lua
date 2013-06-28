@@ -12,6 +12,14 @@ function Base.takeRobot(robots)
 	error("stub")
 end
 
+function Base:keepRobot()
+	error("stub")
+end
+
+function Base:rateRobot()
+	error("stub")
+end
+
 function Base:_initBehaviour()
 	error("stub")
 	-- self._behaviours = ...

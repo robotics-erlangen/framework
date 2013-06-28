@@ -14,6 +14,10 @@ function AgentPool:run(oldMessages, messages)
 	end
 end
 
+local function sortByRating(a1, a2)
+	return a1:rateRobot() > a2:rateRobot()
+end
+
 -- remove agents and associated robots we no longer want to keep
 function AgentPool:cleanupRobots()
 	local agents = {} -- agents to keep
@@ -22,7 +26,9 @@ function AgentPool:cleanupRobots()
 			table.insert(agents, agent)
 		end
 	end
-	
+
+	-- sort with by decreasing importance
+	table.sort(agents, sortByRating)
 	table.truncate(agents, self._robotLimit)
 	self._agents = agents
 end

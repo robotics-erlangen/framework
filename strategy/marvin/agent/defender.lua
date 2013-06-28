@@ -20,6 +20,11 @@ function Defender:keepRobot()
 	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper
 end
 
+-- worse rating if robot if farther away from own goal
+function Defender:rateRobot()
+	return -World.Geometry.FriendlyGoal:distanceTo(self._robot.pos)
+end
+
 function Defender:_initBehaviour()
 	self._behaviours = Group.create(self._robot, {
 		Penalty.create(self._robot),
