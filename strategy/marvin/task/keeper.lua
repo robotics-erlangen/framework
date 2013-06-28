@@ -66,7 +66,7 @@ function Keeper:_run(priorityMessages, notifications)
 	elseif atkDir.y < 0 then
 		moveTo = intersectPos
 	--standard position if no Goal-Shot is expected
-	elseif atkDir >= 0 and isShot then
+	elseif (atkDir.y >= 0) and isShot then
 		moveTo = self._robot.pos
 	else
 		moveTo = goalLinePos
