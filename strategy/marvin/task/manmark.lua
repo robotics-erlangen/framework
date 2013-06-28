@@ -80,7 +80,7 @@ function ManMark:_rate(priorityMessages, notifications)
 	--preferred position in front of the target robot in direction to the ball
 	local midpointDistance = (self._targetRobot and self._targetRobot.radius or 0.09) + self._robot.radius + Settings.markingDistance
 	self._preferredPos = targetPos + (ballPos - targetPos):setLength(midpointDistance)
-	self._preferredPos = Field.limitToAllowedField(self._preferredPos, self._robot.radius)
+	self._preferredPos = Field.limitToAllowedField(self._preferredPos, self._robot.radius, true)
 
 	if Referee.isStopState() then
 		local minDist = World.Ball.radius + self._robot.radius + Constants.stopBallDistance + Settings.positionPadding
