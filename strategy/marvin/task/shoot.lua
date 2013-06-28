@@ -53,7 +53,11 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		-- sidewards offset
 		if math.abs(distToBall.y) >= 0.01 then
 			local speedLimit = 0.5
-			speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(math.bound(-speedLimit, -distToBall.y * 17, speedLimit)) -- correct pos error in 100ms
+			local k = 17
+			if World.RefereeState == "PenaltyOffensive" then
+				k = 15
+			end
+			speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(math.bound(-speedLimit, -distToBall.y * k, speedLimit)) -- correct pos error in 100ms
 		end
 
 		local canShoot = self:_canShoot()
