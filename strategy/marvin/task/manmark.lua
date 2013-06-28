@@ -9,7 +9,11 @@ local Referee = require "util/referee"
 
 ManMark.priority = 3
 
-function ManMark:_init()
+function ManMark:_init(priorityTarget)
+	if priorityTarget then
+		self.priority = 3.1 --HACK HACK HACK
+		self._priorityTarget = priorityTarget
+	end
 end
 
 function ManMark:_run(priorityMessages, notifications)
@@ -37,32 +41,36 @@ local function rateOpp(own, remainingOpponents, opp)
 end
 
 function ManMark:_rate(priorityMessages, notifications)
-	local defendedOpponents = {}
-	for _, msg in pairs(priorityMessages) do
-		local defendedOpponent = msg.task.defendedOpponent
-		if defendedOpponent then
-			defendedOpponents[defendedOpponent] = true
+	if not self._priorityTarget then
+		local defendedOpponents = {}
+		for _, msg in pairs(priorityMessages) do
+			local defendedOpponent = msg.task.defendedOpponent
+			if defendedOpponent then
+				defendedOpponents[defendedOpponent] = true
+			end
 		end
-	end
-	
-	local remainingOpponents = {}
-	for _, robot in pairs(World.OpponentRobots) do
-		if not defendedOpponents[robot] and World.OpponentKeeper ~= robot then
-			table.insert(remainingOpponents, robot)
+		
+		local remainingOpponents = {}
+		for _, robot in pairs(World.OpponentRobots) do
+			if not defendedOpponents[robot] and World.OpponentKeeper ~= robot then
+				table.insert(remainingOpponents, robot)
+			end
 		end
-	end
+		
+		local oppOrder = function(opp1, opp2)
+			return rateOpp(self._robot, remainingOpponents, opp1) < rateOpp(self._robot, remainingOpponents, opp2)
+		end
+		
+		table.sort(remainingOpponents, oppOrder)
 	
-	local oppOrder = function(opp1, opp2)
-		return rateOpp(self._robot, remainingOpponents, opp1) < rateOpp(self._robot, remainingOpponents, opp2)
-	end
-	
-	table.sort(remainingOpponents, oppOrder)
-
-	self._targetRobot = nil
-	if #remainingOpponents > 0 then
-		self._targetRobot = remainingOpponents[1]
-	else -- fallback when no opponent
 		self._targetRobot = nil
+		if #remainingOpponents > 0 then
+			self._targetRobot = remainingOpponents[1]
+		else -- fallback when no opponent
+			self._targetRobot = nil
+		end
+	else
+		self._targetRobot = self._priorityTarget
 	end
 	
 	-- FIXME place fallback near defense
