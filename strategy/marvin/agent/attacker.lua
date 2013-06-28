@@ -46,7 +46,7 @@ function Attacker:_initBehaviour()
 			Shoot.create(self._robot)
 		}),
 		KickoffAssistant.create(self._robot),
-		FreeKickDefender.create(self._robot),
+--		FreeKickDefender.create(self._robot),
 		Default.create(self._robot)
 	})
 end
