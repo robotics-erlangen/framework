@@ -73,6 +73,9 @@ local function intersectLineWithDefenseArea(onpoint, angle, extraRadius, opp)
 end
 
 local function calculatePosition(robot, keeperPos)
+	local viewPos = Goal.predictShot()
+	
+	
 	--extra distance to defense area
 	--robot should stay away 1cm from the defense area obstacle specified in base/path
 	local extraDistance = Settings.positionPadding + 0.05
@@ -80,7 +83,7 @@ local function calculatePosition(robot, keeperPos)
 	--get all unoccupied sectors
 	local robots = {}
 	for _,r in ipairs(World.Robots) do
-		if r ~= robot and r.pos.y < World.Ball.pos.y then
+		if r ~= robot and r.pos.y < viewPos.y then
 			table.insert(robots, r)
 		end
 	end
@@ -88,10 +91,10 @@ local function calculatePosition(robot, keeperPos)
 		local obstacle = {pos = keeperPos, radius = 0.3}
 		table.insert(robots, obstacle)
 	end
-	local freeSectors = Goal.freeSectors(World.Ball.pos, robots, false)
+	local freeSectors = Goal.freeSectors(viewPos, robots, false)
 
 	--determine, in which sector the robot stands, if any
-	local selfAngle = (robot.pos - World.Ball.pos):angle()
+	local selfAngle = (robot.pos - viewPos):angle()
 	local isInSector = false
 	local selfSectorIndex
 	local selfSectorSize
@@ -126,21 +129,21 @@ local function calculatePosition(robot, keeperPos)
 
 	local selfSectorPos = nil
 	if selfSectorMid then 
-		selfSectorPos = intersectLineWithDefenseArea(World.Ball.pos, selfSectorMid, robot.radius + extraDistance, false)
+		selfSectorPos = intersectLineWithDefenseArea(viewPos, selfSectorMid, robot.radius + extraDistance, false)
 	end
 	local maxSectorPos = nil
 	if maxSectorMid then 
-		maxSectorPos = intersectLineWithDefenseArea(World.Ball.pos, maxSectorMid, robot.radius + extraDistance, false)
+		maxSectorPos = intersectLineWithDefenseArea(viewPos, maxSectorMid, robot.radius + extraDistance, false)
 	end
 
 	local defaultPos = Vector.create(0, -G.FieldHeightHalf + G.DefenseRadius + robot.radius + extraDistance)
-	if World.Ball.pos.y <= -G.FieldHeightHalf then
+	if viewPos.y <= -G.FieldHeightHalf then
 		destinationPos = defaultPos
 	elseif not selfSectorPos then
 		--no free sector
 		if not maxSectorPos then
-			local dir = (Vector.create(0, -G.FieldWidthHalf) - World.Ball.pos):angle()
-			destinationPos = intersectLineWithDefenseArea(World.Ball.pos, dir, robot.radius + extraDistance, false)
+			local dir = (Vector.create(0, -G.FieldWidthHalf) - viewPos):angle()
+			destinationPos = intersectLineWithDefenseArea(viewPos, dir, robot.radius + extraDistance, false)
 		--only one free sector: maxSector
 		else
 			destinationPos = maxSectorPos
