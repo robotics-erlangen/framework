@@ -25,6 +25,11 @@ function Attacker:keepRobot()
 	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper
 end
 
+-- worse rating if robot if farther away from opponent goal
+function Attacker:rateRobot()
+	return -World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
+end
+
 function Attacker:_initBehaviour()
 	self._behaviours = Group.create(self._robot, {
 		ReceivePass.create(self._robot),

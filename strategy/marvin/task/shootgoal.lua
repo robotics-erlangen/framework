@@ -20,11 +20,13 @@ local cornerWeight = 0.4
 -- how much a new best sector should be better than the old one
 local sectorRatingHysteresis = 2
 
-local function robotList(selfRobot, viewPos)
+local function robotList(selfRobot, viewPos, ignoreGoalie)
 	local robots = {}
 	for _,r in pairs(World.Robots) do
 		if r.pos.y > viewPos.y and r ~= selfRobot then
-			table.insert(robots, r)
+			if not (ignoreGoalie and r == World.OpponentKeeper) then
+				table.insert(robots, r)
+			end
 		end
 	end
 	return robots
@@ -34,8 +36,8 @@ end
 -- self.bestIndex number - which index in self.freeSectors is the best one, if any
 -- self.bestMid number - the angle towards the best point in the goal (from ball pos)
 -- self.targetPoint - the best point in the goal
-function ShootGoal:updateDestination()
-	if self.timestamp == World.Time then
+function ShootGoal:updateDestination(ignoreGoalie)
+	if self.timestamp == World.Time and not ignoreGoalie then
 		return
 	end
 
@@ -43,7 +45,8 @@ function ShootGoal:updateDestination()
 	local goalEnd = (World.Geometry.OpponentGoalLeft - ball.pos):angle() -- direction of the other goalpost
 		
 	local viewPos = ball.pos --FIXME take future ball pos instead
-	local freeSectors = Goal.getFreeSectors(viewPos, robotList(self._robot, viewPos), goalStart, goalEnd)
+
+	local freeSectors = Goal.getFreeSectors(viewPos, robotList(self._robot, viewPos, ignoreGoalie), goalStart, goalEnd)
 
 	local bestRating = -math.huge
 	local bestMid = nil
@@ -76,7 +79,7 @@ function ShootGoal:updateDestination()
 			bestRating = rating
 			bestMid = sectorMid
 			bestAngleError = math.min(math.abs(geom.getAngleDiff(sector[1], sectorMid)),
-					math.abs(geom.getAngleDiff(sector[2], sectorMid))) * 0.8
+					math.abs(geom.getAngleDiff(sector[2], sectorMid))) * 0.8 -- MAGIC CONSTANT
 		end	
 	end
 	
@@ -86,6 +89,7 @@ function ShootGoal:updateDestination()
 	self.maxAngleError = bestAngleError
 	
 	self.timestamp = World.Time
+	return #freeSectors
 end
 
 function ShootGoal:_init()
@@ -98,7 +102,7 @@ end
 
 function ShootGoal:canShoot()
 	self:updateDestination()
-	return self.maxAngleError and self.maxAngleError > 1.5/180*math.pi
+	return self.maxAngleError and self.maxAngleError > 1.5/180*math.pi -- MAGIC CONSTANT
 end
 
 function ShootGoal:_canShoot()
@@ -113,6 +117,9 @@ end
 
 function ShootGoal:_run()
 	self:updateDestination()
+	if not self.bestMid then
+		self:updateDestination(true)
+	end
 	-- shoot
 	self:_shoot(self.targetPoint, math.huge, true)
 end

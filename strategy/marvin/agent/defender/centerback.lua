@@ -10,7 +10,7 @@ function CenterBack:_check()
 	local isCenterBack = self._trainerMessage.specialTask.centerBack == self._robot
 	-- use current task if we're active
 	local centerBack = self._task or CenterBackTask.create(self._robot)
-	local centerBackRating = centerBack:rate(self._priorityMessages, self._notifications)
+	local centerBackRating = centerBack:rate(self._priorityMessages, self._notifications) / 5
 	return isCenterBack and Base.State.Active or Base.State.Inactive,
 		{specialTask = { centerBack = centerBackRating } }
 end

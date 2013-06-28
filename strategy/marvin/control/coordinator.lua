@@ -225,9 +225,9 @@ function Coordinator:observeGameState()
 		end
 	elseif World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
 		if friendlyCorner then
-			attackRatio = 0.3
-		elseif opponentCorner then
 			attackRatio = 0.2
+		elseif opponentCorner then
+			attackRatio = 0.3
 		else
 			attackRatio = 0.3
 		end

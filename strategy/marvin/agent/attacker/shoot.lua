@@ -2,10 +2,12 @@ local Base = require "agent/base/behaviour"
 local Shoot = (require "../base/class").new("Agent.Attacker.Shoot", Base)
 local Ball = require "observer/ball"
 local World = require "../base/world"
+local Robot = require "observer/robot"
 local ObserverShoot = require "observer/shoot"
 
 local DirectPass = require "task/directpass"
 local ShootGoal = require "task/shootgoal"
+local Class = require "../base/class"
 
 function Shoot:_init()
 	-- these values are only used during cool down
@@ -34,18 +36,12 @@ function Shoot:_check()
 end
 
 function Shoot:_run()
-	local bestAssistant = ObserverShoot.bestFreeAssistant(self._robot, self._messages)
-	
-	local rating = bestAssistant and ObserverShoot.rateAssistant(bestAssistant) or 0
-	local oldRating = self._bestAssistant and ObserverShoot.rateAssistant(self._bestAssistant) or 0 
-	local hyst = World.Geometry.FieldHeightQuarter / 2
-
-	if not self._task or 
-		(self._bestAssistant ~= bestAssistant and rating > oldRating+hyst) then
-		
-		self._bestAssistant = bestAssistant
+	if not self._task then
+		local bestAssistant = ObserverShoot.bestFreeAssistant(self._robot, self._messages)
 		local shootGoalTask = ShootGoal.create(self._robot)
-		self._pass = bestAssistant and not shootGoalTask:canShoot()
+		local reachTime = Robot.minTimeToBall(self._robot, World.Ball)
+		
+		self._pass = bestAssistant and not shootGoalTask:canShoot() and reachTime < 0.6
 
 		if self._pass then
 			self._task = DirectPass.create(self._robot, bestAssistant, true)

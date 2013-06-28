@@ -14,6 +14,10 @@ function Hidden:keepRobot()
 	return not self._robot.isVisible
 end
 
+function Hidden:rateRobot()
+	return 0
+end
+
 function Hidden:_initBehaviour()
 	self._behaviours = Default.create(self._robot)
 end

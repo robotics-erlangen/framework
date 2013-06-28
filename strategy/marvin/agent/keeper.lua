@@ -19,6 +19,10 @@ function Keeper:keepRobot()
 	return self._robot.isVisible and self._robot == World.FriendlyKeeper
 end
 
+function Keeper:rateRobot()
+	return 1
+end
+
 function Keeper:_initBehaviour()
 	self._behaviours = Group.create(self._robot, {
 		HandleBall.create(self._robot),
