@@ -6,6 +6,7 @@ local ToTarget = require "trajectory/totarget"
 local Field = require "util/field"
 local Robotlist = require "util/robotlist"
 local Rating = require "util/rating"
+local debug = require "../base/debug"
 
 FarMirror.priority = 1
 
@@ -46,10 +47,11 @@ function FarMirror:_rate(priorityMessages, notifications)
 	for robot, msg in pairs(priorityMessages) do
 		local targetPos = msg.task.targetPos
 		if targetPos and self._targetPos:distanceTo(targetPos) < self._robot.radius and robot.id < self._robot.id then
-			self._targetPos.x = self._targetPos.x + (7 * self._robot.radius)
+			self._targetPos.x = -self._targetPos.x
 		end
 	end
-	self._targetPos = Field.limitToField(pos, -self._robot.radius)
+	self._targetPos = Field.limitToField(self._targetPos, -self._robot.radius)
+	debug.set("FarMrrrorTargetPos", self._targetPos)
 	return Rating.posToRating(self._robot, self._targetPos)
 end
 
