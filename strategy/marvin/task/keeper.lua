@@ -103,7 +103,7 @@ function Keeper:_run(priorityMessages, notifications)
 	moveTo.x = math.bound(southBound, moveTo.x, northBound) --don't move out of the goal
 	
 	--keeper don't have to go out so far if penality
-	if World.RefereeState == "PenaltyDefensive" or World.RefereeState == "PenaltyDefensivePrepare" then
+	if World.RefereeState == "PenaltyDefensive" or World.RefereeState == "PenaltyDefensivePrepare" and not isShot then
 		moveTo.x = math.bound((-World.Geometry.GoalWidth / 2) + self._robot.radius + (World.Ball.radius * 3), moveTo.x, (World.Geometry.GoalWidth / 2) - self._robot.radius - (World.Ball.radius * 3))
 	--bound at goal edges
 	end
