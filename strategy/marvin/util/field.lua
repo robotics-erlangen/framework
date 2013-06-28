@@ -1,6 +1,7 @@
 local Field = {}
 
 local World = require "../base/world"
+local Referee = require "util/referee"
 local G = World.Geometry
 
 
@@ -26,6 +27,10 @@ end
 -- @return Vector - limited vector
 function Field.limitToAllowedField(pos, extraLimit, blockOpponentDefenseArea)
 	extraLimit = extraLimit or 0
+	local oppExtraLimit = extraLimit
+	if Referee.isStopState() then
+		oppExtraLimit = oppExtraLimit + World.Geometry.FreeKickDefenseDist
+	end
 	if Field.isInFriendlyDefenseArea(pos, extraLimit) then
 		if math.abs(pos.x) <= World.Geometry.DefenseStretch/2 then
 			pos = Vector.create(pos.x, -World.Geometry.FieldHeightHalf+World.Geometry.DefenseRadius+extraLimit)
@@ -35,13 +40,13 @@ function Field.limitToAllowedField(pos, extraLimit, blockOpponentDefenseArea)
 			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+extraLimit)
 		end
 		return pos
-	elseif blockOpponentDefenseArea and Field.isInOpponentDefenseArea(pos, extraLimit) then
+	elseif blockOpponentDefenseArea and Field.isInOpponentDefenseArea(pos, oppExtraLimit) then
 		if math.abs(pos.x) <= World.Geometry.DefenseStretch/2 then
-			pos = Vector.create(pos.x, World.Geometry.FieldHeightHalf-World.Geometry.DefenseRadius-extraLimit)
+			pos = Vector.create(pos.x, World.Geometry.FieldHeightHalf-World.Geometry.DefenseRadius-oppExtraLimit)
 		else
 			local circleMidpoint = Vector.create(
 				World.Geometry.DefenseStretch/2*math.sign(pos.x), World.Geometry.FieldHeightHalf)
-			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+extraLimit)
+			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+oppExtraLimit)
 		end
 		return pos
 	else
