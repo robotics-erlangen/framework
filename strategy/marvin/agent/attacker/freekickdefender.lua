@@ -53,7 +53,7 @@ end
 
 function FreeKickDefender:_check()
 	if World.RefereeState == "DirectDefensive" and World.Ball.pos.y < 0 --corner kick
-			or World.RefereeState == "IndirectDefensive" --throw-in
+			or World.RefereeState == "IndirectDefensive" and World.Ball.pos.y < World.Geometry.FieldHeightQuarter--throw-in
 			or World.RefereeState == "Stop" then --TODO discuss stop
 		local rating = self:_getTask():rate(self._priorityMessages, self._notifications)
 		local defender = self._trainerMessage.specialTask.freeKickDefender

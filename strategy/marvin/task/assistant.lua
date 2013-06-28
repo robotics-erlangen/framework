@@ -22,6 +22,9 @@ end
 
 function Assistant:_run()
 	self._robot.path:setDefaultObstacles(self._robot)
+	if World.Ball.speed:length() > Settings.slowBall then
+		self._robot.path:addLine(self.shotPos.x, self.shotPos.y, self.shotTarget.x, self.shotTarget.y, 0.1)
+	end
 	self._robot.path:addRobotObstacles(self._robot)
 	self._robot.trajectory:update(ToTarget, self.targetPos, self.targetDir)
 
@@ -63,13 +66,9 @@ function Assistant:_rate(priorityMessages, notifications)
 		end
 	end
 	
-	local shotPos, shotDir = Goal.predictShot() --only used as backup guessing
-	shotPos = World.Ball.pos or shotPos or Vector.create(0, 0)
-	shotDir = shotDir or Vector.create(0, 1)
-	shotDir = shotDir:copy():setLength(World.Geometry.FieldHeightHalf)
-	
-	local shotTarget = atkPos or atkRobotPos or (shotPos+shotDir)
-	self._robot.path:addLine(shotPos.x, shotPos.y, shotTarget.x, shotTarget.y, 0.1)
+	self.shotPos = World.Ball.pos
+	local shotDir = World.Ball.speed:copy():setLength(World.Geometry.FieldHeightHalf)
+	self.shotTarget = atkPos or atkRobotPos or (self.shotPos+shotDir)
 	
 	if World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive" then
 		linePos.y = World.Geometry.PenaltyLine - Settings.penaltyLineDistance
@@ -118,6 +117,7 @@ function Assistant:_rate(priorityMessages, notifications)
 	local freeSectors = Interval.negate(occupiedSectors, -widthLimit, widthLimit)
 	
 	--some debug output
+	vis.addPath("ShootingLine", {self.shotPos, self.shotTarget}, vis.colors.blueHalf, true)
 	vis.addPath("AssistantLine", {lineStart, lineEnd}, vis.colors.blueHalf, true)
 	for _, pos in ipairs(freeSectors) do
 		vis.addPath("AssistantIntersections" .. self._robot.id, {Vector.create(pos[1], lineStart.y), Vector.create(pos[2], lineStart.y)}, vis.colors.blueHalf, true)

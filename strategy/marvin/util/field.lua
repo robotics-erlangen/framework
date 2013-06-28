@@ -29,7 +29,7 @@ function Field.limitToAllowedField(pos, extraLimit, blockOpponentDefenseArea)
 	extraLimit = extraLimit or 0
 	local oppExtraLimit = extraLimit
 	if Referee.isStopState() then
-		oppExtraLimit = oppExtraLimit + World.Geometry.FreeKickDefenseDist
+		oppExtraLimit = oppExtraLimit + World.Geometry.FreeKickDefenseDist + 0.10
 	end
 	if Field.isInFriendlyDefenseArea(pos, extraLimit) then
 		if math.abs(pos.x) <= World.Geometry.DefenseStretch/2 then
