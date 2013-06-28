@@ -51,7 +51,7 @@ function FarMirror:_rate(priorityMessages, notifications)
 		end
 	end
 	self._targetPos = Field.limitToField(self._targetPos, -self._robot.radius)
-	debug.set("FarMrrrorTargetPos", self._targetPos)
+	debug.set("FarMirrorTargetPos", self._targetPos)
 	return Rating.posToRating(self._robot, self._targetPos)
 end
 
