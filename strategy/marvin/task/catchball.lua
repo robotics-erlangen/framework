@@ -17,7 +17,7 @@ end
 
 -- the robot may drive with up to endSpeed or ballSpeed when it catches the ball, depending on which of both is higher
 function CatchBall:_catchBall(targetPos, endSpeed, keepDistanceToBall, maxSpeed)
-	if Referee.isStopState() or Referee.isDefendState() then
+	if Referee.isStopState() or Referee.isDefendState() or World.RefereeState == "PenaltyOffensivePrepare" then
 		maxSpeed = math.bound(0.5, self._robot.pos:distanceTo(World.Ball.pos)/2, maxSpeed or 1)
 	end
 
