@@ -15,7 +15,7 @@ function Keeper:_init()
 end
 
 --moves keeper do defending possition
-function Keeper:_run(priorityMessages, notifications)	
+function Keeper:_run(priorityMessages, notifications)
 	local atkPos, atkDir, isShot = Goal.predictShot()
 	atkDir = atkDir:copy():setLength(30)
 	local normalLine = false
@@ -66,6 +66,8 @@ function Keeper:_run(priorityMessages, notifications)
 	elseif atkDir.y < 0 then
 		moveTo = intersectPos
 	--standard position if no Goal-Shot is expected
+	elseif atkDir >= 0 and isShot then
+		moveTo = self._robot.pos
 	else
 		moveTo = goalLinePos
 	end
