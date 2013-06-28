@@ -169,7 +169,9 @@ end
 function Skuba:prepareVolley()
 	self:_update()
 	self._tasks = {
-		self._robots[1] and Assistant.create(self._robots[1]) or nil,
+		self._robots[1] and MoveToPos.create(self._robots[1], Vector.create(0, 0), math.pi/2) or nil, --- XXX
+		-- Hack to prevent the robots[1] from blocking the volley shot
+		-- originally, it was an assistant
 		self._robots[2] and Volley.create(self._robots[2], self._origBallPos) or nil,
 		self._robots[3] and MoveToPos.create(self._robots[3], self._distractor1, (World.Ball.pos - self._distractor1):angle()) or nil, 
 		self._robots[4] and MoveToPos.create(self._robots[4], self._distractor2, (World.Ball.pos - self._distractor2):angle()) or nil,
