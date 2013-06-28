@@ -30,7 +30,7 @@ function ReceivePass:_check()
 			return Base.State.Inactive
 		end
 		-- force being mainAttacker, suppress other passReceivers
-		return Base.State.Active, { specialTask = { mainAttacker = 2, passReceiver = 2 } }
+		return Base.State.Active, { specialTask = { mainAttacker = 2, passReceiver = 2 } }, true
 
 	elseif self._targetTimer and World.Time - self._targetTimer < passTargetTimeout then
 		-- apply for becoming pass receiver
@@ -42,7 +42,7 @@ function ReceivePass:_check()
 		if (not passReceiver or passReceiver == self._robot) and Ball.isShot() then
 			self._catchingPass = true
 		end
-		return Base.State.Active, message
+		return Base.State.Active, message, true
 	end
 	return Base.State.Inactive
 end

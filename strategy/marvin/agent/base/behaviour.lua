@@ -24,22 +24,22 @@ function Base:run(isBehaviourChosen, ownMessages, priorityMessages, notification
 	self._notifications = notifications
 	self._trainerMessage = trainerMessages
 
-	local messages
+	local messages, keepAlive
 	 -- abort if another behaviour was actived
 	if self._state == Base.State.Active and isBehaviourChosen then
 		self:__stop(true)
 	end
 	if not isBehaviourChosen or self._state ~= Base.State.Inactive then
-		self._state, messages = self:_check()
+		self._state, messages, keepAlive = self:_check()
 		assert(not isBehaviourChosen or self._state ~= Base.State.Active, "only one behaviour may be active")
 	end
 
 	if self._state == Base.State.Active then
 		self:_run()
-		return self, messages
+		return self, messages, keepAlive
 	else
 		self:__stop(false)
-		return nil, messages
+		return nil, messages, keepAlive
 	end
 end
 
@@ -53,7 +53,7 @@ end
 -- causing one task to be missing
 function Base:_check()
 	error("stub")
-	-- return state[, messages]
+	-- return state[, messages[, keepAlive]]
 end
 
 -- just create a task

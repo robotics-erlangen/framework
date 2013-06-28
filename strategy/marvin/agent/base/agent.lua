@@ -34,6 +34,7 @@ function Base:init(robot)
 		Play.create(self._robot),
 		self._behaviours
 	})
+	self._keepAlive = false
 end
 
 function Base:run(messages)
@@ -41,9 +42,10 @@ function Base:run(messages)
 	local priorityMessages, notifications = messages:split(self._robot)
 	local trainerMessage = messages:trainer()
 
-	local behaviour, agentMessage = self._behaviours:run(false, ownMessages, 
+	local behaviour, agentMessage, keepAlive = self._behaviours:run(false, ownMessages,
 			priorityMessages, notifications, trainerMessage)
 	local task = behaviour and behaviour:task()
+	self._keepAlive = keepAlive -- tells whether the agent shouldn't be moved
 
 	debug.pushtop("Agents")
 	local behaviourName = behaviour and ("(" .. Class.name(behaviour, true) .. ")") or ""

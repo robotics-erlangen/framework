@@ -27,9 +27,11 @@ function Group:run(isBehaviourChosen, ownMessages, priorityMessages,
 		isBehaviourChosen = true -- aborts every child behaviour
 	end
 
+	local flagKeepAlive = false
 	for _, child in ipairs(self._children) do
-		local behaviour, messages = child:run(isBehaviourChosen, ownMessages,
+		local behaviour, messages, keepAlive = child:run(isBehaviourChosen, ownMessages,
 				priorityMessages, notifications, trainerMessages)
+		flagKeepAlive = flagKeepAlive or keepAlive
 		if messages then
 			table.extendDeep(agentMessage, messages)
 		end
@@ -42,7 +44,7 @@ function Group:run(isBehaviourChosen, ownMessages, priorityMessages,
 		end
 	end
 
-	return activeBehaviour, agentMessage
+	return activeBehaviour, agentMessage, flagKeepAlive
 end
 
 -- enables or disables this group, can be overwritten in subclasses

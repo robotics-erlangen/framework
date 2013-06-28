@@ -17,6 +17,9 @@ function Defender.takeRobot(robots)
 end
 
 function Defender:keepRobot()
+	if self._keepAlive then
+		return 0
+	end
 	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper
 end
 

@@ -28,6 +28,9 @@ end
 
 -- worse rating if robot if farther away from opponent goal
 function Attacker:rateRobot()
+	if self._keepAlive then
+		return 0
+	end
 	return -World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
 end
 
