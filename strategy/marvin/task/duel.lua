@@ -97,9 +97,7 @@ function Duel:_run(priorityMessages, notifications)
 	end
 	return {
 		defendedOpponent = self.opposer or self.oldOpposer,
-		duelAssistantPos = self.assistantPos,
-		duelAssistantDir = self.assistantDir,
-		passTarget = self.duelAssistantTarget
+		passTarget = self._bestAssistant
 	}
 end
 
