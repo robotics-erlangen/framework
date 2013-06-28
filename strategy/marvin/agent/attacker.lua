@@ -11,6 +11,7 @@ local Duel = require "agent/attacker/duel"
 local Shoot = require "agent/attacker/shoot"
 local Penalty = require "agent/attacker/penalty"
 local FreeKick = require "agent/attacker/freekick"
+local FreeKickDefender = require "agent/attacker/freekickdefender"
 local Default = require "agent/attacker/default"
 
 function Attacker.takeRobot(robots)
@@ -42,6 +43,7 @@ function Attacker:_initBehaviour()
 			Shoot.create(self._robot)
 		}),
 		KickoffAssistant.create(self._robot),
+		FreeKickDefender.create(self._robot),
 		Default.create(self._robot)
 	})
 end
