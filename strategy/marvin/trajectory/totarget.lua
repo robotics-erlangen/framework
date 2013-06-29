@@ -65,9 +65,9 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	
 	local v_robot
 	
-	local k = self.parameters.factorProp/1.4
+	local k = self.parameters.factorProp/1
 
-	local accelerationFactor = 1
+	local accelerationFactor = 0.8
 	local accelerate = math.abs(self._robot.acceleration 
 			and self._robot.acceleration.aSpeedupFMax or 1.0) * accelerationFactor
 	local brake = math.abs(self._robot.acceleration 
@@ -75,16 +75,27 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local v = robotSpeed:length()	
 
 	self.v_last = self.v_last or v
-	local brake2 = 1.2*brake
-	if v*v + 2*brake2*brake2/(k*k) > (2*brake2*dist) then
-		if v > brake/k and k*dist > brake/k then
-			v_robot = self.v_last - brake*World.TimeDiff
+	local brake2 = 1*brake
+	local faktor_e = 2;
+	if 0.5*v*v/brake+0.1 > dist  then -- bremsen
+		log("break")
+		if v > brake/k then
+		v_robot = self.v_last - brake*World.TimeDiff
+		--	v_robot = self.v_last - brake*World.TimeDiff
 		elseif v <= brake/k and k*dist <= brake/k then
-			v_robot = k*dist
+			local v_theo			
+			v_theo = k*dist
+			if v_theo > v then
+				v_robot = self.v_last + accelerate*0.0001*(v_theo-v)
+				log("da")
+			else
+				--log("else")
+				v_robot = k*dist		
+			end
 		else
 			v_robot = v --- brake*World.TimeDiff
 		end
-	elseif v < maxSpeed then
+	elseif  v < maxSpeed then
 		v_robot = self.v_last + accelerate*World.TimeDiff
 	else
 		v_robot = maxSpeed
