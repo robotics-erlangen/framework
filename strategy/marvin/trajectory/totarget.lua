@@ -132,5 +132,6 @@ function OldController:canHandle(targetPos, targetDir, maxSpeed, endSpeed)
 	return true
 end
 
-return OldController
+--return OldController
+return require "trajectory/totarget-old"
 --return require "trajectory/simplebangbang"
