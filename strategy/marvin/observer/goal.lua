@@ -262,7 +262,9 @@ function Goal.predictShot()
 			local targetDist = math.huge
 			for _, robot in pairs(World.OpponentRobots) do
 				-- FIXME predict robot movement
-				if (robot.pos - pos):absoluteAngleDiff(dir) < 10 / 180 * math.pi then
+				local toRobot = robot.pos - pos
+				local robotWidthAngle = math.atan(math.bound(0, robot.radius / toRobot:length(), 1))
+				if toRobot:absoluteAngleDiff(dir) < 10 / 180 * math.pi + robotWidthAngle then
 					local rtargetDist = pos:distanceTo(robot.pos)
 					if rtargetDist < targetDist then
 						targetDist = rtargetDist
