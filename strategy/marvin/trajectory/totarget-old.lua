@@ -11,10 +11,16 @@ function OldController:reset()
 		self.parameters.factorProp = 3
 		self.parameters.k_omega = 2
 		self.parameters.limitRot = 4 * math.pi
+		self.parameters.limitIntCtrl = 0.1 -- limit of integrating part
+		self.parameters.factorIntCtrl = 0 -- factor of integrating part
+		self.parameters.factorDiffCtrl = 0 -- factor of differential part
 	elseif (self._robot.generation == 2) then --generation 2011
-		self.parameters.factorProp = 5
-		self.parameters.k_omega = 17
-		self.parameters.limitRot = 2 * math.pi
+			self.parameters.factorProp = 10
+			self.parameters.k_omega = 10
+			self.parameters.limitRot = 2 * math.pi
+			self.parameters.limitIntCtrl = 0.03 -- limit of integrating part
+			self.parameters.factorIntCtrl = 0 -- factor of integrating part
+			self.parameters.factorDiffCtrl = 0 -- factor of differential part
 	else
 		self.parameters = nil
 	end
@@ -63,49 +69,38 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		brakeDist = dist
 	end
 	
-	local v_robot
-	
-	local k = self.parameters.factorProp/1.4
-
-	local accelerationFactor = 1
-	local accelerate = math.abs(self._robot.acceleration 
-			and self._robot.acceleration.aSpeedupFMax or 1.0) * accelerationFactor
-	local brake = math.abs(self._robot.acceleration 
-			and self._robot.acceleration.aBrakeSMax or 1.0) * accelerationFactor
-	local v = robotSpeed:length()	
-
-	self.v_last = self.v_last or v
-	brake2 = 1.2*brake
-	if v*v + 2*brake2*brake2/(k*k) > (2*brake2*dist) then
-		if v > brake/k and k*dist > brake/k then
-			v_robot = self.v_last - brake*World.TimeDiff
-		elseif v <= brake/k and k*dist <= brake/k then
-			v_robot = k*dist
-		else
-			v_robot = v --- brake*World.TimeDiff
-		end
-	elseif v < maxSpeed then
-		v_robot = self.v_last + accelerate*World.TimeDiff
-	else
-		v_robot = maxSpeed
-	end
-
-	if v_robot > self._robot.maxSpeed then
-		v_robot = self._robot.maxSpeed
-	end
-
-	self._counter = self._counter ~= nil and self._counter + 1 or 1
-	--alle 10 schritte:
-	if self._counter == 20 then
-		self.v_last = v
-		self._counter = 0
-	else
-		self.v_last = v_robot
-	end
-
+	local v_robot = self.parameters.factorProp * brakeDist --math.sqrt(2 * self.parameters.factorProp * brakeDist)
 	local nextPoint = Vector.create(waypoints[1].p_x, waypoints[1].p_y)
 	
 	local speed = (nextPoint - robotPos):setLength(v_robot)
+	
+	self.intCtrl = self.intCtrl + speed*World.TimeDiff * self.parameters.factorIntCtrl 	
+
+	-- bound integrating part of controller
+	if self.intCtrl:length() > self.parameters.limitIntCtrl then
+		self.intCtrl:setLength(self.parameters.limitIntCtrl)
+	end
+	
+	-- add integrating part of controller to speed
+	--log(self.parameters.factorDiffCtrl)
+	--log('robotSpeed=(%f|%f)', robotSpeed.x, robotSpeed.y)
+	--log('P=(%f|%f), I=(%f|%f), D=(%f|%f)', speed.x, speed.y, self.intCtrl.x, self.intCtrl.y, robotSpeed.x*self.parameters.factorDiffCtrl, robotSpeed.y*self.parameters.factorDiffCtrl)
+	
+	local robotAccel
+	if self.lastSpeed then
+		robotAccel = (robotSpeed - self.lastSpeed) / World.TimeDiff
+	else
+		robotAccel = Vector.create(0, 0)
+	end
+	self.lastSpeed = robotSpeed
+	speed = speed + self.intCtrl - robotAccel*self.parameters.factorDiffCtrl
+
+	-- bound speed to self._robot.maxSpeed without changing the direction
+	if speed:length() > self._robot.maxSpeed then
+		speed:setLength(self._robot.maxSpeed)
+	end
+
+	--log(speed:length())
 
 	local time = (dist - brakeDist) / self._robot.maxSpeed + (1 / self.parameters.factorProp) * (math.log(brakeDist) + 4.60517) --4.6 is log(100)
 	if time < 0 then
