@@ -39,7 +39,8 @@ function ReceivePass:_check()
 		message = { specialTask = { passReceiver = passReceiverRating } }
 
 		local passReceiver = self._trainerMessage.specialTask.passReceiver
-		if (not passReceiver or passReceiver == self._robot) and Ball.isShot() then
+		local ballShooter = Ball.isShot()
+		if (not passReceiver or passReceiver == self._robot) and ballShooter and ballShooter.isFriendly then
 			self._catchingPass = true
 		end
 		return Base.State.Active, message, true
