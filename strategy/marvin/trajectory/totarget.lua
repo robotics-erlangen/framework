@@ -75,7 +75,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local v = robotSpeed:length()	
 
 	self.v_last = self.v_last or v
-	brake2 = 1.2*brake
+	local brake2 = 1.2*brake
 	if v*v + 2*brake2*brake2/(k*k) > (2*brake2*dist) then
 		if v > brake/k and k*dist > brake/k then
 			v_robot = self.v_last - brake*World.TimeDiff
