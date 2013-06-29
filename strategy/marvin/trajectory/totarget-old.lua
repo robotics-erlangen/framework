@@ -15,8 +15,8 @@ function OldController:reset()
 		self.parameters.factorIntCtrl = 0 -- factor of integrating part
 		self.parameters.factorDiffCtrl = 0 -- factor of differential part
 	elseif (self._robot.generation == 2) then --generation 2011
-			self.parameters.factorProp = 10
-			self.parameters.k_omega = 10
+			self.parameters.factorProp = 5
+			self.parameters.k_omega = 3
 			self.parameters.limitRot = 2 * math.pi
 			self.parameters.limitIntCtrl = 0.03 -- limit of integrating part
 			self.parameters.factorIntCtrl = 0 -- factor of integrating part
