@@ -43,7 +43,7 @@ function ShootGoal:updateDestination(ignoreGoalie)
 
 	local goalStart = (World.Geometry.OpponentGoalRight - ball.pos):angle() -- direction of the first goalpost
 	local goalEnd = (World.Geometry.OpponentGoalLeft - ball.pos):angle() -- direction of the other goalpost
-		
+	
 	local viewPos = ball.pos --FIXME take future ball pos instead
 
 	local freeSectors = Goal.getFreeSectors(viewPos, robotList(self._robot, viewPos, ignoreGoalie), goalStart, goalEnd)
@@ -121,6 +121,7 @@ function ShootGoal:_run()
 		self:updateDestination(true)
 	end
 	-- shoot
+	vis.addPath("ShootGoalTarget",{World.Ball.pos, self.targetPoint})
 	self:_shoot(self.targetPoint, math.huge, true)
 end
 
