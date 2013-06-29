@@ -13,7 +13,7 @@ function OldController:reset()
 		self.parameters.limitRot = 4 * math.pi
 	elseif (self._robot.generation == 2) then --generation 2011
 		self.parameters.factorProp = 5
-		self.parameters.k_omega = 17
+		self.parameters.k_omega = 10
 		self.parameters.limitRot = 2 * math.pi
 	else
 		self.parameters = nil
