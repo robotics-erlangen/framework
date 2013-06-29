@@ -61,6 +61,9 @@ function Keeper:_run(priorityMessages, notifications)
 	--defending possition if ball is allready shot: shortest way to stop the ball
 	if isShot and atkDir.y < 0 and math.abs(intersectPos.x) < World.Geometry.GoalWidth / 2 then
 		moveTo = self._robot.pos:nearestPosOnLine(atkPos, atkPos+atkDir):copy()
+		if moveTo.y < World.Geometry.FriendlyGoal.y then
+			moveTo = intersectPos
+		end
 		moveTo.x = math.bound(-World.Geometry.GoalWidth / 2, moveTo.x, World.Geometry.GoalWidth / 2) --don't move out of the goal
 	--defending possition to block possible Goal shots: moves along a straight line in front of the goal: distance to goal: Settings.keeperGoalDistance
 	elseif atkDir.y < 0 then
