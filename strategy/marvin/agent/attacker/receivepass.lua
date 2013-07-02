@@ -24,8 +24,15 @@ function ReceivePass:_check()
 	end
 
 	if self._catchingPass then
+		local friendlyBallOwner = Ball.friendlyBallOwner()
+		-- ignore the ball owner until the ball has moved away from it
+		if friendlyBallOwner == self._ballShooter then
+			friendlyBallOwner = nil
+		else
+			self._ballShooter = nil
+		end
 		-- abort if someone has the ball, the ball is slow or the game is stopped
-		if Ball.opponentBallOwner() or Ball.friendlyBallOwner() or World.Ball.speed:length() < Settings.slowBall
+		if Ball.opponentBallOwner() or friendlyBallOwner or World.Ball.speed:length() < Settings.slowBall
 				or Referee.isStopState() then
 			return Base.State.Inactive
 		end
@@ -36,12 +43,13 @@ function ReceivePass:_check()
 		-- apply for becoming pass receiver
 		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
 		local passReceiverRating = Rating.timeToRating(timeToBall)
-		message = { specialTask = { passReceiver = passReceiverRating } }
+		local message = { specialTask = { passReceiver = passReceiverRating } }
 
 		local passReceiver = self._trainerMessage.specialTask.passReceiver
 		local ballShooter = Ball.isShot()
 		if (not passReceiver or passReceiver == self._robot) and ballShooter and ballShooter.isFriendly then
 			self._catchingPass = true
+			self._ballShooter = ballShooter
 		end
 		return Base.State.Active, message, true
 	end
@@ -50,6 +58,7 @@ end
 
 function ReceivePass:_stop(isAborted)
 	self._catchingPass = false
+	self._ballShooter = nil
 end
 
 function ReceivePass:_run()
