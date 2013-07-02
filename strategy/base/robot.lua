@@ -305,13 +305,6 @@ function Robot:posToBall(ball)
 	return relpos
 end
 
---- Ball distance to dribbler
--- @param ball Ball - ball object to check
--- @return number - distance between ball and dribbler
-function Robot:distToBall(ball)
-	return self:posToBall(ball).x
-end
-
 --- Check whether the robot has the given ball.
 -- Checks whether the ball is in rectangle in front of the dribbler with hasBallDistance depth. Uses hysteresis for the left and right side of that rectangle
 -- @param ball Ball - ball object to check

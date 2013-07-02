@@ -155,9 +155,9 @@ end
 -- [B] (1) dribble and chip
 -- move backwards to gain some distance and chip over the opponent robot
 function Duel:_contestDribble()
-	if self.isAtBall and self._robot:distToBall(World.Ball) > self._robot.constants.hasBallDistance then
+	if self.isAtBall and self._robot:posToBall(World.Ball).x > self._robot.constants.hasBallDistance then
 		self.isAtBall = false
-	elseif self._robot:distToBall(World.Ball) < Constants.positionError then
+	elseif self._robot:posToBall(World.Ball).x < Constants.positionError then
 		self.isAtBall = true
 	end
 	
