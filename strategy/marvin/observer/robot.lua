@@ -79,7 +79,7 @@ end
 
 function Robot.minTimeToBall(robot, ball)
 	local posDiff = (ball.pos - robot.pos):normalize()
-	local dist = ball.pos:distanceTo(robot.pos) - ball.radius - robot.radius
+	local dist = math.max(0, ball.pos:distanceTo(robot.pos) - ball.radius - robot.radius)
 	-- speed of ball and robot towards each other
 	local robotSpeed = posDiff:dot(robot.speed)
 	local robotAccel = robot.maxAcceleration
