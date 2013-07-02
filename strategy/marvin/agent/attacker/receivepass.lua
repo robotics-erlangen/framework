@@ -54,11 +54,11 @@ end
 
 function ReceivePass:_run()
 	if self._catchingPass then
-		if not self._task or Class.instanceOf(self._task, PassReceiver) then
+		if not self._task or not Class.instanceOf(self._task, PassReceiver) then
 			self._task = PassReceiver.create(self._robot)
 		end
 	else
-		if not self._task or Class.instanceOf(self._task, PassTarget) then
+		if not self._task or not Class.instanceOf(self._task, PassTarget) then
 			self._task = PassTarget.create(self._robot)
 		end
 	end
