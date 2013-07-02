@@ -166,22 +166,24 @@ end
 
 local lastBallSpeedLength = -1
 local lastShootTime = 0
-local lastShootRobot = nil
+local cacheTime = 0
+local cachedShootRobot = nil
 local shootCooldown = 0.1 --ball can be shot at least 0.1s after the last shot
 local speedDiff = 0.1 --ball has to be 0.1m/s faster than the robot
 local accelerationPerFrame = 5 --ball has to accelerate at least x m/s^2 to count as shot
 
 function Ball.isShot()
-	local ObserverRobot = require "observer/robot"
-	
-	if World.Time == lastShootTime then
-		return lastShootRobot
+	-- caching
+	if World.Time == cacheTime then
+		return cachedShootRobot
+	end
+
+	if not World.Ball:isPositionValid() then
+		return
 	end
 
 	local ballSpeedLength = World.Ball.speed:length()
 
-	-- if ball is valid
-	local condValid = World.Ball:isPositionValid()
 	-- if the ball was not shot in the last tenth second
 	local condCooldown = (World.Time > lastShootTime + shootCooldown)
 	-- if the ball accelerates
@@ -196,37 +198,42 @@ function Ball.isShot()
 	local condFasterThanRobot = false
 
 	local robot = nil
-	if condValid then
+	if condCooldown and condAccelerates and condFast then
+		local ObserverRobot = require "observer/robot"
 		for _,r in pairs(World.Robots) do
 			if ObserverRobot.hadBall(r, shootCooldown) then
 				condHadBall = true
 				local anglediff = math.abs(geom.getAngleDiff(r.dir, World.Ball.speed:angle()))
-				if anglediff < Settings.tiltShotAngle then
-					condDirection = true
-				end
-				if ballSpeedLength > speedDiff + r.speed:length() then
-					condFasterThanRobot = true
-				end
+				condDirection = (anglediff < Settings.tiltShotAngle)
+				condFasterThanRobot = (ballSpeedLength > speedDiff + r.speed:length())
 				debug.set("robot speed", r.speed:length())
-				if condCooldown and condAccelerates and condFast and condDirection and condFasterThanRobot then
-					lastShootTime = World.Time
-					lastShootRobot = r
+				if condDirection and condFasterThanRobot then
 					robot = r
+					break
 				end
 			end
 		end
 	end
 
+	-- update cache
+	cacheTime = World.Time
+	cachedShootRobot = robot
+
+	-- lastShootTime is used for the cooldown
+	if robot then
+		lastShootTime = World.Time
+	end
+	lastBallSpeedLength = ballSpeedLength
+
 	if Settings.DEBUG then
-		debug.set("valid", condValid)
 		debug.set("cooldown", condCooldown)
 		debug.set("accelerates", condAccelerates)
 		debug.set("fast", condFast)
 		debug.set("hadBall", condHadBall)
 		debug.set("direction", condDirection)
+		debug.set("fasterThanRobot", condFasterThanRobot)
 	end
 
-	lastBallSpeedLength = World.Ball.speed:length()
 	return robot
 end
 
