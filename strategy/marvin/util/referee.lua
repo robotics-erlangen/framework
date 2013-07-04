@@ -5,7 +5,7 @@ local World = require "../base/world"
 local refereeStopStates = {
 	Stop = true,
 	KickoffDefensivePrepare = true,
-	KiffoffDefensive = true,
+	KickoffDefensive = true,
 	DirectDefensive = true,
 	IndirectDefensive = true
 }
@@ -17,9 +17,9 @@ local refereeDefendStates = {
 
 local refereeKickoffStates = {
 	KickoffDefensivePrepare = true,
-	KiffoffDefensive = true,
+	KickoffDefensive = true,
 	KickoffOffensivePrepare = true,
-	KiffoffOffensive = true
+	KickoffOffensive = true
 }
 
 function Referee.isStopState()
