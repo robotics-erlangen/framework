@@ -66,15 +66,14 @@ end
 function Coordinator:_updatePoolRobots()
 	-- calculate how many robots to use for attack / defense with hysteresis
 	local attackRatio = self:observeGameState()
-	local attackers = attackRatio * #World.FriendlyRobots
-	attackers = math.roundUpwards(attackers, 0.1)
-	local defenders = (1 - attackRatio) * #World.FriendlyRobots
+	local attackers = attackRatio/6 * #World.FriendlyRobots
+	attackers = math.roundUpwards(attackers, 0)
+	local defenders = #World.FriendlyRobots - attackers
 	
 	-- if keeper is on the field, it is managed by the keeper pool
 	if World.FriendlyKeeper and World.FriendlyKeeper.isVisible then
 		defenders = defenders - 1
 	end
-	defenders = math.roundUpwards(defenders, 0.1)
 	
 	-- limit robot counts on attack/defense pool, causes automatic robot balancing
 	self._pools.attack:setRobotLimit(attackers)
@@ -156,16 +155,25 @@ function Coordinator:observeGameState()
 	-- if we have ball in opponent half -> 3 defenders
 	-- if we are in the opponent half and we've got a freekick -> 2-3 defenders
 	
-	-- ===== 
-	-- evenly distribute robots between attack and defense
-	-- ratio	attackers/defenders
-	--  0.0				0/6
-	--  0.2				1/5
-	--  0.3				2/4
-	--  0.5				3/3
-	--  0.7				4/2
-	--  0.8				5/1
-	--  1.0				6/0
+	-- ===== distribution table =====
+	-- formula: ratio{0, 1, 2, 3, 4, 5, 6} / 6 * robots, round up at 0.5
+	-- previous formula: ratio{0, 0.2, 0.3, 0.5, 0.7, 0.8, 1} * robots, round up at 0.4
+	-- 
+	-- 
+	-- #attackers depending on #robots and attackRatio
+	-- the + denotes, that the previous formula would have had an attacker more than the new one
+	--
+	--		ratio:	0	1	2	3	4	5	6
+	--				
+	-- 1 robot		0	0	0	1	1	1	1
+	-- 2 robots		0	0+	1	1	1+	2	2
+	-- 3 robots		0	1	1	2	2	3	3
+	-- 4 robots		0	1	1	2	3	3	4
+	-- 5 robots		0	1	2	3	3+	4	5
+	-- 6 robots		0	1	2	3	4	5	6
+	-- 7 robots		0	1+	2	4	5	6	7
+	-- 8 robots		0	1+	3	4	5+	7	8
+	-- 
 
 	-- ===== current implementation =====
 	-- General (ie Game, Stop)
@@ -206,36 +214,36 @@ function Coordinator:observeGameState()
 	local opponentCorner = Field.isInOwnCorner(World.Ball.pos, true)
 	
 	-- General
-	local attackRatio = self._front and 0.5 or 0.3	
+	local attackRatio = self._front and 3 or 2	
 	
 	-- Kickoff
 	if World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
-		attackRatio = 0.7
+		attackRatio = 4
 	elseif World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
-		attackRatio = 0.5
+		attackRatio = 3
 		
 	-- FreeKick
 	elseif World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
 		if friendlyCorner then
-			attackRatio = 0.5
+			attackRatio = 3
 		elseif opponentCorner then
-			attackRatio = 0.7
+			attackRatio = 4
 		else
-			attackRatio = 0.5
+			attackRatio = 3
 		end
 	elseif World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
 		if friendlyCorner then
-			attackRatio = 0.2
+			attackRatio = 1
 		elseif opponentCorner then
-			attackRatio = 0.3
+			attackRatio = 2
 		else
-			attackRatio = 0.3
+			attackRatio = 2
 		end
 	end
 	
 	-- Penalty Shootout
 	if World.GameStage == "PenaltyShootout" then
-		attackRatio = 1
+		attackRatio = 6
 	end
 	
 	debug.set("AttackRatio", attackRatio)
