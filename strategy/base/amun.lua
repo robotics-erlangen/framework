@@ -104,5 +104,4 @@ separator for luadoc]]--
 ]]--
 
 require "amun"
-amun.strategyPath = amun.getStrategyPath()
 log = amun.log

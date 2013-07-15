@@ -27,16 +27,16 @@ local World = require "../base/world"
 
 -- prevent access to the amun api by other code
 local isDebug = pcall(require, "debug")
+local strategyPath = amun.getStrategyPath()
 if isDebug then
 	amun = {
-		isDebug = true,
 		sendCommand = amun.sendCommand
 	}
 else
-	amun = {
-		isDebug = false
-	}
+	amun = {}
 end
+amun.isDebug = isDebug
+amun.strategyPath = strategyPath
 
 -- prevent reloading original api
 package.preload["amun"] = nil
