@@ -84,6 +84,14 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
+--- Returns the absolute path to the folder containing the init script
+-- @class function
+-- @name getStrategyPath
+-- @return String - path
+
+--[[
+separator for luadoc]]--
+
 --- Sets a value in the debug tree
 -- @class function
 -- @name addDebug
@@ -96,4 +104,5 @@ separator for luadoc]]--
 ]]--
 
 require "amun"
+amun.strategyPath = amun.getStrategyPath()
 log = amun.log
