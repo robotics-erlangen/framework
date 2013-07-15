@@ -7,7 +7,6 @@ local Settings = require "settings"
 local Field = require "util/field"
 local geom = require "../base/geom"
 local debug = require "../base/debug"
-local Learning = require "util/learning"
 local ObserverRobot = require "observer/robot"
 local vis = require "../base/vis"
 

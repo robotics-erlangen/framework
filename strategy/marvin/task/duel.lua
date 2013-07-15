@@ -5,7 +5,7 @@ local Constants = require "../base/constants"
 local geom = require "../base/geom"
 local Debug = require "../base/debug"
 local Rating = require "util/rating"
-local Learning = require "util/learning"
+local Learning = require "learning/roulettewheelselection"
 local Field = require "util/field"
 local Direct = require "trajectory/direct"
 local DirectPass = require "task/directpass"
@@ -62,7 +62,7 @@ end
 -- ===========================
 
 -- an array containing all information for the roulette wheel selection algorithm in util/learning
-local successRates = Learning.init(2)
+local successRates = Learning.init(2, "Duel")
 
 -- decides what to do
 -- [B] contest
@@ -131,7 +131,7 @@ end
 -- tells the learning algorithm if the choice was successful
 function Duel:_evaluateStrategy(pwned)
 	if self.strategy and self.strategy ~= 0 then
-		Learning.report(successRates, self.strategy, pwned)	
+		Learning.report(successRates, self.strategy, pwned, "Duel")	
 	end
 	self:_reset()
 end

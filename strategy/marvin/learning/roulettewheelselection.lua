@@ -1,14 +1,20 @@
-local Learning = {}
+local RouletteWheelSelection = {}
 
+local IO = require "util/io"
 
 --- creates a list of ratings with length n and a success rate of 50%
 -- at the first report, the rating changes +- 10% (2 out of 4 -> 2 or 3 out of 5)
 -- @param n number - the number of possible choices
 -- @return table[] - the array of success ratings (consisting of total, successful and percentage)
-function Learning.init(n)
+function RouletteWheelSelection.init(n, caller)
+	local module = "RouletteWheelSelection_"..caller
+	local params = IO.read(module)
+
 	local successRates = {}
 	for i = 1, n do
-		successRates[i] = { total = 4, successful = 2, percentage = 0.5 }
+		local t = params[tostring(i).."t"] or 4
+		local s = params[tostring(i).."s"] or 2
+		successRates[i] = { total = t, successful = s, percentage = s/t }
 	end
 	return successRates
 end
@@ -16,7 +22,7 @@ end
 --- decides randomly what to do
 -- @param successRates table[] - the array of success ratings created in init()
 -- @return number - the index of the choice
-function Learning.decide(successRates)
+function RouletteWheelSelection.decide(successRates)
 	local n = #successRates
 	local percSum = 0
 	for _,rate in ipairs(successRates) do
@@ -30,21 +36,30 @@ function Learning.decide(successRates)
 			return i
 		end
 	end
-	error("Learning/decide - SHOULD NEVER HAPPEN")
+	error("RouletteWheelSelection/decide - SHOULD NEVER HAPPEN")
 end
 
 --- tells the learning algorithm if the choice was successful
 -- @param successRates table[] - the array of success ratings created in init()
 -- @param i number - the performed choice
 -- @param success bool - if the choice was successful
-function Learning.report(successRates, i, success) 
+function RouletteWheelSelection.report(successRates, i, success, caller) 
 	local rate = successRates[i]
 	rate.total = rate.total + 1
 	if success then
 		rate.successful = rate.successful + 1
 	end
 	rate.percentage = rate.successful / rate.total
+	
+	local params = {}
+	for key, value in pairs(successRates) do
+		params[tostring(key).."t"] = value.total
+		params[tostring(key).."s"] = value.successful
+	end
+	
+	local module = "RouletteWheelSelection_"..caller
+	IO.save(module, params)
 end
 
 
-return Learning
+return RouletteWheelSelection
