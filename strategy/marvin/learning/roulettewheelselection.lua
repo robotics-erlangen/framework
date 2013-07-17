@@ -5,9 +5,9 @@ local IO = require "util/io"
 --- creates a list of ratings with length n and a success rate of 50%
 -- at the first report, the rating changes +- 10% (2 out of 4 -> 2 or 3 out of 5)
 -- @param n number - the number of possible choices
+-- @param module string - the name of the file in learning/parameters/
 -- @return table[] - the array of success ratings (consisting of total, successful and percentage)
-function RouletteWheelSelection.init(n, caller)
-	local module = "RouletteWheelSelection_"..caller
+function RouletteWheelSelection.init(n, module)
 	local params = IO.read(module)
 
 	local successRates = {}
@@ -43,7 +43,8 @@ end
 -- @param successRates table[] - the array of success ratings created in init()
 -- @param i number - the performed choice
 -- @param success bool - if the choice was successful
-function RouletteWheelSelection.report(successRates, i, success, caller) 
+-- @param module string - the name of the file in learning/parameters/
+function RouletteWheelSelection.report(successRates, i, success, module) 
 	local rate = successRates[i]
 	rate.total = rate.total + 1
 	if success then
@@ -57,7 +58,6 @@ function RouletteWheelSelection.report(successRates, i, success, caller)
 		params[tostring(key).."s"] = value.successful
 	end
 	
-	local module = "RouletteWheelSelection_"..caller
 	IO.save(module, params)
 end
 
