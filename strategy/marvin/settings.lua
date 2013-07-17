@@ -11,7 +11,7 @@ settings.slowBall = 0.5 -- consider a ball as moving if faster than this limit [
 settings.fastBall = 1.0 -- consider a ball as fast if faster than this limit [m/s]
 settings.tiltShotAngle = 45/180*math.pi -- the max offset angle for tilted and volley shots
 -- we can try to shoot at the goal if the probability of a success is > minSuccessProbability
-settings.minAnglePrecision = 2 / 180 * math.pi
+settings.minAnglePrecision = 1 / 180 * math.pi
 settings.shootDriveSpeed = 0.5
 settings.penaltyShootDriveSpeed = 1
 settings.shootSideOffset = 0.05 -- extends the hasBall sidewards
