@@ -14,9 +14,11 @@ function MovingAverage.init(module, nPoints, default)
 	
 	local lines = IO.readLines(module)
 	local startpos = #lines - nPoints
+	local writeIndex = 1
 	for i = 1, nPoints do
 		if startpos + i > 0 then
-			points[i] = lines[startpos + i]
+			points[writeIndex] = lines[startpos + i]
+			writeIndex = writeIndex + 1
 		end
 	end
 	
