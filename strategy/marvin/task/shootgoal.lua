@@ -6,7 +6,6 @@ local Shoot = require "observer/shoot"
 
 local World = require "../base/world"
 local G = World.Geometry
-local ball = World.Ball
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 
@@ -41,10 +40,10 @@ function ShootGoal:updateDestination(ignoreGoalie)
 		return
 	end
 
-	local goalStart = (World.Geometry.OpponentGoalRight - ball.pos):angle() -- direction of the first goalpost
-	local goalEnd = (World.Geometry.OpponentGoalLeft - ball.pos):angle() -- direction of the other goalpost
+	local viewPos = self._viewPos or World.Ball.pos
 	
-	local viewPos = ball.pos --FIXME take future ball pos instead
+	local goalStart = (World.Geometry.OpponentGoalRight - viewPos):angle() -- direction of the first goalpost
+	local goalEnd = (World.Geometry.OpponentGoalLeft - viewPos):angle() -- direction of the other goalpost
 
 	local freeSectors = Goal.getFreeSectors(viewPos, robotList(self._robot, viewPos, ignoreGoalie), goalStart, goalEnd)
 
@@ -84,7 +83,7 @@ function ShootGoal:updateDestination(ignoreGoalie)
 	end
 	
 	self.bestMid = bestMid
-	self.targetPoint = bestMid and geom.intersectLineLine(ball.pos, Vector.fromAngle(bestMid), 
+	self.targetPoint = bestMid and geom.intersectLineLine(viewPos, Vector.fromAngle(bestMid), 
 			G.OpponentGoal, Vector.create(1, 0)) or G.OpponentGoal
 	self.maxAngleError = bestAngleError
 	
@@ -102,7 +101,7 @@ end
 
 function ShootGoal:canShoot()
 	self:updateDestination()
-	return self.maxAngleError and self.maxAngleError > 1.5/180*math.pi -- MAGIC CONSTANT
+	return self.maxAngleError and self.maxAngleError > Settings.minAnglePrecision/180*math.pi
 end
 
 function ShootGoal:_canShoot()
