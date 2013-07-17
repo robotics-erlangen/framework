@@ -1,34 +1,18 @@
 local Volley = (require "../base/class").new("Task.Volley", require "task/shootgoal")
 
-local Robot = require "observer/robot"
-local Goal = require "observer/goal"
-local Shoot = require "observer/shoot"
-
+local MovingAverage = require "learning/movingaverage"
 local World = require "../base/world"
-local G = World.Geometry
-local ball = World.Ball
+local Robot = require "observer/robot"
 local geom = require "../base/geom"
-local vis = require "../base/vis"
-
 
 Volley.priority = 5
 
-local t = 0.7
-
-local function robotList(selfRobot, viewPos)
-	local robots = {}
-	for _,r in pairs(World.Robots) do
-		if r.pos.y > viewPos.y and r ~= selfRobot then
-			table.insert(robots, r)
-		end
-	end
-	return robots
-end
-
-function Volley:_init(origBallPos)
-	self._bestMid = G.OpponentGoal
+function Volley:_init(origBallPos, viewPos)	
+	self._shootSpeed = 8
+	self._receiveSpeed = 4
 	self._origBallPos = origBallPos
-	self._t = t
+	self._viewPos = viewPos or self._robot.pos + (World.Geometry.OpponentGoal - self._robot.pos):setLength(self._robot.shootRadius)
+	MovingAverage.init("Volley", 5, 0.8)
 end
 
 function Volley:_rate()
@@ -47,37 +31,19 @@ function Volley:_canShoot()
 end
 
 function Volley:_run()
-	self:updateDestination()
-	-- viewPos
-	local bla = self._robot.pos
-	self._robot.pos = Vector.create(0, 0)
-	local t = self._t
-	local minPhi = (self._origBallPos - self._robot.pos):angle()
-	local maxPhi = (self.targetPoint - self._robot.pos):angle()
-	local min = geom.intersectLineLine(World.Geometry.OpponentGoal, Vector.create(1, 0), 
-			self._robot.pos, Vector.fromAngle(minPhi))
-	local max = geom.intersectLineLine(World.Geometry.OpponentGoal, Vector.create(1, 0), 
-			self._robot.pos, Vector.fromAngle(maxPhi))
-	if self._origBallPos.x < 0 then
-		min, max = max, min
-		t = 1-self._t
-	end
-	self._viewPos = min * (1-t) + max * t
+	self:updateDestination(false)
 	
-	if not self._viewPos then
-		self._viewPos = World.Geometry.OpponentGoal
-	end
+	self._mu = MovingAverage.getValue("Volley")
+	local gamma = (self.targetPoint - self._viewPos):angle()
+	local alpha = (self._origBallPos - self._viewPos):angle()
+	local k = self._shootSpeed / ((1 - self._mu) * self._receiveSpeed + self._shootSpeed)
+	local phi = (gamma + (1 - k) * alpha) / (2 - k)
 	
-	self._robot.pos = bla
+	local viewPoint = geom.intersectLineLine(World.Geometry.OpponentGoal, Vector.create(1, 0), 
+			self._viewPos, Vector.fromAngle(phi))
 	
-	vis.addCircle("Volley ViewPos", self._viewPos, 0.2, vis.colors.redHalf, true)
-	vis.addCircle("Volley ViewPos", self.targetPoint, 0.1, vis.colors.redHalf, true)
-	vis.addCircle("Volley ViewPos", min, 0.1, vis.colors.greenHalf, true)
-	vis.addCircle("Volley ViewPos", max, 0.1, vis.colors.greenHalf, true)
-	
-	-- shoot
-	self._robot:shoot(math.huge, 0)
-	self:_catchBall(self._viewPos, 0)
+	self._robot:shoot(self._shootSpeed, 0)
+	self:_catchBall(viewPoint, 0)
 end
 
 function Volley.factory(position)
