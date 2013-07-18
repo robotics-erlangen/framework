@@ -126,14 +126,14 @@ function CatchBall:_createBallObstacles(path, robotDir, currentBall, predictedBa
 	local radiusCompensation = self._robot.radius - self._robot.shootRadius
 
 	local corridorLeftDir = Vector.fromAngle(robotDir):rotate(corridorDir):scaleLength(self._robot.radius)
-	local corridorEndLeft = predictedBall.pos + corridorLeftDir
-	local corridorStartLeft = corridorEndLeft + corridorLeftDir:perpendicular():setLength(-(self._robot.shootRadius + predictedBall.radius)*0.7 + radiusCompensation)
-	corridorEndLeft = corridorEndLeft - corridorLeftDir:perpendicular():setLength(-(self._robot.shootRadius + predictedBall.radius)*0.3)
+	local corridorEndLeft = currentBall.pos + corridorLeftDir
+	local corridorStartLeft = corridorEndLeft + corridorLeftDir:perpendicular():setLength(-(self._robot.shootRadius + currentBall.radius)*0.7 + radiusCompensation)
+	corridorEndLeft = corridorEndLeft - corridorLeftDir:perpendicular():setLength(-(self._robot.shootRadius + currentBall.radius)*0.3)
 
 	local corridorRightDir = Vector.fromAngle(robotDir):rotate(-corridorDir):scaleLength(self._robot.radius)
-	local corridorEndRight = predictedBall.pos + corridorRightDir
-	local corridorStartRight = corridorEndRight + corridorRightDir:perpendicular():setLength((self._robot.shootRadius + predictedBall.radius)*0.7 + radiusCompensation)
-	corridorEndRight = corridorEndRight - corridorRightDir:perpendicular():setLength((self._robot.shootRadius + predictedBall.radius)*0.3)
+	local corridorEndRight = currentBall.pos + corridorRightDir
+	local corridorStartRight = corridorEndRight + corridorRightDir:perpendicular():setLength((self._robot.shootRadius + currentBall.radius)*0.7 + radiusCompensation)
+	corridorEndRight = corridorEndRight - corridorRightDir:perpendicular():setLength((self._robot.shootRadius + currentBall.radius)*0.3)
 
 	-- just block half of the extra dist
 	path:addLine(corridorStartLeft.x, corridorStartLeft.y, corridorEndLeft.x, corridorEndLeft.y, extraDist/2, 'ball_corridor1')
