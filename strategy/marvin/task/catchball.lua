@@ -88,7 +88,7 @@ function CatchBall:_catchBall(targetPos, endSpeed, keepDistanceToBall, maxSpeed)
 		-- the centerpiece of the catchball algorithm
 		-- FIXME better damping for small changes
 		if time < self._catchTime then
-			self._catchTime = time
+			self._catchTime = 0.5 * self._catchTime + 0.5 * time
 		else
 			self._catchTime = 0.95 * self._catchTime + 0.05 * time
 		end
