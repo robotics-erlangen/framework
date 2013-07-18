@@ -42,7 +42,7 @@ function Volley:_run()
 	local viewPos = self._robot.pos + (World.Geometry.OpponentGoal - self._robot.pos):setLength(self._robot.shootRadius)
 	
 	if self._ballComes then
-		self._alpha = World.Ball.speed:angle()
+		self._alpha = World.Ball.speed:copy():scaleLength(-1):angle()
 	end
 	if self._robot:hasBall(World.Ball) then
 		self._ballComes = false
