@@ -91,7 +91,8 @@ function Volley:_run()
 	
 	-- catch the ball and shoot
 	self._robot:shoot(self._shootSpeed, 0)
-	self:_catchBall(viewPoint, Settings.shootDriveSpeed, false)
+	-- position exactly where the robot should be
+	self:_catchBall(viewPoint, Settings.shootDriveSpeed, 0)
 end
 
 

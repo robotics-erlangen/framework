@@ -14,7 +14,7 @@ end
 
 function MoveToStaticBall:_run(priorityMessages, notifications)
 	-- limit movement speed to 1 m/s
-	self:_catchBall(self._targetPos, 0, true, 1)
+	self:_catchBall(self._targetPos, 0, Settings.staticBallDistance, 1)
 	return {}
 end
 

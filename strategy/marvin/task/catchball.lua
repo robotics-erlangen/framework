@@ -16,24 +16,26 @@ function CatchBall:_init()
 end
 
 -- the robot may drive with up to endSpeed or ballSpeed when it catches the ball, depending on which of both is higher
-function CatchBall:_catchBall(targetPos, endSpeed, keepDistanceToBall, maxSpeed)
+function CatchBall:_catchBall(targetPos, endSpeed, distanceToBall, maxSpeed)
+	-- TODO remove when trajectories are fully working
 	if Referee.isStopState() or Referee.isDefendState() or World.RefereeState == "PenaltyOffensivePrepare" then
 		maxSpeed = math.bound(0.5, self._robot.pos:distanceTo(World.Ball.pos)/2, maxSpeed or 1)
 	end
 
 	local ball = World.Ball
 	self._lastBallSpeed = self._lastBallSpeed or ball.speed
-	-- ball is slowing down
 	if self._catchTime and World.Ball.speed:length() < self._lastBallSpeed:length() + 0.1 then
+		-- ball is slowing down
 		-- update time from last frame
 		self._catchTime = math.max(0, self._catchTime - World.TimeDiff)
 	else
+		-- reset time as the ball is accelerating
 		-- should estimate the time quite good, but never overestimate it
 		-- that is the guess must be optimistic
-		-- when catching the ball there are two positions with minimal distance to it
+		-- when catching the ball there are two positions with minimal distance between ball and robot:
 		-- the point where the robot catches the ball directly
 		-- and the point where the robot gets the ball when the ball has stopped
-		-- as the direct catch is preferred we must ensure to start in the correct local minima
+		-- as the direct catch is preferred we must ensure to start near that local minima
 		self._catchTime = Robot.minTimeToBall(self._robot, ball)
 	end
 	
@@ -54,6 +56,7 @@ function CatchBall:_catchBall(targetPos, endSpeed, keepDistanceToBall, maxSpeed)
 				vis.addCircle("hitRobot", hitPoint2, 0.05, vis.colors.redHalf, true)
 			end
 			rollDist = math.max(rollDist - ball.radius, 0)
+			--FIXME ball to shootRadius takes some extra time
 			local timeToRobot = Ball.ballRollTime(ball.speed:length(), rollDist)
 			--debug.set("oldCatchtime", self._catchTime)
 			--debug.set("timeToRobot", timeToRobot)
@@ -65,9 +68,9 @@ function CatchBall:_catchBall(targetPos, endSpeed, keepDistanceToBall, maxSpeed)
 	
 	-- predict ball and catch it
 	local predictedBall = Ball.atTime(self._catchTime, ball)
-	local extraDist = keepDistanceToBall and Settings.catchBallDistance or Constants.positionError
+	distanceToBall = distanceToBall or Constants.positionError
 	local moveDest = predictedBall.pos + (predictedBall.pos - targetPos):setLength(
-			self._robot.shootRadius + extraDist + ball.radius)
+			self._robot.shootRadius + distanceToBall + ball.radius)
 	local viewLine = (targetPos - predictedBall.pos):normalize()
 	local viewDir = viewLine:angle()
 	moveDest = Field.limitToField(moveDest, Settings.positionPadding)

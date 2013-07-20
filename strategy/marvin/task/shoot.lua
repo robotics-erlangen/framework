@@ -113,7 +113,8 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		self._shootHysteresis = false
 		self._travelStart = nil
 		self._travelLimit = false
-		self:_catchBall(targetPos, shootDriveSpeed, true)
+		-- keeps a little distance to the ball to avoid pushing it
+		self:_catchBall(targetPos, shootDriveSpeed)
 	end
 
 	return isShooting
