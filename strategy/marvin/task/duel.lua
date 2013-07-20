@@ -86,7 +86,7 @@ function Duel:_run(priorityMessages, notifications)
 		if Settings.DEBUG then
 			Debug.set("Decision", "catch ball")
 		end
-		-- keeps a little distance to the ball
+		-- just get the ball
 		self:_catchBall(viewPos, 0.2)
 	else
 		-- if we have the ball, but at least one opponent is nearby

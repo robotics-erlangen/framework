@@ -28,7 +28,7 @@ function PassReceiver:_run()
 		debug.set("CatchBallTargetPos", tPos)
 		vis.addCircle("PassReceiverCatchBallTargetPos", self.tPos, 0.01)
 		self._robot:setDribblerSpeed(1)
-		-- keep a little distance to the ball
+		-- just get the ball
 		self:_catchBall(self.tPos, 0.2)
 	else
 		vis.addCircle("ReceivePassMoveTo", self.moveTo, 0.03, vis.colors.blue, true)

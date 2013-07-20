@@ -99,7 +99,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 				self._travelLimit = false
 			end
 
-			-- keep away from ball
+			-- keep distance to the ball
 			local minDist = Constants.positionError + 0.018
 			if distToBall.x < minDist then
 				local distError = minDist - distToBall.x
@@ -114,8 +114,8 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		self._shootHysteresis = false
 		self._travelStart = nil
 		self._travelLimit = false
-		-- keeps a little distance to the ball to avoid pushing it
-		self:_catchBall(targetPos, shootDriveSpeed)
+		-- just catch the ball, but keep a little distance to allow braking the robot
+		self:_catchBall(targetPos, shootDriveSpeed, Constants.positionError)
 	end
 
 	return isShooting

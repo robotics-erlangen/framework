@@ -15,7 +15,11 @@ function CatchBall:_init()
 	error("Abstract base class!!!")
 end
 
--- the robot may drive with up to endSpeed or ballSpeed when it catches the ball, depending on which of both is higher
+--- Tries to catch the ball, is designed for catching a moving ball
+-- @param targetPos Vector - point to look at when having catched the ball
+-- @param endSpeed number - currently unused [the robot may drive with up to endSpeed or ballSpeed when it catches the ball, depending on which of both is higher]
+-- @param distanceToBall number - distance the robot should keep to the ball, only sensible for a stopped ball, defaults to 0
+-- @param maxSpeed number - maximun speed of the robot
 function CatchBall:_catchBall(targetPos, endSpeed, distanceToBall, maxSpeed)
 	-- TODO remove when trajectories are fully working
 	if Referee.isStopState() or Referee.isDefendState() or World.RefereeState == "PenaltyOffensivePrepare" then
@@ -46,20 +50,43 @@ function CatchBall:_catchBall(targetPos, endSpeed, distanceToBall, maxSpeed)
 		-- check if robot would be hit by the ball
 		-- limit catchTime to the time the ball would need to hit the robot
 		-- prevents the robot from fleeing from the ball
-		local hitPoint1, hitPoint2 = geom.intersectLineCircle(ball.pos,
-			ball.speed, self._robot.pos, self._robot.radius)
-		if hitPoint1 then
-			vis.addCircle("hitRobot", hitPoint1, 0.05, vis.colors.redHalf, true)
-			local rollDist = ball.pos:distanceTo(hitPoint1)
+		local hitPoint, hitPoint2 = geom.intersectLineCircle(ball.pos,
+			ball.speed, self._robot.pos, self._robot.radius + ball.radius)
+		if hitPoint then
+			-- find intersection with circle
+			local rollDist = ball.pos:distanceTo(hitPoint)
 			if hitPoint2 then
-				rollDist = math.min(rollDist, ball.pos:distanceTo(hitPoint2))
-				vis.addCircle("hitRobot", hitPoint2, 0.05, vis.colors.redHalf, true)
+				local dist = ball.pos:distanceTo(hitPoint2)
+				if dist < rollDist then
+					rollDist = dist
+					hitPoint = hitPoint2
+				end
 			end
-			rollDist = math.max(rollDist - ball.radius, 0)
-			--FIXME ball to shootRadius takes some extra time
+			vis.addCircle("hitRobot", hitPoint, ball.radius, vis.colors.redHalf, true)
+
+			-- consider that the shootRadius is less than radius and thus the ball has to travel further
+			local dribberAngleHalf = math.atan(self._robot.dribblerWidth/2, self._robot.shootRadius)
+			-- check whether the hitpoint could be inside the dribbler
+			if math.abs(geom.getAngleDiff((hitPoint - self._robot.pos):angle(), dribberAngleHalf)) < dribberAngleHalf then
+				-- calculate where the ball would hit the dribbler
+				-- just use the current robot dir as any prediction will be just as wrong
+				local dribblerMid = self._robot.pos + Vector.fromAngle(self._robot.dir):scaleLength(self._robot.shootRadius)
+				-- points along the dribbler
+				local dribblerDir = Vector.fromAngle(self._robot.dir):perpendicular():scaleLength(self._robot.dribblerWidth / 2)
+				local intersection, _, lambda2 = geom.intersectLineLine(ball.pos, ball.speed, dribblerMid, dribblerDir)
+				-- abs(lambda2) <= 1 if intersection is inside the dribbler width
+				if intersection and math.abs(lambda2) <= 1 then
+					hitPoint = intersection
+					rollDist = ball.pos:distanceTo(hitPoint)
+				end
+			end
+
+			-- ballRollTime and atTime have to be consistent!
+			-- assumes that the robot is standing still or moving towards the ball
+			-- if the robot is fleeing this will cause it to stop moving away
 			local timeToRobot = Ball.ballRollTime(ball.speed:length(), rollDist)
-			--debug.set("oldCatchtime", self._catchTime)
-			--debug.set("timeToRobot", timeToRobot)
+			-- timeToRobot is the upper bound for the catch time, musn't be an underestimation
+			-- can be much lower if the robot moves towards the ball
 			if timeToRobot < self._catchTime then
 				self._catchTime = timeToRobot
 			end
@@ -68,7 +95,9 @@ function CatchBall:_catchBall(targetPos, endSpeed, distanceToBall, maxSpeed)
 	
 	-- predict ball and catch it
 	local predictedBall = Ball.atTime(self._catchTime, ball)
-	distanceToBall = distanceToBall or Constants.positionError
+	-- catching the ball only makes sense if we really try to
+	-- a distance other than 0 is only useful for moving to a stopped ball
+	distanceToBall = distanceToBall or 0
 	local moveDest = predictedBall.pos + (predictedBall.pos - targetPos):setLength(
 			self._robot.shootRadius + distanceToBall + ball.radius)
 	local viewLine = (targetPos - predictedBall.pos):normalize()
@@ -91,7 +120,7 @@ function CatchBall:_catchBall(targetPos, endSpeed, distanceToBall, maxSpeed)
 		-- the centerpiece of the catchball algorithm
 		-- FIXME better damping for small changes
 		if time < self._catchTime then
-			self._catchTime = 0.5 * self._catchTime + 0.5 * time
+			self._catchTime = 0.8 * self._catchTime + 0.2 * time
 		else
 			self._catchTime = 0.95 * self._catchTime + 0.05 * time
 		end
