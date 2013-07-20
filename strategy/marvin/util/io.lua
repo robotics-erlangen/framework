@@ -23,7 +23,6 @@ function IO.read(module)
 	local filename = pathToStrategy..module
 	local params = {}
 	local ok, iterator = pcall(io.lines, filename)
-	log(ok)
 	if not ok then
 		return {}
 	end
