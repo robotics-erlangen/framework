@@ -6,14 +6,20 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local Robot = require "observer/robot"
 local Ball = require "observer/ball"
+local Observer = require "observer/observer"
+
+local VolleyObserver = (require "../base/class").new("Task.Volley.Observer", require "observer/timedobserver")
 
 Volley.priority = 5
 
 function Volley:_init(viewPos)	
 	self._shootSpeed = 8
-	self._receiveSpeed = 4
-	self._ballComes = true
+	self._ballIncoming = true
 	MovingAverage.init("Volley", 5, 0.45)
+	if amun.isDebug then
+		self._observer = VolleyObserver.create(self._robot)
+		Observer.addTimedObserver(self._observer)
+	end
 end
 
 function Volley:_rate()
@@ -39,18 +45,24 @@ function Volley:_run()
 	self._mu = MovingAverage.getValue("Volley")
 	
 	-- the ball gets shot at this point (approximately)
-	local viewPos = self._robot.pos + (World.Geometry.OpponentGoal - self._robot.pos):setLength(self._robot.shootRadius)
+	local viewPos = self._robot.pos + (self.targetPoint - self._robot.pos):setLength(self._robot.shootRadius + World.Ball.radius)
 	
-	if self._ballComes then
+	if self._ballIncoming then
 		self._alpha = World.Ball.speed:copy():scaleLength(-1):angle()
 	end
 	if self._robot:hasBall(World.Ball) then
-		self._ballComes = false
+		self._ballIncoming = false
 	end
 	
 	local gamma = (self.targetPoint - viewPos):angle()
 	local alpha = self._alpha
 	
+	-- predict ball speed when we catch it
+	local receiveTime = Ball.ballRollTime(World.Ball.speed:length(), viewPos:distanceTo(World.Ball.pos))
+	local receiveBall = Ball.atTime(receiveTime, World.Ball)
+	self._receiveSpeed = receiveBall.speed:length()
+
+	self._shootSpeed = 6.3
 	-- calculate phi
 	local k = self._shootSpeed / ((1 - self._mu) * self._receiveSpeed + self._shootSpeed)
 	local phi = (gamma + (1 - k) * alpha) / (2 - k)
@@ -61,36 +73,13 @@ function Volley:_run()
 	
 	-- evaluate the shot and learn mu if debug mode is on
 	if amun.isDebug then
-		if self._robot:hasBall(World.Ball) then
-			self._phi = self._robot.dir
-			self._gamma = gamma
-			self._alpha = alpha
-		end
-		if Ball.isShot() == self._robot then
-			self._evaluationTime = World.Time + 0.15
-			self._evaluationNeeded = true
-		end
-		if self._evaluationNeeded and World.Time > self._evaluationTime then
-			local newgamma = World.Ball.speed:angle()
-			local newk = (newgamma + self._alpha - 2*self._phi) / (self._alpha - self._phi)
-			local mu = 1 - self._shootSpeed * (1 - newk) / (self._receiveSpeed * newk)
-			log("write volley mu")
-			MovingAverage.adjustValue("Volley", mu)
-
-			self._visPoints = {viewPos + Vector.fromAngle(newgamma):scaleLength(5), viewPos}
-			self._visPoints2 = {viewPos + Vector.fromAngle(self._gamma):scaleLength(5), viewPos}
-			self._visTimestamp = World.Time
-			
-			self._evaluationNeeded = false
-		end
-		if self._visTimestamp and World.Time - self._visTimestamp < 1 then
-			vis.addPath("Volley Angle Error", self._visPoints, vis.colors.red)
-			vis.addPath("Volley Angle Error", self._visPoints2, vis.colors.blue)
+		if self._ballIncoming or self._robot:hasBall(World.Ball) then
+			self._observer:update(alpha, gamma)
 		end
 	end
 	
 	-- catch the ball and shoot
-	self._robot:shoot(self._shootSpeed, 0)
+	self._robot:shoot(8, 0)
 	self:_catchBall(viewPoint, Settings.shootDriveSpeed)
 end
 
@@ -107,6 +96,69 @@ function Volley.test(id)
 		return nil
 	end
 	return Volley.factory(1), 1
+end
+
+function VolleyObserver:init(robot)
+	self._robot = robot
+	self._exitTimer = World.Time + 1
+end
+
+-- get used params, also used for keep-alive
+function VolleyObserver:update(alpha, gamma)
+	self._exitTimer = World.Time + 1
+	self._alpha = alpha
+	self._gamma = gamma
+end
+
+function VolleyObserver:run()
+	-- params are missing
+	if not self._alpha or not self._gamma then
+		return
+	end
+
+	-- get parameters just before the ball is shot
+	if self._robot:hasBall(World.Ball) then
+		self._phi = self._robot.dir
+		-- receive speed only makes sense before the ball hits the robot
+		if not self._receiveSpeed then
+			self._receiveSpeed = World.Ball.speed:length()
+			-- FIXME intersect with dribbler
+			self._viewPos = World.Ball.pos
+		end
+		--log("ball")
+	end
+	if Ball.isShot() == self._robot then
+		self._evaluationTime = World.Time + 0.15
+		--log("shot")
+	end
+	if self._evaluationTime and World.Time > self._evaluationTime then
+		-- FIXME get real shoot speed
+		self._shootSpeed = World.Ball.speed:length()
+		local newgamma = World.Ball.speed:angle()
+		local newk = (newgamma + self._alpha - 2*self._phi) / (self._alpha - self._phi)
+		local mu = 1 - self._shootSpeed * (1 - newk) / (self._receiveSpeed * newk)
+		log(self._shootSpeed)
+		log(self._receiveSpeed)
+		log("write volley mu")
+		MovingAverage.adjustValue("Volley", mu)
+
+		self._visPoints = {self._viewPos + Vector.fromAngle(newgamma):scaleLength(5), self._viewPos}
+		self._visPoints2 = {self._viewPos + Vector.fromAngle(self._gamma):scaleLength(5), self._viewPos}
+		
+		self._evaluationTime = nil
+		self._exitTimer = World.Time + 1
+	end
+	if self._visPoints then
+		vis.addPath("Volley Angle Error", self._visPoints, vis.colors.red)
+		vis.addPath("Volley Angle Error", self._visPoints2, vis.colors.blue)
+	end
+end
+
+function VolleyObserver:isFinished()
+	if World.Time > self._exitTimer then
+		return true
+	end
+	return false
 end
 
 return Volley
