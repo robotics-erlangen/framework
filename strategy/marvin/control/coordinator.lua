@@ -8,8 +8,6 @@ local Class = require "../base/class"
 local World = require "../base/world"
 local debug = require "../base/debug"
 local Field = require "util/field"
-local PlayBase = require "play/base"
-local Plays = require "play/plays"
 local AgentPool = require "control/agentpool"
 local Messages = require "control/messages"
 local Message = require "agent/base/message"
@@ -30,21 +28,15 @@ function Coordinator:init()
 	}
 	self._lastMessages = Messages.create()
 	self._specialTasks = {}
-	
-	self._play = nil
-	self._forcePlay = nil
 end
 
 function Coordinator:run()
 	self:_updatePoolRobots()
-	self:_updatePlaySelection()
 	-- TODO: facilities for learning
 	
 	-- create trainer message
 	local trainerMessage = {}
-	if self._play then
-		trainerMessage.play = self._play:run()
-	end
+
 	-- decide who gets the special tasks
 	trainerMessage.specialTask = self:_coordinateTasks(self._lastMessages)
 	-- broadcast trainer messages immediatelly
@@ -248,85 +240,6 @@ function Coordinator:observeGameState()
 	
 	debug.set("AttackRatio", attackRatio)
 	return attackRatio
-end
-
-function Coordinator:_updatePlaySelection()
-	-- get rating of play currently running
-	local currentRating = PlayBase.rating.no
-	if self._play then
-		currentRating = self._play:rate(nil, PlayBase.rating.no, self._lastMessages)
-		if currentRating == PlayBase.rating.no then
-			self._play = nil
-		end
-	end
-	
-	local hasRobots = false
-	local poolRobots = {}
-	for name, pool in pairs(self._pools) do
-		local robots = pool:robots()
-		poolRobots[name] = robots
-		if #robots > 0 then
-			hasRobots = true
-		end
-	end
-	-- cannot create plays without robots
-	if not hasRobots then
-		self._play = nil
-		return
-	end
-	
-	local ratingGroups = {}
-	local maxRating = PlayBase.rating.no
-	local requiredRating = currentRating + 1
-	
-	if self._forcePlay then
-		-- just one play to force using it if neccessary
-		local play = self._forcePlay.create(poolRobots)
-		maxRating = play:rate(requiredRating, true, self._lastMessages)
-		ratingGroups[maxRating] = { play }
-	else
-		for _, play in pairs(Plays) do
-			-- check every play
-			local playInst = play.create(poolRobots)
-			local rating = playInst:rate(currentRating, true, self._lastMessages)
-			
-			-- group plays by rating
-			if not ratingGroups[rating] then
-				ratingGroups[rating] = {}
-			end
-			table.insert(ratingGroups[rating], playInst)
-			
-			-- track best rating
-			maxRating = math.max(rating, maxRating)
-			requiredRating = math.max(requiredRating, maxRating)
-		end
-	end
-	
-	-- only switch play if a new play would be better
-	-- ensures that no play with rating no is started
-	if maxRating > currentRating then
-		-- only check the best group
-		local group = ratingGroups[maxRating]
-		local weightSum = 0 -- sum up all weights
-		for _, play in ipairs(group) do
-			weightSum = weightSum + play.weight
-		end
-		local randVal = math.random(0, weightSum)
-		weightSum = 0
-		for _, playInst in ipairs(group) do
-			-- find randomly chosen play
-			if randVal < weightSum + playInst.weight then
-				self._play = playInst
-				break
-			end
-			weightSum = weightSum + playInst.weight
-		end
-	end
-end
-
-function Coordinator:test(play)
-	assert(Class.instanceOf(play, PlayBase), "This is not a play!")
-	self._forcePlay = play
 end
 
 local coord = nil

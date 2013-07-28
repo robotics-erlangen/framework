@@ -22,7 +22,6 @@ end
 Entrypoints = {}
 saveGlobals()
 require "task/tasks"
-require "play/plays"
 require "control/coordinator"
 require "tests/tests"
 require "tests/agents"
