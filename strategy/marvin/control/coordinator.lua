@@ -9,8 +9,7 @@ local World = require "../base/world"
 local debug = require "../base/debug"
 local Field = require "util/field"
 local AgentPool = require "control/agentpool"
-local Messages = require "control/messages"
-local Message = require "agent/base/message"
+local Messaging = require "control/messaging"
 
 local Coordinator = (require "../base/class").new("Control.Coordinator")
 
@@ -26,33 +25,24 @@ function Coordinator:init()
 		{ self._pools.defense, self._pools.attack },
 		{ self._pools.hidden }
 	}
-	self._lastMessages = Messages.create()
-	self._specialTasks = {}
+	self._messages = {} -- are sent every frame
+	self.specialRoles = {} -- remember roles
 end
 
 function Coordinator:run()
 	self:_updatePoolRobots()
 	-- TODO: facilities for learning
 	
-	-- create trainer message
-	local trainerMessage = {}
+	self:_chooseSpecialRoles()
 
-	-- decide who gets the special tasks
-	trainerMessage.specialTask = self:_coordinateTasks(self._lastMessages)
-	-- broadcast trainer messages immediatelly
-	self._lastMessages:setTrainer(Message.Trainer.create(trainerMessage))
+	local oldMessages = Messaging.sortMail(self._messages)
 	
-	-- print in debug tree
-	self._lastMessages:dump()
-	
-	-- run pools and thus every agent
-	local messages = Messages.create()
+	self._messages = {} -- reset messages
+
+	-- run every pool and thus every agent
 	for _, pool in pairs(self._pools) do
-		pool:run(self._lastMessages, messages)
+		table.append(self._messages, pool:run(oldMessages))
 	end
-	
-	-- store messages
-	self._lastMessages = messages
 end
 
 function Coordinator:_updatePoolRobots()
@@ -112,31 +102,37 @@ function Coordinator:_updatePoolRobots()
 	end
 end
 
-function Coordinator:_coordinateTasks(messages)
-	local messages = messages:all()
-	local specialTasks = {}
-	local specialRating = {}
-	
+--- chooses a robot for every specialRole and sends a message to it
+-- the roles are chosen in a prioritized order 
+function Coordinator:_chooseSpecialRoles()
 	local hysteresis = 0.1 -- magic constant
-	
-	for robot, msg in pairs(messages) do
-		if msg.agent and msg.agent.specialTask then
-			local tasks = msg.agent.specialTask
-			for name, rating in pairs(tasks) do
-				if self._specialTasks[name] == robot then
-					rating = rating + hysteresis
-				end
-				
-				if (specialTasks[name] and specialRating[name] < rating) or not specialTasks[name] then
-					specialTasks[name] = robot
-					specialRating[name] = rating
-				end
+	local roleApplications = Messaging.getSpecialRoleApplications(self._messages)
+
+	for role, applications in pairs(roleApplications) do
+		local bestRobot = nil
+		local bestRating = -1
+		for robot, rating in pairs(applications) do
+
+			if self.specialRoles[role] and self.specialRoles[role].robot == robot then
+				rating = rating + hysteresis
+			end
+			if not self.specialRoles[role] or rating > self.specialRoles[role].rating then
+				bestRobot = robot
+				bestRating = rating
 			end
 		end
+
+		if bestRobot then
+			self.specialRoles[role] = { robot = bestRobot, rating = bestRating }
+		end
+		local trainerMsg = {
+			from ="trainer", 
+			to = "all", 
+			mtype = role, 
+			data = self.specialRoles[role].robot
+		}
+		table.insert(self._messages, trainerMsg)				
 	end
-	
-	self._specialTasks = specialTasks
-	return specialTasks
 end
 
 function Coordinator:observeGameState()

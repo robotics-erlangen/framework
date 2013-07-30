@@ -1,14 +1,17 @@
 local Base = (require "../base/class").new("Agent.Base.Agent")
 local Class = require "../base/class"
 local debug = require "../base/debug"
-local World = require "../base/world"
-local Message = require "agent/base/message"
 
-local Group = require "agent/base/group"
+local World = require "../base/world"
+
+local Messaging = require "control/messaging"
 local Halt = require "agent/shared/halt"
-local Play = require "agent/shared/play"
 
 function Base.takeRobot(robots)
+	error("stub")
+end
+
+function Base:_supplyBehaviors()
 	error("stub")
 end
 
@@ -20,51 +23,67 @@ function Base:rateRobot()
 	error("stub")
 end
 
-function Base:_initBehaviour()
-	error("stub")
-	-- self._behaviours = ...
-end
-
 function Base:init(robot)
 	self._robot = robot
-	-- setup behaviours and add defaults
-	self:_initBehaviour()
-	self._behaviours = Group.create(self._robot, {
-		Halt.create(self._robot),
-		Play.create(self._robot),
-		self._behaviours
-	})
-	self._keepAlive = false
+	self.specialRole = nil
+
+	-- messaging
+	self.outbox = {} -- initialize message array
+	self.send = Messaging.getSender(self)
+	self.inboxRaw = {} -- initialize raw inbox
+	self.inbox = Messaging.getInbox(self)
+
+	self._behaviors = {
+		Halt.create(self._robot, self.inbox, self.send),
+		unpack(self:_supplyBehaviors())
+	}
 end
 
 function Base:run(messages)
-	local ownMessages = messages:own(self._robot)
-	local priorityMessages, notifications = messages:split(self._robot)
-	local trainerMessage = messages:trainer()
+	self.inboxRaw = messages[self._robot]
+	self.outbox = {}
 
-	local behaviour, agentMessage, keepAlive = self._behaviours:run(false, ownMessages,
-			priorityMessages, notifications, trainerMessage)
-	local task = behaviour and behaviour:task()
-	self._keepAlive = keepAlive -- tells whether the agent shouldn't be moved
+	local bestBehavior = self:checkBehaviors()
 
-	debug.pushtop("Agents")
-	local behaviourName = behaviour and ("(" .. Class.name(behaviour, true) .. ")") or ""
-	debug.push("Robot " .. self._robot.id, Class.name(self, true) .. " " .. behaviourName)
-	
-	local taskMessage
-	if task then
-		debug.push("Task", Class.name(task))
-		taskMessage = task:run(priorityMessages, notifications)
-		debug.pop()
-	else
-		debug.set("Task", nil)
+	if bestBehavior ~= self._activeBehavior then
+		if self._activeBehavior then
+			self._activeBehavior:stop()
+		end
+		self._activeBehavior = bestBehavior
 	end
-	
+	self._activeBehavior:run()
+
+	self:dump()
+
+	return self.outbox
+end
+
+function Base:applyForMainAttacker()
+	-- overwrite if attacker or defender
+end
+function Base:checkBehaviors()
+	self:applyForMainAttacker()
+	for _, behavior in ipairs(self._behaviors) do	
+		if behavior:check() then -- take first positive
+			return behavior
+		end
+	end
+end
+
+function Base:dump()
+	debug.pushtop("Agent " .. self._robot.id .. ": " .. Class.name(self, true))
+	debug.push("inbox")
+	for n, func in pairs(self.inbox) do
+		debug.push(n)
+		for robot, msg in pairs(func()) do
+			debug.set(robot.id or robot, msg)
+		end
+		debug.pop()
+	end
 	debug.pop()
+	debug.set("behavior", Class.name(self._activeBehavior, true))
+	debug.set("task", Class.name(self._activeBehavior._task, true))
 	debug.pop()
-	
-	local priority = task and task.priority or 0
-	return Message.Container.create{agent = agentMessage, task = taskMessage or {}}, priority
 end
 
 function Base:robot()
