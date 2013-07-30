@@ -158,10 +158,10 @@ end
 -- @param activeRobot - the robot who is searching for a pass receiver
 -- @param messages - the messages object of a behaviour
 -- @return robot or nil - the most suitable robot, if any 
-function Shoot.bestFreeAssistant(activeRobot, messages)
+function Shoot.bestFreeAssistant(activeRobot, assistantRatings)
 	-- !!! ATTENTION !!! Assumes we are already at the ball 
 	local function canPassTo(r)
-		return messages[r] and messages[r].task.assistantRating and Field.isInField(r.pos)
+		return assistantRatings[r] and Field.isInField(r.pos)
 			and Robot.wayToRobotFree(r, activeRobot)
 	end
 	

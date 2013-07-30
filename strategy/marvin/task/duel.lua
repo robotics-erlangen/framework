@@ -67,7 +67,7 @@ local successRates = Learning.init(2, "Duel")
 -- decides what to do
 -- [B] contest
 -- [C] pass away
-function Duel:_run(priorityMessages, notifications)
+function Duel:_run()
 	self.oldOpposer = self.opposer
 	self.opposer = Ball.opponentBallOwner()
 	self.chipPos = (World.Geometry.OpponentGoal - World.Ball.pos):setLength(1) --1m towards opponent goal
@@ -77,7 +77,7 @@ function Duel:_run(priorityMessages, notifications)
 		if Settings.DEBUG then
 			Debug.set("Decision", "pass away")
 		end
-		self:_passAway(priorityMessages, notifications)
+		self:_passAway()
 		self:_evaluateStrategy(true)
 	elseif not self._robot:hasBall(World.Ball) then
 		self.isAtBall = false
@@ -219,8 +219,8 @@ end
 -- (?) otherwise: either the opponent robot is just to bad and moves away or something strange happened
 --		(for example: we spin around like crazy and still got the ball)
 --	pass to the best assistant (analyze notifications)
-function Duel:_passAway(priorityMessages, notifications)
-	local bestAssistant = Shoot.bestFreeAssistant(self._robot, notifications)
+function Duel:_passAway()
+	local bestAssistant = Shoot.bestFreeAssistant(self._robot, self.inbox.assistantRating())
 	
 	local rating = bestAssistant and Shoot.rateAssistant(bestAssistant) or 0
 	local oldRating = self._bestAssistant and Shoot.rateAssistant(self._bestAssistant) or 0 
@@ -232,7 +232,7 @@ function Duel:_passAway(priorityMessages, notifications)
 		
 	if self._bestAssistant then
 		DirectPass._init(self, self._bestAssistant, true)
-		DirectPass._run(self, priorityMessages, notifications)
+		DirectPass._run(self)
 	else
 		self:_shoot(World.Geometry.OpponentPenaltySpot, math.huge, false) 
 	end

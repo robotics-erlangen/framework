@@ -12,19 +12,19 @@ DefendPenalty.priority = 5
 function DefendPenalty:_init()
 end
 
-function DefendPenalty:_run(priorityMessages, notifications)
+function DefendPenalty:_run()
 	local rr = self._robot.radius --assume all robots have the same radius
 	local penaltyLine = World.Geometry.OwnPenaltyLine + Settings.penaltyLineDistance
 	vis.addPath("penaltyDistance", {Vector.create(-2,penaltyLine), Vector.create(2,penaltyLine)}, vis.colors.whiteHalf)
 	-- NOTE: All spots are on the penaltyline, so only x-values are processed
 
-	local occupiedSpotsFriendly = {} 
-	for robot, msg in pairs(priorityMessages) do
-		-- collect positions of other penalty defenders
-		if msg.task.targetPos and math.abs(msg.task.targetPos.y - penaltyLine) < 2*rr then
-			table.insert(occupiedSpotsFriendly, msg.task.targetPos.x)
+	local occupiedSpotsFriendly = {}
+	for robot, pos in pairs(self.inbox.moveDest("others")) do
+		if math.abs(pos.y - penaltyLine) < 2*rr then
+			table.insert(occupiedSpotsFriendly, pos.x)
 		end
 	end
+
 	local occupiedSpotsOpp = {} -- positions of opponents on the line
 	for _, robot in ipairs(World.OpponentRobots) do
 		if math.abs(robot.pos.y - penaltyLine) < rr then
@@ -116,11 +116,11 @@ function DefendPenalty:_run(priorityMessages, notifications)
 	self._robot.path:addRobotObstacles(self._robot)
 	self._robot.trajectory:update(ToTarget, self.targetPos, (World.Ball.pos - self._robot.pos):angle())
 	
-	return { targetPos = self.targetPos }
+	self.send("all").moveDest(self.targetPos)
 end
 
 
-function DefendPenalty:_rate(priorityMessages, notifications)
+function DefendPenalty:_rate()
 	return 1
 end
 

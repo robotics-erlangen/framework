@@ -34,7 +34,7 @@ local function weightX(robot)
 end 
 
 --- does an approximate mirror of the enemy team 
-function FarMirror:_rate(priorityMessages, notifications) 
+function FarMirror:_rate() 
 	-- determine approximate focus of opponent team
 	local opponents = Robotlist.excludeRobot(World.OpponentRobots, World.OpponentKeeper)
 	local avgPos = Game.averagePosition(opponents, weightX) 
@@ -44,9 +44,8 @@ function FarMirror:_rate(priorityMessages, notifications)
 	local targetY = getY(targetX)
 	local pos = Vector.create(targetX, targetY - self._robot.radius) 
 	self._targetPos = self._targetPos or Field.limitToField(pos, -self._robot.radius) 
-	for robot, msg in pairs(priorityMessages) do
-		local targetPos = msg.task.targetPos
-		if targetPos and self._targetPos:distanceTo(targetPos) < self._robot.radius and robot.id < self._robot.id then
+	for robot, pos in pairs(self.inbox.moveDest()) do
+		if self._targetPos:distanceTo(pos) < self._robot.radius and robot.id < self._robot.id then
 			self._targetPos.x = -self._targetPos.x
 		end
 	end
@@ -63,7 +62,7 @@ function FarMirror:_run()
 		self._targetPos = Vector.create(0,-1.5)
 	end
 	self._robot.trajectory:update(ToTarget, self._targetPos, math.pi/2)
-	return {targetPos = self._targetPos}
+	self.send("all").moveDest(self._targetPos)
 end 
 
 function FarMirror.factory(position)

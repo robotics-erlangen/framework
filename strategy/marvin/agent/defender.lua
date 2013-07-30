@@ -1,18 +1,39 @@
 local Defender = (require "../base/class").new("Agent.Defender", require "agent/base/agent")
 local World = require "../base/world"
 
-local Group = require "agent/base/group"
-local CenterBack = require "agent/defender/centerback"
+--local CenterBack = require "agent/defender/centerback"
 local Default = require "agent/defender/default"
 local HandleBall = require "agent/defender/handleball"
 local Penalty = require "agent/defender/penalty"
-local Kickoff = require "agent/defender/kickoff"
+local KickoffOffensive = require "agent/defender/kickoffoffensive"
 
 function Defender.takeRobot(robots)
 	for _, robot in pairs(robots) do
 		if robot.isVisible then
 			return robot
 		end
+	end
+end
+
+function Defender:_supplyBehaviors()
+	return {
+		-- referee states
+		Penalty.create(self._robot, self.inbox, self.send),
+		KickoffOffensive.create(self._robot, self.inbox, self.send),
+
+		-- mainAttacker
+		HandleBall.create(self._robot, self.inbox, self.send),
+
+		--CenterBack.create(self._robot, self.inbox, self.send),
+		Default.create(self._robot, self.inbox, self.send)
+	}
+end
+
+function Defender:applyForMainattacker()
+	if World.RefereeState ~= "PenaltyDefensivePrepare" and World.RefereeState ~= "PenaltyDefensive" then
+		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
+		local mainAttackerRating = Rating.timeToRating(timeToBall)
+		self.send("trainer"):specialRole({mainAttacker = mainAttackerRating})
 	end
 end
 
@@ -26,16 +47,6 @@ end
 -- worse rating if robot if farther away from own goal
 function Defender:rateRobot()
 	return -World.Geometry.FriendlyGoal:distanceTo(self._robot.pos)
-end
-
-function Defender:_initBehaviour()
-	self._behaviours = Group.create(self._robot, {
-		Penalty.create(self._robot),
-		Kickoff.create(self._robot),
-		HandleBall.create(self._robot),
-		CenterBack.create(self._robot),
-		Default.create(self._robot)
-	})
 end
 
 return Defender

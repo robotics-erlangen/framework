@@ -29,11 +29,9 @@ function DirectPass:_canShoot()
 	return Robot.wayToRobotFree(self._targetRobot, self._robot, not self._linearShoot)
 end
 
-function DirectPass:_run(priorityMessages, notifications)
-	local msg = notifications[self._targetRobot]
-
-	self._targetPos = msg and msg.task.targetPos or self._targetRobot.pos
-	self._targetDir = msg and msg.task.targetDir or self._targetRobot.dir
+function DirectPass:_run()
+	self._targetPos = self.inbox.moveDest()[self._targetRobot] or self._targetRobot.pos
+	self._targetDir = self.inbox.moveDestDir()[self._targetRobot] or self._targetRobot.dir
 
 	-- shoot ball into robot dribbler
 	self._targetPos = self._targetPos + Vector.fromAngle(self._targetDir) * self._targetRobot.shootRadius
@@ -42,7 +40,7 @@ function DirectPass:_run(priorityMessages, notifications)
 	local passSpeed = self._passSpeed or self._targetRobot.constants.passSpeed
 	self:_shoot(self._targetPos, passSpeed, self._linearShoot)
 	
-	return { passTarget = self._targetRobot }
+	self.send(self._targetRobot).passSender("direct")
 end
 
 function DirectPass:_rate()

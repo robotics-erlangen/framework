@@ -1,11 +1,9 @@
-local Base = require "agent/base/behaviour"
+local Base = require "agent/base/behavior"
 local FreeKickDefender = (require "../base/class").new("Agent.Attacker.FreeKickDefender", Base)
 
 local World = require "../base/world"
-local Class = require "../base/class"
 local ManMark = require "task/manmark"
 local MoveToPos = require "task/movetopos"
-
 
 local function getPos()
 	local absX = World.Geometry.FieldWidthQuarter
@@ -39,33 +37,26 @@ end
 function FreeKickDefender:_getTask()
 	local pos, dir = getPos()
 	local decision = decideManMark(self, pos)
-	if decision then
-		if not self._task or not Class.instanceOf(self._task, ManMark) then
-			return ManMark.create(self._robot, self._markedRobot)
-		end
+	if decision then	
+		return ManMark, {self._markedRobot}
 	else
-		if not self._task or not Class.instanceOf(self._task, MoveToPos) then
-			return MoveToPos.create(self._robot, pos, dir)
-		end
+		return MoveToPos, {pos, dir}
 	end
-	return self._task
 end
 
-function FreeKickDefender:_check()
+function FreeKickDefender:check()
 	if World.RefereeState == "DirectDefensive" and World.Ball.pos.y < 0 --corner kick
 			or World.RefereeState == "IndirectDefensive" and World.Ball.pos.y < World.Geometry.FieldHeightQuarter--throw-in
 			or World.RefereeState == "Stop" then --TODO discuss stop
-		local rating = self:_getTask():rate(self._priorityMessages, self._notifications)
-		local defender = self._trainerMessage.specialTask.freeKickDefender
-		return defender == self._robot and Base.State.Active or Base.State.Inactive,
-				{ specialTask = {freeKickDefender = rating}} 
-	else
-		return Base.State.Inactive
+		local tmpTask, params = self:_getTask()
+		local rating = tmpTask.create(self._robot, self.inbox, self.send, unpack(params)):rate()
+		self.send("trainer").specialRole({freeKickDefender = rating})
 	end
+	return self.inbox.freeKickDefender().trainer == self._robot
 end
 
-function FreeKickDefender:_run()
-	self._task = self:_getTask()
+function FreeKickDefender:updateTask()
+	return self:_getTask()
 end
 
 return FreeKickDefender

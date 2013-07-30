@@ -21,10 +21,10 @@ end
 
 Entrypoints = {}
 saveGlobals()
-require "task/tasks"
+-- require "task/tasks"
 require "control/coordinator"
 require "tests/tests"
-require "tests/agents"
+--require "tests/agents"
 
 local debug = require "../base/debug"
 local Cache = require "../base/cache"

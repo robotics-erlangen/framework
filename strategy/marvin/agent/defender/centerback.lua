@@ -1,4 +1,4 @@
-local Base = require "agent/base/behaviour"
+local Base = require "agent/base/behavior"
 local CenterBack = (require "../base/class").new("Agent.Defender.CenterBack", Base)
 
 local CenterBackTask = require "task/centerback"

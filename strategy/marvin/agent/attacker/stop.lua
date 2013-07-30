@@ -1,18 +1,16 @@
-local Base = require "agent/base/behaviour"
+local Base = require "agent/base/behavior"
 local Stop = (require "../base/class").new("Agent.Attacker.Stop", Base)
 local Ball = require "observer/ball"
 local Referee = require "util/referee"
 
 local StopAttack = require "task/stopattack"
 
-function Stop:_check()
-	return Referee.isStopState() and Base.State.Active or Base.State.Inactive
+function Stop:check()
+	return Referee.isStopState() and self.inbox.specialRole().trainer == "mainAttacker"
 end
 
-function Stop:_run()
-	if not self._task then
-		self._task = StopAttack.create(self._robot)
-	end
+function Stop:updateTask()
+	return StopAttack
 end
 
 return Stop

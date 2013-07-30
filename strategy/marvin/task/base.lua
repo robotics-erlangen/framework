@@ -3,10 +3,14 @@ local debug = require "../base/debug"
 
 Base.priority = 0
 
-function Base:init(robot, ...)
+function Base:init(robot, inbox, send, ...)
 	assert(self.priority > 0, "priority not set")
 	assert(robot ~= nil, "no robot passed")
+	assert(inbox ~= nil, "inbox not passed")
+	assert(send ~= nil, "sender object not passed")
 	self._robot = robot
+	self.inbox = inbox
+	self.send = send
 	self._ratingRun = false
 	self:_init(...)
 end
@@ -20,27 +24,24 @@ function Base:_init(...)
 	-- handle params
 end
 
-function Base:_run(priorityMessages, notifications)
+function Base:_run()
 	error("stub")
 	-- hysteresis
 end
 
-function Base:run(priorityMessages, notifications)
+function Base:run()
 	if not self._ratingRun then
-		self:rate(priorityMessages, notifications)
+		self:rate()
 	end
 	
-	local msg = self:_run(priorityMessages, notifications)
+	self:_run()
 	
 	self._ratingRun = false
-	
-	return msg
 end
 
-function Base:rate(priorityMessages, notifications)
-	assert(priorityMessages ~= nil and notifications ~= nil, "rate must be called with messages!")
+function Base:rate()
 	self._ratingRun = true
-	return self:_rate(priorityMessages, notifications)
+	self:_rate()
 end
 
 function Base:_rate()

@@ -1,5 +1,5 @@
-local Base = require "agent/base/behaviour"
-local Kickoff = (require "../base/class").new("Agent.Attacker.Kickoff", Base)
+local Base = require "agent/base/behavior"
+local KickoffOffensive = (require "../base/class").new("Agent.Attacker.KickoffOffensive", Base)
 
 local World = require "../base/world"
 local G = World.Geometry
@@ -13,33 +13,39 @@ local ChipAway = require "task/chipaway"
 local Halt = require "task/halt"
 local MoveToStaticBall = require "task/movetostaticball"
 
-function Kickoff:_stop(isAborted)
+function KickoffOffensive:_stop()
 	self._shootPos = nil
 	self._targetRobot = nil
 	self._passActiveSince = 0
 	self._shootTime = 0
+	self._cooldown = false
 end
 
-function Kickoff:_check()
-	if self._state == Base.State.Active and Ball.isShot() then -- I've shot the ball
+function KickoffOffensive:check()
+	if not (self.inbox.mainAttacker().trainer == self._robot) then
+		return false
+	end
+	
+	if self._active and Ball.isShot() then -- I've shot the ball
 		self._passActive = false
 		self._shootTime = World.Time
-		return Base.State.CoolDown
-	elseif self._state == Base.State.CoolDown then
+		self._cooldown = true
+		return true
+	elseif self._cooldown then
 		local friend = Ball.friendlyBallOwner()
 		if Ball.opponentBallOwner() or (friend ~= nil and friend ~= self._robot) then
-			return Base.State.Inactive
+			return false
 		end
 		if self._shootTime + 3 < World.Time then
-			return Base.State.Inactive
+			return false
 		end
-		return Base.State.CoolDown
+		return true
 	elseif World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
-		return Base.State.Active
+		return true
 	elseif self._passActiveSince + 5 > World.Time then
-		return Base.State.Active
+		return true
 	end
-	return Base.State.Inactive
+	return false
 end
 
 local function minOppDist(pos)
@@ -56,7 +62,7 @@ local function cmpByOpponentDist(pos1, pos2)
 	return minOppDist(pos1) > minOppDist(pos2)
 end
 
-function Kickoff:_run()
+function KickoffOffensive:updateTask()
 	-- decide once we switch to KickoffOffensive
 	if (not self._targetRobot or not self._shootPos) and World.RefereeState == "KickoffOffensive" then
 		-- search pos for pass in the run
@@ -86,39 +92,29 @@ function Kickoff:_run()
 		if self._shootPos then
 			vis.addCircle("PassInTheRun", self._shootPos, 0.2, vis.colors.Red, true)
 			local minDist = math.huge
-			for robot, msg in pairs(self._messages) do
-				if msg.agent.targetPos then
-					local dist = (msg.agent.targetPos-self._shootPos):length()
-					if dist < minDist then
-						minDist = dist
-						self._targetRobot = robot
-					end
+			for robot, pos in pairs(self.inbox.moveDest()) do
+				local dist = (pos-self._shootPos):length()
+				if dist < minDist then
+					minDist = dist
+					self._targetRobot = robot
 				end
 			end
 		end
 	end
 
 	if World.RefereeState == "KickoffOffensivePrepare" then
-		if not self._task or not Class.instanceOf(self._task, MoveToStaticBall) then
-			self._task = MoveToStaticBall.create(self._robot, World.Geometry.OpponentGoal)
-		end
-	elseif World.RefereeState == "KickoffOffensive" then
-		local shootGoalTask = ShootGoal.create(self._robot)
-		if shootGoalTask:canShoot() then 
-			if not self._task or not Class.instanceOf(self._task, ShootGoal) then
-				self._task = shootGoalTask
-			end
+		return MoveToStaticBall, { World.Geometry.OpponentGoal }
+	else -- KickoffOffensive
+		local shootGoalTmp = ShootGoal.create(self._robot, self.inbox, self.send)
+		if shootGoalTmp:canShoot() then 
+			return ShootGoal
 		elseif self._shootPos then
-			if not self._task or not Class.instanceOf(self._task, PassInTheRun) then
-				self._task = PassInTheRun.create(self._robot, self._targetRobot, self._shootPos)
-				self._passActiveSince = World.Time
-			end
+			self._passActiveSince = World.Time
+			return PassInTheRun, {self._targetRobot, self._shootPos}
 		else
-			if not self._task or not Class.instanceOf(self._task, ChipAway) then
-				self._task = ChipAway.create(self._robot)
-			end
+			return ChipAway
 		end
 	end
 end
 
-return Kickoff
+return KickoffOffensive

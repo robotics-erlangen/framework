@@ -182,16 +182,12 @@ local function calculatePosition(robot, keeperPos)
 	return destinationPos, dir
 end
 
-function CenterBack:_run(priorityMessages, notifications)
-	local akpos
-	for robot, msg in pairs(priorityMessages) do
-		akpos = msg.task.aggressiveKeeperPos
-		if akpos then
-			self._robot.path:addCircle(akpos.x, akpos.y, 0.3)
-			break
-		end
+function CenterBack:_run()
+	local akpos = self.inbox.aggressiveKeeperPos()[World.FriendlyKeeper]
+	if akpos then
+		self._robot.path:addCircle(akpos.x, akpos.y, 0.3)
 	end
-	
+
 	local destinationPos, dir = calculatePosition(self._robot, akpos)
 	
 	local ignoreOpponents

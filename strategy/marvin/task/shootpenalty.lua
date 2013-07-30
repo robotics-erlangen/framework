@@ -32,7 +32,7 @@ function ShootPenalty:_canShoot()
 end
 function ShootPenalty:_rate() return 1 end
 
-function ShootPenalty:_run(priorityMessages, notifications)
+function ShootPenalty:_run()
 	if not self.targetPos then
 		if fixedCorner then
 			self.lookDir = fixedCorner

@@ -1,4 +1,4 @@
-local Base = require "agent/base/behaviour"
+local Base = require "agent/base/behavior"
 local FreeKick = (require "../base/class").new("Agent.Attacker.FreeKick", Base)
 
 local World = require "../base/world"
@@ -11,66 +11,70 @@ local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
 local ShootGoal = require "task/shootgoal"
 local MoveToStaticBall = require "task/movetostaticball"
+
+function FreeKick:_stop()
+	self._pass = false
+	self._shootTime = 0
+	self._startTime = 0
+	self._cooldown = false
+end
  
-function FreeKick:_check()
-	if self._state ~= Base.State.Active then
-		self.startTime = World.Time
+function FreeKick:check()
+	if not self.inbox.mainAttacker().trainer == self._robot then
+		return false
 	end
-	-- mostly copied from shoot behaviour commit 8a6b0bd364abfb27
-	if self._state == Base.State.Active and Ball.isShot() then -- I've shot the ball
+
+	if not self._active then
+		self._startTime = World.Time
+	end
+
+	if self._active and not self._cooldown and Ball.isShot() then -- I've shot the ball
 		self._shootTime = World.Time
-		return Base.State.CoolDown
-	elseif self._state == Base.State.CoolDown then
+		self._cooldown = true
+		return true
+	elseif self._cooldown then
 		local friend = Ball.friendlyBallOwner()
 		if Ball.opponentBallOwner() or (friend ~= nil and friend ~= self._robot) then
-			return Base.State.Inactive
+			return false
 		end
 		-- shootgoal has a timeout of 0.5 seconds, 1.0 seconds for passing
 		local timeout = self._pass and 1 or 0.5
 		if self._shootTime + timeout < World.Time then
-			return Base.State.Inactive
+			return false
 		end
-		return Base.State.CoolDown
+		return true
 	elseif World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
-		return Base.State.Active
+		return true
 	end
-	return Base.State.Inactive
+	return false
 end
 
-function FreeKick:_run()
+function FreeKick:updateTask()
 	-- if there's still time and we don't have the ball
-	if (World.Time - self.startTime < 5 and not self._robot:hasBall(World.Ball)) or not self._robot:isCharged() then
-		if not self._task or not Class.instanceOf(self._task, MoveToStaticBall) then
-			self._task = MoveToStaticBall.create(self._robot, World.Geometry.OpponentGoal)
-		end
-	-- otherwise, we can do the freekick
-	elseif not self._task or Class.instanceOf(self._task, MoveToStaticBall) then
+	if (World.Time - self._startTime < 5 and not self._robot:hasBall(World.Ball)) or not self._robot:isCharged() then
+		return MoveToStaticBall, {World.Geometry.OpponentGoal}
+	else -- let's do this freekick
 		if World.RefereeState == "IndirectOffensive" then
-			self:passOrChipTask()
-		elseif World.RefereeState == "DirectOffensive" then
-			local shootGoal = ShootGoal.create(self._robot, true)
-			if shootGoal:canShoot() then
-				self._task = shootGoal
+			return self:passOrChipTask()
+		else -- DirectOffensive
+			local shootGoalTmp = ShootGoal.create(self._robot, self.inbox, self.send)
+			if shootGoalTmp:canShoot() then
+				return ShootGoal
 			else 
 				self._pass = true
-				self:passOrChipTask()
+				return self:passOrChipTask()
 			end
 		end
 	end
 end
 
 function FreeKick:passOrChipTask()
-	local bestRobot = Shoot.bestFreeAssistant(self._robot, self._messages)
+	local bestRobot = Shoot.bestFreeAssistant(self._robot, self.inbox.assistantRating())
 	if bestRobot then
-		self._task = DirectPass.create(self._robot, bestRobot, true)
+		return DirectPass, {bestRobot, true}
 	else
-		self._task = ChipAway.create(self._robot)
+		return ChipAway
 	end
-end
-
-function FreeKick:_stop()
-	self._pass = false
-	self._shootTime = 0
 end
 
 return FreeKick

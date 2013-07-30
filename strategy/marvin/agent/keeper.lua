@@ -3,7 +3,6 @@ local World = require "../base/world"
 
 local Default = require "agent/keeper/default"
 local HandleBall = require "agent/keeper/handleball"
-local Group = require "agent/base/group"
 
 Keeper.robotLimit = 1
 
@@ -15,19 +14,19 @@ function Keeper.takeRobot(robots)
 	end
 end
 
+function Keeper:_supplyBehaviors()
+	return {
+		HandleBall.create(self._robot, self.inbox, self.send),
+		Default.create(self._robot, self.inbox, self.send)
+	}
+end
+
 function Keeper:keepRobot()
 	return self._robot.isVisible and self._robot == World.FriendlyKeeper
 end
 
 function Keeper:rateRobot()
 	return 1
-end
-
-function Keeper:_initBehaviour()
-	self._behaviours = Group.create(self._robot, {
-		HandleBall.create(self._robot),
-		Default.create(self._robot)
-	})
 end
 
 return Keeper

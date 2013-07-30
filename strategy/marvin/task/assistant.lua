@@ -28,7 +28,8 @@ function Assistant:_run()
 	self._robot.path:addRobotObstacles(self._robot)
 	self._robot.trajectory:update(ToTarget, self.targetPos, self.targetDir)
 
-	return {targetPos = self.targetPos, assistantRating = self.rating}
+	self.send("all").moveDest(self.targetPos)
+	self.send("all").assistantRating(self.rating)
 end
 
 function Assistant:_rate(priorityMessages, notifications)
@@ -53,18 +54,19 @@ function Assistant:_rate(priorityMessages, notifications)
 		end
 	end
 	
-	local atkPos
-	for _, msg in pairs(priorityMessages) do
-		if msg.task.shotTarget then
-			atkPos = msg.task.shotTarget
-		end
-	end
-	local atkRobot
-	for _, msg in pairs(priorityMessages) do
-		if msg.task.passRobot then
-			atkRobotPos = msg.task.passRobot.pos
-		end
-	end
+	-- macht eh nix, da nachrichten nicht existieren?
+	-- local atkPos
+	-- for _, msg in pairs(priorityMessages) do
+	-- 	if msg.task.shotTarget then
+	-- 		atkPos = msg.task.shotTarget
+	-- 	end
+	-- end
+	-- local atkRobot
+	-- for _, msg in pairs(priorityMessages) do
+	-- 	if msg.task.passRobot then
+	-- 		atkRobotPos = msg.task.passRobot.pos
+	-- 	end
+	-- end
 	
 	self.shotPos = World.Ball.pos
 	local shotDir = World.Ball.speed:copy():setLength(World.Geometry.FieldHeightHalf)
@@ -103,10 +105,13 @@ function Assistant:_rate(priorityMessages, notifications)
 	end
 	
 	-- lookup friendly assistants
-	for robot, msg in pairs(priorityMessages) do
-		local targetPos = msg.task.targetPos
-		if targetPos and math.abs(targetPos.y - lineStart.y) < 0.5 then
-			table.insert(occupiedSectors, {targetPos.x - 2*robot.radius, targetPos.x + 2*robot.radius})
+	local otherAssistants = {}
+	for robot, _ in pairs(self.inbox.assistantRating("others")) do
+		otherAssistants[robot] = true
+	end
+	for robot, pos in pairs(self.inbox.moveDest()) do
+		if otherAssistants[robot] and math.abs(pos.y - lineStart.y) < 0.5 then
+			table.insert(occupiedSectors, {pos.x - 2*robot.radius, pos.x + 2*robot.radius})
 		end
 	end
 

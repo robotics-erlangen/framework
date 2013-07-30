@@ -23,16 +23,13 @@ function PassInTheRun:_canShoot()
 	return math.abs(angleDiff) < 6 / 180 * math.pi
 end
 
-function PassInTheRun:_run(priorityMessages, notifications)
+function PassInTheRun:_run()
 	local passInTheRunSpeed = self._passSpeed
 	local isShooting = self:_shoot(self._shootPos, passInTheRunSpeed, true)
 	self._isShooting = self._isShooting or isShooting
 	
-	local msg = { shootPos = self._shootPos }
-	if self._isShooting then
-		msg.passTarget = self._targetRobot
-	end
-	return msg
+	self.send(self._targetRobot).passSender("in the run")
+	self.send(self._targetRobot).passPos(self._shootPos)
 end
 
 function PassInTheRun:_rate()

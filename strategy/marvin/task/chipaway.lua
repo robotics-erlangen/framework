@@ -18,18 +18,15 @@ function ChipAway:_canShoot()
 	return true
 end
 
-function ChipAway:_run(priorityMessages, notifications)
+function ChipAway:_run()
 	-- try to hit an assistant	
 	if not self._chipTarget then
 		local bestRating = -1
-		for robot, msg in pairs(notifications) do
-			if msg.task.assistantRating and Robot.wayToRobotFree(robot, self._robot, true) then
-				if  msg.task.assistantRating > bestRating then
-					self._chipTarget = robot
-					bestRating = msg.task.assistantRating
-				end
+		for robot, rating in pairs(self.inbox.assistantRating()) do
+			if Robot.wayToRobotFree(robot, self._robot, true) and rating > bestRating then
+				self._chipTarget = robot
+				bestRating = rating
 			end
-
 		end
 	end
 	
@@ -37,7 +34,7 @@ function ChipAway:_run(priorityMessages, notifications)
 	self._robot:setDribblerSpeed(1)
 	self:_shoot(chipPos, math.huge, false)
 
-	return {passTarget = self._chipTarget}
+	self.send(self._chipTarget).passSender("direct")
 end
 
 function ChipAway:_rate()

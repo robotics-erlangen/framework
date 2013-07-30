@@ -14,7 +14,7 @@ function PassReceiver:_init()
 	self.moveTo = nil
 end
 
-function PassReceiver:_rate(priorityMessages, notifications)
+function PassReceiver:_rate()
 	-- catch ball
 	-- block balls by moving in their way
 	self.moveTo = self._robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
@@ -37,7 +37,7 @@ function PassReceiver:_run()
 		self._robot.path:addRobotObstacles(self._robot)
 		local faceBall = (World.Ball.pos-self._robot.pos):angle()
 		self._robot.trajectory:update(ToTarget, self.moveTo, faceBall)
-		return { targetPos = self.moveTo }
+		self.send("all").moveDest(self.moveTo)
 	end
 end
 

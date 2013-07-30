@@ -10,16 +10,18 @@ function Hidden.takeRobot(robots)
 	end
 end
 
+function Hidden:_supplyBehaviours()
+	return {
+		Default.create(self._robot, self.inbox, self.send)
+	}
+end
+
 function Hidden:keepRobot()
 	return not self._robot.isVisible
 end
 
 function Hidden:rateRobot()
 	return 0
-end
-
-function Hidden:_initBehaviour()
-	self._behaviours = Default.create(self._robot)
 end
 
 return Hidden

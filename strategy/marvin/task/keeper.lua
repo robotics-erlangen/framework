@@ -15,7 +15,7 @@ function Keeper:_init()
 end
 
 --moves keeper do defending possition
-function Keeper:_run(priorityMessages, notifications)
+function Keeper:_run()
 	local atkPos, atkDir, isShot = Goal.predictShot()
 	atkDir = atkDir:copy():setLength(30)
 	local normalLine = false

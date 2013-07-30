@@ -1,17 +1,15 @@
-local Base = require "agent/base/behaviour"
+local Base = require "agent/base/behavior"
 local Default = (require "../base/class").new("Agent.Hidden.Default", Base)
 local World = require "../base/world"
 
 local RescueRobot = require "task/rescuerobot"
 
-function Default:_check()
-	return Base.State.Active
+function Default:check()
+	return true
 end
 
-function Default:_run()
-	if not self._task then
-		self._task = RescueRobot.create(self._robot)
-	end
+function Default:updateTask()
+	return RescueRobot
 end
 
 return Default

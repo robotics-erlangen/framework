@@ -12,23 +12,20 @@ local distractionY = {2.0, 2.2, 2.4}
 function Distractor:_init()
 end
 
-function Distractor:_run(priorityMessages, notifications)
+function Distractor:_run()
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
 
 	self._preferredDir = (World.Geometry.OpponentGoal - self._targetPos):angle()
 	self._robot.trajectory:update(ToTarget, self._targetPos, self._preferredDir)
 	
-	return { distractedIndex = self._index }
+	self.send("all").distractedIndex(self._index)
 end
 
-function Distractor:_rate(priorityMessages, notifications)
+function Distractor:_rate()
 	local indices = {}
-	for _, msg in pairs(priorityMessages) do
-		local index = msg.task.distractedIndex
-		if index then
-			indices[index] = true
-		end
+	for _, index in pairs(self.inbox.distractedIndex()) do
+		indices[index] = true
 	end
 	local targetIndex = 1
 	while indices[targetIndex] do

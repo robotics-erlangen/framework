@@ -15,18 +15,15 @@ function PassTarget:_init()
 	self.moveTo = nil
 end
 
-function PassTarget:_rate(priorityMessages, notifications)
-	local shootPos = nil
-	for robot, msg in pairs(notifications) do
-		local target = msg.task.passTarget
-		if target == self._robot then
-			shootPos = msg.task.shootPos
-			break
-		end
+function PassTarget:_rate()
+	local passPos = nil
+
+	for _, pos in pairs(self.inbox.passPos()) do
+		passPos = pos
 	end
 
-	if shootPos then
-		self.moveTo = shootPos
+	if passPos then
+		self.moveTo = passPos
 	else --higher rating in robots is more free + in the enemy playing field half
 		local ballOwner = Observer.friendlyBallOwner()
 		local shotDir = ballOwner and ballOwner.dir or (self._robot.pos - World.Ball.pos):angle()
@@ -59,7 +56,7 @@ function PassTarget:_run()
 	self._robot.path:addRobotObstacles(self._robot)
 	local faceBall = (World.Ball.pos-self.moveTo):angle()
 	self._robot.trajectory:update(ToTarget, self.moveTo, faceBall)
-	return { targetPos = self.moveTo }
+	self.send("all").moveDest(self.moveTo)
 end
 
 function PassTarget.factory(position)

@@ -1,10 +1,14 @@
-local Base = require "agent/base/behaviour"
+local Base = require "agent/base/behavior"
 local Duel = (require "../base/class").new("Agent.Attacker.Duel", Base)
 local Ball = require "observer/ball"
 
 local TaskDuel = require "task/duel"
 
-function Duel:_check()
+function Duel:check()
+	if not self.inbox.mainAttacker().trainer == self._robot then
+		return false
+	end
+	
 	local timeAdvance = 0.2
 	
 	local robot, time = Ball.firstAtBall()
@@ -12,25 +16,23 @@ function Duel:_check()
 	if robot then
 		friendly = robot.isFriendly
 	end
-	if self._active and friendly and time > timeAdvance then
-		self._active = false
+	if self.active and friendly and time > timeAdvance then
+		self.active = false
 	elseif not self._active and not friendly then
-		self._active = true
+		self.active = true
 	end
 	
-	if self._active then
-		return Base.State.Active
-	elseif self._state == Base.State.Active and Ball.friendlyBallOwner() == self._robot then
-		return Base.State.Active
+	if self.active then
+		return true
+	elseif self._active and Ball.friendlyBallOwner() == self._robot then
+		return true -- prevents change to shoot?
 	else
-		return Base.State.Inactive
+		return false
 	end
 end
 
-function Duel:_run()
-	if not self._task then
-		self._task = TaskDuel.create(self._robot)
-	end
+function Duel:updateTask()
+	return TaskDuel
 end
 
 return Duel

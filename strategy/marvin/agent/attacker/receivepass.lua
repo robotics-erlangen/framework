@@ -1,4 +1,4 @@
-local Base = require "agent/base/behaviour"
+local Base = require "agent/base/behavior"
 local ReceivePass = (require "../base/class").new("Agent.Attacker.ReceivePass", Base)
 local World = require "../base/world"
 local Class = require "../base/class"
@@ -15,12 +15,18 @@ local PassTarget = require "task/passtarget"
 -- isn't older than this timeout
 local passTargetTimeout = 0.2
 
-function ReceivePass:_check()
-	for robot, msg in pairs(self._messages) do
-		if msg.task.passTarget == self._robot then
-			self._targetTimer = World.Time
-			break
-		end
+function ReceivePass:_stop()
+	self._catchingPass = false
+	self._ballShooter = nil
+	self._targetTimer = nil
+end
+
+function ReceivePass:check()
+	local alreadyApplied = false
+
+	for _, _ in pairs(self.inbox.passSender()) do
+		-- happens only if there is a passSender for me
+		self._targetTimer = World.Time
 	end
 
 	if self._catchingPass then
@@ -34,42 +40,37 @@ function ReceivePass:_check()
 		-- abort if someone has the ball, the ball is slow or the game is stopped
 		if Ball.opponentBallOwner() or friendlyBallOwner or World.Ball.speed:length() < Settings.slowBall
 				or Referee.isStopState() then
-			return Base.State.Inactive
+			return false
 		end
-		-- force being mainAttacker, suppress other passReceivers
-		return Base.State.Active, { specialTask = { mainAttacker = 2, passReceiver = 2 } }, true
+		-- make sure that nobody else becomes passReceiver
+		if not alreadyApplied then
+			self.send("trainer").specialRole({ passReceiver = 2 })
+			self.send("trainer").specialRole({ mainAttacker = 2 })
+		end
+		return true
 
 	elseif self._targetTimer and World.Time - self._targetTimer < passTargetTimeout then
 		-- apply for becoming pass receiver
 		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
 		local passReceiverRating = Rating.timeToRating(timeToBall)
-		local message = { specialTask = { passReceiver = passReceiverRating } }
+		self.send("trainer").specialRole({ passReceiver = passReceiverRating })
 
-		local passReceiver = self._trainerMessage.specialTask.passReceiver
+		local passReceiver = self.inbox.passReceiver().trainer
 		local ballShooter = Ball.isShot()
 		if (not passReceiver or passReceiver == self._robot) and ballShooter and ballShooter.isFriendly then
 			self._catchingPass = true
 			self._ballShooter = ballShooter
 		end
-		return Base.State.Active, message, true
+		return true
 	end
-	return Base.State.Inactive
+	return false
 end
 
-function ReceivePass:_stop(isAborted)
-	self._catchingPass = false
-	self._ballShooter = nil
-end
-
-function ReceivePass:_run()
+function ReceivePass:updateTask()
 	if self._catchingPass then
-		if not self._task or not Class.instanceOf(self._task, PassReceiver) then
-			self._task = PassReceiver.create(self._robot)
-		end
+		return PassReceiver
 	else
-		if not self._task or not Class.instanceOf(self._task, PassTarget) then
-			self._task = PassTarget.create(self._robot)
-		end
+		return PassTarget
 	end
 end
 

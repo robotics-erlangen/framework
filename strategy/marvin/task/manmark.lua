@@ -16,13 +16,15 @@ function ManMark:_init(priorityTarget)
 	end
 end
 
-function ManMark:_run(priorityMessages, notifications)
+function ManMark:_run()
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
 
 	self._robot.trajectory:update(ToTarget, self._preferredPos, self._preferredDir)
 	
-	return { defendedOpponent = self._targetRobot }
+	if self._targetRobot then
+		self.send("all").defendedOpponent(self._targetRobot)
+	end
 end
 
 local function rateOpp(own, remainingOpponents, opp)
@@ -40,14 +42,11 @@ local function rateOpp(own, remainingOpponents, opp)
 	return goalDist + 0.5*robotDist
 end
 
-function ManMark:_rate(priorityMessages, notifications)
+function ManMark:_rate()
 	if not self._priorityTarget then
 		local defendedOpponents = {}
-		for _, msg in pairs(priorityMessages) do
-			local defendedOpponent = msg.task.defendedOpponent
-			if defendedOpponent then
-				defendedOpponents[defendedOpponent] = true
-			end
+		for _, opp in pairs(self.inbox.defendedOpponent()) do
+			defendedOpponents[opp] = true
 		end
 		
 		local remainingOpponents = {}

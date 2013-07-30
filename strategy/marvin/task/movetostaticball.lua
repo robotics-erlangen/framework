@@ -12,11 +12,10 @@ function MoveToStaticBall:_canShoot()
 	return true
 end
 
-function MoveToStaticBall:_run(priorityMessages, notifications)
+function MoveToStaticBall:_run()
 	-- limit movement speed to 1 m/s
 	-- keep a little distance to the ball to avoid pushing it
 	self:_catchBall(self._targetPos, 0, Settings.staticBallDistance, 1)
-	return {}
 end
 
 function MoveToStaticBall:_rate()

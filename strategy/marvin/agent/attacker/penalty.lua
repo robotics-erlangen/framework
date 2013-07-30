@@ -1,19 +1,18 @@
-local Base = require "agent/base/behaviour"
+local Base = require "agent/base/behavior"
 local Penalty = (require "../base/class").new("Agent.Attacker.Penalty", Base)
 
 local World = require "../base/world"
-local Class = require "../base/class"
 
 local ShootGoal = require "task/shootgoal"
-local Halt = require "task/halt"
 local MoveToStaticBall = require "task/movetostaticball"
 
-function Penalty:_check()
+function Penalty:check()
+	local mainAttacker = self.inbox.mainAttacker().trainer == self._robot
 	local isPenalty = World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive"
-	return isPenalty and Base.State.Active or Base.State.Inactive
+	return isPenalty and mainAttacker
 end
 
-function Penalty:_run()
+function Penalty:updateTask()
 	if not self.lookDir then
 		self.lookDir = "Right"
 		if math.random() < 0.5 then
@@ -22,13 +21,9 @@ function Penalty:_run()
 	end
 
 	if World.RefereeState == "PenaltyOffensivePrepare" then
-		if not self._task or not Class.instanceOf(self._task, MoveToStaticBall) then
-			self._task = MoveToStaticBall.create(self._robot, World.Geometry["OpponentGoal"..self.lookDir])
-		end
-	elseif World.RefereeState == "PenaltyOffensive" then
-		if not self._task or not Class.instanceOf(self._task, ShootGoal) then
-			self._task = ShootGoal.create(self._robot, self.lookDir)
-		end
+		return MoveToStaticBall, {World.Geometry["OpponentGoal"..self.lookDir]}
+	else -- PenaltyOffensive
+		return ShootGoal
 	end
 end
 
