@@ -186,4 +186,18 @@ function table.shuffle(t)
 	return res
 end
 
+--- Tests if any element of an array complies with a predicate
+-- @name any
+-- @param t table - Array to test
+-- @para func function - predicate function
+-- @return boolean - true if any element complies with a predicate, false otherwise
+function table.any(t, func)
+	for _, v in ipairs(t) do
+		if func(v) then
+			return true
+		end
+	end
+	return false
+end
+
 return table
