@@ -5,7 +5,7 @@ local Ball = require "observer/ball"
 local TaskDuel = require "task/duel"
 
 function Duel:check()
-	if not self.inbox.mainAttacker().trainer == self._robot then
+	if not (self.inbox.mainAttacker().trainer == self._robot) then
 		return false
 	end
 	

@@ -40,7 +40,7 @@ function Base:init(robot)
 end
 
 function Base:run(messages)
-	self.inboxRaw = messages[self._robot]
+	self.inboxRaw = messages[self._robot] or {} -- happens when entering the game
 	self.outbox = {}
 
 	local bestBehavior = self:checkBehaviors()

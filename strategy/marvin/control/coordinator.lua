@@ -112,11 +112,10 @@ function Coordinator:_chooseSpecialRoles()
 		local bestRobot = nil
 		local bestRating = -1
 		for robot, rating in pairs(applications) do
-
 			if self.specialRoles[role] and self.specialRoles[role].robot == robot then
 				rating = rating + hysteresis
 			end
-			if not self.specialRoles[role] or rating > self.specialRoles[role].rating then
+			if not self.specialRoles[role] or rating > bestRating then
 				bestRobot = robot
 				bestRating = rating
 			end

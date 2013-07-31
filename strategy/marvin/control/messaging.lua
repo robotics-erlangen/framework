@@ -44,7 +44,7 @@ function Messaging.sortMail(messages)
 			for _, box in pairs(mailboxes) do
 				table.insert(box, msg)
 			end
-		else
+		elseif mailboxes[msg.to] then -- receiver has to be in FriendlyRobots
 			table.insert(mailboxes[msg.to], msg)
 		end
 	end

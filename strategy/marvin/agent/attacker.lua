@@ -45,7 +45,6 @@ function Attacker:applyForMainAttacker()
 		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
 		local mainAttackerRating = Rating.timeToRating(timeToBall)
 		self.send("trainer").specialRole({mainAttacker = mainAttackerRating})
-		--log(#self.outbox)
 	end
 end
 
