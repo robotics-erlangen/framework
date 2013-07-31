@@ -21,7 +21,7 @@ function HandleBall:check()
 			and World.Ball.speed:length() <= Settings.slowBall
 	if active then
 		-- force being mainAttacker
-		self.send("trainer"):specialRole({mainAttacker = 2})
+		self.send("trainer").specialRole({mainAttacker = 2})
 		return true
 	else
 		return false

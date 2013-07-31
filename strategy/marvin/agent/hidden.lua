@@ -10,7 +10,7 @@ function Hidden.takeRobot(robots)
 	end
 end
 
-function Hidden:_supplyBehaviours()
+function Hidden:_supplyBehaviors()
 	return {
 		Default.create(self._robot, self.inbox, self.send)
 	}

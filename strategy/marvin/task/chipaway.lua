@@ -34,7 +34,9 @@ function ChipAway:_run()
 	self._robot:setDribblerSpeed(1)
 	self:_shoot(chipPos, math.huge, false)
 
-	self.send(self._chipTarget).passSender("direct")
+	if self._chipTarget then
+		self.send(self._chipTarget).passSender("direct")
+	end
 end
 
 function ChipAway:_rate()

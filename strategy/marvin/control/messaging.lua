@@ -86,14 +86,17 @@ function Messaging.getSender(agent)
 	local sender = function (receiver)
 		local methods = {}
 		for message, datatype in pairs(msgDefs) do
-			methods[message] = function(data)
+			methods[message] = function(data, ...)
+				if arg.n > 0 then
+					error("to many arguments for sender function")
+				end
 				if type(data) ~= datatype then
 					error("Datatype for "..message.." message is "..type(data)
 						.." instead of "..datatype.."!")
 				end
 				local isNotFriendly = true
 				for _, r in ipairs(World.FriendlyRobots) do
-					if agent._robot == r then
+					if receiver == r then
 						isNotFriendly = false
 						break
 					end
