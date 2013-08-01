@@ -12,7 +12,7 @@ function Penalty:check()
 	return isPenalty and mainAttacker
 end
 
-function Penalty:updateTask()
+function Penalty:_updateTask()
 	if not self.lookDir then
 		self.lookDir = "Right"
 		if math.random() < 0.5 then

@@ -14,6 +14,7 @@ function Base.takeRobot(robots)
 end
 
 function Base:_supplyBehaviors()
+	-- return agent-type specific behaviors
 	error("stub")
 end
 
@@ -27,9 +28,7 @@ end
 
 function Base:init(robot)
 	self._robot = robot
-	self.specialRole = nil
 
-	-- messaging
 	self.outbox = {} -- initialize message array
 	self.send = Messaging.getSender(self)
 	self.inboxRaw = {} -- initialize raw inbox
@@ -45,8 +44,16 @@ function Base:run(messages)
 	self.inboxRaw = messages[self._robot] or {} -- happens when entering the game
 	self.outbox = {}
 
-	local bestBehavior = self:checkBehaviors()
+	self:_applyForMainAttacker()
 
+	-- choose best behavior
+	local bestBehavior = nil
+	for _, behavior in ipairs(self._behaviors) do
+		if behavior:check() then
+			bestBehavior = behavior
+			break
+		end
+	end
 	if bestBehavior ~= self._activeBehavior then
 		if self._activeBehavior then
 			self._activeBehavior:stop()
@@ -55,12 +62,13 @@ function Base:run(messages)
 	end
 	self._activeBehavior:run()
 
-	self:dump()
+	self:_dump()
 
 	return self.outbox
 end
 
-function Base:applyForMainAttacker()
+-- is overwritten if an agent type shall not always apply
+function Base:_applyForMainAttacker()
 	if World.RefereeState ~= "PenaltyDefensivePrepare" and World.RefereeState ~= "PenaltyDefensive" then
 		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
 		local mainAttackerRating = Rating.timeToRating(timeToBall)
@@ -68,16 +76,7 @@ function Base:applyForMainAttacker()
 	end
 end
 
-function Base:checkBehaviors()
-	self:applyForMainAttacker()
-	for _, behavior in ipairs(self._behaviors) do
-		if behavior:check() then -- take first positive
-			return behavior
-		end
-	end
-end
-
-function Base:dump()
+function Base:_dump()
 	debug.pushtop("Agent " .. self._robot.id .. ": " .. Class.name(self, true))
 	debug.push("inbox")
 	for n, func in pairs(self.inbox) do

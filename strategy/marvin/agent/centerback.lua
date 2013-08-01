@@ -2,6 +2,9 @@ local CenterBack = (require "../base/class").new("Agent.CenterBack", require "ag
 
 local Default = require "agent/centerback/default"
 local HandleBall = require "agent/defender/handleball"
+local World = require "../base/world"
+local Robot = require "observer/robot"
+local Rating = require "util/rating"
 
 CenterBack.robotLimit = 1 -- is not considered :(
 
@@ -20,12 +23,26 @@ function CenterBack:_supplyBehaviors()
 	}
 end
 
+
 function CenterBack:keepRobot()
 	return self._robot.isVisible
 end
 
 function CenterBack:rateRobot()
 	return 1
+end
+
+function CenterBack:_applyForMainAttacker()
+	local inadequateState = {
+		Stop = true,
+		PenaltyDefensivePrepare = true,
+		PenaltyDefensive = true
+	}
+	if not inadequateState[World.RefereeState]  then
+		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
+		local mainAttackerRating = Rating.timeToRating(timeToBall)
+		self.send("trainer").specialRole({mainAttacker = mainAttackerRating})
+	end
 end
 
 return CenterBack

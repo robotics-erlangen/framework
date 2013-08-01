@@ -10,7 +10,7 @@ function KickoffOffensive:check()
 	return isKickoff
 end
 
-function KickoffOffensive:updateTask()
+function KickoffOffensive:_updateTask()
 	return FarMirror
 end
 

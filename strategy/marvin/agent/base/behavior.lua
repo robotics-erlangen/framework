@@ -3,16 +3,21 @@ local Base = (require "../base/class").new("Behavior.Base")
 local Class = require "../base/class"
 
 function Base:init(robot, inbox, send)
-	self._task = nil
 	self._robot = robot
-	self._active = false
 	self.inbox = inbox
 	self.send = send
+	self:stop()
+end
+
+-- is called when another behavior is being chosen
+function Base:stop()
+	self._task = nil -- reset task
+	self._active = false
 	self:_stop()
 end
 
 function Base:run()
-	local bestTask, parameters = self:updateTask()
+	local bestTask, parameters = self:_updateTask()
 	if not self._task or not Class.instanceOf(self._task, bestTask) then
 		if parameters then
 			self._task = bestTask.create(self._robot, self.inbox, self.send, unpack(parameters))
@@ -24,21 +29,15 @@ function Base:run()
 	self._active = true
 end
 
--- is called every frame, if no higher prioritized behavior is chosen
+-- is called on every run, if no higher prioritized behavior is chosen
 -- return true if behavior is appropriate
 function Base:check()
 	error("stub")
 end
 
 -- chooses and returns a task and its parameters
-function Base:updateTask()
+function Base:_updateTask()
 	error("stub")
-end
-
-function Base:stop()
-	self._task = nil -- reset task
-	self._active = false
-	self:_stop()
 end
 
 -- can be overwritten

@@ -12,7 +12,7 @@ function HandleBall:check()
 	return self.inbox.mainAttacker().trainer == self._robot
 end
 
-function HandleBall:updateTask()
+function HandleBall:_updateTask()
 	local bestAssi = Shoot.bestFreeAssistant(self._robot, self.inbox.assistantRating())
 	local _, timeAdvance = Ball.firstAtBall()
 	if bestAssi and timeAdvance > Settings.defenseRiskLevel then

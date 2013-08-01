@@ -27,7 +27,7 @@ function Distractor:check()
 	return isFreeKick and maCounter >= 4
 end
 
-function Distractor:updateTask()
+function Distractor:_updateTask()
 	if not self._task then
 		log("DISTRACTOR")
 	end

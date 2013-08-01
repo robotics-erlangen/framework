@@ -6,10 +6,10 @@ local Referee = require "util/referee"
 local StopAttack = require "task/stopattack"
 
 function Stop:check()
-	return Referee.isStopState() and self.inbox.specialRole().trainer == "mainAttacker"
+	return Referee.isStopState() and self.inbox.mainAttacker().trainer == self._robot
 end
 
-function Stop:updateTask()
+function Stop:_updateTask()
 	return StopAttack
 end
 

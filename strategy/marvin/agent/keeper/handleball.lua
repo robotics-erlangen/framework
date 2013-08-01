@@ -28,7 +28,7 @@ function HandleBall:check()
 	end
 end
 
-function HandleBall:updateTask()	
+function HandleBall:_updateTask()
 	--track opponent robots in defense area
 	local danger = false
 	for _,r in pairs(World.OpponentRobots) do

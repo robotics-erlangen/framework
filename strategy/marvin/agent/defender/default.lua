@@ -10,7 +10,7 @@ function Default:check()
 	return true
 end
 
-function Default:updateTask()
+function Default:_updateTask()
 	local opponentsInOurHalf = false
 	for _, robot in ipairs(World.OpponentRobots) do
 		if robot.pos.y < 0 then

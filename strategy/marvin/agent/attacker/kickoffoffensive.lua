@@ -62,7 +62,7 @@ local function cmpByOpponentDist(pos1, pos2)
 	return minOppDist(pos1) > minOppDist(pos2)
 end
 
-function KickoffOffensive:updateTask()
+function KickoffOffensive:_updateTask()
 	-- decide once we switch to KickoffOffensive
 	if (not self._targetRobot or not self._shootPos) and World.RefereeState == "KickoffOffensive" then
 		-- search pos for pass in the run

@@ -20,7 +20,7 @@ function FreeKick:_stop()
 end
  
 function FreeKick:check()
-	if not self.inbox.mainAttacker().trainer == self._robot then
+	if not (self.inbox.mainAttacker().trainer == self._robot) then
 		return false
 	end
 
@@ -49,7 +49,7 @@ function FreeKick:check()
 	return false
 end
 
-function FreeKick:updateTask()
+function FreeKick:_updateTask()
 	-- if there's still time and we don't have the ball
 	if (World.Time - self._startTime < 5 and not self._robot:hasBall(World.Ball)) or not self._robot:isCharged() then
 		return MoveToStaticBall, {World.Geometry.OpponentGoal}

@@ -9,7 +9,7 @@ function Penalty:check()
 	return World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive"
 end
 
-function Penalty:updateTask()
+function Penalty:_updateTask()
 	return DefendPenalty
 end
 

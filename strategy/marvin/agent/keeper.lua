@@ -21,8 +21,8 @@ function Keeper:_supplyBehaviors()
 	}
 end
 
-function Keeper:applyForMainAttacker()
-	-- applying always is not a good idea for the keeper
+function Keeper:_applyForMainAttacker()
+	-- let HandleBall apply (only if it thinks it is appropriate)
 end
 
 function Keeper:keepRobot()

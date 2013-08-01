@@ -8,7 +8,7 @@ function Halt:check()
 	return World.RefereeState == "Halt"
 end
 
-function Halt:updateTask()
+function Halt:_updateTask()
 	return HaltTask
 end
 

@@ -10,14 +10,10 @@ local ShootGoal = require "task/shootgoal"
 local Class = require "../base/class"
 
 function Shoot:check() -- mainAttacker fallback behavior
-	if self.inbox.mainAttacker().trainer == self._robot then
-		return true
-	else
-		return false
-	end
+	return self.inbox.mainAttacker().trainer == self._robot
 end
 
-function Shoot:updateTask()
+function Shoot:_updateTask()
 	local bestAssistant = ObserverShoot.bestFreeAssistant(self._robot, self.inbox.assistantRating())
 	local shootGoalTmp = ShootGoal.create(self._robot, self.inbox, self.send)
 	local reachTime = Robot.minTimeToBall(self._robot, World.Ball)

@@ -9,7 +9,7 @@ function Default:check()
 	return true
 end
 
-function Default:updateTask()
+function Default:_updateTask()
 	return CenterBack
 end
 

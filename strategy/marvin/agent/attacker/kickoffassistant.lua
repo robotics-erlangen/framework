@@ -38,7 +38,7 @@ function KickoffAssistant:check()
 	return isActive
 end
 
-function KickoffAssistant:updateTask()
+function KickoffAssistant:_updateTask()
 	if self._movePos ~= self._moveDest then
 		self._movePos = self._moveDest
 		self._task = nil -- make sure a new task will be created

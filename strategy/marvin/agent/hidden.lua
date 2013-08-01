@@ -16,7 +16,7 @@ function Hidden:_supplyBehaviors()
 	}
 end
 
-function Hidden:applyForMainAttacker()
+function Hidden:_applyForMainAttacker()
 	-- not a good idea for hidden robots
 end
 

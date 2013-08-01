@@ -55,7 +55,7 @@ function FreeKickDefender:check()
 	return self.inbox.freeKickDefender().trainer == self._robot
 end
 
-function FreeKickDefender:updateTask()
+function FreeKickDefender:_updateTask()
 	return self:_getTask()
 end
 

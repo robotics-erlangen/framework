@@ -66,7 +66,7 @@ function ReceivePass:check()
 	return false
 end
 
-function ReceivePass:updateTask()
+function ReceivePass:_updateTask()
 	if self._catchingPass then
 		return PassReceiver
 	else

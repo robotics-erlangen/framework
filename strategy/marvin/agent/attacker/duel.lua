@@ -31,7 +31,7 @@ function Duel:check()
 	end
 end
 
-function Duel:updateTask()
+function Duel:_updateTask()
 	return TaskDuel
 end
 
