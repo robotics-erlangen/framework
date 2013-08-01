@@ -1,14 +1,43 @@
 local World = require "../base/world"
 local debug = require "../base/debug"
+local Class = require "../base/class"
+local Robot = require "../base/robot"
+
+local function checkType(value, requestedType)
+	local tval = type(value)
+	if type(requestedType) == "string" then
+		if tval ~= requestedType then
+			error("Expected type " .. requestedType .. " got " .. tval)
+		end
+	elseif type(requestedType) == "table" and Class.toClass(requestedType, true) then
+		if tval ~= "table" then
+			error("Expected class "..Class.name(requestedType).. " got type " .. tval)
+		end
+		if not Class.toClass(value, true) then
+			if Class.instanceOf(requestedType, MessageBase) then
+				value = requestedType.create(value)
+			else
+				error("Expected class "..Class.name(requestedType).. " got type " .. tval)
+			end
+		end
+		if not Class.instanceOf(value, requestedType) then
+				error("Expected class "..Class.name(requestedType).." got class "..Class.name(value))
+		end
+	else
+		error("Can't handle requestedType")
+	end
+	return value
+end
+
 
 local msgDefs = {
 	-- multiple senders
 	assistantRating = "number",
-	defendedOpponent = "table", --FIXME check for Robot class
+	defendedOpponent = Robot,
 	moveDest = "userdata",
 	moveDestDir = "number",
 	distractedIndex = "number",
-	specialRole = "table", -- trainer tests for valid role
+	specialRole = "table", -- value test is in getSpecialRoleApplications
 
 	-- single sender
 	aggressiveKeeperPos = "userdata",
@@ -18,8 +47,7 @@ local msgDefs = {
 	duelAssistantDir = "number",
 }
 
-local specialRoles = { 
-	-- order is priority!
+local specialRoles = {
 	"passReceiver",
 	"mainAttacker",
 	"freeKickDefender"
@@ -27,7 +55,7 @@ local specialRoles = {
 
 -- specialRoles, only being sent by trainer
 for _, role in ipairs(specialRoles) do
-	msgDefs[role] = "table" --FIXME check for Robot class
+	msgDefs[role] = Robot
 end
 
 local Messaging = {}
@@ -53,6 +81,7 @@ function Messaging.sortMail(messages)
 end
 
 --- supplies agent with message methods
+-- @param agent Agent - the agent to supply
 function Messaging.getInbox(agent)
 	local inbox = {}
 	for messageType, _ in pairs(msgDefs) do
@@ -81,7 +110,7 @@ function Messaging.getInbox(agent)
 end
 
 --- supplies sender object for an agent and thereby to his behavior and task
---@param agent - the agent to supply
+-- @param agent Agent - the agent to supply
 function Messaging.getSender(agent)
 	local sender = function (receiver)
 		local methods = {}
@@ -90,10 +119,7 @@ function Messaging.getSender(agent)
 				if arg.n > 0 then
 					error("to many arguments for sender function")
 				end
-				if type(data) ~= datatype then
-					error("Datatype for "..message.." message is "..type(data)
-						.." instead of "..datatype.."!")
-				end
+				checkType(data, datatype)
 				local isNotFriendly = true
 				for _, r in ipairs(World.FriendlyRobots) do
 					if receiver == r then
@@ -114,6 +140,9 @@ function Messaging.getSender(agent)
 	return sender
 end
 
+--- supplies the coordinator with specailRole applications
+-- @param messages msg[] - the messages to filter for specialRole applications
+-- @return table - role as key and a table as value which has a robot as key and a rating as value
 function Messaging.getSpecialRoleApplications(messages)
 	local applications = {}
 	for _, msg in ipairs(messages) do
