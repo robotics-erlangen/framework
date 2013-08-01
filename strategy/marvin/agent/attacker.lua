@@ -1,7 +1,5 @@
 local Attacker = (require "../base/class").new("Agent.Attacker", require "agent/base/agent")
 local World = require "../base/world"
-local Robot = require "observer/robot"
-local Rating = require "util/rating"
 
 local ReceivePass = require "agent/attacker/receivepass"
 local KickoffAssistant = require "agent/attacker/kickoffassistant"
@@ -38,14 +36,6 @@ function Attacker:_supplyBehaviors()
 		FreeKickDefender.create(self._robot, self.inbox, self.send),
 		Default.create(self._robot, self.inbox, self.send)
 	}
-end
-
-function Attacker:applyForMainAttacker()
-	if World.RefereeState ~= "PenaltyDefensivePrepare" and World.RefereeState ~= "PenaltyDefensive" then
-		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
-		local mainAttackerRating = Rating.timeToRating(timeToBall)
-		self.send("trainer").specialRole({mainAttacker = mainAttackerRating})
-	end
 end
 
 function Attacker:keepRobot()

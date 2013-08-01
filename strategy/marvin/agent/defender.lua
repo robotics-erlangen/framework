@@ -1,7 +1,5 @@
 local Defender = (require "../base/class").new("Agent.Defender", require "agent/base/agent")
 local World = require "../base/world"
-local Robot = require "observer/robot"
-local Rating = require "util/rating"
 
 --local CenterBack = require "agent/defender/centerback"
 local Default = require "agent/defender/default"
@@ -26,17 +24,8 @@ function Defender:_supplyBehaviors()
 		-- mainAttacker
 		HandleBall.create(self._robot, self.inbox, self.send),
 
-		--CenterBack.create(self._robot, self.inbox, self.send),
 		Default.create(self._robot, self.inbox, self.send)
 	}
-end
-
-function Defender:applyForMainAttacker()
-	if World.RefereeState ~= "PenaltyDefensivePrepare" and World.RefereeState ~= "PenaltyDefensive" then
-		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
-		local mainAttackerRating = Rating.timeToRating(timeToBall)
-		self.send("trainer").specialRole({mainAttacker = mainAttackerRating})
-	end
 end
 
 function Defender:keepRobot()

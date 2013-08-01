@@ -16,6 +16,10 @@ function Hidden:_supplyBehaviors()
 	}
 end
 
+function Hidden:applyForMainAttacker()
+	-- not a good idea for hidden robots
+end
+
 function Hidden:keepRobot()
 	return not self._robot.isVisible
 end

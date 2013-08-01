@@ -3,6 +3,8 @@ local Class = require "../base/class"
 local debug = require "../base/debug"
 
 local World = require "../base/world"
+local Robot = require "observer/robot"
+local Rating = require "util/rating"
 
 local Messaging = require "control/messaging"
 local Halt = require "agent/shared/halt"
@@ -59,11 +61,16 @@ function Base:run(messages)
 end
 
 function Base:applyForMainAttacker()
-	-- overwrite if attacker or defender
+	if World.RefereeState ~= "PenaltyDefensivePrepare" and World.RefereeState ~= "PenaltyDefensive" then
+		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
+		local mainAttackerRating = Rating.timeToRating(timeToBall)
+		self.send("trainer").specialRole({mainAttacker = mainAttackerRating})
+	end
 end
+
 function Base:checkBehaviors()
 	self:applyForMainAttacker()
-	for _, behavior in ipairs(self._behaviors) do	
+	for _, behavior in ipairs(self._behaviors) do
 		if behavior:check() then -- take first positive
 			return behavior
 		end

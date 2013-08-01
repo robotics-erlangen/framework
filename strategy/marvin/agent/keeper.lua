@@ -21,6 +21,10 @@ function Keeper:_supplyBehaviors()
 	}
 end
 
+function Keeper:applyForMainAttacker()
+	-- applying always is not a good idea for the keeper
+end
+
 function Keeper:keepRobot()
 	return self._robot.isVisible and self._robot == World.FriendlyKeeper
 end
