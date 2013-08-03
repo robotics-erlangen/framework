@@ -1,5 +1,9 @@
 local Attacker = (require "../base/class").new("Agent.Attacker", require "agent/base/agent")
+
 local World = require "../base/world"
+local Robot = require "observer/robot"
+local Rating = require "util/rating"
+local Referee = require "util/referee"
 
 local ReceivePass = require "agent/attacker/receivepass"
 local KickoffAssistant = require "agent/attacker/kickoffassistant"
@@ -48,6 +52,14 @@ function Attacker:rateRobot()
 		return 0
 	end
 	return -World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
+end
+
+function Attacker:_applyForMainAttacker()
+	if not Referee.isOpponentPenaltyState() then
+		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
+		local mainAttackerRating = Rating.timeToRating(timeToBall)
+		self.send("trainer").specialRole({mainAttacker = mainAttackerRating})
+	end
 end
 
 return Attacker

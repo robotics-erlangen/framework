@@ -2,27 +2,11 @@ local Base = (require "../base/class").new("Agent.Base.Agent")
 local Class = require "../base/class"
 local debug = require "../base/debug"
 
-local World = require "../base/world"
-local Robot = require "observer/robot"
-local Rating = require "util/rating"
-
 local Messaging = require "control/messaging"
 local Halt = require "agent/shared/halt"
 
+-- static method for pool
 function Base.takeRobot(robots)
-	error("stub")
-end
-
-function Base:_supplyBehaviors()
-	-- return agent-type specific behaviors
-	error("stub")
-end
-
-function Base:keepRobot()
-	error("stub")
-end
-
-function Base:rateRobot()
 	error("stub")
 end
 
@@ -67,13 +51,25 @@ function Base:run(messages)
 	return self.outbox
 end
 
--- is overwritten if an agent type shall not always apply
+function Base:keepRobot()
+	error("stub")
+end
+
+function Base:rateRobot()
+	error("stub")
+end
+
+function Base:robot()
+	return self._robot
+end
+
 function Base:_applyForMainAttacker()
-	if World.RefereeState ~= "PenaltyDefensivePrepare" and World.RefereeState ~= "PenaltyDefensive" then
-		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
-		local mainAttackerRating = Rating.timeToRating(timeToBall)
-		self.send("trainer").specialRole({mainAttacker = mainAttackerRating})
-	end
+	error("stub")
+end
+
+function Base:_supplyBehaviors()
+	-- return agent-type specific behaviors
+	error("stub")
 end
 
 function Base:_dump()
@@ -90,10 +86,6 @@ function Base:_dump()
 	debug.set("behavior", Class.name(self._activeBehavior, true))
 	debug.set("task", Class.name(self._activeBehavior._task, true))
 	debug.pop()
-end
-
-function Base:robot()
-	return self._robot
 end
 
 return Base

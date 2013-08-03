@@ -35,18 +35,17 @@ function Base:check()
 	error("stub")
 end
 
+function Base:task()
+	return self._task
+end
+
 -- chooses and returns a task and its parameters
 function Base:_updateTask()
 	error("stub")
 end
 
--- can be overwritten
+-- can be overwritten for custom cleanups
 function Base:_stop()
-	-- custom cleanups
-end
-
-function Base:task()
-	return self._task
 end
 
 return Base

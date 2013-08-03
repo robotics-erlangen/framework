@@ -22,6 +22,11 @@ local kickoffStates = {
 	KickoffOffensive = true
 }
 
+local opponentPenaltyStates = {
+	PenaltyDefensivePrepare = true,
+	PenaltyDefensive = true
+}
+
 function Referee.isStopState()
 	return stopStates[World.RefereeState]
 end
@@ -32,6 +37,10 @@ end
 
 function Referee.isKickoffState()
 	return kickoffStates[World.RefereeState]
+end
+
+function Referee.isOpponentPenaltyState()
+	return opponentPenaltyStates[World.RefereeState]
 end
 
 return Referee
