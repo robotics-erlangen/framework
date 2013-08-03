@@ -22,7 +22,7 @@ end
 -- @param maxSpeed number - maximun speed of the robot
 function CatchBall:_catchBall(targetPos, endSpeed, distanceToBall, maxSpeed)
 	-- TODO remove when trajectories are fully working
-	if Referee.isStopState() or Referee.isDefendState() or World.RefereeState == "PenaltyOffensivePrepare" then
+	if Referee.isStopState() or Referee.isFriendlyFreeKickState() or World.RefereeState == "PenaltyOffensivePrepare" then
 		maxSpeed = math.bound(0.5, self._robot.pos:distanceTo(World.Ball.pos)/2, maxSpeed or 1)
 	end
 

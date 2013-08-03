@@ -2,7 +2,7 @@ local Referee = {}
 local World = require "../base/world"
 
 -- states, in which we must keep a dist of 50cm
-local refereeStopStates = {
+local stopStates = {
 	Stop = true,
 	KickoffDefensivePrepare = true,
 	KickoffDefensive = true,
@@ -10,12 +10,12 @@ local refereeStopStates = {
 	IndirectDefensive = true
 }
 
-local refereeDefendStates = {
+local friendlyFreeKickStates = {
 	DirectOffensive = true,
 	IndirectOffensive = true
 }
 
-local refereeKickoffStates = {
+local kickoffStates = {
 	KickoffDefensivePrepare = true,
 	KickoffDefensive = true,
 	KickoffOffensivePrepare = true,
@@ -23,15 +23,15 @@ local refereeKickoffStates = {
 }
 
 function Referee.isStopState()
-	return refereeStopStates[World.RefereeState]
+	return stopStates[World.RefereeState]
 end
 
-function Referee.isDefendState()
-	return refereeDefendStates[World.RefereeState]
+function Referee.isFriendlyFreeKickState()
+	return friendlyFreeKickStates[World.RefereeState]
 end
 
 function Referee.isKickoffState()
-	return refereeKickoffStates[World.RefereeState]
+	return kickoffStates[World.RefereeState]
 end
 
 return Referee

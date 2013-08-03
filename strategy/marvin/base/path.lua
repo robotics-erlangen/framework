@@ -8,7 +8,7 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, radius)
 	local ballDistance = 0
 	radius = radius or robot.radius
 	
-	local forbidOppDefenseArea = Referee.isDefendState()
+	local forbidOppDefenseArea = Referee.isFriendlyFreeKickState()
 	local forbidOppFieldHalf = Referee.isKickoffState()
 	
 	if Referee.isStopState() then
