@@ -24,6 +24,18 @@ function Attacker.takeRobot(robots)
 	end
 end
 
+function Attacker:keepRobot()
+	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper
+end
+
+-- worse rating if robot if farther away from opponent goal
+function Attacker:rateRobot()
+	if self._activeBehavior and self._activeBehavior:forceKeepingInPool()  then
+		return 0
+	end
+	return -World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
+end
+
 function Attacker:_supplyBehaviors()
 	return {
 		ReceivePass.create(self._robot, self.inbox, self.send),
@@ -40,18 +52,6 @@ function Attacker:_supplyBehaviors()
 		FreeKickDefender.create(self._robot, self.inbox, self.send),
 		Default.create(self._robot, self.inbox, self.send)
 	}
-end
-
-function Attacker:keepRobot()
-	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper
-end
-
--- worse rating if robot if farther away from opponent goal
-function Attacker:rateRobot()
-	if self._keepAlive then
-		return 0
-	end
-	return -World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
 end
 
 function Attacker:_applyForMainAttacker()

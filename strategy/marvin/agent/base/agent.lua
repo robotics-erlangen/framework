@@ -22,6 +22,7 @@ function Base:init(robot)
 		Halt.create(self._robot, self.inbox, self.send),
 		unpack(self:_supplyBehaviors())
 	}
+	self._activeBehavior = nil
 end
 
 function Base:run(messages)

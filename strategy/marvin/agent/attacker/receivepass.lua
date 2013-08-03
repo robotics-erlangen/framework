@@ -22,11 +22,9 @@ function ReceivePass:_stop()
 end
 
 function ReceivePass:check()
-	local alreadyApplied = false
-
 	for _, _ in pairs(self.inbox.passSender()) do
-		-- happens only if there is a passSender for me
-		self._targetTimer = World.Time
+		self._targetTimer = World.Time -- remember time of last pass message
+		self._forceKeepingInPool = true
 	end
 
 	if self._catchingPass then
@@ -42,13 +40,10 @@ function ReceivePass:check()
 				or Referee.isStopState() then
 			return false
 		end
-		-- make sure that nobody else becomes passReceiver
-		if not alreadyApplied then
-			self.send("trainer").specialRole({ passReceiver = 2 })
-			self.send("trainer").specialRole({ mainAttacker = 2 })
-		end
+		-- make sure that nobody else becomes passReceiver or mainAttacker
+		self.send("trainer").specialRole({ passReceiver = 2 })
+		self.send("trainer").specialRole({ mainAttacker = 2 })
 		return true
-
 	elseif self._targetTimer and World.Time - self._targetTimer < passTargetTimeout then
 		-- apply for becoming pass receiver
 		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)

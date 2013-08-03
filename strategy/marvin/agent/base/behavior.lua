@@ -13,6 +13,7 @@ end
 function Base:stop()
 	self._task = nil -- reset task
 	self._active = false
+	self._forceKeepingInPool = false
 	self:_stop()
 end
 
@@ -33,6 +34,10 @@ end
 -- return true if behavior is appropriate
 function Base:check()
 	error("stub")
+end
+
+function Base:forceKeepingInPool()
+	return self._forceKeepingInPool
 end
 
 function Base:task()
