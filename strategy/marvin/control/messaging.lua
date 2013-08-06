@@ -122,7 +122,7 @@ function Messaging.getSender(agent)
 		local methods = {}
 		for message, datatype in pairs(msgDefs) do
 			methods[message] = function(data, ...)
-				if arg.n > 0 then
+				if #{...} > 0 then
 					error("to many arguments for sender function")
 				end
 				checkType(data, datatype)
