@@ -18,6 +18,7 @@ function Base:init(robot)
 	self.inboxRaw = {} -- initialize raw inbox
 	self.inbox = Messaging.getInbox(self)
 
+	-- behaviors are ordered by decreasing priority
 	self._behaviors = {
 		Halt.create(self._robot, self.inbox, self.send),
 		unpack(self:_supplyBehaviors())
@@ -31,7 +32,7 @@ function Base:run(messages)
 
 	self:_applyForMainAttacker()
 
-	-- choose best behavior
+	-- choose best behavior, that is the behavior with the highest priority of all useable ones
 	local bestBehavior = nil
 	for _, behavior in ipairs(self._behaviors) do
 		if behavior:check() then
@@ -39,23 +40,30 @@ function Base:run(messages)
 			break
 		end
 	end
+	-- check if the behavior has changed
 	if bestBehavior ~= self._activeBehavior then
 		if self._activeBehavior then
 			self._activeBehavior:stop()
 		end
 		self._activeBehavior = bestBehavior
 	end
-	self._activeBehavior:run()
+	-- prevent crash if no behavior can be activated
+	if self._activeBehavior then
+		self._activeBehavior:run()
+	end
 
 	self:_dump()
 
 	return self.outbox
 end
 
+-- controls whether the robot may be kept in its pool
 function Base:keepRobot()
 	error("stub")
 end
 
+-- rate robot for deciding which robots to keep in the pool
+-- the robots with the lowest rating are removed until the robot limit is satisfied
 function Base:rateRobot()
 	error("stub")
 end
@@ -86,7 +94,7 @@ function Base:_dump()
 	end
 	debug.pop()
 	debug.set("behavior", Class.name(self._activeBehavior, true))
-	debug.set("task", Class.name(self._activeBehavior._task, true))
+	debug.set("task", Class.name(self._activeBehavior and self._activeBehavior._task or nil, true))
 	debug.pop()
 end
 
