@@ -95,6 +95,12 @@ function Messaging.getInbox(agent)
 
 			if filter == "others" then
 				messages[agent._robot] = nil
+			elseif filter == "priority" then
+				for robot, _ in pairs(messages) do
+					if robot.id >= agent._robot.id then
+						messages[robot] = nil
+					end
+				end
 			elseif type(filter) == "function" then
 				filter(messages)
 			elseif not filter then
@@ -160,5 +166,7 @@ function Messaging.getSpecialRoleApplications(messages)
 	end
 	return applications
 end
+
+
 
 return Messaging

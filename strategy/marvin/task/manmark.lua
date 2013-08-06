@@ -45,7 +45,7 @@ end
 function ManMark:_rate()
 	if not self._priorityTarget then
 		local defendedOpponents = {}
-		for _, opp in pairs(self.inbox.defendedOpponent()) do
+		for _, opp in pairs(self.inbox.defendedOpponent("priority")) do
 			defendedOpponents[opp] = true
 		end
 		

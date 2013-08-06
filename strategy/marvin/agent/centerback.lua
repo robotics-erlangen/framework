@@ -20,7 +20,7 @@ function CenterBack.takeRobot(robots)
 end
 
 function CenterBack:keepRobot()
-	return self._robot.isVisible
+	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper
 end
 
 function CenterBack:rateRobot()
