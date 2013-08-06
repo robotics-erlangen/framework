@@ -74,7 +74,8 @@ function Base:_supplyBehaviors()
 end
 
 function Base:_dump()
-	debug.pushtop("Agent " .. self._robot.id .. ": " .. Class.name(self, true))
+	debug.pushtop("Agent " .. self._robot.id)
+	debug.set(nil, Class.name(self, true))
 	debug.push("inbox")
 	for n, func in pairs(self.inbox) do
 		debug.push(n)
