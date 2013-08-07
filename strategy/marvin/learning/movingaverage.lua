@@ -2,49 +2,70 @@ local MovingAverage = {}
 
 local IO = require "util/io"
 
-local modulePoints = {}
-local modulePoss = {}
-local moduleDefaults = {}
+local Entry = (require "../base/class").new("Learning.MovingAverage.Entry")
 
-function MovingAverage.init(module, nPoints, default)
-	nPoints = nPoints or 5
-	default = default or 0
-	
-	local points = {}
-	
-	local lines = IO.readLines(module)
-	local startpos = #lines - nPoints
-	local writeIndex = 1
-	for i = 1, nPoints do
-		if startpos + i > 0 then
-			points[writeIndex] = lines[startpos + i]
-			writeIndex = writeIndex + 1
-		end
-	end
-	
-	modulePoints[module] = points
-	modulePoss[module] = 1
-	moduleDefaults[module] = default
+function Entry:init(name, nPoints, default)
+	assert(nPoints ~= nil and default ~= nil, "Parameters are missing")
+	self._name = name
+	self._nPoints = nPoints
+	self._default = default
+	self._points = {}
+	self._nextPos = 1
+
+	self:_load()
 end
 
-function MovingAverage.getValue(module) 
-	local points = modulePoints[module]
-	if #points == 0 then
-		return moduleDefaults[module]
+function Entry:_load()
+	local lines = IO.readLines(self._name)
+	
+	local startPos = math.max(1, #lines - self._nPoints)
+	for i = startPos, #lines do
+		self:_addValue(tonumber(lines[i]), false)
+	end
+end
+
+function Entry:_addValue(value, writeValue)
+	local nextPos = self._nextPos
+	self._points[nextPos] = value
+	self._nextPos = nextPos % self._nPoints + 1;
+	if writeValue then
+		IO.append(self._name, value)
+	end
+end
+
+function Entry:addValue(value)
+	return self:_addValue(value, true)
+end
+
+function Entry:value()
+	if #self._points == 0 then
+		return self._default
 	end
 		
 	local sum = 0
-	for _,p in ipairs(points) do
-		sum = sum + p	
+	for _, p in ipairs(self._points) do
+		sum = sum + p
 	end
 	
-	return sum/(#points)
+	return sum / #self._points
 end
 
-function MovingAverage.adjustValue(module, value) 
-	modulePoints[module][modulePoss[module]] = value
-	IO.append(module, value)
-end
+local instanceMap = {}
 
+-- returns an Entry object for the given name
+-- if it didn't exist before then it's setup using nPoints and default values
+-- to just get the Entry object these two parameters are optional
+-- however omitting these values before the Entry is created will trigger an asserting
+function MovingAverage.get(name, nPoints, default) -- -> factory
+	-- check if an entry object for this name was already created
+	local entry = instanceMap[name]
+	if entry then
+		return entry
+	end
+
+	entry = Entry.create(name, nPoints, default)
+	instanceMap[name] = entry
+	return entry
+end
 
 return MovingAverage

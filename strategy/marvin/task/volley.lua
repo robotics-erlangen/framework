@@ -15,9 +15,9 @@ Volley.priority = 5
 function Volley:_init(viewPos)	
 	self._shootSpeed = 8
 	self._ballIncoming = true
-	MovingAverage.init("Volley", 5, 0.45)
+	self._movingAverage = MovingAverage.get("Volley", 5, 0.45)
 	if amun.isDebug then
-		self._observer = VolleyObserver.create(self._robot)
+		self._observer = VolleyObserver.create(self._robot, self._movingAverage)
 		Observer.addTimedObserver(self._observer)
 	end
 end
@@ -42,7 +42,7 @@ function Volley:_run()
 	self:updateDestination(false)
 	
 	-- read mu from Volley file
-	self._mu = MovingAverage.getValue("Volley")
+	self._mu = self._movingAverage:value()
 	
 	-- the ball gets shot at this point (approximately)
 	local viewPos = self._robot.pos + (self.targetPoint - self._robot.pos):setLength(self._robot.shootRadius + World.Ball.radius)
@@ -98,9 +98,10 @@ function Volley.test(id)
 	return Volley.factory(1), 1
 end
 
-function VolleyObserver:init(robot)
+function VolleyObserver:init(robot, movingAverage)
 	self._robot = robot
 	self._exitTimer = World.Time + 1
+	self._movingAverage = movingAverage
 end
 
 -- get used params, also used for keep-alive
@@ -140,7 +141,7 @@ function VolleyObserver:run()
 		log(self._shootSpeed)
 		log(self._receiveSpeed)
 		log("write volley mu")
-		MovingAverage.adjustValue("Volley", mu)
+		self._movingAverage:addValue(mu)
 
 		self._visPoints = {self._viewPos + Vector.fromAngle(newgamma):scaleLength(5), self._viewPos}
 		self._visPoints2 = {self._viewPos + Vector.fromAngle(self._gamma):scaleLength(5), self._viewPos}
