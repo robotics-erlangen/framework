@@ -48,13 +48,13 @@ local msgDefs = {
 }
 
 local specialRoles = {
-	"passReceiver",
-	"mainAttacker",
-	"freeKickDefender"
+	passReceiver = true,
+	mainAttacker = true,
+	freeKickDefender = true
 }
 
 -- specialRoles, only being sent by trainer
-for _, role in ipairs(specialRoles) do
+for role, _ in pairs(specialRoles) do
 	msgDefs[role] = Robot
 end
 
@@ -103,7 +103,7 @@ function Messaging.getInbox(agent)
 				end
 			elseif type(filter) == "function" then
 				filter(messages)
-			elseif not filter then
+			elseif filter == nil then
 				-- ok
 			else
 				error("invalid filter for inbox function")
@@ -122,8 +122,8 @@ function Messaging.getSender(agent)
 		local methods = {}
 		for message, datatype in pairs(msgDefs) do
 			methods[message] = function(data, ...)
-				if #{...} > 0 then
-					error("to many arguments for sender function")
+				if select('#', ...) > 0 then
+					error("too many arguments for sender function")
 				end
 				checkType(data, datatype)
 				local isNotFriendly = true
@@ -154,7 +154,7 @@ function Messaging.getSpecialRoleApplications(messages)
 	for _, msg in ipairs(messages) do
 		if msg.mtype == "specialRole" then
 			for role, rating in pairs(msg.data) do
-				if not table.any(specialRoles, function(r) return r==role end) then
+				if not specialRoles[role] then
 					error(role.." is not a valid specialRole!")
 				end
 				if not applications[role] then
