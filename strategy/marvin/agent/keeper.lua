@@ -4,8 +4,6 @@ local World = require "../base/world"
 local Default = require "agent/keeper/default"
 local HandleBall = require "agent/keeper/handleball"
 
-Keeper.robotLimit = 1
-
 function Keeper.takeRobot(robots)
 	for _, robot in pairs(robots) do
 		if robot == World.FriendlyKeeper then

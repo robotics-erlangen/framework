@@ -9,8 +9,6 @@ local Default = require "agent/centerback/default"
 local HandleBall = require "agent/defender/handleball"
 local Penalty = require "agent/defender/penalty"
 
-CenterBack.robotLimit = 1 -- is not considered :(
-
 function CenterBack.takeRobot(robots)
 	for _, robot in pairs(robots) do
 		if robot.isVisible then
