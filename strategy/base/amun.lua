@@ -51,6 +51,7 @@ separator for luadoc]]--
 --- Set commands for a robot
 -- @class function
 -- @name setCommand
+-- @param int generation
 -- @param int robotid
 -- @param cmd protobuf.robot.StrategyCommand
 

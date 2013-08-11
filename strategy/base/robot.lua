@@ -145,7 +145,7 @@ function Robot:_setSpecs(specs)
 end
 
 function Robot:_setCommand()
-	amun.setCommand(self.id, {
+	amun.setCommand(self.generation, self.id, {
 		controller = self._controllerInput,
 		v_f = self._controllerInput and self._controllerInput.v_f,
 		v_s = self._controllerInput and self._controllerInput.v_s,
