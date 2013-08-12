@@ -93,7 +93,6 @@ function Robot:_update(state, time, radioResponses)
 		-- only keep the last and most current radio response
 		self.radioResponse = radioResponses[#radioResponses]
 		self.lastResponseTime = time
-		log(self.radioResponse.battery)
 	else
 		-- clear reponse field if response is missing
 		self.radioResponse = nil
