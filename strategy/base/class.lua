@@ -5,6 +5,8 @@ module "Class"
 
 local Class = {}
 
+local registeredClassNames = {}
+
 local function getShortname(name)
 	local rev = name:reverse()
 	local sep = rev:find("%.")
@@ -73,6 +75,10 @@ end
 -- @retrun class object
 -- @return metatable used for instances
 function Class.new(name, parent)
+	-- check for unique class names, to prevent naming confusions
+	assert(not registeredClassNames[name], "class names must be unique")
+	registeredClassNames[name] = true
+
 	local class = {}
 	
 	-- setup class type metatable

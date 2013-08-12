@@ -1,5 +1,5 @@
 local Base = require "agent/base/behavior"
-local Default = (require "../base/class").new("Agent.Defender.Default", Base)
+local Default = (require "../base/class").new("Agent.Centerback.Default", Base)
 
 local CenterBack = require "task/centerback"
 

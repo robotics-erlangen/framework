@@ -1,4 +1,4 @@
-local OldController = (require "../base/class").new("Trajectory.OldController", (require "../base/trajectory").Base)
+local OldController = (require "../base/class").new("Trajectory.ToTarget", (require "../base/trajectory").Base)
 local Coordinates = require "../base/coordinates"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
