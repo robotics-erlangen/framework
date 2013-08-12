@@ -151,6 +151,8 @@ function World._updateWorld(state)
 	end
 	World.Time = state.time * 1E-9
 
+	local radioResponses = state.radio_response
+
 	-- update ball if available
 	if state.ball then
 		World.Ball:_update(state.ball, World.Time)
@@ -168,7 +170,17 @@ function World._updateWorld(state)
 		World.FriendlyRobots = {}
 		World.FriendlyInvisibleRobots = {}
 		for id, robot in pairs(World.FriendlyRobotsById) do
-			robot:_update(dataById[id], World.Time)
+			-- get responses for the current robot
+			-- these are identified by the robot generation and id
+			local robotResponses = {}
+			for _, response in ipairs(radioResponses) do
+				if response.generation == robot.generation
+						and response.id == robot.id then
+					table.insert(robotResponses, response)
+				end
+			end
+			
+			robot:_update(dataById[id], World.Time, robotResponses)
 			-- sort robot into visible / not visible
 			if robot.isVisible then
 				table.insert(World.FriendlyRobots, robot)

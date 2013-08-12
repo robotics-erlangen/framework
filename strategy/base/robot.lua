@@ -30,6 +30,8 @@ local Robot, RobotMt = (require "../base/class").new("Robot")
 -- @field dribblerWidth number - Width of the dribbler *
 -- @field maxSpeed number - maximum speed *
 -- @field maxAngularSpeed number - maximum angular speed *
+-- @field lastResponseTime number - strategy time when the last radio response was handled *
+-- @field radioResponse table - response from the robot, only set if there is a current response *
 Robot.constants = {
 	hasBallDistance = 0.04, -- 4 cm, robots where the balls distance to the dribbler is less than 2cm are considered to have the ball [m]
 	passSpeed = 2, -- speed with which the ball should arrive at the pass target  [m/s]
@@ -54,6 +56,7 @@ function Robot:init(data, isFriendly, geometry)
 		self.maxAcceleration = 1
 	end
 	self.lostSince = 0
+	self.lastResponseTime = 0
 	self.isFriendly = isFriendly
 	self._hasBall = {}
 	if self.isFriendly then -- setup trajectory and path objects
@@ -77,7 +80,7 @@ end
 RobotMt.__tostring = Robot.tostring
 
 -- reset robot commands and update data
-function Robot:_update(state, time)
+function Robot:_update(state, time, radioResponses)
 	-- keep current time for use by setStandby
 	self._currentTime = time
  	-- bypass override check in setControllerInput
@@ -85,6 +88,16 @@ function Robot:_update(state, time)
 	self:shootDisable() -- disable shoot
 	self:setDribblerSpeed(nil) -- stop dribbler
 	self:setStandby(nil) -- activate robot
+
+	if radioResponses and #radioResponses > 0 then
+		-- only keep the last and most current radio response
+		self.radioResponse = radioResponses[#radioResponses]
+		self.lastResponseTime = time
+		log(self.radioResponse.battery)
+	else
+		-- clear reponse field if response is missing
+		self.radioResponse = nil
+	end
 
 	-- check if robot is tracked
 	if not state then
