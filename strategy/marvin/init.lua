@@ -4,7 +4,6 @@ local validGlobals = {
 	path = true,
 	Vector = true,
 	Settings = true,
-	Entrypoints = true
 }
 
 local globalsChecker = {
@@ -29,7 +28,7 @@ require "base/path" -- extend path module
 local World = require "../base/world"
 
 
-Entrypoints = {}
+local Entrypoints = require "../base/entrypoints"
 -- require "task/tasks"
 require "control/coordinator"
 require "tests/tests"
@@ -39,8 +38,8 @@ local debug = require "../base/debug"
 local Cache = require "../base/cache"
 local Observer = require "observer/observer"
 
-for name, func in pairs(Entrypoints) do
-	Entrypoints[name] = function ()
+local wrapper = function (func)
+	return function()
 		-- require "../test/debug/enable"
 		World.update()
 		Observer.observe()
@@ -56,4 +55,4 @@ for name, func in pairs(Entrypoints) do
 	end
 end
 
-return {name = "Marvin", entrypoints = Entrypoints}
+return {name = "Marvin", entrypoints = Entrypoints.get(wrapper)}

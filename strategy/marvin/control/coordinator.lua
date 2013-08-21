@@ -8,6 +8,7 @@ local Agent = {
 local Class = require "../base/class"
 local World = require "../base/world"
 local debug = require "../base/debug"
+local Entrypoints = require "../base/entrypoints"
 local Field = require "util/field"
 local AgentPool = require "control/agentpool"
 local Messaging = require "control/messaging"
@@ -246,11 +247,11 @@ function Coordinator:observeGameState()
 end
 
 local coord = nil
-Entrypoints["main"] = function()
+Entrypoints.add("main", function()
 	if not coord then
 		coord = Coordinator.create()
 	end
 	coord:run()
-end
+end)
 
 return Coordinator

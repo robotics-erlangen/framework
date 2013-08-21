@@ -1,3 +1,5 @@
+local Entrypoints = require "../base/entrypoints"
+
 --- Loads every task and publishes test functions
 local Tasks = {
 	Assistant = require "task/assistant",
@@ -136,9 +138,9 @@ for name,s in pairs(Tasks) do
 				error("Invalid test function " .. fn .. " in task " .. name)
 			end
 			local test = testWrapper(f)
-			Entrypoints["tasks/" .. name .. testname] = function ()
+			Entrypoints.add("tasks/" .. name .. testname, function ()
 				test()
-			end
+			end)
 		end
 	end
 end

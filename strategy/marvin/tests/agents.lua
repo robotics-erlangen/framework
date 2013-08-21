@@ -1,3 +1,5 @@
+local Entrypoints = require "../base/entrypoints"
+
 local AgentTest = (require "../base/class").new("Control.AgentTest")
 local TestConfig = require "tests/testconfig"
 
@@ -118,11 +120,11 @@ for _, behaviour in pairs(TestConfig.behaviours) do
 end
 
 local test = nil
-Entrypoints["testconfig"] = function()
+Entrypoints.add("testconfig", function()
 	if not test then
 		test = AgentTest.create(pools, behaviours)
 	end
 	test:run()
-end
+end)
 
 return AgentTest
