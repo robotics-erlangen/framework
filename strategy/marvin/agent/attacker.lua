@@ -34,7 +34,7 @@ function Attacker:rateRobot()
 		return 0
 	end
 	local toOpponentGoal = World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
-	local toBall = self._robot.pos:distanceTo(Worl.Ball.pos)
+	local toBall = self._robot.pos:distanceTo(World.Ball.pos)
 	-- if we are 0.5m away from the ball, it counts as much as a whole field height at the distance to opp goal
 	-- k * exp(-0.5) = FieldHeight
 	-- k = exp(0.5) * FieldHeight
