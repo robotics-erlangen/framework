@@ -33,7 +33,13 @@ function Attacker:rateRobot()
 	if self._activeBehavior and self._activeBehavior:forceKeepingInPool()  then
 		return 0
 	end
-	return -World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
+	local toOpponentGoal = World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
+	local toBall = self._robot.pos:distanceTo(Worl.Ball.pos)
+	-- if we are 0.5m away from the ball, it counts as much as a whole field height at the distance to opp goal
+	-- k * exp(-0.5) = FieldHeight
+	-- k = exp(0.5) * FieldHeight
+	local k = math.exp(0.5) * World.Geometry.FieldHeight
+	return k * math.exp(-toBall) - toOpponentGoal
 end
 
 function Attacker:_supplyBehaviors()
