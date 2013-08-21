@@ -50,6 +50,7 @@ for name, func in pairs(Entrypoints) do
 			end
 		end
 		World.setRobotCommands()
+		Observer.analyze()
 		debug.resetStack()
 		Cache.resetFrame()
 	end

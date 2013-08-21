@@ -3,29 +3,31 @@ local World = require "../base/world"
 local Referee = require "util/referee"
 local vis = require "../base/vis"
 local Class = require "../base/class"
-local TimedObserver = require "observer/timedobserver"
+local Analyzer = require "observer/analyzer"
 
 local Observer = {}
 
-local timedObservers = {}
+local analyzers = {}
 
 function Observer.observe()
 	Robot.estimateOpponentDynamics()
 	Robot._updateHadBall()
 	Observer._illustrateRefereeStates()
+end
 
-	for i = #timedObservers,1,-1 do
-		local observer = timedObservers[i]
-		observer:run()
-		if observer:isFinished() then
-			table.remove(timedObservers, i)
+function Observer.analyze()
+	for i = #analyzers,1,-1 do
+		local analyzer = analyzers[i]
+		analyzer:run()
+		if analyzer:isFinished() then
+			table.remove(analyzers, i)
 		end
 	end
 end
 
-function Observer.addTimedObserver(observer)
-	assert(observer and Class.instanceOf(observer, TimedObserver), "no timed observer!")
-	table.insert(timedObservers, observer)
+function Observer.addAnalyzer(analyzer)
+	assert(analyzer and Class.instanceOf(analyzer, Analyzer), "no analyzer!")
+	table.insert(analyzers, analyzer)
 end
 
 function Observer._illustrateRefereeStates()
