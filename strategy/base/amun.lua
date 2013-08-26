@@ -100,9 +100,13 @@ separator for luadoc]]--
 -- @param value number|bool|string|nil
 
 --[[
--- TODO:
-	void setProperty(name, data [, robotId])
-]]--
+separator for luadoc]]--
+
+--- Add a value to the plotter
+-- @class function
+-- @name addPlot
+-- @param name string
+-- @param value number
 
 require "amun"
 log = amun.log

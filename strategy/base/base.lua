@@ -20,10 +20,11 @@ math.randomseed(amun.getCurrentTime()) -- init rng
 
 -- preload classes that require access to the amun API
 local Coordinates = require "../base/coordinates"
-local debug = require "../base/debug"
 local Robot = require "../base/robot"
-local vis = require "../base/vis"
 local World = require "../base/world"
+local debug = require "../base/debug"
+local plot = require "../base/plot"
+local vis = require "../base/vis"
 
 -- prevent access to the amun api by other code
 local isDebug = pcall(require, "debug")
