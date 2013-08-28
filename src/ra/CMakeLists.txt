@@ -53,6 +53,8 @@ set(SOURCES
     refereestatuswidget.h
     refereewidget.cpp
     refereewidget.h
+    resettableitemdelegate.cpp
+    resettableitemdelegate.h
     robotparametersdialog.cpp
     robotparametersdialog.h
     robotselectionwidget.cpp

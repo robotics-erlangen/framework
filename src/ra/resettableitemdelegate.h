@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Philipp Nordhus                                        *
+ *   Copyright 2015 Michael Eischer                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,45 +18,46 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef ROBOTSPECSDIALOG_H
-#define ROBOTSPECSDIALOG_H
+#ifndef RESETTABLEITEMDELEGATE_H
+#define RESETTABLEITEMDELEGATE_H
 
-#include "protobuf/robot.pb.h"
-#include <QDialog>
+#include <QObject>
+#include <QWidget>
+#include <QStyledItemDelegate>
 
-class QStandardItem;
-class QStandardItemModel;
-
-namespace Ui {
-class RobotSpecsDialog;
-}
-
-class RobotSpecsDialog : public QDialog
+// do not even think about using this class...
+class WidgetResetWrapper : public QWidget
 {
-    Q_OBJECT
-
+   Q_OBJECT
 public:
-    explicit RobotSpecsDialog(const robot::Specs &specs, const robot::Specs &def, QWidget *parent = 0);
-    explicit RobotSpecsDialog(const robot::Specs &specs, QWidget *parent = 0);
-    ~RobotSpecsDialog() override;
+    explicit WidgetResetWrapper(QWidget *child, QWidget* parent);
 
-public:
-    const robot::Specs& specs() const { return m_specs; }
+    QWidget *child() const { return m_child; }
+    bool isReset() const { return m_isReset; }
 
 private slots:
-    void itemChanged(QStandardItem *item);
+    void handleReset();
+
+signals:
+    void resetValue();
 
 private:
-    void init(const robot::Specs *def);
-    void fillTree(QStandardItem *parent, google::protobuf::Message *specs, const google::protobuf::Message *def);
-    static QVariant getData(const google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field);
-
-private:
-    Ui::RobotSpecsDialog *ui;
-    QStandardItemModel *m_model;
-    robot::Specs m_specs;
-    bool m_robot;
-    bool m_blockItemChanged;
+    QWidget *m_child;
+    bool m_isReset;
 };
 
-#endif // ROBOTSPECSDIALOG_H
+class ResettableItemDelegate : public QStyledItemDelegate
+{
+    Q_OBJECT
+public:
+    explicit ResettableItemDelegate(QObject *parent);
+
+    QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
+    void setEditorData(QWidget *editor, const QModelIndex &index) const override;
+    void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
+
+private slots:
+    void resetValue();
+};
+
+#endif // RESETTABLEITEMDELEGATE_H
