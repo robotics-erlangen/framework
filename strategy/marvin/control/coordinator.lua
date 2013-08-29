@@ -2,7 +2,6 @@ local Agent = {
 	Attacker = require "agent/attacker",
 	Defender = require "agent/defender",
 	Keeper = require "agent/keeper",
-	CenterBack = require "agent/centerback",
 	Hidden = require "agent/hidden"
 }
 local Class = require "../base/class"
@@ -18,14 +17,12 @@ local Coordinator = (require "../base/class").new("Control.Coordinator")
 function Coordinator:init()
 	self._pools = {
 		keeper = AgentPool.create(Agent.Keeper),
-		centerBack = AgentPool.create(Agent.CenterBack),
 		defense = AgentPool.create(Agent.Defender),
 		attack = AgentPool.create(Agent.Attacker),
 		hidden = AgentPool.create(Agent.Hidden)
 	}
-	self._pools.centerBack:setRobotLimit(1)
 	self._poolGroups = {
-		{ self._pools.keeper, self._pools.centerBack },
+		{ self._pools.keeper },
 		{ self._pools.defense, self._pools.attack },
 		{ self._pools.hidden }
 	}
@@ -54,11 +51,6 @@ function Coordinator:_updatePoolRobots()
 	
 	-- if keeper is on the field, it is managed by the keeper pool
 	if World.FriendlyKeeper and World.FriendlyKeeper.isVisible then
-		defenders = defenders - 1
-	end
-
-	-- take first defender as centerBack
-	if defenders > 0 then
 		defenders = defenders - 1
 	end
 	

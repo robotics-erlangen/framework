@@ -66,6 +66,13 @@ function Base:_applyForMainAttacker()
 	self.send("trainer").specialRole({mainAttacker = mainAttackerRating})
 end
 
+function Base:_applyForCenterBack()
+	local rating = math.min(0, World.Geometry.FieldWidthHalf - math.abs(self._robot.pos.x)) 
+		/ World.Geometry.FieldWidthHalf
+	rating = rating / 7 -- low probability of change
+	self.send("trainer").specialRole({centerBack = rating})
+end
+
 -- can be overwritten for custom cleanups
 function Base:_stop()
 end
