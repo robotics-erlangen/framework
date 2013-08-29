@@ -49,7 +49,7 @@ function FreeKickDefender:check()
 			or World.RefereeState == "IndirectDefensive" and World.Ball.pos.y < World.Geometry.FieldHeightQuarter--throw-in
 			or World.RefereeState == "Stop" then --TODO discuss stop
 		local tmpTask, params = self:_getTask()
-		local rating = tmpTask.create(self._robot, self.inbox, self.send, unpack(params)):rate()
+		local rating = tmpTask.create(self._agent, unpack(params)):rate()
 		self.send("trainer").specialRole({freeKickDefender = rating})
 	end
 	return self.inbox.freeKickDefender().trainer == self._robot

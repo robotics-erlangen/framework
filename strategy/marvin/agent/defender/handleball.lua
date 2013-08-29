@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local HandleBall = (require "../base/class").new("Agent.Defender.HandleBall", Base)
 
 local World = require "../base/world"
+local Referee = require "util/referee"
 local Ball = require "observer/ball"
 local Shoot = require "observer/shoot"
 
@@ -9,6 +10,9 @@ local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
 
 function HandleBall:check()
+	if not (Referee.isFriendlyFreeKickState() or Referee.isStopState()) then
+		self:_applyForMainAttacker()
+	end
 	return self.inbox.mainAttacker().trainer == self._robot
 end
 

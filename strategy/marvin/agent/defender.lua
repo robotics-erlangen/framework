@@ -1,14 +1,18 @@
 local Defender = (require "../base/class").new("Agent.Defender", require "agent/base/agent")
 
 local World = require "../base/world"
-local Robot = require "observer/robot"
-local Rating = require "util/rating"
-local Referee = require "util/referee"
 
 local Default = require "agent/defender/default"
 local HandleBall = require "agent/defender/handleball"
 local Penalty = require "agent/defender/penalty"
 local KickoffOffensive = require "agent/defender/kickoffoffensive"
+
+Defender._behaviors = {
+	Penalty,
+	KickoffOffensive,
+	HandleBall,
+	Default
+}
 
 function Defender.takeRobot(robots)
 	for _, robot in pairs(robots) do
@@ -28,27 +32,6 @@ function Defender:rateRobot()
 		return 0
 	end
 	return -World.Geometry.FriendlyGoal:distanceTo(self._robot.pos)
-end
-
-function Defender:_supplyBehaviors()
-	return {
-		-- referee states
-		Penalty.create(self._robot, self.inbox, self.send),
-		KickoffOffensive.create(self._robot, self.inbox, self.send),
-
-		-- mainAttacker
-		HandleBall.create(self._robot, self.inbox, self.send),
-
-		Default.create(self._robot, self.inbox, self.send)
-	}
-end
-
-function Defender:_applyForMainAttacker()
-	if not (Referee.isOpponentPenaltyState() or Referee.isFriendlyFreeKickState() or Referee.isStopState()) then
-		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
-		local mainAttackerRating = Rating.timeToRating(timeToBall)
-		self.send("trainer").specialRole({mainAttacker = mainAttackerRating})
-	end
 end
 
 return Defender

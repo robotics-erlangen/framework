@@ -106,7 +106,7 @@ function Assistant:_rate(priorityMessages, notifications)
 	
 	-- lookup friendly assistants
 	local otherAssistants = {}
-	for robot, _ in pairs(self.inbox.assistantRating("priority")) do
+	for robot, _ in pairs(self.inbox.assistantRating()) do
 		otherAssistants[robot] = true
 	end
 	for robot, pos in pairs(self.inbox.moveDest()) do

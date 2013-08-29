@@ -9,6 +9,12 @@ local Default = require "agent/centerback/default"
 local HandleBall = require "agent/defender/handleball"
 local Penalty = require "agent/defender/penalty"
 
+CenterBack._behaviors = {
+	Penalty,
+	HandleBall,
+	Default
+}
+
 function CenterBack.takeRobot(robots)
 	for _, robot in pairs(robots) do
 		if robot.isVisible then
@@ -23,22 +29,6 @@ end
 
 function CenterBack:rateRobot()
 	return 1
-end
-
-function CenterBack:_supplyBehaviors()
-	return {
-		Penalty.create(self._robot, self.inbox, self.send),
-		HandleBall.create(self._robot, self.inbox, self.send),
-		Default.create(self._robot, self.inbox, self.send)
-	}
-end
-
-function CenterBack:_applyForMainAttacker()
-	if not (Referee.isOpponentPenaltyState() or Referee.isFriendlyFreeKickState() or Referee.isStopState())  then
-		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
-		local mainAttackerRating = Rating.timeToRating(timeToBall)
-		self.send("trainer").specialRole({mainAttacker = mainAttackerRating})
-	end
 end
 
 return CenterBack

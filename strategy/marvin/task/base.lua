@@ -1,16 +1,16 @@
 local Base = (require "../base/class").new("Task.Base")
 local debug = require "../base/debug"
+local Messaging = require "control/messaging"
 
 Base.priority = 0
 
-function Base:init(robot, inbox, send, ...)
+function Base:init(agent, ...)
 	assert(self.priority > 0, "priority not set")
-	assert(robot ~= nil, "no robot passed")
-	assert(inbox ~= nil, "inbox not passed")
-	assert(send ~= nil, "sender object not passed")
-	self._robot = robot
-	self.inbox = inbox
-	self.send = send
+	assert(agent ~= nil, "no agent passed")
+	self._agent = agent
+	self._robot = self._agent:robot()
+	self.inbox = Messaging.getInbox(self._agent)
+	self.send = Messaging.getSender(self._agent)
 	self._ratingRun = false
 	self:_init(...)
 end

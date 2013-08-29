@@ -57,7 +57,7 @@ function FreeKick:_updateTask()
 		if World.RefereeState == "IndirectOffensive" then
 			return self:passOrChipTask()
 		else -- DirectOffensive
-			local shootGoalTmp = ShootGoal.create(self._robot, self.inbox, self.send)
+			local shootGoalTmp = ShootGoal.create(self._agent)
 			if shootGoalTmp:canShoot() then
 				return ShootGoal
 			else 

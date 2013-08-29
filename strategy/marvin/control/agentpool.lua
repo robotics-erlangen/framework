@@ -8,12 +8,10 @@ function AgentPool:init(agentType)
 	self._robotLimit = math.huge
 end
 
-function AgentPool:run(messages)
-	local outbox = {}
+function AgentPool:run()
 	for _, agent in pairs(self._agents) do
-		table.append(outbox, agent:run(messages))
+		agent:run()
 	end
-	return outbox
 end
 
 local function sortByRating(a1, a2)

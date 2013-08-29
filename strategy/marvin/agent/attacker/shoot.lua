@@ -15,7 +15,7 @@ end
 
 function Shoot:_updateTask()
 	local bestAssistant = ObserverShoot.bestFreeAssistant(self._robot, self.inbox.assistantRating())
-	local shootGoalTmp = ShootGoal.create(self._robot, self.inbox, self.send)
+	local shootGoalTmp = ShootGoal.create(self._agent)
 	local reachTime = Robot.minTimeToBall(self._robot, World.Ball)
 	
 	self._pass = bestAssistant and not shootGoalTmp:canShoot() and reachTime < 0.6

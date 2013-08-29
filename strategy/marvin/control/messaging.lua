@@ -1,34 +1,15 @@
-local World = require "../base/world"
-local debug = require "../base/debug"
-local Class = require "../base/class"
+-- Singleton module used by agents, behaviors, tasks and the trainer
+--
+-- a message is a table of the form 
+-- { from: robot, to: robot, mtype: testmessage, data: testtable, priority: 2 }
+-- from can also be the string "trainer", to can also be "trainer" and "all"
+-- priority is optional and used by the tasks to filter out messages from tasks with lower priority
+--
+-- although a sender is adressing a robot, a message is delivered to the corresponding agent
+-- this ensures that a robot only receives messages sent in frames where he has had the current agent
+
 local Robot = require "../base/robot"
-
-local function checkType(value, requestedType)
-	local tval = type(value)
-	if type(requestedType) == "string" then
-		if tval ~= requestedType then
-			error("Expected type " .. requestedType .. " got " .. tval)
-		end
-	elseif type(requestedType) == "table" and Class.toClass(requestedType, true) then
-		if tval ~= "table" then
-			error("Expected class "..Class.name(requestedType).. " got type " .. tval)
-		end
-		if not Class.toClass(value, true) then
-			if Class.instanceOf(requestedType, MessageBase) then
-				value = requestedType.create(value)
-			else
-				error("Expected class "..Class.name(requestedType).. " got type " .. tval)
-			end
-		end
-		if not Class.instanceOf(value, requestedType) then
-				error("Expected class "..Class.name(requestedType).." got class "..Class.name(value))
-		end
-	else
-		error("Can't handle requestedType")
-	end
-	return value
-end
-
+local checkType = require "../base/typecheck"
 
 local msgDefs = {
 	-- multiple senders
@@ -50,75 +31,83 @@ local msgDefs = {
 local specialRoles = {
 	passReceiver = true,
 	mainAttacker = true,
+	centerBack = true,
 	freeKickDefender = true
 }
-
--- specialRoles, only being sent by trainer
 for role, _ in pairs(specialRoles) do
 	msgDefs[role] = Robot
 end
 
+local deliveredMessages = {}
+local newMessages = {}
+local robotToAgent = {} -- track registered agents
+
 local Messaging = {}
 
---- sorts messages into per-robot mailboxes
-function Messaging.sortMail(messages)
-	local mailboxes = { trainer = {} }
-	for _, robot in ipairs(World.FriendlyRobots) do
-		mailboxes[robot] = {}
+--- sorts messages per agent into deliveredMessages
+function Messaging.deliverMessages()
+	deliveredMessages = { } -- clear last frame
+	for _, agent in pairs(robotToAgent) do
+		deliveredMessages[agent] = {}
 	end
-
-	for _, msg in ipairs(messages) do
+	for _, msg in ipairs(newMessages) do
 		if msg.to == "all" then
-			for _, box in pairs(mailboxes) do
-				table.insert(box, msg)
+			for _, mailbox in pairs(deliveredMessages) do
+				table.insert(mailbox, msg)
 			end
-		elseif mailboxes[msg.to] then -- receiver has to be in FriendlyRobots
-			table.insert(mailboxes[msg.to], msg)
+		elseif deliveredMessages[robotToAgent[msg.to]] then
+			table.insert(deliveredMessages[robotToAgent[msg.to]], msg)
+		elseif msg.to ~= "trainer" then
+			error("invalid message receiver " .. (msg.to or "nil"))
 		end
 	end
-
-	return mailboxes
+	newMessages = {} -- reset for next frame
 end
 
---- supplies agent with message methods
--- @param agent Agent - the agent to supply
-function Messaging.getInbox(agent)
+function Messaging.registerAgent(agent)
+	robotToAgent[agent:robot()] = agent
+end
+
+--- supplies agent-specific inbox
+-- @param agent Agent - agent of the task or behavior
+-- @param priority number - when set, filters messages for higher priority by default
+function Messaging.getInbox(agent, priority)
+	if not priority then
+		priority = 0
+	end
 	local inbox = {}
 	for messageType, _ in pairs(msgDefs) do
-		inbox[messageType] = function(filter)
-			local messages = {}
-			for _, msg in ipairs(agent.inboxRaw) do
-				if msg.mtype == messageType then
-					messages[msg.from] = msg.data
-				end
+		inbox[messageType] = function(request)
+			if request and (request ~= "ignorePriority" and request ~= "all") then
+				error "invalid request parameter"
 			end
+			local inboxMessages = {}
+			for _, msg in ipairs(deliveredMessages[agent]) do
+				if msg.mtype == messageType then
+					if request == "all"
+						or msg.from == "trainer"
+						or ((request == "ignorePriority" or priority == 0) and msg.from ~= agent:robot())
+						or (msg.priority > priority or (msg.priority == priority and msg.from.id > agent:robot().id))
+						then
 
-			if filter == "others" then
-				messages[agent._robot] = nil
-			elseif filter == "priority" then
-				for robot, _ in pairs(messages) do
-					if robot.id >= agent._robot.id then
-						messages[robot] = nil
+						inboxMessages[msg.from] = msg.data
 					end
 				end
-			elseif type(filter) == "function" then
-				filter(messages)
-			elseif filter == nil then
-				-- ok
-			else
-				error("invalid filter for inbox function")
 			end
-
-			return messages
+			return inboxMessages
 		end
-	end
+	end	
 	return inbox
 end
 
---- supplies sender object for an agent and thereby to his behavior and task
--- @param agent Agent - the agent to supply
-function Messaging.getSender(agent)
-	local sender = function (receiver)
+--- supplies agent-specific sender object
+-- @param agent Agent - agent of the task or behavior
+-- @param priority number - is set as priority in every message
+function Messaging.getSender(agent, priority)
+	if not priority then
+		priority = 0
+	end
+	local sender = function(receiver)
 		local methods = {}
 		for message, datatype in pairs(msgDefs) do
 			methods[message] = function(data, ...)
@@ -126,19 +115,11 @@ function Messaging.getSender(agent)
 					error("too many arguments for sender function")
 				end
 				checkType(data, datatype)
-				local isNotFriendly = true
-				for _, r in ipairs(World.FriendlyRobots) do
-					if receiver == r then
-						isNotFriendly = false
-						break
-					end
-				end
-				if receiver ~= "all" and receiver ~= "trainer" and isNotFriendly then
+				if not (robotToAgent[receiver] or receiver == "trainer" or receiver == "all") then
 					error("invalid message target ("..(receiver or "nil")..")")
 				end
-				local msg = {from=agent._robot, to=receiver, mtype=message, data=data}
-
-				table.insert(agent.outbox, msg)
+				local msg = {from=agent:robot(), to=receiver, mtype=message, data=data, priority=priority}
+				table.insert(newMessages, msg)
 			end
 		end
 		return methods
@@ -146,13 +127,12 @@ function Messaging.getSender(agent)
 	return sender
 end
 
---- supplies the coordinator with specailRole applications
--- @param messages msg[] - the messages to filter for specialRole applications
+--- supplies the trainer with specialRole applications
 -- @return table - role as key and a table as value which has a robot as key and a rating as value
-function Messaging.getSpecialRoleApplications(messages)
+function Messaging.getSpecialRoleApplications()
 	local applications = {}
-	for _, msg in ipairs(messages) do
-		if msg.mtype == "specialRole" then
+	for _, msg in ipairs(newMessages) do
+		if msg.mtype == "specialRole" and msg.to == "trainer" then
 			for role, rating in pairs(msg.data) do
 				if not specialRoles[role] then
 					error(role.." is not a valid specialRole!")
@@ -167,6 +147,15 @@ function Messaging.getSpecialRoleApplications(messages)
 	return applications
 end
 
-
+--- used by the trainer to send his choice for a special role
+function Messaging.sendSpecialRole(roleName, robot)
+	table.insert(newMessages, {
+		from = "trainer",
+		to = "all",
+		mtype = roleName,
+		data = robot,
+		priority = 0
+	})
+end
 
 return Messaging

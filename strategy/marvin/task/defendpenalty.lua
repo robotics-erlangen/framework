@@ -19,7 +19,7 @@ function DefendPenalty:_run()
 	-- NOTE: All spots are on the penaltyline, so only x-values are processed
 
 	local occupiedSpotsFriendly = {}
-	for robot, pos in pairs(self.inbox.moveDest("priority")) do
+	for robot, pos in pairs(self.inbox.moveDest()) do
 		if math.abs(pos.y - penaltyLine) < 2*rr then
 			table.insert(occupiedSpotsFriendly, pos.x)
 		end

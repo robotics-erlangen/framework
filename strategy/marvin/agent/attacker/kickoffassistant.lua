@@ -15,7 +15,7 @@ end
 function KickoffAssistant:check()
 	-- try every position in random order, take first free one
 	local positionClash = false
-	for _, pos in pairs(self.inbox.moveDest("others")) do
+	for _, pos in pairs(self.inbox.moveDest()) do
 		if pos == self._moveDest then
 			positionClash = true
 		end

@@ -12,26 +12,19 @@ end
 
 function Base:init(robot)
 	self._robot = robot
-
-	self.outbox = {} -- initialize message array
-	self.send = Messaging.getSender(self)
-	self.inboxRaw = {} -- initialize raw inbox
-	self.inbox = Messaging.getInbox(self)
-
+	self._task = nil
 	-- behaviors are ordered by decreasing priority
 	self._behaviors = {
-		Halt.create(self._robot, self.inbox, self.send),
-		unpack(self:_supplyBehaviors())
+		Halt.create(self),
+		unpack(table.map(self._behaviors, 
+			function (B) return B.create(self) end)
+		)
 	}
 	self._activeBehavior = nil
+	Messaging.registerAgent(self)
 end
 
-function Base:run(messages)
-	self.inboxRaw = messages[self._robot] or {} -- happens when entering the game
-	self.outbox = {}
-
-	self:_applyForMainAttacker()
-
+function Base:run()
 	-- choose best behavior, that is the behavior with the highest priority of all useable ones
 	local bestBehavior = nil
 	for _, behavior in ipairs(self._behaviors) do
@@ -53,8 +46,6 @@ function Base:run(messages)
 	end
 
 	self:_dump()
-
-	return self.outbox
 end
 
 -- controls whether the robot may be kept in its pool
@@ -68,33 +59,30 @@ function Base:rateRobot()
 	error("stub")
 end
 
+function Base:setTask(task)
+	self._task = task
+end
+
 function Base:robot()
 	return self._robot
 end
 
-function Base:_applyForMainAttacker()
-	error("stub")
-end
-
-function Base:_supplyBehaviors()
-	-- return agent-type specific behaviors
-	error("stub")
-end
-
 function Base:_dump()
 	debug.pushtop("Agent " .. self._robot.id)
-	debug.set(nil, Class.name(self, true))
-	debug.push("inbox")
-	for n, func in pairs(self.inbox) do
-		debug.push(n)
-		for robot, msg in pairs(func()) do
-			debug.set(robot.id or robot, msg)
-		end
+		debug.set(nil, Class.name(self, true))
+		debug.push("Task")
+			debug.set(nil, Class.name(self._task or nil, true))
+			debug.push("Inbox")
+				for n, func in pairs(self._task.inbox) do
+					debug.push(n)
+					for robot, msg in pairs(func()) do
+						debug.set(robot.id or robot, msg)
+					end
+					debug.pop()
+				end
+			debug.pop()
 		debug.pop()
-	end
-	debug.pop()
-	debug.set("behavior", Class.name(self._activeBehavior, true))
-	debug.set("task", Class.name(self._activeBehavior and self._activeBehavior._task or nil, true))
+		debug.set("Behavior", Class.name(self._activeBehavior, true))
 	debug.pop()
 end
 

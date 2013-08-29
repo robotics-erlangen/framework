@@ -29,7 +29,6 @@ function Coordinator:init()
 		{ self._pools.defense, self._pools.attack },
 		{ self._pools.hidden }
 	}
-	self._messages = {} -- are sent every run
 	self.specialRoles = {} -- remember roles
 end
 
@@ -38,14 +37,11 @@ function Coordinator:run()
 	-- TODO: facilities for learning
 	
 	self:_chooseSpecialRoles()
-
-	local oldMessages = Messaging.sortMail(self._messages)
-	
-	self._messages = {} -- reset messages
+	Messaging.deliverMessages()
 
 	-- run every pool and thus every agent
 	for _, pool in pairs(self._pools) do
-		table.append(self._messages, pool:run(oldMessages))
+		pool:run()
 	end
 end
 
@@ -112,16 +108,15 @@ function Coordinator:_updatePoolRobots()
 end
 
 --- chooses a robot for every specialRole and sends a message to it
--- the roles are chosen in a prioritized order 
 function Coordinator:_chooseSpecialRoles()
 	local hysteresis = 0.1 -- magic constant
-	local roleApplications = Messaging.getSpecialRoleApplications(self._messages)
+	local roleApplications = Messaging.getSpecialRoleApplications()
 
 	for role, applications in pairs(roleApplications) do
 		local bestRobot = nil
 		local bestRating = -1
 		for robot, rating in pairs(applications) do
-			if self.specialRoles[role] and self.specialRoles[role].robot == robot then
+			if self.specialRoles[role] == robot then
 				rating = rating + hysteresis
 			end
 			if not self.specialRoles[role] or rating > bestRating then
@@ -129,17 +124,10 @@ function Coordinator:_chooseSpecialRoles()
 				bestRating = rating
 			end
 		end
-
 		if bestRobot then
-			self.specialRoles[role] = { robot = bestRobot, rating = bestRating }
+			self.specialRoles[role] = bestRobot
 		end
-		local trainerMsg = {
-			from ="trainer", 
-			to = "all", 
-			mtype = role, 
-			data = self.specialRoles[role].robot
-		}
-		table.insert(self._messages, trainerMsg)				
+		Messaging.sendSpecialRole(role, self.specialRoles[role])				
 	end
 end
 

@@ -105,7 +105,7 @@ function KickoffOffensive:_updateTask()
 	if World.RefereeState == "KickoffOffensivePrepare" then
 		return MoveToStaticBall, { World.Geometry.OpponentGoal }
 	else -- KickoffOffensive
-		local shootGoalTmp = ShootGoal.create(self._robot, self.inbox, self.send)
+		local shootGoalTmp = ShootGoal.create(self._agent)
 		if shootGoalTmp:canShoot() then 
 			return ShootGoal
 		elseif self._shootPos then
