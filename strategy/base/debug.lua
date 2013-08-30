@@ -68,7 +68,9 @@ function debug.set(name, value, visited)
 		else
 			debug.push(tostring(name))
 			local class = Class.toClass(value, true)
-			debug.set(nil, class and Class.name(class) or "")
+			if class then
+				debug.set(nil, Class.name(class))
+			end
 			for k, v in pairs(value) do
 				debug.set(k, v, visited)
 			end
