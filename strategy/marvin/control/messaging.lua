@@ -1,12 +1,4 @@
 -- Singleton module used by agents, behaviors, tasks and the trainer
---
--- a message is a table of the form 
--- { from: robot, to: robot, mtype: testmessage, data: testtable, priority: 2 }
--- from can also be the string "trainer", to can also be "trainer" and "all"
--- priority is optional and used by the tasks to filter out messages from tasks with lower priority
---
--- although a sender is adressing a robot, a message is delivered to the corresponding agent
--- this ensures that a robot only receives messages sent in frames where he has had the current agent
 
 local Robot = require "../base/robot"
 local checkType = require "../base/typecheck"
@@ -38,34 +30,27 @@ for role, _ in pairs(specialRoles) do
 	msgDefs[role] = Robot
 end
 
-local deliveredMessages = {}
-local newMessages = {}
+-- a message is a table of the form 
+-- { from: robot, mtype: testmessage, data: testtable, priority: 2 }
+-- from can also be the string "trainer"
+-- priority is optional and used by the tasks to filter out messages from tasks with lower priority
+local newMessages = { trainer = {} } -- table which is reset every frame with agent as key, array of messages as value
+local deliveredMessages = nil -- reference to the newMessages table of the last last frame
 local robotToAgent = {} -- track registered agents
 
 local Messaging = {}
 
---- sorts messages per agent into deliveredMessages
-function Messaging.deliverMessages()
-	deliveredMessages = { } -- clear last frame
-	for _, agent in pairs(robotToAgent) do
-		deliveredMessages[agent] = {}
-	end
-	for _, msg in ipairs(newMessages) do
-		if msg.to == "all" then
-			for _, mailbox in pairs(deliveredMessages) do
-				table.insert(mailbox, msg)
-			end
-		elseif deliveredMessages[robotToAgent[msg.to]] then
-			table.insert(deliveredMessages[robotToAgent[msg.to]], msg)
-		elseif msg.to ~= "trainer" then
-			error("invalid message receiver " .. (msg.to or "nil"))
-		end
-	end
-	newMessages = {} -- reset for next frame
-end
-
 function Messaging.registerAgent(agent)
 	robotToAgent[agent:robot()] = agent
+end
+
+--- makes newMessages to deliveredMessages and creates a new newMessages table
+function Messaging.deliverMessages()
+	deliveredMessages = newMessages
+	newMessages = { trainer = {} }
+	for _, agent in pairs(robotToAgent) do
+		newMessages[agent] = {}
+	end
 end
 
 --- supplies agent-specific inbox
@@ -82,6 +67,9 @@ function Messaging.getInbox(agent, priority)
 				error "invalid request parameter"
 			end
 			local inboxMessages = {}
+			if not deliveredMessages[agent] then -- agent wasn't there in last frame
+				return inboxMessages
+			end
 			for _, msg in ipairs(deliveredMessages[agent]) do
 				if msg.mtype == messageType then
 					if request == "all"
@@ -104,22 +92,43 @@ end
 -- @param agent Agent - agent of the task or behavior
 -- @param priority number - is set as priority in every message
 function Messaging.getSender(agent, priority)
+	if not robotToAgent[agent:robot()] == agent then
+		error("Agent is not registered for this robot!")
+	end
 	if not priority then
 		priority = 0
 	end
+	-- although a sender is adressing a robot, a message is delivered 
+	-- to the corresponding agent. This ensures that a robot only receives
+	-- messages sent in frames where he has had the current agent
 	local sender = function(receiver)
 		local methods = {}
-		for message, datatype in pairs(msgDefs) do
-			methods[message] = function(data, ...)
+		for messageType, requestedType in pairs(msgDefs) do
+			methods[messageType] = function(data, ...)
 				if select('#', ...) > 0 then
 					error("too many arguments for sender function")
 				end
-				checkType(data, datatype)
-				if not (robotToAgent[receiver] or receiver == "trainer" or receiver == "all") then
-					error("invalid message target ("..(receiver or "nil")..")")
+				checkType(data, requestedType)
+				local msg = {
+					from = agent:robot(),
+					mtype = messageType,
+					data = data,
+					priority = priority
+				}
+				if receiver == "all" then
+					for _, mailbox in pairs(newMessages) do
+						table.insert(mailbox, msg)
+					end
+				elseif receiver == "trainer" then
+					table.insert(newMessages.trainer, msg)
+				elseif robotToAgent[receiver] then
+					if not newMessages[robotToAgent[receiver]] then
+						error("False usage of messaging module: deliverMessages() was not run between registerAgent() and a the call of this sender")
+					end
+					table.insert(newMessages[robotToAgent[receiver]], msg)
+				else
+					error("invalid message receiver \""..(receiver or "nil").."\"")
 				end
-				local msg = {from=agent:robot(), to=receiver, mtype=message, data=data, priority=priority}
-				table.insert(newMessages, msg)
 			end
 		end
 		return methods
@@ -131,8 +140,8 @@ end
 -- @return table - role as key and a table as value which has a robot as key and a rating as value
 function Messaging.getSpecialRoleApplications()
 	local applications = {}
-	for _, msg in ipairs(newMessages) do
-		if msg.mtype == "specialRole" and msg.to == "trainer" then
+	for _, msg in ipairs(newMessages.trainer) do
+		if msg.mtype == "specialRole" then
 			for role, rating in pairs(msg.data) do
 				if not specialRoles[role] then
 					error(role.." is not a valid specialRole!")
@@ -149,13 +158,14 @@ end
 
 --- used by the trainer to send his choice for a special role
 function Messaging.sendSpecialRole(roleName, robot)
-	table.insert(newMessages, {
-		from = "trainer",
-		to = "all",
-		mtype = roleName,
-		data = robot,
-		priority = 0
-	})
+	for _, mailbox in pairs(newMessages) do
+		table.insert(mailbox, {
+			from = "trainer",
+			mtype = roleName,
+			data = robot,
+			priority = 0
+		})
+	end
 end
 
 return Messaging
