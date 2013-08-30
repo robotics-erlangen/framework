@@ -13,14 +13,14 @@ function HandleBall:check()
 	if not (Referee.isFriendlyFreeKickState() or Referee.isStopState() or Referee.isKickoffState()) then
 		self:_applyForMainAttacker()
 	end
-	if self.inbox.centerBack().trainer == self._robot then
+	if self._inbox.centerBack().trainer == self._robot then
 		self:_applyForCenterBack()
 	end
-	return self.inbox.mainAttacker().trainer == self._robot
+	return self._inbox.mainAttacker().trainer == self._robot
 end
 
 function HandleBall:_updateTask()
-	local bestAssi = Shoot.bestFreeAssistant(self._robot, self.inbox.assistantRating())
+	local bestAssi = Shoot.bestFreeAssistant(self._robot, self._inbox.assistantRating())
 	local _, timeAdvance = Ball.firstAtBall()
 	if bestAssi and timeAdvance > Settings.defenseRiskLevel then
 		return DirectPass, { bestAssi, true }

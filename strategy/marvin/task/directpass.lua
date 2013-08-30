@@ -30,8 +30,8 @@ function DirectPass:_canShoot()
 end
 
 function DirectPass:_run()
-	self._targetPos = self.inbox.moveDest()[self._targetRobot] or self._targetRobot.pos
-	self._targetDir = self.inbox.moveDestDir()[self._targetRobot] or self._targetRobot.dir
+	self._targetPos = self._inbox.moveDest()[self._targetRobot] or self._targetRobot.pos
+	self._targetDir = self._inbox.moveDestDir()[self._targetRobot] or self._targetRobot.dir
 
 	-- shoot ball into robot dribbler
 	self._targetPos = self._targetPos + Vector.fromAngle(self._targetDir) * self._targetRobot.shootRadius
@@ -40,7 +40,7 @@ function DirectPass:_run()
 	local passSpeed = self._passSpeed or self._targetRobot.constants.passSpeed
 	self:_shoot(self._targetPos, passSpeed, self._linearShoot)
 	
-	self.send(self._targetRobot).passSender("direct")
+	self._send(self._targetRobot).passSender("direct")
 end
 
 function DirectPass:_rate()

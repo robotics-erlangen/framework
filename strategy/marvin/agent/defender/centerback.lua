@@ -7,7 +7,7 @@ function CenterBack:check()
 	-- Stop from Referee is ignored as there's no valid ball position
 	-- that would interfere with the centerback
 	self:_applyForCenterBack()
-	return self.inbox.centerBack().trainer == self._robot
+	return self._inbox.centerBack().trainer == self._robot
 end
 
 function CenterBack:_updateTask()

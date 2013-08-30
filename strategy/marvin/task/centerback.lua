@@ -183,7 +183,7 @@ local function calculatePosition(robot, keeperPos)
 end
 
 function CenterBack:_run()
-	local akpos = self.inbox.aggressiveKeeperPos()[World.FriendlyKeeper]
+	local akpos = self._inbox.aggressiveKeeperPos()[World.FriendlyKeeper]
 	if akpos then
 		self._robot.path:addCircle(akpos.x, akpos.y, 0.3)
 	end

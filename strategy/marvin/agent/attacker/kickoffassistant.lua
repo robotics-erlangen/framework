@@ -15,7 +15,7 @@ end
 function KickoffAssistant:check()
 	-- try every position in random order, take first free one
 	local positionClash = false
-	for _, pos in pairs(self.inbox.moveDest()) do
+	for _, pos in pairs(self._inbox.moveDest()) do
 		if pos == self._moveDest then
 			positionClash = true
 		end
@@ -31,7 +31,7 @@ function KickoffAssistant:check()
 		self._moveDest = table.shuffle(positions)[1]
 	end
 
-	self.send("all").moveDest(self._moveDest)
+	self._send("all").moveDest(self._moveDest)
 
 	local isActive = World.RefereeState == "KickoffOffensivePrepare" or 
 		(self._active and not Ball.isShot())

@@ -10,8 +10,8 @@ local Referee = require "util/referee"
 function Base:init(agent)
 	self._agent = agent
 	self._robot = self._agent:robot()
-	self.inbox = Messaging.getInbox(self._agent)
-	self.send = Messaging.getSender(self._agent)
+	self._inbox = Messaging.getInbox(self._agent)
+	self._send = Messaging.getSender(self._agent)
 	self:stop()
 end
 
@@ -63,14 +63,14 @@ end
 function Base:_applyForMainAttacker()
 	local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
 	local mainAttackerRating = Rating.timeToRating(timeToBall)
-	self.send("trainer").specialRole({mainAttacker = mainAttackerRating})
+	self._send("trainer").specialRole({mainAttacker = mainAttackerRating})
 end
 
 function Base:_applyForCenterBack()
 	local rating = math.min(0, World.Geometry.FieldWidthHalf - math.abs(self._robot.pos.x)) 
 		/ World.Geometry.FieldWidthHalf
 	rating = rating / 7 -- low probability of change
-	self.send("trainer").specialRole({centerBack = rating})
+	self._send("trainer").specialRole({centerBack = rating})
 end
 
 -- can be overwritten for custom cleanups

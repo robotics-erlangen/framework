@@ -7,7 +7,7 @@ local ShootGoal = require "task/shootgoal"
 local MoveToStaticBall = require "task/movetostaticball"
 
 function Penalty:check()
-	local mainAttacker = self.inbox.mainAttacker().trainer == self._robot
+	local mainAttacker = self._inbox.mainAttacker().trainer == self._robot
 	local isPenalty = World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive"
 	return isPenalty and mainAttacker
 end

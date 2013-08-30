@@ -19,7 +19,7 @@ function DefendPenalty:_run()
 	-- NOTE: All spots are on the penaltyline, so only x-values are processed
 
 	local occupiedSpotsFriendly = {}
-	for robot, pos in pairs(self.inbox.moveDest()) do
+	for robot, pos in pairs(self._inbox.moveDest()) do
 		if math.abs(pos.y - penaltyLine) < 2*rr then
 			table.insert(occupiedSpotsFriendly, pos.x)
 		end
@@ -116,7 +116,7 @@ function DefendPenalty:_run()
 	self._robot.path:addRobotObstacles(self._robot)
 	self._robot.trajectory:update(ToTarget, self.targetPos, (World.Ball.pos - self._robot.pos):angle())
 	
-	self.send("all").moveDest(self.targetPos)
+	self._send("all").moveDest(self.targetPos)
 end
 
 

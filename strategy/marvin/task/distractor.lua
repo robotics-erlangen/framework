@@ -19,12 +19,12 @@ function Distractor:_run()
 	self._preferredDir = (World.Geometry.OpponentGoal - self._targetPos):angle()
 	self._robot.trajectory:update(ToTarget, self._targetPos, self._preferredDir)
 	
-	self.send("all").distractedIndex(self._index)
+	self._send("all").distractedIndex(self._index)
 end
 
 function Distractor:_rate()
 	local indices = {}
-	for _, index in pairs(self.inbox.distractedIndex()) do
+	for _, index in pairs(self._inbox.distractedIndex()) do
 		indices[index] = true
 	end
 	local targetIndex = 1

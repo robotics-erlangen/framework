@@ -28,8 +28,8 @@ function PassInTheRun:_run()
 	local isShooting = self:_shoot(self._shootPos, passInTheRunSpeed, true)
 	self._isShooting = self._isShooting or isShooting
 	
-	self.send(self._targetRobot).passSender("in the run")
-	self.send(self._targetRobot).passPos(self._shootPos)
+	self._send(self._targetRobot).passSender("in the run")
+	self._send(self._targetRobot).passPos(self._shootPos)
 end
 
 function PassInTheRun:_rate()

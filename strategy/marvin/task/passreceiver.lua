@@ -37,7 +37,7 @@ function PassReceiver:_run()
 		self._robot.path:addRobotObstacles(self._robot)
 		local faceBall = (World.Ball.pos-self._robot.pos):angle()
 		self._robot.trajectory:update(ToTarget, self.moveTo, faceBall)
-		self.send("all").moveDest(self.moveTo)
+		self._send("all").moveDest(self.moveTo)
 	end
 end
 

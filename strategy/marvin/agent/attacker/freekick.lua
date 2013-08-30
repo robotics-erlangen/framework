@@ -20,7 +20,7 @@ function FreeKick:_stop()
 end
  
 function FreeKick:check()
-	if not (self.inbox.mainAttacker().trainer == self._robot) then
+	if not (self._inbox.mainAttacker().trainer == self._robot) then
 		return false
 	end
 
@@ -69,7 +69,7 @@ function FreeKick:_updateTask()
 end
 
 function FreeKick:passOrChipTask()
-	local bestRobot = Shoot.bestFreeAssistant(self._robot, self.inbox.assistantRating())
+	local bestRobot = Shoot.bestFreeAssistant(self._robot, self._inbox.assistantRating())
 	if bestRobot then
 		return DirectPass, {bestRobot, true}
 	else

@@ -22,7 +22,7 @@ function KickoffOffensive:_stop()
 end
 
 function KickoffOffensive:check()
-	if not (self.inbox.mainAttacker().trainer == self._robot) then
+	if not (self._inbox.mainAttacker().trainer == self._robot) then
 		return false
 	end
 	
@@ -92,7 +92,7 @@ function KickoffOffensive:_updateTask()
 		if self._shootPos then
 			vis.addCircle("PassInTheRun", self._shootPos, 0.2, vis.colors.Red, true)
 			local minDist = math.huge
-			for robot, pos in pairs(self.inbox.moveDest()) do
+			for robot, pos in pairs(self._inbox.moveDest()) do
 				local dist = (pos-self._shootPos):length()
 				if dist < minDist then
 					minDist = dist

@@ -9,8 +9,8 @@ function Base:init(agent, ...)
 	assert(agent ~= nil, "no agent passed")
 	self._agent = agent
 	self._robot = self._agent:robot()
-	self.inbox = Messaging.getInbox(self._agent, self.priority)
-	self.send = Messaging.getSender(self._agent, self.priority)
+	self._inbox = Messaging.getInbox(self._agent, self.priority)
+	self._send = Messaging.getSender(self._agent, self.priority)
 	self._ratingRun = false
 	self:_init(...)
 end

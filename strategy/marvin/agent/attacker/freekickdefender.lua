@@ -50,9 +50,9 @@ function FreeKickDefender:check()
 			or World.RefereeState == "Stop" then --TODO discuss stop
 		local tmpTask, params = self:_getTask()
 		local rating = tmpTask.create(self._agent, unpack(params)):rate()
-		self.send("trainer").specialRole({freeKickDefender = rating})
+		self._send("trainer").specialRole({freeKickDefender = rating})
 	end
-	return self.inbox.freeKickDefender().trainer == self._robot
+	return self._inbox.freeKickDefender().trainer == self._robot
 end
 
 function FreeKickDefender:_updateTask()

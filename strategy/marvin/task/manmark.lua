@@ -23,7 +23,7 @@ function ManMark:_run()
 	self._robot.trajectory:update(ToTarget, self._preferredPos, self._preferredDir)
 	
 	if self._targetRobot then
-		self.send("all").defendedOpponent(self._targetRobot)
+		self._send("all").defendedOpponent(self._targetRobot)
 	end
 end
 
@@ -45,7 +45,7 @@ end
 function ManMark:_rate()
 	if not self._priorityTarget then
 		local defendedOpponents = {}
-		for _, opp in pairs(self.inbox.defendedOpponent()) do
+		for _, opp in pairs(self._inbox.defendedOpponent()) do
 			defendedOpponents[opp] = true
 		end
 		

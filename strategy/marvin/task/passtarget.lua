@@ -18,7 +18,7 @@ end
 function PassTarget:_rate()
 	local passPos = nil
 
-	for _, pos in pairs(self.inbox.passPos()) do
+	for _, pos in pairs(self._inbox.passPos()) do
 		passPos = pos
 	end
 
@@ -56,7 +56,7 @@ function PassTarget:_run()
 	self._robot.path:addRobotObstacles(self._robot)
 	local faceBall = (World.Ball.pos-self.moveTo):angle()
 	self._robot.trajectory:update(ToTarget, self.moveTo, faceBall)
-	self.send("all").moveDest(self.moveTo)
+	self._send("all").moveDest(self.moveTo)
 end
 
 function PassTarget.factory(position)

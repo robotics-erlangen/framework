@@ -44,7 +44,7 @@ function FarMirror:_rate()
 	local targetY = getY(targetX)
 	local pos = Vector.create(targetX, targetY - self._robot.radius) 
 	self._targetPos = self._targetPos or Field.limitToField(pos, -self._robot.radius) 
-	for robot, pos in pairs(self.inbox.moveDest()) do
+	for robot, pos in pairs(self._inbox.moveDest()) do
 		if self._targetPos:distanceTo(pos) < self._robot.radius and robot.id < self._robot.id then
 			self._targetPos.x = -self._targetPos.x
 		end
@@ -62,7 +62,7 @@ function FarMirror:_run()
 		self._targetPos = Vector.create(0,-1.5)
 	end
 	self._robot.trajectory:update(ToTarget, self._targetPos, math.pi/2)
-	self.send("all").moveDest(self._targetPos)
+	self._send("all").moveDest(self._targetPos)
 end 
 
 function FarMirror.factory(position)

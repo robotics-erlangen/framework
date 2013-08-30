@@ -28,8 +28,8 @@ function Assistant:_run()
 	self._robot.path:addRobotObstacles(self._robot)
 	self._robot.trajectory:update(ToTarget, self.targetPos, self.targetDir)
 
-	self.send("all").moveDest(self.targetPos)
-	self.send("all").assistantRating(self.rating)
+	self._send("all").moveDest(self.targetPos)
+	self._send("all").assistantRating(self.rating)
 end
 
 function Assistant:_rate(priorityMessages, notifications)
@@ -106,10 +106,10 @@ function Assistant:_rate(priorityMessages, notifications)
 	
 	-- lookup friendly assistants
 	local otherAssistants = {}
-	for robot, _ in pairs(self.inbox.assistantRating()) do
+	for robot, _ in pairs(self._inbox.assistantRating()) do
 		otherAssistants[robot] = true
 	end
-	for robot, pos in pairs(self.inbox.moveDest()) do
+	for robot, pos in pairs(self._inbox.moveDest()) do
 		if otherAssistants[robot] and math.abs(pos.y - lineStart.y) < 0.5 then
 			table.insert(occupiedSectors, {pos.x - 2*robot.radius, pos.x + 2*robot.radius})
 		end

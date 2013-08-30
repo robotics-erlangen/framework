@@ -73,7 +73,7 @@ function Base:_dump()
 		debug.push("Task")
 			debug.set(nil, Class.name(self._task or nil, true))
 			debug.push("Inbox")
-				for n, func in pairs(self._task.inbox) do
+				for n, func in pairs(self._task._inbox) do
 					debug.push(n)
 					for robot, msg in pairs(func()) do
 						debug.set(robot.id or robot, msg)
