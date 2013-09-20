@@ -154,6 +154,10 @@ function Shoot.ballCatchProbability(robot, time, catchPos, corridorHalf)
 	end
 end
 
+local function assistantOrder(r1, r2)
+	return Shoot.rateAssistant(r1) > Shoot.rateAssistant(r2)
+end
+
 --- returns nil or a robot which can be passed to and, if there a more of them, the one who is closest to the opponent goal in combination with the biggest free goal sectors
 -- @param activeRobot - the robot who is searching for a pass receiver
 -- @param messages - the messages object of a behaviour
@@ -166,13 +170,17 @@ function Shoot.bestFreeAssistant(activeRobot, assistantRatings)
 	end
 	
 	local freeAssistants = table.filter(World.FriendlyRobots, canPassTo)
-	table.sort(freeAssistants, function(r1,r2) return Shoot.rateAssistant(r1) > Shoot.rateAssistant(r2) end)
+	table.sort(freeAssistants, assistantOrder)
 	return freeAssistants[1]
+end
+
+local function sectorDiff(s)
+	return s[2] - s[1]
 end
 
 function Shoot.rateAssistant(robot)
 	local fs = Goal.freeSectors(robot.pos, World.OpponentRobots, true)
-	local biggestSector = table.max(table.map(fs, function(s) return s[2]-s[1] end))
+	local biggestSector = table.max(table.map(fs, sectorDiff))
 	local goalDist = robot.pos:distanceTo(World.Geometry.OpponentGoal)
 	local rating = World.Geometry.FieldHeight - goalDist
 	local ballDist = robot.pos:distanceTo(World.Ball.pos)
