@@ -90,7 +90,9 @@ function Assistant:_rate(priorityMessages, notifications)
 	if math.abs(World.Ball.pos.y - lineStart.y) < minDist then
 		local cut1, cut2 = geom.intersectLineCircle(lineStart, lineEnd - lineStart, World.Ball.pos, minDist)
 		if cut1 and cut2 then
-			table.insert(occupiedSectors, {math.min(cut1.x, cut2.x), math.max(cut1.x, cut2.x)})
+			local min = math.min(cut1.x, cut2.x)
+			local max = math.max(cut1.x, cut2.x)
+			table.insert(occupiedSectors, {min, max})
 		end
 	end
 

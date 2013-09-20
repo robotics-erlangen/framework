@@ -21,16 +21,16 @@ require "amunMath"
 --[[
 separator for luadoc]]--
 
+local max, min = math.max, math.min
+
 --- Limits value to interval [min, max].
 -- @name bound
 -- @param min number - lower bound of interval
 -- @param par number - value to limit to interval
 -- @param max number - upper bound of interval
 -- @return number - par limited to interval [min, max]
-function math.bound(min, par, max)
-	if par < min then return min end
-	if par > max then return max end
-	return par
+function math.bound(vmin, par, vmax)
+	return min(max(vmin, par), vmax)
 end
 
 --- Rounds value towards dest.
