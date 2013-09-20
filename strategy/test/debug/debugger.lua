@@ -1614,7 +1614,7 @@ end
 function M.normalize(path)
     local parts = { }
     for w in path:gmatch("[^/]+") do
-        if     w == ".." then table.remove(parts)
+        if     w == ".." and #parts ~=0 then table.remove(parts)
         elseif w ~= "."  then table.insert(parts, w)
         end
     end
@@ -1639,7 +1639,7 @@ function M.init(executionplatform,workingdirectory)
             return os.getenv("os") == "Windows_NT"
         end
         
-        status, iswin = pcall(iswindows)
+        local status, iswin = pcall(iswindows)
         if status and iswin then
             platform = "win"
         else
@@ -1793,41 +1793,57 @@ local CurrentThreadMT = {
 CurrentThreadMT.__index = CurrentThreadMT
 function M.CurrentThread(coro) return setmetatable({ coro }, CurrentThreadMT) end
 
--- Fallback method to inspect running thread (only for main thread in 5.1 or for conditional breakpoints)
---- Gets a script stack level with additional debugger logic added
--- @param l (number) stack level to get for debugged script (0 based)
--- @return real Lua stack level suitable to be passed through deubg functions
-local function get_script_level(l)
-    local hook = debug.gethook()
-    for i=2, math.huge do
-        if assert(debug.getinfo(i, "f")).func == hook then
-            return i + l -- the script to level is just below, but because of the extra call to this function, the level is ok for callee
-        end
-    end
-end
-M.MainThread = {
-    [1] = "main", -- as the raw thread object is used as table keys, provide a replacement.
-    getinfo  = function(self, level, what)     return getinfo(get_script_level(level), what:gsub("t", "", 1)) end,
-    getlocal = function(self, level, idx)      return getlocal(get_script_level(level), idx) end,
-    setlocal = function(self, level, idx, val) return setlocal(get_script_level(level), idx, val) end,
-}
 
 -- Some version dependant functions
 if _VERSION == "Lua 5.1" then
-    local loadstring, getfenv, setfenv, debug_getinfo = loadstring, getfenv, setfenv, debug.getinfo
-    
+    local loadstring, getfenv, setfenv, debug_getinfo, MainThread =
+          loadstring, getfenv, setfenv, debug.getinfo, nil
+
     -- in 5.1 "t" flag does not exist and trigger an error so remove it from what
     CurrentThreadMT.getinfo = function(self, level, what) return getinfo(self[1], level + 2, what:gsub("t", "", 1)) end
     ForeignThreadMT.getinfo = function(self, level, what) return getinfo(self[1], level, what:gsub("t", "", 1)) end
-    
-    -- If the VM is vanilla Lua 5.1, there is no way to get a reference to the main coroutine, so fall back to direct mode:
-    -- the debugger loop is started on the top of main thread and the actual level is recomputed each time
-    if not jit then
-        -- allow CurrentThread to take a nil parameter
-        local oldCurrentThread = M.CurrentThread
-        M.CurrentThread = function(coro) return coro and oldCurrentThread(coro) or M.MainThread end
+
+    -- when we're forced to start debug loop on top of program stack (when on main coroutine)
+    -- this requires some hackery to get right stack level
+
+    -- Fallback method to inspect running thread (only for main thread in 5.1 or for conditional breakpoints)
+    --- Gets a script stack level with additional debugger logic added
+    -- @param l (number) stack level to get for debugged script (0 based)
+    -- @return real Lua stack level suitable to be passed through deubg functions
+    local function get_script_level(l)
+        local hook = debug.gethook()
+        for i=2, math.huge do
+            if assert(debug.getinfo(i, "f")).func == hook then
+                return i + l -- the script to level is just below, but because of the extra call to this function, the level is ok for callee
+            end
+        end
     end
-    
+
+    if rawget(_G, "jit") then
+        MainThread = {
+            [1] = "main", -- as the raw thread object is used as table keys, provide a replacement.
+            -- LuaJIT completely eliminates tail calls from stack, so get_script_level retunrs wrong result in this case
+            getinfo  = function(self, level, what)     return getinfo(get_script_level(level) - 1, what:gsub("t", "", 1)) end,
+            getlocal = function(self, level, idx)      return getlocal(get_script_level(level) - 1, idx) end,
+            setlocal = function(self, level, idx, val) return setlocal(get_script_level(level) - 1, idx, val) end,
+        }
+    else
+        MainThread = {
+            [1] = "main",
+            getinfo  = function(self, level, what)     return getinfo(get_script_level(level) , what:gsub("t", "", 1)) end,
+            getlocal = function(self, level, idx)      return getlocal(get_script_level(level), idx) end,
+            setlocal = function(self, level, idx, val) return setlocal(get_script_level(level), idx, val) end,
+        }
+    end
+
+
+
+    -- If the VM is vanilla Lua 5.1 or LuaJIT 2 without 5.2 compatibility, there is no way to get a reference to
+    -- the main coroutine, so fall back to direct mode: the debugger loop is started on the top of main thread
+    -- and the actual level is recomputed each time
+    local oldCurrentThread = M.CurrentThread
+    M.CurrentThread = function(coro) return coro and oldCurrentThread(coro) or MainThread end
+
     -- load a piece of code alog with its environment
     function M.loadin(code, env)
         local f = loadstring(code)
@@ -2480,6 +2496,17 @@ function core.previous_context_response(self, reason)
     self.previous_context = nil
 end
 
+local function cleanup()
+    coroutine.resume, coroutine.wrap = coresume, cowrap
+    for _, coro in pairs(core.active_coroutines.from_id) do
+        debug.sethook(coro)
+    end
+    -- to remove hook on the main coroutine, it must be the current one (otherwise, this is a no-op) and this function
+    -- have to be called adain later on the main thread to finish cleaup
+    debug.sethook()
+    core.active_coroutines.from_id, core.active_coroutines.from_coro = { }, { }
+end
+
 --- This function handles the debugger commands while the execution is paused. This does not use coroutines because there is no
 -- way to get main coro in Lua 5.1 (only in 5.2)
 local function debugger_loop(self, async_packet)
@@ -2496,7 +2523,13 @@ local function debugger_loop(self, async_packet)
     
     while true do
         -- reads packet
-        local packet = async_packet or assert(dbgp.read_packet(self.skt))
+        local packet = async_packet or dbgp.read_packet(self.skt)
+        if not packet then
+          log("WARNING", "lost debugger connection")
+          cleanup()
+          break
+        end
+
         async_packet = nil
         log("DEBUG", packet)
         local cmd, args, data = dbgp.cmd_parse(packet)
@@ -2594,9 +2627,9 @@ local function debugger_hook(event, line)
     end
 end
 
-if jit then
+if rawget(_G, "jit") then
     debugger_hook = function(event, line)
-        local thread = corunning()
+        local thread = corunning() or "main"
         if event == "call" then
             if debug.getinfo(2, "S").what == "C" then return end
             stack_levels[thread] = stack_levels[thread] + 1
@@ -2609,7 +2642,12 @@ if jit then
             stack_levels[thread] = depth - 2
         elseif event == "line" then
             active_session.coro = util.CurrentThread(corunning())
-            assert(coresume(line_hook_coro, line))
+            if active_session.coro[1] == "main" then
+                line_hook(line)
+            else
+                -- run the debugger loop in another thread on the other cases (simplifies stack handling)
+                assert(coresume(line_hook_coro, line))
+            end
             active_session.coro = nil
         end
     end
@@ -2620,22 +2658,22 @@ local function init(host, port, idekey, transport, executionplatform, workingdir
     local host = host or os.getenv "DBGP_IDEHOST" or "127.0.0.1"
     local port = port or os.getenv "DBGP_IDEPORT" or "10000"
     local idekey = idekey or os.getenv("DBGP_IDEKEY") or "luaidekey"
-    
+
     -- init plaform module
     local executionplatform = executionplatform or os.getenv("DBGP_PLATFORM") or nil
     local workingdirectory = workingdirectory or os.getenv("DBGP_WORKINGDIR") or nil
     platform.init(executionplatform,workingdirectory)
-    
+
     -- get transport layer
     local transportpath = transport or os.getenv("DBGP_TRANSPORT") or "debugger.transport.luasocket"
     local transport = require(transportpath)
-    
+
     -- install base64 functions into util
     util.b64, util.rawb64, util.unb64 = transport.b64, transport.rawb64, transport.unb64
-    
+
     local skt = assert(transport.create())
     skt:settimeout(nil)
-    
+
     -- try to connect several times: if IDE launches both process and server at same time, first connect attempts may fail
     local ok, err
     for i=1, 5 do
@@ -2644,11 +2682,11 @@ local function init(host, port, idekey, transport, executionplatform, workingdir
         transport.sleep(0.5)
     end
     if err then error(string.format("Cannot connect to %s:%d : %s", host, port, err)) end
-    
+
     -- get the debugger and transport layer URI
     debugger_uri = platform.get_uri(debug.getinfo(1).source)
     transportmodule_uri = platform.get_uri(debug.getinfo(transport.create).source)
-    
+
     -- get the root script path (the highest possible stack index)
     local source
     for i=2, math.huge do
@@ -2657,14 +2695,14 @@ local function init(host, port, idekey, transport, executionplatform, workingdir
         source = platform.get_uri(info.source) or source
     end
     if not source then source = "unknown:/" end -- when loaded before actual script (with a command line switch)
-    
+
     -- generate some kind of thread identifier
     local thread = corunning() or "main"
     stack_levels[thread] = 1 -- the return event will set the counter to 0
     local sessionid = tostring(os.time()) .. "_" .. tostring(thread)
-    
+
     dbgp.send_xml(skt, { tag = "init", attr = {
-        appid = "Lua DBGp", 
+        appid = "Lua DBGp",
         idekey = idekey,
         session = sessionid,
         thread = tostring(thread),
@@ -2673,14 +2711,15 @@ local function init(host, port, idekey, transport, executionplatform, workingdir
         protocol_version = "1.0",
         fileuri = source
     } })
-    
+
+    --FIXME util.CurrentThread(corunning) => util.CurrentThread(corunning()) WHAT DOES IT FIXES ??
     local sess = { skt = skt, state = "starting", id = sessionid, coro = util.CurrentThread(corunning) }
     active_session = sess
     debugger_loop(sess)
-    
+
     -- set debug hooks
     debug.sethook(debugger_hook, "rlc")
-    
+
     -- install coroutine collecting functions.
     -- TODO: maintain a list of *all* coroutines can be overkill (for example, the ones created by copcall), make a extension point to
     -- customize debugged coroutines

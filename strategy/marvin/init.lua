@@ -4,6 +4,8 @@ local validGlobals = {
 	path = true,
 	Vector = true,
 	Settings = true,
+	mime = true, -- allow loading modules required for remote debugging
+	socket = true,
 }
 
 local globalsChecker = {

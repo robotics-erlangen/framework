@@ -1,7 +1,7 @@
 -- Requires Lua Development Tools for Eclipse
--- http://www.eclipse.org/koneki/ldt/
--- Requires luasocket2 c library on the lua load path!
--- See README of ra for further luasocket related information
+-- http://www.eclipse.org/koneki/ldt/ (version >= 1.0)
+-- Requires luasocket2 c library on the lua load path! (version >= 2.1)
+-- See README of ra for luasocket install instructions
 
 -- Howto
 -- Create a project for the strategy folder, then connect to ra using "Lua Attach to Application"
@@ -11,10 +11,10 @@
 -- adding it outside can require several tries until the connection was successful,
 -- as the strategy may be reloaded during the initial entrypoint selection
 
--- In ra 'enable debugging' the start the remote debugger in eclipse and reload the strategy
+-- In ra 'enable debugging', then start the remote debugger in eclipse and reload the strategy
 
 -- During debugging the strategy timeout is disabled, thus if the script has an inifinite loop it will only terminate when stopping it via the debugger!
--- Debugging is quite slow and currently not working with luajit
+-- Debugging is quite slow
 
 -- On windows a cmd window will show for a moment when the debugger is initialized.
 
@@ -23,8 +23,6 @@
 -- -> Eclipse is not running / debugging was not started
 -- closed
 -- -> Debugging not started or timed out
--- calling 'getinfo' on bad self (function or level expected)
--- -> luajit is not working yet
 -- module 'mime.core' not found
 -- -> luasocket2 is missing!
 
@@ -33,9 +31,9 @@ if not amun.isDebug then
 end
 
 -- preload socket libraries
-require "../test/debug/ltn12"
-require "../test/debug/mime"
-require "../test/debug/socket"
+package.preload["ltn12"] = function() return require "../test/debug/ltn12" end
+package.preload["mime"] = function() return require "../test/debug/mime" end
+package.preload["socket"] = function() return require "../test/debug/socket" end
 
 local initConnection = require "../test/debug/debugger"
 
