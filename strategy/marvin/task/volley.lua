@@ -4,7 +4,6 @@ local MovingAverage = require "learning/movingaverage"
 local World = require "../base/world"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
-local Robot = require "observer/robot"
 local Ball = require "observer/ball"
 local Observer = require "observer/observer"
 
@@ -22,10 +21,6 @@ function Volley:_init(viewPos)
 	end
 end
 
-function Volley:_rate()
-	return Robot.minTimeToBall(self._robot, World.Ball) 
-end
-
 function Volley:canShoot()
 	return self:_canShoot()
 end
@@ -37,7 +32,7 @@ function Volley:_canShoot()
 	return self.maxAngleError and angleDiff < self.maxAngleError or angleDiff < Settings.minAnglePrecision
 end
 
-function Volley:_run()
+function Volley:run()
 	-- update self.targetPoint (mid of largest free goal sector)
 	self:updateDestination(false)
 	

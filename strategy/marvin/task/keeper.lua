@@ -15,7 +15,7 @@ function Keeper:_init()
 end
 
 --moves keeper do defending possition
-function Keeper:_run()
+function Keeper:run()
 	local atkPos, atkDir, isShot = Goal.predictShot()
 	atkDir = atkDir:copy():setLength(30)
 	local normalLine = false
@@ -117,10 +117,6 @@ function Keeper:_run()
 	
 	local faceBall = World.Ball.pos-moveTo
 	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
-end
-
-function Keeper:_rate()
-	return self._robot == World.FriendlyKeeper and 1 or 0
 end
 
 function Keeper.factory(position)

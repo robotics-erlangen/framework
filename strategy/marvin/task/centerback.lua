@@ -182,7 +182,7 @@ local function calculatePosition(robot, keeperPos)
 	return destinationPos, dir
 end
 
-function CenterBack:_run()
+function CenterBack:run()
 	local akpos = self._inbox.aggressiveKeeperPos()[World.FriendlyKeeper]
 	if akpos then
 		self._robot.path:addCircle(akpos.x, akpos.y, 0.3)
@@ -197,15 +197,6 @@ function CenterBack:_run()
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot, false, ignoreOpponents)
 	self._robot.trajectory:update(ToTarget, destinationPos, dir)
-end
-
-function CenterBack:_rate()
-	local destinationPos, dir = calculatePosition(self._robot)
-
-	self._preferredDir = dir
-	self._preferredPos = destinationPos
-
-	return Rating.posToRating(self._robot, self._preferredPos)
 end
 
 function CenterBack.factory(position)

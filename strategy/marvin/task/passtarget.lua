@@ -3,7 +3,6 @@ local PassTarget = (require "../base/class").new("Task.PassTarget", require "tas
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Observer = require "observer/ball"
-local Rating = require "util/rating"
 local vis = require "../base/vis"
 local Goal = require "observer/goal"
 local Interval = require "util/interval"
@@ -15,7 +14,7 @@ function PassTarget:_init()
 	self.moveTo = nil
 end
 
-function PassTarget:_rate()
+function PassTarget:run()
 	local passPos = nil
 
 	for _, pos in pairs(self._inbox.passPos()) do
@@ -24,7 +23,7 @@ function PassTarget:_rate()
 
 	if passPos then
 		self.moveTo = passPos
-	else --higher rating in robots is more free + in the enemy playing field half
+	else --higher rating if robots is more free + in the enemy playing field half
 		local ballOwner = Observer.friendlyBallOwner()
 		local shotDir = ballOwner and ballOwner.dir or (self._robot.pos - World.Ball.pos):angle()
 
@@ -46,10 +45,6 @@ function PassTarget:_rate()
 		self.moveTo = Field.limitToAllowedField(self.moveTo, 0, true)
 	end
 
-	return Rating.posToRating(self._robot, self.moveTo)
-end
-
-function PassTarget:_run()
 	vis.addPath("RecivePassSector", {World.Ball.pos, self.moveTo}, vis.colors.red, true)
 	self._robot.path:setDefaultObstacles(self._robot)
 	

@@ -11,11 +11,7 @@ function MoveToPos:_init(pos, dir)
 	self._dir = dir
 end
 
-function MoveToPos:_rate()
-	return Rating.posToRating(self._robot, self._pos)
-end
-
-function MoveToPos:_run()
+function MoveToPos:run()
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
 	

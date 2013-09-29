@@ -9,7 +9,7 @@ AggressiveKeeper.priority = 6
 function AggressiveKeeper:_init()
 end
 
-function AggressiveKeeper:_run() 
+function AggressiveKeeper:run() 
 	local tpos, ttime = Ball.toBall(self._robot, World.Ball)
 	
 	local fromGoal = (tpos - World.Geometry.FriendlyGoal):angle()
@@ -19,10 +19,6 @@ function AggressiveKeeper:_run()
 	self._robot.trajectory:update(ToTarget, tpos, fromGoal, nil, 1) --FIXME magic constant for end speed: 1m/s
 	
 	self._send("all").aggressiveKeeperPos(tpos)
-end
-
-function AggressiveKeeper:_rate()
-	return self._robot == World.FriendlyKeeper and 1 or 0
 end
 
 function AggressiveKeeper.factory(position)

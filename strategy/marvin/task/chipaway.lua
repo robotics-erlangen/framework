@@ -18,7 +18,7 @@ function ChipAway:_canShoot()
 	return true
 end
 
-function ChipAway:_run()
+function ChipAway:run()
 	-- try to hit an assistant	
 	if not self._chipTarget then
 		local bestRating = -1
@@ -37,10 +37,6 @@ function ChipAway:_run()
 	if self._chipTarget then
 		self._send(self._chipTarget).passSender("direct")
 	end
-end
-
-function ChipAway:_rate()
-	return 1
 end
 
 function ChipAway.factory(position)

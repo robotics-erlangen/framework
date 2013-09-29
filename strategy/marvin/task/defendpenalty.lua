@@ -12,7 +12,7 @@ DefendPenalty.priority = 5
 function DefendPenalty:_init()
 end
 
-function DefendPenalty:_run()
+function DefendPenalty:run()
 	local rr = self._robot.radius --assume all robots have the same radius
 	local penaltyLine = World.Geometry.OwnPenaltyLine + Settings.penaltyLineDistance
 	vis.addPath("penaltyDistance", {Vector.create(-2,penaltyLine), Vector.create(2,penaltyLine)}, vis.colors.whiteHalf)
@@ -117,11 +117,6 @@ function DefendPenalty:_run()
 	self._robot.trajectory:update(ToTarget, self.targetPos, (World.Ball.pos - self._robot.pos):angle())
 	
 	self._send("all").moveDest(self.targetPos)
-end
-
-
-function DefendPenalty:_rate()
-	return 1
 end
 
 function DefendPenalty.test(id)

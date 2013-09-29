@@ -5,7 +5,6 @@ local Game = require "observer/game"
 local ToTarget = require "trajectory/totarget"
 local Field = require "util/field"
 local Robotlist = require "util/robotlist"
-local Rating = require "util/rating"
 local debug = require "../base/debug"
 
 FarMirror.priority = 1
@@ -13,7 +12,6 @@ FarMirror.priority = 1
 --- init
 function FarMirror:_init()
 end 
-
 
 -- gets the y-Value for a given x-Value
 -- returns a V-shape 
@@ -33,8 +31,7 @@ local function weightX(robot)
 	return math.exp(distanceWeight * (math.abs(robot.pos.x) / World.Geometry .FieldWidthHalf))
 end 
 
---- does an approximate mirror of the enemy team 
-function FarMirror:_rate() 
+function FarMirror:run()
 	-- determine approximate focus of opponent team
 	local opponents = Robotlist.excludeRobot(World.OpponentRobots, World.OpponentKeeper)
 	local avgPos = Game.averagePosition(opponents, weightX) 
@@ -51,10 +48,7 @@ function FarMirror:_rate()
 	end
 	self._targetPos = Field.limitToField(self._targetPos, -self._robot.radius)
 	debug.set("FarMirrorTargetPos", self._targetPos)
-	return Rating.posToRating(self._robot, self._targetPos)
-end
 
-function FarMirror:_run()
 	-- assign pos to robot 
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)

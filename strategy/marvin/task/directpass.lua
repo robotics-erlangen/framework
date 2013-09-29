@@ -29,7 +29,7 @@ function DirectPass:_canShoot()
 	return Robot.wayToRobotFree(self._targetRobot, self._robot, not self._linearShoot)
 end
 
-function DirectPass:_run()
+function DirectPass:run()
 	self._targetPos = self._inbox.moveDest()[self._targetRobot] or self._targetRobot.pos
 	self._targetDir = self._inbox.moveDestDir()[self._targetRobot] or self._targetRobot.dir
 
@@ -41,10 +41,6 @@ function DirectPass:_run()
 	self:_shoot(self._targetPos, passSpeed, self._linearShoot)
 	
 	self._send(self._targetRobot).passSender("direct")
-end
-
-function DirectPass:_rate()
-	return Rating.timeToRating(Robot.minTimeToBall(self._robot, World.Ball))
 end
 
 function DirectPass.factory(position, positionTarget, linearShoot)

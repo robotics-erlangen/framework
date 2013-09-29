@@ -30,9 +30,8 @@ function ShootPenalty:_canShoot()
 	vis.addCircle("LookPos", lookPos, 0.02, vis.colors.red, true)
 	return lookPos:distanceTo(self.targetPos) < shootErrorThreshold
 end
-function ShootPenalty:_rate() return 1 end
 
-function ShootPenalty:_run()
+function ShootPenalty:run()
 	if not self.targetPos then
 		if fixedCorner then
 			self.lookDir = fixedCorner

@@ -2,7 +2,6 @@ local PassReceiver = (require "../base/class").new("Task.PassReceiver", require 
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
-local Rating = require "util/rating"
 local vis = require "../base/vis"
 local Settings = require "settings"
 local debug = require "../base/debug"
@@ -14,15 +13,10 @@ function PassReceiver:_init()
 	self.moveTo = nil
 end
 
-function PassReceiver:_rate()
+function PassReceiver:run()
 	-- catch ball
 	-- block balls by moving in their way
 	self.moveTo = self._robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
-
-	return Rating.posToRating(self._robot, self.moveTo)
-end
-
-function PassReceiver:_run()
 	if World.Ball.speed:length() < Settings.fastBall then
 		self.tPos = self.tPos or World.Ball.pos
 		debug.set("CatchBallTargetPos", tPos)

@@ -12,11 +12,7 @@ RescueRobot._speeds = {}
 function RescueRobot:_init()
 end
 
-function RescueRobot:_rate()
-	return self._robot.isVisible and 0 or 1
-end
-
-function RescueRobot:_run()
+function RescueRobot:run()
 	-- ignore visible robots
 	if self._robot.isVisible or not self._robot.speed then
 		return

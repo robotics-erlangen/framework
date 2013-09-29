@@ -16,7 +16,7 @@ function StopAttack:_init()
 	self.framePfush = 0
 end
 
-function StopAttack:_rate()
+function StopAttack:run()
 	self.offensive = self.offensive or World.Ball.pos.y > 0
 	if World.Ball.pos.y > 0.2 then
 		self.offensive = true
@@ -121,16 +121,11 @@ function StopAttack:_rate()
 			target.x = World.Ball.pos.x + minDist
 		end 
 	end 
-	 
 
 	self._pos = target
 	self._pos = Field.limitToAllowedField(self._pos, 0.03, true)
 	self._dir = (World.Ball.pos - self._pos):angle()
-
-	return Rating.posToRating(self._robot, self._pos)
-end
-
-function StopAttack:_run()
+	
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
 	

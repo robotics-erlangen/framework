@@ -4,7 +4,6 @@ local Constants = require "../base/constants"
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Field = require "util/field"
-local Rating = require "util/rating"
 local Referee = require "util/referee"
 
 ManMark.priority = 3
@@ -13,17 +12,6 @@ function ManMark:_init(priorityTarget)
 	if priorityTarget then
 		self.priority = 3.1 --HACK HACK HACK
 		self._priorityTarget = priorityTarget
-	end
-end
-
-function ManMark:_run()
-	self._robot.path:setDefaultObstacles(self._robot)
-	self._robot.path:addRobotObstacles(self._robot)
-
-	self._robot.trajectory:update(ToTarget, self._preferredPos, self._preferredDir)
-	
-	if self._targetRobot then
-		self._send("all").defendedOpponent(self._targetRobot)
 	end
 end
 
@@ -42,7 +30,7 @@ local function rateOpp(own, remainingOpponents, opp)
 	return goalDist + 0.5*robotDist
 end
 
-function ManMark:_rate()
+function ManMark:run()
 	if not self._priorityTarget then
 		local defendedOpponents = {}
 		for _, opp in pairs(self._inbox.defendedOpponent()) do
@@ -93,7 +81,14 @@ function ManMark:_rate()
 
 	self._preferredDir = (ballPos - targetPos):angle()
 
-	return Rating.posToRating(self._robot, self._preferredPos)
+	self._robot.path:setDefaultObstacles(self._robot)
+	self._robot.path:addRobotObstacles(self._robot)
+
+	self._robot.trajectory:update(ToTarget, self._preferredPos, self._preferredDir)
+	
+	if self._targetRobot then
+		self._send("all").defendedOpponent(self._targetRobot)
+	end
 end
 
 function ManMark.factory(position)

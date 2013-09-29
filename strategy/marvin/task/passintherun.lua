@@ -3,7 +3,6 @@ local PassInTheRun = (require "../base/class").new("Task.PassInTheRun", require 
 local World = require "../base/world"
 local Settings = require "settings"
 local Shoot = require "observer/shoot"
-local Rating = require "util/rating"
 local Robot = require "observer/robot"
 local vis = require "../base/vis"
 local geom = require "../base/geom"
@@ -23,17 +22,13 @@ function PassInTheRun:_canShoot()
 	return math.abs(angleDiff) < 6 / 180 * math.pi
 end
 
-function PassInTheRun:_run()
+function PassInTheRun:run()
 	local passInTheRunSpeed = self._passSpeed
 	local isShooting = self:_shoot(self._shootPos, passInTheRunSpeed, true)
 	self._isShooting = self._isShooting or isShooting
 	
 	self._send(self._targetRobot).passSender("in the run")
 	self._send(self._targetRobot).passPos(self._shootPos)
-end
-
-function PassInTheRun:_rate()
-	return Rating.timeToRating(Robot.minTimeToBall(self._robot, World.Ball))
 end
 
 function PassInTheRun.factory(position, positionTarget)

@@ -15,7 +15,6 @@ local Ball = require "observer/ball"
 Duel.priority = 4
 
 
-
 -- ======================
 -- ===== misc stuff =====
 -- ======================
@@ -26,10 +25,6 @@ end
 
 function Duel:_canShoot()
 	return true
-end
-
-function Duel:_rate()
-	return Rating.posToRating(self._robot, World.Ball.pos)
 end
 
 function Duel:_reset()
@@ -67,7 +62,7 @@ local successRates = Learning.init(2, "Duel")
 -- decides what to do
 -- [B] contest
 -- [C] pass away
-function Duel:_run()
+function Duel:run()
 	self.oldOpposer = self.opposer
 	self.opposer = Ball.opponentBallOwner()
 	self.chipPos = (World.Geometry.OpponentGoal - World.Ball.pos):setLength(1) --1m towards opponent goal
@@ -232,7 +227,7 @@ function Duel:_passAway()
 		
 	if self._bestAssistant then
 		DirectPass._init(self, self._bestAssistant, true)
-		DirectPass._run(self)
+		DirectPass.run(self)
 	else
 		self:_shoot(World.Geometry.OpponentPenaltySpot, math.huge, false) 
 	end

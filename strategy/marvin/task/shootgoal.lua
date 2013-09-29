@@ -1,6 +1,5 @@
 local ShootGoal = (require "../base/class").new("Task.ShootGoal", require "task/shoot")
 
-local Robot = require "observer/robot"
 local Goal = require "observer/goal"
 local Shoot = require "observer/shoot"
 
@@ -95,10 +94,6 @@ function ShootGoal:_init()
 	self._bestMid = G.OpponentGoal
 end
 
-function ShootGoal:_rate()
-	return Robot.minTimeToBall(self._robot, World.Ball) 
-end
-
 function ShootGoal:canShoot()
 	self:updateDestination()
 	return self.maxAngleError and self.maxAngleError > Settings.minAnglePrecision/180*math.pi
@@ -114,7 +109,7 @@ function ShootGoal:_canShoot()
 	end
 end
 
-function ShootGoal:_run()
+function ShootGoal:run()
 	self:updateDestination()
 	if not self.bestMid then
 		self:updateDestination(true)

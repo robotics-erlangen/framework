@@ -12,17 +12,7 @@ local distractionY = {2.0, 2.2, 2.4}
 function Distractor:_init()
 end
 
-function Distractor:_run()
-	self._robot.path:setDefaultObstacles(self._robot)
-	self._robot.path:addRobotObstacles(self._robot)
-
-	self._preferredDir = (World.Geometry.OpponentGoal - self._targetPos):angle()
-	self._robot.trajectory:update(ToTarget, self._targetPos, self._preferredDir)
-	
-	self._send("all").distractedIndex(self._index)
-end
-
-function Distractor:_rate()
+function Distractor:run()
 	local indices = {}
 	for _, index in pairs(self._inbox.distractedIndex()) do
 		indices[index] = true
@@ -38,7 +28,13 @@ function Distractor:_rate()
 	self._index = targetIndex
 	self._targetPos = Vector.create((World.Ball.pos.x > 0 and -1 or 1) * distractionX[self._index], distractionY[self._index])
 
-	return Rating.posToRating(self._robot, self._targetPos)
+	self._robot.path:setDefaultObstacles(self._robot)
+	self._robot.path:addRobotObstacles(self._robot)
+
+	self._preferredDir = (World.Geometry.OpponentGoal - self._targetPos):angle()
+	self._robot.trajectory:update(ToTarget, self._targetPos, self._preferredDir)
+	
+	self._send("all").distractedIndex(self._index)
 end
 
 function Distractor.factory(position)

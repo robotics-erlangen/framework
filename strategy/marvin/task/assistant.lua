@@ -20,19 +20,7 @@ function Assistant:_init(pos, radius)
 	self.lineDir = Vector.create(World.Geometry.FieldWidth, 0)
 end
 
-function Assistant:_run()
-	self._robot.path:setDefaultObstacles(self._robot)
-	if World.Ball.speed:length() > Settings.slowBall then
-		self._robot.path:addLine(self.shotPos.x, self.shotPos.y, self.shotTarget.x, self.shotTarget.y, 0.1)
-	end
-	self._robot.path:addRobotObstacles(self._robot)
-	self._robot.trajectory:update(ToTarget, self.targetPos, self.targetDir)
-
-	self._send("all").moveDest(self.targetPos)
-	self._send("all").assistantRating(self.rating)
-end
-
-function Assistant:_rate(priorityMessages, notifications)
+function Assistant:run()
 	local offFreeKick = World.RefereeState == "IndirectOffensive" 
 		or World.RefereeState == "DirectOffensive"
 	self.numMapping[3] = (Referee.isStopState() or offFreeKick) and 1.25 or 1.4
@@ -151,7 +139,16 @@ function Assistant:_rate(priorityMessages, notifications)
 	self.targetPos = Vector.create(midX, lineStart.y)
 	self.targetDir = (World.Ball.pos - self.targetPos):angle()
 	self.rating = Rating.posToRating(self._robot, self.targetPos)
-	return self.rating
+
+	self._robot.path:setDefaultObstacles(self._robot)
+	if World.Ball.speed:length() > Settings.slowBall then
+		self._robot.path:addLine(self.shotPos.x, self.shotPos.y, self.shotTarget.x, self.shotTarget.y, 0.1)
+	end
+	self._robot.path:addRobotObstacles(self._robot)
+	self._robot.trajectory:update(ToTarget, self.targetPos, self.targetDir)
+
+	self._send("all").moveDest(self.targetPos)
+	self._send("all").assistantRating(self.rating)
 end
 
 function Assistant.factory(position)
