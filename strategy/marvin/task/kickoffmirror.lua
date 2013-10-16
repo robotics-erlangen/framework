@@ -1,23 +1,37 @@
-local Mirror = (require "../base/class").new("Task.Mirror", require "task/base")
+local KickoffMirror = (require "../base/class").new("Task.KickoffMirror", require "task/base")
 
 local World = require "../base/world"
 local Game = require "observer/game"
 local ToTarget = require "trajectory/totarget"
 local Field = require "util/field"
+local debug = require "../base/debug"
 
-Mirror.priority = 1
+KickoffMirror.priority = 1
 
+--task maximum 2 robots!
 --- init
---@param side bool - if its on the right side
 --@param distanceToCenterLine number - how far the robot stays away from the center line
-function Mirror:_init(side, distanceToCenterLine)
-	self._side = side
+function KickoffMirror:_init(distanceToCenterLine)
 	self._distance = distanceToCenterLine
 	self._lastTargetRobot = nil
 end
 
 --- mirrors the opponent that is the closest one to our goal
-function Mirror:run()
+function KickoffMirror:run()
+	self._side = self._side or true
+	
+	--auto check if side is allready mirrored
+	local tmp = false
+	for _, msg in pairs(self._inbox.kickoffMirrorSide()) do
+		if msg then
+			tmp = true
+		end
+	end
+	if tmp then
+		self._side = false
+	end
+	self._send("all").kickoffMirrorSide(self._side)
+	
 	local sector1, _, sector3 = Game.divideOpponentsIntoSectors(false)
 	local sector = self._side and sector3 or sector1
 
@@ -53,18 +67,18 @@ function Mirror:run()
 	self._robot.trajectory:update(ToTarget, self._targetPos, math.pi/2)
 end
 
-function Mirror.factory(position, side, distanceToCenterLine)
+function KickoffMirror.factory(position, side, distanceToCenterLine)
 	local f = function (robots)
 		return Mirror.create(robots[position], side, distanceToCenterLine)
 	end
 	return f
 end
 
-function Mirror.test(id)
+function KickoffMirror.test(id)
 	if id > 1 then
 		return nil
 	end
 	return Mirror.factory(1, (id == 0), 0.1), 1
 end
 
-return Mirror
+return KickoffMirror
