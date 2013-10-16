@@ -40,11 +40,13 @@ function Base:run()
 		end
 		self._activeBehavior = bestBehavior
 	end
-	-- prevent crash if no behavior can be activated
-	if self._activeBehavior then
+	-- prevent crash if no behavior or task is active
+	if self._activeBehavior then -- and self._activeBehavior._active not working???
 		self._activeBehavior:run()
 	end
-
+	if self._task then
+		self._task:run()
+	end
 	self:_dump()
 end
 
@@ -71,7 +73,8 @@ function Base:_dump()
 	debug.pushtop("Agent " .. self._robot.id)
 		debug.set(nil, Class.name(self, true))
 		debug.push("Task")
-			debug.set(nil, Class.name(self._task or nil, true))
+		if self._task then	
+			debug.set(nil, Class.name(self._task, true))
 			debug.push("Inbox")
 				for n, func in pairs(self._task._inbox) do
 					debug.push(n)
@@ -81,8 +84,15 @@ function Base:_dump()
 					debug.pop()
 				end
 			debug.pop()
+		else
+			debug.set(nil, "none")
+		end
 		debug.pop()
-		debug.set("Behavior", Class.name(self._activeBehavior, true))
+		if self._activeBehavior then
+			debug.set("Behavior", Class.name(self._activeBehavior, true))
+		else
+			debug.set("Behavior", "none")
+		end
 	debug.pop()
 end
 

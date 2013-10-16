@@ -18,6 +18,7 @@ end
 -- is called when another behavior is being chosen
 function Base:stop()
 	self._task = nil -- reset task
+	self._agent:setTask(nil)
 	self._active = false
 	self._forceKeepingInPool = false
 	self:_stop()
@@ -33,7 +34,6 @@ function Base:run()
 		end
 		self._agent:setTask(self._task)
 	end
-	self._task:run()
 	self._active = true
 end
 

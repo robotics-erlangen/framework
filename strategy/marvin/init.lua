@@ -33,6 +33,7 @@ local World = require "../base/world"
 local Entrypoints = require "../base/entrypoints"
 -- require "task/tasks"
 require "control/coordinator"
+require "control/fixedroles"
 require "tests/tests"
 --require "tests/agents"
 
