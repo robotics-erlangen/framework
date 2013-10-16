@@ -28,7 +28,7 @@ require "../base/base"
 require "settings"
 require "base/path" -- extend path module
 local World = require "../base/world"
-
+local UserInput = require "../base/userinput"
 
 local Entrypoints = require "../base/entrypoints"
 -- require "task/tasks"
@@ -59,6 +59,7 @@ local wrapper = function (func)
 	return function()
 		-- require "../test/debug/enable"
 		World.update()
+		UserInput.update()
 		Processor.pre()
 		if not func() then -- Entrypoint has to return true if robots shouldn't be stopped on halt
 			if World.RefereeState == "Halt" then
