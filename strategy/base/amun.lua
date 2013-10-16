@@ -77,6 +77,14 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
+--- Returns the user input
+-- @class function
+-- @name getUserInput
+-- @return protobuf.UserInput - converted to lua table
+
+--[[
+separator for luadoc]]--
+
 --- Returns current time
 -- @class function
 -- @name getCurrentTime
