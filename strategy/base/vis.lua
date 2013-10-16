@@ -121,8 +121,11 @@ end
 -- @name addCircleRaw
 -- @see addCircle
 function vis.addCircleRaw(name, center, radius, color, isFilled, background, style)
-	isFilled = color and isFilled or gisFilled -- if color is set use passed isFilled
-	color = color or gcolor
+	 -- if color is set use passed isFilled
+	if not color then
+		isFilled = gisFilled
+		color = gcolor
+	end
 	amun.addVisualization({
 		name = name, pen = { color=color, style=style },
 		brush = isFilled and color or nil, width = 0.01,
@@ -146,8 +149,11 @@ end
 -- @name addPolygonRaw
 -- @see addPolygon
 function vis.addPolygonRaw(name, points, color, isFilled, background, style)
-	isFilled = color and isFilled or gisFilled -- if color is set use passed isFilled
-	color = color or gcolor
+	 -- if color is set use passed isFilled
+	if not color then
+		isFilled = gisFilled
+		color = gcolor
+	end
 	amun.addVisualization({
 		name = name, pen = { color=color, style=style },
 		brush = isFilled and color or nil, width = 0.01,
