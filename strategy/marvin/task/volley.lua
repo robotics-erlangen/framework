@@ -5,7 +5,8 @@ local World = require "../base/world"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local Ball = require "observer/ball"
-local Observer = require "observer/observer"
+local Processor = require "../base/processor"
+local Analyzer = require "analyzer/volley"
 
 
 Volley.priority = 5
@@ -15,8 +16,8 @@ function Volley:_init(viewPos)
 	self._ballIncoming = true
 	self._movingAverage = MovingAverage.get("Volley", 5, 0.45)
 	if amun.isDebug then
-		self._observer = VolleyObserver.create(self._robot, self._movingAverage)
-		Observer.addTimedObserver(self._observer)
+		self._analyzer = Analyzer.create(self._robot, self._movingAverage)
+		Processor.addPost(self._analyzer)
 	end
 end
 
@@ -68,7 +69,7 @@ function Volley:run()
 	-- evaluate the shot and learn mu if debug mode is on
 	if amun.isDebug then
 		if self._ballIncoming or self._robot:hasBall(World.Ball) then
-			self._observer:update(alpha, gamma)
+			self._analyzer:update(alpha, gamma)
 		end
 	end
 	
