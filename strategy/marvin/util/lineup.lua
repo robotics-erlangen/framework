@@ -1,5 +1,6 @@
 local Entrypoints = require "../base/entrypoints"
 local World = require "../base/world"
+local geom = require "../base/geom"
 local MoveToPos = require "task/movetopos"
 
 
@@ -15,7 +16,6 @@ local function generateLineup(lineStart, lineupDir)
 	-- filter and sort opponent robots
 	local filter = function(r)
 		local proj, orthDist = r.pos:orthogonalProjection(lineStart, lineEnd)
-		log("orthdist = "..orthDist)
 		distances[r] = proj:distanceTo(lineStart) -- just for calculating the value once, required in compare()
 		return orthDist * orthDist < mindist * mindist -- 9 cm = max robot radius
 	end
@@ -25,10 +25,6 @@ local function generateLineup(lineStart, lineupDir)
 	local sortedOpps = table.filter(World.OpponentRobots, filter)
 	table.sort(sortedOpps, compare)
 
-	log(#sortedOpps)
-	for i = 1, #sortedOpps do
-	    log(sortedOpps[i])
-	end
 
 	-- place friendly robots along the given line
 	local distToStart = 0
@@ -40,8 +36,11 @@ local function generateLineup(lineStart, lineupDir)
 		local intendedPos = lineStart + (lineEnd - lineStart) * distToStart
 
 		if opp and opp.pos:distanceTo(intendedPos) < mindist then
-			local xdiff = opp.pos.x - lineStart.x
-			distToStart = opp.pos.y - lineStart.y + math.sqrt(mindist * mindist - xdiff * xdiff)	
+			--extra distance for numeric stability
+			local p1, p2 = geom.intersectLineCircle(lineStart, lineEnd - lineStart, opp.pos, mindist + 0.0001)
+			local d1, d2 = lineStart:distanceTo(p1), lineStart:distanceTo(p2)
+			local further = d1 > d2 and d1 or d2
+			distToStart = further
 			opponentIndex = opponentIndex + 1
 		else
 			local pseudoagent = {robot = function(...) return r end} --FIXME hack
@@ -54,6 +53,10 @@ local function generateLineup(lineStart, lineupDir)
 end
 
 local fleft = Vector.create(-World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
-Entrypoints.add("Lineup/Friendly Left", function()
-	generateLineup(fleft, math.pi/2)
-end)
+local fright = Vector.create(World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
+local oleft = Vector.create(-World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf)
+local oright = Vector.create(World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf)
+Entrypoints.add("Lineup/Friendly Left", function() generateLineup(fleft, math.pi/2) end)
+Entrypoints.add("Lineup/Friendly Right", function() generateLineup(fright, math.pi/2) end)
+Entrypoints.add("Lineup/Opponent Left", function() generateLineup(oleft, -math.pi/2) end)
+Entrypoints.add("Lineup/Opponent Right", function() generateLineup(oright, -math.pi/2) end)
