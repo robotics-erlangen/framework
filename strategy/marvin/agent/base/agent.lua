@@ -25,6 +25,11 @@ function Base:init(robot)
 end
 
 function Base:run()
+	self:_updateBehavior()
+	self:_runTaskAndBehavior()
+end
+
+function Base:_updateBehavior()
 	-- choose best behavior, that is the behavior with the highest priority of all useable ones
 	local bestBehavior = nil
 	for _, behavior in ipairs(self._behaviors) do
@@ -40,7 +45,9 @@ function Base:run()
 		end
 		self._activeBehavior = bestBehavior
 	end
-	-- run task and behavior with own debug context
+end
+
+function Base:_runTaskAndBehavior()
 	debug.pushtop("Agent " .. self._robot.id)
 	debug.set(nil, Class.name(self, true))
 	if self._activeBehavior then
