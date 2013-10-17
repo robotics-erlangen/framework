@@ -19,7 +19,6 @@ local tasks = {
 	"passreceiver",
 	"passtarget",
 	"rescuerobot",
-	"shoot",
 	"shootgoal",
 	"shootpenalty",
 	"stopattack",

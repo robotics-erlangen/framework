@@ -53,18 +53,4 @@ function RescueRobot:run()
 	end
 end
 
-function RescueRobot.factory(position)
-	local f = function (robots)
-		return RescueRobot.create(robots[position])
-	end
-	return f
-end
-
-function RescueRobot.test(id)
-	if id > 2 then
-		return nil
-	end
-	return RescueRobot.factory(1), 1
-end
-
 return RescueRobot

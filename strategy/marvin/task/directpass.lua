@@ -43,18 +43,4 @@ function DirectPass:run()
 	self._send(self._targetRobot).passSender("direct")
 end
 
-function DirectPass.factory(position, positionTarget, linearShoot)
-	local f = function (robots)
-		return DirectPass.create(robots[position], robots[positionTarget], linearShoot)
-	end
-	return f
-end
-
-function DirectPass.test(id)
-	if id > 0 then
-		return nil
-	end
-	return DirectPass.factory(1, 2, true), 2
-end
-
 return DirectPass

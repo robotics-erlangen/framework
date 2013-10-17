@@ -36,22 +36,6 @@ function Duel:_reset()
 	self.isAtBall = true
 end
 
-function Duel.factory(position)
-	local f = function (robots)
-		return Duel.create(robots[position])
-	end
-	return f
-end
-
-function Duel.test(id)
-	if id > 0 then
-		return nil
-	end
-	return Duel.factory(1), 1
-end
-
-
-
 -- ===========================
 -- ===== decision making =====
 -- ===========================

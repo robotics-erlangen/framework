@@ -151,18 +151,4 @@ function Assistant:run()
 	self._send("all").assistantRating(self.rating)
 end
 
-function Assistant.factory(position)
-	local f = function (robots)
-		return Assistant.create(robots[position])
-	end
-	return f
-end
-
-function Assistant.test(id)
-	if id > 2 then
-		return nil
-	end
-	return Assistant.factory(1), 1
-end
-
 return Assistant

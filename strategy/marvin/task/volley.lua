@@ -78,20 +78,4 @@ function Volley:run()
 	self:_catchBall(viewPoint, Settings.shootDriveSpeed)
 end
 
-
-function Volley.factory(position)
-	local f = function (robots)
-		return Volley.create(robots[position])
-	end
-	return f
-end
-
-function Volley.test(id)
-	if id > 0 then
-		return nil
-	end
-	return Volley.factory(1), 1
-end
-
-
 return Volley

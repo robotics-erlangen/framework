@@ -199,18 +199,4 @@ function CenterBack:run()
 	self._robot.trajectory:update(ToTarget, destinationPos, dir)
 end
 
-function CenterBack.factory(position)
-	local f = function (robots)
-		return CenterBack.create(robots[position])
-	end
-	return f
-end
-
-function CenterBack.test(id)
-	if id > 0 then
-		return nil
-	end
-	return CenterBack.factory(1), 1
-end
-
 return CenterBack

@@ -28,9 +28,4 @@ function Base:run()
 	-- hysteresis
 end
 
-function Base.factory(...)
-	error("stub")
-	-- return a function that create a task
-end
-
 return Base

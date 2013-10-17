@@ -35,18 +35,4 @@ function PassReceiver:run()
 	end
 end
 
-function PassReceiver.factory(position)
-	local f = function (robots)
-		return PassReceiver.create(robots[position])
-	end
-	return f
-end
-
-function PassReceiver.test(id)
-	if id > 0 then
-		return nil
-	end
-	return PassReceiver.factory(1), 1
-end
-
 return PassReceiver

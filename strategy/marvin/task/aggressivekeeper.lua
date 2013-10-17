@@ -21,18 +21,4 @@ function AggressiveKeeper:run()
 	self._send("all").aggressiveKeeperPos(tpos)
 end
 
-function AggressiveKeeper.factory(position)
-	local f = function (robots)
-		return AggressiveKeeper.create(robots[position])
-	end
-	return f
-end
-
-function AggressiveKeeper.test(id)
-	if id > 0 then
-		return nil
-	end
-	return AggressiveKeeper.factory(1), 1
-end
-
 return AggressiveKeeper

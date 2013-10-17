@@ -57,20 +57,6 @@ function FarMirror:run()
 	end
 	self._robot.trajectory:update(ToTarget, self._targetPos, math.pi/2)
 	self._send("all").moveDest(self._targetPos)
-end 
-
-function FarMirror.factory(position)
-	local f = function (robots)
-		return FarMirror.create(robots[position])
-	end
-	return f
-end
-
-function FarMirror.test(id)
-	if id > 0 then
-		return nil
-	end
-	return FarMirror.factory(1), 1
 end
 
 return FarMirror

@@ -54,18 +54,4 @@ function PassTarget:run()
 	self._send("all").moveDest(self.moveTo)
 end
 
-function PassTarget.factory(position)
-	local f = function (robots)
-		return PassTarget.create(robots[position])
-	end
-	return f
-end
-
-function PassTarget.test(id)
-	if id > 0 then
-		return nil
-	end
-	return PassTarget.factory(1), 1
-end
-
 return PassTarget

@@ -119,11 +119,4 @@ function DefendPenalty:run()
 	self._send("all").moveDest(self.targetPos)
 end
 
-function DefendPenalty.test(id)
-	if id > 2 then
-		return nil
-	end
-	return (function(robots) return DefendPenalty.create(robots[1]) end), 1
-end
-
 return DefendPenalty

@@ -39,18 +39,4 @@ function ChipAway:run()
 	end
 end
 
-function ChipAway.factory(position)
-	local f = function (robots)
-		return ChipAway.create(robots[position])
-	end
-	return f
-end
-
-function ChipAway.test(id)
-	if id > 0 then
-		return nil
-	end
-	return ChipAway.factory(1), 1
-end
-
 return ChipAway

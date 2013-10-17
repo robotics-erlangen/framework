@@ -91,18 +91,4 @@ function ManMark:run()
 	end
 end
 
-function ManMark.factory(position)
-	local f = function (robots)
-		return ManMark.create(robots[position])
-	end
-	return f
-end
-
-function ManMark.test(id)
-	if id > 2 then
-		return nil
-	end
-	return ManMark.factory(1), 1
-end
-
 return ManMark

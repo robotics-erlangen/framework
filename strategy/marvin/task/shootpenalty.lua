@@ -59,11 +59,4 @@ function ShootPenalty:run()
 	self:_shoot(self.targetPos, math.huge, true)
 end
 
-function ShootPenalty.test(id)
-	if id > 0 then
-		return nil
-	end
-	return (function(robots) return ShootPenalty.create(robots[1]) end), 1
-end
-
 return ShootPenalty

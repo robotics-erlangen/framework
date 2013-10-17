@@ -37,18 +37,4 @@ function Distractor:run()
 	self._send("all").distractedIndex(self._index)
 end
 
-function Distractor.factory(position)
-	local f = function (robots)
-		return Distractor.create(robots[position])
-	end
-	return f
-end
-
-function Distractor.test(id)
-	if id > 2 then
-		return nil
-	end
-	return Distractor.factory(1), 1
-end
-
 return Distractor

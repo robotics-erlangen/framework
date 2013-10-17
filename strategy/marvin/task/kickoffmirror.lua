@@ -61,18 +61,4 @@ function KickoffMirror:run()
 	self._robot.trajectory:update(ToTarget, self._targetPos, math.pi/2)
 end
 
-function KickoffMirror.factory(position, side, distanceToCenterLine)
-	local f = function (robots)
-		return Mirror.create(robots[position], side, distanceToCenterLine)
-	end
-	return f
-end
-
-function KickoffMirror.test(id)
-	if id > 1 then
-		return nil
-	end
-	return Mirror.factory(1, (id == 0), 0.1), 1
-end
-
 return KickoffMirror

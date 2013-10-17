@@ -119,18 +119,4 @@ function Keeper:run()
 	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
 end
 
-function Keeper.factory(position)
-	local f = function (robots)
-		return Keeper.create(robots[position])
-	end
-	return f
-end
-
-function Keeper.test(id)
-	if id > 0 then
-		return nil
-	end
-	return Keeper.factory(1), 1
-end
-
 return Keeper

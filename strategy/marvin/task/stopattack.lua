@@ -132,18 +132,4 @@ function StopAttack:run()
 	self._robot.trajectory:update(ToTarget, self._pos, self._dir)
 end
 
-function StopAttack.factory(position)
-	local f = function (robots)
-		return StopAttack.create(robots[position])
-	end
-	return f
-end
-
-function StopAttack.test(id)
-	if id > 0 then
-		return nil
-	end
-	return StopAttack.factory(1), 1
-end
-
 return StopAttack

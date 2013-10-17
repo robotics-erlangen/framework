@@ -31,18 +31,4 @@ function PassInTheRun:run()
 	self._send(self._targetRobot).passPos(self._shootPos)
 end
 
-function PassInTheRun.factory(position, positionTarget)
-	local f = function (robots)
-		return PassInTheRun.create(robots[position], robots[positionTarget])
-	end
-	return f
-end
-
-function PassInTheRun.test(id)
-	if id > 0 then
-		return nil
-	end
-	return PassInTheRun.factory(1, 2, true), 2
-end
-
 return PassInTheRun

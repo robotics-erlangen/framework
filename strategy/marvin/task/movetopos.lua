@@ -18,18 +18,4 @@ function MoveToPos:run()
 	self._robot.trajectory:update(ToTarget, self._pos, self._dir)
 end
 
-function MoveToPos.factory(position, pos, dir)
-	local f = function (robots)
-		return MoveToPos.create(robots[position], pos, dir)
-	end
-	return f
-end
-
-function MoveToPos.test(id)
-	if id > 2 then
-		return nil
-	end
-	return MoveToPos.factory(1, Vector.create(0, id), 0), 1
-end
-
 return MoveToPos

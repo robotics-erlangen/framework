@@ -119,18 +119,4 @@ function ShootGoal:run()
 	self:_shoot(self.targetPoint, math.huge, true)
 end
 
-function ShootGoal.factory(position)
-	local f = function (robots)
-		return ShootGoal.create(robots[position])
-	end
-	return f
-end
-
-function ShootGoal.test(id)
-	if id > 0 then
-		return nil
-	end
-	return ShootGoal.factory(1), 1
-end
-
 return ShootGoal
