@@ -99,6 +99,9 @@ function KickoffOffensive:_updateTask()
 					self._targetRobot = robot
 				end
 			end
+			if not self._targetRobot then
+				self._shootPos = nil -- don't pass without a target
+			end
 		end
 	end
 
