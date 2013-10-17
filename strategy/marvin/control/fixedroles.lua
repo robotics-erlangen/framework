@@ -12,20 +12,20 @@ function FixedRoles:_updatePoolRobots()
 	-- testagent with fixed behavior or task:
 		-- own pool per robot
 		-- created with an assignment object:
-		-- { task = { name = "shoot", parameters = {} }, behavior = "attacker/shoot" }
-		-- if both are set, the behavior is ignored
+		-- { task = TaskClass, behavior = BehaviorClass, parameters = {}}
+		-- if task and behavior are set, the behavior is ignored
 
 	-- TODO
 	-- Input of agent/behavior/task for robots
 	if not agentsAssigned then
 
 		-- robot 7: keeper
-		self._pools.keeper:takeRobot({World.FriendlyRobotsById[7]})
+		self._pools.keeper:takeRobot({World.FriendlyRobotsById[1]})
 		
 		-- robot 1: behavior shoot
-		local testRobot1 = World.FriendlyRobotsById[1]
+		local testRobot1 = World.FriendlyRobotsById[2]
 		local assignment = {
-			behavior = "agent/defender/default"
+			behavior = require "agent/defender/default"
 		}
 		self._pools.test1 = TestAgent.create(testRobot1, assignment)
 		self._pools.test1:takeRobot({testRobot1})
@@ -33,10 +33,7 @@ function FixedRoles:_updatePoolRobots()
 		-- robot 3: task farmirror
 		local testRobot2 = World.FriendlyRobotsById[3]
 		local assignment = {
-			task = {
-				name = "farmirror",
-				parameters = nil
-			}
+			task = require "task/farmirror"
 		}
 		self._pools.test2 = TestAgent.create(testRobot2, assignment)
 		self._pools.test2:takeRobot({testRobot2})

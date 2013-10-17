@@ -18,14 +18,17 @@ function TestAgent:init(robot, assignment)
 	self._assignedTask = nil
 	self._haltBehavior = Halt.create(self)
 	if assignment.task then
-		local task = require("task/" .. assignment.task.name)
-		if assignment.task.parameters then
-			self._assignedTask = task.create(self, unpack(assignment.task.parameters))
+		if assignment.parameters then
+			self._assignedTask = assignment.task.create(self, unpack(assignment.parameters))
 		else
-			self._assignedTask = task.create(self)
+			self._assignedTask = assignment.task.create(self)
 		end
 	elseif assignment.behavior then
-		self._testBehavior = require(assignment.behavior).create(self)
+		if assignment.parameters then
+			self._testBehavior = assignment.behavior.create(self, unpack(assignment.parameters))
+		else
+			self._testBehavior = assignment.behavior.create(self)
+		end
 	else
 		error "A test-agent needs a task or behavior"
 	end
