@@ -5,9 +5,7 @@ local Halt = require "agent/shared/halt"
 
 function TestAgent.takeRobot(robots)
 	for _, robot in pairs(robots) do
-		if robot.isVisible then
-			return robot
-		end
+		return robot
 	end
 end
 

@@ -31,12 +31,13 @@ local World = require "../base/world"
 local UserInput = require "../base/userinput"
 
 local Entrypoints = require "../base/entrypoints"
--- require "task/tasks"
 require "control/coordinator"
 require "control/fixedroles"
 require "tests/tests"
---require "tests/agents"
 require "util/lineup"
+
+local testroles = require "agent/testlist"
+testroles.tasks = require "task/tasklist"
 
 local debug = require "../base/debug"
 local Cache = require "../base/cache"
@@ -74,4 +75,4 @@ local wrapper = function (func)
 	end
 end
 
-return {name = "Marvin", entrypoints = Entrypoints.get(wrapper)}
+return {name = "Marvin", entrypoints = Entrypoints.get(wrapper), testroles = testroles}
