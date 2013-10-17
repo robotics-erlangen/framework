@@ -68,18 +68,21 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, radius)
 end
 
 function path:addRobotObstacles(robot, ignoreFriendlyRobots, ignoreOpponentRobots)
-	-- TODO: speed based robot size?? leads to problems with path finding
 	-- TODO: Predict robots to avoid crashes
 	if not ignoreFriendlyRobots then
 		for _, r in pairs(World.FriendlyRobots) do
 			if r.id ~= robot.id then -- don't add current robot
-				self:addCircle(r.pos.x, r.pos.y, r.radius, "OwnRobot_"..r.id)
+				-- use speed difference to calculate the saftey distance
+				local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.05, 0.05)
+				self:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OwnRobot_"..r.id)
 			end
 		end
 	end
 	if not ignoreOpponentRobots then
 		for _, r in pairs(World.OpponentRobots) do
-			self:addCircle(r.pos.x, r.pos.y, r.radius, "OppRobot_"..r.id)
+				-- use speed difference to calculate the saftey distance
+				local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.08, 0.10)
+			self:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OppRobot_"..r.id)
 		end
 	end
 end
