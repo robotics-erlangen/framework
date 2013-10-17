@@ -40,14 +40,33 @@ function Base:run()
 		end
 		self._activeBehavior = bestBehavior
 	end
-	-- prevent crash if no behavior or task is active
-	if self._activeBehavior then -- and self._activeBehavior._active not working???
+	-- run task and behavior with own debug context
+	debug.pushtop("Agent " .. self._robot.id)
+	debug.set(nil, Class.name(self, true))
+	if self._activeBehavior then
+		debug.set("Behavior", Class.name(self._activeBehavior, true))
 		self._activeBehavior:run()
+	else
+		debug.set("Behavior", "none")
 	end
+	debug.push("Task")
 	if self._task then
 		self._task:run()
+		debug.set(nil, Class.name(self._task, true))
+		debug.push("Inbox")
+		for n, func in pairs(self._task._inbox) do
+			debug.push(n)
+			for robot, msg in pairs(func()) do
+				debug.set(robot.id or robot, msg)
+			end
+			debug.pop() -- n
+		end
+		debug.pop() -- Inbox
+	else
+		debug.set(nil, "none")
 	end
-	self:_dump()
+	debug.pop() -- Task
+	debug.pop() -- Agent
 end
 
 -- controls whether the robot may be kept in its pool
@@ -67,33 +86,6 @@ end
 
 function Base:robot()
 	return self._robot
-end
-
-function Base:_dump()
-	debug.pushtop("Agent " .. self._robot.id)
-		debug.set(nil, Class.name(self, true))
-		debug.push("Task")
-		if self._task then	
-			debug.set(nil, Class.name(self._task, true))
-			debug.push("Inbox")
-				for n, func in pairs(self._task._inbox) do
-					debug.push(n)
-					for robot, msg in pairs(func()) do
-						debug.set(robot.id or robot, msg)
-					end
-					debug.pop()
-				end
-			debug.pop()
-		else
-			debug.set(nil, "none")
-		end
-		debug.pop()
-		if self._activeBehavior then
-			debug.set("Behavior", Class.name(self._activeBehavior, true))
-		else
-			debug.set("Behavior", "none")
-		end
-	debug.pop()
 end
 
 return Base
