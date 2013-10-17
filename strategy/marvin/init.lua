@@ -36,6 +36,7 @@ require "control/coordinator"
 require "control/fixedroles"
 require "tests/tests"
 --require "tests/agents"
+require "util/lineup"
 
 local debug = require "../base/debug"
 local Cache = require "../base/cache"
