@@ -37,7 +37,7 @@ function Attacker.takeRobot(robots)
 end
 
 function Attacker:keepRobot()
-	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper
+	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper and not self._robot.userControl
 end
 
 -- worse rating if robot if farther away from opponent goal

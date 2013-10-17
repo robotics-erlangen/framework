@@ -15,7 +15,7 @@ function Hidden.takeRobot(robots)
 end
 
 function Hidden:keepRobot()
-	return not self._robot.isVisible
+	return not self._robot.isVisible and not self._robot.userControl
 end
 
 function Hidden:rateRobot()

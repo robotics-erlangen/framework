@@ -1,9 +1,8 @@
 local Manual = (require "../base/class").new("Agent.Manual", require "agent/base/agent")
 
 local World = require "../base/world"
-local UserInput = require "../base/userinput"
 
-local Default = require "agent/defender/default"
+local Default = require "agent/manual/default"
 
 Manual._behaviors = {
 	Default
@@ -12,15 +11,14 @@ Manual._behaviors = {
 function Manual.takeRobot(robots)
 	for _, robot in pairs(robots) do
 		-- take robots which get command from an input device
-		local input = UserInput.getControlInput(robot)
-		if input then
+		if robot.userControl then
 			return robot
 		end
 	end
 end
 
 function Manual:keepRobot()
-	return UserInput.getControlInput(robot)
+	return self._robot.userControl
 end
 
 function Manual:rateRobot()

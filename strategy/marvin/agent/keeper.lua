@@ -17,7 +17,7 @@ function Keeper.takeRobot(robots)
 end
 
 function Keeper:keepRobot()
-	return self._robot.isVisible and self._robot == World.FriendlyKeeper
+	return self._robot.isVisible and self._robot == World.FriendlyKeeper and not self._robot.userControl
 end
 
 function Keeper:rateRobot()

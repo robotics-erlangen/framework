@@ -32,6 +32,7 @@ local Robot, RobotMt = (require "../base/class").new("Robot")
 -- @field maxAngularSpeed number - maximum angular speed *
 -- @field lastResponseTime number - strategy time when the last radio response was handled *
 -- @field radioResponse table - response from the robot, only set if there is a current response *
+-- @field userControl table - command from input devices (fields: speed, omega, kickStyle, kickPower, dribblerSpeed) *
 Robot.constants = {
 	hasBallDistance = 0.04, -- 4 cm, robots where the balls distance to the dribbler is less than 2cm are considered to have the ball [m]
 	passSpeed = 2, -- speed with which the ball should arrive at the pass target  [m/s]
@@ -112,6 +113,23 @@ function Robot:_update(state, time, radioResponses)
 	self.dir = Coordinates.toLocal(state.phi)
 	self.speed = Coordinates.toLocal(Vector.createReadOnly(state.v_x, state.v_y))
 	self.angularSpeed = state.omega -- do not invert!
+end
+
+function Robot:_updateUserControl(command)
+	if not command then
+		self.userControl = nil
+		return
+	end
+
+	local v = Vector.create(command.v_s, command.v_f)
+	local omega = command.omega
+	if command.direct then
+		v = v:rotate(self.dir - math.pi/2)
+	end
+	v = Coordinates.toLocal(v)
+	self.userControl = { speed = v, omega = omega,
+		kickStyle = command.kick_style, kickPower = command.kick_power,
+		dribblerSpeed = command.dribbler }
 end
 
 -- load generation specific robot specs
