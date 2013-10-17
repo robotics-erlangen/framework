@@ -18,18 +18,12 @@ end
 
 --- mirrors the opponent that is the closest one to our goal
 function KickoffMirror:run()
-	self._side = self._side or true
-	
-	--auto check if side is allready mirrored
-	local tmp = false
+	-- check if side is already mirrored (only prioritized messages are considered)
+	local other_mirror = false
 	for _, msg in pairs(self._inbox.kickoffMirrorSide()) do
-		if msg then
-			tmp = true
-		end
+		other_mirror = not msg
 	end
-	if tmp then
-		self._side = false
-	end
+	self._side = not other_mirror
 	self._send("all").kickoffMirrorSide(self._side)
 	
 	local sector1, _, sector3 = Game.divideOpponentsIntoSectors(false)
