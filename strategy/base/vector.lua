@@ -144,12 +144,15 @@ end
 --[[
 separator for luadoc]]--
 
---- Generated a rotated copy of current vector.
+--- Rotate this vector.
 -- Angles are oriented counterclockwise
 -- @param angle number - angle in radians
--- @return Vector - rotated vector
+-- @return Vector - this (rotated) vector
 function Vector:rotate(angle)
-	return Vector.create(math.cos(angle) * self.x - math.sin(angle) * self.y, math.sin(angle) * self.x + math.cos(angle) * self.y)
+	local xnew = math.cos(angle) * self.x - math.sin(angle) * self.y
+	self.y = math.sin(angle) * self.x + math.cos(angle) * self.y
+	self.x = xnew
+	return self
 end
 
 --- Calculate orthogonalProjection on a given line.
