@@ -19,7 +19,9 @@ function UserInput.update()
 					v = v:rotate(robot.dir - math.pi/2)
 				end
 				v = Coordinates.toLocal(v)
-				controlInput[robot] = { speed = v, omega = omega }
+				controlInput[robot] = { speed = v, omega = omega,
+					kickStyle = command.kick_style, kickPower = command.kick_power,
+					dribblerSpeed = command.dribbler }
 			end
 		end
 	end
