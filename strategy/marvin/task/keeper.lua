@@ -16,107 +16,127 @@ end
 
 --moves keeper do defending possition
 function Keeper:run()
+	local G = World.Geometry
+	local kGD = Settings.keeperGoalDistance
+	local goalNormal = Vector.create(0, 1)
+
 	local atkPos, atkDir, isShot = Goal.predictShot()
 	atkDir = atkDir:copy():setLength(30)
-	local normalLine = false
-	local goalLinePos = Vector.create(0, World.Geometry.FriendlyGoal.y + Settings.keeperGoalDistance + self._robot.radius)
-	local goalLineDir = Vector.create(1, 0)
-	local side = math.sign(World.Ball.pos.x)
-	if geom.checkTriangleOrientation(goalLinePos, goalLinePos + Vector.create(side, math.abs(side) / 2), World.Ball.pos) == -side then
+	local side = math.sign(atkPos.x)
+
+	-- check if opponent would shoot at the goal from somewhere near the field corners
+	-- how far the ball is off to the sides
+	-- use hysteresis to prevent flickering between positions
+	local sideAngle = goalNormal:absoluteAngleDiff(atkPos - G.FriendlyGoal)
+	if sideAngle > 60/180*math.pi then
 		self._defendCorner = true
-	elseif geom.checkTriangleOrientation(goalLinePos, goalLinePos + Vector.create(side, math.abs(side) / 2 + 0.2), World.Ball.pos) == side then
+	elseif sideAngle < 45/180*math.pi then
 		self._defendCorner = false
 	end
-	if atkPos.x < -World.Geometry.GoalWidth / 2 and self._defendCorner then
-		goalLinePos = Vector.create(-World.Geometry.GoalWidth / 2, World.Geometry.FriendlyGoal.y)
-		goalLineDir = (World.Ball.pos - Vector.create(0, World.Geometry.FriendlyGoal.y)):perpendicular()
-	elseif atkPos.x > World.Geometry.GoalWidth / 2 and self._defendCorner then
-		goalLinePos = Vector.create(World.Geometry.GoalWidth / 2, World.Geometry.FriendlyGoal.y)
-		goalLineDir = (Vector.create(0, World.Geometry.FriendlyGoal.y) - World.Ball.pos):perpendicular()
+
+	-- line to move along for defending
+	local defenseLineStart, defenseLineEnd, fallbackPos
+	-- corners should be defended and atkPos is outside the goal
+	if self._defendCorner and (math.abs(atkPos.x) > G.GoalWidth / 2
+			or atkPos.y < G.FriendlyGoal.y - G.GoalDepth) then
+		-- defend short corner
+		-- line starts a goal post, stay as near to the goal as possible
+		defenseLineStart = Vector.create(side*G.GoalWidth/2, G.FriendlyGoal.y)
+		local lineDir = ((Vector.create(0, defenseLineStart.y) - atkPos):perpendicular() * side):normalize()
+		-- move startpoint out of the goal along the direction
+		defenseLineStart = defenseLineStart + lineDir * self._robot.radius
+
+		-- opposite corner
+		local otherGoalPost = Vector.create(-side*G.GoalWidth/2, G.FriendlyGoal.y)
+		-- position where the robot would block the otherGoalPost
+		-- lambdaLine is distance from defenseLineStart in direction of lineDir
+		local _, lambdaLine = geom.intersectLineLine(defenseLineStart, lineDir,
+				otherGoalPost, atkPos - otherGoalPost)
+
+		-- allow moving behind ball we it's shot
+		if not isShot then
+			lambdaLine = lambdaLine - self._robot.radius
+		end
+		defenseLineEnd = defenseLineStart + lineDir * math.max(0, lambdaLine)
+
+		-- stick to goal post as fallback
+		fallbackPos = defenseLineStart
 	else
-		normalLine = true
+		-- defend along the goal line and occupy as much space in the goal as possible
+		-- idea: cut defense line with line from goal posts to ball (attack pos)
+		-- account for robot radius
+		local goalCornerLeft = Vector.create(-G.GoalWidth / 2, G.FriendlyGoal.y)
+		local goalCornerRight = Vector.create(G.GoalWidth / 2, G.FriendlyGoal.y)
+		local goalLineY = G.FriendlyGoal.y + kGD + self._robot.radius
+		local lineDist = math.abs(goalLineY - goalCornerLeft.y)
+
+		local leftBound = -G.GoalWidth/2
+		local angleLeft = goalNormal:angleDiff(atkPos - goalCornerLeft)
+		if math.abs(angleLeft) < math.pi / 2 then
+			-- distance cutoff by angle to atkPos + distance blocked by robot radius
+			-- ignore robot radius when isShot is set, in order to allow the robot to get behind the ball
+			local leftDist = -math.tan(angleLeft) * lineDist + (isShot and 0 or self._robot.radius / math.cos(angleLeft))
+			leftBound = leftBound + math.max(0, leftDist)
+		end
+
+		local rightBound = G.GoalWidth/2
+		local angleRight = goalNormal:angleDiff(atkPos - goalCornerRight)
+		if math.abs(angleRight) < math.pi / 2 then
+			local rightDist = -math.tan(angleRight) * lineDist - (isShot and 0 or self._robot.radius / math.cos(angleRight))
+			rightBound = rightBound + math.min(0, rightDist)
+		end
+
+		defenseLineStart = Vector.create(leftBound, goalLineY)
+		defenseLineEnd = Vector.create(rightBound, goalLineY)
+		-- center
+		fallbackPos = (defenseLineEnd + defenseLineStart) * 0.5
 	end
-	local intersectPos = geom.intersectLineLine(atkPos, atkDir, goalLinePos, goalLineDir)
-	
-	-- ensure there's an intersect pos
-	if atkDir.x > 0 then
-		intersectPos = intersectPos or Vector.create(World.Geometry.GoalWidth, World.Geometry.FriendlyGoal.y + Settings.keeperGoalDistance + self._robot.radius)
+
+	-- intersect defense line with ball trajectory
+	local defenseDir = defenseLineEnd - defenseLineStart
+	local _, lambdaDef = geom.intersectLineLine(defenseLineStart, defenseDir,
+			atkPos, atkDir)
+	local intersectPos
+	local successfulIntersection -- is original intersection point on the defense line
+	if lambdaDef then
+		local lambdaBounded = math.bound(0, lambdaDef, 1)
+		successfulIntersection = (lambdaDef == lambdaBounded)
+		-- limit to positions on the line segment!
+		intersectPos = defenseLineStart + defenseDir * lambdaBounded
 	else
-		intersectPos = intersectPos or Vector.create(-World.Geometry.GoalWidth, World.Geometry.FriendlyGoal.y + Settings.keeperGoalDistance + self._robot.radius)
+		successfulIntersection = true
+		-- ensure there's an intersect pos
+		intersectPos = fallbackPos
 	end
 	
-	--visualization Tool
-	vis.addPath("KeeperShotPrediction",{atkPos,atkPos+atkDir})
-	vis.addPath("KeeperGoalLineIntersect",{intersectPos,atkPos})
-	vis.addPath("KeeperGoalLine",{goalLinePos,goalLinePos + goalLineDir})
+	-- visualizations
+	vis.addPath("KeeperShotPrediction",{atkPos,atkPos+atkDir}, vis.colors.blue)
+	vis.addCircle("KeeperDefenseLineIntersect", intersectPos, 0.03, vis.colors.blue)
+	vis.addPath("KeeperDefenseLine",{defenseLineStart, defenseLineEnd}, vis.colors.blue)
 	
-	--add obstacles if outside keeper area
+	local moveTo
+	-- ball is shot at the goal: take the shortest way to stop the ball
+	if isShot and atkDir.y < 0 and successfulIntersection then
+		-- nearest pos on the ball trajectory
+		moveTo = self._robot.pos:nearestPosOnLine(atkPos, atkPos+atkDir):copy()
+		-- prevent moving into the goal
+		if moveTo.y < defenseLineStart.y then
+			moveTo = intersectPos
+		end
+	-- block estimated shoot line
+	elseif atkDir.y < 0 then
+		moveTo = intersectPos
+	else -- don't know where to go, just center in the goal / corner
+		moveTo = fallbackPos
+	end
+	
+	-- add obstacles if outside keeper area
 	if not Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
 		self._robot.path:addRobotObstacles(self._robot, false, false)
 	end
 	-- ignore goal walls if ball is shot
 	self._robot.path:setDefaultObstacles(self._robot, true, isShot)
-	
-	local moveTo
-	--defending possition if ball is allready shot: shortest way to stop the ball
-	if isShot and atkDir.y < 0 and math.abs(intersectPos.x) < World.Geometry.GoalWidth / 2 then
-		moveTo = self._robot.pos:nearestPosOnLine(atkPos, atkPos+atkDir):copy()
-		if moveTo.y < World.Geometry.FriendlyGoal.y then
-			moveTo = intersectPos
-		end
-		moveTo.x = math.bound(-World.Geometry.GoalWidth / 2, moveTo.x, World.Geometry.GoalWidth / 2) --don't move out of the goal
-	--defending possition to block possible Goal shots: moves along a straight line in front of the goal: distance to goal: Settings.keeperGoalDistance
-	elseif atkDir.y < 0 then
-		moveTo = intersectPos
-	--standard position if no Goal-Shot is expected
-	elseif (atkDir.y >= 0) and isShot then
-		moveTo = self._robot.pos:copy()
-	else
-		moveTo = goalLinePos
-	end
-	if not normalLine then
-		local dist = goalLinePos:distanceTo(moveTo)
-		local otherGoalEdge = Vector.create(-goalLinePos.x, goalLinePos.y)
-		local otherLineEnd = (otherGoalEdge:orthogonalProjection(goalLinePos, goalLinePos + goalLineDir)) - goalLineDir:copy():setLength(self._robot.radius)
-		if dist < self._robot.radius and not (atkDir.y >= 0) then
-			moveTo = moveTo + goalLineDir:copy():setLength(self._robot.radius - dist)
-		elseif otherLineEnd.y < moveTo.y or atkDir.y >= 0 then
-			moveTo = otherLineEnd
-		end
-	end
-
-	local southBound = -World.Geometry.GoalWidth / 2
-	local northBound = World.Geometry.GoalWidth / 2
-	if normalLine then
-		local intersectLineP1 = Vector.create(-World.Geometry.FieldWidth, World.Geometry.FriendlyGoal.y + Settings.keeperGoalDistance + self._robot.radius)
-		local intersectLineP2 = Vector.create(World.Geometry.FieldWidth, World.Geometry.FriendlyGoal.y + Settings.keeperGoalDistance + self._robot.radius)
-		local goalEdgeSouth = Vector.create(-World.Geometry.GoalWidth / 2, World.Geometry.FriendlyGoal.y)
-		local goalEdgeNorth = Vector.create(World.Geometry.GoalWidth / 2, World.Geometry.FriendlyGoal.y)
-		local intersectSouth = geom.intersectLinesByPoints(intersectLineP1, intersectLineP2, goalEdgeSouth, World.Ball.pos)
-		local intersectNorth = geom.intersectLinesByPoints(intersectLineP1, intersectLineP2, goalEdgeNorth, World.Ball.pos)
-		local angleSouth = (World.Ball.pos - goalEdgeSouth):angle()
-		local angleNorth = math.pi-(World.Ball.pos - goalEdgeNorth):angle()
-		if angleSouth < math.pi / 2 then
-			southBound = (intersectSouth.x + (self._robot.radius / math.sin(angleSouth))) - 0.05
-		end
-		if angleNorth < math.pi / 2 then
-			northBound = (intersectNorth.x - (self._robot.radius / math.sin(angleNorth))) + 0.05
-		end
-	end
-	moveTo.x = math.bound(southBound, moveTo.x, northBound) --don't move out of the goal
-	
-	--keeper don't have to go out so far if penality
-	if World.RefereeState == "PenaltyDefensive" or World.RefereeState == "PenaltyDefensivePrepare" and not isShot then
-		moveTo.x = math.bound((-World.Geometry.GoalWidth / 2) + self._robot.radius + (World.Ball.radius), moveTo.x, (World.Geometry.GoalWidth / 2) - self._robot.radius - (World.Ball.radius))
-	end
-	--bound at goal edges
-	moveTo.y = math.bound(World.Geometry.FriendlyGoal.y + self._robot.radius, moveTo.y, 0)
-	if normalLine and (moveTo.x < -World.Geometry.GoalWidth / 2 + Settings.keeperGoalDistance or moveTo.x > World.Geometry.GoalWidth / 2 - Settings.keeperGoalDistance) then
-		moveTo.y = moveTo.y - (math.abs(moveTo.x) - (World.Geometry.GoalWidth / 2 - Settings.keeperGoalDistance))
-	end
-	
-	local faceBall = World.Ball.pos-moveTo
-	self._robot.trajectory:update(ToTarget, moveTo, faceBall:angle())
+	self._robot.trajectory:update(ToTarget, moveTo, (atkPos - moveTo):angle())
 end
 
 return Keeper

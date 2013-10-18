@@ -131,6 +131,9 @@ end
 -- @param other Vector
 -- @return number - absolute angle in interval [0, +pi]
 function Vector:absoluteAngleDiff(other)
+	if self:length() == 0 or other:length() == 0 then
+		return 0
+	end
 	return math.acos(math.bound(-1, self:dot(other) / (self:length() * other:length()), 1))
 end
 
