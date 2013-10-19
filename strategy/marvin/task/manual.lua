@@ -65,11 +65,36 @@ function Manual:_intelligentShoot()
 	end
 end
 
+function Manual:_limitRobotSpeed(v)
+	local slowSpeed = 0.3
+	local fastSpeed = 2
+	local pos = self._robot.pos
+	
+	local a = 2 -- 1/a m is slow zone
+	local kleft = math.bound(0, 1 - a*World.Geometry.FieldWidthHalf - a*pos.x, 1)
+	local kright = math.bound(0, a*pos.x - a*World.Geometry.FieldWidthHalf + 1, 1)
+	local kdown = math.bound(0, 1 - a*World.Geometry.FieldHeightHalf - a*pos.y, 1)
+	local kup = math.bound(0, a*pos.y - a*World.Geometry.FieldHeightHalf + 1, 1)
+	
+	local khor = math.max(kleft, kright)
+	local kver = math.max(kdown, kup)
+	local k = math.max(khor, kver)
+
+	local vmax = k * slowSpeed + (1-k) * fastSpeed
+	
+	local v2 = {x=0, y=0}
+	v2.x = math.bound(-vmax, v.x, vmax)
+	v2.y = math.bound(-vmax, v.y, vmax)
+	return v2
+end
+
+
+
 function Manual:run()
 	local input = self._robot.userControl
 
 	-- if the user wants to shoot, let him
-	if input.kickPower > 0 and Ball.friendlyBallOwner() == self._robot then
+	if input.kickPower and Ball.friendlyBallOwner() == self._robot then
 		if input.kickStyle == "Linear"  then
 			self:_intelligentShoot()
 		else
@@ -81,8 +106,9 @@ function Manual:run()
 	-- reset pass target finding
 	self._bestPassTarget = nil
 
-	-- just do what the user wants the robot to do
-	self._robot.trajectory:update(Direct, input.speed, nil, input.omega)
+	-- don't let the robots crash
+	local limitedSpeed = self:_limitRobotSpeed(input.speed)
+	self._robot.trajectory:update(Direct, limitedSpeed, nil, input.omega)
 end
 
 return Manual
