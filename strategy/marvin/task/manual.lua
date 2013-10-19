@@ -32,14 +32,36 @@ function Manual:_decideTargetGoal()
 	end
 end
 
+function Manual:_findBestPassTarget()
+	local ratings = self._inbox.assistantRating()
+	
+	-- only search for pass targets until we found one
+	if not self._bestPassTarget then
+		local bestRobot, bestAngle = nil, math.pi
+		for _,r in pairs(World.FriendlyRobots) do
+			local angleDiff = math.abs((r.pos - World.Ball.pos):angle() - self._robot.dir)
+			if ratings[r] and angleDiff < 20 /180*math.pi and angleDiff < bestAngle then
+				bestRobot = r
+				bestAngle = angleDiff
+			end
+		end
+		self._bestPassTarget = bestRobot
+	end
+end
+
 function Manual:_intelligentShoot()
 	self:_decideTargetGoal()
+	self:_findBestPassTarget()
 		
 
 	if self._targetGoal then	
 		ShootGoal.run(self)
+	elseif self._bestPassTarget then
+		local passSpeed = self._bestPassTarget.constants.passSpeed
+		self:_shoot(self._bestPassTarget.pos, passSpeed, true)
+		self._send(self._bestPassTarget).passSender("direct")
 	else
-
+		self:_shoot(self._robot.pos + Vector.fromAngle(self._robot.dir), math.huge, true)
 	end
 end
 
@@ -51,40 +73,16 @@ function Manual:run()
 		if input.kickStyle == "Linear"  then
 			self:_intelligentShoot()
 		else
-			self:_shoot(self._robot.pos + Vector.fromAngle(self._robot.dir), 3.14159, false)
+			self:_shoot(self._robot.pos + Vector.fromAngle(self._robot.dir), math.huge, false)
 		end
 		return
 	end
 
-	-- if the user can handle the ball, let him be the main attacker
-	if self._inbox.mainAttacker().trainer == self._robot then
-		local t = Robot.minTimeToBall(self._robot, World.Ball)
-		local futureBall = Ball.atTime(t, World.Ball)
-		local speedAngleDiff = input.speed:absoluteAngleDiff(futureBall.pos - self._robot.pos)
-		local magic = speedAngleDiff * input.speed:length()
-		local viewAngleDiff = math.abs(self._robot.dir - (World.Ball.pos - self._robot.pos):angle())
-		
-		--FIXME FIXME 
-		if Ball.friendlyBallOwner() ~= self._robot
-			and ((self._cbactive
-				and magic < 1 -- if the robot is about to catch the ball, or something like that
-				and t < 0.5 -- if the ball can be catched quickly
-				and viewAngleDiff < math.pi/2) or -- if the robot looks towards the ball
-			(not self._cbactive
-				and magic < 0.5
-				and t < 0.3
-				and viewAngleDiff < math.pi/1.5)) then
-			self._cbactive = true
-			self:_catchBall(World.Ball.pos*2 - self._robot.pos, Settings.shootDriveSpeed, Constants.positionError)
-		else
-			self._cbactive = false
-			self._robot.trajectory:update(Direct, input.speed, nil, input.omega)
-		end
-	else
-		self._robot.trajectory:update(Direct, input.speed, nil, input.omega)
-	end
-	
+	-- reset pass target finding
+	self._bestPassTarget = nil
 
+	-- just do what the user wants the robot to do
+	self._robot.trajectory:update(Direct, input.speed, nil, input.omega)
 end
 
 return Manual
