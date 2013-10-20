@@ -25,8 +25,13 @@ function Base:init(robot)
 end
 
 function Base:run()
+	debug.pushtop("Agent " .. self._robot.id)
+	debug.set(nil, Class.name(self, true))
+
 	self:_updateBehavior()
 	self:_runTaskAndBehavior()
+	
+	debug.pop() -- Agent
 end
 
 function Base:_updateBehavior()
@@ -48,8 +53,6 @@ function Base:_updateBehavior()
 end
 
 function Base:_runTaskAndBehavior()
-	debug.pushtop("Agent " .. self._robot.id)
-	debug.set(nil, Class.name(self, true))
 	if self._activeBehavior then
 		debug.set("Behavior", Class.name(self._activeBehavior, true))
 		self._activeBehavior:run()
@@ -73,7 +76,6 @@ function Base:_runTaskAndBehavior()
 		debug.set(nil, "none")
 	end
 	debug.pop() -- Task
-	debug.pop() -- Agent
 end
 
 -- controls whether the robot may be kept in its pool

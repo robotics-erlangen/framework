@@ -225,12 +225,14 @@ function Ball.isShot()
 	lastBallSpeedLength = ballSpeedLength
 
 	if Settings.DEBUG then
+		debug.pushtop("Ball.isShot")
 		debug.set("cooldown", condCooldown)
 		debug.set("accelerates", condAccelerates)
 		debug.set("fast", condFast)
 		debug.set("hadBall", condHadBall)
 		debug.set("direction", condDirection)
 		debug.set("fasterThanRobot", condFasterThanRobot)
+		debug.pop()
 	end
 
 	return robot
