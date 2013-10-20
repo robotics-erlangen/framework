@@ -14,7 +14,7 @@ function Shoot:check() -- mainAttacker fallback behavior
 end
 
 function Shoot:_updateTask()
-	local bestAssistant = ObserverShoot.bestFreeAssistant(self._robot, self._inbox.assistantRating())
+	local bestAssistant = ObserverShoot.bestFreeAssistant(self._robot, self._inbox.assistantRating("ignorePriority"))
 	local shootGoalTmp = ShootGoal.create(self._agent)
 	local reachTime = Robot.minTimeToBall(self._robot, World.Ball)
 	

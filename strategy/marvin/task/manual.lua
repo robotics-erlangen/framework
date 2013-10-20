@@ -33,7 +33,7 @@ function Manual:_decideTargetGoal()
 end
 
 function Manual:_findBestPassTarget()
-	local ratings = self._inbox.assistantRating()
+	local ratings = self._inbox.assistantRating("ignorePriority")
 	
 	-- only search for pass targets until we found one
 	if not self._bestPassTarget then

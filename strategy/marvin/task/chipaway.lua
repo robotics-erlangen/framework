@@ -22,7 +22,7 @@ function ChipAway:run()
 	-- try to hit an assistant	
 	if not self._chipTarget then
 		local bestRating = -1
-		for robot, rating in pairs(self._inbox.assistantRating()) do
+		for robot, rating in pairs(self._inbox.assistantRating("ignorePriority")) do
 			if Robot.wayToRobotFree(robot, self._robot, true) and rating > bestRating then
 				self._chipTarget = robot
 				bestRating = rating
