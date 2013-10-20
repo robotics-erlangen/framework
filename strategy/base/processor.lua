@@ -2,38 +2,38 @@ local Processor = {}
 local Class = require "../base/class"
 local Process = require "../base/process"
 
-Processor.preprocs = {}
-Processor.postprocs = {}
+local preprocs = {}
+local postprocs = {}
+
+local function add(procs, proc)
+	assert(proc and Class.instanceOf(proc, Process), "no valid process!")
+	table.insert(procs, proc)
+end
 
 function Processor.addPre(proc)
-	assert(proc and Class.instanceOf(proc, Process), "no valid process!")
-	table.insert(Processor.preprocs, post)
+	add(preprocs, proc)
 end
 
 function Processor.addPost(proc)
-	assert(proc and Class.instanceOf(proc, Process), "no valid process!")
-	table.insert(Processor.postprocs, post)
+	add(postprocs, proc)
 end
 
-
-function Processor.pre()
-	for i = #Processor.preprocs,1,-1 do
-		local proc = Processor.preprocs[i]
+local function run(procs)
+	for i = #procs,1,-1 do
+		local proc = procs[i]
 		proc:run()
 		if proc:isFinished() then
-			table.remove(Processor.preprocs, i)
+			table.remove(procs, i)
 		end
 	end
+end
+
+function Processor.pre()
+	run(preprocs)
 end
 
 function Processor.post()
-	for i = #Processor.postprocs,1,-1 do
-		local proc = Processor.postprocs[i]
-		proc:run()
-		if proc:isFinished() then
-			table.remove(Processor.postprocs, i)
-		end
-	end
+	run(postprocs)
 end
 
 return Processor
