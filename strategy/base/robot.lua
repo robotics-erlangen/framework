@@ -124,9 +124,12 @@ function Robot:_updateUserControl(command)
 	local v = Vector.create(command.v_s, command.v_f)
 	local omega = command.omega
 	if command.direct then
+		-- correctly align local and strategy coordinate system
 		v = v:rotate(self.dir - math.pi/2)
+	else
+		-- global to strategy coordinate mapping
+		v = Coordinates.toLocal(v)
 	end
-	v = Coordinates.toLocal(v)
 	self.userControl = { speed = v, omega = omega,
 		kickStyle = command.kick_style, kickPower = command.kick_power,
 		dribblerSpeed = command.dribbler }
