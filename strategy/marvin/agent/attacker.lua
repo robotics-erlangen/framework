@@ -13,6 +13,7 @@ local Shoot = require "agent/attacker/shoot"
 local KickoffAssistant = require "agent/attacker/kickoffassistant"
 local FreeKickDefender = require "agent/attacker/freekickdefender"
 local Default = require "agent/attacker/default"
+local KickoffDefensive = require "agent/attacker/kickoffdefensive"
 
 Attacker._behaviors = {
 	ReceivePass,
@@ -25,6 +26,7 @@ Attacker._behaviors = {
 	Shoot,
 	KickoffAssistant,
 	FreeKickDefender,
+	KickoffDefensive,
 	Default
 }
 
