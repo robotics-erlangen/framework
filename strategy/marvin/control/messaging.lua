@@ -11,6 +11,7 @@ local msgDefs = {
 	moveDestDir = "number",
 	distractedIndex = "number",
 	specialRole = "table", -- value test is in getSpecialRoleApplications
+	kickoffMirrorSide = "boolean",
 
 	-- single sender
 	aggressiveKeeperPos = "userdata",
