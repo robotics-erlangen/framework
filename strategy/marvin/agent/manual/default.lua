@@ -19,13 +19,23 @@ function Default:check()
 	end
 	
 	-- look for incoming passes
-	for r, _ in pairs(self._inbox.passSender()) do --tests if table has content, runs 0-1 times, otherwise BUG
-		mainAttackerRating = 1.5
+	for _,_ in pairs(self._inbox.passSender()) do --tests if table has content, runs 0-1 times, otherwise BUG
+		self._lastPass = World.Time
 	end
-	self._send("trainer").specialRole({mainAttacker = mainAttackerRating})
-
-	-- play assistant
-	self._send("all").assistantRating(42)
+	self._lastPass = self._lastPass or 0
+	if World.Time - self._lastPass < 2 and Ball.isShot() then
+		self._catching = true
+	end
+	if Ball.opponentBallOwner() or Ball.friendlyBallOwner() ~= self._robot
+			or World.Ball.speed:length() < Settings.slowBall then 
+		self._catching = false
+	end
+	if self._catching then
+		self._send("trainer").specialRole({ passReceiver = 1.5 })
+		self._send("trainer").specialRole({ mainAttacker = 1.5 })
+	else
+		self._send("trainer").specialRole({mainAttacker = mainAttackerRating})
+	end
 
 	return true
 end

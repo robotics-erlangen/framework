@@ -38,9 +38,9 @@ function Manual:_findBestPassTarget()
 	-- only search for pass targets until we found one
 	if not self._bestPassTarget then
 		local bestRobot, bestAngle = nil, math.pi
-		for _,r in pairs(World.FriendlyRobots) do
+		for r,_ in pairs(ratings) do
 			local angleDiff = math.abs((r.pos - World.Ball.pos):angle() - self._robot.dir)
-			if ratings[r] and angleDiff < 20 /180*math.pi and angleDiff < bestAngle then
+			if angleDiff < 20 /180*math.pi and angleDiff < bestAngle then
 				bestRobot = r
 				bestAngle = angleDiff
 			end
@@ -109,6 +109,9 @@ function Manual:run()
 	-- don't let the robots crash
 	local limitedSpeed = self:_limitRobotSpeed(input.speed)
 	self._robot.trajectory:update(Direct, limitedSpeed, nil, input.omega)
+	
+	-- play assistant
+	self._send("all").assistantRating(42)
 end
 
 return Manual
