@@ -88,7 +88,7 @@ separator for luadoc]]--
 --- Returns current time
 -- @class function
 -- @name getCurrentTime
--- @return Number - time in nanoseconds
+-- @return Number - time in nanoseconds (amun), seconds(strategy)
 
 --[[
 separator for luadoc]]--

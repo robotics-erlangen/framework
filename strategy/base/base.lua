@@ -30,6 +30,8 @@ local vis = require "../base/vis"
 -- prevent access to the amun api by other code
 local isDebug = pcall(require, "debug")
 local strategyPath = amun.getStrategyPath()
+local getCurrentTime = amun.getCurrentTime
+
 if isDebug then
 	amun = {
 		sendCommand = amun.sendCommand
@@ -39,6 +41,9 @@ else
 end
 amun.isDebug = isDebug
 amun.strategyPath = strategyPath
+amun.getCurrentTime = function ()
+	return getCurrentTime() * 1E-9
+end
 
 -- prevent reloading original api
 package.preload["amun"] = nil
