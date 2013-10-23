@@ -12,6 +12,7 @@ local Entrypoints = require "../base/entrypoints"
 local Field = require "util/field"
 local AgentPool = require "control/agentpool"
 local Messaging = require "control/messaging"
+local debug = require "../base/debug"
 
 local Coordinator = (require "../base/class").new("Control.Coordinator")
 
@@ -30,12 +31,23 @@ function Coordinator:init()
 		{ self._pools.hidden }
 	}
 	self.specialRoles = {} -- remember roles
+	self._messages = nil
 end
 
 function Coordinator:run()
 	self:_updatePoolRobots()
 	-- TODO: facilities for learning
 	
+	self._messages = Messaging.getSpecialRoleApplications()
+	debug.pushtop("Role Applications")
+	for role, application in pairs(self._messages) do
+		debug.push(role)
+		for robot, rating in pairs(application) do
+			debug.set(robot.id, rating)
+		end
+		debug.pop() -- role
+	end
+	debug.pop() -- Role Applications
 	self:_chooseSpecialRoles()
 	Messaging.deliverMessages()
 
