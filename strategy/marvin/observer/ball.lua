@@ -59,19 +59,41 @@ function Ball.toBall(robot, ball)
 	return midPos, midTime
 end
 
---- Returns the ball owner or nil if noone is nearer than Settings.ballOwnDistance(hysteresis)
+--- Calculates the effective distance between ball and dribbler
+-- find an ellipsis with the left and right dribbler edge points as focal points
+-- dist is the length of the semi-minor axis
+-- @param robot robot - the robot to calculate
+-- @param ballPos vector - position of the ball
+local function ellipticDistance(robot, ballPos)
+	local dribblerPos = robot.pos + Vector.fromAngle(robot.dir):scaleLength(robot.shootRadius)
+	local dribblerWidthHalf = Vector.fromAngle(robot.dir - math.pi/2):scaleLength(robot.dribblerWidth/2)
+	local leftDribblerEdge = dribblerPos + dribblerWidthHalf
+	local rightDribblerEdge = dribblerPos - dribblerWidthHalf
+	return 0.5*math.sqrt((leftDribblerEdge:distanceTo(ballPos) + rightDribblerEdge:distanceTo(ballPos))^2 - robot.dribblerWidth*robot.dribblerWidth)
+end
+
+--- Returns the ball owner or nil if no one is nearer than Settings.ballOwnDistance(hysteresis)
 -- @param robotlist robot[] - the robots which are qualified for being a ball owner (default: World.Robots)
 -- @param lastBallOwner - the robot that was the ball owner before, used for hysteresis
 -- @return ballOwner robot - the robot that can be seen as ball owner
 local function ballOwner(robotlist, lastBallOwner)
+	local ballInDangerRating = 0
+	for _,r in pairs(World.Robots) do
+		local dist = ellipticDistance(r, World.Ball.pos)
+		if dist < 0.05 then
+			ballInDangerRating = ballInDangerRating + 1
+		elseif dist < 0.30 then
+			ballInDangerRating = ballInDangerRating + (0.30 - dist)/0.25
+		end
+	end
+	local ballOwnDistance = Settings.ballOwnDistance - math.max(ballInDangerRating, 2)*0.04
 	robotlist = robotlist or World.Robots
 	--search robot with min dist to ball
 	local minDist = math.huge
 	local ballOwner = nil
 	for _,r in pairs(robotlist) do
-		local dribblerPos = r.pos + Vector.fromAngle(r.dir):scaleLength(r.shootRadius)
-		local dist = dribblerPos:distanceTo(World.Ball.pos)
-		if dist < minDist and dist <= Settings.ballOwnDistance then
+		local dist = ellipticDistance(r, World.Ball.pos)
+		if dist < minDist and dist <= ballOwnDistance then
 			minDist = dist
 			ballOwner = r
 		end
@@ -80,9 +102,7 @@ local function ballOwner(robotlist, lastBallOwner)
 	-- calculate dist from lastBallOwner to ball
 	local lastDist = math.huge
 	if lastBallOwner then
-		local lastPos = lastBallOwner.pos + 
-			Vector.fromAngle(lastBallOwner.dir):scaleLength(lastBallOwner.shootRadius)
-		lastDist = lastPos:distanceTo(World.Ball.pos)
+		lastDist = ellipticDistance(lastBallOwner, World.Ball.pos)
 	end
 
 	-- set new lastBallOwner or nil, if no robot is near ball

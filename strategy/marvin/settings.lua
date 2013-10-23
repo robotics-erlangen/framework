@@ -4,7 +4,7 @@ settings.DEBUG = true -- enables debug output (logs and debug trees)
 
 settings.positionPadding = 0.02 -- safety distance
 
-settings.ballOwnDistance = 0.07 -- we own the ball if it was at least once only 10cm away from our robot
+settings.ballOwnDistance = 0.15 -- base for ball ownage determination: we own the ball if it was at least once only 18cm away from our robot
 settings.ballOwnHysteresis = 0.03
 settings.keeperGoalDistance = 0.02 -- how far the keeper should stay away from the goal, used in task/keeper
 settings.slowBall = 0.5 -- consider a ball as moving if faster than this limit [m/s]
