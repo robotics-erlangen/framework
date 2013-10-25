@@ -94,7 +94,7 @@ function Manual:run()
 	local input = self._robot.userControl
 
 	-- if the user wants to shoot, let him
-	if input.kickPower and Ball.friendlyBallOwner() == self._robot then
+	if input.kickPower and input.kickPower > 0 and Ball.friendlyBallOwner() == self._robot then
 		if input.kickStyle == "Linear"  then
 			self:_intelligentShoot()
 		else
