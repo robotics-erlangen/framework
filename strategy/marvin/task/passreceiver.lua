@@ -19,7 +19,6 @@ function PassReceiver:run()
 	self.moveTo = self._robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
 	if World.Ball.speed:length() < Settings.fastBall then
 		self.tPos = self.tPos or World.Ball.pos
-		debug.set("CatchBallTargetPos", tPos)
 		vis.addCircle("PassReceiverCatchBallTargetPos", self.tPos, 0.01)
 		self._robot:setDribblerSpeed(1)
 		-- just get the ball

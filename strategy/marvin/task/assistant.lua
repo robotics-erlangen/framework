@@ -58,7 +58,7 @@ function Assistant:run()
 	
 	self.shotPos = World.Ball.pos
 	local shotDir = World.Ball.speed:copy():setLength(World.Geometry.FieldHeightHalf)
-	self.shotTarget = atkPos or atkRobotPos or (self.shotPos+shotDir)
+	self.shotTarget = --[[atkPos or atkRobotPos or]] (self.shotPos+shotDir)
 	
 	if World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive" then
 		linePos.y = World.Geometry.PenaltyLine - Settings.penaltyLineDistance
