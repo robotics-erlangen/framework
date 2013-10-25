@@ -11,6 +11,8 @@
 module "base"
 ]]--
 require "../base/amun"
+-- amun.isDebug must already be set, thus load after amun
+require("../base/globalschecker")._init()
 require "../base/path"
 require "../base/math"
 require "../base/table"
