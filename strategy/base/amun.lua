@@ -118,3 +118,30 @@ separator for luadoc]]--
 
 require "amun"
 log = amun.log
+-- publish debug status
+amun.isDebug = pcall(require, "debug")
+
+-- prevent direct access to the amun api by other code
+function amun._hideFunctions()
+	local isDebug = amun.isDebug
+	local strategyPath = amun.getStrategyPath()
+	local getCurrentTime = amun.getCurrentTime
+	local sendCommand = amun.sendCommand
+
+	-- overwrite global amun
+	amun = {
+		isDebug = isDebug,
+		strategyPath = strategyPath,
+		getCurrentTime = function ()
+			return getCurrentTime() * 1E-9
+		end
+	}
+	if isDebug then
+		amun.sendCommand = sendCommand
+	end
+
+	-- prevent reloading original api
+	package.preload["amun"] = nil
+	-- update reference used by require
+	package.loaded["amun"] = amun
+end
