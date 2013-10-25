@@ -86,8 +86,8 @@ local function ballOwner(robotlist, lastBallOwner)
 			ballInDangerRating = ballInDangerRating + (0.30 - dist)/0.25
 		end
 	end
-	local ballOwnDistance = Settings.ballOwnDistance - math.max(ballInDangerRating, 2)*0.04
-	robotlist = robotlist or World.Robots
+	local ballOwnDistance = Settings.ballOwnDistance - math.min(ballInDangerRating, 2)*0.04
+
 	--search robot with min dist to ball
 	local minDist = math.huge
 	local ballOwner = nil
@@ -106,13 +106,12 @@ local function ballOwner(robotlist, lastBallOwner)
 	end
 
 	-- set new lastBallOwner or nil, if no robot is near ball
-	if minDist < (lastDist - Settings.ballOwnHysteresis) or not ballOwner then
+	if (minDist + Settings.ballOwnHysteresis) < lastDist or not ballOwner then
 		lastBallOwner = ballOwner
 	end
 
 	return lastBallOwner
 end
---Ball.ballOwner = Cache.forFrame(Ball.ballOwner)
 
 
 local lastBallOwnerFriendly
