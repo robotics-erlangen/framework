@@ -20,13 +20,13 @@ Attacker._behaviors = {
 	ApplyForMainattacker,
 	Stop,
 	KickoffOffensive,
+	KickoffDefensive,
 	Penalty,
 	FreeKick,
 	Duel,
 	Shoot,
 	KickoffAssistant,
 	FreeKickDefender,
-	KickoffDefensive,
 	Default
 }
 
