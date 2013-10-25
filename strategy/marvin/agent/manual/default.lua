@@ -15,7 +15,7 @@ function Default:check()
 		mainAttackerRating = 1.5
 	else
 		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
-		mainAttackerRating = Rating.timeToRating(timeToBall) * 1.5 --small rating bonus to please the human player
+		mainAttackerRating = Rating.timeToRating(timeToBall) * 1.3 --small rating bonus to please the human player
 	end
 	
 	-- look for incoming passes
