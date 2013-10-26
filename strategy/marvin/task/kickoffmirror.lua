@@ -14,16 +14,15 @@ KickoffMirror.priority = 1
 function KickoffMirror:_init(distanceToCenterLine)
 	self._distance = distanceToCenterLine
 	self._lastTargetRobot = nil
+	self._side = false
 end
 
 --- mirrors the opponent that is the closest one to our goal
 function KickoffMirror:run()
 	-- check if side is already mirrored (only prioritized messages are considered)
-	local other_mirror = false
 	for _, msg in pairs(self._inbox.kickoffMirrorSide()) do
-		other_mirror = not msg
+		self._side = not msg -- just take the other side
 	end
-	self._side = not other_mirror
 	self._send("all").kickoffMirrorSide(self._side)
 	
 	local sector1, _, sector3 = Game.divideOpponentsIntoSectors(false)
