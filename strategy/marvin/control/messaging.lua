@@ -10,7 +10,7 @@ local msgDefs = {
 	centerbackTarget = "table", -- Robot or World.Ball
 	preliminaryCenterbackTarget = "table",
 	defendedOpponent = Robot,
-	moveDest = "userdata",
+	moveDest = "cdata",
 	moveDestDir = "number",
 	distractedIndex = "number",
 	exclusiveRole = "table", -- value test is in getExclusiveRoleApplications
@@ -18,11 +18,11 @@ local msgDefs = {
 	passSuggestion = "table", -- { kind: string, rating: number [, pos: Vector] }
 
 	-- single sender
-	attackPosition = "userdata",
-	aggressiveKeeperPos = "userdata",
-	shootDestination = "userdata",
-	passPos = "userdata", -- where the pass is shot
-	duelAssistantPos = "userdata",
+	attackPosition = "cdata",
+	aggressiveKeeperPos = "cdata",
+	shootDestination = "cdata",
+	passPos = "cdata", -- where the pass is shot
+	duelAssistantPos = "cdata",
 	duelAssistantDir = "number",
 	roleAssignment = "table", -- { name: string, params: table }
 }
