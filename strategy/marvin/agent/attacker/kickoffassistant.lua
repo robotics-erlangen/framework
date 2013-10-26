@@ -43,7 +43,7 @@ function KickoffAssistant:_updateTask()
 		self._movePos = self._moveDest
 		self._task = nil -- make sure a new task will be created
 	end
-	return MoveToPos, {self._moveDest, (self._robot.pos-G.OpponentGoal):angle()}
+	return MoveToPos, {self._moveDest, (G.OpponentGoal-self._moveDest):angle()}
 end
 
 return KickoffAssistant
