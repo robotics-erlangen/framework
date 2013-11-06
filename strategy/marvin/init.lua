@@ -9,6 +9,7 @@ local Entrypoints = require "../base/entrypoints"
 require "control/coordinator"
 require "control/fixedroles"
 require "tests/tests"
+require "tests/unit/init"
 require "util/lineup"
 
 local testroles = require "agent/testlist"
