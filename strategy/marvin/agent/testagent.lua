@@ -10,6 +10,7 @@ function TestAgent.takeRobot(robots)
 end
 
 function TestAgent:init(robot, assignment)
+	assert(robot, "Cannot create agent: Robot does not exist")
 	self._robot = robot
 	self._testBehavior = nil
 	self._task = nil
