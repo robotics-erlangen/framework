@@ -3,13 +3,6 @@ local World = require "../base/world"
 
 local tests = require "tests/unit/tests"
 
-if not pcall(require, 'debug') then 
-	error("Debugging not enabled!") 
-end
-
-local timeout = 1000000000 -- number of instructions before hook is called
-debug.sethook(function() error("Timeout (adjustable in tests/unit/init.lua)") end, "", timeout)
-
 -- logs have to run as a whole strategy run 
 -- because they are printed after the strategy is done
 local total = 0
@@ -19,6 +12,19 @@ end
 local successfull = 0
 local testCount = 1
 local logCount = 1 
+
+
+local isInitialized = false
+
+local function setupUnitTesting()
+	if not pcall(require, 'debug') then 
+		error("Debugging not enabled!") 
+	end
+
+	local timeout = 1000000000 -- number of instructions before hook is called
+	debug.sethook(function() error("Timeout (adjustable in tests/unit/init.lua)") end, "", timeout)
+	isInitialized = true
+end
 
 local testName, testFunction = next(tests)
 local function runTest()
@@ -52,5 +58,8 @@ local function runTest()
 end
 
 Entrypoints.add("Unit Tests", function()
+	if not isInitialized then
+		setupUnitTesting()
+	end
 	runTest()
 end)
