@@ -8,6 +8,8 @@ local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Geom = require "../base/geom"
 local Field = require "util/field"
+local debug = require "../base/debug"
+local vis = require "../base/vis"
 
 
 --- Calculates the chance that a pass to the targetRobot will succeed
@@ -28,8 +30,8 @@ function Shoot.evaluatePassCorridor(targetRobot, shootTime, targetPos)
 	local passChance = 1
 	for _, robot in pairs(World.OpponentRobots) do
 		local pointOnLine = robot.pos:nearestPosOnLine(predictedBallState.pos, targetPos)
-		local ballCatchTime = shootTime + Shoot.ballPassTime(predictedBallState.pos, targetRobot, targetPos, (predictedBallState.pos - pointOnLine):length())
-		local ballCatchProbability = Shoot.ballCatchProbability(robot, ballCatchTime, pointOnLine, corridorHalf)
+		local ballRollTime = Shoot.ballPassTime(predictedBallState.pos, targetRobot, targetPos, (predictedBallState.pos - pointOnLine):length())
+		local ballCatchProbability = Shoot.ballCatchProbability(robot, shootTime, ballRollTime, pointOnLine, corridorHalf)
 		passChance = passChance * (1 - ballCatchProbability)
 	end
 	return passChance
@@ -58,8 +60,7 @@ function Shoot.evaluateShootCorridor(endPos, speed, startPos, shootTime, robots)
 	for _, r in ipairs(robots) do
 		local pointOnLine = r.pos:nearestPosOnLine(predictedBallPos, endPos)
 		local ballRollTime = Ball.ballRollTime(speed, (pointOnLine - startPos):length())
-		local ballCatchTime = shootTime + ballRollTime
-		local ballCatchProbability = Shoot.ballCatchProbability(r, ballCatchTime, pointOnLine, corridorHalf)
+		local ballCatchProbability = Shoot.ballCatchProbability(r, shootTime, ballRollTime, pointOnLine, corridorHalf)
 		--log("Robot "..tostring(r.id)..": Time to reach ShootCorridor "..tostring(ballRollTime))
 		--log("Robot "..tostring(r.id)..": Chance "..tostring(ballCatchProbability))
 		shootChance = shootChance*(1 - ballCatchProbability)
@@ -88,13 +89,13 @@ function Shoot.evaluateChipCorridor(targetRobot, shootTime, targetPos)
 		for _, robot in pairs(World.OpponentRobots) do
 			local x = (targetPos - ballPos):setLength(liftDistance)			--liftDistance ist the distance, the ball needs to be able to fly over robots 														TODO test liftDistance
 			local pointOnLine = Geom.nearestPosOnLine(robot.pos, ballPos, ballPos + x)
-			local ballCatchTime = shootTime + Shoot.ballPassTime(ballPos, targetRobot, targetPos, (ballPos - pointOnLine):length())
-			local ballCatchProbability = Shoot.ballCatchProbability(robot, ballCatchTime, pointOnLine, corridorHalf)
+			local ballRollTime = Shoot.ballPassTime(ballPos, targetRobot, targetPos, (ballPos - pointOnLine):length())
+			local ballCatchProbability = Shoot.ballCatchProbability(robot, shootTime, ballRollTime, pointOnLine, corridorHalf)
 			passChance = passChance * (1 - ballCatchProbability)
 	
 			local pointOnLine = Geom.nearestPosOnLine(robot.pos, targetPos - x, targetPos)
-			local ballCatchTime = shootTime + Shoot.ballPassTime(ballPos, targetRobot, targetPos, (ballPos - pointOnLine):length())
-			local ballCatchProbability = Shoot.ballCatchProbability(robot, ballCatchTime, pointOnLine, corridorHalf)
+			local ballRollTime = Shoot.ballPassTime(ballPos, targetRobot, targetPos, (ballPos - pointOnLine):length())
+			local ballCatchProbability = Shoot.ballCatchProbability(robot, shootTime, ballRollTime, pointOnLine, corridorHalf)
 			passChance = passChance * (1 - ballCatchProbability)
 		end
 	else 
@@ -117,17 +118,23 @@ end
  
 --- Calculates the probability that the given opponent robot catches the ball
 -- @param robot Robot - opponent robot
--- @param time number - how long the robot can move until the ball reaches the given position
+-- @param shootTime number - how long to wait before shoot
+-- @param rollTime number - how long it takes the ball to travel to the catchPos
 -- @param catchPos Vector - where the robot might catch the ball
 -- @param corridorHalf Vector - the ball can only be catched in [catchPos-corridorHalf, catchPos+corridorHalf]
 -- @return catchProbability number - the chance that the given opponent robot catches the ball
-function Shoot.ballCatchProbability(robot, time, catchPos, corridorHalf)
+function Shoot.ballCatchProbability(robot, shootTime, rollTime, catchPos, corridorHalf)
+	local latency = 0.1 -- MAGIC CONSTANT -- time the robot needs to react
+	local damping = 0.5 -- MYSTERIOUS MAGIC CONSTANT - this factor describes how much of their maximum acceleration the robots use before they can react
 	local corridorWidthHalf = corridorHalf:length()
-	local distToCorridor = (robot.pos - catchPos):length()
-	local maxAcceleration = robot.maxAcceleration
-	local maxDeceleration = -5 -- magic constant
-	local v_toSector = math.abs(robot.speed:dot(corridorHalf)/corridorWidthHalf) -- part of robot.speed perpendicular to shoot corridor
-	local expectedPos = v_toSector*time -- position, which the robot reaches without changing speed
+	local toCorridor = catchPos - robot.pos
+	local distToCorridor = toCorridor:length()
+	local v_toSector = robot.speed:dot(corridorHalf)*math.sign(toCorridor:dot(corridorHalf)) / corridorWidthHalf -- part of robot.speed perpendicular to shoot corridor
+	debug.set("v to sector", v_toSector)
+	local time = shootTime + rollTime	-- the time from now to the moment to catch the ball
+	local expectedPos = v_toSector*time	-- position, which the robot reaches without changing speed
+	local expPos = robot.pos + toCorridor:setLength(expectedPos)
+	vis.addCircle("will be here", expPos, robot.radius, vis.colors.yellowHalf, true)
 	local d0, flagAcc
 	if expectedPos < distToCorridor - corridorWidthHalf - robot.radius then	-- if robot must accelerate to reach corridor in time
 		flagAcc = true
@@ -138,19 +145,20 @@ function Shoot.ballCatchProbability(robot, time, catchPos, corridorHalf)
 	else								-- if robot reaches the corridor in time with its current speed
 		return 1
 	end
-	local neededAcc = 2*(d0 - expectedPos)/(time*time)	-- min acceleration or deceleration to reach the sector
-	if flagAcc then
-		if neededAcc >= maxAcceleration then
-			return 0
-		else
-			return math.sqrt((maxAcceleration - neededAcc)/maxAcceleration)
-		end
+	local maxAcceleration = robot.maxAcceleration
+	local maxDeceleration = -5	-- magic constant
+	local neededAcc
+	if rollTime < latency then
+		neededAcc = 2*(d0 - expectedPos)/(damping*time*time)
 	else
-		if neededAcc <= maxDeceleration then
-			return 0
-		else
-			return math.sqrt((maxDeceleration - neededAcc)/maxDeceleration)
-		end
+		local t1 = shootTime + latency	-- the time span while the robots can not react
+		local t2 = rollTime - latency	-- the time span while the robots can react
+		neededAcc = (d0 - expectedPos)/(0.5*damping*t1*t1 + damping*t1*t2 + 0.5*t2*t2)
+	end
+	if flagAcc then
+		return (neededAcc >= maxAcceleration) and 0 or math.sqrt((maxAcceleration - neededAcc)/maxAcceleration)
+	else
+		return (neededAcc <= maxDeceleration) and 0 or math.sqrt((maxDeceleration - neededAcc)/maxDeceleration)
 	end
 end
 
