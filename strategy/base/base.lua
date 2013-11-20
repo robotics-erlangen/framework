@@ -27,6 +27,7 @@ local World = require "../base/world"
 local debug = require "../base/debug"
 local plot = require "../base/plot"
 local vis = require "../base/vis"
+local debugcommands = require "../base/debugcommands"
 
 -- prevent access to internal APIs
 amun._hideFunctions()

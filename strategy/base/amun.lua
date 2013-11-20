@@ -116,6 +116,22 @@ separator for luadoc]]--
 -- @param name string
 -- @param value number
 
+--[[
+separator for luadoc]]--
+
+--- Send arbitrary commands. Only works in debug mode
+-- @class function
+-- @name sendCommand
+-- @param command amun.Command
+
+--[[
+separator for luadoc]]--
+
+--- Send referee command. Only works in debug mode. Must be fully populated
+-- @class function
+-- @name sendRefereeCommand
+-- @param command SSL_Referee
+
 require "amun"
 log = amun.log
 -- publish debug status

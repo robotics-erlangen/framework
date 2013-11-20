@@ -232,9 +232,17 @@ local stageMapping = {
 	PENALTY_SHOOTOUT = "PenaltyShootout",
 	POST_GAME = "PostGame"
 }
-	
+
+-- keep for use by debugcommands.sendRefereeCommand
+local fullRefereeState = nil
+
+function World._getFullRefereeState()
+	return fullRefereeState
+end
+
 -- updates referee command and keeper information
 function World._updateGameState(state)
+	fullRefereeState = state
 	local refState = state.state
 	-- map referee command to own team
 	if World.TeamIsBlue then
