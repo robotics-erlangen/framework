@@ -17,7 +17,6 @@ require "../base/path"
 require "../base/math"
 require "../base/table"
 require "../base/vector"
-require "../base/userinput"
 
 math.randomseed(amun.getCurrentTime()) -- init rng
 

@@ -91,6 +91,7 @@ end
 function World.update()
 	World._updateWorld(amun.getWorldState())
 	World._updateGameState(amun.getGameState())
+	World._updateUserInput(amun.getUserInput())
 end
 
 -- Creates generation specific robot object for own team
@@ -289,6 +290,22 @@ function World._updateGameState(state)
 		required uint32 timeout_time = 7;
 	}]]
 end
+
+-- update and handle user inputs set for own robots
+function World._updateUserInput(input)
+	if input.radio_command then
+		for _, robot in pairs(World.FriendlyRobotsById) do
+			robot:_updateUserControl(nil) -- clear
+		end
+		for _, cmd in ipairs(input.radio_command) do
+			local robot = World.FriendlyRobotsById[cmd.id]
+			if robot then
+				robot:_updateUserControl(cmd.command)
+			end
+		end
+	end
+end
+
 
 --- Stops own robots and enables standby
 -- @name haltOwnRobots
