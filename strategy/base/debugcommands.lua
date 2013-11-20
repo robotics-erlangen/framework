@@ -4,7 +4,9 @@ module "debugcommands"
 ]]--
 local DebugCommands = {}
 local World = require "../base/world"
+local Coordinates = require "../base/coordinates"
 local sendRefereeCommand = amun.sendRefereeCommand
+local sendCommand = amun.sendCommand
 
 -- See stageMapping in World
 local stageUnmapping = {
@@ -77,6 +79,60 @@ function DebugCommands.sendRefereeCommand(refereeCommand, gameStage)
 	state.command = commandUnmapping[command] or "Start"
 	
 	sendRefereeCommand(state)
+end
+
+--- Move ball and robots to a given position.
+-- Every parameter in these data structures is required!
+-- ball: { pos = Vector, speed = Vector } <br/>
+-- robot: { pos = Vector, dir = number, speed = Vector, angularSpeed = number }
+-- @param [ball ball - ball target]
+-- @param [friendlyRobots robot[] - friendly robots by id]
+-- @param [opponentRobots robot[] - opponent robots by id]
+function DebugCommands.moveObjects(ball, friendlyRobots, opponentRobots)
+	local simCommand = { move_blue = {}, move_yellow = {} }
+	if ball then
+		assert(ball.pos and ball.speed, "ball parameter missing")
+		-- convert to global coordinate system
+		local pos = Coordinates.toGlobal(ball.pos)
+		local speed = Coordinates.toGlobal(ball.speed)
+		simCommand.move_ball = {
+			position = true, -- just position
+			p_x = pos.x, p_y = pos.y,
+			v_x = speed.x, v_y = speed.y
+		}
+	end
+
+	local friendly, opponent -- handle blue / yellow team selection
+	if World.TeamIsBlue then
+		friendly = simCommand.move_blue
+		opponent = simCommand.move_yellow
+	else
+		friendly = simCommand.move_yellow
+		opponent = simCommand.move_blue
+	end
+
+	for id, robot in pairs(friendlyRobots or {}) do
+		assert(robot.pos and robot.speed and robot.dir and robot.angularSpeed, "robot parameter missing")
+		local pos = Coordinates.toGlobal(robot.pos)
+		local speed = Coordinates.toGlobal(robot.speed)
+		table.insert(friendly, {
+			position = true, id = id, -- just position
+			p_x = pos.x, p_y = pos.y, phi = Coordinates.toGlobal(robot.dir),
+			v_x = speed.x, v_y = speed.y, omega = robot.angularSpeed
+		})
+	end
+	for id, robot in pairs(opponentRobots or {}) do
+		assert(robot.pos and robot.speed and robot.dir and robot.angularSpeed, "robot parameter missing")
+		local pos = Coordinates.toGlobal(robot.pos)
+		local speed = Coordinates.toGlobal(robot.speed)
+		table.insert(opponent, {
+			position = true,
+			p_x = pos.x, p_y = pos.y, phi = Coordinates.toGlobal(robot.dir),
+			v_x = speed.x, v_y = speed.y, omega = robot.angularSpeed
+		})
+	end
+
+	sendCommand({ simulator = simCommand })
 end
 
 return DebugCommands
