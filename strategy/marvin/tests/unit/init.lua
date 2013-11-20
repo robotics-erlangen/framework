@@ -44,12 +44,12 @@ local function runTest()
 	elseif testCount <= total then
 		local startTime = amun.getCurrentTime()
 		local fine, message = pcall(testFunction)
-		local runTime = math.round((amun.getCurrentTime() - startTime)*1000000)
+		local runTime = math.round((amun.getCurrentTime() - startTime)*1000000)/1000
 		if fine then
 			successfull = successfull + 1
-			log("<font color=\"darkgreen\">ok (" .. runTime .. "&#956;s)</font>")
+			log("<font color=\"darkgreen\">ok (" .. runTime .. "ms)</font>")
 		else
-			log("<font color=\"red\">fail (" .. runTime .. "&#956;s): " .. message .. "</font>")
+			log("<font color=\"red\">fail (" .. runTime .. "ms): " .. message .. "</font>")
 		end
 		log("")
 		testCount = testCount + 1
