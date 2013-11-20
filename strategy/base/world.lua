@@ -26,7 +26,8 @@ local amun = amun
 -- Halt, Stop, Game, GameForce,
 -- KickoffOffensivePrepare, KickoffDefensivePrepare, KickoffOffensive, KickoffDefensive,
 -- PenaltyOffensivePrepare, PenaltyDefensivePrepare, PenaltyOffensive, PenaltyDefensive,
--- DirectOffensive, DirectDefensive, IndirectOffensive, IndirectDefensive
+-- DirectOffensive, DirectDefensive, IndirectOffensive, IndirectDefensive,
+-- TimeoutOffensive, TimeoutDefensive
 -- @field GameStage string - current game stage, can be one of these:
 -- FirstHalfPre, FirstHalf, HalfTime, SecondHalfPre, SecondHalf,
 -- ExtraTimeBreak, ExtraFirstHalfPre, ExtraFirstHalf, ExtraHalfTime, ExtraSecondHalfPre, ExtraSecondHalf,
