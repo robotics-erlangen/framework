@@ -132,7 +132,7 @@ function DebugCommands.moveObjects(ball, friendlyRobots, opponentRobots)
 		})
 	end
 
-	sendCommand({ simulator = simCommand })
+	sendCommand({ simulator = simCommand, tracking = { reset = true } })
 end
 
 return DebugCommands
