@@ -51,7 +51,7 @@ local commandUnmapping = {
 }
 
 
---- Set referee command.
+--- Set referee command. The new values are not visible before the next frame!
 -- refereeCommand uses most values of World.RefereeState. However "Game" does not exist
 -- and "Kickoff...", "Penalty..." are only reachable via their "...Prepare" state followed by sending "Start"
 -- @usage DebugCommands.sendRefereeCommand("GameForce", "SecondHalf")
@@ -61,6 +61,8 @@ local commandUnmapping = {
 function DebugCommands.sendRefereeCommand(refereeCommand, gameStage)
 	assert(amun.isDebug, "only works in debug mode")
 	local origState = World._getFullRefereeState()
+	-- require origState to be populated, is guaranteed once World.update() was called
+	assert(origState, "Musn't be called before World.update(), that is outside of Entrypoints")
 	
 	-- fill message with default values
 	local state = { state = origState.state, stage = origState.stage,
