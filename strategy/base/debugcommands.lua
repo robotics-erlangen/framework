@@ -42,14 +42,22 @@ local commandUnmapping = {
 	IndirectYellow = "INDIRECT_FREE_YELLOW",
 	IndirectBlue = "INDIRECT_FREE_BLUE",
 	TimeoutYellow = "TIMEOUT_YELLOW",
-	TimeoutBlue = "TIMEOUT_BLUE"
+	TimeoutBlue = "TIMEOUT_BLUE",
+
+	KickoffYellow = "NORMAL_START", -- these entries are just used for validness checks
+	KickoffBlue = "NORMAL_START",
+	PenaltyYellow = "NORMAL_START",
+	PenaltyBlue = "NORMAL_START"
 }
 
+
 --- Set referee command.
--- refereeCommand is similar to World.RefereeState. But Game does not exist and KickOff, Penalty are only
--- reachable via their prepare state followed by "Start"
--- @param [refereeCommand string - similar to World.RefereeState]
--- @param [gameStage string - same as in World.GameStage]
+-- refereeCommand uses most values of World.RefereeState. However "Game" does not exist
+-- and "Kickoff...", "Penalty..." are only reachable via their "...Prepare" state followed by sending "Start"
+-- @usage DebugCommands.sendRefereeCommand("GameForce", "SecondHalf")
+-- @usage DebugCommands.sendRefereeCommand("DirectOffensive")
+-- @param [refereeCommand string - similar to values of World.RefereeState]
+-- @param [gameStage string - use value of World.GameStage]
 function DebugCommands.sendRefereeCommand(refereeCommand, gameStage)
 	assert(amun.isDebug, "only works in debug mode")
 	local origState = World._getFullRefereeState()
@@ -66,17 +74,29 @@ function DebugCommands.sendRefereeCommand(refereeCommand, gameStage)
 	-- update gamestage
 	if gameStage then
 		state.stage = stageUnmapping[gameStage]
+		if not state.stage then
+			error("Invalid game stage name: " .. gameStage)
+		end
 	end
 
-	-- unmap referee command from own team
-	local command = refereeCommand or World.RefereeCommand
+	-- unmap referee command from team local to global naming
+	-- that is revert Offensive/Defensive to Blue/Yellow
+	local origCommand = refereeCommand or World.RefereeState -- keep for error message
+	local command
 	if World.TeamIsBlue then
-		command = refereeCommand:gsub("Offensive", "Blue"):gsub("Defensive", "Yellow")
+		command = origCommand:gsub("Offensive", "Blue"):gsub("Defensive", "Yellow")
 	else
-		command = refereeCommand:gsub("Offensive", "Yellow"):gsub("Defensive", "Blue")
+		command = origCommand:gsub("Offensive", "Yellow"):gsub("Defensive", "Blue")
 	end
-	-- map "refereeState" to command or default to "Start"
-	state.command = commandUnmapping[command] or "Start"
+	-- map World.RefereeState = "Game" to "Start" command
+	if not refereeCommand and command == "Game" then
+		command = "Start"
+	end
+	-- map "refereeState" to command
+	state.command = commandUnmapping[command]
+	if not state.command then
+		error("Invalid referee command name: " .. origCommand)
+	end
 	
 	sendRefereeCommand(state)
 end
