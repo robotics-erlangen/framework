@@ -6,6 +6,7 @@ local Interval = require "util/interval"
 local Ball = require "observer/ball"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
+local Constants = require "../base/constants"
 
 --- returns a list of all non-free sectors
 -- the non-free sectors are not merged and not sorted
@@ -239,13 +240,15 @@ end
 
 --- Predicts the direction the ball will be shot into.
 -- Checks for ball movement, opponents near the ball, tries to predict passes
--- @return Vector - origin of movement
--- @return Vector - ball movement direction and speed
--- @return bool - if the ball is fast (and should be considered as a threat)
+-- @return pos Vector - origin of movement
+-- @return dir Vector - ball movement direction and speed
+-- @return isShot bool - if the ball is fast (and should be considered as a threat)
+-- @return passRecievers list - list of all robots that could recieve the pass
 function Goal.predictShot()
 	local dir = World.Ball.speed -- Defend ball by default
 	local pos = World.Ball.pos
 	local isShot = false
+	local passRecievers = {}
 
 	local friendlyBallOwner = Ball.friendlyBallOwner()
 	local oppBallOwner = Ball.opponentBallOwner()
@@ -260,22 +263,34 @@ function Goal.predictShot()
 		if (intersectGoal and math.abs(intersectGoal.x) > World.Geometry.FieldWidthHalf) or dir.y > 0 then
 			local target = nil
 			local targetDist = math.huge
+			local corridorHalf = dir:perpendicular():setLength(World.Ball.radius + Constants.positionError)
 			for _, robot in pairs(World.OpponentRobots) do
-				-- FIXME predict robot movement
-				local toRobot = robot.pos - pos
-				local robotWidthAngle = math.atan(math.bound(0, robot.radius / toRobot:length(), 1))
-				if toRobot:absoluteAngleDiff(dir) < 10 / 180 * math.pi + robotWidthAngle then
-					local rtargetDist = pos:distanceTo(robot.pos)
-					if rtargetDist < targetDist then
-						targetDist = rtargetDist
-						target = robot
+				local pointOnLine = robot.pos:nearestPosOnLine(pos, intersectGoal)
+				local ballRollTime = Ball.ballRollTime(dir:length(), (pointOnLine - pos):length())
+				local chance = Ball.ballCatchProbability(robot, 0, ballRollTime, pointOnLine, corridorHalf)
+				if chance > 0 then
+					local index = 1
+					local range = false
+					for k, p in pairs(passRecievers) do	-- find the position in the table, so that the table is still sorted (after ascending chance) after insertion
+						index = k
+						if p[2] > chance then
+							range = true
+							break
+						end
+					end
+					if range then
+						table.insert(passRecievers, index, {robot, chance})
+					else
+						table.insert(passRecievers, {robot, chance})
 					end
 				end
 			end
-			if target then -- if there is a pass reciever, just block it
+			local nPassRecievers = #passRecievers
+			if nPassRecievers > 0 then -- if there is a pass reciever, just block it
 				-- FIXME account for ball speed in dir calculation
-				dir = Vector.fromAngle(target.dir)
-				pos = target.pos
+				local passReciever = passRecievers[nPassRecievers]
+				dir = Vector.fromAngle(passReciever[1].dir)
+				pos = passReciever[1].pos
 			end
 		end
 		isShot = true
@@ -287,7 +302,7 @@ function Goal.predictShot()
 		dir = left + right
 	end
 
-	return pos, dir, isShot
+	return pos, dir, isShot, passRecievers
 end
 
 
