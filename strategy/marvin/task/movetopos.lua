@@ -1,6 +1,5 @@
 local MoveToPos = (require "../base/class").new("Task.MoveToPos", require "task/base")
 
-local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Rating = require "util/rating"
 

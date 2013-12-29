@@ -45,6 +45,7 @@ function Messaging.registerAgent(agent)
 	robotToAgent[agent:robot()] = agent
 end
 
+--- This Method has to be called before any agents run
 --- makes newMessages to deliveredMessages and creates a new newMessages table
 function Messaging.deliverMessages()
 	deliveredMessages = newMessages

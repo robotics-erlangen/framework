@@ -143,6 +143,8 @@ function amun._hideFunctions()
 	local strategyPath = amun.getStrategyPath()
 	local getCurrentTime = amun.getCurrentTime
 	local sendCommand = amun.sendCommand
+	local isPreparingSituation = amun.isPreparingSituation
+	local setPreparingSituation = amun.setPreparingSituation
 
 	-- overwrite global amun
 	amun = {
@@ -154,6 +156,8 @@ function amun._hideFunctions()
 	}
 	if isDebug then
 		amun.sendCommand = sendCommand
+		amun.isPreparingSituation = isPreparingSituation
+		amun.setPreparingSituation = setPreparingSituation
 	end
 
 	-- prevent reloading original api

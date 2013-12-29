@@ -9,6 +9,7 @@ require "control/coordinator"
 require "control/fixedroles"
 require "tests/tests"
 require "tests/unit/init"
+require "tests/situation/init"
 require "util/lineup"
 
 local testroles = require "agent/testlist"
