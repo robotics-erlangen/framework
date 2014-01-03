@@ -42,12 +42,7 @@ local commandUnmapping = {
 	IndirectYellow = "INDIRECT_FREE_YELLOW",
 	IndirectBlue = "INDIRECT_FREE_BLUE",
 	TimeoutYellow = "TIMEOUT_YELLOW",
-	TimeoutBlue = "TIMEOUT_BLUE",
-
-	KickoffYellow = "NORMAL_START", -- these entries are just used for validness checks
-	KickoffBlue = "NORMAL_START",
-	PenaltyYellow = "NORMAL_START",
-	PenaltyBlue = "NORMAL_START"
+	TimeoutBlue = "TIMEOUT_BLUE"
 }
 
 
@@ -65,11 +60,12 @@ function DebugCommands.sendRefereeCommand(refereeCommand, gameStage)
 	assert(origState, "Musn't be called before World.update(), that is outside of Entrypoints")
 	
 	-- fill message with default values
-	local state = { state = origState.state, stage = origState.stage,
+	local state = { state = origState.state, stage = origState.stage, -- default values
 		packet_timestamp = 0, command_timestamp = 0,
 		stage_time_left = origState.stage_time_left,
-		-- random command_counter to prevent interference with internal referee
-		command_counter = math.random(1000000),
+		-- internal referee uses the command counter as delta
+		-- 0 = don't change command, 1 = update command
+		command_counter = 0,
 		blue = origState.blue, yellow = origState.yellow
 	}
 
@@ -81,23 +77,21 @@ function DebugCommands.sendRefereeCommand(refereeCommand, gameStage)
 		end
 	end
 
-	-- unmap referee command from team local to global naming
-	-- that is revert Offensive/Defensive to Blue/Yellow
-	local origCommand = refereeCommand or World.RefereeState -- keep for error message
-	local command
-	if World.TeamIsBlue then
-		command = origCommand:gsub("Offensive", "Blue"):gsub("Defensive", "Yellow")
-	else
-		command = origCommand:gsub("Offensive", "Yellow"):gsub("Defensive", "Blue")
-	end
-	-- map World.RefereeState = "Game" to "Start" command
-	if not refereeCommand and command == "Game" then
-		command = "Start"
-	end
-	-- map "refereeState" to command
-	state.command = commandUnmapping[command]
-	if not state.command then
-		error("Invalid referee command name: " .. origCommand)
+	if refereeCommand then
+		-- map referee command from team local to global naming
+		-- that is revert *Offensive/Defensive to *Blue/Yellow
+		local command
+		if World.TeamIsBlue then
+			command = refereeCommand:gsub("Offensive", "Blue"):gsub("Defensive", "Yellow")
+		else
+			command = refereeCommand:gsub("Offensive", "Yellow"):gsub("Defensive", "Blue")
+		end
+		-- map "refereeState" to command
+		state.command = commandUnmapping[command]
+		if not state.command then
+			error("Invalid referee command name: " .. refereeCommand)
+		end
+		state.command_counter = 1 -- trigger command update
 	end
 	
 	sendRefereeCommand(state)
