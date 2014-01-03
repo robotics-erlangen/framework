@@ -65,11 +65,11 @@ function DebugCommands.sendRefereeCommand(refereeCommand, gameStage)
 	assert(origState, "Musn't be called before World.update(), that is outside of Entrypoints")
 	
 	-- fill message with default values
-	local state = { stage = origState.stage,
+	local state = { state = origState.state, stage = origState.stage,
 		packet_timestamp = 0, command_timestamp = 0,
 		stage_time_left = origState.stage_time_left,
-		-- use command_counter of -1 to force command update
-		command_counter = -1,
+		-- random command_counter to prevent interference with internal referee
+		command_counter = math.random(1000000),
 		blue = origState.blue, yellow = origState.yellow
 	}
 
