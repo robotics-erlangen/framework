@@ -242,7 +242,7 @@ function Coordinator:observeGameState()
 end
 
 local coord = nil
-Entrypoints.add("‏ main", function()
+Entrypoints.add(" main", function()
 	if not coord then
 		coord = Coordinator.create()
 	end
