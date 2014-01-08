@@ -9,6 +9,7 @@ local Goal = require "observer/goal"
 local Interval = require "util/interval"
 local Rating = require "util/rating"
 local Referee = require "util/referee"
+local Ball = require "observer/ball"
 
 Assistant.priority = 1
 
@@ -46,19 +47,21 @@ function Assistant:run()
 	end
 	
 	--bounding of playing field and shooting Line
-	self.shotPos = World.Ball.pos
-	local shotDir = World.Ball.speed:copy():setLength(World.Geometry.FieldHeightHalf)
-	self.shotTarget =self.shotPos+shotDir
-	--TODO shotTarget if ball is not shot
 	local lineStart = linePos
 	local lineEnd = linePos + self.lineDir
 	local northBound = World.Geometry.FieldWidthHalf - self._robot.radius
 	local southBound = -northBound
-	local shotIntersect = geom.intersectLinesByPoints(lineStart, lineEnd, self.shotPos, self.shotTarget)
-	if shotIntersect and shotIntersect.x >= self._robot.pos.x then
-		northBound = math.min(northBound, shotIntersect.x)
-	elseif shotIntersect and shotIntersect.x < self._robot.pos.x then
-		southBound = math.max(southBound, shotIntersect.x)
+	self.shotPos = World.Ball.pos
+	local shotDir = World.Ball.speed:copy():setLength(World.Geometry.FieldHeightHalf)
+	self.shotTarget = self.shotPos+shotDir
+	
+	if Ball.isShot() then
+		local shotIntersect = geom.intersectLinesByPoints(lineStart, lineEnd, self.shotPos, self.shotTarget)
+		if shotIntersect and shotIntersect.x >= self._robot.pos.x then
+			northBound = math.min(northBound, shotIntersect.x)
+		elseif shotIntersect and shotIntersect.x < self._robot.pos.x then
+			southBound = math.max(southBound, shotIntersect.x)
+		end
 	end
 	
 	--referee handling
