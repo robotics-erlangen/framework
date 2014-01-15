@@ -24,7 +24,8 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, radius)
 	
 	local G = World.Geometry
 	-- only keeper may enter friendly defense area
-	if World.FriendlyKeeper ~= robot then
+	-- don't add obstacles for friendly defense area if the robot is in the opponent half
+	if World.FriendlyKeeper ~= robot and robot.pos.y < 0 then
 		self:addCircle(G.FriendlyGoal.x - G.DefenseStretch / 2, G.FriendlyGoal.y, G.DefenseRadius + Settings.positionPadding, "DefenseArea_Left")
 		self:addCircle(G.FriendlyGoal.x + G.DefenseStretch / 2, G.FriendlyGoal.y, G.DefenseRadius + Settings.positionPadding, "DefenseArea_Right")
 		--self:addRect(G.FriendlyGoal.x - G.DefenseStretch / 2, G.FriendlyGoal.y,
@@ -32,7 +33,7 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, radius)
 		self:addCircle(G.FriendlyGoal.x, G.FriendlyGoal.y, G.DefenseRadius + Settings.positionPadding, "DefenseArea_Center")
 	end
 
-	if forbidOppDefenseArea then
+	if forbidOppDefenseArea and robot.pos.y > 0 then
 		self:addCircle(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y, G.DefenseRadius + G.FreeKickDefenseDist, "DefenseAreaOpp_Left")
 		self:addCircle(G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y, G.DefenseRadius + G.FreeKickDefenseDist, "DefenseAreaOpp_Right")
 		--self:addRect(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
@@ -51,19 +52,22 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, radius)
 
 	if not ignoreGoals then
 		local gw = G.GoalWallWidth / 2
-		self:addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - gw,
-				G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw, gw, "OwnGoal_Left")
-		self:addLine(G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - gw,
-				G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Right")
-		self:addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw,
-				G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Back")
-		
-		self:addLine(G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + gw,
-				G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw, gw, "OppGoal_Left")
-		self:addLine(G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + gw,
-				G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Right")
-		self:addLine(G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw,
-				G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Center")
+		-- add goal obstacles for the field half the robot is in
+		if robot.pos.y < 0 then
+			self:addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - gw,
+					G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw, gw, "OwnGoal_Left")
+			self:addLine(G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - gw,
+					G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Right")
+			self:addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw,
+					G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Back")
+		else
+			self:addLine(G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + gw,
+					G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw, gw, "OppGoal_Left")
+			self:addLine(G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + gw,
+					G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Right")
+			self:addLine(G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw,
+					G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Center")
+		end
 	end
 end
 
