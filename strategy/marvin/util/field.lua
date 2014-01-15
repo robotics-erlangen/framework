@@ -1,7 +1,7 @@
 local Field = {}
 
 local World = require "../base/world"
-local Referee = require "util/referee"
+local Referee = require "../base/referee"
 local G = World.Geometry
 local geom = require "../base/geom"
 local math = require "../base/math"
