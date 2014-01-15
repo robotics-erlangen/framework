@@ -9,7 +9,7 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
 local Field = require "util/field"
-local Referee = require "util/referee"
+local Referee = require "../base/referee"
 
 function CatchBall:_init()
 	error("Abstract base class!!!")

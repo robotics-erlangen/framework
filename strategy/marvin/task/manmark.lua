@@ -4,7 +4,7 @@ local Constants = require "../base/constants"
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Field = require "util/field"
-local Referee = require "util/referee"
+local Referee = require "../base/referee"
 
 ManMark.priority = 3
 

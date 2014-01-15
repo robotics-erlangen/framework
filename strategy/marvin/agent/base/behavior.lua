@@ -5,7 +5,7 @@ local Messaging = require "control/messaging"
 local World = require "../base/world"
 local Robot = require "observer/robot"
 local Rating = require "util/rating"
-local Referee = require "util/referee"
+local Referee = require "../base/referee"
 
 function Base:init(agent)
 	self._agent = agent

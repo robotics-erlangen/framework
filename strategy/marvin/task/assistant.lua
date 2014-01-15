@@ -8,7 +8,7 @@ local ToTarget = require "trajectory/totarget"
 local Goal = require "observer/goal"
 local Interval = require "util/interval"
 local Rating = require "util/rating"
-local Referee = require "util/referee"
+local Referee = require "../base/referee"
 local Ball = require "observer/ball"
 
 Assistant.priority = 1
