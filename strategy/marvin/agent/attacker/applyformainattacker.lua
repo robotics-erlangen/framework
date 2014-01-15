@@ -1,6 +1,6 @@
 local Base = require "agent/base/behavior"
 local ApplyForMainattacker = (require "../base/class").new("Agent.Attacker.ApplyForMainattacker", Base)
-local Referee = require "util/referee"
+local Referee = require "../base/referee"
 
 function ApplyForMainattacker:check()
 	if not Referee.isOpponentPenaltyState() then

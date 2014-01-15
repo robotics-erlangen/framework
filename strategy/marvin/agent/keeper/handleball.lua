@@ -3,7 +3,7 @@ local HandleBall = (require "../base/class").new("Agent.Keeper.HandleBall", Base
 
 local World = require "../base/world"
 local Field = require "util/field"
-local Referee = require "util/referee"
+local Referee = require "../base/referee"
 local ChipAway = require "task/chipaway"
 local AggressiveKeeper = require "task/aggressivekeeper"
 

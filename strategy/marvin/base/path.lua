@@ -2,7 +2,7 @@ local path = path
 local World = require "../base/world"
 local Constants = require "../base/constants"
 local Settings = require "settings"
-local Referee = require "util/referee"
+local Referee = require "../base/referee"
 
 function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, radius)
 	local ballDistance = 0

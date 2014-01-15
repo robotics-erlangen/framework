@@ -19,7 +19,7 @@ local debug = require "../base/debug"
 local Cache = require "../base/cache"
 local Processor = require "../base/processor"
 local Robot = require "observer/robot"
-local Referee = require "util/referee"
+local Referee = require "../base/referee"
 
 local preproc = (require "../base/class").new("Process.PreProc", require "../base/process")
 function preproc:run()

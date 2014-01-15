@@ -6,7 +6,7 @@ local Class = require "../base/class"
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
 local Rating = require "util/rating"
-local Referee = require "util/referee"
+local Referee = require "../base/referee"
 
 local PassReceiver = require "task/passreceiver"
 local PassTarget = require "task/passtarget"
