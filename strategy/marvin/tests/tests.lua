@@ -11,17 +11,17 @@ local Tests = {
 }
 
 for name,s in pairs(Tests) do
-	if type(s) == "table" then
-		for fn,f in pairs(s) do
-			if type(fn) == "string" and type(f) == "function" then
-				local testname = fn:match("^test(.+)")
-				if testname then
-					Entrypoints.add("tests/" .. name .. "/" .. testname, f)
-				end
+	if type(s) ~= "table" then
+		error("Invalid test! " .. name)
+	end
+
+	for fn,f in pairs(s) do
+		if type(fn) == "string" and type(f) == "function" then
+			local testname = fn:match("^test(.+)")
+			if testname then
+				Entrypoints.add("tests/" .. name .. "/" .. testname, f)
 			end
 		end
-	else
-		error("Invalid test! " .. name)
 	end
 end
 
