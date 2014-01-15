@@ -1,6 +1,7 @@
 local Goal = {}
 
 local World = require "../base/world"
+local Field = require "util/field"
 local G = World.Geometry
 local Interval = require "util/interval"
 local Ball = require "observer/ball"
@@ -260,12 +261,18 @@ function Goal.predictShot()
 		-- FIXME as the ball is moving also use pass check if it slightly misses the goal
 		-- TODO check whether an opponent robot may deflect the ball inside the keeper area?
 		-- check if there's a robot which may recieve the pass
-		if (intersectGoal and math.abs(intersectGoal.x) > World.Geometry.FieldWidthHalf) or dir.y > 0 then
+		if (intersectGoal and math.abs(intersectGoal.x) > World.Geometry.FieldWidthHalf) or dir.y > 0 then	-- if the ball moves away from our goal
+			local endOfField = Field.nextLineCut(pos, dir)
+			local lengthOfBallMovement = 0.5*dir:lengthSq()/(-Constants.ballDeceleration)
+			if (endOfField - pos):lengthSq() > lengthOfBallMovement*lengthOfBallMovement then
+				endOfField = pos + dir:scaleLength(lengthOfBallMovement)
+			end
+			vis.addCircle("end of field", endOfField, 0.02)
 			local target = nil
 			local targetDist = math.huge
 			local corridorHalf = dir:perpendicular():setLength(World.Ball.radius + Constants.positionError)
 			for _, robot in pairs(World.OpponentRobots) do
-				local pointOnLine = robot.pos:nearestPosOnLine(pos, intersectGoal)
+				local pointOnLine = robot.pos:nearestPosOnLine(pos, endOfField)
 				local ballRollTime = Ball.ballRollTime(dir:length(), (pointOnLine - pos):length())
 				local chance = Ball.ballCatchProbability(robot, 0, ballRollTime, pointOnLine, corridorHalf)
 				if chance > 0 then
@@ -283,6 +290,8 @@ function Goal.predictShot()
 					else
 						table.insert(passRecievers, {robot, chance})
 					end
+					vis.addCircle("may recieve pass", robot.pos, robot.radius, vis.fromRGBA(255, 63, 0, 255*chance), true)
+					vis.addPath("to catch position", {robot.pos, pointOnLine})
 				end
 			end
 			local nPassRecievers = #passRecievers
@@ -291,6 +300,7 @@ function Goal.predictShot()
 				local passReciever = passRecievers[nPassRecievers]
 				dir = Vector.fromAngle(passReciever[1].dir)
 				pos = passReciever[1].pos
+				vis.addCircle("recieves pass", pos, passReciever[1].radius, vis.colors.pink, false)
 			end
 		end
 		isShot = true
