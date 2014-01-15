@@ -3,6 +3,8 @@ local Field = {}
 local World = require "../base/world"
 local Referee = require "util/referee"
 local G = World.Geometry
+local geom = require "../base/geom"
+local math = require "../base/math"
 
 
 --- returns the nearest position inside the field (extended by boundaryWidth)
@@ -143,7 +145,32 @@ function Field.isInOwnCorner(pos, opp)
 	return (World.Geometry.FieldWidthHalf - math.abs(World.Ball.pos.x))^2
 		+ (oppfac * World.Geometry.FieldHeightHalf - World.Ball.pos.y)^2 < 1
 end
-	
+
+--- The position, where the half-line given by startPos and dir intersects the next field boundary
+-- startPos vector - the initial point of the half-line
+-- dir vector - the direction of the half-line
+function Field.nextLineCut(startPos, dir)
+	if dir.x == 0 and dir.y == 0 then
+		return
+	end
+	local width = Vector.create(G.FieldWidthHalf*math.sign(dir.x), 0)
+	local height = Vector.create(0, G.FieldHeightHalf*math.sign(dir.y))
+	local sideCut, sideLambda = geom.intersectLineLine(startPos, dir, width, height)
+	local frontCut, frontLambda = geom.intersectLineLine(startPos, dir, height, width)
+	if sideCut then
+		if frontCut then
+			if sideLambda < frontLambda then
+				return sideCut
+			else
+				return frontCut
+			end
+		else
+			return sideCut
+		end
+	else
+		return frontCut
+	end
+end
 
 
 return Field
