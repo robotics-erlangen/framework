@@ -215,7 +215,7 @@ function World._updateWorld(state)
 	table.append(World.Robots, World.OpponentRobots)
 end
 
-local stageMapping = {
+World.gameStageMapping = {
 	NORMAL_FIRST_HALF_PRE = "FirstHalfPre",
 	NORMAL_FIRST_HALF = "FirstHalf",
 	NORMAL_HALF_TIME = "HalfTime",
@@ -256,7 +256,7 @@ function World._updateGameState(state)
 		World.RefereeState = "Halt"
 	end
 	
-	World.GameStage = stageMapping[state.stage]
+	World.GameStage = World.gameStageMapping[state.stage]
 
 	local friendlyTeamInfo = World.TeamIsBlue and state.blue or state.yellow
 	local opponentTeamInfo = World.TeamIsBlue and state.yellow or state.blue
