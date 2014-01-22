@@ -246,7 +246,7 @@ end
 -- @return isShot bool - if the ball is fast (and should be considered as a threat)
 -- @return passRecievers list - list of all robots that could recieve the pass
 function Goal.predictShot()
-	local dir = World.Ball.speed -- Defend ball by default
+	local dir = World.Ball.speed:copy() -- Defend ball by default
 	local pos = World.Ball.pos
 	local isShot = false
 	local passRecievers = {}
