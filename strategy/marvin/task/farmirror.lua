@@ -43,7 +43,6 @@ function FarMirror:run()
 	local targetPos = Field.limitToField(pos, -self._robot.radius) 
 	for robot, posTmp in pairs(self._inbox.moveDest()) do
 		if targetPos:distanceTo(posTmp) < self._robot.radius and robot.id > self._robot.id then
-			log(1);
 			targetPos.x = -targetPos.x
 		end
 	end
