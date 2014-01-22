@@ -53,7 +53,9 @@ local commandUnmapping = {
 -- @usage DebugCommands.sendRefereeCommand("DirectOffensive")
 -- @param [refereeCommand string - similar to values of World.RefereeState]
 -- @param [gameStage string - use value of World.GameStage]
-function DebugCommands.sendRefereeCommand(refereeCommand, gameStage)
+-- @param [blueKeeperID int - yellow keeper id]
+-- @param [yellowKeeperID int - blue keeper id]
+function DebugCommands.sendRefereeCommand(refereeCommand, gameStage, blueKeeperID, yellowKeeperID)
 	assert(amun.isDebug, "only works in debug mode")
 	local origState = World._getFullRefereeState()
 	-- require origState to be populated, is guaranteed once World.update() was called
@@ -92,6 +94,14 @@ function DebugCommands.sendRefereeCommand(refereeCommand, gameStage)
 			error("Invalid referee command name: " .. refereeCommand)
 		end
 		state.command_counter = 1 -- trigger command update
+	end
+
+	if blueKeeperID then
+		state.blue.goalie = blueKeeperID
+	end
+
+	if yellowKeeperID then
+		state.yellow.goalie = yellowKeeperID
 	end
 	
 	sendRefereeCommand(state)
