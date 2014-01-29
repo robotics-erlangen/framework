@@ -20,6 +20,7 @@ local amun = amun
 -- @field OpponentKeeper Robot - Opponent keeper if on field or nil
 -- @field Robots Robot[] - Every visible robot in an arbitary order
 -- @field TeamIsBlue bool - True if we are the blue team, otherwise we're yellow
+-- @field IsSimulated bool - True if the world is simulated
 -- @field Time number - Current unix timestamp in seconds (with nanoseconds precision)
 -- @field TimeDiff number - Time since last update
 -- @field RefereeState string - current refereestate, can be one of these:
@@ -45,6 +46,7 @@ World.OpponentRobotsById = {}
 World.OpponentKeeper = nil
 World.Robots = {}
 World.TeamIsBlue = false
+World.IsSimulated = false
 
 World.Geometry = {}
 --- Field geometry.
@@ -152,6 +154,7 @@ function World._updateWorld(state)
 		World.TimeDiff = 0
 	end
 	World.Time = state.time * 1E-9
+	World.IsSimulated = state.is_simulated
 
 	local radioResponses = state.radio_response
 
