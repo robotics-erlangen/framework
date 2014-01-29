@@ -115,6 +115,8 @@ end
 -- @param [friendlyRobots robot[] - friendly robots by id]
 -- @param [opponentRobots robot[] - opponent robots by id]
 function DebugCommands.moveObjects(ball, friendlyRobots, opponentRobots)
+	assert(amun.isDebug, "only works in debug mode")
+	assert(World.IsSimulated, "This can only be used in the simulator!")
 	local simCommand = { move_blue = {}, move_yellow = {} }
 	if ball then
 		assert(ball.pos and ball.speed, "ball parameter missing")
