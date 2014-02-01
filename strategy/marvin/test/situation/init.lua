@@ -8,8 +8,8 @@ local debugcommands = require "../base/debugcommands"
 local vis = require "../base/vis"
 
 local situations = {
-	Duel = require "tests/situation/duel",
-	ShootOnEmptyGoal = require "tests/situation/shootonemptygoal",
+	Duel = require "test/situation/duel",
+	ShootOnEmptyGoal = require "test/situation/shootonemptygoal",
 }
 
 -- the precision for considering a robot to occupy a position
@@ -79,6 +79,7 @@ end
 
 local function init(situation_)
 	situation = situation_
+	assert(amun.isDebug, "only works in debug mode")
 
 	if World.TeamIsBlue then
 		-- situation is saved from yellow's point of view

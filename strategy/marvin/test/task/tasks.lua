@@ -1,6 +1,6 @@
 local TaskTests = {
-	DirectPass = require "tests/task/directpass",
-	Passing = require "tests/task/passing"
+	DirectPass = require "test/task/directpass",
+	Passing = require "test/task/passing"
 }
 
 local coord = nil

@@ -1,7 +1,7 @@
 local Entrypoints = require "../base/entrypoints"
 local World = require "../base/world"
 
-local tests = require "tests/unit/tests"
+local tests = require "test/unit/tests"
 local total = 0
 for _ in pairs(tests) do
 	total = total + 1

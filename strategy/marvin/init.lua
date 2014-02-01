@@ -6,14 +6,12 @@ local World = require "../base/world"
 
 local Entrypoints = require "../base/entrypoints"
 require "control/coordinator"
-require "control/fixedroles"
-require "tests/tests"
-require "tests/unit/init"
-require "tests/situation/init"
+require "test/tests"
+require "test/unit/init"
+require "test/situation/init"
 require "util/lineup"
-
-local testroles = require "agent/testlist"
-testroles.tasks = require "task/tasklist"
+require "test/fixedroles/init"
+local testroles = "test/fixedroles/roles"
 
 local debug = require "../base/debug"
 local Cache = require "../base/cache"
@@ -31,7 +29,6 @@ function preproc:isFinished()
     return false
 end
 Processor.addPre(preproc)
-    
 
 local wrapper = function (func)
 	return function()

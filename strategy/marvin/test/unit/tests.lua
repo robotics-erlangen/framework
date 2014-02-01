@@ -1,6 +1,6 @@
 local Test = {}
 
-Test.Messaging = require "tests/unit/messaging"
+Test.Messaging = require "test/unit/messaging"
 
 function Test.ShouldRunFast()
 end

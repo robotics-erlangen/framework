@@ -2,12 +2,12 @@ local Entrypoints = require "../base/entrypoints"
 
 --- Loads every test
 local Tests = {
-	BallTest = require "tests/observer/ball",
-	GameTest = require "tests/observer/game",
-	GoalTest = require "tests/observer/goal",
-	ObserverRobot = require "tests/observer/robot",
-	TaskTests = require "tests/task/tasks",
-	ShootTest = require "tests/observer/shoot"
+	BallTest = require "test/observer/ball",
+	GameTest = require "test/observer/game",
+	GoalTest = require "test/observer/goal",
+	ObserverRobot = require "test/observer/robot",
+	TaskTests = require "test/task/tasks",
+	ShootTest = require "test/observer/shoot"
 }
 
 for name,s in pairs(Tests) do
