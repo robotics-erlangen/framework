@@ -154,7 +154,7 @@ function DebugCommands.moveObjects(ball, friendlyRobots, opponentRobots)
 		local pos = Coordinates.toGlobal(robot.pos)
 		local speed = Coordinates.toGlobal(robot.speed)
 		table.insert(opponent, {
-			position = true,
+			position = true, id = id, -- just position
 			p_x = pos.x, p_y = pos.y, phi = Coordinates.toGlobal(robot.dir),
 			v_x = speed.x, v_y = speed.y, omega = robot.angularSpeed
 		})
