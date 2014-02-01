@@ -17,8 +17,7 @@ local situations = {
 local positionThreshold = 0.05
 local angleThreshold = math.pi / 18
 
-local coord = Coordinator.create()
-local situation, initialized
+local coordinator, situation, initialized
 local destinations = {} -- for setup, indexed by robot
 local setupAgents = {}
 local state -- can be one of "prepare", "arrived", "waitForForce", "game"
@@ -124,7 +123,7 @@ local function init(situation_)
 		amun.situationtestSetReady(false)
 	end
 
-	Messaging.deliverMessages() -- initialize the module
+	Messaging.deliverMessages() -- if strategy was reloaded, this removes old messages
 	initialized = true
 end
 
@@ -141,8 +140,8 @@ end
 local ballMessagePrinted = false
 local ballThanksMessagePrinted = true -- don't print if ball is already there
 local function checkBall()
-	if World.TeamIsBlue then
-		-- yellow team cares about ball
+	if not World.TeamIsBlue then
+		-- blue team cares about ball
 		return true
 	end
 	if World.Ball.pos:distanceTo(situation.ball.pos) > positionThreshold then
@@ -164,38 +163,7 @@ local function checkBall()
 end
 
 local function run()
-	if state == "prepare" then
-		if World.RefereeState ~= "GameForce" then
-			debugcommands.sendRefereeCommand("GameForce", nil)
-		end
-		for _, agent in ipairs(setupAgents) do
-			agent:run()
-		end
-		if allArrived() and checkBall() then
-			state = "arrived"
-			amun.situationtestSetReady(true)
-		end
-	elseif state == "arrived" then
-		if not (allArrived() and checkBall()) then
-			state = "prepare"
-			amun.situationtestSetReady(false)
-		end
-		if amun.situationtestIsOtherTeamReady() then
-			debugcommands.sendRefereeCommand("Halt")
-		end
-		if World.RefereeState == "Halt" then
-			state = "waitForForce"
-		end
-	elseif state == "waitForForce" then
-		if not (allArrived() and checkBall()) then
-			state = "prepare"
-			amun.situationtestSetReady(false)
-		end
-		if World.RefereeState == "GameForce" then
-			state = "game"
-			debugcommands.sendRefereeCommand(situation.refereeState, situation.gameStage)
-		end
-	elseif state == "game" then
+	if state == "game" then
 		if not amun.situationtestIsOtherTeamReady() and not World.IsSimulated then
 			state = "prepare"
 			amun.situationtestSetReady(false)
@@ -203,9 +171,45 @@ local function run()
 		if situation.observe then
 			situation.observe()
 		end
-		coord:run()
+		if not coordinator then
+			coordinator = Coordinator.create()
+		end
+		coordinator:run()
 	else
-		error("invalid state " .. state)
+		coordinator = nil
+		Messaging.deliverMessages()
+		if state == "prepare" then
+			if World.RefereeState ~= "GameForce" then
+				debugcommands.sendRefereeCommand("GameForce", nil)
+			end
+			for _, agent in ipairs(setupAgents) do
+				agent:run()
+			end
+			if allArrived() and checkBall() then
+				state = "arrived"
+				amun.situationtestSetReady(true)
+			end
+		elseif state == "arrived" then
+			if not (allArrived() and checkBall()) then
+				state = "prepare"
+				amun.situationtestSetReady(false)
+			end
+			if amun.situationtestIsOtherTeamReady() then
+				debugcommands.sendRefereeCommand("Halt")
+			end
+			if World.RefereeState == "Halt" then
+				state = "waitForForce"
+			end
+		elseif state == "waitForForce" then
+			if not (allArrived() and checkBall()) then
+				state = "prepare"
+				amun.situationtestSetReady(false)
+			end
+			if World.RefereeState == "GameForce" then
+				state = "game"
+				debugcommands.sendRefereeCommand(situation.refereeState, situation.gameStage)
+			end
+		end
 	end
 end
 
