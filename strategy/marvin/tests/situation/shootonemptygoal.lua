@@ -5,8 +5,8 @@ local situation = {
 	refereeState = "GameForce",
 	gameStage = "SecondHalf",
 	ball = { pos = Vector.create(-0.3,1), speed = Vector.create(-7.3011e-15,4.162e-15) },
-	yellowGoalie = 1,
-	yellowRobots = {
+	blueGoalie = 1,
+	blueRobots = {
 		[0] = {
 			pos = Vector.create(0.3,0.2),
 			dir = Vector.fromAngle(-math.pi*1.5),
@@ -14,6 +14,7 @@ local situation = {
 			angularSpeed = Vector.fromAngle(-3.26864e-06)
 		},
 	},
+	yellowGoalie = 0
 }
 
 local shotObserved = false

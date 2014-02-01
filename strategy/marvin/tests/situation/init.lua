@@ -16,38 +16,52 @@ local situations = {
 local positionThreshold = 0.05
 local angleThreshold = math.pi / 18
 
-local TODOCheckForSimulator = false
 local coord = Coordinator.create()
 local situation, initialized
 local destinations = {} -- for setup, indexed by robot
 local setupAgents = {}
 local state -- can be one of "prepare", "arrived", "waitForForce", "game"
 
-local function init(situation_)
-	situation = situation_
-	local robotDests = World.TeamIsBlue and situation.blueRobots or situation.yellowRobots
-	local keeperID = World.TeamIsBlue and situation.blueGoalie or situation.yellowGoalie
+local function invertCoordinates()
+	situation.ball.pos = -situation.ball.pos
+	situation.ball.speed = -situation.ball.speed
+	for _, dest in pairs(situation.yellowRobots or {}) do
+		dest.pos = -dest.pos
+		dest.dir = -dest.dir
+		dest.speed = -dest.speed
+		dest.angularSpeed = -dest.angularSpeed
+	end
+	for _, dest in pairs(situation.blueRobots or {}) do
+		dest.pos = -dest.pos
+		dest.dir = -dest.dir
+		dest.speed = -dest.speed
+		dest.angularSpeed = -dest.angularSpeed
+	end
+end
+
+local function getDestinations(isBlue)
+	local tmpDestinations = {}
+	local robotDests = isBlue and situation.blueRobots or situation.yellowRobots
+	local keeperID = isBlue and situation.blueGoalie or situation.yellowGoalie
+	local available = (isBlue == World.TeamIsBlue)
+		and World.FriendlyRobots or World.OpponentRobots
+
 	local requiredRobots = 0
-	for _, _ in pairs(robotDests) do
+	for _, _ in pairs(robotDests or {}) do
 		requiredRobots = requiredRobots + 1
 	end
-	assert(#World.FriendlyRobots == requiredRobots,
-		"this situation needs " .. requiredRobots .. " robots")
-
-	if World.TeamIsBlue then
-		for _, dest in pairs(robotDests) do
-			dest.pos = -dest.pos
-			dest.dir = -dest.dir
-			dest.speed = -dest.speed
-			dest.angularSpeed = -dest.angularSpeed
-		end
+	if requiredRobots == 0 then
+		return {}
 	end
-	
+	local color = isBlue and " blue" or " yellow"
+	assert(#available == requiredRobots,
+		"this situation needs " .. requiredRobots .. color .. " robots")
+
 	-- take available robots, ignore id described in situation
 	local unassignedRobots = {}
-	for _, robot in ipairs(World.FriendlyRobots) do
+	for _, robot in ipairs(available) do
 		if robot.id == keeperID then
-			destinations[robot] = robotDests[keeperID]
+			tmpDestinations[robot] = robotDests[keeperID]
 		else
 			table.insert(unassignedRobots, robot)
 		end
@@ -58,23 +72,42 @@ local function init(situation_)
 		if destId == keeperID then
 			destId, dest = next(robotDests, destId)
 		end
-		destinations[robot] = dest
+		tmpDestinations[robot] = dest
 	end
-	
+	return tmpDestinations
+end
+
+local function init(situation_)
+	situation = situation_
+
+	if World.TeamIsBlue then
+		-- situation is saved from yellow's point of view
+		invertCoordinates()
+	end
+
+	destinations = getDestinations(World.TeamIsBlue)
+
 	-- support Protobuf and Strategy stage names
 	if World.gameStageMapping[situation.gameStage] then
 		situation.gameStage = World.gameStageMapping[situation.gameStage]
 	end
 
-	if TODOCheckForSimulator then
-		local moveTargets = {}
-		for robot, destination in pairs(destinations) do
-			-- debugcommands.moveObjects() needs ids, don't take from situation
-			moveTargets[robot.id] = destination
+	if World.IsSimulated then
+		if World.TeamIsBlue then
+			local friendlyMoveTargets = {}
+			for robot, destination in pairs(destinations) do
+				friendlyMoveTargets[robot.id] = destination
+			end
+			local yellowDestinations = getDestinations(false)
+			local opponentMoveTargets = {}
+			for robot, destination in pairs(yellowDestinations) do
+				opponentMoveTargets[robot.id] = destination
+			end
+			debugcommands.moveObjects(situation.ball, friendlyMoveTargets, opponentMoveTargets)
+			debugcommands.sendRefereeCommand(situation.refereeState, situation.gameStage,
+				situation.blueGoalie, situation.yellowGoalie)
 		end
-		debugcommands.moveObjects(situation.ball, moveTargets)
-		--debugcommands.sendRefereeCommand(situation.refereeState, situation.gameStage,
-		--	situation.blueGoalie, situation.yellowGoalie)
+		amun.situationtestSetReady(true)
 		state = "game"
 	else
 		for robot, destination in pairs(destinations) do
@@ -86,10 +119,10 @@ local function init(situation_)
 		end
 		debugcommands.sendRefereeCommand("GameForce", nil, situation.blueGoalie, situation.yellowGoalie)
 		state = "prepare"
+		amun.situationtestSetReady(false)
 	end
 
 	Messaging.deliverMessages() -- initialize the module
-	amun.situationtestSetReady(false)
 	initialized = true
 end
 
@@ -136,7 +169,7 @@ local function run()
 		for _, agent in ipairs(setupAgents) do
 			agent:run()
 		end
-		if allArrived() and checkBall() then	
+		if allArrived() and checkBall() then
 			state = "arrived"
 			amun.situationtestSetReady(true)
 		end
@@ -175,7 +208,7 @@ local function run()
 end
 
 for name, situation in pairs(situations) do
-	Entrypoints.add("Situations/"..name, function() 
+	Entrypoints.add("Situations/"..name, function()
 		if not initialized then
 			init(situation)
 		else
@@ -183,3 +216,8 @@ for name, situation in pairs(situations) do
 		end
 	end)
 end
+
+Entrypoints.add("Situations/select File", function()
+	local ert = amun.selectSituation()
+	log(ert)
+end)
