@@ -10,6 +10,7 @@ local vis = require "../base/vis"
 local situations = {
 	Duel = require "test/situation/duel",
 	ShootOnEmptyGoal = require "test/situation/shootonemptygoal",
+	Pass = require "test/situation/pass"
 }
 
 -- the precision for considering a robot to occupy a position
@@ -195,7 +196,7 @@ local function run()
 			debugcommands.sendRefereeCommand(situation.refereeState, situation.gameStage)
 		end
 	elseif state == "game" then
-		if not amun.situationtestIsOtherTeamReady() then
+		if not amun.situationtestIsOtherTeamReady() and not World.IsSimulated then
 			state = "prepare"
 			amun.situationtestSetReady(false)
 		end
