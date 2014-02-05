@@ -2,12 +2,11 @@ local Entrypoints = require "../base/entrypoints"
 
 --- Loads every test
 local Tests = {
-	BallTest = require "test/observer/ball",
-	GameTest = require "test/observer/game",
-	GoalTest = require "test/observer/goal",
-	ObserverRobot = require "test/observer/robot",
-	TaskTests = require "test/task/tasks",
-	ShootTest = require "test/observer/shoot"
+	Ball = require "test/observer/ball",
+	Game = require "test/observer/game",
+	Goal = require "test/observer/goal",
+	Robot = require "test/observer/robot",
+	Shoot = require "test/observer/shoot"
 }
 
 for name,s in pairs(Tests) do
@@ -19,7 +18,7 @@ for name,s in pairs(Tests) do
 		if type(fn) == "string" and type(f) == "function" then
 			local testname = fn:match("^test(.+)")
 			if testname then
-				Entrypoints.add("tests/" .. name .. "/" .. testname, f)
+				Entrypoints.add("ObserverTest/" .. name .. "/" .. testname, f)
 			end
 		end
 	end
