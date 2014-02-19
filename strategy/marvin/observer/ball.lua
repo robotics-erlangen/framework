@@ -1,4 +1,5 @@
 local Ball = {} 
+local BallAnalyzer = (require "../base/class").new("Observer.Ball.Analyzer", require "../base/process")
 
 local Constants = require "../base/constants"
 local Cache = require "../base/cache"
@@ -9,7 +10,36 @@ local geom = require "../base/geom"
 local debug = require "../base/debug"
 local ObserverRobot = require "observer/robot"
 local vis = require "../base/vis"
+local MovingAverage = require "learning/movingaverage"
 
+
+function BallAnalyzer:init(ball, movingAverage)
+	self._ball = ball
+	self._movingAverage = movingAverage
+	self._recording = false
+	self._record = {}
+	self._stopTime = World.Time
+end
+
+function BallAnalyzer:update(slippingFriction, rollingFriction)
+	self._slippingFriction = slippingFriction
+	self._rollingFriction = rollingFriction
+end
+
+function BallAnalyzer:run()
+	if Ball.isShot() then
+		self._recording = true
+		self._stopTime = World.Time + 8	-- stop one acquisition and start the next, when the ball is shot again before the 8 sec countdown
+	end
+	if self._recording then
+		table.insert(self._record, self._ball.speed)
+	end
+	if World.Time > self._stopTime then
+		self._recording = false
+		-- analyze
+		self._record = {}
+	end
+end
 
 ---
 -- @return robot, number - the first robot to reach the ball together with the time it will have in advance to the next opponent
