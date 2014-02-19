@@ -14,8 +14,9 @@ StopAttack.priority = 4
 function StopAttack:_init()
 	self._pos = nil
 	self._dir = nil
-	self.framePfush = 0
 	self.offensive = World.Ball.pos.y > 0
+	self.lastLargestIntervalMid = 0
+	self.lastLargestIntervalSize = 0
 end
 
 function StopAttack:run()
@@ -30,22 +31,45 @@ function StopAttack:run()
 	--offensive: aim torwards enemy goal, else place in front of own goal
 	local largestInterval = nil
 	if self.offensive then
-		--TODO Hysterese
 		largestInterval = Goal.largestFreeSector(World.Ball.pos, World.OpponentRobots, true)
 		if largestInterval == nil then --middle of goal as fallback
 			largestInterval = {(World.Geometry.OpponentGoal - World.Ball.pos):angle(), (World.Geometry.OpponentGoal - World.Ball.pos):angle()}
 		end
+
+		--Hysterese
+		local largestIntervalSize = largestInterval[2] - largestInterval[1]
+		local freeSectors = Goal.freeSectors(World.Ball.pos, World.OpponentRobots, true)
+		for _, sector in pairs(freeSectors) do
+			if sector[1] - math.pi <= self.lastLargestIntervalMid and sector[2] - math.pi >= self.lastLargestIntervalMid and self.lastLargestIntervalSize > largestIntervalSize - 2 then --2 is magic constant
+				largestInterval = sector
+				break
+			end
+		end
+		self.lastLargestIntervalSize = largestInterval[2]-largestInterval[1]
+		
 		largestInterval[1] = largestInterval[1] - math.pi
 		largestInterval[2] = largestInterval[2] - math.pi
 	else
-		--TODO Hysterese
+
 		largestInterval = Goal.largestFreeSector(World.Ball.pos, RobotList.excludeRobot(World.FriendlyRobots, self._robot), false)
 		if largestInterval == nil then --middle of goal as fallback
 			largestInterval = {(World.Geometry.FriendlyGoal - World.Ball.pos):angle(), (World.Geometry.OpponentGoal - World.Ball.pos):angle()}
 		end
+		
+		--Hysterese
+		local largestIntervalSize = largestInterval[2] - largestInterval[1]
+		local freeSectors = Goal.freeSectors(World.Ball.pos, RobotList.excludeRobot(World.FriendlyRobots, self._robot), false)
+		for _, sector in pairs(freeSectors) do
+			if sector[1] <= self.lastLargestIntervalMid and sector[2] >= self.lastLargestIntervalMid and self.lastLargestIntervalSize > largestIntervalSize - 2 then --2 is magic constant
+				largestInterval = sector
+				break
+			end
+		end
+		self.lastLargestIntervalSize = largestInterval[2]-largestInterval[1]
 	end
-
+	
 	local targetAngle = (largestInterval[1] + largestInterval[2]) / 2
+	self.lastLargestIntervalMid = targetAngle
 	local minDist = World.Ball.radius + self._robot.radius + Constants.stopBallDistance + Settings.positionPadding
 	
 	local target = World.Ball.pos + Vector.fromAngle(targetAngle) * minDist

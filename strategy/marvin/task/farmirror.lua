@@ -40,23 +40,22 @@ function FarMirror:run()
 	local targetX = avgPos.x 
 	local targetY = getY(targetX)
 	local pos = Vector.create(targetX, targetY - self._robot.radius) 
-	self._targetPos = self._targetPos or Field.limitToField(pos, -self._robot.radius) 
-	for robot, pos in pairs(self._inbox.moveDest()) do
-		if self._targetPos:distanceTo(pos) < self._robot.radius and robot.id < self._robot.id then
-			self._targetPos.x = -self._targetPos.x
+	local targetPos = Field.limitToField(pos, -self._robot.radius) 
+	for robot, posTmp in pairs(self._inbox.moveDest()) do
+		if targetPos:distanceTo(posTmp) < self._robot.radius and robot.id > self._robot.id then
+			targetPos.x = -targetPos.x
 		end
 	end
-	self._targetPos = Field.limitToField(self._targetPos, -self._robot.radius)
-	debug.set("FarMirrorTargetPos", self._targetPos)
+	debug.set("FarMirrorTargetPos", targetPos)
 
 	-- assign pos to robot 
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
-	if self._targetPos:isNan() then
-		self._targetPos = Vector.create(0,-1.5)
+	if targetPos:isNan() then
+		targetPos = Vector.create(0,-1.5)
 	end
-	self._robot.trajectory:update(ToTarget, self._targetPos, math.pi/2)
-	self._send("all").moveDest(self._targetPos)
+	self._robot.trajectory:update(ToTarget, targetPos, math.pi/2)
+	self._send("all").moveDest(targetPos)
 end
 
 return FarMirror

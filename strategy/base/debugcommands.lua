@@ -53,7 +53,9 @@ local commandUnmapping = {
 -- @usage DebugCommands.sendRefereeCommand("DirectOffensive")
 -- @param [refereeCommand string - similar to values of World.RefereeState]
 -- @param [gameStage string - use value of World.GameStage]
-function DebugCommands.sendRefereeCommand(refereeCommand, gameStage)
+-- @param [blueKeeperID int - yellow keeper id]
+-- @param [yellowKeeperID int - blue keeper id]
+function DebugCommands.sendRefereeCommand(refereeCommand, gameStage, blueKeeperID, yellowKeeperID)
 	assert(amun.isDebug, "only works in debug mode")
 	local origState = World._getFullRefereeState()
 	-- require origState to be populated, is guaranteed once World.update() was called
@@ -93,6 +95,14 @@ function DebugCommands.sendRefereeCommand(refereeCommand, gameStage)
 		end
 		state.command_counter = 1 -- trigger command update
 	end
+
+	if blueKeeperID then
+		state.blue.goalie = blueKeeperID
+	end
+
+	if yellowKeeperID then
+		state.yellow.goalie = yellowKeeperID
+	end
 	
 	sendRefereeCommand(state)
 end
@@ -105,6 +115,8 @@ end
 -- @param [friendlyRobots robot[] - friendly robots by id]
 -- @param [opponentRobots robot[] - opponent robots by id]
 function DebugCommands.moveObjects(ball, friendlyRobots, opponentRobots)
+	assert(amun.isDebug, "only works in debug mode")
+	assert(World.IsSimulated, "This can only be used in the simulator!")
 	local simCommand = { move_blue = {}, move_yellow = {} }
 	if ball then
 		assert(ball.pos and ball.speed, "ball parameter missing")
@@ -142,7 +154,7 @@ function DebugCommands.moveObjects(ball, friendlyRobots, opponentRobots)
 		local pos = Coordinates.toGlobal(robot.pos)
 		local speed = Coordinates.toGlobal(robot.speed)
 		table.insert(opponent, {
-			position = true,
+			position = true, id = id, -- just position
 			p_x = pos.x, p_y = pos.y, phi = Coordinates.toGlobal(robot.dir),
 			v_x = speed.x, v_y = speed.y, omega = robot.angularSpeed
 		})

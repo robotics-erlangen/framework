@@ -10,7 +10,7 @@ local ShootGoal = require "task/shootgoal"
 local Volley = require "task/volley"
 local Class = require "../base/class"
 
-local USE_ADVANCED_DECISION_MAKING = true
+local USE_ADVANCED_DECISION_MAKING = false
 
 --TODO implement perfect estimate functions
 -- receivePass

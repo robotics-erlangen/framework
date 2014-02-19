@@ -41,6 +41,9 @@ function PassTarget:run()
 
 		local bestSector = Interval.getLargest(unoccupiedSectors)
 		local sectorMid = bestSector and (bestSector[1]+bestSector[2])/2 or (World.Ball.pos - self._robot.pos):angle()
+		if distanceToBall < 1 then
+			distanceToBall = 1
+		end
 		self.moveTo = World.Ball.pos + Vector.fromAngle(sectorMid):setLength(distanceToBall)
 		self.moveTo = Field.limitToAllowedField(self.moveTo, 0, true)
 	end
