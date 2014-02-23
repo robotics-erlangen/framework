@@ -200,4 +200,15 @@ function table.any(t, func)
 	return false
 end
 
+function table.split(t, lastIndexOfFirstPart)
+	local part1[lastIndexOfFirstPart], part2[#t-lastIndexOfFirstPart]
+	for i = 1, lastIndexOfFirstPart do
+		part1[i] = t[i]
+	end
+	for i = 1, #part2 do
+		part2[i] = t[i+lastIndexOfFirstPart]
+	end
+	return part1, part2
+end
+
 return table
