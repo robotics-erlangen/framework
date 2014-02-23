@@ -11,11 +11,15 @@ local debug = require "../base/debug"
 local ObserverRobot = require "observer/robot"
 local vis = require "../base/vis"
 local MovingAverage = require "learning/movingaverage"
+local math = require "../base/math"
 
 
-function BallAnalyzer:init(ball, movingAverage)
+function BallAnalyzer:init(ball, movingAverageSlipping, movingAverageRolling, slippingFrictionStart, rollingFrictionStart)
 	self._ball = ball
-	self._movingAverage = movingAverage
+	self._movingAverageSlipping = movingAverageSlipping
+	self._movingAverageRolling = movingAverageRolling
+	self._slippingFriction = slippingFrictionStart or -3.47
+	self._rollingFriction = rollingFrictionStart or -0.305
 	self._recording = false
 	self._record = {}
 	self._stopTime = World.Time
@@ -27,8 +31,14 @@ function BallAnalyzer:update(slippingFriction, rollingFriction)
 end
 
 function BallAnalyzer:run()
+	local results
 	if Ball.isShot() then
-		self._recording = true
+		if self._recording then
+			results = BallAnalyzer:analyze()
+			self._record = {}
+		else
+			self._recording = true
+		end
 		self._stopTime = World.Time + 8	-- stop one acquisition and start the next, when the ball is shot again before the 8 sec countdown
 	end
 	if self._recording then
@@ -36,9 +46,109 @@ function BallAnalyzer:run()
 	end
 	if World.Time > self._stopTime then
 		self._recording = false
-		-- analyze
+		results = BallAnalyzer:analyze()
 		self._record = {}
 	end
+	if results then
+		for _, v in ipairs(results[1]) do
+			self._movingAverageSlipping._addValue(v)
+		end
+		for _, v in ipairs(results[2]) do
+			self._movingAverageRolling._addValue(v)
+		end
+		BallAnalyzer:update(self._movingAverageSlipping:value(), self._movingAverageRolling:value())
+	end
+end
+
+local function BallAnalyzer:analyze()
+	local accelerationArray[#self._record-1]
+	for i = 1, #accelerationArray do
+		accelerationArray[i] = (self._record[i+1] - self._record[i]):length()*100
+	end
+	local deviation, limit = math.huge, #accelerationArray/10
+	local overallFriction = math.average(accelerationArray)
+	local slippingFriction, rollingFriction = self._slippingFriction, self._rollingFriction
+	local startRolling
+	while deviation > limit do
+		local ratio = (slippingFriction - overallFriction)/(rollingFriction - overallFriction)
+		startRolling = #accelerationArray/(1-ratio)
+		if startRolling >= 1 then
+			slippingFriction = math.average(accelerationArray, 0, math.floor(startRolling))
+		end
+		if startRolling <= #acceleration-1 then
+			rollingFriction = math.average(accelerationArray, math.ceil(startRolling))
+		end
+		deviation = 0
+		for i = 1, math.floor(startRolling) do
+			local diff = slippingFriction - accelerationArray[i]
+			deviation = deviation + diff*diff
+		end
+		for i = math.ceil(startRolling), #accelerationArray do
+			local diff = rollingFriction - accelerationArray[i]
+			deviation = deviation + diff*diff
+		end
+		-- vorsicht, bei starkem rauschen kann deviation gar nicht beliebig klein werden, daher eher mit der ableitung von deviation nach der anzahl der iterationen arbeiten
+	end
+	local slFrSmoothed, roFrSmoothed
+	if startRolling <= #accelerationArray-3 then
+		if startRolling >= 3 then
+			slippingFriction, rollingFriction = table.split(accelerationArray, math.floor(startRolling))
+			slFrSmoothed = BallAnalyzer.cutAndSmoothen(slippingFriction)
+			roFrSmoothed = BallAnalyzer.cutAndSmoothen(rollingFriction)
+		else
+			_, rollingFriction = table.split(accelerationArray, math.max(0, math.floor(startRolling)))
+			slFrSmoothed = {}
+			roFrSmoothed = BallAnalyzer.cutAndSmoothen(rollingFriction)
+		end
+	else
+		slippingFriction, _ = table.split(accelerationArray, math.min(math.floor(startRolling), #accelerationArray))
+		slFrSmoothed = BallAnalyzer.cutAndSmoothen(slippingFriction)
+		roFrSmoothed = {}
+	end
+	return slFrSmoothed, roFrSmoothed
+end
+
+local function BallAnalyzer.cutAndSmoothen(array)
+	local sum, arraySmoothed[#array-2] = 0
+	for i = 1, #arraySmoothed do
+		arraySmoothed[i] = 0.25*(array[i] + 2*array[i+1] + array[i+2])
+		sum = sum + arraySmoothed[i]
+	end
+	local avgSmoothed, maxDeviation, diff[#arraySmoothed] = sum/#arraySmoothed, 0
+	for k, v in ipairs(arraySmoothed) do
+		diff[k] = avgSmoothed - v
+		diff[k] = diff[k]*diff[k]
+		maxDeviation = maxDeviation + diff[k]
+	end
+	local deviation = maxDeviation
+	local avgDeviationHalf, closeEnough, cutStart, cutEnd, cutIndex = maxDeviation/(2*#diff), false, true, true, 1
+	repeat
+		if deviation < 0.5*maxDeviation then
+			closeEnough = true
+		else
+			if cutStart then
+				if not table.remove(arraySmoothed, cutIndex) or diff[cutIndex+1] < avgDeviationHalf then
+					cutStart = false
+				end
+			end
+			if cutEnd then
+				if not table.remove(arraySmoothed, #arraySmoothed-cutIndex+1) or diff[#arraySmoothed-cutIndex] < avgDeviationHalf then
+					cutEnd = false
+				end
+			end
+			if not (cutStart or cutEnd) or #arraySmoothed == 0 then
+				break
+			end
+			avgSmoothed = math.average(arraySmoothed)
+			deviation = 0
+			for k, v in ipairs(arraySmoothed) do
+				diff[k] = avgSmoothed - v
+				diff[k] = diff[k]*diff[k]
+				deviation = deviation + diff[k]
+			end
+		end
+	until closeEnough
+	return arraySmoothed
 end
 
 ---
