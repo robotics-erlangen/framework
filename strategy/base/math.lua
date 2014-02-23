@@ -135,4 +135,21 @@ function math.sign(number)
 	end
 end
 
+function math.average(array, indexStart, indexEnd)
+	local sum = 0
+	local n
+	if indexStart then
+		indexEnd = indexEnd or #array
+		for i = indexStart, indexEnd do
+			sum = sum + array[i]
+		end
+		n = indexEnd - indexStart
+	else
+		for _, v in pairs(array) do
+			sum = sum + v
+		end
+		n = #array
+	return sum/n
+end
+
 return math
