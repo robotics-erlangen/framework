@@ -60,9 +60,9 @@ function BallAnalyzer:run()
 	end
 end
 
-local function BallAnalyzer:analyze()
-	local accelerationArray[#self._record-1]
-	for i = 1, #accelerationArray do
+function BallAnalyzer:analyze()
+	local accelerationArray
+	for i = #self._record-1, 1, -1 do
 		accelerationArray[i] = (self._record[i+1] - self._record[i]):length()*100
 	end
 	local deviation, limit = math.huge, #accelerationArray/10
@@ -108,13 +108,13 @@ local function BallAnalyzer:analyze()
 	return slFrSmoothed, roFrSmoothed
 end
 
-local function BallAnalyzer.cutAndSmoothen(array)
-	local sum, arraySmoothed[#array-2] = 0
-	for i = 1, #arraySmoothed do
+function BallAnalyzer.cutAndSmoothen(array)
+	local sum, arraySmoothed = 0
+	for i = #array-2, 1, -1 do
 		arraySmoothed[i] = 0.25*(array[i] + 2*array[i+1] + array[i+2])
 		sum = sum + arraySmoothed[i]
 	end
-	local avgSmoothed, maxDeviation, diff[#arraySmoothed] = sum/#arraySmoothed, 0
+	local avgSmoothed, maxDeviation, diff = sum/#arraySmoothed, 0
 	for k, v in ipairs(arraySmoothed) do
 		diff[k] = avgSmoothed - v
 		diff[k] = diff[k]*diff[k]
