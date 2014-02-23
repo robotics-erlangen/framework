@@ -149,6 +149,7 @@ function math.average(array, indexStart, indexEnd)
 			sum = sum + v
 		end
 		n = #array
+	end
 	return sum/n
 end
 
