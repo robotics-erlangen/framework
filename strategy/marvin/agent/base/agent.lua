@@ -93,6 +93,10 @@ function Base:setTask(task)
 	self._task = task
 end
 
+function Base:task()
+	return self._task
+end
+
 function Base:robot()
 	return self._robot
 end
