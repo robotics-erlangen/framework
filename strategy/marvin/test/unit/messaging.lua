@@ -1,9 +1,11 @@
 local World = require "../base/world"
 local Messaging = require "control/messaging"
 local AgentAttacker = require "agent/attacker"
+local ShootGoal = require "task/shootgoal"
 
 return function()
 	assert(World.FriendlyRobots[3], "this test needs 3 robots on the field")
+	local dummyMsg = 2
 	local agent1 = AgentAttacker.create(World.FriendlyRobots[1])
 	Messaging.registerAgent(agent1)
 	local agent1send = Messaging.getSender(agent1, 1) -- priority 1
@@ -18,12 +20,12 @@ return function()
 	local agent3inbox = Messaging.getInbox(agent3, 3)
 	Messaging.deliverMessages() -- initializes the module
 
-	local noFail, msg = pcall(agent2send(agent2:robot()).foo, 2)
+	local noFail, msg = pcall(agent2send(agent2:robot()).foo, dummyMsg)
 	assert(not noFail, "sending an invalid message shall fail")
-	local noFail, msg = pcall(agent3send(agent2:robot()).moveDestDir, 2)
+	local noFail, msg = pcall(agent3send(agent2:robot()).moveDestDir, dummyMsg)
 	assert(noFail, "cannot send moveDestDir message")
 
-	agent2send("all").moveDestDir(2)
+	agent2send("all").moveDestDir(dummyMsg)
 	Messaging.deliverMessages()
 	local msg1 = agent3inbox.moveDestDir()[agent2:robot()]
 	assert(not msg1, "robots shall not receive messages with lower priority")
@@ -32,6 +34,12 @@ return function()
 	local msg3 = agent1inbox.moveDestDir()[agent2:robot()]
 	assert(msg3, "robots shall receive messages with higher priority")
 	
+	agent2send(agent3:robot()).moveDestDir(dummyMsg) -- task is currently nil
+	Messaging.deliverMessages()
+	agent2:setTask(ShootGoal.create(agent2))
+	local msg4 = agent3inbox.moveDestDir("ignorePriority")[agent2:robot()]
+	assert(not msg4, "messages from non-existent tasks shall not be delivered")
+
 	agent2send("trainer").specialRole({mainAttacker = 1})
 	agent1send("trainer").specialRole({mainAttacker = 0.5})
 	local mAApplications = Messaging.getSpecialRoleApplications()['mainAttacker']

@@ -31,13 +31,14 @@ for role, _ in pairs(specialRoles) do
 	msgDefs[role] = Robot
 end
 
--- a message is a table of the form 
--- { from: robot, mtype: testmessage, data: testtable, priority: 2 }
+-- a message is a table of the form
+-- { from: agent, mtype: testmessage, data: testtable, priority: 2 }
 -- from can also be the string "trainer"
 -- priority is optional and used by the tasks to filter out messages from tasks with lower priority
 local newMessages = { trainer = {} } -- table which is reset every frame with agent as key, array of messages as value
 local deliveredMessages = nil -- reference to the newMessages table of the last last frame
 local robotToAgent = {} -- track registered agents
+local taskDuringSending = {}
 
 local Messaging = {}
 
@@ -74,13 +75,15 @@ function Messaging.getInbox(agent, priority)
 			end
 			for _, msg in ipairs(deliveredMessages[agent]) do
 				if msg.mtype == messageType then
-					if request == "all"
-						or msg.from == "trainer"
-						or ((request == "ignorePriority" or priority == 0) and msg.from ~= agent:robot())
-						or (msg.priority > priority or (msg.priority == priority and msg.from.id > agent:robot().id))
-						then
-
+					if msg.from == "trainer" then
 						inboxMessages[msg.from] = msg.data
+					elseif request == "all"
+						or ((request == "ignorePriority" or priority == 0) and msg.from ~= agent)
+						or (msg.priority > priority or (msg.priority == priority and msg.from:robot().id > agent:robot().id))
+					then
+						if taskDuringSending[msg.from] == msg.from:task() then
+							inboxMessages[msg.from:robot()] = msg.data
+						end
 					end
 				end
 			end
@@ -112,11 +115,12 @@ function Messaging.getSender(agent, priority)
 				end
 				checkType(data, requestedType)
 				local msg = {
-					from = agent:robot(),
+					from = agent,
 					mtype = messageType,
 					data = data,
 					priority = priority
 				}
+				taskDuringSending[agent] = agent:task()
 				if receiver == "all" then
 					for _, mailbox in pairs(newMessages) do
 						table.insert(mailbox, msg)
@@ -151,7 +155,7 @@ function Messaging.getSpecialRoleApplications()
 				if not applications[role] then
 					applications[role] = {}
 				end
-				applications[role][msg.from] = rating
+				applications[role][msg.from:robot()] = rating
 			end
 		end
 	end
