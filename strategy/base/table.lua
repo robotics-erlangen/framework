@@ -211,4 +211,15 @@ function table.split(t, lastIndexOfFirstPart)
 	return part1, part2
 end
 
+--- Counts the number of elements in a table, iterated with pairs()
+-- @name count
+-- @param t table
+-- @return number
+function table.count(t)
+	local count = 0
+	for _,_ in pairs(t) do
+		count = count + 1
+	end
+	return count
+end
 return table

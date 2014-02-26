@@ -6,21 +6,23 @@ local World = require "../base/world"
 local Messaging = require "control/messaging"
 local debugcommands = require "../base/debugcommands"
 local vis = require "../base/vis"
+local debugtree = require "../base/debug"
 
 local situations = {
 	Duel = require "test/situation/duel",
 	ShootOnEmptyGoal = require "test/situation/shootonemptygoal",
-	Pass = require "test/situation/pass"
+	Pass = require "test/situation/pass",
+	goalKick = require "test/situation/goalkick"
 }
 
--- the precision for considering a robot to occupy a position
-local positionThreshold = 0.05
+local useBeaming = false -- or use World.IsSimulated
+local positionThreshold = 0.1 -- the precision for considering a position to be occupied
 local angleThreshold = math.pi / 18
-
-local coordinator, situation, initialized
-local destinations = {} -- for setup, indexed by robot
+local goalies = { blue = nil, yellow = nil }
+local destinations = { yellow = {}, blue = {} } -- for setup, inner objects indexed by robot
 local setupAgents = {}
 local state -- can be one of "prepare", "arrived", "waitForForce", "game"
+local situation, initialized
 
 local function invertCoordinates()
 	situation.ball.pos = -situation.ball.pos
@@ -39,96 +41,65 @@ local function invertCoordinates()
 	end
 end
 
-local function getDestinations(isBlue)
-	local tmpDestinations = {}
-	local robotDests = isBlue and situation.blueRobots or situation.yellowRobots
-	local keeperID = isBlue and situation.blueGoalie or situation.yellowGoalie
-	local available = (isBlue == World.TeamIsBlue)
-		and World.FriendlyRobots or World.OpponentRobots
-
-	local requiredRobots = 0
-	for _, _ in pairs(robotDests or {}) do
-		requiredRobots = requiredRobots + 1
+local function checkNumberOfRobots()
+	local ownColor = World.TeamIsBlue and "blue" or "yellow"
+	local otherColor = World.TeamIsBlue and "yellow" or "blue"
+	local ownRequired = table.count(situation[ownColor .. "Robots"])
+	local otherRequired = table.count(situation[otherColor .. "Robots"])
+	if #World.FriendlyRobots < ownRequired then
+		local num = (ownRequired - #World.FriendlyRobots)
+		local robot_s = num == 1 and " robot" or " robots"
+		error("this situation needs " .. num .. " more " .. ownColor .. robot_s)
+	elseif #World.FriendlyRobots > ownRequired then
+		local robot_s = ownRequired == 1 and " robot" or " robots"
+		log("this situation is encoded for " .. ownRequired .. " " .. ownColor .. robot_s)
 	end
-	if requiredRobots == 0 then
-		return {}
+	if #World.OpponentRobots ~= otherRequired then
+		local robot_s = otherRequired == 1 and " robot" or " robots"
+		log("this situation is encoded for " .. otherRequired .. " " .. otherColor .. robot_s)
 	end
-	local color = isBlue and " blue" or " yellow"
-	assert(#available == requiredRobots,
-		"this situation needs " .. requiredRobots .. color .. " robots")
-
-	-- take available robots, ignore id described in situation
-	local unassignedRobots = {}
-	for _, robot in ipairs(available) do
-		if robot.id == keeperID then
-			tmpDestinations[robot] = robotDests[keeperID]
-		else
-			table.insert(unassignedRobots, robot)
-		end
-	end
-	local destId, dest
-	for _, robot in ipairs(unassignedRobots) do
-		destId, dest = next(robotDests, destId)
-		if destId == keeperID then
-			destId, dest = next(robotDests, destId)
-		end
-		tmpDestinations[robot] = dest
-	end
-	return tmpDestinations
 end
 
-local function init(situation_)
-	situation = situation_
-	assert(amun.isDebug, "only works in debug mode")
-
-	if World.TeamIsBlue then
-		-- situation is saved from yellow's point of view
-		invertCoordinates()
-	end
-
-	destinations = getDestinations(World.TeamIsBlue)
-
-	-- support Protobuf and Strategy stage names
-	if World.gameStageMapping[situation.gameStage] then
-		situation.gameStage = World.gameStageMapping[situation.gameStage]
-	end
-
-	if World.IsSimulated then
-		if World.TeamIsBlue then
-			local friendlyMoveTargets = {}
-			for robot, destination in pairs(destinations) do
-				friendlyMoveTargets[robot.id] = destination
+local function computeDestinations()
+	local fieldRobots = {
+		blue = World.TeamIsBlue and World.FriendlyRobots or World.OpponentRobots,
+		yellow = World.TeamIsBlue and World.OpponentRobots or World.FriendlyRobots
+	}
+	local ownColor = World.TeamIsBlue and "blue" or "yellow"
+	for color, robots in pairs(fieldRobots) do
+		local index = 1
+		for id, dest in pairs(situation[color .. "Robots"]) do
+			if robots[index] then
+				destinations[color][robots[index]] = dest
+				if id == situation[color .. "Goalie"] then
+					goalies[color] = robots[index].id
+				end
+				index = index + 1
 			end
-			local yellowDestinations = getDestinations(false)
-			local opponentMoveTargets = {}
-			for robot, destination in pairs(yellowDestinations) do
-				opponentMoveTargets[robot.id] = destination
-			end
-			debugcommands.moveObjects(situation.ball, friendlyMoveTargets, opponentMoveTargets)
-			debugcommands.sendRefereeCommand(situation.refereeState, situation.gameStage,
-				situation.blueGoalie, situation.yellowGoalie)
 		end
-		amun.situationtestSetReady(true)
-		state = "game"
-	else
-		for robot, destination in pairs(destinations) do
-			local assignment = {
-				task = MoveToPos,
-				parameters = { destination.pos, destination.dir:angle() }
-			}
-			table.insert(setupAgents, TestAgent.create(robot, assignment))
-		end
-		debugcommands.sendRefereeCommand("GameForce", nil, situation.blueGoalie, situation.yellowGoalie)
-		state = "prepare"
-		amun.situationtestSetReady(false)
 	end
-
-	Messaging.deliverMessages() -- if strategy was reloaded, this removes old messages
-	initialized = true
 end
 
-local function allArrived()
-	for robot, destination in pairs(destinations) do
+local function getBeamTargets(isBlue)
+	local moveTargets = {}
+	for robot, destination in pairs(destinations[isBlue and "blue" or "yellow"]) do
+		moveTargets[robot.id] = destination
+	end
+	return moveTargets
+end
+
+local function createAgentsAndMoveTasks()
+	for robot, destination in pairs(destinations[World.TeamIsBlue and "blue" or "yellow"]) do
+		local assignment = {
+			task = MoveToPos,
+			parameters = { destination.pos, destination.dir:angle() }
+		}
+		table.insert(setupAgents, TestAgent.create(robot, assignment))
+	end
+end
+
+local function haveRobotsArrived()
+	for robot, destination in pairs(destinations[World.TeamIsBlue and "blue" or "yellow"]) do
 		if robot.pos:distanceTo(destination.pos) > positionThreshold or
 				destination.dir:angleDiff(Vector.fromAngle(robot.dir)) > angleThreshold then
 			return false
@@ -139,10 +110,9 @@ end
 
 local ballMessagePrinted = false
 local ballThanksMessagePrinted = true -- don't print if ball is already there
-local function checkBall()
+local function isBallPositioned()
 	if not World.TeamIsBlue then
-		-- blue team cares about ball
-		return true
+		return true -- blue team cares about ball
 	end
 	if World.Ball.pos:distanceTo(situation.ball.pos) > positionThreshold then
 		vis.addCircle("Manual Ball Position", situation.ball.pos, 0.05, vis.colors.red, true)
@@ -162,54 +132,81 @@ local function checkBall()
 	return true
 end
 
+local function init(situation_)
+	situation = situation_
+	assert(amun.isDebug, "only works in debug mode")
+	if World.TeamIsBlue then
+		invertCoordinates() -- situation is saved from yellow's point of view
+	end
+	checkNumberOfRobots()
+	computeDestinations()
+	if World.gameStageMapping[situation.gameStage] then -- support Protobuf and Strategy stage names
+		situation.gameStage = World.gameStageMapping[situation.gameStage]
+	end
+	if useBeaming then
+		if World.TeamIsBlue then
+			debugcommands.moveObjects(situation.ball, getBeamTargets(true), getBeamTargets(false))
+			debugcommands.sendRefereeCommand(situation.refereeState, situation.gameStage,
+				goalies.blue, goalies.yellow)
+			amun.situationtestSetBeamIndicator(true)
+		end
+		state = "game"
+	else
+		createAgentsAndMoveTasks()
+		debugcommands.sendRefereeCommand("GameForce", nil, goalies.blue, goalies.yellow)
+		state = "prepare"
+	end
+	Messaging.deliverMessages() -- initialize the module
+	initialized = true
+end
+
+local coordinator, arrivedTime
 local function run()
-	if state == "game" then
-		if not amun.situationtestIsOtherTeamReady() and not World.IsSimulated then
+	debugtree.set("situation state", state)
+	if state == "prepare" then
+		if World.RefereeState ~= "GameForce" then
+			debugcommands.sendRefereeCommand("GameForce", nil)
+		end
+		for _, agent in ipairs(setupAgents) do
+			agent:run()
+		end
+		if isBallPositioned() and haveRobotsArrived() then
+			state = "arrived"
+			arrivedTime = World.Time
+			debugcommands.sendRefereeCommand("Halt", nil)
+		end
+	elseif state == "arrived" then
+		if not (isBallPositioned() and haveRobotsArrived()) then
 			state = "prepare"
-			amun.situationtestSetReady(false)
 		end
-		if situation.observe then
-			situation.observe()
+		if World.RefereeState == "Halt" then
+			-- if other team is still in prepare, it sets "GameForce"
+			-- which should take less than 0.2 seconds
+			if World.Time - arrivedTime > 0.2 then
+				state = "waitForForce"
+			end
+		else
+			arrivedTime = World.Time
 		end
-		if not coordinator then
-			coordinator = Coordinator.create()
+	elseif state == "waitForForce" then
+		if not (haveRobotsArrived() and isBallPositioned()) then
+			state = "prepare"
+		end
+		if World.RefereeState == "GameForce" then
+			state = "game"
+			Messaging.deliverMessages() -- clear testagent messages
+			debugcommands.sendRefereeCommand(situation.refereeState, situation.gameStage)
+		end
+	elseif state == "game" then
+		if situation.observe then situation.observe() end
+		if not coordinator then coordinator = Coordinator.create() end
+		if useBeaming and amun.situationtestGetBeamIndicator() and (not World.TeamIsBlue) then
+			amun.situationtestSetBeamIndicator(false)
+			coordinator = Coordinator.create() -- reset
 		end
 		coordinator:run()
 	else
-		coordinator = nil
-		Messaging.deliverMessages()
-		if state == "prepare" then
-			if World.RefereeState ~= "GameForce" then
-				debugcommands.sendRefereeCommand("GameForce", nil)
-			end
-			for _, agent in ipairs(setupAgents) do
-				agent:run()
-			end
-			if allArrived() and checkBall() then
-				state = "arrived"
-				amun.situationtestSetReady(true)
-			end
-		elseif state == "arrived" then
-			if not (allArrived() and checkBall()) then
-				state = "prepare"
-				amun.situationtestSetReady(false)
-			end
-			if amun.situationtestIsOtherTeamReady() then
-				debugcommands.sendRefereeCommand("Halt")
-			end
-			if World.RefereeState == "Halt" then
-				state = "waitForForce"
-			end
-		elseif state == "waitForForce" then
-			if not (allArrived() and checkBall()) then
-				state = "prepare"
-				amun.situationtestSetReady(false)
-			end
-			if World.RefereeState == "GameForce" then
-				state = "game"
-				debugcommands.sendRefereeCommand(situation.refereeState, situation.gameStage)
-			end
-		end
+		error("invalid game state " .. state)
 	end
 end
 
@@ -222,8 +219,3 @@ for name, situation in pairs(situations) do
 		end
 	end)
 end
-
-Entrypoints.add("Situations/select File", function()
-	local ert = amun.selectSituation()
-	log(ert)
-end)
