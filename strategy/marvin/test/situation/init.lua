@@ -44,8 +44,8 @@ end
 local function checkNumberOfRobots()
 	local ownColor = World.TeamIsBlue and "blue" or "yellow"
 	local otherColor = World.TeamIsBlue and "yellow" or "blue"
-	local ownRequired = table.count(situation[ownColor .. "Robots"])
-	local otherRequired = table.count(situation[otherColor .. "Robots"])
+	local ownRequired = table.count(situation[ownColor .. "Robots"] or {})
+	local otherRequired = table.count(situation[otherColor .. "Robots"] or {})
 	if #World.FriendlyRobots < ownRequired then
 		local num = (ownRequired - #World.FriendlyRobots)
 		local robot_s = num == 1 and " robot" or " robots"
@@ -68,7 +68,7 @@ local function computeDestinations()
 	local ownColor = World.TeamIsBlue and "blue" or "yellow"
 	for color, robots in pairs(fieldRobots) do
 		local index = 1
-		for id, dest in pairs(situation[color .. "Robots"]) do
+		for id, dest in pairs(situation[color .. "Robots"] or {}) do
 			if robots[index] then
 				destinations[color][robots[index]] = dest
 				if id == situation[color .. "Goalie"] then
