@@ -26,7 +26,6 @@ Attacker._behaviors = {
 	Duel,
 	Shoot,
 	KickoffAssistant,
-	FreeKickDefender,
 	Default
 }
 
