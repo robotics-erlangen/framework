@@ -1,0 +1,142 @@
+Function: calculateVolleyParams
+	A passes to B and B shoots to goal
+
+
+
+Input:
+	A		pos		position of initiator
+	B		pos		position of shooter
+	gamma	angle	angle from B towards the goal target point
+	v		speed	the "pass receive" ball speed
+
+Calculated:
+	alpha	angle	angle from B to A
+	delta	angle	how much the ball direction changes (0 means directly back, +/- PI means no change), |gamma-alpha|
+
+Output:
+	phi		angle	where the shooter looks at
+
+
+	
+Relations, Thoughts and Formulas:
+	the faster the ball (v), the bigger the difference between where to look at (phi) and the goal (gamma)
+	in other words: parameter k depends on the pass speed v
+	v = 0 => k = 1 (ball is shot in the exact direction we look at)
+	v -> inf => k = 0 (ball just bounces of the dribbler)
+	v = 8 => k >= 1/2 (may consider the friction loss of the ball when bouncing of the dribbler)
+	
+1	without friction loss: k = 8/(v + 8)
+2	with friction loss: k = 8/(v*(1-mu) + 8) where 0 <= mu <= 1
+	mu = 1: all of the original ball speed gets absorbed by the dribbler friction
+	mu = 0: the ball gets completely reflected at the dribbler
+	
+	the resulting direction is composed by phi and alpha' where alpha' is the mirrored alpha
+3	alpha' = 2 * phi - alpha
+4	gamma = k * phi + (1-k) alpha'
+5	phi = (gamma + (1-k) alpha) / (2-k)
+
+Automatic tests:
+	mu cannot be directly calculated
+	if the ball gets shot too much in the direction the shooter looks, mu is too small
+	if the ball gets shot too much in the reflected direction, mu is too big
+
+Formulas compact:
+	maxspeed = 8
+6	k = maxspeed / ((1 - mu) * v + maxspeed)
+7	phi = (gamma + (1 - k) * alpha) / (2 - k)
+
+
+
+Problem:
+	the formulas assume that the ball reflection at the dribbler behaves just like light beams at a mirror
+	probably the ball doesn't jump off that much but roll a lot more sideways
+	in that case, mu has to be splitted in mu_vertical and mu_horizontal what makes automatic tests much more complicated
+	
+Approach 1:
+	rotate alpha relative to the robot direction -> phi = pi/2
+8		alpha* = alpha - (phi - pi/2)
+	calculate the angle of the vector scaled with mu_h and mu_v
+9		alpha_flat = Vector.fromAngle(alpha*).scaleXY(mu_h, mu_v):angle()
+	rotate it back and mirror the flattened vector
+10		alpha' = 2 * phi - (alpha_flat + (phi - pi/2))
+	somehow solve that stuff so that you get phi as a function of alpha, mu_h and mu_v
+
+Approach 2:
+	ignore it
+	probably the solution (6, 7) will be quite good in the most cases, but I'm not sure if good enough
+
+
+
+Learning:
+	shoot with phi(mu) to target
+	ball got shot at actual
+	calculate mu so that the ball would go to actual at the same phi
+	adjust mu
+
+
+
+
+
+
+===== Update 2014 =====
+
+Input:
+	A		pos		position of initiator
+	B		pos		position of shooter
+	gamma	angle	angle from B towards the goal target point
+	v_in	vector	the "pass receive" ball speed
+	v_out	vector	the "shoot" ball speed
+	v_s		speed 	how fast we want to shoot
+
+
+Other symbols:
+	S		vector	the momentum the shoot action gives
+	R		vector	the reflection of the ball
+	phi		angle	where the shooter looks at
+	alpha	angle	angle from B to A
+
+
+Idea:
+	if we want to be able to pass via volley, we need to control not only the direction, but also the
+	speed of the ball.
+
+
+Coordinate system:
+	x = from_angle(phi - pi/2)
+	y = from_angle(phi)
+
+
+Formula:
+1	v_out = S + R_x + R_y
+2	S = from_angle(phi) * v_s
+3	R_x = -from_angle(phi - pi/2) * sin(phi - alpha) * mu_x * |v_in|
+4	R_y = from_angle(phi) * cos(phi - alpha) * mu_y * |v_in|
+
+
+In global coordinates:
+	v_out_x = 	cos(phi) * v_s
+			-	sin(phi) * sin(phi - alpha) * mu_x * |v_in|
+			+	cos(phi) * cos(phi - alpha) * mu_y * |v_in|
+	v_out_y =	sin(phi) * v_s
+			+	cos(phi) * sin(phi - alpha) * mu_x * |v_in|
+			+	sin(phi) * cos(phi - alpha) * mu_y * |v_in|
+
+
+Gradient:
+	(v_s, phi) -> v_out_x
+	(v_s, phi) -> v_out_y
+
+	Grad(v_out_x) =	{
+		cos(phi),
+		-sin(phi) * v_s 
+		- mu_x * |v_in| * (cos(phi) * sin(phi - alpha) + sin(phi) * cos(phi - alpha))
+		- mu_y * |v_in| * (cos(phi) * sin(phi - alpha) + sin(phi) * cos(phi - alpha))
+	} = {
+		cos(phi),
+		- sin(phi) * v_s - (mu_x + mu_y) * |v_in| * (cos(phi) * sin(phi - alpha) + sin(phi) * cos(phi - alpha))
+	}
+	Grad(v_out_y) = {
+		sin(phi),
+		cos(phi) * v_s + (mu_x + mu_y) * |v_in| * (cos(phi) * cos(phi - alpha) - sin(phi) * sin(phi - alpha))
+	}
+
