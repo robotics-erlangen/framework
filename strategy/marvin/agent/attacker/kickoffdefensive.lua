@@ -21,8 +21,6 @@ function KickoffDefensive:check()
 	if (positiveState[World.RefereeState] or positiveState[World.GameStage])
 			and not blockState[World.RefereeState] then
 		return true
-	elseif World.RefereeState == "Game" then
-		return false
 	end
 	return false
 end
