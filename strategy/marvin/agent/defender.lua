@@ -3,7 +3,7 @@ local Defender = (require "../base/class").new("Agent.Defender", require "agent/
 local World = require "../base/world"
 
 local Penalty = require "agent/defender/penalty"
-local KickoffOffensive = require "agent/defender/kickoffoffensive"
+local Kickoff = require "agent/defender/kickoff"
 local HandleBall = require "agent/defender/handleball"
 local CenterBack = require "agent/defender/centerback"
 local Default = require "agent/defender/default"
@@ -12,7 +12,7 @@ Defender._behaviors = {
 	Penalty,
 	HandleBall,
 	CenterBack,
-	KickoffOffensive,
+	Kickoff,
 	Default
 }
 
