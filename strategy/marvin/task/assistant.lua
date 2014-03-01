@@ -102,7 +102,7 @@ function Assistant:run()
 	
 	-- lookup friendly assistants
 	local otherAssistants = {}
-	for robot, _ in pairs(self._inbox.assistantRating()) do
+	for robot, _ in pairs(self._inbox.assistantFlag()) do
 		otherAssistants[robot] = true
 	end
 	for robot, pos in pairs(self._inbox.moveDest()) do
@@ -153,7 +153,7 @@ function Assistant:run()
 	self._robot.trajectory:update(ToTarget, self.targetPos, self.targetDir)
 
 	self._send("all").moveDest(self.targetPos)
-	self._send("all").assistantRating(self.rating)
+	self._send("all").assistantFlag()
 end
 
 return Assistant

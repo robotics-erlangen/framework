@@ -123,12 +123,12 @@ end
 
 --- returns nil or a robot which can be passed to and, if there a more of them, the one who is closest to the opponent goal in combination with the biggest free goal sectors
 -- @param activeRobot - the robot who is searching for a pass receiver
--- @param messages - the messages object of a behaviour
+-- @param assistants - table of assistants indexed by robots
 -- @return robot or nil - the most suitable robot, if any 
-function Shoot.bestFreeAssistant(activeRobot, assistantRatings)
+function Shoot.bestFreeAssistant(activeRobot, assistants)
 	-- !!! ATTENTION !!! Assumes we are already at the ball 
 	local function canPassTo(r)
-		return assistantRatings[r] and Field.isInField(r.pos)
+		return assistants[r] and Field.isInField(r.pos)
 			and Robot.wayToRobotFree(r, activeRobot)
 	end
 	

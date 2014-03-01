@@ -5,7 +5,7 @@ local checkType = require "../base/typecheck"
 
 local msgDefs = {
 	-- multiple senders
-	assistantRating = "number",
+	assistantFlag = "flag",
 	defendedOpponent = Robot,
 	moveDest = "userdata",
 	moveDestDir = "number",
@@ -110,10 +110,12 @@ function Messaging.getSender(agent, priority)
 		local methods = {}
 		for messageType, requestedType in pairs(msgDefs) do
 			methods[messageType] = function(data, ...)
-				if select('#', ...) > 0 then
+				if requestedType == "flag" and data then
+					error("flag messages take no arguments")
+				elseif select('#', ...) > 0 then
 					error("too many arguments for sender function")
+					checkType(data, requestedType)
 				end
-				checkType(data, requestedType)
 				local msg = {
 					from = agent,
 					mtype = messageType,

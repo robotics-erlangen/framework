@@ -33,12 +33,12 @@ function Manual:_decideTargetGoal()
 end
 
 function Manual:_findBestPassTarget()
-	local ratings = self._inbox.assistantRating("ignorePriority")
+	local assistants = self._inbox.assistantFlag("ignorePriority")
 	
 	-- only search for pass targets until we found one
 	if not self._bestPassTarget then
 		local bestRobot, bestAngle = nil, math.pi
-		for r,_ in pairs(ratings) do
+		for r, _ in pairs(assistants) do
 			local angleDiff = math.abs((r.pos - World.Ball.pos):angle() - self._robot.dir)
 			if angleDiff < 20 /180*math.pi and angleDiff < bestAngle then
 				bestRobot = r
@@ -111,7 +111,7 @@ function Manual:run()
 	self._robot.trajectory:update(Direct, limitedSpeed, nil, input.omega)
 	
 	-- play assistant
-	self._send("all").assistantRating(42)
+	self._send("all").assistantFlag()
 end
 
 return Manual

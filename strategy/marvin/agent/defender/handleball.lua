@@ -20,7 +20,7 @@ function HandleBall:check()
 end
 
 function HandleBall:_updateTask()
-	local bestAssi = Shoot.bestFreeAssistant(self._robot, self._inbox.assistantRating("ignorePriority"))
+	local bestAssi = Shoot.bestFreeAssistant(self._robot, self._inbox.assistantFlag("ignorePriority"))
 	local _, timeAdvance = Ball.firstAtBall()
 	if bestAssi and timeAdvance > Settings.defenseRiskLevel then
 		return DirectPass, { bestAssi, true }
