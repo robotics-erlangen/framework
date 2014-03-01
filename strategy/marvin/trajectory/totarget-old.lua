@@ -58,6 +58,9 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		prev = cur
 	end
 	
+	-- distance without end speed hack
+	local waypointDist = dist
+
 	-- add additional waypoint to try reaching the end speed
 	if endSpeed:length() > 0 then
 		local extraDist = endSpeed:length() / self.parameters.factorProp
@@ -68,6 +71,8 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	-- only brake down to endSpeed
 	local brakeDist = maxSpeed / self.parameters.factorProp
 	brakeDist = math.bound(0, brakeDist, dist)
+	-- brake distance without end speed hack
+	local waypointBrakeDist = math.min(brakeDist, waypointDist)
 	
 	local v_robot = self.parameters.factorProp * brakeDist
 	local nextPoint = Vector.create(waypoints[1].p_x, waypoints[1].p_y)
@@ -79,7 +84,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		speed:setLength(self._robot.maxSpeed)
 	end
 
-	local time = (dist - brakeDist) / self._robot.maxSpeed + (1 / self.parameters.factorProp) * (math.log(brakeDist) + 4.60517) --4.6 is log(100)
+	local time = (waypointDist - waypointBrakeDist) / self._robot.maxSpeed + (1 / self.parameters.factorProp) * (math.log(waypointBrakeDist) + 4.60517) --4.6 is log(100)
 	if time < 0 then
 		time = 0
 	end
