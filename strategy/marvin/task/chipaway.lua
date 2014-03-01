@@ -19,15 +19,9 @@ function ChipAway:_canShoot()
 end
 
 function ChipAway:run()
-	-- try to hit an assistant	
+	-- FIXME consider that we are able to chip over opponents
 	if not self._chipTarget then
-		local bestRating = -1
-		for robot, rating in pairs(self._inbox.assistantFlag("ignorePriority")) do
-			if Robot.wayToRobotFree(robot, self._robot, true) and rating > bestRating then
-				self._chipTarget = robot
-				bestRating = rating
-			end
-		end
+		self._chipTarget = Shoot.bestFreeAssistant(self._robot, self._inbox.assistantFlag("ignorePriority"))
 	end
 	
 	local chipPos = self._chipTarget and self._chipTarget.pos or World.Geometry.OpponentGoal

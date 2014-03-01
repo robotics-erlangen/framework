@@ -119,7 +119,7 @@ function Messaging.getSender(agent, priority)
 				local msg = {
 					from = agent,
 					mtype = messageType,
-					data = data,
+					data = requestedType == "flag" and true or data,
 					priority = priority
 				}
 				taskDuringSending[agent] = agent:task()
