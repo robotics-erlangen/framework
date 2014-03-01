@@ -106,7 +106,8 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	-- setup obstacles
 	self._robot.path:setDefaultObstacles(self._robot, true, false, self._robot.shootRadius)
 	self._robot.path:addRobotObstacles(self._robot)
-	self:_createBallObstacles(self._robot.path, viewDir, ball, predictedBall)
+	self:_createRollingBallObstacle(self._robot.path, ball, predictedBall, moveDest)
+	self:_createBallCorridor(self._robot.path, viewDir, predictedBall)
 	
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, predictedBall.speed)
 	-- keep old time if no way was found
@@ -126,24 +127,29 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	self._lastBallSpeed = ball.speed
 end
 
-function CatchBall:_createBallObstacles(path, robotDir, currentBall, predictedBall)
-	-- minimum required time to touch the ball
-	local minTimeToBall = math.min(Robot.minTimeToBall(self._robot, currentBall), self._catchTime)
-	local minBall = Ball.atTime(minTimeToBall)
-
-	-- FIXME magic constant
+function CatchBall:_createRollingBallObstacle(path, currentBall, predictedBall, moveDest)
+  	-- minimum required time to touch the ball
+  	local minTimeToBall = math.min(Robot.minTimeToBall(self._robot, currentBall), self._catchTime)
+  	local minBall = Ball.atTime(minTimeToBall)
+  
 	-- TODO ensure that the obstacles don't interfer with moveDest
 	-- block connection between first touch point and target catch pos
-	if predictedBall.pos:distanceTo(minBall.pos) < 0.001 then
-		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - 0.001, 'ball')
-	else
-		path:addLine(predictedBall.pos.x, predictedBall.pos.y, minBall.pos.x, minBall.pos.y, predictedBall.radius - 0.001, 'ball')
-	end
-	
+	-- but only if we have to move around the ball
 	vis.addCircle("CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.greenHalf)
-	vis.addPath("CatchBall", {predictedBall.pos, minBall.pos}, vis.colors.greenHalf)
-	vis.addCircle("CatchBall", minBall.pos, predictedBall.radius, vis.colors.greenHalf)
-
+	local ballDist = predictedBall.pos:distanceTo(minBall.pos)
+	local robotTargetDist = self._robot.pos:distanceTo(moveDest)
+	if ballDist < 0.001 or (moveDest:distanceTo(currentBall.pos) < robotTargetDist 
+			and self._robot.pos:distanceTo(currentBall.pos) < robotTargetDist) then
+  		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - 0.001, 'ball')
+  	else
+  		path:addLine(predictedBall.pos.x, predictedBall.pos.y, minBall.pos.x, minBall.pos.y, predictedBall.radius - 0.001, 'ball')
+		vis.addPath("CatchBall", {predictedBall.pos, minBall.pos}, vis.colors.greenHalf)
+		vis.addCircle("CatchBall", minBall.pos, predictedBall.radius, vis.colors.greenHalf)
+  	end
+end
+  
+function CatchBall:_createBallCorridor(path, robotDir, predictedBall)
+	-- TODO ensure that the obstacles don't interfer with moveDest
 	-- create obstacles that force the robot to approach the ball from behind
 	local extraDist = 0.02 -- FIXME magic constant
 	-- corridor is wide enough to allow the ball to be catched somewhere in the dribbler
@@ -167,6 +173,7 @@ function CatchBall:_createBallObstacles(path, robotDir, currentBall, predictedBa
 	path:addLine(corridorStartRight.x, corridorStartRight.y, corridorEndRight.x, corridorEndRight.y, extraDist/2, 'ball_corridor2')
 	path:addLine(corridorEndLeft.x, corridorEndLeft.y, corridorEndRight.x, corridorEndRight.y, extraDist/2, 'ball_corridor3')
 
+	-- visualize obstacles
 	vis.addCircle("MoveCorridor", corridorEndRight, extraDist/2, vis.colors.redHalf)
 	vis.addCircle("MoveCorridor", corridorStartRight, extraDist/2, vis.colors.redHalf)
 	vis.addCircle("MoveCorridor", corridorEndLeft, extraDist/2, vis.colors.redHalf)
