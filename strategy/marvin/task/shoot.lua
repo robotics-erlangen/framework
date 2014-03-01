@@ -114,7 +114,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		self._travelStart = nil
 		self._travelLimit = false
 		-- just catch the ball, but keep a little distance to allow braking the robot
-		self:_catchBall(targetPos, shootDriveSpeed, Constants.positionError)
+		self:_catchBall(targetPos, Constants.positionError)
 	end
 
 	return isShooting

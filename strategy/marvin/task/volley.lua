@@ -110,7 +110,7 @@ function Volley:_volley(targetPos, targetSpeed)
 	-- catch the ball and shoot
 	local viewPoint = self._robot.pos + Vector.fromAngle(phi):scaleLength(10000)
 	self._robot:_shoot(v_s)
-	self:_catchBall(viewPoint, 4)
+	self:_catchBall(viewPoint)
 
 
 	vis.addCircle("Volley", targetPos, 0.1, vis.colors.greenHalf, true)

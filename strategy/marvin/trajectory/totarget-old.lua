@@ -11,16 +11,10 @@ function OldController:reset()
 		self.parameters.factorProp = 3
 		self.parameters.k_omega = 2
 		self.parameters.limitRot = 4 * math.pi
-		self.parameters.limitIntCtrl = 0.1 -- limit of integrating part
-		self.parameters.factorIntCtrl = 0 -- factor of integrating part
-		self.parameters.factorDiffCtrl = 0 -- factor of differential part
 	elseif (self._robot.generation == 2) then --generation 2011
-			self.parameters.factorProp = 5
-			self.parameters.k_omega = 3
-			self.parameters.limitRot = 2 * math.pi
-			self.parameters.limitIntCtrl = 0.03 -- limit of integrating part
-			self.parameters.factorIntCtrl = 0 -- factor of integrating part
-			self.parameters.factorDiffCtrl = 0 -- factor of differential part
+		self.parameters.factorProp = 5
+		self.parameters.k_omega = 3
+		self.parameters.limitRot = 2 * math.pi
 	else
 		self.parameters = nil
 	end
@@ -36,7 +30,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		return {}, Coordinates.toLocal(targetPos), 0
 	end
 	maxSpeed = maxSpeed or self._robot.maxSpeed
-	endSpeed = endSpeed or 0
+	endSpeed = endSpeed or Vector.create(0, 0)
 	
 	targetPos = Coordinates.toGlobal(targetPos)
 	targetDir = Coordinates.toGlobal(targetDir)
@@ -48,7 +42,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local waypoints = self._robot.path:get(robotPos.x, robotPos.y, targetPos.x, targetPos.y)
 
 	table.remove(waypoints, 1) -- remove robot position
-	if #waypoints == 0 then -- no waypoints left
+	if #waypoints == 0 and endSpeed:length() == 0 then -- no waypoints left
 		if self._robot.pos:distanceTo(targetPos) > 0.01 then
 			vis.addCircleRaw("waypoints", robotPos, 0.05, vis.colors.pinkHalf)
 		end
@@ -64,43 +58,26 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		prev = cur
 	end
 	
-	local brakeDist = maxSpeed / self.parameters.factorProp
-	if dist < brakeDist then
-		brakeDist = dist
+	-- add additional waypoint to try reaching the end speed
+	if endSpeed:length() > 0 then
+		local extraDist = endSpeed:length() / self.parameters.factorProp
+		table.insert(waypoints, prev + endSpeed:copy():setLength(extraDist))
+		dist = dist + extraDist
 	end
+
+	-- only brake down to endSpeed
+	local brakeDist = maxSpeed / self.parameters.factorProp
+	brakeDist = math.bound(0, brakeDist, dist)
 	
-	local v_robot = self.parameters.factorProp * brakeDist --math.sqrt(2 * self.parameters.factorProp * brakeDist)
+	local v_robot = self.parameters.factorProp * brakeDist
 	local nextPoint = Vector.create(waypoints[1].p_x, waypoints[1].p_y)
 	
 	local speed = (nextPoint - robotPos):setLength(v_robot)
 	
-	self.intCtrl = self.intCtrl + speed*World.TimeDiff * self.parameters.factorIntCtrl 	
-
-	-- bound integrating part of controller
-	if self.intCtrl:length() > self.parameters.limitIntCtrl then
-		self.intCtrl:setLength(self.parameters.limitIntCtrl)
-	end
-	
-	-- add integrating part of controller to speed
-	--log(self.parameters.factorDiffCtrl)
-	--log('robotSpeed=(%f|%f)', robotSpeed.x, robotSpeed.y)
-	--log('P=(%f|%f), I=(%f|%f), D=(%f|%f)', speed.x, speed.y, self.intCtrl.x, self.intCtrl.y, robotSpeed.x*self.parameters.factorDiffCtrl, robotSpeed.y*self.parameters.factorDiffCtrl)
-	
-	local robotAccel
-	if self.lastSpeed then
-		robotAccel = (robotSpeed - self.lastSpeed) / World.TimeDiff
-	else
-		robotAccel = Vector.create(0, 0)
-	end
-	self.lastSpeed = robotSpeed
-	speed = speed + self.intCtrl - robotAccel*self.parameters.factorDiffCtrl
-
 	-- bound speed to self._robot.maxSpeed without changing the direction
 	if speed:length() > self._robot.maxSpeed then
 		speed:setLength(self._robot.maxSpeed)
 	end
-
-	--log(speed:length())
 
 	local time = (dist - brakeDist) / self._robot.maxSpeed + (1 / self.parameters.factorProp) * (math.log(brakeDist) + 4.60517) --4.6 is log(100)
 	if time < 0 then

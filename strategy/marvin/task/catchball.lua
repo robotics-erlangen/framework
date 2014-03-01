@@ -17,10 +17,9 @@ end
 
 --- Tries to catch the ball, is designed for catching a moving ball
 -- @param targetPos Vector - point to look at when having catched the ball
--- @param endSpeed number - currently unused [the robot may drive with up to endSpeed or ballSpeed when it catches the ball, depending on which of both is higher]
 -- @param distanceToBall number - distance the robot should keep to the ball, only sensible for a stopped ball, defaults to 0
 -- @param maxSpeed number - maximun speed of the robot
-function CatchBall:_catchBall(targetPos, endSpeed, distanceToBall, maxSpeed)
+function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	-- TODO remove when trajectories are fully working
 	if Referee.isStopState() or Referee.isFriendlyFreeKickState() or World.RefereeState == "PenaltyOffensivePrepare" then
 		maxSpeed = math.bound(0.5, self._robot.pos:distanceTo(World.Ball.pos)/2, maxSpeed or 1)
@@ -109,11 +108,7 @@ function CatchBall:_catchBall(targetPos, endSpeed, distanceToBall, maxSpeed)
 	self._robot.path:addRobotObstacles(self._robot)
 	self:_createBallObstacles(self._robot.path, viewDir, ball, predictedBall)
 	
-	-- max of endSpeed and ball speed in target direction
-	local endSpeed = math.max(endSpeed, predictedBall.speed:dot(viewLine))
-	
-	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
-	--		predictedBall.speed + Vector.fromAngle(viewDir):setLength(endSpeed))
+	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, predictedBall.speed)
 	-- keep old time if no way was found
 	if time > 0 then
 		-- damp large value changes

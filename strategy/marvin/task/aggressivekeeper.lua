@@ -16,7 +16,7 @@ function AggressiveKeeper:run()
 
 	self._robot:chip(1)
 	self._robot.path:setDefaultObstacles(self._robot, true)
-	self._robot.trajectory:update(ToTarget, tpos, fromGoal, nil, 1) --FIXME magic constant for end speed: 1m/s
+	self._robot.trajectory:update(ToTarget, tpos, fromGoal)
 	
 	self._send("all").aggressiveKeeperPos(tpos)
 end

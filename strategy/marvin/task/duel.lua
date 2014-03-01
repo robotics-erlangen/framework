@@ -66,7 +66,7 @@ function Duel:run()
 			Debug.set("Decision", "catch ball")
 		end
 		-- just get the ball
-		self:_catchBall(viewPos, 0.2)
+		self:_catchBall(viewPos)
 	else
 		-- if we have the ball, but at least one opponent is nearby
 		self:_contest()

@@ -24,6 +24,7 @@ function OldController:_init()
 	self.intCtrl = Vector.create(0, 0)
 end
 
+-- FIXME update endSpeed meaning
 function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	self:reset()
 	if not self.parameters then

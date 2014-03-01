@@ -22,7 +22,7 @@ function PassReceiver:run()
 		vis.addCircle("PassReceiverCatchBallTargetPos", self.tPos, 0.01)
 		self._robot:setDribblerSpeed(1)
 		-- just get the ball
-		self:_catchBall(self.tPos, 0.2)
+		self:_catchBall(self.tPos)
 	else
 		vis.addCircle("ReceivePassMoveTo", self.moveTo, 0.03, vis.colors.blue, true)
 		self._robot.path:setDefaultObstacles(self._robot, true)
