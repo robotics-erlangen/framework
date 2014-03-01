@@ -21,7 +21,7 @@ end
 function ChipAway:run()
 	-- FIXME consider that we are able to chip over opponents
 	if not self._chipTarget then
-		self._chipTarget = Shoot.bestFreeAssistant(self._robot, self._inbox.assistantFlag("ignorePriority"))
+		self._chipTarget = Shoot.bestFreeAssistant(self._robot, self._inbox.attackerFlag("ignorePriority"))
 	end
 	
 	local chipPos = self._chipTarget and self._chipTarget.pos or World.Geometry.OpponentGoal

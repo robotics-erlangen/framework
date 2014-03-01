@@ -33,7 +33,7 @@ function Manual:_decideTargetGoal()
 end
 
 function Manual:_findBestPassTarget()
-	local assistants = self._inbox.assistantFlag("ignorePriority")
+	local assistants = self._inbox.attackerFlag("ignorePriority")
 	
 	-- only search for pass targets until we found one
 	if not self._bestPassTarget then
@@ -110,8 +110,8 @@ function Manual:run()
 	local limitedSpeed = self:_limitRobotSpeed(input.speed)
 	self._robot.trajectory:update(Direct, limitedSpeed, nil, input.omega)
 	
-	-- play assistant
-	self._send("all").assistantFlag()
+	-- play attacker
+	self._send("all").attackerFlag()
 end
 
 return Manual

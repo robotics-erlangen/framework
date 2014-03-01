@@ -62,7 +62,6 @@ function ReceivePass:check()
 end
 
 function ReceivePass:_updateTask()
-	self._send("all").assistantFlag() -- stay pass target by playing assistant
 	if self._catchingPass then
 		return PassReceiver
 	else

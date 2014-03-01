@@ -24,12 +24,16 @@ function Base:init(robot)
 	Messaging.registerAgent(self)
 end
 
+function Base:_run()
+end
+
 function Base:run()
 	debug.pushtop("Agent " .. self._robot.id)
 	debug.set(nil, Class.name(self, true))
 
 	self:_updateBehavior()
 	self:_runTaskAndBehavior()
+	self:_run()
 	
 	debug.pop() -- Agent
 end

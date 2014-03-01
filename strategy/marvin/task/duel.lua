@@ -199,7 +199,7 @@ end
 --		(for example: we spin around like crazy and still got the ball)
 --	pass to the best assistant (analyze notifications)
 function Duel:_passAway()
-	local bestAssistant = Shoot.bestFreeAssistant(self._robot, self._inbox.assistantFlag("ignorePriority"))
+	local bestAssistant = Shoot.bestFreeAssistant(self._robot, self._inbox.attackerFlag("ignorePriority"))
 	
 	local rating = bestAssistant and Shoot.rateAssistant(bestAssistant) or 0
 	local oldRating = self._bestAssistant and Shoot.rateAssistant(self._bestAssistant) or 0 

@@ -28,6 +28,13 @@ Attacker._behaviors = {
 	Default
 }
 
+function Attacker:_run()
+	if self._activeBehavior then
+		assert(self._activeBehavior._send, "behavior message interface changed")
+		self._activeBehavior._send("all").attackerFlag()
+	end
+end
+
 function Attacker.takeRobot(robots)
 	for _, robot in pairs(robots) do
 		if robot.isVisible then

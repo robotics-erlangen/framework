@@ -5,7 +5,7 @@ local checkType = require "../base/typecheck"
 
 local msgDefs = {
 	-- multiple senders
-	assistantFlag = "flag",
+	attackerFlag = "flag",
 	defendedOpponent = Robot,
 	moveDest = "userdata",
 	moveDestDir = "number",
