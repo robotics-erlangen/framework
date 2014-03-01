@@ -31,6 +31,7 @@ function Coordinator:init()
 		{ self._pools.hidden }
 	}
 	self.specialRoles = {} -- remember roles
+	self._ballInFriendlyFieldHalf = false -- remember for hysteresis
 	self._messages = nil
 end
 
@@ -58,11 +59,7 @@ function Coordinator:run()
 end
 
 function Coordinator:_updatePoolRobots()
-	-- calculate how many robots to use for attack / defense with hysteresis
-	local attackRatio = self:observeGameState()
-	local attackers = attackRatio/6 * #World.FriendlyRobots
-	attackers = math.roundUpwards(attackers, 0)
-	local defenders = #World.FriendlyRobots - attackers
+	local attackers, defenders = self:_calculateAttackRatio()
 	
 	-- if keeper is on the field, it is managed by the keeper pool
 	if World.FriendlyKeeper and World.FriendlyKeeper.isVisible then
@@ -71,7 +68,7 @@ function Coordinator:_updatePoolRobots()
 	
 	-- limit robot counts on attack/defense pool, causes automatic robot balancing
 	self._pools.attack:setRobotLimit(attackers)
-	self._pools.defense:setRobotLimit(defenders)
+	self._pools.defense:setRobotLimit(defenders) -- defenders may be negative
 	
 	-- remove no longer needed / surplus robots from pools
 	for _, pool in pairs(self._pools) do
@@ -138,107 +135,53 @@ function Coordinator:_chooseSpecialRoles()
 	end
 end
 
-function Coordinator:observeGameState()
-	-- original thoughts:
-	-- if opponent has ball and is in our half -> 5 defenders
-	-- if opponent has ball and is in his half -> 3-4 defenders
-	-- if we have ball in our half -> 3-4 defenders
-	-- if we have ball in opponent half -> 3 defenders
-	-- if we are in the opponent half and we've got a freekick -> 2-3 defenders
-	
-	-- ===== distribution table =====
-	-- formula: ratio{0, 1, 2, 3, 4, 5, 6} / 6 * robots, round up at 0.5
-	-- previous formula: ratio{0, 0.2, 0.3, 0.5, 0.7, 0.8, 1} * robots, round up at 0.4
-	-- 
-	-- 
-	-- #attackers depending on #robots and attackRatio
-	-- the + denotes, that the previous formula would have had an attacker more than the new one
-	--
-	--		ratio:	0	1	2	3	4	5	6
-	--				
-	-- 1 robot		0	0	0	1	1	1	1
-	-- 2 robots		0	0+	1	1	1+	2	2
-	-- 3 robots		0	1	1	2	2	3	3
-	-- 4 robots		0	1	1	2	3	3	4
-	-- 5 robots		0	1	2	3	3+	4	5
-	-- 6 robots		0	1	2	3	4	5	6
-	-- 7 robots		0	1+	2	4	5	6	7
-	-- 8 robots		0	1+	3	4	5+	7	8
-	-- 
-
-	-- ===== current implementation =====
-	-- General (ie Game, Stop)
-	-- 3/3 if Ball is at opponent field half (self._front == true)
-	-- 2/4 if Ball is at our field half
-	-- 
-	-- Kickoff Offensive
-	-- 4/2
-	-- Kickoff Defensive
-	-- 3/3
-	-- 
-	-- Goal-Kick Offensive
-	-- 3/3
-	-- Goal-Kick Defensive
-	-- 2/4
-	-- 
-	-- Corner-Kick Offensive
-	-- 4/2
-	-- Corner-Kick Defensive
-	-- 1/5
-	-- 
-	-- Throw-In Offensive
-	-- 3/3
-	-- Throw-In Defensive
-	-- 2/4
-	-- 
-	-- Penalty Shootout
-	-- 6/0
-
-	-- Calculations
-	if self._front == nil then
-		self._front = false
-	end
-	if self._front and World.Ball.pos.y < -0.5 or not self._front and World.Ball.pos.y > 0.5 then
-		self._front = not self._front
+function Coordinator:_calculateAttackRatio()
+	if (self._ballInFriendlyFieldHalf and World.Ball.pos.y < -0.5) or
+		(not self._ballInFriendlyFieldHalf and World.Ball.pos.y > 0.5)
+	then
+		self._ballInFriendlyFieldHalf = not self._ballInFriendlyFieldHalf
 	end
 	local friendlyCorner = Field.isInOwnCorner(World.Ball.pos, false)
 	local opponentCorner = Field.isInOwnCorner(World.Ball.pos, true)
 	
-	-- General
-	local attackRatio = self._front and 3 or 2	
-	
-	-- Kickoff
+	-- === Attacker/Defender Distrubuten ===
+	-- when there are 6 robots on the field, attackRatio is the number of attackers
+	-- for the general formula, see below
+	-- General (ie Game, Stop)
+	local attackRatio = self._ballInFriendlyFieldHalf and 3 or 2
+
 	if World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
 		attackRatio = 4
 	elseif World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
 		attackRatio = 3
-		
-	-- FreeKick
+
 	elseif World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
-		if friendlyCorner then
+		if friendlyCorner then -- Goal-Kick Offensive
 			attackRatio = 3
-		elseif opponentCorner then
+		elseif opponentCorner then -- Corner-Kick Offensive
 			attackRatio = 4
 		else
-			attackRatio = 3
+			attackRatio = 3 -- Throw-In Offensive
 		end
+
 	elseif World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
-		if friendlyCorner then
+		if friendlyCorner then -- Corner-Kick Defensive
 			attackRatio = 1
-		elseif opponentCorner then
+		elseif opponentCorner then -- Goal-Kick Defensive
 			attackRatio = 2
-		else
+		else -- Throw-In Defensive
 			attackRatio = 2
 		end
 	end
 	
-	-- Penalty Shootout
 	if World.GameStage == "PenaltyShootout" then
 		attackRatio = 6
 	end
 	
 	debug.set("AttackRatio", attackRatio)
-	return attackRatio
+	local attackers = math.roundUpwards(attackRatio/6 * #World.FriendlyRobots, 0)
+	local defenders = #World.FriendlyRobots - attackers
+	return attackers, defenders
 end
 
 local coord = nil

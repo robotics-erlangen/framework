@@ -15,7 +15,7 @@ function FixedRoles:_updatePoolRobots()
 	end
 end
 
-function FixedRoles:observeGameState() -- not needed
+function FixedRoles:_calculateAttackRatio() -- not needed
 end
 
 local test = nil
