@@ -11,7 +11,6 @@ local FreeKick = require "agent/attacker/freekick"
 local Duel = require "agent/attacker/duel"
 local Shoot = require "agent/attacker/shoot"
 local KickoffAssistant = require "agent/attacker/kickoffassistant"
-local FreeKickDefender = require "agent/attacker/freekickdefender"
 local Default = require "agent/attacker/default"
 local KickoffDefensive = require "agent/attacker/kickoffdefensive"
 
