@@ -1,7 +1,9 @@
-local ShootGoal = (require "../base/class").new("Task.ShootGoal", require "task/shoot")
+local ShootGoal = (require "../base/class").new("Task.ShootGoal", require "task/volley")
 
 local Goal = require "observer/goal"
 local Shoot = require "observer/shoot"
+
+local Volley = require "task/volley"
 
 local World = require "../base/world"
 local G = World.Geometry
@@ -92,6 +94,7 @@ end
 
 function ShootGoal:_init()
 	self._bestMid = G.OpponentGoal
+	Volley._init(self)
 end
 
 function ShootGoal:canShoot()
@@ -116,7 +119,11 @@ function ShootGoal:run()
 	end
 	-- shoot
 	vis.addPath("ShootGoalTarget",{World.Ball.pos, self.targetPoint})
-	self:_shoot(self.targetPoint, math.huge, true)
+	if true then
+		self:_volley(self.targetPoint, math.huge)
+	else
+		self:_shoot(self.targetPoint, math.huge, true)
+	end
 end
 
 return ShootGoal
