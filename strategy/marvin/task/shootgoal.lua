@@ -119,7 +119,9 @@ function ShootGoal:run()
 	end
 	-- shoot
 	vis.addPath("ShootGoalTarget",{World.Ball.pos, self.targetPoint})
-	if true then
+
+	-- TODO discuss if the layer above (a/a/shoot) should choose between volley and shoot instead
+	if World.Ball.speed:length() > Settings.fastBall then
 		self:_volley(self.targetPoint, math.huge)
 	else
 		self:_shoot(self.targetPoint, math.huge, true)
