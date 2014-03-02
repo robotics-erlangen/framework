@@ -15,6 +15,7 @@ local msgDefs = {
 
 	-- single sender
 	aggressiveKeeperPos = "userdata",
+	shootDestination = "userdata",
 	passPos = "userdata", -- where the pass in the run is shot
 	passSender = "string", -- type of pass (direct/in the run)
 	duelAssistantPos = "userdata",

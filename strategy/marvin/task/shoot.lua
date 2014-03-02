@@ -116,7 +116,9 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		-- just catch the ball, but keep a little distance to allow braking the robot
 		self:_catchBall(targetPos, Constants.positionError)
 	end
-
+	if (not self._catchTime) or self._catchTime < 0.5 then
+		self._send("all").shootDestination(targetPos)
+	end
 	return isShooting
 end
 
