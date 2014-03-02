@@ -99,7 +99,7 @@ function Volley:_volley(targetPos, targetSpeed)
 		end
 
 		local viewPoint = self._robot.pos + Vector.fromAngle(phi):scaleLength(10000)
-		vis.addPath("Volley", {self._robot.pos, viewPoint}, vis.colors.greenHalf)
+		vis.addPath("Volley Iterations", {self._robot.pos, viewPoint}, vis.colors.greenHalf)
 
 
 		--log("(" .. i .. ") v_s: " .. v_s .. "      phi: " .. phi)
@@ -107,13 +107,22 @@ function Volley:_volley(targetPos, targetSpeed)
 
 	--log("angle: " .. phi .. "   speed: " .. v_s)
 
-	-- catch the ball and shoot
+	-- catch the ball
 	local viewPoint = self._robot.pos + Vector.fromAngle(phi):scaleLength(10000)
-	self._robot:_shoot(v_s)
 	self:_catchBall(viewPoint)
 
+	-- shoot if the robot looks in the right direction
+	local angle_error = math.abs(geom.getAngleDiff(self._robot.dir, phi))
+	if angle_error < 4 / 180 * math.pi then
+		self._shooting = true
+	elseif angle_error > 6 / 180 * math.pi then
+		self._shooting = false
+	end
+	if self._shooting then
+		self._robot:_shoot(v_s)
+	end
 
-	vis.addCircle("Volley", targetPos, 0.1, vis.colors.greenHalf, true)
+	vis.addCircle("Volley", targetPos, 0.1, vis.colors.redHalf, true)
 	vis.addPath("Volley", {self._robot.pos, viewPoint}, vis.colors.green)
 	vis.addPath("Volley", {self._robot.pos, targetPos}, vis.colors.red)
 
