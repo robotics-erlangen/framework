@@ -98,7 +98,9 @@ function geom.getInnerTangentsToCircles(centerpoint1, radius1, centerpoint2, rad
 end
 
 --- Intersects two lines.
--- Returns intersection and lambdas for each line. If no intersection exists return nothing!
+-- Returns intersection and lambdas for each line.
+-- If no intersection exists return nothing!
+-- If two lines are the same they are considered parallel, so no intersection exists
 -- @name intersectLineLine
 -- @param pos1 Vector - Start point of line 1
 -- @param dir1 Vector - Direction of line 1
