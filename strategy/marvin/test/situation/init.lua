@@ -46,15 +46,15 @@ local function checkNumberOfRobots()
 	local otherColor = World.TeamIsBlue and "yellow" or "blue"
 	local ownRequired = table.count(situation[ownColor .. "Robots"] or {})
 	local otherRequired = table.count(situation[otherColor .. "Robots"] or {})
-	if #World.FriendlyRobots < ownRequired then
-		local num = (ownRequired - #World.FriendlyRobots)
+	if table.count(World.FriendlyRobotsById) < ownRequired then
+		local num = (ownRequired - table.count(World.FriendlyRobotsById))
 		local robot_s = num == 1 and " robot" or " robots"
 		error("this situation needs " .. num .. " more " .. ownColor .. robot_s)
-	elseif #World.FriendlyRobots > ownRequired then
+	elseif table.count(World.FriendlyRobotsById) > ownRequired then
 		local robot_s = ownRequired == 1 and " robot" or " robots"
 		log("this situation is encoded for " .. ownRequired .. " " .. ownColor .. robot_s)
 	end
-	if #World.OpponentRobots ~= otherRequired then
+	if table.count(World.OpponentRobotsById) ~= otherRequired then
 		local robot_s = otherRequired == 1 and " robot" or " robots"
 		log("this situation is encoded for " .. otherRequired .. " " .. otherColor .. robot_s)
 	end
