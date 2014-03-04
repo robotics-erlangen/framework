@@ -146,3 +146,4 @@ end
 
 --return OldController
 return require "trajectory/totarget-old"
+--return require "trajectory/curvedmaxaccel"
