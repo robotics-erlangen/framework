@@ -91,10 +91,12 @@ end
 --- Update world state.
 -- Has to be called once each frame
 -- @name update
+-- @return bool - false if no vision data was received since strategy start
 function World.update()
-	World._updateWorld(amun.getWorldState())
+	local hasVisionData = World._updateWorld(amun.getWorldState())
 	World._updateGameState(amun.getGameState())
 	World._updateUserInput(amun.getUserInput())
+	return hasVisionData
 end
 
 -- Creates generation specific robot object for own team
@@ -216,6 +218,9 @@ function World._updateWorld(state)
 	
 	World.Robots = table.copy(World.FriendlyRobots)
 	table.append(World.Robots, World.OpponentRobots)
+
+	-- no vision data only if the parameter is false
+	return state.has_vision_data ~= false
 end
 
 World.gameStageMapping = {

@@ -33,7 +33,9 @@ Processor.addPre(preproc)
 local wrapper = function (func)
 	return function()
 		-- require "../test/debug/enable"
-		World.update()
+		if not World.update() then
+			return -- skip processing if no vision data is available yet
+		end
 		Processor.pre()
 		if not func() then -- Entrypoint has to return true if robots shouldn't be stopped on halt
 			if World.RefereeState == "Halt" then
