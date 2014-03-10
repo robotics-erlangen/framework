@@ -523,10 +523,14 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 
 	--TODO: implement robot rotation, also handle case that distance left is zero
 
+	local limitRot = 2 * math.pi
+	local errorPhi = geom.getAngleDiff(robotDir, Coordinates.toGlobal(targetDir))
+	local angularSpeed = math.bound(-limitRot, 3 * errorPhi, limitRot)
+
 	local spline = { {t_start = 0, t_end = math.huge,
 		x = { a0 = robotPos.x, a1 = speedVector.x, a2 = accelVector.x, a3 = 0 },
 		y = { a0 = robotPos.y, a1 = speedVector.y, a2 = accelVector.y, a3 = 0 },
-		phi = { a0 = Coordinates.toGlobal(targetDir), a1 = 0, a2 = 0, a3 = 0}
+		phi = { a0 = robotDir, a1 = angularSpeed, a2 = 0, a3 = 0}
 	} }
 
 	local endTime = speedProfile[#speedProfile][1]
