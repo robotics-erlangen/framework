@@ -23,6 +23,9 @@ function ChipAway:run()
 	if not self._chipTarget then
 		self._chipTarget = Shoot.bestFreeAssistant(self._robot, self._inbox.attackerFlag("ignorePriority"))
 	end
+	if self._chipTarget and self._chipTarget.pos.y < self._robot.pos.y then
+		self._chipTarget = nil -- prevent back-passing
+	end
 	
 	local chipPos = self._chipTarget and self._chipTarget.pos or World.Geometry.OpponentGoal
 	self._robot:setDribblerSpeed(1)
