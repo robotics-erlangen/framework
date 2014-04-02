@@ -10,7 +10,11 @@ local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
 
 function HandleBall:check()
-	if not (Referee.isFriendlyFreeKickState() or Referee.isStopState() or Referee.isKickoffState()) then
+	if World.Ball.pos.y < 0
+		and not Referee.isFriendlyFreeKickState()
+		and not Referee.isStopState()
+		and not Referee.isKickoffState()
+	then
 		self:_applyForMainAttacker()
 	end
 	if self._inbox.centerBack().trainer == self._robot then
