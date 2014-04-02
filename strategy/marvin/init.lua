@@ -10,6 +10,8 @@ require "test/unit/init"
 require "test/situation/init"
 require "test/observer/init"
 require "util/lineup"
+require "challenge/iranopen2014/navigationactive"
+require "challenge/iranopen2014/navigationpassive"
 require "test/fixedroles/init"
 local testroles = "test/fixedroles/roles"
 
