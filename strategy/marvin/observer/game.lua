@@ -104,5 +104,31 @@ function Game.getSector(robot, ignoreCorners)
 	return nil
 end
 
+--- returns "left" or "right"
+function Game.attackSideWithLessOpponents()
+	local rightOpponents = 0
+	local rightOppsPosSum = 0
+	local leftOpponents = 0
+	local leftOppsPosSum = 0
+	for _, robot in ipairs(World.OpponentRobots) do
+		if robot.pos.y > 0 then
+			if robot.pos.x > 0 then
+				rightOpponents = rightOpponents + 1
+				rightOppsPosSum = rightOppsPosSum + robot.pos.x
+			else
+				leftOpponents = leftOpponents + 1
+				leftOppsPosSum = leftOppsPosSum - robot.pos.x
+			end
+		end
+	end
+	local side = "left"
+	if rightOpponents < leftOpponents then
+		side = "right"
+	elseif rightOpponents == leftOpponents then
+		side = (rightOppsPosSum < leftOppsPosSum) and "right" or "left"
+	end
+	return side
+end
+
 
 return Game

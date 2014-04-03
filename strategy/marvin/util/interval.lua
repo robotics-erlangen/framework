@@ -123,4 +123,31 @@ function Interval.getClosestPoint(mergedIntervals, Q, D)
 	end
 end
 
+--- Finds the furthest point in an array of intervals with a given distance to its interval boarders
+-- @param mergedIntervals interval[] - list of intervals as returned by merge
+-- @param Q number - point to which the distance of the searched point is minimal
+-- @param D number - minimum distance of the searched point to its nearest boarder.
+-- This means that it can only lie in an interval with size 2*D or bigger
+function Interval.getFurthestPoint(mergedIntervals, Q, D)
+	local bigEnoughSectors = table.filter(mergedIntervals, function(s) return s[2]-s[1] >= 2*D end)
+	local function cmpBoarderDist(sector1, sector2)
+		local maxDist1 = math.max(math.abs(sector1[2] - Q), math.abs(sector1[1] - Q))
+		local maxDist2 = math.max(math.abs(sector2[2] - Q), math.abs(sector2[1] - Q))
+		return maxDist1 > maxDist2
+	end
+	table.sort(bigEnoughSectors, cmpBoarderDist)
+	local nearestSector = bigEnoughSectors[1]
+	if nearestSector then
+		local spaceRight = math.abs(Q - nearestSector[2])
+		local spaceLeft = math.abs(Q - nearestSector[1])
+		if spaceRight > spaceLeft then
+			return nearestSector[2] - D
+		else
+			return nearestSector[1] + D
+		end
+	else
+		return nil
+	end
+end
+
 return Interval
