@@ -40,6 +40,7 @@ function ReceivePass:check()
 				or Referee.isStopState() then
 			return false
 		end
+
 		-- make sure that nobody else becomes passReceiver or mainAttacker
 		self._send("trainer").specialRole({ passReceiver = 2 })
 		self._send("trainer").specialRole({ mainAttacker = 2 })
@@ -56,7 +57,7 @@ function ReceivePass:check()
 			self._catchingPass = true
 			self._ballShooter = ballShooter
 		end
-		return true
+		return PassReceiver.canCatchBall(self._robot)
 	end
 	return false
 end

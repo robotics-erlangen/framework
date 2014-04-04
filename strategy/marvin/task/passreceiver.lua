@@ -2,6 +2,8 @@ local PassReceiver = (require "../base/class").new("Task.PassReceiver", require 
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
+local Ball = require "observer/ball"
+local Robot = require "observer/robot"
 local vis = require "../base/vis"
 local Settings = require "settings"
 local debug = require "../base/debug"
@@ -11,6 +13,14 @@ PassReceiver.priority = 5
 
 function PassReceiver:_init()
 	self.moveTo = nil
+end
+
+function PassReceiver.canCatchBall(robot)
+	local posOnLine = robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
+	local distToPos = robot.pos:distanceTo(posOnLine)
+	local ballTime = Ball.ballRollTime(World.Ball.speed:length(), distToPos)
+	local robotTime = Robot.timeToPos(robot, posOnLine)
+	return ballTime > robotTime
 end
 
 function PassReceiver:run()
