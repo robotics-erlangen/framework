@@ -15,7 +15,10 @@ function HandleBall:check()
 		and not Referee.isStopState()
 		and not Referee.isKickoffState()
 	then
-		self:_applyForMainAttacker()
+		_, timeAdvance = Ball.firstAtBall()
+		if timeAdvance > -Settings.defenseRiskLevel then
+			self:_applyForMainAttacker()
+		end
 	end
 	if self._inbox.centerBack().trainer == self._robot then
 		self:_applyForCenterBack()
@@ -25,8 +28,8 @@ end
 
 function HandleBall:_updateTask()
 	local bestAssi = Shoot.bestFreeAssistant(self._robot, self._inbox.attackerFlag("ignorePriority"))
-	local _, timeAdvance = Ball.firstAtBall()
-	if bestAssi and timeAdvance > Settings.defenseRiskLevel then
+	--local _, timeAdvance = Ball.firstAtBall()
+	if bestAssi then --and timeAdvance > Settings.defenseRiskLevel then
 		return DirectPass, { bestAssi, true }
 	else -- under pressure
 		return ChipAway
