@@ -12,7 +12,7 @@ PassTarget.priority = 5
 
 function PassTarget:_init()
 	self.moveTo = nil
-	self.returnPassAllowed = false
+	self._returnPassAllowed = false
 end
 
 function PassTarget:run()
@@ -36,12 +36,12 @@ function PassTarget:run()
 			end
 		end
 
-		if World.Ball.pos.y > 0.3 and not returnPassAllowed then
-			returnPassAllowed = true
-		elseif World.Ball.pos.y < -0.3 and returnPassAllowed then
-			returnPassAllowed = false
+		if World.Ball.pos.y > 0.3 and not self._returnPassAllowed then
+			self._returnPassAllowed = true
+		elseif World.Ball.pos.y < -0.3 and self._returnPassAllowed then
+			self._returnPassAllowed = false
 		end
-		if not returnPassAllowed then
+		if not self._returnPassAllowed then
 			if shotDir < -math.pi/2 then
 				shotDir = math.pi
 			elseif shotDir < 0 then

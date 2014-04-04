@@ -15,7 +15,7 @@ function HandleBall:check()
 		and not Referee.isStopState()
 		and not Referee.isKickoffState()
 	then
-		_, timeAdvance = Ball.firstAtBall()
+		local _, timeAdvance = Ball.firstAtBall()
 		if timeAdvance > -Settings.defenseRiskLevel then
 			self:_applyForMainAttacker()
 		end
