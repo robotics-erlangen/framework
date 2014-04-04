@@ -13,6 +13,7 @@ local Field = require "util/field"
 local AgentPool = require "control/agentpool"
 local Messaging = require "control/messaging"
 local debug = require "../base/debug"
+local vis = require "../base/vis"
 
 local Coordinator = (require "../base/class").new("Control.Coordinator")
 
@@ -131,7 +132,13 @@ function Coordinator:_chooseSpecialRoles()
 		if bestRobot then
 			self.specialRoles[role] = bestRobot
 		end
-		Messaging.sendSpecialRole(role, self.specialRoles[role])				
+		Messaging.sendSpecialRole(role, self.specialRoles[role])
+
+		if role == "mainAttacker" then
+			local color = World.TeamIsBlue and vis.colors.blue or vis.colors.yellow
+			vis.addCircle(role, bestRobot.pos, 0.12, color, false);
+			vis.addCircle(role, bestRobot.pos, 0.129, color, false);
+		end
 	end
 end
 
