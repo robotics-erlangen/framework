@@ -104,7 +104,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	moveDest = Field.limitToField(moveDest, Settings.positionPadding)
 	
 	-- setup obstacles
-	self._robot.path:setDefaultObstacles(self._robot, true, false, self._robot.shootRadius)
+	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
 	self._robot.path:addRobotObstacles(self._robot)
 	self:_createRollingBallObstacle(self._robot.path, ball, predictedBall, moveDest)
 	self:_createBallCorridor(self._robot.path, viewDir, predictedBall)

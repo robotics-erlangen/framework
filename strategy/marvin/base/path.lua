@@ -4,7 +4,7 @@ local Constants = require "../base/constants"
 local Settings = require "settings"
 local Referee = require "../base/referee"
 
-function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, radius)
+function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius)
 	local ballDistance = 0
 	radius = radius or robot.radius
 	
@@ -25,7 +25,7 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, radius)
 	local G = World.Geometry
 	-- only keeper may enter friendly defense area
 	-- don't add obstacles for friendly defense area if the robot is in the opponent half
-	if World.FriendlyKeeper ~= robot and robot.pos.y < 0 then
+	if World.FriendlyKeeper ~= robot and robot.pos.y < 0 and not ignoreDefenseArea then
 		self:addCircle(G.FriendlyGoal.x - G.DefenseStretch / 2, G.FriendlyGoal.y, G.DefenseRadius + Settings.positionPadding, "DefenseArea_Left")
 		self:addCircle(G.FriendlyGoal.x + G.DefenseStretch / 2, G.FriendlyGoal.y, G.DefenseRadius + Settings.positionPadding, "DefenseArea_Right")
 		--self:addRect(G.FriendlyGoal.x - G.DefenseStretch / 2, G.FriendlyGoal.y,
