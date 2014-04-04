@@ -12,6 +12,7 @@ PassTarget.priority = 5
 
 function PassTarget:_init()
 	self.moveTo = nil
+	self.returnPassAllowed = false
 end
 
 function PassTarget:run()
@@ -32,6 +33,19 @@ function PassTarget:run()
 		for _, robot in pairs(World.OpponentRobots) do
 			if robot.pos:distanceTo(World.Ball.pos) <= distanceToBall then
 				table.insert(robots, robot)
+			end
+		end
+
+		if World.Ball.pos.y > 0.3 and not returnPassAllowed then
+			returnPassAllowed = true
+		elseif World.Ball.pos.y < -0.3 and returnPassAllowed then
+			returnPassAllowed = false
+		end
+		if not returnPassAllowed then
+			if shotDir < -math.pi/2 then
+				shotDir = math.pi
+			elseif shotDir < 0 then
+				shotDir = 0
 			end
 		end
 
