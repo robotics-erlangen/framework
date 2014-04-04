@@ -72,7 +72,7 @@ function Navigation:run()
 		end
 	end
 
-	self._robot.path:setDefaultObstacles(self._robot, true, true, true)
+	self._robot.path:setDefaultObstacles(self._robot, true, false, true)
 	self._robot.path:addRobotObstacles(self._robot)
 	local middleObstacle = { -g.FieldWidthHalf+1, -g.FieldHeightHalf+1, g.FieldWidthHalf-1, g.FieldHeightHalf-1 }
 	self._robot.path:addRect(unpack(middleObstacle))
