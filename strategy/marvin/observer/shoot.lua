@@ -137,13 +137,8 @@ function Shoot.bestFreeAssistant(activeRobot, assistants)
 	return freeAssistants[1]
 end
 
-local function sectorDiff(s)
-	return s[2] - s[1]
-end
-
 function Shoot.rateAssistant(robot)
-	local fs = Goal.freeSectors(robot.pos, World.OpponentRobots, true)
-	local biggestSector = table.max(table.map(fs, sectorDiff))
+	local biggestSector = Goal.largestFreeSector(robot.pos, World.OpponentRobots, true)
 	local goalDist = robot.pos:distanceTo(World.Geometry.OpponentGoal)
 	local rating = World.Geometry.FieldHeight - goalDist
 	local ballDist = robot.pos:distanceTo(World.Ball.pos)
@@ -162,7 +157,7 @@ function Shoot.rateAssistant(robot)
 	elseif backPassDist > 0.5 then
 		backRateFactor = 2 - 2*backPassDist
 	else
-		backRateFactor = 0
+		backRateFactor = 1
 	end
 		
 	if biggestSector then
