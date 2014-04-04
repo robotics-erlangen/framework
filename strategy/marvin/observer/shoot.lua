@@ -138,7 +138,8 @@ function Shoot.bestFreeAssistant(activeRobot, assistants)
 end
 
 function Shoot.rateAssistant(robot)
-	local biggestSector = Goal.largestFreeSector(robot.pos, World.OpponentRobots, true)
+	local biggestInterval = Goal.largestFreeSector(robot.pos, World.OpponentRobots, true)
+	local biggestSector = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0
 	local goalDist = robot.pos:distanceTo(World.Geometry.OpponentGoal)
 	local rating = World.Geometry.FieldHeight - goalDist
 	local ballDist = robot.pos:distanceTo(World.Ball.pos)
