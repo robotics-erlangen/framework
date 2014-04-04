@@ -132,19 +132,25 @@ function CatchBall:_createRollingBallObstacle(path, currentBall, predictedBall, 
   	local minTimeToBall = math.min(Robot.minTimeToBall(self._robot, currentBall), self._catchTime)
   	local minBall = Ball.atTime(minTimeToBall)
   
-	-- TODO ensure that the obstacles don't interfer with moveDest
-	-- block connection between first touch point and target catch pos
-	-- but only if we have to move around the ball
 	vis.addCircle("CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.greenHalf)
 	local ballDist = predictedBall.pos:distanceTo(minBall.pos)
 	local robotTargetDist = self._robot.pos:distanceTo(moveDest)
-	if ballDist < 0.001 or (moveDest:distanceTo(currentBall.pos) < robotTargetDist 
-			and self._robot.pos:distanceTo(currentBall.pos) < robotTargetDist) then
-  		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - 0.001, 'ball')
-  	else
+	-- distance minus robot and ball radius thus the ball is for sure between the robot and the catch pos
+	local robotTargetSpacing = math.max(0, robotTargetDist - self._robot.radius - currentBall.radius)
+	-- TODO ensure that the obstacles don't interfer with moveDest
+	-- block connection between first touch point and target catch pos
+	-- if the robot isn't hunting the ball. This leads to the following conditions
+	-- the ball is not between the robot and the catch pos
+	-- the robot has to move around the predicted ball to reach the catch pos
+	-- the ball hasn't yet moved past the robot (TODO better calculation than the dot product?)
+	if ballDist > 0.001 and (moveDest:distanceTo(currentBall.pos) > robotTargetSpacing
+			or self._robot.pos:distanceTo(predictedBall.pos) < robotTargetDist
+			or (currentBall.pos - self._robot.pos):dot(predictedBall.pos - minBall.pos) <= 0) then
   		path:addLine(predictedBall.pos.x, predictedBall.pos.y, minBall.pos.x, minBall.pos.y, predictedBall.radius - 0.001, 'ball')
 		vis.addPath("CatchBall", {predictedBall.pos, minBall.pos}, vis.colors.greenHalf)
 		vis.addCircle("CatchBall", minBall.pos, predictedBall.radius, vis.colors.greenHalf)
+  	else
+  		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - 0.001, 'ball')
   	end
 end
   
