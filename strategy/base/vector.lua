@@ -204,9 +204,9 @@ separator for luadoc]]--
 -- @param lineEnd Vector - the end point of the line
 function Vector:nearestPosOnLine(lineStart, lineEnd)
 	local dir = (lineEnd - lineStart):normalize()
-	if (self - lineStart):dot(dir) < 0 then
+	if (self - lineStart):dot(dir) <= 0 then
 		return lineStart
-	elseif (self - lineEnd):dot(dir) > 0 then
+	elseif (self - lineEnd):dot(dir) >= 0 then
 		return lineEnd
 	end
 	--the code below this line does the same as Vector.orthogonalProjection
