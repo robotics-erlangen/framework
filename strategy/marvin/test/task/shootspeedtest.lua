@@ -11,13 +11,15 @@ end
 
 function ShootSpeedTest:run()
 	local ballInHalf = self._robot.pos.y * World.Ball.pos.y > 0
-	if ballInHalf ~= self._ballInHalf then
-		log(World.Ball.speed)
-		log(World.Ball.speed:length())
-		self._ballInHalf = ballInHalf
+	local shootDistance = math.max(0, math.abs(self._robot.pos.y) - self._robot.shootRadius - World.Ball.radius)
+	if not ballInHalf and self._ballInHalf then
+		log("Ball speed:  " .. tostring(World.Ball.speed:length()))
+		log("Shoot speed: " .. tostring(self._robot:calculateShootSpeed(self._shootSpeed, math.abs(self._robot.pos.y))))
+		log("Distance;    " .. tostring(shootDistance))
 	end
+	self._ballInHalf = ballInHalf
 
-	self._robot:shoot(self._shootSpeed, math.abs(self._robot.pos.y))
+	self._robot:shoot(self._shootSpeed, shootDistance)
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.trajectory:update(ToTarget, self._robot.pos, self._robot.pos.y < 0 and math.pi/2 or -math.pi/2)
 end
