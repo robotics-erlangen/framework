@@ -109,7 +109,14 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	self:_createRollingBallObstacle(self._robot.path, ball, predictedBall, moveDest)
 	self:_createBallCorridor(self._robot.path, viewDir, predictedBall)
 	
-	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, predictedBall.speed)
+	-- only allow endSpeed moving towards the targetPos
+	local endSpeed = predictedBall.speed:copy():rotate(-viewDir)
+	if endSpeed.x < 0 then
+		endSpeed.x = 0
+	end
+	endSpeed:rotate(viewDir)
+
+	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
 	-- keep old time if no way was found
 	if time > 0 then
 		-- damp large value changes
