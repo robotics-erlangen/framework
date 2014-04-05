@@ -30,7 +30,7 @@ function NavigationPassive:run()
 		self._moveDest = Vector.create(self._xMin + math.random()*(self._xMax-self._xMin), self._yLine)
 	end
 	self._robot.path:setDefaultObstacles(self._robot, true, true)
-	self._robot.trajectory:update(ToTarget, self._moveDest, math.pi/2)
+	self._robot.trajectory:update(ToTarget, self._moveDest, math.pi/2, 0.6)
 end
 
 return NavigationPassive

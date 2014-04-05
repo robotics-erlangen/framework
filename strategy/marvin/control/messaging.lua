@@ -26,7 +26,9 @@ local specialRoles = {
 	passReceiver = true,
 	mainAttacker = true,
 	centerBack = true,
-	freeKickDefender = true
+	freeKickDefender = true,
+	navChallengeRight = true,
+	navChallengeLeft = true
 }
 for role, _ in pairs(specialRoles) do
 	msgDefs[role] = Robot
