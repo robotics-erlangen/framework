@@ -78,16 +78,42 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local nextPoint = Vector.create(waypoints[1].p_x, waypoints[1].p_y)
 	
 	local speed = (nextPoint - robotPos):setLength(v_robot)
-	
-	-- bound speed to self._robot.maxSpeed without changing the direction
-	if speed:length() > self._robot.maxSpeed then
-		speed:setLength(self._robot.maxSpeed)
-	end
 
-	local time = (waypointDist - waypointBrakeDist) / self._robot.maxSpeed + (1 / self.parameters.factorProp) * (math.log(waypointBrakeDist) + 4.60517) --4.6 is log(100)
-	if time < 0 then
-		time = 0
+	-- calculate time required for exponential part
+	local exponentialError = 0.05 -- relative
+	local k = self.parameters.factorProp -- 1 / exponentialTime
+	local exponentialTime = 1 / k
+	local timeFactor = -math.log(exponentialError)
+
+	-- in exponential part
+	if waypointDist == waypointBrakeDist then
+		local expStartSpeed = maxSpeed
+		 -- integrate v(t) from 0 to +inf + distance traveled with endSpeed
+		local expDistance = expStartSpeed*exponentialTime
+		local endSpeedLen = endSpeed:length()
+		-- assume target is reached if exponential part traveled a distance of (1-exponentialError)*expDistance
+		-- solve integrate(expStartSpeed*%e^(-k*t)+endSpeed,t,0,t)=expDistance+endSpeed*fac-d for t
+		-- brakeDist decreases when getting closer to the target
+		local time = 2*exponentialTime -- initial guess
+		local expTime = timeFactor*exponentialTime -- time for the full exponential part
+		for i = 1, 10 do
+			local e = math.exp(-k*time)
+			-- only consider endSpeedLen for a distance of expTime * endSpeedLen
+			local err = math.max(0, time-expTime)*endSpeedLen-e*expDistance+waypointBrakeDist
+			local diff
+			if time < expTime then
+				diff = expStartSpeed*e+endSpeedLen
+			else
+				diff = expStartSpeed*e
+			end
+			time = math.bound(0, time - err/diff, 10*exponentialTime)
+		end
+		timeFactor = math.max(0, timeFactor - time / exponentialTime)
 	end
+	local etime = timeFactor*exponentialTime
+
+	-- add time for part with maxSpeed
+	local time = math.max(0, (waypointDist - waypointBrakeDist) / maxSpeed + etime)
 	
 	
 	local limitRot = self.parameters.limitRot
