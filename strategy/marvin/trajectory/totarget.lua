@@ -145,5 +145,5 @@ function OldController:canHandle(targetPos, targetDir, maxSpeed, endSpeed)
 end
 
 --return OldController
-return require "trajectory/totarget-old"
---return require "trajectory/curvedmaxaccel"
+--return require "trajectory/totarget-old"
+return require "trajectory/curvedmaxaccel"
