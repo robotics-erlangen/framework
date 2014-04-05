@@ -72,19 +72,41 @@ function Navigation:run()
 		end
 	end
 
-	self._robot.path:setDefaultObstacles(self._robot, true, false, true)
+	self._robot.path:setDefaultObstacles(self._robot, true, true, true)
 	self._robot.path:addRobotObstacles(self._robot)
-	local middleObstacle = { -g.FieldWidthHalf+1, -g.FieldHeightHalf+1, g.FieldWidthHalf-1, g.FieldHeightHalf-1 }
-	self._robot.path:addRect(unpack(middleObstacle))
-	self._robot.trajectory:update(ToTarget, self._moveDest, (self._moveDest - self._robot.pos):angle())
+
+	local lineWidth = 2*self._robot.radius -- for obstacle lines
 	
-	local polygon = {
-		Vector.create(middleObstacle[1], middleObstacle[2]),
-		Vector.create(middleObstacle[1], middleObstacle[4]),
-		Vector.create(middleObstacle[3], middleObstacle[4]),
-		Vector.create(middleObstacle[3], middleObstacle[2])
+	-- middle area
+	local corners = { 
+		Vector.create(-g.FieldWidthHalf+1, -g.FieldHeightHalf+1),
+		Vector.create(-g.FieldWidthHalf+1, g.FieldHeightHalf-1),
+		Vector.create(g.FieldWidthHalf-1, g.FieldHeightHalf-1),
+		Vector.create(g.FieldWidthHalf-1, -g.FieldHeightHalf+1)
 	}
-	vis.addPolygon("NavigationObstacle", polygon, vis.colors.red, true)
+	self._robot.path:addLine(corners[1].x + lineWidth/2, corners[1].y + lineWidth/2,
+		corners[2].x + lineWidth/2, corners[2].y - lineWidth/2, lineWidth)
+	self._robot.path:addLine(corners[1].x + lineWidth/2, corners[1].y + lineWidth/2,
+		corners[4].x - lineWidth/2, corners[4].y + lineWidth/2, lineWidth)
+	self._robot.path:addLine(corners[3].x - lineWidth/2, corners[3].y - lineWidth/2,
+		corners[2].x + lineWidth/2, corners[2].y - lineWidth/2, 2*self._robot.radius)
+	self._robot.path:addLine(corners[3].x - lineWidth/2, corners[3].y - lineWidth/2,
+		corners[4].x - lineWidth/2, corners[4].y + lineWidth/2, 2*self._robot.radius)
+	self._robot.path:addRect(corners[1].x, corners[1].y, corners[3].x, corners[3].y)
+	
+	vis.addPolygon("NavigationObstacle", corners, vis.colors.red, true)
+
+	-- field boarders
+	self._robot.path:addLine(-g.FieldWidthHalf-lineWidth/2, -g.FieldHeightHalf-lineWidth/2,
+		-g.FieldWidthHalf-lineWidth/2, g.FieldHeightHalf+lineWidth/2, lineWidth)
+	self._robot.path:addLine(g.FieldWidthHalf+lineWidth/2, -g.FieldHeightHalf-lineWidth/2,
+		g.FieldWidthHalf+lineWidth/2, g.FieldHeightHalf+lineWidth/2, lineWidth)
+	self._robot.path:addLine(-g.FieldWidthHalf-lineWidth/2, -g.FieldHeightHalf-lineWidth/2,
+		g.FieldWidthHalf+lineWidth/2, -g.FieldHeightHalf-lineWidth/2, lineWidth)
+	self._robot.path:addLine(-g.FieldWidthHalf-lineWidth/2, g.FieldHeightHalf+lineWidth/2,
+		g.FieldWidthHalf+lineWidth/2, g.FieldHeightHalf+lineWidth/2, lineWidth)
+
+	self._robot.trajectory:update(ToTarget, self._moveDest, (self._moveDest - self._robot.pos):angle())
 end
 
 return Navigation
