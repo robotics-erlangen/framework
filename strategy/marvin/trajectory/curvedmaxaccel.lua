@@ -464,9 +464,19 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local robotSpeed = Coordinates.toGlobal(self._robot.speed)
 	local robotDir = Coordinates.toGlobal(self._robot.dir)
 
+	--TODO: fully implement robot rotation, also handle case that distance left is zero
+	local limitRot = 2 * math.pi
+	local errorPhi = geom.getAngleDiff(robotDir, Coordinates.toGlobal(targetDir))
+	local angularSpeed = math.bound(-limitRot, 3 * errorPhi, limitRot)
+
 	local waypoints = self:_getPath(targetPos)
-	if #waypoints == 0 then -- no waypoints left
-		return {}, targetPos, 0
+	if #waypoints == 0 then -- no waypoints left, just stay here but also update the orientation
+		local spline = { {t_start = 0, t_end = math.huge,
+			x = { a0 = robotPos.x, a1 = endSpeed.x, a2 = 0, a3 = 0 },
+			y = { a0 = robotPos.y, a1 = endSpeed.y, a2 = 0, a3 = 0 },
+			phi = { a0 = robotDir, a1 = angularSpeed, a2 = 0, a3 = 0}
+		} }
+		return {spline = spline}, self._robot.pos, 0
 	end
 	local endPos = waypoints[#waypoints]
 
@@ -521,12 +531,6 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 		sidewardSpeed:setLength(-sidewardSpeed:dot(robotSpeed) / speedVector:length() * sidewardsErrorFactor)
 		accelVector = accelVector + sidewardSpeed
 	end
-
-	--TODO: implement robot rotation, also handle case that distance left is zero
-
-	local limitRot = 2 * math.pi
-	local errorPhi = geom.getAngleDiff(robotDir, Coordinates.toGlobal(targetDir))
-	local angularSpeed = math.bound(-limitRot, 3 * errorPhi, limitRot)
 
 	local spline = { {t_start = 0, t_end = math.huge,
 		x = { a0 = robotPos.x, a1 = speedVector.x, a2 = accelVector.x, a3 = 0 },
