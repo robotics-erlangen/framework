@@ -481,10 +481,10 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 
 	-- calculate speed limits for curve segments based on sidewards acceleration limits while driving curves
 	local maxSpeedProfile, leadTime = _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, robotPos, robotSpeed, endSpeed)
-	debug.set("maxSpeedProfile", maxSpeedProfile)
+	--debug.set("maxSpeedProfile", maxSpeedProfile)
 	-- convert to actual speed curve
 	local speedProfile, leadTimeOffset = _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake)
-	debug.set("speedProfile", speedProfile)
+	--debug.set("speedProfile", speedProfile)
 	leadTime = leadTime + leadTimeOffset
 	-- insert endSpeed with required length as last path segment to allow simple search for the leadPoint
 	table.insert(waypoints, targetPos + endSpeed:copy():setLength(leadTime))
@@ -493,7 +493,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	vis.addCircleRaw("waypoints", moveTarget, 0.05, vis.colors.pink)
 
 	_injectExponentialFalloff(speedProfile, exponentialTime, exponentialError, brake, endSpeed)
-	debug.set("speedProfile2", speedProfile)
+	--debug.set("speedProfile2", speedProfile)
+	--debug.set("leadTime", leadTime)
 
 	local speed = speedProfile[1][2]
 	local accel = (speedProfile[2][2] - speedProfile[1][2]) / (speedProfile[2][1] - speedProfile[1][1])
@@ -510,8 +511,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local speedVector = (moveTarget - robotPos):setLength(speed)
 	local accelVector = (moveTarget - robotPos):setLength(accel)
 	plot.addPlot(tostring(self._robot.id) .. ".speed", speed)
-	debug.set("speed", speedVector)
-	debug.set("accel", accelVector)
+	--debug.set("speed", speedVector)
+	--debug.set("accel", accelVector)
 
 	if speedVector:length() >= 0.0001 then
 		-- calculate how fast the robot is moving perpendicular to the speedVector
