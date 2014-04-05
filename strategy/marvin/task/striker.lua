@@ -162,8 +162,8 @@ function Striker:_calcMoveDest()
 
 	Interval.merge(intervalsToRemove)
 	local possibleIntervals = Interval.negate(intervalsToRemove, lineStart, lineEnd)
-	for i, interval in ipairs(possibleIntervals) do
-		vis.addPath("attackerLine"..self._robot.id..i, { Vector.create(xPos, interval[1]), Vector.create(xPos, interval[2]) }, vis.colors.blue)
+	for _, interval in ipairs(possibleIntervals) do
+		vis.addPath("attackerLine"..self._robot.id, { Vector.create(xPos, interval[1]), Vector.create(xPos, interval[2]) }, vis.colors.blue)
 	end
 	
 	local closestOpp = World.OpponentRobots[1] or { pos = Vector.create(0,0) }
