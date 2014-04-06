@@ -6,6 +6,7 @@ local Ball = require "../base/ball"
 local Robot = require "../base/robot"
 local Generation = require "../base/generation"
 local amun = amun
+local Constants = require "../base/constants"
 
 --- Ball and team informations.
 -- @class table
@@ -156,7 +157,10 @@ function World._updateWorld(state)
 		World.TimeDiff = 0
 	end
 	World.Time = state.time * 1E-9
-	World.IsSimulated = state.is_simulated
+	if World.IsSimulated ~= state.is_simulated then
+		World.IsSimulated = state.is_simulated
+		Constants.switchSimulatorConstants(World.IsSimulated)
+	end
 
 	local radioResponses = state.radio_response
 
