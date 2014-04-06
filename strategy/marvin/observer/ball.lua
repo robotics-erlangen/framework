@@ -12,6 +12,7 @@ local ObserverRobot = require "observer/robot"
 local vis = require "../base/vis"
 local MovingAverage = require "learning/movingaverage"
 local math = require "../base/math"
+local plot = require "../base/plot"
 
 
 function BallAnalyzer:init(ball, movingAverageSlipping, movingAverageRolling, slippingFrictionStart, rollingFrictionStart)
@@ -438,6 +439,8 @@ function Ball.isShot()
 		debug.set("fasterThanRobot", condFasterThanRobot)
 		debug.pop()
 	end
+
+	plot.addPlot("isShot", robot and (robot.id + (robot.isFriendly and 0 or 0.5)) or -1)
 
 	return robot
 end
