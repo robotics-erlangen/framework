@@ -15,18 +15,14 @@ function PassReceiver:_init()
 	self.moveTo = nil
 end
 
-function PassReceiver.canCatchBall(robot)
-	local posOnLine = robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
-	local distToPos = robot.pos:distanceTo(posOnLine)
-	local ballTime = Ball.ballRollTime(World.Ball.speed:length(), distToPos)
-	local robotTime = Robot.timeToPos(robot, posOnLine)
-	return ballTime > robotTime
+function PassReceiver.catchPosition(robot)
+	return robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
 end
 
 function PassReceiver:run()
 	-- catch ball
 	-- block balls by moving in their way
-	self.moveTo = self._robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
+	self.moveTo = self.catchPosition(self._robot)
 	if World.Ball.speed:length() < Settings.fastBall then
 		self.tPos = self.tPos or World.Ball.pos
 		vis.addCircle("PassReceiverCatchBallTargetPos", self.tPos, 0.01)

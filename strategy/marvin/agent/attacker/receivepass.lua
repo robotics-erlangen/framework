@@ -21,6 +21,15 @@ function ReceivePass:_stop()
 	self._targetTimer = nil
 end
 
+function ReceivePass:_canCatchBall()
+	local posOnLine = PassReceiver.catchPosition(self._robot)
+	local distToPos = self._robot.pos:distanceTo(posOnLine)
+	local ballTime = Ball.ballRollTime(World.Ball.speed:length(), World.Ball.pos:distanceTo(posOnLine))
+	local robotTime = Robot.timeToPos(self._robot, posOnLine)
+	return ballTime > robotTime
+end
+
+
 function ReceivePass:check()
 	for _, _ in pairs(self._inbox.passSender()) do
 		self._targetTimer = World.Time -- remember time of last pass message
@@ -57,7 +66,7 @@ function ReceivePass:check()
 			self._catchingPass = true
 			self._ballShooter = ballShooter
 		end
-		return PassReceiver.canCatchBall(self._robot)
+		return self:_canCatchBall()
 	end
 	return false
 end
