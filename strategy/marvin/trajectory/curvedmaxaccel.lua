@@ -454,7 +454,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local exponentialTime = 0.1 -- timespan in seconds replace with exponential falloff
 	local exponentialError = 0.05 -- relative
 	--TODO exponentialError by distance?
-	local sidewardsErrorFactor = 3 -- used to scale sidewards speed error
+	local sidewardsErrorFactor = 6 -- used to scale sidewards speed error
 
 	--insert default values
 	maxSpeed = maxSpeed or self._robot.maxSpeed
@@ -532,8 +532,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	end
 
 	local spline = { {t_start = 0, t_end = math.huge,
-		x = { a0 = robotPos.x, a1 = speedVector.x, a2 = accelVector.x, a3 = 0 },
-		y = { a0 = robotPos.y, a1 = speedVector.y, a2 = accelVector.y, a3 = 0 },
+		x = { a0 = robotPos.x, a1 = speedVector.x, a2 = accelVector.x / 2, a3 = 0 },
+		y = { a0 = robotPos.y, a1 = speedVector.y, a2 = accelVector.y / 2, a3 = 0 },
 		phi = { a0 = robotDir, a1 = angularSpeed, a2 = 0, a3 = 0}
 	} }
 
