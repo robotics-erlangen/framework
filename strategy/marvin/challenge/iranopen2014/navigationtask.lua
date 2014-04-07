@@ -140,15 +140,9 @@ function Navigation:run()
 	}
 	vis.addPolygon("NavigationObstacle", corridor, vis.colors.black, false)
 
-	-- field boarders
-	self._robot.path:addLine(-g.FieldWidthHalf-lineWidth/2, -g.FieldHeightHalf-lineWidth/2,
-		-g.FieldWidthHalf-lineWidth/2, g.FieldHeightHalf+lineWidth/2, lineWidth)
-	self._robot.path:addLine(g.FieldWidthHalf+lineWidth/2, -g.FieldHeightHalf-lineWidth/2,
-		g.FieldWidthHalf+lineWidth/2, g.FieldHeightHalf+lineWidth/2, lineWidth)
-	self._robot.path:addLine(-g.FieldWidthHalf-lineWidth/2, -g.FieldHeightHalf-lineWidth/2,
-		g.FieldWidthHalf+lineWidth/2, -g.FieldHeightHalf-lineWidth/2, lineWidth)
-	self._robot.path:addLine(-g.FieldWidthHalf-lineWidth/2, g.FieldHeightHalf+lineWidth/2,
-		g.FieldWidthHalf+lineWidth/2, g.FieldHeightHalf+lineWidth/2, lineWidth)
+	-- field borders
+	self._robot.path:setBoundary( -g.FieldWidthHalf, -g.FieldHeightHalf,
+			g.FieldWidthHalf, g.FieldHeightHalf)
 
 	self._robot.trajectory:update(ToTarget, self._moveDest, (self._moveDest - self._robot.pos):angle(), 1)
 end
