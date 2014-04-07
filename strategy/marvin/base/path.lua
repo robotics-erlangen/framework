@@ -76,7 +76,7 @@ function path:addRobotObstacles(robot, ignoreFriendlyRobots, ignoreOpponentRobot
 	if not ignoreFriendlyRobots then
 		for _, r in pairs(World.FriendlyRobots) do
 			if r.id ~= robot.id then -- don't add current robot
-				-- use speed difference to calculate the saftey distance
+				-- use speed difference to calculate the safety distance
 				local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.05, 0.05)
 				self:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OwnRobot_"..r.id)
 			end
@@ -84,8 +84,8 @@ function path:addRobotObstacles(robot, ignoreFriendlyRobots, ignoreOpponentRobot
 	end
 	if not ignoreOpponentRobots then
 		for _, r in pairs(World.OpponentRobots) do
-				-- use speed difference to calculate the saftey distance
-				local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.08, 0.10)
+			-- use speed difference to calculate the safety distance
+			local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.08, 0.10)
 			self:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OppRobot_"..r.id)
 		end
 	end
