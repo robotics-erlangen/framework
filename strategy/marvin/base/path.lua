@@ -72,13 +72,23 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 end
 
 function path:addRobotObstacles(robot, ignoreFriendlyRobots, ignoreOpponentRobots)
-	-- TODO: Predict robots to avoid crashes
+	-- TODO: better robot prediction and time estimation
+	-- use 1 seconds for the navigation challenge
+	local estimationTime = 0.1 -- just a fixed time for now
 	if not ignoreFriendlyRobots then
 		for _, r in pairs(World.FriendlyRobots) do
 			if r.id ~= robot.id then -- don't add current robot
 				-- use speed difference to calculate the safety distance
 				local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.05, 0.05)
-				self:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OwnRobot_"..r.id)
+				local estimatedPosition = r.pos + r.speed * estimationTime
+				-- only use estimated position if it doesn't collide with the robot
+				if robot.pos:distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
+						and r.pos:distanceTo(estimatedPosition) > 0.0001 then
+					self:addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
+							r.radius + safetyDistance, "OwnRobot_"..r.id)
+				else
+					self:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OwnRobot_"..r.id)
+				end
 			end
 		end
 	end
@@ -86,7 +96,15 @@ function path:addRobotObstacles(robot, ignoreFriendlyRobots, ignoreOpponentRobot
 		for _, r in pairs(World.OpponentRobots) do
 			-- use speed difference to calculate the safety distance
 			local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.08, 0.10)
-			self:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OppRobot_"..r.id)
+			local estimatedPosition = r.pos + r.speed * estimationTime
+			-- only use estimated position if it doesn't collide with the robot
+			if robot.pos:distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
+					and r.pos:distanceTo(estimatedPosition) > 0.0001 then
+				self:addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
+						r.radius + safetyDistance, "OppRobot_"..r.id)
+			else
+				self:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OppRobot_"..r.id)
+			end
 		end
 	end
 end
