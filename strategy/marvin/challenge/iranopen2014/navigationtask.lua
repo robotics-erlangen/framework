@@ -9,9 +9,9 @@ Navigation.priority = 5 -- no meaning
 local g = World.Geometry
 local targetSwitchDist = 0.4
 local outerGoalOutDist = 0.3
-local innerGoalOutDist = 0.7
+local innerGoalOutDist = 0.6
 local outerBoarderDist = 0.3
-local innerBoarderDist = 0.3
+local innerBoarderDist = 0.5
 local outerLowerLeftCorner = Vector.create(-g.FieldWidthHalf + outerBoarderDist, -g.FieldHeightHalf + outerGoalOutDist)
 local outerUpperLeftCorner = Vector.create(-g.FieldWidthHalf + outerBoarderDist, g.FieldHeightHalf - outerGoalOutDist)
 local outerUpperRightCorner = Vector.create(g.FieldWidthHalf - outerBoarderDist, g.FieldHeightHalf - outerGoalOutDist)
@@ -38,6 +38,8 @@ end
 
 function Navigation:run()
 	debug.set("clockwise", self._clockwise)
+	debug.set("state", self._state)
+	debug.set("moveDest", self._moveDest)
 	local leftRating = 0
 	local rightRating = 0
 	if self._clockwise then
@@ -47,18 +49,18 @@ function Navigation:run()
 		elseif self._state == "vertical" and self._robot.pos.x <= 0 then
 			leftRating = 1
 			if self._inbox.navChallengeLeft().trainer == self._robot then		
-				self._moveDest = outerUpperLeftCorner
+				self._moveDest = innerUpperLeftCorner
+				self:checkAndUpdateTarget()
 			end
-			self:checkAndUpdateTarget()
 		elseif self._state == "horizontal" and self._robot.pos.y > 0 then
-			self._moveDest = outerUpperRightCorner
+			self._moveDest = innerUpperRightCorner
 			self:checkAndUpdateTarget()
 		elseif self._state == "vertical" and self._robot.pos.x > 0 then
 			rightRating = 1
 			if self._inbox.navChallengeRight().trainer == self._robot then
 				self._moveDest = outerLowerRightCorner
+				self:checkAndUpdateTarget()
 			end
-			self:checkAndUpdateTarget()
 		else
 			error("invalid state")
 		end
@@ -69,18 +71,18 @@ function Navigation:run()
 		elseif self._state == "vertical" and self._robot.pos.x > 0 then
 			rightRating = 1
 			if self._inbox.navChallengeRight().trainer == self._robot then
-				self._moveDest = innerUpperRightCorner
+				self._moveDest = outerUpperRightCorner
+				self:checkAndUpdateTarget()
 			end
-			self:checkAndUpdateTarget()
 		elseif self._state == "horizontal" and self._robot.pos.y > 0 then
-			self._moveDest = innerUpperLeftCorner
+			self._moveDest = outerUpperLeftCorner
 			self:checkAndUpdateTarget()
 		elseif self._state == "vertical" and self._robot.pos.x <= 0 then
 			leftRating = 1
 			if self._inbox.navChallengeLeft().trainer == self._robot then
 				self._moveDest = innerLowerLeftCorner
+				self:checkAndUpdateTarget()
 			end
-			self:checkAndUpdateTarget()
 		else
 			error("invalid state")
 		end
@@ -91,18 +93,52 @@ function Navigation:run()
 	self._robot.path:setDefaultObstacles(self._robot, true, true, true)
 	self._robot.path:addRobotObstacles(self._robot)
 
+	for t = -0.1, 0.31, 0.2 do
+		for _,r in pairs(World.OpponentRobots) do
+			local fpos = r.pos + r.speed * t
+			self._robot.path:addCircle(fpos.x, fpos.y, 0.12)
+			vis.addCircle("NavigationRobots", fpos, 0.12, vis.fromRGBA(127, 191, 255, 32), true)
+		end
+	end
+
+
 	local lineWidth = 2*self._robot.radius -- for obstacle lines
 	
 	-- middle area
-	local middleDist = 1.05 -- bigger means smaller corridor
-	local corners = { 
-		Vector.create(-g.FieldWidthHalf+middleDist, -g.FieldHeightHalf+middleDist),
-		Vector.create(-g.FieldWidthHalf+middleDist, g.FieldHeightHalf-middleDist),
-		Vector.create(g.FieldWidthHalf-middleDist, g.FieldHeightHalf-middleDist),
-		Vector.create(g.FieldWidthHalf-middleDist, -g.FieldHeightHalf+middleDist)
+	local createRectObstacle = function(middleDistx, middleDisty, lineWidth)
+		middleDistx = middleDistx - lineWidth
+		middleDisty = middleDisty - lineWidth
+		local corners = { 
+			Vector.create(-g.FieldWidthHalf+middleDistx, -g.FieldHeightHalf+middleDisty),
+			Vector.create(-g.FieldWidthHalf+middleDistx, g.FieldHeightHalf-middleDisty),
+			Vector.create(g.FieldWidthHalf-middleDistx, g.FieldHeightHalf-middleDisty),
+			Vector.create(g.FieldWidthHalf-middleDistx, -g.FieldHeightHalf+middleDisty)
+		}
+		--self._robot.path:addRect(corners[1].x, corners[1].y, corners[3].x, corners[3].y)
+		self._robot.path:addLine(corners[1].x,  corners[1].y, corners[2].x, corners[2].y, lineWidth)
+		self._robot.path:addLine(corners[2].x,  corners[2].y, corners[3].x, corners[3].y, lineWidth)
+		self._robot.path:addLine(corners[3].x,  corners[3].y, corners[4].x, corners[4].y, lineWidth)
+		self._robot.path:addLine(corners[4].x,  corners[4].y, corners[1].x, corners[1].y, lineWidth)
+		
+		local viscorners = { 
+			Vector.create(-g.FieldWidthHalf+middleDistx-lineWidth, -g.FieldHeightHalf+middleDisty-lineWidth),
+			Vector.create(-g.FieldWidthHalf+middleDistx-lineWidth, g.FieldHeightHalf-middleDisty+lineWidth),
+			Vector.create(g.FieldWidthHalf-middleDistx+lineWidth, g.FieldHeightHalf-middleDisty+lineWidth),
+			Vector.create(g.FieldWidthHalf-middleDistx+lineWidth, -g.FieldHeightHalf+middleDisty-lineWidth)
+		}
+		vis.addPolygon("NavigationObstacle", viscorners, vis.fromRGBA(255, 0, 0, 48), true)
+	end
+
+	createRectObstacle(0.55, 1.85, 0.1)
+	createRectObstacle(1.05, 1.05, 0.1)
+
+	local corridor = {
+		Vector.create(-g.FieldWidthHalf+1, -g.FieldHeightHalf+1),
+		Vector.create(-g.FieldWidthHalf+1, g.FieldHeightHalf-1),
+		Vector.create(g.FieldWidthHalf-1, g.FieldHeightHalf-1),
+		Vector.create(g.FieldWidthHalf-1, -g.FieldHeightHalf+1)
 	}
-	self._robot.path:addRect(corners[1].x, corners[1].y, corners[3].x, corners[3].y)
-	vis.addPolygon("NavigationObstacle", corners, vis.colors.red, true)
+	vis.addPolygon("NavigationObstacle", corridor, vis.colors.black, false)
 
 	-- field borders
 	self._robot.path:setBoundary( -g.FieldWidthHalf, -g.FieldHeightHalf,
