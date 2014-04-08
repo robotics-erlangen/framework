@@ -10,6 +10,7 @@ local World = require "../base/world"
 local debug = require "../base/debug"
 local Entrypoints = require "../base/entrypoints"
 local Field = require "util/field"
+local Referee = require "../base/referee"
 local AgentPool = require "control/agentpool"
 local Messaging = require "control/messaging"
 local debug = require "../base/debug"
@@ -34,6 +35,7 @@ function Coordinator:init()
 	self.specialRoles = {} -- remember roles
 	self._ballInFriendlyFieldHalf = false -- remember for hysteresis
 	self._messages = nil
+	self._mainAttackerIsDefender = false
 end
 
 function Coordinator:run()
@@ -135,6 +137,14 @@ function Coordinator:_chooseSpecialRoles()
 		Messaging.sendSpecialRole(role, self.specialRoles[role])
 
 		if role == "mainAttacker" then
+			if bestRobot and self._pools.defense._agents then
+				self._mainAttackerIsDefender = false
+				for _, agent in ipairs(self._pools.defense._agents) do
+					if agent:robot() == self.specialRoles[role] then
+						self._mainAttackerIsDefender = true
+					end
+				end
+			end
 			local color = World.TeamIsBlue and vis.colors.blue or vis.colors.yellow
 			vis.addCircle(role, bestRobot.pos, 0.12, color, false);
 			vis.addCircle(role, bestRobot.pos, 0.129, color, false);
@@ -179,10 +189,16 @@ function Coordinator:_calculateAttackRatio()
 		else -- Throw-In Defensive
 			attackRatio = 2
 		end
+	elseif World.RefereeState ==  "Stop" then
+		attackRatio = 1
 	end
 	
 	if World.GameStage == "PenaltyShootout" then
 		attackRatio = 6
+	end
+
+	if self._mainAttackerIsDefender then
+		attackRatio = attackRatio - 1
 	end
 	
 	debug.set("AttackRatio", attackRatio)
