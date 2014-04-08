@@ -38,7 +38,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local robotSpeed = Coordinates.toGlobal(self._robot.speed)
 	local robotDir = Coordinates.toGlobal(self._robot.dir)
 	
-	self._robot.path:setProbabilities(0.1, 0.4)
+	self._robot.path:setProbabilities(0.1, 0.9)
 	local waypoints = self._robot.path:get(robotPos.x, robotPos.y, targetPos.x, targetPos.y)
 
 	table.remove(waypoints, 1) -- remove robot position
