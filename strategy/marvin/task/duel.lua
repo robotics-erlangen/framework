@@ -5,6 +5,7 @@ local geom = require "../base/geom"
 local Direct = require "trajectory/direct"
 local DirectPass = require "task/directpass"
 local Shoot = require "observer/shoot"
+local ClearBall = require "task/clearball"
 local Ball = require "observer/ball"
 
 Duel.priority = 4
@@ -24,7 +25,8 @@ function Duel:run()
 		if self._robot:hasBall(World.Ball) then
 			self:_contest()
 		else
-			self:_catchBall(World.Geometry.OpponentGoal)
+			local cb = ClearBall.create(self._agent)
+			ClearBall._clearBall(cb)
 		end
 	else
 		self:_passAway()
