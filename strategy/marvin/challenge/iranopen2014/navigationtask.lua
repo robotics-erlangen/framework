@@ -101,16 +101,7 @@ function Navigation:run()
 		Vector.create(g.FieldWidthHalf-middleDist, g.FieldHeightHalf-middleDist),
 		Vector.create(g.FieldWidthHalf-middleDist, -g.FieldHeightHalf+middleDist)
 	}
-	self._robot.path:addLine(corners[1].x + lineWidth/2, corners[1].y + lineWidth/2,
-		corners[2].x + lineWidth/2, corners[2].y - lineWidth/2, lineWidth)
-	self._robot.path:addLine(corners[1].x + lineWidth/2, corners[1].y + lineWidth/2,
-		corners[4].x - lineWidth/2, corners[4].y + lineWidth/2, lineWidth)
-	self._robot.path:addLine(corners[3].x - lineWidth/2, corners[3].y - lineWidth/2,
-		corners[2].x + lineWidth/2, corners[2].y - lineWidth/2, 2*self._robot.radius)
-	self._robot.path:addLine(corners[3].x - lineWidth/2, corners[3].y - lineWidth/2,
-		corners[4].x - lineWidth/2, corners[4].y + lineWidth/2, 2*self._robot.radius)
 	self._robot.path:addRect(corners[1].x, corners[1].y, corners[3].x, corners[3].y)
-	
 	vis.addPolygon("NavigationObstacle", corners, vis.colors.red, true)
 
 	-- field boarders
