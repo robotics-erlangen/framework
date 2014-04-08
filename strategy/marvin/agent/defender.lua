@@ -6,14 +6,16 @@ local Penalty = require "agent/defender/penalty"
 local Kickoff = require "agent/defender/kickoff"
 local HandleBall = require "agent/defender/handleball"
 local CenterBack = require "agent/defender/centerback"
+local ApplyForCenterback = require "agent/defender/applyforcenterback"
 local Default = require "agent/defender/default"
 
 Defender._behaviors = {
 	Penalty,
+	ApplyForCenterback,
 	HandleBall,
-	CenterBack,
 	Kickoff,
-	Default
+	Default,
+	CenterBack
 }
 
 function Defender.takeRobot(robots)
