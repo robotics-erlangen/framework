@@ -3,7 +3,8 @@ local Default = (require "../base/class").new("Agent.Defender.Default", Base)
 
 local World = require "../base/world"
 local Class = require "../base/class"
-local ManMark = require "task/manmark"
+local ManMarkBall = require "task/manmarkball"
+local ManMarkGoal = require "task/manmarkgoal"
 local FarMirror = require "task/farmirror"
 
 function Default:check()
@@ -19,7 +20,13 @@ function Default:_updateTask()
 	end
 
 	if opponentsInOurHalf then
-		return ManMark
+		if World.Ball.pos.y < -World.Geometry.FieldHeight / 6 then
+			self._manmark = ManMarkGoal
+		end
+		if World.Ball.pos.y > 0 or not self._manmark then
+			self._manmark = ManMarkBall
+		end
+		return self._manmark
 	else
 		return FarMirror
 	end
