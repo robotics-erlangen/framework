@@ -34,20 +34,23 @@ function Keeper:run()
 		self._defendCorner = false
 	end
 
+	-- keep the goalie inside the goal to exploit its full diameter for blocking incoming balls
+	local goalWidthHalf = G.GoalWidth/2 - 0.03
+
 	-- line to move along for defending
 	local defenseLineStart, defenseLineEnd, fallbackPos
 	-- corners should be defended and atkPos is outside the goal
-	if self._defendCorner and (math.abs(atkPos.x) > G.GoalWidth / 2
+	if self._defendCorner and (math.abs(atkPos.x) > goalWidthHalf
 			or atkPos.y < G.FriendlyGoal.y - G.GoalDepth) then
 		-- defend short corner
 		-- line starts a goal post, stay as near to the goal as possible
-		defenseLineStart = Vector.create(side*G.GoalWidth/2, G.FriendlyGoal.y)
+		defenseLineStart = Vector.create(side*goalWidthHalf, G.FriendlyGoal.y)
 		local lineDir = ((Vector.create(0, defenseLineStart.y) - atkPos):perpendicular() * side):normalize()
 		-- move startpoint out of the goal along the direction
 		defenseLineStart = defenseLineStart + lineDir * self._robot.radius
 
 		-- opposite corner
-		local otherGoalPost = Vector.create(-side*G.GoalWidth/2, G.FriendlyGoal.y)
+		local otherGoalPost = Vector.create(-side*goalWidthHalf, G.FriendlyGoal.y)
 		-- position where the robot would block the otherGoalPost
 		-- lambdaLine is distance from defenseLineStart in direction of lineDir
 		local _, lambdaLine = geom.intersectLineLine(defenseLineStart, lineDir,
@@ -65,12 +68,12 @@ function Keeper:run()
 		-- defend along the goal line and occupy as much space in the goal as possible
 		-- idea: cut defense line with line from goal posts to ball (attack pos)
 		-- account for robot radius
-		local goalCornerLeft = Vector.create(-G.GoalWidth / 2, G.FriendlyGoal.y)
-		local goalCornerRight = Vector.create(G.GoalWidth / 2, G.FriendlyGoal.y)
+		local goalCornerLeft = Vector.create(-goalWidthHalf, G.FriendlyGoal.y)
+		local goalCornerRight = Vector.create(goalWidthHalf, G.FriendlyGoal.y)
 		local goalLineY = G.FriendlyGoal.y + kGD + self._robot.radius
 		local lineDist = math.abs(goalLineY - goalCornerLeft.y)
 
-		local leftBound = -G.GoalWidth/2
+		local leftBound = -goalWidthHalf
 		local angleLeft = goalNormal:angleDiff(atkPos - goalCornerLeft)
 		if math.abs(angleLeft) < math.pi / 2 then
 			-- distance cutoff by angle to atkPos + distance blocked by robot radius
@@ -79,7 +82,7 @@ function Keeper:run()
 			leftBound = leftBound + math.max(0, leftDist)
 		end
 
-		local rightBound = G.GoalWidth/2
+		local rightBound = goalWidthHalf
 		local angleRight = goalNormal:angleDiff(atkPos - goalCornerRight)
 		if math.abs(angleRight) < math.pi / 2 then
 			local rightDist = -math.tan(angleRight) * lineDist - (isShot and 0 or self._robot.radius / math.cos(angleRight))
