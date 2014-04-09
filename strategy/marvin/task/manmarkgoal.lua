@@ -48,7 +48,11 @@ function ManMarkGoal:run()
 	if #remainingOpponents > 0 then
 		targetRobot = remainingOpponents[1]
 	else -- TODO consider other defender
-		targetRobot = table.min(table.map(World.OpponentRobots(function(r) return r.pos.y end)))
+		for _,r in pairs(World.OpponentRobots) do
+			if not targetRobot or r.pos.y < targetRobot.pos.y then
+				targetRobot = r
+			end
+		end
 	end
 
 	-- preferred position between target robot and goal
