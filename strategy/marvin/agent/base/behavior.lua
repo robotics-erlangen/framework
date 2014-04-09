@@ -70,7 +70,6 @@ end
 function Base:_applyForCenterBack()
 	local rating = math.max(0, 1 - Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius))
 	rating = rating * 10
-	log("apply "..tostring(self._robot.id))
 	self._send("trainer").specialRole({centerBack = rating})
 end
 

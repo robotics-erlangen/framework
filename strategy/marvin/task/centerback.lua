@@ -28,11 +28,16 @@ local function intersectLineWithDefenseArea(onpoint, angle, extraRadius, opp)
 	
 	local intersections = {}
 
+	local arcRadius = G.DefenseRadius + extraRadius
+	local arcWay = math.pi / 2 * arcRadius
+	local lineWay = G.DefenseStretch
+	local totalWay = 2 * arcWay + lineWay
+
 	--line intersection
 	local defenseLineOnpoint = Vector.create(0, (-G.FieldHeightHalf + G.DefenseRadius + extraRadius)*team)
 	local lineIntersection,_,l2 = geom.intersectLineLine(onpoint, dir, defenseLineOnpoint, Vector.create(1,0))
 	if lineIntersection and math.abs(l2) <= G.DefenseStretch/2 then
-		table.insert(intersections, lineIntersection)
+		table.insert(intersections, {lineIntersection, l2 + totalWay/2})
 	end
 
 	--left circle intersection
@@ -40,10 +45,12 @@ local function intersectLineWithDefenseArea(onpoint, angle, extraRadius, opp)
 	local lintersect1, lintersect2 = geom.intersectLineCircle(onpoint, dir, gleft, G.DefenseRadius + extraRadius)
 	if lintersect1 and lintersect1.x < -G.DefenseStretch/2
 			and lintersect1.y > -G.FieldHeightHalf and lintersect1.y < G.FieldHeightHalf then
-		table.insert(intersections, lintersect1)
+		local way = math.abs(math.pi - (lintersect1 - gleft):angle()) * arcRadius
+		table.insert(intersections, {lintersect1, way})
 	elseif lintersect2 and lintersect2.x < -G.DefenseStretch/2
 			and lintersect2.y > -G.FieldHeightHalf and lintersect2.y < G.FieldHeightHalf then
-		table.insert(intersections, lintersect2)
+		local way = math.abs(math.pi - (lintersect2 - gleft):angle()) * arcRadius
+		table.insert(intersections, {lintersect2, way})
 	end
 
 	--right circle intersection
@@ -51,25 +58,29 @@ local function intersectLineWithDefenseArea(onpoint, angle, extraRadius, opp)
 	local rintersect1, rintersect2 = geom.intersectLineCircle(onpoint, dir, gright, G.DefenseRadius + extraRadius)
 	if rintersect1 and rintersect1.x > G.DefenseStretch/2
 			and rintersect1.y > -G.FieldHeightHalf and rintersect1.y < G.FieldHeightHalf then
-		table.insert(intersections, rintersect1)
+		local way = math.abs(math.pi - (rintersect1 - gright):angle()) * arcRadius + lineWay
+		table.insert(intersections, {rintersect1, way})
 	elseif rintersect2 and rintersect2.x > G.DefenseStretch/2
 			and rintersect2.y > -G.FieldHeightHalf and rintersect2.y < G.FieldHeightHalf then
-		table.insert(intersections, rintersect2)
+		local way = math.abs(math.pi - (rintersect2 - gright):angle()) * arcRadius + lineWay
+		table.insert(intersections, {rintersect2, way})
 	end	
 
 
 	--min search
 	local minDistance = math.huge
 	local minIntersection = nil
+	local minWay = totalWay/2
 	for i = 1, #intersections do
-		local dist = onpoint:distanceTo(intersections[i])
+		local dist = onpoint:distanceTo(intersections[i][1])
 		if dist < minDistance then
 			minDistance = dist
-			minIntersection = intersections[i]
+			minIntersection = intersections[i][1]
+			minWay = intersections[i][2]
 		end
 	end
 
-	return minIntersection
+	return minIntersection, minWay
 end
 
 local function calculatePosition(robot, keeperPos)
