@@ -92,9 +92,10 @@ function ShootGoal:updateDestination(ignoreGoalie)
 	return #freeSectors
 end
 
-function ShootGoal:_init()
+function ShootGoal:_init(minPrecision)
 	self._bestMid = G.OpponentGoal
 	Volley._init(self)
+	self._minPrecision = minPrecision or 5 / 180 * math.pi
 end
 
 function ShootGoal:canShoot()
@@ -105,10 +106,16 @@ end
 function ShootGoal:_canShoot()
 	self:updateDestination()
 	local angleDiff = math.abs(geom.getAngleDiff((self.targetPoint - World.Ball.pos):angle(), self._robot.dir))
-	if self.maxAngleError then
-		return angleDiff < self.maxAngleError or angleDiff < Settings.minAnglePrecision
+
+	if World.Ball.speed:length() > Settings.slowBall then
+		-- always allow volley shots
+		return true
+	elseif angleDiff < Settings.minAnglePrecision then
+		-- always shoot if the direction is precise enough
+		return true
 	else
-		return angleDiff < 5 / 180 * math.pi or angleDiff < Settings.minAnglePrecision
+		-- otherwise check the free goal angle
+		return angleDiff < math.min(self._minPrecision, self.maxAngleError)
 	end
 end
 
