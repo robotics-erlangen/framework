@@ -14,6 +14,7 @@ function AggressiveKeeper:run()
 	
 	local fromGoal = (tpos - World.Geometry.FriendlyGoal):angle()
 
+	self._robot:setDribblerSpeed(1)
 	self._robot:chip(1)
 	self._robot.path:setDefaultObstacles(self._robot, true)
 	self._robot.trajectory:update(ToTarget, tpos, fromGoal)

@@ -24,6 +24,7 @@ function SaveBall:run()
 
 	local viewDir = (World.Ball.pos - self._robot.pos):angle()
 	if viewDir > 0 and viewDir < math.pi then
+		self._robot:setDribblerSpeed(1)
 		self._robot:chip(1)
 	end
 
