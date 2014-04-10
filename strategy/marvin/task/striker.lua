@@ -158,7 +158,12 @@ function Striker:_calcMoveDest()
 		end
 	end
 
-	-- TODO: do not interfere with passes.
+	-- do not interfere with passes.
+	local shooter, shootDest = next(self._inbox.shootDestination())
+	if shootDest then 
+		self._robot.path:addLine(shooter.pos.x, shooter.pos.y, shootDest.x, shootDest.y, self._robot.radius)
+		vis.addPath("strikerShotObstacle", { shooter.pos, shootDest }, vis.colors.red)
+	end
 
 	Interval.merge(intervalsToRemove)
 	local possibleIntervals = Interval.negate(intervalsToRemove, lineStart, lineEnd)
