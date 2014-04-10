@@ -5,6 +5,7 @@ local World = require "../base/world"
 local Referee = require "../base/referee"
 local Ball = require "observer/ball"
 local Shoot = require "observer/shoot"
+local SaveBall = require "task/saveball"
 
 local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
@@ -28,11 +29,11 @@ end
 
 function HandleBall:_updateTask()
 	local bestAssi = Shoot.bestFreeAssistant(self._robot, self._inbox.attackerFlag("ignorePriority"))
-	--local _, timeAdvance = Ball.firstAtBall()
-	if bestAssi then --and timeAdvance > Settings.defenseRiskLevel then
+	local _, timeAdvance = Ball.firstAtBall()
+	if bestAssi and timeAdvance > 1.5 then -- we're really slow atm (iran open)
 		return DirectPass, { bestAssi, true }
 	else -- under pressure
-		return ChipAway
+		return SaveBall
 	end
 end
 
