@@ -15,7 +15,7 @@ ShootGoal.priority = 5
 
 -- how much to move the shoot pos towards the corner
 -- (0 = mid of sector, 1 = straight towards the corner) 
-local cornerWeight = 0.4
+local cornerWeight = 0
 
 -- how much a new best sector should be better than the old one
 local sectorRatingHysteresis = 2
@@ -95,7 +95,7 @@ end
 function ShootGoal:_init(minPrecision)
 	self._bestMid = G.OpponentGoal
 	Volley._init(self)
-	self._minPrecision = minPrecision or 5 / 180 * math.pi
+	self._minPrecision = minPrecision or 2.5 / 180 * math.pi
 end
 
 function ShootGoal:canShoot()
@@ -107,10 +107,7 @@ function ShootGoal:_canShoot()
 	self:updateDestination()
 	local angleDiff = math.abs(geom.getAngleDiff((self.targetPoint - World.Ball.pos):angle(), self._robot.dir))
 
-	if World.Ball.speed:length() > Settings.slowBall then
-		-- always allow volley shots
-		return true
-	elseif angleDiff < Settings.minAnglePrecision then
+	if angleDiff < Settings.minAnglePrecision then
 		-- always shoot if the direction is precise enough
 		return true
 	else
@@ -128,11 +125,9 @@ function ShootGoal:run()
 	vis.addPath("ShootGoalTarget",{World.Ball.pos, self.targetPoint})
 
 	-- TODO discuss if the layer above (a/a/shoot) should choose between volley and shoot instead
-	if World.Ball.speed:length() > Settings.slowBall then
-		self:_volley(self.targetPoint, math.huge)
-	else
-		self:_shoot(self.targetPoint, math.huge, true)
-	end
+	
+	self:_shoot(self.targetPoint, math.huge, true)
+	
 end
 
 return ShootGoal
