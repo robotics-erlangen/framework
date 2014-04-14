@@ -140,11 +140,11 @@ local function calculatePosition(robot, keeperPos)
 
 	local selfSectorPos = nil
 	if selfSectorMid then 
-		selfSectorPos = intersectLineWithDefenseArea(viewPos, selfSectorMid, robot.radius + extraDistance, false)
+		selfSectorPos = Field.intersectLineDefenseArea(viewPos, Vector.fromAngle(selfSectorMid), robot.radius + extraDistance, false)
 	end
 	local maxSectorPos = nil
 	if maxSectorMid then 
-		maxSectorPos = intersectLineWithDefenseArea(viewPos, maxSectorMid, robot.radius + extraDistance, false)
+		maxSectorPos = Field.intersectLineDefenseArea(viewPos, Vector.fromAngle(maxSectorMid), robot.radius + extraDistance, false)
 	end
 
 	local defaultPos = Vector.create(0, -G.FieldHeightHalf + G.DefenseRadius + robot.radius + extraDistance)
