@@ -112,7 +112,7 @@ function ShootGoal:_canShoot()
 		return true
 	else
 		-- otherwise check the free goal angle
-		return angleDiff < math.min(self._minPrecision, self.maxAngleError)
+		return angleDiff < math.min(self._minPrecision, self.maxAngleError or math.huge)
 	end
 end
 
