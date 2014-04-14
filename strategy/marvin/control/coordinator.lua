@@ -119,36 +119,38 @@ function Coordinator:_chooseSpecialRoles()
 	local hysteresis = 0.1 -- magic constant
 	local roleApplications = Messaging.getSpecialRoleApplications()
 
+	local specialRoles = {} -- ensure that special roles are removed if no one applies
 	for role, applications in pairs(roleApplications) do
 		local bestRobot = nil
-		local bestRating = -1
+		local bestRating = -math.huge
 		for robot, rating in pairs(applications) do
 			if self.specialRoles[role] == robot then
 				rating = rating + hysteresis
 			end
-			if not self.specialRoles[role] or rating > bestRating then
+			if rating > bestRating then
 				bestRobot = robot
 				bestRating = rating
 			end
 		end
 		if bestRobot then
-			self.specialRoles[role] = bestRobot
+			specialRoles[role] = bestRobot
+			Messaging.sendSpecialRole(role, specialRoles[role])
 		end
-		Messaging.sendSpecialRole(role, self.specialRoles[role])
+	end
+	self.specialRoles = specialRoles
 
-		if role == "mainAttacker" then
-			if bestRobot and self._pools.defense._agents then
-				self._mainAttackerIsDefender = false
-				for _, agent in ipairs(self._pools.defense._agents) do
-					if agent:robot() == self.specialRoles[role] then
-						self._mainAttackerIsDefender = true
-					end
+	local mainAttacker = self.specialRoles["mainAttacker"]
+	if mainAttacker then
+		self._mainAttackerIsDefender = false
+		if self._pools.defense._agents then
+			for _, agent in ipairs(self._pools.defense._agents) do
+				if agent:robot() == mainAttacker then
+					self._mainAttackerIsDefender = true
 				end
 			end
-			local color = World.TeamIsBlue and vis.colors.blue or vis.colors.yellow
-			vis.addCircle(role, bestRobot.pos, 0.12, color, false);
-			vis.addCircle(role, bestRobot.pos, 0.129, color, false);
 		end
+		local color = World.TeamIsBlue and vis.colors.blue or vis.colors.yellow
+		vis.addCircle("mainAttacker", mainAttacker.pos, 0.12, color, true, true);
 	end
 end
 
