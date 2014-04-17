@@ -7,6 +7,7 @@ local Volley = require "task/volley"
 
 local World = require "../base/world"
 local G = World.Geometry
+local Interval = require "util/interval"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 
@@ -51,6 +52,24 @@ function ShootGoal:updateDestination(ignoreGoalie)
 	local bestRating = -math.huge
 	local bestMid = nil
 	local bestAngleError = nil
+
+	if ignoreGoalie and World.OpponentKeeper then
+		local negated = Interval.negate(freeSectors, goalStart, goalEnd)
+		local interval, min, max = self:checkForRicochet()
+		if max < -math.pi/2 then max = max + 2*math.pi end
+		if interval[1] < -math.pi/2 then interval[1] = interval[1] + 2*math.pi end
+		if interval[2] < -math.pi/2 then interval[2] = interval[2] + 2*math.pi end
+		table.insert(negated, interval)
+		Interval.merge(negated)
+		freeSectors = Interval.negate(negated, min, max)
+		self._viscolor = vis.colors.red
+		Interval.merge(freeSectors)
+		for _,i in pairs({interval}) do
+			log("sector  "..i[1].." :: "..i[2])
+		end
+	else
+		self._viscolor = vis.colors.black
+	end
 	
 	for _, sector in pairs(freeSectors) do
 		-- calculate shoot angle (mid of sector, near corner if possible)
@@ -84,12 +103,52 @@ function ShootGoal:updateDestination(ignoreGoalie)
 	end
 	
 	self.bestMid = bestMid
-	self.targetPoint = bestMid and geom.intersectLineLine(viewPos, Vector.fromAngle(bestMid), 
-			G.OpponentGoal, Vector.create(1, 0)) or G.OpponentGoal
+	self.targetPoint = bestMid and Vector.fromAngle(bestMid)*10 + viewPos or G.OpponentGoal
 	self.maxAngleError = bestAngleError
+
+	log("MAA "..tostring(ignoreGoalie).."  "..tostring(self.maxAngleError and self.maxAngleError/math.pi*180))
 	
 	self.timestamp = World.Time
 	return #freeSectors
+end
+
+-- calculates the interval on the opponent keeper NOT suited for lucky rebounds into the goal
+function ShootGoal:checkForRicochet(viewPos)
+	viewPos = viewPos or World.Ball.pos
+
+	local keeper = World.OpponentKeeper
+	local toleft = G.OpponentGoalLeft - keeper.pos
+	local toright = G.OpponentGoalRight - keeper.pos
+	local toball = viewPos - keeper.pos
+
+	local anglediffleft = toleft:absoluteAngleDiff(toball)
+	local anglediffright = toright:absoluteAngleDiff(toball)
+
+	local keeperRadiusAngle = math.asin(math.min(1, keeper.radius/toball:length()))
+
+
+	local tokeeper = (-toball):angle()
+	if anglediffleft < anglediffright then
+		local reflectionangle = toball:angle() - anglediffleft/2
+		local reflectionpoint = keeper.pos + Vector.fromAngle(reflectionangle) * keeper.radius
+		local goalpost = G.OpponentGoalLeft + 
+			Vector.fromAngle((G.OpponentGoalLeft-viewPos):angle() - math.pi/2):setLength(World.Ball.radius)
+		local toreflectionpoint = (reflectionpoint - viewPos):angle()
+		vis.addPath("ShootGoalRicochet", {viewPos, reflectionpoint}, vis.colors.whiteHalf)
+		vis.addPath("ShootGoalRicochet", {viewPos, goalpost}, vis.colors.whiteHalf)
+		return {tokeeper - keeperRadiusAngle, toreflectionpoint}, 
+			tokeeper - keeperRadiusAngle, (goalpost - viewPos):angle()
+	else
+		local reflectionangle = toball:angle() + anglediffright/2
+		local reflectionpoint = keeper.pos + Vector.fromAngle(reflectionangle) * keeper.radius
+		local goalpost = G.OpponentGoalRight + 
+			Vector.fromAngle((G.OpponentGoalRight-viewPos):angle() + math.pi/2):setLength(World.Ball.radius)
+		local toreflectionpoint = (reflectionpoint - viewPos):angle()
+		vis.addPath("ShootGoalRicochet", {viewPos, reflectionpoint}, vis.colors.whiteHalf)
+		vis.addPath("ShootGoalRicochet", {viewPos, goalpost}, vis.colors.whiteHalf)
+		return {toreflectionpoint, tokeeper + keeperRadiusAngle},
+			(goalpost - viewPos):angle(), tokeeper + keeperRadiusAngle
+	end
 end
 
 function ShootGoal:_init(minPrecision)
@@ -100,7 +159,7 @@ end
 
 function ShootGoal:canShoot()
 	self:updateDestination()
-	return self.maxAngleError and self.maxAngleError > Settings.minAnglePrecision/180*math.pi
+	return self.maxAngleError and self.maxAngleError > Settings.minAnglePrecision/180*math.pi or true
 end
 
 function ShootGoal:_canShoot()
@@ -118,11 +177,17 @@ end
 
 function ShootGoal:run()
 	self:updateDestination()
-	if not self.bestMid then
+	if not self.bestMid or self.maxAngleError < Settings.minAnglePrecision then
 		self:updateDestination(true)
 	end
+
+	if not self.targetPoint then
+		log("WARNING: no valid targetPoint for ShootGoal")
+		self.targetPoint = G.OpponentGoal
+	end
+
 	-- shoot
-	vis.addPath("ShootGoalTarget",{World.Ball.pos, self.targetPoint})
+	vis.addPath("ShootGoalTarget",{World.Ball.pos, self.targetPoint}, self._viscolor)
 
 	-- TODO discuss if the layer above (a/a/shoot) should choose between volley and shoot instead
 	
