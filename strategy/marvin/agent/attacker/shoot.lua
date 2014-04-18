@@ -112,7 +112,7 @@ function Shoot:_updateTask()
 		--TODO
 		return ShootGoal
 	else
-		local bestAssistant = ObserverShoot.bestFreeAssistant(self._robot, self._inbox.attackerFlag("ignorePriority"))
+		local bestAssistant = ObserverShoot.bestFreeAssistant(self._robot)
 		local shootGoalTmp = ShootGoal.create(self._agent)
 		local reachTime = Robot.minTimeToBall(self._robot, World.Ball)
 		

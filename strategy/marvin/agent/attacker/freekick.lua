@@ -70,7 +70,7 @@ function FreeKick:_updateTask()
 end
 
 function FreeKick:passOrChipTask()
-	local bestRobot = Shoot.bestFreeAssistant(self._robot, self._inbox.attackerFlag("ignorePriority"))
+	local bestRobot = Shoot.bestFreeAssistant(self._robot)
 	if bestRobot then
 		return DirectPass, {bestRobot, true}
 	else

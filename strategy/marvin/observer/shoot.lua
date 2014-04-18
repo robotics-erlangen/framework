@@ -8,6 +8,7 @@ local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Geom = require "../base/geom"
 local Field = require "util/field"
+local Messaging = require "control/messaging"
 local debug = require "../base/debug"
 local vis = require "../base/vis"
 
@@ -123,10 +124,10 @@ end
 
 --- returns nil or a robot which can be passed to and, if there a more of them, the one who is closest to the opponent goal in combination with the biggest free goal sectors
 -- @param activeRobot - the robot who is searching for a pass receiver
--- @param assistants - table of assistants indexed by robots
 -- @return robot or nil - the most suitable robot, if any 
-function Shoot.bestFreeAssistant(activeRobot, assistants)
-	-- !!! ATTENTION !!! Assumes we are already at the ball 
+function Shoot.bestFreeAssistant(activeRobot)
+	-- !!! ATTENTION !!! Assumes we are already at the ball
+	local assistants = Messaging.get("attackerFlag")
 	local function canPassTo(r)
 		return assistants[r] and Field.isInField(r.pos)
 			and Robot.wayToRobotFree(r, activeRobot)

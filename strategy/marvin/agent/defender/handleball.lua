@@ -28,7 +28,7 @@ function HandleBall:check()
 end
 
 function HandleBall:_updateTask()
-	local bestAssi = Shoot.bestFreeAssistant(self._robot, self._inbox.attackerFlag("ignorePriority"))
+	local bestAssi = Shoot.bestFreeAssistant(self._robot)
 	local _, timeAdvance = Ball.firstAtBall()
 	if bestAssi and timeAdvance > 1.5 then -- we're really slow atm (iran open)
 		return DirectPass, { bestAssi, true }

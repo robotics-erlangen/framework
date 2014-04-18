@@ -44,7 +44,7 @@ function Duel:_contest()
 end
 
 function Duel:_passAway()
-	local bestAssistant = Shoot.bestFreeAssistant(self._robot, self._inbox.attackerFlag("ignorePriority"))
+	local bestAssistant = Shoot.bestFreeAssistant(self._robot)
 	
 	local rating = bestAssistant and Shoot.rateAssistant(bestAssistant) or 0
 	local oldRating = self._bestAssistant and Shoot.rateAssistant(self._bestAssistant) or -1 

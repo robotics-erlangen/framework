@@ -38,7 +38,7 @@ end
 -- { from: agent, mtype: testmessage, data: testtable, priority: 2 }
 -- from can also be the string "trainer"
 -- priority is optional and used by the tasks to filter out messages from tasks with lower priority
-local newMessages = { trainer = {} } -- table which is reset every frame with agent as key, array of messages as value
+local newMessages = { trainer = {}, all = {} } -- table which is reset every frame with agent as key, array of messages as value
 local deliveredMessages = nil -- reference to the newMessages table of the last last frame
 local robotToAgent = {} -- track registered agents
 local taskDuringSending = {}
@@ -53,7 +53,7 @@ end
 --- makes newMessages to deliveredMessages and creates a new newMessages table
 function Messaging.deliverMessages()
 	deliveredMessages = newMessages
-	newMessages = { trainer = {} }
+	newMessages = { trainer = {}, all = {} }
 	for _, agent in pairs(robotToAgent) do
 		newMessages[agent] = {}
 	end
@@ -145,6 +145,24 @@ function Messaging.getSender(agent, priority)
 		return methods
 	end
 	return sender
+end
+
+--- returns all messages of "messageType" which were sent to "all"
+function Messaging.get(messageType)
+	if not msgDefs[messageType] then
+		error("request for invalid message type " .. messageType)
+	end
+	local messages = {}
+	for _, msg in ipairs(deliveredMessages.all) do
+		if msg.mtype == messageType then
+			if msg.from == "trainer" then
+				messages[msg.from] = msg.data
+			else
+				messages[msg.from:robot()] = msg.data
+			end
+		end
+	end
+	return messages
 end
 
 --- supplies the trainer with specialRole applications
