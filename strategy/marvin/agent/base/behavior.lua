@@ -67,12 +67,6 @@ function Base:_applyForMainAttacker()
 	self._send("trainer").exclusiveRole({mainAttacker = mainAttackerRating})
 end
 
-function Base:_applyForCenterBack()
-	local rating = math.max(0, 1 - Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius))
-	rating = rating * 10
-	self._send("trainer").exclusiveRole({centerBack = rating})
-end
-
 -- can be overwritten for custom cleanups
 function Base:_stop()
 end

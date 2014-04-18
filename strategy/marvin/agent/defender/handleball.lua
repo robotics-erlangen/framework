@@ -21,10 +21,14 @@ function HandleBall:check()
 			self:_applyForMainAttacker()
 		end
 	end
-	if self._inbox.centerBack().trainer == self._robot then
-		self:_applyForCenterBack()
+	if self._inbox.mainAttacker().trainer == self._robot then
+		local role = self._inbox.roleAssignment().trainer
+		if role and role.name == "CenterBack" then
+			self._send("all").centerbackFlag() -- stay centerback
+		end
+		return true
 	end
-	return self._inbox.mainAttacker().trainer == self._robot
+	return false
 end
 
 function HandleBall:_updateTask()

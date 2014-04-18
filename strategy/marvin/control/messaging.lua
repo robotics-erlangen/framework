@@ -6,6 +6,7 @@ local checkType = require "../base/typecheck"
 local msgDefs = {
 	-- multiple senders
 	attackerFlag = "flag",
+	centerbackFlag = "flag",
 	defendedOpponent = Robot,
 	moveDest = "userdata",
 	moveDestDir = "number",
@@ -20,12 +21,12 @@ local msgDefs = {
 	passSender = "string", -- type of pass (direct/in the run)
 	duelAssistantPos = "userdata",
 	duelAssistantDir = "number",
+	roleAssignment = "table",
 }
 
 local exclusiveRoles = {
 	passReceiver = true,
 	mainAttacker = true,
-	centerBack = true,
 	freeKickDefender = true,
 	navChallengeRight = true,
 	navChallengeLeft = true
