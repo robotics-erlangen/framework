@@ -47,7 +47,6 @@ function Striker:_xLine()
 			0.8 * World.Geometry.FieldWidthHalf
 		}
 	else
-		log("Warning: No reasonable striker position with " .. numAttackers .. " attackers")
 		return
 	end
 

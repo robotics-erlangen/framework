@@ -5,6 +5,7 @@ local Messaging = require "control/messaging"
 local World = require "../base/world"
 local Robot = require "observer/robot"
 local Rating = require "util/rating"
+local Field = require "util/field"
 local Referee = require "../base/referee"
 
 function Base:init(agent)
@@ -67,9 +68,8 @@ function Base:_applyForMainAttacker()
 end
 
 function Base:_applyForCenterBack()
-	local rating = math.min(0, World.Geometry.FieldWidthHalf - math.abs(self._robot.pos.x)) 
-		/ World.Geometry.FieldWidthHalf
-	rating = rating / 7 -- low probability of change
+	local rating = math.max(0, 1 - Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius))
+	rating = rating * 10
 	self._send("trainer").exclusiveRole({centerBack = rating})
 end
 

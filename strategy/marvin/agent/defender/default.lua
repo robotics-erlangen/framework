@@ -8,7 +8,17 @@ local ManMarkGoal = require "task/manmarkgoal"
 local FarMirror = require "task/farmirror"
 
 function Default:check()
-	return true
+	if self._inbox.centerBack().trainer == self._robot then
+		return false
+	end
+
+	local opponentsInOurHalf = false
+	for _, robot in ipairs(World.OpponentRobots) do
+		if robot.pos.y < 0 then
+			opponentsInOurHalf = true
+		end
+	end
+	return opponentsInOurHalf
 end
 
 function Default:_updateTask()

@@ -132,6 +132,126 @@ function Field.distanceToFriendlyDefenseArea(pos, radius)
 	return distance
 end
 
+
+
+
+local normalize = function(angle)
+	while angle >= 2*math.pi do angle = angle - 2*math.pi end
+	while angle < 0 do angle = angle + 2*math.pi end
+	return angle
+end
+
+local isInInterval = function(angle, min, max)
+	return normalize(angle - min) <= normalize(max - min)
+end
+	
+local intersectLineArc = function(pos, dir, m, r, minangle, maxangle)
+	local intersections = {}
+	local i1, i2 = geom.intersectLineCircle(pos, dir, m, r)
+	local interval = normalize(maxangle - minangle)
+	if i1 then
+		local a1 = normalize((i1 - m):angle() - minangle)
+		if a1 < interval then
+			table.insert(intersections, {i1, a1})
+		end
+	end
+	if i2 then
+		local a2 = normalize((i2 - m):angle() - minangle)
+		if a2 < interval then
+			table.insert(intersections, {i2, a2})
+		end
+	end
+	return intersections
+end
+
+function Field.intersectLineDefenseArea(pos, dir, extraDistance, opp)
+	-- calculate defense radius
+	extraDistance = extraDistance or 0
+	local radius = G.DefenseRadius + extraDistance
+	assert(radius >= 0, "extraDistance must not be smaller than -G.DefenseRadius")
+
+	-- calculate length of defense border (arc - line - arc)
+	local arcway = radius * math.pi/2
+	local lineway = G.DefenseStretch
+	local totalway = 2 * arcway + lineway
+
+	-- calculate global positions
+	local oppfac = opp and -1 or 1
+	local leftCenter = Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf) * oppfac
+	local rightCenter = Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf) * oppfac
+	local leftLine = Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf + radius) * oppfac
+	local rightLine = Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf + radius) * oppfac
+
+	-- calclulate global angles
+	local deg0 = opp and math.pi or 0
+	local deg90 = oppfac and math.pi/2
+	local deg180 = opp and 0 or math.pi
+
+	-- calctulate intersection points with defense arcs
+	local intersections = {}
+	local ileft = intersectLineArc(pos, dir, leftCenter, radius, deg90, deg180)
+	for _,i in ipairs(ileft) do
+		table.insert(intersections, {i[1], i[2] * radius})
+	end
+	local iright = intersectLineArc(pos, dir, rightCenter, radius, deg0, deg90)
+	for _,i in ipairs(iright) do
+		table.insert(intersections, {i[1], i[2] * radius + arcway + lineway})
+	end
+
+	-- calculate intersection point with defense stretch
+	local defenseLineOnpoint = Vector.create(0, -G.FieldHeightHalf + radius) * oppfac
+	local lineIntersection,_,l2 = geom.intersectLineLine(pos, dir, defenseLineOnpoint, Vector.create(1,0))
+	if lineIntersection and math.abs(l2) <= G.DefenseStretch/2 then
+		table.insert(intersections, {lineIntersection, l2 + totalway/2})
+	end
+
+	-- choose nearest intersection
+	local minDistance = math.huge
+	local minIntersection = nil
+	local minWay = totalway/2
+	for _,i in ipairs(intersections) do
+		local dist = pos:distanceTo(i[1])
+		if dist < minDistance then
+			minDistance = dist
+			minIntersection = i[1]
+			minWay = i[2]
+		end
+	end
+
+	return minIntersection, minWay
+end
+
+function Field.defenseIntersectionByWay(extraDistance, way, opp)
+	-- calculate defense radius
+	extraDistance = extraDistance or 0
+	local radius = G.DefenseRadius + extraDistance
+	assert(radius >= 0, "extraDistance must not be smaller than -G.DefenseRadius")
+
+	-- calculate length of defense border (arc - line - arc)
+	local arcway = radius * math.pi/2
+	local lineway = G.DefenseStretch
+	local totalway = 2 * arcway + lineway
+	assert(way >= 0 and way <= totalway, "way is out of bounds")
+
+	local intersection = nil
+	if way < arcway then
+		local angle = way / radius
+		intersection = Vector.fromAngle(math.pi - angle) * radius
+	elseif way <= arcway + lineway then
+		intersection = Vector.create(way - arcway - G.DefenseStretch/2, -G.FieldHeightHalf + G.DefenseRadius)
+	else
+		local angle = (way - arcway - lineway) / radius
+		intersection = Vector.fromAngle(math.pi/2 - angle) * radius
+	end
+
+	if opp then
+		intersection = -intersection
+	end
+
+	return intersection
+end
+
+
 function Field.distanceToFriendlyGoalLine(pos, radius)
 	if math.abs(pos.x) < G.GoalWidth/2 then
 		return math.max(G.FieldHeightHalf + pos.y - radius, 0)
