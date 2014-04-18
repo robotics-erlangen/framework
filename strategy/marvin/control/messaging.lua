@@ -10,7 +10,7 @@ local msgDefs = {
 	moveDest = "userdata",
 	moveDestDir = "number",
 	distractedIndex = "number",
-	specialRole = "table", -- value test is in getSpecialRoleApplications
+	exclusiveRole = "table", -- value test is in getExclusiveRoleApplications
 	kickoffMirrorSide = "boolean",
 
 	-- single sender
@@ -22,7 +22,7 @@ local msgDefs = {
 	duelAssistantDir = "number",
 }
 
-local specialRoles = {
+local exclusiveRoles = {
 	passReceiver = true,
 	mainAttacker = true,
 	centerBack = true,
@@ -30,7 +30,7 @@ local specialRoles = {
 	navChallengeRight = true,
 	navChallengeLeft = true
 }
-for role, _ in pairs(specialRoles) do
+for role, _ in pairs(exclusiveRoles) do
 	msgDefs[role] = Robot
 end
 
@@ -165,15 +165,15 @@ function Messaging.get(messageType)
 	return messages
 end
 
---- supplies the trainer with specialRole applications
+--- supplies the trainer with exclusiveRole applications
 -- @return table - role as key and a table as value which has a robot as key and a rating as value
-function Messaging.getSpecialRoleApplications()
+function Messaging.getExclusiveRoleApplications()
 	local applications = {}
 	for _, msg in ipairs(newMessages.trainer) do
-		if msg.mtype == "specialRole" then
+		if msg.mtype == "exclusiveRole" then
 			for role, rating in pairs(msg.data) do
-				if not specialRoles[role] then
-					error(role.." is not a valid specialRole!")
+				if not exclusiveRoles[role] then
+					error(role.." is not a valid exclusiveRole!")
 				end
 				if not applications[role] then
 					applications[role] = {}
@@ -186,7 +186,7 @@ function Messaging.getSpecialRoleApplications()
 end
 
 --- used by the trainer to send his choice for a special role
-function Messaging.sendSpecialRole(roleName, robot)
+function Messaging.sendExclusiveRole(roleName, robot)
 	for _, mailbox in pairs(newMessages) do
 		table.insert(mailbox, {
 			from = "trainer",

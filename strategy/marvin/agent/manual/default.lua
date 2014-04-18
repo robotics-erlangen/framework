@@ -31,10 +31,10 @@ function Default:check()
 		self._catching = false
 	end
 	if self._catching then
-		self._send("trainer").specialRole({ passReceiver = 1.5 })
-		self._send("trainer").specialRole({ mainAttacker = 1.5 })
+		self._send("trainer").exclusiveRole({ passReceiver = 1.5 })
+		self._send("trainer").exclusiveRole({ mainAttacker = 1.5 })
 	else
-		self._send("trainer").specialRole({mainAttacker = mainAttackerRating})
+		self._send("trainer").exclusiveRole({mainAttacker = mainAttackerRating})
 	end
 
 	return true

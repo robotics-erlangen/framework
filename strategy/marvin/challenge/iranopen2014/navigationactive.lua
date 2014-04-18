@@ -16,11 +16,11 @@ function NavigationActive:init()
 		World.FriendlyRobots[2],
 		{ task = NavigationTask }
 	)
-	self.specialRoles = {} -- remember roles
+	self.exclusiveRoles = {} -- remember roles
 end
 
 function NavigationActive:run()
-	self._messages = Messaging.getSpecialRoleApplications()
+	self._messages = Messaging.getExclusiveRoleApplications()
 	debug.pushtop("Role Applications")
 	for role, application in pairs(self._messages) do
 		debug.push(role)
@@ -30,7 +30,7 @@ function NavigationActive:run()
 		debug.pop() -- role
 	end
 	debug.pop() -- Role Applications
-	self:_chooseSpecialRoles()
+	self:_chooseExclusiveRoles()
 	Messaging.deliverMessages()
 	
 	self._firstRobot:run()

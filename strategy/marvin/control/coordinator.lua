@@ -32,7 +32,7 @@ function Coordinator:init()
 		{ self._pools.defense, self._pools.attack },
 		{ self._pools.hidden }
 	}
-	self.specialRoles = {} -- remember roles
+	self.exclusiveRoles = {} -- remember roles
 	self._ballInFriendlyFieldHalf = false -- remember for hysteresis
 	self._messages = nil
 	self._mainAttackerIsDefender = false
@@ -42,7 +42,7 @@ function Coordinator:run()
 	self:_updatePoolRobots()
 	-- TODO: facilities for learning
 	
-	self._messages = Messaging.getSpecialRoleApplications()
+	self._messages = Messaging.getExclusiveRoleApplications()
 	debug.pushtop("Role Applications")
 	for role, application in pairs(self._messages) do
 		debug.push(role)
@@ -52,7 +52,7 @@ function Coordinator:run()
 		debug.pop() -- role
 	end
 	debug.pop() -- Role Applications
-	self:_chooseSpecialRoles()
+	self:_chooseExclusiveRoles()
 	Messaging.deliverMessages()
 
 	-- run every pool and thus every agent
@@ -114,17 +114,17 @@ function Coordinator:_updatePoolRobots()
 	end
 end
 
---- chooses a robot for every specialRole and sends a message to it
-function Coordinator:_chooseSpecialRoles()
+--- chooses a robot for every exclusiveRole and sends a message to it
+function Coordinator:_chooseExclusiveRoles()
 	local hysteresis = 0.1 -- magic constant
-	local roleApplications = Messaging.getSpecialRoleApplications()
+	local roleApplications = Messaging.getExclusiveRoleApplications()
 
-	local specialRoles = {} -- ensure that special roles are removed if no one applies
+	local exclusiveRoles = {} -- ensure that special roles are removed if no one applies
 	for role, applications in pairs(roleApplications) do
 		local bestRobot = nil
 		local bestRating = -math.huge
 		for robot, rating in pairs(applications) do
-			if self.specialRoles[role] == robot then
+			if self.exclusiveRoles[role] == robot then
 				rating = rating + hysteresis
 			end
 			if rating > bestRating then
@@ -133,13 +133,13 @@ function Coordinator:_chooseSpecialRoles()
 			end
 		end
 		if bestRobot then
-			specialRoles[role] = bestRobot
-			Messaging.sendSpecialRole(role, specialRoles[role])
+			exclusiveRoles[role] = bestRobot
+			Messaging.sendExclusiveRole(role, exclusiveRoles[role])
 		end
 	end
-	self.specialRoles = specialRoles
+	self.exclusiveRoles = exclusiveRoles
 
-	local mainAttacker = self.specialRoles["mainAttacker"]
+	local mainAttacker = self.exclusiveRoles["mainAttacker"]
 	if mainAttacker then
 		self._mainAttackerIsDefender = false
 		if self._pools.defense._agents then

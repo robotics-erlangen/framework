@@ -87,8 +87,8 @@ function Navigation:run()
 			error("invalid state")
 		end
 	end
-	self._send("trainer").specialRole({ navChallengeLeft = leftRating })
-	self._send("trainer").specialRole({ navChallengeRight = rightRating })
+	self._send("trainer").exclusiveRole({ navChallengeLeft = leftRating })
+	self._send("trainer").exclusiveRole({ navChallengeRight = rightRating })
 
 	self._robot.path:setDefaultObstacles(self._robot, true, true, true)
 	self._robot.path:addRobotObstacles(self._robot)

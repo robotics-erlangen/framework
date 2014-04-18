@@ -40,14 +40,14 @@ return function()
 	local msg4 = agent3inbox.moveDestDir("ignorePriority")[agent2:robot()]
 	assert(not msg4, "messages from non-existent tasks shall not be delivered")
 
-	agent2send("trainer").specialRole({mainAttacker = 1})
-	agent1send("trainer").specialRole({mainAttacker = 0.5})
-	local mAApplications = Messaging.getSpecialRoleApplications()['mainAttacker']
+	agent2send("trainer").exclusiveRole({mainAttacker = 1})
+	agent1send("trainer").exclusiveRole({mainAttacker = 0.5})
+	local mAApplications = Messaging.getExclusiveRoleApplications()['mainAttacker']
 	assert(mAApplications[agent2:robot()] == 1,
 		"mainAttacker rating of robot 2 shall be 1")
 	assert(mAApplications[agent1:robot()] == 0.5,
 		"mainAttacker rating of robot 1 shall be 0.5")
-	Messaging.sendSpecialRole("mainAttacker", agent2:robot())
+	Messaging.sendExclusiveRole("mainAttacker", agent2:robot())
 	Messaging.deliverMessages()
 	assert(agent1inbox.mainAttacker().trainer == agent2:robot()
 		, "Robot 2 shall get the mainAttacker role")

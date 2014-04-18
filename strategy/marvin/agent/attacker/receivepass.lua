@@ -51,14 +51,14 @@ function ReceivePass:check()
 		end
 
 		-- make sure that nobody else becomes passReceiver or mainAttacker
-		self._send("trainer").specialRole({ passReceiver = 2 })
-		self._send("trainer").specialRole({ mainAttacker = 2 })
+		self._send("trainer").exclusiveRole({ passReceiver = 2 })
+		self._send("trainer").exclusiveRole({ mainAttacker = 2 })
 		return true
 	elseif self._targetTimer and World.Time - self._targetTimer < passTargetTimeout then
 		-- apply for becoming pass receiver
 		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
 		local passReceiverRating = Rating.timeToRating(timeToBall)
-		self._send("trainer").specialRole({ passReceiver = passReceiverRating })
+		self._send("trainer").exclusiveRole({ passReceiver = passReceiverRating })
 
 		local passReceiver = self._inbox.passReceiver().trainer
 		local ballShooter = Ball.isShot()

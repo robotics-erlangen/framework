@@ -63,14 +63,14 @@ end
 function Base:_applyForMainAttacker()
 	local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
 	local mainAttackerRating = Rating.timeToRating(timeToBall)
-	self._send("trainer").specialRole({mainAttacker = mainAttackerRating})
+	self._send("trainer").exclusiveRole({mainAttacker = mainAttackerRating})
 end
 
 function Base:_applyForCenterBack()
 	local rating = math.min(0, World.Geometry.FieldWidthHalf - math.abs(self._robot.pos.x)) 
 		/ World.Geometry.FieldWidthHalf
 	rating = rating / 7 -- low probability of change
-	self._send("trainer").specialRole({centerBack = rating})
+	self._send("trainer").exclusiveRole({centerBack = rating})
 end
 
 -- can be overwritten for custom cleanups
