@@ -89,6 +89,7 @@ function ManMarkBall:run()
 	if self._targetRobot then
 		self._send("all").defendedOpponent(self._targetRobot)
 	end
+	self._send("all").moveDest(self._preferredPos)
 end
 
 return ManMarkBall

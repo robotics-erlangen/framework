@@ -79,6 +79,7 @@ function ManMarkGoal:run()
 	self._robot.trajectory:update(ToTarget, preferredPos, preferredDir)
 	
 	self._send("all").defendedOpponent(targetRobot)
+	self._send("all").moveDest(preferredPos)
 end
 
 return ManMarkGoal
