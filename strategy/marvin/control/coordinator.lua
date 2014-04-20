@@ -53,6 +53,7 @@ function Coordinator:run()
 	end
 	debug.pop() -- Role Applications
 	self:_chooseExclusiveRoles()
+	self:_organizeDefense()
 	Messaging.deliverMessages()
 
 	-- run every pool and thus every agent
@@ -151,6 +152,108 @@ function Coordinator:_chooseExclusiveRoles()
 		end
 		local color = World.TeamIsBlue and vis.colors.blue or vis.colors.yellow
 		vis.addCircle("mainAttacker", mainAttacker.pos, 0.12, color, true, true);
+	end
+end
+
+function Coordinator:_organizeDefense()
+	local unassigned = table.copy(self._pools.defense:robots())
+
+	-- at least one CenterBack
+	local currentCenterBacks = Messaging.trainerGet("centerbackFlag")
+	local defaultCenterBack = nil
+	local bestRating = -1
+	local oldCenterBack = false
+	for _, robot in pairs(unassigned) do
+		local rating = math.max(0, 1 - Field.distanceToFriendlyDefenseArea(robot.pos, robot.radius))
+		if (not oldCenterBack and rating > bestRating) or
+			(not oldCenterBack and currentCenterBacks[robot]) or
+			(currentCenterBacks[robot] and rating > bestRating)
+		then
+			bestRating = rating
+			defaultCenterBack = robot
+		end
+		if currentCenterBacks[robot] then
+			oldCenterBack = true
+		end
+	end
+	if defaultCenterBack then
+		table.removeValue(unassigned, defaultCenterBack)
+	end
+
+	-- look for opponents to mark
+	local oppsToMark = {}
+	local alreadyDefended = Messaging.trainerGet("defendedOpponent")
+	for _, robot in ipairs(World.OpponentRobots) do
+		if not alreadyDefended[robot] and 
+			(not Referee.isStopState() or robot.pos:distanceTo(World.Ball.pos) > 0.7) and
+			robot.pos.y < World.Geometry.FieldHeight / 6
+		then
+			table.insert(oppsToMark, robot)
+		end
+	end
+	table.sort(oppsToMark, function(r1, r2)
+		return r1.pos:distanceTo(World.Geometry.FriendlyGoal) < r2.pos:distanceTo(World.Geometry.FriendlyGoal)
+	end)
+	local manMarkers = {}
+	for _, robot in ipairs(oppsToMark) do
+		if #unassigned == 0 then
+			break
+		end
+		table.sort(unassigned, function(r1, r2)
+			return r1.pos:distanceTo(robot.pos) < r2.pos:distanceTo(robot.pos)
+		end)
+		table.insert(manMarkers, table.remove(unassigned, 1))
+		-- this means that manMarkers[i] marks oppsToMark[i]
+	end
+
+	-- prevent collisions by switching roles
+	-- as moveDests are unchangable, only one collision-resolution per frame is possible
+	local function isInDefenseZone(robot)
+		return Field.distanceToFriendlyDefenseArea(robot.pos, robot.radius) < 3*robot.radius
+	end
+	local defZoneManMarkers = table.filter(manMarkers, isInDefenseZone)
+	local defZoneCenterBacks = {}
+	if isInDefenseZone(defaultCenterBack) then
+		table.insert(defZoneCenterBacks, defaultCenterBack)
+	end
+	for robot, _ in pairs(currentCenterBacks) do
+		if isInDefenseZone(robot) and not table.contains(manMarkers, robot) then
+			table.insert(defZoneCenterBacks, robot)
+		end
+	end
+	local dests = Messaging.trainerGet("moveDest")
+	local resolved = false
+	for _, mm in ipairs(defZoneManMarkers) do
+		table.sort(defZoneCenterBacks, function(r1, r2)
+			return r1.pos:distanceTo(mm.pos) < r2.pos:distanceTo(mm.pos)
+		end)
+		for _, cb in ipairs(defZoneCenterBacks) do
+			if dests[mm] and dests[cb] and (
+				(dests[mm].x > dests[cb].x and mm.pos.x < cb.pos.x) or
+				(dests[mm].x < dests[cb].x and mm.pos.x > cb.pos.x))
+			then -- switch roles
+				defaultCenterBack = mm
+				local mmIndex = 1
+				for i, robot in ipairs(manMarkers) do
+					if robot == mm then
+						mmIndex = i
+						break
+					end
+				end
+				manMarkers[mmIndex] = cb
+				resolved = true
+				break
+			end
+		end
+		if resolved then break end
+	end
+
+	for i, robot in pairs(manMarkers) do
+		Messaging.assignRole(robot, "ManMark", oppsToMark[i])
+	end
+	if defaultCenterBack then
+		debug.set("default CenterBack", defaultCenterBack)
+		Messaging.assignRole(defaultCenterBack, "CenterBack")
 	end
 end
 

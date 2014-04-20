@@ -166,6 +166,25 @@ function Messaging.get(messageType)
 	return messages
 end
 
+--- returns all messages of "messageType" which were sent to "all"
+-- these are taken directly from "newMessages" before they get delivered
+function Messaging.trainerGet(messageType)
+	if not msgDefs[messageType] then
+		error("request for invalid message type " .. messageType)
+	end
+	local messages = {}
+	for _, msg in ipairs(newMessages.all) do
+		if msg.mtype == messageType then
+			if msg.from == "trainer" then
+				messages[msg.from] = msg.data
+			else
+				messages[msg.from:robot()] = msg.data
+			end
+		end
+	end
+	return messages
+end
+
 --- supplies the trainer with exclusiveRole applications
 -- @return table - role as key and a table as value which has a robot as key and a rating as value
 function Messaging.getExclusiveRoleApplications()
@@ -193,6 +212,19 @@ function Messaging.sendExclusiveRole(roleName, robot)
 			from = "trainer",
 			mtype = roleName,
 			data = robot,
+			priority = 0
+		})
+	end
+end
+
+--- used by the trainer to assign roles (e.g. manmark)
+function Messaging.assignRole(robot, roleName, params)
+	 -- only possible if agent was registered in the previous frame
+	if newMessages[robotToAgent[robot]] then
+		table.insert(newMessages[robotToAgent[robot]], {
+			from = "trainer",
+			mtype = "roleAssignment",
+			data = { name = roleName, params = params },
 			priority = 0
 		})
 	end
