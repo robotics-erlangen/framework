@@ -222,4 +222,19 @@ function table.count(t)
 	end
 	return count
 end
+
+--- Checks if an array contains a given value
+-- @name contains
+-- @param t table
+-- @param value
+-- @return boolean
+function table.contains(t, value)
+	for _, entry in ipairs(t) do
+		if entry == value then
+			return true
+		end
+	end
+	return false
+end
+
 return table
