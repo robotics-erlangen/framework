@@ -8,8 +8,13 @@ function Default:check()
 end
 
 function Default:_updateTask()
-	-- TODO consider something new (for example zonal defense)
-	return CenterBack
+	local role = self._inbox.roleAssignment().trainer
+	if role and role.name == "CenterBack" then
+		return CenterBack
+	else
+		-- TODO consider something new (for example zonal defense)
+		return CenterBack
+	end
 end
 
 return Default

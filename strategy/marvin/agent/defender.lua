@@ -13,7 +13,6 @@ Defender._behaviors = {
 	Kickoff,
 	Penalty,
 	HandleBall,
-	CenterBack,
 	ManMark,
 	Default
 }
