@@ -208,7 +208,8 @@ function CenterBack:run()
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot, false, ignoreOpponents)
 	self._robot.trajectory:update(ToTarget, destinationPos, dir)
-	self._send("all").moveDest(self._preferredPos)
+	self._send("all").moveDest(destinationPos)
+	self._send("all").centerbackFlag()
 end
 
 return CenterBack
