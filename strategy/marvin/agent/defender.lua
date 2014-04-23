@@ -5,7 +5,6 @@ local World = require "../base/world"
 local Penalty = require "agent/defender/penalty"
 local Kickoff = require "agent/defender/kickoff"
 local HandleBall = require "agent/defender/handleball"
-local CenterBack = require "agent/defender/centerback"
 local ManMark = require "agent/defender/manmark"
 local Default = require "agent/defender/default"
 
