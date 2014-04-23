@@ -6,7 +6,7 @@ local checkType = require "../base/typecheck"
 local msgDefs = {
 	-- multiple senders
 	attackerFlag = "flag",
-	centerbackFlag = "flag",
+	centerbackTarget = "table", -- Robot or World.Ball
 	defendedOpponent = Robot,
 	moveDest = "userdata",
 	moveDestDir = "number",

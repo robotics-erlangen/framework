@@ -159,21 +159,21 @@ function Coordinator:_organizeDefense()
 	local unassigned = table.copy(self._pools.defense:robots())
 
 	-- at least one CenterBack
-	local currentCenterBacks = Messaging.trainerGet("centerbackFlag")
+	local currentCenterBacks = Messaging.trainerGet("centerbackTarget")
 	local defaultCenterBack = nil
 	local bestRating = -1
-	local oldCenterBack = false
+	local pureCenterBackBefore = false
 	for _, robot in pairs(unassigned) do
 		local rating = math.max(0, 1 - Field.distanceToFriendlyDefenseArea(robot.pos, robot.radius))
-		if (not oldCenterBack and rating > bestRating) or
-			(not oldCenterBack and currentCenterBacks[robot]) or
-			(currentCenterBacks[robot] and rating > bestRating)
+		if (not pureCenterBackBefore and rating > bestRating) or
+			(not pureCenterBackBefore and currentCenterBacks[robot] == World.Ball) or
+			(currentCenterBacks[robot] == World.Ball and rating > bestRating)
 		then
 			bestRating = rating
 			defaultCenterBack = robot
 		end
-		if currentCenterBacks[robot] then
-			oldCenterBack = true
+		if currentCenterBacks[robot] == World.Ball then
+			pureCenterBackBefore = true
 		end
 	end
 	if defaultCenterBack then
@@ -206,47 +206,9 @@ function Coordinator:_organizeDefense()
 		-- this means that manMarkers[i] marks oppsToMark[i]
 	end
 
-	-- prevent collisions by switching roles
-	-- as moveDests are unchangable, only one collision-resolution per frame is possible
-	local function isInDefenseZone(robot)
-		return Field.distanceToFriendlyDefenseArea(robot.pos, robot.radius) < 3*robot.radius
-	end
-	local defZoneManMarkers = table.filter(manMarkers, isInDefenseZone)
-	local defZoneCenterBacks = {}
-	if isInDefenseZone(defaultCenterBack) then
-		table.insert(defZoneCenterBacks, defaultCenterBack)
-	end
-	for robot, _ in pairs(currentCenterBacks) do
-		if isInDefenseZone(robot) and not table.contains(manMarkers, robot) then
-			table.insert(defZoneCenterBacks, robot)
-		end
-	end
-	local dests = Messaging.trainerGet("moveDest")
-	local resolved = false
-	for _, mm in ipairs(defZoneManMarkers) do
-		table.sort(defZoneCenterBacks, function(r1, r2)
-			return r1.pos:distanceTo(mm.pos) < r2.pos:distanceTo(mm.pos)
-		end)
-		for _, cb in ipairs(defZoneCenterBacks) do
-			if dests[mm] and dests[cb] and (
-				(dests[mm].x > dests[cb].x and mm.pos.x < cb.pos.x) or
-				(dests[mm].x < dests[cb].x and mm.pos.x > cb.pos.x))
-			then -- switch roles
-				defaultCenterBack = mm
-				local mmIndex = 1
-				for i, robot in ipairs(manMarkers) do
-					if robot == mm then
-						mmIndex = i
-						break
-					end
-				end
-				manMarkers[mmIndex] = cb
-				resolved = true
-				break
-			end
-		end
-		if resolved then break end
-	end
+	-- TODO
+	-- if defaultCenterBack is marking an opponent X (message), change defaultCenterBack:
+	-- take ManMarker of X(if possible. otherwise no change)
 
 	for i, robot in pairs(manMarkers) do
 		Messaging.assignRole(robot, "ManMark", oppsToMark[i])

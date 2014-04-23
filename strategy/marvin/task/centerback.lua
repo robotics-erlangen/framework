@@ -209,7 +209,7 @@ function CenterBack:run()
 	self._robot.path:addRobotObstacles(self._robot, false, ignoreOpponents)
 	self._robot.trajectory:update(ToTarget, destinationPos, dir)
 	self._send("all").moveDest(destinationPos)
-	self._send("all").centerbackFlag()
+	self._send("all").centerbackTarget(World.Ball) -- TODO marked opponent robot
 end
 
 return CenterBack

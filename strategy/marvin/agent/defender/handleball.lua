@@ -24,7 +24,7 @@ function HandleBall:check()
 	if self._inbox.mainAttacker().trainer == self._robot then
 		local role = self._inbox.roleAssignment().trainer
 		if role and role.name == "CenterBack" then
-			self._send("all").centerbackFlag() -- stay centerback
+			self._send("all").centerbackTarget(World.Ball) -- stay centerback
 		end
 		return true
 	end
