@@ -36,6 +36,7 @@ function Coordinator:init()
 	self._ballInFriendlyFieldHalf = false -- remember for hysteresis
 	self._messages = nil
 	self._mainAttackerIsDefender = false
+	self._oppsToMark = {}
 end
 
 function Coordinator:run()
@@ -181,21 +182,25 @@ function Coordinator:_organizeDefense()
 	end
 
 	-- look for opponents to mark
-	local oppsToMark = {}
-	local alreadyDefended = Messaging.trainerGet("defendedOpponent")
+	local defendedByDuel = Messaging.trainerGet("defendedOpponent")
 	for _, robot in ipairs(World.OpponentRobots) do
-		if not alreadyDefended[robot] and 
-			(not Referee.isStopState() or robot.pos:distanceTo(World.Ball.pos) > 0.7) and
-			robot.pos.y < World.Geometry.FieldHeight / 6
-		then
-			table.insert(oppsToMark, robot)
+		local alreadyTargeted = table.contains(self._oppsToMark, robot)
+		local maxYPos = alreadyTargeted
+			and World.Geometry.FieldHeight / 4 or World.Geometry.FieldHeight / 6
+		local minBallDist = alreadyTargeted	and 0.6 or 0.75
+		local shouldMark = not defendedByDuel[robot] and robot.pos.y < maxYPos and
+			(not Referee.isStopState() or robot.pos:distanceTo(World.Ball.pos) > minBallDist)	
+		if alreadyTargeted and not shouldMark then
+			table.removeValue(self._oppsToMark, robot)
+		elseif not alreadyTargeted and shouldMark then
+			table.insert(self._oppsToMark, robot)
 		end
 	end
-	table.sort(oppsToMark, function(r1, r2)
+	table.sort(self._oppsToMark, function(r1, r2)
 		return r1.pos:distanceTo(World.Geometry.FriendlyGoal) < r2.pos:distanceTo(World.Geometry.FriendlyGoal)
 	end)
 	local manMarkers = {}
-	for _, robot in ipairs(oppsToMark) do
+	for _, robot in ipairs(self._oppsToMark) do
 		if #unassigned == 0 then
 			break
 		end
@@ -203,15 +208,11 @@ function Coordinator:_organizeDefense()
 			return r1.pos:distanceTo(robot.pos) < r2.pos:distanceTo(robot.pos)
 		end)
 		table.insert(manMarkers, table.remove(unassigned, 1))
-		-- this means that manMarkers[i] marks oppsToMark[i]
+		-- this means that manMarkers[i] marks self._oppsToMark[i]
 	end
 
-	-- TODO
-	-- if defaultCenterBack is marking an opponent X (message), change defaultCenterBack:
-	-- take ManMarker of X(if possible. otherwise no change)
-
 	for i, robot in pairs(manMarkers) do
-		Messaging.assignRole(robot, "ManMark", oppsToMark[i])
+		Messaging.assignRole(robot, "ManMark", self._oppsToMark[i])
 	end
 	if defaultCenterBack then
 		debug.set("default CenterBack", defaultCenterBack)
