@@ -2,6 +2,9 @@ local Base = require "agent/base/behavior"
 local ManMark = (require "../base/class").new("Agent.Defender.ManMark", Base)
 
 local ManMarkTask = require "task/manmark"
+local CenterBack = require "task/centerback"
+local Field = require "util/field"
+local Class = require "../base/class"
 
 function ManMark:_stop()
 	self._opp = nil
@@ -20,7 +23,14 @@ function ManMark:check()
 end
 
 function ManMark:_updateTask()
-	return ManMarkTask, { self._opp }
+	local oppDist = Field.distanceToFriendlyDefenseArea(self._opp.pos, self._opp.radius)
+	local nearLow, nearHigh = 4*self._robot.radius, 5*self._robot.radius
+	local threshold = (self._task and Class.instanceOf(self._task, CenterBack)) and nearHigh or nearLow
+	if oppDist < threshold and self._robot.pos:distanceTo(self._opp.pos) < threshold then
+		return CenterBack, { self._opp }
+	else
+		return ManMarkTask, { self._opp }		
+	end
 end
 
 return ManMark
