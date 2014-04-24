@@ -199,20 +199,31 @@ function Coordinator:_organizeDefense()
 	table.sort(self._oppsToMark, function(r1, r2)
 		return r1.pos:distanceTo(World.Geometry.FriendlyGoal) < r2.pos:distanceTo(World.Geometry.FriendlyGoal)
 	end)
+
 	local manMarkers = {}
+	local marked = {}
+	-- respect marking targets of centerBecks
+	for centerBack, opp in pairs(currentCenterBacks) do
+		if table.contains(self._oppsToMark, opp) then
+			manMarkers[centerBack] = opp
+			table.removeValue(unassigned, centerBack)
+			marked[opp] = true
+		end	
+	end
 	for _, robot in ipairs(self._oppsToMark) do
 		if #unassigned == 0 then
 			break
 		end
-		table.sort(unassigned, function(r1, r2)
-			return r1.pos:distanceTo(robot.pos) < r2.pos:distanceTo(robot.pos)
-		end)
-		table.insert(manMarkers, table.remove(unassigned, 1))
-		-- this means that manMarkers[i] marks self._oppsToMark[i]
+		if not marked[robot] then
+			table.sort(unassigned, function(r1, r2)
+				return r1.pos:distanceTo(robot.pos) < r2.pos:distanceTo(robot.pos)
+			end)
+			manMarkers[table.remove(unassigned, 1)] = robot
+		end
 	end
 
-	for i, robot in pairs(manMarkers) do
-		Messaging.assignRole(robot, "ManMark", self._oppsToMark[i])
+	for manMarker, opp in pairs(manMarkers) do
+		Messaging.assignRole(manMarker, "ManMark", opp)
 	end
 	if defaultCenterBack then
 		debug.set("default CenterBack", defaultCenterBack)
