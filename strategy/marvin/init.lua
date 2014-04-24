@@ -34,8 +34,8 @@ function preproc:isFinished()
     return false
 end
 Processor.addPre(preproc)
-local BallAnalyzer = require "observer/ballAnalyzer"
-Processor.addPre(BallAnalyzer.create())
+-- local BallAnalyzer = require "observer/ballAnalyzer"
+-- Processor.addPre(BallAnalyzer.create())
 
 local wrapper = function (func)
 	return function()
