@@ -201,10 +201,11 @@ function table.any(t, func)
 end
 
 function table.split(t, lastIndexOfFirstPart)
-	local part1,  part2
+	local part1 = {}
 	for i = lastIndexOfFirstPart, 1, -1 do
 		part1[i] = t[i]
 	end
+	local part2 = {}
 	for i = #t, lastIndexOfFirstPart, -1 do
 		part2[i-lastIndexOfFirstPart] = t[i]
 	end
