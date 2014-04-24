@@ -191,11 +191,11 @@ function Field.intersectLineDefenseArea(pos, dir, extraDistance, opp)
 	local intersections = {}
 	local ileft = intersectLineArc(pos, dir, leftCenter, radius, deg90, deg180)
 	for _,i in ipairs(ileft) do
-		table.insert(intersections, {i[1], i[2] * radius})
+		table.insert(intersections, {i[1], (math.pi/2-i[2]) * radius})
 	end
 	local iright = intersectLineArc(pos, dir, rightCenter, radius, deg0, deg90)
 	for _,i in ipairs(iright) do
-		table.insert(intersections, {i[1], i[2] * radius + arcway + lineway})
+		table.insert(intersections, {i[1], (math.pi/2-i[2]) * radius + arcway + lineway})
 	end
 
 	-- calculate intersection point with defense stretch
@@ -236,13 +236,17 @@ function Field.defenseIntersectionByWay(extraDistance, way, opp)
 	local intersection = nil
 	if way < arcway then
 		local angle = way / radius
-		intersection = Vector.fromAngle(math.pi - angle) * radius
+		intersection = Vector.fromAngle(math.pi - angle) * radius + 
+			Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf)
 	elseif way <= arcway + lineway then
-		intersection = Vector.create(way - arcway - G.DefenseStretch/2, -G.FieldHeightHalf + G.DefenseRadius)
+		intersection = Vector.create(way - arcway - G.DefenseStretch/2, radius - G.FieldHeightHalf)
 	else
 		local angle = (way - arcway - lineway) / radius
-		intersection = Vector.fromAngle(math.pi/2 - angle) * radius
+		intersection = Vector.fromAngle(math.pi/2 - angle) * radius + 
+			Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf)
 	end
+
+	intersection.y = intersection.y 
 
 	if opp then
 		intersection = -intersection
