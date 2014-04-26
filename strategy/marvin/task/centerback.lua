@@ -16,8 +16,28 @@ CenterBack.priority = 5
 local lt = function(i1, i2) 
 	return i1.waypos < i2.waypos
 end
+local lastOrder = {}
+local robotAngleHysteresis = 0.0
 local lt2 = function(r1, r2)
-	return (r1.pos - World.Geometry.FriendlyGoal):angle() > (r2.pos - World.Geometry.FriendlyGoal):angle()
+	local a1 = (r1.pos - World.Geometry.FriendlyGoal):angle()
+	local a2 = (r2.pos - World.Geometry.FriendlyGoal):angle()
+	if a1 <= a2 - robotAngleHysteresis then
+		return false
+	elseif a2 < a1 - robotAngleHysteresis then
+		return true
+	else
+		local ix1 = r1.id + 1000
+		local ix2 = r2.id + 1000
+		for ix,r in pairs(lastOrder) do
+			if r == r1 then
+				ix1 = ix
+			elseif r == r2 then
+				ix2 = ix
+			end
+		end
+		log("blooooh")
+		return ix1 < ix2
+	end
 end
 
 local centerBackPositions = {}
@@ -41,7 +61,11 @@ local function calculateCenterBackPositions()
 			[World.FriendlyRobots[1]] = World.Ball,
 			[World.FriendlyRobots[2]] = World.OpponentRobots[1],
 			[World.FriendlyRobots[3]] = World.OpponentRobots[2],
-			[World.FriendlyRobots[4]] = World.Ball
+			[World.FriendlyRobots[4]] = World.Ball,
+			[World.FriendlyRobots[5]] = World.Ball,
+			[World.FriendlyRobots[6]] = World.OpponentRobots[1],
+			[World.FriendlyRobots[7]] = World.OpponentRobots[2],
+			[World.FriendlyRobots[8]] = World.Ball
 		}
 
 	-- transform application data structure from (robot, target) to (target, {robot})
@@ -141,6 +165,7 @@ local function calculateCenterBackPositions()
 	end
 	assert(#defensePoints == #sortedRobots)
 	table.sort(sortedRobots, lt2)
+	lastOrder = sortedRobots
 
 	-- store result (robot -> (pos, target))
 	centerBackPositions = {}
