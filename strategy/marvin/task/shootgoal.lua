@@ -54,17 +54,17 @@ function ShootGoal:updateDestination(ignoreGoalie)
 	local bestAngleError = nil
 
 	if ignoreGoalie and World.OpponentKeeper then
-		local negated = Interval.negate(freeSectors, goalStart, goalEnd)
 		local interval, min, max = self:checkForRicochet()
-		if max < -math.pi/2 then max = max + 2*math.pi end
 		if interval[1] < -math.pi/2 then interval[1] = interval[1] + 2*math.pi end
 		if interval[2] < -math.pi/2 then interval[2] = interval[2] + 2*math.pi end
-		table.insert(negated, interval)
-		Interval.merge(negated)
+		if min < -math.pi/2 then min = min + 2*math.pi end
+		if max < -math.pi/2 then max = max + 2*math.pi end
+		log(min .. "  bis  " .. max .. " ==== (" .. interval[1] .. " | " .. interval[2] .. ")")
+		local negated = {interval}
 		freeSectors = Interval.negate(negated, min, max)
 		self._viscolor = vis.colors.red
 		Interval.merge(freeSectors)
-		for _,i in pairs({interval}) do
+		for _,i in pairs(freeSectors) do
 			log("sector  "..i[1].." :: "..i[2])
 		end
 	else
@@ -106,8 +106,6 @@ function ShootGoal:updateDestination(ignoreGoalie)
 	self.targetPoint = bestMid and Vector.fromAngle(bestMid)*10 + viewPos or G.OpponentGoal
 	self.maxAngleError = bestAngleError
 
-	log("MAA "..tostring(ignoreGoalie).."  "..tostring(self.maxAngleError and self.maxAngleError/math.pi*180))
-	
 	self.timestamp = World.Time
 	return #freeSectors
 end
@@ -136,18 +134,26 @@ function ShootGoal:checkForRicochet(viewPos)
 		local toreflectionpoint = (reflectionpoint - viewPos):angle()
 		vis.addPath("ShootGoalRicochet", {viewPos, reflectionpoint}, vis.colors.whiteHalf)
 		vis.addPath("ShootGoalRicochet", {viewPos, goalpost}, vis.colors.whiteHalf)
+		log("kl = " .. tokeeper - keeperRadiusAngle .. "   kr = " .. tokeeper + keeperRadiusAngle)
+		log("refl = " .. toreflectionpoint .. "   goal = " .. (goalpost - viewPos):angle())
 		return {tokeeper - keeperRadiusAngle, toreflectionpoint}, 
-			tokeeper - keeperRadiusAngle, (goalpost - viewPos):angle()
+			tokeeper - keeperRadiusAngle, 
+			math.min(tokeeper + keeperRadiusAngle, (goalpost - viewPos):angle())
 	else
 		local reflectionangle = toball:angle() + anglediffright/2
 		local reflectionpoint = keeper.pos + Vector.fromAngle(reflectionangle) * keeper.radius
 		local goalpost = G.OpponentGoalRight + 
 			Vector.fromAngle((G.OpponentGoalRight-viewPos):angle() + math.pi/2):setLength(World.Ball.radius)
+		local togoalpost = (goalpost - viewPos):angle()
 		local toreflectionpoint = (reflectionpoint - viewPos):angle()
 		vis.addPath("ShootGoalRicochet", {viewPos, reflectionpoint}, vis.colors.whiteHalf)
 		vis.addPath("ShootGoalRicochet", {viewPos, goalpost}, vis.colors.whiteHalf)
+		if togoalpost < math.pi/2 then togoalpost = togoalpost + 2*math.pi end
+		if tokeeper < math.pi/2 then tokeeper = tokeeper + 2*math.pi end
+		log("bla = " .. togoalpost .. "  " ..toreflectionpoint - keeperRadiusAngle)
 		return {toreflectionpoint, tokeeper + keeperRadiusAngle},
-			(goalpost - viewPos):angle(), tokeeper + keeperRadiusAngle
+			math.max(tokeeper - keeperRadiusAngle, togoalpost),
+			tokeeper + keeperRadiusAngle
 	end
 end
 
