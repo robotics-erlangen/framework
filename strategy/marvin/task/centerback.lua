@@ -186,9 +186,12 @@ function CenterBack:run()
 	local ignoreOpponents
 		= Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) < 2*self._robot.radius
 	
+	local ignoreFriends
+		= destinationPos:distanceTo(self._robot.pos) < 2*self._robot.radius
+
 	--move robot
 	self._robot.path:setDefaultObstacles(self._robot)
-	self._robot.path:addRobotObstacles(self._robot, false, ignoreOpponents)
+	self._robot.path:addRobotObstacles(self._robot, ignoreFriends, ignoreOpponents)
 	self._robot.trajectory:update(ToTarget, destinationPos, dir)
 	self._send("all").moveDest(destinationPos)
 	self._send("all").centerbackTarget(World.Ball) -- TODO marked opponent robot
