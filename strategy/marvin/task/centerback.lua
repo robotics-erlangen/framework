@@ -60,12 +60,7 @@ local function calculateCenterBackPositions()
 	local centerBackApplications = {
 			[World.FriendlyRobots[1]] = World.Ball,
 			[World.FriendlyRobots[2]] = World.OpponentRobots[1],
-			[World.FriendlyRobots[3]] = World.OpponentRobots[2],
-			[World.FriendlyRobots[4]] = World.Ball,
-			[World.FriendlyRobots[5]] = World.Ball,
-			[World.FriendlyRobots[6]] = World.OpponentRobots[1],
-			[World.FriendlyRobots[7]] = World.OpponentRobots[2],
-			[World.FriendlyRobots[8]] = World.Ball
+			[World.FriendlyRobots[3]] = World.OpponentRobots[2]
 		}
 
 	-- transform application data structure from (robot, target) to (target, {robot})
