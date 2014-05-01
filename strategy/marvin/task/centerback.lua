@@ -183,7 +183,7 @@ function CenterBack:run()
 	local destinationPos = pos_target and pos_target.pos or default_pos
 	local destinationTarget = pos_target and pos_target.target or
 			self._preliminaryCenterbackTarget
-	local dir = (World.Ball.pos - World.Geometry.FriendlyGoal):angle()
+	local dir = (World.Ball.pos - self._robot.pos):angle()
 	
 	debug.set("target", destinationTarget)
 
