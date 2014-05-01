@@ -6,6 +6,7 @@ local Processor = require "../base/processor"
 local ToTarget = require "trajectory/totarget"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
+local debug = require "../base/debug"
 local Rating = require "util/rating"
 local Field = require "util/field"
 local Goal = require "observer/goal"
@@ -138,9 +139,9 @@ local function calculateCenterBackPositions()
 		local way = i.waypos - i.wayrange/2 + delta/2
 		for _,t in pairs(i.targets) do
 			for j = 1,t.n do
-				vis.addCircle("blabla", 
+				vis.addCircle("CenterBack/Positions", 
 					Field.defenseIntersectionByWay(robot_radius + distanceToDefenseArea, way, false),
-					0.1, vis.colors.blueHalf)
+					0.1, vis.colors.skyBlue)
 				table.insert(defensePoints, {
 					["pos"] = Field.defenseIntersectionByWay(robot_radius + distanceToDefenseArea, way, false),
 					["target"] = t.target
@@ -183,8 +184,9 @@ function CenterBack:run()
 	local destinationTarget = pos_target and pos_target.target or
 			self._preliminaryCenterbackTarget
 	local dir = (World.Ball.pos - World.Geometry.FriendlyGoal):angle()
-	log(destinationPos)
 	
+	debug.set("target", destinationTarget)
+
 	local ignoreOpponents
 		= Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) < 2*self._robot.radius
 	
