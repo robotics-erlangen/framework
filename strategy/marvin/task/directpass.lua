@@ -6,6 +6,7 @@ local Settings = require "settings"
 local Shoot = require "observer/shoot"
 local Robot = require "observer/robot"
 local Rating = require "util/rating"
+local debug = require "../base/debug"
 
 DirectPass.priority = 4
 
@@ -35,7 +36,7 @@ function DirectPass:run()
 
 	local passSpeed = self._passSpeed or self._targetRobot.constants.passSpeed
 	self:_shoot(self._targetPos, passSpeed, self._linearShoot)
-	
+	debug.set("target", self._targetRobot)
 	self._send(self._targetRobot).passSender("direct")
 end
 
