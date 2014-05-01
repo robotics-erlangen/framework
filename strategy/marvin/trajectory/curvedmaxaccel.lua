@@ -476,9 +476,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 			y = { a0 = robotPos.y, a1 = endSpeed.y, a2 = 0, a3 = 0 },
 			phi = { a0 = robotDir, a1 = angularSpeed, a2 = 0, a3 = 0}
 		} }
-		return {spline = spline}, self._robot.pos, 0
+		return {spline = spline}, targetPos, 0
 	end
-	local endPos = waypoints[#waypoints]
 
 	-- get acceleration values
 	-- maximum sidewards acceleration
@@ -539,7 +538,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	} }
 
 	local endTime = speedProfile[#speedProfile][1]
-	return {spline = spline}, Coordinates.toLocal(endPos), endTime
+	return {spline = spline}, targetPos, endTime
 end
 
 function CurvedMaxAccel:canHandle(targetPos, targetDir, maxSpeed, endSpeed)
