@@ -127,13 +127,14 @@ end
 -- @return robot or nil - the most suitable robot, if any 
 function Shoot.bestFreeAssistant(activeRobot)
 	-- !!! ATTENTION !!! Assumes we are already at the ball
-	local assistants = Messaging.get("attackerFlag")
-	local function canPassTo(r)
-		return assistants[r] and Field.isInField(r.pos)
-			and Robot.wayToRobotFree(r, activeRobot)
+	local freeAssistants = {}
+	for _, r in ipairs(World.FriendlyRobots) do
+		if r ~= activeRobot and Messaging.get("attackerFlag")[r]
+			and Field.isInField(r.pos) and Robot.wayToRobotFree(r, activeRobot)
+		then
+			table.insert(freeAssistants, r)
+		end
 	end
-	
-	local freeAssistants = table.filter(World.FriendlyRobots, canPassTo)
 	table.sort(freeAssistants, assistantOrder)
 	return freeAssistants[1]
 end
