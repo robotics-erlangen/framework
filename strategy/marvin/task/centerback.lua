@@ -1,6 +1,7 @@
 local CenterBack = (require "../base/class").new("Task.CenterBack", require "task/base")
 
 local World = require "../base/world"
+local Messaging = require "control/messaging"
 local Processor = require "../base/processor"
 local ToTarget = require "trajectory/totarget"
 local geom = require "../base/geom"
@@ -57,11 +58,7 @@ local function calculateCenterBackPositions()
 
 	local robot_radius = World.FriendlyRobots[1].radius or 0.09
 
-	local centerBackApplications = {
-			[World.FriendlyRobots[1]] = World.Ball,
-			[World.FriendlyRobots[2]] = World.OpponentRobots[1],
-			[World.FriendlyRobots[3]] = World.OpponentRobots[2]
-		}
+	local centerBackApplications = Messaging.get("preliminaryCenterbackTarget")
 
 	-- transform application data structure from (robot, target) to (target, {robot})
 	local robots = {}
@@ -169,18 +166,23 @@ local function calculateCenterBackPositions()
 	end
 end
 
-function CenterBack:_init()
+function CenterBack:_init(centerbackTarget)
+	self._preliminaryCenterbackTarget = centerbackTarget or World.Ball
 end
 
 
 function CenterBack:run()
+	self._send("all").preliminaryCenterbackTarget(self._preliminaryCenterbackTarget)
+
 	calculateCenterBackPositions()
 	local pos_target = centerBackPositions[self._robot]
 
 	local default_pos = Vector.create(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius
 		+ self._robot.radius + 0.02)
-	local destinationPos = pos_target and pos_target.pos or default_pos 
-	local dir = (destinationPos - World.Geometry.FriendlyGoal):angle()
+	local destinationPos = pos_target and pos_target.pos or default_pos
+	local destinationTarget = pos_target and pos_target.target or
+			self._preliminaryCenterbackTarget
+	local dir = (World.Ball.pos - World.Geometry.FriendlyGoal):angle()
 	log(destinationPos)
 	
 	local ignoreOpponents
@@ -194,7 +196,7 @@ function CenterBack:run()
 	self._robot.path:addRobotObstacles(self._robot, ignoreFriends, ignoreOpponents)
 	self._robot.trajectory:update(ToTarget, destinationPos, dir)
 	self._send("all").moveDest(destinationPos)
-	self._send("all").centerbackTarget(World.Ball) -- TODO marked opponent robot
+	self._send("all").centerbackTarget(destinationTarget) -- TODO marked opponent robot
 end
 
 return CenterBack
