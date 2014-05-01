@@ -10,11 +10,6 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 	
 	local forbidOppDefenseArea = Referee.isFriendlyFreeKickState()
 	local forbidOppFieldHalf = Referee.isKickoffState()
-	
-	if Referee.isStopState() then
-		ballDistance = Constants.stopBallDistance
-		ignoreBall = false
-	end
 
 	-- clear and add obstacles
 	self:clearObstacles()
@@ -46,8 +41,12 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 			G.FieldWidthHalf, 0, "OppFieldHalf")
 	end
 	
-	if not ignoreBall then
+	if not ignoreBall or Referee.isStopState() then
+		-- always add the actual ball obstacle, otherwise the ball may be pushed during stop
 		self:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + ballDistance, "Ball")
+	end
+	if Referee.isStopState() then
+		self:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + Constants.stopBallDistance, "BallStop")
 	end
 
 	if not ignoreGoals then
