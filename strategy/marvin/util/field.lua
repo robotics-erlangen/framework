@@ -125,11 +125,11 @@ function Field.distanceToFriendlyDefenseArea(pos, radius)
 		local p2 = Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf)
 		distance = p2:distanceTo(pos) - G.DefenseRadius - radius
 	end
-	if distance < 0 then
+	if distance < -0.00001 then
 		error("util/field: distanceToFriendlyDefenseArea() becomes negative ("..distance..
 			") for pos = ("..pos.x..", "..pos.y..") and radius = "..radius)
 	end
-	return distance
+	return (distance < 0) and 0 or distance
 end
 
 
