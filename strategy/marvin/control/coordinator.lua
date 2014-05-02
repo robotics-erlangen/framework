@@ -10,6 +10,7 @@ local World = require "../base/world"
 local debug = require "../base/debug"
 local Entrypoints = require "../base/entrypoints"
 local Field = require "util/field"
+local Defense = require "util/defense"
 local Referee = require "../base/referee"
 local AgentPool = require "control/agentpool"
 local Messaging = require "control/messaging"
@@ -44,7 +45,7 @@ function Coordinator:run()
 	-- TODO: facilities for learning
 	
 	self._messages = Messaging.getExclusiveRoleApplications()
-	debug.pushtop("Role Applications")
+	debug.pushtop("Trainer")
 	for role, application in pairs(self._messages) do
 		debug.push(role)
 		for robot, rating in pairs(application) do
@@ -52,6 +53,11 @@ function Coordinator:run()
 		end
 		debug.pop() -- role
 	end
+	debug.push("centerBackTargets")
+	for robot, msg in pairs(Messaging.trainerGet("centerbackTarget")) do
+		debug.set(robot.id, msg)
+	end
+	debug.pop() -- centerBackTargets
 	debug.pop() -- Role Applications
 	self:_chooseExclusiveRoles()
 	self:_organizeDefense()
@@ -215,8 +221,9 @@ function Coordinator:_organizeDefense()
 			break
 		end
 		if not marked[robot] then
+			local markPos = Defense.manMarkPos(robot)
 			table.sort(unassigned, function(r1, r2)
-				return r1.pos:distanceTo(robot.pos) < r2.pos:distanceTo(robot.pos)
+				return r1.pos:distanceTo(markPos) < r2.pos:distanceTo(markPos)
 			end)
 			manMarkers[table.remove(unassigned, 1)] = robot
 		end
