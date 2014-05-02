@@ -70,7 +70,7 @@ function Base:_runTaskAndBehavior()
 		debug.push("Inbox")
 		for n, func in pairs(self._task._inbox) do
 			debug.push(n)
-			for robot, msg in pairs(func()) do
+			for robot, msg in pairs(func("all")) do
 				debug.set(robot.id or robot, msg)
 			end
 			debug.pop() -- n
