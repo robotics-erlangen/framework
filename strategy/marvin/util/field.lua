@@ -164,6 +164,15 @@ local intersectLineArc = function(pos, dir, m, r, minangle, maxangle)
 	return intersections
 end
 
+--- Returns one intersection of a given line with the (extended) defense area
+--- The intersection is the one with the smallest t in x = pos + t * dir 
+-- @param pos Vector - starting point of the line
+-- @param dir Vector - the direction of the line
+-- @param extraDistance number - gets added to G.DefenseRadius
+-- @param opp bool - whether the opponent or the friendly defense area is considered
+-- @return Vector - the intersection position
+-- @return number - the length of the way from the very left of the defense area to the
+-- intersection point, when moving along its border
 function Field.intersectLineDefenseArea(pos, dir, extraDistance, opp)
 	-- calculate defense radius
 	extraDistance = extraDistance or 0
@@ -221,7 +230,12 @@ function Field.intersectLineDefenseArea(pos, dir, extraDistance, opp)
 	return minIntersection, minWay
 end
 
-function Field.defenseIntersectionByWay(extraDistance, way, opp)
+--- Calculates the point on the (extended) defense area when given the way along its border
+-- @param way number - the way along the border
+-- @param extraDistance number - gets added to G.DefenseRadius
+-- @param opp bool - whether the opponent or the friendly defense area is considered
+-- @return Vector - the position
+function Field.defenseIntersectionByWay(way, extraDistance, opp)
 	-- calculate defense radius
 	extraDistance = extraDistance or 0
 	local radius = G.DefenseRadius + extraDistance
@@ -246,13 +260,66 @@ function Field.defenseIntersectionByWay(extraDistance, way, opp)
 			Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf)
 	end
 
-	intersection.y = intersection.y 
+	intersection.y = intersection.y
 
 	if opp then
 		intersection = -intersection
 	end
 
 	return intersection
+end
+
+--- Calculates all intersections (0 to 4) of a given circle with the (extended) defense area 
+-- @param pos Vector - center point of the circle
+-- @param radius number - radius of the circle
+-- @param extraDistance number - gets added to G.DefenseRadius
+-- @param opp bool - whether the opponent or the friendly defense area is considered
+-- @return [Vector] - a list of intersection points, not sorted
+function Field.intersectCircleDefenseArea(pos, radius, extraDistance, opp)
+	-- invert coordinates if opp-flag is set
+	if opp then pos = pos * -1 end
+
+	local leftCenter = Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf)
+	local rightCenter = Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf)
+	local defenseRadius = G.DefenseRadius + extraDistance
+
+	local intersections = {}
+
+	-- get intersections with circles
+	local li1, li2 = geom.intersectCircleCircle(leftCenter, defenseRadius, pos, radius)
+	local ri1, ri2 = geom.intersectCircleCircle(rightCenter, defenseRadius, pos, radius)
+	if li1 and li1.x < G.DefenseStretch/2 and li1.y > -G.FieldHeightHalf then 
+		table.insert(intersections, li1)
+	end
+	if li2 and li2.x < G.DefenseStretch/2 and li2.y > -G.FieldHeightHalf then 
+		table.insert(intersections, li2)
+	end
+	if ri1 and ri1.x > G.DefenseStretch/2 and ri1.y > -G.FieldHeightHalf then 
+		table.insert(intersections, ri1)
+	end
+	if ri2 and ri2.x > G.DefenseStretch/2 and ri2.y > -G.FieldHeightHalf then 
+		table.insert(intersections, ri2)
+	end
+
+	-- get intersections with line
+	local mi1, mi2 = geom.intersectLineCircle(
+				Vector.create(0, -G.FieldHeightHalf+defenseRadius), pos, radius)
+	if mi1 and math.abs(mi1.x) <= G.DefenseStretch/2 then 
+		table.insert(intersections, li1)
+	end
+	if mi2 and math.abs(mi1.x) <= G.DefenseStretch/2 then 
+		table.insert(intersections, li2)
+	end
+
+
+	-- invert coordinates if opp-flag is set
+	if opp then
+		for i, pos in ipairs(intersections) do
+			intersections[i] = pos * -1
+		end
+	end
+
+	return intersections
 end
 
 

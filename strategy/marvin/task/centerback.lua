@@ -57,7 +57,7 @@ local function calculateCenterBackPositions()
 
 
 
-	local robot_radius = World.FriendlyRobots[1].radius or 0.09
+	local robot_radius = World.FriendlyRobots[1].radius
 
 	local centerBackApplications = Messaging.get("preliminaryCenterbackTarget")
 
@@ -140,10 +140,10 @@ local function calculateCenterBackPositions()
 		for _,t in pairs(i.targets) do
 			for j = 1,t.n do
 				vis.addCircle("CenterBack/Positions", 
-					Field.defenseIntersectionByWay(robot_radius + distanceToDefenseArea, way, false),
+					Field.defenseIntersectionByWay(way, robot_radius + distanceToDefenseArea, false),
 					0.1, vis.colors.skyBlue)
 				table.insert(defensePoints, {
-					["pos"] = Field.defenseIntersectionByWay(robot_radius + distanceToDefenseArea, way, false),
+					["pos"] = Field.defenseIntersectionByWay(way, robot_radius + distanceToDefenseArea, false),
 					["target"] = t.target
 				})
 				way = way + delta
