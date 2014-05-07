@@ -28,7 +28,7 @@ function SaveBall:run()
 		self._robot:chip(1)
 	end
 
-	self._robot.path:setDefaultObstacles(self._robot, false, false, false, self._robot.shootRadius)
+	self._robot.path:setDefaultObstacles(self._robot, false, false, false, false, self._robot.shootRadius)
 	self._robot.path:addRobotObstacles(self._robot)
 
 	self._robot.trajectory:update(ToTarget, moveDest, viewDir)

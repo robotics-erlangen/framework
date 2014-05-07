@@ -34,7 +34,7 @@ function StopAttack:run()
 		end
 	end
 
-	self._robot.path:setDefaultObstacles(self._robot)
+	self._robot.path:setDefaultObstacles(self._robot, false, false, false, true)
 	self._robot.path:addRobotObstacles(self._robot)
 	
 	self._robot.trajectory:update(ToTarget, pos, (World.Ball.pos - pos):angle())
