@@ -13,18 +13,26 @@ function StopAttack:_init()
 end
 
 function StopAttack:run()
-	if self._side == "left" and World.Ball.pos.x > 0.3 then
-		self._side = "right"
-	elseif self._side == "right" and World.Ball.pos.x < -0.3 then
-		self._side = "left"
+	local stopRadius = Constants.stopBallDistance + self._robot.radius + Settings.positionPadding
+	local pos = World.Ball.pos + (self._focusPoint - World.Ball.pos):setLength(stopRadius)
+
+	local intersections = Field.intersectCircleDefenseArea(World.Ball.pos, 
+			stopRadius, 4 * self._robot.radius, false)
+	if #intersections > 0 then
+		pos = nil
+		for _,p in ipairs(intersections) do
+			if not pos or (self._side == "left" and p.x < pos.x) or 
+					(self._side == "right" and p.x > pos.x) then
+				pos = p
+			end
+		end
+	else
+		if self._side == "left" and World.Ball.pos.x > 0.3 then
+			self._side = "right"
+		elseif self._side == "right" and World.Ball.pos.x < -0.3 then
+			self._side = "left"
+		end
 	end
-
-	local pos = World.Ball.pos + (self._focusPoint - World.Ball.pos):
-			setLength(Constants.stopBallDistance + self._robot.radius + Settings.positionPadding)
-
-	-- TODO 
-	-- avoid crashing into the centerbacks using self._side as evasion direction
-	-- probably by implementing Field.intersectCircleDefenseArea
 
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)

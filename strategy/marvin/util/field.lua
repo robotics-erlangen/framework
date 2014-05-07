@@ -303,7 +303,7 @@ function Field.intersectCircleDefenseArea(pos, radius, extraDistance, opp)
 
 	-- get intersections with line
 	local mi1, mi2 = geom.intersectLineCircle(
-				Vector.create(0, -G.FieldHeightHalf+defenseRadius), pos, radius)
+				Vector.create(0, -G.FieldHeightHalf+defenseRadius), Vector.create(1, 0), pos, radius)
 	if mi1 and math.abs(mi1.x) <= G.DefenseStretch/2 then 
 		table.insert(intersections, li1)
 	end
