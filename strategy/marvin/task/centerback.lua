@@ -18,6 +18,10 @@ CenterBack.priority = 5
 local lt = function(i1, i2) 
 	return i1.waypos < i2.waypos
 end
+local lt3 = function(t1, t2)
+	return t1.way < t2.way
+end
+
 local lastOrder = {}
 local robotAngleHysteresis = 0.0
 local lt2 = function(r1, r2)
@@ -136,6 +140,9 @@ local function calculateCenterBackPositions()
 
 	-- sort intersection interval table
 	table.sort(intersections, lt)
+	for _,i in pairs(intersections) do
+		table.sort(i.targets, lt3)
+	end
 
 	-- calculate final positions
 	local defensePoints = {}
