@@ -4,6 +4,7 @@ local World = require "../base/world"
 local MovingAverage = require "learning/movingaverage"
 local Ball = require "observer/ball"
 local debug = require "../base/debug"
+local IO = require "util/io"
 
 function BallAnalyzer:init(ball, movingAverageSlipping, movingAverageRolling, slippingFrictionStart, rollingFrictionStart)
 	self._ball = ball or World.Ball
@@ -21,6 +22,7 @@ function BallAnalyzer:update(slippingFriction, rollingFriction)
 	self._rollingFriction = rollingFriction
 end
 
+local maxDiffSquared = 1
 function BallAnalyzer:run()
 	local resultsSlipping, resultsRolling
 	if Ball.isShot() then
@@ -28,27 +30,36 @@ function BallAnalyzer:run()
 		if self._recording then
 			resultsSlipping, resultsRolling = self:analyze()
 			self._record = {}
+			log("shot again")
 		else
 			self._recording = true
 		end
 		self._stopTime = World.Time + 8	-- stop one acquisition and start the next, when the ball is shot again before the 8 sec countdown
 	end
 	if self._recording then
-		--log("add "..tostring(self._ball.speed))
-		table.insert(self._record, self._ball.speed)
-		if World.Time > self._stopTime then
+		if self._record[#self._record] and (self._ball.speed - self._record[#self._record]):lengthSq() > maxDiffSquared then
 			self._recording = false
 			resultsSlipping, resultsRolling = self:analyze()
 			self._record = {}
+			log("deflected")
+		else
+			--log("add "..tostring(self._ball.speed))
+			table.insert(self._record, self._ball.speed)
+			if World.Time > self._stopTime then
+				self._recording = false
+				resultsSlipping, resultsRolling = self:analyze()
+				self._record = {}
+				log("time")
+			end
 		end
 	end
 	if resultsSlipping then
 		log("Ergebnisse")
 		for _, v in ipairs(resultsSlipping) do
-			self._movingAverageSlipping.addValue(v)
+			self._movingAverageSlipping:addValue(v)
 		end
 		for _, v in ipairs(resultsRolling) do
-			self._movingAverageRolling.addValue(v)
+			self._movingAverageRolling:addValue(v)
 		end
 		BallAnalyzer:update(self._movingAverageSlipping:value(), self._movingAverageRolling:value())
 		log("Slipping: "..self._movingAverageSlipping:value().." | Rolling: "..self._movingAverageRolling:value())
@@ -57,11 +68,18 @@ function BallAnalyzer:run()
 	debug.set("rolling friction", self._movingAverageRolling:value())
 end
 
+local minRecord = 20
 function BallAnalyzer:analyze()
+	log("#self._record: "..#self._record)
+	if #self._record < minRecord then
+		return nil, nil
+	end
 	local accelerationArray = {}
 	for i = #self._record-1, 1, -1 do
-		accelerationArray[i] = (self._record[i+1] - self._record[i]):length()*100
+		accelerationArray[i] = (self._record[i+1]:length() - self._record[i]:length())*100
 	end
+	IO.save("ballAnalyzer/"..tostring(World.Time).."_v.csv", self._record)
+	IO.save("ballAnalyzer/"..tostring(World.Time).."_a.csv", accelerationArray)
 	local deviation, limit = math.huge, #accelerationArray/10
 	local overallFriction = math.average(accelerationArray)
 	local slippingFriction, rollingFriction = self._slippingFriction, self._rollingFriction
@@ -71,7 +89,8 @@ function BallAnalyzer:analyze()
 		local ratio = (slippingFriction - overallFriction)/(rollingFriction - overallFriction)
 		startRolling = math.bound(0.5, #accelerationArray/(1-ratio), #accelerationArray)
 		if startRolling >= 1 then
-			slippingFriction = math.average(accelerationArray, 0, math.floor(startRolling))
+			log("length: "..#accelerationArray.." | start: "..math.ceil(startRolling))
+			slippingFriction = math.average(accelerationArray, 1, math.floor(startRolling))
 		end
 		if startRolling <= #accelerationArray-1 then
 			log("length: "..#accelerationArray.." | start: "..math.ceil(startRolling))
@@ -95,6 +114,7 @@ function BallAnalyzer:analyze()
 			slFrSmoothed = BallAnalyzer.cutAndSmoothen(slippingFriction)
 			roFrSmoothed = BallAnalyzer.cutAndSmoothen(rollingFriction)
 		else
+			local _
 			_, rollingFriction = table.split(accelerationArray, math.max(0, math.floor(startRolling)))
 			slFrSmoothed = {}
 			roFrSmoothed = BallAnalyzer.cutAndSmoothen(rollingFriction)
@@ -123,6 +143,7 @@ function BallAnalyzer.cutAndSmoothen(array)
 	local deviation = maxDeviation
 	local avgDeviationHalf, closeEnough, cutStart, cutEnd, cutIndex = maxDeviation/(2*#diff), false, true, true, 1
 	repeat
+		--log("d")
 		if deviation < 0.5*maxDeviation then
 			closeEnough = true
 		else
@@ -147,6 +168,7 @@ function BallAnalyzer.cutAndSmoothen(array)
 				deviation = deviation + diff[k]
 			end
 		end
+		cutIndex = cutIndex + 1
 	until closeEnough
 	return arraySmoothed
 end
