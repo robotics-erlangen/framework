@@ -112,7 +112,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
   	local minBall = Ball.atTime(minTimeToBall)
 
 	-- setup obstacles
-	self._robot.path:setDefaultObstacles(self._robot, true, false, false, false, self._robot.shootRadius)
+	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
 	self._robot.path:addRobotObstacles(self._robot)
 	self:_createRollingBallObstacle(self._robot.path, minBall, predictedBall)
 	self:_createBallCorridor(self._robot.path, viewDir, minBall)
