@@ -50,7 +50,7 @@ function CenterBack.distanceToDefenseArea()
 	return 0.03
 end
 
-
+local privateCenterBackPositions = {}
 local centerBackPositions = {}
 local lastRunTime = 0
 local function calculateCenterBackPositions()
@@ -58,25 +58,49 @@ local function calculateCenterBackPositions()
 	if lastRunTime == World.Time then return end
 	lastRunTime = World.Time
 
-	-- positioning parameters
-	-- TODO: change them dynamically dependent on how dangerous the current situation is
-	local distanceToDefenseArea = CenterBack.distanceToDefenseArea()
-	local distanceBetweenDefenders = 0.01
-
-
-
-
 	local robot_radius = World.FriendlyRobots[1].radius
+	local distanceToDefenseArea = CenterBack.distanceToDefenseArea()
+
+	-- parameters
+	local distanceBetweenDefenders = 0.01
+	local getImportant = 2 * robot_radius + 0.2
+	local getUnimportant = getImportant + robot_radius
+
+
+
 
 	local centerBackApplications = Messaging.get("preliminaryCenterbackTarget")
 
 	-- transform application data structure from (robot, target) to (target, {robot})
 	local robots = {}
+	local robotSet = {}
 	for robot, target in pairs(centerBackApplications) do
-		if robots[target] == nil then
-			robots[target] = {}
+		local cbPos = centerBackPositions[robot]
+		local pcbPos = Field.intersectLineDefenseArea(target.pos, World.Geometry.FriendlyGoal - target.pos,
+				distanceToDefenseArea + robot_radius, false)
+		
+		local inserted = false
+		if cbPos and cbPos.target == target and robot.pos:distanceTo(cbPos.pos) < getUnimportant or 
+				pcbPos and robot.pos:distanceTo(pcbPos) < getImportant then
+			inserted = true
 		end
-		table.insert(robots[target], robot)
+		for _,tp in pairs(centerBackPositions) do
+			if cbPos and robot.pos:distanceTo(tp.pos) < getUnimportant or
+					pcbPos and robot.pos:distanceTo(tp.pos) < getImportant then
+				inserted = true
+				break
+			end
+		end
+
+		if inserted then
+			if robots[target] == nil then
+				robots[target] = {}
+			end
+			table.insert(robots[target], robot)
+			table.insert(robotSet, robot)
+		else
+			privateCenterBackPositions[robot] = {["pos"] = pcbPos, ["target"] = target}
+		end
 	end
 
 
@@ -165,7 +189,7 @@ local function calculateCenterBackPositions()
 
 	-- sort robots
 	local sortedRobots = {}
-	for r in pairs(centerBackApplications) do
+	for _,r in pairs(robotSet) do
 		table.insert(sortedRobots, r)
 	end
 	assert(#defensePoints == #sortedRobots)
@@ -189,6 +213,7 @@ function CenterBack:run()
 
 	calculateCenterBackPositions()
 	local pos_target = centerBackPositions[self._robot]
+	pos_target = pos_target or privateCenterBackPositions[self._robot]
 
 	local default_pos = Vector.create(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius
 		+ self._robot.radius + 0.02)
