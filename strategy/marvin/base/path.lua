@@ -4,9 +4,10 @@ local Constants = require "../base/constants"
 local Settings = require "settings"
 local Referee = require "../base/referee"
 
-function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius)
+function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance)
 	local ballDistance = 0
 	radius = radius or robot.radius
+	stopBallDistance = stopBallDistance or Constants.stopBallDistance
 	
 	local forbidOppDefenseArea = Referee.isFriendlyFreeKickState()
 	local forbidOppFieldHalf = Referee.isKickoffState()
@@ -46,7 +47,8 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 		self:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + ballDistance, "Ball")
 	end
 	if Referee.isStopState() then
-		self:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + Constants.stopBallDistance, "BallStop")
+		log("stop for #" .. robot.id)
+		self:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + stopBallDistance, "BallStop")
 	end
 
 	if not ignoreGoals then

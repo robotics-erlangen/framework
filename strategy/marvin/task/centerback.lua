@@ -18,6 +18,10 @@ CenterBack.priority = 5
 local lt = function(i1, i2) 
 	return i1.waypos < i2.waypos
 end
+local lt3 = function(t1, t2)
+	return t1.way < t2.way
+end
+
 local lastOrder = {}
 local robotAngleHysteresis = 0.0
 local lt2 = function(r1, r2)
@@ -42,6 +46,11 @@ local lt2 = function(r1, r2)
 	end
 end
 
+function CenterBack.distanceToDefenseArea()
+	return 0.03
+end
+
+
 local centerBackPositions = {}
 local lastRunTime = 0
 local function calculateCenterBackPositions()
@@ -51,7 +60,7 @@ local function calculateCenterBackPositions()
 
 	-- positioning parameters
 	-- TODO: change them dynamically dependent on how dangerous the current situation is
-	local distanceToDefenseArea = 0.03
+	local distanceToDefenseArea = CenterBack.distanceToDefenseArea()
 	local distanceBetweenDefenders = 0.01
 
 
@@ -131,6 +140,9 @@ local function calculateCenterBackPositions()
 
 	-- sort intersection interval table
 	table.sort(intersections, lt)
+	for _,i in pairs(intersections) do
+		table.sort(i.targets, lt3)
+	end
 
 	-- calculate final positions
 	local defensePoints = {}

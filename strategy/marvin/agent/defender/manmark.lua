@@ -29,15 +29,16 @@ function ManMark:_updateTask()
 	debug.set("target", self._opp)
 	local dest = Defense.manMarkPos(self._opp)
 	vis.addCircle("manMarkTarget", dest, 0.1, vis.colors.red)
-	local targetDefenseDist = Field.distanceToFriendlyDefenseArea(dest, self._opp.radius)
+	
+	local markingPosDefenseDist = Field.distanceToFriendlyDefenseArea(dest, self._opp.radius)
 	local oppDefenseDist = Field.distanceToFriendlyDefenseArea(self._opp.pos, self._opp.radius)
-	local targetNearLow, targetNearHigh = 2*self._robot.radius, 3*self._robot.radius
-	local targetThreshold = (self._task and Class.instanceOf(self._task, CenterBack)) and targetNearHigh or targetNearLow
-	local nearLow, nearHigh = 4*self._robot.radius, 5*self._robot.radius
-	local threshold = (self._task and Class.instanceOf(self._task, CenterBack)) and nearHigh or nearLow
+
+	local markingPosNearLow, markingPosNearHigh = 2*self._robot.radius, 3*self._robot.radius
+	local markingPosThreshold = (self._task and Class.instanceOf(self._task, CenterBack)) and markingPosNearHigh or markingPosNearLow
+	local oppNearLow, oppNearHigh = 5*self._robot.radius, 6*self._robot.radius
+	local oppThreshold = (self._task and Class.instanceOf(self._task, CenterBack)) and oppNearHigh or oppNearLow
 	if oppDefenseDist == 0 -- opponent is in defense area
-		or (oppDefenseDist < threshold and targetDefenseDist < targetThreshold
-			and self._robot.pos:distanceTo(self._opp.pos) < threshold)
+		or (oppDefenseDist < oppThreshold and markingPosDefenseDist < markingPosThreshold)
 	then
 		return CenterBack, { self._opp }
 	else

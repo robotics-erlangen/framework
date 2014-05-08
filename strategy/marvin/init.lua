@@ -36,13 +36,15 @@ end
 Processor.addPre(preproc)
 -- local BallAnalyzer = require "observer/ballAnalyzer"
 -- Processor.addPre(BallAnalyzer.create())
-
+local frameCount = 0
 local wrapper = function (func)
 	return function()
 		-- require "../test/debug/enable"
 		if not World.update() then
 			return -- skip processing if no vision data is available yet
 		end
+		frameCount = frameCount + 1
+		debug.set("frame", frameCount)
 		Processor.pre()
 		if not func() then -- Entrypoint has to return true if robots shouldn't be stopped on halt
 			if World.RefereeState == "Halt" then

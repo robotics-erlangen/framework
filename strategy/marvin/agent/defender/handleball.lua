@@ -11,8 +11,7 @@ local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
 
 function HandleBall:check()
-	if World.Ball.pos.y < 0
-		and not Referee.isFriendlyFreeKickState()
+	if not Referee.isFriendlyFreeKickState()
 		and not Referee.isStopState()
 		and not Referee.isKickoffState()
 	then
@@ -21,14 +20,7 @@ function HandleBall:check()
 			self:_applyForMainAttacker()
 		end
 	end
-	if self._inbox.mainAttacker().trainer == self._robot then
-		local role = self._inbox.roleAssignment().trainer
-		if role and role.name == "CenterBack" then
-			self._send("all").centerbackTarget(World.Ball) -- stay centerback
-		end
-		return true
-	end
-	return false
+	return self._inbox.mainAttacker().trainer == self._robot
 end
 
 function HandleBall:_updateTask()

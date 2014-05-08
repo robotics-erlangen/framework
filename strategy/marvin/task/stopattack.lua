@@ -26,15 +26,14 @@ function StopAttack:run()
 				pos = p
 			end
 		end
-	else
-		if self._side == "left" and World.Ball.pos.x > 0.3 then
-			self._side = "right"
-		elseif self._side == "right" and World.Ball.pos.x < -0.3 then
-			self._side = "left"
-		end
+	end
+	if self._side == "left" and World.Ball.pos.x < -0.3 then
+		self._side = "right"
+	elseif self._side == "right" and World.Ball.pos.x > 0.3 then
+		self._side = "left"
 	end
 
-	self._robot.path:setDefaultObstacles(self._robot)
+	self._robot.path:setDefaultObstacles(self._robot, false, false, false, nil, 0.1)
 	self._robot.path:addRobotObstacles(self._robot)
 	
 	self._robot.trajectory:update(ToTarget, pos, (World.Ball.pos - pos):angle())
