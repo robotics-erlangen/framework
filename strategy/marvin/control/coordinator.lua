@@ -148,8 +148,8 @@ function Coordinator:_chooseExclusiveRoles()
 	self.exclusiveRoles = exclusiveRoles
 
 	local mainAttacker = self.exclusiveRoles["mainAttacker"]
+	self._mainAttackerIsDefender = false
 	if mainAttacker then
-		self._mainAttackerIsDefender = false
 		if self._pools.defense._agents then
 			for _, agent in ipairs(self._pools.defense._agents) do
 				if agent:robot() == mainAttacker then
