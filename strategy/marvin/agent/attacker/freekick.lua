@@ -51,11 +51,14 @@ function FreeKick:check()
 end
 
 function FreeKick:_updateTask()
+	local distanceToBall = 0.05
+
 	-- if there's still time and we don't have the ball
-	local notAtBall = self._robot.pos:distanceTo(World.Ball.pos) > self._robot.radius + 0.07 -- magic constant
+	local notAtBall = self._robot.pos:distanceTo(World.Ball.pos) > 
+			self._robot.radius + World.Ball.radius + distanceToBall + Settings.positionPadding
 	if ((World.Time - self._startTime < 5 and notAtBall) or not self._robot:isCharged())
 			and not self._atBall then
-		return MoveToStaticBall, {World.Geometry.OpponentGoal}
+		return MoveToStaticBall, {math.pi/2, distanceToBall}
 	else -- let's do this freekick
 		self._atBall = true
 		if World.RefereeState == "IndirectOffensive" then

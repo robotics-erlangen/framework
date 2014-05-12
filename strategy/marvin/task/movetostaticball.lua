@@ -1,21 +1,24 @@
 local MoveToStaticBall = (require "../base/class").new("Task.MoveToStaticBall", require "task/catchball")
 
 local World = require "../base/world"
+local ToTarget = require "trajectory/totarget"
 
 MoveToStaticBall.priority = 4
 
-function MoveToStaticBall:_init(targetPos)
-	self._targetPos = targetPos
-end
-
-function MoveToStaticBall:_canShoot()
-	return true
+function MoveToStaticBall:_init(rotation, distanceToBall)
+	self._rotation = rotation or math.pi/2
+	self._distanceToBall = distanceToBall or 0.05
 end
 
 function MoveToStaticBall:run()
-	-- limit movement speed to 1 m/s
-	-- keep a little distance to the ball to avoid pushing it
-	self:_catchBall(self._targetPos, Settings.staticBallDistance, 1)
+	local absDistToBall = self._distanceToBall + self._robot.radius + World.Ball.radius
+	local pos = World.Ball.pos - Vector.fromAngle(self._rotation) * absDistToBall
+
+	self._robot.path:setDefaultObstacles(self._robot)
+	self._robot.path:addRobotObstacles(self._robot)
+	self._robot.path:addCircle(World.Ball.pos.x, World.Ball.pos.y, self._distanceToBall, "StaticBall")
+	
+	self._robot.trajectory:update(ToTarget, pos, self._rotation)
 end
 
 return MoveToStaticBall
