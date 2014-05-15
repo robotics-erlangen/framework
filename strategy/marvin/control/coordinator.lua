@@ -168,6 +168,10 @@ end
 local function isVisible(robot)
 	return robot.isVisible
 end
+local function distToFriendlyGoal(r1, r2)
+	return r1.pos:distanceTo(World.Geometry.FriendlyGoal)
+		< r2.pos:distanceTo(World.Geometry.FriendlyGoal)
+end
 
 function Coordinator:_organizeDefense()
 	local unassigned = table.copy(self._pools.defense:robots())
@@ -195,9 +199,7 @@ function Coordinator:_organizeDefense()
 	end
 
 	-- look for opponents to mark
-	if self._opps then
-		table.filter(self._opps, isVisible)
-	end
+	self._oppsToMark = table.filter(self._oppsToMark, isVisible)
 	local defendedByDuel = Messaging.trainerGet("defendedOpponent")
 	for _, robot in ipairs(World.OpponentRobots) do
 		local alreadyTargeted = table.contains(self._oppsToMark, robot)
@@ -212,9 +214,7 @@ function Coordinator:_organizeDefense()
 			table.insert(self._oppsToMark, robot)
 		end
 	end
-	table.sort(self._oppsToMark, function(r1, r2)
-		return r1.pos:distanceTo(World.Geometry.FriendlyGoal) < r2.pos:distanceTo(World.Geometry.FriendlyGoal)
-	end)
+	table.sort(self._oppsToMark, distToFriendlyGoal)
 
 	local manMarkers = {}
 	local marked = {}
