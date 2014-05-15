@@ -41,9 +41,6 @@ function Coordinator:init()
 end
 
 function Coordinator:run()
-	self:_updatePoolRobots()
-	-- TODO: facilities for learning
-	
 	self._messages = Messaging.getExclusiveRoleApplications()
 	debug.pushtop("Trainer")
 	for role, application in pairs(self._messages) do
@@ -58,8 +55,14 @@ function Coordinator:run()
 		debug.set(robot.id, msg)
 	end
 	debug.pop() -- centerBackTargets
+	debug.push("attackerRequests")
+	for robot, msg in pairs(Messaging.trainerGet("attackerRequest")) do
+		debug.set(robot.id, msg)
+	end
+	debug.pop() -- attackerRequests
 	debug.pop() -- Role Applications
 	self:_chooseExclusiveRoles()
+	self:_updatePoolRobots()
 	self:_organizeDefense()
 	Messaging.deliverMessages()
 
@@ -287,7 +290,11 @@ function Coordinator:_calculateAttackRatio()
 		attackRatio = attackRatio - 1
 	end
 	
+	if table.count(Messaging.trainerGet("attackerRequest")) > 0 then
+		attackRatio = attackRatio + 1
+	end
 	debug.set("AttackRatio", attackRatio)
+
 	local attackers = math.roundUpwards(attackRatio/6 * #World.FriendlyRobots, 0)
 	local defenders = #World.FriendlyRobots - attackers
 	return attackers, defenders

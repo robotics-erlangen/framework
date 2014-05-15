@@ -7,6 +7,7 @@ local Kickoff = require "agent/defender/kickoff"
 local HandleBall = require "agent/defender/handleball"
 local ManMark = require "agent/defender/manmark"
 local Default = require "agent/defender/default"
+local Messaging = require "control/messaging"
 
 Defender._behaviors = {
 	Kickoff,
@@ -25,6 +26,11 @@ function Defender.takeRobot(robots)
 end
 
 function Defender:keepRobot()
+	for robot, _ in pairs(Messaging.trainerGet("attackerRequest")) do
+		if robot == self._robot then
+			return false
+		end
+	end
 	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper and not self._robot.userControl
 end
 

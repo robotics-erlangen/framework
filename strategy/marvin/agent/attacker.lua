@@ -13,6 +13,7 @@ local Shoot = require "agent/attacker/shoot"
 local KickoffAssistant = require "agent/attacker/kickoffassistant"
 local Default = require "agent/attacker/default"
 local KickoffDefensive = require "agent/attacker/kickoffdefensive"
+local Messaging = require "control/messaging"
 
 Attacker._behaviors = {
 	ReceivePass,
@@ -51,6 +52,11 @@ end
 function Attacker:rateRobot()
 	if self._activeBehavior and self._activeBehavior:forceKeepingInPool()  then
 		return 0
+	end
+	for robot, _ in pairs(Messaging.get("mainAttacker")) do
+		if robot == self._robot then
+			return 0
+		end
 	end
 	local toOpponentGoal = World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
 	local toBall = self._robot.pos:distanceTo(World.Ball.pos)

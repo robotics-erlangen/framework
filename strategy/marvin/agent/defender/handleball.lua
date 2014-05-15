@@ -6,6 +6,8 @@ local Referee = require "../base/referee"
 local Ball = require "observer/ball"
 local Shoot = require "observer/shoot"
 local SaveBall = require "task/saveball"
+local Field = require "util/field"
+local debug = require "../base/debug"
 
 local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
@@ -24,6 +26,14 @@ function HandleBall:check()
 end
 
 function HandleBall:_updateTask()
+	local changeDist = World.Geometry.FieldHeight / 4
+	local defenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+	debug.set("changeDist", changeDist)
+	debug.set("defenseDist", defenseDist)
+	if defenseDist > changeDist then
+		self._send("all").attackerRequest()
+	end
+
 	local bestAssi = Shoot.bestFreeAssistant(self._robot)
 	local _, timeAdvance = Ball.firstAtBall()
 	if bestAssi and timeAdvance > 1.5 then -- we're really slow atm (iran open)
