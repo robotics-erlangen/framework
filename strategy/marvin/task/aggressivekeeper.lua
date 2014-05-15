@@ -17,7 +17,7 @@ function AggressiveKeeper:run()
 	self._robot:setDribblerSpeed(1)
 	self._robot:chip(1)
 	self._robot.path:setDefaultObstacles(self._robot, true)
-	self._robot.trajectory:update(ToTarget, tpos, fromGoal)
+	self._robot.trajectory:update(ToTarget, tpos, fromGoal, nil, Vector.create(fromGoal))
 	
 	self._send("all").aggressiveKeeperPos(tpos)
 end
