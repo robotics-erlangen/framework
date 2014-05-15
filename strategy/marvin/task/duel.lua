@@ -2,6 +2,7 @@ local Duel = (require "../base/class").new("Task.Duel", require "task/directpass
 
 local World = require "../base/world"
 local geom = require "../base/geom"
+local debug = require "../base/debug"
 local Direct = require "trajectory/direct"
 local DirectPass = require "task/directpass"
 local Shoot = require "observer/shoot"
@@ -24,12 +25,15 @@ function Duel:run()
 	if self.opposer then
 		if self._robot:hasBall(World.Ball) then
 			self:_contest()
+			debug.set("duel-state", "contest")
 		else
 			local cb = ClearBall.create(self._agent)
 			ClearBall._clearBall(cb)
+			debug.set("duel-state", "clear ball")
 		end
 	else
 		self:_passAway()
+		debug.set("duel-state", "pass away")
 	end
 end
 
