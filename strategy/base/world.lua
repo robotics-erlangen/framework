@@ -211,12 +211,17 @@ function World._updateWorld(state)
 		-- robots that are invisible for more than one second are dropped by amun
 		for _,rdata in pairs(dataOpponent) do
 			local robot = opponentRobotsById[rdata.id]
+			opponentRobotsById[rdata.id] = nil
 			if not robot then
 				robot = Robot.create(rdata.id, false)
 			end
 			robot:_update(rdata, World.Time)
 			table.insert(World.OpponentRobots, robot)
 			World.OpponentRobotsById[rdata.id] = robot
+		end
+		-- mark dropped robots as invisible
+		for _,robot in pairs(opponentRobotsById) do
+			robot:_update(nil, World.Time)
 		end
 	end
 	
