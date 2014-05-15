@@ -165,6 +165,10 @@ function Coordinator:_chooseExclusiveRoles()
 	end
 end
 
+local function isVisible(robot)
+	return robot.isVisible
+end
+
 function Coordinator:_organizeDefense()
 	local unassigned = table.copy(self._pools.defense:robots())
 
@@ -191,6 +195,9 @@ function Coordinator:_organizeDefense()
 	end
 
 	-- look for opponents to mark
+	if self._opps then
+		table.filter(self._opps, isVisible)
+	end
 	local defendedByDuel = Messaging.trainerGet("defendedOpponent")
 	for _, robot in ipairs(World.OpponentRobots) do
 		local alreadyTargeted = table.contains(self._oppsToMark, robot)
