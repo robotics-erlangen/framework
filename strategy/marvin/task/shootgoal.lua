@@ -59,13 +59,13 @@ function ShootGoal:updateDestination(ignoreGoalie)
 		if interval[2] < -math.pi/2 then interval[2] = interval[2] + 2*math.pi end
 		if min < -math.pi/2 then min = min + 2*math.pi end
 		if max < -math.pi/2 then max = max + 2*math.pi end
-		log(min .. "  bis  " .. max .. " ==== (" .. interval[1] .. " | " .. interval[2] .. ")")
+		--log(min .. "  bis  " .. max .. " ==== (" .. interval[1] .. " | " .. interval[2] .. ")")
 		local negated = {interval}
 		freeSectors = Interval.negate(negated, min, max)
 		self._viscolor = vis.colors.red
 		Interval.merge(freeSectors)
 		for _,i in pairs(freeSectors) do
-			log("sector  "..i[1].." :: "..i[2])
+			--log("sector  "..i[1].." :: "..i[2])
 		end
 	else
 		self._viscolor = vis.colors.black
@@ -134,8 +134,8 @@ function ShootGoal:checkForRicochet(viewPos)
 		local toreflectionpoint = (reflectionpoint - viewPos):angle()
 		vis.addPath("ShootGoalRicochet", {viewPos, reflectionpoint}, vis.colors.whiteHalf)
 		vis.addPath("ShootGoalRicochet", {viewPos, goalpost}, vis.colors.whiteHalf)
-		log("kl = " .. tokeeper - keeperRadiusAngle .. "   kr = " .. tokeeper + keeperRadiusAngle)
-		log("refl = " .. toreflectionpoint .. "   goal = " .. (goalpost - viewPos):angle())
+		--log("kl = " .. tokeeper - keeperRadiusAngle .. "   kr = " .. tokeeper + keeperRadiusAngle)
+		--log("refl = " .. toreflectionpoint .. "   goal = " .. (goalpost - viewPos):angle())
 		return {tokeeper - keeperRadiusAngle, toreflectionpoint}, 
 			tokeeper - keeperRadiusAngle, 
 			math.min(tokeeper + keeperRadiusAngle, (goalpost - viewPos):angle())
@@ -150,7 +150,7 @@ function ShootGoal:checkForRicochet(viewPos)
 		vis.addPath("ShootGoalRicochet", {viewPos, goalpost}, vis.colors.whiteHalf)
 		if togoalpost < math.pi/2 then togoalpost = togoalpost + 2*math.pi end
 		if tokeeper < math.pi/2 then tokeeper = tokeeper + 2*math.pi end
-		log("bla = " .. togoalpost .. "  " ..toreflectionpoint - keeperRadiusAngle)
+		--log("bla = " .. togoalpost .. "  " ..toreflectionpoint - keeperRadiusAngle)
 		return {toreflectionpoint, tokeeper + keeperRadiusAngle},
 			math.max(tokeeper - keeperRadiusAngle, togoalpost),
 			tokeeper + keeperRadiusAngle
