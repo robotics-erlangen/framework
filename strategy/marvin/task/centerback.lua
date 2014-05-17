@@ -47,17 +47,24 @@ local lt2 = function(r1, r2)
 end
 
 function CenterBack.distanceToDefenseArea()
-	return 0.03
+	return 0.08
 end
 
 local privateCenterBackPositions = {}
 local centerBackPositions = {}
 local lastRunTime = 0
 local function calculateCenterBackPositions()
+	-- important = if the centerbacks should take notice of that robot
+	-- -> centerBacks move away to let that robot join the defense line
+	-- -> must not happen to early
+
+
+
 	-- cache it
 	if lastRunTime == World.Time then return end
 	lastRunTime = World.Time
 
+	-- constants
 	local robot_radius = World.FriendlyRobots[1].radius
 	local distanceToDefenseArea = CenterBack.distanceToDefenseArea()
 
@@ -67,39 +74,51 @@ local function calculateCenterBackPositions()
 	local getUnimportant = getImportant + robot_radius
 
 
-
-
+	-- get all CB applications (robot -> target)
 	local centerBackApplications = Messaging.get("preliminaryCenterbackTarget")
 
-	-- transform application data structure from (robot, target) to (target, {robot})
-	local robots = {}
-	local robotSet = {}
+	-- collect all important targets and assign them the list of robots
+	-- only consider those as important that are within a certain range to their destination
+	local robots = {} -- all targets with their important robots (target -> [robot])
+	local robotSet = {} -- all important robots ([robot])
+	local unimportantApplications = {} -- (robot -> target)
 	for robot, target in pairs(centerBackApplications) do
+		-- the already calculated cbPos
 		local cbPos = centerBackPositions[robot]
-		local pcbPos = Field.intersectLineDefenseArea(target.pos, World.Geometry.FriendlyGoal - target.pos,
+		-- where the robot would go if it was the only one
+		local pcbPos = privateCenterBackPositions[robot] and privateCenterBackPositions[robot].pos
+				or Field.intersectLineDefenseArea(target.pos, World.Geometry.FriendlyGoal - target.pos,
 				distanceToDefenseArea + robot_radius, false)
 		
-		local inserted = false
-		if cbPos and cbPos.target == target and robot.pos:distanceTo(cbPos.pos) < getUnimportant or 
-				pcbPos and robot.pos:distanceTo(pcbPos) < getImportant then
-			inserted = true
-		end
+		-- if the robot is close to its cbPos or pcbPos then mark it as important
+		local distToCBPos = cbPos and robot.pos:distanceTo(cbPos.pos) or math.huge
+		local distToPCBPos = robot.pos:distanceTo(pcbPos)
+		local distToAnything = math.min(distToCBPos, distToPCBPos)
+		local important = distToAnything < getImportant 
+				or cbPos and distToAnything < getUnimportant
+
+		--USELESS CODE?
+		--[[
 		for _,tp in pairs(centerBackPositions) do
 			if cbPos and robot.pos:distanceTo(tp.pos) < getUnimportant or
 					pcbPos and robot.pos:distanceTo(tp.pos) < getImportant then
 				inserted = true
 				break
 			end
-		end
+		end]]
 
-		if inserted then
+
+		-- if important: insert the robot in the data structures
+		--               for calculating the positions for important robots
+		-- otherwise: calculate their position after the important ones
+		if important then
 			if robots[target] == nil then
 				robots[target] = {}
 			end
 			table.insert(robots[target], robot)
 			table.insert(robotSet, robot)
 		else
-			privateCenterBackPositions[robot] = {["pos"] = pcbPos, ["target"] = target}
+			unimportantApplications[robot] = target
 		end
 	end
 
@@ -125,7 +144,7 @@ local function calculateCenterBackPositions()
 	end
 
 
-	-- merge those who would collide
+	-- merge overlapping way intervals
 	local merged = true
 	while merged do
 		merged = false
@@ -158,9 +177,6 @@ local function calculateCenterBackPositions()
 		end
 	end
 
-	for _,i in pairs(intersections) do
-	--	log(tostring(i.targets[1].target) .. "  " .. i.targets[1].way)
-	end
 
 	-- sort intersection interval table
 	table.sort(intersections, lt)
@@ -168,20 +184,20 @@ local function calculateCenterBackPositions()
 		table.sort(i.targets, lt3)
 	end
 
-	-- calculate final positions
+	-- calculate final positions for important robots
 	local defensePoints = {}
 	for _,i in pairs(intersections) do
 		local delta = 2 * robot_radius + distanceBetweenDefenders
 		local way = i.waypos - i.wayrange/2 + delta/2
 		for _,t in pairs(i.targets) do
 			for j = 1,t.n do
-				vis.addCircle("CenterBack/Positions", 
-					Field.defenseIntersectionByWay(way, robot_radius + distanceToDefenseArea, false),
-					0.1, vis.colors.skyBlue)
+				local final_pos = Field.defenseIntersectionByWay(way, robot_radius + distanceToDefenseArea, false)
+				vis.addCircle("CenterBack/Positions", final_pos, 0.1, vis.colors.skyBlue)
 				table.insert(defensePoints, {
-					["pos"] = Field.defenseIntersectionByWay(way, robot_radius + distanceToDefenseArea, false),
+					["pos"] = final_pos,
 					["target"] = t.target
 				})
+
 				way = way + delta
 			end
 		end 
@@ -200,6 +216,24 @@ local function calculateCenterBackPositions()
 	centerBackPositions = {}
 	for i = 1,#sortedRobots do
 		centerBackPositions[sortedRobots[i]] = defensePoints[i]
+	end
+
+
+	-- calculate final positions for unimportant robots
+	for robot, target in pairs(unimportantApplications) do
+		local _, target_way = Field.intersectLineDefenseArea(target.pos, World.Geometry.FriendlyGoal - target.pos,
+				distanceToDefenseArea + robot_radius, false)
+		local _, robot_way = Field.intersectLineDefenseArea(robot.pos, World.Geometry.FriendlyGoal - target.pos,
+				distanceToDefenseArea + robot_radius, false)
+		for _,i in ipairs(intersections) do
+			if target_way - robot_radius < i.waypos + i.wayrange/2
+					and target_way + robot_radius > i.waypos - i.wayrange/2 then
+				target_way = math.bound(i.waypos - i.wayrange/2 - robot_radius, 
+						robot_way, i.waypos + i.wayrange/2 + robot_radius)
+			end
+		end
+		local pos = Field.defenseIntersectionByWay(target_way, robot_radius + distanceToDefenseArea, false)
+		privateCenterBackPositions[robot] = {["pos"] = pos, ["target"] = target}
 	end
 end
 
@@ -228,7 +262,7 @@ function CenterBack:run()
 		= Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) < 2*self._robot.radius
 	
 	local ignoreFriends
-		= destinationPos:distanceTo(self._robot.pos) < 2*self._robot.radius
+		= Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) < 2*self._robot.radius
 
 	--move robot
 	self._robot.path:setDefaultObstacles(self._robot)
