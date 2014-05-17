@@ -32,6 +32,7 @@ function HandleBall:_updateTask()
 	debug.set("defenseDist", defenseDist)
 	if defenseDist > changeDist then
 		self._send("all").attackerRequest()
+		self._requestingPoolChange = true
 	end
 
 	local bestAssi = Shoot.bestFreeAssistant(self._robot)
