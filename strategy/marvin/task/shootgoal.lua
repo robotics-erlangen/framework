@@ -51,6 +51,7 @@ function ShootGoal:updateDestination(ignoreGoalie)
 
 	local bestRating = -math.huge
 	local bestMid = nil
+	local bestWidth = 0
 	local bestAngleError = nil
 
 	if ignoreGoalie and World.OpponentKeeper then
@@ -97,6 +98,7 @@ function ShootGoal:updateDestination(ignoreGoalie)
 		if rating > bestRating then
 			bestRating = rating
 			bestMid = sectorMid
+			bestWidth = sectorWidth
 			bestAngleError = math.min(math.abs(geom.getAngleDiff(sector[1], sectorMid)),
 					math.abs(geom.getAngleDiff(sector[2], sectorMid))) * 0.8 -- MAGIC CONSTANT
 		end	
@@ -105,6 +107,15 @@ function ShootGoal:updateDestination(ignoreGoalie)
 	self.bestMid = bestMid
 	self.targetPoint = bestMid and Vector.fromAngle(bestMid)*10 + viewPos or G.OpponentGoal
 	self.maxAngleError = bestAngleError
+	
+	if self.bestMid then
+		vis.addPath("ShootGoalTarget", {viewPos, Vector.fromAngle(bestMid + bestWidth/2) * 20 + viewPos}, 
+			vis.colors.whiteHalf)
+		vis.addPath("ShootGoalTarget", {viewPos, Vector.fromAngle(bestMid - bestWidth/2) * 20 + viewPos}, 
+			vis.colors.whiteHalf)
+		vis.addPath("ShootGoalTarget",{viewPos, self.targetPoint}, self._viscolor)
+	end
+		
 
 	self.timestamp = World.Time
 	return #freeSectors
@@ -132,8 +143,6 @@ function ShootGoal:checkForRicochet(viewPos)
 		local goalpost = G.OpponentGoalLeft + 
 			Vector.fromAngle((G.OpponentGoalLeft-viewPos):angle() - math.pi/2):setLength(World.Ball.radius)
 		local toreflectionpoint = (reflectionpoint - viewPos):angle()
-		vis.addPath("ShootGoalRicochet", {viewPos, reflectionpoint}, vis.colors.whiteHalf)
-		vis.addPath("ShootGoalRicochet", {viewPos, goalpost}, vis.colors.whiteHalf)
 		--log("kl = " .. tokeeper - keeperRadiusAngle .. "   kr = " .. tokeeper + keeperRadiusAngle)
 		--log("refl = " .. toreflectionpoint .. "   goal = " .. (goalpost - viewPos):angle())
 		return {tokeeper - keeperRadiusAngle, toreflectionpoint}, 
@@ -146,8 +155,6 @@ function ShootGoal:checkForRicochet(viewPos)
 			Vector.fromAngle((G.OpponentGoalRight-viewPos):angle() + math.pi/2):setLength(World.Ball.radius)
 		local togoalpost = (goalpost - viewPos):angle()
 		local toreflectionpoint = (reflectionpoint - viewPos):angle()
-		vis.addPath("ShootGoalRicochet", {viewPos, reflectionpoint}, vis.colors.whiteHalf)
-		vis.addPath("ShootGoalRicochet", {viewPos, goalpost}, vis.colors.whiteHalf)
 		if togoalpost < math.pi/2 then togoalpost = togoalpost + 2*math.pi end
 		if tokeeper < math.pi/2 then tokeeper = tokeeper + 2*math.pi end
 		--log("bla = " .. togoalpost .. "  " ..toreflectionpoint - keeperRadiusAngle)
@@ -192,8 +199,6 @@ function ShootGoal:run()
 		self.targetPoint = G.OpponentGoal
 	end
 
-	-- shoot
-	vis.addPath("ShootGoalTarget",{World.Ball.pos, self.targetPoint}, self._viscolor)
 
 	-- TODO discuss if the layer above (a/a/shoot) should choose between volley and shoot instead
 	
