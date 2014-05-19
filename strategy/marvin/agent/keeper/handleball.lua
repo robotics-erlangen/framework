@@ -5,8 +5,13 @@ local World = require "../base/world"
 local Field = require "util/field"
 local Referee = require "../base/referee"
 local ChipAway = require "task/chipaway"
+local CenterBack = require "task/centerback"
 local AggressiveKeeper = require "task/aggressivekeeper"
 
+function HandleBall:behindCenterbacks(object)
+	local defenseDistance = 2*self._robot.radius + CenterBack.distanceToDefenseArea()
+	return Field.distanceToFriendlyDefenseArea(object.pos, object.radius) < defenseDistance
+end
 
 function HandleBall:check()
 	if Referee.isStopState() then 
@@ -17,7 +22,7 @@ function HandleBall:check()
 		return false
 	end
 	--if a slow ball enters the defense area
-	local active = Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0) < 2*self._robot.radius 
+	local active = self:behindCenterbacks(World.Ball)
 			and World.Ball.speed:length() <= Settings.slowBall
 	if active then
 		-- force being mainAttacker
@@ -32,7 +37,7 @@ function HandleBall:_updateTask()
 	--track opponent robots in defense area
 	local danger = false
 	for _,r in pairs(World.OpponentRobots) do
-		if Field.distanceToFriendlyDefenseArea(r.pos, r.radius) < 2*r.radius then
+		if self:behindCenterbacks(r) then
 			danger = true
 		end
 	end
