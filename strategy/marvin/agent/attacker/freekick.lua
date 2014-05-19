@@ -65,7 +65,9 @@ function FreeKick:_updateTask()
 			return self:passOrChipTask()
 		else -- DirectOffensive
 			local shootGoalTmp = ShootGoal.create(self._agent)
-			if shootGoalTmp:canShoot() then
+			local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
+			local canShootGoal = sg_mae and sg_mae > Settings.minAnglePrecision
+			if canShootGoal then
 				return ShootGoal
 			else 
 				self._pass = true

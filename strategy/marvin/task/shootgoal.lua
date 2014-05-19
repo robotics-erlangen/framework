@@ -10,6 +10,7 @@ local G = World.Geometry
 local Interval = require "util/interval"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
+local debug = require "../base/debug"
 
 
 ShootGoal.priority = 5
@@ -37,11 +38,26 @@ end
 -- self.bestIndex number - which index in self.freeSectors is the best one, if any
 -- self.bestMid number - the angle towards the best point in the goal (from ball pos)
 -- self.targetPoint - the best point in the goal
-function ShootGoal:updateDestination(ignoreGoalie)
-	if self.timestamp == World.Time and not ignoreGoalie then
+function ShootGoal:updateDestination()
+	if self.timestamp == World.Time then
 		return
 	end
+	self.timestamp = World.Time
 
+	-- calculate free sectors considering the opponent goalie
+	self:_calculateDestination(false)
+	self.sectorClean = true
+
+	-- if there is no clean sector,
+	-- 1. ignore the goalie
+	-- 2. check for ricochet opportunities
+	if not self.bestMid or self.maxAngleError < Settings.minAnglePrecision then
+		self:_calculateDestination(true)
+		self.sectorClean = false
+	end
+end
+
+function ShootGoal:_calculateDestination(ignoreGoalie)
 	local viewPos = self._viewPos or World.Ball.pos
 	
 	local goalStart = (World.Geometry.OpponentGoalRight - viewPos):angle() -- direction of the first goalpost
@@ -116,8 +132,6 @@ function ShootGoal:updateDestination(ignoreGoalie)
 		vis.addPath("ShootGoalTarget",{viewPos, self.targetPoint}, self._viscolor)
 	end
 		
-
-	self.timestamp = World.Time
 	return #freeSectors
 end
 
@@ -170,9 +184,9 @@ function ShootGoal:_init(minPrecision)
 	self._minPrecision = minPrecision or 2.5 / 180 * math.pi
 end
 
-function ShootGoal:canShoot()
+function ShootGoal:getDecisionMakingBasis()
 	self:updateDestination()
-	return self.maxAngleError and self.maxAngleError > Settings.minAnglePrecision/180*math.pi or true
+	return self.targetPoint, self.maxAngleError, self.sectorClean
 end
 
 function ShootGoal:_canShoot()
@@ -190,15 +204,15 @@ end
 
 function ShootGoal:run()
 	self:updateDestination()
-	if not self.bestMid or self.maxAngleError < Settings.minAnglePrecision then
-		self:updateDestination(true)
-	end
 
 	if not self.targetPoint then
 		log("WARNING: no valid targetPoint for ShootGoal")
 		self.targetPoint = G.OpponentGoal
 	end
 
+	if self.maxAngleError then
+		debug.set("maxAngleError (deg)", self.maxAngleError * 180 / math.pi)
+	end
 
 	-- TODO discuss if the layer above (a/a/shoot) should choose between volley and shoot instead
 	

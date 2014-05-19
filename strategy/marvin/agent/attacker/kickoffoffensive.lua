@@ -109,7 +109,9 @@ function KickoffOffensive:_updateTask()
 		return MoveToStaticBall, { math.pi/2, 0.05 }
 	else -- KickoffOffensive
 		local shootGoalTmp = ShootGoal.create(self._agent)
-		if shootGoalTmp:canShoot() then 
+		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
+		local canShootGoal = sg_mae and sg_mae > Settings.minAnglePrecision
+		if canShootGoal then 
 			return ShootGoal
 		elseif self._shootPos then
 			self._passActiveSince = World.Time

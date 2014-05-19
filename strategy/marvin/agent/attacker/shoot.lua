@@ -116,7 +116,11 @@ function Shoot:_updateTask()
 		local shootGoalTmp = ShootGoal.create(self._agent)
 		local reachTime = Robot.minTimeToBall(self._robot, World.Ball)
 		
-		self._pass = bestAssistant and not shootGoalTmp:canShoot() and reachTime < 0.6
+		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
+		local canShootGoal = sg_mae and sg_mae > Settings.minAnglePrecision
+		--log(sg_mae)
+
+		self._pass = bestAssistant and not canShootGoal and reachTime < 0.6
     
 		if self._pass then
 			return DirectPass, { bestAssistant, true }
