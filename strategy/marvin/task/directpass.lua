@@ -7,6 +7,7 @@ local Shoot = require "observer/shoot"
 local Robot = require "observer/robot"
 local Rating = require "util/rating"
 local debug = require "../base/debug"
+local vis = require "../base/vis"
 
 DirectPass.priority = 4
 
@@ -36,8 +37,12 @@ function DirectPass:run()
 
 	local passSpeed = self._passSpeed or self._targetRobot.constants.passSpeed
 	self:_shoot(self._targetPos, passSpeed, self._linearShoot)
-	debug.set("target", self._targetRobot)
 	self._send(self._targetRobot).passSender("direct")
+
+	debug.set("target", self._targetRobot)
+	vis.addCircle("DirectPass", self._targetPos, 0.2, vis.colors.orangeHalf, true)
+	vis.addPath("DirectPass", {World.Ball.pos, self._targetPos + 
+				(World.Ball.pos - self._targetPos):setLength(0.2)}, vis.colors.orange)
 end
 
 return DirectPass
