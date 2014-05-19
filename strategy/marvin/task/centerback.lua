@@ -129,7 +129,7 @@ local function calculateCenterBackPositions()
 		World.Geometry.DefenseStretch
 	local intersections = {}
 	for target, rlist in pairs(robots) do
-		local targetPos = Field.limitToField(target.pos)
+		local targetPos = Field.limitToField(target.pos, -0.01)
 		local pos, way = Field.intersectLineDefenseArea(targetPos, World.Geometry.FriendlyGoal - targetPos,
 				distanceToDefenseArea + robot_radius, false)
 		local occupiedWay = (#rlist) * (2 * robot_radius + distanceBetweenDefenders)
@@ -221,6 +221,7 @@ local function calculateCenterBackPositions()
 
 	-- calculate final positions for unimportant robots
 	for robot, target in pairs(unimportantApplications) do
+		target.pos = Field.limitToField(target.pos, -0.01)
 		local _, target_way = Field.intersectLineDefenseArea(target.pos, World.Geometry.FriendlyGoal - target.pos,
 				distanceToDefenseArea + robot_radius, false)
 		local _, robot_way = Field.intersectLineDefenseArea(robot.pos, World.Geometry.FriendlyGoal - target.pos,
@@ -232,7 +233,9 @@ local function calculateCenterBackPositions()
 						robot_way, i.waypos + i.wayrange/2 + robot_radius)
 			end
 		end
+
 		local pos = Field.defenseIntersectionByWay(target_way, robot_radius + distanceToDefenseArea, false)
+		vis.addCircle("CenterBack/Positions", pos, 0.1, vis.colors.greenHalf)
 		privateCenterBackPositions[robot] = {["pos"] = pos, ["target"] = target}
 	end
 end
