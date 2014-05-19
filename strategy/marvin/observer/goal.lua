@@ -8,6 +8,7 @@ local Ball = require "observer/ball"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local Constants = require "../base/constants"
+local Cache = require "../base/cache"
 
 --- returns a list of all non-free sectors
 -- the non-free sectors are not merged and not sorted
@@ -314,6 +315,7 @@ function Goal.predictShot()
 
 	return pos, dir, isShot, passRecievers
 end
+Goal.predictShot = Cache.forFrame(Goal.predictShot)
 
 
 return Goal
