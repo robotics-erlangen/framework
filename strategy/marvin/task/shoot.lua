@@ -18,7 +18,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 	local shootDriveSpeed = (World.RefereeState == "PenaltyOffensive")
 			and Settings.penaltyShootDriveSpeed or Settings.shootDriveSpeed
 	local sidewardsK = (World.RefereeState == "PenaltyOffensive")
-			and 15 or 17
+			and 15 or 13
 	
 	if self._robot:hasBall(World.Ball, Settings.shootSideOffset) then -- if we got the ball
 		if not linearShoot then
@@ -53,11 +53,9 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
 
 		-- sidewards offset
-		if math.abs(distToBall.y) >= 0.01 then
-			local speedLimit = 0.5
-			speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(
-					math.bound(-speedLimit, -distToBall.y * sidewardsK, speedLimit)) -- correct pos error
-		end
+		local speedLimit = 0.2
+		speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(
+				math.bound(-speedLimit, -distToBall.y * sidewardsK, speedLimit)) -- correct pos error
 
 		local canShoot = self:_canShoot()
 		debug.set("Success probability", canShoot)
