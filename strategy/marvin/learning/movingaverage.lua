@@ -40,14 +40,9 @@ end
 function Entry:value()
 	if #self._points == 0 then
 		return self._default
+	else
+		return math.average(self._points)
 	end
-		
-	local sum = 0
-	for _, p in ipairs(self._points) do
-		sum = sum + p
-	end
-	
-	return sum / #self._points
 end
 
 local instanceMap = {}
