@@ -15,12 +15,22 @@ function Striker:_init()
 	self._noTargetFound = nil
 end
 
+local function cmpByX(r1, r2)
+	return r1.pos.x < r2.pos.x
+end
+
 --- chooses an x line. each striker gets the same line in all task instances
 function Striker:_xLine()
 	local ballPos = World.Ball.pos
 	local numAttackers = table.count(self._inbox.attackerFlag("all"))
 	local xLines	
-	if numAttackers == 2 then
+	if numAttackers == 1 then
+		if ObserverGame.attackSideWithLessOpponents() == "left" then
+			xLines = { 0.5 * World.Geometry.FieldWidthHalf }
+		else
+			xLines = { -0.5 * World.Geometry.FieldWidthHalf }
+		end
+	elseif numAttackers == 2 then
 		xLines = {
 			-0.6 * World.Geometry.FieldWidthHalf,
 			0.6 * World.Geometry.FieldWidthHalf
@@ -46,8 +56,8 @@ function Striker:_xLine()
 			0.4 * World.Geometry.FieldWidthHalf,
 			0.8 * World.Geometry.FieldWidthHalf
 		}
-	else
-		return
+	else -- very unlikely
+		xLines = { 0 }
 	end
 
 	local strikers = {}
@@ -56,7 +66,7 @@ function Striker:_xLine()
 			table.insert(strikers, robot)
 		end
 	end
-	table.sort(strikers, function(r1, r2) return r1.pos.x < r2.pos.x end)
+	table.sort(strikers, cmpByX)
 
 	if numAttackers > #strikers then
 		-- remove line closest to ball, because mainAttacker will be there
@@ -108,10 +118,6 @@ function Striker:_calcMoveDest()
 
 	local ballPos = World.Ball.pos
 	local xPos = self:_xLine()
-	if not xPos then
-		self._moveDest = self._robot.pos
-		return -- _xLine() logged a warning
-	end
 	local startPoint = Vector.create(xPos, lineStart)
 	local endPoint = Vector.create(xPos, lineEnd)
 	
@@ -167,7 +173,7 @@ function Striker:_calcMoveDest()
 	Interval.merge(intervalsToRemove)
 	local possibleIntervals = Interval.negate(intervalsToRemove, lineStart, lineEnd)
 	for _, interval in ipairs(possibleIntervals) do
-		vis.addPath("attackerLine"..self._robot.id, { Vector.create(xPos, interval[1]), Vector.create(xPos, interval[2]) }, vis.colors.blue)
+		vis.addPath("attackerLines", { Vector.create(xPos, interval[1]), Vector.create(xPos, interval[2]) }, vis.colors.blue)
 	end
 	
 	local closestOpp = World.OpponentRobots[1] or { pos = Vector.create(0,0) }
