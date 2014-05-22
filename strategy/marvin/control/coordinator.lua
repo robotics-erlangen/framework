@@ -75,14 +75,9 @@ end
 function Coordinator:_updatePoolRobots()
 	local attackers, defenders = self:_calculateAttackRatio()
 	
-	-- if keeper is on the field, it is managed by the keeper pool
-	if World.FriendlyKeeper and World.FriendlyKeeper.isVisible then
-		defenders = defenders - 1
-	end
-	
 	-- limit robot counts on attack/defense pool, causes automatic robot balancing
 	self._pools.attack:setRobotLimit(attackers)
-	self._pools.defense:setRobotLimit(defenders) -- defenders may be negative
+	self._pools.defense:setRobotLimit(defenders)
 	
 	-- remove no longer needed / surplus robots from pools
 	for _, pool in pairs(self._pools) do
@@ -293,17 +288,22 @@ function Coordinator:_calculateAttackRatio()
 		attackRatio = 6
 	end
 
+	local attackers = math.roundUpwards(attackRatio/6 * #World.FriendlyRobots, 0)
+
 	if self._mainAttackerIsDefender then
-		attackRatio = attackRatio - 1
+		attackers = attackers - 1
 	end
 	
 	if table.count(Messaging.trainerGet("attackerRequest")) > 0 then
-		attackRatio = attackRatio + 1
+		attackers = attackers + 1
 	end
 	debug.set("AttackRatio", attackRatio)
+	debug.set("#attackers", attackers)
 
-	local attackers = math.roundUpwards(attackRatio/6 * #World.FriendlyRobots, 0)
 	local defenders = #World.FriendlyRobots - attackers
+	if World.FriendlyKeeper and World.FriendlyKeeper.isVisible then
+		defenders = math.max(0, defenders - 1)
+	end
 	return attackers, defenders
 end
 
