@@ -153,4 +153,14 @@ function math.average(array, indexStart, indexEnd)
 	return sum/n
 end
 
+function math.variance(array, average, indexStart, indexEnd)
+	average = average or math.average(array, indexStart, indexEnd)
+	local variance = 0
+	for _, v in pairs(array) do
+		local diff = v - average
+		variance = variance + diff*diff
+	end
+	return variance
+end
+
 return math
