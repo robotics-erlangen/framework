@@ -3,6 +3,9 @@ local ApplyForMainattacker = (require "../base/class").new("Agent.Attacker.Apply
 local Referee = require "../base/referee"
 
 function ApplyForMainattacker:check()
+	if self._inbox.mainAttacker().trainer == self._robot then
+		self._forceKeepingInPool = true
+	end
 	if not Referee.isOpponentPenaltyState() then
 		self:_applyForMainAttacker()
 	end

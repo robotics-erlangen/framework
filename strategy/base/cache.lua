@@ -4,12 +4,16 @@ local cleanup = {}
 local nilObj = {}
 
 local function getFromCache(cached, params)
-	local entry = cached[#params]
-	for i = 1, #params do
-		if params[i] == nil then
-			params[i] = nilObj
+	local pcount = #params
+	params[0] = pcount
+
+	local entry = cached
+	for i = 0, pcount do
+		local param = params[i]
+		if param == nil then
+			param = nilObj
 		end
-		entry = cached[params[i]]
+		entry = entry[param]
 		if entry == nil then
 			return nil
 		end
@@ -18,32 +22,30 @@ local function getFromCache(cached, params)
 end
 
 local function setInCache(cached, params, result)
-	local entry = cached[#params]
-	if not entry then
-		entry = {}
-		cached[#params] = entry
-	end
 	local pcount = #params
-	for i = 1, pcount do
-		if params[i] == nil then
-			params[i] = nilObj
+	params[0] = pcount
+
+	local entry = cached
+	for i = 0, pcount do
+		local param = params[i]
+		if param == nil then
+			param = nilObj
 		end
-		entry = cached[params[i]]
 		if i == pcount then
-			cached[params[i]] = result
-		elseif entry == nil then
-			entry = {}
-			cached[params[i]] = entry
+			entry[param] = result
+			return
+		elseif entry[param] == nil then
+			local newEntry = {}
+			setmetatable(newEntry, {__mode = "k"})
+			entry[param] = newEntry
 		end
+		entry = entry[param]
 	end
 end
 
 local function makeCached(f, keepForever)
 	local cached = {}
-	if keepForever then
-		-- drop values if keys are no longer existing, as cache values can no longer be accessed
-		setmetatable(cached, {__mode = "k"})
-	else
+	if not keepForever then
 		table.insert(cleanup,
 			function()
 				cached = {}

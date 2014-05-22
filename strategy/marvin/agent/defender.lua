@@ -26,10 +26,8 @@ function Defender.takeRobot(robots)
 end
 
 function Defender:keepRobot()
-	for robot, _ in pairs(Messaging.trainerGet("attackerRequest")) do
-		if robot == self._robot then
-			return false
-		end
+	if self._activeBehavior and self._activeBehavior:requestingPoolChange() then
+		return false
 	end
 	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper and not self._robot.userControl
 end

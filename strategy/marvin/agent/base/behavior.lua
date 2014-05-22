@@ -22,6 +22,7 @@ function Base:stop()
 	self._agent:setTask(nil)
 	self._active = false
 	self._forceKeepingInPool = false
+	self._requestingPoolChange = false
 	self:_stop()
 end
 
@@ -46,6 +47,10 @@ end
 
 function Base:forceKeepingInPool()
 	return self._forceKeepingInPool
+end
+
+function Base:requestingPoolChange()
+	return self._requestingPoolChange
 end
 
 function Base:task()
