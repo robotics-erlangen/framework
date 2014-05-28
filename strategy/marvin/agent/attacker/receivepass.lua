@@ -8,7 +8,7 @@ local Robot = require "observer/robot"
 local Rating = require "util/rating"
 local Referee = require "../base/referee"
 
-local PassReceiver = require "task/passreceiver"
+local ReceivePassTask = require "task/receivepass"
 local PassTarget = require "task/passtarget"
 
 -- the agent can become passReceiver if the last passTarget notification
@@ -20,15 +20,6 @@ function ReceivePass:_stop()
 	self._ballShooter = nil
 	self._targetTimer = nil
 end
-
-function ReceivePass:_canCatchBall()
-	local posOnLine = PassReceiver.catchPosition(self._robot)
-	local distToPos = self._robot.pos:distanceTo(posOnLine)
-	local ballTime = Ball.ballRollTime(World.Ball.speed:length(), World.Ball.pos:distanceTo(posOnLine))
-	local robotTime = Robot.timeToPos(self._robot, posOnLine)
-	return ballTime > robotTime
-end
-
 
 function ReceivePass:check()
 	for _, _ in pairs(self._inbox.passSender()) do
@@ -45,7 +36,8 @@ function ReceivePass:check()
 			self._ballShooter = nil
 		end
 		-- abort if someone has the ball, the ball is slow or the game is stopped
-		if Ball.opponentBallOwner() or friendlyBallOwner or World.Ball.speed:length() < Settings.slowBall
+		local slowBall = 0.3 -- instead of Settings.slowBall
+		if Ball.opponentBallOwner() or friendlyBallOwner or World.Ball.speed:length() < slowBall
 				or Referee.isStopState() then
 			return false
 		end
@@ -66,14 +58,14 @@ function ReceivePass:check()
 			self._catchingPass = true
 			self._ballShooter = ballShooter
 		end
-		return self:_canCatchBall()
+		return true
 	end
 	return false
 end
 
 function ReceivePass:_updateTask()
 	if self._catchingPass then
-		return PassReceiver
+		return ReceivePassTask
 	else
 		return PassTarget
 	end

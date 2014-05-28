@@ -132,7 +132,7 @@ local function straightTime(robot, ball)
 	return distToTime(robotSpeed, robot.maxSpeed, robotAccel, ballSpeed, ballAccel, dist)
 end
 
-local function sidewardsTime(robot, ball)
+function Robot.sidewardsTime(robot, ball)
 	-- slow ball, moving into ball shoot line isn't neccessary
 	if World.Ball.speed:length() < Settings.slowBall then
 		return 0
@@ -154,7 +154,7 @@ function Robot.minTimeToBall(robot, ball)
 	-- time needed to move to the ball in a straight line
 	local straight = straightTime(robot, ball)
 	-- time needed to move sidewards into the ball shoot line
-	local sidewards = sidewardsTime(robot, ball)
+	local sidewards = Robot.sidewardsTime(robot, ball)
 	-- time to reach the ball is at least the maximum of both times
 	return math.max(straight, sidewards)
 end
