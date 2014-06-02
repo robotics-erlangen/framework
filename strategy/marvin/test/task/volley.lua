@@ -46,6 +46,7 @@ local function run()
 			task = DirectPass,
 			parameters = {World.FriendlyRobots[1], true, 1}
 		})
+		initialized = true
 	elseif state == "shoot" and not initialized then
 		agent1 = TestAgent.create(World.FriendlyRobots[1], {
 			task = ShootGoal,
@@ -55,7 +56,7 @@ local function run()
 			task = MoveToPos,
 			parameters = { Vector.create(-x, y), 0}
 		})
-		initialized = false
+		initialized = true
 	end
 
 	Messaging.deliverMessages()
