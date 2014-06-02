@@ -109,7 +109,7 @@ Coordinate system:
 Formula:
 1	v_out = S + R_x + R_y
 2	S = from_angle(phi) * v_s
-3	R_x = -from_angle(phi - pi/2) * sin(phi - alpha) * mu_x * |v_in|
+3	R_x = from_angle(phi + pi/2) * sin(phi - alpha) * mu_x * |v_in|
 4	R_y = from_angle(phi) * cos(phi - alpha) * mu_y * |v_in|
 
 
