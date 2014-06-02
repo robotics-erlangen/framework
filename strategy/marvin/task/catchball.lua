@@ -19,6 +19,7 @@ end
 -- @param targetPos Vector - point to look at when having catched the ball
 -- @param distanceToBall number - distance the robot should keep to the ball, only sensible for a stopped ball, defaults to 0
 -- @param maxSpeed number - maximun speed of the robot
+-- @return moveDest Vector - the point where the robot will catch the ball
 function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	-- TODO remove when trajectories are fully working
 	if Referee.isStopState() or Referee.isFriendlyFreeKickState() or World.RefereeState == "PenaltyOffensivePrepare" then
@@ -140,6 +141,8 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	debug.set("catchtime", self._catchTime)
 	vis.addCircle("CatchBall", Ball.atTime(self._catchTime, ball).pos, predictedBall.radius, vis.colors.blueHalf)
 	self._lastBallSpeed = ball.speed
+
+	return moveDest
 end
 
 function CatchBall:_isBlockingBall(currentBall, predictedBall, moveDest)
