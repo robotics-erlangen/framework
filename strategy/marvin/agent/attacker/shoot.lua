@@ -1,133 +1,73 @@
 local Base = require "agent/base/behavior"
 local Shoot = (require "../base/class").new("Agent.Attacker.Shoot", Base)
-local Ball = require "observer/ball"
 local World = require "../base/world"
 local Robot = require "observer/robot"
 local ObserverShoot = require "observer/shoot"
 
-local DirectPass = require "task/directpass"
+local MoveNearBall = require "task/movenearball"
 local ShootGoal = require "task/shootgoal"
-local Volley = require "task/volley"
+local DirectPass = require "task/directpass"
+local PassInTheRun = require "task/passintherun"
 local Class = require "../base/class"
 
-local USE_ADVANCED_DECISION_MAKING = false
+function Shoot:_stop()
+	self._taskClass = nil
+	self._lastTaskClass = nil
+	self._taskStart = World.Time
+	self._minTaskTime = 0
+end
 
---TODO implement perfect estimate functions
--- receivePass
-local p_receivePass_hasBall = function() return 0.9 end
-local t_receivePass_hasBall = function() return 0.8 end
-
--- receiveVolley
-local p_receivePass_volley = function() return 0.9 end	
-local t_receivePass_volley = function() return 0.2 end		
-
--- pass	
-local p_hasBall_receivePass = function() return 0.7 end		
-local t_hasBall_receivePass = function() return 1.0 end
-
--- passVolley
-local p_volley_receivePass = function() return 0.6 end
-local t_volley_receivePass = function() return 1.0 end
-
--- shootGoal
-local p_hasBall_goal = function() return 0.5 end
-local t_hasBall_goal = function() return 0.7 end
-
--- shootGoalVolley
-local p_volley_goal = function() return 0.6 end
-local t_volley_goal = function() return 0.6 end
-
-
-
-local rewards = {["has ball"] = 0, ["receive pass"] = 0, ["volley"] = 0, ["goal"] = 100, ["ball lost"] = -20}
-
-function Shoot:check() -- mainAttacker fallback behavior
+function Shoot:check()
 	return self._inbox.mainAttacker().trainer == self._robot
 end
 
-function Shoot:_decide(state, time)
-	if state == "goal" or state == "ball lost" or time >= 5 then
-		return rewards[state]
-	end
-
-	if state == "has ball" then
-		local t_pass = t_hasBall_receivePass()
-		local p_pass = p_hasBall_receivePass() 
-		local b_pass = p_pass * self:_decide("receive pass", time + t_pass)
-				+ (1-p_pass) * self:_decide("ball lost", time + t_pass)
-
-		local t_shootGoal = t_hasBall_goal()
-		local p_shootGoal = p_hasBall_goal()
-		local b_shootGoal = p_shootGoal * self:_decide("goal", time + t_shootGoal)
-				+ (1-p_shootGoal) * self:_decide("ball lost", time + t_shootGoal)
-
-		if b_pass > b_shootGoal then
-			return b_pass, "pass"
-		else
-			return b_shootGoal, "shootGoal"
-		end
-
-	elseif state == "receive pass" then
-		local t_receivePass = t_receivePass_hasBall()
-		local p_receivePass = p_receivePass_hasBall()
-		local b_receivePass = p_receivePass * self:_decide("has ball", time + t_receivePass)
-				+ (1-p_receivePass) * self:_decide("ball lost", time + t_receivePass)
-		
-		local t_receiveVolley = t_receivePass_volley()
-		local p_receiveVolley = p_receivePass_volley()
-		local b_receiveVolley = p_receiveVolley * self:_decide("volley", time + t_receiveVolley)
-				+ (1-p_receiveVolley) * self:_decide("ball lost", time + t_receiveVolley)
-
-		if b_receivePass > b_receiveVolley then
-			return b_receivePass, "receivePass"
-		else
-			return b_receiveVolley, "receiveVolley"
-		end
-
-	elseif state == "volley" then
-		local t_passVolley = t_volley_receivePass()
-		local p_passVolley = p_volley_receivePass()
-		local b_passVolley = p_passVolley * self:_decide("receive pass", time + t_passVolley)
-				+ (1-p_passVolley) * self:_decide("ball lost", time + t_passVolley)
-
-		local t_shootGoalVolley = t_volley_goal()
-		local p_shootGoalVolley = p_volley_goal()
-		local b_shootGoalVolley = p_shootGoalVolley * self:_decide("goal", time + t_shootGoalVolley)
-				+ (1-p_shootGoalVolley) * self:_decide("ball lost", time + t_shootGoalVolley)
-	
-		if b_passVolley > b_shootGoalVolley then
-			return b_passVolley, "passVolley"
-		else
-			return b_shootGoalVolley, "shootGoalVolley"
-		end
-	end
-end
-
 function Shoot:_updateTask()
-	if USE_ADVANCED_DECISION_MAKING then
-		
-		local benefit, decision = self:_decide("has ball", 0)
-		--log("SHOOT: decide for "..decision.." with benefit = "..benefit)
-
-		--TODO
-		return ShootGoal
-	else
-		local bestAssistant = ObserverShoot.bestFreeAssistant(self._robot)
+	local ballFarAway = self._robot.pos:distanceTo(World.Ball.pos) > 0.5
+	local minTimeOver = World.Time - self._taskStart >= self._minTaskTime
+	if not self._taskClass or minTimeOver or ballFarAway then
+		-- shootgoal
 		local shootGoalTmp = ShootGoal.create(self._agent)
-		local reachTime = Robot.minTimeToBall(self._robot, World.Ball)
-		
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 		local canShootGoal = sg_mae and sg_mae > Settings.minAnglePrecision
-		--log(sg_mae)
 
-		self._pass = bestAssistant and not canShootGoal and reachTime < 0.6
-    
-		if self._pass then
-			return DirectPass, { bestAssistant, true }
+		-- pass in the run
+		local bestPassInTheRun -- TODO select via rating
+		for robot, sugg in pairs(self._inbox.passSuggestion()) do
+			bestPassInTheRun = { robot = robot, pos = sugg.pos }
+		end
+
+		-- directpass
+		local bestFreeAssistant = ObserverShoot.bestFreeAssistant(self._robot)
+
+		local taskParams
+		if ballFarAway then
+			self._minTasktTime = 0
+			self._taskClass = MoveNearBall
+		elseif canShootGoal then
+			self._minTaskTime = 1.5
+			self._taskClass = ShootGoal
+		elseif bestPassInTheRun then
+			self._minTaskTime = 2
+			self._taskClass = PassInTheRun
+			taskParams = { bestPassInTheRun.robot, bestPassInTheRun.pos, Settings.shootDriveSpeed }
+		elseif bestFreeAssistant then
+			self._minTaskTime = 1
+			self._taskClass = DirectPass
+			taskParams = { bestFreeAssistant, true }
 		else
-			return ShootGoal
+			-- TODO desperateShoot Task
+			-- Torwart anchippen oder In freien Bereich dribblen
+			self._minTaskTime = 0.5
+			self._taskClass = ShootGoal
+		end
+		if self._taskClass ~= self._lastTaskClass then
+			self._lastTaskClass = self._taskClass
+			self._taskStart = World.Time
+			return self._taskClass, taskParams
 		end
 	end
+	assert(self._taskClass, "a/a/shoot has not selected a task")
+	return self._taskClass
 end
 
 return Shoot
