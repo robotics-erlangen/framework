@@ -189,4 +189,27 @@ function Robot.timeToPos(robot, pos)
 	return moveTime + accelTime
 end
 
+--- returns the first robot to reach pos, together with a timeAdvance over the first opponent
+-- timeAdvance is 0 if an opponent reaches pos first
+function Robot.firstAtPos(pos)
+	local fastestRobot = nil
+	local minTime = math.huge
+	for _, robot in ipairs(World.OpponentRobots) do
+		local time = Robot.timeToPos(robot, pos)
+		if time < minTime then
+			minTime = time
+			fastestRobot = robot
+		end
+	end
+	local opponentTime = minTime
+	for _, robot in ipairs(World.FriendlyRobots) do
+		local time = Robot.timeToPos(robot, pos)
+		if time < minTime then
+			minTime = time
+			fastestRobot = robot
+		end
+	end	
+	return fastestRobot, opponentTime - minTime
+end
+
 return Robot

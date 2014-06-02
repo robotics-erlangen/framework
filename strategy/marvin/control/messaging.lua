@@ -15,6 +15,7 @@ local msgDefs = {
 	distractedIndex = "number",
 	exclusiveRole = "table", -- value test is in getExclusiveRoleApplications
 	kickoffMirrorSide = "boolean",
+	passSuggestion = "table", -- { pos: Vector, rating: number}
 
 	-- single sender
 	aggressiveKeeperPos = "userdata",

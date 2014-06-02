@@ -5,6 +5,8 @@ local vis = require "../base/vis"
 local Constants = require "../base/constants"
 local ToTarget = require "trajectory/totarget"
 local ObserverGame = require "observer/game"
+local Robot = require "observer/robot"
+local Ball = require "observer/ball"
 local geom = require "../base/geom"
 local Interval = require "util/interval"
 
@@ -23,7 +25,7 @@ end
 function Striker:_xLine()
 	local ballPos = World.Ball.pos
 	local numAttackers = table.count(self._inbox.attackerFlag("all"))
-	local xLines	
+	local xLines
 	if numAttackers == 1 then
 		if ObserverGame.attackSideWithLessOpponents() == "left" then
 			xLines = { 0.5 * World.Geometry.FieldWidthHalf }
@@ -120,9 +122,9 @@ function Striker:_calcMoveDest()
 	local xPos = self:_xLine()
 	local startPoint = Vector.create(xPos, lineStart)
 	local endPoint = Vector.create(xPos, lineEnd)
-	
+
 	local intervalsToRemove = {}
-	
+
 	-- Don't move between ball and opponent goal
 	if math.abs(ballPos.x) > math.abs(xPos) then
 		local ballToGoalIntersection = geom.intersectLinesByPoints(
@@ -155,7 +157,7 @@ function Striker:_calcMoveDest()
 		then
 			local intersection = geom.intersectLinesByPoints(startPoint, endPoint, ballPos, robot.pos)
 			if intersection and intersection.y > lineStart and intersection.y < lineEnd then
-				table.insert(intervalsToRemove, { 
+				table.insert(intervalsToRemove, {
 					math.bound(lineStart, intersection.y - 2*self._robot.radius, lineEnd),
 					math.bound(lineStart, intersection.y + 2*self._robot.radius, lineEnd)
 				})
@@ -165,9 +167,16 @@ function Striker:_calcMoveDest()
 
 	-- do not interfere with passes.
 	local shooter, shootDest = next(self._inbox.shootDestination())
-	if shootDest then 
+	if shootDest then
 		self._robot.path:addLine(shooter.pos.x, shooter.pos.y, shootDest.x, shootDest.y, self._robot.radius)
 		vis.addPath("strikerShotObstacle", { shooter.pos, shootDest }, vis.colors.red)
+	end
+
+	-- do not interfere with other attackers
+	for robot, dest in pairs(self._inbox.moveDest("ignorePriority")) do
+			if self._inbox.attackerFlag("all")[robot] and robot.pos:distanceTo(dest) > 0.1 then
+				self._robot.path:addLine(robot.pos.x, robot.pos.y, dest.x, dest.y, self._robot.radius)
+			end
 	end
 
 	Interval.merge(intervalsToRemove)
@@ -175,7 +184,7 @@ function Striker:_calcMoveDest()
 	for _, interval in ipairs(possibleIntervals) do
 		vis.addPath("attackerLines", { Vector.create(xPos, interval[1]), Vector.create(xPos, interval[2]) }, vis.colors.blue)
 	end
-	
+
 	local closestOpp = World.OpponentRobots[1] or { pos = Vector.create(0,0) }
 	for _, opp in ipairs(World.OpponentRobots) do
 		if self._robot.pos:distanceTo(opp.pos) < self._robot.pos:distanceTo(closestOpp.pos) then
@@ -185,23 +194,81 @@ function Striker:_calcMoveDest()
 	local target = Interval.getFurthestPoint(possibleIntervals, closestOpp.pos.y, self._robot.radius)
 	if target then
 		self._moveDest = Vector.create(xPos, target)
+		self._noTargetFound = false
 	else
 		self._moveDest = self._robot.pos
-		self._noTargetFound = World.Time
+		if not self._noTargetFound then
+			self._noTargetFound = World.Time
+		end
 		if World.Time - self._noTargetFound > 1 then
 			log("Striker (Robot " .. self._robot.id .. ") finds no move destination" )
 		end
 	end
 end
 
---- returns a postion and the time advance over opponents
-function Striker:_suggestPass()
-	-- TODO, have a look at CMDragon 2014 TDP
+function Striker:_passProposal()
+	local mainAttacker = self._inbox.mainAttacker().trainer
+	if not mainAttacker then
+		return nil
+	end
+	local searchWidth = 0.5
+	local searchHeight = 0.8
+	local minDist = 0.5
+	local stepSize = 0.05
+	local timeTolerance = 0.5
+	local startX = math.max(self._robot.pos.x - searchWidth, -World.Geometry.FieldWidthHalf + 2*self._robot.radius)
+	local endX = math.min(self._robot.pos.x + searchWidth, World.Geometry.FieldWidthHalf - 2*self._robot.radius)
+	local startY = self._robot.pos.y + minDist + searchHeight
+	local endY = math.min(startY + searchHeight, World.Geometry.FieldHeightHalf - 2*self._robot.radius)
+	local passPos = nil
+	local rating = 0
+	for x=startX, endX, stepSize do
+		for y=startY, endY, stepSize do
+			local p = Vector.create(x, y)
+
+			-- p zu anderem eigenen Robot > 6*radius
+
+			-- p zu Passgeber > 1.5m
+
+			-- weg von p zu Tor frei, sektorgröße speichern
+
+			-- weg von p zu Ball frei
+			-- freeCorridor
+
+			-- kein Gegner ist schneller bei p als R
+			local firstAtBall, timeAdvance = Robot.firstAtPos(p)
+			if true then -- firstAtBall == self._robot then
+
+				local timeBallToP = Robot.minTimeToBall(mainAttacker, World.Ball)
+					+ Ball.rollTimeEndspeed(Settings.shootDriveSpeed, World.Ball.pos:distanceTo(p))
+				local timeSelfToP = Robot.timeToPos(self._robot, p)
+				-- log(timeSelfToP)
+
+				if math.abs(timeBallToP - timeSelfToP) < timeTolerance then
+					-- TODO calc and compare rating
+					-- rating: zeitvorsprung zu erstem gegner + freier Torwinkel
+					rating = 1
+					passPos = p
+				-- for more criteria, have a look at CMDragon 2014 TDP
+				end
+			end
+		end
+	end
+	return passPos, rating
 end
 
 function Striker:run()
 	if not self._inbox.attackerFlag("all")[self._robot] then
 		return -- we're not considered at position choice
+	end
+	local startTime = amun.getCurrentTime()
+	local pos, rating = self:_passProposal()
+	local runTime = math.round((amun.getCurrentTime() - startTime)*1000000)/1000
+	--log("pass-pos computation took " .. runTime .. "ms")
+	local mainAttacker = self._inbox.mainAttacker().trainer
+	if pos and mainAttacker then
+		vis.addCircle("passSuggestion", pos, 0.1, vis.colors.red, true)
+		self._send(mainAttacker).passSuggestion({ pos = pos, rating = rating })
 	end
 
 	self:_calcMoveDest()

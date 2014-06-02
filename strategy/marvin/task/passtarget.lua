@@ -16,12 +16,7 @@ function PassTarget:_init()
 end
 
 function PassTarget:run()
-	local passPos = nil
-
-	for _, pos in pairs(self._inbox.passPos()) do
-		passPos = pos
-	end
-
+	local passPos = self._inbox.passPos("ignorePriority")[self._inbox.mainAttacker().trainer]
 	if passPos then
 		self.moveTo = passPos
 	else --higher rating if robots is more free + in the enemy playing field half
@@ -61,10 +56,11 @@ function PassTarget:run()
 		self.moveTo = World.Ball.pos + Vector.fromAngle(sectorMid):setLength(distanceToBall)
 		self.moveTo = Field.limitToAllowedField(self.moveTo, 0, true)
 	end
+	vis.addCircle("PassTargetPos", self.moveTo, self._robot.radius, vis.colors.yellow, true)
 
 	vis.addPath("RecivePassSector", {World.Ball.pos, self.moveTo}, vis.colors.red, true)
 	self._robot.path:setDefaultObstacles(self._robot)
-	
+
 	self._robot.path:addRobotObstacles(self._robot)
 	local faceBall = (World.Ball.pos-self.moveTo):angle()
 	self._robot.trajectory:update(ToTarget, self.moveTo, faceBall)

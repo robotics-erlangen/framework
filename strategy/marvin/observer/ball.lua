@@ -145,6 +145,19 @@ function Ball.ballRollTime(v, distance)
 	return t or math.huge
 end
 
+--- Calculates how long the ball will take to travel the given distance. Return math.huge if the distance is unreachable.
+-- @param v number - the end speed
+-- @param distance number - the distance
+-- @return number - time the ball needs to roll distance
+function Ball.rollTimeEndspeed(v, distance)
+	assert(v >= 0 and distance >=0, "v and distance must be positive")
+	-- v0 = v + a*t
+	-- distance = a/2*t^2 + v0*t = -a/2*t^2 + v*t
+	local acceleration = Constants.ballDeceleration
+	local t = math.solveSq(-acceleration * 0.5, v, -distance)
+	return t or math.huge
+end
+
 --- Calculates the position where the ball will be in a given time
 -- ignores obstacles, also works for imaginary ball objects
 -- @param ball object - the ball object which should be predicted

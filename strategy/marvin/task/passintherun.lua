@@ -6,15 +6,16 @@ local Shoot = require "observer/shoot"
 local Robot = require "observer/robot"
 local vis = require "../base/vis"
 local geom = require "../base/geom"
+local debug = require "../base/debug"
 
 PassInTheRun.priority = 4
 
-function PassInTheRun:_init(targetRobot, shootPos, passSpeed)
+function PassInTheRun:_init(targetRobot, shootPos)
+	assert(targetRobot, "targetRobot is missing")
 	assert(shootPos, "shoot pos is missing")
 	self._targetRobot = targetRobot
 	self._shootPos = shootPos
-	self._passSpeed = passSpeed or self._robot.constants.passSpeed/2
-	self._isShooting = false
+	-- self._passSpeed = Settings.shootDriveSpeed
 end
 
 function PassInTheRun:_canShoot()
@@ -23,12 +24,16 @@ function PassInTheRun:_canShoot()
 end
 
 function PassInTheRun:run()
-	local passInTheRunSpeed = self._passSpeed
-	local isShooting = self:_shoot(self._shootPos, passInTheRunSpeed, true)
-	self._isShooting = self._isShooting or isShooting
-	
+	local newShootPos = self._inbox.passSuggestion()[self._targetRobot]
+	if newShootPos then
+		self._shootPos = newShootPos
+	end
+	self:_shoot(self._shootPos, Settings.shootDriveSpeed, true)
+
 	self._send(self._targetRobot).passSender("in the run")
 	self._send(self._targetRobot).passPos(self._shootPos)
+	debug.set("targetRobot", self._targetRobot.id)
+	vis.addCircle("passInTheRun", self._shootPos, 0.1, vis.colors.blue, true)
 end
 
 return PassInTheRun
