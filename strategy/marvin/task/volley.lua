@@ -13,6 +13,7 @@ Volley.priority = 5
 function Volley:_init()
 	--log("start volley task on robot "..tostring(self._robot))
 	self._ballIncoming = true
+	self._ballInDribblerPos = self._robot.pos
 end
 
 
@@ -43,31 +44,33 @@ function Volley:_Jf(v_s, phi)
 end
 
 
-
 function Volley:_volley(targetPos, targetSpeed)
 	-- init mu_x and mu_y
-	self._mu_x = 0.8
-	self._mu_y = 0.2
+	self._mu_x = 0.6
+	self._mu_y = 0.5
 
 
 	-- init v_in and alpha
 	if self._ballIncoming then
-		self._v_in = World.Ball.speed:length()
-		self._alpha = (-World.Ball.speed):angle()
+		local relativeBallSpeed = World.Ball.speed - self._robot.speed
+		self._v_in = relativeBallSpeed:length()
+		self._alpha = (-relativeBallSpeed):angle()
 	end
 
 	-- init v_out_x and v_out_y
-	local dist = targetPos:distanceTo(self._robot.pos)
-	local dirToTarget = (targetPos - self._robot.pos):normalize()
+	local dist = targetPos:distanceTo(self._ballInDribblerPos)
+	local dirToTarget = (targetPos - self._ballInDribblerPos):normalize()
 	local abs_v_out = math.min(self._robot:calculateShootSpeed(targetSpeed, dist), self._robot.maxShotLinear)
 	self._v_out_x = dirToTarget.x * abs_v_out
 	self._v_out_y = dirToTarget.y * abs_v_out
+
 
 	-- guess initial values for v_s and phi
 	local v_s = abs_v_out
 	local gamma = dirToTarget:angle()
 	local phi = gamma
 	
+
 	for i = 1, 5 do
 		local j11, j12, j21, j22 = self:_Jf(v_s, phi)
 		local det = j11 * j22 - j21 * j12
@@ -108,8 +111,10 @@ function Volley:_volley(targetPos, targetSpeed)
 	--log("angle: " .. phi .. "   speed: " .. v_s)
 
 	-- catch the ball
-	local viewPoint = self._robot.pos + Vector.fromAngle(phi):scaleLength(10000)
-	self:_catchBall(viewPoint)
+	local viewPoint = self._ballInDribblerPos + Vector.fromAngle(phi):scaleLength(10000)
+	local catchPos = self:_catchBall(viewPoint)
+	self._ballInDribblerPos = catchPos + Vector.fromAngle(phi) * (self._robot.shootRadius + World.Ball.radius)
+
 
 	-- shoot if the robot looks in the right direction
 	local angle_error = math.abs(geom.getAngleDiff(self._robot.dir, phi))
@@ -123,8 +128,8 @@ function Volley:_volley(targetPos, targetSpeed)
 	end
 
 	vis.addCircle("Volley", targetPos, 0.1, vis.colors.redHalf, true)
-	vis.addPath("Volley", {self._robot.pos, viewPoint}, vis.colors.green)
-	vis.addPath("Volley", {self._robot.pos, targetPos}, vis.colors.red)
+	vis.addPath("Volley", {self._ballInDribblerPos, viewPoint}, vis.colors.green)
+	vis.addPath("Volley", {self._ballInDribblerPos, targetPos}, vis.colors.red)
 
 	
 	if self._robot:hasBall(World.Ball) then
@@ -132,6 +137,8 @@ function Volley:_volley(targetPos, targetSpeed)
 	elseif Ball.isShot() then
 		self._ballIncoming = true
 	end
+
+	return self._ballInDribblerPos
 end
 
 return Volley
