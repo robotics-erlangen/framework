@@ -21,6 +21,8 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 			and 15 or 13
 	
 	if self._robot:hasBall(World.Ball, Settings.shootSideOffset) then -- if we got the ball
+		self._ballInDribblerPos = World.Ball.pos
+
 		if not linearShoot then
 			self._robot:setDribblerSpeed(1)
 		end
@@ -112,12 +114,14 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		self._travelStart = nil
 		self._travelLimit = false
 		-- just catch the ball, but keep a little distance to allow braking the robot
-		self:_catchBall(targetPos, Constants.positionError)
+		local catchPos = self:_catchBall(targetPos, Constants.positionError)
+		self._ballInDribblerPos = catchPos + (targetPos - catchPos):
+				setLength(self._robot.shootRadius + World.Ball.radius)
 	end
 	if (not self._catchTime) or self._catchTime < 0.5 then
 		self._send("all").shootDestination(targetPos)
 	end
-	return isShooting
+	return self._ballInDribblerPos
 end
 
 return Shoot

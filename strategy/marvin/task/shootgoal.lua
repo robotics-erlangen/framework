@@ -215,9 +215,7 @@ function ShootGoal:run()
 	end
 
 	-- TODO discuss if the layer above (a/a/shoot) should choose between volley and shoot instead
-	
-	self:_shoot(self.targetPoint, math.huge, true)
-	
+	self._viewPos = self:_shoot(self.targetPoint, math.huge, true)
 end
 
 return ShootGoal
