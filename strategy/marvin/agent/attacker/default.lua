@@ -1,7 +1,6 @@
 local Base = require "agent/base/behavior"
 local Default = (require "../base/class").new("Agent.Attacker.Default", Base)
 
-local Assistant = require "task/assistant"
 local Striker = require "task/striker"
 
 function Default:check()
