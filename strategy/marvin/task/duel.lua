@@ -5,15 +5,20 @@ local geom = require "../base/geom"
 local debug = require "../base/debug"
 local Direct = require "trajectory/direct"
 local Shoot = require "observer/shoot"
+local Ball = require "observer/ball"
 local ClearBall = require "task/clearball"
 
 Duel.priority = 4
 
 
 function Duel:_init()
+	self._opposer = nil
 end
 
 function Duel:run()
+	self._opposer = assert(Ball.opponentBallOwner(),
+		"Duel task shall only be active when an opponent has the ball")
+	self._send("all").defendedOpponent(self._opposer)
 	if self._robot:hasBall(World.Ball) then
 		self:_contest()
 		debug.set("duel-state", "contest")
@@ -26,7 +31,7 @@ end
 
 function Duel:_contest()
 	--decide if we should rotate cw or ccw
-	local toOpponentDir = (self.opposer and self.opposer.pos or World.Ball.pos) - self._robot.pos
+	local toOpponentDir = (self._opposer and self._opposer.pos or World.Ball.pos) - self._robot.pos
 	local intersection = geom.intersectLineLine(
 			self._robot.pos, toOpponentDir, World.Geometry.OpponentGoal, Vector.create(1, 0))
 	local ccw = intersection and math.sign(intersection.x) or 1 --positive = ccw, negative = cw

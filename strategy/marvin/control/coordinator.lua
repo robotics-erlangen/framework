@@ -74,16 +74,16 @@ end
 
 function Coordinator:_updatePoolRobots()
 	local attackers, defenders = self:_calculateAttackRatio()
-	
+
 	-- limit robot counts on attack/defense pool, causes automatic robot balancing
 	self._pools.attack:setRobotLimit(attackers)
 	self._pools.defense:setRobotLimit(defenders)
-	
+
 	-- remove no longer needed / surplus robots from pools
 	for _, pool in pairs(self._pools) do
 		pool:cleanupRobots()
 	end
-	
+
 	-- find unassigned robots
 	local occupiedRobots = {}
 	for _, pool in pairs(self._pools) do
@@ -97,7 +97,7 @@ function Coordinator:_updatePoolRobots()
 			table.insert(unassignedRobots, robot)
 		end
 	end
-	
+
 	-- assign robots to pools by pool groups
 	-- assign to first group until these pools don't want any further robots
 	-- the continue with the second group and so on
@@ -195,14 +195,17 @@ function Coordinator:_organizeDefense()
 
 	-- look for opponents to mark
 	self._oppsToMark = table.filter(self._oppsToMark, isVisible)
-	local defendedByDuel = Messaging.trainerGet("defendedOpponent")
+	local defendedByDuel = {}
+	for _, opp in pairs(Messaging.trainerGet("defendedOpponent")) do
+		defendedByDuel[opp] = true
+	end
 	for _, robot in ipairs(World.OpponentRobots) do
 		local alreadyTargeted = table.contains(self._oppsToMark, robot)
 		local maxYPos = alreadyTargeted
 			and World.Geometry.FieldHeight / 4 or World.Geometry.FieldHeight / 6
 		local minBallDist = alreadyTargeted	and 0.6 or 0.75
 		local shouldMark = not defendedByDuel[robot] and robot.pos.y < maxYPos and
-			(not Referee.isStopState() or robot.pos:distanceTo(World.Ball.pos) > minBallDist)	
+			(not Referee.isStopState() or robot.pos:distanceTo(World.Ball.pos) > minBallDist)
 		if alreadyTargeted and not shouldMark then
 			table.removeValue(self._oppsToMark, robot)
 		elseif not alreadyTargeted and shouldMark then
@@ -219,7 +222,7 @@ function Coordinator:_organizeDefense()
 			manMarkers[centerBack] = opp
 			table.removeValue(unassigned, centerBack)
 			marked[opp] = true
-		end	
+		end
 	end
 	for _, robot in ipairs(self._oppsToMark) do
 		if #unassigned == 0 then
@@ -251,7 +254,7 @@ function Coordinator:_calculateAttackRatio()
 	end
 	local friendlyCorner = Field.isInOwnCorner(World.Ball.pos, false)
 	local opponentCorner = Field.isInOwnCorner(World.Ball.pos, true)
-	
+
 	-- === Attacker/Defender Distrubuten ===
 	-- when there are 6 robots on the field, attackRatio is the number of attackers
 	-- for the general formula, see below
@@ -283,7 +286,7 @@ function Coordinator:_calculateAttackRatio()
 	elseif World.RefereeState ==  "Stop" then
 		attackRatio = 1
 	end
-	
+
 	if World.GameStage == "PenaltyShootout" then
 		attackRatio = 6
 	end
@@ -293,7 +296,7 @@ function Coordinator:_calculateAttackRatio()
 	if self._mainAttackerIsDefender then
 		attackers = attackers - 1
 	end
-	
+
 	if table.count(Messaging.trainerGet("attackerRequest")) > 0 then
 		attackers = attackers + 1
 	end
