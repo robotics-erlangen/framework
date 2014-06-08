@@ -30,14 +30,16 @@ function Shoot:_updateTask()
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 		local canShootGoal = sg_mae and sg_mae > Settings.minAnglePrecision
 
-		-- pass in the run
-		local bestPassInTheRun -- TODO select via rating
+		-- pass
+		local pass
+		local bestPassRating = 0
 		for robot, sugg in pairs(self._inbox.passSuggestion()) do
-			bestPassInTheRun = { robot = robot, pos = sugg.pos }
+			if sugg.rating > bestPassRating then
+				pass = sugg
+				pass.target = robot
+				bestPassRating = sugg.rating
+			end
 		end
-
-		-- directpass
-		local bestFreeAssistant = ObserverShoot.bestFreeAssistant(self._robot)
 
 		local taskParams
 		if ballFarAway then
@@ -46,14 +48,11 @@ function Shoot:_updateTask()
 		elseif canShootGoal then
 			self._minTaskTime = 1.5
 			self._taskClass = ShootGoal
-		elseif bestPassInTheRun then
+		elseif pass then
 			self._minTaskTime = 2
+			-- TODO pass kind as parameter to a unified pass task
 			self._taskClass = PassInTheRun
-			taskParams = { bestPassInTheRun.robot, bestPassInTheRun.pos, Settings.shootDriveSpeed }
-		elseif bestFreeAssistant then
-			self._minTaskTime = 1
-			self._taskClass = DirectPass
-			taskParams = { bestFreeAssistant, true }
+			taskParams = { pass.target, pass.pos, Settings.shootDriveSpeed }
 		else
 			-- TODO desperateShoot Task
 			-- Torwart anchippen oder In freien Bereich dribblen

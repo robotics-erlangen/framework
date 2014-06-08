@@ -15,7 +15,7 @@ local msgDefs = {
 	distractedIndex = "number",
 	exclusiveRole = "table", -- value test is in getExclusiveRoleApplications
 	kickoffMirrorSide = "boolean",
-	passSuggestion = "table", -- { pos: Vector, rating: number}
+	passSuggestion = "table", -- { kind: string, rating: number [, pos: Vector] }
 
 	-- single sender
 	aggressiveKeeperPos = "userdata",
@@ -96,7 +96,7 @@ function Messaging.getInbox(agent, priority)
 			end
 			return inboxMessages
 		end
-	end	
+	end
 	return inbox
 end
 
@@ -110,7 +110,7 @@ function Messaging.getSender(agent, priority)
 	if not priority then
 		priority = 0
 	end
-	-- although a sender is adressing a robot, a message is delivered 
+	-- although a sender is adressing a robot, a message is delivered
 	-- to the corresponding agent. This ensures that a robot only receives
 	-- messages sent in frames where he has had the current agent
 	local sender = function(receiver)

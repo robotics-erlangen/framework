@@ -7,6 +7,7 @@ local ToTarget = require "trajectory/totarget"
 local ObserverGame = require "observer/game"
 local Robot = require "observer/robot"
 local Ball = require "observer/ball"
+local Goal = require "observer/goal"
 local geom = require "../base/geom"
 local Interval = require "util/interval"
 
@@ -206,55 +207,69 @@ function Striker:_calcMoveDest()
 	end
 end
 
-function Striker:_passProposal()
+local function minDistToAllRobots(pos)
+	local minDist = math.huge
+	for _, robot in ipairs(World.Robots) do
+		local dist = robot.pos:distanceTo(pos)
+		if dist < minDist then
+			minDist = dist
+		end
+	end
+	return minDist
+end
+
+function Striker:_passSuggestion()
 	local mainAttacker = self._inbox.mainAttacker().trainer
 	if not mainAttacker then
-		return nil
+		return
 	end
+
+	local passPos, passKind
+	local bestRating = 0
+	-- TODO check for directpass
+
 	local searchWidth = 0.5
 	local searchHeight = 0.8
-	local minDist = 0.5
 	local stepSize = 0.05
 	local timeTolerance = 0.5
 	local startX = math.max(self._robot.pos.x - searchWidth, -World.Geometry.FieldWidthHalf + 2*self._robot.radius)
 	local endX = math.min(self._robot.pos.x + searchWidth, World.Geometry.FieldWidthHalf - 2*self._robot.radius)
-	local startY = self._robot.pos.y + minDist + searchHeight
+	local startY = self._robot.pos.y + searchHeight
 	local endY = math.min(startY + searchHeight, World.Geometry.FieldHeightHalf - 2*self._robot.radius)
-	local passPos = nil
-	local rating = 0
+
 	for x=startX, endX, stepSize do
 		for y=startY, endY, stepSize do
 			local p = Vector.create(x, y)
-
-			-- p zu anderem eigenen Robot > 6*radius
-
-			-- p zu Passgeber > 1.5m
-
-			-- weg von p zu Tor frei, sektorgröße speichern
-
-			-- weg von p zu Ball frei
-			-- freeCorridor
-
-			-- kein Gegner ist schneller bei p als R
-			local firstAtBall, timeAdvance = Robot.firstAtPos(p)
-			if true then -- firstAtBall == self._robot then
-
-				local timeBallToP = Robot.minTimeToBall(mainAttacker, World.Ball)
-					+ Ball.rollTimeEndspeed(Settings.shootDriveSpeed, World.Ball.pos:distanceTo(p))
-				local timeSelfToP = Robot.timeToPos(self._robot, p)
-				-- log(timeSelfToP)
-
-				if math.abs(timeBallToP - timeSelfToP) < timeTolerance then
-					-- TODO calc and compare rating
-					-- rating: zeitvorsprung zu erstem gegner + freier Torwinkel
-					rating = 1
-					passPos = p
-				-- for more criteria, have a look at CMDragon 2014 TDP
+			if Robot.wayToPosFree(p, mainAttacker) then
+				-- TODO
+				-- accurate estimation if we can reach the ball before an opponent
+				-- and if no friendly robot is around
+				if minDistToAllRobots(p) > 0.7 then
+					local timeBallToP = Robot.minTimeToBall(mainAttacker, World.Ball)
+						+ Ball.rollTimeEndspeed(Settings.shootDriveSpeed, World.Ball.pos:distanceTo(p))
+					local timeSelfToP = Robot.timeToPos(self._robot, p)
+					local timeAdvance = timeBallToP - timeSelfToP
+					if timeAdvance < timeTolerance then
+						local biggestInterval = Goal.largestFreeSector(p, World.OpponentRobots, true)
+						local rating = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0.001
+						if rating > bestRating then
+							bestRating = rating + timeAdvance -- TODO a little more reasoning about rating
+							passPos = p
+							passKind = "in the run"
+						end
+						-- for more criteria, have a look at CMDragon 2014 TDP
+					end
 				end
 			end
 		end
 	end
-	return passPos, rating
+
+	-- TODO check for chip passes
+
+	if passPos then
+		vis.addCircle("passSuggestion", passPos, 0.1, vis.colors.red, true)
+		self._send(mainAttacker).passSuggestion({ kind = passKind, rating = bestRating, pos = passPos })
+	end
 end
 
 function Striker:run()
@@ -262,14 +277,9 @@ function Striker:run()
 		return -- we're not considered at position choice
 	end
 	local startTime = amun.getCurrentTime()
-	local pos, rating = self:_passProposal()
+	self:_passSuggestion()
 	local runTime = math.round((amun.getCurrentTime() - startTime)*1000000)/1000
 	--log("pass-pos computation took " .. runTime .. "ms")
-	local mainAttacker = self._inbox.mainAttacker().trainer
-	if pos and mainAttacker then
-		vis.addCircle("passSuggestion", pos, 0.1, vis.colors.red, true)
-		self._send(mainAttacker).passSuggestion({ pos = pos, rating = rating })
-	end
 
 	self:_calcMoveDest()
 
