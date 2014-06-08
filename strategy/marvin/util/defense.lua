@@ -2,16 +2,12 @@ local World = require "../base/world"
 local Constants = require "../base/constants"
 local Field = require "util/field"
 local Referee = require "../base/referee"
+local Cache = require "../base/cache"
 
 local Defense = {}
 
-local markingOrientations = {}
-local markingTargets = {}
-function Defense.manMarkPos(opponent)
-	if markingTargets[opponent] and markingTargets[opponent].time == World.Time then
-		return markingTargets[opponent].pos -- already computed
-	end
-
+local markingOrientations = {} -- for hysteresis
+local function manMarkPos(opponent)
 	local orientation = markingOrientations[opponent] or World.Ball
 	if World.Ball.pos.y < -World.Geometry.FieldHeight / 6 then
 		orientation = World.Geometry.FriendlyGoal
@@ -24,7 +20,7 @@ function Defense.manMarkPos(opponent)
 
 	local dist = opponent.radius + Constants.maxRobotRadius + Settings.markingDistance
 	local targetPos = opponent.pos + (orientationPos - opponent.pos):setLength(dist)
-	
+
 	-- extend position with speed of opponent, parameters can be improved
 	local maxPosExtension = Constants.maxRobotRadius
 	local extensionTime = 0.1
@@ -41,8 +37,9 @@ function Defense.manMarkPos(opponent)
 	if World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive" then
 		targetPos.y = math.min(targetPos.y, World.Geometry.PenaltyLine - Settings.penaltyLineDistance)
 	end
-	markingTargets[opponent] = { time = World.Time, pos = targetPos }
 	return targetPos
 end
+Defense.manMarkPos = Cache.forFrame(manMarkPos)
+
 
 return Defense
