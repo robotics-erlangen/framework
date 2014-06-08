@@ -10,18 +10,22 @@ local alpha = 0.1
 
 --- checks if the ball can be shot directly to another robot
 -- @param target, robot - robot to which the ball corridor is being tested
--- @param ignoreRobot, robot - the robot to shoot the ball is not considered to be an obstacle
+-- @param shooter, robot
 -- @param chipkick, bool - do not consider robots as obstacle which can be chipped over
 -- @return bool - true if way is free, false otherwise
-function Robot.wayToRobotFree(target, ignoreRobot, chipkick)
+function Robot.wayToRobotFree(target, shooter, chipkick)
+	return Robot.wayToPosFree(target.pos, shooter, target, chipkick)
+end
+
+function Robot.wayToPosFree(pos, ignoreRobot1, ignoreRobot2, chipkick)
 	-- TODO consider speed of robots to look a little into the future
 	for _, robot in pairs(World.Robots) do
-		if robot ~= ignoreRobot and robot ~= target then
-			local _, distToBallCorridor = robot.pos:orthogonalProjection(World.Ball.pos, target.pos)
-			local targetDist = World.Ball.pos:distanceTo(target.pos)
-			local isInTheWay = math.abs(distToBallCorridor) < (robot.radius + World.Ball.radius) 
+		if robot ~= ignoreRobot1 and robot ~= ignoreRobot2 then
+			local _, distToBallCorridor = robot.pos:orthogonalProjection(World.Ball.pos, pos)
+			local targetDist = World.Ball.pos:distanceTo(pos)
+			local isInTheWay = math.abs(distToBallCorridor) < (robot.radius + World.Ball.radius)
 				and robot.pos:distanceTo(World.Ball.pos) < targetDist
-				and robot.pos:distanceTo(target.pos) < targetDist
+				and robot.pos:distanceTo(pos) < targetDist
 			if chipkick then
 				isInTheWay = isInTheWay and robot.pos:distanceTo(World.Ball.pos) > Settings.chipDistance
 			end
@@ -53,7 +57,7 @@ function Robot.estimateOpponentDynamics()
 		end
 		speedSmoothed[robot] = alpha * robot.speed:length() + (1 - alpha) * (speedSmoothed[robot] or 0)
 		lastSpeed[robot] = robot.speed
-		
+
 		if accelerationSmoothed[robot] and robot.maxAcceleration < accelerationSmoothed[robot] then
 			robot.maxAcceleration = accelerationSmoothed[robot]
 		end
@@ -86,19 +90,19 @@ local function distToTime(robotSpeed, robotMaxSpeed, robotAccel, ballSpeed, ball
 	--          0              otherwise
 	-- a_r is robot acceleration
 	-- a_b is ball deceleration along direction towards the robot
-	
+
 	-- times until full acceleration / stop and distances traveled until then
 	local timeRobot = math.max(0, (robotMaxSpeed - robotSpeed) / robotAccel)
 	local distRobot = robotSpeed * timeRobot + robotAccel * timeRobot^2 * 0.5
 	local timeBall = math.max(0, -ballSpeed / ballAccel)
 	local distBall = ballSpeed * timeBall + ballAccel * timeBall^2 * 0.5
-	
+
 	-- Solve equations for each interval and check that the result is in it
 	local t = math.solveSq((robotAccel+ballAccel)*0.5, robotSpeed+ballSpeed, -dist)
 	if t and t <= math.min(timeRobot, timeBall) then
 		return t < 0 and 0 or t
 	end
-	
+
 	if timeRobot < timeBall then
 		local distLeft = dist - distRobot + timeRobot * robotMaxSpeed
 		t = math.solveSq(ballAccel * 0.5, robotMaxSpeed + ballSpeed, -distLeft)
@@ -109,7 +113,7 @@ local function distToTime(robotSpeed, robotMaxSpeed, robotAccel, ballSpeed, ball
 	if t and t >= math.min(timeRobot, timeBall) and t <= math.max(timeRobot, timeBall) then
 		return t
 	end
-	
+
 	local distLeft = dist - distRobot - distBall + timeRobot * robotMaxSpeed
 	return distLeft / robotMaxSpeed
 end
@@ -120,7 +124,7 @@ local function straightTime(robot, ball)
 	-- speed of ball and robot towards each other
 	local robotSpeed = posDiff:dot(robot.speed)
 	local robotAccel = robot.maxAcceleration
-	
+
 	local ballSpeed = -posDiff:dot(ball.speed)
 	local ballAccel
 	if ballSpeed == 0 then -- prevent division by zero for timeBall
@@ -169,7 +173,7 @@ function Robot.timeToPos(robot, pos)
 	end
 	-- v(t) = a_max * t -- movement speed of robot towards it's target. Not fully exact as
 	-- the robot may be moving sidewards, but should be good enough for an estimation
-	
+
 	-- move to target, but not faster then the robot is capable to drive
 	-- v_max = (p_dest - p_cur):setLength(min(robot.v_max, distToGo)) -- robot won't move with full speed, if near target
 	-- delta_v = v_max - v_cur -- required direction change
@@ -179,13 +183,13 @@ function Robot.timeToPos(robot, pos)
 	-- Accounts for robot movment into the wrong direction intially
 	-- solve integrate v_max dt from (0) to (t_min) = d_travel -- time needed for distance if moving with full speed
 	-- t_extra = t_accel - t_min = |delta_v|^2/(2*a_max*v_max) -- extra time needed for accelerating
-	
+
 	-- if there's no obstacle and were driving towards the target
 	-- then accelTime is nearly zero
 	-- if we have to avoid an obstacle our direction doesn't match what
 	-- is expected thus some time penalty is applied
 	local accelTime = moveDir:distanceTo(robot.speed)^2 / (2 * robot.maxAcceleration * robot.maxSpeed)
-	
+
 	return moveTime + accelTime
 end
 
@@ -208,7 +212,7 @@ function Robot.firstAtPos(pos)
 			minTime = time
 			fastestRobot = robot
 		end
-	end	
+	end
 	return fastestRobot, opponentTime - minTime
 end
 
