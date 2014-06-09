@@ -10,6 +10,7 @@ local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local geom = require "../base/geom"
 local Interval = require "util/interval"
+local debug = require "../base/debug"
 
 Striker.priority = 1
 
@@ -232,12 +233,20 @@ function Striker:_passSuggestion()
 
 	local passPos, passKind
 	local bestRating = 0
-	-- TODO check for directpass
+
+	-- check for directpass
+	if Robot.wayToRobotFree(self._robot, mainAttacker) then
+		local biggestInterval = Goal.largestFreeSector(self._robot.pos, World.OpponentRobots, true)
+		bestRating = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0.001
+		passKind = "direct"
+	end
 
 	local searchWidth = 0.5
 	local searchHeight = 0.8
 	local stepSize = 0.05
 	local timeTolerance = 0.5
+	local minDistToAll = 0.7
+
 	local startX = math.max(self._robot.pos.x - searchWidth, -World.Geometry.FieldWidthHalf + 2*self._robot.radius)
 	local endX = math.min(self._robot.pos.x + searchWidth, World.Geometry.FieldWidthHalf - 2*self._robot.radius)
 	local startY = self._robot.pos.y + searchHeight
@@ -250,7 +259,7 @@ function Striker:_passSuggestion()
 				-- TODO
 				-- accurate estimation if we can reach the ball before an opponent
 				-- and if no friendly robot is around
-				if minDistToAllRobots(p) > 0.7 then
+				if minDistToAllRobots(p) > minDistToAll then
 					local timeBallToP = Robot.minTimeToBall(mainAttacker, World.Ball)
 						+ Ball.rollTimeEndspeed(Settings.shootDriveSpeed, World.Ball.pos:distanceTo(p))
 					local timeSelfToP = Robot.timeToPos(self._robot, p)
@@ -272,8 +281,11 @@ function Striker:_passSuggestion()
 
 	-- TODO check for chip passes
 
-	if passPos then
-		vis.addCircle("passSuggestion", passPos, 0.1, vis.colors.red, true)
+	if passKind then
+		if passPos then
+			vis.addCircle("passSuggestion", passPos, 0.1, vis.colors.red, true)
+		end
+		debug.set("pass kind", passKind)
 		self._send(mainAttacker).passSuggestion({ kind = passKind, rating = bestRating, pos = passPos })
 	end
 end

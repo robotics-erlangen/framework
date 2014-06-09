@@ -48,11 +48,14 @@ function Shoot:_updateTask()
 		elseif canShootGoal then
 			self._minTaskTime = 1.5
 			self._taskClass = ShootGoal
-		elseif pass then
+		elseif pass and pass.kind == "in the run" then
 			self._minTaskTime = 2
-			-- TODO pass kind as parameter to a unified pass task
 			self._taskClass = PassInTheRun
 			taskParams = { pass.target, pass.pos, Settings.shootDriveSpeed }
+		elseif pass and pass.kind == "direct" then
+			self._minTaskTime = 1
+			self._taskClass = DirectPass
+			taskParams = { pass.target, true }
 		else
 			-- TODO desperateShoot Task
 			-- Torwart anchippen oder In freien Bereich dribblen
