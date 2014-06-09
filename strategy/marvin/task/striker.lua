@@ -16,6 +16,7 @@ Striker.priority = 1
 function Striker:_init()
 	self._moveDest = nil
 	self._noTargetFound = nil
+	self._lastDirChange = 0
 end
 
 local function cmpByX(r1, r2)
@@ -194,7 +195,12 @@ function Striker:_calcMoveDest()
 	end
 	local target = Interval.getFurthestPoint(possibleIntervals, closestOpp.pos.y, self._robot.radius)
 	if target then
-		self._moveDest = Vector.create(xPos, target)
+		if self._moveDest and (target - self._robot.pos.y) * (self._moveDest.y - self._robot.pos.y) < 0 then
+			self._lastDirChange = World.Time
+		end
+		if World.Time - self._lastDirChange > 0.5 then -- against flickering
+			self._moveDest = Vector.create(xPos, target)
+		end
 		self._noTargetFound = false
 	else
 		self._moveDest = self._robot.pos
