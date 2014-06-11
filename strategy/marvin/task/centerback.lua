@@ -1,4 +1,4 @@
-local CenterBack = (require "../base/class").new("Task.CenterBack", require "task/base")
+local CenterBack = (require "../base/class").newTask("Task.CenterBack", require "task/base")
 
 local World = require "../base/world"
 local Messaging = require "control/messaging"
@@ -15,7 +15,7 @@ local G = World.Geometry
 CenterBack.priority = 5
 
 
-local lt = function(i1, i2) 
+local lt = function(i1, i2)
 	return i1.waypos < i2.waypos
 end
 local lt3 = function(t1, t2)
@@ -89,12 +89,12 @@ local function calculateCenterBackPositions()
 		local pcbPos = privateCenterBackPositions[robot] and privateCenterBackPositions[robot].pos
 				or Field.intersectLineDefenseArea(target.pos, World.Geometry.FriendlyGoal - target.pos,
 				distanceToDefenseArea + robot_radius, false)
-		
+
 		-- if the robot is close to its cbPos or pcbPos then mark it as important
 		local distToCBPos = cbPos and robot.pos:distanceTo(cbPos.pos) or math.huge
 		local distToPCBPos = robot.pos:distanceTo(pcbPos)
 		local distToAnything = math.min(distToCBPos, distToPCBPos)
-		local important = distToAnything < getImportant 
+		local important = distToAnything < getImportant
 				or cbPos and distToAnything < getUnimportant
 
 		--USELESS CODE?
@@ -151,7 +151,7 @@ local function calculateCenterBackPositions()
 		for ix,i in pairs(intersections) do
 			local imin = i.waypos - i.wayrange/2
 			local imax = i.waypos + i.wayrange/2
-			for jx,j in pairs(intersections) do			
+			for jx,j in pairs(intersections) do
 				local jmin = j.waypos - j.wayrange/2
 				local jmax = j.waypos + j.wayrange/2
 				if ix ~= jx then
@@ -169,10 +169,10 @@ local function calculateCenterBackPositions()
 						table.remove(intersections, ix)
 						break
 					end
-				end 
+				end
 			end
 			if merged then
-				break 
+				break
 			end
 		end
 	end
@@ -200,7 +200,7 @@ local function calculateCenterBackPositions()
 
 				way = way + delta
 			end
-		end 
+		end
 	end
 
 	-- sort robots
@@ -229,7 +229,7 @@ local function calculateCenterBackPositions()
 		for _,i in ipairs(intersections) do
 			if target_way - robot_radius < i.waypos + i.wayrange/2
 					and target_way + robot_radius > i.waypos - i.wayrange/2 then
-				target_way = math.bound(i.waypos - i.wayrange/2 - robot_radius, 
+				target_way = math.bound(i.waypos - i.wayrange/2 - robot_radius,
 						robot_way, i.waypos + i.wayrange/2 + robot_radius)
 			end
 		end
@@ -258,12 +258,12 @@ function CenterBack:run()
 	local destinationTarget = pos_target and pos_target.target or
 			self._preliminaryCenterbackTarget
 	local dir = (World.Ball.pos - self._robot.pos):angle()
-	
+
 	debug.set("target", destinationTarget)
 
 	local ignoreOpponents
 		= Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) < 2*self._robot.radius
-	
+
 	local ignoreFriends
 		= Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) < 2*self._robot.radius
 

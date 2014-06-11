@@ -1,4 +1,4 @@
-local MoveToStaticBall = (require "../base/class").new("Task.MoveToStaticBall", require "task/catchball")
+local MoveToStaticBall = (require "../base/class").newTask("Task.MoveToStaticBall", require "task/catchball")
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
@@ -17,7 +17,7 @@ function MoveToStaticBall:run()
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
 	self._robot.path:addCircle(World.Ball.pos.x, World.Ball.pos.y, self._distanceToBall, "StaticBall")
-	
+
 	self._robot.trajectory:update(ToTarget, pos, self._rotation)
 end
 

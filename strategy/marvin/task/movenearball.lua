@@ -1,4 +1,4 @@
-local MoveNearBall = (require "../base/class").new("Task.MoveNearBall", require "task/catchball")
+local MoveNearBall = (require "../base/class").newTask("Task.MoveNearBall", require "task/catchball")
 local World = require "../base/world"
 
 MoveNearBall.priority = 1 -- no meaning

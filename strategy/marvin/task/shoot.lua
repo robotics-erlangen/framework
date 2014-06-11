@@ -1,4 +1,4 @@
-local Shoot = (require "../base/class").new("Task.Shoot", require "task/catchball")
+local Shoot = (require "../base/class").newTask("Task.Shoot", require "task/catchball")
 
 local Constants = require "../base/constants"
 local World = require "../base/world"
@@ -7,6 +7,14 @@ local debug = require "../base/debug"
 local geom = require "../base/geom"
 local Observer = {}
 Observer.Shoot = require "observer/shoot"
+
+function Shoot:init(...)
+	Shoot.parent.init(self, ...)
+	self._shootHysteresis = false
+	self._travelStart = nil
+	self._travelLimit = false
+	self._ballInDribblerPos = nil
+end
 
 function Shoot:_canShoot()
 	error("stub")
@@ -19,14 +27,14 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 			and Settings.penaltyShootDriveSpeed or Settings.shootDriveSpeed
 	local sidewardsK = (World.RefereeState == "PenaltyOffensive")
 			and 15 or 13
-	
+
 	if self._robot:hasBall(World.Ball, Settings.shootSideOffset) then -- if we got the ball
 		self._ballInDribblerPos = World.Ball.pos
 
 		if not linearShoot then
 			self._robot:setDribblerSpeed(1)
 		end
-		
+
 		if not self._lastBallSpeed then
 			self._lastBallSpeed = World.Ball.speed
 		end
@@ -34,7 +42,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 			self._travelStart = self._robot.pos
 			self._travelLimit = false
 		end
-		
+
 		-- compensate ball movement
 		local speed = World.Ball.speed:copy()
 		local speedLimit = self._lastBallSpeed:length()

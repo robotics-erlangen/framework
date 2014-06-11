@@ -1,4 +1,4 @@
-local RescueRobot = (require "../base/class").new("Task.RescueRobot", require "task/base")
+local RescueRobot = (require "../base/class").newTask("Task.RescueRobot", require "task/base")
 
 local geom = require "../base/geom"
 local World = require "../base/world"
@@ -6,7 +6,7 @@ local TrajectoryHidden = require "trajectory/hidden"
 
 RescueRobot.priority = 1
 
--- list of local speeds: (speedForward, speedSide) 
+-- list of local speeds: (speedForward, speedSide)
 RescueRobot._speeds = {}
 
 function RescueRobot:_init()
@@ -23,7 +23,7 @@ function RescueRobot:run()
 		local backwardsDir = self._robot.speed:copy():scaleLength(-1):angle()
 		local frontDir = self._robot.dir
 		self._rotation = geom.getAngleDiff(frontDir, backwardsDir)
-		
+
 		-- if field center is on the left while moving forward
 		if geom.checkTriangleOrientation(self._robot.pos, self._robot.pos + Vector.fromAngle(backwardsDir), Vector.create(0,0)) >= 0 then
 			self._speeds = {
@@ -49,7 +49,7 @@ function RescueRobot:run()
 
 	if speed then
 		speed = speed:copy():rotate(self._rotation)
-		self._robot.trajectory:update(TrajectoryHidden, speed.x, speed.y) 
+		self._robot.trajectory:update(TrajectoryHidden, speed.x, speed.y)
 	end
 end
 

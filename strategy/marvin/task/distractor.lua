@@ -1,4 +1,4 @@
-local Distractor = (require "../base/class").new("Task.Distractor", require "task/base")
+local Distractor = (require "../base/class").newTask("Task.Distractor", require "task/base")
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
@@ -24,7 +24,7 @@ function Distractor:run()
 	if targetIndex > #distractionX then
 		error("too many distractors / too few distraction positions")
 	end
-	
+
 	self._index = targetIndex
 	self._targetPos = Vector.create((World.Ball.pos.x > 0 and -1 or 1) * distractionX[self._index], distractionY[self._index])
 
@@ -33,7 +33,7 @@ function Distractor:run()
 
 	self._preferredDir = (World.Geometry.OpponentGoal - self._targetPos):angle()
 	self._robot.trajectory:update(ToTarget, self._targetPos, self._preferredDir)
-	
+
 	self._send("all").distractedIndex(self._index)
 end
 

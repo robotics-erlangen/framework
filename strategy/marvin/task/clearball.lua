@@ -1,16 +1,10 @@
-local ClearBall = (require "../base/class").new("Task.ClearBall", require "task/base")
+local ClearBall = {}
 
 local World = require "../base/world"
 local Robot = require "observer/robot"
 local Ball = require "observer/ball"
 local ToTarget = require "trajectory/totarget"
 local vis = require "../base/vis"
-
-ClearBall.priority = 4
-
-function ClearBall:_init()
-end
-
 
 function ClearBall:_clearBall()
 	local moveDest = Ball.toBall(self._robot, World.Ball)

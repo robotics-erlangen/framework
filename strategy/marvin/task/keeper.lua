@@ -1,4 +1,4 @@
-local Keeper = (require "../base/class").new("Task.Keeper", require "task/base")
+local Keeper = (require "../base/class").newTask("Task.Keeper", require "task/base")
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
@@ -111,12 +111,12 @@ function Keeper:run()
 		-- ensure there's an intersect pos
 		intersectPos = fallbackPos
 	end
-	
+
 	-- visualizations
 	vis.addPath("KeeperShotPrediction",{atkPos,atkPos+atkDir}, vis.colors.blue)
 	vis.addCircle("KeeperDefenseLineIntersect", intersectPos, 0.03, vis.colors.blue)
 	vis.addPath("KeeperDefenseLine",{defenseLineStart, defenseLineEnd}, vis.colors.blue)
-	
+
 	local moveTo
 	-- ball is shot at the goal: take the shortest way to stop the ball
 	if isShot and atkDir.y < 0 and successfulIntersection then
@@ -132,7 +132,7 @@ function Keeper:run()
 	else -- don't know where to go, just center in the goal / corner
 		moveTo = fallbackPos
 	end
-	
+
 	-- add obstacles if outside keeper area
 	if not Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
 		self._robot.path:addRobotObstacles(self._robot, false, false)

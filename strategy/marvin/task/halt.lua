@@ -1,4 +1,4 @@
-local Halt = (require "../base/class").new("Task.Halt", require "task/base")
+local Halt = (require "../base/class").newTask("Task.Halt", require "task/base")
 
 Halt.priority = 10
 

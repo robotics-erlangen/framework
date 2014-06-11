@@ -1,4 +1,4 @@
-local MoveToPos = (require "../base/class").new("Task.MoveToPos", require "task/base")
+local MoveToPos = (require "../base/class").newTask("Task.MoveToPos", require "task/base")
 
 local ToTarget = require "trajectory/totarget"
 local Rating = require "util/rating"
@@ -13,7 +13,7 @@ end
 function MoveToPos:run()
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
-	
+
 	self._robot.trajectory:update(ToTarget, self._pos, self._dir)
 end
 

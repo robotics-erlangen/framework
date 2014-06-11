@@ -1,4 +1,4 @@
-local ReceivePass = (require "../base/class").new("Task.ReceivePass", require "task/catchball")
+local ReceivePass = (require "../base/class").newTask("Task.ReceivePass", require "task/catchball")
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"

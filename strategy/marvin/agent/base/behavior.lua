@@ -28,7 +28,7 @@ end
 
 function Base:run()
 	local bestTask, parameters = self:_updateTask()
-	if not self._task or not Class.instanceOf(self._task, bestTask) then
+	if not self._task or self._task.class ~= bestTask then
 		if parameters then
 			self._task = bestTask.create(self._agent, unpack(parameters))
 		else

@@ -1,4 +1,4 @@
-local DefendPenalty = (require "../base/class").new("Task.DefendPenalty", require "task/base")
+local DefendPenalty = (require "../base/class").newTask("Task.DefendPenalty", require "task/base")
 
 local ToTarget = require "trajectory/totarget"
 local World = require "../base/world"
@@ -111,11 +111,11 @@ function DefendPenalty:run()
 	else
 		self.targetPos = Vector.create(self.targetPos, penaltyLine)
 	end
-	
+
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
 	self._robot.trajectory:update(ToTarget, self.targetPos, (World.Ball.pos - self._robot.pos):angle())
-	
+
 	self._send("all").moveDest(self.targetPos)
 end
 

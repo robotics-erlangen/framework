@@ -80,7 +80,7 @@ function Class.new(name, parent)
 	registeredClassNames[name] = true
 
 	local class = {}
-	
+
 	-- setup class type metatable
 	local classMt = {
 		className = name,
@@ -91,14 +91,14 @@ function Class.new(name, parent)
 	if parent then
 		classMt.__index = Class.toClass(parent)
 	end
-	
+
 	-- setup instance metatable
 	local classInstMt = {
 		__index = class,
 		type = "instance"
 	}
 	classInstMt.__metatable = classInstMt
-	
+
 	function class.create(...)
 		local instance = {}
 		setmetatable(instance, classInstMt)
@@ -109,6 +109,90 @@ function Class.new(name, parent)
 	end
 	setmetatable(class, classMt)
 	return class, classInstMt
+end
+
+
+local function registerNils(table, key, value)
+	if value == nil then
+		getmetatable(table).__nilAttributes[key] = true
+		return
+	end
+	rawset(table, key, value)
+end
+
+local function forbidNewAttributes(table, key, value)
+	if getmetatable(table).__nilAttributes[key] then
+		rawset(table, key, value)
+	else
+		error(table.class.name .. ": attempt to set attribute " .. key)
+	end
+end
+
+local function forbidReassignments(proxy, key, value)
+	local orig = proxy[1]
+	if orig[key] ~= nil or getmetatable(orig).__nilAttributes[key] then
+		error("attribute " .. key .. " is alredy defined")
+	end
+	orig[key] = value
+end
+
+local proxyMt = { __newindex = forbidReassignments }
+local function mixin(self, mixin, ...)
+	local proxy = { self }
+	setmetatable(proxy, proxyMt)
+	for name, field in pairs(mixin) do
+        if name == "init" then
+            field(proxy, ...)
+        else
+            proxy[name] = field
+        end
+    end
+end
+
+--- Creates a new class.
+-- Supports single inheritance and mixins.
+-- @name newTask (for test phase)
+-- @see Class
+-- @param name string - name for new class, split at '.'
+-- @param parent Class - parent class object
+-- @return class object
+function Class.newTask(name, parent)
+	assert(not registeredClassNames[name], "class names must be unique")
+	registeredClassNames[name] = true
+	local class = {
+		fullName = name,
+		name = getShortname(name),
+		parent = parent
+	}
+	function class.create(...)
+		local instance = {
+			class = class,
+			mixin = mixin
+		}
+		local instMt = {
+			__nilAttributes = {}, -- remember nil-initialized attributes
+			__newindex = registerNils,
+			__index = class,
+			type = "instance"
+		}
+		instMt.__metatable = instMt
+		setmetatable(instance, instMt)
+		if instance.init then
+			instance:init(...)
+		end
+		instMt.__newindex = forbidNewAttributes
+		return instance
+	end
+	local classMt = {
+		__call = class.create,
+		__index = parent,
+		type = "class",
+		className = name,
+		classNameShort = getShortname(name)
+	}
+	classMt.__metatable = classMt
+	setmetatable(class, classMt)
+	return class
 end
 
 --- Values set on a class

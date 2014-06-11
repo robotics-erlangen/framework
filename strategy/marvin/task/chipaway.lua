@@ -1,4 +1,4 @@
-local ChipAway = (require "../base/class").new("Task.ChipAway", require "task/shoot")
+local ChipAway = (require "../base/class").newTask("Task.ChipAway", require "task/shoot")
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
@@ -26,7 +26,7 @@ function ChipAway:run()
 	if self._chipTarget and self._chipTarget.pos.y < self._robot.pos.y then
 		self._chipTarget = nil -- prevent back-passing
 	end
-	
+
 	local chipPos = self._chipTarget and self._chipTarget.pos or World.Geometry.OpponentGoal
 	self._robot:setDribblerSpeed(1)
 	self:_shoot(chipPos, math.huge, false)

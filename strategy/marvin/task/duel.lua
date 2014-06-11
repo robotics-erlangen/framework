@@ -1,4 +1,4 @@
-local Duel = (require "../base/class").new("Task.Duel", require "task/base")
+local Duel = (require "../base/class").newTask("Task.Duel", require "task/base")
 
 local World = require "../base/world"
 local geom = require "../base/geom"
@@ -10,9 +10,9 @@ local ClearBall = require "task/clearball"
 
 Duel.priority = 4
 
-
 function Duel:_init()
 	self._opposer = nil
+	self:mixin(ClearBall)
 end
 
 function Duel:run()
@@ -23,8 +23,7 @@ function Duel:run()
 		self:_contest()
 		debug.set("duel-state", "contest")
 	else
-		local cb = ClearBall.create(self._agent)
-		ClearBall._clearBall(cb)
+		self:_clearBall()
 		debug.set("duel-state", "clear ball")
 	end
 end

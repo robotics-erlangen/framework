@@ -1,4 +1,4 @@
-local KickoffMirror = (require "../base/class").new("Task.KickoffMirror", require "task/base")
+local KickoffMirror = (require "../base/class").newTask("Task.KickoffMirror", require "task/base")
 
 local World = require "../base/world"
 local Game = require "observer/game"
@@ -24,7 +24,7 @@ function KickoffMirror:run()
 		self._side = not msg -- just take the other side
 	end
 	self._send("all").kickoffMirrorSide(self._side)
-	
+
 	local sector1, _, sector3 = Game.divideOpponentsIntoSectors(false)
 	local sector = self._side and sector3 or sector1
 
@@ -49,14 +49,14 @@ function KickoffMirror:run()
 			self._lastTargetRobot = targetRobot
 		end
 		targetPosX = self._lastTargetRobot.pos.x
-	end	
+	end
 
 	local pos = Vector.create(targetPosX, -self._distance - self._robot.radius)
 	self._targetPos = Field.limitToField(pos, -self._robot.radius)
 
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
-	
+
 	self._robot.trajectory:update(ToTarget, self._targetPos, math.pi/2)
 end
 

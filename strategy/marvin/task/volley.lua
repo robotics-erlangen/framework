@@ -1,4 +1,4 @@
-local Volley = (require "../base/class").new("Task.Volley", require "task/shoot")
+local Volley = (require "../base/class").newTask("Task.Volley", require "task/shoot")
 
 local MovingAverage = require "learning/movingaverage"
 local World = require "../base/world"
@@ -10,8 +10,8 @@ local Processor = require "../base/processor"
 
 Volley.priority = 5
 
-function Volley:_init()
-	--log("start volley task on robot "..tostring(self._robot))
+function Volley:init(...)
+	Volley.parent.init(self, ...)
 	self._ballIncoming = true
 	self._ballInDribblerPos = self._robot.pos
 end
@@ -69,7 +69,7 @@ function Volley:_volley(targetPos, targetSpeed)
 	local v_s = abs_v_out
 	local gamma = dirToTarget:angle()
 	local phi = gamma
-	
+
 
 	for i = 1, 5 do
 		local j11, j12, j21, j22 = self:_Jf(v_s, phi)
@@ -87,7 +87,7 @@ function Volley:_volley(targetPos, targetSpeed)
 
 		v_s = v_s_new
 		phi = phi_new
-		
+
 		-- avoid negative shoot speed by inverting the angle
 		if v_s < 0 then
 			v_s = -v_s
@@ -131,7 +131,7 @@ function Volley:_volley(targetPos, targetSpeed)
 	vis.addPath("Volley", {self._ballInDribblerPos, viewPoint}, vis.colors.green)
 	vis.addPath("Volley", {self._ballInDribblerPos, targetPos}, vis.colors.red)
 
-	
+
 	if self._robot:hasBall(World.Ball) then
 		self._ballIncoming = false
 	elseif Ball.isShot() then

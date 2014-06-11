@@ -1,4 +1,4 @@
-local Striker = (require "../base/class").new("Task.Striker", require "task/base")
+local Striker = (require "../base/class").newTask("Task.Striker", require "task/base")
 
 local World = require "../base/world"
 local vis = require "../base/vis"

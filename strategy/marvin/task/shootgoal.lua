@@ -1,4 +1,4 @@
-local ShootGoal = (require "../base/class").new("Task.ShootGoal", require "task/volley")
+local ShootGoal = (require "../base/class").newTask("Task.ShootGoal", require "task/volley")
 
 local Goal = require "observer/goal"
 local Shoot = require "observer/shoot"
@@ -16,7 +16,7 @@ local debug = require "../base/debug"
 ShootGoal.priority = 5
 
 -- how much to move the shoot pos towards the corner
--- (0 = mid of sector, 1 = straight towards the corner) 
+-- (0 = mid of sector, 1 = straight towards the corner)
 local cornerWeight = 0
 
 -- how much a new best sector should be better than the old one
@@ -39,10 +39,10 @@ end
 -- self.bestMid number - the angle towards the best point in the goal (from ball pos)
 -- self.targetPoint - the best point in the goal
 function ShootGoal:updateDestination()
-	if self.timestamp == World.Time then
+	if self._timestamp == World.Time then
 		return
 	end
-	self.timestamp = World.Time
+	self._timestamp = World.Time
 
 	-- calculate free sectors considering the opponent goalie
 	self:_calculateDestination(false)
@@ -59,7 +59,7 @@ end
 
 function ShootGoal:_calculateDestination(ignoreGoalie)
 	local viewPos = self._viewPos or World.Ball.pos
-	
+
 	local goalStart = (World.Geometry.OpponentGoalRight - viewPos):angle() -- direction of the first goalpost
 	local goalEnd = (World.Geometry.OpponentGoalLeft - viewPos):angle() -- direction of the other goalpost
 
@@ -87,7 +87,7 @@ function ShootGoal:_calculateDestination(ignoreGoalie)
 	else
 		self._viscolor = vis.colors.black
 	end
-	
+
 	for _, sector in pairs(freeSectors) do
 		-- calculate shoot angle (mid of sector, near corner if possible)
 		local weight = 0.5
@@ -98,14 +98,14 @@ function ShootGoal:_calculateDestination(ignoreGoalie)
 			weight = weight - cornerWeight/2
 		end
 		local sectorMid = weight*sector[1] + (1 - weight)*sector[2]
-	
+
 		-- calculate rating
 		local rotateAngle = math.abs(geom.getAngleDiff(self._robot.dir, sectorMid))
 		local sectorWidth = math.abs(geom.getAngleDiff(sector[1], sector[2]))
 		local rating = (math.pi^2 - rotateAngle^2) * sectorWidth
 
 		-- reevaluate the old sector
-		-- (assuming the angles are between 0 and pi)		
+		-- (assuming the angles are between 0 and pi)
 		if self.bestMid and self.bestMid > sector[1] and self.bestMid < sector[2] then
 			rating = rating * (1 + sectorRatingHysteresis)
 		end
@@ -117,21 +117,21 @@ function ShootGoal:_calculateDestination(ignoreGoalie)
 			bestWidth = sectorWidth
 			bestAngleError = math.min(math.abs(geom.getAngleDiff(sector[1], sectorMid)),
 					math.abs(geom.getAngleDiff(sector[2], sectorMid))) * 0.8 -- MAGIC CONSTANT
-		end	
+		end
 	end
-	
+
 	self.bestMid = bestMid
 	self.targetPoint = bestMid and Vector.fromAngle(bestMid)*10 + viewPos or G.OpponentGoal
 	self.maxAngleError = bestAngleError
-	
+
 	if self.bestMid then
-		vis.addPath("ShootGoalTarget", {viewPos, Vector.fromAngle(bestMid + bestWidth/2) * 20 + viewPos}, 
+		vis.addPath("ShootGoalTarget", {viewPos, Vector.fromAngle(bestMid + bestWidth/2) * 20 + viewPos},
 			vis.colors.whiteHalf)
-		vis.addPath("ShootGoalTarget", {viewPos, Vector.fromAngle(bestMid - bestWidth/2) * 20 + viewPos}, 
+		vis.addPath("ShootGoalTarget", {viewPos, Vector.fromAngle(bestMid - bestWidth/2) * 20 + viewPos},
 			vis.colors.whiteHalf)
 		vis.addPath("ShootGoalTarget",{viewPos, self.targetPoint}, self._viscolor)
 	end
-		
+
 	return #freeSectors
 end
 
@@ -154,18 +154,18 @@ function ShootGoal:checkForRicochet(viewPos)
 	if anglediffleft < anglediffright then
 		local reflectionangle = toball:angle() - anglediffleft/2
 		local reflectionpoint = keeper.pos + Vector.fromAngle(reflectionangle) * keeper.radius
-		local goalpost = G.OpponentGoalLeft + 
+		local goalpost = G.OpponentGoalLeft +
 			Vector.fromAngle((G.OpponentGoalLeft-viewPos):angle() - math.pi/2):setLength(World.Ball.radius)
 		local toreflectionpoint = (reflectionpoint - viewPos):angle()
 		--log("kl = " .. tokeeper - keeperRadiusAngle .. "   kr = " .. tokeeper + keeperRadiusAngle)
 		--log("refl = " .. toreflectionpoint .. "   goal = " .. (goalpost - viewPos):angle())
-		return {tokeeper - keeperRadiusAngle, toreflectionpoint}, 
-			tokeeper - keeperRadiusAngle, 
+		return {tokeeper - keeperRadiusAngle, toreflectionpoint},
+			tokeeper - keeperRadiusAngle,
 			math.min(tokeeper + keeperRadiusAngle, (goalpost - viewPos):angle())
 	else
 		local reflectionangle = toball:angle() + anglediffright/2
 		local reflectionpoint = keeper.pos + Vector.fromAngle(reflectionangle) * keeper.radius
-		local goalpost = G.OpponentGoalRight + 
+		local goalpost = G.OpponentGoalRight +
 			Vector.fromAngle((G.OpponentGoalRight-viewPos):angle() + math.pi/2):setLength(World.Ball.radius)
 		local togoalpost = (goalpost - viewPos):angle()
 		local toreflectionpoint = (reflectionpoint - viewPos):angle()
@@ -179,9 +179,15 @@ function ShootGoal:checkForRicochet(viewPos)
 end
 
 function ShootGoal:_init(minPrecision)
+	self._viscolor = nil
+	self.bestMid = nil
+	self.targetPoint = nil
+	self.maxAngleError = nil
+	self.sectorClean = nil
+	self._viewPos = nil
 	self._bestMid = G.OpponentGoal
-	Volley._init(self)
 	self._minPrecision = minPrecision or 2.5 / 180 * math.pi
+	self._timestamp = 0
 end
 
 function ShootGoal:getDecisionMakingBasis()

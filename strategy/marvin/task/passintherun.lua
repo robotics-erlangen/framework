@@ -1,4 +1,4 @@
-local PassInTheRun = (require "../base/class").new("Task.PassInTheRun", require "task/shoot")
+local PassInTheRun = (require "../base/class").newTask("Task.PassInTheRun", require "task/shoot")
 
 local World = require "../base/world"
 local Settings = require "settings"

@@ -1,4 +1,4 @@
-local StopAttack = (require "../base/class").new("Task.StopAttack", require "task/base")
+local StopAttack = (require "../base/class").newTask("Task.StopAttack", require "task/base")
 
 local World = require "../base/world"
 local Constants = require "../base/constants"
@@ -16,12 +16,12 @@ function StopAttack:run()
 	local stopRadius = Constants.stopBallDistance + self._robot.radius + Settings.positionPadding
 	local pos = World.Ball.pos + (self._focusPoint - World.Ball.pos):setLength(stopRadius)
 
-	local intersections = Field.intersectCircleDefenseArea(World.Ball.pos, 
+	local intersections = Field.intersectCircleDefenseArea(World.Ball.pos,
 			stopRadius, 4 * self._robot.radius, false)
 	if #intersections > 0 then
 		pos = nil
 		for _,p in ipairs(intersections) do
-			if not pos or (self._side == "left" and p.x < pos.x) or 
+			if not pos or (self._side == "left" and p.x < pos.x) or
 					(self._side == "right" and p.x > pos.x) then
 				pos = p
 			end
@@ -35,7 +35,7 @@ function StopAttack:run()
 
 	self._robot.path:setDefaultObstacles(self._robot, false, false, false, nil, 0.1)
 	self._robot.path:addRobotObstacles(self._robot)
-	
+
 	self._robot.trajectory:update(ToTarget, pos, (World.Ball.pos - pos):angle())
 end
 

@@ -1,4 +1,4 @@
-local CatchBall = (require "../base/class").new("Task.CatchBall", require "task/base")
+local CatchBall = (require "../base/class").newTask("Task.CatchBall", require "task/base")
 
 local World = require "../base/world"
 local Constants = require "../base/constants"
@@ -13,6 +13,12 @@ local Referee = require "../base/referee"
 
 function CatchBall:_init()
 	error("Abstract base class!!!")
+end
+
+function CatchBall:init(...)
+	CatchBall.parent.init(self, ...)
+	self._lastBallSpeed = nil
+	self._catchTime = nil
 end
 
 --- Tries to catch the ball, is designed for catching a moving ball
@@ -42,7 +48,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 		-- as the direct catch is preferred we must ensure to start near that local minima
 		self._catchTime = Robot.minTimeToBall(self._robot, ball)
 	end
-	
+
 	-- check for fast ball and that it moves towards the robot
 	-- in principle this isn't neccessary but it stabilizes the catchtime
 	if ball.speed:length() > Settings.slowBall
@@ -92,7 +98,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 			end
 		end
 	end
-	
+
 	-- predict ball and catch it
 	local predictedBall = Ball.atTime(self._catchTime, ball)
 	-- catching the ball only makes sense if we really try to
@@ -117,7 +123,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	self._robot.path:addRobotObstacles(self._robot)
 	self:_createRollingBallObstacle(self._robot.path, minBall, predictedBall)
 	self:_createBallCorridor(self._robot.path, viewDir, minBall)
-	
+
 	-- only allow endSpeed moving towards the targetPos
 	local endSpeed = predictedBall.speed:copy():rotate(-viewDir)
 	if endSpeed.x < 0 then
@@ -172,7 +178,7 @@ function CatchBall:_createRollingBallObstacle(path, minBall, predictedBall)
   	end
 	vis.addCircle("CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.greenHalf)
 end
-  
+
 function CatchBall:_createBallCorridor(path, robotDir, predictedBall)
 	-- TODO ensure that the obstacles don't prevent the robot from reaching the ball sidewards
 	-- create obstacles that force the robot to approach the ball from behind
