@@ -1,4 +1,5 @@
-local Duel = (require "../base/class").newTask("Task.Duel", require "task/base")
+local ClearBall = require "task/clearball"
+local Duel = (require "../base/class").newTask("Task.Duel", require "task/base", ClearBall)
 
 local World = require "../base/world"
 local geom = require "../base/geom"
@@ -6,13 +7,11 @@ local debug = require "../base/debug"
 local Direct = require "trajectory/direct"
 local Shoot = require "observer/shoot"
 local Ball = require "observer/ball"
-local ClearBall = require "task/clearball"
 
 Duel.priority = 4
 
 function Duel:_init()
 	self._opposer = nil
-	self:mixin(ClearBall)
 end
 
 function Duel:run()

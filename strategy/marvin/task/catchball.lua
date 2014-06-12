@@ -1,3 +1,4 @@
+local Class = require "../base/class"
 local CatchBall = (require "../base/class").newTask("Task.CatchBall", require "task/base")
 
 local World = require "../base/world"
@@ -16,7 +17,7 @@ function CatchBall:_init()
 end
 
 function CatchBall:init(...)
-	CatchBall.parent.init(self, ...)
+	Class.parent(CatchBall).init(self, ...)
 	self._lastBallSpeed = nil
 	self._catchTime = nil
 end

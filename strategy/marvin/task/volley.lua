@@ -1,4 +1,5 @@
-local Volley = (require "../base/class").newTask("Task.Volley", require "task/shoot")
+local Class = require "../base/class"
+local Volley = Class.newTask("Task.Volley", require "task/shoot")
 
 local MovingAverage = require "learning/movingaverage"
 local World = require "../base/world"
@@ -11,7 +12,7 @@ local Processor = require "../base/processor"
 Volley.priority = 5
 
 function Volley:init(...)
-	Volley.parent.init(self, ...)
+	Class.parent(Volley).init(self, ...)
 	self._ballIncoming = true
 	self._ballInDribblerPos = self._robot.pos
 end

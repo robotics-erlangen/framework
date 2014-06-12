@@ -1,4 +1,5 @@
-local Shoot = (require "../base/class").newTask("Task.Shoot", require "task/catchball")
+local Class = require "../base/class"
+local Shoot = Class.newTask("Task.Shoot", require "task/catchball")
 
 local Constants = require "../base/constants"
 local World = require "../base/world"
@@ -9,7 +10,7 @@ local Observer = {}
 Observer.Shoot = require "observer/shoot"
 
 function Shoot:init(...)
-	Shoot.parent.init(self, ...)
+	Class.parent(Shoot).init(self, ...)
 	self._shootHysteresis = false
 	self._travelStart = nil
 	self._travelLimit = false

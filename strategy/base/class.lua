@@ -124,7 +124,7 @@ local function forbidNewAttributes(table, key, value)
 	if getmetatable(table).__nilAttributes[key] then
 		rawset(table, key, value)
 	else
-		error(table.class.name .. ": attempt to set attribute " .. key)
+		error(Class.name(table) .. ": attempt to set attribute " .. key)
 	end
 end
 
@@ -137,17 +137,6 @@ local function forbidReassignments(proxy, key, value)
 end
 
 local proxyMt = { __newindex = forbidReassignments }
-local function mixin(self, mixin, ...)
-	local proxy = { self }
-	setmetatable(proxy, proxyMt)
-	for name, field in pairs(mixin) do
-        if name == "init" then
-            field(proxy, ...)
-        else
-            proxy[name] = field
-        end
-    end
-end
 
 --- Creates a new class.
 -- Supports single inheritance and mixins.
@@ -155,20 +144,57 @@ end
 -- @see Class
 -- @param name string - name for new class, split at '.'
 -- @param parent Class - parent class object
+-- @param mixins tables - arbitrary number of mixin modules
 -- @return class object
-function Class.newTask(name, parent)
+function Class.newTask(name, parent, ...)
 	assert(not registeredClassNames[name], "class names must be unique")
 	registeredClassNames[name] = true
-	local class = {
-		fullName = name,
-		name = getShortname(name),
-		parent = parent
+
+	local class = {}
+	local classMt = {
+		type = "class",
+		className = name,
+		classNameShort = getShortname(name),
+		__index = parent
 	}
+	classMt.__metatable = classMt
+	setmetatable(class, classMt)
+
+	local mixins = {...}
+	local mixinInits
+	if #mixins == 0 then
+		mixins = nil
+	else
+		for _, mixin in ipairs(mixins) do
+			for name, field in pairs(mixin) do
+				if name == "init" then
+					if not mixinInits then
+						mixinInits = {}
+					end
+					table.insert(mixinInits, field)
+				elseif class[name] then -- also checks in superclasses
+					error("Can not include mixin: field " .. name .. " already exists")
+				else
+					class[name] = field
+				end
+			end
+		end
+	end
+	if parent then
+		local parentMInits = getmetatable(parent)["mixinInits"]
+		if parentMInits then -- contains all inits of its parent
+			for _, mInit in ipairs(parentMInits) do
+				if not mixinInits then
+					mixinInits = {}
+				end
+				table.insert(mixinInits, mInit)
+			end
+		end
+	end
+	classMt.mixinInits = mixinInits
+
 	function class.create(...)
-		local instance = {
-			class = class,
-			mixin = mixin
-		}
+		local instance = {}
 		local instMt = {
 			__nilAttributes = {}, -- remember nil-initialized attributes
 			__newindex = registerNils,
@@ -180,18 +206,18 @@ function Class.newTask(name, parent)
 		if instance.init then
 			instance:init(...)
 		end
+		if mixinInits then
+			local proxy = { instance }
+			setmetatable(proxy, proxyMt)
+			for _, init in ipairs(mixinInits) do
+				init(proxy)
+			end
+		end
 		instMt.__newindex = forbidNewAttributes
 		return instance
 	end
-	local classMt = {
-		__call = class.create,
-		__index = parent,
-		type = "class",
-		className = name,
-		classNameShort = getShortname(name)
-	}
-	classMt.__metatable = classMt
-	setmetatable(class, classMt)
+	classMt.__call = class.create
+
 	return class
 end
 
