@@ -14,7 +14,17 @@ Volley.priority = 5
 function Volley:init(...)
 	Class.parent(Volley).init(self, ...)
 	self._ballIncoming = true
+	self._shooting = false
 	self._ballInDribblerPos = self._robot.pos
+
+	self._v_in = nil
+	self._alpha = nil
+	self._v_out_x = nil
+	self._v_out_y = nil
+
+
+	self._mu_x = 0.6
+	self._mu_y = 0.5
 end
 
 
@@ -46,10 +56,6 @@ end
 
 
 function Volley:_volley(targetPos, targetSpeed)
-	-- init mu_x and mu_y
-	self._mu_x = 0.6
-	self._mu_y = 0.5
-
 
 	-- init v_in and alpha
 	if self._ballIncoming then
