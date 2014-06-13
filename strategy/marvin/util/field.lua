@@ -192,17 +192,17 @@ function Field.intersectLineDefenseArea(pos, dir, extraDistance, opp)
 	local rightLine = Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf + radius) * oppfac
 
 	-- calclulate global angles
-	local deg0 = opp and math.pi or 0
-	local deg90 = oppfac and math.pi/2
-	local deg180 = opp and 0 or math.pi
+	local oppadd = opp and math.pi or 0
+	local to_opponent = normalize(oppadd + math.pi/2)
+	local to_friendly = normalize(oppadd - math.pi/2)
 
 	-- calctulate intersection points with defense arcs
 	local intersections = {}
-	local ileft = intersectLineArc(pos, dir, leftCenter, radius, deg90, deg180)
+	local ileft = intersectLineArc(pos, dir, leftCenter, radius, to_opponent, to_friendly)
 	for _,i in ipairs(ileft) do
 		table.insert(intersections, {i[1], (math.pi/2-i[2]) * radius})
 	end
-	local iright = intersectLineArc(pos, dir, rightCenter, radius, deg0, deg90)
+	local iright = intersectLineArc(pos, dir, rightCenter, radius, to_friendly, to_opponent)
 	for _,i in ipairs(iright) do
 		table.insert(intersections, {i[1], (math.pi/2-i[2]) * radius + arcway + lineway})
 	end
@@ -245,7 +245,7 @@ function Field.defenseIntersectionByWay(way, extraDistance, opp)
 	local arcway = radius * math.pi/2
 	local lineway = G.DefenseStretch
 	local totalway = 2 * arcway + lineway
-	assert(way >= 0 and way <= totalway, "way is out of bounds")
+	assert(way >= -arcway and way <= totalway + arcway, "way is out of bounds")
 
 	local intersection = nil
 	if way < arcway then
