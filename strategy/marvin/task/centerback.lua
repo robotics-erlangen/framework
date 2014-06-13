@@ -27,6 +27,9 @@ local robotAngleHysteresis = 0.0
 local lt2 = function(r1, r2)
 	local a1 = (r1.pos - World.Geometry.FriendlyGoal):angle()
 	local a2 = (r2.pos - World.Geometry.FriendlyGoal):angle()
+	if a1 < -math.pi/2 then a1 = a1 + 2 * math.pi end
+	if a2 < -math.pi/2 then a2 = a2 + 2 * math.pi end
+	
 	if a1 <= a2 - robotAngleHysteresis then
 		return false
 	elseif a2 < a1 - robotAngleHysteresis then
