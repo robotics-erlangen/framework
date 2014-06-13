@@ -204,7 +204,7 @@ function Field.intersectLineDefenseArea(pos, dir, extraDistance, opp)
 	end
 	local iright = intersectLineArc(pos, dir, rightCenter, radius, to_friendly, to_opponent)
 	for _,i in ipairs(iright) do
-		table.insert(intersections, {i[1], (math.pi/2-i[2]) * radius + arcway + lineway})
+		table.insert(intersections, {i[1], (math.pi-i[2]) * radius + arcway + lineway})
 	end
 
 	-- calculate intersection point with defense stretch
