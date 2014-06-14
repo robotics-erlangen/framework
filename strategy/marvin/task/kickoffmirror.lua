@@ -7,29 +7,30 @@ local Field = require "util/field"
 local debug = require "../base/debug"
 
 --task maximum 2 robots!
---- init
 --@param distanceToCenterLine number - how far the robot stays away from the center line
 function KickoffMirror:_init(distanceToCenterLine)
 	self._distance = distanceToCenterLine
 	self._lastTargetRobot = nil
 	self._targetPos = nil
-	self._side = false
 end
 
 --- mirrors the opponent that is the closest one to our goal
 function KickoffMirror:run()
-	-- check if side is already mirrored (only prioritized messages are considered)
-	for _, msg in pairs(self._inbox.kickoffMirrorSide()) do
-		self._side = not msg -- just take the other side
+	-- check position of other kickoffMirror
+	local side = true
+	for robot, _ in pairs(self._inbox.kickoffMirrorFlag()) do
+		if self._robot.pos.x < robot.pos.x then
+			side = false
+		end
 	end
-	self._send.kickoffMirrorSide("all", self._side)
+	self._send.kickoffMirrorFlag("all")
 
 	local sector1, _, sector3 = Game.divideOpponentsIntoSectors(false)
-	local sector = self._side and sector3 or sector1
+	local sector = side and sector3 or sector1
 
 	local targetPosX
 	if #sector == 0 then
-		targetPosX = (self._side and 1 or -1) * World.Geometry.FieldWidthQuarter
+		targetPosX = (side and 1 or -1) * World.Geometry.FieldWidthQuarter
 	else
 		local minDist = math.huge
 		local lastMinDist = self._lastTargetRobot and
@@ -44,7 +45,7 @@ function KickoffMirror:run()
 			end
 		end
 		if minDist + Settings.distanceHysteresis < lastMinDist or
-				(self._side and 3 or 1) ~= Game.getSector(self._lastTargetRobot, true) then
+				(side and 3 or 1) ~= Game.getSector(self._lastTargetRobot, true) then
 			self._lastTargetRobot = targetRobot
 		end
 		targetPosX = self._lastTargetRobot.pos.x
