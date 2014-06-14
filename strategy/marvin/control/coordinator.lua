@@ -35,32 +35,24 @@ function Coordinator:init()
 	}
 	self.exclusiveRoles = {} -- remember roles
 	self._ballInFriendlyFieldHalf = false -- remember for hysteresis
-	self._messages = nil
 	self._mainAttackerIsDefender = false
 	self._oppsToMark = {}
+	self._send, self._inbox = Messaging.registerTrainer()
 end
 
 function Coordinator:run()
-	self._messages = Messaging.getExclusiveRoleApplications()
 	debug.pushtop("Trainer")
-	for role, application in pairs(self._messages) do
-		debug.push(role)
-		for robot, rating in pairs(application) do
-			debug.set(robot.id, rating)
-		end
-		debug.pop() -- role
-	end
 	debug.push("centerBackTargets")
-	for robot, msg in pairs(Messaging.trainerGet("centerbackTarget")) do
+	for robot, msg in pairs(self._inbox.centerbackTarget()) do
 		debug.set(robot.id, msg)
 	end
 	debug.pop() -- centerBackTargets
 	debug.push("attackerRequests")
-	for robot, msg in pairs(Messaging.trainerGet("attackerRequest")) do
+	for robot, msg in pairs(self._inbox.attackerRequest()) do
 		debug.set(robot.id, msg)
 	end
 	debug.pop() -- attackerRequests
-	debug.pop() -- Role Applications
+	debug.pop()-- Trainer
 	self:_chooseExclusiveRoles()
 	self:_updatePoolRobots()
 	self:_organizeDefense()
@@ -123,7 +115,25 @@ end
 --- chooses a robot for every exclusiveRole and sends a message to it
 function Coordinator:_chooseExclusiveRoles()
 	local hysteresis = 0.1 -- magic constant
-	local roleApplications = Messaging.getExclusiveRoleApplications()
+
+	local roleMsgs = self._inbox.exclusiveRole()
+	local roleApplications = {}
+	for robot, application in pairs(roleMsgs) do
+		for role, rating in pairs(application) do
+			if not roleApplications[role] then
+				roleApplications[role] = {}
+			end
+			roleApplications[role][robot] = rating
+		end
+	end
+
+	for role, applications in pairs(roleApplications) do
+		debug.push(role)
+		for robot, rating in pairs(applications) do
+			debug.set(robot.id, rating)
+		end
+		debug.pop() -- role
+	end
 
 	local exclusiveRoles = {} -- ensure that special roles are removed if no one applies
 	for role, applications in pairs(roleApplications) do
@@ -140,7 +150,7 @@ function Coordinator:_chooseExclusiveRoles()
 		end
 		if bestRobot then
 			exclusiveRoles[role] = bestRobot
-			Messaging.sendExclusiveRole(role, exclusiveRoles[role])
+			self._send[role]("all", bestRobot)
 		end
 	end
 	self.exclusiveRoles = exclusiveRoles
@@ -172,7 +182,7 @@ function Coordinator:_organizeDefense()
 	local unassigned = table.copy(self._pools.defense:robots())
 
 	-- at least one CenterBack
-	local currentCenterBacks = Messaging.trainerGet("centerbackTarget")
+	local currentCenterBacks = self._inbox.centerbackTarget()
 	local defaultCenterBack = nil
 	local bestRating = -1
 	local pureCenterBackBefore = false
@@ -196,7 +206,7 @@ function Coordinator:_organizeDefense()
 	-- look for opponents to mark
 	self._oppsToMark = table.filter(self._oppsToMark, isVisible)
 	local defendedByDuel = {}
-	for _, opp in pairs(Messaging.trainerGet("defendedOpponent")) do
+	for _, opp in pairs(self._inbox.defendedOpponent()) do
 		defendedByDuel[opp] = true
 	end
 	for _, robot in ipairs(World.OpponentRobots) do
@@ -238,11 +248,11 @@ function Coordinator:_organizeDefense()
 	end
 
 	for manMarker, opp in pairs(manMarkers) do
-		Messaging.assignRole(manMarker, "ManMark", opp)
+		self._send.roleAssignment(manMarker, { name = "ManMark", params = opp})
 	end
 	if defaultCenterBack then
 		debug.set("default CenterBack", defaultCenterBack)
-		Messaging.assignRole(defaultCenterBack, "CenterBack")
+		self._send.roleAssignment(defaultCenterBack, { name = "CenterBack"})
 	end
 end
 
@@ -297,7 +307,7 @@ function Coordinator:_calculateAttackRatio()
 		attackers = attackers - 1
 	end
 
-	if table.count(Messaging.trainerGet("attackerRequest")) > 0 then
+	if table.count(self._inbox.attackerRequest()) > 0 then
 		attackers = attackers + 1
 	end
 	debug.set("AttackRatio", attackRatio)

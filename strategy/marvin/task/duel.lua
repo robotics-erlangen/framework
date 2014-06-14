@@ -8,8 +8,6 @@ local Direct = require "trajectory/direct"
 local Shoot = require "observer/shoot"
 local Ball = require "observer/ball"
 
-Duel.priority = 4
-
 function Duel:_init()
 	self._opposer = nil
 end
@@ -17,7 +15,7 @@ end
 function Duel:run()
 	self._opposer = assert(Ball.opponentBallOwner(),
 		"Duel task shall only be active when an opponent has the ball")
-	self._send("all").defendedOpponent(self._opposer)
+	self._send.defendedOpponent("all", self._opposer)
 	if self._robot:hasBall(World.Ball) then
 		self:_contest()
 		debug.set("duel-state", "contest")

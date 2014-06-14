@@ -128,7 +128,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 				setLength(self._robot.shootRadius + World.Ball.radius)
 	end
 	if (not self._catchTime) or self._catchTime < 0.5 then
-		self._send("all").shootDestination(targetPos)
+		self._send.shootDestination("all", targetPos)
 	end
 	return self._ballInDribblerPos
 end

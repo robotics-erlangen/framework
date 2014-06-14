@@ -8,7 +8,7 @@ local Rating = require "util/rating"
 
 local Manual = require "task/manual"
 
-function Default:check()	
+function Default:check()
 	-- apply for main attacker
 	local mainAttackerRating = 0
 	if Ball.friendlyBallOwner() == self._robot then
@@ -17,7 +17,7 @@ function Default:check()
 		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
 		mainAttackerRating = Rating.timeToRating(timeToBall) * 1.3 --small rating bonus to please the human player
 	end
-	
+
 	-- look for incoming passes
 	for _,_ in pairs(self._inbox.passSender()) do --tests if table has content, runs 0-1 times, otherwise BUG
 		self._lastPass = World.Time
@@ -27,14 +27,13 @@ function Default:check()
 		self._catching = true
 	end
 	if Ball.opponentBallOwner() or Ball.friendlyBallOwner() ~= self._robot
-			or World.Ball.speed:length() < Settings.slowBall then 
+			or World.Ball.speed:length() < Settings.slowBall then
 		self._catching = false
 	end
 	if self._catching then
-		self._send("trainer").exclusiveRole({ passReceiver = 1.5 })
-		self._send("trainer").exclusiveRole({ mainAttacker = 1.5 })
+		self._send.exclusiveRole("trainer", { passReceiver = 1.5, mainAttacker = 1.5 })
 	else
-		self._send("trainer").exclusiveRole({mainAttacker = mainAttackerRating})
+		self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
 	end
 
 	return true

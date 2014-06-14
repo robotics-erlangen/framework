@@ -7,9 +7,6 @@ local Shoot = require "observer/shoot"
 local Robot = require "observer/robot"
 local Rating = require "util/rating"
 
-
-ChipAway.priority = 6
-
 function ChipAway:_init()
 	self._chipTarget = nil
 end
@@ -32,7 +29,7 @@ function ChipAway:run()
 	self:_shoot(chipPos, math.huge, false)
 
 	if self._chipTarget then
-		self._send(self._chipTarget).passSender("direct")
+		self._send.passSender(self._chipTarget, "direct")
 	end
 end
 

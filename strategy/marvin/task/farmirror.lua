@@ -7,12 +7,6 @@ local Field = require "util/field"
 local Robotlist = require "util/robotlist"
 local debug = require "../base/debug"
 
-FarMirror.priority = 1
-
---- init
-function FarMirror:_init()
-end
-
 -- gets the y-Value for a given x-Value
 -- returns a V-shape
 -- @param xPos int
@@ -55,7 +49,7 @@ function FarMirror:run()
 		targetPos = Vector.create(0,-1.5)
 	end
 	self._robot.trajectory:update(ToTarget, targetPos, math.pi/2)
-	self._send("all").moveDest(targetPos)
+	self._send.moveDest("all", targetPos)
 end
 
 return FarMirror

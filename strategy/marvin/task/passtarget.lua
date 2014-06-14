@@ -8,15 +8,13 @@ local Goal = require "observer/goal"
 local Interval = require "util/interval"
 local Field = require "util/field"
 
-PassTarget.priority = 5
-
 function PassTarget:_init()
 	self.moveTo = nil
 	self._returnPassAllowed = false
 end
 
 function PassTarget:run()
-	local passPos = self._inbox.passPos("ignorePriority")[self._inbox.mainAttacker().trainer]
+	local passPos = self._inbox.passPos()[self._inbox.mainAttacker().trainer]
 	if passPos then
 		self.moveTo = passPos
 	else --higher rating if robots is more free + in the enemy playing field half
@@ -64,7 +62,7 @@ function PassTarget:run()
 	self._robot.path:addRobotObstacles(self._robot)
 	local faceBall = (World.Ball.pos-self.moveTo):angle()
 	self._robot.trajectory:update(ToTarget, self.moveTo, faceBall)
-	self._send("all").moveDest(self.moveTo)
+	self._send.moveDest("all", self.moveTo)
 end
 
 return PassTarget

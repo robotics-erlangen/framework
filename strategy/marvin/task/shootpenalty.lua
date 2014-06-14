@@ -14,7 +14,6 @@ local G = World.Geometry
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 
-ShootPenalty.priority = 5
 function ShootPenalty:_init(lookDir)
 	self.lookDir = lookDir
 	self.targetPos = nil

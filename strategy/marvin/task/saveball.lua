@@ -6,11 +6,6 @@ local Field = require "util/field"
 local ToTarget = require "trajectory/totarget"
 local vis = require "../base/vis"
 
-SaveBall.priority = 4
-
-function SaveBall:_init()
-end
-
 function SaveBall:run()
 	local ballPos = World.Ball.pos
 	local ownGoal = World.Geometry.FriendlyGoal

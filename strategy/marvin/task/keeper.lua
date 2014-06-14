@@ -8,8 +8,6 @@ local Settings = require "settings"
 local vis = require "../base/vis"
 local Field = require "util/field"
 
-Keeper.priority = 6
-
 function Keeper:_init()
 	self._defendCorner = false
 end

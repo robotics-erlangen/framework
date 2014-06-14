@@ -14,7 +14,7 @@ function HandleBall:behindCenterbacks(object)
 end
 
 function HandleBall:check()
-	if Referee.isStopState() then 
+	if Referee.isStopState() then
 		return false
 	end
 	if World.RefereeState == "PenaltyDefensive" or World.RefereeState == "PenaltyDefensivePrepare"
@@ -26,7 +26,7 @@ function HandleBall:check()
 			and World.Ball.speed:length() <= Settings.slowBall
 	if active then
 		-- force being mainAttacker
-		self._send("trainer").exclusiveRole({mainAttacker = 2})
+		self._send.exclusiveRole("trainer", {mainAttacker = 2})
 		return true
 	else
 		return false
@@ -41,12 +41,12 @@ function HandleBall:_updateTask()
 			danger = true
 		end
 	end
-	
+
 	--check if there is a danger of a own goal
 	local ballDist = Field.distanceToFriendlyGoalLine(World.Ball.pos, 0)
 	local robotDist = Field.distanceToFriendlyGoalLine(self._robot.pos, 0)
 	local owngoal = ballDist < robotDist
-	
+
 	--decide whether to chip away or move aggressively to the ball
 	if danger and not owngoal then
 		--set the task to nil to ensure that a new task will be created
@@ -54,7 +54,7 @@ function HandleBall:_updateTask()
 		return AggressiveKeeper
 	else
 		return ChipAway
-	end	
+	end
 end
 
 return HandleBall

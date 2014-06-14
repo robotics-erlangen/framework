@@ -12,9 +12,6 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
 
-
-ShootGoal.priority = 5
-
 -- how much to move the shoot pos towards the corner
 -- (0 = mid of sector, 1 = straight towards the corner)
 local cornerWeight = 0

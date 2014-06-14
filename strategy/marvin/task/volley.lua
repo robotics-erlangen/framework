@@ -9,8 +9,6 @@ local Ball = require "observer/ball"
 local Processor = require "../base/processor"
 
 
-Volley.priority = 5
-
 function Volley:init(...)
 	Class.parent(Volley).init(self, ...)
 	self._ballIncoming = true

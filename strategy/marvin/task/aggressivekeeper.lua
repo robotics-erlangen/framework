@@ -4,11 +4,6 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local ToTarget = require "trajectory/totarget"
 
-AggressiveKeeper.priority = 6
-
-function AggressiveKeeper:_init()
-end
-
 function AggressiveKeeper:run()
 	local tpos, ttime = Ball.toBall(self._robot, World.Ball)
 
@@ -19,7 +14,7 @@ function AggressiveKeeper:run()
 	self._robot.path:setDefaultObstacles(self._robot, true)
 	self._robot.trajectory:update(ToTarget, tpos, fromGoal, nil, Vector.create(fromGoal))
 
-	self._send("all").aggressiveKeeperPos(tpos)
+	self._send.aggressiveKeeperPos("all", tpos)
 end
 
 return AggressiveKeeper

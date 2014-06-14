@@ -5,8 +5,6 @@ local Constants = require "../base/constants"
 local Field = require "util/field"
 local ToTarget = require "trajectory/totarget"
 
-StopAttack.priority = 4
-
 function StopAttack:_init()
 	self._focusPoint = Vector.create(0, -World.Geometry.FieldHeightHalf + 4 * self._robot.radius)
 	self._side = World.Ball.pos.x < 0 and "left" or "right"

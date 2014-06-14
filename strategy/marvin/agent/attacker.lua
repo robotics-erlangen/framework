@@ -32,7 +32,7 @@ Attacker._behaviors = {
 function Attacker:_run()
 	if self._activeBehavior then
 		assert(self._activeBehavior._send, "behavior message interface changed")
-		self._activeBehavior._send("all").attackerFlag()
+		self._activeBehavior._send.attackerFlag("all")
 	end
 end
 

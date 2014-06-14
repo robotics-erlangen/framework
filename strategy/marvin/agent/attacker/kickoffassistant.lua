@@ -31,9 +31,9 @@ function KickoffAssistant:check()
 		self._moveDest = table.shuffle(positions)[1]
 	end
 
-	self._send("all").moveDest(self._moveDest)
+	self._send.moveDest("all", self._moveDest)
 
-	local isActive = World.RefereeState == "KickoffOffensivePrepare" or 
+	local isActive = World.RefereeState == "KickoffOffensivePrepare" or
 		(self._active and not Ball.isShot())
 	return isActive
 end

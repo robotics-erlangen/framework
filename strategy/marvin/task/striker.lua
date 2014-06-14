@@ -11,8 +11,7 @@ local Goal = require "observer/goal"
 local geom = require "../base/geom"
 local Interval = require "util/interval"
 local debug = require "../base/debug"
-
-Striker.priority = 1
+local Messaging = require "control/messaging"
 
 function Striker:_init()
 	self._moveDest = nil
@@ -27,7 +26,7 @@ end
 --- chooses an x line. each striker gets the same line in all task instances
 function Striker:_xLine()
 	local ballPos = World.Ball.pos
-	local numAttackers = table.count(self._inbox.attackerFlag("all"))
+	local numAttackers = table.count(Messaging.get("attackerFlag"))
 	local xLines
 	if numAttackers == 1 then
 		if ObserverGame.attackSideWithLessOpponents() == "left" then
@@ -66,7 +65,7 @@ function Striker:_xLine()
 	end
 
 	local strikers = {}
-	for robot, _ in pairs(self._inbox.attackerFlag("all")) do
+	for robot, _ in pairs(Messaging.get("attackerFlag")) do
 		if robot ~= self._inbox.mainAttacker().trainer then
 			table.insert(strikers, robot)
 		end
@@ -176,8 +175,8 @@ function Striker:_calcMoveDest()
 	end
 
 	-- do not interfere with other attackers
-	for robot, dest in pairs(self._inbox.moveDest("ignorePriority")) do
-			if self._inbox.attackerFlag("all")[robot] and robot.pos:distanceTo(dest) > 0.1 then
+	for robot, dest in pairs(self._inbox.moveDest()) do
+			if Messaging.get("attackerFlag")[robot] and robot.pos:distanceTo(dest) > 0.1 then
 				self._robot.path:addLine(robot.pos.x, robot.pos.y, dest.x, dest.y, self._robot.radius)
 			end
 	end
@@ -243,7 +242,7 @@ function Striker:_passSuggestion()
 
 	local searchWidth = 0.5
 	local searchHeight = 0.8
-	local stepSize = 0.05
+	local stepSize = 0.25
 	local timeTolerance = 0.5
 	local minDistToAll = 0.7
 
@@ -286,12 +285,12 @@ function Striker:_passSuggestion()
 			vis.addCircle("passSuggestion", passPos, 0.1, vis.colors.red, true)
 		end
 		debug.set("pass kind", passKind)
-		self._send(mainAttacker).passSuggestion({ kind = passKind, rating = bestRating, pos = passPos })
+		self._send.passSuggestion(mainAttacker, { kind = passKind, rating = bestRating, pos = passPos })
 	end
 end
 
 function Striker:run()
-	if not self._inbox.attackerFlag("all")[self._robot] then
+	if not Messaging.get("attackerFlag")[self._robot] then
 		return -- we're not considered at position choice
 	end
 	local startTime = amun.getCurrentTime()
@@ -304,7 +303,7 @@ function Striker:run()
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
 	self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
-	self._send("all").moveDest(self._moveDest)
+	self._send.moveDest("all", self._moveDest)
 end
 
 return Striker

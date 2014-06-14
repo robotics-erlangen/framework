@@ -4,8 +4,6 @@ local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Defense = require "util/defense"
 
-ManMark.priority = 3
-
 function ManMark:_init(targetRobot)
 	assert(targetRobot, "ManMark task needs a target robot")
 	self._targetRobot = targetRobot
@@ -18,7 +16,7 @@ function ManMark:run()
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
 	self._robot.trajectory:update(ToTarget, preferredPos, preferredDir)
-	self._send("all").moveDest(preferredPos)
+	self._send.moveDest("all", preferredPos)
 end
 
 return ManMark

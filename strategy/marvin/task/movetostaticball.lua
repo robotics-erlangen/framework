@@ -3,8 +3,6 @@ local MoveToStaticBall = (require "../base/class").newTask("Task.MoveToStaticBal
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 
-MoveToStaticBall.priority = 4
-
 function MoveToStaticBall:_init(rotation, distanceToBall)
 	self._rotation = rotation or math.pi/2
 	self._distanceToBall = distanceToBall or 0.05

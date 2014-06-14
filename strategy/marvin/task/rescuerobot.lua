@@ -4,12 +4,11 @@ local geom = require "../base/geom"
 local World = require "../base/world"
 local TrajectoryHidden = require "trajectory/hidden"
 
-RescueRobot.priority = 1
-
 -- list of local speeds: (speedForward, speedSide)
 RescueRobot._speeds = {}
 
 function RescueRobot:_init()
+	self._rotation = nil
 end
 
 function RescueRobot:run()

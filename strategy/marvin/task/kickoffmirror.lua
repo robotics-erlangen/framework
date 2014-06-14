@@ -6,14 +6,13 @@ local ToTarget = require "trajectory/totarget"
 local Field = require "util/field"
 local debug = require "../base/debug"
 
-KickoffMirror.priority = 1
-
 --task maximum 2 robots!
 --- init
 --@param distanceToCenterLine number - how far the robot stays away from the center line
 function KickoffMirror:_init(distanceToCenterLine)
 	self._distance = distanceToCenterLine
 	self._lastTargetRobot = nil
+	self._targetPos = nil
 	self._side = false
 end
 
@@ -23,7 +22,7 @@ function KickoffMirror:run()
 	for _, msg in pairs(self._inbox.kickoffMirrorSide()) do
 		self._side = not msg -- just take the other side
 	end
-	self._send("all").kickoffMirrorSide(self._side)
+	self._send.kickoffMirrorSide("all", self._side)
 
 	local sector1, _, sector3 = Game.divideOpponentsIntoSectors(false)
 	local sector = self._side and sector3 or sector1

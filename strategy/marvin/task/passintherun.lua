@@ -8,8 +8,6 @@ local vis = require "../base/vis"
 local geom = require "../base/geom"
 local debug = require "../base/debug"
 
-PassInTheRun.priority = 4
-
 function PassInTheRun:_init(targetRobot, shootPos)
 	assert(targetRobot, "targetRobot is missing")
 	assert(shootPos, "shoot pos is missing")
@@ -24,14 +22,14 @@ function PassInTheRun:_canShoot()
 end
 
 function PassInTheRun:run()
-	local newShootPos = self._inbox.passSuggestion()[self._targetRobot]
-	if newShootPos then
-		self._shootPos = newShootPos
+	local newSuggestion = self._inbox.passSuggestion()[self._targetRobot]
+	if newSuggestion and newSuggestion.pos then
+		self._shootPos = newSuggestion.pos
 	end
 	self:_shoot(self._shootPos, Settings.shootDriveSpeed, true)
 
-	self._send(self._targetRobot).passSender("in the run")
-	self._send(self._targetRobot).passPos(self._shootPos)
+	self._send.passSender(self._targetRobot, "in the run")
+	self._send.passPos(self._targetRobot, self._shootPos)
 	debug.set("targetRobot", self._targetRobot.id)
 	vis.addCircle("passInTheRun", self._shootPos, 0.1, vis.colors.blue, true)
 end

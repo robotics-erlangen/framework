@@ -7,9 +7,9 @@ local Robot = require "observer/robot"
 local Ball = require "observer/ball"
 local Direct = require "trajectory/direct"
 
-Manual.priority = 1
-
 function Manual:_init()
+	self._targetGoal = nil
+	self._bestPassTarget = nil
 end
 
 function Manual:_canShoot()
@@ -33,7 +33,7 @@ function Manual:_decideTargetGoal()
 end
 
 function Manual:_findBestPassTarget()
-	local assistants = self._inbox.attackerFlag("ignorePriority")
+	local assistants = self._inbox.attackerFlag()
 
 	-- only search for pass targets until we found one
 	if not self._bestPassTarget then
@@ -59,7 +59,7 @@ function Manual:_intelligentShoot()
 	elseif self._bestPassTarget then
 		local passSpeed = self._bestPassTarget.constants.passSpeed
 		self:_shoot(self._bestPassTarget.pos, passSpeed, true)
-		self._send(self._bestPassTarget).passSender("direct")
+		self._send.passSender(self._bestPassTarget, "direct")
 	else
 		self:_shoot(self._robot.pos + Vector.fromAngle(self._robot.dir), math.huge, true)
 	end
@@ -111,7 +111,7 @@ function Manual:run()
 	self._robot.trajectory:update(Direct, limitedSpeed, nil, input.omega)
 
 	-- play attacker
-	self._send("all").attackerFlag()
+	self._send.attackerFlag("all")
 end
 
 return Manual

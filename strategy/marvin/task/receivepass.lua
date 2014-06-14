@@ -7,11 +7,6 @@ local Robot = require "observer/robot"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
 
-ReceivePass.priority = 5
-
-function ReceivePass:_init()
-end
-
 function ReceivePass:run()
 	local perpPos = self._robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
 	local moveTime = Robot.sidewardsTime(self._robot, World.Ball)
@@ -25,7 +20,7 @@ function ReceivePass:run()
 		self._robot.path:addRobotObstacles(self._robot)
 		local faceBall = (World.Ball.pos-self._robot.pos):angle()
 		self._robot.trajectory:update(ToTarget, perpPos, faceBall)
-		self._send("all").moveDest(perpPos)
+		self._send.moveDest("all", perpPos)
 	else
 		self:_catchBall(World.Ball.pos)
 	end

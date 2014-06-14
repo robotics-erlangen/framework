@@ -13,15 +13,15 @@ end
 function Base:init(robot)
 	self._robot = robot
 	self._task = nil
+	self._send, self._inbox = Messaging.registerAgent(self)
 	-- behaviors are ordered by decreasing priority
 	self._behaviors = {
 		Halt.create(self),
-		unpack(table.map(self._behaviors, 
+		unpack(table.map(self._behaviors,
 			function (B) return B.create(self) end)
 		)
 	}
 	self._activeBehavior = nil
-	Messaging.registerAgent(self)
 end
 
 function Base:_run()
@@ -34,7 +34,7 @@ function Base:run()
 	self:_updateBehavior()
 	self:_runTaskAndBehavior()
 	self:_run()
-	
+
 	debug.pop() -- Agent
 end
 
@@ -68,12 +68,12 @@ function Base:_runTaskAndBehavior()
 		self._task:run()
 		debug.set(nil, Class.name(self._task, true))
 		debug.push("Inbox")
-		for n, func in pairs(self._task._inbox) do
-			debug.push(n)
-			for robot, msg in pairs(func("all")) do
-				debug.set(robot.id or robot, msg)
+		for name, func in pairs(self._inbox) do
+			debug.push(name)
+			for sender, msg in pairs(func()) do
+				debug.set(sender.id or sender, msg)
 			end
-			debug.pop() -- n
+			debug.pop() -- name
 		end
 		debug.pop() -- Inbox
 	else

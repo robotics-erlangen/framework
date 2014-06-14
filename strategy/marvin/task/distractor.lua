@@ -4,8 +4,6 @@ local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Rating = require "util/rating"
 
-Distractor.priority = 3
-
 local distractionX = {0.8, 1.0, 1.2}
 local distractionY = {2.0, 2.2, 2.4}
 
@@ -34,7 +32,7 @@ function Distractor:run()
 	self._preferredDir = (World.Geometry.OpponentGoal - self._targetPos):angle()
 	self._robot.trajectory:update(ToTarget, self._targetPos, self._preferredDir)
 
-	self._send("all").distractedIndex(self._index)
+	self._send.distractedIndex("all", self._index)
 end
 
 return Distractor

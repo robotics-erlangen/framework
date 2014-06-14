@@ -25,7 +25,7 @@ function KickoffOffensive:check()
 	if not (self._inbox.mainAttacker().trainer == self._robot) then
 		return false
 	end
-	
+
 	if self._active and Ball.isShot() then -- I've shot the ball
 		self._passActive = false
 		self._shootTime = World.Time
@@ -58,7 +58,7 @@ local function minOppDist(pos)
 	return minDistance
 end
 
-local function cmpByOpponentDist(pos1, pos2) 
+local function cmpByOpponentDist(pos1, pos2)
 	return minOppDist(pos1) > minOppDist(pos2)
 end
 
@@ -111,7 +111,7 @@ function KickoffOffensive:_updateTask()
 		local shootGoalTmp = ShootGoal.create(self._agent)
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 		local canShootGoal = sg_mae and sg_mae > Settings.minAnglePrecision
-		if canShootGoal then 
+		if canShootGoal then
 			return ShootGoal
 		elseif self._shootPos then
 			self._passActiveSince = World.Time

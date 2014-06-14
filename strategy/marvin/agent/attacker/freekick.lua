@@ -19,7 +19,7 @@ function FreeKick:_stop()
 	self._cooldown = false
 	self._atBall = false
 end
- 
+
 function FreeKick:check()
 	if not (self._inbox.mainAttacker().trainer == self._robot) then
 		return false
@@ -54,7 +54,7 @@ function FreeKick:_updateTask()
 	local distanceToBall = 0.05
 
 	-- if there's still time and we don't have the ball
-	local notAtBall = self._robot.pos:distanceTo(World.Ball.pos) > 
+	local notAtBall = self._robot.pos:distanceTo(World.Ball.pos) >
 			self._robot.radius + World.Ball.radius + distanceToBall + Settings.positionPadding
 	if ((World.Time - self._startTime < 5 and notAtBall) or not self._robot:isCharged())
 			and not self._atBall then
@@ -69,7 +69,7 @@ function FreeKick:_updateTask()
 			local canShootGoal = sg_mae and sg_mae > Settings.minAnglePrecision
 			if canShootGoal then
 				return ShootGoal
-			else 
+			else
 				self._pass = true
 				return self:passOrChipTask()
 			end

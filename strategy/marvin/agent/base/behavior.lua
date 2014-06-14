@@ -11,8 +11,8 @@ local Referee = require "../base/referee"
 function Base:init(agent)
 	self._agent = agent
 	self._robot = self._agent:robot()
-	self._inbox = Messaging.getInbox(self._agent)
-	self._send = Messaging.getSender(self._agent)
+	self._send = self._agent._send
+	self._inbox = self._agent._inbox
 	self:stop()
 end
 
@@ -69,7 +69,7 @@ end
 function Base:_applyForMainAttacker()
 	local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
 	local mainAttackerRating = Rating.timeToRating(timeToBall)
-	self._send("trainer").exclusiveRole({mainAttacker = mainAttackerRating})
+	self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
 end
 
 -- can be overwritten for custom cleanups

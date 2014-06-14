@@ -12,9 +12,6 @@ local Field = require "util/field"
 local Goal = require "observer/goal"
 local G = World.Geometry
 
-CenterBack.priority = 5
-
-
 local lt = function(i1, i2)
 	return i1.waypos < i2.waypos
 end
@@ -29,7 +26,7 @@ local lt2 = function(r1, r2)
 	local a2 = (r2.pos - World.Geometry.FriendlyGoal):angle()
 	if a1 < -math.pi/2 then a1 = a1 + 2 * math.pi end
 	if a2 < -math.pi/2 then a2 = a2 + 2 * math.pi end
-	
+
 	if a1 <= a2 - robotAngleHysteresis then
 		return false
 	elseif a2 < a1 - robotAngleHysteresis then
@@ -249,7 +246,7 @@ end
 
 
 function CenterBack:run()
-	self._send("all").preliminaryCenterbackTarget(self._preliminaryCenterbackTarget)
+	self._send.preliminaryCenterbackTarget("all", self._preliminaryCenterbackTarget)
 
 	calculateCenterBackPositions()
 	local pos_target = centerBackPositions[self._robot]
@@ -274,8 +271,8 @@ function CenterBack:run()
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot, ignoreFriends, ignoreOpponents)
 	self._robot.trajectory:update(ToTarget, destinationPos, dir)
-	self._send("all").moveDest(destinationPos)
-	self._send("all").centerbackTarget(destinationTarget) -- TODO marked opponent robot
+	self._send.moveDest("all", destinationPos)
+	self._send.centerbackTarget("all", destinationTarget) -- TODO marked opponent robot
 end
 
 return CenterBack

@@ -3,8 +3,6 @@ local MoveToPos = (require "../base/class").newTask("Task.MoveToPos", require "t
 local ToTarget = require "trajectory/totarget"
 local Rating = require "util/rating"
 
-MoveToPos.priority = 1
-
 function MoveToPos:_init(pos, dir)
 	self._pos = pos
 	self._dir = dir

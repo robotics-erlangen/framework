@@ -12,10 +12,6 @@ local debug = require "../base/debug"
 local Field = require "util/field"
 local Referee = require "../base/referee"
 
-function CatchBall:_init()
-	error("Abstract base class!!!")
-end
-
 function CatchBall:init(...)
 	Class.parent(CatchBall).init(self, ...)
 	self._lastBallSpeed = nil
