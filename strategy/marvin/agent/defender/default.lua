@@ -16,10 +16,10 @@ function Default:_updateTask()
 
 	local role = self._inbox.roleAssignment().trainer
 	if role and role.name == "CenterBack" then
-		return CenterBack, {self._futureBall}
+		return CenterBack, {World.Ball}
 	else
 		-- TODO consider something new (for example zonal defense)
-		return CenterBack, {self._futureBall}
+		return CenterBack, {World.Ball}
 	end
 end
 

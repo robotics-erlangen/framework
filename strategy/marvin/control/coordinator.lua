@@ -179,44 +179,22 @@ local function distToFriendlyGoal(r1, r2)
 	return r1.pos:distanceTo(World.Geometry.FriendlyGoal)
 		< r2.pos:distanceTo(World.Geometry.FriendlyGoal)
 end
+local function lesserX(r1, r2)
+	return r1.pos.x < r2.pos.x
+end
 
-function Coordinator:_organizeDefense()
-	local unassigned = table.copy(self._pools.defense:robots())
-
-	-- at least one CenterBack
-	local currentCenterBacks = self._inbox.centerbackTarget()
-	local defaultCenterBack = nil
-	local bestRating = -1
-	local pureCenterBackBefore = false
-	for _, robot in pairs(unassigned) do
-		local rating = math.max(0, 1 - Field.distanceToFriendlyDefenseArea(robot.pos, robot.radius))
-		if (not pureCenterBackBefore and rating > bestRating) or
-			(not pureCenterBackBefore and currentCenterBacks[robot] == World.Ball) or
-			(currentCenterBacks[robot] == World.Ball and rating > bestRating)
-		then
-			bestRating = rating
-			defaultCenterBack = robot
-		end
-		if currentCenterBacks[robot] == World.Ball then
-			pureCenterBackBefore = true
-		end
-	end
-	if defaultCenterBack then
-		table.removeValue(unassigned, defaultCenterBack)
-	end
-
-	-- look for opponents to mark
+function Coordinator:_chooseManMarkAndCenterBacks()
 	self._oppsToMark = table.filter(self._oppsToMark, isVisible)
-	local defendedByDuel = {}
+	local defendedByDuel
 	for _, opp in pairs(self._inbox.defendedOpponent()) do
-		defendedByDuel[opp] = true
+		defendedByDuel = opp
 	end
 	for _, robot in ipairs(World.OpponentRobots) do
 		local alreadyTargeted = table.contains(self._oppsToMark, robot)
 		local maxYPos = alreadyTargeted
 			and World.Geometry.FieldHeight / 4 or World.Geometry.FieldHeight / 6
 		local minBallDist = alreadyTargeted	and 0.6 or 0.75
-		local shouldMark = not defendedByDuel[robot] and robot.pos.y < maxYPos and
+		local shouldMark = robot ~= defendedByDuel and robot.pos.y < maxYPos and
 			(not Referee.isStopState() or robot.pos:distanceTo(World.Ball.pos) > minBallDist)
 		if alreadyTargeted and not shouldMark then
 			table.removeValue(self._oppsToMark, robot)
@@ -226,30 +204,55 @@ function Coordinator:_organizeDefense()
 	end
 	table.sort(self._oppsToMark, distToFriendlyGoal)
 
-	local manMarkers = {}
-	local marked = {}
-	-- respect marking targets of centerBecks
-	for centerBack, opp in pairs(currentCenterBacks) do
-		if table.contains(self._oppsToMark, opp) then
-			manMarkers[centerBack] = opp
-			table.removeValue(unassigned, centerBack)
-			marked[opp] = true
+	local unassigned = table.copy(self._pools.defense:robots())
+	local pureCenterBacks = {}
+	local pureCenterBacksArray = {}
+	-- pure centerbacks are treated as unassigned until there is only 1 left
+	local markedOpps = {}
+	local defaultCenterBack
+	for robot, target in pairs(self._inbox.centerbackTarget()) do
+		if target == World.Ball then
+			table.insert(pureCenterBacksArray, robot)
+			pureCenterBacks[robot] = true
+		elseif table.contains(self._oppsToMark, target) then
+			markedOpps[target] = robot -- respect choice of task
+			table.removeValue(unassigned, robot)
 		end
+	end
+	if #pureCenterBacksArray == 1 then
+		defaultCenterBack = pureCenterBacksArray[1]
+		table.removeValue(unassigned, defaultCenterBack)
+	elseif #pureCenterBacksArray == 0 then
+		table.sort(unassigned, distToFriendlyGoal)
+		defaultCenterBack = table.remove(unassigned, 1)
 	end
 	for _, robot in ipairs(self._oppsToMark) do
 		if #unassigned == 0 then
 			break
 		end
-		if not marked[robot] then
+		if not markedOpps[robot] then
 			local markPos = Defense.manMarkPos(robot)
 			table.sort(unassigned, function(r1, r2)
 				return r1.pos:distanceTo(markPos) < r2.pos:distanceTo(markPos)
 			end)
-			manMarkers[table.remove(unassigned, 1)] = robot
+			local friendly = table.remove(unassigned, 1)
+			markedOpps[robot] = friendly
+			if pureCenterBacks[friendly] then
+				table.removeValue(pureCenterBacksArray, friendly)
+				table.removeValue(unassigned, friendly)
+				if table.count(pureCenterBacks) < 2 then
+					defaultCenterBack = pureCenterBacksArray[1]
+					table.removeValue(unassigned, defaultCenterBack)
+				end
+			end
 		end
 	end
+	if #unassigned > 0 then -- should only happen when there were too few to mark
+		table.sort(unassigned, distToFriendlyGoal)
+		defaultCenterBack = table.remove(unassigned, 1)
+	end
 
-	for manMarker, opp in pairs(manMarkers) do
+	for opp, manMarker in pairs(markedOpps) do
 		self._send.roleAssignment(manMarker, { name = "ManMark", params = opp})
 	end
 	if defaultCenterBack then

@@ -14,7 +14,7 @@ local msgDefs = {
 	moveDestDir = "number",
 	distractedIndex = "number",
 	exclusiveRole = "table", -- value test is in getExclusiveRoleApplications
-	kickoffMirrorSide = "boolean",
+	kickoffMirrorFlag = "flag",
 	passSuggestion = "table", -- { kind: string, rating: number [, pos: Vector] }
 
 	-- single sender
