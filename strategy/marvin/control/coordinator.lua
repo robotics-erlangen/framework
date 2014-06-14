@@ -55,7 +55,9 @@ function Coordinator:run()
 	debug.pop()-- Trainer
 	self:_chooseExclusiveRoles()
 	self:_updatePoolRobots()
-	self:_organizeDefense()
+	if not World.RefereeState:find("KickoffDefensive") then
+		self:_chooseManMarkAndCenterBacks()
+	end
 	Messaging.deliverMessages()
 
 	-- run every pool and thus every agent
