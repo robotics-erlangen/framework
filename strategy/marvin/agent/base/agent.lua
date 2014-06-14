@@ -63,19 +63,19 @@ function Base:_runTaskAndBehavior()
 	else
 		debug.set("Behavior", "none")
 	end
+	debug.push("Inbox")
+	for name, func in pairs(self._inbox) do
+		debug.push(name)
+		for sender, msg in pairs(func()) do
+			debug.set(sender.id or sender, msg)
+		end
+		debug.pop() -- name
+	end
+	debug.pop() -- Inbox
 	debug.push("Task")
 	if self._task then
 		self._task:run()
 		debug.set(nil, Class.name(self._task, true))
-		debug.push("Inbox")
-		for name, func in pairs(self._inbox) do
-			debug.push(name)
-			for sender, msg in pairs(func()) do
-				debug.set(sender.id or sender, msg)
-			end
-			debug.pop() -- name
-		end
-		debug.pop() -- Inbox
 	else
 		debug.set(nil, "none")
 	end

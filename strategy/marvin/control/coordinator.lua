@@ -42,16 +42,13 @@ end
 
 function Coordinator:run()
 	debug.pushtop("Trainer")
-	debug.push("centerBackTargets")
-	for robot, msg in pairs(self._inbox.centerbackTarget()) do
-		debug.set(robot.id, msg)
+	for name, func in pairs(self._inbox) do
+		debug.push(name)
+		for sender, msg in pairs(func()) do
+			debug.set(sender.id or sender, msg)
+		end
+		debug.pop() -- name
 	end
-	debug.pop() -- centerBackTargets
-	debug.push("attackerRequests")
-	for robot, msg in pairs(self._inbox.attackerRequest()) do
-		debug.set(robot.id, msg)
-	end
-	debug.pop() -- attackerRequests
 	debug.pop()-- Trainer
 	self:_chooseExclusiveRoles()
 	self:_updatePoolRobots()
@@ -127,14 +124,6 @@ function Coordinator:_chooseExclusiveRoles()
 			end
 			roleApplications[role][robot] = rating
 		end
-	end
-
-	for role, applications in pairs(roleApplications) do
-		debug.push(role)
-		for robot, rating in pairs(applications) do
-			debug.set(robot.id, rating)
-		end
-		debug.pop() -- role
 	end
 
 	local exclusiveRoles = {} -- ensure that special roles are removed if no one applies

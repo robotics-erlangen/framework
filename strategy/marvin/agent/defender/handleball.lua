@@ -31,7 +31,7 @@ function HandleBall:_updateTask()
 	debug.set("changeDist", changeDist)
 	debug.set("defenseDist", defenseDist)
 	if defenseDist > changeDist then
-		self._send.attackerRequest("all")
+		self._send.attackerRequest("trainer")
 		self._requestingPoolChange = true
 	end
 
