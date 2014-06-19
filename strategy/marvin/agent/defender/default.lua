@@ -11,9 +11,6 @@ function Default:check()
 end
 
 function Default:_updateTask()
-	self._futureBall = self._futureBall or {}
-	self._futureBall.pos = Goal.predictShot()
-
 	local role = self._inbox.roleAssignment().trainer
 	if role and role.name == "CenterBack" then
 		return CenterBack, {World.Ball}
