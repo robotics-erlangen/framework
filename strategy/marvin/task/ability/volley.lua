@@ -1,19 +1,15 @@
-local Class = require "../base/class"
-local Volley = Class.newTask("Task.Volley", require "task/shoot")
+local Volley = {}
 
-local MovingAverage = require "learning/movingaverage"
 local World = require "../base/world"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local Ball = require "observer/ball"
-local Processor = require "../base/processor"
+local ToTarget = require "trajectory/totarget"
 
 
-function Volley:init(...)
-	Class.parent(Volley).init(self, ...)
+function Volley:init()
 	self._ballIncoming = true
 	self._shooting = false
-	self._ballInDribblerPos = self._robot.pos
 
 	self._v_in = nil
 	self._alpha = nil
@@ -52,8 +48,11 @@ function Volley:_Jf(v_s, phi)
 	return xdv_s, xdphi, ydv_s, ydphi
 end
 
-
-function Volley:_volley(targetPos, targetSpeed)
+--- performs a volley shot without actively catching the ball
+-- @param viewPos Vector - the ball's position when it touches the dribbler
+-- @param targetPos Vector - where to shoot at
+-- @param targetSpeed number - how fast the Ball should arrive at targetPos
+function Volley:_volley(viewPos, targetPos, targetSpeed)
 
 	-- init v_in and alpha
 	if self._ballIncoming then
@@ -63,8 +62,8 @@ function Volley:_volley(targetPos, targetSpeed)
 	end
 
 	-- init v_out_x and v_out_y
-	local dist = targetPos:distanceTo(self._ballInDribblerPos)
-	local dirToTarget = (targetPos - self._ballInDribblerPos):normalize()
+	local dist = targetPos:distanceTo(viewPos)
+	local dirToTarget = (targetPos - viewPos):normalize()
 	local abs_v_out = math.min(self._robot:calculateShootSpeed(targetSpeed, dist), self._robot.maxShotLinear)
 	self._v_out_x = dirToTarget.x * abs_v_out
 	self._v_out_y = dirToTarget.y * abs_v_out
@@ -81,11 +80,7 @@ function Volley:_volley(targetPos, targetSpeed)
 		local det = j11 * j22 - j21 * j12
 		local k11, k12, k21, k22 = j22/det, -j12/det, -j21/det, j11/det
 
-		--log("J = " .. j11 .. "  " .. j12 .. "  " .. j21 .. "  " .. j22)
-		--log("K = " .. k11 .. "  " .. k12 .. "  " .. k21 .. "  " .. k22)
-
 		local fx, fy = self:_f(v_s, phi)
-		--log("x/y = " .. fx .. "  " .. fy)
 
 		local v_s_new = v_s - (k11 * fx + k12 * fy)
 		local phi_new = phi - (k21 * fx + k22 * fy)
@@ -108,20 +103,15 @@ function Volley:_volley(targetPos, targetSpeed)
 
 		local viewPoint = self._robot.pos + Vector.fromAngle(phi):scaleLength(10000)
 		vis.addPath("Volley Iterations", {self._robot.pos, viewPoint}, vis.colors.greenHalf)
-
-
-		--log("(" .. i .. ") v_s: " .. v_s .. "      phi: " .. phi)
 	end
 
-	--log("angle: " .. phi .. "   speed: " .. v_s)
 
-	-- catch the ball
-	local viewPoint = self._ballInDribblerPos + Vector.fromAngle(phi):scaleLength(10000)
-	local catchPos = self:_catchBall(viewPoint)
-	self._ballInDribblerPos = catchPos + Vector.fromAngle(phi) * (self._robot.shootRadius + World.Ball.radius)
+	-- position the robot to receive the pass
+	local robotPos = viewPos - Vector.fromAngle(phi):scaleLength(
+				World.Ball.radius + self._robot.shootRadius)
+	self._robot.trajectory:update(ToTarget, robotPos, phi)
 
-
-	-- shoot if the robot looks in the right direction
+	-- only shoot if the robot looks about in the right direction
 	local angle_error = math.abs(geom.getAngleDiff(self._robot.dir, phi))
 	if angle_error < 4 / 180 * math.pi then
 		self._shooting = true
@@ -133,8 +123,9 @@ function Volley:_volley(targetPos, targetSpeed)
 	end
 
 	vis.addCircle("Volley", targetPos, 0.1, vis.colors.redHalf, true)
-	vis.addPath("Volley", {self._ballInDribblerPos, viewPoint}, vis.colors.green)
-	vis.addPath("Volley", {self._ballInDribblerPos, targetPos}, vis.colors.red)
+	local viewPoint = Vector.fromAngle(phi, 10000)
+	vis.addPath("Volley", {viewPos, viewPoint}, vis.colors.green)
+	vis.addPath("Volley", {viewPos, targetPos}, vis.colors.red)
 
 
 	if self._robot:hasBall(World.Ball) then
@@ -142,8 +133,6 @@ function Volley:_volley(targetPos, targetSpeed)
 	elseif Ball.isShot() then
 		self._ballIncoming = true
 	end
-
-	return self._ballInDribblerPos
 end
 
 return Volley

@@ -1,4 +1,9 @@
-local ChipAway = (require "../base/class").newTask("Task.ChipAway", require "task/shoot")
+-- load abilities
+local CatchBall = require "task/ability/catchball"
+local Shoot = require "task/ability/shoot"
+
+local ChipAway = (require "../base/class").newTask("Task.ChipAway", require "task/base",
+		CatchBall, Shoot)
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"

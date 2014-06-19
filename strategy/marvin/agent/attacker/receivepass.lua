@@ -8,7 +8,7 @@ local Robot = require "observer/robot"
 local Rating = require "util/rating"
 local Referee = require "../base/referee"
 
-local ReceivePassTask = require "task/receivepass"
+--local ReceivePassTask = require "task/receivepass"
 local PassTarget = require "task/passtarget"
 
 -- the agent can become passReceiver if the last passTarget notification
@@ -27,7 +27,7 @@ function ReceivePass:check()
 		self._forceKeepingInPool = true
 	end
 
-	if self._catchingPass then
+	if self._catchingPass then --[[
 		local friendlyBallOwner = Ball.friendlyBallOwner()
 		-- ignore the ball owner until the ball has moved away from it
 		if friendlyBallOwner == self._ballShooter then
@@ -44,7 +44,8 @@ function ReceivePass:check()
 
 		-- make sure that nobody else becomes passReceiver or mainAttacker
 		self._send.exclusiveRole("trainer", { passReceiver = 2, mainAttacker = 2 })
-		return true
+		return true]]
+		return false
 	elseif self._targetTimer and World.Time - self._targetTimer < passTargetTimeout then
 		-- apply for becoming pass receiver
 		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
@@ -64,7 +65,7 @@ end
 
 function ReceivePass:_updateTask()
 	if self._catchingPass then
-		return ReceivePassTask
+		return PassTarget
 	else
 		return PassTarget
 	end

@@ -16,7 +16,7 @@ local KickoffDefensive = require "agent/attacker/kickoffdefensive"
 local Messaging = require "control/messaging"
 
 Attacker._behaviors = {
-	ReceivePass,
+--	ReceivePass,
 	ApplyForMainattacker,
 	Stop,
 	KickoffOffensive,

@@ -467,7 +467,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	--TODO: fully implement robot rotation, also handle case that distance left is zero
 	local limitRot = 2 * math.pi
 	local errorPhi = geom.getAngleDiff(robotDir, Coordinates.toGlobal(targetDir))
-	local angularSpeed = math.bound(-limitRot, 3 * errorPhi, limitRot)
+	local angularSpeed = math.bound(-limitRot, 5 * errorPhi, limitRot)
 
 	local waypoints = self:_getPath(targetPos)
 	if #waypoints == 0 then -- no waypoints left, just stay here but also update the orientation

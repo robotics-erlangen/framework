@@ -1,16 +1,27 @@
-local ShootGoal = (require "../base/class").newTask("Task.ShootGoal", require "task/volley")
+-- load abilities
+local CatchBall = require "task/ability/catchball"
+local ReceivePass = require "task/ability/receivepass"
+local Volley = require "task/ability/volley"
+local Shoot = require "task/ability/shoot"
+
+local ShootGoal = (require "../base/class").newTask("Task.ShootGoal", require "task/base",
+		CatchBall, ReceivePass, Volley, Shoot)
 
 local Goal = require "observer/goal"
 local Shoot = require "observer/shoot"
-
-local Volley = require "task/volley"
+local Robot = require "observer/robot"
+local Ball = require "observer/ball"
 
 local World = require "../base/world"
-local G = World.Geometry
-local Interval = require "util/interval"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
+local G = World.Geometry
+
+local Interval = require "util/interval"
+local Random = require "util/random"
+
+
 
 -- how much to move the shoot pos towards the corner
 -- (0 = mid of sector, 1 = straight towards the corner)
@@ -31,6 +42,92 @@ local function robotList(selfRobot, viewPos, ignoreGoalie)
 	return robots
 end
 
+local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError)
+	local ratingVolleyMaxAngle = 90 /180*math.pi
+
+	local rotateAngle = World.Ball.speed:absoluteAngleDiff(ballPos - targetPoint)
+	local rotateRating = 1 - rotateAngle/ratingVolleyMaxAngle
+	rotateRating = rotateRating * rotateRating
+
+	local distRating = 1 - dist/intervalLength
+	distRating = distRating * distRating
+
+	local goalRating = maxAngleError
+
+	return rotateRating * (distRating + goalRating)
+end
+
+function ShootGoal:guessFirstPassReceiptPosition()
+	local sampleTimeInterval = 1
+	local sampleCount = 10
+	local sampleMinPosStep = 0.05
+	local timeBuffer = 0.3
+
+
+
+	local minTime = Robot.minTimeToBall(self._robot, World.Ball) + timeBuffer
+	local maxTime = minTime + sampleTimeInterval
+	local minPos = Ball.atTime(minTime, World.Ball).pos
+	local maxPos = Ball.atTime(maxTime, World.Ball).pos
+	local intervalLength = minPos:distanceTo(maxPos)
+	local intervalDir = (maxPos - minPos):normalize()
+	local sampleStep = math.max(sampleMinPosStep, intervalLength/sampleCount)
+
+	local sampleResults = {}
+
+	for dist = 0, intervalLength, sampleStep do
+		local ballPos = minPos + intervalDir * dist
+		vis.addCircle("BALL", ballPos, 0.1, vis.colors.redHalf, true)
+
+
+		self:_calculateDestination(ballPos, false)
+
+		local rating = rate(ballPos, self.targetPoint, dist, intervalLength, self.maxAngleError)
+		table.insert(sampleResults, {["target"] = self.targetPoint,
+									 ["view"] = ballPos,
+									 ["rating"] = rating})
+	end
+
+	local best = nil
+	for _,result in ipairs(sampleResults) do
+		if not best or result.rating > best.rating then
+			best = result
+		end
+	end
+
+	return best.target, best.view
+end
+
+function ShootGoal:improvePassReceiptPosition(ballPos)
+	local sampleCount = 5
+	local sampleVariance = 0.03
+
+	local sampleResults = {}
+	local dir = World.Ball.speed:copy():normalize()
+	for i = 1,sampleCount do
+		local rand = Random.standard_normal_distributed_number()
+		local pos = ballPos + dir * rand * sampleVariance
+		vis.addCircle("BALL", pos, 0.1, vis.colors.redHalf, true)
+
+		self:_calculateDestination(pos, false)
+
+		local rating = rate(pos, self.targetPoint, 0, 1, self.maxAngleError)
+		table.insert(sampleResults, {["target"] = self.targetPoint,
+									 ["view"] = ballPos,
+									 ["rating"] = rating})
+	end
+
+	local best = nil
+	for _,result in ipairs(sampleResults) do
+		if not best or result.rating > best.rating then
+			best = result
+		end
+	end
+
+	vis.addCircle("BALL", best.view, 0.08, vis.colors.yellowHalf, true)
+	return best.target, best.view
+end
+
 -- updates at most once per frame:
 -- self.bestIndex number - which index in self.freeSectors is the best one, if any
 -- self.bestMid number - the angle towards the best point in the goal (from ball pos)
@@ -41,22 +138,24 @@ function ShootGoal:updateDestination()
 	end
 	self._timestamp = World.Time
 
+
+
+	local viewPos = World.Ball.pos
+
 	-- calculate free sectors considering the opponent goalie
-	self:_calculateDestination(false)
+	self:_calculateDestination(viewPos, false)
 	self.sectorClean = true
 
 	-- if there is no clean sector,
 	-- 1. ignore the goalie
 	-- 2. check for ricochet opportunities
 	if not self.bestMid or self.maxAngleError < Settings.minAnglePrecision then
-		self:_calculateDestination(true)
+		self:_calculateDestination(viewPos, true)
 		self.sectorClean = false
 	end
 end
 
-function ShootGoal:_calculateDestination(ignoreGoalie)
-	local viewPos = self._viewPos or World.Ball.pos
-
+function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
 	local goalStart = (World.Geometry.OpponentGoalRight - viewPos):angle() -- direction of the first goalpost
 	local goalEnd = (World.Geometry.OpponentGoalLeft - viewPos):angle() -- direction of the other goalpost
 
@@ -65,7 +164,7 @@ function ShootGoal:_calculateDestination(ignoreGoalie)
 	local bestRating = -math.huge
 	local bestMid = nil
 	local bestWidth = 0
-	local bestAngleError = nil
+	local bestAngleError = 0
 
 	if ignoreGoalie and World.OpponentKeeper then
 		local interval, min, max = self:checkForRicochet()
@@ -175,18 +274,6 @@ function ShootGoal:checkForRicochet(viewPos)
 	end
 end
 
-function ShootGoal:_init(minPrecision)
-	self._viscolor = nil
-	self.bestMid = nil
-	self.targetPoint = nil
-	self.maxAngleError = nil
-	self.sectorClean = nil
-	self._viewPos = nil
-	self._bestMid = G.OpponentGoal
-	self._minPrecision = minPrecision or 2.5 / 180 * math.pi
-	self._timestamp = 0
-end
-
 function ShootGoal:getDecisionMakingBasis()
 	self:updateDestination()
 	return self.targetPoint, self.maxAngleError, self.sectorClean
@@ -205,20 +292,58 @@ function ShootGoal:_canShoot()
 	end
 end
 
+
+
+function ShootGoal:_init(minPrecision, receivepassHint)
+	self._minPrecision = minPrecision or 2.5 / 180 * math.pi
+	self._viewPosLockDistance = 0.05
+
+	self._viscolor = nil
+	self.bestMid = nil
+	self.targetPoint = nil
+	self.maxAngleError = nil
+	self.sectorClean = nil
+	self._viewPos = nil
+	self._viewPosLocked = false
+	self._bestMid = G.OpponentGoal
+	self._timestamp = 0
+
+	-- because of the 1 frame delay this agent still gets the last message of the previous mainAttacker
+	self._receivePass = receivepassHint or false
+	for _,_ in pairs(self._inbox.passSender()) do
+		self._receivePass = true
+	end
+end
+
 function ShootGoal:run()
-	self:updateDestination()
+	if self._receivePass then
+		if not self._viewPos then
+			self.targetPoint, self._viewPos = self:guessFirstPassReceiptPosition()
+		end
+		if not self._viewPosLocked then
+			self.targetPoint, self._viewPos = self:improvePassReceiptPosition(self._viewPos)
+		end
 
-	if not self.targetPoint then
-		log("WARNING: no valid targetPoint for ShootGoal")
-		self.targetPoint = G.OpponentGoal
+		if World.Ball.pos:distanceTo(self._viewPos) < self._viewPosLockDistance then
+			self._viewPosLocked = true
+		end
+
+		self:_volley(self._viewPos, self.targetPoint, math.huge)
+
+		-- if angle geeignet fuer volley then
+			-- volley
+		-- else
+			-- receivePass
+			-- shoot
+		-- end
+	else
+		self:updateDestination()
+		self:_shoot(self.targetPoint, math.huge, true)
+
+		if self.maxAngleError then
+			debug.set("maxAngleError (deg)", self.maxAngleError * 180 / math.pi)
+		end
 	end
-
-	if self.maxAngleError then
-		debug.set("maxAngleError (deg)", self.maxAngleError * 180 / math.pi)
-	end
-
-	-- TODO discuss if the layer above (a/a/shoot) should choose between volley and shoot instead
-	self._viewPos = self:_volley(self.targetPoint, math.huge, true)
 end
 
 return ShootGoal

@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local Shoot = (require "../base/class").new("Agent.Attacker.Shoot", Base)
 local World = require "../base/world"
 local Robot = require "observer/robot"
+local Rating = require "util/rating"
 local ObserverShoot = require "observer/shoot"
 
 local MoveNearBall = require "task/movenearball"

@@ -1,5 +1,4 @@
-local Class = require "../base/class"
-local CatchBall = (require "../base/class").newTask("Task.CatchBall", require "task/base")
+local CatchBall = {}
 
 local World = require "../base/world"
 local Constants = require "../base/constants"
@@ -12,11 +11,12 @@ local debug = require "../base/debug"
 local Field = require "util/field"
 local Referee = require "../base/referee"
 
-function CatchBall:init(...)
-	Class.parent(CatchBall).init(self, ...)
+
+function CatchBall:init() 
 	self._lastBallSpeed = nil
 	self._catchTime = nil
 end
+
 
 --- Tries to catch the ball, is designed for catching a moving ball
 -- @param targetPos Vector - point to look at when having catched the ball
@@ -144,8 +144,6 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	debug.set("catchtime", self._catchTime)
 	vis.addCircle("CatchBall", Ball.atTime(self._catchTime, ball).pos, predictedBall.radius, vis.colors.blueHalf)
 	self._lastBallSpeed = ball.speed
-
-	return moveDest
 end
 
 function CatchBall:_isBlockingBall(currentBall, predictedBall, moveDest)

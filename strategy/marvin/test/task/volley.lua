@@ -87,13 +87,13 @@ local function run()
 		})
 		agent2 = TestAgent.create(robot2, {
 			task = DirectPass,
-			parameters = {robot1, true, 1}
+			parameters = {robot1, true}
 		})
 		initialized = true
 	elseif state == "shoot" and not initialized then
 		agent1 = TestAgent.create(robot1, {
 			task = ShootGoal,
-			parameters = {}
+			parameters = {nil, true}
 		})
 		agent2 = TestAgent.create(robot2, {
 			task = Halt,

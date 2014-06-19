@@ -1,4 +1,5 @@
-local ReceivePass = (require "../base/class").newTask("Task.ReceivePass", require "task/catchball")
+-- depends on catchball
+local ReceivePass = {}
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
@@ -7,7 +8,7 @@ local Robot = require "observer/robot"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
 
-function ReceivePass:run()
+function ReceivePass:_receivePass()
 	local perpPos = self._robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
 	local moveTime = Robot.sidewardsTime(self._robot, World.Ball)
 	local ballTime = Ball.ballRollTime(World.Ball.speed:length(), (perpPos-World.Ball.pos):length())

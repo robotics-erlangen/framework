@@ -1,5 +1,5 @@
-local Class = require "../base/class"
-local Shoot = Class.newTask("Task.Shoot", require "task/catchball")
+-- depends on catchball
+local Shoot = {}
 
 local Constants = require "../base/constants"
 local World = require "../base/world"
@@ -9,16 +9,12 @@ local geom = require "../base/geom"
 local Observer = {}
 Observer.Shoot = require "observer/shoot"
 
-function Shoot:init(...)
-	Class.parent(Shoot).init(self, ...)
+
+function Shoot:init()
 	self._shootHysteresis = false
 	self._travelStart = nil
 	self._travelLimit = false
 	self._ballInDribblerPos = nil
-end
-
-function Shoot:_canShoot()
-	error("stub")
 end
 
 -- if probability is higher than that threshold, the task will shoot immediatelly
@@ -123,14 +119,12 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		self._travelStart = nil
 		self._travelLimit = false
 		-- just catch the ball, but keep a little distance to allow braking the robot
-		local catchPos = self:_catchBall(targetPos, Constants.positionError)
-		self._ballInDribblerPos = catchPos + (targetPos - catchPos):
-				setLength(self._robot.shootRadius + World.Ball.radius)
+		self:_catchBall(targetPos, Constants.positionError)
+
 	end
 	if (not self._catchTime) or self._catchTime < 0.5 then
 		self._send.shootDestination("all", targetPos)
 	end
-	return self._ballInDribblerPos
 end
 
 return Shoot

@@ -1,4 +1,4 @@
-local MoveToStaticBall = (require "../base/class").newTask("Task.MoveToStaticBall", require "task/catchball")
+local MoveToStaticBall = (require "../base/class").newTask("Task.MoveToStaticBall", require "task/base")
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
