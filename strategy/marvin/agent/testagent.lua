@@ -16,6 +16,7 @@ function TestAgent:init(robot, assignment)
 	self._task = nil
 	self._assignedTask = nil
 	self._haltBehavior = Halt.create(self)
+	self._send, self._inbox = Messaging.registerAgent(self)
 	if assignment.task then
 		if assignment.parameters then
 			self._assignedTask = assignment.task.create(self, unpack(assignment.parameters))
@@ -31,7 +32,6 @@ function TestAgent:init(robot, assignment)
 	else
 		error "A test-agent needs a task or behavior"
 	end
-	Messaging.registerAgent(self)
 end
 
 function TestAgent:_updateBehavior()
