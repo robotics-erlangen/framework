@@ -7,11 +7,11 @@ local World = require "../base/world"
 
 function OldController:reset()
 	self.parameters = {}
-	if (self._robot.generation == 1) then --generation 2009
-		self.parameters.factorProp = 3
-		self.parameters.k_omega = 2
-		self.parameters.limitRot = 4 * math.pi
-	elseif (self._robot.generation == 2) then --generation 2011
+	if self._robot.generation == 2 then --generation 2012
+		self.parameters.factorProp = 5
+		self.parameters.k_omega = 3
+		self.parameters.limitRot = 2 * math.pi
+	elseif self._robot.generation == 3 then --generation 2014
 		self.parameters.factorProp = 5
 		self.parameters.k_omega = 3
 		self.parameters.limitRot = 2 * math.pi
