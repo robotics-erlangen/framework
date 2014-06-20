@@ -5,7 +5,8 @@ module "Robot.Generation"
 local Robot = require "../base/robot"
 local Generation = {
 	Gen2010_1 = require "../base/robots/generation2010",
-	Gen2012_2 = require "../base/robots/generation2012"
+	Gen2012_2 = require "../base/robots/generation2012",
+	Gen2014_3 = require "../base/robots/generation2014"
 }
 
 local constantsMt = { __index = Robot.constants }
