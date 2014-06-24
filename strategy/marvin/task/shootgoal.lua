@@ -83,10 +83,24 @@ function ShootGoal:guessFirstPassReceiptPosition()
 	for dist = 0, intervalLength, sampleStep do
 		local ballPos = minPos + intervalDir * dist
 
-		-- only consider catch positions inside the field
-		if not Field.isInField(ballPos, -self._robot.radius) and next(sampleResults) ~= nil then
-			break
+		-- if there is at least one valid position
+		if next(sampleResults) ~= nil then
+			-- only consider catch positions inside the field
+			if not Field.isInField(ballPos, -self._robot.radius) then break end
+			-- don't sample into opponent robots
+			local stop_sampling = false
+			for _,r in ipairs(World.OpponentRobots) do
+				local dx = r.pos.x - ballPos.x
+				local dy = r.pos.y - ballPos.y
+				local d = self._robot.radius * 2 + r.radius
+				if dx * dx + dy * dy < d * d then
+					stop_sampling = true
+					break
+				end
+			end
+			if stop_sampling then break end
 		end
+
 
 
 		vis.addCircle("BALL", ballPos, 0.1, vis.colors.redHalf, true)
@@ -325,6 +339,7 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 	self._receivePass = receivepassHint or false
 	for _,_ in pairs(self._inbox.passSender()) do
 		self._receivePass = true
+		break
 	end
 end
 
