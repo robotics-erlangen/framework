@@ -20,6 +20,7 @@ local G = World.Geometry
 
 local Interval = require "util/interval"
 local Random = require "util/random"
+local Field = require "util/field"
 
 
 
@@ -54,7 +55,9 @@ local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError)
 
 	local goalRating = maxAngleError
 
-	return rotateRating * (distRating + goalRating)
+	local finalRating = rotateRating * distRating * goalRating
+	log(finalRating * 10000)
+	return finalRating
 end
 
 function ShootGoal:guessFirstPassReceiptPosition()
@@ -77,6 +80,13 @@ function ShootGoal:guessFirstPassReceiptPosition()
 
 	for dist = 0, intervalLength, sampleStep do
 		local ballPos = minPos + intervalDir * dist
+
+		-- only consider catch positions inside the field
+		if not Field.isInField(ballPos, -self._robot.radius) and next(sampleResults) ~= nil then
+			break
+		end
+
+
 		vis.addCircle("BALL", ballPos, 0.1, vis.colors.redHalf, true)
 
 
@@ -87,6 +97,8 @@ function ShootGoal:guessFirstPassReceiptPosition()
 									 ["view"] = ballPos,
 									 ["rating"] = rating})
 	end
+
+	error()
 
 	local best = nil
 	for _,result in ipairs(sampleResults) do
