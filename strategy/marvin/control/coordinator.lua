@@ -194,13 +194,15 @@ function Coordinator:_chooseManMarkAndCenterBacks()
 	table.sort(self._oppsToMark, distToFriendlyGoal)
 
 	local unassigned = table.copy(self._pools.defense:robots())
+	-- cbs are "pure" if they defend the ball and are close to the defense area
 	local pureCenterBacks = {}
 	local pureCenterBacksArray = {}
 	-- pure centerbacks are treated as unassigned until there is only 1 left
 	local markedOpps = {}
 	local defaultCenterBack
 	for robot, target in pairs(self._inbox.centerbackTarget()) do
-		if target == World.Ball then
+		if target == World.Ball and
+				Field.distanceToFriendlyDefenseArea(robot.pos, robot.radius) < 4*robot.radius then
 			table.insert(pureCenterBacksArray, robot)
 			pureCenterBacks[robot] = true
 		elseif table.contains(self._oppsToMark, target) then
