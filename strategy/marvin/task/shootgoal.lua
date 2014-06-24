@@ -351,7 +351,13 @@ function ShootGoal:run()
 		-- end
 	else
 		self:updateDestination()
-		self:_shoot(self.targetPoint, math.huge, true)
+		if self.bestMid then
+			self:_shoot(self.targetPoint, math.huge, true)
+		else
+			local somewhereNearTheGoal = World.Geometry.OpponentGoal + Vector.create(0, -0.3)
+			self:_shoot(somewhereNearTheGoal, math.huge, false)
+		end
+
 
 		if self.maxAngleError then
 			debug.set("maxAngleError (deg)", self.maxAngleError * 180 / math.pi)
