@@ -55,8 +55,10 @@ local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError)
 
 	local goalRating = maxAngleError
 
-	local finalRating = rotateRating * distRating * goalRating
-	log(finalRating * 10000)
+	--log(math.floor(rotateRating * 100) .. "   " .. math.floor(goalRating * 100))
+
+	-- ignore distance rating for now...
+	local finalRating = rotateRating * goalRating
 	return finalRating
 end
 
@@ -98,7 +100,6 @@ function ShootGoal:guessFirstPassReceiptPosition()
 									 ["rating"] = rating})
 	end
 
-	error()
 
 	local best = nil
 	for _,result in ipairs(sampleResults) do
