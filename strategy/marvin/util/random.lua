@@ -1,6 +1,6 @@
 local Random = {}
 
-function Random.standard_normal_distributed_number()
+function Random.standardNormalDistributedNumber()
 	local u, neg
 	repeat
 		u = math.random() * 2 - 1
@@ -13,6 +13,13 @@ function Random.standard_normal_distributed_number()
 	if neg then z = -z end
 
 	return z
+end
+
+
+function Random.standardNormalDistributedVector()
+	local u1 = Random.standardNormalDistributedNumber()
+	local angle = math.random() * 2 * math.pi
+	return Vector.create(u1 * cos(angle), u1 * sin(angle))
 end
 
 return Random

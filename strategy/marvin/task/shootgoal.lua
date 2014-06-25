@@ -132,9 +132,12 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 	local sampleResults = {}
 	local dir = World.Ball.speed:copy():normalize()
 	for i = 1,sampleCount do
-		local rand = Random.standard_normal_distributed_number()
-		local pos = ballPos + dir * rand * sampleVariance
-		vis.addCircle("BALL", pos, 0.1, vis.colors.redHalf, true)
+		local pos = ballPos
+		if i > 1 then
+			local rand = Random.standardNormalDistributedNumber()
+			pos = ballPos + dir * rand * sampleVariance
+		end
+		--vis.addCircle("BALL", pos, 0.1, vis.colors.redHalf, true)
 
 		self:_calculateDestination(pos, false)
 
