@@ -12,7 +12,7 @@ local Field = require "util/field"
 local Referee = require "../base/referee"
 
 
-function CatchBall:init() 
+function CatchBall:init()
 	self._lastBallSpeed = nil
 	self._catchTime = nil
 end
@@ -129,6 +129,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	endSpeed:rotate(viewDir)
 
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
+	self._send.moveDest("all", moveDest)
 	-- keep old time if no way was found
 	if time > 0 then
 		-- damp large value changes

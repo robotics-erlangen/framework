@@ -73,13 +73,18 @@ function Striker:_xLine()
 	table.sort(strikers, cmpByX)
 
 	if numAttackers > #strikers then
-		-- remove line closest to ball, because mainAttacker will be there
+		-- remove line of mainAttacker
+		local mainAttacker = self._inbox.mainAttacker().trainer
+		local mAPosX = ballPos.x -- fallback
+		if mainAttacker and self._inbox.moveDest()[mainAttacker] then
+			mAPosX = self._inbox.moveDest()[mainAttacker].x
+		end
 		for i, x in ipairs(xLines) do
-			if ballPos.x < x or i == #xLines then
+			if mAPosX < x or i == #xLines then
 				table.remove(xLines, i)
 				break
-			elseif ballPos.x < xLines[i+1] then
-				if math.abs(ballPos.x - x) < math.abs(ballPos.x - xLines[i+1]) then
+			elseif mAPosX < xLines[i+1] then
+				if math.abs(mAPosX - x) < math.abs(mAPosX - xLines[i+1]) then
 					table.remove(xLines, i)
 					break
 				else
