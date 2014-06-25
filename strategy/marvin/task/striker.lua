@@ -237,11 +237,15 @@ function Striker:_passSuggestion()
 
 	local passPos, passKind
 	local bestRating = 0
+	local goal = World.Geometry.OpponentGoal
 
 	-- check for directpass
 	if Robot.wayToRobotFree(self._robot, mainAttacker) then
 		local biggestInterval = Goal.largestFreeSector(self._robot.pos, World.OpponentRobots, true)
 		bestRating = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0.001
+		local angle = (self._robot.pos-goal):absoluteAngleDiff(World.Ball.pos-goal)
+		debug.set("angle", angle)
+		bestRating = bestRating * angle
 		passKind = "direct"
 	end
 
@@ -271,8 +275,11 @@ function Striker:_passSuggestion()
 					if timeAdvance < timeTolerance then
 						local biggestInterval = Goal.largestFreeSector(p, World.OpponentRobots, true)
 						local rating = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0.001
+						local angle = (p-goal):absoluteAngleDiff(World.Ball.pos-goal)
+						rating = rating * angle
 						if rating > bestRating then
-							bestRating = rating + timeAdvance -- TODO a little more reasoning about rating
+							debug.set("angle", angle)
+							bestRating = rating
 							passPos = p
 							passKind = "in the run"
 						end
