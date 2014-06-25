@@ -131,6 +131,7 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 
 	local sampleResults = {}
 	local dir = World.Ball.speed:copy():normalize()
+	ballPos = World.Ball.pos + dir * World.Ball.pos:distanceTo(ballPos)
 	for i = 1,sampleCount do
 		local pos = ballPos
 		if i > 1 then
