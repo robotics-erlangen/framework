@@ -17,9 +17,8 @@ end
 
 
 function Random.standardNormalDistributedVector()
-	local u1 = Random.standardNormalDistributedNumber()
-	local angle = math.random() * 2 * math.pi
-	return Vector.create(u1 * cos(angle), u1 * sin(angle))
+	local r = Random.standardNormalDistributedNumber()
+	return Vector.fromAngle(math.random() * 2 * math.pi) * r
 end
 
 return Random
