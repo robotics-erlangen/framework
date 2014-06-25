@@ -359,6 +359,7 @@ function ShootGoal:run()
 			self._viewPosLocked = true
 		end
 
+		debug.set("type", "volley")
 		self:_volley(self._viewPos, self.targetPoint, math.huge)
 
 		-- if angle geeignet fuer volley then
@@ -370,9 +371,15 @@ function ShootGoal:run()
 	else
 		self:updateDestination()
 		if self.bestMid then
+			if self.sectorClean then
+				debug.set("type", "shoot (clean)")
+			else
+				debug.set("type", "shoot (dirty)")
+			end
 			self:_shoot(self.targetPoint, math.huge, true)
 		else
 			local somewhereNearTheGoal = World.Geometry.OpponentGoal + Vector.create(0, -0.3)
+			debug.set("type", "chip")
 			self:_shoot(somewhereNearTheGoal, math.huge, false)
 		end
 
