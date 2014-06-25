@@ -28,6 +28,7 @@ local preproc = (require "../base/class").new("Process.PreProc", require "../bas
 function preproc:run()
     Robot.estimateOpponentDynamics()
     Robot._updateHadBall()
+    Referee.checkTouching()
     Referee.illustrateRefereeStates()
 end
 function preproc:isFinished()

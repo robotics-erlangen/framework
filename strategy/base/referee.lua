@@ -1,6 +1,7 @@
 local Referee = {}
 local World = require "../base/world"
 local vis = require "../base/vis"
+local robotRadius = (require "../base/constants").maxRobotRadius -- avoid table lookups for speed reasons
 
 -- states, in which we must keep a dist of 50cm
 local stopStates = {
@@ -52,6 +53,29 @@ function Referee.illustrateRefereeStates()
 	elseif Referee.isStopState() then
 		vis.addCircle("stopstateBallDist", World.Ball.pos, 0.5, vis.colors.redHalf, true)
 	end
+end
+
+local lastTeam = true -- true for the friendly team, false for the opponent
+local touchDist = World.Ball.radius+robotRadius
+function Referee.checkTouching()
+	local ballPos = World.Ball.pos
+	-- pessimistic approach: when we are at the ball, our team is considered touching
+	for _, robot in ipairs(World.FriendlyRobots) do
+		if robot.pos:distanceTo(ballPos) <= touchDist then
+			lastTeam = true
+			return
+		end
+	end
+	for _, robot in ipairs(World.OpponentRobots) do
+		if robot.pos:distanceTo(ballPos) <= touchDist then
+			lastTeam = false
+			return
+		end
+	end
+end
+
+function Referee.friendlyTouchedLast()
+	return lastTeam
 end
 
 return Referee
