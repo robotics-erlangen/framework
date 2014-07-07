@@ -54,8 +54,9 @@ function FreeKick:_updateTask()
 	local distanceToBall = 0.05
 
 	-- if there's still time and we don't have the ball
-	local notAtBall = self._robot.pos:distanceTo(World.Ball.pos) >
-			self._robot.radius + World.Ball.radius + distanceToBall + Settings.positionPadding
+	local notAtBall = (self._robot.pos:distanceTo(World.Ball.pos) >
+			self._robot.radius + World.Ball.radius + distanceToBall + Settings.positionPadding)
+		and (math.abs(self._robot.dir - (World.Ball.pos - self._robot.pos):angle()) < 3 * math.pi/180)
 	if ((World.Time - self._startTime < 5 and notAtBall) or not self._robot:isCharged())
 			and not self._atBall then
 		return MoveToStaticBall, {math.pi/2, distanceToBall}
