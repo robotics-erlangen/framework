@@ -195,6 +195,36 @@ function Ball.atTime(t, ball)
 	return predicted
 end
 
+function Ball.receivesPass(robot)
+	local slowBall = 0.7 -- random value
+	local timeAdvance = 0.5 -- somewhat random value
+
+	-- if the initial ball speed is too low
+	if World.Ball.speed:length() < slowBall then
+		return false
+	end
+
+	local farAway = World.Ball.pos + World.Ball.speed:copy():setLength(100)
+	local catchPos = robot.pos:nearestPosOnLine(World.Ball.pos, farAway)
+	local robotTime = ObserverRobot.timeToPos(robot, catchPos)
+	local ballTime = Ball.ballRollTime(World.Ball.speed:length(), (catchPos - World.Ball.pos):length())
+
+	-- if the robot is not fast enough
+	if robotTime > ballTime + timeAdvance then
+		return false
+	end
+
+	local futureBall = Ball.atTime(ballTime)
+
+	-- if the catch ball speed is too low
+	if futureBall.speed:length() < slowBall then
+		return false
+	end
+
+	return true
+end
+
+
 --- Calculates the probability that the given opponent robot catches the ball
 -- @param robot Robot - opponent robot
 -- @param shootTime number - how long to wait before shoot

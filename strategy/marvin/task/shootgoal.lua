@@ -343,32 +343,37 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 	self._receivePass = receivepassHint or false
 	for _,_ in pairs(self._inbox.passSender()) do
 		self._receivePass = true
-		break
+		return
 	end
+
+	self._receivePass = Ball.receivesPass(self._robot)
 end
 
 function ShootGoal:run()
+	log(self._receivePass)
 	if self._receivePass then
+
+		-- calculate the best pass receipt position
 		if not self._viewPos then
 			self.targetPoint, self._viewPos = self:guessFirstPassReceiptPosition()
 		end
 		if not self._viewPosLocked then
 			self.targetPoint, self._viewPos = self:improvePassReceiptPosition(self._viewPos)
 		end
-
 		if World.Ball.pos:distanceTo(self._viewPos) < self._viewPosLockDistance then
 			self._viewPosLocked = true
 		end
 
+		-- TODO: if angle is too large, catchBall + shoot instead of volley
 		debug.set("type", "volley")
 		self:_volley(self._viewPos, self.targetPoint, math.huge)
 
-		-- if angle geeignet fuer volley then
-			-- volley
-		-- else
-			-- receivePass
-			-- shoot
-		-- end
+
+		-- reconsider catching the ball if the pass gets messed up
+		if (World.Ball.speed:length() < 0.5 and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
+		or not Field.isInField(Ball.atTime(Robot.minTimeToBall(self._robot, World.Ball)).pos, 0) then
+			self._receivePass = false
+		end
 	else
 		self:updateDestination()
 		if self.bestMid then
