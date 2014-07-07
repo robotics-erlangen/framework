@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local Shoot = (require "../base/class").new("Agent.Attacker.Shoot", Base)
 local World = require "../base/world"
 local Robot = require "observer/robot"
+local Ball = require "observer/ball"
 local Rating = require "util/rating"
 local ObserverShoot = require "observer/shoot"
 
@@ -19,6 +20,12 @@ function Shoot:_stop()
 end
 
 function Shoot:check()
+	if Ball.isShot() then
+		for _,_ in pairs(self._inbox.passSender()) do
+			self._send.exclusiveRole("trainer", {mainAttacker = 2})
+			break
+		end
+	end
 	return self._inbox.mainAttacker().trainer == self._robot
 end
 
@@ -45,7 +52,7 @@ function Shoot:_updateTask()
 		local taskParams
 		if ballFarAway then
 			self._minTasktTime = 0
-			self._taskClass = MoveNearBall
+			self._taskClass = ShootGoal
 		elseif canShootGoal then
 			self._minTaskTime = 1.5
 			self._taskClass = ShootGoal
