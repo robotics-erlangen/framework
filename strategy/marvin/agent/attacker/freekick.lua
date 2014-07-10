@@ -12,73 +12,69 @@ local DirectPass = require "task/directpass"
 local ShootGoal = require "task/shootgoal"
 local MoveToStaticBall = require "task/movetostaticball"
 
+
 function FreeKick:_stop()
-	self._pass = false
-	self._shootTime = 0
 	self._startTime = 0
-	self._cooldown = false
 	self._atBall = false
 end
 
 function FreeKick:check()
+	-- we have to be main attacker
 	if not (self._inbox.mainAttacker().trainer == self._robot) then
 		return false
 	end
 
+	-- update timeout timer
 	if not self._active then
 		self._startTime = World.Time
 	end
 
-	if self._active and not self._cooldown and Ball.isShot() then -- I've shot the ball
-		self._shootTime = World.Time
-		self._cooldown = true
-		return true
-	elseif self._cooldown then
-		local friend = Ball.friendlyBallOwner()
-		if Ball.opponentBallOwner() or (friend ~= nil and friend ~= self._robot) then
-			return false
-		end
-		-- shootgoal has a timeout of 0.5 seconds, 1.0 seconds for passing
-		local timeout = self._pass and 1 or 0.5
-		if self._shootTime + timeout < World.Time then
-			return false
-		end
-		return true
-	elseif World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
+	if World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
 		return true
 	end
+
+	-- rely on applyformainattacker to cancel the freekick
+	-- otherwise we get timing issues because freekick gets cancelled before the main attacker
+	-- gets taken away from us and therefore some other behaviour takes the spot for a few frames
+	if self._active then
+		return true
+	end
+
 	return false
 end
 
 function FreeKick:_updateTask()
-	local distanceToBall = 0.05
+	local nearBallDist = 0.15
+	local hurryUp = 5
 
-	-- if there's still time and we don't have the ball
-	local notAtBall = (self._robot.pos:distanceTo(World.Ball.pos) >
-			self._robot.radius + World.Ball.radius + distanceToBall + Settings.positionPadding)
-		and (math.abs(self._robot.dir - (World.Ball.pos - self._robot.pos):angle()) < 3 * math.pi/180)
-	if ((World.Time - self._startTime < 5 and notAtBall) or not self._robot:isCharged())
-			and not self._atBall then
-		return MoveToStaticBall, {math.pi/2, distanceToBall}
-	else -- let's do this freekick
+	local switchDist = nearBallDist + self._robot.radius + World.Ball.radius + Settings.positionPadding
+	if self._robot.pos:distanceTo(World.Ball.pos) < switchDist then
 		self._atBall = true
-		if World.RefereeState == "IndirectOffensive" then
-			return self:passOrChipTask()
-		else -- DirectOffensive
-			local shootGoalTmp = ShootGoal.create(self._agent)
-			local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
-			local canShootGoal = sg_mae and sg_mae > Settings.minAnglePrecision
-			if canShootGoal then
-				return ShootGoal
-			else
-				self._pass = true
-				return self:passOrChipTask()
-			end
-		end
+	end
+
+	-- if we are not near the ball yet, don't decide what to do
+	if World.Time - self._startTime < hurryUp and not self._atBall then
+		--return MoveToStaticBall, {math.pi/2, nearBallDist}
+	end
+
+	-- if we are forced to perform a pass
+	if World.RefereeState == "IndirectOffensive" then
+		return self:passOrChipTask()
+	end
+
+	-- TODO: fix that ancient crap
+	local shootGoalTmp = ShootGoal.create(self._agent)
+	local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
+	local canShootGoal = sg_mae and sg_mae > Settings.minAnglePrecision
+	if canShootGoal then
+		return ShootGoal
+	else
+		return self:passOrChipTask()
 	end
 end
 
 function FreeKick:passOrChipTask()
+	-- TODO: fix that ancient crap
 	local bestRobot = Shoot.bestFreeAssistant(self._robot)
 	if bestRobot then
 		return DirectPass, {bestRobot, true}
