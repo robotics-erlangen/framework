@@ -31,12 +31,20 @@ local cornerWeight = 0
 -- how much a new best sector should be better than the old one
 local sectorRatingHysteresis = 2
 
+-- the time the opponent robot positions are extrapolated
+local extrapolationTime = 0.2
+
 local function robotList(selfRobot, viewPos, ignoreGoalie)
 	local robots = {}
 	for _,r in pairs(World.Robots) do
 		if r.pos.y > viewPos.y and r ~= selfRobot then
 			if not (ignoreGoalie and r == World.OpponentKeeper) then
-				table.insert(robots, r)
+				local future_robot = {
+					["pos"] = r.pos + r.speed * extrapolationTime,
+					["radius"] = r.radius,
+					["speed"] = r.speed,
+				}
+				table.insert(robots, future_robot)
 			end
 		end
 	end
@@ -126,6 +134,15 @@ function ShootGoal:guessFirstPassReceiptPosition()
 end
 
 function ShootGoal:improvePassReceiptPosition(ballPos)
+	-- if the ball still accelerates, recalculate the pass receipt position
+	local timeBuffer = 0.3
+	local minTime = Robot.minTimeToBall(self._robot, World.Ball) + timeBuffer
+	local minPos = Ball.atTime(minTime, World.Ball).pos
+	if self._robot.pos:distanceTo(ballPos) > self._robot.pos:distanceTo(minPos) then
+		return self:guessFirstPassReceiptPosition()
+	end
+
+
 	local sampleCount = 5
 	local sampleVariance = 0.03
 
