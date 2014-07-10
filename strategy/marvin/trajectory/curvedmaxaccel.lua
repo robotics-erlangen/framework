@@ -447,6 +447,75 @@ local function _injectExponentialFalloff(speedProfile, exponentialTime, exponent
 	return speedProfile
 end
 
+local function _calculateRotation(currentDir, currentOmega, targetDir, accelerate, brake, maxSpeed, exponentialTime)
+	local brakeTime = math.abs(currentOmega / brake)
+	-- how far the robot will rotate even if it brakes with maximum speed
+	local forcedRotation = math.sign(currentOmega) * -brake * brakeTime * brakeTime / 2
+
+	-- FIXME assert: (maxSpeed/maxAccel)^2*maxSpeed/2 < math.pi
+
+	-- required direction change
+	local dirChange = geom.getAngleDiff(currentDir, targetDir)
+
+	-- if the robot is fast enough that rotating with the opposite angle would be faster
+	if math.abs(dirChange - forcedRotation) >= math.pi then
+		if dirChange < 0 then
+			dirChange = dirChange + 2*math.pi
+		else
+			dirChange = dirChange - 2*math.pi
+		end
+	end
+
+	-- v(t) = v_0 * e^(-k*t)  <--> v(dist) = k*dist
+	-- v_0 = expStartSpeed
+	-- v'(0) = brake -> k = 1/exponentialTime
+	local k = 1 / exponentialTime
+	local expStartSpeed = exponentialTime * -brake
+	 -- integrate v(t) from 0 to +inf
+	local expDistance = expStartSpeed*exponentialTime
+
+	local outSpeed
+	local outAccel
+
+	if math.abs(dirChange) <= expDistance then
+		-- exponential part
+		outSpeed = dirChange * k
+		outAccel = 0 -- FIXME
+	elseif math.sign(currentOmega) ~= math.sign(dirChange) then
+		-- robot rotates into the wrong direciton
+		outSpeed = currentOmega
+		outAccel = math.sign(dirChange) * -brake
+	elseif math.abs(currentOmega) <= expStartSpeed then
+		-- robot is slower that the exponential start speed
+		outSpeed = currentOmega
+		outAccel = math.sign(dirChange) * accelerate
+	else
+		-- check whether the robot should brake yet or keep accelerating
+		local brakeTime = (math.abs(currentOmega) - expStartSpeed) / -brake
+		local brakeDist = expDistance + -brake * brakeTime * brakeTime / 2 + expStartSpeed * brakeTime
+
+		if math.abs(dirChange) <= brakeDist then
+			local remainingBrakeTime = math.solveSq(-brake/2, expStartSpeed, expDistance - brakeDist)
+			assert(remainingBrakeTime >= 0)
+			outSpeed = math.sign(dirChange) * (expStartSpeed + remainingBrakeTime * -brake)
+			outAccel = math.sign(dirChange) * brake
+		else
+			-- speed-up
+			local targetSpeed = math.abs(currentOmega)
+			outAccel = math.sign(dirChange) * accelerate
+			-- limit to maxSpeed
+			if targetSpeed >= maxSpeed then
+				targetSpeed = maxSpeed
+				outAccel = 0
+			end
+			outSpeed = targetSpeed * math.sign(dirChange)
+		end
+	end
+
+	return outSpeed, outAccel
+end
+
+
 function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	-- configuration
 	local maxError = 0.03 -- maxError in meters when driving a curve
@@ -456,6 +525,9 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	--TODO exponentialError by distance?
 	local sidewardsErrorFactor = 6 -- used to scale sidewards speed error
 
+	local rotationExponentialTime = 0.2
+	local rotationAccelerationFactor = 0.8
+
 	--insert default values
 	maxSpeed = maxSpeed or self._robot.maxSpeed
 	endSpeed = endSpeed or Vector.create(0, 0)
@@ -464,17 +536,21 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local robotSpeed = Coordinates.toGlobal(self._robot.speed)
 	local robotDir = Coordinates.toGlobal(self._robot.dir)
 
-	--TODO: fully implement robot rotation, also handle case that distance left is zero
-	local limitRot = 2 * math.pi
-	local errorPhi = geom.getAngleDiff(robotDir, Coordinates.toGlobal(targetDir))
-	local angularSpeed = math.bound(-limitRot, 5 * errorPhi, limitRot)
+	local rotAccelerate = math.abs(self._robot.acceleration
+			and self._robot.acceleration.aSpeedupPhiMax or 1.0) * rotationAccelerationFactor
+	local rotBrake = -math.abs(self._robot.acceleration
+			and self._robot.acceleration.aBrakePhiMax or 1.0) * rotationAccelerationFactor
+	local rotMaxSpeed = self._robot.maxAngularSpeed
+
+	local angularSpeed, angularAccel = _calculateRotation(robotDir, self._robot.angularSpeed, Coordinates.toGlobal(targetDir),
+			rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime)
 
 	local waypoints = self:_getPath(targetPos)
 	if #waypoints == 0 then -- no waypoints left, just stay here but also update the orientation
 		local spline = { {t_start = 0, t_end = math.huge,
 			x = { a0 = robotPos.x, a1 = endSpeed.x, a2 = 0, a3 = 0 },
 			y = { a0 = robotPos.y, a1 = endSpeed.y, a2 = 0, a3 = 0 },
-			phi = { a0 = robotDir, a1 = angularSpeed, a2 = 0, a3 = 0}
+			phi = { a0 = robotDir, a1 = angularSpeed, a2 = angularAccel / 2, a3 = 0}
 		} }
 		return {spline = spline}, targetPos, 0
 	end
@@ -534,7 +610,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local spline = { {t_start = 0, t_end = math.huge,
 		x = { a0 = robotPos.x, a1 = speedVector.x, a2 = accelVector.x / 2, a3 = 0 },
 		y = { a0 = robotPos.y, a1 = speedVector.y, a2 = accelVector.y / 2, a3 = 0 },
-		phi = { a0 = robotDir, a1 = angularSpeed, a2 = 0, a3 = 0}
+		phi = { a0 = robotDir, a1 = angularSpeed, a2 = angularAccel / 2, a3 = 0}
 	} }
 
 	local endTime = speedProfile[#speedProfile][1]
