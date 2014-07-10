@@ -350,7 +350,6 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 end
 
 function ShootGoal:run()
-	log(self._receivePass)
 	if self._receivePass then
 
 		-- calculate the best pass receipt position
