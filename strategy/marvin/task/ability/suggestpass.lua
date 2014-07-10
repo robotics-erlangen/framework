@@ -29,6 +29,7 @@ function SuggestPass:_suggestPass()
     local goal = World.Geometry.OpponentGoal
 
     -- check for directpass
+    --[[
     if Robot.wayToRobotFree(self._robot, mainAttacker) then
         local biggestInterval = Goal.largestFreeSector(self._robot.pos, World.OpponentRobots, true)
         bestRating = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0.001
@@ -36,43 +37,55 @@ function SuggestPass:_suggestPass()
         debug.set("angle", angle)
         bestRating = bestRating * angle
         passKind = "direct"
-    end
+    end]]
 
     local searchWidth = 0.5
     local searchHeight = 0.8
     local stepSize = 0.25
     local timeTolerance = 0.5
-    local minDistToAll = 0.7
+    local minDistToAll = 0.4
+    local minDistToBall = 0.7
 
-    local startX = math.max(self._robot.pos.x - searchWidth, -World.Geometry.FieldWidthHalf + 2*self._robot.radius)
-    local endX = math.min(self._robot.pos.x + searchWidth, World.Geometry.FieldWidthHalf - 2*self._robot.radius)
-    local startY = self._robot.pos.y + searchHeight
-    local endY = math.min(startY + searchHeight, World.Geometry.FieldHeightHalf - 2*self._robot.radius)
+     -- try to be at the center of the opponent field half
+    local centerX = self._robot.pos.x
+    local centerY = (self._robot.pos.y + World.Geometry.FieldHeightHalf/2)/2
 
+    local boundX = World.Geometry.FieldWidthHalf - 2 * self._robot.radius
+    local boundY = World.Geometry.FieldHeightHalf - 2 * self._robot.radius
+    local startX = math.max(centerX - searchWidth, -boundX)
+    local startY = math.max(centerY - searchHeight, -boundY)
+    local endX = math.min(centerX + searchWidth, boundX)
+    local endY = math.min(centerY + searchHeight, boundY)
+
+    local ballOwner = Ball.friendlyBallOwner()
     for x=startX, endX, stepSize do
         for y=startY, endY, stepSize do
             local p = Vector.create(x, y)
+
+            vis.addCircle("Sample Points", p, 0.03, vis.colors.skyBlue, true)
             if Robot.wayToPosFree(p, mainAttacker) then
                 -- TODO
                 -- accurate estimation if we can reach the ball before an opponent
                 -- and if no friendly robot is around
-                if minDistToAllRobots(p) > minDistToAll then
-                    local timeBallToP = Robot.minTimeToBall(mainAttacker, World.Ball)
-                        + Ball.rollTimeEndspeed(Settings.shootDriveSpeed, World.Ball.pos:distanceTo(p))
-                    local timeSelfToP = Robot.timeToPos(self._robot, p)
-                    local timeAdvance = timeBallToP - timeSelfToP
-                    if timeAdvance < timeTolerance then
-                        local biggestInterval = Goal.largestFreeSector(p, World.OpponentRobots, true)
-                        local rating = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0.001
-                        local angle = (p-goal):absoluteAngleDiff(World.Ball.pos-goal)
-                        rating = rating * angle
-                        if rating > bestRating then
-                            debug.set("angle", angle)
-                            bestRating = rating
-                            passPos = p
-                            passKind = "in the run"
+                if not ballOwner or p:distanceTo(ballOwner.pos) > minDistToBall then
+                    if minDistToAllRobots(p) > minDistToAll then
+                        local timeBallToP = Robot.minTimeToBall(mainAttacker, World.Ball)
+                            + Ball.rollTimeEndspeed(Settings.shootDriveSpeed, World.Ball.pos:distanceTo(p))
+                        local timeSelfToP = Robot.timeToPos(self._robot, p)
+                        local timeAdvance = timeBallToP - timeSelfToP
+                        if timeAdvance < timeTolerance then
+                            local biggestInterval = Goal.largestFreeSector(p, World.OpponentRobots, true)
+                            local rating = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0.001
+                            local angle = (p-goal):absoluteAngleDiff(World.Ball.pos-goal)
+                            rating = rating * angle
+                            if rating > bestRating then
+                                debug.set("angle", angle)
+                                bestRating = rating
+                                passPos = p
+                                passKind = "in the run"
+                            end
+                            -- for more criteria, have a look at CMDragon 2014 TDP
                         end
-                        -- for more criteria, have a look at CMDragon 2014 TDP
                     end
                 end
             end
