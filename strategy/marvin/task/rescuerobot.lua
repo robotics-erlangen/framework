@@ -9,6 +9,7 @@ RescueRobot._speeds = {}
 
 function RescueRobot:_init()
 	self._rotation = nil
+	self._speeds = nil
 end
 
 function RescueRobot:run()
