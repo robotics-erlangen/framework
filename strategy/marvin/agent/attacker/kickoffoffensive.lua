@@ -108,6 +108,7 @@ function KickoffOffensive:_updateTask()
 	if World.RefereeState == "KickoffOffensivePrepare" then
 		return MoveToStaticBall, { math.pi/2, 0.05 }
 	else -- KickoffOffensive
+		--[[
 		local shootGoalTmp = ShootGoal.create(self._agent)
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 		local canShootGoal = sg_mae and sg_mae > Settings.minAnglePrecision
@@ -116,9 +117,9 @@ function KickoffOffensive:_updateTask()
 		elseif self._shootPos then
 			self._passActiveSince = World.Time
 			return PassInTheRun, {self._targetRobot, self._shootPos}
-		else
+		else]]
 			return ChipAway
-		end
+		--end
 	end
 end
 
