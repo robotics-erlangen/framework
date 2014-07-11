@@ -66,7 +66,7 @@ local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError)
 	--log(math.floor(rotateRating * 100) .. "   " .. math.floor(goalRating * 100))
 
 	-- ignore distance rating for now...
-	local finalRating = rotateRating * goalRating
+	local finalRating = rotateRating * goalRating --* distRating
 	return finalRating
 end
 
@@ -146,9 +146,7 @@ end
 
 function ShootGoal:improvePassReceiptPosition(ballPos)
 	-- if the ball still accelerates, recalculate the pass receipt position
-	local timeBuffer = self:getTimeBuffer()
-	log(timeBuffer)
-	local minTime = Robot.minTimeToBall(self._robot, World.Ball) + timeBuffer
+	local minTime = Robot.minTimeToBall(self._robot, World.Ball)
 	local minPos = Ball.atTime(minTime, World.Ball).pos
 	if self._robot.pos:distanceTo(ballPos) > self._robot.pos:distanceTo(minPos) then
 		log("UPDATE "..tostring(self._robot.pos:distanceTo(World.Ball.pos)))
@@ -161,7 +159,15 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 
 	local sampleResults = {}
 	local dir = World.Ball.speed:copy():normalize()
-	ballPos = World.Ball.pos + dir * World.Ball.pos:distanceTo(ballPos)
+	local sign = dir.x > 0 and 1 or -1
+	local lambda = math.huge
+	if dir.x ~= 0 then
+		local _
+		local allowedWidth = World.Geometry.FieldWidthHalf - 2 * self._robot.radius
+		_,lambda = geom.intersectLineLine(World.Ball.pos, dir,
+				Vector.create(sign * allowedWidth, 0), Vector.create(0, 1))
+	end
+	ballPos = World.Ball.pos + dir * math.min(World.Ball.pos:distanceTo(ballPos), lambda)
 	for i = 1,sampleCount do
 		local pos = ballPos
 		if i > 1 then
