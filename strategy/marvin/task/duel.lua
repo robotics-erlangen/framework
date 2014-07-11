@@ -33,6 +33,9 @@ function Duel:_contest()
 	local ccw = intersection and math.sign(intersection.x) or 1 --positive = ccw, negative = cw
 	local toBall = (World.Ball.pos - self._robot.pos):setLength(0.2)
 	self._robot.trajectory:update(Direct, toBall, nil, ccw * 2 * 2*math.pi) -- 2 turns per second
+
+	-- send the position of the ball
+	self._send.attackPosition("all", World.Ball.pos)
 end
 
 return Duel

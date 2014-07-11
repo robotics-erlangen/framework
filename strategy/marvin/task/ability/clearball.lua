@@ -15,6 +15,9 @@ function ClearBall:_clearBall()
 
 	self._robot.trajectory:update(ToTarget, moveDest, viewDir)
 	vis.addCircle("t/a/clearball: ClearRobot", self._robot.pos, 0.15, vis.colors.redHalf, true)
+
+	-- send the position of the ball
+	self._send.attackPosition("all", World.Ball.pos)
 end
 
 return ClearBall

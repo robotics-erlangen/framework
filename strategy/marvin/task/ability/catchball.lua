@@ -145,6 +145,8 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	debug.set("catchtime", self._catchTime)
 	vis.addCircle("t/a/catchball: CatchBall", Ball.atTime(self._catchTime, ball).pos, predictedBall.radius, vis.colors.blueHalf)
 	self._lastBallSpeed = ball.speed
+
+	self._send.attackPosition("all", predictedBall.pos)
 end
 
 function CatchBall:_isBlockingBall(currentBall, predictedBall, moveDest)

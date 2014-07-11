@@ -113,6 +113,8 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 
 		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir)
 
+		-- send the position of the ball
+		self._send.attackPosition("all", World.Ball.pos)
 	else -- catch the ball
 		self._lastBallSpeed = nil
 		self._shootHysteresis = false

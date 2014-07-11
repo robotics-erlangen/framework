@@ -21,6 +21,10 @@ function ReceivePass:_receivePass()
 		local faceBall = (World.Ball.pos-self._robot.pos):angle()
 		self._robot.trajectory:update(ToTarget, perpPos, faceBall)
 		self._send.moveDest("all", perpPos)
+
+		-- send the position where the is catched
+		self._send.attackPosition("all", perpPos +
+				Vector.fromAngle(faceBall) * (self._robot.shootRadius + World.Ball.radius))
 	else
 		self:_catchBall(World.Ball.pos)
 	end

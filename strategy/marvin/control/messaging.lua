@@ -18,6 +18,7 @@ local msgDefs = {
 	passSuggestion = "table", -- { kind: string, rating: number [, pos: Vector] }
 
 	-- single sender
+	attackPosition = "userdata",
 	aggressiveKeeperPos = "userdata",
 	shootDestination = "userdata",
 	passPos = "userdata", -- where the pass in the run is shot

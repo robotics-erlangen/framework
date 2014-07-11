@@ -159,7 +159,6 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 	local minTime = Robot.minTimeToBall(self._robot, World.Ball)
 	local minPos = Ball.atTime(minTime, World.Ball).pos
 	if self._robot.pos:distanceTo(ballPos) > self._robot.pos:distanceTo(minPos) then
-		log("UPDATE "..tostring(self._robot.pos:distanceTo(World.Ball.pos)))
 		return self:guessFirstPassReceiptPosition()
 	end
 
@@ -419,6 +418,9 @@ function ShootGoal:run()
 		or not Field.isInField(Ball.atTime(Robot.minTimeToBall(self._robot, World.Ball)).pos, 0) then
 			self._receivePass = false
 		end
+
+		-- send the position where the ball changes its velocity
+		self._send.attackPosition("all", self.targetPoint)
 	else
 		self:updateDestination()
 		if self.bestMid then
@@ -434,10 +436,11 @@ function ShootGoal:run()
 			self:_shoot(somewhereNearTheGoal, math.huge, false)
 		end
 
-
 		if self.maxAngleError then
 			debug.set("maxAngleError (deg)", self.maxAngleError * 180 / math.pi)
 		end
+
+		-- t/a/catchball sends the attack position
 	end
 end
 

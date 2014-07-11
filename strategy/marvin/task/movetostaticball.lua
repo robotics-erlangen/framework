@@ -17,6 +17,9 @@ function MoveToStaticBall:run()
 	self._robot.path:addCircle(World.Ball.pos.x, World.Ball.pos.y, self._distanceToBall, "StaticBall")
 
 	self._robot.trajectory:update(ToTarget, pos, self._rotation)
+	
+	-- send the position of the ball
+	self._send.attackPosition("all", World.Ball.pos)
 end
 
 return MoveToStaticBall
