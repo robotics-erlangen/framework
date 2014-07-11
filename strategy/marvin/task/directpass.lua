@@ -44,8 +44,8 @@ function DirectPass:run()
 	self._send.passSender(self._targetRobot, "direct")
 
 	debug.set("target", self._targetRobot)
-	vis.addCircle("DirectPass", self._targetPos, 0.2, vis.colors.orangeHalf, true)
-	vis.addPath("DirectPass", {World.Ball.pos, self._targetPos +
+	vis.addCircle("t/directpass: DirectPass", self._targetPos, 0.2, vis.colors.orangeHalf, true)
+	vis.addPath("t/directpass: DirectPass", {World.Ball.pos, self._targetPos +
 				(World.Ball.pos - self._targetPos):setLength(0.2)}, vis.colors.orange)
 end
 

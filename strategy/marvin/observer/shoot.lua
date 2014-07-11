@@ -10,7 +10,6 @@ local Geom = require "../base/geom"
 local Field = require "util/field"
 local Messaging = require "control/messaging"
 local debug = require "../base/debug"
-local vis = require "../base/vis"
 
 
 --- Calculates the chance that a pass to the targetRobot will succeed

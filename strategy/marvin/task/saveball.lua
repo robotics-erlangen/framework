@@ -4,7 +4,6 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local Field = require "util/field"
 local ToTarget = require "trajectory/totarget"
-local vis = require "../base/vis"
 
 function SaveBall:run()
 	local ballPos = World.Ball.pos

@@ -115,7 +115,7 @@ local function isBallPositioned()
 		return true -- blue team cares about ball
 	end
 	if World.Ball.pos:distanceTo(situation.ball.pos) > positionThreshold then
-		vis.addCircle("Manual Ball Position", situation.ball.pos, 0.05, vis.colors.red, true)
+		vis.addCircle("test: Manual Ball Position", situation.ball.pos, 0.05, vis.colors.red, true)
 		if not ballMessagePrinted then
 			log("Please place the ball at " .. tostring(situation.ball.pos)
 				.. " (Visualization \"Manual Ball Position\")")

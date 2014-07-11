@@ -5,7 +5,6 @@ local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
-local vis = require "../base/vis"
 local debug = require "../base/debug"
 
 function ReceivePass:_receivePass()

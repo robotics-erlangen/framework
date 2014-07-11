@@ -268,7 +268,7 @@ function Goal.predictShot()
 			if (endOfField - pos):lengthSq() > lengthOfBallMovement*lengthOfBallMovement then
 				endOfField = pos + dir:scaleLength(lengthOfBallMovement)
 			end
-			vis.addCircle("end of field", endOfField, 0.02)
+			vis.addCircle("o/goal: predictShot: end of field", endOfField, 0.02)
 			local target = nil
 			local targetDist = math.huge
 			local corridorHalf = dir:perpendicular():setLength(World.Ball.radius + Constants.positionError)
@@ -291,8 +291,8 @@ function Goal.predictShot()
 					else
 						table.insert(passRecievers, {robot, chance})
 					end
-					vis.addCircle("may recieve pass", robot.pos, robot.radius, vis.fromRGBA(255, 63, 0, 255*chance), true)
-					vis.addPath("to catch position", {robot.pos, pointOnLine})
+					vis.addCircle("o/goal: predictShot: may recieve pass", robot.pos, robot.radius, vis.fromRGBA(255, 63, 0, 255*chance), true)
+					vis.addPath("o/goal: predictShot: to catch position", {robot.pos, pointOnLine})
 				end
 			end
 			local nPassRecievers = #passRecievers
@@ -301,7 +301,7 @@ function Goal.predictShot()
 				local passReciever = passRecievers[nPassRecievers]
 				dir = Vector.fromAngle(passReciever[1].dir)
 				pos = passReciever[1].pos
-				vis.addCircle("recieves pass", pos, passReciever[1].radius, vis.colors.pink, false)
+				vis.addCircle("o/goal: predictShot: receives pass", pos, passReciever[1].radius, vis.colors.pink, false)
 			end
 		end
 		isShot = true

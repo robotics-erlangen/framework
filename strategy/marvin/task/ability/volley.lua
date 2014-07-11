@@ -102,7 +102,7 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 		end
 
 		local viewPoint = self._robot.pos + Vector.fromAngle(phi):scaleLength(10000)
-		vis.addPath("Volley Iterations", {self._robot.pos, viewPoint}, vis.colors.greenHalf)
+		vis.addPath("t/a/volley: Iterations", {self._robot.pos, viewPoint}, vis.colors.greenHalf)
 	end
 
 
@@ -122,10 +122,10 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 		self._robot:_shoot(v_s)
 	end
 
-	vis.addCircle("Volley", targetPos, 0.1, vis.colors.redHalf, true)
+	vis.addCircle("t/a/volley: Volley", targetPos, 0.1, vis.colors.redHalf, true)
 	local viewPoint = Vector.fromAngle(phi, 10000)
-	vis.addPath("Volley", {viewPos, viewPoint}, vis.colors.green)
-	vis.addPath("Volley", {viewPos, targetPos}, vis.colors.red)
+	vis.addPath("t/a/volley: Volley", {viewPos, viewPoint}, vis.colors.green)
+	vis.addPath("t/a/volley: Volley", {viewPos, targetPos}, vis.colors.red)
 
 
 	if self._robot:hasBall(World.Ball) then

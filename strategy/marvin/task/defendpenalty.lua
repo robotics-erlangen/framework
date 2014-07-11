@@ -10,7 +10,7 @@ local debug = require "../base/debug"
 function DefendPenalty:run()
 	local rr = self._robot.radius --assume all robots have the same radius
 	local penaltyLine = World.Geometry.OwnPenaltyLine + Settings.penaltyLineDistance
-	vis.addPath("penaltyDistance", {Vector.create(-2,penaltyLine), Vector.create(2,penaltyLine)}, vis.colors.whiteHalf)
+	vis.addPath("t/defendpenalty: penaltyDistance", {Vector.create(-2,penaltyLine), Vector.create(2,penaltyLine)}, vis.colors.whiteHalf)
 	-- NOTE: All spots are on the penaltyline, so only x-values are processed
 
 	local occupiedSpotsFriendly = {}

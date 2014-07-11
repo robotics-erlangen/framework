@@ -45,8 +45,8 @@ function Ball.toBall(robot, ball)
 	local maxPos = Ball.ballAt(ball, maxTime)
 	local bsl = ball.speed:length()
 	local midPos, midTime
-	vis.addCircle("to ball", minPos, 0.03, vis.colors.green, true)
-	vis.addCircle("to ball", maxPos, 0.03, vis.colors.red, true)
+	vis.addCircle("o/ball: to ball", minPos, 0.03, vis.colors.green, true)
+	vis.addCircle("o/ball: to ball", maxPos, 0.03, vis.colors.red, true)
 	repeat
 		midPos = (minPos + maxPos)/2
 		midTime = Ball.ballRollTime(bsl, midPos:distanceTo(ball.pos))
@@ -243,7 +243,6 @@ function Ball.ballCatchProbability(robot, shootTime, rollTime, catchPos, corrido
 	local time = shootTime + rollTime	-- the time from now to the moment to catch the ball
 	local expectedPos = v_toSector*time	-- position, which the robot reaches without changing speed
 	local expPos = robot.pos + toCorridor:setLength(expectedPos)
-	vis.addCircle("will be here", expPos, robot.radius, vis.colors.yellowHalf, true)
 	local d0, flagAcc
 	if expectedPos < distToCorridor - corridorWidthHalf - robot.radius then	-- if robot must accelerate to reach corridor in time
 		flagAcc = true

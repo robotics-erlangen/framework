@@ -54,7 +54,7 @@ function FreeKick:_updateTask()
 
 	-- if we are not near the ball yet, don't decide what to do
 	if World.Time - self._startTime < hurryUp and not self._atBall then
-		--return MoveToStaticBall, {math.pi/2, nearBallDist}
+		return MoveToStaticBall, {math.pi/2, nearBallDist}
 	end
 
 	-- if we are forced to perform a pass

@@ -65,7 +65,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 					hitPoint = hitPoint2
 				end
 			end
-			vis.addCircle("hitRobot", hitPoint, ball.radius, vis.colors.redHalf, true)
+			vis.addCircle("t/a/catchball: hitRobot", hitPoint, ball.radius, vis.colors.redHalf, true)
 
 			-- consider that the shootRadius is less than radius and thus the ball has to travel further
 			local dribberAngleHalf = math.atan(self._robot.dribblerWidth/2, self._robot.shootRadius)
@@ -143,7 +143,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	end
 	debug.set("time", time)
 	debug.set("catchtime", self._catchTime)
-	vis.addCircle("CatchBall", Ball.atTime(self._catchTime, ball).pos, predictedBall.radius, vis.colors.blueHalf)
+	vis.addCircle("t/a/catchball: CatchBall", Ball.atTime(self._catchTime, ball).pos, predictedBall.radius, vis.colors.blueHalf)
 	self._lastBallSpeed = ball.speed
 end
 
@@ -167,12 +167,12 @@ function CatchBall:_createRollingBallObstacle(path, minBall, predictedBall)
 	-- block connection between first touch point and target catch pos
 	if ballDist > 0.001 then
   		path:addLine(predictedBall.pos.x, predictedBall.pos.y, minBall.pos.x, minBall.pos.y, predictedBall.radius - 0.001, 'ball')
-		vis.addPath("CatchBall", {predictedBall.pos, minBall.pos}, vis.colors.greenHalf)
-		vis.addCircle("CatchBall", minBall.pos, predictedBall.radius, vis.colors.greenHalf)
+		vis.addPath("t/a/catchball: CatchBall", {predictedBall.pos, minBall.pos}, vis.colors.greenHalf)
+		vis.addCircle("t/a/catchball: CatchBall", minBall.pos, predictedBall.radius, vis.colors.greenHalf)
   	else
   		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - 0.001, 'ball')
   	end
-	vis.addCircle("CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.greenHalf)
+	vis.addCircle("t/a/catchball: CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.greenHalf)
 end
 
 function CatchBall:_createBallCorridor(path, robotDir, predictedBall)
@@ -201,13 +201,13 @@ function CatchBall:_createBallCorridor(path, robotDir, predictedBall)
 	path:addLine(corridorEndLeft.x, corridorEndLeft.y, corridorEndRight.x, corridorEndRight.y, extraDist/2, 'ball_corridor3')
 
 	-- visualize obstacles
-	vis.addCircle("MoveCorridor", corridorEndRight, extraDist/2, vis.colors.redHalf)
-	vis.addCircle("MoveCorridor", corridorStartRight, extraDist/2, vis.colors.redHalf)
-	vis.addCircle("MoveCorridor", corridorEndLeft, extraDist/2, vis.colors.redHalf)
-	vis.addCircle("MoveCorridor", corridorStartLeft, extraDist/2, vis.colors.redHalf)
-	vis.addPath("MoveCorridor", {corridorStartLeft, corridorEndLeft}, vis.colors.redHalf)
-	vis.addPath("MoveCorridor", {corridorStartRight, corridorEndRight}, vis.colors.redHalf)
-	vis.addPath("MoveCorridor", {corridorEndLeft, corridorEndRight}, vis.colors.redHalf)
+	vis.addCircle("t/a/catchball: MoveCorridor", corridorEndRight, extraDist/2, vis.colors.redHalf)
+	vis.addCircle("t/a/catchball: MoveCorridor", corridorStartRight, extraDist/2, vis.colors.redHalf)
+	vis.addCircle("t/a/catchball: MoveCorridor", corridorEndLeft, extraDist/2, vis.colors.redHalf)
+	vis.addCircle("t/a/catchball: MoveCorridor", corridorStartLeft, extraDist/2, vis.colors.redHalf)
+	vis.addPath("t/a/catchball: MoveCorridor", {corridorStartLeft, corridorEndLeft}, vis.colors.redHalf)
+	vis.addPath("t/a/catchball: MoveCorridor", {corridorStartRight, corridorEndRight}, vis.colors.redHalf)
+	vis.addPath("t/a/catchball: MoveCorridor", {corridorEndLeft, corridorEndRight}, vis.colors.redHalf)
 end
 
 return CatchBall

@@ -12,7 +12,7 @@ function RobotTest.testWayToRobotFree()
 	vis.addCircle("Target Position", robot2.pos, 0.02, vis.colors.red, true)
 	-- fails here sometimes because robot to shoot can be near the ball and not be ballOwner
 	if Robot.wayToRobotFree(robot2, robot1) then
-		vis.addPolygon("Free Ball Corridor", {robot2.pos, World.Ball.pos}, vis.colors.blueHalf, true)
+		vis.addPolygon("test: Free Ball Corridor", {robot2.pos, World.Ball.pos}, vis.colors.blueHalf, true)
 	end
 end
 

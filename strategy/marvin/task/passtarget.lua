@@ -54,9 +54,9 @@ function PassTarget:run()
 		self.moveTo = World.Ball.pos + Vector.fromAngle(sectorMid):setLength(distanceToBall)
 		self.moveTo = Field.limitToAllowedField(self.moveTo, 0, true)
 	end
-	vis.addCircle("PassTargetPos", self.moveTo, self._robot.radius, vis.colors.yellow, true)
+	vis.addCircle("t/passtarget: PassTargetPos", self.moveTo, self._robot.radius, vis.colors.yellow, true)
 
-	vis.addPath("RecivePassSector", {World.Ball.pos, self.moveTo}, vis.colors.red, true)
+	vis.addPath("t/passtarget: RecivePassSector", {World.Ball.pos, self.moveTo}, vis.colors.red, true)
 	self._robot.path:setDefaultObstacles(self._robot)
 
 	self._robot.path:addRobotObstacles(self._robot)

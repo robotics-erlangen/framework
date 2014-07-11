@@ -26,7 +26,7 @@ function ShootPenalty:_canShoot()
 	if not lookPos then
 		return false
 	end
-	vis.addCircle("LookPos", lookPos, 0.02, vis.colors.red, true)
+	vis.addCircle("t/shootpenalty: LookPos", lookPos, 0.02, vis.colors.red, true)
 	return lookPos:distanceTo(self.targetPos) < shootErrorThreshold
 end
 
@@ -54,7 +54,7 @@ function ShootPenalty:run()
 			self.targetPos = G["OpponentGoal"..self.lookDir] - (goalLine * distToPost)
 		end
 	end
-	vis.addCircle("PenaltyTargetPos", self.targetPos, 0.02, vis.colors.blue, true)
+	vis.addCircle("t/shootpenalty: PenaltyTargetPos", self.targetPos, 0.02, vis.colors.blue, true)
 	self:_shoot(self.targetPos, math.huge, true)
 end
 

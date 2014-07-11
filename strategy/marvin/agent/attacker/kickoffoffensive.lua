@@ -90,7 +90,7 @@ function KickoffOffensive:_updateTask()
 		self._shootPos = table.filter(nicePositions, isReachable)[1]
 		-- search nearest kickoff assi
 		if self._shootPos then
-			vis.addCircle("PassInTheRun", self._shootPos, 0.2, vis.colors.Red, true)
+			vis.addCircle("a/a/kickoffoffensive: PassInTheRun", self._shootPos, 0.2, vis.colors.Red, true)
 			local minDist = math.huge
 			for robot, pos in pairs(self._inbox.moveDest()) do
 				local dist = (pos-self._shootPos):length()

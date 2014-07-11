@@ -12,7 +12,7 @@ function GoalTest.testFreeSectors()
 		--log(tostring(s[1]) .. " "..tostring(s[2]))
 		local pointRight = World.Ball.pos + Vector.fromAngle(s[1])*10
 		local pointLeft = World.Ball.pos + Vector.fromAngle(s[2])*10
-		vis.addPolygon("Free Sectors", {World.Ball.pos, pointRight, pointLeft})
+		vis.addPolygon("test: Free Sectors", {World.Ball.pos, pointRight, pointLeft})
 	end
 end
 
@@ -30,7 +30,7 @@ function GoalTest.testCustomFreeSectors()
 		--log(tostring(s[1]) .. " "..tostring(s[2]))
 		local pointRight = World.Ball.pos + Vector.fromAngle(s[1])*10
 		local pointLeft = World.Ball.pos + Vector.fromAngle(s[2])*10
-		vis.addPolygon("Free Sectors", {World.Ball.pos, pointRight, pointLeft})
+		vis.addPolygon("test: Custom Free Sectors", {World.Ball.pos, pointRight, pointLeft})
 	end
 end
 
@@ -38,7 +38,7 @@ function GoalTest.testSearchFreeSectors()
 	local keeper = World.OpponentKeeper
 	local rlist = Goal.getRobotsNearGoal(2, World.Robots, true)
 	if keeper then
-		vis.addCircle("Opponent Keeper", keeper.pos, keeper.radius, vis.colors.pinkHalf, true)
+		vis.addCircle("test: Opponent Keeper", keeper.pos, keeper.radius, vis.colors.pinkHalf, true)
 		RobotList.excludeRobot(rlist, keeper)
 	end
 	local s_right, a_right, s_left, a_left = Goal.searchFreeSectors(rlist, true)
@@ -49,7 +49,7 @@ function GoalTest.testSearchFreeSectors()
 			--str = str.." "..tostring(a[1]).." to "..tostring(a[2])..","
 			local right_pointRight = s_right + Vector.fromAngle(a[1])*2
 			local right_pointLeft = s_right + Vector.fromAngle(a[2])*2
-			vis.addPolygon("Right from the Keeper", {s_right, right_pointRight, right_pointLeft})
+			vis.addPolygon("test: Right from the Keeper", {s_right, right_pointRight, right_pointLeft})
 		end
 		--log(str)
 	end
@@ -60,14 +60,14 @@ function GoalTest.testSearchFreeSectors()
 			--log("Left: "..tostring(s_left).." Angles: "..tostring(a[1]).." to "..tostring(a[2]))
 			local left_pointRight = s_left + Vector.fromAngle(a[1])*2
 			local left_pointLeft = s_left + Vector.fromAngle(a[2])*2
-			vis.addPolygon("Left from the Keeper", {s_left, left_pointRight, left_pointLeft})
+			vis.addPolygon("test: Left from the Keeper", {s_left, left_pointRight, left_pointLeft})
 		end
 	end
 	
 	local keeper = World.FriendlyKeeper
 	rlist = Goal.getRobotsNearGoal(2, World.Robots, false)
 	if keeper then
-		vis.addCircle("Friendly Keeper", keeper.pos, keeper.radius, vis.colors.pinkHalf, true)
+		vis.addCircle("test: Friendly Keeper", keeper.pos, keeper.radius, vis.colors.pinkHalf, true)
 		RobotList.excludeRobot(rlist, keeper)
 	end
 	local s_right, a_right, s_left, a_left = Goal.searchFreeSectors(rlist, false)
@@ -77,7 +77,7 @@ function GoalTest.testSearchFreeSectors()
 			--log("Right: "..tostring(s_right).." Angles: "..tostring(a[1]).." to "..tostring(a[2]))
 			local right_pointRight = s_right + Vector.fromAngle(a[1])*2
 			local right_pointLeft = s_right + Vector.fromAngle(a[2])*2
-			vis.addPolygon("Right from the Keeper", {s_right, right_pointRight, right_pointLeft})
+			vis.addPolygon("test: Right from the Keeper", {s_right, right_pointRight, right_pointLeft})
 		end
 	end
 	if #a_left >= 1 then
@@ -85,7 +85,7 @@ function GoalTest.testSearchFreeSectors()
 			--log("Left: "..tostring(s_left).." Angles: "..tostring(a[1]).." to "..tostring(a[2]))
 			local left_pointRight = s_left + Vector.fromAngle(a[1])*2
 			local left_pointLeft = s_left + Vector.fromAngle(a[2])*2
-			vis.addPolygon("Left from the Keeper", {s_left, left_pointRight, left_pointLeft})
+			vis.addPolygon("test: Left from the Keeper", {s_left, left_pointRight, left_pointLeft})
 		end
 	end
 end

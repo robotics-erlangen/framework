@@ -157,7 +157,7 @@ function Coordinator:_chooseExclusiveRoles()
 			end
 		end
 		local color = World.TeamIsBlue and vis.colors.blue or vis.colors.yellow
-		vis.addCircle("mainAttacker", mainAttacker.pos, 0.12, color, true, true);
+		vis.addCircle("c/coordinator: MainAttacker", mainAttacker.pos, 0.12, color, true, true);
 	end
 end
 

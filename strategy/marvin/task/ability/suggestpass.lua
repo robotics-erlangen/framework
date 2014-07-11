@@ -62,7 +62,7 @@ function SuggestPass:_suggestPass()
         for y=startY, endY, stepSize do
             local p = Vector.create(x, y)
 
-            vis.addCircle("Sample Points", p, 0.03, vis.colors.skyBlue, true)
+            vis.addCircle("t/a/suggestpass: Sample Points", p, 0.03, vis.colors.skyBlue, true)
             if Robot.wayToPosFree(p, mainAttacker) then
                 -- TODO
                 -- accurate estimation if we can reach the ball before an opponent
@@ -96,7 +96,7 @@ function SuggestPass:_suggestPass()
 
     if passKind then
         if passPos then
-            vis.addCircle("passSuggestion", passPos, 0.1, vis.colors.red, true)
+            vis.addCircle("t/a/suggestpass: passSuggestion", passPos, 0.1, vis.colors.red, true)
         end
         debug.set("pass kind", passKind)
         self._send.passSuggestion(mainAttacker, { kind = passKind, rating = bestRating, pos = passPos })

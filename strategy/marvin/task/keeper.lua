@@ -111,9 +111,9 @@ function Keeper:run()
 	end
 
 	-- visualizations
-	vis.addPath("KeeperShotPrediction",{atkPos,atkPos+atkDir}, vis.colors.blue)
-	vis.addCircle("KeeperDefenseLineIntersect", intersectPos, 0.03, vis.colors.blue)
-	vis.addPath("KeeperDefenseLine",{defenseLineStart, defenseLineEnd}, vis.colors.blue)
+	vis.addPath("t/keeper: KeeperShotPrediction",{atkPos,atkPos+atkDir}, vis.colors.blue)
+	vis.addCircle("t/keeper: KeeperDefenseLineIntersect", intersectPos, 0.03, vis.colors.blue)
+	vis.addPath("t/keeper: KeeperDefenseLine",{defenseLineStart, defenseLineEnd}, vis.colors.blue)
 
 	local moveTo
 	-- ball is shot at the goal: take the shortest way to stop the ball

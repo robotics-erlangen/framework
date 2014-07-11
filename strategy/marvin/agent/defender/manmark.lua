@@ -28,7 +28,7 @@ end
 function ManMark:_updateTask()
 	debug.set("target", self._opp)
 	local dest = Defense.manMarkPos(self._opp)
-	vis.addCircle("manMarkTarget", dest, 0.1, vis.colors.red)
+	vis.addCircle("a/d/manmark: Target", dest, 0.1, vis.colors.red)
 
 	local markingPosDefenseDist = Field.distanceToFriendlyDefenseArea(dest, self._opp.radius)
 	local oppDefenseDist = Field.distanceToFriendlyDefenseArea(self._opp.pos, self._opp.radius)

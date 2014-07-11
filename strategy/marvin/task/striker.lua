@@ -174,7 +174,7 @@ function Striker:_calcMoveDest()
 	local shooter, shootDest = next(self._inbox.shootDestination())
 	if shootDest then
 		self._robot.path:addLine(shooter.pos.x, shooter.pos.y, shootDest.x, shootDest.y, self._robot.radius)
-		vis.addPath("strikerShotObstacle", { shooter.pos, shootDest }, vis.colors.red)
+		vis.addPath("t/striker: StrikerShotObstacle", { shooter.pos, shootDest }, vis.colors.red)
 	end
 
 	-- do not interfere with other attackers
@@ -187,7 +187,7 @@ function Striker:_calcMoveDest()
 	Interval.merge(intervalsToRemove)
 	local possibleIntervals = Interval.negate(intervalsToRemove, lineStart, lineEnd)
 	for _, interval in ipairs(possibleIntervals) do
-		vis.addPath("attackerLines", { Vector.create(xPos, interval[1]), Vector.create(xPos, interval[2]) }, vis.colors.blue)
+		vis.addPath("t/striker: attackerLines", { Vector.create(xPos, interval[1]), Vector.create(xPos, interval[2]) }, vis.colors.blue)
 	end
 
 	local closestOpp = World.OpponentRobots[1] or { pos = Vector.create(0,0) }

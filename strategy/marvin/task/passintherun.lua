@@ -36,7 +36,7 @@ function PassInTheRun:run()
 	self._send.passSender(self._targetRobot, "in the run")
 	self._send.passPos(self._targetRobot, self._shootPos)
 	debug.set("targetRobot", self._targetRobot.id)
-	vis.addCircle("passInTheRun", self._shootPos, 0.1, vis.colors.blue, true)
+	vis.addCircle("t/passintherun: ShootPos", self._shootPos, 0.1, vis.colors.blue, true)
 end
 
 return PassInTheRun

@@ -14,7 +14,7 @@ function ClearBall:_clearBall()
 	self._robot.path:addRobotObstacles(self._robot)
 
 	self._robot.trajectory:update(ToTarget, moveDest, viewDir)
-	vis.addCircle("ClearBall", self._robot.pos, 0.15, vis.colors.redHalf, true)
+	vis.addCircle("t/a/clearball: ClearRobot", self._robot.pos, 0.15, vis.colors.redHalf, true)
 end
 
 return ClearBall

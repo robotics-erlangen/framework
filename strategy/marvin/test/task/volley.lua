@@ -47,11 +47,11 @@ local function run()
 	-- visualization
 	if destX then
 		local fhh = World.Geometry.FieldHeightHalf
-		vis.addPath("Test/Volley", {Vector.create(destX - 0.05, fhh - 0.05),
+		vis.addPath("test: Volley", {Vector.create(destX - 0.05, fhh - 0.05),
 									Vector.create(destX + 0.05, fhh + 0.05)}, vis.colors.green)
-		vis.addPath("Test/Volley", {Vector.create(destX - 0.05, fhh + 0.05),
+		vis.addPath("test: Volley", {Vector.create(destX - 0.05, fhh + 0.05),
 									Vector.create(destX + 0.05, fhh - 0.05)}, vis.colors.green)
-		vis.addCircle("Test/Volley", oldShootPos, 0.05, vis.colors.greenHalf, true)
+		vis.addCircle("test: Volley", oldShootPos, 0.05, vis.colors.greenHalf, true)
 	end
 
 

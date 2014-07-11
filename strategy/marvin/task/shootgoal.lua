@@ -109,11 +109,6 @@ function ShootGoal:guessFirstPassReceiptPosition()
 			if stop_sampling then break end
 		end
 
-
-
-		vis.addCircle("BALL", ballPos, 0.1, vis.colors.redHalf, true)
-
-
 		self:_calculateDestination(ballPos, false)
 
 		local rating = rate(ballPos, self.targetPoint, dist, intervalLength, self.maxAngleError)
@@ -129,6 +124,9 @@ function ShootGoal:guessFirstPassReceiptPosition()
 			best = result
 		end
 	end
+
+
+	vis.addCircle("t/shootgoal: passReceiptPosition", best.view, 0.1, vis.colors.magentaHalf, true)
 
 	return best.target, best.view
 end
@@ -155,7 +153,6 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 			local rand = Random.standardNormalDistributedNumber()
 			pos = ballPos + dir * rand * sampleVariance
 		end
-		--vis.addCircle("BALL", pos, 0.1, vis.colors.redHalf, true)
 
 		self:_calculateDestination(pos, false)
 
@@ -172,7 +169,8 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 		end
 	end
 
-	vis.addCircle("BALL", best.view, 0.08, vis.colors.yellowHalf, true)
+	vis.addCircle("t/shootgoal: passReceiptPosition", best.view, 0.1, vis.colors.magentaHalf, true)
+
 	return best.target, best.view
 end
 
@@ -269,11 +267,11 @@ function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
 	self.maxAngleError = bestAngleError
 
 	if self.bestMid then
-		vis.addPath("ShootGoalTarget", {viewPos, Vector.fromAngle(bestMid + bestWidth/2) * 20 + viewPos},
+		vis.addPath("t/shootgoal: ShootGoalTarget", {viewPos, Vector.fromAngle(bestMid + bestWidth/2) * 20 + viewPos},
 			vis.colors.whiteHalf)
-		vis.addPath("ShootGoalTarget", {viewPos, Vector.fromAngle(bestMid - bestWidth/2) * 20 + viewPos},
+		vis.addPath("t/shootgoal: ShootGoalTarget", {viewPos, Vector.fromAngle(bestMid - bestWidth/2) * 20 + viewPos},
 			vis.colors.whiteHalf)
-		vis.addPath("ShootGoalTarget",{viewPos, self.targetPoint}, self._viscolor)
+		vis.addPath("t/shootgoal: ShootGoalTarget",{viewPos, self.targetPoint}, self._viscolor)
 	end
 
 	return #freeSectors
