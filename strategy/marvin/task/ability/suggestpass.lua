@@ -18,6 +18,7 @@ local function minDistToAllRobots(pos)
     return minDist
 end
 
+local chipRatingFactor = 0.5 -- reduce rating when only a chip is possible
 function SuggestPass:_suggestPass()
     local mainAttacker = self._inbox.mainAttacker().trainer
     if not mainAttacker then
@@ -29,15 +30,17 @@ function SuggestPass:_suggestPass()
     local goal = World.Geometry.OpponentGoal
 
     -- check for directpass
-    --[[
-    if Robot.wayToRobotFree(self._robot, mainAttacker) then
+    if Robot.wayToRobotFree(self._robot, mainAttacker, true) then -- test with chipKick
         local biggestInterval = Goal.largestFreeSector(self._robot.pos, World.OpponentRobots, true)
         bestRating = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0.001
         local angle = (self._robot.pos-goal):absoluteAngleDiff(World.Ball.pos-goal)
         debug.set("angle", angle)
         bestRating = bestRating * angle
         passKind = "direct"
-    end]]
+        if not Robot.wayToRobotFree(self._robot, mainAttacker) then -- chip necessary
+            bestRating = bestRating * chipRatingFactor
+        end
+    end
 
     local searchWidth = 0.5
     local searchHeight = 0.8
@@ -91,8 +94,6 @@ function SuggestPass:_suggestPass()
             end
         end
     end
-
-    -- TODO check for chip passes
 
     if passKind then
         if passPos then

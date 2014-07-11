@@ -1,6 +1,7 @@
 local Robot = {}
 local World = require "../base/world"
 local Constants = require "../base/constants"
+local Messaging = require "control/messaging"
 
 local lastSpeed = {}
 local speedSmoothed = {}
@@ -17,6 +18,8 @@ function Robot.wayToRobotFree(target, shooter, chipkick)
 	return Robot.wayToPosFree(target.pos, shooter, target, chipkick)
 end
 
+local oppChipDist = 0.2 -- min distance of opponent for chipping
+local recvChipDist = 0.3 -- min distance for receiving a chip pass
 function Robot.wayToPosFree(pos, ignoreRobot1, ignoreRobot2, chipkick)
 	-- TODO consider speed of robots to look a little into the future
 	for _, robot in pairs(World.Robots) do
@@ -27,7 +30,14 @@ function Robot.wayToPosFree(pos, ignoreRobot1, ignoreRobot2, chipkick)
 				and robot.pos:distanceTo(World.Ball.pos) < targetDist
 				and robot.pos:distanceTo(pos) < targetDist
 			if chipkick then
-				isInTheWay = isInTheWay and robot.pos:distanceTo(World.Ball.pos) > Settings.chipDistance
+				local shootBallPos = World.Ball.pos
+				for _, pos in pairs(Messaging.get("attackPosition")) do
+					shootBallPos = pos
+				end
+				isInTheWay = isInTheWay and
+					(robot.pos:distanceTo(shootBallPos) > oppChipDist
+					-- assuming ignoreRobot1 is the pass target
+					or (ignoreRobot1 and ignoreRobot1.pos:distanceTo(robot.pos) > recvChipDist))
 			end
 			if isInTheWay then
 				return false
