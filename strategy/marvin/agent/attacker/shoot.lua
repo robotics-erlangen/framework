@@ -6,7 +6,6 @@ local Ball = require "observer/ball"
 local Rating = require "util/rating"
 local ObserverShoot = require "observer/shoot"
 
-local MoveNearBall = require "task/movenearball"
 local ShootGoal = require "task/shootgoal"
 local DirectPass = require "task/directpass"
 local PassInTheRun = require "task/passintherun"
@@ -30,9 +29,8 @@ function Shoot:check()
 end
 
 function Shoot:_updateTask()
-	local ballFarAway = self._robot.pos:distanceTo(World.Ball.pos) > 0.5
 	local minTimeOver = World.Time - self._taskStart >= self._minTaskTime
-	if not self._taskClass or minTimeOver or ballFarAway then
+	if not self._taskClass or minTimeOver then
 		-- shootgoal
 		local shootGoalTmp = ShootGoal.create(self._agent)
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
@@ -50,10 +48,7 @@ function Shoot:_updateTask()
 		end
 
 		local taskParams
-		if ballFarAway then
-			self._minTasktTime = 0
-			self._taskClass = ShootGoal
-		elseif canShootGoal then
+		if canShootGoal then
 			self._minTaskTime = 1.5
 			self._taskClass = ShootGoal
 		elseif pass and pass.kind == "in the run" then
@@ -64,9 +59,7 @@ function Shoot:_updateTask()
 			self._minTaskTime = 1
 			self._taskClass = DirectPass
 			taskParams = { pass.target, true }
-		else
-			-- TODO desperateShoot Task
-			-- Torwart anchippen oder In freien Bereich dribblen
+		else -- shootgoal as fallback
 			self._minTaskTime = 0.5
 			self._taskClass = ShootGoal
 		end
