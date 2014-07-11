@@ -10,6 +10,7 @@ function SaveBall:run()
 	local ballPos = World.Ball.pos
 	local ownGoal = World.Geometry.FriendlyGoal
 	local moveDest = Ball.toBall(self._robot, World.Ball)
+	moveDest = moveDest + (self._robot.pos - moveDest):setLength(World.Ball.radius)
 	if ballPos:distanceTo(ownGoal) < self._robot.pos:distanceTo(ownGoal) then
 		-- get between ball and goal
 		local ballDist = self._robot.radius + Settings.positionPadding
@@ -23,10 +24,11 @@ function SaveBall:run()
 		self._robot:chip(1)
 	end
 
-	self._robot.path:setDefaultObstacles(self._robot, false, false, false, self._robot.shootRadius)
+	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
 	self._robot.path:addRobotObstacles(self._robot)
 
-	self._robot.trajectory:update(ToTarget, moveDest, viewDir)
+	local endSpeed = Vector.fromAngle(viewDir) * 0.5
+	self._robot.trajectory:update(ToTarget, moveDest, viewDir, nil, endSpeed)
 end
 
 return SaveBall
