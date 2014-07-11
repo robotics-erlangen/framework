@@ -70,11 +70,24 @@ local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError)
 	return finalRating
 end
 
+function ShootGoal:getTimeBuffer()
+	local minTime = 0.0
+	local maxTime = 0.3
+	local minRampDist = 0.2
+	local maxRampDist = 0.5
+
+	local dist = self._robot.pos:distanceTo(World.Ball.pos)
+	dist = math.min(math.max(minRampDist, dist), maxRampDist)
+
+	local t = (dist - minRampDist) / (maxRampDist - minRampDist)
+	return minTime + t * (maxTime - minTime)
+end
+
 function ShootGoal:guessFirstPassReceiptPosition()
 	local sampleTimeInterval = 1
 	local sampleCount = 10
 	local sampleMinPosStep = 0.05
-	local timeBuffer = 0.3
+	local timeBuffer = self:getTimeBuffer()
 
 
 
@@ -133,10 +146,12 @@ end
 
 function ShootGoal:improvePassReceiptPosition(ballPos)
 	-- if the ball still accelerates, recalculate the pass receipt position
-	local timeBuffer = 0.3
+	local timeBuffer = self:getTimeBuffer()
+	log(timeBuffer)
 	local minTime = Robot.minTimeToBall(self._robot, World.Ball) + timeBuffer
 	local minPos = Ball.atTime(minTime, World.Ball).pos
 	if self._robot.pos:distanceTo(ballPos) > self._robot.pos:distanceTo(minPos) then
+		log("UPDATE "..tostring(self._robot.pos:distanceTo(World.Ball.pos)))
 		return self:guessFirstPassReceiptPosition()
 	end
 
