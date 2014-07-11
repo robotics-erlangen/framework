@@ -95,6 +95,16 @@ function ShootGoal:guessFirstPassReceiptPosition()
 	local maxTime = minTime + sampleTimeInterval
 	local minPos = Ball.atTime(minTime, World.Ball).pos
 	local maxPos = Ball.atTime(maxTime, World.Ball).pos
+
+	local allowedWidth = World.Geometry.FieldWidthHalf - 2 * self._robot.radius
+	local sign = minPos.x > 0 and 1 or -1
+	if sign * minPos.x > allowedWidth then
+		local shrinkWidth = sign * minPos.x - allowedWidth
+		minPos.x = sign * allowedWidth
+		minPos.y = minPos.y - sign * shrinkWidth * 
+				(minPos.y - World.Ball.pos.y) / (minPos.x - World.Ball.pos.x)
+	end
+
 	local intervalLength = minPos:distanceTo(maxPos)
 	local intervalDir = (maxPos - minPos):normalize()
 	local sampleStep = math.max(sampleMinPosStep, intervalLength/sampleCount)
@@ -159,12 +169,11 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 
 	local sampleResults = {}
 	local dir = World.Ball.speed:copy():normalize()
-	local sign = dir.x > 0 and 1 or -1
-	local lambda = math.huge
+	local lambda, intersection = math.huge, nil
 	if dir.x ~= 0 then
-		local _
+		local sign = dir.x > 0 and 1 or -1
 		local allowedWidth = World.Geometry.FieldWidthHalf - 2 * self._robot.radius
-		_,lambda = geom.intersectLineLine(World.Ball.pos, dir,
+		intersection,lambda = geom.intersectLineLine(World.Ball.pos, dir,
 				Vector.create(sign * allowedWidth, 0), Vector.create(0, 1))
 	end
 	ballPos = World.Ball.pos + dir * math.min(World.Ball.pos:distanceTo(ballPos), lambda)
@@ -406,6 +415,7 @@ function ShootGoal:run()
 
 		-- reconsider catching the ball if the pass gets messed up
 		if (World.Ball.speed:length() < 0.5 and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
+		or World.Ball.speed:length() < 0.2
 		or not Field.isInField(Ball.atTime(Robot.minTimeToBall(self._robot, World.Ball)).pos, 0) then
 			self._receivePass = false
 		end
