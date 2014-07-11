@@ -15,7 +15,7 @@ function DefendPenalty:run()
 
 	local occupiedSpotsFriendly = {}
 	for robot, pos in pairs(self._inbox.moveDest()) do
-		if math.abs(pos.y - penaltyLine) < 2*rr then
+		if math.abs(pos.y - penaltyLine) < 2*rr and robot.id > self._robot.id then
 			table.insert(occupiedSpotsFriendly, pos.x)
 		end
 	end
