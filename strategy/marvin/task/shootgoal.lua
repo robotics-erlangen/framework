@@ -231,6 +231,15 @@ function ShootGoal:updateDestination()
 end
 
 function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
+	-- anti-lifelock timeout
+	if World.Time - self._starttime > self._timeout then
+		self.targetPoint = self.targetPoint or World.Geometry.OpponentGoal
+		self.bestMid = self.bestMid or math.pi/2
+		self.maxAngleError = self.maxAngleError or math.huge
+		return
+	end
+		
+
 	local goalStart = (World.Geometry.OpponentGoalRight - viewPos):angle() -- direction of the first goalpost
 	local goalEnd = (World.Geometry.OpponentGoalLeft - viewPos):angle() -- direction of the other goalpost
 
@@ -302,8 +311,6 @@ function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
 			vis.colors.whiteHalf)
 		vis.addPath("t/shootgoal: ShootGoalTarget",{viewPos, self.targetPoint}, self._viscolor)
 	end
-
-	return #freeSectors
 end
 
 -- calculates the interval on the opponent keeper NOT suited for lucky rebounds into the goal
@@ -382,6 +389,8 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 	self._viewPosLocked = false
 	self._bestMid = G.OpponentGoal
 	self._timestamp = 0
+	self._starttime = World.Time
+	self._timeout = math.random() * 3 + 3
 
 	-- because of the 1 frame delay this agent still gets the last message of the previous mainAttacker
 	self._receivePass = receivepassHint or false
@@ -423,6 +432,7 @@ function ShootGoal:run()
 		self._send.attackPosition("all", self.targetPoint)
 	else
 		self:updateDestination()
+
 		if self.bestMid then
 			if self.sectorClean then
 				debug.set("type", "shoot (clean)")
