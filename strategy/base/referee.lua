@@ -45,6 +45,17 @@ function Referee.isOpponentPenaltyState()
 	return opponentPenaltyStates[World.RefereeState]
 end
 
+local rightLine = World.Geometry.FieldWidthHalf
+local leftLine = -rightLine
+local goalLine = World.Geometry.FieldHeightHalf
+local cornerDist = 0.2 -- some tolerance, rules say 10cm
+function Referee.isOffensiveCornerKick()
+	local ballPos = World.Ball.pos
+	return World.RefereeState == "DirectOffensive"
+		and goalLine - ballPos.y < cornerDist
+		and (leftLine - ballPos.x > -cornerDist or rightLine - ballPos.x < cornerDist)
+end
+
 function Referee.illustrateRefereeStates()
 	if World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive" then
 		vis.addPath("penaltyDistanceAllowed", {Vector.create(-2,World.Geometry.OwnPenaltyLine), Vector.create(2,World.Geometry.OwnPenaltyLine)}, vis.colors.red)
