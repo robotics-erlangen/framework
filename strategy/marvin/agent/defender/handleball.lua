@@ -11,6 +11,7 @@ local debug = require "../base/debug"
 
 local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
+local PassInTheRun = require "task/passintherun"
 
 function HandleBall:check()
 	if not Referee.isFriendlyFreeKickState()
@@ -35,10 +36,22 @@ function HandleBall:_updateTask()
 		self._requestingPoolChange = true
 	end
 
-	local bestAssi = Shoot.bestFreeAssistant(self._robot)
-	local _, timeAdvance = Ball.firstAtBall()
-	if bestAssi and timeAdvance > 1.5 then -- we're really slow atm (iran open)
-		return DirectPass, { bestAssi, true }
+	local pass
+	local bestPassRating = 0
+	for robot, sugg in pairs(self._inbox.passSuggestion()) do
+		if sugg.rating > bestPassRating then
+			pass = sugg
+			pass.target = robot
+			bestPassRating = sugg.rating
+		end
+	end
+	local _, timeAdvance = Ball.firstAtBall() -- must be me because of mainAttacker
+	if pass and timeAdvance > 1.5 then -- only if we have a lot of time
+		if pass.kind == "direct" then
+			return DirectPass, { pass.target }
+		else -- in the run
+			return PassInTheRun, { pass.target, pass.pos, Settings.shootDriveSpeed }
+		end
 	else -- under pressure
 		return SaveBall
 	end
