@@ -24,7 +24,8 @@ function PassInTheRun:run()
 	if newSuggestion and newSuggestion.pos then
 		self._shootPos = newSuggestion.pos
 	end
-	local linearShoot = Robot.wayToRobotFree(self._robot, self._targetRobot)
+	local notOverMiddle = self._shootPos.y * World.Ball.pos.y >= 0
+	local linearShoot = Robot.wayToRobotFree(self._robot, self._targetRobot) and notOverMiddle
 	self:_shoot(self._shootPos, Settings.shootDriveSpeed, linearShoot)
 
 	self._send.passSender(self._targetRobot, "in the run")

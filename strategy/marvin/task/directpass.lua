@@ -28,7 +28,8 @@ function DirectPass:_canShoot()
 end
 
 function DirectPass:run()
-	local linearShoot = Robot.wayToRobotFree(self._targetRobot, self._robot)
+	local notOverMiddle = self._targetPos.y * World.Ball.pos.y >= 0
+	local linearShoot = Robot.wayToRobotFree(self._targetRobot, self._robot) and notOverMiddle
 	self:_shoot(self._targetPos, self._passSpeed, linearShoot)
 
 	self._send.passSender(self._targetRobot, "direct")
