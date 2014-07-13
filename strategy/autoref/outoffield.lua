@@ -7,12 +7,24 @@ local leftLine = -rightLine
 local opponentGoalLine = World.Geometry.FieldHeightHalf
 local friendlyGoalLine = -opponentGoalLine
 
+
+local function isInField()
+    local ballPos = World.Ball.pos
+    return ballPos.x <= rightLine
+        and ballPos.x >= leftLine
+        and ballPos.y >= friendlyGoalLine
+        and ballPos.y <= opponentGoalLine
+end
+
+local wasInFieldBefore = false
 function OutOfField.occuring()
-    local ballPos =  World.Ball.pos
-    return ballPos.x > rightLine
-        or ballPos.x < leftLine
-        or ballPos.y > opponentGoalLine
-        or ballPos.y < friendlyGoalLine
+    if wasInFieldBefore and not isInField() then
+        wasInFieldBefore = false
+        return true
+    elseif isInField() then
+        wasInFieldBefore = true
+    end
+    return false
 end
 
 function OutOfField.print()
