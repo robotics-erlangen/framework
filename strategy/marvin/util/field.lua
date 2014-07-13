@@ -163,7 +163,7 @@ end
 local isInInterval = function(angle, min, max)
 	return normalize(angle - min) <= normalize(max - min)
 end
-	
+
 local intersectLineArc = function(pos, dir, m, r, minangle, maxangle)
 	local intersections = {}
 	local i1, i2 = geom.intersectLineCircle(pos, dir, m, r)
@@ -184,7 +184,7 @@ local intersectLineArc = function(pos, dir, m, r, minangle, maxangle)
 end
 
 --- Returns one intersection of a given line with the (extended) defense area
---- The intersection is the one with the smallest t in x = pos + t * dir 
+--- The intersection is the one with the smallest t in x = pos + t * dir
 -- @param pos Vector - starting point of the line
 -- @param dir Vector - the direction of the line
 -- @param extraDistance number - gets added to G.DefenseRadius
@@ -269,13 +269,13 @@ function Field.defenseIntersectionByWay(way, extraDistance, opp)
 	local intersection = nil
 	if way < arcway then
 		local angle = way / radius
-		intersection = Vector.fromAngle(math.pi - angle) * radius + 
+		intersection = Vector.fromAngle(math.pi - angle) * radius +
 			Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf)
 	elseif way <= arcway + lineway then
 		intersection = Vector.create(way - arcway - G.DefenseStretch/2, radius - G.FieldHeightHalf)
 	else
 		local angle = (way - arcway - lineway) / radius
-		intersection = Vector.fromAngle(math.pi/2 - angle) * radius + 
+		intersection = Vector.fromAngle(math.pi/2 - angle) * radius +
 			Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf)
 	end
 
@@ -288,7 +288,7 @@ function Field.defenseIntersectionByWay(way, extraDistance, opp)
 	return intersection
 end
 
---- Calculates all intersections (0 to 4) of a given circle with the (extended) defense area 
+--- Calculates all intersections (0 to 4) of a given circle with the (extended) defense area
 -- @param pos Vector - center point of the circle
 -- @param radius number - radius of the circle
 -- @param extraDistance number - gets added to G.DefenseRadius
@@ -307,26 +307,26 @@ function Field.intersectCircleDefenseArea(pos, radius, extraDistance, opp)
 	-- get intersections with circles
 	local li1, li2 = geom.intersectCircleCircle(leftCenter, defenseRadius, pos, radius)
 	local ri1, ri2 = geom.intersectCircleCircle(rightCenter, defenseRadius, pos, radius)
-	if li1 and li1.x < G.DefenseStretch/2 and li1.y > -G.FieldHeightHalf then 
+	if li1 and li1.x < G.DefenseStretch/2 and li1.y > -G.FieldHeightHalf then
 		table.insert(intersections, li1)
 	end
-	if li2 and li2.x < G.DefenseStretch/2 and li2.y > -G.FieldHeightHalf then 
+	if li2 and li2.x < G.DefenseStretch/2 and li2.y > -G.FieldHeightHalf then
 		table.insert(intersections, li2)
 	end
-	if ri1 and ri1.x > G.DefenseStretch/2 and ri1.y > -G.FieldHeightHalf then 
+	if ri1 and ri1.x > G.DefenseStretch/2 and ri1.y > -G.FieldHeightHalf then
 		table.insert(intersections, ri1)
 	end
-	if ri2 and ri2.x > G.DefenseStretch/2 and ri2.y > -G.FieldHeightHalf then 
+	if ri2 and ri2.x > G.DefenseStretch/2 and ri2.y > -G.FieldHeightHalf then
 		table.insert(intersections, ri2)
 	end
 
 	-- get intersections with line
 	local mi1, mi2 = geom.intersectLineCircle(
 				Vector.create(0, -G.FieldHeightHalf+defenseRadius), Vector.create(1, 0), pos, radius)
-	if mi1 and math.abs(mi1.x) <= G.DefenseStretch/2 then 
+	if mi1 and math.abs(mi1.x) <= G.DefenseStretch/2 then
 		table.insert(intersections, li1)
 	end
-	if mi2 and math.abs(mi1.x) <= G.DefenseStretch/2 then 
+	if mi2 and math.abs(mi1.x) <= G.DefenseStretch/2 then
 		table.insert(intersections, li2)
 	end
 
