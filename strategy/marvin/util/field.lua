@@ -77,53 +77,67 @@ function Field.isInField(pos, boundaryWidth)
 	return true
 end
 
-function Field.isInFriendlyDefenseArea(pos, radius)
-	local G = World.Geometry
-	if pos.y + radius < -G.FieldHeightHalf then
-		return false
+local defStretchHalf = G.DefenseStretch / 2
+local defRadius = G.DefenseRadius
+local function isInDefenseArea(pos, radius, friendly)
+	local goalLine = G.FieldHeightHalf
+	if friendly then
+		goalLine = -G.FieldHeightHalf
 	end
-	local p1 = Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf) -- lower bound of defense stretch
-	local p2 = Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf) -- upper bound of defense stretch
 
-	if (math.abs(pos.x) < G.DefenseStretch/2 + radius and pos.y < G.DefenseRadius - G.FieldHeightHalf + radius) -- check if robot is inside defense stretch
-			or p1:distanceTo(pos) < G.DefenseRadius + radius or p2:distanceTo(pos) < G.DefenseRadius + radius then -- check if robot is inside defense radius
-		return true
-	else
+	if (friendly and pos.y + radius < goalLine)	or (not friendly and pos.y + radius > goalLine) then
 		return false
 	end
+
+	local p1 = Vector.create(defStretchHalf, goalLine) -- lower bound of defense stretch
+	local p2 = Vector.create(-defStretchHalf, goalLine) -- upper bound of defense stretch
+	local belowDefStretch = pos.y > goalLine - defRadius - radius
+	if friendly then
+		belowDefStretch = pos.y < goalLine + defRadius + radius
+	end
+
+	return (math.abs(pos.x) < defStretchHalf + radius and belowDefStretch) -- if robot is inside defense stretch
+		or p1:distanceTo(pos) < defRadius + radius or p2:distanceTo(pos) < defRadius + radius -- if robot is inside defense radius
+end
+
+function Field.isInFriendlyDefenseArea(pos, radius)
+	return isInDefenseArea(pos, radius, true)
 end
 
 function Field.isInOpponentDefenseArea(pos, radius)
-	local G = World.Geometry
-	local p1 = Vector.create(G.DefenseStretch/2, G.FieldHeightHalf) -- lower bound of defense stretch
-	local p2 = Vector.create(-G.DefenseStretch/2, G.FieldHeightHalf) -- upper bound of defense stretch
-
-	if (math.abs(pos.x) < G.DefenseStretch/2 + radius and pos.y > G.FieldHeightHalf - G.DefenseRadius - radius) -- check if robot is inside defense stretch
-			or p1:distanceTo(pos) < G.DefenseRadius + radius or p2:distanceTo(pos) < G.DefenseRadius + radius then -- check if robot is inside defense radius
-		return true
-	else
-		return false
-	end
+	return isInDefenseArea(pos, radius, false)
 end
 
-function Field.distanceToFriendlyDefenseArea(pos, radius)
-	if pos.y + radius < -G.FieldHeightHalf then
-		local distx = math.max(math.abs(pos.x) - radius - G.DefenseRadius - G.DefenseStretch/2, 0)
-		local disty = -pos.y - radius - G.FieldHeightHalf
+local function distanceToDefenseArea(pos, radius, friendly)
+	local goalLine = G.FieldHeightHalf
+	if friendly then
+		goalLine = - G.FieldHeightHalf
+	end
+	if friendly and pos.y + radius < goalLine then
+		local distx = math.max(math.abs(pos.x) - radius - defRadius - defStretchHalf, 0)
+		local disty = goalLine - pos.y - radius
+		return math.sqrt(distx^2, disty^2)
+	elseif not friendly and pos.y + radius > G.FieldHeightHalf then
+		local distx = math.max(math.abs(pos.x) - radius - defRadius - defStretchHalf, 0)
+		local disty = pos.y + radius - goalLine
 		return math.sqrt(distx^2, disty^2)
 	end
-	if Field.isInFriendlyDefenseArea(pos, radius) then
+	if isInDefenseArea(pos, radius, friendly) then
 		return 0
 	end
 	local distance
-	if math.abs(pos.x) < G.DefenseStretch/2 then
-		distance = pos.y - (-G.FieldHeightHalf + G.DefenseRadius) - radius
-	elseif pos.x > 0 then
-		local p1 = Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf)
-		distance = p1:distanceTo(pos) - G.DefenseRadius - radius
-	else
-		local p2 = Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf)
-		distance = p2:distanceTo(pos) - G.DefenseRadius - radius
+	if math.abs(pos.x) <= defStretchHalf then
+		if friendly then
+			distance = pos.y - (goalLine + defRadius) - radius
+		else
+			distance = goalLine - defRadius - pos.y + radius
+		end
+	elseif pos.x > defStretchHalf then
+		local corner = Vector.create(defStretchHalf, goalLine)
+		distance = corner:distanceTo(pos) - defRadius - radius
+	else -- pos.x < -defStretchHalf
+		local corner = Vector.create(-defStretchHalf, goalLine)
+		distance = corner:distanceTo(pos) - defRadius - radius
 	end
 	if distance < -0.00001 then
 		error("util/field: distanceToFriendlyDefenseArea() becomes negative ("..distance..
@@ -132,8 +146,13 @@ function Field.distanceToFriendlyDefenseArea(pos, radius)
 	return (distance < 0) and 0 or distance
 end
 
+function Field.distanceToFriendlyDefenseArea(pos, radius)
+	return distanceToDefenseArea(pos, radius, true)
+end
 
-
+function Field.distanceToOpponentDefenseArea(pos, radius)
+	return distanceToDefenseArea(pos, radius, false)
+end
 
 local normalize = function(angle)
 	while angle >= 2*math.pi do angle = angle - 2*math.pi end
