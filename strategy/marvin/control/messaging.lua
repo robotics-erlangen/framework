@@ -33,7 +33,8 @@ local exclusiveRoles = {
 	mainAttacker = true,
 	freeKickDefender = true,
 	navChallengeRight = true,
-	navChallengeLeft = true
+	navChallengeLeft = true,
+	cornerAttacker = true,
 }
 for role, _ in pairs(exclusiveRoles) do
 	msgDefs[role] = Robot

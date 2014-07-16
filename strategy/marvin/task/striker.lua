@@ -1,5 +1,6 @@
 local SuggestPass = require "task/ability/suggestpass"
-local Striker = (require "../base/class").newTask("Task.Striker", require "task/base", SuggestPass)
+local CornerAttack = require "task/ability/cornerattack"
+local Striker = (require "../base/class").newTask("Task.Striker", require "task/base", SuggestPass, CornerAttack)
 
 local World = require "../base/world"
 local vis = require "../base/vis"
@@ -10,6 +11,7 @@ local geom = require "../base/geom"
 local Interval = require "util/interval"
 local debug = require "../base/debug"
 local Messaging = require "control/messaging"
+local Referee = require "../base/referee"
 
 function Striker:_init()
 	self._moveDest = nil
@@ -217,6 +219,12 @@ function Striker:_calcMoveDest()
 end
 
 function Striker:run()
+	if Referee.isOffensiveCornerKick() then
+		if self:_tryCornerAttack() then
+			return -- a cornerAttack is performed
+		end
+	end
+
 	if not Messaging.get("attackerFlag")[self._robot] then
 		return -- we're not considered at position choice
 	end
