@@ -25,13 +25,13 @@ function PassInTheRun:run()
 		self._shootPos = newSuggestion.pos
 	end
 	local notOverMiddle = self._shootPos.y * World.Ball.pos.y >= 0
-	local linearShoot = Robot.wayToRobotFree(self._robot, self._targetRobot) and notOverMiddle
+	local linearShoot = Robot.wayToPosFree(self._shootPos, self._robot, self._targetRobot) and notOverMiddle
 	self:_shoot(self._shootPos, Settings.shootDriveSpeed, linearShoot)
 
 	self._send.passSender(self._targetRobot, "in the run")
 	self._send.passPos(self._targetRobot, self._shootPos)
 	debug.set("targetRobot", self._targetRobot.id)
-	debug.set("chip", chipKick)
+	debug.set("chip", not linearShoot)
 	vis.addCircle("t/passintherun: ShootPos", self._shootPos, 0.1, vis.colors.blue, true)
 end
 
