@@ -1,7 +1,7 @@
 local ChipOverMiddle = {}
 
 function ChipOverMiddle.occuring()
-    -- wie kann ma das festellen?
+    -- not detectable with current tracking
 end
 
 function ChipOverMiddle.print()

@@ -14,7 +14,7 @@ local fouls = {
     require "pushing"
 }
 local foulTimes = {}
-local timeout = 4 -- min time between subsequent fouls of the same time
+local timeout = 3 -- min time between subsequent fouls of the same time
 
 local function wrapper(func)
     return function()
