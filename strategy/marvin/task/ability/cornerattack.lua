@@ -53,8 +53,7 @@ local function scanForBestGapInDefense()
         if Field.distanceToOpponentDefenseArea(opp.pos, opp.radius) < oppDefAreaDistance
             and opp ~= World.OpponentKeeper then
             local towardsGoal = World.Geometry.OpponentGoal - opp.pos
-            local p, way = Field.intersectLineDefenseArea(opp.pos, towardsGoal, 0, true)
-            vis.addCircle("t/a/cornerattack", p, 0.05, vis.colors.redHalf, true)
+            local _, way = Field.intersectLineDefenseArea(opp.pos, towardsGoal, 0, true)
             if way > defLineBegin and way < defLineEnd then
                 table.insert(occupiedSpots, way)
             end
@@ -95,7 +94,7 @@ function CornerAttack:_tryCornerAttack()
                 self._isAssigned = true
                 self._pointOfImpact = gap + (World.Geometry.OpponentGoal-gap):setLength(distInsideDefArea)
             end
-            debug.set("CornerAttackPoint", self._pointOfImpact)
+            vis.addCircle("t/a/cornerattack", self._pointOfImpact, 0.05, vis.colors.redHalf, true)
 
             local mainAttacker = self._inbox.mainAttacker().trainer
             if mainAttacker then
