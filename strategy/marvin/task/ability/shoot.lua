@@ -28,10 +28,6 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 	if self._robot:hasBall(World.Ball, Settings.shootSideOffset) then -- if we got the ball
 		self._ballInDribblerPos = World.Ball.pos
 
-		if not linearShoot then
-			self._robot:setDribblerSpeed(1)
-		end
-
 		if not self._lastBallSpeed then
 			self._lastBallSpeed = World.Ball.speed
 		end
@@ -126,6 +122,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 	end
 	if (not self._catchTime) or self._catchTime < 0.5 then
 		self._send.shootDestination("all", targetPos)
+		self._robot:setDribblerSpeed(1)
 	end
 end
 

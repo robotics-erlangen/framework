@@ -30,7 +30,6 @@ function ChipAway:run()
 	end
 
 	local chipPos = self._chipTarget and self._chipTarget.pos or World.Geometry.OpponentGoal
-	self._robot:setDribblerSpeed(1)
 	self:_shoot(chipPos, math.huge, false)
 
 	if self._chipTarget then

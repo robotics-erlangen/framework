@@ -18,13 +18,8 @@ Gen2014.constants = {
 -- @name Gen2014_3:chip
 -- @param distance number - Distance to chip
 function Gen2014:chip(distance)
-	-- TODO: FIXME
-	if self.maxShotChip == 0 then
-		self:pass(distance)
-		self:setDribblerSpeed(1)
-	else
-		self:shootChip(1) -- chip is too powerless
-	end
+	-- TODO use distance
+	self:shootChip(1)
 end
 
 --- Shoot wrapper
