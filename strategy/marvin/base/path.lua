@@ -1,23 +1,22 @@
 local path = path
 local World = require "../base/world"
 local Constants = require "../base/constants"
-local Settings = require "settings"
 local Referee = require "../base/referee"
 
 function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance)
 	local ballDistance = 0
 	radius = radius or robot.radius
 	stopBallDistance = stopBallDistance or Constants.stopBallDistance
-	
+
 	local forbidOppDefenseArea = Referee.isFriendlyFreeKickState()
 	local forbidOppFieldHalf = Referee.isKickoffState()
 
 	-- clear and add obstacles
 	self:clearObstacles()
-	
+
 	-- set radius for path finding
 	self:setRadius(radius)
-	
+
 	local G = World.Geometry
 	-- only keeper may enter friendly defense area
 	-- don't add obstacles for friendly defense area if the robot is in the opponent half
@@ -36,12 +35,12 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 			--G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y - G.DefenseRadius - G.FreeKickDefenseDist, "DefenseAreaOpp_Center")
 		self:addCircle(G.OpponentGoal.x, G.OpponentGoal.y, G.DefenseRadius + Settings.positionPadding + G.FreeKickDefenseDist, "DefenseAreaOpp_Center")
 	end
-	
+
 	if forbidOppFieldHalf then
 		self:addRect(-G.FieldWidthHalf, G.FieldHeightHalf,
 			G.FieldWidthHalf, 0, "OppFieldHalf")
 	end
-	
+
 	if not ignoreBall or Referee.isStopState() then
 		-- always add the actual ball obstacle, otherwise the ball may be pushed during stop
 		self:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + ballDistance, "Ball")

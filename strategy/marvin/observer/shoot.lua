@@ -2,7 +2,6 @@ local Shoot = {}
 
 local Constants = require "../base/constants"
 local World = require "../base/world"
-local Settings = require "settings"
 local Robot = require "observer/robot"
 local Ball = require "observer/ball"
 local Goal = require "observer/goal"
@@ -20,13 +19,13 @@ local debug = require "../base/debug"
 -- @return passChance number - the calculated chance that the ball reaches the target position
 function Shoot.evaluatePassCorridor(targetRobot, shootTime, targetPos)
 	-- TODO: test
-	local corridorWidthHalf = World.Ball.radius + Constants.positionError	
+	local corridorWidthHalf = World.Ball.radius + Constants.positionError
 
 	local targetPos = targetPos or (targetRobot.pos + targetRobot.speed*shootTime) -- or targetRobot.trajectory:predictPos(shootTime)
 	local predictedBallState = Ball.atTime(shootTime)
 
 	local corridorHalf = (targetPos - predictedBallState.pos):perpendicular():setLength(corridorWidthHalf)
-	
+
 	local passChance = 1
 	for _, robot in pairs(World.OpponentRobots) do
 		local pointOnLine = robot.pos:nearestPosOnLine(predictedBallState.pos, targetPos)
@@ -79,7 +78,7 @@ function Shoot.evaluateChipCorridor(targetRobot, shootTime, targetPos)
 	-- assuming the chip is shot in 45 degree angle, FIXME get angle from robot
 	local liftDistance = 2 * math.sqrt(targetRobot.height)
 	if (targetPos - World.Ball.pos):length() > 2 * liftDistance + targetRobot.radius then
-		local corridorWidthHalf = World.Ball.radius + Constants.positionError	
+		local corridorWidthHalf = World.Ball.radius + Constants.positionError
 
 		targetPos = targetPos or targetRobot.trajectory:predictPos(shootTime)		--FIXME add time needed to reach target
 		local ballPos = Ball.atTime(shootTime)
@@ -92,13 +91,13 @@ function Shoot.evaluateChipCorridor(targetRobot, shootTime, targetPos)
 			local ballRollTime = Shoot.ballPassTime(ballPos, targetRobot, targetPos, (ballPos - pointOnLine):length())
 			local ballCatchProbability = Ball.ballCatchProbability(robot, shootTime, ballRollTime, pointOnLine, corridorHalf)
 			passChance = passChance * (1 - ballCatchProbability)
-	
+
 			local pointOnLine = Geom.nearestPosOnLine(robot.pos, targetPos - x, targetPos)
 			local ballRollTime = Shoot.ballPassTime(ballPos, targetRobot, targetPos, (ballPos - pointOnLine):length())
 			local ballCatchProbability = Ball.ballCatchProbability(robot, shootTime, ballRollTime, pointOnLine, corridorHalf)
 			passChance = passChance * (1 - ballCatchProbability)
 		end
-	else 
+	else
 		Shoot.evaluatePassCorridor(targetRobot, targetPos, shootTime)
 	end
 	return passChance
@@ -110,12 +109,12 @@ end
 -- @param targetPos Vector - where the targetRobot will be
 -- @param distance number - the distance
 -- @return ballRollTime number - the time after which the ball has travelled the given distance
-function Shoot.ballPassTime(futureBallPos, targetRobot, targetPos, distance) 
+function Shoot.ballPassTime(futureBallPos, targetRobot, targetPos, distance)
 	local passDistance = (targetPos - futureBallPos):length()
 	local v = targetRobot:calculateShootSpeed(targetRobot.constants.passSpeed, passDistance)
 	return Ball.ballRollTime(v, distance)
 end
- 
+
 
 local function assistantOrder(r1, r2)
 	return Shoot.rateAssistant(r1) > Shoot.rateAssistant(r2)
@@ -123,7 +122,7 @@ end
 
 --- returns nil or a robot which can be passed to and, if there a more of them, the one who is closest to the opponent goal in combination with the biggest free goal sectors
 -- @param activeRobot - the robot who is searching for a pass receiver
--- @return robot or nil - the most suitable robot, if any 
+-- @return robot or nil - the most suitable robot, if any
 function Shoot.bestFreeAssistant(activeRobot)
 	-- !!! ATTENTION !!! Assumes we are already at the ball
 	local freeAssistants = {}
@@ -161,11 +160,11 @@ function Shoot.rateAssistant(robot)
 	else
 		backRateFactor = 1
 	end
-		
+
 	if biggestSector then
 		rating = (rating + biggestSector * 2 * World.Geometry.FieldHeight) * distRateFactor * backRateFactor
 	end
-	-- log("robot " .. robot.id .. ", rating " .. rating)	
+	-- log("robot " .. robot.id .. ", rating " .. rating)
 	return rating
 end
 

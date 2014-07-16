@@ -1,9 +1,8 @@
-local Ball = {} 
+local Ball = {}
 
 local Constants = require "../base/constants"
 local Cache = require "../base/cache"
 local World = require "../base/world"
-local Settings = require "settings"
 local Field = require "util/field"
 local geom = require "../base/geom"
 local debug = require "../base/debug"
@@ -32,13 +31,13 @@ function Ball.firstAtBall()
 			minTime = time
 			fastestRobot = robot
 		end
-	end	
+	end
 	return fastestRobot, opponentTime - minTime
 end
 
 function Ball.toBall(robot, ball)
 	ball = ball or World.Ball
-	
+
 	local minTime = ObserverRobot.minTimeToBall(robot, ball)
 	local minPos = Ball.ballAt(ball, minTime)
 	local maxTime = ball.brakeTime > minTime and ball.brakeTime or minTime
@@ -175,7 +174,7 @@ end
 -- @return Ball - predicted Ball-like table
 function Ball.atTime(t, ball)
 	ball = ball or World.Ball
-	
+
 	local predicted = { radius = ball.radius }
 	if t > ball.brakeTime then -- ball won't move anymore after it has stopped
 		predicted.pos = Ball.ballAt(ball, ball.brakeTime)
@@ -187,11 +186,11 @@ function Ball.atTime(t, ball)
 		predicted.brakeTime = ball.brakeTime - t
 	end
 	predicted.deceleration = ball.deceleration
-	
+
 	-- limit ball position to field, keeps reachBallPos from timing out
 	-- makes even much more sense, as the ball can only be catched inside the field
 	predicted.pos = Field.limitToField(predicted.pos, World.Geometry.BoundaryWidth)
-	
+
 	return predicted
 end
 
@@ -295,7 +294,7 @@ function Ball.isShot()
 	-- if the ball accelerates
 	local condAccelerates = (ballSpeedLength > lastBallSpeedLength + accelerationPerFrame * World.TimeDiff)
 	-- if the ball is fast
-	local condFast = (ballSpeedLength > Settings.fastBall)	
+	local condFast = (ballSpeedLength > Settings.fastBall)
 	-- if one robot had the ball the last 0.1 seconds (equal to cooldown time)
 	local condHadBall = false
 	-- if this robot looks about in the same direction as the ball rolls

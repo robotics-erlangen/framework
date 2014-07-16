@@ -9,7 +9,6 @@ local SaveBall = require "task/saveball"
 local Field = require "util/field"
 local debug = require "../base/debug"
 
-local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
 local PassInTheRun = require "task/passintherun"
 

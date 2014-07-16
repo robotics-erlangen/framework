@@ -1,5 +1,4 @@
-local Shoot = require "task/ability/shoot"
-local SaveBall = (require "../base/class").newTask("Task.SaveBall", require "task/base", Shoot)
+local SaveBall = (require "../base/class").newTask("Task.SaveBall", require "task/base")
 
 local World = require "../base/world"
 local geom = require "../base/geom"

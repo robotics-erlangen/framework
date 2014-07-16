@@ -4,7 +4,6 @@ local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local Goal = require "observer/goal"
 local geom = require "../base/geom"
-local Settings = require "settings"
 local vis = require "../base/vis"
 local Field = require "util/field"
 
