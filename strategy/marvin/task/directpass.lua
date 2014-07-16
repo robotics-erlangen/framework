@@ -15,8 +15,7 @@ local vis = require "../base/vis"
 function DirectPass:_init(targetRobot, linearShoot, passSpeed)
 	self._targetRobot = assert(targetRobot, "no pass receiver given")
 	self._passSpeed = passSpeed or self._targetRobot.constants.passSpeed
-	-- shoot ball into robot dribbler
-	self._targetPos = self._targetRobot.pos + Vector.fromAngle(self._targetRobot.dir) * self._targetRobot.shootRadius
+	self._targetPos = nil
 end
 
 function DirectPass:_canShoot()
@@ -28,6 +27,8 @@ function DirectPass:_canShoot()
 end
 
 function DirectPass:run()
+	-- shoot ball into robot dribbler
+	self._targetPos = self._targetRobot.pos + Vector.fromAngle(self._targetRobot.dir) * self._targetRobot.shootRadius
 	local notOverMiddle = self._targetPos.y * World.Ball.pos.y >= 0
 	local linearShoot = Robot.wayToRobotFree(self._targetRobot, self._robot) and notOverMiddle
 	self:_shoot(self._targetPos, self._passSpeed, linearShoot)
