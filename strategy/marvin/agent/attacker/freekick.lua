@@ -7,15 +7,13 @@ local Shoot = require "observer/shoot"
 local Ball = require "observer/ball"
 local Class = require "../base/class"
 
-local ChipAway = require "task/chipaway"
 local DirectPass = require "task/directpass"
+local PassInTheRun = require "task/passintherun"
 local ShootGoal = require "task/shootgoal"
 local MoveToStaticBall = require "task/movetostaticball"
 
-
 function FreeKick:_stop()
 	self._startTime = 0
-	self._atBall = false
 end
 
 function FreeKick:check()
@@ -48,38 +46,37 @@ function FreeKick:_updateTask()
 	local hurryUp = 5
 
 	local switchDist = nearBallDist + self._robot.radius + World.Ball.radius + Settings.positionPadding
-	if self._robot.pos:distanceTo(World.Ball.pos) < switchDist then
-		self._atBall = true
-	end
+	local atBall =  self._robot.pos:distanceTo(World.Ball.pos) < switchDist
 
 	-- if we are not near the ball yet, don't decide what to do
-	if World.Time - self._startTime < hurryUp and not self._atBall then
-		return MoveToStaticBall, {math.pi/2, nearBallDist}
+	if World.Time - self._startTime < hurryUp and not atBall then
+		return MoveToStaticBall, { math.pi/2, nearBallDist }
 	end
 
-	-- if we are forced to perform a pass
-	if World.RefereeState == "IndirectOffensive" then
-		return self:passOrChipTask()
-	end
-
-	-- TODO: fix that ancient crap
+	-- shootgoal
 	local shootGoalTmp = ShootGoal.create(self._agent)
 	local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
-	local canShootGoal = sg_mae and sg_mae > Settings.minAnglePrecision
-	if canShootGoal then
-		return ShootGoal
-	else
-		return self:passOrChipTask()
-	end
-end
+	local shoudShoot = sg_mae and sg_mae > Settings.minAnglePrecision
 
-function FreeKick:passOrChipTask()
-	-- TODO: fix that ancient crap
-	local bestRobot = Shoot.bestFreeAssistant(self._robot)
-	if bestRobot then
-		return DirectPass, {bestRobot, true}
-	else
-		return ChipAway
+	-- pass
+	local pass
+	local bestPassRating = 0
+	for robot, sugg in pairs(self._inbox.passSuggestion()) do
+		if sugg.rating > bestPassRating then
+			pass = sugg
+			pass.target = robot
+			bestPassRating = sugg.rating
+		end
+	end
+
+	if not (shouldShoot and World.RefereeState == "DirectOffensive") and pass then
+		if pass.kind == "in the run" then
+			return PassInTheRun, { pass.target, pass.pos, Settings.shootDriveSpeed }
+		else -- assume pass.kind == "direct"
+			return DirectPass, { pass.target, true }
+		end
+	else -- fallback: shootgoal, hope for ricochets etc when indirect
+		return ShootGoal
 	end
 end
 
