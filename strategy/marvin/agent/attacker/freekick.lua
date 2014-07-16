@@ -56,7 +56,7 @@ function FreeKick:_updateTask()
 	-- shootgoal
 	local shootGoalTmp = ShootGoal.create(self._agent)
 	local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
-	local shoudShoot = sg_mae and sg_mae > Settings.minAnglePrecision
+	local shouldShoot = sg_mae and sg_mae > Settings.minAnglePrecision
 
 	-- pass
 	local pass
