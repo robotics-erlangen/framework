@@ -43,8 +43,7 @@ function SaveBall:run()
 		else
 			chipPos = touchLineIntersection
 		end
-		if not chipPos then
-			log("Warning: Probably a calculation mistake of chipPos in SaveBall task")
+		if not chipPos then -- probably because ball is out of field
 			chipPos = World.Geometry.OpponentGoal
 		end
 		vis.addCircle("t/saveball/chipPos", chipPos, 0.1, vis.colors.blue, true)

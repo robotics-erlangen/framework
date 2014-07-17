@@ -13,7 +13,6 @@ function Pass:_init(targetRobot, shootPos, linearShoot)
 	self._targetRobot = assert(targetRobot, "targetRobot is missing")
 	self._linearShoot = linearShoot
 	if shootPos then
-		log("laufpass")
 		self._inTheRun = true
 		self._passSpeed = Settings.shootDriveSpeed
 		self._shootPos = shootPos
@@ -52,8 +51,8 @@ function Pass:run()
 	if self._linearShoot ~= nil then
 		linearShoot = self._linearShoot
 	else
-		local notOverMiddle = self._shootPos.y * World.Ball.pos.y >= 0
-		linearShoot = Robot.wayToPosFree(self._shootPos, self._robot, self._targetRobot) and notOverMiddle
+		local overMiddle = self._shootPos.y * World.Ball.pos.y < 0
+		linearShoot = Robot.wayToPosFree(self._shootPos, self._robot, self._targetRobot) or overMiddle
 	end
 	self:_shoot(self._shootPos, self._passSpeed, linearShoot)
 	self._send.passPos(self._targetRobot, self._shootPos)
