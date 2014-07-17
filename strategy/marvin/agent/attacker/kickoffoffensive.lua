@@ -7,7 +7,7 @@ local Class = require "../base/class"
 local vis = require "../base/vis"
 local Ball = require "observer/ball"
 
-local PassInTheRun = require "task/passintherun"
+local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
 local ChipAway = require "task/chipaway"
 local Halt = require "task/halt"
@@ -116,7 +116,7 @@ function KickoffOffensive:_updateTask()
 			return ShootGoal
 		elseif self._shootPos then
 			self._passActiveSince = World.Time
-			return PassInTheRun, {self._targetRobot, self._shootPos}
+			return Pass, { self._targetRobot, self._shootPos }
 		else]]
 			return ChipAway
 		--end

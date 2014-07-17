@@ -38,7 +38,7 @@ local roles = {
 		"centerback",
 		"chipaway",
 		"defendpenalty",
-		"directpass",
+		"pass",
 		"distractor",
 		"duel",
 		"farmirror",

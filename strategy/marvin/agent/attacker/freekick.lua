@@ -7,8 +7,7 @@ local Shoot = require "observer/shoot"
 local Ball = require "observer/ball"
 local Class = require "../base/class"
 
-local DirectPass = require "task/directpass"
-local PassInTheRun = require "task/passintherun"
+local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
 local MoveToStaticBall = require "task/movetostaticball"
 
@@ -41,10 +40,9 @@ function FreeKick:check()
 	return false
 end
 
+local nearBallDist = 0.15
+local hurryUp = 5
 function FreeKick:_updateTask()
-	local nearBallDist = 0.15
-	local hurryUp = 5
-
 	local switchDist = nearBallDist + self._robot.radius + World.Ball.radius + Settings.positionPadding
 	local atBall =  self._robot.pos:distanceTo(World.Ball.pos) < switchDist
 
@@ -70,11 +68,7 @@ function FreeKick:_updateTask()
 	end
 
 	if not (shouldShoot and World.RefereeState == "DirectOffensive") and pass then
-		if pass.kind == "in the run" then
-			return PassInTheRun, { pass.target, pass.pos, Settings.shootDriveSpeed }
-		else -- assume pass.kind == "direct"
-			return DirectPass, { pass.target, true }
-		end
+		return Pass, { pass.target, pass.pos }
 	else -- fallback: shootgoal, hope for ricochets etc when indirect
 		return ShootGoal
 	end

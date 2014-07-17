@@ -19,7 +19,7 @@ function Default:check()
 	end
 
 	-- look for incoming passes
-	for _,_ in pairs(self._inbox.passSender()) do --tests if table has content, runs 0-1 times, otherwise BUG
+	for _,_ in pairs(self._inbox.passPos()) do --tests if table has content, runs 0-1 times, otherwise BUG
 		self._lastPass = World.Time
 	end
 	self._lastPass = self._lastPass or 0

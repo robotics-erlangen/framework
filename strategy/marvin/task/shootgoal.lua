@@ -101,7 +101,7 @@ function ShootGoal:guessFirstPassReceiptPosition()
 	if sign * minPos.x > allowedWidth then
 		local shrinkWidth = sign * minPos.x - allowedWidth
 		minPos.x = sign * allowedWidth
-		minPos.y = minPos.y - sign * shrinkWidth * 
+		minPos.y = minPos.y - sign * shrinkWidth *
 				(minPos.y - World.Ball.pos.y) / (minPos.x - World.Ball.pos.x)
 	end
 
@@ -238,7 +238,7 @@ function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
 		self.maxAngleError = self.maxAngleError or math.huge
 		return
 	end
-		
+
 
 	local goalStart = (World.Geometry.OpponentGoalRight - viewPos):angle() -- direction of the first goalpost
 	local goalEnd = (World.Geometry.OpponentGoalLeft - viewPos):angle() -- direction of the other goalpost
@@ -394,7 +394,7 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 
 	-- because of the 1 frame delay this agent still gets the last message of the previous mainAttacker
 	self._receivePass = receivepassHint or false
-	for _,_ in pairs(self._inbox.passSender()) do
+	for _,_ in pairs(self._inbox.passPos()) do
 		self._receivePass = true
 		return
 	end

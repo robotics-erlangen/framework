@@ -22,7 +22,7 @@ function ReceivePass:_stop()
 end
 
 function ReceivePass:check()
-	for _, _ in pairs(self._inbox.passSender()) do
+	for _, _ in pairs(self._inbox.passPos()) do
 		self._targetTimer = World.Time -- remember time of last pass message
 		self._forceKeepingInPool = true
 	end

@@ -26,7 +26,7 @@ function SuggestPass:_suggestPass()
         return
     end
 
-    local passPos, passKind
+    local passPos
     local bestRating = 0
     local goal = World.Geometry.OpponentGoal
 
@@ -37,7 +37,6 @@ function SuggestPass:_suggestPass()
         local angle = (self._robot.pos-goal):absoluteAngleDiff(World.Ball.pos-goal)
         debug.set("angle", angle)
         bestRating = bestRating * angle
-        passKind = "direct"
         if not Robot.wayToRobotFree(self._robot, mainAttacker) then -- chip necessary
             bestRating = bestRating * chipRatingFactor
         end
@@ -86,7 +85,6 @@ function SuggestPass:_suggestPass()
                                 debug.set("angle", angle)
                                 bestRating = rating
                                 passPos = p
-                                passKind = "in the run"
                             end
                             -- for more criteria, have a look at CMDragon 2014 TDP
                         end
@@ -96,12 +94,12 @@ function SuggestPass:_suggestPass()
         end
     end
 
-    if passKind then
+    if bestRating > 0 then
         if passPos then
             vis.addCircle("t/a/suggestpass: passSuggestion", passPos, 0.1, vis.colors.red, true)
         end
-        debug.set("pass kind", passKind)
-        self._send.passSuggestion(mainAttacker, { kind = passKind, rating = bestRating, pos = passPos })
+        debug.set("pass kind", passPos and "in the run" or "direct")
+        self._send.passSuggestion(mainAttacker, { rating = bestRating, pos = passPos })
     end
 end
 

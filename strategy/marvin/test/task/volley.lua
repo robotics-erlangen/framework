@@ -1,6 +1,6 @@
 local TestAgent = require "agent/testagent"
 local ShootGoal = require "task/shootgoal"
-local DirectPass = require "task/directpass"
+local Pass = require "task/pass"
 local MoveToPos = require "task/movetopos"
 local Halt = require "task/halt"
 local Entrypoints = require "../base/entrypoints"
@@ -86,8 +86,8 @@ local function run()
 			parameters = { Vector.create(x, y), (World.Ball.pos - robot1.pos):angle() }
 		})
 		agent2 = TestAgent.create(robot2, {
-			task = DirectPass,
-			parameters = {robot1, true}
+			task = Pass,
+			parameters = { robot1, nil, true}
 		})
 		initialized = true
 	elseif state == "shoot" and not initialized then

@@ -1,15 +1,13 @@
 local Base = require "agent/base/behavior"
 local Shoot = (require "../base/class").new("Agent.Attacker.Shoot", Base)
+
 local World = require "../base/world"
 local Robot = require "observer/robot"
 local Ball = require "observer/ball"
 local Rating = require "util/rating"
 local ObserverShoot = require "observer/shoot"
-
 local ShootGoal = require "task/shootgoal"
-local DirectPass = require "task/directpass"
-local PassInTheRun = require "task/passintherun"
-local Class = require "../base/class"
+local Pass = require "task/pass"
 
 function Shoot:_stop()
 	self._taskClass = nil
@@ -20,7 +18,7 @@ end
 
 function Shoot:check()
 	if Ball.isShot() then
-		for _,_ in pairs(self._inbox.passSender()) do
+		for _,_ in pairs(self._inbox.passPos()) do
 			self._send.exclusiveRole("trainer", {mainAttacker = 2})
 			break
 		end
@@ -51,14 +49,10 @@ function Shoot:_updateTask()
 		if canShootGoal then
 			self._minTaskTime = 1.5
 			self._taskClass = ShootGoal
-		elseif pass and pass.kind == "in the run" then
-			self._minTaskTime = 2
-			self._taskClass = PassInTheRun
-			taskParams = { pass.target, pass.pos, Settings.shootDriveSpeed }
-		elseif pass and pass.kind == "direct" then
-			self._minTaskTime = 1
-			self._taskClass = DirectPass
-			taskParams = { pass.target, true }
+		elseif pass then
+			self._minTaskTime = 1.5
+			self._taskClass = Pass
+			taskParams = { pass.target, pass.pos }
 		else -- shootgoal as fallback
 			self._minTaskTime = 0.5
 			self._taskClass = ShootGoal
