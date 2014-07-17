@@ -33,7 +33,7 @@ function ChipAway:run()
 	self:_shoot(chipPos, math.huge, false)
 
 	if self._chipTarget then
-		self._send.passSender(self._chipTarget, "direct")
+		self._send.passPos(self._chipTarget, chipPos)
 	end
 end
 

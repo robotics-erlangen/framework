@@ -3,14 +3,12 @@ local HandleBall = (require "../base/class").new("Agent.Defender.HandleBall", Ba
 
 local World = require "../base/world"
 local Referee = require "../base/referee"
+local debug = require "../base/debug"
 local Ball = require "observer/ball"
 local Shoot = require "observer/shoot"
-local SaveBall = require "task/saveball"
 local Field = require "util/field"
-local debug = require "../base/debug"
-
-local DirectPass = require "task/directpass"
-local PassInTheRun = require "task/passintherun"
+local Pass = require "task/pass"
+local SaveBall = require "task/saveball"
 
 function HandleBall:check()
 	if not Referee.isFriendlyFreeKickState()
@@ -44,13 +42,9 @@ function HandleBall:_updateTask()
 			bestPassRating = sugg.rating
 		end
 	end
-	local _, timeAdvance = Ball.firstAtBall() -- must be me because of mainAttacker
-	if pass and timeAdvance > 1.5 then -- only if we have a lot of time
-		if pass.kind == "direct" then
-			return DirectPass, { pass.target }
-		else -- in the run
-			return PassInTheRun, { pass.target, pass.pos, Settings.shootDriveSpeed }
-		end
+	local firstRobot, timeAdvance = Ball.firstAtBall()
+	if firstRobot == self._robot and pass and timeAdvance > 1.5 then -- only if we have a lot of time
+		return Pass, { pass.target, pass.pos }
 	else -- under pressure
 		return SaveBall
 	end

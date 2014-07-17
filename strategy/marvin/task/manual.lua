@@ -59,7 +59,7 @@ function Manual:_intelligentShoot()
 	elseif self._bestPassTarget then
 		local passSpeed = self._bestPassTarget.constants.passSpeed
 		self:_shoot(self._bestPassTarget.pos, passSpeed, true)
-		self._send.passSender(self._bestPassTarget, "direct")
+		self._send.passPos(self._bestPassTarget, self._bestPassTarget.pos)
 	else
 		self:_shoot(self._robot.pos + Vector.fromAngle(self._robot.dir), math.huge, true)
 	end
