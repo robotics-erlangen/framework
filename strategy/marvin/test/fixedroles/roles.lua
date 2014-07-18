@@ -49,7 +49,6 @@ local roles = {
 		"movetopos",
 		"passintherun",
 		"passreceiver",
-		"passtarget",
 		"rescuerobot",
 		"shootgoal",
 		"shootpenalty",
