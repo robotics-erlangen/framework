@@ -4,9 +4,9 @@ local HandleBall = (require "../base/class").new("Agent.Keeper.HandleBall", Base
 local World = require "../base/world"
 local Field = require "util/field"
 local Referee = require "../base/referee"
-local ChipAway = require "task/chipaway"
 local CenterBack = require "task/centerback"
 local AggressiveKeeper = require "task/aggressivekeeper"
+local SaveBall = require "task/saveball"
 
 function HandleBall:behindCenterbacks(object)
 	local defenseDistance = 2*self._robot.radius + CenterBack.distanceToDefenseArea()
@@ -14,14 +14,11 @@ function HandleBall:behindCenterbacks(object)
 end
 
 function HandleBall:check()
-	if Referee.isStopState() then
+	if Referee.isStopState() or World.RefereeState == "PenaltyDefensive" or
+			World.RefereeState == "PenaltyDefensivePrepare" or World.GameStage == "PenaltyShootout" then
 		return false
 	end
-	if World.RefereeState == "PenaltyDefensive" or World.RefereeState == "PenaltyDefensivePrepare"
-			or World.GameStage == "PenaltyShootout" then
-		return false
-	end
-	--if a slow ball enters the defense area
+	-- if a slow ball enters the defense area
 	local active = self:behindCenterbacks(World.Ball)
 			and World.Ball.speed:length() <= Settings.slowBall
 	if active then
@@ -34,7 +31,7 @@ function HandleBall:check()
 end
 
 function HandleBall:_updateTask()
-	--track opponent robots in defense area
+	-- track opponent robots in defense area
 	local danger = false
 	for _,r in pairs(World.OpponentRobots) do
 		if self:behindCenterbacks(r) then
@@ -42,18 +39,16 @@ function HandleBall:_updateTask()
 		end
 	end
 
-	--check if there is a danger of a own goal
+	-- check if there is a danger of a own goal
 	local ballDist = Field.distanceToFriendlyGoalLine(World.Ball.pos, 0)
 	local robotDist = Field.distanceToFriendlyGoalLine(self._robot.pos, 0)
-	local owngoal = ballDist < robotDist
+	local ballBehindKeeper = ballDist < robotDist
 
-	--decide whether to chip away or move aggressively to the ball
-	if danger and not owngoal then
-		--set the task to nil to ensure that a new task will be created
-		self._task = nil
+	-- decide whether to chip away or move aggressively to the ball
+	if danger and not ballBehindKeeper then
 		return AggressiveKeeper
 	else
-		return ChipAway
+		return SaveBall
 	end
 end
 
