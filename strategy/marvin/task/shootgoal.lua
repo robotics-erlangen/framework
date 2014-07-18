@@ -31,19 +31,26 @@ local cornerWeight = 0
 -- how much a new best sector should be better than the old one
 local sectorRatingHysteresis = 2
 
--- the time the opponent robot positions are extrapolated
-local extrapolationTime = 0.2
 
 local function robotList(selfRobot, viewPos, ignoreGoalie)
+	local minExtrapolationTime = 0.2
+	local maxExtrapolationTime = 0.8
+	local distCap = math.bound(0.1, selfRobot.pos:distanceTo(
+		World.Geometry.OpponentGoal) - World.Geometry.DefenseRadius - 3 * selfRobot.radius, 1)
+
 	local robots = {}
 	for _,r in pairs(World.Robots) do
 		if r.pos.y > viewPos.y and r ~= selfRobot then
 			if not (ignoreGoalie and r == World.OpponentKeeper) then
+				local extrapolationTime = (1 - math.bound(0, r.pos:distanceTo(selfRobot.pos), distCap) / distCap) * 
+						(maxExtrapolationTime - minExtrapolationTime) + minExtrapolationTime
 				local future_robot = {
 					["pos"] = r.pos + r.speed * extrapolationTime,
 					["radius"] = r.radius,
 					["speed"] = r.speed,
 				}
+				vis.addCircle("t/shootgoal: robot extrapolation", future_robot.pos, 
+						future_robot.radius + 0.02, vis.colors.redHalf, true)
 				table.insert(robots, future_robot)
 			end
 		end
@@ -66,7 +73,8 @@ local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError)
 	--log(math.floor(rotateRating * 100) .. "   " .. math.floor(goalRating * 100))
 
 	-- ignore distance rating for now...
-	local finalRating = rotateRating * goalRating --* distRating
+	local finalRating = rotateRating * goalRating --* 
+
 	return finalRating
 end
 
@@ -164,7 +172,7 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 
 
 	local sampleCount = 5
-	local sampleVariance = 0.03
+	local sampleVariance = 0.07
 
 	local sampleResults = {}
 	local dir = World.Ball.speed:copy():normalize()
