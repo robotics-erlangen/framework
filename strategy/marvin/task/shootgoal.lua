@@ -31,6 +31,9 @@ local cornerWeight = 0
 -- how much a new best sector should be better than the old one
 local sectorRatingHysteresis = 2
 
+-- how large the angle for volley may be [rad]
+local maxVolleyAngle = 70 * math.pi / 360
+
 
 local function robotList(selfRobot, viewPos, ignoreGoalie)
 	local minExtrapolationTime = 0.2
@@ -404,39 +407,43 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 	self._timeout = math.random() * 3 + 3
 
 	-- because of the 1 frame delay this agent still gets the last message of the previous mainAttacker
-	self._receivingPass = receivepassHint or false
+	self._volleyPossible = receivepassHint or false
 	for _,_ in pairs(self._inbox.passPos()) do
-		self._receivingPass = true
+		self._volleyPossible = true
 		return
 	end
 
-	self._receivingPass = Ball.receivesPass(self._robot)
+	self._volleyPossible = Ball.receivesPass(self._robot)
 end
 
 function ShootGoal:run()
-	if self._receivingPass then
+	if self._volleyPossible then
 
 		-- calculate the best pass receipt position
 		if not self._viewPos then
 			self.targetPoint, self._viewPos = self:guessFirstPassReceiptPosition()
-		end
-		if not self._viewPosLocked then
+		elseif not self._viewPosLocked then
 			self.targetPoint, self._viewPos = self:improvePassReceiptPosition(self._viewPos)
 		end
+		
+		debug.set("type", "volley")
+		self:_volley(self._viewPos, self.targetPoint, math.huge)
+
+		-- lock pass receipt position if the ball is too close
 		if World.Ball.pos:distanceTo(self._viewPos) < self._viewPosLockDistance then
 			self._viewPosLocked = true
 		end
 
-		-- TODO: if angle is too large, catchBall + shoot instead of volley
-		debug.set("type", "volley")
-		self:_volley(self._viewPos, self.targetPoint, math.huge)
-
-
-		-- reconsider catching the ball if the pass gets messed up
-		if (World.Ball.speed:length() < 0.5 and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
+		-- abort volley when one of the following conditions apply
+		-- if the angle for the volley is too large
+		if World.Ball.speed:absoluteAngleDiff(self._viewPos - self.targetPoint) > maxVolleyAngle
+		-- or the ball is slow and somewhat away from us
+		or (World.Ball.speed:length() < 0.5 and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
+		-- or the ball is extremely slow 
 		or World.Ball.speed:length() < 0.2
+		-- or we cannot catch the ball inside the field
 		or not Field.isInField(Ball.atTime(Robot.minTimeToBall(self._robot, World.Ball)).pos, 0) then
-			self._receivingPass = false
+			self._volleyPossible = false
 		end
 
 		-- send the position where the ball changes its velocity
