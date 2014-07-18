@@ -77,6 +77,22 @@ function Field.isInField(pos, boundaryWidth)
 	return true
 end
 
+
+function Field.distanceToFieldBorder(pos, boundaryWidth)
+	boundaryWidth = boundaryWidth or 0
+
+	local allowedWidth = World.Geometry.FieldWidthHalf + boundaryWidth
+	local dx = allowedWidth - math.abs(pos.x)
+
+	local allowedHeight = World.Geometry.FieldHeightHalf + boundaryWidth
+	local dy = allowedHeight - math.abs(pos.y)
+
+	-- returns the minimum of dx and dy
+	return math.bound(0, dx, dy)
+end
+
+
+
 local defStretchHalf = G.DefenseStretch / 2
 local defRadius = G.DefenseRadius
 local function isInDefenseArea(pos, radius, friendly)
