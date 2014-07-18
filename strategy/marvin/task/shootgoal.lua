@@ -32,7 +32,7 @@ local cornerWeight = 0
 local sectorRatingHysteresis = 2
 
 -- how large the angle for volley may be [rad]
-local maxVolleyAngle = 70 * math.pi / 360
+local maxVolleyAngle = 80 * math.pi / 180
 
 
 local function robotList(selfRobot, viewPos, ignoreGoalie)
@@ -62,22 +62,19 @@ local function robotList(selfRobot, viewPos, ignoreGoalie)
 end
 
 local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError)
-	local ratingVolleyMaxAngle = 90 /180*math.pi
-
+	-- rate volley angle
 	local rotateAngle = World.Ball.speed:absoluteAngleDiff(ballPos - targetPoint)
-	local rotateRating = 1 - rotateAngle/ratingVolleyMaxAngle
+	local rotateRating = 1 - rotateAngle/maxVolleyAngle
 	rotateRating = rotateRating * rotateRating
 
-	local distRating = 1 - dist/intervalLength
-	distRating = distRating * distRating
-
+	-- rate free sector width
 	local goalRating = maxAngleError
 
-	--log(math.floor(rotateRating * 100) .. "   " .. math.floor(goalRating * 100))
+	-- rate distance to field border
+	local fieldRating = math.min(Field.distanceToFieldBorder(ballPos) / 0.2, 1)
 
-	-- ignore distance rating for now...
-	local finalRating = rotateRating * goalRating --* 
 
+	local finalRating = rotateRating * goalRating * fieldRating
 	return finalRating
 end
 
@@ -170,7 +167,8 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 	local minTime = Robot.minTimeToBall(self._robot, World.Ball)
 	local minPos = Ball.atTime(minTime, World.Ball).pos
 	if self._robot.pos:distanceTo(ballPos) > self._robot.pos:distanceTo(minPos) then
-		return self:guessFirstPassReceiptPosition()
+		local target, view = self:guessFirstPassReceiptPosition()
+		return target, view, false
 	end
 
 
@@ -214,7 +212,7 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 
 	vis.addCircle("t/shootgoal: passReceiptPosition", best.view, 0.1, vis.colors.magentaHalf, true)
 
-	return best.target, best.view
+	return best.target, best.view, true
 end
 
 -- updates at most once per frame:
@@ -399,6 +397,7 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 	self.targetPoint = nil
 	self.maxAngleError = nil
 	self.sectorClean = nil
+	self._PRPstable = false
 	self._viewPos = nil
 	self._viewPosLocked = false
 	self._bestMid = G.OpponentGoal
@@ -423,7 +422,8 @@ function ShootGoal:run()
 		if not self._viewPos then
 			self.targetPoint, self._viewPos = self:guessFirstPassReceiptPosition()
 		elseif not self._viewPosLocked then
-			self.targetPoint, self._viewPos = self:improvePassReceiptPosition(self._viewPos)
+			self.targetPoint, self._viewPos, self._PRPstable = 
+					self:improvePassReceiptPosition(self._viewPos)
 		end
 		
 		debug.set("type", "volley")
@@ -433,16 +433,16 @@ function ShootGoal:run()
 		if World.Ball.pos:distanceTo(self._viewPos) < self._viewPosLockDistance then
 			self._viewPosLocked = true
 		end
-
+		
 		-- abort volley when one of the following conditions apply
-		-- if the angle for the volley is too large
-		if World.Ball.speed:absoluteAngleDiff(self._viewPos - self.targetPoint) > maxVolleyAngle
 		-- or the ball is slow and somewhat away from us
-		or (World.Ball.speed:length() < 0.5 and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
+		if (World.Ball.speed:length() < 0.5 and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
 		-- or the ball is extremely slow 
 		or World.Ball.speed:length() < 0.2
 		-- or we cannot catch the ball inside the field
 		or not Field.isInField(Ball.atTime(Robot.minTimeToBall(self._robot, World.Ball)).pos, 0) then
+		-- or the viewPos makes sense and the angle is too large
+		or self._PRPstable and World.Ball.speed:absoluteAngleDiff(self._viewPos - self.targetPoint) > maxVolleyAngle then
 			self._volleyPossible = false
 		end
 
