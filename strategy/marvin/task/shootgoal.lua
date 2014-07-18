@@ -13,6 +13,7 @@ local Robot = require "observer/robot"
 local Ball = require "observer/ball"
 
 local World = require "../base/world"
+local Cache = require "../base/cache"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
@@ -161,6 +162,7 @@ function ShootGoal:guessFirstPassReceiptPosition()
 
 	return best.target, best.view
 end
+ShootGoal.guessFirstPassReceiptPosition = Cache.forFrame(ShootGoal.guessFirstPassReceiptPosition)
 
 function ShootGoal:improvePassReceiptPosition(ballPos)
 	-- if the ball still accelerates, recalculate the pass receipt position
@@ -220,14 +222,8 @@ end
 -- self.bestMid number - the angle towards the best point in the goal (from ball pos)
 -- self.targetPoint - the best point in the goal
 function ShootGoal:updateDestination()
-	if self._timestamp == World.Time then
-		return
-	end
-	self._timestamp = World.Time
-
-
-
-	local viewPos = World.Ball.pos
+	local viewPos = self._robot.pos + Vector.fromAngle(self._robot.dir) * 
+			(self._robot.shootRadius + World.Ball.radius)
 
 	-- calculate free sectors considering the opponent goalie
 	self:_calculateDestination(viewPos, false)
@@ -241,6 +237,7 @@ function ShootGoal:updateDestination()
 		self.sectorClean = false
 	end
 end
+ShootGoal.updateDestination = Cache.forFrame(ShootGoal.updateDestination)
 
 function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
 	-- anti-lifelock timeout
@@ -401,7 +398,6 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 	self._viewPos = nil
 	self._viewPosLocked = false
 	self._bestMid = G.OpponentGoal
-	self._timestamp = 0
 	self._starttime = World.Time
 	self._timeout = math.random() * 3 + 3
 
@@ -440,7 +436,7 @@ function ShootGoal:run()
 		-- or the ball is extremely slow 
 		or World.Ball.speed:length() < 0.2
 		-- or we cannot catch the ball inside the field
-		or not Field.isInField(Ball.atTime(Robot.minTimeToBall(self._robot, World.Ball)).pos, 0) then
+		or not Field.isInField(Ball.atTime(Robot.minTimeToBall(self._robot, World.Ball)).pos, 0)
 		-- or the viewPos makes sense and the angle is too large
 		or self._PRPstable and World.Ball.speed:absoluteAngleDiff(self._viewPos - self.targetPoint) > maxVolleyAngle then
 			self._volleyPossible = false
