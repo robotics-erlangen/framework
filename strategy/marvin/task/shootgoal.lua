@@ -175,6 +175,9 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 		intersection,lambda = geom.intersectLineLine(World.Ball.pos, dir,
 				Vector.create(sign * allowedWidth, 0), Vector.create(0, 1))
 	end
+	if not lambda then
+		lambda = math.huge
+	end
 	ballPos = World.Ball.pos + dir * math.min(World.Ball.pos:distanceTo(ballPos), lambda)
 	for i = 1,sampleCount do
 		local pos = ballPos
