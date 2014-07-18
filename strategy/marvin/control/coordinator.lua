@@ -172,18 +172,30 @@ local function lesserX(r1, r2)
 	return r1.pos.x < r2.pos.x
 end
 
+local minOppDistToBallForMarking = 0.3
+local function nearestOppToBall()
+	local ballPos = World.Ball.pos
+	local nearestOppToBall
+	local minDist = math.huge
+	for _, opp in ipairs(World.OpponentRobots) do
+		local dist = opp.pos:distanceTo(ballPos)
+		if dist < minDist and dist < minOppDistToBallForMarking then
+			nearestOppToBall = opp
+			minDist = dist
+		end
+	end
+	return nearestOppToBall
+end
+
 function Coordinator:_chooseManMarkAndCenterBacks()
 	self._oppsToMark = table.filter(self._oppsToMark, isVisible)
-	local defendedByDuel
-	for _, opp in pairs(self._inbox.defendedOpponent()) do
-		defendedByDuel = opp
-	end
+	local nearestOppToBall = nearestOppToBall()
 	for _, robot in ipairs(World.OpponentRobots) do
 		local alreadyTargeted = table.contains(self._oppsToMark, robot)
 		local maxYPos = alreadyTargeted
 			and World.Geometry.FieldHeight / 4 or World.Geometry.FieldHeight / 6
 		local minBallDist = alreadyTargeted	and 0.6 or 0.75
-		local shouldMark = robot ~= defendedByDuel and robot.pos.y < maxYPos and
+		local shouldMark = robot ~= nearestOppToBall and robot.pos.y < maxYPos and
 			(not Referee.isStopState() or robot.pos:distanceTo(World.Ball.pos) > minBallDist)
 		if alreadyTargeted and not shouldMark then
 			table.removeValue(self._oppsToMark, robot)
