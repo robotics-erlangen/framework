@@ -2,7 +2,6 @@ local Attacker = (require "../base/class").new("Agent.Attacker", require "agent/
 
 local World = require "../base/world"
 
-local ReceivePass = require "agent/attacker/receivepass"
 local ApplyForMainattacker = require "agent/attacker/applyformainattacker"
 local Stop = require "agent/attacker/stop"
 local KickoffOffensive = require "agent/attacker/kickoffoffensive"
@@ -16,7 +15,6 @@ local KickoffDefensive = require "agent/attacker/kickoffdefensive"
 local Messaging = require "control/messaging"
 
 Attacker._behaviors = {
---	ReceivePass,
 	ApplyForMainattacker,
 	Stop,
 	KickoffOffensive,
