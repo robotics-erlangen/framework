@@ -1,7 +1,8 @@
 local CatchBall = require "task/ability/catchball"
+local ReceivePass = require "task/ability/receivepass"
 local Shoot = require "task/ability/shoot"
 local Pass = (require "../base/class").newTask("Task.Pass", require "task/base",
-	CatchBall, Shoot)
+	CatchBall, Shoot, ReceivePass)
 
 local World = require "../base/world"
 local Robot = require "observer/robot"

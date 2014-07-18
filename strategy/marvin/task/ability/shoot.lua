@@ -1,4 +1,4 @@
--- depends on catchball
+-- depends on catchball and receivepass
 local Shoot = {}
 
 local Constants = require "../base/constants"
@@ -6,9 +6,7 @@ local World = require "../base/world"
 local TrajectoryDirect = require "trajectory/direct"
 local debug = require "../base/debug"
 local geom = require "../base/geom"
-local Observer = {}
-Observer.Shoot = require "observer/shoot"
-
+local Ball = require "observer/ball"
 
 function Shoot:init()
 	self._shootHysteresis = false
@@ -26,6 +24,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 			and 15 or 13
 
 	if self._robot:hasBall(World.Ball, Settings.shootSideOffset) then -- if we got the ball
+		debug.set("ballApproach", "hasBall")
 		self._ballInDribblerPos = World.Ball.pos
 
 		if not self._lastBallSpeed then
@@ -111,14 +110,17 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 
 		-- send the position of the ball
 		self._send.attackPosition("all", World.Ball.pos)
+	elseif table.count(self._inbox.passPos()) > 0 or Ball.receivesPass(self._robot) then
+		debug.set("ballApproach", "receivePass")
+		self:_receivePass()
 	else -- catch the ball
+		debug.set("ballApproach", "catchBall")
 		self._lastBallSpeed = nil
 		self._shootHysteresis = false
 		self._travelStart = nil
 		self._travelLimit = false
 		-- just catch the ball, but keep a little distance to allow braking the robot
 		self:_catchBall(targetPos, Constants.positionError)
-
 	end
 	if (not self._catchTime) or self._catchTime < 0.5 then
 		self._send.shootDestination("all", targetPos)

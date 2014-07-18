@@ -393,17 +393,17 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 	self._timeout = math.random() * 3 + 3
 
 	-- because of the 1 frame delay this agent still gets the last message of the previous mainAttacker
-	self._receivePass = receivepassHint or false
+	self._receivingPass = receivepassHint or false
 	for _,_ in pairs(self._inbox.passPos()) do
-		self._receivePass = true
+		self._receivingPass = true
 		return
 	end
 
-	self._receivePass = Ball.receivesPass(self._robot)
+	self._receivingPass = Ball.receivesPass(self._robot)
 end
 
 function ShootGoal:run()
-	if self._receivePass then
+	if self._receivingPass then
 
 		-- calculate the best pass receipt position
 		if not self._viewPos then
@@ -425,7 +425,7 @@ function ShootGoal:run()
 		if (World.Ball.speed:length() < 0.5 and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
 		or World.Ball.speed:length() < 0.2
 		or not Field.isInField(Ball.atTime(Robot.minTimeToBall(self._robot, World.Ball)).pos, 0) then
-			self._receivePass = false
+			self._receivingPass = false
 		end
 
 		-- send the position where the ball changes its velocity
