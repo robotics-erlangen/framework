@@ -6,6 +6,11 @@ local Goal = require "observer/goal"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local Field = require "util/field"
+local debug = require "../base/debug"
+
+local G = World.Geometry
+local kGD = Settings.keeperGoalDistance
+local goalNormal = Vector.create(0, 1)
 
 function Keeper:_init()
 	self._defendCorner = false
@@ -13,10 +18,6 @@ end
 
 --moves keeper do defending possition
 function Keeper:run()
-	local G = World.Geometry
-	local kGD = Settings.keeperGoalDistance
-	local goalNormal = Vector.create(0, 1)
-
 	local atkPos, atkDir, isShot = Goal.predictShot()
 	atkDir = atkDir:copy():setLength(30)
 	local side = math.sign(atkPos.x)
@@ -39,6 +40,7 @@ function Keeper:run()
 	-- corners should be defended and atkPos is outside the goal
 	if self._defendCorner and (math.abs(atkPos.x) > goalWidthHalf
 			or atkPos.y < G.FriendlyGoal.y - G.GoalDepth) then
+		debug.set("mode", "defend corner")
 		-- defend short corner
 		-- line starts a goal post, stay as near to the goal as possible
 		defenseLineStart = Vector.create(side*goalWidthHalf, G.FriendlyGoal.y)
@@ -62,6 +64,7 @@ function Keeper:run()
 		-- stick to goal post as fallback
 		fallbackPos = defenseLineStart
 	else
+		debug.set("mode", "defend line")
 		-- defend along the goal line and occupy as much space in the goal as possible
 		-- idea: cut defense line with line from goal posts to ball (attack pos)
 		-- account for robot radius
@@ -99,6 +102,7 @@ function Keeper:run()
 	local intersectPos
 	local successfulIntersection -- is original intersection point on the defense line
 	if lambdaDef then
+		debug.set("lambdaDef", lambdaDef)
 		local lambdaBounded = math.bound(0, lambdaDef, 1)
 		successfulIntersection = (lambdaDef == lambdaBounded)
 		-- limit to positions on the line segment!
@@ -109,7 +113,6 @@ function Keeper:run()
 		intersectPos = fallbackPos
 	end
 
-	-- visualizations
 	vis.addPath("t/keeper: KeeperShotPrediction",{atkPos,atkPos+atkDir}, vis.colors.blue)
 	vis.addCircle("t/keeper: KeeperDefenseLineIntersect", intersectPos, 0.03, vis.colors.blue)
 	vis.addPath("t/keeper: KeeperDefenseLine",{defenseLineStart, defenseLineEnd}, vis.colors.blue)
@@ -130,7 +133,7 @@ function Keeper:run()
 		moveTo = fallbackPos
 	end
 
-	-- add obstacles if outside keeper area
+	-- add obstacles if outside keeper area, when drivin to goal initially
 	if not Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
 		self._robot.path:addRobotObstacles(self._robot, false, false)
 	end
