@@ -10,14 +10,13 @@ local SaveBall = require "task/saveball"
 local InterceptPass = require "task/interceptpass"
 
 function HandleBall:check()
-	if not Referee.isFriendlyFreeKickState()
-		and not Referee.isStopState()
-		and not Referee.isKickoffState()
-	then
-		local _, timeAdvance = Ball.firstAtBall()
-		if timeAdvance > -0.5 then
-			self:_applyForMainAttacker()
-		end
+	if Referee.isFriendlyFreeKickState() or Referee.isStopState() or Referee.isKickoffState() then
+		return false
+	end
+
+	local _, timeAdvance = Ball.firstAtBall()
+	if timeAdvance > -0.5 then
+		self:_applyForMainAttacker()
 	end
 
 	self._forceKeepingInPool = self._interceptingPass
