@@ -31,8 +31,6 @@ function ApplyForMainattacker:check()
 	self._freekickFlag = Referee.isFriendlyFreeKickState()
 	self._maFlag = self._inbox.mainAttacker().trainer == self._robot
 
-	self._forceKeepingInPool = self._maFlag
-
 	if not Referee.isOpponentPenaltyState() then
 		self:_applyForMainAttacker()
 	end

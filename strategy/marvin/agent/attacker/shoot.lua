@@ -19,11 +19,21 @@ end
 function Shoot:check()
 	if Ball.isShot() then
 		for _,_ in pairs(self._inbox.passPos()) do
-			self._send.exclusiveRole("trainer", {mainAttacker = 2})
+			self._isCatchingPass = true
 			break
 		end
 	end
-	return self._inbox.mainAttacker().trainer == self._robot
+	if not Ball.receivesPass(self._robot) then
+		self._isCatchingPass = false
+	end
+	if self._isCatchingPass then
+		self._send.exclusiveRole("trainer", {mainAttacker = 2})
+	end
+
+
+	local mainAttackerFlag = self._inbox.mainAttacker().trainer == self._robot
+	self._forceKeepingInPool = mainAttackerFlag
+	return mainAttackerFlag
 end
 
 function Shoot:_updateTask()
