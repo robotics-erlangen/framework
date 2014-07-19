@@ -74,8 +74,10 @@ local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError)
 	-- rate distance to field border
 	local fieldRating = math.min(Field.distanceToFieldBorder(ballPos) / 0.2, 1)
 
+	local distRating = 1 - (dist / intervalLength) * (dist / intervalLength) * 0.1
 
-	local finalRating = rotateRating * goalRating * fieldRating
+
+	local finalRating = rotateRating * goalRating * fieldRating * distRating
 	return finalRating
 end
 
