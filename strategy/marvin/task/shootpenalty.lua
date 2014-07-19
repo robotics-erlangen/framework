@@ -7,7 +7,11 @@ local fixedCorner = false -- set to "Right" or "Left" if opponent keeper has fix
 local KeeperPosTolerance = 0.04 -- if keeper's distance to the goals center is bigger, we will choose the big free sector
 local shootErrorThreshold = 0.1 -- maximum position error
 
-local ShootPenalty = (require "../base/class").newTask("Task.ShootPenalty", require "task/shoot")
+local CatchBall = require "task/ability/catchball"
+local Shoot = require "task/ability/shoot"
+
+local ShootPenalty = (require "../base/class").newTask("Task.ShootPenalty", require "task/base",
+	CatchBall, Shoot)
 
 local World = require "../base/world"
 local G = World.Geometry
@@ -17,6 +21,7 @@ local vis = require "../base/vis"
 function ShootPenalty:_init(lookDir)
 	self.lookDir = lookDir
 	self.targetPos = nil
+	self.decided = false
 end
 
 function ShootPenalty:_canShoot()

@@ -4,6 +4,7 @@ local Penalty = (require "../base/class").new("Agent.Attacker.Penalty", Base)
 local World = require "../base/world"
 
 local ShootGoal = require "task/shootgoal"
+local ShootPenalty = require "task/shootpenalty"
 local MoveToStaticBall = require "task/movetostaticball"
 
 function Penalty:check()
@@ -23,7 +24,7 @@ function Penalty:_updateTask()
 	if World.RefereeState == "PenaltyOffensivePrepare" then
 		return MoveToStaticBall, {(World.Geometry["OpponentGoal"..self.lookDir] - self._robot.pos):angle(), 0.02}
 	else -- PenaltyOffensive
-		return ShootGoal
+		return ShootPenalty
 	end
 end
 
