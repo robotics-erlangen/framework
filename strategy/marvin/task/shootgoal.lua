@@ -440,9 +440,9 @@ function ShootGoal:run()
 
 		-- abort volley when one of the following conditions apply
 		-- or the ball is slow and somewhat away from us
-		if (World.Ball.speed:length() < 1 and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
+		if (World.Ball.speed:length() < 0. and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
 		-- or the ball is extremely slow
-		or World.Ball.speed:length() < 0.4
+		or World.Ball.speed:length() < 0.3
 		-- or we cannot catch the ball inside the field
 		or not Field.isInField(Ball.atTime(Robot.minTimeToBall(self._robot, World.Ball)).pos, 0)
 		-- or the viewPos makes sense and the angle is too large
@@ -455,7 +455,7 @@ function ShootGoal:run()
 	else
 		self:updateDestination()
 
-		if self.bestMid then
+		if self.bestMid and self.maxAngleError > 0.5 / 180 * math.pi then
 			if self.sectorClean then
 				debug.set("type", "shoot (clean)")
 			else
@@ -463,10 +463,16 @@ function ShootGoal:run()
 			end
 			self:_shoot(self.targetPoint, math.huge, true)
 		else
-			local somewhereNearTheGoal = World.Geometry.OpponentGoal + Vector.create(0, -0.3)
-			local linear = self._robot.pos.y < 0
-			debug.set("type", "desperate " .. (linear and "linear shot" or "chip"))
-			self:_shoot(somewhereNearTheGoal, math.huge, not linear)
+			local chipPos
+			if World.Ball.pos.y < 0 then
+				chipPos = Vector.create(
+					G.FieldHeightHalf/(G.FieldHeightHalf - World.Ball.pos.y) * World.Ball.pos.x, 0)
+			else
+				chipPos = Vector.create(0, G.FieldHeightHalf - 0.3)
+			end
+
+			debug.set("type", "chip")
+			self:_shoot(chipPos, math.huge, true)
 		end
 
 		if self.maxAngleError then
