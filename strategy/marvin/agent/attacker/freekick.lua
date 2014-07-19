@@ -60,6 +60,7 @@ function FreeKick:_updateTask()
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 		
 		local bestPassRating = 0
+		local pass
 		for robot, sugg in pairs(self._inbox.passSuggestion()) do
 			if sugg.rating > bestPassRating then
 				pass = sugg
