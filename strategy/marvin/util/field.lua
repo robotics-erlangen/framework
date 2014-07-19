@@ -295,8 +295,6 @@ function Field.defenseIntersectionByWay(way, extraDistance, opp)
 			Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf)
 	end
 
-	intersection.y = intersection.y
-
 	if opp then
 		intersection = -intersection
 	end

@@ -46,14 +46,14 @@ local function robotList(selfRobot, viewPos, ignoreGoalie)
 	for _,r in pairs(World.Robots) do
 		if r.pos.y > viewPos.y and r ~= selfRobot then
 			if not (ignoreGoalie and r == World.OpponentKeeper) then
-				local extrapolationTime = (1 - math.bound(0, r.pos:distanceTo(selfRobot.pos), distCap) / distCap) * 
+				local extrapolationTime = (1 - math.bound(0, r.pos:distanceTo(selfRobot.pos), distCap) / distCap) *
 						(maxExtrapolationTime - minExtrapolationTime) + minExtrapolationTime
 				local future_robot = {
 					["pos"] = r.pos + r.speed * extrapolationTime,
 					["radius"] = r.radius,
 					["speed"] = r.speed,
 				}
-				vis.addCircle("t/shootgoal: robot extrapolation", future_robot.pos, 
+				vis.addCircle("t/shootgoal: robot extrapolation", future_robot.pos,
 						future_robot.radius + 0.02, vis.colors.redHalf, true)
 				table.insert(robots, future_robot)
 			end
@@ -227,7 +227,7 @@ end
 -- self.bestMid number - the angle towards the best point in the goal (from ball pos)
 -- self.targetPoint - the best point in the goal
 function ShootGoal:updateDestination()
-	local viewPos = self._robot.pos + Vector.fromAngle(self._robot.dir) * 
+	local viewPos = self._robot.pos + Vector.fromAngle(self._robot.dir) *
 			(self._robot.shootRadius + World.Ball.radius)
 
 	-- calculate free sectors considering the opponent goalie
@@ -423,10 +423,10 @@ function ShootGoal:run()
 		if not self._viewPos then
 			self.targetPoint, self._viewPos = self:guessFirstPassReceiptPosition()
 		elseif not self._viewPosLocked then
-			self.targetPoint, self._viewPos, self._PRPstable = 
+			self.targetPoint, self._viewPos, self._PRPstable =
 					self:improvePassReceiptPosition(self._viewPos)
 		end
-		
+
 		debug.set("type", "volley")
 		self:_volley(self._viewPos, self.targetPoint, math.huge)
 
@@ -434,11 +434,11 @@ function ShootGoal:run()
 		if World.Ball.pos:distanceTo(self._viewPos) < self._viewPosLockDistance then
 			self._viewPosLocked = true
 		end
-		
+
 		-- abort volley when one of the following conditions apply
 		-- or the ball is slow and somewhat away from us
 		if (World.Ball.speed:length() < 1 and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
-		-- or the ball is extremely slow 
+		-- or the ball is extremely slow
 		or World.Ball.speed:length() < 0.4
 		-- or we cannot catch the ball inside the field
 		or not Field.isInField(Ball.atTime(Robot.minTimeToBall(self._robot, World.Ball)).pos, 0)
@@ -461,8 +461,9 @@ function ShootGoal:run()
 			self:_shoot(self.targetPoint, math.huge, true)
 		else
 			local somewhereNearTheGoal = World.Geometry.OpponentGoal + Vector.create(0, -0.3)
-			debug.set("type", "chip")
-			self:_shoot(somewhereNearTheGoal, math.huge, false)
+			local linear = self.pos.y < 0
+			debug.set("type", "desperate " .. (linear and "linear shot" or "chip"))
+			self:_shoot(somewhereNearTheGoal, math.huge, not linear)
 		end
 
 		if self.maxAngleError then
