@@ -14,16 +14,18 @@ function Shoot:_stop()
 	self._lastTaskClass = nil
 	self._taskStart = World.Time
 	self._minTaskTime = 0
+	self._passStart = 0
 end
 
 function Shoot:check()
 	if Ball.isShot() then
 		for _,_ in pairs(self._inbox.passPos()) do
 			self._isCatchingPass = true
+			self._passStart = World.Time
 			break
 		end
 	end
-	if not Ball.receivesPass(self._robot) then
+	if World.Time - self._passStart > 0.5 and not Ball.receivesPass(self._robot) then
 		self._isCatchingPass = false
 	end
 	if self._isCatchingPass then
