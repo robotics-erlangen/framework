@@ -74,7 +74,8 @@ local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError)
 	-- rate distance to field border
 	local fieldRating = math.min(Field.distanceToFieldBorder(ballPos) / 0.2, 1)
 
-	local distRating = 1 - (dist / intervalLength) * (dist / intervalLength) * 0.1
+	-- rate distance to initial shoot position
+	local distRating = 1 - (dist / intervalLength) * 0.1
 
 
 	local finalRating = rotateRating * goalRating * fieldRating * distRating
@@ -193,15 +194,17 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 	end
 	ballPos = World.Ball.pos + dir * math.min(World.Ball.pos:distanceTo(ballPos), lambda)
 	for i = 1,sampleCount do
+		local dist = 0
 		local pos = ballPos
 		if i > 1 then
 			local rand = Random.standardNormalDistributedNumber()
-			pos = ballPos + dir * rand * sampleVariance
+			dist = rand * sampleVariance
+			pos = ballPos + dir * dist
 		end
 
 		self:_calculateDestination(pos, false)
 
-		local rating = rate(pos, self.targetPoint, 0, 1, self.maxAngleError)
+		local rating = rate(pos, self.targetPoint, dist, sampleVariance * 2, self.maxAngleError)
 		table.insert(sampleResults, {["target"] = self.targetPoint,
 									 ["view"] = ballPos,
 									 ["rating"] = rating})
@@ -434,9 +437,9 @@ function ShootGoal:run()
 		
 		-- abort volley when one of the following conditions apply
 		-- or the ball is slow and somewhat away from us
-		if (World.Ball.speed:length() < 0.5 and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
+		if (World.Ball.speed:length() < 1 and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
 		-- or the ball is extremely slow 
-		or World.Ball.speed:length() < 0.2
+		or World.Ball.speed:length() < 0.4
 		-- or we cannot catch the ball inside the field
 		or not Field.isInField(Ball.atTime(Robot.minTimeToBall(self._robot, World.Ball)).pos, 0)
 		-- or the viewPos makes sense and the angle is too large
