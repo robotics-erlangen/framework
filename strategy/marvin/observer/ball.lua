@@ -196,7 +196,8 @@ end
 
 function Ball.receivesPass(robot)
 	local slowBall = 0.7 -- random value
-	local timeAdvance = 0.5 -- somewhat random value
+	local minTimeAdvance = 0.5 -- somewhat random value
+	local maxAngle = 45 -- another random value
 
 	-- if the initial ball speed is too low
 	if World.Ball.speed:length() < slowBall then
@@ -207,21 +208,28 @@ function Ball.receivesPass(robot)
 	local catchPos = robot.pos:nearestPosOnLine(World.Ball.pos, farAway)
 	local robotTime = ObserverRobot.timeToPos(robot, catchPos)
 	local ballTime = Ball.ballRollTime(World.Ball.speed:length(), (catchPos - World.Ball.pos):length())
+	local timeAdvance = robotTime - ballTime
+
+	-- if the ball does not roll towards the robot
+	if World.Ball.speed:absoluteAngleDiff(robot.pos - World.Ball.pos) > maxAngle / 180 * math.pi then
+		return false
+	end
 
 	-- if the robot is not fast enough
-	if robotTime > ballTime + timeAdvance then
-		return false
+	if timeAdvance > minTimeAdvance then
+		return false, timeAdvance
 	end
 
 	local futureBall = Ball.atTime(ballTime)
 
 	-- if the catch ball speed is too low
 	if futureBall.speed:length() < slowBall then
-		return false
+		return false, timeAdvance
 	end
 
-	return true
+	return true, timeAdvance
 end
+Ball.receivesPass = Cache.forFrame(Ball.receivesPass)
 
 
 --- Calculates the probability that the given opponent robot catches the ball
