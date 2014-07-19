@@ -6,17 +6,28 @@ local World = require "../base/world"
 local CenterBack = require "task/centerback"
 local Goal = require "observer/goal"
 
+function Default:_stop()
+	self._roleParams = nil
+end
+
 function Default:check()
+	local role = self._inbox.roleAssignment().trainer
+	if not role and self._roleParams then
+		self._task = nil -- force creation of new task
+		self._roleParams = nil
+	elseif role and role.name == "CenterBack" and role.params ~= self._roleParams then
+		self._task = nil -- force creation of new task
+		self._roleParams = role.params
+	end
 	return true
 end
 
 function Default:_updateTask()
 	local role = self._inbox.roleAssignment().trainer
 	if role and role.name == "CenterBack" then
-		return CenterBack, {World.Ball}
+		return CenterBack, { role.params }
 	else
-		-- TODO consider something new (for example zonal defense)
-		return CenterBack, {World.Ball}
+		return CenterBack, { World.Ball }
 	end
 end
 
