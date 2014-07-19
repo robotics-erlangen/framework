@@ -7,8 +7,14 @@ local debug = require "../base/debug"
 
 local cooldown = 0.5
 
+function ApplyForMainattacker:_stop()
+	self._lastShot = 0
+	self._freekickFlag = false
+	self._maFlag = false
+end
+
 function ApplyForMainattacker:check()
-	if self._lastShot and World.Time - self._lastShot < cooldown then
+	if World.Time - self._lastShot < cooldown then
 		return false
 	end
 	if Ball.isShot() == self._robot then
@@ -24,11 +30,9 @@ function ApplyForMainattacker:check()
 	end
 	self._freekickFlag = Referee.isFriendlyFreeKickState()
 	self._maFlag = self._inbox.mainAttacker().trainer == self._robot
-	
-	
-	if self._maFlag then
-		self._forceKeepingInPool = true
-	end
+
+	self._forceKeepingInPool = self._maFlag
+
 	if not Referee.isOpponentPenaltyState() then
 		self:_applyForMainAttacker()
 	end
