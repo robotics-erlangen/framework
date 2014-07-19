@@ -76,8 +76,11 @@ function Striker:_xLine()
 		-- remove line of mainAttacker
 		local mainAttacker = self._inbox.mainAttacker().trainer
 		local mAPosX = ballPos.x -- fallback
-		if mainAttacker and self._inbox.moveDest()[mainAttacker] then
-			mAPosX = self._inbox.moveDest()[mainAttacker].x
+		if mainAttacker then
+			mAPosX = mainAttacker.pos.x
+			if self._inbox.moveDest()[mainAttacker] then
+				mAPosX = self._inbox.moveDest()[mainAttacker].x
+			end
 		end
 		for i, x in ipairs(xLines) do
 			if mAPosX < x or i == #xLines then
@@ -172,13 +175,6 @@ function Striker:_calcMoveDest()
 		end
 	end
 
-	-- do not interfere with passes.
-	local shooter, shootDest = next(self._inbox.shootDestination())
-	if shootDest then
-		self._robot.path:addLine(shooter.pos.x, shooter.pos.y, shootDest.x, shootDest.y, self._robot.radius)
-		vis.addPath("t/striker: StrikerShotObstacle", { shooter.pos, shootDest }, vis.colors.red)
-	end
-
 	-- do not interfere with other attackers
 	for robot, dest in pairs(self._inbox.moveDest()) do
 			if Messaging.get("attackerFlag")[robot] and robot.pos:distanceTo(dest) > 0.1 then
@@ -214,6 +210,21 @@ function Striker:_calcMoveDest()
 		end
 		if World.Time - self._noTargetFound > 1 then
 			log("Striker (Robot " .. self._robot.id .. ") finds no move destination" )
+		end
+	end
+	-- do not interfere with shots
+	local shooter, shootDest = next(self._inbox.shootDestination())
+	local passToMe =  next(self._inbox.passPos())
+	if shootDest and not passToMe then
+		local minBallDist = self._robot.radius + World.Ball.radius + Settings.positionPadding
+		-- ortogonale projektion distance und so
+		local intersection, dist = self._robot.pos:orthogonalProjection(shooter.pos, shootDest)
+		if dist and math.abs(dist) < minBallDist then
+			if intersection.y < self._robot.pos.y then -- move upwards
+				self._moveDest.y = self._moveDest.y + 1.5 * minBallDist
+			else -- move downwards
+				self._moveDest.y = self._moveDest.y - 1.5 * minBallDist
+			end
 		end
 	end
 end
