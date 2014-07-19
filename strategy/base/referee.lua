@@ -48,7 +48,7 @@ end
 local rightLine = World.Geometry.FieldWidthHalf
 local leftLine = -rightLine
 local goalLine = World.Geometry.FieldHeightHalf
-local cornerDist = 0.2 -- some tolerance, rules say 10cm
+local cornerDist = 0.7 -- some tolerance, rules say 10cm
 function Referee.isOffensiveCornerKick()
 	local ballPos = World.Ball.pos
 	return World.RefereeState == "DirectOffensive"
