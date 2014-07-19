@@ -204,7 +204,7 @@ function Striker:_calcMoveDest()
 		end
 		self._noTargetFound = false
 	else
-		self._moveDest = self._robot.pos
+		self._moveDest = self._robot.pos:copy()
 		if not self._noTargetFound then
 			self._noTargetFound = World.Time
 		end
@@ -217,7 +217,6 @@ function Striker:_calcMoveDest()
 	local passToMe =  next(self._inbox.passPos())
 	if shootDest and not passToMe then
 		local minBallDist = self._robot.radius + World.Ball.radius + Settings.positionPadding
-		-- ortogonale projektion distance und so
 		local intersection, dist = self._robot.pos:orthogonalProjection(shooter.pos, shootDest)
 		if dist and math.abs(dist) < minBallDist then
 			if intersection.y < self._robot.pos.y then -- move upwards
