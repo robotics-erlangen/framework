@@ -1,4 +1,6 @@
-local AggressiveKeeper = (require "../base/class").newTask("Task.AggressiveKeeper", require "task/base")
+local ChipToBorder = require "task/ability/chiptoborder"
+local AggressiveKeeper = (require "../base/class").newTask("Task.AggressiveKeeper",
+	require "task/base", ChipToBorder)
 
 local World = require "../base/world"
 local Ball = require "observer/ball"
@@ -6,11 +8,10 @@ local ToTarget = require "trajectory/totarget"
 
 function AggressiveKeeper:run()
 	local tpos, ttime = Ball.toBall(self._robot, World.Ball)
-
 	local fromGoal = (tpos - World.Geometry.FriendlyGoal):angle()
 
-	self._robot:setDribblerSpeed(1)
-	self._robot:chip(1)
+	self:_chipToBorderIfSafe()
+
 	self._robot.path:setDefaultObstacles(self._robot, true)
 	self._robot.trajectory:update(ToTarget, tpos, fromGoal, nil, Vector.create(fromGoal))
 
