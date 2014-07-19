@@ -7,6 +7,9 @@ local Goal = require "observer/goal"
 local World = require "../base/world"
 local vis = require "../base/vis"
 local Cache = require "../base/cache"
+local debug = require "../base/debug"
+
+local Defense = require "util/defense"
 
 local ToTarget = require "trajectory/totarget"
 
@@ -18,7 +21,7 @@ end
 function InterceptPass.touchBallPosition(robot, timelimit)
 	local MAX_ITER = 10
 	local MIN_TIMESTEP = 0.005
-	local EXTRA_TIME = 0.1 -- to compensate the difference between timeToPos and the real robot time
+	local EXTRA_TIME = 0.3 -- to compensate the difference between timeToPos and the real robot time
 	local TIME_LIMIT = timelimit or 1
 
 	local t_ball = math.min(Ball.ballRollTime(World.Ball.speed:length(), 
@@ -81,11 +84,31 @@ function InterceptPass:run()
 		pos = World.Ball.pos
 	end
 
+	local notEnoughTime = false
+	local mostDangerousRobot = nil
+	local maxTimeAdvance = -math.huge
+	for _,r in pairs(World.OpponentRobots) do
+		local rp, ta = Ball.receivesPass(r)
+		if rp then
+			if r.pos:distanceTo(World.Ball.pos) < pos:distanceTo(World.Ball.pos) then
+				notEnoughTime = true
+				if ta > maxTimeAdvance then
+					maxTimeAdvance = ta
+					mostDangerousRobot = r
+				end
+			end
+		end
+	end
+	if notEnoughTime then
+		pos = Defense.manMarkPos(mostDangerousRobot)
+	end
+	debug.set("notEnoughTime", notEnoughTime)
+
 	self._robot.path:setDefaultObstacles(self._robot, true) -- ignore ball
 	self._robot.path:addRobotObstacles(self._robot, false, true) -- ignore opponents
 
 	local dir = (World.Ball. pos - self._robot.pos):angle()
-	local endSpeed = (World.Ball.pos - self._robot.pos):setLength(2.5)
+	local endSpeed = (World.Ball.pos - self._robot.pos):setLength(1)
 	self._robot.trajectory:update(ToTarget, pos, dir, nil, endSpeed)
 end
 
