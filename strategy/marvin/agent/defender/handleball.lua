@@ -3,12 +3,10 @@ local HandleBall = (require "../base/class").new("Agent.Defender.HandleBall", Ba
 
 local World = require "../base/world"
 local Referee = require "../base/referee"
-local debug = require "../base/debug"
 local Ball = require "observer/ball"
-local Shoot = require "observer/shoot"
 local Field = require "util/field"
-local Pass = require "task/pass"
 local SaveBall = require "task/saveball"
+local InterceptPass = require "task/interceptpass"
 
 function HandleBall:check()
 	if not Referee.isFriendlyFreeKickState()
@@ -26,26 +24,16 @@ end
 function HandleBall:_updateTask()
 	local changeDist = World.Geometry.FieldHeight / 4
 	local defenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-	debug.set("changeDist", changeDist)
-	debug.set("defenseDist", defenseDist)
-	if defenseDist > changeDist then
+	local firstRobot, timeAdvance = Ball.firstAtBall()
+
+	if firstRobot == self._robot and timeAdvance > 0.5 or defenseDist > changeDist then
 		self._send.attackerRequest("trainer")
 		self._requestingPoolChange = true
 	end
 
-	local pass
-	local bestPassRating = 0
-	for robot, sugg in pairs(self._inbox.passSuggestion()) do
-		if sugg.rating > bestPassRating then
-			pass = sugg
-			pass.target = robot
-			bestPassRating = sugg.rating
-		end
-	end
-	local firstRobot, timeAdvance = Ball.firstAtBall()
-	if firstRobot == self._robot and pass and timeAdvance > 1.5 then -- only if we have a lot of time
-		return Pass, { pass.target, pass.pos }
-	else -- under pressure
+	if Ball.receivesPass(self._robot) then
+		return InterceptPass
+	else
 		return SaveBall
 	end
 end
