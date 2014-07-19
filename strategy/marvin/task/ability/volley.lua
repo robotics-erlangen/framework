@@ -6,6 +6,8 @@ local vis = require "../base/vis"
 local Ball = require "observer/ball"
 local ToTarget = require "trajectory/totarget"
 
+local mu_x = 0.6
+local mu_y = 0.5
 
 function Volley:init()
 	self._ballIncoming = true
@@ -15,23 +17,23 @@ function Volley:init()
 	self._alpha = nil
 	self._v_out_x = nil
 	self._v_out_y = nil
-
-
-	self._mu_x = 0.6
-	self._mu_y = 0.5
 end
 
-
-function Volley:_f(v_s, phi)
+function Volley.calcVOut(v_s, v_in, phi, alpha)
 	local sinp = math.sin(phi)
 	local cosp = math.cos(phi)
-	local sinpa = math.sin(phi - self._alpha)
-	local cospa = math.cos(phi - self._alpha)
+	local sinpa = math.sin(phi - alpha)
+	local cospa = math.cos(phi - alpha)
 
-	local x = cosp * v_s - sinp * sinpa * self._mu_x * self._v_in + cosp * cospa * self._mu_y * self._v_in - self._v_out_x
-	local y = sinp * v_s + cosp * sinpa * self._mu_x * self._v_in + sinp * cospa * self._mu_y * self._v_in - self._v_out_y
+	local x = cosp * v_s - sinp * sinpa * mu_x * v_in + cosp * cospa * mu_y * v_in
+	local y = sinp * v_s + cosp * sinpa * mu_x * v_in + sinp * cospa * mu_y * v_in
 
 	return x, y
+end
+
+function Volley:_f(v_s, phi)
+	local x, y = Volley.calcVOut(v_s, self._v_in, phi, self._alpha)
+	return x - self._v_out_x, y - self._v_out_y
 end
 
 function Volley:_Jf(v_s, phi)
@@ -41,9 +43,9 @@ function Volley:_Jf(v_s, phi)
 	local cospa = math.cos(phi - self._alpha)
 
 	local xdv_s = cosp
-	local xdphi = -sinp * v_s - (self._mu_x + self._mu_y) * self._v_in * (cosp * sinpa + sinp * cospa)
+	local xdphi = -sinp * v_s - (mu_x + mu_y) * self._v_in * (cosp * sinpa + sinp * cospa)
 	local ydv_s = sinp
-	local ydphi = cosp * v_s + (self._mu_x + self._mu_y) * self._v_in * (cosp * cospa - sinp * sinpa)
+	local ydphi = cosp * v_s + (mu_x + mu_y) * self._v_in * (cosp * cospa - sinp * sinpa)
 
 	return xdv_s, xdphi, ydv_s, ydphi
 end

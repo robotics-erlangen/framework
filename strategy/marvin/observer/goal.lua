@@ -9,6 +9,7 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local Constants = require "../base/constants"
 local Cache = require "../base/cache"
+local Volley = require "task/ability/volley"
 
 --- returns a list of all non-free sectors
 -- the non-free sectors are not merged and not sorted
@@ -297,11 +298,16 @@ function Goal.predictShot()
 			end
 			local nPassRecievers = #passRecievers
 			if nPassRecievers > 0 then -- if there is a pass reciever, just block it
-				-- FIXME account for ball speed in dir calculation
 				local passReciever = passRecievers[nPassRecievers]
-				dir = Vector.fromAngle(passReciever[1].dir)
-				pos = passReciever[1].pos
+				pos = passReciever[1].pos + Vector.fromAngle(passReciever[1].dir) * (passReciever[1].shootRadius + World.Ball.radius)
+				local ballRollTime = Ball.ballRollTime(World.Ball.speed:length(), World.Ball.pos:distanceTo(pos))
+				local ballSpeed = Ball.atTime(ballRollTime, World.Ball).speed:length()
+				local ballAngle = (-World.Ball.speed):angle()
+				local robotAngle = passReciever[1].dir
+				local dirx, diry = Volley.calcVOut(8, ballSpeed, robotAngle, ballAngle)
+				dir = Vector.create(dirx, diry):normalize()
 				vis.addCircle("o/goal: predictShot: receives pass", pos, passReciever[1].radius, vis.colors.pink, false)
+				vis.addPath("o/goal: predictShot: receives pass", {pos, pos + dir * 10}, vis.colors.pink)
 			end
 		end
 		isShot = true
