@@ -461,7 +461,7 @@ function ShootGoal:run()
 			self:_shoot(self.targetPoint, math.huge, true)
 		else
 			local somewhereNearTheGoal = World.Geometry.OpponentGoal + Vector.create(0, -0.3)
-			local linear = self.pos.y < 0
+			local linear = self._robot.pos.y < 0
 			debug.set("type", "desperate " .. (linear and "linear shot" or "chip"))
 			self:_shoot(somewhereNearTheGoal, math.huge, not linear)
 		end
