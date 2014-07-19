@@ -40,7 +40,7 @@ local function robotList(selfRobot, viewPos, ignoreGoalie)
 	local minExtrapolationTime = 0.2
 	local maxExtrapolationTime = 0.8
 	local distCap = math.bound(0.1, selfRobot.pos:distanceTo(
-		World.Geometry.OpponentGoal) - World.Geometry.DefenseRadius - 3 * selfRobot.radius, 1)
+		G.OpponentGoal) - G.DefenseRadius - 3 * selfRobot.radius, 1)
 
 	local robots = {}
 	for _,r in pairs(World.Robots) do
@@ -75,10 +75,13 @@ local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError)
 	local fieldRating = math.min(Field.distanceToFieldBorder(ballPos) / 0.2, 1)
 
 	-- rate distance to initial shoot position
-	local distRating = 1 - (dist / intervalLength) * 0.1
+	local shootDistRating = 1 - dist / intervalLength * 0.3
+
+	-- rate distance to goal
+	local goalDistRating = 1 - ballPos:distanceTo(G.OpponentGoal) / G.FieldHeight
 
 
-	local finalRating = rotateRating * goalRating * fieldRating * distRating
+	local finalRating = rotateRating * goalRating * fieldRating * shootDistRating * goalDistRating
 	return finalRating
 end
 
@@ -108,7 +111,7 @@ function ShootGoal:guessFirstPassReceiptPosition()
 	local minPos = Ball.atTime(minTime, World.Ball).pos
 	local maxPos = Ball.atTime(maxTime, World.Ball).pos
 
-	local allowedWidth = World.Geometry.FieldWidthHalf - 2 * self._robot.radius
+	local allowedWidth = G.FieldWidthHalf - 2 * self._robot.radius
 	local sign = minPos.x > 0 and 1 or -1
 	if sign * minPos.x > allowedWidth then
 		local shrinkWidth = sign * minPos.x - allowedWidth
@@ -185,7 +188,7 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 	local lambda, intersection = math.huge, nil
 	if dir.x ~= 0 then
 		local sign = dir.x > 0 and 1 or -1
-		local allowedWidth = World.Geometry.FieldWidthHalf - 2 * self._robot.radius
+		local allowedWidth = G.FieldWidthHalf - 2 * self._robot.radius
 		intersection,lambda = geom.intersectLineLine(World.Ball.pos, dir,
 				Vector.create(sign * allowedWidth, 0), Vector.create(0, 1))
 	end
@@ -204,7 +207,7 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 
 		self:_calculateDestination(pos, false)
 
-		local rating = rate(pos, self.targetPoint, dist, sampleVariance * 2, self.maxAngleError)
+		local rating = rate(pos, self.targetPoint, dist, sampleVariance, self.maxAngleError)
 		table.insert(sampleResults, {["target"] = self.targetPoint,
 									 ["view"] = ballPos,
 									 ["rating"] = rating})
@@ -247,15 +250,15 @@ ShootGoal.updateDestination = Cache.forFrame(ShootGoal.updateDestination)
 function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
 	-- anti-lifelock timeout
 	if World.Time - self._starttime > self._timeout then
-		self.targetPoint = self.targetPoint or World.Geometry.OpponentGoal
+		self.targetPoint = self.targetPoint or G.OpponentGoal
 		self.bestMid = self.bestMid or math.pi/2
 		self.maxAngleError = self.maxAngleError or math.huge
 		return
 	end
 
 
-	local goalStart = (World.Geometry.OpponentGoalRight - viewPos):angle() -- direction of the first goalpost
-	local goalEnd = (World.Geometry.OpponentGoalLeft - viewPos):angle() -- direction of the other goalpost
+	local goalStart = (G.OpponentGoalRight - viewPos):angle() -- direction of the first goalpost
+	local goalEnd = (G.OpponentGoalLeft - viewPos):angle() -- direction of the other goalpost
 
 	local freeSectors = Goal.getFreeSectors(viewPos, robotList(self._robot, viewPos, ignoreGoalie), goalStart, goalEnd)
 
