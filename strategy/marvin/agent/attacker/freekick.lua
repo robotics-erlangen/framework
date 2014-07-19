@@ -13,6 +13,8 @@ local MoveToStaticBall = require "task/movetostaticball"
 
 function FreeKick:_stop()
 	self._startTime = 0
+	self._decision = nil
+	self._pass = nil
 end
 
 function FreeKick:check()
@@ -40,8 +42,9 @@ function FreeKick:check()
 	return false
 end
 
+
 local nearBallDist = 0.15
-local hurryUp = 5
+local hurryUp = 6
 function FreeKick:_updateTask()
 	local switchDist = nearBallDist + self._robot.radius + World.Ball.radius + Settings.positionPadding
 	local atBall =  self._robot.pos:distanceTo(World.Ball.pos) < switchDist
@@ -51,26 +54,45 @@ function FreeKick:_updateTask()
 		return MoveToStaticBall, { math.pi/2, nearBallDist }
 	end
 
-	-- shootgoal
-	local shootGoalTmp = ShootGoal.create(self._agent)
-	local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
-	local shouldShoot = sg_mae and sg_mae > Settings.minAnglePrecision
 
-	-- pass
-	local pass
-	local bestPassRating = 0
-	for robot, sugg in pairs(self._inbox.passSuggestion()) do
-		if sugg.rating > bestPassRating then
-			pass = sugg
-			pass.target = robot
-			bestPassRating = sugg.rating
+	if not self._decision then
+		local shootGoalTmp = ShootGoal.create(self._agent)
+		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
+		
+		local bestPassRating = 0
+		for robot, sugg in pairs(self._inbox.passSuggestion()) do
+			if sugg.rating > bestPassRating then
+				pass = sugg
+				pass.target = robot
+				bestPassRating = sugg.rating
+			end
+		end
+		self._pass = pass
+
+		local time = World.Time - self._startTime
+		local min_mae = math.max((3 - time)/3 * 3, 0.7) / 180 * math.pi
+		local min_pr = math.max((4 - time)/4 * 0.3, 0.005)
+		local must_be_clean = time < 3
+
+		if World.Ball.pos.y > 0 and (sg_clean or not must_be_clean) and sg_mae and sg_mae > min_mae then
+			self._decision = "shootgoal"
+		elseif pass and bestPassRating > min_pr then
+			self._decision = "pass"
+		end
+
+		-- timeout
+		if time > 5 then
+			self._decision = "shootgoal"
 		end
 	end
 
-	if not (shouldShoot and World.RefereeState == "DirectOffensive") and pass then
-		return Pass, { pass.target, pass.pos }
-	else -- fallback: shootgoal, hope for ricochets etc when indirect
+
+	if self._decision == "shootgoal" then
 		return ShootGoal
+	elseif self._decision == "pass" then
+		return Pass, {self._pass.target, self._pass.pos}
+	else
+		return MoveToStaticBall, { math.pi/2, nearBallDist }
 	end
 end
 
