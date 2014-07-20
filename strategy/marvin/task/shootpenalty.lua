@@ -18,6 +18,7 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local constants = require "../base/constants"
 local debug = require "../base/debug"
+local Field = require "util/field"
 
 local goalLine = (G.OpponentGoalLeft - G.OpponentGoalRight):normalize()
 local function cornerPoint(corner)
@@ -33,6 +34,7 @@ function ShootPenalty:_init(lookDir)
 	self._targetPos = nil
 	self._startTime = World.Time
 	self._waitTime = math.random() * 5 + 2
+	self._cornerChange = false
 end
 
 function ShootPenalty:_canShoot()
@@ -49,9 +51,11 @@ end
 function ShootPenalty:run()
 	if not self._targetPos then
 		local keeper = World.OpponentKeeper
+		local keeperInsideDefArea =  keeper and Field.isInOpponentDefenseArea(keeper.pos, -keeper.radius)
+		debug.set("keeperInsideDefArea", keeperInsideDefArea)
 		if World.Time - self._startTime < self._waitTime then
 			self:_catchBall(cornerPoint(self._lookDir), constants.positionError)
-			if keeper then -- detect random keeper movement
+			if keeperInsideDefArea then -- detect random keeper movement
 				if (keeper.speed.x > keeperMoveSpeedThreshold and self._lookDir == "Left") or
 					(keeper.speed.x < -keeperMoveSpeedThreshold and self._lookDir == "Right")
 				then
@@ -60,23 +64,32 @@ function ShootPenalty:run()
 				end
 			end
 		else -- choose a corner
-			if keeper and math.abs(keeper.pos.x) > KeeperPosTolerance then
-				if keeper.pos.x > 0 then
-					self._lookDir = "Left"
+			if keeperInsideDefArea then
+				if math.abs(keeper.pos.x) > KeeperPosTolerance then
+					if keeper.pos.x > 0 then
+						self._cornerChange = (self._lookDir ~= "Left")
+						self._lookDir = "Left"
+					else
+						self._cornerChange = (self._lookDir ~= "Right")
+						self._lookDir = "Right"
+					end
 				else
-					self._lookDir = "Right"
-				end
-			else
-				local otherDir = (self.lookdir == "Left") and "Right" or "Left"
-				if math.random() > changeThreshold then
-					self._lookDir = otherDir
+					local otherDir = (self._lookDir == "Left") and "Right" or "Left"
+					if math.random() > changeThreshold then
+						self._cornerChange = true
+						self._lookDir = otherDir
+					end
 				end
 			end
 			self._targetPos = cornerPoint(self._lookDir)
 		end
 	else
 		vis.addCircle("t/shootpenalty: PenaltyTargetPos", self._targetPos, 0.02, vis.colors.blue, true)
-		self:_shoot(self._targetPos, math.huge, true)
+		if self._cornerChange then
+			self:_shoot(self._targetPos, math.huge, true) -- todo: use other shoot technique
+		else
+			self:_shoot(self._targetPos, math.huge, true)
+		end
 	end
 end
 
