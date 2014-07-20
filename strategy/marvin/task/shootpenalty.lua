@@ -9,8 +9,9 @@ local keeperMoveSpeedThreshold = 0.05 -- for random keeper movement detection
 
 local CatchBall = require "task/ability/catchball"
 local Shoot = require "task/ability/shoot"
+local RotateAndShoot = require "task/ability/rotateandshoot"
 local ShootPenalty = (require "../base/class").newTask("Task.ShootPenalty", require "task/base",
-	CatchBall, Shoot)
+	CatchBall, Shoot, RotateAndShoot)
 
 local World = require "../base/world"
 local G = World.Geometry
@@ -86,7 +87,7 @@ function ShootPenalty:run()
 	else
 		vis.addCircle("t/shootpenalty: PenaltyTargetPos", self._targetPos, 0.02, vis.colors.blue, true)
 		if self._cornerChange then
-			self:_shoot(self._targetPos, math.huge, true) -- todo: use other shoot technique
+			self:_rotateAndShoot((self._targetPos - World.Ball.pos):angle())
 		else
 			self:_shoot(self._targetPos, math.huge, true)
 		end
