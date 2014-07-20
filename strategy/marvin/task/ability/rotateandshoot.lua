@@ -20,12 +20,17 @@ function RotateAndShoot:_rotateAndShoot(destAngle)
 	local sidewards = toBall:copy():perpendicular() * invert
 
 
-	local vf_min, vf_max, vf_t = 0.5, 2.0, 0.1
+	local vf_min, vf_max, vf_t = 0.5, 2.0, 0.2
 	local vs_min, vs_max, vs_t = 0.5, 2.0, 0.1
 	local vf = math.bound(vf_min, t * vf_max / vf_t, vf_max)
 	local vs = math.bound(vs_min, (vs_t - t) * vs_max / vs_t, vs_max)
 
-	local rotate = 0.5 * (2*math.pi) * invert
+	--HACK
+	if t < 0.12 then
+		vf = 0
+	end
+
+	local rotate = 0.4 * (2*math.pi) * invert
 
 	if math.abs(self._robot.dir - destAngle) < 8 * math.pi/180 then
 		self._robot:shoot(math.huge, 1)
