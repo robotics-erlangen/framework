@@ -24,8 +24,8 @@ local y = 2.0
 
 local function run()
 	-- robot selection
-	local robot1 = World.FriendlyRobots[1]
-	local robot2 = World.FriendlyRobots[2]
+	local robot1 = World.FriendlyRobots[2]
+	local robot2 = World.FriendlyRobots[1]
 
 	-- evaluation
 	if Ball.isShot() == robot1 then
@@ -63,7 +63,11 @@ local function run()
 	elseif World.Ball.speed:length() > 2 and state == "go" then
 		state = "shoot"
 		initialized = false
-	elseif (World.Ball.pos.y > World.Geometry.FieldHeightHalf or Referee.isStopState()) and state == "shoot" then
+	elseif (World.Ball.pos.y > World.Geometry.FieldHeightHalf) and state == "shoot" then
+		state = "prepare"
+		initialized = false
+	end
+	if Referee.isStopState() then
 		state = "prepare"
 		initialized = false
 	end
