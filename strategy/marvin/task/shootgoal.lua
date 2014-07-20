@@ -440,7 +440,7 @@ function ShootGoal:run()
 
 		-- abort volley when one of the following conditions apply
 		-- or the ball is slow and somewhat away from us
-		if (World.Ball.speed:length() < 0. and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
+		if (World.Ball.speed:length() < 0.6 and World.Ball.pos:distanceTo(self._robot.pos) > 0.5)
 		-- or the ball is extremely slow
 		or World.Ball.speed:length() < 0.3
 		-- or we cannot catch the ball inside the field
