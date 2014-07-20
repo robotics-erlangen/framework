@@ -24,7 +24,7 @@ function Penalty:_updateTask()
 	if World.RefereeState == "PenaltyOffensivePrepare" then
 		return MoveToStaticBall, {(World.Geometry["OpponentGoal"..self.lookDir] - self._robot.pos):angle(), 0.02}
 	else -- PenaltyOffensive
-		return ShootPenalty
+		return ShootPenalty, {self.lookDir }
 	end
 end
 

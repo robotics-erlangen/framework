@@ -11,7 +11,7 @@ end
 
 function Default:_updateTask()
 	if World.GameStage == "PenaltyShootout" and World.RefereeState == "PenaltyDefensive" then
-		return RandomKeeper
+		return Keeper -- RandomKeeper
 	else
 		return Keeper
 	end

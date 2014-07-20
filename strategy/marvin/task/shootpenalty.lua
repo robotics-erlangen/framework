@@ -3,13 +3,12 @@
 --=====================--
 local distToPost = 0.05 -- distance of the target point on goal line to the post
 local changeThreshold = 0.5 -- set 0 if opponent keeper follows look Dir every time
-local fixedCorner = false -- set to "Right" or "Left" if opponent keeper has fixed behaviour or weakness
 local KeeperPosTolerance = 0.04 -- if keeper's distance to the goals center is bigger, we will choose the big free sector
 local shootErrorThreshold = 0.1 -- maximum position error
+local keeperMoveSpeedThreshold = 0.05 -- for random keeper movement detection
 
 local CatchBall = require "task/ability/catchball"
 local Shoot = require "task/ability/shoot"
-
 local ShootPenalty = (require "../base/class").newTask("Task.ShootPenalty", require "task/base",
 	CatchBall, Shoot)
 
@@ -17,11 +16,23 @@ local World = require "../base/world"
 local G = World.Geometry
 local geom = require "../base/geom"
 local vis = require "../base/vis"
+local constants = require "../base/constants"
+local debug = require "../base/debug"
+
+local goalLine = (G.OpponentGoalLeft - G.OpponentGoalRight):normalize()
+local function cornerPoint(corner)
+	if corner == "Left" then
+		return G.OpponentGoalLeft - (goalLine * distToPost)
+	else
+		return G.OpponentGoalRight + (goalLine * distToPost)
+	end
+end
 
 function ShootPenalty:_init(lookDir)
-	self.lookDir = lookDir
-	self.targetPos = nil
-	self.decided = false
+	self._lookDir = assert(lookDir, "parameter lookDir missing")
+	self._targetPos = nil
+	self._startTime = World.Time
+	self._waitTime = math.random() * 5 + 2
 end
 
 function ShootPenalty:_canShoot()
@@ -32,35 +43,41 @@ function ShootPenalty:_canShoot()
 		return false
 	end
 	vis.addCircle("t/shootpenalty: LookPos", lookPos, 0.02, vis.colors.red, true)
-	return lookPos:distanceTo(self.targetPos) < shootErrorThreshold
+	return lookPos:distanceTo(self._targetPos) < shootErrorThreshold
 end
 
 function ShootPenalty:run()
-	if not self.targetPos then
-		if fixedCorner then
-			self.lookDir = fixedCorner
-		elseif World.OpponentKeeper and math.abs(World.OpponentKeeper.pos.x) > KeeperPosTolerance then
-			if World.OpponentKeeper.pos.x > 0 then
-				self.lookDir = "Left"
+	if not self._targetPos then
+		local keeper = World.OpponentKeeper
+		if World.Time - self._startTime < self._waitTime then
+			self:_catchBall(cornerPoint(self._lookDir), constants.positionError)
+			if keeper then -- detect random keeper movement
+				if (keeper.speed.x > keeperMoveSpeedThreshold and self._lookDir == "Left") or
+					(keeper.speed.x < -keeperMoveSpeedThreshold and self._lookDir == "Right")
+				then
+					log("keeper x speed: " .. keeper.speed.x)
+					self._targetPos = cornerPoint(self._lookDir)
+				end
+			end
+		else -- choose a corner
+			if keeper and math.abs(keeper.pos.x) > KeeperPosTolerance then
+				if keeper.pos.x > 0 then
+					self._lookDir = "Left"
+				else
+					self._lookDir = "Right"
+				end
 			else
-				self.lookDir = "Right"
+				local otherDir = (self.lookdir == "Left") and "Right" or "Left"
+				if math.random() > changeThreshold then
+					self._lookDir = otherDir
+				end
 			end
-		else
-			local otherDir = (self.lookdir == "Left") and "Right" or "Left"
-			if math.random() > changeThreshold then
-				self.lookDir = otherDir
-			end
+			self._targetPos = cornerPoint(self._lookDir)
 		end
-		self.decided = true
-		local goalLine = (G.OpponentGoalLeft - G.OpponentGoalRight):normalize()
-		if self.lookDir == "Right" then
-			self.targetPos = G["OpponentGoal"..self.lookDir] + (goalLine * distToPost)
-		else
-			self.targetPos = G["OpponentGoal"..self.lookDir] - (goalLine * distToPost)
-		end
+	else
+		vis.addCircle("t/shootpenalty: PenaltyTargetPos", self._targetPos, 0.02, vis.colors.blue, true)
+		self:_shoot(self._targetPos, math.huge, true)
 	end
-	vis.addCircle("t/shootpenalty: PenaltyTargetPos", self.targetPos, 0.02, vis.colors.blue, true)
-	self:_shoot(self.targetPos, math.huge, true)
 end
 
 return ShootPenalty
