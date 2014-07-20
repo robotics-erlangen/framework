@@ -124,7 +124,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 	end
 	if (not self._catchTime) or self._catchTime < 0.5 then
 		self._send.shootDestination("all", targetPos)
-		self._robot:setDribblerSpeed(1)
+		--self._robot:setDribblerSpeed(1)
 	end
 end
 
