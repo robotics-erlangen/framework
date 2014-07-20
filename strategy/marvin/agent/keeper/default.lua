@@ -1,14 +1,20 @@
 local Base = require "agent/base/behavior"
 local Default = (require "../base/class").new("Agent.Keeper.Default", Base)
 
+local World = require "../base/world"
 local Keeper = require "task/keeper"
+local RandomKeeper = require "task/randomkeeper"
 
 function Default:check()
 	return true
 end
 
 function Default:_updateTask()
-	return Keeper
+	if World.GameStage == "PenaltyShootout" and World.RefereeState == "PenaltyDefensive" then
+		return RandomKeeper
+	else
+		return Keeper
+	end
 end
 
 return Default
