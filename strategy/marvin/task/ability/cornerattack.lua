@@ -87,8 +87,11 @@ local distInsideDefArea = 0.1
 function CornerAttack:_tryCornerAttack()
     local gap = scanForBestGapInDefense()
     if gap then -- apply for role: time to gap
-        local rating = Rating.timeToRating(Robot.timeToPos(self._robot, gap))
-        self._send.exclusiveRole("trainer", { cornerAttacker = rating })
+        local mainAttacker = self._inbox.mainAttacker().trainer
+        if mainAttacker then -- Prevent having no mainAttacker, FIXME: discuss if this is the right way
+            local rating = Rating.timeToRating(Robot.timeToPos(self._robot, gap))
+            self._send.exclusiveRole("trainer", { cornerAttacker = rating })
+        end
         if self._inbox.cornerAttacker().trainer == self._robot then
             if not self._isAssigned then
                 self._isAssigned = true
@@ -96,7 +99,6 @@ function CornerAttack:_tryCornerAttack()
             end
             vis.addCircle("t/a/cornerattack", self._pointOfImpact, 0.05, vis.colors.redHalf, true)
 
-            local mainAttacker = self._inbox.mainAttacker().trainer
             if mainAttacker then
                 self._send.passSuggestion(mainAttacker,
                     { kind = "in the run", rating = 1, pos = self._pointOfImpact })
