@@ -36,6 +36,7 @@ function ShootPenalty:_init(lookDir)
 	self._startTime = World.Time
 	self._waitTime = math.random() * 5 + 2
 	self._cornerChange = false
+	self:_initRAS()
 end
 
 function ShootPenalty:_canShoot()
@@ -55,7 +56,7 @@ function ShootPenalty:run()
 		local keeperInsideDefArea =  keeper and Field.isInOpponentDefenseArea(keeper.pos, -keeper.radius)
 		debug.set("keeperInsideDefArea", keeperInsideDefArea)
 		if World.Time - self._startTime < self._waitTime then
-			self:_catchBall(cornerPoint(self._lookDir), constants.positionError)
+			self:_catchBall(cornerPoint(self._lookDir), constants.positionError + 0.01)
 			if keeperInsideDefArea then -- detect random keeper movement
 				if (keeper.speed.x > keeperMoveSpeedThreshold and self._lookDir == "Left") or
 					(keeper.speed.x < -keeperMoveSpeedThreshold and self._lookDir == "Right")
