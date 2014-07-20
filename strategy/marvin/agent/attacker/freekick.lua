@@ -75,14 +75,15 @@ function FreeKick:_updateTask()
 		local min_pr = math.max((4 - time)/4 * 0.3, 0.005)
 		local must_be_clean = time < 3
 
-		if World.Ball.pos.y > 0 and (sg_clean or not must_be_clean) and sg_mae and sg_mae > min_mae then
+		if World.Ball.pos.y > 0 and World.RefereeState == "DirectOffensive"
+				and (sg_clean or not must_be_clean) and sg_mae and sg_mae > min_mae then
 			self._decision = "shootgoal"
 		elseif pass and bestPassRating > min_pr then
 			self._decision = "pass"
 		end
 
 		-- timeout
-		if time > 5 then
+		if time > 8 then
 			self._decision = "shootgoal"
 		end
 	end
