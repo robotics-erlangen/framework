@@ -5,8 +5,9 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local Ball = require "observer/ball"
 local ToTarget = require "trajectory/totarget"
+local Direct = require "trajectory/direct"
 
-local mu_x = 0.8
+local mu_x = 1.1
 local mu_y = 0.2
 
 function Volley:init()
@@ -31,37 +32,9 @@ function Volley.calcVOut(v_s, v_in, phi, alpha)
 	return x, y
 end
 
-function Volley:_f(v_s, phi)
-	local x, y = Volley.calcVOut(v_s, self._v_in, phi, self._alpha)
-	return x - self._v_out_x, y - self._v_out_y
-end
-
-function Volley:_Jf(v_s, phi)
-	local sinp = math.sin(phi)
-	local cosp = math.cos(phi)
-	local sinpa = math.sin(phi - self._alpha)
-	local cospa = math.cos(phi - self._alpha)
-
-	local xdv_s = cosp
-	local xdphi = -sinp * v_s - (mu_x + mu_y) * self._v_in * (cosp * sinpa + sinp * cospa)
-	local ydv_s = sinp
-	local ydphi = cosp * v_s + (mu_x + mu_y) * self._v_in * (cosp * cospa - sinp * sinpa)
-
-	return xdv_s, xdphi, ydv_s, ydphi
-end
-
---- performs a volley shot without actively catching the ball
--- @param viewPos Vector - the ball's position when it touches the dribbler
--- @param targetPos Vector - where to shoot at
--- @param targetSpeed number - how fast the Ball should arrive at targetPos
-function Volley:_volley(viewPos, targetPos, targetSpeed)
-
-	-- init v_in and alpha
-	if self._ballIncoming then
-		local relativeBallSpeed = World.Ball.speed - self._robot.speed
-		self._v_in = relativeBallSpeed:length()
-		self._alpha = (-relativeBallSpeed):angle()
-	end
+function Volley:calcPhi(v_in, alpha, viewPos, targetPos, targetSpeed)
+	self._v_in = v_in
+	self._alpha = alpha
 
 	-- init v_out_x and v_out_y
 	local dist = targetPos:distanceTo(viewPos)
@@ -107,12 +80,56 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 		vis.addPath("t/a/volley: Iterations", {self._robot.pos, viewPoint}, vis.colors.greenHalf)
 	end
 
+	return phi, v_s
+end
+
+
+function Volley:_f(v_s, phi)
+	local x, y = Volley.calcVOut(v_s, self._v_in, phi, self._alpha)
+	return x - self._v_out_x, y - self._v_out_y
+end
+
+function Volley:_Jf(v_s, phi)
+	local sinp = math.sin(phi)
+	local cosp = math.cos(phi)
+	local sinpa = math.sin(phi - self._alpha)
+	local cospa = math.cos(phi - self._alpha)
+
+	local xdv_s = cosp
+	local xdphi = -sinp * v_s - (mu_x + mu_y) * self._v_in * (cosp * sinpa + sinp * cospa)
+	local ydv_s = sinp
+	local ydphi = cosp * v_s + (mu_x + mu_y) * self._v_in * (cosp * cospa - sinp * sinpa)
+
+	return xdv_s, xdphi, ydv_s, ydphi
+end
+
+--- performs a volley shot without actively catching the ball
+-- @param viewPos Vector - the ball's position when it touches the dribbler
+-- @param targetPos Vector - where to shoot at
+-- @param targetSpeed number - how fast the Ball should arrive at targetPos
+function Volley:_volley(viewPos, targetPos, targetSpeed)
+
+	-- init v_in and alpha
+	if self._ballIncoming then
+		local relativeBallSpeed = World.Ball.speed - self._robot.speed
+		self._v_in = relativeBallSpeed:length()
+		self._alpha = (-relativeBallSpeed):angle()
+	end
+
+	local phi, v_s = self:calcPhi(self._v_in, self._alpha, viewPos, targetPos, targetSpeed)
 
 	-- position the robot to receive the pass
 	local robotPos = viewPos - Vector.fromAngle(phi):scaleLength(
 				World.Ball.radius + self._robot.shootRadius)
-	self._robot.trajectory:update(ToTarget, robotPos, phi)
 
+	if self._robot:hasBall(World.Ball) then
+		local moveSpeed = Vector.fromAngle(phi)
+		self._robot.trajectory:update(Direct, moveSpeed, phi)
+	else
+		self._robot.trajectory:update(ToTarget, robotPos, phi)
+	end
+
+	
 	-- only shoot if the robot looks about in the right direction
 	local angle_error = math.abs(geom.getAngleDiff(self._robot.dir, phi))
 	if angle_error < 4 / 180 * math.pi then
