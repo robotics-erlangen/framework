@@ -13,6 +13,12 @@ function ManMark:run()
 	local preferredPos = Defense.manMarkPos(self._targetRobot)
 	local preferredDir = (World.Ball.pos - self._robot.pos):angle()
 
+	-- Quick fix to not interfere with goal shots
+	local shooter, shootDest = next(self._inbox.shootDestination())
+	if shootDest then
+		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
+	end
+
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
 	self._robot.trajectory:update(ToTarget, preferredPos, preferredDir)

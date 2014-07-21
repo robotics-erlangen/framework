@@ -272,6 +272,12 @@ function CenterBack:run()
 	local ignoreFriends
 		= Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) < 2*self._robot.radius
 
+	-- Quick fix to not interfere with goal shots
+	local shooter, shootDest = next(self._inbox.shootDestination())
+	if shootDest then
+		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
+	end
+
 	--move robot
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot, ignoreFriends, ignoreOpponents)
