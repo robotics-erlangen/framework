@@ -148,15 +148,41 @@ function Striker:_calcMoveDest()
 			})
 		end
 	end
+	-- ball-oppGoal line also as obstacle
+	self._robot.path:addLine(ballPos.x, ballPos.y, World.Geometry.OpponentGoal.x,
+		World.Geometry.OpponentGoal.y, self._robot.radius)
 
 	local minBallDist = 0.7
 	if math.abs(ballPos.x - xPos) < minBallDist then
 		local cut1, cut2 = geom.intersectLineCircle(
 			startPoint, endPoint-startPoint, ballPos, minBallDist)
 		if cut1 and cut2 then
-			local min = math.min(cut1.y, cut2.y)
-			local max = math.max(cut1.y, cut2.y)
-			table.insert(intervalsToRemove, { math.bound(lineStart, min, lineEnd), math.bound(lineStart, max, lineEnd) })
+			local min = math.bound(lineStart, math.min(cut1.y, cut2.y), lineEnd)
+			local max = math.bound(lineStart, math.max(cut1.y, cut2.y), lineEnd)
+			debug.set("remove ball cirlce intersection from", min)
+			debug.set("remove ball cirlce intersection to", max)
+			table.insert(intervalsToRemove, { min, max })
+		end
+	end
+	-- ball also as obstacle
+	self._robot.path:addCircle(ballPos.x, ballPos.y, minBallDist)
+
+	-- do not interfere with other attackers
+	for robot, dest in pairs(self._inbox.moveDest()) do
+			if Messaging.get("attackerFlag")[robot] and robot.pos:distanceTo(dest) > 0.1 then
+				self._robot.path:addLine(robot.pos.x, robot.pos.y, dest.x, dest.y, self._robot.radius)
+			end
+	end
+
+	-- do not move on line between ball and attacker
+	for attacker, _ in pairs(self._inbox.attackerFlag()) do
+		-- if between ball and attacker on x line
+		if (self._robot.pos.x > ballPos.x and self._robot.pos.x < attacker.pos.x) or
+				(self._robot.pos.x < ballPos.x and self._robot.pos.x > attacker.pos.x) then
+			table.insert(intervalsToRemove, {
+				attacker.pos.y - 1.5*self._robot.radius - Settings.positionPadding,
+				attacker.pos.y + 1.5*self._robot.radius + Settings.positionPadding
+			})
 		end
 	end
 
@@ -175,19 +201,14 @@ function Striker:_calcMoveDest()
 		end
 	end
 
-	-- do not interfere with other attackers
-	for robot, dest in pairs(self._inbox.moveDest()) do
-			if Messaging.get("attackerFlag")[robot] and robot.pos:distanceTo(dest) > 0.1 then
-				self._robot.path:addLine(robot.pos.x, robot.pos.y, dest.x, dest.y, self._robot.radius)
-			end
-	end
-
 	Interval.merge(intervalsToRemove)
 	local possibleIntervals = Interval.negate(intervalsToRemove, lineStart, lineEnd)
 	for _, interval in ipairs(possibleIntervals) do
 		vis.addPath("t/striker: attackerLines", { Vector.create(xPos, interval[1]), Vector.create(xPos, interval[2]) }, vis.colors.blue)
 	end
 
+	-- move destination: furthest point to closest opp on line
+	-- TODO: maybe consider mainAttacker?
 	local closestOpp = World.OpponentRobots[1] or { pos = Vector.create(0,0) }
 	for _, opp in ipairs(World.OpponentRobots) do
 		if self._robot.pos:distanceTo(opp.pos) < self._robot.pos:distanceTo(closestOpp.pos) then
@@ -220,9 +241,9 @@ function Striker:_calcMoveDest()
 		local intersection, dist = self._robot.pos:orthogonalProjection(shooter.pos, shootDest)
 		if dist and math.abs(dist) < minBallDist then
 			if intersection.y < self._robot.pos.y then -- move upwards
-				self._moveDest.y = self._moveDest.y + 1.5 * minBallDist
+				self._moveDest.y = intersection.y + 1.5 * minBallDist
 			else -- move downwards
-				self._moveDest.y = self._moveDest.y - 1.5 * minBallDist
+				self._moveDest.y = intersection.y - 1.5 * minBallDist
 			end
 		end
 	end
