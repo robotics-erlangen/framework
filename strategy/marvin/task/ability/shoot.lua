@@ -49,13 +49,17 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		end
 		speed = speed:rotate(self._robot.dir)
 
+
+		local targetDir, targetSpeed = self:calcPhi(self._lastBallSpeed:length(), 
+				(-self._lastBallSpeed):angle(), World.Ball.pos, targetPos, targetSpeed)
+		--local targetDir = (targetPos - World.Ball.pos):angle()
+		
 		-- FIXME drive towards hit point and not where the ball currently is
-		local targetDir = (targetPos - World.Ball.pos):angle()
 		local distToBall = (World.Ball.pos - self._robot.pos):rotate(-targetDir)
 		distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
 
 		-- sidewards offset
-		local speedLimit = 0.2
+		local speedLimit = 0.4
 		speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(
 				math.bound(-speedLimit, -distToBall.y * sidewardsK, speedLimit)) -- correct pos error
 

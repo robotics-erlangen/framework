@@ -9,9 +9,10 @@ local keeperMoveSpeedThreshold = 0.05 -- for random keeper movement detection
 
 local CatchBall = require "task/ability/catchball"
 local Shoot = require "task/ability/shoot"
+local Volley = require "task/ability/volley"
 local RotateAndShoot = require "task/ability/rotateandshoot"
 local ShootPenalty = (require "../base/class").newTask("Task.ShootPenalty", require "task/base",
-	CatchBall, Shoot, RotateAndShoot)
+	CatchBall, Shoot, Volley, RotateAndShoot)
 
 local World = require "../base/world"
 local G = World.Geometry
