@@ -519,11 +519,11 @@ end
 function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	-- configuration
 	local maxError = 0.03 -- maxError in meters when driving a curve
-	local accelerationFactor = 0.8 -- factor for max forward speedup and braking
-	local exponentialTime = 0.1 -- timespan in seconds replace with exponential falloff
+	local accelerationFactor = 0.7 -- factor for max forward speedup and braking
+	local exponentialTime = 0.2 -- timespan in seconds replace with exponential falloff
 	local exponentialError = 0.05 -- relative
 	--TODO exponentialError by distance?
-	local sidewardsErrorFactor = 6 -- used to scale sidewards speed error
+	local sidewardsErrorFactor = 5 -- used to scale sidewards speed error
 
 	local rotationExponentialTime = 0.2
 	local rotationAccelerationFactor = 0.8
