@@ -22,9 +22,6 @@ function ApplyForMainattacker:check()
 		end
 		return false
 	end
-	if Ball.isShot() == self._robot then
-		self._lastShot = World.Time
-	end
 
 	-- cancel freekick
 	if self._freekickFlag and self._maFlag and not Referee.isFriendlyFreeKickState() then
