@@ -128,6 +128,8 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	end
 	endSpeed:rotate(viewDir)
 
+	-- always look at the ball to avoid pushing it
+	viewDir = (predictedBall.pos - self.robot.pos):angle()
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
 	self._send.moveDest("all", moveDest)
 	-- keep old time if no way was found
