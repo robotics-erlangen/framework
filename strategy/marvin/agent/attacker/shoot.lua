@@ -39,6 +39,10 @@ function Shoot:check()
 end
 
 function Shoot:_updateTask()
+	if self._robot.pos:distanceTo(World.Ball.pos) > 0.5 then
+		self._taskStart = World.Time
+	end
+	
 	local minTimeOver = World.Time - self._taskStart >= self._minTaskTime
 	if not self._taskClass or minTimeOver then
 		-- shootgoal
