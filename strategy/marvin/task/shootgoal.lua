@@ -474,11 +474,6 @@ function ShootGoal:run()
 			debug.set("type", "chip")
 			self:_shoot(chipPos, math.huge, false, true)
 		end
-
-		if self.maxAngleError then
-			debug.set("maxAngleError (deg)", self.maxAngleError * 180 / math.pi)
-		end
-
 		-- t/a/catchball sends the attack position
 	end
 end

@@ -143,8 +143,8 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 			self._catchTime = 0.95 * self._catchTime + 0.05 * time
 		end
 	end
-	debug.set("time", time)
-	debug.set("catchtime", self._catchTime)
+	debug.set("CatchBall/time", time)
+	debug.set("CatchBall/catchtime", self._catchTime)
 	vis.addCircle("t/a/catchball: CatchBall", Ball.atTime(self._catchTime, ball).pos, predictedBall.radius, vis.colors.blueHalf)
 	self._lastBallSpeed = ball.speed
 

@@ -65,7 +65,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, ignoreCanShoot)
 				math.bound(-speedLimit, -distToBall.y * sidewardsK, speedLimit)) -- correct pos error
 
 		local canShoot = self:_canShoot() or ignoreCanShoot
-		debug.set("Success probability", canShoot)
+		debug.set("canShoot", canShoot)
 
 		-- only start kicking if the robot got the ball
 		if self._robot:hasBall(World.Ball) then
@@ -85,15 +85,15 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, ignoreCanShoot)
 			-- speed towards ball
 			speed = speed + Vector.fromAngle(targetDir):setLength(shootDriveSpeed)
 
-			debug.set("shoot", true)
 			local dist = targetPos:distanceTo(self._robot.pos)
 			if linearShoot then
 				self._robot:shoot(targetSpeed, dist)
+				debug.set("shoot command", "linear")
 			else
 				self._robot:chip(dist)
+				debug.set("shoot command", "chip")
 			end
 		else
-			debug.set("shoot", false)
 			self._shootHysteresis = false
 
 			-- slowly dissolve travel distance
@@ -109,6 +109,8 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, ignoreCanShoot)
 				local distError = minDist - distToBall.x
 				speed = speed - Vector.fromAngle(targetDir):setLength(distError * 20)
 			end
+
+			debug.set("shoot command", "none")
 		end
 
 		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir)
@@ -117,9 +119,11 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, ignoreCanShoot)
 		self._send.attackPosition("all", World.Ball.pos)
 	elseif table.count(self._inbox.passPos()) > 0 or Ball.receivesPass(self._robot) then
 		debug.set("ballApproach", "receivePass")
+		debug.set("shoot command", "none")
 		self:_receivePass()
 	else -- catch the ball
 		debug.set("ballApproach", "catchBall")
+		debug.set("shoot command", "none")
 		self._lastBallSpeed = nil
 		self._shootHysteresis = false
 		self._travelStart = nil
