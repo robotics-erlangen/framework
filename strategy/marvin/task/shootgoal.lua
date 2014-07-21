@@ -75,7 +75,7 @@ local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError)
 	local fieldRating = math.min(Field.distanceToFieldBorder(ballPos) / 0.2, 1)
 
 	-- rate distance to initial shoot position
-	local shootDistRating = 1 - dist / intervalLength * 0.3
+	local shootDistRating = 1 - dist / intervalLength * 0.6
 
 	-- rate distance to goal
 	local goalDistRating = 1 - ballPos:distanceTo(G.OpponentGoal) / G.FieldHeight
@@ -395,7 +395,7 @@ end
 
 function ShootGoal:_init(minPrecision, receivepassHint)
 	self._minPrecision = minPrecision or 2.5 / 180 * math.pi
-	self._viewPosLockDistance = 0.05
+	self._viewPosLockDistance = 0.3
 
 	self._viscolor = nil
 	self.bestMid = nil
