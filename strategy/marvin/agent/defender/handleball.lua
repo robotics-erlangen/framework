@@ -2,16 +2,30 @@ local Base = require "agent/base/behavior"
 local HandleBall = (require "../base/class").new("Agent.Defender.HandleBall", Base)
 
 local World = require "../base/world"
+local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local debug = require "../base/debug"
 local Ball = require "observer/ball"
 local Field = require "util/field"
+local CenterBack = require "task/centerback"
 local SaveBall = require "task/saveball"
 local InterceptPass = require "task/interceptpass"
+
 
 function HandleBall:check()
 	if Referee.isFriendlyFreeKickState() or Referee.isStopState() or Referee.isKickoffState() then
 		return false
+	end
+
+	if World.Ball.speed.y < 0 and World.Ball.speed:length() > 3 then
+		if Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) < 
+				self._robot.radius + CenterBack.distanceToDefenseArea() then
+			local _, lambda = geom.intersectLineLine(World.Geometry.FriendlyGoal, Vector.create(1, 0),
+					World.Ball.pos, World.Ball.speed)
+			if math.abs(lambda) < World.Geometry.DefenseRadius + World.Geometry.DefenseStretch/2 then
+				return false
+			end
+		end
 	end
 
 	local _, timeAdvance = Ball.firstAtBall()
