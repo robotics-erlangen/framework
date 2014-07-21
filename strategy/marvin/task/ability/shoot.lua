@@ -16,7 +16,8 @@ function Shoot:init()
 end
 
 -- if probability is higher than that threshold, the task will shoot immediatelly
-function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
+function Shoot:_shoot(targetPos, targetSpeed, linearShoot, ignoreCanShoot)
+	ignoreCanShoot = ignoreCanShoot or false
 	local isShooting = false
 	local shootDriveSpeed = (World.RefereeState == "PenaltyOffensive")
 			and Settings.penaltyShootDriveSpeed or Settings.shootDriveSpeed
@@ -50,10 +51,10 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		speed = speed:rotate(self._robot.dir)
 
 
-		local targetDir, targetSpeed = self:calcPhi(self._lastBallSpeed:length(), 
+		local targetDir, targetSpeed = self:calcPhi(self._lastBallSpeed:length(),
 				(-self._lastBallSpeed):angle(), World.Ball.pos, targetPos, targetSpeed)
 		--local targetDir = (targetPos - World.Ball.pos):angle()
-		
+
 		-- FIXME drive towards hit point and not where the ball currently is
 		local distToBall = (World.Ball.pos - self._robot.pos):rotate(-targetDir)
 		distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
@@ -63,7 +64,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(
 				math.bound(-speedLimit, -distToBall.y * sidewardsK, speedLimit)) -- correct pos error
 
-		local canShoot = self:_canShoot()
+		local canShoot = self:_canShoot() or ignoreCanShoot
 		debug.set("Success probability", canShoot)
 
 		-- only start kicking if the robot got the ball

@@ -472,7 +472,7 @@ function ShootGoal:run()
 			end
 
 			debug.set("type", "chip")
-			self:_shoot(chipPos, math.huge, true)
+			self:_shoot(chipPos, math.huge, false, true)
 		end
 
 		if self.maxAngleError then
