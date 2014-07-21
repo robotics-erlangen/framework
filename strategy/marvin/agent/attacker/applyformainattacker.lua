@@ -5,7 +5,7 @@ local Ball = require "observer/ball"
 local World = require "../base/world"
 local debug = require "../base/debug"
 
-local cooldown = 0.5
+local cooldown = 3
 
 function ApplyForMainattacker:_stop()
 	self._lastShot = 0
@@ -15,6 +15,11 @@ end
 
 function ApplyForMainattacker:check()
 	if World.Time - self._lastShot < cooldown then
+		for _,r in pairs(World.Robots) do
+			if r ~= self._robot and r.pos:distanceTo(World.Ball.pos) < World.Ball.radius + r.radius + 0.02 then
+				self._lastShot = 0
+			end
+		end
 		return false
 	end
 	if Ball.isShot() == self._robot then
