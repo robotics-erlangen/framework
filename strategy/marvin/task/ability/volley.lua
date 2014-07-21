@@ -6,6 +6,7 @@ local vis = require "../base/vis"
 local Ball = require "observer/ball"
 local ToTarget = require "trajectory/totarget"
 local Direct = require "trajectory/direct"
+local debug = require "../base/debug"
 
 local mu_x = 1.1
 local mu_y = 0.2
@@ -129,7 +130,7 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 		self._robot.trajectory:update(ToTarget, robotPos, phi)
 	end
 
-	
+
 	-- only shoot if the robot looks about in the right direction
 	local angle_error = math.abs(geom.getAngleDiff(self._robot.dir, phi))
 	if angle_error < 4 / 180 * math.pi then
@@ -157,6 +158,7 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 	elseif Ball.isShot() then
 		self._ballIncoming = true
 	end
+	self._send.shootDestination("all", targetPos)
 end
 
 return Volley
