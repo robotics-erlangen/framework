@@ -6,8 +6,8 @@ local vis = require "../base/vis"
 local Ball = require "observer/ball"
 local ToTarget = require "trajectory/totarget"
 
-local mu_x = 0.6
-local mu_y = 0.5
+local mu_x = 0.8
+local mu_y = 0.2
 
 function Volley:init()
 	self._ballIncoming = true
@@ -125,7 +125,7 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 	end
 
 	vis.addCircle("t/a/volley: Volley", targetPos, 0.1, vis.colors.redHalf, true)
-	local viewPoint = Vector.fromAngle(phi, 10000)
+	local viewPoint = viewPos + Vector.fromAngle(phi):scaleLength(10000)
 	vis.addPath("t/a/volley: Volley", {viewPos, viewPoint}, vis.colors.green)
 	vis.addPath("t/a/volley: Volley", {viewPos, targetPos}, vis.colors.red)
 
