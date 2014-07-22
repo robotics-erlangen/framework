@@ -1,11 +1,11 @@
 --=====================--
 -- Tournament Settings --
 --=====================--
-local distToPost = 0.05 -- distance of the target point on goal line to the post
+local distToPost = 0.08 -- distance of the target point on goal line to the post
 local changeThreshold = 0.5 -- set 0 if opponent keeper follows look Dir every time
 local KeeperPosTolerance = 0.04 -- if keeper's distance to the goals center is bigger, we will choose the big free sector
 local shootErrorThreshold = 0.1 -- maximum position error
-local keeperMoveSpeedThreshold = 0.05 -- for random keeper movement detection
+local keeperMoveSpeedThreshold = 0.4 -- for random keeper movement detection
 
 local CatchBall = require "task/ability/catchball"
 local Shoot = require "task/ability/shoot"

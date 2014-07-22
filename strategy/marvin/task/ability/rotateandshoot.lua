@@ -39,7 +39,7 @@ function RotateAndShoot:_rotateAndShoot(destAngle)
 
 	local move = toBall * vf + sidewards * vs
 	self._robot.trajectory:update(Direct, move, nil, rotate)
-	self._robot:setDribblerSpeed(1)
+	-- self._robot:setDribblerSpeed(1)
 end
 
 return RotateAndShoot
