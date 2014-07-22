@@ -12,12 +12,12 @@ end
 function CurvedMaxAccel:_getPath(targetPos)
 	local targetPos = Coordinates.toGlobal(targetPos)
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
-	
+
 	self._robot.path:setProbabilities(0.1, 0.4)
 	-- first waypoint is the current robot position
 	-- if reaching the end is possible there's a waypoint at the end
 	local waypoints = self._robot.path:get(robotPos.x, robotPos.y, targetPos.x, targetPos.y)
-	
+
 	-- convert waypoints to vectors and draw
 	local waypointsVector = {}
 	for i = 1, #waypoints do
@@ -38,7 +38,7 @@ function CurvedMaxAccel:_getPath(targetPos)
 			return {}
 		end
 	end
-	
+
 	return waypointsVector
 end
 
@@ -81,7 +81,7 @@ local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxEr
  	-- subtracting sidewards speed -> the robot seem to slow thus braking starts too late
 	local maxSpeedProfile = { {lastPathDir:copy():setLength(1):dot(robotSpeed), maxSpeed, 0} }
 	local firstLeadTime -- distance of the point to drive towards [ in seconds ]
-	
+
 	-- to calculate an angle two line segments are necessary
 	for i = 3, #waypoints do
 		local newPathDir = waypoints[i] - prev
@@ -530,6 +530,9 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 
 	--insert default values
 	maxSpeed = maxSpeed or self._robot.maxSpeed
+	if World.RefereeState == "Stop" then
+		maxSpeed = 1
+	end
 	endSpeed = endSpeed or Vector.create(0, 0)
 	-- helper variables
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
