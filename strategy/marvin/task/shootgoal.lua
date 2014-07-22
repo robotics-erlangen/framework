@@ -466,7 +466,7 @@ function ShootGoal:run()
 			end
 
 			debug.set("type", "chip")
-			self:_shoot(chipPos, math.huge, false)
+			self:_shoot(chipPos, math.huge, false, true)
 		end
 		-- t/a/catchball sends the attack position
 	end

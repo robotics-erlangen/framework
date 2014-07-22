@@ -17,9 +17,10 @@ function Shoot:init()
 end
 
 -- if probability is higher than that threshold, the task will shoot immediatelly
-function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
+function Shoot:_shoot(targetPos, targetSpeed, linearShoot, ignoreCanShoot)
 	vis.addCircle("t/a/shoot: targetPos", targetPos, 0.04, vis.colors.pinkHalf, true)
 
+	ignoreCanShoot = ignoreCanShoot or false
 	local isShooting = false
 	local shootDriveSpeed = (World.RefereeState == "PenaltyOffensive")
 			and Settings.penaltyShootDriveSpeed or Settings.shootDriveSpeed
@@ -68,7 +69,12 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 				math.bound(-speedLimit, -distToBall.y * sidewardsK, speedLimit)) -- correct pos error
 
 		local canShoot = self:_canShoot()
-		debug.set("canShoot", canShoot)
+		if ignoreCanShoot then
+			debug.set("canShoot", "ignored")
+			canShoot = true
+		else
+			debug.set("canShoot", canShoot)
+		end
 
 		-- only start kicking if the robot got the ball
 		if self._robot:hasBall(World.Ball) then
