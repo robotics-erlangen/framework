@@ -30,8 +30,14 @@ function Defender:keepRobot()
 	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper and not self._robot.userControl
 end
 
+local preferredBots = {
+	-- [3] = true,
+}
 -- worse rating if robot if farther away from own goal
 function Defender:rateRobot()
+	if preferredBots[self._robot.id] then
+		return 0
+	end
 	if self._activeBehavior and self._activeBehavior:forceKeepingInPool()  then
 		return 0
 	end
