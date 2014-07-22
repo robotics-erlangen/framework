@@ -1,12 +1,10 @@
 local Pushing = {}
 
 function Pushing.occuring()
-    
+    -- whatever might be the criteria for the referee...
 end
 
 function Pushing.print()
-    log("Pushing")
-    log("blue robot with id 5")
 end
 
 return Pushing

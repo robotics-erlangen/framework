@@ -11,10 +11,11 @@ local fouls = {
     require "collision",
     require "fastshot",
     require "outoffield",
-    require "pushing"
+    require "pushing",
+    require "multipledefender"
 }
 local foulTimes = {}
-local timeout = 3 -- min time between subsequent fouls of the same time
+local timeout = 3 -- minimum time between subsequent fouls of the same kind
 
 local function wrapper(func)
     return function()
@@ -30,14 +31,10 @@ end
 
 local function main()
     debug.set("last touch", (World.TeamIsBlue and Referee.friendlyTouchedLast()) and "blue" or "yellow")
-    debug.set("cornerKick", Referee.isOffensiveCornerKick())
     for _, foul in ipairs(fouls) do
-        if foul.occuring() then
-            if not foulTimes[foul] or World.Time - foulTimes[foul] > timeout then
-                foulTimes[foul] = World.Time
-                foul.print()
-                log("")
-            end
+        if foul.occuring() and (not foulTimes[foul] or World.Time - foulTimes[foul] > timeout) then
+            foulTimes[foul] = World.Time
+            foul.print()
         end
     end
 end

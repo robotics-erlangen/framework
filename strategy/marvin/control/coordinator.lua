@@ -40,7 +40,20 @@ function Coordinator:init()
 	self._send, self._inbox = Messaging.registerTrainer()
 end
 
+local ballWasVisibleBefore = true
+local lastBallValid = 0
 function Coordinator:run()
+	-- check ball visibility
+	if not World.Ball:isPositionValid() and World.Time-lastBallValid > 0.5 and
+			(World.RefereeState == "Game" or World.RefereeState == "GameForce")
+			and ballWasVisibleBefore then
+		ballWasVisibleBefore = false
+		log("<font color=\"red\">Ball invisible!</font>")
+	else
+		ballWasVisibleBefore = true
+		lastBallValid = World.Time
+	end
+
 	debug.pushtop("Trainer")
 	for name, func in pairs(self._inbox) do
 		debug.push(name)
