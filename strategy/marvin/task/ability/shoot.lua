@@ -6,6 +6,7 @@ local World = require "../base/world"
 local TrajectoryDirect = require "trajectory/direct"
 local debug = require "../base/debug"
 local geom = require "../base/geom"
+local vis = require "../base/vis"
 local Ball = require "observer/ball"
 
 function Shoot:init()
@@ -17,6 +18,8 @@ end
 
 -- if probability is higher than that threshold, the task will shoot immediatelly
 function Shoot:_shoot(targetPos, targetSpeed, linearShoot, ignoreCanShoot)
+	vis.addCircle("t/a/shoot: targetPos", targetPos, 0.04, vis.colors.pinkHalf, true)
+
 	ignoreCanShoot = ignoreCanShoot or false
 	local isShooting = false
 	local shootDriveSpeed = (World.RefereeState == "PenaltyOffensive")
@@ -64,8 +67,13 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, ignoreCanShoot)
 		speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(
 				math.bound(-speedLimit, -distToBall.y * sidewardsK, speedLimit)) -- correct pos error
 
-		local canShoot = self:_canShoot() or ignoreCanShoot
-		debug.set("canShoot", canShoot)
+		local canShoot = self:_canShoot()
+		if ignoreCanShoot then
+			debug.set("canShoot", "ignored")
+			canShoot = true
+		else
+			debug.set("canShoot", canShoot)
+		end
 
 		-- only start kicking if the robot got the ball
 		if self._robot:hasBall(World.Ball) then
@@ -75,6 +83,8 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, ignoreCanShoot)
 		else
 			self._shootHysteresis = false
 		end
+
+		debug.set("hasBall hysteresis", self._shootHysteresis)
 
 		-- debug.set("travelDist", self._travelStart:distanceTo(self._robot.pos))
 		if self._travelStart:distanceTo(self._robot.pos) >= Constants.maxDribbleDistance then

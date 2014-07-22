@@ -248,15 +248,6 @@ end
 ShootGoal.updateDestination = Cache.forFrame(ShootGoal.updateDestination)
 
 function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
-	-- anti-lifelock timeout
-	if World.Time - self._starttime > self._timeout then
-		self.targetPoint = self.targetPoint or G.OpponentGoal
-		self.bestMid = self.bestMid or math.pi/2
-		self.maxAngleError = self.maxAngleError or math.huge
-		return
-	end
-
-
 	local goalStart = (G.OpponentGoalRight - viewPos):angle() -- direction of the first goalpost
 	local goalEnd = (G.OpponentGoalLeft - viewPos):angle() -- direction of the other goalpost
 
@@ -318,7 +309,12 @@ function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
 	end
 
 	self.bestMid = bestMid
-	self.targetPoint = bestMid and Vector.fromAngle(bestMid)*10 + viewPos or G.OpponentGoal
+	if not bestMid then
+		self.targetPoint = G.OpponentGoal
+	else
+		local ipos = geom.intersectLineLine(viewPos, Vector.fromAngle(bestMid), G.OpponentGoal, Vector.create(1, 0))
+		self.targetPoint = ipos or G.OpponentGoal
+	end
 	self.maxAngleError = bestAngleError
 
 	if self.bestMid then
@@ -406,8 +402,6 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 	self._viewPos = nil
 	self._viewPosLocked = false
 	self._bestMid = G.OpponentGoal
-	self._starttime = World.Time
-	self._timeout = math.random() * 3 + 3
 
 	-- because of the 1 frame delay this agent still gets the last message of the previous mainAttacker
 	self._volleyPossible = receivepassHint or false
