@@ -8,7 +8,7 @@ local Constants = {}
 
 Constants.stopBallDistance = 0.5 -- distance to ball during stop [m]
 
-Constants.systemLatency = 0.1 -- total system latency [s]
+Constants.systemLatency = 0.04 -- total system latency [s]
 
 Constants.positionError = 0.005 -- possible position error from vision [m]
 
