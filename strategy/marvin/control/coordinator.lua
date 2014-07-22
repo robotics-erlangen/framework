@@ -160,7 +160,7 @@ function Coordinator:_chooseExclusiveRoles()
 	end
 	self.exclusiveRoles = exclusiveRoles
 
-	local mainAttacker = self.exclusiveRoles["mainAttacker"]
+	local _, mainAttacker = next(Messaging.get("mainAttacker"))
 	self._mainAttackerIsDefender = false
 	if mainAttacker then
 		if self._pools.defense._agents then
