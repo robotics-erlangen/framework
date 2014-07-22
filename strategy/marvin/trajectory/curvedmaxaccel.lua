@@ -479,7 +479,7 @@ local function _calculateRotation(currentDir, currentOmega, targetDir, accelerat
 
 	if math.abs(dirChange) <= expDistance then
 		-- exponential part
-		outSpeed = dirChange * k
+		outSpeed = math.bound(-maxSpeed, dirChange * k, maxSpeed)
 		outAccel = 0 -- FIXME
 	elseif math.sign(currentOmega) ~= math.sign(dirChange) then
 		-- robot rotates into the wrong direciton
@@ -489,6 +489,9 @@ local function _calculateRotation(currentDir, currentOmega, targetDir, accelerat
 		-- robot is slower that the exponential start speed
 		outSpeed = currentOmega
 		outAccel = math.sign(dirChange) * accelerate
+		if math.abs(outSpeed) > maxSpeed then
+			outAccel = 0
+		end
 	else
 		-- check whether the robot should brake yet or keep accelerating
 		local brakeTime = (math.abs(currentOmega) - expStartSpeed) / -brake
