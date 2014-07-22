@@ -40,6 +40,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 
 		-- compensate ball movement
 		local speed = World.Ball.speed:copy()
+		local accel = nil
 		local speedLimit = self._lastBallSpeed:length()
 		-- prevent ball speed windup
 		if speed:length() > speedLimit then
@@ -87,7 +88,9 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		if self._shootHysteresis and not self._travelLimit then
 			isShooting = true
 			-- speed towards ball
-			speed = speed + Vector.fromAngle(targetDir):setLength(shootDriveSpeed)
+			local accelerate = math.abs(self._robot.acceleration
+					and self._robot.acceleration.aSpeedupFMax or 1.0) * 0.4
+			accel = Vector.fromAngle(targetDir) * accelerate
 
 			local dist = targetPos:distanceTo(self._robot.pos)
 			if linearShoot then
@@ -117,7 +120,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 			debug.set("shoot command", "none")
 		end
 
-		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir)
+		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, nil, accel)
 
 		-- send the position of the ball
 		self._send.attackPosition("all", World.Ball.pos)

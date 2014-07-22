@@ -6,13 +6,18 @@ function Direct:_init()
 end
 
 -- only targetDir or rotateSpeed may be passed!
-function Direct:update(speed, targetDir, rotateSpeed)
+-- accel is optional
+function Direct:update(speed, targetDir, rotateSpeed, accel)
 	speed = Coordinates.toGlobal(speed)
+	if accel then
+		accel = Coordinates.toGlobal(accel)
+	else
+		accel = Vector.create(0, 0)
+	end
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
-
+	local robotDir = Coordinates.toGlobal(self._robot.dir)
 	assert(targetDir == nil or rotateSpeed == nil, "rotating while having a fixed direction makes no sense")
 	
-	local robotDir = Coordinates.toGlobal(self._robot.dir)
 	if rotateSpeed == nil then
 		local limitRot = 4 * math.pi
 		local k_omega = 5
@@ -22,8 +27,8 @@ function Direct:update(speed, targetDir, rotateSpeed)
 	end
 
 	local spline = { {t_start = 0, t_end = math.huge,
-		x = { a0 = robotPos.x, a1 = speed.x, a2 = 0, a3 = 0 },
-		y = { a0 = robotPos.y, a1 = speed.y, a2 = 0, a3 = 0 },
+		x = { a0 = robotPos.x, a1 = speed.x, a2 = accel.x, a3 = 0 },
+		y = { a0 = robotPos.y, a1 = speed.y, a2 = accel.y, a3 = 0 },
 		phi = { a0 = robotDir, a1 = rotateSpeed, a2 = 0, a3 = 0}
 	} }
 
