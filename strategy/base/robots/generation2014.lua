@@ -18,6 +18,7 @@ Gen2014.constants = {
 -- @name Gen2014_3:chip
 -- @param distance number - Distance to chip
 function Gen2014:chip(distance)
+	distance = distance / self.maxShotChip * 1.8
 	local power = 0.2502*distance*distance - 0.0178*distance + 0.2089
 	self:shootChip(math.bound(0,3, power, 1))
 end
@@ -26,6 +27,7 @@ end
 -- @name Gen2014_3:_shoot
 -- @param speed number - Target shoot speed
 function Gen2014:_shoot(speed)
+	speed = speed / self.maxShotLinear * 5.5
 	local power = 0.0135*speed*speed+0.0723*speed+0.181
 	self:shootLinear(math.bound(0.2, power, 1))
 end
