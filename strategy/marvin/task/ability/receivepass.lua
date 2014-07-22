@@ -26,7 +26,7 @@ function ReceivePass:_receivePass()
 		self._send.attackPosition("all", perpPos +
 				Vector.fromAngle(faceBall) * (self._robot.shootRadius + World.Ball.radius))
 
-		self._robot:setDribblerSpeed(1)
+		self._robot:setDribblerSpeed(0.2)
 	else
 		self:_catchBall(World.Ball.pos)
 	end
