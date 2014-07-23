@@ -20,7 +20,7 @@ function Pass:_init(targetRobot, shootPos, linearShoot)
 		self._shootPos = shootPos
 	else
 		self._inTheRun = false
-		self._passSpeed = self._targetRobot.constants.passSpeed
+		self._passSpeed = self._targetRobot.constants.passSpeed * 0.65
 		self._shootPos = nil
 	end
 end
@@ -42,7 +42,7 @@ function Pass:run()
 		linearShoot = self._linearShoot
 	else
 		-- if we are 1.2m below the middle line, we're save to chip (at least at the moment)
-		local overMiddle = self._shootPos.y > -1.2 and self._shootPos.y * World.Ball.pos.y < 0
+		local overMiddle = self._robot.pos.y > -1.2 and self._shootPos.y * World.Ball.pos.y < 0
 		linearShoot = Robot.wayToPosFree(self._shootPos, self._robot, self._targetRobot) or overMiddle
 	end
 	self:_shoot(self._shootPos, self._passSpeed, linearShoot, 3 * math.pi/180)
