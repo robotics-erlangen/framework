@@ -17,7 +17,7 @@ function Shoot:init()
 end
 
 -- if probability is higher than that threshold, the task will shoot immediatelly
-function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
+function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	vis.addCircle("t/a/shoot: targetPos", targetPos, 0.04, vis.colors.pinkHalf, true)
 
 	local isShooting = false
@@ -54,7 +54,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		speed = speed:rotate(self._robot.dir)
 
 
-		local targetDir, targetSpeed = self:calcPhi(self._lastBallSpeed:length(),
+		local targetDir, targetSpeed = self:calcPhi(World.Ball.speed:length(),
 				(-self._lastBallSpeed):angle(), World.Ball.pos, targetPos, targetSpeed)
 		--local targetDir = (targetPos - World.Ball.pos):angle()
 
@@ -67,7 +67,8 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot)
 		speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(
 				math.bound(-speedLimit, -distToBall.y * sidewardsK, speedLimit)) -- correct pos error
 
-		local canShoot = self:_canShoot()
+		local angleDiff = math.abs(geom.getAngleDiff(targetDir, self._robot.dir))
+		local canShoot = angleDiff < math.max(Settings.minAnglePrecision, maxAngleError)
 		debug.set("canShoot", canShoot)
 
 		-- only start kicking if the robot got the ball

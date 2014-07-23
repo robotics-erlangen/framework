@@ -374,21 +374,6 @@ function ShootGoal:getDecisionMakingBasis()
 	return self.targetPoint, self.maxAngleError, self.sectorClean
 end
 
-function ShootGoal:_canShoot()
-	self:updateDestination()
-	local angleDiff = math.abs(geom.getAngleDiff((self.targetPoint - World.Ball.pos):angle(), self._robot.dir))
-
-	if angleDiff < Settings.minAnglePrecision then
-		-- always shoot if the direction is precise enough
-		return true
-	else
-		-- otherwise check the free goal angle
-		return angleDiff < math.min(self._minPrecision, self.maxAngleError or math.huge)
-	end
-end
-
-
-
 function ShootGoal:_init(minPrecision, receivepassHint)
 	self._minPrecision = minPrecision or 2.5 / 180 * math.pi
 	self._viewPosLockDistance = 0.3
@@ -455,7 +440,8 @@ function ShootGoal:run()
 			else
 				debug.set("type", "shoot (dirty)")
 			end
-			self:_shoot(self.targetPoint, math.huge, true)
+			self:_shoot(self.targetPoint, math.huge, true,
+				math.min(self._minPrecision, self.maxAngleError or math.huge))
 		else
 			local chipPos
 			if World.Ball.pos.y < 0 then
@@ -466,7 +452,7 @@ function ShootGoal:run()
 			end
 
 			debug.set("type", "chip")
-			self:_shoot(chipPos, math.huge, false)
+			self:_shoot(chipPos, math.huge, false, 5 * math.pi/180)
 		end
 		-- t/a/catchball sends the attack position
 	end

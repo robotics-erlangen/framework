@@ -17,10 +17,6 @@ function ChipAway:_init()
 	self._chipTarget = nil
 end
 
-function ChipAway:_canShoot()
-	return true
-end
-
 function ChipAway:run()
 	-- FIXME consider that we are able to chip over opponents
 	if not self._chipTarget then
@@ -31,7 +27,7 @@ function ChipAway:run()
 	end
 
 	local chipPos = self._chipTarget and self._chipTarget.pos or World.Geometry.OpponentGoal
-	self:_shoot(chipPos, math.huge, false)
+	self:_shoot(chipPos, math.huge, false, math.huge)
 
 	if self._chipTarget then
 		self._send.passPos(self._chipTarget, chipPos)

@@ -4,7 +4,7 @@
 local distToPost = 0.08 -- distance of the target point on goal line to the post
 local changeThreshold = 0.5 -- set 0 if opponent keeper follows look Dir every time
 local KeeperPosTolerance = 0.04 -- if keeper's distance to the goals center is bigger, we will choose the big free sector
-local shootErrorThreshold = 0.1 -- maximum position error
+local shootErrorThreshold = 4.0 * math.pi/180 -- maximum angle error
 local keeperMoveSpeedThreshold = 0.4 -- for random keeper movement detection
 
 local CatchBall = require "task/ability/catchball"
@@ -38,17 +38,6 @@ function ShootPenalty:_init(lookDir)
 	self._waitTime = math.random() * 5 + 2
 	self._cornerChange = false
 	self:_initRAS()
-end
-
-function ShootPenalty:_canShoot()
-	local roboDir = Vector.fromAngle(self._robot.dir)
-	local goalLineDir = Vector.create(1, 0)
-	local lookPos = geom.intersectLineLine(self._robot.pos, roboDir, G.OpponentGoal, goalLineDir)
-	if not lookPos then
-		return false
-	end
-	vis.addCircle("t/shootpenalty: LookPos", lookPos, 0.02, vis.colors.red, true)
-	return lookPos:distanceTo(self._targetPos) < shootErrorThreshold
 end
 
 function ShootPenalty:run()
@@ -91,7 +80,7 @@ function ShootPenalty:run()
 		if self._cornerChange then
 			self:_rotateAndShoot((self._targetPos - World.Ball.pos):angle())
 		else
-			self:_shoot(self._targetPos, math.huge, true)
+			self:_shoot(self._targetPos, math.huge, true, shootErrorThreshold)
 		end
 	end
 end
