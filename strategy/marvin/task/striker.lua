@@ -101,7 +101,6 @@ function Striker:_xLine()
 	-- select x-pos, alternate left and right depending on ball side
 	-- the same ordering in strikers and xLines leads to small ways
 	local xPos
-	assert(#strikers == #xLines, "number of strikers must be the same as number of xLines")
 	local leftSideFirst = World.Ball.pos.x < 0 and 1 or 0
 	local leftIndex = 0
 	local rightIndex = #xLines + 1
@@ -119,7 +118,10 @@ function Striker:_xLine()
 			break
 		end
 	end
-	assert(xPos, "Striker error: no xPos assigned")
+	if not xPos then
+		log("Too many strikers, unmeaningful position")
+		xPos = 0
+	end
 	return xPos
 end
 

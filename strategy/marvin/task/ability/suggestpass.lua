@@ -19,7 +19,7 @@ local function minDistToAllRobots(pos)
 end
 
 local chipRatingFactor = 0.5 -- reduce rating when only a chip is possible
-local minDirectPassY = -World.Geometry.FieldHeightHalf / 3
+local minDirectPassY = World.Geometry.FieldHeightHalf / 6
 function SuggestPass:_suggestPass()
     local mainAttacker = self._inbox.mainAttacker().trainer
     if not mainAttacker then

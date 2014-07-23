@@ -11,7 +11,7 @@ local touchLineDir = Vector.create(0, 1)
 local middleLineDir = leftMiddlePoint-rightMiddlePoint
 local leftFriendlyCorner = Vector.create(-World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
 local rightFriendlyCorner = Vector.create(World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
-local chipImpactDistFromBorder = 0.1
+local chipImpactDistFromBorder = 0.5
 
 function ChipToBorder:_chipToBorderIfSafe()
     local robotPos = self._robot.pos
@@ -44,7 +44,7 @@ function ChipToBorder:_chipToBorderIfSafe()
 
         local chipDist = World.Ball.pos:distanceTo(chipPos)  - chipImpactDistFromBorder
         vis.addCircle("t/a/chipToBorder", ballPos + robotDir:setLength(chipDist), 0.1, vis.colors.blue, true)
-        self._robot:setDribblerSpeed(1)
+        self._robot:setDribblerSpeed(0.3)
         self._robot:chip(chipDist)
     end
 end

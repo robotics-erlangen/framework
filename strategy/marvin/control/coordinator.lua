@@ -39,6 +39,8 @@ function Coordinator:init()
 	self._mainAttackerIsDefender = false
 	self._oppsToMark = {}
 	self._send, self._inbox = Messaging.registerTrainer()
+
+	self._customAttackRatio = nil
 end
 
 local ballWasVisibleBefore = true
@@ -313,38 +315,43 @@ function Coordinator:_calculateAttackRatio()
 	end
 
 	local attackRatio
-	if World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
-		attackRatio = 4
-	elseif World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
-		attackRatio = 3
-	elseif World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
-		if friendlyCorner then -- Goal-Kick Offensive
-			attackRatio = 3
-		elseif opponentCorner then -- Corner-Kick Offensive
+	if not self._customAttackRatio then
+		if World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
 			attackRatio = 4
-		else
-			attackRatio = 3 -- Throw-In Offensive
-		end
-	elseif World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
-		self._oppFreeKickOngoing = true
-		attackRatio = 1
-	elseif World.RefereeState == "Stop" then
-		attackRatio = 1
-	elseif World.GameStage == "PenaltyShootout" then
-		attackRatio = 6
-	else -- Game, GameForce
-		for _, robot in ipairs(World.FriendlyRobots) do
-			if robot:hasBall(World.Ball) then
-				self._oppFreeKickOngoing = false
-				break
+		elseif World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
+			attackRatio = 3
+		elseif World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
+			if friendlyCorner then -- Goal-Kick Offensive
+				attackRatio = 3
+			elseif opponentCorner then -- Corner-Kick Offensive
+				attackRatio = 4
+			else
+				attackRatio = 3 -- Throw-In Offensive
+			end
+		elseif World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
+			self._oppFreeKickOngoing = true
+			attackRatio = 1
+		elseif World.RefereeState == "Stop" then
+			attackRatio = 1
+		elseif World.GameStage == "PenaltyShootout" then
+			attackRatio = 6
+		else -- Game, GameForce
+			for _, robot in ipairs(World.FriendlyRobots) do
+				if robot:hasBall(World.Ball) then
+					self._oppFreeKickOngoing = false
+					break
+				end
+			end
+			if self._oppFreeKickOngoing then
+				attackRatio = 1
+			else
+				attackRatio = self._ballInFriendlyFieldHalf and 3 or 2
 			end
 		end
-		if self._oppFreeKickOngoing then
-			attackRatio = 1
-		else
-			attackRatio = self._ballInFriendlyFieldHalf and 3 or 2
-		end
+	else
+		attackRatio = self._customAttackRatio
 	end
+
 
 	local attackers = math.roundUpwards(attackRatio/6 * #World.FriendlyRobots, 0)
 
@@ -370,6 +377,20 @@ Entrypoints.add(" main", function()
 	if not coord then
 		coord = Coordinator.create()
 	end
+	coord:run()
+end)
+Entrypoints.add(" main aggressive", function()
+	if not coord then
+		coord = Coordinator.create()
+	end
+	coord._customAttackRatio = 6
+	coord:run()
+end)
+Entrypoints.add(" main passive", function()
+	if not coord then
+		coord = Coordinator.create()
+	end
+	coord._customAttackRatio = 0
 	coord:run()
 end)
 

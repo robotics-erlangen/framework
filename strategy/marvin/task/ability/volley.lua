@@ -8,8 +8,8 @@ local ToTarget = require "trajectory/totarget"
 local Direct = require "trajectory/direct"
 local debug = require "../base/debug"
 
-local mu_x = 1.1
-local mu_y = 0.2
+local mu_x = 0.8
+local mu_y = 0.3
 
 function Volley:init()
 	self._ballIncoming = true
@@ -40,7 +40,11 @@ function Volley:calcPhi(v_in, alpha, viewPos, targetPos, targetSpeed)
 	-- init v_out_x and v_out_y
 	local dist = targetPos:distanceTo(viewPos)
 	local dirToTarget = (targetPos - viewPos):normalize()
-	local abs_v_out = math.min(self._robot:calculateShootSpeed(targetSpeed, dist), self._robot.maxShotLinear)
+	local abs_v_out = self._robot:calculateShootSpeed(targetSpeed, dist)
+	if targetSpeed == math.huge then
+		abs_v_out = self._robot.maxShotLinear + mu_y * v_in
+	end
+
 	self._v_out_x = dirToTarget.x * abs_v_out
 	self._v_out_y = dirToTarget.y * abs_v_out
 
@@ -121,7 +125,7 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 
 	-- position the robot to receive the pass
 	local robotPos = viewPos - Vector.fromAngle(phi):scaleLength(
-				World.Ball.radius + self._robot.shootRadius)
+				World.Ball.radius * 0 + self._robot.shootRadius)
 
 	if self._robot:hasBall(World.Ball) then
 		local moveSpeed = Vector.fromAngle(phi)
@@ -139,7 +143,8 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 		self._shooting = false
 	end
 	if self._shooting then
-		self._robot:_shoot(v_s)
+		v_s = math.huge
+		self._robot:shoot(v_s, 0)
 		debug.set("shoot command", "linear")
 	else
 		debug.set("shoot command", "none")

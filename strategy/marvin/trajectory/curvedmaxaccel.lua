@@ -534,7 +534,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	--insert default values
 	maxSpeed = maxSpeed or self._robot.maxSpeed
 	if World.RefereeState == "Stop" then
-		maxSpeed = 1
+		maxSpeed = World.IsLargeField and 1.5 or 1
 	end
 	endSpeed = endSpeed or Vector.create(0, 0)
 	-- helper variables
