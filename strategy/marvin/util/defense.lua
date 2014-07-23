@@ -1,6 +1,6 @@
 local World = require "../base/world"
 local Constants = require "../base/constants"
-local Field = require "util/field"
+local Field = require "../base/field"
 local Referee = require "../base/referee"
 local Cache = require "../base/cache"
 

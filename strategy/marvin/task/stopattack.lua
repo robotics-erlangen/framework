@@ -2,7 +2,7 @@ local StopAttack = (require "../base/class").newTask("Task.StopAttack", require 
 
 local World = require "../base/world"
 local Constants = require "../base/constants"
-local Field = require "util/field"
+local Field = require "../base/field"
 local ToTarget = require "trajectory/totarget"
 
 function StopAttack:_init()

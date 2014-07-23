@@ -8,7 +8,7 @@ local Robot = require "observer/robot"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
-local Field = require "util/field"
+local Field = require "../base/field"
 local Referee = require "../base/referee"
 
 

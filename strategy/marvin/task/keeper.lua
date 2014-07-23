@@ -5,7 +5,7 @@ local ToTarget = require "trajectory/totarget"
 local Goal = require "observer/goal"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
-local Field = require "util/field"
+local Field = require "../base/field"
 local debug = require "../base/debug"
 
 local G = World.Geometry

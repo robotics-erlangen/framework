@@ -4,7 +4,7 @@ local SaveBall = (require "../base/class").newTask("Task.SaveBall", require "tas
 local World = require "../base/world"
 local vis = require "../base/vis"
 local Ball = require "observer/ball"
-local Field = require "util/field"
+local Field = require "../base/field"
 local ToTarget = require "trajectory/totarget"
 
 function SaveBall:run()

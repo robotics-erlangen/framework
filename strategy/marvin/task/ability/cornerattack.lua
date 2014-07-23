@@ -2,7 +2,7 @@ local CornerAttack = {}
 
 local World = require "../base/world"
 local G = World.Geometry
-local Field = require "util/field"
+local Field = require "../base/field"
 local constants = require "../base/constants"
 local vis = require "../base/vis"
 local debug = require "../base/debug"

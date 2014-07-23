@@ -6,7 +6,7 @@ local Robot = require "observer/robot"
 local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Geom = require "../base/geom"
-local Field = require "util/field"
+local Field = require "../base/field"
 local Messaging = require "control/messaging"
 local debug = require "../base/debug"
 

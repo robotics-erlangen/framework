@@ -21,7 +21,7 @@ local G = World.Geometry
 
 local Interval = require "util/interval"
 local Random = require "util/random"
-local Field = require "util/field"
+local Field = require "../base/field"
 
 
 

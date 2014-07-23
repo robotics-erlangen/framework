@@ -2,7 +2,7 @@ local Base = require "agent/base/behavior"
 local HandleBall = (require "../base/class").new("Agent.Keeper.HandleBall", Base)
 
 local World = require "../base/world"
-local Field = require "util/field"
+local Field = require "../base/field"
 local Referee = require "../base/referee"
 local CenterBack = require "task/centerback"
 local AggressiveKeeper = require "task/aggressivekeeper"
