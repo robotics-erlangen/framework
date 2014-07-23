@@ -443,16 +443,22 @@ function ShootGoal:run()
 			self:_shoot(self.targetPoint, math.huge, true,
 				math.min(self._minPrecision, self.maxAngleError or math.huge))
 		else
+			local mae =  5 * math.pi/180
 			local chipPos
-			if World.Ball.pos.y < 0 then
+			if World.Ball.pos.y < -1 then
 				chipPos = Vector.create(
-					G.FieldHeightHalf/(G.FieldHeightHalf - World.Ball.pos.y) * World.Ball.pos.x, 0)
+					G.FieldHeightHalf/(G.FieldHeightHalf - World.Ball.pos.y) * World.Ball.pos.x, -0.2)
 			else
 				chipPos = Vector.create(0, G.FieldHeightHalf - 0.3)
+				if World.Ball.pos.y < 0 then
+					self:_shoot(chipPos, math.huge, true, mae)
+					debug.set("type", "desperate linear")
+					return
+				end
 			end
 
-			debug.set("type", "chip")
-			self:_shoot(chipPos, math.huge, false, 5 * math.pi/180)
+			debug.set("type", "desperate chip")
+			self:_shoot(chipPos, chipPos:distanceTo(World.Ball.pos), false, mae)
 		end
 		-- t/a/catchball sends the attack position
 	end
