@@ -1,15 +1,17 @@
+local Class = require "../base/class"
 local Base = require "agent/base/behavior"
-local FreeKick = (require "../base/class").new("Agent.Attacker.FreeKick", Base)
+local FreeKick = Class.new("Agent.Attacker.FreeKick", Base)
 
 local World = require "../base/world"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
 local Ball = require "observer/ball"
-local Class = require "../base/class"
+local Field = require "util/field"
 
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
 local MoveToStaticBall = require "task/movetostaticball"
+local GoalKick = require "task/goalkick"
 
 function FreeKick:_stop()
 	self._startTime = 0
@@ -46,16 +48,23 @@ end
 local nearBallDist = 0.15
 local hurryUp = 6
 function FreeKick:_updateTask()
+	local goalKickFlag = Field.isInOwnCorner(World.Ball.pos, false)
+	
 	local switchDist = nearBallDist + self._robot.radius + World.Ball.radius + Settings.positionPadding
 	local atBall =  self._robot.pos:distanceTo(World.Ball.pos) < switchDist
 
 	-- if we are not near the ball yet, don't decide what to do
 	if World.Time - self._startTime < hurryUp and not atBall then
-		return MoveToStaticBall, { math.pi/2, nearBallDist }
+		local goalKickViewDir = World.Ball.pos.x > 0 and 0 or math.pi
+		local viewDir = goalKickFlag and goalKickViewDir or math.pi/2
+		return MoveToStaticBall, { viewDir, nearBallDist }
 	end
 
 
 	if not self._decision then
+		if goalKickFlag then
+			return GoalKick
+		end
 		local shootGoalTmp = ShootGoal.create(self._agent)
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 		
