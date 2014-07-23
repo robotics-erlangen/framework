@@ -40,7 +40,11 @@ function Volley:calcPhi(v_in, alpha, viewPos, targetPos, targetSpeed)
 	-- init v_out_x and v_out_y
 	local dist = targetPos:distanceTo(viewPos)
 	local dirToTarget = (targetPos - viewPos):normalize()
-	local abs_v_out = math.min(self._robot:calculateShootSpeed(targetSpeed, dist), self._robot.maxShotLinear)
+	local abs_v_out = self._robot:calculateShootSpeed(targetSpeed, dist)
+	if targetSpeed == math.huge then
+		abs_v_out = self._robot.maxShotLinear + mu_y * v_in
+	end
+
 	self._v_out_x = dirToTarget.x * abs_v_out
 	self._v_out_y = dirToTarget.y * abs_v_out
 
@@ -139,7 +143,7 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 		self._shooting = false
 	end
 	if self._shooting then
-		self._robot:_shoot(v_s)
+		self._robot:shoot(v_s, 0)
 		debug.set("shoot command", "linear")
 	else
 		debug.set("shoot command", "none")
