@@ -34,7 +34,7 @@ function HandleBall:check()
 	end
 
 	self._forceKeepingInPool = self._interceptingPass
-	if self._interceptingPass then
+	if self._interceptingPass and Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) > 1.1 then
 		self:_applyForMainAttacker()
 	end
 	debug.set("intercepting pass", self._interceptingPass)
