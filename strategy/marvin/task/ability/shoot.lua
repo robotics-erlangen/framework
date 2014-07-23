@@ -21,10 +21,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	vis.addCircle("t/a/shoot: targetPos", targetPos, 0.04, vis.colors.pinkHalf, true)
 
 	local isShooting = false
-	local shootDriveSpeed = (World.RefereeState == "PenaltyOffensive")
-			and Settings.penaltyShootDriveSpeed or Settings.shootDriveSpeed
-	local sidewardsK = (World.RefereeState == "PenaltyOffensive")
-			and 15 or 13
+	local sidewardsK = 10
 
 	if self._robot:hasBall(World.Ball, Settings.shootSideOffset) then -- if we got the ball
 		debug.set("ballApproach", "hasBall")
