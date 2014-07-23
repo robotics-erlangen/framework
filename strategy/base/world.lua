@@ -22,6 +22,7 @@ local Constants = require "../base/constants"
 -- @field Robots Robot[] - Every visible robot in an arbitary order
 -- @field TeamIsBlue bool - True if we are the blue team, otherwise we're yellow
 -- @field IsSimulated bool - True if the world is simulated
+-- @field IsLargeField bool - True if playing on the large field
 -- @field Time number - Current unix timestamp in seconds (with nanoseconds precision)
 -- @field TimeDiff number - Time since last update
 -- @field RefereeState string - current refereestate, can be one of these:
@@ -48,6 +49,7 @@ World.OpponentKeeper = nil
 World.Robots = {}
 World.TeamIsBlue = false
 World.IsSimulated = false
+World.IsLargeField = false
 
 World.Geometry = {}
 --- Field geometry.
@@ -147,6 +149,8 @@ function World._updateGeometry(geom)
 
 	wgeom.BoundaryWidth = geom.boundary_width
 	wgeom.RefereeWidth = geom.referee_width
+
+	wgeom.IsLargeField = wgeom.FieldWidth > 5 and wgeom.FieldHeight > 7
 end
 
 function World._updateWorld(state)
