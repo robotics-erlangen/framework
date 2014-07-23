@@ -19,7 +19,7 @@ Gen2012.constants = {
 -- @param distance number - Distance to chip
 function Gen2012:chip(distance)
 	if self.id == 7 then -- prototype
-		power = distance / 4
+		local power = distance / 4
 		self:shootChip(math.bound(0.1, power, 1))
 	else
 		self:shootChip(1) -- chip is too powerless
