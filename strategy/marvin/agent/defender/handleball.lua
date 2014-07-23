@@ -18,7 +18,7 @@ function HandleBall:check()
 	end
 
 	if World.Ball.speed.y < 0 and World.Ball.speed:length() > 3 then
-		if Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) < 
+		if Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) <
 				self._robot.radius + CenterBack.distanceToDefenseArea() then
 			local _, lambda = geom.intersectLineLine(World.Geometry.FriendlyGoal, Vector.create(1, 0),
 					World.Ball.pos, World.Ball.speed)
@@ -42,13 +42,17 @@ function HandleBall:check()
 	return self._inbox.mainAttacker().trainer == self._robot
 end
 
+local doubleSizedField = World.Geometry.FieldHeight > 7
 function HandleBall:_updateTask()
 	local changeDist = World.Geometry.FieldHeight / 4
 	local defenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 	local firstRobot, timeAdvance = Ball.firstAtBall()
 
+	local minAttackDist = doubleSizedField and 1.7 or 1.2
 	if self._robot:hasBall(World.Ball) or defenseDist > changeDist or
-	firstRobot == self._robot and timeAdvance > 1 then
+			firstRobot == self._robot and timeAdvance > 1 and
+			Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) > minAttackDist
+	then
 		self._send.attackerRequest("trainer")
 		self._requestingPoolChange = true
 	end
