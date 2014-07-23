@@ -37,7 +37,7 @@ function Gen2014:_shoot(speed)
 	end
 
 	speed = speed / self.maxShotLinear * 5.5
-	local power = 0.0135*speed*speed+0.0723*speed+0.181
+	local power = 0.0167*speed*speed + 0.0459*speed + 0.194
 	self:shootLinear(math.bound(0.2, power, 1))
 end
 
