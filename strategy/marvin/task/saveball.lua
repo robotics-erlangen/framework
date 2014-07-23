@@ -20,7 +20,9 @@ function SaveBall:run()
 		moveDest = Field.limitToAllowedField(moveDest, self._robot.radius, true)
 	end
 
-	self:_chipToBorderIfSafe()
+	if self._robot.pos.y < -1.2 then -- we cannot chip precisely enough at the moment
+			self:_chipToBorderIfSafe()
+	end
 
 	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
 	self._robot.path:addRobotObstacles(self._robot)
