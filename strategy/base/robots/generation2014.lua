@@ -20,7 +20,7 @@ Gen2014.constants = {
 function Gen2014:chip(distance)
 	distance = distance / self.maxShotChip * 1.8
 	local power = 0.2502*distance*distance - 0.0178*distance + 0.2089
-	self:shootChip(math.bound(0,3, power, 1))
+	self:shootChip(math.bound(0.2, power, 1))
 end
 
 --- Shoot wrapper
