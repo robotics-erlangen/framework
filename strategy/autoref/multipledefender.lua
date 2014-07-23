@@ -1,7 +1,7 @@
 local MultipleDefender = {}
 
 local World = require "../base/world"
-local Field = require "../marvin/util/field"
+local Field = require "../base/field"
 
 local possibleRefStates = {
     Game = true,
@@ -39,7 +39,7 @@ end
 
 local function checkTeam(team)
     for _, robot in ipairs(World[team .. "Robots"]) do
-        if robot ~= World[team .. "Goalie"] then
+        if robot ~= World[team .. "Keeper"] then
             if robotIsOffending(robot, team, "full") then return true end
             if robotIsOffending(robot, team, "partial") then return true end
         end
