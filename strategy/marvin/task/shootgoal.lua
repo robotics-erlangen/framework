@@ -388,6 +388,11 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 	self._viewPosLocked = false
 	self._bestMid = G.OpponentGoal
 
+	-- no volley if we don't have enough time to prepare
+	if self._robot.pos:distanceTo(World.Ball.pos) > 0.5 then
+		self._volleyPossible = false
+	end
+
 	-- because of the 1 frame delay this agent still gets the last message of the previous mainAttacker
 	self._volleyPossible = receivepassHint or false
 	for _,_ in pairs(self._inbox.passPos()) do
