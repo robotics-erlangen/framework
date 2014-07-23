@@ -454,7 +454,7 @@ function ShootGoal:run()
 				chipPos = Vector.create(
 					G.FieldHeightHalf/(G.FieldHeightHalf - World.Ball.pos.y) * World.Ball.pos.x, -0.2)
 			else
-				chipPos = Vector.create(0, G.FieldHeightHalf - 0.3)
+				chipPos = G.OpponentPenaltySpot
 				if World.Ball.pos.y < 0 then
 					self:_shoot(chipPos, math.huge, true, mae)
 					debug.set("type", "desperate linear")
