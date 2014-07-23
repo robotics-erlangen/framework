@@ -128,7 +128,8 @@ function Keeper:run()
 		end
 	-- block estimated shoot line
 	elseif atkDir.y < 0 then
-		moveTo = intersectPos
+		local k = math.bound(0, (atkPos.y+2)/2 * 0.6, 0.5)
+		moveTo = intersectPos * (1-k) + Vector.create(0, -G.FieldHeightHalf + kGD + self._robot.radius) * k
 	else -- don't know where to go, just center in the goal / corner
 		moveTo = fallbackPos
 	end
