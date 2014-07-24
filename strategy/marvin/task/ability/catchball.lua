@@ -105,7 +105,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 			self._robot.shootRadius + distanceToBall + ball.radius)
 	local viewLine = (targetPos - predictedBall.pos):normalize()
 	local viewDir = viewLine:angle()
-	moveDest = Field.limitToField(moveDest, Settings.positionPadding + 2*self._robot.radius)
+	moveDest = Field.limitToField(moveDest, Settings.positionPadding + self._robot.radius)
 
   	local isBlockingBall = self:_isBlockingBall(ball, predictedBall, moveDest)
   	-- minimum required time to touch the ball
