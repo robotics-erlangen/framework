@@ -38,6 +38,8 @@ end
 function Ball.toBall(robot, ball)
 	ball = ball or World.Ball
 
+	local timeBuffer = 0.3
+
 	local minTime = ObserverRobot.minTimeToBall(robot, ball)
 	local minPos = Ball.ballAt(ball, minTime)
 	local maxTime = ball.brakeTime > minTime and ball.brakeTime or minTime
@@ -49,7 +51,7 @@ function Ball.toBall(robot, ball)
 	repeat
 		midPos = (minPos + maxPos)/2
 		midTime = Ball.ballRollTime(bsl, midPos:distanceTo(ball.pos))
-		local robotTime = ObserverRobot.timeToPos(robot, midPos)
+		local robotTime = ObserverRobot.timeToPos(robot, midPos) + timeBuffer
 		if robotTime < midTime then
 			maxPos = midPos
 		else
