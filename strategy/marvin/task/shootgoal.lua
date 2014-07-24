@@ -62,7 +62,7 @@ local function robotList(selfRobot, viewPos, ignoreGoalie)
 	return robots
 end
 
-local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError)
+local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError, distToOpp)
 	-- rate volley angle
 	local rotateAngle = World.Ball.speed:absoluteAngleDiff(ballPos - targetPoint)
 	local rotateRating = 1 - rotateAngle/maxVolleyAngle
@@ -74,42 +74,41 @@ local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError)
 	-- rate distance to field border
 	local fieldRating = math.min(Field.distanceToFieldBorder(ballPos) / 0.2, 1)
 
-	-- rate distance to initial shoot position
-	local shootDistRating = 1 - dist / intervalLength * 0.6
+	-- rate extraTime added to minTimeToBall
+	-- looks like a log(x)/x curve
+	local peakTime = 0.3
+	local shootX = (math.bound(0, dist / intervalLength, 1) + 1) * peakTime
+	local extraTimeRating = math.log(shootX)/shootX * math.exp(1)
 
 	-- rate distance to goal
 	local goalDistRating = 1 - ballPos:distanceTo(G.OpponentGoal) / G.FieldHeight
 
+	-- distance to closest opponent
+	local oppRating = math.bound(0, (distToOpp - 0.05)/(0.09+World.Ball.radius - 0.05), 1)
 
-	local finalRating = rotateRating * goalRating * fieldRating * shootDistRating * goalDistRating
+	local finalRating = rotateRating * goalRating * fieldRating * extraTimeRating * goalDistRating * oppRating
 	return finalRating
 end
 
-function ShootGoal:getTimeBuffer()
-	local minTime = 0.0
-	local maxTime = 0.3
-	local minRampDist = 0.2
-	local maxRampDist = 0.5
-
-	local dist = self._robot.pos:distanceTo(World.Ball.pos)
-	dist = math.min(math.max(minRampDist, dist), maxRampDist)
-
-	local t = (dist - minRampDist) / (maxRampDist - minRampDist)
-	return minTime + t * (maxTime - minTime)
-end
 
 function ShootGoal:guessFirstPassReceiptPosition()
 	local sampleTimeInterval = 1
 	local sampleCount = 10
 	local sampleMinPosStep = 0.05
-	local timeBuffer = self:getTimeBuffer()
 
 
-
-	local minTime = Robot.minTimeToBall(self._robot, World.Ball) + timeBuffer
+	local minTime = Robot.minTimeToBall(self._robot, World.Ball)
 	local maxTime = minTime + sampleTimeInterval
 	local minPos = Ball.atTime(minTime, World.Ball).pos
 	local maxPos = Ball.atTime(maxTime, World.Ball).pos
+
+	local dangerousRobots = {}
+	for _,r in ipairs(World.OpponentRobots) do
+		if r.pos:distanceToLineSegment(minPos, maxPos) < World.Ball.radius + r.radius then
+			table.insert(dangerousRobots, r)
+		end
+	end
+
 
 	local allowedWidth = G.FieldWidthHalf - 2 * self._robot.radius
 	local sign = minPos.x > 0 and 1 or -1
@@ -149,7 +148,15 @@ function ShootGoal:guessFirstPassReceiptPosition()
 
 		self:_calculateDestination(ballPos, false)
 
-		local rating = rate(ballPos, self.targetPoint, dist, intervalLength, self.maxAngleError)
+		local distToOpp = math.huge
+		for _,r in ipairs(dangerousRobots) do
+			local d = r.pos:distanceToLineSegment(minPos, ballPos)
+			if d < distToOpp then
+				distToOpp = d
+			end
+		end
+
+		local rating = rate(ballPos, self.targetPoint, dist, intervalLength, self.maxAngleError, distToOpp)
 		table.insert(sampleResults, {["target"] = self.targetPoint,
 									 ["view"] = ballPos,
 									 ["rating"] = rating})
@@ -174,7 +181,7 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 	-- if the ball still accelerates, recalculate the pass receipt position
 	local minTime = Robot.minTimeToBall(self._robot, World.Ball)
 	local minPos = Ball.atTime(minTime, World.Ball).pos
-	if self._robot.pos:distanceTo(ballPos) > self._robot.pos:distanceTo(minPos) then
+	if self._robot.pos:distanceTo(ballPos) > self._robot.pos:distanceTo(minPos) + 0.3 then
 		local target, view = self:guessFirstPassReceiptPosition()
 		return target, view, false
 	end
@@ -195,7 +202,12 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 	if not lambda then
 		lambda = math.huge
 	end
+
+
+
+
 	ballPos = World.Ball.pos + dir * math.min(World.Ball.pos:distanceTo(ballPos), lambda)
+	vis.addCircle("BALL", ballPos, 0.2, vis.colors.blueHalf, true)
 	for i = 1,sampleCount do
 		local dist = 0
 		local pos = ballPos
@@ -205,9 +217,18 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 			pos = ballPos + dir * dist
 		end
 
+		local minPos = ballPos - dir * 2*sampleVariance
+		local distToOpp = math.huge
+		for _,r in ipairs(World.OpponentRobots) do
+			local dist = r.pos:distanceToLineSegment(minPos, ballPos)
+			if dist < distToOpp then
+				distToOpp = dist
+			end
+		end
+
 		self:_calculateDestination(pos, false)
 
-		local rating = rate(pos, self.targetPoint, dist, sampleVariance, self.maxAngleError)
+		local rating = rate(pos, self.targetPoint, dist + sampleVariance, 2*sampleVariance, self.maxAngleError, distToOpp)
 		table.insert(sampleResults, {["target"] = self.targetPoint,
 									 ["view"] = ballPos,
 									 ["rating"] = rating})
