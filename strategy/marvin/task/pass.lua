@@ -45,7 +45,15 @@ function Pass:run()
 		local overMiddle = self._robot.pos.y > -1.2 and self._shootPos.y * World.Ball.pos.y < 0
 		linearShoot = Robot.wayToPosFree(self._shootPos, self._robot, self._targetRobot) or overMiddle
 	end
-	self:_shoot(self._shootPos, self._passSpeed, linearShoot, 3 * math.pi/180)
+
+	local shootPos = self._shootPos
+	if not linearShoot and self._shootPos.y * World.Ball.pos.y < 0 then
+		-- limit shoot position to not chip across the midline
+		shootPos = (self._shootPos - World.Ball.pos)
+			* math.abs(World.Ball.pos.y / (self._shootPos.y - World.Ball.pos.y)) * 0.8 + World.Ball.pos
+		vis.addCircle("t/pass: ShootPos", shootPos, 0.1, vis.colors.blueHalf, true)
+	end
+	self:_shoot(shootPos, self._passSpeed, linearShoot, 3 * math.pi/180)
 	self._send.passPos(self._targetRobot, self._shootPos)
 
 	debug.set("targetRobot", self._targetRobot.id)
