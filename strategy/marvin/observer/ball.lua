@@ -3,7 +3,7 @@ local Ball = {}
 local Constants = require "../base/constants"
 local Cache = require "../base/cache"
 local World = require "../base/world"
-local Field = require "util/field"
+local Field = require "../base/field"
 local geom = require "../base/geom"
 local debug = require "../base/debug"
 local ObserverRobot = require "observer/robot"
@@ -38,6 +38,8 @@ end
 function Ball.toBall(robot, ball)
 	ball = ball or World.Ball
 
+	local timeBuffer = 0.3
+
 	local minTime = ObserverRobot.minTimeToBall(robot, ball)
 	local minPos = Ball.ballAt(ball, minTime)
 	local maxTime = ball.brakeTime > minTime and ball.brakeTime or minTime
@@ -49,7 +51,7 @@ function Ball.toBall(robot, ball)
 	repeat
 		midPos = (minPos + maxPos)/2
 		midTime = Ball.ballRollTime(bsl, midPos:distanceTo(ball.pos))
-		local robotTime = ObserverRobot.timeToPos(robot, midPos)
+		local robotTime = ObserverRobot.timeToPos(robot, midPos) + timeBuffer
 		if robotTime < midTime then
 			maxPos = midPos
 		else
@@ -186,10 +188,6 @@ function Ball.atTime(t, ball)
 		predicted.brakeTime = ball.brakeTime - t
 	end
 	predicted.deceleration = ball.deceleration
-
-	-- limit ball position to field, keeps reachBallPos from timing out
-	-- makes even much more sense, as the ball can only be catched inside the field
-	predicted.pos = Field.limitToField(predicted.pos, World.Geometry.BoundaryWidth)
 
 	return predicted
 end

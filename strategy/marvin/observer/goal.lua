@@ -1,7 +1,7 @@
 local Goal = {}
 
 local World = require "../base/world"
-local Field = require "util/field"
+local Field = require "../base/field"
 local G = World.Geometry
 local Interval = require "util/interval"
 local Ball = require "observer/ball"
@@ -223,7 +223,7 @@ function Goal.searchFreeSectors(robotList, opp)
 		rightSector = Goal.getFreeSectors(s_right, robotList, rightSector[1], rightSector[2])
 	end
 	return s_right, rightSector, s_left, leftSector
-	-- TODO: robotlist beachten, auch in den Fällen, bei denen bis jetzt sofort returnt wird
+	-- TODO: robotlist beachten, auch in den FÃ¤llen, bei denen bis jetzt sofort returnt wird
 end
 
 --- Searches for robots near goal

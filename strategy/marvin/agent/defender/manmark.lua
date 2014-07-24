@@ -3,7 +3,7 @@ local ManMark = (require "../base/class").new("Agent.Defender.ManMark", Base)
 
 local ManMarkTask = require "task/manmark"
 local CenterBack = require "task/centerback"
-local Field = require "util/field"
+local Field = require "../base/field"
 local Defense = require "util/defense"
 local Class = require "../base/class"
 local debug = require "../base/debug"

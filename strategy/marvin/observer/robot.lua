@@ -1,6 +1,7 @@
 local Robot = {}
 local World = require "../base/world"
 local Constants = require "../base/constants"
+local Cache = require "../base/cache"
 local Messaging = require "control/messaging"
 
 local lastSpeed = {}
@@ -172,6 +173,7 @@ function Robot.minTimeToBall(robot, ball)
 	-- time to reach the ball is at least the maximum of both times
 	return math.max(straight, sidewards)
 end
+Robot.minTimeToBall = Cache.forFrame(Robot.minTimeToBall)
 
 -- just an approximation
 function Robot.timeToPos(robot, pos)

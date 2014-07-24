@@ -6,7 +6,7 @@ local World = require "../base/world"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
 local Ball = require "observer/ball"
-local Field = require "util/field"
+local Field = require "../base/field"
 
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"

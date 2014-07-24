@@ -1,7 +1,7 @@
 local RandomKeeper = (require "../base/class").newTask("Task.RandomKeeper", require "task/base")
 
 local World = require "../base/world"
-local Field = require "util/field"
+local Field = require "../base/field"
 local ToTarget = require "trajectory/totarget"
 
 local destSwitchDistance = 0.02

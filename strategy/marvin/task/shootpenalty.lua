@@ -20,7 +20,7 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local constants = require "../base/constants"
 local debug = require "../base/debug"
-local Field = require "util/field"
+local Field = require "../base/field"
 
 local goalLine = (G.OpponentGoalLeft - G.OpponentGoalRight):normalize()
 local function cornerPoint(corner)

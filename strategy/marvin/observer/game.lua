@@ -7,7 +7,7 @@ local Game = {}
 local World = require "../base/world"
 local G = World.Geometry
 local Robotlist = require "util/robotlist"
-local Field = require "util/field"
+local Field = require "../base/field"
 local Ball = require "observer/ball"
 
 local function weight(robot)
@@ -21,7 +21,7 @@ end
 
 function Game.gameFocus()
 	-- magic constants
-	local gugugu = 0.5 --the time, how long the ball rolling is calculated 
+	local gugugu = 0.5 --the time, how long the ball rolling is calculated
 	local ballPosWeight = 0.3 -- [0, 1] how much the future ball pos is involved
 
 	-- calculation stuff
@@ -37,11 +37,11 @@ end
 
 --- calculates the average position of all robots in the given list
 -- @param robots Robot[] - a list of robots
--- @param weightX function - optional parameter, returns the weighting (non-negative) of the robot in x direction, 
+-- @param weightX function - optional parameter, returns the weighting (non-negative) of the robot in x direction,
 -- expects a robot object
--- @param weightY function - same as with weightx, just in x direction 
+-- @param weightY function - same as with weightx, just in x direction
 -- @return Vector - the average position
-function Game.averagePosition(robots, weightX, weightY) 
+function Game.averagePosition(robots, weightX, weightY)
 	if not robots or not #robots then
 		return nil
 	end

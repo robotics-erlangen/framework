@@ -3,7 +3,7 @@ local KickoffMirror = (require "../base/class").newTask("Task.KickoffMirror", re
 local World = require "../base/world"
 local Game = require "observer/game"
 local ToTarget = require "trajectory/totarget"
-local Field = require "util/field"
+local Field = require "../base/field"
 local debug = require "../base/debug"
 
 --task maximum 2 robots!
