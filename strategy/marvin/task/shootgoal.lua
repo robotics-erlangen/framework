@@ -162,7 +162,6 @@ function ShootGoal:guessFirstPassReceiptPosition()
 									 ["rating"] = rating})
 	end
 
-
 	local best = nil
 	for _,result in ipairs(sampleResults) do
 		if not best or result.rating > best.rating then
@@ -207,7 +206,6 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 
 
 	ballPos = World.Ball.pos + dir * math.min(World.Ball.pos:distanceTo(ballPos), lambda)
-	vis.addCircle("BALL", ballPos, 0.2, vis.colors.blueHalf, true)
 	for i = 1,sampleCount do
 		local dist = 0
 		local pos = ballPos

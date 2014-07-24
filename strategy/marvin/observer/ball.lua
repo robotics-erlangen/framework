@@ -189,10 +189,6 @@ function Ball.atTime(t, ball)
 	end
 	predicted.deceleration = ball.deceleration
 
-	-- limit ball position to field, keeps reachBallPos from timing out
-	-- makes even much more sense, as the ball can only be catched inside the field
-	predicted.pos = Field.limitToField(predicted.pos, World.Geometry.BoundaryWidth)
-
 	return predicted
 end
 
