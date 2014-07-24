@@ -16,12 +16,13 @@ local ToTarget = require "trajectory/totarget"
 InterceptPass.priority = 3
 
 function InterceptPass:_init()
+	self._notEnoughTime = false
 end
 
 function InterceptPass.touchBallPosition(robot, timelimit)
 	local MAX_ITER = 10
 	local MIN_TIMESTEP = 0.005
-	local EXTRA_TIME = 0.3 -- to compensate the difference between timeToPos and the real robot time
+	local EXTRA_TIME = 0.1 -- to compensate the difference between timeToPos and the real robot time
 	local TIME_LIMIT = timelimit or 1
 
 	local t_ball = math.min(Ball.ballRollTime(World.Ball.speed:length(), 
@@ -71,8 +72,8 @@ function InterceptPass.touchBallPosition(robot, timelimit)
 		end
 	end
 
-	local ball_interception_pos = Ball.ballAt(World.Ball, t_ball)
-	--vis.addCircle("InterceptPass/ball_pos", ball_interception_pos, World.Ball.radius, vis.colors.magenta, true)
+	local ball_interception_pos = Ball.atTime(t_ball, World.Ball).pos
+	vis.addCircle("t/interceptpass: interception pos", ball_interception_pos, 0.14, vis.colors.magentaHalf, true)
 
 	return ball_interception_pos, t_ball
 end
@@ -80,18 +81,19 @@ InterceptPass.touchBallPosition = Cache.forFrame(InterceptPass.touchBallPosition
 
 function InterceptPass:run()
 	local pos, time = InterceptPass.touchBallPosition(self._robot)
-	if not pos then
-		pos = World.Ball.pos
-	end
 
-	local notEnoughTime = false
+	
 	local mostDangerousRobot = nil
 	local maxTimeAdvance = -math.huge
+	local distHysteresis = 0.04
+	local notEnoughTime = false
 	for _,r in pairs(World.OpponentRobots) do
 		local rp, ta = Ball.receivesPass(r)
 		if rp then
-			if r.pos:distanceTo(World.Ball.pos) < pos:distanceTo(World.Ball.pos) then
-				notEnoughTime = true
+			local distanceDiff = r.pos:distanceTo(World.Ball.pos) - pos:distanceTo(World.Ball.pos)
+			if self._notEnoughTime and distanceDiff < distHysteresis or
+					not self._notEnoughTime and distanceDiff < -distHysteresis then
+				self._notEnoughTime = true
 				if ta > maxTimeAdvance then
 					maxTimeAdvance = ta
 					mostDangerousRobot = r
@@ -99,6 +101,8 @@ function InterceptPass:run()
 			end
 		end
 	end
+	self._notEnoughTime = notEnoughTime
+
 	if notEnoughTime then
 		pos = Defense.manMarkPos(mostDangerousRobot)
 	end
@@ -107,7 +111,7 @@ function InterceptPass:run()
 	self._robot.path:setDefaultObstacles(self._robot, true) -- ignore ball
 	self._robot.path:addRobotObstacles(self._robot, false, true) -- ignore opponents
 
-	local dir = (World.Ball. pos - self._robot.pos):angle()
+	local dir = (-World.Ball.speed):angle()
 	local endSpeed = (World.Ball.pos - self._robot.pos):setLength(1)
 	self._robot.trajectory:update(ToTarget, pos, dir, nil, endSpeed)
 end
