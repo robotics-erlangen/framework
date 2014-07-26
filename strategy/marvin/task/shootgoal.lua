@@ -132,6 +132,7 @@ function ShootGoal:guessFirstPassReceiptPosition()
 		if next(sampleResults) ~= nil then
 			-- only consider catch positions inside the field
 			if not Field.isInField(ballPos, -self._robot.radius) then break end
+			if Field.distanceToFriendlyDefenseArea(ballPos, self._robot.radius) < 0.4 then break end
 			-- don't sample into opponent robots
 			local stop_sampling = false
 			for _,r in ipairs(World.OpponentRobots) do
@@ -209,27 +210,33 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 	for i = 1,sampleCount do
 		local dist = 0
 		local pos = ballPos
+		local continueFlag = false
 		if i > 1 then
 			local rand = Random.standardNormalDistributedNumber()
 			dist = rand * sampleVariance
 			pos = ballPos + dir * dist
-		end
-
-		local minPos = ballPos - dir * 2*sampleVariance
-		local distToOpp = math.huge
-		for _,r in ipairs(World.OpponentRobots) do
-			local dist = r.pos:distanceToLineSegment(minPos, ballPos)
-			if dist < distToOpp then
-				distToOpp = dist
+			if Field.distanceToFriendlyDefenseArea(pos, self._robot.radius) < 0.4 then
+				continueFlag = true
 			end
 		end
 
-		self:_calculateDestination(pos, false)
+		if not continueFlag then
+			local minPos = ballPos - dir * 2*sampleVariance
+			local distToOpp = math.huge
+			for _,r in ipairs(World.OpponentRobots) do
+				local dist = r.pos:distanceToLineSegment(minPos, ballPos)
+				if dist < distToOpp then
+					distToOpp = dist
+				end
+			end
 
-		local rating = rate(pos, self.targetPoint, dist + sampleVariance, 2*sampleVariance, self.maxAngleError, distToOpp)
-		table.insert(sampleResults, {["target"] = self.targetPoint,
-									 ["view"] = ballPos,
-									 ["rating"] = rating})
+			self:_calculateDestination(pos, false)
+
+			local rating = rate(pos, self.targetPoint, dist + sampleVariance, 2*sampleVariance, self.maxAngleError, distToOpp)
+			table.insert(sampleResults, {["target"] = self.targetPoint,
+										 ["view"] = ballPos,
+										 ["rating"] = rating})
+		end
 	end
 
 	local best = nil
