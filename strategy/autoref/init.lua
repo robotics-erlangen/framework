@@ -19,13 +19,18 @@ local timeout = 3 -- minimum time between subsequent fouls of the same kind
 
 local function wrapper(func)
     return function()
+    	-- require "../test/debug/enable"
         if not World.update() then
             return -- skip processing if no vision data is available yet
         end
         Referee.checkTouching()
         Referee.illustrateRefereeStates()
+		--Processor.pre()
         func()
+		--World.setRobotCommands()
+		--Processor.post()
         debug.resetStack()
+		--Cache.resetFrame()
     end
 end
 
