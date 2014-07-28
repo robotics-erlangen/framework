@@ -1,3 +1,7 @@
+--[[
+--- Provides a caching mechanism for function calls
+module "Cache"
+]]--
 local Cache = {}
 
 local cleanup = {}
@@ -28,6 +32,7 @@ local function setInCache(cached, params, result)
 	local entry = cached
 	for i = 0, pcount do
 		local param = params[i]
+		-- nil can't be used as array index
 		if param == nil then
 			param = nilObj
 		end
@@ -62,14 +67,24 @@ local function makeCached(f, keepForever)
 	end
 end
 
+--- Wraps a function call, the returned value is cached for this strategy run
+-- @name forFrame
+-- @param f function - function to wrap
+-- @return function - wrapped function
 function Cache.forFrame(f)
 	return makeCached(f, false)
 end
 
+--- Wraps a function call, the returned value is cached until the strategy is reloaded
+-- @name forever
+-- @param f function - function to wrap
+-- @return function - wrapped function
 function Cache.forever(f)
 	return makeCached(f, true)
 end
 
+--- Clears the value cache for the current frame
+-- @name resetFrame
 function Cache.resetFrame()
 	for i = 1, #cleanup do
 		cleanup[i]()

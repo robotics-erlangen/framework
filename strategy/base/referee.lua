@@ -1,3 +1,7 @@
+--[[
+--- Referee utility functions
+module "Referee"
+]]--
 local Referee = {}
 local World = require "../base/world"
 local vis = require "../base/vis"
@@ -29,18 +33,31 @@ local opponentPenaltyStates = {
 	PenaltyDefensive = true
 }
 
+
+--- Check whether the stop rules apply
+-- @name isStopState
+-- @return boolean - True if the current referee state is considered as stop
 function Referee.isStopState()
 	return stopStates[World.RefereeState]
 end
 
+--- Check whether we have a freekick
+-- @name isFriendlyFreeKickState
+-- @return boolean - True if the current referee state is a freekick for us
 function Referee.isFriendlyFreeKickState()
 	return friendlyFreeKickStates[World.RefereeState]
 end
 
+--- Check whether this is a kickoff
+-- @name isKickoffState
+-- @return boolean - True if the current referee state is a kickoff
 function Referee.isKickoffState()
 	return kickoffStates[World.RefereeState]
 end
 
+--- Check whether the opponent has a penalty
+-- @name isOpponentPenaltyState
+-- @return boolean - True if the opponent has a penalty
 function Referee.isOpponentPenaltyState()
 	return opponentPenaltyStates[World.RefereeState]
 end
@@ -49,6 +66,9 @@ local rightLine = World.Geometry.FieldWidthHalf
 local leftLine = -rightLine
 local goalLine = World.Geometry.FieldHeightHalf
 local cornerDist = 0.7 -- some tolerance, rules say 10cm
+--- Check whether there is a freekick in the opponent corner
+-- @name isOffensiveCornerKick
+-- @return boolean - True if a corner kick in the opponents corner
 function Referee.isOffensiveCornerKick()
 	local ballPos = World.Ball.pos
 	return World.RefereeState == "DirectOffensive"
@@ -56,6 +76,8 @@ function Referee.isOffensiveCornerKick()
 		and (leftLine - ballPos.x > -cornerDist or rightLine - ballPos.x < cornerDist)
 end
 
+--- Draw areas forbidden by the current referee command
+-- @name illustrateRefereeStates
 function Referee.illustrateRefereeStates()
 	if World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive" then
 		vis.addPath("penaltyDistanceAllowed", {Vector.create(-2,World.Geometry.OwnPenaltyLine), Vector.create(2,World.Geometry.OwnPenaltyLine)}, vis.colors.red)
@@ -68,6 +90,8 @@ end
 
 local lastTeam = true -- true for the friendly team, false for the opponent
 local touchDist = World.Ball.radius+robotRadius
+--- Update the status of which team touched the ball last
+-- @name checkTouching
 function Referee.checkTouching()
 	local ballPos = World.Ball.pos
 	-- pessimistic approach: when we are at the ball, our team is considered touching
@@ -85,6 +109,9 @@ function Referee.checkTouching()
 	end
 end
 
+--- Get whether we touched to ball last
+-- @name friendlyTouchedLast
+-- @return boolean - True if we touched last, false if the opponent did
 function Referee.friendlyTouchedLast()
 	return lastTeam
 end

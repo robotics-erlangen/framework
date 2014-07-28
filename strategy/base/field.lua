@@ -1,3 +1,7 @@
+--[[
+--- Some field related utility functions
+module "Field"
+]]--
 local Field = {}
 
 local World = require "../base/world"
@@ -8,6 +12,7 @@ local math = require "../base/math"
 
 
 --- returns the nearest position inside the field (extended by boundaryWidth)
+-- @name limitToField
 -- @param pos Vector - the position to limit
 -- @param boundaryWidth number - how much the field should be extended beyond the borders
 -- @return Vector - limited vector
@@ -24,6 +29,7 @@ function Field.limitToField(pos, boundaryWidth)
 end
 
 --- returns the nearest position inside the field without friendly defense area
+-- @name limitToAllowedField
 -- @param extraLimit number - how much the field should be additionally limited
 -- @param pos Vector - the position to limit
 -- @return Vector - limited vector
@@ -57,6 +63,7 @@ function Field.limitToAllowedField(pos, extraLimit, blockOpponentDefenseArea)
 end
 
 --- check if pos is inside the field (extended by boundaryWidth)
+-- @name isInField
 -- @param pos Vector - the position to limit
 -- @param boundaryWidth number - how much the field should be extended beyond the borders
 -- @return bool - is in field
@@ -78,6 +85,11 @@ function Field.isInField(pos, boundaryWidth)
 end
 
 
+--- Returns the minimum distance to the field borders (extended by boundaryWidth)
+-- @name distanceToFieldBorders
+-- @param pos Vector - the position to limit
+-- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @return number - distance to field borders
 function Field.distanceToFieldBorder(pos, boundaryWidth)
 	boundaryWidth = boundaryWidth or 0
 
@@ -116,10 +128,20 @@ local function isInDefenseArea(pos, radius, friendly)
 		or p1:distanceTo(pos) < defRadius + radius or p2:distanceTo(pos) < defRadius + radius -- if robot is inside defense radius
 end
 
+--- Returns true if the position is inside/touching the friendly defense area
+-- @name isInFriendlyDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return bool
 function Field.isInFriendlyDefenseArea(pos, radius)
 	return isInDefenseArea(pos, radius, true)
 end
 
+--- Returns true if the position is inside/touching the opponent defense area
+-- @name isInOpponentDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return bool
 function Field.isInOpponentDefenseArea(pos, radius)
 	return isInDefenseArea(pos, radius, false)
 end
@@ -156,16 +178,26 @@ local function distanceToDefenseArea(pos, radius, friendly)
 		distance = corner:distanceTo(pos) - defRadius - radius
 	end
 	if distance < -0.00001 then
-		error("util/field: distanceToFriendlyDefenseArea() becomes negative ("..distance..
+		error("base/field: distanceToFriendlyDefenseArea() becomes negative ("..distance..
 			") for pos = ("..pos.x..", "..pos.y..") and radius = "..radius)
 	end
 	return (distance < 0) and 0 or distance
 end
 
+--- Calculates the distance (between robot hull and field line) to the friendly defense area
+-- @name distanceToFriendlyDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return number - distance
 function Field.distanceToFriendlyDefenseArea(pos, radius)
 	return distanceToDefenseArea(pos, radius, true)
 end
 
+--- Calculates the distance (between robot hull and field line) to the opponent defense area
+-- @name distanceToOpponentDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return number - distance
 function Field.distanceToOpponentDefenseArea(pos, radius)
 	return distanceToDefenseArea(pos, radius, false)
 end
@@ -201,6 +233,7 @@ end
 
 --- Returns one intersection of a given line with the (extended) defense area
 --- The intersection is the one with the smallest t in x = pos + t * dir
+-- @name intersectLineDefenseArea
 -- @param pos Vector - starting point of the line
 -- @param dir Vector - the direction of the line
 -- @param extraDistance number - gets added to G.DefenseRadius
@@ -266,6 +299,7 @@ function Field.intersectLineDefenseArea(pos, dir, extraDistance, opp)
 end
 
 --- Calculates the point on the (extended) defense area when given the way along its border
+-- @name defenseIntersectionByWay
 -- @param way number - the way along the border
 -- @param extraDistance number - gets added to G.DefenseRadius
 -- @param opp bool - whether the opponent or the friendly defense area is considered
@@ -303,6 +337,7 @@ function Field.defenseIntersectionByWay(way, extraDistance, opp)
 end
 
 --- Calculates all intersections (0 to 4) of a given circle with the (extended) defense area
+-- @name intersectCircleDefenseArea
 -- @param pos Vector - center point of the circle
 -- @param radius number - radius of the circle
 -- @param extraDistance number - gets added to G.DefenseRadius
@@ -355,7 +390,11 @@ function Field.intersectCircleDefenseArea(pos, radius, extraDistance, opp)
 	return intersections
 end
 
-
+--- Calculates the distance (between robot hull and field line) to the own goal line
+-- @name distanceToFriendlyGoalLine
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return number - distance
 function Field.distanceToFriendlyGoalLine(pos, radius)
 	if math.abs(pos.x) < G.GoalWidth/2 then
 		return math.max(G.FieldHeightHalf + pos.y - radius, 0)
@@ -364,6 +403,11 @@ function Field.distanceToFriendlyGoalLine(pos, radius)
 	return goalpost:distanceTo(pos) - radius
 end
 
+--- Check whether to position is in the teams own corner
+-- @name isInOwnCorner
+-- @param pos Vector - the position to check
+-- @param opp bool - Do the check from the opponents point of view
+-- @return bool
 function Field.isInOwnCorner(pos, opp)
 	local oppfac = opp and 1 or -1
 	return (World.Geometry.FieldWidthHalf - math.abs(World.Ball.pos.x))^2
@@ -371,8 +415,9 @@ function Field.isInOwnCorner(pos, opp)
 end
 
 --- The position, where the half-line given by startPos and dir intersects the next field boundary
--- startPos vector - the initial point of the half-line
--- dir vector - the direction of the half-line
+-- @param startPos vector - the initial point of the half-line
+-- @param dir vector - the direction of the half-line
+-- @return [vector]
 function Field.nextLineCut(startPos, dir)
 	if dir.x == 0 and dir.y == 0 then
 		return

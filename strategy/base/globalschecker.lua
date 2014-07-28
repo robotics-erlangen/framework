@@ -1,3 +1,7 @@
+--[[
+--- Shows warnings if global variables are created instead of local ones
+module "GlobalsChecker"
+]]--
 local GlobalsChecker = {}
 
 local validGlobals = {
@@ -37,6 +41,7 @@ local globalsChecker = {
 local isEnabled = false
 
 --- Enables the globals checker, MUST be the FIRST function called in the init script!
+-- @name enable
 -- @param extraGlobals table<names, any> - Names of additional allowed globals
 function GlobalsChecker.enable(extraGlobals)
 	isEnabled = true
@@ -46,7 +51,7 @@ function GlobalsChecker.enable(extraGlobals)
 	end 
 end
 
--- To be called directly after base/amun is loaded
+-- Called directly after base/amun is loaded
 function GlobalsChecker._init()
 	if not isEnabled then
 		return
