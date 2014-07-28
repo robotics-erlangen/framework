@@ -72,7 +72,7 @@ function core.previous_context_response(...)
 end
 	
 -- don't puzzle the user with strategy no longer running
--- after killing the strategy it was suspended
+-- after killing the strategy if it was suspended
 local osexit = os.exit
 function os.exit(...)
 	-- restart timer before exiting strategy
