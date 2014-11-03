@@ -176,10 +176,12 @@ function math.average(array, indexStart, indexEnd)
 end
 
 function math.variance(array, average, indexStart, indexEnd)
+	indexStart = indexStart or 1
+	indexEnd = indexEnd or #array
 	average = average or math.average(array, indexStart, indexEnd)
 	local variance = 0
-	for _, v in pairs(array) do
-		local diff = v - average
+	for i = indexStart, indexEnd do
+		local diff = array[i] - average
 		variance = variance + diff*diff
 	end
 	return variance
