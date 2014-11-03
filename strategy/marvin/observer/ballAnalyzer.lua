@@ -78,24 +78,77 @@ function BallAnalyzer:analyze()
 	for i = #self._record-1, 1, -1 do
 		accelerationArray[i] = (self._record[i+1]:length() - self._record[i]:length())*100
 	end
-	IO.save("ballAnalyzer/"..tostring(World.Time).."_v.csv", self._record)
-	IO.save("ballAnalyzer/"..tostring(World.Time).."_a.csv", accelerationArray)
+	--IO.save("ballAnalyzer/"..tostring(World.Time).."_v.csv", self._record)
+	--IO.save("ballAnalyzer/"..tostring(World.Time).."_a.csv", accelerationArray)
+	local overallFriction = math.average(accelerationArray)
+	local ratio = (self._rollingFriction - overallFriction)/(self._rollingFriction - self._slippingFriction)
+	local startRolling = math.ceil(math.bound(0.5, #accelerationArray*ratio, #accelerationArray))
+	local endSliding = startRolling - 1
+	local slippingFriction, rollingFriction = math.average(accelerationArray, 1, endSliding), math.average(accelerationArray, startRolling)
+	local deviation = math.variance(accelerationArray, slippingFriction, 1, endSliding) + math.variance(accelerationArray, rollingFriction, startRolling)
+	local startRolling2 = (startRolling > 1) and startRolling - 1 or startRolling + 1
+	local endSliding2 = startRolling2 - 1
+	local slippingFriction2, rollingFriction2 = math.average(accelerationArray, 1, endSliding2), math.average(accelerationArray, startRolling2)
+	local deviation2 = math.variance(accelerationArray, slippingFriction2, 1, endSliding2) + math.variance(accelerationArray, rollingFriction2, startRolling2)
+	if deviation2 < deviation then
+		deviation, deviation2 = deviation2, deviation	-- deviation is the better point
+		startRolling, endSliding, startRolling2, endSliding2 = startRolling2, endSliding2, startRolling, endSliding
+		slippingFriction, rollingFriction, slippingFriction2, rollingFriction2 = slippingFriction2, rollingFriction2, slippingFriction, rollingFriction
+	end
+	--[[
+	for i = 2, #accelerationArray do
+		startRolling, endSliding = i, i-1
+		slippingFriction, rollingFriction = math.average(accelerationArray, 1, endSliding), math.average(accelerationArray, startRolling)
+		deviation = math.variance(accelerationArray, slippingFriction, 1, endSliding) + math.variance(accelerationArray, rollingFriction, startRolling)
+		log("startRolling: "..i.." | deviation: "..deviation)
+	end
+	]]--
+	local running = true
+	while running do
+		log("startRolling: "..startRolling)
+		log("deviation: "..deviation)
+		log("sl: "..slippingFriction.." | ro: "..rollingFriction)
+		if startRolling > startRolling2 then
+			startRolling2 = startRolling + 1
+			running = not (startRolling2 > #accelerationArray)	-- out of boundaries
+		else
+			startRolling2 = startRolling - 1
+			running = not (startRolling2 < 1)	-- out of boundaries
+		end
+		if running then
+			endSliding2 = startRolling2 - 1
+			slippingFriction2, rollingFriction2 = math.average(accelerationArray, 1, endSliding2), math.average(accelerationArray, startRolling2)
+			deviation2 = math.variance(accelerationArray, slippingFriction2, 1, endSliding2) + math.variance(accelerationArray, rollingFriction2, startRolling2)
+			if deviation2 < deviation then
+				deviation = deviation2
+				startRolling, endSliding, startRolling2, endSliding2 = startRolling2, endSliding2, startRolling, endSliding
+				slippingFriction, rollingFriction, slippingFriction2, rollingFriction2 = slippingFriction2, rollingFriction2, slippingFriction, rollingFriction
+			else
+				running = false
+			end
+		end
+	end
+	log("startrolling danach: "..startRolling)
+	--[[
 	local deviation, limit = math.huge, #accelerationArray/10
 	local overallFriction = math.average(accelerationArray)
 	local slippingFriction, rollingFriction = self._slippingFriction, self._rollingFriction
-	local startRolling
-	local lastDeviation = math.huge
+	local startRolling, lastDeviation
+	local lastXdeviations = MovingAverage.get("dev", 25, math.huge) --andere Variablen aufräumen
+	lastXdeviations:addValue(math.huge) --hack
 	repeat
-		local ratio = (slippingFriction - overallFriction)/(rollingFriction - overallFriction)
-		startRolling = math.bound(0.5, #accelerationArray/(1-ratio), #accelerationArray)
+		lastDeviation = deviation
+		local ratio = (rollingFriction - overallFriction)/(rollingFriction - slippingFriction)
+		log("ratio: "..ratio)
+		startRolling = math.bound(0.5, #accelerationArray*ratio, #accelerationArray)
+		log("length: "..#accelerationArray.." | start: "..math.ceil(startRolling))
 		if startRolling >= 1 then
-			log("length: "..#accelerationArray.." | start: "..math.ceil(startRolling))
 			slippingFriction = math.average(accelerationArray, 1, math.floor(startRolling))
 		end
 		if startRolling <= #accelerationArray-1 then
-			log("length: "..#accelerationArray.." | start: "..math.ceil(startRolling))
 			rollingFriction = math.average(accelerationArray, math.ceil(startRolling))
 		end
+		log("sl: "..slippingFriction.." | ro: "..rollingFriction)
 		deviation = 0
 		for i = 1, math.floor(startRolling) do
 			local diff = slippingFriction - accelerationArray[i]
@@ -105,8 +158,11 @@ function BallAnalyzer:analyze()
 			local diff = rollingFriction - accelerationArray[i]
 			deviation = deviation + diff*diff
 		end
+		lastXdeviations:addValue(deviation)
+		log("Deviation: "..deviation)
 		-- vorsicht, bei starkem rauschen kann deviation gar nicht beliebig klein werden, daher eher mit der ableitung von deviation nach der anzahl der iterationen arbeiten
-	until lastDeviation - deviation > 0.01
+	until lastXdeviations:value() - deviation < 0.01
+	]]--
 	local slFrSmoothed, roFrSmoothed
 	if startRolling <= #accelerationArray-3 then
 		if startRolling >= 3 then
@@ -120,7 +176,7 @@ function BallAnalyzer:analyze()
 			roFrSmoothed = BallAnalyzer.cutAndSmoothen(rollingFriction)
 		end
 	else
-		slippingFriction, _ = table.split(accelerationArray, math.min(math.floor(startRolling), #accelerationArray))
+		slippingFriction = table.split(accelerationArray, math.min(math.floor(startRolling), #accelerationArray))
 		slFrSmoothed = BallAnalyzer.cutAndSmoothen(slippingFriction)
 		roFrSmoothed = {}
 	end
