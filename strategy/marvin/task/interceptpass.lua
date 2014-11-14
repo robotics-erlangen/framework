@@ -62,14 +62,14 @@ function InterceptPass.touchBallPosition(robot, timelimit)
 			t_ball = t_ball + timestep
 		end
 
-		if t_ball >= TIME_LIMIT then
-			return nil
-		end
-
 		timestep = 0.5 * timestep
 		if timestep < MIN_TIMESTEP then
 			break
 		end
+	end
+	
+	if t_ball >= TIME_LIMIT then
+		return nil
 	end
 
 	local ball_interception_pos = Ball.atTime(t_ball, World.Ball).pos
@@ -87,7 +87,7 @@ function InterceptPass:run()
 	local maxTimeAdvance = -math.huge
 	local distHysteresis = 0.04
 	local notEnoughTime = false
-	for _,r in pairs(World.OpponentRobots) do
+	--[[for _,r in pairs(World.OpponentRobots) do
 		local rp, ta = Ball.receivesPass(r)
 		if rp then
 			local distanceDiff = r.pos:distanceTo(World.Ball.pos) - pos:distanceTo(World.Ball.pos)
@@ -103,8 +103,18 @@ function InterceptPass:run()
 	end
 	self._notEnoughTime = notEnoughTime
 
-	if notEnoughTime then
-		pos = Defense.manMarkPos(mostDangerousRobot)
+]]
+	if not pos then
+		local mindist = math.huge
+		local minrobot = nil
+		for _,r in ipairs(World.OpponentRobots) do
+			local dist = r.pos:distanceTo(self._robot.pos)
+			if dist < mindist then
+				mindist = dist
+				minrobot = r
+			end
+		end		
+		pos = Defense.manMarkPos(minrobot)
 	end
 	debug.set("notEnoughTime", notEnoughTime)
 
