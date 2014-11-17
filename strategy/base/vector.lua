@@ -266,13 +266,14 @@ Vector = {} -- static functions, publish to global namespace
 -- @param y number - y coordinate
 -- @param [readOnly bool - readonly if true]
 -- @return Vector
-function Vector.create(x,y,readonly)
+local function vector_create(x,y,readonly)
 	if readonly then
 		return vector_c_readonly(x,y)
 	else
 		return vector_c(x,y)
 	end
 end
+Vector.create = vector_create
 
 --- Creates a new read-only vector
 -- @see Vector.create
@@ -289,5 +290,12 @@ end
 function Vector.fromAngle(angle)
 	return vector_c(cos(angle), sin(angle))
 end
+
+local vector_class_mt = {
+  	__call = function (_, x, y, readonly)
+  		return vector_create(x, y, readonly)
+  	end
+}
+setmetatable(Vector, vector_class_mt)
 
 return Vector
