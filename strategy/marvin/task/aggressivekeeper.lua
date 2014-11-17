@@ -13,7 +13,7 @@ function AggressiveKeeper:run()
 	self:_chipToBorderIfSafe()
 
 	self._robot.path:setDefaultObstacles(self._robot, true)
-	self._robot.trajectory:update(ToTarget, tpos, fromGoal, nil, Vector.create(fromGoal))
+	self._robot.trajectory:update(ToTarget, tpos, fromGoal, nil, Vector.fromAngle(fromGoal))
 
 	self._send.aggressiveKeeperPos("all", tpos)
 end
