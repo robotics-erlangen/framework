@@ -1,69 +1,13 @@
-local ShootGoal = require "task/shootgoal"
-local Manual = (require "../base/class").newTask("Task.Manual", ShootGoal)
+local Task = require "task/base"
+local CatchBall = require "task/ability/catchball"
+local ReceivePass = require "task/ability/receivepass"
+local Shoot = require "task/ability/shoot"
+local Volley = require "task/ability/volley"
+local Manual = (require "../base/class").newTask("Task.Manual", Task, CatchBall, Shoot, Volley, ReceivePass)
 
-local Constants = require "../base/constants"
 local World = require "../base/world"
-local Robot = require "observer/robot"
 local Ball = require "observer/ball"
 local Direct = require "trajectory/direct"
-
-function Manual:_init()
-	self._targetGoal = nil
-	self._bestPassTarget = nil
-end
-
-function Manual:_canShoot()
-	if self._targetGoal then
-		return ShootGoal._canShoot(self)
-	end
-	return true
-end
-
-function Manual:_decideTargetGoal()
-	local angleHyst = 30 /180*math.pi
-
-	local toLeftGoal = World.Geometry.OpponentGoalLeft - World.Ball.pos
-	local toRightGoal = World.Geometry.OpponentGoalRight - World.Ball.pos
-	if not self._targetGoal and self._robot.dir > toRightGoal:angle() and self._robot.dir < toLeftGoal:angle() then
-		self._targetGoal = true
-	elseif self._targetGoal and (self._robot.dir + angleHyst < toRightGoal:angle()
-			or self._robot.dir - angleHyst > toLeftGoal:angle()) then
-		self._targetGoal = false
-	end
-end
-
-function Manual:_findBestPassTarget()
-	local assistants = self._inbox.attackerFlag()
-
-	-- only search for pass targets until we found one
-	if not self._bestPassTarget then
-		local bestRobot, bestAngle = nil, math.pi
-		for r, _ in pairs(assistants) do
-			local angleDiff = math.abs((r.pos - World.Ball.pos):angle() - self._robot.dir)
-			if angleDiff < 20 /180*math.pi and angleDiff < bestAngle then
-				bestRobot = r
-				bestAngle = angleDiff
-			end
-		end
-		self._bestPassTarget = bestRobot
-	end
-end
-
-function Manual:_intelligentShoot()
-	self:_decideTargetGoal()
-	self:_findBestPassTarget()
-
-
-	if self._targetGoal then
-		ShootGoal.run(self)
-	elseif self._bestPassTarget then
-		local passSpeed = self._bestPassTarget.constants.passSpeed
-		self:_shoot(self._bestPassTarget.pos, passSpeed, true)
-		self._send.passPos(self._bestPassTarget, self._bestPassTarget.pos)
-	else
-		self:_shoot(self._robot.pos + Vector.fromAngle(self._robot.dir), math.huge, true)
-	end
-end
 
 function Manual:_limitRobotSpeed(v)
 	local slowSpeed = 0.3
@@ -88,27 +32,19 @@ function Manual:_limitRobotSpeed(v)
 	return v2
 end
 
-
-
 function Manual:run()
 	local input = self._robot.userControl
 
-	-- if the user wants to shoot, let him
 	if input.kickPower and input.kickPower > 0 and Ball.friendlyBallOwner() == self._robot then
-		if input.kickStyle == "Linear"  then
-			self:_intelligentShoot()
-		else
-			self:_shoot(self._robot.pos + Vector.fromAngle(self._robot.dir), math.huge, false)
-		end
-		return
+		-- shoot
+		local shootPos = self._robot.pos + Vector.fromAngle(self._robot.dir)
+		local linear = input.kickStyle == "Linear"
+		self:_shoot(shootPos, math.huge, linear, 3 * math.pi/180)
+	else
+		-- don't let the robots crash
+		local limitedSpeed = self:_limitRobotSpeed(input.speed)
+		self._robot.trajectory:update(Direct, limitedSpeed, nil, input.omega)
 	end
-
-	-- reset pass target finding
-	self._bestPassTarget = nil
-
-	-- don't let the robots crash
-	local limitedSpeed = self:_limitRobotSpeed(input.speed)
-	self._robot.trajectory:update(Direct, limitedSpeed, nil, input.omega)
 
 	-- play attacker
 	self._send.attackerFlag("all")

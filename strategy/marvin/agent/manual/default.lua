@@ -7,6 +7,59 @@ local Ball = require "observer/ball"
 local Rating = require "util/rating"
 
 local Manual = require "task/manual"
+local ShootGoal = require "task/shootgoal"
+local Pass = require "task/pass"
+
+function Default:_decideTargetGoal()
+	local angleHyst = 30 /180*math.pi
+
+	local toLeftGoal = World.Geometry.OpponentGoalLeft - World.Ball.pos
+	local toRightGoal = World.Geometry.OpponentGoalRight - World.Ball.pos
+	if not self._targetGoal and self._robot.dir > toRightGoal:angle() and self._robot.dir < toLeftGoal:angle() then
+		self._targetGoal = true
+	elseif self._targetGoal and (self._robot.dir + angleHyst < toRightGoal:angle()
+			or self._robot.dir - angleHyst > toLeftGoal:angle()) then
+		self._targetGoal = false
+	end
+end
+
+function Default:_findBestPassTarget()
+	local assistants = self._inbox.attackerFlag()
+
+	-- only search for pass targets until we found one
+	if not self._bestPassTarget then
+		local bestRobot, bestAngle = nil, math.pi
+		for r, _ in pairs(assistants) do
+			local angleDiff = math.abs((r.pos - World.Ball.pos):angle() - self._robot.dir)
+			if angleDiff < 20 /180*math.pi and angleDiff < bestAngle then
+				bestRobot = r
+				bestAngle = angleDiff
+			end
+		end
+		self._bestPassTarget = bestRobot
+	end
+end
+
+function Default:_intelligentShoot()
+	self:_decideTargetGoal()
+	self:_findBestPassTarget()
+
+	if self._targetGoal then
+		return ShootGoal
+	elseif self._bestPassTarget then
+		return Pass, { self._bestPassTarget }
+	else
+		return Manual
+	end
+end
+
+function Default:init(agent)
+	self._targetGoal = nil
+	self._bestPassTarget = nil
+	self._lastPass = 0
+	self._catching = false
+	Base.init(self, agent)
+end
 
 function Default:check()
 	-- apply for main attacker
@@ -17,6 +70,9 @@ function Default:check()
 		local timeToBall = Robot.minTimeToBall(self._robot, World.Ball)
 		mainAttackerRating = Rating.timeToRating(timeToBall) * 1.3 --small rating bonus to please the human player
 	end
+
+	-- reset pass target finding
+	self._bestPassTarget = nil
 
 	-- look for incoming passes
 	for _,_ in pairs(self._inbox.passPos()) do --tests if table has content, runs 0-1 times, otherwise BUG
@@ -33,13 +89,20 @@ function Default:check()
 	if self._catching then
 		self._send.exclusiveRole("trainer", { passReceiver = 1.5, mainAttacker = 1.5 })
 	else
-		self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
+		self._send.exclusiveRole("trainer", { mainAttacker = mainAttackerRating })
 	end
 
 	return true
 end
 
 function Default:_updateTask()
+	local input = self._robot.userControl
+
+	if input.kickPower and input.kickPower > 0 and Ball.friendlyBallOwner() == self._robot and
+			input.kickStyle == "Linear" then
+		return self:_intelligentShoot()
+	end
+
 	return Manual
 end
 
