@@ -68,7 +68,7 @@ function Ball:_update(data, time)
 	-- data from amun is in global coordiantes
 	self.pos = Coordinates.toLocal(Vector.createReadOnly(data.p_x, data.p_y))
 	self.speed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y))
-	
+
 	 -- if ball is too slow then it's movement direction isn't exact enough to be used for prediction the ball
 	if self.speed:length() < 0.05 then
 		self.deceleration = Vector.createReadOnly(0, 0)

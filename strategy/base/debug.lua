@@ -83,7 +83,7 @@ function debug.set(name, value, visited)
 			return
 		end
 		visited[value] = true
-		
+
 		if rawget(getmetatable(value) or {}, "__tostring") then
 			value = tostring(value)
 		else

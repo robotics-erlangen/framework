@@ -1,4 +1,4 @@
---[[ 
+--[[
 --- Typecheck helper
 -- module "Typecheck"
 ]]--

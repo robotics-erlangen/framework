@@ -228,7 +228,7 @@ function vector_mt:distanceToLineSegment(lineStart, lineEnd)
     if d:dot(dir) > 0 then
     	return d:length()
     end
-    
+
     --local normal = dir:perpendicular()
     --return math.abs(d:dot(normal))
     return abs(d.x * dir.y - d.y * dir.x)

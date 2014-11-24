@@ -194,7 +194,7 @@ function World._updateWorld(state)
 	if state.ball then
 		World.Ball:_update(state.ball, World.Time)
 	end
-	
+
 	local dataFriendly = World.TeamIsBlue and state.blue or state.yellow
 	if dataFriendly then
 		-- sort data by robot id
@@ -216,7 +216,7 @@ function World._updateWorld(state)
 					table.insert(robotResponses, response)
 				end
 			end
-			
+
 			robot:_update(dataById[id], World.Time, robotResponses)
 			-- sort robot into visible / not visible
 			if robot.isVisible then
@@ -250,7 +250,7 @@ function World._updateWorld(state)
 			robot:_update(nil, World.Time)
 		end
 	end
-	
+
 	World.Robots = table.copy(World.FriendlyRobots)
 	table.append(World.Robots, World.OpponentRobots)
 
@@ -264,14 +264,14 @@ World.gameStageMapping = {
 	NORMAL_HALF_TIME = "HalfTime",
 	NORMAL_SECOND_HALF_PRE = "SecondHalfPre",
 	NORMAL_SECOND_HALF = "SecondHalf",
-	
+
 	EXTRA_TIME_BREAK = "ExtraTimeBreak",
 	EXTRA_FIRST_HALF_PRE = "ExtraFirstHalfPre",
 	EXTRA_FIRST_HALF = "ExtraFirstHalf",
 	EXTRA_HALF_TIME = "ExtraHalfTime",
 	EXTRA_SECOND_HALF_PRE = "ExtraSecondHalfPre",
 	EXTRA_SECOND_HALF = "ExtraSecondHalf",
-	
+
 	PENALTY_SHOOTOUT_BREAK = "PenaltyShootoutBreak",
 	PENALTY_SHOOTOUT = "PenaltyShootout",
 	POST_GAME = "PostGame"
@@ -294,16 +294,16 @@ function World._updateGameState(state)
 	else
 		World.RefereeState = refState:gsub("Yellow", "Offensive"):gsub("Blue", "Defensive")
 	end
-	
+
 	if World.RefereeState == "TimeoutOffensive" or World.RefereeState == "TimeoutDefensive" then
 		World.RefereeState = "Halt"
 	end
-	
+
 	World.GameStage = World.gameStageMapping[state.stage]
 
 	local friendlyTeamInfo = World.TeamIsBlue and state.blue or state.yellow
 	local opponentTeamInfo = World.TeamIsBlue and state.yellow or state.blue
-	
+
 	local friendlyKeeperId = friendlyTeamInfo.goalie
 	local opponentKeeperId = opponentTeamInfo.goalie
 
@@ -319,7 +319,7 @@ function World._updateGameState(state)
 
 	World.FriendlyKeeper = friendlyKeeper
 	World.OpponentKeeper = opponentKeeper
-	
+
 	--[[
     optional sint32 stage_time_left = 2;
 	message TeamInfo {

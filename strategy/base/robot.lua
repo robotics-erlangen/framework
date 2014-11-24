@@ -193,7 +193,7 @@ function Robot:_setSpecs(specs)
 		self.acceleration.aBrakeFMax = specs.acceleration.a_brake_f_max or 1.0
 		self.acceleration.aBrakeSMax = specs.acceleration.a_brake_s_max or 1.0
 		self.acceleration.aBrakePhiMax = specs.acceleration.a_brake_phi_max or 1.0
-		
+
 		self.maxAcceleration = specs.acceleration.a_speedup_f_max or 1.0
 	end
 end
@@ -328,7 +328,7 @@ function Robot:calculateShootSpeed(destSpeed, distance)
 	local v_d = destSpeed
 	local v_0 = math.sqrt((2*a_f*a_s*d)/(a_s*switch*switch-a_f*switch*switch-a_s)
 		-(a_f*v_d*v_d)/(a_s*switch*switch-a_f*switch*switch-a_s))
-	
+
 	if not v_0 then
 		return self.maxShotLinear
 	else
@@ -378,9 +378,9 @@ function Robot:hasBall(ball, sideOffset)
 			and not self._hasBall[sideOffset] then
 		return false
 	end
-	
+
 	-- FIXME remove partial system latency hack
-	self._hasBall[sideOffset] = relpos.x > -self.shootRadius 
+	self._hasBall[sideOffset] = relpos.x > -self.shootRadius
 			and relpos.x < self.constants.hasBallDistance + ball.speed:length() * Constants.systemLatency
 	return self._hasBall[sideOffset]
 end

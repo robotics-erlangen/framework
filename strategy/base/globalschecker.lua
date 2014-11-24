@@ -69,7 +69,7 @@ function GlobalsChecker.enable(extraGlobals)
 	extraGlobals = extraGlobals or {}
 	for k, v in pairs(extraGlobals) do
 		validGlobals[k] = v
-	end 
+	end
 end
 
 -- Called directly after base/amun is loaded
