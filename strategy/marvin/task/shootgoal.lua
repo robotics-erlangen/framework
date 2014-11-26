@@ -430,6 +430,7 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 end
 
 function ShootGoal:run()
+	self._robot.path:setDefaultObstacles(self._robot, true)
 	if self._volleyPossible then
 
 		-- calculate the best pass receipt position
