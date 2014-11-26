@@ -520,6 +520,10 @@ end
 
 
 function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
+	if targetPos == nil then
+		error("targetPos is nil")
+	end
+
 	-- configuration
 	local maxError = 0.03 -- maxError in meters when driving a curve
 	local accelerationFactor = 0.7 -- factor for max forward speedup and braking
