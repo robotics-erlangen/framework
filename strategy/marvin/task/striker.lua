@@ -14,7 +14,7 @@ local Messaging = require "control/messaging"
 local Referee = require "../base/referee"
 
 function Striker:_init()
-	self._moveDest = nil
+	self._moveDest = Vector.create(0,0)
 	self._noTargetFound = nil
 	self._lastDirChange = 0
 end
