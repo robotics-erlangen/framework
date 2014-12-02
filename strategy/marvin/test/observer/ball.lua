@@ -42,64 +42,25 @@ function BallTest.testIsShot()
 end
 
 local shootTime = 0
-local posAtSec00 = nil
-local posAtSec02 = nil
-local posAtSec05 = nil
-local posAtSec10 = nil
-local posAtSec15 = nil
+local positions = {}
+local moments = {0, 0.2, 0.5, 1.0, 1.5}
 function BallTest.testBallAtTime()
 	if Ball.isShot() then
 		shootTime = World.Time
-		posAtSec00 = World.Ball.pos
-		posAtSec02 = nil
-		posAtSec05 = nil
-		posAtSec10 = nil
-		posAtSec15 = nil
+		positions = {}
 	end
 
-	if World.Time <= shootTime + 5 then
-		if not posAtSec02 and World.Time >= shootTime + 0.2 then
-			posAtSec02 = World.Ball.pos
-		end
-		if not posAtSec05 and World.Time >= shootTime + 0.5 then
-			posAtSec05 = World.Ball.pos
-		end
-		if not posAtSec10 and World.Time >= shootTime + 1.0 then
-			posAtSec10 = World.Ball.pos
-		end
-		if not posAtSec15 and World.Time >= shootTime + 1.5 then
-			posAtSec15 = World.Ball.pos
+	for _,t in ipairs(moments) do
+		if not positions[t] and World.Time >= shootTime + t then
+			positions[t] = World.Ball.pos
 		end
 
-
-		vis.addCircle("test: ballAtPos", posAtSec00, 0.05, vis.colors.greenHalf, true)
-		if posAtSec02 then
-			vis.addCircle("test: ballAtPos", posAtSec02, 0.05, vis.colors.greenHalf, true)
-		end
-		if posAtSec05 then
-			vis.addCircle("test: ballAtPos", posAtSec05, 0.05, vis.colors.greenHalf, true)
-		end
-		if posAtSec10 then
-			vis.addCircle("test: ballAtPos", posAtSec10, 0.05, vis.colors.greenHalf, true)
-		end
-		if posAtSec15 then
-			vis.addCircle("test: ballAtPos", posAtSec15, 0.05, vis.colors.greenHalf, true)
+		if positions[t] then
+			vis.addCircle("test: ballAtPos", positions[t], 0.05, vis.colors.greenHalf, true)
 		end
 
-		if World.Time < shootTime + 0.2 then
-			vis.addCircle("test: ballAtPos", Physics.ballAtTime(World.Ball, shootTime + 0.2 - World.Time).pos,
-				0.05, vis.colors.blueHalf, true)
-		end
-		if World.Time < shootTime + 0.5 then
-			vis.addCircle("test: ballAtPos", Physics.ballAtTime(World.Ball, shootTime + 0.5 - World.Time).pos,
-				0.05, vis.colors.blueHalf, true)
-		end
-		if World.Time < shootTime + 1.0 then
-			vis.addCircle("test: ballAtPos", Physics.ballAtTime(World.Ball, shootTime + 1.0 - World.Time).pos,
-				0.05, vis.colors.blueHalf, true)
-		end
-		if World.Time < shootTime + 1.5 then
-			vis.addCircle("test: ballAtPos", Physics.ballAtTime(World.Ball, shootTime + 1.5 - World.Time).pos,
+		if World.Time < shootTime + t then
+			vis.addCircle("test: ballAtPos", Physics.ballAtTime(World.Ball, shootTime + t - World.Time).pos,
 				0.05, vis.colors.blueHalf, true)
 		end
 	end
