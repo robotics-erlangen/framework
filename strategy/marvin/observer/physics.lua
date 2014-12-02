@@ -27,8 +27,8 @@ function Physics.ballAtTime(ball, time)
 
 	-- t_switch: the moment the ball starts rolling, from now [s]
 	-- s_switch: the distance the ball traveled before starting to roll [m]
-	local t_switch = 0
-	local s_switch = 0
+	local t_switch
+	local s_switch
 
 	-- result: the ball-like returned object
 	local result = {}
@@ -43,7 +43,7 @@ function Physics.ballAtTime(ball, time)
 		s_switch = a_slide / 2 * t_switch * t_switch + v_current * t_switch
 
 		-- if "time" is in the sliding stage
-		if time < t_switch then
+		if time <= t_switch then
 			local v_result = a_slide * time + v_current
 			local s_result = a_slide / 2 * time * time + v_current * time
 			result.speed = ball.speed:copy():setLength(v_result)
@@ -51,6 +51,8 @@ function Physics.ballAtTime(ball, time)
 			return result
 		end
 	else
+		t_switch = 0
+		s_switch = 0
 		v_switch = v_current
 	end
 
@@ -91,8 +93,8 @@ function Physics.ballRollTime(ball, distance)
 
 	-- t_switch: the moment the ball starts rolling, from now [s]
 	-- s_switch: the distance the ball traveled before starting to roll [m]
-	local t_switch = 0
-	local s_switch = 0
+	local t_switch
+	local s_switch
 
 	local epsilon = 0.000001
 
@@ -109,9 +111,11 @@ function Physics.ballRollTime(ball, distance)
 		if distance < s_switch then
 			-- a_slide/2 * t^2 + v_current * t - distance = 0
 			local t_result = math.solveSq(a_slide / 2, v_current, -distance + epsilon);
-			return t_result;
+			return t_result
 		end
 	else
+		t_switch = 0
+		s_switch = 0
 		v_switch = v_current
 	end
 
