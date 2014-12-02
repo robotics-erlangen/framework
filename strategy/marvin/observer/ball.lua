@@ -7,6 +7,7 @@ local Field = require "../base/field"
 local geom = require "../base/geom"
 local debug = require "../base/debug"
 local ObserverRobot = require "observer/robot"
+local Physics = require "observer/physics"
 local vis = require "../base/vis"
 local math = require "../base/math"
 local plot = require "../base/plot"
@@ -42,7 +43,7 @@ function Ball.toBall(robot, ball)
 
 	local minTime = ObserverRobot.minTimeToBall(robot, ball)
 	local minPos = Ball.ballAt(ball, minTime)
-	local maxTime = ball.brakeTime > minTime and ball.brakeTime or minTime
+	local maxTime = minTime
 	local maxPos = Ball.ballAt(ball, maxTime)
 	local bsl = ball.speed:length()
 	local midPos, midTime
@@ -184,7 +185,8 @@ end
 -- @return futureBallPos vector - the predicted ball position
 function Ball.ballAt(ball, t)
 	-- p_b(t) = p_b + v_b(t0) * t + a_b(t0) * t^2/2
-	return ball.pos + ball.speed * t + ball.deceleration * (t^2/2) -- (8)
+	local deceleration_vector = ball.speed:copy():setLength(ball.deceleration)
+	return ball.pos + ball.speed * t + deceleration_vector * (t^2/2) -- (8)
 end
 
 --- Predicts the ball after a given time interval.
@@ -194,20 +196,7 @@ end
 -- @return Ball - predicted Ball-like table
 function Ball.atTime(t, ball)
 	ball = ball or World.Ball
-
-	local predicted = { radius = ball.radius }
-	if t > ball.brakeTime then -- ball won't move anymore after it has stopped
-		predicted.pos = Ball.ballAt(ball, ball.brakeTime)
-		predicted.speed = Vector(0, 0)
-		predicted.brakeTime = 0
-	else
-		predicted.pos = Ball.ballAt(ball, t)
-		predicted.speed = ball.speed + ball.deceleration * t
-		predicted.brakeTime = ball.brakeTime - t
-	end
-	predicted.deceleration = ball.deceleration
-
-	return predicted
+	return Physics.ballAtTime(ball, t)
 end
 
 local SLOW_BALL = 0.7 -- random value
