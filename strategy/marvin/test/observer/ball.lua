@@ -43,6 +43,7 @@ end
 
 local shootTime = 0
 local posAtSec00 = nil
+local posAtSec02 = nil
 local posAtSec05 = nil
 local posAtSec10 = nil
 local posAtSec15 = nil
@@ -102,7 +103,38 @@ function BallTest.testBallAtTime()
 				0.05, vis.colors.blueHalf, true)
 		end
 	end
+end
 
+local startTime = 0
+local inf_ctr = 0
+local ok_ctr = 0
+function BallTest.testBallRollTime()
+	local ball = {}
+	ball.maxSpeed = math.random() * 5 + 3
+	ball.speed = Vector.create(0, math.random() * (ball.maxSpeed - 0.2) + 0.1)
+	ball.pos = Vector.create(0, 0)
+	ball.radius = World.Ball.radius
+
+	local distance = math.random() * 5
+	local time = Physics.ballRollTime(ball, distance)
+	local distance2 = Physics.ballAtTime(ball, time).pos:length()
+
+	if time + 1 ~= time then
+		if math.abs(distance - distance2) > 0.00001 then
+			log(distance - distance2)
+		else
+			ok_ctr = ok_ctr + 1
+		end
+	else
+		inf_ctr = inf_ctr + 1
+	end
+
+	if World.Time - startTime >= 1 then
+		startTime = World.Time
+		log("#INF = " .. inf_ctr .. "    #OK = " .. ok_ctr)
+		inf_ctr = 0
+		ok_ctr = 0
+	end
 end
 
 return BallTest

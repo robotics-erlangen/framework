@@ -76,4 +76,51 @@ function Physics.ballAtTime(ball, time)
 end
 
 
+function Physics.ballRollTime(ball, distance)
+	-- a_slide: the negative acceleration while the ball is sliding [m/s^2]
+	-- a_roll: the negative acceleration while the ball is rolling [m/s^2]
+	local a_slide = Constants.fastBallDeceleration
+	local a_roll = Constants.ballDeceleration
+
+	-- v_max: the speed at which the ball was shot [m/s]
+	-- v_switch: the speed of the ball at the moment where the ball starts rolling [m/s]
+	-- v_current: the speed of the ball, now [m/s]
+	local v_max = ball.maxSpeed
+	local v_switch = Constants.ballSwitchRatio * v_max
+	local v_current = ball.speed:length()
+
+	-- t_switch: the moment the ball starts rolling, from now [s]
+	-- s_switch: the distance the ball traveled before starting to roll [m]
+	local t_switch = 0
+	local s_switch = 0
+
+	local epsilon = 0.000001
+
+	-- ensure that the distance parameter is positive
+	if distance <= epsilon then
+		return 0
+	end
+
+	-- the sliding stage
+	if v_current > v_switch then
+		t_switch = (v_switch - v_current) / a_slide
+		s_switch = a_slide / 2 * t_switch * t_switch + v_current * t_switch
+
+		if distance < s_switch then
+			-- a_slide/2 * t^2 + v_current * t - distance = 0
+			local t_result = math.solveSq(a_slide / 2, v_current, -distance + epsilon);
+			return t_result;
+		end
+	else
+		v_switch = v_current
+	end
+
+	local s_roll = distance - s_switch
+	-- a_roll/2 * t^2 + v_switch * t - s_roll = 0
+	local t_roll = math.solveSq(a_roll / 2, v_switch, -s_roll + epsilon) or math.huge;
+	local t_result = t_switch + t_roll
+	return t_result
+end
+
+
 return Physics
