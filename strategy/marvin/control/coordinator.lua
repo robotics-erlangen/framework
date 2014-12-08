@@ -131,6 +131,10 @@ end
 function Coordinator:_chooseExclusiveRoles()
 	local hysteresis = 0.1 -- magic constant
 
+	if Referee.isStopState() then
+		hysteresis = math.huge
+	end
+
 	local roleMsgs = self._inbox.exclusiveRole()
 	local roleApplications = {}
 	for robot, application in pairs(roleMsgs) do
