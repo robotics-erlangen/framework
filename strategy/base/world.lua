@@ -183,6 +183,7 @@ function World._updateWorld(state)
 		World.TimeDiff = 0
 	end
 	World.Time = state.time * 1E-9
+	assert(World.Time > 0, "Invalid World.Time. Outdated ra version!")
 	if World.IsSimulated ~= state.is_simulated then
 		World.IsSimulated = state.is_simulated
 		Constants.switchSimulatorConstants(World.IsSimulated)
