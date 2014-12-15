@@ -14,6 +14,7 @@ function BallAnalyzer:init(ball, movingAverageSlipping, movingAverageRolling, sl
 	self._rollingFriction = rollingFrictionStart or -0.305
 	self._recording = false
 	self._record = {}
+	self._times = {}
 	self._stopTime = World.Time
 end
 
@@ -30,6 +31,7 @@ function BallAnalyzer:run()
 		if self._recording then
 			resultsSlipping, resultsRolling = self:analyze()
 			self._record = {}
+			self._times = {}
 			log("shot again")
 		else
 			self._recording = true
@@ -41,14 +43,17 @@ function BallAnalyzer:run()
 			self._recording = false
 			resultsSlipping, resultsRolling = self:analyze()
 			self._record = {}
+			self._times = {}
 			log("deflected")
 		else
 			--log("add "..tostring(self._ball.speed))
 			table.insert(self._record, self._ball.speed)
+			table.insert(self._times, World.TimeDiff)
 			if World.Time > self._stopTime then
 				self._recording = false
 				resultsSlipping, resultsRolling = self:analyze()
 				self._record = {}
+				self._times = {}
 				log("time")
 			end
 		end
@@ -69,15 +74,23 @@ function BallAnalyzer:run()
 end
 
 local minRecord = 20
+local fps = 100	-- 100 frames per second
 function BallAnalyzer:analyze()
 	log("#self._record: "..#self._record)
 	if #self._record < minRecord then
 		return nil, nil
 	end
 	local accelerationArray = {}
-	for i = #self._record-1, 1, -1 do
-		accelerationArray[i] = (self._record[i+1]:length() - self._record[i]:length())*100
+	local nEntries = 0
+	for i = 1, #self._record-1 do
+		local nFrames = math.round(self._times[i+1]*fps, 0)
+		local accel = (self._record[i+1]:length() - self._record[i]:length())*fps/nFrames
+		for j = nEntries, nEntries+nFrames-1 do
+			accelerationArray[j] = accel
+		end
+		nEntries = nEntries + nFrames
 	end
+	log("#accelerationArray: "..nEntries)
 	--IO.save("ballAnalyzer/"..tostring(World.Time).."_v.csv", self._record)
 	--IO.save("ballAnalyzer/"..tostring(World.Time).."_a.csv", accelerationArray)
 	local overallFriction = math.average(accelerationArray)
