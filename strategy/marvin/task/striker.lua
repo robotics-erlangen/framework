@@ -14,7 +14,7 @@ local Messaging = require "control/messaging"
 local Referee = require "../base/referee"
 
 function Striker:_init()
-	self._moveDest = Vector.create(0,0)
+	self._moveDest = Vector(0,0)
 	self._noTargetFound = nil
 	self._lastDirChange = 0
 end
@@ -132,8 +132,8 @@ function Striker:_calcMoveDest()
 
 	local ballPos = World.Ball.pos
 	local xPos = self:_xLine()
-	local startPoint = Vector.create(xPos, lineStart)
-	local endPoint = Vector.create(xPos, lineEnd)
+	local startPoint = Vector(xPos, lineStart)
+	local endPoint = Vector(xPos, lineEnd)
 
 	local intervalsToRemove = {}
 
@@ -206,12 +206,12 @@ function Striker:_calcMoveDest()
 	Interval.merge(intervalsToRemove)
 	local possibleIntervals = Interval.negate(intervalsToRemove, lineStart, lineEnd)
 	for _, interval in ipairs(possibleIntervals) do
-		vis.addPath("t/striker: attackerLines", { Vector.create(xPos, interval[1]), Vector.create(xPos, interval[2]) }, vis.colors.blue)
+		vis.addPath("t/striker: attackerLines", { Vector(xPos, interval[1]), Vector(xPos, interval[2]) }, vis.colors.blue)
 	end
 
 	-- move destination: furthest point to closest opp on line
 	-- TODO: maybe consider mainAttacker?
-	local closestOpp = World.OpponentRobots[1] or { pos = Vector.create(0,0) }
+	local closestOpp = World.OpponentRobots[1] or { pos = Vector(0,0) }
 	for _, opp in ipairs(World.OpponentRobots) do
 		if self._robot.pos:distanceTo(opp.pos) < self._robot.pos:distanceTo(closestOpp.pos) then
 			closestOpp = opp
@@ -223,7 +223,7 @@ function Striker:_calcMoveDest()
 			self._lastDirChange = World.Time
 		end
 		if World.Time - self._lastDirChange > 0.5 then -- against flickering
-			self._moveDest = Vector.create(xPos, target)
+			self._moveDest = Vector(xPos, target)
 		end
 		self._noTargetFound = false
 	else

@@ -16,9 +16,9 @@ function Base:init(robot)
 	self._send, self._inbox = Messaging.registerAgent(self)
 	-- behaviors are ordered by decreasing priority
 	self._behaviors = {
-		Halt.create(self),
+		Halt(self),
 		unpack(table.map(self._behaviors,
-			function (B) return B.create(self) end)
+			function (B) return B(self) end)
 		)
 	}
 	self._activeBehavior = nil

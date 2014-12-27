@@ -43,7 +43,7 @@ return function(value, requestedType)
 		end
 		if not Class.toClass(value, true) then
 			if Class.instanceOf(requestedType, MessageBase) then
-				value = requestedType.create(value)
+				value = requestedType(value)
 			else
 				error("Expected class "..Class.name(requestedType).. " got type " .. tval)
 			end

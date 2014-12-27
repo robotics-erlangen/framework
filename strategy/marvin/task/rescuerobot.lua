@@ -25,19 +25,19 @@ function RescueRobot:run()
 		self._rotation = geom.getAngleDiff(frontDir, backwardsDir)
 
 		-- if field center is on the left while moving forward
-		if geom.checkTriangleOrientation(self._robot.pos, self._robot.pos + Vector.fromAngle(backwardsDir), Vector.create(0,0)) >= 0 then
+		if geom.checkTriangleOrientation(self._robot.pos, self._robot.pos + Vector.fromAngle(backwardsDir), Vector(0,0)) >= 0 then
 			self._speeds = {
-				Vector.create(1, 0), -- forward
-				Vector.create(-1, 0), -- backward
-				Vector.create(0, -1), -- left
-				Vector.create(0 , 1) -- right
+				Vector(1, 0), -- forward
+				Vector(-1, 0), -- backward
+				Vector(0, -1), -- left
+				Vector(0 , 1) -- right
 			}
 		else
 			self._speeds = {
-				Vector.create(1, 0), -- forward
-				Vector.create(-1, 0), -- backward
-				Vector.create(0 , 1), -- right
-				Vector.create(0, -1) -- left
+				Vector(1, 0), -- forward
+				Vector(-1, 0), -- backward
+				Vector(0 , 1), -- right
+				Vector(0, -1) -- left
 			}
 		end
 	end

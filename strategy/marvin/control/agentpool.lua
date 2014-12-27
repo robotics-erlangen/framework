@@ -40,7 +40,7 @@ function AgentPool:takeRobot(robots)
 
 	local robot = self._agentType.takeRobot(robots)
 	if robot then
-		table.insert(self._agents, self._agentType.create(robot))
+		table.insert(self._agents, self._agentType(robot))
 	end
 	return robot
 end

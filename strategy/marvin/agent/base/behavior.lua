@@ -30,9 +30,9 @@ function Base:run()
 	local bestTask, parameters = self:_updateTask()
 	if not self._task or Class.toClass(self._task) ~= bestTask then
 		if parameters then
-			self._task = bestTask.create(self._agent, unpack(parameters))
+			self._task = bestTask(self._agent, unpack(parameters))
 		else
-			self._task = bestTask.create(self._agent)
+			self._task = bestTask(self._agent)
 		end
 		self._agent:setTask(self._task)
 	end

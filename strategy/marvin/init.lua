@@ -25,7 +25,7 @@ local Processor = require "../base/processor"
 local Robot = require "observer/robot"
 local Referee = require "../base/referee"
 
-local preproc = (require "../base/class").new("Process.PreProc", require "../base/process")
+local preproc = Class("Process.PreProc", require "../base/process")
 function preproc:run()
     Robot.estimateOpponentDynamics()
     Robot._updateHadBall()
@@ -37,7 +37,7 @@ function preproc:isFinished()
 end
 Processor.addPre(preproc)
 -- local BallAnalyzer = require "observer/ballAnalyzer"
--- Processor.addPre(BallAnalyzer.create())
+-- Processor.addPre(BallAnalyzer())
 local frameCount = 0
 local wrapper = function (func)
 	return function()

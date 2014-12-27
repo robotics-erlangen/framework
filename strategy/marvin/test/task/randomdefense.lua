@@ -28,9 +28,9 @@ local function run()
 		if not destPositions[i] or math.random() < 0.003 then
 			local x = math.random() * G.FieldWidth - G.FieldWidthHalf
 			local y = - math.random() * G.FieldHeightHalf
-			destPositions[i] = Vector.create(x, y)
+			destPositions[i] = Vector(x, y)
 
-			agents[i] = TestAgent.create(r, {
+			agents[i] = TestAgent(r, {
 				task = CenterBack,
 				parameters = { { pos = destPositions[i] } }
 			})

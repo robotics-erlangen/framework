@@ -197,7 +197,7 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 		local sign = dir.x > 0 and 1 or -1
 		local allowedWidth = G.FieldWidthHalf - 2 * self._robot.radius
 		intersection,lambda = geom.intersectLineLine(World.Ball.pos, dir,
-				Vector.create(sign * allowedWidth, 0), Vector.create(0, 1))
+				Vector(sign * allowedWidth, 0), Vector(0, 1))
 	end
 	if not lambda then
 		lambda = math.huge
@@ -338,7 +338,7 @@ function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
 	if not bestMid then
 		self.targetPoint = G.OpponentGoal
 	else
-		local ipos = geom.intersectLineLine(viewPos, Vector.fromAngle(bestMid), G.OpponentGoal, Vector.create(1, 0))
+		local ipos = geom.intersectLineLine(viewPos, Vector.fromAngle(bestMid), G.OpponentGoal, Vector(1, 0))
 		self.targetPoint = ipos or G.OpponentGoal
 	end
 	self.maxAngleError = bestAngleError
@@ -478,7 +478,7 @@ function ShootGoal:run()
 			local mae =  5 * math.pi/180
 			local chipPos
 			if World.Ball.pos.y < -1 then
-				chipPos = Vector.create(
+				chipPos = Vector(
 					G.FieldHeightHalf/(G.FieldHeightHalf - World.Ball.pos.y) * World.Ball.pos.x, -0.2)
 			else
 				chipPos = G.OpponentPenaltySpot

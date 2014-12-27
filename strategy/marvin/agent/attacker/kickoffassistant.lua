@@ -23,10 +23,10 @@ function KickoffAssistant:check()
 
 	if not self._moveDest or positionClash then
 		local positions = {
-			Vector.create(-G.FieldWidthHalf * 0.75, -3 * self._robot.radius),
-			Vector.create(-G.FieldWidthHalf * 0.5, -3 * self._robot.radius),
-			Vector.create(G.FieldWidthHalf * 0.75, -3 * self._robot.radius),
-			Vector.create(G.FieldWidthHalf * 0.5, -3 * self._robot.radius)
+			Vector(-G.FieldWidthHalf * 0.75, -3 * self._robot.radius),
+			Vector(-G.FieldWidthHalf * 0.5, -3 * self._robot.radius),
+			Vector(G.FieldWidthHalf * 0.75, -3 * self._robot.radius),
+			Vector(G.FieldWidthHalf * 0.5, -3 * self._robot.radius)
 		}
 		self._moveDest = table.shuffle(positions)[1]
 	end

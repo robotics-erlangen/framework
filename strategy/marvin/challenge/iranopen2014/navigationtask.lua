@@ -12,14 +12,14 @@ local outerGoalOutDist = 0.3
 local innerGoalOutDist = 0.6
 local outerBoarderDist = 0.3
 local innerBoarderDist = 0.5
-local outerLowerLeftCorner = Vector.create(-g.FieldWidthHalf + outerBoarderDist, -g.FieldHeightHalf + outerGoalOutDist)
-local outerUpperLeftCorner = Vector.create(-g.FieldWidthHalf + outerBoarderDist, g.FieldHeightHalf - outerGoalOutDist)
-local outerUpperRightCorner = Vector.create(g.FieldWidthHalf - outerBoarderDist, g.FieldHeightHalf - outerGoalOutDist)
-local outerLowerRightCorner = Vector.create(g.FieldWidthHalf - outerBoarderDist, -g.FieldHeightHalf + outerGoalOutDist)
-local innerLowerRightCorner = Vector.create(g.FieldWidthHalf - 1 + innerBoarderDist, -g.FieldHeightHalf + innerGoalOutDist)
-local innerUpperRightCorner = Vector.create(g.FieldWidthHalf - 1 + innerBoarderDist, g.FieldHeightHalf - innerGoalOutDist)
-local innerUpperLeftCorner = Vector.create(-g.FieldWidthHalf + 1 - innerBoarderDist, g.FieldHeightHalf - innerGoalOutDist)
-local innerLowerLeftCorner = Vector.create(-g.FieldWidthHalf + 1 - innerBoarderDist, -g.FieldHeightHalf + innerGoalOutDist)
+local outerLowerLeftCorner = Vector(-g.FieldWidthHalf + outerBoarderDist, -g.FieldHeightHalf + outerGoalOutDist)
+local outerUpperLeftCorner = Vector(-g.FieldWidthHalf + outerBoarderDist, g.FieldHeightHalf - outerGoalOutDist)
+local outerUpperRightCorner = Vector(g.FieldWidthHalf - outerBoarderDist, g.FieldHeightHalf - outerGoalOutDist)
+local outerLowerRightCorner = Vector(g.FieldWidthHalf - outerBoarderDist, -g.FieldHeightHalf + outerGoalOutDist)
+local innerLowerRightCorner = Vector(g.FieldWidthHalf - 1 + innerBoarderDist, -g.FieldHeightHalf + innerGoalOutDist)
+local innerUpperRightCorner = Vector(g.FieldWidthHalf - 1 + innerBoarderDist, g.FieldHeightHalf - innerGoalOutDist)
+local innerUpperLeftCorner = Vector(-g.FieldWidthHalf + 1 - innerBoarderDist, g.FieldHeightHalf - innerGoalOutDist)
+local innerLowerLeftCorner = Vector(-g.FieldWidthHalf + 1 - innerBoarderDist, -g.FieldHeightHalf + innerGoalOutDist)
 
 function Navigation:_init()
 	self._clockwise = true
@@ -109,10 +109,10 @@ function Navigation:run()
 		middleDistx = middleDistx - lineWidth
 		middleDisty = middleDisty - lineWidth
 		local corners = {
-			Vector.create(-g.FieldWidthHalf+middleDistx, -g.FieldHeightHalf+middleDisty),
-			Vector.create(-g.FieldWidthHalf+middleDistx, g.FieldHeightHalf-middleDisty),
-			Vector.create(g.FieldWidthHalf-middleDistx, g.FieldHeightHalf-middleDisty),
-			Vector.create(g.FieldWidthHalf-middleDistx, -g.FieldHeightHalf+middleDisty)
+			Vector(-g.FieldWidthHalf+middleDistx, -g.FieldHeightHalf+middleDisty),
+			Vector(-g.FieldWidthHalf+middleDistx, g.FieldHeightHalf-middleDisty),
+			Vector(g.FieldWidthHalf-middleDistx, g.FieldHeightHalf-middleDisty),
+			Vector(g.FieldWidthHalf-middleDistx, -g.FieldHeightHalf+middleDisty)
 		}
 		--self._robot.path:addRect(corners[1].x, corners[1].y, corners[3].x, corners[3].y)
 		self._robot.path:addLine(corners[1].x,  corners[1].y, corners[2].x, corners[2].y, lineWidth)
@@ -121,10 +121,10 @@ function Navigation:run()
 		self._robot.path:addLine(corners[4].x,  corners[4].y, corners[1].x, corners[1].y, lineWidth)
 
 		local viscorners = {
-			Vector.create(-g.FieldWidthHalf+middleDistx-lineWidth, -g.FieldHeightHalf+middleDisty-lineWidth),
-			Vector.create(-g.FieldWidthHalf+middleDistx-lineWidth, g.FieldHeightHalf-middleDisty+lineWidth),
-			Vector.create(g.FieldWidthHalf-middleDistx+lineWidth, g.FieldHeightHalf-middleDisty+lineWidth),
-			Vector.create(g.FieldWidthHalf-middleDistx+lineWidth, -g.FieldHeightHalf+middleDisty-lineWidth)
+			Vector(-g.FieldWidthHalf+middleDistx-lineWidth, -g.FieldHeightHalf+middleDisty-lineWidth),
+			Vector(-g.FieldWidthHalf+middleDistx-lineWidth, g.FieldHeightHalf-middleDisty+lineWidth),
+			Vector(g.FieldWidthHalf-middleDistx+lineWidth, g.FieldHeightHalf-middleDisty+lineWidth),
+			Vector(g.FieldWidthHalf-middleDistx+lineWidth, -g.FieldHeightHalf+middleDisty-lineWidth)
 		}
 		vis.addPolygon("NavigationObstacle", viscorners, vis.fromRGBA(255, 0, 0, 48), true)
 	end
@@ -133,10 +133,10 @@ function Navigation:run()
 	createRectObstacle(1.05, 1.05, 0.1)
 
 	local corridor = {
-		Vector.create(-g.FieldWidthHalf+1, -g.FieldHeightHalf+1),
-		Vector.create(-g.FieldWidthHalf+1, g.FieldHeightHalf-1),
-		Vector.create(g.FieldWidthHalf-1, g.FieldHeightHalf-1),
-		Vector.create(g.FieldWidthHalf-1, -g.FieldHeightHalf+1)
+		Vector(-g.FieldWidthHalf+1, -g.FieldHeightHalf+1),
+		Vector(-g.FieldWidthHalf+1, g.FieldHeightHalf-1),
+		Vector(g.FieldWidthHalf-1, g.FieldHeightHalf-1),
+		Vector(g.FieldWidthHalf-1, -g.FieldHeightHalf+1)
 	}
 	vis.addPolygon("NavigationObstacle", corridor, vis.colors.black, false)
 

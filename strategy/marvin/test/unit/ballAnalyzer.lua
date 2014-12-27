@@ -10,23 +10,23 @@ local function CreateShot()
 	local speedArray = {}
 	local timeArray = {}
 	for i = 1, math.floor(change) do
-		speedArray[i] = Vector.create(5 - (sf*i + jitter*(0.5 - math.random()))*timeConstant, 0)
+		speedArray[i] = Vector(5 - (sf*i + jitter*(0.5 - math.random()))*timeConstant, 0)
 		timeArray[i] = timeConstant
 	end
 	for i = math.ceil(change), 250 do
-		speedArray[i] = speedArray[i-1] - Vector.create((rf + jitter*(0.5 - math.random()))*timeConstant, 0)
+		speedArray[i] = speedArray[i-1] - Vector((rf + jitter*(0.5 - math.random()))*timeConstant, 0)
 		timeArray[i] = timeConstant
 	end
 	return speedArray, timeArray
 end
 
 local function CreateShot2()
-	local speedArray = {Vector.create(5, 0)}
+	local speedArray = {Vector(5, 0)}
 	local timeArray = {timeConstant}
 	local scale = (sf-rf)/math.pi
 	local offset = 0.5*(sf+rf)
 	for i = 2, 250 do
-		speedArray[i] = speedArray[i-1] - Vector.create(((math.atan((change-i)/5) + jitter*(0.5 - math.random())) + 1.9)*scale*timeConstant, 0)
+		speedArray[i] = speedArray[i-1] - Vector(((math.atan((change-i)/5) + jitter*(0.5 - math.random())) + 1.9)*scale*timeConstant, 0)
 		--log("accelerationArray["..(i-1).."] = "..(speedArray[i-1].x - speedArray[i].x)*100)
 		timeArray[i] = timeConstant
 	end

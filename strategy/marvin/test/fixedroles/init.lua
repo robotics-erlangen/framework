@@ -21,7 +21,7 @@ end
 local test = nil
 Entrypoints.add("Fixed Roles", function()
 	if not test then
-		test = FixedRoles.create()
+		test = FixedRoles()
 	end
 	test:run()
 end)

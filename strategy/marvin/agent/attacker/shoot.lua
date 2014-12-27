@@ -46,7 +46,7 @@ function Shoot:_updateTask()
 
 	if not self._taskClass or minTimeOver then
 		-- shootgoal
-		local shootGoalTmp = ShootGoal.create(self._agent)
+		local shootGoalTmp = ShootGoal(self._agent)
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 		local canShootGoal = sg_mae and sg_mae > Settings.minAnglePrecision
 

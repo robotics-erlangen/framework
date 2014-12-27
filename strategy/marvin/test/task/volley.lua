@@ -33,7 +33,7 @@ local function run()
 	elseif World.Ball.pos.y > World.Geometry.FieldHeightHalf and shootPos then
 		destX = World.Ball.pos.x
 		local intendedAngle = (World.Geometry.OpponentGoal - shootPos):angle()
-		local executedAngle = (Vector.create(destX, World.Geometry.FieldHeightHalf) - shootPos):angle()
+		local executedAngle = (Vector(destX, World.Geometry.FieldHeightHalf) - shootPos):angle()
 		local errorAngle = (executedAngle - intendedAngle) * 180 / math.pi
 		if errorAngle > 0 then
 			log("precision error: " .. errorAngle .. " degrees to the left")
@@ -47,10 +47,10 @@ local function run()
 	-- visualization
 	if destX then
 		local fhh = World.Geometry.FieldHeightHalf
-		vis.addPath("test: Volley", {Vector.create(destX - 0.05, fhh - 0.05),
-									Vector.create(destX + 0.05, fhh + 0.05)}, vis.colors.green)
-		vis.addPath("test: Volley", {Vector.create(destX - 0.05, fhh + 0.05),
-									Vector.create(destX + 0.05, fhh - 0.05)}, vis.colors.green)
+		vis.addPath("test: Volley", {Vector(destX - 0.05, fhh - 0.05),
+									Vector(destX + 0.05, fhh + 0.05)}, vis.colors.green)
+		vis.addPath("test: Volley", {Vector(destX - 0.05, fhh + 0.05),
+									Vector(destX + 0.05, fhh - 0.05)}, vis.colors.green)
 		vis.addCircle("test: Volley", oldShootPos, 0.05, vis.colors.greenHalf, true)
 	end
 
@@ -75,31 +75,31 @@ local function run()
 
 	-- task initialization
 	if state == "prepare" and not initialized then
-		agent1 = TestAgent.create(robot1, {
+		agent1 = TestAgent(robot1, {
 			task = MoveToPos,
-			parameters = { Vector.create(x, y), math.pi }
+			parameters = { Vector(x, y), math.pi }
 		})
-		agent2 = TestAgent.create(robot2, {
+		agent2 = TestAgent(robot2, {
 			task = MoveToPos,
-			parameters = { Vector.create(-x, y), 0}
+			parameters = { Vector(-x, y), 0}
 		})
 		initialized = true
 	elseif state == "go" and not initialized then
-		agent1 = TestAgent.create(robot1, {
+		agent1 = TestAgent(robot1, {
 			task = MoveToPos,
-			parameters = { Vector.create(x, y), (World.Ball.pos - robot1.pos):angle() }
+			parameters = { Vector(x, y), (World.Ball.pos - robot1.pos):angle() }
 		})
-		agent2 = TestAgent.create(robot2, {
+		agent2 = TestAgent(robot2, {
 			task = Pass,
 			parameters = { robot1, nil, true}
 		})
 		initialized = true
 	elseif state == "shoot" and not initialized then
-		agent1 = TestAgent.create(robot1, {
+		agent1 = TestAgent(robot1, {
 			task = ShootGoal,
 			parameters = {nil, true}
 		})
-		agent2 = TestAgent.create(robot2, {
+		agent2 = TestAgent(robot2, {
 			task = Halt,
 			parameters = {}
 		})

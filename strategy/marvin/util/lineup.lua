@@ -44,7 +44,7 @@ local function generateLineup(lineStart, lineupDir)
 			opponentIndex = opponentIndex + 1
 		else
 			local pseudoagent = {robot = function(...) return r end} --FIXME hack
-			local task = MoveToPos.create(pseudoagent, intendedPos, viewDir)
+			local task = MoveToPos(pseudoagent, intendedPos, viewDir)
 			task.run(task)
 			friendlyIndex = friendlyIndex + 1
 			distToStart = distToStart + mindist
@@ -52,10 +52,10 @@ local function generateLineup(lineStart, lineupDir)
 	end
 end
 
-local fleft = Vector.create(-World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
-local fright = Vector.create(World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
-local oleft = Vector.create(-World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf)
-local oright = Vector.create(World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf)
+local fleft = Vector(-World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
+local fright = Vector(World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
+local oleft = Vector(-World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf)
+local oright = Vector(World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf)
 Entrypoints.add("Lineup/Friendly Left", function() generateLineup(fleft, math.pi/2) end)
 Entrypoints.add("Lineup/Friendly Right", function() generateLineup(fright, math.pi/2) end)
 Entrypoints.add("Lineup/Opponent Left", function() generateLineup(oleft, -math.pi/2) end)

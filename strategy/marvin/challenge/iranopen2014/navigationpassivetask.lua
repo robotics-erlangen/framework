@@ -22,12 +22,12 @@ function NavigationPassive:_init(num)
 		self._xMin = World.Geometry.FieldWidthHalf - 1 + safetyDistance
 		self._xMax = World.Geometry.FieldWidthHalf - safetyDistance
 	end
-	self._moveDest = Vector.create(self._xMin + math.random()*(self._xMax-self._xMin), self._yLine)
+	self._moveDest = Vector(self._xMin + math.random()*(self._xMax-self._xMin), self._yLine)
 end
 
 function NavigationPassive:run()
 	if self._robot.pos:distanceTo(self._moveDest) < 0.05 then
-		self._moveDest = Vector.create(self._xMin + math.random()*(self._xMax-self._xMin), self._yLine)
+		self._moveDest = Vector(self._xMin + math.random()*(self._xMax-self._xMin), self._yLine)
 	end
 	self._robot.path:setDefaultObstacles(self._robot, true, true)
 	self._robot.trajectory:update(ToTarget, self._moveDest, math.pi/2, 0.6)

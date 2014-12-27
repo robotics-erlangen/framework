@@ -21,7 +21,7 @@ function OldController:reset()
 end
 
 function OldController:_init()
-	self.intCtrl = Vector.create(0, 0)
+	self.intCtrl = Vector(0, 0)
 end
 
 function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
@@ -30,7 +30,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		return {}, Coordinates.toLocal(targetPos), 0
 	end
 	maxSpeed = maxSpeed or self._robot.maxSpeed
-	endSpeed = endSpeed or Vector.create(0, 0)
+	endSpeed = endSpeed or Vector(0, 0)
 
 	targetPos = Coordinates.toGlobal(targetPos)
 	targetDir = Coordinates.toGlobal(targetDir)
@@ -52,7 +52,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local prev = robotPos
 	local dist = 0
 	for i=1,#waypoints do
-		local cur = Vector.create(waypoints[i].p_x, waypoints[i].p_y)
+		local cur = Vector(waypoints[i].p_x, waypoints[i].p_y)
 		vis.addPathRaw("waypoints", {prev, cur}, vis.colors.yellow)
 		dist = dist + cur:distanceTo(prev)
 		prev = cur
@@ -75,7 +75,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local waypointBrakeDist = math.min(brakeDist, waypointDist)
 
 	local v_robot = self.parameters.factorProp * brakeDist
-	local nextPoint = Vector.create(waypoints[1].p_x, waypoints[1].p_y)
+	local nextPoint = Vector(waypoints[1].p_x, waypoints[1].p_y)
 
 	local speed = (nextPoint - robotPos):setLength(v_robot)
 

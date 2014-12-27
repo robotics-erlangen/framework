@@ -7,10 +7,10 @@ Triumph.i = 0
 Triumph.j = 0
 
 local points = {
-	Vector.create(-1, -2.5),
-	Vector.create(1, -2.5),
-	Vector.create(1, -0.5),
-	Vector.create(-1, -0.5),
+	Vector(-1, -2.5),
+	Vector(1, -2.5),
+	Vector(1, -0.5),
+	Vector(-1, -0.5),
 }
 
 function Triumph:_init(num)

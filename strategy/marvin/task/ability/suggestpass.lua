@@ -63,7 +63,7 @@ function SuggestPass:_suggestPass()
     local ballOwner = Ball.friendlyBallOwner()
     for x=startX, endX, stepSize do
         for y=startY, endY, stepSize do
-            local p = Vector.create(x, y)
+            local p = Vector(x, y)
 
             vis.addCircle("t/a/suggestpass: Sample Points", p, 0.03, vis.colors.skyBlue, true)
             if Robot.wayToPosFree(p, mainAttacker) then

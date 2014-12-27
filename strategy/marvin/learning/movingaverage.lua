@@ -58,7 +58,7 @@ function MovingAverage.get(name, nPoints, default) -- -> factory
 		return entry
 	end
 
-	entry = Entry.create(name, nPoints, default)
+	entry = Entry(name, nPoints, default)
 	instanceMap[name] = entry
 	return entry
 end

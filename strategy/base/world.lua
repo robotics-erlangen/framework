@@ -60,7 +60,7 @@ local Constants = require "../base/constants"
 
 local World = {}
 
-World.Ball = Ball.create()
+World.Ball = Ball()
 World.FriendlyRobots = {}
 World.FriendlyInvisibleRobots = {}
 World.FriendlyRobotsById = {}
@@ -155,19 +155,19 @@ function World._updateGeometry(geom)
 	wgeom.DefenseRadius = geom.defense_radius
 	wgeom.DefenseStretch = geom.defense_stretch
 
-	wgeom.FriendlyPenaltySpot = Vector.create(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist)
-	wgeom.OpponentPenaltySpot = Vector.create(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist)
+	wgeom.FriendlyPenaltySpot = Vector(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist)
+	wgeom.OpponentPenaltySpot = Vector(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist)
 	wgeom.PenaltyLine = wgeom.OpponentPenaltySpot.y - geom.penalty_line_from_spot_dist
 	wgeom.OwnPenaltyLine = wgeom.FriendlyPenaltySpot.y + geom.penalty_line_from_spot_dist
 
 	-- The goal posts are on the field lines
-	wgeom.FriendlyGoal = Vector.create(0, - wgeom.FieldHeightHalf + wgeom.LineWidth)
-	wgeom.FriendlyGoalLeft = Vector.create(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
-	wgeom.FriendlyGoalRight = Vector.create(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
+	wgeom.FriendlyGoal = Vector(0, - wgeom.FieldHeightHalf + wgeom.LineWidth)
+	wgeom.FriendlyGoalLeft = Vector(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
+	wgeom.FriendlyGoalRight = Vector(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
 
-	wgeom.OpponentGoal = Vector.create(0, wgeom.FieldHeightHalf - wgeom.LineWidth)
-	wgeom.OpponentGoalLeft = Vector.create(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
-	wgeom.OpponentGoalRight = Vector.create(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
+	wgeom.OpponentGoal = Vector(0, wgeom.FieldHeightHalf - wgeom.LineWidth)
+	wgeom.OpponentGoalLeft = Vector(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
+	wgeom.OpponentGoalRight = Vector(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
 
 	wgeom.BoundaryWidth = geom.boundary_width
 	wgeom.RefereeWidth = geom.referee_width
@@ -240,7 +240,7 @@ function World._updateWorld(state)
 			local robot = opponentRobotsById[rdata.id]
 			opponentRobotsById[rdata.id] = nil
 			if not robot then
-				robot = Robot.create(rdata.id, false)
+				robot = Robot(rdata.id, false)
 			end
 			robot:_update(rdata, World.Time)
 			table.insert(World.OpponentRobots, robot)

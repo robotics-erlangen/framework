@@ -64,7 +64,7 @@ if teamIsBlue then
 				return data + math.pi
 			end
 		else
-			return Vector.create(-data.x, -data.y)
+			return Vector(-data.x, -data.y)
 		end
 	end
 	Coordinates.toLocal = Coordinates.toGlobal

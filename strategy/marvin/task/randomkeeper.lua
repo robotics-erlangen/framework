@@ -17,7 +17,7 @@ function RandomKeeper:run()
 		self._nextX = math.random() * bound * 2 - bound
 	end
 
-	local moveDest = Vector.create(self._nextX,
+	local moveDest = Vector(self._nextX,
 			-World.Geometry.FieldHeightHalf + self._robot.radius + goalDistance)
 
 	-- add obstacles if outside keeper area

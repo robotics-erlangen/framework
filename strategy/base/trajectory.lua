@@ -47,7 +47,7 @@ function Trajectory:update(handlerType, ...)
 		error("Trajectory module must derive from Trajectory.Base")
 	end
 	if not (self._handler and Class.instanceOf(self._handler, handlerType) and self._handler:canHandle(...)) then
-		self._handler = handlerType.create(self._robot)
+		self._handler = handlerType(self._robot)
 	end
 	local splines, moveDest, moveTime = self._handler:update(...)
 

@@ -21,7 +21,7 @@ function OldController:reset()
 end
 
 function OldController:_init()
-	self.intCtrl = Vector.create(0, 0)
+	self.intCtrl = Vector(0, 0)
 end
 
 -- FIXME update endSpeed meaning
@@ -53,7 +53,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local prev = robotPos
 	local dist = 0
 	for i=1,#waypoints do
-		local cur = Vector.create(waypoints[i].p_x, waypoints[i].p_y)
+		local cur = Vector(waypoints[i].p_x, waypoints[i].p_y)
 		vis.addPathRaw("waypoints", {prev, cur}, vis.colors.yellow)
 		dist = dist + cur:distanceTo(prev)
 		prev = cur
@@ -115,7 +115,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		self.v_last = v_robot
 	end
 
-	local nextPoint = Vector.create(waypoints[1].p_x, waypoints[1].p_y)
+	local nextPoint = Vector(waypoints[1].p_x, waypoints[1].p_y)
 
 	local speed = (nextPoint - robotPos):setLength(v_robot)
 

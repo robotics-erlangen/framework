@@ -4,13 +4,13 @@ local Ball = require "observer/ball"
 local situation = {
 	refereeState = "GameForce",
 	gameStage = "SecondHalf",
-	ball = { pos = Vector.create(-0.3,1), speed = Vector.create(-7.3011e-15,4.162e-15) },
+	ball = { pos = Vector(-0.3,1), speed = Vector(-7.3011e-15,4.162e-15) },
 	blueGoalie = 1,
 	blueRobots = {
 		[0] = {
-			pos = Vector.create(0.3,0.2),
+			pos = Vector(0.3,0.2),
 			dir = Vector.fromAngle(-math.pi*1.5),
-			speed = Vector.create(-1.20375e-07,-7.21853e-06),
+			speed = Vector(-1.20375e-07,-7.21853e-06),
 			angularSpeed = Vector.fromAngle(-3.26864e-06)
 		},
 	},

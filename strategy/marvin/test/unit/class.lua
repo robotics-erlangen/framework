@@ -43,7 +43,7 @@ return function()
     function C:alsoTryTheForbidden()
         self.someOtherVar = 3
     end
-    local inst = C.create()
+    local inst = C()
     noFail, msg = pcall(inst.tryTheForbidden, inst)
     assert(not noFail, "a mixin shall not be able to define new attributes in normal methods")
     noFail, msg = pcall(inst.alsoTryTheForbidden, inst)
@@ -53,6 +53,6 @@ return function()
     assert(not noFail, "it shall not be possible to create classes with the same name")
 
     local C1 = Class.newTask("C1", C)
-    inst = C1.create()
+    inst = C1()
     assert(inst.foo, "mixins shall be inherited")
 end

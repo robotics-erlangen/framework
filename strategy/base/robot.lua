@@ -82,7 +82,7 @@ function Robot:init(data, isFriendly, geometry)
 	self.isFriendly = isFriendly
 	self._hasBall = {}
 	if self.isFriendly then -- setup trajectory and path objects
-		self.trajectory = Trajectory.create(self)
+		self.trajectory = Trajectory(self)
 		self.path = path.create()
 		self.path:setBoundary(
 			-geometry.FieldWidthHalf  - geometry.BoundaryWidth - 0.02,
@@ -158,7 +158,7 @@ function Robot:_updateUserControl(command)
 		return
 	end
 
-	local v = Vector.create(command.v_s, command.v_f)
+	local v = Vector(command.v_s, command.v_f)
 	local omega = command.omega
 	if command.direct then
 		-- correctly align local and strategy coordinate system

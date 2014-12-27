@@ -11,7 +11,7 @@ local function run()
 	if not initialized then
 		for i, robot in ipairs(World.FriendlyRobots) do
 			if i > 1 then break end
-			table.insert(agents, TestAgent.create(robot, {
+			table.insert(agents, TestAgent(robot, {
 				task = ShootSpeedTest,
 				parameters = { 2 }
 			}))

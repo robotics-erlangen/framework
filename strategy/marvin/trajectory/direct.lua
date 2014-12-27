@@ -12,7 +12,7 @@ function Direct:update(speed, targetDir, rotateSpeed, accel)
 	if accel then
 		accel = Coordinates.toGlobal(accel)
 	else
-		accel = Vector.create(0, 0)
+		accel = Vector(0, 0)
 	end
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
 	local robotDir = Coordinates.toGlobal(self._robot.dir)

@@ -8,8 +8,8 @@ local GoalKick = Class("Task.GoalKick", Task, Shoot, CatchBall, ReceivePass, Vol
 local World = require "../base/world"
 
 function GoalKick:run()
-	local leftUpperCorner = Vector.create(World.Ball.pos.x + 0.05, -1)
-	local rightUpperCorner = Vector.create(World.Ball.pos.x - 0.05, -1)
+	local leftUpperCorner = Vector(World.Ball.pos.x + 0.05, -1)
+	local rightUpperCorner = Vector(World.Ball.pos.x - 0.05, -1)
 	local shootPos = World.Ball.pos.x > 0 and rightUpperCorner or leftUpperCorner
 	local linear = false
 	self:_shoot(shootPos, 1, linear, 3 * math.pi/180)

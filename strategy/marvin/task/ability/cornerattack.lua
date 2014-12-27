@@ -13,8 +13,8 @@ local ToTarget = require "trajectory/totarget"
 local defStrech = G.DefenseStretch
 local defRadius = G.DefenseRadius
 local defAreaLineLength = G.DefenseStretch + defRadius * math.pi
-local leftStretchOnGoalLine = Vector.create(-defStrech/2, World.Geometry.FieldHeightHalf)
-local rightStretchOnGoalLine = Vector.create(defStrech/2, World.Geometry.FieldHeightHalf)
+local leftStretchOnGoalLine = Vector(-defStrech/2, World.Geometry.FieldHeightHalf)
+local rightStretchOnGoalLine = Vector(defStrech/2, World.Geometry.FieldHeightHalf)
 local defStretchY = World.Geometry.FieldHeightHalf - defRadius
 local leftWayMax = (defAreaLineLength - defStrech) / 2
 local rightWayMin = defAreaLineLength - defRadius * math.pi / 2
@@ -25,7 +25,7 @@ local function oppDefLineWayToPoint(way)
         local angle = -((way - defAreaLineLength)/defRadius + math.pi)
         return leftStretchOnGoalLine + Vector.fromAngle(angle):setLength(defRadius)
     else
-        return Vector.create(way - defAreaLineLength/2, defStretchY)
+        return Vector(way - defAreaLineLength/2, defStretchY)
     end
 end
 

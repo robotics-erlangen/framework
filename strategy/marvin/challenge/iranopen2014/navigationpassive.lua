@@ -12,7 +12,7 @@ local function run()
 	if not initialized then
 		for i, robot in ipairs(World.FriendlyRobots) do
 			if i > 6 then break end
-			table.insert(agents, TestAgent.create(robot, {
+			table.insert(agents, TestAgent(robot, {
 				task = NavigationPassiveTask,
 				parameters = { i }
 			}))

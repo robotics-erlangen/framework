@@ -43,9 +43,9 @@ end
 function Generation.factory(specs, geometry)
 	local robotGen = Generation["Gen" .. tostring(specs.year) .. "_" .. tostring(specs.generation)]
 	if robotGen then
-		return robotGen.create(specs, true, geometry)
+		return robotGen(specs, true, geometry)
 	end
-	return Robot.create(specs.id, true, geometry)
+	return Robot(specs.id, true, geometry)
 end
 
 return Generation

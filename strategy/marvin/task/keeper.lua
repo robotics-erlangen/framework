@@ -10,7 +10,7 @@ local debug = require "../base/debug"
 
 local G = World.Geometry
 local kGD = Settings.keeperGoalDistance
-local goalNormal = Vector.create(0, 1)
+local goalNormal = Vector(0, 1)
 
 function Keeper:_init()
 	self._defendCorner = false
@@ -43,13 +43,13 @@ function Keeper:run()
 		debug.set("mode", "defend corner")
 		-- defend short corner
 		-- line starts a goal post, stay as near to the goal as possible
-		defenseLineStart = Vector.create(side*goalWidthHalf, G.FriendlyGoal.y)
-		local lineDir = ((Vector.create(0, defenseLineStart.y) - atkPos):perpendicular() * side):normalize()
+		defenseLineStart = Vector(side*goalWidthHalf, G.FriendlyGoal.y)
+		local lineDir = ((Vector(0, defenseLineStart.y) - atkPos):perpendicular() * side):normalize()
 		-- move startpoint out of the goal along the direction
 		defenseLineStart = defenseLineStart + lineDir * self._robot.radius
 
 		-- opposite corner
-		local otherGoalPost = Vector.create(-side*goalWidthHalf, G.FriendlyGoal.y)
+		local otherGoalPost = Vector(-side*goalWidthHalf, G.FriendlyGoal.y)
 		-- position where the robot would block the otherGoalPost
 		-- lambdaLine is distance from defenseLineStart in direction of lineDir
 		local _, lambdaLine = geom.intersectLineLine(defenseLineStart, lineDir,
@@ -68,8 +68,8 @@ function Keeper:run()
 		-- defend along the goal line and occupy as much space in the goal as possible
 		-- idea: cut defense line with line from goal posts to ball (attack pos)
 		-- account for robot radius
-		local goalCornerLeft = Vector.create(-goalWidthHalf, G.FriendlyGoal.y)
-		local goalCornerRight = Vector.create(goalWidthHalf, G.FriendlyGoal.y)
+		local goalCornerLeft = Vector(-goalWidthHalf, G.FriendlyGoal.y)
+		local goalCornerRight = Vector(goalWidthHalf, G.FriendlyGoal.y)
 		local goalLineY = G.FriendlyGoal.y + kGD + self._robot.radius
 		local lineDist = math.abs(goalLineY - goalCornerLeft.y)
 
@@ -89,8 +89,8 @@ function Keeper:run()
 			rightBound = rightBound + math.min(0, rightDist)
 		end
 
-		defenseLineStart = Vector.create(leftBound, goalLineY)
-		defenseLineEnd = Vector.create(rightBound, goalLineY)
+		defenseLineStart = Vector(leftBound, goalLineY)
+		defenseLineEnd = Vector(rightBound, goalLineY)
 		-- center
 		fallbackPos = (defenseLineEnd + defenseLineStart) * 0.5
 	end
@@ -129,7 +129,7 @@ function Keeper:run()
 	-- block estimated shoot line
 	elseif atkDir.y < 0 then
 		local k = math.bound(0, (atkPos.y+2)/2 * 0.6, 0.5)
-		moveTo = intersectPos * (1-k) + Vector.create(0, -G.FieldHeightHalf + kGD + self._robot.radius) * k
+		moveTo = intersectPos * (1-k) + Vector(0, -G.FieldHeightHalf + kGD + self._robot.radius) * k
 	else -- don't know where to go, just center in the goal / corner
 		moveTo = fallbackPos
 	end

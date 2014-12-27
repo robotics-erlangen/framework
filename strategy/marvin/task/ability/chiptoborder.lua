@@ -5,12 +5,12 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
 
-local leftMiddlePoint = Vector.create(-World.Geometry.FieldWidthHalf, 0)
+local leftMiddlePoint = Vector(-World.Geometry.FieldWidthHalf, 0)
 local rightMiddlePoint = -leftMiddlePoint
-local touchLineDir = Vector.create(0, 1)
+local touchLineDir = Vector(0, 1)
 local middleLineDir = leftMiddlePoint-rightMiddlePoint
-local leftFriendlyCorner = Vector.create(-World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
-local rightFriendlyCorner = Vector.create(World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
+local leftFriendlyCorner = Vector(-World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
+local rightFriendlyCorner = Vector(World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
 local chipImpactDistFromBorder = 0.5
 
 function ChipToBorder:_chipToBorderIfSafe()

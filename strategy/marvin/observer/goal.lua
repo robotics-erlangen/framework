@@ -108,14 +108,14 @@ function Goal.searchFreeSectors(robotList, opp)
 	if not keeper then	-- no keeper assigned
 		rightSector[1] = math.atan2((opp and -m or m), (opp and -1 or 1))
 		rightSector[2] = math.atan2((opp and -m or m), (opp and 1 or -1))
-		s_right = Vector.create(0, (opp and 1 or -1)*(G.FieldHeightHalf - 0.5*m*G.GoalWidth))
+		s_right = Vector(0, (opp and 1 or -1)*(G.FieldHeightHalf - 0.5*m*G.GoalWidth))
 	else
 		local R = keeper.radius + r
 		local t = math.sqrt(r^2 * (1 + m^2))
 		local d = math.sqrt(R^2 * (1 + m^2))
 		local th = (G.GoalWidth/2 - (R + r)/math.sqrt(1 + m^2))
 		--[[
-		local midp = Vector.create(0, G.FieldHeightHalf-t+d)
+		local midp = Vector(0, G.FieldHeightHalf-t+d)
 		local leftp = midp + Vector.fromAngle(math.atan2(-m, -1))*4
 		local rightp = midp + Vector.fromAngle(math.atan2(-m, 1))*4
 		vis.addPath("triangle", {leftp, midp, rightp}, vis.black)
@@ -123,9 +123,9 @@ function Goal.searchFreeSectors(robotList, opp)
 		if (keeper.pos.y)*(opp and 1 or -1) > -math.abs(m*keeper.pos.x) + G.FieldHeightHalf - t + d then
 			rightSector[1] = math.atan2((opp and -m or m), (opp and -1 or 1))
 			rightSector[2] = math.atan2((opp and -m or m), (opp and 1 or -1))
-			s_right = Vector.create(0, (opp and 1 or -1)*(G.FieldHeightHalf - 0.5*m*G.GoalWidth))
+			s_right = Vector(0, (opp and 1 or -1)*(G.FieldHeightHalf - 0.5*m*G.GoalWidth))
 		else
-			local mid = Vector.create(0, (G.FieldHeightHalf - t)*(opp and 1 or -1))
+			local mid = Vector(0, (G.FieldHeightHalf - t)*(opp and 1 or -1))
 			local gright = opp and G.OpponentGoalRight or G.FriendlyGoalLeft
 			local gleft = opp and G.OpponentGoalLeft or G.FriendlyGoalRight
 			-- right from the keeper (looking from field towards goal)
@@ -147,7 +147,7 @@ function Goal.searchFreeSectors(robotList, opp)
 					else
 						local posy = keeper.pos.y * (opp and 1 or -1)
 						if math.abs(keeper.pos.x) < th and posy > G.FieldHeightHalf - m*keeper.pos.x - t and posy < G.FieldHeightHalf + G.GoalDepth then -- if keeper is in goal
-							local upperGoalieEnd = Vector.create(keeper.pos.x + r, keeper.pos.y)
+							local upperGoalieEnd = Vector(keeper.pos.x + r, keeper.pos.y)
 							local pfp1, pfp2 = geom.getTangentsToCircle(upperGoalieEnd, gright, r)
 							if (pfp2.y - pfp1.y)*(opp and 1 or -1) < 0 then
 								pfp1, pfp2 = pfp2, pfp1
@@ -190,7 +190,7 @@ function Goal.searchFreeSectors(robotList, opp)
 					else
 						local posy = keeper.pos.y * (opp and 1 or -1)
 						if math.abs(keeper.pos.x) < th and posy > G.FieldHeightHalf + m*keeper.pos.x - t and posy < G.FieldHeightHalf + G.GoalDepth then -- if keeper is in goal
-							local lowerGoalieEnd = Vector.create(keeper.pos.x - r, keeper.pos.y)
+							local lowerGoalieEnd = Vector(keeper.pos.x - r, keeper.pos.y)
 							local pfp1, pfp2 = geom.getTangentsToCircle(lowerGoalieEnd, gleft, r)
 							if (pfp2.y - pfp1.y)*(opp and 1 or -1) < 0 then
 								pfp1, pfp2 = pfp2, pfp1
@@ -259,7 +259,7 @@ function Goal.predictShot()
 		-- if opponent is close to ball use its orientation
 		dir = Vector.fromAngle(oppBallOwner.dir)
 	elseif dir:length() > Settings.slowBall then
-		local intersectGoal = geom.intersectLineLine(pos, dir, World.Geometry.FriendlyGoal, Vector.create(1, 0))
+		local intersectGoal = geom.intersectLineLine(pos, dir, World.Geometry.FriendlyGoal, Vector(1, 0))
 		-- FIXME as the ball is moving also use pass check if it slightly misses the goal
 		-- TODO check whether an opponent robot may deflect the ball inside the keeper area?
 		-- check if there's a robot which may recieve the pass
@@ -305,7 +305,7 @@ function Goal.predictShot()
 				local ballAngle = (-World.Ball.speed):angle()
 				local robotAngle = passReciever[1].dir
 				local dirx, diry = Volley.calcVOut(8, ballSpeed, robotAngle, ballAngle)
-				dir = Vector.create(dirx, diry):normalize()
+				dir = Vector(dirx, diry):normalize()
 				vis.addCircle("o/goal: predictShot: receives pass", pos, passReciever[1].radius, vis.colors.pink, false)
 				vis.addPath("o/goal: predictShot: receives pass", {pos, pos + dir * 10}, vis.colors.pink)
 			end

@@ -21,7 +21,7 @@ function CurvedMaxAccel:_getPath(targetPos)
 	-- convert waypoints to vectors and draw
 	local waypointsVector = {}
 	for i = 1, #waypoints do
-		table.insert(waypointsVector, Vector.create(waypoints[i].p_x, waypoints[i].p_y))
+		table.insert(waypointsVector, Vector(waypoints[i].p_x, waypoints[i].p_y))
 	end
 	-- draw all at once
 	vis.addPathRaw("waypoints", waypointsVector, vis.colors.yellow)
@@ -540,7 +540,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 	if World.RefereeState == "Stop" then
 		maxSpeed = World.IsLargeField and 1.5 or 1
 	end
-	endSpeed = endSpeed or Vector.create(0, 0)
+	endSpeed = endSpeed or Vector(0, 0)
 	-- helper variables
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
 	local robotSpeed = Coordinates.toGlobal(self._robot.speed)

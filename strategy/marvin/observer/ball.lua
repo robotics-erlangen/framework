@@ -180,7 +180,7 @@ function Ball.atTime(t, ball)
 	local predicted = { radius = ball.radius }
 	if t > ball.brakeTime then -- ball won't move anymore after it has stopped
 		predicted.pos = Ball.ballAt(ball, ball.brakeTime)
-		predicted.speed = Vector.create(0, 0)
+		predicted.speed = Vector(0, 0)
 		predicted.brakeTime = 0
 	else
 		predicted.pos = Ball.ballAt(ball, t)

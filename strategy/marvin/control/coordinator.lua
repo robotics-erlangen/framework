@@ -21,11 +21,11 @@ local Coordinator = Class("Control.Coordinator")
 
 function Coordinator:init()
 	self._pools = {
-		manual = AgentPool.create(Agent.Manual),
-		keeper = AgentPool.create(Agent.Keeper),
-		defense = AgentPool.create(Agent.Defender),
-		attack = AgentPool.create(Agent.Attacker),
-		hidden = AgentPool.create(Agent.Hidden)
+		manual = AgentPool(Agent.Manual),
+		keeper = AgentPool(Agent.Keeper),
+		defense = AgentPool(Agent.Defender),
+		attack = AgentPool(Agent.Attacker),
+		hidden = AgentPool(Agent.Hidden)
 	}
 	self._poolGroups = {
 		{ self._pools.manual },
@@ -207,8 +207,8 @@ local function nearestOppToBall()
 	return nearestOppToBall
 end
 
-local countersideTargetLeft = { pos = Vector.create(-World.Geometry.FieldWidthHalf, 0) }
-local countersideTargetRight = { pos = Vector.create(World.Geometry.FieldWidthHalf, 0) }
+local countersideTargetLeft = { pos = Vector(-World.Geometry.FieldWidthHalf, 0) }
+local countersideTargetRight = { pos = Vector(World.Geometry.FieldWidthHalf, 0) }
 function Coordinator:_chooseManMarkAndCenterBacks()
 	self._oppsToMark = table.filter(self._oppsToMark, isVisible)
 	local nearestOppToBall = nearestOppToBall()
@@ -379,20 +379,20 @@ end
 local coord = nil
 Entrypoints.add(" main", function()
 	if not coord then
-		coord = Coordinator.create()
+		coord = Coordinator()
 	end
 	coord:run()
 end)
 Entrypoints.add(" main aggressive", function()
 	if not coord then
-		coord = Coordinator.create()
+		coord = Coordinator()
 	end
 	coord._customAttackRatio = 6
 	coord:run()
 end)
 Entrypoints.add(" main passive", function()
 	if not coord then
-		coord = Coordinator.create()
+		coord = Coordinator()
 	end
 	coord._customAttackRatio = 0
 	coord:run()

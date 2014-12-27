@@ -51,7 +51,7 @@ function KickoffMirror:run()
 		targetPosX = self._lastTargetRobot.pos.x
 	end
 
-	local pos = Vector.create(targetPosX, -self._distance - self._robot.radius)
+	local pos = Vector(targetPosX, -self._distance - self._robot.radius)
 	self._targetPos = Field.limitToField(pos, -self._robot.radius)
 
 	self._robot.path:setDefaultObstacles(self._robot)

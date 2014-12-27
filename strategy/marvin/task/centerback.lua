@@ -257,7 +257,7 @@ function CenterBack:run()
 	local pos_target = centerBackPositions[self._robot]
 	pos_target = pos_target or privateCenterBackPositions[self._robot]
 
-	local default_pos = Vector.create(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius
+	local default_pos = Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius
 		+ self._robot.radius + 0.02)
 	local destinationPos = pos_target and pos_target.pos or default_pos
 	local destinationTarget = pos_target and pos_target.target or

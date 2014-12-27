@@ -58,7 +58,7 @@ function Game.averagePosition(robots, weightX, weightY)
 		sumX = sumX + r.pos.x * weightFactorX
 		sumY = sumY + r.pos.y * weightFactorY
 	end
-	return Field.limitToField(Vector.create(sumX/#robots, sumY/#robots), 0)
+	return Field.limitToField(Vector(sumX/#robots, sumY/#robots), 0)
 end
 
 --- divides the field into 3 sectors (1 left, 2 center, 3 right)

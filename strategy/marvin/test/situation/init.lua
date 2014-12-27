@@ -94,7 +94,7 @@ local function createAgentsAndMoveTasks()
 			task = MoveToPos,
 			parameters = { destination.pos, destination.dir:angle() }
 		}
-		table.insert(setupAgents, TestAgent.create(robot, assignment))
+		table.insert(setupAgents, TestAgent(robot, assignment))
 	end
 end
 

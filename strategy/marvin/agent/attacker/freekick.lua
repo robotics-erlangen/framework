@@ -64,7 +64,7 @@ function FreeKick:_updateTask()
 		if goalKickFlag then
 			return GoalKick
 		end
-		local shootGoalTmp = ShootGoal.create(self._agent)
+		local shootGoalTmp = ShootGoal(self._agent)
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 
 		local bestPassRating = 0

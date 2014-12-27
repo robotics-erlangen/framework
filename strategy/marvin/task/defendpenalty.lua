@@ -10,7 +10,7 @@ local debug = require "../base/debug"
 function DefendPenalty:run()
 	local rr = self._robot.radius --assume all robots have the same radius
 	local penaltyLine = World.Geometry.OwnPenaltyLine + Settings.penaltyLineDistance
-	vis.addPath("t/defendpenalty: penaltyDistance", {Vector.create(-2,penaltyLine), Vector.create(2,penaltyLine)}, vis.colors.whiteHalf)
+	vis.addPath("t/defendpenalty: penaltyDistance", {Vector(-2,penaltyLine), Vector(2,penaltyLine)}, vis.colors.whiteHalf)
 	-- NOTE: All spots are on the penaltyline, so only x-values are processed
 
 	local occupiedSpotsFriendly = {}
@@ -32,7 +32,7 @@ function DefendPenalty:run()
 			-- prefer spot between own keeper and opponent to catch rebound
 			local ownKeeperPos = World.FriendlyKeeper and World.FriendlyKeeper.pos or World.Geometry.FriendlyGoal
 			local keeperOppDir = robot.pos - ownKeeperPos
-			local prefSpot = (geom.intersectLineLine(ownKeeperPos, keeperOppDir, Vector.create(0, penaltyLine), Vector.fromAngle(math.pi)))
+			local prefSpot = (geom.intersectLineLine(ownKeeperPos, keeperOppDir, Vector(0, penaltyLine), Vector.fromAngle(math.pi)))
 			if prefSpot then
 				table.insert(preferredSpots, prefSpot.x)
 			end
@@ -102,9 +102,9 @@ function DefendPenalty:run()
 	end
 
 	if not targetPos then --should only occur when all the whole penalty line is full with robots (i.e never)
-		targetPos = Vector.create(0, 0)
+		targetPos = Vector(0, 0)
 	else
-		targetPos = Vector.create(targetPos, penaltyLine)
+		targetPos = Vector(targetPos, penaltyLine)
 	end
 
 	self._robot.path:setDefaultObstacles(self._robot)

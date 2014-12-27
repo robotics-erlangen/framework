@@ -15,19 +15,19 @@ function TestAgent:init(robot, assignment)
 	self._testBehavior = nil
 	self._task = nil
 	self._assignedTask = nil
-	self._haltBehavior = Halt.create(self)
+	self._haltBehavior = Halt(self)
 	self._send, self._inbox = Messaging.registerAgent(self)
 	if assignment.task then
 		if assignment.parameters then
-			self._assignedTask = assignment.task.create(self, unpack(assignment.parameters))
+			self._assignedTask = assignment.task(self, unpack(assignment.parameters))
 		else
-			self._assignedTask = assignment.task.create(self)
+			self._assignedTask = assignment.task(self)
 		end
 	elseif assignment.behavior then
 		if assignment.parameters then
-			self._testBehavior = assignment.behavior.create(self, unpack(assignment.parameters))
+			self._testBehavior = assignment.behavior(self, unpack(assignment.parameters))
 		else
-			self._testBehavior = assignment.behavior.create(self)
+			self._testBehavior = assignment.behavior(self)
 		end
 	else
 		error "A test-agent needs a task or behavior"

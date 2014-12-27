@@ -8,11 +8,11 @@ local Messaging = require "control/messaging"
 local debug = require "../base/debug"
 
 function NavigationActive:init()
-	self._firstRobot = TestAgent.create(
+	self._firstRobot = TestAgent(
 		World.FriendlyRobots[1],
 		{ task = NavigationTask }
 	)
-	self._secondRobot = TestAgent.create(
+	self._secondRobot = TestAgent(
 		World.FriendlyRobots[2],
 		{ task = NavigationTask }
 	)
@@ -40,7 +40,7 @@ end
 local coord = nil
 Entrypoints.add("Technical Challenge/NavigationActive", function()
 	if not coord then
-		coord = NavigationActive.create()
+		coord = NavigationActive()
 	end
 	coord:run()
 end)
