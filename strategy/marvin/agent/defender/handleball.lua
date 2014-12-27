@@ -11,6 +11,9 @@ local CenterBack = require "task/centerback"
 local SaveBall = require "task/saveball"
 local InterceptPass = require "task/interceptpass"
 
+function HandleBall:_stop()
+	self._interceptingPass = false
+end
 
 function HandleBall:check()
 	if Referee.isFriendlyFreeKickState() or Referee.isStopState() or Referee.isKickoffState() then

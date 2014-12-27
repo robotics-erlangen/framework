@@ -31,6 +31,7 @@ local validGlobals = {
 	path = true,
 	Vector = true,
 	Settings = true,
+	Class = true,
 	mime = true, -- allow loading modules required for remote debugging
 	socket = true,
 }

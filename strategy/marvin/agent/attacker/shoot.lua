@@ -15,6 +15,7 @@ function Shoot:_stop()
 	self._taskStart = World.Time
 	self._minTaskTime = 0
 	self._passStart = 0
+	self._isCatchingPass = false
 end
 
 function Shoot:check()

@@ -1,4 +1,5 @@
 require("../base/globalschecker").enable()
+Class = require "../base/class"
 require "../base/base"
 require "settings"
 require "base/path" -- extend path module
