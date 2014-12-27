@@ -106,6 +106,13 @@ function Robot:init(data, isFriendly, geometry)
 	self.speed = nil
 	self.angularSpeed = nil
 	self.userControl = nil
+	self.controller = nil -- used by skynet
+	self.waypoints = nil -- used by skynet
+	self.task = nil -- used by skynet
+	self.isBallHandler = false -- used by skynet
+	self.role = nil -- used by skynet
+	self.isKeeper = false -- used by skynet
+	self.dest = nil -- used by skynet
 end
 
 function Robot:tostring()
