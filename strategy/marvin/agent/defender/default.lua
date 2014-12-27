@@ -1,5 +1,5 @@
 local Base = require "agent/base/behavior"
-local Default = (require "../base/class").new("Agent.Defender.Default", Base)
+local Default = Class("Agent.Defender.Default", Base)
 
 
 local World = require "../base/world"

@@ -1,4 +1,4 @@
-local RandomKeeper = (require "../base/class").newTask("Task.RandomKeeper", require "task/base")
+local RandomKeeper = Class("Task.RandomKeeper", require "task/base")
 
 local World = require "../base/world"
 local Field = require "../base/field"

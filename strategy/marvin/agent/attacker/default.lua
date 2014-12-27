@@ -1,5 +1,5 @@
 local Base = require "agent/base/behavior"
-local Default = (require "../base/class").new("Agent.Attacker.Default", Base)
+local Default = Class("Agent.Attacker.Default", Base)
 
 local Striker = require "task/striker"
 local DirectPassTarget = require "task/directpasstarget"

@@ -3,7 +3,7 @@ local AgentPool = require "control/agentpool"
 local Entrypoints = require "../base/entrypoints"
 local World = require "../base/world"
 
-local FixedRoles = (require "../base/class").new("FixedRoles", require "control/coordinator")
+local FixedRoles = Class("FixedRoles", require "control/coordinator")
 
 function FixedRoles:_updatePoolRobots()
 	for _, robot in ipairs(World.FriendlyRobots) do

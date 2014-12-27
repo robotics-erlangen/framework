@@ -1,5 +1,5 @@
 local Base = require "agent/base/behavior"
-local ManMark = (require "../base/class").new("Agent.Defender.ManMark", Base)
+local ManMark = Class("Agent.Defender.ManMark", Base)
 
 local ManMarkTask = require "task/manmark"
 local CenterBack = require "task/centerback"

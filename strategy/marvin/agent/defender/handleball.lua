@@ -1,5 +1,5 @@
 local Base = require "agent/base/behavior"
-local HandleBall = (require "../base/class").new("Agent.Defender.HandleBall", Base)
+local HandleBall = Class("Agent.Defender.HandleBall", Base)
 
 local World = require "../base/world"
 local geom = require "../base/geom"

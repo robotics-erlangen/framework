@@ -1,4 +1,4 @@
-local ShootSpeedTest = (require "../base/class").new("Task.ShootSpeedTest", require "task/base")
+local ShootSpeedTest = Class("Task.ShootSpeedTest", require "task/base")
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 

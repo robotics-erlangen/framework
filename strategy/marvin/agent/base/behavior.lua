@@ -1,4 +1,4 @@
-local Base = (require "../base/class").new("Behavior.Base")
+local Base = Class("Behavior.Base")
 
 local Class = require "../base/class"
 local Messaging = require "control/messaging"

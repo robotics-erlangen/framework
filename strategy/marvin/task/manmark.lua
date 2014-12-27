@@ -1,4 +1,4 @@
-local ManMark = (require "../base/class").newTask("Task.ManMark", require "task/base")
+local ManMark = Class("Task.ManMark", require "task/base")
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"

@@ -1,4 +1,4 @@
-local OldController = (require "../base/class").new("Trajectory.ToTarget", (require "../base/trajectory").Base)
+local OldController = Class("Trajectory.ToTarget", (require "../base/trajectory").Base)
 local Coordinates = require "../base/coordinates"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
@@ -32,13 +32,13 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	end
 	maxSpeed = maxSpeed or self._robot.maxSpeed
 	endSpeed = endSpeed or 0
-	
+
 	targetPos = Coordinates.toGlobal(targetPos)
 	targetDir = Coordinates.toGlobal(targetDir)
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
 	local robotSpeed = Coordinates.toGlobal(self._robot.speed)
 	local robotDir = Coordinates.toGlobal(self._robot.dir)
-	
+
 	self._robot.path:setProbabilities(0.1, 0.4)
 	local waypoints = self._robot.path:get(robotPos.x, robotPos.y, targetPos.x, targetPos.y)
 
@@ -49,7 +49,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		end
 		return {}, Coordinates.toLocal(targetPos), 0
 	end
-	
+
 	local prev = robotPos
 	local dist = 0
 	for i=1,#waypoints do
@@ -58,22 +58,22 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		dist = dist + cur:distanceTo(prev)
 		prev = cur
 	end
-	
+
 	local brakeDist = maxSpeed / self.parameters.factorProp
 	if dist < brakeDist then
 		brakeDist = dist
 	end
-	
+
 	local v_robot
-	
+
 	local k = self.parameters.factorProp/1
 
 	local accelerationFactor = 0.8
-	local accelerate = math.abs(self._robot.acceleration 
+	local accelerate = math.abs(self._robot.acceleration
 			and self._robot.acceleration.aSpeedupFMax or 1.0) * accelerationFactor
-	local brake = math.abs(self._robot.acceleration 
+	local brake = math.abs(self._robot.acceleration
 			and self._robot.acceleration.aBrakeSMax or 1.0) * accelerationFactor
-	local v = robotSpeed:length()	
+	local v = robotSpeed:length()
 
 	self.v_last = self.v_last or v
 	local brake2 = 1*brake
@@ -84,14 +84,14 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		v_robot = self.v_last - brake*World.TimeDiff
 		--	v_robot = self.v_last - brake*World.TimeDiff
 		elseif v <= brake/k and k*dist <= brake/k then
-			local v_theo			
+			local v_theo
 			v_theo = k*dist
 			if v_theo > v then
 				v_robot = self.v_last + accelerate*0.0001*(v_theo-v)
 				log("da")
 			else
 				--log("else")
-				v_robot = k*dist		
+				v_robot = k*dist
 			end
 		else
 			v_robot = v --- brake*World.TimeDiff
@@ -116,21 +116,21 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	end
 
 	local nextPoint = Vector.create(waypoints[1].p_x, waypoints[1].p_y)
-	
+
 	local speed = (nextPoint - robotPos):setLength(v_robot)
 
 	local time = (dist - brakeDist) / self._robot.maxSpeed + (1 / self.parameters.factorProp) * (math.log(brakeDist) + 4.60517) --4.6 is log(100)
 	if time < 0 then
 		time = 0
 	end
-	
-	
+
+
 	local limitRot = self.parameters.limitRot
 	-- Reglerabweichung berechnen
 	local error_phi = geom.getAngleDiff(robotDir, targetDir)
 	-- limit rot. speed
 	local angularSpeed = math.bound(-limitRot, error_phi * self.parameters.k_omega, limitRot)
-	
+
 	local spline = { {t_start = 0, t_end = math.huge,
 		x = { a0 = robotPos.x, a1 = speed.x, a2 = 0, a3 = 0 },
 		y = { a0 = robotPos.y, a1 = speed.y, a2 = 0, a3 = 0 },

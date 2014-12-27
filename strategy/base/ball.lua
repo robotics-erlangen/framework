@@ -24,7 +24,7 @@ module "Ball"
 *************************************************************************]]
 
 local Coordinates = require "../base/coordinates"
-local Ball, BallMt = (require "../base/class").new("Ball")
+local Ball, BallMt = (require "../base/class")("Ball")
 local Constants = require "../base/constants"
 
 --- Values provided by Ball

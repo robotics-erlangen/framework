@@ -1,4 +1,4 @@
-local CurvedMaxAccel = (require "../base/class").new("Trajectory.CurvedMaxAccel", (require "../base/trajectory").Base)
+local CurvedMaxAccel = Class("Trajectory.CurvedMaxAccel", (require "../base/trajectory").Base)
 local Coordinates = require "../base/coordinates"
 local geom = require "../base/geom"
 local vis = require "../base/vis"

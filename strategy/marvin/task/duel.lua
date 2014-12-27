@@ -1,5 +1,5 @@
 local ClearBall = require "task/ability/clearball"
-local Duel = (require "../base/class").newTask("Task.Duel", require "task/base", ClearBall)
+local Duel = Class("Task.Duel", require "task/base", ClearBall)
 
 local World = require "../base/world"
 local geom = require "../base/geom"

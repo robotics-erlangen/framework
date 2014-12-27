@@ -1,4 +1,4 @@
-local RescueRobot = (require "../base/class").newTask("Task.RescueRobot", require "task/base")
+local RescueRobot = Class("Task.RescueRobot", require "task/base")
 
 local geom = require "../base/geom"
 local World = require "../base/world"

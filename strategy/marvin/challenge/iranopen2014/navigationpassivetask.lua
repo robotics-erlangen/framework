@@ -1,4 +1,4 @@
-local NavigationPassive = (require "../base/class").new("Task.NavigationChallengePassive", require "task/base")
+local NavigationPassive = Class("Task.NavigationChallengePassive", require "task/base")
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 

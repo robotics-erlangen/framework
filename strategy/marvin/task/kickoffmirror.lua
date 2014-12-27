@@ -1,4 +1,4 @@
-local KickoffMirror = (require "../base/class").newTask("Task.KickoffMirror", require "task/base")
+local KickoffMirror = Class("Task.KickoffMirror", require "task/base")
 
 local World = require "../base/world"
 local Game = require "observer/game"

@@ -1,5 +1,5 @@
 local Base = require "agent/base/behavior"
-local Stop = (require "../base/class").new("Agent.Attacker.Stop", Base)
+local Stop = Class("Agent.Attacker.Stop", Base)
 local Ball = require "observer/ball"
 local Referee = require "../base/referee"
 

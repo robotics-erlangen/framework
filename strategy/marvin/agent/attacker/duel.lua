@@ -1,5 +1,5 @@
 local Base = require "agent/base/behavior"
-local Duel = (require "../base/class").new("Agent.Attacker.Duel", Base)
+local Duel = Class("Agent.Attacker.Duel", Base)
 local Ball = require "observer/ball"
 
 local TaskDuel = require "task/duel"

@@ -1,5 +1,5 @@
 local Base = require "agent/base/behavior"
-local KickoffAssistant = (require "../base/class").new("Agent.Attacker.KickoffAssistant", Base)
+local KickoffAssistant = Class("Agent.Attacker.KickoffAssistant", Base)
 
 local World = require "../base/world"
 local G = World.Geometry

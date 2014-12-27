@@ -1,4 +1,4 @@
-local OldController = (require "../base/class").new("Trajectory.OldController", (require "../base/trajectory").Base)
+local OldController = Class("Trajectory.OldController", (require "../base/trajectory").Base)
 local Coordinates = require "../base/coordinates"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
@@ -31,13 +31,13 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	end
 	maxSpeed = maxSpeed or self._robot.maxSpeed
 	endSpeed = endSpeed or Vector.create(0, 0)
-	
+
 	targetPos = Coordinates.toGlobal(targetPos)
 	targetDir = Coordinates.toGlobal(targetDir)
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
 	local robotSpeed = Coordinates.toGlobal(self._robot.speed)
 	local robotDir = Coordinates.toGlobal(self._robot.dir)
-	
+
 	self._robot.path:setProbabilities(0.1, 0.4)
 	local waypoints = self._robot.path:get(robotPos.x, robotPos.y, targetPos.x, targetPos.y)
 
@@ -48,7 +48,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		end
 		return {}, Coordinates.toLocal(targetPos), 0
 	end
-	
+
 	local prev = robotPos
 	local dist = 0
 	for i=1,#waypoints do
@@ -57,7 +57,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		dist = dist + cur:distanceTo(prev)
 		prev = cur
 	end
-	
+
 	-- distance without end speed hack
 	local waypointDist = dist
 
@@ -73,10 +73,10 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	brakeDist = math.bound(0, brakeDist, dist)
 	-- brake distance without end speed hack
 	local waypointBrakeDist = math.min(brakeDist, waypointDist)
-	
+
 	local v_robot = self.parameters.factorProp * brakeDist
 	local nextPoint = Vector.create(waypoints[1].p_x, waypoints[1].p_y)
-	
+
 	local speed = (nextPoint - robotPos):setLength(v_robot)
 
 	-- calculate time required for exponential part
@@ -114,14 +114,14 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 
 	-- add time for part with maxSpeed
 	local time = math.max(0, (waypointDist - waypointBrakeDist) / maxSpeed + etime)
-	
-	
+
+
 	local limitRot = self.parameters.limitRot
 	-- Reglerabweichung berechnen
 	local error_phi = geom.getAngleDiff(robotDir, targetDir)
 	-- limit rot. speed
 	local angularSpeed = math.bound(-limitRot, error_phi * self.parameters.k_omega, limitRot)
-	
+
 	local spline = { {t_start = 0, t_end = math.huge,
 		x = { a0 = robotPos.x, a1 = speed.x, a2 = 0, a3 = 0 },
 		y = { a0 = robotPos.y, a1 = speed.y, a2 = 0, a3 = 0 },

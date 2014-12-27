@@ -1,5 +1,5 @@
 local Base = require "agent/base/behavior"
-local Halt = (require "../base/class").new("Agent.Shared.Halt", Base)
+local Halt = Class("Agent.Shared.Halt", Base)
 
 local World = require "../base/world"
 local HaltTask = require "task/halt"

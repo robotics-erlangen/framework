@@ -1,4 +1,4 @@
-local DefendPenalty = (require "../base/class").newTask("Task.DefendPenalty", require "task/base")
+local DefendPenalty = Class("Task.DefendPenalty", require "task/base")
 
 local ToTarget = require "trajectory/totarget"
 local World = require "../base/world"

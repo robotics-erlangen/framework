@@ -4,7 +4,7 @@ local ReceivePass = require "task/ability/receivepass"
 local Volley = require "task/ability/volley"
 local Shoot = require "task/ability/shoot"
 
-local ShootGoal = (require "../base/class").newTask("Task.ShootGoal", require "task/base",
+local ShootGoal = Class("Task.ShootGoal", require "task/base",
 		CatchBall, ReceivePass, Volley, Shoot)
 
 local Goal = require "observer/goal"

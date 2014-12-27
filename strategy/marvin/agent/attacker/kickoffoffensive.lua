@@ -1,5 +1,5 @@
 local Base = require "agent/base/behavior"
-local KickoffOffensive = (require "../base/class").new("Agent.Attacker.KickoffOffensive", Base)
+local KickoffOffensive = Class("Agent.Attacker.KickoffOffensive", Base)
 
 local World = require "../base/world"
 local G = World.Geometry
@@ -10,7 +10,7 @@ local MoveToStaticBall = require "task/movetostaticball"
 
 
 function KickoffOffensive:check()
-	return self._inbox.mainAttacker().trainer == self._robot and 
+	return self._inbox.mainAttacker().trainer == self._robot and
 		(World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive")
 end
 

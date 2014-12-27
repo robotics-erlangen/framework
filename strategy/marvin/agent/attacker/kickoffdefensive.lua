@@ -1,5 +1,5 @@
 local Base = require "agent/base/behavior"
-local KickoffDefensive = (require "../base/class").new("Agent.Attacker.KickoffDefensive", Base)
+local KickoffDefensive = Class("Agent.Attacker.KickoffDefensive", Base)
 
 local World = require "../base/world"
 local KickoffMirror = require "task/kickoffmirror"

@@ -1,4 +1,4 @@
-local Keeper = (require "../base/class").newTask("Task.Keeper", require "task/base")
+local Keeper = Class("Task.Keeper", require "task/base")
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"

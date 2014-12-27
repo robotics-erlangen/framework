@@ -1,5 +1,4 @@
-local Class = require "../base/class"
-local Base = Class.newTask("Task.Base")
+local Base = Class("Task.Base")
 local debug = require "../base/debug"
 local Messaging = require "control/messaging"
 

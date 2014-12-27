@@ -1,6 +1,5 @@
-local Class = require "../base/class"
 local Base = require "agent/base/behavior"
-local FreeKick = Class.new("Agent.Attacker.FreeKick", Base)
+local FreeKick = Class("Agent.Attacker.FreeKick", Base)
 
 local World = require "../base/world"
 local Robot = require "observer/robot"
@@ -49,7 +48,7 @@ local nearBallDist = 0.15
 local hurryUp = 6
 function FreeKick:_updateTask()
 	local goalKickFlag = Field.isInOwnCorner(World.Ball.pos, false)
-	
+
 	local switchDist = nearBallDist + self._robot.radius + World.Ball.radius + Settings.positionPadding
 	local atBall =  self._robot.pos:distanceTo(World.Ball.pos) < switchDist
 
@@ -67,7 +66,7 @@ function FreeKick:_updateTask()
 		end
 		local shootGoalTmp = ShootGoal.create(self._agent)
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
-		
+
 		local bestPassRating = 0
 		local pass
 		for robot, sugg in pairs(self._inbox.passSuggestion()) do

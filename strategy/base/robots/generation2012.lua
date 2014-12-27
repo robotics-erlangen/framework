@@ -24,7 +24,7 @@ module "Robot.Generation.Gen2012_2"
 *************************************************************************]]
 
 local Robot = require "../base/robot"
-local Gen2012, Gen2012Mt = (require "../base/class").new("Robot.Generation.Gen2012_2", Robot)
+local Gen2012, Gen2012Mt = (require "../base/class")("Robot.Generation.Gen2012_2", Robot)
 
 Gen2012Mt.__tostring = Robot.tostring
 

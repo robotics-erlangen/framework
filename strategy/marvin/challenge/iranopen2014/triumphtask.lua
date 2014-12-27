@@ -1,4 +1,4 @@
-local Triumph = (require "../base/class").new("Task.Triumph", require "task/base")
+local Triumph = Class("Task.Triumph", require "task/base")
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 

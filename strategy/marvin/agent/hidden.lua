@@ -1,4 +1,4 @@
-local Hidden = (require "../base/class").new("Agent.Hidden", require "agent/base/agent")
+local Hidden = Class("Agent.Hidden", require "agent/base/agent")
 
 local Default = require "agent/hidden/default"
 

@@ -1,4 +1,4 @@
-local InterceptPass = (require "../base/class").new("Task.InterceptPass", require "task/base")
+local InterceptPass = Class("Task.InterceptPass", require "task/base")
 
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
@@ -25,7 +25,7 @@ function InterceptPass.touchBallPosition(robot, timelimit)
 	local EXTRA_TIME = 0.1 -- to compensate the difference between timeToPos and the real robot time
 	local TIME_LIMIT = timelimit or 1
 
-	local t_ball = math.min(Ball.ballRollTime(World.Ball.speed:length(), 
+	local t_ball = math.min(Ball.ballRollTime(World.Ball.speed:length(),
 			robot.pos:distanceTo(World.Ball.pos)), TIME_LIMIT)
 	local timestep = 0.5 * t_ball
 
@@ -54,7 +54,7 @@ function InterceptPass.touchBallPosition(robot, timelimit)
 		local unprojected_radius = math.min((robot.shootRadius + World.Ball.radius) /
 				math.sin(to_robot:absoluteAngleDiff(World.Ball.speed)), to_robot:length())
 		local pos_robot = pos_ball + to_robot:setLength(unprojected_radius)
-		
+
 
 		if Robot.timeToPos(robot, pos_robot) + EXTRA_TIME < t_ball then
 			t_ball = t_ball - timestep
@@ -67,7 +67,7 @@ function InterceptPass.touchBallPosition(robot, timelimit)
 			break
 		end
 	end
-	
+
 	if t_ball >= TIME_LIMIT then
 		return nil
 	end
@@ -82,7 +82,7 @@ InterceptPass.touchBallPosition = Cache.forFrame(InterceptPass.touchBallPosition
 function InterceptPass:run()
 	local pos, time = InterceptPass.touchBallPosition(self._robot)
 
-	
+
 	local mostDangerousRobot = nil
 	local maxTimeAdvance = -math.huge
 	local distHysteresis = 0.04
@@ -113,7 +113,7 @@ function InterceptPass:run()
 				mindist = dist
 				minrobot = r
 			end
-		end		
+		end
 		pos = Defense.manMarkPos(minrobot)
 	end
 	debug.set("notEnoughTime", notEnoughTime)

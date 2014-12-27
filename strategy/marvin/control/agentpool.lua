@@ -1,4 +1,4 @@
-local AgentPool = (require "../base/class").new("AgentPool")
+local AgentPool = Class("AgentPool")
 local debug = require "../base/debug"
 
 function AgentPool:init(agentType)
@@ -37,7 +37,7 @@ function AgentPool:takeRobot(robots)
 	if #self._agents >= self._robotLimit then
 		return
 	end
-	
+
 	local robot = self._agentType.takeRobot(robots)
 	if robot then
 		table.insert(self._agents, self._agentType.create(robot))

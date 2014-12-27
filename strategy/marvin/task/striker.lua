@@ -1,6 +1,6 @@
 local SuggestPass = require "task/ability/suggestpass"
 local CornerAttack = require "task/ability/cornerattack"
-local Striker = (require "../base/class").newTask("Task.Striker", require "task/base", SuggestPass, CornerAttack)
+local Striker = Class("Task.Striker", require "task/base", SuggestPass, CornerAttack)
 
 local World = require "../base/world"
 local vis = require "../base/vis"

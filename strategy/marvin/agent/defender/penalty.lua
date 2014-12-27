@@ -1,5 +1,5 @@
 local Base = require "agent/base/behavior"
-local Penalty = (require "../base/class").new("Agent.Defender.Penalty", Base)
+local Penalty = Class("Agent.Defender.Penalty", Base)
 
 local World = require "../base/world"
 

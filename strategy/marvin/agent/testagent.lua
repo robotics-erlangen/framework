@@ -1,4 +1,4 @@
-local TestAgent = (require "../base/class").new("Agent.Test", require "agent/base/agent")
+local TestAgent = Class("Agent.Test", require "agent/base/agent")
 
 local Messaging = require "control/messaging"
 local Halt = require "agent/shared/halt"

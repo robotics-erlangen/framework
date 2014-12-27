@@ -1,5 +1,5 @@
 local ChipToBorder = require "task/ability/chiptoborder"
-local SaveBall = (require "../base/class").newTask("Task.SaveBall", require "task/base", ChipToBorder)
+local SaveBall = Class("Task.SaveBall", require "task/base", ChipToBorder)
 
 local World = require "../base/world"
 local vis = require "../base/vis"

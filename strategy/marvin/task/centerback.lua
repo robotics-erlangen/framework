@@ -1,4 +1,4 @@
-local CenterBack = (require "../base/class").newTask("Task.CenterBack", require "task/base")
+local CenterBack = Class("Task.CenterBack", require "task/base")
 
 local World = require "../base/world"
 local Messaging = require "control/messaging"

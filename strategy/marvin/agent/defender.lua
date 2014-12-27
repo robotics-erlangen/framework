@@ -1,4 +1,4 @@
-local Defender = (require "../base/class").new("Agent.Defender", require "agent/base/agent")
+local Defender = Class("Agent.Defender", require "agent/base/agent")
 
 local World = require "../base/world"
 

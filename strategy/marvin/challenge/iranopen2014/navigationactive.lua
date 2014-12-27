@@ -1,4 +1,4 @@
-local NavigationActive = (require "../base/class").new("NavigationActive", require "control/coordinator")
+local NavigationActive = Class("NavigationActive", require "control/coordinator")
 
 local TestAgent = require "agent/testagent"
 local NavigationTask = require "challenge/iranopen2014/navigationtask"
@@ -11,7 +11,7 @@ function NavigationActive:init()
 	self._firstRobot = TestAgent.create(
 		World.FriendlyRobots[1],
 		{ task = NavigationTask }
-	)		
+	)
 	self._secondRobot = TestAgent.create(
 		World.FriendlyRobots[2],
 		{ task = NavigationTask }
@@ -32,7 +32,7 @@ function NavigationActive:run()
 	debug.pop() -- Role Applications
 	self:_chooseExclusiveRoles()
 	Messaging.deliverMessages()
-	
+
 	self._firstRobot:run()
 	self._secondRobot:run()
 end

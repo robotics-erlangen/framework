@@ -25,7 +25,7 @@ module "Trajectory"
 
 local vis = require "../base/vis"
 local Class = require "../base/class"
-local Trajectory =  (require "../base/class").new("Trajectory") -- Trajectory manager
+local Trajectory =  (require "../base/class")("Trajectory") -- Trajectory manager
 
 --- Initialises trajectory manager.
 -- Must only be called by robot class!
@@ -59,7 +59,7 @@ end
 
 
 -- base class for trajectory planning
-Trajectory.Base = (require "../base/class").new("Trajectory.Base")
+Trajectory.Base = (require "../base/class")("Trajectory.Base")
 
 function Trajectory.Base:init(robot, ...)
 	self._robot = robot

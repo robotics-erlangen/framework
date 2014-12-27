@@ -1,4 +1,4 @@
-local BallAnalyzer = (require "../base/class").new("Observer.BallAnalyzer", require "../base/process")
+local BallAnalyzer = Class("Observer.BallAnalyzer", require "../base/process")
 
 local World = require "../base/world"
 local MovingAverage = require "learning/movingaverage"
@@ -147,7 +147,7 @@ function BallAnalyzer:analyze()
 	local overallFriction = math.average(accelerationArray)
 	local slippingFriction, rollingFriction = self._slippingFriction, self._rollingFriction
 	local startRolling, lastDeviation
-	local lastXdeviations = MovingAverage.get("dev", 25, math.huge) --andere Variablen aufr‰umen
+	local lastXdeviations = MovingAverage.get("dev", 25, math.huge) --andere Variablen aufr√§umen
 	lastXdeviations:addValue(math.huge) --hack
 	repeat
 		lastDeviation = deviation

@@ -1,4 +1,4 @@
-local StopAttack = (require "../base/class").newTask("Task.StopAttack", require "task/base")
+local StopAttack = Class("Task.StopAttack", require "task/base")
 
 local World = require "../base/world"
 local Constants = require "../base/constants"

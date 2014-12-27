@@ -1,4 +1,4 @@
-local Navigation = (require "../base/class").new("Task.NavigationChallenge", require "task/base")
+local Navigation = Class("Task.NavigationChallenge", require "task/base")
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 local debug = require "../base/debug"
@@ -48,7 +48,7 @@ function Navigation:run()
 			self:checkAndUpdateTarget()
 		elseif self._state == "vertical" and self._robot.pos.x <= 0 then
 			leftRating = 1
-			if self._inbox.navChallengeLeft().trainer == self._robot then		
+			if self._inbox.navChallengeLeft().trainer == self._robot then
 				self._moveDest = innerUpperLeftCorner
 				self:checkAndUpdateTarget()
 			end
@@ -103,12 +103,12 @@ function Navigation:run()
 
 
 	local lineWidth = 2*self._robot.radius -- for obstacle lines
-	
+
 	-- middle area
 	local createRectObstacle = function(middleDistx, middleDisty, lineWidth)
 		middleDistx = middleDistx - lineWidth
 		middleDisty = middleDisty - lineWidth
-		local corners = { 
+		local corners = {
 			Vector.create(-g.FieldWidthHalf+middleDistx, -g.FieldHeightHalf+middleDisty),
 			Vector.create(-g.FieldWidthHalf+middleDistx, g.FieldHeightHalf-middleDisty),
 			Vector.create(g.FieldWidthHalf-middleDistx, g.FieldHeightHalf-middleDisty),
@@ -119,8 +119,8 @@ function Navigation:run()
 		self._robot.path:addLine(corners[2].x,  corners[2].y, corners[3].x, corners[3].y, lineWidth)
 		self._robot.path:addLine(corners[3].x,  corners[3].y, corners[4].x, corners[4].y, lineWidth)
 		self._robot.path:addLine(corners[4].x,  corners[4].y, corners[1].x, corners[1].y, lineWidth)
-		
-		local viscorners = { 
+
+		local viscorners = {
 			Vector.create(-g.FieldWidthHalf+middleDistx-lineWidth, -g.FieldHeightHalf+middleDisty-lineWidth),
 			Vector.create(-g.FieldWidthHalf+middleDistx-lineWidth, g.FieldHeightHalf-middleDisty+lineWidth),
 			Vector.create(g.FieldWidthHalf-middleDistx+lineWidth, g.FieldHeightHalf-middleDisty+lineWidth),

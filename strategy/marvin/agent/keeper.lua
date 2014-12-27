@@ -1,4 +1,4 @@
-local Keeper = (require "../base/class").new("Agent.Keeper", require "agent/base/agent")
+local Keeper = Class("Agent.Keeper", require "agent/base/agent")
 local World = require "../base/world"
 
 local Default = require "agent/keeper/default"

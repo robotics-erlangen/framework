@@ -24,7 +24,7 @@ module "Process"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-local Process = (require "../base/class").new("Process")
+local Process = (require "../base/class")("Process")
 
 --- Execute the process actions here
 -- @name run

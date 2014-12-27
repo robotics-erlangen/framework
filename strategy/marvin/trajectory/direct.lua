@@ -1,4 +1,4 @@
-local Direct = (require "../base/class").new("Trajectory.Direct", (require "../base/trajectory").Base)
+local Direct = Class("Trajectory.Direct", (require "../base/trajectory").Base)
 local Coordinates = require "../base/coordinates"
 local geom = require "../base/geom"
 
@@ -17,7 +17,7 @@ function Direct:update(speed, targetDir, rotateSpeed, accel)
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
 	local robotDir = Coordinates.toGlobal(self._robot.dir)
 	assert(targetDir == nil or rotateSpeed == nil, "rotating while having a fixed direction makes no sense")
-	
+
 	if rotateSpeed == nil then
 		local limitRot = 4 * math.pi
 		local k_omega = 5

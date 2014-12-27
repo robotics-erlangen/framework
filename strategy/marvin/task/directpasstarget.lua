@@ -1,5 +1,5 @@
 local Task = require "task/base"
-local PassTarget = (require "../base/class").newTask("Task.PassTarget", Task)
+local PassTarget = Class("Task.PassTarget", Task)
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"

@@ -2,7 +2,7 @@ local MovingAverage = {}
 
 local IO = require "util/io"
 
-local Entry = (require "../base/class").new("Learning.MovingAverage.Entry")
+local Entry = Class("Learning.MovingAverage.Entry")
 
 function Entry:init(name, nPoints, default)
 	assert(nPoints ~= nil and default ~= nil, "Parameters are missing")
@@ -17,7 +17,7 @@ end
 
 function Entry:_load()
 	local lines = IO.readLines(self._name)
-	
+
 	local startPos = math.max(1, #lines - self._nPoints)
 	for i = startPos, #lines do
 		self:_addValue(tonumber(lines[i]), false)

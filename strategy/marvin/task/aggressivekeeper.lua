@@ -1,5 +1,5 @@
 local ChipToBorder = require "task/ability/chiptoborder"
-local AggressiveKeeper = (require "../base/class").newTask("Task.AggressiveKeeper",
+local AggressiveKeeper = Class("Task.AggressiveKeeper",
 	require "task/base", ChipToBorder)
 
 local World = require "../base/world"

@@ -17,7 +17,7 @@ local Messaging = require "control/messaging"
 local debug = require "../base/debug"
 local vis = require "../base/vis"
 
-local Coordinator = (require "../base/class").new("Control.Coordinator")
+local Coordinator = Class("Control.Coordinator")
 
 function Coordinator:init()
 	self._pools = {

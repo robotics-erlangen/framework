@@ -29,7 +29,7 @@ local Trajectory = require "../base/trajectory"
 local Constants = require "../base/constants"
 local amun = amun
 
-local Robot, RobotMt = (require "../base/class").new("Robot")
+local Robot, RobotMt = (require "../base/class")("Robot")
 
 --- Values provided by a robot object.
 --- Fields marked with * are only available for own robots
@@ -90,6 +90,22 @@ function Robot:init(data, isFriendly, geometry)
 			 geometry.FieldWidthHalf  + geometry.BoundaryWidth + 0.02,
 			 geometry.FieldHeightHalf + geometry.BoundaryWidth + 0.02)
 	end
+	self._currentTime = 0
+	self._controllerInput = nil
+	self._kickStyle = nil
+	self._kickPower = nil
+	self._dribblerSpeed = nil
+	self._standbyTimer = nil
+	self._standby = nil
+	self._standbyTick = nil
+	self._standbyEnd = nil
+	self.radioResponse = nil
+	self.isVisible = nil
+	self.pos = nil
+	self.dir = nil
+	self.speed = nil
+	self.angularSpeed = nil
+	self.userControl = nil
 end
 
 function Robot:tostring()
