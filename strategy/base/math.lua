@@ -25,24 +25,6 @@ module "math"
 *************************************************************************]]
 
 
-require "amunMath"
-
---- solves up to quartic equations
--- The equation is in the form  a + b*x + c*x^2 + d*x^3 + e*x^4 = 0
--- Left out parameters are considered to be 0
--- The C-function chooses the solver for the lowest polynomial degree possible
--- @class function
--- @name math.solveEquation
--- @param a number - a parameter
--- @param b number - b parameter
--- @param c number - c parameter
--- @param d number - d parameter
--- @param e number - e parameter
--- @return number, number, number, number -- the solutions, number is nil when no solution (if there are for example 2 solutions, they will be in the first two return variables)
-
---[[
-separator for luadoc]]--
-
 local max, min = math.max, math.min
 
 --- Limits value to interval [min, max].
