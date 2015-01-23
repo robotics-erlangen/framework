@@ -20,6 +20,7 @@
 
 -- Requires Lua Development Tools for Eclipse
 -- http://www.eclipse.org/koneki/ldt/ (version >= 1.0)
+-- !!! Copy the debugger file provided by ldt to this folder as debugger.lua !!!
 -- Requires luasocket2 c library on the lua load path! (version >= 2.1)
 -- See README of ra for luasocket install instructions
 
