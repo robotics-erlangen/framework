@@ -1,0 +1,42 @@
+package deprecated.amun;
+
+message GameState {
+    enum Phase {
+        FirstHalf = 1;
+        SecondHalf = 2;
+        Halftime = 3;
+        Overtime1 = 4;
+        Overtime2 = 5;
+        PenaltyShootout = 6;
+    }
+
+    enum State {
+        Halt = 1;
+        Stop = 2;
+        Game = 3;
+        GameForce = 4;
+
+        KickoffYellowPrepare = 5;
+        KickoffYellow = 6;
+        PenaltyYellowPrepare = 7;
+        PenaltyYellow = 8;
+        DirectYellow = 9;
+        IndirectYellow = 10;
+
+        KickoffBluePrepare = 11;
+        KickoffBlue = 12;
+        PenaltyBluePrepare = 13;
+        PenaltyBlue = 14;
+        DirectBlue = 15;
+        IndirectBlue = 16;
+
+        TimeoutYellow = 17;
+        TimeoutBlue = 18;
+    }
+
+    required Phase phase = 1;
+    required State state = 2;
+    required int32 goals_blue = 3;
+    required int32 goals_yellow = 4;
+    required int32 time_remaining = 5;
+}

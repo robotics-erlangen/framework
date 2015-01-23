@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Ra
+Icon=${CMAKE_SOURCE_DIR}/data/icons/ra.svg
+Exec=${CMAKE_BINARY_DIR}/bin/ra
+Terminal=false

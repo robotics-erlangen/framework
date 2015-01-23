@@ -1,0 +1,7 @@
+import "robot.proto";
+package amun;
+
+// for strategy
+message UserInput {
+    repeated robot.RadioCommand radio_command = 1;
+}

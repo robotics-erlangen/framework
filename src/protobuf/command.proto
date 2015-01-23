@@ -1,0 +1,98 @@
+import "robot.proto";
+
+package amun;
+
+message SimulatorMoveBall {
+    optional float p_x = 1;
+    optional float p_y = 2;
+    optional bool position = 3 [default = false]; // set pos and speed to given values
+    optional float v_x = 4;
+    optional float v_y = 5;
+}
+
+message SimulatorMoveRobot {
+    required uint32 id = 1;
+    optional float p_x = 2;
+    optional float p_y = 3;
+    optional float phi = 4;
+    optional bool position = 5 [default = false]; // set pos and speed to given values
+    optional float v_x = 6;
+    optional float v_y = 7;
+    optional float omega = 8;
+}
+
+message CommandSimulator {
+    optional bool enable = 1;
+    optional int64 vision_delay = 9;
+    optional int64 vision_processing_time = 10;
+    optional SimulatorMoveBall move_ball = 3;
+    repeated SimulatorMoveRobot move_blue = 4;
+    repeated SimulatorMoveRobot move_yellow = 5;
+    optional float stddev_ball_p = 6;
+    optional float stddev_robot_p = 7;
+    optional float stddev_robot_phi = 8;
+}
+
+message CommandReferee {
+    optional bool active = 1;
+    optional bytes command = 2;
+}
+
+message CommandStrategyLoad {
+    required string filename = 1;
+    optional string entry_point = 2;
+}
+
+message CommandStrategyClose {
+}
+
+message CommandStrategy {
+    optional CommandStrategyLoad load = 1;
+    optional CommandStrategyClose close = 2;
+    optional bool reload = 3;
+    optional bool auto_reload = 4;
+    optional bool enable_debug = 5;
+}
+
+message CommandControl {
+    repeated robot.RadioCommand commands = 1;
+}
+
+message TransceiverConfiguration {
+    required uint32 channel = 1;
+}
+
+message CommandTransceiver {
+    optional bool enable = 1;
+    optional bool charge = 2;
+    optional TransceiverConfiguration configuration = 3;
+}
+
+message TrackingAOI {
+    required float x1 = 1;
+    required float y1 = 2;
+    required float x2 = 3;
+    required float y2 = 4;
+}
+
+message CommandTracking {
+    optional bool aoi_enabled = 1;
+    optional TrackingAOI aoi = 2;
+    optional int64 system_delay = 3;
+    optional bool reset = 4;
+}
+
+message Command {
+    optional CommandSimulator simulator = 1;
+    optional CommandReferee referee = 2;
+    optional bool flip = 3;
+    optional robot.Team set_team_blue = 4;
+    optional robot.Team set_team_yellow = 5;
+    optional CommandStrategy strategy_blue = 6;
+    optional CommandStrategy strategy_yellow = 7;
+    optional CommandControl control = 8;
+    optional CommandTransceiver transceiver = 9;
+    optional robot.RadioParameters robot_parameters = 10;
+    optional float speed = 11;
+    optional CommandTracking tracking = 12;
+}

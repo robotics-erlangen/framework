@@ -1,0 +1,329 @@
+/***************************************************************************
+ *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Robotics Erlangen e.V.                                                *
+ *   http://www.robotics-erlangen.de/                                      *
+ *   info@robotics-erlangen.de                                             *
+ *                                                                         *
+ *   This program is free software: you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation, either version 3 of the License, or     *
+ *   any later version.                                                    *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+ ***************************************************************************/
+
+#include "lua.h"
+#include "strategy.h"
+#include "core/timer.h"
+#include "protobuf/geometry.h"
+#include <QDateTime>
+#include <QFileInfo>
+#include <QTimer>
+
+/*!
+ * \class Strategy
+ * \ingroup strategy
+ * \brief %Strategy script handling
+ */
+
+/*!
+ * \brief Creates a Strategy instance
+ * Automatically reloads the strategy when the field geometry or team robots change
+ * \param timer Timer to be used for time scaling
+ * \param blue \c true for blue team, \c false for yellow
+ */
+Strategy::Strategy(const Timer *timer, bool blue) :
+    m_timer(timer),
+    m_strategy(NULL),
+    m_blue(blue),
+    m_debugEnabled(false),
+    m_autoReload(false),
+    m_strategyFailed(false)
+{
+    // used to delay processing until all status packets are processed
+    m_idleTimer = new QTimer(this);
+    m_idleTimer->setSingleShot(true);
+    m_idleTimer->setInterval(0);
+    connect(m_idleTimer, SIGNAL(timeout()), SLOT(process()));
+
+    // delay automatic reload for 100 ms
+    m_reloadTimer = new QTimer(this);
+    m_reloadTimer->setSingleShot(true);
+    m_reloadTimer->setInterval(100);
+    connect(m_reloadTimer, SIGNAL(timeout()), SLOT(reload()));
+
+    // initialize geometry
+    geometrySetDefault(&m_geometry);
+    m_geometryString = m_geometry.SerializeAsString();
+}
+
+Strategy::~Strategy()
+{
+    delete m_strategy;
+}
+
+void Strategy::handleStatus(const Status &status)
+{
+    if (status->has_geometry()) {
+        const std::string str = status->geometry().SerializeAsString();
+        // reload only if geometry has changed
+        if (str != m_geometryString) {
+            m_geometryString = str;
+            m_geometry = status->geometry();
+            reload();
+        }
+    }
+
+    if (status->has_world_state() && status->has_game_state()) {
+        m_status = status;
+
+        // This timer delays execution of the entrypoint (executeScript) until all currently
+        // pending messages in the event loop have been processed.
+        // Instead of processing each tracking packet, only the most recent one
+        // will be used.
+        // guarantees that the tracking packet used by the strategy is at most 10 ms old
+        m_idleTimer->start();
+    }
+}
+
+void Strategy::handleCommand(const Command &command)
+{
+    const amun::CommandStrategy *cmd = NULL;
+
+    // get commands for own team color
+    if (m_blue && command->has_strategy_blue()) {
+        cmd = &command->strategy_blue();
+    } else if (!m_blue && command->has_strategy_yellow()) {
+        cmd = &command->strategy_yellow();
+    }
+
+    bool reloadStrategy = false;
+
+    // update team robots, but only if something has changed
+    if (m_blue && command->has_set_team_blue()) {
+        if (command->set_team_blue().SerializeAsString() != m_team.SerializeAsString()) {
+            m_team.CopyFrom(command->set_team_blue());
+            reloadStrategy = true;
+        }
+    } else if (!m_blue && command->has_set_team_yellow()) {
+        if (command->set_team_yellow().SerializeAsString() != m_team.SerializeAsString()) {
+            m_team.CopyFrom(command->set_team_yellow());
+            reloadStrategy = true;
+        }
+    }
+
+    if (cmd) {
+        if (cmd->has_enable_debug()) {
+            // only reload on change
+            if (m_debugEnabled != cmd->enable_debug()) {
+                m_debugEnabled = cmd->enable_debug();
+                reloadStrategy = true;
+            }
+        }
+
+        if (cmd->has_auto_reload()) {
+            m_autoReload = cmd->auto_reload();
+            // trigger reload if strategy has already crashed
+            if (m_autoReload && m_strategyFailed) {
+                reloadStrategy = true;
+            }
+        }
+
+        if (cmd->reload()) {
+            reloadStrategy = true;
+        }
+
+        if (cmd->has_load()) {
+            const QString filename = cmd->load().filename().c_str();
+            QString entryPoint;
+            if (cmd->load().has_entry_point())
+                entryPoint = cmd->load().entry_point().c_str();
+            loadScript(filename, entryPoint);
+            reloadStrategy = false; // already reloaded
+        }
+
+        if (cmd->has_close()) {
+            close();
+            reloadStrategy = false; // no strategy to reload
+        }
+    }
+
+    if (reloadStrategy && m_strategy) {
+        reload();
+    }
+}
+
+void Strategy::process()
+{
+    if (!m_strategy || m_strategyFailed)
+        return;
+
+    Q_ASSERT(m_status->game_state().IsInitialized());
+    Q_ASSERT(m_status->world_state().IsInitialized());
+
+    double pathPlanning = 0;
+    qint64 startTime = Timer::systemTime();
+
+    if (m_strategy->process(pathPlanning, m_status->world_state(), m_status->game_state(),
+                            (m_blue) ? m_status->user_input_blue() : m_status->user_input_yellow())) {
+        double totalTime = (Timer::systemTime() - startTime) / 1E9;
+
+        // publish timings and debug output
+        Status status(new amun::Status);
+        amun::Timing *timing = status->mutable_timing();
+        if (m_blue) {
+            timing->set_blue_total(totalTime);
+            timing->set_blue_path(pathPlanning);
+        } else {
+            timing->set_yellow_total(totalTime);
+            timing->set_yellow_path(pathPlanning);
+        }
+        copyDebugValues(status);
+        emit sendStatus(status);
+    } else {
+        fail(m_strategy->errorMsg());
+    }
+}
+
+void Strategy::reload()
+{
+    if (!m_filename.isNull()) {
+        loadScript(m_filename, m_entryPoint);
+    }
+}
+
+void Strategy::sendCommand(Command command)
+{
+    if (m_debugEnabled) {
+        emit gotCommand(command);
+    } else {
+        fail("sendCommand is only allowed in debug mode!");
+    }
+}
+
+void Strategy::loadScript(const QString filename, const QString entryPoint)
+{
+    Q_ASSERT(m_geometry.IsInitialized());
+    Q_ASSERT(m_team.IsInitialized());
+
+    m_reloadTimer->stop();
+    // use a fresh strategy instance when strategy is started
+    delete m_strategy;
+    m_strategy = NULL;
+    m_strategyFailed = false;
+
+    m_filename = filename;
+
+    // hardcoded factory pattern
+    if (Lua::canHandle(filename)) {
+        m_strategy = Lua::createStrategy(m_timer, m_blue, m_debugEnabled);
+    } else {
+        fail(QString("No strategy handler for file %1").arg(filename));
+    }
+
+    // delay reload until strategy is no longer running
+    connect(m_strategy, SIGNAL(requestReload()), SLOT(reload()), Qt::QueuedConnection);
+    // forward immediately
+    connect(m_strategy, SIGNAL(sendStrategyCommand(bool,unsigned int,unsigned int,QByteArray,qint64)),
+            SIGNAL(sendStrategyCommand(bool,unsigned int,unsigned int,QByteArray,qint64)));
+    connect(m_strategy, SIGNAL(gotCommand(Command)), SLOT(sendCommand(Command)));
+
+    if (m_strategy->loadScript(filename, entryPoint, m_geometry, m_team)) {
+        m_entryPoint = m_strategy->entryPoint(); // remember loaded entrypoint
+
+        // prepare strategy status message
+        Status status(new amun::Status);
+        setStrategyStatus(status, amun::StatusStrategy::RUNNING);
+        copyDebugValues(status);
+
+        // inform about successful load
+        amun::StatusLog *log = status->mutable_debug()->add_log();
+        log->set_timestamp(m_timer->currentTime());
+        log->set_text(QString("<font color=\"darkgreen\">Successfully loaded %1 with entry point %2!</font>").arg(m_filename, m_entryPoint).toStdString());
+
+        emit sendStatus(status);
+    } else {
+        fail(m_strategy->errorMsg());
+    }
+}
+
+void Strategy::close()
+{
+    m_reloadTimer->stop();
+    emit sendHalt(m_blue);
+
+    delete m_strategy;
+    m_strategy = NULL;
+
+    Status status(new amun::Status);
+    setStrategyStatus(status, amun::StatusStrategy::CLOSED);
+    // clear debug output
+    status->mutable_debug()->set_source(m_blue ? amun::StrategyBlue : amun::StrategyYellow);
+
+    emit sendStatus(status);
+}
+
+void Strategy::fail(const QString error)
+{
+    emit sendHalt(m_blue);
+
+    // update status
+    Status status(new amun::Status);
+    setStrategyStatus(status, amun::StatusStrategy::FAILED);
+    copyDebugValues(status);
+
+    // log error
+    amun::StatusLog *log = status->mutable_debug()->add_log();
+    log->set_timestamp(m_timer->currentTime());
+    log->set_text(error.toStdString());
+
+    emit sendStatus(status);
+
+    // log errors to disk
+    QFile errorLog("error.html");
+    if (errorLog.open(QIODevice::Append | QIODevice::WriteOnly)) {
+        errorLog.write(QString("<h4>Time: %1</h4>").arg(QDateTime::currentDateTime().toString()).toUtf8());
+        errorLog.write(error.toUtf8());
+        errorLog.write("<br /><br />");
+        errorLog.close();
+    }
+
+    // keep strategy as we can't use reload on file modification otherwise
+    m_strategyFailed = true;
+
+    if (m_autoReload) {
+        m_reloadTimer->start();
+    }
+}
+
+void Strategy::setStrategyStatus(Status status, amun::StatusStrategy::STATE state)
+{
+    Q_ASSERT(m_strategy != NULL || state == amun::StatusStrategy::CLOSED);
+
+    amun::StatusStrategy *strategy = m_blue ? status->mutable_strategy_blue() : status->mutable_strategy_yellow();
+    strategy->set_state(state);
+
+    if (state != amun::StatusStrategy::CLOSED) {
+        strategy->set_filename(m_filename.toStdString());
+        strategy->set_name(m_strategy->name().toStdString());
+        // copy entrypoints
+        foreach (const QString name, m_strategy->entryPoints()) {
+            std::string *ep = strategy->add_entry_point();
+            *ep = name.toStdString();
+        }
+        strategy->set_current_entry_point(m_strategy->entryPoint().toStdString());
+    }
+}
+
+void Strategy::copyDebugValues(Status status)
+{
+    Q_ASSERT(m_strategy != NULL);
+    status->mutable_debug()->CopyFrom(m_strategy->debugValues());
+    status->mutable_debug()->set_source(m_blue ? amun::StrategyBlue : amun::StrategyYellow);
+}

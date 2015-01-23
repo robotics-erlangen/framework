@@ -1,0 +1,16 @@
+diff -ru bullet.org/src/LinearMath/btScalar.h bullet/src/LinearMath/btScalar.h
+--- bullet.org/src/LinearMath/btScalar.h	2012-09-11 05:49:50.000000000 +0200
++++ bullet/src/LinearMath/btScalar.h	2014-04-19 21:12:16.000000000 +0200
+@@ -159,10 +159,10 @@
+ 
+ #if (defined (__APPLE__) && (!defined (BT_USE_DOUBLE_PRECISION)))
+     #if defined (__i386__) || defined (__x86_64__)
+-        #define BT_USE_SSE
++        //#define BT_USE_SSE
+ 		//BT_USE_SSE_IN_API is enabled on Mac OSX by default, because memory is automatically aligned on 16-byte boundaries
+ 		//if apps run into issues, we will disable the next line
+-		#define BT_USE_SSE_IN_API
++		//#define BT_USE_SSE_IN_API
+         #ifdef BT_USE_SSE
+             // include appropriate SSE level
+             #if defined (__SSE4_1__)

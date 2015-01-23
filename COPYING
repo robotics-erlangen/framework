@@ -1,0 +1,141 @@
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+See COPYING.GPL for the full license text.
+
+
+
+Additional Licenses:
+
+cmake/FindLuaJIT2.cmake, cmake/FindSDL2.cmake:
+ * Based on Find*.cmake from cmake 2.8.11.2
+ * see http://cmake.org/cmake/project/license.html
+#=============================================================================
+# CMake - Cross Platform Makefile Generator
+# Copyright 2000-2009 Kitware, Inc., Insight Software Consortium
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+# * Redistributions of source code must retain the above copyright
+#   notice, this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+#
+# * Neither the names of Kitware, Inc., the Insight Software Consortium,
+#   nor the names of their contributors may be used to endorse or promote
+#   products derived from this software without specific prior written
+#   permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# “AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
+# HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+#=============================================================================
+
+config/*:
+ * Public Domain 2014 Robotics Erlangen e.V.
+
+data/icons/*/{ball,plotter,erforce,change-ends,capacitor,logplayer}*:
+ * Copyright 2014 Robotics Erlangen e.V.
+ * Licensed under GPL 3
+
+data/icons/*/view-refresh*:
+ * Public Domain 2007 Tango! Desktop Project
+ * See http://commons.wikimedia.org/wiki/File%3AView-refresh.svg
+
+data/icons/*/ra*:
+ * Copyright 2007 Jeff Dahl <http://commons.wikimedia.org/wiki/File:Re-Horakhty.svg>
+ * Copyright 2011 Philipp Nordhus
+ *     Removed everything except the head
+ * Licensed under CC BY SA 3.0 Unported <http://creativecommons.org/licenses/by-sa/3.0/deed.en>
+
+data/icons/*/whistle*:
+ * Public Domain 2007 kelan <https://openclipart.org/detail/5370/whistle-by-kelan>
+
+data/icons/ everything else:
+ * Copyright 2014 GNOME Project
+ * Licensed under CC BY SA 3.0 <http://creativecommons.org/licenses/by-sa/3.0/>
+
+data/pkg/:
+ * Icons are derived from logplayer.svg and ra.svg in data/icons/
+ * Everything else:
+ * Copyright 2014 Robotics Erlangen e.V.
+ * Licensed under GPL 3
+
+data/scripts/git-color, data/udev/99-robotics-usb-devices.rules, data/gamecontrollerdb.txt:
+ * Public Domain 2014 Robotics Erlangen e.V.
+
+src/amun/strategy/math_eqn.cpp:
+ * Copyright Jochen Schwarze (schwarze@isa.de) <http://tog.acm.org/resources/GraphicsGems/gems/Roots3And4.c>
+ * no specific license, but use is permitted without restricions
+
+src/protobuf/ssl_referee.proto:
+ * Part of SSL-Refbox
+
+src/protobuf/ssl_*.proto:
+ * Part of SSL-Vision
+
+strategy/test/debug/{ltn12, mime, socket}.lua:
+#=============================================================================
+# LuaSocket 3.0 license
+# Copyright © 2004-2013 Diego Nehab
+# Permission is hereby granted, free of charge, to any person obtaining a
+# copy of this software and associated documentation files (the "Software"),
+# to deal in the Software without restriction, including without limitation
+# the rights to use, copy, modify, merge, publish, distribute, sublicense,
+# and/or sell copies of the Software, and to permit persons to whom the
+# Software is furnished to do so, subject to the following conditions:
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+# DEALINGS IN THE SOFTWARE.
+#=============================================================================
+
+
+
+Included libraries by license (see libraries folder):
+
+zlib license (http://www.gzip.org/zlib/zlib_license.html)
+    SDL 2 (http://libsdl.org/)
+    Bullet (https://code.google.com/p/bullet/)
+        patched with cmake/bullet.patch
+
+
+Mozilla Public License 2.0 (MPL 2.0) (https://www.mozilla.org/MPL/2.0/)
+    Eigen (http://eigen.tuxfamily.org/)
+
+
+
+Used libraries by license:
+
+Lesser General Public License 2.1 (LGPL 2.1) (http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
+    libusb (http://libusb.org/) - LGPL 2.1 or higher
+    Qt 5 (http://qt-project.org/)
+
+
+MIT License (MIT) (http://opensource.org/licenses/mit-license.php)
+    LuaJIT (http://luajit.org/luajit.html)
+
+
+BSD 3-Clause License (BSD New) (http://opensource.org/licenses/BSD-3-Clause)
+    protobuf (https://code.google.com/p/protobuf/)

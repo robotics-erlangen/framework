@@ -1,0 +1,74 @@
+import "robot.proto";
+
+package world;
+
+message Geometry {
+    required float line_width = 1;
+    required float field_width = 2;
+    required float field_height = 3;
+    required float boundary_width = 4;
+    required float referee_width = 5;
+    required float goal_width = 6;
+    required float goal_depth = 7;
+    required float goal_wall_width = 8;
+    required float center_circle_radius = 9;
+    required float defense_radius = 10;
+    required float defense_stretch = 11;
+    required float free_kick_from_defense_dist = 12;
+    required float penalty_spot_from_field_line_dist = 13;
+    required float penalty_line_from_spot_dist = 14;
+    required float goal_height = 15;
+}
+
+message BallPosition
+{
+    required int64 time = 1;
+    required float p_x = 2;
+    required float p_y = 3;
+    optional float v_x = 5;
+    optional float v_y = 6;
+    optional float system_delay = 7;
+    optional float time_diff_scaled = 8; // scaled by factor 100
+}
+
+message Ball {
+    required float p_x = 1;
+    required float p_y = 2;
+    required float v_x = 3;
+    required float v_y = 4;
+    repeated BallPosition raw = 5;
+}
+
+message RobotPosition
+{
+    required int64 time = 1;
+    required float p_x = 2;
+    required float p_y = 3;
+    required float phi = 4;
+    optional float v_x = 5;
+    optional float v_y = 6;
+    optional float system_delay = 7;
+    optional float time_diff_scaled = 8; // scaled by factor 100
+    optional float omega = 9;
+}
+
+message Robot {
+    required uint32 id = 1;
+    required float p_x = 2;
+    required float p_y = 3;
+    required float phi = 4;
+    required float v_x = 5;
+    required float v_y = 6;
+    required float omega = 7;
+    repeated RobotPosition raw = 8;
+}
+
+message State {
+    required int64 time = 1;
+    optional Ball ball = 2;
+    repeated Robot yellow = 3;
+    repeated Robot blue = 4;
+    repeated robot.RadioResponse radio_response = 5;
+    optional bool is_simulated = 6;
+    optional bool has_vision_data = 7;
+}

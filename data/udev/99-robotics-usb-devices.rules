@@ -1,0 +1,11 @@
+SUBSYSTEM!="usb_device", ACTION!="add", GOTO="robotics_rules_end"
+
+# 2011 sender (old id)
+ATTR{idVendor}=="03eb", ATTR{idProduct}=="6126", MODE="0666"
+# 2011 sender
+ATTR{idVendor}=="03eb", ATTR{idProduct}=="6127", MODE="0666"
+# OpenOCDLinkH
+ATTR{idVendor}=="0403", ATTR{idProduct}=="6010", MODE="0666"
+ATTR{idVendor}=="0403", ATTR{idProduct}=="6011", MODE="0666"
+
+LABEL="robotics_rules_end"

@@ -1,0 +1,71 @@
+default {
+  generation: 3
+  year: 2014
+  id: 0
+  radius: 0.089
+  height: 0.138
+  mass: 1.5
+  angle: 0.98291
+  v_max: 3
+  omega_max: 6
+  shot_linear_max: 5.5
+  shot_chip_max: 3
+  dribbler_width: 0.08
+  acceleration {
+    a_speedup_f_max: 3.6
+    a_speedup_s_max: 2.5
+    a_speedup_phi_max: 60
+    a_brake_f_max: 4.5
+    a_brake_s_max: 5.5
+    a_brake_phi_max: 60
+  }
+  controller {
+    k_xy: 0
+    k_phi: 0
+    k_i_xy: 0
+    k_i_phi: 0
+    i_max_xy: 0.002
+    i_max_phi: 0.002
+    k_v_xy: 10
+    k_omega: 10
+    t_v_xy: 0.1
+    t_omega: 0.1
+    use_ff: 1
+  }
+}
+robot {
+  id: 0
+}
+robot {
+  id: 1
+}
+robot {
+  id: 2
+}
+robot {
+  id: 3
+}
+robot {
+  id: 4
+}
+robot {
+  id: 5
+}
+robot {
+  id: 6
+}
+robot {
+  id: 7
+}
+robot {
+  id: 8
+}
+robot {
+  id: 9
+}
+robot {
+  id: 10
+}
+robot {
+  id: 11
+}

@@ -1,0 +1,154 @@
+package robot;
+
+message ControllerParameters
+{
+    optional float k_xy = 1;
+    optional float k_phi = 2;
+
+    optional float k_i_xy = 3;
+    optional float k_i_phi = 4;
+
+    optional float i_max_xy = 5;
+    optional float i_max_phi = 6;
+
+    optional float k_v_xy = 7;
+    optional float k_omega = 8;
+
+    optional float t_v_xy = 9;
+    optional float t_omega = 10;
+
+    optional float use_ff = 11;
+    // deprecated = 12;
+};
+
+message LimitParameters
+{
+    optional float a_speedup_f_max = 1;
+    optional float a_speedup_s_max = 2;
+    optional float a_speedup_phi_max = 3;
+    optional float a_brake_f_max = 4;
+    optional float a_brake_s_max = 5;
+    optional float a_brake_phi_max = 6;
+};
+
+message Specs
+{
+    required uint32 generation = 1;
+    required uint32 year = 2;
+    required uint32 id = 3;
+    optional float radius = 4 [default = 0.09];
+    optional float height = 5 [default = 0.15];
+    optional float mass = 6;
+    optional float angle = 7;
+    optional float v_max = 8;
+    optional float omega_max = 9;
+    optional float shot_linear_max = 10 [default = 8.0];
+    optional float shot_chip_max = 11;
+    optional float dribbler_width = 12;
+    optional LimitParameters acceleration = 13;
+    optional ControllerParameters controller = 14;
+};
+
+message Generation
+{
+    required Specs default = 1;
+    repeated Specs robot = 2;
+};
+
+message Team
+{
+    repeated Specs robot = 1;
+};
+
+message Polynomial
+{
+    required float a0 = 1;
+    required float a1 = 2;
+    required float a2 = 3;
+    required float a3 = 4;
+}
+
+message Spline
+{
+    required float t_start = 1;
+    required float t_end = 2;
+    required Polynomial x = 3;
+    required Polynomial y = 4;
+    required Polynomial phi = 5;
+};
+
+message ControllerInput
+{
+    repeated Spline spline = 1;
+};
+
+message ControllerDebug
+{
+    optional float p_desired_x = 1;
+    optional float p_desired_y = 2;
+    optional float v_desired_x = 3;
+    optional float v_desired_y = 4;
+    optional float v_ctrl_out_s = 5;
+    optional float v_ctrl_out_f = 6;
+    optional float v_ctrl_out_omega = 7;
+    optional float traj_age = 8;
+    optional float a_desired_x = 9;
+    optional float a_desired_y = 10;
+};
+
+message Command
+{
+    enum KickStyle
+    {
+        Linear = 1;
+        Chip = 2;
+    }
+
+    optional ControllerInput controller = 1;
+    optional float v_f = 2;
+    optional float v_s = 3;
+    optional float omega = 4;
+    optional KickStyle kick_style = 5;
+    optional float kick_power = 6;
+    optional float dribbler = 7;
+    optional bool direct = 8;
+    optional float v_x = 9;
+    optional float v_y = 10;
+    optional bool standby = 11;
+    optional ControllerDebug debug = 12;
+    optional bool strategy_controlled = 13;
+}
+
+message RadioCommand
+{
+    required uint32 generation = 1;
+    required uint32 id = 2;
+    required bool is_blue = 4;
+    required Command command = 3;
+};
+
+message RadioParameters
+{
+    repeated int32 p = 1;
+}
+
+message SpeedStatus
+{
+    required float v_f = 1;
+    required float v_s = 2;
+    required float omega = 3;
+}
+
+message RadioResponse
+{
+    optional int64 time = 10;
+    required uint32 generation = 1;
+    required uint32 id = 2;
+    optional float battery = 3;
+    optional float packet_loss_rx = 4;
+    optional float packet_loss_tx = 5;
+    optional SpeedStatus estimated_speed = 6;
+    optional bool ball_detected = 7;
+    optional bool cap_charged = 8;
+    optional bool motor_in_power_limit = 9;
+}

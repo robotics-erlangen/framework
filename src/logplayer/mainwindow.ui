@@ -1,0 +1,390 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>364</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Log Player</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_3">
+    <item>
+     <widget class="QSplitter" name="splitter">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <widget class="DebugTreeWidget" name="debugTree">
+       <property name="editTriggers">
+        <set>QAbstractItemView::NoEditTriggers</set>
+       </property>
+      </widget>
+      <widget class="FieldWidget" name="field"/>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QToolButton" name="btnOpen">
+        <property name="text">
+         <string>Open</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QToolButton" name="btnPlay">
+        <property name="text">
+         <string>Play</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <item>
+         <widget class="QLabel" name="lblTimeCurrent">
+          <property name="text">
+           <string>TextLabel</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="spinPacketCurrent">
+          <property name="maximum">
+           <number>0</number>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QSlider" name="horizontalSlider">
+        <property name="maximum">
+         <number>0</number>
+        </property>
+        <property name="pageStep">
+         <number>100</number>
+        </property>
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QLabel" name="lblTimeMax">
+          <property name="text">
+           <string>TextLabel</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="lblPacketMax">
+          <property name="text">
+           <string>TextLabel</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QSpinBox" name="spinSpeed">
+        <property name="suffix">
+         <string> %</string>
+        </property>
+        <property name="maximum">
+         <number>1000</number>
+        </property>
+        <property name="value">
+         <number>100</number>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>800</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionOpen_Logfile"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuPlay">
+    <property name="title">
+     <string>Play</string>
+    </property>
+    <addaction name="actionBackward"/>
+    <addaction name="actionStepBackward"/>
+    <addaction name="actionPlay"/>
+    <addaction name="actionStepForward"/>
+    <addaction name="actionForward"/>
+    <addaction name="separator"/>
+    <addaction name="actionOpen_Plotter"/>
+   </widget>
+   <widget class="QMenu" name="menuSpeed">
+    <property name="title">
+     <string>Speed</string>
+    </property>
+    <addaction name="actionSpeed1"/>
+    <addaction name="actionSpeed5"/>
+    <addaction name="actionSpeed10"/>
+    <addaction name="actionSpeed20"/>
+    <addaction name="actionSpeed50"/>
+    <addaction name="actionSpeed100"/>
+    <addaction name="actionSpeed200"/>
+    <addaction name="actionSpeed1000"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuPlay"/>
+   <addaction name="menuSpeed"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QDockWidget" name="dockVisualization">
+   <property name="windowTitle">
+    <string>Visualization</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="VisualizationWidget" name="visualization"/>
+  </widget>
+  <widget class="QDockWidget" name="dockTiming">
+   <property name="windowTitle">
+    <string>Timing</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="TimingWidget" name="timing"/>
+  </widget>
+  <widget class="QDockWidget" name="dockLog">
+   <property name="windowTitle">
+    <string>Log</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="LogWidget" name="log"/>
+  </widget>
+  <action name="actionStepForward">
+   <property name="text">
+    <string>Step Forward</string>
+   </property>
+   <property name="toolTip">
+    <string>Step Forward</string>
+   </property>
+   <property name="shortcut">
+    <string>E</string>
+   </property>
+  </action>
+  <action name="actionPlay">
+   <property name="text">
+    <string>Play (Space)</string>
+   </property>
+   <property name="toolTip">
+    <string>Play</string>
+   </property>
+   <property name="shortcut">
+    <string>Space</string>
+   </property>
+  </action>
+  <action name="actionStepBackward">
+   <property name="text">
+    <string>Step Backward</string>
+   </property>
+   <property name="toolTip">
+    <string>Step Backward</string>
+   </property>
+   <property name="shortcut">
+    <string>Q</string>
+   </property>
+  </action>
+  <action name="actionBackward">
+   <property name="text">
+    <string>Backward</string>
+   </property>
+   <property name="toolTip">
+    <string>Backward</string>
+   </property>
+   <property name="shortcut">
+    <string>A</string>
+   </property>
+  </action>
+  <action name="actionForward">
+   <property name="text">
+    <string>Forward</string>
+   </property>
+   <property name="toolTip">
+    <string>Forward</string>
+   </property>
+   <property name="shortcut">
+    <string>D</string>
+   </property>
+  </action>
+  <action name="actionSpeed1">
+   <property name="text">
+    <string>Speed 1%</string>
+   </property>
+   <property name="toolTip">
+    <string>Speed 1</string>
+   </property>
+   <property name="shortcut">
+    <string>1</string>
+   </property>
+  </action>
+  <action name="actionSpeed5">
+   <property name="text">
+    <string>Speed 5%</string>
+   </property>
+   <property name="toolTip">
+    <string>Speed 5</string>
+   </property>
+   <property name="shortcut">
+    <string>2</string>
+   </property>
+  </action>
+  <action name="actionSpeed10">
+   <property name="text">
+    <string>Speed 10%</string>
+   </property>
+   <property name="toolTip">
+    <string>Speed 10</string>
+   </property>
+   <property name="shortcut">
+    <string>3</string>
+   </property>
+  </action>
+  <action name="actionSpeed20">
+   <property name="text">
+    <string>Speed 20%</string>
+   </property>
+   <property name="toolTip">
+    <string>Speed 20</string>
+   </property>
+   <property name="shortcut">
+    <string>4</string>
+   </property>
+  </action>
+  <action name="actionSpeed50">
+   <property name="text">
+    <string>Speed 50%</string>
+   </property>
+   <property name="toolTip">
+    <string>Speed 50</string>
+   </property>
+   <property name="shortcut">
+    <string>5</string>
+   </property>
+  </action>
+  <action name="actionSpeed100">
+   <property name="text">
+    <string>Speed 100%</string>
+   </property>
+   <property name="toolTip">
+    <string>Speed 100</string>
+   </property>
+   <property name="shortcut">
+    <string>6</string>
+   </property>
+  </action>
+  <action name="actionSpeed200">
+   <property name="text">
+    <string>Speed 200%</string>
+   </property>
+   <property name="toolTip">
+    <string>Speed 200</string>
+   </property>
+   <property name="shortcut">
+    <string>7</string>
+   </property>
+  </action>
+  <action name="actionSpeed1000">
+   <property name="text">
+    <string>Speed 1000%</string>
+   </property>
+   <property name="toolTip">
+    <string>Speed 1000</string>
+   </property>
+   <property name="shortcut">
+    <string>8</string>
+   </property>
+  </action>
+  <action name="actionOpen_Logfile">
+   <property name="text">
+    <string>Open Logfile ...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionOpen_Plotter">
+   <property name="text">
+    <string>Open Plotter</string>
+   </property>
+   <property name="toolTip">
+    <string>Open Plotter</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+P</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>VisualizationWidget</class>
+   <extends>QWidget</extends>
+   <header>ra/visualizationwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TimingWidget</class>
+   <extends>QWidget</extends>
+   <header>ra/timingwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FieldWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>ra/fieldwidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>DebugTreeWidget</class>
+   <extends>QTreeView</extends>
+   <header>ra/debugtreewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LogWidget</class>
+   <extends>QWidget</extends>
+   <header>ra/logwidget.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

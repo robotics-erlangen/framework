@@ -1,0 +1,54 @@
+import "debug.proto";
+import "gamestate.proto";
+//import "deprecated/gamestate.proto";
+import "robot.proto";
+import "world.proto";
+import "userinput.proto";
+
+package amun;
+
+message StatusStrategy {
+    enum STATE { CLOSED = 1; RUNNING = 3; FAILED = 4; };
+    required STATE state = 1;
+    optional string filename = 2;
+    optional string name = 3;
+    optional string current_entry_point = 4;
+    repeated string entry_point = 5;
+}
+
+message Timing {
+    optional float blue_total = 1;
+    optional float blue_path = 2;
+    optional float yellow_total = 3;
+    optional float yellow_path = 4;
+    optional float tracking = 5;
+    optional float controller = 8;
+    optional float transceiver = 6;
+    optional float simulator = 7;
+}
+
+message StatusTransceiver {
+    required bool active = 1;
+    optional string error = 2;
+}
+
+// The status message is dumped for log replay
+// -> take care not to break compatibility!
+message Status {
+    required int64 time = 1;
+    // optional deprecated.amun.GameState game_state_deprecated = 2;
+    optional GameState game_state = 15;
+    optional world.State world_state = 3;
+    optional world.Geometry geometry = 4;
+    optional robot.Team team_blue = 5;
+    optional robot.Team team_yellow = 6;
+    optional StatusStrategy strategy_blue = 7;
+    optional StatusStrategy strategy_yellow = 8;
+    optional DebugValues debug = 10;
+    optional Timing timing = 11;
+    repeated robot.RadioCommand radio_command = 12;
+    optional StatusTransceiver transceiver = 13;
+    // deprecated = 14;
+    optional UserInput user_input_blue = 16;
+    optional UserInput user_input_yellow = 17;
+}
