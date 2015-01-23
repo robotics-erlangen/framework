@@ -4,7 +4,7 @@ module "Class"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Alexander Danzer, Michael Eischer                      *
+*   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -86,62 +86,13 @@ function Class.instanceOf(obj, class)
 	end
 end
 
---- Creates a new class.
--- Supports single inheritance.
--- @name new
--- @see Class
--- @param name string - name for new class, split at '.'
--- @param parent Class - parent class object
--- @retrun class object
--- @return metatable used for instances
-function Class.new(name, parent)
-	-- check for unique class names, to prevent naming confusions
-	assert(not registeredClassNames[name], "class names must be unique")
-	registeredClassNames[name] = true
-
-	local class = {}
-
-	-- setup class type metatable
-	local classMt = {
-		className = name,
-		classNameShort = getShortname(name),
-		type = "class"
-	}
-	classMt.__metatable = classMt
-	if parent then
-		classMt.__index = Class.toClass(parent)
-	end
-
-	-- setup instance metatable
-	local classInstMt = {
-		__index = class,
-		type = "instance"
-	}
-	classInstMt.__metatable = classInstMt
-
-	function class.create(...)
-		local instance = {}
-		setmetatable(instance, classInstMt)
-		if instance.init then
-			instance:init(...)
-		end
-		return instance
-	end
-	setmetatable(class, classMt)
-	return class, classInstMt
-end
-
-
-local function registerNils(table, key, value)
-	if value == nil then
-		getmetatable(table).__nilAttributes[key] = true
-		return
-	end
+local function registerAttributes(table, key, value)
+	getmetatable(table).__attributes[key] = true
 	rawset(table, key, value)
 end
 
 local function forbidNewAttributes(table, key, value)
-	if getmetatable(table).__nilAttributes[key] then
+	if getmetatable(table).__attributes[key] then
 		rawset(table, key, value)
 	else
 		error(Class.name(table) .. ": attempt to set attribute " .. key)
@@ -150,7 +101,7 @@ end
 
 local function forbidReassignments(proxy, key, value)
 	local orig = proxy[1]
-	if orig[key] ~= nil or getmetatable(orig).__nilAttributes[key] then
+	if orig[key] ~= nil or getmetatable(orig).__attributes[key] then
 		error("attribute " .. key .. " is alredy defined")
 	end
 	orig[key] = value
@@ -158,33 +109,56 @@ end
 
 local proxyMt = { __newindex = forbidReassignments }
 
---- Creates a new class.
+local function constructInstance(class, ...)
+	local instance = {}
+	local instMt = {
+		__attributes = {}, -- remember attributes from init functions
+		__newindex = registerAttributes,
+		__index = class,
+		type = "instance"
+	}
+	instMt.__metatable = instMt
+	setmetatable(instance, instMt)
+	if class.init then
+		class.init(instance, ...)
+	end
+	local mixinInits = getmetatable(class)["mixinInits"]
+	if mixinInits then
+		local proxy = { instance }
+		setmetatable(proxy, proxyMt)
+		for _, init in ipairs(mixinInits) do
+			init(proxy)
+		end
+	end
+	instMt.__newindex = forbidNewAttributes
+	return instance
+end
+
+--- Creates and registers a new class.
 -- Supports single inheritance and mixins.
--- @name newTask (for test phase)
 -- @see Class
+-- @param not used but there because of __call-metatable entry
 -- @param name string - name for new class, split at '.'
 -- @param parent Class - parent class object
 -- @param mixins tables - arbitrary number of mixin modules
 -- @return class object
-function Class.newTask(name, parent, ...)
+local function newClass(_, name, parent, ...)
 	assert(not registeredClassNames[name], "class names must be unique")
 	registeredClassNames[name] = true
-
 	local class = {}
 	local classMt = {
 		type = "class",
 		className = name,
 		classNameShort = getShortname(name),
-		__index = parent
+		__index = parent,
+		__call = constructInstance
 	}
 	classMt.__metatable = classMt
 	setmetatable(class, classMt)
 
 	local mixins = {...}
 	local mixinInits
-	if #mixins == 0 then
-		mixins = nil
-	else
+	if #mixins > 0 then
 		for _, mixin in ipairs(mixins) do
 			for name, field in pairs(mixin) do
 				if name == "init" then
@@ -192,8 +166,8 @@ function Class.newTask(name, parent, ...)
 						mixinInits = {}
 					end
 					table.insert(mixinInits, field)
-				elseif class[name] then -- also checks in superclasses
-					error("Can not include mixin: field " .. name .. " already exists")
+				elseif class[name] then -- check superclasses
+					error("Cannot include mixin: field " .. name .. " already exists")
 				else
 					class[name] = field
 				end
@@ -213,32 +187,7 @@ function Class.newTask(name, parent, ...)
 	end
 	classMt.mixinInits = mixinInits
 
-	function class.create(...)
-		local instance = {}
-		local instMt = {
-			__nilAttributes = {}, -- remember nil-initialized attributes
-			__newindex = registerNils,
-			__index = class,
-			type = "instance"
-		}
-		instMt.__metatable = instMt
-		setmetatable(instance, instMt)
-		if instance.init then
-			instance:init(...)
-		end
-		if mixinInits then
-			local proxy = { instance }
-			setmetatable(proxy, proxyMt)
-			for _, init in ipairs(mixinInits) do
-				init(proxy)
-			end
-		end
-		instMt.__newindex = forbidNewAttributes
-		return instance
-	end
-	classMt.__call = class.create
-
-	return class
+	return class, classMt
 end
 
 --- Values set on a class
@@ -250,5 +199,11 @@ end
 -- @field classParent Class - parent class object
 -- @field create Function - Creates a new class instance
 -- @field init Function - Is called during construction if it exists
+
+local classMetatable = {
+	__call = newClass
+}
+setmetatable(Class, classMetatable)
+
 
 return Class

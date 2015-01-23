@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -41,15 +41,14 @@ SimBall::SimBall(RNG *rng, btDiscreteDynamicsWorld *world) :
 
     btRigidBody::btRigidBodyConstructionInfo rbInfo(BALL_MASS, m_motionState, m_sphere, localInertia);
 
+    // parameters seem to be ignored...
     m_body = new btRigidBody(rbInfo);
     m_body->setRestitution(0.78f);
     // \mu_k = -a / g (while slipping)
     m_body->setFriction(0.35f);
-    // \mu_r = -a / g (while rolling)
-    // FIXME rolling friction is too strong
-    // related to m_singleAxisRollingFrictionThreshold in simulator.cpp
-    // FIXME behaviour is buggy for small velocities
-    m_body->setRollingFriction(0.0357f * 0.7);
+    // \mu_r = -a / g = 0.0357 (while rolling)
+    // rollingFriction in bullet is too unstable to be useful
+    // use custom implementation in begin()
     m_world->addRigidBody(m_body);
 }
 
@@ -63,6 +62,26 @@ SimBall::~SimBall()
 
 void SimBall::begin()
 {
+    // custom implementation of rolling friction
+    const btVector3 p = m_body->getWorldTransform().getOrigin() / SIMULATOR_SCALE;
+    if (p.z() < BALL_RADIUS * 1.1) { // ball is on the ground
+        const btVector3 velocity = m_body->getLinearVelocity() / SIMULATOR_SCALE;
+        if (velocity.length() < 0.01) {
+            // stop the ball if it is really slow
+            // -> the real ball snaps to a dimple
+            m_body->setLinearVelocity(btVector3(0, 0, 0));
+        } else {
+            // just apply rolling friction, normal friction is somehow handled by bullet
+            // this is quite a hack as it's always applied
+            // but as the strong deceleration is more or less magic, some additional deceleration doesn't matter
+            const btScalar hackFactor = 1.4;
+            const btScalar rollingDeceleration = hackFactor * 0.35;
+            btVector3 force(velocity.x(), velocity.y(), 0.0f);
+            force.normalize();
+            m_body->applyCentralImpulse(-force * rollingDeceleration * SIMULATOR_SCALE * BALL_MASS * SUB_TIMESTEP);
+        }
+    }
+
     if (m_move.has_p_x()) {
         if (m_move.position()) {
             // set ball to the given position and speed

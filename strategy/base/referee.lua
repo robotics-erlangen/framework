@@ -4,7 +4,7 @@ module "Referee"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
+*   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -101,9 +101,9 @@ end
 -- @name illustrateRefereeStates
 function Referee.illustrateRefereeStates()
 	if World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive" then
-		vis.addPath("penaltyDistanceAllowed", {Vector.create(-2,World.Geometry.OwnPenaltyLine), Vector.create(2,World.Geometry.OwnPenaltyLine)}, vis.colors.red)
+		vis.addPath("penaltyDistanceAllowed", {Vector(-2,World.Geometry.OwnPenaltyLine), Vector(2,World.Geometry.OwnPenaltyLine)}, vis.colors.red)
 	elseif World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive" then
-		vis.addPath("penaltyDistanceAllowed", {Vector.create(-2,World.Geometry.PenaltyLine), Vector.create(2,World.Geometry.PenaltyLine)}, vis.colors.red)
+		vis.addPath("penaltyDistanceAllowed", {Vector(-2,World.Geometry.PenaltyLine), Vector(2,World.Geometry.PenaltyLine)}, vis.colors.red)
 	elseif Referee.isStopState() then
 		vis.addCircle("stopstateBallDist", World.Ball.pos, 0.5, vis.colors.redHalf, true)
 	end

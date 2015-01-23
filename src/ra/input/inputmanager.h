@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -60,6 +60,8 @@ public slots:
     void setStrategyControlled(uint generation, uint id, bool strategyControlled);
     void setMaxSpeed(double speed);
     void setMaxOmega(double speed);
+    void setDribblerPower(double dribblerPower);
+    void setShootPower(double shootPower);
     void setEnabled(bool enabled);
     void setDirect(bool direct);
     void setGlobal(bool global);
@@ -87,6 +89,8 @@ private:
 
     float m_maxSpeed;
     float m_maxOmega;
+    float m_dribblerPower;
+    float m_shootPower;
     bool m_enabled;
     bool m_direct;
 };

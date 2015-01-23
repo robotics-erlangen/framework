@@ -4,7 +4,7 @@ module "Trajectory"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Michael Eischer                                        *
+*   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -25,7 +25,7 @@ module "Trajectory"
 
 local vis = require "../base/vis"
 local Class = require "../base/class"
-local Trajectory =  (require "../base/class").new("Trajectory") -- Trajectory manager
+local Trajectory =  (require "../base/class")("Trajectory") -- Trajectory manager
 
 --- Initialises trajectory manager.
 -- Must only be called by robot class!
@@ -47,7 +47,7 @@ function Trajectory:update(handlerType, ...)
 		error("Trajectory module must derive from Trajectory.Base")
 	end
 	if not (self._handler and Class.instanceOf(self._handler, handlerType) and self._handler:canHandle(...)) then
-		self._handler = handlerType.create(self._robot)
+		self._handler = handlerType(self._robot)
 	end
 	local splines, moveDest, moveTime = self._handler:update(...)
 
@@ -59,7 +59,7 @@ end
 
 
 -- base class for trajectory planning
-Trajectory.Base = (require "../base/class").new("Trajectory.Base")
+Trajectory.Base = (require "../base/class")("Trajectory.Base")
 
 function Trajectory.Base:init(robot, ...)
 	self._robot = robot

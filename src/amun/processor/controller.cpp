@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Simon Dirauf, Michael Eischer, Stefan Friedrich,       *
+ *   Copyright 2015 Simon Dirauf, Michael Eischer, Stefan Friedrich,       *
  *       Jan Kallwies, Philipp Nordhus                                     *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *

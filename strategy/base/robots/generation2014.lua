@@ -4,7 +4,7 @@ module "Robot.Generation.Gen2014_3"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Michael Eischer                                        *
+*   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -24,7 +24,7 @@ module "Robot.Generation.Gen2014_3"
 *************************************************************************]]
 
 local Robot = require "../base/robot"
-local Gen2014, Gen2014Mt = (require "../base/class").new("Robot.Generation.Gen2014_3", Robot)
+local Gen2014, Gen2014Mt = (require "../base/class")("Robot.Generation.Gen2014_3", Robot)
 
 Gen2014Mt.__tostring = Robot.tostring
 

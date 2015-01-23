@@ -4,7 +4,7 @@ module "Field"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Alexander Danzer, Michael Eischer, Christian Lobmeier, *
+*   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier, *
 *       André Pscherer                                                    *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -47,7 +47,7 @@ function Field.limitToField(pos, boundaryWidth)
 	local allowedWidth = World.Geometry.FieldWidthHalf + boundaryWidth -- limit width to field
 	local x = math.bound(-allowedWidth, pos.x, allowedWidth)
 
-	return Vector.create(x, y)
+	return Vector(x, y)
 end
 
 --- returns the nearest position inside the field without friendly defense area
@@ -63,18 +63,18 @@ function Field.limitToAllowedField(pos, extraLimit, blockOpponentDefenseArea)
 	end
 	if Field.isInFriendlyDefenseArea(pos, extraLimit) then
 		if math.abs(pos.x) <= World.Geometry.DefenseStretch/2 then
-			pos = Vector.create(pos.x, -World.Geometry.FieldHeightHalf+World.Geometry.DefenseRadius+extraLimit)
+			pos = Vector(pos.x, -World.Geometry.FieldHeightHalf+World.Geometry.DefenseRadius+extraLimit)
 		else
-			local circleMidpoint = Vector.create(
+			local circleMidpoint = Vector(
 				World.Geometry.DefenseStretch/2*math.sign(pos.x), -World.Geometry.FieldHeightHalf)
 			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+extraLimit)
 		end
 		return pos
 	elseif blockOpponentDefenseArea and Field.isInOpponentDefenseArea(pos, oppExtraLimit) then
 		if math.abs(pos.x) <= World.Geometry.DefenseStretch/2 then
-			pos = Vector.create(pos.x, World.Geometry.FieldHeightHalf-World.Geometry.DefenseRadius-oppExtraLimit)
+			pos = Vector(pos.x, World.Geometry.FieldHeightHalf-World.Geometry.DefenseRadius-oppExtraLimit)
 		else
-			local circleMidpoint = Vector.create(
+			local circleMidpoint = Vector(
 				World.Geometry.DefenseStretch/2*math.sign(pos.x), World.Geometry.FieldHeightHalf)
 			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+oppExtraLimit)
 		end
@@ -139,8 +139,8 @@ local function isInDefenseArea(pos, radius, friendly)
 		return false
 	end
 
-	local p1 = Vector.create(defStretchHalf, goalLine) -- lower bound of defense stretch
-	local p2 = Vector.create(-defStretchHalf, goalLine) -- upper bound of defense stretch
+	local p1 = Vector(defStretchHalf, goalLine) -- lower bound of defense stretch
+	local p2 = Vector(-defStretchHalf, goalLine) -- upper bound of defense stretch
 	local belowDefStretch = pos.y > goalLine - defRadius - radius
 	if friendly then
 		belowDefStretch = pos.y < goalLine + defRadius + radius
@@ -193,10 +193,10 @@ local function distanceToDefenseArea(pos, radius, friendly)
 			distance = goalLine - defRadius - pos.y + radius
 		end
 	elseif pos.x > defStretchHalf then
-		local corner = Vector.create(defStretchHalf, goalLine)
+		local corner = Vector(defStretchHalf, goalLine)
 		distance = corner:distanceTo(pos) - defRadius - radius
 	else -- pos.x < -defStretchHalf
-		local corner = Vector.create(-defStretchHalf, goalLine)
+		local corner = Vector(-defStretchHalf, goalLine)
 		distance = corner:distanceTo(pos) - defRadius - radius
 	end
 	if distance < -0.00001 then
@@ -276,10 +276,10 @@ function Field.intersectLineDefenseArea(pos, dir, extraDistance, opp)
 
 	-- calculate global positions
 	local oppfac = opp and -1 or 1
-	local leftCenter = Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf) * oppfac
-	local rightCenter = Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf) * oppfac
-	local leftLine = Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf + radius) * oppfac
-	local rightLine = Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf + radius) * oppfac
+	local leftCenter = Vector(-G.DefenseStretch/2, -G.FieldHeightHalf) * oppfac
+	local rightCenter = Vector(G.DefenseStretch/2, -G.FieldHeightHalf) * oppfac
+	local leftLine = Vector(-G.DefenseStretch/2, -G.FieldHeightHalf + radius) * oppfac
+	local rightLine = Vector(G.DefenseStretch/2, -G.FieldHeightHalf + radius) * oppfac
 
 	-- calclulate global angles
 	local oppadd = opp and math.pi or 0
@@ -298,8 +298,8 @@ function Field.intersectLineDefenseArea(pos, dir, extraDistance, opp)
 	end
 
 	-- calculate intersection point with defense stretch
-	local defenseLineOnpoint = Vector.create(0, -G.FieldHeightHalf + radius) * oppfac
-	local lineIntersection,_,l2 = geom.intersectLineLine(pos, dir, defenseLineOnpoint, Vector.create(1,0))
+	local defenseLineOnpoint = Vector(0, -G.FieldHeightHalf + radius) * oppfac
+	local lineIntersection,_,l2 = geom.intersectLineLine(pos, dir, defenseLineOnpoint, Vector(1,0))
 	if lineIntersection and math.abs(l2) <= G.DefenseStretch/2 then
 		table.insert(intersections, {lineIntersection, l2 + totalway/2})
 	end
@@ -342,13 +342,13 @@ function Field.defenseIntersectionByWay(way, extraDistance, opp)
 	if way < arcway then
 		local angle = way / radius
 		intersection = Vector.fromAngle(math.pi - angle) * radius +
-			Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf)
+			Vector(-G.DefenseStretch/2, -G.FieldHeightHalf)
 	elseif way <= arcway + lineway then
-		intersection = Vector.create(way - arcway - G.DefenseStretch/2, radius - G.FieldHeightHalf)
+		intersection = Vector(way - arcway - G.DefenseStretch/2, radius - G.FieldHeightHalf)
 	else
 		local angle = (way - arcway - lineway) / radius
 		intersection = Vector.fromAngle(math.pi/2 - angle) * radius +
-			Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf)
+			Vector(G.DefenseStretch/2, -G.FieldHeightHalf)
 	end
 
 	if opp then
@@ -369,8 +369,8 @@ function Field.intersectCircleDefenseArea(pos, radius, extraDistance, opp)
 	-- invert coordinates if opp-flag is set
 	if opp then pos = pos * -1 end
 
-	local leftCenter = Vector.create(-G.DefenseStretch/2, -G.FieldHeightHalf)
-	local rightCenter = Vector.create(G.DefenseStretch/2, -G.FieldHeightHalf)
+	local leftCenter = Vector(-G.DefenseStretch/2, -G.FieldHeightHalf)
+	local rightCenter = Vector(G.DefenseStretch/2, -G.FieldHeightHalf)
 	local defenseRadius = G.DefenseRadius + extraDistance
 
 	local intersections = {}
@@ -393,7 +393,7 @@ function Field.intersectCircleDefenseArea(pos, radius, extraDistance, opp)
 
 	-- get intersections with line
 	local mi1, mi2 = geom.intersectLineCircle(
-				Vector.create(0, -G.FieldHeightHalf+defenseRadius), Vector.create(1, 0), pos, radius)
+				Vector(0, -G.FieldHeightHalf+defenseRadius), Vector(1, 0), pos, radius)
 	if mi1 and math.abs(mi1.x) <= G.DefenseStretch/2 then
 		table.insert(intersections, li1)
 	end
@@ -421,7 +421,7 @@ function Field.distanceToFriendlyGoalLine(pos, radius)
 	if math.abs(pos.x) < G.GoalWidth/2 then
 		return math.max(G.FieldHeightHalf + pos.y - radius, 0)
 	end
-	local goalpost = Vector.create(pos.x > 0 and G.GoalWidth/2 or - G.GoalWidth/2, -G.FieldHeightHalf)
+	local goalpost = Vector(pos.x > 0 and G.GoalWidth/2 or - G.GoalWidth/2, -G.FieldHeightHalf)
 	return goalpost:distanceTo(pos) - radius
 end
 
@@ -444,8 +444,8 @@ function Field.nextLineCut(startPos, dir)
 	if dir.x == 0 and dir.y == 0 then
 		return
 	end
-	local width = Vector.create(G.FieldWidthHalf*math.sign(dir.x), 0)
-	local height = Vector.create(0, G.FieldHeightHalf*math.sign(dir.y))
+	local width = Vector(G.FieldWidthHalf*math.sign(dir.x), 0)
+	local height = Vector(0, G.FieldHeightHalf*math.sign(dir.y))
 	local sideCut, sideLambda = geom.intersectLineLine(startPos, dir, width, height)
 	local frontCut, frontLambda = geom.intersectLineLine(startPos, dir, height, width)
 	if sideCut then

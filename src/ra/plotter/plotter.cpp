@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Jan Kallwies, Philipp Nordhus         *
+ *   Copyright 2015 Michael Eischer, Jan Kallwies, Philipp Nordhus         *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,6 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
+#include "leaffilterproxymodel.h"
 #include "plotter.h"
 #include "plot.h"
 #include "ui_plotter.h"
@@ -29,8 +30,8 @@
 #include <QSettings>
 #include <QTimer>
 
-Plotter::Plotter(QWidget *parent) :
-    QDialog(parent, Qt::Window),
+Plotter::Plotter() :
+    QWidget(nullptr, Qt::Window),
     ui(new Ui::Plotter),
     m_startTime(0),
     m_freeze(false)
@@ -38,8 +39,13 @@ Plotter::Plotter(QWidget *parent) :
     setWindowIcon(QIcon("icon:plotter.svg"));
     ui->setupUi(this);
 
+    // proxy model for tree filtering
+    m_proxy = new LeafFilterProxyModel(this);
+    m_proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
+    m_proxy->setSourceModel(&m_model);
     ui->tree->setUniformRowHeights(true);
-    ui->tree->setModel(&m_model);
+    ui->tree->setModel(m_proxy);
+    connect(ui->lineSearch, SIGNAL(textChanged(QString)), m_proxy, SLOT(setFilterFixedString(QString)));
 
     // root items in the plotter
     addRootItem("Ball", "Ball");
@@ -71,6 +77,8 @@ Plotter::Plotter(QWidget *parent) :
     connect(ui->spinDuration, SIGNAL(valueChanged(double)), SLOT(updateScrollBar()));
     connect(ui->timeScroll, SIGNAL(valueChanged(int)), SLOT(updateOffset(int)));
     updateScrollBar();
+    // redirect scroll events on the widget
+    ui->widget->installEventFilter(this);
 
     // setup context menu for plot list
     m_plotMenu = new QMenu(this);
@@ -112,7 +120,7 @@ void Plotter::closeEvent(QCloseEvent *event)
     s.setValue("visible", QStringList(m_selection.toList()));
     s.endGroup();
 
-    QDialog::closeEvent(event);
+    QWidget::closeEvent(event);
 }
 
 void Plotter::addRootItem(const QString &name, const QString &displayName)
@@ -166,6 +174,18 @@ void Plotter::updateOffset(int pos)
 {
     // divide by 100 to allow fine scrolling
     ui->widget->setOffset(pos / 100.);
+}
+
+bool Plotter::eventFilter(QObject *obj, QEvent *event)
+{
+    if (event->type() == QEvent::Wheel) {
+        // forward scroll events to scrollbar
+        ui->timeScroll->event(event);
+        return true;
+    } else {
+        // standard event processing
+        return QObject::eventFilter(obj, event);
+    }
 }
 
 void Plotter::setFreeze(bool freeze)
@@ -372,6 +392,11 @@ void Plotter::parseMessage(const google::protobuf::Message &message, const QStri
                 v_y = value;
             }
 
+            addPoint(name, parent, time, value);
+        } else if (field->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_BOOL
+                   && refl->HasField(message, field)) {
+            const QString name = QString::fromStdString(field->name());
+            const float value = refl->GetBool(message,field) ? 1 : 0;
             addPoint(name, parent, time, value);
         }
     }

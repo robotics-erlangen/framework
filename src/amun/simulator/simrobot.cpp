@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Jan Kallwies, Philipp Nordhus         *
+ *   Copyright 2015 Michael Eischer, Jan Kallwies, Philipp Nordhus         *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -141,12 +141,29 @@ void SimRobot::begin(SimBall *ball, double time)
     }
     // check if should kick and can do that
     if (m_isCharged && m_command.has_kick_power() && m_command.kick_power() > 0 && canKickBall(ball)) {
-        const float shootSpeed = m_specs.shot_linear_max();
-        const float power = qBound(0.f, m_command.kick_power(), 0.741f); // limit for shootRatio
-        const float shootRatio = qMax(0.f, -50.f/3*power*power + 24.7f*power - 1.01f) / 8.14f;
+        if (m_command.kick_style() == robot::Command::Linear) {
+            const float shootSpeed = m_specs.shot_linear_max();
+            const float power = qBound(0.f, m_command.kick_power(), 0.741f); // limit for shootRatio
+            const float shootRatio = qMax(0.f, -50.f/3*power*power + 24.7f*power - 1.01f) / 8.14f;
 
-        // kick forward with the specified fraction of the max shoot speed
-        ball->kick(t * btVector3(0, 1, 0) * (1/time) * SIMULATOR_SCALE * shootRatio * shootSpeed * BALL_MASS);
+            // kick forward with the specified fraction of the max shoot speed
+            ball->kick(t * btVector3(0, 1, 0) * (1/time) * SIMULATOR_SCALE * shootRatio * shootSpeed * BALL_MASS);
+        } else if (m_command.kick_style() == robot::Command::Chip) {
+            // reverse strategy calculation -> get desired chip distance
+            const float shootDist = m_specs.shot_chip_max();
+            const float power = qBound(0.2086f, m_command.kick_power(), 1.0f);
+            const float targetDist = qBound(0.f, (float)((89+std::sqrt(-5218757+25020000*power))/2502 * shootDist / 1.8), shootDist);
+
+            // just assume a angle of 45 degrees
+            const float angle = 45./180*M_PI;
+            const float dirFloor = std::cos(angle);
+            const float dirUp = std::sin(angle);
+
+            // airtime = 2 * (shootSpeed * dirUp) / g
+            // targetDist = shootSpeed * dirFloor * airtime
+            const float shootSpeed = std::sqrt(targetDist*m_world->getGravity().length() / (2*std::abs(dirUp*dirFloor)*SIMULATOR_SCALE));
+            ball->kick(t * btVector3(0, dirFloor, dirUp) * (1/time) * SIMULATOR_SCALE * shootSpeed * BALL_MASS);
+        }
         // discharge
         m_isCharged = false;
         m_shootTime = 0.0;

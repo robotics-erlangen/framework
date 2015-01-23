@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
+ *   Copyright 2015 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -22,8 +22,6 @@
 #include "lua_amun.h"
 #include "lua_path.h"
 #include "lua_protobuf.h"
-#include "lua_vector.h"
-#include "lua_math.h"
 #include "core/timer.h"
 #include "filewatcher.h"
 
@@ -419,6 +417,7 @@ void Lua::loadLibs()
     loadLib(LUA_IOLIBNAME,      luaopen_io);
     loadLib(LUA_STRLIBNAME,     luaopen_string);
     loadLib(LUA_MATHLIBNAME,    luaopen_math);
+    loadLib(LUA_FFILIBNAME,     luaopen_ffi);
 }
 
 void Lua::loadDebugLibs()
@@ -436,11 +435,9 @@ void Lua::loadDebugLibs()
 
     loadLib(LUA_DBLIBNAME,      luaopen_debug);
 
-    // load jit libraries if available, required by the lua debugger
-#ifdef LUAJIT_VERSION
+    // load jit libraries, required by the lua debugger
     loadLib(LUA_BITLIBNAME,     luaopen_bit);
     loadLib(LUA_JITLIBNAME,     luaopen_jit);
-#endif
 }
 
 void Lua::loadLib(const char* name, lua_CFunction function)
@@ -477,10 +474,6 @@ void Lua::setupPackageLoader()
     lua_setfield(m_state, -2, "amun");
     lua_pushcfunction(m_state, pathRegister);
     lua_setfield(m_state, -2, "path");
-    lua_pushcfunction(m_state, vectorRegister);
-    lua_setfield(m_state, -2, "vector");
-    lua_pushcfunction(m_state, mathRegister);
-    lua_setfield(m_state, -2, "amunMath");
     lua_pop(m_state, 1);
 
     lua_pop(m_state, 1);

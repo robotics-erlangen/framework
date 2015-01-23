@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2014 Michael Bleier, Philipp Nordhus                        *
+# *   Copyright 2015 Michael Bleier, Philipp Nordhus                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *

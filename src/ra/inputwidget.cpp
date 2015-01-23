@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -47,6 +47,8 @@ void InputWidget::init(InputManager *inputManager)
     connect(ui->spinLinear, SIGNAL(valueChanged(double)), inputManager, SLOT(setMaxSpeed(double)));
     connect(ui->spinRotation, SIGNAL(valueChanged(double)), inputManager, SLOT(setMaxOmega(double)));
     connect(ui->checkGlobal, SIGNAL(toggled(bool)), inputManager, SLOT(setGlobal(bool)));
+    connect(ui->dribblerPower, SIGNAL(valueChanged(double)), inputManager, SLOT(setDribblerPower(double)));
+    connect(ui->shootPower, SIGNAL(valueChanged(double)), inputManager, SLOT(setShootPower(double)));
 }
 
 void InputWidget::load()

@@ -4,7 +4,7 @@ module "debug"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+*   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -83,7 +83,7 @@ function debug.set(name, value, visited)
 			return
 		end
 		visited[value] = true
-		
+
 		if rawget(getmetatable(value) or {}, "__tostring") then
 			value = tostring(value)
 		else
@@ -98,7 +98,7 @@ function debug.set(name, value, visited)
 			debug.pop()
 			return
 		end
-	elseif type(value) == "userdata" then
+	elseif type(value) == "userdata" or type(value) == "cdata" then
 		value = tostring(value)
 	end
 	amun.addDebug(prefixName(name), value)

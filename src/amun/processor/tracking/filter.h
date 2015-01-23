@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -39,7 +39,7 @@ protected:
 
     qint64 m_lastTime;
     qint64 m_lastPrimaryTime;
-    quint32 m_primaryCamera;
+    qint32 m_primaryCamera;
     int m_frameCounter;
 };
 

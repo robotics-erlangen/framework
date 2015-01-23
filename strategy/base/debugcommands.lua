@@ -4,7 +4,7 @@ module "debugcommands"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Alexander Danzer, Michael Eischer                      *
+*   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -36,14 +36,14 @@ local stageUnmapping = {
 	HalfTime = "NORMAL_HALF_TIME",
 	SecondHalfPre = "NORMAL_SECOND_HALF_PRE",
 	SecondHalf = "NORMAL_SECOND_HALF",
-	
+
 	ExtraTimeBreak = "EXTRA_TIME_BREAK",
 	ExtraFirstHalfPre = "EXTRA_FIRST_HALF_PRE",
 	ExtraFirstHalf = "EXTRA_FIRST_HALF",
 	ExtraHalfTime = "EXTRA_HALF_TIME",
 	ExtraSecondHalfPre = "EXTRA_SECOND_HALF_PRE",
 	ExtraSecondHalf = "EXTRA_SECOND_HALF",
-	
+
 	PenaltyShootoutBreak = "PENALTY_SHOOTOUT_BREAK",
 	PenaltyShootout = "PENALTY_SHOOTOUT",
 	PostGame = "POST_GAME"
@@ -81,7 +81,7 @@ function DebugCommands.sendRefereeCommand(refereeCommand, gameStage, blueKeeperI
 	local origState = World._getFullRefereeState()
 	-- require origState to be populated, is guaranteed once World.update() was called
 	assert(origState, "Musn't be called before World.update(), that is outside of Entrypoints")
-	
+
 	-- fill message with default values
 	local state = { state = origState.state, stage = origState.stage, -- default values
 		packet_timestamp = 0, command_timestamp = 0,
@@ -124,7 +124,7 @@ function DebugCommands.sendRefereeCommand(refereeCommand, gameStage, blueKeeperI
 	if yellowKeeperID then
 		state.yellow.goalie = yellowKeeperID
 	end
-	
+
 	sendRefereeCommand(state)
 end
 

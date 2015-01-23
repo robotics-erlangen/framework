@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -62,8 +62,8 @@ private:
     void invalidateBall(qint64 currentTime);
     static void invalidateRobots(RobotMap &map, qint64 currentTime);
 
-    void trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint32 cameraId);
-    void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, quint32 cameraId);
+    void trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, qint32 cameraId);
+    void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId);
 
     template<class Filter>
     static Filter* bestFilter(QList<Filter*> &filters, int minFrameCount);

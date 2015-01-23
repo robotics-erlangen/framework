@@ -4,7 +4,7 @@ module "geom"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Alexander Danzer, Michael Eischer, André Pscherer      *
+*   Copyright 2015 Alexander Danzer, Michael Eischer, André Pscherer      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -50,7 +50,7 @@ function geom.intersectCircleCircle(c1, r1, c2, r2)
 		local finalY1 = 1 / a2 * finalX1 - (a1/a2)
 		local finalY2 = 1 / a2 * finalX2 - (a1/a2)
 
-		return Vector.create(finalX1, finalY1), Vector.create(finalX2, finalY2)
+		return Vector(finalX1, finalY1), Vector(finalX2, finalY2)
 	end
 end
 
@@ -205,7 +205,7 @@ end
 -- @param pointArray Vector[] - points
 -- @return Vector - geometric center of points
 function geom.center(pointArray)
-	local pos = Vector.create(0,0)
+	local pos = Vector(0,0)
 	for _, point in ipairs(pointArray) do
 		pos = pos + point -- sum up all points
 	end

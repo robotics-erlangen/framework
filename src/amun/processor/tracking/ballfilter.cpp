@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -225,7 +225,7 @@ bool BallFilter::isInAOI(const SSL_DetectionBall &ball, bool flip, float x1, flo
     return (x > x1 && x < x2 && y > y1 && y < y2);
 }
 
-void BallFilter::addVisionFrame(quint32 cameraId, const SSL_DetectionBall &ball, qint64 time)
+void BallFilter::addVisionFrame(qint32 cameraId, const SSL_DetectionBall &ball, qint64 time)
 {
     m_visionFrames.append(VisionFrame(cameraId, ball, time));
     // only count frames for the primary camera

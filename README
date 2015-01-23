@@ -28,7 +28,6 @@ libudev-dev
 libsdl2-dev
 libluajit-5.1-dev
 libusb-1.0-0-dev
-gcc-arm-none-eabi
 (and you need g++, since it's not included in the default instalation)
 
 *** Unix ***
@@ -57,73 +56,61 @@ Compile instructions: (for Ubuntu 12.04)
 
 *** Windows ***
 Get dependencies (tested using the given versions):
-cmake 2.8.12.2 - http://www.cmake.org/files/v2.8/cmake-2.8.12.2-win32-x86.exe
+cmake 3.0.2 - http://www.cmake.org/files/v3.0/cmake-3.0.2-win32-x86.exe
 mingw-get - http://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.exe
 
-Qt 5.2.1 OpenGL - http://download.qt-project.org/official_releases/qt/5.2/5.2.1/qt-opensource-windows-x86-mingw48_opengl-5.2.1.exe
-protobuf 2.5.0 - https://protobuf.googlecode.com/files/protobuf-2.5.0.tar.bz2
+Qt 5.3.2 OpenGL - http://download.qt-project.org/official_releases/qt/5.3/5.3.2/qt-opensource-windows-x86-mingw482_opengl-5.3.2.exe
+protobuf 2.6.1 - https://github.com/google/protobuf/releases/download/2.6.1/protobuf-2.6.1.tar.bz2
 luajit 2.0.3 - http://luajit.org/download/LuaJIT-2.0.3.tar.gz
-libusbx 1.18 - http://downloads.sourceforge.net/libusb/libusb-1.0.18.tar.bz2
+libusb 1.19 - http://downloads.sourceforge.net/project/libusb/libusb-1.0/libusb-1.0.19/libusb-1.0.19.tar.bz2
 luasocket 3.0-rc? - https://github.com/diegonehab/luasocket/archive/master.zip
 libsdl2 2.0.2 - http://libsdl.org/release/SDL2-devel-2.0.2-mingw.tar.gz
 
 install cmake:
 	use the installer, select add to PATH
+	
+install qt:
+	run installer (use default install path! ), make sure to SELECT "Tools/MinGW 4.8"!
 
 install mingw-get:
 	Run installer (use default path C:\MinGW !)
-	Install with package manager:
-		ming32-base, g++, msys-base, mingw32-gdb-python, msys-patch (vorher mingw32-gdb entfernen!)
-	Run: (g++-4.8.1 crashes while compiling bullet)
-		> mingw-get remove gcc g++ mpc
-		> mingw-get install "gcc<4.8" "g++<4.8" "mpc<1"
-	Run C:\mingw\msys\1.0\postinstall\pi.sh set mingw path to c:/mingw
+	Install:
+		msys-base, msys-patch
+	Run C:\mingw\msys\1.0\postinstall\pi.bat set mingw path to c:/Qt/Qt5.3.2/Tools/mingw482_32
 use msys.bat in msys\1.0 to open msys console
 
 !!! USE MSYS TO COMPILE EVERYTHING !!!
 
 compile protobuf:
 	> mkdir build && cd build
-    > ../configure --prefix=/mingw && make && make install
+	> ../configure --prefix=/usr/local --without-zlib && make && make install
 
 compile luajit:
-	> make && make install PREFIX=/mingw && cp src/lua51.dll /mingw/bin
+	> make && make install PREFIX=/usr/local && cp src/lua51.dll /usr/local/bin
 
 compile libusb:
 	> mkdir build && cd build
-	> ../configure --prefix=/mingw && make && make install
+	> ../configure --prefix=/usr/local && make CFLAGS="-DWINVER=0x0501" && make install
 
 install libsdl2(prebuilt mingw package!):
-	> make native
+	> make install-package arch=i686-w64-mingw32 prefix=/usr/local
 
 compile luasocket2:
-	> make PLAT=mingw LUAINC_mingw=/mingw/include/luajit-2.0 LUALIB_mingw=/mingw/bin/lua51.dll
+	> make PLAT=mingw LUAINC_mingw=/usr/local/include/luajit-2.0 LUALIB_mingw=/usr/local/bin/lua51.dll
 	> make install PLAT=mingw INSTALL_TOP_LDIR=../build/share INSTALL_TOP_CDIR=../build/lib
-	
-install qt:
-run installer (use default install path! ), unselect "Tools/MinGW 4.8"!
 
 compile ra:
 	> mkdir build-win && cd build-win
-	> cmake -G "MSYS Makefiles" -DCMAKE_PREFIX_PATH=/c/Qt/Qt5.2.1/5.2.1/mingw48_32/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
-	
-		either set using commandline cmake -DPARAM=VALUE ... or cmake-gui
-		set LUA_INCLUDE_DIR to C:/MinGW/include/luajit-2.0
-		set LUA_LIBRARIES to C:/mingw/bin/lua51.dll
-		set PROTOBUF_INCLUDE_DIR to C:/MinGW/include
-		set PROTOBUF_LIBRARY to C:/MinGW/lib/libprotobuf.dll.a
-		set SDL2_INCLUDE_DIR to C:/MinGW/msys/1.0/include/SDL2
-		set USB_INCLUDE_DIR to C:/MinGW/include/libusb-1.0
-
+	> cmake -G "MSYS Makefiles" -DCMAKE_PREFIX_PATH=/c/Qt/Qt5.3.2/5.3/mingw482_32/lib/cmake -DCMAKE_BUILD_TYPE=Release -DLUA_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/luajit-2.0 -DLUA_LIBRARIES=C:/MinGW/msys/1.0/local/bin/lua51.dll -DPROTOBUF_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include -DPROTOBUF_LIBRARY=C:/MinGW/msys/1.0/local/lib/libprotobuf.dll.a -DSDL2_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/SDL2 -DUSB_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/libusb-1.0 ..
 	> make
 	
 		copy config + data directory to "builddir"/bin
-		copy libprotobuf-8.dll, libusb-1.0.dll, lua51.dll, mingwm10.dll from C:/MinGW/bin to "builddir"/bin
-		copy SDL2.dll from C:/MinGW/msys/1.0/bin
-		copy icudt51.dll, icuin51.dll, icuuc51.dll, libgcc_s_dw2-1.dll, libstdc++-6.dll, libwinpthread-1.dll,
-			Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5OpenGL.dll, Qt5Widgets.dll from C:/Qt/Qt5.2.1/5.2.1/mingw48_32/bin to "builddir"/bin
-		copy qwindows.dll from C:/Qt/Qt5.2.1/5.2.1/mingw48_32/plugins/platforms to "builddir"/bin/platforms
-		copy the contents of luasocket2/build/lib to "builddir"/bin
+		copy libprotobuf-9.dll, libusb-1.0.dll, lua51.dll, SDL2.dll from C:\MinGW\msys\1.0\local\bin to "builddir"/bin
+		copy icudt52.dll, icuin52.dll, icuuc52.dll, libgcc_s_dw2-1.dll, libstdc++-6.dll, libwinpthread-1.dll,
+			Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5OpenGL.dll, Qt5Widgets.dll from C:/Qt/Qt5.3.2/5.3/mingw482_32/bin to "builddir"/bin
+		copy qwindows.dll from C:/Qt/Qt5.3.2/5.3/mingw482_32/plugins/platforms to "builddir"/bin/platforms
+		copy the folders of luasocket2/build/lib to "builddir"/bin
+
 Finished!
 
 
@@ -132,6 +119,7 @@ Get dependencies using Homebrew (http://brew.sh):
 brew install git sdl2 luajit protobuf libusb
 Download Qt 5 from qt-project.org and install
 Build using:
+> cd path/to/framework
 > mkdir build-mac && cd build-mac
 > cmake -DCMAKE_PREFIX_PATH=~/Qt/5.3/clang_64/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
 > make

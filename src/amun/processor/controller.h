@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Stefan Friedrich, Jan Kallwies,       *
+ *   Copyright 2015 Michael Eischer, Stefan Friedrich, Jan Kallwies,       *
  *       Philipp Nordhus                                                   *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *

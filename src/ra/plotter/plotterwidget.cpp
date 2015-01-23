@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -206,7 +206,9 @@ void PlotterWidget::drawHelpers()
         desc += QString(" dy/dt: %1").arg(QString::number(dy/dt, 'f', 4));
     }
     QPointF pos = mapFromScene(std::min(start.x(), end.x())+m_time, std::max(start.y(), end.y()), 0.f);
-    drawLabel(pos.x()+2, pos.y()-2, false, desc);
+
+    bool rightAlignedLabel = (std::min(start.x(), end.x()) - (m_offset - m_duration)) > 0.6 * m_duration;
+    drawLabel(pos.x()+2, pos.y()-2, rightAlignedLabel, desc);
 }
 
 // (x, y) is the lower left / right corner of the label

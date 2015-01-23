@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -40,7 +40,7 @@ public:
     void update(qint64 time);
     void get(world::Robot *robot, bool flip);
 
-    void addVisionFrame(quint32 cameraId, const SSL_DetectionRobot &robot, qint64 time);
+    void addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time);
     void addRadioCommand(const robot::Command &radioCommand, qint64 time);
 
     float distanceTo(const SSL_DetectionRobot &robot) const;
@@ -49,9 +49,9 @@ public:
 private:
     struct VisionFrame
     {
-        VisionFrame(quint32 cameraId, const SSL_DetectionRobot &detection, qint64 time)
+        VisionFrame(qint32 cameraId, const SSL_DetectionRobot &detection, qint64 time)
             : cameraId(cameraId), detection(detection), time(time) {}
-        quint32 cameraId;
+        qint32 cameraId;
         SSL_DetectionRobot detection;
         qint64 time;
     };

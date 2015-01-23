@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -21,31 +21,55 @@
 #ifndef TRANSCEIVER2012_H
 #define TRANSCEIVER2012_H
 
+#define TRANSCEIVER_MIN_PROTOCOL_VERSION 1
+#define TRANSCEIVER_PROTOCOL_VERSION 2
+
 enum TransceiverCommand {
+    COMMAND_INIT = 0x00, // initial request
     // commands sent to the transceiver
-    COMMAND_SEND_NRF24 = 0x01,
+    COMMAND_PING = 0x01, // ping with hostprovided data
+    COMMAND_STATUS = 0x02, // request info about dropped packets
     COMMAND_SET_FREQUENCY = 0x10,
+    COMMAND_SEND_NRF24 = 0x11,
     // replies from the transceiver
-    COMMAND_TRANSCEIVER_STATUS = 0x80, // just text
-    COMMAND_REPLY_FROM_ROBOT = 0x81 // wraps a received reply
+    COMMAND_INIT_REPLY = 0x80, // return used protocol version
+    COMMAND_PING_REPLY = 0x81, // echo for ping
+    COMMAND_STATUS_REPLY = 0x82, // return dropped packets count
+    COMMAND_REPLY_FROM_ROBOT = 0x90 // wraps a received reply
 };
 
 typedef struct
 {
     uint8_t command;
     uint8_t size; // size of the following data
-    union {
-        struct {
-            uint8_t address[5];
-            uint8_t expectedResponseSize;
-        };
-        struct {
-            uint8_t channel;
-            uint8_t primary:1;
-        };
-    };
 } __attribute__ ((packed)) TransceiverCommandPacket;
 
+// used for COMMAND_INIT and COMMAND_INIT_REPLY
+typedef struct
+{
+    uint16_t protocolVersion;
+} __attribute__ ((packed)) TransceiverInitPacket;
+
+// used for COMMAND_STATUS_REPLY
+typedef struct
+{
+    uint32_t droppedPackets;
+} __attribute__ ((packed)) TransceiverStatusPacket;
+
+// used for COMMAND_SET_FREQUENCY
+typedef struct
+{
+    uint8_t channel;
+} __attribute__ ((packed)) TransceiverSetFrequencyPacket;
+
+// used for COMMAND_SEND_NRF24
+typedef struct
+{
+    uint8_t address[5];
+    uint8_t expectedResponseSize;
+} __attribute__ ((packed)) TransceiverSendNRF24Packet;
+
+// used for COMMAND_REPLY_FROM_ROBOT
 typedef struct
 {
     uint8_t size; // size of the following data

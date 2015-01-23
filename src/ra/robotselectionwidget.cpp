@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -32,8 +32,6 @@
 
 static const int DATA_GENERATION_ID = Qt::UserRole + 1;
 static const int DATA_ROBOT_ID = Qt::UserRole + 2;
-static const int DATA_FIELD_INDEX = Qt::UserRole + 3;
-static const int DATA_DEFAULT = Qt::UserRole + 4;
 
 struct RobotSelectionWidget::Generation
 {
@@ -144,8 +142,8 @@ void RobotSelectionWidget::load()
     m_recentScripts = s.value("RecentScripts").toStringList();
     s.endGroup();
 
-    ui->blue->setRecentScripts(m_recentScripts);
-    ui->yellow->setRecentScripts(m_recentScripts);
+    ui->blue->setRecentScripts(&m_recentScripts);
+    ui->yellow->setRecentScripts(&m_recentScripts);
 
     loadRobots();
 

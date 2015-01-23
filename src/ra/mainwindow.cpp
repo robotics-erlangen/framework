@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -41,7 +41,8 @@ MainWindow::MainWindow(quint16 visionPort, QWidget *parent) :
     ui(new Ui::MainWindow),
     m_transceiverActive(false),
     m_logFile(NULL),
-    m_logFileThread(NULL)
+    m_logFileThread(NULL),
+    m_lastStage(SSL_Referee::NORMAL_FIRST_HALF_PRE)
 {
     qRegisterMetaType<SSL_Referee::Command>("SSL_Referee::Command");
     qRegisterMetaType<SSL_Referee::Stage>("SSL_Referee::Stage");
@@ -102,7 +103,7 @@ MainWindow::MainWindow(quint16 visionPort, QWidget *parent) :
     // setup visualization only parts of the ui
     connect(ui->visualization, SIGNAL(itemsChanged(QStringList)), ui->field, SLOT(visualizationsChanged(QStringList)));
 
-    m_plotter = new Plotter(this);
+    m_plotter = new Plotter();
 
     // connect the menu actions
     connect(ui->actionEnableTransceiver, SIGNAL(toggled(bool)), SLOT(setTransceiver(bool)));
@@ -110,6 +111,11 @@ MainWindow::MainWindow(quint16 visionPort, QWidget *parent) :
     addAction(ui->actionDisableTransceiver); // only actions that are used somewhere are triggered
     connect(ui->actionChargeKicker, SIGNAL(toggled(bool)), SLOT(setCharge(bool)));
     connect(ui->actionFlipSides, SIGNAL(triggered()), SLOT(toggleFlip()));
+    // reminder shown before second half time
+    connect(ui->actionSideChangeNotify, &QAction::triggered, [=] () {
+            ui->actionSideChangeNotify->setVisible(false);
+        });
+    ui->actionSideChangeNotify->setVisible(false);
 
     connect(ui->actionSimulator, SIGNAL(toggled(bool)), SLOT(setSimulatorEnabled(bool)));
     connect(ui->actionInternalReferee, SIGNAL(toggled(bool)), SLOT(setInternalRefereeEnabled(bool)));
@@ -188,9 +194,8 @@ void MainWindow::closeEvent(QCloseEvent *e)
     s.setValue("Referee/Internal", ui->actionInternalReferee->isChecked());
     s.setValue("InputDevices/Enabled", ui->actionInputDevices->isChecked());
 
-    // make sure the plotter gets a close event
-    // as it has this MainWindow as parent, qt won't send it a close event
-    // on application exit
+    // make sure the plotter is closed along with the mainwindow
+    // this also ensure that a closeEvent is triggered
     m_plotter->close();
 
     QMainWindow::closeEvent(e);
@@ -200,25 +205,44 @@ void MainWindow::handleStatus(const Status &status)
 {
     if (status->has_transceiver()) {
         const amun::StatusTransceiver &t = status->transceiver();
+        QString tooltip = "";
+        QString color = "red";
 
-        if (t.active() != m_transceiverActive) {
-            m_transceiverActive = t.active();
+        m_transceiverActive = t.active();
 
-            QPalette p = m_transceiverStatus->palette();
-            if (m_transceiverActive) {
-                p.setColor(QPalette::WindowText, Qt::darkGreen);
+        if (m_transceiverActive) {
+            if (t.dropped_usb_packets() > 0) {
+                color = "yellow";
+                tooltip = QString("Dropped usb packets: %1").arg(t.dropped_usb_packets());
             } else {
-                p.setColor(QPalette::WindowText, Qt::red);
+                color = "darkGreen";
             }
-            m_transceiverStatus->setPalette(p);
+        } else {
+            color = "red";
         }
 
-        m_transceiverStatus->setToolTip(QString::fromStdString(t.error()));
+        m_transceiverStatus->setToolTip(tooltip);
+
+        QString text = QString("<font color=\"%1\">Transceiver%2</font>").arg(color);
+        QString error = QString::fromStdString(t.error()).trimmed();
+        if (!error.isEmpty()) {
+            text = text.arg(": " + QString::fromStdString(t.error()));
+        } else {
+            text = text.arg("");
+        }
+        m_transceiverStatus->setText(text);
     }
 
     // keep team names for the logfile
     if (status->has_game_state()) {
         const amun::GameState &state = status->game_state();
+
+        if (state.has_stage()) {
+            if (state.stage() != m_lastStage && state.stage() == SSL_Referee::NORMAL_SECOND_HALF_PRE) {
+                ui->actionSideChangeNotify->setVisible(true);
+            }
+            m_lastStage = state.stage();
+        }
 
         const SSL_Referee_TeamInfo &teamBlue = state.blue();
         m_blueTeamName = QString::fromStdString(teamBlue.name());

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Philipp Nordhus                                        *
+ *   Copyright 2015 Philipp Nordhus                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *

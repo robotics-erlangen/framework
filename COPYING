@@ -7,7 +7,7 @@ See COPYING.GPL for the full license text.
 
 
 
-Additional Licenses:
+Additional licenses:
 
 cmake/FindLuaJIT2.cmake, cmake/FindSDL2.cmake:
  * Based on Find*.cmake from cmake 2.8.11.2
@@ -80,10 +80,6 @@ data/pkg/:
 data/scripts/git-color, data/udev/99-robotics-usb-devices.rules, data/gamecontrollerdb.txt:
  * Public Domain 2014 Robotics Erlangen e.V.
 
-src/amun/strategy/math_eqn.cpp:
- * Copyright Jochen Schwarze (schwarze@isa.de) <http://tog.acm.org/resources/GraphicsGems/gems/Roots3And4.c>
- * no specific license, but use is permitted without restricions
-
 src/protobuf/ssl_referee.proto:
  * Part of SSL-Refbox
 
@@ -113,19 +109,6 @@ strategy/test/debug/{ltn12, mime, socket}.lua:
 
 
 
-Included libraries by license (see libraries folder):
-
-zlib license (http://www.gzip.org/zlib/zlib_license.html)
-    SDL 2 (http://libsdl.org/)
-    Bullet (https://code.google.com/p/bullet/)
-        patched with cmake/bullet.patch
-
-
-Mozilla Public License 2.0 (MPL 2.0) (https://www.mozilla.org/MPL/2.0/)
-    Eigen (http://eigen.tuxfamily.org/)
-
-
-
 Used libraries by license:
 
 Lesser General Public License 2.1 (LGPL 2.1) (http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
@@ -133,9 +116,18 @@ Lesser General Public License 2.1 (LGPL 2.1) (http://www.gnu.org/licenses/old-li
     Qt 5 (http://qt-project.org/)
 
 
-MIT License (MIT) (http://opensource.org/licenses/mit-license.php)
-    LuaJIT (http://luajit.org/luajit.html)
+Mozilla Public License 2.0 (MPL 2.0) (https://www.mozilla.org/MPL/2.0/)
+    Eigen (http://eigen.tuxfamily.org/)
 
 
 BSD 3-Clause License (BSD New) (http://opensource.org/licenses/BSD-3-Clause)
     protobuf (https://code.google.com/p/protobuf/)
+
+
+MIT License (MIT) (http://opensource.org/licenses/mit-license.php)
+    LuaJIT (http://luajit.org/luajit.html)
+
+
+zlib license (http://www.gzip.org/zlib/zlib_license.html)
+    SDL 2 (http://libsdl.org/)
+    Bullet (https://code.google.com/p/bullet/)

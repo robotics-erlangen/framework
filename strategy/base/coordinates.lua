@@ -6,7 +6,7 @@ module "Coordinates"
 local Coordinates = {}
 
 --[[***********************************************************************
-*   Copyright 2014 Michael Eischer                                        *
+*   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -64,7 +64,7 @@ if teamIsBlue then
 				return data + math.pi
 			end
 		else
-			return Vector.create(-data.x, -data.y)
+			return Vector(-data.x, -data.y)
 		end
 	end
 	Coordinates.toLocal = Coordinates.toGlobal

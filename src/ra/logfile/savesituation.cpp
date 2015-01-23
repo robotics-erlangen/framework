@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Alexander Danzer                                       *
+ *   Copyright 2015 Alexander Danzer                                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -28,9 +28,9 @@ typedef google::protobuf::RepeatedPtrField<world::Robot> RobotPtr;
 
 void writeRobots(QTextStream& situation, const RobotPtr& robots){
     for(RobotPtr::const_iterator iter = robots.begin(); iter != robots.end(); ++iter){
-        situation << "\t\t[" << iter->id() << "] = {\n\t\t\tpos = Vector.create("
+        situation << "\t\t[" << iter->id() << "] = {\n\t\t\tpos = Vector("
                   << iter->p_x() << "," << iter->p_y() << "),\n\t\t\tdir = Vector.fromAngle("
-                  << iter->phi() << "),\n\t\t\tspeed = Vector.create(" << iter->v_x() << ","
+                  << iter->phi() << "),\n\t\t\tspeed = Vector(" << iter->v_x() << ","
                   << iter->v_y() << "),\n\t\t\tangularSpeed = Vector.fromAngle("
                   << iter->omega() << ")\n\t\t},\n";
     }
@@ -53,8 +53,8 @@ void saveSituation(const world::State &worldState, const amun::GameState& gameSt
             situation << "\tgameStage = \"" << SSL_Referee::Stage_Name(gameState.stage()).c_str() << "\",\n";
         }
         if(worldState.has_ball()){
-            situation << "\tball = { pos = Vector.create(" << worldState.ball().p_x()
-                      << ',' << worldState.ball().p_y() << "), speed = Vector.create(" << worldState.ball().v_x()
+            situation << "\tball = { pos = Vector(" << worldState.ball().p_x()
+                      << ',' << worldState.ball().p_y() << "), speed = Vector(" << worldState.ball().v_x()
                       << ',' << worldState.ball().v_y() << ") },\n";
         }
         if(gameState.blue().has_goalie()){

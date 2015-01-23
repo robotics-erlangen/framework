@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,11 +18,46 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef LUA_VECTOR_H
-#define LUA_VECTOR_H
+#include "leaffilterproxymodel.h"
 
-#include <lua.hpp>
+LeafFilterProxyModel::LeafFilterProxyModel(QObject *parent) :
+    QSortFilterProxyModel(parent)
+{
+}
 
-int vectorRegister(lua_State *L);
+bool LeafFilterProxyModel::filterAcceptsRow(int source_row, const QModelIndex &source_parent) const
+{
+    const QModelIndex &currentItem = sourceModel()->index(source_row,0,source_parent);
 
-#endif // LUA_VECTOR_H
+    // show if current item or any of its parents is matched
+    QModelIndex parent = currentItem;
+    while (parent.isValid()) {
+        if (QSortFilterProxyModel::filterAcceptsRow(parent.row(), parent.parent())) {
+            return true;
+        }
+        parent = parent.parent();
+    }
+
+    // keep visible if a child is matched
+    return hasAcceptedChildren(currentItem);
+}
+
+bool LeafFilterProxyModel::hasAcceptedChildren(const QModelIndex &currentItem) const
+{
+    if (!currentItem.isValid()) {
+        return false;
+    }
+
+    // check children
+    for (int i = 0; i < currentItem.model()->rowCount(currentItem); ++i) {
+        if (QSortFilterProxyModel::filterAcceptsRow(i, currentItem)) {
+            return true;
+        }
+
+        if (hasAcceptedChildren(sourceModel()->index(i,0,currentItem))) {
+            return true;
+        }
+    }
+
+    return false;
+}

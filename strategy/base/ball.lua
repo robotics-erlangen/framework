@@ -4,7 +4,7 @@ module "Ball"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Michael Eischer                                        *
+*   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -24,7 +24,7 @@ module "Ball"
 *************************************************************************]]
 
 local Coordinates = require "../base/coordinates"
-local Ball, BallMt = (require "../base/class").new("Ball")
+local Ball, BallMt = (require "../base/class")("Ball")
 local Constants = require "../base/constants"
 
 --- Values provided by Ball
@@ -68,7 +68,7 @@ function Ball:_update(data, time)
 	-- data from amun is in global coordiantes
 	self.pos = Coordinates.toLocal(Vector.createReadOnly(data.p_x, data.p_y))
 	self.speed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y))
-	
+
 	 -- if ball is too slow then it's movement direction isn't exact enough to be used for prediction the ball
 	if self.speed:length() < 0.05 then
 		self.deceleration = Vector.createReadOnly(0, 0)

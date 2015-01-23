@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -38,7 +38,7 @@ public:
     void update(qint64 time);
     void get(world::Ball *ball, bool flip);
 
-    void addVisionFrame(quint32 cameraId, const SSL_DetectionBall &ball, qint64 time);
+    void addVisionFrame(qint32 cameraId, const SSL_DetectionBall &ball, qint64 time);
 
     float distanceTo(const SSL_DetectionBall &ball) const;
     static bool isInAOI(const SSL_DetectionBall &ball, bool flip, float x1, float y1, float x2, float y2);
@@ -46,9 +46,9 @@ public:
 private:
     struct VisionFrame
     {
-        VisionFrame(quint32 cameraId, const SSL_DetectionBall &detection, qint64 time)
+        VisionFrame(qint32 cameraId, const SSL_DetectionBall &detection, qint64 time)
             : cameraId(cameraId), detection(detection), time(time) {}
-        quint32 cameraId;
+        qint32 cameraId;
         SSL_DetectionBall detection;
         qint64 time;
     };

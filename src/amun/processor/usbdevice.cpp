@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -112,6 +112,8 @@ USBDevice::USBDevice(QSharedPointer<USBContext> context, void *device) :
     m_data->device = (libusb_device*) device;
     m_data->handle = NULL;
 
+    setErrorString(LIBUSB_SUCCESS);
+
     // reference decive to prevent collection of device information
     libusb_ref_device(m_data->device);
     libusb_get_device_descriptor(m_data->device, &m_data->descriptor);
@@ -134,7 +136,7 @@ QString USBDevice::getErrorString(int error)
 {
     switch (error) {
     case LIBUSB_SUCCESS:
-        return "Success";
+        return " "; // error string is only accepted if it's not empty...
     case LIBUSB_ERROR_IO:
         return "Input/output error";
     case LIBUSB_ERROR_INVALID_PARAM:

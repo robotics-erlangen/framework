@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>275</width>
-    <height>118</height>
+    <height>173</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -47,6 +47,13 @@
      </property>
     </widget>
    </item>
+   <item row="4" column="0" colspan="2">
+    <widget class="QCheckBox" name="checkGlobal">
+     <property name="text">
+      <string>Global coordinates</string>
+     </property>
+    </widget>
+   </item>
    <item row="1" column="1">
     <widget class="QDoubleSpinBox" name="spinRotation">
      <property name="suffix">
@@ -66,10 +73,49 @@
      </property>
     </widget>
    </item>
-   <item row="2" column="0" colspan="2">
-    <widget class="QCheckBox" name="checkGlobal">
+   <item row="2" column="0">
+    <widget class="QLabel" name="label_3">
      <property name="text">
-      <string>Global coordinates</string>
+      <string>Shoot power:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>Dribbler power:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1">
+    <widget class="QDoubleSpinBox" name="shootPower">
+     <property name="toolTip">
+      <string>Value between 0 and 1. For 2014 robots the mapping is about 1m/s at 0.1 and full speed (6.5 m/s) at 0.7</string>
+     </property>
+     <property name="maximum">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.100000000000000</double>
+     </property>
+     <property name="value">
+      <double>1.000000000000000</double>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QDoubleSpinBox" name="dribblerPower">
+     <property name="toolTip">
+      <string>Value between 0 and 1. Can be assumed to be in Ampere. This value is capped to 0.9 on the robot</string>
+     </property>
+     <property name="maximum">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="singleStep">
+      <double>0.100000000000000</double>
+     </property>
+     <property name="value">
+      <double>1.000000000000000</double>
      </property>
     </widget>
    </item>

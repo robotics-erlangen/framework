@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -20,9 +20,12 @@
 
 #include "lua_protobuf.h"
 #include <google/protobuf/descriptor.h>
+#include <type_traits>
 
 static void pushField(lua_State *L, const google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field)
 {
+    static_assert(sizeof(lua_Number) == 8, "expecting lua number to be a double");
+
     const google::protobuf::Reflection *refl = message.GetReflection();
     if (!refl->HasField(message, field)) {
         lua_pushnil(L);
@@ -35,7 +38,7 @@ static void pushField(lua_State *L, const google::protobuf::Message &message, co
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
-        lua_pushinteger(L, refl->GetInt64(message, field));
+        lua_pushnumber(L, refl->GetInt64(message, field));
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT32:
@@ -43,7 +46,7 @@ static void pushField(lua_State *L, const google::protobuf::Message &message, co
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
-        lua_pushinteger(L, refl->GetUInt64(message, field));
+        lua_pushnumber(L, refl->GetUInt64(message, field));
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE:
@@ -85,7 +88,7 @@ static void pushRepeatedField(lua_State *L, const google::protobuf::Message &mes
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
-        lua_pushinteger(L, refl->GetRepeatedInt64(message, field, index));
+        lua_pushnumber(L, refl->GetRepeatedInt64(message, field, index));
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT32:
@@ -93,7 +96,7 @@ static void pushRepeatedField(lua_State *L, const google::protobuf::Message &mes
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
-        lua_pushinteger(L, refl->GetRepeatedUInt64(message, field, index));
+        lua_pushnumber(L, refl->GetRepeatedUInt64(message, field, index));
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE:

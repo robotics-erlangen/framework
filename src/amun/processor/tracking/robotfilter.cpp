@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -367,7 +367,7 @@ bool RobotFilter::isInAOI(const SSL_DetectionRobot &robot, bool flip, float x1, 
     return (x > x1 && x < x2 && y > y1 && y < y2);
 }
 
-void RobotFilter::addVisionFrame(quint32 cameraId, const SSL_DetectionRobot &robot, qint64 time)
+void RobotFilter::addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time)
 {
     m_visionFrames.append(VisionFrame(cameraId, robot, time));
     // only count frames for the primary camera

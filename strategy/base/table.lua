@@ -4,7 +4,7 @@ module "table"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Alexander Danzer, Michael Eischer, André Pscherer      *
+*   Copyright 2015 Alexander Danzer, Michael Eischer, André Pscherer      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -196,11 +196,11 @@ end
 -- @return table - table with elements in random order
 function table.shuffle(t)
 	local n, order, res = #t, {}, {}
-	for i=1,n do 
-		order[i] = { rnd = math.random(), idx = i } 
+	for i=1,n do
+		order[i] = { rnd = math.random(), idx = i }
 	end
 	table.sort(order, function(a,b) return a.rnd < b.rnd end)
-	for i=1,n do 
+	for i=1,n do
 		res[i] = t[order[i].idx]
 	end
 	return res

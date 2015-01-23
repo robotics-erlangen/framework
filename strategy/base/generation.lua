@@ -4,7 +4,7 @@ module "Robot.Generation"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Michael Eischer                                        *
+*   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -43,9 +43,9 @@ end
 function Generation.factory(specs, geometry)
 	local robotGen = Generation["Gen" .. tostring(specs.year) .. "_" .. tostring(specs.generation)]
 	if robotGen then
-		return robotGen.create(specs, true, geometry)
+		return robotGen(specs, true, geometry)
 	end
-	return Robot.create(specs.id, true, geometry)
+	return Robot(specs.id, true, geometry)
 end
 
 return Generation

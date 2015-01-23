@@ -4,7 +4,7 @@ module "math"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
+*   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
 *       André Pscherer                                                    *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -24,24 +24,6 @@ module "math"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-
-require "amunMath"
-
---- solves up to quartic equations
--- The equation is in the form  a + b*x + c*x^2 + d*x^3 + e*x^4 = 0
--- Left out parameters are considered to be 0
--- The C-function chooses the solver for the lowest polynomial degree possible
--- @class function
--- @name math.solveEquation
--- @param a number - a parameter
--- @param b number - b parameter
--- @param c number - c parameter
--- @param d number - d parameter
--- @param e number - e parameter
--- @return number, number, number, number -- the solutions, number is nil when no solution (if there are for example 2 solutions, they will be in the first two return variables)
-
---[[
-separator for luadoc]]--
 
 local max, min = math.max, math.min
 
@@ -104,7 +86,7 @@ end
 --@return [number]
 function math.solveLin(a, b)
 	if a == 0 then
-		return 
+		return
 	end
 	return -b/a
 end
@@ -121,7 +103,7 @@ function math.solveSq(a, b, c)
 	if a == 0 then
 		return math.solveLin(b, c)
 	end
-	
+
 	local det = b*b - 4*a*c
 	if det < 0 then
 		return
@@ -176,10 +158,12 @@ function math.average(array, indexStart, indexEnd)
 end
 
 function math.variance(array, average, indexStart, indexEnd)
+	indexStart = indexStart or 1
+	indexEnd = indexEnd or #array
 	average = average or math.average(array, indexStart, indexEnd)
 	local variance = 0
-	for _, v in pairs(array) do
-		local diff = v - average
+	for i = indexStart, indexEnd do
+		local diff = array[i] - average
 		variance = variance + diff*diff
 	end
 	return variance

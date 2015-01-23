@@ -5,7 +5,7 @@ module "Process"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Michael Eischer, Christian Lobmeier                    *
+*   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -24,7 +24,7 @@ module "Process"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-local Process = (require "../base/class").new("Process")
+local Process = (require "../base/class")("Process")
 
 --- Execute the process actions here
 -- @name run

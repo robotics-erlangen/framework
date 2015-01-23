@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+# *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -28,6 +28,8 @@ if(POLICY CMP0043) # compatibility with CMake 3.0.1
     cmake_policy(SET CMP0043 OLD)
 endif()
 
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++11")
+
 if(NOT CMAKE_BUILD_TYPE)
     message(STATUS "Setting build type to Release")
     set(CMAKE_BUILD_TYPE "Release")
@@ -51,11 +53,8 @@ find_package(SDL2)
 
 include(ExternalProject)
 ExternalProject_Add(bullet
-    URL http://www.robotics-erlangen.de/downloads/libraries/bullet-2.81-rev2613.tgz
-    URL_MD5 cec9c9a79c2804dbf6385dd7d061346c
-    PATCH_COMMAND cat
-        ${CMAKE_SOURCE_DIR}/cmake/bullet.patch
-        | patch -p1
+    URL http://www.robotics-erlangen.de/downloads/libraries/bullet-2.82-r2704.tgz
+    URL_MD5 70b3c8d202dee91a0854b4cbc88173e8
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DBUILD_CPU_DEMOS:BOOL=OFF
@@ -97,29 +96,32 @@ set(EIGEN_INCLUDE_DIR "${install_dir}/include/eigen3")
 if(NOT SDL2_FOUND OR SDL2_VERSION_STRING STREQUAL "2.0.0" OR SDL2_VERSION_STRING STREQUAL "2.0.1")
 # use prebuilt binaries on windows
 if (UNIX)
-	include(CheckIncludeFile)
-	check_include_file("libudev.h" LIBUDEV_FOUND)
-	if (LIBUDEV_FOUND)
-		ExternalProject_Add(sdl2
-			URL http://www.robotics-erlangen.de/downloads/libraries/SDL2-2.0.2.tar.gz
-			URL_MD5 e8070e8b6335def073a80cee78f3a7f0
-			CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
-		)
+    include(CheckIncludeFile)
+    check_include_file("libudev.h" LIBUDEV_FOUND)
+    if (LIBUDEV_FOUND)
+        ExternalProject_Add(sdl2
+            URL http://www.robotics-erlangen.de/downloads/libraries/SDL2-2.0.2.tar.gz
+            URL_MD5 e8070e8b6335def073a80cee78f3a7f0
+            CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+        )
 
-		externalproject_get_property(sdl2 install_dir)
-		set_target_properties(sdl2 PROPERTIES EXCLUDE_FROM_ALL true)
-		set(SDL2_FOUND TRUE)
-		set(SDL2_INCLUDE_DIR "${install_dir}/include/SDL2")
-		set(SDL2_LIBRARY "${install_dir}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}SDL2${CMAKE_SHARED_LIBRARY_SUFFIX}")
-	else()
-		message(WARNING "SDL2 requires libudev for game controller support")
-		# actually just for plug & play, but it won't work without ...
-		set(SDL2_FOUND FALSE)
-	endif()
+        externalproject_get_property(sdl2 install_dir)
+        set_target_properties(sdl2 PROPERTIES EXCLUDE_FROM_ALL true)
+        set(SDL2_FOUND TRUE)
+        set(SDL2_INCLUDE_DIR "${install_dir}/include/SDL2")
+        set(SDL2_LIBRARY "${install_dir}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}SDL2${CMAKE_SHARED_LIBRARY_SUFFIX}")
+    else()
+        message(WARNING "SDL2 requires libudev for game controller support")
+        # actually just for plug & play, but it won't work without ...
+        set(SDL2_FOUND FALSE)
+    endif()
 else()
-	message(WARNING "Get libsdl2 with version >= 2.0.2 for game controller support")
-	set(SDL2_FOUND FALSE)
+    message(WARNING "Get libsdl2 with version >= 2.0.2 for game controller support")
+    set(SDL2_FOUND FALSE)
 endif()
+else()
+    add_library(sdl2 SHARED IMPORTED)
+    set_target_properties(sdl2 PROPERTIES IMPORTED_LOCATION ${SDL2_LIBRARY})
 endif()
 
 if(MINGW)

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Bleier, Michael Eischer, Philipp Nordhus       *
+ *   Copyright 2015 Michael Bleier, Michael Eischer, Philipp Nordhus       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -27,6 +27,7 @@
 #include <QMap>
 #include <QPair>
 
+class QTimer;
 class USBDevice;
 
 class Transceiver : public QObject
@@ -43,6 +44,12 @@ private:
         DroppedFrameCounter() : startValue(-1), lastFrameCounter(0), droppedFramesCounter(0), droppedFramesRatio(0) {}
     };
 
+    enum class State {
+        DISCONNECTED,
+        HANDSHAKE,
+        CONNECTED
+    };
+
 public:
     Transceiver(QObject *parent = NULL);
 
@@ -56,26 +63,39 @@ public slots:
 
 private slots:
     void receive();
+    void timeout();
 
 private:
-    bool open();
-    void close();
+    void open();
+    bool ensureOpen();
+    void close(const QString &errorMsg = QString());
+    bool write(const char *data, qint64 size);
+
+    void handleInitPacket(const char *data, int size);
+    void handlePingPacket(const char *data, int size);
+    void handleStatusPacket(const char *data, int size);
+    float calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, uint8_t skipedFrames);
+    void handleResponsePacket(QList<robot::RadioResponse> &response, const char *data, int size, qint64 time);
+
+    void sendInitPacket();
+    void sendTransceiverConfiguration();
+    void addRobot2012Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet);
+    void addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet);
+    void addPingPacket(qint64 time, QByteArray &usb_packet);
+    void addStatusPacket(QByteArray &usb_packet);
     void sendCommand(const QList<robot::RadioCommand> &commands, bool charge);
     void sendParameters(const robot::RadioParameters &parameters);
-    bool write(const char *data, qint64 size);
-    void sendTransceiverConfiguration();
-    float calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter);
-
-    void handleResponsePacket(QList<robot::RadioResponse> &response, const char *data, int size, qint64 time);
 
 private:
     bool m_charge;
     amun::TransceiverConfiguration m_configuration;
     QMap<QPair<uint, uint>, DroppedFrameCounter> m_droppedFrames;
+    QMap<quint8, qint64> m_frameTimes;
 
-    quint8 m_number;
-    quint8 m_counter2012;
+    quint8 m_packetCounter;
     USBDevice *m_device;
+    QTimer *m_timeoutTimer;
+    State m_connectionState;
 };
 
 #endif // TRANSCEIVER_H

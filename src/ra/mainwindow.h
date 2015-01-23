@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -85,6 +85,7 @@ private:
     LogFileWriter *m_logFile;
     QThread *m_logFileThread;
     qint64 m_lastTime;
+    SSL_Referee::Stage m_lastStage;
     robot::Team m_yellowTeam;
     robot::Team m_blueTeam;
     QString m_yellowTeamName;

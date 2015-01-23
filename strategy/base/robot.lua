@@ -4,7 +4,7 @@ module "Robot"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
+*   Copyright 2015 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -29,7 +29,7 @@ local Trajectory = require "../base/trajectory"
 local Constants = require "../base/constants"
 local amun = amun
 
-local Robot, RobotMt = (require "../base/class").new("Robot")
+local Robot, RobotMt = (require "../base/class")("Robot")
 
 --- Values provided by a robot object.
 --- Fields marked with * are only available for own robots
@@ -82,7 +82,7 @@ function Robot:init(data, isFriendly, geometry)
 	self.isFriendly = isFriendly
 	self._hasBall = {}
 	if self.isFriendly then -- setup trajectory and path objects
-		self.trajectory = Trajectory.create(self)
+		self.trajectory = Trajectory(self)
 		self.path = path.create()
 		self.path:setBoundary(
 			-geometry.FieldWidthHalf  - geometry.BoundaryWidth - 0.02,
@@ -90,6 +90,22 @@ function Robot:init(data, isFriendly, geometry)
 			 geometry.FieldWidthHalf  + geometry.BoundaryWidth + 0.02,
 			 geometry.FieldHeightHalf + geometry.BoundaryWidth + 0.02)
 	end
+	self._currentTime = 0
+	self._controllerInput = nil
+	self._kickStyle = nil
+	self._kickPower = nil
+	self._dribblerSpeed = nil
+	self._standbyTimer = nil
+	self._standby = nil
+	self._standbyTick = nil
+	self._standbyEnd = nil
+	self.radioResponse = nil
+	self.isVisible = nil
+	self.pos = nil
+	self.dir = nil
+	self.speed = nil
+	self.angularSpeed = nil
+	self.userControl = nil
 end
 
 function Robot:tostring()
@@ -142,7 +158,7 @@ function Robot:_updateUserControl(command)
 		return
 	end
 
-	local v = Vector.create(command.v_s, command.v_f)
+	local v = Vector(command.v_s, command.v_f)
 	local omega = command.omega
 	if command.direct then
 		-- correctly align local and strategy coordinate system
@@ -193,7 +209,7 @@ function Robot:_setSpecs(specs)
 		self.acceleration.aBrakeFMax = specs.acceleration.a_brake_f_max or 1.0
 		self.acceleration.aBrakeSMax = specs.acceleration.a_brake_s_max or 1.0
 		self.acceleration.aBrakePhiMax = specs.acceleration.a_brake_phi_max or 1.0
-		
+
 		self.maxAcceleration = specs.acceleration.a_speedup_f_max or 1.0
 	end
 end
@@ -328,7 +344,7 @@ function Robot:calculateShootSpeed(destSpeed, distance)
 	local v_d = destSpeed
 	local v_0 = math.sqrt((2*a_f*a_s*d)/(a_s*switch*switch-a_f*switch*switch-a_s)
 		-(a_f*v_d*v_d)/(a_s*switch*switch-a_f*switch*switch-a_s))
-	
+
 	if not v_0 then
 		return self.maxShotLinear
 	else
@@ -378,9 +394,9 @@ function Robot:hasBall(ball, sideOffset)
 			and not self._hasBall[sideOffset] then
 		return false
 	end
-	
+
 	-- FIXME remove partial system latency hack
-	self._hasBall[sideOffset] = relpos.x > -self.shootRadius 
+	self._hasBall[sideOffset] = relpos.x > -self.shootRadius
 			and relpos.x < self.constants.hasBallDistance + ball.speed:length() * Constants.systemLatency
 	return self._hasBall[sideOffset]
 end

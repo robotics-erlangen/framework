@@ -4,7 +4,7 @@ module "World"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Alexander Danzer, Michael Eischer, Christian Lobmeier, *
+*   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier, *
 *       Philipp Nordhus                                                   *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -60,7 +60,7 @@ local Constants = require "../base/constants"
 
 local World = {}
 
-World.Ball = Ball.create()
+World.Ball = Ball()
 World.FriendlyRobots = {}
 World.FriendlyInvisibleRobots = {}
 World.FriendlyRobotsById = {}
@@ -155,19 +155,19 @@ function World._updateGeometry(geom)
 	wgeom.DefenseRadius = geom.defense_radius
 	wgeom.DefenseStretch = geom.defense_stretch
 
-	wgeom.FriendlyPenaltySpot = Vector.create(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist)
-	wgeom.OpponentPenaltySpot = Vector.create(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist)
+	wgeom.FriendlyPenaltySpot = Vector(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist)
+	wgeom.OpponentPenaltySpot = Vector(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist)
 	wgeom.PenaltyLine = wgeom.OpponentPenaltySpot.y - geom.penalty_line_from_spot_dist
 	wgeom.OwnPenaltyLine = wgeom.FriendlyPenaltySpot.y + geom.penalty_line_from_spot_dist
 
 	-- The goal posts are on the field lines
-	wgeom.FriendlyGoal = Vector.create(0, - wgeom.FieldHeightHalf + wgeom.LineWidth)
-	wgeom.FriendlyGoalLeft = Vector.create(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
-	wgeom.FriendlyGoalRight = Vector.create(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
+	wgeom.FriendlyGoal = Vector(0, - wgeom.FieldHeightHalf + wgeom.LineWidth)
+	wgeom.FriendlyGoalLeft = Vector(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
+	wgeom.FriendlyGoalRight = Vector(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
 
-	wgeom.OpponentGoal = Vector.create(0, wgeom.FieldHeightHalf - wgeom.LineWidth)
-	wgeom.OpponentGoalLeft = Vector.create(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
-	wgeom.OpponentGoalRight = Vector.create(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
+	wgeom.OpponentGoal = Vector(0, wgeom.FieldHeightHalf - wgeom.LineWidth)
+	wgeom.OpponentGoalLeft = Vector(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
+	wgeom.OpponentGoalRight = Vector(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
 
 	wgeom.BoundaryWidth = geom.boundary_width
 	wgeom.RefereeWidth = geom.referee_width
@@ -183,6 +183,7 @@ function World._updateWorld(state)
 		World.TimeDiff = 0
 	end
 	World.Time = state.time * 1E-9
+	assert(World.Time > 0, "Invalid World.Time. Outdated ra version!")
 	if World.IsSimulated ~= state.is_simulated then
 		World.IsSimulated = state.is_simulated
 		Constants.switchSimulatorConstants(World.IsSimulated)
@@ -194,7 +195,7 @@ function World._updateWorld(state)
 	if state.ball then
 		World.Ball:_update(state.ball, World.Time)
 	end
-	
+
 	local dataFriendly = World.TeamIsBlue and state.blue or state.yellow
 	if dataFriendly then
 		-- sort data by robot id
@@ -216,7 +217,7 @@ function World._updateWorld(state)
 					table.insert(robotResponses, response)
 				end
 			end
-			
+
 			robot:_update(dataById[id], World.Time, robotResponses)
 			-- sort robot into visible / not visible
 			if robot.isVisible then
@@ -239,7 +240,7 @@ function World._updateWorld(state)
 			local robot = opponentRobotsById[rdata.id]
 			opponentRobotsById[rdata.id] = nil
 			if not robot then
-				robot = Robot.create(rdata.id, false)
+				robot = Robot(rdata.id, false)
 			end
 			robot:_update(rdata, World.Time)
 			table.insert(World.OpponentRobots, robot)
@@ -250,7 +251,7 @@ function World._updateWorld(state)
 			robot:_update(nil, World.Time)
 		end
 	end
-	
+
 	World.Robots = table.copy(World.FriendlyRobots)
 	table.append(World.Robots, World.OpponentRobots)
 
@@ -264,14 +265,14 @@ World.gameStageMapping = {
 	NORMAL_HALF_TIME = "HalfTime",
 	NORMAL_SECOND_HALF_PRE = "SecondHalfPre",
 	NORMAL_SECOND_HALF = "SecondHalf",
-	
+
 	EXTRA_TIME_BREAK = "ExtraTimeBreak",
 	EXTRA_FIRST_HALF_PRE = "ExtraFirstHalfPre",
 	EXTRA_FIRST_HALF = "ExtraFirstHalf",
 	EXTRA_HALF_TIME = "ExtraHalfTime",
 	EXTRA_SECOND_HALF_PRE = "ExtraSecondHalfPre",
 	EXTRA_SECOND_HALF = "ExtraSecondHalf",
-	
+
 	PENALTY_SHOOTOUT_BREAK = "PenaltyShootoutBreak",
 	PENALTY_SHOOTOUT = "PenaltyShootout",
 	POST_GAME = "PostGame"
@@ -294,16 +295,16 @@ function World._updateGameState(state)
 	else
 		World.RefereeState = refState:gsub("Yellow", "Offensive"):gsub("Blue", "Defensive")
 	end
-	
+
 	if World.RefereeState == "TimeoutOffensive" or World.RefereeState == "TimeoutDefensive" then
 		World.RefereeState = "Halt"
 	end
-	
+
 	World.GameStage = World.gameStageMapping[state.stage]
 
 	local friendlyTeamInfo = World.TeamIsBlue and state.blue or state.yellow
 	local opponentTeamInfo = World.TeamIsBlue and state.yellow or state.blue
-	
+
 	local friendlyKeeperId = friendlyTeamInfo.goalie
 	local opponentKeeperId = opponentTeamInfo.goalie
 
@@ -319,7 +320,7 @@ function World._updateGameState(state)
 
 	World.FriendlyKeeper = friendlyKeeper
 	World.OpponentKeeper = opponentKeeper
-	
+
 	--[[
     optional sint32 stage_time_left = 2;
 	message TeamInfo {

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -43,7 +43,7 @@ signals:
 public:
     void init(bool blue);
     void load();
-    void setRecentScripts(const QStringList &recent);
+    void setRecentScripts(QStringList *recent);
     void forceAutoReload(bool force);
 
 public slots:
@@ -80,7 +80,7 @@ private:
     QAction *m_reloadAction;
     bool m_userAutoReload;
     bool m_notification;
-    QStringList m_recentScripts;
+    QStringList *m_recentScripts;
 };
 
 #endif // TEAMWIDGET_H

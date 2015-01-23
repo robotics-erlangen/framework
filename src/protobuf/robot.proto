@@ -151,4 +151,5 @@ message RadioResponse
     optional bool ball_detected = 7;
     optional bool cap_charged = 8;
     optional bool motor_in_power_limit = 9;
+    optional float radio_rtt = 11;
 }

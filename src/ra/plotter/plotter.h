@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -27,18 +27,19 @@
 #include <QSet>
 #include <QStandardItemModel>
 
+class LeafFilterProxyModel;
 class Plot;
 class QMenu;
 namespace Ui {
     class Plotter;
 }
 
-class Plotter : public QDialog
+class Plotter : public QWidget
 {
     Q_OBJECT
 
 public:
-    explicit Plotter(QWidget *parent = 0);
+    explicit Plotter();
     ~Plotter();
 
 public slots:
@@ -63,6 +64,8 @@ private slots:
     void invalidatePlots();
 
 private:
+    bool eventFilter(QObject *obj, QEvent *event);
+
     void loadSelection();
     QStandardItem* getItem(const QString &name);
     void addRootItem(const QString &name, const QString &displayName);
@@ -85,6 +88,7 @@ private:
     QHash<QString, QStandardItem*> m_items;
     QSet<QString> m_selection;
     QStandardItemModel m_model;
+    LeafFilterProxyModel *m_proxy;
     QMenu *m_plotMenu;
 };
 

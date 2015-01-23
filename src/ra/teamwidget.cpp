@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -33,7 +33,8 @@ TeamWidget::TeamWidget(QWidget *parent) :
     QFrame(parent),
     m_blue(false),
     m_userAutoReload(false),
-    m_notification(false)
+    m_notification(false),
+    m_recentScripts(NULL)
 {
 }
 
@@ -116,8 +117,10 @@ void TeamWidget::load()
     }
 }
 
-void TeamWidget::setRecentScripts(const QStringList &recent)
+void TeamWidget::setRecentScripts(QStringList *recent)
 {
+    // both teamwidgets share the same string list
+    // changes to the list are handled by prepareScriptMenu
     m_recentScripts = recent;
 }
 
@@ -273,12 +276,14 @@ void TeamWidget::open(const QString &filename)
 {
     m_filename = filename;
 
-    // move script to front
-    m_recentScripts.removeAll(filename);
-    m_recentScripts.prepend(filename);
-    // keep at most five most recent scripts
-    while (m_recentScripts.size() > 5) {
-        m_recentScripts.takeLast();
+    if (m_recentScripts != NULL) {
+        // move script to front
+        m_recentScripts->removeAll(filename);
+        m_recentScripts->prepend(filename);
+        // keep at most five most recent scripts
+        while (m_recentScripts->size() > 5) {
+            m_recentScripts->takeLast();
+        }
     }
     Command command(new amun::Command);
     amun::CommandStrategyLoad *strategy = m_blue ?
@@ -307,12 +312,12 @@ void TeamWidget::prepareScriptMenu()
         m_scriptMenu->removeAction(m_scriptMenu->actions().last());
     }
 
-    if (m_recentScripts.isEmpty())
+    if (m_recentScripts == NULL || m_recentScripts->isEmpty())
         return;
 
     // add seperator and filenames
     m_scriptMenu->addSeparator();
-    foreach (const QString &script, m_recentScripts) {
+    foreach (const QString &script, *m_recentScripts) {
         QAction *action = m_scriptMenu->addAction(script);
         action->setProperty("filename", script);
         connect(action, SIGNAL(triggered()), SLOT(open()));

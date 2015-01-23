@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Bleier, Michael Eischer, Jan Kallwies,         *
+ *   Copyright 2015 Michael Bleier, Michael Eischer, Jan Kallwies,         *
  *       Philipp Nordhus                                                   *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
@@ -28,17 +28,29 @@
 #include "firmware/2014/common/radiocommand2014.h"
 #include "firmware/common/radiocommand.h"
 #include "usbdevice.h"
-#include <QMap>
-#include <QDebug>
+#include <QTimer>
+
+const int PROTOCOL_VERSION = 2;
+
+typedef struct
+{
+    int64_t time;
+} __attribute__ ((packed)) TransceiverPingData;
+
 
 Transceiver::Transceiver(QObject *parent) :
     QObject(parent),
     m_charge(false),
-    m_number(0),
-    m_device(NULL)
+    m_packetCounter(0),
+    m_device(NULL),
+    m_timeoutTimer(new QTimer(this)),
+    m_connectionState(State::DISCONNECTED)
 {
     // default channel
     m_configuration.set_channel(10);
+
+    m_timeoutTimer = new QTimer(this);
+    connect(m_timeoutTimer, &QTimer::timeout, this, &Transceiver::timeout);
 }
 
 void Transceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands)
@@ -80,7 +92,7 @@ void Transceiver::handleCommand(const Command &command)
     }
 }
 
-bool Transceiver::open()
+void Transceiver::open()
 {
 #ifdef USB_FOUND
     close();
@@ -92,7 +104,8 @@ bool Transceiver::open()
         status->mutable_transceiver()->set_active(false);
         status->mutable_transceiver()->set_error("Device not found!");
         emit sendStatus(status);
-        return false;
+        m_connectionState = State::DISCONNECTED;
+        return;
     }
 
     // just assumes it's the first matching device
@@ -105,120 +118,83 @@ bool Transceiver::open()
     // try to open the communication channel
     if (!device->open(QIODevice::ReadWrite)) {
         close();
-        return false;
+        return;
     }
 
     // publish transceiver status
     Status status(new amun::Status);
     status->mutable_transceiver()->set_active(true);
+    status->mutable_transceiver()->set_error("Handshake");
     emit sendStatus(status);
 
-    // send channel informations
-    sendTransceiverConfiguration();
+    // send protocol handshake
+    // the transceiver should return the highest supported version <= hostConfig->protocolVersion
+    // if the version is higher/less than supported by the host, then the connection will fail
+    m_connectionState = State::HANDSHAKE;
+    // don't get stuck if the transceiver doesn't answer / has too old firmware
+    m_timeoutTimer->start(500);
+    sendInitPacket();
 
-    return true;
+    return;
 #else
     Status status(new amun::Status);
     status->mutable_transceiver()->set_active(false);
-    status->mutable_transceiver()->set_error("libusb is not installed!");
+    status->mutable_transceiver()->set_error("Compiled without libusb support!");
     emit sendStatus(status);
-    return false;
+    return;
 #endif // USB_FOUND
 }
 
-void Transceiver::close()
+bool Transceiver::ensureOpen()
+{
+    if (!m_device) {
+        open();
+        return false;
+    }
+    return m_connectionState == State::CONNECTED;
+}
+
+void Transceiver::close(const QString &errorMsg)
 {
 #ifdef USB_FOUND
     // close and cleanup
     if (m_device) {
         Status status(new amun::Status);
         status->mutable_transceiver()->set_active(false);
-        status->mutable_transceiver()->set_error(m_device->errorString().toStdString());
+        if (errorMsg.isNull()) {
+            status->mutable_transceiver()->set_error(m_device->errorString().toStdString());
+        } else {
+            status->mutable_transceiver()->set_error(errorMsg.toStdString());
+        }
         emit sendStatus(status);
 
         delete m_device;
         m_device = NULL;
+        m_timeoutTimer->stop();
     }
+    m_connectionState = State::DISCONNECTED;
 #endif // USB_FOUND
 }
 
-float Transceiver::calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter)
+void Transceiver::timeout()
 {
-    // get frame counter, is created with default values if not existing
-    DroppedFrameCounter &c = m_droppedFrames[qMakePair(generation, id)];
-
-    // correctly handle startup
-    if (c.startValue == -1) {
-        c.startValue = counter;
-    } else if (counter > c.lastFrameCounter) {
-        // counter should have increased by one
-        // if it has increased further, then we've lost a packet
-        c.droppedFramesCounter += counter - c.lastFrameCounter - 1;
-    } else {
-        // counter isn't increasing -> counter has overflown, update statistic
-        // account for packets lost somewhere around the counter overflow
-        c.droppedFramesRatio = (c.droppedFramesCounter + (255 - c.lastFrameCounter)) / (256.f - c.startValue);
-        // if the counter is non-zero we've already lost some packets
-        c.droppedFramesCounter = counter;
-        c.startValue = 0;
-    }
-
-    c.lastFrameCounter = counter;
-
-    return c.droppedFramesRatio;
+    close("Transceiver is not responding");
 }
 
-void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, const char *data, int size, qint64 time)
+bool Transceiver::write(const char *data, qint64 size)
 {
-    const RadioResponseHeader *header = (const RadioResponseHeader *)data;
-    size -= sizeof(RadioResponseHeader);
-    data += sizeof(RadioResponseHeader);
-
-    if (header->command == RESPONSE_2012_DEFAULT && size == sizeof(RadioResponse2012)) {
-        const RadioResponse2012 *packet = (const RadioResponse2012 *)data;
-
-        robot::RadioResponse r;
-        r.set_time(time);
-        r.set_generation(2);
-        r.set_id(packet->id);
-        r.set_battery(packet->battery / 255.0f);
-        r.set_packet_loss_rx(packet->packet_loss / 255.0f);
-        float df = calculateDroppedFramesRatio(2, packet->id, packet->counter);
-        r.set_packet_loss_tx(df);
-        if (packet->main_active) {
-            robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
-            speedStatus->set_v_f(packet->v_f / 1000.f);
-            speedStatus->set_v_s(packet->v_s / 1000.f);
-            speedStatus->set_omega(packet->omega / 1000.f);
-            r.set_motor_in_power_limit(packet->motor_in_power_limit);
-        }
-        if (packet->kicker_active) {
-            r.set_ball_detected(packet->ball_detected);
-            r.set_cap_charged(packet->cap_charged);
-        }
-        responses.append(r);
-    } else  if (header->command == RESPONSE_2014_DEFAULT && size == sizeof(RadioResponse2014)) {
-        const RadioResponse2014 *packet = (const RadioResponse2014 *)data;
-
-        robot::RadioResponse r;
-        r.set_generation(3);
-        r.set_id(packet->id);
-        r.set_battery(packet->battery / 255.0f);
-        r.set_packet_loss_rx(packet->packet_loss / 255.0f);
-        float df = calculateDroppedFramesRatio(3, packet->id, packet->counter);
-        r.set_packet_loss_tx(df);
-        if (packet->power_enabled) {
-            robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
-            speedStatus->set_v_f(packet->v_f / 1000.f);
-            speedStatus->set_v_s(packet->v_s / 1000.f);
-            speedStatus->set_omega(packet->omega / 1000.f);
-            r.set_motor_in_power_limit(packet->motor_in_power_limit);
-
-            r.set_ball_detected(packet->ball_detected);
-            r.set_cap_charged(packet->cap_charged);
-        }
-        responses.append(r);
+#ifdef USB_FOUND
+    if (!m_device) {
+        return false;
     }
+
+    // close radio link on errors
+    if (m_device->write(data, size) < 0) {
+        close();
+        return false;
+    }
+#endif // USB_FOUND
+    return true;
 }
 
 void Transceiver::receive()
@@ -253,9 +229,21 @@ void Transceiver::receive()
 
         pos += sizeof(TransceiverResponsePacket);
         // handle command
-        if (header->command == COMMAND_REPLY_FROM_ROBOT) {
+        switch (header->command) {
+        case COMMAND_INIT_REPLY:
+            handleInitPacket(&buffer[pos], header->size);
+            break;
+        case COMMAND_PING_REPLY:
+            handlePingPacket(&buffer[pos], header->size);
+            break;
+        case COMMAND_STATUS_REPLY:
+            handleStatusPacket(&buffer[pos], header->size);
+            break;
+        case COMMAND_REPLY_FROM_ROBOT:
             handleResponsePacket(responses, &buffer[pos], header->size, receiveTime);
+            break;
         }
+
         pos += header->size;
     }
 
@@ -263,12 +251,232 @@ void Transceiver::receive()
 #endif // USB_FOUND
 }
 
+void Transceiver::handleInitPacket(const char *data, int size)
+{
+    // only allowed during handshake
+    if (m_connectionState != State::HANDSHAKE || size < 2) {
+        close("Invalid reply from transceiver");
+        return;
+    }
+
+    const TransceiverInitPacket *handshake = (const TransceiverInitPacket *)data;
+    if (handshake->protocolVersion < PROTOCOL_VERSION) {
+        close("Outdated firmware");
+        return;
+    } else if (handshake->protocolVersion > PROTOCOL_VERSION) {
+        close("Not yet supported transceiver firmware");
+        return;
+    }
+
+    m_connectionState = State::CONNECTED;
+    m_timeoutTimer->stop();
+
+    Status status(new amun::Status);
+    status->mutable_transceiver()->set_active(true);
+    emit sendStatus(status);
+
+    // send channel informations
+    sendTransceiverConfiguration();
+}
+
+void Transceiver::handlePingPacket(const char *data, int size)
+{
+    if (size < sizeof(TransceiverPingData)) {
+        return;
+    }
+
+    const TransceiverPingData *ping = (const TransceiverPingData *)data;
+    Status status(new amun::Status);
+    status->mutable_timing()->set_transceiver_rtt((Timer::systemTime() - ping->time) / 1E9);
+    emit sendStatus(status);
+}
+
+void Transceiver::handleStatusPacket(const char *data, int size)
+{
+    if (size < sizeof(TransceiverStatusPacket)) {
+        return;
+    }
+
+    const TransceiverStatusPacket *transceiverStatus = (const TransceiverStatusPacket *)data;
+    Status status(new amun::Status);
+    status->mutable_transceiver()->set_active(true);
+    status->mutable_transceiver()->set_dropped_usb_packets(transceiverStatus->droppedPackets);
+    emit sendStatus(status);
+}
+
+float Transceiver::calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, uint8_t skipedFrames)
+{
+    // get frame counter, is created with default values if not existing
+    DroppedFrameCounter &c = m_droppedFrames[qMakePair(generation, id)];
+
+    // correctly handle startup
+    if (c.startValue == -1) {
+        c.startValue = counter;
+    } else if (counter > c.lastFrameCounter) {
+        // counter should have increased by one
+        // if it has increased further, then we've lost a packet
+        c.droppedFramesCounter += counter - c.lastFrameCounter - 1;
+    } else {
+        // counter isn't increasing -> counter has overflown, update statistic
+        // account for packets lost somewhere around the counter overflow
+        // as the robot can only reply if it got a frame, skip the frames it didn't get (only 2014)
+        c.droppedFramesRatio = (c.droppedFramesCounter + (255 - c.lastFrameCounter) - skipedFrames)
+                / (256.f - c.startValue - skipedFrames);
+        // if the counter is non-zero we've already lost some packets
+        c.droppedFramesCounter = counter;
+        c.startValue = 0;
+    }
+
+    c.lastFrameCounter = counter;
+
+    return c.droppedFramesRatio;
+}
+
+void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, const char *data, int size, qint64 time)
+{
+    const RadioResponseHeader *header = (const RadioResponseHeader *)data;
+    size -= sizeof(RadioResponseHeader);
+    data += sizeof(RadioResponseHeader);
+
+    if (header->command == RESPONSE_2012_DEFAULT && size == sizeof(RadioResponse2012)) {
+        const RadioResponse2012 *packet = (const RadioResponse2012 *)data;
+
+        robot::RadioResponse r;
+        r.set_time(time);
+        r.set_generation(2);
+        r.set_id(packet->id);
+        r.set_battery(packet->battery / 255.0f);
+        r.set_packet_loss_rx(packet->packet_loss / 255.0f);
+        float df = calculateDroppedFramesRatio(2, packet->id, packet->counter, 0);
+        r.set_packet_loss_tx(df);
+        if (packet->main_active) {
+            robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
+            speedStatus->set_v_f(packet->v_f / 1000.f);
+            speedStatus->set_v_s(packet->v_s / 1000.f);
+            speedStatus->set_omega(packet->omega / 1000.f);
+            r.set_motor_in_power_limit(packet->motor_in_power_limit);
+        }
+        if (packet->kicker_active) {
+            r.set_ball_detected(packet->ball_detected);
+            r.set_cap_charged(packet->cap_charged);
+        }
+        responses.append(r);
+    } else  if (header->command == RESPONSE_2014_DEFAULT && size == sizeof(RadioResponse2014)) {
+        const RadioResponse2014 *packet = (const RadioResponse2014 *)data;
+
+        robot::RadioResponse r;
+        r.set_time(time);
+        r.set_generation(3);
+        r.set_id(packet->id);
+        r.set_battery(packet->battery / 255.0f);
+        r.set_packet_loss_rx(packet->packet_loss / 256.0f);
+        float df = calculateDroppedFramesRatio(3, packet->id, packet->counter, packet->packet_loss);
+        r.set_packet_loss_tx(df);
+        if (packet->power_enabled) {
+            robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
+            speedStatus->set_v_f(packet->v_f / 1000.f);
+            speedStatus->set_v_s(packet->v_s / 1000.f);
+            speedStatus->set_omega(packet->omega / 1000.f);
+            r.set_motor_in_power_limit(packet->motor_in_power_limit);
+
+            r.set_ball_detected(packet->ball_detected);
+            r.set_cap_charged(packet->cap_charged);
+        }
+        if (m_frameTimes.contains(packet->counter)) {
+            r.set_radio_rtt((time - m_frameTimes[packet->counter]) / 1E9);
+        }
+        responses.append(r);
+    }
+}
+
+void Transceiver::addRobot2012Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet)
+{
+    // copy command
+    RadioCommand2012 data;
+    data.charge = charge;
+    data.standby = command.standby();
+    data.counter = packetCounter;
+    data.dribbler = qBound<qint32>(-RADIOCOMMAND2012_DRIBBLER_MAX, command.dribbler() * RADIOCOMMAND2012_DRIBBLER_MAX, RADIOCOMMAND2012_DRIBBLER_MAX);
+    data.chip = command.kick_style() == robot::Command::Chip;
+    data.shot_power = qMin<quint32>(command.kick_power() * RADIOCOMMAND2012_KICK_MAX, RADIOCOMMAND2012_KICK_MAX);
+    data.v_x = qBound<qint32>(-RADIOCOMMAND2012_V_MAX, command.v_s() * 1000.0f, RADIOCOMMAND2012_V_MAX);
+    data.v_y = qBound<qint32>(-RADIOCOMMAND2012_V_MAX, command.v_f() * 1000.0f, RADIOCOMMAND2012_V_MAX);
+    data.omega = qBound<qint32>(-RADIOCOMMAND2012_OMEGA_MAX, command.omega() * 1000.0f, RADIOCOMMAND2012_OMEGA_MAX);
+    data.id = id;
+
+    // set address
+    TransceiverCommandPacket senderCommand;
+    senderCommand.command = COMMAND_SEND_NRF24;
+    senderCommand.size = sizeof(data) + sizeof(TransceiverSendNRF24Packet);
+
+    TransceiverSendNRF24Packet targetAddress;
+    memcpy(targetAddress.address, robot2012_address, sizeof(targetAddress.address));
+    targetAddress.address[4] |= id;
+    targetAddress.expectedResponseSize = sizeof(RadioResponseHeader) + sizeof(RadioResponse2012);
+
+    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
+    usb_packet.append((const char*) &targetAddress, sizeof(targetAddress));
+    usb_packet.append((const char*) &data, sizeof(data));
+}
+
+void Transceiver::addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet)
+{
+    // copy command
+    RadioCommand2014 data;
+    data.charge = charge;
+    data.standby = command.standby();
+    data.counter = packetCounter;
+    data.dribbler = qBound<qint32>(-RADIOCOMMAND2014_DRIBBLER_MAX, command.dribbler() * RADIOCOMMAND2014_DRIBBLER_MAX, RADIOCOMMAND2014_DRIBBLER_MAX);
+    data.chip = command.kick_style() == robot::Command::Chip;
+    data.shot_power = qMin<quint32>(command.kick_power() * RADIOCOMMAND2014_KICK_MAX, RADIOCOMMAND2014_KICK_MAX);
+    data.v_x = qBound<qint32>(-RADIOCOMMAND2014_V_MAX, command.v_s() * 1000.0f, RADIOCOMMAND2014_V_MAX);
+    data.v_y = qBound<qint32>(-RADIOCOMMAND2014_V_MAX, command.v_f() * 1000.0f, RADIOCOMMAND2014_V_MAX);
+    data.omega = qBound<qint32>(-RADIOCOMMAND2014_OMEGA_MAX, command.omega() * 1000.0f, RADIOCOMMAND2014_OMEGA_MAX);
+    data.id = id;
+
+    // set address
+    TransceiverCommandPacket senderCommand;
+    senderCommand.command = COMMAND_SEND_NRF24;
+    senderCommand.size = sizeof(data) + sizeof(TransceiverSendNRF24Packet);
+
+    TransceiverSendNRF24Packet targetAddress;
+    memcpy(targetAddress.address, robot2014_address, sizeof(targetAddress.address));
+    targetAddress.address[4] |= id;
+    targetAddress.expectedResponseSize = sizeof(RadioResponseHeader) + sizeof(RadioResponse2014);
+
+    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
+    usb_packet.append((const char*) &targetAddress, sizeof(targetAddress));
+    usb_packet.append((const char*) &data, sizeof(data));
+}
+
+void Transceiver::addPingPacket(qint64 time, QByteArray &usb_packet)
+{
+    // Append ping packet with current timestamp
+    TransceiverCommandPacket senderCommand;
+    senderCommand.command = COMMAND_PING;
+    senderCommand.size = sizeof(TransceiverPingData);
+
+    TransceiverPingData ping;
+    ping.time = time;
+
+    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
+    usb_packet.append((const char*) &ping, sizeof(ping));
+}
+
+void Transceiver::addStatusPacket(QByteArray &usb_packet)
+{
+    // request count of dropped usb packets
+    TransceiverCommandPacket senderCommand;
+    senderCommand.command = COMMAND_STATUS;
+    senderCommand.size = 0;
+
+    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
+}
+
 void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool charge)
 {
-    if (!m_device) {
-        if (!open()) {
-            return;
-        }
+    if (!ensureOpen()) {
+        return;
     }
 
     typedef QList<robot::RadioCommand> RobotList;
@@ -279,7 +487,10 @@ void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool c
         generations[robot.generation()].append(robot);
     }
 
-    m_counter2012++;
+    m_packetCounter++;
+    // remember when the packetCounter was used
+    const qint64 time = Timer::systemTime();
+    m_frameTimes[m_packetCounter] = time;
 
     // used for packet assembly
     QByteArray usb_packet;
@@ -288,63 +499,18 @@ void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool c
     while (it.hasNext()) {
         it.next();
 
-        if (it.key() == 2) {
-            foreach (const robot::RadioCommand &radio_command, it.value()) {
-                const robot::Command &command = radio_command.command();
-
-                // copy command
-                RadioCommand2012 data;
-                data.charge = charge;
-                data.standby = command.standby();
-                data.counter = m_counter2012;
-                data.dribbler = qBound<qint32>(-RADIOCOMMAND2012_DRIBBLER_MAX, command.dribbler() * RADIOCOMMAND2012_DRIBBLER_MAX, RADIOCOMMAND2012_DRIBBLER_MAX);
-                data.chip = command.kick_style() == robot::Command::Chip;
-                data.shot_power = qMin<quint32>(command.kick_power() * RADIOCOMMAND2012_KICK_MAX, RADIOCOMMAND2012_KICK_MAX);
-                data.v_x = qBound<qint32>(-RADIOCOMMAND2012_V_MAX, command.v_s() * 1000.0f, RADIOCOMMAND2012_V_MAX);
-                data.v_y = qBound<qint32>(-RADIOCOMMAND2012_V_MAX, command.v_f() * 1000.0f, RADIOCOMMAND2012_V_MAX);
-                data.omega = qBound<qint32>(-RADIOCOMMAND2012_OMEGA_MAX, command.omega() * 1000.0f, RADIOCOMMAND2012_OMEGA_MAX);
-                data.id = radio_command.id();
-
-                // set address
-                TransceiverCommandPacket senderCommand;
-                senderCommand.command = COMMAND_SEND_NRF24;
-                memcpy(senderCommand.address, robot2012_address, sizeof(senderCommand.address));
-                senderCommand.address[4] |= radio_command.id();
-                senderCommand.size = sizeof(data);
-                senderCommand.expectedResponseSize = sizeof(RadioResponseHeader) + sizeof(RadioResponse2012);
-
-                usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
-                usb_packet.append((const char*) &data, sizeof(data));
-            }
-        } else if (it.key() == 3) {
-            foreach (const robot::RadioCommand &radio_command, it.value()) {
-                const robot::Command &command = radio_command.command();
-
-                // copy command
-                RadioCommand2014 data;
-                data.charge = charge;
-                data.standby = command.standby();
-                data.counter = m_counter2012;
-                data.dribbler = qBound<qint32>(-RADIOCOMMAND2014_DRIBBLER_MAX, command.dribbler() * RADIOCOMMAND2014_DRIBBLER_MAX, RADIOCOMMAND2014_DRIBBLER_MAX);
-                data.chip = command.kick_style() == robot::Command::Chip;
-                data.shot_power = qMin<quint32>(command.kick_power() * RADIOCOMMAND2014_KICK_MAX, RADIOCOMMAND2014_KICK_MAX);
-                data.v_x = qBound<qint32>(-RADIOCOMMAND2014_V_MAX, command.v_s() * 1000.0f, RADIOCOMMAND2014_V_MAX);
-                data.v_y = qBound<qint32>(-RADIOCOMMAND2014_V_MAX, command.v_f() * 1000.0f, RADIOCOMMAND2014_V_MAX);
-                data.omega = qBound<qint32>(-RADIOCOMMAND2014_OMEGA_MAX, command.omega() * 1000.0f, RADIOCOMMAND2014_OMEGA_MAX);
-                data.id = radio_command.id();
-
-                // set address
-                TransceiverCommandPacket senderCommand;
-                senderCommand.command = COMMAND_SEND_NRF24;
-                memcpy(senderCommand.address, robot2014_address, sizeof(senderCommand.address));
-                senderCommand.address[4] |= radio_command.id();
-                senderCommand.size = sizeof(data);
-                senderCommand.expectedResponseSize = sizeof(RadioResponseHeader) + sizeof(RadioResponse2014);
-
-                usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
-                usb_packet.append((const char*) &data, sizeof(data));
+        foreach (const robot::RadioCommand &radio_command, it.value()) {
+            if (it.key() == 2) {
+                addRobot2012Command(radio_command.id(), radio_command.command(), charge, m_packetCounter, usb_packet);
+            } else if (it.key() == 3) {
+                addRobot2014Command(radio_command.id(), radio_command.command(), charge, m_packetCounter, usb_packet);
             }
         }
+    }
+
+    addPingPacket(time, usb_packet);
+    if (m_packetCounter == 255) {
+        addStatusPacket(usb_packet);
     }
 
     write(usb_packet.data(), usb_packet.size());
@@ -352,10 +518,8 @@ void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool c
 
 void Transceiver::sendParameters(const robot::RadioParameters &parameters)
 {
-    if (!m_device) {
-        if (!open()) {
-            return;
-        }
+    if (!ensureOpen()) {
+        return;
     }
     RadioParameters2012 p;
     memset(&p, 0, sizeof(p));
@@ -368,11 +532,15 @@ void Transceiver::sendParameters(const robot::RadioParameters &parameters)
     // broadcast config
     TransceiverCommandPacket senderCommand;
     senderCommand.command = COMMAND_SEND_NRF24;
-    memcpy(senderCommand.address, robot2012_config_broadcast, sizeof(senderCommand.address));
-    senderCommand.size = sizeof(p);
+    senderCommand.size = sizeof(p) + sizeof(TransceiverSendNRF24Packet);
+
+    TransceiverSendNRF24Packet targetAddress;
+    memcpy(targetAddress.address, robot2012_config_broadcast, sizeof(targetAddress.address));
+    targetAddress.expectedResponseSize = 0;
 
     QByteArray usb_packet;
     usb_packet.append((const char *) &senderCommand, sizeof(senderCommand));
+    usb_packet.append((const char *) &targetAddress, sizeof(targetAddress));
     usb_packet.append((const char *) &p, senderCommand.size);
     write(usb_packet.data(), usb_packet.size());
 }
@@ -382,27 +550,29 @@ void Transceiver::sendTransceiverConfiguration()
     // configure transceiver frequency
     TransceiverCommandPacket senderCommand;
     senderCommand.command = COMMAND_SET_FREQUENCY;
-    senderCommand.size = 0;
-    senderCommand.channel = m_configuration.channel();
-    senderCommand.primary = true; // a bit of backwards compatibility
+    senderCommand.size = sizeof(TransceiverSetFrequencyPacket);
+
+    TransceiverSetFrequencyPacket config;
+    config.channel = m_configuration.channel();
 
     QByteArray usb_packet;
     usb_packet.append((const char *) &senderCommand, sizeof(senderCommand));
+    usb_packet.append((const char *) &config, sizeof(config));
     write(usb_packet.data(), usb_packet.size());
 }
 
-bool Transceiver::write(const char *data, qint64 size)
+void Transceiver::sendInitPacket()
 {
-#ifdef USB_FOUND
-    if (!m_device) {
-        return false;
-    }
+    // send init handshake
+    TransceiverCommandPacket senderCommand;
+    senderCommand.command = COMMAND_INIT;
+    senderCommand.size = sizeof(TransceiverInitPacket);
 
-    // close radio link on errors
-    if (m_device->write(data, size) < 0) {
-        close();
-        return false;
-    }
-#endif // USB_FOUND
-    return true;
+    TransceiverInitPacket config;
+    config.protocolVersion = PROTOCOL_VERSION;
+
+    QByteArray usb_packet;
+    usb_packet.append((const char *) &senderCommand, sizeof(senderCommand));
+    usb_packet.append((const char *) &config, sizeof(config));
+    write(usb_packet.data(), usb_packet.size());
 }

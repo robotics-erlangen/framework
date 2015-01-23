@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Florian Bauer, Michael Eischer, Jan Kallwies,          *
+ *   Copyright 2015 Florian Bauer, Michael Eischer, Jan Kallwies,          *
  *       Philipp Nordhus                                                   *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *

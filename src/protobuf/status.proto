@@ -24,12 +24,14 @@ message Timing {
     optional float tracking = 5;
     optional float controller = 8;
     optional float transceiver = 6;
+    optional float transceiver_rtt = 9;
     optional float simulator = 7;
 }
 
 message StatusTransceiver {
     required bool active = 1;
     optional string error = 2;
+    optional int32 dropped_usb_packets = 3;
 }
 
 // The status message is dumped for log replay

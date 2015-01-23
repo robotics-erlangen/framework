@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2014 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
+# *   Copyright 2015 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -32,18 +32,12 @@ set(SOURCES
     filewatcher.h
     lua.cpp
     lua.h
-    math_eqn.cpp
-    math_eqn.h
-    lua_math.cpp
-    lua_math.h
     lua_amun.cpp
     lua_amun.h
     lua_path.cpp
     lua_path.h
     lua_protobuf.cpp
     lua_protobuf.h
-    lua_vector.cpp
-    lua_vector.h
     strategy.cpp
     strategy.h
 )

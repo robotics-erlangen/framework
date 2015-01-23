@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -267,7 +267,7 @@ void Tracker::invalidateRobots(RobotMap &map, qint64 currentTime)
     }
 }
 
-void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint32 cameraId)
+void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, qint32 cameraId)
 {
     if (m_aoiEnabled && !BallFilter::isInAOI(ball, m_flip, m_aoi_x1, m_aoi_y1, m_aoi_x2, m_aoi_y2)) {
         return;
@@ -297,7 +297,7 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint
     nearestFilter->addVisionFrame(cameraId, ball, receiveTime);
 }
 
-void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, quint32 cameraId)
+void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId)
 {
     if (!robot.has_robot_id())
         return;

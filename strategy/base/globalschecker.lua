@@ -4,7 +4,7 @@ module "GlobalsChecker"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Michael Eischer                                        *
+*   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -31,6 +31,7 @@ local validGlobals = {
 	path = true,
 	Vector = true,
 	Settings = true,
+	Class = true,
 	mime = true, -- allow loading modules required for remote debugging
 	socket = true,
 }
@@ -69,7 +70,7 @@ function GlobalsChecker.enable(extraGlobals)
 	extraGlobals = extraGlobals or {}
 	for k, v in pairs(extraGlobals) do
 		validGlobals[k] = v
-	end 
+	end
 end
 
 -- Called directly after base/amun is loaded

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Alexander Danzer                                       *
+ *   Copyright 2015 Michael Eischer                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,11 +18,19 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef LUA_MATH_H
-#define LUA_MATH_H
+#ifndef LEAFFILTERPROXYMODEL_H
+#define LEAFFILTERPROXYMODEL_H
 
-#include <lua.hpp>
+#include <QSortFilterProxyModel>
 
-int mathRegister(lua_State *L);
+class LeafFilterProxyModel : public QSortFilterProxyModel
+{
+public:
+    explicit LeafFilterProxyModel(QObject *parent = 0);
 
-#endif // LUA_MATH_H
+protected:
+    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
+    bool hasAcceptedChildren(const QModelIndex &currentItem) const;
+};
+
+#endif // LEAFFILTERPROXYMODEL_H

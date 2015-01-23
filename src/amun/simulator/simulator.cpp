@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -85,8 +85,6 @@ Simulator::Simulator(const Timer *timer) :
     m_data->dynamicsWorld = new btDiscreteDynamicsWorld(m_data->dispatcher, m_data->overlappingPairCache, m_data->solver, m_data->collision);
     m_data->dynamicsWorld->setGravity(btVector3(0.0f, 0.0f, -9.81f * SIMULATOR_SCALE));
     m_data->dynamicsWorld->setInternalTickCallback(simulatorTickCallback, this, true);
-    // without this bullet calculates rolling friction seperated for each axis
-    m_data->dynamicsWorld->getSolverInfo().m_singleAxisRollingFrictionThreshold = 0;
 
     geometrySetDefault(&m_data->geometry);
 

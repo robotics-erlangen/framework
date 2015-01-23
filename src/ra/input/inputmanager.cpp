@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -38,6 +38,8 @@ InputManager::InputManager(QObject *parent) :
     QObject(parent),
     m_maxSpeed(1.0f),
     m_maxOmega(1.0f),
+    m_dribblerPower(1.0f),
+    m_shootPower(1.0f),
     m_enabled(false),
     m_direct(true)
 {
@@ -126,6 +128,8 @@ void InputManager::update()
             command->set_v_s(command->v_s() * m_maxSpeed * normalize);
             command->set_v_f(command->v_f() * m_maxSpeed * normalize);
             command->set_omega(command->omega() * m_maxOmega * 2.0 * M_PI);
+            command->set_dribbler(command->dribbler() * m_dribblerPower);
+            command->set_kick_power(command->kick_power() * m_shootPower);
         }
     }
 
@@ -235,6 +239,16 @@ void InputManager::setMaxSpeed(double speed)
 void InputManager::setMaxOmega(double speed)
 {
     m_maxOmega = speed;
+}
+
+void InputManager::setDribblerPower(double dribblerPower)
+{
+    m_dribblerPower = qBound(0., dribblerPower, 1.);
+}
+
+void InputManager::setShootPower(double shootPower)
+{
+    m_shootPower = qBound(0., shootPower, 1.);
 }
 
 void InputManager::setEnabled(bool enabled)

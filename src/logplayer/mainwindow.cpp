@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_logreader, SIGNAL(gotStatus(int,Status)), this, SLOT(addStatus(int,Status)));
     connect(this, SIGNAL(triggerRead(int,int)), m_logreader, SLOT(readPackets(int,int)));
 
-    m_plotter = new Plotter(this);
+    m_plotter = new Plotter();
 
     // setup icons
     ui->btnOpen->setIcon(QIcon::fromTheme("document-open"));
@@ -151,6 +151,10 @@ void MainWindow::closeEvent(QCloseEvent *e)
     s.setValue("State", saveState());
     s.setValue("Splitter", ui->splitter->saveState());
     s.endGroup();
+
+    // make sure the plotter is closed along with the mainwindow
+    // this also ensure that a closeEvent is triggered
+    m_plotter->close();
 
     QMainWindow::closeEvent(e);
 }

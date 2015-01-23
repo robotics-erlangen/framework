@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2014 Michael Eischer                                        *
+ *   Copyright 2015 Michael Eischer                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -51,7 +51,7 @@ typedef struct
     uint8_t counter;
     uint8_t id:4;
     uint8_t power_enabled:1;
-    uint8_t unused2:1;
+    uint8_t motor_in_power_limit:1;
     uint8_t ball_detected:1;
     uint8_t cap_charged:1;
     uint8_t battery;
@@ -60,9 +60,6 @@ typedef struct
     int16_t v_s; // mm/s
     int16_t v_f; // mm/s
     int16_t omega; // mrad/s
-    // further status bits
-    uint8_t motor_in_power_limit:1;
-    uint8_t unused:7;
 } __attribute__ ((packed)) RadioResponse2014;
 
 #endif // COMMON_RADIOCOMMAND2014_H
