@@ -5,7 +5,7 @@ module "Constants"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
+*   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *

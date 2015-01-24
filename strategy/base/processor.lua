@@ -4,7 +4,7 @@ module "Processor"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Michael Eischer, Christian Lobmeier                    *
+*   Copyright 2015 Michael Eischer, Christian Lobmeier                    *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *

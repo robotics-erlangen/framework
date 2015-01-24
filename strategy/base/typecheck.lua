@@ -4,7 +4,7 @@
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Alexander Danzer                                       *
+*   Copyright 2015 Alexander Danzer                                       *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *

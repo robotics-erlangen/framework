@@ -7,7 +7,7 @@ module "path"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Michael Eischer, Jan Kallwies, Philipp Nordhus         *
+*   Copyright 2015 Michael Eischer, Jan Kallwies, Philipp Nordhus         *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *

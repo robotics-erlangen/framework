@@ -4,7 +4,7 @@ module "World"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Alexander Danzer, Michael Eischer, Christian Lobmeier, *
+*   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier, *
 *       Philipp Nordhus                                                   *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *

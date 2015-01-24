@@ -4,7 +4,7 @@ module "vis"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2014 Florian Bauer, Michael Eischer, Christian Lobmeier,    *
+*   Copyright 2015 Florian Bauer, Michael Eischer, Christian Lobmeier,    *
 *       Philipp Nordhus                                                   *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
