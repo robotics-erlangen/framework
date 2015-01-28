@@ -54,8 +54,7 @@ function FreeKick:_updateTask()
 
 	-- if we are not near the ball yet, don't decide what to do
 	if World.Time - self._startTime < hurryUp and not atBall then
-		local goalKickViewDir = World.Ball.pos.x > 0 and 0 or math.pi
-		local viewDir = goalKickFlag and goalKickViewDir or math.pi/2
+		local viewDir = World.Ball.pos.x > 0 and 0 or math.pi
 		return MoveToStaticBall, { viewDir, nearBallDist }
 	end
 
@@ -102,7 +101,7 @@ function FreeKick:_updateTask()
 	elseif self._decision == "pass" then
 		return Pass, {self._pass.target, self._pass.pos}
 	else
-		return MoveToStaticBall, { math.pi/2, nearBallDist }
+		return MoveToStaticBall
 	end
 end
 
