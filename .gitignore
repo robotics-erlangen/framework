@@ -1,0 +1,7 @@
+/CMakeLists.txt.user
+/build*
+/src/html/
+Makefile
+# hide files created by eclipse when used for strategy debugging
+strategy/.buildpath
+strategy/.project
