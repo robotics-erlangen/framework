@@ -40,13 +40,13 @@ public:
     void setDebug(const amun::DebugValues &debug, const QSet<QString> &debug_expanded);
 
 private:
+    void addRootItem(const QString &name, int sourceId);
     class Entry;
     typedef QHash<QString, Entry*> Map;
     void testMap(Map &map, const QSet<Entry*> &entries);
 
 private:
-    QStandardItem *m_itemStrategy0;
-    QStandardItem *m_itemStrategy1;
+    QHash<int, QStandardItem*> m_itemRoots;
     Map m_entryMap;
     QHash<int, Map> m_debug;
 };

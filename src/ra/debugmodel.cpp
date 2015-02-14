@@ -41,36 +41,40 @@ DebugModel::DebugModel(QObject *parent) :
 {
     setHorizontalHeaderLabels(QStringList() << "Name" << "Value");
 
-    m_itemStrategy0 = new QStandardItem("Team Blue");
-    appendRow(m_itemStrategy0);
-    m_itemStrategy1 = new QStandardItem("Team Yellow");
-    appendRow(m_itemStrategy1);
+    addRootItem("Team Blue", amun::StrategyBlue);
+    addRootItem("Team Yellow", amun::StrategyYellow);
+    addRootItem("Autoref", amun::Autoref);
 }
 
 DebugModel::~DebugModel() {
     qDeleteAll(m_entryMap);
 }
 
+void DebugModel::addRootItem(const QString &name, int sourceId)
+{
+    Q_ASSERT(m_itemRoots[sourceId] == nullptr);
+
+    QStandardItem *item = new QStandardItem(name);
+    appendRow(item);
+    m_itemRoots[sourceId] = item;
+}
+
 void DebugModel::clearData()
 {
-    amun::DebugValues debugBlue;
-    debugBlue.set_source(amun::StrategyBlue);
-    setDebug(debugBlue, QSet<QString>());
-
-    amun::DebugValues debugYellow;
-    debugYellow.set_source(amun::StrategyYellow);
-    setDebug(debugYellow, QSet<QString>());
+    for (int sourceId: m_itemRoots.keys()) {
+        amun::DebugValues debug;
+        debug.set_source((amun::DebugSource)sourceId);
+        setDebug(debug, QSet<QString>());
+    }
 }
 
 void DebugModel::setDebug(const amun::DebugValues &debug, const QSet<QString> &debug_expanded)
 {
     Map &map = m_debug[debug.source()];
 
-    QStandardItem *parentItem;
-    if (debug.source() == amun::StrategyBlue) {
-        parentItem = m_itemStrategy0;
-    } else {
-        parentItem = m_itemStrategy1;
+    QStandardItem *parentItem = m_itemRoots.value(debug.source());
+    if (parentItem == nullptr) {
+        return;
     }
 
     QSet<Entry*> entries;

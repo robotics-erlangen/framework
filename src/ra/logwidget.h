@@ -29,6 +29,7 @@ class LogWidget : public QPlainTextEdit
     Q_OBJECT
 public:
     explicit LogWidget(QWidget *parent = 0);
+    void hideLogToggles();
     
 public slots:
     void handleStatus(const Status &status);
@@ -41,6 +42,7 @@ private slots:
     
 private:
     QString m_lastDate;
+    bool m_hideLogToggles;
     bool m_logBlueStrategy;
     bool m_logYellowStrategy;
 };

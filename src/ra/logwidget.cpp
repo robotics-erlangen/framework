@@ -25,11 +25,17 @@
 
 LogWidget::LogWidget(QWidget *parent) :
     QPlainTextEdit(parent),
+    m_hideLogToggles(false),
     m_logBlueStrategy(true),
     m_logYellowStrategy(true)
 {
     this->setMaximumBlockCount(1000);
     this->setReadOnly(true);
+}
+
+void LogWidget::hideLogToggles()
+{
+    m_hideLogToggles = true;
 }
 
 void LogWidget::handleStatus(const Status &status)
@@ -58,6 +64,9 @@ void LogWidget::handleStatus(const Status &status)
                 break;
             case amun::Controller:
                 prefix = "C";
+                break;
+            case amun::Autoref:
+                prefix = "A";
                 break;
             }
 
@@ -88,17 +97,19 @@ void LogWidget::contextMenuEvent(QContextMenuEvent *event)
     QAction* clear = menu->addAction("Clear");
     connect(clear, SIGNAL(triggered()), SLOT(clear()));
 
-    QAction* blue = menu->addAction("Blue Strategy");
-    blue->setCheckable(true);
-    blue->setChecked(m_logBlueStrategy);
-    blue->setData(amun::StrategyBlue);
-    connect(blue, SIGNAL(triggered(bool)), SLOT(setLogVisibility(bool)));
+    if (!m_hideLogToggles) {
+        QAction* blue = menu->addAction("Blue Strategy");
+        blue->setCheckable(true);
+        blue->setChecked(m_logBlueStrategy);
+        blue->setData(amun::StrategyBlue);
+        connect(blue, SIGNAL(triggered(bool)), SLOT(setLogVisibility(bool)));
 
-    QAction* yellow = menu->addAction("Yellow Strategy");
-    yellow->setCheckable(true);
-    yellow->setChecked(m_logYellowStrategy);
-    yellow->setData(amun::StrategyYellow);
-    connect(yellow, SIGNAL(triggered(bool)), SLOT(setLogVisibility(bool)));
+        QAction* yellow = menu->addAction("Yellow Strategy");
+        yellow->setCheckable(true);
+        yellow->setChecked(m_logYellowStrategy);
+        yellow->setData(amun::StrategyYellow);
+        connect(yellow, SIGNAL(triggered(bool)), SLOT(setLogVisibility(bool)));
+    }
 
     menu->exec(event->globalPos());
     delete menu;

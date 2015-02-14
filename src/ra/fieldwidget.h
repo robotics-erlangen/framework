@@ -68,6 +68,7 @@ public slots:
     void handleStatus(const Status &status);
     void visualizationsChanged(const QStringList &items);
     void clearData();
+    void hideVisualizationToggles();
 
 protected:
     void mousePressEvent(QMouseEvent *event);

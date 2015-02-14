@@ -281,6 +281,13 @@ void FieldWidget::clearData()
     m_geometryUpdated = true;
 }
 
+void FieldWidget::hideVisualizationToggles()
+{
+    m_actionShowBlueVis->setVisible(false);
+    m_actionShowYellowVis->setVisible(false);
+    m_actionShowControllerVis->setVisible(false);
+}
+
 void FieldWidget::updateTeam(RobotMap &team, QHash<uint, robot::Specs> &specsMap, const robot::Team &specs) {
     // the robot specifications changed
     specsMap.clear();
