@@ -26,6 +26,7 @@
 #include <QStringList>
 #include <QDir>
 #include "abstractstrategyscript.h"
+#include "strategytype.h"
 
 class FileWatcher;
 class Lua;
@@ -37,10 +38,10 @@ class Lua : public AbstractStrategyScript
 {
     Q_OBJECT
 private:
-    Lua(const Timer *timer, bool isBlue, bool debugEnabled);
+    Lua(const Timer *timer, StrategyType type, bool debugEnabled);
 public:
     static bool canHandle(const QString filename);
-    static AbstractStrategyScript* createStrategy(const Timer *timer, bool isBlue, bool debugEnabled);
+    static AbstractStrategyScript* createStrategy(const Timer *timer, StrategyType type, bool debugEnabled);
     ~Lua();
 
 public:
@@ -54,7 +55,7 @@ public:
     amun::UserInput userInput() const { return m_userInput; }
     qint64 startTime() const { return m_startTime; }
     qint64 time() const;
-    bool isBlue() const { return m_blue; }
+    bool isBlue() const { return m_type == StrategyType::BLUE; }
     const QDir baseDir() const { return m_baseDir; }
     void setCommand(uint generation, uint robotId, robot::Command &command);
     void log(const QString text);
@@ -73,7 +74,7 @@ private:
     lua_State *m_state;
     FileWatcher *m_watcher;
     const Timer *m_timer;
-    const bool m_blue;
+    const StrategyType m_type;
     const bool m_debugEnabled;
 
     QString m_filename;

@@ -30,6 +30,7 @@
 #include "protobuf/debug.pb.h"
 #include "protobuf/command.h"
 #include "protobuf/userinput.pb.h"
+#include "strategytype.h"
 
 class Timer;
 
@@ -41,7 +42,7 @@ public:
 
     // simple factory to allow for different strategy handlers
     static bool canHandle(const QString filename);
-    static AbstractStrategyScript* createStrategy(const Timer *timer, bool isBlue, bool debugEnabled);
+    static AbstractStrategyScript* createStrategy(const Timer *timer, StrategyType type, bool debugEnabled);
 
     // return true on success, if false is returned the error msg can be retrieved via errorMsg()
     // loadScript and process MUST NOT be called anymore after an error was thrown!

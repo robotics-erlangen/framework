@@ -23,6 +23,7 @@
 
 #include "protobuf/command.h"
 #include "protobuf/status.h"
+#include "strategytype.h"
 #include <QString>
 
 class QTimer;
@@ -34,7 +35,7 @@ class Strategy : public QObject
     Q_OBJECT
 
 public:
-    Strategy(const Timer *timer, bool blue);
+    Strategy(const Timer *timer, StrategyType type);
     ~Strategy();
 
 signals:
@@ -58,6 +59,7 @@ private:
     void fail(const QString error);
     void setStrategyStatus(Status status, amun::StatusStrategy::STATE state);
     void copyDebugValues(Status status);
+    amun::DebugSource debugSource() const;
 
 private:
     const Timer *m_timer;
@@ -66,7 +68,7 @@ private:
     world::Geometry m_geometry;
     robot::Team m_team;
     Status m_status;
-    const bool m_blue;
+    const StrategyType m_type;
 
     QString m_filename;
     QString m_entryPoint;

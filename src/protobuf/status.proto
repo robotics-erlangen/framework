@@ -46,6 +46,7 @@ message Status {
     optional robot.Team team_yellow = 6;
     optional StatusStrategy strategy_blue = 7;
     optional StatusStrategy strategy_yellow = 8;
+    optional StatusStrategy strategy_autoref = 18;
     optional DebugValues debug = 10;
     optional Timing timing = 11;
     repeated robot.RadioCommand radio_command = 12;

@@ -111,7 +111,7 @@ void Amun::start()
     // start strategy threads
     for (int i = 0; i < 2; i++) {
         Q_ASSERT(m_strategy[i] == NULL);
-        m_strategy[i] = new Strategy(m_timer, i);
+        m_strategy[i] = new Strategy(m_timer, (i == 0) ? StrategyType::YELLOW : StrategyType::BLUE);
         m_strategy[i]->moveToThread(m_strategyThread[i]);
 
         // send tracking, geometry and referee to strategy

@@ -38,10 +38,10 @@
  * \param timer Timer to be used for time scaling
  * \param blue \c true for blue team, \c false for yellow
  */
-Strategy::Strategy(const Timer *timer, bool blue) :
+Strategy::Strategy(const Timer *timer, StrategyType type) :
     m_timer(timer),
     m_strategy(NULL),
-    m_blue(blue),
+    m_type(type),
     m_debugEnabled(false),
     m_autoReload(false),
     m_strategyFailed(false)
@@ -97,26 +97,29 @@ void Strategy::handleCommand(const Command &command)
     const amun::CommandStrategy *cmd = NULL;
 
     // get commands for own team color
-    if (m_blue && command->has_strategy_blue()) {
+    if (m_type == StrategyType::BLUE && command->has_strategy_blue()) {
         cmd = &command->strategy_blue();
-    } else if (!m_blue && command->has_strategy_yellow()) {
+    } else if (m_type == StrategyType::YELLOW && command->has_strategy_yellow()) {
         cmd = &command->strategy_yellow();
+    } else if (m_type == StrategyType::AUTOREF && command->has_strategy_autoref()) {
+        cmd = &command->strategy_autoref();
     }
 
     bool reloadStrategy = false;
 
     // update team robots, but only if something has changed
-    if (m_blue && command->has_set_team_blue()) {
+    if (m_type == StrategyType::BLUE && command->has_set_team_blue()) {
         if (command->set_team_blue().SerializeAsString() != m_team.SerializeAsString()) {
             m_team.CopyFrom(command->set_team_blue());
             reloadStrategy = true;
         }
-    } else if (!m_blue && command->has_set_team_yellow()) {
+    } else if (m_type == StrategyType::YELLOW && command->has_set_team_yellow()) {
         if (command->set_team_yellow().SerializeAsString() != m_team.SerializeAsString()) {
             m_team.CopyFrom(command->set_team_yellow());
             reloadStrategy = true;
         }
     }
+    // autoref has no robots
 
     if (cmd) {
         if (cmd->has_enable_debug()) {
@@ -170,17 +173,20 @@ void Strategy::process()
     double pathPlanning = 0;
     qint64 startTime = Timer::systemTime();
 
-    if (m_strategy->process(pathPlanning, m_status->world_state(), m_status->game_state(),
-                            (m_blue) ? m_status->user_input_blue() : m_status->user_input_yellow())) {
+    const amun::UserInput& userInput = (m_type == StrategyType::BLUE) ? m_status->user_input_blue() :
+                                    ((m_type == StrategyType::YELLOW) ? m_status->user_input_yellow() :
+                                            amun::UserInput());
+
+    if (m_strategy->process(pathPlanning, m_status->world_state(), m_status->game_state(), userInput)) {
         double totalTime = (Timer::systemTime() - startTime) / 1E9;
 
         // publish timings and debug output
         Status status(new amun::Status);
         amun::Timing *timing = status->mutable_timing();
-        if (m_blue) {
+        if (m_type == StrategyType::BLUE) {
             timing->set_blue_total(totalTime);
             timing->set_blue_path(pathPlanning);
-        } else {
+        } else if (m_type == StrategyType::YELLOW) {
             timing->set_yellow_total(totalTime);
             timing->set_yellow_path(pathPlanning);
         }
@@ -222,7 +228,7 @@ void Strategy::loadScript(const QString filename, const QString entryPoint)
 
     // hardcoded factory pattern
     if (Lua::canHandle(filename)) {
-        m_strategy = Lua::createStrategy(m_timer, m_blue, m_debugEnabled);
+        m_strategy = Lua::createStrategy(m_timer, m_type, m_debugEnabled);
     } else {
         fail(QString("No strategy handler for file %1").arg(filename));
     }
@@ -256,7 +262,9 @@ void Strategy::loadScript(const QString filename, const QString entryPoint)
 void Strategy::close()
 {
     m_reloadTimer->stop();
-    emit sendHalt(m_blue);
+    if (m_type == StrategyType::BLUE || m_type == StrategyType::YELLOW) {
+        emit sendHalt(m_type == StrategyType::BLUE);
+    }
 
     delete m_strategy;
     m_strategy = NULL;
@@ -264,14 +272,16 @@ void Strategy::close()
     Status status(new amun::Status);
     setStrategyStatus(status, amun::StatusStrategy::CLOSED);
     // clear debug output
-    status->mutable_debug()->set_source(m_blue ? amun::StrategyBlue : amun::StrategyYellow);
+    status->mutable_debug()->set_source(debugSource());
 
     emit sendStatus(status);
 }
 
 void Strategy::fail(const QString error)
 {
-    emit sendHalt(m_blue);
+    if (m_type == StrategyType::BLUE || m_type == StrategyType::YELLOW) {
+        emit sendHalt(m_type == StrategyType::BLUE);
+    }
 
     // update status
     Status status(new amun::Status);
@@ -306,7 +316,9 @@ void Strategy::setStrategyStatus(Status status, amun::StatusStrategy::STATE stat
 {
     Q_ASSERT(m_strategy != NULL || state == amun::StatusStrategy::CLOSED);
 
-    amun::StatusStrategy *strategy = m_blue ? status->mutable_strategy_blue() : status->mutable_strategy_yellow();
+    amun::StatusStrategy *strategy = (m_type == StrategyType::BLUE) ? status->mutable_strategy_blue() :
+                                            (m_type == StrategyType::YELLOW) ? status->mutable_strategy_yellow() :
+                                                    status->mutable_strategy_autoref();
     strategy->set_state(state);
 
     if (state != amun::StatusStrategy::CLOSED) {
@@ -325,5 +337,17 @@ void Strategy::copyDebugValues(Status status)
 {
     Q_ASSERT(m_strategy != NULL);
     status->mutable_debug()->CopyFrom(m_strategy->debugValues());
-    status->mutable_debug()->set_source(m_blue ? amun::StrategyBlue : amun::StrategyYellow);
+    status->mutable_debug()->set_source(debugSource());
+}
+
+amun::DebugSource Strategy::debugSource() const
+{
+    switch (m_type) {
+    case StrategyType::BLUE:
+        return amun::StrategyBlue;
+    case StrategyType::YELLOW:
+        return amun::StrategyYellow;
+    case StrategyType::AUTOREF:
+        return amun::Autoref;
+    }
 }

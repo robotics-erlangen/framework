@@ -90,6 +90,7 @@ message Command {
     optional robot.Team set_team_yellow = 5;
     optional CommandStrategy strategy_blue = 6;
     optional CommandStrategy strategy_yellow = 7;
+    optional CommandStrategy strategy_autoref = 13;
     optional CommandControl control = 8;
     optional CommandTransceiver transceiver = 9;
     optional robot.RadioParameters robot_parameters = 10;

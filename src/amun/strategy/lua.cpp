@@ -227,9 +227,9 @@ static int luaInstallKillHook(lua_State* state)
     return 0;
 }
 
-Lua::Lua(const Timer *timer, bool isBlue, bool debugEnabled) :
+Lua::Lua(const Timer *timer, StrategyType type, bool debugEnabled) :
     m_timer(timer),
-    m_blue(isBlue),
+    m_type(type),
     m_debugEnabled(debugEnabled)
 {
     // create lua instance and load libraries
@@ -266,8 +266,8 @@ bool Lua::canHandle(const QString filename)
     return filename.endsWith(".lua");
 }
 
-AbstractStrategyScript* Lua::createStrategy(const Timer *timer, bool isBlue, bool debugEnabled) {
-    return new Lua(timer, isBlue, debugEnabled);
+AbstractStrategyScript* Lua::createStrategy(const Timer *timer, StrategyType type, bool debugEnabled) {
+    return new Lua(timer, type, debugEnabled);
 }
 
 Lua::~Lua()
@@ -365,12 +365,16 @@ qint64 Lua::time() const
 
 void Lua::setCommand(uint generation, uint robotId, robot::Command &command)
 {
+    if (m_type != StrategyType::BLUE && m_type != StrategyType::YELLOW) {
+        log("Only blue or yellow strategy may send robot commands!");
+        return;
+    }
     // movement commands are immediatelly forwarded to the processor
     // that is while the strategy is still running
     QByteArray data;
     data.resize(command.ByteSize());
     if (command.SerializeToArray(data.data(), data.size()))
-        emit sendStrategyCommand(m_blue, generation, robotId, data, m_worldState.time());
+        emit sendStrategyCommand(m_type == StrategyType::BLUE, generation, robotId, data, m_worldState.time());
 }
 
 void Lua::log(const QString text)
