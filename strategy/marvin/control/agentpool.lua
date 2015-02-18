@@ -53,6 +53,16 @@ function AgentPool:robots()
 	return robots
 end
 
+function AgentPool:removeRobot(robot)
+	for _, agent in ipairs(self._agents) do
+		if agent:robot() == robot then
+			table.removeValue(self._agents, agent)
+			return true
+		end
+	end
+	return false
+end
+
 function AgentPool:setRobotLimit(robotLimit)
 	self._robotLimit = robotLimit
 end

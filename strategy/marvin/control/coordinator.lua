@@ -82,6 +82,21 @@ end
 function Coordinator:_updatePoolRobots()
 	local attackers, defenders = self:_calculateAttackRatio()
 
+	if table.count(self._inbox.attackerRequest()) > 0 then
+		-- only take one request per frame
+		local changingRobot = next(self._inbox.attackerRequest())
+
+		-- kick the least suitable attacker
+		self._pools.attack:setRobotLimit(attackers-1)
+		self._pools.attack:cleanupRobots()
+
+		if self._pools.defense:removeRobot(changingRobot) then
+			self._pools.attack:takeRobot({changingRobot})
+		else
+			error("pool change request from non-defender " .. changingRobot.id)
+		end
+	end
+
 	-- limit robot counts on attack/defense pool, causes automatic robot balancing
 	self._pools.attack:setRobotLimit(attackers)
 	self._pools.defense:setRobotLimit(defenders)
@@ -363,9 +378,6 @@ function Coordinator:_calculateAttackRatio()
 		attackers = attackers - 1
 	end
 
-	if table.count(self._inbox.attackerRequest()) > 0 then
-		attackers = attackers + 1
-	end
 	debug.set("AttackRatio", attackRatio)
 	debug.set("#attackers", attackers)
 
