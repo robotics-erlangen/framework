@@ -9,7 +9,7 @@ function AgentPool:init(agentType)
 end
 
 function AgentPool:run()
-	for _, agent in pairs(self._agents) do
+	for _, agent in ipairs(self._agents) do
 		agent:run()
 	end
 end
@@ -21,7 +21,7 @@ end
 -- remove agents and associated robots we no longer want to keep
 function AgentPool:cleanupRobots()
 	local agents = {} -- agents to keep
-	for _, agent in pairs(self._agents) do
+	for _, agent in ipairs(self._agents) do
 		if(agent:keepRobot()) then
 			table.insert(agents, agent)
 		end
@@ -47,7 +47,7 @@ end
 
 function AgentPool:robots()
 	local robots = {}
-	for _, agent in pairs(self._agents) do
+	for _, agent in ipairs(self._agents) do
 		table.insert(robots, agent:robot())
 	end
 	return robots
