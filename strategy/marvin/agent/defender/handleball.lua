@@ -25,7 +25,7 @@ function HandleBall:check()
 				self._robot.radius + CenterBack.distanceToDefenseArea() then
 			local _, lambda = geom.intersectLineLine(World.Geometry.FriendlyGoal, Vector(1, 0),
 					World.Ball.pos, World.Ball.speed)
-			if math.abs(lambda) < World.Geometry.DefenseRadius + World.Geometry.DefenseStretch/2 then
+			if lambda and math.abs(lambda) < World.Geometry.DefenseRadius + World.Geometry.DefenseStretch/2 then
 				return false
 			end
 		end
