@@ -21,19 +21,16 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 	-- only keeper may enter friendly defense area
 	-- don't add obstacles for friendly defense area if the robot is in the opponent half
 	if World.FriendlyKeeper ~= robot and robot.pos.y < 0 and not ignoreDefenseArea then
-		self:addCircle(G.FriendlyGoal.x - G.DefenseStretch / 2, G.FriendlyGoal.y, G.DefenseRadius + Settings.positionPadding, "DefenseArea_Left")
-		self:addCircle(G.FriendlyGoal.x + G.DefenseStretch / 2, G.FriendlyGoal.y, G.DefenseRadius + Settings.positionPadding, "DefenseArea_Right")
-		--self:addRect(G.FriendlyGoal.x - G.DefenseStretch / 2, G.FriendlyGoal.y,
-			--G.FriendlyGoal.x + G.DefenseStretch / 2, G.FriendlyGoal.y + G.DefenseRadius, "DefenseArea_Center")
-		self:addCircle(G.FriendlyGoal.x, G.FriendlyGoal.y, G.DefenseRadius + Settings.positionPadding, "DefenseArea_Center")
+		-- line with round end caps
+		self:addLine(G.FriendlyGoal.x - G.DefenseStretch / 2, G.FriendlyGoal.y,
+				G.FriendlyGoal.x + G.DefenseStretch / 2, G.FriendlyGoal.y,
+				G.DefenseRadius + Settings.positionPadding, "DefenseArea")
 	end
 
 	if forbidOppDefenseArea and robot.pos.y > 0 then
-		self:addCircle(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y, G.DefenseRadius + G.FreeKickDefenseDist, "DefenseAreaOpp_Left")
-		self:addCircle(G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y, G.DefenseRadius + G.FreeKickDefenseDist, "DefenseAreaOpp_Right")
-		--self:addRect(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
-			--G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y - G.DefenseRadius - G.FreeKickDefenseDist, "DefenseAreaOpp_Center")
-		self:addCircle(G.OpponentGoal.x, G.OpponentGoal.y, G.DefenseRadius + Settings.positionPadding + G.FreeKickDefenseDist, "DefenseAreaOpp_Center")
+		self:addLine(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
+				G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y,
+				G.DefenseRadius + G.FreeKickDefenseDist, "DefenseAreaOpp")
 	end
 
 	if forbidOppFieldHalf then
