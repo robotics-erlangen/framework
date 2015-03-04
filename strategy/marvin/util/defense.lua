@@ -8,7 +8,7 @@ local Defense = {}
 
 local markingOrientations = {} -- for hysteresis
 local function manMarkPos(opponent)
-	local orientation = markingOrientations[opponent] or World.Ball
+	local orientation = opponent and markingOrientations[opponent] or World.Ball
 	if World.Ball.pos.y < -World.Geometry.FieldHeight / 6 then
 		orientation = World.Geometry.FriendlyGoal
 	end
