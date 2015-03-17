@@ -115,6 +115,7 @@ local function constructInstance(class, ...)
 		__attributes = {}, -- remember attributes from init functions
 		__newindex = registerAttributes,
 		__index = class,
+		__tostring = getmetatable(class).__tostring,
 		type = "instance"
 	}
 	instMt.__metatable = instMt
