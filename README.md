@@ -1,21 +1,23 @@
-This release contains the framework named "Ra" along with the Autoref
-implementation of the SSL-Team ER-Force. In addition it includes a log player
-which replays games recorded by Ra.
+# Ra
+This is the framework of the SSL-Team ER-Force named "Ra". In addition it
+includes a log player which replays games recorded by Ra.
 
-This document will explain some basic functions of Ra, the usage of the Autoref, ball speed measurement using the plotter built into Ra and usage of
-the log player.
+The autoref is found at https://github.com/robotics-erlangen/autoref .
+
+This document will explain some basic functions of Ra, ball speed measurement
+using the plotter built into Ra and usage of the log player.
 
 
-==== Building Ra ====
-See the README for instructions on how to build Ra. On Windows the bin folder
+## Building Ra
+See COMPILE.md for instructions on how to build Ra. On Windows the bin folder
 containing Ra and all other components can be move to any location. For Linux
 and Mac OS X it is required to leave the source folder in its current location
-as the generated binaries required the config/ and data/ folder located there.
-In order to remove this dependencies modify the config file src/config.h.in
+as the generated binaries required the `config/` and `data/` folder located there.
+In order to remove this dependencies modify the config file `src/config.h.in`
 The log player is always built alongside Ra.
 
 
-==== Starting Ra ====
+## Starting Ra
 If the default SSL-Vision port (10002) is used just run the Ra executable.
 In order to use a different port it must be passed via the command line.
 On Linux this would be:
@@ -28,7 +30,7 @@ If Ra is running on the same computer as SSL-Vision, Ra MUST be started before
 SSL-Vision is started, otherwise Ra won't receive any vision packets.
 
 
-==== Basic usage of Ra ====
+## Basic usage of Ra
 Ra can either use the builtin simulator or use the data provided by SSL-Vision.
 There's also small builtin refbox, which can be enabled.
 
@@ -71,63 +73,18 @@ which can be viewed using the log player. The logfile (.log) is placed into the
 current working directory of Ra using.
 
 
-==== Autoref ====
-In order to use the Autoref click on one of the buttons in the "Robots"
-subwindow to load an AI for the blue or yellow team. Select the file
-"strategy/autoref/init.lua". If it is loaded successfully the AI button will
-change its text to "Autoref" and two new buttons will appear. The first of
-them will display "main". This is the only entrypoint of the Autoref. It is
-however possible to define further entrypoints that can be used to test only a
-certain behavior etc. The reload button on the right can be used to restart
-the AI. While Ra is in competition mode, that is an external RefBox is used,
-the AI will reload automatically if it crashes.
-
-Then head down to the actual robot list and click on the circle left to
-"Generation 2012" or "Generation 2014" and choose yellow or blue depending on
-for which team the Autoref was loaded. It is also possible to assign
-individual robots of that generation to the opposite or no team at all.
-
-Assign the other Generation to the other team. Ensure that the simulator and
-internal referee are disabled (the buttons shouldn't be highlighted or take a
-look at the "Demo" menu). 
-
-Voila the Autoref will print its decisions on the log textbox below the
-playing field.
-
-The autoref detects the following rule infractions:
-* Collisions between robots
-* Shooting faster than 8 m/s
-* Multiple defenders
-* Ball out of field
-
-
-==== Ball speed measurement ====
+## Ball speed measurement
 Open the plotter (white icon with two plot lines).
 Select Ball/v_global (only available if a ball is/was visible). This will
 display the absolute ball speed.
 Set the Y axis to min: 0, max: 10
 When the ball is shot check whether its speed is higher than about 8,5 m/s.
-In order to take a clear look at the speed curve the plotter display can be freezed by pressing the "Freeze" button. The plot display keeps the last 60 seconds.
+In order to take a clear look at the speed curve the plotter display can be
+freezed by pressing the "Freeze" button. The plot display keeps the last 60
+seconds.
 
 
-==== Log player ====
-The log player is built alongside Ra. Start it by running the logplayer binary.
-Then open a logfile recorded by Ra. (Log files from the SSL-LogTools can't be
-used).
-
-The log player window contains most subwindows also present in Ra, except the
-robot and AI configuration. In addition it contains controls to allow seeking
-to an arbitrary position in the logfile. The playback speed can be changed by
-changing the 100% scroll box. The playback can be controlled using shortcuts,
-look at the menu entries for a complete list. Toggling play/pause is possible
-by pressing Space.
-
-The plotter and the log window is also included. As both require continuous
-data their data is deleted when restarting playback after seeking. Thus only
-the last timespan which was played back without interim seeking is displayed.
-
-
-==== Feature list of Ra ====
+## Feature list
 Nearly everything is internally passed as a protobuf object, these are dumped
 for replay in the log player.
 
@@ -152,3 +109,21 @@ GUI:
 * Field display + AI visualizations
 * Simple internal RefBox
 * Plotter
+
+
+# Log player
+The log player is built alongside Ra. Start it by running the logplayer binary.
+Then open a logfile recorded by Ra. (Log files from the SSL-LogTools can't be
+used).
+
+The log player window contains most subwindows also present in Ra, except the
+robot and AI configuration. In addition it contains controls to allow seeking
+to an arbitrary position in the logfile. The playback speed can be changed by
+changing the 100% scroll box. The playback can be controlled using shortcuts,
+look at the menu entries for a complete list. Toggling play/pause is possible
+by pressing Space.
+
+The plotter and the log window is also included. As both require continuous
+data their data is deleted when restarting playback after seeking. Thus only
+the last timespan which was played back without interim seeking is displayed.
+
