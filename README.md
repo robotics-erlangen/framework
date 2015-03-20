@@ -9,7 +9,7 @@ using the plotter built into Ra and usage of the log player.
 
 
 ## Building Ra
-See COMPILE.md for instructions on how to build Ra. On Windows the bin folder
+See [COMPILE.md](COMPILE.md) for instructions on how to build Ra. On Windows the bin folder
 containing Ra and all other components can be move to any location. For Linux
 and Mac OS X it is required to leave the source folder in its current location
 as the generated binaries required the `config/` and `data/` folder located there.
