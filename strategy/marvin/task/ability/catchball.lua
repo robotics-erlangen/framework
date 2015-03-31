@@ -29,11 +29,6 @@ end
 -- @param maxSpeed number - maximun speed of the robot
 -- @return moveDest Vector - the point where the robot will catch the ball
 function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
-	-- TODO remove when trajectories are fully working
-	if Referee.isStopState() or Referee.isFriendlyFreeKickState() or World.RefereeState == "PenaltyOffensivePrepare" then
-		maxSpeed = math.bound(0.5, self._robot.pos:distanceTo(World.Ball.pos)/2, maxSpeed or 1)
-	end
-
 	local ball = World.Ball
 	self._lastBallSpeed = self._lastBallSpeed or ball.speed
 	if self._catchTime and World.Ball.speed:length() < self._lastBallSpeed:length() + 0.1 then
