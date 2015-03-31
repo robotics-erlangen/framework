@@ -168,7 +168,7 @@ end
 -- @name Vector:perpendicular
 -- @return Vector - perpendicular
 function vector_mt:perpendicular()
-	-- rotate by 90 degree ccw
+	-- rotate by 90 degree cw
 	return vector_c(self.y, -self.x)
 end
 
