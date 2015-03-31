@@ -186,7 +186,6 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 		return target, view, false
 	end
 
-
 	local sampleCount = 5
 	local sampleVariance = 0.07
 
@@ -202,9 +201,6 @@ function ShootGoal:improvePassReceiptPosition(ballPos)
 	if not lambda then
 		lambda = math.huge
 	end
-
-
-
 
 	ballPos = World.Ball.pos + dir * math.min(World.Ball.pos:distanceTo(ballPos), lambda)
 	for i = 1,sampleCount do
@@ -482,11 +478,6 @@ function ShootGoal:run()
 					G.FieldHeightHalf/(G.FieldHeightHalf - World.Ball.pos.y) * World.Ball.pos.x, -0.2)
 			else
 				chipPos = G.OpponentPenaltySpot
-				if World.Ball.pos.y < 0 then
-					self:_shoot(chipPos, math.huge, true, mae)
-					debug.set("type", "desperate linear")
-					return
-				end
 			end
 
 			debug.set("type", "desperate chip")
