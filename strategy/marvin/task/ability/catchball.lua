@@ -11,6 +11,11 @@ local debug = require "../base/debug"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
 
+-- safety distance to ball
+local DIST_ERROR = 0.01
+-- reduce obstacle size by one millimeter to avoid collisions
+local OBSTACLE_EPSILON = 0.001
+
 
 function CatchBall:init()
 	self._lastBallSpeed = nil
@@ -106,19 +111,19 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	local viewDir = (targetPos - predictedBall.pos):angle()
 	moveDest = Field.limitToField(moveDest, Settings.positionPadding + self._robot.radius)
 
-  	local isBlockingBall = self:_isBlockingBall(ball, predictedBall, moveDest)
-  	-- minimum required time to touch the ball
-  	local minTimeToBall = self._catchTime
-  	if isBlockingBall then -- first touch could be before the robot has moved around the ball
-  		minTimeToBall = math.min(Robot.minTimeToBall(self._robot, ball), minTimeToBall)
-  	end
-  	local minBall = Ball.atTime(minTimeToBall)
-
 	-- setup obstacles
 	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
 	self._robot.path:addRobotObstacles(self._robot)
-	self:_createRollingBallObstacle(self._robot.path, minBall, predictedBall)
-	self:_createBallCorridor(self._robot.path, viewDir, minBall)
+  	if self:_isBlockingBall(ball, predictedBall, moveDest) then
+  		-- minimum required time to touch the ball
+  		-- first touch could be before the robot has moved around the ball
+  		local minTimeToBall = math.min(Robot.minTimeToBall(self._robot, ball), self._catchTime)
+  		local minBall = Ball.atTime(minTimeToBall)
+  		self:_createBlockBallObstacle(self._robot.path, minBall, predictedBall)
+  	else
+  		self:_createHuntingBallObstacle(self._robot.path, predictedBall)
+  	end
+	self:_createBallCorridor(self._robot.path, viewDir, predictedBall)
 
 	-- only allow endSpeed moving towards the targetPos
 	local endSpeed = predictedBall.speed:copy():rotate(-viewDir)
@@ -163,53 +168,62 @@ function CatchBall:_isBlockingBall(currentBall, predictedBall, moveDest)
 			or (currentBall.pos - self._robot.pos):dot(predictedBall.pos - currentBall.pos) <= 0
 end
 
-
-function CatchBall:_createRollingBallObstacle(path, minBall, predictedBall)
+function CatchBall:_createBlockBallObstacle(path, minBall, predictedBall)
 	local ballDist = predictedBall.pos:distanceTo(minBall.pos)
 	-- block connection between first touch point and target catch pos
-	if ballDist > 0.001 then
-  		path:addLine(predictedBall.pos.x, predictedBall.pos.y, minBall.pos.x, minBall.pos.y, predictedBall.radius - 0.001, 'ball')
+	if ballDist > OBSTACLE_EPSILON then
+  		path:addLine(predictedBall.pos.x, predictedBall.pos.y, minBall.pos.x, minBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball')
 		vis.addPath("t/a/catchball: CatchBall", {predictedBall.pos, minBall.pos}, vis.colors.greenHalf)
 		vis.addCircle("t/a/catchball: CatchBall", minBall.pos, predictedBall.radius, vis.colors.greenHalf)
+
+		-- prevent robot from colliding with the ball
+		-- calculate distance of ball connection line projected on the robot direction
+		-- in case the robot is hunting the ball, robot ball dist is bounded to zero
+		local robotDir = geom.getAngleDiff((minBall.pos - predictedBall.pos):angle(), self._robot.dir)
+		local robotBallDist = math.max(math.cos(robotDir) * ballDist, 0)
+		-- maximum error cause by moddeling the robot as circle
+		local obstacleErrorDist = self._robot.radius - self._robot.shootRadius + DIST_ERROR
+		-- if both predictions are near each othe the robot must still be able to reach predictedBall
+		local extraDist = math.min(obstacleErrorDist, robotBallDist)
+		path:addCircle(minBall.pos.x, minBall.pos.y, minBall.radius - OBSTACLE_EPSILON + extraDist, 'ball2')
+		vis.addCircle("t/a/catchball: CatchBall", minBall.pos, minBall.radius + extraDist, vis.colors.redHalf)
   	else
-  		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - 0.001, 'ball')
+  		-- no need to prevent collision with minBall, if both are the same
+  		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball')
   	end
 	vis.addCircle("t/a/catchball: CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.greenHalf)
+
 end
 
-function CatchBall:_createBallCorridor(path, robotDir, predictedBall)
-	-- TODO ensure that the obstacles don't prevent the robot from reaching the ball sidewards
-	-- create obstacles that force the robot to approach the ball from behind
-	local extraDist = 0.02 -- FIXME magic constant
-	-- corridor is wide enough to allow the ball to be catched somewhere in the dribbler
-	local corridorOffset = self._robot.dribblerWidth / 2 + extraDist / 2
-	local corridorDir = math.acos(corridorOffset / (self._robot.shootRadius + predictedBall.radius - extraDist))
+function CatchBall:_createHuntingBallObstacle(path, predictedBall)
+  	path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball')
+	vis.addCircle("t/a/catchball: CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.skyBlueHalf)
+end
 
-	local radiusCompensation = self._robot.radius - self._robot.shootRadius
+function CatchBall:_createBallCorridor(path, viewDir, predictedBall)
+	local obstacleErrorDist = self._robot.radius - self._robot.shootRadius + DIST_ERROR
+	local corridorRadius = predictedBall.radius
 
-	local corridorLeftDir = Vector.fromAngle(robotDir):rotate(corridorDir):scaleLength(self._robot.radius)
-	local corridorEndLeft = predictedBall.pos + corridorLeftDir
-	local corridorStartLeft = corridorEndLeft + corridorLeftDir:perpendicular():setLength(-(self._robot.shootRadius + predictedBall.radius)*0.7 - radiusCompensation)
-	corridorEndLeft = corridorEndLeft - corridorLeftDir:perpendicular():setLength(-(self._robot.shootRadius + predictedBall.radius)*0.3)
+	-- create a bracket that ensures a minimum distance of obstacleErroDist to the ball
+	-- except on the side indicated by viewDir
+	local rightOfs = Vector.fromAngle(viewDir):perpendicular():scaleLength(obstacleErrorDist)
+	local depthOfs = Vector.fromAngle(viewDir):scaleLength(obstacleErrorDist)
 
-	local corridorRightDir = Vector.fromAngle(robotDir):rotate(-corridorDir):scaleLength(self._robot.radius)
-	local corridorEndRight = predictedBall.pos + corridorRightDir
-	local corridorStartRight = corridorEndRight + corridorRightDir:perpendicular():setLength((self._robot.shootRadius + predictedBall.radius)*0.7 + radiusCompensation)
-	corridorEndRight = corridorEndRight - corridorRightDir:perpendicular():setLength((self._robot.shootRadius + predictedBall.radius)*0.3)
+	local corridorLeftNear = predictedBall.pos - rightOfs
+	local corridorLeftFar = corridorLeftNear + depthOfs
+	local corridorRightNear = predictedBall.pos + rightOfs
+	local corridorRightFar = corridorRightNear + depthOfs
 
-	-- just block half of the extra dist
-	path:addLine(corridorStartLeft.x, corridorStartLeft.y, corridorEndLeft.x, corridorEndLeft.y, extraDist/2, 'ball_corridor1')
-	path:addLine(corridorStartRight.x, corridorStartRight.y, corridorEndRight.x, corridorEndRight.y, extraDist/2, 'ball_corridor2')
-	path:addLine(corridorEndLeft.x, corridorEndLeft.y, corridorEndRight.x, corridorEndRight.y, extraDist/2, 'ball_corridor3')
+	path:addLine(corridorLeftNear.x, corridorLeftNear.y, corridorLeftFar.x, corridorLeftFar.y, corridorRadius, "ball_corridor1")
+	path:addLine(corridorLeftFar.x, corridorLeftFar.y, corridorRightFar.x, corridorRightFar.y, corridorRadius, "ball_corridor2")
+	path:addLine(corridorRightFar.x, corridorRightFar.y, corridorRightNear.x, corridorRightNear.y, corridorRadius, "ball_corridor3")
 
 	-- visualize obstacles
-	vis.addCircle("t/a/catchball: MoveCorridor", corridorEndRight, extraDist/2, vis.colors.redHalf)
-	vis.addCircle("t/a/catchball: MoveCorridor", corridorStartRight, extraDist/2, vis.colors.redHalf)
-	vis.addCircle("t/a/catchball: MoveCorridor", corridorEndLeft, extraDist/2, vis.colors.redHalf)
-	vis.addCircle("t/a/catchball: MoveCorridor", corridorStartLeft, extraDist/2, vis.colors.redHalf)
-	vis.addPath("t/a/catchball: MoveCorridor", {corridorStartLeft, corridorEndLeft}, vis.colors.redHalf)
-	vis.addPath("t/a/catchball: MoveCorridor", {corridorStartRight, corridorEndRight}, vis.colors.redHalf)
-	vis.addPath("t/a/catchball: MoveCorridor", {corridorEndLeft, corridorEndRight}, vis.colors.redHalf)
+	vis.addPath("t/a/catchball: MoveCorridor", {corridorLeftNear, corridorLeftFar, corridorRightFar, corridorRightNear}, vis.colors.redHalf)
+	vis.addCircle("t/a/catchball: MoveCorridor", corridorLeftNear, corridorRadius, vis.colors.redHalf)
+	vis.addCircle("t/a/catchball: MoveCorridor", corridorLeftFar, corridorRadius, vis.colors.redHalf)
+	vis.addCircle("t/a/catchball: MoveCorridor", corridorRightNear, corridorRadius, vis.colors.redHalf)
+	vis.addCircle("t/a/catchball: MoveCorridor", corridorRightFar, corridorRadius, vis.colors.redHalf)
 end
 
 return CatchBall
