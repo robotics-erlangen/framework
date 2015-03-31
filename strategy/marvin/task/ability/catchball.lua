@@ -103,8 +103,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	distanceToBall = distanceToBall or 0
 	local moveDest = predictedBall.pos + (predictedBall.pos - targetPos):setLength(
 			self._robot.shootRadius + distanceToBall + ball.radius)
-	local viewLine = (targetPos - predictedBall.pos):normalize()
-	local viewDir = viewLine:angle()
+	local viewDir = (targetPos - predictedBall.pos):angle()
 	moveDest = Field.limitToField(moveDest, Settings.positionPadding + self._robot.radius)
 
   	local isBlockingBall = self:_isBlockingBall(ball, predictedBall, moveDest)
@@ -128,8 +127,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	end
 	endSpeed:rotate(viewDir)
 
-	-- always look at the ball to avoid pushing it
-	viewDir = (predictedBall.pos - self._robot.pos):angle()
+	-- move to the predicted ball
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
 	self._send.moveDest("all", moveDest)
 	-- keep old time if no way was found
