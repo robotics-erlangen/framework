@@ -12,7 +12,7 @@ local Field = require "../base/field"
 local Referee = require "../base/referee"
 
 -- safety distance to ball
-local DIST_ERROR = 0.01
+local DIST_ERROR = 0.02
 -- reduce obstacle size by one millimeter to avoid collisions
 local OBSTACLE_EPSILON = 0.001
 
