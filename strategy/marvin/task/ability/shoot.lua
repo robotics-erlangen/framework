@@ -35,7 +35,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		debug.set("ballApproach", "receivePass")
 		debug.set("shoot command", "none")
 		self:_resetShoot()
-		self:_receivePass()
+		self:_receivePass(targetPos)
 	else -- catch the ball
 		debug.set("ballApproach", "catchBall")
 		debug.set("shoot command", "none")
