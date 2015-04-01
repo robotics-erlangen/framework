@@ -7,6 +7,8 @@ local World = require "../base/world"
 local plot = require "../base/plot"
 
 function CurvedMaxAccel:_init()
+	self._lastTargetDir = nil
+	self._lastTime = nil
 end
 
 function CurvedMaxAccel:_getPath(targetPos)
@@ -554,6 +556,14 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
 
 	local angularSpeed, angularAccel = _calculateRotation(robotDir, self._robot.angularSpeed, Coordinates.toGlobal(targetDir),
 			rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime)
+	if self._lastTime then
+		-- feedforward of target direction change
+		-- as tracking a direction only works if it changes slow enough, using feedforwad shouldn't cause any trouble
+		local directionChange = (targetDir - self._lastTargetDir) / (World.Time - self._lastTime)
+		angularSpeed = angularSpeed + directionChange
+	end
+	self._lastTargetDir = targetDir
+	self._lastTime = World.Time
 
 	local waypoints = self:_getPath(targetPos)
 	if #waypoints == 0 then -- no waypoints left, just stay here but also update the orientation
