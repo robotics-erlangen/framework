@@ -9,6 +9,8 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local Ball = require "observer/ball"
 
+local SIDEWARDS_KP = 10
+
 function Shoot:init()
 	self._shootHysteresis = false
 	self._travelStart = nil
@@ -16,124 +18,23 @@ function Shoot:init()
 	self._ballInDribblerPos = nil
 end
 
--- if probability is higher than that threshold, the task will shoot immediatelly
+-- shoot immediatelly if angle error is below maxAngleError
 function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	vis.addCircle("t/a/shoot: targetPos", targetPos, 0.04, vis.colors.pinkHalf, true)
 
-	local isShooting = false
-	local sidewardsK = 10
-
 	if self._robot:hasBall(World.Ball, Settings.shootSideOffset) then -- if we got the ball
 		debug.set("ballApproach", "hasBall")
-		self._ballInDribblerPos = World.Ball.pos
-
-		if not self._lastBallSpeed then
-			self._lastBallSpeed = World.Ball.speed
-		end
-		if not self._travelStart then
-			self._travelStart = self._robot.pos
-			self._travelLimit = false
-		end
-
-		-- compensate ball movement
-		local speed = World.Ball.speed:copy()
-		local accel = nil
-		local speedLimit = self._lastBallSpeed:length()
-		-- prevent ball speed windup
-		if speed:length() > speedLimit then
-			speed:setLength(speedLimit)
-		end
-		-- don't drive backwards if the ball moves towards the robot
-		speed = speed:rotate(-self._robot.dir)
-		if speed.x < 0 then
-			speed.x = 0
-		end
-		speed = speed:rotate(self._robot.dir)
-
-
-		local targetDir, targetSpeed = self:calcPhi(World.Ball.speed:length(),
-				(-self._lastBallSpeed):angle(), World.Ball.pos, targetPos, targetSpeed)
-		--local targetDir = (targetPos - World.Ball.pos):angle()
-
-		-- FIXME drive towards hit point and not where the ball currently is
-		local distToBall = (World.Ball.pos - self._robot.pos):rotate(-targetDir)
-		distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
-
-		-- sidewards offset
-		local speedLimit = 0.4
-		speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(
-				math.bound(-speedLimit, -distToBall.y * sidewardsK, speedLimit)) -- correct pos error
-
-		local angleDiff = math.abs(geom.getAngleDiff(targetDir, self._robot.dir))
-		local canShoot = angleDiff < math.max(Settings.minAnglePrecision, maxAngleError)
-		debug.set("canShoot", canShoot)
-
-		-- only start kicking if the robot got the ball
-		if self._robot:hasBall(World.Ball) then
-			if canShoot then
-				self._shootHysteresis = true
-			end
-		else
-			self._shootHysteresis = false
-		end
-
-		debug.set("hasBall hysteresis", self._shootHysteresis)
-
-		-- debug.set("travelDist", self._travelStart:distanceTo(self._robot.pos))
-		if self._travelStart:distanceTo(self._robot.pos) >= Constants.maxDribbleDistance then
-			self._travelLimit = true
-		end
-		if self._shootHysteresis and not self._travelLimit then
-			isShooting = true
-			-- speed towards ball
-			local accelerate = math.abs(self._robot.acceleration
-					and self._robot.acceleration.aSpeedupFMax or 1.0) * 0.4
-			accel = Vector.fromAngle(targetDir) * accelerate
-
-			local dist = targetPos:distanceTo(self._robot.pos)
-			if linearShoot then
-				self._robot:shoot(targetSpeed, dist)
-				debug.set("shoot command", "linear")
-			else
-				self._robot:chip(dist)
-				debug.set("shoot command", "chip")
-			end
-		else
-			self._shootHysteresis = false
-
-			-- slowly dissolve travel distance
-			local travelDist = math.max(self._travelStart:distanceTo(self._robot.pos) - 0.05, 0)
-			self._travelStart = self._robot.pos + (self._travelStart - self._robot.pos):setLength(travelDist)
-			if travelDist == 0 then
-				self._travelLimit = false
-			end
-
-			-- keep distance to the ball
-			local minDist = Constants.positionError + 0.018
-			if distToBall.x < minDist then
-				local distError = minDist - distToBall.x
-				speed = speed - Vector.fromAngle(targetDir):setLength(distError * 20)
-			end
-
-			debug.set("shoot command", "none")
-		end
-
-		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, nil, accel)
-
-		-- send the position of the ball
-		self._send.attackPosition("all", World.Ball.pos)
+		self:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	elseif table.count(self._inbox.passPos()) > 0 or Ball.receivesPass(self._robot) then
 		debug.set("ballApproach", "receivePass")
 		debug.set("shoot command", "none")
+		self:_resetShoot()
 		self:_receivePass()
 	else -- catch the ball
 		debug.set("ballApproach", "catchBall")
 		debug.set("shoot command", "none")
-		self._lastBallSpeed = nil
-		self._shootHysteresis = false
-		self._travelStart = nil
-		self._travelLimit = false
 		-- just catch the ball, but keep a little distance to allow braking the robot
+		self:_resetShoot()
 		self:_catchBall(targetPos, 2*Constants.positionError)
 	end
 	if (not self._catchTime) or self._catchTime < 0.5 then
@@ -141,5 +42,112 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		--self._robot:setDribblerSpeed(1)
 	end
 end
+
+function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
+	self._ballInDribblerPos = World.Ball.pos
+
+	if not self._lastBallSpeed then
+		self._lastBallSpeed = World.Ball.speed
+	end
+	if not self._travelStart then
+		self._travelStart = self._robot.pos
+		self._travelLimit = false
+	end
+
+	-- compensate ball movement
+	local speed = World.Ball.speed:copy()
+	local accel = nil
+	local speedLimit = self._lastBallSpeed:length()
+	-- prevent ball speed windup
+	if speed:length() > speedLimit then
+		speed:setLength(speedLimit)
+	end
+	-- don't drive backwards if the ball moves towards the robot
+	speed = speed:rotate(-self._robot.dir)
+	if speed.x < 0 then
+		speed.x = 0
+	end
+	speed = speed:rotate(self._robot.dir)
+
+
+	local targetDir, targetSpeed = self:calcPhi(World.Ball.speed:length(),
+			(-self._lastBallSpeed):angle(), World.Ball.pos, targetPos, targetSpeed)
+	--local targetDir = (targetPos - World.Ball.pos):angle()
+
+	-- FIXME drive towards hit point and not where the ball currently is
+	local distToBall = (World.Ball.pos - self._robot.pos):rotate(-targetDir)
+	distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
+
+	-- sidewards offset
+	local speedLimit = 0.4
+	speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(
+			math.bound(-speedLimit, -distToBall.y * SIDEWARDS_KP, speedLimit)) -- correct pos error
+
+	local angleDiff = math.abs(geom.getAngleDiff(targetDir, self._robot.dir))
+	local canShoot = angleDiff < math.max(Settings.minAnglePrecision, maxAngleError)
+	debug.set("canShoot", canShoot)
+
+	-- only start kicking if the robot got the ball
+	if self._robot:hasBall(World.Ball) then
+		if canShoot then
+			self._shootHysteresis = true
+		end
+	else
+		self._shootHysteresis = false
+	end
+
+	debug.set("hasBall hysteresis", self._shootHysteresis)
+
+	-- debug.set("travelDist", self._travelStart:distanceTo(self._robot.pos))
+	if self._travelStart:distanceTo(self._robot.pos) >= Constants.maxDribbleDistance then
+		self._travelLimit = true
+	end
+	if self._shootHysteresis and not self._travelLimit then
+		-- speed towards ball
+		local accelerate = math.abs(self._robot.acceleration
+				and self._robot.acceleration.aSpeedupFMax or 1.0) * 0.4
+		accel = Vector.fromAngle(targetDir) * accelerate
+
+		local dist = targetPos:distanceTo(self._robot.pos)
+		if linearShoot then
+			self._robot:shoot(targetSpeed, dist)
+			debug.set("shoot command", "linear")
+		else
+			self._robot:chip(dist)
+			debug.set("shoot command", "chip")
+		end
+	else
+		self._shootHysteresis = false
+
+		-- slowly dissolve travel distance
+		local travelDist = math.max(self._travelStart:distanceTo(self._robot.pos) - 0.05, 0)
+		self._travelStart = self._robot.pos + (self._travelStart - self._robot.pos):setLength(travelDist)
+		if travelDist == 0 then
+			self._travelLimit = false
+		end
+
+		-- keep distance to the ball
+		local minDist = Constants.positionError + 0.018
+		if distToBall.x < minDist then
+			local distError = minDist - distToBall.x
+			speed = speed - Vector.fromAngle(targetDir):setLength(distError * 20)
+		end
+
+		debug.set("shoot command", "none")
+	end
+
+	self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, nil, accel)
+
+	-- send the position of the ball
+	self._send.attackPosition("all", World.Ball.pos)
+end
+
+function Shoot:_resetShoot()
+	self._shootHysteresis = false
+	self._travelStart = nil
+	self._travelLimit = false
+	self._ballInDribblerPos = nil
+end
+
 
 return Shoot
