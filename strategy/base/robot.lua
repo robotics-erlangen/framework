@@ -399,7 +399,7 @@ function Robot:hasBall(ball, sideOffset)
 	end
 
 	-- FIXME remove partial system latency hack
-	self._hasBall[sideOffset] = relpos.x > -self.shootRadius
+	self._hasBall[sideOffset] = relpos.x > self.shootRadius * (-1.5)
 			and relpos.x < self.constants.hasBallDistance + ball.speed:length() * Constants.systemLatency
 	return self._hasBall[sideOffset]
 end
