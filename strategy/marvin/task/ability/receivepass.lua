@@ -1,4 +1,3 @@
--- depends on catchball
 local ReceivePass = {}
 
 local World = require "../base/world"
@@ -6,6 +5,9 @@ local ToTarget = require "trajectory/totarget"
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
 local debug = require "../base/debug"
+local CatchBall = require "task/ability/catchball"
+
+ReceivePass.depends = { CatchBall }
 
 function ReceivePass:_receivePass()
 	local perpPos = self._robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))

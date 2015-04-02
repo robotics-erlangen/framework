@@ -1,11 +1,6 @@
--- load abilities
-local CatchBall = require "task/ability/catchball"
-local ReceivePass = require "task/ability/receivepass"
-local Volley = require "task/ability/volley"
 local Shoot = require "task/ability/shoot"
 
-local ShootGoal = Class("Task.ShootGoal", require "task/base",
-		CatchBall, ReceivePass, Volley, Shoot)
+local ShootGoal = Class("Task.ShootGoal", require "task/base", Shoot)
 
 local Goal = require "observer/goal"
 local Shoot = require "observer/shoot"

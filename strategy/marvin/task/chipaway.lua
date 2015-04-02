@@ -1,10 +1,6 @@
--- load abilities
-local CatchBall = require "task/ability/catchball"
 local Shoot = require "task/ability/shoot"
-local Volley = require "task/ability/volley"
 
-local ChipAway = Class("Task.ChipAway", require "task/base",
-		CatchBall, Shoot, Volley)
+local ChipAway = Class("Task.ChipAway", require "task/base", Shoot)
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"

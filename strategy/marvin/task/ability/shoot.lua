@@ -1,4 +1,5 @@
--- depends on catchball and receivepass
+local ReceivePass = require "task/ability/receivepass"
+local Volley = require "task/ability/volley" -- only for calcPhi
 local Shoot = {}
 
 local Constants = require "../base/constants"
@@ -10,6 +11,8 @@ local vis = require "../base/vis"
 local Ball = require "observer/ball"
 
 local SIDEWARDS_KP = 10
+
+Shoot.depends = { ReceivePass, Volley }
 
 function Shoot:init()
 	self._shootHysteresis = false

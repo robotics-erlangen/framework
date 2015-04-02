@@ -1,9 +1,6 @@
 local Task = require "task/base"
 local Shoot = require "task/ability/shoot"
-local CatchBall = require "task/ability/catchball"
-local ReceivePass = require "task/ability/receivepass"
-local Volley = require "task/ability/volley"
-local GoalKick = Class("Task.GoalKick", Task, Shoot, CatchBall, ReceivePass, Volley)
+local GoalKick = Class("Task.GoalKick", Task, Shoot)
 
 local World = require "../base/world"
 

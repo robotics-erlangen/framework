@@ -1,9 +1,5 @@
-local CatchBall = require "task/ability/catchball"
-local ReceivePass = require "task/ability/receivepass"
 local Shoot = require "task/ability/shoot"
-local Volley = require "task/ability/volley"
-local Pass = Class("Task.Pass", require "task/base",
-	CatchBall, Shoot, Volley, ReceivePass)
+local Pass = Class("Task.Pass", require "task/base", Shoot)
 
 local World = require "../base/world"
 local Robot = require "observer/robot"

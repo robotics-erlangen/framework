@@ -7,12 +7,10 @@ local KeeperPosTolerance = 0.04 -- if keeper's distance to the goals center is b
 local shootErrorThreshold = 4.0 * math.pi/180 -- maximum angle error
 local keeperMoveSpeedThreshold = 0.4 -- for random keeper movement detection
 
-local CatchBall = require "task/ability/catchball"
 local Shoot = require "task/ability/shoot"
-local Volley = require "task/ability/volley"
 local RotateAndShoot = require "task/ability/rotateandshoot"
 local ShootPenalty = Class("Task.ShootPenalty", require "task/base",
-	CatchBall, Shoot, Volley, RotateAndShoot)
+	Shoot, RotateAndShoot)
 
 local World = require "../base/world"
 local G = World.Geometry
