@@ -4,7 +4,6 @@ local Constants = require "../base/constants"
 local Referee = require "../base/referee"
 
 function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance)
-	local ballDistance = 0
 	radius = radius or robot.radius
 	stopBallDistance = stopBallDistance or Constants.stopBallDistance
 
@@ -40,7 +39,7 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 
 	if not ignoreBall or Referee.isStopState() then
 		-- always add the actual ball obstacle, otherwise the ball may be pushed during stop
-		self:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + ballDistance, "Ball")
+		self:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius, "Ball")
 	end
 	if Referee.isStopState() then
 		self:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + stopBallDistance, "BallStop")
