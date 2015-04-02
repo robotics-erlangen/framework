@@ -376,7 +376,6 @@ end
 function Robot:posToBall(ball)
 	local relpos = (ball.pos - self.pos):rotate(-self.dir)
 	relpos.x = relpos.x - self.shootRadius - ball.radius
-	debug.set("relpos", relpos)
 	return relpos
 end
 
