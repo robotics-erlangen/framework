@@ -11,6 +11,8 @@ local vis = require "../base/vis"
 local Ball = require "observer/ball"
 
 local SIDEWARDS_KP = 10
+local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
+local SHOOT_SIDE_OFFSET = 0.05 -- extends the hasBall sidewards
 
 Shoot.depends = { ReceivePass, Volley }
 
@@ -24,7 +26,7 @@ end
 function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	vis.addCircle("t/a/shoot: targetPos", targetPos, 0.04, vis.colors.pinkHalf, true)
 
-	if self._robot:hasBall(World.Ball, Settings.shootSideOffset) then -- if we got the ball
+	if self._robot:hasBall(World.Ball, SHOOT_SIDE_OFFSET) then -- if we got the ball
 		debug.set("ballApproach", "hasBall")
 		self:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		-- send the position of the ball
@@ -86,7 +88,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 
 	-- check robot orientation
 	local angleDiff = math.abs(geom.getAngleDiff(targetDir, self._robot.dir))
-	local canShoot = angleDiff < math.max(Settings.minAnglePrecision, maxAngleError)
+	local canShoot = angleDiff < math.max(MIN_ANGLE_PRECISION, maxAngleError)
 	debug.set("canShoot", canShoot)
 
 	-- only start kicking if the robot got the ball

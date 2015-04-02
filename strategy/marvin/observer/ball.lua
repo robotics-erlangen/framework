@@ -78,6 +78,7 @@ end
 -- @param robotlist robot[] - the robots which are qualified for being a ball owner (default: World.Robots)
 -- @param lastBallOwner - the robot that was the ball owner before, used for hysteresis
 -- @return ballOwner robot - the robot that can be seen as ball owner
+local BALL_OWN_HYSTERESIS = 0.03
 local function ballOwner(robotlist, lastBallOwner)
 	local ballInDangerRating = 0
 	for _,r in pairs(World.Robots) do
@@ -88,7 +89,7 @@ local function ballOwner(robotlist, lastBallOwner)
 			ballInDangerRating = ballInDangerRating + (0.30 - dist)/0.25
 		end
 	end
-	local ballOwnDistance = Settings.ballOwnDistance - math.min(ballInDangerRating, 2)*0.04
+	local ballOwnDistance = 0.15 - math.min(ballInDangerRating, 2)*0.04
 
 	--search robot with min dist to ball
 	local minDist = math.huge
@@ -108,7 +109,7 @@ local function ballOwner(robotlist, lastBallOwner)
 	end
 
 	-- set new lastBallOwner or nil, if no robot is near ball
-	if (minDist + Settings.ballOwnHysteresis) < lastDist or not ballOwner then
+	if (minDist + BALL_OWN_HYSTERESIS) < lastDist or not ballOwner then
 		lastBallOwner = ballOwner
 	end
 
@@ -192,13 +193,12 @@ function Ball.atTime(t, ball)
 	return predicted
 end
 
+local SLOW_BALL = 0.7 -- random value
+local MIN_TIME_ADVANCE = 0.5 -- somewhat random value
+local MAX_ANGLE = 45 -- another random value
 function Ball.receivesPass(robot)
-	local slowBall = 0.7 -- random value
-	local minTimeAdvance = 0.5 -- somewhat random value
-	local maxAngle = 45 -- another random value
-
 	-- if the initial ball speed is too low
-	if World.Ball.speed:length() < slowBall then
+	if World.Ball.speed:length() < SLOW_BALL then
 		return false
 	end
 
@@ -209,19 +209,19 @@ function Ball.receivesPass(robot)
 	local timeAdvance = robotTime - ballTime
 
 	-- if the ball does not roll towards the robot
-	if World.Ball.speed:absoluteAngleDiff(robot.pos - World.Ball.pos) > maxAngle / 180 * math.pi then
+	if World.Ball.speed:absoluteAngleDiff(robot.pos - World.Ball.pos) > MAX_ANGLE / 180 * math.pi then
 		return false
 	end
 
 	-- if the robot is not fast enough
-	if timeAdvance > minTimeAdvance then
+	if timeAdvance > MIN_TIME_ADVANCE then
 		return false, timeAdvance
 	end
 
 	local futureBall = Ball.atTime(ballTime)
 
 	-- if the catch ball speed is too low
-	if futureBall.speed:length() < slowBall then
+	if futureBall.speed:length() < SLOW_BALL then
 		return false, timeAdvance
 	end
 
@@ -282,7 +282,8 @@ local cachedShootRobot = nil
 local shootCooldown = 0.1 --ball can be shot at least 0.1s after the last shot
 local speedDiff = 0.1 --ball has to be 0.1m/s faster than the robot
 local accelerationPerFrame = 5 --ball has to accelerate at least x m/s^2 to count as shot
-
+local TILT_SHOT_ANGLE = 45/180*math.pi -- the max offset angle for tilted and volley shots
+local FAST_BALL = 1.0
 function Ball.isShot()
 	-- caching
 	if World.Time == cacheTime then
@@ -300,7 +301,7 @@ function Ball.isShot()
 	-- if the ball accelerates
 	local condAccelerates = (ballSpeedLength > lastBallSpeedLength + accelerationPerFrame * World.TimeDiff)
 	-- if the ball is fast
-	local condFast = (ballSpeedLength > Settings.fastBall)
+	local condFast = (ballSpeedLength > FAST_BALL)
 	-- if one robot had the ball the last 0.1 seconds (equal to cooldown time)
 	local condHadBall = false
 	-- if this robot looks about in the same direction as the ball rolls
@@ -315,7 +316,7 @@ function Ball.isShot()
 			if ObserverRobot.hadBall(r, shootCooldown) then
 				condHadBall = true
 				local anglediff = math.abs(geom.getAngleDiff(r.dir, World.Ball.speed:angle()))
-				condDirection = (anglediff < Settings.tiltShotAngle)
+				condDirection = (anglediff < TILT_SHOT_ANGLE)
 				condFasterThanRobot = (ballSpeedLength > speedDiff + r.speed:length())
 				debug.set("robot speed", r.speed:length())
 				if condDirection and condFasterThanRobot then
@@ -336,16 +337,14 @@ function Ball.isShot()
 	end
 	lastBallSpeedLength = ballSpeedLength
 
-	if Settings.DEBUG then
-		debug.pushtop("Ball.isShot")
-		debug.set("cooldown", condCooldown)
-		debug.set("accelerates", condAccelerates)
-		debug.set("fast", condFast)
-		debug.set("hadBall", condHadBall)
-		debug.set("direction", condDirection)
-		debug.set("fasterThanRobot", condFasterThanRobot)
-		debug.pop()
-	end
+	debug.pushtop("Ball.isShot")
+	debug.set("cooldown", condCooldown)
+	debug.set("accelerates", condAccelerates)
+	debug.set("fast", condFast)
+	debug.set("hadBall", condHadBall)
+	debug.set("direction", condDirection)
+	debug.set("fasterThanRobot", condFasterThanRobot)
+	debug.pop()
 
 	plot.addPlot("isShot", robot and (robot.id + (robot.isFriendly and 0 or 0.5)) or -1)
 

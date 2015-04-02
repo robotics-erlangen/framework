@@ -19,7 +19,7 @@ local Random = require "util/random"
 local Field = require "../base/field"
 
 
-
+local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
 -- how much to move the shoot pos towards the corner
 -- (0 = mid of sector, 1 = straight towards the corner)
 local cornerWeight = 0
@@ -257,7 +257,7 @@ function ShootGoal:updateDestination()
 	-- if there is no clean sector,
 	-- 1. ignore the goalie
 	-- 2. check for ricochet opportunities
-	if not self.bestMid or self.maxAngleError < Settings.minAnglePrecision then
+	if not self.bestMid or self.maxAngleError < MIN_ANGLE_PRECISION then
 		self:_calculateDestination(viewPos, true)
 		self.sectorClean = false
 	end

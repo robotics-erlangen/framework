@@ -15,7 +15,8 @@ local Referee = require "../base/referee"
 local DIST_ERROR = 0.02
 -- reduce obstacle size by one millimeter to avoid collisions
 local OBSTACLE_EPSILON = 0.001
-
+local SLOW_BALL = 0.5
+local POSITION_PADDING = 0.02 -- safety distance
 
 function CatchBall:init()
 	self._lastBallSpeed = nil
@@ -50,7 +51,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 
 	-- check for fast ball and that it moves towards the robot
 	-- in principle this isn't neccessary but it stabilizes the catchtime
-	if ball.speed:length() > Settings.slowBall
+	if ball.speed:length() > SLOW_BALL
 			and ball.speed:dot(self._robot.pos - ball.pos) > 0 then
 		-- check if robot would be hit by the ball
 		local hitTime = self:_calculateHitTime(ball)
@@ -67,7 +68,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	local moveDest = predictedBall.pos + (predictedBall.pos - targetPos):setLength(
 			self._robot.shootRadius + distanceToBall + ball.radius)
 	local viewDir = (targetPos - predictedBall.pos):angle()
-	moveDest = Field.limitToField(moveDest, Settings.positionPadding + self._robot.radius)
+	moveDest = Field.limitToField(moveDest, POSITION_PADDING + self._robot.radius)
 
 	-- setup obstacles
 	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)

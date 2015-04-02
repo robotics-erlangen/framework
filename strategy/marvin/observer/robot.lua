@@ -147,9 +147,10 @@ local function straightTime(robot, ball)
 	return distToTime(robotSpeed, robot.maxSpeed, robotAccel, ballSpeed, ballAccel, dist)
 end
 
+local SLOW_BALL = 0.5
 function Robot.sidewardsTime(robot, ball)
 	-- slow ball, moving into ball shoot line isn't neccessary
-	if World.Ball.speed:length() < Settings.slowBall then
+	if World.Ball.speed:length() < SLOW_BALL then
 		return 0
 	end
 

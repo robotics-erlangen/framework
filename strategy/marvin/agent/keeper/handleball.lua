@@ -13,6 +13,7 @@ function HandleBall:behindCenterbacks(object)
 	return Field.distanceToFriendlyDefenseArea(object.pos, object.radius) < defenseDistance
 end
 
+local SLOW_BALL = 0.5
 function HandleBall:check()
 	if Referee.isStopState() or World.RefereeState == "PenaltyDefensive" or
 			World.RefereeState == "PenaltyDefensivePrepare" or World.GameStage == "PenaltyShootout" then
@@ -20,7 +21,7 @@ function HandleBall:check()
 	end
 	-- if a slow ball enters the defense area
 	local active = self:behindCenterbacks(World.Ball)
-			and World.Ball.speed:length() <= Settings.slowBall
+			and World.Ball.speed:length() <= SLOW_BALL
 	if active then
 		-- force being mainAttacker
 		self._send.exclusiveRole("trainer", {mainAttacker = 2})

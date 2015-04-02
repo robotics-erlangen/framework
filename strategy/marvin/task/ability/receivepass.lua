@@ -7,6 +7,8 @@ local Robot = require "observer/robot"
 local debug = require "../base/debug"
 local CatchBall = require "task/ability/catchball"
 
+local FAST_BALL = 1.0
+
 ReceivePass.depends = { CatchBall }
 
 function ReceivePass:_receivePass()
@@ -17,7 +19,7 @@ function ReceivePass:_receivePass()
 	local perpenticularSuccesfull = (moveTime and ballTime) and moveTime + safety < ballTime or false
 
 	-- block ball by moving in its way
-	if World.Ball.speed:length() > Settings.fastBall and perpenticularSuccesfull then
+	if World.Ball.speed:length() > FAST_BALL and perpenticularSuccesfull then
 		self._robot.path:setDefaultObstacles(self._robot, true)
 		self._robot.path:addRobotObstacles(self._robot)
 		local faceBall = (World.Ball.pos-self._robot.pos):angle()

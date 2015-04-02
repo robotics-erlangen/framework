@@ -247,6 +247,7 @@ end
 -- @return dir Vector - ball movement direction and speed
 -- @return isShot bool - if the ball is fast (and should be considered as a threat)
 -- @return passRecievers list - list of all robots that could recieve the pass
+local SLOW_BALL = 0.5
 function Goal.predictShot()
 	local dir = World.Ball.speed:copy() -- Defend ball by default
 	local pos = World.Ball.pos
@@ -255,10 +256,10 @@ function Goal.predictShot()
 
 	local friendlyBallOwner = Ball.friendlyBallOwner()
 	local oppBallOwner = Ball.opponentBallOwner()
-	if oppBallOwner and dir:length() <= Settings.slowBall then
+	if oppBallOwner and dir:length() <= SLOW_BALL then
 		-- if opponent is close to ball use its orientation
 		dir = Vector.fromAngle(oppBallOwner.dir)
-	elseif dir:length() > Settings.slowBall then
+	elseif dir:length() > SLOW_BALL then
 		local intersectGoal = geom.intersectLineLine(pos, dir, World.Geometry.FriendlyGoal, Vector(1, 0))
 		-- FIXME as the ball is moving also use pass check if it slightly misses the goal
 		-- TODO check whether an opponent robot may deflect the ball inside the keeper area?

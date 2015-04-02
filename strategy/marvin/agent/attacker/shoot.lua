@@ -9,6 +9,8 @@ local ObserverShoot = require "observer/shoot"
 local ShootGoal = require "task/shootgoal"
 local Pass = require "task/pass"
 
+local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
+
 function Shoot:_stop()
 	self._taskClass = nil
 	self._lastTaskClass = nil
@@ -49,7 +51,7 @@ function Shoot:_updateTask()
 		-- shootgoal
 		local shootGoalTmp = ShootGoal(self._agent)
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
-		local canShootGoal = sg_mae and sg_mae > Settings.minAnglePrecision
+		local canShootGoal = sg_mae and sg_mae > MIN_ANGLE_PRECISION
 
 		-- pass
 		local pass

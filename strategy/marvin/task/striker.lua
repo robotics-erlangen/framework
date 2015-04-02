@@ -13,6 +13,8 @@ local debug = require "../base/debug"
 local Messaging = require "control/messaging"
 local Referee = require "../base/referee"
 
+local POSITION_PADDING = 0.02 -- safety distance
+
 function Striker:_init()
 	self._moveDest = Vector(0,0)
 	self._noTargetFound = nil
@@ -145,8 +147,8 @@ function Striker:_calcMoveDest()
 			and ballToGoalIntersection.y < lineEnd
 		then
 			table.insert(intervalsToRemove, {
-				ballToGoalIntersection.y - self._robot.radius - Settings.positionPadding,
-				ballToGoalIntersection.y + self._robot.radius + Settings.positionPadding
+				ballToGoalIntersection.y - self._robot.radius - POSITION_PADDING,
+				ballToGoalIntersection.y + self._robot.radius + POSITION_PADDING
 			})
 		end
 	end
@@ -182,8 +184,8 @@ function Striker:_calcMoveDest()
 		if (self._robot.pos.x > ballPos.x and self._robot.pos.x < attacker.pos.x) or
 				(self._robot.pos.x < ballPos.x and self._robot.pos.x > attacker.pos.x) then
 			table.insert(intervalsToRemove, {
-				attacker.pos.y - 1.5*self._robot.radius - Settings.positionPadding,
-				attacker.pos.y + 1.5*self._robot.radius + Settings.positionPadding
+				attacker.pos.y - 1.5*self._robot.radius - POSITION_PADDING,
+				attacker.pos.y + 1.5*self._robot.radius + POSITION_PADDING
 			})
 		end
 	end
@@ -239,7 +241,7 @@ function Striker:_calcMoveDest()
 	local shooter, shootDest = next(self._inbox.shootDestination())
 	local passToMe =  next(self._inbox.passPos())
 	if shootDest and not passToMe then
-		local minBallDist = self._robot.radius + World.Ball.radius + Settings.positionPadding
+		local minBallDist = self._robot.radius + World.Ball.radius + POSITION_PADDING
 		local intersection, dist = self._robot.pos:orthogonalProjection(shooter.pos, shootDest)
 		if dist and math.abs(dist) < minBallDist then
 			if intersection.y < self._robot.pos.y then -- move upwards

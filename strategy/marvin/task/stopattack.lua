@@ -5,13 +5,15 @@ local Constants = require "../base/constants"
 local Field = require "../base/field"
 local ToTarget = require "trajectory/totarget"
 
+local POSITION_PADDING = 0.02 -- safety distance
+
 function StopAttack:_init()
 	self._focusPoint = Vector(0, -World.Geometry.FieldHeightHalf + 4 * self._robot.radius)
 	self._side = World.Ball.pos.x < 0 and "left" or "right"
 end
 
 function StopAttack:run()
-	local stopRadius = Constants.stopBallDistance + self._robot.radius + Settings.positionPadding
+	local stopRadius = Constants.stopBallDistance + self._robot.radius + POSITION_PADDING
 	local pos = World.Ball.pos + (self._focusPoint - World.Ball.pos):setLength(stopRadius)
 
 	local intersections = Field.intersectCircleDefenseArea(World.Ball.pos,

@@ -7,6 +7,8 @@ local Ball = require "observer/ball"
 local Field = require "../base/field"
 local ToTarget = require "trajectory/totarget"
 
+local POSITION_PADDING = 0.02 -- safety distance
+
 function SaveBall:run()
 	local robotPos = self._robot.pos
 	local ballPos = World.Ball.pos
@@ -15,7 +17,7 @@ function SaveBall:run()
 	moveDest = moveDest + (robotPos - moveDest):setLength(World.Ball.radius)
 	if ballPos:distanceTo(ownGoal) < robotPos:distanceTo(ownGoal) then
 		-- get between ball and goal
-		local ballDist = self._robot.radius + Settings.positionPadding
+		local ballDist = self._robot.radius + POSITION_PADDING
 		moveDest = ballPos + (ownGoal - ballPos):setLength(ballDist)
 		moveDest = Field.limitToAllowedField(moveDest, self._robot.radius, true)
 	end

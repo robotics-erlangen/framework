@@ -7,6 +7,8 @@ local debug = require "../base/debug"
 local Ball = require "observer/ball"
 local vis = require "../base/vis"
 
+local SHOOT_DRIVE_SPEED = 0.5
+
 local function minDistToAllRobots(pos)
     local minDist = math.huge
     for _, robot in ipairs(World.Robots) do
@@ -73,7 +75,7 @@ function SuggestPass:_suggestPass()
                 if not ballOwner or p:distanceTo(ballOwner.pos) > minDistToBall then
                     if minDistToAllRobots(p) > minDistToAll then
                         local timeBallToP = Robot.minTimeToBall(mainAttacker, World.Ball)
-                            + Ball.rollTimeEndspeed(Settings.shootDriveSpeed, World.Ball.pos:distanceTo(p))
+                            + Ball.rollTimeEndspeed(SHOOT_DRIVE_SPEED, World.Ball.pos:distanceTo(p))
                         local timeSelfToP = Robot.timeToPos(self._robot, p)
                         local timeAdvance = timeBallToP - timeSelfToP
                         if timeAdvance < timeTolerance then

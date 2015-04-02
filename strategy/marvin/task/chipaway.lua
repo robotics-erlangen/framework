@@ -4,7 +4,6 @@ local ChipAway = Class("Task.ChipAway", require "task/base", Shoot)
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
-local Settings = require "settings"
 local Shoot = require "observer/shoot"
 local Robot = require "observer/robot"
 local Rating = require "util/rating"

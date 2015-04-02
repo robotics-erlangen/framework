@@ -61,6 +61,7 @@ function Default:init(agent)
 	Base.init(self, agent)
 end
 
+local SLOW_BALL = 0.5
 function Default:check()
 	-- apply for main attacker
 	local mainAttackerRating = 0
@@ -83,7 +84,7 @@ function Default:check()
 		self._catching = true
 	end
 	if Ball.opponentBallOwner() or Ball.friendlyBallOwner() ~= self._robot
-			or World.Ball.speed:length() < Settings.slowBall then
+			or World.Ball.speed:length() < SLOW_BALL then
 		self._catching = false
 	end
 	if self._catching then

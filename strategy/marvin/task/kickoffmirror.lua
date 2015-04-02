@@ -6,6 +6,8 @@ local ToTarget = require "trajectory/totarget"
 local Field = require "../base/field"
 local debug = require "../base/debug"
 
+local DISTANCE_HYSTERESIS = 0.03 -- for all minimum/maximum distance search loops
+
 --task maximum 2 robots!
 --@param distanceToCenterLine number - how far the robot stays away from the center line
 function KickoffMirror:_init(distanceToCenterLine)
@@ -44,7 +46,7 @@ function KickoffMirror:run()
 				targetRobot = r
 			end
 		end
-		if minDist + Settings.distanceHysteresis < lastMinDist or
+		if minDist + DISTANCE_HYSTERESIS < lastMinDist or
 				(side and 3 or 1) ~= Game.getSector(self._lastTargetRobot, true) then
 			self._lastTargetRobot = targetRobot
 		end

@@ -2,7 +2,7 @@ local NavigationPassive = Class("Task.NavigationChallengePassive", require "task
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
 
-NavigationPassive.priority = 5 -- no meaning
+local POSITION_PADDING = 0.02 -- safety distance
 
 function NavigationPassive:_init(num)
 	if num == 1 or num == 6 then
@@ -14,7 +14,7 @@ function NavigationPassive:_init(num)
 	else
 		error("invalid number " .. num .. " in constructor")
 	end
-	local safetyDistance = Settings.positionPadding + self._robot.radius
+	local safetyDistance = POSITION_PADDING + self._robot.radius
 	if num <= 3 then
 		self._xMin = -World.Geometry.FieldWidthHalf + safetyDistance
 		self._xMax = -World.Geometry.FieldWidthHalf + 1 - safetyDistance

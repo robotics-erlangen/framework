@@ -4,6 +4,8 @@ local KickoffDefensive = Class("Agent.Attacker.KickoffDefensive", Base)
 local World = require "../base/world"
 local KickoffMirror = require "task/kickoffmirror"
 
+local POSITION_PADDING = 0.02 -- safety distance
+
 local preGameStages = {
 	FirstHalfPre = true,
 	SecondHalfPre = true,
@@ -28,7 +30,7 @@ function KickoffDefensive:check()
 end
 
 function KickoffDefensive:_updateTask()
-	return KickoffMirror, {Settings.positionPadding}
+	return KickoffMirror, { POSITION_PADDING }
 end
 
 return KickoffDefensive

@@ -7,9 +7,11 @@ local Interval = require "util/interval"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
 
+local PENALTY_LINE_DISTANCE = 0.35 -- prevent robots from crossing the penalty line
+
 function DefendPenalty:run()
 	local rr = self._robot.radius --assume all robots have the same radius
-	local penaltyLine = World.Geometry.OwnPenaltyLine + Settings.penaltyLineDistance
+	local penaltyLine = World.Geometry.OwnPenaltyLine + PENALTY_LINE_DISTANCE
 	vis.addPath("t/defendpenalty: penaltyDistance", {Vector(-2,penaltyLine), Vector(2,penaltyLine)}, vis.colors.whiteHalf)
 	-- NOTE: All spots are on the penaltyline, so only x-values are processed
 

@@ -3,6 +3,8 @@ local World = require "../base/world"
 local Constants = require "../base/constants"
 local Referee = require "../base/referee"
 
+local POSITION_PADDING = 0.02
+
 function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance)
 	radius = radius or robot.radius
 	stopBallDistance = stopBallDistance or Constants.stopBallDistance
@@ -23,7 +25,7 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 		-- line with round end caps
 		self:addLine(G.FriendlyGoal.x - G.DefenseStretch / 2, G.FriendlyGoal.y,
 				G.FriendlyGoal.x + G.DefenseStretch / 2, G.FriendlyGoal.y,
-				G.DefenseRadius + Settings.positionPadding, "DefenseArea")
+				G.DefenseRadius + POSITION_PADDING, "DefenseArea")
 	end
 
 	if forbidOppDefenseArea and robot.pos.y > 0 then

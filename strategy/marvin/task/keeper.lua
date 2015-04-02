@@ -9,7 +9,7 @@ local Field = require "../base/field"
 local debug = require "../base/debug"
 
 local G = World.Geometry
-local kGD = Settings.keeperGoalDistance
+local keeperGoalDistance = 0.06
 local goalNormal = Vector(0, 1)
 
 function Keeper:_init()
@@ -70,7 +70,7 @@ function Keeper:run()
 		-- account for robot radius
 		local goalCornerLeft = Vector(-goalWidthHalf, G.FriendlyGoal.y)
 		local goalCornerRight = Vector(goalWidthHalf, G.FriendlyGoal.y)
-		local goalLineY = G.FriendlyGoal.y + kGD + self._robot.radius
+		local goalLineY = G.FriendlyGoal.y + keeperGoalDistance + self._robot.radius
 		local lineDist = math.abs(goalLineY - goalCornerLeft.y)
 
 		local leftBound = -goalWidthHalf
@@ -129,7 +129,7 @@ function Keeper:run()
 	-- block estimated shoot line
 	elseif atkDir.y < 0 then
 		local k = math.bound(0, (atkPos.y+2)/2 * 0.6, 0.5)
-		moveTo = intersectPos * (1-k) + Vector(0, -G.FieldHeightHalf + kGD + self._robot.radius) * k
+		moveTo = intersectPos * (1-k) + Vector(0, -G.FieldHeightHalf + keeperGoalDistance + self._robot.radius) * k
 	else -- don't know where to go, just center in the goal / corner
 		moveTo = fallbackPos
 	end
