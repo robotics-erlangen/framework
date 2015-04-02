@@ -1,5 +1,6 @@
 local path = path
 local World = require "../base/world"
+local G = World.Geometry
 local Constants = require "../base/constants"
 local Referee = require "../base/referee"
 
@@ -9,7 +10,7 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 	radius = radius or robot.radius
 	stopBallDistance = stopBallDistance or Constants.stopBallDistance
 
-	local forbidOppDefenseArea = Referee.isFriendlyFreeKickState()
+	local oppDefAreaDist = Referee.isFriendlyFreeKickState() and G.FreeKickDefenseDist or 0
 	local forbidOppFieldHalf = Referee.isKickoffState()
 
 	-- clear and add obstacles
@@ -18,7 +19,6 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 	-- set radius for path finding
 	self:setRadius(radius)
 
-	local G = World.Geometry
 	-- only keeper may enter friendly defense area
 	-- don't add obstacles for friendly defense area if the robot is in the opponent half
 	if World.FriendlyKeeper ~= robot and robot.pos.y < 0 and not ignoreDefenseArea then
@@ -28,10 +28,10 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 				G.DefenseRadius + POSITION_PADDING, "DefenseArea")
 	end
 
-	if forbidOppDefenseArea and robot.pos.y > 0 then
+	if robot.pos.y > 0 then
 		self:addLine(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
 				G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y,
-				G.DefenseRadius + G.FreeKickDefenseDist, "DefenseAreaOpp")
+				G.DefenseRadius + oppDefAreaDist, "DefenseAreaOpp")
 	end
 
 	if forbidOppFieldHalf then
