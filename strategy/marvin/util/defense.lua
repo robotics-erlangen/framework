@@ -19,7 +19,9 @@ local function manMarkPos(opponent)
 	if World.Ball.pos.y > 0 then
 		orientation = World.Ball
 	end
-	markingOrientations[opponent] = orientation
+	if opponent ~= nil then
+		markingOrientations[opponent] = orientation
+	end
 	local orientationPos = (orientation == World.Ball) and orientation.pos or orientation
 
 	local dist = opponent.radius + Constants.maxRobotRadius + MARKING_DISTANCE
