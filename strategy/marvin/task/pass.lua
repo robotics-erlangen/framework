@@ -7,9 +7,9 @@ local vis = require "../base/vis"
 local geom = require "../base/geom"
 local debug = require "../base/debug"
 
-function Pass:_init(targetRobot, shootPos, linearShoot)
+function Pass:_init(targetRobot, shootPos)
 	self._targetRobot = assert(targetRobot, "targetRobot is missing")
-	self._linearShoot = linearShoot
+	self._linearShoot = true
 	if shootPos then
 		self._inTheRun = true
 		self._passSpeed = 0.2
@@ -31,6 +31,17 @@ function Pass:run()
 	else  -- direct pass
 		-- shoot ball into robot dribbler
 		self._shootPos = self._targetRobot.pos + Vector.fromAngle(self._targetRobot.dir) * self._targetRobot.shootRadius
+	end
+
+	local safetyTime = 0 -- configurable risk level
+	for _, opp in ipairs(World.OpponentRobots) do
+		local pointOfImpact = geom.nearestPointOnLineSegment()
+		local robotTime = Robot.timeToPos1D(opp, pointOfImpact, (pointOfImpact-pos):setLength(opp.maxSpeed))
+		local ballTime = Ball.ballRollTime(self._passSpeed, (pointOfImpact - World.Ball.pos):length())
+		if robotTime + safetyTime < ballTime then
+			self._linearShoot = false
+			break
+		end
 	end
 
 	self:_shoot(self._shootPos, self._passSpeed, self._linearShoot, 3 * math.pi/180)
