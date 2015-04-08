@@ -16,7 +16,7 @@ function Pass:_init(targetRobot, shootPos, linearShoot)
 		self._shootPos = shootPos
 	else
 		self._inTheRun = false
-		self._passSpeed = self._targetRobot.constants.passSpeed * 0.65
+		self._passSpeed = self._targetRobot.constants.passSpeed * 0.55
 		self._shootPos = nil
 	end
 end
