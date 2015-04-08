@@ -15,7 +15,7 @@ end
 
 function ApplyForMainattacker:check()
 	if World.Time - self._lastShot < cooldown then
-		for _,r in pairs(World.Robots) do
+		for _, r in ipairs(World.Robots) do
 			if r ~= self._robot and r.pos:distanceTo(World.Ball.pos) < World.Ball.radius + r.radius + 0.02 then
 				self._lastShot = 0
 			end

@@ -246,13 +246,13 @@ end
 -- @return pos Vector - origin of movement
 -- @return dir Vector - ball movement direction and speed
 -- @return isShot bool - if the ball is fast (and should be considered as a threat)
--- @return passRecievers list - list of all robots that could receive the pass
+-- @return passReceivers list - list of all robots that could receive the pass
 local SLOW_BALL = 0.5
 function Goal.predictShot()
 	local ballSpeed = World.Ball.speed:copy() -- Defend ball by default
 	local pos = World.Ball.pos
 	local isShot = false
-	local passRecievers = {}
+	local passReceivers = {}
 
 	local oppBallOwner = Ball.opponentBallOwner()
 	if oppBallOwner and ballSpeed:length() <= SLOW_BALL then
@@ -280,7 +280,7 @@ function Goal.predictShot()
 				if chance > 0 then
 					local index = 1
 					local range = false
-					for k, p in pairs(passRecievers) do	-- find the position in the table, so that the table is still sorted (after ascending chance) after insertion
+					for k, p in pairs(passReceivers) do	-- find the position in the table, so that the table is still sorted (after ascending chance) after insertion
 						index = k
 						if p[2] > chance then
 							range = true
@@ -288,17 +288,17 @@ function Goal.predictShot()
 						end
 					end
 					if range then
-						table.insert(passRecievers, index, {robot, chance})
+						table.insert(passReceivers, index, {robot, chance})
 					else
-						table.insert(passRecievers, {robot, chance})
+						table.insert(passReceivers, {robot, chance})
 					end
 					vis.addCircle("o/goal: predictShot: may recieve pass", robot.pos, robot.radius, vis.fromRGBA(255, 63, 0, 255*chance), true)
 					vis.addPath("o/goal: predictShot: to catch position", {robot.pos, pointOnLine})
 				end
 			end
-			local nPassRecievers = #passRecievers
-			if nPassRecievers > 0 then -- if there is a pass reciever, just block it
-				local passReciever = passRecievers[nPassRecievers]
+			local nPassReceivers = #passReceivers
+			if nPassReceivers > 0 then -- if there is a pass receiver, just block it
+				local passReciever = passReceivers[nPassReceivers]
 				pos = passReciever[1].pos + Vector.fromAngle(passReciever[1].dir) * (passReciever[1].shootRadius + World.Ball.radius)
 				local ballRollTime = Ball.ballRollTime(World.Ball.speed:length(), World.Ball.pos:distanceTo(pos))
 				local ballSpeedLength = Ball.atTime(ballRollTime, World.Ball).speed:length()
@@ -319,7 +319,7 @@ function Goal.predictShot()
 		ballSpeed = left + right
 	end
 
-	return pos, ballSpeed, isShot, passRecievers
+	return pos, ballSpeed, isShot, passReceivers
 end
 Goal.predictShot = Cache.forFrame(Goal.predictShot)
 

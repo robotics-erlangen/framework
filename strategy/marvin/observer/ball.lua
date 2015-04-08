@@ -81,7 +81,7 @@ end
 local BALL_OWN_HYSTERESIS = 0.03
 local function ballOwner(robotlist, lastBallOwner)
 	local ballInDangerRating = 0
-	for _,r in pairs(World.Robots) do
+	for _, r in ipairs(World.Robots) do
 		local dist = ellipticDistance(r, World.Ball.pos)
 		if dist < 0.05 then
 			ballInDangerRating = ballInDangerRating + 1
@@ -91,10 +91,10 @@ local function ballOwner(robotlist, lastBallOwner)
 	end
 	local ballOwnDistance = 0.15 - math.min(ballInDangerRating, 2)*0.04
 
-	--search robot with min dist to ball
+	-- search robot with min dist to ball
 	local minDist = math.huge
 	local ballOwner = nil
-	for _,r in pairs(robotlist) do
+	for _, r in ipairs(robotlist) do
 		local dist = ellipticDistance(r, World.Ball.pos)
 		if dist < minDist and dist <= ballOwnDistance then
 			minDist = dist
