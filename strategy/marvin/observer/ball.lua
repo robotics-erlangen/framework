@@ -118,18 +118,34 @@ end
 
 
 local lastBallOwnerFriendly
+local friendlyBallOwnerLastRun = 0
 --- Wrapper function for ballOwner
 -- @return ballOwner robot - a friendly robot, or nil
 function Ball.friendlyBallOwner()
+	if World.Time == friendlyBallOwnerLastRun then
+		return lastBallOwnerFriendly
+	end
+	friendlyBallOwnerLastRun = World.Time
 	lastBallOwnerFriendly = ballOwner(World.FriendlyRobots, lastBallOwnerFriendly)
+	debug.pushtop("/") -- hack for setting toplevel entries
+	debug.set("last friendly ball owner", lastBallOwnerFriendly)
+	debug.pop()
 	return lastBallOwnerFriendly
 end
 
 local lastBallOwnerOpponent
+local opponentBallOwnerLastRun = 0
 --- Wrapper function for ballOwner
 -- @return ballOwner robot - an opponent robot, or nil
 function Ball.opponentBallOwner()
+	if World.Time == opponentBallOwnerLastRun then -- already calculated in this frame
+		return lastBallOwnerOpponent
+	end
+	opponentBallOwnerLastRun = World.Time
 	lastBallOwnerOpponent = ballOwner(World.OpponentRobots, lastBallOwnerOpponent)
+	debug.pushtop("/") -- hack for setting toplevel entries
+	debug.set("last opponent ball owner", lastBallOwnerOpponent)
+	debug.pop()
 	return lastBallOwnerOpponent
 end
 
