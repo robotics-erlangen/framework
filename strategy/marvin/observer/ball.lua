@@ -77,7 +77,7 @@ end
 --- Returns the ball owner or nil if no one is nearer than Settings.ballOwnDistance(hysteresis)
 -- @param robotlist robot[] - the robots which are qualified for being a ball owner (default: World.Robots)
 -- @param lastBallOwner - the robot that was the ball owner before, used for hysteresis
--- @return ballOwner robot - the robot that can be seen as ball owner
+-- @return ballOwner robot - the robot that can be seen as ball owner, or nil, if no robot is near the ball
 local BALL_OWN_HYSTERESIS = 0.03
 local function ballOwner(robotlist, lastBallOwner)
 	local ballInDangerRating = 0
