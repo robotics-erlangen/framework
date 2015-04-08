@@ -221,11 +221,12 @@ function Striker:_calcMoveDest()
 	end
 	local target = Interval.getFurthestPoint(possibleIntervals, closestOpp.pos.y, self._robot.radius)
 	if target then
-		if self._moveDest and (target - self._robot.pos.y) * (self._moveDest.y - self._robot.pos.y) < 0 then
-			self._lastDirChange = World.Time
-		end
+		local switchDir=self._moveDest and (target - self._robot.pos.y) * (self._moveDest.y - self._robot.pos.y) < 0 --do we want to change direction?
 		if World.Time - self._lastDirChange > 0.5 then -- against flickering
 			self._moveDest = Vector(xPos, target)
+			if switchDir then
+				self._lastDirChange=World.Time
+			end
 		end
 		self._noTargetFound = false
 	else
@@ -269,7 +270,9 @@ function Striker:run()
 	--log("pass-pos computation took " .. runTime .. "ms")
 
 	self:_calcMoveDest()
-
+	if(self._moveDest.x==0 and self._moveDest.y==0) then
+		log("attacker at (0|0)")
+	end
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
 	self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
