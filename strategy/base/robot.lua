@@ -95,6 +95,7 @@ function Robot:init(data, isFriendly, geometry)
 	self._controllerInput = nil
 	self._kickStyle = nil
 	self._kickPower = nil
+	self._forceKick = false
 	self._dribblerSpeed = nil
 	self._standbyTimer = nil
 	self._standby = nil
@@ -224,6 +225,7 @@ function Robot:_setCommand()
 		v_s = self._controllerInput and self._controllerInput.v_s,
 		kick_style = self._kickStyle,
 		kick_power = self._kickPower,
+		force_kick = self._forceKick,
 		dribbler = self._dribblerSpeed,
 		standby = self._standby
 	})
@@ -244,6 +246,7 @@ end
 function Robot:shootDisable()
 	self._kickStyle = nil
 	self._kickPower = nil
+	self._forceKick = false
 end
 
 --- Enable linear kick.
@@ -260,6 +263,11 @@ end
 function Robot:shootChip(power)
 	self._kickStyle = "Chip"
 	self._kickPower = power
+end
+
+--- Force the robot to shoot even if the IR isn't triggered
+function Robot:forceShoot()
+	self._forceKick = true
 end
 
 --- Enable dribbler
