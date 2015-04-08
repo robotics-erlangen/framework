@@ -467,13 +467,7 @@ function ShootGoal:run()
 				math.min(self._minPrecision, self.maxAngleError or math.huge))
 		else
 			local mae =  5 * math.pi/180
-			local chipPos
-			if World.Ball.pos.y < -1 then
-				chipPos = Vector(
-					G.FieldHeightHalf/(G.FieldHeightHalf - World.Ball.pos.y) * World.Ball.pos.x, -0.2)
-			else
-				chipPos = G.OpponentPenaltySpot
-			end
+			local chipPos = G.OpponentGoal + (G.FriendlyGoal - G.OpponentGoal):setLength(0.1)
 
 			debug.set("type", "desperate chip")
 			self:_shoot(chipPos, chipPos:distanceTo(World.Ball.pos), false, mae)
