@@ -68,7 +68,7 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 	end
 end
 
-function path:addRobotObstacles(robot, ignoreFriendlyRobots, ignoreOpponentRobots)
+function path:addRobotObstacles(robot, ignoreFriendlyRobots, ignoreOpponentRobots, disableOpponentPrediction)
 	-- TODO: better robot prediction and time estimation
 	-- use 1 seconds for the navigation challenge
 	local estimationTime = 0.1 -- just a fixed time for now
@@ -88,6 +88,9 @@ function path:addRobotObstacles(robot, ignoreFriendlyRobots, ignoreOpponentRobot
 				end
 			end
 		end
+	end
+	if disableOpponentPrediction then
+		estimationTime = 0
 	end
 	if not ignoreOpponentRobots then
 		for _, r in pairs(World.OpponentRobots) do

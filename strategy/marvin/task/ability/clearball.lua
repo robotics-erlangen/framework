@@ -11,7 +11,8 @@ function ClearBall:_clearBall()
 	local viewDir = (World.Ball.pos - self._robot.pos):angle()
 
 	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
-	self._robot.path:addRobotObstacles(self._robot)
+	-- don't predict opponents, to avoid the blocking the target position
+	self._robot.path:addRobotObstacles(self._robot, nil, nil, true)
 
 	self._robot.trajectory:update(ToTarget, moveDest, viewDir)
 	vis.addCircle("t/a/clearball: ClearRobot", self._robot.pos, 0.15, vis.colors.redHalf, true)
