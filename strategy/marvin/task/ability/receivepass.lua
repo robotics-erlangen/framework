@@ -9,10 +9,14 @@ local debug = require "../base/debug"
 local CatchBall = require "task/ability/catchball"
 
 local FAST_BALL = 1.0
-local SAFETY_TIME = 0.3
+local SAFETY_TIME = 0.2
 local SAFETY_TIME_HYSTERESIS = 0.1
 
 ReceivePass.depends = { CatchBall }
+
+function ReceivePass:init()
+	self._receivePassHysteresis = false
+end
 
 function ReceivePass:_receivePass(targetPos)
 	if World.Ball.speed:length() < FAST_BALL then
@@ -39,7 +43,7 @@ function ReceivePass:_receivePass(targetPos)
 		self._robot.path:addRobotObstacles(self._robot)
 		self._robot.trajectory:update(ToTarget, perpPos, faceBall)
 		self._robot:setDribblerSpeed(0.2)
-
+		self._receivePassHysteresis = true
 		self._send.moveDest("all", perpPos)
 		-- send the position where the is catched
 		self._send.attackPosition("all", ballPos)
@@ -49,6 +53,7 @@ function ReceivePass:_receivePass(targetPos)
 end
 
 function ReceivePass:_receivePassFallback(targetPos)
+	self._receivePassHysteresis = false
 	self:_catchBall(targetPos, 2*Constants.positionError)
 end
 
