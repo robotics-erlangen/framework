@@ -109,7 +109,8 @@ local function ballOwner(robotlist, lastBallOwner)
 	end
 
 	-- set new lastBallOwner or nil, if no robot is near ball
-	if (minDist + BALL_OWN_HYSTERESIS) < lastDist or not ballOwner then
+	if (minDist + BALL_OWN_HYSTERESIS) < lastDist
+			or (not ballOwner and lastDist >= ballOwnDistance + BALL_OWN_HYSTERESIS) then
 		lastBallOwner = ballOwner
 	end
 
