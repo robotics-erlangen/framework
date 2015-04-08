@@ -16,7 +16,7 @@ local DIST_ERROR = 0.025
 -- reduce obstacle size by one millimeter to avoid collisions
 local OBSTACLE_EPSILON = 0.001
 local SLOW_BALL = 0.5
-local POSITION_PADDING = 0.02 -- safety distance
+local POSITION_PADDING = 0.04 -- boundary extension for field
 
 function CatchBall:init()
 	self._lastBallSpeed = nil
