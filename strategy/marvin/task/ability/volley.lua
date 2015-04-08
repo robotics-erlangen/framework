@@ -131,7 +131,7 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 		local moveSpeed = Vector.fromAngle(phi)
 		self._robot.trajectory:update(Direct, moveSpeed, phi)
 	else
-		self._robot.trajectory:update(ToTarget, robotPos, phi)
+		self._robot.trajectory:update(ToTarget, robotPos, phi, nil, nil, true)
 	end
 
 

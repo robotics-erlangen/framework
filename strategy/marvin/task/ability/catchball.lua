@@ -92,7 +92,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	endSpeed:rotate(viewDir)
 
 	-- move to the predicted ball
-	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
+	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed, true)
 	self._send.moveDest("all", moveDest)
 	self._send.attackPosition("all", predictedBall.pos)
 

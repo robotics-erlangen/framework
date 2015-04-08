@@ -521,14 +521,14 @@ local function _calculateRotation(currentDir, currentOmega, targetDir, accelerat
 end
 
 
-function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed)
+function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, preciseMovement)
 	if targetPos == nil then
 		error("targetPos is nil")
 	end
 
 	-- configuration
 	local maxError = 0.03 -- maxError in meters when driving a curve
-	local accelerationFactor = 0.7 -- factor for max forward speedup and braking
+	local accelerationFactor = preciseMovement and 0.7 or 1.0 -- factor for max forward speedup and braking
 	local exponentialTime = 0.2 -- timespan in seconds replace with exponential falloff
 	local exponentialError = 0.05 -- relative
 	--TODO exponentialError by distance?
