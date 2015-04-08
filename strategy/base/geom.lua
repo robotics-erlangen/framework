@@ -261,4 +261,17 @@ function geom.getAngleDiff(angle1, angle2)
 	return geom.normalizeAngle(diff)
 end
 
+function geom.nearestPosOnLineSegment(startPoint, endPoint, pos)
+	local orthogonalPoint = pos:orthogonalProjection(startPoint, endPoint)
+	local angleToStart = (orthogonalPoint - pos):angleDiff(startPoint - pos)
+	local angleToEnd = (orthogonalPoint - pos):angleDiff(endPoint - pos)
+	if angleToStart * angleToEnd <= 0 then -- on the line
+		return orthogonalPoint
+	elseif (pos-startPoint):length() < (pos-endPoint):length() then
+		return startPoint
+	else
+		return endPoint
+	end
+end
+
 return geom
