@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local FreeKick = Class("Agent.Attacker.FreeKick", Base)
 
 local World = require "../base/world"
+local Referee = require "../base/referee"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
 local Ball = require "observer/ball"
@@ -56,6 +57,10 @@ function FreeKick:_updateTask()
 	-- if we are not near the ball yet, don't decide what to do
 	if World.Time - self._startTime < hurryUp and not atBall then
 		local viewDir = World.Ball.pos.x > 0 and 0 or math.pi
+		-- don't require moving around the ball when shooting a corner kick
+		if Referee.isOffensiveCornerKick() then
+			viewDir = math.pi / 2
+		end
 		return MoveToStaticBall, { viewDir, nearBallDist }
 	end
 
