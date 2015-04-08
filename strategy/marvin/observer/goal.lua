@@ -254,7 +254,6 @@ function Goal.predictShot()
 	local isShot = false
 	local passRecievers = {}
 
-	local friendlyBallOwner = Ball.friendlyBallOwner()
 	local oppBallOwner = Ball.opponentBallOwner()
 	if oppBallOwner and ballSpeed:length() <= SLOW_BALL then
 		-- if opponent is close to ball use its orientation
@@ -312,7 +311,7 @@ function Goal.predictShot()
 			end
 		end
 		isShot = true
-	elseif not oppBallOwner or friendlyBallOwner then
+	else
 		-- otherwise use center of directions to goal posts
 		-- FIXME: check
 		local left = (World.Geometry.FriendlyGoalLeft - World.Ball.pos):normalize()
