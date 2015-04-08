@@ -82,14 +82,13 @@ end
 function Coordinator:_updatePoolRobots()
 	local attackers, defenders = self:_calculateAttackRatio()
 
-	if table.count(self._inbox.attackerRequest()) > 0 then
-		-- only take one request per frame
-		local changingRobot = next(self._inbox.attackerRequest())
-
+	-- only take one request per frame
+	local changingRobot = next(self._inbox.attackerRequest())
+	if changingRobot then
 		-- kick the least suitable attacker
 		self._pools.attack:setRobotLimit(attackers-1)
 		self._pools.attack:cleanupRobots()
-
+		self._pools.attack:setRobotLimit(attackers)
 		if self._pools.defense:removeRobot(changingRobot) then
 			self._pools.attack:takeRobot({changingRobot})
 		else
