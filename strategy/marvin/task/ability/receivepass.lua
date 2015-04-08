@@ -11,11 +11,14 @@ local CatchBall = require "task/ability/catchball"
 local FAST_BALL = 1.0
 local SAFETY_TIME = 0.2
 local SAFETY_TIME_HYSTERESIS = 0.1
+local PERPENDICULAR_ANGLE = 25 / 180 * math.pi
+local PERPENDICULAR_HYSTERESIS = 5 / 180 * math.pi
 
 ReceivePass.depends = { CatchBall }
 
 function ReceivePass:init()
 	self._receivePassHysteresis = false
+	self._receivePassPerpendicularHysteresis = false
 end
 
 function ReceivePass:_receivePass(targetPos)
@@ -54,7 +57,26 @@ end
 
 function ReceivePass:_receivePassFallback(targetPos)
 	self._receivePassHysteresis = false
-	self:_catchBall(targetPos, 2*Constants.positionError)
+
+	-- stop pass if angle is too sharp
+	if World.Ball.speed:length() > FAST_BALL then
+		local angleToBall = math.abs(World.Ball.speed:angleDiff(self._robot.pos - targetPos))
+		local perpAngle = math.abs(angleToBall - math.pi/2)
+		debug.set("perpAngle", perpAngle)
+		if perpAngle < PERPENDICULAR_ANGLE then
+			self._receivePassPerpendicularHysteresis = true
+		elseif perpAngle > PERPENDICULAR_ANGLE + PERPENDICULAR_HYSTERESIS then
+			self._receivePassPerpendicularHysteresis = false
+		end
+
+		-- face the ball
+		if self._receivePassPerpendicularHysteresis then
+			targetPos = World.Ball.pos - World.Ball.speed
+		end
+	end
+
+	-- keep no extra distance
+	self:_catchBall(targetPos, 0)
 end
 
 return ReceivePass
