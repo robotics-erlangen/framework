@@ -3,6 +3,7 @@ local Pass = Class("Task.Pass", require "task/base", Shoot)
 
 local World = require "../base/world"
 local Robot = require "observer/robot"
+local Ball = require "observer/ball"
 local vis = require "../base/vis"
 local geom = require "../base/geom"
 local debug = require "../base/debug"
@@ -35,10 +36,21 @@ function Pass:run()
 
 	local safetyTime = 0 -- configurable risk level
 	for _, opp in ipairs(World.OpponentRobots) do
-		local pointOfImpact = geom.nearestPointOnLineSegment()
-		local robotTime = Robot.timeToPos1D(opp, pointOfImpact, (pointOfImpact-pos):setLength(opp.maxSpeed))
-		local ballTime = Ball.ballRollTime(self._passSpeed, (pointOfImpact - World.Ball.pos):length())
-		if robotTime + safetyTime < ballTime then
+		if not self._targetRobot then
+			break
+		end
+		local pointOfImpact = opp.pos:nearestPosOnLine(World.Ball.pos, self._targetRobot.pos)
+		local robotTime = Robot.timeToPos1D(opp, pointOfImpact, (pointOfImpact-opp.pos):setLength(opp.maxSpeed))
+		local shootDist = pointOfImpact:distanceTo(World.Ball.pos)
+		local shootSpeed = self._robot:calculateShootSpeed(self._passSpeed, shootDist)
+		local ballTime = Ball.ballRollTime(shootSpeed, shootDist)
+		debug.set("pass interception", {
+			opponent = opp,
+			["robot time"] = robotTime,
+			ballTime = ballTime,
+		})
+		vis.addCircle("t/pass: OppInterception", pointOfImpact, 0.1, vis.colors.blue, true)
+		if robotTime + safetyTime < ballTime and opp ~= World.OpponentKeeper then
 			self._linearShoot = false
 			break
 		end
