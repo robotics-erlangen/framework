@@ -246,37 +246,37 @@ end
 -- @return pos Vector - origin of movement
 -- @return dir Vector - ball movement direction and speed
 -- @return isShot bool - if the ball is fast (and should be considered as a threat)
--- @return passRecievers list - list of all robots that could recieve the pass
+-- @return passRecievers list - list of all robots that could receive the pass
 local SLOW_BALL = 0.5
 function Goal.predictShot()
-	local dir = World.Ball.speed:copy() -- Defend ball by default
+	local ballSpeed = World.Ball.speed:copy() -- Defend ball by default
 	local pos = World.Ball.pos
 	local isShot = false
 	local passRecievers = {}
 
 	local friendlyBallOwner = Ball.friendlyBallOwner()
 	local oppBallOwner = Ball.opponentBallOwner()
-	if oppBallOwner and dir:length() <= SLOW_BALL then
+	if oppBallOwner and ballSpeed:length() <= SLOW_BALL then
 		-- if opponent is close to ball use its orientation
-		dir = Vector.fromAngle(oppBallOwner.dir)
-	elseif dir:length() > SLOW_BALL then
-		local intersectGoal = geom.intersectLineLine(pos, dir, World.Geometry.FriendlyGoal, Vector(1, 0))
+		ballSpeed = Vector.fromAngle(oppBallOwner.dir)
+	elseif ballSpeed:length() > SLOW_BALL then
+		local intersectGoal = geom.intersectLineLine(pos, ballSpeed, World.Geometry.FriendlyGoal, Vector(1, 0))
 		-- FIXME as the ball is moving also use pass check if it slightly misses the goal
 		-- TODO check whether an opponent robot may deflect the ball inside the keeper area?
 		-- check if there's a robot which may recieve the pass
-		if (intersectGoal and math.abs(intersectGoal.x) > World.Geometry.FieldWidthHalf) or dir.y > 0 then	-- if the ball moves away from our goal
-			local endOfField = Field.nextLineCut(pos, dir)
-			local lengthOfBallMovement = 0.5*dir:lengthSq()/(-Constants.ballDeceleration)
+		if (intersectGoal and math.abs(intersectGoal.x) > World.Geometry.FieldWidthHalf) or ballSpeed.y > 0 then	-- if the ball moves away from our goal
+			local endOfField = Field.nextLineCut(pos, ballSpeed)
+			local lengthOfBallMovement = 0.5*ballSpeed:lengthSq()/(-Constants.ballDeceleration)
 			if (endOfField - pos):lengthSq() > lengthOfBallMovement*lengthOfBallMovement then
-				endOfField = pos + dir:scaleLength(lengthOfBallMovement)
+				endOfField = pos + ballSpeed:scaleLength(lengthOfBallMovement)
 			end
 			vis.addCircle("o/goal: predictShot: end of field", endOfField, 0.02)
 			local target = nil
 			local targetDist = math.huge
-			local corridorHalf = dir:perpendicular():setLength(World.Ball.radius + Constants.positionError)
+			local corridorHalf = ballSpeed:perpendicular():setLength(World.Ball.radius + Constants.positionError)
 			for _, robot in pairs(World.OpponentRobots) do
 				local pointOnLine = robot.pos:nearestPosOnLine(pos, endOfField)
-				local ballRollTime = Ball.ballRollTime(dir:length(), (pointOnLine - pos):length())
+				local ballRollTime = Ball.ballRollTime(ballSpeed:length(), (pointOnLine - pos):length())
 				local chance = Ball.ballCatchProbability(robot, 0, ballRollTime, pointOnLine, corridorHalf)
 				if chance > 0 then
 					local index = 1
@@ -302,13 +302,13 @@ function Goal.predictShot()
 				local passReciever = passRecievers[nPassRecievers]
 				pos = passReciever[1].pos + Vector.fromAngle(passReciever[1].dir) * (passReciever[1].shootRadius + World.Ball.radius)
 				local ballRollTime = Ball.ballRollTime(World.Ball.speed:length(), World.Ball.pos:distanceTo(pos))
-				local ballSpeed = Ball.atTime(ballRollTime, World.Ball).speed:length()
+				local ballSpeedLength = Ball.atTime(ballRollTime, World.Ball).speed:length()
 				local ballAngle = (-World.Ball.speed):angle()
 				local robotAngle = passReciever[1].dir
-				local dirx, diry = Volley.calcVOut(8, ballSpeed, robotAngle, ballAngle)
-				dir = Vector(dirx, diry):normalize()
+				local dirx, diry = Volley.calcVOut(8, ballSpeedLength, robotAngle, ballAngle)
+				ballSpeed = Vector(dirx, diry):normalize()
 				vis.addCircle("o/goal: predictShot: receives pass", pos, passReciever[1].radius, vis.colors.pink, false)
-				vis.addPath("o/goal: predictShot: receives pass", {pos, pos + dir * 10}, vis.colors.pink)
+				vis.addPath("o/goal: predictShot: receives pass", {pos, pos + ballSpeed * 10}, vis.colors.pink)
 			end
 		end
 		isShot = true
@@ -317,10 +317,10 @@ function Goal.predictShot()
 		-- FIXME: check
 		local left = (World.Geometry.FriendlyGoalLeft - World.Ball.pos):normalize()
 		local right = (World.Geometry.FriendlyGoalRight - World.Ball.pos):normalize()
-		dir = left + right
+		ballSpeed = left + right
 	end
 
-	return pos, dir, isShot, passRecievers
+	return pos, ballSpeed, isShot, passRecievers
 end
 Goal.predictShot = Cache.forFrame(Goal.predictShot)
 
