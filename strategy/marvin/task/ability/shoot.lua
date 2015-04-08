@@ -121,10 +121,13 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 			self._robot:chip(dist)
 			debug.set("shoot command", "chip")
 		end
+		if self._robot.radioResponse then
+			debug.set("light barrier", self._robot.radioResponse.ball_detected)
+		end
 		-- Ignore the IR if the robot has the ball
 		local relpos = (World.Ball.pos - self._robot.pos):rotate(-self._robot.dir)
 		-- assume the ball is "pushed" into the robot due to tracking latency
-		if relpos.x < self._robot.shootRadius + World.Ball.radius then
+		if relpos.x < self._robot.shootRadius + World.Ball.radius - 0.002 then
 			debug.set("force shoot", true)
 			self._robot:forceShoot()
 		end
