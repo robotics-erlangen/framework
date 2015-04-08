@@ -21,7 +21,7 @@ function ManMark:run()
 
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
-	self._robot.trajectory:update(ToTarget, preferredPos, preferredDir)
+	self._robot.trajectory:update(ToTarget, preferredPos, preferredDir, nil, self._targetRobot.speed)
 	self._send.moveDest("all", preferredPos)
 end
 
