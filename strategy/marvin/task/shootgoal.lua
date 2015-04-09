@@ -390,7 +390,7 @@ function ShootGoal:getDecisionMakingBasis()
 	return self.targetPoint, self.maxAngleError, self.sectorClean
 end
 
-function ShootGoal:_init(minPrecision, receivepassHint)
+function ShootGoal:_init(minPrecision)
 	self._minPrecision = minPrecision or 2.5 / 180 * math.pi
 	self._viewPosLockDistance = 0.3
 
@@ -406,14 +406,8 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 	self._bestMid = G.OpponentGoal
 
 	-- no volley if we don't have enough time to prepare
-	if self._robot.pos:distanceTo(World.Ball.pos) > 0.5 then
+	if self._robot.pos:distanceTo(World.Ball.pos) < 0.5 then
 		self._volleyPossible = false
-	end
-
-	-- because of the 1 frame delay this agent still gets the last message of the previous mainAttacker
-	self._volleyPossible = receivepassHint or false
-	for _,_ in pairs(self._inbox.passPos()) do
-		self._volleyPossible = true
 		return
 	end
 
