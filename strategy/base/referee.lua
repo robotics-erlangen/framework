@@ -93,7 +93,7 @@ local cornerDist = 0.7 -- some tolerance, rules say 10cm
 function Referee.isOffensiveCornerKick()
 	local ballPos = World.Ball.pos
 	local refState = World.RefereeState
-	return refState == "DirectOffensive" or refState == "IndirectOffensive"
+	return (refState == "DirectOffensive" or refState == "IndirectOffensive")
 		and goalLine - ballPos.y < cornerDist
 		and (leftLine - ballPos.x > -cornerDist or rightLine - ballPos.x < cornerDist)
 end
