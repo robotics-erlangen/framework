@@ -73,7 +73,7 @@ local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError, d
 	-- looks like a log(x)/x curve
 	local peakTime = 0.3
 	local shootX = (math.bound(0, dist / intervalLength, 1) + 1) * peakTime
-	local extraTimeRating = math.log(shootX)/shootX * math.exp(1)
+	local extraTimeRating = -math.log(shootX)/shootX * math.exp(1)
 
 	-- rate distance to goal
 	local goalDistRating = 1 - ballPos:distanceTo(G.OpponentGoal) / G.FieldHeight
@@ -172,11 +172,9 @@ function ShootGoal:guessFirstPassReceiptPosition()
 end
 ShootGoal.guessFirstPassReceiptPosition = Cache.forFrame(ShootGoal.guessFirstPassReceiptPosition)
 
-function ShootGoal:improvePassReceiptPosition(ballPos)
+function ShootGoal:improvePassReceiptPosition(ballPos, lastBallSpeed)
 	-- if the ball still accelerates, recalculate the pass receipt position
-	local minTime = Robot.minTimeToBall(self._robot, World.Ball)
-	local minPos = Ball.atTime(minTime, World.Ball).pos
-	if self._robot.pos:distanceTo(ballPos) > self._robot.pos:distanceTo(minPos) + 0.3 then
+	if World.Ball.speed:length() > lastBallSpeed:length() + 0.1 then
 		local target, view = self:guessFirstPassReceiptPosition()
 		return target, view, false
 	end
@@ -403,6 +401,7 @@ function ShootGoal:_init(minPrecision, receivepassHint)
 	self._PRPstable = false
 	self._viewPos = nil
 	self._viewPosLocked = false
+	self._sglastBallSpeed = nil
 	self._bestMid = G.OpponentGoal
 
 	-- no volley if we don't have enough time to prepare
@@ -429,8 +428,9 @@ function ShootGoal:run()
 			self.targetPoint, self._viewPos = self:guessFirstPassReceiptPosition()
 		elseif not self._viewPosLocked then
 			self.targetPoint, self._viewPos, self._PRPstable =
-					self:improvePassReceiptPosition(self._viewPos)
+					self:improvePassReceiptPosition(self._viewPos, self._sglastBallSpeed)
 		end
+		self._sglastBallSpeed = World.Ball.speed
 
 		debug.set("type", "volley")
 		self:_volley(self._viewPos, self.targetPoint, math.huge)
