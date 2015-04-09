@@ -54,6 +54,11 @@ local opponentPenaltyStates = {
 	PenaltyDefensive = true
 }
 
+local friendlyPenaltyStates = {
+	PenaltyOffensivePrepare = true,
+	PenaltyOffensive = true
+}
+
 
 --- Check whether the stop rules apply
 -- @name isStopState
@@ -81,6 +86,10 @@ end
 -- @return boolean - True if the opponent has a penalty
 function Referee.isOpponentPenaltyState()
 	return opponentPenaltyStates[World.RefereeState]
+end
+
+function Referee.isFriendlyPenaltyState()
+	return friendlyPenaltyStates[World.RefereeState]
 end
 
 local rightLine = World.Geometry.FieldWidthHalf

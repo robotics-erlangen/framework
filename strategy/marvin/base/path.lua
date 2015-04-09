@@ -28,7 +28,7 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 				G.DefenseRadius + POSITION_PADDING, "DefenseArea")
 	end
 
-	if robot.pos.y > 0 then
+	if robot.pos.y > 0 and (not Referee.isFriendlyPenaltyState()) then
 		self:addLine(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
 				G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y,
 				G.DefenseRadius + oppDefAreaDist, "DefenseAreaOpp")
