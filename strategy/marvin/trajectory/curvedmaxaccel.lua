@@ -141,7 +141,7 @@ local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxEr
 	end
 
 	if xRemaining > 0 then
-		table.insert(maxSpeedProfile, {maxSpeed, endSpeed:length(), xRemaining}) -- end segment
+		table.insert(maxSpeedProfile, {maxSpeed, endSpeed, xRemaining}) -- end segment
 		--vis.addPathRaw("waypoints".."End", {prev - lastPathDir:copy():setLength(xRemaining), prev}, vis.colors.blue)
 	end
 	if not firstLeadTime then
@@ -386,10 +386,9 @@ local function _findMoveTarget(waypoints, speedProfile, leadTime)
 	return moveTarget
 end
 
-local function _injectExponentialFalloff(speedProfile, exponentialTime, exponentialError, brake, endSpeed)
+local function _injectExponentialFalloff(speedProfile, exponentialTime, exponentialError, brake, endSpeedLen)
 	-- FIXME? may ignore maxSpeed
 	-- handle exponential falloff
-	local endSpeedLen = endSpeed:length()
 	if speedProfile[#speedProfile][2] >= endSpeedLen -- too fast -> exponential falloff
 		and speedProfile[#speedProfile-1][2] > speedProfile[#speedProfile][2] then -- decelerating
 		-- v(t) = v_0 * e^(-k*t)  <--> v(dist) = k*dist
@@ -584,8 +583,10 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, precise
 	local brake = -math.abs(self._robot.acceleration
 			and self._robot.acceleration.aBrakeFMax or 1.0) * accelerationFactor
 
+	local endPathDir = (waypoints[#waypoints] - waypoints[#waypoints - 1]):normalize()
+	local endSpeedLen = math.max(0, endPathDir:dot(endSpeed))
 	-- calculate speed limits for curve segments based on sidewards acceleration limits while driving curves
-	local maxSpeedProfile, leadTime = _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, robotPos, robotSpeed, endSpeed)
+	local maxSpeedProfile, leadTime = _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, robotPos, robotSpeed, endSpeedLen)
 	--debug.set("maxSpeedProfile", maxSpeedProfile)
 	-- convert to actual speed curve
 	local speedProfile, leadTimeOffset = _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake)
@@ -597,7 +598,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, precise
 	local moveTarget = _findMoveTarget(waypoints, speedProfile, leadTime)
 	vis.addCircleRaw("waypoints", moveTarget, 0.05, vis.colors.pink)
 
-	_injectExponentialFalloff(speedProfile, exponentialTime, exponentialError, brake, endSpeed)
+	_injectExponentialFalloff(speedProfile, exponentialTime, exponentialError, brake, endSpeedLen)
 	--debug.set("speedProfile2", speedProfile)
 	--debug.set("leadTime", leadTime)
 
