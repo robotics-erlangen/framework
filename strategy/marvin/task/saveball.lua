@@ -15,18 +15,23 @@ function SaveBall:run()
 	local ownGoal = World.Geometry.FriendlyGoal
 	local moveDest = Ball.toBall(self._robot, World.Ball)
 	moveDest = moveDest + (robotPos - moveDest):setLength(World.Ball.radius)
-	if ballPos:distanceTo(ownGoal) < robotPos:distanceTo(ownGoal) then
+	if ballPos.y < robotPos.y then
 		-- get between ball and goal
 		local ballDist = self._robot.radius + POSITION_PADDING
 		moveDest = ballPos + (ownGoal - ballPos):setLength(ballDist)
-		moveDest = Field.limitToAllowedField(moveDest, self._robot.radius, true)
 	end
 
 	if self._robot.pos.y < -1.2 then -- we cannot chip precisely enough at the moment
 			self:_chipToBorderIfSafe()
 	end
+	local ignoreBall = true
+	local ignoreGoals = false
+	if self._robot == World.FriendlyKeeper and World.Ball.pos.y < -World.Geometry.FieldHeightHalf + 0.2 then
+		ignoreBall = false
+		ignoreGoals = true
+	end
 
-	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
+	self._robot.path:setDefaultObstacles(self._robot, ignoreBall, ignoreGoals, false)
 	self._robot.path:addRobotObstacles(self._robot)
 
 	local viewDir = ballPos - robotPos
