@@ -348,7 +348,13 @@ function Coordinator:_calculateAttackRatio()
 			end
 		elseif World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
 			self._oppFreeKickOngoing = true
-			attackRatio = 1
+			if World.Ball.pos:distanceTo(World.Geometry.FriendlyGoal) < World.Geometry.FieldWidthHalf then
+				-- we do not want a stop attacker because
+				-- the default centerback makes its job obsolete
+				attackRatio = 0
+			else
+				attackRatio = 1
+			end
 		elseif World.RefereeState == "Stop" then
 			attackRatio = 1
 		elseif World.GameStage == "PenaltyShootout" then
