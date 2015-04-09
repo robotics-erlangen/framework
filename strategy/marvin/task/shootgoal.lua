@@ -90,9 +90,10 @@ function ShootGoal:guessFirstPassReceiptPosition()
 	local sampleTimeInterval = 1
 	local sampleCount = 10
 	local sampleMinPosStep = 0.05
+	local safetyTime = 0.3
 
 
-	local minTime = Robot.minTimeToBall(self._robot, World.Ball)
+	local minTime = Robot.minTimeToBall(self._robot, World.Ball) + safetyTime
 	local maxTime = minTime + sampleTimeInterval
 	local minPos = Ball.atTime(minTime, World.Ball).pos
 	local maxPos = Ball.atTime(maxTime, World.Ball).pos
