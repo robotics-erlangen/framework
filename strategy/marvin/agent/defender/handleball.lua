@@ -19,7 +19,9 @@ function HandleBall:check()
 	if Referee.isFriendlyFreeKickState() or Referee.isStopState() or Referee.isKickoffState() then
 		return false
 	end
-
+	if Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) then
+		return false
+	end
 	if World.Ball.speed.y < 0 and World.Ball.speed:length() > 3 then
 		if Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) <
 				self._robot.radius + CenterBack.distanceToDefenseArea() then
