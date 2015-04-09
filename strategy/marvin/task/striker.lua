@@ -222,7 +222,7 @@ function Striker:_calcMoveDest()
 	local target = Interval.getFurthestPoint(possibleIntervals, closestOpp.pos.y, self._robot.radius)
 	if target then
 		local switchDir=self._moveDest and (target - self._robot.pos.y) * (self._moveDest.y - self._robot.pos.y) < 0 --do we want to change direction?
-		if World.Time - self._lastDirChange > 0.5 then -- against flickering
+		if World.Time - self._lastDirChange > 1.5 then -- against flickering
 			self._moveDest = Vector(xPos, target)
 			if switchDir then
 				self._lastDirChange=World.Time
