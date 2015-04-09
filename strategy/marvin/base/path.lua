@@ -96,6 +96,9 @@ function path:addRobotObstacles(robot, ignoreFriendlyRobots, ignoreOpponentRobot
 		for _, r in pairs(World.OpponentRobots) do
 			-- use speed difference to calculate the safety distance
 			local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.08, 0.10)
+			if disableOpponentPrediction then -- be more aggressive
+				safetyDistance = safetyDistance / 2
+			end
 			local estimatedPosition = r.pos + r.speed * estimationTime
 			-- only use estimated position if it doesn't collide with the robot
 			if robot.pos:distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius

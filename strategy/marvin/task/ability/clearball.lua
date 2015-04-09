@@ -8,7 +8,7 @@ local vis = require "../base/vis"
 
 function ClearBall:_clearBall()
 	local moveDest = Ball.toBall(self._robot, World.Ball)
-	local viewDir = (World.Ball.pos - self._robot.pos):angle()
+	local viewDir = (moveDest - self._robot.pos):angle()
 
 	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
 	-- don't predict opponents, to avoid the blocking the target position
