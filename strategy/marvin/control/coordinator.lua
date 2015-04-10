@@ -351,8 +351,8 @@ function Coordinator:_calculateAttackRatio()
 		elseif refState == "DirectDefensive" or refState == "IndirectDefensive" then
 			self._oppFreeKickOngoing = true
 			local G = World.Geometry
-			local distToBoarder = G.FieldWidthHalf - G.DefenseStretch/2 - G.DefenseRadius
-			if Field.distanceToFriendlyDefenseArea(ball.pos, ball.radius) < distToBoarder then
+			local distToBorder = G.FieldWidthHalf - G.DefenseStretch/2 - G.DefenseRadius
+			if Field.distanceToFriendlyDefenseArea(ball.pos, ball.radius) < distToBorder then
 				-- we do not want a stop attacker because
 				-- the default centerback makes its job obsolete
 				attackRatio = 0
