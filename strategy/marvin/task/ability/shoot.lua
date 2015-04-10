@@ -142,10 +142,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		end
 
 		-- keep distance to the ball
-		local minDist = Constants.positionError + 0.02
-		if self._travelLimit then
-			minDist = minDist + 0.05
-		end
+		local minDist = Constants.positionError + 0.05
 		if distToBall.x < minDist then
 			local distError = minDist - distToBall.x
 			speed = speed - Vector.fromAngle(targetDir):setLength(distError * 20)
