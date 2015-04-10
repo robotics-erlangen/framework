@@ -320,25 +320,27 @@ function Coordinator:_chooseManMarkAndCenterBacks()
 end
 
 function Coordinator:_calculateAttackRatio()
-	if (self._ballInFriendlyFieldHalf and World.Ball.pos.y < -0.5) or
-		(not self._ballInFriendlyFieldHalf and World.Ball.pos.y > 0.5)
+	local ball = World.Ball
+	local refState = World.RefereeState
+	if (self._ballInFriendlyFieldHalf and ball.pos.y < -0.5) or
+		(not self._ballInFriendlyFieldHalf and ball.pos.y > 0.5)
 	then
 		self._ballInFriendlyFieldHalf = not self._ballInFriendlyFieldHalf
 	end
-	local friendlyCorner = Field.isInOwnCorner(World.Ball.pos, false)
-	local opponentCorner = Field.isInOwnCorner(World.Ball.pos, true)
+	local friendlyCorner = Field.isInOwnCorner(ball.pos, false)
+	local opponentCorner = Field.isInOwnCorner(ball.pos, true)
 
-	if World.RefereeState ~= "Game" then
+	if refState ~= "Game" then
 		self._oppFreeKickOngoing = false
 	end
 
 	local attackRatio
 	if not self._customAttackRatio then
-		if World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
+		if refState == "KickoffOffensivePrepare" or refState == "KickoffOffensive" then
 			attackRatio = 4
-		elseif World.RefereeState == "KickoffDefensivePrepare" or World.RefereeState == "KickoffDefensive" then
+		elseif refState == "KickoffDefensivePrepare" or refState == "KickoffDefensive" then
 			attackRatio = 3
-		elseif World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
+		elseif refState == "DirectOffensive" or refState == "IndirectOffensive" then
 			if friendlyCorner then -- Goal-Kick Offensive
 				attackRatio = 3
 			elseif opponentCorner then -- Corner-Kick Offensive
@@ -346,22 +348,24 @@ function Coordinator:_calculateAttackRatio()
 			else
 				attackRatio = 3 -- Throw-In Offensive
 			end
-		elseif World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
+		elseif refState == "DirectDefensive" or refState == "IndirectDefensive" then
 			self._oppFreeKickOngoing = true
-			if World.Ball.pos:distanceTo(World.Geometry.FriendlyGoal) < World.Geometry.FieldWidthHalf then
+			local G = World.Geometry
+			local distToBoarder = G.FieldWidthHalf - G.DefenseStretch/2 - G.DefenseRadius
+			if Field.distanceToDefenseArea(ball.pos, ball.radius) < distToBoarder then
 				-- we do not want a stop attacker because
 				-- the default centerback makes its job obsolete
 				attackRatio = 0
 			else
 				attackRatio = 1
 			end
-		elseif World.RefereeState == "Stop" then
+		elseif refState == "Stop" then
 			attackRatio = 1
 		elseif World.GameStage == "PenaltyShootout" then
 			attackRatio = 6
 		else -- Game, GameForce
 			for _, robot in ipairs(World.FriendlyRobots) do
-				if robot:hasBall(World.Ball) then
+				if robot:hasBall(ball) then
 					self._oppFreeKickOngoing = false
 					break
 				end
