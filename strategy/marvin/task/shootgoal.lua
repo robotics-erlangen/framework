@@ -90,7 +90,7 @@ function ShootGoal:guessFirstPassReceiptPosition()
 	local sampleTimeInterval = 1
 	local sampleCount = 10
 	local sampleMinPosStep = 0.05
-	local safetyTime = 0.3
+	local safetyTime = 0.4
 
 
 	local minTime = Robot.minTimeToBall(self._robot, World.Ball) + safetyTime
@@ -175,7 +175,7 @@ ShootGoal.guessFirstPassReceiptPosition = Cache.forFrame(ShootGoal.guessFirstPas
 
 function ShootGoal:improvePassReceiptPosition(ballPos, lastBallSpeed)
 	-- if the ball still accelerates, recalculate the pass receipt position
-	if World.Ball.speed:length() > lastBallSpeed:length() + 0.1 then
+	if World.Ball.speed:length() > lastBallSpeed:length() + 0.2 then
 		local target, view = self:guessFirstPassReceiptPosition()
 		return target, view, false
 	end
@@ -392,7 +392,7 @@ end
 
 function ShootGoal:_init(minPrecision)
 	self._minPrecision = minPrecision or 2.5 / 180 * math.pi
-	self._viewPosLockDistance = 0.3
+	self._viewPosLockDistance = 0.5
 
 	self._viscolor = nil
 	self.bestMid = nil
