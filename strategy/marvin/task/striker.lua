@@ -12,6 +12,7 @@ local Interval = require "util/interval"
 local debug = require "../base/debug"
 local Messaging = require "control/messaging"
 local Referee = require "../base/referee"
+local Field = require "../base/field"
 
 local POSITION_PADDING = 0.02 -- safety distance
 
@@ -240,7 +241,7 @@ function Striker:_calcMoveDest()
 	end
 	-- do not interfere with shots
 	local shooter, shootDest = next(self._inbox.shootDestination())
-	local passToMe =  next(self._inbox.passPos())
+	local passToMe = next(self._inbox.passPos())
 	if shootDest and not passToMe then
 		local minBallDist = self._robot.radius + World.Ball.radius + POSITION_PADDING
 		local intersection, dist = self._robot.pos:orthogonalProjection(shooter.pos, shootDest)
@@ -252,6 +253,7 @@ function Striker:_calcMoveDest()
 			end
 		end
 	end
+	self._moveDest = Field.limitToAllowedField(self._moveDest, self._robot.radius)
 end
 
 function Striker:run()

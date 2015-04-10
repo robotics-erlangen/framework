@@ -33,7 +33,7 @@ local function manMarkPos(opponent)
 	local posExtension = math.min(maxPosExtension, opponent.speed:length()*extensionTime)
 	targetPos = targetPos + opponent.speed:copy():setLength(posExtension)
 
-	targetPos = Field.limitToAllowedField(targetPos, Constants.maxRobotRadius, true)
+	targetPos = Field.limitToAllowedField(targetPos, Constants.maxRobotRadius)
 	if Referee.isStopState() then
 		local minDist = World.Ball.radius + Constants.maxRobotRadius + Constants.stopBallDistance + POSITION_PADDING
 		if targetPos:distanceTo(World.Ball.pos) < minDist then
