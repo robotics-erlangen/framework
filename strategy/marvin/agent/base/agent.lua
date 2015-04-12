@@ -1,5 +1,4 @@
 local Base = Class("Agent.Base.Agent")
-local Class = require "../base/class"
 local debug = require "../base/debug"
 
 local Messaging = require "control/messaging"

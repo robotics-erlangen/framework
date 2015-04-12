@@ -1,5 +1,3 @@
-local Class = require "../base/class"
-
 return function()
     local M1 = {}
     function M1:run()

@@ -3,7 +3,6 @@ local KickoffOffensive = Class("Agent.Attacker.KickoffOffensive", Base)
 
 local World = require "../base/world"
 local G = World.Geometry
-local Class = require "../base/class"
 local vis = require "../base/vis"
 local ShootGoal = require "task/shootgoal"
 local MoveToStaticBall = require "task/movetostaticball"

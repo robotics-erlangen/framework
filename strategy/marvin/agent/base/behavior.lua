@@ -1,6 +1,5 @@
 local Base = Class("Behavior.Base")
 
-local Class = require "../base/class"
 local Messaging = require "control/messaging"
 local World = require "../base/world"
 local Robot = require "observer/robot"

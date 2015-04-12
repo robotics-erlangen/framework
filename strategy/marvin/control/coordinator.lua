@@ -5,7 +5,6 @@ local Agent = {
 	Hidden = require "agent/hidden",
 	Manual = require "agent/manual"
 }
-local Class = require "../base/class"
 local World = require "../base/world"
 local debug = require "../base/debug"
 local Entrypoints = require "../base/entrypoints"

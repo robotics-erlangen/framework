@@ -5,7 +5,6 @@ local ManMarkTask = require "task/manmark"
 local CenterBack = require "task/centerback"
 local Field = require "../base/field"
 local Defense = require "util/defense"
-local Class = require "../base/class"
 local debug = require "../base/debug"
 local vis = require "../base/vis"
 
