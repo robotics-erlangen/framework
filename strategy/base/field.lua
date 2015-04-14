@@ -50,12 +50,12 @@ function Field.limitToField(pos, boundaryWidth)
 	return Vector(x, y)
 end
 
---- returns the nearest position inside the field without friendly defense area
+--- returns the nearest position inside the field without defense areas
 -- @name limitToAllowedField
 -- @param extraLimit number - how much the field should be additionally limited
 -- @param pos Vector - the position to limit
 -- @return Vector - limited vector
-function Field.limitToAllowedField(pos, extraLimit, blockOpponentDefenseArea)
+function Field.limitToAllowedField(pos, extraLimit)
 	extraLimit = extraLimit or 0
 	local oppExtraLimit = extraLimit
 	if Referee.isStopState() then
@@ -70,13 +70,13 @@ function Field.limitToAllowedField(pos, extraLimit, blockOpponentDefenseArea)
 			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+extraLimit)
 		end
 		return pos
-	elseif blockOpponentDefenseArea and Field.isInOpponentDefenseArea(pos, oppExtraLimit) then
+	elseif Field.isInOpponentDefenseArea(pos, extraLimit) then
 		if math.abs(pos.x) <= World.Geometry.DefenseStretch/2 then
-			pos = Vector(pos.x, World.Geometry.FieldHeightHalf-World.Geometry.DefenseRadius-oppExtraLimit)
+			pos = Vector(pos.x, World.Geometry.FieldHeightHalf-World.Geometry.DefenseRadius-extraLimit)
 		else
 			local circleMidpoint = Vector(
 				World.Geometry.DefenseStretch/2*math.sign(pos.x), World.Geometry.FieldHeightHalf)
-			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+oppExtraLimit)
+			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+extraLimit)
 		end
 		return pos
 	else

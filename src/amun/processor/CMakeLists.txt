@@ -44,7 +44,7 @@ set(SOURCES
 )
 
 if(USB_FOUND)
-    set(SOURCES ${SOURCES} usbdevice.cpp usbdevice.h)
+    set(SOURCES ${SOURCES} usbdevice.cpp usbdevice.h usbthread.cpp usbthread.h)
 endif()
 
 add_library(processor ${SOURCES})

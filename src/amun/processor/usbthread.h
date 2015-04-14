@@ -18,63 +18,30 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef USBDEVICE_H
-#define USBDEVICE_H
+#ifndef USBTHREAD_H
+#define USBTHREAD_H
 
-#include <QIODevice>
-#include <QSharedPointer>
-#include <QMutex>
+#include <QThread>
+#include <atomic>
 
-class USBThread;
-struct USBDevicePrivateData;
-struct libusb_transfer;
+struct libusb_context;
 
-class USBDevice : public QIODevice
+class USBThread : public QThread
 {
 public:
-    static QList<USBDevice*> getDevices(quint16 vendorId, quint16 productId, USBThread *context);
-
-private:
-    USBDevice(void *device);
+    USBThread();
+    ~USBThread();
 
 public:
-    ~USBDevice();
-
-public:
-    bool open(OpenMode mode);
-    void close();
-    bool isSequential() const;
-    void setTimeout(int timeout);
-
-public:
-    QString vendorIdString() const;
-    QString productIdString() const;
-    quint16 vendorId() const;
-    quint16 productId() const;
-    const QString &serialNumber() const { return m_serialNumber; }
-    const QString &id() const { return m_id; }
-
-public:
-    void inCallback(libusb_transfer *transfer);
+    libusb_context* context() const { return m_context; }
 
 protected:
-    void startInTransfer();
-
-    qint64 readData(char*, qint64);
-    qint64 writeData(const char*, qint64);
-    void setErrorString(int error);
-    static QString getErrorString(int error);
+    void run();
 
 private:
-    USBDevicePrivateData* m_data;
-    int m_timeout;
-    quint8 m_buffer[512];
-    qint64 m_bufferSize;
-    QMutex m_mutex;
-    libusb_transfer *m_inboundTransfer;
-    volatile bool m_readError;
-    QString m_serialNumber;
-    QString m_id;
+    libusb_context *m_context;
+    // ensure synchronization
+    std::atomic<bool> m_completed;
 };
 
-#endif // USBDEVICE_H
+#endif // USBTHREAD_H

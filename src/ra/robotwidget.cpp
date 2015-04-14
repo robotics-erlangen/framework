@@ -33,7 +33,8 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
     QWidget(parent),
     m_inputManager(inputManager),
     m_isGeneration(is_generation),
-    m_strategyControlled(false)
+    m_strategyControlled(false),
+    m_statusCtr(0)
 {
     if (!is_generation) {
         connect(this, SIGNAL(addBinding(uint,uint,QString)), inputManager, SLOT(addBinding(uint,uint,QString)));
@@ -310,6 +311,12 @@ void RobotWidget::setTeam(uint generation, uint id, Team team)
 
 void RobotWidget::hideRobotStatus()
 {
+    if (m_statusCtr > 0) {
+        // restart timer
+        m_responseTimer->start(10000);
+        m_statusCtr--;
+        return;
+    }
     m_battery->hide();
     m_radio->hide();
     m_radioErrors->hide();
@@ -327,41 +334,49 @@ void RobotWidget::handleResponse(const robot::RadioResponse &response)
 
     // just check the flags that are always present
     if (response.has_battery() && response.has_packet_loss_rx() && response.has_packet_loss_tx()) {
-        // battery status
-        m_battery->setText(QString("B:%1%").arg(
-                QString::number((int)std::ceil(response.battery() * 100)) ) );
+        // update battery status if changed
+        if (!m_lastResponse.IsInitialized() || m_lastResponse.battery() != response.battery()) {
+            // battery status
+            m_battery->setText(QString("B:%1%").arg(
+                    QString::number((int)std::ceil(response.battery() * 100)) ) );
+        }
         m_battery->show();
 
-        // radio status, errors are only display if any show up
-        m_radio->setToolTip(QString("R:%1%, T:%2%").arg(
-                QString::number((int)std::ceil(response.packet_loss_rx() * 100)),
-                QString::number((int)std::ceil(response.packet_loss_tx() * 100)) ) );
-        m_radio->show();
-        m_radioErrors->setToolTip(m_radio->toolTip());
-        QString radioError;
-        if (response.packet_loss_rx() > 0) {
-            radioError = QString("R:%1%").arg(QString::number((int)std::ceil(response.packet_loss_rx() * 100)));
-        }
-        if (response.packet_loss_tx() > 0) {
-            if (!radioError.isEmpty()) {
-                radioError += ", ";
+        // update radio status if changed
+        if (!m_lastResponse.IsInitialized() || m_lastResponse.packet_loss_rx() != response.packet_loss_rx()
+                || m_lastResponse.packet_loss_tx() != response.packet_loss_tx()) {
+            const QString rxStr = QString::number((int)std::ceil(response.packet_loss_rx() * 100));
+            const QString txStr = QString::number((int)std::ceil(response.packet_loss_tx() * 100));
+            // radio status, errors are only display if any show up
+            const QString toolTip = QString("R:%1%, T:%2%").arg(rxStr, txStr);
+            m_radio->setToolTip(toolTip);
+            m_radioErrors->setToolTip(toolTip);
+
+            QString radioError;
+            if (response.packet_loss_rx() > 0) {
+                radioError = QString("R:%1%").arg(rxStr);
             }
-            radioError += QString("T:%1%").arg(QString::number((int)std::ceil(response.packet_loss_tx() * 100)));
-        }
-        if (radioError.isEmpty()) {
-            m_radioErrors->hide();
-        } else {
+            if (response.packet_loss_tx() > 0) {
+                if (!radioError.isEmpty()) {
+                    radioError += ", ";
+                }
+                radioError += QString("T:%1%").arg(txStr);
+            }
             m_radioErrors->setText(radioError);
-            m_radioErrors->show();
         }
+        m_radio->show();
+        m_radioErrors->setVisible(response.packet_loss_rx() > 0 || response.packet_loss_tx() > 0);
 
         m_ball->setVisible(response.ball_detected());
         m_motorWarning->setVisible(response.motor_in_power_limit());
         m_capCharged->setVisible(response.cap_charged());
 
-        // timer to remove the robot status after not receiving anything for 250ms
-        m_responseTimer->stop();
-        m_responseTimer->start(250);
+        // update counter to indicate status was updated
+        m_statusCtr = 2;
+        if (!m_responseTimer->isActive()) {
+            m_responseTimer->start(10000);
+        }
+        m_lastResponse = response;
     }
 }
 

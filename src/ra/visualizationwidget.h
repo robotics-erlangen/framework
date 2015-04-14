@@ -63,7 +63,7 @@ private:
     void clearForeground(QStandardItem *item) const;
 
 private:
-    typedef QHash<QString, QPair<QStandardItem*, qint64> > HashMap;
+    typedef QHash<QByteArray, QPair<QStandardItem*, qint64> > HashMap;
     Ui::VisualizationWidget *ui;
     QStandardItemModel *m_model;
     QSet<QString> m_selection;

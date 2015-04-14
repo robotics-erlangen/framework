@@ -29,6 +29,8 @@ include_directories(${PROTOBUF_INCLUDE_DIR})
 set(SOURCES
     amun.cpp
     amun.h
+    networkinterfacewatcher.cpp
+    networkinterfacewatcher.h
     receiver.cpp
     receiver.h
 )

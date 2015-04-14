@@ -41,7 +41,7 @@ public slots:
     void sendCommand(const Command &command);
 
 public:
-    void start(quint16 visionPort);
+    void start();
     void stop();
 
 private:

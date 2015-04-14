@@ -73,6 +73,7 @@ function Robot:init(data, isFriendly, geometry)
 		self.radius = 0.09 -- set default radius if no specs are available
 		self.dribblerWidth = 0.07 --just a good default guess
 		self.shootRadius = math.sqrt(self.radius^2 - (self.dribblerWidth/2)^2)
+		self.generation = -1
 		self.id = data
 		self.maxSpeed = 1 -- Init max speed and acceleration for opponents
 		self.maxAcceleration = 1
@@ -94,6 +95,7 @@ function Robot:init(data, isFriendly, geometry)
 	self._controllerInput = nil
 	self._kickStyle = nil
 	self._kickPower = nil
+	self._forceKick = false
 	self._dribblerSpeed = nil
 	self._standbyTimer = nil
 	self._standby = nil
@@ -162,7 +164,9 @@ function Robot:_updateUserControl(command)
 	local omega = command.omega
 	if command.direct then
 		-- correctly align local and strategy coordinate system
-		v = v:rotate(self.dir - math.pi/2)
+		-- self.dir can be nil if robot was not yet visible
+		local dir = self.dir or 0
+		v = v:rotate(dir - math.pi/2)
 	else
 		-- global to strategy coordinate mapping
 		v = Coordinates.toLocal(v)
@@ -221,6 +225,7 @@ function Robot:_setCommand()
 		v_s = self._controllerInput and self._controllerInput.v_s,
 		kick_style = self._kickStyle,
 		kick_power = self._kickPower,
+		force_kick = self._forceKick,
 		dribbler = self._dribblerSpeed,
 		standby = self._standby
 	})
@@ -241,6 +246,7 @@ end
 function Robot:shootDisable()
 	self._kickStyle = nil
 	self._kickPower = nil
+	self._forceKick = false
 end
 
 --- Enable linear kick.
@@ -257,6 +263,11 @@ end
 function Robot:shootChip(power)
 	self._kickStyle = "Chip"
 	self._kickPower = power
+end
+
+--- Force the robot to shoot even if the IR isn't triggered
+function Robot:forceShoot()
+	self._forceKick = true
 end
 
 --- Enable dribbler
@@ -373,7 +384,6 @@ end
 function Robot:posToBall(ball)
 	local relpos = (ball.pos - self.pos):rotate(-self.dir)
 	relpos.x = relpos.x - self.shootRadius - ball.radius
-	debug.set("relpos", relpos)
 	return relpos
 end
 
@@ -396,7 +406,7 @@ function Robot:hasBall(ball, sideOffset)
 	end
 
 	-- FIXME remove partial system latency hack
-	self._hasBall[sideOffset] = relpos.x > -self.shootRadius
+	self._hasBall[sideOffset] = relpos.x > self.shootRadius * (-1.5)
 			and relpos.x < self.constants.hasBallDistance + ball.speed:length() * Constants.systemLatency
 	return self._hasBall[sideOffset]
 end

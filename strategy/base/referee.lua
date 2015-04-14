@@ -54,6 +54,11 @@ local opponentPenaltyStates = {
 	PenaltyDefensive = true
 }
 
+local friendlyPenaltyStates = {
+	PenaltyOffensivePrepare = true,
+	PenaltyOffensive = true
+}
+
 
 --- Check whether the stop rules apply
 -- @name isStopState
@@ -83,6 +88,10 @@ function Referee.isOpponentPenaltyState()
 	return opponentPenaltyStates[World.RefereeState]
 end
 
+function Referee.isFriendlyPenaltyState()
+	return friendlyPenaltyStates[World.RefereeState]
+end
+
 local rightLine = World.Geometry.FieldWidthHalf
 local leftLine = -rightLine
 local goalLine = World.Geometry.FieldHeightHalf
@@ -92,7 +101,8 @@ local cornerDist = 0.7 -- some tolerance, rules say 10cm
 -- @return boolean - True if a corner kick in the opponents corner
 function Referee.isOffensiveCornerKick()
 	local ballPos = World.Ball.pos
-	return World.RefereeState == "DirectOffensive"
+	local refState = World.RefereeState
+	return (refState == "DirectOffensive" or refState == "IndirectOffensive")
 		and goalLine - ballPos.y < cornerDist
 		and (leftLine - ballPos.x > -cornerDist or rightLine - ballPos.x < cornerDist)
 end

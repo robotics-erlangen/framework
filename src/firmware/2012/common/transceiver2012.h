@@ -22,7 +22,7 @@
 #define TRANSCEIVER2012_H
 
 #define TRANSCEIVER_MIN_PROTOCOL_VERSION 1
-#define TRANSCEIVER_PROTOCOL_VERSION 2
+#define TRANSCEIVER_PROTOCOL_VERSION 3
 
 enum TransceiverCommand {
     COMMAND_INIT = 0x00, // initial request
@@ -31,11 +31,14 @@ enum TransceiverCommand {
     COMMAND_STATUS = 0x02, // request info about dropped packets
     COMMAND_SET_FREQUENCY = 0x10,
     COMMAND_SEND_NRF24 = 0x11,
+    COMMAND_SEND_NRF24_DATA = 0x12, // reliable transmission, message may be up to 253 bytes large
     // replies from the transceiver
     COMMAND_INIT_REPLY = 0x80, // return used protocol version
     COMMAND_PING_REPLY = 0x81, // echo for ping
     COMMAND_STATUS_REPLY = 0x82, // return dropped packets count
-    COMMAND_REPLY_FROM_ROBOT = 0x90 // wraps a received reply
+    COMMAND_REPLY_FROM_ROBOT = 0x90, // wraps a received reply
+    COMMAND_SEND_NRF24_DATA_FAILED = 0x91, // returns header, if ACKed send failed
+    COMMAND_DATAGRAMM_RECEIVED = 0x92
 };
 
 typedef struct
@@ -68,6 +71,13 @@ typedef struct
     uint8_t address[5];
     uint8_t expectedResponseSize;
 } __attribute__ ((packed)) TransceiverSendNRF24Packet;
+
+// used for COMMAND_SEND_NRF24_DATA, COMMAND_SEND_NRF24_DATA_FAILED and COMMAND_DATAGRAMM_RECEIVED
+typedef struct
+{
+    uint8_t robotId;
+    uint8_t messageId;
+} __attribute__ ((packed)) TransceiverSendNRF24DataPacket;
 
 // used for COMMAND_REPLY_FROM_ROBOT
 typedef struct

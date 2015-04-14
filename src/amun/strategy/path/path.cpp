@@ -627,24 +627,28 @@ void Path::cutCorners(QList<Vector> &points, float radius)
 
         Vector diffLeft = left - mid;
         Vector diffRight = right - mid;
-        // max useable distance corner cutting
-        float l = std::min(diffLeft.length(), diffRight.length()) / 2;
+        // max corner cutting distance
+        float step = std::min(diffLeft.length(), diffRight.length());
         diffLeft = diffLeft.normalized();
         diffRight = diffRight.normalized();
 
-        float dist = l;
+        // start in the middle of [0; step] = step/2, the first change of dist will be +- step/4
+        // just pretend a binary search will work, however there may be multiple seperate ranges
+        // the found one will not neccessarily be the best
+        step /= 2;
+        float dist = step;
         float lastGood = 0.f;
-        while (l > 0.01f) {
+        while (step > 0.01f) {
             // symmetrical corner cutting
             LineSegment line(mid + diffLeft * dist, mid + diffRight * dist);
-            l /= 2;
+            step /= 2;
             // don't check whether the new points are inside the playfield
             // only obstacles are important here, thus paths into the playfield can be smoothed
             if (test(line, radius)) {
                 lastGood = dist;
-                dist += l;
+                dist += step;
             } else {
-                dist -= l;
+                dist -= step;
             }
         }
 

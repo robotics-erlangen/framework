@@ -34,6 +34,14 @@ message StatusTransceiver {
     optional int32 dropped_usb_packets = 3;
 }
 
+message PortBindError {
+    required uint32 port = 1;
+}
+
+message StatusAmun {
+    optional PortBindError port_bind_error = 1;
+}
+
 // The status message is dumped for log replay
 // -> take care not to break compatibility!
 message Status {
@@ -54,4 +62,5 @@ message Status {
     // deprecated = 14;
     optional UserInput user_input_blue = 16;
     optional UserInput user_input_yellow = 17;
+    optional StatusAmun amun_state = 19;
 }

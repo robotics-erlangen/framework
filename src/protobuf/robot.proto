@@ -117,6 +117,7 @@ message Command
     optional bool standby = 11;
     optional ControllerDebug debug = 12;
     optional bool strategy_controlled = 13;
+    optional bool force_kick = 14;
 }
 
 message RadioCommand

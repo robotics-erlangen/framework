@@ -115,6 +115,7 @@ local function constructInstance(class, ...)
 		__attributes = {}, -- remember attributes from init functions
 		__newindex = registerAttributes,
 		__index = class,
+		__tostring = getmetatable(class).__tostring,
 		type = "instance"
 	}
 	instMt.__metatable = instMt
@@ -132,6 +133,26 @@ local function constructInstance(class, ...)
 	end
 	instMt.__newindex = forbidNewAttributes
 	return instance
+end
+
+local function addMixin(class, mixin, mixinInits)
+	for name, field in pairs(mixin) do
+		if name == "init" then
+			if not mixinInits then
+				mixinInits = {}
+			end
+			table.insert(mixinInits, field)
+		elseif name == "depends" then
+			for _, dependencyMixin in ipairs(field) do
+				mixinInits = addMixin(class, dependencyMixin, mixinInits)
+			end
+		elseif class[name] then -- check superclasses
+			error("Cannot include mixin: field " .. name .. " already exists")
+		else
+			class[name] = field
+		end
+	end
+	return mixinInits
 end
 
 --- Creates and registers a new class.
@@ -160,18 +181,7 @@ local function newClass(_, name, parent, ...)
 	local mixinInits
 	if #mixins > 0 then
 		for _, mixin in ipairs(mixins) do
-			for name, field in pairs(mixin) do
-				if name == "init" then
-					if not mixinInits then
-						mixinInits = {}
-					end
-					table.insert(mixinInits, field)
-				elseif class[name] then -- check superclasses
-					error("Cannot include mixin: field " .. name .. " already exists")
-				else
-					class[name] = field
-				end
-			end
+			mixinInits = addMixin(class, mixin, mixinInits)
 		end
 	end
 	if parent then

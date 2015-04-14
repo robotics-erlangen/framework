@@ -172,7 +172,7 @@ function World._updateGeometry(geom)
 	wgeom.BoundaryWidth = geom.boundary_width
 	wgeom.RefereeWidth = geom.referee_width
 
-	wgeom.IsLargeField = wgeom.FieldWidth > 5 and wgeom.FieldHeight > 7
+	World.IsLargeField = wgeom.FieldWidth > 5 and wgeom.FieldHeight > 7
 end
 
 function World._updateWorld(state)

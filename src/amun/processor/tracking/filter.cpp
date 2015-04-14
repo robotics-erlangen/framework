@@ -40,7 +40,7 @@ Filter::~Filter()
 // This circumvents problems with small calibration errors.
 // If two consecutive frames are missing, the primary camera is switched.
 // To prevent velocity spikes the model covariance of the position is increased for one step.
-bool Filter::checkCamera(quint32 cameraId, qint64 time)
+bool Filter::checkCamera(qint32 cameraId, qint64 time)
 {
     bool cameraSwitched = false;
     // switch to the new camera if the primary camera data is too old

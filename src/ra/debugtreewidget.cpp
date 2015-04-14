@@ -23,6 +23,7 @@
 
 #include <QSettings>
 #include <QHeaderView>
+#include <QTimer>
 
 DebugTreeWidget::DebugTreeWidget(QWidget *parent) :
     QTreeView(parent)
@@ -34,6 +35,12 @@ DebugTreeWidget::DebugTreeWidget(QWidget *parent) :
     connect(this, SIGNAL(expanded(QModelIndex)), SLOT(debugExpanded(QModelIndex)));
     connect(this, SIGNAL(collapsed(QModelIndex)), SLOT(debugCollapsed(QModelIndex)));
     connect(m_modelTree, SIGNAL(expand(QModelIndex)), this, SLOT(expand(QModelIndex)));
+
+    // tree update timer
+    QTimer *timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &DebugTreeWidget::updateTree);
+    // should be fast enough to be not noticeable
+    timer->start(50);
 
     load();
 }
@@ -47,9 +54,20 @@ DebugTreeWidget::~DebugTreeWidget()
 void DebugTreeWidget::handleStatus(const Status &status)
 {
     if (status->has_debug()) {
+        // save data for delayed update
         const amun::DebugValues &debug = status->debug();
-        m_modelTree->setDebug(debug, m_expanded);
+        m_status[debug.source()] = status;
     }
+}
+
+void DebugTreeWidget::updateTree()
+{
+    // publish all cached data
+    for (auto status: m_status) {
+        m_modelTree->setDebug(status->debug(), m_expanded);
+    }
+    // don't show it a second time
+    m_status.clear();
 }
 
 void DebugTreeWidget::clearData()

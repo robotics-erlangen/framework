@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,63 +18,28 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef USBDEVICE_H
-#define USBDEVICE_H
+#include "networkinterfacewatcher.h"
 
-#include <QIODevice>
-#include <QSharedPointer>
-#include <QMutex>
+#include <QNetworkConfigurationManager>
+#include <QNetworkSession>
 
-class USBThread;
-struct USBDevicePrivateData;
-struct libusb_transfer;
-
-class USBDevice : public QIODevice
+NetworkInterfaceWatcher::NetworkInterfaceWatcher(QObject *parent) :
+    QObject(parent)
 {
-public:
-    static QList<USBDevice*> getDevices(quint16 vendorId, quint16 productId, USBThread *context);
+    m_ncm = new QNetworkConfigurationManager(this);
 
-private:
-    USBDevice(void *device);
+    connect(m_ncm, &QNetworkConfigurationManager::configurationChanged, this, &NetworkInterfaceWatcher::configurationUpdate);
+    connect(m_ncm, &QNetworkConfigurationManager::configurationAdded, this, &NetworkInterfaceWatcher::configurationUpdate);
+}
 
-public:
-    ~USBDevice();
-
-public:
-    bool open(OpenMode mode);
-    void close();
-    bool isSequential() const;
-    void setTimeout(int timeout);
-
-public:
-    QString vendorIdString() const;
-    QString productIdString() const;
-    quint16 vendorId() const;
-    quint16 productId() const;
-    const QString &serialNumber() const { return m_serialNumber; }
-    const QString &id() const { return m_id; }
-
-public:
-    void inCallback(libusb_transfer *transfer);
-
-protected:
-    void startInTransfer();
-
-    qint64 readData(char*, qint64);
-    qint64 writeData(const char*, qint64);
-    void setErrorString(int error);
-    static QString getErrorString(int error);
-
-private:
-    USBDevicePrivateData* m_data;
-    int m_timeout;
-    quint8 m_buffer[512];
-    qint64 m_bufferSize;
-    QMutex m_mutex;
-    libusb_transfer *m_inboundTransfer;
-    volatile bool m_readError;
-    QString m_serialNumber;
-    QString m_id;
-};
-
-#endif // USBDEVICE_H
+// configuration updates are triggered whenever something is added / changed
+void NetworkInterfaceWatcher::configurationUpdate(const QNetworkConfiguration &config)
+{
+    if (!config.state().testFlag(QNetworkConfiguration::Undefined)) {
+        QNetworkSession qns(config);
+        // a interface is only accessible if the configuration is connected
+        if (qns.interface().isValid()) {
+            emit interfaceUpdated(qns.interface());
+        }
+    }
+}

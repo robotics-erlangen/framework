@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "usbdevice.h"
+#include "usbthread.h"
 #include <libusb.h>
 #include <QThread>
 #include <QMutexLocker>
@@ -27,40 +28,6 @@
 #define LIBUSB_CALL
 #endif
 
-class USBContext : public QThread
-{
-public:
-    USBContext()
-    {
-        libusb_init(&m_context);
-        m_completed = 0;
-    }
-
-    ~USBContext()
-    {
-        m_completed = 1;
-        wait();
-        libusb_exit(m_context);
-    }
-
-public:
-    libusb_context* context() const { return m_context; }
-
-protected:
-    void run()
-    {
-        while (!m_completed) {
-            timeval tv;
-            tv.tv_sec = 0;
-            tv.tv_usec = 100000;
-            libusb_handle_events_timeout_completed(m_context, &tv, &m_completed);
-        }
-    }
-
-private:
-    libusb_context *m_context;
-    int m_completed;
-};
 
 struct USBDevicePrivateData
 {
@@ -69,9 +36,8 @@ struct USBDevicePrivateData
     libusb_device_descriptor descriptor;
 };
 
-QList<USBDevice*> USBDevice::getDevices(quint16 vendorId, quint16 productId)
+QList<USBDevice*> USBDevice::getDevices(quint16 vendorId, quint16 productId, USBThread *context)
 {
-    QSharedPointer<USBContext> context(new USBContext);
     QList<USBDevice*> devices;
 
     // list usb devices
@@ -85,23 +51,17 @@ QList<USBDevice*> USBDevice::getDevices(quint16 vendorId, quint16 productId)
                 ((descriptor.idProduct == productId) || (productId == 0)))
         {
             // usbdevice increases the refcount of a device to prevent garbage collection
-            devices.append(new USBDevice(context, deviceList[i]));
+            devices.append(new USBDevice(deviceList[i]));
         }
     }
 
     // cleanup
     libusb_free_device_list(deviceList, true);
 
-    // start poll thread
-    if (!devices.isEmpty()) {
-        context->start();
-    }
-
     return devices;
 }
 
-USBDevice::USBDevice(QSharedPointer<USBContext> context, void *device) :
-    m_context(context),
+USBDevice::USBDevice(void *device) :
     m_timeout(1000),
     m_bufferSize(0),
     m_mutex(QMutex::Recursive),
@@ -222,10 +182,12 @@ void USBDevice::close()
 {
     QIODevice::close();
     if (m_data->handle) {
-        QMutexLocker m(&m_mutex);
-        if (m_inboundTransfer != NULL) {
-            libusb_cancel_transfer(m_inboundTransfer);
-            m_inboundTransfer = NULL;
+        {
+            QMutexLocker m(&m_mutex);
+            if (m_inboundTransfer != NULL) {
+                libusb_cancel_transfer(m_inboundTransfer);
+                m_inboundTransfer = NULL;
+            }
         }
 
         libusb_release_interface(m_data->handle, 0);
@@ -277,6 +239,10 @@ LIBUSB_CALL void inCallback(libusb_transfer* transfer)
 void USBDevice::inCallback(libusb_transfer *transfer)
 {
     QMutexLocker m(&m_mutex);
+    if (m_inboundTransfer == NULL) {
+        // already canceled by close
+        return;
+    }
     // transfer has completed, allow starting a new one
     m_inboundTransfer = NULL;
     if (transfer->status == LIBUSB_TRANSFER_COMPLETED) {

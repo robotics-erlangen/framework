@@ -24,7 +24,6 @@
 #include <stdint.h>
 
 static const uint8_t robot2014_address[] = { 0xAA, 0xC0, 0xFF, 0xEE, 0x40 };
-static const uint8_t robot2014_config_broadcast[] = { 0x55, 0xC0, 0xFF, 0xEE, 0xD8 };
 
 static const int16_t RADIOCOMMAND2014_V_MAX = 32767;
 static const int16_t RADIOCOMMAND2014_OMEGA_MAX = 32767;
@@ -39,7 +38,7 @@ typedef struct
     uint8_t charge:1;
     uint8_t standby:1;
     uint8_t id:4;
-    uint8_t unused:1;
+    uint8_t force_kick:1;
     int8_t dribbler;
     int16_t v_x; // mm/s
     int16_t v_y; // mm/s

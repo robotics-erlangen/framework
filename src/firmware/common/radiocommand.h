@@ -34,6 +34,22 @@ enum ResponseCommand {
     RESPONSE_2014_DEFAULT = 0x02
 };
 
+// RadioDatagramms are merged into a data stream
+// A new message is however bound to datagramm boundaries
+// Followed by message chunk
+// Sent to channel 1 on robot / transceiver
+typedef struct {
+    uint8_t robotId:8; // robot id, only set by robot, high 4 bits are generation
+    uint8_t isAck:1; // acks packet with counter that was sent to id
+    uint8_t counter:3;
+     // = 0, if continuation of message, otherwise count of datagramms the message is split into
+    uint8_t datagrammCount:4; // allows 15*30=450 bytes as message size
+} __attribute__ ((packed)) RadioDatagrammHdr;
+
 static const uint8_t transceiver_address[] = { 0x33, 0xC0, 0xFF, 0xEE, 0xD7 };
+
+static const uint8_t transceiver_datagramm[] = { 0x54, 0xC0, 0xFF, 0xEE, 0xB5 };
+// id from datagram is used as last byte
+static const uint8_t robot_datagramm[] = { 0x55, 0xC0, 0xFF, 0xEE, 0x00 };
 
 #endif // COMMON_RADIOCOMMAND_H

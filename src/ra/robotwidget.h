@@ -84,6 +84,8 @@ private:
     QToolButton *m_team;
     QMenu *m_teamMenu;
     QActionGroup *m_teamGroup;
+    int m_statusCtr;
+    robot::RadioResponse m_lastResponse;
 };
 
 #endif // ROBOTWIDGET_H

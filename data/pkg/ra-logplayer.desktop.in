@@ -1,6 +1,6 @@
 [Desktop Entry]
 Type=Application
 Name=Ra Log Player
-Icon={CMAKE_SOURCE_DIR}/data/icons/logplayer.svg
+Icon=${CMAKE_SOURCE_DIR}/data/icons/logplayer.svg
 Exec=${CMAKE_BINARY_DIR}/bin/logplayer
 Terminal=false

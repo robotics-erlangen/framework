@@ -49,6 +49,7 @@ private slots:
     void stop();
     void increaseSpeed();
     void decreaseSpeed();
+    void setEnableNoise(int state);
     void setStddevBall(double stddev);
     void setStddevRobotPos(double stddev);
     void setStddevRobotPhi(double stddev);

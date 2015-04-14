@@ -32,13 +32,10 @@ AmunClient::~AmunClient()
     stop();
 }
 
-void AmunClient::start(quint16 visionPort)
+void AmunClient::start()
 {
     delete m_amun;
     m_amun = new Amun(this);
-    if (visionPort > 0) {
-        m_amun->setVisionPort(visionPort);
-    }
     connect(m_amun, SIGNAL(sendStatus(Status)), SIGNAL(gotStatus(Status)));
     m_amun->start();
 }

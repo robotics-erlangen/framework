@@ -69,6 +69,15 @@ void Receiver::startListen()
     m_socket = new QUdpSocket(this);
     connect(m_socket, SIGNAL(readyRead()), SLOT(readData()));
     m_socket->bind(QHostAddress::AnyIPv4, m_port, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
+
+    if (m_socket->state() != QAbstractSocket::BoundState) {
+        // if the socket can't be bound, its probably cause by ssl vision
+        Status status(new amun::Status);
+        status->mutable_amun_state()->mutable_port_bind_error()->set_port(m_port);
+        emit sendStatus(status);
+        return;
+    }
+
     foreach (const QNetworkInterface& iface, QNetworkInterface::allInterfaces()) {
         m_socket->joinMulticastGroup(m_groupAddress, iface);
     }
@@ -81,6 +90,35 @@ void Receiver::stopListen()
 {
     delete m_socket;
     m_socket = NULL;
+}
+
+/*!
+ * \brief Join multicast group for this interface, as it has changed
+ * \param interface the interface for which the change occured
+ */
+void Receiver::updateInterface(const QNetworkInterface& interface)
+{
+    if (m_socket == nullptr) {
+        return;
+    }
+    // just try joining
+    m_socket->joinMulticastGroup(m_groupAddress, interface);;
+}
+
+/*!
+ * \brief Update the port listened on
+ * \param port New port to listen on
+ */
+void Receiver::updatePort(quint16 port)
+{
+    // don't reconnect if the port didn't change
+    if (port == m_port) {
+        return;
+    }
+
+    stopListen();
+    m_port = port;
+    startListen();
 }
 
 /*!

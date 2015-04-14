@@ -36,13 +36,13 @@
 #include <QSettings>
 #include <QThread>
 
-MainWindow::MainWindow(quint16 visionPort, QWidget *parent) :
+MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_transceiverActive(false),
     m_logFile(NULL),
     m_logFileThread(NULL),
-    m_lastStage(SSL_Referee::NORMAL_FIRST_HALF_PRE)
+    m_lastStageTime(0)
 {
     qRegisterMetaType<SSL_Referee::Command>("SSL_Referee::Command");
     qRegisterMetaType<SSL_Referee::Stage>("SSL_Referee::Stage");
@@ -139,7 +139,7 @@ MainWindow::MainWindow(quint16 visionPort, QWidget *parent) :
 
     // start amun
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
-    m_amun.start(visionPort);
+    m_amun.start();
 
     // restore configuration and initialize everything
     ui->input->load();
@@ -237,11 +237,13 @@ void MainWindow::handleStatus(const Status &status)
     if (status->has_game_state()) {
         const amun::GameState &state = status->game_state();
 
-        if (state.has_stage()) {
-            if (state.stage() != m_lastStage && state.stage() == SSL_Referee::NORMAL_SECOND_HALF_PRE) {
+        if (state.has_stage() && state.has_stage_time_left()) {
+            const qint32 notificationTime = 60 * 1000 * 1000; // notify 60 seconds before end of halftime
+            if (state.stage() == SSL_Referee::NORMAL_HALF_TIME
+                    && state.stage_time_left() < notificationTime && m_lastStageTime >= notificationTime) {
                 ui->actionSideChangeNotify->setVisible(true);
             }
-            m_lastStage = state.stage();
+            m_lastStageTime = state.stage_time_left();
         }
 
         const SSL_Referee_TeamInfo &teamBlue = state.blue();
@@ -259,6 +261,12 @@ void MainWindow::handleStatus(const Status &status)
         m_blueTeam.CopyFrom(status->team_blue());
     }
     m_lastTime = status->time();
+
+    if (status->has_amun_state() && status->amun_state().has_port_bind_error()) {
+        QLabel *label = new QLabel(this);
+        label->setText("<font color=\"red\">Failed to bind the vision port. Ra must be started BEFORE ssl-vision if it runs locally!</font>");
+        statusBar()->addPermanentWidget(label);
+    }
 
     emit gotStatus(status);
 }

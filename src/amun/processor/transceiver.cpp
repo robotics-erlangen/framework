@@ -27,8 +27,10 @@
 #include "firmware/2012/common/transceiver2012.h"
 #include "firmware/2014/common/radiocommand2014.h"
 #include "firmware/common/radiocommand.h"
+#include "usbthread.h"
 #include "usbdevice.h"
 #include <QTimer>
+#include <QDebug>
 
 const int PROTOCOL_VERSION = 2;
 
@@ -42,15 +44,25 @@ Transceiver::Transceiver(QObject *parent) :
     QObject(parent),
     m_charge(false),
     m_packetCounter(0),
-    m_device(NULL),
+    m_context(nullptr),
+    m_device(nullptr),
     m_timeoutTimer(new QTimer(this)),
-    m_connectionState(State::DISCONNECTED)
+    m_connectionState(State::DISCONNECTED),
+    m_simulatorEnabled(false)
 {
     // default channel
     m_configuration.set_channel(10);
 
     m_timeoutTimer = new QTimer(this);
     connect(m_timeoutTimer, &QTimer::timeout, this, &Transceiver::timeout);
+}
+
+Transceiver::~Transceiver()
+{
+    close();
+#ifdef USB_FOUND
+    delete m_context;
+#endif
 }
 
 void Transceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands)
@@ -67,9 +79,18 @@ void Transceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands
 
 void Transceiver::handleCommand(const Command &command)
 {
+    if (command->has_simulator()) {
+        if (command->simulator().has_enable()) {
+            m_simulatorEnabled = command->simulator().enable();
+            if (m_simulatorEnabled) {
+                close();
+            }
+        }
+    }
+
     if (command->has_transceiver()) {
         const amun::CommandTransceiver &t = command->transceiver();
-        if (t.has_enable()) {
+        if (t.has_enable() && !m_simulatorEnabled) {
             if (t.enable()) {
                 open();
             } else {
@@ -95,10 +116,14 @@ void Transceiver::handleCommand(const Command &command)
 void Transceiver::open()
 {
 #ifdef USB_FOUND
+    if (m_context == nullptr) {
+        m_context = new USBThread();
+    }
+
     close();
 
     // get transceiver
-    QList<USBDevice*> devices = USBDevice::getDevices(0x03eb, 0x6127);
+    QList<USBDevice*> devices = USBDevice::getDevices(0x03eb, 0x6127, m_context);
     if (devices.isEmpty()) {
         Status status(new amun::Status);
         status->mutable_transceiver()->set_active(false);
@@ -158,7 +183,7 @@ void Transceiver::close(const QString &errorMsg)
 {
 #ifdef USB_FOUND
     // close and cleanup
-    if (m_device) {
+    if (m_device != nullptr) {
         Status status(new amun::Status);
         status->mutable_transceiver()->set_active(false);
         if (errorMsg.isNull()) {
@@ -169,7 +194,7 @@ void Transceiver::close(const QString &errorMsg)
         emit sendStatus(status);
 
         delete m_device;
-        m_device = NULL;
+        m_device = nullptr;
         m_timeoutTimer->stop();
     }
     m_connectionState = State::DISCONNECTED;
@@ -242,6 +267,9 @@ void Transceiver::receive()
         case COMMAND_REPLY_FROM_ROBOT:
             handleResponsePacket(responses, &buffer[pos], header->size, receiveTime);
             break;
+        case COMMAND_DATAGRAMM_RECEIVED:
+            handleDatagrammPacket(&buffer[pos], header->size);
+            break;
         }
 
         pos += header->size;
@@ -251,7 +279,7 @@ void Transceiver::receive()
 #endif // USB_FOUND
 }
 
-void Transceiver::handleInitPacket(const char *data, int size)
+void Transceiver::handleInitPacket(const char *data, uint size)
 {
     // only allowed during handshake
     if (m_connectionState != State::HANDSHAKE || size < 2) {
@@ -279,7 +307,7 @@ void Transceiver::handleInitPacket(const char *data, int size)
     sendTransceiverConfiguration();
 }
 
-void Transceiver::handlePingPacket(const char *data, int size)
+void Transceiver::handlePingPacket(const char *data, uint size)
 {
     if (size < sizeof(TransceiverPingData)) {
         return;
@@ -289,9 +317,11 @@ void Transceiver::handlePingPacket(const char *data, int size)
     Status status(new amun::Status);
     status->mutable_timing()->set_transceiver_rtt((Timer::systemTime() - ping->time) / 1E9);
     emit sendStatus(status);
+    // stop ping timeout timer
+    m_timeoutTimer->stop();
 }
 
-void Transceiver::handleStatusPacket(const char *data, int size)
+void Transceiver::handleStatusPacket(const char *data, uint size)
 {
     if (size < sizeof(TransceiverStatusPacket)) {
         return;
@@ -302,6 +332,11 @@ void Transceiver::handleStatusPacket(const char *data, int size)
     status->mutable_transceiver()->set_active(true);
     status->mutable_transceiver()->set_dropped_usb_packets(transceiverStatus->droppedPackets);
     emit sendStatus(status);
+}
+
+void Transceiver::handleDatagrammPacket(const char *data, uint size)
+{
+    qDebug() << QByteArray(data, size);
 }
 
 float Transceiver::calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, uint8_t skipedFrames)
@@ -332,7 +367,7 @@ float Transceiver::calculateDroppedFramesRatio(uint generation, uint id, uint8_t
     return c.droppedFramesRatio;
 }
 
-void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, const char *data, int size, qint64 time)
+void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, const char *data, uint size, qint64 time)
 {
     const RadioResponseHeader *header = (const RadioResponseHeader *)data;
     size -= sizeof(RadioResponseHeader);
@@ -433,6 +468,7 @@ void Transceiver::addRobot2014Command(int id, const robot::Command &command, boo
     data.v_y = qBound<qint32>(-RADIOCOMMAND2014_V_MAX, command.v_f() * 1000.0f, RADIOCOMMAND2014_V_MAX);
     data.omega = qBound<qint32>(-RADIOCOMMAND2014_OMEGA_MAX, command.omega() * 1000.0f, RADIOCOMMAND2014_OMEGA_MAX);
     data.id = id;
+    data.force_kick = command.force_kick();
 
     // set address
     TransceiverCommandPacket senderCommand;
@@ -513,7 +549,17 @@ void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool c
         addStatusPacket(usb_packet);
     }
 
+    // Workaround for usb problems if packet size is a multiple of transfer size
+    if (usb_packet.size() % 64 == 0) {
+        addPingPacket(time, usb_packet);
+    }
+
     write(usb_packet.data(), usb_packet.size());
+
+    // only restart timeout if not yet active
+    if (!m_timeoutTimer->isActive()) {
+        m_timeoutTimer->start(1000);
+    }
 }
 
 void Transceiver::sendParameters(const robot::RadioParameters &parameters)

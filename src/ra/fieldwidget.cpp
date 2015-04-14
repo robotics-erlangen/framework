@@ -655,6 +655,7 @@ void FieldWidget::setFieldOrientation(float rotation)
         delete r.robot;
     }
     m_robotsYellow.clear();
+    m_worldStateUpdated = true; // recreate robots on redraw
 }
 
 void FieldWidget::setHorizontal()

@@ -21,6 +21,8 @@
 #include "simulatorwidget.h"
 #include "ui_simulatorwidget.h"
 #include "protobuf/command.pb.h"
+#include <QCheckBox>
+#include <QDoubleSpinBox>
 
 SimulatorWidget::SimulatorWidget(QWidget *parent) :
     QWidget(parent),
@@ -36,6 +38,7 @@ SimulatorWidget::SimulatorWidget(QWidget *parent) :
     connect(ui->spinSpeed, SIGNAL(valueChanged(int)), SLOT(setSpeed(int)));
     connect(ui->btnStart, SIGNAL(clicked()), SLOT(start()));
     connect(ui->btnStop, SIGNAL(clicked()), SLOT(stop()));
+    connect(ui->chkEnableNoise, &QCheckBox::stateChanged, this, &SimulatorWidget::setEnableNoise);
 
     connect(ui->spinStddevBall, SIGNAL(valueChanged(double)), SLOT(setStddevBall(double)));
     connect(ui->spinStddevRobotPos, SIGNAL(valueChanged(double)), SLOT(setStddevRobotPos(double)));
@@ -92,8 +95,22 @@ void SimulatorWidget::decreaseSpeed()
     ui->spinSpeed->setValue(ui->spinSpeed->value() - 10);
 }
 
+void SimulatorWidget::setEnableNoise(int state)
+{
+    bool isEnabled = state != Qt::Unchecked;
+
+    Command command(new amun::Command);
+    command->mutable_simulator()->set_stddev_ball_p(isEnabled ? ui->spinStddevBall->value() : 0);
+    command->mutable_simulator()->set_stddev_robot_p(isEnabled ? ui->spinStddevRobotPos->value() : 0);
+    command->mutable_simulator()->set_stddev_robot_phi(isEnabled ? ui->spinStddevRobotPhi->value(): 0);
+    emit sendCommand(command);
+}
+
 void SimulatorWidget::setStddevBall(double stddev)
 {
+    if (ui->chkEnableNoise->checkState() == Qt::Unchecked) {
+        return;
+    }
     Command command(new amun::Command);
     command->mutable_simulator()->set_stddev_ball_p(stddev);
     emit sendCommand(command);
@@ -101,6 +118,9 @@ void SimulatorWidget::setStddevBall(double stddev)
 
 void SimulatorWidget::setStddevRobotPos(double stddev)
 {
+    if (ui->chkEnableNoise->checkState() == Qt::Unchecked) {
+        return;
+    }
     Command command(new amun::Command);
     command->mutable_simulator()->set_stddev_robot_p(stddev);
     emit sendCommand(command);
@@ -108,6 +128,9 @@ void SimulatorWidget::setStddevRobotPos(double stddev)
 
 void SimulatorWidget::setStddevRobotPhi(double stddev)
 {
+    if (ui->chkEnableNoise->checkState() == Qt::Unchecked) {
+        return;
+    }
     Command command(new amun::Command);
     command->mutable_simulator()->set_stddev_robot_phi(stddev);
     emit sendCommand(command);

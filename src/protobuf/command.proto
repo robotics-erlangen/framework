@@ -82,6 +82,10 @@ message CommandTracking {
     optional bool reset = 4;
 }
 
+message CommandAmun {
+    optional uint32 vision_port = 1;
+}
+
 message Command {
     optional CommandSimulator simulator = 1;
     optional CommandReferee referee = 2;
@@ -96,4 +100,5 @@ message Command {
     optional robot.RadioParameters robot_parameters = 10;
     optional float speed = 11;
     optional CommandTracking tracking = 12;
+    optional CommandAmun amun = 14;
 }

@@ -70,12 +70,13 @@ void VisualizationWidget::load()
     m_items.clear();
     // load previously selected items and create entries for them
     foreach (const QString &s, s.value("Visible").toStringList()) {
-        if (!m_items.contains(s)) {
+        QByteArray b = s.toUtf8();
+        if (!m_items.contains(b)) {
             QStandardItem *item = new QStandardItem(s);
             item->setCheckable(true);
             item->setCheckState(Qt::Checked);
             item->setForeground(Qt::gray);
-            m_items[s] = qMakePair(item, (qint64)0);
+            m_items[b] = qMakePair(item, (qint64)0);
             m_selection.insert(s); // block sendItemsChanged
             m_model->appendRow(item);
         }
@@ -101,13 +102,15 @@ void VisualizationWidget::handleStatus(Status status)
 
         for (int i = 0; i < values.visualization_size(); i++) {
             const amun::Visualization &vis = values.visualization(i);
-            const QString name = QString::fromStdString(vis.name());
+            // avoid conversion to QString if not really neccessary
+            const std::string &stdName = vis.name();
+            const QByteArray name(stdName.data(), stdName.size());
 
             QPair<QStandardItem*, qint64> &entry = m_items[name];
             QStandardItem *&item = entry.first;
             // add item if neccessary
             if (item == NULL) {
-                item = new QStandardItem(name);
+                item = new QStandardItem(QString::fromStdString(vis.name()));
                 item->setCheckable(true);
                 item->setCheckState(Qt::Unchecked);
                 entry = qMakePair(item, m_time);

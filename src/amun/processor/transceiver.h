@@ -28,6 +28,7 @@
 #include <QPair>
 
 class QTimer;
+class USBThread;
 class USBDevice;
 
 class Transceiver : public QObject
@@ -52,6 +53,7 @@ private:
 
 public:
     Transceiver(QObject *parent = NULL);
+    ~Transceiver();
 
 signals:
     void sendStatus(Status status);
@@ -71,11 +73,12 @@ private:
     void close(const QString &errorMsg = QString());
     bool write(const char *data, qint64 size);
 
-    void handleInitPacket(const char *data, int size);
-    void handlePingPacket(const char *data, int size);
-    void handleStatusPacket(const char *data, int size);
+    void handleInitPacket(const char *data, uint size);
+    void handlePingPacket(const char *data, uint size);
+    void handleStatusPacket(const char *data, uint size);
+    void handleDatagrammPacket(const char *data, uint size);
     float calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, uint8_t skipedFrames);
-    void handleResponsePacket(QList<robot::RadioResponse> &response, const char *data, int size, qint64 time);
+    void handleResponsePacket(QList<robot::RadioResponse> &response, const char *data, uint size, qint64 time);
 
     void sendInitPacket();
     void sendTransceiverConfiguration();
@@ -93,9 +96,11 @@ private:
     QMap<quint8, qint64> m_frameTimes;
 
     quint8 m_packetCounter;
+    USBThread *m_context;
     USBDevice *m_device;
     QTimer *m_timeoutTimer;
     State m_connectionState;
+    bool m_simulatorEnabled;
 };
 
 #endif // TRANSCEIVER_H

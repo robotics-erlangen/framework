@@ -22,6 +22,7 @@
 #define RECEIVER_H
 
 #include <QUdpSocket>
+#include "protobuf/status.h"
 
 class Receiver : public QObject
 {
@@ -33,10 +34,13 @@ public:
 
 signals:
     void gotPacket(QByteArray data, qint64 time);
+    void sendStatus(const Status &status);
 
 public slots:
     void startListen();
     void stopListen();
+    void updateInterface(const QNetworkInterface& interface);
+    void updatePort(quint16 port);
 
 private slots:
     void readData();

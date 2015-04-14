@@ -22,6 +22,7 @@
 #define DEBUGTREEWIDGET_H
 
 #include <QTreeView>
+#include <QHash>
 #include "protobuf/status.h"
 
 class DebugModel;
@@ -38,6 +39,7 @@ public slots:
 
 private slots:
     void handleStatus(const Status &status);
+    void updateTree();
     void debugExpanded(const QModelIndex &index);
     void debugCollapsed(const QModelIndex &index);
 
@@ -48,6 +50,7 @@ private:
     DebugModel *m_modelTree;
     QTreeView *m_treeView;
     QSet<QString> m_expanded;
+    QHash<int, Status> m_status;
 };
 
 #endif // DEBUGTREEWIDGET_H

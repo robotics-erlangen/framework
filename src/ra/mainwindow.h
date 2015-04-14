@@ -45,7 +45,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(quint16 visionPort, QWidget *parent = 0);
+    explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
 
 signals:
@@ -85,7 +85,7 @@ private:
     LogFileWriter *m_logFile;
     QThread *m_logFileThread;
     qint64 m_lastTime;
-    SSL_Referee::Stage m_lastStage;
+    qint32 m_lastStageTime;
     robot::Team m_yellowTeam;
     robot::Team m_blueTeam;
     QString m_yellowTeamName;

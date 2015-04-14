@@ -27,6 +27,7 @@ const uint DEFAULT_SYSTEM_DELAY = 30; // in ms
 const uint DEFAULT_TRANSCEIVER_CHANNEL = 11;
 const uint DEFAULT_SIM_VISION_DELAY = 35; // in ms
 const uint DEFAULT_SIM_PROCESSING_TIME = 5; // in ms
+const uint DEFAULT_VISION_PORT = 10002;
 
 ConfigDialog::ConfigDialog(QWidget *parent) :
     QDialog(parent),
@@ -53,6 +54,8 @@ void ConfigDialog::sendConfiguration()
 
     command->mutable_simulator()->set_vision_delay(ui->simVisionDelay->value() * 1000 * 1000);
     command->mutable_simulator()->set_vision_processing_time(ui->simProcessingTime->value() * 1000 * 1000);
+
+    command->mutable_amun()->set_vision_port(ui->visionPort->value());
     emit sendCommand(command);
 }
 
@@ -65,6 +68,7 @@ void ConfigDialog::load()
     ui->simVisionDelay->setValue(s.value("Simulator/VisionDelay", DEFAULT_SIM_VISION_DELAY).toUInt());
     ui->simProcessingTime->setValue(s.value("Simulator/ProcessingTime", DEFAULT_SIM_PROCESSING_TIME).toUInt());
 
+    ui->visionPort->setValue(s.value("Amun/VisionPort", DEFAULT_VISION_PORT).toUInt());
     sendConfiguration();
 }
 
@@ -74,6 +78,7 @@ void ConfigDialog::reset()
     ui->systemDelayBox->setValue(DEFAULT_SYSTEM_DELAY);
     ui->simVisionDelay->setValue(DEFAULT_SIM_VISION_DELAY);
     ui->simProcessingTime->setValue(DEFAULT_SIM_PROCESSING_TIME);
+    ui->visionPort->setValue(DEFAULT_VISION_PORT);
 }
 
 void ConfigDialog::apply()
@@ -84,6 +89,8 @@ void ConfigDialog::apply()
 
     s.setValue("Simulator/VisionDelay", ui->simVisionDelay->value());
     s.setValue("Simulator/ProcessingTime", ui->simProcessingTime->value());
+
+    s.setValue("Amun/VisionPort", ui->visionPort->value());
 
     sendConfiguration();
 }

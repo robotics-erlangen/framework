@@ -30,7 +30,6 @@ local validGlobals = {
 	log = true, -- amun and log musn't be reported, otherwise the checker will crash
 	path = true,
 	Vector = true,
-	Settings = true,
 	Class = true,
 	mime = true, -- allow loading modules required for remote debugging
 	socket = true,

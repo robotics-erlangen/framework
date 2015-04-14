@@ -35,7 +35,7 @@ public:
     int frameCounter() const { return m_frameCounter; }
 
 protected:
-    bool checkCamera(quint32 cameraId, qint64 time);
+    bool checkCamera(qint32 cameraId, qint64 time);
 
     qint64 m_lastTime;
     qint64 m_lastPrimaryTime;
