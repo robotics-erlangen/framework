@@ -122,7 +122,7 @@ Download Qt 5 from http://qt-project.org and install
 Build using:
 > cd path/to/framework
 > mkdir build-mac && cd build-mac
-> cmake -DCMAKE_PREFIX_PATH=~/Qt/5.3/clang_64/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
+> cmake -DCMAKE_PREFIX_PATH=~/Qt/5.4/clang_64/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
 > make
 
 (If starting ra.app the normal way doesn't work launch it from Qt Creator)

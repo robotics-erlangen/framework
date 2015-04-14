@@ -18,16 +18,10 @@ The log player is always built alongside Ra.
 
 
 ## Starting Ra
-If the default SSL-Vision port (10002) is used just run the Ra executable.
-In order to use a different port it must be passed via the command line.
-On Linux this would be:
-> ./ra 10004
+Execute the ra executable
+> ./ra
 
-Ensure that the network cable is plugged in as Ra checks the network interfaces
-only at startup.
-
-If Ra is running on the same computer as SSL-Vision, Ra MUST be started before
-SSL-Vision is started, otherwise Ra won't receive any vision packets.
+The vision port can be configured in the settings dialog.
 
 
 ## Basic usage of Ra
