@@ -114,7 +114,11 @@ function InterceptPass:run()
 				minrobot = r
 			end
 		end
-		pos = Defense.manMarkPos(minrobot)
+		if minrobot then
+			pos = Defense.manMarkPos(minrobot)
+		else
+			pos = Vector(0,0) -- should only happen if there are no opponents
+		end
 	end
 	debug.set("notEnoughTime", notEnoughTime)
 
