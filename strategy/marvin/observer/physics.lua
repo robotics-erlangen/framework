@@ -126,5 +126,63 @@ function Physics.ballRollTime(ball, distance)
 	return t_result
 end
 
+--- approximates the time the given robot needs to pos for a given endSpeed
+-- uses a bang-bang motion profile
+-- calculations are done in 1D (along the line from robot.pos to pos)
+function Physics.robotTimeToPos(robot, pos, endSpeed)
+	local accelerationFactor = 0.7 -- factor for max forward speedup and braking
+	-- forward acceleration and deceleration
+	local accelerate = math.abs(robot.acceleration
+			and robot.acceleration.aSpeedupFMax or 1.0) * accelerationFactor
+	local brake = math.abs(robot.acceleration
+			and robot.acceleration.aBrakeFMax or 1.0) * accelerationFactor
+
+	local lineDist = pos:distanceTo(robot.pos)
+	local lineDir = (pos - robot.pos):normalize()
+	local robotSpeed = math.min(lineDir:dot(robot.speed), robot.maxSpeed)
+	local destSpeed = math.min(math.max(0, endSpeed:dot(endSpeed)), robot.maxSpeed)
+
+	local accelTime = (robot.maxSpeed - robotSpeed) / accelerate
+	local brakeTime = (robot.maxSpeed - destSpeed) / brake
+
+	local accelDist = robotSpeed * accelTime + accelerate * accelTime * accelTime / 2
+	local brakeDist = destSpeed * brakeTime + brake * brakeTime * brakeTime / 2
+
+	local remainingDist = lineDist - accelDist - brakeDist
+	if remainingDist >= 0 then
+		-- robot reaches full speed
+		local maxSpeedTime = remainingDist / robot.maxSpeed
+		return accelTime + maxSpeedTime + brakeTime
+	else
+		if destSpeed > robotSpeed then
+			local minAccelTime = (destSpeed - robotSpeed) / accelerate
+			local minAccelDist = robotSpeed * minAccelTime + accelerate * minAccelTime * minAccelTime / 2
+			if minAccelDist > lineDist then
+				-- won't be able to reach endSpeed
+				return (-robotSpeed + math.sqrt(robotSpeed*robotSpeed+2*accelerate*lineDist)) / accelerate
+			end
+		elseif destSpeed < robotSpeed then
+			local minBrakeTime = (robotSpeed - destSpeed) / brake
+			local minBrakeDist = destSpeed * minBrakeTime + brake * minBrakeTime * minBrakeTime / 2
+			if minBrakeDist > lineDist then
+				-- won't be able to brake down to endSpeed
+				return (-robotSpeed + math.sqrt(robotSpeed*robotSpeed-2*brake*lineDist)) / (-brake)
+			end
+		end
+
+		-- braking start before reaching full speed
+		-- symmetrically cut speed from maxspeed to lower speeds
+		-- d = v_max - v_cut
+		-- v_max(d/accel + d/brake)-accel/2*(d/accel)^2-brake/2*(d/brake)^2=-remaining
+		-- solve: d^2 * (-1/(2*accel)-1/(2*brake)) + d * v_max * (1/accel + 1/brake) + remaining = 0
+		local v_delta = math.solveSq(-0.5*(1/accelerate+1/brake),
+				robot.maxSpeed*(1/accelerate+1/brake), remainingDist)
+		accelTime = (robot.maxSpeed - v_delta - robotSpeed) / accelerate
+		brakeTime = (robot.maxSpeed - v_delta - destSpeed) / brake
+		return accelTime + brakeTime
+	end
+
+end
+
 
 return Physics
