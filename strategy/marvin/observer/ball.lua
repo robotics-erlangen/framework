@@ -128,7 +128,7 @@ function Ball.friendlyBallOwner()
 	end
 	friendlyBallOwnerLastRun = World.Time
 	lastBallOwnerFriendly = ballOwner(World.FriendlyRobots, lastBallOwnerFriendly)
-	debug.pushtop("/") -- hack for setting toplevel entries
+	debug.pushtop()
 	debug.set("last friendly ball owner", lastBallOwnerFriendly)
 	debug.pop()
 	return lastBallOwnerFriendly
@@ -144,7 +144,7 @@ function Ball.opponentBallOwner()
 	end
 	opponentBallOwnerLastRun = World.Time
 	lastBallOwnerOpponent = ballOwner(World.OpponentRobots, lastBallOwnerOpponent)
-	debug.pushtop("/") -- hack for setting toplevel entries
+	debug.pushtop()
 	debug.set("last opponent ball owner", lastBallOwnerOpponent)
 	debug.pop()
 	return lastBallOwnerOpponent

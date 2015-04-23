@@ -56,9 +56,9 @@ end
 
 --- Pushes a root key on the debug stack.
 -- @name pushtop
--- @param name string - Name of the new root tree
+-- @param name string - Name of the new root tree or nil to push root
 function debug.pushtop(name)
-	table.insert(debugStack, name)
+	table.insert(debugStack, name or "")
 end
 
 --- Pops last key from the debug stack.
