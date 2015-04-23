@@ -13,6 +13,7 @@ local Ball = require "observer/ball"
 local SIDEWARDS_KP = 10
 local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
 local SHOOT_SIDE_OFFSET = 0.05 -- extends the hasBall sidewards
+local FORCE_SHOOT_DELAY = 0.03 -- delay kick by this time
 
 Shoot.depends = { ReceivePass, Volley }
 
@@ -20,6 +21,7 @@ function Shoot:init()
 	self._shootHysteresis = false
 	self._travelStart = nil
 	self._travelLimit = false
+	self._forceShootTimer = nil
 end
 
 -- shoot immediatelly if angle error is below maxAngleError
@@ -128,11 +130,19 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		local relpos = (World.Ball.pos - self._robot.pos):rotate(-self._robot.dir)
 		-- assume the ball is "pushed" into the robot due to tracking latency
 		if relpos.x < self._robot.shootRadius + World.Ball.radius - 0.002 then
-			debug.set("force shoot", true)
-			self._robot:forceShoot()
+			-- initialize if neccessary
+			self._forceShootTimer = self._forceShootTimer or World.Time
+			if World.Time - self._forceShootTimer >= FORCE_SHOOT_DELAY then
+				debug.set("force shoot", true)
+				self._robot:forceShoot()
+			end
+		else
+			-- reset time
+			self._forceShootTimer = World.Time
 		end
 	else
 		self._shootHysteresis = false
+		self._forceShootTimer = nil
 
 		-- slowly dissolve travel distance
 		local travelDist = math.max(self._travelStart:distanceTo(self._robot.pos) - 5 * World.TimeDiff, 0)
