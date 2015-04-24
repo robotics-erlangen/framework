@@ -15,6 +15,10 @@ Defender._behaviors = {
 	Default
 }
 
+function Defender:_run()
+	self._activeBehavior._send.defenderFlag("all")
+end
+
 function Defender.takeRobot(robots)
 	for _, robot in pairs(robots) do
 		if robot.isVisible then

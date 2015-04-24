@@ -2,6 +2,7 @@ local World = require "../base/world"
 local Referee = require "../base/referee"
 local Field = require "../base/field"
 local debug = require "../base/debug"
+local UtilDefense = require "util/defense"
 
 local Defense = {}
 
@@ -79,6 +80,7 @@ function Defense:_chooseManMarkAndCenterBacks()
 			table.removeValue(unassigned, robot)
 		end
 	end
+	debug.set("oppsToMark", self._oppsToMark)
 
 	if #pureCenterBacksArray == 1 then
 		defaultCenterBack = pureCenterBacksArray[1]
@@ -92,7 +94,7 @@ function Defense:_chooseManMarkAndCenterBacks()
 			break
 		end
 		if not markedOpps[robot] then
-			local markPos = Defense.manMarkPos(robot)
+			local markPos = UtilDefense.manMarkPos(robot)
 			table.sort(unassigned, function(r1, r2)
 				return r1.pos:distanceTo(markPos) < r2.pos:distanceTo(markPos)
 			end)
