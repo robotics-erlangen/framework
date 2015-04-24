@@ -444,8 +444,8 @@ function Field.nextLineCut(startPos, dir)
 	if dir.x == 0 and dir.y == 0 then
 		return
 	end
-	local width = Vector(G.FieldWidthHalf*math.sign(dir.x), 0)
-	local height = Vector(0, G.FieldHeightHalf*math.sign(dir.y))
+	local width = Vector((dir.x > 0 and 1 or -1) * G.FieldWidthHalf, 0)
+	local height = Vector(0, (dir.y > 0 and 1 or -1) * G.FieldHeightHalf)
 	local sideCut, sideLambda = geom.intersectLineLine(startPos, dir, width, height)
 	local frontCut, frontLambda = geom.intersectLineLine(startPos, dir, height, width)
 	if sideCut then
