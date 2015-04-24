@@ -59,6 +59,17 @@ local friendlyPenaltyStates = {
 	PenaltyOffensive = true
 }
 
+local nonGameStages = {
+	FirstHalfPre = true,
+	HalfTime = true,
+	SecondHalfPre = true,
+	ExtraTimeBreak = true,
+	ExtraFirstHalfPre = true,
+	ExtraHalfTime = true,
+	ExtraSecondHalfPre = true,
+	PenaltyShootoutBreak = true,
+	PostGame = true
+}
 
 --- Check whether the stop rules apply
 -- @name isStopState
@@ -90,6 +101,10 @@ end
 
 function Referee.isFriendlyPenaltyState()
 	return friendlyPenaltyStates[World.RefereeState]
+end
+
+function Referee.isNonGameStage()
+	return nonGameStages[World.GameStage]
 end
 
 local rightLine = World.Geometry.FieldWidthHalf

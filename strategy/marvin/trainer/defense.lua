@@ -36,7 +36,7 @@ end
 local countersideTargetLeft = { pos = Vector(-World.Geometry.FieldWidthHalf, 0) }
 local countersideTargetRight = { pos = Vector(World.Geometry.FieldWidthHalf, 0) }
 function Defense:_chooseManMarkAndCenterBacks()
-    if World.RefereeState:find("KickoffDefensive") then
+    if Referee.isKickoffState() or Referee.isNonGameStage() then
         return
     end
 
