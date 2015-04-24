@@ -12,8 +12,9 @@ function Roles:init()
 end
 
 function Roles:_chooseExclusiveRoles()
+	local roleHysteresis = ROLE_HYSTERESIS
     if Referee.isStopState() then
-		ROLE_HYSTERESIS = math.huge
+    	roleHysteresis = math.huge
 	end
 
 	local roleMsgs = self._inbox.exclusiveRole()
@@ -33,7 +34,7 @@ function Roles:_chooseExclusiveRoles()
 		local bestRating = -math.huge
 		for robot, rating in pairs(applications) do
 			if self._exclusiveRoles[role] == robot then
-				rating = rating + ROLE_HYSTERESIS
+				rating = rating + roleHysteresis
 			end
 			if rating > bestRating then
 				bestRobot = robot
