@@ -265,7 +265,7 @@ end
 function table.keys(t)
 	local keys = {}
 	for key, _ in pairs(t) do
-		table.insert(t, key)
+		table.insert(keys, key)
 	end
 	return keys
 end
