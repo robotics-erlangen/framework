@@ -8,6 +8,8 @@ local TrajectoryDirect = require "trajectory/direct"
 local debug = require "../base/debug"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
+local Field = require "../base/field"
+local Referee = require "../base/referee"
 local Ball = require "observer/ball"
 
 local SIDEWARDS_KP = 10
@@ -28,7 +30,10 @@ end
 function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	vis.addCircle("t/a/shoot: targetPos", targetPos, 0.04, vis.colors.pinkHalf, true)
 
-	if self._robot:hasBall(World.Ball, SHOOT_SIDE_OFFSET) then -- if we got the ball
+	-- don't allow pushing the ball into the opponent defense area
+	if self._robot:hasBall(World.Ball, SHOOT_SIDE_OFFSET)
+			and (not Field.isInOpponentDefenseArea(self._robot.pos, self._robot.shootRadius)
+				or Referee.isFriendlyPenaltyState()) then -- if we got the ball
 		debug.set("ballApproach", "hasBall")
 		self:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		-- send the position of the ball
