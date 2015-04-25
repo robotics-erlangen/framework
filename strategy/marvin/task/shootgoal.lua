@@ -19,7 +19,8 @@ local Random = require "util/random"
 local Field = require "../base/field"
 
 
-local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
+local MIN_REQUIRED_ANGLE = 0.5 / 180 * math.pi -- in order to shoot into a free sector
+local MIN_SHOOT_PRECISION = 2.5 / 180 * math.pi -- for the shoot ability
 -- how much to move the shoot pos towards the corner
 -- (0 = mid of sector, 1 = straight towards the corner)
 local CORNER_WEIGHT = 0
@@ -256,7 +257,7 @@ function ShootGoal:updateDestination()
 	-- if there is no clean sector,
 	-- 1. ignore the goalie
 	-- 2. check for ricochet opportunities
-	if not self.bestMid or self.maxAngleError < MIN_ANGLE_PRECISION then
+	if not self.bestMid or self.maxAngleError < MIN_REQUIRED_ANGLE then
 		self:_calculateDestination(viewPos, true)
 		self.sectorClean = false
 	end
@@ -388,8 +389,7 @@ function ShootGoal:getDecisionMakingBasis()
 	return self.targetPoint, self.maxAngleError, self.sectorClean
 end
 
-function ShootGoal:_init(minPrecision)
-	self._minPrecision = minPrecision or 2.5 / 180 * math.pi
+function ShootGoal:_init()
 	self._viewPosLockDistance = 0.5
 
 	self._viscolor = nil
@@ -457,7 +457,7 @@ function ShootGoal:run()
 				debug.set("type", "shoot (dirty)")
 			end
 			self:_shoot(self.targetPoint, math.huge, true,
-				math.min(self._minPrecision, self.maxAngleError or math.huge))
+				math.min(MIN_SHOOT_PRECISION, self.maxAngleError or math.huge))
 		else
 			local mae =  5 * math.pi/180
 			local chipPos = G.OpponentGoal + (G.FriendlyGoal - G.OpponentGoal):setLength(0.1)
