@@ -243,7 +243,7 @@ function Robot.timeToPos1D(robot, pos, endSpeed)
 	local lineDist = pos:distanceTo(robot.pos)
 	local lineDir = (pos - robot.pos):normalize()
 	local robotSpeed = math.min(lineDir:dot(robot.speed), robot.maxSpeed)
-	local destSpeed = math.min(math.max(0, endSpeed:dot(endSpeed)), robot.maxSpeed)
+	local destSpeed = math.min(math.max(0, lineDir:dot(endSpeed)), robot.maxSpeed)
 
 	local accelTime = (robot.maxSpeed - robotSpeed) / accelerate
 	local brakeTime = (robot.maxSpeed - destSpeed) / brake
