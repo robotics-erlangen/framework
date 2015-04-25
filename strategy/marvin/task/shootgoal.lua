@@ -271,7 +271,6 @@ function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
 
 	local bestRating = -math.huge
 	local bestMid = nil
-	local bestWidth = 0
 	local bestAngleError = 0
 
 	if ignoreGoalie and World.OpponentKeeper then
@@ -318,7 +317,6 @@ function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
 		if rating > bestRating then
 			bestRating = rating
 			bestMid = sectorMid
-			bestWidth = sectorWidth
 			bestAngleError = math.min(math.abs(geom.getAngleDiff(sector[1], sectorMid)),
 					math.abs(geom.getAngleDiff(sector[2], sectorMid))) * 0.8 -- MAGIC CONSTANT
 		end
@@ -334,9 +332,9 @@ function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
 	self.maxAngleError = bestAngleError
 
 	if self.bestMid then
-		vis.addPath("t/shootgoal: ShootGoalTarget", {viewPos, Vector.fromAngle(bestMid + bestWidth/2) * 20 + viewPos},
+		vis.addPath("t/shootgoal: ShootGoalTarget", {viewPos, viewPos + Vector.fromAngle(bestMid + bestAngleError):scaleLength(20)},
 			vis.colors.whiteHalf)
-		vis.addPath("t/shootgoal: ShootGoalTarget", {viewPos, Vector.fromAngle(bestMid - bestWidth/2) * 20 + viewPos},
+		vis.addPath("t/shootgoal: ShootGoalTarget", {viewPos, viewPos + Vector.fromAngle(bestMid - bestAngleError):scaleLength(20)},
 			vis.colors.whiteHalf)
 		vis.addPath("t/shootgoal: ShootGoalTarget",{viewPos, self.targetPoint}, self._viscolor)
 	end
