@@ -1,6 +1,7 @@
 local Physics = {}
 
 local Constants = require "../base/constants"
+local Field = require "../base/field"
 
 
 --- Calculates the ball position and speed at a given time point in the future
@@ -121,7 +122,8 @@ function Physics.ballRollTime(ball, distance)
 
 	local s_roll = distance - s_switch
 	-- a_roll/2 * t^2 + v_switch * t - s_roll = 0
-	local t_roll = math.solveSq(a_roll / 2, v_switch, -s_roll + epsilon) or math.huge;
+	local t_roll = math.solveSq(a_roll / 2, v_switch, -s_roll + epsilon) or math.huge
+
 	local t_result = t_switch + t_roll
 	return t_result
 end
@@ -184,5 +186,103 @@ function Physics.robotTimeToPos(robot, pos, endSpeed)
 
 end
 
+function Physics.robotMinTimeToBall(robot, ball)
+	-- FIXME HACK HACK HACK WRONG ARGUMENTS TO RTTB!!!!!!
+	local targetPos = ball.pos
+	local endSpeed = (ball.pos - robot.pos):setLength(robot.maxSpeed)
+
+	return Physics.robotTimeToBall(robot, ball, targetPos, endSpeed)
+end
+
+function Physics.robotTimeToBall(robot, ball, targetPos, endSpeed)
+	-- calculate the time the ball needs to cross the field border
+	local lineCut = Field.nextLineCut(ball.pos, ball.speed)
+	local distToLine = ball.pos:distanceTo(lineCut)
+	local t_out = Physics.ballRollTime(ball, distToLine)
+
+	-- calculate the time until the ball stops
+	local epsilon = 0.000001
+	local x_stop = Physics.ballAtTime(ball, math.huge).pos
+	local t_stop = Physics.ballRollTime(ball, ball.pos:distanceTo(x_stop) - epsilon)
+
+	-- TODO: rethink
+	local t_max = math.min(t_out, t_stop)
+	log("t_max " .. t_max)
+
+
+	-- ===== quadratic sampling =====
+
+	local N_SAMPLES = 10
+	local robot_times = {}
+	local ball_times = {}
+
+
+	for i = 1, N_SAMPLES do
+		local i_normalized = (i-1) / (N_SAMPLES-1)
+		local step_quadratic = 0.5 * i_normalized * i_normalized + 0.5 * i_normalized
+		local t_ball = step_quadratic * t_max
+		
+		local x_ball = Physics.ballAtTime(ball, t_ball).pos
+		local offset = (x_ball - targetPos):setLength(ball.radius + robot.radius)
+		local x_robot = x_ball + offset
+		local t_robot = Physics.robotTimeToPos(robot, x_robot, endSpeed)
+
+		table.insert(ball_times, t_ball)
+		table.insert(robot_times, t_robot)
+	end
+
+	-- [bsearch_start * stepsize, (bsearch_start+1) * stepsize]
+	local t_ball_bsearch_start = nil
+	local t_ball_bsearch_end = nil
+	for i = 2, N_SAMPLES do
+		local timediff0 = ball_times[i-1] - robot_times[i-1]
+		local timediff1 = ball_times[i] - robot_times[i]
+		if timediff0 < 0 and timediff1 > 0 then
+			t_ball_bsearch_start = ball_times[i-1]
+			t_ball_bsearch_end = ball_times[i]
+			break;
+		end
+	end
+
+	-- robot cannot reach the ball
+	if not t_ball_bsearch_start then
+		log("cannot catch ball")
+		if t_stop < t_out then
+			return t_stop
+		else
+			return math.huge
+		end
+	end
+
+	-- ===== binary search =====
+
+	local delta_t = (t_ball_bsearch_end - t_ball_bsearch_start) / 4
+	local t_ball = t_ball_bsearch_start + delta_t * 2
+
+	-- time resolution
+	local epsilon_t = 0.001
+
+	-- search for optimal time 
+	while delta_t > epsilon_t do
+		-- calculate desired robot pos (incl offset)
+		local x_ball = Physics.ballAtTime(ball, t_ball).pos
+		local x_robot = x_ball + (x_ball - targetPos):setLength(ball.radius + robot.radius)
+		-- calculate robot time
+		local t_robot = Physics.robotTimeToPos(robot, x_robot, endSpeed)
+
+		-- update search interval
+		if t_ball - t_robot < 0 then
+			t_ball = t_ball + delta_t
+		else
+			t_ball = t_ball - delta_t
+		end
+		delta_t = delta_t / 2
+	end
+
+
+
+
+	return t_ball
+end
 
 return Physics
