@@ -10,6 +10,9 @@ local Robot = require "observer/robot"
 local Rating = require "util/rating"
 local ToTarget = require "trajectory/totarget"
 
+local DIST_TO_DEF_AREA = 0.2
+
+
 local defStrech = G.DefenseStretch
 local defRadius = G.DefenseRadius
 local defAreaLineLength = G.DefenseStretch + defRadius * math.pi
@@ -83,7 +86,6 @@ function CornerAttack:init()
 end
 
 -- returns true when an attack is performed
-local distInsideDefArea = 0.1
 function CornerAttack:_tryCornerAttack()
     local gap = scanForBestGapInDefense()
     if gap then -- apply for role: time to gap
@@ -95,7 +97,7 @@ function CornerAttack:_tryCornerAttack()
         if self._inbox.cornerAttacker().trainer == self._robot then
             if not self._isAssigned then
                 self._isAssigned = true
-                self._pointOfImpact = gap + (World.Geometry.OpponentGoal-gap):setLength(distInsideDefArea)
+                self._pointOfImpact = gap + (World.Geometry.OpponentGoal-gap):setLength(-DIST_TO_DEF_AREA-self._robot.radius)
             end
             vis.addCircle("t/a/cornerattack", self._pointOfImpact, 0.05, vis.colors.redHalf, true)
 
