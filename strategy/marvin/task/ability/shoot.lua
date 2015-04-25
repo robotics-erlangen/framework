@@ -16,6 +16,7 @@ local SIDEWARDS_KP = 10
 local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
 local SHOOT_SIDE_OFFSET = 0.05 -- extends the hasBall sidewards
 local FORCE_SHOOT_DELAY = 0.03 -- delay kick by this time
+local CHIP_DIST_SCALE = 0.7 -- shorten chip distance as the ball will bounce
 
 Shoot.depends = { ReceivePass, Volley }
 
@@ -125,7 +126,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 			self._robot:shoot(targetSpeed, dist)
 			debug.set("shoot command", "linear")
 		else
-			self._robot:chip(dist)
+			self._robot:chip(dist*CHIP_DIST_SCALE)
 			debug.set("shoot command", "chip")
 		end
 		if self._robot.radioResponse then
