@@ -48,6 +48,8 @@ return function()
 		"mainAttacker rating of robot 1 shall be 0.5")
 
 	trainerSend.mainAttacker("all", agent2:robot())
+	assert(trainerInbox.mainAttacker("all").trainer == agent2:robot()
+		, "Trainer(all) shall receive the mainAttacker message")
 	Messaging.deliverMessages()
 	assert(agent1inbox.mainAttacker().trainer == agent2:robot()
 		, "Robot 2 shall get the mainAttacker role")

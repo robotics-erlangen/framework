@@ -106,7 +106,7 @@ function constructInbox(receiver)
 					if not allMerged[receiver] then -- merge broadcasts into receiveBox
 						local receiverRobot = (receiver == "trainer") and "trainer" or receiver:robot()
 						for sender, data in pairs(allBox) do
-							if sender ~= receiverRobot and filter ~= "all" then
+							if sender ~= receiverRobot or filter == "all" then
 								receiveBox[sender] = data
 							end
 						end
