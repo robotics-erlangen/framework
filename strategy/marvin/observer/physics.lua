@@ -198,7 +198,7 @@ end
 --- calculates the time the robot takes to reach the ball (in a controlled fashion)
 -- @param robot Robot - the robot
 -- @param ball Ball - a ball-like structure
--- @param targetPos - the position the robot will look at, can be nil
+-- @param targetPos - the position the robot will look at or nil, then the robot will look at the ball
 -- @param endSpeedLength - the maximal velocity of the robot when reaching the destination
 -- @return number - the expected time
 function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
@@ -208,6 +208,7 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	local t_out = Physics.ballRollTime(ball, distToLine)
 
 	-- calculate the time until the ball stops
+	-- TODO extract(rewrite) to ballStopTime
 	local epsilon = 0.000001
 	local x_stop = Physics.ballAtTime(ball, math.huge).pos
 	local t_stop = Physics.ballRollTime(ball, ball.pos:distanceTo(x_stop) - epsilon)
@@ -228,34 +229,34 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 		local i_normalized = (i-1) / (N_SAMPLES-1)
 		local step_quadratic = 0.5 * i_normalized * i_normalized + 0.5 * i_normalized
 		local t_ball = step_quadratic * t_max
-		
+
 		-- calculate robot position
 		local x_ball = Physics.ballAtTime(ball, t_ball).pos
 		local offset
 		if targetPos then
-			offset = (x_ball - targetPos):setLength(ball.radius + robot.radius)
+			offset = (x_ball - targetPos):setLength(ball.radius + robot.shootRadius)
 		else
-			offset = (robot.pos - x_ball):setLength(ball.radius + robot.radius)
+			offset = (robot.pos - x_ball):setLength(ball.radius + robot.shootRadius)
 		end
 		local x_robot = x_ball + offset
-		
+
 		-- calculate and save the robot time
-		local endSpeed = (x_robot - x_ball):setLength(endSpeedLength)
+		local endSpeed = (x_ball - x_robot):setLength(endSpeedLength)
 		local t_robot = Physics.robotTimeToPos(robot, x_robot, endSpeed)
 		table.insert(ball_times, t_ball)
 		table.insert(robot_times, t_robot)
 	end
 
-	-- search the first null crossing
+	-- search the first zero crossing
 	local t_ball_bsearch_start = nil
 	local t_ball_bsearch_end = nil
 	for i = 2, N_SAMPLES do
 		local timediff0 = ball_times[i-1] - robot_times[i-1]
 		local timediff1 = ball_times[i] - robot_times[i]
-		if timediff0 < 0 and timediff1 > 0 then
+		if timediff0 <= 0 and timediff1 >= 0 then
 			t_ball_bsearch_start = ball_times[i-1]
 			t_ball_bsearch_end = ball_times[i]
-			break;
+			break
 		end
 	end
 
@@ -280,15 +281,15 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	local delta_t = (t_ball_bsearch_end - t_ball_bsearch_start) / 4
 	local t_ball = t_ball_bsearch_start + delta_t * 2
 
-	-- search for optimal time 
+	-- search for optimal time
 	while delta_t > epsilon_t do
 		-- calculate desired robot pos (incl offset)
 		local x_ball = Physics.ballAtTime(ball, t_ball).pos
-		local offset = nil
+		local offset
 		if targetPos then
-			offset = (x_ball - targetPos):setLength(ball.radius + robot.radius)
+			offset = (x_ball - targetPos):setLength(ball.radius + robot.shootRadius)
 		else
-			offset = (robot.pos - x_ball):setLength(ball.radius + robot.radius)
+			offset = (robot.pos - x_ball):setLength(ball.radius + robot.shootRadius)
 		end
 		local x_robot = x_ball + offset
 		-- calculate robot time
@@ -296,7 +297,7 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 		local t_robot = Physics.robotTimeToPos(robot, x_robot, endSpeed)
 
 		-- update search interval
-		if t_ball - t_robot < 0 then
+		if t_robot > t_ball then
 			t_ball = t_ball + delta_t
 		else
 			t_ball = t_ball - delta_t
