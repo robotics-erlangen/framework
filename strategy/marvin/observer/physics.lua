@@ -205,33 +205,33 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeed)
 	local x_stop = Physics.ballAtTime(ball, math.huge).pos
 	local t_stop = Physics.ballRollTime(ball, ball.pos:distanceTo(x_stop) - epsilon)
 
-	-- TODO: rethink
+	-- upper bound for sampling and binary search
 	local t_max = math.min(t_out, t_stop)
-	log("t_max " .. t_max)
 
 
 	-- ===== quadratic sampling =====
 
 	local N_SAMPLES = 10
+
 	local robot_times = {}
 	local ball_times = {}
 
-
 	for i = 1, N_SAMPLES do
+		-- calculate interval
 		local i_normalized = (i-1) / (N_SAMPLES-1)
 		local step_quadratic = 0.5 * i_normalized * i_normalized + 0.5 * i_normalized
 		local t_ball = step_quadratic * t_max
 		
+		-- calculate and save the robot time
 		local x_ball = Physics.ballAtTime(ball, t_ball).pos
 		local offset = (x_ball - targetPos):setLength(ball.radius + robot.radius)
 		local x_robot = x_ball + offset
 		local t_robot = Physics.robotTimeToPos(robot, x_robot, endSpeed)
-
 		table.insert(ball_times, t_ball)
 		table.insert(robot_times, t_robot)
 	end
 
-	-- [bsearch_start * stepsize, (bsearch_start+1) * stepsize]
+	-- search the first null crossing
 	local t_ball_bsearch_start = nil
 	local t_ball_bsearch_end = nil
 	for i = 2, N_SAMPLES do
@@ -244,9 +244,10 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeed)
 		end
 	end
 
-	-- robot cannot reach the ball
+	-- if the robot is always slower than the ball
+	-- either return the time to the stationary ball
+	-- or if the ball is too fast, the robot cannot catch it at all
 	if not t_ball_bsearch_start then
-		log("cannot catch ball")
 		if t_stop < t_out then
 			return t_stop
 		else
@@ -254,13 +255,15 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeed)
 		end
 	end
 
-	-- ===== binary search =====
 
-	local delta_t = (t_ball_bsearch_end - t_ball_bsearch_start) / 4
-	local t_ball = t_ball_bsearch_start + delta_t * 2
+	-- ===== binary search =====
 
 	-- time resolution
 	local epsilon_t = 0.001
+
+	-- initialize binary search variables
+	local delta_t = (t_ball_bsearch_end - t_ball_bsearch_start) / 4
+	local t_ball = t_ball_bsearch_start + delta_t * 2
 
 	-- search for optimal time 
 	while delta_t > epsilon_t do
@@ -278,9 +281,6 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeed)
 		end
 		delta_t = delta_t / 2
 	end
-
-
-
 
 	return t_ball
 end
