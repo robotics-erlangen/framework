@@ -2,6 +2,7 @@ local Physics = {}
 
 local Constants = require "../base/constants"
 local Field = require "../base/field"
+local World = require "../base/world"
 
 
 --- Calculates the ball position and speed at a given time point in the future
@@ -142,7 +143,7 @@ function Physics.robotTimeToPos(robot, pos, endSpeed)
 	local lineDist = pos:distanceTo(robot.pos)
 	local lineDir = (pos - robot.pos):normalize()
 	local robotSpeed = math.min(lineDir:dot(robot.speed), robot.maxSpeed)
-	local destSpeed = math.min(math.max(0, endSpeed:dot(endSpeed)), robot.maxSpeed)
+	local destSpeed = math.min(math.max(0, lineDir:dot(endSpeed)), robot.maxSpeed)
 
 	local accelTime = (robot.maxSpeed - robotSpeed) / accelerate
 	local brakeTime = (robot.maxSpeed - destSpeed) / brake
@@ -186,15 +187,21 @@ function Physics.robotTimeToPos(robot, pos, endSpeed)
 
 end
 
+--- calculates the time the robot takes to somehow touch the ball
+-- @param robot Robot - the robot
+-- @param ball Ball - a ball-like structure
+-- @return number - the expected time
 function Physics.robotMinTimeToBall(robot, ball)
-	-- FIXME HACK HACK HACK WRONG ARGUMENTS TO RTTB!!!!!!
-	local targetPos = ball.pos
-	local endSpeed = (ball.pos - robot.pos):setLength(robot.maxSpeed)
-
-	return Physics.robotTimeToBall(robot, ball, targetPos, endSpeed)
+	return Physics.robotTimeToBall(robot, ball, nil, robot.maxSpeed)
 end
 
-function Physics.robotTimeToBall(robot, ball, targetPos, endSpeed)
+--- calculates the time the robot takes to reach the ball (in a controlled fashion)
+-- @param robot Robot - the robot
+-- @param ball Ball - a ball-like structure
+-- @param targetPos - the position the robot will look at, can be nil
+-- @param endSpeedLength - the maximal velocity of the robot when reaching the destination
+-- @return number - the expected time
+function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	-- calculate the time the ball needs to cross the field border
 	local lineCut = Field.nextLineCut(ball.pos, ball.speed)
 	local distToLine = ball.pos:distanceTo(lineCut)
@@ -222,10 +229,18 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeed)
 		local step_quadratic = 0.5 * i_normalized * i_normalized + 0.5 * i_normalized
 		local t_ball = step_quadratic * t_max
 		
-		-- calculate and save the robot time
+		-- calculate robot position
 		local x_ball = Physics.ballAtTime(ball, t_ball).pos
-		local offset = (x_ball - targetPos):setLength(ball.radius + robot.radius)
+		local offset
+		if targetPos then
+			offset = (x_ball - targetPos):setLength(ball.radius + robot.radius)
+		else
+			offset = (robot.pos - x_ball):setLength(ball.radius + robot.radius)
+		end
 		local x_robot = x_ball + offset
+		
+		-- calculate and save the robot time
+		local endSpeed = (x_robot - x_ball):setLength(endSpeedLength)
 		local t_robot = Physics.robotTimeToPos(robot, x_robot, endSpeed)
 		table.insert(ball_times, t_ball)
 		table.insert(robot_times, t_robot)
@@ -269,8 +284,15 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeed)
 	while delta_t > epsilon_t do
 		-- calculate desired robot pos (incl offset)
 		local x_ball = Physics.ballAtTime(ball, t_ball).pos
-		local x_robot = x_ball + (x_ball - targetPos):setLength(ball.radius + robot.radius)
+		local offset = nil
+		if targetPos then
+			offset = (x_ball - targetPos):setLength(ball.radius + robot.radius)
+		else
+			offset = (robot.pos - x_ball):setLength(ball.radius + robot.radius)
+		end
+		local x_robot = x_ball + offset
 		-- calculate robot time
+		local endSpeed = (x_ball - x_robot):setLength(endSpeedLength)
 		local t_robot = Physics.robotTimeToPos(robot, x_robot, endSpeed)
 
 		-- update search interval
