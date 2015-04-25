@@ -12,11 +12,12 @@ local Field = require "../base/field"
 local Referee = require "../base/referee"
 local Ball = require "observer/ball"
 
-local SIDEWARDS_KP = 10
-local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
+local SIDEWARDS_KP = 8
+local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
 local SHOOT_SIDE_OFFSET = 0.05 -- extends the hasBall sidewards
 local FORCE_SHOOT_DELAY = 0.03 -- delay kick by this time
 local CHIP_DIST_SCALE = 0.7 -- shorten chip distance as the ball will bounce
+local SLOW_BALL = 0.5
 
 Shoot.depends = { ReceivePass, Volley }
 
@@ -80,10 +81,13 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	end
 	speed = speed:rotate(self._robot.dir)
 
-
-	local targetDir, targetSpeed = self:calcPhi(World.Ball.speed:length(),
+	local targetDir
+	if World.Ball.speed:length() >= SLOW_BALL then
+		targetDir, targetSpeed = self:calcPhi(World.Ball.speed:length(),
 			(-self._lastBallSpeed):angle(), World.Ball.pos, targetPos, targetSpeed)
-	--local targetDir = (targetPos - World.Ball.pos):angle()
+	else
+		targetDir = (targetPos - World.Ball.pos):angle()
+	end
 
 	-- calculate current distance to the ball
 	local distToBall = (World.Ball.pos - self._robot.pos):rotate(-targetDir)
@@ -110,6 +114,9 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	end
 
 	debug.set("hasBall hysteresis", self._shootHysteresis)
+
+	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(self._robot.dir)*20 }, vis.colors.blue)
+	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.pink)
 
 	-- debug.set("travelDist", self._travelStart:distanceTo(self._robot.pos))
 	if self._travelStart:distanceTo(self._robot.pos) >= Constants.maxDribbleDistance then
