@@ -22,13 +22,13 @@ local Field = require "../base/field"
 local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
 -- how much to move the shoot pos towards the corner
 -- (0 = mid of sector, 1 = straight towards the corner)
-local cornerWeight = 0
+local CORNER_WEIGHT = 0
 
 -- how much a new best sector should be better than the old one
-local sectorRatingHysteresis = 2
+local SECTOR_RATING_HYSTERESIS = 2
 
 -- how large the angle for volley may be [rad]
-local maxVolleyAngle = 80 * math.pi / 180
+local MAX_VOLLEY_ANGLE = 80 * math.pi / 180
 
 
 local function robotList(selfRobot, viewPos, ignoreGoalie)
@@ -60,7 +60,7 @@ end
 local function rate(ballPos, targetPoint, dist, intervalLength, maxAngleError, distToOpp)
 	-- rate volley angle
 	local rotateAngle = World.Ball.speed:absoluteAngleDiff(ballPos - targetPoint)
-	local rotateRating = 1 - rotateAngle/maxVolleyAngle
+	local rotateRating = 1 - rotateAngle/MAX_VOLLEY_ANGLE
 	rotateRating = rotateRating * rotateRating
 
 	-- rate free sector width
@@ -296,10 +296,10 @@ function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
 		-- calculate shoot angle (mid of sector, near corner if possible)
 		local weight = 0.5
 		if sector[1] == goalStart then
-			weight = weight + cornerWeight/2
+			weight = weight + CORNER_WEIGHT/2
 		end
 		if sector[2] == goalEnd then
-			weight = weight - cornerWeight/2
+			weight = weight - CORNER_WEIGHT/2
 		end
 		local sectorMid = weight*sector[1] + (1 - weight)*sector[2]
 
@@ -311,7 +311,7 @@ function ShootGoal:_calculateDestination(viewPos, ignoreGoalie)
 		-- reevaluate the old sector
 		-- (assuming the angles are between 0 and pi)
 		if self.bestMid and self.bestMid > sector[1] and self.bestMid < sector[2] then
-			rating = rating * (1 + sectorRatingHysteresis)
+			rating = rating * (1 + SECTOR_RATING_HYSTERESIS)
 		end
 
 		-- search best sector
@@ -443,7 +443,7 @@ function ShootGoal:run()
 		-- or we cannot catch the ball inside the field
 		or not Field.isInField(Ball.atTime(Robot.minTimeToBall(self._robot, World.Ball)).pos, 0)
 		-- or the viewPos makes sense and the angle is too large
-		or self._PRPstable and World.Ball.speed:absoluteAngleDiff(self._viewPos - self.targetPoint) > maxVolleyAngle then
+		or self._PRPstable and World.Ball.speed:absoluteAngleDiff(self._viewPos - self.targetPoint) > MAX_VOLLEY_ANGLE then
 			self._volleyPossible = false
 		end
 
