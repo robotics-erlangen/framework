@@ -240,16 +240,19 @@ end
 -- @param endSpeedLength - the maximal velocity of the robot when reaching the destination
 -- @return number - the estimated time
 function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
+	-- if the ball is extremely slow, consider it as stationary
+	if ball.speed:length() < 0.01 then
+		local endSpeed = (ball.pos - robot.pos):setLength(endSpeedLength)
+		return Physics.robotTimeToPos(robot, ball.pos, endSpeed)
+	end
+
 	-- calculate the time the ball needs to cross the field border
 	local lineCut = Field.nextLineCut(ball.pos, ball.speed)
 	local distToLine = ball.pos:distanceTo(lineCut)
 	local t_out = Physics.ballRollTime(ball, distToLine)
 
 	-- calculate the time until the ball stops
-	-- TODO extract(rewrite) to ballStopTime
-	local epsilon = 0.000001
-	local x_stop = Physics.ballAtTime(ball, math.huge).pos
-	local t_stop = Physics.ballRollTime(ball, ball.pos:distanceTo(x_stop) - epsilon)
+	local t_stop = Physics.ballStopTime(ball)
 
 	-- upper bound for sampling and binary search
 	local t_max = math.min(t_out, t_stop)
