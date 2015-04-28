@@ -5,7 +5,7 @@ local Field = require "../base/field"
 local World = require "../base/world"
 
 
---- Calculates the ball position and speed at a given time point in the future
+--- predicts the ball
 -- @param ball Ball - a ball-like structure, must contain the fields pos, speed, maxSpeed and radius
 -- @param time number - the number of seconds from now on
 -- @return Ball - the predicted ball as a ball-like structure
@@ -80,6 +80,11 @@ function Physics.ballAtTime(ball, time)
 end
 
 
+--- estimates the time the ball needs to travel a given distance
+-- the estimation does not exceed ballStopTime() unless the distance is too large, then it returns math.huge
+-- @param ball Ball - a ball-like structure
+-- @param distance number - the distance in meter
+-- @return number - the estimated time
 function Physics.ballRollTime(ball, distance)
 	-- a_slide: the negative acceleration while the ball is sliding [m/s^2]
 	-- a_roll: the negative acceleration while the ball is rolling [m/s^2]
@@ -129,9 +134,43 @@ function Physics.ballRollTime(ball, distance)
 	return t_result
 end
 
+
+--- calculates the time the ball needs to fully stop
+-- @param ball Ball - a ball-like structure
+-- @return number - the estimated stop time
+function Physics.ballStopTime(ball)
+	-- a_slide: the negative acceleration while the ball is sliding [m/s^2]
+	-- a_roll: the negative acceleration while the ball is rolling [m/s^2]
+	local a_slide = Constants.fastBallDeceleration
+	local a_roll = Constants.ballDeceleration
+
+	-- v_max: the speed at which the ball was shot [m/s]
+	-- v_switch: the speed of the ball at the moment where the ball starts rolling [m/s]
+	-- v_current: the speed of the ball, now [m/s]
+	local v_max = ball.maxSpeed
+	local v_switch = Constants.ballSwitchRatio * v_max
+	local v_current = ball.speed:length()
+
+	local t_slide = 0
+	local v_roll = v_current
+	if v_current > v_switch then
+		t_slide = (v_switch - v_current) / a_slide
+		v_roll = v_switch
+	end
+
+	local t_roll = (0 - v_roll) / a_roll
+
+	return t_slide + t_roll
+end
+
+
 --- approximates the time the given robot needs to pos for a given endSpeed
 -- uses a bang-bang motion profile
 -- calculations are done in 1D (along the line from robot.pos to pos)
+-- @param robot Robot
+-- @param pos Vector - the destination
+-- @param endSpeed Vector - the maximal velocity the robot is allowed to have in the given direction
+-- @return number - the estimated time
 function Physics.robotTimeToPos(robot, pos, endSpeed)
 	local accelerationFactor = 0.7 -- factor for max forward speedup and braking
 	-- forward acceleration and deceleration
@@ -184,13 +223,12 @@ function Physics.robotTimeToPos(robot, pos, endSpeed)
 		brakeTime = (robot.maxSpeed - v_delta - destSpeed) / brake
 		return accelTime + brakeTime
 	end
-
 end
 
 --- calculates the time the robot takes to somehow touch the ball
 -- @param robot Robot - the robot
 -- @param ball Ball - a ball-like structure
--- @return number - the expected time
+-- @return number - the estimated time
 function Physics.robotMinTimeToBall(robot, ball)
 	return Physics.robotTimeToBall(robot, ball, nil, robot.maxSpeed)
 end
@@ -200,7 +238,7 @@ end
 -- @param ball Ball - a ball-like structure
 -- @param targetPos - the position the robot will look at or nil, then the robot will look at the ball
 -- @param endSpeedLength - the maximal velocity of the robot when reaching the destination
--- @return number - the expected time
+-- @return number - the estimated time
 function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	-- calculate the time the ball needs to cross the field border
 	local lineCut = Field.nextLineCut(ball.pos, ball.speed)

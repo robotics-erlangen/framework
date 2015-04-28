@@ -4,7 +4,7 @@ local Physics = require "observer/physics"
 local IO = require "util/io"
 
 function PhysicsTest.testBallVsRobotTime()
-	local ball = {pos = Vector(0, 0), speed = Vector(0, 2), maxSpeed = 8, radius = 0.021}
+	local ball = {pos = Vector(0, 0), speed = Vector(0, 0), maxSpeed = 7, radius = 0.021}
 	local robot = {pos = Vector(0.3, 2.5), speed = Vector(0, 0), maxSpeed = 3, radius = 0.09}
 	local s_max = 4
 	local s_step = 0.01
@@ -31,6 +31,18 @@ function PhysicsTest.testBallVsRobotTime()
 
 	local x_ball = Physics.ballAtTime(ball, mintime).pos
 	log(mintime .. "s -- " .. x_ball.y .. "m")
+end
+
+function PhysicsTest.testBallStopTime()
+	local ball = {pos = Vector(0, 0), speed = Vector(0, 2), maxSpeed = 8, radius = 0.021}
+
+	local epsilon = 0.000001
+	local x_stop = Physics.ballAtTime(ball, math.huge).pos
+	local t_stop = Physics.ballRollTime(ball, ball.pos:distanceTo(x_stop) - epsilon)
+
+	local t_stop2 = Physics.ballStopTime(ball)
+
+	log(t_stop2 .. "     " .. t_stop)
 end
 
 return PhysicsTest
