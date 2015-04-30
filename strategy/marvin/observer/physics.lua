@@ -3,6 +3,7 @@ local Physics = {}
 local Constants = require "../base/constants"
 local Field = require "../base/field"
 local World = require "../base/world"
+local Cache = require "../base/cache"
 
 
 --- predicts the ball
@@ -225,6 +226,17 @@ function Physics.robotTimeToPos(robot, pos, endSpeed)
 	end
 end
 
+
+--- calculates the min endspeed for the robot to reach pos in the given time
+-- @param robot Robot
+-- @param pos Vector
+-- @param time number
+-- @return Vector - the endspeed vector (in the direction from robot to pos)
+function Physics.robotMinEndspeed(robot, pos, time)
+	error("STUB")
+end
+
+
 --- calculates the time the robot takes to somehow touch the ball
 -- @param robot Robot - the robot
 -- @param ball Ball - a ball-like structure
@@ -232,6 +244,7 @@ end
 function Physics.robotMinTimeToBall(robot, ball)
 	return Physics.robotTimeToBall(robot, ball, nil, robot.maxSpeed)
 end
+Physics.robotMinTimeToBall = Cache.forFrame(Physics.robotMinTimeToBall)
 
 --- calculates the time the robot takes to reach the ball (in a controlled fashion)
 -- @param robot Robot - the robot
