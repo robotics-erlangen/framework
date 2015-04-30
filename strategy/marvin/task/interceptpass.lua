@@ -1,6 +1,6 @@
 local InterceptPass = Class("Task.InterceptPass", require "task/base")
 
-local Ball = require "observer/ball"
+local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local Goal = require "observer/goal"
 
@@ -25,7 +25,7 @@ function InterceptPass.touchBallPosition(robot, timelimit)
 	local EXTRA_TIME = 0.1 -- to compensate the difference between timeToPos and the real robot time
 	local TIME_LIMIT = timelimit or 1
 
-	local t_ball = math.min(Ball.ballRollTime(World.Ball.speed:length(),
+	local t_ball = math.min(Physics.ballRollTime(World.Ball,
 			robot.pos:distanceTo(World.Ball.pos)), TIME_LIMIT)
 	local timestep = 0.5 * t_ball
 
@@ -49,14 +49,15 @@ function InterceptPass.touchBallPosition(robot, timelimit)
 		-- pos_robot = Robot at Time = t
 		-- X = Ball at Time = moment of collision > t
 
-		local pos_ball = Ball.ballAt(World.Ball, t_ball)
+		local pos_ball = Physics.ballAtTime(World.Ball, t_ball).pos
 		local to_robot = robot.pos - pos_ball
 		local unprojected_radius = math.min((robot.shootRadius + World.Ball.radius) /
 				math.sin(to_robot:absoluteAngleDiff(World.Ball.speed)), to_robot:length())
 		local pos_robot = pos_ball + to_robot:setLength(unprojected_radius)
 
 
-		if Robot.timeToPos(robot, pos_robot) + EXTRA_TIME < t_ball then
+		local endSpeed = (pos_robot - robot.pos):setLength(robot.maxSpeed)
+		if Physics.robotTimeToPos(robot, pos_robot, endSpeed) + EXTRA_TIME < t_ball then
 			t_ball = t_ball - timestep
 		else
 			t_ball = t_ball + timestep
@@ -72,7 +73,7 @@ function InterceptPass.touchBallPosition(robot, timelimit)
 		return nil
 	end
 
-	local ball_interception_pos = Ball.atTime(t_ball, World.Ball).pos
+	local ball_interception_pos = Physics.ballAtTime(World.Ball, t_ball).pos
 	vis.addCircle("t/interceptpass: interception pos", ball_interception_pos, 0.14, vis.colors.magentaHalf, true)
 
 	return ball_interception_pos, t_ball

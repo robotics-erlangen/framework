@@ -4,8 +4,8 @@ local ShootGoal = Class("Task.ShootGoal", require "task/base", Shoot)
 
 local Goal = require "observer/goal"
 local Shoot = require "observer/shoot"
-local Robot = require "observer/robot"
 local Ball = require "observer/ball"
+local Physics = require "observer/physics"
 
 local World = require "../base/world"
 local Cache = require "../base/cache"
@@ -94,10 +94,10 @@ function ShootGoal:guessFirstPassReceiptPosition()
 	local safetyTime = 0.4
 
 
-	local minTime = Robot.minTimeToBall(self._robot, World.Ball) + safetyTime
+	local minTime = Physics.robotMinTimeToBall(self._robot, World.Ball) + safetyTime
 	local maxTime = minTime + sampleTimeInterval
-	local minPos = Ball.atTime(minTime, World.Ball).pos
-	local maxPos = Ball.atTime(maxTime, World.Ball).pos
+	local minPos = Physics.ballAtTime(World.Ball, minTime).pos
+	local maxPos = Physics.ballAtTime(World.Ball, maxTime).pos
 
 	local dangerousRobots = {}
 	for _,r in ipairs(World.OpponentRobots) do
@@ -439,7 +439,7 @@ function ShootGoal:run()
 		-- or the ball is extremely slow
 		or World.Ball.speed:length() < 0.3
 		-- or we cannot catch the ball inside the field
-		or not Field.isInField(Ball.atTime(Robot.minTimeToBall(self._robot, World.Ball)).pos, 0)
+		or not Field.isInField(Physics.ballAtTime(World.Ball, Physics.robotMinTimeToBall(self._robot, World.Ball)).pos, 0)
 		-- or the viewPos makes sense and the angle is too large
 		or self._PRPstable and World.Ball.speed:absoluteAngleDiff(self._viewPos - self.targetPoint) > MAX_VOLLEY_ANGLE then
 			self._volleyPossible = false

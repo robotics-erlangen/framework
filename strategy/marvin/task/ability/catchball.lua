@@ -3,7 +3,7 @@ local CatchBall = {}
 local World = require "../base/world"
 local Constants = require "../base/constants"
 local ToTarget = require "trajectory/totarget"
-local Ball = require "observer/ball"
+local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
@@ -46,7 +46,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 		-- the point where the robot catches the ball directly
 		-- and the point where the robot gets the ball when the ball has stopped
 		-- as the direct catch is preferred we must ensure to start near that local minima
-		self._catchTime = Robot.minTimeToBall(self._robot, ball)
+		self._catchTime = Physics.robotMinTimeToBall(self._robot, ball)
 	end
 
 	-- check for fast ball and that it moves towards the robot
@@ -61,7 +61,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	end
 
 	-- predict ball and catch it
-	local predictedBall = Ball.atTime(self._catchTime, ball)
+	local predictedBall = Physics.ballAtTime(ball, self._catchTime)
 	-- catching the ball only makes sense if we really try to
 	-- a distance other than 0 is only useful for moving to a stopped ball
 	distanceToBall = distanceToBall or 0
@@ -76,8 +76,8 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
   	if self:_isBlockingBall(ball, predictedBall, moveDest) then
   		-- minimum required time to touch the ball
   		-- first touch could be before the robot has moved around the ball
-  		local minTimeToBall = math.min(Robot.minTimeToBall(self._robot, ball), self._catchTime)
-  		local minBall = Ball.atTime(minTimeToBall)
+  		local minTimeToBall = math.min(Physics.robotMinTimeToBall(self._robot, ball), self._catchTime)
+  		local minBall = Physics.ballAtTime(World.Ball, minTimeToBall)
   		self:_createBlockBallObstacle(self._robot.path, minBall, predictedBall)
   	else
   		self:_createHuntingBallObstacle(self._robot.path, predictedBall)
@@ -110,7 +110,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	end
 	debug.set("CatchBall/time", time)
 	debug.set("CatchBall/catchtime", self._catchTime)
-	vis.addCircle("t/a/catchball: CatchBall", Ball.atTime(self._catchTime, ball).pos, predictedBall.radius, vis.colors.blueHalf)
+	vis.addCircle("t/a/catchball: CatchBall", Physics.ballAtTime(ball, self._catchTime).pos, predictedBall.radius, vis.colors.blueHalf)
 end
 
 function CatchBall:_calculateHitTime(ball)
@@ -154,7 +154,7 @@ function CatchBall:_calculateHitTime(ball)
 	-- ballRollTime and atTime have to be consistent!
 	-- assumes that the robot is standing still or moving towards the ball
 	-- if the robot is fleeing this will cause it to stop moving away
-	local timeToRobot = Ball.ballRollTime(ball.speed:length(), rollDist)
+	local timeToRobot = Physics.ballRollTime(ball, rollDist)
 	-- timeToRobot is the upper bound for the catch time, musn't be an underestimation
 	-- can be much lower if the robot moves towards the ball
 	return timeToRobot

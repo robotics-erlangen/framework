@@ -3,7 +3,7 @@ local Pass = Class("Task.Pass", require "task/base", Shoot)
 
 local World = require "../base/world"
 local Robot = require "observer/robot"
-local Ball = require "observer/ball"
+local Physics = require "observer/physics"
 local vis = require "../base/vis"
 local geom = require "../base/geom"
 local debug = require "../base/debug"
@@ -40,10 +40,11 @@ function Pass:run()
 			break
 		end
 		local pointOfImpact = opp.pos:nearestPosOnLine(World.Ball.pos, self._targetRobot.pos)
-		local robotTime = Robot.timeToPos1D(opp, pointOfImpact, (pointOfImpact-opp.pos):setLength(opp.maxSpeed))
+		local robotTime = Physics.robotTimeToPos(opp, pointOfImpact, (pointOfImpact-opp.pos):setLength(opp.maxSpeed))
 		local shootDist = pointOfImpact:distanceTo(World.Ball.pos)
 		local shootSpeed = self._robot:calculateShootSpeed(self._passSpeed, shootDist)
-		local ballTime = Ball.ballRollTime(shootSpeed, shootDist)
+		local shootBall = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
+		local ballTime = Physics.ballRollTime(shootBall, shootDist)
 		debug.set("pass interception", {
 			opponent = opp,
 			["robot time"] = robotTime,

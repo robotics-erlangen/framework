@@ -197,17 +197,17 @@ function Physics.robotTimeToPos(robot, pos, endSpeed)
 		local maxSpeedTime = remainingDist / robot.maxSpeed
 		return accelTime + maxSpeedTime + brakeTime
 	else
-		if destSpeed > robotSpeed then
+		if destSpeed >= robotSpeed then
 			local minAccelTime = (destSpeed - robotSpeed) / accelerate
 			local minAccelDist = robotSpeed * minAccelTime + accelerate * minAccelTime * minAccelTime / 2
-			if minAccelDist > lineDist then
+			if minAccelDist >= lineDist then
 				-- won't be able to reach endSpeed
 				return (-robotSpeed + math.sqrt(robotSpeed*robotSpeed+2*accelerate*lineDist)) / accelerate
 			end
-		elseif destSpeed < robotSpeed then
+		elseif destSpeed <= robotSpeed then
 			local minBrakeTime = (robotSpeed - destSpeed) / brake
 			local minBrakeDist = destSpeed * minBrakeTime + brake * minBrakeTime * minBrakeTime / 2
-			if minBrakeDist > lineDist then
+			if minBrakeDist >= lineDist then
 				-- won't be able to brake down to endSpeed
 				return (-robotSpeed + math.sqrt(robotSpeed*robotSpeed-2*brake*lineDist)) / (-brake)
 			end
