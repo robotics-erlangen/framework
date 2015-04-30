@@ -233,7 +233,42 @@ end
 -- @param time number
 -- @return Vector - the endspeed vector (in the direction from robot to pos)
 function Physics.robotMinEndspeed(robot, pos, time)
-	error("STUB")
+	local direction = (pos - robot.pos):normalize
+	local minSpeed = 0
+	local maxSpeed = robot.maxSpeed
+
+	-- as slow as possible
+	local minTime = Physics.robotTimeToPos(robot, pos, minSpeed * direction)
+	if minTime < time then
+		-- the robot has more than enough time
+		return minSpeed * direction
+	end
+
+	-- as fast as possible
+	local maxTime = Physics.robotTimeToPos(robot, pos, maxSpeed * direction)
+	if maxTime > time then
+		-- the robot cannot make it in time
+		return maxSpeed * direction
+	end
+
+	-- binary search
+	-- resolution
+	local epsilon_v = 0.05
+
+	local v = maxSpeed / 2
+	local delta_v = maxSpeed / 4
+
+	while delta_v > epsilon_v do
+		local t = Physics.robotTimeToPos(robot, pos, v * direction)
+		if t < time then
+			v = v - delta_v
+		else
+			v = v + delta_v
+		end
+		delta_v = delta_v / 2
+	end
+
+	return v * direction
 end
 
 
