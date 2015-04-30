@@ -48,17 +48,6 @@ function Robot.wayToPosFree(pos, ignoreRobot1, ignoreRobot2, chipkick)
 	return true
 end
 
-function Robot.probableManMarker(robot)
-	for _,r in pairs(World.OpponentRobots) do
-		if r.pos:distanceTo(robot.pos) < 2*robot.radius + 2*r.radius then -- distance = 1 robot diameter
-			if (r.pos - robot.pos):absoluteAngleDiff(World.Ball.pos - robot.pos) < 45 /180*math.pi then
-				return r
-			end
-		end
-	end
-	return nil
-end
-
 
 function Robot.estimateOpponentDynamics()
 	for _, robot in pairs(World.OpponentRobots) do
@@ -206,28 +195,6 @@ function Robot.timeToPos(robot, pos)
 	return moveTime + accelTime
 end
 
---- returns the first robot to reach pos, together with a timeAdvance over the first opponent
--- timeAdvance is 0 if an opponent reaches pos first
-function Robot.firstAtPos(pos)
-	local fastestRobot = nil
-	local minTime = math.huge
-	for _, robot in ipairs(World.OpponentRobots) do
-		local time = Robot.timeToPos(robot, pos)
-		if time < minTime then
-			minTime = time
-			fastestRobot = robot
-		end
-	end
-	local opponentTime = minTime
-	for _, robot in ipairs(World.FriendlyRobots) do
-		local time = Robot.timeToPos(robot, pos)
-		if time < minTime then
-			minTime = time
-			fastestRobot = robot
-		end
-	end
-	return fastestRobot, opponentTime - minTime
-end
 
 --- approximates the time the given robot needs to pos for a given endSpeed
 -- uses a bang-bang motion profile
