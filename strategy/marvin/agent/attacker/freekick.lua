@@ -56,11 +56,8 @@ function FreeKick:_updateTask()
 
 	-- if we are not near the ball yet, don't decide what to do
 	if World.Time - self._startTime < hurryUp and not atBall then
-		local viewDir = World.Ball.pos.x > 0 and 0 or math.pi
+		local viewDir = math.pi / 2
 		-- don't require moving around the ball when shooting a corner kick
-		if Referee.isOffensiveCornerKick() then
-			viewDir = math.pi / 2
-		end
 		return MoveToStaticBall, { viewDir, nearBallDist }
 	end
 
