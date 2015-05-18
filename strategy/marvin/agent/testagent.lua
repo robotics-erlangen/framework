@@ -15,6 +15,7 @@ function TestAgent:init(robot, assignment)
 	self._testBehavior = nil
 	self._task = nil
 	self._assignedTask = nil
+	self._activeBehavior = nil
 	self._haltBehavior = Halt(self)
 	self._send, self._inbox = Messaging.registerAgent(self)
 	if assignment.task then

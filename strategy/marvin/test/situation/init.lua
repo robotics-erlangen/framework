@@ -199,10 +199,10 @@ local function run()
 		end
 	elseif state == "game" then
 		if situation.observe then situation.observe() end
-		if not coordinator then coordinator = Coordinator.create() end
+		if not coordinator then coordinator = Coordinator() end
 		if useBeaming and amun.situationtestGetBeamIndicator() and (not World.TeamIsBlue) then
 			amun.situationtestSetBeamIndicator(false)
-			coordinator = Coordinator.create() -- reset
+			coordinator = Coordinator() -- reset
 		end
 		coordinator:run()
 	else
