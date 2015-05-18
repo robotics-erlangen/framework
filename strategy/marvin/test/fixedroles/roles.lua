@@ -34,7 +34,6 @@ local roles = {
 		"aggressivekeeper",
 		"assistant",
 		"centerback",
-		"chipaway",
 		"defendpenalty",
 		"pass",
 		"duel",
