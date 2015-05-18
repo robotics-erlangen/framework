@@ -171,8 +171,11 @@ end
 -- @param robot Robot
 -- @param pos Vector - the destination
 -- @param endSpeed Vector - the maximal velocity the robot is allowed to have in the given direction
+-- @param brakeAndReturn - setting this to true, the robot will brake to stop and return to pos, if it would be faster than endSpeed.
+-- Warning! This can cause severe numerical instabilities if endSpeed points from robot.pos to pos and the robot is a bit too fast
+-- Then the robot must do a full stop and return to pos with zero endSpeed!
 -- @return number - the estimated time
-function Physics.robotTimeToPos(robot, pos, endSpeed)
+function Physics.robotTimeToPos(robot, pos, endSpeed, brakeAndReturn)
 	local accelerationFactor = 0.7 -- factor for max forward speedup and braking
 	-- forward acceleration and deceleration
 	local accelerate = math.abs(robot.acceleration
@@ -208,8 +211,19 @@ function Physics.robotTimeToPos(robot, pos, endSpeed)
 			local minBrakeTime = (robotSpeed - destSpeed) / brake
 			local minBrakeDist = destSpeed * minBrakeTime + brake * minBrakeTime * minBrakeTime / 2
 			if minBrakeDist >= lineDist then
-				-- won't be able to brake down to endSpeed
-				return (-robotSpeed + math.sqrt(robotSpeed*robotSpeed-2*brake*lineDist)) / (-brake)
+				if not brakeAndReturn then
+					-- won't be able to brake down to endSpeed
+					return (-robotSpeed + math.sqrt(robotSpeed*robotSpeed-2*brake*lineDist)) / (-brake)
+				end
+
+				-- create a fake robot at the position where the robot is able to brake
+				local fakeRobot = {
+					acceleration = robot.acceleration,
+					pos = robot.pos + lineDir * minBrakeDist,
+					maxSpeed = robot.maxSpeed,
+					speed = Vector(0, 0)
+				}
+				return minBrakeTime + Physics.robotTimeToPos(fakeRobot, pos, endSpeed)
 			end
 		end
 
