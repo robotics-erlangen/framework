@@ -27,8 +27,8 @@ function Volley.calcVOut(v_s, v_in, phi, alpha)
 	local sinpa = math.sin(phi - alpha)
 	local cospa = math.cos(phi - alpha)
 
-	local x = cosp * v_s - sinp * sinpa * mu_x * v_in + cosp * cospa * mu_y * v_in
-	local y = sinp * v_s + cosp * sinpa * mu_x * v_in + sinp * cospa * mu_y * v_in
+	local x = cosp * v_s + sinp * sinpa * mu_x * v_in - cosp * cospa * mu_y * v_in
+	local y = sinp * v_s - cosp * sinpa * mu_x * v_in - sinp * cospa * mu_y * v_in
 
 	return x, y
 end
@@ -101,9 +101,9 @@ function Volley:_Jf(v_s, phi)
 	local cospa = math.cos(phi - self._alpha)
 
 	local xdv_s = cosp
-	local xdphi = -sinp * v_s - (mu_x + mu_y) * self._v_in * (cosp * sinpa + sinp * cospa)
+	local xdphi = -sinp * v_s + (mu_x + mu_y) * self._v_in * (cosp * sinpa + sinp * cospa)
 	local ydv_s = sinp
-	local ydphi = cosp * v_s + (mu_x + mu_y) * self._v_in * (cosp * cospa - sinp * sinpa)
+	local ydphi = cosp * v_s - (mu_x + mu_y) * self._v_in * (cosp * cospa - sinp * sinpa)
 
 	return xdv_s, xdphi, ydv_s, ydphi
 end
@@ -118,7 +118,7 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 	if self._ballIncoming then
 		local relativeBallSpeed = World.Ball.speed - self._robot.speed
 		self._v_in = relativeBallSpeed:length()
-		self._alpha = (-relativeBallSpeed):angle()
+		self._alpha = relativeBallSpeed:angle()
 	end
 
 	local phi, v_s = self:calcPhi(self._v_in, self._alpha, viewPos, targetPos, targetSpeed)

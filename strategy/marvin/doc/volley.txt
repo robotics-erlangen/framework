@@ -4,7 +4,8 @@ Input:
 	gamma	angle	angle from B towards the goal target point
 	phi		angle	where the shooter looks at
 	v_in	vector	the "pass receive" ball speed
-	v_s		speed 	how fast we want to shoot
+	alpha	angle	direction of v_in
+	v_s		speed 	how fast the robot shoots
 	mu_x/y  factor  damping factor, mu_x is along the dribbler, mu_y perpendicular to it
 
 Output
@@ -13,7 +14,6 @@ Output
 Other symbols:
 	S		vector	the momentum the shoot action gives
 	R		vector	the reflection of the ball (components are called R_x, R_y)
-	alpha	angle	angle from B to A (derived)
 
 from_angle(phi) := { cos(phi), sin(phi) }
 
@@ -31,17 +31,17 @@ Coordinate system: (Field coordinates rotated by robot orientation)
 Formula:
 1	v_out = S + R_y + R_x
 2	S = e_x * v_s                                   (shoot in forward direction)
-3	R_y = e_y * -sin(phi - alpha) * mu_x * |v_in|   (sideward reflection)
-4	R_x = e_x *  cos(phi - alpha) * mu_y * |v_in|   (forward reflection)
+3	R_y = e_y *  sin(phi - alpha) * mu_x * |v_in|   (sideward reflection)
+4	R_x = e_x * -cos(phi - alpha) * mu_y * |v_in|   (forward reflection)
 
 
 In global coordinates:
 	v_out_x = 	cos(phi) * v_s
-			-	sin(phi) * sin(phi - alpha) * mu_x * |v_in|
-			+	cos(phi) * cos(phi - alpha) * mu_y * |v_in|
+			+	sin(phi) * sin(phi - alpha) * mu_x * |v_in|
+			-	cos(phi) * cos(phi - alpha) * mu_y * |v_in|
 	v_out_y =	sin(phi) * v_s
-			+	cos(phi) * sin(phi - alpha) * mu_x * |v_in|
-			+	sin(phi) * cos(phi - alpha) * mu_y * |v_in|
+			-	cos(phi) * sin(phi - alpha) * mu_x * |v_in|
+			-	sin(phi) * cos(phi - alpha) * mu_y * |v_in|
 
 
 
@@ -50,9 +50,9 @@ Equivalent formulation:
 	A . B := matrix multiplication
 	A * B := componentwise scalar multiplication
 
-	v_out = rot(phi) . ((1,0)*v_s + {{mu_y,0},{0,-mu_x}} . rot(-phi) . (cos(alpha), sin(alpha)) * |v_in|)
+	v_out = rot(phi) . ((1,0)*v_s + {{-mu_y,0},{0,mu_x}} . rot(-phi) . (cos(alpha), sin(alpha)) * |v_in|)
 	Interpretation:
-		- Calculate incoming ball with alpha and v_in
+		- Calculate incoming ball speed with alpha and v_in
 		- Transform to robot local coordinate system (1, 0) is forward, (0, 1) sidewards
 		- Deflect and apply damping using mu_x and mu_y
 		- Add shoot by robot with speed v_s
@@ -67,14 +67,14 @@ Gradient:
 	Grad(v_out_x) =	{
 		cos(phi),
 		-sin(phi) * v_s
-		- mu_x * |v_in| * (cos(phi) * sin(phi - alpha) + sin(phi) * cos(phi - alpha))
-		- mu_y * |v_in| * (cos(phi) * sin(phi - alpha) + sin(phi) * cos(phi - alpha))
+		+ mu_x * |v_in| * (cos(phi) * sin(phi - alpha) + sin(phi) * cos(phi - alpha))
+		+ mu_y * |v_in| * (cos(phi) * sin(phi - alpha) + sin(phi) * cos(phi - alpha))
 	} = {
 		cos(phi),
-		- sin(phi) * v_s - (mu_x + mu_y) * |v_in| * (cos(phi) * sin(phi - alpha) + sin(phi) * cos(phi - alpha))
+		- sin(phi) * v_s + (mu_x + mu_y) * |v_in| * (cos(phi) * sin(phi - alpha) + sin(phi) * cos(phi - alpha))
 	}
 	Grad(v_out_y) = {
 		sin(phi),
-		cos(phi) * v_s + (mu_x + mu_y) * |v_in| * (cos(phi) * cos(phi - alpha) - sin(phi) * sin(phi - alpha))
+		cos(phi) * v_s - (mu_x + mu_y) * |v_in| * (cos(phi) * cos(phi - alpha) - sin(phi) * sin(phi - alpha))
 	}
 
