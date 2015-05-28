@@ -3,8 +3,7 @@ local ReceivePass = {}
 local Constants = require "../base/constants"
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
-local Ball = require "observer/ball"
-local Robot = require "observer/robot"
+local Physics = require "observer/physics"
 local debug = require "../base/debug"
 local CatchBall = require "task/ability/catchball"
 
@@ -33,8 +32,8 @@ function ReceivePass:_receivePass(targetPos)
 	local ballPos = perpPos + Vector.fromAngle(faceBall):scaleLength(self._robot.shootRadius + World.Ball.radius)
 	local ballDist = ballPos:distanceTo(World.Ball.pos)
 
-	local moveTime = Robot.timeToPos1D(self._robot, perpPos, Vector.create(0,0))
-	local ballTime = Ball.ballRollTime(World.Ball.speed:length(), ballDist)
+	local moveTime = Physics.robotTimeToPos(self._robot, perpPos, Vector.create(0,0))
+	local ballTime = Physics.ballRollTime(World.Ball, ballDist)
 
 	local waitTime = ballTime - moveTime
 

@@ -1,5 +1,5 @@
 local Rating = {}
-local Robot = require("observer/robot")
+local Physics = require "observer/physics"
 
 function Rating.timeToRating(time)
 	if time < 0 then
@@ -10,7 +10,7 @@ function Rating.timeToRating(time)
 end
 
 function Rating.posToRating(robot, targetPos)
-	return Rating.timeToRating(Robot.timeToPos(robot, targetPos))
+	return Rating.timeToRating(Physics.robotTimeToPos(robot, targetPos, Vector(0, 0)))
 end
 
 return Rating

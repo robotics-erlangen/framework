@@ -4,20 +4,20 @@ local Physics = require "observer/physics"
 local IO = require "util/io"
 
 function PhysicsTest.testBallVsRobotTime()
-	local ball = {pos = Vector(0, 0), speed = Vector(0, 0), maxSpeed = 7, radius = 0.021}
-	local robot = {pos = Vector(0.3, 2.5), speed = Vector(0, 0), maxSpeed = 3, radius = 0.09}
+	local ball = {pos = Vector(0, 0), speed = Vector(0, 3), maxSpeed = 7, radius = 0.021}
+	local robot = {pos = Vector(0.00, 2), speed = Vector(0, 0), maxSpeed = 3, shootRadius = 0.08}
 	local s_max = 4
 	local s_step = 0.01
 
-
-	local mintime = Physics.robotMinTimeToBall(robot, ball)
+	local targetPos = Vector(0, -3)
+	local mintime = Physics.robotTimeToBall(robot, ball, targetPos, robot.maxSpeed)
 	local balldist = Physics.ballAtTime(ball, mintime).pos.y
 
 	local values = {}
 	for s = s_step,s_max,s_step do
 		local endspeed = (ball.pos - robot.pos):setLength(3)
 		local t_ball = Physics.ballRollTime(ball, s)
-		local t_robot = Physics.robotTimeToPos(robot, Vector(0, s), endspeed)
+		local t_robot = Physics.robotTimeForBallTime(robot, ball, targetPos, robot.maxSpeed, t_ball)
 		local t_diff = t_ball - t_robot
 
 		local mttb_flag = "NaN"
@@ -28,9 +28,6 @@ function PhysicsTest.testBallVsRobotTime()
 	end
 
 	IO.save("physicstest", values)
-
-	local x_ball = Physics.ballAtTime(ball, mintime).pos
-	log(mintime .. "s -- " .. x_ball.y .. "m")
 end
 
 function PhysicsTest.testBallStopTime()

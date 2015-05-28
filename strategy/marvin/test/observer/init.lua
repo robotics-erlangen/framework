@@ -6,7 +6,6 @@ local Tests = {
 	Goal = require "test/observer/goal",
 	Physics = require "test/observer/physics",
 	Robot = require "test/observer/robot",
-	Shoot = require "test/observer/shoot"
 }
 
 for name,s in pairs(Tests) do

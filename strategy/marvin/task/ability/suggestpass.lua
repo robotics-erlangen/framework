@@ -2,6 +2,7 @@ local SuggestPass = {}
 
 local World = require "../base/world"
 local Robot = require "observer/robot"
+local Physics = require "observer/physics"
 local Goal = require "observer/goal"
 local debug = require "../base/debug"
 local Ball = require "observer/ball"
@@ -74,9 +75,11 @@ function SuggestPass:_suggestPass()
                 -- and if no friendly robot is around
                 if not ballOwner or p:distanceTo(ballOwner.pos) > minDistToBall then
                     if minDistToAllRobots(p) > minDistToAll then
-                        local timeBallToP = Robot.minTimeToBall(mainAttacker, World.Ball)
-                            + Ball.rollTimeEndspeed(SHOOT_DRIVE_SPEED, World.Ball.pos:distanceTo(p))
-                        local timeSelfToP = Robot.timeToPos(self._robot, p)
+                        local shootSpeed = self._robot:calculateShootSpeed(SHOOT_DRIVE_SPEED, World.Ball.pos:distanceTo(p))
+                        local shootBall = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
+                        local timeBallToP = Physics.robotMinTimeToBall(mainAttacker, World.Ball)
+                            + Physics.ballRollTime(shootBall, World.Ball.pos:distanceTo(p))
+                        local timeSelfToP = Physics.robotTimeToPos(self._robot, p, Vector(0, 0))
                         local timeAdvance = timeBallToP - timeSelfToP
                         if timeAdvance < timeTolerance then
                             local biggestInterval = Goal.largestFreeSector(p, World.OpponentRobots, true)

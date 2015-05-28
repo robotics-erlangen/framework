@@ -4,11 +4,12 @@ local World = require "../base/world"
 local Field = require "../base/field"
 local G = World.Geometry
 local Interval = require "util/interval"
-local Ball = require "observer/ball"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local Constants = require "../base/constants"
 local Cache = require "../base/cache"
+local Physics = require "observer/physics"
+local Ball = require "observer/ball"
 local Volley = require "task/ability/volley"
 
 --- returns a list of all non-free sectors
@@ -125,7 +126,7 @@ function Goal.predictShot()
 			local corridorHalf = ballSpeed:perpendicular():setLength(World.Ball.radius + Constants.positionError)
 			for _, robot in pairs(World.OpponentRobots) do
 				local pointOnLine = robot.pos:nearestPosOnLine(pos, endOfField)
-				local ballRollTime = Ball.ballRollTime(ballSpeed:length(), (pointOnLine - pos):length())
+				local ballRollTime = Physics.ballRollTime(World.Ball, (pointOnLine - pos):length())
 				local chance = Ball.ballCatchProbability(robot, 0, ballRollTime, pointOnLine, corridorHalf)
 				if chance > 0 then
 					local index = 1
@@ -150,8 +151,8 @@ function Goal.predictShot()
 			if nPassReceivers > 0 then -- if there is a pass receiver, just block it
 				local passReciever = passReceivers[nPassReceivers]
 				pos = passReciever[1].pos + Vector.fromAngle(passReciever[1].dir) * (passReciever[1].shootRadius + World.Ball.radius)
-				local ballRollTime = Ball.ballRollTime(World.Ball.speed:length(), World.Ball.pos:distanceTo(pos))
-				local ballSpeedLength = Ball.atTime(ballRollTime, World.Ball).speed:length()
+				local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(pos))
+				local ballSpeedLength = Physics.ballAtTime(World.Ball, ballRollTime).speed:length()
 				local ballAngle = (-World.Ball.speed):angle()
 				local robotAngle = passReciever[1].dir
 				local dirx, diry = Volley.calcVOut(8, ballSpeedLength, robotAngle, ballAngle)

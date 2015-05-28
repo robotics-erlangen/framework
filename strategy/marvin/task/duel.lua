@@ -1,12 +1,14 @@
-local ClearBall = require "task/ability/clearball"
-local Duel = Class("Task.Duel", require "task/base", ClearBall)
+local Duel = Class("Task.Duel", require "task/base")
 
 local World = require "../base/world"
 local geom = require "../base/geom"
+local vis = require "../base/vis"
 local debug = require "../base/debug"
-local Direct = require "trajectory/direct"
-local Shoot = require "observer/shoot"
+local Physics = require "observer/physics"
 local Ball = require "observer/ball"
+local Direct = require "trajectory/direct"
+local ToTarget = require "trajectory/totarget"
+
 
 function Duel:_init()
 	self._opposer = nil
@@ -33,6 +35,22 @@ function Duel:_contest()
 	local ccw = intersection and math.sign(intersection.x) or 1 --positive = ccw, negative = cw
 	local toBall = (World.Ball.pos - self._robot.pos):setLength(0.2)
 	self._robot.trajectory:update(Direct, toBall, nil, ccw * 2 * 2*math.pi) -- 2 turns per second
+
+	-- send the position of the ball
+	self._send.attackPosition("all", World.Ball.pos)
+end
+
+function Duel:_clearBall()
+	local moveTime = Physics.robotMinTimeToBall(self._robot, World.Ball)
+	local moveDest = Physics.ballAtTime(World.Ball, moveTime).pos
+	local viewDir = (moveDest - self._robot.pos):angle()
+
+	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
+	-- don't predict opponents, to avoid the blocking the target position
+	self._robot.path:addRobotObstacles(self._robot, nil, nil, true)
+
+	self._robot.trajectory:update(ToTarget, moveDest, viewDir)
+	vis.addCircle("t/duel: ClearRobot", self._robot.pos, 0.15, vis.colors.redHalf, true)
 
 	-- send the position of the ball
 	self._send.attackPosition("all", World.Ball.pos)

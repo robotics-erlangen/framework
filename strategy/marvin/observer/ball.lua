@@ -6,20 +6,23 @@ local World = require "../base/world"
 local Field = require "../base/field"
 local geom = require "../base/geom"
 local debug = require "../base/debug"
-local ObserverRobot = require "observer/robot"
-local Physics = require "observer/physics"
 local vis = require "../base/vis"
 local math = require "../base/math"
 local plot = require "../base/plot"
 
----
--- @return robot, number - the first robot to reach the ball together with the time it will have in advance to the next opponent
+local ObserverRobot = require "observer/robot"
+local Physics = require "observer/physics"
+
+
+--- Gives the robot that can reach the ball first
+-- @return Robot - the fastest robot
+-- @return number - the time difference between the fastest opponent and the fastest friendly robot
 function Ball.firstAtBall()
 	local ball = World.Ball
 	local minTime = math.huge
 	local fastestRobot = nil
 	for _, robot in ipairs(World.OpponentRobots) do
-		local time = ObserverRobot.minTimeToBall(robot, World.Ball)
+		local time = Physics.robotMinTimeToBall(robot, World.Ball)
 		if time < minTime then
 			minTime = time
 			fastestRobot = robot
@@ -27,7 +30,7 @@ function Ball.firstAtBall()
 	end
 	local opponentTime = minTime
 	for _, robot in ipairs(World.FriendlyRobots) do
-		local time = ObserverRobot.minTimeToBall(robot, World.Ball)
+		local time = Physics.robotMinTimeToBall(robot, World.Ball)
 		if time < minTime then
 			minTime = time
 			fastestRobot = robot
@@ -36,31 +39,6 @@ function Ball.firstAtBall()
 	return fastestRobot, opponentTime - minTime
 end
 
-function Ball.toBall(robot, ball)
-	ball = ball or World.Ball
-
-	local timeBuffer = 0.3
-
-	local minTime = ObserverRobot.minTimeToBall(robot, ball)
-	local minPos = Ball.ballAt(ball, minTime)
-	local maxTime = minTime
-	local maxPos = Ball.ballAt(ball, maxTime)
-	local bsl = ball.speed:length()
-	local midPos, midTime
-	vis.addCircle("o/ball: to ball", minPos, 0.03, vis.colors.green, true)
-	vis.addCircle("o/ball: to ball", maxPos, 0.03, vis.colors.red, true)
-	repeat
-		midPos = (minPos + maxPos)/2
-		midTime = Ball.ballRollTime(bsl, midPos:distanceTo(ball.pos))
-		local robotTime = ObserverRobot.timeToPos(robot, midPos) + timeBuffer
-		if robotTime < midTime then
-			maxPos = midPos
-		else
-			minPos = midPos
-		end
-	until (maxPos - minPos):lengthSq() < 0.00001 -- 1 cm
-	return midPos, midTime
-end
 
 --- Calculates the effective distance between ball and dribbler
 -- find an ellipsis with the left and right dribbler edge points as focal points
@@ -152,86 +130,42 @@ function Ball.opponentBallOwner()
 end
 
 
-
---- Calculates how long the ball will take to travel the given distance. Return math.huge if the distance is unreachable.
--- @param v number - the initial speed
--- @param distance number - the distance
--- @return number - time the ball needs to roll distance
-function Ball.ballRollTime(v, distance)
-	assert(v >= 0 and distance >=0, "v and distance must be positive")
-	--distance = v*t + a/2*t^2
-	local acceleration = Constants.ballDeceleration
-	local t = math.solveSq(acceleration * 0.5, v, -distance)
-	return t or math.huge
-end
-
---- Calculates how long the ball will take to travel the given distance. Return math.huge if the distance is unreachable.
--- @param v number - the end speed
--- @param distance number - the distance
--- @return number - time the ball needs to roll distance
-function Ball.rollTimeEndspeed(v, distance)
-	assert(v >= 0 and distance >=0, "v and distance must be positive")
-	-- v0 = v + a*t
-	-- distance = a/2*t^2 + v0*t = -a/2*t^2 + v*t
-	local acceleration = Constants.ballDeceleration
-	local t = math.solveSq(-acceleration * 0.5, v, -distance)
-	return t or math.huge
-end
-
---- Calculates the position where the ball will be in a given time
--- ignores obstacles, also works for imaginary ball objects
--- @param ball object - the ball object which should be predicted
--- @param t number - the time after which the ball position is to be calculated
--- @return futureBallPos vector - the predicted ball position
-function Ball.ballAt(ball, t)
-	-- p_b(t) = p_b + v_b(t0) * t + a_b(t0) * t^2/2
-	local deceleration_vector = ball.speed:copy():setLength(ball.deceleration)
-	return ball.pos + ball.speed * t + deceleration_vector * (t^2/2) -- (8)
-end
-
---- Predicts the ball after a given time interval.
--- Assumes linear ball movement and linear deceleration
--- @param t number - time in seconds
--- @param ball Ball - defaults to World.Ball
--- @return Ball - predicted Ball-like table
-function Ball.atTime(t, ball)
-	ball = ball or World.Ball
-	return Physics.ballAtTime(ball, t)
-end
-
-local SLOW_BALL = 0.7 -- random value
-local MIN_TIME_ADVANCE = 0.5 -- somewhat random value
-local MAX_ANGLE = 45 -- another random value
+local SLOW_BALL = 0.5
+local MIN_TIME_ADVANCE = 0.2
+--- checks if the robot can get the currently moving ball as a pass
+-- always assumes that the robot moves to nearest point on the line defined by the ball sped
+-- @param robot Robot
+-- @return bool 
 function Ball.receivesPass(robot)
 	-- if the initial ball speed is too low
 	if World.Ball.speed:length() < SLOW_BALL then
 		return false
 	end
 
-	local farAway = World.Ball.pos + World.Ball.speed:copy():setLength(100)
-	local catchPos = robot.pos:nearestPosOnLine(World.Ball.pos, farAway)
-	local robotTime = ObserverRobot.timeToPos(robot, catchPos)
-	local ballTime = Ball.ballRollTime(World.Ball.speed:length(), (catchPos - World.Ball.pos):length())
-	local timeAdvance = robotTime - ballTime
+	local balldir =  (World.Ball.pos + World.Ball.speed):normalize()
+	local robotPos, lamda = geom.intersectLineLine(World.Ball.pos, balldir, robot.pos, balldir:perpendicular())
 
-	-- if the ball does not roll towards the robot
-	if World.Ball.speed:absoluteAngleDiff(robot.pos - World.Ball.pos) > MAX_ANGLE / 180 * math.pi then
+	-- if the robot is behind the ball
+	if lamda < robot.shootRadius + World.Ball.radius then
 		return false
 	end
 
-	-- if the robot is not fast enough
-	if timeAdvance > MIN_TIME_ADVANCE then
-		return false, timeAdvance
+	local robotTime = Physics.robotTimeToPos(robot, robotPos, Vector(0, 0))
+	local ballTime = Physics.ballRollTime(World.Ball, lamda - robot.shootRadius - World.Ball.radius)
+
+	-- if the robot takes longer than the ball
+	if ballTime - robotTime < MIN_TIME_ADVANCE then
+		return false
 	end
 
-	local futureBall = Ball.atTime(ballTime)
+	local futureBall = Physics.ballAtTime(World.Ball, ballTime)
 
-	-- if the catch ball speed is too low
+	-- if the ball will be too slow
 	if futureBall.speed:length() < SLOW_BALL then
-		return false, timeAdvance
+		return false
 	end
 
-	return true, timeAdvance
+	return true
 end
 Ball.receivesPass = Cache.forFrame(Ball.receivesPass)
 
@@ -317,7 +251,6 @@ function Ball.isShot()
 
 	local robot = nil
 	if condCooldown and condAccelerates and condFast then
-		local ObserverRobot = require "observer/robot"
 		for _,r in pairs(World.Robots) do
 			if ObserverRobot.hadBall(r, shootCooldown) then
 				condHadBall = true
