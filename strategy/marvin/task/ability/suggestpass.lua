@@ -45,6 +45,7 @@ function SuggestPass:_suggestPass()
         end
     end
 
+--[[
     local searchWidth = 0.5
     local searchHeight = 0.8
     local stepSize = 0.25
@@ -98,6 +99,7 @@ function SuggestPass:_suggestPass()
             end
         end
     end
+]]
 
     if bestRating > 0 then
         if passPos then
