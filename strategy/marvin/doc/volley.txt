@@ -1,7 +1,5 @@
 Input:
-	A		pos		position of initiator
-	B		pos		position of shooter
-	gamma	angle	angle from B towards the goal target point
+	v_r		vector	robot speed
 	phi		angle	where the shooter looks at
 	v_in	vector	the "pass receive" ball speed
 	alpha	angle	direction of v_in
@@ -9,7 +7,7 @@ Input:
 	mu_x/y  factor  damping factor, mu_x is along the dribbler, mu_y perpendicular to it
 
 Output
-	v_out	vector	the "shoot" ball speed
+	v_out	vector	the actual ball speed output after shooting
 
 Other symbols:
 	S		vector	the momentum the shoot action gives
@@ -18,9 +16,9 @@ Other symbols:
 from_angle(phi) := { cos(phi), sin(phi) }
 
 
+
 Idea:
-	if we want to be able to pass via volley, we need to control not only the direction, but also the
-	speed of the ball.
+	Use gradient descent to solve the formula for v_out. Variables are robot direction (phi) and shoot speed (v_s).
 
 
 Coordinate system: (Field coordinates rotated by robot orientation)

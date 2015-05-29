@@ -15,10 +15,7 @@ function Volley:init()
 	self._ballIncoming = true
 	self._shooting = false
 
-	self._v_in = nil
-	self._alpha = nil
-	self._v_out_x = nil
-	self._v_out_y = nil
+	self._ball_in = nil
 end
 
 function Volley.calcVOut(v_s, v_in, phi, alpha)
@@ -33,34 +30,49 @@ function Volley.calcVOut(v_s, v_in, phi, alpha)
 	return x, y
 end
 
-function Volley:calcPhi(v_in, alpha, viewPos, targetPos, targetSpeed)
-	self._v_in = v_in
-	self._alpha = alpha
+local function volley_Jf(v_s, phi, alpha, v_in)
+	local sinp = math.sin(phi)
+	local cosp = math.cos(phi)
+	local sinpa = math.sin(phi - alpha)
+	local cospa = math.cos(phi - alpha)
 
-	-- init v_out_x and v_out_y
+	local xdv_s = cosp
+	local xdphi = -sinp * v_s + (mu_x + mu_y) * v_in * (cosp * sinpa + sinp * cospa)
+	local ydv_s = sinp
+	local ydphi = cosp * v_s - (mu_x + mu_y) * v_in * (cosp * cospa - sinp * sinpa)
+
+	return xdv_s, xdphi, ydv_s, ydphi
+end
+
+function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
+	local v_in = ballSpeed:length()
+	local alpha = ballSpeed:angle()
+
+	-- calculate required shoot speed
 	local dist = targetPos:distanceTo(viewPos)
-	local dirToTarget = (targetPos - viewPos):normalize()
 	local abs_v_out = self._robot:calculateShootSpeed(targetSpeed, dist)
 	if targetSpeed == math.huge then
 		abs_v_out = self._robot.maxShotLinear + mu_y * v_in
 	end
 
-	self._v_out_x = dirToTarget.x * abs_v_out
-	self._v_out_y = dirToTarget.y * abs_v_out
-
+	-- relative output speed
+	local v_out = (targetPos - viewPos):setLength(abs_v_out)
 
 	-- guess initial values for v_s and phi
 	local v_s = abs_v_out
-	local gamma = dirToTarget:angle()
-	local phi = gamma
-
+	local phi = (targetPos - viewPos):angle()
+	-- caching
+	local calcVOut = Volley.calcVOut
+	local visData = {}
 
 	for i = 1, 5 do
-		local j11, j12, j21, j22 = self:_Jf(v_s, phi)
+		local j11, j12, j21, j22 = volley_Jf(v_s, phi, alpha, v_in)
 		local det = j11 * j22 - j21 * j12
 		local k11, k12, k21, k22 = j22/det, -j12/det, -j21/det, j11/det
 
-		local fx, fy = self:_f(v_s, phi)
+		local fx, fy = calcVOut(v_s, v_in, phi, alpha)
+		fx = fx - v_out.x
+		fy = fy - v_out.y
 
 		local v_s_new = v_s - (k11 * fx + k12 * fy)
 		local phi_new = phi - (k21 * fx + k22 * fy)
@@ -81,31 +93,15 @@ function Volley:calcPhi(v_in, alpha, viewPos, targetPos, targetSpeed)
 			phi = phi + 2*math.pi
 		end
 
-		local viewPoint = self._robot.pos + Vector.fromAngle(phi):scaleLength(10000)
-		vis.addPath("t/a/volley: Iterations", {self._robot.pos, viewPoint}, vis.colors.greenHalf)
+		local viewPoint = self._robot.pos + Vector.fromAngle(phi):scaleLength(100)
+		table.insert(visData, {self._robot.pos, viewPoint})
+	end
+	-- don't block the jit by calling c code
+	for _, data in ipairs(visData) do
+		vis.addPath("t/a/volley: Iterations", data, vis.colors.greenHalf)
 	end
 
 	return phi, v_s
-end
-
-
-function Volley:_f(v_s, phi)
-	local x, y = Volley.calcVOut(v_s, self._v_in, phi, self._alpha)
-	return x - self._v_out_x, y - self._v_out_y
-end
-
-function Volley:_Jf(v_s, phi)
-	local sinp = math.sin(phi)
-	local cosp = math.cos(phi)
-	local sinpa = math.sin(phi - self._alpha)
-	local cospa = math.cos(phi - self._alpha)
-
-	local xdv_s = cosp
-	local xdphi = -sinp * v_s + (mu_x + mu_y) * self._v_in * (cosp * sinpa + sinp * cospa)
-	local ydv_s = sinp
-	local ydphi = cosp * v_s - (mu_x + mu_y) * self._v_in * (cosp * cospa - sinp * sinpa)
-
-	return xdv_s, xdphi, ydv_s, ydphi
 end
 
 --- performs a volley shot without actively catching the ball
@@ -113,15 +109,12 @@ end
 -- @param targetPos Vector - where to shoot at
 -- @param targetSpeed number - how fast the Ball should arrive at targetPos
 function Volley:_volley(viewPos, targetPos, targetSpeed)
-
-	-- init v_in and alpha
+	-- init ball_in speed
 	if self._ballIncoming then
-		local relativeBallSpeed = World.Ball.speed - self._robot.speed
-		self._v_in = relativeBallSpeed:length()
-		self._alpha = relativeBallSpeed:angle()
+		self._ball_in = World.Ball.speed
 	end
 
-	local phi, v_s = self:calcPhi(self._v_in, self._alpha, viewPos, targetPos, targetSpeed)
+	local phi, v_s = self:calcPhi(self._ball_in, viewPos, targetPos, targetSpeed)
 
 	-- position the robot to receive the pass
 	local robotPos = viewPos - Vector.fromAngle(phi):scaleLength(

@@ -83,8 +83,8 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 
 	local targetDir
 	if World.Ball.speed:length() >= SLOW_BALL then
-		targetDir, targetSpeed = self:calcPhi(World.Ball.speed:length(),
-			World.Ball.speed:angle(), World.Ball.pos, targetPos, targetSpeed)
+		targetDir, targetSpeed = self:calcPhi(World.Ball.speed, World.Ball.pos,
+				targetPos, targetSpeed)
 	else
 		targetDir = (targetPos - World.Ball.pos):angle()
 	end
