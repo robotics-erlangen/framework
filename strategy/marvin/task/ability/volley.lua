@@ -7,6 +7,7 @@ local Ball = require "observer/ball"
 local ToTarget = require "trajectory/totarget"
 local Direct = require "trajectory/direct"
 local debug = require "../base/debug"
+local Constants = require "../base/constants"
 
 local mu_x = 0.8
 local mu_y = 0.3
@@ -54,6 +55,7 @@ function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 	if targetSpeed == math.huge then
 		abs_v_out = self._robot.maxShotLinear + mu_y * v_in
 	end
+	abs_v_out = math.min(Constants.maxBallSpeed, abs_v_out)
 
 	-- relative output speed
 	local v_out = (targetPos - viewPos):setLength(abs_v_out)
