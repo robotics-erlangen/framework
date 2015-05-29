@@ -18,6 +18,10 @@ local msgDefs = {
 	exclusiveRole = "table", -- value test is in getExclusiveRoleApplications
 	kickoffMirrorFlag = "flag",
 	passSuggestion = "table", -- { kind: string, rating: number [, pos: Vector] }
+	kickoffPass = "cdata",
+	testMessage = "number",
+	kickoffStart = "number",
+	targetTime = "number",
 
 	-- single sender
 	attackPosition = "cdata",
