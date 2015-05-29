@@ -46,6 +46,8 @@ local function volley_Jf(v_s, phi, alpha, v_in)
 end
 
 function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
+	-- relative ball speed
+	local ballSpeed = ballSpeed - self._robot.speed
 	local v_in = ballSpeed:length()
 	local alpha = ballSpeed:angle()
 
@@ -58,7 +60,7 @@ function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 	abs_v_out = math.min(Constants.maxBallSpeed, abs_v_out)
 
 	-- relative output speed
-	local v_out = (targetPos - viewPos):setLength(abs_v_out)
+	local v_out = (targetPos - viewPos):setLength(abs_v_out) - self._robot.speed
 
 	-- guess initial values for v_s and phi
 	local v_s = abs_v_out

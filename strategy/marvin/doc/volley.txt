@@ -1,3 +1,9 @@
+Inertial system:
+	v_in and v_out are relative to the robot speed (see below for derivation)
+
+	-> v_in := v_in^orig - v_r
+	-> v_out := v_out^orig - v_r
+
 Input:
 	v_r		vector	robot speed
 	phi		angle	where the shooter looks at
@@ -76,3 +82,18 @@ Gradient:
 		cos(phi) * v_s - (mu_x + mu_y) * |v_in| * (cos(phi) * cos(phi - alpha) - sin(phi) * sin(phi - alpha))
 	}
 
+
+
+Derivation of inertial system:
+	rot(phi) := {{cos(phi), -sin(phi)},{sin(phi), cos(phi)}}
+	A . B := matrix multiplication
+	A * B := componentwise scalar multiplication
+	^fs := robot local coordinate system
+
+	v_in^fs := rot(-phi) . v_in
+	v_r^fs  := rot(-phi) . v_r
+	R^fs    := {{-mu_y, 0},{0, mu_x}} . (v_in^fs - v_r^fs) = {{-mu_y, 0},{0, mu_x}} . rot(-phi) . (v_in - v_r)
+	S^fs    := (1,0) * v_s
+
+	b_out         =   S + R + v_r   =   rot(phi) . (S^fs + R^fs) + v_r
+	b_out - v_r   =   rot(phi) . ((1,0) * v_s + {{-mu_y, 0},{0, mu_x}} . rot(-phi) . (v_in - v_r))
