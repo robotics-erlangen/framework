@@ -6,7 +6,7 @@ local Field = require "../base/field"
 local constants = require "../base/constants"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
-local Robot = require "observer/robot"
+local Physics = require "observer/physics"
 local Rating = require "util/rating"
 local ToTarget = require "trajectory/totarget"
 
@@ -91,7 +91,7 @@ function CornerAttack:_tryCornerAttack()
     if gap then -- apply for role: time to gap
         local mainAttacker = self._inbox.mainAttacker().trainer
         if mainAttacker then -- Prevent having no mainAttacker, FIXME: discuss if this is the right way
-            local rating = Rating.timeToRating(Robot.timeToPos(self._robot, gap))
+            local rating = Rating.timeToRating(Physics.robotTimeToPos(self._robot, gap, Vector(0,0)))
             self._send.exclusiveRole("trainer", { cornerAttacker = rating })
         end
         if self._inbox.cornerAttacker().trainer == self._robot then
