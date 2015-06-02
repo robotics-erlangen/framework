@@ -39,6 +39,12 @@ Gen2012.constants = {
 -- @name Gen2012_2:chip
 -- @param distance number - Distance to chip
 function Gen2012:chip(distance)
+	if (require "../base/world").IsSimulated then
+		local distRatio = distance/self.maxShotChip
+		self:shootChip(math.bound(0.05, distRatio, 1))
+		return
+	end
+
 	if self.id == 7 then -- prototype
 		local power = distance / 4
 		self:shootChip(math.bound(0.1, power, 1))
@@ -51,6 +57,12 @@ end
 -- @name Gen2012_2:_shoot
 -- @param speed number - Target shoot speed
 function Gen2012:_shoot(speed)
+	if (require "../base/world").IsSimulated then
+		local speedRatio = speed/self.maxShotLinear
+		self:shootLinear(math.bound(0.05, speedRatio, 1))
+		return
+	end
+
 	local speedRatio = speed/self.maxShotLinear*8
 	local lim = math.bound(0, 162827-20000*speedRatio, 162827)
 	local power = -(math.sqrt(3)*math.sqrt(lim)-741)/1000

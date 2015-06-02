@@ -41,8 +41,8 @@ Constants.maxRobotRadius = 0.09
 function Constants.switchSimulatorConstants(isSimulated)
 	if isSimulated then
 		Constants.ballDeceleration = -0.35
-		Constants.fastBallDeceleration = -4.1
-		Constants.ballSwitchRatio = 0.7
+		Constants.fastBallDeceleration = -4.5
+		Constants.ballSwitchRatio = 0.69
 	else
 		-- measured by looking at the ball speed graph in the plotter
 		Constants.ballDeceleration = -0.3 -- acceleration which brakes the ball [m/s^2]
