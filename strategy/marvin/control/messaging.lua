@@ -8,6 +8,7 @@ local msgDefs = {
 	attackerFlag = "flag",
 	defenderFlag = "flag",
 	attackerRequest = "flag",
+	standardMoveFlag = "flag",
 	centerbackTarget = "table", -- Robot or World.Ball
 	preliminaryCenterbackTarget = "table",
 	defendedOpponent = Robot,
@@ -31,9 +32,6 @@ local msgDefs = {
 local exclusiveRoles = {
 	passReceiver = true,
 	mainAttacker = true,
-	freeKickDefender = true,
-	navChallengeRight = true,
-	navChallengeLeft = true,
 	cornerAttacker = true,
 }
 for role, _ in pairs(exclusiveRoles) do

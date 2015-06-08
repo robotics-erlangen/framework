@@ -12,7 +12,6 @@ local roles = {
 		"attacker/penalty",
 		"attacker/freekick",
 		"attacker/duel",
-		"attacker/freekickdefender",
 		"attacker/kickoffassistant",
 		"attacker/stop",
 		"attacker/applyformainattacker",

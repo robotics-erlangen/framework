@@ -162,4 +162,8 @@ function Referee.friendlyTouchedLast()
 	return lastTeam
 end
 
+function Referee.opponentTouchedLast()
+	return not Referee.friendlyTouchedLast()
+end
+
 return Referee
