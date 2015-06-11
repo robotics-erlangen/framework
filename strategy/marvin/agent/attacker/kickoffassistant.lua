@@ -36,6 +36,7 @@ function KickoffAssistant:check()
 		}
 		self._moveDest = table.shuffle(positions)[1]
 		debug.set("pos", self._moveDest.x)
+		-- remember that player is in the back of the field
 		if self._moveDest == positions[2] or self._moveDest== positions[4] then -- or self._moveDest== positions[4]or self._moveDest== positions[8] then
 			--self._send.kop("all", self._moveDest)
 			--debug.set("t3", 1)
@@ -67,7 +68,7 @@ function KickoffAssistant:_updateTask()
 		--self._send.testMessage("all", 1)
 		return KickoffPass, {self._moveDest, (G.OpponentGoal-self._moveDest):angle()}
 	end
-
+	--currently not used, because there will always be a player in the back
 	if self._movePos ~= self._moveDest then  -- player is on the goalline
 		--self._send.testMessage("all", 2)
 

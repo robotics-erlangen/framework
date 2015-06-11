@@ -17,6 +17,7 @@ function KickoffPass:_init(pos, dir)
 end
 
 function KickoffPass:run()
+	-- send message that a player is in the back to Main Attacker
 	self._send.kickoffPass("all", self._pos)
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.path:addRobotObstacles(self._robot)
