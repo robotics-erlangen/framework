@@ -302,11 +302,11 @@ function Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_
 	local x_robot = x_ball + offset
 
 	-- anywhere on the dribbler is okay, not only the center
-	local dribbler = (targetPos - x_ball):perpendicular():setLength(robot.dribblerWidth)
-	x_robot = robot.pos:nearestPosOnLine(x_robot + dribbler * 0.5, x_robot - dribbler * 0.5)
+	local dribblerHalf = (targetPos - x_ball):perpendicular():setLength(robot.dribblerWidth / 2)
+	x_robot = robot.pos:nearestPosOnLine(x_robot + dribblerHalf, x_robot - dribblerHalf)
 
 	-- calculate and save the robot time
-	local endSpeed = (x_ball - x_robot):setLength(endSpeedLength)
+	local endSpeed = (x_robot - robot.pos):setLength(endSpeedLength)
 	return Physics.robotTimeToPos(robot, x_robot, endSpeed, true)
 end
 
