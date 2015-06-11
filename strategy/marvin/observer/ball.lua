@@ -131,30 +131,33 @@ end
 
 
 local SLOW_BALL = 0.5
-local MIN_TIME_ADVANCE = 0.2
+local MIN_TIME_ADVANCE = 0
 --- checks if the robot can get the currently moving ball as a pass
 -- always assumes that the robot moves to nearest point on the line defined by the ball sped
 -- @param robot Robot
--- @return bool 
+-- @return bool
 function Ball.receivesPass(robot)
 	-- if the initial ball speed is too low
 	if World.Ball.speed:length() < SLOW_BALL then
+		debug.set("receivesPass", "slow ball")
 		return false
 	end
 
-	local balldir =  (World.Ball.pos + World.Ball.speed):normalize()
-	local robotPos, lamda = geom.intersectLineLine(World.Ball.pos, balldir, robot.pos, balldir:perpendicular())
+	local balldir = World.Ball.speed:copy():normalize()
+	local robotPos, lambda = geom.intersectLineLine(World.Ball.pos, balldir, robot.pos, balldir:perpendicular())
 
-	-- if the robot is behind the ball
-	if lamda < robot.shootRadius + World.Ball.radius then
+	-- if the ball is behind or inside the robot
+	if lambda < robot.shootRadius then
+		debug.set("receivesPass", "ball behind robot")
 		return false
 	end
 
 	local robotTime = Physics.robotTimeToPos(robot, robotPos, Vector(0, 0))
-	local ballTime = Physics.ballRollTime(World.Ball, lamda - robot.shootRadius - World.Ball.radius)
+	local ballTime = Physics.ballRollTime(World.Ball, math.max(0, lambda - robot.shootRadius - World.Ball.radius))
 
 	-- if the robot takes longer than the ball
 	if ballTime - robotTime < MIN_TIME_ADVANCE then
+		debug.set("receivesPass", "ball before robot")
 		return false
 	end
 
@@ -162,9 +165,11 @@ function Ball.receivesPass(robot)
 
 	-- if the ball will be too slow
 	if futureBall.speed:length() < SLOW_BALL then
+		debug.set("receivesPass", "slow future ball")
 		return false
 	end
 
+	debug.set("receivesPass", "yes")
 	return true
 end
 Ball.receivesPass = Cache.forFrame(Ball.receivesPass)
