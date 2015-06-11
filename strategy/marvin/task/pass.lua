@@ -39,10 +39,10 @@ function Pass:run()
 		if not self._targetRobot then
 			break
 		end
-		local pointOfImpact = opp.pos:nearestPosOnLine(World.Ball.pos, self._targetRobot.pos)
+		local pointOfImpact = opp.pos:nearestPosOnLine(World.Ball.pos, self._shootPos)
 		local robotTime = Physics.robotTimeToPos(opp, pointOfImpact, (pointOfImpact-opp.pos):setLength(opp.maxSpeed))
 		local shootDist = pointOfImpact:distanceTo(World.Ball.pos)
-		local shootSpeed = self._robot:calculateShootSpeed(self._passSpeed, shootDist)
+		local shootSpeed = self._robot:calculateShootSpeed(self._passSpeed, World.Ball.pos:distanceTo(self._shootPos))
 		local shootBall = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
 		local ballTime = Physics.ballRollTime(shootBall, shootDist)
 		debug.set("pass interception", {
