@@ -2,7 +2,7 @@ local Base = Class("Behavior.Base")
 
 local Messaging = require "control/messaging"
 local World = require "../base/world"
-local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local Rating = require "util/rating"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
@@ -66,7 +66,7 @@ function Base:_updateTask()
 end
 
 function Base:_applyForMainAttacker()
-	local timeToBall = Physics.robotMinTimeToBall(self._robot, World.Ball)
+	local timeToBall = Robot.minTimeToBall(self._robot)
 	local mainAttackerRating = Rating.timeToRating(timeToBall)
 	self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
 end

@@ -2,7 +2,8 @@ local Robot = {}
 local World = require "../base/world"
 local Constants = require "../base/constants"
 local Messaging = require "control/messaging"
-
+local Physics = require "observer/physics"
+local debug = require "../base/debug"
 
 
 --- checks if the ball can be shot directly to another robot
@@ -77,6 +78,35 @@ function Robot._updateHadBall()
 			hadBallTimes[r] = World.Time
 		end
 	end
+end
+
+local minTimeToBall = {}
+function Robot._updateMinTimeToBall()
+	local Ball = require "observer/ball"
+	for _,r in pairs(World.FriendlyRobots) do
+		if not minTimeToBall[r] or Ball.isShot() then
+			minTimeToBall[r] = 0
+		end
+
+		minTimeToBall[r] = math.max(0, minTimeToBall[r] - World.TimeDiff)
+		local predictedBallPos = Physics.ballAtTime(World.Ball, minTimeToBall[r]).pos
+		local viewPos = (predictedBallPos - r.pos):setLength(100) + r.pos
+		local timeToBall = math.min(20, Physics.robotTimeToBall(r, World.Ball, viewPos, r.maxSpeed))
+
+		-- damp large value changes
+		-- the centerpiece of the catchball algorithm
+		-- FIXME better damping for small changes
+		if timeToBall < minTimeToBall[r] then
+			minTimeToBall[r] = 0.8 * minTimeToBall[r] + 0.2 * timeToBall
+		else
+			minTimeToBall[r] = 0.95 * minTimeToBall[r] + 0.05 * timeToBall
+		end
+		debug.set("Agent "..tostring(r.id).."/minTimeToBall", minTimeToBall[r])
+	end
+end
+
+function Robot.minTimeToBall(robot)
+	return minTimeToBall[robot]
 end
 
 return Robot

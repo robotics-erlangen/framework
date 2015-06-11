@@ -25,6 +25,7 @@ local Referee = require "../base/referee"
 local preproc = Class("Process.PreProc", require "../base/process")
 function preproc:run()
     Robot.estimateOpponentDynamics()
+    Robot:_updateMinTimeToBall()
     Robot._updateHadBall()
     Referee.checkTouching()
     Referee.illustrateRefereeStates()
