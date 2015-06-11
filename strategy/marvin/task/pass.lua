@@ -34,30 +34,73 @@ function Pass:run()
 		self._shootPos = self._targetRobot.pos + Vector.fromAngle(self._targetRobot.dir) * self._targetRobot.shootRadius
 	end
 
-	local safetyTime = 0.2 -- configurable risk level, higher value = less safe (more linear shots)
+	local shootSpeed = self._robot:calculateShootSpeed(self._passSpeed,
+		World.Ball.pos:distanceTo(self._shootPos))	
+
+	local corridorWidthHalfInner = 0.04
+	local corridorWidthHalfOuter = 0.08
+	local opponentReactionTime = 0.15
+	local linearShootHysteresisFlag = true
 	for _, opp in ipairs(World.OpponentRobots) do
 		if not self._targetRobot then
 			break
 		end
-		local pointOfImpact = opp.pos:nearestPosOnLine(World.Ball.pos, self._shootPos)
-		-- expect the opponent to only intercept the pass facing towards our penalty spot
-		local offset = (pointOfImpact - World.Geometry.FriendlyPenaltySpot):setLength(opp.shootRadius + World.Ball.radius)
-		local robotTime = Physics.robotTimeToPos(opp, pointOfImpact + offset,
-			(pointOfImpact + offset - opp.pos):setLength(opp.maxSpeed))
-		local shootDist = pointOfImpact:distanceTo(World.Ball.pos)
-		local shootSpeed = self._robot:calculateShootSpeed(self._passSpeed, World.Ball.pos:distanceTo(self._shootPos))
-		local shootBall = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
-		local ballTime = Physics.ballRollTime(shootBall, shootDist)
-		debug.set("pass interception", {
-			opponent = opp,
-			["robot time"] = robotTime,
-			ballTime = ballTime,
-		})
-		vis.addCircle("t/pass: OppInterception", pointOfImpact, 0.1, vis.colors.blue, true)
-		if robotTime + safetyTime < ballTime and opp ~= World.OpponentKeeper then
+		if opp == World.OpponentKeeper then
+			goto continue
+		end
+
+		-- extrapolate the opponent for its reaction time
+		local futureOppPos = opp.pos + opp.speed * opponentReactionTime
+		local futureOpp = table.copy(opp)
+		futureOpp.pos = futureOppPos
+
+		-- if an opponent robot is already blocking a direct pass
+		-- (does also return false if an opponent rushes through)
+		local pointOfImpact = futureOppPos:nearestPosOnLine(World.Ball.pos, self._shootPos)
+		if futureOppPos:distanceTo(pointOfImpact) < corridorWidthHalfInner then
 			self._linearShoot = false
+			linearShootHysteresisFlag = false
 			break
 		end
+		if futureOppPos:distanceTo(pointOfImpact) < corridorWidthHalfOuter then
+			linearShootHysteresisFlag = false
+		end
+
+		-- calculate interception times of the robot
+		local pointNearImpactInner = pointOfImpact +
+			(futureOppPos - pointOfImpact):setLength(corridorWidthHalfInner)
+		local robotTimeInner = Physics.robotTimeToPos(futureOpp, pointNearImpactInner,
+			(pointNearImpactInner - futureOppPos):setLength(futureOpp.maxSpeed)) + opponentReactionTime
+		local pointNearImpactOuter = pointOfImpact +
+			(futureOppPos - pointOfImpact):setLength(corridorWidthHalfOuter)
+		local robotTimeOuter = Physics.robotTimeToPos(futureOpp, pointNearImpactOuter,
+			(pointNearImpactOuter - futureOppPos):setLength(futureOpp.maxSpeed)) + opponentReactionTime
+
+
+		-- calculate the ball time
+		local shootBall = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
+		local ballTime = Physics.ballRollTime(shootBall, pointOfImpact:distanceTo(World.Ball.pos))
+		
+		debug.set("pass interception"..opp.id, {
+			opponent = opp,
+			["robot time inner"] = robotTimeInner,
+			["robot time outer"] = robotTimeOuter,
+			["ball time"] = ballTime,
+		})
+		vis.addCircle("t/pass: OppInterception", pointOfImpact, 0.1, vis.colors.blue, true)
+		if robotTimeInner < ballTime then
+			self._linearShoot = false
+			linearShootHysteresisFlag = false
+			break
+		end
+		if robotTimeOuter < ballTime then
+			linearShootHysteresisFlag = false
+		end
+::continue::
+	end
+
+	if linearShootHysteresisFlag then
+		self._linearShoot = true
 	end
 
 	self:_shoot(self._shootPos, self._passSpeed, self._linearShoot, 3 * math.pi/180)
