@@ -78,7 +78,7 @@ function SuggestPass:_suggestPass()
                     if minDistToAllRobots(p) > minDistToAll then
                         local shootSpeed = self._robot:calculateShootSpeed(SHOOT_DRIVE_SPEED, World.Ball.pos:distanceTo(p))
                         local shootBall = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
-                        local timeBallToP = Physics.robotMinTimeToBall(mainAttacker, World.Ball)
+                        local timeBallToP = Robot.minTimeToBall(mainAttacker)
                             + Physics.ballRollTime(shootBall, World.Ball.pos:distanceTo(p))
                         local timeSelfToP = Physics.robotTimeToPos(self._robot, p, Vector(0, 0))
                         local timeAdvance = timeBallToP - timeSelfToP

@@ -2,7 +2,7 @@ local Base = require "agent/base/behavior"
 local Default = Class("Agent.Manual.Default", Base)
 
 local World = require "../base/world"
-local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local Ball = require "observer/ball"
 local Rating = require "util/rating"
 
@@ -68,7 +68,7 @@ function Default:check()
 	if Ball.friendlyBallOwner() == self._robot then
 		mainAttackerRating = 1.5
 	else
-		local timeToBall = Physics.robotMinTimeToBall(self._robot, World.Ball)
+		local timeToBall = Robot.minTimeToBall(self._robot)
 		mainAttackerRating = Rating.timeToRating(timeToBall) * 1.3 --small rating bonus to please the human player
 	end
 

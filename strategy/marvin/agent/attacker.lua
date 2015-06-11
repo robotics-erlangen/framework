@@ -14,7 +14,7 @@ local Default = require "agent/attacker/default"
 local KickoffDefensive = require "agent/attacker/kickoffdefensive"
 local MrlCornerMove = require "moves/mrlcorner/behavior"
 local Messaging = require "control/messaging"
-local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 
 Attacker._behaviors = {
 	ApplyForMainattacker,
@@ -55,7 +55,7 @@ function Attacker:rateRobot()
 		return 0
 	end
 	local toOpponentGoal = World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
-	local toBall = Physics.robotMinTimeToBall(self._robot, World.Ball)
+	local toBall = Robot.minTimeToBall(self._robot)
 	-- if we are 0.5m away from the ball, it counts as much as a whole field height at the distance to opp goal
 	-- k * exp(-0.5) = FieldHeight
 	-- k = exp(0.5) * FieldHeight

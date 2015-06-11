@@ -4,6 +4,7 @@ local SaveBall = Class("Task.SaveBall", require "task/base", ChipToBorder)
 local World = require "../base/world"
 local vis = require "../base/vis"
 local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local Field = require "../base/field"
 local ToTarget = require "trajectory/totarget"
 
@@ -13,7 +14,7 @@ function SaveBall:run()
 	local robotPos = self._robot.pos
 	local ballPos = World.Ball.pos
 	local ownGoal = World.Geometry.FriendlyGoal
-	local moveTime = Physics.robotMinTimeToBall(self._robot, World.Ball)
+	local moveTime = Robot.minTimeToBall(self._robot)
 	local moveDest = Physics.ballAtTime(World.Ball, moveTime).pos
 	moveDest = moveDest + (robotPos - moveDest):setLength(World.Ball.radius)
 	if ballPos.y < robotPos.y then

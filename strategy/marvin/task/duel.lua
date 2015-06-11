@@ -6,6 +6,7 @@ local vis = require "../base/vis"
 local debug = require "../base/debug"
 local Physics = require "observer/physics"
 local Ball = require "observer/ball"
+local Robot = require "observer/robot"
 local Direct = require "trajectory/direct"
 local ToTarget = require "trajectory/totarget"
 
@@ -41,7 +42,7 @@ function Duel:_contest()
 end
 
 function Duel:_clearBall()
-	local moveTime = Physics.robotMinTimeToBall(self._robot, World.Ball)
+	local moveTime = Robot.minTimeToBall(self._robot)
 	local moveDest = Physics.ballAtTime(World.Ball, moveTime).pos
 	local viewDir = (moveDest - self._robot.pos):angle()
 

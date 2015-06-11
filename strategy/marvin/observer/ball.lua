@@ -22,7 +22,7 @@ function Ball.firstAtBall()
 	local minTime = math.huge
 	local fastestRobot = nil
 	for _, robot in ipairs(World.OpponentRobots) do
-		local time = Physics.robotMinTimeToBall(robot, World.Ball)
+		local time = ObserverRobot.minTimeToBall(robot)
 		if time < minTime then
 			minTime = time
 			fastestRobot = robot
@@ -30,7 +30,7 @@ function Ball.firstAtBall()
 	end
 	local opponentTime = minTime
 	for _, robot in ipairs(World.FriendlyRobots) do
-		local time = Physics.robotMinTimeToBall(robot, World.Ball)
+		local time = ObserverRobot.minTimeToBall(robot)
 		if time < minTime then
 			minTime = time
 			fastestRobot = robot

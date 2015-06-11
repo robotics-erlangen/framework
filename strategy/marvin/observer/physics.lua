@@ -285,16 +285,6 @@ function Physics.robotMinEndspeed(robot, pos, time)
 end
 
 
---- calculates the time the robot takes to somehow touch the ball
--- in most cases the robot tends to look roughly at the opponent penalty spot
--- @param robot Robot - the robot
--- @param ball Ball - a ball-like structure
--- @return number - the estimated time
-function Physics.robotMinTimeToBall(robot, ball)
-	return Physics.robotTimeToBall(robot, ball, World.Geometry.OpponentPenaltySpot, robot.maxSpeed)
-end
-Physics.robotMinTimeToBall = Cache.forFrame(Physics.robotMinTimeToBall)
-
 --- calculates the time the robot needs to move to the position next to the ball at given t_ball
 function Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball)
 	local x_ball = Physics.ballAtTime(ball, t_ball).pos

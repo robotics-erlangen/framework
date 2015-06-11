@@ -83,8 +83,12 @@ end
 local minTimeToBall = {}
 function Robot._updateMinTimeToBall()
 	local Ball = require "observer/ball"
-	for _,r in pairs(World.FriendlyRobots) do
-		if not minTimeToBall[r] or Ball.isShot() then
+	if Ball.isShot() then
+		minTimeToBall = {}
+	end
+
+	for _,r in pairs(World.Robots) do
+		if not minTimeToBall[r] then
 			minTimeToBall[r] = 0
 		end
 
@@ -101,7 +105,7 @@ function Robot._updateMinTimeToBall()
 		else
 			minTimeToBall[r] = 0.95 * minTimeToBall[r] + 0.05 * timeToBall
 		end
-		debug.set("Agent "..tostring(r.id).."/minTimeToBall", minTimeToBall[r])
+		--debug.set("Agent "..tostring(r.id).."/minTimeToBall", minTimeToBall[r])
 	end
 end
 

@@ -4,10 +4,11 @@ local AggressiveKeeper = Class("Task.AggressiveKeeper",
 
 local World = require "../base/world"
 local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local ToTarget = require "trajectory/totarget"
 
 function AggressiveKeeper:run()
-	local ballTime = Physics.robotMinTimeToBall(self._robot, World.Ball)
+	local ballTime = Robot.minTimeToBall(self._robot)
 	local ballPos = Physics.ballAtTime(World.Ball, ballTime).pos
 	local fromGoal = (ballPos - World.Geometry.FriendlyGoal):angle()
 
