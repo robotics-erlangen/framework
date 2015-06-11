@@ -23,6 +23,61 @@ function CatchBall:init()
 	self._catchTime = nil
 end
 
+local function distToTime(robotSpeed, robotMaxSpeed, robotAccel, ballSpeed, ballAccel, dist)
+	-- x(t) = x0 - integral(0 to t, v_r(t) + v_b(t) dt)
+	-- solve x(t) = 0 for t
+	-- v_r(t) = v_r_0 + a_r*t  if t < (v_max - v_r_0)/a_r
+	--          v_max          otherwise
+	-- v_b(t) = v_b_0 + a_b*t  if t < v_b_0 / a_b
+	--          0              otherwise
+	-- a_r is robot acceleration
+	-- a_b is ball deceleration along direction towards the robot
+
+	-- times until full acceleration / stop and distances traveled until then
+	local timeRobot = math.max(0, (robotMaxSpeed - robotSpeed) / robotAccel)
+	local distRobot = robotSpeed * timeRobot + robotAccel * timeRobot^2 * 0.5
+	local timeBall = math.max(0, -ballSpeed / ballAccel)
+	local distBall = ballSpeed * timeBall + ballAccel * timeBall^2 * 0.5
+
+	-- Solve equations for each interval and check that the result is in it
+	local t = math.solveSq((robotAccel+ballAccel)*0.5, robotSpeed+ballSpeed, -dist)
+	if t and t <= math.min(timeRobot, timeBall) then
+		return t < 0 and 0 or t
+	end
+
+	if timeRobot < timeBall then
+		local distLeft = dist - distRobot + timeRobot * robotMaxSpeed
+		t = math.solveSq(ballAccel * 0.5, robotMaxSpeed + ballSpeed, -distLeft)
+	elseif timeBall < timeRobot then
+		local distLeft = dist - distBall
+		t = math.solveSq(robotAccel * 0.5, robotSpeed, -distLeft)
+	end
+	if t and t >= math.min(timeRobot, timeBall) and t <= math.max(timeRobot, timeBall) then
+		return t
+	end
+
+	local distLeft = dist - distRobot - distBall + timeRobot * robotMaxSpeed
+	return distLeft / robotMaxSpeed
+end
+
+-- just a crude approximation
+function CatchBall:_approxMinTimeToBall(robot, ball)
+	local posDiff = (ball.pos - robot.pos):normalize()
+	local dist = math.max(0, ball.pos:distanceTo(robot.pos) - ball.radius - robot.radius)
+	-- speed of ball and robot towards each other
+	local robotSpeed = posDiff:dot(robot.speed)
+	local robotAccel = robot.maxAcceleration
+
+	local ballSpeed = -posDiff:dot(ball.speed)
+	local ballAccel
+	if ballSpeed == 0 then -- prevent division by zero for timeBall
+		ballAccel = 1 -- only used together with ballSpeed
+	else
+		ballAccel = (ballSpeed / ball.speed:length()) * Constants.ballDeceleration
+	end
+
+	return distToTime(robotSpeed, robot.maxSpeed, robotAccel, ballSpeed, ballAccel, dist)
+end
 
 --- Tries to catch the ball, is designed for catching a moving ball
 -- @param targetPos Vector - point to look at when having catched the ball
@@ -46,7 +101,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 		-- the point where the robot catches the ball directly
 		-- and the point where the robot gets the ball when the ball has stopped
 		-- as the direct catch is preferred we must ensure to start near that local minima
-		self._catchTime = Physics.robotMinTimeToBall(self._robot, ball)
+		self._catchTime = self:_approxMinTimeToBall(self._robot, ball)
 	end
 
 	-- check for fast ball and that it moves towards the robot
@@ -76,7 +131,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
   	if self:_isBlockingBall(ball, predictedBall, moveDest) then
   		-- minimum required time to touch the ball
   		-- first touch could be before the robot has moved around the ball
-  		local minTimeToBall = math.min(Physics.robotMinTimeToBall(self._robot, ball), self._catchTime)
+  		local minTimeToBall = math.min(self:_approxMinTimeToBall(self._robot, ball), self._catchTime)
   		local minBall = Physics.ballAtTime(World.Ball, minTimeToBall)
   		self:_createBlockBallObstacle(self._robot.path, minBall, predictedBall)
   	else
