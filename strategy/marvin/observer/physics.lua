@@ -298,24 +298,22 @@ Physics.robotMinTimeToBall = Cache.forFrame(Physics.robotMinTimeToBall)
 --- calculates the time the robot needs to move to the position next to the ball at given t_ball
 function Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball)
 	local x_ball = Physics.ballAtTime(ball, t_ball).pos
-	local offset
-	if targetPos then
-		offset = (x_ball - targetPos):setLength(ball.radius + robot.shootRadius)
-	else
-		offset = (robot.pos - x_ball):setLength(ball.radius + robot.shootRadius)
-	end
+	local offset = (x_ball - targetPos):setLength(ball.radius + robot.shootRadius)
 	local x_robot = x_ball + offset
+
+	-- anywhere on the dribbler is okay, not only the center
+	local dribbler = (targetPos - x_ball):perpendicular():setLength(robot.dribblerWidth)
+	x_robot = robot.pos:nearestPosOnLine(x_robot + dribbler * 0.5, x_robot - dribbler * 0.5)
 
 	-- calculate and save the robot time
 	local endSpeed = (x_ball - x_robot):setLength(endSpeedLength)
 	return Physics.robotTimeToPos(robot, x_robot, endSpeed, true)
 end
-Physics.robotMinTimeToBall = Cache.forFrame(Physics.robotMinTimeToBall)
 
 --- calculates the time the robot takes to reach the ball (in a controlled fashion)
 -- @param robot Robot - the robot
 -- @param ball Ball - a ball-like structure
--- @param targetPos - the position the robot will look at or nil, then the robot will look at the ball
+-- @param targetPos - the position the robot will look at
 -- @param endSpeedLength - the maximal velocity of the robot when reaching the destination
 -- @return number - the estimated time
 function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
