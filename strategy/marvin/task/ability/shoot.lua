@@ -46,11 +46,19 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		self:_resetShoot()
 		self:_receivePass(targetPos)
 	else -- catch the ball
-		debug.set("ballApproach", "catchBall")
 		debug.set("shoot command", "none")
 		-- just catch the ball, but keep a little distance to allow braking the robot
 		self:_resetShoot()
-		self:_catchBall(targetPos, 2*Constants.positionError)
+		local ballDist = 2*Constants.positionError
+		if World.Ball.speed:length() > SLOW_BALL and (World.Ball.pos - self._robot.pos):dot(World.Ball.speed) < 0 then
+			-- the ball is moving towards the robot, no extra distance necessary
+			ballDist = 0
+			debug.set("ballApproach", "catchBall (no dist)")
+		else
+			debug.set("ballApproach", "catchBall")
+		end
+
+		self:_catchBall(targetPos, ballDist)
 	end
 	if (not self._catchTime) or self._catchTime < 0.5 then
 		self._send.shootDestination("all", targetPos)
@@ -92,6 +100,21 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	-- calculate current distance to the ball
 	local distToBall = (World.Ball.pos - self._robot.pos):rotate(-targetDir)
 	distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
+
+	if World.Ball.speed:length() >= SLOW_BALL then
+		local speedDiff = World.Ball.speed - self._robot.speed
+		local posDiff = World.Ball.pos - self._robot.pos
+		if speedDiff:length() >= SLOW_BALL and speedDiff:dot(posDiff) < 0 then
+			debug.set("special", "shot at robot")
+			-- ball shoot towards robots
+			local balldir = World.Ball.speed:copy():normalize()
+			local robotFront = self._robot.pos + Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
+			-- calculate sidewards offset of ball hitpoint
+			local _, _, lambda = geom.intersectLineLine(World.Ball.pos, balldir, robotFront, balldir:perpendicular())
+			distToBall = Vector(posDiff:length() - self._robot.shootRadius - World.Ball.radius, lambda)
+		end
+	end
+	debug.set("distToBall", distToBall)
 
 	-- sidewards offset
 	local speedLimit = 0.4
