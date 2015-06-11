@@ -34,13 +34,16 @@ function Pass:run()
 		self._shootPos = self._targetRobot.pos + Vector.fromAngle(self._targetRobot.dir) * self._targetRobot.shootRadius
 	end
 
-	local safetyTime = 0 -- configurable risk level
+	local safetyTime = 0.2 -- configurable risk level, higher value = less safe (more linear shots)
 	for _, opp in ipairs(World.OpponentRobots) do
 		if not self._targetRobot then
 			break
 		end
 		local pointOfImpact = opp.pos:nearestPosOnLine(World.Ball.pos, self._shootPos)
-		local robotTime = Physics.robotTimeToPos(opp, pointOfImpact, (pointOfImpact-opp.pos):setLength(opp.maxSpeed))
+		-- expect the opponent to only intercept the pass facing towards our penalty spot
+		local offset = (pointOfImpact - World.Geometry.FriendlyPenaltySpot):setLength(opp.shootRadius + World.Ball.radius)
+		local robotTime = Physics.robotTimeToPos(opp, pointOfImpact + offset,
+			(pointOfImpact + offset - opp.pos):setLength(opp.maxSpeed))
 		local shootDist = pointOfImpact:distanceTo(World.Ball.pos)
 		local shootSpeed = self._robot:calculateShootSpeed(self._passSpeed, World.Ball.pos:distanceTo(self._shootPos))
 		local shootBall = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
