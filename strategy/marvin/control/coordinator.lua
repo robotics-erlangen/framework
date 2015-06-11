@@ -38,20 +38,22 @@ end
 
 function Coordinator:run()
 	self._trainer:run()
+
+	-- the trainer inbox is empty after deliverMessages
+	local attackers, defenders = self._trainer:attackRatio()
+	debug.set("#attackers", attackers)
+	-- only take one request per frame
+	local changingRobot = self._trainer:changingRobot()
+
 	Messaging.deliverMessages()
-	self:_updatePoolRobots()
+	self:_updatePoolRobots(attackers, defenders, changingRobot)
 	-- run every pool and thus every agent
 	for _, pool in pairs(self._pools) do
 		pool:run()
 	end
 end
 
-function Coordinator:_updatePoolRobots()
-	local attackers, defenders = self._trainer:attackRatio()
-	debug.set("#attackers", attackers)
-
-	-- only take one request per frame
-	local changingRobot = self._trainer:changingRobot()
+function Coordinator:_updatePoolRobots(attackers, defenders, changingRobot)
 	if changingRobot then
 		-- kick the least suitable attacker
 		self._pools.attack:setRobotLimit(attackers-1)
