@@ -119,6 +119,10 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 	end
 
 	local phi, v_s = self:calcPhi(self._ball_in, viewPos, targetPos, targetSpeed)
+	if v_s < 0 then
+		-- FIXME fallback for negative v_s
+		v_s = 0
+	end
 
 	-- position the robot to receive the pass
 	local robotPos = viewPos - Vector.fromAngle(phi):scaleLength(
@@ -133,7 +137,6 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 		self._shooting = false
 	end
 	if self._shooting then
-		v_s = math.huge
 		self._robot:shoot(v_s, 0)
 		debug.set("shoot command", "linear")
 	else
