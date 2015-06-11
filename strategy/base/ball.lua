@@ -77,7 +77,7 @@ function Ball:_update(data, time)
 	-- speed tracking
 	-- framesDecelerating counts the number of frames since the last extreme acceleration
 	-- so even if the ball slowly accelerates, framesDecelerating will not reset
-	if self.speed:length() - lastSpeedLength > 0.5 then
+	if self.speed:length() - lastSpeedLength > 0.2 then
 		self.framesDecelerating = 0
 	else
 		self.framesDecelerating = self.framesDecelerating + 1
