@@ -38,7 +38,7 @@ function KickoffOffensive:_updateTask()
 					debug.set("targetTime", "true")
 					--return ShootGoal
 					for rr, k in pairs(self._inbox.kickoffPass()) do
-						return Pass, {r, Vector(k.x, -k.y*0.35)}
+						return Pass, {r, Vector(k.x, -k.y*0.6)}
 					end			
 				--end
 			end
