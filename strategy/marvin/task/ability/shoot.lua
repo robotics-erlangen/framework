@@ -190,7 +190,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		-- keep distance to the ball
 		local minDist
 		if self._travelLimit then
-			minDist = minDist + 0.06
+			minDist = 0.075
 		elseif World.Ball.speed:length() > SLOW_BALL then
 			-- don't keep any distance to a moving ball
 			minDist = 0
