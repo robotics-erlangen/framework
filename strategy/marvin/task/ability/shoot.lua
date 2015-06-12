@@ -100,13 +100,9 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	end
 	speed = speed:rotate(self._robot.dir)
 
-	local targetDir
-	if World.Ball.speed:length() >= SLOW_BALL then
-		targetDir, targetSpeed = self:calcPhi(World.Ball.speed, World.Ball.pos,
+	-- calculate shoot direction
+	local targetDir, targetSpeed = self:calcPhi(World.Ball.speed, World.Ball.pos,
 				targetPos, targetSpeed)
-	else
-		targetDir = (targetPos - World.Ball.pos):angle()
-	end
 
 	-- calculate current distance to the ball
 	local distToBall = (World.Ball.pos - self._robot.pos):rotate(-targetDir)
@@ -165,7 +161,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 
 		local dist = targetPos:distanceTo(self._robot.pos)
 		if linearShoot then
-			self._robot:shoot(targetSpeed, dist)
+			self._robot:shoot(targetSpeed, 0)
 			debug.set("shoot command", "linear")
 		else
 			self._robot:chip(dist*CHIP_DIST_SCALE)
