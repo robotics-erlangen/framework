@@ -188,9 +188,15 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		end
 
 		-- keep distance to the ball
-		local minDist = Constants.positionError + 0.01
+		local minDist
 		if self._travelLimit then
 			minDist = minDist + 0.06
+		elseif World.Ball.speed:length() > SLOW_BALL then
+			-- don't keep any distance to a moving ball
+			minDist = 0
+		else
+			-- don't push the ball until the robot is correctly oriented
+			minDist = Constants.positionError + 0.01
 		end
 		if distToBall.x < minDist then
 			local distError = minDist - distToBall.x
