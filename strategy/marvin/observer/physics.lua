@@ -395,9 +395,9 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 					local t_ball = t_ball_maxsearch_start + j * t_ball_maxsearch_step
 					local t_robot = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball)
 
-					local last_t_diff = last_t_robot - last_t_ball
-					local t_diff = t_robot - t_ball
-					
+					local last_t_diff = last_t_ball - last_t_robot
+					local t_diff = t_ball - t_robot
+
 					-- check for zero crossing
 					if last_t_diff < 0 and t_diff > 0 then
 						t_ball_bsearch_start = last_t_ball
@@ -410,6 +410,9 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 						search_first_maximum = false
 						break
 					end
+
+					last_t_ball = t_ball
+					last_t_robot = t_robot
 				end
 				if t_ball_bsearch_start then
 					break
