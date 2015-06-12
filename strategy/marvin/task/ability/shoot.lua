@@ -17,7 +17,8 @@ local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
 local SHOOT_SIDE_OFFSET = 0.05 -- extends the hasBall sidewards
 local FORCE_SHOOT_DELAY = 0.03 -- delay kick by this time
 local CHIP_DIST_SCALE = 0.7 -- shorten chip distance as the ball will bounce
-local SLOW_BALL = 0.5
+local MOVING_BALL = 0.6
+local STOPPED_BALL = 0.1
 
 Shoot.depends = { ReceivePass, Volley }
 
@@ -26,10 +27,17 @@ function Shoot:init()
 	self._travelStart = nil
 	self._travelLimit = false
 	self._forceShootTimer = nil
+	self._movingBallHysteresis = false
 end
 
 -- shoot immediatelly if angle error is below maxAngleError
 function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
+	if World.Ball.speed:length() > MOVING_BALL then
+		self._movingBallHysteresis = true
+	elseif World.Ball.speed:length() < STOPPED_BALL then
+		self._movingBallHysteresis = false
+	end
+
 	vis.addCircle("t/a/shoot: targetPos", targetPos, 0.04, vis.colors.pinkHalf, true)
 
 	-- don't allow pushing the ball into the opponent defense area
@@ -101,10 +109,10 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	local distToBall = (World.Ball.pos - self._robot.pos):rotate(-targetDir)
 	distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
 
-	if World.Ball.speed:length() >= SLOW_BALL then
+	if self._movingBallHysteresis then
 		local speedDiff = World.Ball.speed - self._robot.speed
 		local posDiff = World.Ball.pos - self._robot.pos
-		if speedDiff:length() >= SLOW_BALL and speedDiff:dot(posDiff) < 0 then
+		if speedDiff:length() >= MOVING_BALL and speedDiff:dot(posDiff) < 0 then
 			debug.set("special", "shot at robot")
 			-- ball shoot towards robots
 			local balldir = World.Ball.speed:copy():normalize()
@@ -191,7 +199,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		local minDist
 		if self._travelLimit then
 			minDist = 0.075
-		elseif World.Ball.speed:length() > SLOW_BALL then
+		elseif self._movingBallHysteresis then
 			-- don't keep any distance to a moving ball
 			minDist = 0
 		else
