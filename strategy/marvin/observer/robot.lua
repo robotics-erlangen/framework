@@ -93,7 +93,7 @@ function Robot._updateMinTimeToBall()
 		-- calculate the time the ball needs to cross the field border
 		local lineCut = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
 		local distToLine = World.Ball.pos:distanceTo(lineCut)
-		t_out = math.max(t_out, Physics.ballRollTime(World.Ball, distToLine))
+		t_out = math.bound(5, Physics.ballRollTime(World.Ball, distToLine), 20)
 	end
 
 	for _,r in pairs(World.Robots) do
