@@ -19,6 +19,7 @@ local FORCE_SHOOT_DELAY = 0.03 -- delay kick by this time
 local CHIP_DIST_SCALE = 0.7 -- shorten chip distance as the ball will bounce
 local MOVING_BALL = 0.6
 local STOPPED_BALL = 0.1
+local STOPPED_BALL_DIST = 2*Constants.positionError
 
 Shoot.depends = { ReceivePass, Volley }
 
@@ -57,12 +58,14 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		debug.set("shoot command", "none")
 		-- just catch the ball, but keep a little distance to allow braking the robot
 		self:_resetShoot()
-		local ballDist = 2*Constants.positionError
-		if World.Ball.speed:length() > SLOW_BALL and (World.Ball.pos - self._robot.pos):dot(World.Ball.speed) < 0 then
-			-- the ball is moving towards the robot, no extra distance necessary
+		local ballOffset = (World.Ball.pos - self._robot.pos):rotate(-self._robot.dir)
+		local ballDist
+		if self._movingBallHysteresis and ballOffset.x > 0 then
+			-- the ball is infront of the robot, no extra distance necessary
 			ballDist = 0
 			debug.set("ballApproach", "catchBall (no dist)")
 		else
+			ballDist = STOPPED_BALL_DIST
 			debug.set("ballApproach", "catchBall")
 		end
 
@@ -204,7 +207,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 			minDist = 0
 		else
 			-- don't push the ball until the robot is correctly oriented
-			minDist = Constants.positionError + 0.01
+			minDist = STOPPED_BALL_DIST
 		end
 		if distToBall.x < minDist then
 			local distError = minDist - distToBall.x
