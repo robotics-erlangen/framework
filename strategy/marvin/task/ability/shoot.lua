@@ -122,7 +122,8 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 			local robotFront = self._robot.pos + Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
 			-- calculate sidewards offset of ball hitpoint
 			local _, _, lambda = geom.intersectLineLine(World.Ball.pos, balldir, robotFront, balldir:perpendicular())
-			distToBall = Vector(posDiff:length() - self._robot.shootRadius - World.Ball.radius, lambda)
+			-- only correct sidewards offset
+			distToBall = Vector(0, lambda)
 		end
 	end
 	debug.set("distToBall", distToBall)
@@ -209,9 +210,14 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 			-- don't push the ball until the robot is correctly oriented
 			minDist = STOPPED_BALL_DIST
 		end
-		if distToBall.x < minDist then
-			local distError = minDist - distToBall.x
+
+		local distError = minDist - distToBall.x
+		if distError > 0 then
+			-- too near
 			speed = speed - Vector.fromAngle(targetDir):setLength(distError * 20)
+		else
+			-- get as near to the ball as allowed
+			speed = speed - Vector.fromAngle(targetDir):setLength(distError * 5)
 		end
 
 		debug.set("shoot command", "none")
