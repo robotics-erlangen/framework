@@ -1,6 +1,7 @@
 local Robot = {}
 local World = require "../base/world"
 local Constants = require "../base/constants"
+local Field = require "../base/field"
 local Messaging = require "control/messaging"
 local Physics = require "observer/physics"
 local debug = require "../base/debug"
@@ -87,6 +88,14 @@ function Robot._updateMinTimeToBall()
 		minTimeToBall = {}
 	end
 
+	local t_out = 5
+	if World.Ball:isPositionValid() and World.Ball.speed:length() > 0.01 then
+		-- calculate the time the ball needs to cross the field border
+		local lineCut = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
+		local distToLine = World.Ball.pos:distanceTo(lineCut)
+		t_out = math.max(t_out, Physics.ballRollTime(World.Ball, distToLine))
+	end
+
 	for _,r in pairs(World.Robots) do
 		if not minTimeToBall[r] then
 			minTimeToBall[r] = 0
@@ -95,7 +104,7 @@ function Robot._updateMinTimeToBall()
 		minTimeToBall[r] = math.max(0, minTimeToBall[r] - World.TimeDiff)
 		local predictedBallPos = Physics.ballAtTime(World.Ball, minTimeToBall[r]).pos
 		local viewPos = (predictedBallPos - r.pos):setLength(100) + r.pos
-		local timeToBall = math.min(20, Physics.robotTimeToBall(r, World.Ball, viewPos, r.maxSpeed))
+		local timeToBall = math.min(t_out, Physics.robotTimeToBall(r, World.Ball, viewPos, r.maxSpeed))
 
 		-- damp large value changes
 		-- the centerpiece of the catchball algorithm
