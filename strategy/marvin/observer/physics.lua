@@ -359,7 +359,7 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	-- the first one occurs at the point where the robot actively catches the ball
 	-- the second one is the point where the robot moves to the slow or resting ball
 	-- check if the first maximum is > 0 (if it exists)
-	local search_first_maximum = true
+	local search_first_maximum = false -- disable as it's too slow
 	local MAXSEARCH_N_SAMPLES = 7
 
 	local t_ball_bsearch_start = nil
