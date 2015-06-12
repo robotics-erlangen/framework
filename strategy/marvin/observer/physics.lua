@@ -4,6 +4,7 @@ local Constants = require "../base/constants"
 local Field = require "../base/field"
 local World = require "../base/world"
 local Cache = require "../base/cache"
+local geom = require "../base/geom"
 
 
 --- predicts the ball
@@ -313,6 +314,14 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 		return Physics.robotTimeToPos(robot, ball.pos, endSpeed, true)
 	end
 
+	-- calculate time required when the robot is directly hit by the ball
+	local normalizedBallSpeed = World.Ball.speed:copy():normalize()
+	local ballHitPos = geom.intersectLineLine(ball.pos, normalizedBallSpeed,
+			robot.pos + (targetPos - robot.pos):setLength(ball.radius + robot.shootRadius),
+			normalizedBallSpeed:perpendicular())
+	local ballTimeToHitPos = Physics.ballRollTime(ball, ball.pos:distanceTo(ballHitPos))
+	local robotTimeToHitPos = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, ballTimeToHitPos)
+
 	-- calculate the time the ball needs to cross the field border
 	local lineCut = Field.nextLineCut(ball.pos, ball.speed)
 	local distToLine = ball.pos:distanceTo(lineCut)
@@ -323,7 +332,12 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 
 	-- upper bound for sampling and binary search
 	local t_max = math.min(t_out, t_stop)
-
+	-- catch ball at nearest point on ball move line, if that's possible
+	-- this stabilizes the calculation if the ball is going to hit the robot soon
+	-- !!! optimistic: assumes that the robot can't be too fast to catch the ball
+	if robotTimeToHitPos <= ballTimeToHitPos then
+		t_max = math.min(ballTimeToHitPos, t_max)
+	end
 
 	-- ===== quadratic sampling =====
 
