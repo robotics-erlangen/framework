@@ -28,7 +28,7 @@ function Shoot:check()
 			break
 		end
 	end
-	if World.Time - self._passStart > 0.5 and not Ball.receivesPass(self._robot) then
+	if World.Time - self._passStart > 0.1 and not Ball.receivesPass(self._robot) then
 		self._isCatchingPass = false
 	end
 	if self._isCatchingPass then
