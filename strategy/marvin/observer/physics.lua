@@ -315,10 +315,9 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	end
 
 	-- calculate time required when the robot is directly hit by the ball
-	local normalizedBallSpeed = World.Ball.speed:copy():normalize()
-	local ballHitPos = geom.intersectLineLine(ball.pos, normalizedBallSpeed,
-			robot.pos + (targetPos - robot.pos):setLength(ball.radius + robot.shootRadius),
-			normalizedBallSpeed:perpendicular())
+	local frontOffset = (targetPos - robot.pos):setLength(ball.radius + robot.shootRadius)
+	local ballHitPos = geom.intersectLineLine(ball.pos, ball.speed,
+			robot.pos + frontOffset, ball.speed:perpendicular())
 	local ballTimeToHitPos = Physics.ballRollTime(ball, ball.pos:distanceTo(ballHitPos))
 	local robotTimeToHitPos = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, ballTimeToHitPos)
 
