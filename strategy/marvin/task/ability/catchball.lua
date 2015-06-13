@@ -10,6 +10,9 @@ local vis = require "../base/vis"
 local debug = require "../base/debug"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
+local Volley = require "task/ability/volley" -- only for calcPhi
+
+CatchBall.depends = { Volley }
 
 -- safety distance to ball
 local DIST_ERROR = 0.025
@@ -82,9 +85,10 @@ end
 --- Tries to catch the ball, is designed for catching a moving ball
 -- @param targetPos Vector - point to look at when having catched the ball
 -- @param distanceToBall number - distance the robot should keep to the ball, only sensible for a stopped ball, defaults to 0
--- @param maxSpeed number - maximun speed of the robot
+-- @param [targetSpeed number - intended ball speed at target]
+-- @param [maxSpeed number - maximun speed of the robot]
 -- @return moveDest Vector - the point where the robot will catch the ball
-function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
+function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	local ball = World.Ball
 	local lastBallSpeed = self._lastBallSpeed or ball.speed
 	-- update
@@ -120,9 +124,16 @@ function CatchBall:_catchBall(targetPos, distanceToBall, maxSpeed)
 	-- catching the ball only makes sense if we really try to
 	-- a distance other than 0 is only useful for moving to a stopped ball
 	distanceToBall = distanceToBall or 0
-	local moveDest = predictedBall.pos + (predictedBall.pos - targetPos):setLength(
+	local viewDirVec = predictedBall.pos - targetPos
+	if targetSpeed then
+		local targetDir, targetSpeed = self:calcPhi(World.Ball.speed, World.Ball.pos,
+				targetPos, targetSpeed)
+		viewDirVec = -Vector.fromAngle(targetDir)
+	end
+
+	local moveDest = predictedBall.pos + (viewDirVec):setLength(
 			self._robot.shootRadius + distanceToBall + ball.radius)
-	local viewDir = (targetPos - predictedBall.pos):angle()
+	local viewDir = (-viewDirVec):angle()
 	moveDest = Field.limitToField(moveDest, POSITION_PADDING + self._robot.radius)
 
 	-- setup obstacles

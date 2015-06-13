@@ -21,7 +21,8 @@ local MOVING_BALL = 0.6
 local STOPPED_BALL = 0.1
 local STOPPED_BALL_DIST = 2*Constants.positionError
 
-Shoot.depends = { ReceivePass, Volley }
+-- ReceivePass -> CatchBall -> Volley
+Shoot.depends = { ReceivePass }
 
 function Shoot:init()
 	self._shootHysteresis = false
@@ -53,7 +54,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		debug.set("ballApproach", "receivePass")
 		debug.set("shoot command", "none")
 		self:_resetShoot()
-		self:_receivePass(targetPos)
+		self:_receivePass(targetPos, targetSpeed)
 	else -- catch the ball
 		debug.set("shoot command", "none")
 		-- just catch the ball, but keep a little distance to allow braking the robot
@@ -69,7 +70,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 			debug.set("ballApproach", "catchBall")
 		end
 
-		self:_catchBall(targetPos, ballDist)
+		self:_catchBall(targetPos, ballDist, targetSpeed)
 	end
 	if (not self._catchTime) or self._catchTime < 0.5 then
 		self._send.shootDestination("all", targetPos)

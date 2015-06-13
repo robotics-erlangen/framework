@@ -20,9 +20,9 @@ function ReceivePass:init()
 	self._receivePassPerpendicularHysteresis = false
 end
 
-function ReceivePass:_receivePass(targetPos)
+function ReceivePass:_receivePass(targetPos, targetSpeed)
 	if World.Ball.speed:length() < FAST_BALL then
-		return self:_receivePassFallback(targetPos)
+		return self:_receivePassFallback(targetPos, targetSpeed)
 	end
 
 	-- assume robot looks at ball
@@ -50,11 +50,11 @@ function ReceivePass:_receivePass(targetPos)
 		-- send the position where the is catched
 		self._send.attackPosition("all", ballPos)
 	else
-		return self:_receivePassFallback(targetPos)
+		return self:_receivePassFallback(targetPos, targetSpeed)
 	end
 end
 
-function ReceivePass:_receivePassFallback(targetPos)
+function ReceivePass:_receivePassFallback(targetPos, targetSpeed)
 	self._receivePassHysteresis = false
 
 	-- stop pass if angle is too sharp
@@ -73,7 +73,7 @@ function ReceivePass:_receivePassFallback(targetPos)
 	end
 
 	-- keep no extra distance
-	self:_catchBall(targetPos, 0)
+	self:_catchBall(targetPos, 0, targetSpeed)
 end
 
 return ReceivePass
