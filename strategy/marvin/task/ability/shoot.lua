@@ -110,7 +110,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
 
 	if self._movingBallHysteresis then
-		local speedDiff = World.Ball.speed - self._robot.speed
+		local speedDiff = World.Ball.speed
 		local posDiff = World.Ball.pos - self._robot.pos
 		if speedDiff:length() >= MOVING_BALL and speedDiff:dot(posDiff) < 0 then
 			debug.set("special", "shot at robot")
