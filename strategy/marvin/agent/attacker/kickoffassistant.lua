@@ -4,6 +4,7 @@ local debug = require "../base/debug"
 local World = require "../base/world"
 local G = World.Geometry
 local Ball = require "observer/ball"
+local Game = require "observer/game"
 
 local MoveToPos = require "task/movetopos"
 local KickoffPass = require "task/kickoffpass"
@@ -14,15 +15,8 @@ function  KickoffAssistant:_stop(d)
 	self._movePos = nil
 end
 
-function KickoffAssistant:check()
-	-- try every position in random order, take first free one
-	local positionClash = false
-	for _, pos in pairs(self._inbox.moveDest()) do
-		if self._moveDest~=nil and (pos == self._moveDest or pos.x == self._moveDest.x or (pos.y==self._moveDest.y and math.abs(pos.y) >= 29 * self._robot.radius ))  then
-			positionClash = true
-		end
-	end
 
+function KickoffAssistant:_position(positionClash)
 	if not self._moveDest or positionClash then
 		local positions = {
 			--Vector(-G.FieldWidthHalf * 0.75, -3 * self._robot.radius),
@@ -40,11 +34,55 @@ function KickoffAssistant:check()
 		if self._moveDest == positions[2] or self._moveDest== positions[4] then -- or self._moveDest== positions[4]or self._moveDest== positions[8] then
 			--self._send.kop("all", self._moveDest)
 			--debug.set("t3", 1)
+			if (Game.attackSideWithLessOpponents()== "left" and self._moveDest== positions[4]) or (Game.attackSideWithLessOpponents()== "right" and self._moveDest== positions[2]) then
+				return self:_position(true)
+			end
 			self._behind = true
 		else
 			self._behind=false
 		end
 	end
+	return
+end
+
+function KickoffAssistant:check()
+	-- try every position in random order, take first free one
+	local positionClash = false
+	for _, pos in pairs(self._inbox.moveDest()) do
+		if self._moveDest~=nil and (pos == self._moveDest or pos.x == self._moveDest.x or (pos.y==self._moveDest.y and math.abs(pos.y) >= 29 * self._robot.radius ))  then
+			positionClash = true
+		end
+	end
+	self:_position(positionClash)
+	--[[
+	::again::
+	if not self._moveDest or positionClash then
+		local positions = {
+			--Vector(-G.FieldWidthHalf * 0.75, -3 * self._robot.radius),
+			Vector(-G.FieldWidthHalf * 0.5, -3 * self._robot.radius),
+			Vector(-G.FieldWidthHalf * 0.75, -30 * self._robot.radius),
+			--Vector(-G.FieldWidthHalf * 0.5, -30 * self._robot.radius),
+			--Vector(G.FieldWidthHalf * 0.75, -3 * self._robot.radius),
+			Vector(G.FieldWidthHalf * 0.5, -3 * self._robot.radius),
+			Vector(G.FieldWidthHalf * 0.75, -30 * self._robot.radius),
+			--Vector(G.FieldWidthHalf * 0.5, -30 * self._robot.radius),
+		}
+		self._moveDest = table.shuffle(positions)[1]
+		debug.set("pos", self._moveDest.x)
+		-- remember that player is in the back of the field
+		if self._moveDest == positions[2] or self._moveDest== positions[4] then -- or self._moveDest== positions[4]or self._moveDest== positions[8] then
+			--self._send.kop("all", self._moveDest)
+			--debug.set("t3", 1)
+			if (Game.attackSideWithLessOpponents()== "left" and self._moveDest== positions[4]) or (Game.attackSideWithLessOpponents()== "right" and self._moveDest== positions[2]) then
+				positionClash=true
+				goto again
+			end
+			self._behind = true
+		else
+			self._behind=false
+		end
+	end
+	]]
 	--self._send.kop("all", self._moveDest)
 
 	self._send.moveDest("all", self._moveDest)

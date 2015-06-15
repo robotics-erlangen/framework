@@ -33,14 +33,14 @@ function KickoffOffensive:_updateTask()
 			for r, time in pairs(self._inbox.targetTime()) do
 				debug.set("r", r)
 				debug.set("time", time)
-				--if time <= 2.0 then
+				if time <= 1.90 then
 					self._send.kickoffStart("all", 1)
 					debug.set("targetTime", "true")
 					--return ShootGoal
 					for rr, k in pairs(self._inbox.kickoffPass()) do
 						return Pass, {r, Vector(k.x, -k.y*0.6)}
 					end			
-				--end
+				end
 			end
 		end
 		return MoveToStaticBall, { math.pi/2, 0.05 }
