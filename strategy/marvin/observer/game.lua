@@ -58,7 +58,7 @@ function Game.attackSideWithLessOpponents()
 	local leftOpponents = 0
 	local leftOppsPosSum = 0
 	for _, robot in ipairs(World.OpponentRobots) do
-		if robot.pos.y > 0 then
+		if robot ~= World.OpponentKeeper then
 			if robot.pos.x > 0 then
 				rightOpponents = rightOpponents + 1
 				rightOppsPosSum = rightOppsPosSum + robot.pos.x
