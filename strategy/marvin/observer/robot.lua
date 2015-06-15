@@ -84,7 +84,8 @@ end
 local minTimeToBall = {}
 function Robot._updateMinTimeToBall()
 	local Ball = require "observer/ball"
-	if Ball.isShot() then
+	local ballShooter = Ball.isShot()
+	if ballShooter then
 		minTimeToBall = {}
 	end
 
@@ -99,6 +100,9 @@ function Robot._updateMinTimeToBall()
 	for _,r in pairs(World.Robots) do
 		if not minTimeToBall[r] then
 			minTimeToBall[r] = 0
+			if r == ballShooter then
+				minTimeToBall[r] = 5
+			end
 		end
 
 		minTimeToBall[r] = math.max(0, minTimeToBall[r] - World.TimeDiff)
