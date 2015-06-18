@@ -6,11 +6,13 @@ local Referee = require "../base/referee"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
 local Ball = require "observer/ball"
+local Physics = require "observer/physics"
 local Field = require "../base/field"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
 local MoveToStaticBall = require "task/movetostaticball"
 local GoalKick = require "task/goalkick"
+local debug = require "../base/debug"
 
 local POSITION_PADDING = 0.02 -- safety distance
 
@@ -18,6 +20,7 @@ function FreeKick:_stop()
 	self._startTime = 0
 	self._decision = nil
 	self._pass = nil
+	self._bestRating = -math.huge
 end
 
 function FreeKick:check()
@@ -69,16 +72,39 @@ function FreeKick:_updateTask()
 		local shootGoalTmp = ShootGoal(self._agent)
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 
+		-- search for the best pass suggestion
 		local bestPassRating = 0
 		local pass
 		for robot, sugg in pairs(self._inbox.passSuggestion()) do
 			if sugg.rating > bestPassRating then
 				pass = sugg
 				pass.target = robot
+				pass.pos = sugg.pos
+				pass.receiveTime = sugg.time
 				bestPassRating = sugg.rating
 			end
 		end
-		self._pass = pass
+
+		-- if the robot is waiting and a better suggestion is available
+		-- (it does not update the rating of the current suggestion!)
+		local bestPassRatingHysteresis = 3 / 180 * math.pi
+		if bestPassRating > self._bestRating + bestPassRatingHysteresis then
+			self._bestRating = bestPassRating
+			self._pass = pass
+		end
+		if self._pass then
+			debug.set("pass target", self._pass.target)
+		end
+
+		-- wait if necessary
+		local delayPass = false
+		if self._pass and self._pass.pos and self._pass.time then
+			local shootTime = self._pass.receiveTime - Shoot.ballPassTime(World.Ball,
+					self._pass.pos, self._pass.target)
+			if World.Time < shootTime then
+				delayPass = true
+			end
+		end
 
 		local time = World.Time - self._startTime
 		local min_mae = math.max((3 - time)/3 * 3, 0.7) / 180 * math.pi
@@ -88,7 +114,7 @@ function FreeKick:_updateTask()
 		if World.Ball.pos.y > 0 and World.RefereeState == "DirectOffensive"
 				and (sg_clean or not must_be_clean) and sg_mae and sg_mae > min_mae then
 			self._decision = "shootgoal"
-		elseif pass and bestPassRating > min_pr then
+		elseif pass and bestPassRating > min_pr and not delayPass then
 			self._decision = "pass"
 		end
 

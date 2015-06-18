@@ -23,90 +23,48 @@ end
 
 local chipRatingFactor = 0.5 -- reduce rating when only a chip is possible
 local minDirectPassY = World.Geometry.FieldHeightHalf / 6
-function SuggestPass:_suggestPass()
+function SuggestPass:_suggestPass(passPosRobot)
     local mainAttacker = self._inbox.mainAttacker().trainer
     if not mainAttacker then
         return
     end
 
-    local passPos
-    local bestRating = 0
-    local goal = World.Geometry.OpponentGoal
+    -- if no passPos was given, suggest a stationary (direct) pass
+    passPosRobot = passPosRobot or self._robot.pos
 
-    -- check for directpass, with chipkick
-    if self._robot.pos.y > minDirectPassY and Robot.wayToRobotFree(self._robot, mainAttacker, true) then
-        local biggestInterval = Goal.largestFreeSector(self._robot.pos, World.OpponentRobots, true)
-        bestRating = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0.001
-        local angle = (self._robot.pos-goal):absoluteAngleDiff(World.Ball.pos-goal)
-        debug.set("angle", angle)
-        bestRating = bestRating * angle
-        if not Robot.wayToRobotFree(self._robot, mainAttacker) then -- chip necessary
+    -- take the current ball pos as origin of the pass
+    local ballPos = World.Ball.pos
+
+    -- assume the robot looks towards the ball
+    local passPosBall = passPosRobot +
+            (ballPos - passPosRobot):setLength(self._robot.shootRadius + World.Ball.radius)
+
+    -- only send suggestions in the opponent half (no backward passes)
+    -- and check the pass corridor
+    -- FIXME wayToRobotFree does not take a future world state (conflicts with the concept of waiting)
+    if passPosRobot.y > minDirectPassY then
+            --Robot.wayToPosFree(passPosRobot, mainAttacker, self._robot, true) then
+
+        -- calculate the pass rating
+        local goal = World.Geometry.OpponentGoal
+        local biggestInterval = Goal.largestFreeSector(passPosBall, World.OpponentRobots, true)
+        local goalRating = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0.001
+        local angle = (passPosBall - goal):absoluteAngleDiff(ballPos - goal)
+        local bestRating = goalRating * angle
+
+        -- check if a chip is necessary
+        if not Robot.wayToRobotFree(self._robot, mainAttacker) then
             bestRating = bestRating * chipRatingFactor
         end
-    end
 
---[[
-    local searchWidth = 0.5
-    local searchHeight = 0.8
-    local stepSize = 0.25
-    local timeTolerance = 0.5
-    local minDistToAll = 0.4
-    local minDistToBall = 0.7
+        -- calculate the pass receive time
+        local moveTime = Physics.robotTimeToPos(self._robot, passPosRobot, Vector(0, 0), true)
+        local receiveTime = World.Time + moveTime
 
-     -- try to be at the center of the opponent field half
-    local centerX = self._robot.pos.x
-    local centerY = (self._robot.pos.y + World.Geometry.FieldHeightHalf/2)/2
+        vis.addCircle("t/a/suggestpass: passSuggestion", passPosRobot, 0.1, vis.colors.red, true)
 
-    local boundX = World.Geometry.FieldWidthHalf - 2 * self._robot.radius
-    local boundY = World.Geometry.FieldHeightHalf - 2 * self._robot.radius
-    local startX = math.max(centerX - searchWidth, -boundX)
-    local startY = math.max(centerY - searchHeight, -boundY)
-    local endX = math.min(centerX + searchWidth, boundX)
-    local endY = math.min(centerY + searchHeight, boundY)
-
-    local ballOwner = Ball.friendlyBallOwner()
-    for x=startX, endX, stepSize do
-        for y=startY, endY, stepSize do
-            local p = Vector(x, y)
-
-            vis.addCircle("t/a/suggestpass: Sample Points", p, 0.03, vis.colors.skyBlue, true)
-            if Robot.wayToPosFree(p, mainAttacker) then
-                -- TODO
-                -- accurate estimation if we can reach the ball before an opponent
-                -- and if no friendly robot is around
-                if not ballOwner or p:distanceTo(ballOwner.pos) > minDistToBall then
-                    if minDistToAllRobots(p) > minDistToAll then
-                        local shootSpeed = self._robot:calculateShootSpeed(SHOOT_DRIVE_SPEED, World.Ball.pos:distanceTo(p))
-                        local shootBall = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
-                        local timeBallToP = Robot.minTimeToBall(mainAttacker)
-                            + Physics.ballRollTime(shootBall, World.Ball.pos:distanceTo(p))
-                        local timeSelfToP = Physics.robotTimeToPos(self._robot, p, Vector(0, 0))
-                        local timeAdvance = timeBallToP - timeSelfToP
-                        if timeAdvance < timeTolerance then
-                            local biggestInterval = Goal.largestFreeSector(p, World.OpponentRobots, true)
-                            local rating = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0.001
-                            local angle = (p-goal):absoluteAngleDiff(World.Ball.pos-goal)
-                            rating = rating * angle
-                            if rating > bestRating then
-                                debug.set("angle", angle)
-                                bestRating = rating
-                                passPos = p
-                            end
-                            -- for more criteria, have a look at CMDragon 2014 TDP
-                        end
-                    end
-                end
-            end
-        end
-    end
-]]
-
-    if bestRating > 0 then
-        if passPos then
-            vis.addCircle("t/a/suggestpass: passSuggestion", passPos, 0.1, vis.colors.red, true)
-        end
-        debug.set("pass kind", passPos and "in the run" or "direct")
-        self._send.passSuggestion(mainAttacker, { rating = bestRating, pos = passPos })
+        self._send.passSuggestion(mainAttacker,
+                { rating = bestRating, pos = passPosBall, time = receiveTime })
     end
 end
 
