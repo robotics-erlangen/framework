@@ -6,12 +6,12 @@ local Penalty = require "agent/defender/penalty"
 local HandleBall = require "agent/defender/handleball"
 local ManMark = require "agent/defender/manmark"
 local Default = require "agent/defender/default"
-local MrlCornerMove = require "moves/mrlcorner/behavior"
+local Armada = require "moves/armada/behavior"
 local Messaging = require "control/messaging"
 
 Defender._behaviors = {
 	Penalty,
-	MrlCornerMove,
+	Armada,
 	HandleBall,
 	ManMark,
 	Default

@@ -12,13 +12,13 @@ local Shoot = require "agent/attacker/shoot"
 local KickoffAssistant = require "agent/attacker/kickoffassistant"
 local Default = require "agent/attacker/default"
 local KickoffDefensive = require "agent/attacker/kickoffdefensive"
-local MrlCornerMove = require "moves/mrlcorner/behavior"
+local Armada = require "moves/armada/behavior"
 local Messaging = require "control/messaging"
 local Robot = require "observer/robot"
 
 Attacker._behaviors = {
 	ApplyForMainattacker,
-	MrlCornerMove,
+	Armada,
 	Stop,
 	KickoffOffensive,
 	KickoffDefensive,
