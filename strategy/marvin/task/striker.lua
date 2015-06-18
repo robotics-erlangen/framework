@@ -172,22 +172,15 @@ function Striker:_calcMoveDest()
 	-- ball also as obstacle
 	self._robot.path:addCircle(ballPos.x, ballPos.y, minBallDist)
 
-	-- do not interfere with other attackers
-	for robot, dest in pairs(self._inbox.moveDest()) do
-			if Messaging.get("attackerFlag")[robot] and robot.pos:distanceTo(dest) > 0.1 then
-				self._robot.path:addLine(robot.pos.x, robot.pos.y, dest.x, dest.y, self._robot.radius)
-			end
-	end
-
-	-- do not move on line between ball and attacker
-	for attacker, _ in pairs(self._inbox.attackerFlag()) do
-		-- if between ball and attacker on x line
-		if (self._robot.pos.x > ballPos.x and self._robot.pos.x < attacker.pos.x) or
-				(self._robot.pos.x < ballPos.x and self._robot.pos.x > attacker.pos.x) then
-			table.insert(intervalsToRemove, {
-				attacker.pos.y - 1.5*self._robot.radius - POSITION_PADDING,
-				attacker.pos.y + 1.5*self._robot.radius + POSITION_PADDING
-			})
+	-- do not move on line from mainAttacker to ball
+	local mainAttacker = self._inbox.mainAttacker().trainer
+	if mainAttacker then
+		local maDir = World.Ball.pos - mainAttacker.pos
+		local _, lambda = geom.intersectLineLine(mainAttacker.pos, maDir, self._robot.pos, Vector.fromAngle(0,0))
+		if lambda and lambda > 0 then -- intersection towards ball
+			-- just stay where you are
+			self._moveDest = self._robot.pos
+			return
 		end
 	end
 
