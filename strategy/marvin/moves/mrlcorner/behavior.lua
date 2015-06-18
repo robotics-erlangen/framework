@@ -9,6 +9,7 @@ local Messaging = require "control/messaging"
 local Ball = require "observer/ball"
 local ShootGoal = require "task/shootgoal"
 local debug = require "../base/debug"
+local G = World.Geometry
 
 local MrlCorner = Class("Behavior.MrlCorner", Behavior)
 
@@ -23,9 +24,9 @@ local ROLES = {
 }
 
 local DISTRACTOR_POSITIONS = {
-    Vector(-0.2, 2.7),
-    Vector(0, 2.7),
-    Vector(0.2, 2.7)
+    Vector(-0.2, G.FieldHeightHalf-G.DefenseRadius-0.35),
+    Vector(0, G.FieldHeightHalf-G.DefenseRadius-0.35),
+    Vector(0.2, G.FieldHeightHalf-G.DefenseRadius-0.35)
 }
 
 function MrlCorner:_stop()
@@ -39,22 +40,29 @@ function MrlCorner:_stop()
 end
 
 local function outOfField(ball)
-    return math.abs(ball.pos.x) > World.Geometry.FieldWidthHalf
-        and math.abs(ball.pos.y) > World.Geometry.FieldHeightHalf
+    return math.abs(ball.pos.x) > G.FieldWidthHalf
+        and math.abs(ball.pos.y) > G.FieldHeightHalf
 end
 
 local function sortById(robot1, robot2)
     return robot1.id < robot2.id
 end
 
+local activeStates = {
+    Stop = true,
+    DirectOffensive = true,
+    IndirectOffensive = true
+}
+
 function MrlCorner:check()
     if not ENABLE then
         return false
     else
-        if self._stayActive and World.RefereeState == "Game" then
+        local applicable = World.Ball.pos.y > G.FieldHeightHalf/2
+            and activeStates[World.RefereeState] and Referee.opponentTouchedLast()
+        if self._stayActive and not activeStates[World.RefereeState] then
             self._freeKickOver = true
-        elseif World.Ball.pos.y > 0 and (World.RefereeState == "Stop"
-                or Referee.isFriendlyFreeKickState()) and Referee.opponentTouchedLast() then
+        elseif applicable then
             self._send.standardMoveFlag("all")
             local involvedRobots = {}
             for robot, _ in pairs(Messaging.get("standardMoveFlag")) do
@@ -79,15 +87,17 @@ function MrlCorner:check()
                 end
             end
             assert(self._role, "role assignment of standard move went wrong")
-            self._stayActive = true
+            if Referee.isFriendlyFreeKickState() then
+                self._stayActive = true
+            end
+            active = true
         end
-        if self._stayActive then
+        if applicable or self._stayActive then
             self._send.standardMoveFlag("all")
             debug.set("freekick over", self._freeKickOver)
             return true
-        else
-            return false
         end
+        return false
     end
 end
 
