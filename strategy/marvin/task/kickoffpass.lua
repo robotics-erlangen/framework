@@ -25,26 +25,10 @@ function KickoffPass:run()
 	if self._inbox.kickoffStart() ~= nil then
 		debug.set("kickoffStart", "true")
 	end
-	if World.RefereeState == "KickoffOffensive" and self._inbox.kickoffStart() ~= nil then --World.RefereeState == "KickoffOffensive" then
-	
-		--[[local pass = false;
-		local dest = Vector(self._pos.x, -self._pos.y*0.35)
-		local ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(dest))
-		local sectorLeft, _, sectorRight = Game.divideOpponentsIntoSectors(true)
-		local corridorHalf = (dest-World.Ball.pos):perpendicular():setLength(0.5)
-		if self._pos.x < 0 then
-			for _,robot in ipairs(sectorLeft) do
-				local tmp = Ball.ballCatchProbability(robot, 0, ballTime, dest, corridorHalf) 
-				debug.set("catchProbability1", tmp)
-			end
-		else
-			for _,robot in ipairs(sectorRight) do
-				local tmp = Ball.ballCatchProbability(robot, 0, ballTime, dest, corridorHalf) 
-				debug.set("catchProbability2", tmp)
-			end
-		end
-		]]
-		if (Game.attackSideWithLessOpponents()== "left" and self._pos.x== (G.FieldWidthHalf * 0.75)) or (Game.attackSideWithLessOpponents()== "right" and self._pos.x== (-G.FieldWidthHalf * 0.75)) then
+	if World.RefereeState == "KickoffOffensive" and self._inbox.kickoffStart() ~= nil then
+		--change sides you pass to when there are more opponents on current side
+		if (Game.attackSideWithLessOpponents() == "left" and self._pos.x == (G.FieldWidthHalf * 0.75)) or 
+				(Game.attackSideWithLessOpponents() == "right" and self._pos.x == (-G.FieldWidthHalf * 0.75)) then
 			self._pos.x= -self._pos.x
 		end
 		local moveDest, moveTime = self._robot.trajectory:update(ToTarget, Vector(self._pos.x, -self._pos.y*0.6), self._dir)
