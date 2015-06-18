@@ -112,7 +112,7 @@ function Keeper:run()
 		-- limit to positions on the line segment!
 		intersectPos = defenseLineStart + defenseDir * lambdaBounded
 	else
-		successfulIntersection = true
+		successfulIntersection = false
 		-- ensure there's an intersect pos
 		intersectPos = fallbackPos
 	end
@@ -125,7 +125,7 @@ function Keeper:run()
 	-- ball is shot at the goal: take the shortest way to stop the ball
 	if isShot and atkDir.y < 0 and successfulIntersection then
 		-- nearest pos on the ball trajectory
-		moveTo = self._robot.pos:nearestPosOnLine(atkPos, atkPos+atkDir):copy()
+		moveTo = self._robot.pos:nearestPosOnLine(atkPos, atkPos+atkDir)
 		-- prevent moving into the goal
 		if moveTo.y < defenseLineStart.y then
 			moveTo = intersectPos
