@@ -3,6 +3,7 @@ local Shoot = {}
 local World = require "../base/world"
 local Robot = require "observer/robot"
 local Goal = require "observer/goal"
+local Physics = require "observer/physics"
 local Field = require "../base/field"
 local Messaging = require "control/messaging"
 
@@ -59,6 +60,19 @@ function Shoot.rateAssistant(robot)
 	end
 	-- log("robot " .. robot.id .. ", rating " .. rating)
 	return rating
+end
+
+function Shoot.ballPassTime(ball, passPos, targetRobot, destSpeedLength)
+	local dist = ball.pos:distanceTo(passPos)
+	destSpeedLength = destSpeedLength or targetRobot.constants.passSpeed
+	local shootSpeed = targetRobot:calculateShootSpeed(destSpeedLength, dist)
+	local shootBall = {
+		pos = ball.pos,
+		speed = (passPos - ball.pos):setLength(shootSpeed),
+		maxSpeed = shootSpeed,
+		radius = ball.radius
+	}
+	return Physics.ballRollTime(shootBall, dist)
 end
 
 return Shoot
