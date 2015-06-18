@@ -13,19 +13,27 @@ function  KickoffAssistant:_stop(d)
 	self._behind = false
 	self._moveDest = nil
 	self._movePos = nil
+	self._distanceY = 2.67
 end
 
 
 function KickoffAssistant:_position(positionClash)
 	if not self._moveDest or positionClash then
+		if  self._distanceY > (3/4)*G.FieldHeightHalf then
+			self._distanceY=(3/4)*G.FieldHeightHalf
+		end	
+		debug.set("distanceY", self._distanceY)
+		debug.set("30*radius", 30 * self._robot.radius)
+
+
 		local positions = {
 			--Vector(-G.FieldWidthHalf * 0.75, -3 * self._robot.radius),
 			Vector(-G.FieldWidthHalf * 0.5, -3 * self._robot.radius),
-			Vector(-G.FieldWidthHalf * 0.75, -30 * self._robot.radius),
+			Vector(-G.FieldWidthHalf * 0.75,  -self._distanceY), -- -30 * self._robot.radius),
 			--Vector(-G.FieldWidthHalf * 0.5, -30 * self._robot.radius),
 			--Vector(G.FieldWidthHalf * 0.75, -3 * self._robot.radius),
 			Vector(G.FieldWidthHalf * 0.5, -3 * self._robot.radius),
-			Vector(G.FieldWidthHalf * 0.75, -30 * self._robot.radius),
+			Vector(G.FieldWidthHalf * 0.75,  -self._distanceY), -- -30 * self._robot.radius),
 			--Vector(G.FieldWidthHalf * 0.5, -30 * self._robot.radius),
 		}
 		self._moveDest = table.shuffle(positions)[1]
@@ -49,7 +57,7 @@ function KickoffAssistant:check()
 	-- try every position in random order, take first free one
 	local positionClash = false
 	for _, pos in pairs(self._inbox.moveDest()) do
-		if self._moveDest~=nil and (pos == self._moveDest or pos.x == self._moveDest.x or (pos.y==self._moveDest.y and math.abs(pos.y) >= 29 * self._robot.radius ))  then
+		if self._moveDest~=nil and (pos == self._moveDest or (math.abs(self._moveDest.x) == math.abs(pos.x) and self._moveDest.y == self._distanceY )) then --or pos.x == self._moveDest.x or (pos.y==self._moveDest.y and math.abs(pos.y) >= 29 * self._robot.radius ))  then
 			positionClash = true
 		end
 	end

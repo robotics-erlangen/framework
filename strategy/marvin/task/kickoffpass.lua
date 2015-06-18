@@ -44,7 +44,7 @@ function KickoffPass:run()
 			end
 		end
 		]]
-		if (Game.attackSideWithLessOpponents()== "left" and self._pos== Vector(G.FieldWidthHalf * 0.75, -30 * self._robot.radius)) or (Game.attackSideWithLessOpponents()== "right" and self._pos== Vector(-G.FieldWidthHalf * 0.75, -30 * self._robot.radius)) then
+		if (Game.attackSideWithLessOpponents()== "left" and self._pos.x== (G.FieldWidthHalf * 0.75)) or (Game.attackSideWithLessOpponents()== "right" and self._pos.x== (-G.FieldWidthHalf * 0.75)) then
 			self._pos.x= -self._pos.x
 		end
 		local moveDest, moveTime = self._robot.trajectory:update(ToTarget, Vector(self._pos.x, -self._pos.y*0.6), self._dir)
