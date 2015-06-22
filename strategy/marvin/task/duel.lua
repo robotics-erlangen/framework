@@ -45,10 +45,29 @@ function Duel:_clearBall()
 	local moveTime = Robot.minTimeToBall(self._robot)
 	local moveDest = Physics.ballAtTime(World.Ball, moveTime).pos
 	local viewDir = (moveDest - self._robot.pos):angle()
-
+	local opponentBeforeMe = false
+	local shortestTimeToBall = math.huge
+	local closestOpponentRobot = nil
+	-- see if an opponent is at the ball before me
+	for _,r in ipairs(World.OpponentRobots) do
+		local oppTime = Robot.minTimeToBall(r)
+		if oppTime < moveTime then
+			opponentBeforeMe = true
+			if oppTime < shortestTimeToBall then
+				shortestTimeToBall = oppTime
+				closestOpponentRobot = r
+			end
+		end
+	end
 	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
 	-- don't predict opponents, to avoid the blocking the target position
 	self._robot.path:addRobotObstacles(self._robot, nil, nil, true)
+	-- drive in front of the opponent robot
+	if opponentBeforeMe then
+		moveDest = closestOpponentRobot.pos + Vector.fromAngle(closestOpponentRobot.dir) * closestOpponentRobot.shootRadius
+		viewDir = (World.Ball.pos-self._robot.pos):angle()
+		debug.set("opponentBeforeMe", "true")
+	end
 
 	self._robot.trajectory:update(ToTarget, moveDest, viewDir)
 	vis.addCircle("t/duel: ClearRobot", self._robot.pos, 0.15, vis.colors.redHalf, true)
