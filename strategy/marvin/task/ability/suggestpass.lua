@@ -7,18 +7,25 @@ local Goal = require "observer/goal"
 local debug = require "../base/debug"
 local Ball = require "observer/ball"
 local vis = require "../base/vis"
+local Referee = require "../base/referee"
 
 local SHOOT_DRIVE_SPEED = 0.5
 
-local function minDistToAllRobots(pos)
-    local minDist = math.huge
-    for _, robot in ipairs(World.Robots) do
-        local dist = robot.pos:distanceTo(pos)
-        if dist < minDist then
-            minDist = dist
+local MIN_OPP_DIST = 1
+local MIN_OPP_SPEED = 1
+local MIN_OPP_MOVING_TOWARDSME_ANGLE = 20/180 * math.pi
+function SuggestPass:_noOppDisturbing()
+    -- coarse heuristic: no opp is near or moving towards us
+    for _, robot in ipairs(World.OpponentRobots) do
+        if self._robot.pos:distanceTo(robot.pos) < MIN_OPP_DIST then
+            return false
+        end
+        local angleToOpp = robot.speed:absoluteAngleDiff(self._robot.pos - robot.pos)
+        if robot.speed:length() > MIN_OPP_SPEED and angleToOpp < MIN_OPP_MOVING_TOWARDSME_ANGLE then
+            return false
         end
     end
-    return minDist
+    return true
 end
 
 local chipRatingFactor = 0.5 -- reduce rating when only a chip is possible
@@ -42,8 +49,7 @@ function SuggestPass:_suggestPass(passPosRobot)
     -- only send suggestions in the opponent half (no backward passes)
     -- and check the pass corridor
     -- FIXME wayToRobotFree does not take a future world state (conflicts with the concept of waiting)
-    if passPosRobot.y > minDirectPassY then
-            --Robot.wayToPosFree(passPosRobot, mainAttacker, self._robot, true) then
+    if passPosRobot.y > minDirectPassY or self:_noOppDisturbing() then
 
         -- calculate the pass rating
         local goal = World.Geometry.OpponentGoal
