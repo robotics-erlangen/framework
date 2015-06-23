@@ -137,7 +137,7 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 		self._shooting = false
 	end
 	if self._shooting then
-		self._robot:shoot(v_s, 0)
+		self._robot:shoot(v_s, true)
 		debug.set("shoot command", "linear")
 	else
 		debug.set("shoot command", "none")

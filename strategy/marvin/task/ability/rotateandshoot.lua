@@ -33,7 +33,7 @@ function RotateAndShoot:_rotateAndShoot(destAngle)
 	local rotate = 0.4 * (2*math.pi) * invert
 
 	if math.abs(self._robot.dir - destAngle) < 8 * math.pi/180 then
-		self._robot:shoot(math.huge, 1)
+		self._robot:shoot(math.huge)
 	end
 
 

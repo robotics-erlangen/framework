@@ -162,7 +162,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 
 		local dist = targetPos:distanceTo(self._robot.pos)
 		if linearShoot then
-			self._robot:shoot(targetSpeed, 0)
+			self._robot:shoot(targetSpeed, true)
 			debug.set("shoot command", "linear")
 		else
 			self._robot:chip(dist*CHIP_DIST_SCALE)

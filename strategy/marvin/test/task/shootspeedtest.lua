@@ -19,7 +19,8 @@ function ShootSpeedTest:run()
 	end
 	self._ballInHalf = ballInHalf
 
-	self._robot:shoot(self._shootSpeed, shootDistance)
+	local shootSpeed = self._robot:calculateShootSpeed(self._shootSpeed, shootDistance)
+	self._robot:shoot(shootSpeed)
 	self._robot.path:setDefaultObstacles(self._robot)
 	self._robot.trajectory:update(ToTarget, self._robot.pos, self._robot.pos.y < 0 and math.pi/2 or -math.pi/2)
 end

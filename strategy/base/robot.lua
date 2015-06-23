@@ -365,10 +365,12 @@ end
 
 --- Shoot function wrapper.
 -- Calls Robot:_shoot with distance adapted speed
--- @param destSpeed number - Ball speed at destination [m/s]
--- @param distance number - Distance to shoot [m]
-function Robot:shoot(destSpeed, distance)
-	local speed = self:calculateShootSpeed(destSpeed, distance)
+-- @param speed number - Shoot speed destination [m/s]
+-- @param ignoreLimit bool - Don't enforce shoot speed limit, if true
+function Robot:shoot(speed, ignoreLimit)
+	if not ignoreLimit then
+		speed = math.min(Constants.maxBallSpeed, speed)
+	end
 	self:_shoot(speed)
 end
 
