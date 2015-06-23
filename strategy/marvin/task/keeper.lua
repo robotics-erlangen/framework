@@ -7,6 +7,7 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local Field = require "../base/field"
 local debug = require "../base/debug"
+local Physics = require "observer/physics"
 
 local G = World.Geometry
 local keeperGoalDistance = 0.06
@@ -122,6 +123,7 @@ function Keeper:run()
 	vis.addPath("t/keeper: KeeperDefenseLine",{defenseLineStart, defenseLineEnd}, vis.colors.blue)
 
 	local moveTo
+	local endSpeed
 	-- ball is shot at the goal: take the shortest way to stop the ball
 	if isShot and atkDir.y < 0 and successfulIntersection then
 		-- nearest pos on the ball trajectory
@@ -130,6 +132,13 @@ function Keeper:run()
 		if moveTo.y < defenseLineStart.y then
 			moveTo = intersectPos
 		end
+		
+		--get to position as fast as possible
+		local tmp = math.max(0, moveTo:distanceTo(World.Ball.pos)-World.Ball.radius-self._robot.shootRadius)
+		local time = Physics.ballRollTime(World.Ball, tmp)
+		endSpeed = Physics.robotMinEndspeed(self._robot, moveTo, time)
+		debug.set("endSpeed", endSpeed)
+
 	-- block estimated shoot line
 	elseif atkDir.y < 0 then
 		local k = math.bound(0, (atkPos.y+2)/2 * 0.6, 0.5)
@@ -144,7 +153,7 @@ function Keeper:run()
 	end
 	-- ignore goal walls if ball is shot
 	self._robot.path:setDefaultObstacles(self._robot, true, isShot, true, self._robot.radius, 0.05)
-	self._robot.trajectory:update(ToTarget, moveTo, (atkPos - moveTo):angle())
+	self._robot.trajectory:update(ToTarget, moveTo, (atkPos - moveTo):angle(), nil, endSpeed)
 end
 
 return Keeper

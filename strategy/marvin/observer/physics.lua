@@ -259,10 +259,10 @@ function Physics.robotMinEndspeed(robot, pos, time)
 	end
 
 	-- as fast as possible
-	local maxTime = Physics.robotTimeToPos(robot, pos, maxSpeed * direction)
+	local maxTime = Physics.robotTimeToPos(robot, pos, direction * maxSpeed)
 	if maxTime > time then
 		-- the robot cannot make it in time
-		return maxSpeed * direction
+		return direction * maxSpeed
 	end
 
 	-- binary search
@@ -273,7 +273,7 @@ function Physics.robotMinEndspeed(robot, pos, time)
 	local delta_v = maxSpeed / 4
 
 	while delta_v > epsilon_v do
-		local t = Physics.robotTimeToPos(robot, pos, v * direction)
+		local t = Physics.robotTimeToPos(robot, pos, direction * v)
 		if t < time then
 			v = v - delta_v
 		else
@@ -282,7 +282,7 @@ function Physics.robotMinEndspeed(robot, pos, time)
 		delta_v = delta_v / 2
 	end
 
-	return v * direction
+	return direction * v
 end
 
 

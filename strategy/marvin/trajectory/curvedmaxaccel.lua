@@ -542,6 +542,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, precise
 		maxSpeed = World.IsLargeField and 1.5 or 1
 	end
 	endSpeed = endSpeed or Vector(0, 0)
+
 	-- helper variables
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
 	local robotSpeed = Coordinates.toGlobal(self._robot.speed)
