@@ -7,6 +7,8 @@ local Referee = require "../base/referee"
 local CenterBack = require "task/centerback"
 local AggressiveKeeper = require "task/aggressivekeeper"
 local SaveBall = require "task/saveball"
+local ShootGoal = require "task/shootgoal"
+local debug = require "../base/debug"
 
 function HandleBall:behindCenterbacks(object)
 	local defenseDistance = 2*self._robot.radius + CenterBack.distanceToDefenseArea()
@@ -45,6 +47,14 @@ function HandleBall:_updateTask()
 	local robotDist = Field.distanceToFriendlyGoalLine(self._robot.pos, 0)
 	local ballBehindKeeper = ballDist < robotDist
 
+	debug.set("Ball Speed", World.Ball.speed:length())
+	debug.set("Ball safe in defense area", Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius-2*self._robot.radius))
+
+	-- if the ball is lying in our defense area we can shoot in direction of the opponents goal and not just at the sides
+	if Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius-2*self._robot.radius) and World.Ball.speed:length()<=0.1 then
+		return ShootGoal
+	end
+	
 	-- decide whether to chip away or move aggressively to the ball
 	if danger and not ballBehindKeeper then
 		return AggressiveKeeper
