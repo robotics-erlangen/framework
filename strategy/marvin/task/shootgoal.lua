@@ -21,13 +21,13 @@ local Field = require "../base/field"
 
 
 local MIN_REQUIRED_ANGLE = 0.5 / 180 * math.pi -- in order to shoot into a free sector
-local MIN_SHOOT_PRECISION = 2.5 / 180 * math.pi -- for the shoot ability
+local MIN_SHOOT_PRECISION = 10 / 180 * math.pi -- for the shoot ability
 -- how much to move the shoot pos towards the corner
 -- (0 = mid of sector, 1 = straight towards the corner)
 local CORNER_WEIGHT = 0
 
 -- how much a new best sector should be better than the old one
-local SECTOR_RATING_HYSTERESIS = 2
+local SECTOR_RATING_HYSTERESIS = 3
 
 -- how large the angle for volley may be [rad]
 local MAX_VOLLEY_ANGLE = 80 * math.pi / 180
