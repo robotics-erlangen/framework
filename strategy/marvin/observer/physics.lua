@@ -177,7 +177,7 @@ end
 -- Then the robot must do a full stop and return to pos with zero endSpeed!
 -- @return number - the estimated time
 function Physics.robotTimeToPos(robot, pos, endSpeed, brakeAndReturn)
-	local accelerationFactor = 0.7 -- factor for max forward speedup and braking
+	local accelerationFactor = 0.9 -- factor for max forward speedup and braking
 	-- forward acceleration and deceleration
 	local accelerate = math.abs(robot.acceleration
 			and robot.acceleration.aSpeedupFMax or 1.0) * accelerationFactor
