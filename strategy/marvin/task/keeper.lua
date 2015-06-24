@@ -132,11 +132,16 @@ function Keeper:run()
 		if moveTo.y < defenseLineStart.y then
 			moveTo = intersectPos
 		end
-		
+
 		--get to position as fast as possible
-		local tmp = math.max(0, moveTo:distanceTo(World.Ball.pos)-World.Ball.radius-self._robot.shootRadius)
-		local time = Physics.ballRollTime(World.Ball, tmp)
-		endSpeed = Physics.robotMinEndspeed(self._robot, moveTo, time)
+		local ballRollDistance = math.max(0, moveTo:distanceTo(World.Ball.pos)-World.Ball.radius-self._robot.shootRadius)
+		local availableTime = Physics.ballRollTime(World.Ball, ballRollDistance)
+
+		-- anywhere on the dribbler is okay, not only the center
+		local dribblerHalf = atkDir:perpendicular():setLength(self._robot.dribblerWidth / 2)
+		local endPos = self._robot.pos:nearestPosOnLine(moveTo + dribblerHalf, moveTo - dribblerHalf)
+
+		endSpeed = Physics.robotMinEndspeed(self._robot, endPos, availableTime)
 		debug.set("endSpeed", endSpeed)
 
 	-- block estimated shoot line
