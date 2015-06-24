@@ -7,7 +7,8 @@ local Physics = require "observer/physics"
 local debug = require "../base/debug"
 local CatchBall = require "task/ability/catchball"
 
-local FAST_BALL = 0.7
+local MOVING_BALL = 0.6
+local STOPPED_BALL = 0.1
 local SAFETY_TIME = 0.2
 local SAFETY_TIME_HYSTERESIS = 0.1
 local BLOCK_ANGLE = 65 / 180 * math.pi
@@ -18,10 +19,16 @@ ReceivePass.depends = { CatchBall }
 function ReceivePass:init()
 	self._receivePassHysteresis = false
 	self._receivePassPerpendicularHysteresis = false
+	self._receivePassMovingBallHysteresis = false
 end
 
 function ReceivePass:_receivePass(targetPos, targetSpeed)
-	if World.Ball.speed:length() < FAST_BALL then
+	if World.Ball.speed:length() > MOVING_BALL then
+		self._receivePassMovingBallHysteresis = true
+	elseif World.Ball.speed:length() < STOPPED_BALL then
+		self._receivePassMovingBallHysteresis = false
+	end
+	if not self._receivePassMovingBallHysteresis then
 		return self:_receivePassFallback(targetPos, targetSpeed)
 	end
 
@@ -58,7 +65,7 @@ function ReceivePass:_receivePassFallback(targetPos, targetSpeed)
 	self._receivePassHysteresis = false
 
 	-- stop pass if angle is too sharp
-	if World.Ball.speed:length() > FAST_BALL then
+	if self._receivePassMovingBallHysteresis then
 		local angleToBall = World.Ball.speed:absoluteAngleDiff(self._robot.pos - targetPos)
 		if angleToBall > BLOCK_ANGLE then
 			self._receivePassPerpendicularHysteresis = true
