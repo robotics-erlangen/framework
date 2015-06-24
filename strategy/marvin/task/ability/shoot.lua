@@ -15,6 +15,7 @@ local Ball = require "observer/ball"
 local SIDEWARDS_KP = 8
 local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
 local SHOOT_SIDE_OFFSET = 0.05 -- extends the hasBall sidewards
+local SHOOT_HYSTERESIS_TIMEOUT = 0.08 -- reset shoot hysteresis after the timeout
 local FORCE_SHOOT_DELAY = 0.03 -- delay kick by this time
 local CHIP_DIST_SCALE = 0.7 -- shorten chip distance as the ball will bounce
 local MOVING_BALL = 0.6
@@ -26,6 +27,7 @@ Shoot.depends = { ReceivePass }
 
 function Shoot:init()
 	self._shootHysteresis = false
+	self._shootHysteresisTimer = 0
 	self._travelStart = nil
 	self._travelLimit = false
 	self._forceShootTimer = nil
@@ -140,6 +142,9 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		-- shootHysteresis stays true after maxAngleError was satisfied once
 		if canShoot then
 			self._shootHysteresis = true
+			self._shootHysteresisTimer = World.Time
+		elseif self._shootHysteresisTimer + SHOOT_HYSTERESIS_TIMEOUT >= World.Time then
+			self._shootHysteresis = false
 		end
 	else
 		self._shootHysteresis = false
