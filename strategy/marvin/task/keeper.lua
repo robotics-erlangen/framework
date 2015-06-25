@@ -27,9 +27,9 @@ function Keeper:run()
 	-- how far the ball is off to the sides
 	-- use hysteresis to prevent flickering between positions
 	local sideAngle = goalNormal:absoluteAngleDiff(atkPos - G.FriendlyGoal)
-	if sideAngle > 60/180*math.pi then
+	if sideAngle > 45/180*math.pi then
 		self._defendCorner = true
-	elseif sideAngle < 45/180*math.pi then
+	elseif sideAngle < 30/180*math.pi then
 		self._defendCorner = false
 	end
 
