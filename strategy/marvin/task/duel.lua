@@ -13,6 +13,7 @@ local ToTarget = require "trajectory/totarget"
 
 function Duel:_init()
 	self._opposer = nil
+	self._blockingBall = false
 end
 
 function Duel:run()
@@ -54,6 +55,9 @@ function Duel:_clearBall()
 		if oppTime < moveTime then
 			opponentBeforeMe = true
 			if oppTime < shortestTimeToBall then
+				debug.set("oppTime", oppTime)
+				debug.set("moveTime", moveTime)
+
 				shortestTimeToBall = oppTime
 				closestOpponentRobot = r
 			end
@@ -64,9 +68,25 @@ function Duel:_clearBall()
 	self._robot.path:addRobotObstacles(self._robot, nil, nil, true)
 	-- drive in front of the opponent robot
 	if opponentBeforeMe then
-		moveDest = closestOpponentRobot.pos + Vector.fromAngle(closestOpponentRobot.dir) * closestOpponentRobot.shootRadius
+		local DIFF= self._robot.radius/2
+		moveDest = self._robot.pos:nearestPosOnLine(closestOpponentRobot.pos, World.Geometry.FriendlyGoal)
+		--moveDest = closestOpponentRobot.pos + Vector.fromAngle(closestOpponentRobot.dir) * closestOpponentRobot.shootRadius
 		viewDir = (World.Ball.pos-self._robot.pos):angle()
+		if moveDest:distanceTo(self._robot.pos) <= DIFF then
+			self._blockingBall = true
+		elseif moveDest:distanceTo(self._robot.pos) > DIFF + 0.02 then
+			self._blockingBall = false
+		end
+
+		if self._blockingBall then
+			moveDest = closestOpponentRobot.pos + Vector.fromAngle(closestOpponentRobot.dir) * (closestOpponentRobot.shootRadius + self._robot.shootRadius)
+			debug.set("DIFF", "true")
+		end
 		debug.set("opponentBeforeMe", "true")
+		debug.set("moveDest posOnLine", self._robot.pos:nearestPosOnLine(closestOpponentRobot.pos, World.Geometry.FriendlyGoal))
+		debug.set("moveDest original", closestOpponentRobot.pos + Vector.fromAngle(closestOpponentRobot.dir) * closestOpponentRobot.shootRadius)
+
+
 	end
 
 	self._robot.trajectory:update(ToTarget, moveDest, viewDir)
