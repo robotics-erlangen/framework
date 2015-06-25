@@ -10,6 +10,11 @@ local ToTarget = require "trajectory/totarget"
 
 local POSITION_PADDING = 0.02 -- safety distance
 
+function SaveBall:_init()
+	self._viewDir = nil -- stabilize direction when we have the ball
+	self._endSpeed = nil -- memorize for same reasons as viewDir
+end
+
 function SaveBall:run()
 	local robotPos = self._robot.pos
 	local ballPos = World.Ball.pos
@@ -36,9 +41,12 @@ function SaveBall:run()
 	self._robot.path:setDefaultObstacles(self._robot, ignoreBall, ignoreGoals, false)
 	self._robot.path:addRobotObstacles(self._robot)
 
-	local viewDir = ballPos - robotPos
-	local endSpeed = viewDir * 0.5
-	self._robot.trajectory:update(ToTarget, moveDest, viewDir:angle(), nil, endSpeed)
+	if not self._viewDir or not self._robot:hasBall(World.Ball) then
+		local viewDir = ballPos - robotPos
+		self._viewDir = viewDir:angle()
+		self._endSpeed = viewDir * 0.5
+	end
+	self._robot.trajectory:update(ToTarget, moveDest, self._viewDir, nil, self._endSpeed)
 end
 
 return SaveBall
