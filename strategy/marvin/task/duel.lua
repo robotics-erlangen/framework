@@ -46,6 +46,8 @@ function Duel:_moveToBall()
 	local moveTime = Robot.minTimeToBall(self._robot)
 	local moveDest = Physics.ballAtTime(World.Ball, moveTime).pos
 	local viewDir = (moveDest - self._robot.pos):angle()
+	moveDest = moveDest - Vector.fromAngle(viewDir) * self._robot.shootRadius
+
 	local opponentBeforeMe = false
 	local shortestTimeToBall = math.huge
 	local closestOpponentRobot = nil
