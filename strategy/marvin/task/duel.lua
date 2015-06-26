@@ -24,8 +24,8 @@ function Duel:run()
 		self:_contest()
 		debug.set("duel-state", "contest")
 	else
-		self:_clearBall()
-		debug.set("duel-state", "clear ball")
+		self:_moveToBall()
+		debug.set("duel-state", "move to ball")
 	end
 end
 
@@ -42,7 +42,7 @@ function Duel:_contest()
 	self._send.attackPosition("all", World.Ball.pos)
 end
 
-function Duel:_clearBall()
+function Duel:_moveToBall()
 	local moveTime = Robot.minTimeToBall(self._robot)
 	local moveDest = Physics.ballAtTime(World.Ball, moveTime).pos
 	local viewDir = (moveDest - self._robot.pos):angle()
@@ -64,29 +64,28 @@ function Duel:_clearBall()
 		end
 	end
 	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
-	-- don't predict opponents, to avoid the blocking the target position
+	-- don't predict opponents, to avoid them blocking the target position
 	self._robot.path:addRobotObstacles(self._robot, nil, nil, true)
 	-- drive in front of the opponent robot
 	if opponentBeforeMe then
-		local DIFF= self._robot.radius/2
+		local DIFF = self._robot.radius/2
 		moveDest = self._robot.pos:nearestPosOnLine(closestOpponentRobot.pos, World.Geometry.FriendlyGoal)
-		--moveDest = closestOpponentRobot.pos + Vector.fromAngle(closestOpponentRobot.dir) * closestOpponentRobot.shootRadius
 		viewDir = (World.Ball.pos-self._robot.pos):angle()
-		if moveDest:distanceTo(self._robot.pos) <= DIFF then
+		local distToLine = moveDest:distanceTo(self._robot.pos)
+		if distToLine <= DIFF then
 			self._blockingBall = true
-		elseif moveDest:distanceTo(self._robot.pos) > DIFF + 0.02 then
+		elseif distToLine > DIFF + 0.02 then
 			self._blockingBall = false
 		end
 
+		local dribblerMoveDest = closestOpponentRobot.pos + Vector.fromAngle(closestOpponentRobot.dir) * (closestOpponentRobot.shootRadius + self._robot.shootRadius)
+		debug.set("opponentBeforeMe", "true")
+		debug.set("moveDest posOnLine", moveDest)
+		debug.set("moveDest original", dribblerMoveDest)
 		if self._blockingBall then
-			moveDest = closestOpponentRobot.pos + Vector.fromAngle(closestOpponentRobot.dir) * (closestOpponentRobot.shootRadius + self._robot.shootRadius)
+			moveDest = dribblerMoveDest
 			debug.set("DIFF", "true")
 		end
-		debug.set("opponentBeforeMe", "true")
-		debug.set("moveDest posOnLine", self._robot.pos:nearestPosOnLine(closestOpponentRobot.pos, World.Geometry.FriendlyGoal))
-		debug.set("moveDest original", closestOpponentRobot.pos + Vector.fromAngle(closestOpponentRobot.dir) * closestOpponentRobot.shootRadius)
-
-
 	end
 
 	self._robot.trajectory:update(ToTarget, moveDest, viewDir)
