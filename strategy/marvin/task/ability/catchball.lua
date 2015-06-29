@@ -138,7 +138,8 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 
 	-- setup obstacles
 	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
-	self._robot.path:addRobotObstacles(self._robot)
+	local aggressiveMovement = (self._robot.pos:distanceTo(moveDest) < 0.5)
+	self._robot.path:addRobotObstacles(self._robot, nil, nil, aggressiveMovement)
   	if self:_isBlockingBall(ball, predictedBall, moveDest) then
   		-- minimum required time to touch the ball
   		-- first touch could be before the robot has moved around the ball
