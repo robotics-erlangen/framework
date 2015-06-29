@@ -15,9 +15,10 @@ function Duel:check()
 		return false
 	end
 
+	local sideOffset = 0.05
 	local opponentHasBall = false
 	for _,r in pairs(World.OpponentRobots) do
-		if r:hasBall(World.Ball) then
+		if r:hasBall(World.Ball, sideOffset) then
 			opponentHasBall = true
 			break
 		end
