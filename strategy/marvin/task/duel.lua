@@ -71,7 +71,9 @@ function Duel:_moveToBall()
 	-- drive in front of the opponent robot
 	if opponentBeforeMe then
 		local DIFF = self._robot.radius/2
-		moveDest = self._robot.pos:nearestPosOnLine(closestOpponentRobot.pos, World.Geometry.FriendlyGoal)
+		local opponentDribbler = closestOpponentRobot.pos + (World.Geometry.FriendlyGoal
+				- closestOpponentRobot.pos):setLength(closestOpponentRobot.shootRadius)
+		moveDest = self._robot.pos:nearestPosOnLine(opponentDribbler, World.Geometry.FriendlyGoal)
 		viewDir = (World.Ball.pos-self._robot.pos):angle()
 		local distToLine = moveDest:distanceTo(self._robot.pos)
 		if distToLine <= DIFF then
@@ -80,7 +82,8 @@ function Duel:_moveToBall()
 			self._blockingBall = false
 		end
 
-		local dribblerMoveDest = closestOpponentRobot.pos + Vector.fromAngle(closestOpponentRobot.dir) * (closestOpponentRobot.shootRadius + self._robot.shootRadius)
+		local dribblerMoveDest = closestOpponentRobot.pos + Vector.fromAngle(closestOpponentRobot.dir) * (
+				closestOpponentRobot.shootRadius + self._robot.shootRadius)
 		debug.set("opponentBeforeMe", "true")
 		debug.set("moveDest posOnLine", moveDest)
 		debug.set("moveDest original", dribblerMoveDest)
