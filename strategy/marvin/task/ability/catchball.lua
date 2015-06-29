@@ -177,6 +177,8 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	debug.set("CatchBall/time", time)
 	debug.set("CatchBall/catchtime", self._catchTime)
 	vis.addCircle("t/a/catchball: CatchBall", Physics.ballAtTime(ball, self._catchTime).pos, predictedBall.radius, vis.colors.blueHalf)
+
+	return self._catchTime
 end
 
 function CatchBall:_calculateHitTime(ball)
