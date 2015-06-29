@@ -35,8 +35,8 @@ function path:setDefaultObstacles(robot, ignoreBall, ignoreGoals, ignoreDefenseA
 	end
 
 	if forbidOppFieldHalf then
-		self:addRect(-G.FieldWidthHalf, G.FieldHeightHalf,
-			G.FieldWidthHalf, 0.02, "OppFieldHalf")
+		self:addRect(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5,
+			G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf")
 	end
 
 	if not ignoreBall or Referee.isStopState() then
