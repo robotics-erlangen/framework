@@ -520,7 +520,7 @@ local function _calculateRotation(currentDir, currentOmega, targetDir, accelerat
 end
 
 
-function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, preciseMovement)
+function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, preciseMovement, disableExponentialFalloff)
 	if targetPos == nil then
 		error("targetPos is nil")
 	end
@@ -599,7 +599,9 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, precise
 	local moveTarget = _findMoveTarget(waypoints, speedProfile, leadTime)
 	vis.addCircleRaw("waypoints", moveTarget, 0.05, vis.colors.pink)
 
-	_injectExponentialFalloff(speedProfile, exponentialTime, exponentialError, brake, endSpeedLen)
+	if not disableExponentialFalloff then
+		_injectExponentialFalloff(speedProfile, exponentialTime, exponentialError, brake, endSpeedLen)
+	end
 	--debug.set("speedProfile2", speedProfile)
 	--debug.set("leadTime", leadTime)
 
