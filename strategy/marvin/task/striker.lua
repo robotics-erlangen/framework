@@ -179,7 +179,7 @@ function Striker:_calcMoveDest()
 		local _, lambda = geom.intersectLineLine(mainAttacker.pos, maDir, self._robot.pos, Vector.fromAngle(0,0))
 		if lambda and lambda > 0 then -- intersection towards ball
 			-- just stay where you are
-			self._moveDest = self._robot.pos
+			self._moveDest = self._robot.pos:copy()
 			return
 		end
 	end
