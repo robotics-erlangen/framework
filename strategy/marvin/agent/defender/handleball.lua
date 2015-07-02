@@ -11,6 +11,7 @@ local Robot = require "observer/robot"
 local Field = require "../base/field"
 local CenterBack = require "task/centerback"
 local SaveBall = require "task/saveball"
+local Duel = require "agent/attacker/duel"
 local InterceptPass = require "task/interceptpass"
 
 
@@ -29,7 +30,7 @@ local EXTRA_TIME_DIRTY = 0.2
 
 
 function HandleBall:_stop()
-	self._interceptingPass = false
+	self._active = false -- for Duel:check()
 end
 
 function HandleBall:_interceptBall()
@@ -97,13 +98,8 @@ function HandleBall:_interceptBall()
 end
 
 function HandleBall:check()
-	-- in case of special referee states, let other robots handle the ball
-	if Referee.isFriendlyFreeKickState() or Referee.isStopState() or Referee.isKickoffState() then
-		return false
-	end
-
-	-- do not try to get the ball if it is inside our defense area (it's the keeper's job)
-	if Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) then
+	if Referee.isFriendlyFreeKickState() or Referee.isStopState() or Referee.isKickoffState()
+			or Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) then
 		return false
 	end
 
@@ -118,30 +114,39 @@ function HandleBall:check()
 		end
 	end
 
-	log(self:_interceptBall())
+	local mainAttacker = self._inbox.mainAttacker().trainer
+	local interception = self:_interceptBall()
+	debug.set("interception", interception)
 
-	return self._inbox.mainAttacker().trainer == self._robot
+	local duel = Duel.genericCheck(self)
+	if interception == "impossible" and not duel then
+		return false
+	elseif duel or interception == "clean" then
+		self:_applyForMainAttacker()
+		if mainAttacker == self._robot then
+			-- for a clean interception, we want to switch to /a/a/shoot
+			self._send.attackerRequest("trainer")
+			self._requestingPoolChange = true
+			self._forceKeepingInPool = false
+		end
+		return false
+	elseif interception == "dirty" then
+		self:_applyForMainAttacker()
+		if self._robot == mainAttacker then
+			self._forceKeepingInPool = true
+			return true
+		else
+			return false
+		end
+	else
+		error "this case should never be reached!"
+	end
 end
 
 function HandleBall:_updateTask()
-	local changeDist = World.Geometry.FieldHeight / 4
-	local defenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-	local firstRobot, timeAdvance = Ball.firstAtBall()
-
-	local minAttackDist = World.IsLargeField and 1.7 or 1.2
-	if self._robot:hasBall(World.Ball) or defenseDist > changeDist or
-			firstRobot == self._robot and timeAdvance > 1 and
-			Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) > minAttackDist
-	then
-		self._send.attackerRequest("trainer")
-		self._requestingPoolChange = true
-	end
-
-	if Ball.receivesPass(self._robot) then
-		self._interceptingPass = (Ball.friendlyBallOwner() ~= self._robot)
+	if World.Ball.speed:length() > MIN_PASS_INTERCEPTION_SPEED then
 		return InterceptPass
 	else
-		self._interceptingPass = false
 		return SaveBall
 	end
 end

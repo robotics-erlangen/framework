@@ -10,15 +10,10 @@ function Duel:_stop()
 	self._active = false
 end
 
-function Duel:check()
-	if not (self._inbox.mainAttacker().trainer == self._robot) then
-		return false
-	end
-
-	local sideOffset = 0.05
+function Duel:genericCheck()
 	local opponentHasBall = false
 	for _,r in pairs(World.OpponentRobots) do
-		if r:hasBall(World.Ball, sideOffset) then
+		if r:hasBall(World.Ball) then
 			opponentHasBall = true
 			break
 		end
@@ -32,6 +27,14 @@ function Duel:check()
 	end
 
 	return self._active
+end
+
+function Duel:check()
+	if not (self._inbox.mainAttacker().trainer == self._robot) then
+		self._active = false
+		return false
+	end
+	return self:genericCheck()
 end
 
 function Duel:_updateTask()
