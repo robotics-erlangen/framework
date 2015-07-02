@@ -125,7 +125,8 @@ function Keeper:run()
 	local moveTo
 	local endSpeed
 	-- ball is shot at the goal: take the shortest way to stop the ball
-	if isShot and atkDir.y < 0 and successfulIntersection then
+	if isShot and atkDir.y < 0 and successfulIntersection and
+			Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
 		-- nearest pos on the ball trajectory
 		moveTo = self._robot.pos:nearestPosOnLine(atkPos, atkPos+atkDir)
 		-- prevent moving into the goal
