@@ -157,6 +157,7 @@ function Striker:_calcMoveDest()
 	self._robot.path:addLine(ballPos.x, ballPos.y, World.Geometry.OpponentGoal.x,
 		World.Geometry.OpponentGoal.y, self._robot.radius)
 
+
 	local minBallDist = 0.7
 	if math.abs(ballPos.x - xPos) < minBallDist then
 		local cut1, cut2 = geom.intersectLineCircle(
@@ -176,8 +177,9 @@ function Striker:_calcMoveDest()
 	local mainAttacker = self._inbox.mainAttacker().trainer
 	if mainAttacker then
 		local maDir = World.Ball.pos - mainAttacker.pos
-		local _, lambda = geom.intersectLineLine(mainAttacker.pos, maDir, self._robot.pos, Vector.fromAngle(0,0))
-		if lambda and lambda > 0 then -- intersection towards ball
+		local robotDir = self._moveDest - self._robot.pos
+		local _, lambda, lambda2 = geom.intersectLineLine(mainAttacker.pos, maDir, self._robot.pos, robotDir)
+		if lambda and lambda >=0 and lambda <= 1 then -- intersection towards ball
 			-- just stay where you are
 			self._moveDest = self._robot.pos:copy()
 			return
