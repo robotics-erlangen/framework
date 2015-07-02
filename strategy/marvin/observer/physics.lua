@@ -247,6 +247,19 @@ function Physics.robotTimeToPos(robot, pos, endSpeed, brakeAndReturn)
 		-- solve: d^2 * (-1/(2*accel)-1/(2*brake)) + d * v_max * (1/accel + 1/brake) + remaining = 0
 		local v_delta = math.solveSq(-0.5*(1/accelerate+1/brake),
 				robot.maxSpeed*(1/accelerate+1/brake), remainingDist)
+		if not v_delta then
+			log("robot.id = " .. robot.id)
+			log("robot.pos = " .. robot.pos.x .. " | " .. robot.pos.y)
+			log("robot.speed = " .. robot.speed.x .. " | " .. robot.speed.y)
+			log("robot.maxSpeed = " .. robot.maxSpeed)
+			log("pos = " .. pos.x .. " | " .. pos.y)
+			log("endSpeed = " .. endSpeed.x .. " | " .. endSpeed.y)
+			log("brakeAndReturn = " .. tostring(brakeAndReturn))
+			log("accelerate = " .. accelerate)
+			log("brake = " .. brake)
+			log("remainingDist = " .. remainingDist)
+			error("[ERROR]: invalid data in robotTimeToPos")
+		end
 		accelTime = (robot.maxSpeed - v_delta - robotSpeed) / accelerate
 		brakeTime = (robot.maxSpeed - v_delta - destSpeed) / brake
 		return accelTime + brakeTime
