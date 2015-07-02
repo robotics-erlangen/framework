@@ -165,6 +165,15 @@ function Physics.ballStopTime(ball)
 	return t_slide + t_roll
 end
 
+--- calculates the time the ball needs to cross the field border
+-- @param ball Ball - a ball-like structure
+-- @return number - the estimated out time
+function Physics.ballOutTime(ball)
+	local lineCut = Field.nextLineCut(ball.pos, ball.speed)
+	local distToLine = ball.pos:distanceTo(lineCut)
+	return Physics.ballRollTime(ball, distToLine)
+end
+
 
 --- approximates the time the given robot needs to pos for a given endSpeed
 -- uses a bang-bang motion profile
@@ -322,9 +331,7 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	local robotTimeToHitPos = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, ballTimeToHitPos)
 
 	-- calculate the time the ball needs to cross the field border
-	local lineCut = Field.nextLineCut(ball.pos, ball.speed)
-	local distToLine = ball.pos:distanceTo(lineCut)
-	local t_out = Physics.ballRollTime(ball, distToLine)
+	local t_out = Physics.ballOutTime(ball)
 
 	-- calculate the time until the ball stops
 	local t_stop = Physics.ballStopTime(ball)
