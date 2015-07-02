@@ -80,7 +80,7 @@ function AttackRatio:attackRatio()
 		local color = World.TeamIsBlue and vis.colors.blue or vis.colors.yellow
 		vis.addCircle("c/coordinator: MainAttacker", mainAttacker.pos, 0.12, color, true, true);
 	end
-	if mainAttackerIsDefender and not (AttackRatio:changingRobot() == mainAttacker) then
+	if mainAttackerIsDefender and not (self:changingRobot() == mainAttacker) then
 		attackers = attackers - 1
 	end
 
