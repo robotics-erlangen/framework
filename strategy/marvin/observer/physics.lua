@@ -169,6 +169,9 @@ end
 -- @param ball Ball - a ball-like structure
 -- @return number - the estimated out time
 function Physics.ballOutTime(ball)
+	if ball.speed:length() < 0.01 then
+		return math.huge
+	end
 	local lineCut = Field.nextLineCut(ball.pos, ball.speed)
 	local distToLine = ball.pos:distanceTo(lineCut)
 	return Physics.ballRollTime(ball, distToLine)
