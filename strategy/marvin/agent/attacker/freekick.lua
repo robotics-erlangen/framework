@@ -66,9 +66,9 @@ function FreeKick:_updateTask()
 
 
 	if not self._decision then
-		if goalKickFlag then
+		--[[if goalKickFlag then
 			return GoalKick
-		end
+		end]]
 		local shootGoalTmp = ShootGoal(self._agent)
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 
@@ -114,7 +114,7 @@ function FreeKick:_updateTask()
 		if World.Ball.pos.y > 0 and World.RefereeState == "DirectOffensive"
 				and (sg_clean or not must_be_clean) and sg_mae and sg_mae > min_mae then
 			self._decision = "shootgoal"
-		elseif pass and bestPassRating > min_pr and not delayPass then
+		elseif self._pass and bestPassRating > min_pr and not delayPass then
 			self._decision = "pass"
 		end
 
