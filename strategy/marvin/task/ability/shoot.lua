@@ -56,6 +56,9 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	-- stop ball if angle is too sharp
 	if self._movingBallHysteresis then
 		local angleToBall = World.Ball.speed:absoluteAngleDiff(self._robot.pos - targetPos)
+		if angleToBall > math.pi / 2 then
+			angleToBall = math.pi - angleToBall
+		end
 		if angleToBall > BLOCK_ANGLE then
 			self._stopBallHysteresis = true
 		elseif angleToBall < BLOCK_ANGLE - BLOCK_HYSTERESIS then
