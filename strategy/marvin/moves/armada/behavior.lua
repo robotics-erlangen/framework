@@ -1,4 +1,5 @@
-local Armada = require "agent/base/behavior"
+local Base = require "agent/base/behavior"
+local Armada = Class("Agent.Moves.Armada", Base)
 local World = require "../base/world"
 local G = World.Geometry
 local Referee = require "../base/referee"
@@ -23,6 +24,14 @@ function Armada:check()
         return false
     else
         debug.set("stay active", self._stayActive)
+        if next(self._inbox.passPos()) and Messaging.get("defenderFlag")[self._robot] then
+            self._send.attackerRequest("trainer")
+			self._requestingPoolChange = true
+			self._forceKeepingInPool = false
+            -- this causes another robot to become defender. this one does not
+            -- participate in the formation anymore. Not very bad as the pass
+            -- decision has already been made, but still not very consistent...
+        end
         if self._stayActive and Referee.isFriendlyFreeKickState() then
             -- EXECUTION state (second): pass is executed
             if Ball.isShot() then -- let normal game take over

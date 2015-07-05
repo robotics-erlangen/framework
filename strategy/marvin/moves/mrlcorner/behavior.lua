@@ -1,4 +1,5 @@
-local Behavior = require "agent/base/behavior"
+local Base = require "agent/base/behavior"
+local Behavior = Class("Agent.Moves.MRLCorner", Base)
 local Shooter = require "moves/mrlcorner/shooter"
 local Pass = require "task/pass"
 local MoveToStaticBall = require "task/movetostaticball"
