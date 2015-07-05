@@ -126,13 +126,26 @@ local function calculateCenterBackPositions()
 	for target, rlist in pairs(robots) do
 		-- if the target is the ball, predict it
 		local targetPos = target.pos
+		local way
 		if target == World.Ball then
-			local predictedPos, predictedSpeed = Goal.predictShot()
-			targetPos = predictedPos
+			local predictedSpeed, isShot
+			targetPos, predictedSpeed, isShot = Goal.predictShot()
+
+			if isShot then
+				local goalLineIntersection = geom.intersectLineLine(World.Ball.pos,
+					World.Ball.speed, G.FriendlyGoal, Vector(1, 0))
+				if goalLineIntersection and World.Ball.speed.y < 0 and
+						math.abs(goalLineIntersection.x) < G.GoalWidth / 2 + 0.15 then
+					targetPos, way = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed,
+						distanceToDefenseArea + robot_radius, false)
+				end
+			end
 		end
-		targetPos = Field.limitToField(targetPos, -0.01)
-		local pos, way = Field.intersectRayDefenseArea(targetPos, World.Geometry.FriendlyGoal - targetPos,
+		if not way then
+			targetPos = Field.limitToField(targetPos, -0.01)
+			_, way = Field.intersectRayDefenseArea(targetPos, World.Geometry.FriendlyGoal - targetPos,
 				distanceToDefenseArea + robot_radius, false)
+		end
 		local occupiedWay = (#rlist) * (2 * robot_radius + distanceBetweenDefenders)
 		way = math.max(way, occupiedWay/2)
 		way = math.min(way, waymaximum - occupiedWay/2)
