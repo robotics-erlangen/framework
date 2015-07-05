@@ -11,7 +11,7 @@ local ShootGoal = require "task/shootgoal"
 local debug = require "../base/debug"
 
 function HandleBall:behindCenterbacks(object)
-	local defenseDistance = 2*self._robot.radius + CenterBack.distanceToDefenseArea()
+	local defenseDistance = self._robot.radius + self._robot.shootRadius + CenterBack.distanceToDefenseArea() - 0.01
 	return Field.distanceToFriendlyDefenseArea(object.pos, object.radius) < defenseDistance
 end
 
