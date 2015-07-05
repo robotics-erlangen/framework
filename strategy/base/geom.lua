@@ -63,6 +63,8 @@ end
 -- @param radius number - Radius of circle
 -- @return [Vector] - first intersection if exists
 -- @return [Vector] - second intersection if exists
+-- @return number - first lambda
+-- @return number - second lambda
 function geom.intersectLineCircle(offset, dir, center, radius)
 	dir = dir:copy():normalize()
 	local const = offset - center
@@ -83,9 +85,11 @@ function geom.intersectLineCircle(offset, dir, center, radius)
 		return offset + dir * ((-b)/(2*a))
 	end
 
-	local point1 = offset + dir * ((-b + math.sqrt(det))/(2*a))
-	local point2 = offset + dir * ((-b - math.sqrt(det))/(2*a))
-	return point1, point2
+	local lambda1 = (-b + math.sqrt(det))/(2*a)
+	local lambda2 = (-b - math.sqrt(det))/(2*a)
+	local point1 = offset + dir * lambda1
+	local point2 = offset + dir * lambda2
+	return point1, point2, lambda1, lambda2
 end
 
 --- Calcualtes tangents to circle.
