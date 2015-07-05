@@ -301,7 +301,7 @@ function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp)
 	-- calculate intersection point with defense stretch
 	local defenseLineOnpoint = Vector(0, -G.FieldHeightHalf + radius) * oppfac
 	local lineIntersection,l1,l2 = geom.intersectLineLine(pos, dir, defenseLineOnpoint, Vector(1,0))
-	if l1 >= 0 and lineIntersection and math.abs(l2) <= G.DefenseStretch/2 then
+	if lineIntersection and l1 >= 0 and math.abs(l2) <= G.DefenseStretch/2 then
 		table.insert(intersections, {lineIntersection, l2 + totalway/2, l1})
 	end
 
