@@ -12,7 +12,26 @@ function ManMark:_stop()
 	self._opp = nil
 end
 
+-- if we are further away from our target, maybe there is an attacker
+-- who is better suited to mark the opponent
+local CONSIDER_POOL_CHANGE_DIST_DEFENDER = 3
+local CONSIDER_POOL_CHANGE_DIST_ATTACKER = 1.5
+
 function ManMark:check()
+	local mainAttacker = self._inbox.mainAttacker().trainer
+	if self._opp and self._robot.pos:distanceTo(self._opp.pos) >
+			CONSIDER_POOL_CHANGE_DIST_DEFENDER then
+		for robot, _ in pairs(self._inbox.attackerFlag()) do
+			if robot.pos:distanceTo(self._opp.pos) < CONSIDER_POOL_CHANGE_DIST_ATTACKER
+					and robot ~= mainAttacker then
+				self._send.attackerRequest("trainer")
+				self._requestingPoolChange = true
+				self._forceKeepingInPool = false
+				debug.set("poolchange attacker", robot.id)
+			end
+		end
+	end
+
 	local role = self._inbox.roleAssignment().trainer
 	if role and role.name == "ManMark" then
 		if self._inbox.roleAssignment().trainer.params ~= self._opp then
