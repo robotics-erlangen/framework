@@ -24,9 +24,13 @@ local MIN_PASS_INTERCEPTION_SPEED = 1.0
 -- the robot is considered as standing -> no passes in the run
 local STATIONARY_ROBOT_SPEED = 0.5
 
--- extra time for making the decisions less risky
+-- extra time for making the decisions less risky (= time advance)
 local EXTRA_TIME_CLEAN = 0.8
 local EXTRA_TIME_DIRTY = 0.2
+
+-- prevent switching to attacker if the ball is arriving in less than that time
+local ATTACK_PREPARATION_TIME = 0.4
+
 
 
 function HandleBall:_stop()
@@ -51,7 +55,7 @@ function HandleBall:_interceptBall()
 	end
 
 	if #passReceipients == 0 then
-		if friendlyTime + EXTRA_TIME_CLEAN < minOppTime then
+		if friendlyTime + EXTRA_TIME_CLEAN < minOppTime and friendlyTime > ATTACK_PREPARATION_TIME then
 			-- MTTB(friendly) + EXTRA_TIME_CLEAN < MTTB(fastestOpponent)
 			-- or MTTB(fastestOpponent) > outTime
 			return "clean"
@@ -88,7 +92,7 @@ function HandleBall:_interceptBall()
 	end
 
 	-- check if we are fast enough
-	if friendlyTime + EXTRA_TIME_CLEAN < minBallTime then
+	if friendlyTime + EXTRA_TIME_CLEAN < minBallTime and friendlyTime > ATTACK_PREPARATION_TIME then
 		return "clean"
 	elseif friendlyTime + EXTRA_TIME_DIRTY < minBallTime then
 		return "dirty"
