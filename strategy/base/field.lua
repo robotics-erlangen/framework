@@ -234,36 +234,37 @@ local isInInterval = function(angle, min, max)
 	return normalize(angle - min) <= normalize(max - min)
 end
 
-local intersectLineArc = function(pos, dir, m, r, minangle, maxangle)
+local intersectRayArc = function(pos, dir, m, r, minangle, maxangle)
 	local intersections = {}
-	local i1, i2 = geom.intersectLineCircle(pos, dir, m, r)
+	local i1, i2, l1, l2 = geom.intersectLineCircle(pos, dir, m, r)
 	local interval = normalize(maxangle - minangle)
-	if i1 then
+	if i1 and l1 >= 0 then
 		local a1 = normalize((i1 - m):angle() - minangle)
 		if a1 < interval then
-			table.insert(intersections, {i1, a1})
+			table.insert(intersections, {i1, a1, l1})
 		end
 	end
-	if i2 then
+	if i2 and l2 >= 0 then
 		local a2 = normalize((i2 - m):angle() - minangle)
 		if a2 < interval then
-			table.insert(intersections, {i2, a2})
+			table.insert(intersections, {i2, a2, l2})
 		end
 	end
 	return intersections
 end
 
 --- Returns one intersection of a given line with the (extended) defense area
---- The intersection is the one with the smallest t in x = pos + t * dir
--- @name intersectLineDefenseArea
+--- The intersection is the one with the smallest t in x = pos + t * dir, t >= 0
+-- @name intersectRayDefenseArea
 -- @param pos Vector - starting point of the line
 -- @param dir Vector - the direction of the line
 -- @param extraDistance number - gets added to G.DefenseRadius
 -- @param opp bool - whether the opponent or the friendly defense area is considered
 -- @return Vector - the intersection position
+-- @return number - lambda, intersection = pos + lambda * dir
 -- @return number - the length of the way from the very left of the defense area to the
 -- intersection point, when moving along its border
-function Field.intersectLineDefenseArea(pos, dir, extraDistance, opp)
+function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp)
 	-- calculate defense radius
 	extraDistance = extraDistance or 0
 	local radius = G.DefenseRadius + extraDistance
@@ -288,20 +289,20 @@ function Field.intersectLineDefenseArea(pos, dir, extraDistance, opp)
 
 	-- calctulate intersection points with defense arcs
 	local intersections = {}
-	local ileft = intersectLineArc(pos, dir, leftCenter, radius, to_opponent, to_friendly)
+	local ileft = intersectRayArc(pos, dir, leftCenter, radius, to_opponent, to_friendly)
 	for _,i in ipairs(ileft) do
-		table.insert(intersections, {i[1], (math.pi/2-i[2]) * radius})
+		table.insert(intersections, {i[1], (math.pi/2-i[2]) * radius, i[3]})
 	end
-	local iright = intersectLineArc(pos, dir, rightCenter, radius, to_friendly, to_opponent)
+	local iright = intersectRayArc(pos, dir, rightCenter, radius, to_friendly, to_opponent)
 	for _,i in ipairs(iright) do
-		table.insert(intersections, {i[1], (math.pi-i[2]) * radius + arcway + lineway})
+		table.insert(intersections, {i[1], (math.pi-i[2]) * radius + arcway + lineway, i[3]})
 	end
 
 	-- calculate intersection point with defense stretch
 	local defenseLineOnpoint = Vector(0, -G.FieldHeightHalf + radius) * oppfac
-	local lineIntersection,_,l2 = geom.intersectLineLine(pos, dir, defenseLineOnpoint, Vector(1,0))
-	if lineIntersection and math.abs(l2) <= G.DefenseStretch/2 then
-		table.insert(intersections, {lineIntersection, l2 + totalway/2})
+	local lineIntersection,l1,l2 = geom.intersectLineLine(pos, dir, defenseLineOnpoint, Vector(1,0))
+	if l1 >= 0 and lineIntersection and math.abs(l2) <= G.DefenseStretch/2 then
+		table.insert(intersections, {lineIntersection, l2 + totalway/2, l1})
 	end
 
 	-- choose nearest intersection

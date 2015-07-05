@@ -56,7 +56,7 @@ local function scanForBestGapInDefense()
         if Field.distanceToOpponentDefenseArea(opp.pos, opp.radius) < oppDefAreaDistance
             and opp ~= World.OpponentKeeper then
             local towardsGoal = World.Geometry.OpponentGoal - opp.pos
-            local _, way = Field.intersectLineDefenseArea(opp.pos, towardsGoal, 0, true)
+            local _, way = Field.intersectRayDefenseArea(opp.pos, towardsGoal, 0, true)
             if way > defLineBegin and way < defLineEnd then
                 table.insert(occupiedSpots, way)
             end

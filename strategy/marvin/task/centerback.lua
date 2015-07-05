@@ -92,7 +92,7 @@ local function calculateCenterBackPositions()
 		end
 		-- where the robot would go if it was the only one
 		local pcbPos = privateCenterBackPositions[robot] and privateCenterBackPositions[robot].pos
-				or Field.intersectLineDefenseArea(targetPos, World.Geometry.FriendlyGoal - targetPos,
+				or Field.intersectRayDefenseArea(targetPos, World.Geometry.FriendlyGoal - targetPos,
 				distanceToDefenseArea + robot_radius, false)
 
 		-- if the robot is close to its cbPos or pcbPos then mark it as important
@@ -127,10 +127,11 @@ local function calculateCenterBackPositions()
 		-- if the target is the ball, predict it
 		local targetPos = target.pos
 		if target == World.Ball then
-			targetPos = Goal.predictShot()
+			local predictedPos, predictedSpeed = Goal.predictShot()
+			targetPos = predictedPos
 		end
 		targetPos = Field.limitToField(targetPos, -0.01)
-		local pos, way = Field.intersectLineDefenseArea(targetPos, World.Geometry.FriendlyGoal - targetPos,
+		local pos, way = Field.intersectRayDefenseArea(targetPos, World.Geometry.FriendlyGoal - targetPos,
 				distanceToDefenseArea + robot_radius, false)
 		local occupiedWay = (#rlist) * (2 * robot_radius + distanceBetweenDefenders)
 		way = math.max(way, occupiedWay/2)
@@ -227,9 +228,9 @@ local function calculateCenterBackPositions()
 			targetPos = Goal.predictShot()
 		end
 		targetPos = Field.limitToField(targetPos, -0.01)
-		local _, target_way = Field.intersectLineDefenseArea(targetPos, World.Geometry.FriendlyGoal - targetPos,
+		local _, target_way = Field.intersectRayDefenseArea(targetPos, World.Geometry.FriendlyGoal - targetPos,
 				distanceToDefenseArea + robot_radius, false)
-		local _, robot_way = Field.intersectLineDefenseArea(robot.pos, World.Geometry.FriendlyGoal - targetPos,
+		local _, robot_way = Field.intersectRayDefenseArea(robot.pos, World.Geometry.FriendlyGoal - targetPos,
 				distanceToDefenseArea + robot_radius, false)
 		for _,i in ipairs(intersections) do
 			if target_way - robot_radius < i.waypos + i.wayrange/2

@@ -104,7 +104,7 @@ function HandleBall:check()
 	end
 
 	-- if the ball rolls towards our defense area with high speed, stay defender
-	local defenseLineIntersection = Field.intersectLineDefenseArea(World.Ball.pos, World.Ball.speed)
+	local defenseLineIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed)
 	if defenseLineIntersection then
 		local timeToDefenseLine = Physics.ballRollTime(World.Ball,
 			World.Ball.pos:distanceTo(defenseLineIntersection))
