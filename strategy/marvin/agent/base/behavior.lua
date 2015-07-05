@@ -66,9 +66,11 @@ function Base:_updateTask()
 end
 
 function Base:_applyForMainAttacker()
-	local timeToBall = Robot.minTimeToBall(self._robot)
-	local mainAttackerRating = Rating.timeToRating(timeToBall)
-	self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
+	if not Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) then
+		local timeToBall = Robot.minTimeToBall(self._robot)
+		local mainAttackerRating = Rating.timeToRating(timeToBall)
+		self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
+	end
 end
 
 -- can be overwritten for custom cleanups
