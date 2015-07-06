@@ -25,16 +25,17 @@ local MIN_PASS_INTERCEPTION_SPEED = 1.0
 local STATIONARY_ROBOT_SPEED = 0.5
 
 -- extra time for making the decisions less risky (= time advance)
-local EXTRA_TIME_CLEAN = 0.8
+local EXTRA_TIME_CLEAN = 0.5
 local EXTRA_TIME_DIRTY = 0.2
 
 -- prevent switching to attacker if the ball is arriving in less than that time
-local ATTACK_PREPARATION_TIME = 0.4
+local ATTACK_PREPARATION_TIME = 0.3
 
 
 
 function HandleBall:_stop()
 	self._active = false -- for Duel:check()
+	self._interception = "impossible"
 end
 
 function HandleBall:_interceptBall()
@@ -52,6 +53,10 @@ function HandleBall:_interceptBall()
 		if oppTime < timeLimit then
 			table.insert(passReceipients, r)
 		end
+	end
+
+	if friendlyTime < ATTACK_PREPARATION_TIME and self._interception == "dirty" then
+		return "impossible"
 	end
 
 	if #passReceipients == 0 then
@@ -120,6 +125,7 @@ function HandleBall:check()
 
 	local mainAttacker = self._inbox.mainAttacker().trainer
 	local interception = self:_interceptBall()
+	self._interception = interception
 	debug.set("interception", interception)
 
 	local duel = Duel.genericCheck(self)
