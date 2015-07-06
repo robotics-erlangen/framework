@@ -82,7 +82,8 @@ function geom.intersectLineCircle(offset, dir, center, radius)
 	end
 
 	if det < 0.00001 then
-		return offset + dir * ((-b)/(2*a))
+		local lambda1 = (-b)/(2*a)
+		return offset + dir * lambda1, nil, lambda1, nil
 	end
 
 	local lambda1 = (-b + math.sqrt(det))/(2*a)
