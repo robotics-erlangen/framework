@@ -74,23 +74,28 @@ function FreeKick:_updateTask()
 
 		-- search for the best pass suggestion
 		local bestPassRating = 0
-		local pass
+		local bestPass
 		for robot, sugg in pairs(self._inbox.passSuggestion()) do
+			local pass = {}
+			pass.rating = sugg.rating
+			pass.target = robot
+			pass.pos = sugg.pos
+			pass.receiveTime = sugg.time
+			
+			if self._pass and self._pass.target == robot then
+				self._pass = pass
+			end
 			if sugg.rating > bestPassRating then
-				pass = sugg
-				pass.target = robot
-				pass.pos = sugg.pos
-				pass.receiveTime = sugg.time
 				bestPassRating = sugg.rating
+				bestPass = pass
 			end
 		end
 
 		-- if the robot is waiting and a better suggestion is available
-		-- (it does not update the rating of the current suggestion!)
 		local bestPassRatingHysteresis = 3 / 180 * math.pi
 		if bestPassRating > self._bestRating + bestPassRatingHysteresis then
 			self._bestRating = bestPassRating
-			self._pass = pass
+			self._pass = bestPass
 		end
 		if self._pass then
 			debug.set("pass target", self._pass.target)
