@@ -280,6 +280,12 @@ function CenterBack:run()
 
 	debug.set("target", destinationTarget)
 
+	local chipActivationAngle = math.pi / 6
+	if dir > chipActivationAngle and dir < math.pi - chipActivationAngle and
+			Vector.fromAngle(dir):absoluteAngleDiff(destinationPos - G.FriendlyGoal) < math.pi then
+		self._robot:chip(4)
+	end
+
 	local ignoreOpponents
 		= Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) < 2*self._robot.radius
 
