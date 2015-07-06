@@ -13,6 +13,8 @@ local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local TrajectoryDirect = require "trajectory/direct"
 local ToTarget = require "trajectory/totarget"
+local Robot = require "observer/robot"
+
 
 local SIDEWARDS_KP = 8
 local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
@@ -28,6 +30,7 @@ local SAFETY_TIME = 0.2
 local SAFETY_TIME_HYSTERESIS = 0.1
 local BLOCK_ANGLE = 70 / 180 * math.pi
 local BLOCK_HYSTERESIS = 5 / 180 * math.pi
+local OPP_TIME_HYSTERESIS = 0.1
 
 -- CatchBall -> Volley
 Shoot.depends = { CatchBall }
@@ -43,6 +46,7 @@ function Shoot:init()
 	self._movingBallHysteresis = false
 	self._stopBallHysteresis = false
 	self._receivePassHysteresis = false
+	self._oppTimeHysteresis = false
 end
 
 -- shoot immediatelly if angle error is below maxAngleError
@@ -137,8 +141,46 @@ function Shoot:_tryReceivePass(targetPos, targetSpeed)
 
 	local waitTime = ballTime - moveTime
 
+	--see if an opponent is closer to the ball
+	local minTimeOpp =math.huge
+	for _,r in pairs(World.OpponentRobots) do
+		local tmp = Robot.minTimeToBall(r)
+		if tmp < minTimeOpp then
+			minTimeOpp = tmp
+			counter=counter + 1
+		end
+	end
 	debug.set("wait time", waitTime)
-	if waitTime > SAFETY_TIME
+	debug.set("opp time", minTimeOpp)
+
+	-- hysteresis around the time
+	if minTimeOpp > waitTime + OPP_TIME_HYSTERESIS then
+		self._oppTimeHysteresis = false
+	elseif minTimeOpp < waitTime - OPP_TIME_HYSTERESIS then
+		self._oppTimeHysteresis = true
+	end
+
+
+
+	if self._oppTimeHysteresis then
+		
+		moveTime = Physics.robotTimeToBall(self._robot, World.Ball, World.Geometry.OpponentGoal, 0)
+		local ball = Physics.ballAtTime(World.Ball, moveTime)
+		local viewDir = (World.Geometry.OpponentGoal-ball.pos):setLength(ball.radius+self._robot.shootRadius)
+		local pos = ball.pos - viewDir
+
+		-- move to the ball if the opponent would be there before us
+		self._robot.path:setDefaultObstacles(self._robot, true)
+		self._robot.path:addRobotObstacles(self._robot)
+		self._robot.trajectory:update(ToTarget, pos, viewDir:angle())
+		self._robot:setDribblerSpeed(0.2)
+		self._send.moveDest("all", pos)
+		self._send.attackPosition("all", pos)
+		debug.set("Moving to Ball", true)
+
+		return moveTime
+	-- wait for recieving the ball
+	elseif waitTime > SAFETY_TIME
 			or (self._receivePassHysteresis and waitTime > SAFETY_TIME - SAFETY_TIME_HYSTERESIS) then
 		-- block ball by moving in its way
 		self._robot.path:setDefaultObstacles(self._robot, true)
@@ -149,6 +191,8 @@ function Shoot:_tryReceivePass(targetPos, targetSpeed)
 		self._send.moveDest("all", robotPos)
 		-- send the position where the ball is catched
 		self._send.attackPosition("all", ballPos)
+		debug.set("Moving to Ball", false)
+
 		return moveTime
 	end
 	return nil
