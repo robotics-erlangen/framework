@@ -147,7 +147,6 @@ function Shoot:_tryReceivePass(targetPos, targetSpeed)
 		local tmp = Robot.minTimeToBall(r)
 		if tmp < minTimeOpp then
 			minTimeOpp = tmp
-			counter=counter + 1
 		end
 	end
 	debug.set("wait time", waitTime)
