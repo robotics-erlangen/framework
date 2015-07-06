@@ -55,7 +55,7 @@ function HandleBall:_interceptBall()
 		end
 	end
 
-	if friendlyTime < ATTACK_PREPARATION_TIME and self._interception == "dirty" then
+	if friendlyTime < ATTACK_PREPARATION_TIME and self._interception == "impossible" then
 		return "impossible"
 	end
 
