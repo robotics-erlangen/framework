@@ -203,8 +203,8 @@ function Ball.ballCatchProbability(robot, shootTime, rollTime, catchPos, corrido
 	else								-- if robot reaches the corridor in time with its current speed
 		return 1
 	end
-	local maxAcceleration = robot.maxAcceleration
-	local maxDeceleration = -5	-- magic constant
+	local maxAcceleration = robot.acceleration.aSpeedupFMax
+	local maxDeceleration = robot.acceleration.aBrakeFMax
 	local neededAcc
 	if rollTime < latency then
 		neededAcc = 2*(d0 - expectedPos)/(damping*time*time)

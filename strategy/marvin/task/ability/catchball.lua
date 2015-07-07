@@ -69,7 +69,7 @@ function CatchBall:_approxMinTimeToBall(robot, ball)
 	local dist = math.max(0, ball.pos:distanceTo(robot.pos) - ball.radius - robot.radius)
 	-- speed of ball and robot towards each other
 	local robotSpeed = posDiff:dot(robot.speed)
-	local robotAccel = robot.maxAcceleration
+	local robotAccel = robot.acceleration.aSpeedupFMax
 
 	local ballSpeed = -posDiff:dot(ball.speed)
 	local ballAccel

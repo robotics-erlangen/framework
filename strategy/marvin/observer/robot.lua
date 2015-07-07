@@ -46,24 +46,62 @@ function Robot.wayToPosFree(pos, ignoreRobot1, ignoreRobot2, chipkick)
 end
 
 
-local lastSpeed = {}
+local lastLocalSpeed = {}
+local lastRotation = {}
 local speedSmoothed = {}
+local rotationSmoothed = {}
+local rotationAcclerationSmoothed = {}
 local accelerationSmoothed = {}
-local alpha = 0.1
+local alpha = 0.02
 function Robot.estimateOpponentDynamics()
+	local nullVector = Vector(0,0)
 	for _, robot in pairs(World.OpponentRobots) do
-		if lastSpeed[robot] then
-			local accel = (robot.speed - lastSpeed[robot]) / World.TimeDiff -- classic derivative without smoothing
-			accelerationSmoothed[robot] = alpha * accel:length() + (1 - alpha) * (accelerationSmoothed[robot] or 0) -- smoothed acceleration curve
+		local localRobotSpeed = robot.speed:copy():rotate(-robot.dir)
+		localRobotSpeed.x = math.abs(localRobotSpeed.x)
+		localRobotSpeed.y = math.abs(localRobotSpeed.y)
+		local localRobotDir = math.abs(robot.angularSpeed)
+		if lastLocalSpeed[robot] then
+			local accel = (localRobotSpeed - lastLocalSpeed[robot]) / World.TimeDiff -- classic derivative without smoothing
+			accelerationSmoothed[robot] = accel * alpha + (accelerationSmoothed[robot] or nullVector) * (1 - alpha) -- smoothed acceleration curve
 		end
-		speedSmoothed[robot] = alpha * robot.speed:length() + (1 - alpha) * (speedSmoothed[robot] or 0)
-		lastSpeed[robot] = robot.speed
+		if lastRotation[robot] then
+			local accel = (localRobotDir - lastRotation[robot]) / World.TimeDiff
+			rotationAcclerationSmoothed[robot] = accel * alpha + (rotationAcclerationSmoothed[robot] or 0) * (1 - alpha)
+		end
+		speedSmoothed[robot] = robot.speed:length() * alpha + (speedSmoothed[robot] or 0) * (1 - alpha)
+		rotationSmoothed[robot] = localRobotDir * alpha + (rotationSmoothed[robot] or 0) * (1 - alpha)
+		lastLocalSpeed[robot] = localRobotSpeed
+		lastRotation[robot] = localRobotDir
 
-		if accelerationSmoothed[robot] and robot.maxAcceleration < accelerationSmoothed[robot] then
-			robot.maxAcceleration = accelerationSmoothed[robot]
+		if accelerationSmoothed[robot] then
+			local accel = accelerationSmoothed[robot]
+			if accel.x > 0 and accel.x > robot.acceleration.aSpeedupFMax then
+				robot.acceleration.aSpeedupFMax = accel.x
+			end
+			if accel.x < 0 and -accel.x > robot.acceleration.aBrakeFMax then
+				robot.acceleration.aBrakeFMax = -accel.x
+			end
+			if accel.y > 0 and accel.y > robot.acceleration.aSpeedupSMax then
+				robot.acceleration.aSpeedupSMax = accel.y
+			end
+			if accel.y < 0 and -accel.y > robot.acceleration.aBrakeSMax then
+				robot.acceleration.aBrakeSMax = -accel.y
+			end
+		end
+		if rotationAcclerationSmoothed[robot] then
+			local rot = rotationAcclerationSmoothed[robot]
+			if rot > 0 and rot > robot.acceleration.aSpeedupPhiMax then
+				robot.acceleration.aSpeedupPhiMax = rot
+			end
+			if rot < 0 and -rot > robot.acceleration.aBrakePhiMax then
+				robot.acceleration.aBrakePhiMax = -rot
+			end
 		end
 		if robot.maxSpeed < speedSmoothed[robot] then
 			robot.maxSpeed = speedSmoothed[robot]
+		end
+		if robot.maxAngularSpeed < rotationSmoothed[robot] then
+			robot.maxAngularSpeed = rotationSmoothed[robot]
 		end
 	end
 end
