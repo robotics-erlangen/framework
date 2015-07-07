@@ -178,6 +178,19 @@ function Physics.ballOutTime(ball)
 end
 
 
+--- first position where the ball will hit the ground again
+-- @param ball Ball - a ball-like structure
+-- @return Vector - the estimated landing position
+function Physics.ballLandPos(ball)
+	local topHeight = math.max(0, ball.posZ + ball.speedZ * ball.speedZ / (2 * 9.81))
+	local timeToTop = ball.speedZ / 9.81
+	local timeToFloor = math.sqrt(2 * topHeight / 9.81)
+
+	local remainingFlightTime = math.max(0, timeToTop + timeToFloor)
+	return ball.pos + ball.speed * remainingFlightTime
+end
+
+
 --- approximates the time the given robot needs to pos for a given endSpeed
 -- uses a bang-bang motion profile
 -- calculations are done in 1D (along the line from robot.pos to pos)
