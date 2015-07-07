@@ -32,7 +32,9 @@ local plot = require "../base/plot"
 -- @class table
 -- @name Ball
 -- @field pos Vector - Current ball position
+-- @field posZ number - Ball height above the field
 -- @field speed Vector - Movement direction, length is speed in m/s
+-- @field speedZ number - Upwards speed in m/s
 -- @field radius number - Ball radius
 -- @field deceleration Vector - Current deceleration that is assumed to brake the ball
 -- @field brakeTime number - Time in seconds until the ball stops moving
@@ -50,6 +52,8 @@ function Ball:init()
 	self.lostSince = 0
 	self.pos = Vector.createReadOnly(0, 0)
 	self.speed = Vector.createReadOnly(0, 0)
+	self.posZ = 0
+	self.speedZ = 0
 	self.deceleration = 0
 	self.maxSpeed = 0
 	self.framesDecelerating = math.huge
@@ -73,6 +77,8 @@ function Ball:_update(data, time)
 	-- data from amun is in global coordiantes
 	self.pos = Coordinates.toLocal(Vector.createReadOnly(data.p_x, data.p_y))
 	self.speed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y))
+	self.posZ = data.p_z
+	self.speedZ = data.v_z
 
 	-- speed tracking
 	-- framesDecelerating counts the number of frames since the last extreme acceleration
