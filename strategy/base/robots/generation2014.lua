@@ -39,36 +39,14 @@ Gen2014.constants = {
 -- @name Gen2014_3:chip
 -- @param distance number - Distance to chip
 function Gen2014:chip(distance)
-	if (require "../base/world").IsSimulated then
-		local distRatio = distance/self.maxShotChip
-		self:shootChip(math.bound(0.05, distRatio, 1))
-		return
-	end
-
-	distance = distance / self.maxShotChip * 1.8
-	local power = 0.2502*distance*distance - 0.0178*distance + 0.2089
-	self:shootChip(math.bound(0.2, power, 1))
+	self:shootChip(math.bound(0.05, distance, self.maxShotChip))
 end
 
 --- Shoot wrapper
 -- @name Gen2014_3:_shoot
 -- @param speed number - Target shoot speed
 function Gen2014:_shoot(speed)
-	if (require "../base/world").IsSimulated then
-		local speedRatio = speed/self.maxShotLinear
-		self:shootLinear(math.bound(0.05, speedRatio, 1))
-		return
-	end
-
-	if self.id == 2 then
-		speed = speed / self.maxShotLinear * 9.3
-		local power = 0.1987534 + 0.0176638*speed + 0.0057699*speed*speed
-		self:shootLinear(math.bound(0.2, power, 0.9))
-	end
-
-	speed = speed / self.maxShotLinear * 5.5
-	local power = 0.0167*speed*speed + 0.0459*speed + 0.194
-	self:shootLinear(math.bound(0.2, power, 1))
+	self:shootLinear(math.bound(0.05, speed, self.maxShotLinear))
 end
 
 return Gen2014
