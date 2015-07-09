@@ -4,14 +4,13 @@ local HandleBall = Class("Agent.Keeper.HandleBall", Base)
 local World = require "../base/world"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
-local CenterBack = require "task/centerback"
 local AggressiveKeeper = require "task/aggressivekeeper"
 local SaveBall = require "task/saveball"
 local ShootGoal = require "task/shootgoal"
 local debug = require "../base/debug"
 
 function HandleBall:behindCenterbacks(object)
-	local defenseDistance = self._robot.radius + self._robot.shootRadius + CenterBack.distanceToDefenseArea() - 0.01
+	local defenseDistance = self._robot.radius + self._robot.shootRadius
 	return Field.distanceToFriendlyDefenseArea(object.pos, object.radius) < defenseDistance
 end
 
