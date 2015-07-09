@@ -126,7 +126,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	distanceToBall = distanceToBall or 0
 	local viewDirVec = predictedBall.pos - targetPos
 	if targetSpeed then
-		local targetDir, targetSpeed = self:calcPhi(World.Ball.speed, World.Ball.pos,
+		local targetDir, targetSpeed = self:calcPhi(predictedBall.speed, predictedBall.pos,
 				targetPos, targetSpeed)
 		viewDirVec = -Vector.fromAngle(targetDir)
 	end

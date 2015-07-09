@@ -128,7 +128,11 @@ function Shoot:_doCatch(targetPos, targetSpeed)
 end
 
 function Shoot:_tryReceivePass(targetPos, targetSpeed)
-	local viewDir, _ = self:calcPhi(World.Ball.speed, World.Ball.pos,
+	local ballRollTime = Physics.ballRollTime(World.Ball,
+		World.Ball.pos:distanceTo(self._robot.pos
+			+ Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)))
+	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
+	local viewDir, _ = self:calcPhi(futureBall.speed, futureBall.pos,
 				targetPos, targetSpeed)
 	local robotFront = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
 	local ballPos = robotFront:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
@@ -221,7 +225,11 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	speed = speed:rotate(self._robot.dir)
 
 	-- calculate shoot direction
-	local targetDir, targetSpeed = self:calcPhi(World.Ball.speed, World.Ball.pos,
+	local ballRollTime = Physics.ballRollTime(World.Ball,
+		World.Ball.pos:distanceTo(self._robot.pos
+			+ Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)))
+	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
+	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos,
 				targetPos, targetSpeed)
 
 	-- calculate current distance to the ball
@@ -284,7 +292,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 
 		local dist = targetPos:distanceTo(self._robot.pos)
 		if linearShoot then
-			self._robot:shoot(targetSpeed, true)
+			self._robot:shoot(kickSpeed, true)
 			debug.set("shoot command", "linear")
 		else
 			self._robot:chip(dist*CHIP_DIST_SCALE)

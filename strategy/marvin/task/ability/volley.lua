@@ -4,13 +4,14 @@ local World = require "../base/world"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local Ball = require "observer/ball"
+local Physics = require "observer/physics"
 local ToTarget = require "trajectory/totarget"
 local Direct = require "trajectory/direct"
 local debug = require "../base/debug"
 local Constants = require "../base/constants"
 
-local mu_x = 0.8
-local mu_y = 0.3
+local mu_x = 1.1
+local mu_y = 0.4
 
 function Volley:init()
 	self._ballIncoming = true
@@ -115,7 +116,9 @@ end
 function Volley:_volley(viewPos, targetPos, targetSpeed)
 	-- init ball_in speed
 	if self._ballIncoming then
-		self._ball_in = World.Ball.speed
+		local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(viewPos))
+		local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
+		self._ball_in = futureBall.speed
 	end
 
 	local phi, v_s = self:calcPhi(self._ball_in, viewPos, targetPos, targetSpeed)
@@ -126,7 +129,7 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 
 	-- position the robot to receive the pass
 	local robotPos = viewPos - Vector.fromAngle(phi):scaleLength(
-				World.Ball.radius * 0 + self._robot.shootRadius)
+				World.Ball.radius + self._robot.shootRadius)
 	self._robot.trajectory:update(ToTarget, robotPos, phi, nil, nil, true)
 
 	-- only shoot if the robot looks about in the right direction
