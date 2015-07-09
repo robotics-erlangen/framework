@@ -3,30 +3,22 @@ local InterceptPass = Class("Task.InterceptPass", require "task/base")
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local Goal = require "observer/goal"
-
 local World = require "../base/world"
 local vis = require "../base/vis"
-local Cache = require "../base/cache"
 local debug = require "../base/debug"
-
 local Defense = require "util/defense"
-
 local ToTarget = require "trajectory/totarget"
 
-InterceptPass.priority = 3
 
 function InterceptPass:_init()
-	self._notEnoughTime = false
 end
 
-function InterceptPass.touchBallPosition(robot, timelimit)
+function InterceptPass.touchBallPosition(robot)
 	local MAX_ITER = 10
 	local MIN_TIMESTEP = 0.005
 	local EXTRA_TIME = 0.1 -- to compensate the difference between timeToPos and the real robot time
-	local TIME_LIMIT = timelimit or 1
 
-	local t_ball = math.min(Physics.ballRollTime(World.Ball,
-			robot.pos:distanceTo(World.Ball.pos)), TIME_LIMIT)
+	local t_ball = Physics.ballRollTime(World.Ball, robot.pos:distanceTo(World.Ball.pos))
 	local timestep = 0.5 * t_ball
 
 	for i = 1, MAX_ITER do
@@ -69,65 +61,20 @@ function InterceptPass.touchBallPosition(robot, timelimit)
 		end
 	end
 
-	if t_ball >= TIME_LIMIT then
-		return nil
-	end
-
 	local ball_interception_pos = Physics.ballAtTime(World.Ball, t_ball).pos
 	vis.addCircle("t/interceptpass: interception pos", ball_interception_pos, 0.14, vis.colors.magentaHalf, true)
 
 	return ball_interception_pos, t_ball
 end
-InterceptPass.touchBallPosition = Cache.forFrame(InterceptPass.touchBallPosition)
 
 function InterceptPass:run()
 	local pos, time = InterceptPass.touchBallPosition(self._robot)
-
-
-	local mostDangerousRobot = nil
-	local maxTimeAdvance = -math.huge
-	local distHysteresis = 0.04
-	local notEnoughTime = false
-	--[[for _,r in pairs(World.OpponentRobots) do
-		local rp, ta = Ball.receivesPass(r)
-		if rp then
-			local distanceDiff = r.pos:distanceTo(World.Ball.pos) - pos:distanceTo(World.Ball.pos)
-			if self._notEnoughTime and distanceDiff < distHysteresis or
-					not self._notEnoughTime and distanceDiff < -distHysteresis then
-				self._notEnoughTime = true
-				if ta > maxTimeAdvance then
-					maxTimeAdvance = ta
-					mostDangerousRobot = r
-				end
-			end
-		end
-	end
-	self._notEnoughTime = notEnoughTime
-
-]]
-	if not pos then
-		local mindist = math.huge
-		local minrobot = nil
-		for _,r in ipairs(World.OpponentRobots) do
-			local dist = r.pos:distanceTo(self._robot.pos)
-			if dist < mindist then
-				mindist = dist
-				minrobot = r
-			end
-		end
-		if minrobot then
-			pos = Defense.manMarkPos(minrobot)
-		else
-			pos = Vector(0,0) -- should only happen if there are no opponents
-		end
-	end
-	debug.set("notEnoughTime", notEnoughTime)
 
 	self._robot.path:setDefaultObstacles(self._robot, true) -- ignore ball
 	self._robot.path:addRobotObstacles(self._robot, false, true) -- ignore opponents
 
 	local dir = (-World.Ball.speed):angle()
-	local endSpeed = (World.Ball.pos - self._robot.pos):setLength(1)
+	local endSpeed = (World.Ball.pos - self._robot.pos):setLength(2)
 	self._robot.trajectory:update(ToTarget, pos, dir, nil, endSpeed)
 end
 
