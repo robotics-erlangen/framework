@@ -18,7 +18,7 @@ function InterceptPass.touchBallPosition(robot)
 	local MIN_TIMESTEP = 0.005
 	local EXTRA_TIME = 0.1 -- to compensate the difference between timeToPos and the real robot time
 
-	local t_ball = Physics.ballRollTime(World.Ball, robot.pos:distanceTo(World.Ball.pos))
+	local t_ball = math.min(Physics.ballRollTime(World.Ball, robot.pos:distanceTo(World.Ball.pos)), 2)
 	local timestep = 0.5 * t_ball
 
 	for i = 1, MAX_ITER do
