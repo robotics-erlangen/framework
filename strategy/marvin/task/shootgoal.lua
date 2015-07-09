@@ -20,7 +20,8 @@ local Random = require "util/random"
 local Field = require "../base/field"
 
 
-local MIN_REQUIRED_ANGLE = 0.5 / 180 * math.pi -- in order to shoot into a free sector
+local MIN_REQUIRED_ANGLE = 1 / 180 * math.pi -- in order to shoot into a free sector
+local MIN_REQUIRED_ANGLE_HYSTERESIS = 0.3 / 180 * math.pi
 local MIN_SHOOT_PRECISION = 10 / 180 * math.pi -- for the shoot ability
 -- how much to move the shoot pos towards the corner
 -- (0 = mid of sector, 1 = straight towards the corner)
@@ -251,16 +252,20 @@ function ShootGoal:updateDestination()
 	local viewPos = self._robot.pos + Vector.fromAngle(self._robot.dir) *
 			(self._robot.shootRadius + World.Ball.radius)
 
+
 	-- calculate free sectors considering the opponent goalie
 	self:_calculateDestination(viewPos, false)
-	self.sectorClean = true
 
 	-- if there is no clean sector,
 	-- 1. ignore the goalie
 	-- 2. check for ricochet opportunities
-	if not self.bestMid or self.maxAngleError < MIN_REQUIRED_ANGLE then
+	if not self.bestMid or 
+			(self.sectorClean and self.maxAngleError < MIN_REQUIRED_ANGLE - MIN_REQUIRED_ANGLE_HYSTERESIS) or
+			(not self.sectorClean and self.maxAngleError < MIN_REQUIRED_ANGLE + MIN_REQUIRED_ANGLE_HYSTERESIS) then
 		self:_calculateDestination(viewPos, true)
 		self.sectorClean = false
+	else
+		self.sectorClean = true
 	end
 end
 ShootGoal.updateDestination = Cache.forFrame(ShootGoal.updateDestination)
