@@ -153,7 +153,7 @@ function Goal.predictShot()
 				pos = passReciever[1].pos + Vector.fromAngle(passReciever[1].dir) * (passReciever[1].shootRadius + World.Ball.radius)
 				local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(pos))
 				local ballSpeedLength = Physics.ballAtTime(World.Ball, ballRollTime).speed:length()
-				local ballAngle = (-World.Ball.speed):angle()
+				local ballAngle = World.Ball.speed:angle()
 				local robotAngle = passReciever[1].dir
 				local dirx, diry = Volley.calcVOut(8, ballSpeedLength, robotAngle, ballAngle)
 				ballSpeed = Vector(dirx, diry):normalize()
