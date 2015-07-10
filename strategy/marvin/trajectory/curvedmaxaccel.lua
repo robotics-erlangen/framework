@@ -575,6 +575,10 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, precise
 		return {spline = spline}, targetPos, 0
 	end
 
+	if waypoints[#waypoints]:distanceTo(targetPos) > 0.02 then
+		endSpeed = Vector(0, 0)
+	end
+
 	-- get acceleration values
 	-- maximum sidewards acceleration
 	local accelLimit = math.abs(self._robot.acceleration and self._robot.acceleration.aSpeedupSMax or 1.0)
