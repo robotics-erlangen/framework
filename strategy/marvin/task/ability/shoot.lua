@@ -225,9 +225,8 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	speed = speed:rotate(self._robot.dir)
 
 	-- calculate shoot direction
-	local ballRollTime = Physics.ballRollTime(World.Ball,
-		World.Ball.pos:distanceTo(self._robot.pos
-			+ Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)))
+	local ballTouchPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)
+	local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(ballTouchPos))
 	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
 	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos,
 				targetPos, targetSpeed)
@@ -243,11 +242,10 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 			debug.set("special", "shot at robot")
 			-- ball shoot towards robots
 			local balldir = World.Ball.speed:copy():normalize()
-			local robotFront = self._robot.pos + Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
-			-- calculate sidewards offset of ball hitpoint
-			local _, _, lambda = geom.intersectLineLine(World.Ball.pos, balldir, robotFront, balldir:perpendicular())
-			-- only correct sidewards offset
-			distToBall = Vector(0, lambda)
+			-- calculate offset to ball hitpoint
+			local _, _, lambda = geom.intersectLineLine(World.Ball.pos, balldir, ballTouchPos, balldir:perpendicular())
+			local errorVec = balldir:perpendicular() * lambda
+			distToBall = errorVec:rotate(-self._robot.dir)
 		end
 	end
 	debug.set("distToBall", distToBall)
