@@ -22,6 +22,7 @@ function Pass:_init(targetRobot, shootPos)
 	end
 end
 
+local MIN_OPP_CHIP_DIST = 0.35
 function Pass:run()
 	if self._inTheRun then
 		local newSuggestion = self._inbox.passSuggestion()[self._targetRobot]
@@ -35,7 +36,7 @@ function Pass:run()
 	end
 
 	local shootSpeed = self._robot:calculateShootSpeed(self._passSpeed,
-		World.Ball.pos:distanceTo(self._shootPos))	
+		World.Ball.pos:distanceTo(self._shootPos))
 
 	local corridorWidthHalfInner = 0.04
 	local corridorWidthHalfOuter = 0.08
@@ -80,7 +81,7 @@ function Pass:run()
 		-- calculate the ball time
 		local shootBall = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
 		local ballTime = Physics.ballRollTime(shootBall, pointOfImpact:distanceTo(World.Ball.pos))
-		
+
 		debug.set("pass interception"..opp.id, {
 			opponent = opp,
 			["robot time inner"] = robotTimeInner,
@@ -88,7 +89,8 @@ function Pass:run()
 			["ball time"] = ballTime,
 		})
 		vis.addCircle("t/pass: OppInterception", pointOfImpact, 0.1, vis.colors.blue, true)
-		if robotTimeInner < ballTime then
+		-- a chip kick does not help if the interception is close to the target robot
+		if robotTimeInner < ballTime and self._targetRobot.pos:distanceTo(pointOfImpact) > MIN_OPP_CHIP_DIST then
 			self._linearShoot = false
 			linearShootHysteresisFlag = false
 			break
