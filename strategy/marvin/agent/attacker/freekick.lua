@@ -19,6 +19,7 @@ local POSITION_PADDING = 0.02 -- safety distance
 function FreeKick:_stop()
 	self._startTime = 0
 	self._decision = nil
+	self._decisionReconsidered = false
 	self._pass = nil
 	self._bestRating = -math.huge
 end
@@ -51,6 +52,7 @@ end
 
 local nearBallDist = 0.15
 local hurryUp = 6
+local RECONSIDER_DECISION_DIST = 0.1
 function FreeKick:_updateTask()
 	local goalKickFlag = Field.isInOwnCorner(World.Ball.pos, false)
 
@@ -64,11 +66,13 @@ function FreeKick:_updateTask()
 		return MoveToStaticBall, { viewDir, nearBallDist }
 	end
 
+	local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*self._robot.shootRadius
+	local reconsiderDecision = dribblerPos:distanceTo(World.Ball.pos) < RECONSIDER_DECISION_DIST
+	if not self._decision or (reconsiderDecision and not self._decisionReconsidered) then
+		if reconsiderDecision then
+			self._decisionReconsidered = true
+		end
 
-	if not self._decision then
-		--[[if goalKickFlag then
-			return GoalKick
-		end]]
 		local shootGoalTmp = ShootGoal(self._agent)
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 
@@ -81,9 +85,11 @@ function FreeKick:_updateTask()
 			pass.target = robot
 			pass.pos = sugg.pos
 			pass.receiveTime = sugg.time
-			
+
 			if self._pass and self._pass.target == robot then
+				-- update data about current pass
 				self._pass = pass
+				self._bestRating = sugg.rating
 			end
 			if sugg.rating > bestPassRating then
 				bestPassRating = sugg.rating
@@ -95,6 +101,9 @@ function FreeKick:_updateTask()
 		local bestPassRatingHysteresis = 3 / 180 * math.pi
 		if bestPassRating > self._bestRating + bestPassRatingHysteresis then
 			self._bestRating = bestPassRating
+			if self._pass and self._pass.target ~= bestPass.target then
+				self._task = nil -- force creation of new task
+			end
 			self._pass = bestPass
 		end
 		if self._pass then
