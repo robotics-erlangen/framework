@@ -328,7 +328,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		local minDist
 		if self._travelLimit then
 			minDist = 0.075
-		elseif self._movingBallHysteresis then
+		elseif self._movingBallHysteresis or World.RefereeState == "Game" then
 			-- don't keep any distance to a moving ball
 			minDist = 0
 		else
