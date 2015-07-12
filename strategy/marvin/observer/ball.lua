@@ -144,8 +144,8 @@ function Ball.receivesPass(robot)
 	end
 
 	local balldir = World.Ball.speed:copy():normalize()
-	local dribblerPos = robot.pos + Vector.fromAngle(robot.dir) * (robot.shootRadius + World.Ball.radius)
-	local robotPos, lambda = geom.intersectLineLine(World.Ball.pos, balldir, dribblerPos, balldir:perpendicular())
+	local dribblerOffset = Vector.fromAngle(robot.dir) * (robot.shootRadius + World.Ball.radius)
+	local dribblerPos, lambda = geom.intersectLineLine(World.Ball.pos, balldir, robot.pos + dribblerOffset, balldir:perpendicular())
 
 	-- if the ball is behind or inside the robot
 	if lambda < robot.shootRadius then
@@ -153,7 +153,7 @@ function Ball.receivesPass(robot)
 		return false
 	end
 
-	local robotTime = Physics.robotTimeToPos(robot, robotPos, Vector(0, 0))
+	local robotTime = Physics.robotTimeToPos(robot, dribblerPos - dribblerOffset, Vector(0, 0))
 	local ballTime = Physics.ballRollTime(World.Ball, math.max(0, lambda - robot.shootRadius - World.Ball.radius))
 
 	-- if the robot takes longer than the ball
