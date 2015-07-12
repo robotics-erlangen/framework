@@ -139,7 +139,11 @@ local touchDist = World.Ball.radius+robotRadius
 --- Update the status of which team touched the ball last
 -- @name checkTouching
 function Referee.checkTouching()
-	local ballPos = World.Ball.pos
+	-- only consider touches when playing
+	if World.RefereeState == "Stop" or not Field.isInField(ballPos) then
+		return
+	end
+
 	-- pessimistic approach: when we are at the ball, our team is considered touching
 	for _, robot in ipairs(World.FriendlyRobots) do
 		if robot.pos:distanceTo(ballPos) <= touchDist then
