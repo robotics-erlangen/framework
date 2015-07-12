@@ -36,6 +36,7 @@ function Armada:check()
             -- EXECUTION state (second): pass is executed
             if Ball.isShot() then -- let normal game take over
                 self._stayActive = false
+                return false
             end
             return true
         elseif World.Ball.pos.y > G.FieldHeightHalf/5 and Referee.opponentTouchedLast()
