@@ -138,13 +138,23 @@ local lastTeam = true -- true for the friendly team, false for the opponent
 local touchDist = World.Ball.radius+robotRadius
 local fieldHeightHalf = World.Geometry.FieldHeightHalf
 local fieldWidthHalf = World.Geometry.FieldWidthHalf
+local noBallTouchStates = {
+	Halt = true,
+	Stop = true,
+	KickoffOffensivePrepare = true,
+	KickoffDefensivePrepare = true,
+	PenaltyOffensivePrepare = true,
+	PenaltyDefensivePrepare = true,
+	TimeoutOffensive = true,
+	TimeoutDefensive = true
+}
 --- Update the status of which team touched the ball last
 -- @name checkTouching
 function Referee.checkTouching()
 	local ballPos = World.Ball.pos
 	-- only consider touches when playing
-	if World.RefereeState == "Stop" or
-			ballPos.x > fieldWidthHalf or ballPos.y > fieldHeightHalf then
+	if noBallTouchStates[World.RefereeState] or
+			math.abs(ballPos.x) > fieldWidthHalf or math.abs(ballPos.y) > fieldHeightHalf then
 		return
 	end
 
