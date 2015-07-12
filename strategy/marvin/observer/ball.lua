@@ -144,7 +144,8 @@ function Ball.receivesPass(robot)
 	end
 
 	local balldir = World.Ball.speed:copy():normalize()
-	local robotPos, lambda = geom.intersectLineLine(World.Ball.pos, balldir, robot.pos, balldir:perpendicular())
+	local dribblerPos = robot.pos + Vector.fromAngle(robot.dir) * (robot.shootRadius + World.Ball.radius)
+	local robotPos, lambda = geom.intersectLineLine(World.Ball.pos, balldir, dribblerPos, balldir:perpendicular())
 
 	-- if the ball is behind or inside the robot
 	if lambda < robot.shootRadius then
