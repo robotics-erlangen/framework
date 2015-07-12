@@ -39,6 +39,10 @@ function HandleBall:_stop()
 end
 
 function HandleBall:_interceptBall()
+	if Robot.hadBall(self._robot, 0.5) then
+		return "impossible"
+	end
+
 	-- consider all opponents that can catch the ball sooner than us as passReceipients
 	local friendlyTime = Robot.minTimeToBall(self._robot)
 	local outTime = Physics.ballOutTime(World.Ball)
