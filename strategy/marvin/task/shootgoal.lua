@@ -430,7 +430,7 @@ function ShootGoal:run()
 					self:improvePassReceiptPosition(self._viewPos, self._sglastBallSpeed)
 		else
 			-- remap viewPos to actual ball trajectory
-			self._viewPos = self._viewPos:nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed*100)
+			self._viewPos = self._viewPos:nearestPosOnLine(World.Ball.pos - World.Ball.speed*100, World.Ball.pos + World.Ball.speed*100)
 		end
 		self._sglastBallSpeed = World.Ball.speed
 
