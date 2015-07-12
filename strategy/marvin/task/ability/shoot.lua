@@ -27,7 +27,7 @@ local STOPPED_BALL = 0.2
 local STOPPED_BALL_DIST = 2*Constants.positionError
 
 local SAFETY_TIME = 0.2
-local SAFETY_TIME_HYSTERESIS = 0.1
+local SAFETY_TIME_HYSTERESIS = 0.2
 local BLOCK_ANGLE = 65 / 180 * math.pi
 local BLOCK_HYSTERESIS = 5 / 180 * math.pi
 local OPP_TIME_HYSTERESIS = 0.1
@@ -163,28 +163,17 @@ function Shoot:_tryReceivePass(targetPos, targetSpeed)
 		self._oppTimeHysteresis = true
 	end
 
-
-
-	if self._oppTimeHysteresis then
-		
-		moveTime = Physics.robotTimeToBall(self._robot, World.Ball, World.Geometry.OpponentGoal, 0)
-		local ball = Physics.ballAtTime(World.Ball, moveTime)
-		local viewDir = (World.Geometry.OpponentGoal-ball.pos):setLength(ball.radius+self._robot.shootRadius)
-		local pos = ball.pos - viewDir
-
-		-- move to the ball if the opponent would be there before us
-		self._robot.path:setDefaultObstacles(self._robot, true)
-		self._robot.path:addRobotObstacles(self._robot)
-		self._robot.trajectory:update(ToTarget, pos, viewDir:angle())
-		self._robot:setDribblerSpeed(0.2)
-		self._send.moveDest("all", pos)
-		self._send.attackPosition("all", pos)
-		debug.set("Moving to Ball", true)
-
-		return moveTime
 	-- wait for recieving the ball
-	elseif waitTime > SAFETY_TIME
+	if self._oppTimeHysteresis or waitTime > SAFETY_TIME
 			or (self._receivePassHysteresis and waitTime > SAFETY_TIME - SAFETY_TIME_HYSTERESIS) then
+		if self._oppTimeHysteresis then
+			-- move to the ball if the opponent would be there before us
+			moveTime = Physics.robotTimeToBall(self._robot, World.Ball, targetPos, 0)
+			local ball = Physics.ballAtTime(World.Ball, moveTime)
+			ballPos = ball.pos
+			robotPos = ballPos - Vector.fromAngle(viewDir):scaleLength(self._robot.shootRadius + World.Ball.radius)
+		end
+
 		-- block ball by moving in its way
 		self._robot.path:setDefaultObstacles(self._robot, true)
 		self._robot.path:addRobotObstacles(self._robot)
@@ -194,7 +183,7 @@ function Shoot:_tryReceivePass(targetPos, targetSpeed)
 		self._send.moveDest("all", robotPos)
 		-- send the position where the ball is catched
 		self._send.attackPosition("all", ballPos)
-		debug.set("Moving to Ball", false)
+		debug.set("Moving to Ball", self._oppTimeHysteresis)
 
 		return moveTime
 	end
