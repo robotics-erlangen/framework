@@ -128,13 +128,11 @@ function Shoot:_doCatch(targetPos, targetSpeed)
 end
 
 function Shoot:_tryReceivePass(targetPos, targetSpeed)
-	local ballRollTime = Physics.ballRollTime(World.Ball,
-		World.Ball.pos:distanceTo(self._robot.pos
-			+ Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)))
+	local robotFront = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
+	local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(robotFront))
 	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
 	local viewDir, _ = self:calcPhi(futureBall.speed, futureBall.pos,
 				targetPos, targetSpeed)
-	local robotFront = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
 	local ballPos = robotFront:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
 	local ballDist = ballPos:distanceTo(World.Ball.pos)
 
@@ -146,7 +144,7 @@ function Shoot:_tryReceivePass(targetPos, targetSpeed)
 	local waitTime = ballTime - moveTime
 
 	--see if an opponent is closer to the ball
-	local minTimeOpp =math.huge
+	local minTimeOpp = math.huge
 	for _,r in pairs(World.OpponentRobots) do
 		local tmp = Robot.minTimeToBall(r)
 		if tmp < minTimeOpp then
