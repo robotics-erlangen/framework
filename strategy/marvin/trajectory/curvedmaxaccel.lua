@@ -221,10 +221,10 @@ local function _backpropagateSpeedLimit(speedProfile, maxSpeed, brake)
 	-- special case, robot starts too fast, just cut down the initial speed
 	local startSpeed = speedProfile[1][2]
 	-- time required for braking on that distance
-	endTime = (-maxSpeed + math.sqrt(maxSpeed*maxSpeed-2*brake*distance)) / (-brake)
+	endTime = 2 * distance / (startSpeed + maxSpeed)
 	-- replace speedProfile entries
 	table.truncate(speedProfile, 0)
-	table.insert(speedProfile, {0, maxSpeed - brake * endTime})
+	table.insert(speedProfile, {0, startSpeed})
 	table.insert(speedProfile, {endTime, maxSpeed})
 end
 
