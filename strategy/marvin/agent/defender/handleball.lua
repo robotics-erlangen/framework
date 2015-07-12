@@ -39,10 +39,6 @@ function HandleBall:_stop()
 end
 
 function HandleBall:_interceptBall()
-	if Robot.hadBall(self._robot, 0.5) then
-		return "impossible"
-	end
-
 	-- consider all opponents that can catch the ball sooner than us as passReceipients
 	local friendlyTime = Robot.minTimeToBall(self._robot)
 	local outTime = Physics.ballOutTime(World.Ball)
@@ -64,7 +60,8 @@ function HandleBall:_interceptBall()
 	end
 
 	if #passReceipients == 0 then
-		if friendlyTime + EXTRA_TIME_CLEAN < minOppTime and friendlyTime > ATTACK_PREPARATION_TIME then
+		if friendlyTime + EXTRA_TIME_CLEAN < minOppTime and friendlyTime > ATTACK_PREPARATION_TIME
+				and not Robot.hadBall(self._robot, 0.5) then
 			-- MTTB(friendly) + EXTRA_TIME_CLEAN < MTTB(fastestOpponent)
 			-- or MTTB(fastestOpponent) > outTime
 			return "clean"
