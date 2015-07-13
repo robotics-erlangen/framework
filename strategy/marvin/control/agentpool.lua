@@ -15,7 +15,7 @@ function AgentPool:run()
 end
 
 local function sortByRating(a1, a2)
-	return a1:rateRobot() > a2:rateRobot()
+	return a1:rateRobot() < a2:rateRobot()
 end
 
 -- remove agents and associated robots we no longer want to keep

@@ -15,6 +15,7 @@ local KickoffDefensive = require "agent/attacker/kickoffdefensive"
 local Armada = require "moves/armada/behavior"
 local Messaging = require "control/messaging"
 local Robot = require "observer/robot"
+local debug = require "../base/debug"
 
 Attacker._behaviors = {
 	ApplyForMainattacker,
@@ -35,6 +36,7 @@ function Attacker:_run()
 		assert(self._activeBehavior._send, "behavior message interface changed")
 		self._activeBehavior._send.attackerFlag("all")
 	end
+	debug.set("pool rating", self:rateRobot())
 end
 
 function Attacker.takeRobot(robots)
@@ -52,7 +54,7 @@ end
 -- worse rating if robot if farther away from opponent goal
 function Attacker:rateRobot()
 	if self._activeBehavior and self._activeBehavior:forceKeepingInPool()  then
-		return 0
+		return -math.huge
 	end
 	local toOpponentGoal = World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
 	local toBall = Robot.minTimeToBall(self._robot)
