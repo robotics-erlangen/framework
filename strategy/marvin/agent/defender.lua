@@ -39,7 +39,7 @@ end
 -- worse rating if robot if farther away from own goal
 function Defender:rateRobot()
 	if self._activeBehavior and self._activeBehavior:forceKeepingInPool()  then
-		return -math.huge
+		return math.huge
 	end
 	return -World.Geometry.FriendlyGoal:distanceTo(self._robot.pos)
 end

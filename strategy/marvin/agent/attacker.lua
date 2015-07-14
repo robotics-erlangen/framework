@@ -54,7 +54,7 @@ end
 -- worse rating if robot if farther away from opponent goal
 function Attacker:rateRobot()
 	if self._activeBehavior and self._activeBehavior:forceKeepingInPool()  then
-		return -math.huge
+		return math.huge
 	end
 	local toOpponentGoal = World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
 	local toBall = Robot.minTimeToBall(self._robot)
