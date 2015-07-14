@@ -143,7 +143,7 @@ local function calculateCenterBackPositions()
 		end
 		if not way then
 			targetPos = Field.limitToField(targetPos, -0.01)
-			pos, way = Field.intersectRayDefenseArea(targetPos, World.Geometry.FriendlyGoal - targetPos,
+			pos, way = Field.intersectRayDefenseArea(G.FriendlyGoal, targetPos - G.FriendlyGoal,
 				distanceToDefenseArea + robot_radius, false)
 		end
 		local occupiedWay = (#rlist) * (2 * robot_radius + distanceBetweenDefenders)
@@ -241,9 +241,9 @@ local function calculateCenterBackPositions()
 			targetPos = Goal.predictShot()
 		end
 		targetPos = Field.limitToField(targetPos, -0.01)
-		local _, target_way = Field.intersectRayDefenseArea(targetPos, World.Geometry.FriendlyGoal - targetPos,
+		local _, target_way = Field.intersectRayDefenseArea(G.FriendlyGoal, targetPos - G.FriendlyGoal,
 				distanceToDefenseArea + robot_radius, false)
-		local _, robot_way = Field.intersectRayDefenseArea(robot.pos, World.Geometry.FriendlyGoal - targetPos,
+		local _, robot_way = Field.intersectRayDefenseArea(G.FriendlyGoal, robot.pos - G.FriendlyGoal,
 				distanceToDefenseArea + robot_radius, false)
 		for _,i in ipairs(intersections) do
 			if target_way - robot_radius < i.waypos + i.wayrange/2
