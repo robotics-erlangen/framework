@@ -281,7 +281,7 @@ function CenterBack:run()
 	debug.set("target", destinationTarget)
 
 	local chipActivationAngle = math.pi / 6
-	local isGame = World.RefereeState == "Game"
+	local isGame = World.RefereeState == "Game" or World.RefereeState == "GameForce"
 	if isGame and dir > chipActivationAngle and dir < math.pi - chipActivationAngle and
 			Vector.fromAngle(dir):absoluteAngleDiff(destinationPos - G.FriendlyGoal) < math.pi then
 		self._robot:chip(4)

@@ -160,6 +160,14 @@ function Keeper:run()
 	-- ignore goal walls if ball is shot
 	self._robot.path:setDefaultObstacles(self._robot, true, isShot, true, self._robot.radius, 0.05)
 	self._robot.trajectory:update(ToTarget, moveTo, (atkPos - moveTo):angle(), nil, endSpeed)
+
+	local chipActivationAngle = math.pi / 6
+	local ballToRobot = self._robot.pos - Vector.fromAngle(World.Ball.dir or 0)
+	if (World.RefereeState == "Game" or World.RefereeState == "GameForce") and
+			World.Ball.speed:absoluteAngleDiff(ballToRobot) < chipActivationAngle then
+		debug.set("chip", true)
+		self._robot:chip(4)
+	end
 end
 
 return Keeper
