@@ -136,7 +136,7 @@ local MIN_TIME_ADVANCE = 0
 -- always assumes that the robot moves to nearest point on the line defined by the ball sped
 -- @param robot Robot
 -- @return bool
-function Ball.receivesPass(robot)
+function Ball.receivesPass(robot, allowSlowEndSpeed)
 	-- if the initial ball speed is too low
 	if World.Ball.speed:length() < SLOW_BALL then
 		debug.set("receivesPass", "slow ball")
@@ -165,7 +165,7 @@ function Ball.receivesPass(robot)
 	local futureBall = Physics.ballAtTime(World.Ball, ballTime)
 
 	-- if the ball will be too slow
-	if futureBall.speed:length() < SLOW_BALL then
+	if futureBall.speed:length() < SLOW_BALL and not allowSlowEndSpeed then
 		debug.set("receivesPass", "slow future ball")
 		return false
 	end
