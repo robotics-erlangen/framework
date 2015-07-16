@@ -73,8 +73,11 @@ function Duel:_moveToBall()
 		local DIFF = self._robot.radius/2
 		local opponentDribbler = closestOpponentRobot.pos + (World.Geometry.FriendlyGoal
 				- closestOpponentRobot.pos):setLength(closestOpponentRobot.shootRadius)
-		moveDest = self._robot.pos:nearestPosOnLine(opponentDribbler, World.Geometry.FriendlyGoal)
-		viewDir = (World.Ball.pos-self._robot.pos):angle()
+		local viewDirBall = World.Ball.pos - closestOpponentRobot.pos
+		local moveBall = World.Ball.pos +  viewDirBall:setLength(self._robot.radius+World.Ball.radius+0.02)
+		moveDest = self._robot.pos:nearestPosOnLine(moveBall, World.Geometry.FriendlyGoal)
+
+
 		local distToLine = moveDest:distanceTo(self._robot.pos)
 		if distToLine <= DIFF then
 			self._blockingBall = true
