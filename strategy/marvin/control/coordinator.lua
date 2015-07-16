@@ -3,6 +3,7 @@ local Agent = {
 	Defender = require "agent/defender",
 	Keeper = require "agent/keeper",
 	Hidden = require "agent/hidden",
+	Ally = require "agent/ally",
 	Manual = require "agent/manual"
 }
 local World = require "../base/world"
@@ -23,6 +24,7 @@ function Coordinator:init(mode)
 	self._trainer = Trainer(mode)
 	self._pools = {
 		manual = AgentPool(Agent.Manual),
+		ally = AgentPool(Agent.Ally),
 		keeper = AgentPool(Agent.Keeper),
 		defense = AgentPool(Agent.Defender),
 		attack = AgentPool(Agent.Attacker),
@@ -30,6 +32,7 @@ function Coordinator:init(mode)
 	}
 	self._poolGroups = {
 		{ self._pools.manual },
+		{ self._pools.ally },
 		{ self._pools.keeper },
 		{ self._pools.defense, self._pools.attack },
 		{ self._pools.hidden }

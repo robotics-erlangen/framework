@@ -7,6 +7,7 @@ local msgDefs = {
 	-- multiple senders
 	attackerFlag = "flag",
 	defenderFlag = "flag",
+	allyFlag = "flag",
 	attackerRequest = "flag",
 	standardMoveFlag = "flag",
 	centerbackTarget = "table", -- Robot or World.Ball

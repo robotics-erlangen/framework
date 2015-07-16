@@ -2,6 +2,7 @@ local World = require "../base/world"
 local Field = require "../base/field"
 local debug = require "../base/debug"
 local vis = require "../base/vis"
+local Ally = require "agent/ally"
 
 local AttackRatio = {}
 
@@ -91,6 +92,7 @@ function AttackRatio:attackRatio()
 	if World.FriendlyKeeper and World.FriendlyKeeper.isVisible then
 		defenders = math.max(0, defenders - 1)
 	end
+    attackers, defenders = Ally.updateRoleNumbers(attackers, defenders)
 	return attackers, defenders
 end
 
