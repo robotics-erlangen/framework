@@ -89,11 +89,15 @@ function debug.set(name, value, visited)
 		else
 			debug.push(tostring(name))
 			local class = Class.toClass(value, true)
-			if class then
-				debug.set(nil, Class.name(class))
-			end
+			local hasValues = false
 			for k, v in pairs(value) do
 				debug.set(k, v, visited)
+				hasValues = true
+			end
+			if class then
+				debug.set(nil, Class.name(class))
+			elseif not hasValues then
+				debug.set(nil, "empty table")
 			end
 			debug.pop()
 			return
