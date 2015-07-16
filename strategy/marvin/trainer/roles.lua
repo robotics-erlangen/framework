@@ -5,7 +5,7 @@ local vis = require "../base/vis"
 
 local Roles = {}
 
-local ROLE_HYSTERESIS = 0.1
+local ROLE_HYSTERESIS = 0.05
 
 function Roles:init()
     self._exclusiveRoles = {}
