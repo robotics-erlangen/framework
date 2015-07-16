@@ -8,6 +8,7 @@ local Rating = require "util/rating"
 local ObserverShoot = require "observer/shoot"
 local ShootGoal = require "task/shootgoal"
 local Pass = require "task/pass"
+local debug = require "../base/debug"
 
 local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
 
@@ -47,6 +48,8 @@ function Shoot:_updateTask()
 	end
 	local minTimeOver = World.Time - self._taskStart >= self._minTaskTime
 
+	debug.set("minTaskTime", self._minTaskTime)
+	debug.set("task start", self._taskStart)
 	if not self._taskClass or minTimeOver then
 		-- shootgoal
 		local shootGoalTmp = ShootGoal(self._agent)
@@ -67,18 +70,20 @@ function Shoot:_updateTask()
 		local taskParams
 		if canShootGoal then
 			self._minTaskTime = 1.5
+			self._taskStart = World.Time
 			self._taskClass = ShootGoal
 		elseif pass then
 			self._minTaskTime = 1.5
+			self._taskStart = World.Time
 			self._taskClass = Pass
 			taskParams = { pass.target, pass.pos }
 		else -- shootgoal as fallback
 			self._minTaskTime = 0.5
+			self._taskStart = World.Time
 			self._taskClass = ShootGoal
 		end
 		if self._taskClass ~= self._lastTaskClass then
 			self._lastTaskClass = self._taskClass
-			self._taskStart = World.Time
 			return self._taskClass, taskParams
 		end
 	end
