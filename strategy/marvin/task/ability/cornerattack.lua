@@ -10,7 +10,7 @@ local Physics = require "observer/physics"
 local Rating = require "util/rating"
 local ToTarget = require "trajectory/totarget"
 
-local DIST_TO_DEF_AREA = 0.2
+local DIST_TO_DEF_AREA = 0.35
 
 
 local defStrech = G.DefenseStretch
@@ -101,9 +101,11 @@ function CornerAttack:_tryCornerAttack()
             end
             vis.addCircle("t/a/cornerattack", self._pointOfImpact, 0.05, vis.colors.redHalf, true)
 
+            local moveTime = Physics.robotTimeToPos(self._robot, self._pointOfImpact, Vector(0, 0), true)
+            local receiveTime = World.Time + moveTime
             if mainAttacker then
                 self._send.passSuggestion(mainAttacker,
-                    { kind = "in the run", rating = 1, pos = self._pointOfImpact })
+                    { kind = "in the run", rating = 1, pos = self._pointOfImpact, time = receiveTime })
             end
 
             self._robot.path:setDefaultObstacles(self._robot)
