@@ -16,12 +16,14 @@ local MIN_OPP_SPEED = 1
 local MIN_OPP_MOVING_TOWARDSME_ANGLE = 20/180 * math.pi
 function SuggestPass:_noOppDisturbing()
     -- coarse heuristic: no opp is near or moving towards us
-    for _, robot in ipairs(World.OpponentRobots) do
-        if self._robot.pos:distanceTo(robot.pos) < MIN_OPP_DIST then
+    local ballPos = World.Ball.pos
+    for _, opp in ipairs(World.OpponentRobots) do
+        if self._robot.pos:distanceTo(opp.pos) < MIN_OPP_DIST and
+                ballPos:distanceTo(opp.pos) < ballPos:distanceTo(self._robot.pos) then
             return false
         end
-        local angleToOpp = robot.speed:absoluteAngleDiff(self._robot.pos - robot.pos)
-        if robot.speed:length() > MIN_OPP_SPEED and angleToOpp < MIN_OPP_MOVING_TOWARDSME_ANGLE then
+        local angleToOpp = opp.speed:absoluteAngleDiff(self._robot.pos - opp.pos)
+        if opp.speed:length() > MIN_OPP_SPEED and angleToOpp < MIN_OPP_MOVING_TOWARDSME_ANGLE then
             return false
         end
     end
