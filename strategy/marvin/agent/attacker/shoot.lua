@@ -49,7 +49,7 @@ function Shoot:_updateTask()
 	local minTimeOver = World.Time - self._taskStart >= self._minTaskTime
 
 	debug.set("minTaskTime", self._minTaskTime)
-	debug.set("task start", self._taskStart)
+	debug.set("time active", World.Time-self._taskStart)
 	if not self._taskClass or minTimeOver then
 		-- shootgoal
 		local shootGoalTmp = ShootGoal(self._agent)
