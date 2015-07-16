@@ -200,9 +200,10 @@ end
 -- @param brakeAndReturn - setting this to true, the robot will brake to stop and return to pos, if it would be faster than endSpeed.
 -- Warning! This can cause severe numerical instabilities if endSpeed points from robot.pos to pos and the robot is a bit too fast
 -- Then the robot must do a full stop and return to pos with zero endSpeed!
+-- @param lowAccel - assume reduced acceleration
 -- @return number - the estimated time
-function Physics.robotTimeToPos(robot, pos, endSpeed, brakeAndReturn)
-	local accelerationFactor = 0.9 -- factor for max forward speedup and braking
+function Physics.robotTimeToPos(robot, pos, endSpeed, brakeAndReturn, lowAccel)
+	local accelerationFactor = lowAccel and 0.7 or 0.9 -- factor for max forward speedup and braking
 	-- forward acceleration and deceleration
 	local accelerate = math.abs(robot.acceleration
 			and robot.acceleration.aSpeedupFMax or 1.0) * accelerationFactor

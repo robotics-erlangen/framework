@@ -146,7 +146,7 @@ function Robot._updateMinTimeToBall()
 		minTimeToBall[r] = math.max(0, minTimeToBall[r] - World.TimeDiff)
 		local predictedBallPos = Physics.ballAtTime(World.Ball, minTimeToBall[r]).pos
 		local viewPos = (predictedBallPos - r.pos):setLength(100) + r.pos
-		local timeToBall = math.min(t_out, Physics.robotTimeToBall(r, World.Ball, viewPos, r.maxSpeed))
+		local timeToBall = math.min(t_out, Physics.robotTimeToBall(r, World.Ball, viewPos, r.maxSpeed, nil, true))
 
 		-- damp large value changes
 		-- the centerpiece of the catchball algorithm
