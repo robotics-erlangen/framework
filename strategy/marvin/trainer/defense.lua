@@ -6,7 +6,7 @@ local UtilDefense = require "util/defense"
 
 local Defense = {}
 
-local MIN_OPP_DIST_TO_BALL_FOR_MARKING = 0.3
+local MIN_OPP_DIST_TO_BALL_FOR_MARKING = 0.4
 
 function Defense:init()
     self._oppsToMark = {}
