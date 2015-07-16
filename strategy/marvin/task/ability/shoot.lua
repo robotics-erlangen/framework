@@ -31,6 +31,7 @@ local SAFETY_TIME_HYSTERESIS = 0.2
 local BLOCK_ANGLE = 65 / 180 * math.pi
 local BLOCK_HYSTERESIS = 5 / 180 * math.pi
 local OPP_TIME_HYSTERESIS = 0.1
+local IN_THE_RUN = 1.5
 
 -- CatchBall -> Volley
 Shoot.depends = { CatchBall }
@@ -47,10 +48,22 @@ function Shoot:init()
 	self._stopBallHysteresis = false
 	self._receivePassHysteresis = false
 	self._oppTimeHysteresis = false
+	-- Ball is fast but slow enough to reach it
+	self._inTheRunHysteresis = false
 end
 
 -- shoot immediatelly if angle error is below maxAngleError
 function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
+	local robotFront = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
+	local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(robotFront))
+	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
+
+	if futureBall.speed:length() > IN_THE_RUN then
+		self._inTheRunHysteresis = false
+	elseif futureBall.speed:length() < IN_THE_RUN - 0.2 then
+		self._inTheRunHysteresis = true
+	end
+
 	if World.Ball.speed:length() > MOVING_BALL then
 		self._movingBallHysteresis = true
 	elseif World.Ball.speed:length() < STOPPED_BALL then
@@ -60,7 +73,8 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	-- stop ball if angle is too sharp
 	if self._movingBallHysteresis then
 		local angleToBall = World.Ball.speed:absoluteAngleDiff(self._robot.pos - targetPos)
-		if angleToBall > math.pi / 2 then
+	
+		if self._inTheRunHysteresis and angleToBall > math.pi / 2 then
 			angleToBall = math.pi - angleToBall
 		end
 		if angleToBall > BLOCK_ANGLE then
@@ -74,6 +88,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 
 	vis.addCircle("t/a/shoot: targetPos", targetPos, 0.04, vis.colors.pinkHalf, true)
 	debug.set("stopBall", self._stopBallHysteresis)
+	debug.set("inTheRun", self._inTheRunHysteresis)
 	local catchTime = 0
 
 	-- don't allow pushing the ball into the opponent defense area
@@ -88,7 +103,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	else
 		debug.set("shoot command", "none")
 		self:_resetShoot()
-		catchTime = self:_doCatch(targetPos, targetSpeed)
+		catchTime = self:_doCatch(targetPos, targetSpeed, futureBall)
 	end
 
 	if catchTime < 0.5 then
@@ -96,20 +111,24 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	end
 end
 
-function Shoot:_doCatch(targetPos, targetSpeed)
+function Shoot:_doCatch(targetPos, targetSpeed, futureBall)
 	-- face the ball if it should be stopped
 	if self._stopBallHysteresis then
 		targetPos = World.Ball.pos - World.Ball.speed
 	end
 
 	if self._movingBallHysteresis and (table.count(self._inbox.passPos()) > 0 or Ball.receivesPass(self._robot)) then
-		local moveTime = self:_tryReceivePass(targetPos, targetSpeed)
+		local moveTime = self:_tryReceivePass(targetPos, targetSpeed, futureBall)
 		if moveTime then
 			debug.set("ballApproach", "receivePass")
 			return moveTime
 		end
 	end
 	self._receivePassHysteresis = false
+
+	if World.Ball.speed.y > 0 then
+		self._robot:setDribblerSpeed(1)
+	end
 
 	-- universal catch ball
 	-- just catch the ball, but keep a little distance to allow braking the robot
@@ -127,10 +146,8 @@ function Shoot:_doCatch(targetPos, targetSpeed)
 	return self:_catchBall(targetPos, ballDist, targetSpeed)
 end
 
-function Shoot:_tryReceivePass(targetPos, targetSpeed)
+function Shoot:_tryReceivePass(targetPos, targetSpeed, futureBall)
 	local robotFront = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
-	local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(robotFront))
-	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
 	local viewDir, _ = self:calcPhi(futureBall.speed, futureBall.pos,
 				targetPos, targetSpeed)
 	local ballPos = robotFront:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
