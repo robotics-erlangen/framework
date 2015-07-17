@@ -153,7 +153,12 @@ function Ball.receivesPass(robot, allowSlowEndSpeed)
 		return false
 	end
 
-	local robotTime = Physics.robotTimeToPos(robot, dribblerPos - dribblerOffset, Vector(0, 0))
+	local robotMid = dribblerPos - dribblerOffset
+	-- anywhere on the dribbler is okay, not only the center
+	local dribblerHalf = balldir:perpendicular() * (robot.dribblerWidth / 2)
+	robotMid = robot.pos:nearestPosOnLine(robotMid + dribblerHalf, robotMid - dribblerHalf)
+
+	local robotTime = Physics.robotTimeToPos(robot, robotMid, Vector(0, 0))
 	local ballTime = Physics.ballRollTime(World.Ball, math.max(0, lambda - robot.shootRadius - World.Ball.radius))
 
 	-- if the robot takes longer than the ball
