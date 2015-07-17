@@ -16,7 +16,8 @@ local ToTarget = require "trajectory/totarget"
 local Robot = require "observer/robot"
 
 
-local SIDEWARDS_KP = 8
+local SIDEWARDS_KP = 10
+local SIDEWARDS_EXTERNAL_KP = 20
 local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
 local SHOOT_SIDE_OFFSET = 0.05 -- extends the hasBall sidewards
 local SHOOT_HYSTERESIS_TIMEOUT = 0.08 -- reset shoot hysteresis after the timeout
@@ -254,15 +255,13 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	end
 	debug.set("distToBall", distToBall)
 
-	-- sidewards offset
-	local speedLimit = 0.4
-	speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(
-			math.bound(-speedLimit, -distToBall.y * SIDEWARDS_KP, speedLimit)) -- correct pos error
-
 	-- check robot orientation
 	local angleDiff = math.abs(geom.getAngleDiff(targetDir, self._robot.dir))
 	local canShoot = angleDiff < math.max(MIN_ANGLE_PRECISION, maxAngleError)
 	debug.set("canShoot", canShoot)
+
+	local sidewardsKp = SIDEWARDS_KP
+	local speedLimit = 0.4
 
 	-- only start kicking if the robot got the ball
 	if self._robot:hasBall(World.Ball) then
@@ -275,7 +274,13 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		end
 	else
 		self._shootHysteresis = false
+		sidewardsKp = SIDEWARDS_EXTERNAL_KP
+		speedLimit = 1
 	end
+
+	-- sidewards offset
+	speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(
+			math.bound(-speedLimit, -distToBall.y * sidewardsKp, speedLimit)) -- correct pos error
 
 	debug.set("hasBall hysteresis", self._shootHysteresis)
 
