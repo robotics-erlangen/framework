@@ -131,7 +131,7 @@ local robotsDefinitelyInOurTeam = {
 
 function Ally.takeRobot(robots)
 	for _, robot in pairs(robots) do
-		if robot.isVisible and self._robot.generation == -1
+		if robot.isVisible and robot.generation == -1
                 and not robotsDefinitelyInOurTeam[robot.id] then
 			return robot
 		end
