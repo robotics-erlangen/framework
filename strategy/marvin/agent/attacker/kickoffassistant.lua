@@ -72,6 +72,7 @@ function KickoffAssistant:_updateTask()
 			self._movePos = self._moveDest
 			self._task = nil -- make sure a new task will be created
 		end
+		self._forceKeepingInPool = true
 		return KickoffPass, {self._moveDest, (G.OpponentGoal-self._moveDest):angle()}
 	end
 	--currently not used, because there will always be a player in the back
