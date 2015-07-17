@@ -450,7 +450,7 @@ function ShootGoal:run()
 		-- or we cannot catch the ball inside the field
 		or not Field.isInField(Physics.ballAtTime(World.Ball, Robot.minTimeToBall(self._robot)).pos, 0)
 		-- ball is faster at catch position then robot
-		or Physics.ballRollTime(World.Ball.pos:distanceTo(self.targetPoint)) < Robot.minTimeToBall(self._robot) - 0.1
+		or Physics.ballRollTime(World.Ball ,World.Ball.pos:distanceTo(self.targetPoint)) < Robot.minTimeToBall(self._robot) - 0.1
 		-- or the viewPos makes sense and the angle is too large
 		or self._PRPstable and World.Ball.speed:absoluteAngleDiff(self._viewPos - self.targetPoint) > MAX_VOLLEY_ANGLE then
 			self._volleyPossible = false
