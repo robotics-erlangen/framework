@@ -19,24 +19,26 @@ local Physics = require "observer/physics"
 -- @return number - the time difference between the fastest opponent and the fastest friendly robot
 function Ball.firstAtBall()
 	local ball = World.Ball
-	local minTime = math.huge
+	local minOpponentTime = math.huge
 	local fastestRobot = nil
 	for _, robot in ipairs(World.OpponentRobots) do
 		local time = ObserverRobot.minTimeToBall(robot)
-		if time < minTime then
-			minTime = time
+		if time < minOpponentTime then
+			minOpponentTime = time
 			fastestRobot = robot
 		end
 	end
-	local opponentTime = minTime
+	local minFriendLyTime = math.huge
 	for _, robot in ipairs(World.FriendlyRobots) do
 		local time = ObserverRobot.minTimeToBall(robot)
-		if time < minTime then
-			minTime = time
-			fastestRobot = robot
+		if time < minFriendLyTime then
+			minFriendLyTime = time
+			if minFriendLyTime < minOpponentTime then
+				fastestRobot = robot
+			end
 		end
 	end
-	return fastestRobot, opponentTime - minTime
+	return fastestRobot, minOpponentTime - minFriendLyTime
 end
 
 
