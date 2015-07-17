@@ -17,7 +17,14 @@ function Duel:_init()
 end
 
 function Duel:run()
-	self._opposer = assert(Ball.opponentBallOwner(),
+	local opponentBallOwner = Ball.opponentBallOwner()
+	if not opponentBallOwner then
+		local firstRobotAtBall, timeAdvance = Ball.firstAtBall()
+		if timeAdvance < 0 then
+			opponentBallOwner = firstRobotAtBall
+		end
+	end
+	self._opposer = assert(opponentBallOwner,
 		"Duel task shall only be active when an opponent has the ball")
 	self._send.defendedOpponent("all", self._opposer)
 	if self._robot:hasBall(World.Ball) then
@@ -89,7 +96,7 @@ function Duel:_moveToBall()
 		moveDest = dribblerMoveDest
 		debug.set("DIFF", "true")
 	end
-	
+
 
 	self._robot.trajectory:update(ToTarget, moveDest, viewDir)
 	vis.addCircle("t/duel: ClearRobot", self._robot.pos, 0.15, vis.colors.redHalf, true)

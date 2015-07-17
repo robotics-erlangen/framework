@@ -3,6 +3,7 @@ local Duel = Class("Agent.Attacker.Duel", Base)
 
 local World = require "../base/world"
 local Ball = require "observer/ball"
+local debug = require "../base/debug"
 
 local TaskDuel = require "task/duel"
 
@@ -16,6 +17,20 @@ function Duel:genericCheck()
 		if r:hasBall(World.Ball) then
 			opponentHasBall = true
 			break
+		end
+	end
+
+	local firstRobotAtBall, timeAdvance = Ball.firstAtBall()
+	debug.set("duel firstAtBall", firstRobotAtBall)
+	debug.set("duel timeAdv", timeAdvance)
+	if timeAdvance < 0 then -- opponent is first at ball
+		local ballToRobot = firstRobotAtBall.pos - World.Ball.pos
+		local maxAngle = 4/180*math.pi
+		debug.set("duel angle diff", World.Ball.speed:absoluteAngleDiff(ballToRobot))
+		debug.set("duel max angle", maxAngle)
+		if World.Ball.speed:length() > 0.5 and
+				World.Ball.speed:absoluteAngleDiff(ballToRobot) < maxAngle then
+			return true
 		end
 	end
 
