@@ -6,6 +6,7 @@ local Robot = require "observer/robot"
 local Rating = require "util/rating"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
+local debug = require "../base/debug"
 
 function Base:init(agent)
 	self._agent = agent
@@ -69,6 +70,7 @@ function Base:_applyForMainAttacker()
 	if not Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) then
 		local timeToBall = Robot.minTimeToBall(self._robot)
 		local mainAttackerRating = Rating.timeToRating(timeToBall)
+		debug.set("ma application sent", true)
 		self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
 	end
 end
