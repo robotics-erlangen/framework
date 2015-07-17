@@ -10,7 +10,6 @@ local cooldown = 3
 function ApplyForMainattacker:_stop()
 	self._lastShot = 0
 	self._freekickFlag = false
-	self._maFlag = false
 end
 
 function ApplyForMainattacker:check()
@@ -25,14 +24,13 @@ function ApplyForMainattacker:check()
 	end
 
 	-- cancel freekick
-	if self._freekickFlag and self._maFlag and not Referee.isFriendlyFreeKickState() then
+	if self._freekickFlag and self._robot == Ball.friendlyBallOwner()
+			and not Referee.isFriendlyFreeKickState() then
 		self._lastShot = World.Time
 		self._freekickFlag = false
-		self._maFlag = false
 		return false
 	end
 	self._freekickFlag = Referee.isFriendlyFreeKickState()
-	self._maFlag = self._inbox.mainAttacker().trainer == self._robot
 
 	if not Referee.isOpponentPenaltyState() then
 		debug.set("ma application tried", true)
