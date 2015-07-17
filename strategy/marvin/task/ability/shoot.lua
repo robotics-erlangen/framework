@@ -127,7 +127,7 @@ function Shoot:_doCatch(targetPos, targetSpeed, futureBall)
 	self._receivePassHysteresis = false
 
 	if World.Ball.speed.y > 0 then
-		self._robot:setDribblerSpeed(1)
+		self._robot:setDribblerSpeed(0.3)
 	end
 
 	-- universal catch ball
@@ -289,7 +289,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	if self._shootHysteresis and not self._travelLimit then
 		-- speed towards ball
 		local accelerate = math.abs(self._robot.acceleration
-				and self._robot.acceleration.aSpeedupFMax or 1.0) * 0.4
+				and self._robot.acceleration.aSpeedupFMax or 1.0) * 0.7
 		accel = Vector.fromAngle(targetDir) * accelerate
 
 		local dist = targetPos:distanceTo(self._robot.pos)
