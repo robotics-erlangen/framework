@@ -204,15 +204,16 @@ local function _backpropagateSpeedLimit(speedProfile, maxSpeed, brake)
 			-- this is not the optimum but saves from doing a lot of corner case handling
 			local missingDistance = distance - (entry[2] + switchSpeed) / 2 * switchAfter
 					- (switchSpeed + maxSpeed) / 2 * brakeTime
-			local injectTime = missingDistance / switchSpeed
-			assert(injectTime >= 0, "injectTime negative")
+			local injectTime = math.max(0, missingDistance / switchSpeed)
 
 			-- remove all speed entries after the current one
 			table.truncate(speedProfile, i)
 			if switchSpeed ~= entry[2] then -- just a duplicate
 				table.insert(speedProfile, {switchTime, switchSpeed}) -- remaining part with old accel
 			end
-			table.insert(speedProfile, {switchTime + injectTime, switchSpeed}) -- injected speed
+			if injectTime > 0 then
+				table.insert(speedProfile, {switchTime + injectTime, switchSpeed}) -- injected speed
+			end
 			table.insert(speedProfile, {switchTime + injectTime + brakeTime, maxSpeed}) -- brake to maxSpeed
 			return
 		end
