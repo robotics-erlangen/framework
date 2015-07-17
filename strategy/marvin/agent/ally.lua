@@ -131,7 +131,7 @@ local robotsDefinitelyInOurTeam = {
 
 function Ally.takeRobot(robots)
 	for _, robot in pairs(robots) do
-		if robot.isVisible and robot.lastResponseTime < World.Time - 5
+		if robot.isVisible and self._robot.generation == -1
                 and not robotsDefinitelyInOurTeam[robot.id] then
 			return robot
 		end
@@ -139,7 +139,7 @@ function Ally.takeRobot(robots)
 end
 
 function Ally:keepRobot()
-	return self._robot.isVisible and self._robot.lastResponseTime < World.Time - 5
+	return self._robot.isVisible and self._robot.generation == -1
         and not self._robot.userControl
         and not robotsDefinitelyInOurTeam[self._robot.id]
 end
