@@ -264,7 +264,7 @@ end
 -- @return number - lambda, intersection = pos + lambda * dir
 -- @return number - the length of the way from the very left of the defense area to the
 -- intersection point, when moving along its border
-function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp)
+function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp, fromCenterBackTask)
 	-- calculate defense radius
 	extraDistance = extraDistance or 0
 	local radius = G.DefenseRadius + extraDistance
@@ -317,7 +317,12 @@ function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp)
 			minWay = i[2]
 		end
 	end
-
+	if not minIntersection and fromCenterBackTask then
+		log("Pos: " .. tostring(pos) .. ", dir: " .. tostring(dir) .. ", extraDist: " .. extraDistance .. ", opp:" .. (opp or ""))
+		for index, i in ipairs(intersections) do
+			log("intersection " .. index .. ": " ..i)
+		end
+	end
 	return minIntersection, minWay
 end
 

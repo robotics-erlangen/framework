@@ -93,7 +93,7 @@ local function calculateCenterBackPositions()
 		-- where the robot would go if it was the only one
 		local pcbPos = privateCenterBackPositions[robot] and privateCenterBackPositions[robot].pos
 				or Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal,
-				targetPos - World.Geometry.FriendlyGoal, distanceToDefenseArea + robot_radius, false)
+				targetPos - World.Geometry.FriendlyGoal, distanceToDefenseArea + robot_radius, false, true)
 
 		-- if the robot is close to its cbPos or pcbPos then mark it as important
 		local distToCBPos = cbPos and robot.pos:distanceTo(cbPos.pos) or math.huge
