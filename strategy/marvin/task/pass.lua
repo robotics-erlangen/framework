@@ -13,7 +13,7 @@ function Pass:_init(targetRobot, shootPos)
 	self._linearShoot = true
 	if shootPos then
 		self._inTheRun = true
-		self._passSpeed = 2
+		self._passSpeed = 1.7
 		self._shootPos = shootPos
 	else
 		self._inTheRun = false
