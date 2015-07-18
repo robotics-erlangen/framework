@@ -13,6 +13,12 @@ function ManMark:run()
 	local preferredPos = Defense.manMarkPos(self._targetRobot)
 	local preferredDir = (World.Ball.pos - self._robot.pos):angle()
 
+	-- If the opponent is driving in the opposite direction of me than change the pos into his movement
+	local oppSpeed = self._targetRobot.speed:copy()
+	if oppSpeed:length() > 1 and oppSpeed:absoluteAngleDiff(self._robot.speed) > math.pi / 2 then
+		preferredPos = preferredPos + oppSpeed:setLength(oppSpeed:length()*0.6)
+	end
+
 	-- Quick fix to not interfere with goal shots
 	local shooter, shootDest = next(self._inbox.shootDestination())
 	if shootDest then
