@@ -153,12 +153,12 @@ function Keeper:run()
 		moveTo = fallbackPos
 	end
 
+	-- ignore goal walls if ball is shot
+	self._robot.path:setDefaultObstacles(self._robot, true, isShot, true, self._robot.radius, 0.05)
 	-- add obstacles if outside keeper area, when drivin to goal initially
 	if not Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
 		self._robot.path:addRobotObstacles(self._robot, false, false)
 	end
-	-- ignore goal walls if ball is shot
-	self._robot.path:setDefaultObstacles(self._robot, true, isShot, true, self._robot.radius, 0.05)
 	self._robot.trajectory:update(ToTarget, moveTo, (atkPos - moveTo):angle(), nil, endSpeed)
 
 	local chipActivationAngle = math.pi / 6
