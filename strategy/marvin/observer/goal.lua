@@ -98,7 +98,7 @@ end
 -- @return dir Vector - ball movement direction and speed
 -- @return isShot bool - if the ball is fast (and should be considered as a threat)
 -- @return passReceivers list - list of all robots that could receive the pass
-local SLOW_BALL = 0.5
+local SLOW_BALL = 0.7
 function Goal.predictShot()
 	local ballSpeed = World.Ball.speed:copy() -- Defend ball by default
 	local pos = World.Ball.pos
