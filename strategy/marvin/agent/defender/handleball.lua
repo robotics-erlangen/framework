@@ -31,7 +31,7 @@ local EXTRA_TIME_DIRTY = 0.2
 -- prevent switching to attacker if the ball is arriving in less than that time
 local ATTACK_PREPARATION_TIME = 0.3
 
-
+local ownGoal = World.Geometry.FriendlyGoal
 
 function HandleBall:_stop()
 	self._activeOppHasBall = false -- for Duel:check()
@@ -133,10 +133,26 @@ function HandleBall:check()
 	local duel = Duel.genericCheck(self)
 	if interception == "impossible" and not duel then
 		return false
-	elseif duel or interception == "clean" then
+	elseif duel then
+		local ballPos = World.Ball.pos
+		if mainAttacker and mainAttacker.pos:distanceTo(ownGoal) > ballPos:distanceTo(ownGoal) then
+			local ballBlockPos = self._robot.pos:nearestPosOnLine(ballPos, ownGoal)
+			local time = Physics.robotTimeToPos(self._robot, ballBlockPos, 2, true)
+			local rating = Rating.timeToRating(time) + 1
+			self._send.exclusiveRole("trainer", {mainAttacker = rating})
+		else
+			self:_applyForMainAttacker()
+		end
+		if mainAttacker == self._robot then
+			self._send.attackerRequest("trainer")
+			self._requestingPoolChange = true
+			self._forceKeepingInPool = false
+		end
+		return false
+	elseif interception == "clean" then
+		-- for a clean interception, we want to switch to /a/a/shoot
 		self:_applyForMainAttacker()
 		if mainAttacker == self._robot then
-			-- for a clean interception, we want to switch to /a/a/shoot
 			self._send.attackerRequest("trainer")
 			self._requestingPoolChange = true
 			self._forceKeepingInPool = false
