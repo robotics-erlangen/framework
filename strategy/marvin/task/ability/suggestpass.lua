@@ -40,6 +40,10 @@ function SuggestPass:_suggestPass(passPosRobot)
 
     -- if no passPos was given, suggest a stationary (direct) pass
     passPosRobot = passPosRobot or self._robot.pos
+    -- don't play deep back passes
+    if passPosRobot.y < -G.FieldHeightHalf * 1/4 then
+        return
+    end
 
     -- take the current ball pos as origin of the pass
     local ballPos = World.Ball.pos

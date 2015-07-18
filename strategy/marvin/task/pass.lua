@@ -22,6 +22,7 @@ function Pass:_init(targetRobot, shootPos)
 	end
 end
 
+local MIN_BALL_DIST_FOR_PASS_MSG = 1
 local MIN_OPP_CHIP_DIST = 0.35
 function Pass:run()
 	if self._inTheRun then
@@ -106,7 +107,10 @@ function Pass:run()
 	end
 
 	self:_shoot(self._shootPos, self._passSpeed, self._linearShoot, 3 * math.pi/180)
-	self._send.passPos(self._targetRobot, self._shootPos)
+	if self._robot.pos:distanceTo(World.Ball.pos) < MIN_BALL_DIST_FOR_PASS_MSG then
+		-- only send message when pass is imminent
+		self._send.passPos(self._targetRobot, self._shootPos)
+	end
 
 	debug.set("targetRobot", self._targetRobot.id)
 	debug.set("in the run", self._inTheRun)
