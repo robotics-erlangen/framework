@@ -3,7 +3,10 @@ local Duel = Class("Agent.Attacker.Duel", Base)
 
 local World = require "../base/world"
 local Ball = require "observer/ball"
+local Robot = require "observer/robot"
+local Physics = require "observer/physics"
 local debug = require "../base/debug"
+local vis = require "../base/vis"
 
 local TaskDuel = require "task/duel"
 
@@ -25,8 +28,14 @@ function Duel:genericCheck()
 	debug.set("duel firstAtBall", firstRobotAtBall)
 	debug.set("duel timeAdv", timeAdvance)
 	if timeAdvance < 0 then -- opponent is first at ball
-		local ballToRobot = firstRobotAtBall.pos - World.Ball.pos
-		local maxAngle = 4/180*math.pi
+		-- coarse approximation of future robot: it keeps driving with current speed
+		local oppTimeToBall = Robot.minTimeToBall(firstRobotAtBall)
+		local futureBall = Physics.ballAtTime(World.Ball, oppTimeToBall)
+		local oppWayLength = firstRobotAtBall.speed:length() * oppTimeToBall
+		local futureOppPos = firstRobotAtBall.pos + firstRobotAtBall.speed:copy():setLength(oppWayLength)
+		vis.addCircle("a/duel: future opp pos", futureOppPos, 0.14, vis.colors.turquoise)
+		local ballToRobot = futureOppPos - futureBall.pos
+		local maxAngle = 7/180*math.pi
 		debug.set("duel angle diff", World.Ball.speed:absoluteAngleDiff(ballToRobot))
 		debug.set("duel max angle", maxAngle)
 		if World.Ball.speed:length() > 0.5 and
