@@ -8,7 +8,8 @@ local debug = require "../base/debug"
 local TaskDuel = require "task/duel"
 
 function Duel:_stop()
-	self._active = false
+	self._activeOppHasBall = false
+	self._activeOppImpact = false
 end
 
 function Duel:genericCheck()
@@ -30,18 +31,20 @@ function Duel:genericCheck()
 		debug.set("duel max angle", maxAngle)
 		if World.Ball.speed:length() > 0.5 and
 				World.Ball.speed:absoluteAngleDiff(ballToRobot) < maxAngle then
-			return true
+			self._activeOppImpact = true
 		end
+	else
+		self._activeOppImpact = false
 	end
 
 	if opponentHasBall and not Ball.receivesPass(self._robot) then
-		self._active = true
+		self._activeOppHasBall = true
 	end
 	if not Ball.opponentBallOwner() then
-		self._active = false
+		self._activeOppHasBall = false
 	end
 
-	return self._active
+	return self._activeOppHasBall or self._activeOppImpact
 end
 
 function Duel:check()

@@ -34,7 +34,8 @@ local ATTACK_PREPARATION_TIME = 0.3
 
 
 function HandleBall:_stop()
-	self._active = false -- for Duel:check()
+	self._activeOppHasBall = false -- for Duel:check()
+	self._activeOppImpact = false
 	self._interception = "impossible"
 end
 
