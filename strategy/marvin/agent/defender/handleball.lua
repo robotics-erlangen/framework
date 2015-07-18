@@ -5,6 +5,7 @@ local World = require "../base/world"
 local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local debug = require "../base/debug"
+local Rating = require "util/rating"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
@@ -137,7 +138,7 @@ function HandleBall:check()
 		local ballPos = World.Ball.pos
 		if mainAttacker and mainAttacker.pos:distanceTo(ownGoal) > ballPos:distanceTo(ownGoal) then
 			local ballBlockPos = self._robot.pos:nearestPosOnLine(ballPos, ownGoal)
-			local time = Physics.robotTimeToPos(self._robot, ballBlockPos, 2, true)
+			local time = Physics.robotTimeToPos(self._robot, ballBlockPos, Vector(0,0), true)
 			local rating = Rating.timeToRating(time) + 1
 			self._send.exclusiveRole("trainer", {mainAttacker = rating})
 		else
