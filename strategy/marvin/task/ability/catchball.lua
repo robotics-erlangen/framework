@@ -250,9 +250,16 @@ function CatchBall:_createBlockBallObstacle(path, minBall, predictedBall)
 	local ballDist = predictedBall.pos:distanceTo(minBall.pos)
 	-- block connection between first touch point and target catch pos
 	if ballDist > OBSTACLE_EPSILON then
-  		path:addLine(predictedBall.pos.x, predictedBall.pos.y, minBall.pos.x, minBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball')
-		vis.addPath("t/a/catchball: CatchBall", {predictedBall.pos, minBall.pos}, vis.colors.greenHalf)
-		vis.addCircle("t/a/catchball: CatchBall", minBall.pos, predictedBall.radius, vis.colors.greenHalf)
+		local extraDist = math.min(ballDist, DIST_ERROR) / 2 - OBSTACLE_EPSILON
+
+		local lineDir = (minBall.pos - predictedBall.pos):setLength(extraDist)
+		local minBallShift = minBall.pos - lineDir
+		local predictedBallShift = predictedBall.pos + lineDir
+  		path:addLine(predictedBallShift.x, predictedBallShift.y, minBallShift.x, minBallShift.y,
+  				predictedBall.radius - OBSTACLE_EPSILON + extraDist, 'ball')
+		vis.addPath("t/a/catchball: CatchBall", {predictedBallShift, minBallShift}, vis.colors.greenHalf)
+		vis.addCircle("t/a/catchball: CatchBall", minBallShift, predictedBall.radius - OBSTACLE_EPSILON + extraDist, vis.colors.greenHalf)
+		vis.addCircle("t/a/catchball: CatchBall", predictedBallShift, predictedBall.radius - OBSTACLE_EPSILON + extraDist, vis.colors.greenHalf)
 
 		-- prevent robot from colliding with the ball
 		-- calculate distance of ball connection line projected on the robot direction
