@@ -231,8 +231,6 @@ function CatchBall:_calculateHitTime(ball)
 end
 
 function CatchBall:_isBlockingBall(currentBall, predictedBall, moveDest)
-	local robotFront = self._robot.pos + Vector.fromAngle(self._robot.dir) * self._robot.shootRadius
-
 	-- check whether the robot is blocking or hunting the ball
 	local robotTargetDist = self._robot.pos:distanceTo(moveDest)
 	-- distance minus robot and ball radius thus the ball is for sure between the robot and the catch pos
@@ -243,7 +241,7 @@ function CatchBall:_isBlockingBall(currentBall, predictedBall, moveDest)
 	-- the ball hasn't yet moved past the robot (TODO better calculation than the dot product?)
 	return moveDest:distanceTo(currentBall.pos) > robotTargetSpacing
 			or self._robot.pos:distanceTo(predictedBall.pos) < robotTargetDist
-			or (currentBall.pos - robotFront):dot(predictedBall.pos - currentBall.pos) <= 0
+			or (currentBall.pos - self._robot.pos):dot(predictedBall.pos - currentBall.pos) <= 0
 end
 
 function CatchBall:_createBlockBallObstacle(path, minBall, predictedBall)
