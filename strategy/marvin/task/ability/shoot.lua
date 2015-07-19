@@ -305,7 +305,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 			if dist <= 2 then
 				self._robot:chip(dist*0.65)
 			else
-				self._robot:chip(dist*0,6)
+				self._robot:chip(dist*0.6)
 			end
 			debug.set("shoot command", "chip")
 		end
