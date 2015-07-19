@@ -93,6 +93,9 @@ function Ball:_update(data, time)
 	if self.framesDecelerating == 3 then
 		self.maxSpeed = self.speed:length()
 	end
+	if self.maxSpeed < self.speed:length() then
+		self.maxSpeed = self.maxSpeed + 0.3 * (self.speed:length() - self.maxSpeed)
+	end
 	plot.addPlot("Ball.maxSpeed", self.maxSpeed);
 
 	-- set the deceleration depending on the ball's state (sliding or rolling)
