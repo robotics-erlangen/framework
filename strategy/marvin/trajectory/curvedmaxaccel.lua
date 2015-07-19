@@ -620,6 +620,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, precise
 		accel = 0 -- too slow, don't brake to allow the robot to get up to speed
 	end
 
+	-- don't drive backwards, just brake as fast as possible
+	speed = math.max(0, speed)
 	local speedVector = (moveTarget - robotPos):setLength(speed)
 	local accelVector = (moveTarget - robotPos):setLength(accel)
 	plot.addPlot(tostring(self._robot.id) .. ".speed", speed)
