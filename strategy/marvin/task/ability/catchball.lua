@@ -140,6 +140,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
 	local aggressiveMovement = (self._robot.pos:distanceTo(moveDest) < 0.5)
 	self._robot.path:addRobotObstacles(self._robot, nil, nil, aggressiveMovement)
+	local moveDir = (targetPos - predictedBall.pos):angle()
   	if self:_isBlockingBall(ball, predictedBall, moveDest) then
   		-- minimum required time to touch the ball
   		-- first touch could be before the robot has moved around the ball
@@ -147,9 +148,9 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
   		local minBall = Physics.ballAtTime(World.Ball, minTimeToBall)
   		self:_createBlockBallObstacle(self._robot.path, minBall, predictedBall)
   	else
-  		self:_createHuntingBallObstacle(self._robot.path, predictedBall)
+  		self:_createHuntingBallObstacle(self._robot.path, moveDir, predictedBall)
   	end
-	self:_createBallCorridor(self._robot.path, (targetPos - predictedBall.pos):angle(), predictedBall)
+	self:_createBallCorridor(self._robot.path, moveDir, predictedBall)
 
 	-- only allow endSpeed moving towards the targetPos
 	local endSpeed = predictedBall.speed:copy():rotate(-viewDir)
@@ -278,9 +279,13 @@ function CatchBall:_createBlockBallObstacle(path, minBall, predictedBall)
 
 end
 
-function CatchBall:_createHuntingBallObstacle(path, predictedBall)
+function CatchBall:_createHuntingBallObstacle(path, viewDir, predictedBall)
   	path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball')
 	vis.addCircle("t/a/catchball: CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.skyBlueHalf)
+
+	local frontEnd = predictedBall.pos + Vector.fromAngle(viewDir) * 0.3
+  	path:addLine(predictedBall.pos.x, predictedBall.pos.y, frontEnd.x, frontEnd.y, predictedBall.radius - OBSTACLE_EPSILON, 'ballForward')
+	vis.addPath("t/a/catchball: CatchBall", {predictedBall.pos, frontEnd}, vis.colors.skyBlueHalf)
 end
 
 function CatchBall:_createBallCorridor(path, viewDir, predictedBall)
