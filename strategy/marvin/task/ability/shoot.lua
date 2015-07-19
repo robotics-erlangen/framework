@@ -21,7 +21,6 @@ local SIDEWARDS_EXTERNAL_KP = 20
 local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
 local SHOOT_SIDE_OFFSET = 0.05 -- extends the hasBall sidewards
 local SHOOT_HYSTERESIS_TIMEOUT = 0.08 -- reset shoot hysteresis after the timeout
-local CHIP_DIST_SCALE = 0.7 -- shorten chip distance as the ball will bounce
 local MOVING_BALL = 0.6
 local STOPPED_BALL = 0.2
 local STOPPED_BALL_DIST = 2*Constants.positionError
@@ -300,7 +299,12 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 			self._robot:shoot(kickSpeed, true)
 			debug.set("shoot command", "linear")
 		else
-			self._robot:chip(dist*CHIP_DIST_SCALE)
+			--shorten distance because ball will bounce
+			if dist <= 2 then
+				self._robot:chip(dist*0.65)
+			else
+				self._robot:chip(dist*0,6)
+			end
 			debug.set("shoot command", "chip")
 		end
 		if self._robot.radioResponse then
