@@ -21,6 +21,7 @@ local SIDEWARDS_EXTERNAL_KP = 20
 local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
 local SHOOT_SIDE_OFFSET = 0.05 -- extends the hasBall sidewards
 local SHOOT_HYSTERESIS_TIMEOUT = 0.08 -- reset shoot hysteresis after the timeout
+local FORCE_SHOOT_DELAY = 0.03 -- delay forced kick by this time
 local CHIP_DIST_SCALE = 0.7 -- shorten chip distance as the ball will bounce
 local MOVING_BALL = 0.6
 local STOPPED_BALL = 0.2
@@ -39,6 +40,7 @@ Shoot.depends = { CatchBall }
 function Shoot:init()
 	self._shootHysteresis = false
 	self._shootHysteresisTimer = 0
+	self._forceShootTimer = nil
 
 	self._travelStart = nil
 	self._travelLimit = false
@@ -308,8 +310,21 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		end
 		-- Ignore the IR if the robot has the ball
 		local relpos = (World.Ball.pos - self._robot.pos):rotate(-self._robot.dir)
+		-- assume the ball is "pushed" into the robot due to tracking latency
+		if relpos.x < self._robot.shootRadius + World.Ball.radius - 0.002 and World.Ball:isPositionValid() then
+			-- initialize if neccessary
+			self._forceShootTimer = self._forceShootTimer or World.Time
+			if World.Time - self._forceShootTimer >= FORCE_SHOOT_DELAY then
+				debug.set("force shoot", true)
+				self._robot:forceShoot()
+			end
+		else
+			-- reset time
+			self._forceShootTimer = World.Time
+		end
 	else
 		self._shootHysteresis = false
+		self._forceShootTimer = nil
 
 		-- slowly dissolve travel distance
 		local travelDist = math.max(self._travelStart:distanceTo(self._robot.pos) - 5 * World.TimeDiff, 0)
