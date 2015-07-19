@@ -18,6 +18,11 @@ local CONSIDER_POOL_CHANGE_DIST_DEFENDER = 3
 local CONSIDER_POOL_CHANGE_DIST_ATTACKER = 1.5
 
 function ManMark:check()
+	-- prevent centerbacks to switch to man marking in this situation
+	if Defense.dangerousBallTowardsDefense() then
+		return false
+	end
+
 	local mainAttacker = self._inbox.mainAttacker().trainer
 	if self._opp and self._robot.pos:distanceTo(self._opp.pos) >
 			CONSIDER_POOL_CHANGE_DIST_DEFENDER then

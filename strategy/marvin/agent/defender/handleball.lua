@@ -14,10 +14,7 @@ local CenterBack = require "task/centerback"
 local SaveBall = require "task/saveball"
 local Duel = require "agent/attacker/duel"
 local InterceptPass = require "task/interceptpass"
-
-
--- if the ball will reach our defense area with at least that speed, stay defender
-local DANGEROUS_BALL_SPEED = 1.0
+local DefUtil = require "util/defense"
 
 -- the ball is considered as a pass (and maybe as 'interceptable') if it rolls at at least that speed
 local MIN_PASS_INTERCEPTION_SPEED = 1.0
@@ -111,19 +108,9 @@ end
 
 function HandleBall:check()
 	if Referee.isFriendlyFreeKickState() or Referee.isStopState() or Referee.isKickoffState()
-			or Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) then
+			or Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)
+			or DefUtil.dangerousBallTowardsDefense() then
 		return false
-	end
-
-	-- if the ball rolls towards our defense area with high speed, stay defender
-	local defenseLineIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed)
-	if defenseLineIntersection then
-		local timeToDefenseLine = Physics.ballRollTime(World.Ball,
-			World.Ball.pos:distanceTo(defenseLineIntersection))
-		local speedAtDefenseLine = Physics.ballAtTime(World.Ball, timeToDefenseLine).speed:length()
-		if speedAtDefenseLine > DANGEROUS_BALL_SPEED then
-			return false
-		end
 	end
 
 	local mainAttacker = self._inbox.mainAttacker().trainer

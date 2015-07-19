@@ -3,6 +3,7 @@ local Constants = require "../base/constants"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
 local Cache = require "../base/cache"
+local Physics = require "observer/physics"
 
 local POSITION_PADDING = 0.02 -- safety distance
 local PENALTY_LINE_DISTANCE = 0.35 -- prevent robots from crossing the penalty line
@@ -47,5 +48,20 @@ local function manMarkPos(opponent)
 end
 Defense.manMarkPos = Cache.forFrame(manMarkPos)
 
+-- if the ball will reach our defense area with at least that speed, stay defender
+local DANGEROUS_BALL_SPEED = 1.0
+function Defense.dangerousBallTowardsDefense()
+	-- if the ball rolls towards our defense area with high speed, stay defender
+	local defenseLineIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed)
+	if defenseLineIntersection then
+		local timeToDefenseLine = Physics.ballRollTime(World.Ball,
+			World.Ball.pos:distanceTo(defenseLineIntersection))
+		local speedAtDefenseLine = Physics.ballAtTime(World.Ball, timeToDefenseLine).speed:length()
+		if speedAtDefenseLine > DANGEROUS_BALL_SPEED then
+			return true
+		end
+	end
+	return false
+end
 
 return Defense
