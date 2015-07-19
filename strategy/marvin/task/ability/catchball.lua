@@ -149,7 +149,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
   	else
   		self:_createHuntingBallObstacle(self._robot.path, predictedBall)
   	end
-	self:_createBallCorridor(self._robot.path, viewDir, predictedBall)
+	self:_createBallCorridor(self._robot.path, (targetPos - predictedBall.pos):angle(), predictedBall)
 
 	-- only allow endSpeed moving towards the targetPos
 	local endSpeed = predictedBall.speed:copy():rotate(-viewDir)
