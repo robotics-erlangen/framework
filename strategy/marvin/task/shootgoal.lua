@@ -259,7 +259,7 @@ function ShootGoal:updateDestination()
 	-- if there is no clean sector,
 	-- 1. ignore the goalie
 	-- 2. check for ricochet opportunities
-	if not self.bestMid or 
+	if not self.bestMid or
 			(self.sectorClean and self.maxAngleError < MIN_REQUIRED_ANGLE - MIN_REQUIRED_ANGLE_HYSTERESIS) or
 			(not self.sectorClean and self.maxAngleError < MIN_REQUIRED_ANGLE + MIN_REQUIRED_ANGLE_HYSTERESIS) then
 		self:_calculateDestination(viewPos, true)
@@ -471,7 +471,7 @@ function ShootGoal:run()
 				math.min(MIN_SHOOT_PRECISION, self.maxAngleError or math.huge))
 		else
 			local mae =  5 * math.pi/180
-			local chipPos = G.OpponentGoal + (G.FriendlyGoal - G.OpponentGoal):setLength(0.1)
+			local chipPos = G.OpponentGoal + (G.FriendlyGoal - G.OpponentGoal):setLength(0.12)
 
 			debug.set("type", "desperate chip")
 			self:_shoot(chipPos, chipPos:distanceTo(World.Ball.pos), false, mae)
