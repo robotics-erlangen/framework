@@ -240,7 +240,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 				targetPos, targetSpeed)
 
 	-- calculate current distance to the ball
-	local distToBall = (World.Ball.pos - self._robot.pos):rotate(-targetDir)
+	local distToBall = (World.Ball.pos - self._robot.pos):rotate(-self._robot.dir)
 	distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
 
 	if self._movingBallHysteresis then
@@ -295,7 +295,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	end
 
 	-- sidewards offset
-	speed = speed + Vector.fromAngle(targetDir):perpendicular():setLength(
+	speed = speed + Vector.fromAngle(self._robot.dir):perpendicular():setLength(
 			math.bound(-speedLimit, -distToBall.y * sidewardsKp, speedLimit)) -- correct pos error
 
 	debug.set("hasBall hysteresis", self._shootHysteresis)
