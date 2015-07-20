@@ -302,6 +302,8 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(self._robot.dir)*20 }, vis.colors.blue)
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.pink)
+	local rawPhi = (targetPos - futureBall.pos):angle()
+	vis.addPath("t/a/shoot: Direction simple", { self._robot.pos, self._robot.pos + Vector.fromAngle(rawPhi)*20 }, vis.colors.greenHalf)
 
 	-- debug.set("travelDist", self._travelStart:distanceTo(self._robot.pos))
 	if self._travelStart:distanceTo(self._robot.pos) >= Constants.maxDribbleDistance then
