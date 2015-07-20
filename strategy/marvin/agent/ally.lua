@@ -4,6 +4,7 @@ local Ally = Class("Agent.Ally", Base)
 local World = require "../base/world"
 local MixedTeam = require "../base/mixedteam"
 local vis = require "../base/vis"
+local PassSuggestion = require "task/ability/suggestpass"
 
 Ally._behaviors = {}
 
@@ -11,6 +12,12 @@ local attackerAllies = {}
 local defenderAllies = {}
 function Ally.updateRoleNumbers(attackers, defenders)
     return attackers-table.count(attackerAllies), defenders-table.count(defenderAllies)
+end
+
+function Ally:init(robot)
+    Base.init(self, robot)
+    self._suggestPass = PassSuggestion._suggestPass -- HACK
+    self._noOppDisturbing = PassSuggestion._noOppDisturbing
 end
 
  -- below this distance from dribbler to ball, an ally is considered mainAttacker
@@ -87,6 +94,7 @@ function Ally:_run()
         if msgType == "role" then
             if msg == "Defense" then
                 self._send.attackerFlag("all")
+                self:_suggestPass()
                 attackerAllies[self._robot] = true
                 defenderAllies[self._robot] = nil
             elseif msg == "Offense" then
