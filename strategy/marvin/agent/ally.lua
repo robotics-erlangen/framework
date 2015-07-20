@@ -3,6 +3,7 @@ local Ally = Class("Agent.Ally", Base)
 
 local World = require "../base/world"
 local MixedTeam = require "../base/mixedteam"
+local vis = require "../base/vis"
 
 Ally._behaviors = {}
 
@@ -85,11 +86,11 @@ function Ally:_run()
     for msgType, msg in pairs(allyMessages) do
         if msgType == "role" then
             if msg == "Defense" then
-                self._send.attackerFlag()
+                self._send.attackerFlag("all")
                 attackerAllies[self._robot] = true
                 defenderAllies[self._robot] = nil
             elseif msg == "Offense" then
-                self._send.defenderFlag()
+                self._send.defenderFlag("all")
                 attackerAllies[self._robot] = nil
                 defenderAllies[self._robot] = true
             else
@@ -97,17 +98,21 @@ function Ally:_run()
                 defenderAllies[self._robot] = nil
             end
         elseif msgType == "targetPos" then
+            vis.addPath("MoveTo", {self._robot.pos, msg}, vis.colors.whiteHalf)
+            vis.addCircle("MoveTo", msg, 0.15, vis.colors.orangeHalf, true)
             self._send.moveDest("all", msg)
         elseif msgType == "shootPos" then
             local passPosSent = false
             for robot, _ in pairs(self._inbox.attackerFlag()) do
                 if robot.pos:distanceTo(msg) < MIN_DIST_FOR_PASS_POS then
+                    vis.addCircle("a/ally/passpos", msg, 0.15, vis.colors.redHalf, true)
                     self._send.passPos(robot, msg)
                     passPosSent = true
                     break
                 end
             end
             if not passPosSent then
+                vis.addCircle("a/ally/attackposition", msg, 0.15, vis.colors.magentaHalf, true)
                 self._send.attackPosition("all", msg)
             end
         end
@@ -132,7 +137,6 @@ local robotsDefinitelyInOurTeam = {
 
 function Ally.takeRobot(robots)
 	for _, robot in pairs(robots) do
-        log(robot.generation)
 		if robot.isVisible and robot.generation == 2
                 and not robotsDefinitelyInOurTeam[robot.id] then
 			return robot
