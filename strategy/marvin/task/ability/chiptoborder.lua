@@ -4,7 +4,7 @@ local World = require "../base/world"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
-
+local ForceShoot = require "task/ability/forceshoot"
 local leftMiddlePoint = Vector(-World.Geometry.FieldWidthHalf, 0)
 local rightMiddlePoint = -leftMiddlePoint
 local touchLineDir = Vector(0, 1)
@@ -12,6 +12,8 @@ local middleLineDir = leftMiddlePoint-rightMiddlePoint
 local leftFriendlyCorner = Vector(-World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
 local rightFriendlyCorner = Vector(World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
 local chipImpactDistFromBorder = 0.5
+
+ChipToBorder.depends = { ForceShoot }
 
 function ChipToBorder:_chipToBorderIfSafe()
     local robotPos = self._robot.pos
@@ -44,7 +46,10 @@ function ChipToBorder:_chipToBorderIfSafe()
 
         local chipDist = World.Ball.pos:distanceTo(chipPos)  - chipImpactDistFromBorder
         vis.addCircle("t/a/chipToBorder", ballPos + robotDir:setLength(chipDist), 0.1, vis.colors.blue, true)
-        self._robot:setDribblerSpeed(0.3)
+        if not self._robot:hasBall(World.Ball) then
+            self._forceShootTimer = nil
+        end
+        self:_doForceShoot()
         self._robot:chip(chipDist)
     end
 end
