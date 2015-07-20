@@ -121,7 +121,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 
 	-- predict ball and catch it
 	local predictedBall = Physics.ballAtTime(ball, self._catchTime)
-	local virtualBall = Physics.ballAtTime(ball, self._catchTime + 0.3)
+	local virtualBall = Physics.ballAtTime(ball, self._catchTime + 0.1)
 
 	if (targetPos - predictedBall.pos):dot(predictedBall.pos - self._robot.pos) > 0 then
 		virtualBall =  predictedBall
