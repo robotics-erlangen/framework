@@ -121,6 +121,12 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 
 	-- predict ball and catch it
 	local predictedBall = Physics.ballAtTime(ball, self._catchTime)
+	local virtualBall = Physics.ballAtTime(ball, self._catchTime + 0.3)
+
+	if (targetPos - predictedBall.pos):dot(predictedBall.pos - self._robot.pos) > 0 then
+		virtualBall =  predictedBall
+	end
+
 	-- catching the ball only makes sense if we really try to
 	-- a distance other than 0 is only useful for moving to a stopped ball
 	distanceToBall = distanceToBall or 0
@@ -131,7 +137,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 		viewDirVec = -Vector.fromAngle(targetDir)
 	end
 
-	local moveDest = predictedBall.pos + (viewDirVec):setLength(
+	local moveDest = virtualBall.pos + (viewDirVec):setLength(
 			self._robot.shootRadius + distanceToBall + ball.radius)
 	local viewDir = (-viewDirVec):angle()
 	moveDest = Field.limitToField(moveDest, POSITION_PADDING + self._robot.radius)
