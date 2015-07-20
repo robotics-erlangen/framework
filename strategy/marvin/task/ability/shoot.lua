@@ -96,6 +96,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	-- don't allow pushing the ball into the opponent defense area
 	if self._robot:hasBall(World.Ball, SHOOT_SIDE_OFFSET)
 			and not self._stopBallHysteresis
+			and (targetPos - self._robot.pos):absoluteAngleDiff(World.Ball.pos - self._robot.pos) < math.pi / 4
 			and (not Field.isInOpponentDefenseArea(self._robot.pos, self._robot.shootRadius)
 				or Referee.isFriendlyPenaltyState()) then -- if we got the ball
 		debug.set("ballApproach", "hasBall")
