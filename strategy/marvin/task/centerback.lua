@@ -1,4 +1,5 @@
-local CenterBack = Class("Task.CenterBack", require "task/base")
+local ForceShoot = require "task/ability/forceshoot"
+local CenterBack = Class("Task.CenterBack", require "task/base", ForceShoot)
 
 local World = require "../base/world"
 local Messaging = require "control/messaging"

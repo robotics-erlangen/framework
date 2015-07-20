@@ -1,4 +1,5 @@
-local Keeper = Class("Task.Keeper", require "task/base")
+local ForceShoot = require "task/ability/forceshoot"
+local Keeper = Class("Task.Keeper", require "task/base", ForceShoot)
 
 local World = require "../base/world"
 local ToTarget = require "trajectory/totarget"
