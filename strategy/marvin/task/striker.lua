@@ -242,11 +242,29 @@ function Striker:_calcMoveDest()
 	if shootDest and not passToMe then
 		local minBallDist = self._robot.radius + World.Ball.radius + POSITION_PADDING
 		local intersection, dist = self._robot.pos:orthogonalProjection(shooter.pos, shootDest)
-		if dist and math.abs(dist) < minBallDist then
+		local intersectionWithPass, lambda, lambda2 = 
+			geom.intersectLineLine(shooter.pos, (shootDest-shooter.pos),
+			self._robot.pos, (self._moveDest - self._robot.pos))
+		debug.set("move dest", self._moveDest)
+		debug.set("lambda 1", lambda)
+		debug.set("lambda 2", lambda2)
+		debug.set("intersectionWithPass", intersectionWithPass)
+		if intersectionWithPass and math.bound(0, lambda, 1) == lambda
+				and math.bound(0, lambda2, 1) == lambda2 then
+			--log("did not interfere with passing")
+			--debug.set("switching pos")
 			if intersection.y < self._robot.pos.y then -- move upwards
 				self._moveDest.y = intersection.y + 1.5 * minBallDist
+				--log("y switched right")
 			else -- move downwards
 				self._moveDest.y = intersection.y - 1.5 * minBallDist
+				--log("y switched left")
+			end
+
+			if (intersectionWithPass.x <= self._robot.pos.x and self._moveDest.x <= intersectionWithPass.x) or
+				(intersectionWithPass.x > self._robot.pos.x and self._moveDest.x > intersectionWithPass.x) then
+				self._moveDest.x = -self._moveDest.x
+				--log("x switched")
 			end
 		end
 	end
