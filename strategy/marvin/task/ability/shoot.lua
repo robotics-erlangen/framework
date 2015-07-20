@@ -58,22 +58,24 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(robotFront))
 	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
 
-	if futureBall.speed:length() > IN_THE_RUN then
-		self._inTheRunHysteresis = false
-	elseif futureBall.speed:length() < IN_THE_RUN - 0.2 then
-		self._inTheRunHysteresis = true
-	end
-
 	if World.Ball.speed:length() > MOVING_BALL then
 		self._movingBallHysteresis = true
 	elseif World.Ball.speed:length() < STOPPED_BALL then
 		self._movingBallHysteresis = false
 	end
 
+	local shotAtBack = (targetPos - self._robot.pos):dot(World.Ball.speed) > 0
+	if shotAtBack and self._movingBallHysteresis then
+		self._inTheRunHysteresis = false
+	elseif futureBall.speed:length() > IN_THE_RUN then
+		self._inTheRunHysteresis = false
+	elseif futureBall.speed:length() < IN_THE_RUN - 0.2 then
+		self._inTheRunHysteresis = true
+	end
+
 	-- stop ball if angle is too sharp
 	if self._movingBallHysteresis then
 		local angleToBall = World.Ball.speed:absoluteAngleDiff(self._robot.pos - targetPos)
-	
 		if self._inTheRunHysteresis and angleToBall > math.pi / 2 then
 			angleToBall = math.pi - angleToBall
 		end
