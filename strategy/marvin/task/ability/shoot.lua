@@ -67,6 +67,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	end
 
 	local shotAtBack = (targetPos - self._robot.pos):dot(World.Ball.speed) > 0
+			and (targetPos - self._robot.pos):dot(World.Ball.pos - self._robot.pos) < 0
 	if shotAtBack and self._movingBallHysteresis then
 		self._inTheRunHysteresis = false
 	elseif futureBall.speed:length() > IN_THE_RUN then
