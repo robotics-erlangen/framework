@@ -280,10 +280,15 @@ function CenterBack:run()
 
 	debug.set("target", destinationTarget)
 
+	if not self._robot:hasBall(World.Ball) then
+		self._forceShootTimer = nil
+	end
 	local chipActivationAngle = math.pi / 6
 	local isGame = World.RefereeState == "Game" or World.RefereeState == "GameForce"
 	if isGame and dir > chipActivationAngle and dir < math.pi - chipActivationAngle and
 			Vector.fromAngle(dir):absoluteAngleDiff(destinationPos - G.FriendlyGoal) < math.pi then
+		debug.set("chip", true)
+		self:_doForceShoot()
 		self._robot:chip(4)
 	end
 

@@ -161,12 +161,16 @@ function Keeper:run()
 	end
 	self._robot.trajectory:update(ToTarget, moveTo, (atkPos - moveTo):angle(), nil, endSpeed)
 
+	if not self._robot:hasBall(World.Ball) then
+		self._forceShootTimer = nil
+	end
 	local chipActivationAngle = math.pi / 6
 	local ballToRobot = self._robot.pos - Vector.fromAngle(World.Ball.dir or 0)
 	if (World.RefereeState == "Game" or World.RefereeState == "GameForce") and
 			World.Ball.speed:absoluteAngleDiff(ballToRobot) < chipActivationAngle then
 		debug.set("chip", true)
 		self._robot:chip(4)
+		self:_doForceShoot()
 	end
 end
 
