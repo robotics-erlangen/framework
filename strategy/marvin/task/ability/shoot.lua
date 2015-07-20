@@ -258,6 +258,13 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	end
 	debug.set("distToBall", distToBall)
 
+	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.redHalf)
+	-- handle robot shoot direction problem
+	-- 0.42 degree / cm off
+	local SHOOT_SKEW = 0.42 / 180 * math.pi * 100
+	local SHOOT_SKEW_LIMIT = 2 / 180 * math.pi
+	targetDir = targetDir - math.bound(-SHOOT_SKEW_LIMIT, distToBall.y * SHOOT_SKEW, SHOOT_SKEW_LIMIT)
+
 	-- check robot orientation
 	local angleDiff = math.abs(geom.getAngleDiff(targetDir, self._robot.dir))
 	local csHysteresis = math.min(maxAngleError / 2, CAN_SHOOT_HYSTERESIS)
