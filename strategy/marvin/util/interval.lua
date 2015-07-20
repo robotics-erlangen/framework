@@ -27,7 +27,7 @@ function Interval.merge(sortedIntervals)
 	-- last interval
 	n = n + 1
 	sortedIntervals[n] = currentInterval
-	
+
 	table.truncate(sortedIntervals, n)
 end
 
@@ -38,19 +38,19 @@ end
 function Interval.negate(mergedIntervals, outerStart, outerEnd)
 	local chunkStart = outerStart -- end of previous sector
 	local negated = {}
-	
+
 	for i = 1, #mergedIntervals do
 		local interval = mergedIntervals[i]
 		if interval[1] > chunkStart then
 			table.insert(negated, {chunkStart, interval[1]})
-		end 
+		end
 		-- limit start to outer limits
 		chunkStart = math.max(interval[2], outerStart)
 		if chunkStart > outerEnd then -- stop after reaching the end
 			break
 		end
 	end
-	
+
 	if chunkStart < outerEnd then
 		table.insert(negated, {chunkStart, outerEnd})
 	end
@@ -125,7 +125,7 @@ end
 
 --- Finds the furthest point in an array of intervals with a given distance to its interval boarders
 -- @param mergedIntervals interval[] - list of intervals as returned by merge
--- @param Q number - point to which the distance of the searched point is minimal
+-- @param Q number - point to which the distance of the searched point is maximal
 -- @param D number - minimum distance of the searched point to its nearest boarder.
 -- This means that it can only lie in an interval with size 2*D or bigger
 function Interval.getFurthestPoint(mergedIntervals, Q, D)

@@ -219,6 +219,7 @@ function Striker:_calcMoveDest()
 	end
 	local target = Interval.getFurthestPoint(possibleIntervals, closestOpp.pos.y, self._robot.radius)
 	if target then
+		vis.addCircle("t/striker/target", Vector(xPos, target), 0.1, vis.colors.blue)
 		local switchDir=self._moveDest and (target - self._robot.pos.y) * (self._moveDest.y - self._robot.pos.y) < 0 --do we want to change direction?
 		if World.Time - self._lastDirChange > 1.5 then -- against flickering
 			self._moveDest = Vector(xPos, target)
@@ -242,7 +243,7 @@ function Striker:_calcMoveDest()
 	if shootDest and not passToMe then
 		local minBallDist = self._robot.radius + World.Ball.radius + POSITION_PADDING
 		local intersection, dist = self._robot.pos:orthogonalProjection(shooter.pos, shootDest)
-		local intersectionWithPass, lambda, lambda2 = 
+		local intersectionWithPass, lambda, lambda2 =
 			geom.intersectLineLine(shooter.pos, (shootDest-shooter.pos),
 			self._robot.pos, (self._moveDest - self._robot.pos))
 		debug.set("move dest", self._moveDest)
