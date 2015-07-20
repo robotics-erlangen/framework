@@ -106,6 +106,7 @@ function HandleBall:_interceptBall()
 	end
 end
 
+local MAX_DUEL_FORCE_DIST = 1.5
 function HandleBall:check()
 	if Referee.isFriendlyFreeKickState() or Referee.isStopState() or Referee.isKickoffState()
 			or Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)
@@ -123,7 +124,8 @@ function HandleBall:check()
 		return false
 	elseif duel then
 		local ballPos = World.Ball.pos
-		if mainAttacker and mainAttacker.pos:distanceTo(ownGoal) > ballPos:distanceTo(ownGoal) then
+		if mainAttacker and ballPos:distanceTo(self._robot.pos) < MAX_DUEL_FORCE_DIST and
+				mainAttacker.pos:distanceTo(ownGoal) > ballPos:distanceTo(ownGoal) then
 			local ballBlockPos = self._robot.pos:nearestPosOnLine(ballPos, ownGoal)
 			local time = Physics.robotTimeToPos(self._robot, ballBlockPos, Vector(0,0), true)
 			local rating = Rating.timeToRating(time) + 1
