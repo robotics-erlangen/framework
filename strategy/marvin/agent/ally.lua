@@ -120,7 +120,8 @@ function Ally:_run()
     local ballDist = dribblerPos:distanceTo(ballPos)
     if ballDist < ALLY_MAINATTACKER_DIST then
         self._send.exclusiveRole("trainer", {mainAttacker = 2})
-    elseif self._robot.speed:absoluteAngleDiff(ballPos-dirVector) < 20/180*math.pi then
+    elseif self._robot.speed:length() > 0.5 and
+            self._robot.speed:absoluteAngleDiff(ballPos-dirVector) < 20/180*math.pi then
         (require "agent/base/behavior")._applyForMainAttacker(self) -- HACK
     end
 end
@@ -131,7 +132,8 @@ local robotsDefinitelyInOurTeam = {
 
 function Ally.takeRobot(robots)
 	for _, robot in pairs(robots) do
-		if robot.isVisible and robot.generation == -1
+        log(robot.generation)
+		if robot.isVisible and robot.generation == 2
                 and not robotsDefinitelyInOurTeam[robot.id] then
 			return robot
 		end
@@ -139,7 +141,7 @@ function Ally.takeRobot(robots)
 end
 
 function Ally:keepRobot()
-	return self._robot.isVisible and self._robot.generation == -1
+	return self._robot.isVisible and self._robot.generation == 2
         and not self._robot.userControl
         and not robotsDefinitelyInOurTeam[self._robot.id]
 end
