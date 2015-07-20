@@ -291,7 +291,7 @@ function CenterBack:run()
 			and World.Ball.pos:distanceTo(self._robot.pos) < 1 then
 		debug.set("chip", true)
 		self:_doForceShoot()
-		self._robot:chip(4)
+		self._robot:chip(2)
 	end
 
 	local ignoreOpponents
