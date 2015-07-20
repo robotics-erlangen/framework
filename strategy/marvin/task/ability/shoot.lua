@@ -21,6 +21,7 @@ local SIDEWARDS_EXTERNAL_KP = 20
 local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
 local SHOOT_SIDE_OFFSET = 0.05 -- extends the hasBall sidewards
 local SHOOT_HYSTERESIS_TIMEOUT = 0.08 -- reset shoot hysteresis after the timeout
+local CAN_SHOOT_HYSTERESIS = 0.3 / 180 * math.pi
 local FORCE_SHOOT_DELAY = 0.03 -- delay forced kick by this time
 local MOVING_BALL = 0.6
 local STOPPED_BALL = 0.2
@@ -38,6 +39,7 @@ Shoot.depends = { CatchBall }
 
 function Shoot:init()
 	self._shootHysteresis = false
+	self._canShootHysteresis = false
 	self._shootHysteresisTimer = 0
 	self._forceShootTimer = nil
 
@@ -210,6 +212,7 @@ end
 
 function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	self._lastBallSpeed = self._lastBallSpeed or World.Ball.speed
+	maxAngleError = math.max(MIN_ANGLE_PRECISION, maxAngleError)
 
 	if not self._travelStart then
 		self._travelStart = self._robot.pos
@@ -259,16 +262,22 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 
 	-- check robot orientation
 	local angleDiff = math.abs(geom.getAngleDiff(targetDir, self._robot.dir))
-	local canShoot = angleDiff < math.max(MIN_ANGLE_PRECISION, maxAngleError)
-	debug.set("canShoot", canShoot)
+	local csHysteresis = math.min(maxAngleError / 2, CAN_SHOOT_HYSTERESIS)
+
+	if angleDiff < maxAngleError - csHysteresis then
+		self._canShootHysteresis = true
+	elseif angleDiff > maxAngleError then
+		self._canShootHysteresis = false
+	end
+	debug.set("canShoot", self._canShootHysteresis)
 
 	local sidewardsKp = SIDEWARDS_KP
 	local speedLimit = 0.4
 
 	-- only start kicking if the robot got the ball
-	if self._robot:hasBall(World.Ball) then
+	if self._robot:hasBall(World.Ball, -0.005) then
 		-- shootHysteresis stays true after maxAngleError was satisfied once
-		if canShoot then
+		if self._canShootHysteresis then
 			self._shootHysteresis = true
 			self._shootHysteresisTimer = World.Time
 		elseif self._shootHysteresisTimer + SHOOT_HYSTERESIS_TIMEOUT >= World.Time then
@@ -371,6 +380,7 @@ function Shoot:_resetShoot()
 	self._shootHysteresis = false
 	self._travelStart = nil
 	self._travelLimit = false
+	self._canShootHysteresis = false
 end
 
 
