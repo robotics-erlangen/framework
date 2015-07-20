@@ -15,12 +15,12 @@ local TrajectoryDirect = require "trajectory/direct"
 local ToTarget = require "trajectory/totarget"
 local Robot = require "observer/robot"
 
-local SIDEWARDS_KP = 10
+local SIDEWARDS_KP = 9
 local SIDEWARDS_EXTERNAL_KP = 20
 local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
-local SHOOT_SIDE_OFFSET = 0.05 -- extends the hasBall sidewards
+local SHOOT_SIDE_OFFSET = 0.03 -- extends the hasBall sidewards
 local SHOOT_HYSTERESIS_TIMEOUT = 0.08 -- reset shoot hysteresis after the timeout
-local CAN_SHOOT_HYSTERESIS = 0.3 / 180 * math.pi
+local CAN_SHOOT_HYSTERESIS = 0.5 / 180 * math.pi
 local MOVING_BALL = 0.6
 local STOPPED_BALL = 0.2
 local STOPPED_BALL_DIST = 2*Constants.positionError
