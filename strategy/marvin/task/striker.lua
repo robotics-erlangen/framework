@@ -249,7 +249,9 @@ function Striker:_calcMoveDest()
 		debug.set("move dest", self._moveDest)
 		debug.set("lambda 1", lambda)
 		debug.set("lambda 2", lambda2)
-		debug.set("intersectionWithPass", intersectionWithPass)
+		if intersectionWithPass then
+			vis.addCircle("t/striker/shotIntersection", intersectionWithPass, 0.05, vis.colors.red)
+		end
 		if intersectionWithPass and math.bound(0, lambda, 1) == lambda
 				and math.bound(0, lambda2, 1) == lambda2 then
 			--log("did not interfere with passing")
