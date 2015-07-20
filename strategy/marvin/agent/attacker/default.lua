@@ -11,7 +11,7 @@ end
 
 function Default:_updateTask()
 	local _, passPos = next(self._inbox.passPos())
-	if passPos and self._robot.pos:distanceTo(passPos) < 3*self._robot.radius then
+	if passPos and self._robot.pos:distanceTo(passPos) < 1 then
 		return DirectPassTarget -- just hold position to receive the direct pass
 	else
 		return Striker
