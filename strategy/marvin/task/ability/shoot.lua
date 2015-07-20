@@ -244,15 +244,15 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
 
 	if self._movingBallHysteresis then
-		local speedDiff = World.Ball.speed
 		local posDiff = World.Ball.pos - self._robot.pos
-		if speedDiff:length() >= MOVING_BALL and speedDiff:dot(posDiff) < 0 then
+		if World.Ball.speed:length() >= MOVING_BALL and World.Ball.speed:dot(posDiff) < 0 then
 			debug.set("special", "shot at robot")
 			-- ball shoot towards robots
-			local balldir = World.Ball.speed:copy():normalize()
+			local ballTouchPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)
+			local dribblerPerp = Vector.fromAngle(self._robot.dir):perpendicular()
 			-- calculate offset to ball hitpoint
-			local _, _, lambda = geom.intersectLineLine(World.Ball.pos, balldir, ballTouchPos, balldir:perpendicular())
-			local errorVec = balldir:perpendicular() * lambda
+			local _, _, lambda = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, ballTouchPos, dribblerPerp)
+			local errorVec = dribblerPerp * lambda
 			distToBall = errorVec:rotate(-self._robot.dir)
 		end
 	end
