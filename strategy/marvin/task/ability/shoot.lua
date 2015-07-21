@@ -16,7 +16,7 @@ local ToTarget = require "trajectory/totarget"
 local Robot = require "observer/robot"
 
 local SIDEWARDS_KP = 9
-local SIDEWARDS_EXTERNAL_KP = 20
+local SIDEWARDS_KI = 2
 local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
 local SHOOT_SIDE_OFFSET = 0.03 -- extends the hasBall sidewards
 local SHOOT_HYSTERESIS_TIMEOUT = 0.08 -- reset shoot hysteresis after the timeout
@@ -39,6 +39,7 @@ function Shoot:init()
 	self._shootHysteresis = false
 	self._canShootHysteresis = false
 	self._shootHysteresisTimer = 0
+	self._sideOffsetErrorSum = 0
 
 	self._travelStart = nil
 	self._travelLimit = false
@@ -290,13 +291,20 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 		end
 	else
 		self._shootHysteresis = false
-		sidewardsKp = SIDEWARDS_EXTERNAL_KP
-		speedLimit = 1
+		speedLimit = 0.6
 	end
+
+	local errorVal = -distToBall.y
+	local p_out = sidewardsKp * errorVal
+
+	local errorMax = math.bound(0, speedLimit - p_out, speedLimit)
+	local errorMin = math.bound(-speedLimit, -speedLimit - p_out, 0)
+	self._sideOffsetErrorSum = math.bound(errorMin, self._sideOffsetErrorSum + SIDEWARDS_KI * p_out * World.TimeDiff, errorMax)
+	debug.set("sideIntegral", self._sideOffsetErrorSum)
 
 	-- sidewards offset
 	speed = speed + Vector.fromAngle(self._robot.dir):perpendicular():setLength(
-			math.bound(-speedLimit, -distToBall.y * sidewardsKp, speedLimit)) -- correct pos error
+			math.bound(-speedLimit, p_out + self._sideOffsetErrorSum, speedLimit)) -- correct pos error
 
 	debug.set("hasBall hysteresis", self._shootHysteresis)
 
@@ -372,6 +380,7 @@ function Shoot:_resetShoot()
 	self._travelStart = nil
 	self._travelLimit = false
 	self._canShootHysteresis = false
+	self._sideOffsetErrorSum = 0
 end
 
 
