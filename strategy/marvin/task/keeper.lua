@@ -171,7 +171,7 @@ function Keeper:run()
 			World.Ball.speed:absoluteAngleDiff(ballToRobot) < chipActivationAngle
 			and World.Ball.pos:distanceTo(self._robot.pos) < 1 then
 		debug.set("chip", true)
-		self._robot:chip(2)
+		self._robot:chip(3)
 		self:_doForceShoot()
 	end
 end
