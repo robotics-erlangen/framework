@@ -312,7 +312,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	if self._shootHysteresis and not self._travelLimit then
 		-- speed towards ball
 		local accelerate = math.abs(self._robot.acceleration
-				and self._robot.acceleration.aSpeedupFMax or 1.0) * 0.7
+				and self._robot.acceleration.aSpeedupFMax or 1.0) * 1.4
 		accel = Vector.fromAngle(targetDir) * accelerate
 
 		local dist = targetPos:distanceTo(self._robot.pos)

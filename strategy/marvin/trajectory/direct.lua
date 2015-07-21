@@ -27,8 +27,8 @@ function Direct:update(speed, targetDir, rotateSpeed, accel)
 	end
 
 	local spline = { {t_start = 0, t_end = math.huge,
-		x = { a0 = robotPos.x, a1 = speed.x, a2 = accel.x, a3 = 0 },
-		y = { a0 = robotPos.y, a1 = speed.y, a2 = accel.y, a3 = 0 },
+		x = { a0 = robotPos.x, a1 = speed.x, a2 = accel.x / 2, a3 = 0 },
+		y = { a0 = robotPos.y, a1 = speed.y, a2 = accel.y / 2, a3 = 0 },
 		phi = { a0 = robotDir, a1 = rotateSpeed, a2 = 0, a3 = 0}
 	} }
 
