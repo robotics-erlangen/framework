@@ -9,7 +9,7 @@ local Game = require "observer/game"
 local MoveToPos = require "task/movetopos"
 local KickoffPass = require "task/kickoffpass"
 
-function  KickoffAssistant:_stop(d)
+function KickoffAssistant:_stop(d)
 	self._behind = false
 	self._moveDest = nil
 	self._movePos = nil
@@ -20,15 +20,15 @@ end
 function KickoffAssistant:_position(positionClash)
 	if not self._moveDest or positionClash then
 		--position in the back
-		if  self._distanceY > (3/4)*G.FieldHeightHalf then
-			self._distanceY=(3/4)*G.FieldHeightHalf
-		end	
+		if self._distanceY > (3/4)*G.FieldHeightHalf then -- small field
+			self._distanceY = (3/4)*G.FieldHeightHalf
+		end
 
 		local positions = {
 			Vector(-G.FieldWidthHalf * 0.5, -3 * self._robot.radius),
 			Vector(-G.FieldWidthHalf * 0.75,  -self._distanceY),
 			Vector(G.FieldWidthHalf * 0.5, -3 * self._robot.radius),
-			Vector(G.FieldWidthHalf * 0.75,  -self._distanceY), 
+			Vector(G.FieldWidthHalf * 0.75,  -self._distanceY),
 		}
 		self._moveDest = table.shuffle(positions)[1]
 		debug.set("pos", self._moveDest.x)
@@ -40,7 +40,7 @@ function KickoffAssistant:_position(positionClash)
 			end
 			self._behind = true
 		else
-			self._behind=false
+			self._behind = false
 		end
 	end
 	return
@@ -50,14 +50,18 @@ function KickoffAssistant:check()
 	-- try every position in random order, take first free one
 	local positionClash = false
 	for _, pos in pairs(self._inbox.moveDest()) do
-		if self._moveDest~=nil and (pos == self._moveDest or 
-			(math.abs(self._moveDest.x) == math.abs(pos.x) and self._moveDest.y == self._distanceY )) then
-			positionClash = true
+		if self._moveDest~=nil then
+			if pos == self._moveDest or (math.abs(self._moveDest.x) == math.abs(pos.x)
+					and self._moveDest.y == self._distanceY ) then
+				positionClash = true
+			elseif pos.y == -self._distanceY and self._behind then
+				positionClash = true
+			end
 		end
 	end
 	--choose the position
 	self:_position(positionClash)
-	--send 
+	--send
 	self._send.moveDest("all", self._moveDest)
 
 	local isActive = World.RefereeState == "KickoffOffensivePrepare" or
