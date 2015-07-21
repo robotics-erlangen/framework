@@ -16,7 +16,7 @@ local ToTarget = require "trajectory/totarget"
 local Robot = require "observer/robot"
 
 local SIDEWARDS_KP = 9
-local SIDEWARDS_KI = 2
+local SIDEWARDS_KI = 2.4
 local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
 local SHOOT_SIDE_OFFSET = 0.03 -- extends the hasBall sidewards
 local SHOOT_HYSTERESIS_TIMEOUT = 0.08 -- reset shoot hysteresis after the timeout
@@ -281,7 +281,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	local speedLimit = 0.4
 
 	-- only start kicking if the robot got the ball
-	if self._robot:hasBall(World.Ball, -0.005) then
+	if self._robot:hasBall(World.Ball, -0.01) then
 		-- shootHysteresis stays true after maxAngleError was satisfied once
 		if self._canShootHysteresis then
 			self._shootHysteresis = true
