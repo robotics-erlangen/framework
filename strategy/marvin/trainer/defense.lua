@@ -59,8 +59,16 @@ function Defense:_chooseManMarkAndCenterBacks()
 	table.sort(self._oppsToMark, distToFriendlyGoal)
 
 	local unassigned = table.keys(self._inbox.defenderFlag())
+    local oppOnOtherSideThanBall = false
+    local ballPosX = World.Ball.pos.x
+    for _, robot in ipairs(World.OpponentRobots) do
+        if robot.pos.x * ballPosX < 0 and robot ~= World.OpponentKeeper
+                and math.abs(robot.pos.x) > 0.75 then
+            oppOnOtherSideThanBall = true
+        end
+    end
 	local needCountersideCB = Referee.isStopState() and World.Ball.pos.y < 0
-		and #unassigned - #self._oppsToMark >= 2
+		and #unassigned - #self._oppsToMark >= 2 and oppOnOtherSideThanBall
 	-- cbs are "pure" if they defend the ball and are close to the defense area
 	local pureCenterBacks = {}
 	local pureCenterBacksArray = {}
