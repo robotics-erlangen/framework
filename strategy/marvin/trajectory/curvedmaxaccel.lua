@@ -106,7 +106,7 @@ local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxEr
 			local angleTan = math.tan((math.pi - angleDiff)/2) -- used to calculate the osculating circle radius
 			-- move direction is position on the path in leadTime from now
 			-- this guarantees a maximum deviation from the waypoints of maxError
-			-- calculate leadtime based on the maximum distance between the corner and the osculating circle
+			-- calculate leadTime based on the maximum distance between the corner and the osculating circle
 			local leadTime = math.sqrt(maxError / (accelLimit*angleTan*(math.sqrt(1+angleTan*angleTan)-angleTan)))
 
 			-- calculate possible speed at circle start
@@ -617,6 +617,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, precise
 	local endSpeedLen = math.max(0, endPathDir:dot(endSpeed))
 	-- calculate speed limits for curve segments based on sidewards acceleration limits while driving curves
 	local maxSpeedProfile, leadTime = _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, robotPos, robotSpeed, endSpeedLen)
+	leadTime = math.max(0.01, leadTime)
 	--debug.set("maxSpeedProfile", maxSpeedProfile)
 	-- convert to actual speed curve
 	local speedProfile = _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake)
