@@ -290,12 +290,11 @@ local function _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake)
 		local brakeTime = startSpeed / brake
 		local brakeDist = (-startSpeed)/2 * brakeTime
 		table.insert(speedProfile, {brakeTime, 0})
+		assert(brakeTime >= 0, "invalid brake time")
 		-- move back to start point
 		local vrestore = math.sqrt(2 * accelerate * brakeDist)
 		local restoreTime = vrestore / accelerate
 		table.insert(speedProfile, {brakeTime + restoreTime, vrestore})
-		-- offset to skip negative distance
-		leadTimeOffset = brakeTime + restoreTime
 	end
 
 	-- skip maxSpeedProfile entry containing the current robot and max speed
@@ -318,7 +317,7 @@ local function _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake)
 		_backpropagateSpeedLimit(speedProfile, endSpeed, brake)
 	end
 
-	return speedProfile, leadTimeOffset
+	return speedProfile
 end
 
 local function _decreaseDistance(speedProfile, cutoffDistance)
@@ -352,14 +351,40 @@ local function _decreaseDistance(speedProfile, cutoffDistance)
 end
 
 local function _findMoveTarget(waypoints, speedProfile, leadTime)
+	-- use endPos as fallback, ignore point added for endspeed
+	local moveTarget = waypoints[#waypoints-1]
+
+	local zeroDistance = 0
+	local timeOffset
+	for i = 1, #speedProfile - 1 do
+		local partLen = (speedProfile[i+1][2] + speedProfile[i][2]) / 2 * (speedProfile[i+1][1] - speedProfile[i][1])
+		if zeroDistance <= 0 and zeroDistance + partLen >= 0 then
+			local tdelta = speedProfile[i+1][1] - speedProfile[i][1]
+			local tpart, tpart2 = math.solveSq((speedProfile[i+1][2]-speedProfile[i][2])/(2*tdelta), speedProfile[i][2], zeroDistance)
+			-- may fail due to numerical precision problems
+			if tpart2 ~= math.huge then
+				timeOffset = speedProfile[i][1] + tpart
+				break
+			end
+		end
+		zeroDistance = zeroDistance + partLen
+	end
+
+	--debug.set("timeOffset", timeOffset)
+	if not timeOffset then
+		return moveTarget
+	end
+
 	-- calculate the travelled distance after leadTime
 	local distance = 0
 	local onSpeedProfile = false -- false if speedProfile is too short
+	leadTime = leadTime + timeOffset
 	for i = 1, #speedProfile - 1 do
 		if speedProfile[i][1] <= leadTime and leadTime <= speedProfile[i+1][1] then
 			local accel = (speedProfile[i+1][2] - speedProfile[i][2]) / (speedProfile[i+1][1] - speedProfile[i][1])
 			local endSpeed = speedProfile[i][2] + accel * (leadTime - speedProfile[i][1])
 			distance = distance + (speedProfile[i][2] + endSpeed) / 2 * (leadTime - speedProfile[i][1])
+			assert(distance >= 0, "invalid distance")
 			onSpeedProfile = true
 			break
 		else
@@ -367,8 +392,7 @@ local function _findMoveTarget(waypoints, speedProfile, leadTime)
 		end
 	end
 
-	-- find position on waypoints, use endPos as fallback
-	local moveTarget = waypoints[#waypoints-1] -- ignore point added for endspeed
+	-- find position on waypoints
 	if not onSpeedProfile then
 		return moveTarget
 	end
@@ -595,9 +619,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, precise
 	local maxSpeedProfile, leadTime = _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, robotPos, robotSpeed, endSpeedLen)
 	--debug.set("maxSpeedProfile", maxSpeedProfile)
 	-- convert to actual speed curve
-	local speedProfile, leadTimeOffset = _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake)
+	local speedProfile = _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake)
 	--debug.set("speedProfile", speedProfile)
-	leadTime = leadTime + leadTimeOffset
 	-- insert endSpeed with required length as last path segment to allow simple search for the leadPoint
 	table.insert(waypoints, targetPos + endSpeed:copy():setLength(leadTime))
 	-- find move target or use endPos as fallback
