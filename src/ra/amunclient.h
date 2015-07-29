@@ -25,6 +25,7 @@
 #include "protobuf/status.h"
 
 class Amun;
+class QThread;
 
 class AmunClient : public QObject
 {
@@ -36,8 +37,6 @@ public:
 
 signals:
     void gotStatus(const Status &status);
-
-public slots:
     void sendCommand(const Command &command);
 
 public:
@@ -46,6 +45,7 @@ public:
 
 private:
     Amun* m_amun;
+    QThread *m_amunThread;
 };
 
 #endif // AMUNCLIENT_H

@@ -20,10 +20,12 @@
 
 #include "amunclient.h"
 #include "amun/amun.h"
+#include <QThread>
 
 AmunClient::AmunClient(QObject *parent) :
     QObject(parent),
-    m_amun(NULL)
+    m_amun(NULL),
+    m_amunThread(NULL)
 {
 }
 
@@ -34,19 +36,23 @@ AmunClient::~AmunClient()
 
 void AmunClient::start()
 {
-    delete m_amun;
-    m_amun = new Amun(this);
+    m_amunThread = new QThread(this);
+    m_amun = new Amun();
+    m_amun->moveToThread(m_amunThread);
+
     connect(m_amun, SIGNAL(sendStatus(Status)), SIGNAL(gotStatus(Status)));
+    connect(this, SIGNAL(sendCommand(Command)), m_amun, SLOT(handleCommand(Command)));
     m_amun->start();
+    m_amunThread->start();
 }
 
 void AmunClient::stop()
 {
+    m_amunThread->quit();
+    m_amunThread->wait();
+    delete m_amunThread;
+    m_amunThread = NULL;
+
     delete m_amun;
     m_amun = NULL;
-}
-
-void AmunClient::sendCommand(const Command &command)
-{
-    m_amun->handleCommand(command);
 }
