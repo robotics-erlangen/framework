@@ -215,6 +215,7 @@ void MainWindow::openFile(QString filename)
         }
 
         initializeLabels();
+        setWindowTitle("Log Player - " + QFileInfo(filename).fileName());
     }
 }
 
