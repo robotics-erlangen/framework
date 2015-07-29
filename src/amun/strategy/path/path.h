@@ -34,6 +34,9 @@ class Path
 private:
     struct Obstacle
     {
+        // check for compatibility with checkMovementRelativeToObstacles optimization
+        // the obstacle is assumed to be convex and that distance inside an obstacle
+        // is calculated as the distance to the closest point on the obstacle border
         virtual ~Obstacle() {}
         virtual float distance(const Vector &v) const = 0;
         virtual float distance(const LineSegment &segment) const = 0;

@@ -232,6 +232,8 @@ bool Path::checkMovementRelativeToObstacles(const LineSegment &segment, const QL
     // split obstacle lists, the amount of start obstacles is decreasing for each tree
     QList<const Obstacle *> startObstacles;
     QList<const Obstacle *> otherObstacles;
+    // nearly all obstacles should go in here
+    otherObstacles.reserve(obstacles.size() - 1);
     foreach (const Obstacle *o, obstacles) {
         if (o->distance(p) < radius) {
             startObstacles.append(o);
@@ -240,30 +242,51 @@ bool Path::checkMovementRelativeToObstacles(const LineSegment &segment, const QL
         }
     }
 
-    float stepSize = 2E-3; // step size used to check for obstacles
-    const int numSteps = ceil(l / stepSize); // parts path is split into
-    stepSize = l / numSteps;
-    // Adjust vector to stepsize
-    if (l > stepSize) {
+    if (startObstacles.size() == 1) {
+        float stepSize = std::min(1E-3f, l);
         step *= stepSize / l;
-    }
 
-    // check that the robot doesn't enter the obstacles any further
-    // the obstacle coverage is limited to twice the robot radius
-    // that is if the robot is completely covered it can freely move around
-    // the robot can swing between the covered obstacles as the sum may stay the same
-    float last_d_sum = INFINITY;
-    for (int i = 0; i < numSteps + 1; i++) { // begin at segment start
-        // Sum up distances to obstacles
-        float d_sum = calculateObstacleCoverage(p, startObstacles, radius);
+        // check that the robot doesn't enter the obstacle any further
+        // the obstacle is assumed to be convex and that distance inside an obstacle
+        // is calculated as the distance to the closest point on the obstacle border
+        // then the obstacle distance at start is increasing iff the obstacle is left
+        float start_d_sum = calculateObstacleCoverage(p, startObstacles, radius);
+        float step_d_sum = calculateObstacleCoverage(p+step, startObstacles, radius);
 
-        // Cancel as soon as the coverage by obstacles is getting bigger (sucks!)
-        if (d_sum > last_d_sum) {
+        if (step_d_sum > start_d_sum) {
             return false;
         }
+    } else if (startObstacles.size() > 1) {
+        float stepSize = 2E-3; // step size used to check for obstacles
+        const int numSteps = ceil(l / stepSize); // parts path is split into
+        stepSize = l / numSteps;
+        // Adjust vector to stepsize
+        if (l > stepSize) {
+            step *= stepSize / l;
+        }
 
-        last_d_sum = d_sum; // Save last value
-        p = p + step; // Next step
+        // check that the robot doesn't enter the obstacles any further
+        // the obstacle coverage is limited to twice the robot radius
+        // that is if the robot is completely covered it can freely move around
+        // the robot can swing between the covered obstacles as the sum may stay the same
+        float last_d_sum = INFINITY;
+        for (int i = 0; i < numSteps + 1; i++) { // begin at segment start
+            // Sum up distances to obstacles
+            float d_sum = calculateObstacleCoverage(p, startObstacles, radius);
+
+            // Cancel as soon as the coverage by obstacles is getting bigger (sucks!)
+            if (d_sum > last_d_sum) {
+                return false;
+            } else if (d_sum == 0.f && i < numSteps) {
+                if (!test(LineSegment(p, segment.end()), radius, startObstacles)) {
+                    return false;
+                }
+                break;
+            }
+
+            last_d_sum = d_sum; // Save last value
+            p = p + step; // Next step
+        }
     }
     // new obstacles musn't be entered
     return test(segment, radius, otherObstacles);
