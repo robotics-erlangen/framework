@@ -38,7 +38,7 @@ enum TransceiverCommand {
     COMMAND_STATUS_REPLY = 0x82, // return dropped packets count
     COMMAND_REPLY_FROM_ROBOT = 0x90, // wraps a received reply
     COMMAND_SEND_NRF24_DATA_FAILED = 0x91, // returns header, if ACKed send failed
-    COMMAND_DATAGRAMM_RECEIVED = 0x92
+    COMMAND_DATAGRAM_RECEIVED = 0x92
 };
 
 typedef struct
@@ -72,7 +72,7 @@ typedef struct
     uint8_t expectedResponseSize;
 } __attribute__ ((packed)) TransceiverSendNRF24Packet;
 
-// used for COMMAND_SEND_NRF24_DATA, COMMAND_SEND_NRF24_DATA_FAILED and COMMAND_DATAGRAMM_RECEIVED
+// used for COMMAND_SEND_NRF24_DATA, COMMAND_SEND_NRF24_DATA_FAILED and COMMAND_DATAGRAM_RECEIVED
 typedef struct
 {
     uint8_t robotId;

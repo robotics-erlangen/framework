@@ -267,8 +267,8 @@ void Transceiver::receive()
         case COMMAND_REPLY_FROM_ROBOT:
             handleResponsePacket(responses, &buffer[pos], header->size, receiveTime);
             break;
-        case COMMAND_DATAGRAMM_RECEIVED:
-            handleDatagrammPacket(&buffer[pos], header->size);
+        case COMMAND_DATAGRAM_RECEIVED:
+            handleDatagramPacket(&buffer[pos], header->size);
             break;
         }
 
@@ -334,7 +334,7 @@ void Transceiver::handleStatusPacket(const char *data, uint size)
     emit sendStatus(status);
 }
 
-void Transceiver::handleDatagrammPacket(const char *data, uint size)
+void Transceiver::handleDatagramPacket(const char *data, uint size)
 {
     qDebug() << QByteArray(data, size);
 }
