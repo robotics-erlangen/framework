@@ -29,6 +29,8 @@
 #include <QMenu>
 #include <QSettings>
 #include <QTimer>
+#include <QStringBuilder>
+#include <unordered_map>
 
 Plotter::Plotter() :
     QWidget(nullptr, Qt::Window),
@@ -108,6 +110,8 @@ Plotter::Plotter() :
 Plotter::~Plotter()
 {
     delete ui;
+    qDeleteAll(m_plots);
+    qDeleteAll(m_frozenPlots);
 }
 
 void Plotter::closeEvent(QCloseEvent *event)
@@ -193,21 +197,19 @@ void Plotter::setFreeze(bool freeze)
     if (!freeze && m_freeze) {
         // merge plots on unfreezing
         foreach (QStandardItem *item, m_items) {
-            QVariant fplot = item->data(Plotter::FreezePlotRole);
-            if (!fplot.isValid()) {
+            Plot *freezePlot = m_frozenPlots.value(item, nullptr);
+            if (freezePlot == nullptr) {
                 continue;
             }
             // remove freeze plot entry
-            item->setData(QVariant(), Plotter::FreezePlotRole);
+            m_frozenPlots.remove(item);
 
-            QVariant pplot = item->data(Plotter::PlotRole);
-            if (pplot.isValid()) { // merge freeze plot if there's already a plot
-                Plot *freezePlot = fplot.value<Plot*>();
-                Plot *plot = pplot.value<Plot*>();
+            Plot *plot = m_plots.value(item, nullptr);
+            if (plot != nullptr) { // merge freeze plot if there's already a plot
                 plot->mergeFrom(freezePlot);
                 delete freezePlot;
             } else { // otherwise reuse it as plot
-                item->setData(fplot, Plotter::PlotRole);
+                m_plots[item] = freezePlot;
             }
         }
     }
@@ -291,11 +293,12 @@ void Plotter::handleStatus(const Status &status)
         const amun::DebugValues &debug = status->debug();
         // ignore controller as it can create plots via RadioCommand.%1.debug
         if (debug.source() != amun::Controller) {
+            QVector<QStandardItem *> emptyLookup;
             const QString parent = (debug.source() == amun::StrategyBlue) ? "BlueStrategy" : "YellowStrategy";
             // strategies can add plots with arbitrary names
             for (int i = 0; i < debug.plot_size(); ++i) {
                 const amun::PlotValue &value = debug.plot(i);
-                addPoint(QString::fromStdString(value.name()), parent, time, value.value());
+                addPoint(value.name(), parent, time, value.value(), emptyLookup, 0);
             }
         }
     }
@@ -339,12 +342,11 @@ void Plotter::invalidatePlots()
 
     foreach (QStandardItem *item, m_items) {
         // check the role that is currently updated
-        const int role = (m_freeze) ? Plotter::FreezePlotRole : Plotter::PlotRole;
-        QVariant vplot = item->data(role);
-        if (!vplot.isValid()) {
+        QHash<QStandardItem*, Plot*> &plots = (m_freeze) ? m_frozenPlots : m_plots;
+        Plot *plot = plots.value(item, nullptr);
+        if (plot == nullptr) {
             continue;
         }
-        Plot *plot = vplot.value<Plot*>();
         if (plot->time() + 5 < time) {
             // mark old plots
             item->setForeground(Qt::gray);
@@ -352,19 +354,46 @@ void Plotter::invalidatePlots()
     }
 }
 
+enum class SpecialFieldNames: int {
+    none = 0,
+    v_f = 1,
+    v_s = 2,
+    v_x = 3,
+    v_y = 4,
+    v_d_x = 5,
+    v_d_y = 6,
+    v_ctrl_out_f = 7,
+    v_ctrl_out_s = 8,
+    max = 9
+};
+
+static const std::unordered_map<std::string, SpecialFieldNames> fieldNameMap = {
+    std::make_pair("v_f", SpecialFieldNames::v_f),
+    std::make_pair("v_s", SpecialFieldNames::v_s),
+    std::make_pair("v_x", SpecialFieldNames::v_x),
+    std::make_pair("v_y", SpecialFieldNames::v_y),
+    std::make_pair("v_desired_x", SpecialFieldNames::v_d_x),
+    std::make_pair("v_desired_y", SpecialFieldNames::v_d_y),
+    std::make_pair("v_ctrl_out_f", SpecialFieldNames::v_ctrl_out_f),
+    std::make_pair("v_ctrl_out_s", SpecialFieldNames::v_ctrl_out_s),
+};
+
 void Plotter::parseMessage(const google::protobuf::Message &message, const QString &parent, float time)
 {
     const google::protobuf::Descriptor *desc = message.GetDescriptor();
     const google::protobuf::Reflection *refl = message.GetReflection();
 
-    float v_f = NAN;
-    float v_s = NAN;
-    float v_x = NAN;
-    float v_y = NAN;
-    float v_d_x = NAN;
-    float v_d_y = NAN;
-    float v_ctrl_out_f = NAN;
-    float v_ctrl_out_s = NAN;
+    float specialFields[static_cast<int>(SpecialFieldNames::max)];
+    for (int i = 0; i < static_cast<int>(SpecialFieldNames::max); ++i) {
+        specialFields[i] = NAN;
+    }
+
+    const int extraFields = 4;
+    if (!m_itemLookup.contains(parent)) {
+        m_itemLookup[parent] = QVector<QStandardItem *>(desc->field_count() + extraFields, nullptr);
+    }
+    // just a performance optimization
+    QVector<QStandardItem *> &childLookup = m_itemLookup[parent];
 
     for (int i = 0; i < desc->field_count(); i++) {
         const google::protobuf::FieldDescriptor *field = desc->field(i);
@@ -372,65 +401,79 @@ void Plotter::parseMessage(const google::protobuf::Message &message, const QStri
         // check type and that the field exists
         if (field->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_FLOAT
                 && refl->HasField(message, field)) {
-            const QString name = QString::fromStdString(field->name());
+            const std::string &name = field->name();
             const float value = refl->GetFloat(message, field);
-            if (name == "v_f") {
-                v_f = value;
-            } else if (name == "v_s") {
-                v_s = value;
-            } else if (name == "v_desired_x") {
-                v_d_x = value;
-            } else if (name == "v_desired_y") {
-                v_d_y = value;
-            } else if (name == "v_ctrl_out_f") {
-                v_ctrl_out_f = value;
-            } else if (name == "v_ctrl_out_s") {
-                v_ctrl_out_s = value;
-            } else if (name == "v_x") {
-                v_x = value;
-            } else if (name == "v_y") {
-                v_y = value;
+            if (fieldNameMap.count(name) > 0) {
+                SpecialFieldNames fn = fieldNameMap.at(name);
+                specialFields[static_cast<int>(fn)] = value;
             }
-
-            addPoint(name, parent, time, value);
+            addPoint(name, parent, time, value, childLookup, i);
         } else if (field->cpp_type() == google::protobuf::FieldDescriptor::CPPTYPE_BOOL
                    && refl->HasField(message, field)) {
-            const QString name = QString::fromStdString(field->name());
+            const std::string &name = field->name();
             const float value = refl->GetBool(message,field) ? 1 : 0;
-            addPoint(name, parent, time, value);
+            addPoint(name, parent, time, value, childLookup, i);
         }
     }
 
+    // precompute strings
+    static const std::string staticVLocal("v_local");
+    static const std::string staticVDesired("v_desired");
+    static const std::string staticVCtrlOut("v_ctrl_out");
+    static const std::string staticVGlobal("v_global");
+
     // add length of speed vectors
-    tryAddLength("v_local", parent, time, v_f, v_s);
-    tryAddLength("v_desired", parent, time, v_d_x, v_d_y);
-    tryAddLength("v_ctrl_out", parent, time, v_ctrl_out_f, v_ctrl_out_s);
-    tryAddLength("v_global", parent, time, v_x, v_y);
+    tryAddLength(staticVLocal, parent, time,
+                 specialFields[static_cast<int>(SpecialFieldNames::v_f)],
+                 specialFields[static_cast<int>(SpecialFieldNames::v_s)],
+                 childLookup, desc->field_count()+0);
+    tryAddLength(staticVDesired, parent, time,
+                 specialFields[static_cast<int>(SpecialFieldNames::v_d_x)],
+                 specialFields[static_cast<int>(SpecialFieldNames::v_d_y)],
+                 childLookup, desc->field_count()+1);
+    tryAddLength(staticVCtrlOut, parent, time,
+                 specialFields[static_cast<int>(SpecialFieldNames::v_ctrl_out_f)],
+                 specialFields[static_cast<int>(SpecialFieldNames::v_ctrl_out_f)],
+                 childLookup, desc->field_count()+2);
+    tryAddLength(staticVGlobal, parent, time,
+                 specialFields[static_cast<int>(SpecialFieldNames::v_x)],
+                 specialFields[static_cast<int>(SpecialFieldNames::v_y)],
+                 childLookup, desc->field_count()+3);
 }
 
-void Plotter::tryAddLength(const QString &name, const QString &parent, float time, float value1, float value2)
+void Plotter::tryAddLength(const std::string &name, const QString &parent, float time, float value1, float value2,
+                           QVector<QStandardItem *> &childLookup, int descriptorIndex)
 {
     // if both values are set
     if (!std::isnan(value1) && !std::isnan(value2)) {
         const float value = std::sqrt(value1 * value1 + value2 * value2);
-        addPoint(name, parent, time, value);
+        addPoint(name, parent, time, value, childLookup, descriptorIndex);
     }
 }
 
-void Plotter::addPoint(const QString &name, const QString &parent, float time, float value)
+static const QString qstringDot(".");
+
+void Plotter::addPoint(const std::string &name, const QString &parent, float time, float value,
+                       QVector<QStandardItem *> &childLookup, int descriptorIndex)
 {
-    // full name for item retrieval
-    const QString fullName = parent + "." + name;
-    QStandardItem *item = getItem(fullName);
+    QStandardItem *item;
+    if (childLookup.isEmpty() || childLookup[descriptorIndex] == nullptr) {
+        // full name for item retrieval
+        const QString fullName = parent % qstringDot % QString::fromStdString(name);
+        item = getItem(fullName);
+        if (!childLookup.isEmpty()) {
+            childLookup[descriptorIndex] = item;
+        }
+    } else {
+        item = childLookup[descriptorIndex];
+    }
 
     // save data into a hidden plot while freezed
-    const int role = (m_freeze) ? Plotter::FreezePlotRole : Plotter::PlotRole;
-    QVariant vplot = item->data(role);
-    Plot *plot;
+    QHash<QStandardItem*, Plot*> &plots = (m_freeze) ? m_frozenPlots : m_plots;
+    Plot *plot = plots.value(item, nullptr);
 
-    if (vplot.isValid()) { // plot exists
-        plot = vplot.value<Plot*>();
-    } else { // create new plot
+    if (plot == nullptr) { // create new plot
+        const QString fullName = parent % qstringDot % QString::fromStdString(name);
         plot = new Plot(fullName, this);
         item->setCheckable(true);
         if (m_selection.contains(fullName)) {
@@ -440,9 +483,9 @@ void Plotter::addPoint(const QString &name, const QString &parent, float time, f
             item->setCheckState(Qt::Unchecked);
         }
         // set plot information after the check state
-        // itemChanged only checks items with valid PlotRole
+        // itemChanged only checks items in m_plots
         // thus no enable / disable flickering will occur
-        item->setData(qVariantFromValue(plot), role);
+        plots[item] = plot;
     }
     // only clear foreground if it's set, causes a serious performance regression
     // if it's always done
@@ -457,16 +500,12 @@ void Plotter::clearData()
     // delete everything
     foreach (QStandardItem *item, m_items) {
         // just drop the freeze plot
-        QVariant fplot = item->data(Plotter::FreezePlotRole);
-        if (fplot.isValid()) {
-            delete fplot.value<Plot*>();
-            item->setData(Plotter::FreezePlotRole);
+        if (m_frozenPlots.contains(item)) {
+            delete m_frozenPlots[item];
+            m_frozenPlots.remove(item);
         }
-
-        QVariant pplot = item->data(Plotter::PlotRole);
-        if (pplot.isValid()) {
-            Plot *plot = pplot.value<Plot*>();
-            plot->clearData();
+        if (m_plots.contains(item)) {
+            m_plots[item]->clearData();
         }
     }
     // force unfreeze as no more data is available
@@ -475,10 +514,9 @@ void Plotter::clearData()
 
 void Plotter::itemChanged(QStandardItem *item)
 {
-    // always use PlotRole as that's what governs which plot to display
-    QVariant vplot = item->data(Plotter::PlotRole);
-    if (vplot.isValid()) {
-        Plot *plot = vplot.value<Plot*>();
+    // always use m_plots as that's what governs which plot to display
+    if (m_plots.contains(item)) {
+        Plot *plot = m_plots[item];
         const QString name = item->data(Plotter::FullNameRole).toString();
         if (item->checkState() == Qt::Checked) {
             // only add plot if it isn't in our selection yet

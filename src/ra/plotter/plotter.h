@@ -70,14 +70,12 @@ private:
     QStandardItem* getItem(const QString &name);
     void addRootItem(const QString &name, const QString &displayName);
     void parseMessage(const google::protobuf::Message &message, const QString &parent, float time);
-    void addPoint(const QString &name, const QString &parent, float time, float value);
-    void tryAddLength(const QString &name, const QString &parent, float time, float value1, float value2);
+    void addPoint(const std::string &name, const QString &parent, float time, float value, QVector<QStandardItem *> &childLookup, int descriptorIndex);
+    void tryAddLength(const std::string &name, const QString &parent, float time, float value1, float value2, QVector<QStandardItem *> &childLookup, int descriptorIndex);
 
 private:
     enum ItemRole {
-        PlotRole = Qt::UserRole + 2,
-        FullNameRole,
-        FreezePlotRole
+        FullNameRole = Qt::UserRole + 2
     };
 
     Ui::Plotter *ui;
@@ -86,6 +84,9 @@ private:
     double m_timeLimit;
     bool m_freeze;
     QHash<QString, QStandardItem*> m_items;
+    QHash<QString, QVector<QStandardItem *>> m_itemLookup;
+    QHash<QStandardItem*, Plot*> m_plots;
+    QHash<QStandardItem*, Plot*> m_frozenPlots;
     QSet<QString> m_selection;
     QStandardItemModel m_model;
     LeafFilterProxyModel *m_proxy;
