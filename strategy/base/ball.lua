@@ -52,10 +52,11 @@ function Ball:init()
 	self.lostSince = 0
 	self.pos = Vector.createReadOnly(0, 0)
 	self.speed = Vector.createReadOnly(0, 0)
-	self.deceleration = Vector.createReadOnly(0, 0)
-	self.brakeTime = 0
 	self.posZ = 0
 	self.speedZ = 0
+	self.deceleration = 0
+	self.maxSpeed = 0
+	self.framesDecelerating = math.huge
 end
 
 -- Processes ball information from amun, passed by world
@@ -70,22 +71,38 @@ function Ball:_update(data, time)
 		return
 	end
 	self._isVisible = true
+
+	local lastSpeedLength = self.speed:length()
+
 	-- data from amun is in global coordiantes
 	self.pos = Coordinates.toLocal(Vector.createReadOnly(data.p_x, data.p_y))
 	self.speed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y))
 	self.posZ = data.p_z
 	self.speedZ = data.v_z
 
-	 -- if ball is too slow then it's movement direction isn't exact enough to be used for prediction the ball
-	if self.speed:length() < 0.05 then
-		self.deceleration = Vector.createReadOnly(0, 0)
-		self.brakeTime = 0
+	-- speed tracking
+	-- framesDecelerating counts the number of frames since the last extreme acceleration
+	-- so even if the ball slowly accelerates, framesDecelerating will not reset
+	if self.speed:length() - lastSpeedLength > 0.2 then
+		self.framesDecelerating = 0
 	else
-		local ballDeceleration = Constants.ballDeceleration -- negative value
-		self.deceleration = self.speed:copy():setLength(ballDeceleration)
-		-- time until the ball stops, assuming a linear decrease of velocity
-		-- |v| - |a| * t = 0
-		self.brakeTime = self.speed:length()/-ballDeceleration
+		self.framesDecelerating = self.framesDecelerating + 1
+	end
+	-- if the ball does not accelerate extremely for 3 frames straight, the current velocity
+	-- is taken as the maximum ball speed
+	if self.framesDecelerating == 3 then
+		self.maxSpeed = self.speed:length()
+	end
+	if self.maxSpeed < self.speed:length() then
+		self.maxSpeed = self.maxSpeed + 0.3 * (self.speed:length() - self.maxSpeed)
+	end
+	plot.addPlot("Ball.maxSpeed", self.maxSpeed);
+
+	-- set the deceleration depending on the ball's state (sliding or rolling)
+	if self.speed:length() > Constants.ballSwitchRatio * self.maxSpeed then
+		self.deceleration = Constants.fastBallDeceleration
+	else
+		self.deceleration = Constants.ballDeceleration
 	end
 end
 
