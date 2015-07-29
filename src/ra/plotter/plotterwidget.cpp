@@ -20,6 +20,7 @@
 
 #include "plotterwidget.h"
 #include "plot.h"
+#include "texturecache.h"
 #include <QCursor>
 #include <QLabel>
 #include <QWindow>
@@ -27,6 +28,7 @@
 #include <QScrollBar>
 #include <QTimer>
 #include <cmath>
+#include <QGuiApplication>
 #ifdef Q_OS_MAC
 #include <OpenGL/glu.h>
 #else
@@ -45,7 +47,7 @@ const QList<QColor> PlotterWidget::m_colors = QList<QColor>()
 
 PlotterWidget::PlotterWidget(QWidget *parent) :
     QGLWidget(parent),
-    m_font("Arial", 12, QFont::DemiBold, false),
+    m_font(QGuiApplication::font()),
     m_time(0.0),
     m_isUpdated(true),
     m_yMin(-5.0),
@@ -58,11 +60,17 @@ PlotterWidget::PlotterWidget(QWidget *parent) :
     setCursor(Qt::CrossCursor);
 
     m_colorQueue = m_colors;
+    m_textureCache = new TextureCache(context());
 
     // redraw timer
     QTimer *timer = new QTimer(this);
     connect(timer, SIGNAL(timeout()), SLOT(updateView()));
     timer->start(30);
+}
+
+PlotterWidget::~PlotterWidget()
+{
+    delete m_textureCache;
 }
 
 void PlotterWidget::updateView()
@@ -98,7 +106,7 @@ void PlotterWidget::paintGL()
     foreach (const Plot *plot, m_plots) {
         plot->plot(m_colorMap[plot]);
         numPlots++;
-        renderText(10, 20 * numPlots, plot->name());
+        renderText(10, 20 * numPlots, plot->name(), m_colorMap[plot]);
     }
 
     if (m_drawMeasurementHelper) {
@@ -165,10 +173,9 @@ void PlotterWidget::drawCoordSys()
 
     glEnd();
 
-    glColor3f(0.5, 0.5, 0.5);
     for (int i = 0; i < m_yMax - m_yMin + 1; i++) {
         // add y values
-        renderText(m_time - m_duration + m_offset, floorf(m_yMin) + i, 0.0f, QString::number(floorf(m_yMin) + i));
+        renderText(m_time - m_duration + m_offset, floorf(m_yMin) + i, 0.0f, QString::number(floorf(m_yMin) + i), QColor(127, 127, 127));
     }
 }
 
@@ -230,11 +237,10 @@ void PlotterWidget::drawLabel(int x, int y, bool rightAligned, const QString &st
     glColor3f(0.95, 0.95, 0.95);
     glRectf(textx - border, texty - border,
             textx + textSize.width() + border, texty + textSize.height() + border);
-    // text in dark grey
-    glColor3f(0.2, 0.2, 0.2);
-    renderText(textx, texty + fm.ascent(), str);
     // restore matrix
     glPopMatrix();
+    // text in dark grey
+    renderText(textx, texty + fm.ascent(), str, QColor(50, 50, 50));
 }
 
 void PlotterWidget::leaveEvent(QEvent *e)
@@ -337,10 +343,15 @@ void PlotterWidget::setOffset(double offset)
     m_isUpdated = true;
 }
 
+qreal PlotterWidget::devicePixelRatio() const
+{
+    return (window() && window()->windowHandle()) ? window()->windowHandle()->devicePixelRatio() : 1.0;
+}
+
 QPointF PlotterWidget::mapToScene(const QPoint& pos)
 {
     makeCurrent();
-    qreal dpr = (window() && window()->windowHandle()) ? window()->windowHandle()->devicePixelRatio() : 1.0;
+    qreal dpr = devicePixelRatio();
 
     GLfloat pixelDepth;
     GLdouble modelMatrix[16];
@@ -361,7 +372,7 @@ QPointF PlotterWidget::mapToScene(const QPoint& pos)
 
 QPointF PlotterWidget::mapFromScene(double x, double y, double z)
 {
-    qreal dpr = (window() && window()->windowHandle()) ? window()->windowHandle()->devicePixelRatio() : 1.0;
+    qreal dpr = devicePixelRatio();
     int height = this->height() * dpr;
 
     GLdouble model[4 * 4], proj[4 * 4];
@@ -379,14 +390,45 @@ QPointF PlotterWidget::mapFromScene(double x, double y, double z)
     return QPointF(win_x, win_y);
 }
 
-// workaround for Qt scaling bug and rendering problems with the default font
-void PlotterWidget::renderText(int x, int y, const QString & str) // in widget coordinates!
+// in widget coordinates!
+void PlotterWidget::renderText(int x, int y, const QString & str, const QColor color)
 {
-    QGLWidget::renderText(x, y, str, m_font);
+    GLuint textureId = 0;
+    QPixmap pixmap;
+    QString cacheKey = str + color.name();
+    QFontMetrics fm(m_font);
+    if (!m_textureCache->find(cacheKey, &textureId, &pixmap)) {
+        QRect textSize = fm.boundingRect(str);
+        qreal dpr = devicePixelRatio();
+        pixmap = QPixmap((textSize.width()+4)*dpr, (textSize.height()+4)*dpr);
+        pixmap.setDevicePixelRatio(dpr);
+        pixmap.fill(Qt::transparent);
+        {
+            QPainter painter(&pixmap);
+            painter.setFont(m_font);
+            painter.setPen(color);
+            painter.drawText(2, fm.ascent()+2, str);
+        }
+        textureId = m_textureCache->insert(cacheKey, pixmap);
+    }
+
+    QPointF pos(x-2, y-2-fm.ascent());
+    // map to widget coordinates
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, width(), height(), 0, -1, 1);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    drawTexture(QRectF(pos, pixmap.size()/pixmap.devicePixelRatio()), textureId);
+    glDisable(GL_BLEND);
+
+    // restore matrix
+    glPopMatrix();
 }
 
-void PlotterWidget::renderText(double x, double y, double z, const QString & str)
+void PlotterWidget::renderText(double x, double y, double z, const QString & str, const QColor color)
 {
     QPointF pos = mapFromScene(x, y, z);
-    renderText(pos.x(), pos.y(), str);
+    renderText(pos.x(), pos.y(), str, color);
 }

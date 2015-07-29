@@ -26,6 +26,7 @@
 #include <QMap>
 
 class Plot;
+class TextureCache;
 
 class PlotterWidget : public QGLWidget
 {
@@ -33,6 +34,7 @@ class PlotterWidget : public QGLWidget
 
 public:
     explicit PlotterWidget(QWidget *parent = 0);
+    ~PlotterWidget();
 
 public:
     void update(float time);
@@ -64,14 +66,16 @@ private:
     QPointF mapToScene(const QPoint &pos);
     QPointF mapFromScene(double x, double y, double z);
 
-    void renderText(int x, int y, const QString & str);
-    void renderText(double x, double y, double z, const QString & str);
+    qreal devicePixelRatio() const;
+    void renderText(int x, int y, const QString & str, const QColor color);
+    void renderText(double x, double y, double z, const QString &str, const QColor color);
 
 private:
     QMap<QString, const Plot*> m_plots;
     QHash<const Plot*, QColor> m_colorMap;
     QList<QColor> m_colorQueue;
     QFont m_font;
+    TextureCache *m_textureCache;
 
     double m_time;
     bool m_isUpdated;

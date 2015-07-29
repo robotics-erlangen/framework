@@ -31,6 +31,8 @@ set(SOURCES
     plotter.h
     plotterwidget.cpp
     plotterwidget.h
+    texturecache.cpp
+    texturecache.h
 )
 
 set(UI_SOURCES
