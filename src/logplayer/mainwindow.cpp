@@ -277,7 +277,14 @@ void MainWindow::initializeLabels()
 
 void MainWindow::previousFrame()
 {
-    ui->horizontalSlider->setValue(ui->horizontalSlider->value() - 1);
+    int frame = ui->horizontalSlider->value();
+    int prevPacket = m_frames.value(std::max(0, frame - 1));
+
+    while (prevPacket >= ui->spinPacketCurrent->value() & frame > 0) {
+        frame--;
+        prevPacket = m_frames.value(std::max(0, frame - 1));
+    }
+    seekPacket(prevPacket);
 }
 
 void MainWindow::nextFrame()
@@ -325,6 +332,7 @@ void MainWindow::addStatus(int packet, const Status &status)
 void MainWindow::playNext()
 {
     const double scaling = m_playTimer.scaling();
+    const bool isSpooling = m_spoolCounter > 0;
     qint64 timeCurrent = 0;
     bool hasChanged = false;
     while (!m_nextPackets.isEmpty()) {
@@ -394,19 +402,20 @@ void MainWindow::playNext()
         const int sliderPixel = (int)(m_exactSliderValue / sliderStep);
         const int curSliderPixel = (int)(ui->horizontalSlider->value() / sliderStep);
         // compare whether the playback pos and the currently visible pos of the slider differ
-        if (sliderPixel != curSliderPixel) {
+        if (sliderPixel != curSliderPixel || isSpooling) {
             // move the slider to the current position
             ui->horizontalSlider->setValue(m_exactSliderValue);
         }
         m_scroll = true;
     }
 
+    // about 500 status per second, prefetch 0.1 seconds
+    int bufferLimit = 50 * qMax(1., scaling);
     // if the buffer starts to become empty, request further packets
     // but only if these should be played and we didn't reach the end yet
-    if (!m_paused && m_nextPackets.size() < 30 && m_preloadedPackets < 40 && m_nextRequestPacket < m_logreader->packetCount()) {
-        // request up to 20 new packets
+    if (!m_paused && m_preloadedPackets < bufferLimit && m_nextRequestPacket < m_logreader->packetCount()) {
         int lastRequest = m_nextRequestPacket;
-        m_nextRequestPacket = std::min(m_nextRequestPacket + 20, m_logreader->packetCount());
+        m_nextRequestPacket = std::min(m_nextRequestPacket + bufferLimit/5, m_logreader->packetCount());
         // track requested packet count
         int packetCount = m_nextRequestPacket - lastRequest;
         m_preloadedPackets += packetCount;
