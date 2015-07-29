@@ -23,10 +23,12 @@
 
 #include "filter.h"
 #include "kalmanfilter.h"
+#include "quadraticleastsquaresfitter.h"
 #include "protobuf/world.pb.h"
 #include "protobuf/ssl_detection.pb.h"
 #include <QList>
 #include <QPair>
+#include <QMap>
 
 class BallFilter : public Filter
 {
@@ -38,32 +40,44 @@ public:
     void update(qint64 time);
     void get(world::Ball *ball, bool flip);
 
-    void addVisionFrame(qint32 cameraId, const SSL_DetectionBall &ball, qint64 time);
+    void addVisionFrame(qint32 cameraId, const Eigen::Vector3f &cameraPos, const SSL_DetectionBall &ball, qint64 time, const world::Robot &nearestRobot);
 
-    float distanceTo(const SSL_DetectionBall &ball) const;
+    float distanceTo(const SSL_DetectionBall &ball, const Eigen::Vector3f &cameraPos) const;
     static bool isInAOI(const SSL_DetectionBall &ball, bool flip, float x1, float y1, float x2, float y2);
 
 private:
     struct VisionFrame
     {
-        VisionFrame(qint32 cameraId, const SSL_DetectionBall &detection, qint64 time)
-            : cameraId(cameraId), detection(detection), time(time) {}
+        VisionFrame(qint32 cameraId, const Eigen::Vector3f &cameraPos,
+                    const SSL_DetectionBall &detection, qint64 time, const world::Robot &nearestRobot)
+            : cameraId(cameraId), cameraPos(cameraPos), detection(detection), time(time), nearestRobot(nearestRobot) {}
         qint32 cameraId;
+        Eigen::Vector3f cameraPos;
         SSL_DetectionBall detection;
         qint64 time;
+        world::Robot nearestRobot;
     };
-    typedef KalmanFilter<4, 2> Kalman;
+    typedef KalmanFilter<6, 3> Kalman;
 
     void predict(qint64 time, bool cameraSwitched);
     void applyVisionFrame(const VisionFrame &frame);
+    void restartFlyFitting(const world::BallPosition &p);
+    void stopFlyFitting();
+    void detectNearRobot(const world::Robot &nearestRobot, const world::BallPosition &p);
+    Eigen::Vector3f unprojectBall(const world::BallPosition &p, const Eigen::Vector3f &cameraPos);
 
-    float m_x;
-    float m_y;
-    qint64 m_time;
+    QMap<int, world::BallPosition> m_lastRaw;
+    world::BallPosition m_lastNearRobotPos;
+    world::Robot m_lastNearRobot;
+    float m_lastMoveDist;
     QList<world::BallPosition> m_measurements;
 
     Kalman *m_kalman;
     QList<VisionFrame> m_visionFrames;
+    QuadraticLeastSquaresFitter m_flyFitter;
+    int m_flyResetCounter;
+    float m_flyHeight;
+    qint64 m_flyPushTime;
 };
 
 #endif // BALLFILTER_H

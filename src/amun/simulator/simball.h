@@ -34,12 +34,12 @@ class SSL_DetectionBall;
 class SimBall
 {
 public:
-    SimBall(RNG *rng, btDiscreteDynamicsWorld *world);
+    SimBall(RNG *rng, btDiscreteDynamicsWorld *world, float fieldWidth, float fieldHeight);
     ~SimBall();
 
 public:
     void begin();
-    void update(SSL_DetectionBall *ball, float stddev);
+    int update(SSL_DetectionBall *ball, float stddev);
     void move(const amun::SimulatorMoveBall &ball);
     void kick(const btVector3 &power);
     btVector3 position() const;
@@ -51,6 +51,8 @@ private:
     btRigidBody *m_body;
     btMotionState *m_motionState;
     amun::SimulatorMoveBall m_move;
+    const float m_fieldWidth;
+    const float m_fieldHeight;
 };
 
 #endif // SIMBALL_H

@@ -90,7 +90,7 @@ Simulator::Simulator(const Timer *timer) :
 
     // add field and ball
     m_data->field = new SimField(m_data->dynamicsWorld, m_data->geometry);
-    m_data->ball = new SimBall(&m_data->rng, m_data->dynamicsWorld);
+    m_data->ball = new SimBall(&m_data->rng, m_data->dynamicsWorld, m_data->geometry.field_width(), m_data->geometry.field_height());
     m_data->flip = false;
     m_data->stddevBall = 0.0f;
     m_data->stddevRobot = 0.0f;
@@ -101,6 +101,8 @@ Simulator::Simulator(const Timer *timer) :
 
 Simulator::~Simulator()
 {
+    resetVisionPackets();
+
     qDeleteAll(m_data->robotsBlue);
     qDeleteAll(m_data->robotsYellow);
     delete m_data->ball;
@@ -231,7 +233,14 @@ QByteArray Simulator::createVisionPacket()
     detection->set_t_sent((m_time + m_visionDelay)*1E-9);
 
     // get ball and robot position
-    m_data->ball->update(detection->add_balls(), m_data->stddevBall);
+    int cameraId = m_data->ball->update(detection->add_balls(), m_data->stddevBall);
+    if (cameraId >= 0) {
+        // just move everything to the ball camera
+        detection->set_camera_id(cameraId);
+    } else {
+        // ball not visible
+        detection->clear_balls();
+    }
     foreach (SimRobot *robot, m_data->robotsBlue) {
         robot->update(detection->add_robots_blue(), m_data->stddevRobot, m_data->stddevRobotPhi);
     }
@@ -256,6 +265,35 @@ QByteArray Simulator::createVisionPacket()
     field->set_free_kick_from_defense_dist(m_data->geometry.free_kick_from_defense_dist() * 1000.0f);
     field->set_penalty_spot_from_field_line_dist(m_data->geometry.penalty_spot_from_field_line_dist() * 1000.0f);
     field->set_penalty_line_from_spot_dist(m_data->geometry.penalty_line_from_spot_dist() * 1000.0f);
+
+    for (int i = 0; i < 4; ++i) {
+        int signX = (i&1) ? 1 : -1;
+        int signY = (i&2) ? 1 : -1;
+
+        // must match SimBall
+        const float cameraX = m_data->geometry.field_width() / 4;
+        const float cameraY = m_data->geometry.field_height() / 4;
+        const float cameraZ = 4.f;
+
+        SSL_GeometryCameraCalibration *calib = geometry->add_calib();
+        calib->set_camera_id(i);
+        // DUMMY VALUES
+        calib->set_distortion(0.2);
+        calib->set_focal_length(390);
+        calib->set_principal_point_x(300);
+        calib->set_principal_point_y(300);
+        calib->set_q0(0.7);
+        calib->set_q1(0.7);
+        calib->set_q2(0.7);
+        calib->set_q3(0.7);
+        calib->set_tx(0);
+        calib->set_ty(0);
+        calib->set_tz(3500);
+
+        calib->set_derived_camera_world_tx(cameraY * 1000 * signY);
+        calib->set_derived_camera_world_ty(-cameraX * 1000 * signX);
+        calib->set_derived_camera_world_tz(cameraZ * 1000);
+    }
 
     // serialize "vision packet"
     QByteArray data;
@@ -428,6 +466,8 @@ void Simulator::setScaling(float scaling)
 {
     if (scaling <= 0 || !m_enabled) {
         m_trigger->stop();
+        // clear pending vision packets
+        resetVisionPackets();
     } else {
         // scale default timing of 5 milliseconds
         const int t = 5 / scaling;

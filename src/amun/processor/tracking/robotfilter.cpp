@@ -137,9 +137,9 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
     // state vector description: (v_s and v_f are swapped in comparision to the paper)
     // (x y phi v_s v_f omega)
     // local and global coordinate system are rotated by 90 degree (see processor)
-    const double phi = kalman->state()(2) - M_PI_2;
-    const double v_s = kalman->state()(3);
-    const double v_f = kalman->state()(4);
+    const double phi = kalman->baseState()(2) - M_PI_2;
+    const double v_s = kalman->baseState()(3);
+    const double v_f = kalman->baseState()(4);
 
     // Process state transition: update position with the current speed
     kalman->F(0, 3) = std::cos(phi) * timeDiff;
@@ -163,7 +163,8 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
     // guessed from the accelerations that are possible on average
     const float sigma_a_x = 4.0f;
     const float sigma_a_y = 4.0f;
-    const float sigma_a_phi = 50.0f;
+    // a bit too low, but that speed is nearly impossible all the time
+    const float sigma_a_phi = 10.0f;
 
     // using no position errors (in opposite to the CMDragons model)
     // seems to yield better results in the simulator
@@ -238,6 +239,7 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
     p.set_p_x(-frame.detection.y() / 1000.0);
     p.set_p_y(frame.detection.x() / 1000.0);
     p.set_phi(pRotLimited + diff);
+    p.set_camera_id(frame.cameraId);
     m_measurements.append(p);
 
     m_kalman->z(0) = p.p_x();
@@ -247,7 +249,7 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
     Kalman::MatrixMM R = Kalman::MatrixMM::Zero();
     if (frame.cameraId == m_primaryCamera) {
         // measurement covariance matrix
-        // a good calibration should work with 0.002, 0.002, 0.01
+        // a good calibration should work with 0.002, 0.002, 0.006
         // however add some safety margin, except for orientation which is a perfect normal distribution
         // for moving robots the safety margin is required, probably to smooth out the robot vibrations
         R(0, 0) = 0.004;
@@ -275,7 +277,7 @@ void RobotFilter::applyRobotCommand(const robot::Command &command)
     Kalman::MatrixMM R = Kalman::MatrixMM::Zero();
     R(0, 0) = 0.2;
     R(1, 1) = 0.2;
-    R(2, 2) = 0.08;
+    R(2, 2) = 0.1;
     m_futureKalman->R = R.cwiseProduct(R);
     m_futureKalman->update();
 }
@@ -323,6 +325,7 @@ void RobotFilter::get(world::Robot *robot, bool flip)
             rot = p.phi();
         }
         np->set_phi(limitAngle(rot));
+        np->set_camera_id(p.camera_id());
 
         if (m_time != 0 && np->time() > m_time) {
             np->set_v_x((np->p_x() - m_x) / ((np->time() - m_time) * 1E-9));
@@ -350,6 +353,21 @@ float RobotFilter::distanceTo(const SSL_DetectionRobot &robot) const
     Eigen::Vector2f p;
     p(0) = m_kalman->state()(0);
     p(1) = m_kalman->state()(1);
+
+    return (b - p).norm();
+}
+
+float RobotFilter::distanceTo(const world::Ball &ball) const
+{
+    Eigen::Vector3f b;
+    b(0) = ball.p_x();
+    b(1) = ball.p_y();
+    b(2) = ball.p_z();
+
+    Eigen::Vector3f p;
+    p(0) = m_kalman->state()(0);
+    p(1) = m_kalman->state()(1);
+    p(2) = 0.f;
 
     return (b - p).norm();
 }

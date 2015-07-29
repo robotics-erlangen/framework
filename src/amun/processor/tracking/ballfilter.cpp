@@ -20,10 +20,15 @@
 
 #include "ballfilter.h"
 #include "core/timer.h"
+#include <cmath>
 
 BallFilter::BallFilter(const SSL_DetectionBall &ball, qint64 last_time) :
     Filter(last_time),
-    m_time(0)
+    m_lastMoveDist(0),
+    m_flyFitter(8),
+    m_flyResetCounter(0),
+    m_flyHeight(0),
+    m_flyPushTime(0)
 {
     // translate from sslvision coordinate system
     Kalman::Vector x;
@@ -31,11 +36,14 @@ BallFilter::BallFilter(const SSL_DetectionBall &ball, qint64 last_time) :
     x(1) = ball.x() / 1000.0;
     x(2) = 0.0;
     x(3) = 0.0;
+    x(4) = 0.0;
+    x(5) = 0.0;
     m_kalman = new Kalman(x);
 
-    // we can only observer the position
+    // we can only observer the position, height is inferred
     m_kalman->H(0, 0) = 1.0;
     m_kalman->H(1, 1) = 1.0;
+    m_kalman->H(2, 2) = 1.0;
 }
 
 BallFilter::~BallFilter()
@@ -70,31 +78,61 @@ void BallFilter::predict(qint64 time, bool cameraSwitched)
     Q_ASSERT(timeDiff >= 0);
 
     // used to update position with current speed
-    m_kalman->F(0, 2) = timeDiff;
-    m_kalman->F(1, 3) = timeDiff;
+    m_kalman->F(0, 3) = timeDiff;
+    m_kalman->F(1, 4) = timeDiff;
+    m_kalman->F(2, 5) = timeDiff;
     m_kalman->B = m_kalman->F;
 
     // simple ball rolling friction estimation
     const float deceleration = 0.4f * timeDiff;
-    const Kalman::Vector d = m_kalman->state(); // should actually use m_x not m_xm
-    const double v = std::sqrt(d(2) * d(2) + d(3) * d(3));
-    const double phi = std::atan2(d(3), d(2));
+    const Kalman::Vector d = m_kalman->baseState();
+    const double v = std::sqrt(d(3) * d(3) + d(4) * d(4));
+    const double phi = std::atan2(d(4), d(3));
     if (v < deceleration) {
-        m_kalman->u(0) = -v * std::cos(phi) * timeDiff;
-        m_kalman->u(1) = -v * std::sin(phi) * timeDiff;
-        m_kalman->u(2) = -d(2);
-        m_kalman->u(3) = -d(3);
+        m_kalman->u(0) = -v * std::cos(phi) * timeDiff/2;
+        m_kalman->u(1) = -v * std::sin(phi) * timeDiff/2;
+        m_kalman->u(3) = -d(3)/2;
+        m_kalman->u(4) = -d(4)/2;
+        // only a moving ball can fly
+        m_kalman->u(2) = -d(2)/2;
+        m_kalman->u(5) = -d(5)/2;
     } else {
-        m_kalman->u(0) = -deceleration * std::cos(phi) * timeDiff;
-        m_kalman->u(1) = -deceleration * std::sin(phi) * timeDiff;
-        m_kalman->u(2) = -deceleration * std::cos(phi);
-        m_kalman->u(3) = -deceleration * std::sin(phi);
+        if (d(2) < 0.1f) {
+            // rolling
+            m_kalman->u(0) = -deceleration * std::cos(phi) * timeDiff/2;
+            m_kalman->u(1) = -deceleration * std::sin(phi) * timeDiff/2;
+            m_kalman->u(3) = -deceleration * std::cos(phi);
+            m_kalman->u(4) = -deceleration * std::sin(phi);
+            m_kalman->u(2) = -d(2)/2;
+            m_kalman->u(5) = -d(5)/2;
+        } else {
+            m_kalman->u(0) = 0;
+            m_kalman->u(1) = 0;
+            m_kalman->u(3) = 0;
+            m_kalman->u(4) = 0;
+            m_kalman->u(2) = -9.81 * timeDiff * timeDiff/2;
+            m_kalman->u(5) = -9.81 * timeDiff;
+        }
     }
 
     // Process noise: stddev for acceleration
     // just a random guess
-    const float sigma_a_x = 4.f;
-    const float sigma_a_y = 4.f;
+    const bool probableShoot = m_lastNearRobotPos.time() + 35*1000*1000 < time
+            && time <  m_lastNearRobotPos.time() + 80*1000*1000;
+    const float sigma_a_x = (probableShoot) ? 10.f : 4.f;
+    const float sigma_a_y = (probableShoot) ? 10.f : 4.f;
+    const bool probableChip = m_lastNearRobotPos.time() + 50*1000*1000 < time
+            && time <  m_lastNearRobotPos.time() + 100*1000*1000
+            && m_flyFitter.pointCount() >= 4;
+    const float sigma_a_z = (probableChip) ? 20.f : 4.f;
+
+    if (probableChip && (m_flyPushTime == 0 || m_flyPushTime == m_lastTime) && m_flyHeight > 0) {
+        double timePassed = (time - m_lastNearRobotPos.time()) * 1E-9;
+        double startSpeed = std::sqrt(2 * 9.81 * m_flyHeight);
+        m_kalman->u(5) = startSpeed - 9.81 * timePassed;
+        m_kalman->u(2) = (startSpeed + m_kalman->u(5)) / 2 * timePassed;
+        m_flyPushTime = m_lastTime;
+    }
 
     // d = timediff
     // G = (d^2/2, d^2/2, d, d)
@@ -103,26 +141,160 @@ void BallFilter::predict(qint64 time, bool cameraSwitched)
     Kalman::Vector G;
     G(0) = timeDiff * timeDiff / 2 * sigma_a_x;
     G(1) = timeDiff * timeDiff / 2 * sigma_a_y;
-    G(2) = timeDiff * sigma_a_x;
-    G(3) = timeDiff * sigma_a_y;
+    G(2) = timeDiff * timeDiff / 2 * sigma_a_z;
+    G(3) = timeDiff * sigma_a_x;
+    G(4) = timeDiff * sigma_a_y;
+    G(5) = timeDiff * sigma_a_z;
 
     if (cameraSwitched) {
         // handle small errors in camera alignment
         G(0) += 0.02;
         G(1) += 0.02;
+        G(2) += 0.1;
+    }
+    if (probableShoot) {
+        G(0) += 0.1;
+        G(1) += 0.1;
+    }
+    if (probableChip) {
+        G(2) += 0.1;
     }
 
     m_kalman->Q(0, 0) = G(0) * G(0);
-    m_kalman->Q(0, 2) = G(0) * G(2);
-    m_kalman->Q(2, 0) = G(2) * G(0);
-    m_kalman->Q(2, 2) = G(2) * G(2);
-
-    m_kalman->Q(1, 1) = G(1) * G(1);
-    m_kalman->Q(1, 3) = G(1) * G(3);
-    m_kalman->Q(3, 1) = G(3) * G(1);
+    m_kalman->Q(0, 3) = G(0) * G(3);
+    m_kalman->Q(3, 0) = G(3) * G(0);
     m_kalman->Q(3, 3) = G(3) * G(3);
 
+    m_kalman->Q(1, 1) = G(1) * G(1);
+    m_kalman->Q(1, 4) = G(1) * G(4);
+    m_kalman->Q(4, 1) = G(4) * G(1);
+    m_kalman->Q(4, 4) = G(4) * G(4);
+
+    m_kalman->Q(2, 2) = G(2) * G(2);
+    m_kalman->Q(2, 5) = G(2) * G(5);
+    m_kalman->Q(5, 2) = G(5) * G(2);
+    m_kalman->Q(5, 5) = G(5) * G(5);
+
     m_kalman->predict(false);
+}
+
+//#include <QDebug>
+
+void BallFilter::restartFlyFitting(const world::BallPosition &p)
+{
+    m_lastNearRobotPos = p;
+    m_flyFitter.clear();
+    // distance 0, height 0
+    m_flyFitter.addPoint(0, 0);
+    m_flyResetCounter++;
+    m_lastMoveDist = 0.f;
+    m_flyPushTime = 0;
+}
+
+void BallFilter::stopFlyFitting()
+{
+    m_lastNearRobotPos.Clear();
+}
+
+void BallFilter::detectNearRobot(const world::Robot &nearestRobot, const world::BallPosition &p)
+{
+    const float pz = m_kalman->state()(2);
+    // detect whether the ball is near a robot
+    if (pz < 0.2f) {
+        // not flying above the robots
+        Eigen::Vector2f trackedBallPos(m_kalman->state()(0), m_kalman->state()(1));
+        Eigen::Vector2f nearestRobotPos(nearestRobot.p_x(), nearestRobot.p_y());
+        float distance = (trackedBallPos - nearestRobotPos).norm();
+
+        const float robotRadius = 0.09f;
+        const float ballRadius = 0.0215f;
+        if (distance < robotRadius + ballRadius + 0.03f) {
+            m_lastNearRobot = nearestRobot;
+            restartFlyFitting(p);
+            m_flyResetCounter = 0;
+        }
+    }
+}
+
+Eigen::Vector3f BallFilter::unprojectBall(const world::BallPosition &p, const Eigen::Vector3f &cameraPos)
+{
+    const float minChipHeight = 0.1f;
+    const float minChipDistance = 0.3f;
+    const float maxChipHeight = 3.f;
+    const float maxChipDistance = 7.f;
+
+    Eigen::Vector3f ball(p.p_x(), p.p_y(), 0);
+
+    if (cameraPos.isZero() || p.camera_id() != m_primaryCamera
+            || !m_lastNearRobotPos.IsInitialized() || m_lastNearRobotPos.time() >= p.time()) {
+        return ball;
+    }
+
+    // with a maximum height of 3 meters a chip kick can't fly for more than 2 seconds
+    if (p.time() > m_lastNearRobotPos.time() + (qint64)2 * 1000 * 1000 * 1000
+            || m_flyResetCounter > 4) {
+        stopFlyFitting();
+        return ball;
+    }
+
+    // unproject ball
+    Eigen::Vector2f ballPos(p.p_x(), p.p_y());
+    Eigen::Vector2f shotPos(m_lastNearRobotPos.p_x(), m_lastNearRobotPos.p_y());
+    Eigen::Vector2f shotDir(std::cos(m_lastNearRobot.phi()), std::sin(m_lastNearRobot.phi()));
+    Eigen::Vector2f cameraPosFloor(cameraPos(0), cameraPos(1));
+
+    Eigen::ParametrizedLine<float, 2> shotLine(shotPos, shotDir);
+    Eigen::ParametrizedLine<float, 2> projectionLine = Eigen::ParametrizedLine<float, 2>::Through(cameraPosFloor, ballPos);
+
+    float moveDist = shotLine.intersectionParameter(Eigen::Hyperplane<float, 2>(projectionLine));
+    float cameraDist = projectionLine.intersectionParameter(Eigen::Hyperplane<float, 2>(shotLine));
+    float baseDist = (ballPos - cameraPosFloor).norm();
+    float flyHeight = cameraPos(2) * (baseDist - cameraDist) / baseDist;
+
+    //qDebug() << "r" << moveDist << flyHeight;
+    m_flyFitter.addPoint(moveDist, flyHeight);
+    // ball bounced
+    if (flyHeight < 0 || m_lastMoveDist > moveDist) {
+        //qDebug() << "reset shot";
+        restartFlyFitting(p);
+        return ball;
+    }
+    m_lastMoveDist = moveDist;
+    // something strange/unexpected happened
+    if (moveDist < 0 || flyHeight > maxChipHeight || moveDist > maxChipDistance) {
+        stopFlyFitting();
+        return ball;
+    }
+
+    // fit on parabola
+    QuadraticLeastSquaresFitter::QuadraticFitResult params = m_flyFitter.fit();
+    if (!params.is_valid || !std::isfinite(params.a) || params.a == 0) {
+        // fitting didn't succeed (yet)
+        return ball;
+    }
+
+    // convert from a*x^2+b*x+c to a*(x+d)^2+e
+    // e is max flight height, -2d expected chip distance
+    float distance = -params.b / params.a;
+    float height = params.c - params.a*distance*distance/4;
+    //float alpha = atan(params.b);
+    //qDebug() << "s" << distance << height;
+
+    // only use chip with sensible values
+    if (height < minChipHeight || height > maxChipHeight
+            || distance < minChipDistance || distance > maxChipDistance
+            || !std::isfinite(distance) || !std::isfinite(height)) {
+        stopFlyFitting();
+    } else {
+        Eigen::Vector2f floorPos = shotLine.intersectionPoint(Eigen::Hyperplane<float, 2>(projectionLine));
+        if (flyHeight > 0) {
+            ball(0) = floorPos(0);
+            ball(1) = floorPos(1);
+            ball(2) = flyHeight;
+        }
+        m_flyHeight = height;
+    }
+    return ball;
 }
 
 void BallFilter::applyVisionFrame(const VisionFrame &frame)
@@ -132,10 +304,16 @@ void BallFilter::applyVisionFrame(const VisionFrame &frame)
     p.set_time(frame.time);
     p.set_p_x(-frame.detection.y() / 1000.0);
     p.set_p_y(frame.detection.x() / 1000.0);
-    m_measurements.append(p);
+    p.set_camera_id(frame.cameraId);
 
-    m_kalman->z(0) = p.p_x();
-    m_kalman->z(1) = p.p_y();
+    detectNearRobot(frame.nearestRobot, p);
+    Eigen::Vector3f ball = unprojectBall(p, frame.cameraPos);
+    m_kalman->z(0) = ball(0);
+    m_kalman->z(1) = ball(1);
+    m_kalman->z(2) = ball(2);
+
+    p.set_derived_z(ball(2));
+    m_measurements.append(p);
 
     // measurement covariance matrix
     Kalman::MatrixMM R = Kalman::MatrixMM::Zero();
@@ -149,6 +327,11 @@ void BallFilter::applyVisionFrame(const VisionFrame &frame)
         R(0, 0) = 0.02;
         R(1, 1) = 0.02;
     }
+    if (ball(2) != 0) {
+        R(2, 2) = 0.05;
+    } else {
+        R(2, 2) = 0.001;
+    }
     m_kalman->R = R.cwiseProduct(R);
     m_kalman->update();
 
@@ -159,8 +342,10 @@ void BallFilter::get(world::Ball *ball, bool flip)
 {
     float px = m_kalman->state()(0);
     float py = m_kalman->state()(1);
-    float vx = m_kalman->state()(2);
-    float vy = m_kalman->state()(3);
+    float pz = m_kalman->state()(2);
+    float vx = m_kalman->state()(3);
+    float vy = m_kalman->state()(4);
+    float vz = m_kalman->state()(5);
 
     if (flip) {
         px = -px;
@@ -171,8 +356,10 @@ void BallFilter::get(world::Ball *ball, bool flip)
 
     ball->set_p_x(px);
     ball->set_p_y(py);
+    ball->set_p_z(pz);
     ball->set_v_x(vx);
     ball->set_v_y(vy);
+    ball->set_v_z(vz);
 
     foreach (const world::BallPosition &p, m_measurements) {
         world::BallPosition *np = ball->add_raw();
@@ -184,30 +371,43 @@ void BallFilter::get(world::Ball *ball, bool flip)
             np->set_p_x(p.p_x());
             np->set_p_y(p.p_y());
         }
+        np->set_derived_z(p.derived_z());
+        np->set_camera_id(p.camera_id());
 
-        if (m_time != 0 && np->time() > m_time) {
-            np->set_v_x((np->p_x() - m_x) / ((np->time() - m_time) * 1E-9));
-            np->set_v_y((np->p_y() - m_y) / ((np->time() - m_time) * 1E-9));
-            np->set_time_diff_scaled((np->time() - m_time) * 1E-7);
+        const world::BallPosition &prevBall = m_lastRaw[np->camera_id()];
+
+        if (prevBall.IsInitialized() && np->time() > prevBall.time()
+                && prevBall.time() + 200*1000*1000 > np->time()) {
+            np->set_v_x((np->p_x() - prevBall.p_x()) / ((np->time() - prevBall.time()) * 1E-9));
+            np->set_v_y((np->p_y() - prevBall.p_y()) / ((np->time() - prevBall.time()) * 1E-9));
+            np->set_time_diff_scaled((np->time() - prevBall.time()) * 1E-7);
             np->set_system_delay((Timer::systemTime() - np->time()) * 1E-9);
         }
-        m_time = np->time();
-        m_x = np->p_x();
-        m_y = np->p_y();
+        m_lastRaw[np->camera_id()] = *np;
     }
 
     m_measurements.clear();
 }
 
-float BallFilter::distanceTo(const SSL_DetectionBall &ball) const
+float BallFilter::distanceTo(const SSL_DetectionBall &ball, const Eigen::Vector3f &cameraPos) const
 {
+    float pos_x, pos_y;
+    if (!cameraPos.isZero()) {
+        float height = m_kalman->state()(2);
+        pos_x = (m_kalman->state()(0) - cameraPos(0)) * (cameraPos(2) / (cameraPos(2) - height)) + cameraPos(0);
+        pos_y = (m_kalman->state()(1) - cameraPos(1)) * (cameraPos(2) / (cameraPos(2) - height)) + cameraPos(1);
+    } else {
+        pos_x = m_kalman->state()(0);
+        pos_y = m_kalman->state()(1);
+    }
+
     Eigen::Vector2f b;
     b(0) = -ball.y() / 1000.0;
     b(1) = ball.x() / 1000.0;
 
     Eigen::Vector2f p;
-    p(0) = m_kalman->state()(0);
-    p(1) = m_kalman->state()(1);
+    p(0) = pos_x;
+    p(1) = pos_y;
 
     return (b - p).norm();
 }
@@ -225,9 +425,10 @@ bool BallFilter::isInAOI(const SSL_DetectionBall &ball, bool flip, float x1, flo
     return (x > x1 && x < x2 && y > y1 && y < y2);
 }
 
-void BallFilter::addVisionFrame(qint32 cameraId, const SSL_DetectionBall &ball, qint64 time)
+void BallFilter::addVisionFrame(qint32 cameraId, const Eigen::Vector3f &cameraPos,
+                                const SSL_DetectionBall &ball, qint64 time, const world::Robot &nearestRobot)
 {
-    m_visionFrames.append(VisionFrame(cameraId, ball, time));
+    m_visionFrames.append(VisionFrame(cameraId, cameraPos, ball, time, nearestRobot));
     // only count frames for the primary camera
     if (m_primaryCamera == -1 || m_primaryCamera == cameraId) {
         m_frameCounter++;

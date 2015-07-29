@@ -77,6 +77,11 @@ public:
         return m_xm;
     }
 
+    const Vector& baseState() const
+    {
+        return m_x;
+    }
+
     // !!! Use with care
     void modifyState(int index, double value)
     {

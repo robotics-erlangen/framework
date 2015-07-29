@@ -110,6 +110,9 @@ void Tracker::process(qint64 currentTime)
 
         if (wrapper.has_geometry()) {
             updateGeometry(wrapper.geometry().field());
+            for (int i = 0; i < wrapper.geometry().calib_size(); ++i) {
+                updateCamera(wrapper.geometry().calib(i));
+            }
             m_geometryUpdated = true;
         }
 
@@ -126,16 +129,17 @@ void Tracker::process(qint64 currentTime)
         if (sourceTime <= m_lastUpdateTime)
             continue;
 
-        for (int i = 0; i < detection.balls_size(); i++) {
-            trackBall(detection.balls(i), sourceTime, detection.camera_id());
-        }
-
         for (int i = 0; i < detection.robots_yellow_size(); i++) {
             trackRobot(m_robotFilterYellow, detection.robots_yellow(i), sourceTime, detection.camera_id());
         }
 
         for (int i = 0; i < detection.robots_blue_size(); i++) {
             trackRobot(m_robotFilterBlue, detection.robots_blue(i), sourceTime, detection.camera_id());
+        }
+
+        QList<RobotFilter *> bestRobots = getBestRobots(sourceTime);
+        for (int i = 0; i < detection.balls_size(); i++) {
+            trackBall(detection.balls(i), sourceTime, detection.camera_id(), bestRobots);
         }
 
         m_lastUpdateTime = sourceTime;
@@ -223,6 +227,20 @@ void Tracker::updateGeometry(const SSL_GeometryFieldSize &g)
     m_geometry.set_goal_height(0.16f);
 }
 
+void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c)
+{
+    if (!c.has_derived_camera_world_tx() || !c.has_derived_camera_world_ty()
+            || !c.has_derived_camera_world_tz()) {
+        return;
+    }
+    Eigen::Vector3f cameraPos;
+    cameraPos(0) = -c.derived_camera_world_ty() / 1000.f;
+    cameraPos(1) = c.derived_camera_world_tx() / 1000.f;
+    cameraPos(2) = c.derived_camera_world_tz() / 1000.f;
+
+    m_cameraPosition[c.camera_id()] = cameraPos;
+}
+
 template<class Filter>
 void Tracker::invalidate(QList<Filter*> &filters, const qint64 maxTime, const qint64 maxTimeLast, qint64 currentTime)
 {
@@ -267,7 +285,52 @@ void Tracker::invalidateRobots(RobotMap &map, qint64 currentTime)
     }
 }
 
-void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, qint32 cameraId)
+QList<RobotFilter *> Tracker::getBestRobots(qint64 currentTime)
+{
+    const qint64 resetTimeout = 100*1000*1000;
+    // only return objects which have been tracked for more than minFrameCount frames
+    // if the tracker was reset recently, allow for fast repopulation
+    const int minFrameCount = (currentTime > m_resetTime + resetTimeout) ? 5: 0;
+
+    QList<RobotFilter *> filters;
+
+    for(RobotMap::iterator it = m_robotFilterYellow.begin(); it != m_robotFilterYellow.end(); ++it) {
+        RobotFilter *robot = bestFilter(*it, minFrameCount);
+        if (robot != NULL) {
+            robot->update(currentTime);
+            filters.append(robot);
+        }
+    }
+    for(RobotMap::iterator it = m_robotFilterBlue.begin(); it != m_robotFilterBlue.end(); ++it) {
+        RobotFilter *robot = bestFilter(*it, minFrameCount);
+        if (robot != NULL) {
+            robot->update(currentTime);
+            filters.append(robot);
+        }
+    }
+    return filters;
+}
+
+world::Robot Tracker::findNearestRobot(const QList<RobotFilter *> &robots, const world::Ball &ball) const
+{
+    float minDist = 0;
+    RobotFilter *best = nullptr;
+    for (RobotFilter *filter : robots) {
+        const float dist = filter->distanceTo(ball);
+        if (dist < minDist || best == nullptr) {
+            minDist = dist;
+            best = filter;
+        }
+    }
+
+    world::Robot robotPos;
+    if (best != nullptr) {
+        best->get(&robotPos, false);
+    }
+    return robotPos;
+}
+
+void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, qint32 cameraId, const QList<RobotFilter *> &bestRobots)
 {
     if (m_aoiEnabled && !BallFilter::isInAOI(ball, m_flip, m_aoi_x1, m_aoi_y1, m_aoi_x2, m_aoi_y2)) {
         return;
@@ -282,7 +345,7 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, qint3
 
     foreach (BallFilter *filter, m_ballFilter) {
         filter->update(receiveTime);
-        const float dist = filter->distanceTo(ball);
+        const float dist = filter->distanceTo(ball, m_cameraPosition.value(cameraId, Eigen::Vector3f::Zero()));
         if (dist < nearest) {
             nearest = dist;
             nearestFilter = filter;
@@ -294,7 +357,10 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, qint3
         m_ballFilter.append(nearestFilter);
     }
 
-    nearestFilter->addVisionFrame(cameraId, ball, receiveTime);
+    world::Ball ballPos;
+    nearestFilter->get(&ballPos, false);
+    world::Robot nearestRobot = findNearestRobot(bestRobots, ballPos);
+    nearestFilter->addVisionFrame(cameraId, m_cameraPosition.value(cameraId, Eigen::Vector3f::Zero()), ball, receiveTime, nearestRobot);
 }
 
 void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId)

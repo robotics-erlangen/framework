@@ -25,17 +25,21 @@ message BallPosition
     required int64 time = 1;
     required float p_x = 2;
     required float p_y = 3;
+    optional float derived_z = 10;
     optional float v_x = 5;
     optional float v_y = 6;
     optional float system_delay = 7;
     optional float time_diff_scaled = 8; // scaled by factor 100
+    optional uint32 camera_id = 9;
 }
 
 message Ball {
     required float p_x = 1;
     required float p_y = 2;
+    optional float p_z = 6;
     required float v_x = 3;
     required float v_y = 4;
+    optional float v_z = 7;
     repeated BallPosition raw = 5;
 }
 
@@ -50,6 +54,7 @@ message RobotPosition
     optional float system_delay = 7;
     optional float time_diff_scaled = 8; // scaled by factor 100
     optional float omega = 9;
+    optional uint32 camera_id = 10;
 }
 
 message Robot {

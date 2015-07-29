@@ -22,10 +22,13 @@
 #include "simulator.h"
 #include "core/rng.h"
 #include "protobuf/ssl_detection.pb.h"
+#include <cmath>
 
-SimBall::SimBall(RNG *rng, btDiscreteDynamicsWorld *world) :
+SimBall::SimBall(RNG *rng, btDiscreteDynamicsWorld *world, float fieldWidth, float fieldHeight) :
     m_rng(rng),
-    m_world(world)
+    m_world(world),
+    m_fieldWidth(fieldWidth),
+    m_fieldHeight(fieldHeight)
 {
     // see http://robocup.mi.fu-berlin.de/buch/rolling.pdf for correct modelling
     m_sphere = new btSphereShape(BALL_RADIUS * SIMULATOR_SCALE);
@@ -43,7 +46,8 @@ SimBall::SimBall(RNG *rng, btDiscreteDynamicsWorld *world) :
 
     // parameters seem to be ignored...
     m_body = new btRigidBody(rbInfo);
-    m_body->setRestitution(0.78f);
+    // empirical measurment
+    m_body->setRestitution(0.314f);
     // \mu_k = -a / g (while slipping)
     m_body->setFriction(0.35f);
     // \mu_r = -a / g = 0.0357 (while rolling)
@@ -111,7 +115,12 @@ void SimBall::begin()
     }
 }
 
-void SimBall::update(SSL_DetectionBall *ball, float stddev)
+float sign(float a)
+{
+    return (a >= 0) ? 1 : -1;
+}
+
+int SimBall::update(SSL_DetectionBall *ball, float stddev)
 {
     // setup ssl-vision ball detection
     ball->set_confidence(1.0);
@@ -122,12 +131,37 @@ void SimBall::update(SSL_DetectionBall *ball, float stddev)
     m_motionState->getWorldTransform(transform);
     const btVector3 p = transform.getOrigin() / SIMULATOR_SCALE;
 
+    // must match simulator camera geometry!!!
+    const float cameraHeight = 4.f;
+    const float cameraX = m_fieldWidth / 4;
+    const float cameraY = m_fieldHeight / 4;
+    const float maxOverlap = 0.4f;
+
+    const float scalingLimit = 0.9f;
+    const float widthHalf = cameraX * 2.7f;
+    const float heightHalf = cameraY * 2.7f;
+    int cameraId = ((p.x() > 0) ? 1 : 0) + ((p.y() > 0) ? 2 : 0);
+
+    float height = std::min(scalingLimit * cameraHeight, std::max(0.f, p.z() - BALL_RADIUS));
+    float abs_x = std::abs(p.x());
+    float abs_y = std::abs(p.y());
+    abs_x = (abs_x - cameraX) * (cameraHeight / (cameraHeight - height)) + cameraX;
+    abs_y = (abs_y - cameraY) * (cameraHeight / (cameraHeight - height)) + cameraY;
+
+    if (abs_x < -maxOverlap || abs_x > widthHalf || abs_y < -maxOverlap || abs_y > heightHalf) {
+        // invalid
+        return -1;
+    }
+
+    const float ball_x = sign(p.x()) * abs_x;
+    const float ball_y = sign(p.y()) * abs_y;
+
     // add noise to coordinates
     // to convert from bullet coordinate system to ssl-vision rotate by 90 degree ccw
     const Vector2 noise = m_rng->normalVector(stddev);
-    ball->set_x((p.y() + noise.x) * 1000.0f);
-    ball->set_y(-(p.x() + noise.y) * 1000.0f);
-    ball->set_z(p.z() * 1000.0f);
+    ball->set_x((ball_y + noise.x) * 1000.0f);
+    ball->set_y(-(ball_x + noise.y) * 1000.0f);
+    return cameraId;
 }
 
 void SimBall::move(const amun::SimulatorMoveBall &ball)

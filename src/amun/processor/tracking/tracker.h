@@ -27,6 +27,7 @@
 #include <QMap>
 #include <QPair>
 #include <QByteArray>
+#include <Eigen/Dense>
 
 class BallFilter;
 class RobotFilter;
@@ -34,6 +35,7 @@ class SSL_DetectionBall;
 class SSL_DetectionFrame;
 class SSL_DetectionRobot;
 class SSL_GeometryFieldSize;
+class SSL_GeometryCameraCalibration;
 
 class Tracker
 {
@@ -56,13 +58,17 @@ public:
 
 private:
     void updateGeometry(const SSL_GeometryFieldSize &g);
+    void updateCamera(const SSL_GeometryCameraCalibration &c);
 
     template<class Filter>
     static void invalidate(QList<Filter*> &filters, const qint64 maxTime, const qint64 maxTimeLast, qint64 currentTime);
     void invalidateBall(qint64 currentTime);
     static void invalidateRobots(RobotMap &map, qint64 currentTime);
 
-    void trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, qint32 cameraId);
+    QList<RobotFilter *> getBestRobots(qint64 currentTime);
+    world::Robot findNearestRobot(const QList<RobotFilter *> &robots, const world::Ball &ball) const;
+
+    void trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, qint32 cameraId, const QList<RobotFilter *> &bestRobots);
     void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId);
 
     template<class Filter>
@@ -75,6 +81,7 @@ private:
     qint64 m_resetTime;
 
     world::Geometry m_geometry;
+    QMap<int, Eigen::Vector3f> m_cameraPosition;
     bool m_geometryUpdated;
     bool m_hasVisionData;
 

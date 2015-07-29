@@ -44,6 +44,7 @@ public:
     void addRadioCommand(const robot::Command &radioCommand, qint64 time);
 
     float distanceTo(const SSL_DetectionRobot &robot) const;
+    float distanceTo(const world::Ball &ball) const;
     static bool isInAOI(const SSL_DetectionRobot &robot, bool flip, float x1, float y1, float x2, float y2);
 
 private:
