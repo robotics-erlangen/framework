@@ -97,32 +97,14 @@ void Accelerator::limit(const world::Robot *robot, robot::Command &command, qint
     float v_d_s = std::cos(-robot_phi) * m_v_d_x - std::sin(-robot_phi) * m_v_d_y;
     float v_d_f = std::sin(-robot_phi) * m_v_d_x + std::cos(-robot_phi) * m_v_d_y;
 
-    // Bound accelerations (in robot coordinates), but preserve the direction of the acceleration vector
+    // Bound accelerations (in robot coordinates)
     // As desired acceleration in local coordinates is derived from local coordinates position error,
     // its sign gives an indication whether the movement of the robot needs to speed up or whether
     // the speed of the robot needs to be diminished. We need to distinguish between speed up and speed down
     // due to different acceleration capability of the robot (physical: back-emf facilitates to speed down)
 
-    float a_d_s_bound = bound(a_d_s, v_d_s, a_limits.a_speedup_s_max(), a_limits.a_brake_s_max());
-    float a_d_f_bound = bound(a_d_f, v_d_f, a_limits.a_speedup_f_max(), a_limits.a_brake_f_max());
-
-    // If scaling is required in order to conserve the direction of the acceleration vector, do it!
-    if ((a_d_f_bound != a_d_f) || (a_d_s_bound != a_d_s)) {
-        // If acceleration exists only in one direction just use the bounded one
-        if (a_d_f == 0) {
-            a_d_s = a_d_s_bound;
-        } else if (a_d_s == 0) {
-            a_d_f = a_d_f_bound;
-        } else {
-            // else scale down both directions of acceleration, make sure direction remains the same
-            // This scaling + bounding is validated and works!
-            float ratio_f = a_d_f_bound / a_d_f;
-            float ratio_s = a_d_s_bound / a_d_s;
-            float min_ratio = qMin(ratio_f, ratio_s);
-            a_d_f *= min_ratio;
-            a_d_s *= min_ratio;
-        }
-    }
+    a_d_s = bound(a_d_s, v_d_s, a_limits.a_speedup_s_max(), a_limits.a_brake_s_max());
+    a_d_f = bound(a_d_f, v_d_f, a_limits.a_speedup_f_max(), a_limits.a_brake_f_max());
 
     // Transform bounded accelerations to robot coordinates
     float a_d_x_scaled_down = std::cos(robot_phi) * a_d_s - std::sin(robot_phi) * a_d_f;

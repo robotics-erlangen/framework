@@ -205,27 +205,8 @@ void SimRobot::begin(SimBall *ball, double time)
     float a_s = V*v_s + K*error_v_s + K_I*error_sum_v_s;
 
     const float accelScale = 2.f; // let robot accelerate / brake faster than the accelerator does
-    float a_f_bound = bound(a_f, v_f, accelScale*m_specs.acceleration().a_speedup_f_max(), accelScale*m_specs.acceleration().a_brake_f_max());
-    float a_s_bound = bound(a_s, v_s, accelScale*m_specs.acceleration().a_speedup_s_max(), accelScale*m_specs.acceleration().a_brake_s_max());
-
-    // copy-paste from accelerator
-    // If scaling is required in order to conserve the direction of the acceleration vector, do it!
-    if ((a_f_bound != a_f) || (a_s_bound != a_s)) {
-        // If acceleration exists only in one direction just use the bounded one
-        if (a_f == 0) {
-            a_s = a_s_bound;
-        } else if (a_s == 0) {
-            a_f = a_f_bound;
-        } else {
-            // else scale down both directions of acceleration, make sure direction remains the same
-            // This scaling + bounding is validated and works!
-            float ratio_f = a_f_bound / a_f;
-            float ratio_s = a_s_bound / a_s;
-            float min_ratio = qMin(ratio_f, ratio_s);
-            a_f *= min_ratio;
-            a_s *= min_ratio;
-        }
-    }
+    a_f = bound(a_f, v_f, accelScale*m_specs.acceleration().a_speedup_f_max(), accelScale*m_specs.acceleration().a_brake_f_max());
+    a_s = bound(a_s, v_s, accelScale*m_specs.acceleration().a_speedup_s_max(), accelScale*m_specs.acceleration().a_brake_s_max());
     const btVector3 force(a_s*m_specs.mass(), a_f*m_specs.mass(), 0);
 
     // localInertia.z() / SIMULATOR_SCALE^2 \approx 1/12*mass*(robot_width^2+robot_depth^2)
