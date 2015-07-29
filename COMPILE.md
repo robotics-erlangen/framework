@@ -56,10 +56,10 @@ Compile instructions: (for Ubuntu 12.04)
 
 ## Windows
 Get dependencies (tested using the given versions):
-* cmake 3.0.2 - http://www.cmake.org/files/v3.0/cmake-3.0.2-win32-x86.exe
+* cmake 3.2.2 - http://www.cmake.org/files/v3.2/cmake-3.2.2-win32-x86.exe
 * mingw-get - http://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.ex
-* Qt 5.3.2 OpenGL - http://download.qt-project.org/official_releases/qt/5.3/5.3.2/qt-opensource-windows-x86-mingw482_opengl-5.3.2.exe
-* protobuf 2.6.1 - https://github.com/google/protobuf/releases/download/2.6.1/protobuf-2.6.1.tar.bz2
+* Qt 5 - http://download.qt.io/official_releases/online_installers/qt-opensource-windows-x86-online.exe
+* protobuf 2.6.1 - https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.bz2
 * luajit 2.0.3 - http://luajit.org/download/LuaJIT-2.0.3.tar.gz
 * libusb 1.19 - http://downloads.sourceforge.net/project/libusb/libusb-1.0/libusb-1.0.19/libusb-1.0.19.tar.bz2
 * luasocket 3.0-rc? - https://github.com/diegonehab/luasocket/archive/master.zip
@@ -69,12 +69,12 @@ Get dependencies (tested using the given versions):
 use the installer, select add to PATH
 
 #### install qt
-run installer (use default install path! ), make sure to SELECT "Tools/MinGW 4.8"!
+run installer (use default install path! ), install "Qt 5.4 > MinGW 4.9.1" and "Tools > MinGW 4.9.1"
 
 #### install mingw-get
 Run installer (use default path C:\MinGW !) and install `msys-base, msys-patch`
 
-Run `C:\mingw\msys\1.0\postinstall\pi.bat` set mingw path to `c:/Qt/Qt5.3.2/Tools/mingw482_32`
+Run `C:\mingw\msys\1.0\postinstall\pi.bat` set mingw path to `c:/Qt/Tools/mingw491_32`
 
 use `msys.bat` in `msys\1.0` to open msys console
 
@@ -96,19 +96,16 @@ use `msys.bat` in `msys\1.0` to open msys console
 
 #### compile luasocket2
 > make PLAT=mingw LUAINC_mingw=/usr/local/include/luajit-2.0 LUALIB_mingw=/usr/local/bin/lua51.dll
-> make install PLAT=mingw INSTALL_TOP_LDIR=../build/share INSTALL_TOP_CDIR=../build/lib
+> make install PLAT=mingw INSTALL_TOP_LDIR=/usr/local/share/lua/5.1 INSTALL_TOP_CDIR=/usr/local/lib/lua/5.1
 
 #### compile ra
 > mkdir build-win && cd build-win
-> cmake -G "MSYS Makefiles" -DCMAKE_PREFIX_PATH=/c/Qt/Qt5.3.2/5.3/mingw482_32/lib/cmake -DCMAKE_BUILD_TYPE=Release -DLUA_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/luajit-2.0 -DLUA_LIBRARIES=C:/MinGW/msys/1.0/local/bin/lua51.dll -DPROTOBUF_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include -DPROTOBUF_LIBRARY=C:/MinGW/msys/1.0/local/lib/libprotobuf.dll.a -DSDL2_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/SDL2 -DUSB_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/libusb-1.0 ..
+> cmake -G "MSYS Makefiles" -DCMAKE_PREFIX_PATH=/c/Qt/5.4/mingw491_32/lib/cmake -DCMAKE_BUILD_TYPE=Release -DLUA_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/luajit-2.0 -DLUA_LIBRARIES=C:/MinGW/msys/1.0/local/bin/lua51.dll -DPROTOBUF_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include -DPROTOBUF_LIBRARY=C:/MinGW/msys/1.0/local/lib/libprotobuf.dll.a -DSDL2_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/SDL2 -DUSB_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/libusb-1.0 ..
 > make
-
-* copy config + data directory to `"builddir"/bin`
-* copy libprotobuf-9.dll, libusb-1.0.dll, lua51.dll, SDL2.dll from `C:\MinGW\msys\1.0\local\bin` to `"builddir"/bin`
-* copy icudt52.dll, icuin52.dll, icuuc52.dll, libgcc_s_dw2-1.dll, libstdc++-6.dll, libwinpthread-1.dll,
-	Qt5Core.dll, Qt5Gui.dll, Qt5Network.dll, Qt5OpenGL.dll, Qt5Widgets.dll from `C:/Qt/Qt5.3.2/5.3/mingw482_32/bin` to `"builddir"/bin`
-* copy qwindows.dll from `C:/Qt/Qt5.3.2/5.3/mingw482_32/plugins/platforms` to `"builddir"/bin/platforms`
-	copy the folders of `luasocket2/build/lib` to `"builddir"/bin`
+> cp -r ../config ../data bin
+> cp /usr/local/bin/{libprotobuf-9,libusb-1.0,lua51,SDL2}.dll  /c/Qt/5.4/mingw491_32/bin/{icudt53,icuin53,icuuc53,libgcc_s_dw2-1,libstdc++-6,libwinpthread-1,Qt5Core,Qt5Gui,Qt5Network,Qt5OpenGL,Qt5Widgets}.dll bin
+> mkdir bin/platforms && cp /c/Qt/5.4/mingw491_32/plugins/platforms/qwindows.dll bin/platforms
+> cp -r /usr/local/lib/lua/5.1/{mime,socket} bin
 
 Finished!
 
