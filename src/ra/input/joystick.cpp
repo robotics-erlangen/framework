@@ -20,6 +20,7 @@
 
 #include "joystick.h"
 #include <QString>
+#include <cmath>
 
 int Joystick::m_joystickCounter = 1; // start counting with 1
 
@@ -76,6 +77,9 @@ void Joystick::handleEvent(const SDL_Event &event) {
 
 void Joystick::handleAxis(SDL_GameControllerAxis axis, float value)
 {
+    const float deadzone = 0.02f;
+    value = std::copysign(std::max(0.f, std::abs(value) - deadzone) / (1-deadzone), value);
+
     // axis are mapped by sdl
     switch (axis) {
     case SDL_CONTROLLER_AXIS_LEFTX: // sideward
