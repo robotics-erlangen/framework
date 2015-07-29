@@ -54,12 +54,15 @@ private:
         DragTopRight =      0x41,
         DragBottomLeft =    0x42,
         DragBottomRight =   0x43,
-        DragAOIMask =       0x40
+        DragAOIMask =       0x40,
+        DragMeasure =       0x80,
     };
 
 public:
     explicit FieldWidget(QWidget *parent = 0);
     ~FieldWidget();
+
+    void setLogplayer();
 
 signals:
     void sendCommand(const Command &command);
@@ -77,10 +80,12 @@ protected:
     void wheelEvent(QWheelEvent *);
     void resizeEvent(QResizeEvent *event);
     bool gestureEvent(QGestureEvent *event);
+    bool viewportEvent(QEvent *event);
     void drawBackground(QPainter *painter, const QRectF &rect);
     void leaveEvent(QEvent *event);
     bool event(QEvent *event);
 
+    void setInfoText(const QString &str);
 private slots:
     void updateVisualizationVisibility();
     void setHorizontal();
@@ -98,6 +103,7 @@ private:
     void updateAOI();
     void updateDetection();
     void updateGeometry();
+    void updateInfoText();
     void updateVisualizations();
     void updateVisualizations(const amun::DebugValues &v);
     void clearTeamData(RobotMap &team, QHash<uint, robot::Specs> &specsMap);
@@ -111,7 +117,6 @@ private:
     QGraphicsItem* createCircle(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
     QGraphicsItem* createPolygon(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
     QGraphicsItem* createPath(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
-    void layoutChildren();
 
 private:
     QGraphicsScene *m_scene;
@@ -148,14 +153,20 @@ private:
     RobotMap m_robotsBlue;
     RobotMap m_robotsYellow;
 
+
+    bool m_infoTextUpdated;
+    QString m_infoText;
+    QGraphicsTextItem *m_infoTextItem;
+
     Qt::GestureType m_touchStatusType;
     bool m_hasTouchInput;
-    QLabel *m_lblMousePos;
     QPointF m_mouseBegin;
     QPoint m_dragStart;
     DragType m_dragType;
     QGraphicsItem *m_dragItem;
     int m_dragId;
+
+    bool m_isLogplayer;
 };
 
 #endif // FIELDWIDGET_H

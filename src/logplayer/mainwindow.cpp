@@ -66,6 +66,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // setup visualization parts of the ui
     connect(ui->visualization, SIGNAL(itemsChanged(QStringList)), ui->field, SLOT(visualizationsChanged(QStringList)));
+    ui->field->setLogplayer();
     ui->visualization->load();
 
     // add shortcuts

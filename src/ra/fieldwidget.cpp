@@ -33,6 +33,7 @@
 #include <QFileDialog>
 #include <QGesture>
 #include <QGestureRecognizer>
+#include <QGuiApplication>
 
 class TouchStatusGesture : public QGesture
 {
@@ -101,9 +102,11 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_rotation(0.0f),
     m_worldStateUpdated(false),
     m_visualizationsUpdated(false),
+    m_infoTextUpdated(false),
     m_hasTouchInput(false),
     m_dragType(DragNone),
-    m_dragItem(NULL)
+    m_dragItem(NULL),
+    m_isLogplayer(false)
 {
     m_touchStatusType = QGestureRecognizer::registerRecognizer(new TouchStatusRecognizer);
     grabGesture(m_touchStatusType);
@@ -177,6 +180,11 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_aoi = QRectF(-1, -1, 2, 2);
     updateAOI();
 
+    m_infoTextItem = new QGraphicsTextItem;
+    m_infoTextItem->setZValue(10000);
+    m_scene->addItem(m_infoTextItem);
+    m_infoTextItem->hide();
+
     m_scene->setBackgroundBrush(Qt::black);
     m_scene->setItemIndexMethod(QGraphicsScene::NoIndex); // should improve the performance
 
@@ -196,14 +204,6 @@ FieldWidget::FieldWidget(QWidget *parent) :
 
     setMouseTracking(true);
 
-    // create label to show field coordinates
-    m_lblMousePos = new QLabel(this);
-    m_lblMousePos->setAutoFillBackground(true); // solid background
-    // draw frame
-    m_lblMousePos->setFrameStyle(QFrame::StyledPanel | QFrame::Raised);
-    m_lblMousePos->setMargin(2); // some space
-    m_lblMousePos->hide(); // ensure that the label is hidden on startup
-
     // load settings
     QSettings s;
     s.beginGroup("Field");
@@ -221,6 +221,11 @@ FieldWidget::~FieldWidget()
     s.setValue("OpenGL", m_actionGL->isChecked());
     s.setValue("AntiAliasing", m_actionAntialiasing->isChecked());
     s.endGroup();
+}
+
+void FieldWidget::setLogplayer()
+{
+    m_isLogplayer = true;
 }
 
 void FieldWidget::handleStatus(const Status &status)
@@ -317,6 +322,7 @@ void FieldWidget::updateAll()
     updateGeometry();
     updateDetection();
     updateVisualizations();
+    updateInfoText();
 }
 
 void FieldWidget::updateVisualizationVisibility()
@@ -572,6 +578,9 @@ void FieldWidget::setRobot(const world::Robot &robot, const robot::Specs &specs,
         r.id->setZValue(11.0f);
         m_scene->addItem(r.robot);
         m_scene->addItem(r.id);
+
+        // just translated
+        r.id->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
     }
 
     const float phi = robot.phi() * 180 / M_PI - 90.0f;
@@ -802,7 +811,11 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
             }
         }
 
-        for (RobotMap::iterator it = m_robotsBlue.begin(); it != m_robotsBlue.end(); ++it) {
+        if (m_isLogplayer) {
+            m_dragType = DragMeasure;
+        }
+
+        for (RobotMap::iterator it = m_robotsBlue.begin(); it != m_robotsBlue.end() && m_dragType == DragNone; ++it) {
             QPointF mapped = it.value().robot->mapFromScene(p);
             QGraphicsPathItem *robot = it.value().robot;
             if (robot->path().contains(mapped)) {
@@ -813,7 +826,7 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
             }
         }
 
-        for (RobotMap::iterator it = m_robotsYellow.begin(); it != m_robotsYellow.end(); ++it) {
+        for (RobotMap::iterator it = m_robotsYellow.begin(); it != m_robotsYellow.end() && m_dragType == DragNone; ++it) {
             QPointF mapped = it.value().robot->mapFromScene(p);
             QGraphicsPathItem *robot = it.value().robot;
             if (robot->path().contains(mapped)) {
@@ -824,12 +837,14 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
             }
         }
 
-        if (!m_dragItem) {
+        if (m_dragType == DragNone) {
             m_dragType = DragBall;
             m_dragItem = m_ball;
         }
 
-        sendSimulatorMoveCommand(p);
+        if (m_dragType != DragMeasure) {
+            sendSimulatorMoveCommand(p);
+        }
     }
 
     event->accept();
@@ -842,14 +857,21 @@ void FieldWidget::mouseMoveEvent(QMouseEvent *event)
     const QPointF p = mapToScene(event->pos());
     event->accept();
 
-    m_lblMousePos->setText(QString("(%1, %2)").arg(p.x()).arg(p.y()));
-    m_lblMousePos->show();
+    QString infoText = QString("(%1, %2)").arg(p.x(), 0, 'f', 4).arg(p.y(), 0, 'f', 4);
+    if (m_dragType == DragMeasure) {
+        QPointF diff = (p - m_mouseBegin);
+        float dist = std::sqrt(diff.x() * diff.x() + diff.y() * diff.y());
+        infoText += QString(", distance: %1").arg(dist, 0, 'f', 4);
+    }
+    setInfoText(infoText);
 
     if (event->buttons() != Qt::NoButton) {
         if (m_dragType & DragAOIMask) {
             resizeAOI(p);
-        } else if (m_dragType != DragNone && m_dragItem) {
-            sendSimulatorMoveCommand(p);
+        } else if (m_dragType != DragNone) {
+            if (m_dragItem) {
+                sendSimulatorMoveCommand(p);
+            }
         } else {
             QPointF d = p - m_mouseBegin;
             translate(d.x(), d.y());
@@ -948,28 +970,76 @@ bool FieldWidget::gestureEvent(QGestureEvent *event)
 
 void FieldWidget::leaveEvent(QEvent *event)
 {
-    // hide mouse position label if the fieldwidget is left
-    m_lblMousePos->hide();
+    // clear mouse position
+    setInfoText(QString());
     QGraphicsView::leaveEvent(event);
 }
 
 bool FieldWidget::event(QEvent *event)
 {
     // handle resizes and relayouts
-    if (event->type() == QEvent::Resize || event->type() == QEvent::LayoutRequest) {
-        layoutChildren();
-    } else if (event->type() == QEvent::Gesture) {
+    if (event->type() == QEvent::Gesture) {
         return gestureEvent(static_cast<QGestureEvent*>(event));
     }
 
     return QGraphicsView::event(event);
 }
 
-void FieldWidget::layoutChildren()
+void FieldWidget::updateInfoText()
 {
-    // keep size hint in the lower left corner
-    const QSize &hint = m_lblMousePos->sizeHint();
-    m_lblMousePos->setGeometry(0, height() - hint.height(), hint.width(), hint.height());
+    if (!m_infoTextUpdated) {
+        return;
+    }
+
+    m_infoTextUpdated = false;
+
+    if (m_infoText.isNull()) {
+        m_infoTextItem->hide();
+        return;
+    }
+
+    QString bgColor = palette().brush(QPalette::Window).color().name();
+    m_infoTextItem->setHtml("<div style='background-color:" + bgColor + ";padding: 2px;'>" + m_infoText + "</div>");
+    m_infoTextItem->show();
+
+    QFontMetrics fm(QGuiApplication::font());
+    QPoint lblPos = QPoint(-4, height()-fm.height()-6);
+
+    // revert to window scale
+    float scaleX, scaleY;
+    QTransform t = transform();
+    if (t.m11() == 0 && t.m22() == 0) {
+        scaleX = std::abs(t.m12());
+        scaleY = std::abs(t.m21());
+    } else {
+        scaleX = std::abs(t.m11());
+        scaleY = std::abs(t.m22());
+    }
+
+    QPointF scenePos = mapToScene(lblPos);
+    QTransform lblTransform = QTransform::fromScale(1./scaleX, -1./scaleY)
+            .rotate(-m_rotation);
+    if (!qFuzzyCompare(lblTransform, m_infoTextItem->transform()) || scenePos != m_infoTextItem->pos()) {
+        m_infoTextItem->setTransform(lblTransform);
+        m_infoTextItem->setPos(scenePos);
+    }
+}
+
+void FieldWidget::setInfoText(const QString &str)
+{
+    if (str == m_infoText) {
+        return;
+    }
+    m_infoText = str;
+    m_infoTextUpdated = true;
+}
+
+bool FieldWidget::viewportEvent(QEvent *event)
+{
+    if (event->type() != QEvent::Paint) {
+        m_infoTextUpdated = true;
+    }
+    return QGraphicsView::viewportEvent(event);
 }
 
 void FieldWidget::drawBackground(QPainter *painter, const QRectF &rect)
