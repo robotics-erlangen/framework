@@ -258,4 +258,16 @@ function table.contains(t, value)
 	return false
 end
 
+--- Returns an array containing the keys of a table
+-- @name keys
+-- @param t table
+-- @return array
+function table.keys(t)
+	local keys = {}
+	for key, _ in pairs(t) do
+		table.insert(keys, key)
+	end
+	return keys
+end
+
 return table

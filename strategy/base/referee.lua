@@ -59,6 +59,17 @@ local friendlyPenaltyStates = {
 	PenaltyOffensive = true
 }
 
+local nonGameStages = {
+	FirstHalfPre = true,
+	HalfTime = true,
+	SecondHalfPre = true,
+	ExtraTimeBreak = true,
+	ExtraFirstHalfPre = true,
+	ExtraHalfTime = true,
+	ExtraSecondHalfPre = true,
+	PenaltyShootoutBreak = true,
+	PostGame = true
+}
 
 --- Check whether the stop rules apply
 -- @name isStopState
@@ -92,6 +103,10 @@ function Referee.isFriendlyPenaltyState()
 	return friendlyPenaltyStates[World.RefereeState]
 end
 
+function Referee.isNonGameStage()
+	return nonGameStages[World.GameStage]
+end
+
 local rightLine = World.Geometry.FieldWidthHalf
 local leftLine = -rightLine
 local goalLine = World.Geometry.FieldHeightHalf
@@ -121,10 +136,28 @@ end
 
 local lastTeam = true -- true for the friendly team, false for the opponent
 local touchDist = World.Ball.radius+robotRadius
+local fieldHeightHalf = World.Geometry.FieldHeightHalf
+local fieldWidthHalf = World.Geometry.FieldWidthHalf
+local noBallTouchStates = {
+	Halt = true,
+	Stop = true,
+	KickoffOffensivePrepare = true,
+	KickoffDefensivePrepare = true,
+	PenaltyOffensivePrepare = true,
+	PenaltyDefensivePrepare = true,
+	TimeoutOffensive = true,
+	TimeoutDefensive = true
+}
 --- Update the status of which team touched the ball last
 -- @name checkTouching
 function Referee.checkTouching()
 	local ballPos = World.Ball.pos
+	-- only consider touches when playing
+	if noBallTouchStates[World.RefereeState] or
+			math.abs(ballPos.x) > fieldWidthHalf or math.abs(ballPos.y) > fieldHeightHalf then
+		return
+	end
+
 	-- pessimistic approach: when we are at the ball, our team is considered touching
 	for _, robot in ipairs(World.FriendlyRobots) do
 		if robot.pos:distanceTo(ballPos) <= touchDist then
@@ -145,6 +178,10 @@ end
 -- @return boolean - True if we touched last, false if the opponent did
 function Referee.friendlyTouchedLast()
 	return lastTeam
+end
+
+function Referee.opponentTouchedLast()
+	return not Referee.friendlyTouchedLast()
 end
 
 return Referee

@@ -37,7 +37,7 @@ local Robot, RobotMt = (require "../base/class")("Robot")
 -- @name Robot
 -- @field constants table - robot specific constants *(empty for opponents)
 -- @field id number - robot id
--- @field generation number - robot generation *
+-- @field generation number - robot generation (-1 for unknown robots)
 -- @field year number - year robot was built in *
 -- @field pos Vector - current position
 -- @field dir number - current direction faced
@@ -47,10 +47,11 @@ local Robot, RobotMt = (require "../base/class")("Robot")
 -- @field isVisible bool - True if robot is tracked
 -- @field radius number - the robot's radius (defaults to 0.09m)
 -- @field height number - the robot's height *
--- @field shootRadius number *
--- @field dribblerWidth number - Width of the dribbler *
--- @field maxSpeed number - maximum speed *
--- @field maxAngularSpeed number - maximum angular speed *
+-- @field shootRadius number
+-- @field dribblerWidth number - Width of the dribbler
+-- @field maxSpeed number - maximum speed
+-- @field maxAngularSpeed number - maximum angular speed
+-- @filed acceleration table - Acceleration and deceleration parameters: aSpeedupFMax, aSpeedupSMax, aSpeedupPhiMax, aBrakeFMax, aBrakeSMax, aBrakePhiMax
 -- @field lastResponseTime number - strategy time when the last radio response was handled *
 -- @field radioResponse table - response from the robot, only set if there is a current response *
 -- @field userControl table - command from input devices (fields: speed, omega, kickStyle, kickPower, dribblerSpeed) *
@@ -75,8 +76,16 @@ function Robot:init(data, isFriendly, geometry)
 		self.shootRadius = math.sqrt(self.radius^2 - (self.dribblerWidth/2)^2)
 		self.generation = -1
 		self.id = data
-		self.maxSpeed = 1 -- Init max speed and acceleration for opponents
-		self.maxAcceleration = 1
+		self.maxSpeed = 2 -- Init max speed and acceleration for opponents
+		self.maxAngularSpeed = 4
+
+		self.acceleration = {}
+		self.acceleration.aSpeedupFMax = 2
+		self.acceleration.aSpeedupSMax = 2
+		self.acceleration.aSpeedupPhiMax = 20
+		self.acceleration.aBrakeFMax = 3
+		self.acceleration.aBrakeSMax = 3
+		self.acceleration.aBrakePhiMax = 20
 	end
 	self.lostSince = 0
 	self.lastResponseTime = 0
@@ -193,29 +202,18 @@ function Robot:_setSpecs(specs)
 	else -- estimate dribbler width
 		self.dribblerWidth = 2 * math.sqrt(self.radius^2 - self.shootRadius^2)
 	end
-	if specs.v_max then
-		self.maxSpeed = specs.v_max
-	end
-	if specs.omega_max then
-		self.maxAngularSpeed = specs.omega_max
-	end
-	if specs.shot_linear_max then
-		self.maxShotLinear = specs.shot_linear_max
-	end
-	if specs.shot_chip_max then
-		self.maxShotChip = specs.shot_chip_max
-	end
-	if specs.acceleration then
-		self.acceleration = {}
-		self.acceleration.aSpeedupFMax = specs.acceleration.a_speedup_f_max or 1.0
-		self.acceleration.aSpeedupSMax = specs.acceleration.a_speedup_s_max or 1.0
-		self.acceleration.aSpeedupPhiMax = specs.acceleration.a_speedup_phi_max or 1.0
-		self.acceleration.aBrakeFMax = specs.acceleration.a_brake_f_max or 1.0
-		self.acceleration.aBrakeSMax = specs.acceleration.a_brake_s_max or 1.0
-		self.acceleration.aBrakePhiMax = specs.acceleration.a_brake_phi_max or 1.0
-
-		self.maxAcceleration = specs.acceleration.a_speedup_f_max or 1.0
-	end
+	self.maxSpeed = specs.v_max or 2
+	self.maxAngularSpeed = specs.omega_max or 5
+	self.maxShotLinear = specs.shot_linear_max or 8
+	self.maxShotChip = specs.shot_chip_max or 3
+	self.acceleration = {}
+	local accelData = specs.acceleration or {}
+	self.acceleration.aSpeedupFMax = accelData.a_speedup_f_max or 1.0
+	self.acceleration.aSpeedupSMax = accelData.a_speedup_s_max or 1.0
+	self.acceleration.aSpeedupPhiMax = accelData.a_speedup_phi_max or 1.0
+	self.acceleration.aBrakeFMax = accelData.a_brake_f_max or 1.0
+	self.acceleration.aBrakeSMax = accelData.a_brake_s_max or 1.0
+	self.acceleration.aBrakePhiMax = accelData.a_brake_phi_max or 1.0
 end
 
 function Robot:_setCommand()
@@ -365,10 +363,12 @@ end
 
 --- Shoot function wrapper.
 -- Calls Robot:_shoot with distance adapted speed
--- @param destSpeed number - Ball speed at destination [m/s]
--- @param distance number - Distance to shoot [m]
-function Robot:shoot(destSpeed, distance)
-	local speed = self:calculateShootSpeed(destSpeed, distance)
+-- @param speed number - Shoot speed destination [m/s]
+-- @param ignoreLimit bool - Don't enforce shoot speed limit, if true
+function Robot:shoot(speed, ignoreLimit)
+	if not ignoreLimit then
+		speed = math.min(Constants.maxBallSpeed, speed)
+	end
 	self:_shoot(speed)
 end
 
