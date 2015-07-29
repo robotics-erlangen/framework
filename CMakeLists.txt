@@ -130,6 +130,7 @@ if(MINGW)
     set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -I${CMAKE_SOURCE_DIR}/data/pkg -i <SOURCE> -o <OBJECT>")
 endif(MINGW)
 
+include(FixCodeBlocks)
 
 configure_file(src/config.h.in src/config.h)
 include_directories(${CMAKE_BINARY_DIR}/src)
@@ -145,3 +146,5 @@ if(UNIX AND NOT APPLE)
         COMMENT "Installing menu entries" VERBATIM
     )
 endif()
+
+fixup_targets()
