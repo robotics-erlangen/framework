@@ -27,6 +27,10 @@ set(SOURCES
     logplayer.cpp
     mainwindow.cpp
     mainwindow.h
+    logcutter.cpp
+    logcutter.h
+    logprocessor.cpp
+    logprocessor.h
     ../ra/debugmodel.cpp
     ../ra/debugmodel.h
     ../ra/debugtreewidget.cpp
@@ -45,6 +49,7 @@ set(SOURCES
 
 set(UI_SOURCES
     mainwindow.ui
+    logcutter.ui
     ../ra/refereestatuswidget.ui
     ../ra/timingwidget.ui
     ../ra/visualizationwidget.ui

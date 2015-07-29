@@ -28,6 +28,7 @@
 #include "../ra/refereestatuswidget.h"
 #include "../ra/logfile/logfilereader.h"
 #include "../ra/plotter/plotter.h"
+#include "logcutter.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -52,6 +53,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_plotter = new Plotter();
 
+    LogCutter *logCutter = new LogCutter();
+
     // setup icons
     ui->btnOpen->setIcon(QIcon::fromTheme("document-open"));
     closeFile(); // reset internals
@@ -74,6 +77,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionBackward, SIGNAL(triggered()), SLOT(previousFrame()));
     connect(ui->actionForward, SIGNAL(triggered()), SLOT(nextFrame()));
     connect(ui->actionOpen_Plotter, SIGNAL(triggered()), m_plotter, SLOT(show()));
+    connect(ui->actionLogCutter, &QAction::triggered, logCutter, &LogCutter::show);
 
     // playback speed shortcuts
     QSignalMapper *mapper = new QSignalMapper(this);

@@ -128,6 +128,8 @@
     </property>
     <addaction name="actionOpen_Logfile"/>
     <addaction name="separator"/>
+    <addaction name="actionLogCutter"/>
+    <addaction name="separator"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuPlay">
@@ -352,6 +354,11 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+P</string>
+   </property>
+  </action>
+  <action name="actionLogCutter">
+   <property name="text">
+    <string>Log Cutter</string>
    </property>
   </action>
  </widget>

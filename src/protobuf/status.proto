@@ -44,6 +44,7 @@ message StatusAmun {
 
 // The status message is dumped for log replay
 // -> take care not to break compatibility!
+// WARNING: every message containing timestamps must be rewritten in the logcutter
 message Status {
     required int64 time = 1;
     // optional deprecated.amun.GameState game_state_deprecated = 2;
