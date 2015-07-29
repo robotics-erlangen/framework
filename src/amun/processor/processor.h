@@ -23,6 +23,8 @@
 
 #include "protobuf/command.h"
 #include "protobuf/status.h"
+#include "protobuf/ssl_radio_protocol.pb.h"
+#include "protobuf/ssl_mixed_team.pb.h"
 #include <QMap>
 #include <QPair>
 #include <QObject>
@@ -50,6 +52,8 @@ public slots:
     void setScaling(float scaling);
     void handleRefereePacket(const QByteArray &data, qint64 time);
     void handleVisionPacket(const QByteArray &data, qint64 time);
+    void handleNetworkCommand(const QByteArray &data, qint64 time);
+    void handleMixedTeamInfo(const QByteArray &data, qint64 time);
     void handleRadioResponses(const QList<robot::RadioResponse> &responses);
     void handleCommand(const Command &command);
     void handleStrategyCommand(bool blue, uint generation, uint id, QByteArray data, qint64 time);
@@ -75,7 +79,7 @@ private:
     void updateCommandVGlobal(const world::Robot *robot, robot::Command &command);
     void updateCommandVLocal(const world::Robot *robot, robot::Command &command);
     const world::Robot *getWorldRobot(const RobotList &robots, uint id);
-    void injectRadioResponses(Status &status);
+    void injectExtraData(Status &status);
     void injectUserControl(Status &status, bool isBlue);
 
     void sendTeams();
@@ -86,6 +90,10 @@ private:
     Referee *m_refereeInternal;
     Tracker *m_tracker;
     QList<robot::RadioResponse> m_responses;
+    QMap<uint, SSL_RadioProtocolCommand> m_networkCommand;
+    ssl::TeamPlan m_mixedTeamInfo;
+    bool m_mixedTeamInfoSet;
+    qint64 m_networkCommandTime;
     bool m_refereeInternalActive;
     bool m_simulatorEnabled;
 

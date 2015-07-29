@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -17,74 +17,35 @@
  *   You should have received a copy of the GNU General Public License     *
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
+#ifndef NETWORKTRANSCEIVER_H
+#define NETWORKTRANSCEIVER_H
 
-#ifndef AMUN_H
-#define AMUN_H
+#include <QObject>
 
 #include "protobuf/command.h"
 #include "protobuf/status.h"
 
-class NetworkInterfaceWatcher;
-class Processor;
-class Receiver;
-class Simulator;
-class Strategy;
-class Timer;
-class Transceiver;
-class NetworkTransceiver;
-class QHostAddress;
+class QUdpSocket;
 
-class Amun : public QObject
+class NetworkTransceiver : public QObject
 {
     Q_OBJECT
-
 public:
-    explicit Amun(QObject *parent = 0);
-    ~Amun();
+    NetworkTransceiver(QObject *parent = nullptr);
+    ~NetworkTransceiver();
 
 signals:
-    void sendStatus(const Status &status);
-    void gotCommand(const Command &command);
-    void setScaling(float scaling);
-    void updateVisionPort(quint16 port);
-
-public:
-    void start();
-    void stop();
+    void sendStatus(Status status);
 
 public slots:
+    void handleRadioCommands(const QList<robot::RadioCommand> &commands);
     void handleCommand(const Command &command);
 
-private slots:
-    void handleStatus(const Status &status);
-
 private:
-    void setupReceiver(Receiver *&receiver, const QHostAddress &address, quint16 port);
-    void setSimulatorEnabled(bool enabled, bool useNetworkTransceiver);
-    void updateScaling(float scaling);
-
-private:
-    QThread *m_processorThread;
-    QThread *m_networkThread;
-    QThread *m_simulatorThread;
-    QThread *m_strategyThread[2];
-
-    Processor *m_processor;
-    Transceiver *m_transceiver;
-    NetworkTransceiver *m_networkTransceiver;
-    Simulator *m_simulator;
-    Receiver *m_referee;
-    Receiver *m_vision;
-    Receiver *m_networkCommand;
-    Receiver *m_mixedTeam;
-    Strategy *m_strategy[2];
-    qint64 m_lastTime;
-    Timer *m_timer;
+    bool m_charge;
     bool m_simulatorEnabled;
-    float m_scaling;
-    bool m_useNetworkTransceiver;
-
-    NetworkInterfaceWatcher *m_networkInterfaceWatcher;
+    amun::HostAddress m_configuration;
+    QUdpSocket *m_udpSocket;
 };
 
-#endif // AMUN_H
+#endif // NETWORKTRANSCEIVER_H

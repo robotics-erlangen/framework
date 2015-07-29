@@ -29,6 +29,7 @@ local Robot = require "../base/robot"
 local Generation = require "../base/generation"
 local amun = amun
 local Constants = require "../base/constants"
+local mixedTeam = require "../base/mixedteam"
 
 --- Ball and team informations.
 -- @class table
@@ -57,6 +58,9 @@ local Constants = require "../base/constants"
 -- FirstHalfPre, FirstHalf, HalfTime, SecondHalfPre, SecondHalf,
 -- ExtraTimeBreak, ExtraFirstHalfPre, ExtraFirstHalf, ExtraHalfTime, ExtraSecondHalfPre, ExtraSecondHalf,
 -- PenaltyShootoutBreak, PenaltyShootout, PostGame
+-- @field MixedTeam Table[] - Mixed team data sent by partner team, indexed by robot id, only set if data was received;
+-- Has the following fields: role string (values: Default, Goalie, Defense, Offense), targetPos* vector,
+-- targetDir* number, shootPos* vector, * = optional
 
 local World = {}
 
@@ -72,6 +76,7 @@ World.Robots = {}
 World.TeamIsBlue = false
 World.IsSimulated = false
 World.IsLargeField = false
+World.MixedTeam = nil
 
 World.Geometry = {}
 --- Field geometry.
@@ -254,6 +259,13 @@ function World._updateWorld(state)
 
 	World.Robots = table.copy(World.FriendlyRobots)
 	table.append(World.Robots, World.OpponentRobots)
+
+	-- convert mixed team info
+	if state.mixed_team_info and state.mixed_team_info.plans then
+		World.MixedTeam = mixedTeam.decodeData(state.mixed_team_info.plans)
+	else
+		World.MixedTeam = nil
+	end
 
 	-- no vision data only if the parameter is false
 	return state.has_vision_data ~= false

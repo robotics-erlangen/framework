@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>331</width>
-    <height>389</height>
+    <height>568</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -138,6 +138,65 @@
           <string>Channel F</string>
          </property>
         </item>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_5">
+     <property name="title">
+      <string>Network Radio</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_5">
+      <item row="1" column="0">
+       <widget class="QLineEdit" name="networkHost">
+        <property name="placeholderText">
+         <string>Hostname</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="networkPort">
+        <property name="maximum">
+         <number>65535</number>
+        </property>
+        <property name="value">
+         <number>10010</number>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="networkUse">
+        <property name="text">
+         <string>Enable network radio</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox_6">
+     <property name="title">
+      <string>Mixed team</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_6">
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="mixedPort">
+        <property name="maximum">
+         <number>65535</number>
+        </property>
+        <property name="value">
+         <number>10012</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLineEdit" name="mixedHost">
+        <property name="placeholderText">
+         <string>Hostname</string>
+        </property>
        </widget>
       </item>
      </layout>

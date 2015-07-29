@@ -40,6 +40,7 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
         connect(this, SIGNAL(addBinding(uint,uint,QString)), inputManager, SLOT(addBinding(uint,uint,QString)));
         connect(this, SIGNAL(removeBinding(uint,uint)), inputManager, SLOT(removeBinding(uint,uint)));
         connect(this, SIGNAL(strategyControlled(uint,uint,bool)), inputManager, SLOT(setStrategyControlled(uint,uint,bool)));
+        connect(this, SIGNAL(networkControlled(uint,uint,bool)), inputManager, SLOT(setNetworkControlled(uint,uint,bool)));
         connect(inputManager, SIGNAL(devicesUpdated()), SLOT(updateMenu()));
     }
 
@@ -181,13 +182,19 @@ void RobotWidget::selectInput()
     QAction *action = dynamic_cast<QAction*>(sender());
     Q_ASSERT(action);
     m_inputDevice = action->text();
-    emit addBinding(m_specs.generation(), m_specs.id(), action->text());
+    bool isNetwork = m_inputDevice == "Network";
+    if (!isNetwork) {
+        emit addBinding(m_specs.generation(), m_specs.id(), action->text());
+    }
     emit strategyControlled(m_specs.generation(), m_specs.id(), m_strategyControlled);
+    emit networkControlled(m_specs.generation(), m_specs.id(), isNetwork);
     updateMenu();
     m_inputLabel->setText(m_inputDevice);
     m_inputLabel->show();
     if (m_inputDevice == "Keyboard")
         m_btnControl->setIcon(QIcon("icon:16/input-keyboard.png"));
+    else if (isNetwork)
+        m_btnControl->setIcon(QIcon("icon:16/network-receive.png"));
     else
         m_btnControl->setIcon(QIcon("icon:16/input-gaming.png"));
 }
@@ -205,7 +212,8 @@ void RobotWidget::updateMenu()
 {
     m_menu->clear();
 
-    const QStringList devices = m_inputManager->devices();
+    QStringList devices = m_inputManager->devices();
+    devices.prepend("Network");
     m_btnControl->setEnabled(!devices.isEmpty());
 
     QAction *action = m_menu->addAction("Disable manual control");

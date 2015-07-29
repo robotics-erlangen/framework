@@ -131,6 +131,13 @@ void InputManager::update()
             command->set_dribbler(command->dribbler() * m_dribblerPower);
             command->set_kick_power(command->kick_power() * m_shootPower);
         }
+        for(NetworkControlMap::const_iterator it = m_networkControl.begin();
+                it != m_networkControl.end(); ++it) {
+            robot::RadioCommand *radio_command = control->add_commands();
+            radio_command->set_generation(it.key().first);
+            radio_command->set_id(it.key().second);
+            radio_command->mutable_command()->set_network_controlled(it.value());
+        }
     }
 
     emit sendCommand(command);
@@ -228,6 +235,16 @@ void InputManager::setStrategyControlled(uint generation, uint id, bool strategy
     QPair<uint, uint> rid(generation, id);
     if (m_bindings.contains(rid)) {
         m_bindings[rid]->setStrategyControlled(strategyControlled);
+    }
+}
+
+void InputManager::setNetworkControlled(uint generation, uint id, bool networkControlled)
+{
+    QPair<uint, uint> rid(generation, id);
+    if (networkControlled) {
+        m_networkControl[rid] = true;
+    } else {
+        m_networkControl.remove(rid);
     }
 }
 

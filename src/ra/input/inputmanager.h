@@ -58,6 +58,7 @@ public slots:
     bool addBinding(uint generation, uint id, const QString &device);
     void removeBinding(uint generation, uint id);
     void setStrategyControlled(uint generation, uint id, bool strategyControlled);
+    void setNetworkControlled(uint generation, uint id, bool networkControlled);
     void setMaxSpeed(double speed);
     void setMaxOmega(double speed);
     void setDribblerPower(double dribblerPower);
@@ -82,6 +83,8 @@ private:
     QMap<QString, InputDevice*> m_devices;
     typedef QMap<QPair<uint, uint>, InputDevice*> BindingsMap;
     BindingsMap m_bindings;
+    typedef QMap<QPair<uint, uint>, bool> NetworkControlMap;
+    NetworkControlMap m_networkControl;
 
 #ifdef SDL2_FOUND
     QMap<SDL_JoystickID, Joystick*> m_joysticks;

@@ -1,4 +1,5 @@
 import "robot.proto";
+import "ssl_mixed_team.proto";
 
 package world;
 
@@ -76,4 +77,5 @@ message State {
     repeated robot.RadioResponse radio_response = 5;
     optional bool is_simulated = 6;
     optional bool has_vision_data = 7;
+    optional ssl.TeamPlan mixed_team_info = 8;
 }

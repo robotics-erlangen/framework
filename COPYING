@@ -54,7 +54,7 @@ data/icons/*/{ball,plotter,erforce,change-ends,capacitor,logplayer}*:
  * Copyright 2014 Robotics Erlangen e.V.
  * Licensed under GPL 3
 
-data/icons/*/view-refresh*:
+data/icons/*/{view-refresh,network-receive}*:
  * Public Domain 2007 Tango! Desktop Project
  * See http://commons.wikimedia.org/wiki/File%3AView-refresh.svg
 

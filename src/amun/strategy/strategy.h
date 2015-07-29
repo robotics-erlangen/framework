@@ -25,10 +25,12 @@
 #include "protobuf/status.h"
 #include "strategytype.h"
 #include <QString>
+#include <QHostAddress>
 
 class QTimer;
 class Timer;
 class AbstractStrategyScript;
+class QUdpSocket;
 
 class Strategy : public QObject
 {
@@ -47,6 +49,7 @@ signals:
 public slots:
     void handleStatus(const Status &status);
     void handleCommand(const Command &command);
+    void sendMixedTeamInfo(const QByteArray &data);
 
 private slots:
     void process();
@@ -78,6 +81,11 @@ private:
     QTimer *m_reloadTimer;
     bool m_autoReload;
     bool m_strategyFailed;
+
+    QUdpSocket *m_mixedTeamSocket;
+    QHostAddress m_mixedTeamHost;
+    quint16 m_mixedTeamPort;
+    QByteArray m_mixedTeamData;
 };
 
 #endif // STRATEGY_H

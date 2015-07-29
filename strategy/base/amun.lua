@@ -152,6 +152,14 @@ separator for luadoc]]--
 -- @name sendRefereeCommand
 -- @param command SSL_Referee
 
+--[[
+separator for luadoc]]--
+
+--- Send mixed team info packet
+-- @class function
+-- @name sendMixedTeamInfo
+-- @param data ssl::TeamPlan
+
 require "amun"
 log = amun.log
 -- publish debug status

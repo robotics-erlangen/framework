@@ -23,6 +23,7 @@ add_subdirectory(tracking)
 if(TARGET tracking)
 
 include_directories(${PROTOBUF_INCLUDE_DIR})
+include_directories(${EIGEN_INCLUDE_DIR})
 
 if(USB_FOUND)
     include_directories(${USB_INCLUDE_DIR})
@@ -37,6 +38,8 @@ set(SOURCES
     debughelper.h
     processor.cpp
     processor.h
+    networktransceiver.cpp
+    networktransceiver.h
     referee.cpp
     referee.h
     transceiver.cpp
@@ -49,7 +52,8 @@ endif()
 
 add_library(processor ${SOURCES})
 target_link_libraries(processor tracking)
-qt5_use_modules(processor Core)
+add_dependencies(processor eigen)
+qt5_use_modules(processor Core Network)
 
 if(USB_FOUND)
     target_link_libraries(processor ${USB_LIBRARIES})

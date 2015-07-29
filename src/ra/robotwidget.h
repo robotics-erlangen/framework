@@ -47,6 +47,7 @@ signals:
     void addBinding(uint generation, uint id, const QString &device);
     void removeBinding(uint generation, uint id);
     void strategyControlled(uint generation, uint id, bool strategyControlled);
+    void networkControlled(uint generation, uint id, bool networkControlled);
     void teamSelected(uint generation, uint id, RobotWidget::Team team);
 
 public slots:

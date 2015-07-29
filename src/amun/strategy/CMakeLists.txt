@@ -44,6 +44,6 @@ set(SOURCES
 
 add_library(strategy ${SOURCES})
 target_link_libraries(strategy core path protobuf ${LUA_LIBRARIES})
-qt5_use_modules(strategy Core)
+qt5_use_modules(strategy Core Network)
 
 endif()

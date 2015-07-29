@@ -62,10 +62,17 @@ message TransceiverConfiguration {
     required uint32 channel = 1;
 }
 
+message HostAddress {
+    required string host = 1;
+    required uint32 port = 2;
+}
+
 message CommandTransceiver {
     optional bool enable = 1;
     optional bool charge = 2;
     optional TransceiverConfiguration configuration = 3;
+    optional HostAddress network_configuration = 4;
+    optional bool use_network = 5;
 }
 
 message TrackingAOI {
@@ -101,4 +108,5 @@ message Command {
     optional float speed = 11;
     optional CommandTracking tracking = 12;
     optional CommandAmun amun = 14;
+    optional HostAddress mixed_team_destination = 15;
 }

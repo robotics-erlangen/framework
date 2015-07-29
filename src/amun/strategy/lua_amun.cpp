@@ -219,6 +219,23 @@ static int amunSituationtestSetBeamIndicator(lua_State *state)
     return 0;
 }
 
+static int amunSendMixedTeamInfo(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+
+    ssl::TeamPlan mixedTeamInfo;
+    protobufToMessage(state, 1, mixedTeamInfo);
+
+    QByteArray data;
+    data.resize(mixedTeamInfo.ByteSize());
+    if (!mixedTeamInfo.SerializeToArray(data.data(), data.size())) {
+        luaL_error(state, "Invalid mixed team information packet!");
+    }
+
+    emit thread->sendMixedTeamInfo(data);
+    return 0;
+}
+
 static const luaL_Reg amunMethods[] = {
     // fixed during strategy runtime
     {"getGeometry",         amunGetGeometry},
@@ -241,6 +258,7 @@ static const luaL_Reg amunMethods[] = {
     {"sendRefereeCommand",  amunSendRefereeCommand},
     {"situationtestGetBeamIndicator", amunSituationtestGetBeamIndicator},
     {"situationtestSetBeamIndicator", amunSituationtestSetBeamIndicator},
+    {"sendMixedTeamInfo",   amunSendMixedTeamInfo},
     {0, 0}
 };
 

@@ -38,6 +38,8 @@ set(PROTO_FILES
     robot.proto
     ssl_detection.proto
     ssl_geometry.proto
+    ssl_mixed_team.proto
+    ssl_radio_protocol.proto
     ssl_referee.proto
     ssl_wrapper.proto
     status.proto

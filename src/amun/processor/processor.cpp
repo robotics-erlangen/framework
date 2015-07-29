@@ -90,6 +90,7 @@ struct Processor::Robot
  */
 Processor::Processor(const Timer *timer) :
     m_timer(timer),
+    m_networkCommandTime(0),
     m_refereeInternalActive(false),
     m_simulatorEnabled(false),
     m_transceiverEnabled(false)
@@ -143,11 +144,13 @@ void Processor::process()
     status->mutable_game_state()->CopyFrom(activeReferee->gameState());
     strategyStatus->mutable_game_state()->CopyFrom(activeReferee->gameState());
 
-    // add radio responses from robots
-    injectRadioResponses(status);
-    injectRadioResponses(strategyStatus);
+    // add radio responses from robots and mixed team data
+    injectExtraData(status);
+    injectExtraData(strategyStatus);
     // remove responses after injecting to avoid sending them a second time
     m_responses.clear();
+    m_mixedTeamInfo.Clear();
+    m_mixedTeamInfoSet = false;
 
     // add input / commands from the user for the strategy
     injectUserControl(strategyStatus, true);
@@ -194,12 +197,15 @@ const world::Robot* Processor::getWorldRobot(const RobotList &robots, uint id) {
     return NULL;
 }
 
-void Processor::injectRadioResponses(Status &status)
+void Processor::injectExtraData(Status &status)
 {
     // just copy every response
     foreach (const robot::RadioResponse &response, m_responses) {
         robot::RadioResponse *rr = status->mutable_world_state()->add_radio_response();
         rr->CopyFrom(response);
+    }
+    if (m_mixedTeamInfoSet) {
+        *(status->mutable_world_state()->mutable_mixed_team_info()) = m_mixedTeamInfo;
     }
 }
 
@@ -210,7 +216,31 @@ void Processor::injectUserControl(Status &status, bool isBlue)
     amun::UserInput *userInput = isBlue ? status->mutable_user_input_blue() : status->mutable_user_input_yellow();
 
     foreach (Robot *robot, team.robots) {
-        if (!robot->manual_command || !robot->manual_command->strategy_controlled()) {
+        if (!robot->manual_command) {
+            continue;
+        }
+
+        if (robot->manual_command->network_controlled()
+                && m_networkCommandTime + 200*1000*1000 > status->world_state().time()
+                && m_networkCommand.contains(robot->controller.specs().id())) {
+
+            const SSL_RadioProtocolCommand &cmd = m_networkCommand[robot->controller.specs().id()];
+
+            robot->manual_command->set_v_f(cmd.velocity_x());
+            robot->manual_command->set_v_s(-cmd.velocity_y());
+            robot->manual_command->set_omega(cmd.velocity_r());
+            if (cmd.has_flat_kick()) {
+                robot->manual_command->set_kick_style(robot::Command::Linear);
+                robot->manual_command->set_kick_power(cmd.flat_kick());
+            } else if (cmd.has_chip_kick()) {
+                robot->manual_command->set_kick_style(robot::Command::Chip);
+                robot->manual_command->set_kick_power(cmd.chip_kick());
+            }
+            robot->manual_command->set_dribbler(cmd.dribbler_spin());
+            robot->manual_command->set_direct(true);
+        }
+
+        if (!robot->manual_command->strategy_controlled()) {
             continue;
         }
 
@@ -297,6 +327,25 @@ void Processor::handleRefereePacket(const QByteArray &data, qint64 /*time*/)
 void Processor::handleVisionPacket(const QByteArray &data, qint64 time)
 {
     m_tracker->queuePacket(data, time);
+}
+
+void Processor::handleNetworkCommand(const QByteArray &data, qint64 time)
+{
+    m_networkCommand.clear();
+    m_networkCommandTime = time;
+    SSL_RadioProtocolWrapper wrapper;
+    wrapper.ParseFromArray(data.constData(), data.size());
+    for (int i = 0; i < wrapper.command_size(); ++i) {
+        const SSL_RadioProtocolCommand &cmd = wrapper.command(i);
+        m_networkCommand[cmd.robot_id()] = cmd;
+    }
+}
+
+void Processor::handleMixedTeamInfo(const QByteArray &data, qint64 time)
+{
+    m_mixedTeamInfo.Clear();
+    m_mixedTeamInfoSet = true;
+    m_mixedTeamInfo.ParseFromArray(data.constData(), data.size());
 }
 
 void Processor::handleRadioResponses(const QList<robot::RadioResponse> &responses)

@@ -25,6 +25,7 @@
 #include <QDateTime>
 #include <QFileInfo>
 #include <QTimer>
+#include <QUdpSocket>
 
 /*!
  * \class Strategy
@@ -46,6 +47,8 @@ Strategy::Strategy(const Timer *timer, StrategyType type) :
     m_autoReload(false),
     m_strategyFailed(false)
 {
+    m_mixedTeamSocket = new QUdpSocket(this);
+
     // used to delay processing until all status packets are processed
     m_idleTimer = new QTimer(this);
     m_idleTimer->setSingleShot(true);
@@ -157,9 +160,19 @@ void Strategy::handleCommand(const Command &command)
         }
     }
 
+    if (command->has_mixed_team_destination()) {
+        m_mixedTeamHost = QHostAddress(QString::fromStdString(command->mixed_team_destination().host()));
+        m_mixedTeamPort = command->mixed_team_destination().port();
+    }
+
     if (reloadStrategy && m_strategy) {
         reload();
     }
+}
+
+void Strategy::sendMixedTeamInfo(const QByteArray &data)
+{
+    m_mixedTeamData = data;
 }
 
 void Strategy::process()
@@ -178,6 +191,17 @@ void Strategy::process()
                                             amun::UserInput());
 
     if (m_strategy->process(pathPlanning, m_status->world_state(), m_status->game_state(), userInput)) {
+        if (!m_mixedTeamData.isNull()) {
+            int bytesSent = m_mixedTeamSocket->writeDatagram(m_mixedTeamData, m_mixedTeamHost, m_mixedTeamPort);
+            int origSize = m_mixedTeamData.size();
+            m_mixedTeamData = QByteArray();
+
+            if (bytesSent != origSize) {
+                fail("Failed to send mixed team info");
+                return;
+            }
+        }
+
         double totalTime = (Timer::systemTime() - startTime) / 1E9;
 
         // publish timings and debug output
@@ -239,6 +263,7 @@ void Strategy::loadScript(const QString filename, const QString entryPoint)
     connect(m_strategy, SIGNAL(sendStrategyCommand(bool,unsigned int,unsigned int,QByteArray,qint64)),
             SIGNAL(sendStrategyCommand(bool,unsigned int,unsigned int,QByteArray,qint64)));
     connect(m_strategy, SIGNAL(gotCommand(Command)), SLOT(sendCommand(Command)));
+    connect(m_strategy, SIGNAL(sendMixedTeamInfo(QByteArray)), SLOT(sendMixedTeamInfo(QByteArray)));
 
     if (m_strategy->loadScript(filename, entryPoint, m_geometry, m_team)) {
         m_entryPoint = m_strategy->entryPoint(); // remember loaded entrypoint
@@ -350,4 +375,5 @@ amun::DebugSource Strategy::debugSource() const
     case StrategyType::AUTOREF:
         return amun::Autoref;
     }
+    qFatal("Internal error");
 }
