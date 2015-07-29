@@ -22,6 +22,7 @@
 #include "core/timer.h"
 #include <QNetworkInterface>
 #include <QUdpSocket>
+#include <QTimer>
 
 /*!
  * \class Receiver
@@ -49,6 +50,8 @@ Receiver::Receiver(const QHostAddress &groupAddress, quint16 port) :
     m_port(port),
     m_socket(NULL)
 {
+    m_timeoutTimer = new QTimer(this);
+    connect(m_timeoutTimer, &QTimer::timeout, this, &Receiver::timeout);
 }
 
 /*!
@@ -78,8 +81,12 @@ void Receiver::startListen()
         return;
     }
 
-    foreach (const QNetworkInterface& iface, QNetworkInterface::allInterfaces()) {
-        m_socket->joinMulticastGroup(m_groupAddress, iface);
+    if (!m_groupAddress.isNull()) {
+        foreach (const QNetworkInterface& iface, QNetworkInterface::allInterfaces()) {
+            m_socket->joinMulticastGroup(m_groupAddress, iface);
+        }
+
+        m_timeoutTimer->start(50);
     }
 }
 
@@ -90,6 +97,7 @@ void Receiver::stopListen()
 {
     delete m_socket;
     m_socket = NULL;
+    m_timeoutTimer->stop();
 }
 
 /*!
@@ -101,8 +109,10 @@ void Receiver::updateInterface(const QNetworkInterface& interface)
     if (m_socket == nullptr) {
         return;
     }
-    // just try joining
-    m_socket->joinMulticastGroup(m_groupAddress, interface);;
+    if (!m_groupAddress.isNull()) {
+        // just try joining
+        m_socket->joinMulticastGroup(m_groupAddress, interface);
+    }
 }
 
 /*!
@@ -126,8 +136,19 @@ void Receiver::updatePort(quint16 port)
  */
 void Receiver::readData()
 {
-    QByteArray data;
-    data.resize(m_socket->pendingDatagramSize());
-    m_socket->readDatagram(data.data(), data.size());
-    emit gotPacket(data, Timer::systemTime());
+    while (m_socket->hasPendingDatagrams()) {
+        QByteArray data;
+        data.resize(m_socket->pendingDatagramSize());
+        m_socket->readDatagram(data.data(), data.size());
+        emit gotPacket(data, Timer::systemTime());
+        if (!m_groupAddress.isNull()) {
+            m_timeoutTimer->start();
+        }
+    }
+}
+
+void Receiver::timeout()
+{
+    stopListen();
+    startListen();
 }

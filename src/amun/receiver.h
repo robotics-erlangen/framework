@@ -24,6 +24,8 @@
 #include <QUdpSocket>
 #include "protobuf/status.h"
 
+class QTimer;
+
 class Receiver : public QObject
 {
     Q_OBJECT
@@ -44,11 +46,13 @@ public slots:
 
 private slots:
     void readData();
+    void timeout();
 
 private:
     QHostAddress m_groupAddress;
     quint16 m_port;
     QUdpSocket *m_socket;
+    QTimer *m_timeoutTimer;
 };
 
 #endif // RECEIVER_H
