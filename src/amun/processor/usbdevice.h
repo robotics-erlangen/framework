@@ -24,6 +24,8 @@
 #include <QIODevice>
 #include <QSharedPointer>
 #include <QMutex>
+#include <QSemaphore>
+#include <atomic>
 
 class USBThread;
 struct USBDevicePrivateData;
@@ -70,9 +72,14 @@ private:
     int m_timeout;
     quint8 m_buffer[512];
     qint64 m_bufferSize;
+
     QMutex m_mutex;
     libusb_transfer *m_inboundTransfer;
-    volatile bool m_readError;
+
+    QSemaphore m_shutdownSemaphore;
+    bool m_shutingDown;
+
+    std::atomic_bool m_readError;
     QString m_serialNumber;
     QString m_id;
 };

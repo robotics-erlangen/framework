@@ -36,6 +36,13 @@ struct USBDevicePrivateData
     libusb_device_descriptor descriptor;
 };
 
+struct USBResult
+{
+    QSemaphore sem;
+    libusb_transfer_status status;
+    int bytesTransfered;
+};
+
 QList<USBDevice*> USBDevice::getDevices(quint16 vendorId, quint16 productId, USBThread *context)
 {
     QList<USBDevice*> devices;
@@ -66,6 +73,7 @@ USBDevice::USBDevice(void *device) :
     m_bufferSize(0),
     m_mutex(QMutex::Recursive),
     m_inboundTransfer(NULL),
+    m_shutingDown(false),
     m_readError(false)
 {
     m_data = new USBDevicePrivateData;
@@ -182,14 +190,22 @@ void USBDevice::close()
 {
     QIODevice::close();
     if (m_data->handle) {
+        bool waitForCancelation = false;
         {
             QMutexLocker m(&m_mutex);
-            if (m_inboundTransfer != NULL) {
+            // prevent starting a new transfer
+            m_shutingDown = true;
+            if (m_inboundTransfer != nullptr) {
+                // here either a transfer is pending, or the callback didn't reach its lock yet
                 libusb_cancel_transfer(m_inboundTransfer);
-                m_inboundTransfer = NULL;
+                // wait until transfer is cancelled
+                waitForCancelation = true;
+                m_inboundTransfer = nullptr;
             }
         }
-
+        if (waitForCancelation) {
+            m_shutdownSemaphore.acquire();
+        }
         libusb_release_interface(m_data->handle, 0);
         libusb_close(m_data->handle);
         m_data->handle = NULL;
@@ -228,19 +244,18 @@ quint16 USBDevice::productId() const
 
 LIBUSB_CALL void inCallback(libusb_transfer* transfer)
 {
-    // don't call the device as it might already have been destroyed
-    if (transfer->status != LIBUSB_TRANSFER_CANCELLED) {
-        USBDevice *device = reinterpret_cast<USBDevice*>(transfer->user_data);
-        device->inCallback(transfer);
-    }
+    USBDevice *device = reinterpret_cast<USBDevice*>(transfer->user_data);
+    device->inCallback(transfer);
     libusb_free_transfer(transfer);
 }
 
+// called from usb thread
 void USBDevice::inCallback(libusb_transfer *transfer)
 {
     QMutexLocker m(&m_mutex);
-    if (m_inboundTransfer == NULL) {
-        // already canceled by close
+    if (m_shutingDown) {
+        // just exit
+        m_shutdownSemaphore.release();
         return;
     }
     // transfer has completed, allow starting a new one
@@ -259,11 +274,13 @@ void USBDevice::inCallback(libusb_transfer *transfer)
     }
 }
 
+// called from usb or transceiver thread
 void USBDevice::startInTransfer()
 {
     QMutexLocker m(&m_mutex);
     // make sure to have at most one inbound transfer!
-    if (m_inboundTransfer != NULL) {
+    // prevent creating transfers on shutdown
+    if (m_inboundTransfer != NULL || m_shutingDown) {
         return;
     }
 
@@ -279,6 +296,7 @@ void USBDevice::startInTransfer()
     if (ret < 0) {
         // error
         setErrorString(ret);
+        libusb_free_transfer(m_inboundTransfer);
         m_inboundTransfer = NULL;
         m_readError = true;
     }
@@ -286,7 +304,7 @@ void USBDevice::startInTransfer()
 
 qint64 USBDevice::readData(char* data, qint64 maxSize)
 {
-    if (!m_data->handle || m_readError)
+    if (!m_data->handle || m_readError.load())
         return -1;
 
     // copy data from buffer
@@ -302,18 +320,53 @@ qint64 USBDevice::readData(char* data, qint64 maxSize)
     return l;
 }
 
+// called from usb thread
+LIBUSB_CALL void outCallback(libusb_transfer* transfer)
+{
+    USBResult *result = reinterpret_cast<USBResult*>(transfer->user_data);
+
+    if (transfer->status == LIBUSB_TRANSFER_COMPLETED) {
+        result->bytesTransfered = transfer->actual_length;
+    } else {
+        result->bytesTransfered = -1;
+    }
+
+    result->status = transfer->status;
+    result->sem.release();
+    libusb_free_transfer(transfer);
+}
+
 qint64 USBDevice::writeData(const char* data, qint64 maxSize)
 {
     if (!m_data->handle || m_readError)
         return -1;
 
     // send data
-    int length = 0;
-    int ret = libusb_bulk_transfer(m_data->handle, LIBUSB_ENDPOINT_OUT | 0x01, (unsigned char*) data, maxSize, &length, m_timeout);
+    libusb_transfer *outTransfer = libusb_alloc_transfer(0);
+    if (outTransfer == NULL) {
+        setErrorString(LIBUSB_ERROR_NO_MEM);
+        return -1;
+    }
+    USBResult *result = new USBResult();
+
+    libusb_fill_bulk_transfer(outTransfer, m_data->handle, LIBUSB_ENDPOINT_OUT | 0x01,
+                              reinterpret_cast<unsigned char*>(const_cast<char*>(data)), maxSize,
+                              ::outCallback, result, m_timeout);
+    int ret = libusb_submit_transfer(outTransfer);
     if (ret < 0) {
+        // error
         setErrorString(ret);
+        libusb_free_transfer(outTransfer);
         return -1;
     }
 
-    return length;
+    result->sem.acquire(1);
+    int bytesTransfered = result->bytesTransfered;
+
+    if (result->bytesTransfered < 0) {
+        setErrorString(result->status);
+    }
+
+    delete result;
+    return bytesTransfered;
 }
