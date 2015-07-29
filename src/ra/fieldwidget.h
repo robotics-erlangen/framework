@@ -26,6 +26,7 @@
 #include <QGraphicsView>
 #include <QMap>
 #include <QHash>
+#include <QLinkedList>
 
 class QLabel;
 class QMenu;
@@ -42,6 +43,14 @@ private:
         QGraphicsPathItem *robot;
         QGraphicsSimpleTextItem *id;
         bool visible;
+    };
+
+    struct Trace
+    {
+        QMultiMap<qint64, QGraphicsEllipseItem *> traces;
+        QLinkedList<QGraphicsEllipseItem *> invalid;
+        QColor color;
+        float z_index;
     };
 
     typedef QMap<uint, Robot> RobotMap;
@@ -71,6 +80,7 @@ public slots:
     void handleStatus(const Status &status);
     void visualizationsChanged(const QStringList &items);
     void clearData();
+    void clearTraces();
     void hideVisualizationToggles();
     void flipAOI();
 
@@ -89,6 +99,7 @@ protected:
     void setInfoText(const QString &str);
 private slots:
     void updateVisualizationVisibility();
+    void updateTracesVisibility();
     void setHorizontal();
     void setVertical();
     void flip();
@@ -107,9 +118,9 @@ private:
     void updateInfoText();
     void updateVisualizations();
     void updateVisualizations(const amun::DebugValues &v);
-    void clearTeamData(RobotMap &team, QHash<uint, robot::Specs> &specsMap);
+    void clearTeamData(RobotMap &team);
     void updateTeam(RobotMap &team, QHash<uint, robot::Specs> &specsMap, const robot::Team &specs);
-    void setRobot(const world::Robot &robot, const robot::Specs &specs, RobotMap &robots, const QColor &color);
+    void setRobot(const world::Robot &robot, const robot::Specs &specs, RobotMap &robots, const QColor &color, Trace &robotTrace, Trace &robotRawTrace);
     void addBlob(float x, float y, const QBrush &brush, QGraphicsItem *parent);
     void setFieldOrientation(float rotation);
     void sendSimulatorMoveCommand(const QPointF &p);
@@ -119,6 +130,12 @@ private:
     QGraphicsItem* createPolygon(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
     QGraphicsItem* createPath(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
 
+    void invalidateTraces(Trace &trace, qint64 time);
+    void addTrace(Trace &trace, const QPointF &pos, qint64 time);
+    void clearTrace(Trace &trace);
+    void clearBallTraces();
+    void clearRobotTraces();
+
 private:
     QGraphicsScene *m_scene;
 
@@ -126,6 +143,8 @@ private:
     QAction *m_actionShowBlueVis;
     QAction *m_actionShowYellowVis;
     QAction *m_actionShowControllerVis;
+    QAction *m_actionShowBallTraces;
+    QAction *m_actionShowRobotTraces;
     QAction *m_actionAntialiasing;
     QAction *m_actionGL;
 
@@ -154,6 +173,12 @@ private:
     RobotMap m_robotsBlue;
     RobotMap m_robotsYellow;
 
+    Trace m_ballTrace;
+    Trace m_ballRawTrace;
+    Trace m_robotYellowTrace;
+    Trace m_robotYellowRawTrace;
+    Trace m_robotBlueTrace;
+    Trace m_robotBlueRawTrace;
 
     bool m_infoTextUpdated;
     QString m_infoText;

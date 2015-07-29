@@ -250,6 +250,7 @@ void MainWindow::clearPlayConsumers()
     // the log just displays messages of a continuously played timespan
     ui->log->clear();
     m_plotter->clearData();
+    ui->field->clearTraces();
 }
 
 void MainWindow::initializeLabels()

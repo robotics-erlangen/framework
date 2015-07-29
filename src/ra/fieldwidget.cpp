@@ -138,8 +138,20 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_actionShowControllerVis->setChecked(true);
     connect(m_actionShowControllerVis, SIGNAL(triggered()), SLOT(updateVisualizationVisibility()));
     updateVisualizationVisibility(); // update the visibility map
+
     m_contextMenu->addSeparator();
+    m_actionShowBallTraces = m_contextMenu->addAction("Show traces behind ball");
+    m_actionShowBallTraces->setCheckable(true);
+    m_actionShowBallTraces->setChecked(true);
+    connect(m_actionShowBallTraces, &QAction::triggered, this, &FieldWidget::updateTracesVisibility);
+
+    m_actionShowRobotTraces = m_contextMenu->addAction("Show traces behind robots");
+    m_actionShowRobotTraces->setCheckable(true);
+    m_actionShowRobotTraces->setChecked(true);
+    connect(m_actionShowRobotTraces, &QAction::triggered, this, &FieldWidget::updateTracesVisibility);
+
     // other actions
+    m_contextMenu->addSeparator();
     QAction *actionShowAOI = m_contextMenu->addAction("Enable custom vision area");
     actionShowAOI->setCheckable(true);
     connect(actionShowAOI, SIGNAL(toggled(bool)), SLOT(setAOIVisible(bool)));
@@ -180,6 +192,24 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_aoi = QRectF(-1, -1, 2, 2);
     updateAOI();
 
+    QColor ballColor(255, 66, 0);
+    m_ballTrace.color = ballColor.darker();
+    m_ballTrace.z_index = 2.f;
+    m_ballRawTrace.color = ballColor.darker(300);
+    m_ballRawTrace.z_index = 1.f;
+
+    QColor robotYellowColor = QColor(Qt::yellow);
+    m_robotYellowTrace.color = robotYellowColor.darker();
+    m_robotYellowTrace.z_index = 2.f;
+    m_robotYellowRawTrace.color = robotYellowColor.darker(300);
+    m_robotYellowRawTrace.z_index = 1.f;
+
+    QColor robotBlueColor = QColor(Qt::blue);
+    m_robotBlueTrace.color = robotBlueColor.darker();
+    m_robotBlueTrace.z_index = 2.f;
+    m_robotBlueRawTrace.color = robotBlueColor.darker(300);
+    m_robotBlueRawTrace.z_index = 1.f;
+
     m_infoTextItem = new QGraphicsTextItem;
     m_infoTextItem->setZValue(10000);
     m_scene->addItem(m_infoTextItem);
@@ -209,6 +239,8 @@ FieldWidget::FieldWidget(QWidget *parent) :
     s.beginGroup("Field");
     m_actionGL->setChecked(s.value("OpenGL").toBool());
     m_actionAntialiasing->setChecked(s.value("AntiAliasing").toBool());
+    m_actionShowBallTraces->setChecked(s.value("BallTraces", true).toBool());
+    m_actionShowRobotTraces->setChecked(s.value("RobotTraces", true).toBool());
     s.endGroup();
 }
 
@@ -220,6 +252,8 @@ FieldWidget::~FieldWidget()
     s.beginGroup("Field");
     s.setValue("OpenGL", m_actionGL->isChecked());
     s.setValue("AntiAliasing", m_actionAntialiasing->isChecked());
+    s.setValue("BallTraces", m_actionShowBallTraces->isChecked());
+    s.setValue("RobotTraces", m_actionShowRobotTraces->isChecked());
     s.endGroup();
 }
 
@@ -259,10 +293,8 @@ void FieldWidget::handleStatus(const Status &status)
     }
 }
 
-void FieldWidget::clearTeamData(RobotMap &team, QHash<uint, robot::Specs> &specsMap)
+void FieldWidget::clearTeamData(RobotMap &team)
 {
-    specsMap.clear();
-
     // force redrawing robots
     foreach (Robot r, team) {
         delete r.id;
@@ -273,8 +305,12 @@ void FieldWidget::clearTeamData(RobotMap &team, QHash<uint, robot::Specs> &specs
 
 void FieldWidget::clearData()
 {
-    clearTeamData(m_robotsBlue, m_teamBlue);
-    clearTeamData(m_robotsYellow, m_teamYellow);
+    m_teamBlue.clear();
+    clearTeamData(m_robotsBlue);
+    m_teamYellow.clear();
+    clearTeamData(m_robotsYellow);
+
+    clearTraces();
 
     m_worldState.Clear();
     m_worldStateUpdated = true;
@@ -301,12 +337,7 @@ void FieldWidget::updateTeam(RobotMap &team, QHash<uint, robot::Specs> &specsMap
         specsMap[robot.id()].CopyFrom(robot);
     }
 
-    // force redrawing robots
-    foreach (Robot r, team) {
-        delete r.id;
-        delete r.robot;
-    }
-    team.clear();
+    clearTeamData(team);
 }
 
 void FieldWidget::visualizationsChanged(const QStringList &items)
@@ -333,6 +364,17 @@ void FieldWidget::updateVisualizationVisibility()
     m_visibleVisSources[amun::Autoref] = true;
 
     m_visualizationsUpdated = true;
+}
+
+void FieldWidget::updateTracesVisibility()
+{
+    if (!m_actionShowBallTraces->isChecked()) {
+        clearBallTraces();
+    }
+
+    if (!m_actionShowRobotTraces->isChecked()) {
+        clearRobotTraces();
+    }
 }
 
 void FieldWidget::updateVisualizations()
@@ -474,6 +516,74 @@ QGraphicsItem* FieldWidget::createPath(const QPen &pen, const QBrush &brush, con
     return item;
 }
 
+void FieldWidget::clearBallTraces()
+{
+    clearTrace(m_ballTrace);
+    clearTrace(m_ballRawTrace);
+}
+
+void FieldWidget::clearRobotTraces()
+{
+    clearTrace(m_robotYellowTrace);
+    clearTrace(m_robotYellowRawTrace);
+    clearTrace(m_robotBlueTrace);
+    clearTrace(m_robotBlueRawTrace);
+}
+
+void FieldWidget::clearTraces()
+{
+    clearBallTraces();
+    clearRobotTraces();
+}
+
+void FieldWidget::clearTrace(Trace &trace)
+{
+    for (QGraphicsEllipseItem *item: trace.traces) {
+        item->hide();
+        trace.invalid.append(item);
+    }
+    trace.traces.clear();
+}
+
+void FieldWidget::invalidateTraces(Trace &trace, qint64 time)
+{
+    for (auto it = trace.traces.begin(); it != trace.traces.end();) {
+        if (qAbs(time - it.key()) < 1000*1000*1000) {
+            ++it;
+            continue;
+        }
+
+        QGraphicsEllipseItem *item = it.value();
+        item->hide();
+        it = trace.traces.erase(it);
+        trace.invalid.append(item);
+    }
+}
+
+void FieldWidget::addTrace(Trace &trace, const QPointF &pos, qint64 time)
+{
+    QGraphicsEllipseItem *item = nullptr;
+    if (!trace.invalid.isEmpty()) {
+        item = trace.invalid.takeFirst();
+        item->show();
+    } else if (trace.traces.size() >= 1000) {
+        auto firstIt = trace.traces.begin();
+        item = firstIt.value();
+        trace.traces.erase(firstIt);
+    } else {
+        item = new QGraphicsEllipseItem;
+        item->setPen(Qt::NoPen);
+        item->setBrush(trace.color);
+        item->setRect(QRectF(-0.015f, -0.015f, 0.03f, 0.03f));
+        item->setZValue(trace.z_index);
+        m_scene->addItem(item);
+        // cache after adding to scene
+    }
+
+    item->setPos(pos);
+    trace.traces.insertMulti(time, item);
+}
+
 void FieldWidget::updateDetection()
 {
     if (!m_worldState.IsInitialized() || !m_worldStateUpdated)
@@ -492,6 +602,18 @@ void FieldWidget::updateDetection()
             m_ball->setPos(m_worldState.ball().p_x(), m_worldState.ball().p_y());
         }
         m_ball->show();
+
+        invalidateTraces(m_ballTrace, m_worldState.time());
+        invalidateTraces(m_ballRawTrace, m_worldState.time());
+
+        if (m_actionShowBallTraces->isChecked()) {
+            for (int i = 0; i < m_worldState.ball().raw_size(); ++i) {
+                const world::BallPosition &p = m_worldState.ball().raw(i);
+                addTrace(m_ballRawTrace, QPointF(p.p_x(), p.p_y()), p.time());
+            }
+            addTrace(m_ballTrace, QPointF(m_worldState.ball().p_x(), m_worldState.ball().p_y()),
+                     m_worldState.time());
+        }
     } else {
         m_ball->hide();
     }
@@ -500,13 +622,13 @@ void FieldWidget::updateDetection()
     for (int i = 0; i < m_worldState.blue_size(); i++) {
         const world::Robot &robot = m_worldState.blue(i);
         const robot::Specs &specs = m_teamBlue[robot.id()];
-        setRobot(robot, specs, m_robotsBlue, Qt::blue);
+        setRobot(robot, specs, m_robotsBlue, Qt::blue, m_robotBlueTrace, m_robotBlueRawTrace);
     }
 
     for (int i = 0; i < m_worldState.yellow_size(); i++) {
         const world::Robot &robot = m_worldState.yellow(i);
         const robot::Specs &specs = m_teamYellow[robot.id()];
-        setRobot(robot, specs, m_robotsYellow, Qt::yellow);
+        setRobot(robot, specs, m_robotsYellow, Qt::yellow, m_robotYellowTrace, m_robotYellowRawTrace);
     }
 
     // hide robots that are no longer tracked
@@ -527,7 +649,8 @@ void FieldWidget::updateDetection()
     }
 }
 
-void FieldWidget::setRobot(const world::Robot &robot, const robot::Specs &specs, RobotMap &robots, const QColor &color)
+void FieldWidget::setRobot(const world::Robot &robot, const robot::Specs &specs, RobotMap &robots,
+                           const QColor &color, Trace &robotTrace, Trace &robotRawTrace)
 {
     // get robot or create it
     Robot &r = robots[robot.id()];
@@ -595,6 +718,17 @@ void FieldWidget::setRobot(const world::Robot &robot, const robot::Specs &specs,
         r.robot->setPos(robot.p_x(), robot.p_y());
         r.robot->setRotation(phi);
         r.id->setPos(robot.p_x(), robot.p_y());
+    }
+
+    invalidateTraces(robotTrace, m_worldState.time());
+    invalidateTraces(robotRawTrace, m_worldState.time());
+
+    if (m_actionShowRobotTraces->isChecked()) {
+        for (int i = 0; i < robot.raw_size(); ++i) {
+            const world::RobotPosition &p = robot.raw(i);
+            addTrace(robotTrace, QPointF(p.p_x(), p.p_y()), p.time());
+        }
+        addTrace(robotRawTrace, QPointF(robot.p_x(), robot.p_y()), m_worldState.time());
     }
 
     r.robot->show();
