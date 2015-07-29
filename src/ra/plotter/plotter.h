@@ -43,6 +43,7 @@ public:
     ~Plotter();
 
 public slots:
+    void setScaling(float min, float max, float timespan);
     void handleStatus(const Status &status);
     void clearData();
 

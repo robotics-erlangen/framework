@@ -127,6 +127,13 @@ void Plotter::closeEvent(QCloseEvent *event)
     QWidget::closeEvent(event);
 }
 
+void Plotter::setScaling(float min, float max, float timespan)
+{
+    ui->spinYMin->setValue(min);
+    ui->spinYMax->setValue(max);
+    ui->spinDuration->setValue(timespan);
+}
+
 void Plotter::addRootItem(const QString &name, const QString &displayName)
 {
     QStandardItem *item = new QStandardItem(displayName);
