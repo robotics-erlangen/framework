@@ -166,11 +166,11 @@ function World._updateGeometry(geom)
 	wgeom.OwnPenaltyLine = wgeom.FriendlyPenaltySpot.y + geom.penalty_line_from_spot_dist
 
 	-- The goal posts are on the field lines
-	wgeom.FriendlyGoal = Vector(0, - wgeom.FieldHeightHalf + wgeom.LineWidth)
+	wgeom.FriendlyGoal = Vector(0, - wgeom.FieldHeightHalf)
 	wgeom.FriendlyGoalLeft = Vector(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
 	wgeom.FriendlyGoalRight = Vector(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
 
-	wgeom.OpponentGoal = Vector(0, wgeom.FieldHeightHalf - wgeom.LineWidth)
+	wgeom.OpponentGoal = Vector(0, wgeom.FieldHeightHalf)
 	wgeom.OpponentGoalLeft = Vector(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
 	wgeom.OpponentGoalRight = Vector(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
 

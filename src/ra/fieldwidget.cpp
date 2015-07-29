@@ -1087,7 +1087,7 @@ void FieldWidget::drawGoal(QPainter *painter, float side, bool cosmetic)
     QPainterPath path;
 
     const float d = cosmetic ? 0 : m_geometry.goal_wall_width() / 2.0f;
-    const float h = m_geometry.field_height() / 2.0f - m_geometry.line_width();
+    const float h = m_geometry.field_height() / 2.0f;
     const float w = m_geometry.goal_width() / 2.0f + d;
     path.moveTo( w, side * h);
     path.lineTo( w, side * (h + m_geometry.goal_depth() + d));
