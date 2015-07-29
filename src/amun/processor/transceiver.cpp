@@ -32,6 +32,9 @@
 #include <QTimer>
 #include <QDebug>
 
+static_assert(sizeof(RadioCommand2014) == 11, "Expected radio command packet of size 11");
+static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet of size 10");
+
 const int PROTOCOL_VERSION = 2;
 
 typedef struct
@@ -46,7 +49,6 @@ Transceiver::Transceiver(QObject *parent) :
     m_packetCounter(0),
     m_context(nullptr),
     m_device(nullptr),
-    m_timeoutTimer(new QTimer(this)),
     m_connectionState(State::DISCONNECTED),
     m_simulatorEnabled(false)
 {
@@ -110,6 +112,22 @@ void Transceiver::handleCommand(const Command &command)
 
     if (command->has_robot_parameters()) {
         sendParameters(command->robot_parameters());
+    }
+
+    if (command->has_set_team_blue()) {
+        handleTeam(command->set_team_blue());
+    }
+
+    if (command->has_set_team_yellow()) {
+        handleTeam(command->set_team_yellow());
+    }
+}
+
+void Transceiver::handleTeam(const robot::Team &team)
+{
+    for (int i = 0; i < team.robot_size(); ++i) {
+        const robot::Specs &spec = team.robot(i);
+        m_ir_param[qMakePair(spec.generation(), spec.id())] = spec.ir_param();
     }
 }
 
@@ -225,6 +243,10 @@ bool Transceiver::write(const char *data, qint64 size)
 void Transceiver::receive()
 {
 #ifdef USB_FOUND
+    if (!m_device) {
+        return;
+    }
+
     const int maxSize = 512;
     char buffer[maxSize];
     QList<robot::RadioResponse> responses;
@@ -339,10 +361,13 @@ void Transceiver::handleDatagramPacket(const char *data, uint size)
     qDebug() << QByteArray(data, size);
 }
 
-float Transceiver::calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, uint8_t skipedFrames)
+float Transceiver::calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, int skipedFrames)
 {
     // get frame counter, is created with default values if not existing
     DroppedFrameCounter &c = m_droppedFrames[qMakePair(generation, id)];
+    if (skipedFrames >= 0) {
+        c.skipedFrames = skipedFrames;
+    }
 
     // correctly handle startup
     if (c.startValue == -1) {
@@ -355,8 +380,8 @@ float Transceiver::calculateDroppedFramesRatio(uint generation, uint id, uint8_t
         // counter isn't increasing -> counter has overflown, update statistic
         // account for packets lost somewhere around the counter overflow
         // as the robot can only reply if it got a frame, skip the frames it didn't get (only 2014)
-        c.droppedFramesRatio = (c.droppedFramesCounter + (255 - c.lastFrameCounter) - skipedFrames)
-                / (256.f - c.startValue - skipedFrames);
+        c.droppedFramesRatio = (c.droppedFramesCounter + (255 - c.lastFrameCounter) - c.skipedFrames)
+                / (256.f - c.startValue - c.skipedFrames);
         // if the counter is non-zero we've already lost some packets
         c.droppedFramesCounter = counter;
         c.startValue = 0;
@@ -389,7 +414,7 @@ void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, c
             speedStatus->set_v_f(packet->v_f / 1000.f);
             speedStatus->set_v_s(packet->v_s / 1000.f);
             speedStatus->set_omega(packet->omega / 1000.f);
-            r.set_motor_in_power_limit(packet->motor_in_power_limit);
+            r.set_error_present(packet->motor_in_power_limit);
         }
         if (packet->kicker_active) {
             r.set_ball_detected(packet->ball_detected);
@@ -403,16 +428,37 @@ void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, c
         r.set_time(time);
         r.set_generation(3);
         r.set_id(packet->id);
-        r.set_battery(packet->battery / 255.0f);
-        r.set_packet_loss_rx(packet->packet_loss / 256.0f);
-        float df = calculateDroppedFramesRatio(3, packet->id, packet->counter, packet->packet_loss);
-        r.set_packet_loss_tx(df);
+
+        int packet_loss = (packet->extension_id == EXTENSION_BASIC_STATUS) ? packet->packet_loss : -1;
+        float df = calculateDroppedFramesRatio(3, packet->id, packet->counter, packet_loss);
+        switch (packet->extension_id) {
+        case EXTENSION_BASIC_STATUS:
+            r.set_battery(packet->battery / 255.0f);
+            r.set_packet_loss_rx(packet->packet_loss / 256.0f);
+            r.set_packet_loss_tx(df);
+            break;
+        case EXTENSION_EXTENDED_ERROR:
+        {
+            robot::ExtendedError *e = r.mutable_extended_error();
+            e->set_motor_1_error(packet->motor_1_error);
+            e->set_motor_2_error(packet->motor_2_error);
+            e->set_motor_3_error(packet->motor_3_error);
+            e->set_motor_4_error(packet->motor_4_error);
+            e->set_dribbler_error(packet->dribler_error);
+            e->set_kicker_error(packet->kicker_error);
+            e->set_temperature(packet->temperature);
+            break;
+        }
+        default:
+            break;
+        }
+
         if (packet->power_enabled) {
             robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
             speedStatus->set_v_f(packet->v_f / 1000.f);
             speedStatus->set_v_s(packet->v_s / 1000.f);
             speedStatus->set_omega(packet->omega / 1000.f);
-            r.set_motor_in_power_limit(packet->motor_in_power_limit);
+            r.set_error_present(packet->error_present);
 
             r.set_ball_detected(packet->ball_detected);
             r.set_cap_charged(packet->cap_charged);
@@ -463,12 +509,18 @@ void Transceiver::addRobot2014Command(int id, const robot::Command &command, boo
     data.counter = packetCounter;
     data.dribbler = qBound<qint32>(-RADIOCOMMAND2014_DRIBBLER_MAX, command.dribbler() * RADIOCOMMAND2014_DRIBBLER_MAX, RADIOCOMMAND2014_DRIBBLER_MAX);
     data.chip = command.kick_style() == robot::Command::Chip;
-    data.shot_power = qMin<quint32>(command.kick_power() * RADIOCOMMAND2014_KICK_MAX, RADIOCOMMAND2014_KICK_MAX);
+    if (data.chip) {
+        data.shot_power = qMin<quint32>(command.kick_power() / RADIOCOMMAND2014_CHIP_MAX * RADIOCOMMAND2014_KICK_MAX, RADIOCOMMAND2014_KICK_MAX);
+    } else {
+        data.shot_power = qMin<quint32>(command.kick_power() / RADIOCOMMAND2014_LINEAR_MAX * RADIOCOMMAND2014_KICK_MAX, RADIOCOMMAND2014_KICK_MAX);
+    }
     data.v_x = qBound<qint32>(-RADIOCOMMAND2014_V_MAX, command.v_s() * 1000.0f, RADIOCOMMAND2014_V_MAX);
     data.v_y = qBound<qint32>(-RADIOCOMMAND2014_V_MAX, command.v_f() * 1000.0f, RADIOCOMMAND2014_V_MAX);
     data.omega = qBound<qint32>(-RADIOCOMMAND2014_OMEGA_MAX, command.omega() * 1000.0f, RADIOCOMMAND2014_OMEGA_MAX);
     data.id = id;
     data.force_kick = command.force_kick();
+    data.ir_param = qBound<quint8>(0, m_ir_param[qMakePair(3, id)], 63);
+    data.unused = 0;
 
     // set address
     TransceiverCommandPacket senderCommand;

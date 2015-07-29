@@ -9,7 +9,7 @@ default {
   v_max: 2
   omega_max: 31.4159
   shot_linear_max: 8
-  shot_chip_max: 7
+  shot_chip_max: 5
   dribbler_width: 0.05
   acceleration {
     a_speedup_f_max: 3
@@ -32,6 +32,7 @@ default {
     t_omega: 0.1
     use_ff: 1
   }
+  ir_param: 0
 }
 robot {
   id: 0

@@ -90,16 +90,16 @@
    <item row="2" column="1">
     <widget class="QDoubleSpinBox" name="shootPower">
      <property name="toolTip">
-      <string>Value between 0 and 1. For 2014 robots the mapping is about 1m/s at 0.1 and full speed (6.5 m/s) at 0.7</string>
+      <string>Shot speed or chip kick distance</string>
      </property>
      <property name="maximum">
-      <double>1.000000000000000</double>
+      <double>10.000000000000000</double>
      </property>
      <property name="singleStep">
       <double>0.100000000000000</double>
      </property>
      <property name="value">
-      <double>1.000000000000000</double>
+      <double>10.000000000000000</double>
      </property>
     </widget>
    </item>

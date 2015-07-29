@@ -29,6 +29,8 @@ static const int16_t RADIOCOMMAND2014_V_MAX = 32767;
 static const int16_t RADIOCOMMAND2014_OMEGA_MAX = 32767;
 static const uint8_t RADIOCOMMAND2014_KICK_MAX = 255;
 static const uint8_t RADIOCOMMAND2014_DRIBBLER_MAX = 100;
+static const float RADIOCOMMAND2014_LINEAR_MAX = 10;
+static const float RADIOCOMMAND2014_CHIP_MAX = 5;
 
 typedef struct
 {
@@ -43,21 +45,45 @@ typedef struct
     int16_t v_x; // mm/s
     int16_t v_y; // mm/s
     int16_t omega; // mrad/s
+    uint8_t ir_param:6;
+    uint8_t unused:2;
 } __attribute__ ((packed)) RadioCommand2014;
+
+enum RadioExtension2014 {
+    EXTENSION_BASIC_STATUS,
+    EXTENSION_EXTENDED_ERROR,
+    EXTENSION_MAX_VALUE
+};
 
 typedef struct
 {
     uint8_t counter;
     uint8_t id:4;
     uint8_t power_enabled:1;
-    uint8_t motor_in_power_limit:1;
+    uint8_t error_present:1;
     uint8_t ball_detected:1;
     uint8_t cap_charged:1;
-    uint8_t battery;
-    uint8_t packet_loss;
+    union {
+        uint16_t unused; // set to zero, in not all bits are written!
+        struct { // BasicStatus
+            uint8_t battery;
+            uint8_t packet_loss;
+        } __attribute__ ((packed));
+        struct { // ExtendedError
+            uint8_t motor_1_error:1;
+            uint8_t motor_2_error:1;
+            uint8_t motor_3_error:1;
+            uint8_t motor_4_error:1;
+            uint8_t dribler_error:1;
+            uint8_t kicker_error:1;
+            uint8_t :0;
+            int8_t temperature;
+        } __attribute__ ((packed));
+    } __attribute__ ((packed));
+    uint32_t extension_id:4;
     // valid if main_active
-    int16_t v_s; // mm/s
-    int16_t v_f; // mm/s
+    int32_t v_s:14; // mm/s
+    int32_t v_f:14; // mm/s
     int16_t omega; // mrad/s
 } __attribute__ ((packed)) RadioResponse2014;
 

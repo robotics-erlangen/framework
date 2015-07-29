@@ -47,6 +47,7 @@ message Specs
     optional float dribbler_width = 12;
     optional LimitParameters acceleration = 13;
     optional ControllerParameters controller = 14;
+    optional float ir_param = 15;
 };
 
 message Generation
@@ -140,6 +141,17 @@ message SpeedStatus
     required float omega = 3;
 }
 
+message ExtendedError
+{
+    required bool motor_1_error = 1;
+    required bool motor_2_error = 2;
+    required bool motor_3_error = 3;
+    required bool motor_4_error = 4;
+    required bool dribbler_error = 5;
+    required bool kicker_error = 6;
+    optional int32 temperature = 7;
+}
+
 message RadioResponse
 {
     optional int64 time = 10;
@@ -151,6 +163,7 @@ message RadioResponse
     optional SpeedStatus estimated_speed = 6;
     optional bool ball_detected = 7;
     optional bool cap_charged = 8;
-    optional bool motor_in_power_limit = 9;
+    optional bool error_present = 9;
     optional float radio_rtt = 11;
+    optional ExtendedError extended_error = 12;
 }

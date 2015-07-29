@@ -332,7 +332,6 @@ void RobotWidget::handleResponse(const robot::RadioResponse &response)
         return;
     }
 
-    // just check the flags that are always present
     if (response.has_battery() && response.has_packet_loss_rx() && response.has_packet_loss_tx()) {
         // update battery status if changed
         if (!m_lastResponse.IsInitialized() || m_lastResponse.battery() != response.battery()) {
@@ -366,18 +365,50 @@ void RobotWidget::handleResponse(const robot::RadioResponse &response)
         }
         m_radio->show();
         m_radioErrors->setVisible(response.packet_loss_rx() > 0 || response.packet_loss_tx() > 0);
-
-        m_ball->setVisible(response.ball_detected());
-        m_motorWarning->setVisible(response.motor_in_power_limit());
-        m_capCharged->setVisible(response.cap_charged());
-
-        // update counter to indicate status was updated
-        m_statusCtr = 2;
-        if (!m_responseTimer->isActive()) {
-            m_responseTimer->start(10000);
-        }
-        m_lastResponse = response;
     }
+
+    if (response.has_ball_detected()) {
+        m_ball->setVisible(response.ball_detected());
+    }
+    if (response.has_error_present()) {
+        m_motorWarning->setVisible(response.error_present());
+    }
+    if (response.has_extended_error()) {
+        QString errorMsg = "";
+        const QString motorXPowerLimit = "Motor %1 in power limit\n";
+        if (response.extended_error().motor_1_error()) {
+            errorMsg += motorXPowerLimit.arg(1);
+        }
+        if (response.extended_error().motor_2_error()) {
+            errorMsg += motorXPowerLimit.arg(2);
+        }
+        if (response.extended_error().motor_3_error()) {
+            errorMsg += motorXPowerLimit.arg(3);
+        }
+        if (response.extended_error().motor_4_error()) {
+            errorMsg += motorXPowerLimit.arg(4);
+        }
+        if (response.extended_error().dribbler_error()) {
+            errorMsg += motorXPowerLimit.arg("dribbler");
+        }
+        if (response.extended_error().kicker_error()) {
+            errorMsg += "Kicker error!";
+        }
+        m_motorWarning->setToolTip(errorMsg);
+    }
+    if (response.has_extended_error() && response.extended_error().has_temperature()) {
+        m_battery->setToolTip(QString("Temperature: %1 °C").arg(response.extended_error().temperature()));
+    }
+    if (response.has_cap_charged()) {
+        m_capCharged->setVisible(response.cap_charged());
+    }
+
+    // update counter to indicate status was updated
+    m_statusCtr = 2;
+    if (!m_responseTimer->isActive()) {
+        m_responseTimer->start(10000);
+    }
+    m_lastResponse = response;
 }
 
 void RobotWidget::generationChanged(uint generation, RobotWidget::Team team)

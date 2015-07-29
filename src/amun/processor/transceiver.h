@@ -41,8 +41,9 @@ private:
         int lastFrameCounter;
         uint8_t droppedFramesCounter;
         float droppedFramesRatio;
+        int skipedFrames;
 
-        DroppedFrameCounter() : startValue(-1), lastFrameCounter(0), droppedFramesCounter(0), droppedFramesRatio(0) {}
+        DroppedFrameCounter() : startValue(-1), lastFrameCounter(0), droppedFramesCounter(0), droppedFramesRatio(0), skipedFrames(0) {}
     };
 
     enum class State {
@@ -76,9 +77,10 @@ private:
     void handleInitPacket(const char *data, uint size);
     void handlePingPacket(const char *data, uint size);
     void handleStatusPacket(const char *data, uint size);
-    void handleDatagrammPacket(const char *data, uint size);
-    float calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, uint8_t skipedFrames);
+    void handleDatagramPacket(const char *data, uint size);
+    float calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, int skipedFrames);
     void handleResponsePacket(QList<robot::RadioResponse> &response, const char *data, uint size, qint64 time);
+    void handleTeam(const robot::Team &team);
 
     void sendInitPacket();
     void sendTransceiverConfiguration();
@@ -93,6 +95,7 @@ private:
     bool m_charge;
     amun::TransceiverConfiguration m_configuration;
     QMap<QPair<uint, uint>, DroppedFrameCounter> m_droppedFrames;
+    QMap<QPair<uint, uint>, uint> m_ir_param;
     QMap<quint8, qint64> m_frameTimes;
 
     quint8 m_packetCounter;

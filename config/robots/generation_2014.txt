@@ -32,6 +32,7 @@ default {
     t_omega: 0.1
     use_ff: 1
   }
+  ir_param: 0
 }
 robot {
   id: 0

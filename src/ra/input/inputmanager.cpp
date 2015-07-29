@@ -39,7 +39,7 @@ InputManager::InputManager(QObject *parent) :
     m_maxSpeed(1.0f),
     m_maxOmega(1.0f),
     m_dribblerPower(1.0f),
-    m_shootPower(1.0f),
+    m_shootPower(10.0f),
     m_enabled(false),
     m_direct(true)
 {
@@ -248,7 +248,7 @@ void InputManager::setDribblerPower(double dribblerPower)
 
 void InputManager::setShootPower(double shootPower)
 {
-    m_shootPower = qBound(0., shootPower, 1.);
+    m_shootPower = qBound(0., shootPower, 10.);
 }
 
 void InputManager::setEnabled(bool enabled)

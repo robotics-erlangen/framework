@@ -143,16 +143,14 @@ void SimRobot::begin(SimBall *ball, double time)
     if (m_isCharged && m_command.has_kick_power() && m_command.kick_power() > 0 && canKickBall(ball)) {
         if (m_command.kick_style() == robot::Command::Linear) {
             const float shootSpeed = m_specs.shot_linear_max();
-            const float power = qBound(0.f, m_command.kick_power(), 0.741f); // limit for shootRatio
-            const float shootRatio = qMax(0.f, -50.f/3*power*power + 24.7f*power - 1.01f) / 8.14f;
+            const float power = qBound(0.05f, m_command.kick_power(), shootSpeed);
 
             // kick forward with the specified fraction of the max shoot speed
-            ball->kick(t * btVector3(0, 1, 0) * (1/time) * SIMULATOR_SCALE * shootRatio * shootSpeed * BALL_MASS);
+            ball->kick(t * btVector3(0, 1, 0) * (1/time) * SIMULATOR_SCALE * power * BALL_MASS);
         } else if (m_command.kick_style() == robot::Command::Chip) {
             // reverse strategy calculation -> get desired chip distance
             const float shootDist = m_specs.shot_chip_max();
-            const float power = qBound(0.2086f, m_command.kick_power(), 1.0f);
-            const float targetDist = qBound(0.f, (float)((89+std::sqrt(-5218757+25020000*power))/2502 * shootDist / 1.8), shootDist);
+            const float targetDist = qBound(0.05f, m_command.kick_power(), shootDist);
 
             // just assume a angle of 45 degrees
             const float angle = 45./180*M_PI;
