@@ -341,7 +341,7 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
             const Vector &extended = treeB->position(nearestNode);
             float dist = extended.distance(target);
             // trees touched
-            if (dist <= 0.00001f) {
+            if (dist <= 0.00001f && !treeB->inObstacle(nearestNode)) {
                 pathCompleted = true;
                 mergerNode = nearestNode;
                 break;
