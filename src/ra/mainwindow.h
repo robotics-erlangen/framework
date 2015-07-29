@@ -86,6 +86,8 @@ private:
     QThread *m_logFileThread;
     qint64 m_lastTime;
     qint32 m_lastStageTime;
+    QLabel *m_logTimeLabel;
+    qint64 m_logStartTime;
     robot::Team m_yellowTeam;
     robot::Team m_blueTeam;
     QString m_yellowTeamName;

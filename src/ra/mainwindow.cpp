@@ -42,7 +42,8 @@ MainWindow::MainWindow(QWidget *parent) :
     m_transceiverActive(false),
     m_logFile(NULL),
     m_logFileThread(NULL),
-    m_lastStageTime(0)
+    m_lastStageTime(0),
+    m_logStartTime(0)
 {
     qRegisterMetaType<SSL_Referee::Command>("SSL_Referee::Command");
     qRegisterMetaType<SSL_Referee::Stage>("SSL_Referee::Stage");
@@ -69,6 +70,10 @@ MainWindow::MainWindow(QWidget *parent) :
     p.setColor(QPalette::WindowText, Qt::red);
     m_transceiverStatus->setPalette(p);
     statusBar()->addWidget(m_transceiverStatus);
+
+    m_logTimeLabel = new QLabel();
+    statusBar()->addPermanentWidget(m_logTimeLabel);
+    m_logTimeLabel->hide();
 
     m_refereeStatus = new RefereeStatusWidget;
     statusBar()->addPermanentWidget(m_refereeStatus);
@@ -262,6 +267,16 @@ void MainWindow::handleStatus(const Status &status)
     }
     m_lastTime = status->time();
 
+    if (m_logStartTime != 0) {
+        qint64 timeDelta = m_lastTime - m_logStartTime;
+        const double dtime = timeDelta / 1E9;
+        QString logLabel = "Log time: " + QString("%1:%2").arg((int) dtime / 60)
+                .arg((int) dtime % 60, 2, 10, QChar('0'));
+        if (m_logTimeLabel->text() != logLabel) {
+            m_logTimeLabel->setText(logLabel);
+        }
+    }
+
     if (status->has_amun_state() && status->amun_state().has_port_bind_error()) {
         QLabel *label = new QLabel(this);
         label->setText("<font color=\"red\">Failed to bind the vision port. Ra must be started BEFORE ssl-vision if it runs locally!</font>");
@@ -387,10 +402,15 @@ void MainWindow::setRecording(bool record)
         status->mutable_team_yellow()->CopyFrom(m_yellowTeam);
         status->mutable_team_blue()->CopyFrom(m_blueTeam);
         m_logFile->writeStatus(status);
+        m_logStartTime = m_lastTime;
+        m_logTimeLabel->show();
     } else {
         // defer log file deletion to happen in its thread
         m_logFile->deleteLater();
         m_logFile = NULL;
+        m_logStartTime = 0;
+        m_logTimeLabel->setText("");
+        m_logTimeLabel->hide();
     }
 }
 
