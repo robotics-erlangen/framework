@@ -72,6 +72,7 @@ public slots:
     void visualizationsChanged(const QStringList &items);
     void clearData();
     void hideVisualizationToggles();
+    void flipAOI();
 
 protected:
     void mousePressEvent(QMouseEvent *event);
@@ -99,7 +100,7 @@ private slots:
     void saveSituation();
 
 private:
-    void resizeAOI(const QPointF &pos);
+    void resizeAOI(QPointF pos);
     void updateAOI();
     void updateDetection();
     void updateGeometry();

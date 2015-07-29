@@ -349,6 +349,7 @@ void MainWindow::sendFlip()
     Command command(new amun::Command);
     command->set_flip(m_flip);
     sendCommand(command);
+    ui->field->flipAOI();
 }
 
 static QString toString(const QDateTime& dt)

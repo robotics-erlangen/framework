@@ -712,8 +712,25 @@ void FieldWidget::setAOIVisible(bool visible)
     updateAOI();
 }
 
-void FieldWidget::resizeAOI(const QPointF &pos)
+void FieldWidget::flipAOI()
 {
+    QRectF flipped;
+    flipped.setTopLeft(-m_aoi.bottomRight());
+    flipped.setBottomRight(-m_aoi.topLeft());
+    m_aoi = flipped;
+    updateAOI();
+}
+
+void FieldWidget::resizeAOI(QPointF pos)
+{
+    if (m_geometry.IsInitialized()) {
+        double offset = m_geometry.boundary_width() + 0.1f;
+        double limitX = m_geometry.field_width() / 2 + offset;
+        double limitY = m_geometry.field_height() / 2 + offset;
+        pos.setY(qBound(-limitY, pos.y(), limitY));
+        pos.setX(qBound(-limitX, pos.x(), limitX));
+    }
+
     switch (m_dragType) {
     case DragTopLeft:
         m_aoi.setTopLeft(pos);
@@ -787,15 +804,16 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
 
     if (event->button() == Qt::LeftButton) {
         m_dragItem = NULL;
+        m_dragType = DragNone;
         if (m_aoiItem->isVisible()) {
             // find side which should be dragged
-            const float tl = (m_aoi.topLeft() - p).manhattanLength();
-            const float tr = (m_aoi.topRight() - p).manhattanLength();
-            const float bl = (m_aoi.bottomLeft() - p).manhattanLength();
-            const float br = (m_aoi.bottomRight() - p).manhattanLength();
-            const float min = qMin(tl, qMin(tr, qMin(bl, br)));
+            const int tl = (mapFromScene(m_aoi.topLeft()) - event->pos()).manhattanLength();
+            const int tr = (mapFromScene(m_aoi.topRight()) - event->pos()).manhattanLength();
+            const int bl = (mapFromScene(m_aoi.bottomLeft()) - event->pos()).manhattanLength();
+            const int br = (mapFromScene(m_aoi.bottomRight()) - event->pos()).manhattanLength();
+            const int min = qMin(qMin(tl, tr), qMin(bl, br));
 
-            if (min < 0.1) {
+            if (min <= 10) {
                 if (min == tl) {
                     m_dragType = DragTopLeft;
                 } else if (min == tr) {
