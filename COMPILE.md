@@ -20,44 +20,44 @@ Certain features require additional libraries:
  * libudev - Required for joystick support (only required if libsdl2 is not available via the package manager)
  * liblua5.1-socket2 - Lua remote debugger (see strategy/test/debug/enable.lua) (version >= 2.1!, https://github.com/diegonehab/luasocket)
 
-Package names for Ubuntu 14.04:
-* cmake
-* protobuf-compiler
-* qtbase5-dev
-* libudev-dev
-* libsdl2-dev
-* libluajit-5.1-dev
-* libusb-1.0-0-dev
-(and you need g++, since it's not included in the default instalation)
+Package names for Ubuntu 14.04: `cmake protobuf-compiler qtbase5-dev libsdl2-dev libluajit-5.1-dev libusb-1.0-0-dev g++`
 
-## Unix
+## Linux
 The recommended way of building a project with CMake is by doing an
 out-of-source build. This can be done like this:
 
-> mkdir build
-> cd build
-> cmake ..
-> make
+```
+mkdir build
+cd build
+cmake ..
+make
+```
 
 Ra and the Logplayer can be started from the build/bin/ directory.
 To install the desktop files use this command:
-> make install-menu
+```
+make install-menu
+```
 
 In order to select which Qt-Installation to use specify it using a similar command line:
-> cmake -DCMAKE_PREFIX_PATH=~/Qt/5.2.1/gcc_64/lib/cmake ..
+```
+cmake -DCMAKE_PREFIX_PATH=~/Qt/5.4/gcc_64/lib/cmake ..
+```
 
-To be able to use USB devices (sender, robots) the rights for udev have to be modified.
+To be able to use the USB transceiver / JTAG programmer the rights for udev have to be modified.
 Just copy the file at `data/udev/99-robotics-usb-devices.rules` to `/etc/udev/rules.d/99-robotics-usb-devices.rules`
 
 To use the remote debugger download, compile and install the luasocket library (version >= 2.1!). The libraries must be installed to `/usr/local/lib` to be recognised by LuaJIT
 Compile instructions: (for Ubuntu 12.04)
-> make LUAINC_linux=/usr/include/lua5.1
-> sudo make install
+```
+make LUAINC_linux=/usr/include/lua5.1
+sudo make install
+```
 
 ## Windows
 Get dependencies (tested using the given versions):
 * cmake 3.2.2 - http://www.cmake.org/files/v3.2/cmake-3.2.2-win32-x86.exe
-* mingw-get - http://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.ex
+* mingw-get - http://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.exe
 * Qt 5 - http://download.qt.io/official_releases/online_installers/qt-opensource-windows-x86-online.exe
 * protobuf 2.6.1 - https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.bz2
 * luajit 2.0.3 - http://luajit.org/download/LuaJIT-2.0.3.tar.gz
@@ -81,45 +81,61 @@ use `msys.bat` in `msys\1.0` to open msys console
 **!!! USE MSYS TO COMPILE EVERYTHING !!!**
 
 #### compile protobuf
-> mkdir build && cd build
-> ../configure --prefix=/usr/local --without-zlib && make && make install
+```
+mkdir build && cd build
+../configure --prefix=/usr/local --without-zlib && make && make install
+```
 
 #### compile luajit
-> make && make install PREFIX=/usr/local && cp src/lua51.dll /usr/local/bin
+```
+make && make install PREFIX=/usr/local && cp src/lua51.dll /usr/local/bin
+```
 
 #### compile libusb
-> mkdir build && cd build
-> ../configure --prefix=/usr/local && make CFLAGS="-DWINVER=0x0501" && make install
+```
+mkdir build && cd build
+../configure --prefix=/usr/local && make CFLAGS="-DWINVER=0x0501" && make install
+```
 
 #### install libsdl2(prebuilt mingw package!)
-> make install-package arch=i686-w64-mingw32 prefix=/usr/local
+```
+make install-package arch=i686-w64-mingw32 prefix=/usr/local
+```
 
 #### compile luasocket2
-> make PLAT=mingw LUAINC_mingw=/usr/local/include/luajit-2.0 LUALIB_mingw=/usr/local/bin/lua51.dll
-> make install PLAT=mingw INSTALL_TOP_LDIR=/usr/local/share/lua/5.1 INSTALL_TOP_CDIR=/usr/local/lib/lua/5.1
+```
+make PLAT=mingw LUAINC_mingw=/usr/local/include/luajit-2.0 LUALIB_mingw=/usr/local/bin/lua51.dll
+make install PLAT=mingw INSTALL_TOP_LDIR=/usr/local/share/lua/5.1 INSTALL_TOP_CDIR=/usr/local/lib/lua/5.1
+```
 
 #### compile ra
-> mkdir build-win && cd build-win
-> cmake -G "MSYS Makefiles" -DCMAKE_PREFIX_PATH=/c/Qt/5.4/mingw491_32/lib/cmake -DCMAKE_BUILD_TYPE=Release -DLUA_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/luajit-2.0 -DLUA_LIBRARIES=C:/MinGW/msys/1.0/local/bin/lua51.dll -DPROTOBUF_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include -DPROTOBUF_LIBRARY=C:/MinGW/msys/1.0/local/lib/libprotobuf.dll.a -DSDL2_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/SDL2 -DUSB_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/libusb-1.0 ..
-> make
-> cp -r ../config ../data bin
-> cp /usr/local/bin/{libprotobuf-9,libusb-1.0,lua51,SDL2}.dll  /c/Qt/5.4/mingw491_32/bin/{icudt53,icuin53,icuuc53,libgcc_s_dw2-1,libstdc++-6,libwinpthread-1,Qt5Core,Qt5Gui,Qt5Network,Qt5OpenGL,Qt5Widgets}.dll bin
-> mkdir bin/platforms && cp /c/Qt/5.4/mingw491_32/plugins/platforms/qwindows.dll bin/platforms
-> cp -r /usr/local/lib/lua/5.1/{mime,socket} bin
+```
+mkdir build-win && cd build-win
+cmake -G "MSYS Makefiles" -DCMAKE_PREFIX_PATH=/c/Qt/5.4/mingw491_32/lib/cmake -DCMAKE_BUILD_TYPE=Release -DLUA_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/luajit-2.0 -DLUA_LIBRARIES=C:/MinGW/msys/1.0/local/bin/lua51.dll -DPROTOBUF_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include -DPROTOBUF_LIBRARY=C:/MinGW/msys/1.0/local/lib/libprotobuf.dll.a -DSDL2_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/SDL2 -DUSB_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/libusb-1.0 ..
+make
+cp -r ../config ../data bin
+cp /usr/local/bin/{libprotobuf-9,libusb-1.0,lua51,SDL2}.dll /c/Qt/5.4/mingw491_32/bin/{icudt53,icuin53,icuuc53,libgcc_s_dw2-1,libstdc++-6,libwinpthread-1,Qt5Core,Qt5Gui,Qt5Network,Qt5OpenGL,Qt5Widgets}.dll bin
+mkdir bin/platforms && cp /c/Qt/5.4/mingw491_32/plugins/platforms/qwindows.dll bin/platforms
+cp -r /usr/local/lib/lua/5.1/{mime,socket} bin
+```
 
 Finished!
 
 
 ## Mac OS X
 Get dependencies using [Homebrew](http://brew.sh):
-> brew install git sdl2 luajit protobuf libusb
+```
+brew install git sdl2 luajit protobuf libusb
+```
 
 Download Qt 5 from http://qt-project.org and install
 
 Build using:
-> cd path/to/framework
-> mkdir build-mac && cd build-mac
-> cmake -DCMAKE_PREFIX_PATH=~/Qt/5.4/clang_64/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
-> make
+```
+cd path/to/framework
+mkdir build-mac && cd build-mac
+cmake -DCMAKE_PREFIX_PATH=~/Qt/5.4/clang_64/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
+make
+```
 
 (If starting ra.app the normal way doesn't work launch it from Qt Creator)
