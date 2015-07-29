@@ -37,10 +37,10 @@ DebugTreeWidget::DebugTreeWidget(QWidget *parent) :
     connect(m_modelTree, SIGNAL(expand(QModelIndex)), this, SLOT(expand(QModelIndex)));
 
     // tree update timer
-    QTimer *timer = new QTimer(this);
-    connect(timer, &QTimer::timeout, this, &DebugTreeWidget::updateTree);
+    m_updateTimer = new QTimer(this);
     // should be fast enough to be not noticeable
-    timer->start(50);
+    m_updateTimer->setInterval(50);
+    connect(m_updateTimer, &QTimer::timeout, this, &DebugTreeWidget::updateTree);
 
     load();
 }
@@ -57,11 +57,21 @@ void DebugTreeWidget::handleStatus(const Status &status)
         // save data for delayed update
         const amun::DebugValues &debug = status->debug();
         m_status[debug.source()] = status;
+
+        // restart timer if necessary
+        if (!m_updateTimer->isActive()) {
+            m_updateTimer->start();
+        }
     }
 }
 
 void DebugTreeWidget::updateTree()
 {
+    if (m_status.isEmpty()) {
+        // nothing to do, stop timer
+        m_updateTimer->stop();
+    }
+
     // publish all cached data
     for (auto status: m_status) {
         m_modelTree->setDebug(status->debug(), m_expanded);

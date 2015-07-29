@@ -51,6 +51,7 @@ private:
     QTreeView *m_treeView;
     QSet<QString> m_expanded;
     QHash<int, Status> m_status;
+    QTimer *m_updateTimer;
 };
 
 #endif // DEBUGTREEWIDGET_H

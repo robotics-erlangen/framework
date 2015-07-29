@@ -41,7 +41,7 @@ private slots:
     void setLogVisibility(bool visible);
     
 private:
-    QString m_lastDate;
+    qint64 m_lastDate;
     bool m_hideLogToggles;
     bool m_logBlueStrategy;
     bool m_logYellowStrategy;

@@ -89,6 +89,8 @@ MainWindow::MainWindow(QWidget *parent) :
         QAction *action = speedActions[i];
         connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
         mapper->setMapping(action, playSpeeds[i]);
+        // readd bug, see below
+        addAction(action);
     }
 
     // probable qt bug: the actions don't work, if they are added to a global menu (mac / ubuntu),
@@ -98,15 +100,6 @@ MainWindow::MainWindow(QWidget *parent) :
     addAction(ui->actionPlay);
     addAction(ui->actionBackward);
     addAction(ui->actionForward);
-
-    addAction(ui->actionSpeed1);
-    addAction(ui->actionSpeed5);
-    addAction(ui->actionSpeed10);
-    addAction(ui->actionSpeed20);
-    addAction(ui->actionSpeed50);
-    addAction(ui->actionSpeed100);
-    addAction(ui->actionSpeed200);
-    addAction(ui->actionSpeed1000);
 
     // connect buttons, ...
     connect(ui->btnOpen, SIGNAL(clicked()), SLOT(openFile()));

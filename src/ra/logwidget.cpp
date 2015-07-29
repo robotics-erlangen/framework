@@ -25,6 +25,7 @@
 
 LogWidget::LogWidget(QWidget *parent) :
     QPlainTextEdit(parent),
+    m_lastDate(0),
     m_hideLogToggles(false),
     m_logBlueStrategy(true),
     m_logYellowStrategy(true)
@@ -70,16 +71,17 @@ void LogWidget::handleStatus(const Status &status)
                 break;
             }
 
-            QDateTime dt;
-            dt.setTime_t(log.timestamp() / 1E9);
-            dt = dt.addMSecs(qint64(log.timestamp() / 1E6) % 1000);
-            const QString time = dt.toString("ss.zzz");
-            const QString date = dt.toString("hh:mm");
-            if (date != m_lastDate) {
-                m_lastDate = date;
-                logAppend += QString("<div><small><tt>%1</tt></small</div>\n").arg(date);
+            qint64 ldate = log.timestamp() / 1000000000L / 60; // divide down to minutes
+            if (ldate != m_lastDate) {
+                m_lastDate = ldate;
+                QDateTime dt;
+                dt.setTime_t(log.timestamp() * 1E-9);
+                logAppend += QString("<div><small><tt>%1</tt></small</div>\n").arg(dt.toString("hh:mm"));
             }
 
+            // extract seconds and milliseconds (these are completely locale independent)
+            const QString time = QString("%1.%2").arg((log.timestamp() / 1000000000L) % 60, 2, 10, QChar('0'))
+                    .arg((log.timestamp() / 1000000L) % 1000, 3, 10, QChar('0'));
             QString str = QString("<div><small><tt><font color=gray>[%1]</font><b> %2 </b></tt></small>").arg(time, prefix);
             logAppend += str + QString::fromStdString(log.text()) + "</div>\n";
         }

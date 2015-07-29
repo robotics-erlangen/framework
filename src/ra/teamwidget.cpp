@@ -231,10 +231,11 @@ QString TeamWidget::shortenEntrypointName(const QMenu *menu, const QString &name
 
             // strip as many characters as possible while staying nonambiguous
             int maxCommon = 0;
-            const QMenu *nextMenu;
+            const QMenu *nextMenu = nullptr;
             foreach(QAction *action, menu->actions()) {
                 QString name = action->text();
                 if (name == nameLeft) {
+                    // must always be present once
                     nextMenu = action->menu();
                     continue;
                 }
@@ -245,6 +246,7 @@ QString TeamWidget::shortenEntrypointName(const QMenu *menu, const QString &name
                     }
                 }
             }
+            Q_ASSERT(nextMenu != nullptr);
             // add one distinguishing characters
             left += ((left.isEmpty())?"" : "/") + nameLeft.left(maxCommon+1);
             right = nameRight;
