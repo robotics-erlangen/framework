@@ -55,7 +55,6 @@ public slots:
     void setTeam(uint generation, uint id, RobotWidget::Team team);
     void handleResponse(const robot::RadioResponse &response);
     void generationChanged(uint generation, RobotWidget::Team team);
-    void hideRobotStatus();
 
 private slots:
     void selectInput();
@@ -64,6 +63,9 @@ private slots:
     void updateMenu();
     void selectTeam(QAction *action);
     void selectTeam(Team team);
+
+    void updateRobotStatus();
+    void hideRobotStatus();
 
 private:
     InputManager *m_inputManager;
@@ -85,9 +87,12 @@ private:
     QToolButton *m_team;
     QMenu *m_teamMenu;
     QActionGroup *m_teamGroup;
+
+    robot::RadioResponse m_mergedResponse;
+    GuiTimer *m_guiUpdateTimer;
+    robot::RadioResponse m_lastResponse;
     GuiTimer *m_guiResponseTimer;
     int m_statusCtr;
-    robot::RadioResponse m_lastResponse;
 };
 
 #endif // ROBOTWIDGET_H

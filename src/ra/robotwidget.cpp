@@ -153,6 +153,9 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
 
     selectTeam(NoTeam);
 
+    m_guiUpdateTimer = new GuiTimer(100, this);
+    connect(m_guiUpdateTimer, &GuiTimer::timeout, this, &RobotWidget::updateRobotStatus);
+
     m_guiResponseTimer = new GuiTimer(1000, this);
     connect(m_guiResponseTimer, &GuiTimer::timeout, this, &RobotWidget::hideRobotStatus);
 }
@@ -341,30 +344,36 @@ void RobotWidget::handleResponse(const robot::RadioResponse &response)
         return;
     }
 
-    if (response.has_battery() && response.has_packet_loss_rx() && response.has_packet_loss_tx()) {
+    m_mergedResponse.MergeFrom(response);
+    m_guiUpdateTimer->requestTriggering();
+}
+
+void RobotWidget::updateRobotStatus()
+{
+    if (m_mergedResponse.has_battery() && m_mergedResponse.has_packet_loss_rx() && m_mergedResponse.has_packet_loss_tx()) {
         // update battery status if changed
-        if (!m_lastResponse.IsInitialized() || m_lastResponse.battery() != response.battery()) {
+        if (!m_lastResponse.IsInitialized() || m_lastResponse.battery() != m_mergedResponse.battery()) {
             // battery status
             m_battery->setText(QString("B:%1%").arg(
-                    QString::number((int)std::ceil(response.battery() * 100)) ) );
+                    QString::number((int)std::ceil(m_mergedResponse.battery() * 100)) ) );
         }
         m_battery->show();
 
         // update radio status if changed
-        if (!m_lastResponse.IsInitialized() || m_lastResponse.packet_loss_rx() != response.packet_loss_rx()
-                || m_lastResponse.packet_loss_tx() != response.packet_loss_tx()) {
-            const QString rxStr = QString::number((int)std::ceil(response.packet_loss_rx() * 100));
-            const QString txStr = QString::number((int)std::ceil(response.packet_loss_tx() * 100));
+        if (!m_lastResponse.IsInitialized() || m_lastResponse.packet_loss_rx() != m_mergedResponse.packet_loss_rx()
+                || m_lastResponse.packet_loss_tx() != m_mergedResponse.packet_loss_tx()) {
+            const QString rxStr = QString::number((int)std::ceil(m_mergedResponse.packet_loss_rx() * 100));
+            const QString txStr = QString::number((int)std::ceil(m_mergedResponse.packet_loss_tx() * 100));
             // radio status, errors are only display if any show up
             const QString toolTip = QString("R:%1%, T:%2%").arg(rxStr, txStr);
             m_radio->setToolTip(toolTip);
             m_radioErrors->setToolTip(toolTip);
 
             QString radioError;
-            if (response.packet_loss_rx() > 0) {
+            if (m_mergedResponse.packet_loss_rx() > 0) {
                 radioError = QString("R:%1%").arg(rxStr);
             }
-            if (response.packet_loss_tx() > 0) {
+            if (m_mergedResponse.packet_loss_tx() > 0) {
                 if (!radioError.isEmpty()) {
                     radioError += ", ";
                 }
@@ -373,49 +382,50 @@ void RobotWidget::handleResponse(const robot::RadioResponse &response)
             m_radioErrors->setText(radioError);
         }
         m_radio->show();
-        m_radioErrors->setVisible(response.packet_loss_rx() > 0 || response.packet_loss_tx() > 0);
+        m_radioErrors->setVisible(m_mergedResponse.packet_loss_rx() > 0 || m_mergedResponse.packet_loss_tx() > 0);
     }
 
-    if (response.has_ball_detected()) {
-        m_ball->setVisible(response.ball_detected());
+    if (m_mergedResponse.has_ball_detected()) {
+        m_ball->setVisible(m_mergedResponse.ball_detected());
     }
-    if (response.has_error_present()) {
-        m_motorWarning->setVisible(response.error_present());
+    if (m_mergedResponse.has_error_present()) {
+        m_motorWarning->setVisible(m_mergedResponse.error_present());
     }
-    if (response.has_extended_error()) {
+    if (m_mergedResponse.has_extended_error()) {
         QString errorMsg = "";
         const QString motorXPowerLimit = "Motor %1 in power limit\n";
-        if (response.extended_error().motor_1_error()) {
+        if (m_mergedResponse.extended_error().motor_1_error()) {
             errorMsg += motorXPowerLimit.arg(1);
         }
-        if (response.extended_error().motor_2_error()) {
+        if (m_mergedResponse.extended_error().motor_2_error()) {
             errorMsg += motorXPowerLimit.arg(2);
         }
-        if (response.extended_error().motor_3_error()) {
+        if (m_mergedResponse.extended_error().motor_3_error()) {
             errorMsg += motorXPowerLimit.arg(3);
         }
-        if (response.extended_error().motor_4_error()) {
+        if (m_mergedResponse.extended_error().motor_4_error()) {
             errorMsg += motorXPowerLimit.arg(4);
         }
-        if (response.extended_error().dribbler_error()) {
+        if (m_mergedResponse.extended_error().dribbler_error()) {
             errorMsg += motorXPowerLimit.arg("dribbler");
         }
-        if (response.extended_error().kicker_error()) {
+        if (m_mergedResponse.extended_error().kicker_error()) {
             errorMsg += "Kicker error!";
         }
         m_motorWarning->setToolTip(errorMsg);
     }
-    if (response.has_extended_error() && response.extended_error().has_temperature()) {
-        m_battery->setToolTip(QString("Temperature: %1 °C").arg(response.extended_error().temperature()));
+    if (m_mergedResponse.has_extended_error() && m_mergedResponse.extended_error().has_temperature()) {
+        m_battery->setToolTip(QString("Temperature: %1 °C").arg(m_mergedResponse.extended_error().temperature()));
     }
-    if (response.has_cap_charged()) {
-        m_capCharged->setVisible(response.cap_charged());
+    if (m_mergedResponse.has_cap_charged()) {
+        m_capCharged->setVisible(m_mergedResponse.cap_charged());
     }
 
     // update counter to indicate status was updated
     m_statusCtr = 10;
     m_guiResponseTimer->requestTriggering();
-    m_lastResponse = response;
+    m_lastResponse = m_mergedResponse;
+    m_mergedResponse.Clear();
 }
 
 void RobotWidget::generationChanged(uint generation, RobotWidget::Team team)
