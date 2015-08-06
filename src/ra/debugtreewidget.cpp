@@ -20,10 +20,10 @@
 
 #include "debugtreewidget.h"
 #include "debugmodel.h"
+#include "guitimer.h"
 
 #include <QSettings>
 #include <QHeaderView>
-#include <QTimer>
 
 DebugTreeWidget::DebugTreeWidget(QWidget *parent) :
     QTreeView(parent)
@@ -36,11 +36,9 @@ DebugTreeWidget::DebugTreeWidget(QWidget *parent) :
     connect(this, SIGNAL(collapsed(QModelIndex)), SLOT(debugCollapsed(QModelIndex)));
     connect(m_modelTree, SIGNAL(expand(QModelIndex)), this, SLOT(expand(QModelIndex)));
 
-    // tree update timer
-    m_updateTimer = new QTimer(this);
-    // should be fast enough to be not noticeable
-    m_updateTimer->setInterval(50);
-    connect(m_updateTimer, &QTimer::timeout, this, &DebugTreeWidget::updateTree);
+    // should be fast enough to be barely noticeable
+    m_guiTimer = new GuiTimer(50, this);
+    connect(m_guiTimer, &GuiTimer::timeout, this, &DebugTreeWidget::updateTree);;
 
     load();
 }
@@ -57,21 +55,12 @@ void DebugTreeWidget::handleStatus(const Status &status)
         // save data for delayed update
         const amun::DebugValues &debug = status->debug();
         m_status[debug.source()] = status;
-
-        // restart timer if necessary
-        if (!m_updateTimer->isActive()) {
-            m_updateTimer->start();
-        }
+        m_guiTimer->requestTriggering();
     }
 }
 
 void DebugTreeWidget::updateTree()
 {
-    if (m_status.isEmpty()) {
-        // nothing to do, stop timer
-        m_updateTimer->stop();
-    }
-
     // publish all cached data
     for (auto status: m_status) {
         m_modelTree->setDebug(status->debug(), m_expanded);

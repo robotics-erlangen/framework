@@ -30,6 +30,7 @@ class QMenu;
 class QStandardItem;
 class QStandardItemModel;
 class QSortFilterProxyModel;
+class GuiTimer;
 
 namespace Ui {
 class VisualizationWidget;
@@ -70,6 +71,7 @@ private:
     HashMap m_items;
     qint64 m_time;
     QMenu *m_contextMenu;
+    GuiTimer *m_guiTimer;
 };
 
 #endif // VISUALIZATIONWIDGET_H

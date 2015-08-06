@@ -18,41 +18,54 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef DEBUGTREEWIDGET_H
-#define DEBUGTREEWIDGET_H
+#ifndef GUITIMER_H
+#define GUITIMER_H
 
-#include <QTreeView>
-#include <QHash>
-#include "protobuf/status.h"
+#include <QObject>
 
-class DebugModel;
+class QTimer;
 class GuiTimer;
 
-class DebugTreeWidget : public QTreeView
+class GuiTimerBase : public QObject
+{
+    Q_OBJECT
+    friend class GuiTimer;
+private:
+    static GuiTimerBase * instance();
+
+    explicit GuiTimerBase(QObject *parent = 0);
+    void requestTriggering();
+
+private slots:
+    void handleTimeout();
+
+signals:
+    void timeout();
+
+private:
+    QTimer *m_timer;
+    bool m_isActive;
+    const int m_baseInterval;
+};
+
+class GuiTimer : public QObject
 {
     Q_OBJECT
 public:
-    explicit DebugTreeWidget(QWidget *parent = 0);
-    ~DebugTreeWidget();
-
-public slots:
-    void clearData();
+    explicit GuiTimer(int interval, QObject *parent = 0);
+    void requestTriggering();
 
 private slots:
-    void handleStatus(const Status &status);
-    void updateTree();
-    void debugExpanded(const QModelIndex &index);
-    void debugCollapsed(const QModelIndex &index);
+    void handleTimeout();
+
+signals:
+    void timeout();
 
 private:
-    void load();
-    void save();
-
-    DebugModel *m_modelTree;
-    QTreeView *m_treeView;
-    QSet<QString> m_expanded;
-    QHash<int, Status> m_status;
-    GuiTimer *m_guiTimer;
+    bool m_isActive;
+    const int m_interval;
+    qint64 m_nextTriggerTime;
 };
 
-#endif // DEBUGTREEWIDGET_H
+
+#endif // GUITIMER_H

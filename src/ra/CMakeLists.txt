@@ -38,6 +38,8 @@ set(SOURCES
     debugtreewidget.h
     fieldwidget.cpp
     fieldwidget.h
+    #guitimer.cpp
+    #guitimer.h
     internalreferee.cpp
     internalreferee.h
     inputwidget.cpp

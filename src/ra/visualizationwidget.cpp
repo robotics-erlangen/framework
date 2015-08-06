@@ -20,11 +20,11 @@
 
 #include "visualizationwidget.h"
 #include "ui_visualizationwidget.h"
+#include "guitimer.h"
 #include <QMenu>
 #include <QSettings>
 #include <QSortFilterProxyModel>
 #include <QStandardItemModel>
-#include <QTimer>
 
 VisualizationWidget::VisualizationWidget(QWidget *parent) :
     QWidget(parent),
@@ -48,9 +48,8 @@ VisualizationWidget::VisualizationWidget(QWidget *parent) :
     connect(ui->list, SIGNAL(customContextMenuRequested(QPoint)), this, SLOT(showContextMenu(QPoint)));
 
     // setup invalidate timer
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), SLOT(invalidateItems()));
-    timer->start(100);
+    m_guiTimer = new GuiTimer(100, this);
+    connect(m_guiTimer, &GuiTimer::timeout, this, &VisualizationWidget::invalidateItems);
 }
 
 VisualizationWidget::~VisualizationWidget()
@@ -127,6 +126,7 @@ void VisualizationWidget::handleStatus(Status status)
             entry.second = m_time;
             clearForeground(item);
         }
+        m_guiTimer->requestTriggering();
     }
 }
 

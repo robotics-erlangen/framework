@@ -20,6 +20,7 @@
 
 #include "robotwidget.h"
 #include "input/inputmanager.h"
+#include "guitimer.h"
 #include <QContextMenuEvent>
 #include <QHBoxLayout>
 #include <QLabel>
@@ -152,8 +153,8 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
 
     selectTeam(NoTeam);
 
-    m_responseTimer = new QTimer(this);
-    connect(m_responseTimer, SIGNAL(timeout()), this, SLOT(hideRobotStatus()));
+    m_guiResponseTimer = new GuiTimer(1000, this);
+    connect(m_guiResponseTimer, &GuiTimer::timeout, this, &RobotWidget::hideRobotStatus);
 }
 
 RobotWidget::~RobotWidget()
@@ -321,7 +322,7 @@ void RobotWidget::hideRobotStatus()
 {
     if (m_statusCtr > 0) {
         // restart timer
-        m_responseTimer->start(10000);
+        m_guiResponseTimer->requestTriggering();
         m_statusCtr--;
         return;
     }
@@ -412,10 +413,8 @@ void RobotWidget::handleResponse(const robot::RadioResponse &response)
     }
 
     // update counter to indicate status was updated
-    m_statusCtr = 2;
-    if (!m_responseTimer->isActive()) {
-        m_responseTimer->start(10000);
-    }
+    m_statusCtr = 10;
+    m_guiResponseTimer->requestTriggering();
     m_lastResponse = response;
 }
 

@@ -21,6 +21,7 @@
 #include "leaffilterproxymodel.h"
 #include "plotter.h"
 #include "plot.h"
+#include "../guitimer.h"
 #include "ui_plotter.h"
 #include "google/protobuf/descriptor.h"
 #include "protobuf/status.pb.h"
@@ -28,7 +29,6 @@
 #include <QComboBox>
 #include <QMenu>
 #include <QSettings>
-#include <QTimer>
 #include <QStringBuilder>
 #include <unordered_map>
 
@@ -100,9 +100,8 @@ Plotter::Plotter() :
     s.endGroup();
 
     // setup invalidate timer
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), SLOT(invalidatePlots()));
-    timer->start(1000);
+    m_guiTimer = new GuiTimer(1000, this);
+    connect(m_guiTimer, &GuiTimer::timeout, this, &Plotter::invalidatePlots);
 
     loadSelection();
 }
@@ -230,6 +229,8 @@ void Plotter::handleStatus(const Status &status)
     if (!isVisible())
         return;
 
+    m_guiTimer->requestTriggering();
+
     m_time = status->time();
     // normalize time to be able to store it in floats
     if (m_startTime == 0)
@@ -342,7 +343,7 @@ QStandardItem* Plotter::getItem(const QString &name)
 
 void Plotter::invalidatePlots()
 {
-    if (!isVisible()) // values are'nt update while hidden
+    if (!isVisible()) // values aren't update while hidden
         return;
 
     const float time = (m_time - m_startTime) / 1E9;
@@ -504,6 +505,7 @@ void Plotter::addPoint(const std::string &name, const QString &parent, float tim
 
 void Plotter::clearData()
 {
+    m_guiTimer->requestTriggering();
     // delete everything
     foreach (QStandardItem *item, m_items) {
         // just drop the freeze plot

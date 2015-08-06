@@ -28,6 +28,7 @@
 #include <QHash>
 #include <QLinkedList>
 
+class GuiTimer;
 class QLabel;
 class QMenu;
 class QGestureEvent;
@@ -138,6 +139,7 @@ private:
 
 private:
     QGraphicsScene *m_scene;
+    GuiTimer *m_guiTimer;
 
     QMenu *m_contextMenu;
     QAction *m_actionShowBlueVis;

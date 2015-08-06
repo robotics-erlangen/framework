@@ -27,6 +27,7 @@
 
 class Plot;
 class TextureCache;
+class GuiTimer;
 
 class PlotterWidget : public QGLWidget
 {
@@ -54,6 +55,7 @@ protected:
     void mouseMoveEvent(QMouseEvent *e);
     void mousePressEvent(QMouseEvent *);
     void mouseReleaseEvent(QMouseEvent *);
+    void showEvent(QShowEvent *e);
 
 private slots:
     void updateView();
@@ -76,9 +78,9 @@ private:
     QList<QColor> m_colorQueue;
     QFont m_font;
     TextureCache *m_textureCache;
+    GuiTimer *m_guiTimer;
 
     double m_time;
-    bool m_isUpdated;
     double m_yMin;
     double m_yMax;
     double m_duration;

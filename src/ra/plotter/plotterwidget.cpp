@@ -21,12 +21,12 @@
 #include "plotterwidget.h"
 #include "plot.h"
 #include "texturecache.h"
+#include "../guitimer.h"
 #include <QCursor>
 #include <QLabel>
 #include <QWindow>
 #include <QMouseEvent>
 #include <QScrollBar>
-#include <QTimer>
 #include <cmath>
 #include <QGuiApplication>
 #ifdef Q_OS_MAC
@@ -49,7 +49,6 @@ PlotterWidget::PlotterWidget(QWidget *parent) :
     QGLWidget(parent),
     m_font(QGuiApplication::font()),
     m_time(0.0),
-    m_isUpdated(true),
     m_yMin(-5.0),
     m_yMax(5.0),
     m_duration(20.0),
@@ -63,9 +62,9 @@ PlotterWidget::PlotterWidget(QWidget *parent) :
     m_textureCache = new TextureCache(context());
 
     // redraw timer
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), SLOT(updateView()));
-    timer->start(30);
+    m_guiTimer = new GuiTimer(30, this);
+    connect(m_guiTimer, &GuiTimer::timeout, this, &PlotterWidget::updateView);
+    m_guiTimer->requestTriggering();
 }
 
 PlotterWidget::~PlotterWidget()
@@ -75,11 +74,10 @@ PlotterWidget::~PlotterWidget()
 
 void PlotterWidget::updateView()
 {
-    if (!m_isUpdated || !isVisible()) {
+    if (!isVisible()) {
         return;
     }
     updateGL();
-    m_isUpdated = false;
 }
 
 void PlotterWidget::paintGL()
@@ -253,7 +251,7 @@ void PlotterWidget::drawLabel(int x, int y, bool rightAligned, const QString &st
 void PlotterWidget::leaveEvent(QEvent *e)
 {
     m_showTime = false;
-    m_isUpdated = true;
+    m_guiTimer->requestTriggering();
 }
 
 void PlotterWidget::mouseMoveEvent(QMouseEvent *e)
@@ -262,7 +260,7 @@ void PlotterWidget::mouseMoveEvent(QMouseEvent *e)
     pos.setX(pos.x() - m_time);
     m_mousePos = pos;
     m_showTime = true;
-    m_isUpdated = true;
+    m_guiTimer->requestTriggering();
 }
 
 void PlotterWidget::mousePressEvent(QMouseEvent *)
@@ -277,7 +275,7 @@ void PlotterWidget::mousePressEvent(QMouseEvent *)
         m_mouseStartPos = QPointF();
         m_mouseEndPos = QPointF();
     }
-    m_isUpdated = true;
+    m_guiTimer->requestTriggering();
 }
 
 void PlotterWidget::mouseReleaseEvent(QMouseEvent *)
@@ -288,10 +286,16 @@ void PlotterWidget::mouseReleaseEvent(QMouseEvent *)
     }
 }
 
+void PlotterWidget::showEvent(QShowEvent *e)
+{
+    m_guiTimer->requestTriggering();
+    QWidget::showEvent(e);
+}
+
 void PlotterWidget::update(float time)
 {
     m_time = time; // current time, used to the time axis
-    m_isUpdated = true;
+    m_guiTimer->requestTriggering();
 }
 
 void PlotterWidget::addPlot(const Plot *plot)
@@ -310,7 +314,7 @@ void PlotterWidget::addPlot(const Plot *plot)
     QColor color = m_colorQueue.takeFirst();
     m_colorMap[plot] = color; // remember color
 
-    m_isUpdated = true;
+    m_guiTimer->requestTriggering();
 }
 
 void PlotterWidget::removePlot(const Plot *plot)
@@ -323,31 +327,31 @@ void PlotterWidget::removePlot(const Plot *plot)
         // if there are more plots than different colors
         m_colorQueue.prepend(color);
     }
-    m_isUpdated = true;
+    m_guiTimer->requestTriggering();
 }
 
 void PlotterWidget::setYMin(double yMin)
 {
     m_yMin = yMin;
-    m_isUpdated = true;
+    m_guiTimer->requestTriggering();
 }
 
 void PlotterWidget::setYMax(double yMax)
 {
     m_yMax = yMax;
-    m_isUpdated = true;
+    m_guiTimer->requestTriggering();
 }
 
 void PlotterWidget::setDuration(double duration)
 {
     m_duration = duration;
-    m_isUpdated = true;
+    m_guiTimer->requestTriggering();
 }
 
 void PlotterWidget::setOffset(double offset)
 {
     m_offset = offset;
-    m_isUpdated = true;
+    m_guiTimer->requestTriggering();
 }
 
 qreal PlotterWidget::devicePixelRatio() const

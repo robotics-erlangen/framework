@@ -22,13 +22,13 @@
 #include "protobuf/command.pb.h"
 #include "protobuf/geometry.h"
 #include "logfile/savesituation.h"
+#include "guitimer.h"
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <cmath>
 #include <QGraphicsRectItem>
 #include <QGLWidget>
 #include <QSettings>
-#include <QTimer>
 #include <QLabel>
 #include <QFileDialog>
 #include <QGesture>
@@ -112,6 +112,10 @@ FieldWidget::FieldWidget(QWidget *parent) :
     grabGesture(m_touchStatusType);
     grabGesture(Qt::PanGesture);
     grabGesture(Qt::PinchGesture);
+
+    m_guiTimer = new GuiTimer(30, this);
+    connect(m_guiTimer, &GuiTimer::timeout, this, &FieldWidget::updateAll);
+    m_guiTimer->requestTriggering();
 
     geometrySetDefault(&m_geometry);
 
@@ -227,11 +231,6 @@ FieldWidget::FieldWidget(QWidget *parent) :
 
     setHorizontal();
 
-    // view update timer
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), SLOT(updateAll()));
-    timer->start(30);
-
     setMouseTracking(true);
 
     // load settings
@@ -267,6 +266,7 @@ void FieldWidget::handleStatus(const Status &status)
     if (status->has_world_state()) {
         m_worldState.CopyFrom(status->world_state());
         m_worldStateUpdated = true;
+        m_guiTimer->requestTriggering();
     }
 
     if (status->has_game_state()) {
@@ -284,12 +284,14 @@ void FieldWidget::handleStatus(const Status &status)
     if (status->has_geometry()) {
         m_geometry.CopyFrom(status->geometry());
         m_geometryUpdated = true;
+        m_guiTimer->requestTriggering();
     }
 
     if (status->has_debug()) {
         // just save status to avoid copying the visualizations
         m_visualizations[status->debug().source()] = status;
         m_visualizationsUpdated = true;
+        m_guiTimer->requestTriggering();
     }
 }
 
@@ -320,6 +322,7 @@ void FieldWidget::clearData()
 
     geometrySetDefault(&m_geometry);
     m_geometryUpdated = true;
+    m_guiTimer->requestTriggering();
 }
 
 void FieldWidget::hideVisualizationToggles()
@@ -338,6 +341,7 @@ void FieldWidget::updateTeam(RobotMap &team, QHash<uint, robot::Specs> &specsMap
     }
 
     clearTeamData(team);
+    m_guiTimer->requestTriggering();
 }
 
 void FieldWidget::visualizationsChanged(const QStringList &items)
@@ -345,6 +349,7 @@ void FieldWidget::visualizationsChanged(const QStringList &items)
     // list of visible visualizations was changed
     m_visibleVisualizations = items;
     m_visualizationsUpdated = true; // force redraw
+    m_guiTimer->requestTriggering();
 }
 
 void FieldWidget::updateAll()
@@ -364,6 +369,7 @@ void FieldWidget::updateVisualizationVisibility()
     m_visibleVisSources[amun::Autoref] = true;
 
     m_visualizationsUpdated = true;
+    m_guiTimer->requestTriggering();
 }
 
 void FieldWidget::updateTracesVisibility()
@@ -799,6 +805,7 @@ void FieldWidget::setFieldOrientation(float rotation)
     }
     m_robotsYellow.clear();
     m_worldStateUpdated = true; // recreate robots on redraw
+    m_guiTimer->requestTriggering();
 }
 
 void FieldWidget::setHorizontal()
@@ -1184,12 +1191,14 @@ void FieldWidget::setInfoText(const QString &str)
     }
     m_infoText = str;
     m_infoTextUpdated = true;
+    m_guiTimer->requestTriggering();
 }
 
 bool FieldWidget::viewportEvent(QEvent *event)
 {
-    if (event->type() != QEvent::Paint) {
+    if (event->type() != QEvent::Paint && event->type() != QEvent::UpdateRequest) {
         m_infoTextUpdated = true;
+        m_guiTimer->requestTriggering();
     }
     return QGraphicsView::viewportEvent(event);
 }

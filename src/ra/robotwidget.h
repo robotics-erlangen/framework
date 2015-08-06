@@ -28,6 +28,7 @@
 #include <QTimer>
 
 class InputManager;
+class GuiTimer;
 
 class RobotWidget : public QWidget
 {
@@ -68,7 +69,6 @@ private:
     InputManager *m_inputManager;
     bool m_isGeneration;
     robot::Specs m_specs;
-    QTimer *m_responseTimer;
     QLabel *m_label;
     QToolButton *m_btnControl;
     QMenu *m_menu;
@@ -85,6 +85,7 @@ private:
     QToolButton *m_team;
     QMenu *m_teamMenu;
     QActionGroup *m_teamGroup;
+    GuiTimer *m_guiResponseTimer;
     int m_statusCtr;
     robot::RadioResponse m_lastResponse;
 };

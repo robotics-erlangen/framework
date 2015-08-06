@@ -29,6 +29,7 @@
 
 class LeafFilterProxyModel;
 class Plot;
+class GuiTimer;
 class QMenu;
 namespace Ui {
     class Plotter;
@@ -84,6 +85,7 @@ private:
     qint64 m_time;
     double m_timeLimit;
     bool m_freeze;
+    GuiTimer *m_guiTimer;
     QHash<QString, QStandardItem*> m_items;
     QHash<QString, QVector<QStandardItem *>> m_itemLookup;
     QHash<QStandardItem*, Plot*> m_plots;

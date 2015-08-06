@@ -25,6 +25,8 @@ include_directories(${PROTOBUF_INCLUDE_DIR})
 set(SOURCES
     leaffilterproxymodel.cpp
     leaffilterproxymodel.h
+    ../guitimer.cpp
+    ../guitimer.h
     plot.cpp
     plot.h
     plotter.cpp
