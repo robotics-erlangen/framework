@@ -129,6 +129,7 @@ brew install git sdl2 luajit protobuf libusb
 ```
 
 Download Qt 5 from http://qt-project.org and install
+WARNING: Qt 5.4.0-5.5.0 have a huge performance regression. This is fixed in Qt 5.5.1
 
 Build using:
 ```
