@@ -206,19 +206,6 @@ static int amunSendRefereeCommand(lua_State *state)
     return 0;
 }
 
-static bool situationtestBeamIndicator;
-static int amunSituationtestGetBeamIndicator(lua_State *state)
-{
-    lua_pushboolean(state, situationtestBeamIndicator);
-    return 1;
-}
-
-static int amunSituationtestSetBeamIndicator(lua_State *state)
-{
-    situationtestBeamIndicator = lua_toboolean(state, 1);
-    return 0;
-}
-
 static int amunSendMixedTeamInfo(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
@@ -256,8 +243,6 @@ static const luaL_Reg amunMethods[] = {
     // debug only
     {"sendCommand",         amunSendCommand},
     {"sendRefereeCommand",  amunSendRefereeCommand},
-    {"situationtestGetBeamIndicator", amunSituationtestGetBeamIndicator},
-    {"situationtestSetBeamIndicator", amunSituationtestSetBeamIndicator},
     {"sendMixedTeamInfo",   amunSendMixedTeamInfo},
     {0, 0}
 };

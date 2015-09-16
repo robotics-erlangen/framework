@@ -171,8 +171,6 @@ function amun._hideFunctions()
 	local strategyPath = amun.getStrategyPath()
 	local getCurrentTime = amun.getCurrentTime
 	local sendCommand = amun.sendCommand
-	local situationtestGetBeamIndicator = amun.situationtestGetBeamIndicator
-	local situationtestSetBeamIndicator = amun.situationtestSetBeamIndicator
 
 	-- overwrite global amun
 	amun = {
@@ -184,8 +182,6 @@ function amun._hideFunctions()
 	}
 	if isDebug then
 		amun.sendCommand = sendCommand
-		amun.situationtestGetBeamIndicator = situationtestGetBeamIndicator
-		amun.situationtestSetBeamIndicator = situationtestSetBeamIndicator
 	end
 
 	-- prevent reloading original api
