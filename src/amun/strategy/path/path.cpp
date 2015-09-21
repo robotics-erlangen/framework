@@ -434,6 +434,7 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
     simplify(points, m_radius);
 
     Path::List list;
+    list.reserve(points.size());
     foreach (const Vector &p, points) {
         Waypoint wp;
         wp.x = p.x;

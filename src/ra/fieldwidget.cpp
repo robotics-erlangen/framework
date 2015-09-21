@@ -298,7 +298,7 @@ void FieldWidget::handleStatus(const Status &status)
 void FieldWidget::clearTeamData(RobotMap &team)
 {
     // force redrawing robots
-    foreach (Robot r, team) {
+    foreach (const Robot &r, team) {
         delete r.id;
         delete r.robot;
     }

@@ -48,7 +48,7 @@ signals:
     void itemsChanged(const QStringList &items);
 
 public slots:
-    void handleStatus(Status status);
+    void handleStatus(const Status &status);
 
 public:
     void load();

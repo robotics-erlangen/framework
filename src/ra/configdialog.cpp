@@ -30,10 +30,10 @@ const uint DEFAULT_SIM_PROCESSING_TIME = 5; // in ms
 const uint DEFAULT_VISION_PORT = 10005;
 
 const bool DEFAULT_NETWORK_ENABLE = false;
-const QString DEFAULT_NETWORK_HOST = "";
+const QString DEFAULT_NETWORK_HOST = QStringLiteral("");
 const uint DEFAULT_NETWORK_PORT = 10010;
 
-const QString DEFAULT_MIXED_HOST = "";
+const QString DEFAULT_MIXED_HOST = QStringLiteral("");
 const uint DEFAULT_MIXED_PORT = 10012;
 
 ConfigDialog::ConfigDialog(QWidget *parent) :

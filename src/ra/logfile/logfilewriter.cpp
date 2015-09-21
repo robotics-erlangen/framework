@@ -35,7 +35,7 @@ LogFileWriter::~LogFileWriter()
     close();
 }
 
-bool LogFileWriter::open(QString filename)
+bool LogFileWriter::open(const QString &filename)
 {
     // lock for atomar opening
     QMutexLocker locker(m_mutex);

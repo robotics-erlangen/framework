@@ -37,7 +37,7 @@ LogFileReader::~LogFileReader()
     close();
 }
 
-bool LogFileReader::open(QString filename)
+bool LogFileReader::open(const QString &filename)
 {
     // lock for atomar opening
     QMutexLocker locker(m_mutex);

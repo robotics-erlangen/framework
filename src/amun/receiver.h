@@ -35,7 +35,7 @@ public:
     ~Receiver();
 
 signals:
-    void gotPacket(QByteArray data, qint64 time);
+    void gotPacket(const QByteArray &data, qint64 time);
     void sendStatus(const Status &status);
 
 public slots:

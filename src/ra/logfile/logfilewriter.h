@@ -36,7 +36,7 @@ public:
     explicit LogFileWriter();
     ~LogFileWriter();
 
-    bool open(QString filename);
+    bool open(const QString &filename);
     void close();
     bool isOpen() const { return m_file.isOpen(); }
 

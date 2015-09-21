@@ -104,8 +104,8 @@ static int luaLoadFile(lua_State* state)
     {
         // add .lua extension
         QString fileName = QString::fromUtf8(lua_tostring(state, 1));
-        if (!fileName.endsWith(".lua"))
-            fileName += ".lua";
+        if (!fileName.endsWith(QStringLiteral(".lua")))
+            fileName += QStringLiteral(".lua");
 
         // get filename and add to filewatcher
         QString fullFileName = getBaseDir(state)->absoluteFilePath(fileName);
@@ -132,7 +132,7 @@ static int luaLoadFile(lua_State* state)
 }
 
 static QString extractFilename(QString source, QDir* baseDir) {
-    if (source.startsWith("@")) {
+    if (source.startsWith(QStringLiteral("@"))) {
         source = source.mid(1);
     }
     return baseDir->relativeFilePath(source);
@@ -143,19 +143,19 @@ static int luaErrorHandler(lua_State* state)
     // error string
     QString s = lua_tostring(state, 1);
 
-    s.replace("<", "&lt;");
-    s.replace(">", "&gt;");
+    s.replace(QStringLiteral("<"), QStringLiteral("&lt;"));
+    s.replace(QStringLiteral(">"), QStringLiteral("&gt;"));
 
     // highlight string enclosed in ':' or everything
-    QRegExp regexp("^.*:.*: ");
+    QRegExp regexp(QStringLiteral("^.*:.*: "));
     regexp.setMinimal(true);
     int i = regexp.indexIn(s);
     if (i >= 0) {
-        s.insert(i + regexp.cap().length(), "<font color=\"red\">");
+        s.insert(i + regexp.cap().length(), QStringLiteral("<font color=\"red\">"));
     } else {
-        s.prepend("<font color=\"red\">");
+        s.prepend(QStringLiteral("<font color=\"red\">"));
     }
-    s.append("</font>");
+    s.append(QStringLiteral("</font>"));
 
     const QString prefix = "<br>&nbsp;&nbsp;&nbsp;&gt;";
     QDir* baseDir = getBaseDir(state);
@@ -276,7 +276,7 @@ Lua::~Lua()
     lua_close(m_state);
 }
 
-bool Lua::loadScript(const QString filename, const QString entryPoint, const world::Geometry &geometry, const robot::Team &team)
+bool Lua::loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team)
 {
     Q_ASSERT(m_filename.isNull());
 
@@ -378,7 +378,7 @@ void Lua::setCommand(uint generation, uint robotId, robot::Command &command)
         emit sendStrategyCommand(m_type == StrategyType::BLUE, generation, robotId, data, m_worldState.time());
 }
 
-void Lua::log(const QString text)
+void Lua::log(const QString &text)
 {
     amun::StatusLog *log = m_debug.add_log();
     log->set_timestamp(time());

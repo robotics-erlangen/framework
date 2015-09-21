@@ -74,7 +74,8 @@ void Mesh::createRobotMesh(float radius, float height, float angle)
  */
 void Mesh::addRobotCover(float radius, float height, uint num, float angle, float angleStep)
 {
-    QVector<uint>& group = m_groups["cover"];
+    QVector<uint>& group = m_groups[QStringLiteral("cover")];
+    group.reserve(group.size() + 2 * num + 2);
     for (uint i = 0; i <= num; i++) {
         // upper vertex row
         addNormal(cos(angle), sin(angle), 0.0f);
@@ -130,7 +131,7 @@ void Mesh::addRobotFront(float radius, float height, float angleStart, float ang
     addTriangle(firstIndex + 0, firstIndex + 1, firstIndex + 2);
     addTriangle(firstIndex + 2, firstIndex + 1, firstIndex + 3);
 
-    QVector<uint>& group = m_groups["front"];
+    QVector<uint>& group = m_groups[QStringLiteral("front")];
     group.append(firstIndex + 0);
     group.append(firstIndex + 1);
     group.append(firstIndex + 2);
@@ -148,7 +149,8 @@ void Mesh::addRobotFront(float radius, float height, float angleStart, float ang
  */
 void Mesh::addRobotPlate(float radius, float height, uint num, float angle, float angleStep, bool top)
 {
-    QVector<uint>& group = m_groups[top ? "top" : "bottom"];
+    QVector<uint>& group = m_groups[top ? QStringLiteral("top") : QStringLiteral("bottom")];
+    group.reserve(group.size() + num + 3);
 
     const float normal = top ? 1.0f : -1.0f;
     const uint firstIndex = m_vertices.count() / 3;

@@ -266,7 +266,7 @@ void Strategy::reload()
     }
 }
 
-void Strategy::sendCommand(Command command)
+void Strategy::sendCommand(const Command &command)
 {
     if (m_debugEnabled) {
         emit gotCommand(command);
@@ -341,7 +341,7 @@ void Strategy::close()
     emit sendStatus(status);
 }
 
-void Strategy::fail(const QString error)
+void Strategy::fail(const QString &error)
 {
     if (m_type == StrategyType::BLUE || m_type == StrategyType::YELLOW) {
         emit sendHalt(m_type == StrategyType::BLUE);
@@ -376,7 +376,7 @@ void Strategy::fail(const QString error)
     }
 }
 
-void Strategy::setStrategyStatus(Status status, amun::StatusStrategy::STATE state)
+void Strategy::setStrategyStatus(Status &status, amun::StatusStrategy::STATE state)
 {
     Q_ASSERT(m_strategy != NULL || state == amun::StatusStrategy::CLOSED);
 
@@ -397,7 +397,7 @@ void Strategy::setStrategyStatus(Status status, amun::StatusStrategy::STATE stat
     }
 }
 
-void Strategy::copyDebugValues(Status status)
+void Strategy::copyDebugValues(Status &status)
 {
     Q_ASSERT(m_strategy != NULL);
     status->mutable_debug()->CopyFrom(m_strategy->debugValues());

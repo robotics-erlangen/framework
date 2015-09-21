@@ -68,6 +68,7 @@ SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld 
 
     // FIXME wheels currently aren't used
     const float angles[] = { 35.5, 135, 225, 324.5 };
+    m_wheels.reserve(4);
     for (int i = 0; i < 4; i++){
         const float angle = (90 + angles[i]) / 180 * M_PI;
         Wheel wheel;

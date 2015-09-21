@@ -56,14 +56,14 @@ public slots:
 private slots:
     void process();
     void reload();
-    void sendCommand(Command command);
+    void sendCommand(const Command &command);
 
 private:
     void loadScript(const QString &filename, const QString &entryPoint);
     void close();
-    void fail(const QString error);
-    void setStrategyStatus(Status status, amun::StatusStrategy::STATE state);
-    void copyDebugValues(Status status);
+    void fail(const QString &error);
+    void setStrategyStatus(Status &status, amun::StatusStrategy::STATE state);
+    void copyDebugValues(Status &status);
     amun::DebugSource debugSource() const;
 
 private:

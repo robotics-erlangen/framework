@@ -57,7 +57,7 @@ public:
     ~Transceiver();
 
 signals:
-    void sendStatus(Status status);
+    void sendStatus(const Status &status);
     void sendRadioResponses(const QList<robot::RadioResponse> &responses);
 
 public slots:

@@ -47,7 +47,7 @@ public:
     // return true on success, if false is returned the error msg can be retrieved via errorMsg()
     // loadScript and process MUST NOT be called anymore after an error was thrown!
     // must only be called once
-    virtual bool loadScript(const QString filename, const QString entryPoint, const world::Geometry &geometry, const robot::Team &team) = 0;
+    virtual bool loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team) = 0;
     // must only be called after loadScript was executed successfully
     virtual bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput) = 0;
 

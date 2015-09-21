@@ -179,7 +179,7 @@ void MainWindow::openFile()
     openFile(filename);
 }
 
-void MainWindow::openFile(QString filename)
+void MainWindow::openFile(const QString &filename)
 {
     // don't do anything if the user couldn't decide for a new log file
     if (!filename.isEmpty()) {
@@ -283,7 +283,7 @@ void MainWindow::previousFrame()
     int frame = ui->horizontalSlider->value();
     int prevPacket = m_frames.value(std::max(0, frame - 1));
 
-    while (prevPacket >= ui->spinPacketCurrent->value() & frame > 0) {
+    while (prevPacket >= ui->spinPacketCurrent->value() && frame > 0) {
         frame--;
         prevPacket = m_frames.value(std::max(0, frame - 1));
     }

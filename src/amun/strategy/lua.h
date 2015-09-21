@@ -44,9 +44,8 @@ public:
     static AbstractStrategyScript* createStrategy(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
     ~Lua() override;
 
-
 public:
-    bool loadScript(const QString filename, const QString entryPoint, const world::Geometry &geometry, const robot::Team &team);
+    bool loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team);
     bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput);
 
     world::Geometry geometry() const { return m_geometry; }
@@ -59,7 +58,7 @@ public:
     bool isBlue() const { return m_type == StrategyType::BLUE; }
     const QDir baseDir() const { return m_baseDir; }
     void setCommand(uint generation, uint robotId, robot::Command &command);
-    void log(const QString text);
+    void log(const QString &text);
     amun::Visualization *addVisualization();
     amun::DebugValue *addDebug();
     amun::PlotValue *addPlot();

@@ -48,7 +48,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow();
-    void openFile(QString filename);
+    void openFile(const QString &filename);
 
 protected:
     void closeEvent(QCloseEvent *e);

@@ -225,7 +225,7 @@ Eigen::Vector3f BallFilter::unprojectBall(const world::BallPosition &p, const Ei
 
     Eigen::Vector3f ball(p.p_x(), p.p_y(), 0);
 
-    if (cameraPos.isZero() || p.camera_id() != m_primaryCamera
+    if (cameraPos.isZero() || (qint32)p.camera_id() != m_primaryCamera
             || !m_lastNearRobotPos.IsInitialized() || m_lastNearRobotPos.time() >= p.time()) {
         return ball;
     }

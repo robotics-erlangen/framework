@@ -40,7 +40,7 @@ VisualizationWidget::VisualizationWidget(QWidget *parent) :
 
     // setup context menu
     m_contextMenu = new QMenu(this);
-    QAction *actionClear = new QAction("Clear visualizations", m_contextMenu);
+    QAction *actionClear = new QAction(QStringLiteral("Clear visualizations"), m_contextMenu);
     connect(actionClear, SIGNAL(triggered()), this, SLOT(clearItems()));
     m_contextMenu->addAction(actionClear);
 
@@ -55,8 +55,8 @@ VisualizationWidget::VisualizationWidget(QWidget *parent) :
 VisualizationWidget::~VisualizationWidget()
 {
     QSettings s;
-    s.beginGroup("Visualization");
-    s.setValue("Visible", QStringList(m_selection.toList()));
+    s.beginGroup(QStringLiteral("Visualization"));
+    s.setValue(QStringLiteral("Visible"), QStringList(m_selection.toList()));
     s.endGroup();
 
     delete ui;
@@ -65,10 +65,11 @@ VisualizationWidget::~VisualizationWidget()
 void VisualizationWidget::load()
 {
     QSettings s;
-    s.beginGroup("Visualization");
+    s.beginGroup(QStringLiteral("Visualization"));
     m_items.clear();
     // load previously selected items and create entries for them
-    foreach (const QString &s, s.value("Visible").toStringList()) {
+    QString vis = QStringLiteral("Visible");
+    foreach (const QString &s, s.value(vis).toStringList()) {
         QByteArray b = s.toUtf8();
         if (!m_items.contains(b)) {
             QStandardItem *item = new QStandardItem(s);
@@ -93,7 +94,7 @@ void VisualizationWidget::showContextMenu(const QPoint &pos)
     m_contextMenu->popup(ui->list->mapToGlobal(pos));
 }
 
-void VisualizationWidget::handleStatus(Status status)
+void VisualizationWidget::handleStatus(const Status &status)
 {
     if (status->has_debug()) {
         const amun::DebugValues &values = status->debug();

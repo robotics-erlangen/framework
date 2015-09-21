@@ -53,6 +53,7 @@ void LogCutter::startProcess()
     lockUI(true);
 
     QList<QString> inputFiles;
+    inputFiles.reserve(ui->inputList->count());
     for (int i = 0; i < ui->inputList->count(); ++i) {
         inputFiles.append(ui->inputList->item(i)->text());
     }

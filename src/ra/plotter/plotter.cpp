@@ -50,14 +50,14 @@ Plotter::Plotter() :
     connect(ui->lineSearch, SIGNAL(textChanged(QString)), m_proxy, SLOT(setFilterFixedString(QString)));
 
     // root items in the plotter
-    addRootItem("Ball", "Ball");
-    addRootItem("Yellow", "Yellow robots");
-    addRootItem("YellowStrategy", "Yellow strategy");
-    addRootItem("Blue", "Blue robots");
-    addRootItem("BlueStrategy", "Blue strategy");
-    addRootItem("RadioCommand", "Radio commands");
-    addRootItem("RadioResponse", "Radio responses");
-    addRootItem("Timing", "Timing");
+    addRootItem(QStringLiteral("Ball"), QStringLiteral("Ball"));
+    addRootItem(QStringLiteral("Yellow"), QStringLiteral("Yellow robots"));
+    addRootItem(QStringLiteral("YellowStrategy"), QStringLiteral("Yellow strategy"));
+    addRootItem(QStringLiteral("Blue"), QStringLiteral("Blue robots"));
+    addRootItem(QStringLiteral("BlueStrategy"), QStringLiteral("Blue strategy"));
+    addRootItem(QStringLiteral("RadioCommand"), QStringLiteral("Radio commands"));
+    addRootItem(QStringLiteral("RadioResponse"), QStringLiteral("Radio responses"));
+    addRootItem(QStringLiteral("Timing"), QStringLiteral("Timing"));
 
     ui->tree->expandAll(); // expands the root items, thus childs are immediatelly visible once added
     connect(&m_model, SIGNAL(itemChanged(QStandardItem*)), SLOT(itemChanged(QStandardItem*)));
@@ -84,7 +84,7 @@ Plotter::Plotter() :
 
     // setup context menu for plot list
     m_plotMenu = new QMenu(this);
-    QAction *actionClear = new QAction("Clear selection", m_plotMenu);
+    QAction *actionClear = new QAction(QStringLiteral("Clear selection"), m_plotMenu);
     connect(actionClear, SIGNAL(triggered()), this, SLOT(clearSelection()));
     m_plotMenu->addAction(actionClear);
 
@@ -93,10 +93,10 @@ Plotter::Plotter() :
 
     // restore geometry
     QSettings s;
-    s.beginGroup("Plotter");
-    restoreGeometry(s.value("geometry").toByteArray());
-    ui->splitter->restoreState(s.value("splitter").toByteArray());
-    ui->tree->header()->restoreState(s.value("tree").toByteArray());
+    s.beginGroup(QStringLiteral("Plotter"));
+    restoreGeometry(s.value(QStringLiteral("geometry")).toByteArray());
+    ui->splitter->restoreState(s.value(QStringLiteral("splitter")).toByteArray());
+    ui->tree->header()->restoreState(s.value(QStringLiteral("tree")).toByteArray());
     s.endGroup();
 
     // setup invalidate timer
@@ -116,11 +116,11 @@ Plotter::~Plotter()
 void Plotter::closeEvent(QCloseEvent *event)
 {
     QSettings s;
-    s.beginGroup("Plotter");
-    s.setValue("geometry", saveGeometry());
-    s.setValue("splitter", ui->splitter->saveState());
-    s.setValue("tree", ui->tree->header()->saveState());
-    s.setValue("visible", QStringList(m_selection.toList()));
+    s.beginGroup(QStringLiteral("Plotter"));
+    s.setValue(QStringLiteral("geometry"), saveGeometry());
+    s.setValue(QStringLiteral("splitter"), ui->splitter->saveState());
+    s.setValue(QStringLiteral("tree"), ui->tree->header()->saveState());
+    s.setValue(QStringLiteral("visible"), QStringList(m_selection.toList()));
     s.endGroup();
 
     QWidget::closeEvent(event);
@@ -143,10 +143,11 @@ void Plotter::addRootItem(const QString &name, const QString &displayName)
 void Plotter::loadSelection()
 {
     QSettings s;
-    s.beginGroup("Plotter");
+    s.beginGroup(QStringLiteral("Plotter"));
 
     m_selection.clear();
-    foreach (const QString &s, s.value("visible").toStringList()) {
+    QString vis = QStringLiteral("visible");
+    foreach (const QString &s, s.value(vis).toStringList()) {
         m_selection.insert(s);
     }
 
@@ -244,19 +245,19 @@ void Plotter::handleStatus(const Status &status)
         float time = (worldState.time() - m_startTime) / 1E9;
 
         if (worldState.has_ball()) {
-            parseMessage(worldState.ball(), "Ball", time);
+            parseMessage(worldState.ball(), QStringLiteral("Ball"), time);
 
             for (int i = 0; i < worldState.ball().raw_size(); i++) {
                 const world::BallPosition &p = worldState.ball().raw(i);
-                parseMessage(p, "Ball.raw", (p.time() - m_startTime) / 1E9);
+                parseMessage(p, QStringLiteral("Ball.raw"), (p.time() - m_startTime) / 1E9);
             }
         }
 
         for (int i = 0; i < worldState.yellow_size(); i++) {
             const world::Robot &robot = worldState.yellow(i);
-            parseMessage(robot, QString("Yellow.%1").arg(robot.id()), time);
+            parseMessage(robot, QString(QStringLiteral("Yellow.%1")).arg(robot.id()), time);
 
-            const QString rawParent = QString("Yellow.%1.raw").arg(robot.id());
+            const QString rawParent = QString(QStringLiteral("Yellow.%1.raw")).arg(robot.id());
             for (int i = 0; i < robot.raw_size(); i++) {
                 const world::RobotPosition &p = robot.raw(i);
                 parseMessage(p, rawParent, (p.time() - m_startTime) / 1E9);
@@ -265,9 +266,9 @@ void Plotter::handleStatus(const Status &status)
 
         for (int i = 0; i < worldState.blue_size(); i++) {
             const world::Robot &robot = worldState.blue(i);
-            parseMessage(robot, QString("Blue.%1").arg(robot.id()), time);
+            parseMessage(robot, QString(QStringLiteral("Blue.%1")).arg(robot.id()), time);
 
-            const QString rawParent = QString("Blue.%1.raw").arg(robot.id());
+            const QString rawParent = QString(QStringLiteral("Blue.%1.raw")).arg(robot.id());
             for (int i = 0; i < robot.raw_size(); i++) {
                 const world::RobotPosition &p = robot.raw(i);
                 parseMessage(p, rawParent, (p.time() - m_startTime) / 1E9);
@@ -276,25 +277,25 @@ void Plotter::handleStatus(const Status &status)
 
         for (int i = 0; i < worldState.radio_response_size(); i++) {
             const robot::RadioResponse &response = worldState.radio_response(i);
-            const QString name = QString("%1-%2").arg(response.generation()).arg(response.id());
+            const QString name = QString(QStringLiteral("%1-%2")).arg(response.generation()).arg(response.id());
             const float responseTime = (response.time() - m_startTime) / 1E9;
-            parseMessage(response, QString("RadioResponse.%1").arg(name), responseTime);
-            parseMessage(response.estimated_speed(), QString("RadioResponse.%1.estimatedSpeed").arg(name), responseTime);
+            parseMessage(response, QString(QStringLiteral("RadioResponse.%1")).arg(name), responseTime);
+            parseMessage(response.estimated_speed(), QString(QStringLiteral("RadioResponse.%1.estimatedSpeed")).arg(name), responseTime);
         }
     }
 
     for (int i = 0; i < status->radio_command_size(); i++) {
         const robot::RadioCommand &command = status->radio_command(i);
-        const QString name = QString("%1-%2").arg(command.generation()).arg(command.id());
+        const QString name = QString(QStringLiteral("%1-%2")).arg(command.generation()).arg(command.id());
 
         const robot::Command &cmd = command.command();
-        parseMessage(cmd, QString("RadioCommand.%1").arg(name), time);
-        parseMessage(cmd.debug(), QString("RadioCommand.%1.debug").arg(name), time);
+        parseMessage(cmd, QString(QStringLiteral("RadioCommand.%1")).arg(name), time);
+        parseMessage(cmd.debug(), QString(QStringLiteral("RadioCommand.%1.debug")).arg(name), time);
     }
 
     if (status->has_timing()) {
         const amun::Timing &timing = status->timing();
-        parseMessage(timing, "Timing", time);
+        parseMessage(timing, QStringLiteral("Timing"), time);
     }
 
     if (status->has_debug()) {
@@ -302,7 +303,8 @@ void Plotter::handleStatus(const Status &status)
         // ignore controller as it can create plots via RadioCommand.%1.debug
         if (debug.source() != amun::Controller) {
             QVector<QStandardItem *> emptyLookup;
-            const QString parent = (debug.source() == amun::StrategyBlue) ? "BlueStrategy" : "YellowStrategy";
+            const QString parent = (debug.source() == amun::StrategyBlue) ?
+                        QStringLiteral("BlueStrategy") : QStringLiteral("YellowStrategy");
             // strategies can add plots with arbitrary names
             for (int i = 0; i < debug.plot_size(); ++i) {
                 const amun::PlotValue &value = debug.plot(i);
@@ -459,15 +461,13 @@ void Plotter::tryAddLength(const std::string &name, const QString &parent, float
     }
 }
 
-static const QString qstringDot(".");
-
 void Plotter::addPoint(const std::string &name, const QString &parent, float time, float value,
                        QVector<QStandardItem *> &childLookup, int descriptorIndex)
 {
     QStandardItem *item;
     if (childLookup.isEmpty() || childLookup[descriptorIndex] == nullptr) {
         // full name for item retrieval
-        const QString fullName = parent % qstringDot % QString::fromStdString(name);
+        const QString fullName = parent % QStringLiteral(".") % QString::fromStdString(name);
         item = getItem(fullName);
         if (!childLookup.isEmpty()) {
             childLookup[descriptorIndex] = item;
@@ -481,7 +481,7 @@ void Plotter::addPoint(const std::string &name, const QString &parent, float tim
     Plot *plot = plots.value(item, nullptr);
 
     if (plot == nullptr) { // create new plot
-        const QString fullName = parent % qstringDot % QString::fromStdString(name);
+        const QString fullName = parent % QStringLiteral(".") % QString::fromStdString(name);
         plot = new Plot(fullName, this);
         item->setCheckable(true);
         if (m_selection.contains(fullName)) {

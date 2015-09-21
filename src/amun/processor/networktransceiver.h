@@ -35,7 +35,7 @@ public:
     ~NetworkTransceiver();
 
 signals:
-    void sendStatus(Status status);
+    void sendStatus(const Status &status);
 
 public slots:
     void handleRadioCommands(const QList<robot::RadioCommand> &commands);
