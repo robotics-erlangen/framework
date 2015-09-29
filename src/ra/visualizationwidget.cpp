@@ -112,7 +112,11 @@ void VisualizationWidget::handleStatus(Status status)
             if (item == NULL) {
                 item = new QStandardItem(QString::fromStdString(vis.name()));
                 item->setCheckable(true);
+                #ifdef AUTOREF_DIR
+                item->setCheckState(Qt::Checked);
+                #else
                 item->setCheckState(Qt::Unchecked);
+                #endif
                 entry = qMakePair(item, m_time);
                 m_model->appendRow(item);
                 // new visualizations are rarely added, just sort everything
