@@ -48,9 +48,9 @@ private:
 
     struct Circle : Obstacle
     {
-        float distance(const Vector &v) const;
-        float distance(const LineSegment &segment) const;
-        float size() const { return radius; }
+        float distance(const Vector &v) const override;
+        float distance(const LineSegment &segment) const override;
+        float size() const override { return radius; }
 
         Vector center;
         float radius;
@@ -59,9 +59,9 @@ private:
     struct Line : Obstacle
     {
         Line(const Vector &p1, const Vector &p2) : segment(p1, p2) {}
-        float distance(const Vector &v) const;
-        float distance(const LineSegment &segment) const;
-        float size() const { return width; }
+        float distance(const Vector &v) const override;
+        float distance(const LineSegment &segment) const override;
+        float size() const override { return width; }
 
         LineSegment segment;
         float width;
@@ -69,9 +69,9 @@ private:
 
     struct Rect : Obstacle
     {
-        float distance(const Vector &v) const;
-        float distance(const LineSegment &segment) const;
-        float size() const { return std::min(top_right.x-bottom_left.x, top_right.y-bottom_left.y); }
+        float distance(const Vector &v) const override;
+        float distance(const LineSegment &segment) const override;
+        float size() const override { return std::min(top_right.x-bottom_left.x, top_right.y-bottom_left.y); }
 
         Vector bottom_left;
         Vector top_right;

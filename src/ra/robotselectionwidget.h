@@ -52,7 +52,7 @@ public:
 
 public:
     explicit RobotSelectionWidget(QWidget *parent = 0);
-    ~RobotSelectionWidget();
+    ~RobotSelectionWidget() override;
 
 signals:
     void setTeam(uint generation, uint id, RobotWidget::Team team);

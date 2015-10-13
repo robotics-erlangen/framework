@@ -42,7 +42,7 @@ class VisualizationWidget : public QWidget
 
 public:
     explicit VisualizationWidget(QWidget *parent = 0);
-    ~VisualizationWidget();
+    ~VisualizationWidget() override;
 
 signals:
     void itemsChanged(const QStringList &items);

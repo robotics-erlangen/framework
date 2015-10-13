@@ -34,7 +34,7 @@ class InputWidget : public QWidget
 
 public:
     explicit InputWidget(QWidget *parent = 0);
-    ~InputWidget();
+    ~InputWidget() override;
 
 public:
     void init(InputManager *inputManager);

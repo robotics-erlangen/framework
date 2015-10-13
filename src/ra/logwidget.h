@@ -35,7 +35,7 @@ public slots:
     void handleStatus(const Status &status);
 
 protected:
-    void contextMenuEvent(QContextMenuEvent *event);
+    void contextMenuEvent(QContextMenuEvent *event) override;
 
 private slots:
     void setLogVisibility(bool visible);

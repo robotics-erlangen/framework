@@ -50,7 +50,7 @@ class ItemDelegate : public QStyledItemDelegate
 {
 public:
     ItemDelegate(InputManager *inputManager, const RobotSelectionWidget *widget);
-    QWidget* createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+    QWidget* createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const override;
 
 private:
     InputManager *m_inputManager;

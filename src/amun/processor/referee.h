@@ -29,7 +29,7 @@
 class Referee
 {
 public:
-    Referee(bool isInternalReferee);
+    explicit Referee(bool isInternalReferee);
 
 public:
     const amun::GameState& gameState() const { return m_gameState; }

@@ -30,8 +30,8 @@ class InputDevice : public QObject
     Q_OBJECT
 
 public:
-    InputDevice(const QString &name);
-    virtual ~InputDevice();
+    explicit InputDevice(const QString &name);
+    ~InputDevice() override;
 
 signals:
     void sendRefereeCommand(SSL_Referee::Command command);

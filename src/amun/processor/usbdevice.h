@@ -37,15 +37,15 @@ public:
     static QList<USBDevice*> getDevices(quint16 vendorId, quint16 productId, USBThread *context);
 
 private:
-    USBDevice(void *device);
+    explicit USBDevice(void *device);
 
 public:
-    ~USBDevice();
+    ~USBDevice() override;
 
 public:
-    bool open(OpenMode mode);
-    void close();
-    bool isSequential() const;
+    bool open(OpenMode mode) override;
+    void close() override;
+    bool isSequential() const override;
     void setTimeout(int timeout);
 
 public:
@@ -62,8 +62,8 @@ public:
 protected:
     void startInTransfer();
 
-    qint64 readData(char*, qint64);
-    qint64 writeData(const char*, qint64);
+    qint64 readData(char*, qint64) override;
+    qint64 writeData(const char*, qint64) override;
     void setErrorString(int error);
     static QString getErrorString(int error);
 

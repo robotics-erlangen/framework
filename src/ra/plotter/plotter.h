@@ -41,7 +41,7 @@ class Plotter : public QWidget
 
 public:
     explicit Plotter();
-    ~Plotter();
+    ~Plotter() override;
 
 public slots:
     void setScaling(float min, float max, float timespan);
@@ -53,7 +53,7 @@ signals:
     void removePlot(const Plot *plot);
 
 protected:
-    void closeEvent(QCloseEvent *event);
+    void closeEvent(QCloseEvent *event) override;
 
 private slots:
     void updateScrollBar();
@@ -66,7 +66,7 @@ private slots:
     void invalidatePlots();
 
 private:
-    bool eventFilter(QObject *obj, QEvent *event);
+    bool eventFilter(QObject *obj, QEvent *event) override;
 
     void loadSelection();
     QStandardItem* getItem(const QString &name);

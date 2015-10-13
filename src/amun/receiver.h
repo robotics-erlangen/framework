@@ -32,7 +32,7 @@ class Receiver : public QObject
 
 public:
     Receiver(const QHostAddress &groupAddress, quint16 port);
-    ~Receiver();
+    ~Receiver() override;
 
 signals:
     void gotPacket(const QByteArray &data, qint64 time);

@@ -53,8 +53,8 @@ private:
     };
 
 public:
-    Transceiver(QObject *parent = NULL);
-    ~Transceiver();
+    explicit Transceiver(QObject *parent = NULL);
+    ~Transceiver() override;
 
 signals:
     void sendStatus(const Status &status);

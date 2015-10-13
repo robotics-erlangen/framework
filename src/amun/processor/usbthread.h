@@ -30,13 +30,13 @@ class USBThread : public QThread
 {
 public:
     USBThread();
-    ~USBThread();
+    ~USBThread() override;
 
 public:
     libusb_context* context() const { return m_context; }
 
 protected:
-    void run();
+    void run() override;
 
 private:
     libusb_context *m_context;

@@ -38,7 +38,7 @@
 class TouchStatusGesture : public QGesture
 {
 public:
-    TouchStatusGesture(QObject *parent = 0) :
+    explicit TouchStatusGesture(QObject *parent = 0) :
         QGesture(parent),
         m_hasTouchInput(false)
     { }
@@ -54,7 +54,7 @@ private:
 // thus this can't be implemented in the event-function of the FieldWidget
 class TouchStatusRecognizer : public QGestureRecognizer
 {
-    QGesture * create(QObject *target)
+    QGesture * create(QObject *target) override
     {
         if (target && target->isWidgetType()) {
            static_cast<QWidget *>(target)->setAttribute(Qt::WA_AcceptTouchEvents);
@@ -62,7 +62,7 @@ class TouchStatusRecognizer : public QGestureRecognizer
         return new TouchStatusGesture;
     }
 
-    Result recognize(QGesture *state, QObject *, QEvent *event)
+    Result recognize(QGesture *state, QObject *, QEvent *event) override
     {
         TouchStatusGesture *ts = static_cast<TouchStatusGesture *>(state);
 

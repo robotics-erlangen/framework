@@ -40,7 +40,7 @@ class Amun : public QObject
 
 public:
     explicit Amun(QObject *parent = 0);
-    ~Amun();
+    ~Amun() override;
 
 signals:
     void sendStatus(const Status &status);

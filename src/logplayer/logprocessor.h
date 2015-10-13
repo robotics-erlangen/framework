@@ -21,9 +21,9 @@ public:
 
     explicit LogProcessor(const QList<QString>& inputFiles, const QString& outputFile,
                           Options options, QObject *parent = 0);
-    ~LogProcessor();
+    ~LogProcessor() override;
 
-    void run();
+    void run() override;
 
 signals:
     void progressUpdate(int currentFrame, int totalFrames);

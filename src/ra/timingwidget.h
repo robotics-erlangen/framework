@@ -35,7 +35,7 @@ class TimingWidget : public QWidget
 
 public:
     explicit TimingWidget(QWidget *parent = 0);
-    ~TimingWidget();
+    ~TimingWidget() override;
 
 public slots:
     void handleStatus(const Status &status);

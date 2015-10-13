@@ -32,11 +32,11 @@ class RefereeStatusWidget;
 class RefereeStatusWidget : public QWidget
 {
     Q_OBJECT
-    
+
 public:
     explicit RefereeStatusWidget(QWidget *parent = 0);
-    ~RefereeStatusWidget();
-    
+    ~RefereeStatusWidget() override;
+
 public slots:
     void handleStatus(const Status &status);
 

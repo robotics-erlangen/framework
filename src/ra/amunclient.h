@@ -33,7 +33,7 @@ class AmunClient : public QObject
 
 public:
     explicit AmunClient(QObject *parent = 0);
-    ~AmunClient();
+    ~AmunClient() override;
 
 signals:
     void gotStatus(const Status &status);

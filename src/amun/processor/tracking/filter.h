@@ -26,7 +26,7 @@
 class Filter
 {
 public:
-    Filter(qint64 last_time);
+    explicit Filter(qint64 last_time);
     virtual ~Filter();
 
 public:

@@ -31,8 +31,8 @@ class NetworkTransceiver : public QObject
 {
     Q_OBJECT
 public:
-    NetworkTransceiver(QObject *parent = nullptr);
-    ~NetworkTransceiver();
+    explicit NetworkTransceiver(QObject *parent = nullptr);
+    ~NetworkTransceiver() override;
 
 signals:
     void sendStatus(const Status &status);

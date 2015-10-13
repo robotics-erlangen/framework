@@ -43,6 +43,7 @@ static Path *checkPath(lua_State *L, int index)
     p = (Path **) luaL_checkudata(L, index, "path");
     if (p == NULL) {
         luaL_typerror(L, index, "path");
+        qFatal("This must never be reached!");
     }
     return *p;
 }

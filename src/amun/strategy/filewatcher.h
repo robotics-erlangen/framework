@@ -32,9 +32,9 @@ class FileWatcher : public QObject
     Q_OBJECT
 public:
     explicit FileWatcher(QObject *parent = 0);
-    ~FileWatcher();
+    ~FileWatcher() override;
     bool addFile(const QString &filename);
-    
+
 signals:
     void fileChanged(const QString &name);
 private slots:

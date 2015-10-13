@@ -37,7 +37,7 @@ public:
 
 public:
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-    KalmanFilter(const Vector &x) :
+    explicit KalmanFilter(const Vector &x) :
         F(Matrix::Identity()),
         B(Matrix::Identity()),
         u(Vector::Zero()),

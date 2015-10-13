@@ -28,10 +28,10 @@ class Keyboard : public InputDevice
 {
 public:
     Keyboard();
-    ~Keyboard();
+    ~Keyboard() override;
 
 protected:
-    bool eventFilter(QObject *obj, QEvent *e);
+    bool eventFilter(QObject *obj, QEvent *e) override;
 
 private:
     void press(int);

@@ -36,7 +36,7 @@ class RobotSpecsDialog : public QDialog
 public:
     explicit RobotSpecsDialog(const robot::Specs &specs, const robot::Specs &def, QWidget *parent = 0);
     explicit RobotSpecsDialog(const robot::Specs &specs, QWidget *parent = 0);
-    ~RobotSpecsDialog();
+    ~RobotSpecsDialog() override;
 
 public:
     const robot::Specs& specs() const { return m_specs; }

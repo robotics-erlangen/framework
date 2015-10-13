@@ -35,7 +35,7 @@ class LogFileReader : public QObject
     Q_OBJECT
 public:
     explicit LogFileReader();
-    ~LogFileReader();
+    ~LogFileReader() override;
 
     bool open(const QString &filename);
     void close();

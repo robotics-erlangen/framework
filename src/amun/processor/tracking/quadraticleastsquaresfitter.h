@@ -14,7 +14,7 @@ public:
         float c;
     };
 
-    QuadraticLeastSquaresFitter(int pointLimit);
+    explicit QuadraticLeastSquaresFitter(int pointLimit);
     ~QuadraticLeastSquaresFitter();
 
     void addPoint(float x, float y);

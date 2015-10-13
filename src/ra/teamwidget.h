@@ -35,7 +35,7 @@ class TeamWidget : public QFrame
 
 public:
     explicit TeamWidget(QWidget *parent = 0);
-    ~TeamWidget();
+    ~TeamWidget() override;
 
 signals:
     void sendCommand(const Command &command);

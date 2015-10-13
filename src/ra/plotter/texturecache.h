@@ -8,7 +8,7 @@
 class TextureCache
 {
 public:
-    TextureCache(QGLContext *context);
+    explicit TextureCache(QGLContext *context);
     ~TextureCache();
 
     bool find(const QString &key, GLuint *textureId, QPixmap *pixmap);

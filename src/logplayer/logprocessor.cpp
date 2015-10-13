@@ -47,7 +47,7 @@ public:
     }
 
 protected:
-    void run() {
+   void run() override {
         while (true) {
             // write status and forward to call destructor in seperate thread
             // destruction takes a significant amount of time (20% of total!)
@@ -69,12 +69,12 @@ private:
 
 class LogDump : public QThread {
 public:
-    LogDump(Exchanger *dumpExchanger) {
+    explicit LogDump(Exchanger *dumpExchanger) {
         m_dumpExchanger = dumpExchanger;
     }
 
 protected:
-    void run() {
+    void run() override {
         while (true) {
             // just destruct the status
             Status status = m_dumpExchanger->take();

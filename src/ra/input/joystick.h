@@ -33,7 +33,7 @@ class Joystick : public InputDevice
 public:
     static Joystick *open(int deviceId);
 
-    ~Joystick();
+    ~Joystick() override;
     SDL_JoystickID getId() const { return m_id; }
 
     void handleEvent(const SDL_Event &event) ;

@@ -41,7 +41,7 @@ class InputManager : public QObject
 
 public:
     explicit InputManager(QObject *parent = NULL);
-    ~InputManager();
+    ~InputManager() override;
 
 signals:
     // input manager signals

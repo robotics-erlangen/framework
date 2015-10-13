@@ -45,8 +45,8 @@ public:
     ~Lua() override;
 
 public:
-    bool loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team);
-    bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput);
+    bool loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team) override;
+    bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput) override;
 
     world::Geometry geometry() const { return m_geometry; }
     robot::Team team() const { return m_team; }

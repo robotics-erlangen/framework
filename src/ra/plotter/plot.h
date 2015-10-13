@@ -30,7 +30,7 @@ class Plot : public QObject
 {
 	Q_OBJECT
 public:
-    Plot(const QString &name, QObject *parent = 0);
+    explicit Plot(const QString &name, QObject *parent = 0);
 
 public:
     void addPoint(float time, float value);

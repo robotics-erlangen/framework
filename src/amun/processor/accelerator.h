@@ -30,7 +30,7 @@ namespace amun { class DebugValues; }
 class Accelerator
 {
 public:
-    Accelerator(const robot::Specs &specs);
+    explicit Accelerator(const robot::Specs &specs);
 
 public:
     void limit(const world::Robot *robot, robot::Command &command, qint64 time, amun::DebugValues *debug);

@@ -34,7 +34,7 @@ class RobotParametersDialog : public QDialog
 
 public:
     explicit RobotParametersDialog(QWidget *parent = 0);
-    ~RobotParametersDialog();
+    ~RobotParametersDialog() override;
 
 signals:
     void sendCommand(const Command &command);

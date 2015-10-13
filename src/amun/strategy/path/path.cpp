@@ -173,12 +173,21 @@ bool Path::testSpline(const robot::Spline &spline, float radius) const
     // check if any parts of the given spline collides with an obstacle
     const float start = spline.t_start();
     const float end = spline.t_end();
-    const float step_size = (end - start) / 10.0f;
-    Q_ASSERT(step_size > 0.0f);
+    if (std::isnan(start) || std::isinf(start)
+            || std::isnan(end) || std::isinf(end)
+            || end <= start) {
+        return false;
+    }
+    const int steps = 10;
+    const float step_size = (end - start) / steps;
 
     QList<Vector> points;
-    for (float t = start; t < end; t += step_size) {
+    points.reserve(steps);
+
+    float t = start;
+    for (int i = 0; i < steps; ++i) {
         points << evalSpline(spline, t);
+        t += step_size;
     }
 
     for (int i = 1; i < points.size(); i++) {

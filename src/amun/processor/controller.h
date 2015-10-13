@@ -34,7 +34,7 @@ class Controller
     Q_DISABLE_COPY(Controller)
 
 public:
-    Controller(const robot::Specs &specs);
+    explicit Controller(const robot::Specs &specs);
 
 public:
     void calculateCommand(const world::Robot &robot, qint64 world_time, robot::Command &command, amun::DebugValues *debug);

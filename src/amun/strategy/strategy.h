@@ -39,7 +39,7 @@ class Strategy : public QObject
 
 public:
     Strategy(const Timer *timer, StrategyType type);
-    ~Strategy();
+    ~Strategy() override;
 
 signals:
     void gotCommand(const Command &command);

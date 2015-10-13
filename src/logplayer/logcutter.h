@@ -15,7 +15,7 @@ class LogCutter : public QWidget
 
 public:
     explicit LogCutter(QWidget *parent = 0);
-    ~LogCutter();
+    ~LogCutter() override;
 
 private slots:
     void selectOutputFile();

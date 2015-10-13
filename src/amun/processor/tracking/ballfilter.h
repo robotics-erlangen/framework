@@ -34,7 +34,7 @@ class BallFilter : public Filter
 {
 public:
     BallFilter(const SSL_DetectionBall &ball, qint64 last_time);
-    ~BallFilter();
+    ~BallFilter() override;
 
 public:
     void update(qint64 time);

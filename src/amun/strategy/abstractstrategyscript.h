@@ -38,7 +38,7 @@ class AbstractStrategyScript : public QObject
 {
     Q_OBJECT
 public:
-    virtual ~AbstractStrategyScript() {}
+    ~AbstractStrategyScript() override {}
 
     // simple factory to allow for different strategy handlers
     static bool canHandle(const QString &filename);

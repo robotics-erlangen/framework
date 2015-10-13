@@ -30,7 +30,7 @@
 
 struct Processor::Robot
 {
-    Robot(const robot::Specs &specs) :
+    explicit Robot(const robot::Specs &specs) :
         controller(specs),
         accelerator(specs),
         strategy_command(NULL),

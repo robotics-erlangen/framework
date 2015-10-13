@@ -36,11 +36,11 @@ Q_DECLARE_METATYPE(google::protobuf::Message*)
 class SpinBoxDelegate : public QStyledItemDelegate
 {
 public:
-    SpinBoxDelegate(QObject* parent): QStyledItemDelegate(parent) {
+    explicit SpinBoxDelegate(QObject* parent): QStyledItemDelegate(parent) {
     }
 
 public:
-    QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const {
+    QWidget* createEditor(QWidget* parent, const QStyleOptionViewItem& option, const QModelIndex& index ) const override {
         if (index.data(Qt::EditRole).type() == QVariant::Double) {
             QDoubleSpinBox* editor = new QDoubleSpinBox(parent);
             editor->setRange(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());

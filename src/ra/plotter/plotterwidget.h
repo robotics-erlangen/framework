@@ -35,7 +35,7 @@ class PlotterWidget : public QGLWidget
 
 public:
     explicit PlotterWidget(QWidget *parent = 0);
-    ~PlotterWidget();
+    ~PlotterWidget() override;
 
 public:
     void update(float time);
@@ -50,12 +50,12 @@ public slots:
     void setOffset(double offset);
 
 protected:
-    void paintGL();
-    void leaveEvent(QEvent *e);
-    void mouseMoveEvent(QMouseEvent *e);
-    void mousePressEvent(QMouseEvent *);
-    void mouseReleaseEvent(QMouseEvent *);
-    void showEvent(QShowEvent *e);
+    void paintGL() override;
+    void leaveEvent(QEvent *e) override;
+    void mouseMoveEvent(QMouseEvent *e) override;
+    void mousePressEvent(QMouseEvent *) override;
+    void mouseReleaseEvent(QMouseEvent *) override;
+    void showEvent(QShowEvent *e) override;
 
 private slots:
     void updateView();

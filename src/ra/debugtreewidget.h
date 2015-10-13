@@ -33,7 +33,7 @@ class DebugTreeWidget : public QTreeView
     Q_OBJECT
 public:
     explicit DebugTreeWidget(QWidget *parent = 0);
-    ~DebugTreeWidget();
+    ~DebugTreeWidget() override;
 
 public slots:
     void clearData();

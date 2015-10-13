@@ -34,7 +34,7 @@ class LogFileWriter : public QObject
     Q_OBJECT
 public:
     explicit LogFileWriter();
-    ~LogFileWriter();
+    ~LogFileWriter() override;
 
     bool open(const QString &filename);
     void close();

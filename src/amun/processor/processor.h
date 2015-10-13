@@ -40,8 +40,8 @@ class Processor : public QObject
     Q_OBJECT
 
 public:
-    Processor(const Timer *timer);
-    ~Processor();
+    explicit Processor(const Timer *timer);
+    ~Processor() override;
 
 signals:
     void sendStatus(const Status &status);

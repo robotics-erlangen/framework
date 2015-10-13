@@ -39,7 +39,7 @@ public:
 
 public:
     explicit RobotWidget(InputManager *inputManager, bool is_generation, QWidget *parent = 0);
-    ~RobotWidget();
+    ~RobotWidget() override;
 
 public:
     void setSpecs(const robot::Specs &specs);

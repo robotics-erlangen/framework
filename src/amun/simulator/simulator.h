@@ -47,8 +47,8 @@ class Simulator : public QObject
 public:
     typedef QMap<QPair<unsigned int, unsigned int>, SimRobot *> RobotMap;
 
-    Simulator(const Timer *timer);
-    ~Simulator();
+    explicit Simulator(const Timer *timer);
+    ~Simulator() override;
     void handleSimulatorTick(double timeStep);
 
 signals:

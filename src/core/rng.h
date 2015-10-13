@@ -27,7 +27,7 @@
 class RNG
 {
 public:
-    RNG(uint32_t seed = 0);
+    explicit RNG(uint32_t seed = 0);
 
 public:
     uint32_t uniformInt();

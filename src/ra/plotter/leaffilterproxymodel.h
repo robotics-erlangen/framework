@@ -29,7 +29,7 @@ public:
     explicit LeafFilterProxyModel(QObject *parent = 0);
 
 protected:
-    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const;
+    bool filterAcceptsRow(int source_row, const QModelIndex &source_parent) const override;
     bool hasAcceptedChildren(const QModelIndex &currentItem) const;
 };
 

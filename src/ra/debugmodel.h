@@ -30,7 +30,7 @@ class DebugModel : public QStandardItemModel
 
 public:
     explicit DebugModel(QObject *parent = 0);
-    ~DebugModel();
+    ~DebugModel() override;
 
 signals:
     void expand(const QModelIndex &index);

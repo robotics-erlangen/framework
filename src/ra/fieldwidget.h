@@ -70,7 +70,7 @@ private:
 
 public:
     explicit FieldWidget(QWidget *parent = 0);
-    ~FieldWidget();
+    ~FieldWidget() override;
 
     void setLogplayer();
 
@@ -86,16 +86,16 @@ public slots:
     void flipAOI();
 
 protected:
-    void mousePressEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent *event);
-    void mouseReleaseEvent(QMouseEvent *event);
-    void wheelEvent(QWheelEvent *);
-    void resizeEvent(QResizeEvent *event);
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void wheelEvent(QWheelEvent *) override;
+    void resizeEvent(QResizeEvent *event) override;
     bool gestureEvent(QGestureEvent *event);
-    bool viewportEvent(QEvent *event);
-    void drawBackground(QPainter *painter, const QRectF &rect);
-    void leaveEvent(QEvent *event);
-    bool event(QEvent *event);
+    bool viewportEvent(QEvent *event) override;
+    void drawBackground(QPainter *painter, const QRectF &rect) override;
+    void leaveEvent(QEvent *event) override;
+    bool event(QEvent *event) override;
 
     void setInfoText(const QString &str);
 private slots:
