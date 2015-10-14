@@ -20,9 +20,9 @@
 
 #include "timingwidget.h"
 #include "ui_timingwidget.h"
-#include <google/protobuf/descriptor.h>
 #include <QSettings>
 #include <QTimer>
+#include <google/protobuf/descriptor.h>
 
 TimingWidget::TimingWidget(QWidget *parent) :
     QWidget(parent),

@@ -19,16 +19,16 @@
  ***************************************************************************/
 
 #include "config.h"
+#include "protobuf/robot.pb.h"
 #include "robotselectionwidget.h"
 #include "robotspecsdialog.h"
 #include "robotwidget.h"
 #include "ui_robotselectionwidget.h"
-#include "protobuf/robot.pb.h"
-#include <QDir>
-#include <QDebug>
 #include <google/protobuf/text_format.h>
-#include <QStyledItemDelegate>
+#include <QDebug>
+#include <QDir>
 #include <QSettings>
+#include <QStyledItemDelegate>
 
 static const int DATA_GENERATION_ID = Qt::UserRole + 1;
 static const int DATA_ROBOT_ID = Qt::UserRole + 2;

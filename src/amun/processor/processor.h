@@ -22,9 +22,9 @@
 #define PROCESSOR_H
 
 #include "protobuf/command.h"
-#include "protobuf/status.h"
-#include "protobuf/ssl_radio_protocol.pb.h"
 #include "protobuf/ssl_mixed_team.pb.h"
+#include "protobuf/ssl_radio_protocol.pb.h"
+#include "protobuf/status.h"
 #include <QMap>
 #include <QPair>
 #include <QObject>

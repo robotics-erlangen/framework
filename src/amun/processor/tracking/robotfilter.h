@@ -23,9 +23,9 @@
 
 #include "filter.h"
 #include "kalmanfilter.h"
-#include "protobuf/world.pb.h"
 #include "protobuf/robot.pb.h"
 #include "protobuf/ssl_detection.pb.h"
+#include "protobuf/world.pb.h"
 #include <QList>
 #include <QPair>
 

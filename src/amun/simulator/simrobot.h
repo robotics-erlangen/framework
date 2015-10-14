@@ -21,10 +21,10 @@
 #ifndef SIMROBOT_H
 #define SIMROBOT_H
 
-#include "protobuf/robot.pb.h"
 #include "protobuf/command.pb.h"
-#include <btBulletDynamicsCommon.h>
+#include "protobuf/robot.pb.h"
 #include <QList>
+#include <btBulletDynamicsCommon.h>
 
 class RNG;
 class SimBall;

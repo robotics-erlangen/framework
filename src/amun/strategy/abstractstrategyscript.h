@@ -21,16 +21,16 @@
 #ifndef ABSTRACTSTRATEGYSCRIPT_H
 #define ABSTRACTSTRATEGYSCRIPT_H
 
+#include "protobuf/command.h"
+#include "protobuf/debug.pb.h"
+#include "protobuf/gamestate.pb.h"
+#include "protobuf/robot.pb.h"
+#include "protobuf/userinput.pb.h"
+#include "protobuf/world.pb.h"
+#include "strategytype.h"
 #include <QObject>
 #include <QString>
 #include <QStringList>
-#include "protobuf/gamestate.pb.h"
-#include "protobuf/world.pb.h"
-#include "protobuf/robot.pb.h"
-#include "protobuf/debug.pb.h"
-#include "protobuf/command.h"
-#include "protobuf/userinput.pb.h"
-#include "strategytype.h"
 
 class Timer;
 

@@ -20,8 +20,8 @@
 
 #include "tracker.h"
 #include "ballfilter.h"
-#include "robotfilter.h"
 #include "protobuf/ssl_wrapper.pb.h"
+#include "robotfilter.h"
 
 Tracker::Tracker() :
     m_flip(false),

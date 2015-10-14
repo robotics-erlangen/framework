@@ -22,8 +22,8 @@
 #define REFEREEWIDGET_H
 
 #include "protobuf/command.h"
-#include "protobuf/status.h"
 #include "protobuf/ssl_referee.pb.h"
+#include "protobuf/status.h"
 #include <QWidget>
 
 namespace Ui {

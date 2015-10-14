@@ -21,10 +21,10 @@
 #include "robotselectionwidget.h"
 #include "robotspecsdialog.h"
 #include "ui_robotspecsdialog.h"
-#include <google/protobuf/descriptor.h>
 #include <QDoubleSpinBox>
 #include <QSettings>
 #include <QStyledItemDelegate>
+#include <google/protobuf/descriptor.h>
 #include <limits>
 
 static const int DATA_MESSAGE = Qt::UserRole + 1;

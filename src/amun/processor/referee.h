@@ -22,8 +22,8 @@
 #define REFEREE_H
 
 #include "protobuf/gamestate.pb.h"
-#include "protobuf/world.pb.h"
 #include "protobuf/ssl_referee.pb.h"
+#include "protobuf/world.pb.h"
 #include <QByteArray>
 
 class Referee

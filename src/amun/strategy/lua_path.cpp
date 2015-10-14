@@ -23,9 +23,9 @@
 #include "lua_protobuf.h"
 #include "lua.h"
 #include "path/path.h"
+#include "core/timer.h"
 #include "protobuf/debug.pb.h"
 #include "protobuf/robot.pb.h"
-#include "core/timer.h"
 
 // ensure that we got a valid number
 static float verifyNumber(lua_State *L, int index)

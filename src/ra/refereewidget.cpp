@@ -21,8 +21,8 @@
 #include "refereewidget.h"
 #include "ui_refereewidget.h"
 #include "protobuf/command.pb.h"
-#include "protobuf/ssl_referee.pb.h"
 #include "protobuf/gamestate.pb.h"
+#include "protobuf/ssl_referee.pb.h"
 #include <google/protobuf/descriptor.h>
 
 RefereeWidget::RefereeWidget(QWidget *parent) :

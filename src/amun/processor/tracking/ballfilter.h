@@ -23,12 +23,12 @@
 
 #include "filter.h"
 #include "kalmanfilter.h"
-#include "quadraticleastsquaresfitter.h"
-#include "protobuf/world.pb.h"
 #include "protobuf/ssl_detection.pb.h"
+#include "protobuf/world.pb.h"
+#include "quadraticleastsquaresfitter.h"
 #include <QList>
-#include <QPair>
 #include <QMap>
+#include <QPair>
 
 class BallFilter : public Filter
 {

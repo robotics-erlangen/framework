@@ -18,12 +18,12 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
+#include "core/rng.h"
+#include "mesh.h"
+#include "protobuf/ssl_detection.pb.h"
 #include "simball.h"
 #include "simrobot.h"
 #include "simulator.h"
-#include "mesh.h"
-#include "core/rng.h"
-#include "protobuf/ssl_detection.pb.h"
 #include <cmath>
 
 SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld *world, const btVector3 &pos, float dir) :

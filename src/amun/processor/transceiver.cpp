@@ -20,13 +20,13 @@
  ***************************************************************************/
 
 #include "config.h"
-#include "transceiver.h"
 #include "core/timer.h"
 #include "firmware/common/radiocommand.h"
 #include "firmware/2012/common/radiocommand2012.h"
 #include "firmware/2012/common/transceiver2012.h"
 #include "firmware/2014/common/radiocommand2014.h"
 #include "firmware/common/radiocommand.h"
+#include "transceiver.h"
 #include "usbthread.h"
 #include "usbdevice.h"
 #include <QTimer>

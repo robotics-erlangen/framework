@@ -29,9 +29,9 @@
 #ifdef SDL2_FOUND
 #define SDL_MAIN_HANDLED
 #include <SDL.h>
+#include "joystick.h"
 #include <SDL_events.h>
 #include <SDL_joystick.h>
-#include "joystick.h"
 #endif // SDL2_FOUND
 
 InputManager::InputManager(QObject *parent) :

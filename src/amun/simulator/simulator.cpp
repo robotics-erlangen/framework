@@ -19,13 +19,13 @@
  ***************************************************************************/
 
 #include "simulator.h"
-#include "simball.h"
-#include "simfield.h"
-#include "simrobot.h"
 #include "core/rng.h"
 #include "core/timer.h"
 #include "protobuf/geometry.h"
 #include "protobuf/ssl_wrapper.pb.h"
+#include "simball.h"
+#include "simfield.h"
+#include "simrobot.h"
 #include <QTimer>
 #include <algorithm>
 
