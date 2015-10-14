@@ -34,16 +34,18 @@ Plot::Plot(const QString &name, QObject *parent) :
 
 void Plot::addPoint(float time, float value)
 {
-    if (m_pos == m_data.size()) // wrap around
+    if (m_pos == m_data.size()) { // wrap around
         m_pos = 0;
+    }
 
     m_time = time; // remember last update
     m_data[m_pos++] = time; // save value pair
     m_data[m_pos++] = value;
 
     // increase count while the buffer isn't full yet
-    if (m_count < m_data.size())
+    if (m_count < m_data.size()) {
         m_count += 2;
+    }
 }
 
 void Plot::plot(const QColor &color) const

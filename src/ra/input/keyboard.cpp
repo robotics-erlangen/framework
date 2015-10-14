@@ -63,8 +63,9 @@ bool Keyboard::eventFilter(QObject *obj, QEvent *event)
 
 void Keyboard::press(int key)
 {
-    if (!m_keyMap.contains(key))
+    if (!m_keyMap.contains(key)) {
         return;
+    }
 
     // set key pressure
     const Key k = m_keyMap.value(key);
@@ -90,8 +91,9 @@ void Keyboard::press(int key)
 
 void Keyboard::release(int key)
 {
-    if (!m_keyMap.contains(key))
+    if (!m_keyMap.contains(key)) {
         return;
+    }
 
     // unpress key
     const Key k = m_keyMap.value(key);

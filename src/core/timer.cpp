@@ -141,8 +141,9 @@ qint64 Timer::systemTime()
     #endif // Q_OS_WIN
 
     timeval tv;
-    if (gettimeofday(&tv, NULL) != 0)
+    if (gettimeofday(&tv, NULL) != 0) {
         return 0;
+    }
 
     return qint64(tv.tv_sec) * 1000000000LL + qint64(tv.tv_usec) * 1000LL;
 #endif // WITH_POSIX_TIMERS

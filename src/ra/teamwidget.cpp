@@ -259,8 +259,9 @@ QString TeamWidget::shortenEntrypointName(const QMenu *menu, const QString &name
 void TeamWidget::showOpenDialog()
 {
     QString filename = QFileDialog::getOpenFileName(this, "Open script", QString(), QString("Lua scripts (*.lua)"), 0, 0);
-    if (filename.isNull())
+    if (filename.isNull()) {
         return;
+    }
 
     open(filename);
 }
@@ -268,8 +269,9 @@ void TeamWidget::showOpenDialog()
 void TeamWidget::open()
 {
     QString filename = sender()->property("filename").toString();
-    if (filename.isNull())
+    if (filename.isNull()) {
         return;
+    }
 
     open(filename);
 }
@@ -314,8 +316,9 @@ void TeamWidget::prepareScriptMenu()
         m_scriptMenu->removeAction(m_scriptMenu->actions().last());
     }
 
-    if (m_recentScripts == NULL || m_recentScripts->isEmpty())
+    if (m_recentScripts == NULL || m_recentScripts->isEmpty()) {
         return;
+    }
 
     // add seperator and filenames
     m_scriptMenu->addSeparator();

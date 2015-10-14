@@ -58,8 +58,9 @@ void Mesh::createRobotMesh(float radius, float height, float angle)
     const float angleStep = (angleStop - angleStart) / num;
 
     addRobotCover(radius, height, num, angleStart, angleStep);
-    if (angle > 0.0f)
+    if (angle > 0.0f) {
         addRobotFront(radius, height, angleStart, angleStop);
+    }
     addRobotPlate(radius, height, num, angleStart, angleStep, true);
     addRobotPlate(radius, height, num, angleStop, angleStep, false);
 }
@@ -170,8 +171,9 @@ void Mesh::addRobotPlate(float radius, float height, uint num, float angle, floa
     }
     group.append(firstIndex + 1);
 
-    for (uint i = 0; i < num; i++)
+    for (uint i = 0; i < num; i++) {
         addTriangle(firstIndex, firstIndex + i + 1, firstIndex + i + 2);
+    }
     addTriangle(firstIndex, firstIndex + num + 1, firstIndex + 1);
 }
 

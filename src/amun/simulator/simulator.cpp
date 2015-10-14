@@ -298,8 +298,9 @@ QByteArray Simulator::createVisionPacket()
     // serialize "vision packet"
     QByteArray data;
     data.resize(packet.ByteSize());
-    if (packet.SerializeToArray(data.data(), data.size()))
+    if (packet.SerializeToArray(data.data(), data.size())) {
         return data;
+    }
     return QByteArray();
 }
 

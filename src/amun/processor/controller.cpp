@@ -167,10 +167,12 @@ void Controller::controlAlgorithm(const world::Robot &robot, qint64 world_time, 
     float error_vy = m_v_y_d - robot.v_y();
     float error_omega = m_omega_d - robot.omega();
     // Bound error_phi to ]-pi;pi]
-    while (error_phi > M_PI)
+    while (error_phi > M_PI) {
         error_phi -= 2*M_PI;
-    while (error_phi <= -M_PI)
+    }
+    while (error_phi <= -M_PI) {
         error_phi += 2*M_PI;
+    }
 
     // 2.) Integration of positional error
     m_error_i_x   += error_x   * timestep;
@@ -299,8 +301,9 @@ void Controller::drawSpline(amun::DebugValues *debug, const google::protobuf::Re
         const robot::Spline &spline = *it;
 
         // don't draw until infinity
-        if (spline.t_end() == INFINITY)
+        if (spline.t_end() == INFINITY) {
             break;
+        }
 
         // Plot this part of the spline by evaluating some points of the spline part
         const float d = spline.t_end() - spline.t_start();

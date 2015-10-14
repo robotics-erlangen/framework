@@ -46,8 +46,9 @@ SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld 
     // subtract collision margin from dimensions;
     mesh.createRobotMesh(m_specs.radius() - COLLISION_MARGIN / SIMULATOR_SCALE,
                          m_specs.height() - 2 * COLLISION_MARGIN / SIMULATOR_SCALE, m_specs.angle());
-    foreach (const QVector3D& v, mesh.hull())
+    foreach (const QVector3D& v, mesh.hull()) {
         shape->addPoint(btVector3(v.x(), v.y(), v.z()) * SIMULATOR_SCALE);
+    }
 
     btVector3 localInertia(0,0,0);
     m_shape->calculateLocalInertia(m_specs.mass(), localInertia);
@@ -168,8 +169,9 @@ void SimRobot::begin(SimBall *ball, double time)
         m_shootTime = 0.0;
     }
 
-    if (!m_command.has_v_f() || !m_command.has_v_s() || !m_command.has_omega())
+    if (!m_command.has_v_f() || !m_command.has_v_s() || !m_command.has_omega()) {
         return;
+    }
 
     Q_ASSERT(m_command.has_omega());
 

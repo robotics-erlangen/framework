@@ -214,10 +214,12 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
 
 double RobotFilter::limitAngle(double angle) const
 {
-    while (angle > M_PI)
+    while (angle > M_PI) {
         angle -= 2 * M_PI;
-    while (angle < -M_PI)
+    }
+    while (angle < -M_PI) {
         angle += 2 * M_PI;
+    }
     return angle;
 }
 

@@ -191,8 +191,9 @@ bool Path::testSpline(const robot::Spline &spline, float radius) const
     }
 
     for (int i = 1; i < points.size(); i++) {
-        if (points[i - 1] == points[i])
+        if (points[i - 1] == points[i]) {
             continue;
+        }
 
         if (!test(LineSegment(points[i-1], points[i]), radius)) {
             return false;

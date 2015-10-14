@@ -105,8 +105,9 @@ void Tracker::process(qint64 currentTime)
 
     foreach (const Packet &p, m_visionPackets) {
         SSL_WrapperPacket wrapper;
-        if (!wrapper.ParseFromArray(p.first.data(), p.first.size()))
+        if (!wrapper.ParseFromArray(p.first.data(), p.first.size())) {
             continue;
+        }
 
         if (wrapper.has_geometry()) {
             updateGeometry(wrapper.geometry().field());
@@ -116,8 +117,9 @@ void Tracker::process(qint64 currentTime)
             m_geometryUpdated = true;
         }
 
-        if (!wrapper.has_detection())
+        if (!wrapper.has_detection()) {
             continue;
+        }
 
         const SSL_DetectionFrame &detection = wrapper.detection();
         const qint64 visionProcessingTime = (detection.t_sent() - detection.t_capture()) * 1E9;
@@ -126,8 +128,9 @@ void Tracker::process(qint64 currentTime)
         const qint64 sourceTime = p.second - visionProcessingTime - m_systemDelay;
 
         // drop frames older than the current state
-        if (sourceTime <= m_lastUpdateTime)
+        if (sourceTime <= m_lastUpdateTime) {
             continue;
+        }
 
         for (int i = 0; i < detection.robots_yellow_size(); i++) {
             trackRobot(m_robotFilterYellow, detection.robots_yellow(i), sourceTime, detection.camera_id());
@@ -365,8 +368,9 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, qint3
 
 void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId)
 {
-    if (!robot.has_robot_id())
+    if (!robot.has_robot_id()) {
         return;
+    }
 
     if (m_aoiEnabled && !RobotFilter::isInAOI(robot, m_flip, m_aoi_x1, m_aoi_y1, m_aoi_x2, m_aoi_y2)) {
         return;

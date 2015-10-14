@@ -159,8 +159,9 @@ void Strategy::handleCommand(const Command &command)
         if (cmd->has_load()) {
             const QString filename = cmd->load().filename().c_str();
             QString entryPoint;
-            if (cmd->load().has_entry_point())
+            if (cmd->load().has_entry_point()) {
                 entryPoint = cmd->load().entry_point().c_str();
+            }
             loadScript(filename, entryPoint);
             reloadStrategy = false; // already reloaded
         }
@@ -193,8 +194,9 @@ void Strategy::sendNetworkRefereeCommand(const QByteArray &data)
 
 void Strategy::process()
 {
-    if (!m_strategy || m_strategyFailed)
+    if (!m_strategy || m_strategyFailed) {
         return;
+    }
 
     Q_ASSERT(m_status->game_state().IsInitialized());
     Q_ASSERT(m_status->world_state().IsInitialized());

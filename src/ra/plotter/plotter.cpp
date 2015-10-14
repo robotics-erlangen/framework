@@ -227,15 +227,17 @@ void Plotter::setFreeze(bool freeze)
 void Plotter::handleStatus(const Status &status)
 {
     // don't consume cpu while closed
-    if (!isVisible())
+    if (!isVisible()) {
         return;
+    }
 
     m_guiTimer->requestTriggering();
 
     m_time = status->time();
     // normalize time to be able to store it in floats
-    if (m_startTime == 0)
+    if (m_startTime == 0) {
         m_startTime = status->time();
+    }
 
     const float time = (status->time() - m_startTime) / 1E9;
 
@@ -345,8 +347,9 @@ QStandardItem* Plotter::getItem(const QString &name)
 
 void Plotter::invalidatePlots()
 {
-    if (!isVisible()) // values aren't update while hidden
+    if (!isVisible()) { // values aren't update while hidden
         return;
+    }
 
     const float time = (m_time - m_startTime) / 1E9;
 

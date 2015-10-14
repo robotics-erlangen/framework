@@ -48,8 +48,9 @@ Referee::Referee(bool isInternalReferee) :
 void Referee::handlePacket(const QByteArray &data)
 {
     SSL_Referee packet;
-    if (!packet.ParseFromArray(data.data(), data.size()))
+    if (!packet.ParseFromArray(data.data(), data.size())) {
         return;
+    }
 
     // TODO: any use for the timestamps?
     m_gameState.mutable_blue()->CopyFrom(packet.blue());

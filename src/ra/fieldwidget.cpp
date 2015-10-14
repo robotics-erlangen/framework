@@ -385,8 +385,9 @@ void FieldWidget::updateTracesVisibility()
 
 void FieldWidget::updateVisualizations()
 {
-    if (!m_visualizationsUpdated)
+    if (!m_visualizationsUpdated) {
         return;
+    }
     m_visualizationsUpdated = false; // don't redraw if nothing new has happened
 
     // delete visualizations and redraw everything
@@ -407,8 +408,9 @@ void FieldWidget::updateVisualizations(const amun::DebugValues &v)
     for (google::protobuf::RepeatedPtrField<amun::Visualization>::const_iterator it = viss.begin(); it != viss.end(); it++) {
         const amun::Visualization &vis = *it;
         // only draw visible visualizations
-        if (!m_visibleVisualizations.contains(QString::fromStdString(vis.name())))
+        if (!m_visibleVisualizations.contains(QString::fromStdString(vis.name()))) {
             continue;
+        }
 
         QPen pen = Qt::NoPen;
         QBrush brush = Qt::NoBrush;
@@ -592,8 +594,9 @@ void FieldWidget::addTrace(Trace &trace, const QPointF &pos, qint64 time)
 
 void FieldWidget::updateDetection()
 {
-    if (!m_worldState.IsInitialized() || !m_worldStateUpdated)
+    if (!m_worldState.IsInitialized() || !m_worldStateUpdated) {
         return;
+    }
 
     // prevent applying the world state again
     m_worldStateUpdated = false;
@@ -753,8 +756,9 @@ void FieldWidget::addBlob(float x, float y, const QBrush &brush, QGraphicsItem *
 
 void FieldWidget::updateGeometry()
 {
-    if (!m_geometry.IsInitialized() || !m_geometryUpdated)
+    if (!m_geometry.IsInitialized() || !m_geometryUpdated) {
         return;
+}
     m_geometryUpdated = false; // don't process geometry again and again
 
     // check if geometry changed

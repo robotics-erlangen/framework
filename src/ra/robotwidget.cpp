@@ -195,12 +195,13 @@ void RobotWidget::selectInput()
     updateMenu();
     m_inputLabel->setText(m_inputDevice);
     m_inputLabel->show();
-    if (m_inputDevice == "Keyboard")
+    if (m_inputDevice == "Keyboard") {
         m_btnControl->setIcon(QIcon("icon:16/input-keyboard.png"));
-    else if (isNetwork)
+    } else if (isNetwork) {
         m_btnControl->setIcon(QIcon("icon:16/network-receive.png"));
-    else
+    } else {
         m_btnControl->setIcon(QIcon("icon:16/input-gaming.png"));
+    }
 }
 
 void RobotWidget::disableInput()

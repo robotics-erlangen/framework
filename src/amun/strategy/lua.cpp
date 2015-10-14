@@ -104,8 +104,9 @@ static int luaLoadFile(lua_State* state)
     {
         // add .lua extension
         QString fileName = QString::fromUtf8(lua_tostring(state, 1));
-        if (!fileName.endsWith(QStringLiteral(".lua")))
+        if (!fileName.endsWith(QStringLiteral(".lua"))) {
             fileName += QStringLiteral(".lua");
+        }
 
         // get filename and add to filewatcher
         QString fullFileName = getBaseDir(state)->absoluteFilePath(fileName);
@@ -374,8 +375,9 @@ void Lua::setCommand(uint generation, uint robotId, robot::Command &command)
     // that is while the strategy is still running
     QByteArray data;
     data.resize(command.ByteSize());
-    if (command.SerializeToArray(data.data(), data.size()))
+    if (command.SerializeToArray(data.data(), data.size())) {
         emit sendStrategyCommand(m_type == StrategyType::BLUE, generation, robotId, data, m_worldState.time());
+    }
 }
 
 void Lua::log(const QString &text)

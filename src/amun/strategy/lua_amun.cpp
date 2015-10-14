@@ -107,8 +107,9 @@ static int amunLog(lua_State *state)
         lua_getfield(state, -1, "format");
         lua_remove(state, -2);
 
-        for (int i = 1; i <= numArgs; i++)
+        for (int i = 1; i <= numArgs; i++) {
             lua_pushvalue(state, i);
+        }
 
         lua_call(state, numArgs, 1);
     } else {

@@ -304,8 +304,9 @@ void USBDevice::startInTransfer()
 
 qint64 USBDevice::readData(char* data, qint64 maxSize)
 {
-    if (!m_data->handle || m_readError.load())
+    if (!m_data->handle || m_readError.load()) {
         return -1;
+    }
 
     // copy data from buffer
     const qint64 l = qMin(maxSize, m_bufferSize);
@@ -338,8 +339,9 @@ LIBUSB_CALL void outCallback(libusb_transfer* transfer)
 
 qint64 USBDevice::writeData(const char* data, qint64 maxSize)
 {
-    if (!m_data->handle || m_readError)
+    if (!m_data->handle || m_readError) {
         return -1;
+    }
 
     // send data
     libusb_transfer *outTransfer = libusb_alloc_transfer(0);

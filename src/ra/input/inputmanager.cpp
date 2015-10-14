@@ -212,8 +212,9 @@ QStringList InputManager::devices() const
 bool InputManager::addBinding(uint generation, uint id, const QString &device)
 {
     InputDevice *d = m_devices.value(device);
-    if (!d) // ignore unknown devices
+    if (!d) { // ignore unknown devices
         return false;
+    }
 
     QPair<uint, uint> rid(generation, id);
     // set controlling device

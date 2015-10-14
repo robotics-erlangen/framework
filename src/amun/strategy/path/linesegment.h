@@ -88,12 +88,14 @@ inline float LineSegment::distanceSigned(const Vector& pos) const
     Vector d;
 
     d = pos - m_start;
-    if (d * m_dir < 0.0f)
+    if (d * m_dir < 0.0f) {
         return d.length();
+    }
 
     d = pos - m_end;
-    if (d * m_dir > 0.0f)
+    if (d * m_dir > 0.0f) {
         return d.length();
+    }
 
     return d * m_normal;
 }
@@ -103,12 +105,14 @@ inline float LineSegment::distanceDirect(const Vector& pos) const
     Vector d;
 
     d = pos - m_start;
-    if (d * m_dir < 0.0f)
+    if (d * m_dir < 0.0f) {
         return 0.0f;
+    }
 
     d = pos - m_end;
-    if (d * m_dir > 0.0f)
+    if (d * m_dir > 0.0f) {
         return 0.0f;
+    }
 
     return d * m_normal;
 }
@@ -129,8 +133,10 @@ inline float LineSegment::distance(const LineSegment& segment) const
     Vector diff = segment.start() - start();
     float t1 = (segment.normal() * diff) / (segment.normal() * dir());
     float t2 = -(normal() * diff) / (normal() * segment.dir());
-    if (0 <= t1 && t1 <= end().distance(start()) && 0 <= t2 && t2 <= segment.end().distance(segment.start()))
+    if (0 <= t1 && t1 <= end().distance(start()) && 0 <= t2
+            && t2 <= segment.end().distance(segment.start())) {
         return 0;
+    }
 
     return d;
 }

@@ -98,11 +98,13 @@ KdTree::Node::~Node()
 unsigned int KdTree::Node::depth() const
 {
     unsigned int d = 0;
-    if (m_child[0])
+    if (m_child[0]) {
         d = m_child[0]->depth();
+    }
 
-    if (m_child[1])
+    if (m_child[1]) {
         d = std::max(d, m_child[1]->depth());
+    }
 
     return d + 1;
 }
@@ -170,8 +172,9 @@ const KdTree::Node* KdTree::nearest(const Vector &position) const
 
 KdTree::Node* KdTree::nearest(const Vector &position, Node *root, float &bestDist, float &bestDistSquared, Node *bestNode) const
 {
-    if (!root)
+    if (!root) {
         return bestNode;
+    }
 
     Node *currentNode = NULL;
 
@@ -192,12 +195,14 @@ KdTree::Node* KdTree::nearest(const Vector &position, Node *root, float &bestDis
         }
 
         const unsigned int axis = currentNode->axis();
-        if (std::abs(position[axis] - currentNode->position()[axis]) <= bestDist)
+        if (std::abs(position[axis] - currentNode->position()[axis]) <= bestDist) {
             bestNode = nearest(position, currentNode->farthestChild(position), bestDist, bestDistSquared, bestNode);
+        }
 
         // when traversing a sub-KdTree we need to abort when we reach its root
-        if (currentNode == root)
+        if (currentNode == root) {
             break;
+        }
 
         currentNode = currentNode->parent();
     } while (currentNode);
