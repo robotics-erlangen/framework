@@ -51,7 +51,9 @@ Receiver::Receiver(const QHostAddress &groupAddress, quint16 port) :
     m_socket(NULL)
 {
     m_timeoutTimer = new QTimer(this);
-    connect(m_timeoutTimer, &QTimer::timeout, this, &Receiver::timeout);
+    // seems like Qt 5.4.2, 5.5.0 may get stuck from time to time
+    // and just need an uncoditional call to read
+    connect(m_timeoutTimer, &QTimer::timeout, this, &Receiver::readData);
 }
 
 /*!
@@ -145,10 +147,4 @@ void Receiver::readData()
             m_timeoutTimer->start();
         }
     }
-}
-
-void Receiver::timeout()
-{
-    stopListen();
-    startListen();
 }

@@ -46,7 +46,6 @@ public slots:
 
 private slots:
     void readData();
-    void timeout();
 
 private:
     QHostAddress m_groupAddress;
