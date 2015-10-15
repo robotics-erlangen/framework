@@ -44,6 +44,9 @@ private:
         QGraphicsPathItem *robot;
         QGraphicsSimpleTextItem *id;
         bool visible;
+
+        void tryHide();
+        void show();
     };
 
     struct Trace
@@ -121,8 +124,11 @@ private:
     void updateVisualizations(const amun::DebugValues &v);
     void clearTeamData(RobotMap &team);
     void updateTeam(RobotMap &team, QHash<uint, robot::Specs> &specsMap, const robot::Team &specs);
-    void setRobot(const world::Robot &robot, const robot::Specs &specs, RobotMap &robots, const QColor &color, Trace &robotTrace, Trace &robotRawTrace);
+    void setBall(const world::Ball &ball);
+    void addBallTrace(qint64 time, const world::Ball &ball);
+    void setRobot(const world::Robot &robot, const robot::Specs &specs, RobotMap &robots, const QColor &color);
     void addBlob(float x, float y, const QBrush &brush, QGraphicsItem *parent);
+    void addRobotTrace(qint64 time, const world::Robot &robot, Trace &robotTrace, Trace &robotRawTrace);
     void setFieldOrientation(float rotation);
     void sendSimulatorMoveCommand(const QPointF &p);
     void drawLines(QPainter *painter, QRectF rect, bool cosmetic);
@@ -160,8 +166,8 @@ private:
 
     QHash<uint, robot::Specs> m_teamBlue;
     QHash<uint, robot::Specs> m_teamYellow;
-    world::State m_worldState;
-    bool m_worldStateUpdated;
+    QList<Status> m_worldState;
+    Status m_lastWorldState;
     QMap<int, bool> m_visibleVisSources;
     // save status to avoid copying the debug values
     QMap<int, Status> m_visualizations;

@@ -100,7 +100,6 @@ FieldWidget::FieldWidget(QWidget *parent) :
     QGraphicsView(parent),
     m_geometryUpdated(true),
     m_rotation(0.0f),
-    m_worldStateUpdated(false),
     m_visualizationsUpdated(false),
     m_infoTextUpdated(false),
     m_hasTouchInput(false),
@@ -264,8 +263,8 @@ void FieldWidget::setLogplayer()
 void FieldWidget::handleStatus(const Status &status)
 {
     if (status->has_world_state()) {
-        m_worldState.CopyFrom(status->world_state());
-        m_worldStateUpdated = true;
+        m_worldState.append(status);
+        m_lastWorldState = status;
         m_guiTimer->requestTriggering();
     }
 
@@ -314,8 +313,8 @@ void FieldWidget::clearData()
 
     clearTraces();
 
-    m_worldState.Clear();
-    m_worldStateUpdated = true;
+    m_worldState.clear();
+    m_lastWorldState.clear();
 
     m_visualizations.clear();
     m_visualizationsUpdated = true;
@@ -594,72 +593,88 @@ void FieldWidget::addTrace(Trace &trace, const QPointF &pos, qint64 time)
 
 void FieldWidget::updateDetection()
 {
-    if (!m_worldState.IsInitialized() || !m_worldStateUpdated) {
+    if (m_worldState.isEmpty()) {
         return;
     }
 
-    // prevent applying the world state again
-    m_worldStateUpdated = false;
-
-    if (m_worldState.has_ball()) {
-        bool update = false;
-        // update ball if it moved for more than 1 millimeter
-        update |= (qAbs(m_worldState.ball().p_x() - m_ball->pos().x()) > 0.001);
-        update |= (qAbs(m_worldState.ball().p_y() - m_ball->pos().y()) > 0.001);
-
-        if (update) {
-            m_ball->setPos(m_worldState.ball().p_x(), m_worldState.ball().p_y());
+    for (int k = 0; k < m_worldState.size(); ++k) {
+        if (m_worldState[k].isNull()) {
+            continue;
         }
-        m_ball->show();
+        const world::State &worldState = m_worldState[k]->world_state();
+        const bool isLast = (k == (m_worldState.size() - 1));
 
-        invalidateTraces(m_ballTrace, m_worldState.time());
-        invalidateTraces(m_ballRawTrace, m_worldState.time());
-
-        if (m_actionShowBallTraces->isChecked()) {
-            for (int i = 0; i < m_worldState.ball().raw_size(); ++i) {
-                const world::BallPosition &p = m_worldState.ball().raw(i);
-                addTrace(m_ballRawTrace, QPointF(p.p_x(), p.p_y()), p.time());
+        if (worldState.has_ball()) {
+            if (isLast) {
+                setBall(worldState.ball());
             }
-            addTrace(m_ballTrace, QPointF(m_worldState.ball().p_x(), m_worldState.ball().p_y()),
-                     m_worldState.time());
+            addBallTrace(worldState.time(), worldState.ball());
+        } else {
+            m_ball->hide();
         }
-    } else {
-        m_ball->hide();
-    }
 
-    // update the individual robots
-    for (int i = 0; i < m_worldState.blue_size(); i++) {
-        const world::Robot &robot = m_worldState.blue(i);
-        const robot::Specs &specs = m_teamBlue[robot.id()];
-        setRobot(robot, specs, m_robotsBlue, Qt::blue, m_robotBlueTrace, m_robotBlueRawTrace);
-    }
+        // update the individual robots
+        for (int i = 0; i < worldState.blue_size(); i++) {
+            const world::Robot &robot = worldState.blue(i);
+            const robot::Specs &specs = m_teamBlue[robot.id()];
+            if (isLast) {
+                setRobot(robot, specs, m_robotsBlue, Qt::blue);
+            }
+            addRobotTrace(worldState.time(), robot, m_robotBlueTrace, m_robotBlueRawTrace);
+        }
 
-    for (int i = 0; i < m_worldState.yellow_size(); i++) {
-        const world::Robot &robot = m_worldState.yellow(i);
-        const robot::Specs &specs = m_teamYellow[robot.id()];
-        setRobot(robot, specs, m_robotsYellow, Qt::yellow, m_robotYellowTrace, m_robotYellowRawTrace);
+        for (int i = 0; i < worldState.yellow_size(); i++) {
+            const world::Robot &robot = worldState.yellow(i);
+            const robot::Specs &specs = m_teamYellow[robot.id()];
+            if (isLast) {
+                setRobot(robot, specs, m_robotsYellow, Qt::yellow);
+            }
+            addRobotTrace(worldState.time(), robot, m_robotYellowTrace, m_robotYellowRawTrace);
+        }
     }
 
     // hide robots that are no longer tracked
     for(RobotMap::iterator it = m_robotsBlue.begin(); it != m_robotsBlue.end(); ++it) {
-        if (!it.value().visible) {
-            it.value().robot->hide();
-            it.value().id->hide();
-        }
-        it.value().visible = false;
+        it.value().tryHide();
     }
 
     for(RobotMap::iterator it = m_robotsYellow.begin(); it != m_robotsYellow.end(); ++it) {
-        if (!it.value().visible) {
-            it.value().robot->hide();
-            it.value().id->hide();
+        it.value().tryHide();
+    }
+
+    // prevent applying the world state again
+    m_worldState.clear();
+}
+
+void FieldWidget::setBall(const world::Ball &ball)
+{
+    bool update = false;
+    // update ball if it moved for more than 1 millimeter
+    update |= (qAbs(ball.p_x() - m_ball->pos().x()) > 0.001);
+    update |= (qAbs(ball.p_y() - m_ball->pos().y()) > 0.001);
+
+    if (update) {
+        m_ball->setPos(ball.p_x(), ball.p_y());
+    }
+    m_ball->show();
+}
+
+void FieldWidget::addBallTrace(qint64 time, const world::Ball &ball)
+{
+    invalidateTraces(m_ballTrace, time);
+    invalidateTraces(m_ballRawTrace, time);
+
+    if (m_actionShowBallTraces->isChecked()) {
+        for (int i = 0; i < ball.raw_size(); ++i) {
+            const world::BallPosition &p = ball.raw(i);
+            addTrace(m_ballRawTrace, QPointF(p.p_x(), p.p_y()), p.time());
         }
-        it.value().visible = false;
+        addTrace(m_ballTrace, QPointF(ball.p_x(), ball.p_y()), time);
     }
 }
 
 void FieldWidget::setRobot(const world::Robot &robot, const robot::Specs &specs, RobotMap &robots,
-                           const QColor &color, Trace &robotTrace, Trace &robotRawTrace)
+                           const QColor &color)
 {
     // get robot or create it
     Robot &r = robots[robot.id()];
@@ -729,20 +744,7 @@ void FieldWidget::setRobot(const world::Robot &robot, const robot::Specs &specs,
         r.id->setPos(robot.p_x(), robot.p_y());
     }
 
-    invalidateTraces(robotTrace, m_worldState.time());
-    invalidateTraces(robotRawTrace, m_worldState.time());
-
-    if (m_actionShowRobotTraces->isChecked()) {
-        for (int i = 0; i < robot.raw_size(); ++i) {
-            const world::RobotPosition &p = robot.raw(i);
-            addTrace(robotTrace, QPointF(p.p_x(), p.p_y()), p.time());
-        }
-        addTrace(robotRawTrace, QPointF(robot.p_x(), robot.p_y()), m_worldState.time());
-    }
-
-    r.robot->show();
-    r.id->show();
-    r.visible = true;
+    r.show();
 }
 
 void FieldWidget::addBlob(float x, float y, const QBrush &brush, QGraphicsItem *parent)
@@ -752,6 +754,20 @@ void FieldWidget::addBlob(float x, float y, const QBrush &brush, QGraphicsItem *
     blob->setBrush(brush);
     blob->setRect(QRectF(-0.02f, -0.02f, 0.04f, 0.04f));
     blob->setPos(x, y);
+}
+
+void FieldWidget::addRobotTrace(qint64 time, const world::Robot &robot, Trace &robotTrace, Trace &robotRawTrace)
+{
+    invalidateTraces(robotTrace, time);
+    invalidateTraces(robotRawTrace, time);
+
+    if (m_actionShowRobotTraces->isChecked()) {
+        for (int i = 0; i < robot.raw_size(); ++i) {
+            const world::RobotPosition &p = robot.raw(i);
+            addTrace(robotRawTrace, QPointF(p.p_x(), p.p_y()), p.time());
+        }
+        addTrace(robotTrace, QPointF(robot.p_x(), robot.p_y()), time);
+    }
 }
 
 void FieldWidget::updateGeometry()
@@ -808,7 +824,8 @@ void FieldWidget::setFieldOrientation(float rotation)
         delete r.robot;
     }
     m_robotsYellow.clear();
-    m_worldStateUpdated = true; // recreate robots on redraw
+    // recreate robots on redraw
+    m_worldState.append(m_lastWorldState);
     m_guiTimer->requestTriggering();
 }
 
@@ -1366,5 +1383,25 @@ void FieldWidget::takeScreenshot()
 
 void FieldWidget::saveSituation()
 {
-    ::saveSituation(m_worldState, m_gameState);
+    if (m_lastWorldState.isNull()) {
+        return;
+    }
+    ::saveSituation(m_lastWorldState->world_state(), m_gameState);
+}
+
+void FieldWidget::Robot::tryHide()
+{
+    // hide robot on second call, without interleaved call to show
+    if (!visible) {
+        robot->hide();
+        id->hide();
+    }
+    visible = false;
+}
+
+void FieldWidget::Robot::show()
+{
+    robot->show();
+    id->show();
+    visible = true;
 }
