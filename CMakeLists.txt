@@ -53,17 +53,15 @@ find_package(SDL2)
 
 include(ExternalProject)
 ExternalProject_Add(bullet
-    URL http://www.robotics-erlangen.de/downloads/libraries/bullet-2.82-r2704.tgz
-    URL_MD5 70b3c8d202dee91a0854b4cbc88173e8
+    URL http://www.robotics-erlangen.de/downloads/libraries/bullet3-2.83.6.tar.gz
+    URL_MD5 44cb2464336a2082b2c144194c2a2668
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
+        -DBUILD_BULLET2_DEMOS:BOOL=OFF
+        -DBUILD_BULLET3:BOOL=OFF
         -DBUILD_CPU_DEMOS:BOOL=OFF
-        -DBUILD_DEMOS:BOOL=OFF
         -DBUILD_EXTRAS:BOOL=OFF
-        -DBUILD_AMD_OPENCL_DEMOS:BOOL=OFF
-        -DBUILD_INTEL_OPENCL_DEMOS:BOOL=OFF
-        -DBUILD_MINICL_OPENCL_DEMOS:BOOL=OFF
-        -DBUILD_NVIDIA_OPENCL_DEMOS:BOOL=OFF
+        -DBUILD_OPENGL3_DEMOS:BOOL=OFF
         -DUSE_GLUT:BOOL=OFF
         -DUSE_GRAPHICAL_BENCHMARK:BOOL=OFF
         -DINSTALL_LIBS:BOOL=ON
@@ -80,8 +78,8 @@ set(BULLET_LIBRARIES
 )
 
 ExternalProject_Add(eigen
-    URL http://www.robotics-erlangen.de/downloads/libraries/eigen-3.1.4.tar.bz2
-    URL_MD5 15a7914c3768d51a3637fb3d64556a28
+    URL http://www.robotics-erlangen.de/downloads/libraries/eigen-eigen-c58038c56923.tar.bz2
+    URL_MD5 87274966745d2d3e7964fcc654d0a24b
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
 )
