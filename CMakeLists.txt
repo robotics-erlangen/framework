@@ -27,6 +27,9 @@ endif()
 if(POLICY CMP0043) # compatibility with CMake 3.0.1
     cmake_policy(SET CMP0043 OLD)
 endif()
+if(POLICY CMP0058)
+    cmake_policy(SET CMP0058 NEW)
+endif()
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++11")
 
@@ -51,6 +54,15 @@ find_package(LuaJIT2)
 find_package(USB)
 find_package(SDL2)
 
+if(POLICY CMP0058) # exist since cmake 3.3
+    set(BULLET_BUILD_BYPRODUCTS
+        "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletDynamics${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletCollision${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}LinearMath${CMAKE_STATIC_LIBRARY_SUFFIX}")
+else()
+    set(BULLET_BUILD_BYPRODUCTS "")
+endif()
+
 include(ExternalProject)
 ExternalProject_Add(bullet
     URL http://www.robotics-erlangen.de/downloads/libraries/bullet3-2.83.6.tar.gz
@@ -65,6 +77,7 @@ ExternalProject_Add(bullet
         -DUSE_GLUT:BOOL=OFF
         -DUSE_GRAPHICAL_BENCHMARK:BOOL=OFF
         -DINSTALL_LIBS:BOOL=ON
+    BUILD_BYPRODUCTS ${BULLET_BUILD_BYPRODUCTS}
 )
 
 externalproject_get_property(bullet install_dir)
