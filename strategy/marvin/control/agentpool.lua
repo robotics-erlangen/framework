@@ -1,11 +1,15 @@
 local AgentPool = Class("AgentPool")
 local debug = require "../base/debug"
 
-function AgentPool:init(agentType)
+function AgentPool:init(agentType, robotLimit)
 	-- robots and agents are mapped 1:1 to each other
 	self._agents = {}
 	self._agentType = agentType
-	self._robotLimit = math.huge
+	if robotLimit == nil then
+		self._robotLimit = math.huge
+	else
+		self._robotLimit = robotLimit
+	end
 end
 
 function AgentPool:run()
