@@ -8,46 +8,23 @@ local Agent = {
 }
 local World = require "../base/world"
 local debug = require "../base/debug"
-local Entrypoints = require "../base/entrypoints"
-local Field = require "../base/field"
-local Defense = require "util/defense"
-local Referee = require "../base/referee"
-local AgentPool = require "control/agentpool"
+-- local AgentPool = require "control/agentpool"
 local Messaging = require "control/messaging"
-local debug = require "../base/debug"
-local vis = require "../base/vis"
-local Trainer = require "trainer/base"
+-- local Trainer = require "trainer/base"
 
 local Coordinator = Class("Control.Coordinator")
 
-function Coordinator:init(mode)
-	self._trainer = Trainer(mode)
-	self._pools = {
-		manual = AgentPool(Agent.Manual),
-		ally = AgentPool(Agent.Ally),
-		keeper = AgentPool(Agent.Keeper),
-		defense = AgentPool(Agent.Defender),
-		attack = AgentPool(Agent.Attacker),
-		hidden = AgentPool(Agent.Hidden)
-	}
-	self._poolGroups = {
-		{ self._pools.manual },
-		{ self._pools.ally },
-		{ self._pools.keeper },
-		{ self._pools.defense, self._pools.attack },
-		{ self._pools.hidden }
-	}
+function Coordinator:init(trainer, pools, poolGroups)
+	self._trainer = trainer
+	-- list of agentPools
+	self._pools = pools
+	-- list of lists with pools
+	self._poolGroups = poolGroups
 end
 
 function Coordinator:run()
 	self._trainer:run()
-
-	-- the trainer inbox is empty after deliverMessages
-	local attackers, defenders = self._trainer:attackRatio()
-	debug.set("#attackers", attackers)
-	-- only take one change request per frame
-	local changingRobot = self._trainer:changingRobot()
-	self:_updatePoolLimits(attackers, defenders, changingRobot)
+	self:_postTrainerHook()
 
 	Messaging.deliverMessages()
 	self:_updatePoolRobots()
@@ -57,23 +34,8 @@ function Coordinator:run()
 	end
 end
 
-function Coordinator:_updatePoolLimits(attackers, defenders, changingRobot)
-	if changingRobot then
-		-- kick the least suitable attacker
-		self._pools.attack:setRobotLimit(attackers-1)
-		self._pools.attack:cleanupRobots()
-		-- ensure a new attacker can be added
-		self._pools.attack:setRobotLimit(attackers)
-		if self._pools.defense:removeRobot(changingRobot) then
-			self._pools.attack:takeRobot({changingRobot})
-		else
-			error("pool change request from non-defender " .. changingRobot.id)
-		end
-	end
-
-	-- limit robot counts on attack/defense pool, causes automatic robot balancing
-	self._pools.attack:setRobotLimit(attackers)
-	self._pools.defense:setRobotLimit(defenders)
+function Coordinator:_postTrainerHook()
+	-- overwrite in subclasses
 end
 
 function Coordinator:_updatePoolRobots()
@@ -99,7 +61,7 @@ function Coordinator:_updatePoolRobots()
 	-- assign robots to pools by pool groups
 	-- assign to first group until these pools don't want any further robots
 	-- the continue with the second group and so on
-	-- if a group has multiple pools assignment altnerates between them
+	-- if a group has multiple pools assignment alternates between them
 	for _, group in ipairs(self._poolGroups) do
 		local groupFinished
 		repeat
@@ -117,25 +79,5 @@ function Coordinator:_updatePoolRobots()
 		until groupFinished
 	end
 end
-
-local coord = nil
-Entrypoints.add(" main", function()
-	if not coord then
-		coord = Coordinator()
-	end
-	coord:run()
-end)
-Entrypoints.add(" main aggressive", function()
-	if not coord then
-		coord = Coordinator("aggressive")
-	end
-	coord:run()
-end)
-Entrypoints.add(" main passive", function()
-	if not coord then
-		coord = Coordinator("passive")
-	end
-	coord:run()
-end)
 
 return Coordinator

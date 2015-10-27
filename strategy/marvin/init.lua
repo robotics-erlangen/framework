@@ -5,7 +5,7 @@ require "base/path" -- extend path module
 local World = require "../base/world"
 
 local Entrypoints = require "../base/entrypoints"
-require "control/coordinator"
+require "control/maincoordinator"
 require "test/unit/init"
 require "test/situation/init"
 require "test/observer/init"
