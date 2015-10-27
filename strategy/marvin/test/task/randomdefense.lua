@@ -45,4 +45,4 @@ local function run()
 	end
 end
 
-Entrypoints.add("Technical Challenge/Random Defense", run)
+Entrypoints.add("TaskTest/Random Defense", run)

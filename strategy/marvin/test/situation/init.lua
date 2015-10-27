@@ -1,4 +1,4 @@
-local Coordinator = require "control/coordinator"
+local Coordinator = require "control/maincoordinator"
 local Entrypoints = require "../base/entrypoints"
 local TestAgent = require "agent/testagent"
 local MoveToPos = require "task/movetopos"

@@ -112,4 +112,4 @@ local function run()
 	agent2:run()
 end
 
-Entrypoints.add("Volley", run)
+Entrypoints.add("TaskTest/Volley", run)
