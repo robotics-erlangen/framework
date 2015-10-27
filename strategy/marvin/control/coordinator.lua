@@ -10,7 +10,7 @@ local World = require "../base/world"
 local debug = require "../base/debug"
 -- local AgentPool = require "control/agentpool"
 local Messaging = require "control/messaging"
--- local Trainer = require "trainer/base"
+-- local Trainer = require "trainer/trainer"
 
 local Coordinator = Class("Control.Coordinator")
 

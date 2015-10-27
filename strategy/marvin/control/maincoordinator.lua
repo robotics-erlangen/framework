@@ -11,7 +11,7 @@ local vis = require "../base/vis"
 local Entrypoints = require "../base/entrypoints"
 local AgentPool = require "control/agentpool"
 local Coordinator = require "control/coordinator"
-local Trainer = require "trainer/base"
+local Trainer = require "trainer/maintrainer"
 
 local MainCoordinator = Class("Control.MainCoordinator", Coordinator)
 
