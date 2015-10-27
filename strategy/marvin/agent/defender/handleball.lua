@@ -32,8 +32,7 @@ local ATTACK_PREPARATION_TIME = 0.3
 local ownGoal = World.Geometry.FriendlyGoal
 
 function HandleBall:_stop()
-	self._activeOppHasBall = false -- for Duel:check()
-	self._activeOppImpact = false
+	self._opponentHasBall = false
 	self._interception = "impossible"
 end
 
