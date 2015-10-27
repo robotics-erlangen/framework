@@ -17,17 +17,21 @@ function Duel:_init()
 end
 
 function Duel:run()
-	local opponentBallOwner = Ball.opponentBallOwner()
-	if not opponentBallOwner then
-		local firstRobotAtBall, timeAdvance = Ball.firstAtBall()
-		if timeAdvance < 0 then
-			opponentBallOwner = firstRobotAtBall
-		end
+	-- search for the best duel target (can be nil!)
+	-- 1. get the opponent ball owner, if possible
+	-- 2. get the opponent, that reaches the ball first inside the field boundaries
+	self._opposer = Ball.opponentBallOwner()
+	if not self._opposer then
+		self._opposer = Ball.firstRobotAtBall(World.OpponentRobots)
 	end
-	self._opposer = assert(opponentBallOwner,
-		"Duel task shall only be active when an opponent has the ball")
-	self._send.defendedOpponent("all", self._opposer)
-	if self._robot:hasBall(World.Ball) then
+
+	-- notify all that we are duelling
+	if self._opposer then
+		self._send.defendedOpponent("all", self._opposer)
+	end
+
+
+	if self._opposer and self._robot:hasBall(World.Ball) then
 		self:_contest()
 		debug.set("duel-state", "contest")
 	else
@@ -38,7 +42,7 @@ end
 
 function Duel:_contest()
 	--decide if we should rotate cw or ccw
-	local toOpponentDir = (self._opposer and self._opposer.pos or World.Ball.pos) - self._robot.pos
+	local toOpponentDir = self._opposer.pos - self._robot.pos
 	local intersection = geom.intersectLineLine(
 			self._robot.pos, toOpponentDir, World.Geometry.OpponentGoal, Vector(1, 0))
 	local ccw = intersection and math.sign(intersection.x) or 1 --positive = ccw, negative = cw
