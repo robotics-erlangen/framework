@@ -9,37 +9,32 @@ local debug = require "../base/debug"
 local vis = require "../base/vis"
 local math = require "../base/math"
 local plot = require "../base/plot"
+local G = World.Geometry
 
 local ObserverRobot = require "observer/robot"
 local Physics = require "observer/physics"
 
 
---- Gives the robot that can reach the ball first
+
+--- Returns the first robot that can reach the ball, along with the estimated time
+-- @param robotlist Robot[] - all robots that should be considered (e.g. World.FriendlyRobots)
 -- @return Robot - the fastest robot
--- @return number - the time difference between the fastest opponent and the fastest friendly robot
-function Ball.firstAtBall()
-	local ball = World.Ball
-	local minOpponentTime = math.huge
-	local fastestRobot = nil
-	for _, robot in ipairs(World.OpponentRobots) do
-		local time = ObserverRobot.minTimeToBall(robot)
-		if time < minOpponentTime then
-			minOpponentTime = time
-			fastestRobot = robot
+-- @return number - the estimated time (the robot will look towards its opponent goal)
+function Ball.firstRobotAtBall(robotlist)
+	local minTime = math.huge
+	local minRobot = nil
+	for _,r in ipairs(robotlist) do
+		local targetPos = r.isFriendly and G.OpponentGoal or G.FriendlyGoal --FIXME
+		local time = Physics.robotTimeToBall(r, World.Ball, targetPos, r.maxSpeed)
+		if time < minTime then
+			minTime = time
+			minRobot = r
 		end
 	end
-	local minFriendLyTime = math.huge
-	for _, robot in ipairs(World.FriendlyRobots) do
-		local time = ObserverRobot.minTimeToBall(robot)
-		if time < minFriendLyTime then
-			minFriendLyTime = time
-			if minFriendLyTime < minOpponentTime then
-				fastestRobot = robot
-			end
-		end
-	end
-	return fastestRobot, minOpponentTime - minFriendLyTime
+	return minRobot, minTime
 end
+Ball.firstRobotAtBall = Cache.forFrame(Ball.firstRobotAtBall)
+
 
 
 --- Calculates the effective distance between ball and dribbler
