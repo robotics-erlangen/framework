@@ -57,7 +57,7 @@ SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geomet
 
         addObject(m_goalSide, btTransform(rot, btVector3((goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf), goalHeightHalf) * SIMULATOR_SCALE), 0.4, 0.5);
         addObject(m_goalSide, btTransform(rot, btVector3(-(goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf), goalHeightHalf) * SIMULATOR_SCALE), 0.4, 0.5);
-        addObject(m_goalBack, btTransform(rot, btVector3(0.0f, side * (height + goalDepth - goalWallHalf), goalHeightHalf) * SIMULATOR_SCALE), 0.4, 0.5);
+        addObject(m_goalBack, btTransform(rot, btVector3(0.0f, side * (height + goalDepth - goalWallHalf), goalHeightHalf) * SIMULATOR_SCALE), 0.1, 0.5);
     }
 }
 
