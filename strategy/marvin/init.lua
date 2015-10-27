@@ -13,8 +13,6 @@ require "test/task/volley"
 require "test/task/randomdefense"
 require "util/lineup"
 require "test/task/sst"
-require "test/fixedroles/init"
-local testroles = "test/fixedroles/roles"
 
 local debug = require "../base/debug"
 local Cache = require "../base/cache"
@@ -58,4 +56,4 @@ local wrapper = function (func)
 	end
 end
 
-return {name = "Marvin", entrypoints = Entrypoints.get(wrapper), testroles = testroles}
+return {name = "Marvin", entrypoints = Entrypoints.get(wrapper)}
