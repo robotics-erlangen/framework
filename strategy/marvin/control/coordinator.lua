@@ -45,22 +45,24 @@ function Coordinator:run()
 	-- the trainer inbox is empty after deliverMessages
 	local attackers, defenders = self._trainer:attackRatio()
 	debug.set("#attackers", attackers)
-	-- only take one request per frame
+	-- only take one change request per frame
 	local changingRobot = self._trainer:changingRobot()
+	self:_updatePoolLimits(attackers, defenders, changingRobot)
 
 	Messaging.deliverMessages()
-	self:_updatePoolRobots(attackers, defenders, changingRobot)
+	self:_updatePoolRobots()
 	-- run every pool and thus every agent
 	for _, pool in pairs(self._pools) do
 		pool:run()
 	end
 end
 
-function Coordinator:_updatePoolRobots(attackers, defenders, changingRobot)
+function Coordinator:_updatePoolLimits(attackers, defenders, changingRobot)
 	if changingRobot then
 		-- kick the least suitable attacker
 		self._pools.attack:setRobotLimit(attackers-1)
 		self._pools.attack:cleanupRobots()
+		-- ensure a new attacker can be added
 		self._pools.attack:setRobotLimit(attackers)
 		if self._pools.defense:removeRobot(changingRobot) then
 			self._pools.attack:takeRobot({changingRobot})
@@ -72,7 +74,9 @@ function Coordinator:_updatePoolRobots(attackers, defenders, changingRobot)
 	-- limit robot counts on attack/defense pool, causes automatic robot balancing
 	self._pools.attack:setRobotLimit(attackers)
 	self._pools.defense:setRobotLimit(defenders)
+end
 
+function Coordinator:_updatePoolRobots()
 	-- remove no longer needed / surplus robots from pools
 	for _, pool in pairs(self._pools) do
 		pool:cleanupRobots()
