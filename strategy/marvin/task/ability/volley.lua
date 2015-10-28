@@ -106,6 +106,13 @@ function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 		vis.addPath("t/a/volley: Iterations", data, vis.colors.greenHalf)
 	end
 
+	local baseAngle = (targetPos - viewPos):angle()
+	if math.abs(geom.getAngleDiff(baseAngle, phi)) > math.pi/2 then
+		-- FIXME: correct fallback for wrong direction
+		-- Angle differs more than 90 degrees from the base angle
+		-- this is only possible if v_s was negative
+		return geom.normalizeAngle(phi + math.pi), 0
+	end
 	return phi, v_s
 end
 
@@ -122,10 +129,6 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 	end
 
 	local phi, v_s = self:calcPhi(self._ball_in, viewPos, targetPos, targetSpeed)
-	if v_s < 0 then
-		-- FIXME fallback for negative v_s
-		v_s = 0
-	end
 
 	-- position the robot to receive the pass
 	local robotPos = viewPos - Vector.fromAngle(phi):scaleLength(
