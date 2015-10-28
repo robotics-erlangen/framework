@@ -121,10 +121,12 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 
 	-- predict ball and catch it
 	local predictedBall = Physics.ballAtTime(ball, self._catchTime)
+	-- if the robot has to move around the ball aim a bit behind the ball to ensure
+	-- that the path doesn't contain a too sharp corner
 	local virtualBall = Physics.ballAtTime(ball, self._catchTime + 0.1)
 
 	if (targetPos - predictedBall.pos):dot(predictedBall.pos - self._robot.pos) > 0 then
-		virtualBall =  predictedBall
+		virtualBall = predictedBall
 	end
 
 	-- catching the ball only makes sense if we really try to
