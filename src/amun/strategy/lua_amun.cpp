@@ -223,6 +223,25 @@ static int amunSendMixedTeamInfo(lua_State *state)
     return 0;
 }
 
+static int amunSendNetworkRefereeCommand(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+
+    SSL_Referee referee;
+    protobufToMessage(state, 1, referee);
+
+    QByteArray data;
+    data.resize(referee.ByteSize());
+    if (!referee.SerializeToArray(data.data(), data.size())) {
+        luaL_error(state, "Invalid referee packet!");
+    }
+
+    if (!thread->sendNetworkReferee(data)) {
+        luaL_error(state, "This function is only allowed as autoref or in debug mode!");
+    }
+    return 0;
+}
+
 static const luaL_Reg amunMethods[] = {
     // fixed during strategy runtime
     {"getGeometry",         amunGetGeometry},
@@ -244,6 +263,7 @@ static const luaL_Reg amunMethods[] = {
     {"sendCommand",         amunSendCommand},
     {"sendRefereeCommand",  amunSendRefereeCommand},
     {"sendMixedTeamInfo",   amunSendMixedTeamInfo},
+    {"sendNetworkRefereeCommand",  amunSendNetworkRefereeCommand},
     {0, 0}
 };
 

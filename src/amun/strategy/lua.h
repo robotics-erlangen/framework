@@ -62,8 +62,9 @@ public:
     amun::Visualization *addVisualization();
     amun::DebugValue *addDebug();
     amun::PlotValue *addPlot();
-    bool sendCommand(Command command);
-    void watch(const QString filename);
+    bool sendCommand(const Command &command);
+    bool sendNetworkReferee(const QByteArray &referee);
+    void watch(const QString &filename);
 private:
     void loadLibs();
     void loadDebugLibs();

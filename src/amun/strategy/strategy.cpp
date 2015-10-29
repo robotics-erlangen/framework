@@ -47,7 +47,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type) :
     m_autoReload(false),
     m_strategyFailed(false)
 {
-    m_mixedTeamSocket = new QUdpSocket(this);
+    m_udpSenderSocket = new QUdpSocket(this);
 
     // used to delay processing until all status packets are processed
     m_idleTimer = new QTimer(this);
@@ -175,6 +175,11 @@ void Strategy::sendMixedTeamInfo(const QByteArray &data)
     m_mixedTeamData = data;
 }
 
+void Strategy::sendNetworkRefereeCommand(const QByteArray &data)
+{
+    m_networkRefereeCommand = data;
+}
+
 void Strategy::process()
 {
     if (!m_strategy || m_strategyFailed)
@@ -192,12 +197,23 @@ void Strategy::process()
 
     if (m_strategy->process(pathPlanning, m_status->world_state(), m_status->game_state(), userInput)) {
         if (!m_mixedTeamData.isNull()) {
-            int bytesSent = m_mixedTeamSocket->writeDatagram(m_mixedTeamData, m_mixedTeamHost, m_mixedTeamPort);
+            int bytesSent = m_udpSenderSocket->writeDatagram(m_mixedTeamData, m_mixedTeamHost, m_mixedTeamPort);
             int origSize = m_mixedTeamData.size();
             m_mixedTeamData = QByteArray();
 
             if (bytesSent != origSize) {
                 fail("Failed to send mixed team info");
+                return;
+            }
+        }
+        if (!m_networkRefereeCommand.isNull()) {
+            int bytesSent = m_udpSenderSocket->writeDatagram(m_networkRefereeCommand,
+                                                             QHostAddress("224.5.23.1"), 10003);
+            int origSize = m_networkRefereeCommand.size();
+            m_networkRefereeCommand = QByteArray();
+
+            if (bytesSent != origSize) {
+                fail("Failed to send referee command over network");
                 return;
             }
         }
@@ -264,6 +280,7 @@ void Strategy::loadScript(const QString filename, const QString entryPoint)
             SIGNAL(sendStrategyCommand(bool,unsigned int,unsigned int,QByteArray,qint64)));
     connect(m_strategy, SIGNAL(gotCommand(Command)), SLOT(sendCommand(Command)));
     connect(m_strategy, SIGNAL(sendMixedTeamInfo(QByteArray)), SLOT(sendMixedTeamInfo(QByteArray)));
+    connect(m_strategy, SIGNAL(sendNetworkRefereeCommand(QByteArray)), SLOT(sendNetworkRefereeCommand(QByteArray)));
 
     if (m_strategy->loadScript(filename, entryPoint, m_geometry, m_team)) {
         m_entryPoint = m_strategy->entryPoint(); // remember loaded entrypoint

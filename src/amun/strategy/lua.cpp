@@ -399,7 +399,7 @@ amun::PlotValue *Lua::addPlot()
     return m_debug.add_plot();
 }
 
-bool Lua::sendCommand(Command command)
+bool Lua::sendCommand(const Command &command)
 {
     if (!m_debugEnabled) {
         return false;
@@ -408,7 +408,16 @@ bool Lua::sendCommand(Command command)
     return true;
 }
 
-void Lua::watch(const QString filename)
+bool Lua::sendNetworkReferee(const QByteArray &referee)
+{
+    if (!m_debugEnabled && m_type != StrategyType::AUTOREF) {
+        return false;
+    }
+    emit sendNetworkRefereeCommand(referee);
+    return true;
+}
+
+void Lua::watch(const QString &filename)
 {
     m_watcher->addFile(filename);
 }

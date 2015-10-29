@@ -50,6 +50,7 @@ public slots:
     void handleStatus(const Status &status);
     void handleCommand(const Command &command);
     void sendMixedTeamInfo(const QByteArray &data);
+    void sendNetworkRefereeCommand(const QByteArray &data);
 
 private slots:
     void process();
@@ -82,10 +83,11 @@ private:
     bool m_autoReload;
     bool m_strategyFailed;
 
-    QUdpSocket *m_mixedTeamSocket;
+    QUdpSocket *m_udpSenderSocket;
     QHostAddress m_mixedTeamHost;
     quint16 m_mixedTeamPort;
     QByteArray m_mixedTeamData;
+    QByteArray m_networkRefereeCommand;
 };
 
 #endif // STRATEGY_H

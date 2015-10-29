@@ -147,7 +147,7 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
---- Send referee command. Only works in debug mode. Must be fully populated
+--- Send internal referee command. Only works in debug mode. Must be fully populated
 -- @class function
 -- @name sendRefereeCommand
 -- @param command SSL_Referee
@@ -159,6 +159,16 @@ separator for luadoc]]--
 -- @class function
 -- @name sendMixedTeamInfo
 -- @param data ssl::TeamPlan
+
+--[[
+separator for luadoc]]--
+
+--- Send referee command over network. Only works in debug mode or as autoref. Must be fully populated
+-- Only sends the data passed to the last call of this function during a strategy run.
+-- The command_counter must be increased for every command change
+-- @class function
+-- @name sendNetworkRefereeCommand
+-- @param command SSL_Referee
 
 require "amun"
 log = amun.log
