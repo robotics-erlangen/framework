@@ -42,8 +42,8 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
         connect(this, SIGNAL(removeBinding(uint,uint)), inputManager, SLOT(removeBinding(uint,uint)));
         connect(this, SIGNAL(strategyControlled(uint,uint,bool)), inputManager, SLOT(setStrategyControlled(uint,uint,bool)));
         connect(this, SIGNAL(networkControlled(uint,uint,bool)), inputManager, SLOT(setNetworkControlled(uint,uint,bool)));
-        connect(inputManager, SIGNAL(devicesUpdated()), SLOT(updateMenu()));
     }
+    connect(inputManager, SIGNAL(devicesUpdated()), SLOT(updateMenu()));
 
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setMargin(0);
@@ -141,13 +141,13 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
     m_inputDeviceGroup = new QActionGroup(this);
     m_menu = new QMenu(this);
 
+    m_btnControl = new QToolButton;
+    m_btnControl->setMenu(m_menu);
+    m_btnControl->setAutoRaise(true);
+    m_btnControl->setPopupMode(QToolButton::InstantPopup);
+    layout->addWidget(m_btnControl);
+    updateMenu();
     if (!m_isGeneration) {
-        m_btnControl = new QToolButton;
-        m_btnControl->setMenu(m_menu);
-        m_btnControl->setAutoRaise(true);
-        m_btnControl->setPopupMode(QToolButton::InstantPopup);
-        layout->addWidget(m_btnControl);
-        updateMenu();
         disableInput();
     }
 
@@ -194,6 +194,11 @@ void RobotWidget::disableInput()
 }
 
 void RobotWidget::selectInput(const QString &inputDevice) {
+    if (m_isGeneration) {
+        emit inputDeviceSelected(m_specs.generation(), inputDevice);
+        return;
+    }
+
     m_inputDevice = inputDevice;
 
     bool isNetwork = m_inputDevice == "Network";
@@ -237,11 +242,13 @@ void RobotWidget::updateMenu()
     action->setCheckable(true);
     action->setChecked(m_inputDevice.isEmpty());
 
-    QAction *action2 = m_menu->addAction("Forward to strategy");
-    connect(action2, SIGNAL(triggered(bool)), SLOT(setStrategyControlled(bool)));
-    action2->setCheckable(true);
-    action2->setDisabled(m_inputDevice.isEmpty());
-    action2->setChecked(m_strategyControlled);
+    if (!m_isGeneration) {
+        QAction *action2 = m_menu->addAction("Forward to strategy");
+        connect(action2, SIGNAL(triggered(bool)), SLOT(setStrategyControlled(bool)));
+        action2->setCheckable(true);
+        action2->setDisabled(m_inputDevice.isEmpty());
+        action2->setChecked(m_strategyControlled);
+    }
 
     m_menu->addSeparator();
     bool deviceFound = false; // input device may have been removed
@@ -329,6 +336,13 @@ void RobotWidget::setTeam(uint generation, uint id, Team team)
 {
     if (generation == m_specs.generation() && id == m_specs.id()) {
         selectTeam(team);
+    }
+}
+
+void RobotWidget::setInputDevice(uint generation, uint id, const QString &inputDevice)
+{
+    if (generation == m_specs.generation() && id == m_specs.id()) {
+        selectInput(inputDevice);
     }
 }
 

@@ -56,6 +56,7 @@ public:
 
 signals:
     void setTeam(uint generation, uint id, RobotWidget::Team team);
+    void setInputDevice(uint generation, uint id, const QString &inputDevice);
     void sendCommand(const Command &command);
     void sendRadioResponse(const robot::RadioResponse &response);
     void generationChanged(uint generation, RobotWidget::Team team);
@@ -63,6 +64,7 @@ signals:
 public slots:
     void selectTeam(uint generation, uint id, RobotWidget::Team team);
     void selectTeamForGeneration(uint generation, uint id, RobotWidget::Team team);
+    void selectInputDeviceForGeneration(uint generation, const QString &inputDevice);
 
 public:
     void init(QWidget *window, InputManager *inputManager);

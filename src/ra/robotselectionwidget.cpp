@@ -72,11 +72,13 @@ QWidget *ItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem 
     if (is_generation) {
         connect(m_widget, SIGNAL(generationChanged(uint,RobotWidget::Team)), widget, SLOT(generationChanged(uint,RobotWidget::Team)));
         connect(widget, SIGNAL(teamSelected(uint,uint,RobotWidget::Team)), m_widget, SLOT(selectTeamForGeneration(uint,uint,RobotWidget::Team)));
+        connect(widget, SIGNAL(inputDeviceSelected(uint,QString)), m_widget, SLOT(selectInputDeviceForGeneration(uint,QString)));
     } else {
         connect(m_widget, SIGNAL(setTeam(uint,uint,RobotWidget::Team)), widget, SLOT(setTeam(uint,uint,RobotWidget::Team)));
         // the response includes generation and robot id, thus just broadcast it to everyone
         connect(m_widget, SIGNAL(sendRadioResponse(robot::RadioResponse)), widget, SLOT(handleResponse(robot::RadioResponse)));
         connect(widget, SIGNAL(teamSelected(uint,uint,RobotWidget::Team)), m_widget, SLOT(selectTeam(uint,uint,RobotWidget::Team)));
+        connect(m_widget, SIGNAL(setInputDevice(uint,uint,QString)), widget, SLOT(setInputDevice(uint,uint,QString)));
     }
     return widget;
 }
@@ -422,7 +424,7 @@ void RobotSelectionWidget::selectTeam(uint generation, uint id, RobotWidget::Tea
 
 void RobotSelectionWidget::selectTeamForGeneration(uint generation, uint, RobotWidget::Team team)
 {
-    if (m_generations.contains(generation)) {
+    if (!m_generations.contains(generation)) {
         return;
     }
     Generation &g = m_generations[generation];
@@ -436,6 +438,17 @@ void RobotSelectionWidget::selectTeamForGeneration(uint generation, uint, RobotW
     }
     updateGenerationTeam();
     sendTeams();
+}
+
+void RobotSelectionWidget::selectInputDeviceForGeneration(uint generation, const QString &inputDevice)
+{
+    if (!m_generations.contains(generation)) {
+        return;
+    }
+    const Generation &g = m_generations[generation];
+    for (const Generation::Robot &r : g.robots) {
+        emit setInputDevice(generation, r.specs.id(), inputDevice);
+    }
 }
 
 void RobotSelectionWidget::unsetTeam(uint id, uint skip_generation, RobotWidget::Team team)

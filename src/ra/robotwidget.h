@@ -50,9 +50,11 @@ signals:
     void strategyControlled(uint generation, uint id, bool strategyControlled);
     void networkControlled(uint generation, uint id, bool networkControlled);
     void teamSelected(uint generation, uint id, RobotWidget::Team team);
+    void inputDeviceSelected(uint generation, const QString &inputDevice);
 
 public slots:
     void setTeam(uint generation, uint id, RobotWidget::Team team);
+    void setInputDevice(uint generation, uint id, const QString &inputDevice);
     void handleResponse(const robot::RadioResponse &response);
     void generationChanged(uint generation, RobotWidget::Team team);
 
