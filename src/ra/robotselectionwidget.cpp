@@ -423,18 +423,19 @@ void RobotSelectionWidget::selectTeam(uint generation, uint id, RobotWidget::Tea
 void RobotSelectionWidget::selectTeamForGeneration(uint generation, uint, RobotWidget::Team team)
 {
     if (m_generations.contains(generation)) {
-        Generation &g = m_generations[generation];
-        QMutableMapIterator<uint, Generation::Robot> it(g.robots);
-        while (it.hasNext()) {
-            it.next();
-            Generation::Robot &r = it.value();
-            unsetTeam(r.specs.id(), generation, team);
-            r.team = team;
-            emit setTeam(generation, r.specs.id(), team);
-        }
-        updateGenerationTeam();
-        sendTeams();
+        return;
     }
+    Generation &g = m_generations[generation];
+    QMutableMapIterator<uint, Generation::Robot> it(g.robots);
+    while (it.hasNext()) {
+        it.next();
+        Generation::Robot &r = it.value();
+        unsetTeam(r.specs.id(), generation, team);
+        r.team = team;
+        emit setTeam(generation, r.specs.id(), team);
+    }
+    updateGenerationTeam();
+    sendTeams();
 }
 
 void RobotSelectionWidget::unsetTeam(uint id, uint skip_generation, RobotWidget::Team team)
