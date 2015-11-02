@@ -58,6 +58,7 @@ public slots:
 
 private slots:
     void selectInput();
+    void selectInput(const QString &inputDevice);
     void disableInput();
     void setStrategyControlled(bool isControlled);
     void updateMenu();

@@ -185,13 +185,32 @@ void RobotWidget::selectInput()
 {
     QAction *action = dynamic_cast<QAction*>(sender());
     Q_ASSERT(action);
-    m_inputDevice = action->text();
+    selectInput(action->text());
+}
+
+void RobotWidget::disableInput()
+{
+    selectInput(QString());
+}
+
+void RobotWidget::selectInput(const QString &inputDevice) {
+    m_inputDevice = inputDevice;
+
     bool isNetwork = m_inputDevice == "Network";
+    emit networkControlled(m_specs.generation(), m_specs.id(), isNetwork);
+
+    if (m_inputDevice.isNull()) {
+        m_btnControl->setIcon(QIcon());
+        m_inputLabel->hide();
+        emit removeBinding(m_specs.generation(), m_specs.id());
+        updateMenu();
+        return;
+    }
+
     if (!isNetwork) {
-        emit addBinding(m_specs.generation(), m_specs.id(), action->text());
+        emit addBinding(m_specs.generation(), m_specs.id(), inputDevice);
     }
     emit strategyControlled(m_specs.generation(), m_specs.id(), m_strategyControlled);
-    emit networkControlled(m_specs.generation(), m_specs.id(), isNetwork);
     updateMenu();
     m_inputLabel->setText(m_inputDevice);
     m_inputLabel->show();
@@ -202,15 +221,6 @@ void RobotWidget::selectInput()
     } else {
         m_btnControl->setIcon(QIcon("icon:16/input-gaming.png"));
     }
-}
-
-void RobotWidget::disableInput()
-{
-    m_btnControl->setIcon(QIcon());
-    m_inputDevice = QString();
-    m_inputLabel->hide();
-    emit removeBinding(m_specs.generation(), m_specs.id());
-    updateMenu();
 }
 
 void RobotWidget::updateMenu()
