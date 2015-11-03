@@ -341,7 +341,7 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	-- if the ball is extremely slow, consider it as stationary
 	if ball.speed:length() < 0.01 then
 		local endSpeed = (ball.pos - robot.pos):setLength(endSpeedLength)
-		return Physics.robotTimeToPos(robot, ball.pos, endSpeed, true)
+		return Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, 0)
 	end
 
 	-- calculate time required when the robot is directly hit by the ball
