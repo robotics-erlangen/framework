@@ -204,13 +204,14 @@ end
 -- @return number - the estimated time
 function Physics.robotTimeToPos(robot, pos, endSpeed, brakeAndReturn, lowAccel)
 	local accelerationFactor = lowAccel and 0.7 or 0.9 -- factor for max forward speedup and braking
+	local tolerance = 0.01 -- cutoff low distances to prevent instabilities
 	-- forward acceleration and deceleration
 	local accelerate = math.abs(robot.acceleration
 			and robot.acceleration.aSpeedupFMax or 1.0) * accelerationFactor
 	local brake = math.abs(robot.acceleration
 			and robot.acceleration.aBrakeFMax or 1.0) * accelerationFactor
 
-	local lineDist = pos:distanceTo(robot.pos)
+	local lineDist = math.max(pos:distanceTo(robot.pos) - tolerance, 0)
 	local lineDir = (pos - robot.pos):normalize()
 	local robotSpeed = math.min(lineDir:dot(robot.speed), robot.maxSpeed)
 	local destSpeed = math.min(math.max(0, lineDir:dot(endSpeed)), robot.maxSpeed)
