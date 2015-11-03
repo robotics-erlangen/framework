@@ -11,6 +11,7 @@ local Cache = require "../base/cache"
 local Physics = require "observer/physics"
 local Ball = require "observer/ball"
 local Volley = require "task/ability/volley"
+local debug = require "../base/debug"
 
 --- returns a list of all non-free sectors
 -- the non-free sectors are not merged and not sorted
@@ -90,6 +91,81 @@ end
 function Goal.largestFreeSector(viewPos, robotList, opp)
 	local unoccupiedSectors = Goal.freeSectors(viewPos, robotList, opp) -- get list of all unoccupied sectors
 	return Interval.getLargest(unoccupiedSectors)
+end
+
+--- Returns a list of all sectors not covered by any robot from robotList (not limited to the goal)
+-- @param viewPos vector - position from which the free angles should be found
+-- @param robotList list - all robot objects that should be considered
+function Goal.allFreeSectors(viewPos, robotList)
+	local occupiedSectors = Goal.getOccupiedSectors(viewPos, robotList, 0, 2*math.pi)
+	--for i,sector in pairs(occupiedSectors) do
+	--	debug.set("osectors["..i.."]", "{"..sector[1]..", "..sector[2].."}")
+	--end
+	local matching = nil
+	local delete = {}
+	for i,sector in pairs(occupiedSectors) do
+		if sector[1] == 0 then
+			if matching then
+				occupiedSectors[matching] = {occupiedSectors[matching][1], sector[2] + 2*math.pi}
+				--debug.set("match "..matching.." & "..i, "{"..occupiedSectors[matching][1]..", "..occupiedSectors[matching][2].."}")
+				matching = nil
+				table.insert(delete, i)
+			else
+				matching = i
+				--debug.set("match "..i, "start")
+				--log("start")
+			end
+		elseif sector[2] == 2*math.pi then
+			if matching then
+				occupiedSectors[matching] = {sector[1], occupiedSectors[matching][2] + 2*math.pi}
+				--debug.set("match "..matching.." & "..i, "{"..occupiedSectors[matching][1]..", "..occupiedSectors[matching][2].."}")
+				matching = nil
+				table.insert(delete, i)
+			else
+				matching = i
+				--debug.set("match "..i, "end")
+				--log("end")
+			end
+		end
+	end
+	for i = #delete,1,-1 do
+		table.remove(occupiedSectors, delete[i])
+	end
+	Interval.sort(occupiedSectors)
+	--for i,sector in pairs(occupiedSectors) do
+	--	debug.set("O2sectors["..i.."]", "{"..sector[1]..", "..sector[2].."}")
+	--end
+	Interval.merge(occupiedSectors)
+	--for i,sector in pairs(occupiedSectors) do
+	--	debug.set("MOsectors["..i.."]", "{"..sector[1]..", "..sector[2].."}")
+	--end
+	local freeSectors = Interval.negate(occupiedSectors, -42, 1337)	-- magic constants, don't change!
+	if #freeSectors > 2 then
+		local first = freeSectors[1]
+		local last = freeSectors[#freeSectors]
+		--log(#freeSectors)
+		--for i,sector in pairs(freeSectors) do
+		--	debug.set("Fsectors["..i.."]", "{"..sector[1]..", "..sector[2].."}")
+		--end
+		freeSectors[1] = {last[1], first[2]}
+		table.remove(freeSectors)
+	elseif #freeSectors > 1 then	-- exactly 2 halfs (that are actually 1 sector, but with a sign flip)
+		local first = freeSectors[1]
+		local second = freeSectors[2]
+		freeSectors = {{second[1], first[2]}}
+		--for i,sector in pairs(freeSectors) do
+		--	debug.set("Fsectors["..i.."]", "{"..sector[1]..", "..sector[2].."}")
+		--end
+	else	-- no free sector
+		freeSectors = {}
+	end
+	-- remove sectors that are broader than 2pi
+	for i = #freeSectors,1,-1 do
+		if math.abs(freeSectors[i][2] - freeSectors[i][1]) > 2*math.pi then
+			table.remove(freeSectors, i)
+		end
+	end
+	return freeSectors
 end
 
 --- Predicts the direction the ball will be shot into.
