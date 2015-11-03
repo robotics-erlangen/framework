@@ -1,12 +1,12 @@
 local Base = Class("Behavior.Base")
 
 local Messaging = require "control/messaging"
-local World = require "../base/world"
-local Robot = require "observer/robot"
+local Physics = require "observer/physics"
 local Rating = require "util/rating"
+local debug = require "../base/debug"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
-local debug = require "../base/debug"
+local World = require "../base/world"
 
 function Base:init(agent)
 	self._agent = agent
@@ -68,7 +68,8 @@ end
 
 function Base:_applyForMainAttacker()
 	if not Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) then
-		local timeToBall = Robot.minTimeToBall(self._robot)
+		local timeToBall = Physics.robotTimeToBall(self._robot,
+			World.Ball, World.Geometry.OpponentGoal, 0)
 		local mainAttackerRating = Rating.timeToRating(timeToBall)
 		debug.set("ma application sent", true)
 		self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
