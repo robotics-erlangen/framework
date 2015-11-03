@@ -16,12 +16,16 @@ local debug = require "../base/debug"
 local Cache = require "../base/cache"
 local Processor = require "../base/processor"
 local Robot = require "observer/robot"
+local Ball = require "observer/ball"
 local Referee = require "../base/referee"
 
 local preproc = Class("Process.PreProc", require "../base/process")
 function preproc:run()
+	local pre = amun.getCurrentTime()
+	Ball._updateReceivesPass()
+	local post = amun.getCurrentTime()
     Robot.estimateOpponentDynamics()
-    Robot:_updateMinTimeToBall()
+    Robot._updateMinTimeToBall()
     Robot._updateHadBall()
     Referee.checkTouching()
     Referee.illustrateRefereeStates()
