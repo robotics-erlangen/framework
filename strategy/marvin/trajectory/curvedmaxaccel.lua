@@ -15,7 +15,7 @@ function CurvedMaxAccel:_getPath(targetPos)
 	local targetPos = Coordinates.toGlobal(targetPos)
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
 
-	self._robot.path:setProbabilities(0.1, 0.5)
+	self._robot.path:setProbabilities(0.15, 0.65)
 	-- first waypoint is the current robot position
 	-- if reaching the end is possible there's a waypoint at the end
 	local waypoints = self._robot.path:get(robotPos.x, robotPos.y, targetPos.x, targetPos.y)
