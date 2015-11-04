@@ -21,6 +21,8 @@ local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
 local SHOOT_SIDE_OFFSET = 0.03 -- extends the hasBall sidewards
 local SHOOT_HYSTERESIS_TIMEOUT = 0.08 -- reset shoot hysteresis after the timeout
 local CAN_SHOOT_HYSTERESIS = 0.5 / 180 * math.pi
+local MIN_SHOOT_SPEED = 0.7
+
 local MOVING_BALL = 0.6
 local STOPPED_BALL = 0.2
 local STOPPED_BALL_DIST = 2*Constants.positionError
@@ -239,6 +241,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
 	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos,
 				targetPos, targetSpeed)
+	kickSpeed = math.max(MIN_SHOOT_SPEED, kickSpeed)
 
 	-- calculate current distance to the ball
 	local distToBall = (World.Ball.pos - self._robot.pos):rotate(-self._robot.dir)
