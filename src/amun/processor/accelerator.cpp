@@ -46,6 +46,7 @@ Accelerator::Accelerator(const robot::Specs &specs) :
  * \param robot Pointer to the robot being controlled
  * \param command Command to be sent to the robot
  * \param time Current world time in nanoseconds
+ * \param debug Protobuf object for storing debug output
  */
 void Accelerator::limit(const world::Robot *robot, robot::Command &command, qint64 time, amun::DebugValues *debug)
 {

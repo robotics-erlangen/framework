@@ -118,6 +118,7 @@ unsigned int KdTree::Node::depth() const
 /*!
  * \brief Creates a KdTree
  * \param position The position of the root node
+ * \param inObstacle Flag whether this node is inside an obstacle
  */
 KdTree::KdTree(const Vector &position, bool inObstacle) :
     m_nodeCount(1)
@@ -137,6 +138,7 @@ KdTree::~KdTree()
  * \brief Insert a new node
  * \param position Position of the new node
  * \param previous This node will be set as the previous node for the newly created node
+ * \param inObstacle Flag whether the new node is inside an obstacle
  * \return The newly created node
  */
 KdTree::Node* KdTree::insert(const Vector &position, bool inObstacle, const Node *previous)

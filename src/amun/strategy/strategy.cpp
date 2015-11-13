@@ -37,7 +37,7 @@
  * \brief Creates a Strategy instance
  * Automatically reloads the strategy when the field geometry or team robots change
  * \param timer Timer to be used for time scaling
- * \param blue \c true for blue team, \c false for yellow
+ * \param type can be blue or yellow team or autoref
  */
 Strategy::Strategy(const Timer *timer, StrategyType type) :
     m_timer(timer),

@@ -79,7 +79,6 @@ void Referee::handlePacket(const QByteArray &data)
 /*!
  * \brief Update referee state
  * \param worldState Current world state, used to identify ball movement
- * \param gameState Output for newly calculated game state
  */
 void Referee::process(const world::State &worldState)
 {

@@ -328,6 +328,7 @@ void Amun::handleStatus(const Status &status)
  * \ref Simulator and output of \ref Processor to either \ref Transceiver or \ref Simulator.
  *
  * \param enabled Whether to enable or disable the simulator
+ * \param useNetworkTransceiver Whether to send commands over network or using the transceiver
  */
 void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
 {
