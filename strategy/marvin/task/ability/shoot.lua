@@ -332,11 +332,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 			debug.set("shoot command", "linear")
 		else
 			--shorten distance because ball will bounce
-			if dist <= 2 then
-				self._robot:chip(dist*0.65)
-			else
-				self._robot:chip(dist*0.6)
-			end
+			self._robot:chip(dis*0.62)
 			debug.set("shoot command", "chip")
 		end
 		self:_doForceShoot()
