@@ -2,10 +2,8 @@ local Base = require "agent/base/behavior"
 local Shoot = Class("Agent.Attacker.Shoot", Base)
 
 local World = require "../base/world"
-local Robot = require "observer/robot"
 local Ball = require "observer/ball"
 local Rating = require "util/rating"
-local ObserverShoot = require "observer/shoot"
 local ShootGoal = require "task/shootgoal"
 local Pass = require "task/pass"
 local debug = require "../base/debug"
