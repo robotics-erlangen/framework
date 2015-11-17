@@ -121,42 +121,12 @@ end
 
 local minTimeToBall = {}
 function Robot._updateMinTimeToBall()
-	local Ball = require "observer/ball"
-	local ballShooter = Ball.isShot()
-	if ballShooter then
-		minTimeToBall = {}
+	for _,r in ipairs(World.FriendlyRobots) do
+		minTimeToBall[r] = Physics.robotTimeToBall(r, World.Ball, World.Geometry.OpponentGoal, r.maxSpeed)
 	end
 
-	local t_out = 5
-	if World.Ball:isPositionValid() and World.Ball.speed:length() > 0.01 then
-		-- calculate the time the ball needs to cross the field border
-		local lineCut = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
-		local distToLine = World.Ball.pos:distanceTo(lineCut)
-		t_out = math.bound(5, Physics.ballRollTime(World.Ball, distToLine), 20)
-	end
-
-	for _,r in pairs(World.Robots) do
-		if not minTimeToBall[r] then
-			minTimeToBall[r] = 0
-			if r == ballShooter then
-				minTimeToBall[r] = 5
-			end
-		end
-
-		minTimeToBall[r] = math.max(0, minTimeToBall[r] - World.TimeDiff)
-		local predictedBallPos = Physics.ballAtTime(World.Ball, minTimeToBall[r]).pos
-		local viewPos = (predictedBallPos - r.pos):setLength(100) + r.pos
-		local timeToBall = math.min(t_out, Physics.robotTimeToBall(r, World.Ball, viewPos, r.maxSpeed, nil, true))
-
-		-- damp large value changes
-		-- the centerpiece of the catchball algorithm
-		-- FIXME better damping for small changes
-		if timeToBall < minTimeToBall[r] then
-			minTimeToBall[r] = 0.8 * minTimeToBall[r] + 0.2 * timeToBall
-		else
-			minTimeToBall[r] = 0.95 * minTimeToBall[r] + 0.05 * timeToBall
-		end
-		--debug.set("Agent "..tostring(r.id).."/minTimeToBall", minTimeToBall[r])
+	for _,r in ipairs(World.OpponentRobots) do
+		minTimeToBall[r] = Physics.robotTimeToBall(r, World.Ball, World.Geometry.FriendlyGoal, r.maxSpeed)
 	end
 end
 
