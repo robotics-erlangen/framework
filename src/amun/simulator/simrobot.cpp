@@ -63,8 +63,9 @@ SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld 
     btRigidBody::btRigidBodyConstructionInfo rbInfo(m_specs.mass(), m_motionState, m_shape, localInertia);
 
     m_body = new btRigidBody(rbInfo);
-    m_body->setRestitution(0.0); // robot doesn't bounce
-    m_body->setFriction(0.0f); // not realistic
+    // see simulator.cpp
+    m_body->setRestitution(0.6f);
+    m_body->setFriction(0.22f);
     m_world->addRigidBody(m_body);
 
     // FIXME wheels currently aren't used

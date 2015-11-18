@@ -29,6 +29,33 @@
 #include <QTimer>
 #include <algorithm>
 
+/* Friction and restitution between robots, ball and field: (empirical measurments)
+ * Ball vs. Robot:
+ * Restitution: about 0.60
+ * Friction: trial and error in simulator 0.18 (similar results as in reality)
+ *
+ * Ball vs. Floor:
+ * Restitution: sqrt(h'/h) = sqrt(0.314) = 0.56
+ * Friction: \mu_k = -a / g (while slipping) = 0.35
+ *
+ * Robot vs. Floor:
+ * Restitution and Friction should be as low as possible
+ *
+ * Calculations:
+ * Variables: r: restitution, f: friction
+ * Indices: b: ball; f: floor; r: robot
+ *
+ * r_b * r_f = 0.56
+ * r_b * r_r = 0.60
+ * r_f * r_r = small
+ * => r_b = 1; r_f = 0.56; r_r = 0.60
+ *
+ * f_b * f_f = 0.35
+ * f_b * f_r = 0.22
+ * f_f * f_r = very small
+ * => f_b = 1; f_f = 0.35; f_r = 0.22
+ */
+
 struct SimulatorData
 {
     RNG rng;

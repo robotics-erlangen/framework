@@ -41,22 +41,24 @@ SimField::SimField(btDiscreteDynamicsWorld *world, const world::Geometry &geomet
     m_goalBack = new btBoxShape(btVector3(goalWidthHalf, goalWallHalf, goalHeightHalf) * SIMULATOR_SCALE);
 
     // build field cube
-    addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0), 0), btVector3(0, 0, 0) * SIMULATOR_SCALE), 1, 1);
-    addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0), M_PI), btVector3(0, 0, roomHeight) * SIMULATOR_SCALE), 1, 1);
+    // floor
+    addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0), 0), btVector3(0, 0, 0) * SIMULATOR_SCALE), 0.56, 0.35);
+    // others
+    addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0), M_PI), btVector3(0, 0, roomHeight) * SIMULATOR_SCALE), 0.3, 0.35);
 
-    addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0),  M_PI_2), btVector3(0,  totalHeight, 0) * SIMULATOR_SCALE), 1, 1);
-    addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0), -M_PI_2), btVector3(0, -totalHeight, 0) * SIMULATOR_SCALE), 1, 1);
+    addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0),  M_PI_2), btVector3(0,  totalHeight, 0) * SIMULATOR_SCALE), 0.3, 0.35);
+    addObject(m_plane, btTransform(btQuaternion(btVector3(1, 0, 0), -M_PI_2), btVector3(0, -totalHeight, 0) * SIMULATOR_SCALE), 0.3, 0.35);
 
-    addObject(m_plane, btTransform(btQuaternion(btVector3(0, 1, 0),  M_PI_2), btVector3(-totalWidth, 0, 0) * SIMULATOR_SCALE), 1, 1);
-    addObject(m_plane, btTransform(btQuaternion(btVector3(0, 1, 0), -M_PI_2), btVector3( totalWidth, 0, 0) * SIMULATOR_SCALE), 1, 1);
+    addObject(m_plane, btTransform(btQuaternion(btVector3(0, 1, 0),  M_PI_2), btVector3(-totalWidth, 0, 0) * SIMULATOR_SCALE), 0.3, 0.35);
+    addObject(m_plane, btTransform(btQuaternion(btVector3(0, 1, 0), -M_PI_2), btVector3( totalWidth, 0, 0) * SIMULATOR_SCALE), 0.3, 0.35);
 
     // create goals
     for (int goal = 0; goal < 2; goal++) {
         const float side = (goal == 0) ? -1.0f : 1.0f;
         const btQuaternion rot = btQuaternion::getIdentity();
 
-        addObject(m_goalSide, btTransform(rot, btVector3((goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf), goalHeightHalf) * SIMULATOR_SCALE), 0.4, 0.5);
-        addObject(m_goalSide, btTransform(rot, btVector3(-(goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf), goalHeightHalf) * SIMULATOR_SCALE), 0.4, 0.5);
+        addObject(m_goalSide, btTransform(rot, btVector3((goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf), goalHeightHalf) * SIMULATOR_SCALE), 0.3, 0.5);
+        addObject(m_goalSide, btTransform(rot, btVector3(-(goalWidthHalf - goalWallHalf), side * (height + goalDepthHalf), goalHeightHalf) * SIMULATOR_SCALE), 0.3, 0.5);
         addObject(m_goalBack, btTransform(rot, btVector3(0.0f, side * (height + goalDepth - goalWallHalf), goalHeightHalf) * SIMULATOR_SCALE), 0.1, 0.5);
     }
 }

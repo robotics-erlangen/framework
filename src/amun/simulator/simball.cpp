@@ -46,10 +46,10 @@ SimBall::SimBall(RNG *rng, btDiscreteDynamicsWorld *world, float fieldWidth, flo
 
     // parameters seem to be ignored...
     m_body = new btRigidBody(rbInfo);
-    // empirical measurment
-    m_body->setRestitution(0.314f);
-    // \mu_k = -a / g (while slipping)
-    m_body->setFriction(0.35f);
+    // see simulator.cpp
+    m_body->setRestitution(1.f);
+    m_body->setFriction(1.f);
+
     // \mu_r = -a / g = 0.0357 (while rolling)
     // rollingFriction in bullet is too unstable to be useful
     // use custom implementation in begin()
