@@ -42,7 +42,7 @@ function Position:_updateTask()
 			idx = idx + 1
 		end
 	end
-	local pos = Vector(0, idx * 3 - 1.5)
+	local pos = Vector(idx * 3 - 1.5, 0)
 	return MoveToPos, { pos, (-pos):angle() }
 end
 
