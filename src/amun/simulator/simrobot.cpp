@@ -243,6 +243,27 @@ float SimRobot::bound(float acceleration, float oldSpeed, float speedupLimit, fl
 
 bool SimRobot::canKickBall(SimBall *ball) const
 {
+    bool ballCollidesWithRobot = false;
+
+    // check for collision between ball and robot
+    int numManifolds = m_world->getDispatcher()->getNumManifolds();
+    for (int i = 0; i < numManifolds; ++i) {
+        btPersistentManifold *contactManifold = m_world->getDispatcher()->getManifoldByIndexInternal(i);
+        btCollisionObject *objectA = (btCollisionObject*)(contactManifold->getBody0());
+        btCollisionObject *objectB = (btCollisionObject*)(contactManifold->getBody1());
+        if ((objectA == m_body && objectB == ball->body())
+                || (objectA == ball->body() && objectB == m_body)) {
+            int numContacts = contactManifold->getNumContacts();
+            for (int j = 0; j < numContacts; ++j) {
+                btManifoldPoint &pt = contactManifold->getContactPoint(j);
+                if (pt.getDistance() < 0.001f * SIMULATOR_SCALE) {
+                    ballCollidesWithRobot = true;
+                    break;
+                }
+            }
+        }
+    }
+
     btTransform t = m_body->getWorldTransform();
     const btVector3 position = t.getOrigin();
     const btVector3 robotPos(position.x(), position.y(), 0);
@@ -251,15 +272,13 @@ bool SimRobot::canKickBall(SimBall *ball) const
     const btQuaternion robotDir = t.getRotation();
     const btVector3 diff = (ballPos - robotPos).rotate(robotDir.getAxis(), -robotDir.getAngle());
 
-    const float shootRadius = m_specs.radius() * std::cos(m_specs.angle() / 2.0f);
-    const float r = (BALL_RADIUS + shootRadius + 0.001) * SIMULATOR_SCALE;
     // check that the ball is in front of the dribbler
-    if (diff.y() > r || diff.y() < 0) {
+    if (!ballCollidesWithRobot || diff.y() < 0) {
         return false;
     }
 
     const float dribblerWidth = (m_specs.has_dribbler_width()) ? m_specs.dribbler_width() : 0.07;
-    // chack that ball inside the dribbler, not left or right of it
+    // check that ball inside the dribbler, not left or right of it
     if (fabs(diff.x()) > dribblerWidth * (0.5 * SIMULATOR_SCALE)) {
         return false;
     }
