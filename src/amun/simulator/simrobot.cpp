@@ -268,6 +268,10 @@ bool SimRobot::canKickBall(SimBall *ball) const
     const btVector3 position = t.getOrigin();
     const btVector3 robotPos(position.x(), position.y(), 0);
     const btVector3 ballPos = ball->position();
+    // can't kick jumping ball
+    if (ballPos.z() > 0.05f * SIMULATOR_SCALE) {
+        return false;
+    }
 
     const btQuaternion robotDir = t.getRotation();
     const btVector3 diff = (ballPos - robotPos).rotate(robotDir.getAxis(), -robotDir.getAngle());
