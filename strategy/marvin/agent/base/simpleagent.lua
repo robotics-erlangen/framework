@@ -8,14 +8,18 @@ local World = require "../base/world"
 
 function SimpleAgent.takeRobot(robots)
 	for _, robot in pairs(robots) do
-		if robot.isVisible then
+		if SimpleAgent.checkRobot(robot) then
 			return robot
 		end
 	end
 end
 
+function SimpleAgent.checkRobot(robot)
+	return robot.isVisible and robot ~= World.FriendlyKeeper and not robot.userControl
+end
+
 function SimpleAgent:keepRobot()
-	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper and not self._robot.userControl
+	return self.checkRobot(self._robot)
 end
 
 function SimpleAgent:rateRobot()
