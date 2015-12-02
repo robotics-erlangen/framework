@@ -47,7 +47,10 @@ cmake -DCMAKE_PREFIX_PATH=~/Qt/5.4/gcc_64/lib/cmake ..
 To be able to use the USB transceiver / JTAG programmer the rights for udev have to be modified.
 Just copy the file at `data/udev/99-robotics-usb-devices.rules` to `/etc/udev/rules.d/99-robotics-usb-devices.rules`
 
-To use the remote debugger download, compile and install the luasocket library (version >= 2.1!). The libraries must be installed to `/usr/local/lib` to be recognised by LuaJIT
+#### compile luasocket (for the remote debugger)
+
+To use the remote debugger download, compile and install the luasocket library (version >= 2.1!).
+The libraries must be installed to `/usr/local/lib` to be recognised by LuaJIT
 Compile instructions: (for Ubuntu 12.04)
 ```
 make LUAINC_linux=/usr/include/lua5.1
@@ -130,11 +133,16 @@ Finished!
 ## Mac OS X
 Get dependencies using [Homebrew](http://brew.sh):
 ```
-brew install git sdl2 luajit protobuf libusb
+brew install cmake git sdl2 luajit protobuf libusb
 ```
+Run the following command and install Xcode and/or the Command Line Developer Tools if prompted to do so.
+```
+xcode-select --install
+```
+Start Xcode once afterwards to ensure that everything gets setup. Starting Xcode may also be necessary after an update.
 
-Download Qt 5 from http://qt-project.org and install
-WARNING: DON'T install Qt 5.4.0-5.5.0
+Download Qt 5 from http://qt-project.org and install it.
+WARNING: DO NOT install Qt 5.4.0-5.5.0; Qt 5.5.1 is ok
 
 Build using:
 ```
