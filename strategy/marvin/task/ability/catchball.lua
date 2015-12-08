@@ -23,6 +23,7 @@ local POSITION_PADDING = 0.04 -- boundary extension for field
 
 function CatchBall:init()
 	self._lastBallSpeed = nil
+	self._lastReasonableBallPos = nil
 	self._catchTime = nil
 end
 
@@ -66,7 +67,13 @@ end
 -- just a crude approximation
 function CatchBall:_approxMinTimeToBall(robot, ball)
 	local posDiff = (ball.pos - robot.pos):normalize()
-	local dist = math.max(0, ball.pos:distanceTo(robot.pos) - ball.radius - robot.radius)
+	local real_dist = ball.pos:distanceTo(robot.pos)
+	if real_dist < (ball.radius + robot.radius) then
+		-- log("Ball and robot are actually fermions!")
+		-- ball seems to be inside robot
+		return 0
+	end
+	local dist = math.max(0, real_dist - ball.radius - robot.radius)
 	-- speed of ball and robot towards each other
 	local robotSpeed = posDiff:dot(robot.speed)
 	local robotAccel = robot.acceleration.aSpeedupFMax
@@ -110,25 +117,60 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 
 	-- check for fast ball and that it moves towards the robot
 	-- in principle this isn't neccessary but it stabilizes the catchtime
-	if ball.speed:length() > SLOW_BALL
-			and ball.speed:dot(self._robot.pos - ball.pos) > 0 then
+	local ballWillHitRobot = false
+	local ballInsideRobot = false
+	if ball.speed:length() > SLOW_BALL and ball.speed:dot(self._robot.pos - ball.pos) > 0 then
 		-- check if robot would be hit by the ball
 		local hitTime = self:_calculateHitTime(ball)
-		if hitTime and hitTime < self._catchTime then
+		if hitTime < self._catchTime then
 			self._catchTime = hitTime
+			if hitTime > 0 then
+				ballWillHitRobot = true
+			else
+				ballInsideRobot = true
+			end
 		end
+	else
+		-- maybe the ball (at least the extrapolated version of it) is already inside the robot and thus not found to be colliding with the robot
+		if ball.pos:distanceTo(self._robot.pos) < ball.radius + self._robot.radius then
+			self._catchTime = 0
+			ballInsideRobot = true
+		end
+	end
+	debug.set("CatchBall/ballInsideRobot", ballInsideRobot)
+	if ballWillHitRobot then
+		self._lastReasonableBallPos = ball.pos
 	end
 
 	-- predict ball and catch it
 	local predictedBall = Physics.ballAtTime(ball, self._catchTime)
 	-- if the robot has to move around the ball aim a bit behind the ball to ensure
 	-- that the path doesn't contain a too sharp corner
-	local virtualBall = Physics.ballAtTime(ball, self._catchTime + 0.1)
-
-	if (targetPos - predictedBall.pos):dot(predictedBall.pos - self._robot.pos) > 0 then
+	local virtualBall = {}
+	-- the current prediction model doesn't acoount for collisions, so avoid prediction of the ball state after a collision
+	if ballInsideRobot then
+		if self._lastReasonableBallPos then
+			virtualBall.pos = self._lastReasonableBallPos
+		else
+			local hitPoint1, hitPoint2 = geom.intersectLineCircle(ball.pos, ball.speed, self._robot.pos, self._robot.radius + ball.radius)
+			if (hitPoint1 - ball.pos):dot(ball.speed) > 0 then
+				virtualBall.pos = hitPoint2
+			else
+				virtualBall.pos = hitPoint1
+			end
+			self._lastReasonableBallPos = virtualBall.pos
+		end
+		virtualBall.speed = Vector.create(0, 0)
+	elseif ballWillHitRobot then
 		virtualBall = predictedBall
-	end
+	else
+		virtualBall = Physics.ballAtTime(ball, self._catchTime + 0.1)
 
+		if (targetPos - predictedBall.pos):dot(predictedBall.pos - self._robot.pos) > 0 then
+			virtualBall = predictedBall
+		end
+	end
+	
 	-- catching the ball only makes sense if we really try to
 	-- a distance other than 0 is only useful for moving to a stopped ball
 	distanceToBall = distanceToBall or 0
@@ -193,13 +235,20 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 end
 
 function CatchBall:_calculateHitTime(ball)
+	-- first check if the ball is inside the robot
+	if ball.pos:distanceTo(self._robot.pos) < self._robot.radius + ball.radius then
+		-- that means the ball is about to be reflected by the robot
+		return 0
+		-- 0 catchtime prevents the robot from driving away from the ball
+	end
+	
 	-- check if robot would be hit by the ball
 	-- limit catchTime to the time the ball would need to hit the robot
 	-- prevents the robot from fleeing from the ball
 	local hitPoint, hitPoint2 = geom.intersectLineCircle(ball.pos,
 		ball.speed, self._robot.pos, self._robot.radius + ball.radius)
 	if not hitPoint then
-		return
+		return math.huge
 	end
 
 	-- find intersection with circle
