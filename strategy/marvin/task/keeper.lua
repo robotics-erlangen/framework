@@ -166,7 +166,7 @@ function Keeper:run()
 		self._forceShootTimer = nil
 	end
 	local chipActivationAngle = math.pi / 6
-	local ballToRobot = self._robot.pos - Vector.fromAngle(World.Ball.dir or 0)
+	local ballToRobot = self._robot.pos - World.Ball.pos
 	if (World.RefereeState == "Game" or World.RefereeState == "GameForce") and
 			World.Ball.speed:absoluteAngleDiff(ballToRobot) < chipActivationAngle
 			and World.Ball.pos:distanceTo(self._robot.pos) < 1 then
