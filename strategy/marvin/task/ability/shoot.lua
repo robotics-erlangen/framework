@@ -55,7 +55,7 @@ function Shoot:init()
 end
 
 -- shoot immediatelly if angle error is below maxAngleError
-function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
+function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontShoot)
 	local robotFront = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
 	local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(robotFront))
 	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
@@ -103,7 +103,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 			and (not Field.isInOpponentDefenseArea(self._robot.pos, self._robot.shootRadius)
 				or Referee.isFriendlyPenaltyState()) then -- if we got the ball
 		debug.set("ballApproach", "hasBall")
-		self:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
+		self:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontShoot)
 		-- send the position of the ball
 		self._send.attackPosition("all", World.Ball.pos)
 	else
@@ -233,7 +233,7 @@ function Shoot:_calculateDistToBall()
 	return distToBall
 end
 
-function Shoot:_checkShootHysteresis(targetDir, maxAngleError)
+function Shoot:_checkShootHysteresis(targetDir, maxAngleError, dontShoot)
 	-- check robot orientation
 	local angleDiff = math.abs(geom.getAngleDiff(targetDir, self._robot.dir))
 	local csHysteresis = math.min(maxAngleError / 2, CAN_SHOOT_HYSTERESIS)
@@ -243,7 +243,6 @@ function Shoot:_checkShootHysteresis(targetDir, maxAngleError)
 	elseif angleDiff > maxAngleError then
 		self._canShootHysteresis = false
 	end
-	debug.set("canShoot", self._canShootHysteresis)
 
 	-- only start kicking if the robot got the ball
 	if self._robot:hasBall(World.Ball, -0.01) then
@@ -257,6 +256,14 @@ function Shoot:_checkShootHysteresis(targetDir, maxAngleError)
 	else
 		self._shootHysteresis = false
 	end
+
+	-- don't shoot if told so
+	if dontShoot then
+		self._canShootHysteresis = false
+		self._shootHysteresis = false
+	end
+
+	debug.set("canShoot", self._canShootHysteresis)
 	debug.set("hasBall hysteresis", self._shootHysteresis)
 end
 
@@ -277,7 +284,7 @@ function Shoot:_correctSidewardsOffset(distToBall)
 
 end
 
-function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
+function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontShoot)
 	self._lastBallSpeed = self._lastBallSpeed or World.Ball.speed
 	maxAngleError = math.max(MIN_ANGLE_PRECISION, maxAngleError)
 
@@ -319,7 +326,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	local SHOOT_SKEW = 4.2 / 180 * math.pi * 100
 	local SHOOT_SKEW_LIMIT = 3 / 180 * math.pi
 	targetDir = targetDir - math.bound(-SHOOT_SKEW_LIMIT, distToBall.y * SHOOT_SKEW, SHOOT_SKEW_LIMIT)
-	self:_checkShootHysteresis(targetDir, maxAngleError)
+	self:_checkShootHysteresis(targetDir, maxAngleError, dontShoot)
 
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(self._robot.dir)*20 }, vis.colors.blue)
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.pink)
