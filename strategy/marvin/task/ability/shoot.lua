@@ -211,6 +211,28 @@ function Shoot:_tryReceivePass(targetPos, targetSpeed, futureBall)
 	return nil
 end
 
+function Shoot:_calculateDistToBall()
+	-- calculate current distance to the ball
+	local distToBall = (World.Ball.pos - self._robot.pos):rotate(-self._robot.dir)
+	distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
+
+	if self._movingBallHysteresis then
+		local posDiff = World.Ball.pos - self._robot.pos
+		if World.Ball.speed:length() >= MOVING_BALL and World.Ball.speed:dot(posDiff) < 0 then
+			debug.set("special", "shot at robot")
+			-- ball shoot towards robots
+			local ballTouchPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)
+			local dribblerPerp = Vector.fromAngle(self._robot.dir):perpendicular()
+			-- calculate offset to ball hitpoint
+			local _, _, lambda = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, ballTouchPos, dribblerPerp)
+			local errorVec = dribblerPerp * lambda
+			distToBall = errorVec:rotate(-self._robot.dir)
+		end
+	end
+	debug.set("distToBall", distToBall)
+	return distToBall
+end
+
 function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 	self._lastBallSpeed = self._lastBallSpeed or World.Ball.speed
 	maxAngleError = math.max(MIN_ANGLE_PRECISION, maxAngleError)
@@ -243,24 +265,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError)
 				targetPos, targetSpeed)
 	kickSpeed = math.max(MIN_SHOOT_SPEED, kickSpeed)
 
-	-- calculate current distance to the ball
-	local distToBall = (World.Ball.pos - self._robot.pos):rotate(-self._robot.dir)
-	distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
-
-	if self._movingBallHysteresis then
-		local posDiff = World.Ball.pos - self._robot.pos
-		if World.Ball.speed:length() >= MOVING_BALL and World.Ball.speed:dot(posDiff) < 0 then
-			debug.set("special", "shot at robot")
-			-- ball shoot towards robots
-			local ballTouchPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)
-			local dribblerPerp = Vector.fromAngle(self._robot.dir):perpendicular()
-			-- calculate offset to ball hitpoint
-			local _, _, lambda = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, ballTouchPos, dribblerPerp)
-			local errorVec = dribblerPerp * lambda
-			distToBall = errorVec:rotate(-self._robot.dir)
-		end
-	end
-	debug.set("distToBall", distToBall)
+	local distToBall = self:_calculateDistToBall()
 
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.redHalf)
 	-- handle robot shoot direction problem
