@@ -12,11 +12,17 @@ local Direct = require "trajectory/direct"
 local ToTarget = require "trajectory/totarget"
 local Field = require "../base/field"
 
+local STAY_BEHIND_OPP_ANGLE = 120/180 * math.pi
+local STAY_BEHIND_OPP_HYSTERESIS = 10/180 * math.pi
+local SIDEWARDS_ANGLE_MAX = 30/180 * math.pi
+local SIDEWARDS_ANGLE_SCALE = 1/3
+
 
 function Duel:_init()
 	self._opposer = nil
 	self._blockingBall = false
 	self._oldPosition = nil
+	self._stayBehindOpp = false
 end
 
 function Duel:run()
@@ -104,6 +110,32 @@ function Duel:_contest()
 	self._send.attackPosition("all", World.Ball.pos)
 end
 
+function Duel:_moveToNearBlock(closestOpponentRobot)
+	-- all decisions are made to keep the own goal covered
+	local baseDir = (World.Ball.pos - World.Geometry.FriendlyGoal):angle()
+	local oppDir = geom.normalizeAngle(closestOpponentRobot.dir - baseDir)
+
+	if math.abs(oppDir) < math.pi - STAY_BEHIND_OPP_ANGLE then
+		self._stayBehindOpp = true
+	elseif math.abs(oppDir) > math.pi - STAY_BEHIND_OPP_ANGLE + STAY_BEHIND_OPP_HYSTERESIS then
+		self._stayBehindOpp = false
+	end
+
+	local targetAngle, ballDist
+	if self._stayBehindOpp then
+		targetAngle = 0
+		-- if opponent doesn't exactly look away from our goal, close the gap
+		ballDist = self._robot.radius + math.cos(oppDir) * 2*closestOpponentRobot.radius + World.Ball.radius
+	else
+		local sidewardsAngle = math.min(
+			(math.pi - math.abs(oppDir)) * SIDEWARDS_ANGLE_SCALE, SIDEWARDS_ANGLE_MAX)
+		targetAngle = sidewardsAngle * (- math.sign(oppDir))
+		ballDist = self._robot.radius + World.Ball.radius
+	end
+
+	return World.Ball.pos - Vector.fromAngle(baseDir + targetAngle) * ballDist
+end
+
 function Duel:_moveToBall()
 	local moveTime = Robot.minTimeToBall(self._robot)
 	local moveDest = Physics.ballAtTime(World.Ball, moveTime).pos
@@ -166,8 +198,7 @@ function Duel:_moveToBall()
 
 	if self._blockingBall then
 		if closestOpponentRobot then
-			moveDest = closestOpponentRobot.pos + Vector.fromAngle(closestOpponentRobot.dir) * (
-				closestOpponentRobot.shootRadius + self._robot.shootRadius)
+			moveDest = self:_moveToNearBlock(closestOpponentRobot)
 		else
 			moveDest = World.Ball.pos + (World.Geometry.FriendlyGoal - World.Ball.pos):setLength(
 				World.Ball.radius + self._robot.shootRadius)
