@@ -118,7 +118,8 @@ end
 function Duel:_moveToNearBlock(futureBall, closestOpponentRobot)
 	-- all decisions are made to keep the own goal covered
 	local baseDir = (futureBall - World.Geometry.FriendlyGoal):angle()
-	local oppDir = geom.normalizeAngle(closestOpponentRobot.dir - baseDir)
+	local oppViewDir = (futureBall - closestOpponentRobot.pos):angle()
+	local oppDir = geom.normalizeAngle(oppViewDir - baseDir)
 
 	if math.abs(oppDir) < math.pi - STAY_BEHIND_OPP_ANGLE then
 		self._stayBehindOpp = true
