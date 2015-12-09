@@ -67,7 +67,7 @@ function Duel:_contest()
 	local intersection = geom.intersectLineLine(
 			self._robot.pos, toOpponentDir, World.Geometry.OpponentGoal, Vector(1, 0))
 	local ccw = intersection and math.sign(intersection.x) or 1 --positive = ccw, negative = cw
-	local toBall = (World.Ball.pos - self._robot.pos):setLength(0.2)
+	local toBall = World.Ball.speed + (World.Ball.pos - self._robot.pos):setLength(0.2)
 	self._robot.trajectory:update(Direct, toBall, nil, ccw * 2 * 2*math.pi) -- 2 turns per second
 
 	-- send the position of the ball
