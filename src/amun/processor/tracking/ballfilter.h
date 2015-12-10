@@ -26,6 +26,7 @@
 #include "protobuf/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
 #include "quadraticleastsquaresfitter.h"
+#include <tuple>
 #include <QList>
 #include <QMap>
 #include <QPair>
@@ -58,13 +59,24 @@ private:
         world::Robot nearestRobot;
     };
     typedef KalmanFilter<6, 3> Kalman;
+    enum class ProjectionStatus {
+        IGNORE,
+        STOP,
+        RESTART,
+        SUCCESS
+    };
 
     void predict(qint64 time, bool cameraSwitched);
     void applyVisionFrame(const VisionFrame &frame);
     void restartFlyFitting(const world::BallPosition &p);
     void stopFlyFitting();
     void detectNearRobot(const world::Robot &nearestRobot, const world::BallPosition &p);
-    Eigen::Vector3f unprojectBall(const world::BallPosition &p, const Eigen::Vector3f &cameraPos);
+
+    // the QuadraticFitResult is only valid for ProjectionStatus::SUCCESS
+    std::tuple<Eigen::Vector3f, ProjectionStatus, QuadraticLeastSquaresFitter::QuadraticFitResult>
+            unprojectBall(QuadraticLeastSquaresFitter &flyFitter,
+                            const world::BallPosition &p, const Eigen::Vector3f &cameraPos, bool silent);
+    Eigen::Vector3f optimizingUnprojectBall(const world::BallPosition &p, const Eigen::Vector3f &cameraPos);
 
     QMap<int, world::BallPosition> m_lastRaw;
     world::BallPosition m_lastNearRobotPos;
@@ -78,6 +90,7 @@ private:
     int m_flyResetCounter;
     float m_flyHeight;
     qint64 m_flyPushTime;
+    QList<QPair<world::BallPosition, Eigen::Vector3f>> m_flyRawPoints;
 };
 
 #endif // BALLFILTER_H

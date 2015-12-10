@@ -120,6 +120,8 @@ float sign(float a)
     return (a >= 0) ? 1 : -1;
 }
 
+// #include <QDebug>
+
 int SimBall::update(SSL_DetectionBall *ball, float stddev)
 {
     // setup ssl-vision ball detection
@@ -156,6 +158,10 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev)
     const float ball_x = sign(p.x()) * abs_x;
     const float ball_y = sign(p.y()) * abs_y;
 
+    // if (height > 0.1f) {
+    //     qDebug() << "simball" << p.x() << p.y() << height << "ttt" << ball_x << ball_y;
+    // }
+
     // add noise to coordinates
     // to convert from bullet coordinate system to ssl-vision rotate by 90 degree ccw
     const Vector2 noise = m_rng->normalVector(stddev);
@@ -184,4 +190,9 @@ void SimBall::kick(const btVector3 &power)
 {
     m_body->activate();
     m_body->applyCentralForce(power);
+
+    // btTransform transform;
+    // m_motionState->getWorldTransform(transform);
+    // const btVector3 p = transform.getOrigin() / SIMULATOR_SCALE;
+    // qDebug() << "kick at" << p.x() << p.y();
 }

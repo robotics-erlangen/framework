@@ -4,21 +4,36 @@ QuadraticLeastSquaresFitter::QuadraticLeastSquaresFitter(int pointLimit) :
     m_pointLimit(pointLimit)
 {
     Q_ASSERT(m_pointLimit >= 4);
+    clear();
 }
 
 QuadraticLeastSquaresFitter::~QuadraticLeastSquaresFitter() { }
 
+void QuadraticLeastSquaresFitter::update(float scale, std::pair<float, float> &val)
+{
+    Tx += scale * val.first;
+    Ty += scale * val.second;
+    Txq += scale * val.first * val.first;
+    Txy += scale * val.first * val.second;
+    Txc += scale * (val.first * val.first) * val.first;
+    Txqy += scale * (val.first * val.first) * val.second;
+    Txf += scale * (val.first * val.first) * (val.first * val.first);
+}
+
 void QuadraticLeastSquaresFitter::addPoint(float x, float y)
 {
     if (m_points.size() == m_pointLimit) {
+        update(-1, m_points[0]);
         m_points.removeFirst();
     }
     m_points.append(std::make_pair(x, y));
+    update(1, m_points[m_points.size() - 1]);
 }
 
 void QuadraticLeastSquaresFitter::clear()
 {
     m_points.clear();
+    Tx = 0, Ty = 0, Txq = 0, Txy = 0, Txc = 0, Txqy = 0, Txf = 0;
 }
 
 auto QuadraticLeastSquaresFitter::fit() -> QuadraticFitResult
@@ -27,19 +42,6 @@ auto QuadraticLeastSquaresFitter::fit() -> QuadraticFitResult
     if (n < 4) {
         QuadraticFitResult result = { false, 0, 0, 0 };
         return result;
-    }
-
-    float Tx = 0, Ty = 0, Txq = 0, Txy = 0, Txc = 0, Txqy = 0, Txf = 0;
-
-    for (int i = 0; i < n; ++i) {
-        const std::pair<float, float> &val = m_points[i];
-        Tx += val.first;
-        Ty += val.second;
-        Txq += val.first * val.first;
-        Txy += val.first * val.second;
-        Txc += (val.first * val.first) * val.first;
-        Txqy += (val.first * val.first) * val.second;
-        Txf += (val.first * val.first) * (val.first * val.first);
     }
 
     // formula source: http://www.azdhs.gov/lab/documents/license/resources/calibration-training/12-quadratic-least-squares-regression-calib.pdf
@@ -65,4 +67,19 @@ auto QuadraticLeastSquaresFitter::fit() -> QuadraticFitResult
     // f = a*x^2 + b*x + c
     QuadraticFitResult result = { true, a, b, c };
     return result;
+}
+
+float QuadraticLeastSquaresFitter::calculateError(const QuadraticFitResult &res)
+{
+    if (!res.is_valid) {
+        return std::numeric_limits<float>::infinity();
+    }
+    // error = S(a*x_i^2 + b*x_i + c - y_i)
+    float error = 0;
+    for (int i = 0; i < m_points.size(); ++i) {
+        const std::pair<float, float> &val = m_points[i];
+        float delta = (res.a * val.first*val.first + res.b * val.first + res.c - val.second);
+        error += delta * delta;
+    }
+    return error;
 }

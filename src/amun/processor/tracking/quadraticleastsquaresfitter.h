@@ -20,10 +20,15 @@ public:
     void addPoint(float x, float y);
     void clear();
     int pointCount() const { return m_points.size(); }
+    int pointLimit() const { return m_pointLimit; }
     QuadraticFitResult fit();
+    float calculateError(const QuadraticFitResult &res);
 private:
+    void update(float scale, std::pair<float, float> &val);
+
     QVector<std::pair<float, float>> m_points;
-    const int m_pointLimit;
+    int m_pointLimit;
+    float Tx, Ty, Txq, Txy, Txc, Txqy, Txf;
 };
 
 #endif // QUADRATICLEASTSQUARESFITTER_H

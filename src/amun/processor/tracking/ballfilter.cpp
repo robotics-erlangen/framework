@@ -21,11 +21,12 @@
 #include "ballfilter.h"
 #include "core/timer.h"
 #include <cmath>
+#include <random>
 
 BallFilter::BallFilter(const SSL_DetectionBall &ball, qint64 last_time) :
     Filter(last_time),
     m_lastMoveDist(0),
-    m_flyFitter(8),
+    m_flyFitter(15),
     m_flyResetCounter(0),
     m_flyHeight(0),
     m_flyPushTime(0)
@@ -184,8 +185,7 @@ void BallFilter::restartFlyFitting(const world::BallPosition &p)
 {
     m_lastNearRobotPos = p;
     m_flyFitter.clear();
-    // distance 0, height 0
-    m_flyFitter.addPoint(0, 0);
+    m_flyRawPoints.clear();
     m_flyResetCounter++;
     m_lastMoveDist = 0.f;
     m_flyPushTime = 0;
@@ -202,13 +202,16 @@ void BallFilter::detectNearRobot(const world::Robot &nearestRobot, const world::
     // detect whether the ball is near a robot
     if (pz < 0.2f) {
         // not flying above the robots
-        Eigen::Vector2f trackedBallPos(m_kalman->state()(0), m_kalman->state()(1));
+        Eigen::Vector2f ballPos(p.p_x(), p.p_y());
         Eigen::Vector2f nearestRobotPos(nearestRobot.p_x(), nearestRobot.p_y());
-        float distance = (trackedBallPos - nearestRobotPos).norm();
+        Eigen::Rotation2D<float> rot(-nearestRobot.phi());
+        Eigen::Vector2f delta = rot * (ballPos - nearestRobotPos);
 
-        const float robotRadius = 0.09f;
+        const float robotRadius = 0.078f;
         const float ballRadius = 0.0215f;
-        if (distance < robotRadius + ballRadius + 0.03f) {
+        const float maxDist = 0.02f;
+
+        if (delta(0) < robotRadius + ballRadius + maxDist && delta(0) > robotRadius) {
             m_lastNearRobot = nearestRobot;
             restartFlyFitting(p);
             m_flyResetCounter = 0;
@@ -216,7 +219,9 @@ void BallFilter::detectNearRobot(const world::Robot &nearestRobot, const world::
     }
 }
 
-Eigen::Vector3f BallFilter::unprojectBall(const world::BallPosition &p, const Eigen::Vector3f &cameraPos)
+auto BallFilter::unprojectBall(QuadraticLeastSquaresFitter &flyFitter,
+                               const world::BallPosition &p, const Eigen::Vector3f &cameraPos, bool silent)
+        -> std::tuple<Eigen::Vector3f, ProjectionStatus, QuadraticLeastSquaresFitter::QuadraticFitResult>
 {
     const float minChipHeight = 0.1f;
     const float minChipDistance = 0.3f;
@@ -224,17 +229,19 @@ Eigen::Vector3f BallFilter::unprojectBall(const world::BallPosition &p, const Ei
     const float maxChipDistance = 7.f;
 
     Eigen::Vector3f ball(p.p_x(), p.p_y(), 0);
+    QuadraticLeastSquaresFitter::QuadraticFitResult params;
+    params.is_valid = false;
 
-    if (cameraPos.isZero() || (qint32)p.camera_id() != m_primaryCamera
-            || !m_lastNearRobotPos.IsInitialized() || m_lastNearRobotPos.time() >= p.time()) {
-        return ball;
+    // mapping must be done for every camera!
+    if (cameraPos.isZero() || !m_lastNearRobotPos.IsInitialized()
+            || m_lastNearRobotPos.time() >= p.time()) {
+        return std::make_tuple(ball, ProjectionStatus::IGNORE, params);
     }
 
     // with a maximum height of 3 meters a chip kick can't fly for more than 2 seconds
     if (p.time() > m_lastNearRobotPos.time() + (qint64)2 * 1000 * 1000 * 1000
             || m_flyResetCounter > 4) {
-        stopFlyFitting();
-        return ball;
+        return std::make_tuple(ball, ProjectionStatus::STOP, params);
     }
 
     // unproject ball
@@ -251,26 +258,24 @@ Eigen::Vector3f BallFilter::unprojectBall(const world::BallPosition &p, const Ei
     float baseDist = (ballPos - cameraPosFloor).norm();
     float flyHeight = cameraPos(2) * (baseDist - cameraDist) / baseDist;
 
-    //qDebug() << "r" << moveDist << flyHeight;
-    m_flyFitter.addPoint(moveDist, flyHeight);
+    //if (!silent) qDebug() << "r" << moveDist << flyHeight;
+    flyFitter.addPoint(moveDist, flyHeight);
     // ball bounced
     if (flyHeight < 0 || m_lastMoveDist > moveDist) {
-        //qDebug() << "reset shot";
-        restartFlyFitting(p);
-        return ball;
+        return std::make_tuple(ball, ProjectionStatus::RESTART, params);
     }
     m_lastMoveDist = moveDist;
     // something strange/unexpected happened
     if (moveDist < 0 || flyHeight > maxChipHeight || moveDist > maxChipDistance) {
-        stopFlyFitting();
-        return ball;
+        return std::make_tuple(ball, ProjectionStatus::STOP, params);
     }
 
     // fit on parabola
-    QuadraticLeastSquaresFitter::QuadraticFitResult params = m_flyFitter.fit();
+    params = flyFitter.fit();
     if (!params.is_valid || !std::isfinite(params.a) || params.a == 0) {
         // fitting didn't succeed (yet)
-        return ball;
+        params.is_valid = false;
+        return std::make_tuple(ball, ProjectionStatus::SUCCESS, params);
     }
 
     // convert from a*x^2+b*x+c to a*(x+d)^2+e
@@ -278,13 +283,20 @@ Eigen::Vector3f BallFilter::unprojectBall(const world::BallPosition &p, const Ei
     float distance = -params.b / params.a;
     float height = params.c - params.a*distance*distance/4;
     //float alpha = atan(params.b);
-    //qDebug() << "s" << distance << height;
+    //if (!silent) qDebug() << "  s" << distance << height;
 
     // only use chip with sensible values
     if (height < minChipHeight || height > maxChipHeight
             || distance < minChipDistance || distance > maxChipDistance
             || !std::isfinite(distance) || !std::isfinite(height)) {
-        stopFlyFitting();
+        //if (!silent) qDebug() << "pc" << flyFitter.pointCount() << flyFitter.pointLimit();
+        if (flyFitter.pointCount() < flyFitter.pointLimit() * 2 / 3) {
+            // due to noise it may be neccessary to collect more samples before the fitting
+            // yields usable results
+            params.is_valid = false;
+            return std::make_tuple(ball, ProjectionStatus::SUCCESS, params);
+        }
+        return std::make_tuple(ball, ProjectionStatus::STOP, params);
     } else {
         Eigen::Vector2f floorPos = shotLine.intersectionPoint(Eigen::Hyperplane<float, 2>(projectionLine));
         if (flyHeight > 0) {
@@ -293,7 +305,84 @@ Eigen::Vector3f BallFilter::unprojectBall(const world::BallPosition &p, const Ei
             ball(2) = flyHeight;
         }
         m_flyHeight = height;
+        return std::make_tuple(ball, ProjectionStatus::SUCCESS, params);
     }
+}
+
+Eigen::Vector3f BallFilter::optimizingUnprojectBall(const world::BallPosition &p, const Eigen::Vector3f &cameraPos)
+{
+    Eigen::Vector3f ball;
+    ProjectionStatus status;
+    QuadraticLeastSquaresFitter::QuadraticFitResult fit;
+    std::tie(ball, status, fit) = unprojectBall(m_flyFitter, p, cameraPos, false);
+
+    if (status == ProjectionStatus::IGNORE) {
+        // ignore it
+    } else if (status == ProjectionStatus::STOP) {
+        stopFlyFitting();
+        //qDebug() << "stop fitting";
+    } else if (status == ProjectionStatus::RESTART) {
+        restartFlyFitting(p);
+        //qDebug() << "restart flight at" << p.p_x() << p.p_y();
+    } else if (status == ProjectionStatus::SUCCESS) {
+        // remember raw data
+        m_flyRawPoints.append(qMakePair(p, cameraPos));
+    } else {
+        qFatal("must not be called");
+    }
+
+    if (status == ProjectionStatus::SUCCESS && m_flyRawPoints.size() >= 8 && fit.is_valid) {
+        // keep original values
+        const float flyHeight = m_flyHeight;
+        float lastMoveDist = m_lastMoveDist;
+        float nearRobotPhi = m_lastNearRobot.phi();
+
+        // randomly modify the robots direction
+        std::random_device random_source;
+        std::mt19937 prng(random_source());
+        std::normal_distribution<float> normal_distribution(0, 0.3f / 180.f * M_PI);
+        m_lastNearRobot.set_phi(nearRobotPhi + normal_distribution(prng));
+        m_lastMoveDist = 0;
+
+        // replay all previous values
+        const int pointCount = m_flyFitter.pointCount();
+        QuadraticLeastSquaresFitter flyFitterMod(m_flyFitter.pointLimit());
+
+        bool fail = true;
+        Eigen::Vector3f mball; // used remember last projected ball and error
+        QuadraticLeastSquaresFitter::QuadraticFitResult mfit;
+        // only parse the last pointCount points
+        for (int i = std::max(0, m_flyRawPoints.size() - pointCount); i < m_flyRawPoints.size(); ++i) {
+            auto &p = m_flyRawPoints[i];
+            ProjectionStatus mstatus;
+            fail = false;
+            std::tie(mball, mstatus, mfit) = unprojectBall(flyFitterMod, p.first, p.second, true);
+            if (mstatus != ProjectionStatus::SUCCESS) {
+                fail = true;
+                break;
+            }
+        }
+
+        // use new phi if the results are better
+        if (!fail) {
+            const float error = m_flyFitter.calculateError(fit);
+            const float merror = flyFitterMod.calculateError(mfit);
+
+            if (merror < error) {
+                //qDebug() << "phi updated by" << (m_lastNearRobot.phi() - nearRobotPhi) << merror << error;
+                nearRobotPhi = m_lastNearRobot.phi();
+                lastMoveDist = m_lastMoveDist;
+                m_flyFitter = flyFitterMod;
+                ball = mball;
+            }
+        }
+
+        // fixup the internal state
+        m_lastNearRobot.set_phi(nearRobotPhi);
+        m_flyHeight = flyHeight;
+        m_lastMoveDist = lastMoveDist;
+    }
+
     return ball;
 }
 
@@ -307,7 +396,8 @@ void BallFilter::applyVisionFrame(const VisionFrame &frame)
     p.set_camera_id(frame.cameraId);
 
     detectNearRobot(frame.nearestRobot, p);
-    Eigen::Vector3f ball = unprojectBall(p, frame.cameraPos);
+    Eigen::Vector3f ball = optimizingUnprojectBall(p, frame.cameraPos);
+
     m_kalman->z(0) = ball(0);
     m_kalman->z(1) = ball(1);
     m_kalman->z(2) = ball(2);
@@ -412,6 +502,9 @@ float BallFilter::distanceTo(const SSL_DetectionBall &ball, const Eigen::Vector3
     Eigen::Vector2f p;
     p(0) = pos_x;
     p(1) = pos_y;
+
+    //qDebug() << "distance to" << b(0) << b(1) << p(0) << p(1);
+    //qDebug() << "internal state" << m_kalman->state()(0) << m_kalman->state()(1) << m_kalman->state()(2);
 
     return (b - p).norm();
 }
