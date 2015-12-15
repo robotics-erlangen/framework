@@ -18,7 +18,7 @@ local SIDEWARDS_ANGLE_MAX = 30/180 * math.pi
 local SIDEWARDS_ANGLE_SCALE = 1/3
 
 local BLOCK_DIST_MAX = 0.05
-local BLOCK_DIST_HSTERESIS = 0.02
+local BLOCK_DIST_HYSTERESIS = 0.02
 
 local BLOCK_POS_ALPHA = 0.1
 local BLOCK_POS_PRECISION = 0.01
@@ -52,7 +52,7 @@ function Duel:run()
 	end
 
 
-	if self._opposer and self._robot:hasBall(World.Ball) then
+	if self._opposer and self._blockingBall and self._robot:hasBall(World.Ball) then
 		self:_contest()
 		debug.set("duel-state", "contest")
 	else
@@ -173,9 +173,7 @@ function Duel:_moveToBall()
 	local futureBall = Physics.ballAtTime(World.Ball, minTime).pos
 	local viewDir = (futureBall - self._robot.pos):angle()
 
-	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
-	-- don't predict opponents, to avoid them blocking the target position
-	self._robot.path:addRobotObstacles(self._robot, nil, nil, true)
+	
 
 	-- pos before the defense area; the possibility of crashing into centerbacks was considered
 	-- but disregarded because blocking a shot on the goal is more important,
@@ -203,21 +201,29 @@ function Duel:_moveToBall()
 	local distToLine = self._robot.pos:distanceToLineSegment(basePos, futureBall)
 	if distToLine <= BLOCK_DIST_MAX then
 		self._blockingBall = true
-	elseif distToLine > BLOCK_DIST_MAX + BLOCK_DIST_HSTERESIS then
+	elseif distToLine > BLOCK_DIST_MAX + BLOCK_DIST_HYSTERESIS then
 		self._blockingBall = false
 	end
 
 	debug.set("moveDest posOnLine", moveDest)
 	debug.set("moveDest distToLine", distToLine)
-
+	
+	local ignoreBall = false
+	
 	if self._blockingBall then
 		if closestOpponentRobot then
 			moveDest = self:_moveToNearBlock(futureBall, closestOpponentRobot)
 		else
+			ignoreBall = true
 			moveDest = futureBall + (World.Geometry.FriendlyGoal - futureBall):setLength(
 				World.Ball.radius + self._robot.shootRadius)
 		end
 	end
+	debug.set("ignoreBall", ignoreBall)
+
+	self._robot.path:setDefaultObstacles(self._robot, ignoreBall, false, false, self._robot.shootRadius)
+	-- don't predict opponents, to avoid them blocking the target position
+	self._robot.path:addRobotObstacles(self._robot, nil, nil, true)
 
 	debug.set("moveDest dribbler", moveDest)
 

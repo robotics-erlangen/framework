@@ -5,6 +5,7 @@ local Coordinator = require "control/coordinator"
 local Duel = require "task/duel"
 local MoveToStaticBall = require "task/movetostaticball"
 local Trainer = require "trainer/trainer"
+local ShootGoal = require "task/shootgoal"
  
 
 -- needs one yellow and one blue robot, must be run for both strategies
@@ -19,7 +20,7 @@ function Dueler:_updateTask()
 	if World.TeamIsBlue then
 		return Duel, {}
 	else
-		return MoveToStaticBall, {0 * math.pi, 0}
+		return ShootGoal --MoveToStaticBall, {1.5 * math.pi, 0}
 	end
 	
 end
