@@ -235,6 +235,7 @@ local function calculateCenterBackPositions()
 
 
 	-- calculate final positions for unimportant robots
+	privateCenterBackPositions = {}
 	for robot, target in pairs(unimportantApplications) do
 		-- if the target is the ball, predict it
 		local targetPos = target.pos
