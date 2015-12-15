@@ -53,31 +53,30 @@ function ManMark:_updateTask()
 	local dest = Defense.manMarkPos(self._opp)
 	vis.addCircle("a/d/manmark: Target", dest, 0.1, vis.colors.red)
 
-
+	-- use centerback positioning if the destination pos would be too close to our defense area
 	local markingPosDefenseDist = Field.distanceToFriendlyDefenseArea(dest, self._opp.radius)
-	local markingPosNearLow = 3 * self._robot.radius + CenterBack.distanceToDefenseArea() + 2 * Defense.MARKING_DISTANCE
+	local markingPosNearLow = 2 * self._robot.radius + CenterBack.distanceToDefenseArea() + 2 * Defense.MARKING_DISTANCE
 	local markingPosNearHigh = markingPosNearLow + 2 * self._robot.radius
 	local markingPosThreshold = (self._task and Class.instanceOf(self._task, CenterBack))
 			and markingPosNearHigh or markingPosNearLow
-			
-	--[[
-	local ownPosDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-	local ownPosNearLow = CenterBack.distanceToDefenseArea()
-	local ownPosNearHigh = ownPosNearLow + self._robot.radius
-	local ownPosThreshold = (self._task and Class.instanceOf(self._task, CenterBack))
-			and ownPosNearHigh or ownPosNearLow
-	]]
 
 	local oppDefenseDist = Field.distanceToFriendlyDefenseArea(self._opp.pos, self._opp.radius)
-	
-	if oppDefenseDist == 0 -- opponent is in defense area
-		or markingPosDefenseDist < markingPosThreshold
-	--	or (ownPosDefenseDist < ownPosThreshold and 
-	then
+
+	-- if the opponent is near our defense area (or inside it), use the CenterBack task
+	if markingPosDefenseDist < markingPosThreshold or oppDefenseDist <= 0 then
 		return CenterBack, { self._opp }
-	else
-		return ManMarkTask, { self._opp }
 	end
+
+	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+
+	-- if we are still near the defense area but want to move away, disguise as a centerback
+	-- PFUSCH: use yourself as the defense target
+	-- WARNING: only use temporarily as this code also halts at least one innocent centerback
+	if selfDefenseDist < CenterBack.distanceToDefenseArea() + self._robot.radius + 0.03 then
+		self._send.preliminaryCenterbackTarget("all", self._robot)
+	end
+	
+	return ManMarkTask, { self._opp }
 end
 
 return ManMark
