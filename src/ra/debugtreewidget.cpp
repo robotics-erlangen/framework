@@ -71,6 +71,11 @@ void DebugTreeWidget::updateTree()
 
 void DebugTreeWidget::clearData()
 {
+#ifdef Q_OS_MAC
+    // workaround for crash with OS X Accessibility
+    // see https://blog.inventic.eu/2015/05/crash-in-qtreewidget-qtreeview-index-mapping-on-mac-osx-10-10-part-iii/
+    selectionModel()->clear();
+#endif
     m_modelTree->clearData();
 }
 
