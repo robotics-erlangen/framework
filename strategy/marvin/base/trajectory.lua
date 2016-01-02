@@ -1,1 +1,0 @@
--- TODO: add code to monitor trajectory

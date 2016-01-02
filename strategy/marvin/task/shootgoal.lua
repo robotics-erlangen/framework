@@ -15,6 +15,7 @@ local vis = require "../base/vis"
 local debug = require "../base/debug"
 local G = World.Geometry
 
+local PathHelper = require "trajectory/pathhelper"
 local Interval = require "util/interval"
 local Random = require "util/random"
 local Field = require "../base/field"
@@ -419,7 +420,7 @@ function ShootGoal:_init()
 end
 
 function ShootGoal:run()
-	self._robot.path:setDefaultObstacles(self._robot, true)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 	if self._volleyPossible then
 
 		-- calculate the best pass receipt position

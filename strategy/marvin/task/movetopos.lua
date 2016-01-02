@@ -1,4 +1,5 @@
 local MoveToPos = Class("Task.MoveToPos", require "task/base")
+local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 function MoveToPos:_init(pos, dir)
@@ -7,8 +8,8 @@ function MoveToPos:_init(pos, dir)
 end
 
 function MoveToPos:run()
-	self._robot.path:setDefaultObstacles(self._robot)
-	self._robot.path:addRobotObstacles(self._robot)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
 	self._robot.trajectory:update(ToTarget, self._pos, self._dir)
 end

@@ -6,6 +6,7 @@ local geom = require "../base/geom"
 local Interval = require "util/interval"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
+local PathHelper = require "trajectory/pathhelper"
 
 local PENALTY_LINE_DISTANCE = 0.35 -- prevent robots from crossing the penalty line
 
@@ -109,8 +110,8 @@ function DefendPenalty:run()
 		targetPos = Vector(targetPos, penaltyLine)
 	end
 
-	self._robot.path:setDefaultObstacles(self._robot)
-	self._robot.path:addRobotObstacles(self._robot)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 	self._robot.trajectory:update(ToTarget, targetPos, (World.Ball.pos - self._robot.pos):angle())
 
 	self._send.moveDest("all", targetPos)

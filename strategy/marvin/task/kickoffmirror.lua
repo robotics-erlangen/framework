@@ -5,6 +5,7 @@ local Game = require "observer/game"
 local ToTarget = require "trajectory/totarget"
 local Field = require "../base/field"
 local debug = require "../base/debug"
+local PathHelper = require "trajectory/pathhelper"
 
 local DISTANCE_HYSTERESIS = 0.03 -- for all minimum/maximum distance search loops
 
@@ -56,8 +57,8 @@ function KickoffMirror:run()
 	local pos = Vector(targetPosX, -self._distance - self._robot.radius)
 	self._targetPos = Field.limitToField(pos, -self._robot.radius)
 
-	self._robot.path:setDefaultObstacles(self._robot)
-	self._robot.path:addRobotObstacles(self._robot)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
 	self._robot.trajectory:update(ToTarget, self._targetPos, math.pi/2)
 end

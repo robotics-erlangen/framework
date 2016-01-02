@@ -1,7 +1,6 @@
 require("../base/globalschecker").enable()
 Class = require "../base/class"
 require "../base/base"
-require "base/path" -- extend path module
 local World = require "../base/world"
 
 local Entrypoints = require "../base/entrypoints"

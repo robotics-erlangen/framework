@@ -7,6 +7,7 @@ local World = require "../base/world"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
 local Defense = require "util/defense"
+local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 
@@ -70,8 +71,8 @@ end
 function InterceptPass:run()
 	local pos, time = InterceptPass.touchBallPosition(self._robot)
 
-	self._robot.path:setDefaultObstacles(self._robot, true) -- ignore ball
-	self._robot.path:addRobotObstacles(self._robot, false, true) -- ignore opponents
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true) -- ignore ball
+	PathHelper.addRobotObstacles(self._robot.path, self._robot, false, true) -- ignore opponents
 
 	local dir = (-World.Ball.speed):angle()
 	local endSpeed = (World.Ball.pos - self._robot.pos):setLength(2)

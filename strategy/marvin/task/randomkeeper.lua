@@ -2,6 +2,7 @@ local RandomKeeper = Class("Task.RandomKeeper", require "task/base")
 
 local World = require "../base/world"
 local Field = require "../base/field"
+local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 local DEST_SWITCH_DISTANCE = 0.02
@@ -22,10 +23,10 @@ function RandomKeeper:run()
 
 	-- add obstacles if outside keeper area
 	if not Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
-		self._robot.path:addRobotObstacles(self._robot, false, false)
+		PathHelper.addRobotObstacles(self._robot.path, self._robot, false, false)
 	end
 	-- ignore goal walls if ball is shot
-	self._robot.path:setDefaultObstacles(self._robot, true, false, true, self._robot.radius, 0.05)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, false, true, self._robot.radius, 0.05)
 	self._robot.trajectory:update(ToTarget, moveDest, math.pi/2)
 end
 

@@ -5,6 +5,7 @@ local AggressiveKeeper = Class("Task.AggressiveKeeper",
 local World = require "../base/world"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
+local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 function AggressiveKeeper:run()
@@ -14,7 +15,7 @@ function AggressiveKeeper:run()
 
 	self:_chipToBorderIfSafe()
 
-	self._robot.path:setDefaultObstacles(self._robot, true)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 	self._robot.trajectory:update(ToTarget, ballPos, fromGoal, nil, Vector.fromAngle(fromGoal))
 
 	self._send.aggressiveKeeperPos("all", ballPos)

@@ -1,6 +1,7 @@
 local ManMark = Class("Task.ManMark", require "task/base")
 
 local World = require "../base/world"
+local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 local Defense = require "util/defense"
 
@@ -31,8 +32,8 @@ function ManMark:run()
 		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
 	end
 
-	self._robot.path:setDefaultObstacles(self._robot)
-	self._robot.path:addRobotObstacles(self._robot)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 	self._robot.trajectory:update(ToTarget, preferredPos, preferredDir, nil, self._targetRobot.speed)
 	self._send.moveDest("all", preferredPos)
 end

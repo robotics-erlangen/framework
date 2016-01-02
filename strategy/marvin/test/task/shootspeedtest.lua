@@ -4,6 +4,7 @@ local ToTarget = require "trajectory/totarget"
 local TestAgent = require "agent/testagent"
 local Entrypoints = require "../base/entrypoints"
 local Messaging = require "control/messaging"
+local PathHelper = require "trajectory/pathhelper"
 
 function ShootSpeedTest:_init(speed)
 	self._shootSpeed = speed
@@ -22,7 +23,7 @@ function ShootSpeedTest:run()
 
 	local shootSpeed = self._robot:calculateShootSpeed(self._shootSpeed, shootDistance)
 	self._robot:shoot(shootSpeed)
-	self._robot.path:setDefaultObstacles(self._robot)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 	self._robot.trajectory:update(ToTarget, self._robot.pos, self._robot.pos.y < 0 and math.pi/2 or -math.pi/2)
 end
 

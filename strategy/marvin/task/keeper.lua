@@ -9,6 +9,7 @@ local vis = require "../base/vis"
 local Field = require "../base/field"
 local debug = require "../base/debug"
 local Physics = require "observer/physics"
+local PathHelper = require "trajectory/pathhelper"
 
 local G = World.Geometry
 local keeperGoalDistance = 0.06
@@ -155,10 +156,10 @@ function Keeper:run()
 	end
 
 	-- ignore goal walls if ball is shot
-	self._robot.path:setDefaultObstacles(self._robot, true, isShot, true, self._robot.radius, 0.05)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, isShot, true, self._robot.radius, 0.05)
 	-- add obstacles if outside keeper area, when drivin to goal initially
 	if not Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
-		self._robot.path:addRobotObstacles(self._robot, false, false)
+		PathHelper.addRobotObstacles(self._robot.path, self._robot, false, false)
 	end
 	self._robot.trajectory:update(ToTarget, moveTo, (atkPos - moveTo):angle(), nil, endSpeed)
 

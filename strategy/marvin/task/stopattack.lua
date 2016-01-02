@@ -3,6 +3,7 @@ local StopAttack = Class("Task.StopAttack", require "task/base")
 local World = require "../base/world"
 local Constants = require "../base/constants"
 local Field = require "../base/field"
+local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 local POSITION_PADDING = 0.02 -- safety distance
@@ -33,8 +34,8 @@ function StopAttack:run()
 		self._side = "left"
 	end
 
-	self._robot.path:setDefaultObstacles(self._robot, false, false, false, nil, 0.1)
-	self._robot.path:addRobotObstacles(self._robot)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, false, false, false, nil, 0.1)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
 	self._robot.trajectory:update(ToTarget, pos, (World.Ball.pos - pos):angle())
 end

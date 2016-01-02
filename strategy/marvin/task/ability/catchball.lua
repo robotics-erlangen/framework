@@ -11,6 +11,7 @@ local debug = require "../base/debug"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
 local Volley = require "task/ability/volley" -- only for calcPhi
+local PathHelper = require "trajectory/pathhelper"
 
 CatchBall.depends = { Volley }
 
@@ -187,9 +188,9 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	moveDest = Field.limitToField(moveDest, POSITION_PADDING + self._robot.radius)
 
 	-- setup obstacles
-	self._robot.path:setDefaultObstacles(self._robot, true, false, false, self._robot.shootRadius)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, false, false, self._robot.shootRadius)
 	local aggressiveMovement = (self._robot.pos:distanceTo(moveDest) < 0.5)
-	self._robot.path:addRobotObstacles(self._robot, nil, nil, aggressiveMovement)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot, nil, nil, aggressiveMovement)
 	local moveDir = (targetPos - predictedBall.pos):angle()
   	if self:_isBlockingBall(ball, predictedBall, moveDest) then
   		-- minimum required time to touch the ball

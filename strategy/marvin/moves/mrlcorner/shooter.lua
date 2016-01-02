@@ -1,6 +1,7 @@
 -- stays in the back until coordinated with assistant
 local Task = require "task/base"
 local World = require "../base/world"
+local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 local Shooter = Class("Task.Shooter", Task)
@@ -25,8 +26,8 @@ function Shooter:run()
         end
     end
 
-    self._robot.path:setDefaultObstacles(self._robot)
-	self._robot.path:addRobotObstacles(self._robot)
+    PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
     self._robot.trajectory:update(ToTarget, moveDest, 0)
 end
 

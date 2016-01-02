@@ -9,6 +9,7 @@ local Rating = require "util/rating"
 local World = require "../base/world"
 local G = World.Geometry
 local debug = require "../base/debug"
+local PathHelper = require "trajectory/pathhelper"
 
 
 function KickoffPass:_init(pos, dir)
@@ -19,8 +20,8 @@ end
 function KickoffPass:run()
 	-- send message that a player is in the back to Main Attacker
 	self._send.kickoffPass("all", self._pos)
-	self._robot.path:setDefaultObstacles(self._robot)
-	self._robot.path:addRobotObstacles(self._robot)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
 	if self._inbox.kickoffStart() ~= nil then
 		debug.set("kickoffStart", "true")

@@ -11,6 +11,7 @@ local debug = require "../base/debug"
 local Rating = require "util/rating"
 local Field = require "../base/field"
 local Goal = require "observer/goal"
+local PathHelper = require "trajectory/pathhelper"
 local G = World.Geometry
 
 local lt = function(i1, i2)
@@ -308,8 +309,8 @@ function CenterBack:run()
 	end
 
 	--move robot
-	self._robot.path:setDefaultObstacles(self._robot)
-	self._robot.path:addRobotObstacles(self._robot, ignoreFriends, ignoreOpponents)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreFriends, ignoreOpponents)
 	self._robot.trajectory:update(ToTarget, destinationPos, dir)
 	self._send.moveDest("all", destinationPos)
 	self._send.centerbackTarget("trainer", destinationTarget)

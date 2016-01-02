@@ -12,6 +12,7 @@ local Referee = require "../base/referee"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local TrajectoryDirect = require "trajectory/direct"
+local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 local Robot = require "observer/robot"
 
@@ -196,8 +197,8 @@ function Shoot:_tryReceivePass(targetPos, targetSpeed, futureBall)
 		end
 
 		-- block ball by moving in its way
-		self._robot.path:setDefaultObstacles(self._robot, true)
-		self._robot.path:addRobotObstacles(self._robot)
+		PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
+		PathHelper.addRobotObstacles(self._robot.path, self._robot)
 		self._robot.trajectory:update(ToTarget, robotPos, viewDir)
 		self._robot:setDribblerSpeed(0.2)
 		self._receivePassHysteresis = true

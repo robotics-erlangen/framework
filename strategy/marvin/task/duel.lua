@@ -11,6 +11,7 @@ local Robot = require "observer/robot"
 local Direct = require "trajectory/direct"
 local ToTarget = require "trajectory/totarget"
 local Field = require "../base/field"
+local PathHelper = require "trajectory/pathhelper"
 
 local STAY_BEHIND_OPP_ANGLE = 120/180 * math.pi
 local STAY_BEHIND_OPP_HYSTERESIS = 10/180 * math.pi
@@ -221,9 +222,9 @@ function Duel:_moveToBall()
 	end
 	debug.set("ignoreBall", ignoreBall)
 
-	self._robot.path:setDefaultObstacles(self._robot, ignoreBall, false, false, self._robot.shootRadius)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignoreBall, false, false, self._robot.shootRadius)
 	-- don't predict opponents, to avoid them blocking the target position
-	self._robot.path:addRobotObstacles(self._robot, nil, nil, true)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot, nil, nil, true)
 
 	debug.set("moveDest dribbler", moveDest)
 

@@ -1,10 +1,11 @@
 local SuggestPass = require "task/ability/suggestpass"
 local ArmadaTask = Class("Task.ArmadaTask", require "task/base", SuggestPass)
 local ToTarget = require "trajectory/totarget"
+local debug = require "../base/debug"
 local World = require "../base/world"
 local G = World.Geometry
 local Messaging = require "control/messaging"
-local debug = require "../base/debug"
+local PathHelper = require "trajectory/pathhelper"
 
 -- the armada has 4 steps to form stairs, depending on ball distance
 local X_POSITIONS_ORIG = {
@@ -93,8 +94,8 @@ function ArmadaTask:run()
         end
         self:_suggestPass()
     end
-    self._robot.path:setDefaultObstacles(self._robot)
-    self._robot.path:addRobotObstacles(self._robot)
+    PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+    PathHelper.addRobotObstacles(self._robot.path, self._robot)
     self._robot.trajectory:update(ToTarget, self._moveDest , (World.Ball.pos - self._robot.pos):angle())
 end
 

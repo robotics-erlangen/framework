@@ -6,6 +6,7 @@ local vis = require "../base/vis"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local Field = require "../base/field"
+local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 local POSITION_PADDING = 0.02 -- safety distance
@@ -38,8 +39,8 @@ function SaveBall:run()
 		ignoreGoals = true
 	end
 
-	self._robot.path:setDefaultObstacles(self._robot, ignoreBall, ignoreGoals, false)
-	self._robot.path:addRobotObstacles(self._robot)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignoreBall, ignoreGoals, false)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
 	if not self._viewDir or not self._robot:hasBall(World.Ball) then
 		local viewDir = ballPos - robotPos

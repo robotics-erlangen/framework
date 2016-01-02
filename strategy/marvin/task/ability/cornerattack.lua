@@ -8,6 +8,7 @@ local vis = require "../base/vis"
 local debug = require "../base/debug"
 local Physics = require "observer/physics"
 local Rating = require "util/rating"
+local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 local DIST_TO_DEF_AREA = 0.35
@@ -108,8 +109,8 @@ function CornerAttack:_tryCornerAttack()
                     { kind = "in the run", rating = 1, pos = self._pointOfImpact, time = receiveTime })
             end
 
-            self._robot.path:setDefaultObstacles(self._robot)
-            self._robot.path:addRobotObstacles(self._robot)
+            PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+            PathHelper.addRobotObstacles(self._robot.path, self._robot)
             self._robot.trajectory:update(ToTarget, self._pointOfImpact, (World.Ball.pos - self._robot.pos):angle())
             self._send.moveDest("all", self._pointOfImpact)
             return true -- and hope to become mainAttacker

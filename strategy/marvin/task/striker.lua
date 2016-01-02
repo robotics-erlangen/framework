@@ -13,6 +13,7 @@ local debug = require "../base/debug"
 local Messaging = require "control/messaging"
 local Referee = require "../base/referee"
 local Field = require "../base/field"
+local PathHelper = require "trajectory/pathhelper"
 
 local POSITION_PADDING = 0.02 -- safety distance
 
@@ -293,8 +294,8 @@ function Striker:run()
 	if(self._moveDest.x==0 and self._moveDest.y==0) then
 		log("attacker at (0|0)")
 	end
-	self._robot.path:setDefaultObstacles(self._robot)
-	self._robot.path:addRobotObstacles(self._robot)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 	self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
 	self._send.moveDest("all", self._moveDest)
 end
