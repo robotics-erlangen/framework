@@ -23,13 +23,14 @@ module "Robot"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-local debug = require "../base/debug"
-local Coordinates = require "../base/coordinates"
-local Trajectory = require "../base/trajectory"
-local Constants = require "../base/constants"
-local amun = amun
-
 local Robot, RobotMt = (require "../base/class")("Robot")
+
+local amun = amun
+local Constants = require "../base/constants"
+local Coordinates = require "../base/coordinates"
+local debug = require "../base/debug"
+local Trajectory = require "../base/trajectory"
+
 
 --- Values provided by a robot object.
 --- Fields marked with * are only available for own robots

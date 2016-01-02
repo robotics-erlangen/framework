@@ -34,8 +34,8 @@ module "base"
 require "../base/amun"
 -- amun.isDebug must already be set, thus load after amun
 require("../base/globalschecker")._init()
-require "../base/path"
 require "../base/math"
+require "../base/path"
 require "../base/table"
 require "../base/vector"
 
@@ -43,12 +43,12 @@ math.randomseed(amun.getCurrentTime()) -- init rng
 
 -- preload classes that require access to the amun API
 local Coordinates = require "../base/coordinates"
-local Robot = require "../base/robot"
-local World = require "../base/world"
 local debug = require "../base/debug"
-local plot = require "../base/plot"
-local vis = require "../base/vis"
 local debugcommands = require "../base/debugcommands"
+local plot = require "../base/plot"
+local Robot = require "../base/robot"
+local vis = require "../base/vis"
+local World = require "../base/world"
 
 -- prevent access to internal APIs
 amun._hideFunctions()

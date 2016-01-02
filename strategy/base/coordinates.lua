@@ -3,7 +3,6 @@
 -- Only use to convert values from or for amun!
 module "Coordinates"
 ]]--
-local Coordinates = {}
 
 --[[***********************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer                      *
@@ -24,6 +23,8 @@ local Coordinates = {}
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
+
+local Coordinates = {}
 
 --- Converts global coordinates from amun to strategy local coordinates
 -- @class function

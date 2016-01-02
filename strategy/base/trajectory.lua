@@ -23,9 +23,11 @@ module "Trajectory"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-local vis = require "../base/vis"
 local Class = require "../base/class"
-local Trajectory =  (require "../base/class")("Trajectory") -- Trajectory manager
+local Trajectory = Class("Trajectory") -- Trajectory manager
+
+local vis = require "../base/vis"
+
 
 --- Initialises trajectory manager.
 -- Must only be called by robot class!

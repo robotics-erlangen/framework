@@ -26,12 +26,13 @@ module "Field"
 
 local Field = {}
 
-local World = require "../base/world"
-local Referee = require "../base/referee"
-local G = World.Geometry
 local geom = require "../base/geom"
 local math = require "../base/math"
+local Referee = require "../base/referee"
+local World = require "../base/world"
 
+
+local G = World.Geometry
 
 --- returns the nearest position inside the field (extended by boundaryWidth)
 -- @name limitToField

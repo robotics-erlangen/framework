@@ -24,8 +24,10 @@ module "debug"
 *************************************************************************]]
 
 local debug = {}
-local Class = require "../base/class"
+
 local amun = amun
+local Class = require "../base/class"
+
 
 local debugStack = { "" }
 

@@ -24,8 +24,10 @@ module "Processor"
 *************************************************************************]]
 
 local Processor = {}
+
 local Class = require "../base/class"
 local Process = require "../base/process"
+
 
 local preprocs = {}
 local postprocs = {}

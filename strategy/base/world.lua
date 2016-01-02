@@ -24,12 +24,12 @@ module "World"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-local Ball = require "../base/ball"
-local Robot = require "../base/robot"
-local Generation = require "../base/generation"
 local amun = amun
+local Ball = require "../base/ball"
 local Constants = require "../base/constants"
+local Generation = require "../base/generation"
 local mixedTeam = require "../base/mixedteam"
+local Robot = require "../base/robot"
 
 --- Ball and team informations.
 -- @class table

@@ -24,7 +24,6 @@ module "math"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-
 local max, min = math.max, math.min
 
 --- Limits value to interval [min, max].
