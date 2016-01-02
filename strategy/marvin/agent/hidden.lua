@@ -1,6 +1,8 @@
-local Hidden = Class("Agent.Hidden", require "agent/base/agent")
+local Base = require "agent/base/agent"
+local Hidden = Class("Agent.Hidden", Base)
 
 local Default = require "agent/hidden/default"
+
 
 Hidden._behaviors = {
 	Default

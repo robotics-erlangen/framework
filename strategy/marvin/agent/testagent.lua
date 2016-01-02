@@ -1,7 +1,9 @@
-local TestAgent = Class("Agent.Test", require "agent/base/agent")
+local Base = require "agent/base/agent"
+local TestAgent = Class("Agent.Test", Base)
 
-local Messaging = require "control/messaging"
 local Halt = require "agent/shared/halt"
+local Messaging = require "control/messaging"
+
 
 function TestAgent.takeRobot(robots)
 	for _, robot in pairs(robots) do

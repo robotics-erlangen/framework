@@ -1,10 +1,11 @@
 -- stays in the back until coordinated with assistant
 local Task = require "task/base"
+local Shooter = Class("Task.Shooter", Task)
+
 local World = require "../base/world"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
-local Shooter = Class("Task.Shooter", Task)
 
 function Shooter:_init(assistant)
     self._assistant = assistant

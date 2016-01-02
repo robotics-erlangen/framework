@@ -1,10 +1,12 @@
 local CurvedMaxAccel = Class("Trajectory.CurvedMaxAccel", (require "../base/trajectory").Base)
+
 local Coordinates = require "../base/coordinates"
-local geom = require "../base/geom"
-local vis = require "../base/vis"
 local debug = require "../base/debug"
-local World = require "../base/world"
+local geom = require "../base/geom"
 local plot = require "../base/plot"
+local vis = require "../base/vis"
+local World = require "../base/world"
+
 
 function CurvedMaxAccel:_init()
 	self._lastTargetDir = nil

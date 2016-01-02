@@ -1,7 +1,9 @@
-local SimpleAgent = Class("Agent.Base.SimpleAgent", require "agent/base/agent")
+local Base = require "agent/base/agent"
+local SimpleAgent = Class("Agent.Base.SimpleAgent", Base)
 
 local debug = require "../base/debug"
 local World = require "../base/world"
+
 
 -- Child class must set _behaviors
 -- SimpleAgent._behaviors = {}

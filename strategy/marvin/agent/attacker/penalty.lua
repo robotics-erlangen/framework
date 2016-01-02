@@ -3,9 +3,10 @@ local Penalty = Class("Agent.Attacker.Penalty", Base)
 
 local World = require "../base/world"
 
+local MoveToStaticBall = require "task/movetostaticball"
 local ShootGoal = require "task/shootgoal"
 local ShootPenalty = require "task/shootpenalty"
-local MoveToStaticBall = require "task/movetostaticball"
+
 
 function Penalty:check()
 	local mainAttacker = self._inbox.mainAttacker().trainer == self._robot

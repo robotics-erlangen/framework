@@ -1,12 +1,13 @@
 local DefendPenalty = Class("Task.DefendPenalty", require "task/base")
 
-local ToTarget = require "trajectory/totarget"
-local World = require "../base/world"
-local geom = require "../base/geom"
-local Interval = require "util/interval"
-local vis = require "../base/vis"
 local debug = require "../base/debug"
+local geom = require "../base/geom"
+local vis = require "../base/vis"
+local World = require "../base/world"
 local PathHelper = require "trajectory/pathhelper"
+local ToTarget = require "trajectory/totarget"
+local Interval = require "util/interval"
+
 
 local PENALTY_LINE_DISTANCE = 0.35 -- prevent robots from crossing the penalty line
 

@@ -1,19 +1,22 @@
 local Base = require "agent/base/behavior"
 local Behavior = Class("Agent.Moves.MRLCorner", Base)
-local Shooter = require "moves/mrlcorner/shooter"
-local Pass = require "task/pass"
-local MoveToStaticBall = require "task/movetostaticball"
-local MoveToPos = require "task/movetopos"
-local World = require "../base/world"
-local Referee = require "../base/referee"
-local Messaging = require "control/messaging"
-local Ball = require "observer/ball"
-local ShootGoal = require "task/shootgoal"
+
 local debug = require "../base/debug"
-local G = World.Geometry
+local Referee = require "../base/referee"
+local World = require "../base/world"
+
+local Messaging = require "control/messaging"
+local Shooter = require "moves/mrlcorner/shooter"
+local Ball = require "observer/ball"
+local MoveToPos = require "task/movetopos"
+local MoveToStaticBall = require "task/movetostaticball"
+local Pass = require "task/pass"
+local ShootGoal = require "task/shootgoal"
 
 local MrlCorner = Class("Behavior.MrlCorner", Behavior)
 
+
+local G = World.Geometry
 local ENABLE = true
 
 local ROLES = {

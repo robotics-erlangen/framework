@@ -6,6 +6,7 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local Direct = require "trajectory/direct"
 
+
 function Manual:_limitRobotSpeed(v)
 	local slowSpeed = 0.3
 	local fastSpeed = 2

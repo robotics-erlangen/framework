@@ -1,12 +1,12 @@
 local Game = {}
 
-
-local World = require "../base/world"
-local G = World.Geometry
-local Robotlist = require "util/robotlist"
 local Field = require "../base/field"
+local World = require "../base/world"
 local Ball = require "observer/ball"
+local Robotlist = require "util/robotlist"
 
+
+local G = World.Geometry
 
 --- divides the field into 3 sectors (1 left, 2 center, 3 right)
 -- @param ignoreCorners bool - if robots which are somewhat away from the center are ignored

@@ -1,10 +1,11 @@
 local BallAnalyzer = Class("Observer.BallAnalyzer", require "../base/process")
 
+local debug = require "../base/debug"
 local World = require "../base/world"
 local MovingAverage = require "learning/movingaverage"
 local Ball = require "observer/ball"
-local debug = require "../base/debug"
 local IO = require "util/io"
+
 
 function BallAnalyzer:init(ball, movingAverageSlipping, movingAverageRolling, slippingFrictionStart, rollingFrictionStart)
 	self._ball = ball or World.Ball

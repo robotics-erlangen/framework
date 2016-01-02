@@ -1,19 +1,21 @@
-local Coordinator = require "control/maincoordinator"
-local Entrypoints = require "../base/entrypoints"
-local TestAgent = require "agent/testagent"
-local MoveToPos = require "task/movetopos"
-local World = require "../base/world"
-local Messaging = require "control/messaging"
-local debugcommands = require "../base/debugcommands"
-local vis = require "../base/vis"
 local debugtree = require "../base/debug"
+local debugcommands = require "../base/debugcommands"
+local Entrypoints = require "../base/entrypoints"
+local vis = require "../base/vis"
+local World = require "../base/world"
+
+local TestAgent = require "agent/testagent"
+local Coordinator = require "control/maincoordinator"
+local Messaging = require "control/messaging"
+local MoveToPos = require "task/movetopos"
 
 local situations = {
 	Duel = require "test/situation/duel",
-	ShootOnEmptyGoal = require "test/situation/shootonemptygoal",
+	goalKick = require "test/situation/goalkick",
 	Pass = require "test/situation/pass",
-	goalKick = require "test/situation/goalkick"
+	ShootOnEmptyGoal = require "test/situation/shootonemptygoal"
 }
+
 
 local useBeaming = false -- or use World.IsSimulated
 local positionThreshold = 0.1 -- the precision for considering a position to be occupied

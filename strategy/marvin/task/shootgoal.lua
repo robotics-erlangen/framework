@@ -1,26 +1,25 @@
 local Shoot = require "task/ability/shoot"
-
 local ShootGoal = Class("Task.ShootGoal", require "task/base", Shoot)
 
-local Goal = require "observer/goal"
-local Shoot = require "observer/shoot"
-local Ball = require "observer/ball"
-local Physics = require "observer/physics"
-local Robot = require "observer/robot"
-
-local World = require "../base/world"
 local Cache = require "../base/cache"
+local debug = require "../base/debug"
+local Field = require "../base/field"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
-local debug = require "../base/debug"
-local G = World.Geometry
+local World = require "../base/world"
+
+local Ball = require "observer/ball"
+local Goal = require "observer/goal"
+local Physics = require "observer/physics"
+local Robot = require "observer/robot"
+local Shoot = require "observer/shoot"
 
 local PathHelper = require "trajectory/pathhelper"
 local Interval = require "util/interval"
 local Random = require "util/random"
-local Field = require "../base/field"
 
 
+local G = World.Geometry
 local MIN_REQUIRED_ANGLE = 1 / 180 * math.pi -- in order to shoot into a free sector
 local MIN_REQUIRED_ANGLE_HYSTERESIS = 0.3 / 180 * math.pi
 local MIN_SHOOT_PRECISION = 10 / 180 * math.pi -- for the shoot ability

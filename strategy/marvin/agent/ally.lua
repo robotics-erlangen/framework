@@ -1,10 +1,12 @@
 local Base = require "agent/base/agent"
 local Ally = Class("Agent.Ally", Base)
 
-local World = require "../base/world"
 local MixedTeam = require "../base/mixedteam"
 local vis = require "../base/vis"
+local World = require "../base/world"
+
 local PassSuggestion = require "task/ability/suggestpass"
+
 
 Ally._behaviors = {}
 

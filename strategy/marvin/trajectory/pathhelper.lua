@@ -1,12 +1,12 @@
-local path = path
-local World = require "../base/world"
-local G = World.Geometry
+local PathHelper = {}
+
 local Constants = require "../base/constants"
 local Referee = require "../base/referee"
+local World = require "../base/world"
 
+
+local G = World.Geometry
 local POSITION_PADDING = 0.02
-
-local PathHelper = {}
 
 function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance)
 	radius = radius or robot.radius

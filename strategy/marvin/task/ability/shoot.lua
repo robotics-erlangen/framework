@@ -1,20 +1,23 @@
 local CatchBall = require "task/ability/catchball"
 local ForceShoot = require "task/ability/forceshoot"
 local Shoot = {}
+-- note: CatchBall depends on Volley
+Shoot.depends = { CatchBall, ForceShoot }
 
 local Constants = require "../base/constants"
-local World = require "../base/world"
 local debug = require "../base/debug"
-local geom = require "../base/geom"
-local vis = require "../base/vis"
 local Field = require "../base/field"
+local geom = require "../base/geom"
 local Referee = require "../base/referee"
+local vis = require "../base/vis"
+local World = require "../base/world"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local TrajectoryDirect = require "trajectory/direct"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
-local Robot = require "observer/robot"
+
 
 local SIDEWARDS_KP = 9
 local SIDEWARDS_KI = 2.4
@@ -35,8 +38,6 @@ local BLOCK_HYSTERESIS = 10 / 180 * math.pi
 local OPP_TIME_HYSTERESIS = 0.1
 local IN_THE_RUN = 1.5
 
--- note: CatchBall depends on Volley
-Shoot.depends = { CatchBall, ForceShoot }
 
 function Shoot:init()
 	self._shootHysteresis = false

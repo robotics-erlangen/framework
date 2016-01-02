@@ -1,10 +1,12 @@
 local ShootSpeedTest = Class("Task.ShootSpeedTest", require "task/base")
-local World = require "../base/world"
-local ToTarget = require "trajectory/totarget"
-local TestAgent = require "agent/testagent"
+
 local Entrypoints = require "../base/entrypoints"
+local World = require "../base/world"
+local TestAgent = require "agent/testagent"
 local Messaging = require "control/messaging"
 local PathHelper = require "trajectory/pathhelper"
+local ToTarget = require "trajectory/totarget"
+
 
 function ShootSpeedTest:_init(speed)
 	self._shootSpeed = speed

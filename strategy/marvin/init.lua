@@ -1,22 +1,22 @@
 require("../base/globalschecker").enable()
 Class = require "../base/class"
 require "../base/base"
+local Entrypoints = require "../base/entrypoints"
 local World = require "../base/world"
 
-local Entrypoints = require "../base/entrypoints"
 require "control/maincoordinator"
-require "test/unit/init"
-require "test/situation/init"
 require "test/observer/init"
+require "test/situation/init"
 require "test/task/init"
+require "test/unit/init"
 require "util/lineup"
 
-local debug = require "../base/debug"
 local Cache = require "../base/cache"
+local debug = require "../base/debug"
 local Processor = require "../base/processor"
-local Robot = require "observer/robot"
-local Ball = require "observer/ball"
 local Referee = require "../base/referee"
+local Ball = require "observer/ball"
+local Robot = require "observer/robot"
 
 local preproc = Class("Process.PreProc", require "../base/process")
 function preproc:run()

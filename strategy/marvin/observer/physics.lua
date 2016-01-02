@@ -1,10 +1,10 @@
 local Physics = {}
 
+local Cache = require "../base/cache"
 local Constants = require "../base/constants"
 local Field = require "../base/field"
-local World = require "../base/world"
-local Cache = require "../base/cache"
 local geom = require "../base/geom"
+local World = require "../base/world"
 
 
 --- predicts the ball

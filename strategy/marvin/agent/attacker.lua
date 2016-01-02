@@ -1,21 +1,24 @@
-local Attacker = Class("Agent.Attacker", require "agent/base/agent")
+local Base = require "agent/base/agent"
+local Attacker = Class("Agent.Attacker", Base)
 
 local World = require "../base/world"
+local debug = require "../base/debug"
 
 local ApplyForMainattacker = require "agent/attacker/applyformainattacker"
-local Stop = require "agent/attacker/stop"
+local Default = require "agent/attacker/default"
+local Duel = require "agent/attacker/duel"
+local FreeKick = require "agent/attacker/freekick"
+local KickoffAssistant = require "agent/attacker/kickoffassistant"
+local KickoffDefensive = require "agent/attacker/kickoffdefensive"
 local KickoffOffensive = require "agent/attacker/kickoffoffensive"
 local Penalty = require "agent/attacker/penalty"
-local FreeKick = require "agent/attacker/freekick"
-local Duel = require "agent/attacker/duel"
 local Shoot = require "agent/attacker/shoot"
-local KickoffAssistant = require "agent/attacker/kickoffassistant"
-local Default = require "agent/attacker/default"
-local KickoffDefensive = require "agent/attacker/kickoffdefensive"
-local Armada = require "moves/armada/behavior"
+local Stop = require "agent/attacker/stop"
+
 local Messaging = require "control/messaging"
+local Armada = require "moves/armada/behavior"
 local Robot = require "observer/robot"
-local debug = require "../base/debug"
+
 
 Attacker._behaviors = {
 	ApplyForMainattacker,

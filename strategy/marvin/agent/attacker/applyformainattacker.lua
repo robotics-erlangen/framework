@@ -1,9 +1,11 @@
 local Base = require "agent/base/behavior"
 local ApplyForMainattacker = Class("Agent.Attacker.ApplyForMainattacker", Base)
-local Referee = require "../base/referee"
-local Ball = require "observer/ball"
-local World = require "../base/world"
+
 local debug = require "../base/debug"
+local Referee = require "../base/referee"
+local World = require "../base/world"
+local Ball = require "observer/ball"
+
 
 local cooldown = 3
 

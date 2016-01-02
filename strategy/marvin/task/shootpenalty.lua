@@ -1,3 +1,17 @@
+local Shoot = require "task/ability/shoot"
+local RotateAndShoot = require "task/ability/rotateandshoot"
+local ShootPenalty = Class("Task.ShootPenalty", require "task/base",
+	Shoot, RotateAndShoot)
+
+local constants = require "../base/constants"
+local debug = require "../base/debug"
+local Field = require "../base/field"
+local geom = require "../base/geom"
+local vis = require "../base/vis"
+local World = require "../base/world"
+
+
+local G = World.Geometry
 --=====================--
 -- Tournament Settings --
 --=====================--
@@ -7,18 +21,6 @@ local KeeperPosTolerance = 0.04 -- if keeper's distance to the goals center is b
 local shootErrorThreshold = 4.0 * math.pi/180 -- maximum angle error
 local keeperMoveSpeedThreshold = 0.4 -- for random keeper movement detection
 
-local Shoot = require "task/ability/shoot"
-local RotateAndShoot = require "task/ability/rotateandshoot"
-local ShootPenalty = Class("Task.ShootPenalty", require "task/base",
-	Shoot, RotateAndShoot)
-
-local World = require "../base/world"
-local G = World.Geometry
-local geom = require "../base/geom"
-local vis = require "../base/vis"
-local constants = require "../base/constants"
-local debug = require "../base/debug"
-local Field = require "../base/field"
 
 local goalLine = (G.OpponentGoalLeft - G.OpponentGoalRight):normalize()
 local function cornerPoint(corner)

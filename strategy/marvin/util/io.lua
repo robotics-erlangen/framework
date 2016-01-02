@@ -2,6 +2,7 @@ local IO = {}
 
 require "../base/amun"
 
+
 local pathToStrategy = amun.strategyPath.."/learning/parameters/"
 
 function IO.readLines(module)

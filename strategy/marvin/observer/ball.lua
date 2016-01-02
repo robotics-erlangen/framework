@@ -1,20 +1,19 @@
 local Ball = {}
 
-local Constants = require "../base/constants"
 local Cache = require "../base/cache"
-local World = require "../base/world"
+local Constants = require "../base/constants"
+local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
-local debug = require "../base/debug"
-local vis = require "../base/vis"
-local math = require "../base/math"
 local plot = require "../base/plot"
-local G = World.Geometry
+local vis = require "../base/vis"
+local World = require "../base/world"
 
-local ObserverRobot = require "observer/robot"
 local Physics = require "observer/physics"
+local ObserverRobot = require "observer/robot"
 
 
+local G = World.Geometry
 
 --- Returns the first robot that can reach the ball, along with the estimated time
 -- @param robotlist Robot[] - all robots that should be considered (e.g. World.FriendlyRobots)

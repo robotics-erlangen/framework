@@ -3,6 +3,7 @@ local PhysicsTest = {}
 local Physics = require "observer/physics"
 local IO = require "util/io"
 
+
 function PhysicsTest.testBallVsRobotTime()
 	local ball = {pos = Vector(0, 0), speed = Vector(0, 3), maxSpeed = 7, radius = 0.021}
 	local robot = {pos = Vector(0.00, 2), speed = Vector(0, 0), maxSpeed = 3, shootRadius = 0.08}

@@ -1,9 +1,11 @@
 local OldController = Class("Trajectory.ToTarget", (require "../base/trajectory").Base)
+
 local Coordinates = require "../base/coordinates"
+local debug = require "../base/debug"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
-local debug = require "../base/debug"
 local World = require "../base/world"
+
 
 function OldController:reset()
 	self.parameters = {}

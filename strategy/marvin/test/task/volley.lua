@@ -1,14 +1,16 @@
-local TestAgent = require "agent/testagent"
-local ShootGoal = require "task/shootgoal"
-local Pass = require "task/pass"
-local MoveToPos = require "task/movetopos"
-local Halt = require "task/halt"
 local Entrypoints = require "../base/entrypoints"
-local World = require "../base/world"
-local Ball = require "observer/ball"
-local Messaging = require "control/messaging"
 local Referee = require "../base/referee"
 local vis = require "../base/vis"
+local World = require "../base/world"
+local TestAgent = require "agent/testagent"
+local Messaging = require "control/messaging"
+local Ball = require "observer/ball"
+
+local Halt = require "task/halt"
+local MoveToPos = require "task/movetopos"
+local Pass = require "task/pass"
+local ShootGoal = require "task/shootgoal"
+
 
 local agent1 = nil
 local agent2 = nil

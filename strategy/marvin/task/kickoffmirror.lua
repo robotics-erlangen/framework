@@ -1,11 +1,12 @@
 local KickoffMirror = Class("Task.KickoffMirror", require "task/base")
 
+local debug = require "../base/debug"
+local Field = require "../base/field"
 local World = require "../base/world"
 local Game = require "observer/game"
-local ToTarget = require "trajectory/totarget"
-local Field = require "../base/field"
-local debug = require "../base/debug"
 local PathHelper = require "trajectory/pathhelper"
+local ToTarget = require "trajectory/totarget"
+
 
 local DISTANCE_HYSTERESIS = 0.03 -- for all minimum/maximum distance search loops
 

@@ -1,6 +1,8 @@
 local Direct = Class("Trajectory.Direct", (require "../base/trajectory").Base)
+
 local Coordinates = require "../base/coordinates"
 local geom = require "../base/geom"
+
 
 function Direct:_init()
 end

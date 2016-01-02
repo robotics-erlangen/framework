@@ -1,6 +1,7 @@
-local Entrypoints = require "../base/entrypoints"
 local debugcommands = require "../base/debugcommands"
+local Entrypoints = require "../base/entrypoints"
 local World = require "../base/world"
+
 
 local init = false
 local changed = false

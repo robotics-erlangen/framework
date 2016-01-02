@@ -1,6 +1,7 @@
 local World = require "../base/world"
 local Ball = require "observer/ball"
 
+
 local situation = {
 	refereeState = "GameForce",
 	gameStage = "SecondHalf",

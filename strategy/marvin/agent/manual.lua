@@ -1,8 +1,9 @@
-local Manual = Class("Agent.Manual", require "agent/base/agent")
+local Base = require "agent/base/agent"
+local Manual = Class("Agent.Manual", Base)
 
 local World = require "../base/world"
-
 local Default = require "agent/manual/default"
+
 
 Manual._behaviors = {
 	Default

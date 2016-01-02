@@ -1,9 +1,10 @@
 local RandomKeeper = Class("Task.RandomKeeper", require "task/base")
 
-local World = require "../base/world"
 local Field = require "../base/field"
+local World = require "../base/world"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
+
 
 local DEST_SWITCH_DISTANCE = 0.02
 local GOAL_DISTANCE = 0.06

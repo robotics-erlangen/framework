@@ -1,13 +1,15 @@
 local Base = require "agent/base/behavior"
 local HandleBall = Class("Agent.Keeper.HandleBall", Base)
 
-local World = require "../base/world"
+local debug = require "../base/debug"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
+local World = require "../base/world"
+
 local AggressiveKeeper = require "task/aggressivekeeper"
 local SaveBall = require "task/saveball"
 local ShootGoal = require "task/shootgoal"
-local debug = require "../base/debug"
+
 
 function HandleBall:behindCenterbacks(object)
 	local defenseDistance = self._robot.radius + self._robot.shootRadius

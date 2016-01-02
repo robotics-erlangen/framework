@@ -1,7 +1,7 @@
 local RotateAndShoot = {}
 
-local Direct = require "trajectory/direct"
 local World = require "../base/world"
+local Direct = require "trajectory/direct"
 
 
 function RotateAndShoot:_initRAS()

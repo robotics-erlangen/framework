@@ -1,5 +1,7 @@
 local RobotList = {}
+
 local Cache = require "../base/cache"
+
 
 function RobotList.join(listA, listB)
 	local joined = table.copy(listA)

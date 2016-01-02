@@ -1,13 +1,16 @@
-local Defender = Class("Agent.Defender", require "agent/base/agent")
+local Base = require "agent/base/agent"
+local Defender = Class("Agent.Defender", Base)
 
 local World = require "../base/world"
 
-local Penalty = require "agent/defender/penalty"
+local Default = require "agent/defender/default"
 local HandleBall = require "agent/defender/handleball"
 local ManMark = require "agent/defender/manmark"
-local Default = require "agent/defender/default"
-local Armada = require "moves/armada/behavior"
+local Penalty = require "agent/defender/penalty"
+
 local Messaging = require "control/messaging"
+local Armada = require "moves/armada/behavior"
+
 
 Defender._behaviors = {
 	Penalty,

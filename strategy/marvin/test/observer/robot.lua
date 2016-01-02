@@ -1,9 +1,10 @@
 local RobotTest = {}
 
-local Robot = require "observer/robot"
-local vis = require "../base/vis"
 local debug = require "../base/debug"
+local vis = require "../base/vis"
 local World = require "../base/world"
+local Robot = require "observer/robot"
+
 
 function RobotTest.testWayToRobotFree()
 	assert(#World.FriendlyRobots > 1, "Need at least 2 friendly robots for this test")

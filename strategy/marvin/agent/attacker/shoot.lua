@@ -1,12 +1,13 @@
 local Base = require "agent/base/behavior"
 local Shoot = Class("Agent.Attacker.Shoot", Base)
 
+local debug = require "../base/debug"
 local World = require "../base/world"
 local Ball = require "observer/ball"
-local Rating = require "util/rating"
-local ShootGoal = require "task/shootgoal"
 local Pass = require "task/pass"
-local debug = require "../base/debug"
+local ShootGoal = require "task/shootgoal"
+local Rating = require "util/rating"
+
 
 local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
 

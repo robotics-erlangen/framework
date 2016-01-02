@@ -1,13 +1,15 @@
 local Base = require "agent/base/behavior"
 local Armada = Class("Agent.Moves.Armada", Base)
-local World = require "../base/world"
-local G = World.Geometry
-local Referee = require "../base/referee"
-local Ball = require "observer/ball"
-local ArmadaTask = require "moves/armada/task"
-local Messaging = require "control/messaging"
-local debug = require "../base/debug"
 
+local debug = require "../base/debug"
+local Referee = require "../base/referee"
+local World = require "../base/world"
+local Messaging = require "control/messaging"
+local ArmadaTask = require "moves/armada/task"
+local Ball = require "observer/ball"
+
+
+local G = World.Geometry
 local ENABLE = true
 
 local function sortById(robot1, robot2)

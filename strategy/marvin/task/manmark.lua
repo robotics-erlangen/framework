@@ -5,6 +5,7 @@ local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 local Defense = require "util/defense"
 
+
 function ManMark:_init(targetRobot)
 	assert(targetRobot, "ManMark task needs a target robot")
 	self._targetRobot = targetRobot

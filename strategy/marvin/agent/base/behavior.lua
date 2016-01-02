@@ -1,12 +1,13 @@
 local Base = Class("Behavior.Base")
 
-local Messaging = require "control/messaging"
-local Physics = require "observer/physics"
-local Rating = require "util/rating"
 local debug = require "../base/debug"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
 local World = require "../base/world"
+local Messaging = require "control/messaging"
+local Physics = require "observer/physics"
+local Rating = require "util/rating"
+
 
 function Base:init(agent)
 	self._agent = agent

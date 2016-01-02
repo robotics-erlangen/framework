@@ -1,19 +1,22 @@
+local Coordinator = require "control/coordinator"
+local MainCoordinator = Class("Control.MainCoordinator", Coordinator)
+
+local debug = require "../base/debug"
+local Entrypoints = require "../base/entrypoints"
+local vis = require "../base/vis"
+
 local Agent = {
+	Ally = require "agent/ally",
 	Attacker = require "agent/attacker",
 	Defender = require "agent/defender",
-	Keeper = require "agent/keeper",
 	Hidden = require "agent/hidden",
-	Ally = require "agent/ally",
+	Keeper = require "agent/keeper",
 	Manual = require "agent/manual"
 }
-local debug = require "../base/debug"
-local vis = require "../base/vis"
-local Entrypoints = require "../base/entrypoints"
+
 local AgentPool = require "control/agentpool"
-local Coordinator = require "control/coordinator"
 local Trainer = require "trainer/maintrainer"
 
-local MainCoordinator = Class("Control.MainCoordinator", Coordinator)
 
 function MainCoordinator:init(mode)
 	self._trainer = Trainer(mode)

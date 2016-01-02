@@ -1,15 +1,16 @@
 local ForceShoot = require "task/ability/forceshoot"
 local Keeper = Class("Task.Keeper", require "task/base", ForceShoot)
 
-local World = require "../base/world"
-local ToTarget = require "trajectory/totarget"
-local Goal = require "observer/goal"
+local debug = require "../base/debug"
+local Field = require "../base/field"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
-local Field = require "../base/field"
-local debug = require "../base/debug"
+local World = require "../base/world"
+local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 local PathHelper = require "trajectory/pathhelper"
+local ToTarget = require "trajectory/totarget"
+
 
 local G = World.Geometry
 local keeperGoalDistance = 0.06

@@ -1,5 +1,6 @@
 local Cache = require "../base/cache"
 
+
 local function foo(a, b, c)
     return a*(b+c)
 end

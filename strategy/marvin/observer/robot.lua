@@ -1,10 +1,11 @@
 local Robot = {}
-local World = require "../base/world"
+
 local Constants = require "../base/constants"
+local debug = require "../base/debug"
 local Field = require "../base/field"
+local World = require "../base/world"
 local Messaging = require "control/messaging"
 local Physics = require "observer/physics"
-local debug = require "../base/debug"
 
 
 --- checks if the ball can be shot directly to another robot

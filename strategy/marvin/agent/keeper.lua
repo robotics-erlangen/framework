@@ -1,8 +1,10 @@
-local Keeper = Class("Agent.Keeper", require "agent/base/agent")
-local World = require "../base/world"
+local Base = require "agent/base/agent"
+local Keeper = Class("Agent.Keeper", Base)
 
+local World = require "../base/world"
 local Default = require "agent/keeper/default"
 local HandleBall = require "agent/keeper/handleball"
+
 
 Keeper._behaviors = {
 	HandleBall,

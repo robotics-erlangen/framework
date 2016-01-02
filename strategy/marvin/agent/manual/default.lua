@@ -2,13 +2,15 @@ local Base = require "agent/base/behavior"
 local Default = Class("Agent.Manual.Default", Base)
 
 local World = require "../base/world"
-local Robot = require "observer/robot"
 local Ball = require "observer/ball"
-local Rating = require "util/rating"
+local Robot = require "observer/robot"
 
 local Manual = require "task/manual"
-local ShootGoal = require "task/shootgoal"
 local Pass = require "task/pass"
+local ShootGoal = require "task/shootgoal"
+
+local Rating = require "util/rating"
+
 
 function Default:_decideTargetGoal()
 	local angleHyst = 30 /180*math.pi

@@ -1,11 +1,11 @@
-local TestAgent = require "agent/testagent"
 local Entrypoints = require "../base/entrypoints"
-local CenterBack = require "task/centerback"
-local Messaging = require "control/messaging"
 local World = require "../base/world"
+local TestAgent = require "agent/testagent"
+local Messaging = require "control/messaging"
+local CenterBack = require "task/centerback"
+
+
 local G = World.Geometry
-
-
 local N = 3
 
 local destPositions = {}

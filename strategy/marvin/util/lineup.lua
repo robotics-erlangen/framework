@@ -1,18 +1,18 @@
 local Entrypoints = require "../base/entrypoints"
-local World = require "../base/world"
 local geom = require "../base/geom"
+local World = require "../base/world"
 local MoveToPos = require "task/movetopos"
 
 
-local function generateLineup(lineStart, lineupDir) 
+local function generateLineup(lineStart, lineupDir)
 	local lineEnd = lineStart + Vector.fromAngle(lineupDir) -- not really the "end" of the line, more a direction
 	local lineupDistance = 0.05 -- keep 5 cm distance to make taking the robots more comfortable
-	local mindist = lineupDistance + 0.18 
-	
-	local viewDir = lineupDir + math.pi/2 
-	
+	local mindist = lineupDistance + 0.18
+
+	local viewDir = lineupDir + math.pi/2
+
 	local distances = {}
-	
+
 	-- filter and sort opponent robots
 	local filter = function(r)
 		local proj, orthDist = r.pos:orthogonalProjection(lineStart, lineEnd)

@@ -1,10 +1,10 @@
 local Base = require "agent/base/behavior"
 local Default = Class("Agent.Defender.Default", Base)
 
-
 local World = require "../base/world"
-local CenterBack = require "task/centerback"
 local Goal = require "observer/goal"
+local CenterBack = require "task/centerback"
+
 
 function Default:_stop()
 	self._roleParams = nil

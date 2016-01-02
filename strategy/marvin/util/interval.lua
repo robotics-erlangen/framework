@@ -1,5 +1,6 @@
 local Interval = {}
 
+
 --- Merges a list of intervals
 -- @param sortedIntervals list (by reference) - the initial intervals ordered by increasing interval start
 function Interval.merge(sortedIntervals)

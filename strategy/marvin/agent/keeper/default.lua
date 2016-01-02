@@ -5,6 +5,7 @@ local World = require "../base/world"
 local Keeper = require "task/keeper"
 local RandomKeeper = require "task/randomkeeper"
 
+
 function Default:check()
 	return true
 end

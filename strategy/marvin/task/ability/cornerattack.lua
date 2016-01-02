@@ -1,16 +1,17 @@
 local CornerAttack = {}
 
-local World = require "../base/world"
-local G = World.Geometry
-local Field = require "../base/field"
 local constants = require "../base/constants"
-local vis = require "../base/vis"
 local debug = require "../base/debug"
+local Field = require "../base/field"
+local vis = require "../base/vis"
+local World = require "../base/world"
 local Physics = require "observer/physics"
-local Rating = require "util/rating"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
+local Rating = require "util/rating"
 
+
+local G = World.Geometry
 local DIST_TO_DEF_AREA = 0.35
 
 

@@ -1,5 +1,7 @@
 local Rating = {}
+
 local Physics = require "observer/physics"
+
 
 function Rating.timeToRating(time)
 	if time < 0 then

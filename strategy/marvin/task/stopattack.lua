@@ -1,10 +1,11 @@
 local StopAttack = Class("Task.StopAttack", require "task/base")
 
-local World = require "../base/world"
 local Constants = require "../base/constants"
 local Field = require "../base/field"
+local World = require "../base/world"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
+
 
 local POSITION_PADDING = 0.02 -- safety distance
 

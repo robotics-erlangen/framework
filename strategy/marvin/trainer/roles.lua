@@ -1,9 +1,10 @@
-local Referee = require "../base/referee"
-local Messaging = require "control/messaging"
-local World = require "../base/world"
-local vis = require "../base/vis"
-
 local Roles = {}
+
+local Referee = require "../base/referee"
+local vis = require "../base/vis"
+local World = require "../base/world"
+local Messaging = require "control/messaging"
+
 
 local ROLE_HYSTERESIS = 0.05
 

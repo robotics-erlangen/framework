@@ -1,5 +1,7 @@
 local AgentPool = Class("AgentPool")
+
 local debug = require "../base/debug"
+
 
 function AgentPool:init(agentType, robotLimit)
 	-- robots and agents are mapped 1:1 to each other

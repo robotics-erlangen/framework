@@ -8,7 +8,6 @@ local Pass = require "task/pass"
 local Trainer = require "trainer/trainer"
 
 
-
 local Static = Class("Test.Task.Passing.Static", require "agent/base/behavior")
 function Static:check()
 	self._send.attackerFlag("all")

@@ -4,6 +4,7 @@ local World = require "../base/world"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
+
 function MoveToStaticBall:_init(rotation, distanceToBall)
 	self._rotation = rotation or math.pi/2
 	self._distanceToBall = distanceToBall or 0.05

@@ -1,5 +1,7 @@
 local Hidden = Class("Trajectory.Hidden", (require "../base/trajectory").Base)
+
 local Coordinates = require "../base/coordinates"
+
 
 -- only works for hidden robots
 function Hidden:_init()

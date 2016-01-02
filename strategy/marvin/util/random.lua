@@ -1,5 +1,6 @@
 local Random = {}
 
+
 function Random.standardNormalDistributedNumber()
 	local u, neg
 	repeat

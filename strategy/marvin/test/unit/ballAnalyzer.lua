@@ -1,5 +1,6 @@
-local BallAnalyzer = require "observer/ballAnalyzer"
 local World = require "../base/world"
+local BallAnalyzer = require "observer/ballAnalyzer"
+
 
 local jitter = 1
 local sf = 3.5 -- sliding friction

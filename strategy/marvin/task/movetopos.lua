@@ -1,6 +1,8 @@
 local MoveToPos = Class("Task.MoveToPos", require "task/base")
+
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
+
 
 function MoveToPos:_init(pos, dir)
 	self._pos = pos

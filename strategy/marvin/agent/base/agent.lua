@@ -1,8 +1,9 @@
 local Base = Class("Agent.Base.Agent")
-local debug = require "../base/debug"
 
-local Messaging = require "control/messaging"
+local debug = require "../base/debug"
 local Halt = require "agent/shared/halt"
+local Messaging = require "control/messaging"
+
 
 -- static method for pool
 function Base.takeRobot(robots)

@@ -2,6 +2,7 @@ local RouletteWheelSelection = {}
 
 local IO = require "util/io"
 
+
 --- creates a list of ratings with length n and a success rate of 50%
 -- at the first report, the rating changes +- 10% (2 out of 4 -> 2 or 3 out of 5)
 -- @param n number - the number of possible choices

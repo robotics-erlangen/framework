@@ -1,10 +1,11 @@
-local World = require "../base/world"
-local Referee = require "../base/referee"
-local Field = require "../base/field"
+local Defense = {}
+
 local debug = require "../base/debug"
+local Field = require "../base/field"
+local Referee = require "../base/referee"
+local World = require "../base/world"
 local UtilDefense = require "util/defense"
 
-local Defense = {}
 
 local MIN_OPP_DIST_TO_BALL_FOR_MARKING = 0.4
 

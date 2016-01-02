@@ -1,9 +1,10 @@
 local Test = {}
 
-Test.Messaging = require "test/unit/messaging"
 Test.ballAnalyzer = require "test/unit/ballAnalyzer"
 Test.Cache = require "test/unit/cache"
 Test.Class = require "test/unit/class"
+Test.Messaging = require "test/unit/messaging"
+
 
 function Test.ShouldRunFast()
 end

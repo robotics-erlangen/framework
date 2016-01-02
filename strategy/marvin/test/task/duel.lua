@@ -4,13 +4,13 @@ local AgentPool = require "control/agentpool"
 local Coordinator = require "control/coordinator"
 local Duel = require "task/duel"
 local MoveToStaticBall = require "task/movetostaticball"
-local Trainer = require "trainer/trainer"
 local ShootGoal = require "task/shootgoal"
- 
+local Trainer = require "trainer/trainer"
+
 
 -- needs one yellow and one blue robot, must be run for both strategies
-
 local Dueler = Class("Test.Task.Duel.Duel", require "agent/base/behavior")
+
 function Dueler:check()
 	return true
 end

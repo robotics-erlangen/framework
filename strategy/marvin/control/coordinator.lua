@@ -1,18 +1,10 @@
-local Agent = {
-	Attacker = require "agent/attacker",
-	Defender = require "agent/defender",
-	Keeper = require "agent/keeper",
-	Hidden = require "agent/hidden",
-	Ally = require "agent/ally",
-	Manual = require "agent/manual"
-}
-local World = require "../base/world"
-local debug = require "../base/debug"
--- local AgentPool = require "control/agentpool"
-local Messaging = require "control/messaging"
--- local Trainer = require "trainer/trainer"
-
 local Coordinator = Class("Control.Coordinator")
+
+local debug = require "../base/debug"
+local World = require "../base/world"
+
+local Messaging = require "control/messaging"
+
 
 function Coordinator:init(trainer, pools, poolGroups)
 	self._trainer = trainer

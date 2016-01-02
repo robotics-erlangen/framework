@@ -1,19 +1,22 @@
 local Base = require "agent/base/behavior"
 local HandleBall = Class("Agent.Defender.HandleBall", Base)
 
-local World = require "../base/world"
+local debug = require "../base/debug"
+local Field = require "../base/field"
 local geom = require "../base/geom"
 local Referee = require "../base/referee"
-local debug = require "../base/debug"
-local Rating = require "util/rating"
+local World = require "../base/world"
+local Duel = require "agent/attacker/duel"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
-local Field = require "../base/field"
+
 local CenterBack = require "task/centerback"
-local SaveBall = require "task/saveball"
-local Duel = require "agent/attacker/duel"
 local InterceptPass = require "task/interceptpass"
+local SaveBall = require "task/saveball"
+
 local DefUtil = require "util/defense"
+local Rating = require "util/rating"
+
 
 -- the ball is considered as a pass (and maybe as 'interceptable') if it rolls at at least that speed
 local MIN_PASS_INTERCEPTION_SPEED = 1.0

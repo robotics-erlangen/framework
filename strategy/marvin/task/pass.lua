@@ -1,12 +1,13 @@
 local Shoot = require "task/ability/shoot"
 local Pass = Class("Task.Pass", require "task/base", Shoot)
 
-local World = require "../base/world"
-local Robot = require "observer/robot"
-local Physics = require "observer/physics"
-local vis = require "../base/vis"
-local geom = require "../base/geom"
 local debug = require "../base/debug"
+local geom = require "../base/geom"
+local vis = require "../base/vis"
+local World = require "../base/world"
+local Physics = require "observer/physics"
+local Robot = require "observer/robot"
+
 
 function Pass:_init(targetRobot, shootPos)
 	self._targetRobot = assert(targetRobot, "targetRobot is missing")

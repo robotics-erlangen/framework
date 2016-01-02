@@ -1,19 +1,19 @@
+local Volley = require "task/ability/volley" -- only for calcPhi
 local CatchBall = {}
+CatchBall.depends = { Volley }
 
-local World = require "../base/world"
 local Constants = require "../base/constants"
-local ToTarget = require "trajectory/totarget"
-local Physics = require "observer/physics"
-local Robot = require "observer/robot"
-local geom = require "../base/geom"
-local vis = require "../base/vis"
 local debug = require "../base/debug"
 local Field = require "../base/field"
+local geom = require "../base/geom"
 local Referee = require "../base/referee"
-local Volley = require "task/ability/volley" -- only for calcPhi
+local vis = require "../base/vis"
+local World = require "../base/world"
+local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
+local ToTarget = require "trajectory/totarget"
 
-CatchBall.depends = { Volley }
 
 -- safety distance to ball
 local DIST_ERROR = 0.025

@@ -4,6 +4,7 @@ local geom = require "../base/geom"
 local World = require "../base/world"
 local TrajectoryHidden = require "trajectory/hidden"
 
+
 -- list of local speeds: (speedForward, speedSide)
 RescueRobot._speeds = {}
 

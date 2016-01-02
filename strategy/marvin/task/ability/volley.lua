@@ -1,14 +1,15 @@
 local Volley = {}
 
-local World = require "../base/world"
+local Constants = require "../base/constants"
+local debug = require "../base/debug"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
+local World = require "../base/world"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
-local ToTarget = require "trajectory/totarget"
 local Direct = require "trajectory/direct"
-local debug = require "../base/debug"
-local Constants = require "../base/constants"
+local ToTarget = require "trajectory/totarget"
+
 
 local mu_x = 1.1
 local mu_y = 0.4

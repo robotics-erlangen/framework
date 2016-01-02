@@ -1,13 +1,16 @@
 local Base = require "agent/base/behavior"
 local KickoffAssistant = Class("Agent.Attacker.KickoffAssistant", Base)
+
 local debug = require "../base/debug"
 local World = require "../base/world"
-local G = World.Geometry
 local Ball = require "observer/ball"
 local Game = require "observer/game"
 
-local MoveToPos = require "task/movetopos"
 local KickoffPass = require "task/kickoffpass"
+local MoveToPos = require "task/movetopos"
+
+
+local G = World.Geometry
 
 function KickoffAssistant:_stop(d)
 	self._behind = false

@@ -1,12 +1,13 @@
 local Base = require "agent/base/behavior"
 local ManMark = Class("Agent.Defender.ManMark", Base)
 
-local ManMarkTask = require "task/manmark"
-local CenterBack = require "task/centerback"
-local Field = require "../base/field"
-local Defense = require "util/defense"
 local debug = require "../base/debug"
+local Field = require "../base/field"
 local vis = require "../base/vis"
+local CenterBack = require "task/centerback"
+local ManMarkTask = require "task/manmark"
+local Defense = require "util/defense"
+
 
 function ManMark:_stop()
 	self._opp = nil

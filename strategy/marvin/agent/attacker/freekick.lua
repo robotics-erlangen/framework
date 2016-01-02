@@ -1,18 +1,20 @@
 local Base = require "agent/base/behavior"
 local FreeKick = Class("Agent.Attacker.FreeKick", Base)
 
-local World = require "../base/world"
+local debug = require "../base/debug"
+local Field = require "../base/field"
 local Referee = require "../base/referee"
-local Robot = require "observer/robot"
-local Shoot = require "observer/shoot"
+local World = require "../base/world"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
-local Field = require "../base/field"
+local Robot = require "observer/robot"
+local Shoot = require "observer/shoot"
+
+local GoalKick = require "task/goalkick"
+local MoveToStaticBall = require "task/movetostaticball"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
-local MoveToStaticBall = require "task/movetostaticball"
-local GoalKick = require "task/goalkick"
-local debug = require "../base/debug"
+
 
 local POSITION_PADDING = 0.02 -- safety distance
 

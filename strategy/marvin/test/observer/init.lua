@@ -8,6 +8,7 @@ local Tests = {
 	Robot = require "test/observer/robot",
 }
 
+
 for name,s in pairs(Tests) do
 	if type(s) ~= "table" then
 		error("Invalid test! " .. name)

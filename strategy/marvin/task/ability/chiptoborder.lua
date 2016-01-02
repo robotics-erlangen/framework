@@ -1,10 +1,12 @@
+local ForceShoot = require "task/ability/forceshoot"
 local ChipToBorder = {}
+ChipToBorder.depends = { ForceShoot }
 
-local World = require "../base/world"
+local debug = require "../base/debug"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
-local debug = require "../base/debug"
-local ForceShoot = require "task/ability/forceshoot"
+local World = require "../base/world"
+
 
 local touchLineDir = Vector(0, 1)
 
@@ -16,10 +18,6 @@ local leftnearBasePoint = Vector(-World.Geometry.FieldWidthHalf, World.Geometry.
 local rightnearBasePoint = Vector(World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf-1)
 local nearBaseLineDir = leftnearBasePoint-rightnearBasePoint
 local DIST_FACTOR = 0.25
-
-
-
-ChipToBorder.depends = { ForceShoot }
 
 function ChipToBorder:_chipToBorderIfSafe()
     local robotPos = self._robot.pos

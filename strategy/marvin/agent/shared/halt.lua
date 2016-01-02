@@ -4,6 +4,7 @@ local Halt = Class("Agent.Shared.Halt", Base)
 local World = require "../base/world"
 local HaltTask = require "task/halt"
 
+
 function Halt:check()
 	return World.RefereeState == "Halt"
 end

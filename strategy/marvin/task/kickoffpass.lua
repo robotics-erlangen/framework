@@ -1,16 +1,17 @@
 local KickoffPass = Class("Task.KickoffPass", require "task/base")
 local SuggestPass = require "task/ability/suggestpass"
 
+local debug = require "../base/debug"
+local World = require "../base/world"
 local Ball = require "observer/ball"
 local Game = require "observer/game"
 local Physics = require "observer/physics"
+local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 local Rating = require "util/rating"
-local World = require "../base/world"
-local G = World.Geometry
-local debug = require "../base/debug"
-local PathHelper = require "trajectory/pathhelper"
 
+
+local G = World.Geometry
 
 function KickoffPass:_init(pos, dir)
 	self._pos = pos

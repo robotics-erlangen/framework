@@ -1,7 +1,8 @@
 local World = require "../base/world"
-local Messaging = require "control/messaging"
 local AgentAttacker = require "agent/attacker"
+local Messaging = require "control/messaging"
 local ShootGoal = require "task/shootgoal"
+
 
 return function()
 	assert(World.FriendlyRobots[3], "this test needs 3 robots on the field")

@@ -1,11 +1,14 @@
 local SuggestPass = require "task/ability/suggestpass"
 local ArmadaTask = Class("Task.ArmadaTask", require "task/base", SuggestPass)
-local ToTarget = require "trajectory/totarget"
+
 local debug = require "../base/debug"
 local World = require "../base/world"
-local G = World.Geometry
 local Messaging = require "control/messaging"
 local PathHelper = require "trajectory/pathhelper"
+local ToTarget = require "trajectory/totarget"
+
+
+local G = World.Geometry
 
 -- the armada has 4 steps to form stairs, depending on ball distance
 local X_POSITIONS_ORIG = {

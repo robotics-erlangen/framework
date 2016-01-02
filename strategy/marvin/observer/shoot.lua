@@ -1,13 +1,11 @@
 local Shoot = {}
 
+local Field = require "../base/field"
 local World = require "../base/world"
-local Robot = require "observer/robot"
+local Messaging = require "control/messaging"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
-local Field = require "../base/field"
-local Messaging = require "control/messaging"
-
-
+local Robot = require "observer/robot"
 
 
 local function assistantOrder(r1, r2)

@@ -1,10 +1,11 @@
-local World = require "../base/world"
-local Field = require "../base/field"
+local AttackRatio = {}
+
 local debug = require "../base/debug"
+local Field = require "../base/field"
 local vis = require "../base/vis"
+local World = require "../base/world"
 local Ally = require "agent/ally"
 
-local AttackRatio = {}
 
 function AttackRatio:init()
     self._oppFreeKickOngoing = false

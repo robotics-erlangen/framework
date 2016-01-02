@@ -1,17 +1,18 @@
 local Duel = Class("Task.Duel", require "task/base")
 
-local World = require "../base/world"
-local geom = require "../base/geom"
-local vis = require "../base/vis"
 local debug = require "../base/debug"
+local Field = require "../base/field"
+local geom = require "../base/geom"
 local math = require "../base/math"
-local Physics = require "observer/physics"
+local vis = require "../base/vis"
+local World = require "../base/world"
 local Ball = require "observer/ball"
+local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local Direct = require "trajectory/direct"
-local ToTarget = require "trajectory/totarget"
-local Field = require "../base/field"
 local PathHelper = require "trajectory/pathhelper"
+local ToTarget = require "trajectory/totarget"
+
 
 local STAY_BEHIND_OPP_ANGLE = 120/180 * math.pi
 local STAY_BEHIND_OPP_HYSTERESIS = 10/180 * math.pi

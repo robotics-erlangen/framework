@@ -1,9 +1,9 @@
 local BallTest = {}
 
+local vis = require "../base/vis"
+local World = require "../base/world"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
-local World = require "../base/world"
-local vis = require "../base/vis"
 
 
 function BallTest.testBallOwner()

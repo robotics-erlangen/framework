@@ -1,10 +1,11 @@
 local GoalTest = {}
 
-local Goal = require "observer/goal"
-local World = require "../base/world"
-local vis = require "../base/vis"
-local RobotList = require "util/robotlist"
 local debug = require "../base/debug"
+local vis = require "../base/vis"
+local World = require "../base/world"
+local Goal = require "observer/goal"
+local RobotList = require "util/robotlist"
+
 
 function GoalTest.testFreeSectors()
 	local freeSectors = Goal.freeSectors(World.Ball.pos, World.OpponentRobots, true)

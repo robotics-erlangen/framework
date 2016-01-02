@@ -1,17 +1,20 @@
 local Goal = {}
 
-local World = require "../base/world"
+local Cache = require "../base/cache"
+local Constants = require "../base/constants"
+local debug = require "../base/debug"
 local Field = require "../base/field"
-local G = World.Geometry
-local Interval = require "util/interval"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
-local Constants = require "../base/constants"
-local Cache = require "../base/cache"
-local Physics = require "observer/physics"
+local World = require "../base/world"
+
 local Ball = require "observer/ball"
+local Physics = require "observer/physics"
 local Volley = require "task/ability/volley"
-local debug = require "../base/debug"
+local Interval = require "util/interval"
+
+
+local G = World.Geometry
 
 --- returns a list of all non-free sectors
 -- the non-free sectors are not merged and not sorted

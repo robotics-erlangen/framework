@@ -4,6 +4,7 @@ local KickoffDefensive = Class("Agent.Attacker.KickoffDefensive", Base)
 local World = require "../base/world"
 local KickoffMirror = require "task/kickoffmirror"
 
+
 local POSITION_PADDING = 0.02 -- safety distance
 
 local preGameStages = {

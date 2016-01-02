@@ -2,18 +2,20 @@ local SuggestPass = require "task/ability/suggestpass"
 local CornerAttack = require "task/ability/cornerattack"
 local Striker = Class("Task.Striker", require "task/base", SuggestPass, CornerAttack)
 
-local World = require "../base/world"
-local vis = require "../base/vis"
 local Constants = require "../base/constants"
-local ToTarget = require "trajectory/totarget"
-local ObserverGame = require "observer/game"
-local geom = require "../base/geom"
-local Interval = require "util/interval"
 local debug = require "../base/debug"
-local Messaging = require "control/messaging"
-local Referee = require "../base/referee"
 local Field = require "../base/field"
+local geom = require "../base/geom"
+local Referee = require "../base/referee"
+local vis = require "../base/vis"
+local World = require "../base/world"
+
+local Messaging = require "control/messaging"
+local ObserverGame = require "observer/game"
 local PathHelper = require "trajectory/pathhelper"
+local ToTarget = require "trajectory/totarget"
+local Interval = require "util/interval"
+
 
 local POSITION_PADDING = 0.02 -- safety distance
 

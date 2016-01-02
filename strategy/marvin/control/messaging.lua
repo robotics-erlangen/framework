@@ -3,6 +3,7 @@ local Messaging = {}
 local Robot = require "../base/robot"
 local checkType = require "../base/typecheck"
 
+
 local msgDefs = {
 	-- multiple senders
 	attackerFlag = "flag",

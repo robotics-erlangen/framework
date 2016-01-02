@@ -4,6 +4,7 @@ local IO = require "util/io"
 
 local Entry = Class("Learning.MovingAverage.Entry")
 
+
 function Entry:init(name, nPoints, default)
 	assert(nPoints ~= nil and default ~= nil, "Parameters are missing")
 	self._name = name

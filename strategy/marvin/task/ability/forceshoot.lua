@@ -1,7 +1,8 @@
 local ForceShoot = {}
 
-local World = require "../base/world"
 local debug = require "../base/debug"
+local World = require "../base/world"
+
 
 local FORCE_SHOOT_DELAY = 0.03 -- delay forced kick by this time
 
