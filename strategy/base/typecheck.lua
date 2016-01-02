@@ -23,7 +23,6 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-
 local Class = require "../base/class"
 
 --- tests a given value for a type

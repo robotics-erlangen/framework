@@ -24,9 +24,11 @@ module "Referee"
 *************************************************************************]]
 
 local Referee = {}
-local World = require "../base/world"
-local vis = require "../base/vis"
+
 local robotRadius = (require "../base/constants").maxRobotRadius -- avoid table lookups for speed reasons
+local vis = require "../base/vis"
+local World = require "../base/world"
+
 
 -- states, in which we must keep a dist of 50cm
 local stopStates = {

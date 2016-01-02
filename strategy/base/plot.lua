@@ -24,7 +24,9 @@ module "plot"
 *************************************************************************]]
 
 local plot = {}
+
 local amun = amun
+
 
 --- Add data to a plot. Value is used to create a point at the current time
 -- @name addPlot

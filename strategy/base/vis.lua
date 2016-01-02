@@ -24,13 +24,15 @@ module "vis"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-local Coordinates = require "../base/coordinates"
+local vis = {}
+
 local amun = amun
+local Coordinates = require "../base/coordinates"
+
 
 local gcolor = {}
 local gisFilled = true
 
-local vis = {}
 
 --- Joins rgba-value to a color.
 -- Values from 0 to 255

@@ -24,10 +24,12 @@ module "debugcommands"
 *************************************************************************]]
 
 local DebugCommands = {}
-local World = require "../base/world"
-local Coordinates = require "../base/coordinates"
+
 local sendRefereeCommand = amun.sendRefereeCommand
 local sendCommand = amun.sendCommand
+local Coordinates = require "../base/coordinates"
+local World = require "../base/world"
+
 
 -- See stageMapping in World
 local stageUnmapping = {
