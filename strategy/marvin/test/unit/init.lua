@@ -14,7 +14,7 @@ local testCount = 0
 local successfull = 0
 
 -- Note:
--- message printing and tests have to run in subsequent strategy runs 
+-- message printing and tests have to run in subsequent strategy runs
 -- because the printing happens after a strategy run is complete
 local namePrinted = false -- set true on the second call of runSingle
 
@@ -40,7 +40,7 @@ local function runSingle(name, test)
 		if failing == 0 then
 			log("<font color=\"darkgreen\"> All testcases successfull :)</font>")
 		else
-			log("<font color=\"red\">" .. failing .. " failing testcase" 
+			log("<font color=\"red\">" .. failing .. " failing testcase"
 				.. (failing > 1 and "s" or "") ..  "!</font>")
 		end
 	end
@@ -55,8 +55,8 @@ local function runNextTest() -- for entrypoint all
 end
 
 local function init()
-	if not pcall(require, 'debug') then 
-		error("Debugging not enabled!") 
+	if not pcall(require, 'debug') then
+		error("Debugging not enabled!")
 	end
 	local timeout = 1000000000 -- number of instructions before hook is called
 	debug.sethook(function() error("Timeout (adjustable in tests/unit/init.lua)") end, "", timeout)
