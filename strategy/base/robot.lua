@@ -222,6 +222,7 @@ function Robot:_setCommand()
 		controller = self._controllerInput,
 		v_f = self._controllerInput and self._controllerInput.v_f,
 		v_s = self._controllerInput and self._controllerInput.v_s,
+		omega = self._controllerInput and self._controllerInput.omega,
 		kick_style = self._kickStyle,
 		kick_power = self._kickPower,
 		force_kick = self._forceKick,
