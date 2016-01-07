@@ -53,6 +53,10 @@ local mt = {
   __index = vector_mt,
 }
 
+function vector_mt:isReadonly()
+	return ffi.istype(vector_c_readonly, self)
+end
+
 --- Creates a copy of the current vector.
 -- Doesn't copy read-only flag
 -- @return Vector - copy
