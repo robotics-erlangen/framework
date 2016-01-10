@@ -130,7 +130,9 @@ function constructSender(sender)
 			-- although a sender is adressing a robot, a message is delivered
 			-- to the corresponding agent. This ensures that a robot only receives
 			-- messages sent in frames where he has had the current agent
-			if receiver ~= "all" and receiver ~= "trainer" then
+			if receiver == nil then
+				error("nil is not a valid receiver")
+			elseif receiver ~= "all" and receiver ~= "trainer" then
 				receiver = robotToAgent[receiver]
 				if not receiver then
 					return -- not registered yet
