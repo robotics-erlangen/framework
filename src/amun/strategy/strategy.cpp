@@ -48,6 +48,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type) :
     m_strategyFailed(false)
 {
     m_udpSenderSocket = new QUdpSocket(this);
+    m_refboxSocket = new QTcpSocket(this);
 
     // used to delay processing until all status packets are processed
     m_idleTimer = new QTimer(this);
@@ -207,11 +208,18 @@ void Strategy::process()
             }
         }
         if (!m_networkRefereeCommand.isNull()) {
-            int bytesSent = m_udpSenderSocket->writeDatagram(m_networkRefereeCommand,
-                                                             QHostAddress("224.5.23.1"), 10003);
+            if (m_refboxSocket->state() != QAbstractSocket::ConnectedState) {
+                m_refboxSocket->connectToHost(QHostAddress::LocalHost, 10007);
+                if (!m_refboxSocket->waitForConnected(1000)) {
+                    m_networkRefereeCommand = QByteArray(); // reset
+                    fail("Failed to connect to refbox");
+                    return;
+                }
+            }
             int origSize = m_networkRefereeCommand.size();
-            m_networkRefereeCommand = QByteArray();
-
+            int bytesSent = m_refboxSocket->write(m_networkRefereeCommand, origSize);
+            m_refboxSocket->readAll(); // response is currently unused
+            m_networkRefereeCommand = QByteArray(); // reset
             if (bytesSent != origSize) {
                 fail("Failed to send referee command over network");
                 return;

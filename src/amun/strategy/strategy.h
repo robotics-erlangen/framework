@@ -26,6 +26,7 @@
 #include "strategytype.h"
 #include <QString>
 #include <QHostAddress>
+#include <QTcpSocket>
 
 class QTimer;
 class Timer;
@@ -87,6 +88,7 @@ private:
     QHostAddress m_mixedTeamHost;
     quint16 m_mixedTeamPort;
     QByteArray m_mixedTeamData;
+    QTcpSocket *m_refboxSocket;
     QByteArray m_networkRefereeCommand;
 };
 

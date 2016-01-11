@@ -21,7 +21,8 @@
 #include "lua_amun.h"
 #include "lua.h"
 #include "lua_protobuf.h"
-#include "protobuf/ssl_referee.pb.h"
+#include "protobuf/ssl_refbox_remotecontrol.pb.h"
+#include <QtEndian>
 
 static int amunGetGeometry(lua_State *state)
 {
@@ -227,12 +228,14 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
 
-    SSL_Referee referee;
-    protobufToMessage(state, 1, referee);
+    SSL_RefereeRemoteControlRequest request;
+    protobufToMessage(state, 1, request);
 
     QByteArray data;
-    data.resize(referee.ByteSize());
-    if (!referee.SerializeToArray(data.data(), data.size())) {
+    // the first 4 bytes denote the packet's size in big endian
+    data.resize(request.ByteSize()+4);
+    qToBigEndian<quint32>(request.ByteSize(), (uchar*)data.data());
+    if (!request.SerializeToArray(data.data()+4, request.ByteSize())) {
         luaL_error(state, "Invalid referee packet!");
     }
 
