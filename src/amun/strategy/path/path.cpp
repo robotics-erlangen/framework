@@ -96,7 +96,7 @@ Path::Path() :
     m_p_wp(0.4),
     m_radius(-1.f),
     m_stepSize(0.1f),
-    m_cacheSize(100),
+    m_cacheSize(200),
     m_rng(0), // random initialization
     m_treeStart(NULL),
     m_treeEnd(NULL)
@@ -346,7 +346,7 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
 
     // as the trees are rooted at the start and the end, the rrt will
     // leave obstacles at start and end before trying to merge the trees
-    for (int iteration = 1; iteration < 200 && !pathCompleted; iteration++) {
+    for (int iteration = 1; iteration < 300 && !pathCompleted; iteration++) {
         // Get a random target point (always inside the playfield)
         // the start tree should extend towards the end and vice versa
         Vector target = getTarget((treeA == m_treeStart)? end : start);
