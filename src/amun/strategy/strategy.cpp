@@ -49,6 +49,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type) :
 {
     m_udpSenderSocket = new QUdpSocket(this);
     m_refboxSocket = new QTcpSocket(this);
+    m_refboxSocket->setSocketOption(QAbstractSocket::LowDelayOption,1);
 
     // used to delay processing until all status packets are processed
     m_idleTimer = new QTimer(this);
@@ -218,7 +219,11 @@ void Strategy::process()
             }
             int origSize = m_networkRefereeCommand.size();
             int bytesSent = m_refboxSocket->write(m_networkRefereeCommand, origSize);
-            m_refboxSocket->readAll(); // response is currently unused
+
+            // discard responses, so they don't occupy ressources or block communication
+            // RefereeStatus is currently enough feedback for the autoref
+            m_refboxSocket->readAll();
+
             m_networkRefereeCommand = QByteArray(); // reset
             if (bytesSent != origSize) {
                 fail("Failed to send referee command over network");
