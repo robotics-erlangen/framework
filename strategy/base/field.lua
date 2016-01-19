@@ -318,12 +318,6 @@ function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp, fromCenterB
 			minWay = i[2]
 		end
 	end
-	if not minIntersection and fromCenterBackTask then
-		log("Pos: " .. tostring(pos) .. ", dir: " .. tostring(dir) .. ", extraDist: " .. extraDistance .. ", opp:" .. (opp or ""))
-		for index, i in ipairs(intersections) do
-			log("intersection " .. index .. ": " ..i)
-		end
-	end
 	return minIntersection, minWay
 end
 
