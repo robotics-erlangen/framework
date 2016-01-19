@@ -107,7 +107,7 @@ function CornerAttack:_tryCornerAttack()
             local receiveTime = World.Time + moveTime
             if mainAttacker then
                 self._send.passSuggestion(mainAttacker,
-                    { kind = "in the run", rating = 1, pos = self._pointOfImpact, time = receiveTime })
+                    { rating = 1, pos = self._pointOfImpact, time = receiveTime })
             end
 
             PathHelper.setDefaultObstacles(self._robot.path, self._robot)
