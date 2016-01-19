@@ -173,6 +173,9 @@ function Duel:_moveToBall()
 	-- ensure the ball isn't predicted to be behind / inside the opponent
 	local minTime = math.min(moveTime, shortestTimeToBall)
 	local futureBall = Physics.ballAtTime(World.Ball, minTime).pos
+	if minTime == math.huge then
+		futureBall = World.Ball.pos
+	end
 	local viewDir = (futureBall - self._robot.pos):angle()
 
 	
