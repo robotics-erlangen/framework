@@ -10,27 +10,25 @@ local Physics = require "observer/physics"
 local MoveToPos = require "task/movetopos"
 local Pass = require "task/pass"
 local Trainer = require "trainer/trainer"
+local PathHelper = require "trajectory/pathhelper"
+local ToTarget = require "trajectory/totarget"
+
+--The x coordinates of the lines the robots will return to
+local RETURN_LINES = {1.5,-1.5}
 
 --For now, linepassing will only work properly when all robots of the other team are disabled
-
 local lastShotBy = nil
-local lastHad = 2
-
---The Lines the robots will return to
-local returnLines = {1.5,-1.5}
---How far from the receiving Robot the shot will be aimed at
-local shotDistance = 0.7
 
 local Static = Class("Test.Task.LinePassing.Static", require "agent/base/behavior")
 function Static:check()
-  self._send.attackerFlag("all")
-  local lastRobot = Ball.isShot()
-  if lastRobot then
-    lastShotBy = lastRobot
-  end
-  if self._robot ~= lastShotBy then
-    self:_applyForMainAttacker()
-  end
+	self._send.attackerFlag("all")
+	local lastRobot = Ball.isShot()
+	if lastRobot then
+		lastShotBy = lastRobot
+	end
+	if self._robot ~= lastShotBy then
+		self:_applyForMainAttacker()
+	end
 	return false
 end
 
@@ -45,57 +43,64 @@ end
 
 function Passer:_updateTask()
 	local otherRobot = next(self._inbox.attackerFlag())
-	return Pass, { otherRobot}
+	return Pass, { otherRobot }
 end
 
-function sign(x)
-  return (x<0 and -1) or 1
+
+
+local MoveToRandom = Class("Test.Task.LinePassing.MoveToRandom", require "task/base")
+function MoveToRandom:_init()
+	self._ypos = (math.random() - 0.5) * 2 * (World.Geometry.FieldHeightHalf - 1)
 end
 
-local Position = Class("Test.Task.LinePassing.Position", require "agent/base/behavior")
-function Position:_stop()
-	self._alreadyReturned = false
-	self._newPosition = math.random(-World.Geometry.FieldHeight*0.3,World.Geometry.FieldHeight*0.3)
-	local dif = self._newPosition-self._robot.pos.y
-	if math.abs(dif) > 2 then
-		self._newPosition = self._newPosition-sign(dif)*math.max(0,math.abs(dif)-2)
-	end
-end
-
-function Position:check()
-	return next(self._inbox.attackerFlag()) ~= nil
-end
-
-function Position:_updateTask()
-	local otherRobot = next(self._inbox.attackerFlag())
-  local idx = 1
+function MoveToRandom:run()
+	-- get the robot index
+	local idx = 1
 	for robot, _ in pairs(self._inbox.attackerFlag()) do
 		if self._robot.id > robot.id then
 			idx = idx + 1
 		end
 	end
-	lastHad = idx
 	local mainAttacker = self._inbox.mainAttacker().trainer
 
-	local posTo = Vector(returnLines[idx],self._robot.pos.y)
-	local passPos = Vector(returnLines[idx],self._newPosition)
-	
-	local timeOnPass = Physics.robotTimeToPos(self._robot, posTo,
-				(posTo - self._robot.pos):setLength(self._robot.maxSpeed))
-	local ballTime = mainAttacker.pos:distanceTo(World.Ball.pos)
+	-- position where the robot wants the ball
+	local passPos = Vector(RETURN_LINES[idx], self._ypos)
 	local timeOnPos = Physics.robotTimeToPos(self._robot, passPos,
 			(passPos - self._robot.pos):setLength(self._robot.maxSpeed)) + World.Time
 
-	if (posTo - self._robot.pos):length() < 0.1 then
-		self._alreadyReturned = true
+	-- move to pass pos
+	local targetPos = passPos
+	local linePos = Vector(RETURN_LINES[idx], self._robot.pos.y)
+	if linePos:distanceTo(self._robot.pos) > 0.3
+			-- only move if the attacker is near the ball, this ensures that we still move when the attacker gets to the ball
+			or mainAttacker and mainAttacker.pos:distanceTo(World.Ball.pos) > 0.5 then
+		-- return to line before wanting a pass
+		timeOnPos = math.huge
+		targetPos = linePos
 	end
-	if self._alreadyReturned == false then
-		self._send.passSuggestion(mainAttacker,{ rating = math.huge, pos = passPos, time = math.huge })
-	else
-		self._send.passSuggestion(mainAttacker,{ rating = math.huge, pos = passPos, time = timeOnPos })
+
+	-- notify attacker
+	if mainAttacker then
+		self._send.passSuggestion(mainAttacker, { rating = math.huge, pos = passPos, time = timeOnPos })
 	end
-	return MoveToPos, { posTo, (-posTo):angle() }
+
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+
+	self._robot.trajectory:update(ToTarget, targetPos, (-targetPos):angle())
 end
+
+
+local Position = Class("Test.Task.LinePassing.Position", require "agent/base/behavior")
+function Position:check()
+	local otherRobot = next(self._inbox.attackerFlag())
+	return otherRobot
+end
+
+function Position:_updateTask()
+	return MoveToRandom, {}
+end
+
 
 
 local LinePassAgent = Class("Test.Task.LinePassAgent", require "agent/base/simpleagent")
