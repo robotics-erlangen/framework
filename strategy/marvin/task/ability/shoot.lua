@@ -62,9 +62,9 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontSh
 	local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(robotFront))
 	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
 
-	if World.Ball.speed:length() > MOVING_BALL then
+	if futureBall.speed:length() > MOVING_BALL then
 		self._movingBallHysteresis = true
-	elseif World.Ball.speed:length() < STOPPED_BALL then
+	elseif futureBall.speed:length() < STOPPED_BALL then
 		self._movingBallHysteresis = false
 	end
 
