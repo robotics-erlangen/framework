@@ -158,8 +158,9 @@ void TeamWidget::handleStatus(const Status &status)
 
         // show entrypoint name
         if (strategy->has_current_entry_point()) {
-            m_entryPoint = shortenEntrypointName(m_entryPoints, QString::fromStdString(strategy->current_entry_point()), 20);
-            m_btnEntryPoint->setText(m_entryPoint);
+            m_entryPoint = QString::fromStdString(strategy->current_entry_point());
+            QString shortEntryPoint = shortenEntrypointName(m_entryPoints, m_entryPoint, 20);
+            m_btnEntryPoint->setText(shortEntryPoint);
         } else {
             m_entryPoint = QString();
             m_btnEntryPoint->setText("<no entrypoint>");
