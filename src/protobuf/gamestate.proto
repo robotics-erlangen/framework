@@ -14,6 +14,7 @@ message GameState {
         PenaltyYellow = 8;
         DirectYellow = 9;
         IndirectYellow = 10;
+        BallPlacementYellow = 19;
 
         KickoffBluePrepare = 11;
         KickoffBlue = 12;
@@ -21,6 +22,7 @@ message GameState {
         PenaltyBlue = 14;
         DirectBlue = 15;
         IndirectBlue = 16;
+        BallPlacementBlue = 20;
 
         TimeoutYellow = 17;
         TimeoutBlue = 18;

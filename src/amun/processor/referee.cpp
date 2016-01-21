@@ -171,6 +171,14 @@ void Referee::handleCommand(SSL_Referee::Command command)
         m_gameState.set_state(amun::GameState::KickoffBluePrepare);
         break;
 
+    case SSL_Referee::BALL_PLACEMENT_YELLOW:
+        m_gameState.set_state(amun::GameState::BallPlacementYellow);
+        break;
+
+    case SSL_Referee::BALL_PLACEMENT_BLUE:
+        m_gameState.set_state(amun::GameState::BallPlacementBlue);
+        break;
+
     case SSL_Referee::PREPARE_PENALTY_YELLOW:
         m_gameState.set_state(amun::GameState::PenaltyYellowPrepare);
         break;

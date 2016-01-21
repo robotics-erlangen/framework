@@ -55,29 +55,31 @@ message SSL_RefereeRemoteControlRequest {
 	optional SSL_Referee.Command command = 3;
 
 	// The coordinates of the Designated Position (whose purpose depends on the
-	// current command). These are measured in millimetres and correspond to
-	// SSL-Vision coordinates. These fields must be present if and only if the
+	// current command). This is measured in millimetres and correspond to
+	// SSL-Vision coordinates. this field must be present if and only if the
 	// command field is present and is set to a ball placement command. If the
 	// command field is absent, the designated position does not change. If the
-	// command field is present and the designated position fields are absent,
-	// no designated position is included in the new command.
-	optional float designated_x = 4;
-	optional float designated_y = 5;
+	// command field is present and the designated position field is absent, no
+	// designated position is included in the new command.
+	optional SSL_Referee.Point designated_position = 4;
 
-	// Which type of card to issue (this field and card_team must either both
-	// be present or both be absent).
-	enum CardType {
-		CARD_YELLOW = 0;
-		CARD_RED = 1;
-	}
-	optional CardType card_type = 6;
+	// The card to issue.
+	message CardInfo {
+		// Which type of card to issue.
+		enum CardType {
+			CARD_YELLOW = 0;
+			CARD_RED = 1;
+		}
+		required CardType type = 1;
 
-	// Which team to issue the card to.
-	enum CardTeam {
-		TEAM_YELLOW = 0;
-		TEAM_BLUE = 1;
+		// Which team to issue the card to.
+		enum CardTeam {
+			TEAM_YELLOW = 0;
+			TEAM_BLUE = 1;
+		}
+		required CardTeam team = 2;
 	}
-	optional CardTeam card_team = 7;
+	optional CardInfo card = 5;
 
 	// The command_counter of the most recent multicast referee packet observed
 	// by the remote control. If this does not match the command_counter value
@@ -114,7 +116,7 @@ message SSL_RefereeRemoteControlRequest {
 	// bypassed and requests are never rejected for this reason. This is
 	// appropriate for remote control software managed by a human operator,
 	// where no race condition is possible.
-	optional uint32 last_command_counter = 8;
+	optional uint32 last_command_counter = 6;
 }
 
 // The TCP half-connection from referee box to controller carries a sequence of
@@ -139,21 +141,17 @@ message SSL_RefereeRemoteControlReply {
 		// The request was rejected because the requested command does not
 		// exist or is not accessible from the current game state.
 		BAD_COMMAND = 3;
-		// The request was rejected because one of the two designated position
-		// coordinates was provided, a designated position was provided with a
-		// command that does not need one or with the command field absent, or
-		// the command field was set to a ball placement command but a
-		// designated position was not provided.
+		// The request was rejected because a designated position was provided
+		// with a command that does not need one or with the command field
+		// absent, or the command field was set to a ball placement command but
+		// a designated position was not provided.
 		BAD_DESIGNATED_POSITION = 4;
-		// The request was rejected because it exactly one of card type and
-		// team but not both.
-		PARTIAL_CARD = 5;
 		// The request was rejected because the command_counter field does not
 		// match.
-		BAD_COMMAND_COUNTER = 6;
+		BAD_COMMAND_COUNTER = 5;
 		// The request was rejected because a card cannot be issued at this
 		// time.
-		BAD_CARD = 7;
+		BAD_CARD = 6;
 	}
 	required Outcome outcome = 2;
 };
