@@ -508,6 +508,8 @@ void Plotter::addPoint(const std::string &name, const QString &parent, float tim
 
 void Plotter::clearData()
 {
+    // fix loss of precision when loading multiple log files without restarting the plotter
+    m_startTime = 0;
     m_guiTimer->requestTriggering();
     // delete everything
     foreach (QStandardItem *item, m_items) {
