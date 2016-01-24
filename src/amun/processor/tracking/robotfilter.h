@@ -27,6 +27,7 @@
 #include "protobuf/ssl_detection.pb.h"
 #include "protobuf/world.pb.h"
 #include <QList>
+#include <QMap>
 #include <QPair>
 
 class SSL_DetectionRobot;
@@ -38,7 +39,7 @@ public:
     ~RobotFilter() override;
 
     void update(qint64 time);
-    void get(world::Robot *robot, bool flip);
+    void get(world::Robot *robot, bool flip, bool noRawData);
 
     void addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time);
     void addRadioCommand(const robot::Command &radioCommand, qint64 time);
@@ -66,12 +67,9 @@ private:
     void invalidateRobotCommand(qint64 time);
     double limitAngle(double angle) const;
 
-    // for debugging
     uint m_id;
-    float m_x;
-    float m_y;
-    float m_phi;
-    qint64 m_time;
+    // for debugging
+    QMap<int, world::RobotPosition> m_lastRaw;
     QList<world::RobotPosition> m_measurements;
 
     Kalman *m_kalman;

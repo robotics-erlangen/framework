@@ -338,7 +338,7 @@ void BallFilter::applyVisionFrame(const VisionFrame &frame)
     m_lastTime = frame.time;
 }
 
-void BallFilter::get(world::Ball *ball, bool flip)
+void BallFilter::get(world::Ball *ball, bool flip, bool noRawData)
 {
     float px = m_kalman->state()(0);
     float py = m_kalman->state()(1);
@@ -360,6 +360,10 @@ void BallFilter::get(world::Ball *ball, bool flip)
     ball->set_v_x(vx);
     ball->set_v_y(vy);
     ball->set_v_z(vz);
+
+    if (noRawData) {
+        return;
+    }
 
     foreach (const world::BallPosition &p, m_measurements) {
         world::BallPosition *np = ball->add_raw();

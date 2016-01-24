@@ -24,7 +24,6 @@
 RobotFilter::RobotFilter(const SSL_DetectionRobot &robot, qint64 last_time) :
     Filter(last_time),
     m_id(robot.robot_id()),
-    m_time(0),
     m_futureTime(0)
 {
     // translate from sslvision coordinate system
@@ -284,7 +283,7 @@ void RobotFilter::applyRobotCommand(const robot::Command &command)
     m_futureKalman->update();
 }
 
-void RobotFilter::get(world::Robot *robot, bool flip)
+void RobotFilter::get(world::Robot *robot, bool flip, bool noRawData)
 {
     float px = m_futureKalman->state()(0);
     float py = m_futureKalman->state()(1);
@@ -313,6 +312,10 @@ void RobotFilter::get(world::Robot *robot, bool flip)
     robot->set_v_y(vy);
     robot->set_omega(omega);
 
+    if (noRawData) {
+        return;
+    }
+
     foreach (const world::RobotPosition &p, m_measurements) {
         world::RobotPosition *np = robot->add_raw();
         np->set_time(p.time());
@@ -329,17 +332,17 @@ void RobotFilter::get(world::Robot *robot, bool flip)
         np->set_phi(limitAngle(rot));
         np->set_camera_id(p.camera_id());
 
-        if (m_time != 0 && np->time() > m_time) {
-            np->set_v_x((np->p_x() - m_x) / ((np->time() - m_time) * 1E-9));
-            np->set_v_y((np->p_y() - m_y) / ((np->time() - m_time) * 1E-9));
-            np->set_omega(limitAngle(np->phi() - m_phi) / ((np->time() - m_time) * 1E-9));
-            np->set_time_diff_scaled((np->time() - m_time) * 1E-7);
+        const world::RobotPosition &prevPos = m_lastRaw[np->camera_id()];
+
+        if (prevPos.IsInitialized() && np->time() > prevPos.time()
+                && prevPos.time() + 200*1000*1000 > np->time()) {
+            np->set_v_x((np->p_x() - prevPos.p_x()) / ((np->time() - prevPos.time()) * 1E-9));
+            np->set_v_y((np->p_y() - prevPos.p_y()) / ((np->time() - prevPos.time()) * 1E-9));
+            np->set_omega(limitAngle(np->phi() - prevPos.phi()) / ((np->time() - prevPos.time()) * 1E-9));
+            np->set_time_diff_scaled((np->time() - prevPos.time()) * 1E-7);
             np->set_system_delay((Timer::systemTime() - np->time()) * 1E-9);
         }
-        m_time = np->time();
-        m_x = np->p_x();
-        m_y = np->p_y();
-        m_phi = np->phi();
+        m_lastRaw[np->camera_id()] = *np;
     }
 
     m_measurements.clear();

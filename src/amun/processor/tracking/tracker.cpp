@@ -184,14 +184,14 @@ Status Tracker::worldState(qint64 currentTime)
     BallFilter *ball = bestFilter(m_ballFilter, 0);
     if (ball != NULL) {
         ball->update(currentTime);
-        ball->get(worldState->mutable_ball(), m_flip);
+        ball->get(worldState->mutable_ball(), m_flip, false);
     }
 
     for(RobotMap::iterator it = m_robotFilterYellow.begin(); it != m_robotFilterYellow.end(); ++it) {
         RobotFilter *robot = bestFilter(*it, minFrameCount);
         if (robot != NULL) {
             robot->update(currentTime);
-            robot->get(worldState->add_yellow(), m_flip);
+            robot->get(worldState->add_yellow(), m_flip, false);
         }
     }
 
@@ -199,7 +199,7 @@ Status Tracker::worldState(qint64 currentTime)
         RobotFilter *robot = bestFilter(*it, minFrameCount);
         if (robot != NULL) {
             robot->update(currentTime);
-            robot->get(worldState->add_blue(), m_flip);
+            robot->get(worldState->add_blue(), m_flip, false);
         }
     }
 
@@ -328,7 +328,7 @@ world::Robot Tracker::findNearestRobot(const QList<RobotFilter *> &robots, const
 
     world::Robot robotPos;
     if (best != nullptr) {
-        best->get(&robotPos, false);
+        best->get(&robotPos, false, true);
     }
     return robotPos;
 }
@@ -361,7 +361,7 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, qint3
     }
 
     world::Ball ballPos;
-    nearestFilter->get(&ballPos, false);
+    nearestFilter->get(&ballPos, false, true);
     world::Robot nearestRobot = findNearestRobot(bestRobots, ballPos);
     nearestFilter->addVisionFrame(cameraId, m_cameraPosition.value(cameraId, Eigen::Vector3f::Zero()), ball, receiveTime, nearestRobot);
 }

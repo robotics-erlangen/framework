@@ -38,7 +38,7 @@ public:
 
 public:
     void update(qint64 time);
-    void get(world::Ball *ball, bool flip);
+    void get(world::Ball *ball, bool flip, bool noRawData);
 
     void addVisionFrame(qint32 cameraId, const Eigen::Vector3f &cameraPos, const SSL_DetectionBall &ball, qint64 time, const world::Robot &nearestRobot);
 
