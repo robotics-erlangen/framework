@@ -227,8 +227,10 @@ function Shoot:_calculateDistToBall()
 			local dribblerPerp = Vector.fromAngle(self._robot.dir):perpendicular()
 			-- calculate offset to ball hitpoint
 			local _, _, lambda = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, ballTouchPos, dribblerPerp)
-			local errorVec = dribblerPerp * lambda
-			distToBall = errorVec:rotate(-self._robot.dir)
+			if lambda then
+				local errorVec = dribblerPerp * lambda
+				distToBall = errorVec:rotate(-self._robot.dir)
+			end
 		end
 	end
 	debug.set("distToBall", distToBall)
