@@ -326,10 +326,12 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dont
 
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.redHalf)
 	-- handle robot shoot direction problem
-	-- 4.2 degree / cm off
-	local SHOOT_SKEW = 4.2 / 180 * math.pi * 100
-	local SHOOT_SKEW_LIMIT = 3 / 180 * math.pi
-	targetDir = targetDir - math.bound(-SHOOT_SKEW_LIMIT, distToBall.y * SHOOT_SKEW, SHOOT_SKEW_LIMIT)
+	if not World.IsSimulated then
+		-- 4.2 degree / cm off
+		local SHOOT_SKEW = 4.2 / 180 * math.pi * 100
+		local SHOOT_SKEW_LIMIT = 4 / 180 * math.pi
+		targetDir = targetDir - math.bound(-SHOOT_SKEW_LIMIT, distToBall.y * SHOOT_SKEW, SHOOT_SKEW_LIMIT)
+	end
 	self:_checkShootHysteresis(targetDir, maxAngleError, dontShoot)
 
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(self._robot.dir)*20 }, vis.colors.blue)
