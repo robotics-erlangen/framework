@@ -3,7 +3,7 @@ local IO = {}
 require "../base/amun"
 
 
-local pathToStrategy = amun.strategyPath.."/learning/parameters/"
+local pathToStrategy = amun.strategyPath.."/"
 
 function IO.readLines(module)
 	local filename = pathToStrategy..module

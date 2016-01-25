@@ -5,8 +5,8 @@ local IO = require "util/io"
 
 
 function PhysicsTest.testBallVsRobotTime()
-	local ball = {pos = Vector(0, 0), speed = Vector(0, 3), maxSpeed = 7, radius = 0.021}
-	local robot = {pos = Vector(0.00, 2), speed = Vector(0, 0), maxSpeed = 3, shootRadius = 0.08}
+	local ball = {pos = Vector(0, -1), speed = Vector(0, 5), maxSpeed = 7, radius = 0.021}
+	local robot = {pos = Vector(0, 0), speed = Vector(0, 2), maxSpeed = 3, shootRadius = 0.08, dribblerWidth = 0.06}
 	local s_max = 4
 	local s_step = 0.01
 
@@ -25,10 +25,10 @@ function PhysicsTest.testBallVsRobotTime()
 		if s < balldist and s + s_step > balldist then
 			mttb_flag = 0
 		end
-		table.insert(values, t_diff .. " " .. mttb_flag)
+		table.insert(values, t_diff .. " " .. s .. " 0")
 	end
 
-	IO.save("physicstest", values)
+	IO.save("physics.test", values)
 end
 
 function PhysicsTest.testBallStopTime()
