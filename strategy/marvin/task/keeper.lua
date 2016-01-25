@@ -13,8 +13,8 @@ local ToTarget = require "trajectory/totarget"
 
 
 local G = World.Geometry
-local keeperGoalDistance = 0.06
-local goalNormal = Vector(0, 1)
+local KEEPER_GOAL_DISTANCE = 0.06
+local GOAL_NORMAL = Vector(0, 1)
 
 function Keeper:_init()
 	self._defendCorner = false
@@ -29,7 +29,7 @@ function Keeper:run()
 	-- check if opponent would shoot at the goal from somewhere near the field corners
 	-- how far the ball is off to the sides
 	-- use hysteresis to prevent flickering between positions
-	local sideAngle = goalNormal:absoluteAngleDiff(atkPos - G.FriendlyGoal)
+	local sideAngle = GOAL_NORMAL:absoluteAngleDiff(atkPos - G.FriendlyGoal)
 	if sideAngle > 45/180*math.pi then
 		self._defendCorner = true
 	elseif sideAngle < 30/180*math.pi then
@@ -74,11 +74,11 @@ function Keeper:run()
 		-- account for robot radius
 		local goalCornerLeft = Vector(-goalWidthHalf, G.FriendlyGoal.y)
 		local goalCornerRight = Vector(goalWidthHalf, G.FriendlyGoal.y)
-		local goalLineY = G.FriendlyGoal.y + keeperGoalDistance + self._robot.radius
+		local goalLineY = G.FriendlyGoal.y + KEEPER_GOAL_DISTANCE + self._robot.radius
 		local lineDist = math.abs(goalLineY - goalCornerLeft.y)
 
 		local leftBound = -goalWidthHalf
-		local angleLeft = goalNormal:angleDiff(atkPos - goalCornerLeft)
+		local angleLeft = GOAL_NORMAL:angleDiff(atkPos - goalCornerLeft)
 		if math.abs(angleLeft) < math.pi / 2 then
 			-- distance cutoff by angle to atkPos + distance blocked by robot radius
 			-- ignore robot radius when isShot is set, in order to allow the robot to get behind the ball
@@ -87,7 +87,7 @@ function Keeper:run()
 		end
 
 		local rightBound = goalWidthHalf
-		local angleRight = goalNormal:angleDiff(atkPos - goalCornerRight)
+		local angleRight = GOAL_NORMAL:angleDiff(atkPos - goalCornerRight)
 		if math.abs(angleRight) < math.pi / 2 then
 			local rightDist = -math.tan(angleRight) * lineDist - (isShot and 0 or self._robot.radius / math.cos(angleRight))
 			rightBound = rightBound + math.min(0, rightDist)
@@ -152,7 +152,7 @@ function Keeper:run()
 	-- block estimated shoot line
 	elseif atkDir.y < 0 then
 		local k = math.bound(0, (atkPos.y+2)/2 * 0.6, 0.5)
-		moveTo = intersectPos * (1-k) + Vector(0, -G.FieldHeightHalf + keeperGoalDistance + self._robot.radius) * k
+		moveTo = intersectPos * (1-k) + Vector(0, -G.FieldHeightHalf + KEEPER_GOAL_DISTANCE + self._robot.radius) * k
 	else -- don't know where to go, just center in the goal / corner
 		moveTo = fallbackPos
 	end
