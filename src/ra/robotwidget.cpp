@@ -75,6 +75,14 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
         m_teamGroup->addAction(action);
     }
 
+    if (is_generation) {
+        // partial blue and yellow only set the first half of the robots
+        action = m_teamMenu->addAction("Half Blue");
+        action->setData(PartialBlue);
+        action = m_teamMenu->addAction("Half Yellow");
+        action->setData(PartialYellow);
+    }
+
     connect(m_teamMenu, SIGNAL(triggered(QAction*)), SLOT(selectTeam(QAction*)));
 
     m_team = new QToolButton;

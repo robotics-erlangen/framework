@@ -429,12 +429,22 @@ void RobotSelectionWidget::selectTeamForGeneration(uint generation, uint, RobotW
     }
     Generation &g = m_generations[generation];
     QMutableMapIterator<uint, Generation::Robot> it(g.robots);
+    int stopAfter = g.robots.size();
+    if (team == RobotWidget::PartialBlue || team == RobotWidget::PartialYellow) {
+        stopAfter /= 2;
+        team = (team == RobotWidget::PartialBlue) ? RobotWidget::Blue : RobotWidget::Yellow;
+    }
     while (it.hasNext()) {
         it.next();
         Generation::Robot &r = it.value();
         unsetTeam(r.specs.id(), generation, team);
         r.team = team;
         emit setTeam(generation, r.specs.id(), team);
+
+        stopAfter--;
+        if (stopAfter <= 0) {
+            break;
+        }
     }
     updateGenerationTeam();
     sendTeams();
