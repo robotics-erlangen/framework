@@ -27,7 +27,7 @@ function Pass:run()
 	local newSuggestion = self._inbox.passSuggestion()[self._targetRobot]
 	--a passSuggestion provides the position
 	if newSuggestion and newSuggestion.pos then
-			self._shootPos = newSuggestion.pos
+		self._shootPos = newSuggestion.pos
 	else  -- direct pass
 		-- shoot ball into robot dribbler
 		self._shootPos = self._targetRobot.pos + Vector.fromAngle(self._targetRobot.dir) * self._targetRobot.shootRadius
@@ -41,9 +41,6 @@ function Pass:run()
 	local opponentReactionTime = 0.15
 	local linearShootHysteresisFlag = true
 	for _, opp in ipairs(World.OpponentRobots) do
-		if not self._targetRobot then
-			break
-		end
 		if opp == World.OpponentKeeper then
 			goto continue
 		end
