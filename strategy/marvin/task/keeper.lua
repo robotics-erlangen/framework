@@ -99,10 +99,6 @@ function Keeper:run()
 		fallbackPos = (defenseLineEnd + defenseLineStart) * 0.5
 	end
 
-	-- add some safety cm to detect shots towards the goal posts even without precise ball direction
-	defenseLineStart.x = defenseLineStart.x + math.sign(defenseLineStart.x) * 0.1
-	defenseLineEnd.x = defenseLineEnd.x + math.sign(defenseLineEnd.x) * 0.1
-
 	-- intersect defense line with ball trajectory
 	local defenseDir = defenseLineEnd - defenseLineStart
 	local _, lambdaDef = geom.intersectLineLine(defenseLineStart, defenseDir,
@@ -113,6 +109,11 @@ function Keeper:run()
 		debug.set("lambdaDef", lambdaDef)
 		local lambdaBounded = math.bound(0, lambdaDef, 1)
 		successfulIntersection = (lambdaDef == lambdaBounded)
+		if lambdaDef == lambdaBounded
+				-- add some safety cm to detect shots towards the goal posts even without precise ball direction
+				or defenseDir:length() >= 0.01 and math.abs(lambdaDef - lambdaBounded) < 0.05 / defenseDir:length() then
+			successfulIntersection = true
+		end
 		-- limit to positions on the line segment!
 		intersectPos = defenseLineStart + defenseDir * lambdaBounded
 	else
