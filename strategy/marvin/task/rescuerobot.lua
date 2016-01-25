@@ -5,11 +5,9 @@ local World = require "../base/world"
 local TrajectoryHidden = require "trajectory/hidden"
 
 
--- list of local speeds: (speedForward, speedSide)
-RescueRobot._speeds = {}
-
 function RescueRobot:_init()
 	self._rotation = nil
+	-- list of local speeds: (speedForward, speedSide)
 	self._speeds = nil
 end
 
