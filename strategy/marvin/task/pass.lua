@@ -84,8 +84,8 @@ function Pass:run()
 			["ball time"] = ballTime,
 		})
 		vis.addCircle("t/pass: OppInterception", pointOfImpact, 0.1, vis.colors.blue, true)
-		-- a chip kick does not help if the interception is close to the target robot
-		if robotTimeInner < ballTime and self._targetRobot.pos:distanceTo(pointOfImpact) > MIN_OPP_CHIP_DIST then
+		-- a chip kick does not help if the interception is close to the target position
+		if robotTimeInner < ballTime and self._shootPos:distanceTo(pointOfImpact) > MIN_OPP_CHIP_DIST then
 			self._linearShoot = false
 			linearShootHysteresisFlag = false
 			break
