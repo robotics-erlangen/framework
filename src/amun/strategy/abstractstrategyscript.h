@@ -41,8 +41,8 @@ public:
     virtual ~AbstractStrategyScript() {}
 
     // simple factory to allow for different strategy handlers
-    static bool canHandle(const QString filename);
-    static AbstractStrategyScript* createStrategy(const Timer *timer, StrategyType type, bool debugEnabled);
+    static bool canHandle(const QString &filename);
+    static AbstractStrategyScript* createStrategy(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
 
     // return true on success, if false is returned the error msg can be retrieved via errorMsg()
     // loadScript and process MUST NOT be called anymore after an error was thrown!

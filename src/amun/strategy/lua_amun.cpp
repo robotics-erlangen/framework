@@ -240,7 +240,7 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
     }
 
     if (!thread->sendNetworkReferee(data)) {
-        luaL_error(state, "This function is only allowed as autoref or in debug mode!");
+        luaL_error(state, "This function is only allowed in debug mode and if refbox control is enabled!");
     }
     return 0;
 }

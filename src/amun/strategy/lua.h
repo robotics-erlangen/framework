@@ -38,11 +38,12 @@ class Lua : public AbstractStrategyScript
 {
     Q_OBJECT
 private:
-    Lua(const Timer *timer, StrategyType type, bool debugEnabled);
+    Lua(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
 public:
-    static bool canHandle(const QString filename);
-    static AbstractStrategyScript* createStrategy(const Timer *timer, StrategyType type, bool debugEnabled);
-    ~Lua();
+    static bool canHandle(const QString &filename);
+    static AbstractStrategyScript* createStrategy(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
+    ~Lua() override;
+
 
 public:
     bool loadScript(const QString filename, const QString entryPoint, const world::Geometry &geometry, const robot::Team &team);
@@ -77,6 +78,7 @@ private:
     const Timer *m_timer;
     const StrategyType m_type;
     const bool m_debugEnabled;
+    const bool m_refboxControlEnabled;
 
     QString m_filename;
     QDir m_baseDir;

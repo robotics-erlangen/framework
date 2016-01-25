@@ -227,10 +227,11 @@ static int luaInstallKillHook(lua_State* state)
     return 0;
 }
 
-Lua::Lua(const Timer *timer, StrategyType type, bool debugEnabled) :
+Lua::Lua(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) :
     m_timer(timer),
     m_type(type),
-    m_debugEnabled(debugEnabled)
+    m_debugEnabled(debugEnabled),
+    m_refboxControlEnabled(refboxControlEnabled)
 {
     // create lua instance and load libraries
     m_state = luaL_newstate();
@@ -261,13 +262,13 @@ Lua::Lua(const Timer *timer, StrategyType type, bool debugEnabled) :
     lua_pushcfunction(m_state, luaErrorHandler);
 }
 
-bool Lua::canHandle(const QString filename)
+bool Lua::canHandle(const QString &filename)
 {
     return filename.endsWith(".lua");
 }
 
-AbstractStrategyScript* Lua::createStrategy(const Timer *timer, StrategyType type, bool debugEnabled) {
-    return new Lua(timer, type, debugEnabled);
+AbstractStrategyScript* Lua::createStrategy(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) {
+    return new Lua(timer, type, debugEnabled, refboxControlEnabled);
 }
 
 Lua::~Lua()
@@ -410,7 +411,7 @@ bool Lua::sendCommand(const Command &command)
 
 bool Lua::sendNetworkReferee(const QByteArray &referee)
 {
-    if (!m_debugEnabled && m_type != StrategyType::AUTOREF) {
+    if (!m_debugEnabled || !m_refboxControlEnabled) {
         return false;
     }
     emit sendNetworkRefereeCommand(referee);

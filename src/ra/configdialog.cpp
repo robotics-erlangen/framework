@@ -69,6 +69,8 @@ void ConfigDialog::sendConfiguration()
     nc->set_host(ui->networkHost->text().toStdString());
     nc->set_port(ui->networkPort->value());
 
+    command->mutable_strategy_yellow()->set_enable_refbox_control(ui->refboxControlUse->isChecked());
+
     command->mutable_mixed_team_destination()->set_host(ui->mixedHost->text().toStdString());
     command->mutable_mixed_team_destination()->set_port(ui->mixedPort->value());
 

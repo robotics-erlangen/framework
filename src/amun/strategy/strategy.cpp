@@ -44,6 +44,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type) :
     m_strategy(NULL),
     m_type(type),
     m_debugEnabled(false),
+    m_refboxControlEnabled(false),
     m_autoReload(false),
     m_strategyFailed(false)
 {
@@ -131,6 +132,14 @@ void Strategy::handleCommand(const Command &command)
             // only reload on change
             if (m_debugEnabled != cmd->enable_debug()) {
                 m_debugEnabled = cmd->enable_debug();
+                reloadStrategy = true;
+            }
+        }
+
+        if (cmd->has_enable_refbox_control()) {
+            // only reload on change
+            if (m_refboxControlEnabled != cmd->enable_refbox_control()) {
+                m_refboxControlEnabled = cmd->enable_refbox_control();
                 reloadStrategy = true;
             }
         }
@@ -266,7 +275,7 @@ void Strategy::sendCommand(Command command)
     }
 }
 
-void Strategy::loadScript(const QString filename, const QString entryPoint)
+void Strategy::loadScript(const QString &filename, const QString &entryPoint)
 {
     Q_ASSERT(m_geometry.IsInitialized());
     Q_ASSERT(m_team.IsInitialized());
@@ -281,7 +290,7 @@ void Strategy::loadScript(const QString filename, const QString entryPoint)
 
     // hardcoded factory pattern
     if (Lua::canHandle(filename)) {
-        m_strategy = Lua::createStrategy(m_timer, m_type, m_debugEnabled);
+        m_strategy = Lua::createStrategy(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
     } else {
         fail(QString("No strategy handler for file %1").arg(filename));
     }

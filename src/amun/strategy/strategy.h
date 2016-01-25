@@ -59,7 +59,7 @@ private slots:
     void sendCommand(Command command);
 
 private:
-    void loadScript(const QString filename, const QString entryPoint);
+    void loadScript(const QString &filename, const QString &entryPoint);
     void close();
     void fail(const QString error);
     void setStrategyStatus(Status status, amun::StatusStrategy::STATE state);
@@ -78,6 +78,7 @@ private:
     QString m_filename;
     QString m_entryPoint;
     bool m_debugEnabled;
+    bool m_refboxControlEnabled;
 
     QTimer *m_idleTimer;
     QTimer *m_reloadTimer;

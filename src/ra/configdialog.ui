@@ -203,6 +203,22 @@
     </widget>
    </item>
    <item>
+    <widget class="QGroupBox" name="groupBox_7">
+     <property name="title">
+      <string>Remote Refbox Control</string>
+     </property>
+     <layout class="QFormLayout" name="formLayout_7">
+     <item row="0" column="0" colspan="2">
+      <widget class="QCheckBox" name="refboxControlUse">
+       <property name="text">
+        <string>Enable refbox control</string>
+       </property>
+      </widget>
+     </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
     <widget class="QGroupBox" name="groupBox_3">
      <property name="title">
       <string>Simulator</string>
