@@ -287,12 +287,9 @@ function Striker:run()
 	if not Messaging.get("attackerFlag")[self._robot] then
 		return -- we're not considered at position choice
 	end
-	local startTime = amun.getCurrentTime()
-	self:_suggestPass()
-	local runTime = math.round((amun.getCurrentTime() - startTime)*1000000)/1000
-	--log("pass-pos computation took " .. runTime .. "ms")
 
 	self:_calcMoveDest()
+	self:_suggestPass(self._moveDest)
 	if(self._moveDest.x==0 and self._moveDest.y==0) then
 		log("attacker at (0|0)")
 	end
