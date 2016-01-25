@@ -181,6 +181,7 @@ function amun._hideFunctions()
 	local strategyPath = amun.getStrategyPath()
 	local getCurrentTime = amun.getCurrentTime
 	local sendCommand = amun.sendCommand
+	local sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand
 
 	-- overwrite global amun
 	amun = {
@@ -192,6 +193,11 @@ function amun._hideFunctions()
 	}
 	if isDebug then
 		amun.sendCommand = sendCommand
+		amun.sendNetworkRefereeCommand = sendNetworkRefereeCommand
+	else
+		amun.sendNetworkRefereeCommand = function()
+			error "you must enable debug in order to send referee commands"
+		end
 	end
 
 	-- prevent reloading original api
