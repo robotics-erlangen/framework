@@ -37,7 +37,7 @@ function Keeper:run()
 	end
 
 	-- keep the goalie inside the goal to exploit its full diameter for blocking incoming balls
-	local goalWidthHalf = G.GoalWidth/2 - 0.03
+	local goalWidthHalf = G.GoalWidth/2 - 0.015
 
 	-- line to move along for defending
 	local defenseLineStart, defenseLineEnd, fallbackPos
