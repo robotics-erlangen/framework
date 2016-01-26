@@ -140,6 +140,14 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
+--- Add a new target for seeding the RRT search tree.
+-- Seeding is done by rasterizing a path from rrt start to the given point
+-- @param x number - x coordinate of seed point
+-- @param y number - y coordinate of seed point
+
+--[[
+separator for luadoc]]--
+
 --- Generates a visualization of the tree.
 -- @class function
 -- @name path:addTreeVisualization
@@ -173,5 +181,16 @@ function path:addRect(start_x, start_y, stop_x, stop_y, name)
 		_addRect(self, -start_x, -start_y, -stop_x, -stop_y, name)
 	else
 		_addRect(self, start_x, start_y, stop_x, stop_y, name)
+	end
+end
+
+local _addSeedTarget = path.addSeedTarget
+if _addSeedTarget then
+	path.addSeedTarget = function (self, x, y)
+		if teamIsBlue then
+			_addSeedTarget(self, -x, -y)
+		else
+			_addSeedTarget(self, x, y)
+		end
 	end
 end

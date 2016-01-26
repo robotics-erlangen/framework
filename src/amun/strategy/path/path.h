@@ -98,6 +98,7 @@ public:
     void setRadius(float r);
     bool isRadiusValid() { return m_radius >= 0.f; }
     void setBoundary(float x1, float y1, float x2, float y2);
+    void addSeedTarget(float x, float y);
     // world obstacles
     void clearObstacles();
     void addCircle(float x, float y, float radius, const char *name);
@@ -135,6 +136,7 @@ private:
 private:
     QList<Vector> m_waypoints;
     QList<const Obstacle*> m_obstacles;
+    QList<Vector> m_seedTargets;
     Rect m_boundary;
     float m_width; // width and height of bounding rectangle
     float m_height;

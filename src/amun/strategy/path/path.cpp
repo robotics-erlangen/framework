@@ -133,10 +133,16 @@ void Path::setBoundary(float x1, float y1, float x2, float y2)
     m_height = m_boundary.top_right.y - m_boundary.bottom_left.y;
 }
 
+void Path::addSeedTarget(float x, float y)
+{
+    m_seedTargets.append(Vector(x, y));
+}
+
 void Path::clearObstacles()
 {
     qDeleteAll(m_obstacles);
     m_obstacles.clear();
+    m_seedTargets.clear();
 }
 
 void Path::addCircle(float x, float y, float radius, const char* name)
@@ -343,6 +349,13 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
     KdTree *treeA = m_treeStart;
     KdTree *treeB = m_treeEnd;
     const KdTree::Node *mergerNode = NULL; // node where both trees have met
+
+    if (!pathCompleted && m_seedTargets.size() > 0) {
+        for (Vector seedTarget: m_seedTargets) {
+            const KdTree::Node *nearestNode = m_treeStart->nearest(start);
+            rasterPath(LineSegment(start, seedTarget), nearestNode, m_stepSize);
+        }
+    }
 
     // as the trees are rooted at the start and the end, the rrt will
     // leave obstacles at start and end before trying to merge the trees

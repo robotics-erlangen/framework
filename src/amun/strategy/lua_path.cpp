@@ -149,6 +149,15 @@ static int pathSetProbabilities(lua_State *L)
     return 0;
 }
 
+static int pathAddSeedTarget(lua_State *L)
+{
+    Path *p = checkPath(L, 1);
+    const float p_x = verifyNumber(L, 2);
+    const float p_y = verifyNumber(L, 3);
+    p->addSeedTarget(p_x, p_y);
+    return 0;
+}
+
 static int pathAddRect(lua_State *L)
 {
     Path *p = checkPath(L, 1);
@@ -279,6 +288,7 @@ static const luaL_Reg pathMethods[] = {
     {"addCircle",       pathAddCircle},
     {"addLine",         pathAddLine},
     {"addRect",         pathAddRect},
+    {"addSeedTarget",   pathAddSeedTarget},
     {"setProbabilities",    pathSetProbabilities},
     {"test",            pathTest},
     {"get",             pathGet},
