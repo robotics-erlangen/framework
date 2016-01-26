@@ -14,7 +14,16 @@ local ToTarget = require "trajectory/totarget"
 local mu_x = 1.1
 local mu_y = 0.4
 
+local function setSimulatorParams()
+	if not World.IsSimulated then
+		return
+	end
+	mu_x = 0.9
+	mu_y = 0.56
+end
+
 function Volley:init()
+	setSimulatorParams()
 	self._ballIncoming = true
 	self._shooting = false
 
