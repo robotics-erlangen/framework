@@ -249,7 +249,7 @@ function Shoot:_checkShootHysteresis(targetDir, maxAngleError, dontShoot)
 	end
 
 	-- only start kicking if the robot got the ball
-	if self._robot:hasBall(World.Ball, -0.01) then
+	if self._robot:hasBall(World.Ball, -0.005) then
 		-- shootHysteresis stays true after maxAngleError was satisfied once
 		if self._canShootHysteresis then
 			self._shootHysteresis = true
