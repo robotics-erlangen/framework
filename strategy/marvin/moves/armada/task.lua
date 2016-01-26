@@ -95,7 +95,7 @@ function ArmadaTask:run()
                 end
             end
         end
-        self:_suggestPass()
+        self:_suggestPass(self._moveDest)
     end
     PathHelper.setDefaultObstacles(self._robot.path, self._robot)
     PathHelper.addRobotObstacles(self._robot.path, self._robot)
