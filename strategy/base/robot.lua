@@ -397,7 +397,46 @@ end
 function Robot:hasBall(ball, sideOffset)
 	sideOffset = sideOffset or 0
 	local relpos = self:posToBall(ball)
+
+	-- handle sidewards balls
+	local latencyCompensation = (ball.speed - self.speed) * Constants.systemLatency
+	-- interpolate vector used for correction to circumvent noise
+	local MIN_COMPENSATION = 0.005
+	local BOUND_COMPENSATION_ANGLE = 70/180*math.pi
+	if latencyCompensation:length() < MIN_COMPENSATION then
+		latencyCompensation = Vector(0, 0)
+	elseif latencyCompensation:length() < 2*MIN_COMPENSATION then
+		local scale = (latencyCompensation:length() - MIN_COMPENSATION) / MIN_COMPENSATION
+		latencyCompensation:scaleLength(scale)
+	end
+	-- local coordinate system
+	latencyCompensation = latencyCompensation:rotate(-self.dir)
+	-- let the vector point away from the robot
+	if latencyCompensation.x < 0 then
+		latencyCompensation:scaleLength(-1)
+	end
+	-- bound angle
+	if latencyCompensation:length() > 0.001 and math.abs(latencyCompensation:angle()) > BOUND_COMPENSATION_ANGLE then
+		local boundAngle = math.bound(-BOUND_COMPENSATION_ANGLE, latencyCompensation:angle(), BOUND_COMPENSATION_ANGLE)
+		latencyCompensation = Vector.fromAngle(boundAngle):scaleLength(latencyCompensation:length())
+	end
+
+	-- add hasBallDistance
+	if latencyCompensation:length() <= 0.001 then
+		latencyCompensation = Vector(self.constants.hasBallDistance, 0)
+	else
+		latencyCompensation = latencyCompensation:setLength(latencyCompensation:length() + self.constants.hasBallDistance)
+	end
+
+	-- only apply sidewards correction is the ball is in front of the robot
 	local offset = math.abs(relpos.y)
+	if relpos.x > 0 then
+		offset = math.abs(relpos.y - relpos.x * latencyCompensation.y / latencyCompensation.x)
+	end
+	-- local debug = require "../base/debug"
+	-- debug.set("latencyCompensation", latencyCompensation)
+	-- debug.set("offset", offset)
+
 	-- if too far to the sides
 	if offset > self.dribblerWidth / 2 + sideOffset then
 		return false
@@ -407,9 +446,8 @@ function Robot:hasBall(ball, sideOffset)
 		return false
 	end
 
-	-- FIXME remove partial system latency hack
 	self._hasBall[sideOffset] = relpos.x > self.shootRadius * (-1.5)
-			and relpos.x < self.constants.hasBallDistance + ball.speed:length() * Constants.systemLatency
+			and relpos.x < latencyCompensation.x
 	return self._hasBall[sideOffset]
 end
 
