@@ -22,6 +22,11 @@ local OBSTACLE_EPSILON = 0.001
 local SLOW_BALL = 0.5
 local POSITION_PADDING = 0.04 -- boundary extension for field
 
+
+local AROUND_METHOD = "around"
+local STOP_METHOD = "stop"
+local HUNT_METHOD = "hunt"
+
 function CatchBall:init()
 	self._lastBallSpeed = nil
 	self._lastReasonableBallPos = nil
@@ -192,15 +197,16 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	local aggressiveMovement = (self._robot.pos:distanceTo(moveDest) < 0.5)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot, nil, nil, aggressiveMovement)
 	local moveDir = (targetPos - predictedBall.pos):angle()
-  	if self:_isBlockingBall(ball, predictedBall, moveDest) then
-  		-- minimum required time to touch the ball
-  		-- first touch could be before the robot has moved around the ball
-  		local minTimeToBall = math.min(self:_approxMinTimeToBall(self._robot, ball), self._catchTime)
-  		local minBall = Physics.ballAtTime(World.Ball, minTimeToBall)
-  		self:_createBlockBallObstacle(self._robot.path, minBall, predictedBall)
-  	else
-  		self:_createHuntingBallObstacle(self._robot.path, moveDir, predictedBall)
-  	end
+	local method = self:_ballCatchMethod(ball, predictedBall, moveDest)
+	if method == AROUND_METHOD then
+		-- minimum required time to touch the ball
+		-- first touch could be before the robot has moved around the ball
+		local minTimeToBall = math.min(self:_approxMinTimeToBall(self._robot, ball), self._catchTime)
+		local minBall = Physics.ballAtTime(World.Ball, minTimeToBall)
+		self:_createMoveAroundBallObstacle(self._robot.path, minBall, predictedBall)
+	elseif method == HUNT_METHOD then
+		self:_createHuntingBallObstacle(self._robot.path, moveDir, predictedBall)
+	end
 	self:_createBallCorridor(self._robot.path, moveDir, predictedBall)
 
 	-- only allow endSpeed moving towards the targetPos
@@ -228,6 +234,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 			self._catchTime = 0.95 * self._catchTime + 0.05 * time
 		end
 	end
+	debug.set("CatchBall/method", method)
 	debug.set("CatchBall/time", time)
 	debug.set("CatchBall/catchtime", self._catchTime)
 	vis.addCircle("t/a/catchball: CatchBall", Physics.ballAtTime(ball, self._catchTime).pos, predictedBall.radius, vis.colors.blueHalf)
@@ -289,21 +296,26 @@ function CatchBall:_calculateHitTime(ball)
 	return timeToRobot
 end
 
-function CatchBall:_isBlockingBall(currentBall, predictedBall, moveDest)
-	-- check whether the robot is blocking or hunting the ball
+function CatchBall:_ballCatchMethod(currentBall, predictedBall, moveDest)
+	-- check whether the robot is stopping, moving around or hunting the ball
 	local robotTargetDist = self._robot.pos:distanceTo(moveDest)
 	-- distance minus robot and ball radius thus the ball is for sure between the robot and the catch pos
 	local robotTargetSpacing = math.max(0, robotTargetDist - self._robot.radius - currentBall.radius)
-	-- the robot is blocking the ball if one of the following conditions apply
-	-- the ball is not between the robot and the catch pos
-	-- the robot has to move around the predicted ball to reach the catch pos
-	-- the ball hasn't yet moved past the robot (TODO better calculation than the dot product?)
-	return moveDest:distanceTo(currentBall.pos) > robotTargetSpacing
-			or self._robot.pos:distanceTo(predictedBall.pos) < robotTargetDist
-			or (currentBall.pos - self._robot.pos):dot(predictedBall.pos - currentBall.pos) <= 0
+
+	if self._robot.pos:distanceTo(predictedBall.pos) < robotTargetDist then
+		-- the robot has to move around the predicted ball to reach the catch pos
+		return AROUND_METHOD
+	elseif moveDest:distanceTo(currentBall.pos) > robotTargetSpacing
+		-- the ball is not between the robot and the catch pos
+		-- the ball hasn't yet moved past the robot (TODO better calculation than the dot product?)
+			or (currentBall.pos - self._robot.pos):dot(predictedBall.pos - currentBall.pos) <= 0 then
+		return STOP_METHOD
+	else
+		return HUNT_METHOD
+	end
 end
 
-function CatchBall:_createBlockBallObstacle(path, minBall, predictedBall)
+function CatchBall:_createMoveAroundBallObstacle(path, minBall, predictedBall)
 	local ballDist = predictedBall.pos:distanceTo(minBall.pos)
 	-- block connection between first touch point and target catch pos
 	if ballDist > OBSTACLE_EPSILON then
