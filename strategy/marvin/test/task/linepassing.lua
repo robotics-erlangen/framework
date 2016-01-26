@@ -19,6 +19,9 @@ local RETURN_LINES = {1.5,-1.5}
 --For now, linepassing will only work properly when all robots of the other team are disabled
 local lastShotBy = nil
 
+-- whether or not to do regular linpassing or a catch ball test
+local catchBallTest = false
+
 local Static = Class("Test.Task.LinePassing.Static", require "agent/base/behavior")
 function Static:check()
 	self._send.attackerFlag("all")
@@ -81,7 +84,11 @@ function MoveToRandom:run()
 
 	-- notify attacker
 	if mainAttacker then
-		self._send.passSuggestion(mainAttacker, { rating = math.huge, pos = passPos, time = timeOnPos })
+		local modifiedPos = passPos
+		if catchBallTest then
+			modifiedPos = targetPos - Vector(0,math.sign(targetPos.y)*0.5)
+		end
+		self._send.passSuggestion(mainAttacker, { rating = math.huge, pos = modifiedPos, time = timeOnPos })
 	end
 
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
@@ -113,6 +120,18 @@ LinePassAgent._behaviors = {
 local coord = nil
 
 local function run()
+	catchBallTest = false
+	if coord == nil then
+		local trainer = Trainer()
+		local pools = { pass = AgentPool(LinePassAgent, 2) }
+		local poolGroups = { { pools.pass } }
+		coord = Coordinator(trainer, pools, poolGroups)
+	end
+	coord:run()
+end
+
+local function runCatchBall()
+	catchBallTest = true
 	if coord == nil then
 		local trainer = Trainer()
 		local pools = { pass = AgentPool(LinePassAgent, 2) }
@@ -123,3 +142,4 @@ local function run()
 end
 
 Entrypoints.add("TaskTest/LinePassing", run)
+Entrypoints.add("TaskTest/LinePassing(CatchBall)", runCatchBall)
