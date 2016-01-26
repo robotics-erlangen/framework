@@ -440,13 +440,15 @@ end
 --- The position, where the half-line given by startPos and dir intersects the next field boundary
 -- @param startPos vector - the initial point of the half-line
 -- @param dir vector - the direction of the half-line
+-- @param [offset number - additional offset to move field lines further outwards]
 -- @return [vector]
-function Field.nextLineCut(startPos, dir)
+function Field.nextLineCut(startPos, dir, offset)
 	if dir.x == 0 and dir.y == 0 then
 		return
 	end
-	local width = Vector((dir.x > 0 and 1 or -1) * G.FieldWidthHalf, 0)
-	local height = Vector(0, (dir.y > 0 and 1 or -1) * G.FieldHeightHalf)
+	offset = offset or 0
+	local width = Vector((dir.x > 0 and 1 or -1) * (G.FieldWidthHalf + offset), 0)
+	local height = Vector(0, (dir.y > 0 and 1 or -1) * (G.FieldHeightHalf + offset))
 	local sideCut, sideLambda = geom.intersectLineLine(startPos, dir, width, height)
 	local frontCut, frontLambda = geom.intersectLineLine(startPos, dir, height, width)
 	if sideCut then
