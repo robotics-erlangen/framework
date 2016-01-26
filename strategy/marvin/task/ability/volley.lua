@@ -18,7 +18,7 @@ local function setSimulatorParams()
 	if not World.IsSimulated then
 		return
 	end
-	mu_x = 0.9
+	mu_x = 0.8
 	mu_y = 0.56
 end
 
