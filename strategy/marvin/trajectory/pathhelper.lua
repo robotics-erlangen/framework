@@ -3,12 +3,15 @@ local PathHelper = {}
 local Constants = require "../base/constants"
 local Referee = require "../base/referee"
 local World = require "../base/world"
+local vis = require "../base/vis"
 
 
 local G = World.Geometry
 local POSITION_PADDING = 0.02
+local SEED_ANGLE_MOD = 10/180*math.pi
+local SEED_PREDICT_TIME = 0.3
 
-function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance)
+function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance, noSeedTarget)
 	radius = radius or robot.radius
 	stopBallDistance = stopBallDistance or Constants.stopBallDistance
 
@@ -20,6 +23,15 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 
 	-- set radius for path finding
 	path:setRadius(radius)
+
+	if path.addSeedTarget and not noSeedTarget and robot.speed:length() > 0.1 then
+		local angleMod = { -SEED_ANGLE_MOD, 0, SEED_ANGLE_MOD }
+		for _, angle in ipairs(angleMod) do
+			local seedTarget = robot.pos + (robot.speed * SEED_PREDICT_TIME):rotate(angle)
+			path:addSeedTarget(seedTarget.x, seedTarget.y)
+			vis.addPath("traj/pathhelper: seedTarget", { robot.pos, seedTarget }, vis.colors.blue)
+		end
+	end
 
 	-- only keeper may enter friendly defense area
 	-- don't add obstacles for friendly defense area if the robot is in the opponent half
