@@ -167,12 +167,13 @@ end
 
 --- calculates the time the ball needs to cross the field border
 -- @param ball Ball - a ball-like structure
+-- @param [offset number - additional offset to move field lines further outwards]
 -- @return number - the estimated out time
-function Physics.ballOutTime(ball)
+function Physics.ballOutTime(ball, offset)
 	if ball.speed:length() < 0.01 then
 		return math.huge
 	end
-	local lineCut = Field.nextLineCut(ball.pos, ball.speed)
+	local lineCut = Field.nextLineCut(ball.pos, ball.speed, offset)
 	local distToLine = ball.pos:distanceTo(lineCut)
 	return Physics.ballRollTime(ball, distToLine)
 end
