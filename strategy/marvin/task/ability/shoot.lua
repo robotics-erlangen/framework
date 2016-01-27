@@ -125,7 +125,7 @@ function Shoot:_doCatch(targetPos, targetSpeed, futureBall)
 		targetPos = World.Ball.pos - World.Ball.speed
 	end
 
-	if self._movingBallHysteresis and (table.count(self._inbox.passPos()) > 0 or Ball.receivesPass(self._robot)) then
+	if self._movingBallHysteresis and Ball.receivesPass(self._robot) then
 		local moveTime = self:_tryReceivePass(targetPos, targetSpeed, futureBall)
 		if moveTime then
 			debug.set("ballApproach", "receivePass")
