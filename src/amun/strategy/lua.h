@@ -66,6 +66,7 @@ public:
     bool sendCommand(const Command &command);
     bool sendNetworkReferee(const QByteArray &referee);
     void watch(const QString &filename);
+    const bool m_refboxControlEnabled;
 private:
     void loadLibs();
     void loadDebugLibs();
@@ -78,7 +79,6 @@ private:
     const Timer *m_timer;
     const StrategyType m_type;
     const bool m_debugEnabled;
-    const bool m_refboxControlEnabled;
 
     QString m_filename;
     QDir m_baseDir;

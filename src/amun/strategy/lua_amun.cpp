@@ -228,6 +228,11 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
 
+    if (!thread->m_refboxControlEnabled) {
+        thread->log("Warning: Command not sent to refbox! (Enable the config option if you wish to send)");
+        return 0;
+    }
+
     SSL_RefereeRemoteControlRequest request;
     protobufToMessage(state, 1, request);
 
@@ -240,7 +245,7 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
     }
 
     if (!thread->sendNetworkReferee(data)) {
-        luaL_error(state, "This function is only allowed in debug mode and if refbox control is enabled!");
+        luaL_error(state, "This function is only allowed in debug mode!");
     }
     return 0;
 }
