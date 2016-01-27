@@ -29,7 +29,7 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 		for _, angle in ipairs(angleMod) do
 			local seedTarget = robot.pos + (robot.speed * SEED_PREDICT_TIME):rotate(angle)
 			path:addSeedTarget(seedTarget.x, seedTarget.y)
-			vis.addPath("traj/pathhelper: seedTarget", { robot.pos, seedTarget }, vis.colors.blue)
+			-- vis.addPath("traj/pathhelper: seedTarget", { robot.pos, seedTarget }, vis.colors.blue)
 		end
 	end
 
