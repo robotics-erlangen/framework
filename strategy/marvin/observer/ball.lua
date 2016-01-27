@@ -127,7 +127,7 @@ end
 
 
 local SLOW_BALL = 0.5
-local MIN_TIME_ADVANCE_MIN = 0.0
+local MIN_TIME_ADVANCE_MIN = -0.05
 local MIN_TIME_ADVANCE_MAX = 0.2
 
 local futureBallSpeeds = {}
@@ -144,13 +144,13 @@ function Ball._updateReceivesPass()
 		local dribblerPos, lambda = geom.intersectLineLine(World.Ball.pos, balldir, robot.pos + dribblerOffset, balldir:perpendicular())
 
 		-- if the ball is behind or inside the robot
-		if lambda < robot.shootRadius then
+		if lambda < 0 then
 			goto continue
 		end
 
 		local robotMid = dribblerPos - dribblerOffset
 		-- anywhere on the dribbler is okay, not only the center
-		local dribblerHalf = balldir:perpendicular() * (robot.dribblerWidth / 2)
+		local dribblerHalf = balldir:perpendicular() * (robot.dribblerWidth / 2 + Constants.positionError)
 		robotMid = robot.pos:nearestPosOnLine(robotMid + dribblerHalf, robotMid - dribblerHalf)
 
 		local robotTime = Physics.robotTimeToPos(robot, robotMid, Vector(0, 0))
