@@ -332,6 +332,11 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dont
 		local SHOOT_SKEW_LIMIT = 4 / 180 * math.pi
 		targetDir = targetDir - math.bound(-SHOOT_SKEW_LIMIT, distToBall.y * SHOOT_SKEW, SHOOT_SKEW_LIMIT)
 	end
+	if self._movingBallHysteresis and World.Ball.speed:length() >= IN_THE_RUN
+			and World.Ball.speed:dot(World.Ball.pos - self._robot.pos) < 0 then
+		-- HACK: if the ball is shot at the robot, shoot rather than let the ball bounce away
+		maxAngleError = 3 * maxAngleError
+	end
 	self:_checkShootHysteresis(targetDir, maxAngleError, dontShoot)
 
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(self._robot.dir)*20 }, vis.colors.blue)
