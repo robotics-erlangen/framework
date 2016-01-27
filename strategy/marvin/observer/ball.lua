@@ -230,7 +230,18 @@ function Ball.ballCatchProbability(robot, shootTime, rollTime, catchPos, corrido
 	end
 end
 
-local lastBallSpeedLength = -1
+local lastBallSpeedLength = 0 -- used for both isAccelerating() and isShot()
+local ballIsAccelerating = false
+function Ball.isAccelerating()
+	return ballIsAccelerating
+end
+function Ball._updateIsAccelerating()
+	local currentBallSpeedLength = World.Ball.speed:length()
+	ballIsAccelerating = currentBallSpeedLength > lastBallSpeedLength + 0.2
+	lastBallSpeedLength = currentBallSpeedLength
+end
+
+
 local lastShootTime = 0
 local cacheTime = 0
 local cachedShootRobot = nil
@@ -289,7 +300,6 @@ function Ball.isShot()
 	if robot then
 		lastShootTime = World.Time
 	end
-	lastBallSpeedLength = ballSpeedLength
 
 	debug.pushtop("Ball.isShot")
 	debug.set("cooldown", condCooldown)
