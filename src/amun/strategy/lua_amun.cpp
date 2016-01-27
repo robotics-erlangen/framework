@@ -229,7 +229,7 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
 
-    if (!thread->m_refboxControlEnabled) {
+    if (!thread->refboxControlEnabled()) {
         thread->log("Warning: Command not sent to refbox! (Enable the config option if you wish to send)");
         return 0;
     }

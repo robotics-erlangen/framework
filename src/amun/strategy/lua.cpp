@@ -229,10 +229,10 @@ static int luaInstallKillHook(lua_State* state)
 }
 
 Lua::Lua(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) :
-    m_refboxControlEnabled(refboxControlEnabled),
     m_timer(timer),
     m_type(type),
-    m_debugEnabled(debugEnabled)
+    m_debugEnabled(debugEnabled),
+    m_refboxControlEnabled(refboxControlEnabled)
 {
     // create lua instance and load libraries
     m_state = luaL_newstate();

@@ -57,6 +57,7 @@ public:
     qint64 time() const;
     bool isBlue() const { return m_type == StrategyType::BLUE; }
     const QDir baseDir() const { return m_baseDir; }
+    const bool refboxControlEnabled() const { return m_refboxControlEnabled; }
     void setCommand(uint generation, uint robotId, robot::Command &command);
     void log(const QString &text);
     amun::Visualization *addVisualization();
@@ -65,7 +66,6 @@ public:
     bool sendCommand(const Command &command);
     bool sendNetworkReferee(const QByteArray &referee);
     void watch(const QString &filename);
-    const bool m_refboxControlEnabled;
 private:
     void loadLibs();
     void loadDebugLibs();
@@ -78,6 +78,7 @@ private:
     const Timer *m_timer;
     const StrategyType m_type;
     const bool m_debugEnabled;
+    const bool m_refboxControlEnabled;
 
     QString m_filename;
     QDir m_baseDir;
