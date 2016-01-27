@@ -237,6 +237,67 @@ function Shoot:_calculateDistToBall()
 	return distToBall
 end
 
+function Shoot:_correctSidewardsOffset(distToBall)
+	local speedLimit = 0.4
+	local sidewardsKp = SIDEWARDS_KP
+	local errorVal = -distToBall.y
+	local p_out = sidewardsKp * errorVal
+
+	local errorMax = math.bound(0, speedLimit - p_out, speedLimit)
+	local errorMin = math.bound(-speedLimit, -speedLimit - p_out, 0)
+	self._sideOffsetErrorSum = math.bound(errorMin, self._sideOffsetErrorSum + SIDEWARDS_KI * p_out * World.TimeDiff, errorMax)
+	debug.set("sideIntegral", self._sideOffsetErrorSum)
+
+	 -- correct sidewards pos error
+	return Vector.fromAngle(self._robot.dir):perpendicular():setLength(
+			math.bound(-speedLimit, p_out + self._sideOffsetErrorSum, speedLimit))
+end
+
+function Shoot:_calculateMovementSpeed(lastBallSpeed, distToBall)
+	-- compensate ball movement
+	local speed = World.Ball.speed:copy()
+	local speedLimit = lastBallSpeed:length()
+	-- prevent ball speed windup
+	if speed:length() > speedLimit then
+		speed:setLength(speedLimit)
+	end
+	-- don't drive backwards if the ball moves towards the robot
+	speed = speed:rotate(-self._robot.dir)
+	if speed.x < 0 then
+		speed.x = 0
+	end
+	speed = speed:rotate(self._robot.dir)
+	-- sidewards offset
+	speed = speed + self:_correctSidewardsOffset(distToBall)
+	return speed
+end
+
+function Shoot:_calculateShootDirection(targetPos, targetSpeed, distToBall)
+	-- calculate shoot direction
+	local ballTouchPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)
+	local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(ballTouchPos))
+	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
+	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos,
+				targetPos, targetSpeed)
+	kickSpeed = math.max(MIN_SHOOT_SPEED, kickSpeed)
+	local rawPhi = (targetPos - futureBall.pos):angle()
+
+	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.redHalf)
+	-- handle robot shoot direction problem
+	if not World.IsSimulated then
+		-- 4.2 degree / cm off
+		local SHOOT_SKEW = 4.2 / 180 * math.pi * 100
+		local SHOOT_SKEW_LIMIT = 4 / 180 * math.pi
+		targetDir = targetDir - math.bound(-SHOOT_SKEW_LIMIT, distToBall.y * SHOOT_SKEW, SHOOT_SKEW_LIMIT)
+	end
+
+	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(self._robot.dir)*20 }, vis.colors.blue)
+	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.pink)
+	vis.addPath("t/a/shoot: Direction simple", { self._robot.pos, self._robot.pos + Vector.fromAngle(rawPhi)*20 }, vis.colors.greenHalf)
+
+	return targetDir, kickSpeed
+end
+
 function Shoot:_checkShootHysteresis(targetDir, maxAngleError, dontShoot)
 	-- check robot orientation
 	local angleDiff = math.abs(geom.getAngleDiff(targetDir, self._robot.dir))
@@ -271,83 +332,31 @@ function Shoot:_checkShootHysteresis(targetDir, maxAngleError, dontShoot)
 	debug.set("hasBall hysteresis", self._shootHysteresis)
 end
 
-function Shoot:_correctSidewardsOffset(distToBall)
-	local speedLimit = 0.4
-	local sidewardsKp = SIDEWARDS_KP
-	local errorVal = -distToBall.y
-	local p_out = sidewardsKp * errorVal
-
-	local errorMax = math.bound(0, speedLimit - p_out, speedLimit)
-	local errorMin = math.bound(-speedLimit, -speedLimit - p_out, 0)
-	self._sideOffsetErrorSum = math.bound(errorMin, self._sideOffsetErrorSum + SIDEWARDS_KI * p_out * World.TimeDiff, errorMax)
-	debug.set("sideIntegral", self._sideOffsetErrorSum)
-
-	 -- correct sidewards pos error
-	return Vector.fromAngle(self._robot.dir):perpendicular():setLength(
-			math.bound(-speedLimit, p_out + self._sideOffsetErrorSum, speedLimit))
-
-end
-
 function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontShoot)
 	self._lastBallSpeed = self._lastBallSpeed or World.Ball.speed
-	maxAngleError = math.max(MIN_ANGLE_PRECISION, maxAngleError)
-
-	if not self._travelStart then
-		self._travelStart = self._robot.pos
-		self._travelLimit = false
-	end
-
-	-- compensate ball movement
-	local speed = World.Ball.speed:copy()
-	local accel = nil
-	local speedLimit = self._lastBallSpeed:length()
-	-- prevent ball speed windup
-	if speed:length() > speedLimit then
-		speed:setLength(speedLimit)
-	end
-	-- don't drive backwards if the ball moves towards the robot
-	speed = speed:rotate(-self._robot.dir)
-	if speed.x < 0 then
-		speed.x = 0
-	end
-	speed = speed:rotate(self._robot.dir)
-
-	-- calculate shoot direction
-	local ballTouchPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)
-	local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(ballTouchPos))
-	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
-	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos,
-				targetPos, targetSpeed)
-	kickSpeed = math.max(MIN_SHOOT_SPEED, kickSpeed)
 
 	local distToBall = self:_calculateDistToBall()
-	-- sidewards offset
-	speed = speed + self:_correctSidewardsOffset(distToBall)
+	local speed = self:_calculateMovementSpeed(self._lastBallSpeed, distToBall)
+	local targetDir, kickSpeed = self:_calculateShootDirection(targetPos, targetSpeed, distToBall)
 
-	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.redHalf)
-	-- handle robot shoot direction problem
-	if not World.IsSimulated then
-		-- 4.2 degree / cm off
-		local SHOOT_SKEW = 4.2 / 180 * math.pi * 100
-		local SHOOT_SKEW_LIMIT = 4 / 180 * math.pi
-		targetDir = targetDir - math.bound(-SHOOT_SKEW_LIMIT, distToBall.y * SHOOT_SKEW, SHOOT_SKEW_LIMIT)
-	end
 	if self._movingBallHysteresis and World.Ball.speed:length() >= IN_THE_RUN
 			and World.Ball.speed:dot(World.Ball.pos - self._robot.pos) < 0 then
 		-- HACK: if the ball is shot at the robot, shoot rather than let the ball bounce away
 		maxAngleError = 3 * maxAngleError
 	end
+	maxAngleError = math.max(MIN_ANGLE_PRECISION, maxAngleError)
 	self:_checkShootHysteresis(targetDir, maxAngleError, dontShoot)
 
-	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(self._robot.dir)*20 }, vis.colors.blue)
-	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.pink)
-	local rawPhi = (targetPos - futureBall.pos):angle()
-	vis.addPath("t/a/shoot: Direction simple", { self._robot.pos, self._robot.pos + Vector.fromAngle(rawPhi)*20 }, vis.colors.greenHalf)
-
+	-- must not dribble further than maxDribbleDistance
+	if not self._travelStart then
+		self._travelStart = self._robot.pos
+		self._travelLimit = false
+	end
 	-- debug.set("travelDist", self._travelStart:distanceTo(self._robot.pos))
 	if self._travelStart:distanceTo(self._robot.pos) >= Constants.maxDribbleDistance then
 		self._travelLimit = true
 	end
+	local accel = nil
 	if self._shootHysteresis and not self._travelLimit then
 		-- speed towards ball
 		local accelerate = math.abs(self._robot.acceleration
