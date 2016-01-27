@@ -161,7 +161,9 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 			virtualBall.pos = self._lastReasonableBallPos
 		else
 			local hitPoint1, hitPoint2 = geom.intersectLineCircle(ball.pos, ball.speed, self._robot.pos, self._robot.radius + ball.radius)
-			if (hitPoint1 - ball.pos):dot(ball.speed) > 0 then
+			if not hitPoint1 or not hitPoint2 then
+				-- nop
+			elseif (hitPoint1 - ball.pos):dot(ball.speed) > 0 then
 				virtualBall.pos = hitPoint2
 			else
 				virtualBall.pos = hitPoint1
