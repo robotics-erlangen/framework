@@ -208,7 +208,9 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	elseif method == HUNT_METHOD then
 		self:_createHuntingBallObstacle(self._robot.path, moveDir, predictedBall)
 	end
-	self:_createBallCorridor(self._robot.path, moveDir, predictedBall)
+	if method ~= STOP_METHOD then
+		self:_createBallCorridor(self._robot.path, moveDir, predictedBall)
+	end
 
 	-- only allow endSpeed moving towards the targetPos
 	local endSpeed = predictedBall.speed:copy():rotate(-viewDir)
