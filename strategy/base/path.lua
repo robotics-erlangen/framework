@@ -185,10 +185,12 @@ function path:addRect(start_x, start_y, stop_x, stop_y, name)
 end
 
 local _addSeedTarget = path.addSeedTarget
-function path:addSeedTarget(x, y)
-	if teamIsBlue then
-		_addSeedTarget(self, -x, -y)
-	else
-		_addSeedTarget(self, x, y)
+if _addSeedTarget then
+	path.addSeedTarget = function (self, x, y)
+		if teamIsBlue then
+			_addSeedTarget(self, -x, -y)
+		else
+			_addSeedTarget(self, x, y)
+		end
 	end
 end
