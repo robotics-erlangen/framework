@@ -36,9 +36,9 @@ function Striker:_xLine()
 	local xLines
 	if numAttackers == 1 then
 		if ObserverGame.attackSideWithLessOpponents() == "left" then
-			xLines = { 0.5 * World.Geometry.FieldWidthHalf }
+			xLines = { 0.6 * World.Geometry.FieldWidthHalf }
 		else
-			xLines = { -0.5 * World.Geometry.FieldWidthHalf }
+			xLines = { -0.6 * World.Geometry.FieldWidthHalf }
 		end
 	elseif numAttackers == 2 then
 		xLines = {
