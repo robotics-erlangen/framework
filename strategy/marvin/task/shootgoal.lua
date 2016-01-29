@@ -27,51 +27,46 @@ local Random = require "util/random"
 -- ===== VOLLEY RECEIPT POSITION CALCULATION =====
 -- ===============================================
 
-
--- rates the angle between the current ball speed and the future one
--- 180       degrees -> 1.000
--- 180 +-  1 degrees -> 0.975
--- 180 +- 10 degrees -> 0.766
--- 180 +- 80 degrees -> 0.000
-local function rateAngle(ballPos, targetPoint)
-	local angle = World.Ball.speed:absoluteAngleDiff(ballPos - targetPoint)
-	local rating = math.max(0, 1 - angle / (80 * math.pi / 180))
-	return rating * rating
-end
-
--- rates the target width (angle of largest free goal sector, aka maxAngleError)
--- 0  degrees -> 0
--- 1  degree  -> 0.017
--- 10 degrees -> 0.175
-local function rateTargetWidth(targetWidth)
-	return targetWidth
-end
-
--- rates the distance to any field border
--- 0.2m -> 1
--- 0.1m -> 0.5
--- 0.0m -> 0
-local function rateDistToFieldBorder(ballPos)
-	return math.min(1, Field.distanceToFieldBorder(ballPos) / 0.2)
-end
-
--- rates the distance to the target point
--- 0.0m            -> 1
--- 1.0m            -> 0.876
--- FieldHeightHalf -> 0.5
--- FieldHeight     -> 0
-local function rateDistToTarget(ballPos, targetPoint)
-	local dist = ballPos:distanceTo(targetPoint)
-	return math.max(0, 1 - dist / G.FieldHeight)
-end
-
--- combines the rating functions
 function ShootGoal:_rateShootPos(ballPos, targetPoint, targetWidth)
-	local ratingAngle = rateAngle(ballPos, targetPoint)
-	local ratingTargetWidth = rateTargetWidth(targetWidth)
-	local ratingDistToFieldBorder = rateDistToFieldBorder(ballPos)
-	local ratingDistToTarget = rateDistToTarget(ballPos, targetPoint)
-	return ratingAngle * ratingTargetWidth * ratingDistToFieldBorder * ratingDistToTarget
+	-- rates the angle between the current ball speed and the future one
+	-- 180       degrees -> 1.000
+	-- 180 +-  1 degrees -> 0.975
+	-- 180 +- 10 degrees -> 0.766
+	-- 180 +- 80 degrees -> 0.000
+	local angle = World.Ball.speed:absoluteAngleDiff(ballPos - targetPoint)
+	local ratingAngle = math.max(0, 1 - angle / (80 * math.pi / 180))
+	ratingAngle = ratingAngle
+
+	-- rates the target width (angle of largest free goal sector, aka maxAngleError)
+	-- 0  degrees -> 0
+	-- 1  degree  -> 0.017
+	-- 10 degrees -> 0.175
+	local ratingTargetWidth = targetWidth
+
+	-- rates the distance to any field border
+	-- 0.2m -> 1
+	-- 0.1m -> 0.5
+	-- 0.0m -> 0
+	local ratingDistToFieldBorder = math.min(1, Field.distanceToFieldBorder(ballPos) / 0.2)
+	
+	-- rates the distance to the target point
+	-- 0.0m            -> 1
+	-- 1.0m            -> 0.876
+	-- FieldHeightHalf -> 0.5
+	-- FieldHeight     -> 0
+	local dist = ballPos:distanceTo(targetPoint)
+	local ratingDistToTarget = math.max(0, 1 - dist / G.FieldHeight)
+
+	-- rates the time the robot has to move
+	local robotPos = self._robot.pos - 
+		(targetPoint - ballPos):setLength(self._robot.shootRadius + World.Ball.radius)
+	local robotTime = Physics.robotTimeToPos(self._robot, robotPos, Vector(0, 0), false)
+	local ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(ballPos))
+	local robotTimeRating = math.max(0, (robotTime * 0.8 - ballTime) * 0.5 + 0.5)
+
+	-- return combination of the single ratings
+	return ratingAngle * ratingTargetWidth * ratingDistToFieldBorder * 
+		ratingDistToTarget * robotTimeRating
 end
 
 -- checks if the sampled ballPos is valid
@@ -97,6 +92,25 @@ function ShootGoal:_validateShootPos(ballPos)
 	return true
 end
 
+function ShootGoal:_volleyMinTime()
+	-- cache it
+	if self._volleyMinTimeTimestamp == World.Time then
+		return
+	end
+	self._volleyMinTimeTimestamp = World.Time
+
+	local rttb = Physics.robotTimeToBall(self._robot, World.Ball, G.OpponentGoal, 0)
+
+	local timeBuffer = 0.1
+	local timeBufferHeatupTime = 0.2
+
+	if rttb > timeBufferHeatupTime then
+		return rttb + timeBuffer
+	else
+		return rttb * (1 + timeBuffer / timeBufferHeatupTime)
+	end
+end
+
 -- slightly updates the ballPos to counter out changes in the direction of the ball's speed
 -- requires that the ball moves with a significant speed
 function ShootGoal:_remapBallPosition(ballPos)
@@ -109,7 +123,7 @@ function ShootGoal:_searchFirstVolleyShootPos()
 	local sampleTimeInterval = 1
 	local sampleCount = 10
 
-	local minTime = Physics.robotTimeToBall(self._robot, World.Ball, G.OpponentGoal, 0)
+	local minTime = self:_volleyMinTime()
 	local maxTime = minTime + sampleTimeInterval
 	local minPos = Physics.ballAtTime(World.Ball, minTime).pos
 	local maxPos = Physics.ballAtTime(World.Ball, maxTime).pos
@@ -156,14 +170,19 @@ function ShootGoal:_searchNearbyVolleyShootPos(oldPos)
 	local bestRating = 0
 
 	-- lower bound of the shoot pos search
-	local minTime = Physics.robotTimeToBall(self._robot, World.Ball, G.OpponentGoal, 0)
+	local minTime = self:_volleyMinTime()
 
 	for i = 1, sampleCount do
 		local rand = Random.standardNormalDistributedNumber() * sampleVariance
 		local pos = oldPos + ballDirection * rand
 
+		-- compute ball time if the ball rolls towards the pos
+		local ballTime = math.huge
+		if World.Ball.speed:dot(World.Ball.pos - pos) > 0 then
+			ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(pos))
+		end
+
 		-- only consider valid points
-		local ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(pos))
 		if self:_validateShootPos(pos) and ballTime > minTime then
 
 			-- update the target
@@ -200,7 +219,7 @@ function ShootGoal:_updateVolleyShootPos()
 
 		-- if the ball is about to arrive, don't update the position
 		local ballRollDist = World.Ball.pos:distanceTo(oldPos)
-		if Physics.ballRollTime(World.Ball, ballRollDist) < 0.1 then
+		if Physics.ballRollTime(World.Ball, ballRollDist) < 1.0 then
 			self._volleyShootPos = oldPos
 			return
 		end
@@ -241,19 +260,23 @@ end
 -- checks if a volley can (still) be performed
 -- this function assumes that the ball was shot
 -- this function assumes that _updateVolleyShootPos() was already called
-function ShootGoal:_checkVolleyPossible()
+function ShootGoal:_updateVolleyPossible()
 	-- abort if no valid pos could be found
 	if not self._volleyShootPos then
-		return false
+		debug.set("volley status", "no shoot pos")
+		self._volleyPossible = false
+		return
 	end
 
 	-- abort if the ball arrives too slowly
 	local ballRollDist = World.Ball.pos:distanceTo(self._volleyShootPos)
 	local arrivingBall = Physics.ballAtTime(World.Ball, Physics.ballRollTime(World.Ball, ballRollDist))
 	if arrivingBall.speed:length() < 0.8 then
+		debug.set("volley status", "ball too slow")
 		return false
 	end
 
+	debug.set("volley status", "possible")
 	return true
 end
 
@@ -273,8 +296,10 @@ function ShootGoal:_updateRobotLists()
 	end
 	self._robotListTimestamp = World.Time
 
-	-- amount extrapolation time depending per distance to self._robot
-	local extrapolationTimePerMeter = 0.2
+	-- constant extrapolation time
+	-- after this reaction time the robots tend to block the shot
+	-- thus further extrapolation does not really make sense
+	local extrapolationTime = 0.2
 
 	-- clear the lists
 	self._robotList = {}
@@ -283,7 +308,6 @@ function ShootGoal:_updateRobotLists()
 	-- consider all robots (also our ones)
 	for _,r in ipairs(World.Robots) do
 		if r ~= self._robot then
-			local extrapolationTime = self._robot.pos:distanceTo(r.pos) * extrapolationTimePerMeter
 			local futureRobot = { ["pos"] = r.pos + r.speed * extrapolationTime, 
 				["radius"] = r.radius, ["speed"] = r.speed, ["isFriendly"] = r.isFriendly }
 
@@ -486,6 +510,7 @@ function ShootGoal:_init()
 	self._robotListTimestamp = 0
 	self._updateTargetTimestamp = 0
 	self._updateVolleyShootPosTimestamp = 0
+	self._volleyMinTimeTimestamp = 0
 
 	self._shootTargetPoint = nil
 	self._shootTargetWidth = 0
@@ -500,12 +525,10 @@ end
 
 function ShootGoal:run()
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
-	
-	-- check if a volley is still a viable option
-	if self._volleyPossible then
-		self:_updateVolleyShootPos()
-		self._volleyPossible = self:_checkVolleyPossible()
-	end
+
+	-- check if a volley is a viable option
+	self:_updateVolleyShootPos()
+	self:_updateVolleyPossible()
 
 	if self._volleyPossible then
 		-- perform a volley
