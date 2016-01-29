@@ -20,20 +20,6 @@ local Interval = require "util/interval"
 local Random = require "util/random"
 
 
-local MIN_REQUIRED_ANGLE = 1 / 180 * math.pi -- in order to shoot into a free sector
-local MIN_REQUIRED_ANGLE_HYSTERESIS = 0.3 / 180 * math.pi
-local MIN_SHOOT_PRECISION = 10 / 180 * math.pi -- for the shoot ability
--- how much to move the shoot pos towards the corner
--- (0 = mid of sector, 1 = straight towards the corner)
-local CORNER_WEIGHT = 0
-
--- how much a new best sector should be better than the old one
-local SECTOR_RATING_HYSTERESIS = 3
-
--- how large the angle for volley may be [rad]
-local MAX_VOLLEY_ANGLE = 80 * math.pi / 180
-
-
 
 
 
@@ -49,7 +35,7 @@ local MAX_VOLLEY_ANGLE = 80 * math.pi / 180
 -- 180 +- 80 degrees -> 0.000
 local function rateAngle(ballPos, targetPoint)
 	local angle = World.Ball.speed:absoluteAngleDiff(ballPos - targetPoint)
-	local rating = math.max(0, 1 - angle / MAX_VOLLEY_ANGLE)
+	local rating = math.max(0, 1 - angle / (80 * math.pi / 180))
 	return rating * rating
 end
 
@@ -459,6 +445,40 @@ function ShootGoal:getDecisionMakingBasis()
 	return self._shootTargetPoint, self._shootTargetWidth, not self._dirty
 end
 
+function ShootGoal:_drawDebugInfo()
+	debug.set("volley possible", self._volleyPossible)
+
+	local target = nil
+	local color = nil
+	local mode = nil
+	if self._volleyPossible then
+		mode = "volley"
+		target = self._volleyTargetPoint
+		color = vis.colors.greenHalf
+	elseif self._desperate then
+		mode = "desperate"
+		target = self._desperateChipTargetPoint
+		color = vis.colors.redHalf
+	else
+		target = self._shootTargetPoint
+		if self._dirty then
+			mode = "dirty"
+			color = vis.colors.orangeHalf
+		else
+			mode = "clean"
+			color = vis.colors.yellowHalf
+		end
+	end
+
+	debug.set("mode", mode)
+	vis.addCircle("t/shootgoal: target", target, 0.05, color, true)
+
+	if self._volleyPossible then
+		vis.addCircle("t/shootgoal: volley", self._volleyShootPos, 0.05, color, true)
+		vis.addPath("t/shootgoal: volley", {self._volleyShootPos, target}, color)
+	end
+end
+
 function ShootGoal:_init()
 	self._robotList = {}
 	self._robotListWithoutKeeper = {}
@@ -470,6 +490,8 @@ function ShootGoal:_init()
 	self._shootTargetPoint = nil
 	self._shootTargetWidth = 0
 	self._dirty = false
+	self._desperate = false
+	self._desperateChipTargetPoint = G.OpponentGoal + Vector(0, -0.12)
 
 	self._volleyTargetPoint = nil
 	self._volleyShootPos = nil
@@ -486,19 +508,25 @@ function ShootGoal:run()
 	end
 
 	if self._volleyPossible then
+		-- perform a volley
 		self:_volley(self._volleyShootPos, self._volleyTargetPoint, math.huge)
 		self._send.attackPosition("all", self._volleyTargetPoint)
 	else
 		self:_updateTarget()
 
-		if self._shootTargetWidth > 0.5 * math.pi / 180 then
+		self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
+		if not self._desperate then
+			-- perform a linear shot
 			self:_shoot(self._shootTargetPoint, math.huge, true,
-				math.min(MIN_SHOOT_PRECISION, self._shootTargetWidth or math.huge))
+				math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
 		else
-			local chipPos = G.OpponentGoal + (G.FriendlyGoal - G.OpponentGoal):setLength(0.12)
-			self:_shoot(chipPos, chipPos:distanceTo(World.Ball.pos), false, 5 * math.pi / 180)
+			-- perform a chip shot
+			self:_shoot(self._desperateChipTargetPoint,
+				self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, 5 * math.pi / 180)
 		end
 	end
+
+	self:_drawDebugInfo()
 end
 
 return ShootGoal
