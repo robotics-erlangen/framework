@@ -272,7 +272,7 @@ function Shoot:_calculateMovementSpeed(lastBallSpeed, distToBall)
 	return speed
 end
 
-function Shoot:_calculateShootDirection(targetPos, targetSpeed, distToBall)
+function Shoot:_calculateShootDirection(targetPos, targetSpeed, distToBall, linearShoot)
 	-- calculate shoot direction
 	local ballTouchPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)
 	local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(ballTouchPos))
@@ -284,7 +284,7 @@ function Shoot:_calculateShootDirection(targetPos, targetSpeed, distToBall)
 
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.redHalf)
 	-- handle robot shoot direction problem
-	if not World.IsSimulated then
+	if not World.IsSimulated and linearShoot then
 		-- 4.2 degree / cm off
 		local SHOOT_SKEW = 4.2 / 180 * math.pi * 100
 		local SHOOT_SKEW_LIMIT = 4 / 180 * math.pi
@@ -337,7 +337,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dont
 
 	local distToBall = self:_calculateDistToBall()
 	local speed = self:_calculateMovementSpeed(self._lastBallSpeed, distToBall)
-	local targetDir, kickSpeed = self:_calculateShootDirection(targetPos, targetSpeed, distToBall)
+	local targetDir, kickSpeed = self:_calculateShootDirection(targetPos, targetSpeed, distToBall, linearShoot)
 
 	if self._movingBallHysteresis and World.Ball.speed:length() >= IN_THE_RUN
 			and World.Ball.speed:dot(World.Ball.pos - self._robot.pos) < 0 then
