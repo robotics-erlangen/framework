@@ -151,6 +151,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->robots->load();
     ui->visualization->load();
     m_configDialog->load();
+    ui->referee->load();
 
     QSettings s;
 

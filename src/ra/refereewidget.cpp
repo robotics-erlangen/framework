@@ -24,6 +24,7 @@
 #include "protobuf/gamestate.pb.h"
 #include "protobuf/ssl_referee.pb.h"
 #include <google/protobuf/descriptor.h>
+#include <QSettings>
 
 RefereeWidget::RefereeWidget(QWidget *parent) :
     QWidget(parent), m_yellowKeeperId(0), m_blueKeeperId(0), m_stage(SSL_Referee::NORMAL_FIRST_HALF)
@@ -74,7 +75,22 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
 
 RefereeWidget::~RefereeWidget()
 {
+    QSettings s;
+    s.beginGroup("Referee");
+    s.setValue("YellowKeeper", ui->keeperIdYellow->value());
+    s.setValue("BlueKeeper", ui->keeperIdBlue->value());
+    s.endGroup();
+
     delete ui;
+}
+
+void RefereeWidget::load()
+{
+    QSettings s;
+    s.beginGroup("Referee");
+    ui->keeperIdYellow->setValue(s.value("YellowKeeper", 0).toInt());
+    ui->keeperIdBlue->setValue(s.value("BlueKeeper", 0).toInt());
+    s.endGroup();
 }
 
 void RefereeWidget::handleStatus(const Status &status)

@@ -37,6 +37,7 @@ class RefereeWidget : public QWidget
 public:
     explicit RefereeWidget(QWidget *parent = 0);
     ~RefereeWidget() override;
+    void load();
 
 signals:
     void changeCommand(SSL_Referee::Command command);

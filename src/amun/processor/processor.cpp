@@ -402,8 +402,7 @@ void Processor::handleCommand(const Command &command)
             m_refereeInternalActive = command->referee().active();
         }
 
-        // ignore commands while inactive
-        if (command->referee().has_command() && m_refereeInternalActive) {
+        if (command->referee().has_command()) {
             const std::string &c = command->referee().command();
             m_refereeInternal->handlePacket(QByteArray(c.data(), c.size()));
         }
