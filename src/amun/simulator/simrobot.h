@@ -48,6 +48,7 @@ public:
     const robot::Specs& specs() const { return m_specs; }
 
 private:
+    btVector3 relativeBallSpeed(SimBall *ball) const;
     float bound(float acceleration, float oldSpeed, float speedupLimit, float brakeLimit) const;
 
     RNG *m_rng;

@@ -175,6 +175,11 @@ btVector3 SimBall::position() const
     return btVector3(transform.getOrigin().x(), transform.getOrigin().y(), 0);
 }
 
+btVector3 SimBall::speed() const
+{
+    return m_body->getLinearVelocity();
+}
+
 void SimBall::kick(const btVector3 &power)
 {
     m_body->activate();

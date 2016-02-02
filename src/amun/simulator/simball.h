@@ -43,6 +43,7 @@ public:
     void move(const amun::SimulatorMoveBall &ball);
     void kick(const btVector3 &power);
     btVector3 position() const;
+    btVector3 speed() const;
     const btRigidBody *body() const { return m_body; }
 
 private:
