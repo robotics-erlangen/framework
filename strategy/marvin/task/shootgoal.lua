@@ -393,65 +393,6 @@ function ShootGoal:_updateTarget()
 	self._shootTargetWidth = targetWidth
 end
 
-
---[[	if ignoreGoalie and World.OpponentKeeper then
-		local interval, min, max = self:checkForRicochet()
-		if interval[1] < -math.pi/2 then interval[1] = interval[1] + 2*math.pi end
-		if interval[2] < -math.pi/2 then interval[2] = interval[2] + 2*math.pi end
-		if min < -math.pi/2 then min = min + 2*math.pi end
-		if max < -math.pi/2 then max = max + 2*math.pi end
-		--log(min .. "  bis  " .. max .. " ==== (" .. interval[1] .. " | " .. interval[2] .. ")")
-		local negated = {interval}
-		freeSectors = Interval.negate(negated, min, max)
-		self._viscolor = vis.colors.red
-		Interval.merge(freeSectors)
-		for _,i in pairs(freeSectors) do
-			--log("sector  "..i[1].." :: "..i[2])
-		end ]]
-
--- calculates the interval on the opponent keeper NOT suited for lucky rebounds into the goal
-function ShootGoal:checkForRicochet(viewPos)
-	viewPos = viewPos or World.Ball.pos
-
-	local keeper = World.OpponentKeeper
-	local toleft = G.OpponentGoalLeft - keeper.pos
-	local toright = G.OpponentGoalRight - keeper.pos
-	local toball = viewPos - keeper.pos
-
-	local anglediffleft = toleft:absoluteAngleDiff(toball)
-	local anglediffright = toright:absoluteAngleDiff(toball)
-
-	local keeperRadiusAngle = math.asin(math.min(1, keeper.radius/toball:length()))
-
-
-	local tokeeper = (-toball):angle()
-	if anglediffleft < anglediffright then
-		local reflectionangle = toball:angle() - anglediffleft/2
-		local reflectionpoint = keeper.pos + Vector.fromAngle(reflectionangle) * keeper.radius
-		local goalpost = G.OpponentGoalLeft +
-			Vector.fromAngle((G.OpponentGoalLeft-viewPos):angle() - math.pi/2):setLength(World.Ball.radius)
-		local toreflectionpoint = (reflectionpoint - viewPos):angle()
-		--log("kl = " .. tokeeper - keeperRadiusAngle .. "   kr = " .. tokeeper + keeperRadiusAngle)
-		--log("refl = " .. toreflectionpoint .. "   goal = " .. (goalpost - viewPos):angle())
-		return {tokeeper - keeperRadiusAngle, toreflectionpoint},
-			tokeeper - keeperRadiusAngle,
-			math.min(tokeeper + keeperRadiusAngle, (goalpost - viewPos):angle())
-	else
-		local reflectionangle = toball:angle() + anglediffright/2
-		local reflectionpoint = keeper.pos + Vector.fromAngle(reflectionangle) * keeper.radius
-		local goalpost = G.OpponentGoalRight +
-			Vector.fromAngle((G.OpponentGoalRight-viewPos):angle() + math.pi/2):setLength(World.Ball.radius)
-		local togoalpost = (goalpost - viewPos):angle()
-		local toreflectionpoint = (reflectionpoint - viewPos):angle()
-		if togoalpost < math.pi/2 then togoalpost = togoalpost + 2*math.pi end
-		if tokeeper < math.pi/2 then tokeeper = tokeeper + 2*math.pi end
-		--log("bla = " .. togoalpost .. "  " ..toreflectionpoint - keeperRadiusAngle)
-		return {toreflectionpoint, tokeeper + keeperRadiusAngle},
-			math.max(tokeeper - keeperRadiusAngle, togoalpost),
-			tokeeper + keeperRadiusAngle
-	end
-end
-
 function ShootGoal:getDecisionMakingBasis()
 	self:_updateTarget()
 	return self._shootTargetPoint, self._shootTargetWidth, not self._dirty
