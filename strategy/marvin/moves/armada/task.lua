@@ -65,7 +65,7 @@ function ArmadaTask:_init(posIndex)
 end
 
 function ArmadaTask:_pointOnCircle()
-    local angle = (World.Time % 1000) % (math.pi/2)
+    local angle = (World.Time % 1000) % (math.pi*2)
     local individualAngle = angle + (math.pi/2)*self._posIndex
     local pos = CIRCLE_CENTER + Vector.fromAngle(individualAngle)*0.5
     return pos
