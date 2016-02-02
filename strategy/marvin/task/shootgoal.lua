@@ -81,6 +81,17 @@ function ShootGoal:_validateShootPos(ballPos)
 		return false
 	end
 
+	-- break if the ball has already surpassed us
+	local ballTime = Physics.checkedBallRollTime(World.Ball, ballPos)
+	if ballTime < 0 then
+		return false
+	end
+
+	-- break if the ball is too slow
+	if Physics.ballAtTime(World.Ball, ballTime).speed:length() < 2 then
+		return false
+	end
+
 	-- break if an opponent is near
 	self:_updateRobotLists()
 	for _,opp in ipairs(self._robotListWithoutKeeper) do
@@ -134,7 +145,7 @@ function ShootGoal:_searchFirstVolleyShootPos()
 
 	local posStep = (maxPos - minPos) / (sampleCount - 1)
 	for i = 1, sampleCount do
-		local pos = minPos + posStep * i
+		local pos = minPos + posStep * (i - 1)
 
 		-- stop the iteration loop if pos is invalid
 		if not self:_validateShootPos(pos) then
@@ -176,14 +187,8 @@ function ShootGoal:_searchNearbyVolleyShootPos(oldPos)
 		local rand = Random.standardNormalDistributedNumber() * sampleVariance
 		local pos = oldPos + ballDirection * rand
 
-		-- compute ball time if the ball rolls towards the pos
-		local ballTime = math.huge
-		if World.Ball.speed:dot(World.Ball.pos - pos) > 0 then
-			ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(pos))
-		end
-
 		-- only consider valid points
-		if self:_validateShootPos(pos) and ballTime > minTime then
+		if self:_validateShootPos(pos) and Physics.checkedBallRollTime(World.Ball, pos) > minTime then
 
 			-- update the target
 			local targetPos, targetWidth = self:_findTarget(pos, false)
@@ -214,25 +219,30 @@ function ShootGoal:_updateVolleyShootPos()
 
 
 	local oldPos = nil
+	local oldPosValid = false
 	if pos then
 		oldPos = self:_remapBallPosition(pos)
+		oldPosValid = self:_validateShootPos(oldPos)
 
-		-- if the ball is about to arrive, don't update the position
-		local ballRollDist = World.Ball.pos:distanceTo(oldPos)
-		if Physics.ballRollTime(World.Ball, ballRollDist) < 1.0 then
-			self._volleyShootPos = oldPos
-			return
+		-- if the ball is about to arrive and the old position is still valid, don't update the position
+		if oldPosValid then
+			local ballRollDist = World.Ball.pos:distanceTo(oldPos)
+			if Physics.ballRollTime(World.Ball, ballRollDist) < 1.0 then
+				self._volleyShootPos = oldPos
+				debug.set("volley status", "locked")
+				return
+			end
 		end
 	end
 	
 	-- if no valid previous volley pos was found or the ball is still being shot
-	if not oldPos or Ball.isAccelerating() or not self:_validateShootPos(oldPos) then
+	if not oldPos or Ball.isAccelerating() or not oldPosValid then
 		pos, target = self:_searchFirstVolleyShootPos()
 
-		if pos then	
-			self._volleyShootPos = pos
-			self._volleyTargetPoint = target
-		end
+		self._volleyShootPos = pos
+		self._volleyTargetPoint = target
+
+		debug.set("volley status", "restart")
 		return
 	end
 
@@ -248,38 +258,16 @@ function ShootGoal:_updateVolleyShootPos()
 	if newPos and newRating > oldRating then
 		pos = newPos
 		target = newTarget
+		debug.set("volley status", "improve")
 	else
 		pos = oldPos
 		target = oldTarget
+		debug.set("volley status", "keep")
 	end
 
 	self._volleyShootPos = pos
 	self._volleyTargetPoint = target
 end
-
--- checks if a volley can (still) be performed
--- this function assumes that the ball was shot
--- this function assumes that _updateVolleyShootPos() was already called
-function ShootGoal:_updateVolleyPossible()
-	-- abort if no valid pos could be found
-	if not self._volleyShootPos then
-		debug.set("volley status", "no shoot pos")
-		self._volleyPossible = false
-		return
-	end
-
-	-- abort if the ball arrives too slowly
-	local ballRollDist = World.Ball.pos:distanceTo(self._volleyShootPos)
-	local arrivingBall = Physics.ballAtTime(World.Ball, Physics.ballRollTime(World.Ball, ballRollDist))
-	if arrivingBall.speed:length() < 0.8 then
-		debug.set("volley status", "ball too slow")
-		return false
-	end
-
-	debug.set("volley status", "possible")
-	return true
-end
-
 
 
 
@@ -470,12 +458,12 @@ function ShootGoal:getDecisionMakingBasis()
 end
 
 function ShootGoal:_drawDebugInfo()
-	debug.set("volley possible", self._volleyPossible)
+	debug.set("volley possible", self._volleyShootPos and true or false)
 
 	local target = nil
 	local color = nil
 	local mode = nil
-	if self._volleyPossible then
+	if self._volleyShootPos then
 		mode = "volley"
 		target = self._volleyTargetPoint
 		color = vis.colors.greenHalf
@@ -497,7 +485,7 @@ function ShootGoal:_drawDebugInfo()
 	debug.set("mode", mode)
 	vis.addCircle("t/shootgoal: target", target, 0.05, color, true)
 
-	if self._volleyPossible then
+	if self._volleyShootPos then
 		vis.addCircle("t/shootgoal: volley", self._volleyShootPos, 0.05, color, true)
 		vis.addPath("t/shootgoal: volley", {self._volleyShootPos, target}, color)
 	end
@@ -520,7 +508,6 @@ function ShootGoal:_init()
 
 	self._volleyTargetPoint = nil
 	self._volleyShootPos = nil
-	self._volleyPossible = Ball.receivesPass(self._robot)
 end
 
 function ShootGoal:run()
@@ -528,9 +515,8 @@ function ShootGoal:run()
 
 	-- check if a volley is a viable option
 	self:_updateVolleyShootPos()
-	self:_updateVolleyPossible()
 
-	if self._volleyPossible then
+	if self._volleyShootPos then
 		-- perform a volley
 		self:_volley(self._volleyShootPos, self._volleyTargetPoint, math.huge)
 		self._send.attackPosition("all", self._volleyTargetPoint)
