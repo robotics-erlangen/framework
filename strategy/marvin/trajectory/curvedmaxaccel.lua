@@ -27,13 +27,19 @@ function CurvedMaxAccel:_getPath(targetPos)
 	for i = 1, #waypoints do
 		table.insert(waypointsVector, Vector(waypoints[i].p_x, waypoints[i].p_y))
 	end
+
+	local waypointsColor = vis.colors.yellow
+	if waypointsVector[#waypointsVector]:distanceTo(targetPos) > 0.01 then
+		-- orange path if target can't be reached
+		waypointsColor = vis.colors.orange
+	end
 	-- draw all at once
-	vis.addPathRaw("waypoints", waypointsVector, vis.colors.yellow)
+	vis.addPathRaw("waypoints", waypointsVector, waypointsColor)
 
 	if #waypointsVector <= 1 then -- no waypoints
 		if robotPos:distanceTo(targetPos) > 0.01 then
 			-- no way to target
-			vis.addCircleRaw("waypoints", robotPos, 0.05, vis.colors.pinkHalf)
+			vis.addCircleRaw("waypoints", robotPos, 0.05, vis.colors.orangeHalf)
 		end
 		return {}
 	elseif #waypointsVector == 2 then
