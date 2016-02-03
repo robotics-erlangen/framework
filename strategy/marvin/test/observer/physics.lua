@@ -2,6 +2,7 @@ local PhysicsTest = {}
 
 local Physics = require "observer/physics"
 local IO = require "util/io"
+local debug = require "../base/debug"
 
 
 function PhysicsTest.testBallVsRobotTime()
@@ -18,6 +19,7 @@ function PhysicsTest.testBallVsRobotTime()
 		acceleration = { aSpeedupFMax = 3.3, aBrakeFMax = 3.5 }
 	}
 	local targetPos = Vector(0, 4.04)
+	local endSpeedLength = robot.maxSpeed
 
 	local s_max = 4
 	local s_step = 0.01
@@ -27,9 +29,8 @@ function PhysicsTest.testBallVsRobotTime()
 
 	local values = {}
 	for s = s_step,s_max,s_step do
-		local endspeed = (ball.pos - robot.pos):setLength(0)
 		local t_ball = Physics.ballRollTime(ball, s)
-		local t_robot = Physics.robotTimeForBallTime(robot, ball, targetPos, robot.maxSpeed, t_ball)
+		local t_robot = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball)
 		local t_diff = t_ball - t_robot
 
 		local mttb_flag = "NaN"
@@ -38,6 +39,9 @@ function PhysicsTest.testBallVsRobotTime()
 		end
 		table.insert(values, t_diff .. " " .. s .. " 0")
 	end
+
+	local time = Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
+	debug.set("time", time)
 
 	IO.save("physics.test", values)
 end
