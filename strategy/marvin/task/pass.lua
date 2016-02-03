@@ -13,8 +13,7 @@ function Pass:_init(targetRobot, shootPos)
 	self._targetRobot = assert(targetRobot, "targetRobot is missing")
 	self._linearShoot = true
 	self._dontShootHysteresis = true
-	--1.7 was used when shootPos is given (just in case removing it breaks something)
-	self._passSpeed = self._targetRobot.constants.passSpeed * 0.55
+	self._passSpeed = self._targetRobot.constants.passSpeed
 	self._shootPos = shootPos
 end
 
