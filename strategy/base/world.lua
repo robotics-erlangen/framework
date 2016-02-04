@@ -313,7 +313,7 @@ function World._updateGameState(state)
 		World.RefereeState = "Halt"
 	end
 
-	if state.designated_position.x and
+	if state.designated_position and state.designated_position.x and
 			(not World.BallPlacementPos or World.BallPlacementPos.y ~= state.designated_position.y
 			or World.BallPlacementPos.x ~= state.designated_position.x) then
 		World.BallPlacementPos = Vector(state.designated_position.x, state.designated_position.y)
