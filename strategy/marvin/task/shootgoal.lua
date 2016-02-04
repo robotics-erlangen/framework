@@ -130,7 +130,7 @@ function ShootGoal:_remapBallPosition(ballPos)
 end
 
 -- searches for a good position on the ball line to shoot the ball into the goal
-function ShootGoal:_searchFirstVolleyShootPos()
+function ShootGoal:_searchVolleyShootPos()
 	local sampleTimeInterval = 1
 	local sampleCount = 10
 
@@ -169,43 +169,6 @@ function ShootGoal:_searchFirstVolleyShootPos()
 	return bestPos, bestTarget, bestRating
 end
 
--- samples some volley shoot positions around the given oldPos
-function ShootGoal:_searchNearbyVolleyShootPos(oldPos)
-	local sampleVariance = 0.05
-	local sampleCount = 5
-
-	local ballDirection = World.Ball.speed:copy():normalize()
-
-	local bestPos = nil
-	local bestTarget = nil
-	local bestRating = 0
-
-	-- lower bound of the shoot pos search
-	local minTime = self:_volleyMinTime()
-
-	for i = 1, sampleCount do
-		local rand = Random.standardNormalDistributedNumber() * sampleVariance
-		local pos = oldPos + ballDirection * rand
-
-		-- only consider valid points
-		if self:_validateShootPos(pos) and Physics.checkedBallRollTime(World.Ball, pos) > minTime then
-
-			-- update the target
-			local targetPos, targetWidth = self:_findTarget(pos, false)
-
-			-- search the best one
-			local rating = self:_rateShootPos(pos, targetPos, targetWidth)
-			if rating > bestRating then
-				bestPos = pos
-				bestTarget = targetPos
-				bestRating = rating
-			end
-		end
-	end
-
-	return bestPos, bestTarget, bestRating
-end
-
 -- calculates the shoot position and target for volley shots
 function ShootGoal:_updateVolleyShootPos()
 	-- cache it
@@ -214,59 +177,27 @@ function ShootGoal:_updateVolleyShootPos()
 	end
 	self._updateVolleyShootPosTimestamp = World.Time
 
-	local pos = self._volleyShootPos
-	local target = self._volleyTargetPoint
+	-- get position and target of the previous iteration
+	local oldPos = self._volleyShootPos
+	local oldTarget = self._volleyTargetPoint
 
-
-	local oldPos = nil
+	-- remap and validate the old position
 	local oldPosValid = false
-	if pos then
-		oldPos = self:_remapBallPosition(pos)
+	if oldPos then
+		oldPos = self:_remapBallPosition(oldPos)
 		oldPosValid = self:_validateShootPos(oldPos)
-
-		-- if the ball is about to arrive and the old position is still valid, don't update the position
-		if oldPosValid then
-			local ballRollDist = World.Ball.pos:distanceTo(oldPos)
-			if Physics.ballRollTime(World.Ball, ballRollDist) < 1.0 then
-				self._volleyShootPos = oldPos
-				debug.set("volley status", "locked")
-				return
-			end
-		end
 	end
-	
-	-- if no valid previous volley pos was found or the ball is still being shot
-	if not oldPos or Ball.isAccelerating() or not oldPosValid then
-		pos, target = self:_searchFirstVolleyShootPos()
 
+	-- if the old position is not valid any more or the ball is still being shot, 
+	-- search a new (valid) one; otherwise keep the old one
+	if (not oldPos or not oldPosValid) or Ball.isAccelerating() then
+		local pos, target = self:_searchVolleyShootPos()
 		self._volleyShootPos = pos
 		self._volleyTargetPoint = target
-
-		debug.set("volley status", "restart")
-		return
-	end
-
-	-- update rating and target of the previous result
-	local oldTarget, oldTargetWidth = self:_findTarget(oldPos, false)
-	local oldRating = 0
-	if oldTarget then
-		oldRating = self:_rateShootPos(oldPos, oldTarget, oldTargetWidth)
-	end
-
-	-- search for better ones in the neighborhood of the old one
-	local newPos, newTarget, newRating = self:_searchNearbyVolleyShootPos(oldPos)
-	if newPos and newRating > oldRating then
-		pos = newPos
-		target = newTarget
-		debug.set("volley status", "improve")
 	else
-		pos = oldPos
-		target = oldTarget
-		debug.set("volley status", "keep")
+		self._volleyShootPos = oldPos
+		self._volleyTargetPoint = oldTarget
 	end
-
-	self._volleyShootPos = pos
-	self._volleyTargetPoint = target
 end
 
 
