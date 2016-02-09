@@ -57,7 +57,7 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 		-- always add the actual ball obstacle, otherwise the ball may be pushed during stop
 		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius, "Ball")
 	end
-	if Referee.isStopState() then
+	if Referee.isStopState() and not World.RefereeState == "BallPlacementOffensive" then
 		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + stopBallDistance, "BallStop")
 	end
 

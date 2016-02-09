@@ -36,7 +36,9 @@ local stopStates = {
 	KickoffDefensivePrepare = true,
 	KickoffDefensive = true,
 	DirectDefensive = true,
-	IndirectDefensive = true
+	IndirectDefensive = true,
+	BallPlacementDefensive = true,
+	BallPlacementOffensive = true
 }
 
 local friendlyFreeKickStates = {

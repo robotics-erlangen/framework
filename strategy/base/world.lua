@@ -316,7 +316,11 @@ function World._updateGameState(state)
 	if state.designated_position and state.designated_position.x and
 			(not World.BallPlacementPos or World.BallPlacementPos.y ~= state.designated_position.y
 			or World.BallPlacementPos.x ~= state.designated_position.x) then
-		World.BallPlacementPos = Vector(state.designated_position.x, state.designated_position.y)
+		if World.TeamIsBlue then
+			World.BallPlacementPos = -Vector(state.designated_position.x, state.designated_position.y)
+		else
+			World.BallPlacementPos = Vector(state.designated_position.x, state.designated_position.y)
+		end
 	end
 
 	World.GameStage = World.gameStageMapping[state.stage]
