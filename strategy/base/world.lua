@@ -27,6 +27,7 @@ module "World"
 local amun = amun
 local Ball = require "../base/ball"
 local Constants = require "../base/constants"
+local Coordinates = require "../base/coordinates"
 local Generation = require "../base/generation"
 local mixedTeam = require "../base/mixedteam"
 local Robot = require "../base/robot"
@@ -313,10 +314,11 @@ function World._updateGameState(state)
 		World.RefereeState = "Halt"
 	end
 
-	if state.designated_position.x and
+	if state.designated_position and state.designated_position.x and
 			(not World.BallPlacementPos or World.BallPlacementPos.y ~= state.designated_position.y
 			or World.BallPlacementPos.x ~= state.designated_position.x) then
-		World.BallPlacementPos = Vector(state.designated_position.x, state.designated_position.y)
+		World.BallPlacementPos = Coordinates.toLocal(
+				Vector.createReadOnly(state.designated_position.x, state.designated_position.y))
 	end
 
 	World.GameStage = World.gameStageMapping[state.stage]
