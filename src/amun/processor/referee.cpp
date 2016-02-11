@@ -57,6 +57,9 @@ void Referee::handlePacket(const QByteArray &data)
 
     m_gameState.set_stage_time_left(packet.stage_time_left());
     m_gameState.set_stage(packet.stage());
+    if (packet.has_designated_position()) {
+        m_gameState.mutable_designated_position()->CopyFrom(packet.designated_position());
+    }
 
     if (m_isInternalReferee) {
         // the internal referee sends the counter delta since the last referee command
