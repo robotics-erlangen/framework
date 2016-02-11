@@ -191,7 +191,7 @@ local function distanceToDefenseArea(pos, radius, friendly)
 		if friendly then
 			distance = pos.y - (goalLine + defRadius) - radius
 		else
-			distance = goalLine - defRadius - pos.y + radius
+			distance = goalLine - defRadius - pos.y - radius
 		end
 	elseif pos.x > defStretchHalf then
 		local corner = Vector(defStretchHalf, goalLine)
