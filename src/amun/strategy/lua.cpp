@@ -141,6 +141,19 @@ static QString extractFilename(QString source, QDir* baseDir) {
 
 static int luaErrorHandler(lua_State* state)
 {
+    int startlevel = 1;
+    if (lua_isnumber(state, 2)) {
+        startlevel = (int)lua_tointeger(state, 2);
+        lua_pop(state, 1);
+    }
+
+    if (lua_gettop(state) == 0) {
+        lua_pushliteral(state, "");
+    } else if (!lua_isstring(state, 1)) {
+        // nop if message is not a string
+        // same behavior as in lua
+        return 1;
+    }
     // error string
     QString s = lua_tostring(state, 1);
 
@@ -162,7 +175,7 @@ static int luaErrorHandler(lua_State* state)
     QDir* baseDir = getBaseDir(state);
     lua_Debug ar;
     // walk stack
-    for (uint level = 1; lua_getstack(state, level, &ar) != 0; ++level) {
+    for (uint level = (uint)startlevel; lua_getstack(state, level, &ar) != 0; ++level) {
         lua_getinfo(state, "nSl", &ar);
 
         // try to get function name
@@ -450,6 +463,15 @@ void Lua::loadDebugLibs()
     lua_pop(m_state, 1);
 
     loadLib(LUA_DBLIBNAME,      luaopen_debug);
+
+    // replace debug.traceback function
+    lua_getglobal(m_state, "debug");
+    Q_ASSERT(lua_istable(m_state, -1));
+
+    lua_pushcfunction(m_state, luaErrorHandler);
+    lua_setfield(m_state, -2, "traceback");
+
+    lua_pop(m_state, 1);
 
     // load jit libraries, required by the lua debugger
     loadLib(LUA_BITLIBNAME,     luaopen_bit);
