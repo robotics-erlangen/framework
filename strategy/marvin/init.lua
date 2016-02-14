@@ -40,10 +40,13 @@ local frameCount = 0
 local wrapper = function (func)
 	return function()
 		-- require "../test/debug/enable"
+		frameCount = frameCount + 1
 		if not World.update() then
+			if (frameCount % 100) == 0 then
+				log("Waiting for vision data...")
+			end
 			return -- skip processing if no vision data is available yet
 		end
-		frameCount = frameCount + 1
 		debug.set("frame", frameCount)
 		Processor.pre()
 		if not func() then -- Entrypoint has to return true if robots shouldn't be stopped on halt
