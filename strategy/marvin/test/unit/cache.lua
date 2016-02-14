@@ -31,35 +31,53 @@ local function sideEffect()
 end
 sideEffect = Cache.forFrame(sideEffect)
 
-return function()
-    local a = foo(1,2,3)
-    local b = foo(2,3,4)
-    assert(a ~= b, "different arguments should result in different results")
+context("base.cache", function ()
+    test("different arguments", function ()
+        local a = foo(1,2,3)
+        local b = foo(2,3,4)
+        assert_not_equal(a, b, "different arguments should result in different results")
+    end)
 
-    a = bar()
-    b = bar("bla")
-    local c = bar(nil, 7)
-    assert(a==4 and b==4 and c==4,
-        "unused and nil parameters should not pose problems (multiple calls are ok)")
+    test("nil parameters", function ()
+        -- unused and nil parameters should not pose problems (multiple calls are ok)
+        local a = bar()
+        local b = bar("bla")
+        local c = bar(nil, 7)
+        assert_equal(a, 4)
+        assert_equal(b, 4)
+        assert_equal(c, 4)
+    end)
 
-    sideEffect()
-    local before = side
-    sideEffect()
-    local after = side
-    assert(before == after, "when called with the same arguments, the function should only be called once")
+    test("side effects", function ()
+        sideEffect()
+        local before = side
+        sideEffect()
+        local after = side
+        assert_equal(before, after, "when called with the same arguments, the function should only be called once")
+    end)
 
-    before = side
-    Cache.resetFrame()
-    sideEffect()
-    after = side
-    log(before)
-    assert(before ~= after, "frame cache is resettable")
+    test("reset frame cache", function ()
+        sideEffect()
+        local before = side
+        Cache.resetFrame()
+        sideEffect()
+        local after = side
+        assert_equal(before + 1, after)
+    end)
 
-    local r1, r2, r3 = multiReturn()
-    assert(r1 and r2 and r3, "multiple return values should be possible")
+    test("multiple return", function ()
+        local r1, r2, r3 = multiReturn()
+        -- multiple return values should be possible
+        assert_not_nil(r1)
+        assert_not_nil(r2)
+        assert_not_nil(r3)
+    end)
 
-    -- some number-crunching for time-measuring
-    for i = 1, 100000 do
-        heavy()
-    end
-end
+    test("heavy", function ()
+        -- some number-crunching for time-measuring
+        for i = 1, 100000 do
+            heavy()
+        end
+        assert_true(true)
+    end)
+end)

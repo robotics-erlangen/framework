@@ -1,4 +1,4 @@
-context("Vector", function()
+context("base.vector", function()
     test("readonly", function()
         local vec = Vector(0, 1)
         assert_false(vec:isReadonly())

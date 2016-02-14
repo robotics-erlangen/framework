@@ -1,6 +1,4 @@
 local Entrypoints = require "../base/entrypoints"
-local World = require "../base/world"
-
 local tests = require "test/unit/tests"
 local telescope = require "test/telescope/telescope"
 
