@@ -235,10 +235,18 @@ local function ancestors(i, contexts)
   return a
 end
 
+local function error_msg(_, f, msg)
+  return assertion_message_prefix .. "result to be an error " .. tostring(msg)
+end
+
+local function not_error_msg(_, f, msg)
+  return assertion_message_prefix .. "result not to be an error " .. tostring(msg)
+end
+
 make_assertion("blank",        "'%s' to be blank",                         function(a) return a == '' or a == nil end)
 make_assertion("empty",        "'%s' to be an empty table",                function(a) return not next(a) end)
 make_assertion("equal",        "'%s' to be equal to '%s'",                 function(a, b) return a == b end)
-make_assertion("error",        "result to be an error",                    function(f) return not pcall(f) end)
+make_assertion("error",        error_msg,                                  function(f) return not pcall(f) end)
 make_assertion("false",        "'%s' to be false",                         function(a) return a == false end)
 make_assertion("greater_than", "'%s' to be greater than '%s'",             function(a, b) return a > b end)
 make_assertion("gte",          "'%s' to be greater than or equal to '%s'", function(a, b) return a >= b end)
@@ -252,7 +260,7 @@ make_assertion("type",         "'%s' to be a %s",                          funct
 make_assertion("not_blank",    "'%s' not to be blank",                     function(a) return a ~= '' and a ~= nil end)
 make_assertion("not_empty",    "'%s' not to be an empty table",            function(a) return not not next(a) end)
 make_assertion("not_equal",    "'%s' not to be equal to '%s'",             function(a, b) return a ~= b end)
-make_assertion("not_error",    "result not to be an error",                function(f) return not not pcall(f) end)
+make_assertion("not_error",    not_error_msg,                              function(f) return not not pcall(f) end)
 make_assertion("not_match",    "'%s' not to be a match for %s",            function(a, b) return not (tostring(b)):match(a) end)
 make_assertion("not_nil",      "'%s' not to be nil",                       function(a) return a ~= nil end)
 make_assertion("not_type",     "'%s' not to be a %s",                      function(a, b) return type(a) ~= b end)
