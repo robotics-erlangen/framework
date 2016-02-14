@@ -6,13 +6,24 @@ local function set_global()
 	_G.globalValue = 5
 end
 
+local function read_global()
+	local tmp = globalValue
+end
+
 test("base.globalschecker", function ()
 	-- in debug mode every access to an undefined global is an error
 	assert_error(set_global, "Must not write undefined globals")
-	assert_error(function () log(globalValue) end, "Must not read undefined globals")
+	assert_error(read_global, "Must not read undefined globals")
 	assert_not_error(function()
 		local oldAmun = amun
 		amun = 42
 		amun = oldAmun
 	end)
+
+	GlobalsChecker.enable({ globalValue = true })
+	assert_not_error(set_global, "Must not block write of defined globals")
+	assert_not_error(read_global, "Must not block read of defined globals")
+	-- cleanup
+	_G.globalValue = nil
+	GlobalsChecker.enable({ globalValue = false })
 end)
