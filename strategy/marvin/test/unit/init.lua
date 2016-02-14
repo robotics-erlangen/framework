@@ -5,6 +5,13 @@ local telescope = require "test/telescope/telescope"
 local testContexts = {}
 local initialized = false
 
+
+telescope.make_assertion("equal_eps", "'%s' to be equal to '%s' with epsilon '%s'",
+		function(a, b, c) return math.abs(b-a) <= c end)
+telescope.make_assertion("not_equal_eps", "'%s' not to be equal to '%s' with epsilon '%s'",
+		function(a, b, c) return math.abs(b-a) > c end)
+
+
 local function initializeTest(name)
 	if not pcall(require, 'debug') then
 		error("Debugging not enabled!")
