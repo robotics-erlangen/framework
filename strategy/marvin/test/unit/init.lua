@@ -11,6 +11,33 @@ telescope.make_assertion("equal_eps", "'%s' to be equal to '%s' with epsilon '%s
 telescope.make_assertion("not_equal_eps", "'%s' not to be equal to '%s' with epsilon '%s'",
 		function(a, b, c) return math.abs(b-a) > c end)
 
+local function deep_equal(tablea, tableb)
+	if type(tablea) == "table" and type(tableb) == "table" then
+		for k, va in pairs(tablea) do
+			local vb = tableb[k]
+			if not deep_equal(va, vb) then
+				return false
+			end
+		end
+		for k, vb in pairs(tableb) do
+			local va = tablea[k]
+			if not deep_equal(va, vb) then
+				return false
+			end
+		end
+		return true
+	elseif tablea == tableb then
+		return true
+	else
+		return false
+	end
+end
+
+telescope.make_assertion("deep_equal", "'%s' to be deep equal to '%s'",
+		function(a, b) return deep_equal(a, b) end)
+telescope.make_assertion("not_deep_equal", "'%s' to be not deep equal to '%s'",
+		function(a, b) return not deep_equal(a, b) end)
+
 
 local function initializeTest(name)
 	if not pcall(require, 'debug') then
