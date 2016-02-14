@@ -34,7 +34,8 @@ local function CreateShot2()
 	return speedArray, timeArray
 end
 
-return function()
+return {
+testStatic = function()
 	BallAnalyzer:init(nil, nil, nil, -3.5, -0.5)
 	BallAnalyzer._record, BallAnalyzer._times = CreateShot()
 	local sl, ro
@@ -46,3 +47,4 @@ return function()
 	sl, ro = BallAnalyzer:analyze()
 	log("Sliding friction: "..math.average(sl).." | Rolling friction: "..math.average(ro))
 end
+}

@@ -3,6 +3,7 @@ local Entrypoints = require "../base/entrypoints"
 --- Loads every test
 local Tests = {
 	Ball = require "test/observer/ball",
+	BallAnalyzer = require "test/observer/ballAnalyzer",
 	Goal = require "test/observer/goal",
 	path = require "test/observer/path",
 	Physics = require "test/observer/physics",
