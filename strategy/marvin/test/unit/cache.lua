@@ -11,17 +11,22 @@ local function bar()
 end
 bar = Cache.forFrame(bar)
 
+local function echo(...)
+    return {...}
+end
+echo = Cache.forFrame(echo)
+
+
 local function multiReturn()
     return 1, 2, 3
 end
 multiReturn = Cache.forFrame(multiReturn)
 
 local function heavy()
-        local a = 0
-        for i = 0, 1000000 do
-            a = a + i
-        end
-        log("running")
+    local a = 0
+    for i = 0, 1000000 do
+        a = a + i
+    end
 end
 heavy = Cache.forFrame(heavy)
 
@@ -43,9 +48,23 @@ context("base.cache", function ()
         local a = bar()
         local b = bar("bla")
         local c = bar(nil, 7)
+        -- equal to a
+        local d = bar(nil, nil, nil)
         assert_equal(a, 4)
         assert_equal(b, 4)
         assert_equal(c, 4)
+        assert_equal(d, 4)
+    end)
+
+    test("parameters", function ()
+        local a = echo()
+        local b = echo("bla")
+        local c = echo(nil, 7)
+        local d = echo(nil, nil, nil, 5)
+        assert_deep_equal(a, {})
+        assert_deep_equal(b, { "bla" })
+        assert_deep_equal(c, { nil, 7 })
+        assert_deep_equal(d, { nil, nil, nil, 5 })
     end)
 
     test("side effects", function ()

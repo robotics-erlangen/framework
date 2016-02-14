@@ -29,7 +29,7 @@ local cleanup = {}
 local nilObj = {}
 
 local function getFromCache(cached, params)
-	local pcount = #params
+	local pcount = table.maxn(params)
 	params[0] = pcount
 
 	local entry = cached
@@ -47,7 +47,7 @@ local function getFromCache(cached, params)
 end
 
 local function setInCache(cached, params, result)
-	local pcount = #params
+	local pcount = table.maxn(params)
 	params[0] = pcount
 
 	local entry = cached
