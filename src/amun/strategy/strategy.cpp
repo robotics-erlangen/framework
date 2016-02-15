@@ -157,10 +157,10 @@ void Strategy::handleCommand(const Command &command)
         }
 
         if (cmd->has_load()) {
-            const QString filename = cmd->load().filename().c_str();
+            const QString filename = QString::fromStdString(cmd->load().filename());
             QString entryPoint;
             if (cmd->load().has_entry_point()) {
-                entryPoint = cmd->load().entry_point().c_str();
+                entryPoint = QString::fromStdString(cmd->load().entry_point());
             }
             loadScript(filename, entryPoint);
             reloadStrategy = false; // already reloaded
@@ -295,6 +295,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         m_strategy = Lua::createStrategy(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
     } else {
         fail(QString("No strategy handler for file %1").arg(filename));
+        return;
     }
 
     // delay reload until strategy is no longer running

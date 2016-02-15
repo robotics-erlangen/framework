@@ -191,9 +191,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_aoiItem->setZValue(10000.0f);
     m_aoiItem->hide();
     m_scene->addItem(m_aoiItem);
-
     m_aoi = QRectF(-1, -1, 2, 2);
-    updateAOI();
 
     QColor ballColor(255, 66, 0);
     m_ballTrace.color = ballColor.darker();

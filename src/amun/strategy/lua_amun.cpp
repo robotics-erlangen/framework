@@ -221,7 +221,7 @@ static int amunSendMixedTeamInfo(lua_State *state)
         luaL_error(state, "Invalid mixed team information packet!");
     }
 
-    emit thread->sendMixedTeamInfo(data);
+    thread->sendMixedTeam(data);
     return 0;
 }
 

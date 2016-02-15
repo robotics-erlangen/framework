@@ -65,12 +65,14 @@ public:
     amun::PlotValue *addPlot();
     bool sendCommand(const Command &command);
     bool sendNetworkReferee(const QByteArray &referee);
+    void sendMixedTeam(const QByteArray &info);
     void watch(const QString &filename);
 private:
     void loadLibs();
     void loadDebugLibs();
     void loadLib(const char* name, lua_CFunction function);
     void setupPackageLoader();
+    void replaceLuaFunction(const char *module, const char *key, lua_CFunction replacement);
 
 private:
     lua_State *m_state;

@@ -433,6 +433,11 @@ bool Lua::sendNetworkReferee(const QByteArray &referee)
     return true;
 }
 
+void Lua::sendMixedTeam(const QByteArray &info)
+{
+    emit sendMixedTeamInfo(info);
+}
+
 void Lua::watch(const QString &filename)
 {
     m_watcher->addFile(filename);
@@ -449,29 +454,24 @@ void Lua::loadLibs()
     loadLib(LUA_FFILIBNAME,     luaopen_ffi);
 }
 
+void Lua::replaceLuaFunction(const char *module, const char *key, lua_CFunction replacement)
+{
+    lua_getglobal(m_state, module);
+    Q_ASSERT(lua_istable(m_state, -1));
+
+    lua_pushcfunction(m_state, replacement);
+    lua_setfield(m_state, -2, key);
+
+    lua_pop(m_state, 1);
+}
+
 void Lua::loadDebugLibs()
 {
     loadLib(LUA_OSLIBNAME,      luaopen_os);
-
-    // replace os.exit function
-    lua_getglobal(m_state, "os");
-    Q_ASSERT(lua_istable(m_state, -1));
-
-    lua_pushcfunction(m_state, luaInstallKillHook);
-    lua_setfield(m_state, -2, "exit");
-
-    lua_pop(m_state, 1);
+    replaceLuaFunction("os", "exit", luaInstallKillHook);
 
     loadLib(LUA_DBLIBNAME,      luaopen_debug);
-
-    // replace debug.traceback function
-    lua_getglobal(m_state, "debug");
-    Q_ASSERT(lua_istable(m_state, -1));
-
-    lua_pushcfunction(m_state, luaErrorHandler);
-    lua_setfield(m_state, -2, "traceback");
-
-    lua_pop(m_state, 1);
+    replaceLuaFunction("debug", "traceback", luaErrorHandler);
 
     // load jit libraries, required by the lua debugger
     loadLib(LUA_BITLIBNAME,     luaopen_bit);
