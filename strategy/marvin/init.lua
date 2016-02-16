@@ -20,10 +20,8 @@ local Robot = require "observer/robot"
 
 local preproc = Class("Process.PreProc", require "../base/process")
 function preproc:run()
-	local pre = amun.getCurrentTime()
 	Ball._updateReceivesPass()
 	Ball._updateIsAccelerating()
-	local post = amun.getCurrentTime()
     Robot.estimateOpponentDynamics()
     Robot._updateMinTimeToBall()
     Robot._updateHadBall()
