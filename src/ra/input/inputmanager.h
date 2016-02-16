@@ -59,6 +59,7 @@ public slots:
     void removeBinding(uint generation, uint id);
     void setStrategyControlled(uint generation, uint id, bool strategyControlled);
     void setNetworkControlled(uint generation, uint id, bool networkControlled);
+    void setEjectSdcard(uint generation, uint id);
     void setMaxSpeed(double speed);
     void setMaxOmega(double speed);
     void setDribblerPower(double dribblerPower);
@@ -85,6 +86,8 @@ private:
     BindingsMap m_bindings;
     typedef QMap<QPair<uint, uint>, bool> NetworkControlMap;
     NetworkControlMap m_networkControl;
+    typedef QMap<QPair<uint, uint>, bool> EjectSdcardMap;
+    EjectSdcardMap m_ejectSdcard;
 
 #ifdef SDL2_FOUND
     QMap<SDL_JoystickID, Joystick*> m_joysticks;

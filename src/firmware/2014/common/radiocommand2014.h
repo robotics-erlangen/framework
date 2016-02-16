@@ -46,7 +46,8 @@ typedef struct
     int16_t v_y; // mm/s
     int16_t omega; // mrad/s
     uint8_t ir_param:6;
-    uint8_t unused:2;
+    uint8_t eject_sdcard:1;
+    uint8_t unused:1;
 } __attribute__ ((packed)) RadioCommand2014;
 
 enum RadioExtension2014 {

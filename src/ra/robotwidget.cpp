@@ -42,6 +42,7 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
         connect(this, SIGNAL(removeBinding(uint,uint)), inputManager, SLOT(removeBinding(uint,uint)));
         connect(this, SIGNAL(strategyControlled(uint,uint,bool)), inputManager, SLOT(setStrategyControlled(uint,uint,bool)));
         connect(this, SIGNAL(networkControlled(uint,uint,bool)), inputManager, SLOT(setNetworkControlled(uint,uint,bool)));
+        connect(this, SIGNAL(ejectSdcard(uint,uint)), inputManager, SLOT(setEjectSdcard(uint,uint)));
     }
     connect(inputManager, SIGNAL(devicesUpdated()), SLOT(updateMenu()));
 
@@ -256,6 +257,10 @@ void RobotWidget::updateMenu()
         action2->setCheckable(true);
         action2->setDisabled(m_inputDevice.isEmpty());
         action2->setChecked(m_strategyControlled);
+
+        QAction *ejectAction = m_menu->addAction("Eject sdcard");
+        connect(ejectAction, SIGNAL(triggered(bool)), SLOT(sendEject()));
+        ejectAction->setEnabled(m_teamId != NoTeam);
     }
 
     m_menu->addSeparator();
@@ -276,6 +281,11 @@ void RobotWidget::updateMenu()
     }
 }
 
+void RobotWidget::sendEject()
+{
+    emit ejectSdcard(m_specs.generation(), m_specs.id());
+}
+
 void RobotWidget::selectTeam(QAction *action)
 {
     Team team = (Team) action->data().toInt();
@@ -287,6 +297,8 @@ void RobotWidget::selectTeam(Team team)
 {
     QBrush brush;
 
+    m_teamId = team;
+    updateMenu();
     m_inputLabel->setEnabled(true);
 
     switch (team) {

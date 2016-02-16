@@ -277,6 +277,10 @@ void Processor::processTeam(Team &team, bool isBlue, const RobotList &robots, QL
             command.set_strategy_controlled(false);
         }
 
+        if (robot->manual_command && robot->manual_command->eject_sdcard()) {
+            command.set_eject_sdcard(true);
+        }
+
         // Get current robot
         const world::Robot* currentRobot = getWorldRobot(robots, robot->controller.specs().id());
         // only run controller if we know where the robot is

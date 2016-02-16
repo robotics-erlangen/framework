@@ -120,6 +120,7 @@ message Command
     optional bool strategy_controlled = 13;
     optional bool force_kick = 14;
     optional bool network_controlled = 15;
+    optional bool eject_sdcard = 16;
 }
 
 message RadioCommand

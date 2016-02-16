@@ -520,6 +520,7 @@ void Transceiver::addRobot2014Command(int id, const robot::Command &command, boo
     data.id = id;
     data.force_kick = command.force_kick();
     data.ir_param = qBound<quint8>(0, m_ir_param[qMakePair(3, id)], 63);
+    data.eject_sdcard = command.eject_sdcard();
     data.unused = 0;
 
     // set address

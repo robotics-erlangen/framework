@@ -138,6 +138,14 @@ void InputManager::update()
             radio_command->set_id(it.key().second);
             radio_command->mutable_command()->set_network_controlled(it.value());
         }
+        for(EjectSdcardMap::const_iterator it = m_ejectSdcard.begin();
+                it != m_ejectSdcard.end(); ++it) {
+            robot::RadioCommand *radio_command = control->add_commands();
+            radio_command->set_generation(it.key().first);
+            radio_command->set_id(it.key().second);
+            radio_command->mutable_command()->set_eject_sdcard(true);
+        }
+        m_ejectSdcard.clear();
     }
 
     emit sendCommand(command);
@@ -247,6 +255,12 @@ void InputManager::setNetworkControlled(uint generation, uint id, bool networkCo
     } else {
         m_networkControl.remove(rid);
     }
+}
+
+void InputManager::setEjectSdcard(uint generation, uint id)
+{
+    QPair<uint, uint> rid(generation, id);
+    m_ejectSdcard[rid] = true;
 }
 
 void InputManager::setMaxSpeed(double speed)

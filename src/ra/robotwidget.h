@@ -51,6 +51,7 @@ signals:
     void networkControlled(uint generation, uint id, bool networkControlled);
     void teamSelected(uint generation, uint id, RobotWidget::Team team);
     void inputDeviceSelected(uint generation, const QString &inputDevice);
+    void ejectSdcard(uint generation, uint id);
 
 public slots:
     void setTeam(uint generation, uint id, RobotWidget::Team team);
@@ -66,6 +67,7 @@ private slots:
     void updateMenu();
     void selectTeam(QAction *action);
     void selectTeam(Team team);
+    void sendEject();
 
     void updateRobotStatus();
     void hideRobotStatus();
@@ -90,6 +92,7 @@ private:
     QToolButton *m_team;
     QMenu *m_teamMenu;
     QActionGroup *m_teamGroup;
+    Team m_teamId;
 
     robot::RadioResponse m_mergedResponse;
     GuiTimer *m_guiUpdateTimer;
