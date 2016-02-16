@@ -91,13 +91,13 @@ float Path::Rect::distance(const LineSegment &segment) const
     return std::min(std::min(distTop, distBottom), std::min(distLeft, distRight));
 }
 
-Path::Path() :
+Path::Path(uint32_t rng_seed) :
     m_p_dest(0.1),
     m_p_wp(0.4),
     m_radius(-1.f),
     m_stepSize(0.1f),
     m_cacheSize(200),
-    m_rng(0), // random initialization
+    m_rng(rng_seed),
     m_treeStart(NULL),
     m_treeEnd(NULL)
 { }

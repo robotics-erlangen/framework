@@ -62,8 +62,9 @@ static void updateTiming(lua_State *L, lua_Number time)
 // Path is a C++ class and thus can't be created with newuserdata
 static int pathCreate(lua_State *L)
 {
+    Lua *thread = getStrategyThread(L);
     Path **p = (Path **) lua_newuserdata(L, sizeof(Path*));
-    *p = new Path;
+    *p = new Path(thread->time());
     luaL_getmetatable(L, "path");
     lua_setmetatable(L, -2);
     return 1;

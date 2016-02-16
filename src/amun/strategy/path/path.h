@@ -89,7 +89,7 @@ public:
     typedef QList<Waypoint> List;
 
 public:
-    Path();
+    Path(uint32_t rng_seed);
     ~Path();
 
 public:
