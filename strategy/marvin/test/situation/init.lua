@@ -4,10 +4,10 @@ local Entrypoints = require "../base/entrypoints"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
-local TestAgent = require "agent/testagent"
 local Coordinator = require "control/maincoordinator"
 local Messaging = require "control/messaging"
 local MoveToPos = require "task/movetopos"
+local TestHelper = require "test/helper/agent"
 
 local situations = {
 	Duel = require "test/situation/duel",
@@ -93,11 +93,9 @@ end
 
 local function createAgentsAndMoveTasks()
 	for robot, destination in pairs(destinations[World.TeamIsBlue and "blue" or "yellow"]) do
-		local assignment = {
-			task = MoveToPos,
-			parameters = { destination.pos, destination.dir:angle() }
-		}
-		table.insert(setupAgents, TestAgent(robot, assignment))
+		table.insert(setupAgents, TestHelper.staticAgent(robot,
+			TestHelper.staticBehavior(MoveToPos, { destination.pos, destination.dir:angle() }) )
+		)
 	end
 end
 

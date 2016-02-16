@@ -1,10 +1,11 @@
-local ShootSpeedTest = Class("Task.ShootSpeedTest", require "task/base")
-
 local Entrypoints = require "../base/entrypoints"
 local World = require "../base/world"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
+local TestHelper = require "test/helper/agent"
 
+
+local ShootSpeedTest = Class("Test.Task.ShootSpeedTest", require "task/base")
 
 function ShootSpeedTest:_init(speed)
 	self._shootSpeed = speed
@@ -27,20 +28,12 @@ function ShootSpeedTest:run()
 	self._robot.trajectory:update(ToTarget, self._robot.pos, self._robot.pos.y < 0 and math.pi/2 or -math.pi/2)
 end
 
-local agent = nil
 
-local function run()
-	if agent == nil then
-		if #World.FriendlyRobots == 0 then
-			return
-		end
-		agent = TestAgent(World.FriendlyRobots[1], {
-			task = ShootSpeedTest,
-			parameters = { 2 }
-		})
-	end
-	Messaging.deliverMessages()
-	agent:run()
-end
+local Agent = Class("Test.Task.ShootSpeedTest.Agent", require "agent/base/simpleagent")
+Agent._behaviors = {
+	TestHelper.staticBehavior(ShootSpeedTest, { 2 })
+}
 
+
+local run = TestHelper.defaultCoordinator("attack", Agent, 1)
 Entrypoints.add("TaskTest/ShootSpeed", run)

@@ -1,16 +1,11 @@
 local Entrypoints = require "../base/entrypoints"
 local World = require "../base/world"
-local TestAgent = require "agent/testagent"
-local Messaging = require "control/messaging"
 local CenterBack = require "task/centerback"
+local TestHelper = require "test/helper/agent"
 
 
 local G = World.Geometry
 local N = 3
-
-local destPositions = {}
-local agents = {}
-
 
 -----------------------------
 -------- ! CAUTION ! --------
@@ -21,28 +16,27 @@ local agents = {}
 -- collisions              --
 -----------------------------
 
+local Defend = Class("Test.Task.RandomDefense.Defend", require "agent/base/behavior")
 
-local function run()
-	for i = 1,N do
-		local r = World.FriendlyRobots[i]
-		if not destPositions[i] or math.random() < 0.003 then
-			local x = math.random() * G.FieldWidth - G.FieldWidthHalf
-			local y = - math.random() * G.FieldHeightHalf
-			destPositions[i] = Vector(x, y)
-
-			agents[i] = TestAgent(r, {
-				task = CenterBack,
-				parameters = { { pos = destPositions[i] } }
-			})
-		end
-
-	end
-
-	Messaging.deliverMessages()
-
-	for i = 1,N do
-		agents[i]:run()
-	end
+function Defend:check()
+	-- disable behavior to trigger a reset
+	return math.random() >= 0.003
 end
 
+function Defend:_updateTask()
+	local x = math.random() * G.FieldWidth - G.FieldWidthHalf
+	local y = - math.random() * G.FieldHeightHalf
+	local destPosition = Vector(x, y)
+
+	return CenterBack, { { pos = destPosition } }
+end
+
+
+local DefendAgent = Class("Test.Task.RandomDefense.DefendAgent", require "agent/base/simpleagent")
+DefendAgent._behaviors = {
+	Defend
+}
+
+
+local run = TestHelper.defaultCoordinator("defend", DefendAgent, N)
 Entrypoints.add("TaskTest/Random Defense", run)
