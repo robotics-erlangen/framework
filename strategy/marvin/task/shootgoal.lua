@@ -188,6 +188,14 @@ function ShootGoal:_updateVolleyShootPos()
 		oldPosValid = self:_validateShootPos(oldPos)
 	end
 
+	-- keep the old position if the ball about to arrive
+	if oldPos and oldPos:distanceTo(self._robot.pos + Vector.fromAngle(self._robot.dir):setLength(
+			self._robot.shootRadius + World.Ball.radius)) < 0.25 then
+		debug.set("volley pos", "keep (lock)")
+		return
+	end
+
+
 	-- if the old position is not valid any more or the ball is still being shot, 
 	-- search a new (valid) one; otherwise keep the old one
 	if not oldPosValid then
