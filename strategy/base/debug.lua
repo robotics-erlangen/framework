@@ -115,7 +115,7 @@ end
 function debug.resetStack()
 	if #debugStack ~= 1 or debugStack[1] ~= "" then
 		log("Unbalanced push/pop on debug stack")
-		for _,v in pairs(debugStack) do
+		for _,v in ipairs(debugStack) do
 			log(v)
 		end
 	end

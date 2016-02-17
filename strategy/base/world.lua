@@ -38,7 +38,8 @@ local Robot = require "../base/robot"
 -- @field Ball Ball - current Ball
 -- @field FriendlyRobots Robot[] - List of own robots in an arbitary order
 -- @field FriendlyInvisibleRobots Robot[] - Own robots which currently aren't tracked
--- @field FriendlyRobotsById Robot[] - List of own robots with robot id as index
+-- @field FriendlyRobotsById Map<int,Robot> - List of own robots with robot id as index
+-- @field FriendlyRobotsAll Robot[] - List of all own robots in an arbitary order
 -- @field FriendlyKeeper Robot - Own keeper if on field or nil
 -- @field OpponentRobots Robot[] - List of opponent robots in an arbitary order
 -- @field OpponentRobotsById Robot[] - List of opponent robots with robot id as index
@@ -70,6 +71,7 @@ World.Ball = Ball()
 World.FriendlyRobots = {}
 World.FriendlyInvisibleRobots = {}
 World.FriendlyRobotsById = {}
+World.FriendlyRobotsAll = {}
 World.FriendlyKeeper = nil
 World.OpponentRobots = {}
 World.OpponentRobotsById = {}
@@ -134,10 +136,14 @@ end
 -- Creates generation specific robot object for own team
 function World._updateTeam(state)
 	local friendlyRobotsById = {}
-	for _, rdata in pairs(state.robot) do
-		friendlyRobotsById[rdata.id] = Generation.factory(rdata, World.Geometry)
+	local friendlyRobotsAll = {}
+	for _, rdata in ipairs(state.robot) do
+		local robot = Generation.factory(rdata, World.Geometry)
+		friendlyRobotsById[rdata.id] = robot
+		table.insert(friendlyRobotsAll, robot)
 	end
 	World.FriendlyRobotsById = friendlyRobotsById
+	World.FriendlyRobotsAll = friendlyRobotsAll
 end
 
 -- Setup field geometry
@@ -207,14 +213,14 @@ function World._updateWorld(state)
 	if dataFriendly then
 		-- sort data by robot id
 		local dataById = {}
-		for _,rdata in pairs(dataFriendly) do
+		for _,rdata in ipairs(dataFriendly) do
 			dataById[rdata.id] = rdata
 		end
 
 		-- Update data of every own robot
 		World.FriendlyRobots = {}
 		World.FriendlyInvisibleRobots = {}
-		for id, robot in pairs(World.FriendlyRobotsById) do
+		for _, robot in ipairs(World.FriendlyRobotsAll) do
 			-- get responses for the current robot
 			-- these are identified by the robot generation and id
 			local robotResponses = {}
@@ -225,7 +231,7 @@ function World._updateWorld(state)
 				end
 			end
 
-			robot:_update(dataById[id], World.Time, robotResponses)
+			robot:_update(dataById[robot.id], World.Time, robotResponses)
 			-- sort robot into visible / not visible
 			if robot.isVisible then
 				table.insert(World.FriendlyRobots, robot)
@@ -243,7 +249,7 @@ function World._updateWorld(state)
 		World.OpponentRobotsById = {}
 		-- just update every opponent robot
 		-- robots that are invisible for more than one second are dropped by amun
-		for _,rdata in pairs(dataOpponent) do
+		for _,rdata in ipairs(dataOpponent) do
 			local robot = opponentRobotsById[rdata.id]
 			opponentRobotsById[rdata.id] = nil
 			if not robot then
@@ -368,7 +374,7 @@ end
 -- update and handle user inputs set for own robots
 function World._updateUserInput(input)
 	if input.radio_command then
-		for _, robot in pairs(World.FriendlyRobotsById) do
+		for _, robot in ipairs(World.FriendlyRobotsAll) do
 			robot:_updateUserControl(nil) -- clear
 		end
 		for _, cmd in ipairs(input.radio_command) do
@@ -384,7 +390,7 @@ end
 --- Stops own robots and enables standby
 -- @name haltOwnRobots
 function World.haltOwnRobots()
-	for _, robot in pairs(World.FriendlyRobotsById) do
+	for _, robot in ipairs(World.FriendlyRobotsAll) do
 		robot:setStandby(true)
 		robot:halt()
 	end
@@ -394,7 +400,7 @@ end
 -- Robots without a command stop by default
 -- @name setRobotCommands
 function World.setRobotCommands()
-	for _, robot in pairs(World.FriendlyRobotsById) do
+	for _, robot in ipairs(World.FriendlyRobotsAll) do
 		robot:_setCommand()
 	end
 end

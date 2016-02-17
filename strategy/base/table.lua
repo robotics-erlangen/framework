@@ -54,7 +54,7 @@ end
 function table.append(t1, ...) -- for arrays (non nil)
 	local param = {...}
 	if #param == 1 then
-		for _, value in pairs(param[1]) do
+		for _, value in ipairs(param[1]) do
 			table.insert(t1, value)
 		end
 	elseif #param > 1 then
@@ -182,7 +182,7 @@ end
 -- @param t array - Array to remove from
 -- @param value any - Value to remove
 function table.removeValue(t, value)
-	for i, v in pairs(t) do
+	for i, v in ipairs(t) do
 		if v == value then
 			table.remove(t, i)
 			break
