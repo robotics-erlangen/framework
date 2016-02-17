@@ -9,6 +9,7 @@ local World = require "../base/world"
 local AggressiveKeeper = require "task/aggressivekeeper"
 local SaveBall = require "task/saveball"
 local ShootGoal = require "task/shootgoal"
+local MoveToStaticBall = require "task/movetostaticball"
 
 
 function HandleBall:behindCenterbacks(object)
@@ -51,8 +52,21 @@ function HandleBall:_updateTask()
 	debug.set("Ball Speed", World.Ball.speed:length())
 	debug.set("Ball safe in defense area", Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius-2*self._robot.radius))
 
-	-- if the ball is lying in our defense area we can shoot in direction of the opponents goal and not just at the sides
-	if Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius-2*self._robot.radius) and World.Ball.speed:length()<=0.1 then
+	local ballInDefenseAreaWithTwoRobotsDistance = Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius-4*self._robot.radius)
+	local ballInDefenseAreaWithOneRobotDistance = Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius-2*self._robot.radius)
+
+	--if the ball is rolling slowly through the defence area stop it
+	if ballInDefenseAreaWithTwoRobotsDistance and World.Ball.speed:length() > 0.1 and not ballBehindKeeper then
+		local rotation = (-World.Ball.speed):angle()
+		--don't align goal-ball-keeper
+		if rotation < 0 then
+			rotation = math.pi/2
+		end
+		return MoveToStaticBall, {rotation, 0.03}
+	end
+
+	-- if the ball is lying in our defense area we can shoot in the direction of the opponents goal and not just at the sides
+	if ballInDefenseAreaWithOneRobotDistance and World.Ball.speed:length()<=0.1 and not ballBehindKeeper then
 		return ShootGoal
 	end
 	
