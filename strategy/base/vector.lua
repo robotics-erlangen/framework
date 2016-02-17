@@ -151,6 +151,9 @@ end
 -- @param other Vector
 -- @return number - angle in interval [-pi, +pi]
 function vector_mt:angleDiff(other)
+	if self:length() == 0 or other:length() == 0 then
+		return 0
+	end
 	local geom = require "../base/geom"
 	return geom.getAngleDiff(self:angle(), other:angle())
 end

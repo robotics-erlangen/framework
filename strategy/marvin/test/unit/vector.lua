@@ -226,10 +226,10 @@ context("base.vector", function()
         assert_equal_eps(vec5:absoluteAngleDiff(vec2), math.pi/4, EPS)
 
         -- special cases
-        assert_equal(vec0:angleDiff(vec5), math.pi/4)
-        assert_equal(vec0:angleDiff(vec2), math.pi/2)
-        assert_equal(vec5:angleDiff(vec0), -math.pi/4)
-        assert_equal(vec2:angleDiff(vec0), -math.pi/2)
+        assert_equal(vec0:angleDiff(vec5), 0)
+        assert_equal(vec0:angleDiff(vec2), 0)
+        assert_equal(vec5:angleDiff(vec0), 0)
+        assert_equal(vec2:angleDiff(vec0), 0)
 
         assert_equal(vec0:absoluteAngleDiff(vec5), 0)
         assert_equal(vec0:absoluteAngleDiff(vec2), 0)
