@@ -38,6 +38,7 @@ require "../base/math"
 require "../base/path"
 require "../base/table"
 require "../base/vector"
+Vector._loadGeom()
 
 math.randomseed(amun.getCurrentTime()) -- init rng
 
