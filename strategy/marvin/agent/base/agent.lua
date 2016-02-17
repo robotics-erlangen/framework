@@ -1,8 +1,12 @@
 local Base = Class("Agent.Base.Agent")
 
 local debug = require "../base/debug"
+local Field = require "../base/field"
+local World = require "../base/world"
 local Halt = require "agent/shared/halt"
 local Messaging = require "control/messaging"
+local Physics = require "observer/physics"
+local Rating = require "util/rating"
 
 
 -- static method for pool
@@ -22,6 +26,7 @@ function Base:init(robot)
 		)
 	}
 	self._activeBehavior = nil
+	self._mainAttackerParameters = nil
 end
 
 function Base:_run()
@@ -33,6 +38,7 @@ function Base:run()
 
 	self:_updateBehavior()
 	self:_runTaskAndBehavior()
+	self:_applyForMainAttacker()
 	self:_run()
 
 	debug.pop() -- Agent
@@ -74,12 +80,42 @@ function Base:_runTaskAndBehavior()
 	debug.pop() -- Inbox
 	debug.push("Task")
 	if self._task then
+		self._task:clearMainAttackerParameters()
 		self._task:run()
 		debug.set(nil, Class.name(self._task, true))
 	else
 		debug.set(nil, "none")
 	end
 	debug.pop() -- Task
+end
+
+function Base:_applyForMainAttacker()
+	-- the keeper just overrides this
+	local parameters = nil
+	for _, behavior in ipairs(self._behaviors) do
+		parameters = behavior:mainAttackerParameters() or parameters
+		if behavior == self._activeBehavior then
+			break
+		end
+	end
+	if parameters and self._task then
+		-- only use task parameters if behavior asked for main attacker application
+		parameters = self._task:mainAttackerParameters() or parameters
+	end
+	if not parameters then
+		return
+	end
+
+	if not Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) then
+		local targetPos = parameters[1] or World.Geometry.OpponentGoal
+		local endSpeedLength = parameters[2] or 0
+
+		local timeToBall = Physics.robotTimeToBall(self._robot,
+			World.Ball, targetPos, endSpeedLength)
+		local mainAttackerRating = Rating.timeToRating(timeToBall)
+		debug.set("ma application sent", true)
+		self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
+	end
 end
 
 -- controls whether the robot may be kept in its pool

@@ -132,6 +132,7 @@ end
 -- @param targetPos Vector - where to shoot at
 -- @param targetSpeed number - how fast the Ball should arrive at targetPos
 function Volley:_volley(viewPos, targetPos, targetSpeed)
+	self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
 	-- init ball_in speed
 	if self._ballIncoming then
 		local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(viewPos))

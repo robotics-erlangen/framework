@@ -125,6 +125,8 @@ function Shoot:_doCatch(targetPos, targetSpeed, futureBall)
 		targetPos = World.Ball.pos - World.Ball.speed
 	end
 
+	self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
+
 	if self._movingBallHysteresis and Ball.receivesPass(self._robot) then
 		local moveTime = self:_tryReceivePass(targetPos, targetSpeed, futureBall)
 		if moveTime then
@@ -333,6 +335,7 @@ function Shoot:_checkShootHysteresis(targetDir, maxAngleError, dontShoot)
 end
 
 function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontShoot)
+	self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
 	self._lastBallSpeed = self._lastBallSpeed or World.Ball.speed
 
 	local distToBall = self:_calculateDistToBall()
