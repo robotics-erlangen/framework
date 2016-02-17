@@ -401,7 +401,6 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	-- the first one occurs at the point where the robot actively catches the ball
 	-- the second one is the point where the robot moves to the slow or resting ball
 	-- check if the first maximum is > 0 (if it exists)
-	local search_first_maximum = false -- disable as it's too slow
 	local MAXSEARCH_N_SAMPLES = 7
 
 	local t_ball_bsearch_start = nil
@@ -413,53 +412,7 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 		if timediff0 <= 0 and timediff1 >= 0 then
 			t_ball_bsearch_start = ball_times[i-1]
 			t_ball_bsearch_end = ball_times[i]
-			search_first_maximum = false
 			break
-		end
-
-		-- search the first maximum
-		-- early exit if a value > 0 is found
-		if search_first_maximum then
-			-- search for derivative < 0
-			if timediff0 - timediff1 < 0 then
-				-- the maximum can be in the last two intervals
-				local t_ball_maxsearch_start = (i == 2) and ball_times[1] or ball_times[i-2]
-				local t_robot_maxsearch_start = (i == 2) and robot_times[1] or robot_times[i-2]
-				local t_ball_maxsearch_end = ball_times[i]
-				local t_robot_maxsearch_end = robot_times[i]
-
-				-- fine linear sampling
-				local t_ball_maxsearch_step = (t_ball_maxsearch_end - t_ball_maxsearch_start) / (MAXSEARCH_N_SAMPLES + 1)
-
-				local last_t_ball = t_ball_maxsearch_start
-				local last_t_robot = t_robot_maxsearch_start
-				for j = 1, MAXSEARCH_N_SAMPLES do
-					local t_ball = t_ball_maxsearch_start + j * t_ball_maxsearch_step
-					local t_robot = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball)
-
-					local last_t_diff = last_t_ball - last_t_robot
-					local t_diff = t_ball - t_robot
-
-					-- check for zero crossing
-					if last_t_diff < 0 and t_diff > 0 then
-						t_ball_bsearch_start = last_t_ball
-						t_ball_bsearch_end = t_ball
-						break
-					end
-
-					-- check for negative derivative
-					if t_diff < last_t_diff then
-						search_first_maximum = false
-						break
-					end
-
-					last_t_ball = t_ball
-					last_t_robot = t_robot
-				end
-				if t_ball_bsearch_start then
-					break
-				end
-			end
 		end
 	end
 
