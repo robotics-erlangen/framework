@@ -418,7 +418,7 @@ function ShootGoal:run()
 		else
 			-- perform a chip shot
 			self:_shoot(self._desperateChipTargetPoint,
-				self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, 5 * math.pi / 180)
+				self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, 10 * math.pi / 180)
 		end
 	end
 
