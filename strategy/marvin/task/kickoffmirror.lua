@@ -41,7 +41,7 @@ function KickoffMirror:run()
 				self._lastTargetRobot.pos:distanceTo(World.Geometry.FriendlyGoal) or
 				math.huge
 		local targetRobot = nil
-		for _,r in pairs(sector) do
+		for _,r in ipairs(sector) do
 			local dist = r.pos:distanceTo(World.Geometry.FriendlyGoal)
 			if dist < minDist then
 				minDist = dist

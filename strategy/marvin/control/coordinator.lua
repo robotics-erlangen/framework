@@ -39,7 +39,7 @@ function Coordinator:_updatePoolRobots()
 	-- find unassigned robots
 	local occupiedRobots = {}
 	for _, pool in pairs(self._pools) do
-		for _, robot in pairs(pool:robots()) do
+		for _, robot in ipairs(pool:robots()) do
 			occupiedRobots[robot.id] = true
 		end
 	end

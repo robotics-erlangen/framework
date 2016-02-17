@@ -9,7 +9,7 @@ local World = require "../base/world"
 -- SimpleAgent._behaviors = {}
 
 function SimpleAgent.takeRobot(robots)
-	for _, robot in pairs(robots) do
+	for _, robot in ipairs(robots) do
 		if SimpleAgent.checkRobot(robot) then
 			return robot
 		end

@@ -21,7 +21,7 @@ local oppChipDist = 0.2 -- min distance of opponent for chipping
 local recvChipDist = 0.3 -- min distance for receiving a chip pass
 function Robot.wayToPosFree(pos, ignoreRobot1, ignoreRobot2, chipkick)
 	-- TODO consider speed of robots to look a little into the future
-	for _, robot in pairs(World.Robots) do
+	for _, robot in ipairs(World.Robots) do
 		if robot ~= ignoreRobot1 and robot ~= ignoreRobot2 then
 			local _, distToBallCorridor = robot.pos:orthogonalProjection(World.Ball.pos, pos)
 			local targetDist = World.Ball.pos:distanceTo(pos)
@@ -56,7 +56,7 @@ local accelerationSmoothed = {}
 local alpha = 0.02
 function Robot.estimateOpponentDynamics()
 	local nullVector = Vector(0,0)
-	for _, robot in pairs(World.OpponentRobots) do
+	for _, robot in ipairs(World.OpponentRobots) do
 		local localRobotSpeed = robot.speed:copy():rotate(-robot.dir)
 		localRobotSpeed.x = math.abs(localRobotSpeed.x)
 		localRobotSpeed.y = math.abs(localRobotSpeed.y)
@@ -113,7 +113,7 @@ function Robot.hadBall(robot, time)
 end
 
 function Robot._updateHadBall()
-	for _,r in pairs(World.Robots) do
+	for _,r in ipairs(World.Robots) do
 		if r:hasBall(World.Ball) then
 			hadBallTimes[r] = World.Time
 		end

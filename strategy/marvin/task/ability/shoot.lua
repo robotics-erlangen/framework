@@ -172,7 +172,7 @@ function Shoot:_tryReceivePass(targetPos, targetSpeed, futureBall)
 
 	--see if an opponent is closer to the ball
 	local minTimeOpp = math.huge
-	for _,r in pairs(World.OpponentRobots) do
+	for _,r in ipairs(World.OpponentRobots) do
 		local tmp = Robot.minTimeToBall(r)
 		if tmp < minTimeOpp then
 			minTimeOpp = tmp

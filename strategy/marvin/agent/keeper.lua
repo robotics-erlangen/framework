@@ -11,7 +11,7 @@ Keeper._behaviors = {
 	Default
 }
 function Keeper.takeRobot(robots)
-	for _, robot in pairs(robots) do
+	for _, robot in ipairs(robots) do
 		if robot == World.FriendlyKeeper then
 			return robot
 		end

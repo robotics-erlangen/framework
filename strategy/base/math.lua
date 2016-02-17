@@ -148,7 +148,7 @@ function math.average(array, indexStart, indexEnd)
 		end
 		n = indexEnd - indexStart + 1
 	else
-		for _, v in pairs(array) do
+		for _, v in ipairs(array) do
 			sum = sum + v
 		end
 		n = #array

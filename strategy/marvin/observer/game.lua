@@ -22,7 +22,7 @@ function Game.divideOpponentsIntoSectors(ignoreCorners)
 	 -- |                       |
 	local sector = {{}, {}, {}}
 	local border = G.CenterCircleRadius + G.FieldWidthQuarter
-	for _,robot in pairs(World.OpponentRobots) do
+	for _,robot in ipairs(World.OpponentRobots) do
 		local sectorNumber = Game.getSector(robot, ignoreCorners)
 		if sectorNumber then
 			table.insert(sector[sectorNumber], robot)

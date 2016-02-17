@@ -277,7 +277,7 @@ function Ball.isShot()
 
 	local robot = nil
 	if condCooldown and condAccelerates and condFast then
-		for _,r in pairs(World.Robots) do
+		for _,r in ipairs(World.Robots) do
 			if ObserverRobot.hadBall(r, shootCooldown) then
 				condHadBall = true
 				local anglediff = math.abs(geom.getAngleDiff(r.dir, World.Ball.speed:angle()))

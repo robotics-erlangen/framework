@@ -38,7 +38,7 @@ end
 function HandleBall:_updateTask()
 	-- track opponent robots in defense area
 	local danger = false
-	for _,r in pairs(World.OpponentRobots) do
+	for _,r in ipairs(World.OpponentRobots) do
 		if self:behindCenterbacks(r) then
 			danger = true
 		end

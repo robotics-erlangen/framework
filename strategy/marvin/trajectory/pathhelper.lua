@@ -87,7 +87,7 @@ function PathHelper.addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreO
 	-- use 1 seconds for the navigation challenge
 	local estimationTime = 0.1 -- just a fixed time for now
 	if not ignoreFriendlyRobots then
-		for _, r in pairs(World.FriendlyRobots) do
+		for _, r in ipairs(World.FriendlyRobots) do
 			if r.id ~= robot.id then -- don't add current robot
 				-- use speed difference to calculate the safety distance
 				local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.05, 0.05)
@@ -107,7 +107,7 @@ function PathHelper.addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreO
 		estimationTime = 0
 	end
 	if not ignoreOpponentRobots then
-		for _, r in pairs(World.OpponentRobots) do
+		for _, r in ipairs(World.OpponentRobots) do
 			-- use speed difference to calculate the safety distance
 			local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.08, 0.10)
 			if disableOpponentPrediction then -- be more aggressive

@@ -54,7 +54,7 @@ function RouletteWheelSelection.report(successRates, i, success, module)
 	rate.percentage = rate.successful / rate.total
 	
 	local params = {}
-	for key, value in pairs(successRates) do
+	for key, value in ipairs(successRates) do
 		params[tostring(key).."t"] = value.total
 		params[tostring(key).."s"] = value.successful
 	end

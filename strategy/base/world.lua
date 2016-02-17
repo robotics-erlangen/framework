@@ -133,7 +133,7 @@ end
 -- Creates generation specific robot object for own team
 function World._updateTeam(state)
 	local friendlyRobotsById = {}
-	for _, rdata in pairs(state.robot) do
+	for _, rdata in ipairs(state.robot) do
 		friendlyRobotsById[rdata.id] = Generation.factory(rdata, World.Geometry)
 	end
 	World.FriendlyRobotsById = friendlyRobotsById
@@ -206,7 +206,7 @@ function World._updateWorld(state)
 	if dataFriendly then
 		-- sort data by robot id
 		local dataById = {}
-		for _,rdata in pairs(dataFriendly) do
+		for _,rdata in ipairs(dataFriendly) do
 			dataById[rdata.id] = rdata
 		end
 
@@ -242,7 +242,7 @@ function World._updateWorld(state)
 		World.OpponentRobotsById = {}
 		-- just update every opponent robot
 		-- robots that are invisible for more than one second are dropped by amun
-		for _,rdata in pairs(dataOpponent) do
+		for _,rdata in ipairs(dataOpponent) do
 			local robot = opponentRobotsById[rdata.id]
 			opponentRobotsById[rdata.id] = nil
 			if not robot then
@@ -253,7 +253,7 @@ function World._updateWorld(state)
 			World.OpponentRobotsById[rdata.id] = robot
 		end
 		-- mark dropped robots as invisible
-		for _,robot in pairs(opponentRobotsById) do
+		for _,robot in ipairs(opponentRobotsById) do
 			robot:_update(nil, World.Time)
 		end
 	end

@@ -43,7 +43,7 @@ function Attacker:_run()
 end
 
 function Attacker.takeRobot(robots)
-	for _, robot in pairs(robots) do
+	for _, robot in ipairs(robots) do
 		if robot.isVisible then
 			return robot
 		end
