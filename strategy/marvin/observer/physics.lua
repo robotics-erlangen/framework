@@ -360,8 +360,8 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 
 	-- calculate time required when the robot is directly hit by the ball
 	local frontOffset = (targetPos - robot.pos):setLength(ball.radius + robot.shootRadius)
-	local ballHitPos = geom.intersectLineLine(ball.pos, ball.speed,
-			robot.pos + frontOffset, ball.speed:perpendicular())
+	local ballHitPos, _, lambda = geom.intersectLineLine(ball.pos, ball.speed,
+			robot.pos + frontOffset, ball.speed:perpendicular():normalize())
 	local ballTimeToHitPos = Physics.ballRollTime(ball, ball.pos:distanceTo(ballHitPos))
 	local robotTimeToHitPos = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, ballTimeToHitPos)
 
@@ -378,6 +378,21 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	-- !!! optimistic: assumes that the robot can't be too fast to catch the ball
 	if robotTimeToHitPos <= ballTimeToHitPos then
 		t_max = math.min(ballTimeToHitPos, t_max)
+	end
+
+	-- special case: when the ball is fast and will soon hit the dribbler
+	-- just use the ballTimeToHitPos. This is necessary as the timespan during which
+	-- the t_ball > t_robot is getting smaller and smaller the distance between ball and robot gets
+	-- In the end the sampling is no longer able to find a valid time
+	-- The instability is increased as predicting the fasted position
+	-- where to catch the ball on the dribber gets more important.
+	if math.abs(lambda) < robot.dribblerWidth/2+0.01 and ballTimeToHitPos < 0.25
+			and ball.speed:dot(ballHitPos - ball.pos) > 0 then
+		if ballTimeToHitPos <= t_max then
+			return ballTimeToHitPos
+		else
+			return math.huge
+		end
 	end
 
 	-- ===== quadratic sampling =====
