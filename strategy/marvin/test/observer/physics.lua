@@ -3,6 +3,7 @@ local PhysicsTest = {}
 local Physics = require "observer/physics"
 local IO = require "util/io"
 local debug = require "../base/debug"
+local vis = require "../base/vis"
 
 
 function PhysicsTest.testBallVsRobotTime()
@@ -21,6 +22,14 @@ function PhysicsTest.testBallVsRobotTime()
 	local targetPos = Vector(0, 4.04)
 	local endSpeedLength = robot.maxSpeed
 
+	vis.addCircle("BallVsRobotTime", ball.pos, ball.radius, vis.colors.orange)
+	vis.addCircle("BallVsRobotTime", robot.pos, robot.shootRadius, vis.colors.blue)
+	vis.addPath("BallVsRobotTime", {ball.pos, ball.pos+ ball.speed}, vis.colors.orange)
+	vis.addPath("BallVsRobotTime", {robot.pos, robot.pos+ robot.speed}, vis.colors.blue)
+	local dribblerMid = robot.pos + (targetPos - robot.pos):setLength(robot.shootRadius)
+	local dribblerPerp = (targetPos - robot.pos):perpendicular():setLength(robot.dribblerWidth/2)
+	vis.addPath("BallVsRobotTime", {dribblerMid-dribblerPerp, dribblerMid+dribblerPerp}, vis.colors.blue)
+
 	local s_max = 4
 	local s_step = 0.01
 
@@ -28,10 +37,14 @@ function PhysicsTest.testBallVsRobotTime()
 	local balldist = Physics.ballAtTime(ball, mintime).pos.y
 
 	local values = {}
-	for s = s_step,s_max,s_step do
+	local optimum = nil
+	for s = 0,s_max,s_step do
 		local t_ball = Physics.ballRollTime(ball, s)
 		local t_robot = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball)
 		local t_diff = t_ball - t_robot
+		if optimum == nil and t_diff >= 0 then
+			optimum = t_ball
+		end
 
 		local mttb_flag = "NaN"
 		if s < balldist and s + s_step > balldist then
@@ -42,6 +55,7 @@ function PhysicsTest.testBallVsRobotTime()
 
 	local time = Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	debug.set("time", time)
+	debug.set("optimum", optimum)
 
 	IO.save("physics.test", values)
 end
