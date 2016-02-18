@@ -31,17 +31,26 @@ local Class = require "../base/class"
 
 local debugStack = { "" }
 
-local function joinName(prefix, name)
+local joinCache = {}
+
+local function prefixName(name)
+	local prefix = debugStack[#debugStack]
 	if #prefix == 0 then
 		return name
 	elseif name == nil then
 		return prefix
 	end
-	return prefix .. "/" .. name
-end
 
-local function prefixName(name)
-	return joinName(debugStack[#debugStack], name)
+	-- caching to avoid joining the debug keys over and over
+	if joinCache[prefix] and joinCache[prefix][name] then
+		return joinCache[prefix][name]
+	end
+	local joined = prefix .. "/" .. name
+	if not joinCache[prefix] then
+		joinCache[prefix] = {}
+	end
+	joinCache[prefix][name] = joined
+	return joined
 end
 
 --- Pushes a new key on the debug stack.
@@ -49,8 +58,7 @@ end
 -- @param name string - Name of the new subtree
 -- @param [value string - Value for the subtree header]
 function debug.push(name, value)
-	local current = debugStack[#debugStack]
-	table.insert(debugStack, joinName(current, name))
+	table.insert(debugStack, prefixName(name))
 	if value then
 		debug.set(nil, value)
 	end
