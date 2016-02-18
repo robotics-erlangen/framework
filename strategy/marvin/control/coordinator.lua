@@ -12,6 +12,12 @@ function Coordinator:init(trainer, pools, poolGroups)
 	self._pools = pools
 	-- list of lists with pools
 	self._poolGroups = poolGroups
+
+	self._poolsList = {}
+	-- get rid of calling pairs over and over again
+	for _, pool in pairs(self._pools) do
+		table.insert(self._poolsList, pool)
+	end
 end
 
 function Coordinator:run()
@@ -21,7 +27,7 @@ function Coordinator:run()
 	Messaging.deliverMessages()
 	self:_updatePoolRobots()
 	-- run every pool and thus every agent
-	for _, pool in pairs(self._pools) do
+	for _, pool in ipairs(self._poolsList) do
 		pool:run()
 	end
 end
@@ -32,19 +38,19 @@ end
 
 function Coordinator:_updatePoolRobots()
 	-- remove no longer needed / surplus robots from pools
-	for _, pool in pairs(self._pools) do
+	for _, pool in ipairs(self._poolsList) do
 		pool:cleanupRobots()
 	end
 
 	-- find unassigned robots
 	local occupiedRobots = {}
-	for _, pool in pairs(self._pools) do
+	for _, pool in ipairs(self._poolsList) do
 		for _, robot in ipairs(pool:robots()) do
 			occupiedRobots[robot.id] = true
 		end
 	end
 	local unassignedRobots = {}
-	for _, robot in pairs(World.FriendlyRobotsById) do
+	for _, robot in ipairs(World.FriendlyRobotsAll) do
 		if not occupiedRobots[robot.id] then
 			table.insert(unassignedRobots, robot)
 		end

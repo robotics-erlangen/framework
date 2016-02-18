@@ -19,8 +19,8 @@ local Trainer = require "trainer/maintrainer"
 
 
 function MainCoordinator:init(mode)
-	self._trainer = Trainer(mode)
-	self._pools = {
+	local trainer = Trainer(mode)
+	local pools = {
 		manual = AgentPool(Agent.Manual),
 		ally = AgentPool(Agent.Ally),
 		keeper = AgentPool(Agent.Keeper),
@@ -28,13 +28,14 @@ function MainCoordinator:init(mode)
 		attack = AgentPool(Agent.Attacker),
 		hidden = AgentPool(Agent.Hidden)
 	}
-	self._poolGroups = {
-		{ self._pools.manual },
-		{ self._pools.ally },
-		{ self._pools.keeper },
-		{ self._pools.defense, self._pools.attack },
-		{ self._pools.hidden }
+	local poolGroups = {
+		{ pools.manual },
+		{ pools.ally },
+		{ pools.keeper },
+		{ pools.defense, pools.attack },
+		{ pools.hidden }
 	}
+	Coordinator.init(self, trainer, pools, poolGroups)
 end
 
 function MainCoordinator:_postTrainerHook()
