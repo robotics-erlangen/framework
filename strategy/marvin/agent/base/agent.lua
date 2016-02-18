@@ -27,13 +27,14 @@ function Base:init(robot)
 	}
 	self._activeBehavior = nil
 	self._mainAttackerParameters = nil
+	self._debugIdStr = "Agent " .. self._robot.id
 end
 
 function Base:_run()
 end
 
 function Base:run()
-	debug.pushtop("Agent " .. self._robot.id)
+	debug.pushtop(self._debugIdStr)
 	debug.set(nil, Class.name(self, true))
 
 	self:_updateBehavior()
