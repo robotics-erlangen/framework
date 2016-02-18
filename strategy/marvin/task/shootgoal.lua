@@ -189,7 +189,7 @@ function ShootGoal:_updateVolleyShootPos()
 	end
 
 	-- keep the old position if the ball about to arrive
-	if oldPos and oldPos:distanceTo(self._robot.pos + Vector.fromAngle(self._robot.dir):setLength(
+	if oldPos and World.Ball.pos:distanceTo(self._robot.pos + Vector.fromAngle(self._robot.dir):setLength(
 			self._robot.shootRadius + World.Ball.radius)) < 0.25 then
 		debug.set("volley pos", "keep (lock)")
 		return
