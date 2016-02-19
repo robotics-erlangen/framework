@@ -4,24 +4,21 @@ local Interval = {}
 --- Merges a list of intervals
 -- @param sortedIntervals list (by reference) - the initial intervals ordered by increasing interval start
 function Interval.merge(sortedIntervals)
-	local currentInterval = nil
+	local currentInterval = sortedIntervals[1]
 	local n = 0
-	for _, interval in ipairs(sortedIntervals) do
-		if currentInterval then
-			if interval[1] <= currentInterval[2] then
-				-- join overlapping intervals
-				-- ensure that joined interval doesn't shrink
-				if currentInterval[2] < interval[2] then
-					currentInterval[2] = interval[2]
-				end
-			else
-				-- save interval if not overlapping
-				n = n + 1
-				sortedIntervals[n] = currentInterval
-				-- get next one for merging
-				currentInterval = interval
+	for i=2,#sortedIntervals do
+		local interval = sortedIntervals[i]
+		if interval[1] <= currentInterval[2] then
+			-- join overlapping intervals
+			-- ensure that joined interval doesn't shrink
+			if currentInterval[2] < interval[2] then
+				currentInterval[2] = interval[2]
 			end
 		else
+			-- save interval if not overlapping
+			n = n + 1
+			sortedIntervals[n] = currentInterval
+			-- get next one for merging
 			currentInterval = interval
 		end
 	end
