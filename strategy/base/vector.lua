@@ -36,6 +36,7 @@ typedef struct { const double x, y; } VectorReadOnly;
 -- avoid global lookups
 local abs, atan2, cos, sin, sqrt = math.abs, math.atan2, math.cos, math.sin, math.sqrt
 local format = string.format
+local geom = nil
 
 local vector_c -- ffi constructor
 local vector_c_readonly -- ffi readonly constructor
@@ -151,10 +152,9 @@ end
 -- @param other Vector
 -- @return number - angle in interval [-pi, +pi]
 function vector_mt:angleDiff(other)
-	if self:length() == 0 or other:length() == 0 then
+	if self.x == 0 and self.y == 0 or other.x == 0 and other.y == 0 then
 		return 0
 	end
-	local geom = require "../base/geom"
 	return geom.getAngleDiff(self:angle(), other:angle())
 end
 
@@ -198,7 +198,6 @@ end
 -- @return Vector - projected point
 -- @return number - distance to line
 function vector_mt:orthogonalProjection(linePoint1, linePoint2)
-	local geom = require "../base/geom"
 	local rv = linePoint2 - linePoint1
 	local is, dist = geom.intersectLineLine(self, rv:perpendicular(), linePoint1, rv)
 	if is then
@@ -296,6 +295,10 @@ end
 -- @return Vector
 function Vector.fromAngle(angle)
 	return vector_c(cos(angle), sin(angle))
+end
+
+function Vector._loadGeom()
+	geom = require "../base/geom"
 end
 
 local vector_class_mt = {
