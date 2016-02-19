@@ -215,9 +215,12 @@ function Striker:_calcMoveDest()
 	-- move destination: furthest point to closest opp on line
 	-- TODO: maybe consider mainAttacker?
 	local closestOpp = World.OpponentRobots[1] or { pos = Vector(0,0) }
+	local closestDist = self._robot.pos:distanceTo(closestOpp.pos)
 	for _, opp in ipairs(World.OpponentRobots) do
-		if self._robot.pos:distanceTo(opp.pos) < self._robot.pos:distanceTo(closestOpp.pos) then
+		local oppDist = self._robot.pos:distanceTo(opp.pos)
+		if oppDist < closestDist then
 			closestOpp = opp
+			closestDist = oppDist
 		end
 	end
 	local target = Interval.getFurthestPoint(possibleIntervals, closestOpp.pos.y, self._robot.radius)
