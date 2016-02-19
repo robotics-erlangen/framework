@@ -380,15 +380,6 @@ function Robot:_shoot(speed)
 	log("Error: no implementation for function shoot for robot generation "..self.generation)
 end
 
---- Ball position relative to dribbler mid
--- @param ball Ball - ball object to check
--- @return Vector
-function Robot:posToBall(ball)
-	local relpos = (ball.pos - self.pos):rotate(-self.dir)
-	relpos.x = relpos.x - self.shootRadius - ball.radius
-	return relpos
-end
-
 --- Check whether the robot has the given ball.
 -- Checks whether the ball is in rectangle in front of the dribbler with hasBallDistance depth. Uses hysteresis for the left and right side of that rectangle
 -- @param ball Ball - ball object to check
@@ -396,17 +387,17 @@ end
 -- @return boolean - has ball
 function Robot:hasBall(ball, sideOffset)
 	sideOffset = sideOffset or 0
-	local relpos = self:posToBall(ball)
 
 	-- handle sidewards balls
-	local latencyCompensation = (ball.speed - self.speed) * Constants.systemLatency
+	local latencyCompensation = (ball.speed - self.speed):scaleLength(Constants.systemLatency)
 	-- interpolate vector used for correction to circumvent noise
 	local MIN_COMPENSATION = 0.005
 	local BOUND_COMPENSATION_ANGLE = 70/180*math.pi
-	if latencyCompensation:length() < MIN_COMPENSATION then
+	local lclen = latencyCompensation:length()
+	if lclen < MIN_COMPENSATION then
 		latencyCompensation = Vector(0, 0)
-	elseif latencyCompensation:length() < 2*MIN_COMPENSATION then
-		local scale = (latencyCompensation:length() - MIN_COMPENSATION) / MIN_COMPENSATION
+	elseif lclen < 2*MIN_COMPENSATION then
+		local scale = (lclen - MIN_COMPENSATION) / MIN_COMPENSATION
 		latencyCompensation:scaleLength(scale)
 	end
 	-- local coordinate system
@@ -416,17 +407,22 @@ function Robot:hasBall(ball, sideOffset)
 		latencyCompensation:scaleLength(-1)
 	end
 	-- bound angle
-	if latencyCompensation:length() > 0.001 and math.abs(latencyCompensation:angle()) > BOUND_COMPENSATION_ANGLE then
+	lclen = latencyCompensation:length()
+	if lclen > 0.001 and math.abs(latencyCompensation:angle()) > BOUND_COMPENSATION_ANGLE then
 		local boundAngle = math.bound(-BOUND_COMPENSATION_ANGLE, latencyCompensation:angle(), BOUND_COMPENSATION_ANGLE)
-		latencyCompensation = Vector.fromAngle(boundAngle):scaleLength(latencyCompensation:length())
+		latencyCompensation = Vector.fromAngle(boundAngle):scaleLength(lclen)
 	end
 
 	-- add hasBallDistance
-	if latencyCompensation:length() <= 0.001 then
+	if lclen <= 0.001 then
 		latencyCompensation = Vector(self.constants.hasBallDistance, 0)
 	else
-		latencyCompensation = latencyCompensation:setLength(latencyCompensation:length() + self.constants.hasBallDistance)
+		latencyCompensation = latencyCompensation:setLength(lclen + self.constants.hasBallDistance)
 	end
+
+	-- Ball position relative to dribbler mid
+	local relpos = (ball.pos - self.pos):rotate(-self.dir)
+	relpos.x = relpos.x - self.shootRadius - ball.radius
 
 	-- only apply sidewards correction is the ball is in front of the robot
 	local offset = math.abs(relpos.y)
