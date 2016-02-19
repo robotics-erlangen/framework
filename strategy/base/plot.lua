@@ -36,4 +36,29 @@ function plot.addPlot(name, value)
 	amun.addPlot(name, value)
 end
 
+
+local aggregated = {}
+local lastAggregated = {}
+function plot._plotAggregated()
+	for k,v in pairs(aggregated) do
+		plot.addPlot(k, v)
+	end
+	for k,v in pairs(lastAggregated) do
+		if not aggregated[k] then
+			-- line down to zero
+			plot.addPlot(k, 0)
+		end
+	end
+	lastAggregated = aggregated
+	aggregated = {}
+end
+
+function plot.aggregate(key, value)
+	if not aggregated[key] then
+		aggregated[key] = 0
+	end
+	aggregated[key] = aggregated[key] + value
+end
+
+
 return plot

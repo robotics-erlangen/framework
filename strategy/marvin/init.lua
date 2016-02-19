@@ -17,6 +17,7 @@ local Processor = require "../base/processor"
 local Referee = require "../base/referee"
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
+local plot = require "../base/plot"
 
 local preproc = Class("Process.PreProc", require "../base/process")
 function preproc:run()
@@ -56,6 +57,7 @@ local wrapper = function (func)
 		Processor.post()
 		debug.resetStack()
 		Cache.resetFrame()
+		plot._plotAggregated()
 	end
 end
 
