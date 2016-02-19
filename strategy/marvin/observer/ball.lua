@@ -23,8 +23,7 @@ function Ball.firstRobotAtBall(robotlist)
 	local minTime = math.huge
 	local minRobot = nil
 	for _,r in ipairs(robotlist) do
-		local targetPos = r.isFriendly and G.OpponentGoal or G.FriendlyGoal --FIXME
-		local time = Physics.robotTimeToBall(r, World.Ball, targetPos, r.maxSpeed)
+		local time =  ObserverRobot.minTimeToBall(r)
 		if time < minTime then
 			minTime = time
 			minRobot = r
