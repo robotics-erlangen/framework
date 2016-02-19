@@ -121,17 +121,17 @@ function Robot._updateHadBall()
 end
 
 local minTimeToBall = {}
-function Robot._updateMinTimeToBall()
-	for _,r in ipairs(World.FriendlyRobots) do
-		minTimeToBall[r] = Physics.robotTimeToBall(r, World.Ball, World.Geometry.OpponentGoal, r.maxSpeed)
-	end
-
-	for _,r in ipairs(World.OpponentRobots) do
-		minTimeToBall[r] = Physics.robotTimeToBall(r, World.Ball, World.Geometry.FriendlyGoal, r.maxSpeed)
-	end
+function Robot._resetMinTimeToBall()
+	minTimeToBall = {}
 end
 
 function Robot.minTimeToBall(robot)
+	if minTimeToBall[robot] then
+		return minTimeToBall[robot]
+	end
+
+	local targetPos = robot.isFriendly and World.Geometry.OpponentGoal or World.Geometry.FriendlyGoal
+	minTimeToBall[robot] = Physics.robotTimeToBall(robot, World.Ball, targetPos, robot.maxSpeed)
 	return minTimeToBall[robot]
 end
 
