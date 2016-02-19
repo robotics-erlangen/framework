@@ -4,6 +4,7 @@ local Cache = require "../base/cache"
 local Constants = require "../base/constants"
 local Field = require "../base/field"
 local geom = require "../base/geom"
+local plot = require "../base/plot"
 local World = require "../base/world"
 
 
@@ -352,10 +353,14 @@ end
 -- @param endSpeedLength - the maximal velocity of the robot when reaching the destination
 -- @return number - the estimated time
 function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
+	--local time0 = amun.getCurrentTime()
 	-- if the ball is extremely slow, consider it as stationary
 	if ball.speed:length() < 0.01 then
 		local endSpeed = (ball.pos - robot.pos):setLength(endSpeedLength)
-		return Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, 0)
+		local result = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, 0)
+		--local time1 = amun.getCurrentTime()
+		--plot.aggregate("robotTimeToBall", time1 - time0)
+		return result
 	end
 
 	-- calculate time required when the robot is directly hit by the ball
@@ -388,6 +393,8 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	-- where to catch the ball on the dribber gets more important.
 	if math.abs(lambda) < robot.dribblerWidth/2+0.01 and ballTimeToHitPos < 0.25
 			and ball.speed:dot(ballHitPos - ball.pos) > 0 then
+		--local time1 = amun.getCurrentTime()
+		--plot.aggregate("robotTimeToBall", time1 - time0)
 		if ballTimeToHitPos <= t_max then
 			return ballTimeToHitPos
 		else
@@ -435,6 +442,8 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	-- either return the time to the stationary ball
 	-- or if the ball is too fast, the robot cannot catch it at all
 	if not t_ball_bsearch_start then
+		--local time1 = amun.getCurrentTime()
+		--plot.aggregate("robotTimeToBall", time1 - time0)
 		if t_stop < t_out then
 			return robot_times[N_SAMPLES]
 		else
@@ -465,6 +474,8 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 		delta_t = delta_t / 2
 	end
 
+	--local time1 = amun.getCurrentTime()
+	--plot.aggregate("robotTimeToBall", time1 - time0)
 	return t_ball
 end
 

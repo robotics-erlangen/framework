@@ -7,6 +7,7 @@ local Halt = require "agent/shared/halt"
 local Messaging = require "control/messaging"
 local Physics = require "observer/physics"
 local Rating = require "util/rating"
+local plot = require "../base/plot"
 
 
 -- static method for pool
@@ -36,12 +37,15 @@ end
 function Base:run()
 	debug.pushtop(self._debugIdStr)
 	debug.set(nil, Class.name(self, true))
+	--local time0 = amun.getCurrentTime()
 
 	self:_updateBehavior()
 	self:_runTaskAndBehavior()
 	self:_applyForMainAttacker()
 	self:_run()
 
+	--local time1 = amun.getCurrentTime()
+	--plot.aggregate("Agent." .. Class.name(self, true), time1-time0)
 	debug.pop() -- Agent
 end
 
@@ -49,7 +53,11 @@ function Base:_updateBehavior()
 	-- choose best behavior, that is the behavior with the highest priority of all useable ones
 	local bestBehavior = nil
 	for _, behavior in ipairs(self._behaviors) do
-		if behavior:check() then
+		--local time0 = amun.getCurrentTime()
+		local result = behavior:check()
+		--local time1 = amun.getCurrentTime()
+		--plot.aggregate("Behavior." .. Class.name(behavior, true), time1-time0)
+		if result then
 			bestBehavior = behavior
 			break
 		end
@@ -82,7 +90,10 @@ function Base:_runTaskAndBehavior()
 	debug.push("Task")
 	if self._task then
 		self._task:clearMainAttackerParameters()
+		--local time0 = amun.getCurrentTime()
 		self._task:run()
+		--local time1 = amun.getCurrentTime()
+		--plot.aggregate("Task." .. Class.name(self._task, true), time1-time0)
 		debug.set(nil, Class.name(self._task, true))
 	else
 		debug.set(nil, "none")

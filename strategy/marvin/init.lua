@@ -47,7 +47,10 @@ local wrapper = function (func)
 			return -- skip processing if no vision data is available yet
 		end
 		debug.set("frame", frameCount)
+		--local time0 = amun.getCurrentTime()
 		Processor.pre()
+		--local time1 = amun.getCurrentTime()
+		--plot.addPlot("preproc time", (time1 - time0))
 		if not func() then -- Entrypoint has to return true if robots shouldn't be stopped on halt
 			if World.RefereeState == "Halt" then
 				World.haltOwnRobots()
