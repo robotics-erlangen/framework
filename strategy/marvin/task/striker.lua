@@ -206,6 +206,7 @@ function Striker:_calcMoveDest()
 		end
 	end
 
+	Interval.sort(intervalsToRemove)
 	Interval.merge(intervalsToRemove)
 	local possibleIntervals = Interval.negate(intervalsToRemove, lineStart, lineEnd)
 	for _, interval in ipairs(possibleIntervals) do
