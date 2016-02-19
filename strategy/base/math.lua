@@ -100,7 +100,12 @@ end
 -- @return [number]]
 function math.solveSq(a, b, c)
 	if a == 0 then
-		return math.solveLin(b, c)
+		-- return math.solveLin(b, c)
+		if b == 0 then
+			return
+		else
+			return -c/b
+		end
 	end
 
 	local det = b*b - 4*a*c
