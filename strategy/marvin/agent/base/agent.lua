@@ -118,6 +118,7 @@ function Base:_applyForMainAttacker()
 		return
 	end
 
+	debug.set("ma application tried", true)
 	if not Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) then
 		local targetPos = parameters[1] or World.Geometry.OpponentGoal
 		local endSpeedLength = parameters[2] or 0
@@ -125,7 +126,6 @@ function Base:_applyForMainAttacker()
 		local timeToBall = Physics.robotTimeToBall(self._robot,
 			World.Ball, targetPos, endSpeedLength)
 		local mainAttackerRating = Rating.timeToRating(timeToBall)
-		debug.set("ma application sent", true)
 		self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
 	end
 end
