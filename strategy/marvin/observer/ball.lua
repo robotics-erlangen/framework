@@ -53,24 +53,31 @@ end
 -- @param lastBallOwner - the robot that was the ball owner before, used for hysteresis
 -- @return ballOwner robot - the robot that can be seen as ball owner, or nil, if no robot is near the ball
 local BALL_OWN_HYSTERESIS = 0.03
+local ballOwnerEllipticCache = {}
+local ballOwnerCheckCache -- function is defined belwo
 local function ballOwner(robotlist, lastBallOwner)
-	local ballInDangerRating = 0
-	for _, r in ipairs(World.Robots) do
-		local dist = ellipticDistance(r, World.Ball.pos)
-		if dist < 0.05 then
-			ballInDangerRating = ballInDangerRating + 1
-		elseif dist < 0.30 then
-			ballInDangerRating = ballInDangerRating + (0.30 - dist)/0.25
+	if not ballOwnerEllipticCache["ballInDangerRating"] then
+		local ballInDangerRating = 0
+		for _, r in ipairs(World.Robots) do
+			local dist = ellipticDistance(r, World.Ball.pos)
+			ballOwnerEllipticCache[r] = dist
+			if dist < 0.05 then
+				ballInDangerRating = ballInDangerRating + 1
+			elseif dist < 0.30 then
+				ballInDangerRating = ballInDangerRating + (0.30 - dist)*4
+			end
 		end
+		ballOwnerEllipticCache["ballInDangerRating"] = ballInDangerRating
 	end
+	local ballInDangerRating = ballOwnerEllipticCache["ballInDangerRating"]
 	local ballOwnDistance = 0.15 - math.min(ballInDangerRating, 2)*0.04
 
 	-- search robot with min dist to ball
 	local minDist = math.huge
 	local ballOwner = nil
 	for _, r in ipairs(robotlist) do
-		local dist = ellipticDistance(r, World.Ball.pos)
-		if dist < minDist and dist <= ballOwnDistance then
+		local dist = ballOwnerEllipticCache[r]
+		if dist and dist < minDist and dist <= ballOwnDistance then
 			minDist = dist
 			ballOwner = r
 		end
@@ -79,7 +86,7 @@ local function ballOwner(robotlist, lastBallOwner)
 	-- calculate dist from lastBallOwner to ball
 	local lastDist = math.huge
 	if lastBallOwner then
-		lastDist = ellipticDistance(lastBallOwner, World.Ball.pos)
+		lastDist = ballOwnerEllipticCache[lastBallOwner] or lastDist
 	end
 
 	-- set new lastBallOwner or nil, if no robot is near ball
@@ -100,6 +107,7 @@ function Ball.friendlyBallOwner()
 	if World.Time == friendlyBallOwnerLastRun then
 		return lastBallOwnerFriendly
 	end
+	ballOwnerCheckCache()
 	friendlyBallOwnerLastRun = World.Time
 	lastBallOwnerFriendly = ballOwner(World.FriendlyRobots, lastBallOwnerFriendly)
 	debug.pushtop()
@@ -116,12 +124,19 @@ function Ball.opponentBallOwner()
 	if World.Time == opponentBallOwnerLastRun then -- already calculated in this frame
 		return lastBallOwnerOpponent
 	end
+	ballOwnerCheckCache()
 	opponentBallOwnerLastRun = World.Time
 	lastBallOwnerOpponent = ballOwner(World.OpponentRobots, lastBallOwnerOpponent)
 	debug.pushtop()
 	debug.set("last opponent ball owner", lastBallOwnerOpponent)
 	debug.pop()
 	return lastBallOwnerOpponent
+end
+
+ballOwnerCheckCache = function()
+	if lastBallOwnerFriendly ~= World.Time and lastBallOwnerOpponent ~= World.Time then
+		ballOwnerEllipticCache = {}
+	end
 end
 
 
