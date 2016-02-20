@@ -9,6 +9,7 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 local Messaging = require "control/messaging"
 local Goal = require "observer/goal"
+local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 local Rating = require "util/rating"
@@ -286,7 +287,7 @@ function CenterBack:run()
 
 	debug.set("target", destinationTarget)
 
-	if not self._robot:hasBall(World.Ball) then
+	if not Robot.hadBall(self._robot, 0 then
 		self._forceShootTimer = nil
 	end
 	local chipActivationAngle = math.pi / 6

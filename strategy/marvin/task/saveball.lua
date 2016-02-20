@@ -43,7 +43,7 @@ function SaveBall:run()
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignoreBall, ignoreGoals, false)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
-	if not self._viewDir or not self._robot:hasBall(World.Ball) then
+	if not self._viewDir or not Robot.hadBall(self._robot, 0) then
 		local viewDir = ballPos - robotPos
 		self._viewDir = viewDir:angle()
 		self._endSpeed = viewDir * 0.5

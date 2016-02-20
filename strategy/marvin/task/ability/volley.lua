@@ -7,6 +7,7 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local Direct = require "trajectory/direct"
 local ToTarget = require "trajectory/totarget"
 
@@ -169,7 +170,7 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 	vis.addPath("t/a/volley: Volley", {viewPos, currentDir}, vis.colors.orange)
 
 
-	if self._robot:hasBall(World.Ball) then
+	if Robot.hadBall(self._robot, 0) then
 		self._ballIncoming = false
 	elseif Ball.isShot() then
 		self._ballIncoming = true

@@ -6,6 +6,7 @@ local debug = require "../base/debug"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"
+local Robot = require "observer/robot"
 
 
 local touchLineDir = Vector(0, 1)
@@ -50,11 +51,11 @@ function ChipToBorder:_chipToBorderIfSafe()
         end
         local chipDist = World.Ball.pos:distanceTo(chipPos) - chipImpactDistFromBorder
         if chipPos ~= touchLineIntersection then -- if chip to Baseline then slow chip
-            chipDist = chipDist*DIST_FACTOR         
+            chipDist = chipDist*DIST_FACTOR
         end
 
         vis.addCircle("t/a/chipToBorder", ballPos + robotDir:setLength(chipDist), 0.1, vis.colors.blue, true)
-        if not self._robot:hasBall(World.Ball) then
+        if not Robot.hadBall(self._robot, 0) then
             self._forceShootTimer = nil
         end
         self:_doForceShoot()

@@ -54,7 +54,7 @@ function Duel:run()
 	end
 
 
-	if self._opposer and self._blockingBall and self._robot:hasBall(World.Ball) then
+	if self._opposer and self._blockingBall and Robot.hadBall(self._robot, 0) then
 		self:_contest()
 		debug.set("duel-state", "contest")
 	else

@@ -5,6 +5,7 @@ local Field = require "../base/field"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Ally = require "agent/ally"
+local Robot = require "observer/robot"
 
 
 function AttackRatio:init()
@@ -57,7 +58,7 @@ function AttackRatio:attackRatio()
 		attackRatio = 6
 	else -- Game, GameForce
 		for _, robot in ipairs(World.FriendlyRobots) do
-			if robot:hasBall(ball) then
+			if Robot.hadBall(robot, 0) then
 				self._oppFreeKickOngoing = false
 				break
 			end

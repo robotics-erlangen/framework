@@ -108,6 +108,7 @@ function Robot.estimateOpponentDynamics()
 end
 
 local hadBallTimes = {}
+-- Robot.hadBall(self._robot, 0) is equivalent to self._robot:hasBall(World.Ball)
 function Robot.hadBall(robot, time)
 	return hadBallTimes[robot] and World.Time - hadBallTimes[robot] <= time
 end
