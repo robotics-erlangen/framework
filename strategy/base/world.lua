@@ -259,7 +259,7 @@ function World._updateWorld(state)
 			World.OpponentRobotsById[rdata.id] = robot
 		end
 		-- mark dropped robots as invisible
-		for _,robot in ipairs(opponentRobotsById) do
+		for _,robot in pairs(opponentRobotsById) do
 			robot:_update(nil, World.Time)
 		end
 	end
