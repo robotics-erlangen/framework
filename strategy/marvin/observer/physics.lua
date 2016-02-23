@@ -455,8 +455,8 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 
 	-- ===== binary search =====
 
-	-- time resolution
-	local epsilon_t = 0.001
+	-- time resolution, for a ball with 5m/s, the error may be up to 1 cm
+	local epsilon_t = 0.002
 
 	-- initialize binary search variables
 	local delta_t = (t_ball_bsearch_end - t_ball_bsearch_start) / 4
