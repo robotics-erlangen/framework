@@ -13,15 +13,9 @@ function HandleBall:_stop()
 end
 
 function HandleBall:check()
-	local friendlyTime = Robot.minTimeToBall(self._robot)
-	local opponentTime = math.huge
-	for _,r in ipairs(World.OpponentRobots) do
-		local oppTime = Robot.minTimeToBall(r)
-		if oppTime < opponentTime then
-			opponentTime = oppTime
-		end
-	end
-	self._timeAdvance = opponentTime - friendlyTime
+	local selfTime = Robot.minTimeToBall(self._robot)
+	local _, opponentTime = Robot.fastestOpponentAtBall()
+	self._timeAdvance = opponentTime - selfTime
 
 	self._isMainAttacker = self._inbox.mainAttacker().trainer == self._robot
 	if self._isMainAttacker or self._timeAdvance > 0 then
