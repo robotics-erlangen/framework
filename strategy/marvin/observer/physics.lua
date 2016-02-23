@@ -347,23 +347,7 @@ function Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_
 	return Physics.robotTimeToPos(robot, x_robot, endSpeed, true)
 end
 
---- calculates the time the robot takes to reach the ball (in a controlled fashion)
--- @param robot Robot - the robot
--- @param ball Ball - a ball-like structure
--- @param targetPos - the position the robot will look at
--- @param endSpeedLength - the maximal velocity of the robot when reaching the destination
--- @return number - the estimated time
-function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
-	--local time0 = amun.getCurrentTime()
-	-- if the ball is extremely slow, consider it as stationary
-	if ball.speed:length() < 0.01 then
-		local endSpeed = (ball.pos - robot.pos):setLength(endSpeedLength)
-		local result = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, 0)
-		--local time1 = amun.getCurrentTime()
-		--plot.aggregate("robotTimeToBall", time1 - time0)
-		return result
-	end
-
+local function rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t_out)
 	-- calculate time required when the robot is directly hit by the ball
 	local frontOffset = (targetPos - robot.pos):setLength(ball.radius + robot.shootRadius)
 	local ballHitPos, _, lambda = geom.intersectLineLine(ball.pos, ball.speed,
@@ -371,14 +355,6 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	local ballTimeToHitPos = Physics.ballRollTime(ball, ball.pos:distanceTo(ballHitPos))
 	local robotTimeToHitPos = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, ballTimeToHitPos)
 
-	-- calculate the time the ball needs to cross the field border
-	local t_out = Physics.ballOutTime(ball)
-
-	-- calculate the time until the ball stops
-	local t_stop = Physics.ballStopTime(ball)
-
-	-- upper bound for sampling and binary search
-	local t_max = math.min(t_out, t_stop)
 	-- catch ball at nearest point on ball move line, if that's possible
 	-- this stabilizes the calculation if the ball is going to hit the robot soon
 	-- !!! optimistic: assumes that the robot can't be too fast to catch the ball
@@ -394,12 +370,10 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	-- where to catch the ball on the dribber gets more important.
 	if math.abs(lambda) < robot.dribblerWidth/2+0.01 and ballTimeToHitPos < 0.25
 			and ball.speed:dot(ballHitPos - ball.pos) > 0 then
-		--local time1 = amun.getCurrentTime()
-		--plot.aggregate("robotTimeToBall", time1 - time0)
 		if ballTimeToHitPos <= t_max then
-			return ballTimeToHitPos
+			return nil, ballTimeToHitPos
 		else
-			return math.huge
+			return nil, math.huge
 		end
 	end
 
@@ -408,12 +382,14 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 		-- try to catch the ball inside the field
 		local robotTimeToBorder = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_out)
 		if robotTimeToBorder > t_out then
-			return math.huge
+			return nil, math.huge
 		end
 	end
 
-	-- ===== quadratic sampling =====
+	return t_max
+end
 
+local function rttbQuadraticSampling(robot, ball, targetPos, endSpeedLength, t_max, t_stop, t_out)
 	local N_SAMPLES = 10
 
 	local robot_times = {}
@@ -452,18 +428,17 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	-- either return the time to the stationary ball
 	-- or if the ball is too fast, the robot cannot catch it at all
 	if not t_ball_bsearch_start then
-		--local time1 = amun.getCurrentTime()
-		--plot.aggregate("robotTimeToBall", time1 - time0)
 		if t_stop < t_out then
-			return robot_times[N_SAMPLES]
+			return nil, robot_times[N_SAMPLES]
 		else
-			return math.huge
+			return nil, math.huge
 		end
 	end
+	return t_ball_bsearch_start, t_ball_bsearch_end
+end
 
-
-	-- ===== binary search =====
-
+local function rttbBinarySearch(robot, ball, targetPos, endSpeedLength,
+		t_ball_bsearch_start, t_ball_bsearch_end)
 	-- time resolution, for a ball with 5m/s, the error may be up to 1 cm
 	local epsilon_t = 0.002
 
@@ -483,7 +458,51 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 		end
 		delta_t = delta_t / 2
 	end
+	return t_ball
+end
 
+
+--- calculates the time the robot takes to reach the ball (in a controlled fashion)
+-- @param robot Robot - the robot
+-- @param ball Ball - a ball-like structure
+-- @param targetPos - the position the robot will look at
+-- @param endSpeedLength - the maximal velocity of the robot when reaching the destination
+-- @return number - the estimated time
+function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
+	--local time0 = amun.getCurrentTime()
+	-- if the ball is extremely slow, consider it as stationary
+	if ball.speed:length() < 0.01 then
+		local endSpeed = (ball.pos - robot.pos):setLength(endSpeedLength)
+		local result = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, 0)
+		--local time1 = amun.getCurrentTime()
+		--plot.aggregate("robotTimeToBall", time1 - time0)
+		return result
+	end
+
+	-- calculate the time the ball needs to cross the field border
+	local t_out = Physics.ballOutTime(ball)
+	-- calculate the time until the ball stops
+	local t_stop = Physics.ballStopTime(ball)
+	-- upper bound for sampling and binary search
+	local t_max = math.min(t_out, t_stop)
+
+	local t_max, specialCaseResult = rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t_out)
+	if specialCaseResult then
+		--local time1 = amun.getCurrentTime()
+		--plot.aggregate("robotTimeToBall", time1 - time0)
+		return specialCaseResult
+	end
+
+	local t_ball_bsearch_start, t_ball_bsearch_end
+			 = rttbQuadraticSampling(robot, ball, targetPos, endSpeedLength, t_max, t_stop, t_out)
+	if not t_ball_bsearch_start then
+		--local time1 = amun.getCurrentTime()
+		--plot.aggregate("robotTimeToBall", time1 - time0)
+		return t_ball_bsearch_end
+	end
+
+	local t_ball = rttbBinarySearch(robot, ball, targetPos, endSpeedLength,
+			t_ball_bsearch_start, t_ball_bsearch_end)
 	--local time1 = amun.getCurrentTime()
 	--plot.aggregate("robotTimeToBall", time1 - time0)
 	return t_ball
