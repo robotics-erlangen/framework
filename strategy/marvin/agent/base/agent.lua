@@ -53,6 +53,7 @@ function Base:_updateBehavior()
 	-- choose best behavior, that is the behavior with the highest priority of all useable ones
 	local bestBehavior = nil
 	for _, behavior in ipairs(self._behaviors) do
+		behavior:clearMainAttackerParameters()
 		--local time0 = amun.getCurrentTime()
 		local result = behavior:check()
 		--local time1 = amun.getCurrentTime()
