@@ -32,7 +32,7 @@ function HandleBall:_updateTask()
 		self._forceKeepingInPool = false
 	end
 
-	if self._timeAdvance > 0 then
+	if self._timeAdvance > 0 and World.Ball.speed:length() > 1.5 then
 		return InterceptPass
 	else
 		return Duel
