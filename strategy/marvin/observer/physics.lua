@@ -403,6 +403,15 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 		end
 	end
 
+	-- ball moves away from the robot
+	if t_out < math.huge and ball.speed:dot(ball.pos - robot.pos) > 0 then
+		-- try to catch the ball inside the field
+		local robotTimeToBorder = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_out)
+		if robotTimeToBorder > t_out then
+			return math.huge
+		end
+	end
+
 	-- ===== quadratic sampling =====
 
 	local N_SAMPLES = 10
