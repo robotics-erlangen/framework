@@ -190,6 +190,7 @@ function Physics.ballOutTime(ball, offset)
 	local distToLine = ball.pos:distanceTo(lineCut)
 	return Physics.ballRollTime(ball, distToLine)
 end
+Physics.ballOutTime = Cache.forFrame(Physics.ballOutTime)
 
 
 --- first position where the ball will hit the ground again
