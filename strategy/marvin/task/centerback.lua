@@ -287,7 +287,7 @@ function CenterBack:run()
 
 	debug.set("target", destinationTarget)
 
-	if not Robot.hadBall(self._robot, 0 then
+	if not Robot.hadBall(self._robot, 0) then
 		self._forceShootTimer = nil
 	end
 	local chipActivationAngle = math.pi / 6
