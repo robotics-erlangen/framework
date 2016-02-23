@@ -138,4 +138,29 @@ function Robot.minTimeToBall(robot)
 	return minTimeToBall[robot]
 end
 
+local fastestOpponentAtBallLastRobot
+local fastestOpponentAtBallLastTime
+local fastestOpponentAtBallLastRun = 0
+function Robot.fastestOpponentAtBall()
+	if World.Time == fastestOpponentAtBallLastRun then
+		return fastestOpponentAtBallLastRobot, fastestOpponentAtBallLastTime
+	end
+
+	local fastestOpponent = nil
+	local fastestOpponentTime = math.huge
+	for _,r in ipairs(World.OpponentRobots) do
+		local oppTime = Robot.minTimeToBall(r)
+		if oppTime < fastestOpponentTime then
+			fastestOpponentTime = oppTime
+			fastestOpponent = r
+		end
+	end
+
+	fastestOpponentAtBallLastRobot = fastestOpponent
+	fastestOpponentAtBallLastTime = fastestOpponentTime
+	fastestOpponentAtBallLastRun = World.Time
+
+	return fastestOpponent, fastestOpponentTime
+end
+
 return Robot
