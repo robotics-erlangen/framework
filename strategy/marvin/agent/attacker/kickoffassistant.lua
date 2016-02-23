@@ -53,7 +53,7 @@ function KickoffAssistant:check()
 	-- try every position in random order, take first free one
 	local positionClash = false
 	for _, pos in pairs(self._inbox.moveDest()) do
-		if self._moveDest~=nil then
+		if self._moveDest ~= nil then
 			if pos == self._moveDest or (math.abs(self._moveDest.x) == math.abs(pos.x)
 					and self._moveDest.y == self._distanceY ) then
 				positionClash = true
@@ -82,7 +82,7 @@ function KickoffAssistant:_updateTask()
 		self._forceKeepingInPool = true
 		return KickoffPass, {self._moveDest, (G.OpponentGoal-self._moveDest):angle()}
 	end
-	--currently not used, because there will always be a player in the back
+
 	if self._movePos ~= self._moveDest then  -- player is on the goalline
 		self._movePos = self._moveDest
 		self._task = nil -- make sure a new task will be created

@@ -32,26 +32,8 @@ function KickoffOffensive:_updateTask()
 	elseif canShootGoal then -- shoot if it is possible
 		return ShootGoal
 	elseif rob then --pass the ball
-		-- is a player waiting for a kickoffpass
-		
 		self._send.kickoffStart("all", 1)
-		debug.set("kickoffPassSuggestion", "true")
-		
-		if  self._inbox.targetTime() ~= nil then
-			--debug.set("time", self._inbox.targetTime())
-			for r, time in pairs(self._inbox.targetTime()) do
-				debug.set("r", r)
-				debug.set("time", time)
-				if time <= 1.90 then -- use this to time the pass best if robot is at full speed when you pass
-					self._send.kickoffStart("all", 1)
-					for rr, k in pairs(self._inbox.kickoffPass()) do
-						return Pass, {r, Vector(k.x, -k.y*0.6)}
-					end			
-				end
-			end
-		end
-		return MoveToStaticBall, { math.pi/2, 0.05 }
-			
+		return Pass, {rob, nil, 1.2}
 	else
 		return ShootGoal
 	end
