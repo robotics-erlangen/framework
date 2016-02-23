@@ -122,7 +122,9 @@ function Robot._updateHadBall()
 end
 
 local minTimeToBall = {}
+local oldMinTimeToBall = {}
 function Robot._resetMinTimeToBall()
+	oldMinTimeToBall = minTimeToBall
 	minTimeToBall = {}
 end
 
@@ -132,7 +134,7 @@ function Robot.minTimeToBall(robot)
 	end
 
 	local targetPos = robot.isFriendly and World.Geometry.OpponentGoal or World.Geometry.FriendlyGoal
-	minTimeToBall[robot] = Physics.robotTimeToBall(robot, World.Ball, targetPos, robot.maxSpeed)
+	minTimeToBall[robot] = Physics.robotTimeToBall(robot, World.Ball, targetPos, robot.maxSpeed, oldMinTimeToBall[robot])
 	return minTimeToBall[robot]
 end
 

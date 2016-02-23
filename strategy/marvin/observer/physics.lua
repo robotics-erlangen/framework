@@ -467,8 +467,9 @@ end
 -- @param ball Ball - a ball-like structure
 -- @param targetPos - the position the robot will look at
 -- @param endSpeedLength - the maximal velocity of the robot when reaching the destination
+-- @param lastTime - last result of robotTimeToBall for the given parameters
 -- @return number - the estimated time
-function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
+function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength, lastTime)
 	--local time0 = amun.getCurrentTime()
 	-- if the ball is extremely slow, consider it as stationary
 	if ball.speed:length() < 0.01 then
@@ -494,11 +495,31 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	end
 
 	local t_ball_bsearch_start, t_ball_bsearch_end
-			 = rttbQuadraticSampling(robot, ball, targetPos, endSpeedLength, t_max, t_stop, t_out)
+	if lastTime and lastTime < math.huge then
+		-- try to reuse the sample from last frame
+		local t_ball1 = lastTime-World.TimeDiff-0.035
+		local t_diff1 = t_ball1 - Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball1)
+		local t_ball2 = lastTime
+		local t_diff2 = t_ball2 - Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball2)
+
+		if t_diff1 <= 0 and t_diff2 >= 0 then
+			t_ball_bsearch_start = t_diff1
+			t_ball_bsearch_end = t_diff2
+		elseif t_diff1 >= 0 then
+			t_ball_bsearch_start = 0
+			t_ball_bsearch_end = t_diff1
+		end
+	end
+
 	if not t_ball_bsearch_start then
-		--local time1 = amun.getCurrentTime()
-		--plot.aggregate("robotTimeToBall", time1 - time0)
-		return t_ball_bsearch_end
+		t_ball_bsearch_start, t_ball_bsearch_end
+				 = rttbQuadraticSampling(robot, ball, targetPos, endSpeedLength, t_max, t_stop, t_out)
+
+		if not t_ball_bsearch_start then
+			--local time1 = amun.getCurrentTime()
+			--plot.aggregate("robotTimeToBall", time1 - time0)
+			return t_ball_bsearch_end
+		end
 	end
 
 	local t_ball = rttbBinarySearch(robot, ball, targetPos, endSpeedLength,
