@@ -28,6 +28,7 @@ function Base:init(robot)
 	}
 	self._activeBehavior = nil
 	self._mainAttackerParameters = nil
+	self._mainAttackerLastTime = nil
 	self._debugIdStr = "Agent " .. self._robot.id
 end
 
@@ -116,6 +117,7 @@ function Base:_applyForMainAttacker()
 		parameters = self._task:mainAttackerParameters() or parameters
 	end
 	if not parameters then
+		self._mainAttackerLastTime = nil
 		return
 	end
 
@@ -125,7 +127,8 @@ function Base:_applyForMainAttacker()
 		local endSpeedLength = parameters[2] or 0
 
 		local timeToBall = Physics.robotTimeToBall(self._robot,
-			World.Ball, targetPos, endSpeedLength)
+			World.Ball, targetPos, endSpeedLength, self._mainAttackerLastTime)
+		self._mainAttackerLastTime = timeToBall
 		local mainAttackerRating = Rating.timeToRating(timeToBall)
 		self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
 	end
