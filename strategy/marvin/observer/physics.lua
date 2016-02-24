@@ -439,6 +439,8 @@ end
 
 local function rttbBinarySearch(robot, ball, targetPos, endSpeedLength,
 		t_ball_bsearch_start, t_ball_bsearch_end)
+	assert(t_ball_bsearch_start >= 0)
+	assert(t_ball_bsearch_end >= t_ball_bsearch_start)
 	-- time resolution, for a ball with 5m/s, the error may be up to 1 cm
 	local epsilon_t = 0.002
 
@@ -503,11 +505,11 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength, lastTim
 		local t_diff2 = t_ball2 - Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball2)
 
 		if t_diff1 <= 0 and t_diff2 >= 0 then
-			t_ball_bsearch_start = t_diff1
-			t_ball_bsearch_end = t_diff2
+			t_ball_bsearch_start = t_ball1
+			t_ball_bsearch_end = t_ball2
 		elseif t_diff1 >= 0 then
 			t_ball_bsearch_start = 0
-			t_ball_bsearch_end = t_diff1
+			t_ball_bsearch_end = t_ball1
 		end
 	end
 
