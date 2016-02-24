@@ -495,9 +495,9 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength, lastTim
 	end
 
 	local t_ball_bsearch_start, t_ball_bsearch_end
-	if lastTime and lastTime < math.huge then
+	if lastTime and lastTime < math.huge and lastTime > 0 then
 		-- try to reuse the sample from last frame
-		local t_ball1 = lastTime-World.TimeDiff-0.035
+		local t_ball1 = math.max(0, lastTime-World.TimeDiff-0.035)
 		local t_diff1 = t_ball1 - Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball1)
 		local t_ball2 = lastTime
 		local t_diff2 = t_ball2 - Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball2)
