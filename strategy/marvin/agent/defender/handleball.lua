@@ -1,8 +1,11 @@
 local Base = require "agent/base/behavior"
 local HandleBall = Class("Agent.Defender.HandleBall", Base)
 
+local Field = require "../base/field"
+local Referee = require "../base/referee"
 local World = require "../base/world"
 local Robot = require "observer/robot"
+local DefUtil = require "util/defense"
 local Duel = require "task/duel"
 local InterceptPass = require "task/interceptpass"
 
@@ -13,6 +16,12 @@ function HandleBall:_stop()
 end
 
 function HandleBall:check()
+	if Referee.isFriendlyFreeKickState() or Referee.isStopState() or Referee.isKickoffState()
+			or Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)
+			or DefUtil.dangerousBallTowardsDefense() then
+		return false
+	end
+
 	local selfTime = Robot.minTimeToBall(self._robot)
 	local _, opponentTime = Robot.fastestOpponentAtBall()
 	self._timeAdvance = opponentTime - selfTime
