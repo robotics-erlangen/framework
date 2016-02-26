@@ -13,6 +13,7 @@ local InterceptPass = require "task/interceptpass"
 function HandleBall:_stop()
 	self._timeAdvance = -math.huge
 	self._isMainAttacker = false
+	self._mainAttackerApplicationSent = false
 end
 
 function HandleBall:check()
@@ -26,8 +27,13 @@ function HandleBall:check()
 	self._timeAdvance = opponentTime - selfTime
 
 	self._isMainAttacker = self._inbox.mainAttacker().trainer == self._robot
-	if self._isMainAttacker or self._timeAdvance > 0 then
+	if self._isMainAttacker
+			or (self._mainAttackerApplicationSent and self._timeAdvance > 0)
+			or (not self._mainAttackerApplicationSent and self._timeAdvance > 0.2) then
 		self:_applyForMainAttacker()
+		self._mainAttackerApplicationSent = true
+	else
+		self._mainAttackerApplicationSent = false
 	end
 
 	return self._isMainAttacker
