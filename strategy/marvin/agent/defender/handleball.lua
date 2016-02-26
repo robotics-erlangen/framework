@@ -17,8 +17,7 @@ end
 
 function HandleBall:check()
 	if Referee.isFriendlyFreeKickState() or Referee.isStopState() or Referee.isKickoffState()
-			or Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)
-			or DefUtil.dangerousBallTowardsDefense() then
+			or Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) then
 		return false
 	end
 
@@ -41,7 +40,8 @@ function HandleBall:_updateTask()
 		self._forceKeepingInPool = false
 	end
 
-	if self._timeAdvance > 0 and World.Ball.speed:length() > 1.5 then
+	if self._timeAdvance > 0 and World.Ball.speed:length() > 1.5
+			and not DefUtil.dangerousBallTowardsDefense() then
 		return InterceptPass
 	else
 		return Duel
