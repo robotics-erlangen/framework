@@ -41,4 +41,9 @@ target_link_libraries(simulator protobuf ${BULLET_LIBRARIES})
 add_dependencies(simulator bullet)
 qt5_use_modules(simulator Core Gui)
 
+if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # silence warnings about usage of the register specifier in header files of bullet
+    set_target_properties(simulator PROPERTIES COMPILE_FLAGS "-Wno-deprecated-register")
+endif()
+
 endif()
