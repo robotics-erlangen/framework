@@ -156,6 +156,9 @@ MainWindow::MainWindow(QWidget *parent) :
     m_configDialog->load();
     ui->referee->load();
 
+    // hide options dock by default
+    ui->dockOptions->hide();
+
     QSettings s;
 
     s.beginGroup("MainWindow");
