@@ -81,6 +81,7 @@ World.TeamIsBlue = false
 World.IsSimulated = false
 World.IsLargeField = false
 World.MixedTeam = nil
+World.SelectedOptions = nil
 
 World.Geometry = {}
 --- Field geometry.
@@ -127,6 +128,9 @@ end
 -- @name update
 -- @return bool - false if no vision data was received since strategy start
 function World.update()
+	if World.SelectedOptions == nil then
+		World.SelectedOptions = amun.getSelectedOptions()
+	end
 	local hasVisionData = World._updateWorld(amun.getWorldState())
 	World._updateGameState(amun.getGameState())
 	World._updateUserInput(amun.getUserInput())

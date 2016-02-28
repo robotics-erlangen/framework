@@ -63,6 +63,8 @@ set(SOURCES
     robotspecsdialog.h
     robotwidget.cpp
     robotwidget.h
+    optionswidget.cpp
+    optionswidget.h
     simulatorwidget.cpp
     simulatorwidget.h
     teamwidget.cpp
@@ -82,6 +84,7 @@ set(UI_SOURCES
     robotparametersdialog.ui
     robotselectionwidget.ui
     robotspecsdialog.ui
+    optionswidget.ui
     simulatorwidget.ui
     timingwidget.ui
     visualizationwidget.ui

@@ -43,6 +43,26 @@ static QDir *getBaseDir(lua_State *state)
     return baseDir;
 }
 
+static void luaGetOptions(lua_State *state)
+{
+    lua_getfield(state, -1, "options");
+    if (lua_istable(state, -1)) {
+        QStringList *options = reinterpret_cast<QStringList*>(lua_touserdata(state, 4));
+        // push key
+        lua_pushnil(state);
+        while (lua_next(state, -2) != 0) {
+            if (lua_type(state, -1) != LUA_TSTRING) {
+                luaL_error(state, "Option name is not a string!");
+            }
+            const char *name = lua_tostring(state, -1);
+            options->append(QString::fromUtf8(name));
+            lua_pop(state, 1);
+        }
+    }
+    // pop options table
+    lua_pop(state, 1);
+}
+
 static int luaLoadInitScript(lua_State *state)
 {
     // load init script
@@ -90,8 +110,10 @@ static int luaLoadInitScript(lua_State *state)
 
         lua_pop(state, 1);
     }
-    // pop entrypoints table
-    lua_pop(state, 1);
+    // pop entrypoints tables
+    lua_pop(state, 2);
+
+    luaGetOptions(state);
     // pop table returned by strategy
     lua_pop(state, 1);
     return 0;
@@ -309,7 +331,8 @@ bool Lua::loadScript(const QString &filename, const QString &entryPoint, const w
     lua_pushstring(m_state, m_baseDir.relativeFilePath(m_filename).toUtf8().constData());
     lua_pushlightuserdata(m_state, &m_name);
     lua_pushlightuserdata(m_state, &m_entryPoints);
-    if (lua_pcall(m_state, 3, 0, 1) != 0) {
+    lua_pushlightuserdata(m_state, &m_options);
+    if (lua_pcall(m_state, 4, 0, 1) != 0) {
         m_errorMsg = lua_tostring(m_state, -1);
         return false;
     }

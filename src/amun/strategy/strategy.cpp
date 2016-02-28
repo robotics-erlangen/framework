@@ -156,6 +156,18 @@ void Strategy::handleCommand(const Command &command)
             reloadStrategy = true;
         }
 
+        if (cmd->has_options()) {
+            QStringList options;
+            for (const std::string &str: cmd->options().option()) {
+                options.append(QString::fromStdString(str));
+            }
+            options.sort();
+            if (m_selectedOptions != options) {
+                m_selectedOptions = options;
+                reloadStrategy = true;
+            }
+        }
+
         if (cmd->has_load()) {
             const QString filename = QString::fromStdString(cmd->load().filename());
             QString entryPoint;
@@ -309,6 +321,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
 
     if (m_strategy->loadScript(filename, entryPoint, m_geometry, m_team)) {
         m_entryPoint = m_strategy->entryPoint(); // remember loaded entrypoint
+        m_strategy->setSelectedOptions(m_selectedOptions);
 
         // prepare strategy status message
         Status status(new amun::Status);
@@ -397,6 +410,10 @@ void Strategy::setStrategyStatus(Status &status, amun::StatusStrategy::STATE sta
             *ep = name.toStdString();
         }
         strategy->set_current_entry_point(m_strategy->entryPoint().toStdString());
+        for (const QString &option: m_strategy->options()) {
+            std::string *opt = strategy->add_option();
+            *opt = option.toStdString();
+        }
     }
 }
 

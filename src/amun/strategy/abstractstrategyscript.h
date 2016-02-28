@@ -51,6 +51,8 @@ public:
     // must only be called after loadScript was executed successfully
     virtual bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput) = 0;
 
+    void setSelectedOptions(const QStringList &options);
+
     // getter functions
     QString errorMsg() const { return m_errorMsg; }
     // may be polled after is call to loadScript / process
@@ -59,6 +61,8 @@ public:
     QStringList entryPoints() const { return m_entryPoints; }
     QString entryPoint() const { return m_entryPoint; }
     QString name() const { return m_name; }
+    QStringList options() const { return m_options; }
+    QStringList selectedOptions() const { return m_selectedOptions; }
 
 protected:
     void clearDebug();
@@ -75,6 +79,8 @@ protected:
     QStringList m_entryPoints;
     QString m_entryPoint;
     QString m_name;
+    QStringList m_options;
+    QStringList m_selectedOptions;
 
     QString m_errorMsg;
     amun::DebugValues m_debug;

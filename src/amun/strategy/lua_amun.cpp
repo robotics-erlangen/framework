@@ -52,6 +52,19 @@ static int amunIsBlue(lua_State *state)
     return 1;
 }
 
+static int amunGetSelectedOptions(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    lua_newtable(state);
+    int ctr = 1;
+    for (const QString &option: thread->selectedOptions()) {
+        lua_pushinteger(state, ctr++);
+        lua_pushstring(state, option.toUtf8().constData());
+        lua_settable(state, -3);
+    }
+    return 1;
+}
+
 static int amunGetWorldState(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
@@ -257,6 +270,7 @@ static const luaL_Reg amunMethods[] = {
     {"getTeam",             amunGetTeam},
     {"getStrategyPath",     amunGetStrategyPath},
     {"isBlue",              amunIsBlue},
+    {"getSelectedOptions",  amunGetSelectedOptions},
     // dynamic
     {"getWorldState",       amunGetWorldState},
     {"getGameState",        amunGetGameState},

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer                                        *
+ *   Copyright 2016 Michael Eischer                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,17 +18,47 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "abstractstrategyscript.h"
+#ifndef OPTIONSWIDGET_H
+#define OPTIONSWIDGET_H
 
-void AbstractStrategyScript::clearDebug()
-{
-    m_debug.clear_value();
-    m_debug.clear_visualization();
-    m_debug.clear_log();
-    m_debug.clear_plot();
+#include <QSet>
+#include <QWidget>
+#include "protobuf/command.h"
+#include "protobuf/status.h"
+
+class QStandardItem;
+class QStandardItemModel;
+
+namespace Ui {
+class OptionsWidget;
 }
 
-void AbstractStrategyScript::setSelectedOptions(const QStringList &options)
+class OptionsWidget : public QWidget
 {
-    m_selectedOptions = options;
-}
+    Q_OBJECT
+
+public:
+    explicit OptionsWidget(QWidget *parent = 0);
+    ~OptionsWidget() override;
+
+signals:
+    void sendCommand(const Command &command);
+
+public slots:
+    void handleStatus(const Status &status);
+
+private slots:
+    void itemChanged(QStandardItem *item);
+
+private:
+    void sendItemsChanged();
+    void handleStrategyStatus(const amun::StatusStrategy &strategy);
+
+    typedef QHash<QByteArray, QStandardItem*> HashMap;
+    Ui::OptionsWidget *ui;
+    QStandardItemModel *m_model;
+    HashMap m_items;
+    QSet<QString> m_selection;
+};
+
+#endif // OPTIONSWIDGET_H

@@ -74,6 +74,7 @@ private:
     robot::Team m_team;
     Status m_status;
     const StrategyType m_type;
+    QStringList m_selectedOptions;
 
     QString m_filename;
     QString m_entryPoint;

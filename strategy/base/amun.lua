@@ -121,6 +121,14 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
+--- Returns list with names of enabled options
+-- @class function
+-- @name getSelectedOptions
+-- @return String[] - options
+
+--[[
+separator for luadoc]]--
+
 --- Sets a value in the debug tree
 -- @class function
 -- @name addDebug

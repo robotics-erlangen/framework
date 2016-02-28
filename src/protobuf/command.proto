@@ -46,6 +46,10 @@ message CommandStrategyLoad {
 message CommandStrategyClose {
 }
 
+message CommandStrategySetOptions {
+    repeated string option = 1;
+}
+
 message CommandStrategy {
     optional CommandStrategyLoad load = 1;
     optional CommandStrategyClose close = 2;
@@ -53,6 +57,7 @@ message CommandStrategy {
     optional bool auto_reload = 4;
     optional bool enable_debug = 5;
     optional bool enable_refbox_control = 6;
+    optional CommandStrategySetOptions options = 7;
 }
 
 message CommandControl {

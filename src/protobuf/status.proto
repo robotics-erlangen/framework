@@ -14,6 +14,7 @@ message StatusStrategy {
     optional string name = 3;
     optional string current_entry_point = 4;
     repeated string entry_point = 5;
+    repeated string option = 6;
 }
 
 message Timing {

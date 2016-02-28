@@ -183,6 +183,15 @@
    </attribute>
    <widget class="RobotSelectionWidget" name="robots"/>
   </widget>
+  <widget class="QDockWidget" name="dockOptions">
+   <property name="windowTitle">
+    <string>Options</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="OptionsWidget" name="options"/>
+  </widget>
   <action name="actionQuit">
    <property name="text">
     <string>&amp;Quit</string>
