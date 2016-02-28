@@ -43,6 +43,7 @@ OptionsWidget::~OptionsWidget()
 
 void OptionsWidget::handleStrategyStatus(const amun::StatusStrategy &strategy)
 {
+    bool changed = false;
     for (const std::string &stdOption: strategy.option()) {
         // avoid conversion to QString if not really neccessary
         const QByteArray option(stdOption.data(), stdOption.size());
@@ -50,6 +51,7 @@ void OptionsWidget::handleStrategyStatus(const amun::StatusStrategy &strategy)
         QStandardItem *&item = m_items[option];
         // add item if neccessary
         if (item == NULL) {
+            changed = true;
             item = new QStandardItem(QString::fromStdString(stdOption));
             item->setCheckable(true);
             m_selection.insert(item->text());
@@ -59,6 +61,7 @@ void OptionsWidget::handleStrategyStatus(const amun::StatusStrategy &strategy)
             m_model->sort(0);
         }
     }
+    sendItemsChanged();
 }
 
 void OptionsWidget::handleStatus(const Status &status)
