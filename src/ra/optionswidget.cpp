@@ -61,7 +61,9 @@ void OptionsWidget::handleStrategyStatus(const amun::StatusStrategy &strategy)
             m_model->sort(0);
         }
     }
-    sendItemsChanged();
+    if (changed) {
+        sendItemsChanged();
+    }
 }
 
 void OptionsWidget::handleStatus(const Status &status)
