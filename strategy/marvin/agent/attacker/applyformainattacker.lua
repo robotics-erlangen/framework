@@ -5,6 +5,7 @@ local debug = require "../base/debug"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Ball = require "observer/ball"
+local Robot = require "observer/robot"
 
 
 local cooldown = 3
@@ -25,7 +26,7 @@ function ApplyForMainattacker:check()
 	end
 
 	-- cancel freekick
-	if self._freekickFlag and self._robot == Ball.friendlyBallOwner()
+	if self._freekickFlag and Robot.hadBall(self._robot, 0.5)
 			and not Referee.isFriendlyFreeKickState() then
 		self._lastShot = World.Time
 		self._freekickFlag = false
