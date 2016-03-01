@@ -83,4 +83,14 @@ function PathTest.testStartEqualsEnd()
 	pathInstance:addTreeVisualization()
 end
 
+function PathTest.testStartEndObstacles()
+	pointStart = Coordinates.toGlobal(Vector.create(0.02, 0))
+	pointEnd = pointStart
+	setupPath()
+	drawObstacles()
+	local waypoints = pathInstance:get(pointStart.x, pointStart.y, pointEnd.x, pointEnd.y)
+	drawWaypoints(waypoints)
+	pathInstance:addTreeVisualization()
+end
+
 return PathTest
