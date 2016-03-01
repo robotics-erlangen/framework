@@ -415,6 +415,8 @@ debugLoop = function (inDebugCallback)
 	hookCtr = -1
 	-- ensure that our hook is installed
 	debug.sethook(mainHook, "l")
+	jit.off()
+	jit.flush()
 
 	local outfile = io.stderr
 	local baseFrame = 2 + (inDebugCallback and 1 or 0)
