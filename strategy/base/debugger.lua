@@ -26,8 +26,26 @@ module "debugger"
 local debugger = {}
 
 if not debug then
-	return nil
+	debugger.debug = function ()
+		error("Debugger is only available in debug mode!")
+	end
+	return debugger
 end
+
+
+
+--- io helper ---
+
+local function printerr(str)
+	io.stderr:write(str)
+end
+
+local function printerrln(str)
+	printerr(str)
+	printerr("\n")
+end
+
+
 
 --- commmand handling ---
 
@@ -45,7 +63,7 @@ end
 debugger.registerCommand = registerCommand
 
 local function getUserInput()
-	io.stderr:write("debug> ")
+	printerr("debug> ")
 	local input = io.stdin:read("*l")
 	return input
 end
@@ -110,7 +128,7 @@ local function hookCheck(line)
 	if lineTable == nil then
 		return 0
 	end
-	local info = debug.getinfo(3)
+	local info = debug.getinfo(3, "S")
 	for pattern, isActive in pairs(lineTable) do
 		if info.source:match(pattern) then
 			return 1
@@ -128,17 +146,14 @@ local function mainHook(evt, line)
 			return
 		end
 	end
-	-- clear hook
-	debug.sethook()
-	debugLoop(true)
+	debugLoop()
 end
 
-local function getStackDepth(inDebugCallback)
-	local i = 1
-	while debug.getinfo(i) ~= nil do
-		i = i + 1
-	end
-	return i - (inDebugCallback and 1 or 0)
+local function setupHook()
+	debug.sethook(mainHook, "l")
+	-- disable jit as the hook is not called from jit compiled code
+	jit.off()
+	jit.flush()
 end
 
 local function addBreakpoint(file, line)
@@ -150,59 +165,82 @@ local function addBreakpoint(file, line)
 	lineTable[file] = true
 end
 
+local function removeBreakpoint(file, line)
+	local lineTable = breakpoints[line]
+	if not lineTable or not lineTable[file] then
+		return false
+	end
+	lineTable[file] = nil
+	-- remove lineTable if it is empty
+	local isEmpty = true
+	for k,v in pairs(lineTable) do
+		isEmpty = true
+		break
+	end
+	if isEmpty then
+		breakpoints[line] = nil
+	end
+	return true
+end
+
 local function clearBreakpoints()
 	breakpoints = {}
 end
 
-
---- handler functions ---
--- a handler function must return true to continue to programm's execution
-
-local function nopHandler(outfile, args, inDebugCallback)
-end
-
-local function helpHandler(outfile, args, inDebugCallback)
-	outfile:write("Command list\n")
-	local commands = {}
-	for k,v in pairs(helpList) do
-		if v ~= nil then
-			table.insert(commands, k)
-		end
-	end
-	table.sort(commands)
-	for _, cmd in ipairs(commands) do
-		local desc = helpList[cmd]
-		outfile:write(string.format("    %-20s - %s\n", cmd, desc))
-	end
-	outfile:write("\n")
-end
-
-local function backtraceHandler(outfile, args, inDebugCallback)
-	local str = debug.traceback()
-	str = string.gsub(str, "&nbsp;", " ")
-	str = string.gsub(str, "&gt;", ">")
-	str = string.gsub(str, "<br>", "\n")
-	str = string.gsub(str, "</font>", "")
-	str = string.gsub(str, "<font[^>]+>", "")
-
-	local skipFrames = 2 + (inDebugCallback and 1 or 0)
-	for line in string.gmatch(str, "[^\n]+") do
-		-- skip backtrace frames belonging to the debugger
-		local isFrame = string.sub(line, 1, 4) == "   >"
-
-		if isFrame and skipFrames > 0 then
-			skipFrames = skipFrames - 1
+function debugLoop()
+	local autoCommands = { "__init__" }
+	while true do
+		local input
+		if #autoCommands == 0 then
+			input = getUserInput()
 		else
-			outfile:write(line.."\n")
+			input = autoCommands[1]
+			table.remove(autoCommands, 1)
+		end
+		local handler, args = parseCommand(input)
+		if handler == nil then
+			printerrln("Unknown command. Run \"help\" for help")
+		else
+			local continueExecution = handler(args)
+			if continueExecution then
+				break
+			end
 		end
 	end
 end
 
-local function getLocals(inDebugCallback)
-	-- should only be called from handler
-	local baseFrame = 4 + (inDebugCallback and 1 or 0)
+
+
+--- helper functions ---
+
+local function getBaseStackLevel()
+	local this = debug.getinfo(1, "S").source
+	local i = 2
+	while true do
+		local info = debug.getinfo(i, "S")
+		if info == nil or info.source ~= this then
+			-- subtract this function
+			return i - 1
+		end
+		i = i + 1
+	end
+end
+
+local function getStackDepth()
+	local i = 1
+	while debug.getinfo(i, "") ~= nil do
+		i = i + 1
+	end
+	return i - 1 - getBaseStackLevel()
+end
+
+local function getLocals()
+	local baseFrame = getBaseStackLevel()
 
 	local locals = {}
+	if debug.getinfo(baseFrame, "") == nil then
+		return locals
+	end
 	local i = 1
 	while true do
 		local varname, value = debug.getlocal(baseFrame, i)
@@ -210,59 +248,79 @@ local function getLocals(inDebugCallback)
 			break
 		end
 		i = i + 1
-		if varname ~= "(*temporary)" then
-			locals[varname] = value
+		-- ignore variables like "(*temporary)" and "(for index)"
+		if varname:sub(1, 1) ~= "(" then
+			-- wrap value to allow storing nil
+			locals[varname] = {value}
 		end
 	end
+	-- TODO: varargs, using negative indices
 	return locals
 end
 
-local function getClosureParameters(inDebugCallback)
-	-- should only be called from handler
-	local baseFrame = 4 + (inDebugCallback and 1 or 0)
+local function getClosureParameters()
+	local baseFrame = getBaseStackLevel()
 
 	local parameters = {}
-	local info = debug.getinfo(baseFrame)
+	local info = debug.getinfo(baseFrame, "uf")
+	if info == nil then
+		return parameters
+	end
 	for i = 1, info.nups do
 		local varname, value = debug.getupvalue(info.func, i)
-		parameters[varname] = value
+		-- wrap value to allow storing nil
+		parameters[varname] = {value}
 	end
 	return parameters
 end
 
-local function printVar(outfile, name, data)
-	outfile:write(string.format("    %-20s = (%s)\"%s\"\n", name, type(data), tostring(data)))
-end
-
-local function localInfoHandler(outfile, args, inDebugCallback)
-	outfile:write("Locals\n")
-	for varname, value in pairs(getLocals(inDebugCallback)) do
-		printVar(outfile, varname, value)
+local function evalFunction(code)
+	local varnames = {}
+	local values = {}
+	for varname, value in pairs(getClosureParameters()) do
+		table.insert(varnames, varname)
+		-- support storing nil
+		values[#varnames] = value[1]
+	end
+	for varname, value in pairs(getLocals()) do
+		table.insert(varnames, varname)
+		values[#varnames] = value[1]
 	end
 
-	local closureParameters = getClosureParameters(inDebugCallback)
-	local isFirstClosureParameter = true
-	for varname, value in pairs(closureParameters) do
-		if isFirstClosureParameter then
-			outfile:write("Closure parameters\n")
-			isFirstClosureParameter = false
-		end
-		printVar(outfile, varname, value)
+	local baseFrame = getBaseStackLevel()
+	local info = debug.getinfo(baseFrame, "f")
+	if not info then
+		return false, "No function on stack"
 	end
+
+	local functionTemplate = "return function (%s) return (function() return %s end) end"
+	local helperFunction = string.format(functionTemplate, table.concat(varnames, ", "), code)
+	local func, errormsg = loadstring(helperFunction)
+	if not func then
+		return false, "Invalid expression\n" .. tostring(errormsg)
+	end
+
+	-- provide function environment from current function
+	func = debug.setfenv(func, debug.getfenv(info.func))
+
+	-- call wrapper function returned by loadstring, supports nil parameters
+	func = func()(unpack(values, 1, #varnames))
+
+	return true, func
 end
 
-local function ppHelper(outfile, name, valueType, value, indent)
+local function ppHelper(name, valueType, value, indent)
 	local indent = ("    "):rep(indent or 0)
-	outfile:write(string.format("%s%-20s = (%s)\"%s\"\n", indent, name, valueType, tostring(value)))
+	printerrln(string.format("%s%-20s = (%s)\"%s\"", indent, name, valueType, tostring(value)))
 end
 
-local function prettyPrint(outfile, name, value, visited, indent)
+local function prettyPrint(name, value, visited, indent)
 	visited = visited or {}
 	indent = indent or 0
 	local origType = type(value)
 	if type(value) == "table" then
 		if visited[value] then
-			prettyPrint(outfile, name, tostring(value), visited, indent)
+			ppHelper(name, origType, tostring(value), indent)
 			return
 		end
 		visited[value] = true
@@ -284,107 +342,200 @@ local function prettyPrint(outfile, name, value, visited, indent)
 				tableValue = "empty table"
 			end
 		end
-		ppHelper(outfile, name, origType, tableValue, indent)
+		ppHelper(name, origType, tableValue, indent)
 
 		for k, v in pairs(value) do
-			prettyPrint(outfile, k, v, visited, indent + 1)
+			prettyPrint(k, v, visited, indent + 1)
 		end
 		return
 	elseif type(value) == "userdata" or type(value) == "cdata" then
 		value = tostring(value)
 	end
-	ppHelper(outfile, name, origType, value, indent)
+	ppHelper(name, origType, value, indent)
+end
+
+local function shortPath(path)
+	local basePath = "@" .. amun.strategyPath .. "/"
+	if path:sub(1, #basePath) == basePath then
+		return path:sub(#basePath+1)
+	else
+		return path
+	end
 end
 
 
-local function evalHandler(outfile, args, inDebugCallback)
-	local closureParameters = getClosureParameters(inDebugCallback)
-	local locals = getLocals(inDebugCallback)
 
-	local varnames = {}
-	local values = {}
+--- handler functions ---
+-- a handler function must return true to continue to programm's execution
+
+local function initHandler(args)
+	local baseFrame = getBaseStackLevel()
+	local info = debug.getinfo(baseFrame, "Snl")
+	if info ~= nil then
+		printerrln(string.format("At %s:%d in %s %s", shortPath(info.source), info.currentline, info.namewhat, info.name))
+	end
+end
+
+local function nopHandler(args)
+end
+
+local function helpHandler(args)
+	printerrln("Command list")
+	local commands = {}
+	for k,v in pairs(helpList) do
+		if v ~= nil then
+			table.insert(commands, k)
+		end
+	end
+	table.sort(commands)
+	for _, cmd in ipairs(commands) do
+		local desc = helpList[cmd]
+		printerrln(string.format("    %-20s - %s", cmd, desc))
+	end
+	printerrln("")
+end
+
+local function backtraceHandler(args)
+	local str = debug.traceback()
+	str = string.gsub(str, "&nbsp;", " ")
+	str = string.gsub(str, "&gt;", ">")
+	str = string.gsub(str, "<br>", "\n")
+	str = string.gsub(str, "</font>", "")
+	str = string.gsub(str, "<font[^>]+>", "")
+
+	local skipFrames = getBaseStackLevel() - 1
+	for line in string.gmatch(str, "[^\n]+") do
+		-- skip backtrace frames belonging to the debugger
+		local isFrame = string.sub(line, 1, 4) == "   >"
+
+		if isFrame and skipFrames > 0 then
+			skipFrames = skipFrames - 1
+		else
+			printerrln(line)
+		end
+	end
+end
+
+local function printVar(name, data)
+	return string.format("    %-20s = (%s)\"%s\"", name, type(data), tostring(data))
+end
+
+-- TODO: highlight changed variables
+local function localInfoHandler(args)
+	printerrln("Locals")
+	local localLines = {}
+	for varname, value in pairs(getLocals()) do
+		table.insert(localLines, printVar(varname, value[1]))
+	end
+	table.sort(localLines)
+	for _, line in ipairs(localLines) do
+		printerrln(line)
+	end
+
+	local closureParameters = getClosureParameters()
+	local isFirstClosureParameter = true
 	for varname, value in pairs(closureParameters) do
-		table.insert(varnames, varname)
-		table.insert(values, value)
+		if isFirstClosureParameter then
+			printerrln("Closure parameters")
+			isFirstClosureParameter = false
+		end
+		printerrln(printVar(varname, value[1]))
 	end
-	for varname, value in pairs(locals) do
-		table.insert(varnames, varname)
-		table.insert(values, value)
-	end
+end
 
-	local baseFrame = 3 + (inDebugCallback and 1 or 0)
 
-	local parameters = {}
-	local info = debug.getinfo(baseFrame)
-
-	local functionTemplate = "return function (%s) return %s end"
-	local helperFunction = string.format(functionTemplate, table.concat(varnames, ", "), table.concat(args, " "))
-	local func, errormsg = loadstring(helperFunction)
-	if not func then
-		outfile:write("Invalid expression\n")
-		outfile:write(tostring(errormsg).."\n")
+local function evalHandler(args)
+	local success, result = evalFunction(table.concat(args, " "))
+	if not success then
+		printerrln(result)
 		return
 	end
 
-	-- provide function environment from current function
-	func = debug.setfenv(func, debug.getfenv(info.func))
-
-	-- call wrapper function returned by loadstring
-	local result = func()(unpack(values))
-	prettyPrint(outfile, "expression", result)
+	success, result = pcall(result)
+	if not success then
+		printerrln("Failed to evaluate function")
+		printerrln(result)
+		return
+	end
+	prettyPrint("expression", result)
 end
 
-local function breakpointHandler(outfile, args, inDebugCallback)
+-- TODO: conditional breakpoints
+local function breakpointHandler(args)
+	if #args == 1 then
+		-- try to get the current file name if only a line is passed
+		local baseFrame = getBaseStackLevel()
+		local info = debug.getinfo(baseFrame, "S")
+		if info and info.source then
+			args = { shortPath(info.source), args[1] }
+		end
+	end
+
 	if #args ~= 2 then
-		outfile:write("Error - Expected file pattern and line number")
+		printerrln("Error - Expected file pattern and line number")
 		return
 	end
 
 	local pattern = tostring(args[1])
 	local line = tonumber(args[2])
+
+	if not pattern or not line then
+		printerrln("Error - Expected file pattern and line number")
+		return
+	end
+
 	addBreakpoint(pattern, line)
 end
 
-local function clearBreakpointsHandler(outfile, args, inDebugCallback)
+local function removeBreakpointHandler(args)
+	local pattern = tostring(args[1])
+	local line = tonumber(args[2])
+	removeBreakpoint(pattern, line)
+end
+
+local function clearBreakpointsHandler(args)
 	clearBreakpoints()
 end
 
-local function listBreakpointsHandler(outfile, args, inDebugCallback)
-	outfile:write("Breakpoints\n")
+local function listBreakpointsHandler(args)
+	local list = {}
 	for line, lineTable in pairs(breakpoints) do
 		for pattern, isActive in pairs(lineTable) do
-			outfile:write(string.format("    %s:%d\n", pattern, line))
+			table.insert(list, string.format("    %s:%4d", pattern, line))
 		end
 	end
+	table.sort(list)
+	printerrln("Breakpoints")
+	printerrln(table.concat(list, "\n"))
 end
 
-local function continueHandler(outfile, args, inDebugCallback)
+local function continueHandler(args)
 	hookSpecial = nil
 	return true
 end
 
-local function stepHandler(outfile, args, inDebugCallback)
+local function stepHandler(args)
 	hookSpecial = function() return true end
 	return true
 end
 
-local function nextHandler(outfile, args, inDebugCallback)
-	local initialDepth = getStackDepth(inDebugCallback)
+local function nextHandler(args)
+	local initialDepth = getStackDepth()
 	hookSpecial = function()
 		return getStackDepth() <= initialDepth
 	end
 	return true
 end
 
-local function stepOutHandler(outfile, args, inDebugCallback)
-	local initialDepth = getStackDepth(inDebugCallback) - 1
+local function stepOutHandler(args)
+	local initialDepth = getStackDepth() - 1
 	hookSpecial = function()
 		return getStackDepth() <= initialDepth
 	end
 	return true
 end
 
-local function quitHandler(outfile, args, inDebugCallback)
+local function quitHandler(args)
 	hookSpecial = nil
 	clearBreakpoints()
 	-- try to exit
@@ -393,14 +544,16 @@ local function quitHandler(outfile, args, inDebugCallback)
 end
 
 
+registerCommand({"__init__"}, initHandler, nil)
 registerCommand({""}, nopHandler, nil)
 registerCommand({"help"}, helpHandler, "Print command list")
 -- information
 registerCommand({"backtrace", "bt"}, backtraceHandler, "Print a backtrace of the current stack")
 registerCommand({"locals", "l"}, localInfoHandler, "Print local variables")
-registerCommand({"eval"}, evalHandler, "Evaluate the given expression an print the result")
+registerCommand({"eval", "e"}, evalHandler, "Evaluate the given expression an print the result")
 -- breakpoints
 registerCommand({"breakpoint add", "bp"}, breakpointHandler, "Add breakpoints")
+registerCommand({"breakpoint remove"}, removeBreakpointHandler, "Remove breakpoint")
 registerCommand({"breakpoint clear"}, clearBreakpointsHandler, "Remove all breakpoints")
 registerCommand({"breakpoint list"}, listBreakpointsHandler, "List breakpoints")
 -- execution control
@@ -410,39 +563,19 @@ registerCommand({"next", "n"}, nextHandler, "Step over code")
 registerCommand({"stepout"}, stepOutHandler, "Step out of function code")
 registerCommand({"quit", "q"}, quitHandler, "Quit debugger")
 
-debugLoop = function (inDebugCallback)
+
+function debugger.debug()
 	-- disable hooks
 	hookCtr = -1
 	-- ensure that our hook is installed
-	debug.sethook(mainHook, "l")
-	jit.off()
-	jit.flush()
-
-	local outfile = io.stderr
-	local baseFrame = 2 + (inDebugCallback and 1 or 0)
-	local info = debug.getinfo(baseFrame)
-	if info ~= nil then
-		outfile:write(string.format("At %s:%d in %s %s\n", info.short_src, info.currentline, info.namewhat, info.name))
-	end
-
-	while true do
-		local input = getUserInput()
-		local handler, args = parseCommand(input)
-		if handler == nil then
-			local outfile = io.stderr
-			outfile:write("Unknown command. Run \"help\" for help\n")
-		else
-			local continueExecution = handler(outfile, args, inDebugCallback)
-			if continueExecution then
-				break
-			end
-		end
-	end
+	setupHook()
+	debugLoop()
 	-- skip first line breakpoint (exit from this function!)
 	hookCtr = 1
 end
 
-debugger.debug = debugLoop
+
+-- register debugger
 debug.debugger = debugger
 
 return debugger
