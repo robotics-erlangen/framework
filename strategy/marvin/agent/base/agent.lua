@@ -130,6 +130,11 @@ function Base:_applyForMainAttacker()
 			World.Ball, targetPos, endSpeedLength, self._mainAttackerLastTime)
 		self._mainAttackerLastTime = timeToBall
 		local mainAttackerRating = Rating.timeToRating(timeToBall)
+
+		-- rate the robot pos (generally, being behind the ball is better)
+		local relativeYPos = World.Ball.pos.y - self._robot.pos.y
+		mainAttackerRating = mainAttackerRating + math.atan(relativeYPos) * 0.2
+
 		self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
 	end
 end
