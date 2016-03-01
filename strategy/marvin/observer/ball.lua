@@ -279,7 +279,7 @@ function Ball.isShot()
 	-- if the ball was not shot in the last tenth second
 	local condCooldown = (World.Time > lastShootTime + shootCooldown)
 	-- if the ball accelerates
-	local condAccelerates = (ballSpeedLength > lastBallSpeedLength + accelerationPerFrame * World.TimeDiff)
+	local condAccelerates = Ball.isAccelerating()
 	-- if the ball is fast
 	local condFast = (ballSpeedLength > FAST_BALL)
 	-- if one robot had the ball the last 0.1 seconds (equal to cooldown time)
