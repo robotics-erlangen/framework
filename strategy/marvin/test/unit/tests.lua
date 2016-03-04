@@ -1,6 +1,7 @@
 local Test = {}
 
 Test.Cache = "test/unit/cache"
+Test.Coordinates = "test/unit/coordinates"
 Test.Class = "test/unit/class"
 Test.Entrypoints = "test/unit/entrypoint"
 Test.geom = "test/unit/geom"
