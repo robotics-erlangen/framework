@@ -416,16 +416,22 @@ local function backtraceHandler(args)
 	end
 end
 
-local function printVar(name, data)
-	return string.format("    %-20s = (%s)\"%s\"", name, type(data), tostring(data))
+local lastLocals = {}
+local function printLocalVar(name, data)
+	local datastr = string.format("(%s)\"%s\"", type(data), tostring(data))
+	local marker = " "
+	if datastr ~= lastLocals[name] then
+		marker = "*"
+	end
+	lastLocals[name] = datastr
+	return string.format("    %-20s%s = %s", name, marker, datastr)
 end
 
--- TODO: highlight changed variables
 local function localInfoHandler(args)
 	printerrln("Locals")
 	local localLines = {}
 	for varname, value in pairs(getLocals()) do
-		table.insert(localLines, printVar(varname, value[1]))
+		table.insert(localLines, printLocalVar(varname, value[1]))
 	end
 	table.sort(localLines)
 	for _, line in ipairs(localLines) do
@@ -439,7 +445,7 @@ local function localInfoHandler(args)
 			printerrln("Closure parameters")
 			isFirstClosureParameter = false
 		end
-		printerrln(printVar(varname, value[1]))
+		printerrln(printLocalVar(varname, value[1]))
 	end
 end
 
