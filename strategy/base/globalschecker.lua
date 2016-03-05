@@ -31,8 +31,6 @@ local validGlobals = {
 	path = true,
 	Vector = true,
 	Class = true,
-	mime = true, -- allow loading modules required for remote debugging
-	socket = true,
 }
 
 local globalsWarn -- if amun.isDebug is true then this is the function "error", otherwise it's "log"

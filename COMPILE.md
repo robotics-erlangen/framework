@@ -18,7 +18,6 @@ Certain features require additional libraries:
  * libusb-1.0 - USB communication (version >= 1.0.9)
  * libsdl2 - Joystick support (version >= 2.0.2)
  * libudev - Required for joystick support (only required if libsdl2 is not available via the package manager)
- * liblua5.1-socket2 - Lua remote debugger (see strategy/test/debug/enable.lua) (version >= 2.1!, https://github.com/diegonehab/luasocket)
 
 Package names for Ubuntu 14.04: `cmake protobuf-compiler qtbase5-dev libsdl2-dev libluajit-5.1-dev libusb-1.0-0-dev g++`
 
@@ -47,16 +46,6 @@ cmake -DCMAKE_PREFIX_PATH=~/Qt/5.4/gcc_64/lib/cmake ..
 To be able to use the USB transceiver / JTAG programmer the rights for udev have to be modified.
 Just copy the file at `data/udev/99-robotics-usb-devices.rules` to `/etc/udev/rules.d/99-robotics-usb-devices.rules`
 
-#### compile luasocket (for the remote debugger)
-
-To use the remote debugger download, compile and install the luasocket library (version >= 2.1!).
-The libraries must be installed to `/usr/local/lib` to be recognised by LuaJIT
-Compile instructions: (for Ubuntu 12.04)
-```
-make LUAINC_linux=/usr/include/lua5.1
-sudo make install
-```
-
 ## Windows
 Get dependencies (tested using the given versions):
 * cmake 3.2.2 - http://www.cmake.org/files/v3.2/cmake-3.2.2-win32-x86.exe
@@ -67,7 +56,6 @@ Get dependencies (tested using the given versions):
 * luajit 2.0.3 - http://luajit.org/download/LuaJIT-2.0.4.tar.gz
 * libusb 1.19 - http://downloads.sourceforge.net/project/libusb/libusb-1.0/libusb-1.0.19/libusb-1.0.19.tar.bz2
 http://downloads.sourceforge.net/project/libusb/libusb-1.0/libusb-1.0.20/libusb-1.0.20.tar.bz2
-* luasocket 3.0-rc? - https://github.com/diegonehab/luasocket/archive/master.zip
 * libsdl2 2.0.2 - http://libsdl.org/release/SDL2-devel-2.0.2-mingw.tar.gz
 
 #### install cmake
@@ -110,12 +98,6 @@ mkdir build && cd build
 make install-package arch=i686-w64-mingw32 prefix=/usr/local
 ```
 
-#### compile luasocket2
-```
-make PLAT=mingw LUAINC_mingw=/usr/local/include/luajit-2.0 LUALIB_mingw=/usr/local/bin/lua51.dll
-make install PLAT=mingw INSTALL_TOP_LDIR=/usr/local/share/lua/5.1 INSTALL_TOP_CDIR=/usr/local/lib/lua/5.1
-```
-
 #### compile ra
 ```
 mkdir build-win && cd build-win
@@ -124,7 +106,6 @@ ninja
 cp -r ../config ../data bin
 cp /usr/local/bin/{libprotobuf-9,libusb-1.0,lua51,SDL2}.dll /c/Qt/5.5/mingw492_32/bin/{icudt54,icuin54,icuuc54,libgcc_s_dw2-1,libstdc++-6,libwinpthread-1,Qt5Core,Qt5Gui,Qt5Network,Qt5OpenGL,Qt5Widgets}.dll bin
 mkdir bin/platforms && cp /c/Qt/5.5/mingw492_32/plugins/platforms/qwindows.dll bin/platforms
-cp -r /usr/local/lib/lua/5.1/{mime,socket} bin
 ```
 
 Finished!
