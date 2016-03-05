@@ -433,8 +433,8 @@ end
 -- @return bool
 function Field.isInOwnCorner(pos, opp)
 	local oppfac = opp and 1 or -1
-	return (World.Geometry.FieldWidthHalf - math.abs(World.Ball.pos.x))^2
-		+ (oppfac * World.Geometry.FieldHeightHalf - World.Ball.pos.y)^2 < 1
+	return (World.Geometry.FieldWidthHalf - math.abs(pos.x))^2
+		+ (oppfac * World.Geometry.FieldHeightHalf - pos.y)^2 < 1
 end
 
 --- The position, where the half-line given by startPos and dir intersects the next field boundary
