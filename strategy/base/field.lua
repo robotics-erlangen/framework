@@ -71,13 +71,13 @@ function Field.limitToAllowedField(pos, extraLimit)
 			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+extraLimit)
 		end
 		return pos
-	elseif Field.isInOpponentDefenseArea(pos, extraLimit) then
+	elseif Field.isInOpponentDefenseArea(pos, oppExtraLimit) then
 		if math.abs(pos.x) <= World.Geometry.DefenseStretch/2 then
-			pos = Vector(pos.x, World.Geometry.FieldHeightHalf-World.Geometry.DefenseRadius-extraLimit)
+			pos = Vector(pos.x, World.Geometry.FieldHeightHalf-World.Geometry.DefenseRadius-oppExtraLimit)
 		else
 			local circleMidpoint = Vector(
 				World.Geometry.DefenseStretch/2*math.sign(pos.x), World.Geometry.FieldHeightHalf)
-			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+extraLimit)
+			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+oppExtraLimit)
 		end
 		return pos
 	else
