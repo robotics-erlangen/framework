@@ -201,8 +201,11 @@ function debugLoop()
 		if handler == nil then
 			printerrln("Unknown command. Run \"help\" for help")
 		else
-			local continueExecution = handler(args)
-			if continueExecution then
+			local success, continueExecution = pcall(handler, args)
+			if not success then
+				printerrln("Internal debugger error")
+				printerrln(continueExecution)
+			elseif continueExecution then
 				break
 			end
 		end
@@ -216,11 +219,17 @@ end
 local function getBaseStackLevel()
 	local this = debug.getinfo(1, "S").source
 	local i = 2
+	local speculative = 0
 	while true do
-		local info = debug.getinfo(i, "S")
-		if info == nil or info.source ~= this then
+		local info = debug.getinfo(i, "Sn")
+		-- try to skip pcall
+		if info and info.source == "=[C]" and info.name == "pcall" and info.namewhat == "global" then
+			speculative = 1
+		elseif info == nil or info.source ~= this then
 			-- subtract this function
-			return i - 1
+			return i - 1 - speculative
+		else
+			speculative = 0
 		end
 		i = i + 1
 	end
