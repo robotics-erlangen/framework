@@ -59,6 +59,7 @@ private slots:
     void sendReload();
     void sendAutoReload();
     void sendEnableDebug(bool enable);
+    void sendTriggerDebug();
 
 private:
     void open(const QString &filename);
@@ -78,6 +79,7 @@ private:
     QString m_entryPoint;
     QAction *m_actionDisable;
     QAction *m_reloadAction;
+    QAction *m_debugAction;
     bool m_userAutoReload;
     bool m_notification;
     QStringList *m_recentScripts;

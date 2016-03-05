@@ -92,6 +92,10 @@ void TeamWidget::init(bool blue)
     debugAction->setCheckable(true);
     connect(debugAction, SIGNAL(toggled(bool)), SLOT(sendEnableDebug(bool)));
 
+    m_debugAction = reload_menu->addAction("Trigger debugger");
+    m_debugAction->setEnabled(false);
+    connect(m_debugAction, SIGNAL(triggered(bool)), SLOT(sendTriggerDebug()));
+
     m_btnReload = new QToolButton;
     m_btnReload->setToolTip("Reload script");
     m_btnReload->setIcon(QIcon("icon:32/view-refresh.png"));
@@ -188,6 +192,9 @@ void TeamWidget::handleStatus(const Status &status)
             m_notification = true;
             break;
         }
+
+        // update debugger status
+        m_debugAction->setEnabled(strategy->has_debugger());
 
         updateStyleSheet();
     }
@@ -381,6 +388,17 @@ void TeamWidget::sendEnableDebug(bool enable)
                 command->mutable_strategy_yellow();
 
     strategy->set_enable_debug(enable);
+    sendCommand(command);
+}
+
+void TeamWidget::sendTriggerDebug()
+{
+    Command command(new amun::Command);
+    amun::CommandStrategy *strategy = m_blue ?
+                command->mutable_strategy_blue() :
+                command->mutable_strategy_yellow();
+
+    strategy->mutable_debug();
     sendCommand(command);
 }
 
