@@ -31,6 +31,7 @@ module "base"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
+require "../base/debugger" -- preload debugger to allow triggering it later
 require "../base/amun"
 -- amun.isDebug must already be set, thus load after amun
 require("../base/globalschecker")._init()
