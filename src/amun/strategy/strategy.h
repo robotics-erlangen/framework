@@ -61,6 +61,7 @@ private slots:
 private:
     void loadScript(const QString &filename, const QString &entryPoint);
     void close();
+    void triggerDebugger();
     void fail(const QString &error);
     void setStrategyStatus(Status &status, amun::StatusStrategy::STATE state);
     void copyDebugValues(Status &status);

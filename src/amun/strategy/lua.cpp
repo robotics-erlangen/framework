@@ -62,6 +62,26 @@ static void luaGetOptions(lua_State *state, QStringList& options)
     lua_pop(state, 1);
 }
 
+static void luaCheckForDebugger(lua_State *state)
+{
+    // check for function at debug.debugger.debug
+    int stackDepth = 1;
+    lua_getglobal(state, "debug");
+    if (lua_istable(state, -1)) {
+        lua_getfield(state, -1, "debugger");
+        stackDepth++;
+        if (lua_istable(state, -1)) {
+            lua_getfield(state, -1, "debug");
+            stackDepth++;
+            if (lua_isfunction(state, -1)) {
+                lua_setfield(state, LUA_REGISTRYINDEX, "Debugger");
+                stackDepth--;
+            }
+        }
+    }
+    lua_pop(state, stackDepth);
+}
+
 static int luaLoadInitScript(lua_State *state)
 {
     // load init script
@@ -116,6 +136,11 @@ static int luaLoadInitScript(lua_State *state)
     luaGetOptions(state, *options);
     // pop table returned by strategy
     lua_pop(state, 1);
+
+    bool debugEnabled = lua_toboolean(state, 5);
+    if (debugEnabled) {
+        luaCheckForDebugger(state);
+    }
     return 0;
 }
 
@@ -332,7 +357,8 @@ bool Lua::loadScript(const QString &filename, const QString &entryPoint, const w
     lua_pushlightuserdata(m_state, &m_name);
     lua_pushlightuserdata(m_state, &m_entryPoints);
     lua_pushlightuserdata(m_state, &m_options);
-    if (lua_pcall(m_state, 4, 0, 1) != 0) {
+    lua_pushboolean(m_state, m_debugEnabled);
+    if (lua_pcall(m_state, 5, 0, 1) != 0) {
         m_errorMsg = lua_tostring(m_state, -1);
         return false;
     }
@@ -361,6 +387,10 @@ bool Lua::loadScript(const QString &filename, const QString &entryPoint, const w
 
     lua_pushstring(m_state, m_entryPoint.toUtf8().constData());
     lua_setfield(m_state, LUA_REGISTRYINDEX, "EntryPointName");
+
+    lua_getfield(m_state, LUA_REGISTRYINDEX, "Debugger");
+    m_hasDebugger = lua_isfunction(m_state, -1);
+    lua_pop(m_state, 1);
 
     return true;
 }
@@ -393,6 +423,20 @@ bool Lua::process(double &pathPlanning, const world::State &worldState, const am
     pathPlanning = lua_tonumber(m_state, -1);
     lua_pop(m_state, 1);
 
+    return true;
+}
+
+bool Lua::triggerDebugger()
+{
+    if (!m_hasDebugger || !m_debugEnabled) {
+        return false;
+    }
+
+    lua_getfield(m_state, LUA_REGISTRYINDEX, "Debugger");
+    if (lua_pcall(m_state, 0, 0, 1)) {
+        m_errorMsg = lua_tostring(m_state, -1);
+        return false;
+    }
     return true;
 }
 

@@ -20,6 +20,16 @@
 
 #include "abstractstrategyscript.h"
 
+AbstractStrategyScript::AbstractStrategyScript() {
+    m_hasDebugger = false;
+}
+
+bool AbstractStrategyScript::triggerDebugger()
+{
+    // fail as default
+    return false;
+}
+
 void AbstractStrategyScript::clearDebug()
 {
     m_debug.clear_value();

@@ -15,6 +15,7 @@ message StatusStrategy {
     optional string current_entry_point = 4;
     repeated string entry_point = 5;
     repeated string option = 6;
+    optional bool has_debugger = 7;
 }
 
 message Timing {

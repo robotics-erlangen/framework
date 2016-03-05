@@ -38,6 +38,7 @@ class AbstractStrategyScript : public QObject
 {
     Q_OBJECT
 public:
+    AbstractStrategyScript();
     ~AbstractStrategyScript() override {}
 
     // simple factory to allow for different strategy handlers
@@ -50,6 +51,7 @@ public:
     virtual bool loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team) = 0;
     // must only be called after loadScript was executed successfully
     virtual bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput) = 0;
+    virtual bool triggerDebugger();
 
     void setSelectedOptions(const QStringList &options);
 
@@ -63,6 +65,7 @@ public:
     QString name() const { return m_name; }
     QStringList options() const { return m_options; }
     QStringList selectedOptions() const { return m_selectedOptions; }
+    bool hasDebugger() const { return m_hasDebugger; }
 
 protected:
     void clearDebug();
@@ -84,6 +87,7 @@ protected:
 
     QString m_errorMsg;
     amun::DebugValues m_debug;
+    bool m_hasDebugger;
 };
 
 #endif // ABSTRACTSTRATEGYSCRIPT_H

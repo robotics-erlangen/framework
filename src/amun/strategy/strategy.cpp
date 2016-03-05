@@ -182,6 +182,10 @@ void Strategy::handleCommand(const Command &command)
             close();
             reloadStrategy = false; // no strategy to reload
         }
+
+        if (cmd->has_debug()) {
+            triggerDebugger();
+        }
     }
 
     if (command->has_mixed_team_destination()) {
@@ -357,6 +361,13 @@ void Strategy::close()
     emit sendStatus(status);
 }
 
+void Strategy::triggerDebugger()
+{
+    if (!m_strategy->triggerDebugger()) {
+        fail("Failed to activate the debugger: " + m_strategy->errorMsg());
+    }
+}
+
 void Strategy::fail(const QString &error)
 {
     if (m_type == StrategyType::BLUE || m_type == StrategyType::YELLOW) {
@@ -413,6 +424,9 @@ void Strategy::setStrategyStatus(Status &status, amun::StatusStrategy::STATE sta
         for (const QString &option: m_strategy->options()) {
             std::string *opt = strategy->add_option();
             *opt = option.toStdString();
+        }
+        if (m_strategy->hasDebugger()) {
+            strategy->set_has_debugger(true);
         }
     }
 }
