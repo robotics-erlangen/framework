@@ -206,8 +206,12 @@ function debugLoop()
 				printerrln("Internal debugger error")
 				printerrln(continueExecution)
 			elseif continueExecution then
-				break
+				autoCommands = { "__exit__" }
 			end
+		end
+		-- exit after calling __exit__ handler
+		if input == "__exit__" then
+			break
 		end
 	end
 end
@@ -215,6 +219,13 @@ end
 
 
 --- helper functions ---
+
+-- used to stop the simulator while execution is suspended
+local function setScaling(scaling)
+	amun.sendCommand({
+		speed = scaling
+	})
+end
 
 local function getBaseStackLevel()
 	local this = debug.getinfo(1, "S").source
@@ -383,6 +394,14 @@ local function initHandler(args)
 	if info ~= nil then
 		printerrln(string.format("At %s:%d in %s %s", shortPath(info.source), info.currentline, info.namewhat, info.name))
 	end
+	-- stop the simulator while execution is suspended
+	setScaling(0)
+end
+
+local function exitHandler(args)
+	-- handle continuation commands
+	setScaling(1)
+	return true
 end
 
 local function nopHandler(args)
@@ -553,13 +572,19 @@ end
 local function quitHandler(args)
 	hookSpecial = nil
 	clearBreakpoints()
+	-- don't puzzle the user with strategy no longer running
+	-- after killing the strategy if it was suspended
+	setScaling(1)
 	-- try to exit
 	os.exit(0)
 	return true
 end
 
 
+-- special hooks
 registerCommand({"__init__"}, initHandler, nil)
+registerCommand({"__exit__"}, exitHandler, nil)
+-- helper commands
 registerCommand({""}, nopHandler, nil)
 registerCommand({"help"}, helpHandler, "Print command list")
 -- information
