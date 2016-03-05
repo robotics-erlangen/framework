@@ -1,0 +1,126 @@
+local PathStub = Class("Test.Task.PathStub")
+
+local debug = require "../base/debug"
+local Entrypoints = require "../base/entrypoints"
+local World = require "../base/world"
+local AgentPool = require "control/agentpool"
+local Coordinator = require "control/coordinator"
+local MoveToPos = require "task/movetopos"
+local Trainer = require "trainer/trainer"
+
+
+local WAYPOINTS = nil
+function PathStub.setWaypoints(waypoints)
+	WAYPOINTS = {}
+	for _, v in ipairs(waypoints) do
+		table.insert(WAYPOINTS, v:copy())
+	end
+end
+
+PathStub.setWaypoints( { Vector(1, -1), Vector(1, 1), Vector(-2, -2), Vector(0, 0) })
+
+
+function PathStub.create()
+	return PathStub()
+end
+
+function PathStub:init()
+	self:_resetPath()
+end
+
+local function makePoint(x, y)
+	return { p_x = x, p_y = y, left = 0, right = 0 }
+end
+
+function PathStub:_resetPath()
+	self._waypoints = {}
+	for _, p in ipairs(WAYPOINTS) do
+		table.insert(self._waypoints, makePoint(p.x, p.y))
+	end
+end
+
+function PathStub:reset()
+end
+
+function PathStub:clearObstacles()
+end
+
+function PathStub:setProbabilities(p_dest, p_waypoints)
+end
+
+function PathStub:setBoundary(x1, y1, x2, y2)
+end
+
+function PathStub:addCircle(x, y, radius, name)
+end
+
+function PathStub:addLine(start_x, start_y, end_x, end_y, radius, name)
+end
+
+function PathStub:addRect(start_x, start_y, end_x, end_y, name)
+end
+
+function PathStub:test(path, radius)
+	return false
+end
+
+function PathStub:setRadius(radius)
+end
+
+function PathStub:addTreeVisualization()
+end
+
+function PathStub:get(start_x, start_y, end_x, end_y)
+	local robotPos = Vector(start_x, start_y)
+
+    if robotPos:distanceTo(Vector(self._waypoints[1].p_x, self._waypoints[1].p_y)) < 0.03 then
+    	table.remove(self._waypoints, 1)
+	end
+	if #self._waypoints == 0 then
+		self:_resetPath()
+	end
+
+	local waypoints = { makePoint(start_x, start_y) }
+	for _, p in ipairs(self._waypoints) do
+		table.insert(waypoints, p)
+	end
+	debug.set("waypoint", waypoints)
+	return waypoints
+end
+
+
+-- Just run MoveToPos
+local Position = Class("Test.Task.PathStub.Position", require "agent/base/behavior")
+function Position:check()
+	return true
+end
+
+function Position:_updateTask()
+	local pos = Vector(1, 0)
+	return MoveToPos, { pos, (-pos):angle() }
+end
+
+
+local PathAgent = Class("Test.Task.PathAgent", require "agent/base/simpleagent")
+PathAgent._behaviors = {
+	Position
+}
+
+
+local coord = nil
+
+local function run()
+	if coord == nil then
+		for _, robot in ipairs(World.FriendlyRobotsAll) do
+			robot.path = PathStub.create()
+		end
+
+		local trainer = Trainer()
+		local pools = { path = AgentPool(PathAgent, 1) }
+		local poolGroups = { { pools.path } }
+		coord = Coordinator(trainer, pools, poolGroups)
+	end
+	coord:run()
+end
+
+Entrypoints.add("TaskTest/PathStub", run)

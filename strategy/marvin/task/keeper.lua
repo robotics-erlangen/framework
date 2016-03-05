@@ -8,6 +8,7 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
@@ -168,7 +169,7 @@ function Keeper:run()
 	end
 	self._robot.trajectory:update(ToTarget, moveTo, (atkPos - moveTo):angle(), nil, endSpeed)
 
-	if not self._robot:hasBall(World.Ball) then
+	if not Robot.hadBall(self._robot, 0) then
 		self._forceShootTimer = nil
 	end
 	local chipActivationAngle = math.pi / 6

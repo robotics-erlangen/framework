@@ -25,7 +25,7 @@ function Duel:genericCheck()
 
 	-- if the opponent controls the ball (hysteresis!), duel him
 	for _,r in ipairs(World.OpponentRobots) do
-		if r:hasBall(World.Ball) then
+		if Robot.hadBall(r, 0) then
 			self._opponentHasBall = true
 			break
 		end

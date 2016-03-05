@@ -21,7 +21,7 @@ local oppChipDist = 0.2 -- min distance of opponent for chipping
 local recvChipDist = 0.3 -- min distance for receiving a chip pass
 function Robot.wayToPosFree(pos, ignoreRobot1, ignoreRobot2, chipkick)
 	-- TODO consider speed of robots to look a little into the future
-	for _, robot in pairs(World.Robots) do
+	for _, robot in ipairs(World.Robots) do
 		if robot ~= ignoreRobot1 and robot ~= ignoreRobot2 then
 			local _, distToBallCorridor = robot.pos:orthogonalProjection(World.Ball.pos, pos)
 			local targetDist = World.Ball.pos:distanceTo(pos)
@@ -56,7 +56,7 @@ local accelerationSmoothed = {}
 local alpha = 0.02
 function Robot.estimateOpponentDynamics()
 	local nullVector = Vector(0,0)
-	for _, robot in pairs(World.OpponentRobots) do
+	for _, robot in ipairs(World.OpponentRobots) do
 		local localRobotSpeed = robot.speed:copy():rotate(-robot.dir)
 		localRobotSpeed.x = math.abs(localRobotSpeed.x)
 		localRobotSpeed.y = math.abs(localRobotSpeed.y)
@@ -108,12 +108,13 @@ function Robot.estimateOpponentDynamics()
 end
 
 local hadBallTimes = {}
+-- Robot.hadBall(self._robot, 0) is equivalent to self._robot:hasBall(World.Ball)
 function Robot.hadBall(robot, time)
 	return hadBallTimes[robot] and World.Time - hadBallTimes[robot] <= time
 end
 
 function Robot._updateHadBall()
-	for _,r in pairs(World.Robots) do
+	for _,r in ipairs(World.Robots) do
 		if r:hasBall(World.Ball) then
 			hadBallTimes[r] = World.Time
 		end
@@ -121,18 +122,45 @@ function Robot._updateHadBall()
 end
 
 local minTimeToBall = {}
-function Robot._updateMinTimeToBall()
-	for _,r in ipairs(World.FriendlyRobots) do
-		minTimeToBall[r] = Physics.robotTimeToBall(r, World.Ball, World.Geometry.OpponentGoal, r.maxSpeed)
-	end
-
-	for _,r in ipairs(World.OpponentRobots) do
-		minTimeToBall[r] = Physics.robotTimeToBall(r, World.Ball, World.Geometry.FriendlyGoal, r.maxSpeed)
-	end
+local oldMinTimeToBall = {}
+function Robot._resetMinTimeToBall()
+	oldMinTimeToBall = minTimeToBall
+	minTimeToBall = {}
 end
 
 function Robot.minTimeToBall(robot)
+	if minTimeToBall[robot] then
+		return minTimeToBall[robot]
+	end
+
+	local targetPos = robot.isFriendly and World.Geometry.OpponentGoal or World.Geometry.FriendlyGoal
+	minTimeToBall[robot] = Physics.robotTimeToBall(robot, World.Ball, targetPos, robot.maxSpeed, oldMinTimeToBall[robot])
 	return minTimeToBall[robot]
+end
+
+local fastestOpponentAtBallLastRobot
+local fastestOpponentAtBallLastTime
+local fastestOpponentAtBallLastRun = 0
+function Robot.fastestOpponentAtBall()
+	if World.Time == fastestOpponentAtBallLastRun then
+		return fastestOpponentAtBallLastRobot, fastestOpponentAtBallLastTime
+	end
+
+	local fastestOpponent = nil
+	local fastestOpponentTime = math.huge
+	for _,r in ipairs(World.OpponentRobots) do
+		local oppTime = Robot.minTimeToBall(r)
+		if oppTime < fastestOpponentTime then
+			fastestOpponentTime = oppTime
+			fastestOpponent = r
+		end
+	end
+
+	fastestOpponentAtBallLastRobot = fastestOpponent
+	fastestOpponentAtBallLastTime = fastestOpponentTime
+	fastestOpponentAtBallLastRun = World.Time
+
+	return fastestOpponent, fastestOpponentTime
 end
 
 return Robot

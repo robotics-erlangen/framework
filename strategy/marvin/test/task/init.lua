@@ -1,6 +1,8 @@
 require "test/task/duel"
 require "test/task/linepassing"
+require "test/task/pathstub"
 require "test/task/passing"
 require "test/task/randomdefense"
 require "test/task/shootspeedtest"
 require "test/task/volley"
+require "test/task/obstaclepasstest"

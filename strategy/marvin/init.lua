@@ -17,13 +17,14 @@ local Processor = require "../base/processor"
 local Referee = require "../base/referee"
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
+local plot = require "../base/plot"
 
 local preproc = Class("Process.PreProc", require "../base/process")
 function preproc:run()
 	Ball._updateReceivesPass()
 	Ball._updateIsAccelerating()
     Robot.estimateOpponentDynamics()
-    Robot._updateMinTimeToBall()
+    Robot._resetMinTimeToBall()
     Robot._updateHadBall()
     Referee.checkTouching()
     Referee.illustrateRefereeStates()
@@ -46,7 +47,10 @@ local wrapper = function (func)
 			return -- skip processing if no vision data is available yet
 		end
 		debug.set("frame", frameCount)
+		--local time0 = amun.getCurrentTime()
 		Processor.pre()
+		--local time1 = amun.getCurrentTime()
+		--plot.addPlot("preproc time", (time1 - time0))
 		if not func() then -- Entrypoint has to return true if robots shouldn't be stopped on halt
 			if World.RefereeState == "Halt" then
 				World.haltOwnRobots()
@@ -56,6 +60,7 @@ local wrapper = function (func)
 		Processor.post()
 		debug.resetStack()
 		Cache.resetFrame()
+		plot._plotAggregated()
 	end
 end
 

@@ -20,7 +20,7 @@ end
 
 function GoalTest.testCustomFreeSectors()
 	local freeSectors = Goal.allFreeSectors(World.Ball.pos, World.OpponentRobots)
-	for i,sector in pairs(freeSectors) do
+	for i,sector in ipairs(freeSectors) do
 		debug.set("sector["..i.."]", "{"..sector[1]..", "..sector[2].."}")
 	end
 	vis.setColor(vis.colors.orangeHalf, true)

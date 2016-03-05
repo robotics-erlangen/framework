@@ -42,7 +42,7 @@ end
 -- @param len number - target length
 function table.truncate(array, len) -- truncates an array to the first len elements
 	for i = #array, len + 1, -1 do
-		table.remove(array, i)
+		table.remove(array)
 	end
 end
 
@@ -54,7 +54,7 @@ end
 function table.append(t1, ...) -- for arrays (non nil)
 	local param = {...}
 	if #param == 1 then
-		for _, value in pairs(param[1]) do
+		for _, value in ipairs(param[1]) do
 			table.insert(t1, value)
 		end
 	elseif #param > 1 then
@@ -182,12 +182,16 @@ end
 -- @param t array - Array to remove from
 -- @param value any - Value to remove
 function table.removeValue(t, value)
-	for i, v in pairs(t) do
+	for i, v in ipairs(t) do
 		if v == value then
 			table.remove(t, i)
 			break
 		end
 	end
+end
+
+local function shuffleSort(a,b)
+	return a.rnd < b.rnd
 end
 
 --- Shuffles a table
@@ -197,11 +201,11 @@ end
 function table.shuffle(t)
 	local n, order, res = #t, {}, {}
 	for i=1,n do
-		order[i] = { rnd = math.random(), idx = i }
+		table.insert(order, { rnd = math.random(), idx = i })
 	end
-	table.sort(order, function(a,b) return a.rnd < b.rnd end)
+	table.sort(order, shuffleSort)
 	for i=1,n do
-		res[i] = t[order[i].idx]
+		table.insert(res, t[order[i].idx])
 	end
 	return res
 end

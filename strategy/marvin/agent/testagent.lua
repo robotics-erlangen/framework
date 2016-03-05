@@ -6,7 +6,7 @@ local Messaging = require "control/messaging"
 
 
 function TestAgent.takeRobot(robots)
-	for _, robot in pairs(robots) do
+	for _, robot in ipairs(robots) do
 		return robot
 	end
 end

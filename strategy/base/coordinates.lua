@@ -57,7 +57,7 @@ local teamIsBlue = amun.isBlue()
 
 if teamIsBlue then
 	Coordinates.toGlobal = function(data)
-		assert(nil ~= data, "nil isn't a coordiante")
+		assert(nil ~= data, "nil isn't a coordinate")
 		if type(data) == "number" then
 			if data > math.pi then
 				return data - math.pi

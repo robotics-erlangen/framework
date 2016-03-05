@@ -91,6 +91,14 @@ function math.solveLin(a, b)
 end
 
 
+local function sgn(number)
+	if number >= 0 then
+		return 1
+	else
+		return -1
+	end
+end
+
 --- Solves a*t^2 + b*t + c for t
 -- @name solveSq
 -- @param a number
@@ -100,7 +108,12 @@ end
 -- @return [number]]
 function math.solveSq(a, b, c)
 	if a == 0 then
-		return math.solveLin(b, c)
+		-- return math.solveLin(b, c)
+		if b == 0 then
+			return
+		else
+			return -c/b
+		end
 	end
 
 	local det = b*b - 4*a*c
@@ -110,7 +123,7 @@ function math.solveSq(a, b, c)
 		return -b/(2*a)
 	end
 	det = math.sqrt(det)
-	local t2 = (-b-math.sign(b)*det)/(2*a)
+	local t2 = (-b-sgn(b)*det)/(2*a)
 	local t1 = c/(a*t2)
 	local min = math.min(t1, t2)
 
@@ -148,7 +161,7 @@ function math.average(array, indexStart, indexEnd)
 		end
 		n = indexEnd - indexStart + 1
 	else
-		for _, v in pairs(array) do
+		for _, v in ipairs(array) do
 			sum = sum + v
 		end
 		n = #array
@@ -165,7 +178,8 @@ function math.variance(array, average, indexStart, indexEnd)
 		local diff = array[i] - average
 		variance = variance + diff*diff
 	end
-	return variance
+	local n = indexEnd - indexStart + 1
+	return variance/n
 end
 
 return math

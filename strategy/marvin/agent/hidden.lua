@@ -9,7 +9,7 @@ Hidden._behaviors = {
 }
 
 function Hidden.takeRobot(robots)
-	for _, robot in pairs(robots) do
+	for _, robot in ipairs(robots) do
 		if not robot.isVisible then
 			return robot
 		end

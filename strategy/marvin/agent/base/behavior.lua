@@ -1,12 +1,6 @@
 local Base = Class("Behavior.Base")
 
 local debug = require "../base/debug"
-local Field = require "../base/field"
-local Referee = require "../base/referee"
-local World = require "../base/world"
-local Messaging = require "control/messaging"
-local Physics = require "observer/physics"
-local Rating = require "util/rating"
 
 
 function Base:init(agent)
@@ -14,6 +8,7 @@ function Base:init(agent)
 	self._robot = self._agent:robot()
 	self._send = self._agent._send
 	self._inbox = self._agent._inbox
+	self._mainAttackerParameters = nil
 	self:stop()
 end
 
@@ -67,14 +62,16 @@ function Base:_updateTask()
 	error("stub")
 end
 
-function Base:_applyForMainAttacker()
-	if not Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) then
-		local timeToBall = Physics.robotTimeToBall(self._robot,
-			World.Ball, World.Geometry.OpponentGoal, 0)
-		local mainAttackerRating = Rating.timeToRating(timeToBall)
-		debug.set("ma application sent", true)
-		self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
-	end
+function Base:_applyForMainAttacker(target, endSpeedLength)
+	self._mainAttackerParameters = { target, endSpeedLength }
+end
+
+function Base:mainAttackerParameters()
+	return self._mainAttackerParameters
+end
+
+function Base:clearMainAttackerParameters()
+	self._mainAttackerParameters = nil
 end
 
 -- can be overwritten for custom cleanups

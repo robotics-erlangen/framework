@@ -7,6 +7,7 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local Direct = require "trajectory/direct"
 local ToTarget = require "trajectory/totarget"
 
@@ -132,6 +133,7 @@ end
 -- @param targetPos Vector - where to shoot at
 -- @param targetSpeed number - how fast the Ball should arrive at targetPos
 function Volley:_volley(viewPos, targetPos, targetSpeed)
+	self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
 	-- init ball_in speed
 	if self._ballIncoming then
 		local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(viewPos))
@@ -168,7 +170,7 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 	vis.addPath("t/a/volley: Volley", {viewPos, currentDir}, vis.colors.orange)
 
 
-	if self._robot:hasBall(World.Ball) then
+	if Robot.hadBall(self._robot, 0) then
 		self._ballIncoming = false
 	elseif Ball.isShot() then
 		self._ballIncoming = true

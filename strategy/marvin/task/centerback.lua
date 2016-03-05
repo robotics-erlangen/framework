@@ -9,6 +9,7 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 local Messaging = require "control/messaging"
 local Goal = require "observer/goal"
+local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 local Rating = require "util/rating"
@@ -38,7 +39,7 @@ local lt2 = function(r1, r2)
 	else
 		local ix1 = r1.id + 1000
 		local ix2 = r2.id + 1000
-		for ix,r in pairs(lastOrder) do
+		for ix,r in ipairs(lastOrder) do
 			if r == r1 then
 				ix1 = ix
 			elseif r == r2 then
@@ -169,10 +170,10 @@ local function calculateCenterBackPositions()
 	local merged = true
 	while merged do
 		merged = false
-		for ix,i in pairs(intersections) do
+		for ix,i in ipairs(intersections) do
 			local imin = i.waypos - i.wayrange/2
 			local imax = i.waypos + i.wayrange/2
-			for jx,j in pairs(intersections) do
+			for jx,j in ipairs(intersections) do
 				local jmin = j.waypos - j.wayrange/2
 				local jmax = j.waypos + j.wayrange/2
 				if ix ~= jx then
@@ -201,16 +202,16 @@ local function calculateCenterBackPositions()
 
 	-- sort intersection interval table
 	table.sort(intersections, lt)
-	for _,i in pairs(intersections) do
+	for _,i in ipairs(intersections) do
 		table.sort(i.targets, lt3)
 	end
 
 	-- calculate final positions for important robots
 	local defensePoints = {}
-	for _,i in pairs(intersections) do
+	for _,i in ipairs(intersections) do
 		local delta = 2 * robot_radius + distanceBetweenDefenders
 		local way = i.waypos - i.wayrange/2 + delta/2
-		for _,t in pairs(i.targets) do
+		for _,t in ipairs(i.targets) do
 			for j = 1,t.n do
 				local final_pos = Field.defenseIntersectionByWay(way, robot_radius + distanceToDefenseArea, false)
 				vis.addCircle("t/centerback: Positions", final_pos, 0.1, vis.colors.skyBlue)
@@ -226,7 +227,7 @@ local function calculateCenterBackPositions()
 
 	-- sort robots
 	local sortedRobots = {}
-	for _,r in pairs(robotSet) do
+	for _,r in ipairs(robotSet) do
 		table.insert(sortedRobots, r)
 	end
 	assert(#defensePoints == #sortedRobots)
@@ -286,7 +287,7 @@ function CenterBack:run()
 
 	debug.set("target", destinationTarget)
 
-	if not self._robot:hasBall(World.Ball) then
+	if not Robot.hadBall(self._robot, 0) then
 		self._forceShootTimer = nil
 	end
 	local chipActivationAngle = math.pi / 6

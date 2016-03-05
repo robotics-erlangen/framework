@@ -101,12 +101,12 @@ end
 -- @param robotList list - all robot objects that should be considered
 function Goal.allFreeSectors(viewPos, robotList)
 	local occupiedSectors = Goal.getOccupiedSectors(viewPos, robotList, 0, 2*math.pi)
-	--for i,sector in pairs(occupiedSectors) do
+	--for i,sector in ipairs(occupiedSectors) do
 	--	debug.set("osectors["..i.."]", "{"..sector[1]..", "..sector[2].."}")
 	--end
 	local matching = nil
 	local delete = {}
-	for i,sector in pairs(occupiedSectors) do
+	for i,sector in ipairs(occupiedSectors) do
 		if sector[1] == 0 then
 			if matching then
 				occupiedSectors[matching] = {occupiedSectors[matching][1], sector[2] + 2*math.pi}
@@ -135,11 +135,11 @@ function Goal.allFreeSectors(viewPos, robotList)
 		table.remove(occupiedSectors, delete[i])
 	end
 	Interval.sort(occupiedSectors)
-	--for i,sector in pairs(occupiedSectors) do
+	--for i,sector in ipairs(occupiedSectors) do
 	--	debug.set("O2sectors["..i.."]", "{"..sector[1]..", "..sector[2].."}")
 	--end
 	Interval.merge(occupiedSectors)
-	--for i,sector in pairs(occupiedSectors) do
+	--for i,sector in ipairs(occupiedSectors) do
 	--	debug.set("MOsectors["..i.."]", "{"..sector[1]..", "..sector[2].."}")
 	--end
 	local freeSectors = Interval.negate(occupiedSectors, -42, 1337)	-- magic constants, don't change!
@@ -147,7 +147,7 @@ function Goal.allFreeSectors(viewPos, robotList)
 		local first = freeSectors[1]
 		local last = freeSectors[#freeSectors]
 		--log(#freeSectors)
-		--for i,sector in pairs(freeSectors) do
+		--for i,sector in ipairs(freeSectors) do
 		--	debug.set("Fsectors["..i.."]", "{"..sector[1]..", "..sector[2].."}")
 		--end
 		freeSectors[1] = {last[1], first[2]}
@@ -156,7 +156,7 @@ function Goal.allFreeSectors(viewPos, robotList)
 		local first = freeSectors[1]
 		local second = freeSectors[2]
 		freeSectors = {{second[1], first[2]}}
-		--for i,sector in pairs(freeSectors) do
+		--for i,sector in ipairs(freeSectors) do
 		--	debug.set("Fsectors["..i.."]", "{"..sector[1]..", "..sector[2].."}")
 		--end
 	else	-- no free sector
@@ -203,14 +203,14 @@ function Goal.predictShot()
 			local target = nil
 			local targetDist = math.huge
 			local corridorHalf = ballSpeed:perpendicular():setLength(World.Ball.radius + Constants.positionError)
-			for _, robot in pairs(World.OpponentRobots) do
+			for _, robot in ipairs(World.OpponentRobots) do
 				local pointOnLine = robot.pos:nearestPosOnLine(pos, endOfField)
 				local ballRollTime = Physics.ballRollTime(World.Ball, (pointOnLine - pos):length())
 				local chance = Ball.ballCatchProbability(robot, 0, ballRollTime, pointOnLine, corridorHalf)
 				if chance > 0 then
 					local index = 1
 					local range = false
-					for k, p in pairs(passReceivers) do	-- find the position in the table, so that the table is still sorted (after ascending chance) after insertion
+					for k, p in ipairs(passReceivers) do	-- find the position in the table, so that the table is still sorted (after ascending chance) after insertion
 						index = k
 						if p[2] > chance then
 							range = true

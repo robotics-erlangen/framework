@@ -188,6 +188,16 @@ function ShootGoal:_updateVolleyShootPos()
 		oldPosValid = self:_validateShootPos(oldPos)
 	end
 
+	-- keep the old position if the ball about to arrive
+	local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir):setLength(
+		self._robot.shootRadius + World.Ball.radius)
+	local preparationTime = Physics.checkedBallRollTime(World.Ball, dribblerPos)
+	if oldPos and preparationTime > 0 and preparationTime < 0.25 then
+		debug.set("volley pos", "keep (lock)")
+		return
+	end
+
+
 	-- if the old position is not valid any more or the ball is still being shot, 
 	-- search a new (valid) one; otherwise keep the old one
 	if not oldPosValid then
@@ -410,7 +420,7 @@ function ShootGoal:run()
 		else
 			-- perform a chip shot
 			self:_shoot(self._desperateChipTargetPoint,
-				self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, 5 * math.pi / 180)
+				self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, 10 * math.pi / 180)
 		end
 	end
 

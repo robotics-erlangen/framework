@@ -10,6 +10,7 @@ function Base:init(agent, ...)
 	self._robot = self._agent:robot()
 	self._inbox = self._agent._inbox
 	self._send = self._agent._send
+	self:clearMainAttackerParameters()
 	if self._init then
 		self:_init(...)
 	end
@@ -21,6 +22,18 @@ end
 
 function Base:run()
 	error("stub")
+end
+
+function Base:clearMainAttackerParameters()
+	self._mainAttackerParameters = nil
+end
+
+function Base:setMainAttackerParameters(target, endSpeedLength)
+	self._mainAttackerParameters = { target, endSpeedLength }
+end
+
+function Base:mainAttackerParameters()
+	return self._mainAttackerParameters
 end
 
 return Base

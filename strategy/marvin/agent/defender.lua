@@ -25,7 +25,7 @@ function Defender:_run()
 end
 
 function Defender.takeRobot(robots)
-	for _, robot in pairs(robots) do
+	for _, robot in ipairs(robots) do
 		if robot.isVisible then
 			return robot
 		end

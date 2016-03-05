@@ -32,7 +32,7 @@ local function setupPath()
 					 geometry.FieldWidthHalf  + geometry.BoundaryWidth + 0.02,
 					 geometry.FieldHeightHalf + geometry.BoundaryWidth + 0.02)
 
-	for _,obstacle in pairs(obstacles) do
+	for _,obstacle in ipairs(obstacles) do
 		if obstacle.type == 'Circle' then
 			pathInstance:addCircle(obstacle.pos.x, obstacle.pos.y, obstacle.radius)
 		elseif obstacle.type == 'Line' then
@@ -45,7 +45,7 @@ local function setupPath()
 end
 
 local function drawObstacles()
-	for _,obstacle in pairs(obstacles) do
+	for _,obstacle in ipairs(obstacles) do
 		if obstacle.type == "Circle" then
 			vis.addCircle("obstacles", obstacle.pos, obstacle.radius, vis.colors.blue)
 		elseif obstacle.type == "Line" then
@@ -79,6 +79,16 @@ function PathTest.testStartEqualsEnd()
 	setupPath()
 	drawObstacles()
 	local waypoints = pathInstance:get(pointStart.x, pointStart.y, pointStart.x, pointStart.y)
+	drawWaypoints(waypoints)
+	pathInstance:addTreeVisualization()
+end
+
+function PathTest.testStartEndObstacles()
+	pointStart = Coordinates.toGlobal(Vector.create(0.02, 0))
+	pointEnd = pointStart
+	setupPath()
+	drawObstacles()
+	local waypoints = pathInstance:get(pointStart.x, pointStart.y, pointEnd.x, pointEnd.y)
 	drawWaypoints(waypoints)
 	pathInstance:addTreeVisualization()
 end

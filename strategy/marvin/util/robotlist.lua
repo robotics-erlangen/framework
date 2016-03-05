@@ -12,7 +12,7 @@ RobotList.join = Cache.forFrame(RobotList.join)
 
 function RobotList.excludeRobot(list, robot)
 	local result = table.copy(list)
-	for i, r in pairs(list) do
+	for i, r in ipairs(list) do
 		if r == robot then
 			table.remove(result, i)
 			break

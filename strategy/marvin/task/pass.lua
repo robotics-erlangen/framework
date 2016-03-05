@@ -9,11 +9,15 @@ local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 
 
-function Pass:_init(targetRobot, shootPos)
+function Pass:_init(targetRobot, shootPos, passSpeed)
 	self._targetRobot = assert(targetRobot, "targetRobot is missing")
 	self._linearShoot = true
 	self._dontShootHysteresis = true
-	self._passSpeed = self._targetRobot.constants.passSpeed
+	if passSpeed then
+		self._passSpeed = passSpeed
+	else
+		self._passSpeed = self._targetRobot.constants.passSpeed
+	end
 	self._shootPos = shootPos
 end
 
@@ -26,9 +30,12 @@ function Pass:run()
 	local newSuggestion = self._inbox.passSuggestion()[self._targetRobot]
 	--a passSuggestion provides the position
 	if newSuggestion and newSuggestion.pos then
+		debug.set("passSuggestion 1", newSuggestion.pos)
 		self._shootPos = newSuggestion.pos
 	else  -- direct pass
 		-- shoot ball into robot dribbler
+		debug.set("passSuggestion 1", -1)
+
 		self._shootPos = self._targetRobot.pos + Vector.fromAngle(self._targetRobot.dir) * self._targetRobot.shootRadius
 	end
 

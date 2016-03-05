@@ -16,7 +16,7 @@ end
 function mixedteam.decodeData(data)
 	local robotInfo = {}
 
-	for _, robotPlan in pairs(data) do
+	for _, robotPlan in ipairs(data) do
 		--debug.set("dt", robotPlan)
 		local plan = {}
 		if robotPlan.role then

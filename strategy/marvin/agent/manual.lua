@@ -10,7 +10,7 @@ Manual._behaviors = {
 }
 
 function Manual.takeRobot(robots)
-	for _, robot in pairs(robots) do
+	for _, robot in ipairs(robots) do
 		-- take robots which get command from an input device
 		if robot.userControl then
 			return robot

@@ -5,6 +5,7 @@ local Field = require "../base/field"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Ally = require "agent/ally"
+local Robot = require "observer/robot"
 
 
 function AttackRatio:init()
@@ -20,9 +21,6 @@ function AttackRatio:attackRatio()
 	then
 		self._ballInFriendlyFieldHalf = not self._ballInFriendlyFieldHalf
 	end
-	local friendlyCorner = Field.isInOwnCorner(ball.pos, false)
-	local opponentCorner = Field.isInOwnCorner(ball.pos, true)
-
 	if refState ~= "Game" then
 		self._oppFreeKickOngoing = false
 	end
@@ -33,6 +31,8 @@ function AttackRatio:attackRatio()
 	elseif refState == "KickoffDefensivePrepare" or refState == "KickoffDefensive" then
 		attackRatio = 3
 	elseif refState == "DirectOffensive" or refState == "IndirectOffensive" then
+		local friendlyCorner = Field.isInOwnCorner(ball.pos, false)
+		local opponentCorner = Field.isInOwnCorner(ball.pos, true)
 		if friendlyCorner then -- Goal-Kick Offensive
 			attackRatio = 3
 		elseif opponentCorner then -- Corner-Kick Offensive
@@ -57,7 +57,7 @@ function AttackRatio:attackRatio()
 		attackRatio = 6
 	else -- Game, GameForce
 		for _, robot in ipairs(World.FriendlyRobots) do
-			if robot:hasBall(ball) then
+			if Robot.hadBall(robot, 0) then
 				self._oppFreeKickOngoing = false
 				break
 			end

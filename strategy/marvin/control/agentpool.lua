@@ -31,9 +31,12 @@ function AgentPool:cleanupRobots()
 		end
 	end
 
-	-- sort with by decreasing importance
-	table.sort(agents, sortByRating)
-	table.truncate(agents, self._robotLimit)
+	-- only sort if we have too many robots
+	if self._robotLimit < #agents then
+		-- sort with by decreasing importance
+		table.sort(agents, sortByRating)
+		table.truncate(agents, self._robotLimit)
+	end
 	self._agents = agents
 end
 
