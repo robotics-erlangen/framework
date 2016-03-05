@@ -37,15 +37,8 @@ return function(value, requestedType)
 			error("Expected type " .. requestedType .. " got " .. tval)
 		end
 	elseif type(requestedType) == "table" and Class.toClass(requestedType, true) then
-		if tval ~= "table" then
+		if tval ~= "table" or not Class.toClass(value, true) then
 			error("Expected class "..Class.name(requestedType).. " got type " .. tval)
-		end
-		if not Class.toClass(value, true) then
-			if Class.instanceOf(requestedType, MessageBase) then
-				value = requestedType(value)
-			else
-				error("Expected class "..Class.name(requestedType).. " got type " .. tval)
-			end
 		end
 		if not Class.instanceOf(value, requestedType) then
 				error("Expected class "..Class.name(requestedType).." got class "..Class.name(value))
