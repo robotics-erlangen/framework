@@ -1,7 +1,6 @@
 local Shoot = require "task/ability/shoot"
 local ShootGoal = Class("Task.ShootGoal", require "task/base", Shoot)
 
-local Cache = require "../base/cache"
 local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
@@ -12,14 +11,8 @@ local G = World.Geometry
 local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
-local Robot = require "observer/robot"
-local Shoot = require "observer/shoot"
 
 local PathHelper = require "trajectory/pathhelper"
-local Interval = require "util/interval"
-local Random = require "util/random"
-
-
 
 
 
