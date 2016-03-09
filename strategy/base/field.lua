@@ -265,7 +265,7 @@ end
 -- @return number - lambda, intersection = pos + lambda * dir
 -- @return number - the length of the way from the very left of the defense area to the
 -- intersection point, when moving along its border
-function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp, fromCenterBackTask)
+function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp)
 	-- calculate defense radius
 	extraDistance = extraDistance or 0
 	local radius = G.DefenseRadius + extraDistance

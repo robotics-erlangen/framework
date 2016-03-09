@@ -55,7 +55,7 @@ function CenterBack.distanceToDefenseArea()
 	return 0.08
 end
 
-local default_pos = Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius + 0.09 + 0.02)
+CenterBack.defaultPos = Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius + 0.09 + 0.02)
 
 local privateCenterBackPositions = {}
 local centerBackPositions = {}
@@ -100,8 +100,8 @@ local function calculateCenterBackPositions()
 		-- where the robot would go if it was the only one
 		local pcbPos = privateCenterBackPositions[robot] and privateCenterBackPositions[robot].pos
 				or Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal,
-				targetPos - World.Geometry.FriendlyGoal, distanceToDefenseArea + robot_radius, false, true)
-				or default_pos
+				targetPos - World.Geometry.FriendlyGoal, distanceToDefenseArea + robot_radius, false)
+				or CenterBack.defaultPos
 
 		-- if the robot is close to its cbPos or pcbPos then mark it as important
 		local distToCBPos = cbPos and robot.pos:distanceTo(cbPos.pos) or math.huge
@@ -280,7 +280,7 @@ function CenterBack:run()
 	local pos_target = centerBackPositions[self._robot]
 	pos_target = pos_target or privateCenterBackPositions[self._robot]
 
-	local destinationPos = pos_target and pos_target.pos or default_pos
+	local destinationPos = pos_target and pos_target.pos or CenterBack.defaultPos
 	local destinationTarget = pos_target and pos_target.target or
 			self._preliminaryCenterbackTarget
 	local dir = (World.Ball.pos - self._robot.pos):angle()
