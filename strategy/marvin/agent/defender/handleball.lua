@@ -8,6 +8,7 @@ local Robot = require "observer/robot"
 local DefUtil = require "util/defense"
 local Duel = require "task/duel"
 local InterceptPass = require "task/interceptpass"
+local debug = require "../base/debug"
 
 
 function HandleBall:_stop()
@@ -25,6 +26,7 @@ function HandleBall:check()
 	local selfTime = Robot.minTimeToBall(self._robot)
 	local _, opponentTime = Robot.fastestOpponentAtBall()
 	self._timeAdvance = opponentTime - selfTime
+	debug.set("timeAdvance (HandleBall)", self._timeAdvance)
 
 	self._isMainAttacker = self._inbox.mainAttacker().trainer == self._robot
 	if self._isMainAttacker
