@@ -126,6 +126,17 @@ function Referee.isOffensiveCornerKick()
 		and (leftLine - ballPos.x > -cornerDist or rightLine - ballPos.x < cornerDist)
 end
 
+--- Check whether there is a freekick in our corner
+-- @name isDefensiveCornerKick
+-- @return boolean - True if a corner kick in our corner
+function Referee.isDefensiveCornerKick()
+	local ballPos = World.Ball.pos
+	local refState = World.RefereeState
+	return (refState == "DirectDefensive" or refState == "IndirectDefensive" or refState == "Stop")
+		and -goalLine - ballPos.y > -cornerDist
+		and (leftLine - ballPos.x > -cornerDist or rightLine - ballPos.x < cornerDist)
+end
+
 --- Draw areas forbidden by the current referee command
 -- @name illustrateRefereeStates
 function Referee.illustrateRefereeStates()
