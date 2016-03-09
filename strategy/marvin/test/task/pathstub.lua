@@ -17,8 +17,17 @@ function PathStub.setWaypoints(waypoints)
 	end
 end
 
-PathStub.setWaypoints( { Vector(1, -1), Vector(1, 1), Vector(-2, -2), Vector(0, 0) })
+-- PathStub.setWaypoints( { Vector(1, -1), Vector(1, 1), Vector(-2, -2), Vector(0, 0) })
 
+-- PathStub.setWaypoints( { Vector(0, 0), Vector(0, 1), Vector(1, 1), Vector(1, 0), Vector(0, 0) })
+
+local wps = {}
+local parts = 20
+for i=0,parts do
+	local angle = i / parts * 2 * math.pi
+	table.insert(wps, Vector.fromAngle(angle))
+end
+PathStub.setWaypoints(wps)
 
 function PathStub.create()
 	return PathStub()
@@ -73,7 +82,7 @@ end
 function PathStub:get(start_x, start_y, end_x, end_y)
 	local robotPos = Vector(start_x, start_y)
 
-    if robotPos:distanceTo(Vector(self._waypoints[1].p_x, self._waypoints[1].p_y)) < 0.03 then
+    if robotPos:distanceTo(Vector(self._waypoints[1].p_x, self._waypoints[1].p_y)) < 0.04 then
     	table.remove(self._waypoints, 1)
 	end
 	if #self._waypoints == 0 then
@@ -96,7 +105,7 @@ function Position:check()
 end
 
 function Position:_updateTask()
-	local pos = Vector(1, 0)
+	local pos = Vector(0, 0)
 	return MoveToPos, { pos, (-pos):angle() }
 end
 
