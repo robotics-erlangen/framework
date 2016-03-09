@@ -6,6 +6,7 @@ local Field = require "../base/field"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Physics = require "observer/physics"
+local CenterBack = require "task/centerback"
 
 
 Defense.POSITION_PADDING = 0.02 -- safety distance
@@ -37,6 +38,13 @@ local function manMarkPos(opponent)
 	return targetPos
 end
 Defense.manMarkPos = Cache.forFrame(manMarkPos)
+
+local function centerBackPos(targetPos)
+	local dist = CenterBack.distanceToDefenseArea() + Constants.maxRobotRadius
+	local dir = World.Geometry.FriendlyGoal - targetPos
+	return Field.intersectRayDefenseArea(targetPos, dir, dist) or CenterBack.defaultPos
+end
+Defense.centerBackPos = Cache.forFrame(centerBackPos)
 
 -- if the ball will reach our defense area with at least that speed, stay defender
 local DANGEROUS_BALL_SPEED = 1.0
