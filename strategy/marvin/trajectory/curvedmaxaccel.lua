@@ -52,6 +52,25 @@ function CurvedMaxAccel:_getPath(targetPos)
 	return waypointsVector
 end
 
+-- preprocess the waypoints to ensure that the first corner is more or less
+-- in the direction the robot is currently moving into
+local function _preprocessPath(waypoints, maxError, robotPos, robotSpeed)
+	-- move the next waypoint inwards if we will miss it
+	local startDir = waypoints[2] - waypoints[1]
+	if startDir:dot(robotSpeed) > 0 and robotSpeed:length() > 0.1 and #waypoints >= 3 then
+		local perpendicular = robotSpeed:perpendicular():setLength(1)
+		local cornerPos, lambda1, lambda2 = geom.intersectLineLine(robotPos, robotSpeed, waypoints[2], perpendicular)
+		local angleDiff = startDir:angleDiff(waypoints[3] - waypoints[2])
+		-- only move the cornerPos inwards
+		if cornerPos and lambda1 > 0 and angleDiff * lambda2 < 0 then
+			-- limit the movement a bit
+			local magicScale = math.sqrt(2)/2
+			waypoints[2] = waypoints[2] + perpendicular * (math.bound(-maxError, lambda2, maxError) * magicScale)
+			-- vis.addCircleRaw("waypoints", waypoints[2], 0.03, vis.colors.green)
+		end
+	end
+end
+
 -- create a list of segments with speedLimits at their start and end
 -- idea: instead of targeting the next path corner, target a point some time
 -- in the future (point depents on robot velocity!). This causes the robot
@@ -113,6 +132,11 @@ local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxEr
 			-- time and speed calculation
 			local startDist = startRadius * (1 / angleTan)
 			local endDist = endRadius * (1 / angleTan)
+			-- ensure that startSpeed is still usable when the robot has nearly reached the corner
+			if i == 3 and startDist < endDist then
+				maxStartSpeed = maxEndSpeed
+				startDist = endDist
+			end
 			-- just another estimation
 			local actualDist = angleDiff * (startRadius + endRadius) * 0.5
 			if xRemaining > startDist then
@@ -535,6 +559,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, precise
 	local brake = -math.abs(self._robot.acceleration
 			and self._robot.acceleration.aBrakeFMax or 1.0) * accelerationFactor
 
+	-- smooth first corner
+	_preprocessPath(waypoints, maxError, robotPos, robotSpeed)
 	local endPathDir = (waypoints[#waypoints] - waypoints[#waypoints - 1]):normalize()
 	local endSpeedLen = math.max(0, endPathDir:dot(endSpeed))
 	-- calculate speed limits for curve segments based on sidewards acceleration limits while driving curves
