@@ -24,6 +24,9 @@ end
 
 function OldController:_init()
 	self.intCtrl = Vector(0, 0)
+	self.parameters = nil
+	self.v_last = nil
+	self._counter = nil
 end
 
 -- FIXME update endSpeed meaning
@@ -81,7 +84,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local brake2 = 1*brake
 	local faktor_e = 2;
 	if 0.5*v*v/brake+0.1 > dist  then -- bremsen
-		log("break")
+		--log("break")
 		if v > brake/k then
 		v_robot = self.v_last - brake*World.TimeDiff
 		--	v_robot = self.v_last - brake*World.TimeDiff
@@ -147,5 +150,4 @@ function OldController:canHandle(targetPos, targetDir, maxSpeed, endSpeed)
 end
 
 --return OldController
---return require "trajectory/totarget-old"
 return require "trajectory/curvedmaxaccel"
