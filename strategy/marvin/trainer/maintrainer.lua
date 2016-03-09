@@ -18,7 +18,7 @@ end
 
 function MainTrainer:run()
     Trainer.run(self)
-    self:_chooseManMarkAndCenterBacks()
+    self:_assignDefenders()
 end
 
 return MainTrainer
