@@ -509,7 +509,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, precise
 
 	--insert default values
 	maxSpeed = maxSpeed or self._robot.maxSpeed
-	if World.RefereeState == "Stop" then
+	if World.RefereeState == "Stop" or World.RefereeState == "BallPlacementDefensive"
+			or World.RefereeState == "BallPlacementOffensive" then
 		maxSpeed = World.IsLargeField and 1.5 or 1
 	end
 	endSpeed = endSpeed or Vector(0, 0)
