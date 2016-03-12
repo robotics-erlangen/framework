@@ -455,7 +455,13 @@ void RobotWidget::updateRobotStatus()
             errorMsg += motorXPowerLimit.arg("dribbler");
         }
         if (m_mergedResponse.extended_error().kicker_error()) {
-            errorMsg += "Kicker error!";
+            errorMsg += "Kicker error!\n";
+        }
+        if (m_mergedResponse.extended_error().motor_overheated_error()) {
+            errorMsg += "One or multiple motors have overheated\n";
+        }
+        if (m_mergedResponse.extended_error().motor_encoder_error()) {
+            errorMsg += "One or multiple motors have no working hall sensor and/or encoder\n";
         }
         m_motorWarning->setToolTip(errorMsg);
     }

@@ -77,7 +77,8 @@ typedef struct
             uint8_t motor_4_error:1;
             uint8_t dribler_error:1;
             uint8_t kicker_error:1;
-            uint8_t :0;
+            uint8_t motor_overheated_error:1;
+            uint8_t motor_encoder_error:1;
             int8_t temperature;
         } __attribute__ ((packed));
     } __attribute__ ((packed));
