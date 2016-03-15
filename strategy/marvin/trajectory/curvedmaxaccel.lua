@@ -599,9 +599,10 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, precise
 	if speedVector:length() >= 0.0001 then
 		-- check if the robot is on a curve segment
 		if #maxSpeedProfile >= 2 and maxSpeedProfile[2][4] then
+			local forwardDir = moveDir:copy():normalize():dot(robotSpeed)
 			-- add acceleration towards the curve center, reduce accerlation if the robot is slower than expected
 			local angle = (waypoints[2] - waypoints[1]):angleDiff(waypoints[3] - waypoints[2])
-			local scale = math.bound(0.02, speed / math.min(maxSpeedProfile[2][1], maxSpeedProfile[2][2]), 1)
+			local scale = math.bound(0.02, math.max(forwardDir, speed) / math.min(maxSpeedProfile[2][1], maxSpeedProfile[2][2]), 1)
 			accelVector = accelVector - moveDir:perpendicular():setLength(math.sign(angle) * accelLimit * scale * scale)
 		end
 		-- calculate how fast the robot is moving perpendicular to the speedVector
