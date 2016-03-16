@@ -24,10 +24,11 @@ function Manual:_limitRobotSpeed(v)
 
 	local vmax = k * slowSpeed + (1-k) * fastSpeed
 
-	local v2 = {x=0, y=0}
-	v2.x = math.bound(-vmax, v.x, vmax)
-	v2.y = math.bound(-vmax, v.y, vmax)
-	return v2
+	local vlimited = v
+	if v:length() > vmax then
+		vlimited = v:copy():setLength(vmax)
+	end
+	return vlimited
 end
 
 function Manual:run()
