@@ -55,12 +55,11 @@ function Default:_intelligentShoot()
 	end
 end
 
-function Default:init(agent)
+function Default:_stop()
 	self._targetGoal = nil
 	self._bestPassTarget = nil
 	self._lastPass = 0
 	self._catching = false
-	Base.init(self, agent)
 end
 
 local SLOW_BALL = 0.5
@@ -69,7 +68,7 @@ function Default:check()
 	local mainAttackerRating = 0
 	if Ball.friendlyBallOwner() == self._robot then
 		mainAttackerRating = 1.5
-	else
+	elseif self._robot.isVisible then
 		local timeToBall = Robot.minTimeToBall(self._robot)
 		mainAttackerRating = Rating.timeToRating(timeToBall) * 1.3 --small rating bonus to please the human player
 	end
@@ -91,7 +90,7 @@ function Default:check()
 	end
 	if self._catching then
 		self._send.exclusiveRole("trainer", { passReceiver = 1.5, mainAttacker = 1.5 })
-	else
+	elseif self._robot.isVisible then
 		self._send.exclusiveRole("trainer", { mainAttacker = mainAttackerRating })
 	end
 

@@ -54,8 +54,10 @@ function Trajectory:update(handlerType, ...)
 	local splines, moveDest, moveTime = self._handler:update(...)
 
 	self._robot:setControllerInput(splines)
-	vis.addPath("MoveTo", {self._robot.pos, moveDest}, vis.colors.whiteHalf)
-	vis.addCircle("MoveTo", moveDest, self._robot.radius, vis.colors.yellowHalf, true)
+	if self._robot.pos then
+		vis.addPath("MoveTo", {self._robot.pos, moveDest}, vis.colors.whiteHalf)
+		vis.addCircle("MoveTo", moveDest, self._robot.radius, vis.colors.yellowHalf, true)
+	end
 	return moveDest, moveTime
 end
 

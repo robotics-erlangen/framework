@@ -5,6 +5,7 @@ local Manual = Class("Task.Manual", Task, Shoot)
 local World = require "../base/world"
 local Ball = require "observer/ball"
 local Direct = require "trajectory/direct"
+local Hidden = require "trajectory/hidden"
 
 
 function Manual:_limitRobotSpeed(v)
@@ -39,6 +40,14 @@ function Manual:run()
 		local shootPos = self._robot.pos + Vector.fromAngle(self._robot.dir)
 		local linear = input.kickStyle == "Linear"
 		self:_shoot(shootPos, math.huge, linear, 3 * math.pi/180)
+	elseif not self._robot.isVisible then
+		local limitedSpeed = input.speed
+		if limitedSpeed:length() > 0.3 then
+			limitedSpeed = limitedSpeed:copy():setLength(0.3)
+		end
+		local omegamax = math.pi/2
+		local omega = math.bound(-omegamax, input.omega, omegamax)
+		self._robot.trajectory:update(Hidden, limitedSpeed.y, limitedSpeed.x, omega)
 	else
 		-- don't let the robots crash
 		local limitedSpeed = self:_limitRobotSpeed(input.speed)
