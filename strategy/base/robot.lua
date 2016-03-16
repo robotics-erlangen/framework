@@ -175,7 +175,7 @@ function Robot:_updateUserControl(command)
 	if command.direct then
 		-- correctly align local and strategy coordinate system
 		-- self.dir can be nil if robot was not yet visible
-		local dir = self.dir or 0
+		local dir = self.isVisible and self.dir or math.pi/2
 		v = v:rotate(dir - math.pi/2)
 	else
 		-- global to strategy coordinate mapping
