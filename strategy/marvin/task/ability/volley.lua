@@ -146,7 +146,7 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 	-- position the robot to receive the pass
 	local robotPos = viewPos - Vector.fromAngle(phi):scaleLength(
 				World.Ball.radius + self._robot.shootRadius)
-	self._robot.trajectory:update(ToTarget, robotPos, phi, nil, nil, true)
+	self._robot.trajectory:update(ToTarget, robotPos, phi, nil, nil, 0.8)
 
 	-- only shoot if the robot looks about in the right direction
 	local angle_error = math.abs(geom.getAngleDiff(self._robot.dir, phi))

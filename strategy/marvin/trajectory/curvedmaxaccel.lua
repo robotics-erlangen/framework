@@ -528,14 +528,14 @@ local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile
 end
 
 
-function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, preciseMovement)
+function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelScale)
 	if targetPos == nil then
 		error("targetPos is nil")
 	end
 
 	-- configuration
 	local maxError = 0.03 -- maxError in meters when driving a curve
-	local accelerationFactor = preciseMovement and 0.7 or 0.9 -- factor for max forward speedup and braking
+	local accelerationFactor = (accelScale or 1.0) * 0.9 -- factor for max forward speedup and braking
 	local exponentialTime = 0.2 -- timespan in seconds replace with exponential falloff
 	local exponentialError = 0.05 -- relative
 	--TODO exponentialError by distance?
