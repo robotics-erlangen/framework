@@ -122,7 +122,7 @@ function Base:_applyForMainAttacker()
 	end
 
 	debug.set("ma application tried", true)
-	if not Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) then
+	if not Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) or World.RefereeState == "BallPlacementOffensive" then
 		local targetPos = parameters[1] or World.Geometry.OpponentGoal
 		local endSpeedLength = parameters[2] or 0
 
