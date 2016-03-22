@@ -66,7 +66,7 @@ function Ball:_update(data, time)
 	-- if no ball data is available then no ball was tracked
 	if not data then
 		-- set lost timer
-		if self._isVisible ~= false then
+		if self._isVisible then
 			self._isVisible = false
 			self.lostSince = time
 		end
