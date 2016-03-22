@@ -209,9 +209,7 @@ function World._updateWorld(state)
 	local radioResponses = state.radio_response
 
 	-- update ball if available
-	if state.ball then
-		World.Ball:_update(state.ball, World.Time)
-	end
+	World.Ball:_update(state.ball, World.Time)
 
 	local dataFriendly = World.TeamIsBlue and state.blue or state.yellow
 	if dataFriendly then
