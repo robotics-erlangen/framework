@@ -139,63 +139,51 @@ ballOwnerCheckCache = function()
 	end
 end
 
-
-local SLOW_BALL = 0.5
-local MIN_TIME_ADVANCE_MIN = -0.05
-local MIN_TIME_ADVANCE_MAX = 0.2
-
-local futureBallSpeeds = {}
+local ballRecipients = {}
 function Ball._updateReceivesPass()
-	local temporaryBallSpeeds = {}
+	if World.Ball.speed:length() < 0.5 then
+		ballRecipients = {}
+		return
+	end
+
+	local ballDir = World.Ball.speed:angle()
+	local coneWidthSmall = 30 * math.pi / 180
+	local coneWidthLarge = 70 * math.pi / 180
+	local coneAngleMinSmall = ballDir - coneWidthSmall / 2
+	local coneAngleMinLarge = ballDir - coneWidthLarge / 2
+
+	local newBallRecipients = {}
 	for _,robot in ipairs(World.Robots) do
-		-- if the initial ball speed is too low
-		if World.Ball.speed:length() < SLOW_BALL then
+
+		-- check if the robot is inside the cone (hysteresis)
+		local coneWidth = ballRecipients[robot] and coneWidthLarge or coneWidthSmall
+		local coneAngleMin = ballRecipients[robot] and coneAngleMinLarge or coneAngleMinSmall
+		local toRobotAngle = (robot.pos - World.Ball.pos):angle()
+		if geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth then
 			goto continue
 		end
 
-		local balldir = World.Ball.speed:copy():normalize()
-		local dribblerOffset = Vector.fromAngle(robot.dir) * (robot.shootRadius + World.Ball.radius)
-		local dribblerPos, lambda = geom.intersectLineLine(World.Ball.pos, balldir, robot.pos + dribblerOffset, balldir:perpendicular())
-
-		-- if the ball is behind or inside the robot
-		if lambda < 0 then
+		-- check if the arriving ball is fast enough (hysteresis)
+		local minBallSpeed = ballRecipients[robot] and 1.0 or 0.5
+		local distanceToRobot = World.Ball.pos:distanceTo(robot.pos)
+		if Physics.ballAtTime(World.Ball, Physics.ballRollTime(
+				World.Ball, distanceToRobot)).speed:length() < minBallSpeed then
 			goto continue
 		end
 
-		local robotMid = dribblerPos - dribblerOffset
-		-- anywhere on the dribbler is okay, not only the center
-		local dribblerHalf = balldir:perpendicular() * (robot.dribblerWidth / 2 + Constants.positionError)
-		robotMid = robot.pos:nearestPosOnLine(robotMid + dribblerHalf, robotMid - dribblerHalf)
+		newBallRecipients[robot] = true
 
-		local robotTime = Physics.robotTimeToPos(robot, robotMid, Vector(0, 0))
-		local ballTime = Physics.ballRollTime(World.Ball, math.max(0, lambda - robot.shootRadius - World.Ball.radius))
 
-		-- if the robot takes longer than the ball
-		if ballTime - robotTime < MIN_TIME_ADVANCE_MIN then
-			goto continue
-		end
-
-		-- if the robot didn't receive the pass in the previous frame and still isn't that much faster
-		if not futureBallSpeeds[robot] and ballTime - robotTime < MIN_TIME_ADVANCE_MAX then
-			goto continue
-		end
-
-		local futureBall = Physics.ballAtTime(World.Ball, ballTime)
-		temporaryBallSpeeds[robot] = futureBall.speed:length()
-		
-		if futureBall.speed:length() > SLOW_BALL then
-			vis.addCircle("receivesPass", robot.pos, 0.15,
-				vis.fromRGBA(127, 191, 255, 63), true, true)
-		end
+		vis.addCircle("o/ball: receivesPass", robot.pos, 0.15,
+			vis.fromRGBA(127, 191, 255, 63), true, true)
 ::continue::
 	end
 
-	futureBallSpeeds = temporaryBallSpeeds
+	ballRecipients = newBallRecipients
 end
 
-function Ball.receivesPass(robot, allowSlowEndSpeed)
-	local speed = futureBallSpeeds[robot]
-	return speed and (allowSlowEndSpeed or speed > SLOW_BALL)
+function Ball.receivesPass(robot)
+	return ballRecipients[robot]
 end
 
 

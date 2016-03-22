@@ -28,7 +28,7 @@ function Shoot:check()
 			break
 		end
 	end
-	if World.Time - self._passStart > 0.1 and not Ball.receivesPass(self._robot, true) then
+	if World.Time - self._passStart > 0.1 and not Ball.receivesPass(self._robot) then
 		self._isCatchingPass = false
 	end
 	local mainAttackerFlag = self._inbox.mainAttacker().trainer == self._robot
