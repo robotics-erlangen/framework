@@ -21,6 +21,7 @@ function Defense:init()
 	local countersidePosRight = Vector( World.Geometry.FieldWidthHalf, 0)
 	self._countersideTargetLeft  = {pos = UtilDefense.centerBackPos(countersidePosLeft )}
 	self._countersideTargetRight = {pos = UtilDefense.centerBackPos(countersidePosRight)}
+	self._ballIsLeft = true
 end
 
 local function getClosestRobot(robotlist, pos)
@@ -128,11 +129,13 @@ function Defense:_assignDefenders()
 
 	local defenders = table.keys(self._inbox.defenderFlag())
 
+	self._ballIsLeft = self._ballIsLeft and World.Ball.pos.x < 0.5 or World.Ball.pos.x < -0.5
+
 	-- in stop states: assign a counterside centerback
 	local needCountersideCB = Referee.isStopState()
 	if needCountersideCB then
-		local countersideTarget = World.Ball.pos.x > 0
-			and self._countersideTargetLeft or self._countersideTargetRight
+		local countersideTarget = self._ballIsLeft
+			and self._countersideTargetRight or self._countersideTargetLeft
 		local countersideCB, d = getClosestRobot(defenders, countersideTarget.pos)
 		if countersideCB then
 			table.removeValue(defenders, countersideCB)
@@ -190,8 +193,8 @@ function Defense:_assignDefenders()
 	end
 
 	-- assign a counterside centerback (also in non-stop states)
-	local countersideTarget = World.Ball.pos.x > 0
-		and self._countersideTargetLeft or self._countersideTargetRight
+	local countersideTarget = self._ballIsLeft
+		and self._countersideTargetRight or self._countersideTargetLeft
 	local countersideCB, d = getClosestRobot(defenders, countersideTarget.pos)
 	if countersideCB then
 		table.removeValue(defenders, countersideCB)
