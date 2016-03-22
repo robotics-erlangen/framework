@@ -32,6 +32,7 @@ static const uint8_t RADIOCOMMAND2014_DRIBBLER_MAX = 100;
 static const float RADIOCOMMAND2014_LINEAR_MAX = 10;
 static const float RADIOCOMMAND2014_CHIP_MAX = 5;
 
+// WARNING: time slots for reply must be adjusted if the radio command size changes!
 typedef struct
 {
     uint8_t counter;
@@ -79,7 +80,8 @@ typedef struct
             uint8_t kicker_error:1;
             uint8_t motor_overheated_error:1;
             uint8_t motor_encoder_error:1;
-            int8_t temperature;
+            uint8_t main_sensor_error:1;
+            uint8_t temperature:7;
         } __attribute__ ((packed));
     } __attribute__ ((packed));
     uint32_t extension_id:4;

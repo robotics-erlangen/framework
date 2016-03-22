@@ -449,6 +449,7 @@ void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, c
             e->set_temperature(packet->temperature);
             e->set_motor_overheated_error(packet->motor_overheated_error);
             e->set_motor_encoder_error(packet->motor_encoder_error);
+            e->set_main_sensor_error(packet->main_sensor_error);
             break;
         }
         default:

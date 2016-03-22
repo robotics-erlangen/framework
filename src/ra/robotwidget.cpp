@@ -463,6 +463,9 @@ void RobotWidget::updateRobotStatus()
         if (m_mergedResponse.extended_error().motor_encoder_error()) {
             errorMsg += "One or multiple motors have no working hall sensor and/or encoder\n";
         }
+        if (m_mergedResponse.extended_error().main_sensor_error()) {
+            errorMsg += "Gryoscope or accelerometer not working\n";
+        }
         m_motorWarning->setToolTip(errorMsg);
     }
     if (m_mergedResponse.has_extended_error() && m_mergedResponse.extended_error().has_temperature()) {
