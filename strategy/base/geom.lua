@@ -254,6 +254,20 @@ function geom.normalizeAngle(angle)
 	return angle
 end
 
+--- Normalizes angle to value in interval [0, +2pi]
+-- @name normalizeAnglePositive
+-- @param angle number - angle in radians
+-- @return number - normalized angle
+function geom.normalizeAnglePositive(angle)
+	while angle > 2 * math.pi do
+		angle = angle - 2 * math.pi
+	end
+	while angle < 0 do
+		angle = angle + 2 * math.pi
+	end
+	return angle
+end
+
 --- Normalized difference between angles.
 -- Return value is in interval [-pi, +pi].
 -- angle2 = angle1 + angleDiff (normalized)
