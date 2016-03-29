@@ -40,9 +40,9 @@ function Base:run()
 	debug.set(nil, Class.name(self, true))
 	--local time0 = amun.getCurrentTime()
 
+	self:_applyForMainAttacker()
 	self:_updateBehavior()
 	self:_runTaskAndBehavior()
-	self:_applyForMainAttacker()
 	self:_run()
 
 	--local time1 = amun.getCurrentTime()
