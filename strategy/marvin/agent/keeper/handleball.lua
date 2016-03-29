@@ -44,7 +44,7 @@ function HandleBall:_updateTask()
 	local robotDist = Field.distanceToFriendlyGoalLine(self._robot.pos, 0)
 	local ballBehindKeeper = ballDist < robotDist
 
-	if startInside and endPos.y < World.Geometry.FriendlyGoal.y then
+	if startInside and endPos.y < World.Geometry.FriendlyGoal.y + 0.01 then
 		-- if ball is inside defense area and will enter the goal -> block the ball
 		return Keeper
 	elseif startInside and endInside and not ballBehindKeeper then
