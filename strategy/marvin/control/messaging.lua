@@ -26,7 +26,6 @@ local msgDefs = {
 
 	-- single sender
 	attackPosition = "cdata",
-	aggressiveKeeperPos = "cdata",
 	shootDestination = "cdata",
 	passPos = "cdata", -- where the pass is shot
 	duelAssistantPos = "cdata",
