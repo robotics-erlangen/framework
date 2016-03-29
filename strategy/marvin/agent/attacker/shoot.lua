@@ -35,7 +35,7 @@ function Shoot:check()
 	self._forceKeepingInPool = mainAttackerFlag
 	if self._isCatchingPass then
 		self._forceKeepingInPool = true
-		self._send.exclusiveRole("trainer", {mainAttacker = 2})
+		self:_applyForMainAttacker(nil, nil, 2)
 	end
 	debug.set("catching pass", self._isCatchingPass)
 

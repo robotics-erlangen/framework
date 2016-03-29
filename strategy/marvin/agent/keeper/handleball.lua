@@ -28,7 +28,7 @@ function HandleBall:check()
 			and World.Ball.speed:length() <= SLOW_BALL
 	if active then
 		-- force being mainAttacker
-		self._send.exclusiveRole("trainer", {mainAttacker = 2})
+		self:_applyForMainAttacker(nil, nil, 2)
 		return true
 	else
 		return false

@@ -62,8 +62,8 @@ function Base:_updateTask()
 	error("stub")
 end
 
-function Base:_applyForMainAttacker(target, endSpeedLength)
-	self._mainAttackerParameters = { target, endSpeedLength }
+function Base:_applyForMainAttacker(target, endSpeedLength, overrideRating)
+	self._mainAttackerParameters = { target, endSpeedLength, overrideRating }
 end
 
 function Base:mainAttackerParameters()

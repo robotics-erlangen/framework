@@ -112,7 +112,8 @@ function Base:_applyForMainAttacker()
 			break
 		end
 	end
-	if parameters and self._task then
+	local overrideRating = parameters and parameters[3]
+	if parameters and self._task and not overrideRating then
 		-- only use task parameters if behavior asked for main attacker application
 		parameters = self._task:mainAttackerParameters() or parameters
 	end
@@ -123,18 +124,23 @@ function Base:_applyForMainAttacker()
 
 	debug.set("ma application tried", true)
 	if not Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) or World.RefereeState == "BallPlacementOffensive" then
-		local targetPos = parameters[1] or World.Geometry.OpponentGoal
-		local endSpeedLength = parameters[2] or 0
+		local mainAttackerRating
+		if not overrideRating then
+			local targetPos = parameters[1] or World.Geometry.OpponentGoal
+			local endSpeedLength = parameters[2] or 0
 
-		local timeToBall = Physics.robotTimeToBall(self._robot,
-			World.Ball, targetPos, endSpeedLength, self._mainAttackerLastTime)
-		self._mainAttackerLastTime = timeToBall
-		local mainAttackerRating = Rating.timeToRating(timeToBall)
+			local timeToBall = Physics.robotTimeToBall(self._robot,
+				World.Ball, targetPos, endSpeedLength, self._mainAttackerLastTime)
+			self._mainAttackerLastTime = timeToBall
+			mainAttackerRating = Rating.timeToRating(timeToBall)
 
-		-- rate the robot pos (generally, being behind the ball is better)
-		local relativeYPos = World.Ball.pos.y - self._robot.pos.y
-		local normalizedAtan = math.atan(math.pi / 2 * relativeYPos) * (2 / math.pi)
-		mainAttackerRating = mainAttackerRating + normalizedAtan * 0.2
+			-- rate the robot pos (generally, being behind the ball is better)
+			local relativeYPos = World.Ball.pos.y - self._robot.pos.y
+			local normalizedAtan = math.atan(math.pi / 2 * relativeYPos) * (2 / math.pi)
+			mainAttackerRating = mainAttackerRating + normalizedAtan * 0.2
+		else
+			mainAttackerRating = overrideRating
+		end
 
 		self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
 	end
