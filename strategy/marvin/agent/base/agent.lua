@@ -133,7 +133,8 @@ function Base:_applyForMainAttacker()
 
 		-- rate the robot pos (generally, being behind the ball is better)
 		local relativeYPos = World.Ball.pos.y - self._robot.pos.y
-		mainAttackerRating = mainAttackerRating + math.atan(relativeYPos) * 0.2
+		local normalizedAtan = math.atan(math.pi / 2 * relativeYPos) * (2 / math.pi)
+		mainAttackerRating = mainAttackerRating + normalizedAtan * 0.2
 
 		self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
 	end
