@@ -17,21 +17,11 @@ function Stop:check()
 end
 
 function Stop:_updateTask()
-	if World.RefereeState == "BallPlacementOffensive" then -- ball not in position yet
-		-- ball not in position or is moving (this is also true while the ball is pulled)
-		local placingRequired = (World.Ball.pos:distanceTo(World.BallPlacementPos) > 0.1 or World.Ball.speed:length() > 0.1)
-		local assumedBallPos = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
-		local dribblerAtTarget = not World.Ball:isPositionValid() and assumedBallPos:distanceTo(World.BallPlacementPos) < 0.05
-		if placingRequired and not dribblerAtTarget then
-			self._placeTimer = World.Time
-		end
-		-- wait once second after placing is finished before moving away
-		if self._placeTimer and self._placeTimer + 1 > World.Time then
-			return PlaceBall
-		end
+	if World.RefereeState == "BallPlacementOffensive" then
+		return PlaceBall
+	else
+		return StopAttack
 	end
-	self._placeTimer = nil
-	return StopAttack
 end
 
 return Stop
