@@ -32,7 +32,7 @@ Constants.systemLatency = 0.04 -- total system latency [s]
 
 Constants.positionError = 0.005 -- possible position error from vision [m]
 
-Constants.maxBallSpeed = 8 -- maximum allowed shooting speed [m/s]
+Constants.maxBallSpeed = 7.5 -- maximum allowed shooting speed [m/s]
 
 Constants.maxDribbleDistance = 0.5
 
