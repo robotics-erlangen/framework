@@ -30,6 +30,7 @@ function Base:init(robot)
 	self._mainAttackerParameters = nil
 	self._mainAttackerLastTime = nil
 	self._debugIdStr = "Agent " .. self._robot.id
+	self.lastIncomingPassTime = 0
 end
 
 function Base:_run()

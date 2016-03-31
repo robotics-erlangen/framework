@@ -46,7 +46,7 @@ function Pass:run()
 	local corridorWidthHalfOuter = 0.08
 	local opponentReactionTime = 0.15
 	local linearShootHysteresisFlag = true
-	for _, opp in ipairs(World.Robots) do
+	for _, opp in ipairs(World.OpponentRobots) do
 		if opp == World.OpponentKeeper then
 			goto continue
 		end
@@ -102,6 +102,17 @@ function Pass:run()
 ::continue::
 	end
 
+	for _, robot in ipairs(World.FriendlyRobots) do
+		local pointOfImpact = robot.pos:nearestPosOnLine(World.Ball.pos, self._shootPos)
+		if robot ~= self._targetRobot and robot ~= self._robot and
+				robot.pos:distanceTo(pointOfImpact) < corridorWidthHalfInner then
+			vis.addCircle("t/pass: Friendly conflict", pointOfImpact, 0.1, vis.colors.blue, true)
+			self._linearShoot = false
+			linearShootHysteresisFlag = false
+			debug.set("friendly pass conflict", robot.id)
+		end
+	end
+
 	local dontShoot = false
 	if newSuggestion and newSuggestion.time then
 		--calculate the time the ball would take to the pos where the opponent robot is heading
@@ -127,7 +138,7 @@ function Pass:run()
 	self:_shoot(self._shootPos, self._passSpeed, self._linearShoot, 3 * math.pi/180, dontShoot)
 	if self._robot.pos:distanceTo(World.Ball.pos) < MIN_BALL_DIST_FOR_PASS_MSG then
 		-- only send message when pass is imminent
-		self._send.passPos(self._targetRobot, self._shootPos)
+		self._send.passPos("all", { robot = self._targetRobot, pos = self._shootPos })
 	end
 
 	debug.set("targetRobot", self._targetRobot.id)

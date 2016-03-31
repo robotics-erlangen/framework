@@ -26,7 +26,9 @@ function Armada:check()
         return false
     else
         debug.set("stay active", self._stayActive)
-        if next(self._inbox.passPos()) and Messaging.get("defenderFlag")[self._robot] then
+        local _, msg = next(self._inbox.passPos())
+        local passToMe = msg and msg.robot == self._robot
+        if passToMe and Messaging.get("defenderFlag")[self._robot] then
             self._send.attackerRequest("trainer")
 			self._requestingPoolChange = true
 			self._forceKeepingInPool = false
