@@ -100,7 +100,8 @@ function PlaceBall:run()
     elseif self._step == STEP_MOVE_AWAY then
         PathHelper.setDefaultObstacles(self._robot.path, self._robot, false, true, true, nil, 0.02)
     	PathHelper.addRobotObstacles(self._robot.path, self._robot)
-        if isBallNearRobot(World.Ball, self._robot) then
+        if isBallNearRobot(World.Ball, self._robot) or
+                (World.Ball:isPositionValid() and self._robot.pos:distanceTo(ballPos) < 2*self._robot.radius) then
             self._robot.trajectory:update(ToTarget, self._moveAwayPos, self._robot.dir)
         elseif World.BallPlacementPos:distanceTo(Vector(0,0)) > 0.7 then
             self._robot.trajectory:update(ToTarget, Vector(0,0), 0)
