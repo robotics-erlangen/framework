@@ -9,7 +9,7 @@ local World = require "../base/world"
 local Physics = require "observer/physics"
 local AggressiveKeeper = require "task/aggressivekeeper"
 local Keeper = require "task/keeper"
-local ShootGoal = require "task/shootgoal"
+local KeeperChipAway = require "task/keeperchipaway"
 
 
 local SLOW_BALL = 0.5
@@ -49,7 +49,7 @@ function HandleBall:_updateTask()
 		return Keeper
 	elseif startInside and endInside and not ballBehindKeeper then
 		-- if ball is inside defense area and will not leave it -> we have time to act
-		return ShootGoal
+		return KeeperChipAway
 	else
 		-- if inside and ball will leave or outside -> get rid of the ball
 		return AggressiveKeeper
