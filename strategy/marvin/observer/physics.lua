@@ -362,6 +362,15 @@ local function rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t
 		t_max = math.min(ballTimeToHitPos, t_max)
 	end
 
+	-- Special case: Ball seems to be a bit inside the robot
+	-- This happens because the tracking doesn't implement a ball collision modell
+	local relpos = (ball.pos - robot.pos):rotate(-robot.dir)
+	relpos.x = relpos.x - robot.shootRadius - ball.radius
+	local sidewardsOffset = math.abs(relpos.y)
+	if relpos.x > -0.03 and relpos.x <= 0.005 and sidewardsOffset < robot.dribblerWidth / 2 then
+		return nil, 0
+	end
+
 	-- special case: when the ball is fast and will soon hit the dribbler
 	-- just use the ballTimeToHitPos. This is necessary as the timespan during which
 	-- the t_ball > t_robot is getting smaller and smaller the distance between ball and robot gets
