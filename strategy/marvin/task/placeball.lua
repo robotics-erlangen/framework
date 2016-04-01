@@ -32,19 +32,20 @@ end
 
 function PlaceBall:run()
     vis.addCircle("ball placement", World.BallPlacementPos, BALL_PLACEMENT_RADIUS, vis.colors.orangeHalf, true)
-    local ballPos = World.Ball.pos
+    local ball = World.Ball
+    local ignoreBall = self._step ~= STEP_MOVE_AWAY
+    PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignoreBall, true, true)
+    PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
     debug.set("step", self._step)
     -- offset to ball pos, don't update if near the ball placement pos
-    if not self._lastOffset or ballPos:distanceTo(World.BallPlacementPos) > 0.2 then
-        self._lastOffset = (ballPos - World.BallPlacementPos):setLength(World.Ball.radius + self._robot.shootRadius)
+    if not self._lastOffset or ball.pos:distanceTo(World.BallPlacementPos) > 0.2 then
+        self._lastOffset = (ball.pos - World.BallPlacementPos):setLength(World.Ball.radius + self._robot.shootRadius)
     end
     local dir = self._lastOffset:angle()
 
     if self._step == STEP_GO_TO_BALL then
-        local targetPos = ballPos - self._lastOffset
-        PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, true, true)
-        PathHelper.addRobotObstacles(self._robot.path, self._robot)
+        local targetPos = ball.pos - self._lastOffset
         self._robot.trajectory:update(ToTarget, targetPos, dir)
 
         local dist = targetPos:distanceTo(self._robot.pos)
@@ -53,40 +54,38 @@ function PlaceBall:run()
         end
         if dist < 0.04 then
             self._step = STEP_ENSURE_CONTACT
-            self._ballStartPos = ballPos
+            self._ballStartPos = ball.pos
         end
     elseif self._step == STEP_ENSURE_CONTACT then
         self._robot:setDribblerSpeed(1.0)
         -- Push ball a little bit then move backwards
         local speed = self._lastOffset:copy():setLength(0.3)
         self._robot.trajectory:update(Direct, speed, dir)
-        PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, true, true)
 
-        debug.set("ball dist", self._ballStartPos:distanceTo(ballPos))
-        debug.set("ball valid", World.Ball:isPositionValid())
+        debug.set("ball dist", self._ballStartPos:distanceTo(ball.pos))
+        debug.set("ball valid", ball:isPositionValid())
 
-        if not isBallNearRobot(World.Ball, self._robot) then
+        if not isBallNearRobot(ball, self._robot) then
             self._step = STEP_GO_TO_BALL
-        elseif not World.Ball:isPositionValid() or self._ballStartPos:distanceTo(ballPos) > 0.03 then
+        elseif not ball:isPositionValid() or self._ballStartPos:distanceTo(ball.pos) > 0.03 then
             self._step = STEP_PULL
         end
     elseif self._step == STEP_PULL then
         -- move ball into position
         local targetPos = World.BallPlacementPos - self._lastOffset
-        PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, true, true)
         self._robot.trajectory:update(ToTarget, targetPos, dir, MAX_SPEED)
 
         if self._positionReachedTime == 0 then
-            local dribblerSpeed = math.min((ballPos:distanceTo(World.BallPlacementPos) - 0.02) * 3, 1)
+            local dribblerSpeed = math.min((ball.pos:distanceTo(World.BallPlacementPos) - 0.02) * 3, 1)
             self._robot:setDribblerSpeed(dribblerSpeed)
         end
 
-        if not isBallNearRobot(World.Ball, self._robot) and self._positionReachedTime == 0 then
+        if not isBallNearRobot(ball, self._robot) and self._positionReachedTime == 0 then
             self._step = STEP_GO_TO_BALL
         end
 
         local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*self._robot.shootRadius
-        if isBallNearRobot(World.Ball, self._robot) and
+        if isBallNearRobot(ball, self._robot) and
                 dribblerPos:distanceTo(World.BallPlacementPos) < BALL_PLACEMENT_RADIUS
                 and self._positionReachedTime == 0 then
             self._positionReachedTime = World.Time
@@ -98,10 +97,8 @@ function PlaceBall:run()
             self._moveAwayPos = self._robot.pos - Vector.fromAngle(self._robot.dir):setLength(0.2)
         end
     elseif self._step == STEP_MOVE_AWAY then
-        PathHelper.setDefaultObstacles(self._robot.path, self._robot, false, true, true, nil, 0.02)
-    	PathHelper.addRobotObstacles(self._robot.path, self._robot)
-        if isBallNearRobot(World.Ball, self._robot) or
-                (World.Ball:isPositionValid() and self._robot.pos:distanceTo(ballPos) < 2*self._robot.radius) then
+        if isBallNearRobot(ball, self._robot) or
+                (ball:isPositionValid() and self._robot.pos:distanceTo(ball.pos) < 2*self._robot.radius) then
             self._robot.trajectory:update(ToTarget, self._moveAwayPos, self._robot.dir)
         elseif World.BallPlacementPos:distanceTo(Vector(0,0)) > 0.7 then
             self._robot.trajectory:update(ToTarget, Vector(0,0), 0)

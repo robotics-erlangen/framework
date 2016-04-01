@@ -42,7 +42,8 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 				G.DefenseRadius + POSITION_PADDING, "DefenseArea")
 	end
 
-	if robot.pos.y > 0 and (not Referee.isFriendlyPenaltyState()) then
+	if robot.pos.y > 0 and (not Referee.isFriendlyPenaltyState()) and
+			World.RefereeState ~= "BallPlacementOffensive" then
 		path:addLine(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
 				G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y,
 				G.DefenseRadius + World.Ball.radius + oppDefAreaDist, "DefenseAreaOpp")
