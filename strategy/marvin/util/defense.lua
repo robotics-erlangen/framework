@@ -62,4 +62,18 @@ function Defense.dangerousBallTowardsDefense()
 	return false
 end
 
+function Defense.getClosestRobot(robotlist, pos)
+	local minDist = math.huge
+	local minRobot = nil
+	for _, r in ipairs(robotlist) do
+		local dist = r.pos:distanceTo(pos)
+		if dist < minDist then
+			minDist = dist
+			minRobot = r
+		end
+	end
+	return minRobot, minDist
+end
+
+
 return Defense

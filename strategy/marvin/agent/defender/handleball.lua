@@ -5,6 +5,7 @@ local Field = require "../base/field"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Robot = require "observer/robot"
+local Physics = require "observer/physics"
 local DefUtil = require "util/defense"
 local Duel = require "task/duel"
 local InterceptPass = require "task/interceptpass"
@@ -13,7 +14,6 @@ local debug = require "../base/debug"
 
 function HandleBall:_stop()
 	self._timeAdvance = -math.huge
-	self._isMainAttacker = false
 	self._mainAttackerApplicationSent = false
 end
 
@@ -23,22 +23,30 @@ function HandleBall:check()
 		return false
 	end
 
+	local mainAttacker = self._inbox.mainAttacker().trainer
+	local role = self._inbox.roleAssignment().trainer
+	local closestOppAtBall = DefUtil.getClosestRobot(World.OpponentRobots, World.Ball.pos)
+	local forceDuel = role and role.name == "ManMark" and role.params == closestOppAtBall and
+		mainAttacker and Physics.robotTimeToBall(mainAttacker, World.Ball, closestOppAtBall.pos, 0) >
+		Physics.robotTimeToBall(self._robot, World.Ball, closestOppAtBall.pos, 0)
+	debug.set("force duel", forceDuel)
+
 	local selfTime = Robot.minTimeToBall(self._robot)
 	local _, opponentTime = Robot.fastestOpponentAtBall()
 	self._timeAdvance = opponentTime - selfTime
 	debug.set("timeAdvance (HandleBall)", self._timeAdvance)
 
-	self._isMainAttacker = self._inbox.mainAttacker().trainer == self._robot
-	if self._isMainAttacker
+	if mainAttacker == self._robot
 			or (self._mainAttackerApplicationSent and self._timeAdvance > 0)
-			or (not self._mainAttackerApplicationSent and self._timeAdvance > 0.2) then
+			or (not self._mainAttackerApplicationSent and self._timeAdvance > 0.2)
+			or forceDuel then
 		self:_applyForMainAttacker()
 		self._mainAttackerApplicationSent = true
 	else
 		self._mainAttackerApplicationSent = false
 	end
 
-	return self._isMainAttacker
+	return mainAttacker == self._robot
 end
 
 function HandleBall:_updateTask()

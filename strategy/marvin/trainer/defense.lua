@@ -24,23 +24,10 @@ function Defense:init()
 	self._ballIsLeft = true
 end
 
-local function getClosestRobot(robotlist, pos)
-	local minDist = math.huge
-	local minRobot = nil
-	for _, r in ipairs(robotlist) do
-		local dist = r.pos:distanceTo(pos)
-		if dist < minDist then
-			minDist = dist
-			minRobot = r
-		end
-	end
-	return minRobot, minDist
-end
-
 function Defense:_updateManmarkTargets()
 	local closestOppToBall, closestOppToBallDist =
-		getClosestRobot(World.OpponentRobots, World.Ball.pos)
-	
+		UtilDefense.getClosestRobot(World.OpponentRobots, World.Ball.pos)
+
 	local newManmarkTargets = {}
 	for _, robot in ipairs(World.OpponentRobots) do
 		local alreadyTargeted = self._manmarkTargets[robot] ~= nil
@@ -114,7 +101,7 @@ function Defense:_nextManmarkAssignment(defenders)
 	if bestTarget then
 		if not bestDefender then
 			local markPos = UtilDefense.manMarkPos(bestTarget)
-			bestDefender = getClosestRobot(defenders, markPos)
+			bestDefender = UtilDefense.getClosestRobot(defenders, markPos)
 		end
 		self._unassignedManmarkTargets[bestTarget] = nil
 		self._manmarkAssignments[bestTarget] = bestDefender
@@ -136,18 +123,18 @@ function Defense:_assignDefenders()
 	if needCountersideCB then
 		local countersideTarget = self._ballIsLeft
 			and self._countersideTargetRight or self._countersideTargetLeft
-		local countersideCB, d = getClosestRobot(defenders, countersideTarget.pos)
+		local countersideCB, d = UtilDefense.getClosestRobot(defenders, countersideTarget.pos)
 		if countersideCB then
 			table.removeValue(defenders, countersideCB)
 			self._send.roleAssignment(countersideCB,
 				{name = "CenterBack", params = countersideTarget})
 		end
 	end
-	
+
 	-- not in opponent corner attacks: assign a ball centerback
 	local needDefaultCB = not Referee.isDefensiveCornerKick()
 	if needDefaultCB then
-		local defaultCB = getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
+		local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
 		if defaultCB then
 			table.removeValue(defenders, defaultCB)
 			self._send.roleAssignment(defaultCB,
@@ -172,7 +159,7 @@ function Defense:_assignDefenders()
 	-- ball in our half: assign a second default centerback
 	local needSecondDefaultCB = needDefaultCB and self._ballInOurHalf
 	if needSecondDefaultCB then
-		local defaultCB = getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
+		local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
 		if defaultCB then
 			table.removeValue(defenders, defaultCB)
 			self._send.roleAssignment(defaultCB,
@@ -195,7 +182,7 @@ function Defense:_assignDefenders()
 	-- assign a counterside centerback (also in non-stop states)
 	local countersideTarget = self._ballIsLeft
 		and self._countersideTargetRight or self._countersideTargetLeft
-	local countersideCB, d = getClosestRobot(defenders, countersideTarget.pos)
+	local countersideCB, d = UtilDefense.getClosestRobot(defenders, countersideTarget.pos)
 	if countersideCB then
 		table.removeValue(defenders, countersideCB)
 		self._send.roleAssignment(countersideCB,
