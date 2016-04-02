@@ -41,7 +41,7 @@ function ShootGoal:_rateShootPos(ballPos, targetPoint, targetWidth)
 	-- 0.1m -> 0.5
 	-- 0.0m -> 0
 	local ratingDistToFieldBorder = math.min(1, Field.distanceToFieldBorder(ballPos) / 0.2)
-	
+
 	-- rates the distance to the target point
 	-- 0.0m            -> 1
 	-- 1.0m            -> 0.876
@@ -51,14 +51,14 @@ function ShootGoal:_rateShootPos(ballPos, targetPoint, targetWidth)
 	local ratingDistToTarget = math.max(0, 1 - dist / G.FieldHeight)
 
 	-- rates the time the robot has to move
-	local robotPos = self._robot.pos - 
+	local robotPos = self._robot.pos -
 		(targetPoint - ballPos):setLength(self._robot.shootRadius + World.Ball.radius)
 	local robotTime = Physics.robotTimeToPos(self._robot, robotPos, Vector(0, 0), false)
 	local ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(ballPos))
 	local robotTimeRating = math.max(0, (robotTime * 0.8 - ballTime) * 0.5 + 0.5)
 
 	-- return combination of the single ratings
-	return ratingAngle * ratingTargetWidth * ratingDistToFieldBorder * 
+	return ratingAngle * ratingTargetWidth * ratingDistToFieldBorder *
 		ratingDistToTarget * robotTimeRating
 end
 
@@ -90,7 +90,7 @@ function ShootGoal:_validateShootPos(ballPos)
 	for _,opp in ipairs(self._robotListWithoutKeeper) do
 		if not opp.isFriendly and opp.pos:distanceTo(ballPos) < 0.3 then
 			return false
-		end	
+		end
 	end
 
 	return true
@@ -191,7 +191,7 @@ function ShootGoal:_updateVolleyShootPos()
 	end
 
 
-	-- if the old position is not valid any more or the ball is still being shot, 
+	-- if the old position is not valid any more or the ball is still being shot,
 	-- search a new (valid) one; otherwise keep the old one
 	if not oldPosValid then
 		local pos, target = self:_searchVolleyShootPos()
@@ -237,7 +237,7 @@ function ShootGoal:_updateRobotLists()
 	-- consider all robots (also our ones)
 	for _,r in ipairs(World.Robots) do
 		if r ~= self._robot then
-			local futureRobot = { ["pos"] = r.pos + r.speed * extrapolationTime, 
+			local futureRobot = { ["pos"] = r.pos + r.speed * extrapolationTime,
 				["radius"] = r.radius, ["speed"] = r.speed, ["isFriendly"] = r.isFriendly }
 
 			table.insert(self._robotList, futureRobot)
@@ -386,7 +386,7 @@ function ShootGoal:_init()
 	self._shootTargetWidth = 0
 	self._dirty = false
 	self._desperate = false
-	self._desperateChipTargetPoint = G.OpponentGoal + Vector(0, -0.12)
+	self._desperateChipTargetPoint = G.OpponentGoal + Vector(0, -0.21)
 
 	self._volleyTargetPoint = nil
 	self._volleyShootPos = nil
