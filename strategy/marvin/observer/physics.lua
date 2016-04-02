@@ -6,6 +6,7 @@ local Field = require "../base/field"
 local geom = require "../base/geom"
 local plot = require "../base/plot"
 local World = require "../base/world"
+local debug = require "../base/debug"
 
 
 --- predicts the ball
@@ -367,7 +368,9 @@ local function rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t
 	local relpos = (ball.pos - robot.pos):rotate(-robot.dir)
 	relpos.x = relpos.x - robot.shootRadius - ball.radius
 	local sidewardsOffset = math.abs(relpos.y)
-	if relpos.x > -0.03 and relpos.x <= 0.005 and sidewardsOffset < robot.dribblerWidth / 2 then
+	debug.set("relpos.x", relpos.x)
+	debug.set("sidewardsOffset", sidewardsOffset)
+	if relpos.x > -0.25 and relpos.x <= 0.005 and sidewardsOffset < 0.2 then
 		return nil, 0
 	end
 
