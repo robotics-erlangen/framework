@@ -6,6 +6,7 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
+local ChipAway = require "task/chipaway"
 local Rating = require "util/rating"
 
 local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
@@ -68,7 +69,12 @@ function Shoot:_updateTask()
 		else -- shootgoal as fallback
 			self._minTaskTime = 0.5
 			self._taskStart = World.Time
-			self._taskClass = ShootGoal
+			if self._robot.pos.y < -World.Geometry.FieldHeightHalf then
+				-- very low probability of a linear shot to succeed
+				self._taskClass = ChipAway
+			else
+				self._taskClass = ShootGoal
+			end
 		end
 		if self._taskClass ~= self._lastTaskClass then
 			self._lastTaskClass = self._taskClass

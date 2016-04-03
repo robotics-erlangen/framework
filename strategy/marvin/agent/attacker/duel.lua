@@ -18,9 +18,12 @@ end
 
 function Duel:genericCheck()
 	-- if we receive the ball, try shootgoal or something
-	-- if the opponent is faster than us, duel won't save us anyways
+	-- this can be risky, so only do this in own field half
 	if Ball.receivesPass(self._robot) then
-		return false
+		debug.set("duel check receivesPass", Ball.receivesPass(self._robot))
+		if self._robot.pos.y > 0 then
+			return false
+		end
 	end
 
 	-- if the opponent controls the ball (hysteresis!), duel him

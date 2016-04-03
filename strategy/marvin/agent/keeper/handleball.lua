@@ -9,7 +9,7 @@ local World = require "../base/world"
 local Physics = require "observer/physics"
 local AggressiveKeeper = require "task/aggressivekeeper"
 local Keeper = require "task/keeper"
-local KeeperChipAway = require "task/keeperchipaway"
+local KeeperChipAway = require "task/chipaway"
 
 
 local SLOW_BALL = 0.5
