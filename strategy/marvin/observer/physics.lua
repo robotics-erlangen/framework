@@ -479,4 +479,148 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength)
 	return t_ball
 end
 
+--- calculates the time the robot takes to reach the ball (without caring about directions and stuff)
+-- @param robot Robot - the robot
+-- @param ball Ball - a ball-like structure
+-- @param howClose number - the intended distance between the centers of robot and ball; this defaults to robot.radius + ball.radius
+-- @return number - the estimated time
+-- @return Vector - the catch position
+-- @return bool - was robot.maxSpeed exceeded?
+local epsilon_t = 0.001
+Physics.getBallAsFastAsPossible(robot, ball, howClose)
+	howClose = howClose or robot.radius + ball.radius
+	if ball.pos:distanceTo(robot.pos) < howClose then
+		-- we already have the ball, but still some idiot called this function
+		return 0, robot.pos, false
+	end
+	--local t = 0
+	local a_max = math.abs(robot.acceleration and robot.acceleration.aSpeedupFMax or 1.0)
+	local ballStopTime = Physics.ballStopTime(ball)
+	if ballStopTime == 0 then
+		-- easy, such that no search over different times (of the ball position) must be done
+		local a = -0.25*a_max*a_max
+		local c = robot.speed:lengthSq() - a_max*howClose
+		local d = 2*(robot.pos - ball.pos):dot(robot.speed)
+		local e = (robot.pos - ball.pos):lengthSq() - howClose*howClose
+		local discr4 = 256*a*a*a*e*e*e - 128*a*a*c*c*e*e + 144*a*a*c*d*d*e - 27*a*a*d*d*d*d + 16*a*c*c*c*c*e - 4*a*c*c*c*d*d
+		if discr4 > 0 then
+			-- 4 real solutions
+			-- in this case at least the first solution must be at negative time
+			-- so directly start searching for the two inner solutions
+			-- if none of them is at positive time, search the fourth solution
+			local t2 = math.sqrt(c/((-6)*a))	-- 12at²+2c=0	=> t=sqrt(-c/6a)
+			local t1 = -t2						-- points of inflection as starting points for Newton search
+			while math.abs(t2 - t1) > 2*epsilon_t do	-- if the two solutions are too close together, they are vulnerable to instabilities
+				local t1New = t1 - (a*t1*t1*t1*t1 + c*t1*t1 + d*t1 + e)/(4*a*t1*t1*t1 + 2*c*t1 + d*t1)
+				local finished = (math.abs(t1 - t1New) < epsilon_t)
+				t1 = t1New
+				local t2New = t2 - (a*t2*t2*t2*t2 + c*t2*t2 + d*t2 + e)/(4*a*t2*t2*t2 + 2*c*t2 + d*t2)
+				finished = finished and (math.abs(t2 - t2New) < epsilon_t)
+				t2 = t2New
+				if finished then
+					break
+				end
+			end
+			if t1 > 0 then
+				-- accept solution 1
+				-- calculate position and whether robot.maxSpeed was exceeded
+				local circleCenter = robot.pos + robot.speed*t1
+				local accelDir = ball.pos - circleCenter
+				local robotEndPos = ball.pos - accelDir:setLength(howClose)
+				local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*t1	-- end speed is max speed
+				return t1, robotEndPos, (robotEndSpeed:lengthSq() > robot.maxSpeed*robot.maxSpeed)
+			else
+				if t2 > 0 then
+					-- accept solution 2
+					-- calculate position and whether robot.maxSpeed was exceeded
+					local circleCenter = robot.pos + robot.speed*t2
+					local accelDir = ball.pos - circleCenter
+					local robotEndPos = ball.pos - accelDir:setLength(howClose)
+					local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*t2	-- end speed is max speed
+					return t2, robotEndPos, (robotEndSpeed:lengthSq() > robot.maxSpeed*robot.maxSpeed)
+				else
+					-- search for outer solution
+					local lowerBound = t2 + epsilon_t
+					local f_low = a*lowerBound*lowerBound*lowerBound*lowerBound + c*lowerBound*lowerBound + d*lowerBound + e
+					local upperBound = lowerBound + 1
+					local f_upp = a*upperBound*upperBound*upperBound*upperBound + c*upperBound*upperBound + d*upperBound + e
+					-- search for suiting interval that includes the solution
+					while math.sign(f_low) == math.sign(f_upp) do
+						lowerBound = upperBound
+						f_low = f_upp
+						upperBound = upperBound + 1
+						f_upp = a*upperBound*upperBound*upperBound*upperBound + c*upperBound*upperBound + d*upperBound + e
+					end
+					-- find solution via bisection
+					while upperBound - lowerBound > epsilon_t do
+						local newBound = lowerBound + f_low*(upperBound - lowerBound)/(f_low + f_upp)
+						local f_new = a*newBound*newBound*newBound*newBound + c*newBound*newBound + d*newBound + e
+						if math.sign(f_new) == math.sign(f_low) then
+							lowerBound = newBound
+							f_low = f_new
+						else
+							upperBound = newBound
+							f_upp = f_new
+						end
+					end
+					-- calculate position and whether robot.maxSpeed was exceeded
+					local circleCenter = robot.pos + robot.speed*upperBound
+					local accelDir = ball.pos - circleCenter
+					local robotEndPos = ball.pos - accelDir:setLength(howClose)
+					local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*upperBound	-- end speed is max speed
+					return upperBound, robotEndPos, (robotEndSpeed:lengthSq() > robot.maxSpeed*robot.maxSpeed)
+				end
+			end
+		else
+			-- 2 real solutions (the case of 0 solutions cannot occur here) where exactly 1 of them is at positive time
+		end
+	end
+	local ballStopPos = Physics.ballAtTime(ball, ballStopTime).pos
+	local tr_ball = ballStopPos - ball.pos
+	local a = tr_ball:lengthSq()
+	local dist0 = ball.pos - robot.pos
+	local b0 = 2*tr_ball:dot(dist0)
+	local c0 = dist0:lengthSq() - R*R
+	local lambda01, lambda02 = math.solveSq(a, b0, c0)
+	if lambda01 then
+		if lambda01 <= 1 and lambda01 > 0 then
+			if lambda02 <= 1 and lambda02 > 0 then
+				-- case 2
+			else
+				-- case 3
+			end
+		else
+			if lambda02 <= 1 and lambda02 > 0 then
+				-- case 3
+			else
+				-- only possible in case 1
+			end
+		end
+	else
+		-- case 4
+	end
+	while ??? do
+		local R = 0.5*a_max*t*t + robot.radius
+		local otherStuff = tr_ball*t - dist0
+		--solve |ball.pos(lambda) - (x_0 + v_0*t)|² = (1/2*a_max*t² + robot.radius)² for lambda
+		local b = -2*tr_ball:dot(otherStuff)
+		local c = otherStuff:lengthSq() - R*R
+		local lambda1, lambda2 = math.solveSq(a, b, c)
+		if lambda1 then
+			local ballRollTime
+			if lambda1 >= 0 and lambda1 <= 1 then
+				local dist = lambda1*math.sqrt(a)
+				ballRollTime = Physics.ballRollTime(ball, dist)
+			end
+			if lambda2 then
+				
+			else
+			
+			end
+		else
+		
+		end
+	end
+end
+
 return Physics
