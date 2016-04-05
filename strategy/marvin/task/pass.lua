@@ -135,10 +135,6 @@ function Pass:run()
 		self._linearShoot = true
 	end
 
-	-- FIXME: This is just a workaround for chip passing too far at european open 2016
-	if not self._linearShoot then
-		self._shootPos = self._shootPos + (self._robot.pos-self._shootPos):setLength(0.2)
-	end
 	self:_shoot(self._shootPos, self._passSpeed, self._linearShoot, 3 * math.pi/180, dontShoot)
 	if self._robot.pos:distanceTo(World.Ball.pos) < MIN_BALL_DIST_FOR_PASS_MSG then
 		-- only send message when pass is imminent

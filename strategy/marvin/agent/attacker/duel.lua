@@ -19,8 +19,9 @@ end
 function Duel:genericCheck()
 	-- if we receive the ball, try shootgoal or something
 	-- this can be risky, so only do this in own field half
-	if Ball.receivesPass(self._robot) then
-		debug.set("duel check receivesPass", Ball.receivesPass(self._robot))
+	local receivesPass = Ball.receivesPass(self._robot)
+	debug.set("duel check receivesPass", receivesPass)
+	if receivesPass then
 		if self._robot.pos.y > 0 then
 			return false
 		end
