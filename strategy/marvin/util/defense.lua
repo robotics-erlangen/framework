@@ -6,32 +6,21 @@ local Field = require "../base/field"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Physics = require "observer/physics"
+local CenterBack = require "task/centerback"
 
 
 Defense.POSITION_PADDING = 0.02 -- safety distance
 Defense.PENALTY_LINE_DISTANCE = 0.35 -- prevent robots from crossing the penalty line
-Defense.MARKING_DISTANCE = 0.05 -- close enough
 
-local markingOrientations = {} -- for hysteresis
+Defense.MARKING_DISTANCE = 0.5
+
 local function manMarkPos(opponent)
-	local orientation = opponent and markingOrientations[opponent] or World.Ball
-	if World.Ball.pos.y < -World.Geometry.FieldHeight / 6 then
-		orientation = World.Geometry.FriendlyGoal
-	end
-	if World.Ball.pos.y > 0 then
-		orientation = World.Ball
-	end
-	if opponent ~= nil then
-		markingOrientations[opponent] = orientation
-	end
-	local orientationPos = (orientation == World.Ball) and orientation.pos or orientation
-
 	local dist = opponent.radius + Constants.maxRobotRadius + Defense.MARKING_DISTANCE
-	local targetPos = opponent.pos + (orientationPos - opponent.pos):setLength(dist)
+	local targetPos = opponent.pos + (World.Geometry.FriendlyGoal - opponent.pos):setLength(dist)
 
 	-- extend position with speed of opponent, parameters can be improved
 	local maxPosExtension = Constants.maxRobotRadius
-	local extensionTime = 0.1
+	local extensionTime = 0.2
 	local posExtension = math.min(maxPosExtension, opponent.speed:length()*extensionTime)
 	targetPos = targetPos + opponent.speed:copy():setLength(posExtension)
 
@@ -50,6 +39,13 @@ local function manMarkPos(opponent)
 end
 Defense.manMarkPos = Cache.forFrame(manMarkPos)
 
+local function centerBackPos(targetPos)
+	local dist = CenterBack.distanceToDefenseArea() + Constants.maxRobotRadius
+	local dir = World.Geometry.FriendlyGoal - targetPos
+	return Field.intersectRayDefenseArea(targetPos, dir, dist) or CenterBack.defaultPos
+end
+Defense.centerBackPos = Cache.forFrame(centerBackPos)
+
 -- if the ball will reach our defense area with at least that speed, stay defender
 local DANGEROUS_BALL_SPEED = 1.0
 function Defense.dangerousBallTowardsDefense()
@@ -65,5 +61,19 @@ function Defense.dangerousBallTowardsDefense()
 	end
 	return false
 end
+
+function Defense.getClosestRobot(robotlist, pos)
+	local minDist = math.huge
+	local minRobot = nil
+	for _, r in ipairs(robotlist) do
+		local dist = r.pos:distanceTo(pos)
+		if dist < minDist then
+			minDist = dist
+			minRobot = r
+		end
+	end
+	return minRobot, minDist
+end
+
 
 return Defense

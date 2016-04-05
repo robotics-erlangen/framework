@@ -109,15 +109,15 @@ function Interval.getClosestPoint(mergedIntervals, Q, D)
 			end
 		end
 	end
-	if nearestSector then
-		local spaceRight = math.abs(Q - nearestSector[2])
-		local spaceLeft = math.abs(Q - nearestSector[1])
-		if spaceRight >= D and spaceLeft >= D and (Q>nearestSector[1] and Q<nearestSector[2])then
+	if biggestSector then
+		local spaceRight = math.abs(Q - biggestSector[2])
+		local spaceLeft = math.abs(Q - biggestSector[1])
+		if spaceRight >= D and spaceLeft >= D and (Q>biggestSector[1] and Q<biggestSector[2])then
 			return Q
 		elseif spaceRight > spaceLeft then
-			return nearestSector[1] + D
+			return biggestSector[1] + D
 		else
-			return nearestSector[2] - D
+			return biggestSector[2] - D
 		end
 	else
 		return nil

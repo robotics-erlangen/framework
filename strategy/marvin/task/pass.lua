@@ -9,11 +9,15 @@ local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 
 
-function Pass:_init(targetRobot, shootPos)
+function Pass:_init(targetRobot, shootPos, passSpeed)
 	self._targetRobot = assert(targetRobot, "targetRobot is missing")
 	self._linearShoot = true
 	self._dontShootHysteresis = true
-	self._passSpeed = self._targetRobot.constants.passSpeed
+	if passSpeed then
+		self._passSpeed = passSpeed
+	else
+		self._passSpeed = self._targetRobot.constants.passSpeed
+	end
 	self._shootPos = shootPos
 end
 
@@ -26,9 +30,12 @@ function Pass:run()
 	local newSuggestion = self._inbox.passSuggestion()[self._targetRobot]
 	--a passSuggestion provides the position
 	if newSuggestion and newSuggestion.pos then
+		debug.set("passSuggestion 1", newSuggestion.pos)
 		self._shootPos = newSuggestion.pos
 	else  -- direct pass
 		-- shoot ball into robot dribbler
+		debug.set("passSuggestion 1", -1)
+
 		self._shootPos = self._targetRobot.pos + Vector.fromAngle(self._targetRobot.dir) * self._targetRobot.shootRadius
 	end
 
@@ -94,13 +101,24 @@ function Pass:run()
 		end
 ::continue::
 	end
-	
+
+	for _, robot in ipairs(World.FriendlyRobots) do
+		local pointOfImpact = robot.pos:nearestPosOnLine(World.Ball.pos, self._shootPos)
+		if robot ~= self._targetRobot and robot ~= self._robot and
+				robot.pos:distanceTo(pointOfImpact) < corridorWidthHalfInner then
+			vis.addCircle("t/pass: Friendly conflict", pointOfImpact, 0.1, vis.colors.blue, true)
+			self._linearShoot = false
+			linearShootHysteresisFlag = false
+			debug.set("friendly pass conflict", robot.id)
+		end
+	end
+
 	local dontShoot = false
 	if newSuggestion and newSuggestion.time then
 		--calculate the time the ball would take to the pos where the opponent robot is heading
 		local shootBall2 = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
 		local ballPosTime = Physics.ballRollTime(shootBall2, newSuggestion.pos:distanceTo(World.Ball.pos))
-		
+
 		local absBallTime = World.Time+ballPosTime
 		local lowerTime = newSuggestion.time+ADDITIONAL_TIME
 		if self._dontShootHysteresis then
@@ -116,11 +134,11 @@ function Pass:run()
 	if linearShootHysteresisFlag then
 		self._linearShoot = true
 	end
-	
+
 	self:_shoot(self._shootPos, self._passSpeed, self._linearShoot, 3 * math.pi/180, dontShoot)
 	if self._robot.pos:distanceTo(World.Ball.pos) < MIN_BALL_DIST_FOR_PASS_MSG then
 		-- only send message when pass is imminent
-		self._send.passPos(self._targetRobot, self._shootPos)
+		self._send.passPos("all", { robot = self._targetRobot, pos = self._shootPos })
 	end
 
 	debug.set("targetRobot", self._targetRobot.id)

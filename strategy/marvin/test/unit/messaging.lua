@@ -1,15 +1,23 @@
-local World = require "../base/world"
-local AgentAttacker = require "agent/attacker"
 local Messaging = require "control/messaging"
+local Robot = require "../base/robot"
+
+local function robotStub(id)
+	return Robot(id, true, { FieldWidthHalf = 1, BoundaryWidth = 0.2, FieldHeightHalf = 1 })
+end
+
+local function agentStub(robotStub)
+	local agent = {}
+	agent.robot = function(self) return robotStub end
+	return agent
+end
 
 test("Messaging", function()
-	assert_not_nil(World.FriendlyRobots[3], "this test needs 3 robots on the field")
 	local dummyMsg = 2
-	local agent1 = AgentAttacker(World.FriendlyRobots[1])
+	local agent1 = agentStub(robotStub(1))
 	local agent1send, agent1inbox = Messaging.registerAgent(agent1)
-	local agent2 = AgentAttacker(World.FriendlyRobots[2])
-	local agent2send, agent2inbox =Messaging.registerAgent(agent2)
-	local agent3 = AgentAttacker(World.FriendlyRobots[3])
+	local agent2 = agentStub(robotStub(2))
+	local agent2send, agent2inbox = Messaging.registerAgent(agent2)
+	local agent3 = agentStub(robotStub(3))
 	local agent3send, agent3inbox = Messaging.registerAgent(agent3)
 	local trainerSend, trainerInbox = Messaging.registerTrainer()
 	assert_error(Messaging.registerTrainer, "trainer may only registered once")
@@ -29,7 +37,7 @@ test("Messaging", function()
 	--agent1send(agent2:robot(), "moveDest", Vector(0,0))
 	agent3send.moveDest("all", Vector(0,0))
 	Messaging.deliverMessages()
-	agent2 = AgentAttacker(World.FriendlyRobots[2])
+	agent2 = agentStub(agent2:robot())
 	agent2send, agent2inbox = Messaging.registerAgent(agent2)
 	assert_nil(agent2inbox.moveDest()[agent1:robot()],
 			"new agents shall get no messages which were sent to its robot when they had the old agent")

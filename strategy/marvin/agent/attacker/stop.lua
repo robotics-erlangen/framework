@@ -8,15 +8,16 @@ local StopAttack = require "task/stopattack"
 local PlaceBall = require "task/placeball"
 
 
+function Stop:_stop()
+	self._placeTimer = nil
+end
+
 function Stop:check()
 	return Referee.isStopState() and self._inbox.mainAttacker().trainer == self._robot
 end
 
 function Stop:_updateTask()
-	if World.RefereeState == "BallPlacementOffensive" and -- ball not in position yet
-			(World.Ball.pos:distanceTo(World.BallPlacementPos) > 0.1 or
-		 	World.Ball.speed:length() > 0.1)
-	then
+	if World.RefereeState == "BallPlacementOffensive" then
 		return PlaceBall
 	else
 		return StopAttack

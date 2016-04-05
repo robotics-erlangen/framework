@@ -5,6 +5,7 @@ local debug = require "../base/debug"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Ball = require "observer/ball"
+local Robot = require "observer/robot"
 
 
 local cooldown = 3
@@ -15,7 +16,6 @@ function ApplyForMainattacker:_stop()
 end
 
 function ApplyForMainattacker:check()
-	debug.set("ma application started", true)
 	if World.Time - self._lastShot < cooldown then
 		for _, r in ipairs(World.Robots) do
 			if r ~= self._robot and r.pos:distanceTo(World.Ball.pos) < World.Ball.radius + r.radius + 0.02 then
@@ -26,7 +26,7 @@ function ApplyForMainattacker:check()
 	end
 
 	-- cancel freekick
-	if self._freekickFlag and self._robot == Ball.friendlyBallOwner()
+	if self._freekickFlag and Robot.hadBall(self._robot, 0.5)
 			and not Referee.isFriendlyFreeKickState() then
 		self._lastShot = World.Time
 		self._freekickFlag = false
@@ -35,7 +35,6 @@ function ApplyForMainattacker:check()
 	self._freekickFlag = Referee.isFriendlyFreeKickState()
 
 	if not Referee.isOpponentPenaltyState() then
-		debug.set("ma application tried", true)
 		self:_applyForMainAttacker()
 	end
 	return false

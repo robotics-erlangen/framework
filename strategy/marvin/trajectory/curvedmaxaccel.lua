@@ -52,19 +52,23 @@ function CurvedMaxAccel:_getPath(targetPos)
 	return waypointsVector
 end
 
-local function _calculateCurveSpeed(maxSpeed, accelLimit, leadTime, angleTan, x)
-	-- calculate a circle radius and speed on which the robot may drive while respecting its accelLimit
-	local speed = accelLimit * leadTime * angleTan
-	assert(x ~= 0, "invalid value for x")
-	if x < speed * leadTime then -- too little space available
-		local radius = x * angleTan -- possible radius at start
-		speed = math.sqrt(radius * accelLimit) -- speed using centripetal force
-		leadTime = x / speed -- update lead time
+-- preprocess the waypoints to ensure that the first corner is more or less
+-- in the direction the robot is currently moving into
+local function _preprocessPath(waypoints, maxError, robotPos, robotSpeed)
+	-- move the next waypoint inwards if we will miss it
+	local startDir = waypoints[2] - waypoints[1]
+	if startDir:dot(robotSpeed) > 0 and robotSpeed:length() > 0.1 and #waypoints >= 3 then
+		local perpendicular = robotSpeed:perpendicular():setLength(1)
+		local cornerPos, lambda1, lambda2 = geom.intersectLineLine(robotPos, robotSpeed, waypoints[2], perpendicular)
+		local angleDiff = startDir:angleDiff(waypoints[3] - waypoints[2])
+		-- only move the cornerPos inwards
+		if cornerPos and lambda1 > 0 and angleDiff * lambda2 < 0 then
+			-- limit the movement a bit
+			local magicScale = math.sqrt(2)/2
+			waypoints[2] = waypoints[2] + perpendicular * (math.bound(-maxError, lambda2, maxError) * magicScale)
+			-- vis.addCircleRaw("waypoints", waypoints[2], 0.03, vis.colors.green)
+		end
 	end
-	-- limit speed
-	speed = math.min(speed, maxSpeed)
-	local startDist = speed * leadTime
-	return speed, startDist, leadTime
 end
 
 -- create a list of segments with speedLimits at their start and end
@@ -73,7 +77,7 @@ end
 -- to drive on an approximatelly circular trajectory, the calculations are done using
 -- the osculating circle and the path curvature. Then limit the speed in corners
 -- such that the centripetal force doesn't exceed the possible sidewards acceleration
-local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, robotPos, robotSpeed, endSpeed)
+local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeed)
 	-- ignore angle between current robot speed and move destination
 	-- this only leads to problems if the path is changing fast
 	local lastPathDir = waypoints[2] - waypoints[1]
@@ -84,13 +88,7 @@ local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxEr
 	-- {startSpeed, endSpeed, distance, linearSpeedChange}
  	-- if not linear, then startSpeed is the maximum allowed speed, brakes down to endSpeed as late as possible
  	-- !!! for every entry except the first: distance ~= 0 !!!
- 	-- calculate robot speed in target direction
- 	-- unexpected sidewards speed is handled inside the handle function
- 	-- handling it here doesn't work:
- 	-- adding sidewards speed -> the robot may even accelerate
- 	-- subtracting sidewards speed -> the robot seem to slow thus braking starts too late
-	local maxSpeedProfile = { {lastPathDir:copy():setLength(1):dot(robotSpeed), maxSpeed, 0} }
-	local firstLeadTime -- distance of the point to drive towards [ in seconds ]
+	local maxSpeedProfile = { {startSpeed, maxSpeed, 0} }
 
 	-- to calculate an angle two line segments are necessary
 	for i = 3, #waypoints do
@@ -106,35 +104,36 @@ local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxEr
 			end
 			-- no curve -> new path segment can be used completely
 			xRemaining = newPathDir:length()
-			if not firstLeadTime then
-				firstLeadTime = xRemaining / maxSpeed
-			end
 		else
 			-- TODO use corridor width for maxError calculation
-			local angleTan = math.tan((math.pi - angleDiff)/2) -- used to calculate the osculating circle radius
-			-- move direction is position on the path in leadTime from now
-			-- this guarantees a maximum deviation from the waypoints of maxError
-			-- calculate leadTime based on the maximum distance between the corner and the osculating circle
-			local leadTime = math.sqrt(maxError / (accelLimit*angleTan*(math.sqrt(1+angleTan*angleTan)-angleTan)))
+			local angleSin = math.sin((math.pi - angleDiff)/2)
+			local angleTan = math.tan((math.pi - angleDiff)/2)
+			local radius = maxError * angleSin / (1 - angleSin) -- osculating circle radius
+			local maxRadius = maxSpeed * maxSpeed / accelLimit -- no speed benefit from larger radius
+			radius = math.min(radius, maxRadius)
 
-			-- calculate possible speed at circle start
-			local maxStartSpeed, startDist, startLeadTime = _calculateCurveSpeed(maxSpeed, accelLimit, leadTime, angleTan, xRemaining)
+			-- possible speed at circle start
+			local possibleStartRadius = xRemaining * angleTan -- limit circle radius to available space
+			local startRadius = math.min(radius, possibleStartRadius)
+			local maxStartSpeed = math.sqrt(startRadius * accelLimit)
 
+			-- possible speed at circle end
 			-- TODO improve switch point calculation
-			-- calculate possible speed at circle end
-			local xMaxNext = newPathDir:length() / 2
-			local maxEndSpeed, endDist, endLeadTime = _calculateCurveSpeed(maxSpeed, accelLimit, leadTime, angleTan, xMaxNext)
-
-			-- keep leadTime of start segment
-			if not firstLeadTime then
-				firstLeadTime = endLeadTime
-			end
+			local xMaxNext = newPathDir:length() * 0.5
+			local possibleEndRadius = xMaxNext * angleTan -- limit circle radius to available space
+			local endRadius = math.min(radius, possibleEndRadius)
+			local maxEndSpeed = math.sqrt(endRadius * accelLimit)
 
 			-- time and speed calculation
-			local startRadius = startDist * angleTan
-			local endRadius = endDist * angleTan
+			local startDist = startRadius * (1 / angleTan)
+			local endDist = endRadius * (1 / angleTan)
+			-- ensure that startSpeed is still usable when the robot has nearly reached the corner
+			if i == 3 and startDist < endDist then
+				maxStartSpeed = maxEndSpeed
+				startDist = endDist
+			end
 			-- just another estimation
-			local actualDist = angleDiff * (endRadius + startRadius) / 2
+			local actualDist = angleDiff * (startRadius + endRadius) * 0.5
 			if xRemaining > startDist then
 				table.insert(maxSpeedProfile, {maxSpeed, maxSpeed, xRemaining - startDist}) -- straight line segment
 				-- vis.addPathRaw("waypoints"..tostring(i), {prev - lastPathDir:copy():setLength(xRemaining), prev - lastPathDir:copy():setLength(startDist)}, vis.colors.blue)
@@ -152,12 +151,8 @@ local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxEr
 		table.insert(maxSpeedProfile, {maxSpeed, endSpeed, xRemaining}) -- end segment
 		--vis.addPathRaw("waypoints".."End", {prev - lastPathDir:copy():setLength(xRemaining), prev}, vis.colors.blue)
 	end
-	if not firstLeadTime then
-		-- just target the end point
-		firstLeadTime = xRemaining / robotSpeed:length()
-	end
 
-	return maxSpeedProfile, firstLeadTime
+	return maxSpeedProfile
 end
 
 -- brake must be a negative value
@@ -292,7 +287,6 @@ end
 local function _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake)
 	local speedProfile = { {0, maxSpeedProfile[1][1]} } -- begin with start speed
 	local startSpeed = speedProfile[1][2]
-	local leadTimeOffset = 0
 	-- handle negative start speed by braking and moving back
 	if startSpeed < 0 then
 		local brakeTime = startSpeed / brake
@@ -356,67 +350,6 @@ local function _decreaseDistance(speedProfile, cutoffDistance)
 	end
 	table.truncate(speedProfile, cutoffAfter)
 	return currentDistance
-end
-
-local function _findMoveTarget(waypoints, speedProfile, leadTime)
-	-- use endPos as fallback, ignore point added for endspeed
-	local moveTarget = waypoints[#waypoints-1]
-
-	local zeroDistance = 0
-	local timeOffset
-	for i = 1, #speedProfile - 1 do
-		local partLen = (speedProfile[i+1][2] + speedProfile[i][2]) / 2 * (speedProfile[i+1][1] - speedProfile[i][1])
-		if zeroDistance <= 0 and zeroDistance + partLen >= 0 then
-			local tdelta = speedProfile[i+1][1] - speedProfile[i][1]
-			local tpart, tpart2 = math.solveSq((speedProfile[i+1][2]-speedProfile[i][2])/(2*tdelta), speedProfile[i][2], zeroDistance)
-			-- may fail due to numerical precision problems
-			if tpart2 ~= math.huge then
-				timeOffset = speedProfile[i][1] + tpart
-				break
-			end
-		end
-		zeroDistance = zeroDistance + partLen
-	end
-
-	--debug.set("timeOffset", timeOffset)
-	if not timeOffset then
-		return moveTarget
-	end
-
-	-- calculate the travelled distance after leadTime
-	local distance = 0
-	local onSpeedProfile = false -- false if speedProfile is too short
-	leadTime = leadTime + timeOffset
-	for i = 1, #speedProfile - 1 do
-		if speedProfile[i][1] <= leadTime and leadTime <= speedProfile[i+1][1] then
-			local accel = (speedProfile[i+1][2] - speedProfile[i][2]) / (speedProfile[i+1][1] - speedProfile[i][1])
-			local endSpeed = speedProfile[i][2] + accel * (leadTime - speedProfile[i][1])
-			distance = distance + (speedProfile[i][2] + endSpeed) / 2 * (leadTime - speedProfile[i][1])
-			assert(distance >= 0, "invalid distance")
-			onSpeedProfile = true
-			break
-		else
-			distance = distance + (speedProfile[i+1][2] + speedProfile[i][2]) / 2 * (speedProfile[i+1][1] - speedProfile[i][1])
-		end
-	end
-
-	-- find position on waypoints
-	if not onSpeedProfile then
-		return moveTarget
-	end
-	local curDist = 0
-	for i = 1, #waypoints - 1 do
-		local segment = waypoints[i+1] - waypoints[i]
-		local segLen = segment:length()
-		if curDist <= distance and distance < curDist + segLen then
-			moveTarget = waypoints[i] + segment:setLength(distance - curDist)
-			curDist = distance
-			break
-		else
-			curDist = curDist + segLen
-		end
-	end
-	return moveTarget
 end
 
 local function _injectExponentialFalloff(speedProfile, exponentialTime, exponentialError, brake, endSpeedLen)
@@ -552,15 +485,57 @@ local function _calculateRotation(currentDir, currentOmega, targetDir, accelerat
 	return outSpeed, outAccel
 end
 
+local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile, robotSpeed, accelLimit, sidewardsErrorFactor)
+	local speed = speedProfile[1][2]
+	local accel = (speedProfile[2][2] - speedProfile[1][2]) / (speedProfile[2][1] - speedProfile[1][1])
+	-- if target is reached
+	if speedProfile[2][1] == speedProfile[1][1] then
+		accel = 0
+	end
 
-function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, preciseMovement)
+	-- workaround for unwanted controller behavior; account for numerical precision errors
+	if robotSpeed:length() < speed - 0.001 and accel < 0 then
+		accel = 0 -- too slow, don't brake to allow the robot to get up to speed
+	end
+
+	-- don't drive backwards, just brake as fast as possible
+	speed = math.max(0, speed)
+	local moveDir = waypoints[2] - waypoints[1]
+	local speedVector = moveDir:copy():setLength(speed)
+	local accelVector = moveDir:copy():setLength(accel)
+
+	plot.addPlot(tostring(robotId) .. ".speed", speed)
+	--debug.set("speed", speedVector)
+	--debug.set("accel", accelVector)
+
+	if speedVector:length() >= 0.0001 then
+		-- check if the robot is on a curve segment
+		if #maxSpeedProfile >= 2 and maxSpeedProfile[2][4] then
+			local forwardDir = moveDir:copy():normalize():dot(robotSpeed)
+			-- add acceleration towards the curve center, reduce accerlation if the robot is slower than expected
+			local angle = (waypoints[2] - waypoints[1]):angleDiff(waypoints[3] - waypoints[2])
+			local scale = math.bound(0.02, math.max(forwardDir, speed) / math.min(maxSpeedProfile[2][1], maxSpeedProfile[2][2]), 1)
+			accelVector = accelVector - moveDir:perpendicular():setLength(math.sign(angle) * accelLimit * scale * scale)
+		end
+		-- calculate how fast the robot is moving perpendicular to the speedVector
+		-- add acceleration in the opposite direction
+		local sidewardSpeed = moveDir:perpendicular():normalize()
+		sidewardSpeed:setLength(-sidewardSpeed:dot(robotSpeed) * sidewardsErrorFactor)
+		accelVector = accelVector + sidewardSpeed
+	end
+
+	return speedVector, accelVector
+end
+
+
+function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelScale)
 	if targetPos == nil then
 		error("targetPos is nil")
 	end
 
 	-- configuration
 	local maxError = 0.03 -- maxError in meters when driving a curve
-	local accelerationFactor = preciseMovement and 0.7 or 0.9 -- factor for max forward speedup and braking
+	local accelerationFactor = (accelScale or 1.0) * 0.9 -- factor for max forward speedup and braking
 	local exponentialTime = 0.2 -- timespan in seconds replace with exponential falloff
 	local exponentialError = 0.05 -- relative
 	--TODO exponentialError by distance?
@@ -571,8 +546,9 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, precise
 
 	--insert default values
 	maxSpeed = maxSpeed or self._robot.maxSpeed
-	if World.RefereeState == "Stop" then
-		maxSpeed = World.IsLargeField and 1.5 or 1
+	if World.RefereeState == "Stop" or World.RefereeState == "BallPlacementDefensive"
+			or World.RefereeState == "BallPlacementOffensive" then
+		maxSpeed = math.min(maxSpeed, World.IsLargeField and 1.5 or 1)
 	end
 	endSpeed = endSpeed or Vector(0, 0)
 
@@ -608,65 +584,38 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, precise
 		return {spline = spline}, targetPos, 0
 	end
 
+	-- no endspeed if the target can't be reached because it's in an obstacle
 	if waypoints[#waypoints]:distanceTo(targetPos) > 0.02 then
 		endSpeed = Vector(0, 0)
 	end
 
 	-- get acceleration values
 	-- maximum sidewards acceleration
-	local accelLimit = math.abs(self._robot.acceleration and self._robot.acceleration.aSpeedupSMax or 1.0)
+	local accelLimit = math.abs(self._robot.acceleration.aSpeedupSMax)
 	-- forward acceleration and deceleration
-	local accelerate = math.abs(self._robot.acceleration
-			and self._robot.acceleration.aSpeedupFMax or 1.0) * accelerationFactor
-	local brake = -math.abs(self._robot.acceleration
-			and self._robot.acceleration.aBrakeFMax or 1.0) * accelerationFactor
+	local accelerate = math.abs(self._robot.acceleration.aSpeedupFMax) * accelerationFactor
+	local brake = -math.abs(self._robot.acceleration.aBrakeFMax) * accelerationFactor
 
-	local endPathDir = (waypoints[#waypoints] - waypoints[#waypoints - 1]):normalize()
-	local endSpeedLen = math.max(0, endPathDir:dot(endSpeed))
+	-- smooth first corner
+	_preprocessPath(waypoints, maxError, robotPos, robotSpeed)
+
+	-- calculate robot speed in target direction
+ 	-- unexpected sidewards speed is handled in _calculateSpeed
+ 	-- handling it here doesn't work as this adds a phantom speed
+	local startSpeed = (waypoints[2] - waypoints[1]):normalize():dot(robotSpeed)
+	-- handle endSpeed
+	local endSpeedLen = math.max(0, (waypoints[#waypoints] - waypoints[#waypoints - 1]):normalize():dot(endSpeed))
 	-- calculate speed limits for curve segments based on sidewards acceleration limits while driving curves
-	local maxSpeedProfile, leadTime = _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, robotPos, robotSpeed, endSpeedLen)
-	leadTime = math.max(0.01, leadTime)
+	local maxSpeedProfile = _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeedLen)
 	--debug.set("maxSpeedProfile", maxSpeedProfile)
 	-- convert to actual speed curve
 	local speedProfile = _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake)
 	--debug.set("speedProfile", speedProfile)
-	-- insert endSpeed with required length as last path segment to allow simple search for the leadPoint
-	table.insert(waypoints, targetPos + endSpeed:copy():setLength(leadTime))
-	-- find move target or use endPos as fallback
-	local moveTarget = _findMoveTarget(waypoints, speedProfile, leadTime)
-	vis.addCircleRaw("waypoints", moveTarget, 0.05, vis.colors.pink)
 
 	_injectExponentialFalloff(speedProfile, exponentialTime, exponentialError, brake, endSpeedLen)
 	--debug.set("speedProfile2", speedProfile)
-	--debug.set("leadTime", leadTime)
 
-	local speed = speedProfile[1][2]
-	local accel = (speedProfile[2][2] - speedProfile[1][2]) / (speedProfile[2][1] - speedProfile[1][1])
-	-- if target is reached
-	if speedProfile[2][1] == speedProfile[1][1] then
-		accel = 0
-	end
-
-	-- workaround for unwanted controller behavior; account for numerical precision errors
-	if robotSpeed:length() < speed - 0.001 and accel < 0 then
-		accel = 0 -- too slow, don't brake to allow the robot to get up to speed
-	end
-
-	-- don't drive backwards, just brake as fast as possible
-	speed = math.max(0, speed)
-	local speedVector = (moveTarget - robotPos):setLength(speed)
-	local accelVector = (moveTarget - robotPos):setLength(accel)
-	plot.addPlot(tostring(self._robot.id) .. ".speed", speed)
-	--debug.set("speed", speedVector)
-	--debug.set("accel", accelVector)
-
-	if speedVector:length() >= 0.0001 then
-		-- calculate how fast the robot is moving perpendicular to the speedVector
-		-- add acceleration in the opposite direction
-		local sidewardSpeed = speedVector:perpendicular()
-		sidewardSpeed:setLength(-sidewardSpeed:dot(robotSpeed) / speedVector:length() * sidewardsErrorFactor)
-		accelVector = accelVector + sidewardSpeed
-	end
+	local speedVector, accelVector = _calculateSpeed(self._robot.id, waypoints, maxSpeedProfile, speedProfile, robotSpeed, accelLimit, sidewardsErrorFactor)
 
 	local spline = { {t_start = 0, t_end = math.huge,
 		x = { a0 = robotPos.x, a1 = speedVector.x, a2 = accelVector.x / 2, a3 = 0 },

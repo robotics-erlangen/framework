@@ -8,34 +8,23 @@ local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
 local Rating = require "util/rating"
 
-
 local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
+local MAX_PASS_MSG_DELAY = 0.7
 
 function Shoot:_stop()
 	self._taskClass = nil
 	self._lastTaskClass = nil
 	self._taskStart = World.Time
 	self._minTaskTime = 0
-	self._passStart = 0
-	self._isCatchingPass = false
 end
 
 function Shoot:check()
-	if Ball.isShot() then
-		for _,_ in pairs(self._inbox.passPos()) do
-			self._isCatchingPass = true
-			self._passStart = World.Time
-			break
-		end
-	end
-	if World.Time - self._passStart > 0.1 and not Ball.receivesPass(self._robot, true) then
-		self._isCatchingPass = false
-	end
 	local mainAttackerFlag = self._inbox.mainAttacker().trainer == self._robot
 	self._forceKeepingInPool = mainAttackerFlag
-	if self._isCatchingPass then
-		self._forceKeepingInPool = true
-		self._send.exclusiveRole("trainer", {mainAttacker = 2})
+	debug.set("pass time diff", World.Time-self._agent.lastIncomingPassTime)
+	if mainAttackerFlag and World.Time-self._agent.lastIncomingPassTime < MAX_PASS_MSG_DELAY then
+		self:_applyForMainAttacker(nil, nil, 2)
+		debug.set("catching pass", true)
 	end
 
 	return mainAttackerFlag

@@ -152,7 +152,7 @@ end
 -- @param other Vector
 -- @return number - angle in interval [-pi, +pi]
 function vector_mt:angleDiff(other)
-	if self.x == 0 and self.y == 0 or other.x == 0 and other.y == 0 then
+	if self:lengthSq() == 0 or other:lengthSq() == 0 then
 		return 0
 	end
 	return geom.getAngleDiff(self:angle(), other:angle())
@@ -162,10 +162,12 @@ end
 -- @param other Vector
 -- @return number - absolute angle in interval [0, +pi]
 function vector_mt:absoluteAngleDiff(other)
-	if self:length() == 0 or other:length() == 0 then
+	local selfLength = self:lengthSq()
+	local otherLength = other:lengthSq()
+	if selfLength == 0 or otherLength == 0 then
 		return 0
 	end
-	return math.acos(math.bound(-1, self:dot(other) / (self:length() * other:length()), 1))
+	return math.acos(math.bound(-1, self:dot(other) / (sqrt(selfLength) * sqrt(otherLength)), 1))
 end
 
 --- Perpendicular to current vector.

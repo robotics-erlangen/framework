@@ -1,149 +1,194 @@
 local Defense = {}
 
+local Constants = require "../base/constants"
 local debug = require "../base/debug"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
 local World = require "../base/world"
+
+local CenterBack = require "task/centerback"
+local Robot = require "observer/robot"
 local UtilDefense = require "util/defense"
 
 
-local MIN_OPP_DIST_TO_BALL_FOR_MARKING = 0.4
-
 function Defense:init()
-    self._oppsToMark = {}
+	self._manmarkTargets           = {} -- opponent -> rating (= how dangerous this robot is)
+	self._unassignedManmarkTargets = {} -- opponent -> rating
+	self._manmarkAssignments       = {} -- opponent -> defender
+	self._ballInOurHalf = true
+
+	local countersidePosLeft  = Vector(-World.Geometry.FieldWidthHalf, 0)
+	local countersidePosRight = Vector( World.Geometry.FieldWidthHalf, 0)
+	self._countersideTargetLeft  = {pos = UtilDefense.centerBackPos(countersidePosLeft )}
+	self._countersideTargetRight = {pos = UtilDefense.centerBackPos(countersidePosRight)}
+	self._ballIsLeft = true
 end
 
-local function isVisible(robot)
-	return robot.isVisible
+function Defense:_updateManmarkTargets()
+	local closestOppToBall, closestOppToBallDist =
+		UtilDefense.getClosestRobot(World.OpponentRobots, World.Ball.pos)
+
+	local newManmarkTargets = {}
+	for _, robot in ipairs(World.OpponentRobots) do
+		local alreadyTargeted = self._manmarkTargets[robot] ~= nil
+
+		-- consider the direction of the opponents
+		local extrapolatedYPos = robot.pos.y + robot.speed.y * 0.5
+
+		-- don't follow the opponents into their own field half
+		local maxYPos = alreadyTargeted	and World.Geometry.FieldHeight / 6 or 0
+		if extrapolatedYPos > maxYPos then
+			goto continue
+		end
+
+		-- don't mark the opponent who is the closest to the ball
+		if robot == closestOppToBall and closestOppToBallDist < 0.4 then
+			goto continue
+		end
+
+		-- if in STOP, don't mark opponents who are close to the stop circle
+		local stopCircleMarkRadius = alreadyTargeted and 0.6 or 0.75
+		if Referee.isStopState() and robot.pos:distanceTo(World.Ball.pos) < stopCircleMarkRadius then
+			goto continue
+		end
+
+		-- if the robot just shot the ball
+		if Robot.hadBall(robot, 1.5) then
+			goto continue
+		end
+
+		-- otherwise, target the opponent
+		local rating = (World.Geometry.FieldHeightHalf - extrapolatedYPos)
+			/ World.Geometry.FieldHeight
+
+		newManmarkTargets[robot] = rating
+::continue::
+	end
+	self._manmarkTargets = newManmarkTargets
+	self._unassignedManmarkTargets = table.copy(self._manmarkTargets)
 end
-local function distToFriendlyGoal(r1, r2)
-	return r1.pos:distanceTo(World.Geometry.FriendlyGoal)
-		< r2.pos:distanceTo(World.Geometry.FriendlyGoal)
-end
-local function nearestOppToBall()
-	local ballPos = World.Ball.pos
-	local nearestOppToBall
-	local minDist = math.huge
-	for _, opp in ipairs(World.OpponentRobots) do
-		local dist = opp.pos:distanceTo(ballPos)
-		if dist < minDist and dist < MIN_OPP_DIST_TO_BALL_FOR_MARKING then
-			nearestOppToBall = opp
-			minDist = dist
+
+function Defense:_nextManmarkAssignment(defenders)
+	local bestRating = -math.huge
+	local bestTarget = nil
+	local bestDefender = nil
+
+	if #defenders == 0 then
+		return
+	end
+
+	-- search for the opponent with the highest rating
+	-- if a defender marked it in the previous frame, add a bonus to the rating and assign
+	for target, rating in pairs(self._unassignedManmarkTargets) do
+		local prevManmark = self._manmarkAssignments[target]
+		local assignedDefender = nil
+		if prevManmark then
+			for _,r in ipairs(defenders) do
+				if r == prevManmark then
+					rating = rating + 0.2
+					assignedDefender = r
+					break
+				end
+			end
+		end
+		if rating > bestRating then
+			bestRating = rating
+			bestTarget = target
 		end
 	end
-	return nearestOppToBall
+
+	-- assign (if not already done)
+	if bestTarget then
+		if not bestDefender then
+			local markPos = UtilDefense.manMarkPos(bestTarget)
+			bestDefender = UtilDefense.getClosestRobot(defenders, markPos)
+		end
+		self._unassignedManmarkTargets[bestTarget] = nil
+		self._manmarkAssignments[bestTarget] = bestDefender
+	end
+	return bestTarget, bestDefender
 end
 
--- these targets are required for the centerback task to compute a position
-local countersideTargetLeft = { pos = Vector(-World.Geometry.FieldWidthHalf, 0) }
-local countersideTargetRight = { pos = Vector(World.Geometry.FieldWidthHalf, 0) }
-function Defense:_chooseManMarkAndCenterBacks()
+function Defense:_assignDefenders()
     if Referee.isKickoffState() or Referee.isNonGameStage() then
         return
     end
 
-	self._oppsToMark = table.filter(self._oppsToMark, isVisible)
-	local nearestOppToBall = nearestOppToBall()
-	for _, robot in ipairs(World.OpponentRobots) do
-		local alreadyTargeted = table.contains(self._oppsToMark, robot)
-		local maxYPos = alreadyTargeted
-			and World.Geometry.FieldHeight / 4 or World.Geometry.FieldHeight / 6
-		local minBallDist = alreadyTargeted	and 0.6 or 0.75
-		local shouldMark = robot ~= nearestOppToBall and robot.pos.y < maxYPos and
-			(not Referee.isStopState() or robot.pos:distanceTo(World.Ball.pos) > minBallDist)
-		if alreadyTargeted and not shouldMark then
-			table.removeValue(self._oppsToMark, robot)
-		elseif not alreadyTargeted and shouldMark then
-			table.insert(self._oppsToMark, robot)
+	local defenders = table.keys(self._inbox.defenderFlag())
+
+	self._ballIsLeft = self._ballIsLeft and World.Ball.pos.x < 0.5 or World.Ball.pos.x < -0.5
+
+	-- in stop states: assign a counterside centerback
+	local needCountersideCB = Referee.isStopState()
+	if needCountersideCB then
+		local countersideTarget = self._ballIsLeft
+			and self._countersideTargetRight or self._countersideTargetLeft
+		local countersideCB, d = UtilDefense.getClosestRobot(defenders, countersideTarget.pos)
+		if countersideCB then
+			table.removeValue(defenders, countersideCB)
+			self._send.roleAssignment(countersideCB,
+				{name = "CenterBack", params = countersideTarget})
 		end
 	end
-	table.sort(self._oppsToMark, distToFriendlyGoal)
 
-	local unassigned = table.keys(self._inbox.defenderFlag())
-    local oppOnOtherSideThanBall = false
-    local ballPosX = World.Ball.pos.x
-    for _, robot in ipairs(World.OpponentRobots) do
-        if robot.pos.x * ballPosX < 0 and robot ~= World.OpponentKeeper
-                and math.abs(robot.pos.x) > 0.75 then
-            oppOnOtherSideThanBall = true
-        end
-    end
-	local needCountersideCB = Referee.isStopState() and World.Ball.pos.y < 0
-		and #unassigned - #self._oppsToMark >= 2 and oppOnOtherSideThanBall
-	-- cbs are "pure" if they defend the ball and are close to the defense area
-	local pureCenterBacks = {}
-	local pureCenterBacksArray = {}
-	-- pure centerbacks are treated as unassigned until there is only 1 left
-	local markedOpps = {}
-	local defaultCenterBack, countersideCenterBack
-	for robot, target in pairs(self._inbox.centerbackTarget()) do
-		if target == World.Ball and
-				Field.distanceToFriendlyDefenseArea(robot.pos, robot.radius) < 4*robot.radius then
-			table.insert(pureCenterBacksArray, robot)
-			pureCenterBacks[robot] = true
-		elseif (target == countersideTargetLeft or target == countersideTargetRight) and needCountersideCB then
-			countersideCenterBack = robot
-			table.removeValue(unassigned, countersideCenterBack)
-		elseif table.contains(self._oppsToMark, target) then
-			markedOpps[target] = robot -- respect choice of task
-			table.removeValue(unassigned, robot)
+	-- not in opponent corner attacks: assign a ball centerback
+	local needDefaultCB = not Referee.isDefensiveCornerKick()
+	if needDefaultCB then
+		local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
+		if defaultCB then
+			table.removeValue(defenders, defaultCB)
+			self._send.roleAssignment(defaultCB,
+				{name = "CenterBack", params = World.Ball})
 		end
 	end
-	debug.set("oppsToMark", self._oppsToMark)
 
-	if #pureCenterBacksArray == 1 then
-		defaultCenterBack = pureCenterBacksArray[1]
-		table.removeValue(unassigned, defaultCenterBack)
-	elseif #pureCenterBacksArray == 0 then
-		table.sort(unassigned, distToFriendlyGoal)
-		defaultCenterBack = table.remove(unassigned, 1)
+	-- update the list of manmarkTargets
+	self:_updateManmarkTargets()
+
+	-- assign the first ManMark
+	local manmarkTarget, manmarker = self:_nextManmarkAssignment(defenders)
+	if manmarkTarget and manmarker then
+		table.removeValue(defenders, manmarker)
+		self._send.roleAssignment(manmarker,
+			{name = "ManMark", params = manmarkTarget})
 	end
-	for _, robot in ipairs(self._oppsToMark) do
-		if #unassigned == 0 then
+
+	-- update ball in our half (hysteresis)
+	self._ballInOurHalf = self._ballInOurHalf and World.Ball.pos.y < 1 or World.Ball.pos.y < -1
+
+	-- ball in our half: assign a second default centerback
+	local needSecondDefaultCB = needDefaultCB and self._ballInOurHalf
+	if needSecondDefaultCB then
+		local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
+		if defaultCB then
+			table.removeValue(defenders, defaultCB)
+			self._send.roleAssignment(defaultCB,
+				{name = "CenterBack", params = World.Ball})
+		end
+	end
+
+	-- assign the remaining manmarks
+	while true do
+		local manmarkTarget, manmarker = self:_nextManmarkAssignment(defenders)
+		if not manmarkTarget or not manmarker then
 			break
 		end
-		if not markedOpps[robot] then
-			local markPos = UtilDefense.manMarkPos(robot)
-			table.sort(unassigned, function(r1, r2)
-				return r1.pos:distanceTo(markPos) < r2.pos:distanceTo(markPos)
-			end)
-			local friendly = table.remove(unassigned, 1)
-			markedOpps[robot] = friendly
-			if pureCenterBacks[friendly] then
-				table.removeValue(pureCenterBacksArray, friendly)
-				table.removeValue(unassigned, friendly)
-				if table.count(pureCenterBacks) < 2 then
-					defaultCenterBack = pureCenterBacksArray[1]
-					table.removeValue(unassigned, defaultCenterBack)
-				end
-			end
-		end
+
+		table.removeValue(defenders, manmarker)
+		self._send.roleAssignment(manmarker,
+			{name = "ManMark", params = manmarkTarget})
 	end
 
-	if #unassigned > 0 then -- should only happen when there were too few to mark
-		if #pureCenterBacksArray > 0 then
-			defaultCenterBack = table.remove(pureCenterBacksArray, 1)
-		else
-			table.sort(unassigned, distToFriendlyGoal)
-			defaultCenterBack = table.remove(unassigned, 1)
-		end
-	end
-	if needCountersideCB and not countersideCenterBack then
-		countersideCenterBack = table.remove(unassigned, 1)
-	end
-
-	for opp, manMarker in pairs(markedOpps) do
-		self._send.roleAssignment(manMarker, { name = "ManMark", params = opp})
-	end
-	if defaultCenterBack then
-		debug.set("default CenterBack", defaultCenterBack)
-		self._send.roleAssignment(defaultCenterBack, { name = "CenterBack", params = World.Ball })
-	end
-	if countersideCenterBack then
-		debug.set("counterside CenterBack", countersideCenterBack)
-		local countersideTarget = World.Ball.pos.x > 0 and countersideTargetLeft or countersideTargetRight
-		self._send.roleAssignment(countersideCenterBack, { name = "CenterBack", params = countersideTarget })
+	-- assign a counterside centerback (also in non-stop states)
+	local countersideTarget = self._ballIsLeft
+		and self._countersideTargetRight or self._countersideTargetLeft
+	local countersideCB, d = UtilDefense.getClosestRobot(defenders, countersideTarget.pos)
+	if countersideCB then
+		table.removeValue(defenders, countersideCB)
+		self._send.roleAssignment(countersideCB,
+			{name = "CenterBack", params = countersideTarget})
 	end
 end
+
 
 return Defense

@@ -38,7 +38,6 @@ Processor.addPre(preproc)
 local frameCount = 0
 local wrapper = function (func)
 	return function()
-		-- require "../test/debug/enable"
 		frameCount = frameCount + 1
 		if not World.update() then
 			if (frameCount % 100) == 0 then

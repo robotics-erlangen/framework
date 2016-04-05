@@ -35,10 +35,10 @@ local joinCache = {}
 
 local function prefixName(name)
 	local prefix = debugStack[#debugStack]
-	if #prefix == 0 then
-		return name
-	elseif name == nil then
+	if name == nil then
 		return prefix
+	elseif #prefix == 0 then
+		return name
 	end
 
 	-- caching to avoid joining the debug keys over and over

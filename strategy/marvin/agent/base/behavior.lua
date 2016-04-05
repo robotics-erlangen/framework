@@ -23,7 +23,6 @@ function Base:stop()
 end
 
 function Base:run()
-	self._mainAttackerParameters = nil
 	local bestTask, parameters = self:_updateTask()
 	if not self._task or Class.toClass(self._task) ~= bestTask then
 		if parameters then
@@ -63,12 +62,16 @@ function Base:_updateTask()
 	error("stub")
 end
 
-function Base:_applyForMainAttacker(target, endSpeedLength)
-	self._mainAttackerParameters = { target, endSpeedLength }
+function Base:_applyForMainAttacker(target, endSpeedLength, overrideRating)
+	self._mainAttackerParameters = { target, endSpeedLength, overrideRating }
 end
 
 function Base:mainAttackerParameters()
 	return self._mainAttackerParameters
+end
+
+function Base:clearMainAttackerParameters()
+	self._mainAttackerParameters = nil
 end
 
 -- can be overwritten for custom cleanups

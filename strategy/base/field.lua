@@ -71,13 +71,13 @@ function Field.limitToAllowedField(pos, extraLimit)
 			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+extraLimit)
 		end
 		return pos
-	elseif Field.isInOpponentDefenseArea(pos, extraLimit) then
+	elseif Field.isInOpponentDefenseArea(pos, oppExtraLimit) then
 		if math.abs(pos.x) <= World.Geometry.DefenseStretch/2 then
-			pos = Vector(pos.x, World.Geometry.FieldHeightHalf-World.Geometry.DefenseRadius-extraLimit)
+			pos = Vector(pos.x, World.Geometry.FieldHeightHalf-World.Geometry.DefenseRadius-oppExtraLimit)
 		else
 			local circleMidpoint = Vector(
 				World.Geometry.DefenseStretch/2*math.sign(pos.x), World.Geometry.FieldHeightHalf)
-			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+extraLimit)
+			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+oppExtraLimit)
 		end
 		return pos
 	else
@@ -265,7 +265,7 @@ end
 -- @return number - lambda, intersection = pos + lambda * dir
 -- @return number - the length of the way from the very left of the defense area to the
 -- intersection point, when moving along its border
-function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp, fromCenterBackTask)
+function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp)
 	-- calculate defense radius
 	extraDistance = extraDistance or 0
 	local radius = G.DefenseRadius + extraDistance
@@ -433,8 +433,8 @@ end
 -- @return bool
 function Field.isInOwnCorner(pos, opp)
 	local oppfac = opp and 1 or -1
-	return (World.Geometry.FieldWidthHalf - math.abs(World.Ball.pos.x))^2
-		+ (oppfac * World.Geometry.FieldHeightHalf - World.Ball.pos.y)^2 < 1
+	return (World.Geometry.FieldWidthHalf - math.abs(pos.x))^2
+		+ (oppfac * World.Geometry.FieldHeightHalf - pos.y)^2 < 1
 end
 
 --- The position, where the half-line given by startPos and dir intersects the next field boundary

@@ -8,6 +8,7 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
@@ -49,8 +50,11 @@ function Keeper:run()
 		-- line starts a goal post, stay as near to the goal as possible
 		defenseLineStart = Vector(side*goalWidthHalf, G.FriendlyGoal.y)
 		local lineDir = ((Vector(0, defenseLineStart.y) - atkPos):perpendicular() * side):normalize()
+		if side*lineDir.x > 0 then 
+			lineDir = Vector(0, 1)
+		end
 		-- move startpoint out of the goal along the direction
-		defenseLineStart = defenseLineStart + lineDir * self._robot.radius
+		defenseLineStart = defenseLineStart + lineDir * (self._robot.radius + 0.005)
 
 		-- opposite corner
 		local otherGoalPost = Vector(-side*goalWidthHalf, G.FriendlyGoal.y)
@@ -122,9 +126,9 @@ function Keeper:run()
 		intersectPos = fallbackPos
 	end
 
-	vis.addPath("t/keeper: KeeperShotPrediction",{atkPos,atkPos+atkDir}, vis.colors.blue)
-	vis.addCircle("t/keeper: KeeperDefenseLineIntersect", intersectPos, 0.03, vis.colors.blue)
-	vis.addPath("t/keeper: KeeperDefenseLine",{defenseLineStart, defenseLineEnd}, vis.colors.blue)
+	vis.addPath("t/keeper: KeeperShotPrediction",{atkPos,atkPos+atkDir}, vis.colors.green)
+	vis.addCircle("t/keeper: KeeperDefenseLineIntersect", intersectPos, 0.03, vis.colors.green)
+	vis.addPath("t/keeper: KeeperDefenseLine",{defenseLineStart, defenseLineEnd}, vis.colors.green)
 
 	local moveTo
 	local endSpeed
@@ -165,7 +169,7 @@ function Keeper:run()
 	end
 	self._robot.trajectory:update(ToTarget, moveTo, (atkPos - moveTo):angle(), nil, endSpeed)
 
-	if not self._robot:hasBall(World.Ball) then
+	if not Robot.hadBall(self._robot, 0) then
 		self._forceShootTimer = nil
 	end
 	local chipActivationAngle = math.pi / 6

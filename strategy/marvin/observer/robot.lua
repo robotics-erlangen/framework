@@ -108,6 +108,7 @@ function Robot.estimateOpponentDynamics()
 end
 
 local hadBallTimes = {}
+-- Robot.hadBall(self._robot, 0) is equivalent to self._robot:hasBall(World.Ball)
 function Robot.hadBall(robot, time)
 	return hadBallTimes[robot] and World.Time - hadBallTimes[robot] <= time
 end
@@ -121,7 +122,9 @@ function Robot._updateHadBall()
 end
 
 local minTimeToBall = {}
+local oldMinTimeToBall = {}
 function Robot._resetMinTimeToBall()
+	oldMinTimeToBall = minTimeToBall
 	minTimeToBall = {}
 end
 
@@ -131,8 +134,33 @@ function Robot.minTimeToBall(robot)
 	end
 
 	local targetPos = robot.isFriendly and World.Geometry.OpponentGoal or World.Geometry.FriendlyGoal
-	minTimeToBall[robot] = Physics.robotTimeToBall(robot, World.Ball, targetPos, robot.maxSpeed)
+	minTimeToBall[robot] = Physics.robotTimeToBall(robot, World.Ball, targetPos, robot.maxSpeed, oldMinTimeToBall[robot])
 	return minTimeToBall[robot]
+end
+
+local fastestOpponentAtBallLastRobot
+local fastestOpponentAtBallLastTime
+local fastestOpponentAtBallLastRun = 0
+function Robot.fastestOpponentAtBall()
+	if World.Time == fastestOpponentAtBallLastRun then
+		return fastestOpponentAtBallLastRobot, fastestOpponentAtBallLastTime
+	end
+
+	local fastestOpponent = nil
+	local fastestOpponentTime = math.huge
+	for _,r in ipairs(World.OpponentRobots) do
+		local oppTime = Robot.minTimeToBall(r)
+		if oppTime < fastestOpponentTime then
+			fastestOpponentTime = oppTime
+			fastestOpponent = r
+		end
+	end
+
+	fastestOpponentAtBallLastRobot = fastestOpponent
+	fastestOpponentAtBallLastTime = fastestOpponentTime
+	fastestOpponentAtBallLastRun = World.Time
+
+	return fastestOpponent, fastestOpponentTime
 end
 
 return Robot

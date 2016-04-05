@@ -8,7 +8,8 @@ local IO = require "util/io"
 -- @param n number - the number of possible choices
 -- @param module string - the name of the file in learning/parameters/
 -- @return table[] - the array of success ratings (consisting of total, successful and percentage)
-function RouletteWheelSelection.init(n, module)
+function RouletteWheelSelection._readRatings(n, module)
+	module = "learning/parameters/"..module
 	local params = IO.read(module)
 
 	local successRates = {}
@@ -21,10 +22,11 @@ function RouletteWheelSelection.init(n, module)
 end
 
 --- decides randomly what to do
--- @param successRates table[] - the array of success ratings created in init()
+-- @param n number - the number of possible choices
+-- @param module string - the name of the file in learning/parameters/
 -- @return number - the index of the choice
-function RouletteWheelSelection.decide(successRates)
-	local n = #successRates
+function RouletteWheelSelection.decide(n, module)
+	local successRates = RouletteWheelSelection._readRatings(n, module)
 	local percSum = 0
 	for _,rate in ipairs(successRates) do
 		percSum = percSum + rate.percentage
@@ -41,11 +43,11 @@ function RouletteWheelSelection.decide(successRates)
 end
 
 --- tells the learning algorithm if the choice was successful
--- @param successRates table[] - the array of success ratings created in init()
+-- @param module string - the name of the file in learning/parameters/
 -- @param i number - the performed choice
 -- @param success bool - if the choice was successful
--- @param module string - the name of the file in learning/parameters/
-function RouletteWheelSelection.report(successRates, i, success, module) 
+function RouletteWheelSelection.report(module, i, success)
+	local successRates = RouletteWheelSelection._readRatings(i, module)
 	local rate = successRates[i]
 	rate.total = rate.total + 1
 	if success then
@@ -59,6 +61,11 @@ function RouletteWheelSelection.report(successRates, i, success, module)
 		params[tostring(key).."s"] = value.successful
 	end
 	
+	RouletteWheelSelection._saveRatings(module,params)
+end
+
+function RouletteWheelSelection._saveRatings(module, params)
+	module = "learning/parameters/"..module
 	IO.save(module, params)
 end
 

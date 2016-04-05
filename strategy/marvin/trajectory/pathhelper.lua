@@ -42,7 +42,8 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 				G.DefenseRadius + POSITION_PADDING, "DefenseArea")
 	end
 
-	if robot.pos.y > 0 and (not Referee.isFriendlyPenaltyState()) then
+	if robot.pos.y > 0 and (not Referee.isFriendlyPenaltyState()) and
+			World.RefereeState ~= "BallPlacementOffensive" then
 		path:addLine(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
 				G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y,
 				G.DefenseRadius + World.Ball.radius + oppDefAreaDist, "DefenseAreaOpp")
@@ -53,7 +54,7 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 			G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf")
 	end
 
-	if not ignoreBall or Referee.isStopState() then
+	if not ignoreBall or (Referee.isStopState() and not World.RefereeState == "BallPlacementOffensive") then
 		-- always add the actual ball obstacle, otherwise the ball may be pushed during stop
 		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius, "Ball")
 	end

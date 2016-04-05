@@ -27,6 +27,7 @@ module "World"
 local amun = amun
 local Ball = require "../base/ball"
 local Constants = require "../base/constants"
+local Coordinates = require "../base/coordinates"
 local Generation = require "../base/generation"
 local mixedTeam = require "../base/mixedteam"
 local Robot = require "../base/robot"
@@ -55,7 +56,7 @@ local Robot = require "../base/robot"
 -- KickoffOffensivePrepare, KickoffDefensivePrepare, KickoffOffensive, KickoffDefensive,
 -- PenaltyOffensivePrepare, PenaltyDefensivePrepare, PenaltyOffensive, PenaltyDefensive,
 -- DirectOffensive, DirectDefensive, IndirectOffensive, IndirectDefensive,
--- TimeoutOffensive, TimeoutDefensive
+-- TimeoutOffensive, TimeoutDefensive, BallPlacementOffensive, BallPlacementDefensive
 -- @field GameStage string - current game stage, can be one of these:
 -- FirstHalfPre, FirstHalf, HalfTime, SecondHalfPre, SecondHalf,
 -- ExtraTimeBreak, ExtraFirstHalfPre, ExtraFirstHalf, ExtraHalfTime, ExtraSecondHalfPre, ExtraSecondHalf,
@@ -80,6 +81,7 @@ World.TeamIsBlue = false
 World.IsSimulated = false
 World.IsLargeField = false
 World.MixedTeam = nil
+World.SelectedOptions = nil
 
 World.Geometry = {}
 --- Field geometry.
@@ -126,6 +128,9 @@ end
 -- @name update
 -- @return bool - false if no vision data was received since strategy start
 function World.update()
+	if World.SelectedOptions == nil then
+		World.SelectedOptions = amun.getSelectedOptions()
+	end
 	local hasVisionData = World._updateWorld(amun.getWorldState())
 	World._updateGameState(amun.getGameState())
 	World._updateUserInput(amun.getUserInput())
@@ -204,9 +209,7 @@ function World._updateWorld(state)
 	local radioResponses = state.radio_response
 
 	-- update ball if available
-	if state.ball then
-		World.Ball:_update(state.ball, World.Time)
-	end
+	World.Ball:_update(state.ball, World.Time)
 
 	local dataFriendly = World.TeamIsBlue and state.blue or state.yellow
 	if dataFriendly then
@@ -259,7 +262,7 @@ function World._updateWorld(state)
 			World.OpponentRobotsById[rdata.id] = robot
 		end
 		-- mark dropped robots as invisible
-		for _,robot in ipairs(opponentRobotsById) do
+		for _,robot in pairs(opponentRobotsById) do
 			robot:_update(nil, World.Time)
 		end
 	end
@@ -319,14 +322,12 @@ function World._updateGameState(state)
 		World.RefereeState = "Halt"
 	end
 
-	if state.designated_position and state.designated_position.x and
-			(not World.BallPlacementPos or World.BallPlacementPos.y ~= state.designated_position.y
-			or World.BallPlacementPos.x ~= state.designated_position.x) then
-		if World.TeamIsBlue then
-			World.BallPlacementPos = -Vector(state.designated_position.x, state.designated_position.y)
-		else
-			World.BallPlacementPos = Vector(state.designated_position.x, state.designated_position.y)
-		end
+	if state.designated_position and state.designated_position.x then
+		World.BallPlacementPos = Coordinates.toLocal(Vector.createReadOnly(
+			-- refbox position message uses millimeters
+			-- ssl-vision's coordinate system is rotated by 90 degrees
+			-state.designated_position.y / 1000,
+			state.designated_position.x / 1000))
 	end
 
 	World.GameStage = World.gameStageMapping[state.stage]

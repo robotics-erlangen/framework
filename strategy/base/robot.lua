@@ -58,7 +58,7 @@ local Trajectory = require "../base/trajectory"
 -- @field userControl table - command from input devices (fields: speed, omega, kickStyle, kickPower, dribblerSpeed) *
 Robot.constants = {
 	hasBallDistance = 0.04, -- 4 cm, robots where the balls distance to the dribbler is less than 2cm are considered to have the ball [m]
-	passSpeed = 3.0, -- speed with which the ball should arrive at the pass target  [m/s]
+	passSpeed = 2.2, -- speed with which the ball should arrive at the pass target  [m/s]
 	shootDriveSpeed = 0.2, -- how fast the shoot task drives at the ball [m/s]
 	minAngleError = 4/180 * math.pi -- minimal angular precision that the shoot task guarantees [in radians]
 }
@@ -175,7 +175,7 @@ function Robot:_updateUserControl(command)
 	if command.direct then
 		-- correctly align local and strategy coordinate system
 		-- self.dir can be nil if robot was not yet visible
-		local dir = self.dir or 0
+		local dir = self.isVisible and self.dir or math.pi/2
 		v = v:rotate(dir - math.pi/2)
 	else
 		-- global to strategy coordinate mapping
