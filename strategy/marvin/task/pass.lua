@@ -59,6 +59,11 @@ function Pass:run()
 		-- if an opponent robot is already blocking a direct pass
 		-- (does also return false if an opponent rushes through)
 		local pointOfImpact = futureOppPos:nearestPosOnLine(World.Ball.pos, self._shootPos)
+		-- ignore opponents in the kicking robot's or the receiving robot's back
+		if pointOfImpact == self._shootPos or pointOfImpact == World.Ball.pos then
+			goto continue
+		end
+
 		if futureOppPos:distanceTo(pointOfImpact) < corridorWidthHalfInner then
 			self._linearShoot = false
 			linearShootHysteresisFlag = false
