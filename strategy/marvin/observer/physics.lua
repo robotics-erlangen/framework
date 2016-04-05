@@ -7,6 +7,7 @@ local geom = require "../base/geom"
 local plot = require "../base/plot"
 local World = require "../base/world"
 local debug = require "../base/debug"
+local Robot -- = require "../observer/robot" -- cyclic dependency
 
 
 --- predicts the ball
@@ -365,12 +366,13 @@ local function rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t
 
 	-- Special case: Ball seems to be a bit inside the robot
 	-- This happens because the tracking doesn't implement a ball collision modell
+	if Robot == nil then
+		Robot = require "observer/robot"
+	end
 	local relpos = (ball.pos - robot.pos):rotate(-robot.dir)
 	relpos.x = relpos.x - robot.shootRadius - ball.radius
 	local sidewardsOffset = math.abs(relpos.y)
-	debug.set("relpos.x", relpos.x)
-	debug.set("sidewardsOffset", sidewardsOffset)
-	if relpos.x > -0.25 and relpos.x <= 0.005 and sidewardsOffset < 0.2 then
+	if Robot.hadBall(robot, 0.15) and relpos.x > -0.25 and relpos.x <= 0.05 and sidewardsOffset < 0.2 then
 		return nil, 0
 	end
 
