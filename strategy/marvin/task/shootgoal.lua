@@ -55,7 +55,7 @@ function ShootGoal:_rateShootPos(ballPos, targetPoint, targetWidth)
 		(targetPoint - ballPos):setLength(self._robot.shootRadius + World.Ball.radius)
 	local robotTime = Physics.robotTimeToPos(self._robot, robotPos, Vector(0, 0), false)
 	local ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(ballPos))
-	local robotTimeRating = math.max(0, (robotTime * 0.8 - ballTime) * 0.5 + 0.5)
+	local robotTimeRating = math.max(0, (ballTime - robotTime - 0.1))
 
 	-- return combination of the single ratings
 	return ratingAngle * ratingTargetWidth * ratingDistToFieldBorder *
