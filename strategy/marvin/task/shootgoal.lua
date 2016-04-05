@@ -76,7 +76,7 @@ function ShootGoal:_validateShootPos(ballPos)
 
 	-- break if the ball has already surpassed us
 	local ballTime = Physics.checkedBallRollTime(World.Ball, ballPos)
-	if ballTime < 0 then
+	if ballTime < 0 and not self._robot:hasBall(World.Ball) then
 		return false
 	end
 
