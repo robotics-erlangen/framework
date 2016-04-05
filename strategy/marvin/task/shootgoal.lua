@@ -23,12 +23,12 @@ local PathHelper = require "trajectory/pathhelper"
 function ShootGoal:_rateShootPos(ballPos, targetPoint, targetWidth)
 	-- rates the angle between the current ball speed and the future one
 	-- 180       degrees -> 1.000
-	-- 180 +-  1 degrees -> 0.975
-	-- 180 +- 10 degrees -> 0.766
+	-- 180 +- 50 degrees -> 1.000
 	-- 180 +- 80 degrees -> 0.000
 	local angle = World.Ball.speed:absoluteAngleDiff(ballPos - targetPoint)
-	local ratingAngle = math.max(0, 1 - angle / (80 * math.pi / 180))
-	ratingAngle = ratingAngle
+	local cutoffInterval = 30 * math.pi / 180
+	local cutoffZero = 80 * math.pi / 180
+	local ratingAngle = math.bound(0, (cutoffZero - angle) / cutoffInterval, 1)
 
 	-- rates the target width (angle of largest free goal sector, aka maxAngleError)
 	-- 0  degrees -> 0
@@ -48,18 +48,22 @@ function ShootGoal:_rateShootPos(ballPos, targetPoint, targetWidth)
 	-- FieldHeightHalf -> 0.5
 	-- FieldHeight     -> 0
 	local dist = ballPos:distanceTo(targetPoint)
-	local ratingDistToTarget = math.max(0, 1 - dist / G.FieldHeight)
+	local ratingDistToTarget = 1 --math.max(0, 1 - dist / G.FieldHeight)
 
 	-- rates the time the robot has to move
 	local robotPos = self._robot.pos -
 		(targetPoint - ballPos):setLength(self._robot.shootRadius + World.Ball.radius)
 	local robotTime = Physics.robotTimeToPos(self._robot, robotPos, Vector(0, 0), false)
 	local ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(ballPos))
-	local robotTimeRating = math.max(0, (ballTime - robotTime - 0.1))
+	local ratingRobotTime = math.bound(0, (ballTime - robotTime - 0.1) * 3, 1)
 
 	-- return combination of the single ratings
-	return ratingAngle * ratingTargetWidth * ratingDistToFieldBorder *
-		ratingDistToTarget * robotTimeRating
+	return 1
+		* ratingAngle
+		* ratingTargetWidth
+		* ratingDistToFieldBorder
+		* ratingDistToTarget
+		* ratingRobotTime
 end
 
 -- checks if the sampled ballPos is valid
@@ -189,7 +193,6 @@ function ShootGoal:_updateVolleyShootPos()
 		debug.set("volley pos", "keep (lock)")
 		return
 	end
-
 
 	-- if the old position is not valid any more or the ball is still being shot,
 	-- search a new (valid) one; otherwise keep the old one
