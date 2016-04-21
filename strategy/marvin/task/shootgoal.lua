@@ -196,20 +196,17 @@ function ShootGoal:_updateVolleyShootPos()
 
 	-- if the old position is not valid any more or the ball is still being shot,
 	-- search a new (valid) one; otherwise keep the old one
-	if not oldPosValid then
+	if Ball.isAccelerating() or Ball.wasShot(0.5) then
 		local pos, target = self:_searchVolleyShootPos()
 		self._volleyShootPos = pos
 		self._volleyTargetPoint = target
-		debug.set("volley pos", "recalculate (invalid)")
-	elseif Ball.isAccelerating() then
-		local pos, target = self:_searchVolleyShootPos()
-		self._volleyShootPos = pos
-		self._volleyTargetPoint = target
-		debug.set("volley pos", "recalculate (ball accelerating)")
-	else
+		debug.set("volley pos", "accelerating")
+	elseif oldPosValid then
 		self._volleyShootPos = oldPos
 		self._volleyTargetPoint = oldTarget
 		debug.set("volley pos", "keep")
+	else
+		debug.set("volley pos", "invalid")
 	end
 end
 
