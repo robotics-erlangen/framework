@@ -34,9 +34,20 @@ function ApplyForMainattacker:check()
 	end
 	self._freekickFlag = Referee.isFriendlyFreeKickState()
 
-	if not Referee.isOpponentPenaltyState() then
-		self:_applyForMainAttacker()
+	if Referee.isOpponentPenaltyState() then
+		return false
 	end
+	
+	local passTargetOverrideTime = 0.7
+	if Ball.wasShot(passTargetOverrideTime) == self._agent._lastIncomingPassSender and
+			World.Time - self._agent._lastIncomingPassTime < passTargetOverrideTime then
+		self:_applyForMainAttacker(nil, nil, 2)
+		self._agent.beOffensive = true
+	else
+		self:_applyForMainAttacker()
+		self._agent.beOffensive = false
+	end
+	
 	return false
 end
 
