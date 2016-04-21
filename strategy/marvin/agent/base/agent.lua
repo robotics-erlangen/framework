@@ -135,6 +135,16 @@ function Base:_applyForMainAttacker()
 			self._mainAttackerLastTime = timeToBall
 			mainAttackerRating = Rating.timeToRating(timeToBall)
 
+			-- if we have the ball, the time is 0
+			if timeToBall == math.huge then
+				local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir) * self._robot.shootRadius
+				if World.Ball.pos:distanceTo(dribblerPos) < 0.15 then
+					if World.Ball.speed:dot(self._robot.pos - World.Ball.pos) > 0 then
+						timeToBall = 0
+					end
+				end
+			end
+
 			-- rate the robot pos (generally, being behind the ball is better)
 			local relativeYPos = World.Ball.pos.y - self._robot.pos.y
 			local normalizedAtan = math.atan(math.pi / 2 * relativeYPos) * (2 / math.pi)
