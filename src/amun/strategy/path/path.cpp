@@ -129,8 +129,6 @@ void Path::setBoundary(float x1, float y1, float x2, float y2)
     m_boundary.bottom_left.y = std::min(y1, y2);
     m_boundary.top_right.x = std::max(x1, x2);
     m_boundary.top_right.y = std::max(y1, y2);
-    m_width = m_boundary.top_right.x - m_boundary.bottom_left.x;
-    m_height = m_boundary.top_right.y - m_boundary.bottom_left.y;
 }
 
 void Path::addSeedTarget(float x, float y)
@@ -320,6 +318,14 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
 
     const Vector start(start_x, start_y);
     const Vector end(end_x, end_y);
+
+    const Vector middle = (start + end) / 2;
+    // symmetric sampling around middle between start and end, that includes the complete field
+    const float x_half = std::max(middle.x - m_boundary.bottom_left.x, m_boundary.top_right.x - middle.x);
+    const float y_half = std::max(middle.y - m_boundary.bottom_left.y, m_boundary.top_right.y - middle.y);
+    m_sampleRect.bottom_left = Vector(middle.x - x_half, middle.y - y_half);
+    m_sampleRect.top_right = Vector(middle.x + x_half, middle.y + y_half);
+
     bool startingInObstacle = !pointInPlayfield(start, m_radius) || !test(start, m_radius, m_obstacles);
     bool endingInObstacle = !pointInPlayfield(end, m_radius) || !test(end, m_radius, m_obstacles);
 
@@ -438,10 +444,18 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
         }
     }
 
+    // don't keep more waypoints for a longer path
+    float normalizedWaypointCount = std::ceil(start.distance(end) * 1.05 / m_stepSize);
+    float keepProbability = qBound(0.f, (points.size() == 0) ? 0 : (normalizedWaypointCount / points.size()), 1.f);
+
     // update waypoint cache
-    for (QList<Vector>::const_iterator it = points.begin(); it != points.end(); ++it) {
-        addToWaypointCache(*it);
+    for (Vector pos: points) {
+        float rand = float(m_rng.uniformInt()) / 0xffffffffU;
+        if (rand <= keepProbability) {
+            addToWaypointCache(pos);
+        }
     }
+
     // add remaing points to the waypoint cache
     while (nearestNode) {
         addToWaypointCache(m_treeEnd->position(nearestNode));
@@ -520,10 +534,8 @@ Vector Path::randomState() const
 {
     Vector v(float(m_rng.uniformInt()) / 0xffffffffU, float(m_rng.uniformInt()) / 0xffffffffU);
 
-    // add 50% additional sampling distance everywhere around the playfield
-    v.x = v.x * (2 * m_width) + m_boundary.bottom_left.x - m_width / 2;
-    v.y = v.y * (2 * m_height) + m_boundary.bottom_left.y - m_height / 2;
-
+    v.x = v.x * (m_sampleRect.top_right.x - m_sampleRect.bottom_left.x) + m_sampleRect.bottom_left.x;
+    v.y = v.y * (m_sampleRect.top_right.y - m_sampleRect.bottom_left.y) + m_sampleRect.bottom_left.y;
     return v;
 }
 

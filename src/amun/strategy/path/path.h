@@ -138,8 +138,7 @@ private:
     QList<const Obstacle*> m_obstacles;
     QList<Vector> m_seedTargets;
     Rect m_boundary;
-    float m_width; // width and height of bounding rectangle
-    float m_height;
+    Rect m_sampleRect;
     float m_p_dest;
     float m_p_wp;
     float m_radius;
