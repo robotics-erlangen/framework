@@ -8,8 +8,8 @@ local vis = require "../base/vis"
 
 local G = World.Geometry
 local POSITION_PADDING = 0.02
-local SEED_ANGLE_MOD = 10/180*math.pi
-local SEED_PREDICT_TIME = 0.3
+local SEED_ANGLE_MOD = 2/180*math.pi
+local SEED_PREDICT_TIME = 0.5
 
 function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance, noSeedTarget)
 	radius = radius or robot.radius
