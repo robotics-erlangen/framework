@@ -449,7 +449,7 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
     float keepProbability = qBound(0.f, (points.size() == 0) ? 0 : (normalizedWaypointCount / points.size()), 1.f);
 
     // update waypoint cache
-    for (Vector pos: points) {
+    for (const Vector &pos: points) {
         float rand = float(m_rng.uniformInt()) / 0xffffffffU;
         if (rand <= keepProbability) {
             addToWaypointCache(pos);
