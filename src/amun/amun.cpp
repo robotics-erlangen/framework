@@ -55,11 +55,14 @@
  */
 Amun::Amun(QObject *parent) :
     QObject(parent),
-    m_processor(NULL),
-    m_transceiver(NULL),
-    m_simulator(NULL),
-    m_referee(NULL),
-    m_vision(NULL),
+    m_processor(nullptr),
+    m_transceiver(nullptr),
+    m_networkTransceiver(nullptr),
+    m_simulator(nullptr),
+    m_referee(nullptr),
+    m_vision(nullptr),
+    m_networkCommand(nullptr),
+    m_mixedTeam(nullptr),
     m_simulatorEnabled(false),
     m_scaling(1.0f),
     m_useNetworkTransceiver(false)
