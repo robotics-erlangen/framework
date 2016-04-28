@@ -378,6 +378,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dont
 		end
 		self:_doForceShoot()
 	else
+		self._lastBallSpeed = World.Ball.speed
 		self._shootHysteresis = false
 		self._forceShootTimer = nil
 
