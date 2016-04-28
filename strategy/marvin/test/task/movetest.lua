@@ -62,6 +62,9 @@ end
 local Position = Class("Test.Task.MoveTest.Behavior", require "agent/base/behavior")
 function Position:check()
 	self._send.attackerFlag("all")
+	if #World.FriendlyRobots == 1 then
+		return true
+	end
 	return next(self._inbox.attackerFlag()) ~= nil
 end
 
