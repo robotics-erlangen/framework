@@ -62,6 +62,7 @@ function Field.limitToAllowedField(pos, extraLimit)
 	if Referee.isStopState() then
 		oppExtraLimit = oppExtraLimit + World.Geometry.FreeKickDefenseDist + 0.10
 	end
+	pos = Field.limitToField(pos, -extraLimit)
 	if Field.isInFriendlyDefenseArea(pos, extraLimit) then
 		if math.abs(pos.x) <= World.Geometry.DefenseStretch/2 then
 			pos = Vector(pos.x, -World.Geometry.FieldHeightHalf+World.Geometry.DefenseRadius+extraLimit)
@@ -80,9 +81,8 @@ function Field.limitToAllowedField(pos, extraLimit)
 			pos = circleMidpoint + (pos - circleMidpoint):setLength(World.Geometry.DefenseRadius+oppExtraLimit)
 		end
 		return pos
-	else
-		return Field.limitToField(pos)
 	end
+	return pos
 end
 
 --- check if pos is inside the field (extended by boundaryWidth)
