@@ -45,6 +45,7 @@ function Shoot:init()
 	self._shootHysteresisTimer = 0
 	self._sideOffsetErrorSum = 0
 
+	self._lastBallSpeed = nil
 	self._travelStart = nil
 	self._travelLimit = false
 
