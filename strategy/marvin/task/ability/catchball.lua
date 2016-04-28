@@ -18,6 +18,7 @@ local ToTarget = require "trajectory/totarget"
 
 -- safety distance to ball
 local DIST_ERROR = 0.025
+local SIDE_DEPTH = 0.02
 -- reduce obstacle size by one millimeter to avoid collisions
 local OBSTACLE_EPSILON = 0.001
 local SLOW_BALL = 0.5
@@ -291,6 +292,7 @@ function CatchBall:_createHuntingBallObstacle(path, viewDir, predictedBall)
 end
 
 function CatchBall:_createBallCorridor(path, viewDir, predictedBall)
+	-- bracket to prevent hitting the ball with the robots side / back
 	local obstacleErrorDist = self._robot.radius - self._robot.shootRadius + DIST_ERROR
 	local corridorRadius = predictedBall.radius
 
@@ -314,6 +316,35 @@ function CatchBall:_createBallCorridor(path, viewDir, predictedBall)
 	vis.addCircle("t/a/catchball: MoveCorridor", corridorLeftFar, corridorRadius, vis.colors.redHalf)
 	vis.addCircle("t/a/catchball: MoveCorridor", corridorRightNear, corridorRadius, vis.colors.redHalf)
 	vis.addCircle("t/a/catchball: MoveCorridor", corridorRightFar, corridorRadius, vis.colors.redHalf)
+
+
+	-- bracket with negative obstacle radius, enforces approaching the ball from behind
+	-- Obstacle checking is done as: distance(robot, obstacle) < robot.radius + obstacle.radius
+	-- Negative obstacle radius allow to keep the robot center constrainted without blocking large portions of the field
+	local effectiveObstacleRadius = 0.01
+	local negativeRadius = - self._robot.shootRadius + effectiveObstacleRadius
+	local moveWidth = self._robot.dribblerWidth + 2 * effectiveObstacleRadius
+	local negObstacleDepth = SIDE_DEPTH
+
+	local negRightOfs = Vector.fromAngle(viewDir):perpendicular():scaleLength(moveWidth/2)
+	local negDepthOfs = Vector.fromAngle(viewDir):scaleLength(-negObstacleDepth)
+	local negBaseDepthOfs = Vector.fromAngle(viewDir):scaleLength(negativeRadius-predictedBall.radius)
+
+	local negLeftNear = predictedBall.pos - negRightOfs + negBaseDepthOfs + negDepthOfs
+	local negLeftFar = negLeftNear - negDepthOfs
+	local negRightNear = predictedBall.pos + negRightOfs + negBaseDepthOfs + negDepthOfs
+	local negRightFar = negRightNear - negDepthOfs
+
+	path:addLine(negLeftNear.x, negLeftNear.y, negLeftFar.x, negLeftFar.y, negativeRadius, "ball_negcorridor1")
+	path:addLine(negLeftFar.x, negLeftFar.y, negRightFar.x, negRightFar.y, negativeRadius, "ball_negcorridor2")
+	path:addLine(negRightFar.x, negRightFar.y, negRightNear.x, negRightNear.y, negativeRadius, "ball_negcorridor3")
+
+	-- visualize obstacles
+	vis.addPath("t/a/catchball: NegMoveCorridor", {negLeftNear, negLeftFar, negRightFar, negRightNear}, vis.colors.orangeHalf)
+	vis.addCircle("t/a/catchball: NegMoveCorridor", negLeftNear, effectiveObstacleRadius, vis.colors.orangeHalf)
+	vis.addCircle("t/a/catchball: NegMoveCorridor", negLeftFar, effectiveObstacleRadius, vis.colors.orangeHalf)
+	vis.addCircle("t/a/catchball: NegMoveCorridor", negRightNear, effectiveObstacleRadius, vis.colors.orangeHalf)
+	vis.addCircle("t/a/catchball: NegMoveCorridor", negRightFar, effectiveObstacleRadius, vis.colors.orangeHalf)
 end
 
 return CatchBall
