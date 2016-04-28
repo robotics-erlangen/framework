@@ -15,10 +15,12 @@ local WAIT_TIME = 3
 
 
 local MoveTestTask = Class("Test.Task.MoveTest.Task", require "task/base")
-function MoveTestTask:_init()
+function MoveTestTask:_init(idx, total)
 	self._dest = nil
 	self._atTargetSince = nil
 	self._angle = 0
+	-- line up robots
+	self._startPos = START_POS + Vector((idx - total/2) * (CENTER_DIST*2 + 0.4), 0)
 end
 
 function MoveTestTask:run()
@@ -29,7 +31,7 @@ function MoveTestTask:run()
 	if self._dest then
 		pos = self._dest
 	else
-		pos = START_POS
+		pos = self._startPos
 	end
 
 	local targetDist = self._robot.pos:distanceTo(pos)
@@ -38,11 +40,16 @@ function MoveTestTask:run()
 	elseif targetDist > 0.02 then
 		self._atTargetSince = nil
 	end
+	local synchronized = false
 	if self._atTargetSince and World.Time - self._atTargetSince > WAIT_TIME then
+		self._send.defenderFlag("all")
+		synchronized = (table.count(self._inbox.attackerFlag()) - table.count(self._inbox.defenderFlag())) == 0
+	end
+	if synchronized then
 		if self._dest then
 			self._dest = nil
 		else
-			self._dest = START_POS + Vector.fromAngle(self._angle):scaleLength(CENTER_DIST)
+			self._dest = self._startPos + Vector.fromAngle(self._angle):scaleLength(CENTER_DIST)
 			self._angle = self._angle + ANGLE_STEP
 		end
 	end
@@ -54,11 +61,20 @@ end
 
 local Position = Class("Test.Task.MoveTest.Behavior", require "agent/base/behavior")
 function Position:check()
-	return true
+	self._send.attackerFlag("all")
+	return next(self._inbox.attackerFlag()) ~= nil
 end
 
 function Position:_updateTask()
-	return MoveTestTask, {}
+	local idx = 0
+	local total = 0
+	for robot, _ in pairs(self._inbox.attackerFlag()) do
+		if self._robot.id > robot.id then
+			idx = idx + 1
+		end
+		total = total + 1
+	end
+	return MoveTestTask, { idx, total }
 end
 
 
@@ -73,7 +89,7 @@ local coord = nil
 local function run()
 	if coord == nil then
 		local trainer = Trainer()
-		local pools = { path = AgentPool(MoveAgent, 1) }
+		local pools = { path = AgentPool(MoveAgent, #World.FriendlyRobotsAll) }
 		local poolGroups = { { pools.path } }
 		coord = Coordinator(trainer, pools, poolGroups)
 	end
