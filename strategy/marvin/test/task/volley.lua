@@ -1,117 +1,103 @@
 local Entrypoints = require "../base/entrypoints"
 local Referee = require "../base/referee"
-local vis = require "../base/vis"
 local World = require "../base/world"
-local TestAgent = require "agent/testagent"
-local Messaging = require "control/messaging"
+local ApplyForMainattacker = require "agent/attacker/applyformainattacker"
+local AgentPool = require "control/agentpool"
+local Coordinator = require "control/coordinator"
 local Ball = require "observer/ball"
-
-local Halt = require "task/halt"
 local MoveToPos = require "task/movetopos"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
+local Trainer = require "trainer/trainer"
+
+local Static = Class("Test.Task.Volley.Static", require "agent/base/behavior")
+function Static:check()
+	self._send.attackerFlag("all")
+	return false
+end
 
 
-local agent1 = nil
-local agent2 = nil
-local initialized = false
-local state = "prepare"
-local shootPos = nil
-local oldShootPos = nil
-local destX = nil
+local Shooter = Class("Test.Task.Volley.Shooter", require "agent/base/behavior")
+function Shooter:_stop()
+	self.lastPassReceiptTime = 0
+end
 
-local x = 1.5
-local y = 2.0
+function Shooter:check()
+	if not next(self._inbox.attackerFlag()) then
+		return false
+	end
 
+	if self._inbox.mainAttacker().trainer ~= self._robot then
+		return false
+	end
+
+	if Ball.receivesPass(self._robot) then
+		self.lastPassReceiptTime = World.Time
+	end
+	return World.Time - self.lastPassReceiptTime < 0.2
+end
+
+function Shooter:_updateTask()
+	return ShootGoal
+end
+
+
+local Passer = Class("Test.Task.Volley.Passer", require "agent/base/behavior")
+function Passer:check()
+	if not next(self._inbox.attackerFlag()) then
+		return false
+	end
+
+	if self._inbox.mainAttacker().trainer ~= self._robot then
+		return false
+	end
+
+	return Referee.isFriendlyFreeKickState()
+end
+
+function Passer:_updateTask()
+	return Pass, {next(self._inbox.attackerFlag())}
+end
+
+
+local Position = Class("Test.Task.Volley.Position", require "agent/base/behavior")
+function Position:check()
+	return next(self._inbox.attackerFlag()) ~= nil
+end
+
+function Position:_updateTask()
+	local idx = 0
+	for robot, _ in pairs(self._inbox.attackerFlag()) do
+		if self._robot.id > robot.id then
+			idx = idx + 1
+		end
+	end
+	local x = World.Geometry.FieldWidthHalf * 2 / 3
+	local y = World.Geometry.FieldHeightHalf * 1 / 4
+	local pos = Vector((idx * 2 - 1) * x, y)
+	return MoveToPos, { pos, (World.Geometry.OpponentGoal - pos):angle() }
+end
+
+
+local PassAgent = Class("Test.Task.VolleyAgent", require "agent/base/simpleagent")
+PassAgent._behaviors = {
+	Static,
+	ApplyForMainattacker,
+	Shooter,
+	Passer,
+	Position
+}
+
+local coord = nil
 
 local function run()
-	-- robot selection
-	local robot1 = World.FriendlyRobots[2]
-	local robot2 = World.FriendlyRobots[1]
-
-	-- evaluation
-	if Ball.isShot() == robot1 then
-		shootPos = robot1.pos + Vector.fromAngle(robot1.dir) * robot1.shootRadius
-	elseif World.Ball.pos.y > World.Geometry.FieldHeightHalf and shootPos then
-		destX = World.Ball.pos.x
-		local intendedAngle = (World.Geometry.OpponentGoal - shootPos):angle()
-		local executedAngle = (Vector(destX, World.Geometry.FieldHeightHalf) - shootPos):angle()
-		local errorAngle = (executedAngle - intendedAngle) * 180 / math.pi
-		if errorAngle > 0 then
-			log("precision error: " .. errorAngle .. " degrees to the left")
-		else
-			log("precision error: " .. -errorAngle .. " degrees to the right")
-		end
-		oldShootPos = shootPos
-		shootPos = nil
+	if coord == nil then
+		local trainer = Trainer()
+		local pools = { pass = AgentPool(PassAgent, 2) }
+		local poolGroups = { { pools.pass } }
+		coord = Coordinator(trainer, pools, poolGroups)
 	end
-
-	-- visualization
-	if destX then
-		local fhh = World.Geometry.FieldHeightHalf
-		vis.addPath("test: Volley", {Vector(destX - 0.05, fhh - 0.05),
-									Vector(destX + 0.05, fhh + 0.05)}, vis.colors.green)
-		vis.addPath("test: Volley", {Vector(destX - 0.05, fhh + 0.05),
-									Vector(destX + 0.05, fhh - 0.05)}, vis.colors.green)
-		vis.addCircle("test: Volley", oldShootPos, 0.05, vis.colors.greenHalf, true)
-	end
-
-
-
-	-- state transition
-	if Referee.isFriendlyFreeKickState() and state == "prepare" then
-		state = "go"
-		initialized = false
-	elseif World.Ball.speed:length() > 2 and state == "go" then
-		state = "shoot"
-		initialized = false
-	elseif (World.Ball.pos.y > World.Geometry.FieldHeightHalf) and state == "shoot" then
-		state = "prepare"
-		initialized = false
-	end
-	if Referee.isStopState() then
-		state = "prepare"
-		initialized = false
-	end
-
-
-	-- task initialization
-	if state == "prepare" and not initialized then
-		agent1 = TestAgent(robot1, {
-			task = MoveToPos,
-			parameters = { Vector(x, y), math.pi }
-		})
-		agent2 = TestAgent(robot2, {
-			task = MoveToPos,
-			parameters = { Vector(-x, y), 0}
-		})
-		initialized = true
-	elseif state == "go" and not initialized then
-		agent1 = TestAgent(robot1, {
-			task = MoveToPos,
-			parameters = { Vector(x, y), (World.Ball.pos - robot1.pos):angle() }
-		})
-		agent2 = TestAgent(robot2, {
-			task = Pass,
-			parameters = { robot1, nil, true}
-		})
-		initialized = true
-	elseif state == "shoot" and not initialized then
-		agent1 = TestAgent(robot1, {
-			task = ShootGoal,
-			parameters = {nil, true}
-		})
-		agent2 = TestAgent(robot2, {
-			task = Halt,
-			parameters = {}
-		})
-		initialized = true
-	end
-
-	-- execution
-	Messaging.deliverMessages()
-	agent1:run()
-	agent2:run()
+	coord:run()
 end
 
 Entrypoints.add("TaskTest/Volley", run)

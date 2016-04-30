@@ -142,6 +142,8 @@ separator for luadoc]]--
 
 --- Add a new target for seeding the RRT search tree.
 -- Seeding is done by rasterizing a path from rrt start to the given point
+-- @class function
+-- @name path:addSeedTarget
 -- @param x number - x coordinate of seed point
 -- @param y number - y coordinate of seed point
 

@@ -27,6 +27,10 @@ function Duel:genericCheck()
 		end
 	end
 
+	if self._agent.beOffensive then
+		return false
+	end
+
 	-- if the opponent controls the ball (hysteresis!), duel him
 	for _,r in ipairs(World.OpponentRobots) do
 		if Robot.hadBall(r, 0) then

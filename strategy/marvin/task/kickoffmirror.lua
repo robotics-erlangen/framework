@@ -1,6 +1,7 @@
 local KickoffMirror = Class("Task.KickoffMirror", require "task/base")
 
 local debug = require "../base/debug"
+local Defense = require "util/defense"
 local Field = require "../base/field"
 local World = require "../base/world"
 local Game = require "observer/game"
@@ -32,9 +33,10 @@ function KickoffMirror:run()
 	local sector1, _, sector3 = Game.divideOpponentsIntoSectors(false)
 	local sector = side and sector3 or sector1
 
-	local targetPosX
-	if #sector == 0 then
-		targetPosX = (side and 1 or -1) * World.Geometry.FieldWidthQuarter
+	local pos
+	if #sector == 0 then -- no opponents found
+		local targetPosX = (side and 1 or -1) * World.Geometry.FieldWidthQuarter
+		pos = Vector(targetPosX, -self._robot.radius)
 	else
 		local minDist = math.huge
 		local lastMinDist = self._lastTargetRobot and
@@ -52,10 +54,12 @@ function KickoffMirror:run()
 				(side and 3 or 1) ~= Game.getSector(self._lastTargetRobot, true) then
 			self._lastTargetRobot = targetRobot
 		end
-		targetPosX = self._lastTargetRobot.pos.x
+		pos  = Defense.manMarkPos(self._lastTargetRobot)
+		if pos.y > -self._robot.radius then
+			pos.y=-self._robot.radius
+		end
 	end
 
-	local pos = Vector(targetPosX, -self._distance - self._robot.radius)
 	self._targetPos = Field.limitToField(pos, -self._robot.radius)
 
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)

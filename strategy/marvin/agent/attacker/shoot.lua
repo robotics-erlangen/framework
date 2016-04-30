@@ -21,11 +21,6 @@ end
 function Shoot:check()
 	local mainAttackerFlag = self._inbox.mainAttacker().trainer == self._robot
 	self._forceKeepingInPool = mainAttackerFlag
-	debug.set("pass time diff", World.Time-self._agent.lastIncomingPassTime)
-	if mainAttackerFlag and World.Time-self._agent.lastIncomingPassTime < MAX_PASS_MSG_DELAY then
-		self:_applyForMainAttacker(nil, nil, 2)
-		debug.set("catching pass", true)
-	end
 
 	return mainAttackerFlag
 end

@@ -245,19 +245,20 @@ end
 
 
 local lastShootTime = 0
-local cacheTime = 0
-local cachedShootRobot = nil
-local shootCooldown = 0.1 --ball can be shot at least 0.1s after the last shot
-local speedDiff = 0.1 --ball has to be 0.1m/s faster than the robot
-local accelerationPerFrame = 5 --ball has to accelerate at least x m/s^2 to count as shot
-local TILT_SHOT_ANGLE = 45/180*math.pi -- the max offset angle for tilted and volley shots
-local FAST_BALL = 1.0
+local lastShootRobot = nil
 function Ball.isShot()
-	-- caching
-	if World.Time == cacheTime then
-		return cachedShootRobot
+if lastShootTime == World.Time then
+		return lastShootRobot
 	end
-
+	return nil
+end
+function Ball.wasShot(time)
+	if lastShootTime + time > World.Time then
+		return lastShootRobot
+	end
+	return nil
+end
+function Ball._updateIsShot()
 	if not World.Ball:isPositionValid() then
 		return
 	end
@@ -265,11 +266,11 @@ function Ball.isShot()
 	local ballSpeedLength = World.Ball.speed:length()
 
 	-- if the ball was not shot in the last tenth second
-	local condCooldown = (World.Time > lastShootTime + shootCooldown)
+	local condCooldown = (World.Time > lastShootTime + 0.1)
 	-- if the ball accelerates
 	local condAccelerates = Ball.isAccelerating()
 	-- if the ball is fast
-	local condFast = (ballSpeedLength > FAST_BALL)
+	local condFast = (ballSpeedLength > 1.0)
 	-- if one robot had the ball the last 0.1 seconds (equal to cooldown time)
 	local condHadBall = false
 	-- if this robot looks about in the same direction as the ball rolls
@@ -280,11 +281,13 @@ function Ball.isShot()
 	local robot = nil
 	if condCooldown and condAccelerates and condFast then
 		for _,r in ipairs(World.Robots) do
-			if ObserverRobot.hadBall(r, shootCooldown) then
+			if ObserverRobot.hadBall(r, 0.1) then
 				condHadBall = true
 				local anglediff = math.abs(geom.getAngleDiff(r.dir, World.Ball.speed:angle()))
-				condDirection = (anglediff < TILT_SHOT_ANGLE)
-				condFasterThanRobot = (ballSpeedLength > speedDiff + r.speed:length())
+				-- the ball has to be shot in the approximate direction the robot is facing
+				condDirection = (anglediff < 45 / 180 * math.pi)
+				-- the ball has to be 0.1m/s faster than the robot
+				condFasterThanRobot = (ballSpeedLength > 0.1 + r.speed:length())
 				debug.set("robot speed", r.speed:length())
 				if condDirection and condFasterThanRobot then
 					robot = r
@@ -294,13 +297,10 @@ function Ball.isShot()
 		end
 	end
 
-	-- update cache
-	cacheTime = World.Time
-	cachedShootRobot = robot
-
 	-- lastShootTime is used for the cooldown
 	if robot then
 		lastShootTime = World.Time
+		lastShootRobot = robot
 	end
 
 	debug.pushtop("Ball.isShot")
@@ -313,8 +313,6 @@ function Ball.isShot()
 	debug.pop()
 
 	plot.addPlot("isShot", robot and (robot.id + (robot.isFriendly and 0 or 0.5)) or -1)
-
-	return robot
 end
 
 return Ball
