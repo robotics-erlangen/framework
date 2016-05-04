@@ -500,9 +500,32 @@ local function _calculateRotation(currentDir, currentOmega, targetDir, accelerat
 	return outSpeed, outAccel
 end
 
+local function _speedAtTime(speedProfile, time)
+	local endIdx = #speedProfile + 1
+	for i = 2, #speedProfile do
+		if speedProfile[i][1] >= time then
+			endIdx = i
+			break
+		end
+	end
+	if endIdx > #speedProfile then
+		return speedProfile[#speedProfile][2]
+	else
+		local accel = (speedProfile[endIdx][2]-speedProfile[endIdx-1][2])/(speedProfile[endIdx][1]-speedProfile[endIdx-1][1])
+		if speedProfile[endIdx][1] - speedProfile[endIdx-1][1] == 0 then
+			-- segement has duration of 0 seconds
+			accel = 0
+		end
+		return speedProfile[endIdx-1][2] + accel*(time - speedProfile[endIdx-1][1])
+	end
+end
+
 local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile, robotSpeed, accelLimit, sidewardsErrorFactor)
-	local speed = speedProfile[1][2]
-	local accel = (speedProfile[2][2] - speedProfile[1][2]) / (speedProfile[2][1] - speedProfile[1][1])
+	local timeOffset = 0.015
+	local timeStep = 0.01
+	local speed = _speedAtTime(speedProfile, timeOffset)
+	local speedNextStep = _speedAtTime(speedProfile, timeOffset+timeStep)
+	local accel = (speedNextStep-speed)*(1/timeStep)
 	-- if target is reached
 	if speedProfile[2][1] == speedProfile[1][1] then
 		accel = 0
