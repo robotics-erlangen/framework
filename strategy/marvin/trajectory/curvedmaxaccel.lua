@@ -409,7 +409,7 @@ local function _injectExponentialFalloff(speedProfile, exponentialTime, exponent
 
 		-- fake end time
 		local endTime = speedProfile[#speedProfile][1] + timeFactor*exponentialTime
-		table.insert(speedProfile, {endTime, endSpeedLen})
+		table.insert(speedProfile, {endTime, speedProfile[#speedProfile][2]})
 	end
 	return speedProfile
 end
