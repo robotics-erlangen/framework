@@ -10,17 +10,19 @@ local ToTarget = require "trajectory/totarget"
 
 local START_POS = Vector(0, -1)
 local CENTER_DIST = 0.05
+local START_ANGLE = 90/180*math.pi
 local ANGLE_STEP = 45/180*math.pi
 local WAIT_TIME = 3
+local ROBOT_ORIENTATION = 0/180*math.pi
 
 
 local MoveTestTask = Class("Test.Task.MoveTest.Task", require "task/base")
 function MoveTestTask:_init(idx, total)
 	self._dest = nil
 	self._atTargetSince = nil
-	self._angle = 0
+	self._angle = START_ANGLE
 	-- line up robots
-	self._startPos = START_POS + Vector((idx - total/2) * (CENTER_DIST*2 + 0.4), 0)
+	self._startPos = START_POS + Vector((idx - total/2) * 0.5, 0)
 end
 
 function MoveTestTask:run()
@@ -35,9 +37,9 @@ function MoveTestTask:run()
 	end
 
 	local targetDist = self._robot.pos:distanceTo(pos)
-	if targetDist < 0.01 and self._atTargetSince == nil then
+	if targetDist < 0.005 and self._atTargetSince == nil then
 		self._atTargetSince = World.Time
-	elseif targetDist > 0.02 then
+	elseif targetDist > 0.01 then
 		self._atTargetSince = nil
 	end
 	local synchronized = false
@@ -55,7 +57,7 @@ function MoveTestTask:run()
 	end
 
 	plot.addPlot("positionError." .. tostring(self._robot.id), self._robot.pos:distanceTo(pos))
-	self._robot.trajectory:update(ToTarget, pos, 0)
+	self._robot.trajectory:update(ToTarget, pos, ROBOT_ORIENTATION)
 end
 
 
