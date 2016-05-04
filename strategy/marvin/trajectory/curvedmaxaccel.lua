@@ -245,7 +245,7 @@ local function _addLinearSpeedSegment(speedProfile, startSpeed, endSpeed, distan
 	local linearAccel = (endSpeed - speed) / distance * (endSpeed + speed) / 2
 	if linearAccel > accelerate or linearAccel < brake then
 		-- too slow or too fast to reach endSpeed
-		accel = math.bound(brake, accelerate, accelerate)
+		accel = math.bound(brake, linearAccel, accelerate)
 		-- linearAccel is either brake or accelerate
 		accelTime = (-speed + math.sqrt(speed*speed+2*accel*distance))/accel
 	elseif startSpeed == endSpeed then
