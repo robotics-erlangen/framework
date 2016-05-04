@@ -209,6 +209,21 @@ local function _backpropagateSpeedLimit(speedProfile, maxSpeed, brake)
 					- (switchSpeed + maxSpeed) / 2 * brakeTime
 			local injectTime = math.max(0, missingDistance / switchSpeed)
 
+			if oldAccel > 0 then
+				-- Fomulas for wxMaxima
+				--solve(v_0=v_0+a*t_mid+b*(t_end-t_mid),t_end);
+				--assume(a > 0);assume(b < 0);assume(d > 0);assume(t_end>t_mid);
+				--ratsimp(integrate(v_0+a*t,t,0,t_mid)+integrate(v_0+a*t_mid+b*(t-t_mid),t,t_mid,t_end)=d);
+				local v_0,a,b,d = switchSpeed,oldAccel,brake,missingDistance
+				local t1, t2 = math.solveSq(b-a, 2*(b-a)*v_0, -2*b*d)
+				if t1 and t1 > 0 then
+					switchTime = switchTime + t1
+					switchSpeed = switchSpeed + t1 * oldAccel
+					injectTime = 0
+					brakeTime = (switchSpeed - maxSpeed) / (-brake)
+				end
+			end
+
 			-- remove all speed entries after the current one
 			table.truncate(speedProfile, i)
 			if switchSpeed ~= entry[2] then -- just a duplicate
