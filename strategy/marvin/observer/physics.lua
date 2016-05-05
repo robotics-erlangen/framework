@@ -553,7 +553,7 @@ end
 -- @return Vector - the catch position
 -- @return bool - was robot.maxSpeed exceeded?
 local epsilon_t = 0.001
-Physics.getBallAsFastAsPossible(robot, ball, howClose)
+function Physics.getBallAsFastAsPossible(robot, ball, howClose)
 	howClose = howClose or robot.radius + ball.radius
 	if ball.pos:distanceTo(robot.pos) < howClose then
 		-- we already have the ball, but still some idiot called this function
@@ -665,7 +665,7 @@ Physics.getBallAsFastAsPossible(robot, ball, howClose)
 	else
 		-- case 4
 	end
-	while ??? do
+	while todo do -- FIXME
 		local R = 0.5*a_max*t*t + robot.radius
 		local otherStuff = tr_ball*t - dist0
 		--solve |ball.pos(lambda) - (x_0 + v_0*t)|² = (1/2*a_max*t² + robot.radius)² for lambda
@@ -679,12 +679,12 @@ Physics.getBallAsFastAsPossible(robot, ball, howClose)
 				ballRollTime = Physics.ballRollTime(ball, dist)
 			end
 			if lambda2 then
-				
+
 			else
-			
+
 			end
 		else
-		
+
 		end
 	end
 end
