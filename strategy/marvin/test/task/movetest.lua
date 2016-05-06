@@ -14,6 +14,7 @@ local START_ANGLE = 90/180*math.pi
 local ANGLE_STEP = 45/180*math.pi
 local WAIT_TIME = 3
 local ROBOT_ORIENTATION = 0/180*math.pi
+local ROBOT_ORIENTATION_STEP = 0/180*math.pi
 
 
 local MoveTestTask = Class("Test.Task.MoveTest.Task", require "task/base")
@@ -21,6 +22,7 @@ function MoveTestTask:_init(idx, total)
 	self._dest = nil
 	self._atTargetSince = nil
 	self._angle = START_ANGLE
+	self._orientation = ROBOT_ORIENTATION
 	-- line up robots
 	self._startPos = START_POS + Vector((idx - total/2) * 0.5, 0)
 end
@@ -35,6 +37,7 @@ function MoveTestTask:run()
 	else
 		pos = self._startPos
 	end
+	local dir = self._orientation
 
 	local targetDist = self._robot.pos:distanceTo(pos)
 	if targetDist < 0.005 and self._atTargetSince == nil then
@@ -54,10 +57,11 @@ function MoveTestTask:run()
 			self._dest = self._startPos + Vector.fromAngle(self._angle):scaleLength(CENTER_DIST)
 			self._angle = self._angle + ANGLE_STEP
 		end
+		self._orientation = self._orientation + ROBOT_ORIENTATION_STEP
 	end
 
 	plot.addPlot("positionError." .. tostring(self._robot.id), self._robot.pos:distanceTo(pos))
-	self._robot.trajectory:update(ToTarget, pos, ROBOT_ORIENTATION)
+	self._robot.trajectory:update(ToTarget, pos, dir)
 end
 
 
