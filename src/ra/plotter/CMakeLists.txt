@@ -18,15 +18,11 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-if(TARGET protobuf AND QT_FOUND)
-
 include_directories(${PROTOBUF_INCLUDE_DIR})
 
 set(SOURCES
     leaffilterproxymodel.cpp
     leaffilterproxymodel.h
-    ../guitimer.cpp
-    ../guitimer.h
     plot.cpp
     plot.h
     plotter.cpp
@@ -46,5 +42,3 @@ qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 add_library(plotter ${SOURCES} ${UIC_SOURCES})
 target_link_libraries(plotter protobuf ${OPENGL_LIBRARIES})
 qt5_use_modules(plotter Widgets OpenGL)
-
-endif()

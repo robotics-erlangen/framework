@@ -10,7 +10,7 @@ All programs should work on GNU/Linux (tested on Ubuntu 14.04), Mac OS X 10.10 a
 In order to build Ra you will need:
  * cmake >= 2.8.9
  * g++ >= 4.6
- * qt >= 5.1.0
+ * qt >= 5.1.0, NOT 5.4.2 and 5.5.0 on all system; NOT 5.4.x on Mac
  * protobuf >= 2.0.0
  * luajit >= 2.0
 

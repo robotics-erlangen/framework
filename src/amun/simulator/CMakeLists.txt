@@ -18,8 +18,6 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-if(TARGET protobuf AND QT_FOUND)
-
 include_directories(${BULLET_INCLUDE_DIRS})
 include_directories(${PROTOBUF_INCLUDE_DIR})
 
@@ -43,7 +41,5 @@ qt5_use_modules(simulator Core Gui)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     # silence warnings about usage of the register specifier in header files of bullet
-    set_target_properties(simulator PROPERTIES COMPILE_FLAGS "-Wno-deprecated-register")
-endif()
-
+    set_property(TARGET simulator APPEND PROPERTY COMPILE_FLAGS "-Wno-deprecated-register")
 endif()

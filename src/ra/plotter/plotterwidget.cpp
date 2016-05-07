@@ -21,7 +21,7 @@
 #include "plotterwidget.h"
 #include "plot.h"
 #include "texturecache.h"
-#include "../guitimer.h"
+#include "guitimer.h"
 #include <QCursor>
 #include <QLabel>
 #include <QWindow>

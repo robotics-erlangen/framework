@@ -18,8 +18,6 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-if(TARGET protobuf AND QT_FOUND)
-
 include_directories(${PROTOBUF_INCLUDE_DIR})
 
 set(SOURCES
@@ -34,5 +32,3 @@ set(SOURCES
 add_library(logfile ${SOURCES})
 target_link_libraries(logfile protobuf)
 qt5_use_modules(logfile Widgets)
-
-endif()

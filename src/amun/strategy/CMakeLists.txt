@@ -20,8 +20,6 @@
 
 add_subdirectory(path)
 
-if(TARGET path AND TARGET protobuf AND LUA51_FOUND)
-
 include_directories(${LUA_INCLUDE_DIR})
 include_directories(${PROTOBUF_INCLUDE_DIR})
 
@@ -45,5 +43,3 @@ set(SOURCES
 add_library(strategy ${SOURCES})
 target_link_libraries(strategy core path protobuf ${LUA_LIBRARIES})
 qt5_use_modules(strategy Core Network)
-
-endif()

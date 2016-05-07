@@ -18,8 +18,6 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-if(TARGET protobuf AND QT_FOUND)
-
 include_directories(${PROTOBUF_INCLUDE_DIR})
 if(SDL2_FOUND)
     include_directories(${SDL2_INCLUDE_DIR})
@@ -35,7 +33,7 @@ set(SOURCES
 )
 
 if(SDL2_FOUND)
-    set(SOURCES ${SOURCES}
+    list(APPEND SOURCES
         joystick.cpp
         joystick.h
     )
@@ -49,4 +47,3 @@ if(SDL2_FOUND)
 	add_dependencies(input sdl2)
 endif()
 
-endif()

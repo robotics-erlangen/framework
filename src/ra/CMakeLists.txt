@@ -18,13 +18,12 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/helper)
+add_subdirectory(helper)
 add_subdirectory(input)
 add_subdirectory(logfile)
 add_subdirectory(plotter)
 
-if(TARGET amun AND TARGET input AND TARGET logfile AND TARGET plotter)
-
-include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${PROTOBUF_INCLUDE_DIR})
 
 set(SOURCES
@@ -38,8 +37,6 @@ set(SOURCES
     debugtreewidget.h
     fieldwidget.cpp
     fieldwidget.h
-    #guitimer.cpp
-    #guitimer.h
     internalreferee.cpp
     internalreferee.h
     inputwidget.cpp
@@ -91,37 +88,29 @@ set(UI_SOURCES
 )
 
 if(MINGW)
-    set(SOURCES ${SOURCES} ${CMAKE_SOURCE_DIR}/data/pkg/ra.rc)
+    list(APPEND SOURCES ${CMAKE_SOURCE_DIR}/data/pkg/ra.rc)
 endif(MINGW)
 
 # add ra icon
 if(APPLE)
     set(RA_ICON ${CMAKE_SOURCE_DIR}/data/pkg/ra.icns)
     set_source_files_properties(${RA_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    set(SOURCES ${SOURCES} ${RA_ICON})
+    list(APPEND SOURCES ${RA_ICON})
 endif(APPLE)
 
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 
 add_executable(ra WIN32 MACOSX_BUNDLE ${SOURCES} ${UIC_SOURCES})
-target_link_libraries(ra amun input logfile plotter protobuf ${OPENGL_LIBRARIES})
+target_link_libraries(ra amun guihelper input logfile plotter protobuf ${OPENGL_LIBRARIES})
 qt5_use_modules(ra Widgets OpenGL)
 
 # add plist file
 if(APPLE)
     set_target_properties(ra PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/data/pkg/MacBundleInfo.plist.in)
     set_target_properties(ra PROPERTIES MACOSX_BUNDLE_ICON_FILE ra.icns)
-    set_target_properties(ra PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER com.er-force.Ra)
+    set_target_properties(ra PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER de.robotics-erlangen.Ra)
     set_target_properties(ra PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME Ra)
 
     # required by LuaJIT for 64bit
-    set(EXTRA_LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
-    get_target_property(RA_LINK_FLAGS ra LINK_FLAGS)
-    if(NOT RA_LINK_FLAGS)
-        set_target_properties(ra PROPERTIES LINK_FLAGS ${EXTRA_LINK_FLAGS})
-    else()
-        set_target_properties(ra PROPERTIES LINK_FLAGS "${RA_LINK_FLAGS} ${EXTRA_LINK_FLAGS}")
-    endif()
+    set_property(TARGET ra APPEND PROPERTY LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
 endif(APPLE)
-
-endif()

@@ -22,8 +22,6 @@ add_subdirectory(processor)
 add_subdirectory(simulator)
 add_subdirectory(strategy)
 
-if(TARGET processor AND TARGET simulator AND TARGET strategy)
-
 include_directories(${PROTOBUF_INCLUDE_DIR})
 
 set(SOURCES
@@ -41,6 +39,4 @@ qt5_use_modules(amun Core Network)
 
 if(WIN32)
     target_link_libraries(amun wsock32)
-endif()
-
 endif()

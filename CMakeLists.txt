@@ -47,9 +47,9 @@ if(APPLE)
     SET(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols <TARGET>")
 endif()
 
-find_package(OpenGL)
-find_package(Threads)
-find_package(Protobuf)
+find_package(OpenGL REQUIRED)
+find_package(Threads REQUIRED)
+find_package(Protobuf REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
@@ -59,7 +59,7 @@ find_package(Qt5Network REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 set(QT_FOUND TRUE)
 
-find_package(LuaJIT2)
+find_package(LuaJIT2 REQUIRED)
 find_package(USB)
 find_package(SDL2)
 

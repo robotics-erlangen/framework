@@ -51,7 +51,7 @@ FIND_LIBRARY(USB_LIBRARIES
 )
 
 INCLUDE(FindPackageHandleStandardArgs)
-# handle the QUIETLY and REQUIRED arguments and set USB_FOUND to TRUE if 
+# handle the QUIETLY and REQUIRED arguments and set USB_FOUND to TRUE if
 # all listed variables are TRUE
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(USB  DEFAULT_MSG  USB_LIBRARIES USB_INCLUDE_DIR)
 

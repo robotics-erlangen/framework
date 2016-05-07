@@ -20,8 +20,6 @@
 
 add_subdirectory(tracking)
 
-if(TARGET tracking)
-
 include_directories(${PROTOBUF_INCLUDE_DIR})
 include_directories(${EIGEN_INCLUDE_DIR})
 
@@ -47,7 +45,7 @@ set(SOURCES
 )
 
 if(USB_FOUND)
-    set(SOURCES ${SOURCES} usbdevice.cpp usbdevice.h usbthread.cpp usbthread.h)
+    list(APPEND SOURCES usbdevice.cpp usbdevice.h usbthread.cpp usbthread.h)
 endif()
 
 add_library(processor ${SOURCES})
@@ -57,6 +55,4 @@ qt5_use_modules(processor Core Network)
 
 if(USB_FOUND)
     target_link_libraries(processor ${USB_LIBRARIES})
-endif()
-
 endif()

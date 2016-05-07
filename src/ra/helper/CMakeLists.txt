@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+# *   Copyright 2016 Michael Eischer                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,24 +18,10 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-include_directories(${PROTOBUF_INCLUDE_DIR})
-include_directories(${EIGEN_INCLUDE_DIR})
-
 set(SOURCES
-    ballfilter.cpp
-    ballfilter.h
-    filter.cpp
-    filter.h
-    kalmanfilter.h
-    quadraticleastsquaresfitter.cpp
-    quadraticleastsquaresfitter.h
-    robotfilter.cpp
-    robotfilter.h
-    tracker.cpp
-    tracker.h
+    guitimer.cpp
+    guitimer.h
 )
 
-add_library(tracking ${SOURCES})
-target_link_libraries(tracking core protobuf)
-add_dependencies(tracking eigen)
-qt5_use_modules(tracking Core)
+add_library(guihelper ${SOURCES})
+qt5_use_modules(guihelper Core)

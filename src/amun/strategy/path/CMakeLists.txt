@@ -18,8 +18,6 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-if(TARGET core AND TARGET protobuf)
-
 include_directories(${PROTOBUF_INCLUDE_DIR})
 
 set(SOURCES
@@ -34,5 +32,3 @@ set(SOURCES
 add_library(path ${SOURCES})
 target_link_libraries(path core protobuf)
 qt5_use_modules(path Core)
-
-endif()
