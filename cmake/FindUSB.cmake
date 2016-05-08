@@ -1,5 +1,19 @@
+#.rst:
+# FindUSB
+# -------
+#
+# Finds the libusb-1.0 library
+#
+# This will define the following variables::
+#
+#   USB_FOUND - True if the system has the libusb library
+#
+# and the following imported targets::
+#
+#   lib::usb  - The libusb library
+
 # ***************************************************************************
-# *   Copyright 2015 Philipp Nordhus                                        *
+# *   Copyright 2016 Michael Eischer, Philipp Nordhus                       *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,48 +32,52 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-FIND_PATH(USB_INCLUDE_DIR
+find_path(USB_INCLUDE_DIR
   NAMES libusb.h
-  HINTS
-  $ENV{USB_DIR}
+  HINTS $ENV{USB_DIR}
   PATH_SUFFIXES include/libusb-1.0
   PATHS
-  ~/Library/Frameworks
-  /Library/Frameworks
-  /usr/local
-  /usr
-  /sw # Fink
-  /opt/local # DarwinPorts
-  /opt/csw # Blastwave
-  /opt
+    ~/Library/Frameworks
+    /Library/Frameworks
+    /usr/local
+    /usr
+    /sw # Fink
+    /opt/local # DarwinPorts
+    /opt/csw # Blastwave
+    /opt
 )
 
-FIND_LIBRARY(USB_LIBRARIES
+find_library(USB_LIBRARY
   NAMES usb-1.0
-  HINTS
-  $ENV{USB_DIR}
+  HINTS $ENV{USB_DIR}
   PATH_SUFFIXES lib64 lib
   PATHS
-  ~/Library/Frameworks
-  /Library/Frameworks
-  /usr/local
-  /usr
-  /sw
-  /opt/local
-  /opt/csw
-  /opt
+    ~/Library/Frameworks
+    /Library/Frameworks
+    /usr/local
+    /usr
+    /sw
+    /opt/local
+    /opt/csw
+    /opt
 )
 
-INCLUDE(FindPackageHandleStandardArgs)
-# handle the QUIETLY and REQUIRED arguments and set USB_FOUND to TRUE if
-# all listed variables are TRUE
-FIND_PACKAGE_HANDLE_STANDARD_ARGS(USB  DEFAULT_MSG  USB_LIBRARIES USB_INCLUDE_DIR)
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(USB
+  FOUND_VAR USB_FOUND
+  REQUIRED_VARS
+    USB_LIBRARY
+    USB_INCLUDE_DIR
+)
+mark_as_advanced(
+  USB_INCLUDE_DIR
+  USB_LIBRARY
+)
 
-MARK_AS_ADVANCED(USB_INCLUDE_DIR USB_LIBRARIES)
-
-if (USB_FOUND)
-    # FIXME library type
-    add_library(lib::usb UNKNOWN IMPORTED)
-    set_property(TARGET lib::usb PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${USB_INCLUDE_DIR}")
-    set_target_properties(lib::usb PROPERTIES IMPORTED_LOCATION "${USB_LIBRARIES}")
+if(USB_FOUND)
+  add_library(lib::usb UNKNOWN IMPORTED)
+  set_target_properties(lib::usb PROPERTIES
+    IMPORTED_LOCATION "${USB_LIBRARY}"
+    INTERFACE_INCLUDE_DIRECTORIES "${USB_INCLUDE_DIR}"
+  )
 endif()

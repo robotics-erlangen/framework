@@ -38,6 +38,7 @@ if (UNIX AND NOT APPLE)
         set_target_properties(lib::sdl2 PROPERTIES IMPORTED_LOCATION "${install_dir}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}SDL2${CMAKE_SHARED_LIBRARY_SUFFIX}")
         add_dependencies(lib::sdl2 project_sdl2)
         set(SDL2_FOUND true)
+        set(SDL2_VERSION "2.0.2")
     else()
         # actually just for plug & play, but it won't work without ...
         message(WARNING "SDL2 requires libudev for game controller support")
