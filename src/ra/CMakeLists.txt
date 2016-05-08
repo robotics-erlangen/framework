@@ -107,7 +107,4 @@ if(APPLE)
     set_target_properties(ra PROPERTIES MACOSX_BUNDLE_ICON_FILE ra.icns)
     set_target_properties(ra PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER de.robotics-erlangen.Ra)
     set_target_properties(ra PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME Ra)
-
-    # required by LuaJIT for 64bit
-    set_property(TARGET ra APPEND PROPERTY LINK_FLAGS "-pagezero_size 10000 -image_base 100000000")
 endif(APPLE)

@@ -109,4 +109,8 @@ if (LUA51_FOUND)
     add_library(lib::luajit UNKNOWN IMPORTED)
     set_property(TARGET lib::luajit PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}")
     set_target_properties(lib::luajit PROPERTIES IMPORTED_LOCATION "${LUA_LIBRARIES}")
+    if(APPLE)
+        # required by LuaJIT for 64bit
+        set_target_properties(lib::luajit PROPERTIES INTERFACE_LINK_LIBRARIES "-pagezero_size 10000 -image_base 100000000")
+    endif()
 endif()
