@@ -18,7 +18,13 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_library(firmware-interface INTERFACE)
+if (${CMAKE_VERSION} VERSION_GREATER 2.8.13)
+	add_library(firmware-interface INTERFACE)
+else()
+	file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp" "\n")
+	add_library(firmware-interface "${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp")
+endif()
+
 target_include_directories(firmware-interface
     INTERFACE include
 )

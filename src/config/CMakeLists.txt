@@ -20,7 +20,13 @@
 
 configure_file(include/config/config.h.in include/config/config.h)
 
-add_library(config INTERFACE)
+if (${CMAKE_VERSION} VERSION_GREATER 2.8.13)
+	add_library(config INTERFACE)
+else()
+	file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp" "\n")
+	add_library(config "${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp")
+endif()
+
 target_include_directories(config
     INTERFACE "${CMAKE_CURRENT_BINARY_DIR}/include"
 )
