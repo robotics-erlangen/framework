@@ -25,7 +25,7 @@
 #include <QSettings>
 #include <QThread>
 #include <QSignalMapper>
-#include "../ra/refereestatuswidget.h"
+#include "widgets/refereestatuswidget.h"
 #include "logfile/logfilereader.h"
 #include "plotter/plotter.h"
 #include "logcutter.h"

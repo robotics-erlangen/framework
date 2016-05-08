@@ -19,56 +19,45 @@
 # ***************************************************************************
 
 set(SOURCES
-    logplayer.cpp
-    mainwindow.cpp
-    mainwindow.h
-    logcutter.cpp
-    logcutter.h
-    logprocessor.cpp
-    logprocessor.h
+    include/widgets/debugtreewidget.h
+    include/widgets/fieldwidget.h
+    include/widgets/logwidget.h
+    include/widgets/refereestatuswidget.h
+    include/widgets/timingwidget.h
+    include/widgets/visualizationwidget.h
+
+    debugmodel.cpp
+    debugmodel.h
+    debugtreewidget.cpp
+    fieldwidget.cpp
+    logwidget.cpp
+    refereestatuswidget.cpp
+    savesituation.cpp
+    savesituation.h
+    timingwidget.cpp
+    visualizationwidget.cpp
 )
 
 set(UI_SOURCES
-    mainwindow.ui
-    logcutter.ui
+    refereestatuswidget.ui
+    timingwidget.ui
+    visualizationwidget.ui
 )
-
-if(MINGW)
-    list(APPEND SOURCES ${CMAKE_SOURCE_DIR}/data/pkg/logplayer.rc)
-endif(MINGW)
-
-# add logplayer icon
-if(APPLE)
-    set(LOGPLAYER_ICON ${CMAKE_SOURCE_DIR}/data/pkg/logplayer.icns)
-    set_source_files_properties(${LOGPLAYER_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    list(APPEND SOURCES ${LOGPLAYER_ICON})
-endif(APPLE)
 
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 
-add_executable(logplayer WIN32 MACOSX_BUNDLE ${SOURCES} ${UIC_SOURCES})
-target_link_libraries(logplayer
-    shared::config
-    shared::core
-    shared::protobuf
-    ra::guihelper
-    ra::logfile
-    ra::plotter
-    ra::widgets
-    ${OPENGL_LIBRARIES}
-    ${CMAKE_THREAD_LIBS_INIT}
-    Qt5::Widgets
-    Qt5::OpenGL
+add_library(widgets ${SOURCES} ${UIC_SOURCES})
+target_link_libraries(widgets
+    PUBLIC shared::protobuf
+    PRIVATE ra::guihelper
+    PUBLIC Qt5::Widgets
+    PRIVATE Qt5::OpenGL
 )
-target_include_directories(logplayer
+target_include_directories(widgets
+    INTERFACE include
+    PRIVATE include/widgets
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-# add plist file
-if(APPLE)
-    set_target_properties(logplayer PROPERTIES MACOSX_BUNDLE_INFO_PLIST ${CMAKE_SOURCE_DIR}/data/pkg/MacBundleInfo.plist.in)
-    set_target_properties(logplayer PROPERTIES MACOSX_BUNDLE_ICON_FILE logplayer.icns)
-    set_target_properties(logplayer PROPERTIES MACOSX_BUNDLE_GUI_IDENTIFIER de.robotics-erlangen.LogPlayer)
-    set_target_properties(logplayer PROPERTIES MACOSX_BUNDLE_BUNDLE_NAME "Ra Log Player")
-endif(APPLE)
+add_library(ra::widgets ALIAS widgets)

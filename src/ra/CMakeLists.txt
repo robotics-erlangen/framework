@@ -22,29 +22,20 @@ add_subdirectory(guihelper)
 add_subdirectory(input)
 add_subdirectory(logfile)
 add_subdirectory(plotter)
+add_subdirectory(widgets)
 
 set(SOURCES
     amunclient.cpp
     amunclient.h
     configdialog.cpp
     configdialog.h
-    debugmodel.cpp
-    debugmodel.h
-    debugtreewidget.cpp
-    debugtreewidget.h
-    fieldwidget.cpp
-    fieldwidget.h
     internalreferee.cpp
     internalreferee.h
     inputwidget.cpp
     inputwidget.h
-    logwidget.cpp
-    logwidget.h
     mainwindow.cpp
     mainwindow.h
     ra.cpp
-    refereestatuswidget.cpp
-    refereestatuswidget.h
     refereewidget.cpp
     refereewidget.h
     resettableitemdelegate.cpp
@@ -59,31 +50,22 @@ set(SOURCES
     robotwidget.h
     optionswidget.cpp
     optionswidget.h
-    savesituation.cpp
-    savesituation.h
     simulatorwidget.cpp
     simulatorwidget.h
     teamwidget.cpp
     teamwidget.h
-    timingwidget.cpp
-    timingwidget.h
-    visualizationwidget.cpp
-    visualizationwidget.h
 )
 
 set(UI_SOURCES
     configdialog.ui
     inputwidget.ui
     mainwindow.ui
-    refereestatuswidget.ui
     refereewidget.ui
     robotparametersdialog.ui
     robotselectionwidget.ui
     robotspecsdialog.ui
     optionswidget.ui
     simulatorwidget.ui
-    timingwidget.ui
-    visualizationwidget.ui
 )
 
 if(MINGW)
@@ -108,6 +90,7 @@ target_link_libraries(ra
     ra::input
     ra::logfile
     ra::plotter
+    ra::widgets
     ${OPENGL_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     Qt5::Widgets

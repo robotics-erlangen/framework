@@ -18,15 +18,15 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "configdialog.h"
 #include "mainwindow.h"
+#include "ui_mainwindow.h"
+#include "configdialog.h"
+#include "input/inputmanager.h"
 #include "internalreferee.h"
+#include "logfile/logfilewriter.h"
 #include "plotter/plotter.h"
 #include "robotparametersdialog.h"
-#include "refereestatuswidget.h"
-#include "ui_mainwindow.h"
-#include "logfile/logfilewriter.h"
-#include "input/inputmanager.h"
+#include "widgets/refereestatuswidget.h"
 #include <QDateTime>
 #include <QFile>
 #include <QFileDialog>
