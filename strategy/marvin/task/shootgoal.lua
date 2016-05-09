@@ -97,7 +97,7 @@ function ShootGoal:_validateShootPos(ballPos)
 		end
 	end
 
-	return true
+	return false
 end
 
 function ShootGoal:_volleyMinTime()
