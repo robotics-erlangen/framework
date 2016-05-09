@@ -521,8 +521,8 @@ local function _speedAtTime(speedProfile, time)
 end
 
 local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile, robotSpeed, accelLimit, sidewardsErrorFactor)
-	local timeOffset = 0.015
-	local timeStep = 0.01
+	local timeOffset = 0.02
+	local timeStep = 0.02
 	local speed = _speedAtTime(speedProfile, timeOffset)
 	local speedNextStep = _speedAtTime(speedProfile, timeOffset+timeStep)
 	local accel = (speedNextStep-speed)*(1/timeStep)
@@ -573,7 +573,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 
 	-- configuration
 	local maxError = 0.03 -- maxError in meters when driving a curve
-	local accelerationFactor = (accelScale or 1.0) * 0.9 -- factor for max forward speedup and braking
+	local accelerationFactor = (accelScale or 1.0) * 0.85 -- factor for max forward speedup and braking
 	local exponentialTime = 0.1 -- timespan in seconds replace with exponential falloff
 	local exponentialError = 0.2 -- relative
 	local sidewardsErrorFactor = 10 -- used to scale sidewards speed error
