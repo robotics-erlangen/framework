@@ -22,8 +22,15 @@
 #include "ballfilter.h"
 #include "protobuf/ssl_wrapper.pb.h"
 #include "robotfilter.h"
+#include <Eigen/Dense>
+
+class TrackerPrivate {
+public:
+    QMap<int, Eigen::Vector3f> cameraPosition;
+};
 
 Tracker::Tracker() :
+    m_p(new TrackerPrivate),
     m_flip(false),
     m_systemDelay(30 * 1000 * 1000),
     m_resetTime(0),
@@ -41,6 +48,7 @@ Tracker::Tracker() :
 Tracker::~Tracker()
 {
     reset();
+    delete m_p;
 }
 
 void Tracker::reset()
@@ -241,7 +249,7 @@ void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c)
     cameraPos(1) = c.derived_camera_world_tx() / 1000.f;
     cameraPos(2) = c.derived_camera_world_tz() / 1000.f;
 
-    m_cameraPosition[c.camera_id()] = cameraPos;
+    m_p->cameraPosition[c.camera_id()] = cameraPos;
 }
 
 template<class Filter>
@@ -348,7 +356,7 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, qint3
 
     foreach (BallFilter *filter, m_ballFilter) {
         filter->update(receiveTime);
-        const float dist = filter->distanceTo(ball, m_cameraPosition.value(cameraId, Eigen::Vector3f::Zero()));
+        const float dist = filter->distanceTo(ball, m_p->cameraPosition.value(cameraId, Eigen::Vector3f::Zero()));
         if (dist < nearest) {
             nearest = dist;
             nearestFilter = filter;
@@ -363,7 +371,7 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, qint3
     world::Ball ballPos;
     nearestFilter->get(&ballPos, false, true);
     world::Robot nearestRobot = findNearestRobot(bestRobots, ballPos);
-    nearestFilter->addVisionFrame(cameraId, m_cameraPosition.value(cameraId, Eigen::Vector3f::Zero()), ball, receiveTime, nearestRobot);
+    nearestFilter->addVisionFrame(cameraId, m_p->cameraPosition.value(cameraId, Eigen::Vector3f::Zero()), ball, receiveTime, nearestRobot);
 }
 
 void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId)

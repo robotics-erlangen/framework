@@ -27,7 +27,6 @@
 #include <QMap>
 #include <QPair>
 #include <QByteArray>
-#include <Eigen/Dense>
 
 class BallFilter;
 class RobotFilter;
@@ -36,6 +35,8 @@ class SSL_DetectionFrame;
 class SSL_DetectionRobot;
 class SSL_GeometryFieldSize;
 class SSL_GeometryCameraCalibration;
+// Avoid inclusion of eigen
+class TrackerPrivate;
 
 class Tracker
 {
@@ -76,12 +77,13 @@ private:
 private:
     typedef QPair<QByteArray, qint64> Packet;
     typedef QPair<robot::RadioCommand, qint64> RadioCommand;
+    TrackerPrivate * const m_p;
+
     bool m_flip;
     qint64 m_systemDelay;
     qint64 m_resetTime;
 
     world::Geometry m_geometry;
-    QMap<int, Eigen::Vector3f> m_cameraPosition;
     bool m_geometryUpdated;
     bool m_hasVisionData;
 

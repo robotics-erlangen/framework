@@ -21,9 +21,22 @@
 
 #include "path.h"
 #include "kdtree.h"
+#include "linesegment.h"
+#include "core/rng.h"
 #include <cstdlib>
 #include <sys/time.h>
 //#include <QDebug>
+
+struct Path::Line : Obstacle
+{
+    Line(const Vector &p1, const Vector &p2) : segment(p1, p2) {}
+    float distance(const Vector &v) const override;
+    float distance(const LineSegment &segment) const override;
+    float size() const override { return width; }
+
+    LineSegment segment;
+    float width;
+};
 
 /*!
  * \class Path
@@ -97,7 +110,7 @@ Path::Path(uint32_t rng_seed) :
     m_radius(-1.f),
     m_stepSize(0.1f),
     m_cacheSize(200),
-    m_rng(rng_seed),
+    m_rng(new RNG(rng_seed)),
     m_treeStart(NULL),
     m_treeEnd(NULL)
 { }
@@ -105,6 +118,7 @@ Path::Path(uint32_t rng_seed) :
 Path::~Path()
 {
     reset();
+    delete m_rng;
 }
 
 void Path::reset()
@@ -450,7 +464,7 @@ Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
 
     // update waypoint cache
     for (const Vector &pos: points) {
-        float rand = float(m_rng.uniformInt()) / 0xffffffffU;
+        float rand = float(m_rng->uniformInt()) / 0xffffffffU;
         if (rand <= keepProbability) {
             addToWaypointCache(pos);
         }
@@ -532,7 +546,7 @@ void Path::simplify(QList<Vector> &points, float radius)
 
 Vector Path::randomState() const
 {
-    Vector v(float(m_rng.uniformInt()) / 0xffffffffU, float(m_rng.uniformInt()) / 0xffffffffU);
+    Vector v(float(m_rng->uniformInt()) / 0xffffffffU, float(m_rng->uniformInt()) / 0xffffffffU);
 
     v.x = v.x * (m_sampleRect.top_right.x - m_sampleRect.bottom_left.x) + m_sampleRect.bottom_left.x;
     v.y = v.y * (m_sampleRect.top_right.y - m_sampleRect.bottom_left.y) + m_sampleRect.bottom_left.y;
@@ -541,11 +555,11 @@ Vector Path::randomState() const
 
 Vector Path::getTarget(const Vector &end)
 {
-    const float p = float(m_rng.uniformInt()) / 0xffffffffU;
+    const float p = float(m_rng->uniformInt()) / 0xffffffffU;
     if (p < m_p_dest) {
         return end;
     } else if ((p < m_p_dest + m_p_wp) && !m_waypoints.isEmpty()) {
-        int ofs = m_rng.uniformInt() % m_waypoints.size();
+        int ofs = m_rng->uniformInt() % m_waypoints.size();
         return m_waypoints[ofs];
     } else {
         return randomState();
@@ -559,7 +573,7 @@ void Path::addToWaypointCache(const Vector &pos)
         m_waypoints.append(pos);
     } else {
         // randomly replace waypoints
-        int idx = m_rng.uniformInt() % m_cacheSize;
+        int idx = m_rng->uniformInt() % m_cacheSize;
         m_waypoints[idx] = pos;
     }
 }

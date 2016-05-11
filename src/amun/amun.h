@@ -23,6 +23,7 @@
 
 #include "protobuf/command.h"
 #include "protobuf/status.h"
+#include <QObject>
 
 class NetworkInterfaceWatcher;
 class Processor;

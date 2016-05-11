@@ -23,11 +23,12 @@
 #define PATH_H
 
 #include "kdtree.h"
-#include "linesegment.h"
-#include "core/rng.h"
 #include "protobuf/robot.pb.h"
 #include <QList>
 #include <QString>
+
+class LineSegment;
+class RNG;
 
 class Path
 {
@@ -56,17 +57,6 @@ private:
         float radius;
     };
 
-    struct Line : Obstacle
-    {
-        Line(const Vector &p1, const Vector &p2) : segment(p1, p2) {}
-        float distance(const Vector &v) const override;
-        float distance(const LineSegment &segment) const override;
-        float size() const override { return width; }
-
-        LineSegment segment;
-        float width;
-    };
-
     struct Rect : Obstacle
     {
         float distance(const Vector &v) const override;
@@ -76,6 +66,9 @@ private:
         Vector bottom_left;
         Vector top_right;
     };
+
+    // Avoid including LineSegment
+    struct Line;
 
 public:
     struct Waypoint
@@ -144,7 +137,7 @@ private:
     float m_radius;
     const float m_stepSize;
     const int m_cacheSize;
-    mutable RNG m_rng; // allow using from const functions
+    mutable RNG *m_rng; // allow using from const functions
     KdTree *m_treeStart;
     KdTree *m_treeEnd;
 };

@@ -24,6 +24,8 @@
 #include "protobuf/geometry.h"
 #include <QDateTime>
 #include <QFileInfo>
+#include <QHostAddress>
+#include <QTcpSocket>
 #include <QTimer>
 #include <QUdpSocket>
 
@@ -33,6 +35,13 @@
  * \brief %Strategy script handling
  */
 
+class StrategyPrivate {
+public:
+    QHostAddress mixedTeamHost;
+    quint16 mixedTeamPort;
+    QByteArray mixedTeamData;
+};
+
 /*!
  * \brief Creates a Strategy instance
  * Automatically reloads the strategy when the field geometry or team robots change
@@ -40,8 +49,9 @@
  * \param type can be blue or yellow team or autoref
  */
 Strategy::Strategy(const Timer *timer, StrategyType type) :
+    m_p(new StrategyPrivate),
     m_timer(timer),
-    m_strategy(NULL),
+    m_strategy(nullptr),
     m_type(type),
     m_debugEnabled(false),
     m_refboxControlEnabled(false),
@@ -72,6 +82,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type) :
 Strategy::~Strategy()
 {
     delete m_strategy;
+    delete m_p;
 }
 
 void Strategy::handleStatus(const Status &status)
@@ -189,8 +200,8 @@ void Strategy::handleCommand(const Command &command)
     }
 
     if (command->has_mixed_team_destination()) {
-        m_mixedTeamHost = QHostAddress(QString::fromStdString(command->mixed_team_destination().host()));
-        m_mixedTeamPort = command->mixed_team_destination().port();
+        m_p->mixedTeamHost = QHostAddress(QString::fromStdString(command->mixed_team_destination().host()));
+        m_p->mixedTeamPort = command->mixed_team_destination().port();
     }
 
     if (reloadStrategy && m_strategy) {
@@ -200,7 +211,7 @@ void Strategy::handleCommand(const Command &command)
 
 void Strategy::sendMixedTeamInfo(const QByteArray &data)
 {
-    m_mixedTeamData = data;
+    m_p->mixedTeamData = data;
 }
 
 void Strategy::sendNetworkRefereeCommand(const QByteArray &data)
@@ -225,10 +236,10 @@ void Strategy::process()
                                             amun::UserInput());
 
     if (m_strategy->process(pathPlanning, m_status->world_state(), m_status->game_state(), userInput)) {
-        if (!m_mixedTeamData.isNull()) {
-            int bytesSent = m_udpSenderSocket->writeDatagram(m_mixedTeamData, m_mixedTeamHost, m_mixedTeamPort);
-            int origSize = m_mixedTeamData.size();
-            m_mixedTeamData = QByteArray();
+        if (!m_p->mixedTeamData.isNull()) {
+            int bytesSent = m_udpSenderSocket->writeDatagram(m_p->mixedTeamData, m_p->mixedTeamHost, m_p->mixedTeamPort);
+            int origSize = m_p->mixedTeamData.size();
+            m_p->mixedTeamData = QByteArray();
 
             if (bytesSent != origSize) {
                 fail("Failed to send mixed team info");

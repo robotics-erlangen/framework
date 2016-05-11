@@ -25,12 +25,12 @@
 #include "protobuf/status.h"
 #include "strategytype.h"
 #include <QString>
-#include <QHostAddress>
-#include <QTcpSocket>
 
-class QTimer;
-class Timer;
 class AbstractStrategyScript;
+class StrategyPrivate;
+class Timer;
+class QTimer;
+class QTcpSocket;
 class QUdpSocket;
 
 class Strategy : public QObject
@@ -68,6 +68,7 @@ private:
     amun::DebugSource debugSource() const;
 
 private:
+    StrategyPrivate * const m_p;
     const Timer *m_timer;
     AbstractStrategyScript *m_strategy;
     std::string m_geometryString;
@@ -88,9 +89,6 @@ private:
     bool m_strategyFailed;
 
     QUdpSocket *m_udpSenderSocket;
-    QHostAddress m_mixedTeamHost;
-    quint16 m_mixedTeamPort;
-    QByteArray m_mixedTeamData;
     QTcpSocket *m_refboxSocket;
     QByteArray m_networkRefereeCommand;
 };
