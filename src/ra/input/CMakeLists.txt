@@ -19,10 +19,11 @@
 # ***************************************************************************
 
 set(SOURCES
+    include/input/inputmanager.h
+
     inputdevice.cpp
     inputdevice.h
     inputmanager.cpp
-    inputmanager.h
     keyboard.cpp
     keyboard.h
 )
@@ -36,10 +37,16 @@ endif()
 
 add_library(input ${SOURCES})
 target_link_libraries(input
+    PRIVATE config
     PUBLIC protobuf
     PRIVATE Qt5::Widgets
+)
+target_include_directories(input
+    INTERFACE include
+    PRIVATE include/input
 )
 
 if(TARGET sdl2)
 	target_link_libraries(input PRIVATE sdl2)
+    target_compile_definitions(input PUBLIC SDL2_FOUND)
 endif()

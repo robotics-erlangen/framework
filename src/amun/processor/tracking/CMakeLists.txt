@@ -19,6 +19,8 @@
 # ***************************************************************************
 
 set(SOURCES
+    include/tracking/tracker.h
+
     ballfilter.cpp
     ballfilter.h
     filter.cpp
@@ -29,7 +31,6 @@ set(SOURCES
     robotfilter.cpp
     robotfilter.h
     tracker.cpp
-    tracker.h
 )
 
 add_library(tracking ${SOURCES})
@@ -38,4 +39,8 @@ target_link_libraries(tracking
     PRIVATE eigen
     PUBLIC protobuf
     PUBLIC Qt5::Core
+)
+target_include_directories(tracking
+    INTERFACE include
+    PRIVATE include/tracking
 )

@@ -18,9 +18,11 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+# firmware
+add_subdirectory(firmware)
 
 # libs
+add_subdirectory(config)
 add_subdirectory(core)
 add_subdirectory(protobuf)
 add_subdirectory(amun)

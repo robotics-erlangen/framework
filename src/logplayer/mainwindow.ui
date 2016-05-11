@@ -366,29 +366,29 @@
   <customwidget>
    <class>VisualizationWidget</class>
    <extends>QWidget</extends>
-   <header>ra/visualizationwidget.h</header>
+   <header>visualizationwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>TimingWidget</class>
    <extends>QWidget</extends>
-   <header>ra/timingwidget.h</header>
+   <header>timingwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
    <class>FieldWidget</class>
    <extends>QGraphicsView</extends>
-   <header>ra/fieldwidget.h</header>
+   <header>fieldwidget.h</header>
   </customwidget>
   <customwidget>
    <class>DebugTreeWidget</class>
    <extends>QTreeView</extends>
-   <header>ra/debugtreewidget.h</header>
+   <header>debugtreewidget.h</header>
   </customwidget>
   <customwidget>
    <class>LogWidget</class>
    <extends>QWidget</extends>
-   <header>ra/logwidget.h</header>
+   <header>logwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

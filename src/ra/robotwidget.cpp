@@ -19,8 +19,8 @@
  ***************************************************************************/
 
 #include "robotwidget.h"
+#include "guihelper/guitimer.h"
 #include "input/inputmanager.h"
-#include "guitimer.h"
 #include <QContextMenuEvent>
 #include <QHBoxLayout>
 #include <QLabel>

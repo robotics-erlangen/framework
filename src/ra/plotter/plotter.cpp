@@ -21,7 +21,7 @@
 #include "leaffilterproxymodel.h"
 #include "plotter.h"
 #include "plot.h"
-#include "guitimer.h"
+#include "guihelper/guitimer.h"
 #include "ui_plotter.h"
 #include "google/protobuf/descriptor.h"
 #include "protobuf/status.pb.h"

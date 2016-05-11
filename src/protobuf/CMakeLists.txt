@@ -19,12 +19,13 @@
 # ***************************************************************************
 
 set(SOURCES
-    command.h
+    include/protobuf/command.h
+    include/protobuf/geometry.h
+    include/protobuf/ssl_referee.h
+    include/protobuf/status.h
+
     geometry.cpp
-    geometry.h
     ssl_referee.cpp
-    ssl_referee.h
-    status.h
 )
 
 set(PROTO_FILES
@@ -47,10 +48,15 @@ set(PROTO_FILES
 protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${PROTO_FILES})
 
 add_library(protobuf ${SOURCES} ${PROTO_SOURCES} ${PROTO_HEADERS} ${PROTO_FILES})
-target_include_directories(protobuf PUBLIC ${PROTOBUF_INCLUDE_DIR})
 target_link_libraries(protobuf
-    PUBLIC "${PROTOBUF_LIBRARY}"
+    PUBLIC ${PROTOBUF_LIBRARY}
     INTERFACE Qt5::Core
+)
+target_include_directories(protobuf
+    PUBLIC ${PROTOBUF_INCLUDE_DIR}
+    PUBLIC include
+    PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/..
+    PRIVATE include/protobuf
 )
 
 if(MINGW)

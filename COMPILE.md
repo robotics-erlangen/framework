@@ -102,7 +102,7 @@ make install-package arch=i686-w64-mingw32 prefix=/usr/local
 ```
 mkdir build-win && cd build-win
 cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.5/mingw492_32/lib/cmake -DCMAKE_BUILD_TYPE=Release -DLUA_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/luajit-2.0 -DLUA_LIBRARIES=C:/MinGW/msys/1.0/local/bin/lua51.dll -DPROTOBUF_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include -DPROTOBUF_LIBRARY=C:/MinGW/msys/1.0/local/lib/libprotobuf.dll.a -DSDL2_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/SDL2 -DUSB_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/libusb-1.0 ..
-ninja
+cmake --build .
 cp -r ../config ../data bin
 cp /usr/local/bin/{libprotobuf-9,libusb-1.0,lua51,SDL2}.dll /c/Qt/5.5/mingw492_32/bin/{icudt54,icuin54,icuuc54,libgcc_s_dw2-1,libstdc++-6,libwinpthread-1,Qt5Core,Qt5Gui,Qt5Network,Qt5OpenGL,Qt5Widgets}.dll bin
 mkdir bin/platforms && cp /c/Qt/5.5/mingw492_32/plugins/platforms/qwindows.dll bin/platforms

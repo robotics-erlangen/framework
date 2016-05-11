@@ -19,13 +19,11 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "config.h"
 #include "core/timer.h"
-#include "firmware/common/radiocommand.h"
-#include "firmware/2012/common/radiocommand2012.h"
-#include "firmware/2012/common/transceiver2012.h"
-#include "firmware/2014/common/radiocommand2014.h"
-#include "firmware/common/radiocommand.h"
+#include "firmware-interface/radiocommand.h"
+#include "firmware-interface/radiocommand2012.h"
+#include "firmware-interface/transceiver2012.h"
+#include "firmware-interface/radiocommand2014.h"
 #include "transceiver.h"
 #include "usbthread.h"
 #include "usbdevice.h"

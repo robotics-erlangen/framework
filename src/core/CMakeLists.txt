@@ -19,14 +19,19 @@
 # ***************************************************************************
 
 set(SOURCES
+    include/core/rng.h
+    include/core/timer.h
+    include/core/vector2.h
+
     rng.cpp
-    rng.h
     timer.cpp
-    timer.h
-    vector2.h
 )
 
 add_library(core ${SOURCES})
 target_link_libraries(core
 	PUBLIC Qt5::Core
+)
+target_include_directories(core
+    INTERFACE include
+    PRIVATE include/core
 )

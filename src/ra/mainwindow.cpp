@@ -26,7 +26,6 @@
 #include "refereestatuswidget.h"
 #include "ui_mainwindow.h"
 #include "logfile/logfilewriter.h"
-#include "core/timer.h"
 #include "input/inputmanager.h"
 #include <QDateTime>
 #include <QFile>

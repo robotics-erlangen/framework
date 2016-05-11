@@ -20,7 +20,7 @@
 
 #include "visualizationwidget.h"
 #include "ui_visualizationwidget.h"
-#include "guitimer.h"
+#include "guihelper/guitimer.h"
 #include <QMenu>
 #include <QSettings>
 #include <QSortFilterProxyModel>

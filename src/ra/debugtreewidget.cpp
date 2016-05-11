@@ -20,7 +20,7 @@
 
 #include "debugtreewidget.h"
 #include "debugmodel.h"
-#include "guitimer.h"
+#include "guihelper/guitimer.h"
 
 #include <QSettings>
 #include <QHeaderView>

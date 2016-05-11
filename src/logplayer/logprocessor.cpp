@@ -1,6 +1,6 @@
 #include "logprocessor.h"
-#include "../ra/logfile/logfilereader.h"
-#include "../ra/logfile/logfilewriter.h"
+#include "logfile/logfilereader.h"
+#include "logfile/logfilewriter.h"
 #include "protobuf/gamestate.pb.h"
 #include "protobuf/status.pb.h"
 #include <QSemaphore>

@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "inputmanager.h"
+#include "config/config.h"
 #include "keyboard.h"
 #include "protobuf/command.pb.h"
 #include <QMutableMapIterator>

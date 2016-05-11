@@ -19,16 +19,18 @@
 # ***************************************************************************
 
 set(SOURCES
+    include/logfile/logfilereader.h
+    include/logfile/logfilewriter.h
+
     logfilereader.cpp
-    logfilereader.h
     logfilewriter.cpp
-    logfilewriter.h
-    savesituation.cpp
-    savesituation.h
 )
 
 add_library(logfile ${SOURCES})
 target_link_libraries(logfile
 	PUBLIC protobuf
-	PRIVATE Qt5::Widgets
+)
+target_include_directories(logfile
+    INTERFACE include
+    PRIVATE include/logfile
 )

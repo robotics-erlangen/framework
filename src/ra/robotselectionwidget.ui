@@ -39,7 +39,7 @@
   <customwidget>
    <class>TeamWidget</class>
    <extends>QWidget</extends>
-   <header>ra/teamwidget.h</header>
+   <header>teamwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

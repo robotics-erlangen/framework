@@ -19,12 +19,13 @@
 # ***************************************************************************
 
 set(SOURCES
+    include/path/kdtree.h
+    include/path/path.h
+    include/path/vector.h
+
     kdtree.cpp
-    kdtree.h
     linesegment.h
     path.cpp
-    path.h
-    vector.h
 )
 
 add_library(path ${SOURCES})
@@ -32,4 +33,8 @@ target_link_libraries(path
 	PRIVATE core
 	PUBLIC protobuf
 	PUBLIC Qt5::Core
+)
+target_include_directories(path
+    INTERFACE include
+    PRIVATE include/path
 )

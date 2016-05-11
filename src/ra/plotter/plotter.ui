@@ -157,7 +157,7 @@
   <customwidget>
    <class>PlotterWidget</class>
    <extends>QWidget</extends>
-   <header>ra/plotter/plotterwidget.h</header>
+   <header>plotterwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

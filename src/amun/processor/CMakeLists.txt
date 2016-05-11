@@ -21,20 +21,21 @@
 add_subdirectory(tracking)
 
 set(SOURCES
+    include/processor/networktransceiver.h
+    include/processor/processor.h
+    include/processor/transceiver.h
+
     accelerator.cpp
     accelerator.h
     controller.cpp
     controller.h
     debughelper.cpp
     debughelper.h
-    processor.cpp
-    processor.h
     networktransceiver.cpp
-    networktransceiver.h
+    processor.cpp
     referee.cpp
     referee.h
     transceiver.cpp
-    transceiver.h
 )
 
 if(TARGET libusb)
@@ -43,12 +44,19 @@ endif()
 
 add_library(processor ${SOURCES})
 target_link_libraries(processor
+    PRIVATE core
+    PRIVATE firmware-interface
     PUBLIC protobuf
     PRIVATE tracking
     PUBLIC Qt5::Core
     PRIVATE Qt5::Network
 )
+target_include_directories(processor
+    INTERFACE include
+    PRIVATE include/processor
+)
 
 if(TARGET libusb)
     target_link_libraries(processor PRIVATE libusb)
+    target_compile_definitions(processor PRIVATE USB_FOUND)
 endif()

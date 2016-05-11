@@ -18,13 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
-    guitimer.cpp
-    guitimer.h
-)
-
-add_library(guihelper ${SOURCES})
-target_include_directories(guihelper PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
-target_link_libraries(guihelper
-	PUBLIC Qt5::Core
+add_library(firmware-interface INTERFACE)
+target_include_directories(firmware-interface
+    INTERFACE include
 )

@@ -26,8 +26,8 @@
 #include <QThread>
 #include <QSignalMapper>
 #include "../ra/refereestatuswidget.h"
-#include "../ra/logfile/logfilereader.h"
-#include "../ra/plotter/plotter.h"
+#include "logfile/logfilereader.h"
+#include "plotter/plotter.h"
 #include "logcutter.h"
 
 MainWindow::MainWindow(QWidget *parent) :

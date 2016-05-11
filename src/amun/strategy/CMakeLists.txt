@@ -21,6 +21,9 @@
 add_subdirectory(path)
 
 set(SOURCES
+    include/strategy/strategy.h
+    include/strategy/strategytype.h
+
     abstractstrategyscript.cpp
     abstractstrategyscript.h
     filewatcher.cpp
@@ -34,7 +37,6 @@ set(SOURCES
     lua_protobuf.cpp
     lua_protobuf.h
     strategy.cpp
-    strategy.h
 )
 
 add_library(strategy ${SOURCES})
@@ -45,4 +47,8 @@ target_link_libraries(strategy
     PRIVATE lua51
     PUBLIC Qt5::Core
     PRIVATE Qt5::Network
+)
+target_include_directories(strategy
+    INTERFACE include
+    PRIVATE include/strategy
 )

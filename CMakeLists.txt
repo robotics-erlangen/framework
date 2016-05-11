@@ -56,7 +56,6 @@ find_package(Threads REQUIRED)
 find_package(Protobuf REQUIRED)
 
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
 find_package(Qt5Core REQUIRED)
 find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Network REQUIRED)
@@ -74,9 +73,6 @@ include(BuildBullet)
 include(BuildEigen)
 
 include(FixCodeBlocks)
-
-configure_file(src/config.h.in src/config.h)
-include_directories(${CMAKE_BINARY_DIR}/src)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 add_subdirectory(src)

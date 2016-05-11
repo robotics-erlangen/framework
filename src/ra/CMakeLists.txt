@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_subdirectory(helper)
+add_subdirectory(guihelper)
 add_subdirectory(input)
 add_subdirectory(logfile)
 add_subdirectory(plotter)
@@ -59,6 +59,8 @@ set(SOURCES
     robotwidget.h
     optionswidget.cpp
     optionswidget.h
+    savesituation.cpp
+    savesituation.h
     simulatorwidget.cpp
     simulatorwidget.h
     teamwidget.cpp
@@ -98,7 +100,12 @@ endif(APPLE)
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 
 add_executable(ra WIN32 MACOSX_BUNDLE ${SOURCES} ${UIC_SOURCES})
-target_link_libraries(ra amun guihelper input logfile plotter protobuf ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} Qt5::Widgets Qt5::OpenGL)
+target_link_libraries(ra amun config guihelper input logfile plotter protobuf
+    ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} Qt5::Widgets Qt5::OpenGL)
+target_include_directories(ra
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
 # add plist file
 if(APPLE)

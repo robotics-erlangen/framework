@@ -18,7 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "config.h"
+#include "config/config.h"
 #include "protobuf/robot.pb.h"
 #include "robotselectionwidget.h"
 #include "robotspecsdialog.h"

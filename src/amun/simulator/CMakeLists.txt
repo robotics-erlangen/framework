@@ -19,6 +19,8 @@
 # ***************************************************************************
 
 set(SOURCES
+    include/simulator/simulator.h
+
     mesh.cpp
     mesh.h
     simball.cpp
@@ -28,15 +30,19 @@ set(SOURCES
     simrobot.cpp
     simrobot.h
     simulator.cpp
-    simulator.h
 )
 
 add_library(simulator ${SOURCES})
 target_link_libraries(simulator
+    PRIVATE core
     PUBLIC protobuf
     PRIVATE bullet
     PUBLIC Qt5::Core
     PRIVATE Qt5::Gui
+)
+target_include_directories(simulator
+    INTERFACE include
+    PRIVATE include/simulator
 )
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")

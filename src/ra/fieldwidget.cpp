@@ -19,10 +19,10 @@
  ***************************************************************************/
 
 #include "fieldwidget.h"
+#include "guihelper/guitimer.h"
 #include "protobuf/command.pb.h"
 #include "protobuf/geometry.h"
-#include "logfile/savesituation.h"
-#include "guitimer.h"
+#include "savesituation.h"
 #include <QContextMenuEvent>
 #include <QMenu>
 #include <cmath>

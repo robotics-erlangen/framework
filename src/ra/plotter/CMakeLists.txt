@@ -19,12 +19,13 @@
 # ***************************************************************************
 
 set(SOURCES
+    include/plotter/plotter.h
+
     leaffilterproxymodel.cpp
     leaffilterproxymodel.h
     plot.cpp
     plot.h
     plotter.cpp
-    plotter.h
     plotterwidget.cpp
     plotterwidget.h
     texturecache.cpp
@@ -39,9 +40,16 @@ qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 
 add_library(plotter ${SOURCES} ${UIC_SOURCES})
 target_link_libraries(plotter
+    PRIVATE core
     PUBLIC protobuf
     PRIVATE guihelper
     PRIVATE "${OPENGL_LIBRARIES}"
     PUBLIC Qt5::Widgets
     PRIVATE Qt5::OpenGL
+)
+target_include_directories(plotter
+    INTERFACE include
+    PRIVATE include/plotter
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )

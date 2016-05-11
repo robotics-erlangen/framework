@@ -23,8 +23,9 @@ add_subdirectory(simulator)
 add_subdirectory(strategy)
 
 set(SOURCES
+    include/amun/amun.h
+
     amun.cpp
-    amun.h
     networkinterfacewatcher.cpp
     networkinterfacewatcher.h
     receiver.cpp
@@ -33,12 +34,17 @@ set(SOURCES
 
 add_library(amun ${SOURCES})
 target_link_libraries(amun
+    PRIVATE core
 	PRIVATE processor
 	PRIVATE simulator
 	PRIVATE strategy
 	PUBLIC protobuf
 	PUBLIC Qt5::Core
 	PRIVATE Qt5::Network
+)
+target_include_directories(amun
+    INTERFACE include
+    PRIVATE include/amun
 )
 
 if(WIN32)
