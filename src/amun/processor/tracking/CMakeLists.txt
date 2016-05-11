@@ -18,9 +18,6 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-include_directories(${PROTOBUF_INCLUDE_DIR})
-include_directories(${EIGEN_INCLUDE_DIR})
-
 set(SOURCES
     ballfilter.cpp
     ballfilter.h
@@ -36,6 +33,9 @@ set(SOURCES
 )
 
 add_library(tracking ${SOURCES})
-target_link_libraries(tracking core protobuf)
-add_dependencies(tracking eigen)
-qt5_use_modules(tracking Core)
+target_link_libraries(tracking
+    PRIVATE core
+    PRIVATE eigen
+    PUBLIC protobuf
+    PUBLIC Qt5::Core
+)

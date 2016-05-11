@@ -18,13 +18,10 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/helper)
 add_subdirectory(helper)
 add_subdirectory(input)
 add_subdirectory(logfile)
 add_subdirectory(plotter)
-
-include_directories(${PROTOBUF_INCLUDE_DIR})
 
 set(SOURCES
     amunclient.cpp
@@ -101,8 +98,7 @@ endif(APPLE)
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 
 add_executable(ra WIN32 MACOSX_BUNDLE ${SOURCES} ${UIC_SOURCES})
-target_link_libraries(ra amun guihelper input logfile plotter protobuf ${OPENGL_LIBRARIES})
-qt5_use_modules(ra Widgets OpenGL)
+target_link_libraries(ra amun guihelper input logfile plotter protobuf ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} Qt5::Widgets Qt5::OpenGL)
 
 # add plist file
 if(APPLE)

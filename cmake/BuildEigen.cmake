@@ -20,7 +20,7 @@
 
 include(ExternalProject)
 
-ExternalProject_Add(eigen
+ExternalProject_Add(project_eigen
     URL http://www.robotics-erlangen.de/downloads/libraries/eigen-eigen-c58038c56923.tar.bz2
     URL_MD5 87274966745d2d3e7964fcc654d0a24b
     CMAKE_ARGS
@@ -30,7 +30,8 @@ ExternalProject_Add(eigen
         -DCMAKE_MAKE_PROGRAM:PATH=${CMAKE_MAKE_PROGRAM}
         -DCMAKE_INSTALL_MESSAGE:STRING=NEVER
 )
-externalproject_get_property(eigen install_dir)
-set_target_properties(eigen PROPERTIES EXCLUDE_FROM_ALL true)
-set(EIGEN_FOUND TRUE)
-set(EIGEN_INCLUDE_DIR "${install_dir}/include/eigen3")
+externalproject_get_property(project_eigen install_dir)
+set_target_properties(project_eigen PROPERTIES EXCLUDE_FROM_ALL true)
+add_library(eigen INTERFACE)
+add_dependencies(eigen project_eigen)
+target_include_directories(eigen INTERFACE "${install_dir}/include/eigen3")

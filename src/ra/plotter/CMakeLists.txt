@@ -18,8 +18,6 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-include_directories(${PROTOBUF_INCLUDE_DIR})
-
 set(SOURCES
     leaffilterproxymodel.cpp
     leaffilterproxymodel.h
@@ -40,5 +38,10 @@ set(UI_SOURCES
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 
 add_library(plotter ${SOURCES} ${UIC_SOURCES})
-target_link_libraries(plotter protobuf ${OPENGL_LIBRARIES})
-qt5_use_modules(plotter Widgets OpenGL)
+target_link_libraries(plotter
+    PUBLIC protobuf
+    PRIVATE guihelper
+    PRIVATE "${OPENGL_LIBRARIES}"
+    PUBLIC Qt5::Widgets
+    PRIVATE Qt5::OpenGL
+)

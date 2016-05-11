@@ -22,8 +22,6 @@ add_subdirectory(processor)
 add_subdirectory(simulator)
 add_subdirectory(strategy)
 
-include_directories(${PROTOBUF_INCLUDE_DIR})
-
 set(SOURCES
     amun.cpp
     amun.h
@@ -34,9 +32,15 @@ set(SOURCES
 )
 
 add_library(amun ${SOURCES})
-target_link_libraries(amun processor simulator strategy)
-qt5_use_modules(amun Core Network)
+target_link_libraries(amun
+	PRIVATE processor
+	PRIVATE simulator
+	PRIVATE strategy
+	PUBLIC protobuf
+	PUBLIC Qt5::Core
+	PRIVATE Qt5::Network
+)
 
 if(WIN32)
-    target_link_libraries(amun wsock32)
+    target_link_libraries(amun PRIVATE wsock32)
 endif()

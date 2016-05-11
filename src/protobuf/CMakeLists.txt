@@ -18,8 +18,6 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-include_directories(${PROTOBUF_INCLUDE_DIR})
-
 set(SOURCES
     command.h
     geometry.cpp
@@ -49,7 +47,11 @@ set(PROTO_FILES
 protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${PROTO_FILES})
 
 add_library(protobuf ${SOURCES} ${PROTO_SOURCES} ${PROTO_HEADERS} ${PROTO_FILES})
-target_link_libraries(protobuf ${PROTOBUF_LIBRARY})
+target_include_directories(protobuf PUBLIC ${PROTOBUF_INCLUDE_DIR})
+target_link_libraries(protobuf
+    PUBLIC "${PROTOBUF_LIBRARY}"
+    INTERFACE Qt5::Core
+)
 
 if(MINGW)
     # silence unsigned vs. signed comparison warnings in protobuf headers

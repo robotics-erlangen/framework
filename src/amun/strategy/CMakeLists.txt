@@ -20,9 +20,6 @@
 
 add_subdirectory(path)
 
-include_directories(${LUA_INCLUDE_DIR})
-include_directories(${PROTOBUF_INCLUDE_DIR})
-
 set(SOURCES
     abstractstrategyscript.cpp
     abstractstrategyscript.h
@@ -41,5 +38,11 @@ set(SOURCES
 )
 
 add_library(strategy ${SOURCES})
-target_link_libraries(strategy core path protobuf ${LUA_LIBRARIES})
-qt5_use_modules(strategy Core Network)
+target_link_libraries(strategy
+    PRIVATE core
+    PRIVATE path
+    PUBLIC protobuf
+    PRIVATE lua51
+    PUBLIC Qt5::Core
+    PRIVATE Qt5::Network
+)

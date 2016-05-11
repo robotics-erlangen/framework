@@ -30,7 +30,7 @@ else()
     set(BULLET_BUILD_BYPRODUCTS "")
 endif()
 
-ExternalProject_Add(bullet
+ExternalProject_Add(project_bullet
     URL http://www.robotics-erlangen.de/downloads/libraries/bullet3-2.83.6.tar.gz
     URL_MD5 44cb2464336a2082b2c144194c2a2668
     CMAKE_ARGS
@@ -50,12 +50,18 @@ ExternalProject_Add(bullet
     BUILD_BYPRODUCTS ${BULLET_BUILD_BYPRODUCTS}
 )
 
-externalproject_get_property(bullet install_dir)
-set_target_properties(bullet PROPERTIES EXCLUDE_FROM_ALL true)
-set(BULLET_FOUND TRUE)
-set(BULLET_INCLUDE_DIRS "${install_dir}/include/bullet")
-set(BULLET_LIBRARIES
+externalproject_get_property(project_bullet install_dir)
+set_target_properties(project_bullet PROPERTIES EXCLUDE_FROM_ALL true)
+add_library(bullet STATIC IMPORTED)
+add_dependencies(bullet project_bullet)
+# cmake enforces that the include directory exists
+file(MAKE_DIRECTORY "${install_dir}/include/bullet")
+set_property(TARGET bullet PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/bullet")
+# just select a library
+set_property(TARGET bullet PROPERTY IMPORTED_LOCATION
     "${install_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletDynamics${CMAKE_STATIC_LIBRARY_SUFFIX}"
+)
+set_property(TARGET bullet PROPERTY IMPORTED_LINK_INTERFACE_LIBRARIES
     "${install_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletCollision${CMAKE_STATIC_LIBRARY_SUFFIX}"
     "${install_dir}/lib/${CMAKE_STATIC_LIBRARY_PREFIX}LinearMath${CMAKE_STATIC_LIBRARY_SUFFIX}"
 )

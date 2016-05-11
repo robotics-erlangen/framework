@@ -24,4 +24,7 @@ set(SOURCES
 )
 
 add_library(guihelper ${SOURCES})
-qt5_use_modules(guihelper Core)
+target_include_directories(guihelper PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
+target_link_libraries(guihelper
+	PUBLIC Qt5::Core
+)

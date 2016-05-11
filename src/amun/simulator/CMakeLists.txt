@@ -18,9 +18,6 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-include_directories(${BULLET_INCLUDE_DIRS})
-include_directories(${PROTOBUF_INCLUDE_DIR})
-
 set(SOURCES
     mesh.cpp
     mesh.h
@@ -35,9 +32,12 @@ set(SOURCES
 )
 
 add_library(simulator ${SOURCES})
-target_link_libraries(simulator protobuf ${BULLET_LIBRARIES})
-add_dependencies(simulator bullet)
-qt5_use_modules(simulator Core Gui)
+target_link_libraries(simulator
+    PUBLIC protobuf
+    PRIVATE bullet
+    PUBLIC Qt5::Core
+    PRIVATE Qt5::Gui
+)
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     # silence warnings about usage of the register specifier in header files of bullet

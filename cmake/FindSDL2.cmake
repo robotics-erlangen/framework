@@ -124,23 +124,6 @@ find_library(SDL2_LIBRARY
   /opt
 )
 
-if(SDL2_LIBRARY)
-  # For OS X, SDL uses Cocoa as a backend so it must link to Cocoa.
-  # CMake doesn't display the -framework Cocoa string in the UI even
-  # though it actually is there if I modify a pre-used variable.
-  # I think it has something to do with the CACHE STRING.
-  # So I use a temporary variable until the end so I can set the
-  # "real" variable in one-shot.
-  if(APPLE)
-    set(SDL2_LIBRARY_TEMP ${SDL2_LIBRARY_TEMP} "-framework Cocoa")
-  else()
-    set(SDL2_LIBRARY_TEMP)
-  endif()
-
-  # Set the final string here so the GUI reflects the final state.
-  set(SDL2_LIBRARY ${SDL2_LIBRARY} ${SDL2_LIBRARY_TEMP} CACHE FILEPATH "Where the SDL Library can be found")
-endif()
-
 if(SDL2_INCLUDE_DIR AND EXISTS "${SDL2_INCLUDE_DIR}/SDL_version.h")
   file(STRINGS "${SDL2_INCLUDE_DIR}/SDL_version.h" SDL2_VERSION_MAJOR_LINE REGEX "^#define[ \t]+SDL_MAJOR_VERSION[ \t]+[0-9]+$")
   file(STRINGS "${SDL2_INCLUDE_DIR}/SDL_version.h" SDL2_VERSION_MINOR_LINE REGEX "^#define[ \t]+SDL_MINOR_VERSION[ \t]+[0-9]+$")
@@ -158,7 +141,18 @@ if(SDL2_INCLUDE_DIR AND EXISTS "${SDL2_INCLUDE_DIR}/SDL_version.h")
 endif()
 
 INCLUDE(FindPackageHandleStandardArgs)
-
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(SDL2
                                   REQUIRED_VARS SDL2_LIBRARY SDL2_INCLUDE_DIR
                                   VERSION_VAR SDL2_VERSION_STRING)
+
+if (SDL2_FOUND)
+  # FIXME library type
+    add_library(sdl2 UNKNOWN IMPORTED)
+    set_property(TARGET sdl2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${SDL2_INCLUDE_DIR}")
+    set_target_properties(sdl2 PROPERTIES IMPORTED_LOCATION "${SDL2_LIBRARY}")
+    # For OS X, SDL uses Cocoa as a backend so it must link to Cocoa.
+    if (APPLE)
+      set_property(TARGET sdl2 PROPERTY IMPORTED_LINK_INTERFACE_LIBRARIES "-framework Cocoa")
+    endif()
+    unset(SDL2_FOUND)
+endif()

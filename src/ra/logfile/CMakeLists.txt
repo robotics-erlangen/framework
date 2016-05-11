@@ -18,8 +18,6 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-include_directories(${PROTOBUF_INCLUDE_DIR})
-
 set(SOURCES
     logfilereader.cpp
     logfilereader.h
@@ -30,5 +28,7 @@ set(SOURCES
 )
 
 add_library(logfile ${SOURCES})
-target_link_libraries(logfile protobuf)
-qt5_use_modules(logfile Widgets)
+target_link_libraries(logfile
+	PUBLIC protobuf
+	PRIVATE Qt5::Widgets
+)

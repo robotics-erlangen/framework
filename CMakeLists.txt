@@ -18,12 +18,9 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-cmake_minimum_required(VERSION 2.8.9)
+cmake_minimum_required(VERSION 2.8.12)
 project(erforce)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-if(POLICY CMP0020)
-    cmake_policy(SET CMP0020 NEW) # remove if CMake >= 2.8.11 required
-endif()
 if(POLICY CMP0043) # compatibility with CMake 3.0.1
     cmake_policy(SET CMP0043 OLD)
 endif()
@@ -69,10 +66,7 @@ find_package(LuaJIT2 REQUIRED)
 find_package(USB)
 # sdl2 version 2.0.2 required for loading controller mappings from config file
 find_package(SDL2 2.0.2)
-if (SDL2_FOUND)
-    add_library(sdl2 SHARED IMPORTED)
-    set_target_properties(sdl2 PROPERTIES IMPORTED_LOCATION ${SDL2_LIBRARY})
-else()
+if (NOT TARGET sdl2)
     include(BuildSDL2)
 endif()
 

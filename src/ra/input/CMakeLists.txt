@@ -18,11 +18,6 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-include_directories(${PROTOBUF_INCLUDE_DIR})
-if(SDL2_FOUND)
-    include_directories(${SDL2_INCLUDE_DIR})
-endif()
-
 set(SOURCES
     inputdevice.cpp
     inputdevice.h
@@ -32,7 +27,7 @@ set(SOURCES
     keyboard.h
 )
 
-if(SDL2_FOUND)
+if(TARGET sdl2)
     list(APPEND SOURCES
         joystick.cpp
         joystick.h
@@ -40,10 +35,11 @@ if(SDL2_FOUND)
 endif()
 
 add_library(input ${SOURCES})
-target_link_libraries(input protobuf)
-qt5_use_modules(input Widgets)
-if(SDL2_FOUND)
-	target_link_libraries(input ${SDL2_LIBRARY})
-	add_dependencies(input sdl2)
-endif()
+target_link_libraries(input
+    PUBLIC protobuf
+    PRIVATE Qt5::Widgets
+)
 
+if(TARGET sdl2)
+	target_link_libraries(input PRIVATE sdl2)
+endif()

@@ -19,7 +19,7 @@
 # ***************************************************************************
 
 include(ExternalProject)
-ExternalProject_Add(openocd
+ExternalProject_Add(project_openocd
     URL http://www.robotics-erlangen.de/downloads/libraries/openocd-0.9.0.tar.bz2
     URL_MD5 665cc98ae9e7297e09ec6ac7235fee49
     PATCH_COMMAND cat ${CMAKE_SOURCE_DIR}/cmake/openocd-clang-compile-fix.diff
@@ -40,7 +40,8 @@ ExternalProject_Add(openocd
         --disable-usbprog
         --disable-vsllink
 )
-externalproject_get_property(openocd install_dir)
-set_target_properties(openocd PROPERTIES EXCLUDE_FROM_ALL true)
-set(OPENOCD_FOUND TRUE)
-set(OPENOCD_CMD "${install_dir}/bin/openocd")
+externalproject_get_property(project_openocd install_dir)
+set_target_properties(project_openocd PROPERTIES EXCLUDE_FROM_ALL true)
+add_executable(openocd IMPORTED)
+add_dependencies(openocd project_openocd)
+set_property(TARGET openocd PROPERTY IMPORTED_LOCATION "${install_dir}/bin/openocd")

@@ -20,13 +20,6 @@
 
 add_subdirectory(tracking)
 
-include_directories(${PROTOBUF_INCLUDE_DIR})
-include_directories(${EIGEN_INCLUDE_DIR})
-
-if(USB_FOUND)
-    include_directories(${USB_INCLUDE_DIR})
-endif()
-
 set(SOURCES
     accelerator.cpp
     accelerator.h
@@ -44,15 +37,18 @@ set(SOURCES
     transceiver.h
 )
 
-if(USB_FOUND)
+if(TARGET libusb)
     list(APPEND SOURCES usbdevice.cpp usbdevice.h usbthread.cpp usbthread.h)
 endif()
 
 add_library(processor ${SOURCES})
-target_link_libraries(processor tracking)
-add_dependencies(processor eigen)
-qt5_use_modules(processor Core Network)
+target_link_libraries(processor
+    PUBLIC protobuf
+    PRIVATE tracking
+    PUBLIC Qt5::Core
+    PRIVATE Qt5::Network
+)
 
-if(USB_FOUND)
-    target_link_libraries(processor ${USB_LIBRARIES})
+if(TARGET libusb)
+    target_link_libraries(processor PRIVATE libusb)
 endif()

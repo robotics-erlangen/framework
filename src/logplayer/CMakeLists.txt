@@ -18,9 +18,6 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-include_directories(${PROTOBUF_INCLUDE_DIR})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../ra/helper)
-
 set(SOURCES
     logplayer.cpp
     mainwindow.cpp
@@ -67,8 +64,7 @@ endif(APPLE)
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 
 add_executable(logplayer WIN32 MACOSX_BUNDLE ${SOURCES} ${UIC_SOURCES})
-target_link_libraries(logplayer core protobuf guihelper logfile plotter ${OPENGL_LIBRARIES})
-qt5_use_modules(logplayer Widgets OpenGL)
+target_link_libraries(logplayer core protobuf guihelper logfile plotter ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} Qt5::Widgets Qt5::OpenGL)
 
 # add plist file
 if(APPLE)

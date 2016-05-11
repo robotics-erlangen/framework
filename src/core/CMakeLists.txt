@@ -27,5 +27,6 @@ set(SOURCES
 )
 
 add_library(core ${SOURCES})
-target_link_libraries(core ${CMAKE_THREAD_LIBS_INIT})
-qt5_use_modules(core Core)
+target_link_libraries(core
+	PUBLIC Qt5::Core
+)
