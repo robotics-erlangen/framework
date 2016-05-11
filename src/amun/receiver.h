@@ -51,7 +51,6 @@ private:
     QHostAddress m_groupAddress;
     quint16 m_port;
     QUdpSocket *m_socket;
-    QTimer *m_timeoutTimer;
 };
 
 #endif // RECEIVER_H

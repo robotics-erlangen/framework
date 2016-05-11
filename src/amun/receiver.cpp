@@ -49,12 +49,7 @@ Receiver::Receiver(const QHostAddress &groupAddress, quint16 port) :
     m_groupAddress(groupAddress),
     m_port(port),
     m_socket(NULL)
-{
-    m_timeoutTimer = new QTimer(this);
-    // seems like Qt 5.4.2, 5.5.0 may get stuck from time to time
-    // and just need an uncoditional call to read
-    connect(m_timeoutTimer, &QTimer::timeout, this, &Receiver::readData);
-}
+{ }
 
 /*!
  * \brief Destructor
@@ -87,8 +82,6 @@ void Receiver::startListen()
         foreach (const QNetworkInterface& iface, QNetworkInterface::allInterfaces()) {
             m_socket->joinMulticastGroup(m_groupAddress, iface);
         }
-
-        m_timeoutTimer->start(50);
     }
 }
 
@@ -99,7 +92,6 @@ void Receiver::stopListen()
 {
     delete m_socket;
     m_socket = NULL;
-    m_timeoutTimer->stop();
 }
 
 /*!
@@ -143,8 +135,5 @@ void Receiver::readData()
         data.resize(m_socket->pendingDatagramSize());
         m_socket->readDatagram(data.data(), data.size());
         emit gotPacket(data, Timer::systemTime());
-        if (!m_groupAddress.isNull()) {
-            m_timeoutTimer->start();
-        }
     }
 }
