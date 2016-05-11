@@ -100,8 +100,19 @@ endif(APPLE)
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 
 add_executable(ra WIN32 MACOSX_BUNDLE ${SOURCES} ${UIC_SOURCES})
-target_link_libraries(ra amun config guihelper input logfile plotter protobuf
-    ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} Qt5::Widgets Qt5::OpenGL)
+target_link_libraries(ra
+    amun::amun
+    shared::config
+    shared::protobuf
+    ra::guihelper
+    ra::input
+    ra::logfile
+    ra::plotter
+    ${OPENGL_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+    Qt5::Widgets
+    Qt5::OpenGL
+)
 target_include_directories(ra
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"

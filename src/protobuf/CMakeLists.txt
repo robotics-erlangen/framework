@@ -63,3 +63,5 @@ if(MINGW)
     # silence unsigned vs. signed comparison warnings in protobuf headers
     set_property(TARGET protobuf APPEND PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 endif(MINGW)
+
+add_library(shared::protobuf ALIAS protobuf)

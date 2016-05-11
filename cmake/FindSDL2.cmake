@@ -147,11 +147,11 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(SDL2
 
 if (SDL2_FOUND)
   # FIXME library type
-    add_library(sdl2 UNKNOWN IMPORTED)
-    set_property(TARGET sdl2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${SDL2_INCLUDE_DIR}")
-    set_target_properties(sdl2 PROPERTIES IMPORTED_LOCATION "${SDL2_LIBRARY}")
+    add_library(lib::sdl2 UNKNOWN IMPORTED)
+    set_property(TARGET lib::sdl2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${SDL2_INCLUDE_DIR}")
+    set_target_properties(lib::sdl2 PROPERTIES IMPORTED_LOCATION "${SDL2_LIBRARY}")
     # For OS X, SDL uses Cocoa as a backend so it must link to Cocoa.
     if (APPLE)
-      set_property(TARGET sdl2 PROPERTY IMPORTED_LINK_INTERFACE_LIBRARIES "-framework Cocoa")
+      set_property(TARGET lib::sdl2 PROPERTY IMPORTED_LINK_INTERFACE_LIBRARIES "-framework Cocoa")
     endif()
 endif()

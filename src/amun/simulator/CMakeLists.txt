@@ -34,9 +34,9 @@ set(SOURCES
 
 add_library(simulator ${SOURCES})
 target_link_libraries(simulator
-    PRIVATE core
-    PUBLIC protobuf
-    PRIVATE bullet
+    PRIVATE shared::core
+    PUBLIC shared::protobuf
+    PRIVATE lib::bullet
     PUBLIC Qt5::Core
     PRIVATE Qt5::Gui
 )
@@ -49,3 +49,5 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     # silence warnings about usage of the register specifier in header files of bullet
     set_property(TARGET simulator APPEND PROPERTY COMPILE_FLAGS "-Wno-deprecated-register")
 endif()
+
+add_library(amun::simulator ALIAS simulator)

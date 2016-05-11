@@ -38,16 +38,16 @@ set(SOURCES
     transceiver.cpp
 )
 
-if(TARGET libusb)
+if(TARGET lib::usb)
     list(APPEND SOURCES usbdevice.cpp usbdevice.h usbthread.cpp usbthread.h)
 endif()
 
 add_library(processor ${SOURCES})
 target_link_libraries(processor
-    PRIVATE core
-    PRIVATE firmware-interface
-    PUBLIC protobuf
-    PRIVATE tracking
+    PRIVATE shared::core
+    PUBLIC shared::protobuf
+    PRIVATE amun::tracking
+    PRIVATE firmware::interface
     PUBLIC Qt5::Core
     PRIVATE Qt5::Network
 )
@@ -56,7 +56,9 @@ target_include_directories(processor
     PRIVATE include/processor
 )
 
-if(TARGET libusb)
-    target_link_libraries(processor PRIVATE libusb)
+if(TARGET lib::usb)
+    target_link_libraries(processor PRIVATE lib::usb)
     target_compile_definitions(processor PRIVATE USB_FOUND)
 endif()
+
+add_library(amun::processor ALIAS processor)

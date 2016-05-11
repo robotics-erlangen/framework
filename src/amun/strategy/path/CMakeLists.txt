@@ -30,11 +30,13 @@ set(SOURCES
 
 add_library(path ${SOURCES})
 target_link_libraries(path
-	PRIVATE core
-	PUBLIC protobuf
+	PRIVATE shared::core
+	PUBLIC shared::protobuf
 	PUBLIC Qt5::Core
 )
 target_include_directories(path
     INTERFACE include
     PRIVATE include/path
 )
+
+add_library(amun::path ALIAS path)

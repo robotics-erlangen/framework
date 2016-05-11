@@ -59,7 +59,7 @@ MARK_AS_ADVANCED(USB_INCLUDE_DIR USB_LIBRARIES)
 
 if (USB_FOUND)
     # FIXME library type
-    add_library(libusb UNKNOWN IMPORTED)
-    set_property(TARGET libusb PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${USB_INCLUDE_DIR}")
-    set_target_properties(libusb PROPERTIES IMPORTED_LOCATION "${USB_LIBRARIES}")
+    add_library(lib::usb UNKNOWN IMPORTED)
+    set_property(TARGET lib::usb PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${USB_INCLUDE_DIR}")
+    set_target_properties(lib::usb PROPERTIES IMPORTED_LOCATION "${USB_LIBRARIES}")
 endif()

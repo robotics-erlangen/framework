@@ -28,9 +28,11 @@ set(SOURCES
 
 add_library(logfile ${SOURCES})
 target_link_libraries(logfile
-	PUBLIC protobuf
+	PUBLIC shared::protobuf
 )
 target_include_directories(logfile
     INTERFACE include
     PRIVATE include/logfile
 )
+
+add_library(ra::logfile ALIAS logfile)

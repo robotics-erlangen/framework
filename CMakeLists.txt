@@ -21,6 +21,12 @@
 cmake_minimum_required(VERSION 2.8.12)
 project(erforce)
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+# CMP0028 and CMP0037 enforce restrictions of cmake target names added in CMake 3.0
+if(POLICY CMP0028 AND POLICY CMP0037 AND POLICY CMP0045)
+    cmake_policy(SET CMP0028 NEW)
+    cmake_policy(SET CMP0037 NEW)
+    cmake_policy(SET CMP0045 NEW)
+endif()
 if(POLICY CMP0043) # compatibility with CMake 3.0.1
     cmake_policy(SET CMP0043 OLD)
 endif()
@@ -65,7 +71,7 @@ find_package(LuaJIT2 REQUIRED)
 find_package(USB)
 # sdl2 version 2.0.2 required for loading controller mappings from config file
 find_package(SDL2 2.0.2)
-if (NOT TARGET sdl2)
+if (NOT TARGET lib::sdl2)
     include(BuildSDL2)
 endif()
 

@@ -35,12 +35,13 @@ set(SOURCES
 
 add_library(tracking ${SOURCES})
 target_link_libraries(tracking
-    PRIVATE core
-    PRIVATE eigen
-    PUBLIC protobuf
+    PRIVATE shared::core
+    PRIVATE lib::eigen
+    PUBLIC shared::protobuf
     PUBLIC Qt5::Core
 )
 target_include_directories(tracking
     INTERFACE include
     PRIVATE include/tracking
 )
+add_library(amun::tracking ALIAS tracking)

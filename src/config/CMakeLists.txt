@@ -24,3 +24,4 @@ add_library(config INTERFACE)
 target_include_directories(config
     INTERFACE "${CMAKE_CURRENT_BINARY_DIR}/include"
 )
+add_library(shared::config ALIAS config)

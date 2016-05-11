@@ -26,10 +26,12 @@ set(SOURCES
 
 add_library(guihelper ${SOURCES})
 target_link_libraries(guihelper
-	PRIVATE core
+	PRIVATE shared::core
 	PUBLIC Qt5::Core
 )
 target_include_directories(guihelper
     INTERFACE include
     PRIVATE include/guihelper
 )
+
+add_library(ra::guihelper ALIAS guihelper)

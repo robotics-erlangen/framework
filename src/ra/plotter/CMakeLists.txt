@@ -40,10 +40,10 @@ qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 
 add_library(plotter ${SOURCES} ${UIC_SOURCES})
 target_link_libraries(plotter
-    PRIVATE core
-    PUBLIC protobuf
-    PRIVATE guihelper
-    PRIVATE "${OPENGL_LIBRARIES}"
+    PRIVATE shared::core
+    PUBLIC shared::protobuf
+    PRIVATE ra::guihelper
+    PRIVATE ${OPENGL_LIBRARIES}
     PUBLIC Qt5::Widgets
     PRIVATE Qt5::OpenGL
 )
@@ -53,3 +53,5 @@ target_include_directories(plotter
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+
+add_library(ra::plotter ALIAS plotter)

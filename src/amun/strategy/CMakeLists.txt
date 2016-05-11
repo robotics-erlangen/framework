@@ -41,10 +41,10 @@ set(SOURCES
 
 add_library(strategy ${SOURCES})
 target_link_libraries(strategy
-    PRIVATE core
-    PRIVATE path
-    PUBLIC protobuf
-    PRIVATE lua51
+    PRIVATE shared::core
+    PRIVATE amun::path
+    PUBLIC shared::protobuf
+    PRIVATE lib::luajit
     PUBLIC Qt5::Core
     PRIVATE Qt5::Network
 )
@@ -52,3 +52,5 @@ target_include_directories(strategy
     INTERFACE include
     PRIVATE include/strategy
 )
+
+add_library(amun::strategy ALIAS strategy)

@@ -28,7 +28,7 @@ set(SOURCES
     keyboard.h
 )
 
-if(TARGET sdl2)
+if(TARGET lib::sdl2)
     list(APPEND SOURCES
         joystick.cpp
         joystick.h
@@ -37,8 +37,8 @@ endif()
 
 add_library(input ${SOURCES})
 target_link_libraries(input
-    PRIVATE config
-    PUBLIC protobuf
+    PRIVATE shared::config
+    PUBLIC shared::protobuf
     PRIVATE Qt5::Widgets
 )
 target_include_directories(input
@@ -46,7 +46,9 @@ target_include_directories(input
     PRIVATE include/input
 )
 
-if(TARGET sdl2)
-	target_link_libraries(input PRIVATE sdl2)
+if(TARGET lib::sdl2)
+	target_link_libraries(input PRIVATE lib::sdl2)
     target_compile_definitions(input PUBLIC SDL2_FOUND)
 endif()
+
+add_library(ra::input ALIAS input)

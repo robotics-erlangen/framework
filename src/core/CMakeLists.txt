@@ -35,3 +35,5 @@ target_include_directories(core
     INTERFACE include
     PRIVATE include/core
 )
+
+add_library(shared::core ALIAS core)

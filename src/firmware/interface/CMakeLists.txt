@@ -22,3 +22,4 @@ add_library(firmware-interface INTERFACE)
 target_include_directories(firmware-interface
     INTERFACE include
 )
+add_library(firmware::interface ALIAS firmware-interface)

@@ -106,7 +106,7 @@ mark_as_advanced(LUA_INCLUDE_DIR LUA_LIBRARIES)
 
 if (LUA51_FOUND)
     # FIXME library type
-    add_library(lua51 UNKNOWN IMPORTED)
-    set_property(TARGET lua51 PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}")
-    set_target_properties(lua51 PROPERTIES IMPORTED_LOCATION "${LUA_LIBRARIES}")
+    add_library(lib::luajit UNKNOWN IMPORTED)
+    set_property(TARGET lib::luajit PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${LUA_INCLUDE_DIR}")
+    set_target_properties(lib::luajit PROPERTIES IMPORTED_LOCATION "${LUA_LIBRARIES}")
 endif()

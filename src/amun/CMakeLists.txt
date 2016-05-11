@@ -34,11 +34,11 @@ set(SOURCES
 
 add_library(amun ${SOURCES})
 target_link_libraries(amun
-    PRIVATE core
-	PRIVATE processor
-	PRIVATE simulator
-	PRIVATE strategy
-	PUBLIC protobuf
+    PRIVATE shared::core
+	PRIVATE amun::processor
+	PRIVATE amun::simulator
+	PRIVATE amun::strategy
+	PUBLIC shared::protobuf
 	PUBLIC Qt5::Core
 	PRIVATE Qt5::Network
 )
@@ -50,3 +50,5 @@ target_include_directories(amun
 if(WIN32)
     target_link_libraries(amun PRIVATE wsock32)
 endif()
+
+add_library(amun::amun ALIAS amun)

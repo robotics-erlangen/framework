@@ -66,8 +66,18 @@ endif(APPLE)
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 
 add_executable(logplayer WIN32 MACOSX_BUNDLE ${SOURCES} ${UIC_SOURCES})
-target_link_libraries(logplayer config core protobuf guihelper logfile plotter
-    ${OPENGL_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} Qt5::Widgets Qt5::OpenGL)
+target_link_libraries(logplayer
+    shared::config
+    shared::core
+    shared::protobuf
+    ra::guihelper
+    ra::logfile
+    ra::plotter
+    ${OPENGL_LIBRARIES}
+    ${CMAKE_THREAD_LIBS_INIT}
+    Qt5::Widgets
+    Qt5::OpenGL
+)
 target_include_directories(logplayer
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
