@@ -48,7 +48,6 @@ function Attacker:_run()
 	end
 	debug.set("pool rating", self:rateRobot())
 
-	local messageDetected = false
 	for sender, msg in pairs(self._inbox.passPos()) do
 		if msg.robot == self._robot then
 			self._lastIncomingPassTime = World.Time
@@ -71,7 +70,7 @@ function Attacker:keepRobot()
 	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper and not self._robot.userControl
 end
 
--- worse rating if robot if farther away from opponent goal
+-- worse rating if robot is farther away from opponent goal
 function Attacker:rateRobot()
 	if self._activeBehavior and self._activeBehavior:forceKeepingInPool()  then
 		return math.huge
