@@ -80,7 +80,6 @@ function Default:check()
 	for _,_ in pairs(self._inbox.passPos()) do --tests if table has content, runs 0-1 times, otherwise BUG
 		self._lastPass = World.Time
 	end
-	self._lastPass = self._lastPass or 0
 	if World.Time - self._lastPass < 2 and Ball.isShot() then
 		self._catching = true
 	end

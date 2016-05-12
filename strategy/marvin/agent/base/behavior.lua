@@ -9,7 +9,12 @@ function Base:init(agent)
 	self._send = self._agent._send
 	self._inbox = self._agent._inbox
 	self._mainAttackerParameters = nil
+	self:_init()
 	self:stop()
+end
+
+function Base:_init()
+	-- overwrite if necessary
 end
 
 -- is called when another behavior is being chosen

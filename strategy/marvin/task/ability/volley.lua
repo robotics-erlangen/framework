@@ -27,6 +27,7 @@ function Volley:init()
 	setSimulatorParams()
 	self._ballIncoming = true
 	self._shooting = false
+	self._volleyObserver = nil
 
 	self._ball_in = nil
 end
@@ -70,6 +71,11 @@ function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 		abs_v_out = self._robot.maxShotLinear + mu_y * v_in
 	end
 	abs_v_out = math.min(Constants.maxBallSpeed, abs_v_out)
+	if self._volleyObserver ~= nil then
+		local ball = { pos = viewPos, speed = (targetPos - viewPos):setLength(abs_v_out), radius = World.Ball.radius, maxSpeed = abs_v_out }
+		local expectedTargetSpeed = Physics.ballAtTime(ball, Physics.ballRollTime(ball, dist)).speed:length()
+		self._volleyObserver(ballSpeed, viewPos, targetPos, expectedTargetSpeed)
+	end
 
 	-- relative output speed
 	local v_out = (targetPos - viewPos):setLength(abs_v_out) - self._robot.speed

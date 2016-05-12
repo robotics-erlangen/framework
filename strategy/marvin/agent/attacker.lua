@@ -36,8 +36,6 @@ Attacker._behaviors = {
 
 function Attacker:init(robot)
 	Base.init(self, robot)
-	self._lastIncomingPassTime = 0
-	self._lastIncomingPassSender = nil
 	self.beOffensive = false
 end
 
@@ -47,16 +45,6 @@ function Attacker:_run()
 		self._activeBehavior._send.attackerFlag("all")
 	end
 	debug.set("pool rating", self:rateRobot())
-
-	local messageDetected = false
-	for sender, msg in pairs(self._inbox.passPos()) do
-		if msg.robot == self._robot then
-			self._lastIncomingPassTime = World.Time
-			self._lastIncomingPassSender = sender
-		else -- pass to other robot
-			self._lastIncomingPassTime = 0
-		end
-	end
 end
 
 function Attacker.takeRobot(robots)
@@ -71,7 +59,7 @@ function Attacker:keepRobot()
 	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper and not self._robot.userControl
 end
 
--- worse rating if robot if farther away from opponent goal
+-- worse rating if robot is farther away from opponent goal
 function Attacker:rateRobot()
 	if self._activeBehavior and self._activeBehavior:forceKeepingInPool()  then
 		return math.huge
