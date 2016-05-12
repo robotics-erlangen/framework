@@ -75,5 +75,32 @@ function Defense.getClosestRobot(robotlist, pos)
 	return minRobot, minDist
 end
 
+local function valueToRating(value, zero, one)
+	return math.bound(0, (value - zero) / (one - zero), 1)
+end
+
+local function rateOpponentDangerousness()
+	local dangerousness = {}
+	for _,opp in ipairs(World.OpponentRobots) do
+		-- TODO comment
+		local angleOppGoalBall = (opp.pos - World.Geometry.FriendlyGoal):absoluteAngleDiff(
+			World.Ball.pos - World.Geometry.FriendlyGoal)
+		local angleBallOppGoal = (World.Ball.pos - opp.pos):absoluteAngleDiff(
+			World.Geometry.FriendlyGoal - opp.pos)
+		local distOppGoal = opp.pos:distanceTo(World.Geometry.FriendlyGoal)
+		local angleOppGoalY = (opp.pos - World.Geometry.FriendlyGoal):absoluteAngleDiff(Vector(0, 1))
+
+		local ratingAngleOppGoalBall = valueToRating(angleOppGoalBall, 0, 60 * math.pi/180)
+		local ratingAngleBallOppGoal = valueToRating(angleBallOppGoal, 90 * math.pi/180, 60 * math.pi/180)
+		local ratingAngleOppGoalY = valueToRating(angleOppGoalY, 85 * math.pi/180, 70 * math.pi/180)
+		local ratingDistOppGoal = valueToRating(distOppGoal,
+			World.Geometry.FieldHeight, World.Geometry.FieldHeightHalf/2)
+
+		local rating = ratingAngleOppGoalBall * ratingAngleBallOppGoal * ratingAngleOppGoalY * ratingDistOppGoal
+		dangerousness[opp] = rating
+	end
+	return dangerousness
+end
+Defense.rateOpponentDangerousness = Cache.forFrame(rateOpponentDangerousness)
 
 return Defense
