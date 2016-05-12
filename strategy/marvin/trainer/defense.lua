@@ -29,6 +29,7 @@ function Defense:_updateManmarkTargets()
 		UtilDefense.getClosestRobot(World.OpponentRobots, World.Ball.pos)
 
 	local newManmarkTargets = {}
+	local dangerousness = UtilDefense.rateOpponentDangerousness()
 	for _, robot in ipairs(World.OpponentRobots) do
 		local alreadyTargeted = self._manmarkTargets[robot] ~= nil
 
@@ -58,10 +59,7 @@ function Defense:_updateManmarkTargets()
 		end
 
 		-- otherwise, target the opponent
-		local rating = (World.Geometry.FieldHeightHalf - extrapolatedYPos)
-			/ World.Geometry.FieldHeight
-
-		newManmarkTargets[robot] = rating
+		newManmarkTargets[robot] = dangerousness[robot]
 ::continue::
 	end
 	self._manmarkTargets = newManmarkTargets
