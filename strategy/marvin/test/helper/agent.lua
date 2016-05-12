@@ -6,14 +6,10 @@ local Trainer = require "trainer/trainer"
 
 
 local StaticBehavior = Class("test.helper.agent.StaticBehavior", require "agent/base/behavior")
-StaticBehavior._firstRun = true
 
-function StaticBehavior:_stop()
-	if self._firstRun then
-		self._staticTask = nil
-		self._staticParameters = nil
-		self._firstRun = false
-	end
+function StaticBehavior:_init()
+	self._staticTask = nil
+	self._staticParameters = nil
 end
 
 function StaticBehavior:check()
