@@ -4,6 +4,7 @@ local Entrypoints = require "../base/entrypoints"
 local Tests = {
 	Ball = require "test/observer/ball",
 	BallAnalyzer = require "test/observer/ballAnalyzer",
+	Defense = require "test/observer/defense",
 	Goal = require "test/observer/goal",
 	path = require "test/observer/path",
 	Physics = require "test/observer/physics",
