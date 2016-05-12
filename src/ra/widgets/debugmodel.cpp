@@ -143,17 +143,21 @@ void DebugModel::testMap(DebugModel::Map &map, const QSet<Entry*> &entries)
         // cleanup when unwinding recursion
         Entry *entry = it.value();
         testMap(entry->children, entries);
-        // remove unneccessary leaves
-        // a entry is only removed if all its childs have been removed before
-        // thus m_entryMap cannot contain outdated values
-        if (entry->children.size() == 0 && !entries.contains(entry)) {
-            QStandardItem *item = entry->name;
-            QStandardItem *parent = item->parent();
-            // remove and delete
-            parent->removeRows(item->row(), 1);
-            it.remove();
-            m_entryMap.remove(entry->id);
-            delete entry;
+        if (!entries.contains(entry)) {
+            if (entry->children.size() == 0) {
+                // remove unneccessary leaves
+                // a entry is only removed if all its children have been removed before
+                // thus m_entryMap cannot contain outdated values
+                QStandardItem *item = entry->name;
+                QStandardItem *parent = item->parent();
+                // remove and delete
+                parent->removeRows(item->row(), 1);
+                it.remove();
+                m_entryMap.remove(entry->id);
+                delete entry;
+            } else {
+                entry->value->setText("");
+            }
         }
     }
 }
