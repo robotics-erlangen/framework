@@ -219,6 +219,7 @@ end
 
 --- Checks if p is inside the triangle defined by a b c.
 -- The triangle borders are considered as inside.
+-- Uses the formulas from http://www.blackpawn.com/texts/pointinpoly/
 -- @name isInTriangle
 -- @param a Vector - first corner of triangle
 -- @param b Vector - second corner of triangle
@@ -226,14 +227,22 @@ end
 -- @param p Vector - point to check
 -- @return bool - Is p in triangle
 function geom.isInTriangle(a, b, c, p)
-	local a2 = a - a
-	local b2 = b - a
-	local c2 = c - a
-	local p2 = p - a
+	-- convert to barycentric coordinates
+	local v0 = c - a
+	local v1 = b - a
+	local v2 = p - a
 
-	local y = (b2.y * p2.x - p2.y) / (c2.x * b2.y - c2.y) -- transform coordinates
-	local x = (y * c2.y - p2.y) / b2.y -- to triangle (0,0) (1,0) (0,1)
-	if x < 0 or y < 0 or x + y > 1 then
+	local dot00 = v0:dot(v0)
+	local dot01 = v0:dot(v1)
+	local dot02 = v0:dot(v2)
+	local dot11 = v1:dot(v1)
+	local dot12 = v1:dot(v2)
+
+	local invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
+	local u = (dot11 * dot02 - dot01 * dot12) * invDenom
+	local v = (dot00 * dot12 - dot01 * dot02) * invDenom
+
+	if u < 0 or v < 0 or u + v > 1 then
 		return false
 	else
 		return true
