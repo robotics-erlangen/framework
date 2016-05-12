@@ -10,20 +10,7 @@ local World = require "../base/world"
 
 function SimpleAgent:init(robot)
 	Base.init(self, robot)
-	self._lastIncomingPassTime = 0
-	self._lastIncomingPassSender = nil
 	self.beOffensive = false
-end
-
-function SimpleAgent:_run()
-	for sender, msg in pairs(self._inbox.passPos()) do
-		if msg.robot == self._robot then
-			self._lastIncomingPassTime = World.Time
-			self._lastIncomingPassSender = sender
-		else -- pass to other robot
-			self._lastIncomingPassTime = 0
-		end
-	end
 end
 
 function SimpleAgent.takeRobot(robots)

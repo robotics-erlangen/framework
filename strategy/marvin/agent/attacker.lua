@@ -36,8 +36,6 @@ Attacker._behaviors = {
 
 function Attacker:init(robot)
 	Base.init(self, robot)
-	self._lastIncomingPassTime = 0
-	self._lastIncomingPassSender = nil
 	self.beOffensive = false
 end
 
@@ -47,15 +45,6 @@ function Attacker:_run()
 		self._activeBehavior._send.attackerFlag("all")
 	end
 	debug.set("pool rating", self:rateRobot())
-
-	for sender, msg in pairs(self._inbox.passPos()) do
-		if msg.robot == self._robot then
-			self._lastIncomingPassTime = World.Time
-			self._lastIncomingPassSender = sender
-		else -- pass to other robot
-			self._lastIncomingPassTime = 0
-		end
-	end
 end
 
 function Attacker.takeRobot(robots)
