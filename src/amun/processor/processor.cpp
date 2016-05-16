@@ -105,6 +105,8 @@ Processor::Processor(const Timer *timer) :
     connect(m_trigger, SIGNAL(timeout()), SLOT(process()));
     m_trigger->setTimerType(Qt::PreciseTimer);
     m_trigger->start(10);
+
+    connect(timer, &Timer::scalingChanged, this, &Processor::setScaling);
 }
 
 /*!
@@ -487,7 +489,7 @@ void Processor::sendTeams()
     emit sendStatus(status);
 }
 
-void Processor::setScaling(float scaling)
+void Processor::setScaling(double scaling)
 {
     // update scaling as told
     if (scaling <= 0) {

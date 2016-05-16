@@ -59,7 +59,7 @@ signals:
 public slots:
     void handleCommand(const Command &command);
     void handleRadioCommands(const QList<robot::RadioCommand> &commands);
-    void setScaling(float scaling);
+    void setScaling(double scaling);
 
 private slots:
     void process();
@@ -84,7 +84,7 @@ private:
     QTimer *m_trigger;
     qint64 m_time;
     qint64 m_lastSentStatusTime;
-    float m_timeScaling;
+    double m_timeScaling;
     bool m_enabled;
     bool m_charge;
     // systemDelay + visionProcessingTime = visionDelay

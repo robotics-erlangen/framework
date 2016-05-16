@@ -91,7 +91,7 @@ Simulator::Simulator(const Timer *timer) :
     m_timer(timer),
     m_time(0),
     m_lastSentStatusTime(0),
-    m_timeScaling(1.f),
+    m_timeScaling(1.),
     m_enabled(false),
     m_charge(false),
     m_visionDelay(35 * 1000 * 1000),
@@ -124,6 +124,8 @@ Simulator::Simulator(const Timer *timer) :
     m_data->stddevRobotPhi = 0.0f;
 
     // no robots after initialisation
+
+    connect(timer, &Timer::scalingChanged, this, &Simulator::setScaling);
 }
 
 Simulator::~Simulator()
@@ -490,7 +492,7 @@ void Simulator::handleCommand(const Command &command)
     }
 }
 
-void Simulator::setScaling(float scaling)
+void Simulator::setScaling(double scaling)
 {
     if (scaling <= 0 || !m_enabled) {
         m_trigger->stop();

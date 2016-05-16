@@ -22,18 +22,23 @@
 #define TIMER_H
 
 #include <QtGlobal>
+#include <QObject>
 
-class Timer
+class Timer : public QObject
 {
+    Q_OBJECT
+
 public:
     Timer();
 
-public:
     double scaling() const { return m_scaling; }
     void setScaling(double scaling);
     void reset();
     qint64 currentTime() const;
     void setTime(qint64 time, double scaling);
+
+signals:
+    void scalingChanged(float scaling);
 
 public:
     static qint64 systemTime();

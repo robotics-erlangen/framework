@@ -45,11 +45,6 @@
  */
 
 /*!
- * \fn void Amun::setScaling(float scaling)
- * \brief Passes scaling parameter
- */
-
-/*!
  * \brief Creates an Amun instance
  * \param parent Parent object
  */
@@ -113,8 +108,6 @@ void Amun::start()
     connect(this, SIGNAL(gotCommand(Command)), m_processor, SLOT(handleCommand(Command)));
     // relay tracking, geometry, referee, controller and accelerator information
     connect(m_processor, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
-    // propagate time scaling
-    connect(this, SIGNAL(setScaling(float)), m_processor, SLOT(setScaling(float)));
 
     // start strategy threads
     for (int i = 0; i < 2; i++) {
@@ -169,8 +162,6 @@ void Amun::start()
     connect(this, SIGNAL(gotCommand(Command)), m_simulator, SLOT(handleCommand(Command)));
     // pass simulator timing
     connect(m_simulator, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
-    // propagate time scaling
-    connect(this, SIGNAL(setScaling(float)), m_simulator, SLOT(setScaling(float)));
 
     Q_ASSERT(m_transceiver == NULL);
     m_transceiver = new Transceiver();
@@ -305,13 +296,12 @@ void Amun::handleCommand(const Command &command)
 }
 
 /*!
- * \brief Set time scaling and notify listeners of setScaling
+ * \brief Set time scaling
  * \param scaling Scaling factor for time
  */
 void Amun::updateScaling(float scaling)
 {
     m_timer->setScaling(scaling);
-    emit setScaling(scaling);
 }
 
 /*!

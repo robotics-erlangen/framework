@@ -49,7 +49,7 @@ signals:
     void sendRadioCommands(const QList<robot::RadioCommand> &commands);
 
 public slots:
-    void setScaling(float scaling);
+    void setScaling(double scaling);
     void handleRefereePacket(const QByteArray &data, qint64 time);
     void handleVisionPacket(const QByteArray &data, qint64 time);
     void handleNetworkCommand(const QByteArray &data, qint64 time);

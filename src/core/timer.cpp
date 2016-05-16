@@ -40,6 +40,11 @@
  */
 
 /*!
+ * \fn void Timer::scalingUpdated(float scaling)
+ * \brief Passes scaling parameter
+ */
+
+/*!
  * \brief Creates a new timer object
  */
 Timer::Timer()
@@ -48,13 +53,14 @@ Timer::Timer()
 }
 
 /*!
- * \brief Sets time scaling. Time is guaranteed to be continous
+ * \brief Sets time scaling. Time is guaranteed to be continuous
  * \param scaling New scaling factor
  */
 void Timer::setScaling(double scaling)
 {
     Q_ASSERT(scaling >= 0);
     setTime(currentTime(), scaling);
+    emit scalingChanged(scaling);
 }
 
 /*!
