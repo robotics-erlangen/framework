@@ -36,6 +36,14 @@ function BallTest.testBallCatchProbability()
 	end
 end
 
+function BallTest.testReceivesPass()
+	for _,robot in ipairs(World.OpponentRobots) do
+		local color = Ball.receivesPass(robot) and vis.colors.orangeHalf or vis.colors.skyBlueHalf
+		vis.addCircle("test: ReceivesPass", robot.pos, 0.2, color, true)
+	end
+end
+
+
 
 local isShotCooldown = 0.3
 local lastShootTime = 0
