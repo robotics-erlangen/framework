@@ -64,7 +64,7 @@ end
 -- @return [Vector] - first intersection if exists
 -- @return [Vector] - second intersection if exists
 -- @return number - first lambda
--- @return number - second lambda
+-- @return number - second lambda, which is always less then first lambda
 function geom.intersectLineCircle(offset, dir, center, radius)
 	dir = dir:copy():normalize()
 	local const = offset - center
