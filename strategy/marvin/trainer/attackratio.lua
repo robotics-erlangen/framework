@@ -98,7 +98,9 @@ function AttackRatio:attackRatio()
 end
 
 function AttackRatio:changingRobot()
-    return next(self._inbox.attackerRequest())
+    local robot = next(self._inbox.poolChangeRequest())
+    local isAttacker = self._inbox.attackerFlag()[robot]
+    return robot, isAttacker
 end
 
 return AttackRatio

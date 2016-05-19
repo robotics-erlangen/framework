@@ -33,15 +33,12 @@ function Defender.takeRobot(robots)
 end
 
 function Defender:keepRobot()
-	if self._activeBehavior and self._activeBehavior:requestingPoolChange() then
-		return false
-	end
 	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper and not self._robot.userControl
 end
 
 -- worse rating if robot if farther away from own goal
 function Defender:rateRobot()
-	if self._activeBehavior and self._activeBehavior:forceKeepingInPool()  then
+	if self._activeBehavior and self._activeBehavior:forceKeepingInPool() then
 		return math.huge
 	end
 	return -World.Geometry.FriendlyGoal:distanceTo(self._robot.pos)

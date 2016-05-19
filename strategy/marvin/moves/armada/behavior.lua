@@ -29,9 +29,7 @@ function Armada:check()
         local _, msg = next(self._inbox.passPos())
         local passToMe = msg and msg.robot == self._robot
         if passToMe and Class.name(self._agent) == "Agent.Defender" then
-            self._send.attackerRequest("trainer")
-			self._requestingPoolChange = true
-			self._forceKeepingInPool = false
+            self._send.poolChangeRequest("trainer")
             -- this causes another robot to become defender. this one does not
             -- participate in the formation anymore. Not very bad as the pass
             -- decision has already been made, but still not very consistent...
