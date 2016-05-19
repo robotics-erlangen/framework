@@ -209,6 +209,21 @@ local function _backpropagateSpeedLimit(speedProfile, maxSpeed, brake)
 					- (switchSpeed + maxSpeed) / 2 * brakeTime
 			local injectTime = math.max(0, missingDistance / switchSpeed)
 
+			if oldAccel > 0 then
+				-- Fomulas for wxMaxima
+				--solve(v_0=v_0+a*t_mid+b*(t_end-t_mid),t_end);
+				--assume(a > 0);assume(b < 0);assume(d > 0);assume(t_end>t_mid);
+				--ratsimp(integrate(v_0+a*t,t,0,t_mid)+integrate(v_0+a*t_mid+b*(t-t_mid),t,t_mid,t_end)=d);
+				local v_0,a,b,d = switchSpeed,oldAccel,brake,missingDistance
+				local t1, t2 = math.solveSq(b-a, 2*(b-a)*v_0, -2*b*d)
+				if t1 and t1 > 0 then
+					switchTime = switchTime + t1
+					switchSpeed = switchSpeed + t1 * oldAccel
+					injectTime = 0
+					brakeTime = (switchSpeed - maxSpeed) / (-brake)
+				end
+			end
+
 			-- remove all speed entries after the current one
 			table.truncate(speedProfile, i)
 			if switchSpeed ~= entry[2] then -- just a duplicate
@@ -245,7 +260,7 @@ local function _addLinearSpeedSegment(speedProfile, startSpeed, endSpeed, distan
 	local linearAccel = (endSpeed - speed) / distance * (endSpeed + speed) / 2
 	if linearAccel > accelerate or linearAccel < brake then
 		-- too slow or too fast to reach endSpeed
-		accel = math.bound(brake, accelerate, accelerate)
+		accel = math.bound(brake, linearAccel, accelerate)
 		-- linearAccel is either brake or accelerate
 		accelTime = (-speed + math.sqrt(speed*speed+2*accel*distance))/accel
 	elseif startSpeed == endSpeed then
@@ -409,7 +424,7 @@ local function _injectExponentialFalloff(speedProfile, exponentialTime, exponent
 
 		-- fake end time
 		local endTime = speedProfile[#speedProfile][1] + timeFactor*exponentialTime
-		table.insert(speedProfile, {endTime, endSpeedLen})
+		table.insert(speedProfile, {endTime, speedProfile[#speedProfile][2]})
 	end
 	return speedProfile
 end
@@ -485,9 +500,32 @@ local function _calculateRotation(currentDir, currentOmega, targetDir, accelerat
 	return outSpeed, outAccel
 end
 
+local function _speedAtTime(speedProfile, time)
+	local endIdx = #speedProfile + 1
+	for i = 2, #speedProfile do
+		if speedProfile[i][1] >= time then
+			endIdx = i
+			break
+		end
+	end
+	if endIdx > #speedProfile then
+		return speedProfile[#speedProfile][2]
+	else
+		local accel = (speedProfile[endIdx][2]-speedProfile[endIdx-1][2])/(speedProfile[endIdx][1]-speedProfile[endIdx-1][1])
+		if speedProfile[endIdx][1] - speedProfile[endIdx-1][1] == 0 then
+			-- segement has duration of 0 seconds
+			accel = 0
+		end
+		return speedProfile[endIdx-1][2] + accel*(time - speedProfile[endIdx-1][1])
+	end
+end
+
 local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile, robotSpeed, accelLimit, sidewardsErrorFactor)
-	local speed = speedProfile[1][2]
-	local accel = (speedProfile[2][2] - speedProfile[1][2]) / (speedProfile[2][1] - speedProfile[1][1])
+	local timeOffset = 0.02
+	local timeStep = 0.02
+	local speed = _speedAtTime(speedProfile, timeOffset)
+	local speedNextStep = _speedAtTime(speedProfile, timeOffset+timeStep)
+	local accel = (speedNextStep-speed)*(1/timeStep)
 	-- if target is reached
 	if speedProfile[2][1] == speedProfile[1][1] then
 		accel = 0
@@ -535,13 +573,12 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 
 	-- configuration
 	local maxError = 0.03 -- maxError in meters when driving a curve
-	local accelerationFactor = (accelScale or 1.0) * 0.9 -- factor for max forward speedup and braking
-	local exponentialTime = 0.2 -- timespan in seconds replace with exponential falloff
-	local exponentialError = 0.05 -- relative
-	--TODO exponentialError by distance?
+	local accelerationFactor = (accelScale or 1.0) * 0.85 -- factor for max forward speedup and braking
+	local exponentialTime = 0.1 -- timespan in seconds replace with exponential falloff
+	local exponentialError = 0.2 -- relative
 	local sidewardsErrorFactor = 10 -- used to scale sidewards speed error
 
-	local rotationExponentialTime = 0.2
+	local rotationExponentialTime = 0.15
 	local rotationAccelerationFactor = 0.8
 
 	--insert default values

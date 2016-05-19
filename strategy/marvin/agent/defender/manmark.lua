@@ -30,9 +30,7 @@ function ManMark:check()
 		for robot, _ in pairs(self._inbox.attackerFlag()) do
 			if robot.pos:distanceTo(self._opp.pos) < CONSIDER_POOL_CHANGE_DIST_ATTACKER
 					and robot ~= mainAttacker then
-				self._send.attackerRequest("trainer")
-				self._requestingPoolChange = true
-				self._forceKeepingInPool = false
+				self._send.poolChangeRequest("trainer")
 				debug.set("poolchange attacker", robot.id)
 			end
 		end

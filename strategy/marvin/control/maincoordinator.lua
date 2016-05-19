@@ -43,21 +43,26 @@ function MainCoordinator:_postTrainerHook()
 	local attackers, defenders = self._trainer:attackRatio()
 	debug.set("#attackers", attackers)
 	-- only take one change request per frame
-	local changingRobot = self._trainer:changingRobot()
-	self:_updatePoolLimits(attackers, defenders, changingRobot)
+	local changingRobot, isAttacker = self._trainer:changingRobot()
+	self:_updatePoolLimits(attackers, defenders, changingRobot, isAttacker)
 end
 
-function MainCoordinator:_updatePoolLimits(attackers, defenders, changingRobot)
+function MainCoordinator:_updatePoolLimits(attackers, defenders, changingRobot, isAttacker)
 	if changingRobot then
-		-- kick the least suitable attacker
-		self._pools.attack:setRobotLimit(attackers-1)
-		self._pools.attack:cleanupRobots()
-		-- ensure a new attacker can be added
-		self._pools.attack:setRobotLimit(attackers)
-		if self._pools.defense:removeRobot(changingRobot) then
-			self._pools.attack:takeRobot({changingRobot})
+		local oldPool = isAttacker and "attack" or "defense"
+		local newPool = isAttacker and "defense" or "attack"
+		local poolLimit = isAttacker and defenders or attackers
+
+		-- kick the least suitable robot
+		self._pools[newPool]:setRobotLimit(poolLimit-1)
+		self._pools[newPool]:cleanupRobots()
+		-- ensure a new robot can be added
+		self._pools[newPool]:setRobotLimit(poolLimit)
+
+		if self._pools[oldPool]:removeRobot(changingRobot) then
+			self._pools[newPool]:takeRobot({changingRobot})
 		else
-			error("pool change request from non-defender " .. changingRobot.id)
+			error("invalid pool change request from " .. changingRobot.id)
 		end
 	end
 

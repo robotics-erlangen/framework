@@ -45,6 +45,7 @@ function Shoot:init()
 	self._shootHysteresisTimer = 0
 	self._sideOffsetErrorSum = 0
 
+	self._lastBallSpeed = nil
 	self._travelStart = nil
 	self._travelLimit = false
 
@@ -286,12 +287,12 @@ function Shoot:_calculateShootDirection(targetPos, targetSpeed, distToBall, line
 
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.redHalf)
 	-- handle robot shoot direction problem
-	if not World.IsSimulated and linearShoot then
-		-- 4.2 degree / cm off
-		local SHOOT_SKEW = 4.2 / 180 * math.pi * 100
-		local SHOOT_SKEW_LIMIT = 4 / 180 * math.pi
-		targetDir = targetDir - math.bound(-SHOOT_SKEW_LIMIT, distToBall.y * SHOOT_SKEW, SHOOT_SKEW_LIMIT)
-	end
+	-- if not World.IsSimulated and linearShoot then
+	-- 	-- 4.2 degree / cm off
+	-- 	local SHOOT_SKEW = 4.2 / 180 * math.pi * 100
+	-- 	local SHOOT_SKEW_LIMIT = 4 / 180 * math.pi
+	-- 	targetDir = targetDir - math.bound(-SHOOT_SKEW_LIMIT, distToBall.y * SHOOT_SKEW, SHOOT_SKEW_LIMIT)
+	-- end
 
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(self._robot.dir)*20 }, vis.colors.blue)
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.pink)
@@ -377,6 +378,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dont
 		end
 		self:_doForceShoot()
 	else
+		self._lastBallSpeed = World.Ball.speed
 		self._shootHysteresis = false
 		self._forceShootTimer = nil
 

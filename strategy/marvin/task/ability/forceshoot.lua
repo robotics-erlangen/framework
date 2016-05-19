@@ -24,8 +24,8 @@ function ForceShoot:_doForceShoot()
         -- initialize if neccessary
         self._forceShootTimer = self._forceShootTimer or World.Time
         if World.Time - self._forceShootTimer >= FORCE_SHOOT_DELAY then
-            debug.set("force shoot", true)
-            self._robot:forceShoot()
+            --debug.set("force shoot", true)
+            --self._robot:forceShoot()
         end
     else
         -- reset time

@@ -9,7 +9,12 @@ function Base:init(agent)
 	self._send = self._agent._send
 	self._inbox = self._agent._inbox
 	self._mainAttackerParameters = nil
+	self:_init()
 	self:stop()
+end
+
+function Base:_init()
+	-- overwrite if necessary
 end
 
 -- is called when another behavior is being chosen
@@ -18,7 +23,6 @@ function Base:stop()
 	self._agent:setTask(nil)
 	self._active = false
 	self._forceKeepingInPool = false
-	self._requestingPoolChange = false
 	self:_stop()
 end
 
@@ -43,10 +47,6 @@ end
 
 function Base:forceKeepingInPool()
 	return self._forceKeepingInPool
-end
-
-function Base:requestingPoolChange()
-	return self._requestingPoolChange
 end
 
 function Base:task()

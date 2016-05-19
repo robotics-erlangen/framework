@@ -8,10 +8,6 @@ local StopAttack = require "task/stopattack"
 local PlaceBall = require "task/placeball"
 
 
-function Stop:_stop()
-	self._placeTimer = nil
-end
-
 function Stop:check()
 	return Referee.isStopState() and self._inbox.mainAttacker().trainer == self._robot
 end

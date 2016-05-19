@@ -50,10 +50,8 @@ function HandleBall:check()
 end
 
 function HandleBall:_updateTask()
-	if self._timeAdvance > 0.5 then
-		self._send.attackerRequest("trainer")
-		self._requestingPoolChange = true
-		self._forceKeepingInPool = false
+	if self._timeAdvance > 0.5 and not DefUtil.dangerousBallTowardsDefense() then
+		self._send.poolChangeRequest("trainer")
 	end
 
 	if self._timeAdvance > 0 and World.Ball.speed:length() > 1.5

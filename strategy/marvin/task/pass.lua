@@ -23,8 +23,8 @@ end
 
 local MIN_BALL_DIST_FOR_PASS_MSG = 1
 local MIN_OPP_CHIP_DIST = 0.35
-local ADDITIONAL_TIME = 0.2
-local DONT_SHOOT_HYSTERESIS = 0.15 --should ALWAYS be smaller than ADDITIONAL_TIME
+local ADDITIONAL_TIME = 0.3
+local DONT_SHOOT_HYSTERESIS = 0.15 -- must ALWAYS be smaller than ADDITIONAL_TIME
 
 function Pass:run()
 	local newSuggestion = self._inbox.passSuggestion()[self._targetRobot]

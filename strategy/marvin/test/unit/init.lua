@@ -109,14 +109,21 @@ local function colored_report(contexts, results)
 	return table.concat(buffer, "<br>\n")
 end
 
+local testStartTime = nil
 
 local function testHookBefore(result)
 	result.timing = amun.getCurrentTime()
+	if testStartTime == nil then
+		testStartTime = amun.getCurrentTime()
+	end
 end
 
 local function testHookAfter(result)
 	result.timing = amun.getCurrentTime() - result.timing
-	coroutine.yield()
+	if amun.getCurrentTime() - testStartTime > 0.2 then
+		coroutine.yield()
+		testStartTime = amun.getCurrentTime()
+	end
 end
 
 local function testrunner()

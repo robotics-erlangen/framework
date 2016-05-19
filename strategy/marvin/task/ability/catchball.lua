@@ -9,6 +9,7 @@ local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
+local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
@@ -17,6 +18,7 @@ local ToTarget = require "trajectory/totarget"
 
 -- safety distance to ball
 local DIST_ERROR = 0.025
+local SIDE_DEPTH = 0.02
 -- reduce obstacle size by one millimeter to avoid collisions
 local OBSTACLE_EPSILON = 0.001
 local SLOW_BALL = 0.5
@@ -28,71 +30,8 @@ local STOP_METHOD = "stop"
 local HUNT_METHOD = "hunt"
 
 function CatchBall:init()
-	self._lastBallSpeed = nil
 	self._lastReasonableBallPos = nil
 	self._catchTime = nil
-end
-
-local function distToTime(robotSpeed, robotMaxSpeed, robotAccel, ballSpeed, ballAccel, dist)
-	-- x(t) = x0 - integral(0 to t, v_r(t) + v_b(t) dt)
-	-- solve x(t) = 0 for t
-	-- v_r(t) = v_r_0 + a_r*t  if t < (v_max - v_r_0)/a_r
-	--          v_max          otherwise
-	-- v_b(t) = v_b_0 + a_b*t  if t < v_b_0 / a_b
-	--          0              otherwise
-	-- a_r is robot acceleration
-	-- a_b is ball deceleration along direction towards the robot
-
-	-- times until full acceleration / stop and distances traveled until then
-	local timeRobot = math.max(0, (robotMaxSpeed - robotSpeed) / robotAccel)
-	local distRobot = robotSpeed * timeRobot + robotAccel * timeRobot^2 * 0.5
-	local timeBall = math.max(0, -ballSpeed / ballAccel)
-	local distBall = ballSpeed * timeBall + ballAccel * timeBall^2 * 0.5
-
-	-- Solve equations for each interval and check that the result is in it
-	local t = math.solveSq((robotAccel+ballAccel)*0.5, robotSpeed+ballSpeed, -dist)
-	if t and t <= math.min(timeRobot, timeBall) then
-		return t < 0 and 0 or t
-	end
-
-	if timeRobot < timeBall then
-		local distLeft = dist - distRobot + timeRobot * robotMaxSpeed
-		t = math.solveSq(ballAccel * 0.5, robotMaxSpeed + ballSpeed, -distLeft)
-	elseif timeBall < timeRobot then
-		local distLeft = dist - distBall
-		t = math.solveSq(robotAccel * 0.5, robotSpeed, -distLeft)
-	end
-	if t and t >= math.min(timeRobot, timeBall) and t <= math.max(timeRobot, timeBall) then
-		return t
-	end
-
-	local distLeft = dist - distRobot - distBall + timeRobot * robotMaxSpeed
-	return distLeft / robotMaxSpeed
-end
-
--- just a crude approximation
-function CatchBall:_approxMinTimeToBall(robot, ball)
-	local posDiff = (ball.pos - robot.pos):normalize()
-	local real_dist = ball.pos:distanceTo(robot.pos)
-	if real_dist < (ball.radius + robot.radius) then
-		-- log("Ball and robot are actually fermions!")
-		-- ball seems to be inside robot
-		return 0
-	end
-	local dist = math.max(0, real_dist - ball.radius - robot.radius)
-	-- speed of ball and robot towards each other
-	local robotSpeed = posDiff:dot(robot.speed)
-	local robotAccel = robot.acceleration.aSpeedupFMax
-
-	local ballSpeed = -posDiff:dot(ball.speed)
-	local ballAccel
-	if ballSpeed == 0 then -- prevent division by zero for timeBall
-		ballAccel = 1 -- only used together with ballSpeed
-	else
-		ballAccel = (ballSpeed / ball.speed:length()) * Constants.ballDeceleration
-	end
-
-	return distToTime(robotSpeed, robot.maxSpeed, robotAccel, ballSpeed, ballAccel, dist)
 end
 
 --- Tries to catch the ball, is designed for catching a moving ball
@@ -103,82 +42,50 @@ end
 -- @return moveDest Vector - the point where the robot will catch the ball
 function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	local ball = World.Ball
-	local lastBallSpeed = self._lastBallSpeed or ball.speed
-	-- update
-	self._lastBallSpeed = ball.speed
-	if self._catchTime and World.Ball.speed:length() < lastBallSpeed:length() + 0.1 then
+	-- update catch time
+	if self._catchTime and not Ball.isAccelerating() then
 		-- ball is slowing down
 		-- update time from last frame
 		self._catchTime = math.max(0, self._catchTime - World.TimeDiff)
 	else
 		-- reset time as the ball is accelerating
-		-- should estimate the time quite good, but never overestimate it
-		-- that is the guess must be optimistic
-		-- when catching the ball there are two positions with minimal distance between ball and robot:
-		-- the point where the robot catches the ball directly
-		-- and the point where the robot gets the ball when the ball has stopped
-		-- as the direct catch is preferred we must ensure to start near that local minima
-		self._catchTime = self:_approxMinTimeToBall(self._robot, ball)
+		-- should estimate the time quite good, but not overestimate it
+		self._catchTime = Physics.robotTimeToBall(self._robot, ball, targetPos, maxSpeed or self._robot.maxSpeed, self._catchTime)
 	end
+
+	-- limit catch time to be inside the field
+	local timeLimit = Physics.ballOutTime(ball, POSITION_PADDING)
+	self._catchTime = math.min(timeLimit, self._catchTime)
 
 	-- check for fast ball and that it moves towards the robot
 	-- in principle this isn't neccessary but it stabilizes the catchtime
+	local hitTime = self:_calculateHitTime(ball)
 	local ballWillHitRobot = false
 	local ballInsideRobot = false
-	if ball.speed:length() > SLOW_BALL and ball.speed:dot(self._robot.pos - ball.pos) > 0 then
+	if ball.speed:length() > SLOW_BALL or hitTime == 0 then
 		-- check if robot would be hit by the ball
-		local hitTime = self:_calculateHitTime(ball)
-		if hitTime < self._catchTime then
-			self._catchTime = hitTime
-			if hitTime > 0 then
-				ballWillHitRobot = true
-			else
-				ballInsideRobot = true
-			end
-		end
-	else
-		-- maybe the ball (at least the extrapolated version of it) is already inside the robot and thus not found to be colliding with the robot
-		if ball.pos:distanceTo(self._robot.pos) < ball.radius + self._robot.radius then
-			self._catchTime = 0
+		self._catchTime = math.min(self._catchTime, hitTime)
+		if hitTime > 0 and hitTime < math.huge then
+			ballWillHitRobot = true
+		elseif hitTime == 0 then
 			ballInsideRobot = true
 		end
 	end
-	debug.set("CatchBall/ballInsideRobot", ballInsideRobot)
-	if ballWillHitRobot then
-		self._lastReasonableBallPos = ball.pos
-	end
+	self:_updateReasonableBallPos(ball, ballInsideRobot)
 
-	local timeLimit = Physics.ballOutTime(ball, POSITION_PADDING)
-	self._catchTime = math.min(timeLimit, self._catchTime)
 	-- predict ball and catch it
 	local predictedBall = Physics.ballAtTime(ball, self._catchTime)
 	-- if the robot has to move around the ball aim a bit behind the ball to ensure
 	-- that the path doesn't contain a too sharp corner
-	local virtualBall = {}
-	-- the current prediction model doesn't acoount for collisions, so avoid prediction of the ball state after a collision
+	local virtualBall
 	if ballInsideRobot then
-		if self._lastReasonableBallPos then
-			virtualBall.pos = self._lastReasonableBallPos
-		else
-			local hitPoint1, hitPoint2 = geom.intersectLineCircle(ball.pos, ball.speed, self._robot.pos, self._robot.radius + ball.radius)
-			if not hitPoint1 or not hitPoint2 then
-				-- fallback
-				virtualBall.pos = ball.pos
-			elseif (hitPoint1 - ball.pos):dot(ball.speed) > 0 then
-				virtualBall.pos = hitPoint2
-			else
-				virtualBall.pos = hitPoint1
-			end
-			self._lastReasonableBallPos = virtualBall.pos
-		end
-		virtualBall.speed = Vector.create(0, 0)
-	elseif ballWillHitRobot then
-		virtualBall = predictedBall
+		virtualBall = { pos = self._lastReasonableBallPos, speed = Vector(0, 0), maxSpeed = ball.maxSpeed, radius = ball.radius }
+		predictedBall = virtualBall
 	else
-		virtualBall = Physics.ballAtTime(ball, math.min(timeLimit, self._catchTime + 0.1))
-
-		if (targetPos - predictedBall.pos):dot(predictedBall.pos - self._robot.pos) > 0 then
+		if ballWillHitRobot or (targetPos - predictedBall.pos):dot(predictedBall.pos - self._robot.pos) > 0 then
 			virtualBall = predictedBall
+		else
+			virtualBall = Physics.ballAtTime(ball, math.min(timeLimit, self._catchTime + 0.1))
 		end
 	end
 
@@ -198,24 +105,23 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, false, false, self._robot.shootRadius)
 	local aggressiveMovement = (self._robot.pos:distanceTo(moveDest) < 0.5)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot, nil, nil, aggressiveMovement)
-	local moveDir = (targetPos - predictedBall.pos):angle()
+
 	local method = self:_ballCatchMethod(ball, predictedBall, moveDest)
 	if method == AROUND_METHOD then
-		-- minimum required time to touch the ball
-		-- first touch could be before the robot has moved around the ball
-		local minTimeToBall = math.min(self:_approxMinTimeToBall(self._robot, ball), self._catchTime)
-		local minBall = Physics.ballAtTime(World.Ball, minTimeToBall)
-		self:_createMoveAroundBallObstacle(self._robot.path, minBall, predictedBall)
-		self:_createBallCorridor(self._robot.path, moveDir, predictedBall)
+		-- just be pessimistic and assume the robot could touch the ball right from the start
+		-- this prevents switching the side around which a moving ball is circumnavigated
+		self:_createMoveAroundBallObstacle(self._robot.path, ball, predictedBall)
+		self:_createBallCorridor(self._robot.path, viewDir, predictedBall)
 	elseif method == HUNT_METHOD then
-		self:_createHuntingBallObstacle(self._robot.path, moveDir, predictedBall)
-		self:_createBallCorridor(self._robot.path, moveDir, predictedBall)
+		self:_createHuntingBallObstacle(self._robot.path, viewDir, predictedBall)
+		self:_createBallCorridor(self._robot.path, viewDir, predictedBall)
 	end
 
 	-- only allow endSpeed moving towards the targetPos
+	-- when moving around the ball, allow moving away from it
 	local endSpeed = predictedBall.speed:copy():rotate(-viewDir)
-	if endSpeed.x < 0 then
-		endSpeed.x = 0
+	if method == HUNT_METHOD or method == STOP_METHOD then
+		endSpeed.x = math.max(0, endSpeed.x)
 	end
 	endSpeed:rotate(viewDir)
 
@@ -240,6 +146,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	debug.set("CatchBall/method", method)
 	debug.set("CatchBall/time", time)
 	debug.set("CatchBall/catchtime", self._catchTime)
+	debug.set("CatchBall/ballInsideRobot", ballInsideRobot)
 	vis.addCircle("t/a/catchball: CatchBall", Physics.ballAtTime(ball, self._catchTime).pos, predictedBall.radius, vis.colors.blueHalf)
 
 	return self._catchTime
@@ -251,6 +158,11 @@ function CatchBall:_calculateHitTime(ball)
 		-- that means the ball is about to be reflected by the robot
 		return 0
 		-- 0 catchtime prevents the robot from driving away from the ball
+	end
+
+	-- ball moves away from robot
+	if ball.speed:dot(self._robot.pos - ball.pos) <= 0 then
+		return math.huge
 	end
 
 	-- check if robot would be hit by the ball
@@ -299,13 +211,31 @@ function CatchBall:_calculateHitTime(ball)
 	return timeToRobot
 end
 
+function CatchBall:_updateReasonableBallPos(ball, ballInsideRobot)
+	-- the current prediction model doesn't acoount for collisions, so avoid prediction of the ball state after a collision
+	if not ballInsideRobot then
+		self._lastReasonableBallPos = ball.pos
+	elseif not self._lastReasonableBallPos then
+		-- try to come up with a sensible position
+		local hitPoint1, hitPoint2 = geom.intersectLineCircle(ball.pos, ball.speed, self._robot.pos, self._robot.radius + ball.radius)
+		if not hitPoint1 or not hitPoint2 then
+			-- fallback
+			self._lastReasonableBallPos = ball.pos
+		elseif (hitPoint1 - ball.pos):dot(ball.speed) > 0 then
+			self._lastReasonableBallPos = hitPoint2
+		else
+			self._lastReasonableBallPos = hitPoint1
+		end
+	end
+end
+
 function CatchBall:_ballCatchMethod(currentBall, predictedBall, moveDest)
 	-- check whether the robot is stopping, moving around or hunting the ball
 	local robotTargetDist = self._robot.pos:distanceTo(moveDest)
 	-- distance minus robot and ball radius thus the ball is for sure between the robot and the catch pos
 	local robotTargetSpacing = math.max(0, robotTargetDist - self._robot.radius - currentBall.radius)
 
-	if self._robot.pos:distanceTo(predictedBall.pos) < robotTargetDist or currentBall.speed:length() < SLOW_BALL then
+	if (moveDest - self._robot.pos):absoluteAngleDiff(predictedBall.pos - moveDest) > 80/180*math.pi then
 		-- the robot has to move around the predicted ball to reach the catch pos
 		return AROUND_METHOD
 	elseif moveDest:distanceTo(currentBall.pos) > robotTargetSpacing
@@ -362,6 +292,7 @@ function CatchBall:_createHuntingBallObstacle(path, viewDir, predictedBall)
 end
 
 function CatchBall:_createBallCorridor(path, viewDir, predictedBall)
+	-- bracket to prevent hitting the ball with the robots side / back
 	local obstacleErrorDist = self._robot.radius - self._robot.shootRadius + DIST_ERROR
 	local corridorRadius = predictedBall.radius
 
@@ -385,6 +316,35 @@ function CatchBall:_createBallCorridor(path, viewDir, predictedBall)
 	vis.addCircle("t/a/catchball: MoveCorridor", corridorLeftFar, corridorRadius, vis.colors.redHalf)
 	vis.addCircle("t/a/catchball: MoveCorridor", corridorRightNear, corridorRadius, vis.colors.redHalf)
 	vis.addCircle("t/a/catchball: MoveCorridor", corridorRightFar, corridorRadius, vis.colors.redHalf)
+
+
+	-- bracket with negative obstacle radius, enforces approaching the ball from behind
+	-- Obstacle checking is done as: distance(robot, obstacle) < robot.radius + obstacle.radius
+	-- Negative obstacle radius allow to keep the robot center constrainted without blocking large portions of the field
+	local effectiveObstacleRadius = 0.01
+	local negativeRadius = - self._robot.shootRadius + effectiveObstacleRadius
+	local moveWidth = self._robot.dribblerWidth + 2 * effectiveObstacleRadius
+	local negObstacleDepth = SIDE_DEPTH
+
+	local negRightOfs = Vector.fromAngle(viewDir):perpendicular():scaleLength(moveWidth/2)
+	local negDepthOfs = Vector.fromAngle(viewDir):scaleLength(-negObstacleDepth)
+	local negBaseDepthOfs = Vector.fromAngle(viewDir):scaleLength(negativeRadius-predictedBall.radius)
+
+	local negLeftNear = predictedBall.pos - negRightOfs + negBaseDepthOfs + negDepthOfs
+	local negLeftFar = negLeftNear - negDepthOfs
+	local negRightNear = predictedBall.pos + negRightOfs + negBaseDepthOfs + negDepthOfs
+	local negRightFar = negRightNear - negDepthOfs
+
+	path:addLine(negLeftNear.x, negLeftNear.y, negLeftFar.x, negLeftFar.y, negativeRadius, "ball_negcorridor1")
+	path:addLine(negLeftFar.x, negLeftFar.y, negRightFar.x, negRightFar.y, negativeRadius, "ball_negcorridor2")
+	path:addLine(negRightFar.x, negRightFar.y, negRightNear.x, negRightNear.y, negativeRadius, "ball_negcorridor3")
+
+	-- visualize obstacles
+	vis.addPath("t/a/catchball: NegMoveCorridor", {negLeftNear, negLeftFar, negRightFar, negRightNear}, vis.colors.orangeHalf)
+	vis.addCircle("t/a/catchball: NegMoveCorridor", negLeftNear, effectiveObstacleRadius, vis.colors.orangeHalf)
+	vis.addCircle("t/a/catchball: NegMoveCorridor", negLeftFar, effectiveObstacleRadius, vis.colors.orangeHalf)
+	vis.addCircle("t/a/catchball: NegMoveCorridor", negRightNear, effectiveObstacleRadius, vis.colors.orangeHalf)
+	vis.addCircle("t/a/catchball: NegMoveCorridor", negRightFar, effectiveObstacleRadius, vis.colors.orangeHalf)
 end
 
 return CatchBall

@@ -2,7 +2,6 @@ local Shoot = require "task/ability/shoot"
 local ShootGoal = Class("Task.ShootGoal", require "task/base", Shoot)
 
 local debug = require "../base/debug"
-local Field = require "../base/field"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"
@@ -10,207 +9,8 @@ local G = World.Geometry
 
 local Ball = require "observer/ball"
 local Goal = require "observer/goal"
-local Physics = require "observer/physics"
 
 local PathHelper = require "trajectory/pathhelper"
-
-
-
--- ===============================================
--- ===== VOLLEY RECEIPT POSITION CALCULATION =====
--- ===============================================
-
-function ShootGoal:_rateShootPos(ballPos, targetPoint, targetWidth)
-	-- rates the angle between the current ball speed and the future one
-	-- 180       degrees -> 1.000
-	-- 180 +- 50 degrees -> 1.000
-	-- 180 +- 80 degrees -> 0.000
-	local angle = World.Ball.speed:absoluteAngleDiff(ballPos - targetPoint)
-	local cutoffInterval = 30 * math.pi / 180
-	local cutoffZero = 80 * math.pi / 180
-	local ratingAngle = math.bound(0, (cutoffZero - angle) / cutoffInterval, 1)
-
-	-- rates the target width (angle of largest free goal sector, aka maxAngleError)
-	-- 0  degrees -> 0
-	-- 1  degree  -> 0.017
-	-- 10 degrees -> 0.175
-	local ratingTargetWidth = targetWidth
-
-	-- rates the distance to any field border
-	-- 0.2m -> 1
-	-- 0.1m -> 0.5
-	-- 0.0m -> 0
-	local ratingDistToFieldBorder = math.min(1, Field.distanceToFieldBorder(ballPos) / 0.2)
-
-	-- rates the distance to the target point
-	-- 0.0m            -> 1
-	-- 1.0m            -> 0.876
-	-- FieldHeightHalf -> 0.5
-	-- FieldHeight     -> 0
-	local dist = ballPos:distanceTo(targetPoint)
-	local ratingDistToTarget = 1 --math.max(0, 1 - dist / G.FieldHeight)
-
-	-- rates the time the robot has to move
-	local robotPos = self._robot.pos -
-		(targetPoint - ballPos):setLength(self._robot.shootRadius + World.Ball.radius)
-	local robotTime = Physics.robotTimeToPos(self._robot, robotPos, Vector(0, 0), false)
-	local ballTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(ballPos))
-	local ratingRobotTime = math.bound(0, (ballTime - robotTime - 0.1) * 3, 1)
-
-	-- return combination of the single ratings
-	return 1
-		* ratingAngle
-		* ratingTargetWidth
-		* ratingDistToFieldBorder
-		* ratingDistToTarget
-		* ratingRobotTime
-end
-
--- checks if the sampled ballPos is valid
-function ShootGoal:_validateShootPos(ballPos)
-	-- break if pos is outside the field
-	if not Field.isInField(ballPos, self._robot.radius) then
-		return false
-	end
-
-	-- break if pos is near our defense area
-	if Field.isInFriendlyDefenseArea(ballPos, 0.5) then
-		return false
-	end
-
-	-- break if the ball has already surpassed us
-	local ballTime = Physics.checkedBallRollTime(World.Ball, ballPos)
-	if ballTime < 0 and not self._robot:hasBall(World.Ball) then
-		return false
-	end
-
-	-- break if the ball is too slow
-	if Physics.ballAtTime(World.Ball, ballTime).speed:length() < 2 then
-		return false
-	end
-
-	-- break if an opponent is near
-	self:_updateRobotLists()
-	for _,opp in ipairs(self._robotListWithoutKeeper) do
-		if not opp.isFriendly and opp.pos:distanceTo(ballPos) < 0.3 then
-			return false
-		end
-	end
-
-	return true
-end
-
-function ShootGoal:_volleyMinTime()
-	-- cache it
-	if self._volleyMinTimeTimestamp == World.Time then
-		return
-	end
-	self._volleyMinTimeTimestamp = World.Time
-
-	local rttb = Physics.robotTimeToBall(self._robot, World.Ball, G.OpponentGoal, 0)
-
-	local timeBuffer = 0.1
-	local timeBufferHeatupTime = 0.2
-
-	if rttb > timeBufferHeatupTime then
-		return rttb + timeBuffer
-	else
-		return rttb * (1 + timeBuffer / timeBufferHeatupTime)
-	end
-end
-
--- slightly updates the ballPos to counter out changes in the direction of the ball's speed
--- requires that the ball moves with a significant speed
-function ShootGoal:_remapBallPosition(ballPos)
-	return ballPos:nearestPosOnLine(World.Ball.pos - World.Ball.speed * 100,
-		World.Ball.pos + World.Ball.speed * 100)
-end
-
--- searches for a good position on the ball line to shoot the ball into the goal
-function ShootGoal:_searchVolleyShootPos()
-	local sampleTimeInterval = 1
-	local sampleCount = 10
-
-	local minTime = self:_volleyMinTime()
-	local maxTime = minTime + sampleTimeInterval
-	local minPos = Physics.ballAtTime(World.Ball, minTime).pos
-	local maxPos = Physics.ballAtTime(World.Ball, maxTime).pos
-
-	local bestPos = nil
-	local bestTarget = nil
-	local bestRating = 0
-
-	local posStep = (maxPos - minPos) / (sampleCount - 1)
-	for i = 1, sampleCount do
-		local pos = minPos + posStep * (i - 1)
-
-		-- stop the iteration loop if pos is invalid
-		if not self:_validateShootPos(pos) then
-			break
-		end
-
-		-- update the target
-		local targetPos, targetWidth = self:_findTarget(pos, false)
-
-		-- search the best one
-		if targetPos then
-			local rating = self:_rateShootPos(pos, targetPos, targetWidth)
-			if rating > bestRating then
-				bestPos = pos
-				bestTarget = targetPos
-				bestRating = rating
-			end
-		end
-	end
-
-	return bestPos, bestTarget, bestRating
-end
-
--- calculates the shoot position and target for volley shots
-function ShootGoal:_updateVolleyShootPos()
-	-- cache it
-	if self._updateVolleyShootPosTimestamp == World.Time then
-		return
-	end
-	self._updateVolleyShootPosTimestamp = World.Time
-
-	-- get position and target of the previous iteration
-	local oldPos = self._volleyShootPos
-	local oldTarget = self._volleyTargetPoint
-
-	-- remap and validate the old position
-	local oldPosValid = false
-	if oldPos then
-		oldPos = self:_remapBallPosition(oldPos)
-		oldPosValid = self:_validateShootPos(oldPos)
-	end
-
-	-- keep the old position if the ball about to arrive
-	local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir):setLength(
-		self._robot.shootRadius + World.Ball.radius)
-	local preparationTime = Physics.checkedBallRollTime(World.Ball, dribblerPos)
-	if oldPos and preparationTime > 0 and preparationTime < 0.25 then
-		debug.set("volley pos", "keep (lock)")
-		return
-	end
-
-	-- if the old position is not valid any more or the ball is still being shot,
-	-- search a new (valid) one; otherwise keep the old one
-	if Ball.isAccelerating() or Ball.wasShot(0.5) then
-		local pos, target = self:_searchVolleyShootPos()
-		self._volleyShootPos = pos
-		self._volleyTargetPoint = target
-		debug.set("volley pos", "accelerating")
-	elseif oldPosValid then
-		self._volleyShootPos = oldPos
-		self._volleyTargetPoint = oldTarget
-		debug.set("volley pos", "keep")
-	else
-		debug.set("volley pos", "invalid")
-	end
-end
-
-
 
 -- ====================================
 -- ===== SHOOT TARGET CALCULATION =====
@@ -267,11 +67,6 @@ function ShootGoal:_findTarget(viewPos, ignoreGoalie, oldTarget)
 	self:_updateRobotLists()
 	local robotList = ignoreGoalie and self._robotListWithoutKeeper or self._robotList
 	local freeSectors = Goal.getFreeSectors(viewPos, robotList, goalStart, goalEnd)
-
-	-- ricochets
-	if ignoreGoalie and World.OpponentKeeper then
-		--TODO
-	end
 
 	-- compute angle of old target (used for hysteresis)
 	local oldSectorMid = nil
@@ -340,16 +135,10 @@ function ShootGoal:getDecisionMakingBasis()
 end
 
 function ShootGoal:_drawDebugInfo()
-	debug.set("volley possible", self._volleyShootPos and true or false)
-
 	local target = nil
 	local color = nil
 	local mode = nil
-	if self._volleyShootPos then
-		mode = "volley"
-		target = self._volleyTargetPoint
-		color = vis.colors.greenHalf
-	elseif self._desperate then
+	if self._desperate then
 		mode = "desperate"
 		target = self._desperateChipTargetPoint
 		color = vis.colors.redHalf
@@ -366,11 +155,6 @@ function ShootGoal:_drawDebugInfo()
 
 	debug.set("mode", mode)
 	vis.addCircle("t/shootgoal: target", target, 0.05, color, true)
-
-	if self._volleyShootPos then
-		vis.addCircle("t/shootgoal: volley", self._volleyShootPos, 0.05, color, true)
-		vis.addPath("t/shootgoal: volley", {self._volleyShootPos, target}, color)
-	end
 end
 
 function ShootGoal:_init()
@@ -379,44 +163,30 @@ function ShootGoal:_init()
 
 	self._robotListTimestamp = 0
 	self._updateTargetTimestamp = 0
-	self._updateVolleyShootPosTimestamp = 0
-	self._volleyMinTimeTimestamp = 0
 
 	self._shootTargetPoint = nil
 	self._shootTargetWidth = 0
 	self._dirty = false
 	self._desperate = false
 	self._desperateChipTargetPoint = G.OpponentGoal + Vector(0, -0.21)
-
-	self._volleyTargetPoint = nil
-	self._volleyShootPos = nil
 end
 
 function ShootGoal:run()
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 
-	-- check if a volley is a viable option
-	self:_updateVolleyShootPos()
 
-	if self._volleyShootPos then
-		-- perform a volley
-		self:_volley(self._volleyShootPos, self._volleyTargetPoint, math.huge)
-		self._send.attackPosition("all", self._volleyTargetPoint)
+	self:_updateTarget()
+
+	self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
+	if not self._desperate then
+		-- perform a linear shot
+		self:_shoot(self._shootTargetPoint, math.huge, true,
+			math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
 	else
-		self:_updateTarget()
-
-		self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
-		if not self._desperate then
-			-- perform a linear shot
-			self:_shoot(self._shootTargetPoint, math.huge, true,
-				math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
-		else
-			-- perform a chip shot
-			self:_shoot(self._desperateChipTargetPoint,
-				self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, 10 * math.pi / 180)
-		end
+		-- perform a chip shot
+		self:_shoot(self._desperateChipTargetPoint,
+			self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, 10 * math.pi / 180)
 	end
-
 	self:_drawDebugInfo()
 end
 
