@@ -52,8 +52,8 @@ end
 -- @param alpha the alpha value, default is 128
 -- @return table color
 function vis.fromTemperature(value, alpha)
-	assert(value >= 0, "vis temperature too low");
-	assert(value <= 1, "vis temperature too high");
+	assert(value >= 0, "vis temperature too low: " .. value);
+	assert(value <= 1, "vis temperature too high: " .. value);
 	local red = 0
 	local green = 0
 	if value < 1/6 then
