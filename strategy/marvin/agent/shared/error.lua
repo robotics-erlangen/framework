@@ -11,7 +11,7 @@ function Error:check()
 		startTime = World.Time
 		oldRefereeState = World.RefereeState
 	end
-	if self._robot.radioResponse then --and self._robot.radioResponse.error_present then
+	if self._robot.radioResponse and self._robot.radioResponse.error_present then
 		--we have an error, save it for debugging purposes
 		if self._robot.radioResponse.ExtendedError then
 			self._error = self._robot.radioResponse.ExtendedError
