@@ -84,6 +84,8 @@ struct Processor::Robot
  * \brief Thread with fixed period for tracking and motion control
  */
 
+const int Processor::FREQUENCY(100);
+
 /*!
  * \brief Constructs a Processor
  * \param timer Timer to be used for time scaling
@@ -104,7 +106,7 @@ Processor::Processor(const Timer *timer) :
     m_trigger = new QTimer(this);
     connect(m_trigger, SIGNAL(timeout()), SLOT(process()));
     m_trigger->setTimerType(Qt::PreciseTimer);
-    m_trigger->start(10);
+    m_trigger->start(1000/FREQUENCY);
 
     connect(timer, &Timer::scalingChanged, this, &Processor::setScaling);
 }

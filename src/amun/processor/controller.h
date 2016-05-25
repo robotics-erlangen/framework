@@ -88,11 +88,11 @@ private:
     float m_a_phi_d;
 
     //! @brief Sum of error (position deviation) in x-direction (global coordinates), for integral part of control
-    float m_error_i_x;
+    float m_error_i_s;
     //! @brief Sum of error (position deviation) in y-direction (global coordinates), for integral part of control
-    float m_error_i_y;
+    float m_error_i_f;
     //! @brief Sum of error (position deviation) in orientation (global coordinates), for integral part of control
-    float m_error_i_phi;
+    float m_error_i_omega;
 };
 
 #endif // CONTROLLER_H

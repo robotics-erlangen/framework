@@ -40,6 +40,8 @@ class Processor : public QObject
     Q_OBJECT
 
 public:
+    static const int FREQUENCY;
+
     explicit Processor(const Timer *timer);
     ~Processor() override;
 

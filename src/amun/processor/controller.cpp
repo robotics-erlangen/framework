@@ -21,6 +21,7 @@
 
 #include "controller.h"
 #include "debughelper.h"
+#include "processor.h"
 #include "protobuf/debug.pb.h"
 #include "protobuf/world.pb.h"
 #include <cmath>
@@ -39,7 +40,10 @@
 Controller::Controller(const robot::Specs &specs) :
     m_specs(specs),
     m_startTime(0),
-    m_lastWorldTime(0)
+    m_lastWorldTime(0),
+    m_error_i_s(0.f),
+    m_error_i_f(0.f),
+    m_error_i_omega(0.f)
 {
 }
 
@@ -77,7 +81,8 @@ void Controller::clearInput()
 void Controller::calculateCommand(const world::Robot &robot, qint64 world_time, robot::Command &command, amun::DebugValues *debug)
 {
     // calculate elapsed time since the trajectory was planned
-    float timeElapsed = (world_time - m_startTime) / 1E9;
+    // calculate expected state for the next strategy call
+    float timeElapsed = (world_time - m_startTime) / 1E9 + (1.f / Processor::FREQUENCY);
 
     // If the command contains desired local robot speeds, the robot is being controlled
     // manually.
@@ -117,6 +122,7 @@ void Controller::calculateCommand(const world::Robot &robot, qint64 world_time, 
 }
 
 //----------- control functionality ----------------
+#include <QDebug>
 
 /*!
  * \brief The actual control algorithm implementation
@@ -141,7 +147,7 @@ void Controller::controlAlgorithm(const world::Robot &robot, qint64 world_time, 
     }
 
     // calculate the time since the controller was last run
-    float timestep = (world_time - m_lastWorldTime) / 1E9;          // world time is in ns, time in s
+    float timestep = (world_time - m_lastWorldTime) * 1E-9;          // world time is in ns, time in s
     // set timeDiff = 0 for first iteration
     if (m_lastWorldTime == 0) {
         timestep = 0.0;
@@ -159,79 +165,51 @@ void Controller::controlAlgorithm(const world::Robot &robot, qint64 world_time, 
     pDebug->set_a_desired_y(m_a_y_d);
     pDebug->set_traj_age((world_time - m_startTime) / 1E9);
 
-    // 1.) Calculate position and velocity errors
-    float error_x   = m_p_x_d - robot.p_x();
-    float error_y   = m_p_y_d - robot.p_y();
-    float error_phi = m_phi_d - robot.phi();
-    float error_vx = m_v_x_d - robot.v_x();
-    float error_vy = m_v_y_d - robot.v_y();
-    float error_omega = m_omega_d - robot.omega();
-    // Bound error_phi to ]-pi;pi]
-    while (error_phi > M_PI) {
-        error_phi -= 2*M_PI;
-    }
-    while (error_phi <= -M_PI) {
-        error_phi += 2*M_PI;
-    }
-
-    // 2.) Integration of positional error
-    m_error_i_x   += error_x   * timestep;
-    m_error_i_y   += error_y   * timestep;
-    m_error_i_phi += error_phi * timestep;
-    // Bound integrated error to maximum as defined in controller specs
-    m_error_i_x = qBound(-m_specs.controller().i_max_xy(), m_error_i_x, m_specs.controller().i_max_xy());
-    m_error_i_y = qBound(-m_specs.controller().i_max_xy(), m_error_i_y, m_specs.controller().i_max_xy());
-    m_error_i_phi = qBound(-m_specs.controller().i_max_phi(), m_error_i_phi, m_specs.controller().i_max_phi());
-
-    // 3.) coordinate systems (global and robot coordinates) have rotational offset of pi/2
+    // coordinate systems (global and robot coordinates) have rotational offset of pi/2
     const float robot_phi = robot.phi() - M_PI_2;
+    // rotate cw
+    const float v_s_d = std::cos(-robot_phi) * m_v_x_d - std::sin(-robot_phi) * m_v_y_d;
+    const float v_f_d = std::sin(-robot_phi) * m_v_x_d + std::cos(-robot_phi) * m_v_y_d;
+    const float v_s = std::cos(-robot_phi) * robot.v_x() - std::sin(-robot_phi) * robot.v_y();
+    const float v_f = std::sin(-robot_phi) * robot.v_x() + std::cos(-robot_phi) * robot.v_y();
 
-    // 4.) Controller logic implementation, exact linearization (Simon)
-    // controller output is accelerations; Controller parameters as set by GUI (m_specs.controller().k_...() )
-    float a_x = m_specs.controller().use_ff() * m_a_x_d           // feed-forward
-                + error_x * m_specs.controller().k_xy()         // state-controller, position error ("P")
-                + error_vx * m_specs.controller().k_v_xy()      // state-controller, velocity error ("D")
-                + m_error_i_x * m_specs.controller().k_i_xy();    // state-controller, integral position error ("I")
-    float a_y = m_specs.controller().use_ff() * m_a_y_d
-                + error_y * m_specs.controller().k_xy()
-                + error_vy * m_specs.controller().k_v_xy()
-                + m_error_i_y * m_specs.controller().k_i_xy();
-    float a_phi = m_specs.controller().use_ff() * m_a_phi_d
-                + error_phi * m_specs.controller().k_phi()
-                + error_omega * m_specs.controller().k_omega()
-                + m_error_i_phi * m_specs.controller().k_i_phi();
+    // calculate position and velocity errors
+    float error_s   = v_s_d - v_s;
+    float error_f   = v_f_d - v_f;
+    float error_omega = m_omega_d - robot.omega();
 
-    // perform exact-state-linearization; time constants as set by GUI (m_specs.controller().t_...() )
-    float output_v_s = (cos(robot_phi) - m_specs.controller().t_v_xy()*robot.omega()*sin(robot_phi))*robot.v_x()
-                        + (sin(robot_phi) + m_specs.controller().t_v_xy()*robot.omega()*cos(robot_phi))*robot.v_y()
-                        + m_specs.controller().t_v_xy()*a_x*cos(robot_phi)
-                        + m_specs.controller().t_v_xy()*a_y*sin(robot_phi);
+    // controller logic implementation
+    // s-PID Controller
+    float pout_s = m_specs.controller().k_p_s() * error_s;
+    m_error_i_s += m_specs.controller().k_i_s() * error_s * timestep;
+    m_error_i_s = qBound(-m_specs.controller().i_max_s(), m_error_i_s, m_specs.controller().i_max_s());
 
-    float output_v_f = (-sin(robot_phi) - m_specs.controller().t_v_xy()*robot.omega()*cos(robot_phi))*robot.v_x()
-                         + (cos(robot_phi) - m_specs.controller().t_v_xy()*robot.omega()*sin(robot_phi))*robot.v_y()
-                         - m_specs.controller().t_v_xy()*a_x*sin(robot_phi)
-                         + m_specs.controller().t_v_xy()*a_y*cos(robot_phi);
+    // f-PID Controller
+    float pout_f =  m_specs.controller().k_p_f() * error_f;
+    m_error_i_f += m_specs.controller().k_i_f() * error_f * timestep;
+    m_error_i_f = qBound(-m_specs.controller().i_max_f(), m_error_i_f, m_specs.controller().i_max_f());
 
-    float output_v_omega = ( robot.omega()
-                          + m_specs.controller().t_omega()*a_phi );
+    // OMEGA-PID Controller
+    float pout_omega = m_specs.controller().k_p_omega() * error_omega;
+    m_error_i_omega += m_specs.controller().k_i_omega() * error_omega * timestep;
+    m_error_i_omega = qBound(-m_specs.controller().i_max_omega(), m_error_i_omega, m_specs.controller().i_max_omega());
 
-    // visualize the controller output:
-    // current desired position: cyan
-    DebugHelper::drawLine(debug, robot.p_x(), robot.p_y(), m_p_x_d, m_p_y_d, 0, 255, 255, 0.03, "Controller");
-    // current desired speed: blue
-    DebugHelper::drawLine(debug, robot.p_x(), robot.p_y(), robot.p_x() + m_v_x_d, robot.p_y() + m_v_y_d, 0, 0, 255, 0.01, "Controller");
-    // current robot acceleration: red
-    DebugHelper::drawLine(debug, robot.p_x(), robot.p_y(), robot.p_x() + a_x, robot.p_y() + a_y, 255, 0, 0, 0.03, "Controller");
-    // current desired acceleration: white
-    DebugHelper::drawLine(debug, robot.p_x(), robot.p_y(), robot.p_x() + m_a_x_d, robot.p_y() + m_a_y_d, 255, 255, 255, 0.01, "Controller");
+
+    float output_v_s = v_s_d + pout_s + m_error_i_s;
+    float output_v_f = v_f_d + pout_f + m_error_i_f;
+    float output_v_omega = m_omega_d + pout_omega + m_error_i_omega;
 
     command.set_v_s(output_v_s);
     command.set_v_f(output_v_f);
     command.set_omega(output_v_omega);
 
-    pDebug->set_v_ctrl_out_f(output_v_f);
     pDebug->set_v_ctrl_out_s(output_v_s);
+    pDebug->set_v_ctrl_out_f(output_v_f);
     pDebug->set_v_ctrl_out_omega(output_v_omega);
+
+    pDebug->set_i_s(m_error_i_s);
+    pDebug->set_i_f(m_error_i_f);
+    pDebug->set_i_omega(m_error_i_omega);
 }
 
 /*!

@@ -2,23 +2,18 @@ package robot;
 
 message ControllerParameters
 {
-    optional float k_xy = 1;
-    optional float k_phi = 2;
+    // deprecated = 1 to 12;
+    optional float k_p_s = 13;
+    optional float k_p_f = 14;
+    optional float k_p_omega = 15;
 
-    optional float k_i_xy = 3;
-    optional float k_i_phi = 4;
+    optional float k_i_s = 16;
+    optional float k_i_f = 17;
+    optional float k_i_omega = 18;
 
-    optional float i_max_xy = 5;
-    optional float i_max_phi = 6;
-
-    optional float k_v_xy = 7;
-    optional float k_omega = 8;
-
-    optional float t_v_xy = 9;
-    optional float t_omega = 10;
-
-    optional float use_ff = 11;
-    // deprecated = 12;
+    optional float i_max_s = 19;
+    optional float i_max_f = 20;
+    optional float i_max_omega = 21;
 };
 
 message LimitParameters
@@ -95,6 +90,9 @@ message ControllerDebug
     optional float traj_age = 8;
     optional float a_desired_x = 9;
     optional float a_desired_y = 10;
+    optional float i_s = 11;
+    optional float i_f = 12;
+    optional float i_omega = 13;
 };
 
 message Command
