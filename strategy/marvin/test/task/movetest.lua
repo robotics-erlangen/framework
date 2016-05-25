@@ -8,13 +8,13 @@ local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 
-local START_POS = Vector(0, -1)
-local CENTER_DIST = 0.05
-local START_ANGLE = 90/180*math.pi
-local ANGLE_STEP = 45/180*math.pi
+local START_POS = Vector(0, 0.5)
+local CENTER_DIST = 1.3
+local START_ANGLE = 60/180*math.pi
+local ANGLE_STEP = 360/180*math.pi
 local WAIT_TIME = 3
 local ROBOT_ORIENTATION = 0/180*math.pi
-local ROBOT_ORIENTATION_STEP = 0/180*math.pi
+local ROBOT_ORIENTATION_STEP = 300/180*math.pi
 
 
 local MoveTestTask = Class("Test.Task.MoveTest.Task", require "task/base")
@@ -40,7 +40,7 @@ function MoveTestTask:run()
 	local dir = self._orientation
 
 	local targetDist = self._robot.pos:distanceTo(pos)
-	if targetDist < 0.005 and self._atTargetSince == nil then
+	if targetDist < 0.05 and self._atTargetSince == nil then
 		self._atTargetSince = World.Time
 	elseif targetDist > 0.01 then
 		self._atTargetSince = nil
