@@ -44,7 +44,8 @@ function FreeKick:check()
 	-- rely on applyformainattacker to cancel the freekick
 	-- otherwise we get timing issues because freekick gets cancelled before the main attacker
 	-- gets taken away from us and therefore some other behaviour takes the spot for a few frames
-	if self._active then
+	-- make sure that the freekick only sticks if it has been active for some time
+	if World.Time - self._startTime > 0.2 then
 		return true
 	end
 
