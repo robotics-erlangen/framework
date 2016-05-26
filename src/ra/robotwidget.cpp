@@ -472,13 +472,10 @@ void RobotWidget::updateRobotStatus()
         // TODO: m_breakBeamError
 
         QString errorMsg = "";
-        if (m_mergedResponse.extended_error().motor_overheated_error()) {
-            errorMsg += "One or multiple motors have overheated\n";
-        }
-        if (m_mergedResponse.extended_error().motor_encoder_error()) {
+        if (extendedError.motor_encoder_error()) {
             errorMsg += "One or multiple motors have no working hall sensor and/or encoder\n";
         }
-        if (m_mergedResponse.extended_error().main_sensor_error()) {
+        if (extendedError.main_sensor_error()) {
             errorMsg += "Gryoscope or accelerometer not working\n";
         }
         m_warning->setVisible(!errorMsg.isEmpty());

@@ -78,7 +78,6 @@ typedef struct
             uint8_t motor_4_error:1;
             uint8_t dribler_error:1;
             uint8_t kicker_error:1;
-            uint8_t motor_overheated_error:1;
             uint8_t motor_encoder_error:1;
             uint8_t main_sensor_error:1;
             uint8_t temperature:7;
