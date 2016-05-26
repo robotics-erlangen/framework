@@ -4,6 +4,7 @@ local debug = require "../base/debug"
 local Field = require "../base/field"
 local World = require "../base/world"
 local Halt = require "agent/shared/halt"
+local Error = require "agent/shared/error"
 local Messaging = require "control/messaging"
 local Physics = require "observer/physics"
 local Rating = require "util/rating"
@@ -22,6 +23,7 @@ function Base:init(robot)
 	-- behaviors are ordered by decreasing priority
 	self._behaviors = {
 		Halt(self),
+		Error(self),
 		unpack(table.map(self._behaviors,
 			function (B) return B(self) end)
 		)
