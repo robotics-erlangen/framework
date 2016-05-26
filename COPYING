@@ -15,11 +15,11 @@ data/icons/*/{ball,plotter,erforce,change-ends,capacitor,logplayer}*:
  * Copyright 2014 Robotics Erlangen e.V.
  * Licensed under GPL 3
 
-data/icons/*/{view-refresh,network-receive}*:
+data/icons/*/{input-network,view-refresh}*:
  * Public Domain 2007 Tango! Desktop Project
  * See http://commons.wikimedia.org/wiki/File%3AView-refresh.svg
 
-data/icons/*/ra*:
+data/icons/ra*:
  * Copyright 2007 Jeff Dahl <http://commons.wikimedia.org/wiki/File:Re-Horakhty.svg>
  * Copyright 2011 Philipp Nordhus
  *     Removed everything except the head
@@ -28,7 +28,7 @@ data/icons/*/ra*:
 data/icons/*/whistle*:
  * Public Domain 2007 kelan <https://openclipart.org/detail/5370/whistle-by-kelan>
 
-data/icons/ everything else:
+data/icons/16/{dialog-warning,input-gaming,input-keyboard}*, data/icons/32/ everything else:
  * Copyright 2014 GNOME Project
  * Licensed under CC BY SA 3.0 <http://creativecommons.org/licenses/by-sa/3.0/>
 

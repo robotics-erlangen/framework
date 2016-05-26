@@ -64,7 +64,7 @@ private slots:
     void selectInput(const QString &inputDevice);
     void disableInput();
     void setStrategyControlled(bool isControlled);
-    void updateMenu();
+    void updateInputMenu();
     void selectTeam(QAction *action);
     void selectTeam(Team team);
     void sendEject();
@@ -73,32 +73,37 @@ private slots:
     void hideRobotStatus();
 
 private:
-    InputManager *m_inputManager;
-    bool m_isGeneration;
+    void addTeamType(const QString &name, const RobotWidget::Team team);
     robot::Specs m_specs;
-    QLabel *m_label;
-    QToolButton *m_btnControl;
-    QMenu *m_menu;
-    QString m_inputDevice;
-    bool m_strategyControlled;
-    QActionGroup *m_inputDeviceGroup;
-    QLabel *m_inputLabel;
-    QLabel *m_battery;
-    QLabel *m_radio;
-    QLabel *m_radioErrors;
-    QLabel *m_ball;
-    QLabel *m_motorWarning;
-    QLabel *m_capCharged;
+    bool m_isGeneration;
+
     QToolButton *m_team;
     QMenu *m_teamMenu;
     QActionGroup *m_teamGroup;
     Team m_teamId;
+
+    QLabel *m_nameLabel;
 
     robot::RadioResponse m_mergedResponse;
     GuiTimer *m_guiUpdateTimer;
     robot::RadioResponse m_lastResponse;
     GuiTimer *m_guiResponseTimer;
     int m_statusCtr;
+
+    QLabel *m_battery;
+    QLabel *m_radio;
+    QLabel *m_radioErrors;
+    QLabel *m_ball;
+    QLabel *m_motorWarning;
+    QLabel *m_capCharged;
+
+    InputManager *m_inputManager;
+    QToolButton *m_btnControl;
+    QMenu *m_inputMenu;
+    QActionGroup *m_inputDeviceGroup;
+    QString m_inputDevice;
+    bool m_strategyControlled;
+    QLabel *m_inputLabel;
 };
 
 #endif // ROBOTWIDGET_H

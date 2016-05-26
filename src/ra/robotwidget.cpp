@@ -32,59 +32,27 @@
 
 RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget *parent) :
     QWidget(parent),
-    m_inputManager(inputManager),
     m_isGeneration(is_generation),
-    m_strategyControlled(false),
-    m_statusCtr(0)
+    m_statusCtr(0),
+    m_inputManager(inputManager),
+    m_strategyControlled(false)
 {
-    if (!is_generation) {
-        connect(this, SIGNAL(addBinding(uint,uint,QString)), inputManager, SLOT(addBinding(uint,uint,QString)));
-        connect(this, SIGNAL(removeBinding(uint,uint)), inputManager, SLOT(removeBinding(uint,uint)));
-        connect(this, SIGNAL(strategyControlled(uint,uint,bool)), inputManager, SLOT(setStrategyControlled(uint,uint,bool)));
-        connect(this, SIGNAL(networkControlled(uint,uint,bool)), inputManager, SLOT(setNetworkControlled(uint,uint,bool)));
-        connect(this, SIGNAL(ejectSdcard(uint,uint)), inputManager, SLOT(setEjectSdcard(uint,uint)));
-    }
-    connect(inputManager, SIGNAL(devicesUpdated()), SLOT(updateMenu()));
-
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setMargin(0);
     layout->setSpacing(3);
 
     m_teamMenu = new QMenu(this);
     m_teamGroup = new QActionGroup(this);
-
-    QAction *action;
-
-    action = m_teamMenu->addAction("No team");
-    action->setData(NoTeam);
-    if (!is_generation) {
-        action->setCheckable(true);
-        m_teamGroup->addAction(action);
-    }
-
-    action = m_teamMenu->addAction("Blue");
-    action->setData(Blue);
-    if (!is_generation) {
-        action->setCheckable(true);
-        m_teamGroup->addAction(action);
-    }
-
-    action = m_teamMenu->addAction("Yellow");
-    action->setData(Yellow);
-    if (!is_generation) {
-        action->setCheckable(true);
-        m_teamGroup->addAction(action);
-    }
-
-    if (is_generation) {
-        // partial blue and yellow only set the first half of the robots
-        action = m_teamMenu->addAction("Half Blue");
-        action->setData(PartialBlue);
-        action = m_teamMenu->addAction("Half Yellow");
-        action->setData(PartialYellow);
-    }
-
     connect(m_teamMenu, SIGNAL(triggered(QAction*)), SLOT(selectTeam(QAction*)));
+
+    addTeamType("No team", NoTeam);
+    addTeamType("Blue", Blue);
+    addTeamType("Yellow", Yellow);
+    if (is_generation) {
+        // partial blue and yellow only set the team of the first half of the robots
+        addTeamType("Half Blue", PartialBlue);
+        addTeamType("Half Yellow", PartialYellow);
+    }
 
     m_team = new QToolButton;
     m_team->setAutoRaise(true);
@@ -92,8 +60,8 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
     m_team->setMenu(m_teamMenu);
     layout->addWidget(m_team);
 
-    m_label = new QLabel;
-    layout->addWidget(m_label);
+    m_nameLabel = new QLabel;
+    layout->addWidget(m_nameLabel);
 
     m_battery = new QLabel;
     m_battery->hide();
@@ -143,19 +111,28 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
         layout->addLayout(iconLayout);
     }
 
+    if (!is_generation) {
+        connect(this, SIGNAL(addBinding(uint,uint,QString)), inputManager, SLOT(addBinding(uint,uint,QString)));
+        connect(this, SIGNAL(removeBinding(uint,uint)), inputManager, SLOT(removeBinding(uint,uint)));
+        connect(this, SIGNAL(strategyControlled(uint,uint,bool)), inputManager, SLOT(setStrategyControlled(uint,uint,bool)));
+        connect(this, SIGNAL(networkControlled(uint,uint,bool)), inputManager, SLOT(setNetworkControlled(uint,uint,bool)));
+        connect(this, SIGNAL(ejectSdcard(uint,uint)), inputManager, SLOT(setEjectSdcard(uint,uint)));
+    }
+    connect(inputManager, SIGNAL(devicesUpdated()), SLOT(updateInputMenu()));
+
     m_inputLabel = new QLabel;
     m_inputLabel->hide();
     layout->addWidget(m_inputLabel);
 
     m_inputDeviceGroup = new QActionGroup(this);
-    m_menu = new QMenu(this);
+    m_inputMenu = new QMenu(this);
 
     m_btnControl = new QToolButton;
-    m_btnControl->setMenu(m_menu);
+    m_btnControl->setMenu(m_inputMenu);
     m_btnControl->setAutoRaise(true);
     m_btnControl->setPopupMode(QToolButton::InstantPopup);
     layout->addWidget(m_btnControl);
-    updateMenu();
+    updateInputMenu();
     if (!m_isGeneration) {
         disableInput();
     }
@@ -174,13 +151,23 @@ RobotWidget::~RobotWidget()
     emit removeBinding(m_specs.generation(), m_specs.id());
 }
 
+void RobotWidget::addTeamType(const QString &name, const RobotWidget::Team team)
+{
+    QAction *action = m_teamMenu->addAction(name);
+    action->setData(team);
+    if (!m_isGeneration) {
+        action->setCheckable(true);
+        m_teamGroup->addAction(action);
+    }
+}
+
 void RobotWidget::setSpecs(const robot::Specs &specs)
 {
     m_specs = specs;
     if (m_isGeneration) {
-        m_label->setText(QString("Generation %1").arg(specs.year()));
+        m_nameLabel->setText(QString("Generation %1").arg(specs.year()));
     } else {
-        m_label->setText(QString("%1").arg(specs.id()));
+        m_nameLabel->setText(QString("%1").arg(specs.id()));
     }
 }
 
@@ -217,7 +204,7 @@ void RobotWidget::selectInput(const QString &inputDevice) {
         m_btnControl->setIcon(QIcon());
         m_inputLabel->hide();
         emit removeBinding(m_specs.generation(), m_specs.id());
-        updateMenu();
+        updateInputMenu();
         return;
     }
 
@@ -225,48 +212,48 @@ void RobotWidget::selectInput(const QString &inputDevice) {
         emit addBinding(m_specs.generation(), m_specs.id(), inputDevice);
     }
     emit strategyControlled(m_specs.generation(), m_specs.id(), m_strategyControlled);
-    updateMenu();
+    updateInputMenu();
     m_inputLabel->setText(m_inputDevice);
     m_inputLabel->show();
     if (m_inputDevice == "Keyboard") {
         m_btnControl->setIcon(QIcon("icon:16/input-keyboard.png"));
     } else if (isNetwork) {
-        m_btnControl->setIcon(QIcon("icon:16/network-receive.png"));
+        m_btnControl->setIcon(QIcon("icon:16/input-network.png"));
     } else {
         m_btnControl->setIcon(QIcon("icon:16/input-gaming.png"));
     }
 }
 
-void RobotWidget::updateMenu()
+void RobotWidget::updateInputMenu()
 {
-    m_menu->clear();
+    m_inputMenu->clear();
 
     QStringList devices = m_inputManager->devices();
     devices.prepend("Network");
     m_btnControl->setEnabled(!devices.isEmpty());
 
-    QAction *action = m_menu->addAction("Disable manual control");
+    QAction *action = m_inputMenu->addAction("Disable manual control");
     connect(action, SIGNAL(triggered()), SLOT(disableInput()));
     m_inputDeviceGroup->addAction(action);
     action->setCheckable(true);
     action->setChecked(m_inputDevice.isEmpty());
 
     if (!m_isGeneration) {
-        QAction *action2 = m_menu->addAction("Forward to strategy");
+        QAction *action2 = m_inputMenu->addAction("Forward to strategy");
         connect(action2, SIGNAL(triggered(bool)), SLOT(setStrategyControlled(bool)));
         action2->setCheckable(true);
         action2->setDisabled(m_inputDevice.isEmpty());
         action2->setChecked(m_strategyControlled);
 
-        QAction *ejectAction = m_menu->addAction("Eject sdcard");
+        QAction *ejectAction = m_inputMenu->addAction("Eject sdcard");
         connect(ejectAction, SIGNAL(triggered(bool)), SLOT(sendEject()));
         ejectAction->setEnabled(m_teamId != NoTeam);
     }
 
-    m_menu->addSeparator();
+    m_inputMenu->addSeparator();
     bool deviceFound = false; // input device may have been removed
     foreach (const QString &device, devices) {
-        QAction *action = m_menu->addAction(device);
+        QAction *action = m_inputMenu->addAction(device);
         connect(action, SIGNAL(triggered()), SLOT(selectInput()));
         m_inputDeviceGroup->addAction(action);
         action->setCheckable(true);
@@ -298,7 +285,7 @@ void RobotWidget::selectTeam(Team team)
     QBrush brush;
 
     m_teamId = team;
-    updateMenu();
+    updateInputMenu();
     m_inputLabel->setEnabled(true);
 
     switch (team) {
