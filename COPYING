@@ -11,7 +11,7 @@ Additional licenses:
 config/*:
  * Public Domain 2014 Robotics Erlangen e.V.
 
-data/icons/*/{ball,plotter,erforce,change-ends,capacitor,logplayer}*:
+data/icons/*/{capacitor,change-ends,erforce,logplayer,plotter}*:
  * Copyright 2014 Robotics Erlangen e.V.
  * Licensed under GPL 3
 
@@ -30,6 +30,10 @@ data/icons/*/whistle*:
 
 data/icons/16/{dialog-warning,input-gaming,input-keyboard}*, data/icons/32/ everything else:
  * Copyright 2014 GNOME Project
+ * Licensed under CC BY SA 3.0 <http://creativecommons.org/licenses/by-sa/3.0/>
+
+data/icons/16/ everything else:
+ * Copyright 2016 Robotics Erlangen e.V.
  * Licensed under CC BY SA 3.0 <http://creativecommons.org/licenses/by-sa/3.0/>
 
 data/pkg/:

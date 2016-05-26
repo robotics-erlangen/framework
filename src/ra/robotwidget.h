@@ -74,6 +74,12 @@ private slots:
 
 private:
     void addTeamType(const QString &name, const RobotWidget::Team team);
+    void setupIcon(QLabel *&label, const QString &iconPath, QLayout *layout, const QString &toolTip = QString());
+
+    void updateBatteryStatus(int percentage);
+    void updateRadioStatus(int packetLossRx, int packetLossTx);
+    void updateTemperatureStatus(int temperature);
+
     robot::Specs m_specs;
     bool m_isGeneration;
 
@@ -90,12 +96,30 @@ private:
     GuiTimer *m_guiResponseTimer;
     int m_statusCtr;
 
-    QLabel *m_battery;
-    QLabel *m_radio;
-    QLabel *m_radioErrors;
+    QLabel *m_warning;
+    QLabel *m_breakBeamError;
+    QLabel *m_kickerError;
+
+    QLabel *m_motorHLError;
+    QLabel *m_motorHRError;
+    QLabel *m_motorVLError;
+    QLabel *m_motorVRError;
+    QLabel *m_motorDribblerError;
+
+    QLabel *m_tempMid;
+    QLabel *m_tempHigh;
     QLabel *m_ball;
-    QLabel *m_motorWarning;
     QLabel *m_capCharged;
+
+    QLabel *m_batteryEmpty;
+    QLabel *m_batteryLow;
+    QLabel *m_batteryMid;
+    QLabel *m_batteryFull;
+
+    QLabel *m_rfBad;
+    QLabel *m_rfOkay;
+    QLabel *m_rfGood;
+    QLabel *m_rfExcellent;
 
     InputManager *m_inputManager;
     QToolButton *m_btnControl;

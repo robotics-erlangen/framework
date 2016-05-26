@@ -63,10 +63,6 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
     m_nameLabel = new QLabel;
     layout->addWidget(m_nameLabel);
 
-    m_battery = new QLabel;
-    m_battery->hide();
-    layout->addWidget(m_battery);
-
     layout->addStretch(1);
 
     if (!m_isGeneration) {
@@ -75,38 +71,32 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
         iconLayout->setMargin(0);
         iconLayout->setSpacing(0);
 
-        // indicates presence of radio responses
-        m_radio = new QLabel;
-        m_radio->setText("R");
-        m_radio->setPixmap(QIcon("icon:32/network-wireless.png").pixmap(16, 16));
-        m_radio->hide();
-        iconLayout->addWidget(m_radio);
+        setupIcon(m_warning, "icon:16/dialog-warning.png", iconLayout);
 
-        // used to display lost packets
-        m_radioErrors = new QLabel;
-        m_radioErrors->hide();
-        iconLayout->addWidget(m_radioErrors);
+        setupIcon(m_breakBeamError, "icon:16/kick_bb.png", iconLayout, "Break beam is not working!");
+        setupIcon(m_kickerError, "icon:16/kick_cha.png", iconLayout, "Kicker damaged");
 
-        m_ball = new QLabel;
-        m_ball->setText("b");
-        m_ball->setPixmap(QIcon("icon:16/ball.png").pixmap(16, 16));
-        m_ball->setToolTip("Ball detected");
-        m_ball->hide();
-        iconLayout->addWidget(m_ball);
+        setupIcon(m_motorVLError, "icon:16/mot_vl.png", iconLayout, "Motor VL has problems");
+        setupIcon(m_motorHLError, "icon:16/mot_hl.png", iconLayout, "Motor HL has problems");
+        setupIcon(m_motorHRError, "icon:16/mot_hr.png", iconLayout, "Motor HR has problems");
+        setupIcon(m_motorVRError, "icon:16/mot_vr.png", iconLayout, "Motor VR has problems");
+        setupIcon(m_motorDribblerError, "icon:16/mot2_d.png", iconLayout, "Dribbler has problems");
 
-        m_motorWarning = new QLabel;
-        m_motorWarning->setText("!");
-        m_motorWarning->setPixmap(QIcon("icon:16/dialog-warning.png").pixmap(16, 16));
-        m_motorWarning->setToolTip("Motor in current limitation! Check immediatelly");
-        m_motorWarning->hide();
-        iconLayout->addWidget(m_motorWarning);
+        setupIcon(m_tempMid, "icon:16/temp_mid.png", iconLayout);
+        setupIcon(m_tempHigh, "icon:16/temp_high.png", iconLayout);
 
-        m_capCharged = new QLabel;
-        m_capCharged->setText("c");
-        m_capCharged->setPixmap(QIcon("icon:16/capacitor.png").pixmap(16, 16));
-        m_capCharged->setToolTip("Capacitor charged");
-        m_capCharged->hide();
-        iconLayout->addWidget(m_capCharged);
+        setupIcon(m_ball, "icon:16/ball.png", iconLayout, "Ball detected");
+        setupIcon(m_capCharged, "icon:16/capacitor.png", iconLayout, "Capacitor charged");
+
+        setupIcon(m_batteryEmpty, "icon:16/bat_25.png", iconLayout);
+        setupIcon(m_batteryLow, "icon:16/bat_50.png", iconLayout);
+        setupIcon(m_batteryMid, "icon:16/bat_75.png", iconLayout);
+        setupIcon(m_batteryFull, "icon:16/bat_100.png", iconLayout);
+
+        setupIcon(m_rfBad, "icon:16/rf_25.png", iconLayout);
+        setupIcon(m_rfOkay, "icon:16/rf_50.png", iconLayout);
+        setupIcon(m_rfGood, "icon:16/rf_75.png", iconLayout);
+        setupIcon(m_rfExcellent, "icon:16/rf_100.png", iconLayout);
 
         layout->addLayout(iconLayout);
     }
@@ -159,6 +149,15 @@ void RobotWidget::addTeamType(const QString &name, const RobotWidget::Team team)
         action->setCheckable(true);
         m_teamGroup->addAction(action);
     }
+}
+
+void RobotWidget::setupIcon(QLabel *&label, const QString &iconPath, QLayout *layout, const QString &toolTip)
+{
+    label = new QLabel;
+    label->setPixmap(QIcon(iconPath).pixmap(16, 16));
+    label->hide();
+    label->setToolTip(toolTip);
+    layout->addWidget(label);
 }
 
 void RobotWidget::setSpecs(const robot::Specs &specs)
@@ -353,22 +352,6 @@ void RobotWidget::setInputDevice(uint generation, uint id, const QString &inputD
     }
 }
 
-void RobotWidget::hideRobotStatus()
-{
-    if (m_statusCtr > 0) {
-        // restart timer
-        m_guiResponseTimer->requestTriggering();
-        m_statusCtr--;
-        return;
-    }
-    m_battery->hide();
-    m_radio->hide();
-    m_radioErrors->hide();
-    m_ball->hide();
-    m_motorWarning->hide();
-    m_capCharged->hide();
-}
-
 void RobotWidget::handleResponse(const robot::RadioResponse &response)
 {
     // responses are broadcasted to every robot widget, just ignore the wrong ones
@@ -380,70 +363,115 @@ void RobotWidget::handleResponse(const robot::RadioResponse &response)
     m_guiUpdateTimer->requestTriggering();
 }
 
+void RobotWidget::updateBatteryStatus(int percentage)
+{
+    const int percentageLow = 25;
+    const int percentageMid = 50;
+    const int percentageFull = 75;
+    m_batteryEmpty->setVisible(0 <= percentage && percentage < percentageLow);
+    m_batteryLow->setVisible(percentageLow <= percentage && percentage < percentageMid);
+    m_batteryMid->setVisible(percentageMid <= percentage && percentage < percentageFull);
+    m_batteryFull->setVisible(percentageFull <= percentage);
+
+    const QString toolTip = QString("Battery: %1%").arg(QString::number(percentage));
+    m_batteryEmpty->setToolTip(toolTip);
+    m_batteryLow->setToolTip(toolTip);
+    m_batteryMid->setToolTip(toolTip);
+    m_batteryFull->setToolTip(toolTip);
+}
+
+void RobotWidget::updateRadioStatus(int packetLossRx, int packetLossTx)
+{
+    const int rxLossOkay = 20;
+    const int rxLossGood = 5;
+    const int rxLossExcellent = 0;
+    const int txLossOkay = 90;
+    const int txLossGood = 50;
+    const int txLossExcellent = 20;
+
+    // categorize
+    bool rxBad = rxLossOkay < packetLossRx;
+    bool rxOkay = rxLossGood < packetLossRx && packetLossRx <= rxLossOkay;
+    bool rxGood = rxLossExcellent < packetLossRx && packetLossRx <= rxLossGood;
+    bool rxExcellent = 0 <= packetLossRx && packetLossRx <= rxLossExcellent;
+
+    bool txBad = txLossOkay < packetLossTx;
+    bool txOkay = txLossGood < packetLossTx && packetLossTx <= txLossOkay;
+    bool txGood = txLossExcellent < packetLossTx && packetLossTx <= txLossGood;
+    bool txExcellent = 0 <= packetLossTx && packetLossTx <= txLossExcellent;
+
+    // Merge by always using the worst rating
+    bool bad = rxBad || txBad;
+    bool okay = !bad && (rxOkay || txOkay);
+    bool good = !okay && !bad && (rxGood || txGood);
+    bool excellent = !good && !okay && !bad && (rxExcellent || txExcellent);
+
+    m_rfBad->setVisible(bad);
+    m_rfOkay->setVisible(okay);
+    m_rfGood->setVisible(good);
+    m_rfExcellent->setVisible(excellent);
+
+    const QString rxStr = QString::number(packetLossRx);
+    const QString txStr = QString::number(packetLossTx);
+    const QString toolTip = QString("Robot commands lost: %1%, Replies lost: %2%").arg(rxStr, txStr);
+    m_rfBad->setToolTip(toolTip);
+    m_rfOkay->setToolTip(toolTip);
+    m_rfGood->setToolTip(toolTip);
+    m_rfExcellent->setToolTip(toolTip);
+}
+
+void RobotWidget::updateTemperatureStatus(int temperature)
+{
+    const int tempMid = 35;
+    const int tempHigh = 60;
+    m_tempMid->setVisible(tempMid <= temperature && temperature < tempHigh);
+    m_tempHigh->setVisible(tempHigh <= temperature);
+
+    const QString toolTip =QString("Temperature: %1 °C").arg(temperature);
+    m_tempMid->setToolTip(toolTip);
+    m_tempHigh->setToolTip(toolTip);
+}
+
 void RobotWidget::updateRobotStatus()
 {
     if (m_mergedResponse.has_battery() && m_mergedResponse.has_packet_loss_rx() && m_mergedResponse.has_packet_loss_tx()) {
         // update battery status if changed
         if (!m_lastResponse.IsInitialized() || m_lastResponse.battery() != m_mergedResponse.battery()) {
-            // battery status
-            m_battery->setText(QString("B:%1%").arg(
-                    QString::number((int)std::ceil(m_mergedResponse.battery() * 100)) ) );
+            updateBatteryStatus(std::ceil(m_mergedResponse.battery() * 100));
         }
-        m_battery->show();
 
         // update radio status if changed
         if (!m_lastResponse.IsInitialized() || m_lastResponse.packet_loss_rx() != m_mergedResponse.packet_loss_rx()
                 || m_lastResponse.packet_loss_tx() != m_mergedResponse.packet_loss_tx()) {
-            const QString rxStr = QString::number((int)std::ceil(m_mergedResponse.packet_loss_rx() * 100));
-            const QString txStr = QString::number((int)std::ceil(m_mergedResponse.packet_loss_tx() * 100));
-            // radio status, errors are only display if any show up
-            const QString toolTip = QString("R:%1%, T:%2%").arg(rxStr, txStr);
-            m_radio->setToolTip(toolTip);
-            m_radioErrors->setToolTip(toolTip);
-
-            QString radioError;
-            if (m_mergedResponse.packet_loss_rx() > 0) {
-                radioError = QString("R:%1%").arg(rxStr);
-            }
-            if (m_mergedResponse.packet_loss_tx() > 0) {
-                if (!radioError.isEmpty()) {
-                    radioError += ", ";
-                }
-                radioError += QString("T:%1%").arg(txStr);
-            }
-            m_radioErrors->setText(radioError);
+            updateRadioStatus(std::ceil(m_mergedResponse.packet_loss_rx() * 100),
+                              std::ceil(m_mergedResponse.packet_loss_tx() * 100));
         }
-        m_radio->show();
-        m_radioErrors->setVisible(m_mergedResponse.packet_loss_rx() > 0 || m_mergedResponse.packet_loss_tx() > 0);
     }
 
+    if (m_mergedResponse.has_cap_charged()) {
+        m_capCharged->setVisible(m_mergedResponse.cap_charged());
+    }
     if (m_mergedResponse.has_ball_detected()) {
         m_ball->setVisible(m_mergedResponse.ball_detected());
     }
-    if (m_mergedResponse.has_error_present()) {
-        m_motorWarning->setVisible(m_mergedResponse.error_present());
+    if (m_mergedResponse.has_extended_error() && m_mergedResponse.extended_error().has_temperature()) {
+        updateTemperatureStatus(m_mergedResponse.extended_error().temperature());
     }
+//    if (m_mergedResponse.has_error_present()) {
+//        m_motorWarning->setVisible(m_mergedResponse.error_present());
+//    }
     if (m_mergedResponse.has_extended_error()) {
+        const auto &extendedError = m_mergedResponse.extended_error();
+
+        m_motorVLError->setVisible(extendedError.motor_1_error());
+        m_motorHLError->setVisible(extendedError.motor_2_error());
+        m_motorHRError->setVisible(extendedError.motor_3_error());
+        m_motorVRError->setVisible(extendedError.motor_4_error());
+        m_motorDribblerError->setVisible(extendedError.dribbler_error());
+        m_kickerError->setVisible(extendedError.kicker_error());
+        // TODO: m_breakBeamError
+
         QString errorMsg = "";
-        const QString motorXPowerLimit = "Motor %1 in power limit\n";
-        if (m_mergedResponse.extended_error().motor_1_error()) {
-            errorMsg += motorXPowerLimit.arg(1);
-        }
-        if (m_mergedResponse.extended_error().motor_2_error()) {
-            errorMsg += motorXPowerLimit.arg(2);
-        }
-        if (m_mergedResponse.extended_error().motor_3_error()) {
-            errorMsg += motorXPowerLimit.arg(3);
-        }
-        if (m_mergedResponse.extended_error().motor_4_error()) {
-            errorMsg += motorXPowerLimit.arg(4);
-        }
-        if (m_mergedResponse.extended_error().dribbler_error()) {
-            errorMsg += motorXPowerLimit.arg("dribbler");
-        }
-        if (m_mergedResponse.extended_error().kicker_error()) {
-            errorMsg += "Kicker error!\n";
-        }
         if (m_mergedResponse.extended_error().motor_overheated_error()) {
             errorMsg += "One or multiple motors have overheated\n";
         }
@@ -453,19 +481,40 @@ void RobotWidget::updateRobotStatus()
         if (m_mergedResponse.extended_error().main_sensor_error()) {
             errorMsg += "Gryoscope or accelerometer not working\n";
         }
-        m_motorWarning->setToolTip(errorMsg);
-    }
-    if (m_mergedResponse.has_extended_error() && m_mergedResponse.extended_error().has_temperature()) {
-        m_battery->setToolTip(QString("Temperature: %1 °C").arg(m_mergedResponse.extended_error().temperature()));
-    }
-    if (m_mergedResponse.has_cap_charged()) {
-        m_capCharged->setVisible(m_mergedResponse.cap_charged());
+        m_warning->setVisible(!errorMsg.isEmpty());
+        m_warning->setToolTip(errorMsg);
     }
 
     // update counter to indicate status was updated
     m_statusCtr = 10;
     m_guiResponseTimer->requestTriggering();
     m_lastResponse = m_mergedResponse;
+    m_mergedResponse.Clear();
+}
+
+void RobotWidget::hideRobotStatus()
+{
+    if (m_statusCtr > 0) {
+        // restart timer
+        m_guiResponseTimer->requestTriggering();
+        m_statusCtr--;
+        return;
+    }
+    updateBatteryStatus(-1);
+    updateRadioStatus(-1, -1);
+    m_capCharged->hide();
+    m_ball->hide();
+    updateTemperatureStatus(-100);
+
+    m_motorVLError->hide();
+    m_motorHLError->hide();
+    m_motorHRError->hide();
+    m_motorVRError->hide();
+    m_motorDribblerError->hide();
+    m_kickerError->hide();
+    m_breakBeamError->hide();
+    m_warning->hide();
+
     m_mergedResponse.Clear();
 }
 
