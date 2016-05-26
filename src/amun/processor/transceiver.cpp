@@ -444,6 +444,7 @@ void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, c
             e->set_motor_4_error(packet->motor_4_error);
             e->set_dribbler_error(packet->dribler_error);
             e->set_kicker_error(packet->kicker_error);
+            e->set_kicker_break_beam_error(packet->kicker_break_beam_error);
             e->set_motor_encoder_error(packet->motor_encoder_error);
             e->set_main_sensor_error(packet->main_sensor_error);
             e->set_temperature(packet->temperature);

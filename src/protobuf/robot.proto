@@ -152,6 +152,7 @@ message ExtendedError
     required bool dribbler_error = 5;
     required bool kicker_error = 6;
     // optional bool motor_overheated_error = 8;
+    optional bool kicker_break_beam_error = 11;
     optional bool motor_encoder_error = 9;
     optional bool main_sensor_error = 10;
     optional int32 temperature = 7;

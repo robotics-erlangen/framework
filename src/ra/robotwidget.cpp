@@ -469,7 +469,7 @@ void RobotWidget::updateRobotStatus()
         m_motorVRError->setVisible(extendedError.motor_4_error());
         m_motorDribblerError->setVisible(extendedError.dribbler_error());
         m_kickerError->setVisible(extendedError.kicker_error());
-        // TODO: m_breakBeamError
+        m_breakBeamError->setVisible(extendedError.kicker_break_beam_error());
 
         QString errorMsg = "";
         if (extendedError.motor_encoder_error()) {
