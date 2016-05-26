@@ -96,6 +96,8 @@ private:
     GuiTimer *m_guiResponseTimer;
     int m_statusCtr;
 
+    int m_lastBatteryLevel;
+
     QLabel *m_warning;
     QLabel *m_breakBeamError;
     QLabel *m_kickerError;

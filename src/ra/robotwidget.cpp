@@ -34,6 +34,7 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
     QWidget(parent),
     m_isGeneration(is_generation),
     m_statusCtr(0),
+    m_lastBatteryLevel(0),
     m_inputManager(inputManager),
     m_strategyControlled(false)
 {
@@ -368,10 +369,17 @@ void RobotWidget::updateBatteryStatus(int percentage)
     const int percentageLow = 25;
     const int percentageMid = 50;
     const int percentageFull = 75;
-    m_batteryEmpty->setVisible(0 <= percentage && percentage < percentageLow);
-    m_batteryLow->setVisible(percentageLow <= percentage && percentage < percentageMid);
-    m_batteryMid->setVisible(percentageMid <= percentage && percentage < percentageFull);
-    m_batteryFull->setVisible(percentageFull <= percentage);
+    const int hysteresis = 3;
+
+    int diff = m_lastBatteryLevel - percentage;
+    diff = (diff > 0) ? diff : -diff;
+    if (diff >= hysteresis) {
+        m_batteryEmpty->setVisible(0 <= percentage && percentage < percentageLow);
+        m_batteryLow->setVisible(percentageLow <= percentage && percentage < percentageMid);
+        m_batteryMid->setVisible(percentageMid <= percentage && percentage < percentageFull);
+        m_batteryFull->setVisible(percentageFull <= percentage);
+        m_lastBatteryLevel = percentage;
+    }
 
     const QString toolTip = QString("Battery: %1%").arg(QString::number(percentage));
     m_batteryEmpty->setToolTip(toolTip);
@@ -435,6 +443,12 @@ void RobotWidget::updateTemperatureStatus(int temperature)
 void RobotWidget::updateRobotStatus()
 {
     if (m_mergedResponse.has_battery() && m_mergedResponse.has_packet_loss_rx() && m_mergedResponse.has_packet_loss_tx()) {
+
+        if (m_lastResponse.IsInitialized()) {
+            // smooth battery data
+            const float alpha = 0.05f;
+            m_mergedResponse.set_battery(alpha * m_mergedResponse.battery() + (1-alpha) * m_lastResponse.battery());
+        }
         // update battery status if changed
         if (!m_lastResponse.IsInitialized() || m_lastResponse.battery() != m_mergedResponse.battery()) {
             updateBatteryStatus(std::ceil(m_mergedResponse.battery() * 100));
