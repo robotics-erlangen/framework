@@ -149,9 +149,9 @@ void BallFilter::predict(qint64 time, bool cameraSwitched)
 
     if (cameraSwitched) {
         // handle small errors in camera alignment
-        G(0) += 0.02;
-        G(1) += 0.02;
-        G(2) += 0.1;
+        G(0) += 0.1;
+        G(1) += 0.1;
+        G(2) += 0.2;
     }
     if (probableShoot) {
         G(0) += 0.1;
@@ -414,8 +414,8 @@ void BallFilter::applyVisionFrame(const VisionFrame &frame)
         R(1, 1) = 0.003;
     } else {
         // handle small errors in camera alignment
-        R(0, 0) = 0.02;
-        R(1, 1) = 0.02;
+        R(0, 0) = 0.05;
+        R(1, 1) = 0.05;
     }
     if (ball(2) != 0) {
         R(2, 2) = 0.05;
