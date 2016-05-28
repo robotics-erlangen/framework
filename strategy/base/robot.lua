@@ -424,7 +424,7 @@ function Robot:hasBall(ball, sideOffset)
 	local relpos = (ball.pos - self.pos):rotate(-self.dir)
 	relpos.x = relpos.x - self.shootRadius - ball.radius
 	-- calculate position on the dribbler that would have been hit
-	offset = math.abs(relpos.y - relpos.x * latencyCompensation.y / latencyCompensation.x)
+	local offset = math.abs(relpos.y - relpos.x * latencyCompensation.y / latencyCompensation.x)
 	-- local debug = require "../base/debug"
 	-- debug.set("latencyCompensation", latencyCompensation)
 	-- debug.set("offset", offset)
