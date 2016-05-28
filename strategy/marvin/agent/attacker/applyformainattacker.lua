@@ -17,7 +17,6 @@ end
 
 function ApplyForMainattacker:_stop()
 	self._lastShot = 0
-	self._freekickFlag = false
 end
 
 function ApplyForMainattacker:check()
@@ -40,19 +39,15 @@ function ApplyForMainattacker:check()
 		return false
 	end
 
-	-- cancel freekick
-	if self._freekickFlag and Robot.hadBall(self._robot, 0.5)
-			and not Referee.isFriendlyFreeKickState() then
-		self._lastShot = World.Time
-		self._freekickFlag = false
+	if not Referee.isFriendlyFreeKickState() and Robot.ownFreeKickShooter() == self._robot then
+		-- prevent double touches after a failed freekick by preventing the freekicking robot as mainattacker
 		return false
 	end
-	self._freekickFlag = Referee.isFriendlyFreeKickState()
 
 	if Referee.isOpponentPenaltyState() then
 		return false
 	end
-	
+
 	local passTargetOverrideTime = 0.7
 	if Ball.wasShot(passTargetOverrideTime) == self._lastIncomingPassSender and
 			World.Time - self._lastIncomingPassTime < passTargetOverrideTime then
@@ -62,7 +57,7 @@ function ApplyForMainattacker:check()
 		self:_applyForMainAttacker()
 		self._agent.beOffensive = false
 	end
-	
+
 	return false
 end
 

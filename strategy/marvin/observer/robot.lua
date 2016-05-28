@@ -3,6 +3,7 @@ local Robot = {}
 local Constants = require "../base/constants"
 local debug = require "../base/debug"
 local Field = require "../base/field"
+local Referee = require "../base/referee"
 local World = require "../base/world"
 local Messaging = require "control/messaging"
 local Physics = require "observer/physics"
@@ -161,6 +162,35 @@ function Robot.fastestOpponentAtBall()
 	fastestOpponentAtBallLastRun = World.Time
 
 	return fastestOpponent, fastestOpponentTime
+end
+
+local freekickShooterRobot = nil
+function Robot._updateOwnFreekickShooter()
+	if Referee.isFriendlyFreeKickState() then
+		if not freekickShooterRobot or not Robot.hadBall(freekickShooterRobot, 0) then
+			for _, robot in ipairs(World.FriendlyRobots) do
+				if Robot.hadBall(robot, 0) then
+					freekickShooterRobot = robot
+					break
+				end
+			end
+		end
+	elseif World.RefereeState == "Game" and freekickShooterRobot then
+		-- reset when any other robot touches the ball
+		for _, robot in ipairs(World.Robots) do
+			if robot ~= freekickShooterRobot
+					and robot.pos:distanceTo(World.Ball.pos) < robot.radius + World.Ball.radius + 0.01 then
+				freekickShooterRobot = nil
+			end
+		end
+	else
+		-- reset in any other states
+		freekickShooterRobot = nil
+	end
+end
+
+function Robot.ownFreeKickShooter()
+	return freekickShooterRobot
 end
 
 return Robot
