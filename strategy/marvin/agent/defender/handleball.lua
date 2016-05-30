@@ -11,65 +11,110 @@ local Duel = require "task/duel"
 local InterceptPass = require "task/interceptpass"
 local debug = require "../base/debug"
 
---[[
-	timeAdvance ist doof, weil
-		- geht kaputt, wenn wir knapp vor dem gegner in der ballinie stehen
-			-> kleiner advance, interceptPass wird aktiv :(
-		- beachtet nicht die zeit die wir zum ball überhaupt brauchen
-		- man sollte sich auch mal für MA bewerben, wenn man nicht unbedingt schneller da ist (zB force duel)
-
-	stattdessen
-		- MA bewerbung schicken, falls
-			- ManMark
-			- CenterBack
-				- nicht falls ein Gegner den Ball früher abfangen wird
-					-> winkel zwischen ballrichtung und gegner-tor beachten
-					-> ballgeschwindigkeit beachten
-				- falls wir den Ball locker abfangen können
-				- falls wir einen gefährlichen Querpass ablenken können
-]]
 
 function HandleBall:_stop()
-	self._mainAttackerApplicationSent = false
+	self._taskDecision = nil
 end
 
-function HandleBall:_shouldSendMAApplication()
-	local role = self._inbox.roleAssignment().trainer
-
-	-- Manmarks should always apply for MA
-	if role and role.name == "ManMark" then
+function HandleBall:_checkDefender()
+	-- stay defender if the ball is currently being shot at our goal
+	if DefUtil.dangerousBallTowardsDefense() then
 		return true
 	end
+	return false
+end
 
-	local interceptionTime = math.huge
-	local interceptionDist = math.huge
-	if Ball.receivesPass(self._robot) then
-		local posOnLine = self._robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed)
-		local timeToLine = Physics.robotTimeToPos(self._robot, posOnLine, Vector(0, 0), false)
-		local dist = World.Ball.pos:distanceTo(posOnLine)
-		if timeToLine < 0.4 or timeToLine + 0.1 < Physics.ballRollTime(World.Ball, dist) then
-			interceptionTime = timeToLine
-			interceptionDist = dist
-		end
-	end
-
-	-- if we cannot reach the ball in a reasonable time, we stay CB
-	if interceptionTime > 0.7 then
+function HandleBall:_checkAttacker()
+	local isAttacker = self._taskDecision == "attacker"
+	
+	-- don't if we take too long to get the ball
+	local timeToBallLimit = isAttacker and 1.5 or 1.0
+	if Physics.robotTimeToBall(self._robot, World.Ball, World.Geometry.OpponentGoal, 0) > timeToBallLimit then
 		return false
 	end
 
-	-- if an opponent robot will catch the ball before us, we stay CB
+	-- don't if an opponent is at the ball rather quickly
+	local oppTimeToBallLimit = isAttacker and 1.0 or 0.7
+	local _,oppTime = Ball.firstRobotAtBall(World.OpponentRobots)
+	if oppTime < oppTimeToBallLimit then
+		return false
+	end
+
+	-- don't if an opponent is close to us
+	local distToOppLimit = isAttacker and 0.5 or 0.7
+	local _,closestOppDist = DefUtil.getClosestRobot(World.OpponentRobots, self._robot.pos)
+	if closestOppDist < distToOppLimit then
+		return false
+	end
+
+	return true
+end
+
+function HandleBall:_checkInterceptPass()
+	local isInterceptPass = self._taskDecision == "interceptpass"
+
+	-- don't if the ball is too slow
+	local ballSpeedLimit = isInterceptPass and 1.5 or 2.0
+	if World.Ball.speed:length() < ballSpeedLimit then
+		return false
+	end
+
+	-- don't if the ball is between the robot and our goal
+	local moveDest, moveTime = InterceptPass.calculateMoveDest(self._robot)
+	local towardsGoal = World.Geometry.FriendlyGoal - moveDest
+	local towardsBall = World.Ball.pos - moveDest
+	local angleLimit = isInterceptPass and 90 * math.pi/180 or 105 * math.pi/180
+	if towardsGoal:absoluteAngleDiff(towardsBall) < angleLimit then
+		return false
+	end
+
+	-- don't if the time to intercept the pass is too high
+	local interceptionTimeLimit = isInterceptPass and 1.5 or 1.0
+	if moveTime > interceptionTimeLimit then
+		return false
+	end
+
+	-- don't if there is no opponent pass receiver
+	local opponentPassReceipients = {}
 	for _,r in ipairs(World.OpponentRobots) do
-		if r.pos.y > -1 and Ball.receivesPass(r) then
-			local posOnLine = self._robot.pos:nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed)
-			local timeToLine = Physics.robotTimeToPos(self._robot, posOnLine, 
-				(World.Geometry.FriendlyGoal - r.pos):setLength(r.maxSpeed), false)
-			local dist = World.Ball.pos:distanceTo(posOnLine)
-			if dist < interceptionDist + self._robot.radius and timeToLine < 1
-					and (r.pos - World.Geometry.FriendlyGoal):absoluteAngleDiff(World.Ball.speed) < 10 * math.pi/360 then
-				return false
-			end
+		if Ball.receivesPass(r) then
+			table.insert(opponentPassReceipients, r)
 		end
+	end
+	if #opponentPassReceipients == 0 then
+		return false
+	end
+
+	-- don't if we are positioned behind a dangerous pass receipient
+	local distDiffLimit = isInterceptPass and 0 or 4 * self._robot.radius
+	local volleyAngleLimit = isInterceptPass and 70 * math.pi/180 or 80 * math.pi/180
+	local selfPosOnBallLine = self._robot.pos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
+	local selfDistToBall = World.Ball.pos:distanceTo(selfPosOnBallLine)
+	for _,r in ipairs(opponentPassReceipients) do
+		local oppPosOnBallLine = r.pos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
+		local oppDistToBall = World.Ball.pos:distanceTo(oppPosOnBallLine)
+		local volleyAngle = (World.Geometry.FriendlyGoal - oppPosOnBallLine):absoluteAngleDiff(World.Ball.pos - oppPosOnBallLine)
+		if volleyAngle < volleyAngleLimit and selfDistToBall + distDiffLimit > oppDistToBall then
+			return false
+		end
+	end
+
+	return true
+end
+
+function HandleBall:_checkDuel()
+	local isDuel = self._taskDecision == "duel"
+
+	-- don't if we are centerback
+	local role = self._inbox.roleAssignment().trainer
+	if role and role.name == "CenterBack" then
+		return false
+	end
+
+	-- don't if we are not close to the ball
+	local ballDistLimit = isDuel and 1.2 or 0.8
+	if self._robot.pos:distanceTo(World.Ball.pos) > ballDistLimit then
+		return false
 	end
 
 	return true
@@ -83,23 +128,40 @@ function HandleBall:check()
 
 	local mainAttacker = self._inbox.mainAttacker().trainer
 
-	if mainAttacker == self._robot or self:_shouldSendMAApplication() then
-		self:_applyForMainAttacker()
-		self._mainAttackerApplicationSent = true
+	if self:_checkDefender() then
+		self._taskDecision = "forcedefender"
+	elseif self:_checkAttacker() then
+		self._taskDecision = "attacker"
+	elseif self:_checkInterceptPass() then
+		self._taskDecision = "interceptpass"
+	elseif self:_checkDuel() then
+		self._taskDecision = "duel"
 	else
-		self._mainAttackerApplicationSent = false
+		self._taskDecision = "defender"
+	end
+
+	if not self._taskDecision == "forcedefender" then
+		if mainAttacker == self._robot
+				or self._taskDecision == "attacker"
+				or self._taskDecision == "interceptpass"
+				or self._taskDecision == "duel" then
+			self:_applyForMainAttacker()
+		end
 	end
 
 	return mainAttacker == self._robot
 end
 
 function HandleBall:_updateTask()
-	local role = self._inbox.roleAssignment().trainer
-	if role and role.name == "ManMark" and not DefUtil.dangerousBallTowardsDefense() then
+	if self._taskDecision == "attacker" then
 		self._send.poolChangeRequest("trainer")
 	end
-
-	return Duel
+	
+	if self._taskDecision == "interceptpass" then
+		return InterceptPass
+	else
+		return Duel
+	end
 end
 
 return HandleBall

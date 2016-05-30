@@ -1,5 +1,6 @@
 local InterceptPass = Class("Task.InterceptPass", require "task/base")
 
+local Cache = require "../base/cache"
 local debug = require "../base/debug"
 local vis = require "../base/vis"
 local World = require "../base/world"
@@ -14,11 +15,11 @@ local Defense = require "util/defense"
 function InterceptPass:_init()
 end
 
-function InterceptPass:run()
-	local interceptionTime = Robot.minTimeToBall(self._robot)
+function InterceptPass.calculateMoveDest(robot)
+	local interceptionTime = Robot.minTimeToBall(robot)
 	local interceptionBall = Physics.ballAtTime(World.Ball, interceptionTime)
 
-	local interceptionAngle = (interceptionBall.pos - self._robot.pos):
+	local interceptionAngle = (interceptionBall.pos - robot.pos):
 		absoluteAngleDiff(World.Ball.speed)
 
 	-- add some extra time if the ball rolls towards the robot
@@ -36,6 +37,14 @@ function InterceptPass:run()
 	else
 		moveDest = interceptionBall.pos
 	end
+
+	return moveDest, interceptionTime
+end
+InterceptPass.calculateMoveDest = Cache.forFrame(InterceptPass.calculateMoveDest)
+
+
+function InterceptPass:run()
+	local moveDest = self.calculateMoveDest(self._robot)
 
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true) -- ignore ball
 	PathHelper.addRobotObstacles(self._robot.path, self._robot, false, true) -- ignore opponents
