@@ -149,8 +149,8 @@ function Base:_applyForMainAttacker()
 
 			-- rate the robot pos (generally, being behind the ball is better)
 			local relativeYPos = World.Ball.pos.y - self._robot.pos.y
-			local normalizedAtan = math.atan(math.pi / 2 * relativeYPos) * (2 / math.pi)
-			mainAttackerRating = mainAttackerRating + normalizedAtan * 0.2
+			local ratingBoost = math.sin(math.bound(0, relativeYPos*math.pi, math.pi))
+			mainAttackerRating = mainAttackerRating + ratingBoost * 0.2
 		else
 			mainAttackerRating = overrideRating
 		end
