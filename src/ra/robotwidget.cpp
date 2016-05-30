@@ -410,8 +410,9 @@ void RobotWidget::updateRadioStatus(int packetLossRx, int packetLossTx)
     bool txExcellent = 0 <= packetLossTx && packetLossTx <= txLossExcellent;
 
     // Merge by always using the worst rating
-    bool bad = rxBad || txBad;
-    bool okay = !bad && (rxOkay || txOkay);
+    // don't show as bad if rx is excellent
+    bool bad = rxBad || (txBad && !rxExcellent);
+    bool okay = !bad && (txBad || rxOkay || txOkay);
     bool good = !okay && !bad && (rxGood || txGood);
     bool excellent = !good && !okay && !bad && (rxExcellent || txExcellent);
 
