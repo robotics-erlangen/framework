@@ -97,6 +97,7 @@ private:
     int m_statusCtr;
 
     int m_lastBatteryLevel;
+    float m_smoothedBatteryLevel;
 
     QLabel *m_warning;
     QLabel *m_breakBeamError;

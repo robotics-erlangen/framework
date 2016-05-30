@@ -35,6 +35,7 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
     m_isGeneration(is_generation),
     m_statusCtr(0),
     m_lastBatteryLevel(0),
+    m_smoothedBatteryLevel(0),
     m_inputManager(inputManager),
     m_strategyControlled(false)
 {
@@ -443,16 +444,10 @@ void RobotWidget::updateTemperatureStatus(int temperature)
 void RobotWidget::updateRobotStatus()
 {
     if (m_mergedResponse.has_battery() && m_mergedResponse.has_packet_loss_rx() && m_mergedResponse.has_packet_loss_tx()) {
-
-        if (m_lastResponse.IsInitialized()) {
-            // smooth battery data
-            const float alpha = 0.05f;
-            m_mergedResponse.set_battery(alpha * m_mergedResponse.battery() + (1-alpha) * m_lastResponse.battery());
-        }
-        // update battery status if changed
-        if (!m_lastResponse.IsInitialized() || m_lastResponse.battery() != m_mergedResponse.battery()) {
-            updateBatteryStatus(std::ceil(m_mergedResponse.battery() * 100));
-        }
+        // smooth and update battery data
+        const float alpha = 0.05f;
+        m_smoothedBatteryLevel = alpha * m_mergedResponse.battery() + (1-alpha) * m_smoothedBatteryLevel;
+        updateBatteryStatus(std::ceil(m_smoothedBatteryLevel * 100));
 
         // update radio status if changed
         if (!m_lastResponse.IsInitialized() || m_lastResponse.packet_loss_rx() != m_mergedResponse.packet_loss_rx()
