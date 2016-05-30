@@ -122,6 +122,20 @@ function Robot._updateHadBall()
 	end
 end
 
+local touchedByBall = {}
+function Robot.touchedBall(robot, time)
+	return touchedByBall[robot] and World.Time - touchedByBall[robot] <= time
+end
+
+function Robot._updateTouchedBall()
+	for _,r in ipairs(World.Robots) do
+		if r.pos:distanceTo(World.Ball.pos) < r.radius + World.Ball.radius + Constants.positionError then
+			touchedByBall[r] = World.Time
+		end
+	end
+end
+
+
 local minTimeToBall = {}
 local oldMinTimeToBall = {}
 function Robot._resetMinTimeToBall()
@@ -178,8 +192,7 @@ function Robot._updateOwnFreekickShooter()
 	elseif World.RefereeState == "Game" and freekickShooterRobot then
 		-- reset when any other robot touches the ball
 		for _, robot in ipairs(World.Robots) do
-			if robot ~= freekickShooterRobot
-					and robot.pos:distanceTo(World.Ball.pos) < robot.radius + World.Ball.radius + 0.01 then
+			if robot ~= freekickShooterRobot and Robot.touchedBall(robot, 0) then
 				freekickShooterRobot = nil
 			end
 		end
