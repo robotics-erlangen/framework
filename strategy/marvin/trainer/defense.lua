@@ -155,7 +155,7 @@ function Defense:_assignDefenders()
 	self._ballInOurHalf = self._ballInOurHalf and World.Ball.pos.y < 1 or World.Ball.pos.y < -1
 
 	-- ball in our half: assign a second default centerback
-	local needSecondDefaultCB = needDefaultCB and self._ballInOurHalf
+	local needSecondDefaultCB = needDefaultCB and self._ballInOurHalf and not needCountersideCB
 	if needSecondDefaultCB then
 		local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
 		if defaultCB then

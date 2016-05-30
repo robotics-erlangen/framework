@@ -27,6 +27,8 @@ function preproc:run()
     Robot.estimateOpponentDynamics()
     Robot._resetMinTimeToBall()
     Robot._updateHadBall()
+    Robot._updateTouchedBall()
+    Robot._updateOwnFreekickShooter()
     Referee.checkTouching()
     Referee.illustrateRefereeStates()
 end
