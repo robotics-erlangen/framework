@@ -33,7 +33,7 @@ end
 function PlaceBall:run()
     vis.addCircle("ball placement", World.BallPlacementPos, BALL_PLACEMENT_RADIUS, vis.colors.orangeHalf, true)
     local ball = World.Ball
-    local ignoreBall = self._step ~= STEP_MOVE_AWAY
+    local ignoreBall = self._step ~= STEP_MOVE_AWAY and self._step ~= STEP_GO_TO_BALL
     PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignoreBall, true, true)
     PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
@@ -46,6 +46,11 @@ function PlaceBall:run()
 
     if self._step == STEP_GO_TO_BALL then
         local targetPos = ball.pos - self._lastOffset
+        -- if ball is on the way, go next to it first
+        if self._robot.pos:distanceTo(targetPos) > self._robot.pos:distanceTo(World.Ball.pos)
+                and (targetPos-self._robot.pos):absoluteAngleDiff(targetPos-World.Ball.pos) < 35*math.pi/180 then
+            targetPos = ball.pos + (ball.pos-self._robot.pos):rotate(math.pi/2):setLength(0.4)
+        end
         self._robot.trajectory:update(ToTarget, targetPos, dir)
 
         local dist = targetPos:distanceTo(self._robot.pos)
@@ -94,16 +99,16 @@ function PlaceBall:run()
         if self._positionReachedTime ~= 0 and World.Time - self._positionReachedTime > 1 then
             self._step = STEP_MOVE_AWAY
             -- 20cm away from the ball, keeping current direction
-            self._moveAwayPos = self._robot.pos - Vector.fromAngle(self._robot.dir):setLength(0.2)
+            self._moveAwayPos = self._robot.pos - Vector.fromAngle(self._robot.dir):setLength(0.2)    
         end
     elseif self._step == STEP_MOVE_AWAY then
         if isBallNearRobot(ball, self._robot) or
-                (ball:isPositionValid() and self._robot.pos:distanceTo(ball.pos) < 2*self._robot.radius) then
+                (ball:isPositionValid() and self._robot.pos:distanceTo(ball.pos) < 2.5*self._robot.radius) then
             self._robot.trajectory:update(ToTarget, self._moveAwayPos, self._robot.dir)
         elseif World.BallPlacementPos:distanceTo(Vector(0,0)) > 0.7 then
             self._robot.trajectory:update(ToTarget, Vector(0,0), 0)
         else
-            self._robot.trajectory:update(ToTarget, Vector(2,0), 0)
+            self._robot.trajectory:update(ToTarget, Vector(1.3,0), 0)
         end
     end
 end
