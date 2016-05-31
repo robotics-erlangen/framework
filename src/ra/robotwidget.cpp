@@ -394,9 +394,8 @@ void RobotWidget::updateRadioStatus(int packetLossRx, int packetLossTx)
     const int rxLossOkay = 20;
     const int rxLossGood = 5;
     const int rxLossExcellent = 0;
-    const int txLossOkay = 90;
-    const int txLossGood = 50;
-    const int txLossExcellent = 20;
+    const int txLossGood = 90;
+    const int txLossExcellent = 50;
 
     // categorize
     bool rxBad = rxLossOkay < packetLossRx;
@@ -404,15 +403,14 @@ void RobotWidget::updateRadioStatus(int packetLossRx, int packetLossTx)
     bool rxGood = rxLossExcellent < packetLossRx && packetLossRx <= rxLossGood;
     bool rxExcellent = 0 <= packetLossRx && packetLossRx <= rxLossExcellent;
 
-    bool txBad = txLossOkay < packetLossTx;
-    bool txOkay = txLossGood < packetLossTx && packetLossTx <= txLossOkay;
+    // Loosing radio responses is not too bad
+    bool txOkay = txLossGood < packetLossTx;
     bool txGood = txLossExcellent < packetLossTx && packetLossTx <= txLossGood;
     bool txExcellent = 0 <= packetLossTx && packetLossTx <= txLossExcellent;
 
     // Merge by always using the worst rating
-    // don't show as bad if rx is excellent
-    bool bad = rxBad || (txBad && !rxExcellent);
-    bool okay = !bad && (txBad || rxOkay || txOkay);
+    bool bad = rxBad;
+    bool okay = !bad && (rxOkay || txOkay);
     bool good = !okay && !bad && (rxGood || txGood);
     bool excellent = !good && !okay && !bad && (rxExcellent || txExcellent);
 
@@ -423,7 +421,7 @@ void RobotWidget::updateRadioStatus(int packetLossRx, int packetLossTx)
 
     const QString rxStr = QString::number(packetLossRx);
     const QString txStr = QString::number(packetLossTx);
-    const QString toolTip = QString("Robot commands lost: %1%, Replies lost: %2%").arg(rxStr, txStr);
+    const QString toolTip = QString("Robot commands lost(RX): %1%, Replies lost(TX): %2%").arg(rxStr, txStr);
     m_rfBad->setToolTip(toolTip);
     m_rfOkay->setToolTip(toolTip);
     m_rfGood->setToolTip(toolTip);
