@@ -4,6 +4,7 @@ local debug = require "../base/debug"
 local Field = require "../base/field"
 local World = require "../base/world"
 local Halt = require "agent/shared/halt"
+local Error = require "agent/shared/error"
 local Messaging = require "control/messaging"
 local Physics = require "observer/physics"
 local Rating = require "util/rating"
@@ -22,6 +23,7 @@ function Base:init(robot)
 	-- behaviors are ordered by decreasing priority
 	self._behaviors = {
 		Halt(self),
+		Error(self),
 		unpack(table.map(self._behaviors,
 			function (B) return B(self) end)
 		)
@@ -147,8 +149,8 @@ function Base:_applyForMainAttacker()
 
 			-- rate the robot pos (generally, being behind the ball is better)
 			local relativeYPos = World.Ball.pos.y - self._robot.pos.y
-			local normalizedAtan = math.atan(math.pi / 2 * relativeYPos) * (2 / math.pi)
-			mainAttackerRating = mainAttackerRating + normalizedAtan * 0.2
+			local ratingBoost = math.sin(math.bound(0, relativeYPos*math.pi, math.pi))
+			mainAttackerRating = mainAttackerRating + ratingBoost * 0.2
 		else
 			mainAttackerRating = overrideRating
 		end

@@ -29,6 +29,7 @@ function ShootGoal:_updateRobotLists()
 	-- after this reaction time the robots tend to block the shot
 	-- thus further extrapolation does not really make sense
 	local extrapolationTime = 0.2
+	local averageKickedBallSpeed = 6
 
 	-- clear the lists
 	self._robotList = {}
@@ -37,7 +38,10 @@ function ShootGoal:_updateRobotLists()
 	-- consider all robots (also our ones)
 	for _,r in ipairs(World.Robots) do
 		if r ~= self._robot then
-			local futureRobot = { ["pos"] = r.pos + r.speed * extrapolationTime,
+			-- crude estimate of how much time the robot has before the ball has passed it
+			-- robots near the ball won't have moved for the full extrapolation time by then
+			local ballTimeToRobot = r.pos:distanceTo(World.Ball.pos) / averageKickedBallSpeed
+			local futureRobot = { ["pos"] = r.pos + r.speed * math.min(ballTimeToRobot, extrapolationTime),
 				["radius"] = r.radius, ["speed"] = r.speed, ["isFriendly"] = r.isFriendly }
 
 			table.insert(self._robotList, futureRobot)

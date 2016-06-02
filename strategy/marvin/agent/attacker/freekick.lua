@@ -28,7 +28,7 @@ end
 
 function FreeKick:check()
 	-- we have to be main attacker
-	if not (self._inbox.mainAttacker().trainer == self._robot) then
+	if self._inbox.mainAttacker().trainer ~= self._robot then
 		return false
 	end
 
@@ -41,10 +41,9 @@ function FreeKick:check()
 		return true
 	end
 
-	-- rely on applyformainattacker to cancel the freekick
-	-- otherwise we get timing issues because freekick gets cancelled before the main attacker
-	-- gets taken away from us and therefore some other behaviour takes the spot for a few frames
-	if self._active then
+	-- stay active for one additional frame to avoid flickering to a different task
+	-- rely on being killed by applyForMainAttacker
+	if Robot.ownFreeKickShooter() == self._robot then
 		return true
 	end
 

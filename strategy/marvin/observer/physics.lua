@@ -458,7 +458,7 @@ local function rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t
 	local relpos = (ball.pos - robot.pos):rotate(-robot.dir)
 	relpos.x = relpos.x - robot.shootRadius - ball.radius
 	local sidewardsOffset = math.abs(relpos.y)
-	if Robot.hadBall(robot, 0.15) and relpos.x > -0.25 and relpos.x <= 0.05 and sidewardsOffset < 0.2 then
+	if Robot.touchedBall(robot, 0.15) and relpos.x > -0.25 and relpos.x <= 0.05 and sidewardsOffset < 0.2 then
 		return nil, 0
 	end
 

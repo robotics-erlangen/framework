@@ -2,6 +2,7 @@ local SuggestPass = require "task/ability/suggestpass"
 local CornerAttack = require "task/ability/cornerattack"
 local Striker = Class("Task.Striker", require "task/base", SuggestPass, CornerAttack)
 local StrikerLines = require "task/strikerlines"
+local StrikerSampling = require "task/strikersampling"
 
 local Constants = require "../base/constants"
 local debug = require "../base/debug"
@@ -63,7 +64,13 @@ end
 
 
 Striker._generators = {
-	StrikerLines
+	StrikerLines,
+	StrikerSampling
+}
+
+Striker._generatorNames = {
+	"StrikerLines",
+	"StrikerSampling"
 }
 
 function Striker:_init()
@@ -76,8 +83,9 @@ function Striker:run()
 	if self._successProcess and self._successProcess:isFinished() then
 		self._successProcess = nil
 	end
-	if (not self._successProcess) and self._inbox.mainAttacker().trainer then
-		self._successProcess = StrikerSuccess(self._decision, self._robot, self._inbox.mainAttacker().trainer)
+	local mainAttacker = self._inbox.mainAttacker().trainer
+	if (not self._successProcess) and mainAttacker then
+		self._successProcess = StrikerSuccess(self._decision, self._robot, mainAttacker)
 		Processor.addPost(self._successProcess)
 	end
 
@@ -90,11 +98,15 @@ function Striker:run()
 	if not Messaging.get("attackerFlag")[self._robot] then
 		return -- we're not considered at position choice
 	end
+	debug.set("StrikerGenerator", self._generatorNames[self._decision])
 
 	local moveDest = self._generator:calcMoveDest()
 	self:_suggestPass(moveDest)
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	if mainAttacker then
+		self._robot.path:addCircle(mainAttacker.pos.x, mainAttacker.pos.y, 0.7, "mainattacker")
+	end
 	self._robot.trajectory:update(ToTarget, moveDest, (World.Ball.pos - self._robot.pos):angle())
 	self._send.moveDest("all", moveDest)
 end

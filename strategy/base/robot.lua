@@ -423,12 +423,8 @@ function Robot:hasBall(ball, sideOffset)
 	-- Ball position relative to dribbler mid
 	local relpos = (ball.pos - self.pos):rotate(-self.dir)
 	relpos.x = relpos.x - self.shootRadius - ball.radius
-
-	-- only apply sidewards correction is the ball is in front of the robot
-	local offset = math.abs(relpos.y)
-	if relpos.x > 0 then
-		offset = math.abs(relpos.y - relpos.x * latencyCompensation.y / latencyCompensation.x)
-	end
+	-- calculate position on the dribbler that would have been hit
+	local offset = math.abs(relpos.y - relpos.x * latencyCompensation.y / latencyCompensation.x)
 	-- local debug = require "../base/debug"
 	-- debug.set("latencyCompensation", latencyCompensation)
 	-- debug.set("offset", offset)
