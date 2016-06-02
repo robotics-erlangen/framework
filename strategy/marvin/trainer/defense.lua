@@ -44,11 +44,6 @@ function Defense:_updateManmarkTargets()
 			goto continue
 		end
 
-		-- don't mark the opponent who is the closest to the ball
-		if robot == closestOppToBall and closestOppToBallDist < 0.4 then
-			goto continue
-		end
-
 		-- if in STOP, don't mark opponents who are close to the stop circle
 		local stopCircleMarkRadius = alreadyTargeted and 0.6 or 0.75
 		if Referee.isStopState() and robot.pos:distanceTo(World.Ball.pos) < stopCircleMarkRadius then
