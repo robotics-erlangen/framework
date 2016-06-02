@@ -165,11 +165,11 @@ local function Quad(a, b1, c)
 	local d, e
 	if math.abs(b) < math.abs(c) then
 		e = (c >= 0.0) and a or -a
-		e = b*b/math.abs(c) - e
+		e = b*(b/math.abs(c)) - e
 		d = math.sqrt(math.abs(e*c))
 	else
 		e = 1.0 - a*c/(b*b)
-		d = math.sqrt(math.abs(e*b))
+		d = math.sqrt(math.abs(e))*math.abs(b)
 	end
 	if e < 0 then
 		-- complex conjugate zeros
@@ -293,7 +293,7 @@ local function QuadIT(N, uu, vv, qp, NN, p, qk, K)
 		end
 		j = j + 1
 		if j > 20 then
-			log("QuadIT 20 iterations")
+			--log("QuadIT 20 iterations")
 			break
 		end
 		if j >=2 then
@@ -324,6 +324,71 @@ local function QuadIT(N, uu, vv, qp, NN, p, qk, K)
 	return NZ, szr, szi, lzr, lzi, a, b, a1, a3, a7, d, e, f, g, h
 end
 
+--[[function math.QuadIT_DEBUG(N, uu, vv, qp, NN, p, qk, K)
+	log("QuadIT_DEBUG")
+	local j = 0
+	local triedFlag = false
+	local NZ = 0
+	local u = uu
+	local v = vv
+	local relstp, omp, tFlag, a1, a3, a7, a, b, c, d, e, f, g, h, ui, vi, szr, szi, lzr, lzi
+	repeat
+		log("u = "..u.."	v = "..v)
+		szr, szi, lzr, lzi = Quad(1.0, u, v)
+		log("sz = "..szr.." + "..szi.."i	lr = "..lzr.." + "..lzi.."i")
+		if math.abs(math.abs(szr) - math.abs(lzr)) > 0.01*math.abs(lzr) then
+			break
+		end
+		a, b = QuadSD(NN, u, v, p, qp)
+		log("a = "..a.."	b = "..b)
+		local mp = math.abs(a - szr*b) + math.abs(szi*b)
+		local zm = math.sqrt(math.abs(v))
+		local ee = 2.0*math.abs(qp[1])
+		local t = -szr*b
+		for i = 2, N do
+			ee = ee*zm + math.abs(a + t)
+		end
+		ee = (9.0*ee + 2.0*math.abs(t) - 7.0*(math.abs(a + t) + zm*math.abs(b)))*eta
+		if mp <= 20.0*ee then
+			NZ = 2
+			break
+		end
+		j = j + 1
+		if j > 20 then
+			--log("QuadIT 20 iterations")
+			break
+		end
+		if j >=2 then
+			if (relstp <= 0.01) and (mp >= omp) and (not triedFlag) then
+				relstp = (relstp < eta) and math.sqrt(eta) or math.sqrt(relstp)
+				u = u - u*relstp
+				v = v + v*relstp
+				a, b = QuadSD(NN, u, v, p ,qp)
+				for i = 1, 5 do
+					tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
+					a3, a7 = nextK(N, tFlag, a, b, a1, a3, a7, K, qk, qp)
+				end
+				triedFlag = true
+				j = 0
+			end
+		end
+		omp = mp
+		tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
+		a3, a7 = nextK(N, tFlag, a, b, a1, a3, a7, K, qk, qp)
+		tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
+		ui, vi = newest(tFlag, a, a1, a3, a7, b, c, d, f, g, h, u, v, K, N, p)
+		if vi ~= 0 then
+			relstp = math.abs((vi - v)/vi)
+			u = ui
+			v = vi
+		end
+	until vi == 0
+	log("return with "..NZ.." zeros")
+	log("sz = "..szr.." + "..szi.."i")
+	log("lz = "..lzr.." + "..lzi.."i")
+	return NZ, szr, szi, lzr, lzi, a, b, a1, a3, a7, d, e, f, g, h
+end]]--
+
 local function Fxshfr(L2, sr, bnd, K, N, p, NN, qp)
 	--log("Fxshfr")
 	--log("sr = "..sr.."	bnd = "..bnd)
@@ -335,6 +400,7 @@ local function Fxshfr(L2, sr, bnd, K, N, p, NN, qp)
 	local ovv = bnd
 	local v = bnd
 	local a, b = QuadSD(NN, u, v, p, qp)
+	--log("a = "..a.."	b = "..b)
 	local qk = {}
 	local tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
 	--log("tFlag = "..tFlag)
@@ -343,7 +409,9 @@ local function Fxshfr(L2, sr, bnd, K, N, p, NN, qp)
 		a3, a7 = nextK(N, tFlag, a, b, a1, a3, a7, K, qk, qp)
 		tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
 		local ui, vi = newest(tFlag, a, a1, a3, a7, b, c, d, f, g, h, u, v, K, N, p)
-		--log(j..":	ui = "..ui.."	vi = "..vi)
+		--if j < 4 then
+		--	log(j..":	ui = "..ui.."	vi = "..vi)
+		--end
 		local vv = vi
 		local ss = (K[N] ~= 0.0) and -p[N+1]/K[N] or 0.0
 		local tv = 1.0
@@ -370,6 +438,9 @@ local function Fxshfr(L2, sr, bnd, K, N, p, NN, qp)
 						fflag = false
 					else
 						fflag = false
+						--if j < 4 then
+						--	log("QuadIT")
+						--end
 						NZ, szr, szi, lzr, lzi, a, b, a1, a3, a7, d, e, f, g, h = QuadIT(N, ui, vi, qp, NN, p, qk, K)
 						if NZ > 0 then
 							--log("return with "..NZ.." zeros")
@@ -387,6 +458,7 @@ local function Fxshfr(L2, sr, bnd, K, N, p, NN, qp)
 					end
 					if iFlag then
 						iFlag, NZ, s, szr, szi = RealIT(s, N, p, NN, qp, K, qk)
+						--log("called from Fxshfr")
 						if NZ > 0 then
 							--log("return with "..NZ.." zeros, but at the other point")
 							return NZ, lzr, lzi, szr, szi
@@ -416,24 +488,25 @@ local function Fxshfr(L2, sr, bnd, K, N, p, NN, qp)
 		otv = tv
 		ots = ts
 	end
-	--log("default return")
+	log("default return")
 	return NZ, lzr, lzi, szr, szi
 end
 
 --- Finds all real roots of a given polynomial
 -- after Jenkins-Traub algorithm: http://www.akiti.ca/rpoly_ak1_cpp.html or http://www.crbond.com/download/misc/rpoly.cpp
 -- @param coefficients list - list of polynomial coefficients ordered after ascending power of x
--- @return list - list of all real roots of the polynomial; an empty list if all roots are complex
+-- @return list - list of all real roots of the polynomial; an empty list if all roots are complex. Multiple zeros are listed as often as their multiplicities
 local FLT_MAX = math.ldexp(1.0, 128)
 local FLT_MIN = math.ldexp(1.0, -126)
 local lo = FLT_MIN/eta
 local lb2 = math.log(2.0)
-local xx = math.sqrt(0.5)
-local yy = -xx
-local rot = 94.0*math.pi/180.0
-local sinr = math.sin(rot)
-local cosr = math.cos(rot)
 function math.realRootsOfPolynomial(coefficients)
+	local xx = math.sqrt(0.5)
+	local yy = -xx
+	local rot = 94.0*math.pi/180.0
+	local sinr = math.sin(rot)
+	local cosr = math.cos(rot)
+	--log("complex rotation = "..cosr.." + i"..sinr)
 	if coefficients[1] == 0.0 then
 		table.remove(coefficients, 1)
 		--log("Removing leading zeros")
@@ -596,6 +669,12 @@ function math.realRootsOfPolynomial(coefficients)
 		-- check convergence after 20 iterations
 	end
 	log("Didn't find a solution after 20 iterations, call a doctor")
+	local logstr = coefficients[1].."x^"..(#coefficients-1)
+	for i = 2, #coefficients-2 do
+		logstr = logstr.." + "..coefficients[i].."x^"..(#coefficients-i)
+	end
+	logstr = logstr.." + "..coefficients[#coefficients-1].."x + "..coefficients[#coefficients]
+	log("f(x) = "..logstr)
 	return {}
 end
 

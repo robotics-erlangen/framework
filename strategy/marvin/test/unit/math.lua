@@ -175,5 +175,26 @@ context("base.math", function()
 		--	--log("f = "..f)
 		--	assert_less_than(math.abs(f), math.abs(root*1e-12))
 		--end
+		
+		--log("real testcase")
+		--coefficients = {-2.7224999213219, 0, -0.36464999984503, 1.6102106456697e-014, 7.6243180}
+		--roots = math.realRootsOfPolynomial(coefficients)
+		--assert_equal(#roots, 2)
+		--log("roots = {"..roots[1]..", "..roots[2].."}")
+		
+		--log("-------------------------------------------------------------------->real testcase")
+		coefficients = {-7.2063972883027e-023, 0, 2.3541581501786e-021, 6.0961277197389e-022, 7.2532207178084e-023}
+		roots = math.realRootsOfPolynomial(coefficients)
+		assert_equal(#roots, 2)
+		--log("roots = {"..roots[1]..", "..roots[2].."}")
+		
+		-- local N = 4
+		-- local uu = 0.258994
+		-- local vv = 0.0308445
+		-- local qp = {-7.2064e-23, -8.38102e-24, 2.35957e-21, 8.84773e-22, -3.37097e-23}
+		-- local p = {-7.2064e-23, 0, 2.35416e-21, 6.09613e-22, 7.25322e-23}
+		-- local qk = {-7.2064e-23, 4.07946e-23, 2.35478e-21, -7.25387e-22}
+		-- local K = {-7.2064e-23, 4.91756e-23, 2.34364e-21, -9.95631e-22}
+		-- math.QuadIT_DEBUG(N, uu, vv, qp, N+1, p, qk, K)
 	end)
 end)
