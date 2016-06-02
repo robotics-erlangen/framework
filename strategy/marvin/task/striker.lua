@@ -2,6 +2,7 @@ local SuggestPass = require "task/ability/suggestpass"
 local CornerAttack = require "task/ability/cornerattack"
 local Striker = Class("Task.Striker", require "task/base", SuggestPass, CornerAttack)
 local StrikerLines = require "task/strikerlines"
+local StrikerSampling = require "task/strikersampling"
 
 local Constants = require "../base/constants"
 local debug = require "../base/debug"
@@ -63,7 +64,8 @@ end
 
 
 Striker._generators = {
-	StrikerLines
+	StrikerLines,
+	StrikerSampling
 }
 
 function Striker:_init()
