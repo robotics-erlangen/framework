@@ -43,7 +43,7 @@ context("base.math", function()
         assert_equal(math.round(0.0001, 3), 0)
         assert_equal(math.round(123, 0), 123)
         assert_equal(math.round(123, -1), 120)
-        assert_equal(math.round(123, -2), 100)
+        assert_equal_eps(math.round(123, -2), 100, EPS)
         assert_equal(math.round(2.5, 0), 3)
     end)
 
