@@ -99,7 +99,7 @@ function Striker:run()
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 	if mainAttacker then
-		self._robot.path:addCircle(mainAttacker.pos.x, mainAttacker.pos.y, 0.5, "mainattacker")
+		self._robot.path:addCircle(mainAttacker.pos.x, mainAttacker.pos.y, 0.7, "mainattacker")
 	end
 	self._robot.trajectory:update(ToTarget, moveDest, (World.Ball.pos - self._robot.pos):angle())
 	self._send.moveDest("all", moveDest)
