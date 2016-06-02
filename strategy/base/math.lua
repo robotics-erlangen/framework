@@ -224,6 +224,7 @@ local function RealIT(sss, N, p, NN, qp, K, qk)
 		j = j + 1
 		if j > 10 then
 			log("RealIT 10 iterations")
+			log("f(x) = "..math.polynomialToString(p))
 			break
 		end
 		if j >= 2 then
