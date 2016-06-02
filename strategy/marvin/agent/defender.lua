@@ -6,6 +6,7 @@ local World = require "../base/world"
 local Default = require "agent/defender/default"
 local HandleBall = require "agent/defender/handleball"
 local ManMark = require "agent/defender/manmark"
+local ZoneDefense = require "agent/defender/zonedefense"
 local Penalty = require "agent/defender/penalty"
 
 local Messaging = require "control/messaging"
@@ -17,6 +18,7 @@ Defender._behaviors = {
 	Armada,
 	HandleBall,
 	ManMark,
+	ZoneDefense,
 	Default
 }
 

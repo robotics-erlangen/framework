@@ -69,7 +69,8 @@ function Defense:_updateManmarkTargets()
 
 	for robot, dangerousness in pairs(self._manmarkTargets) do
 		debug.set("Dangerousness/" .. tostring(robot.id), dangerousness)
-		vis.addCircle("tr/defense: Dangerousness", robot.pos, 0.2, vis.fromTemperature(dangerousness), true)
+		local color = vis.fromTemperature(dangerousness)
+		vis.addCircle("tr/defense: Dangerousness", robot.pos, 0.2, color, true)
 	end
 end
 
@@ -184,14 +185,22 @@ function Defense:_assignDefenders()
 			{name = "ManMark", params = manmarkTarget})
 	end
 
-	-- assign a counterside centerback (also in non-stop states)
-	local countersideTarget = self._ballIsLeft
-		and self._countersideTargetRight or self._countersideTargetLeft
-	local countersideCB, d = UtilDefense.getClosestRobot(defenders, countersideTarget.pos)
-	if countersideCB then
-		table.removeValue(defenders, countersideCB)
-		self._send.roleAssignment(countersideCB,
-			{name = "CenterBack", params = countersideTarget})
+	-- assign zone defenders if there are not enough opponents to manmark
+	local zonePosLeft = Vector(-World.Geometry.FieldWidthHalf/2, -World.Geometry.FieldHeightHalf/3)
+	local zonePosRight = Vector(World.Geometry.FieldWidthHalf/2, -World.Geometry.FieldHeightHalf/3)
+	local zonePosOne = self._ballIsLeft and zonePosRight or zonePosLeft
+	local zonePosTwo = self._ballIsLeft and zonePosLeft or zonePosRight
+	local zoneDefenderOne = UtilDefense.getClosestRobot(defenders, zonePosOne)
+	if zoneDefenderOne then
+		table.removeValue(defenders, zoneDefenderOne)
+		self._send.roleAssignment(zoneDefenderOne,
+			{name = "ZoneDefense", params = zonePosOne})
+	end
+	local zoneDefenderTwo = UtilDefense.getClosestRobot(defenders, zonePosTwo)
+	if zoneDefenderTwo then
+		table.removeValue(defenders, zoneDefenderTwo)
+		self._send.roleAssignment(zoneDefenderTwo,
+			{name = "ZoneDefense", params = zonePosTwo})
 	end
 end
 
