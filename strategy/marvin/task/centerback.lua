@@ -270,6 +270,7 @@ end
 
 function CenterBack:_init(centerbackTarget)
 	self._preliminaryCenterbackTarget = centerbackTarget or World.Ball
+	self._lookingToGoal = true
 end
 
 
@@ -281,10 +282,26 @@ function CenterBack:run()
 	pos_target = pos_target or privateCenterBackPositions[self._robot]
 
 	local destinationPos = pos_target and pos_target.pos or CenterBack.defaultPos
-	local destinationTarget = pos_target and pos_target.target or
-			self._preliminaryCenterbackTarget
-	local dir = (World.Ball.pos - self._robot.pos):angle()
+	local destinationTarget = pos_target and pos_target.target or self._preliminaryCenterbackTarget
 
+	local toBallAngle = (World.Ball.pos - self._robot.pos):angle()
+	local toGoalAngle = (World.Geometry.OpponentGoal - self._robot.pos):angle()
+	local toCornerLeftAngle = (Vector(-World.Geometry.FieldWidthHalf,
+			World.Geometry.FieldHeightHalf) - self._robot.pos):angle()
+	local toCornerRightAngle = (Vector(World.Geometry.FieldWidthHalf,
+			World.Geometry.FieldHeightHalf) - self._robot.pos):angle()
+
+	local hystAngle = 5 * math.pi/180
+	local dir = toBallAngle
+	if (self._lookingToGoal and toBallAngle < toCornerLeftAngle + hystAngle and
+			toBallAngle > toCornerRightAngle + hystAngle) or
+			(toBallAngle < toCornerLeftAngle - hystAngle and
+			toBallAngle > toCornerRightAngle - hystAngle) then
+		dir = toGoalAngle
+		self._lookingToGoal = true
+	else
+		self._lookingToGoal = false
+	end
 	debug.set("target", destinationTarget)
 
 	if not Robot.hadBall(self._robot, 0) then
