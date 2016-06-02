@@ -57,6 +57,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // setup icons
     ui->btnOpen->setIcon(QIcon::fromTheme("document-open"));
+    // disable button to prevent resizing errors
+    ui->btnPlay->setEnabled(false);
     closeFile(); // reset internals
     initializeLabels(); // disables play button
 
@@ -439,7 +441,24 @@ void MainWindow::setPaused(bool p)
         m_paused = true;
     }
 
+    bool hasIcon = !QIcon::fromTheme("media-playback-start").isNull();
+    const QString playText("Play");
+    const QString pauseText("Pause");
+    // Ensure that the button has a fixed size
+    if (!hasIcon && ui->btnPlay->isEnabled()) {
+        auto playSize = ui->btnPlay->fontMetrics().size(Qt::TextShowMnemonic, playText);
+        auto pauseSize = ui->btnPlay->fontMetrics().size(Qt::TextShowMnemonic, pauseText);
+        QStyleOptionButton opt;
+        opt.initFrom(ui->btnPlay);
+        opt.rect.setSize(playSize);
+        auto playRealSize = ui->btnPlay->style()->sizeFromContents(QStyle::CT_ToolButton, &opt, playSize);
+        opt.rect.setSize(pauseSize);
+        auto pauseRealSize = ui->btnPlay->style()->sizeFromContents(QStyle::CT_ToolButton, &opt, pauseSize);
+        ui->btnPlay->setFixedSize(playRealSize.expandedTo(pauseRealSize));
+    }
+
     if (m_paused) {
+        ui->btnPlay->setText(playText);
         ui->btnPlay->setIcon(QIcon::fromTheme("media-playback-start"));
         m_timer.stop();
         // move horizontal slider to its exact position
@@ -448,6 +467,7 @@ void MainWindow::setPaused(bool p)
         m_scroll = true;
         m_playEnd = ui->spinPacketCurrent->value();
     } else {
+        ui->btnPlay->setText(pauseText);
         ui->btnPlay->setIcon(QIcon::fromTheme("media-playback-pause"));
         // the play timer has to be reset after a pause to match the timings again
         m_nextPacket = -1; // trigger play timer reset
