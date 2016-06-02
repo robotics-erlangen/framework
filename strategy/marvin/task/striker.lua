@@ -78,8 +78,9 @@ function Striker:run()
 	if self._successProcess and self._successProcess:isFinished() then
 		self._successProcess = nil
 	end
-	if (not self._successProcess) and self._inbox.mainAttacker().trainer then
-		self._successProcess = StrikerSuccess(self._decision, self._robot, self._inbox.mainAttacker().trainer)
+	local mainAttacker = self._inbox.mainAttacker().trainer
+	if (not self._successProcess) and mainAttacker then
+		self._successProcess = StrikerSuccess(self._decision, self._robot, mainAttacker)
 		Processor.addPost(self._successProcess)
 	end
 
@@ -97,6 +98,9 @@ function Striker:run()
 	self:_suggestPass(moveDest)
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	if mainAttacker then
+		self._robot.path:addCircle(mainAttacker.pos.x, mainAttacker.pos.y, 0.5, "mainattacker")
+	end
 	self._robot.trajectory:update(ToTarget, moveDest, (World.Ball.pos - self._robot.pos):angle())
 	self._send.moveDest("all", moveDest)
 end
