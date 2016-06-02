@@ -68,6 +68,11 @@ Striker._generators = {
 	StrikerSampling
 }
 
+Striker._generatorNames = {
+	"StrikerLines",
+	"StrikerSampling"
+}
+
 function Striker:_init()
 	self._decision = RouletteWheelSelection.decide(#self._generators, "StrikerGenerators")
 	self._generator = self._generators[self._decision](self._agent)
@@ -93,6 +98,7 @@ function Striker:run()
 	if not Messaging.get("attackerFlag")[self._robot] then
 		return -- we're not considered at position choice
 	end
+	debug.set("StrikerGenerator", self._generatorNames[self._decision])
 
 	local moveDest = self._generator:calcMoveDest()
 	self:_suggestPass(moveDest)
