@@ -17,6 +17,7 @@ local Processor = require "../base/processor"
 local Referee = require "../base/referee"
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
+local Error = require "observer/error"
 local plot = require "../base/plot"
 
 local preproc = Class("Process.PreProc", require "../base/process")
@@ -31,6 +32,8 @@ function preproc:run()
     Robot._updateOwnFreekickShooter()
     Referee.checkTouching()
     Referee.illustrateRefereeStates()
+    Error._update()
+
 end
 function preproc:isFinished()
     return false

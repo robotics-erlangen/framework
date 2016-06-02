@@ -3,88 +3,62 @@ local Error = Class("Agent.Shared.Error",Base)
 
 local ErrorTask = require "task/error"
 local World = require "../base/world"
+local ErrorObserver = require "observer/error"
 
-local startTime
-local oldRefereeState
 function Error:check()
-	if oldRefereeState ~= World.RefereeState then
-		startTime = World.Time
-		oldRefereeState = World.RefereeState
-	end
-	if self._robot.radioResponse and self._robot.radioResponse.error_present then
-		--we have an error, save it for debugging purposes
-		if self._robot.radioResponse.ExtendedError then
-			self._error = self._robot.radioResponse.ExtendedError
-		else
-			self._error = {}
-		end
-	end
-	return World.RefereeState == "Stop" 
-		and (World.Time-startTime) < 3
-		and self._error
+	return World.RefereeState == "Stop"
+		and (World.Time-ErrorObserver.getLastRefChange()) < 3
+		and ErrorObserver.getErrorTable(self._robot)
 end
 
 function Error:errorMsg()
 	local out = tostring(self._robot.id)..": "
-	local comma = ""
-	if self._error.motor_1_error then 
-		out = out .. comma .."motor 1 error"
-		comma = ", "
+	local table = {}
+	local _error = ErrorObserver.getErrorTable(self._robot)
+	if _error.motor_1_error then
+		table.insert(table,"motor 1 error")
 	end
-	if self._error.motor_2_error then
-		out = out .. comma .."motor 2 error"
-		comma = ", "
+	if _error.motor_2_error then
+		table.insert(table,"motor 2 error")
 	end
-	if self._error.motor_3_error then
-		out = out .. comma .. "motor 3 error"
-		comma = ", "
+	if _error.motor_3_error then
+		table.insert(table,"motor 3 error")
 	end
-	if self._error.motor_4_error then
-		out = out .. comma .. "motor 4 error"
-		comma = ", "
+	if _error.motor_4_error then
+		table.insert(table, "motor 4 error")
 	end
-	if self._error.dribbler_error then 
-		out = out .. comma .. "dribber error"
-		comma = ", "
+	if _error.dribbler_error then
+		table.insert(table,"dribber error")
 	end
-	if self._error.kicker_error then
-		out = out .. comma .. "kicker error"
-		comma = ", "
+	if _error.kicker_error then
+		table.insert(table,"kicker error")
 	end
-	if self._error.motor_overheated_error then
-		out = out .. comma .. "motor overheat"
-		comma = ", "
+	if _error.motor_overheated_error then
+		table.insert(table, "motor overheat")
 	end
-	if self._error.motor_encoder_error then
-		out = out .. comma .. "motor encoder"
-		comma= ", "
+	if _error.motor_encoder_error then
+		table.insert(table,"motor encoder")
 	end
-	if self._error.main_sensor_error then
-		out = out .. comma .. "main sensor"
-		comma = ", "
+	if _error.main_sensor_error then
+		table.insert(table,"main sensor")
 	end
-	if self._error.temperature then
-		out = out .. comma .. "temperature: "..tostring(self._error.temperature)
-		comma = ", "
+	if _error.temperature then
+		table.insert(table, "temperature: "..tostring(self._error.temperature))
 	end
-	return out
+	return out..table.concat(table,",");
 end
 
 
 function Error:_updateTask()
-	local errorFound = false
-	for _,_ in pairs(self._error) do 
-		errorFound = true
+	local errorFound=false
+	for _,_ in pairs(ErrorObserver.getErrorTable(self._robot)) do
+		errorFound=true
 		break
 	end
-	if errorFound and World.Time == startTime then
+	if errorFound and World.Time == ErrorObserver.getLastRefChange() then
 		log(self:errorMsg())
 	end
 	return ErrorTask
-end
-
-function Error:_stop()
-	self._error = nil
 end
 
 return Error
