@@ -77,7 +77,7 @@ local function calculateCenterBackPositions()
 
 	-- parameters
 	local distanceBetweenDefenders = 0.01
-	local getImportant = 2 * robot_radius
+	local getImportant = 2 * robot_radius + 0.03
 	local getUnimportant = getImportant + robot_radius
 
 
