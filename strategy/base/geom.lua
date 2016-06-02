@@ -240,9 +240,12 @@ function geom.isInTriangle(a, b, c, p)
 
 	local invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
 	local u = (dot11 * dot02 - dot01 * dot12) * invDenom
+	if u < 0 then
+		return false
+	end
 	local v = (dot00 * dot12 - dot01 * dot02) * invDenom
 
-	if u < 0 or v < 0 or u + v > 1 then
+	if v < 0 or u + v > 1 then
 		return false
 	else
 		return true
