@@ -643,7 +643,7 @@ function Physics.getBallAsFastAsPossible(robot, ball, howClose)
 	howClose = howClose or robot.radius + ball.radius
 	if ball.pos:distanceTo(robot.pos) < howClose then
 		-- we already have the ball, but still some idiot called this function
-		return 0, robot.pos, false
+		return 0, robot.pos, true
 	end
 	--local t = 0
 	local a_max = math.abs(robot.acceleration and robot.acceleration.aSpeedupFMax or 1.0)

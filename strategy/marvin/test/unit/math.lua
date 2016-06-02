@@ -140,9 +140,9 @@ context("base.math", function()
 		--log("x^3 - 6x^2 + 11x - 6")
 		roots = math.realRootsOfPolynomial(coefficients)
 		--log("roots = {"..roots[1]..", "..roots[2]..", "..roots[3].."}")
-		assert_less_than(math.abs(math.evaluatePolynomial(coefficients, roots[1])), roots[1]*1e-12)
-		assert_less_than(math.abs(math.evaluatePolynomial(coefficients, roots[2])), roots[2]*1e-12)
-		assert_less_than(math.abs(math.evaluatePolynomial(coefficients, roots[3])), roots[3]*1e-12)
+		assert_equal_eps(math.evaluatePolynomial(coefficients, roots[1]), 0, roots[1]*EPS)
+		assert_equal_eps(math.evaluatePolynomial(coefficients, roots[2]), 0, roots[2]*EPS)
+		assert_equal_eps(math.evaluatePolynomial(coefficients, roots[3]), 0, roots[3]*EPS)
 		--log("-----------------------------")
 		
 		coefficients = {1, 4, 6, 4, 1}
@@ -173,7 +173,7 @@ context("base.math", function()
 		--for _, root in ipairs(roots) do
 		--	local f = math.evaluatePolynomial(coefficients, root)
 		--	--log("f = "..f)
-		--	assert_less_than(math.abs(f), math.abs(root*1e-12))
+		--	assert_equal_eps(f, 0, root*EPS)
 		--end
 		
 		--log("real testcase")
