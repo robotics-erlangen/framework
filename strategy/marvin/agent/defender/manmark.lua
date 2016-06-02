@@ -3,6 +3,7 @@ local ManMark = Class("Agent.Defender.ManMark", Base)
 
 local debug = require "../base/debug"
 local Field = require "../base/field"
+local World = require "../base/world"
 local vis = require "../base/vis"
 local CenterBack = require "task/centerback"
 local ManMarkTask = require "task/manmark"
@@ -33,7 +34,9 @@ end
 function ManMark:_updateTask()
 	debug.set("target", self._opp)
 	local dest = Defense.manMarkPos(self._opp)
-	vis.addCircle("a/d/manmark: Target", dest, 0.1, vis.colors.red)
+	local color = World.TeamIsBlue and vis.colors.blueHalf or vis.colors.yellowHalf
+	vis.addCircle("a/d/manmark: Target", dest, 0.1, color)
+	vis.addPath("a/d/manmark: Target", {self._robot.pos, dest, self._opp.pos}, color)
 
 	-- use centerback positioning if the destination pos would be too close to our defense area
 	local markingPosDefenseDist = Field.distanceToFriendlyDefenseArea(dest, self._opp.radius)
