@@ -5,6 +5,8 @@ local debug = require "../base/debug"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
 local World = require "../base/world"
+local debug = require "../base/debug"
+local vis = require "../base/vis"
 
 local CenterBack = require "task/centerback"
 local Robot = require "observer/robot"
@@ -64,6 +66,11 @@ function Defense:_updateManmarkTargets()
 	end
 	self._manmarkTargets = newManmarkTargets
 	self._unassignedManmarkTargets = table.copy(self._manmarkTargets)
+
+	for robot, dangerousness in pairs(self._manmarkTargets) do
+		debug.set("Dangerousness/" .. tostring(robot.id), dangerousness)
+		vis.addCircle("tr/defense: Dangerousness", robot.pos, 0.2, vis.fromTemperature(dangerousness), true)
+	end
 end
 
 function Defense:_nextManmarkAssignment(defenders)
