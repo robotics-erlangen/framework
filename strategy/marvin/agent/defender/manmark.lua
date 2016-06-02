@@ -6,6 +6,7 @@ local Field = require "../base/field"
 local World = require "../base/world"
 local vis = require "../base/vis"
 local CenterBack = require "task/centerback"
+local Duel = require "task/duel"
 local ManMarkTask = require "task/manmark"
 local Defense = require "util/defense"
 
@@ -15,11 +16,6 @@ function ManMark:_stop()
 end
 
 function ManMark:check()
-	-- prevent centerbacks to switch to man marking in this situation
-	if Defense.dangerousBallTowardsDefense() then
-		return false
-	end
-
 	local role = self._inbox.roleAssignment().trainer
 	if role and role.name == "ManMark" then
 		if self._inbox.roleAssignment().trainer.params ~= self._opp then
@@ -33,6 +29,12 @@ end
 
 function ManMark:_updateTask()
 	debug.set("target", self._opp)
+
+	-- try to intercept a possible goal shot
+	if Defense.dangerousBallTowardsDefense() then
+		return Duel
+	end
+
 	local dest = Defense.manMarkPos(self._opp)
 	local color = World.TeamIsBlue and vis.colors.blueHalf or vis.colors.yellowHalf
 	vis.addCircle("a/d/manmark: Target", dest, 0.1, color)
