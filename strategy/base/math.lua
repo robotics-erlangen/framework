@@ -488,7 +488,7 @@ local function Fxshfr(L2, sr, bnd, K, N, p, NN, qp)
 		otv = tv
 		ots = ts
 	end
-	log("default return")
+	--log("default return; with L2 = "..L2)
 	return NZ, lzr, lzi, szr, szi
 end
 
@@ -669,13 +669,17 @@ function math.realRootsOfPolynomial(coefficients)
 		-- check convergence after 20 iterations
 	end
 	log("Didn't find a solution after 20 iterations, call a doctor")
-	local logstr = coefficients[1].."x^"..(#coefficients-1)
-	for i = 2, #coefficients-2 do
-		logstr = logstr.." + "..coefficients[i].."x^"..(#coefficients-i)
-	end
-	logstr = logstr.." + "..coefficients[#coefficients-1].."x + "..coefficients[#coefficients]
-	log("f(x) = "..logstr)
+	log("f(x) = "..math.polynomialToString(coefficients))
 	return {}
+end
+
+function math.polynomialToString(coefficients)
+	local str = coefficients[1].."x^"..(#coefficients-1)
+	for i = 2, #coefficients-2 do
+		str = str.." + "..coefficients[i].."x^"..(#coefficients-i)
+	end
+	str = str.." + "..coefficients[#coefficients-1].."x + "..coefficients[#coefficients]
+	return str
 end
 
 --- Rounds value towards dest.
