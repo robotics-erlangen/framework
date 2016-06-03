@@ -5,22 +5,20 @@ local debug = require "../base/debug"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
 local World = require "../base/world"
-local Messaging = require "control/messaging"
 local Physics = require "observer/physics"
 
 
 --- checks if the ball can be shot directly to another robot
 -- @param target, robot - robot to which the ball corridor is being tested
 -- @param shooter, robot
--- @param chipkick, bool - do not consider robots as obstacle which can be chipped over
 -- @return bool - true if way is free, false otherwise
-function Robot.wayToRobotFree(target, shooter, chipkick)
-	return Robot.wayToPosFree(target.pos, shooter, target, chipkick)
+function Robot.wayToRobotFree(target, shooter)
+	return Robot.wayToPosFree(target.pos, shooter, target)
 end
 
 local oppChipDist = 0.2 -- min distance of opponent for chipping
 local recvChipDist = 0.3 -- min distance for receiving a chip pass
-function Robot.wayToPosFree(pos, ignoreRobot1, ignoreRobot2, chipkick)
+function Robot.wayToPosFree(pos, ignoreRobot1, ignoreRobot2)
 	-- TODO consider speed of robots to look a little into the future
 	for _, robot in ipairs(World.Robots) do
 		if robot ~= ignoreRobot1 and robot ~= ignoreRobot2 then
@@ -29,16 +27,6 @@ function Robot.wayToPosFree(pos, ignoreRobot1, ignoreRobot2, chipkick)
 			local isInTheWay = math.abs(distToBallCorridor) < (robot.radius + World.Ball.radius)
 				and robot.pos:distanceTo(World.Ball.pos) < targetDist
 				and robot.pos:distanceTo(pos) < targetDist
-			if chipkick then
-				local shootBallPos = World.Ball.pos
-				for _, pos in pairs(Messaging.get("attackPosition")) do
-					shootBallPos = pos
-				end
-				isInTheWay = isInTheWay and
-					(robot.pos:distanceTo(shootBallPos) > oppChipDist
-					-- assuming ignoreRobot1 is the pass target
-					or (ignoreRobot1 and ignoreRobot1.pos:distanceTo(robot.pos) > recvChipDist))
-			end
 			if isInTheWay then
 				return false
 			end

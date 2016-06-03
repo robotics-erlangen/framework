@@ -48,7 +48,7 @@ function MoveTestTask:run()
 	local synchronized = false
 	if self._atTargetSince and World.Time - self._atTargetSince > WAIT_TIME then
 		self._send.defenderFlag("all")
-		synchronized = (table.count(self._inbox.attackerFlag()) - table.count(self._inbox.defenderFlag())) == 0
+		synchronized = (table.count(self._inbox.attackerFlag("broadcast")) - table.count(self._inbox.defenderFlag("broadcast"))) == 0
 	end
 	if synchronized then
 		if self._dest then
@@ -68,10 +68,8 @@ end
 local Position = Class("Test.Task.MoveTest.Behavior", require "agent/base/behavior")
 function Position:check()
 	self._send.attackerFlag("all")
-	if #World.FriendlyRobots == 1 then
-		return true
-	end
-	return next(self._inbox.attackerFlag()) ~= nil
+	-- also receive own message
+	return next(self._inbox.attackerFlag("broadcast")) ~= nil
 end
 
 function Position:_updateTask()

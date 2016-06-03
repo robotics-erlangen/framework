@@ -69,7 +69,7 @@ function MrlCorner:check()
         elseif applicable then
             self._send.standardMoveFlag("all")
             local involvedRobots = {}
-            for robot, _ in pairs(Messaging.get("standardMoveFlag")) do
+            for robot, _ in pairs(self._inbox.standardMoveFlag("broadcast")) do
                 table.insert(involvedRobots, robot)
             end
             if #involvedRobots ~= #ROLES then -- wait for the messages to arrive

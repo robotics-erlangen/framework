@@ -80,7 +80,7 @@ function ArmadaTask:run()
         if not self._armadaPosTaken then
             -- the behavior ensures that there are always 4 involved robots
             local involvedRobots = {}
-            for robot, _ in pairs(Messaging.get("standardMoveFlag")) do
+            for robot, _ in pairs(self._inbox.standardMoveFlag("broadcast")) do
                 table.insert(involvedRobots, robot)
             end
             table.sort(involvedRobots, sortByX)

@@ -30,7 +30,7 @@ end
 --- chooses an x line. each striker gets the same line in all task instances
 function StrikerLines:_xLine()
 	local ballPos = World.Ball.pos
-	local numAttackers = table.count(Messaging.get("attackerFlag"))
+	local numAttackers = table.count(self._inbox.attackerFlag("broadcast"))
 	local xLines
 	if numAttackers == 1 then
 		if ObserverGame.attackSideWithLessOpponents() == "left" then
@@ -69,7 +69,7 @@ function StrikerLines:_xLine()
 	end
 
 	local strikers = {}
-	for robot, _ in pairs(Messaging.get("attackerFlag")) do
+	for robot, _ in pairs(self._inbox.attackerFlag("broadcast")) do
 		if robot ~= self._inbox.mainAttacker().trainer then
 			table.insert(strikers, robot)
 		end

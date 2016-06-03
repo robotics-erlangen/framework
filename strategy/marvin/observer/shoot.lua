@@ -2,7 +2,6 @@ local Shoot = {}
 
 local Field = require "../base/field"
 local World = require "../base/world"
-local Messaging = require "control/messaging"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
@@ -14,12 +13,13 @@ end
 
 --- returns nil or a robot which can be passed to and, if there a more of them, the one who is closest to the opponent goal in combination with the biggest free goal sectors
 -- @param activeRobot - the robot who is searching for a pass receiver
+-- @param attackerMap - map with robots as key, must have a value equivalent to true
 -- @return robot or nil - the most suitable robot, if any
-function Shoot.bestFreeAssistant(activeRobot)
+function Shoot.bestFreeAssistant(activeRobot, attackerMap)
 	-- !!! ATTENTION !!! Assumes we are already at the ball
 	local freeAssistants = {}
 	for _, r in ipairs(World.FriendlyRobots) do
-		if r ~= activeRobot and Messaging.get("attackerFlag")[r]
+		if r ~= activeRobot and attackerMap[r]
 			and Field.isInField(r.pos) and Robot.wayToRobotFree(r, activeRobot)
 		then
 			table.insert(freeAssistants, r)

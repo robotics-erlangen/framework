@@ -60,15 +60,18 @@ CenterBack.defaultPos = Vector(0, -World.Geometry.FieldHeightHalf + World.Geomet
 local privateCenterBackPositions = {}
 local centerBackPositions = {}
 local lastRunTime = 0
-local function calculateCenterBackPositions()
+
+local function outdatedCenterBackPositions()
+	return World.Time > lastRunTime
+end
+
+-- gets all CB applications as parameter (robot -> target)
+local function calculateCenterBackPositions(centerBackApplications)
 	-- important = if the centerbacks should take notice of that robot
 	-- -> centerBacks move away to let that robot join the defense line
 	-- -> must not happen to early
 
 
-
-	-- cache it
-	if lastRunTime == World.Time then return end
 	lastRunTime = World.Time
 
 	-- constants
@@ -79,10 +82,6 @@ local function calculateCenterBackPositions()
 	local distanceBetweenDefenders = 0.01
 	local getImportant = 2 * robot_radius + 0.03
 	local getUnimportant = getImportant + robot_radius
-
-
-	-- get all CB applications (robot -> target)
-	local centerBackApplications = Messaging.get("preliminaryCenterbackTarget")
 
 	-- collect all important targets and assign them the list of robots
 	-- only consider those as important that are within a certain range to their destination
@@ -277,7 +276,9 @@ end
 function CenterBack:run()
 	self._send.preliminaryCenterbackTarget("all", self._preliminaryCenterbackTarget)
 
-	calculateCenterBackPositions()
+	if outdatedCenterBackPositions() then
+		calculateCenterBackPositions(self._inbox.preliminaryCenterbackTarget("broadcast"))
+	end
 	local pos_target = centerBackPositions[self._robot]
 	pos_target = pos_target or privateCenterBackPositions[self._robot]
 

@@ -79,10 +79,17 @@ end
 function constructInbox(receiver)
 	local inbox = {}
 	for messageType, requiredType in pairs(msgDefs) do
-		inbox[messageType] = function()
-			if not msgDefs[messageType] then
-				error("request for invalid message type " .. messageType)
+		inbox[messageType] = function(mode)
+			-- returns all messages of "messageType" which were sent to "all"
+			if mode == "broadcast" then
+				if not deliveredMessages[messageType] or not deliveredMessages[messageType].all then
+					return empty
+				end
+				return deliveredMessages[messageType].all
+			elseif mode ~= nil then
+				error("Invalid request mode only nil or \"broadcast\" is allowed")
 			end
+
 			local mtypeBox = deliveredMessages[messageType]
 			if receiver == "trainer" then
 				mtypeBox = newMessages[messageType]
@@ -161,17 +168,6 @@ function constructSender(sender)
 		end
 	end
 	return sendObj
-end
-
---- returns all messages of "messageType" which were sent to "all"
-function Messaging.get(messageType)
-	if not msgDefs[messageType] then
-		error("request for invalid message type " .. messageType)
-	end
-	if not deliveredMessages[messageType] or not deliveredMessages[messageType].all then
-		return empty
-	end
-	return deliveredMessages[messageType].all
 end
 
 return Messaging

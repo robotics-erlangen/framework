@@ -95,7 +95,7 @@ function Striker:run()
 		end
 	end
 
-	if not Messaging.get("attackerFlag")[self._robot] then
+	if not self._inbox.attackerFlag("broadcast")[self._robot] then
 		return -- we're not considered at position choice
 	end
 	debug.set("StrikerGenerator", self._generatorNames[self._decision])
