@@ -2,11 +2,11 @@ local Physics = {}
 
 local Cache = require "../base/cache"
 local Constants = require "../base/constants"
+local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
 local plot = require "../base/plot"
 local World = require "../base/world"
-local debug = require "../base/debug"
 local Robot -- = require "../observer/robot" -- cyclic dependency
 
 

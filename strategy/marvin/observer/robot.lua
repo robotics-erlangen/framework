@@ -1,8 +1,6 @@
 local Robot = {}
 
 local Constants = require "../base/constants"
-local debug = require "../base/debug"
-local Field = require "../base/field"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Physics = require "observer/physics"
@@ -139,31 +137,6 @@ function Robot.minTimeToBall(robot)
 	local targetPos = robot.isFriendly and World.Geometry.OpponentGoal or World.Geometry.FriendlyGoal
 	minTimeToBall[robot] = Physics.robotTimeToBall(robot, World.Ball, targetPos, robot.maxSpeed, oldMinTimeToBall[robot])
 	return minTimeToBall[robot]
-end
-
-local fastestOpponentAtBallLastRobot
-local fastestOpponentAtBallLastTime
-local fastestOpponentAtBallLastRun = 0
-function Robot.fastestOpponentAtBall()
-	if World.Time == fastestOpponentAtBallLastRun then
-		return fastestOpponentAtBallLastRobot, fastestOpponentAtBallLastTime
-	end
-
-	local fastestOpponent = nil
-	local fastestOpponentTime = math.huge
-	for _,r in ipairs(World.OpponentRobots) do
-		local oppTime = Robot.minTimeToBall(r)
-		if oppTime < fastestOpponentTime then
-			fastestOpponentTime = oppTime
-			fastestOpponent = r
-		end
-	end
-
-	fastestOpponentAtBallLastRobot = fastestOpponent
-	fastestOpponentAtBallLastTime = fastestOpponentTime
-	fastestOpponentAtBallLastRun = World.Time
-
-	return fastestOpponent, fastestOpponentTime
 end
 
 local freekickShooterRobot = nil
