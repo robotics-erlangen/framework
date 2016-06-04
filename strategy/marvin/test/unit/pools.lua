@@ -8,6 +8,8 @@ local function robotStub(id)
 	local r = Robot(id, true, { FieldWidthHalf = 1, BoundaryWidth = 0.2, FieldHeightHalf = 1 })
 	r.isVisible = true
 	r.pos = Vector(0,0)
+    r.speed = Vector(0,0)
+    r.maxSpeed = 3
 	return r
 end
 

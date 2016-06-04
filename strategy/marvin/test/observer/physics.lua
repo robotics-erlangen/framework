@@ -17,6 +17,7 @@ function PhysicsTest.testBallVsRobotTime()
 	local robot = {
 		pos = Vector(0.971402,-0.894273),
 		speed = Vector(-0.791324,-0.469037),
+		dir = 30/180*math.pi,
 		maxSpeed = 3, shootRadius = 0.08, dribblerWidth = 0.07,
 		acceleration = { aSpeedupFMax = 3.3, aBrakeFMax = 3.5 }
 	}
