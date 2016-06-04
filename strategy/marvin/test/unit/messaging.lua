@@ -12,15 +12,16 @@ local function agentStub(robotStub)
 end
 
 test("Messaging", function()
+	local messaging = Messaging()
 	local dummyMsg = 2
 	local agent1 = agentStub(robotStub(1))
-	local agent1send, agent1inbox = Messaging.registerAgent(agent1)
+	local agent1send, agent1inbox = messaging:registerAgent(agent1)
 	local agent2 = agentStub(robotStub(2))
-	local agent2send, agent2inbox = Messaging.registerAgent(agent2)
+	local agent2send, agent2inbox = messaging:registerAgent(agent2)
 	local agent3 = agentStub(robotStub(3))
-	local agent3send, agent3inbox = Messaging.registerAgent(agent3)
-	local trainerSend, trainerInbox = Messaging.registerTrainer()
-	assert_error(Messaging.registerTrainer, "trainer may only registered once")
+	local agent3send, agent3inbox = messaging:registerAgent(agent3)
+	local trainerSend, trainerInbox = messaging:registerTrainer()
+	assert_error(function() messaging:registerTrainer() end, "trainer may only registered once")
 
 	assert_error(function() agent2send.foo(agent1:robot(), dummyMsg) end,
 			"sending an invalid message shall fail")
@@ -30,15 +31,15 @@ test("Messaging", function()
 			"messages shall be type-checked")
 
 	agent1send.moveDest("all", Vector(0,0))
-	Messaging.deliverMessages()
+	messaging:deliverMessages()
 	assert_nil(agent1inbox.moveDest()[agent1:robot()],
 			"broadcasts shall not be received by the sender")
 
 	--agent1send(agent2:robot(), "moveDest", Vector(0,0))
 	agent3send.moveDest("all", Vector(0,0))
-	Messaging.deliverMessages()
+	messaging:deliverMessages()
 	agent2 = agentStub(agent2:robot())
-	agent2send, agent2inbox = Messaging.registerAgent(agent2)
+	agent2send, agent2inbox = messaging:registerAgent(agent2)
 	assert_nil(agent2inbox.moveDest()[agent1:robot()],
 			"new agents shall get no messages which were sent to its robot when they had the old agent")
 	assert_not_nil(agent2inbox.moveDest()[agent3:robot()],
@@ -57,7 +58,7 @@ test("Messaging", function()
 	trainerSend.mainAttacker("all", agent2:robot())
 	assert_equal(trainerInbox.mainAttacker().trainer, agent2:robot(),
 			"Trainer shall receive its own broadcasts")
-	Messaging.deliverMessages()
+	messaging:deliverMessages()
 	assert_equal(agent1inbox.mainAttacker().trainer, agent2:robot(),
 			"Robot 2 shall get the mainAttacker role")
 end)

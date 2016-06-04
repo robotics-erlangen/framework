@@ -8,8 +8,8 @@ local World = require "../base/world"
 -- Child class must set _behaviors
 -- SimpleAgent._behaviors = {}
 
-function SimpleAgent:init(robot)
-	Base.init(self, robot)
+function SimpleAgent:init(robot, messaging)
+	Base.init(self, robot, messaging)
 	self.beOffensive = false
 end
 

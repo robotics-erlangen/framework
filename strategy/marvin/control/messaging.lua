@@ -1,4 +1,4 @@
-local Messaging = {}
+local Messaging = Class("Control.Messaging")
 
 local Robot = require "../base/robot"
 local checkType = require "../base/typecheck"
@@ -42,57 +42,60 @@ for role, _ in pairs(exclusiveRoles) do
 	msgDefs[role] = Robot
 end
 
-local newMessages = {} -- is reset every frame
-local deliveredMessages = {} -- reference to the newMessages table of the last last frame
--- messages are stored in the following format:
--- messages = {
--- 	messageTypeA = {
--- 		Agent1 = { senderRobot1 = data, senderRobot2 = data}, ...
--- 	},
--- 	messageTypeB = { Agent3 = { senderRobot4 = data} }
--- }
-local robotToAgent = {} -- track registered agents
-local trainerRegistered = false
 local empty = {}
 setmetatable(empty, { __newindex = function()
 	error("this table is supposed to be empty")
 end })
-local constructSender, constructInbox -- to be defined
 
-function Messaging.registerAgent(agent)
-	robotToAgent[agent:robot()] = agent
-	return constructSender(agent), constructInbox(agent)
+
+function Messaging:init()
+	self._newMessages = {} -- is reset every frame
+	self._deliveredMessages = {} -- reference to the newMessages table of the last last frame
+	-- messages are stored in the following format:
+	-- messages = {
+	-- 	messageTypeA = {
+	-- 		Agent1 = { senderRobot1 = data, senderRobot2 = data}, ...
+	-- 	},
+	-- 	messageTypeB = { Agent3 = { senderRobot4 = data} }
+	-- }
+	self._robotToAgent = {} -- track registered agents
+	self._trainerRegistered = false
 end
 
-function Messaging.registerTrainer()
-	assert(not trainerRegistered, "trainer is already registered!")
-	trainerRegistered = true
-	return constructSender("trainer"), constructInbox("trainer")
+function Messaging:registerAgent(agent)
+	self._robotToAgent[agent:robot()] = agent
+	return self:_constructSender(agent), self:_constructInbox(agent)
+end
+
+function Messaging:registerTrainer()
+	assert(not self._trainerRegistered, "trainer is already registered!")
+	self._trainerRegistered = true
+	return self:_constructSender("trainer"), self:_constructInbox("trainer")
 end
 
 -- this method should be called once every frame
-function Messaging.deliverMessages()
-	deliveredMessages = newMessages
-	newMessages = {}
+function Messaging:deliverMessages()
+	self._deliveredMessages = self._newMessages
+	self._newMessages = {}
 end
 
-function constructInbox(receiver)
+function Messaging:_constructInbox(receiver)
 	local inbox = {}
 	for messageType, requiredType in pairs(msgDefs) do
 		inbox[messageType] = function(mode)
 			-- returns all messages of "messageType" which were sent to "all"
 			if mode == "broadcast" then
-				if not deliveredMessages[messageType] or not deliveredMessages[messageType].all then
+				if not self._deliveredMessages[messageType] or not self._deliveredMessages[messageType].all then
 					return empty
 				end
-				return deliveredMessages[messageType].all
+				return self._deliveredMessages[messageType].all
 			elseif mode ~= nil then
 				error("Invalid request mode only nil or \"broadcast\" is allowed")
 			end
 
-			local mtypeBox = deliveredMessages[messageType]
+			local mtypeBox = self._deliveredMessages[messageType]
 			if receiver == "trainer" then
-				mtypeBox = newMessages[messageType]
+				mtypeBox = self._newMessages[messageType]
 			end
 			if not mtypeBox then
 				return empty
@@ -129,7 +132,7 @@ function constructInbox(receiver)
 	return inbox
 end
 
-function constructSender(sender)
+function Messaging:_constructSender(sender)
 	local sendObj = {}
 	for messageType, requiredType in pairs(msgDefs) do
 		sendObj[messageType] = function(receiver, data)
@@ -139,7 +142,7 @@ function constructSender(sender)
 			if receiver == nil then
 				error("nil is not a valid receiver")
 			elseif receiver ~= "all" and receiver ~= "trainer" then
-				receiver = robotToAgent[receiver]
+				receiver = self._robotToAgent[receiver]
 				if not receiver then
 					return -- not registered yet
 				end
@@ -153,14 +156,14 @@ function constructSender(sender)
 			else
 				checkType(data, msgDefs[messageType])
 			end
-			local mtypeBox = newMessages[messageType]
+			local mtypeBox = self._newMessages[messageType]
 			if not mtypeBox then
 				mtypeBox = {}
-				newMessages[messageType] = mtypeBox
+				self._newMessages[messageType] = mtypeBox
 			end
 			local receiveBox = mtypeBox[receiver]
 			if not receiveBox then
-				receiveBox ={}
+				receiveBox = {}
 				mtypeBox[receiver] = receiveBox
 			end
 			local senderRobot = (sender == "trainer") and "trainer" or sender:robot()

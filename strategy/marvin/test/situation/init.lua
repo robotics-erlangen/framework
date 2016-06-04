@@ -22,6 +22,7 @@ local positionThreshold = 0.1 -- the precision for considering a position to be 
 local angleThreshold = math.pi / 18
 local goalies = { blue = nil, yellow = nil }
 local destinations = { yellow = {}, blue = {} } -- for setup, inner objects indexed by robot
+local messaging = nil
 local setupAgents = {}
 local state -- can be one of "prepare", "arrived", "waitForForce", "game"
 local situation, initialized
@@ -94,7 +95,8 @@ end
 local function createAgentsAndMoveTasks()
 	for robot, destination in pairs(destinations[World.TeamIsBlue and "blue" or "yellow"]) do
 		table.insert(setupAgents, TestHelper.staticAgent(robot,
-			TestHelper.staticBehavior(MoveToPos, { destination.pos, destination.dir:angle() }) )
+			TestHelper.staticBehavior(MoveToPos, { destination.pos, destination.dir:angle() }),
+			messaging)
 		)
 	end
 end
@@ -139,6 +141,7 @@ local function init(situation_)
 	if World.TeamIsBlue then
 		invertCoordinates() -- situation is saved from yellow's point of view
 	end
+	messaging = Messaging()
 	checkNumberOfRobots()
 	computeDestinations()
 	if World.gameStageMapping[situation.gameStage] then -- support Protobuf and Strategy stage names
@@ -157,7 +160,7 @@ local function init(situation_)
 		debugcommands.sendRefereeCommand("GameForce", nil, goalies.blue, goalies.yellow)
 		state = "prepare"
 	end
-	Messaging.deliverMessages() -- initialize the module
+	messaging:deliverMessages() -- initialize the module
 	initialized = true
 end
 
@@ -195,7 +198,7 @@ local function run()
 		end
 		if World.RefereeState == "GameForce" then
 			state = "game"
-			Messaging.deliverMessages() -- clear testagent messages
+			messaging:deliverMessages() -- clear testagent messages
 			debugcommands.sendRefereeCommand(situation.refereeState, situation.gameStage)
 		end
 	elseif state == "game" then

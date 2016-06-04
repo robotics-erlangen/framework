@@ -2,11 +2,15 @@ local Roles = require "trainer/roles"
 local Trainer = Class("Trainer", nil, Roles)
 
 local debug = require "../base/debug"
-local Messaging = require "control/messaging"
 
 
-function Trainer:init()
-    self._send, self._inbox = Messaging.registerTrainer()
+function Trainer:init(messaging)
+    self._send, self._inbox = nil, nil
+end
+
+function Trainer:setupMessaging(messaging)
+	assert(self._send == nil and self._inbox == nil, "Messaging may only be set once")
+	self._send, self._inbox = messaging:registerTrainer()
 end
 
 function Trainer:_debugInbox()

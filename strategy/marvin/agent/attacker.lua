@@ -34,8 +34,8 @@ Attacker._behaviors = {
 	Default
 }
 
-function Attacker:init(robot)
-	Base.init(self, robot)
+function Attacker:init(robot, messaging)
+	Base.init(self, robot, messaging)
 	self.beOffensive = false
 end
 

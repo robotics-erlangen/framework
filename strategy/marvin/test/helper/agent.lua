@@ -39,9 +39,9 @@ end
 local StaticAgent = Class("test.helper.agent.StaticAgent", require "agent/base/simpleagent")
 
 
-function AgentHelper.staticAgent(robot, behavior)
+function AgentHelper.staticAgent(robot, behavior, messaging)
 	StaticAgent._behaviors = { behavior }
-	return StaticAgent(robot)
+	return StaticAgent(robot, messaging)
 end
 
 

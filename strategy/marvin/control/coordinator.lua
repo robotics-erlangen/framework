@@ -18,13 +18,16 @@ function Coordinator:init(trainer, pools, poolGroups)
 	for _, pool in pairs(self._pools) do
 		table.insert(self._poolsList, pool)
 	end
+
+	self._messaging = Messaging()
+	self._trainer:setupMessaging(self._messaging)
 end
 
 function Coordinator:run()
 	self._trainer:run()
 	self:_postTrainerHook()
 
-	Messaging.deliverMessages()
+	self._messaging:deliverMessages()
 	self:_updatePoolRobots()
 	-- run every pool and thus every agent
 	for _, pool in ipairs(self._poolsList) do
@@ -68,7 +71,7 @@ function Coordinator:_updatePoolRobots()
 				if #unassignedRobots == 0 then
 					break
 				end
-				local robot = pool:takeRobot(unassignedRobots)
+				local robot = pool:takeRobot(unassignedRobots, self._messaging)
 				if robot then
 					groupFinished = false
 					table.removeValue(unassignedRobots, robot)

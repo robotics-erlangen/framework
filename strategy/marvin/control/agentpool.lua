@@ -40,14 +40,14 @@ function AgentPool:cleanupRobots()
 	self._agents = agents
 end
 
-function AgentPool:takeRobot(robots)
+function AgentPool:takeRobot(robots, messaging)
 	if #self._agents >= self._robotLimit then
 		return
 	end
 
 	local robot = self._agentType.takeRobot(robots)
 	if robot then
-		table.insert(self._agents, self._agentType(robot))
+		table.insert(self._agents, self._agentType(robot, messaging))
 	end
 	return robot
 end

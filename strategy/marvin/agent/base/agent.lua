@@ -5,7 +5,6 @@ local Field = require "../base/field"
 local World = require "../base/world"
 local Halt = require "agent/shared/halt"
 local Error = require "agent/shared/error"
-local Messaging = require "control/messaging"
 local Physics = require "observer/physics"
 local Rating = require "util/rating"
 local plot = require "../base/plot"
@@ -16,10 +15,10 @@ function Base.takeRobot(robots)
 	error("stub")
 end
 
-function Base:init(robot)
+function Base:init(robot, messaging)
 	self._robot = robot
 	self._task = nil
-	self._send, self._inbox = Messaging.registerAgent(self)
+	self._send, self._inbox = messaging:registerAgent(self)
 	-- behaviors are ordered by decreasing priority
 	self._behaviors = {
 		Halt(self),
