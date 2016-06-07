@@ -7,8 +7,19 @@ local World = require "../base/world"
 local debug = require "../base/debug"
 
 local MAX_PASS_MSG_DELAY = 0.2
+local MIN_DIST_FOR_POOL_CHANGE = 0.7
 
 function Default:check()
+	-- if there is a defender further away from the own goal than we are,
+	-- request a pool change
+	local ownGoal = World.Geometry.FriendlyGoal
+	for defender, _ in ipairs(self._inbox.defenderFlag()) do
+		if defender.pos:distanceTo(ownGoal) < self._robot.pos:distanceTo(ownGoal) and
+				defender.pos:distanceTo(self._robot.pos) < MIN_DIST_FOR_POOL_CHANGE then
+			self._send.poolChangeRequest("trainer")
+		end
+	end
+
 	self._forceKeepingInPool = next(self._inbox.passPos()) ~= nil
 	return true
 end
