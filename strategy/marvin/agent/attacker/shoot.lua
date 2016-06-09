@@ -59,7 +59,7 @@ function Shoot:_updateTask()
 			self._minTaskTime = 1.5
 			self._taskStart = World.Time
 			self._taskClass = Pass
-			taskParams = { pass.target, pass.pos }
+			taskParams = { pass.target }
 		else -- shootgoal as fallback
 			self._minTaskTime = 0.5
 			self._taskStart = World.Time

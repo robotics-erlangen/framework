@@ -9,7 +9,7 @@ local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 
 
-function Pass:_init(targetRobot, shootPos, passSpeed)
+function Pass:_init(targetRobot, passSpeed)
 	self._targetRobot = assert(targetRobot, "targetRobot is missing")
 	self._linearShoot = true
 	self._dontShootHysteresis = true
@@ -18,7 +18,7 @@ function Pass:_init(targetRobot, shootPos, passSpeed)
 	else
 		self._passSpeed = self._targetRobot.constants.passSpeed
 	end
-	self._shootPos = shootPos
+	self._shootPos = nil
 end
 
 local MIN_BALL_DIST_FOR_PASS_MSG = 1
@@ -120,7 +120,7 @@ function Pass:run()
 
 	local dontShoot = false
 	if newSuggestion and newSuggestion.time then
-		--calculate the time the ball would take to the pos where the opponent robot is heading
+		--calculate the time the ball would take to the pos where the robot is heading
 		local shootBall2 = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
 		local ballPosTime = Physics.ballRollTime(shootBall2, newSuggestion.pos:distanceTo(World.Ball.pos))
 

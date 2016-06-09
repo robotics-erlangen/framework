@@ -56,7 +56,8 @@ function Passer:check()
 end
 
 function Passer:_updateTask()
-	return Pass, {next(self._inbox.attackerFlag())}
+	local targetRobot = next(self._inbox.attackerFlag())
+	return Pass, {targetRobot}
 end
 
 

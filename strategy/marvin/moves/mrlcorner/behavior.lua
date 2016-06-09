@@ -130,7 +130,7 @@ function MrlCorner:_updateTask()
         end
         local passReceiver, passData = next(self._inbox.passSuggestion())
         if passReceiver then
-            return Pass, { passReceiver, passData.pos }
+            return Pass, { passReceiver}
         else
             return MoveToStaticBall
         end

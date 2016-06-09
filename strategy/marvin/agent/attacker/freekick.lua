@@ -143,7 +143,7 @@ function FreeKick:_updateTask()
 	if self._decision == "shootgoal" then
 		return ShootGoal
 	elseif self._decision == "pass" then
-		return Pass, {self._pass.target, self._pass.pos}
+		return Pass, {self._pass.target}
 	else
 		return MoveToStaticBall
 	end
