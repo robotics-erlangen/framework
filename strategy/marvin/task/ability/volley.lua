@@ -15,13 +15,26 @@ local ToTarget = require "trajectory/totarget"
 local mu_x = 1.1
 local mu_y = 0.4
 
+local paramsUpdated = false
+
 local function setSimulatorParams()
-	if not World.IsSimulated then
+	if not World.IsSimulated or paramsUpdated then
 		return
 	end
+	paramsUpdated = true
 	mu_x = 0.8
 	mu_y = 0.56
 end
+
+function Volley.getParams()
+	return mu_x, mu_y
+end
+
+function Volley.setParams(new_mu_x, new_mu_y)
+	mu_x = new_mu_x
+	mu_y = new_mu_y
+end
+
 
 function Volley:init()
 	setSimulatorParams()
