@@ -22,8 +22,8 @@ local function setSimulatorParams()
 		return
 	end
 	paramsUpdated = true
-	mu_x = 0.8
-	mu_y = 0.56
+	mu_x = 1.05
+	mu_y = 0.9
 end
 
 function Volley.getParams()
