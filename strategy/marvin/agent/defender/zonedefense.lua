@@ -2,7 +2,7 @@ local Base = require "agent/base/behavior"
 local ZoneDefense = Class("Agent.Defender.ZoneDefense", Base)
 
 local World = require "../base/world"
-local MoveToPos = require "task/movetopos"
+local BallEvadingMoveToPos = require "task/ballevadingmovetopos"
 
 function ZoneDefense:_stop()
 	self._movePos = nil
@@ -21,7 +21,7 @@ function ZoneDefense:check()
 end
 
 function ZoneDefense:_updateTask()
-	return MoveToPos, {self._movePos, (World.Ball.pos - self._movePos):angle()}
+	return BallEvadingMoveToPos, {self._movePos, nil}
 end
 
 return ZoneDefense
