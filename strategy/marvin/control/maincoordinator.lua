@@ -60,7 +60,7 @@ function MainCoordinator:_updatePoolLimits(attackers, defenders, changingRobot, 
 		self._pools[newPool]:setRobotLimit(poolLimit)
 
 		if self._pools[oldPool]:removeRobot(changingRobot) then
-			self._pools[newPool]:takeRobot({changingRobot})
+			self._pools[newPool]:takeRobot({changingRobot}, self._messaging)
 		else
 			error("invalid pool change request from " .. changingRobot.id)
 		end
