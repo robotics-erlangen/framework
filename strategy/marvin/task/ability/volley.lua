@@ -12,8 +12,8 @@ local Direct = require "trajectory/direct"
 local ToTarget = require "trajectory/totarget"
 
 
-local mu_x = 1.1
-local mu_y = 0.4
+local mu_x = 0.95
+local mu_y = 0.2
 
 local paramsUpdated = false
 
