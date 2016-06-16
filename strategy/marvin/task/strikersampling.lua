@@ -34,9 +34,12 @@ end
 function StrikerSampling:randomLocationAroundPoint(point, radius)
 	local randomRadius = math.random() * radius
 	local randomAngle = math.random() * 2 * math.pi
-	local x = math.cos(randomAngle) * randomRadius
-	local y = math.sin(randomAngle) * randomRadius
-	return point+Vector(x, y)
+	local x = math.cos(randomAngle) * randomRadius + point.x
+	local y = math.sin(randomAngle) * randomRadius + point.y
+	if y < -World.Geometry.FieldHeightQuarter then
+		y = -World.Geometry.FieldHeightQuarter
+	end
+	return Vector(x, y)
 end
 
 -- check whether an opponent robot can reach pos faster than the own robot
