@@ -150,6 +150,8 @@ function Duel:_checkBlockingBall()
 	local shortestTimeToBall = math.huge
 	local closestOpponentRobot = nil
 	closestOpponentRobot, shortestTimeToBall = Ball.firstRobotAtBall(World.OpponentRobots)
+	
+
 	local moveTime = Robot.minTimeToBall(self._robot)
 	local minTime = math.min(moveTime, shortestTimeToBall)
 	self._futureBall = Physics.ballAtTime(World.Ball, minTime).pos
@@ -174,14 +176,15 @@ function Duel:_checkBlockingBall()
 	elseif distToLine > BLOCK_DIST_MAX + BLOCK_DIST_HYSTERESIS then
 		self._blockingBall = false
 	end
+
+	debug.set("moveDest distToLine", distToLine)
+
 	return moveTime, shortestTimeToBall, closestOpponentRobot, intersectionDefenseArea
 
 end
 
 
 function Duel:_moveToBall()
-	
-
 	
 	local moveTime, shortestTimeToBall, closestOpponentRobot, intersectionDefenseArea = self:_checkBlockingBall()
 	
@@ -222,10 +225,7 @@ function Duel:_moveToBall()
 	-- remember position for the next iteration
 	self._oldPosition = moveDest
 
-	
-
 	debug.set("moveDest posOnLine", moveDest)
-	debug.set("moveDest distToLine", distToLine)
 	
 	local ignoreBall = false
 	
