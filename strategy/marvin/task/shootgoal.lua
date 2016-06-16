@@ -178,8 +178,12 @@ end
 function ShootGoal:run()
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 
+	if not self._shootTargetPoint or not Ball.receivesPass(self._robot) or
+			World.Ball.pos:distanceTo(self._robot.pos) > 0.8 then
+		self:_updateTarget()
+	end
 
-	self:_updateTarget()
+	debug.set("receivesPass", Ball.receivesPass(self._robot))
 
 	self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
 	if not self._desperate then
