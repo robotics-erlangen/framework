@@ -16,8 +16,8 @@ function Ally.updateRoleNumbers(attackers, defenders)
     return attackers-table.count(attackerAllies), defenders-table.count(defenderAllies)
 end
 
-function Ally:init(robot)
-    Base.init(self, robot)
+function Ally:init(robot, messaging)
+    Base.init(self, robot, messaging)
     self._suggestPass = PassSuggestion._suggestPass -- HACK
     self._noOppDisturbing = PassSuggestion._noOppDisturbing
 end
