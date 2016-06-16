@@ -126,7 +126,7 @@ function Pass:run()
 
 		local absBallTime = World.Time+ballPosTime
 		local lowerTime = newSuggestion.time+ADDITIONAL_TIME
-		if self._dontShootHysteresis then
+		if not self._dontShootHysteresis then
 			lowerTime = lowerTime - DONT_SHOOT_HYSTERESIS
 		end
 		--if the time of the robot arrival (lowerTime) is further in the future than the ball arrival (absBallTime) then dont shoot
