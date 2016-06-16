@@ -158,14 +158,15 @@ function Ball._updateReceivesPass()
 		-- check if the robot is inside the cone (hysteresis)
 		local coneWidth = ballRecipients[robot] and coneWidthLarge or coneWidthSmall
 		local coneAngleMin = ballRecipients[robot] and coneAngleMinLarge or coneAngleMinSmall
-		local toRobotAngle = (robot.pos - World.Ball.pos):angle()
+		local dribblerPos = robot.pos + Vector.fromAngle(robot.dir) * robot.shootRadius
+		local toRobotAngle = (dribblerPos - World.Ball.pos):angle()
 		if geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth then
 			goto continue
 		end
 
 		-- check if the arriving ball is fast enough (hysteresis)
 		local minBallSpeed = ballRecipients[robot] and 1.0 or 0.5
-		local distanceToRobot = World.Ball.pos:distanceTo(robot.pos)
+		local distanceToRobot = World.Ball.pos:distanceTo(dribblerPos)
 		if Physics.ballAtTime(World.Ball, Physics.ballRollTime(
 				World.Ball, distanceToRobot)).speed:length() < minBallSpeed then
 			goto continue
