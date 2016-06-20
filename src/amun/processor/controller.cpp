@@ -173,6 +173,20 @@ void Controller::controlAlgorithm(const world::Robot &robot, qint64 world_time, 
     const float v_s = std::cos(-robot_phi) * robot.v_x() - std::sin(-robot_phi) * robot.v_y();
     const float v_f = std::sin(-robot_phi) * robot.v_x() + std::cos(-robot_phi) * robot.v_y();
 
+    // try to detect i-Anteil error
+    /*const float i_max_s_error=0.25;
+    const float i_max_f_error=0.25;
+    const float v_max_s_error=0.1;
+    const float v_max_f_error=0.1;
+    //dedicate error state seitwaerts;
+    if ( ( v_s<v_max_s_error || v_s>-v_max_s_error ) && (m_error_i_s>i_max_s_error || m_error_i_s<-i_max_s_error)) {
+        m_error_i_s = 0;
+    }
+    //dedicate error state forward;
+    if ( ( v_f<v_max_f_error || v_f>-v_max_f_error ) && (m_error_i_f>i_max_f_error || m_error_i_f<-i_max_f_error)) {
+        m_error_i_f = 0;
+    }*/
+
     // calculate position and velocity errors
     float error_s   = v_s_d - v_s;
     float error_f   = v_f_d - v_f;
@@ -195,9 +209,9 @@ void Controller::controlAlgorithm(const world::Robot &robot, qint64 world_time, 
     m_error_i_omega = qBound(-m_specs.controller().i_max_omega(), m_error_i_omega, m_specs.controller().i_max_omega());
 
 
-    float output_v_s = v_s_d + pout_s + m_error_i_s;
-    float output_v_f = v_f_d + pout_f + m_error_i_f;
-    float output_v_omega = m_omega_d + pout_omega + m_error_i_omega;
+    float output_v_s = m_specs.controller().k_ff_s() * v_s_d + pout_s + m_error_i_s;
+    float output_v_f = m_specs.controller().k_ff_f() * v_f_d + pout_f + m_error_i_f;
+    float output_v_omega = m_specs.controller().k_ff_omega() * m_omega_d + pout_omega + m_error_i_omega;
 
     command.set_v_s(output_v_s);
     command.set_v_f(output_v_f);

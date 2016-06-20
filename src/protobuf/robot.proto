@@ -14,6 +14,10 @@ message ControllerParameters
     optional float i_max_s = 19;
     optional float i_max_f = 20;
     optional float i_max_omega = 21;
+
+    optional float k_ff_s = 22;
+    optional float k_ff_f = 23;
+    optional float k_ff_omega = 24;
 };
 
 message LimitParameters

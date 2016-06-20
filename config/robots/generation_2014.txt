@@ -20,15 +20,18 @@ default {
     a_brake_phi_max: 60
   }
   controller {
-    k_p_s: 1.5
-    k_p_f: 1
-    k_p_omega: 0.01
-    k_i_s: 0.1
-    k_i_f: 0.1
-    k_i_omega: 0.5
-    i_max_s: 2
-    i_max_f: 2
-    i_max_omega: 5
+    k_p_s: 1.2
+    k_p_f: 0.9
+    k_p_omega: 0.1
+    k_i_s: 0
+    k_i_f: 0
+    k_i_omega: 0
+    i_max_s: 1
+    i_max_f: 1
+    i_max_omega: 0
+    k_ff_s: 1
+    k_ff_f: 1
+    k_ff_omega: 1
   }
   ir_param: 0
 }
