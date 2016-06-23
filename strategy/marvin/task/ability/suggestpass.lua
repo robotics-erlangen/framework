@@ -32,7 +32,7 @@ function SuggestPass:_noOppDisturbing()
 end
 
 local chipRatingFactor = 0.5 -- reduce rating when only a chip is possible
-local minDirectPassY = World.Geometry.FieldHeightHalf / 6
+local minDirectPassY = - World.Geometry.FieldHeightHalf / 4
 function SuggestPass:_suggestPass(passPosRobot)
     local mainAttacker = self._inbox.mainAttacker().trainer
     if not mainAttacker then
