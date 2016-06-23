@@ -123,7 +123,8 @@ function Pass:run()
 		--calculate the time the ball would take to the pos where the robot is heading
 		local shootBall2 = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
 		local ballPosTime = Physics.ballRollTime(shootBall2, newSuggestion.pos:distanceTo(World.Ball.pos))
-
+		debug.set("ballPositionTime",ballPosTime)
+		debug.set("ballAcceptTime",newSuggestion.time-World.Time)
 		local absBallTime = World.Time+ballPosTime
 		local lowerTime = newSuggestion.time+ADDITIONAL_TIME
 		if not self._dontShootHysteresis then
@@ -133,13 +134,13 @@ function Pass:run()
 		if lowerTime > absBallTime then
 			dontShoot = true
 		end
+		debug.set("dontShoot", dontShoot);
 	end
 	self._dontShootHysteresis = dontShoot
 
 	if linearShootHysteresisFlag then
 		self._linearShoot = true
 	end
-
 	self:_shoot(self._shootPos, self._passSpeed, self._linearShoot, 3 * math.pi/180, dontShoot)
 	if self._robot.pos:distanceTo(World.Ball.pos) < MIN_BALL_DIST_FOR_PASS_MSG then
 		-- only send message when pass is imminent
