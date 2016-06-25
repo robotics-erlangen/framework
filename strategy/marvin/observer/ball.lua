@@ -165,7 +165,7 @@ function Ball._updateReceivesPass()
 		end
 
 		-- check if the arriving ball is fast enough (hysteresis)
-		local minBallSpeed = ballRecipients[robot] and 1.0 or 0.5
+		local minBallSpeed = ballRecipients[robot] and 0.5 or 1.0
 		local distanceToRobot = World.Ball.pos:distanceTo(dribblerPos)
 		if Physics.ballAtTime(World.Ball, Physics.ballRollTime(
 				World.Ball, distanceToRobot)).speed:length() < minBallSpeed then
