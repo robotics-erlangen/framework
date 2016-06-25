@@ -336,7 +336,7 @@ function CenterBack:run()
 	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreFriends, ignoreOpponents)
 	self._robot.trajectory:update(ToTarget, destinationPos, dir)
 	self._send.moveDest("all", destinationPos)
-	self._send.centerbackTarget("trainer", destinationTarget)
+	self._send.centerbackTarget("all", destinationTarget)
 end
 
 return CenterBack

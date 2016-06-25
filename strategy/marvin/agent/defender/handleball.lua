@@ -104,6 +104,14 @@ end
 
 function HandleBall:_checkDuel()
 	local isDuel = self._taskDecision == "duel"
+	for sender, pos in pairs(self._inbox.centerbackTarget()) do
+		local posOnLine = sender.pos:nearestPosOnLine(World.Ball.pos, World.Geometry.FriendlyGoal)
+		local distFromGoalBlocking = posOnLine:distanceTo(sender.pos)
+		if distFromGoalBlocking < sender.radius then
+			debug.set("otherCenterbackIsBlockingBall", sender)
+			return true
+		end
+	end
 
 	-- don't if we are centerback
 	local role = self._inbox.roleAssignment().trainer
