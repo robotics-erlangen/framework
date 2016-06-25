@@ -161,7 +161,7 @@ function Duel:_checkBlockingBall()
 	-- and the probabilty of it being the final position is small
 	local intersectionDefenseArea = Field.intersectRayDefenseArea(self._futureBall,
 			World.Geometry.FriendlyGoal - self._futureBall,
-			self._robot.radius + DEFENSE_AREA_MIN_DISTANCE, false, false)
+			self._robot.radius + DEFENSE_AREA_MIN_DISTANCE, false)
 	local basePos
 
 	if intersectionDefenseArea then
