@@ -32,6 +32,7 @@ function SuggestPass:_noOppDisturbing()
 end
 
 local chipRatingFactor = 0.5 -- reduce rating when only a chip is possible
+local MARK_RATING_FACTOR = 0.5 -- reduce rating when we are maked, linarly with distance to goal, by a maximum of this value (0-1)
 local minDirectPassY = - World.Geometry.FieldHeightHalf / 4
 function SuggestPass:_suggestPass(passPosRobot)
     local mainAttacker = self._inbox.mainAttacker().trainer
@@ -53,31 +54,33 @@ function SuggestPass:_suggestPass(passPosRobot)
     local passPosBall = passPosRobot +
             (ballPos - passPosRobot):setLength(self._robot.shootRadius + World.Ball.radius)
 
-    -- only send suggestions in the opponent half (no backward passes)
-    -- and check the pass corridor
-    if passPosRobot.y > minDirectPassY or self:_noOppDisturbing() then
+    -- calculate the pass rating
+    local goal = World.Geometry.OpponentGoal
+    local biggestInterval = Goal.largestFreeSector(passPosBall, World.OpponentRobots, true)
+    local goalRating = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0.001
+    local angle = (passPosBall - goal):absoluteAngleDiff(ballPos - goal)
+    local bestRating = goalRating * angle
 
-        -- calculate the pass rating
-        local goal = World.Geometry.OpponentGoal
-        local biggestInterval = Goal.largestFreeSector(passPosBall, World.OpponentRobots, true)
-        local goalRating = biggestInterval and (biggestInterval[2] - biggestInterval[1]) or 0.001
-        local angle = (passPosBall - goal):absoluteAngleDiff(ballPos - goal)
-        local bestRating = goalRating * angle
-
-        -- check if a chip is necessary
-        if not Robot.wayToPosFree(passPosRobot, self._robot, mainAttacker) then
-            bestRating = bestRating * chipRatingFactor
-        end
-
-        -- calculate the pass receive time
-        local moveTime = Physics.robotTimeToPos(self._robot, passPosRobot, Vector(0, 0), true)
-        local receiveTime = World.Time + moveTime
-
-        vis.addCircle("t/a/suggestpass: passSuggestion", passPosRobot, 0.1, vis.colors.red, true)
-
-        self._send.passSuggestion(mainAttacker,
-                { rating = bestRating, pos = passPosBall, time = receiveTime })
+    -- check if a chip is necessary
+    if not Robot.wayToPosFree(passPosRobot, self._robot, mainAttacker) then
+        bestRating = bestRating * chipRatingFactor
     end
+
+    --check if we are marked
+    if not self:_noOppDisturbing() then
+        local maxDist = goal:distanceTo(Vector(World.Geometry.FieldWidthHalf, minDirectPassY))
+        local ownDist = passPosRobot:distanceTo(goal)
+        bestRating = bestRating * (1 - (1 - MARK_RATING_FACTOR) * (ownDist / maxDist))
+    end
+
+    -- calculate the pass receive time
+    local moveTime = Physics.robotTimeToPos(self._robot, passPosRobot, Vector(0, 0), true)
+    local receiveTime = World.Time + moveTime
+
+    vis.addCircle("t/a/suggestpass: passSuggestion", passPosRobot, 0.1, vis.colors.red, true)
+
+    self._send.passSuggestion(mainAttacker,
+            { rating = bestRating, pos = passPosBall, time = receiveTime })
 end
 
 return SuggestPass
