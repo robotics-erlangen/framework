@@ -30,6 +30,8 @@ local DEFENSE_AREA_MIN_DISTANCE = 0.04
 local BEFORE_OPPONENT_HYSTERESIS = 0.2
 local BEFORE_OPPONENT_TIME = 0.3
 
+local OPPONENT_DEFENSE_AREA_MIN_DISTANCE = 0.1
+
 
 function Duel:_init()
 	self._opposer = nil
@@ -214,6 +216,9 @@ function Duel:_moveToBall()
 	if intersectionDefenseArea then
 		-- calculate new position between ball (regarding robot shootRadius) and the intersection with defense area
 		moveDest = self._futureBall + (intersectionDefenseArea - self._futureBall):setLength(self._robot.shootRadius + World.Ball.radius)
+		local opponentDefenseIntersection = Field.intersectRayDefenseArea(moveDest, World.Geometry.FriendlyGoal - moveDest,
+												self._robot.radius * 3 +  OPPONENT_DEFENSE_AREA_MIN_DISTANCE, true)
+		moveDest = opponentDefenseIntersection or moveDest
 		moveDest = self:_newPosRegardingOldPosition(moveDest, intersectionDefenseArea, self._oldPosition, BLOCK_POS_PRECISION)
 		basePos = intersectionDefenseArea
 	else
