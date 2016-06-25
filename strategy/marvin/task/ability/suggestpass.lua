@@ -55,7 +55,6 @@ function SuggestPass:_suggestPass(passPosRobot)
 
     -- only send suggestions in the opponent half (no backward passes)
     -- and check the pass corridor
-    -- FIXME wayToRobotFree does not take a future world state (conflicts with the concept of waiting)
     if passPosRobot.y > minDirectPassY or self:_noOppDisturbing() then
 
         -- calculate the pass rating
@@ -66,7 +65,7 @@ function SuggestPass:_suggestPass(passPosRobot)
         local bestRating = goalRating * angle
 
         -- check if a chip is necessary
-        if not Robot.wayToRobotFree(self._robot, mainAttacker) then
+        if not Robot.wayToPosFree(passPosRobot, self._robot, mainAttacker) then
             bestRating = bestRating * chipRatingFactor
         end
 
