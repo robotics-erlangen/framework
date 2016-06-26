@@ -93,6 +93,46 @@ function geom.intersectLineCircle(offset, dir, center, radius)
 	return point1, point2, lambda1, lambda2
 end
 
+--- Calculates the intersection between a line and a corridor created by a line and a width
+-- Returns two intersections and lambdas
+-- @name intersectLineCorridor
+-- @param offset Vector - point on the line
+-- @param direction Vector - direction of the line
+-- @param offsetCorridor Vector - position on the line in the middle of the corridor
+-- @param directionCorridor Vector - direction of the corridor
+-- @param widthHalf number - half the width of the corridor
+-- @return [Vector] - first intersection if exists
+-- @return [Vector] - second intersection if exists
+-- @return number - lambda1, intersection1 = offset + lambda1*direction (lambda of first point on the line)
+-- @return number - lambda2, intersection2 = offset + lambda2*direction (lambda of second point on the line)
+-- @return number - lambda3, intersection1 = offsetCorridor + lambda3*directionCorridor (lambda in the corridor)
+-- @return number - lambda4, intersection2 = offsetCorridor + lambda4*directionCorridor (lambda in the corridor)
+-- lambda1, lambda2, lambda3, lambda4 can be nil if no intersection exists or +/-math.huge if the line is inside the corridor
+-- the intersection with their lambdas are sorted so that lambda1 <= lambda2
+function geom.intersectLineCorridor(offset, direction, offsetCorridor, directionCorridor, widthHalf)
+	assert(directionCorridor ~= Vector(0, 0))
+	local corridorPerpendicular = directionCorridor:perpendicular():setLength(widthHalf)
+	local offsetCorridorLeft = offsetCorridor + corridorPerpendicular
+	local offsetCorridorRight = offsetCorridor - corridorPerpendicular
+	local intersectionLeft, lambdaLeftLine, lambdaLeft = geom.intersectLineLine(offset, direction, 
+															offsetCorridorLeft, directionCorridor)
+	if not intersectionLeft or direction == Vector(0, 0) then
+		-- Either no intersection or line is in corridor
+		local leftDistance = offset:orthogonalDistance(offsetCorridorLeft, offsetCorridorLeft + directionCorridor)
+		local rightDistance = offset:orthogonalDistance(offsetCorridorRight, offsetCorridorRight + directionCorridor)
+		if math.abs(leftDistance) <= widthHalf * 2 and math.abs(rightDistance) <= widthHalf * 2 then
+			return nil, nil, -math.huge, math.huge, -math.huge, math.huge
+		end
+		return nil, nil, nil, nil, nil, nil
+	end
+	local intersectionRight, lambdaRightLine, lambdaRight = geom.intersectLineLine(offset, direction, 
+																	offsetCorridorRight, directionCorridor)
+	if lambdaRightLine < lambdaLeftLine then
+		return intersectionRight, intersectionLeft, lambdaRightLine, lambdaLeftLine, lambdaRight, lambdaLeft
+	end
+	return intersectionLeft, intersectionRight, lambdaLeftLine, lambdaRightLine, lambdaRight, lambdaLeft
+end
+
 --- Calcualtes tangents to circle.
 -- Returns tangents on circle for point.
 -- @name getTangentsToCircle
