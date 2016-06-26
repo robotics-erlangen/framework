@@ -20,7 +20,8 @@ function Default:check()
 		end
 	end
 
-	self._forceKeepingInPool = next(self._inbox.passPos()) ~= nil
+	local passReceiver, _ = next(self._inbox.passPos())
+	self._forceKeepingInPool = passReceiver == self._robot
 	return true
 end
 
