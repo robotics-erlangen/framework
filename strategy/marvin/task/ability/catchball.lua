@@ -22,7 +22,6 @@ local SIDE_DEPTH = 0.02
 -- reduce obstacle size by one millimeter to avoid collisions
 local OBSTACLE_EPSILON = 0.001
 local SLOW_BALL = 0.5
-local POSITION_PADDING = 0.04 -- boundary extension for field
 
 
 local AROUND_METHOD = "around"
@@ -54,7 +53,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	end
 
 	-- limit catch time to be inside the field
-	local timeLimit = Physics.ballOutTime(ball, POSITION_PADDING)
+	local timeLimit = Physics.ballOutTime(ball)
 	self._catchTime = math.min(timeLimit, self._catchTime)
 
 	-- check for fast ball and that it moves towards the robot
