@@ -4,6 +4,7 @@ local Shoot = Class("Agent.Attacker.Shoot", Base)
 local debug = require "../base/debug"
 local World = require "../base/world"
 local Ball = require "observer/ball"
+local ObserverShoot = require "observer/shoot"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
 local Rating = require "util/rating"
@@ -45,11 +46,17 @@ function Shoot:_updateTask()
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 		local canShootGoal = sg_mae and sg_mae > MIN_ANGLE_PRECISION
 
-		-- pass
+		if self._robot.pos:distanceTo(World.Geometry.OpponentGoal) < World.Geometry.FieldHeightHalf then
+			canShootGoal = canShootGoal or math.random() < 0.5
+		end
+
+		local receivesPass = Ball.receivesPass(self._robot)
+		debug.set("receivesPass", receivesPass)
+
 		local pass
 		local bestPassRating = 0
 		for robot, sugg in pairs(self._inbox.passSuggestion()) do
-			if sugg.rating > bestPassRating then
+			if sugg.rating > bestPassRating and sugg.pos:distanceTo(self._robot.pos) > 1.0 then
 				pass = sugg
 				pass.target = robot
 				bestPassRating = sugg.rating
@@ -57,21 +64,31 @@ function Shoot:_updateTask()
 		end
 
 		local taskParams
-		if canShootGoal then
-			self._minTaskTime = 1.5
-			self._taskStart = World.Time
-			self._taskClass = ShootGoal
-		elseif pass then
-			self._minTaskTime = 1.5
-			self._taskStart = World.Time
-			self._taskClass = Pass
-			taskParams = { pass.target }
-		else -- shootgoal as fallback
-			self._minTaskTime = 0.5
-			self._taskStart = World.Time
-			self._taskClass = ShootGoal
+		self._minTaskTime = 1.5
+		if receivesPass then
+			if canShootGoal and ObserverShoot.volleyPossible(self._robot, sg_target) then
+				self._taskClass = ShootGoal
+			elseif pass and bestPassRating > 0.5 then -- volley pass
+				self._taskClass = Pass
+				taskParams = { pass.target, nil, true }
+			else
+				self._taskClass = ShootGoal
+			end
+		else
+			if canShootGoal then -- catchball shootgoal
+				self._taskClass = ShootGoal
+			elseif pass then -- catchball pass
+				self._taskClass = Pass
+				taskParams = { pass.target }
+			else -- fallback shootgoal
+				self._minTaskTime = 0.5
+				self._taskClass = ShootGoal
+			end
 		end
-		if self._behaviorActivateCount < 5 then
+		
+		self._taskStart = World.Time
+
+		if self._behaviorActivateCount < 20 then
 			-- on the first run, we don't consider a passing robot for
 			-- a double pass. So we delay the decision some frames
 			self._minTaskTime = 0
