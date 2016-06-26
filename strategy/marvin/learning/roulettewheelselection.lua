@@ -25,7 +25,7 @@ end
 -- @param n number - the number of possible choices
 -- @param module string - the name of the file in learning/parameters/
 -- @return number - the index of the choice
-function RouletteWheelSelection.decide(n, module)
+function RouletteWheelSelection.decide(module, n)
 	local successRates = RouletteWheelSelection._readRatings(n, module)
 	local percSum = 0
 	for _,rate in ipairs(successRates) do
@@ -44,10 +44,11 @@ end
 
 --- tells the learning algorithm if the choice was successful
 -- @param module string - the name of the file in learning/parameters/
+-- @param n number - the number of possible choices
 -- @param i number - the performed choice
 -- @param success bool - if the choice was successful
-function RouletteWheelSelection.report(module, i, success)
-	local successRates = RouletteWheelSelection._readRatings(i, module)
+function RouletteWheelSelection.report(module, n, i, success)
+	local successRates = RouletteWheelSelection._readRatings(n, module)
 	local rate = successRates[i]
 	rate.total = rate.total + 1
 	if success then

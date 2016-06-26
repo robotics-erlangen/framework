@@ -23,7 +23,8 @@ local Interval = require "util/interval"
 
 local StrikerSuccess = Class("Task.StrikerSuccess", require "../base/process")
 
-function StrikerSuccess:init(action, receiver, attacker)
+function StrikerSuccess:init(n_options, action, receiver, attacker)
+	self._n_options = n_options
 	self._action = action
 	self._receiver = receiver
 	self._previousAttacker = attacker
@@ -53,7 +54,7 @@ function StrikerSuccess:run()
 		self._done = true
 	end
 	if self._done then
-		RouletteWheelSelection.report("StrikerGenerators", self._action, success)
+		RouletteWheelSelection.report("StrikerGenerators", self._n_options, self._action, success)
 	end
 end
 
@@ -74,7 +75,7 @@ Striker._generatorNames = {
 }
 
 function Striker:_init()
-	self._decision = RouletteWheelSelection.decide(#self._generators, "StrikerGenerators")
+	self._decision = RouletteWheelSelection.decide("StrikerGenerators", #self._generators)
 	self._generator = self._generators[self._decision](self._agent)
 	self._successProcess = nil
 end
@@ -85,7 +86,7 @@ function Striker:run()
 	end
 	local mainAttacker = self._inbox.mainAttacker().trainer
 	if (not self._successProcess) and mainAttacker then
-		self._successProcess = StrikerSuccess(self._decision, self._robot, mainAttacker)
+		self._successProcess = StrikerSuccess(#self._generators, self._decision, self._robot, mainAttacker)
 		Processor.addPost(self._successProcess)
 	end
 
