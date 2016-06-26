@@ -6,6 +6,7 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 local Ball = require "observer/ball"
 local Goal = require "observer/goal"
+local Shoot = require "observer/shoot"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 
@@ -66,6 +67,11 @@ function SuggestPass:_suggestPass(passPosRobot)
         bestRating = bestRating * chipRatingFactor
     end
 
+    -- give a bonus if the ball can be passed as a volley
+    if Shoot.volleyPossible(mainAttacker, passPosBall) then
+        bestRating = bestRating + 1
+    end
+    
     --check if we are marked
     if not self:_noOppDisturbing() then
         local maxDist = goal:distanceTo(Vector(World.Geometry.FieldWidthHalf, minDirectPassY))
