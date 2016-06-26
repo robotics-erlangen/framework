@@ -382,7 +382,7 @@ end
 
 --- Check whether the robot has the given ball.
 -- Checks whether the ball is in rectangle in front of the dribbler with hasBallDistance depth. Uses hysteresis for the left and right side of that rectangle
--- @param ball Ball - ball object to check
+-- @param ball Ball - must be World.Ball to make sure hysteresis will work
 -- @param [sideOffset number - extends the hasBall area sidewards]
 -- @return boolean - has ball
 function Robot:hasBall(ball, sideOffset)
