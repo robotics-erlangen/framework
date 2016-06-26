@@ -137,7 +137,9 @@ function Pass:run()
 	self._dontShootHysteresis = dontShoot
 
 	self:_shoot(self._shootPos, self._passSpeed, self._linearShoot, 3 * math.pi/180, dontShoot)
-	if self._robot.pos:distanceTo(World.Ball.pos) < MIN_BALL_DIST_FOR_PASS_MSG then
+
+	if ObserverShoot.volleyPossible(self._robot, self._shootPos)
+		or self._robot.pos:distanceTo(World.Ball.pos) < MIN_BALL_DIST_FOR_PASS_MSG then
 		-- only send message when pass is imminent
 		self._send.passPos("all", { robot = self._targetRobot, pos = self._shootPos })
 	end
