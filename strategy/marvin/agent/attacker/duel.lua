@@ -18,7 +18,7 @@ end
 
 function Duel:genericCheck()
 	-- if we receive the ball, try shootgoal or something
-	-- this can be risky, so only do this in own field half
+	-- this can be risky, so only do this in the opponent field half
 	local receivesPass = Ball.receivesPass(self._robot)
 	debug.set("duel check receivesPass", receivesPass)
 	if receivesPass then
@@ -31,17 +31,8 @@ function Duel:genericCheck()
 		return false
 	end
 
-	-- if the opponent controls the ball (hysteresis!), duel him
-	for _,r in ipairs(World.OpponentRobots) do
-		if Robot.hadBall(r, 0) then
-			self._opponentHasBall = true
-			break
-		end
-	end
-	if not Ball.opponentBallOwner() then
-		self._opponentHasBall = false
-	end
-	if self._opponentHasBall then
+	-- if the opponent controls the ball, duel him
+	if Ball.opponentBallOwner() then
 		return true
 	end
 
