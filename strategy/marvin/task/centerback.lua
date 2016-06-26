@@ -8,6 +8,7 @@ local Processor = require "../base/processor"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Messaging = require "control/messaging"
+local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
@@ -82,6 +83,12 @@ local function calculateCenterBackPositions(centerBackApplications)
 	local distanceBetweenDefenders = 0.01
 	local getImportant = 2 * robot_radius + 0.03
 	local getUnimportant = getImportant + robot_radius
+
+	local oppBallOwner = Ball.opponentBallOwner()
+	if oppBallOwner and Field.distanceToFriendlyDefenseArea(oppBallOwner.pos, oppBallOwner.radius)
+		< 2 * robot_radius + distanceToDefenseArea + 0.2 then
+		distanceBetweenDefenders = -0.01
+	end
 
 	-- collect all important targets and assign them the list of robots
 	-- only consider those as important that are within a certain range to their destination
@@ -332,7 +339,7 @@ function CenterBack:run()
 	end
 
 	--move robot
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreFriends, ignoreOpponents)
 	self._robot.trajectory:update(ToTarget, destinationPos, dir)
 	self._send.moveDest("all", destinationPos)
