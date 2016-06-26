@@ -4,22 +4,15 @@ local Striker = Class("Task.Striker", require "task/base", SuggestPass, CornerAt
 local StrikerLines = require "task/strikerlines"
 local StrikerSampling = require "task/strikersampling"
 
-local Constants = require "../base/constants"
 local debug = require "../base/debug"
-local Field = require "../base/field"
-local geom = require "../base/geom"
 local Processor = require "../base/processor"
 local Referee = require "../base/referee"
-local vis = require "../base/vis"
 local World = require "../base/world"
 
-local Messaging = require "control/messaging"
 local RouletteWheelSelection = require "learning/roulettewheelselection"
 local Ball = require "observer/ball"
-local ObserverGame = require "observer/game"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
-local Interval = require "util/interval"
 
 local StrikerSuccess = Class("Task.StrikerSuccess", require "../base/process")
 
