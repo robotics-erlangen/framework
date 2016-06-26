@@ -40,6 +40,7 @@ function Duel:_init()
 	self._stayBehindOpp = false
 	self._beforeOpp = false
 	self._futureBall = nil
+	self._rotating = false
 end
 
 function Duel:run()
@@ -66,7 +67,7 @@ function Duel:run()
 	end
 end
 
-function Duel:_contest()
+function Duel:_contestRotate()
 	--decide if we should rotate cw or ccw
 	local toOpponentDir = self._opposer.pos - self._robot.pos
 	local intersection = geom.intersectLineLine(
@@ -74,6 +75,26 @@ function Duel:_contest()
 	local ccw = intersection and -math.sign(intersection.x) or -1 --negative = ccw, positive = cw
 	local toBall = World.Ball.speed + (World.Ball.pos - self._robot.pos):setLength(0.2)
 	self._robot.trajectory:update(Direct, toBall, nil, ccw * 2 * 2*math.pi) -- 2 turns per second
+end
+
+function Duel:_contestPush()
+	local viewDir = (World.Ball.pos - World.Geometry.FriendlyGoal):angle()
+	local destinationPos = World.Ball.pos - Vector.fromAngle(viewDir) * self._robot.shootRadius
+
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true) -- ignore ball
+	PathHelper.addRobotObstacles(self._robot.path, self._robot, false, true) -- ignore opponents
+	self._robot.trajectory:update(ToTarget, destinationPos, viewDir)
+end
+
+function Duel:_contest()
+	self._rotating = self._rotating and World.Ball.pos.y > -World.Geometry.FieldHeightHalf / 3
+		or World.Ball.pos.y > -World.Geometry.FieldHeightHalf / 6
+
+	if self._rotating then
+		self:_contestRotate()
+	else
+		self:_contestPush()
+	end
 
 	-- send the position of the ball
 	self._send.attackPosition("all", World.Ball.pos)
