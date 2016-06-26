@@ -103,24 +103,8 @@ function HandleBall:_checkInterceptPass()
 end
 
 function HandleBall:_checkDuel()
-	local isDuel = self._taskDecision == "duel"
-	for sender, pos in pairs(self._inbox.centerbackTarget()) do
-		local posOnLine = sender.pos:nearestPosOnLine(World.Ball.pos, World.Geometry.FriendlyGoal)
-		local distFromGoalBlocking = posOnLine:distanceTo(sender.pos)
-		if distFromGoalBlocking < sender.radius then
-			debug.set("otherCenterbackIsBlockingBall", sender)
-			return true
-		end
-	end
-
-	-- don't if we are centerback
-	local role = self._inbox.roleAssignment().trainer
-	if role and role.name == "CenterBack" then
-		return false
-	end
-
 	-- don't if we are not close to the ball
-	local ballDistLimit = isDuel and 1.2 or 0.8
+	local ballDistLimit = self._taskDecision == "duel" and 1.2 or 0.8
 	if self._robot.pos:distanceTo(World.Ball.pos) > ballDistLimit then
 		return false
 	end
@@ -147,6 +131,8 @@ function HandleBall:check()
 	else
 		self._taskDecision = "defender"
 	end
+
+	debug.set("HandleBall", self._taskDecision)
 
 	if not self._taskDecision == "forcedefender" then
 		if mainAttacker == self._robot
