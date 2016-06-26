@@ -47,7 +47,10 @@ function KickoffPass:run()
 		if mainAttacker then
 			self._send.passSuggestion(mainAttacker, { rating = math.huge, pos = self._pos, time = (moveTime + World.Time) })
 		end
-	else 
+	elseif World.RefereeState ~= "KickoffOffensive" and Ball.isShot() then
+		self:_applyForMainAttacker(nil, nil, 2)
+		self._robot.trajectory:update(ToTarget, self._pos, self._dir)
+	else
 		self._robot.trajectory:update(ToTarget, self._pos, self._dir)
 	end
 end
