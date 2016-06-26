@@ -98,7 +98,7 @@ function Striker:run()
 
 	local lockMoveDest = mainAttacker and Ball.receivesPass(mainAttacker)
 		and World.Ball.pos:distanceTo(mainAttacker.pos) < 1.5
-		or World.Ball.speed:length() > 0.3 and Robot.hadBall(mainAttacker, 0.1)
+		or Robot.hadBall(mainAttacker, 0.1)
 
 	if not self._moveDest or not lockMoveDest then
 		self._moveDest = self._generator:calcMoveDest()
