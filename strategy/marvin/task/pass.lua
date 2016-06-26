@@ -25,6 +25,7 @@ local MIN_BALL_DIST_FOR_PASS_MSG = 1
 local MIN_OPP_CHIP_DIST = 0.35
 local ADDITIONAL_TIME = 0.3
 local DONT_SHOOT_HYSTERESIS = 0.15 -- must ALWAYS be smaller than ADDITIONAL_TIME
+local ADDITIONAL_CORRIDOR_WIDTH_HYSTERESIS = 0.04
 
 function Pass:run()
 	local newSuggestion = self._inbox.passSuggestion()[self._targetRobot]
@@ -42,80 +43,75 @@ function Pass:run()
 	local shootSpeed = self._robot:calculateShootSpeed(self._passSpeed,
 		World.Ball.pos:distanceTo(self._shootPos))
 
-	local corridorWidthHalfInner = 0.04
-	local corridorWidthHalfOuter = 0.08
-	local opponentReactionTime = 0.15
-	local linearShootHysteresisFlag = true
-	for _, opp in ipairs(World.OpponentRobots) do
-		if opp == World.OpponentKeeper then
+	local linearShootHysteresisFlag = self._linarShoot
+	self._linearShoot = true
+	for _, opp in ipairs(World.Robots) do
+		if opp == World.OpponentKeeper or opp == self._targetRobot or opp == self._robot then
 			goto continue
 		end
 
-		-- extrapolate the opponent for its reaction time
-		local futureOppPos = opp.pos + opp.speed * opponentReactionTime
-		local futureOpp = table.copy(opp)
-		futureOpp.pos = futureOppPos
+		local widthHalf = World.Ball.radius+opp.radius
+		if not linearShootHysteresisFlag then
+			widthHalf = widthHalf + ADDITIONAL_CORRIDOR_WIDTH_HYSTERESIS
+		end
+		local relativeShootPos = self._shootPos - World.Ball.pos
 
-		-- if an opponent robot is already blocking a direct pass
-		-- (does also return false if an opponent rushes through)
-		local pointOfImpact = futureOppPos:nearestPosOnLine(World.Ball.pos, self._shootPos)
-		-- ignore opponents in the kicking robot's or the receiving robot's back
-		if pointOfImpact == self._shootPos or pointOfImpact == World.Ball.pos then
+		local point1, point2, oppTimeTo1, oppTimeTo2, lambda3, lambda4 = geom.intersectLineCorridor(opp.pos, 
+				opp.speed, World.Ball.pos, relativeShootPos, widthHalf)
+
+		if lambda3 == nil then
+			-- no intersection between future robot and ball
+			goto continue
+		end
+		local onLine
+
+		if point1 == nil then
+			--robot is on the future ball line, parallel
+			lambda3 = (World.Ball.pos-opp.pos:orthogonalProjection(World.Ball.pos, self._shootPos)):length()/relativeShootPos:length()
+			lambda4 = lambda3
+			oppTimeTo1 = 0
+			oppTimeTo2 = math.huge
+		end
+
+		if lambda3 < 0 and lambda4 < 0 then 
+			--robot is behind us
 			goto continue
 		end
 
-		if futureOppPos:distanceTo(pointOfImpact) < corridorWidthHalfInner then
-			self._linearShoot = false
-			linearShootHysteresisFlag = false
-			break
-		end
-		if futureOppPos:distanceTo(pointOfImpact) < corridorWidthHalfOuter then
-			linearShootHysteresisFlag = false
+		if lambda3 > 1 and lambda4 > 1 then
+			--robot is behind shootpos
+			goto continue
 		end
 
-		-- calculate interception times of the robot
-		local pointNearImpactInner = pointOfImpact +
-			(futureOppPos - pointOfImpact):setLength(corridorWidthHalfInner)
-		local robotTimeInner = Physics.robotTimeToPos(futureOpp, pointNearImpactInner,
-			(pointNearImpactInner - futureOppPos):setLength(futureOpp.maxSpeed)) + opponentReactionTime
-		local pointNearImpactOuter = pointOfImpact +
-			(futureOppPos - pointOfImpact):setLength(corridorWidthHalfOuter)
-		local robotTimeOuter = Physics.robotTimeToPos(futureOpp, pointNearImpactOuter,
-			(pointNearImpactOuter - futureOppPos):setLength(futureOpp.maxSpeed)) + opponentReactionTime
-
-
-		-- calculate the ball time
 		local shootBall = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
-		local ballTime = Physics.ballRollTime(shootBall, pointOfImpact:distanceTo(World.Ball.pos))
 
-		debug.set("pass interception"..opp.id, {
-			opponent = opp,
-			["robot time inner"] = robotTimeInner,
-			["robot time outer"] = robotTimeOuter,
-			["ball time"] = ballTime,
-		})
-		vis.addCircle("t/pass: OppInterception", pointOfImpact, 0.1, vis.colors.blue, true)
-		-- a chip kick does not help if the interception is close to the target position
-		if robotTimeInner < ballTime and self._shootPos:distanceTo(pointOfImpact) > MIN_OPP_CHIP_DIST then
-			self._linearShoot = false
-			linearShootHysteresisFlag = false
-			break
-		end
-		if robotTimeOuter < ballTime then
-			linearShootHysteresisFlag = false
+		local ballTimeToPos1 = Physics.ballRollTime(shootBall, lambda3 * relativeShootPos:length())
+		local ballTimeToPos2 = Physics.ballRollTime(shootBall, lambda4 * relativeShootPos:length())
+		local firstBallTime = math.min(ballTimeToPos1, ballTimeToPos2)
+		local secondBallTime = math.max(ballTimeToPos1, ballTimeToPos2)
+  		if not (secondBallTime < oppTimeTo1 or firstBallTime > oppTimeTo2) then
+			debug.set("pass interception"..opp.id, {
+				opponent = opp,
+				["first robot time"] = oppTimeTo1,
+				["second robot time"] = oppTimeTo2,
+				["first ball time"] = firstBallTime,
+				["second ball time"] = secondBallTime
+			})
+			if not opp.isFriendly then
+				vis.addCircle("t/pass: OppInterception", relativeShootPos * lambda3, 0.1, vis.colors.blue, true)
+				vis.addCircle("t/pass: OppInterception", relativeShootPos * lambda4, 0.1, vis.colors.blue, true)
+			else
+				vis.addCircle("t/pass: Friendly conflict", relativeShootPos * lambda3, 0.1, vis.colors.blue, true)
+				vis.addCircle("t/pass: Friendly conflict", relativeShootPos * lambda4, 0.1, vis.colors.blue, true)
+			end
+			-- a chip kick does not help if the interception is close to the target position
+			if (1-lambda3)*relativeShootPos:length() > MIN_OPP_CHIP_DIST 
+					and (1-lambda4)*relativeShootPos:length() > MIN_OPP_CHIP_DIST then
+				self._linearShoot = false
+				break
+			end
 		end
 ::continue::
-	end
-
-	for _, robot in ipairs(World.FriendlyRobots) do
-		local pointOfImpact = robot.pos:nearestPosOnLine(World.Ball.pos, self._shootPos)
-		if robot ~= self._targetRobot and robot ~= self._robot and
-				robot.pos:distanceTo(pointOfImpact) < corridorWidthHalfInner then
-			vis.addCircle("t/pass: Friendly conflict", pointOfImpact, 0.1, vis.colors.blue, true)
-			self._linearShoot = false
-			linearShootHysteresisFlag = false
-			debug.set("friendly pass conflict", robot.id)
-		end
 	end
 
 	local dontShoot = false
@@ -138,9 +134,6 @@ function Pass:run()
 	end
 	self._dontShootHysteresis = dontShoot
 
-	if linearShootHysteresisFlag then
-		self._linearShoot = true
-	end
 	self:_shoot(self._shootPos, self._passSpeed, self._linearShoot, 3 * math.pi/180, dontShoot)
 	if self._robot.pos:distanceTo(World.Ball.pos) < MIN_BALL_DIST_FOR_PASS_MSG then
 		-- only send message when pass is imminent
