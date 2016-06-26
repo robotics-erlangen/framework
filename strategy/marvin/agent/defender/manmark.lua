@@ -32,7 +32,13 @@ function ManMark:_updateTask()
 
 	-- try to intercept a possible goal shot
 	if Defense.dangerousBallTowardsDefense() then
-		return Duel
+		local defenseAreaIntersection = Field.intersectRayDefenseArea(World.Ball.pos,
+			World.Ball.pos + World.Ball.speed, 0, false)
+		if defenseAreaIntersection and World.Ball.pos:distanceTo(defenseAreaIntersection)
+			> World.Ball.pos:distanceTo(self._robot.pos)
+			and (self._robot.pos - World.Ball.pos):dot(World.Ball.speed) > 0 then
+			return Duel
+		end
 	end
 
 	local dest = Defense.manMarkPos(self._opp)
