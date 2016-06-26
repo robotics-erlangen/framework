@@ -70,7 +70,7 @@ local function ballOwner(robotlist, lastBallOwner)
 		ballOwnerEllipticCache["ballInDangerRating"] = ballInDangerRating
 	end
 	local ballInDangerRating = ballOwnerEllipticCache["ballInDangerRating"]
-	local ballOwnDistance = 0.15 - math.min(ballInDangerRating, 2)*0.04
+	local ballOwnDistance = 0.2 - math.min(ballInDangerRating, 2)*0.04
 
 	-- search robot with min dist to ball
 	local minDist = math.huge
