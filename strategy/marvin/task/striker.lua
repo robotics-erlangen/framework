@@ -11,6 +11,7 @@ local World = require "../base/world"
 
 local RouletteWheelSelection = require "learning/roulettewheelselection"
 local Ball = require "observer/ball"
+local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
@@ -71,6 +72,7 @@ function Striker:_init()
 	self._decision = RouletteWheelSelection.decide("StrikerGenerators", #self._generators)
 	self._generator = self._generators[self._decision](self._agent)
 	self._successProcess = nil
+	self._moveDest = nil
 end
 
 function Striker:run()
@@ -94,15 +96,22 @@ function Striker:run()
 	end
 	debug.set("StrikerGenerator", self._generatorNames[self._decision])
 
-	local moveDest = self._generator:calcMoveDest()
-	self:_suggestPass(moveDest)
+	local lockMoveDest = mainAttacker and Ball.receivesPass(mainAttacker)
+		and World.Ball.pos:distanceTo(mainAttacker.pos) < 1.5
+		or World.Ball.speed:length() > 0.3 and Robot.hadBall(mainAttacker, 0.1)
+
+	if not self._moveDest or not lockMoveDest then
+		self._moveDest = self._generator:calcMoveDest()
+	end
+
+	self:_suggestPass(self._moveDest)
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 	if mainAttacker then
 		self._robot.path:addCircle(mainAttacker.pos.x, mainAttacker.pos.y, 0.7, "mainattacker")
 	end
-	self._robot.trajectory:update(ToTarget, moveDest, (World.Ball.pos - self._robot.pos):angle())
-	self._send.moveDest("all", moveDest)
+	self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
+	self._send.moveDest("all", self._moveDest)
 end
 
 return Striker
