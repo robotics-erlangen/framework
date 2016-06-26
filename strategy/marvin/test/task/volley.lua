@@ -152,7 +152,7 @@ end
 
 function Passer:_updateTask()
 	local targetRobot = next(self._inbox.attackerFlag())
-	return Pass, {targetRobot}
+	return Pass, {targetRobot, nil, true}
 end
 
 
