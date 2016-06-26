@@ -15,6 +15,7 @@ function Shoot:_stop()
 	self._taskClass = nil
 	self._lastTaskClass = nil
 	self._taskStart = World.Time
+	self._behaviorActivateCount = 0
 	self._minTaskTime = 0
 end
 
@@ -22,7 +23,12 @@ function Shoot:check()
 	local mainAttackerFlag = self._inbox.mainAttacker().trainer == self._robot
 	self._forceKeepingInPool = mainAttackerFlag
 
-	return mainAttackerFlag
+	if mainAttackerFlag then
+		debug.set("active frames", self._behaviorActivateCount)
+		self._behaviorActivateCount = self._behaviorActivateCount + 1
+		return true
+	end
+	return false
 end
 
 function Shoot:_updateTask()
@@ -64,6 +70,11 @@ function Shoot:_updateTask()
 			self._minTaskTime = 0.5
 			self._taskStart = World.Time
 			self._taskClass = ShootGoal
+		end
+		if self._behaviorActivateCount < 5 then
+			-- on the first run, we don't consider a passing robot for
+			-- a double pass. So we delay the decision some frames
+			self._minTaskTime = 0
 		end
 		if self._taskClass ~= self._lastTaskClass then
 			self._lastTaskClass = self._taskClass
