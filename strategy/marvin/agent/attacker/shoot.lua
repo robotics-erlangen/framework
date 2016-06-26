@@ -38,20 +38,24 @@ function Shoot:_updateTask()
 	end
 	local minTimeOver = World.Time - self._taskStart >= self._minTaskTime
 
-	debug.set("minTaskTime", self._minTaskTime)
-	debug.set("time active", World.Time-self._taskStart)
+	debug.set("AAShoot/minTaskTime", self._minTaskTime)
+	debug.set("AAShoot/time active", World.Time-self._taskStart)
 	if not self._taskClass or minTimeOver then
 		-- shootgoal
 		local shootGoalTmp = ShootGoal(self._agent)
 		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 		local canShootGoal = sg_mae and sg_mae > MIN_ANGLE_PRECISION
 
+		debug.set("AAShoot/canShootGoal", canShootGoal and "true" or "false")
 		if self._robot.pos:distanceTo(World.Geometry.OpponentGoal) < World.Geometry.FieldHeightHalf then
-			canShootGoal = canShootGoal or math.random() < 0.5
+			if math.random() < 0.5 then
+				canShootGoal = true
+				debug.set("AAShoot/canShootGoal", "random")
+			end
 		end
 
 		local receivesPass = Ball.receivesPass(self._robot)
-		debug.set("receivesPass", receivesPass)
+		debug.set("AAShoot/receivesPass", receivesPass)
 
 		local pass
 		local bestPassRating = 0
@@ -68,21 +72,27 @@ function Shoot:_updateTask()
 		if receivesPass then
 			if canShootGoal and ObserverShoot.volleyPossible(self._robot, sg_target) then
 				self._taskClass = ShootGoal
+				debug.set("AAShoot/decision", "volley ShootGoal")
 			elseif pass and bestPassRating > 0.5 then -- volley pass
 				self._taskClass = Pass
 				taskParams = { pass.target, nil, true }
+				debug.set("AAShoot/decision", "volley Pass")
 			else
 				self._taskClass = ShootGoal
+				debug.set("AAShoot/decision", "volley FallBack")
 			end
 		else
 			if canShootGoal then -- catchball shootgoal
 				self._taskClass = ShootGoal
+				debug.set("AAShoot/decision", "catchball ShootGoal")
 			elseif pass then -- catchball pass
 				self._taskClass = Pass
 				taskParams = { pass.target }
+				debug.set("AAShoot/decision", "catchball Pass")
 			else -- fallback shootgoal
 				self._minTaskTime = 0.5
 				self._taskClass = ShootGoal
+				debug.set("AAShoot/decision", "catchball FallBack")
 			end
 		end
 		
