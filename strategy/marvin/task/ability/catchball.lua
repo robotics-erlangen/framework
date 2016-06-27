@@ -138,7 +138,8 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 		if time < self._catchTime then
 			self._catchTime = 0.8 * self._catchTime + 0.2 * time
 		else
-			self._catchTime = 0.95 * self._catchTime + 0.05 * time
+			-- required for moving around the ball
+			self._catchTime = time
 		end
 	end
 	debug.set("CatchBall/method", method)
