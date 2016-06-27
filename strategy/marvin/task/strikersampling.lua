@@ -10,6 +10,7 @@ local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 local Interval = require "util/interval"
+local RobotList = require "util/robotlist"
 
 function StrikerSampling:_init()
 	self._lastPoint = nil
@@ -29,6 +30,8 @@ function StrikerSampling:_init()
 			table.insert(self._allOtherRobots, r)
 		end
 	end
+	self._otherAttackers = {}
+	self._nonAttackers = {}
 end
 
 function StrikerSampling:randomLocationAroundPoint(point, radius)
@@ -62,13 +65,26 @@ end
 
 function StrikerSampling:distanceToOtherRobots(pos)
 	local closestDistance = math.huge
-	for _,r in ipairs(self._allOtherRobots) do
+	for _,r in ipairs(self._nonAttackers) do
 		local distance = pos:distanceTo(r.pos)
 		if distance < closestDistance then
 			closestDistance = distance
 		end
 	end
 	return math.min(1, 0.5*closestDistance)
+end
+
+function StrikerSampling:distanceToAttackers(pos)
+	local closestDistance = math.huge
+	for _, r in ipairs(self._otherAttackers) do
+		if r.id > self._robot.id then
+			local distance = pos:distanceTo(r.pos)
+			if distance < closestDistance then
+				closestDistance = distance
+			end
+		end
+	end
+	return math.min(1, 0.3*closestDistance)
 end
 
 function StrikerSampling:passInterception(pos)
@@ -196,6 +212,8 @@ function StrikerSampling:precalculate()
 	-- the list of robots to be used for openAngle
 	-- exclude fast moving robots as they wont be relevant anymore in a few frames
 	self._openAngleRobotList = {}
+	self._otherAttackers = self._inbox.attackerFlag()
+	self._nonAttackers = RobotList.excludeRobots(World.Robots, self._otherAttackers)
 	for _,r in ipairs(self._allOtherRobots) do
 		if r.speed:length() < 1 then
 			table.insert(self._openAngleRobotList, r)
@@ -221,6 +239,10 @@ function StrikerSampling:evalLocation(pos, currentBestScore)
 		return score
 	end
 	score = score * self:distanceToOtherRobots(pos)
+	if score <= currentBestScore then
+		return score
+	end
+	score = score * self:distanceToAttackers(pos)
 	if score <= currentBestScore then
 		return score
 	end

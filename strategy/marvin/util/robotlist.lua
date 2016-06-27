@@ -22,4 +22,22 @@ function RobotList.excludeRobot(list, robot)
 end
 RobotList.excludeRobot = Cache.forFrame(RobotList.excludeRobot)
 
+function RobotList.excludeRobots(list, robots)
+	local result = table.copy(list)
+	for i, r in ipairs(list) do
+		local found = nil
+		for b, o in ipairs(robots) do
+			if o == r then
+				found = o
+				break
+			end
+		end
+		if found then
+			table.remove(result, found)
+		end
+	end
+	return result
+end
+RobotList.excludeRobots = Cache.forFrame(RobotList.excludeRobots)
+
 return RobotList
