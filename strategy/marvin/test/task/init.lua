@@ -1,3 +1,4 @@
+require "test/task/ballrotate"
 require "test/task/duel"
 require "test/task/linepassing"
 require "test/task/movetest"
