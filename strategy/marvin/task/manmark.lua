@@ -114,13 +114,18 @@ function ManMark:run()
 		--end
 	end
 
-	preferredPos = moveDest
-
 	-- Quick fix to not interfere with goal shots
 	local shooter, shootDest = next(self._inbox.shootDestination())
 	if shootDest then
 		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
+		local distToShotPath = moveDest:distanceToLineSegment(World.Ball.pos, shootDest)
+		if distToShotPath < self._robot.radius + World.Ball.radius + 0.05 then
+			moveDest = moveDest + (World.Geometry.FriendlyGoal - moveDest):setLength(0.2)
+			debug.set("moveDest changed shot")
+		end 
 	end
+
+	preferredPos = moveDest
 
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
