@@ -74,18 +74,8 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 
 	-- predict ball and catch it
 	local predictedBall = Physics.ballAtTime(ball, self._catchTime)
-	-- if the robot has to move around the ball aim a bit behind the ball to ensure
-	-- that the path doesn't contain a too sharp corner
-	local virtualBall
 	if ballInsideRobot then
-		virtualBall = { pos = self._lastReasonableBallPos, speed = Vector(0, 0), maxSpeed = ball.maxSpeed, radius = ball.radius }
-		predictedBall = virtualBall
-	else
-		if ballWillHitRobot or (targetPos - predictedBall.pos):dot(predictedBall.pos - self._robot.pos) > 0 then
-			virtualBall = predictedBall
-		else
-			virtualBall = Physics.ballAtTime(ball, math.min(timeLimit, self._catchTime + 0.1))
-		end
+		predictedBall = { pos = self._lastReasonableBallPos, speed = Vector(0, 0), maxSpeed = ball.maxSpeed, radius = ball.radius }
 	end
 
 	-- catching the ball only makes sense if we really try to
@@ -97,7 +87,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 				targetPos, targetSpeed)
 		viewDir = targetDir
 	end
-	local moveDest = virtualBall.pos - Vector.fromAngle(viewDir):scaleLength(
+	local moveDest = predictedBall.pos - Vector.fromAngle(viewDir):scaleLength(
 			self._robot.shootRadius + distanceToBall + ball.radius)
 
 	-- setup obstacles
