@@ -110,6 +110,12 @@ function Striker:run()
 	if mainAttacker then
 		self._robot.path:addCircle(mainAttacker.pos.x, mainAttacker.pos.y, 0.7, "mainattacker")
 	end
+
+	-- don't drive into our own pass path
+	local _, shootDest = next(self._inbox.shootDestination())
+	if shootDest then
+		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
+	end
 	self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
 	self._send.moveDest("all", self._moveDest)
 end
