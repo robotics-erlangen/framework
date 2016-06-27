@@ -98,16 +98,27 @@ local function calculateCenterBackPositions(centerBackApplications)
 	for robot, target in pairs(centerBackApplications) do
 		-- the already calculated cbPos
 		local cbPos = centerBackPositions[robot]
+		
 		-- if the target is the ball, predict it
 		local targetPos = target.pos
 		if target == World.Ball then
 			targetPos = Goal.predictShot()
 		end
+
 		-- where the robot would go if it was the only one
-		local pcbPos = privateCenterBackPositions[robot] and privateCenterBackPositions[robot].pos
-				or Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal,
+		local pcbPos = CenterBack.defaultPos
+		local pcbWay = 0
+		if privateCenterBackPositions[robot] then
+			pcbPos = privateCenterBackPositions[robot].pos
+			pcbWay = privateCenterBackPositions[robot].way
+		else
+			local intersectionPos, intersectionWay = Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal,
 				targetPos - World.Geometry.FriendlyGoal, distanceToDefenseArea + robot_radius, false)
-				or CenterBack.defaultPos
+			if intersectionPos then
+				pcbPos = intersectionPos
+				pcbWay = intersectionWay
+			end
+		end
 
 		-- if the robot is close to its cbPos or pcbPos then mark it as important
 		local distToCBPos = cbPos and robot.pos:distanceTo(cbPos.pos) or math.huge
@@ -116,6 +127,21 @@ local function calculateCenterBackPositions(centerBackApplications)
 		local important = distToAnything < getImportant
 				or cbPos and distToAnything < getUnimportant
 
+		-- if the robot is blocked by current centerbacks then mark it as important
+		if not important and Field.distanceToFriendlyDefenseArea(robot.pos, robot.radius)
+			< distanceToDefenseArea + 2 * robot_radius and distToPCBPos > 2 * robot_radius then
+
+			local _, way = Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal,
+				robot.pos - World.Geometry.FriendlyGoal, 0, false)
+			local way_min = math.min(way, pcbWay)
+			local way_max = math.max(way, pcbWay)
+			for cb, ptw in pairs(centerBackPositions) do
+				if ptw.way > way_min and ptw.way < way_max then
+					important = true
+					break
+				end
+			end
+		end
 
 		-- if important: insert the robot in the data structures
 		--               for calculating the positions for important robots
@@ -223,7 +249,8 @@ local function calculateCenterBackPositions(centerBackApplications)
 				vis.addCircle("t/centerback: Positions", final_pos, 0.1, vis.colors.skyBlue)
 				table.insert(defensePoints, {
 					["pos"] = final_pos,
-					["target"] = t.target
+					["target"] = t.target,
+					["way"] = way
 				})
 
 				way = way + delta
@@ -240,7 +267,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 	table.sort(sortedRobots, lt2)
 	lastOrder = sortedRobots
 
-	-- store result (robot -> (pos, target))
+	-- store result (robot -> (pos, target, way))
 	centerBackPositions = {}
 	for i = 1,#sortedRobots do
 		centerBackPositions[sortedRobots[i]] = defensePoints[i]
@@ -270,7 +297,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 
 		local pos = Field.defenseIntersectionByWay(target_way, robot_radius + distanceToDefenseArea, false)
 		vis.addCircle("t/centerback: Positions", pos, 0.1, vis.colors.greenHalf)
-		privateCenterBackPositions[robot] = {["pos"] = pos, ["target"] = target}
+		privateCenterBackPositions[robot] = {["pos"] = pos, ["target"] = target, ["way"] = target_way}
 	end
 end
 

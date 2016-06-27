@@ -78,22 +78,12 @@ function ArmadaTask:run()
         self._moveDest = self:_pointOnCircle()
     else -- Direct or Indirect Freekick
         if not self._armadaPosTaken then
-            -- the behavior ensures that there are always 4 involved robots
-            local involvedRobots = {}
-            for robot, _ in pairs(self._inbox.standardMoveFlag("broadcast")) do
-                table.insert(involvedRobots, robot)
+            local yPos = Y_BALL_DISTS_LEFT[self._posIndex]
+            if World.Ball.pos.x > 0 then
+                yPos = Y_BALL_DISTS_RIGHT[self._posIndex]
             end
-            table.sort(involvedRobots, sortByX)
-            for i, robot in ipairs(involvedRobots) do
-                if robot == self._robot then
-                    local yPos = Y_BALL_DISTS_LEFT[i]
-                    if World.Ball.pos.x > 0 then
-                        yPos = Y_BALL_DISTS_RIGHT[i]
-                    end
-                    self._moveDest = Vector(X_POSITIONS[i], yPos)
-                    self._armadaPosTaken = true
-                end
-            end
+            self._moveDest = Vector(X_POSITIONS[self._posIndex], yPos)
+            self._armadaPosTaken = true
         end
         self:_suggestPass(self._moveDest)
     end
