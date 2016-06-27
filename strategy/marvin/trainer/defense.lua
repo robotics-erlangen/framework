@@ -34,7 +34,13 @@ function Defense:_updateManmarkTargets()
 	local dangerousness = UtilDefense.rateOpponentDangerousness()
 	for _, robot in ipairs(World.OpponentRobots) do
 		local alreadyTargeted = self._manmarkTargets[robot] ~= nil
-
+		-- don't manmark if we are already dueling the robot
+		-- the duel robot has to block the shot already
+		local sender, msg = next(self._inbox.defendedOpponent())
+		local dribblerPos = msg.pos + Vector.fromAngle(msg.dir) * (msg.shootRadius + World.Ball.radius)
+		if msg == robot and sender.pos:distanceToLineSegment(dribblerPos, World.Geometry.FriendlyGoal) < sender.radius then
+			goto continue
+		end
 		-- consider the direction of the opponents
 		local extrapolatedYPos = robot.pos.y + robot.speed.y * 0.5
 
