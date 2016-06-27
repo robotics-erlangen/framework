@@ -37,8 +37,7 @@ function Defense:_updateManmarkTargets()
 		-- don't manmark if we are already dueling the robot
 		-- the duel robot has to block the shot already
 		local sender, msg = next(self._inbox.defendedOpponent())
-		local dribblerPos = msg.pos + Vector.fromAngle(msg.dir) * (msg.shootRadius + World.Ball.radius)
-		if msg == robot and sender.pos:distanceToLineSegment(dribblerPos, World.Geometry.FriendlyGoal) < sender.radius then
+		if msg == robot and sender.pos:distanceToLineSegment(msg.pos + Vector.fromAngle(msg.dir) * (msg.shootRadius + World.Ball.radius), World.Geometry.FriendlyGoal) < sender.radius then
 			goto continue
 		end
 		-- consider the direction of the opponents
