@@ -48,7 +48,7 @@ function Shoot:_updateTask()
 
 		debug.set("AAShoot/canShootGoal", canShootGoal and "true" or "false")
 		if self._robot.pos:distanceTo(World.Geometry.OpponentGoal) < World.Geometry.FieldHeightHalf then
-			if math.random() < 0.5 then
+			if not canShootGoal and math.random() < 0.5 then
 				canShootGoal = true
 				debug.set("AAShoot/canShootGoal", "random")
 			end
