@@ -23,7 +23,7 @@ function Ally:init(robot, messaging)
 end
 
  -- below this distance from dribbler to ball, an ally is considered mainAttacker
-local ALLY_MAINATTACKER_DIST = 0.06
+local ALLY_MAINATTACKER_DIST = 0.16
 local MIN_DIST_FOR_PASS_POS = 0.2
 local timeSentToPartnerTeam = 0 -- messaging the allied team should only happen once per frame
 function Ally:_run()
@@ -44,7 +44,7 @@ function Ally:_run()
                         mixedTeamMessage[sender.id]["targetPos"] = msg
                     end
                 end
-            elseif name == "passPos" then
+            elseif name == "passPos" then                
                 local sender, pos = next(func())
                 if sender then
                     if not mixedTeamMessage[sender.id] then
@@ -116,7 +116,7 @@ function Ally:_run()
             for robot, _ in pairs(self._inbox.attackerFlag()) do
                 if robot.pos:distanceTo(msg) < MIN_DIST_FOR_PASS_POS then
                     vis.addCircle("a/ally/passpos", msg, 0.15, vis.colors.redHalf, true)
-                    self._send.passPos(robot, msg)
+                    self._send.passPos("all", { robot = robot, pos = robot.pos })
                     passPosSent = true
                     break
                 end
@@ -137,7 +137,7 @@ function Ally:_run()
         self._send.exclusiveRole("trainer", {mainAttacker = 2})
     elseif self._robot.speed:length() > 0.5 and
             self._robot.speed:absoluteAngleDiff(ballPos-dirVector) < 20/180*math.pi then
-        (require "agent/base/behavior")._applyForMainAttacker(self) -- HACK
+        (require "agent/base")._applyForMainAttacker(self) -- HACK
     end
 end
 

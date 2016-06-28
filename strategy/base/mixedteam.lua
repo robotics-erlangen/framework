@@ -5,7 +5,7 @@ local debug = require "../base/debug"
 
 
 local function decodeLocation(loc)
-	return Vector(loc.y, -loc.x)
+	return Vector(loc.y / 1000, -loc.x / 1000)
 end
 
 local function decodeDirection(dir)
@@ -42,7 +42,7 @@ function mixedteam.decodeData(data)
 end
 
 local function encodeLocation(loc)
-	return { x = -loc.y, y = loc.x }
+	return { x = -loc.y * 1000, y = loc.x * 1000 }
 end
 
 local function encodeDirection(dir)
