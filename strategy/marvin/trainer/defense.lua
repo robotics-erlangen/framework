@@ -41,6 +41,10 @@ function Defense:init()
 	self._lastMMCBTargets = {} -- opponent -> bool
 end
 
+local compareAngles = function(i1, i2)
+	return i1.angle < i2.angle
+end
+
 function Defense:_updateManmarkTargets()
 	local closestOppToBall, closestOppToBallDist =
 		UtilDefense.getClosestRobot(World.OpponentRobots, World.Ball.pos)
@@ -79,7 +83,53 @@ function Defense:_updateManmarkTargets()
 		newManmarkTargets[robot] = dangerousness[robot]
 ::continue::
 	end
-	self._manmarkTargets = newManmarkTargets
+
+	local targetAngles = {}
+	for robot, rating in pairs(newManmarkTargets) do
+		local angle = (robot.pos - World.Geometry.FriendlyGoal):angle()
+		table.insert(targetAngles, {robot = robot, angle = angle, rating = rating})
+	end
+	table.sort(targetAngles, compareAngles)
+
+	local groupStartAngle = -math.huge
+	local groupRobots = {}
+	local currentGroup = {}
+	local maxDeltaAngle = 0.25 / World.Geometry.DefenseRadius
+	for _, robotAngle in pairs(targetAngles) do
+		if robotAngle.angle - groupStartAngle > maxDeltaAngle then
+			groupStartAngle = robotAngle.angle
+			if #currentGroup > 0 then
+				table.insert(groupRobots, currentGroup)
+				currentGroup = {}
+			end
+		end
+		table.insert(currentGroup, robotAngle)
+	end
+	if #currentGroup > 0 then
+		table.insert(groupRobots, currentGroup)
+	end
+
+	self._manmarkTargets = {}
+	local ballAngle = (World.Ball.pos - World.Geometry.FriendlyGoal):angle()
+	for _, group in ipairs(groupRobots) do
+		local firstRobotAngle = group[1]
+		local lastRobotAngle = group[#group]
+		local defendedAngle = ballAngle < firstRobotAngle.angle and firstRobotAngle.angle or lastRobotAngle.angle
+
+		local defendedDistance = math.huge
+		local groupRating = 0
+		for _, robotAngle in ipairs(group) do
+			defendedDistance = math.min(defendedDistance,
+				robotAngle.robot.pos:distanceTo(World.Geometry.FriendlyGoal))
+			groupRating = math.max(groupRating, robotAngle.rating)
+		end
+
+		local defendedPos = Vector.fromAngle(defendedAngle) * defendedDistance + World.Geometry.FriendlyGoal
+		local fakeRobot = {pos = defendedPos, radius = Constants.maxRobotRadius, speed = Vector(0, 0)}
+		self._manmarkTargets[fakeRobot] = groupRating
+	end
+
+	-- self._manmarkTargets = newManmarkTargets
 	self._unassignedManmarkTargets = table.copy(self._manmarkTargets)
 	self._allUnassignedManmarkTargets = table.copy(dangerousness)
 
