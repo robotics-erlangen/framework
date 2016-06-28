@@ -126,14 +126,15 @@ function Defense:_updateManmarkTargets()
 
 		local defendedPos = Vector.fromAngle(defendedAngle) * defendedDistance + World.Geometry.FriendlyGoal
 		local fakeRobot = {pos = defendedPos, radius = Constants.maxRobotRadius, speed = Vector(0, 0)}
-		self._manmarkTargets[fakeRobot] = groupRating
+
+		table.insert(self._manmarkTargets, {robot = fakeRobot, rating = groupRating, group = group})
 	end
 
 	-- self._manmarkTargets = newManmarkTargets
 	self._unassignedManmarkTargets = table.copy(self._manmarkTargets)
 	self._allUnassignedManmarkTargets = table.copy(dangerousness)
 
-	for robot, rating in pairs(self._manmarkTargets) do
+	for robot, rating in pairs(dangerousness) do
 		debug.set("Dangerousness/" .. tostring(robot.id), rating)
 		local color = vis.fromTemperature(rating)
 		vis.addCircle("tr/defense: Dangerousness", robot.pos, 0.2, color, true)
@@ -143,6 +144,8 @@ end
 function Defense:_nextManmarkAssignment(defenders)
 	local bestRating = -math.huge
 	local bestTarget = nil
+	local bestGroup = nil
+	local bestId = nil
 	local bestDefender = nil
 
 	if #defenders == 0 then
@@ -151,7 +154,10 @@ function Defense:_nextManmarkAssignment(defenders)
 
 	-- search for the opponent with the highest rating
 	-- if a defender marked it in the previous frame, add a bonus to the rating and assign
-	for target, rating in pairs(self._unassignedManmarkTargets) do
+	for id, entry in pairs(self._unassignedManmarkTargets) do
+		local target = entry.robot
+		local rating = entry.rating
+		local group  = entry.group
 		local prevManmark = self._previousManmarkAssignments[target]
 		local assignedDefender = nil
 		if prevManmark then
@@ -166,6 +172,8 @@ function Defense:_nextManmarkAssignment(defenders)
 		if rating > bestRating then
 			bestRating = rating
 			bestTarget = target
+			bestGroup = group
+			bestId = id
 		end
 	end
 
@@ -175,8 +183,10 @@ function Defense:_nextManmarkAssignment(defenders)
 			local markPos = UtilDefense.manMarkPos(bestTarget)
 			bestDefender = UtilDefense.getClosestRobot(defenders, markPos)
 		end
-		self._unassignedManmarkTargets[bestTarget] = nil
-		self._allUnassignedManmarkTargets[bestTarget] = nil
+		self._unassignedManmarkTargets[bestId] = nil
+		for _,r in ipairs(bestGroup) do
+			self._allUnassignedManmarkTargets[r] = nil
+		end
 		self._manmarkAssignments[bestTarget] = bestDefender
 	end
 	return bestTarget, bestDefender
@@ -319,7 +329,7 @@ function Defense:_assignDefenders()
 			if bestTarget then
 				local defensePos = UtilDefense.centerBackPos(bestTarget.pos)
 				self._send.roleAssignment(defender, {name = "CenterBack", params = bestTarget})
-				self._unassignedManmarkTargets[bestTarget] = nil
+				-- self._unassignedManmarkTargets[bestTarget] = nil
 				self._allUnassignedManmarkTargets[bestTarget] = nil
 				mmcbTargets[bestTarget] = true
 			else
