@@ -45,6 +45,7 @@ message Specs
     optional float shot_chip_max = 11;
     optional float dribbler_width = 12;
     optional LimitParameters acceleration = 13;
+    optional LimitParameters strategy = 16;
     optional ControllerParameters controller = 14;
     optional float ir_param = 15;
 };

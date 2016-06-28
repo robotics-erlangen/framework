@@ -19,6 +19,14 @@ default {
     a_brake_s_max: 5.5
     a_brake_phi_max: 60
   }
+  strategy {
+    a_speedup_f_max: 3.3
+    a_speedup_s_max: 2.5
+    a_speedup_phi_max: 60
+    a_brake_f_max: 3.5
+    a_brake_s_max: 4.5
+    a_brake_phi_max: 60
+  }
   controller {
     k_p_s: 1.2
     k_p_f: 0.9
