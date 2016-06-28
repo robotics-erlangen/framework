@@ -50,7 +50,7 @@ function Defense:_updateManmarkTargets()
 		end
 
 		-- if in STOP, don't mark opponents who are close to the stop circle
-		local stopCircleMarkRadius = alreadyTargeted and 0.6 or 0.75
+		local stopCircleMarkRadius = alreadyTargeted and 0.7 or 0.85
 		if Referee.isStopState() and robot.pos:distanceTo(World.Ball.pos) < stopCircleMarkRadius then
 			goto continue
 		end
