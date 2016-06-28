@@ -12,24 +12,16 @@ default {
   shot_chip_max: 3
   dribbler_width: 0.08
   acceleration {
-    a_speedup_f_max: 3.6
-    a_speedup_s_max: 2.5
+    a_speedup_f_max: 10
+    a_speedup_s_max: 10
     a_speedup_phi_max: 60
-    a_brake_f_max: 4.5
-    a_brake_s_max: 5.5
-    a_brake_phi_max: 60
-  }
-  strategy {
-    a_speedup_f_max: 3.3
-    a_speedup_s_max: 2.5
-    a_speedup_phi_max: 60
-    a_brake_f_max: 3.5
-    a_brake_s_max: 4.5
+    a_brake_f_max: 10
+    a_brake_s_max: 10
     a_brake_phi_max: 60
   }
   controller {
-    k_p_s: 1.2
-    k_p_f: 0.9
+    k_p_s: 0.8
+    k_p_f: 0.6
     k_p_omega: 0.1
     k_i_s: 0
     k_i_f: 0
@@ -42,6 +34,14 @@ default {
     k_ff_omega: 1
   }
   ir_param: 0
+  strategy {
+    a_speedup_f_max: 3.6
+    a_speedup_s_max: 2.5
+    a_speedup_phi_max: 60
+    a_brake_f_max: 4.5
+    a_brake_s_max: 5.5
+    a_brake_phi_max: 60
+  }
 }
 robot {
   id: 0
