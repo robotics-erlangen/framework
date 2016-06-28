@@ -354,7 +354,7 @@ function CenterBack:run()
 	end
 
 	local ignoreOpponents = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-		< 2 * self._robot.radius + self.distanceToDefenseArea() + 0.05
+		< 4 * self._robot.radius + self.distanceToDefenseArea() + 0.05
 
 	local ignoreFriends = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 		< 2 * self._robot.radius + self.distanceToDefenseArea() + 0.05
