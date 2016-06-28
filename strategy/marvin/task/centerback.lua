@@ -353,11 +353,11 @@ function CenterBack:run()
 		self._robot:chip(3)
 	end
 
-	local ignoreOpponents
-		= Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) < 2*self._robot.radius
+	local ignoreOpponents = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+		< 2 * self._robot.radius + self.distanceToDefenseArea() + 0.05
 
-	local ignoreFriends
-		= Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) < 2*self._robot.radius
+	local ignoreFriends = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+		< 2 * self._robot.radius + self.distanceToDefenseArea() + 0.05
 
 	-- Quick fix to not interfere with goal shots
 	local shooter, shootDest = next(self._inbox.shootDestination())
