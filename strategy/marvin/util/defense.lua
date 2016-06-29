@@ -3,6 +3,7 @@ local Defense = {}
 local Cache = require "../base/cache"
 local Constants = require "../base/constants"
 local Field = require "../base/field"
+local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Physics = require "observer/physics"
@@ -39,6 +40,39 @@ local function manMarkPos(opponent)
 	return targetPos
 end
 Defense.manMarkPos = Cache.forFrame(manMarkPos)
+
+local function manMarkFakeRobot(robotlist)
+	local ballAngle = (World.Ball.pos - World.Geometry.FriendlyGoal):angle()
+	local minAngle = nil
+	local minAngleDiff = math.huge
+	local minAngleRobot = nil
+	local minDist = math.huge
+	local minDistRobot = nil
+	for _, r in ipairs(robotlist) do
+		local angle = (r.pos - World.Geometry.FriendlyGoal):angle()
+		local angleDiff = math.abs(angle - ballAngle)
+		if angleDiff < minAngleDiff then
+			minAngleDiff = angleDiff
+			minAngle = angle
+			minAngleRobot = r
+		end
+		local dist = r.pos:distanceTo(World.Geometry.FriendlyGoal)
+		if dist < minDist then
+			minDist = dist
+			minDistRobot = r
+		end
+	end
+	local angularSpeedAngle = (minAngleRobot.pos + minAngleRobot.speed - World.Geometry.FriendlyGoal):angle()
+	local angularSpeed = geom.normalizeAngle(angularSpeedAngle - minAngle)
+	local distSpeedDist = (minDistRobot.pos + minDistRobot.speed):distanceTo(World.Geometry.FriendlyGoal)
+	local distSpeed = distSpeedDist - minDist
+	local speed = Vector.fromAngle(angularSpeed) * distSpeed
+
+	local defendedPos = Vector.fromAngle(minAngle) * minDist + World.Geometry.FriendlyGoal
+	local fakeRobot = {pos = defendedPos, radius = Constants.maxRobotRadius, speed = speed}
+	return fakeRobot
+end
+Defense.manMarkFakeRobot = Cache.forFrame(manMarkFakeRobot)
 
 local function centerBackPos(targetPos)
 	local dist = CenterBack.distanceToDefenseArea() + Constants.maxRobotRadius
