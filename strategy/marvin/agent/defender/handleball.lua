@@ -134,7 +134,7 @@ function HandleBall:check()
 
 	debug.set("HandleBall", self._taskDecision)
 
-	if not self._taskDecision == "forcedefender" then
+	if self._taskDecision ~= "forcedefender" then
 		if mainAttacker == self._robot
 				or self._taskDecision == "attacker"
 				or self._taskDecision == "interceptpass"
