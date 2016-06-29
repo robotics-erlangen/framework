@@ -172,7 +172,8 @@ function ShootGoal:_init()
 	self._shootTargetWidth = 0
 	self._dirty = false
 	self._desperate = false
-	self._desperateChipTargetPoint = G.OpponentGoal + Vector(0, -0.21)
+	self._desperateChipTargetPoint = G.OpponentGoal
+		+ (World.Ball.pos - G.OpponentGoal):setLength(World.Geometry.DefenseRadius)
 end
 
 function ShootGoal:run()
