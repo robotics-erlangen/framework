@@ -124,7 +124,7 @@ local function rateOpponentDangerousness()
 		local angleOppGoalY = (opp.pos - World.Geometry.FriendlyGoal):absoluteAngleDiff(Vector(0, 1))
 
 		local ratingAngleOppGoalBall = Rating.valueToRating(angleOppGoalBall, 0, 60 * math.pi/180)
-		local ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 90 * math.pi/180, 60 * math.pi/180)
+		local ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 120 * math.pi/180, 80 * math.pi/180)
 		local ratingAngleOppGoalY = Rating.valueToRating(angleOppGoalY, 85 * math.pi/180, 70 * math.pi/180)
 		local ratingDistOppGoal = Rating.valueToRating(distOppGoal,
 			World.Geometry.FieldHeight, World.Geometry.FieldHeightHalf/2)
