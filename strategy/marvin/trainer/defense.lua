@@ -15,11 +15,16 @@ local Rating = require "util/rating"
 
 
 function Defense:init()
-	self._manmarkTargets              = {} -- opponent -> rating (= how dangerous this robot is)
-	self._unassignedManmarkTargets    = {} -- opponent -> rating
-	self._allUnassignedManmarkTargets = {} -- opponent -> rating
-	self._manmarkAssignments          = {} -- opponent -> defender
-	self._previousManmarkAssignments  = {} -- opponent -> defender
+	self._manmarkAssignments = {} -- opponent -> defender
+	self._previousManmarkAssignments = {} -- opponent -> defender
+	self._manmarkGroups	= {} -- (robots = {opponent}, rating)
+
+	self._partners = {} -- opponent -> opponent
+
+	-- self._manmarkTargets = {} -- opponent -> rating (= how dangerous this robot is)
+	-- self._unassignedManmarkTargets    = {} -- opponent -> rating
+	-- self._allUnassignedManmarkTargets = {} -- opponent -> rating
+
 	self._ballInOurHalf = true
 
 	local countersidePosLeft  = Vector(-World.Geometry.FieldWidthHalf, 0)
@@ -41,8 +46,8 @@ function Defense:init()
 	self._lastMMCBTargets = {} -- opponent -> bool
 end
 
-local compareAngles = function(i1, i2)
-	return i1.angle < i2.angle
+local compareDists = function(i1, i2)
+	return i1.dist < i2.dist
 end
 
 function Defense:_updateManmarkTargets()
@@ -51,8 +56,15 @@ function Defense:_updateManmarkTargets()
 
 	local newManmarkTargets = {}
 	local dangerousness = UtilDefense.rateOpponentDangerousness()
+
+	for robot, rating in pairs(dangerousness) do
+		debug.set("Dangerousness/" .. tostring(robot.id), rating)
+		local color = vis.fromTemperature(rating)
+		vis.addCircle("tr/defense: Dangerousness", robot.pos, 0.2, color, true)
+	end
+
 	for _, robot in ipairs(World.OpponentRobots) do
-		local alreadyTargeted = self._manmarkTargets[robot] ~= nil
+		local alreadyTargeted = self._previousManmarkAssignments[robot] ~= nil
 		-- don't manmark if we are already dueling the robot
 		-- the duel robot has to block the shot already
 		local sender, msg = next(self._inbox.defendedOpponent())
@@ -84,113 +96,88 @@ function Defense:_updateManmarkTargets()
 ::continue::
 	end
 
-	local targetAngles = {}
+	local list = {}
 	for robot, rating in pairs(newManmarkTargets) do
-		local angle = (robot.pos - World.Geometry.FriendlyGoal):angle()
-		table.insert(targetAngles, {robot = robot, angle = angle, rating = rating})
+		table.insert(list, {robot = robot, rating = rating})
 	end
-	table.sort(targetAngles, compareAngles)
 
-	local groupStartAngle = -math.huge
-	local groupRobots = {}
-	local currentGroup = {}
-	local maxDeltaAngle = 0.25 / World.Geometry.DefenseRadius
-	for _, robotAngle in pairs(targetAngles) do
-		if robotAngle.angle - groupStartAngle > maxDeltaAngle then
-			groupStartAngle = robotAngle.angle
-			if #currentGroup > 0 then
-				table.insert(groupRobots, currentGroup)
-				currentGroup = {}
+	local maxDist = 0.5
+	local listWithDist = {}
+	for i, first in ipairs(list) do
+		for j = i+1, #list do
+			local second = list[j]
+			local dist = first.robot.pos:distanceTo(second.robot.pos)
+			if self._partners[first] == second then
+				dist = dist - 0.1
+			end
+			if dist < maxDist then
+				table.insert(listWithDist, {a = first, b = second, dist = dist})
 			end
 		end
-		table.insert(currentGroup, robotAngle)
 	end
-	if #currentGroup > 0 then
-		table.insert(groupRobots, currentGroup)
-	end
+	table.sort(listWithDist, compareDists)
 
-	self._manmarkTargets = {}
-	local ballAngle = (World.Ball.pos - World.Geometry.FriendlyGoal):angle()
-	for _, group in ipairs(groupRobots) do
-		local firstRobotAngle = group[1]
-		local lastRobotAngle = group[#group]
-		local defendedAngle = ballAngle < firstRobotAngle.angle and firstRobotAngle.angle or lastRobotAngle.angle
-
-		local defendedDistance = math.huge
-		local groupRating = 0
-		for _, robotAngle in ipairs(group) do
-			defendedDistance = math.min(defendedDistance,
-				robotAngle.robot.pos:distanceTo(World.Geometry.FriendlyGoal))
-			groupRating = math.max(groupRating, robotAngle.rating)
+	local groups = {}
+	local partners = {}
+	for _, entry in ipairs(listWithDist) do
+		if not partners[entry.a] and not partners[entry.b] then
+			local rating = math.max(entry.a.rating, entry.b.rating)
+			table.insert(groups, {robots = {entry.a.robot, entry.b.robot}, rating = rating})
+			partners[entry.a] = entry.b
+			partners[entry.b] = entry.a
 		end
+	end
+	self._partners = partners
 
-		local defendedPos = Vector.fromAngle(defendedAngle) * defendedDistance + World.Geometry.FriendlyGoal
-		local fakeRobot = {pos = defendedPos, radius = Constants.maxRobotRadius, speed = Vector(0, 0)}
-
-		table.insert(self._manmarkTargets, {robot = fakeRobot, rating = groupRating, group = group})
+	for _, entry in ipairs(list) do
+		if not partners[entry] then
+			table.insert(groups, {robots = {entry.robot}, rating = entry.rating})
+		end
 	end
 
-	-- self._manmarkTargets = newManmarkTargets
-	self._unassignedManmarkTargets = table.copy(self._manmarkTargets)
-	self._allUnassignedManmarkTargets = table.copy(dangerousness)
-
-	for robot, rating in pairs(dangerousness) do
-		debug.set("Dangerousness/" .. tostring(robot.id), rating)
-		local color = vis.fromTemperature(rating)
-		vis.addCircle("tr/defense: Dangerousness", robot.pos, 0.2, color, true)
-	end
+	self._manmarkGroups = groups
 end
 
 function Defense:_nextManmarkAssignment(defenders)
-	local bestRating = -math.huge
-	local bestTarget = nil
-	local bestGroup = nil
-	local bestId = nil
-	local bestDefender = nil
-
 	if #defenders == 0 then
 		return
 	end
 
-	-- search for the opponent with the highest rating
-	-- if a defender marked it in the previous frame, add a bonus to the rating and assign
-	for id, entry in pairs(self._unassignedManmarkTargets) do
-		local target = entry.robot
-		local rating = entry.rating
-		local group  = entry.group
-		local prevManmark = self._previousManmarkAssignments[target]
-		local assignedDefender = nil
-		if prevManmark then
-			for _,r in ipairs(defenders) do
-				if r == prevManmark then
-					rating = rating + 0.2
-					assignedDefender = r
-					break
+	local bestGroup = nil
+	local bestRating = -math.huge
+	for _, group in ipairs(self._manmarkGroups) do
+		local additionalScore = 0
+		local scoreStep = 0.2 / #group.robots
+		for _, defender in ipairs(defenders) do
+			for _, opponent in ipairs(group.robots) do
+				if self._previousManmarkAssignments[opponent] == defender then
+					additionalScore = additionalScore + scoreStep
 				end
 			end
+			if additionalScore > 0 then
+				break
+			end
 		end
+		local rating = group.rating + additionalScore
 		if rating > bestRating then
 			bestRating = rating
-			bestTarget = target
 			bestGroup = group
-			bestId = id
 		end
 	end
 
-	-- assign (if not already done)
-	if bestTarget then
-		if not bestDefender then
-			local markPos = UtilDefense.manMarkPos(bestTarget)
-			bestDefender = UtilDefense.getClosestRobot(defenders, markPos)
+	if bestGroup then
+		local manMarkPos = UtilDefense.manMarkPos(UtilDefense.manMarkFakeRobot(bestGroup.robots))
+		local bestDefender = UtilDefense.getClosestRobot(defenders, manMarkPos)
+		for _, opponent in ipairs(bestGroup.robots) do
+			self._manmarkAssignments[opponent] = bestDefender
 		end
-		self._unassignedManmarkTargets[bestId] = nil
-		for _,r in ipairs(bestGroup) do
-			self._allUnassignedManmarkTargets[r] = nil
-		end
-		self._manmarkAssignments[bestTarget] = bestDefender
+		table.removeValue(self._manmarkGroups, bestGroup)
+		return bestGroup.robots, bestDefender
 	end
-	return bestTarget, bestDefender
+
+	return nil, nil
 end
+
 
 function Defense:_checkZoneDefender(zonePos)
 	local rating = 0
@@ -277,21 +264,6 @@ function Defense:_assignDefenders()
 	end
 
 	-- assign zone defenders if there are not enough opponents to manmark
-	-- local zonePosOne = self._ballIsLeft and zonePosRight or self._zonePosLeft
-	-- local zonePosTwo = self._ballIsLeft and zonePosLeft or self._zonePosRight
-	-- local zoneDefenderOne = UtilDefense.getClosestRobot(defenders, zonePosOne)
-	-- if zoneDefenderOne then
-	-- 	table.removeValue(defenders, zoneDefenderOne)
-	-- 	self._send.roleAssignment(zoneDefenderOne,
-	-- 		{name = "ZoneDefense", params = zonePosOne})
-	-- end
-	-- local zoneDefenderTwo = UtilDefense.getClosestRobot(defenders, zonePosTwo)
-	-- if zoneDefenderTwo then
-	-- 	table.removeValue(defenders, zoneDefenderTwo)
-	-- 	self._send.roleAssignment(zoneDefenderTwo,
-	-- 		{name = "ZoneDefense", params = zonePosTwo})
-	-- end
-
 	local zonePosOne = self._ballIsLeft and self._zonePosRight or self._zonePosLeft
 	local zonePosTwo = self._ballIsLeft and self._zonePosLeft or self._zonePosRight
 	local zoneDefenderPosOne = self._ballIsLeft and self._zoneDefenderPosRight or self._zoneDefenderPosLeft
@@ -310,6 +282,7 @@ function Defense:_assignDefenders()
 	end
 
 	-- in stop states: assign a centerback to follow the most dangerous unmarked opponent
+	--[[
 	local mmcbTargets = {}
 	if Referee.isStopState() then
 		while #defenders > 0 do
@@ -337,7 +310,7 @@ function Defense:_assignDefenders()
 			end
 		end
 	end
-	self._lastMMCBTargets = mmcbTargets
+	self._lastMMCBTargets = mmcbTargets ]]
 
 end
 

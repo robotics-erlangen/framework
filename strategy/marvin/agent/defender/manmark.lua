@@ -12,15 +12,26 @@ local Defense = require "util/defense"
 
 
 function ManMark:_stop()
+	self._opps = {}
 	self._opp = nil
 end
 
 function ManMark:check()
 	local role = self._inbox.roleAssignment().trainer
 	if role and role.name == "ManMark" then
-		if self._inbox.roleAssignment().trainer.params ~= self._opp then
-			self._task = nil -- force creation of new task
-			self._opp = self._inbox.roleAssignment().trainer.params
+		local params = self._inbox.roleAssignment().trainer.params
+		if #self._opps ~= #params then
+			self._task = nil
+		else
+			for _,r in ipairs(self._opps) do
+				if not table.contains(params, r) then
+					self._task = nil
+					break
+				end
+			end
+		end
+		if self._task == nil then
+			self._opps = params
 		end
 		return true
 	end
@@ -28,7 +39,21 @@ function ManMark:check()
 end
 
 function ManMark:_updateTask()
-	debug.set("target", self._opp)
+	local robotids = {}
+	for _,r in ipairs(self._opps) do
+		table.insert(robotids, tostring(r.id))
+	end
+	debug.set("targets", table.concat(robotids, " "))
+
+	local opp = Defense.manMarkFakeRobot(self._opps)
+	if not self._opp then
+		self._opp = opp
+	else
+		self._opp.pos = opp.pos
+		self._opp.speed = opp.speed
+	end
+	local dest = Defense.manMarkPos(self._opp)
+
 
 	-- try to intercept a possible goal shot
 	if Defense.dangerousBallTowardsDefense() then
@@ -41,7 +66,6 @@ function ManMark:_updateTask()
 		end
 	end
 
-	local dest = Defense.manMarkPos(self._opp)
 	local color = World.TeamIsBlue and vis.colors.blueHalf or vis.colors.yellowHalf
 	vis.addCircle("a/d/manmark: Target", dest, 0.1, color)
 	vis.addPath("a/d/manmark: Target", {self._robot.pos, dest, self._opp.pos}, color)
