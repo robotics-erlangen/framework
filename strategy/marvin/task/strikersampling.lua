@@ -3,6 +3,7 @@ local StrikerSampling = Class("Task.StrikerSampling", require "task/base")
 local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
+local Processor = require "../base/processor"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
@@ -10,9 +11,28 @@ local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 local Interval = require "util/interval"
-local RobotList = require "util/robotlist"
+
+local PositionProcessor = Class("Task.PositionProcessor", require "../base/process")
+
+local lastFramePositions = {} -- attacker -> position
+local newPositions 		 = {} -- attacker -> position
+local processorRunning = false
+
+function PositionProcessor:run()
+	lastFramePositions = table.copy(newPositions)
+	newPositions = {}
+end
+
+function PositionProcessor:isFinished()
+	return false
+end
 
 function StrikerSampling:_init()
+	if not processorRunning then
+		processorRunning = true
+		local positionProcessor = PositionProcessor()
+		Processor.addPost(positionProcessor)
+	end
 	self._lastPoint = nil
 	self._lastScore = 0
 	self._lastTime = 0
@@ -30,8 +50,6 @@ function StrikerSampling:_init()
 			table.insert(self._allOtherRobots, r)
 		end
 	end
-	self._otherAttackers = {}
-	self._nonAttackers = {}
 end
 
 function StrikerSampling:randomLocationAroundPoint(point, radius)
@@ -65,7 +83,7 @@ end
 
 function StrikerSampling:distanceToOtherRobots(pos)
 	local closestDistance = math.huge
-	for _,r in ipairs(self._nonAttackers) do
+	for _,r in ipairs(self._allOtherRobots) do
 		local distance = pos:distanceTo(r.pos)
 		if distance < closestDistance then
 			closestDistance = distance
@@ -76,9 +94,9 @@ end
 
 function StrikerSampling:distanceToAttackers(pos)
 	local closestDistance = math.huge
-	for _, r in ipairs(self._otherAttackers) do
-		if r.id > self._robot.id then
-			local distance = pos:distanceTo(r.pos)
+	for attacker, position in pairs(lastFramePositions) do
+		if attacker.id > self._robot.id then
+			local distance = pos:distanceTo(position)
 			if distance < closestDistance then
 				closestDistance = distance
 			end
@@ -212,8 +230,6 @@ function StrikerSampling:precalculate()
 	-- the list of robots to be used for openAngle
 	-- exclude fast moving robots as they wont be relevant anymore in a few frames
 	self._openAngleRobotList = {}
-	self._otherAttackers = self._inbox.attackerFlag()
-	self._nonAttackers = RobotList.excludeRobots(World.Robots, self._otherAttackers)
 	for _,r in ipairs(self._allOtherRobots) do
 		if r.speed:length() < 1 then
 			table.insert(self._openAngleRobotList, r)
@@ -294,6 +310,7 @@ end
 function StrikerSampling:calcMoveDest()
 	self:precalculate()
 	local passPos = self:findLocation()
+	newPositions[self._robot] = passPos
 	vis.addCircle("t/strikersampling: Position", passPos, 0.3, vis.colors.magenta)
 	return passPos
 end
