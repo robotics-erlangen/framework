@@ -35,7 +35,6 @@ function StrikerSampling:_init()
 	end
 	self._lastPoint = nil
 	self._lastScore = 0
-	self._lastTime = 0
 	local frontGoalPos = World.Geometry.OpponentGoal+Vector(0,-math.sign(World.Geometry.OpponentGoal.y)*
 							(World.Geometry.DefenseRadius+self._robot.radius))
 	local freeSector = Goal.largestFreeSector(frontGoalPos,{},true)
@@ -284,9 +283,7 @@ end
 
 function StrikerSampling:findLocation()
 	local bestPos = self._lastPoint or self._robot.pos
-	local currentTime = amun.getCurrentTime()
-	local difTime = currentTime - self._lastTime / 4
-	self._lastTime = currentTime
+	local difTime = World.TimeDiff / 4
 	local bestScore = self._lastScore - difTime
 	local oldScore = self:evalLocation(bestPos, -1)
 	if oldScore > bestScore then
