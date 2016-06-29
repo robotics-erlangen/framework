@@ -24,7 +24,7 @@ local function manMarkPos(opponent)
 
 	-- extend position with speed of opponent, parameters can be improved
 	local maxPosExtension = Constants.maxRobotRadius
-	local extensionTime = 0.2
+	local extensionTime = 0.8
 	local posExtension = math.min(maxPosExtension, opponent.speed:length()*extensionTime)
 	targetPos = targetPos + opponent.speed:copy():setLength(posExtension)
 
