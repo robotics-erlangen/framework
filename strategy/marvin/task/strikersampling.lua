@@ -43,6 +43,7 @@ function StrikerSampling:_init()
 	self._minDist = self._robot.radius * 2
 	self._posLimitX = World.Geometry.FieldWidthHalf - self._minDist
 	self._posLimitY = World.Geometry.FieldHeightHalf - self._minDist - World.Geometry.DefenseRadius
+		-  World.Geometry.FreeKickDefenseDist - 0.10
 	self._allOtherRobots = {}
 	for _,r in ipairs(World.OpponentRobots) do
 		if r ~= self._robot then
