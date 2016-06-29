@@ -95,10 +95,10 @@ function Striker:run()
 		return -- we're not considered at position choice
 	end
 	debug.set("StrikerGenerator", self._generatorNames[self._decision])
-
-	local lockMoveDest = mainAttacker and Ball.receivesPass(mainAttacker)
+	local lockMoveDest = mainAttacker and (Ball.receivesPass(mainAttacker)
 		and World.Ball.pos:distanceTo(mainAttacker.pos) < 1.5
-		or Robot.hadBall(mainAttacker, 0.1)
+		or Robot.hadBall(mainAttacker, 0.1))
+		and not next(self._inbox.defendedOpponent())
 
 	if not self._moveDest or not lockMoveDest then
 		self._moveDest = self._generator:calcMoveDest()
