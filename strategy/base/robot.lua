@@ -208,7 +208,7 @@ function Robot:_setSpecs(specs)
 	self.maxShotLinear = specs.shot_linear_max or 8
 	self.maxShotChip = specs.shot_chip_max or 3
 	self.acceleration = {}
-	local accelData = specs.acceleration or {}
+	local accelData = specs.strategy or {}
 	self.acceleration.aSpeedupFMax = accelData.a_speedup_f_max or 1.0
 	self.acceleration.aSpeedupSMax = accelData.a_speedup_s_max or 1.0
 	self.acceleration.aSpeedupPhiMax = accelData.a_speedup_phi_max or 1.0
