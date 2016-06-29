@@ -111,11 +111,19 @@ function Striker:run()
 		self._robot.path:addCircle(mainAttacker.pos.x, mainAttacker.pos.y, 0.7, "mainattacker")
 	end
 
-	-- don't drive into our own pass path
+	-- don't drive into our own pass path, but receiving it is ok
 	local _, shootDest = next(self._inbox.shootDestination())
-	if shootDest then
+	local _, passPos = next(self._inbox.passPos())
+	local isPassReceiver = (passPos and passPos.robot == self._robot)
+	if shootDest and not isPassReceiver then
 		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
 	end
+
+	-- block path between ball and mainAttacker, this prevents blocking a shot
+	if mainAttacker then
+		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, mainAttacker.pos.x, mainAttacker.pos.y, self._robot.radius)
+	end
+
 	self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
 	self._send.moveDest("all", self._moveDest)
 end
