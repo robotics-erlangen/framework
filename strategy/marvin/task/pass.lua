@@ -25,8 +25,8 @@ end
 
 local MIN_BALL_DIST_FOR_PASS_MSG = 1
 local MIN_OPP_CHIP_DIST = 0.35
-local ADDITIONAL_TIME = 0.01
-local DONT_SHOOT_HYSTERESIS = 0.05 -- must ALWAYS be smaller than ADDITIONAL_TIME
+local ADDITIONAL_TIME = 0.3
+local DONT_SHOOT_HYSTERESIS = 0.15 -- must ALWAYS be smaller than ADDITIONAL_TIME
 local ADDITIONAL_CORRIDOR_WIDTH_HYSTERESIS = 0.04
 
 function Pass:run()
@@ -124,7 +124,8 @@ function Pass:run()
 		debug.set("ballPositionTime",ballPosTime)
 		debug.set("ballAcceptTime",newSuggestion.time-World.Time)
 		local absBallTime = World.Time+ballPosTime
-		local lowerTime = newSuggestion.time+ADDITIONAL_TIME
+		-- ensure that we can still pass over short distances
+		local lowerTime = newSuggestion.time+math.min(ADDITIONAL_TIME, ballPosTime/2)
 		if not self._dontShootHysteresis then
 			lowerTime = lowerTime - DONT_SHOOT_HYSTERESIS
 		end
