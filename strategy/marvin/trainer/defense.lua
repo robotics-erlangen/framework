@@ -21,14 +21,16 @@ function Defense:init()
 	self._manmarkGroups	= {} -- (robots = {opponent}, rating)
 	self._partners = {} -- opponent -> opponent
 
-
 	self._ballInOurHalf = true
+	self._ballIsLeft = true
+
+	self._lingeringFreekick = false
+	self._lingeringBallIsLeft = nil
 
 	local countersidePosLeft  = Vector(-World.Geometry.FieldWidthHalf, 0)
 	local countersidePosRight = Vector( World.Geometry.FieldWidthHalf, 0)
 	self._countersideTargetLeft  = {pos = UtilDefense.centerBackPos(countersidePosLeft )}
 	self._countersideTargetRight = {pos = UtilDefense.centerBackPos(countersidePosRight)}
-	self._ballIsLeft = true
 
 	local zonePosLeft = Vector(-World.Geometry.FieldWidthHalf/2, -World.Geometry.FieldHeightHalf/4)
 	local zonePosRight = Vector(World.Geometry.FieldWidthHalf/2, -World.Geometry.FieldHeightHalf/4)
@@ -211,9 +213,14 @@ function Defense:_assignDefenders()
 	end
 
 	-- in stop states: assign a counterside centerback
-	local needCountersideCB = Referee.isStopState()
+	local needCountersideCB = Referee.isStopState() or self._lingeringFreekick
 	if needCountersideCB then
-		local countersideTarget = self._ballIsLeft
+		self._lingeringBallIsLeft = (Referee.isStopState() and self._ballIsLeft)
+			or (not Referee.isStopState() and self._lingeringBallIsLeft)
+		self._lingeringFreekick = (self._lingeringBallIsLeft and World.Ball.speed.x > 0.5)
+			or (not self._lingeringBallIsLeft and World.Ball.speed.x < -0.5)
+
+		local countersideTarget = self._lingeringBallIsLeft
 			and self._countersideTargetRight or self._countersideTargetLeft
 		local countersideCB, d = UtilDefense.getClosestRobot(defenders, countersideTarget.pos)
 		if countersideCB then
@@ -221,6 +228,8 @@ function Defense:_assignDefenders()
 			self._send.roleAssignment(countersideCB,
 				{name = "CenterBack", params = countersideTarget})
 		end
+	else
+		self._lingeringFreekick = false
 	end
 
 	-- in corner kick states: assign a sameside centerback
