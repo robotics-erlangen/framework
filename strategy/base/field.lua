@@ -59,7 +59,7 @@ end
 function Field.limitToAllowedField(pos, extraLimit)
 	extraLimit = extraLimit or 0
 	local oppExtraLimit = extraLimit
-	if Referee.isStopState() then
+	if Referee.isStopState() or Referee.isFriendlyFreeKickState() then
 		oppExtraLimit = oppExtraLimit + World.Geometry.FreeKickDefenseDist + 0.10
 	end
 	pos = Field.limitToField(pos, -extraLimit)
