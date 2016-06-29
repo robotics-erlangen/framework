@@ -113,7 +113,7 @@ function FreeKick:_updateTask()
 
 		-- wait if necessary
 		local delayPass = false
-		if self._pass and self._pass.pos and self._pass.time then
+		if self._pass and self._pass.pos and self._pass.receiveTime then
 			local shootTime = self._pass.receiveTime - Shoot.ballPassTime(World.Ball,
 					self._pass.pos, self._pass.target)
 			if World.Time < shootTime then
