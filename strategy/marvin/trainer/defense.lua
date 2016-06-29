@@ -97,20 +97,27 @@ function Defense:_updateManmarkTargets()
 
 	local list = {}
 	for robot, rating in pairs(newManmarkTargets) do
-		table.insert(list, {robot = robot, rating = rating})
+		table.insert(list, {robot = robot, rating = rating, paired = false})
 	end
 
-	local maxDist = 0.7
+	local maxWeightedDist = 0.3
 	local listWithDist = {}
 	for i, first in ipairs(list) do
 		for j = i+1, #list do
 			local second = list[j]
-			local dist = first.robot.pos:distanceTo(second.robot.pos)
-			if self._partners[first] == second then
-				dist = dist - 0.3
-			end
-			if dist < maxDist then
-				table.insert(listWithDist, {a = first, b = second, dist = dist})
+				if not first.paired and not second.paired then
+				local dist = first.robot.pos:distanceTo(second.robot.pos)
+				local angle = (first.robot.pos - World.Geometry.FriendlyGoal):absoluteAngleDiff(
+					second.robot.pos - World.Geometry.FriendlyGoal)
+				local weightedDist = dist * (0.3 + angle)
+				if self._partners[first.robot] and self._partners[first.robot] == second.robot then
+					weightedDist = weightedDist - 0.2
+				end
+				if weightedDist < maxWeightedDist then
+					table.insert(listWithDist, {a = first, b = second, dist = weightedDist})
+					first.paired = true
+					second.paired = true
+				end
 			end
 		end
 	end
@@ -122,14 +129,14 @@ function Defense:_updateManmarkTargets()
 		if not partners[entry.a] and not partners[entry.b] then
 			local rating = math.max(entry.a.rating, entry.b.rating)
 			table.insert(groups, {robots = {entry.a.robot, entry.b.robot}, rating = rating})
-			partners[entry.a] = entry.b
-			partners[entry.b] = entry.a
+			partners[entry.a.robot] = entry.b.robot
+			partners[entry.b.robot] = entry.a.robot
 		end
 	end
 	self._partners = partners
 
 	for _, entry in ipairs(list) do
-		if not partners[entry] then
+		if not entry.paired then
 			table.insert(groups, {robots = {entry.robot}, rating = entry.rating})
 		end
 	end
@@ -233,7 +240,7 @@ function Defense:_assignDefenders()
 	end
 
 	-- in corner kick states: assign a sameside centerback
-	local needSamesideCB = Referee.isDefensiveCornerKick() and World.RefereeState ~= "Stop"
+	local needSamesideCB = Referee.isDefensiveCornerKick()
 	if needSamesideCB then
 		local countersideTarget = self._ballIsLeft
 			and self._countersideTargetLeft or self._countersideTargetRight
