@@ -18,7 +18,7 @@ local ToTarget = require "trajectory/totarget"
 
 -- safety distance to ball
 local DIST_ERROR = 0.025
-local SIDE_DEPTH = 0.02
+local SIDE_DEPTH = 0.025
 -- reduce obstacle size by one millimeter to avoid collisions
 local OBSTACLE_EPSILON = 0.001
 local SLOW_BALL = 0.5
