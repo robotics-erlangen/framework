@@ -41,16 +41,7 @@ function AttackRatio:attackRatio()
 			attackRatio = 3 -- Throw-In Offensive
 		end
 	elseif refState == "DirectDefensive" or refState == "IndirectDefensive" then
-		self._oppFreeKickOngoing = true
-		local G = World.Geometry
-		local distToBorder = G.FieldWidthHalf - G.DefenseStretch/2 - G.DefenseRadius
-		if Field.distanceToFriendlyDefenseArea(ball.pos, ball.radius) < distToBorder then
-			-- we do not want a stop attacker because
-			-- the default centerback makes its job obsolete
-			attackRatio = 0
-		else
-			attackRatio = 1
-		end
+		attackRatio = 1
 	elseif refState == "Stop" then
 		attackRatio = 1
 	elseif World.GameStage == "PenaltyShootout" then
