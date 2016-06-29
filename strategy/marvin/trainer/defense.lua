@@ -15,15 +15,12 @@ local Rating = require "util/rating"
 
 
 function Defense:init()
+	self._dangerousness = {} -- opponent -> rating
 	self._manmarkAssignments = {} -- opponent -> defender
 	self._previousManmarkAssignments = {} -- opponent -> defender
 	self._manmarkGroups	= {} -- (robots = {opponent}, rating)
-
 	self._partners = {} -- opponent -> opponent
 
-	-- self._manmarkTargets = {} -- opponent -> rating (= how dangerous this robot is)
-	-- self._unassignedManmarkTargets    = {} -- opponent -> rating
-	-- self._allUnassignedManmarkTargets = {} -- opponent -> rating
 
 	self._ballInOurHalf = true
 
@@ -55,9 +52,9 @@ function Defense:_updateManmarkTargets()
 		UtilDefense.getClosestRobot(World.OpponentRobots, World.Ball.pos)
 
 	local newManmarkTargets = {}
-	local dangerousness = UtilDefense.rateOpponentDangerousness()
+	self._dangerousness = UtilDefense.rateOpponentDangerousness()
 
-	for robot, rating in pairs(dangerousness) do
+	for robot, rating in pairs(self._dangerousness) do
 		debug.set("Dangerousness/" .. tostring(robot.id), rating)
 		local color = vis.fromTemperature(rating)
 		vis.addCircle("tr/defense: Dangerousness", robot.pos, 0.2, color, true)
@@ -92,7 +89,7 @@ function Defense:_updateManmarkTargets()
 		end
 
 		-- otherwise, target the opponent
-		newManmarkTargets[robot] = dangerousness[robot]
+		newManmarkTargets[robot] = self._dangerousness[robot]
 ::continue::
 	end
 
@@ -213,7 +210,7 @@ function Defense:_assignDefenders()
 		end
 	end
 
-	-- in corner kick states: assign a counterside centerback
+	-- in stop states: assign a counterside centerback
 	local needCountersideCB = Referee.isStopState()
 	if needCountersideCB then
 		local countersideTarget = self._ballIsLeft
@@ -225,6 +222,20 @@ function Defense:_assignDefenders()
 				{name = "CenterBack", params = countersideTarget})
 		end
 	end
+
+	-- in corner kick states: assign a sameside centerback
+	local needSamesideCB = Referee.isDefensiveCornerKick() and World.RefereeState ~= "Stop"
+	if needSamesideCB then
+		local countersideTarget = self._ballIsLeft
+			and self._countersideTargetLeft or self._countersideTargetRight
+		local countersideCB, d = UtilDefense.getClosestRobot(defenders, countersideTarget.pos)
+		if countersideCB then
+			table.removeValue(defenders, countersideCB)
+			self._send.roleAssignment(countersideCB,
+				{name = "CenterBack", params = countersideTarget})
+		end
+	end
+
 
 	-- update the list of manmarkTargets
 	self:_updateManmarkTargets()
@@ -282,35 +293,32 @@ function Defense:_assignDefenders()
 	end
 
 	-- in stop states: assign a centerback to follow the most dangerous unmarked opponent
-	--[[
 	local mmcbTargets = {}
 	if Referee.isStopState() then
 		while #defenders > 0 do
 			local defender = table.remove(defenders)
 
-			local bestTarget = nil
 			local bestRating = -math.huge
-			for target, rating in pairs(self._allUnassignedManmarkTargets) do
+			local bestTarget = nil
+			for r, rating in pairs(self._dangerousness) do
 				if self._lastMMCBTargets[target] then
 					rating = rating + 0.1
 				end
-				if rating > bestRating then
-					bestTarget = target
+				if not self._manmarkAssignments[r] and rating > bestRating then
 					bestRating = rating
+					bestTarget = r
 				end
 			end
-			if bestTarget then
-				local defensePos = UtilDefense.centerBackPos(bestTarget.pos)
-				self._send.roleAssignment(defender, {name = "CenterBack", params = bestTarget})
-				-- self._unassignedManmarkTargets[bestTarget] = nil
-				self._allUnassignedManmarkTargets[bestTarget] = nil
-				mmcbTargets[bestTarget] = true
-			else
+			if not bestTarget then
 				break
 			end
+
+			mmcbTargets[bestTarget] = defender
+			self._manmarkAssignments[bestTarget] = defender
+			self._send.roleAssignment(defender, {name = "CenterBack", params = bestTarget})
 		end
 	end
-	self._lastMMCBTargets = mmcbTargets ]]
+	self._lastMMCBTargets = mmcbTargets
 
 end
 
