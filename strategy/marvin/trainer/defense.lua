@@ -100,14 +100,14 @@ function Defense:_updateManmarkTargets()
 		table.insert(list, {robot = robot, rating = rating})
 	end
 
-	local maxDist = 0.5
+	local maxDist = 0.7
 	local listWithDist = {}
 	for i, first in ipairs(list) do
 		for j = i+1, #list do
 			local second = list[j]
 			local dist = first.robot.pos:distanceTo(second.robot.pos)
 			if self._partners[first] == second then
-				dist = dist - 0.1
+				dist = dist - 0.3
 			end
 			if dist < maxDist then
 				table.insert(listWithDist, {a = first, b = second, dist = dist})
