@@ -220,24 +220,26 @@ function Shoot:_calculateDistToBall()
 	-- calculate current distance to the ball
 	local distToBall = (World.Ball.pos - self._robot.pos):rotate(-self._robot.dir)
 	distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
+	local shotAtRobot = false
 
 	if self._movingBallHysteresis then
 		local posDiff = World.Ball.pos - self._robot.pos
 		if World.Ball.speed:length() >= MOVING_BALL and World.Ball.speed:dot(posDiff) < 0 then
-			debug.set("special", "shot at robot")
 			-- ball shoot towards robots
 			local ballTouchPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)
 			local dribblerPerp = Vector.fromAngle(self._robot.dir):perpendicular()
 			-- calculate offset to ball hitpoint
 			local _, _, lambda = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, ballTouchPos, dribblerPerp)
 			if lambda then
+				debug.set("special", "shot at robot")
 				local errorVec = dribblerPerp * lambda
 				distToBall = errorVec:rotate(-self._robot.dir)
+				shotAtRobot = true
 			end
 		end
 	end
 	debug.set("distToBall", distToBall)
-	return distToBall
+	return distToBall, shotAtRobot
 end
 
 function Shoot:_correctSidewardsOffset(distToBall)
@@ -256,7 +258,7 @@ function Shoot:_correctSidewardsOffset(distToBall)
 			math.bound(-speedLimit, p_out + self._sideOffsetErrorSum, speedLimit))
 end
 
-function Shoot:_calculateMovementSpeed(lastBallSpeed, distToBall)
+function Shoot:_calculateMovementSpeed(lastBallSpeed, distToBall, shotAtRobot)
 	-- compensate ball movement
 	local speed = World.Ball.speed:copy()
 	local speedLimit = lastBallSpeed:length()
@@ -266,7 +268,9 @@ function Shoot:_calculateMovementSpeed(lastBallSpeed, distToBall)
 	end
 	-- don't drive backwards if the ball moves towards the robot
 	speed = speed:rotate(-self._robot.dir)
-	if speed.x < 0 then
+	if shotAtRobot then
+		speed = Vector(0, 0)
+	elseif speed.x < 0 then
 		speed.x = 0
 	end
 	speed = speed:rotate(self._robot.dir)
@@ -339,8 +343,8 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dont
 	self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
 	self._lastBallSpeed = self._lastBallSpeed or World.Ball.speed
 
-	local distToBall = self:_calculateDistToBall()
-	local speed = self:_calculateMovementSpeed(self._lastBallSpeed, distToBall)
+	local distToBall, shotAtRobot = self:_calculateDistToBall()
+	local speed = self:_calculateMovementSpeed(self._lastBallSpeed, distToBall, shotAtRobot)
 	local targetDir, kickSpeed = self:_calculateShootDirection(targetPos, targetSpeed, distToBall, linearShoot)
 
 	if self._movingBallHysteresis and World.Ball.speed:length() >= IN_THE_RUN
