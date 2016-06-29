@@ -14,11 +14,17 @@ local debug = require "../base/debug"
 
 function HandleBall:_stop()
 	self._taskDecision = nil
+	self._forceDefenderFrameCounter = 0
 end
 
 function HandleBall:_checkDefender()
 	-- stay defender if the ball is currently being shot at our goal
 	if DefUtil.dangerousBallTowardsDefense() then
+		self._forceDefenderFrameCounter = self._forceDefenderFrameCounter + 1
+	else
+		self._forceDefenderFrameCounter = 0
+	end
+	if self._forceDefenderFrameCounter > 5 then
 		return true
 	end
 	return false
@@ -34,14 +40,14 @@ function HandleBall:_checkAttacker()
 	end
 
 	-- don't if an opponent is at the ball rather quickly
-	local oppTimeToBallLimit = isAttacker and 1.0 or 0.7
+	local oppTimeToBallLimit = isAttacker and 0.6 or 0.3
 	local _,oppTime = Ball.firstRobotAtBall(World.OpponentRobots)
 	if oppTime < oppTimeToBallLimit then
 		return false
 	end
 
 	-- don't if an opponent is close to us
-	local distToOppLimit = isAttacker and 0.5 or 0.7
+	local distToOppLimit = isAttacker and 0.3 or 0.5
 	local _,closestOppDist = DefUtil.getClosestRobot(World.OpponentRobots, self._robot.pos)
 	if closestOppDist < distToOppLimit then
 		return false
@@ -147,6 +153,8 @@ function HandleBall:check()
 end
 
 function HandleBall:_updateTask()
+	log("HandleBall")
+
 	if self._taskDecision == "attacker" then
 		self._send.poolChangeRequest("trainer")
 	end
