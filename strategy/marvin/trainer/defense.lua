@@ -75,7 +75,7 @@ function Defense:_updateManmarkTargets()
 		local extrapolatedYPos = robot.pos.y + robot.speed.y * 0.5
 
 		-- don't follow the opponents into their own field half
-		local maxYPos = alreadyTargeted	and World.Geometry.FieldHeight / 6 or 0
+		local maxYPos = alreadyTargeted	and World.Geometry.FieldHeightHalf / 2 or World.Geometry.FieldHeightHalf / 6
 		if extrapolatedYPos > maxYPos then
 			goto continue
 		end

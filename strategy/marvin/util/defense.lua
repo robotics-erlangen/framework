@@ -17,7 +17,9 @@ Defense.PENALTY_LINE_DISTANCE = 0.35 -- prevent robots from crossing the penalty
 Defense.MARKING_DISTANCE = 0.5
 
 local function manMarkPos(opponent)
-	local dist = opponent.radius + Constants.maxRobotRadius + Defense.MARKING_DISTANCE
+	local oppDistToGoal = opponent.pos:distanceTo(World.Geometry.FriendlyGoal)
+	local markingDistance = Defense.MARKING_DISTANCE + math.max(0, (oppDistToGoal - World.Geometry.FieldHeightHalf * 0.8) * 0.5)
+	local dist = opponent.radius + Constants.maxRobotRadius + markingDistance
 	local targetPos = opponent.pos + (World.Geometry.FriendlyGoal - opponent.pos):setLength(dist)
 
 	-- extend position with speed of opponent, parameters can be improved
