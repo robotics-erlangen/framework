@@ -127,8 +127,14 @@ function ManMark:run()
 
 	preferredPos = moveDest
 
+
+	local ignoreOpponents = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+		< 4 * self._robot.radius + 0.13
+	local ignoreFriends = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+		< 2 * self._robot.radius + 0.13
+
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreFriends, ignoreOpponents)
 	self._robot.trajectory:update(ToTarget, preferredPos, preferredDir, nil, self._targetRobot.speed)
 	self._send.moveDest("all", preferredPos)
 end
