@@ -54,7 +54,7 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 			G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf")
 	end
 
-	if not ignoreBall or (Referee.isStopState() and not World.RefereeState == "BallPlacementOffensive") then
+	if not ignoreBall or (Referee.isStopState() and World.RefereeState ~= "BallPlacementOffensive") then
 		-- always add the actual ball obstacle, otherwise the ball may be pushed during stop
 		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius, "Ball")
 	end
