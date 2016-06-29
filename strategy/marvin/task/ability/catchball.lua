@@ -224,7 +224,7 @@ function CatchBall:_ballCatchMethod(currentBall, predictedBall, moveDest)
 	-- distance minus robot and ball radius thus the ball is for sure between the robot and the catch pos
 	local robotTargetSpacing = math.max(0, robotTargetDist - self._robot.radius - currentBall.radius)
 
-	if (moveDest - self._robot.pos):absoluteAngleDiff(predictedBall.pos - moveDest) > 80/180*math.pi then
+	if (moveDest - self._robot.pos):absoluteAngleDiff(predictedBall.pos - moveDest) > 87/180*math.pi then
 		-- the robot has to move around the predicted ball to reach the catch pos
 		return AROUND_METHOD
 	elseif moveDest:distanceTo(currentBall.pos) > robotTargetSpacing
