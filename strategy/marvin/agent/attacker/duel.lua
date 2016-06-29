@@ -48,8 +48,10 @@ end
 
 
 function Duel:check()
-	if not (self._inbox.mainAttacker().trainer == self._robot) then
-		self._active = false
+	local isMainAttacker = (self._inbox.mainAttacker().trainer == self._robot)
+	self._forceKeepingInPool = isMainAttacker
+
+	if not isMainAttacker then
 		return false
 	end
 	return self:genericCheck()
