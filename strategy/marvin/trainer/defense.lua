@@ -301,7 +301,7 @@ function Defense:_assignDefenders()
 			local bestRating = -math.huge
 			local bestTarget = nil
 			for r, rating in pairs(self._dangerousness) do
-				if self._lastMMCBTargets[target] then
+				if self._lastMMCBTargets[r] then
 					rating = rating + 0.1
 				end
 				if not self._manmarkAssignments[r] and rating > bestRating then
