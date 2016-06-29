@@ -59,7 +59,11 @@ function StrikerSampling:randomLocationAroundPoint(point, radius)
 	if y < -World.Geometry.FieldHeightQuarter then
 		y = -World.Geometry.FieldHeightQuarter
 	end
-	return Vector(x, y)
+	local pos = Vector(x, y)
+	if math.abs(x) < self._posLimitX and math.abs(y) < self._posLimitY then
+		return pos
+	end
+	return Field.limitToAllowedField(Vector(x, y), self._minDist)
 end
 
 -- check whether an opponent robot can reach pos faster than the own robot
@@ -159,18 +163,6 @@ function StrikerSampling:passTooShort(pos)
 	return 1
 end
 
---check whether pos is inside the allowed field limits
-function StrikerSampling:reliableLocation(pos)
-	if math.abs(pos.x) < self._posLimitX and math.abs(pos.y) < self._posLimitY then
-		return 1
-	end
-	if Field.limitToAllowedField(pos, self._minDist):distanceTo(pos) > 0 then
-		return -1
-	else
-		return 1
-	end
-end
-
 -- calculate the largest free sector from pos to the opponent goal and scale it
 function StrikerSampling:openAngle(pos)
 	local robots = {}
@@ -213,7 +205,7 @@ function StrikerSampling:dontAnnoyMainAttacker(pos)
 	end
 
 	local isIn = geom.isInTriangle(World.Geometry.OpponentGoalRight , World.Geometry.OpponentGoalLeft, World.Ball.pos, pos)
-	
+
 	if isIn then
 		return 0.1
 	end
@@ -246,10 +238,6 @@ function StrikerSampling:evalLocation(pos, currentBestScore)
 		return score
 	end
 	score = score * self:posNearEnough(pos)
-	if score <= currentBestScore then
-		return score
-	end
-	score = score * self:reliableLocation(pos)
 	if score <= currentBestScore then
 		return score
 	end
