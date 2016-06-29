@@ -35,6 +35,7 @@ local OPPONENT_DEFENSE_AREA_MIN_DISTANCE = 0.1
 
 function Duel:_init()
 	self._opposer = nil
+	self._defendedOpponentMessageSent = false
 	self._blockingBall = false
 	self._oldPosition = nil
 	self._stayBehindOpp = false
@@ -53,7 +54,9 @@ function Duel:run()
 	end
 
 	-- notify all that we are duelling
-	if self._opposer then
+	local distToOpp = self._opposer and self._robot.pos:distanceTo(self._opposer.pos) or math.huge
+	self._defendedOpponentMessageSent = distToOpp < (self._defendedOpponentMessageSent and 0.6 or 0.3)
+	if self._defendedOpponentMessageSent then
 		self._send.defendedOpponent("all", self._opposer)
 	end
 
