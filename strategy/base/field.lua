@@ -136,7 +136,7 @@ local function isInDefenseArea(pos, radius, friendly)
 		goalLine = -G.FieldHeightHalf
 	end
 
-	if (friendly and pos.y + radius < goalLine)	or (not friendly and pos.y + radius > goalLine) then
+	if (friendly and pos.y + radius < goalLine)	or (not friendly and pos.y - radius > goalLine) then
 		return false
 	end
 
