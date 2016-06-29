@@ -138,7 +138,7 @@ function Shoot:_doCatch(targetPos, targetSpeed, futureBall)
 	self._receivePassHysteresis = false
 
 	if World.Ball.speed.y > 0 then
-		self._robot:setDribblerSpeed(0.3)
+		self._robot:setDribblerSpeed(0.15)
 	end
 
 	-- universal catch ball
@@ -204,7 +204,7 @@ function Shoot:_tryReceivePass(targetPos, targetSpeed, futureBall)
 		PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 		PathHelper.addRobotObstacles(self._robot.path, self._robot)
 		self._robot.trajectory:update(ToTarget, robotPos, viewDir)
-		self._robot:setDribblerSpeed(0.2)
+		self._robot:setDribblerSpeed(0.1)
 		self._receivePassHysteresis = true
 		self._send.moveDest("all", robotPos)
 		-- send the position where the ball is catched
