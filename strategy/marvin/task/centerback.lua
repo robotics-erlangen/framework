@@ -120,28 +120,8 @@ local function calculateCenterBackPositions(centerBackApplications)
 			end
 		end
 
-		-- if the robot is close to its cbPos or pcbPos then mark it as important
-		local distToCBPos = cbPos and robot.pos:distanceTo(cbPos.pos) or math.huge
-		local distToPCBPos = robot.pos:distanceTo(pcbPos)
-		local distToAnything = math.min(distToCBPos, distToPCBPos)
-		local important = distToAnything < getImportant
-				or cbPos and distToAnything < getUnimportant
-
-		-- if the robot is blocked by current centerbacks then mark it as important
-		if not important and Field.distanceToFriendlyDefenseArea(robot.pos, robot.radius)
-			< distanceToDefenseArea + 2 * robot_radius and distToPCBPos > 2 * robot_radius then
-
-			local _, way = Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal,
-				robot.pos - World.Geometry.FriendlyGoal, 0, false)
-			local way_min = math.min(way, pcbWay)
-			local way_max = math.max(way, pcbWay)
-			for cb, ptw in pairs(centerBackPositions) do
-				if ptw.way > way_min and ptw.way < way_max then
-					important = true
-					break
-				end
-			end
-		end
+		local distToDefenseArea = Field.distanceToFriendlyDefenseArea(robot.pos, robot.radius)
+		local important = distToDefenseArea < getImportant
 
 		-- if important: insert the robot in the data structures
 		--               for calculating the positions for important robots
