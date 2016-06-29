@@ -120,16 +120,20 @@ local function rateOpponentDangerousness()
 			World.Ball.pos - World.Geometry.FriendlyGoal)
 		local angleBallOppGoal = (World.Ball.pos - opp.pos):absoluteAngleDiff(
 			World.Geometry.FriendlyGoal - opp.pos)
-		local distOppGoal = opp.pos:distanceTo(World.Geometry.FriendlyGoal)
 		local angleOppGoalY = (opp.pos - World.Geometry.FriendlyGoal):absoluteAngleDiff(Vector(0, 1))
+		local distOppGoal = opp.pos:distanceTo(World.Geometry.FriendlyGoal)
+		local distOppBall = opp.pos:distanceTo(World.Ball.pos)
 
-		local ratingAngleOppGoalBall = Rating.valueToRating(angleOppGoalBall, 0, 60 * math.pi/180)
+		local ratingAngleOppGoalBall = 1 --Rating.valueToRating(angleOppGoalBall, 0, 60 * math.pi/180)
 		local ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 120 * math.pi/180, 80 * math.pi/180)
 		local ratingAngleOppGoalY = Rating.valueToRating(angleOppGoalY, 85 * math.pi/180, 70 * math.pi/180)
+		local ratingDistOppBall = Rating.valueToRating(distOppBall, World.Geometry.FieldHeight,
+			World.Geometry.FieldHeightHalf)
 		local ratingDistOppGoal = Rating.valueToRating(distOppGoal,
 			World.Geometry.FieldHeight, World.Geometry.FieldHeightHalf/2)
 
-		local rating = ratingAngleOppGoalBall * ratingAngleBallOppGoal * ratingAngleOppGoalY * ratingDistOppGoal
+		local rating = ratingAngleOppGoalBall * ratingAngleBallOppGoal * ratingAngleOppGoalY
+			* ratingDistOppBall * ratingDistOppGoal
 		dangerousness[opp] = rating
 	end
 	return dangerousness
