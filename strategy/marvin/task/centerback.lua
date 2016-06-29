@@ -84,10 +84,9 @@ local function calculateCenterBackPositions(centerBackApplications)
 	local getImportant = 2 * robot_radius + 0.03
 	local getUnimportant = getImportant + robot_radius
 
-	local oppBallOwner = Ball.opponentBallOwner()
-	if oppBallOwner and Field.distanceToFriendlyDefenseArea(oppBallOwner.pos, oppBallOwner.radius)
-		< 2 * robot_radius + distanceToDefenseArea + 0.2 then
-		distanceBetweenDefenders = -0.01
+	if Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)
+		< 2 * robot_radius + distanceToDefenseArea + 0.4 then
+		distanceBetweenDefenders = 0
 	end
 
 	-- collect all important targets and assign them the list of robots
