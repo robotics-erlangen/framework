@@ -45,6 +45,22 @@ function Pass:run()
 	local shootSpeed = self._robot:calculateShootSpeed(self._passSpeed,
 		World.Ball.pos:distanceTo(self._shootPos))
 
+	-- try to guess a position where we might reach the pass target if we can't wait
+	if newSuggestion and newSuggestion.pos and self._dontWaitForTarget then
+		local shootBall2 = {pos = Vector(0, 0), speed = Vector(0, shootSpeed), maxSpeed = shootSpeed, radius = World.Ball.radius}
+		local ballPosTime = Physics.ballRollTime(shootBall2, newSuggestion.pos:distanceTo(World.Ball.pos))
+		local absBallTime = World.Time+ballPosTime
+		if absBallTime < newSuggestion.time then
+			local moveTime = newSuggestion.time - World.Time
+			debug.set("ballPositionTime", ballPosTime)
+			debug.set("robotPositionTime", moveTime)
+
+			local dribblerPos = self._targetRobot.pos + Vector.fromAngle(self._targetRobot.dir) * self._targetRobot.shootRadius
+			local movePos = newSuggestion.pos
+			self._shootPos = dribblerPos + (movePos - dribblerPos) * (ballPosTime / moveTime)
+		end
+	end
+
 	local linearShootHysteresisFlag = self._linarShoot
 	self._linearShoot = true
 	for _, opp in ipairs(World.Robots) do
