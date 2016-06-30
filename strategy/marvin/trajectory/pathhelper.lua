@@ -11,7 +11,7 @@ local POSITION_PADDING = 0.02
 local SEED_ANGLE_MOD = 2/180*math.pi
 local SEED_PREDICT_TIME = 0.5
 
-function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance, noSeedTarget)
+function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance, noSeedTarget, ignoreOpponentDefenseArea)
 	radius = radius or robot.radius
 	stopBallDistance = stopBallDistance or Constants.stopBallDistance
 
@@ -42,7 +42,7 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 				G.DefenseRadius + POSITION_PADDING, "DefenseArea")
 	end
 
-	if robot.pos.y > 0 and (not Referee.isFriendlyPenaltyState()) and
+	if not ignoreOpponentDefenseArea and robot.pos.y > 0 and (not Referee.isFriendlyPenaltyState()) and
 			World.RefereeState ~= "BallPlacementOffensive" then
 		path:addLine(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
 				G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y,
