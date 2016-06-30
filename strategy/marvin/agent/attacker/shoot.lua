@@ -95,7 +95,7 @@ function Shoot:_updateTask()
 				debug.set("AAShoot/decision", "catchball FallBack")
 			end
 		end
-		
+
 		self._taskStart = World.Time
 
 		if self._behaviorActivateCount < 20 then
@@ -105,10 +105,12 @@ function Shoot:_updateTask()
 		end
 		if self._taskClass ~= self._lastTaskClass then
 			self._lastTaskClass = self._taskClass
+			self._send.shootActionPlan("all", (self._taskClass == ShootGoal) and "goalShot" or "pass")
 			return self._taskClass, taskParams
 		end
 	end
 	assert(self._taskClass, "a/a/shoot has not selected a task")
+	self._send.shootActionPlan("all", (self._taskClass == ShootGoal) and "goalShot" or "pass")
 	return self._taskClass
 end
 

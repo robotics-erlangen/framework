@@ -31,6 +31,7 @@ local msgDefs = {
 	duelAssistantPos = "cdata",
 	duelAssistantDir = "number",
 	roleAssignment = "table", -- { name: string, params: table }
+	shootActionPlan = "string", -- "goalShot" or "pass"
 }
 
 local exclusiveRoles = {
