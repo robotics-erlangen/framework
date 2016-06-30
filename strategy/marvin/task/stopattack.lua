@@ -38,7 +38,10 @@ function StopAttack:run()
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, false, false, false, nil, 0.1)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
-	self._robot:setDribblerSpeed(0.15)
+	if World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
+		self._robot:setDribblerSpeed(0.15)
+	end
+	
 	self._robot.trajectory:update(ToTarget, pos, (World.Ball.pos - pos):angle())
 end
 
