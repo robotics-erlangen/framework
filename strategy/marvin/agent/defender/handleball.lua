@@ -128,12 +128,12 @@ function HandleBall:check()
 
 	if self:_checkDefender() then
 		self._taskDecision = "forcedefender"
-	elseif self:_checkAttacker() then
-		self._taskDecision = "attacker"
 	elseif self:_checkInterceptPass() then
 		self._taskDecision = "interceptpass"
 	elseif self:_checkDuel() then
 		self._taskDecision = "duel"
+	elseif self:_checkAttacker() then
+		self._taskDecision = "attacker"
 	else
 		self._taskDecision = "defender"
 	end
@@ -153,8 +153,6 @@ function HandleBall:check()
 end
 
 function HandleBall:_updateTask()
-	log("HandleBall")
-
 	if self._taskDecision == "attacker" then
 		self._send.poolChangeRequest("trainer")
 	end
