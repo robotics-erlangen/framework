@@ -9,7 +9,7 @@ local Robot = require "observer/robot"
 
 
 function AttackRatio:init()
-    self._oppFreeKickOngoing = false
+    self._opponentFreeKickOngoing = false
     self._ballInOpponentFieldHalf = false -- remember for hysteresis
 end
 
@@ -21,8 +21,18 @@ function AttackRatio:attackRatio()
 	then
 		self._ballInOpponentFieldHalf = not self._ballInOpponentFieldHalf
 	end
-	if refState ~= "Game" then
-		self._oppFreeKickOngoing = false
+
+	if refState == "DirectDefensive" or refState == "IndirectDefensive" then
+		self._opponentFreeKickOngoing = true
+	elseif refState ~= "Game" then
+		self._opponentFreeKickOngoing = false
+	else
+		for _, robot in ipairs(World.FriendlyRobots) do
+			if Robot.hadBall(robot, 0) then
+				self._opponentFreeKickOngoing = false
+				break
+			end
+		end
 	end
 
 	local attackRatio
@@ -47,13 +57,7 @@ function AttackRatio:attackRatio()
 	elseif World.GameStage == "PenaltyShootout" then
 		attackRatio = 6
 	else -- Game, GameForce
-		for _, robot in ipairs(World.FriendlyRobots) do
-			if Robot.hadBall(robot, 0) then
-				self._oppFreeKickOngoing = false
-				break
-			end
-		end
-		if self._oppFreeKickOngoing then
+		if self._opponentFreeKickOngoing then
 			attackRatio = 1
 		else
 			attackRatio = self._ballInOpponentFieldHalf and 3 or 2
