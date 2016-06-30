@@ -27,8 +27,8 @@ function Defense:init()
 	self._lingeringFreekick = false
 	self._lingeringBallIsLeft = nil
 
-	local countersidePosLeft  = Vector(-World.Geometry.FieldWidthHalf, 0)
-	local countersidePosRight = Vector( World.Geometry.FieldWidthHalf, 0)
+	local countersidePosLeft  = Vector(-World.Geometry.FieldWidthHalf, -1)
+	local countersidePosRight = Vector( World.Geometry.FieldWidthHalf, -1)
 	self._countersideTargetLeft  = {pos = UtilDefense.centerBackPos(countersidePosLeft )}
 	self._countersideTargetRight = {pos = UtilDefense.centerBackPos(countersidePosRight)}
 
