@@ -9,6 +9,7 @@ local Robot = require "observer/robot"
 
 
 function AttackRatio:init()
+	self._friendlyFreeKickOngoing = false
     self._opponentFreeKickOngoing = false
     self._ballInOpponentFieldHalf = false -- remember for hysteresis
 end
@@ -16,8 +17,8 @@ end
 function AttackRatio:attackRatio()
     local ball = World.Ball
 	local refState = World.RefereeState
-	if (self._ballInOpponentFieldHalf and ball.pos.y < -1) or
-		(not self._ballInOpponentFieldHalf and ball.pos.y > 1)
+	if (self._ballInOpponentFieldHalf and ball.pos.y < -1.5) or
+		(not self._ballInOpponentFieldHalf and ball.pos.y > 1.5)
 	then
 		self._ballInOpponentFieldHalf = not self._ballInOpponentFieldHalf
 	end
@@ -34,6 +35,20 @@ function AttackRatio:attackRatio()
 			end
 		end
 	end
+
+	if refState == "DirectOffensive" or refState == "IndirectOffensive" then
+		self._friendlyFreeKickOngoing = true
+	elseif refState ~= "Game" then
+		self._friendlyFreeKickOngoing = false
+	else
+		for _, robot in ipairs(World.OpponentRobots) do
+			if Robot.hadBall(robot, 0) then
+				self._friendlyFreeKickOngoing = false
+				break
+			end
+		end
+	end
+
 
 	local attackRatio
 	if refState == "KickoffOffensivePrepare" or refState == "KickoffOffensive" then
@@ -60,7 +75,10 @@ function AttackRatio:attackRatio()
 		if self._opponentFreeKickOngoing then
 			attackRatio = 1
 		else
-			attackRatio = self._ballInOpponentFieldHalf and 3 or 2
+			attackRatio = self._ballInOpponentFieldHalf and 2 or 1
+			if self._friendlyFreeKickOngoing then
+				attackRatio = attackRatio + 1
+			end
 		end
 	end
 
