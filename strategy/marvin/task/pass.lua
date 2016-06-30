@@ -17,6 +17,8 @@ function Pass:_init(targetRobot, passSpeed, dontWaitForTarget)
 	self._dontShootHysteresis = true
 	if passSpeed then
 		self._passSpeed = passSpeed
+	elseif dontWaitForTarget then
+		self._passSpeed = self._targetRobot.constants.passSpeed * 0.8
 	else
 		self._passSpeed = self._targetRobot.constants.passSpeed
 	end
@@ -74,7 +76,7 @@ function Pass:run()
 		end
 		local relativeShootPos = self._shootPos - World.Ball.pos
 
-		local point1, point2, oppTimeTo1, oppTimeTo2, lambda3, lambda4 = geom.intersectLineCorridor(opp.pos, 
+		local point1, point2, oppTimeTo1, oppTimeTo2, lambda3, lambda4 = geom.intersectLineCorridor(opp.pos,
 				opp.speed, World.Ball.pos, relativeShootPos, widthHalf)
 
 		if lambda3 == nil then
@@ -91,7 +93,7 @@ function Pass:run()
 			oppTimeTo2 = math.huge
 		end
 
-		if lambda3 < 0 and lambda4 < 0 then 
+		if lambda3 < 0 and lambda4 < 0 then
 			--robot is behind us
 			goto continue
 		end
@@ -125,7 +127,7 @@ function Pass:run()
 				vis.addCircle("t/pass: Friendly conflict", World.Ball.pos + relativeShootPos * lambda4, 0.1, vis.colors.blue, true)
 			end
 			-- a chip kick does not help if the interception is close to the target position
-			if (1-lambda3)*relativeShootPos:length() > MIN_OPP_CHIP_DIST 
+			if (1-lambda3)*relativeShootPos:length() > MIN_OPP_CHIP_DIST
 					and (1-lambda4)*relativeShootPos:length() > MIN_OPP_CHIP_DIST then
 				self._linearShoot = false
 				break
