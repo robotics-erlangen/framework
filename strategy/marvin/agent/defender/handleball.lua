@@ -32,17 +32,10 @@ end
 
 function HandleBall:_checkAttacker()
 	local isAttacker = self._taskDecision == "attacker"
-	
+
 	-- don't if we take too long to get the ball
 	local timeToBallLimit = isAttacker and 1.5 or 1.0
 	if Physics.robotTimeToBall(self._robot, World.Ball, World.Geometry.OpponentGoal, 0) > timeToBallLimit then
-		return false
-	end
-
-	-- don't if an opponent is at the ball rather quickly
-	local oppTimeToBallLimit = isAttacker and 0.6 or 0.3
-	local _,oppTime = Ball.firstRobotAtBall(World.OpponentRobots)
-	if oppTime < oppTimeToBallLimit then
 		return false
 	end
 
@@ -130,10 +123,10 @@ function HandleBall:check()
 		self._taskDecision = "forcedefender"
 	elseif self:_checkInterceptPass() then
 		self._taskDecision = "interceptpass"
-	elseif self:_checkDuel() then
-		self._taskDecision = "duel"
 	elseif self:_checkAttacker() then
 		self._taskDecision = "attacker"
+	elseif self:_checkDuel() then
+		self._taskDecision = "duel"
 	else
 		self._taskDecision = "defender"
 	end
@@ -156,7 +149,7 @@ function HandleBall:_updateTask()
 	if self._taskDecision == "attacker" then
 		self._send.poolChangeRequest("trainer")
 	end
-	
+
 	if self._taskDecision == "interceptpass" then
 		return InterceptPass
 	else
