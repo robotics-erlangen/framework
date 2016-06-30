@@ -67,6 +67,18 @@ function ShootGoal:_findTarget(viewPos, ignoreGoalie, oldTarget)
 	local goalStart = (G.OpponentGoalRight - viewPos):angle()
 	local goalEnd = (G.OpponentGoalLeft - viewPos):angle()
 
+	local ballDiameterAngle = (2 * World.Ball.radius) / G.OpponentGoalRight:distanceTo(viewPos)
+	if viewPos.x > G.OpponentGoalRight.x then
+		goalStart = goalStart + ballDiameterAngle
+	elseif viewPos.x < G.OpponentGoalLeft.x then
+		goalEnd = goalEnd - ballDiameterAngle
+	end
+
+	if goalEnd < goalStart then
+		return G.OpponentGoal, 0
+	end
+
+
 	-- get all free sectors
 	self:_updateRobotLists()
 	local robotList = ignoreGoalie and self._robotListWithoutKeeper or self._robotList
