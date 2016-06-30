@@ -10,6 +10,7 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
+local ObserverShoot = require "observer/shoot"
 local Interval = require "util/interval"
 
 local PositionProcessor = Class("Task.PositionProcessor", require "../base/process")
@@ -50,6 +51,7 @@ function StrikerSampling:_init()
 			table.insert(self._allOtherRobots, r)
 		end
 	end
+	self._mainAttacker = nil
 end
 
 function StrikerSampling:randomLocationAroundPoint(point, radius)
@@ -189,7 +191,7 @@ function StrikerSampling:openAngle(pos)
 end
 
 function StrikerSampling:oneTouchShot(pos)
-	local toAttacker = World.Ball.pos - pos
+	local toAttacker = (self._mainAttacker and self._mainAttacker.pos or World.Ball.pos) - pos
 	local toGoal = World.Geometry.OpponentGoal - pos
 	local angle = math.abs(toAttacker:angleDiff(toGoal))
 	if angle < 70/180*math.pi then
@@ -197,6 +199,15 @@ function StrikerSampling:oneTouchShot(pos)
 	else
 		return 0.5
 	end
+end
+
+function StrikerSampling:volleyPass(pos)
+	if self._mainAttacker then
+		if ObserverShoot.volleyPossible(self._mainAttacker, pos) then
+			return 1
+		end
+	end
+	return 0.5
 end
 
 -- tests whether pos is in the way of a possible shot to the goal
@@ -227,6 +238,8 @@ function StrikerSampling:precalculate()
 			table.insert(self._openAngleRobotList, r)
 		end
 	end
+
+	self._mainAttacker = self._inbox.mainAttacker().trainer
 end
 
 function StrikerSampling:evalLocation(pos, currentBestScore)
@@ -251,6 +264,10 @@ function StrikerSampling:evalLocation(pos, currentBestScore)
 		return score
 	end
 	score = score * self:oneTouchShot(pos)
+	if score <= currentBestScore then
+		return score
+	end
+	score = score * self:volleyPass(pos)
 	if score <= currentBestScore then
 		return score
 	end
