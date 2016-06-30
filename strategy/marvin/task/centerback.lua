@@ -5,6 +5,7 @@ local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
 local Processor = require "../base/processor"
+local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Messaging = require "control/messaging"
@@ -53,6 +54,11 @@ local lt2 = function(r1, r2)
 end
 
 function CenterBack.distanceToDefenseArea()
+	-- 0.18 (robot diameter) + 0.08 (default distance) + 0.50 (stop radius)
+	if Referee.isStopState() then
+		local dist = Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)
+		return math.bound(0.01, dist - 0.68, 0.08)
+	end
 	return 0.08
 end
 
