@@ -30,6 +30,7 @@ local MIN_SHOOT_SPEED = 0.7
 local MOVING_BALL = 0.6
 local STOPPED_BALL = 0.2
 local STOPPED_BALL_DIST = 2*Constants.positionError
+local EXTRA_MOVE_SPEED_LIMIT = 0.5
 
 local SAFETY_TIME = 0.2
 local SAFETY_TIME_HYSTERESIS = 0.2
@@ -46,6 +47,7 @@ function Shoot:init()
 	self._sideOffsetErrorSum = 0
 
 	self._lastBallSpeed = nil
+	self._extraMoveSpeed = 0
 	self._travelStart = nil
 	self._travelLimit = false
 
@@ -365,11 +367,13 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dont
 		self._travelLimit = true
 	end
 	local accel = nil
+	local extraSpeed = Vector(0, 0)
 	if self._shootHysteresis and not self._travelLimit then
 		-- speed towards ball
-		local accelerate = math.abs(self._robot.acceleration
-				and self._robot.acceleration.aSpeedupFMax or 1.0) * 1.4
+		local accelerate = self._robot.acceleration.aSpeedupFMax * 0.5
+		self._extraMoveSpeed = math.min(self._extraMoveSpeed + accelerate * World.TimeDiff, EXTRA_MOVE_SPEED_LIMIT)
 		accel = Vector.fromAngle(targetDir) * accelerate
+		extraSpeed = Vector.fromAngle(targetDir) * self._extraMoveSpeed
 
 		local dist = targetPos:distanceTo(self._robot.pos)
 		if linearShoot then
@@ -383,6 +387,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dont
 		end
 		self:_doForceShoot()
 	else
+		self._extraMoveSpeed = 0
 		self._lastBallSpeed = World.Ball.speed
 		self._shootHysteresis = false
 		self._forceShootTimer = nil
@@ -418,7 +423,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dont
 		debug.set("shoot command", "none")
 	end
 
-	self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, nil, accel)
+	self._robot.trajectory:update(TrajectoryDirect, speed + extraSpeed, targetDir, nil, accel)
 end
 
 function Shoot:_resetShoot()
