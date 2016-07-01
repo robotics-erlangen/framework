@@ -77,6 +77,16 @@ function math.round(val, digits)
 	return math.floor(val * fac + 0.5) / fac
 end
 
+-- generates a random number in (0, 1]
+-- @return number - random number
+function math.uniformRandom()
+	local value = 0
+	while value == 0 do
+		value = math.random()
+	end
+	return value
+end
+
 
 --- Solves a*t + b for t
 --@name solveLin

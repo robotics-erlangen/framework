@@ -299,6 +299,27 @@ function Vector.fromAngle(angle)
 	return vector_c(cos(angle), sin(angle))
 end
 
+-- Creates a random point around mean with a normal distribution
+-- @param sigma number - the sigma of the distribution
+-- @param mean Vector - the middle point of the distribution
+-- @return Vector - the random point
+function Vector.random(sigma, mean)
+	mean = mean or Vector(0, 0)
+	local u, v, s
+
+    repeat
+        u = -1.0 + 2.0 * math.uniformRandom()
+        v = -1.0 + 2.0 * math.uniformRandom()
+
+        s = u * u + v * v
+    until s ~= 0.0 and s < 1.0
+
+    -- Box-Muller transform (polar)
+    local tmp = sigma * math.sqrt(-2.0 * math.log(s) / s)
+
+    return vector_c(tmp * u + mean.x, tmp * v + mean.y)
+end
+
 function Vector._loadGeom()
 	geom = require "../base/geom"
 end
