@@ -134,7 +134,7 @@ end
 
 function StrikerSampling:posNearEnough(pos)
 	local distance = pos:distanceTo(self._robot.pos)
-	local d_max = 4
+	local d_max = 15
 	local cmp = distance / d_max
 	return math.bound(0, 1 - cmp, 1)
 end
