@@ -114,6 +114,9 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 		endSpeed.x = math.max(0, endSpeed.x)
 	end
 	endSpeed:rotate(viewDir)
+	if distanceToBall == 0 then
+		endSpeed = endSpeed + (targetPos - moveDest):setLength(0.2)
+	end
 
 	-- move to the predicted ball
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
@@ -225,7 +228,11 @@ function CatchBall:_ballCatchMethod(currentBall, predictedBall, moveDest)
 	-- distance minus robot and ball radius thus the ball is for sure between the robot and the catch pos
 	local robotTargetSpacing = math.max(0, robotTargetDist - self._robot.radius - currentBall.radius)
 
-	if (moveDest - self._robot.pos):absoluteAngleDiff(predictedBall.pos - moveDest) > 87/180*math.pi then
+	local _, _, lambda1, lambda2, lambda3, lambda4 = geom.intersectLineCorridor(currentBall.pos, predictedBall.pos - currentBall.pos,
+			self._robot.pos, moveDest - self._robot.pos, self._robot.shootRadius)
+	local ballHit = lambda1 ~= nil and (lambda1 >= 0 and lambda1 <= 1) or lambda2 ~= nil and (lambda2 >= 0 and lambda2 <= 1)
+	local robotHit = lambda3 ~= nil and (lambda3 >= 0 and lambda3 <= 1) or lambda4 ~= nil and (lambda4 >= 0 and lambda4 <= 1)
+	if ballHit and robotHit or lambda2 == math.huge and lambda4 == math.huge then
 		-- the robot has to move around the predicted ball to reach the catch pos
 		return AROUND_METHOD
 	elseif moveDest:distanceTo(currentBall.pos) > robotTargetSpacing
