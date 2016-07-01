@@ -54,6 +54,7 @@ function Shoot:init()
 	self._movingBallHysteresis = false
 	self._stopBallHysteresis = false
 	self._receivePassHysteresis = false
+	self._receivePassMoveTime = nil
 	self._oppTimeHysteresis = false
 	-- Ball is fast but slow enough to reach it
 	self._inTheRunHysteresis = false
@@ -136,6 +137,8 @@ function Shoot:_doCatch(targetPos, targetSpeed, futureBall)
 			debug.set("ballApproach", "receivePass")
 			return moveTime
 		end
+	else
+		self._receivePassMoveTime = nil
 	end
 	self._receivePassHysteresis = false
 
@@ -171,7 +174,14 @@ function Shoot:_tryReceivePass(targetPos, targetSpeed, futureBall)
 	local moveTime = Physics.robotTimeToPos(self._robot, robotPos, Vector.create(0,0))
 	local ballTime = Physics.ballRollTime(World.Ball, ballDist)
 
-	local waitTime = ballTime - moveTime
+	if self._receivePassMoveTime == nil then
+		self._receivePassMoveTime = moveTime
+	else
+		local alpha = 0.3
+		self._receivePassMoveTime = (1-alpha)*self._receivePassMoveTime + alpha*moveTime
+	end
+
+	local waitTime = ballTime - self._receivePassMoveTime
 
 	--see if an opponent is closer to the ball
 	local minTimeOpp = math.huge
