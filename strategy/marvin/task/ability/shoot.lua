@@ -35,7 +35,7 @@ local EXTRA_MOVE_SPEED_LIMIT = 0.5
 local SAFETY_TIME = 0.2
 local SAFETY_TIME_HYSTERESIS = 0.2
 local BLOCK_ANGLE = 65 / 180 * math.pi
-local BLOCK_HYSTERESIS = 10 / 180 * math.pi
+local BLOCK_HYSTERESIS = 20 / 180 * math.pi
 local OPP_TIME_HYSTERESIS = 0.1
 local IN_THE_RUN = 1.5
 
