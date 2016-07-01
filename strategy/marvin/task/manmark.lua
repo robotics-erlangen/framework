@@ -122,7 +122,8 @@ function ManMark:run()
 		if distToShotPath < self._robot.radius + World.Ball.radius + 0.05 then
 			moveDest = moveDest + (World.Geometry.FriendlyGoal - moveDest):setLength(0.2)
 			debug.set("moveDest changed shot")
-		end 
+		end
+		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
 	end
 
 	preferredPos = moveDest
