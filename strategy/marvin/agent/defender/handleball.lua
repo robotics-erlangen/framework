@@ -86,14 +86,12 @@ function HandleBall:_checkInterceptPass()
 
 	-- don't if we are positioned behind a dangerous pass receipient
 	local distDiffLimit = isInterceptPass and 0 or 4 * self._robot.radius
-	local volleyAngleLimit = isInterceptPass and 70 * math.pi/180 or 80 * math.pi/180
 	local selfPosOnBallLine = self._robot.pos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
 	local selfDistToBall = World.Ball.pos:distanceTo(selfPosOnBallLine)
 	for _,r in ipairs(opponentPassReceipients) do
 		local oppPosOnBallLine = r.pos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
 		local oppDistToBall = World.Ball.pos:distanceTo(oppPosOnBallLine)
-		local volleyAngle = (World.Geometry.FriendlyGoal - oppPosOnBallLine):absoluteAngleDiff(World.Ball.pos - oppPosOnBallLine)
-		if volleyAngle < volleyAngleLimit and selfDistToBall + distDiffLimit > oppDistToBall then
+		if selfDistToBall + distDiffLimit > oppDistToBall then
 			return false
 		end
 	end
