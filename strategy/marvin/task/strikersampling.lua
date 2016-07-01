@@ -75,7 +75,7 @@ function StrikerSampling:distanceToOtherRobots(pos)
 			closestDistance = distance
 		end
 	end
-	return math.min(1, 0.5*closestDistance)
+	return math.min(1, closestDistance)
 end
 
 function StrikerSampling:distanceToAttackers(pos)
