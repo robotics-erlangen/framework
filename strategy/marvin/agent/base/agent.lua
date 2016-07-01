@@ -6,6 +6,7 @@ local World = require "../base/world"
 local Halt = require "agent/shared/halt"
 local Error = require "agent/shared/error"
 local Physics = require "observer/physics"
+local CenterBack = require "task/centerback"
 local Rating = require "util/rating"
 local plot = require "../base/plot"
 
@@ -122,6 +123,16 @@ function Base:_applyForMainAttacker()
 	if not parameters then
 		self._mainAttackerLastTime = nil
 		return
+	end
+
+	-- don't ever apply for MA if the robot is in our defense area
+	if Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) <= World.Ball.radius + 0.02 then
+		return false
+	end
+
+	if Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) <= CenterBack.distanceToDefenseArea()
+		and self._robot ~= World.FriendlyKeeper then
+		return false
 	end
 
 	debug.set("ma application tried", true)
