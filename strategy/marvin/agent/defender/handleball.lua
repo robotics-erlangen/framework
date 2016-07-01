@@ -60,10 +60,12 @@ function HandleBall:_checkInterceptPass()
 
 	-- don't if the ball is between the robot and our goal
 	local moveDest, moveTime = InterceptPass.calculateMoveDest(self._robot)
+	debug.set("moveTime", moveTime)
 	local towardsGoal = World.Geometry.FriendlyGoal - moveDest
 	local towardsBall = World.Ball.pos - moveDest
-	local angleLimit = isInterceptPass and 90 * math.pi/180 or 105 * math.pi/180
+	local angleLimit = isInterceptPass and 100 * math.pi/180 or 115 * math.pi/180
 	if towardsGoal:absoluteAngleDiff(towardsBall) < angleLimit then
+		debug.set("ball between robot and goal", towardsGoal:absoluteAngleDiff(towardsBall))
 		return false
 	end
 
@@ -81,6 +83,7 @@ function HandleBall:_checkInterceptPass()
 		end
 	end
 	if #opponentPassReceipients == 0 then
+		debug.set("no opponent pass receiver", true)
 		return false
 	end
 
@@ -92,6 +95,7 @@ function HandleBall:_checkInterceptPass()
 		local oppPosOnBallLine = r.pos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
 		local oppDistToBall = World.Ball.pos:distanceTo(oppPosOnBallLine)
 		if selfDistToBall + distDiffLimit > oppDistToBall then
+			debug.set("behind a dangerous pass recipient", true)
 			return false
 		end
 	end
