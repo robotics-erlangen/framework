@@ -45,15 +45,8 @@ function ManMark:_updateTask()
 	end
 	debug.set("targets", table.concat(robotids, " "))
 
-	local opp = Defense.manMarkFakeRobot(self._opps)
-	if not self._opp then
-		self._opp = opp
-	else
-		self._opp.pos = opp.pos
-		self._opp.speed = opp.speed
-	end
+	self._opp = Defense.manMarkFakeRobot(self._opps)
 	local dest = Defense.manMarkPos(self._opp)
-
 
 	-- try to intercept a possible goal shot
 	if Defense.dangerousBallTowardsDefense() then
