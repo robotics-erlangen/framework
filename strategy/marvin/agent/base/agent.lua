@@ -148,7 +148,7 @@ function Base:_applyForMainAttacker()
 
 			if timeToBall == math.huge then
 				local ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
-				if math.abs(ballOutPos.x) < World.Geometry.DefenseStretch / 2  + World.Geometry.DefenseRadius then
+				if math.abs(ballOutPos.x) > World.Geometry.DefenseStretch / 2  + World.Geometry.DefenseRadius then
 					timeToBall = Physics.robotTimeToPos(self._robot, ballOutPos, Vector(0, 0))
 
 				end
