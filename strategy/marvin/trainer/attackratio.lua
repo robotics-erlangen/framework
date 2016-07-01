@@ -36,7 +36,8 @@ function AttackRatio:attackRatio()
 		end
 	end
 
-	if refState == "DirectOffensive" or refState == "IndirectOffensive" then
+	if refState == "DirectOffensive" or refState == "IndirectOffensive"
+		or refState == "KickoffOffensive" then
 		self._friendlyFreeKickOngoing = true
 	elseif refState ~= "Game" then
 		self._friendlyFreeKickOngoing = false
