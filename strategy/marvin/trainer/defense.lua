@@ -74,8 +74,12 @@ function Defense:_updateManmarkTargets()
 		local extrapolatedYPos = robot.pos.y + robot.speed.y * 0.5
 
 		-- don't follow the opponents into their own field half
-		local maxYPos = alreadyTargeted	and World.Geometry.FieldHeightHalf / 2 or World.Geometry.FieldHeightHalf / 6
-		if extrapolatedYPos > maxYPos then
+		-- local maxYPos = alreadyTargeted	and World.Geometry.FieldHeightHalf / 2 or World.Geometry.FieldHeightHalf / 6
+		-- if extrapolatedYPos > maxYPos then
+		-- 	goto continue
+		-- end
+
+		if robot == World.OpponentKeeper then
 			goto continue
 		end
 
@@ -100,6 +104,8 @@ function Defense:_updateManmarkTargets()
 		table.insert(list, {robot = robot, rating = rating, paired = false})
 	end
 
+	local groups = {}
+--[[
 	local maxWeightedDist = 0.3
 	local listWithDist = {}
 	for i, first in ipairs(list) do
@@ -123,7 +129,6 @@ function Defense:_updateManmarkTargets()
 	end
 	table.sort(listWithDist, compareDists)
 
-	local groups = {}
 	local partners = {}
 	for _, entry in ipairs(listWithDist) do
 		if not partners[entry.a] and not partners[entry.b] then
@@ -134,7 +139,7 @@ function Defense:_updateManmarkTargets()
 		end
 	end
 	self._partners = partners
-
+]]
 	for _, entry in ipairs(list) do
 		if not entry.paired then
 			table.insert(groups, {robots = {entry.robot}, rating = entry.rating})
@@ -148,6 +153,7 @@ function Defense:_nextManmarkAssignment(defenders)
 	if #defenders == 0 then
 		return
 	end
+	
 
 	local bestGroup = nil
 	local bestRating = -math.huge
@@ -204,9 +210,13 @@ function Defense:_assignDefenders()
         return
     end
 
-	local defenders = table.keys(self._inbox.defenderFlag())
+	self:_updateManmarkTargets()
 
 	self._ballIsLeft = self._ballIsLeft and World.Ball.pos.x < 0.5 or World.Ball.pos.x < -0.5
+
+	local defenders = table.keys(self._inbox.defenderFlag())
+	local nReservedDefenders = 0
+
 
 	-- not in opponent corner attacks: assign a ball centerback
 	local needDefaultCB = not Referee.isDefensiveCornerKick()
@@ -219,47 +229,21 @@ function Defense:_assignDefenders()
 		end
 	end
 
-	-- in stop states: assign a counterside centerback
-	local needCountersideCB = Referee.isStopState() or self._lingeringFreekick
+	local needCountersideCB = false --Referee.isStopState() or self._lingeringFreekick
 	if needCountersideCB then
-		self._lingeringBallIsLeft = (Referee.isStopState() and self._ballIsLeft)
-			or (not Referee.isStopState() and self._lingeringBallIsLeft)
-		self._lingeringFreekick = (self._lingeringBallIsLeft and World.Ball.speed.x > 0.5)
-			or (not self._lingeringBallIsLeft and World.Ball.speed.x < -0.5)
-
-		local countersideTarget = self._lingeringBallIsLeft
-			and self._countersideTargetRight or self._countersideTargetLeft
-		local countersideCB, d = UtilDefense.getClosestRobot(defenders, countersideTarget.pos)
-		if countersideCB then
-			table.removeValue(defenders, countersideCB)
-			self._send.roleAssignment(countersideCB,
-				{name = "CenterBack", params = countersideTarget})
-		end
-	else
-		self._lingeringFreekick = false
+		nReservedDefenders = nReservedDefenders + 1
 	end
 
-	-- in corner kick states: assign a sameside centerback
-	local needSamesideCB = Referee.isDefensiveCornerKick()
+	local needSamesideCB = false --Referee.isDefensiveCornerKick()
 	if needSamesideCB then
-		local countersideTarget = self._ballIsLeft
-			and self._countersideTargetLeft or self._countersideTargetRight
-		local countersideCB, d = UtilDefense.getClosestRobot(defenders, countersideTarget.pos)
-		if countersideCB then
-			table.removeValue(defenders, countersideCB)
-			self._send.roleAssignment(countersideCB,
-				{name = "CenterBack", params = countersideTarget})
-		end
+		nReservedDefenders = nReservedDefenders + 1
 	end
-
-
-	-- update the list of manmarkTargets
-	self:_updateManmarkTargets()
 
 	-- assign the first ManMark
 	local manmarkTarget, manmarker = self:_nextManmarkAssignment(defenders)
 	if manmarkTarget and manmarker then
 		table.removeValue(defenders, manmarker)
+		log(tostring(manmarker) .. "  " .. tostring(manmarkTarget[1]))
 		self._send.roleAssignment(manmarker,
 			{name = "ManMark", params = manmarkTarget})
 	end
@@ -268,23 +252,106 @@ function Defense:_assignDefenders()
 	self._ballInOurHalf = self._ballInOurHalf and World.Ball.pos.y < 1 or World.Ball.pos.y < -1
 
 	-- ball in our half: assign a second default centerback
-	local needSecondDefaultCB = needDefaultCB and self._ballInOurHalf and not Referee.isStopState()
-	if needSecondDefaultCB then
-		local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
-		if defaultCB then
-			table.removeValue(defenders, defaultCB)
-			self._send.roleAssignment(defaultCB,
-				{name = "CenterBack", params = World.Ball})
-		end
-	end
+	-- local needSecondDefaultCB = needDefaultCB and self._ballInOurHalf and not Referee.isStopState()
+	-- if #defenders - nReservedDefenders > 0 then
+	-- 	if needSecondDefaultCB then
+	-- 		local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
+	-- 		if defaultCB then
+	-- 			table.removeValue(defenders, defaultCB)
+	-- 			self._send.roleAssignment(defaultCB,
+	-- 				{name = "CenterBack", params = World.Ball})
+	-- 		end
+	-- 	end
+	-- end
 
 	-- assign the remaining manmarks
-	while true do
+	while #defenders - nReservedDefenders > 0 do
 		local manmarkTarget, manmarker = self:_nextManmarkAssignment(defenders)
 		if not manmarkTarget or not manmarker then
 			break
 		end
 
+		log(tostring(manmarker) .. "  " .. tostring(manmarkTarget[1]))
+		table.removeValue(defenders, manmarker)
+		self._send.roleAssignment(manmarker,
+			{name = "ManMark", params = manmarkTarget})
+	end
+
+	-- check if a counterside centerback is really necessary
+	if needCountersideCB then
+		self._lingeringBallIsLeft = (Referee.isStopState() and self._ballIsLeft)
+			or (not Referee.isStopState() and self._lingeringBallIsLeft)
+		self._lingeringFreekick = (self._lingeringBallIsLeft and World.Ball.speed.x > 0.5)
+			or (not self._lingeringBallIsLeft and World.Ball.speed.x < -0.5)
+
+		local countersideTarget = self._lingeringBallIsLeft
+			and self._countersideTargetRight or self._countersideTargetLeft
+		
+		for opp, def in pairs(self._manmarkAssignments) do
+			if def.pos:distanceTo(countersideTarget.pos) < 0.4
+				and Field.distanceToFriendlyDefenseArea(def.pos, def.radius) < 0.25 then
+				nReservedDefenders = nReservedDefenders - 1
+				needCountersideCB = false
+				break
+			end
+		end
+
+		if needCountersideCB then
+			local countersideCB, d = UtilDefense.getClosestRobot(defenders, countersideTarget.pos)
+				if countersideCB then
+				table.removeValue(defenders, countersideCB)
+				self._send.roleAssignment(countersideCB,
+					{name = "CenterBack", params = countersideTarget})
+			end
+		end
+	else
+		self._lingeringFreekick = false
+	end
+
+	-- assign the remaining manmarks
+	while #defenders - nReservedDefenders > 0 do
+		local manmarkTarget, manmarker = self:_nextManmarkAssignment(defenders)
+		if not manmarkTarget or not manmarker then
+			break
+		end
+
+		log("C" .. tostring(manmarkTarget[1]))
+		table.removeValue(defenders, manmarker)
+		self._send.roleAssignment(manmarker,
+			{name = "ManMark", params = manmarkTarget})
+	end
+
+	-- in corner kick states: assign a sameside centerback
+	if needSamesideCB then
+		local samesideTarget = self._ballIsLeft
+			and self._countersideTargetLeft or self._countersideTargetRight
+
+		for opp, def in pairs(self._manmarkAssignments) do
+			if def.pos:distanceTo(samesideTarget.pos) < 0.4
+				and Field.distanceToFriendlyDefenseArea(def.pos, def.radius) < 0.25 then
+				nReservedDefenders = nReservedDefenders - 1
+				needSamesideCB = false
+				break
+			end
+		end
+
+		if needSamesideCB then
+			local samesideCB, d = UtilDefense.getClosestRobot(defenders, samesideTarget.pos)
+			if samesideCB then
+				table.removeValue(defenders, samesideCB)
+				self._send.roleAssignment(samesideCB,
+					{name = "CenterBack", params = samesideTarget})
+			end
+		end
+	end
+
+	while #defenders - nReservedDefenders > 0 do
+		local manmarkTarget, manmarker = self:_nextManmarkAssignment(defenders)
+		if not manmarkTarget or not manmarker then
+			break
+		end
+
+		log("D" .. tostring(manmarkTarget[1]))
 		table.removeValue(defenders, manmarker)
 		self._send.roleAssignment(manmarker,
 			{name = "ManMark", params = manmarkTarget})
@@ -335,7 +402,6 @@ function Defense:_assignDefenders()
 		end
 	end
 	self._lastMMCBTargets = mmcbTargets
-
 end
 
 
