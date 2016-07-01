@@ -310,6 +310,7 @@ function CenterBack:run()
 			World.Geometry.FieldHeightHalf) - self._robot.pos):angle()
 	local toCornerRightAngle = (Vector(World.Geometry.FieldWidthHalf,
 			World.Geometry.FieldHeightHalf) - self._robot.pos):angle()
+	local fromGoalAngle = (self._robot.pos - World.Geometry.FriendlyGoal):angle()
 
 	local hystAngle = 5 * math.pi/180
 	local dir = toBallAngle
@@ -322,6 +323,10 @@ function CenterBack:run()
 	else
 		self._lookingToGoal = false
 	end
+
+	local maxAngleTilt = 40 * math.pi / 180
+	dir = math.bound(fromGoalAngle - maxAngleTilt, dir, fromGoalAngle + maxAngleTilt)
+	
 	debug.set("target", destinationTarget)
 
 	if not Robot.hadBall(self._robot, 0) then
