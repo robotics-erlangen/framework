@@ -243,7 +243,6 @@ function Defense:_assignDefenders()
 	local manmarkTarget, manmarker = self:_nextManmarkAssignment(defenders)
 	if manmarkTarget and manmarker then
 		table.removeValue(defenders, manmarker)
-		log(tostring(manmarker) .. "  " .. tostring(manmarkTarget[1]))
 		self._send.roleAssignment(manmarker,
 			{name = "ManMark", params = manmarkTarget})
 	end
@@ -271,7 +270,6 @@ function Defense:_assignDefenders()
 			break
 		end
 
-		log(tostring(manmarker) .. "  " .. tostring(manmarkTarget[1]))
 		table.removeValue(defenders, manmarker)
 		self._send.roleAssignment(manmarker,
 			{name = "ManMark", params = manmarkTarget})
@@ -315,7 +313,6 @@ function Defense:_assignDefenders()
 			break
 		end
 
-		log("C" .. tostring(manmarkTarget[1]))
 		table.removeValue(defenders, manmarker)
 		self._send.roleAssignment(manmarker,
 			{name = "ManMark", params = manmarkTarget})
@@ -351,7 +348,6 @@ function Defense:_assignDefenders()
 			break
 		end
 
-		log("D" .. tostring(manmarkTarget[1]))
 		table.removeValue(defenders, manmarker)
 		self._send.roleAssignment(manmarker,
 			{name = "ManMark", params = manmarkTarget})
