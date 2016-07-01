@@ -229,7 +229,7 @@ function CatchBall:_ballCatchMethod(currentBall, predictedBall, moveDest)
 	local robotTargetSpacing = math.max(0, robotTargetDist - self._robot.radius - currentBall.radius)
 
 	local _, _, lambda1, lambda2, lambda3, lambda4 = geom.intersectLineCorridor(currentBall.pos, predictedBall.pos - currentBall.pos,
-			self._robot.pos, moveDest - self._robot.pos, self._robot.shootRadius)
+			self._robot.pos, moveDest - self._robot.pos, self._robot.shootRadius + World.Ball.radius - 0.005)
 	local ballHit = lambda1 ~= nil and (lambda1 >= 0 and lambda1 <= 1) or lambda2 ~= nil and (lambda2 >= 0 and lambda2 <= 1)
 	local robotHit = lambda3 ~= nil and (lambda3 >= 0 and lambda3 <= 1) or lambda4 ~= nil and (lambda4 >= 0 and lambda4 <= 1)
 	if ballHit and robotHit or lambda2 == math.huge and lambda4 == math.huge then
