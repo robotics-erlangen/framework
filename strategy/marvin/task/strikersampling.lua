@@ -52,39 +52,19 @@ function StrikerSampling:_init()
 		end
 	end
 	self._mainAttacker = nil
+	self._shootDest = nil
+	self._passPos = nil
 end
 
 function StrikerSampling:randomLocationAroundPoint(point, radius)
-	local randomRadius = math.random() * radius
-	local randomAngle = math.random() * 2 * math.pi
-	local x = math.cos(randomAngle) * randomRadius + point.x
-	local y = math.sin(randomAngle) * randomRadius + point.y
-	if y < -World.Geometry.FieldHeightQuarter then
-		y = -World.Geometry.FieldHeightQuarter
+	local pos = Vector.random(radius / 2, point)
+	if pos.y < -World.Geometry.FieldHeightQuarter then
+		pos.y = -World.Geometry.FieldHeightQuarter
 	end
-	local pos = Vector(x, y)
-	if math.abs(x) < self._posLimitX and math.abs(y) < self._posLimitY then
+	if math.abs(pos.x) < self._posLimitX and math.abs(pos.y) < self._posLimitY then
 		return pos
 	end
-	return Field.limitToAllowedField(Vector(x, y), self._minDist)
-end
-
--- check whether an opponent robot can reach pos faster than the own robot
-function StrikerSampling:oppFasterThenOwnRobot(pos)
-	local moveTime = Physics.robotTimeToPos(self._robot, pos, Vector(0, 0), false, false)
-	if moveTime < 0.4 then
-		return 1
-	end
-	local shortestTimeToPos = math.huge
-	local closestOpponentRobot = nil
-	for _,r in ipairs(World.OpponentRobots) do
-		local oppTime = Physics.robotTimeToPos(r, pos, Vector(0, 0), false, false)
-		if oppTime < shortestTimeToPos then
-			shortestTimeToPos = oppTime
-			closestOpponentRobot = r
-		end
-	end
-	return math.bound(0,  (shortestTimeToPos - moveTime) * 2 + 0.2, 1)
+	return Field.limitToAllowedField(pos, self._minDist)
 end
 
 function StrikerSampling:distanceToOtherRobots(pos)
@@ -108,7 +88,7 @@ function StrikerSampling:distanceToAttackers(pos)
 			end
 		end
 	end
-	return math.min(1, 0.3*closestDistance)
+	return math.min(1, 0.2*closestDistance)
 end
 
 function StrikerSampling:passInterception(pos)
@@ -157,6 +137,14 @@ function StrikerSampling:posNearEnough(pos)
 	local d_max = 4
 	local cmp = distance / d_max
 	return math.bound(0, 1 - cmp, 1)
+end
+
+function StrikerSampling:dontDriveIntoPass(pos)
+	local isPassReceiver = (self._passPos and self._passPos.robot == self._robot)
+	if self._shootDest and not isPassReceiver then
+		return math.bound(0, pos:orthogonalDistance(self._shootDest, World.Ball.pos), 1)
+	end
+	return 1
 end
 
 function StrikerSampling:passTooShort(pos)
@@ -240,6 +228,11 @@ function StrikerSampling:precalculate()
 	end
 
 	self._mainAttacker = self._inbox.mainAttacker().trainer
+
+	local _, shootDest = next(self._inbox.shootDestination())
+	self._shootDest = shootDest
+	local _, passPos = next(self._inbox.passPos())
+	self._passPos = passPos
 end
 
 function StrikerSampling:evalLocation(pos, currentBestScore)
@@ -252,6 +245,10 @@ function StrikerSampling:evalLocation(pos, currentBestScore)
 		return score
 	end
 	score = score * self:posNearEnough(pos)
+	if score <= currentBestScore then
+		return score
+	end
+	score = score * self:dontDriveIntoPass(pos)
 	if score <= currentBestScore then
 		return score
 	end
@@ -279,23 +276,18 @@ function StrikerSampling:evalLocation(pos, currentBestScore)
 	if score <= currentBestScore then
 		return score
 	end
-	score = score * self:oppFasterThenOwnRobot(pos)
-	if score <= currentBestScore then
-		return score
-	end
 	score = score * self:passInterception(pos)
 	return score
 end
 
 function StrikerSampling:findLocation()
-	local bestPos = self._lastPoint or self._robot.pos
+	local bestPos = self._lastPoint or self:randomLocationAroundPoint(World.Geometry.OpponentGoal:copy():scaleLength(0.6), 2)
 	local difTime = World.TimeDiff / 4
 	local bestScore = self._lastScore - difTime
 	local oldScore = self:evalLocation(bestPos, -1)
 	if oldScore > bestScore then
 		bestScore = oldScore
 	end
-
 	for i = 1, 10 do
 		local radius = 0.75 * (1 - bestScore)
 		local randPos = self:randomLocationAroundPoint(bestPos, radius)
