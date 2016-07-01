@@ -114,6 +114,9 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 		endSpeed.x = math.max(0, endSpeed.x)
 	end
 	endSpeed:rotate(viewDir)
+	if distanceToBall == 0 then
+		endSpeed = endSpeed + (targetPos - moveDest):setLength(0.2)
+	end
 
 	-- move to the predicted ball
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
