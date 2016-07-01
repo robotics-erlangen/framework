@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local Duel = Class("Agent.Attacker.Duel", Base)
 
 local debug = require "../base/debug"
+local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Ball = require "observer/ball"
@@ -14,10 +15,12 @@ local TaskDuel = require "task/duel"
 function Duel:_stop()
 	self._opponentHasBall = false
 	self._closerThanOpp = false
+	self._lastChippedHysteresis = false
 end
 
 local SAFTY_SPACE = 0.05
 local DIST_HYSTERESIS = 0.02 -- must be always smaller than SAFTY_SPACE
+local MAX_BALL_SPEED = 1
 function Duel:genericCheck()
 	-- if we receive the ball, try shootgoal or something
 	-- this can be risky, so only do this in the opponent field half
@@ -31,6 +34,20 @@ function Duel:genericCheck()
 
 	if self._agent.beOffensive then
 		return false
+	end
+
+	-- if the ball is shot fast at the opponent goal, dont duel it since it might be chipped by us
+	local ballSpeed = World.Ball.speed:length()
+	if ballSpeed > MAX_BALL_SPEED + (self._lastChippedHysteresis and 0.5 or 0) then
+		local intersection = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, World.Geometry.OpponentGoal, Vector(1, 0))
+		if intersection and math.abs(intersection.x) < World.Geometry.GoalWidth / 2 + (self._lastChippedHysteresis and 1 or 0) then
+			self._lastChippedHysteresis = true
+			return false
+		else
+			self._lastChippedHysteresis = false
+		end
+	else
+		self._lastChippedHysteresis = false
 	end
 
 	-- if the opponent controls the ball, duel him
