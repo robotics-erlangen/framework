@@ -93,7 +93,7 @@ function Pass:run()
 			oppTimeTo2 = math.huge
 		end
 
-		if lambda3 < 0 and lambda4 < 0 then
+		if lambda3 < 0 then
 			--robot is behind us
 			goto continue
 		end
