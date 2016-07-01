@@ -13,9 +13,11 @@ local TaskDuel = require "task/duel"
 
 function Duel:_stop()
 	self._opponentHasBall = false
+	self._closerThanOpp = false
 end
 
-
+local SAFTY_SPACE = 0.05
+local DIST_HYSTERESIS = 0.02 -- must be always smaller than SAFTY_SPACE
 function Duel:genericCheck()
 	-- if we receive the ball, try shootgoal or something
 	-- this can be risky, so only do this in the opponent field half
@@ -32,8 +34,21 @@ function Duel:genericCheck()
 	end
 
 	-- if the opponent controls the ball, duel him
-	if Ball.opponentBallOwner() then
-		return true
+	local ballOwner = Ball.opponentBallOwner()
+	if ballOwner then
+		local dist = self._closerThanOpp and -SAFTY_SPACE or (-SAFTY_SPACE - DIST_HYSTERESIS)
+		local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir) * self._robot.shootRadius
+		local ballOwnerDribblerPos = ballOwner.pos + Vector.fromAngle(ballOwner.dir) * ballOwner.shootRadius
+		-- we are closer to the ball, so dont duel
+		if (dribblerPos:distanceTo(World.Ball.pos) - ballOwnerDribblerPos:distanceTo(World.Ball.pos)) < dist then
+			self._closerThanOpp = true
+		else
+			self._closerThanOpp = false
+			return true
+		end
+		debug.set("duel check closerThanOpp", self._closerThanOpp)
+    else
+		self._closerThanOpp = false
 	end
 
 	-- if any opponent receives the ball (and we don't), duel him
