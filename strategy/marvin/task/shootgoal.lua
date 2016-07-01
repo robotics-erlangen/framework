@@ -204,9 +204,15 @@ function ShootGoal:run()
 		self:_shoot(self._shootTargetPoint, math.huge, true,
 			math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
 	else
+		local maxAngleError = 10 * math.pi / 180
+		if World.Ball.pos.y < 0 then
+			-- prevent icing
+			maxAngleError = 3 * math.pi / 180
+		end
+
 		-- perform a chip shot
 		self:_shoot(self._desperateChipTargetPoint,
-			self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, 10 * math.pi / 180)
+			self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, maxAngleError)
 	end
 	self:_drawDebugInfo()
 end
