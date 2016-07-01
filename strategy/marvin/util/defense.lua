@@ -14,11 +14,14 @@ local Rating = require "util/rating"
 Defense.POSITION_PADDING = 0.02 -- safety distance
 Defense.PENALTY_LINE_DISTANCE = 0.35 -- prevent robots from crossing the penalty line
 
-Defense.MARKING_DISTANCE = 0.5
+Defense.MARKING_DISTANCE = 0.6
 
 local function manMarkPos(opponent)
 	local oppDistToGoal = opponent.pos:distanceTo(World.Geometry.FriendlyGoal)
 	local markingDistance = Defense.MARKING_DISTANCE + math.max(0, (oppDistToGoal - World.Geometry.FieldHeightHalf * 0.8) * 0.5)
+	if Referee.isFriendlyFreeKickState() then
+		markingDistance = markingDistance + 0.4
+	end
 	local dist = opponent.radius + Constants.maxRobotRadius + markingDistance
 	local targetPos = opponent.pos + (World.Geometry.FriendlyGoal - opponent.pos):setLength(dist)
 
