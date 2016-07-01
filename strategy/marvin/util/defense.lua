@@ -47,6 +47,10 @@ end
 Defense.manMarkPos = Cache.forFrame(manMarkPos)
 
 local function manMarkFakeRobot(robotlist)
+	if #robotlist == 1 then
+		return robotlist[1]
+	end
+
 	local ballAngle = (World.Ball.pos - World.Geometry.FriendlyGoal):angle()
 	local minAngle = nil
 	local minAngleDiff = math.huge
