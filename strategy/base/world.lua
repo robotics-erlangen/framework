@@ -172,22 +172,24 @@ function World._updateGeometry(geom)
 	wgeom.DefenseRadius = geom.defense_radius
 	wgeom.DefenseStretch = geom.defense_stretch
 
-	wgeom.FriendlyPenaltySpot = Vector(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist)
-	wgeom.OpponentPenaltySpot = Vector(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist)
+	wgeom.FriendlyPenaltySpot = Vector.createReadOnly(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist)
+	wgeom.OpponentPenaltySpot = Vector.createReadOnly(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist)
 	wgeom.PenaltyLine = wgeom.OpponentPenaltySpot.y - geom.penalty_line_from_spot_dist
 	wgeom.OwnPenaltyLine = wgeom.FriendlyPenaltySpot.y + geom.penalty_line_from_spot_dist
 
 	-- The goal posts are on the field lines
-	wgeom.FriendlyGoal = Vector(0, - wgeom.FieldHeightHalf)
-	wgeom.FriendlyGoalLeft = Vector(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
-	wgeom.FriendlyGoalRight = Vector(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
+	wgeom.FriendlyGoal = Vector.createReadOnly(0, - wgeom.FieldHeightHalf)
+	wgeom.FriendlyGoalLeft = Vector.createReadOnly(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
+	wgeom.FriendlyGoalRight = Vector.createReadOnly(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
 
-	wgeom.OpponentGoal = Vector(0, wgeom.FieldHeightHalf)
-	wgeom.OpponentGoalLeft = Vector(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
-	wgeom.OpponentGoalRight = Vector(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
+	wgeom.OpponentGoal = Vector.createReadOnly(0, wgeom.FieldHeightHalf)
+	wgeom.OpponentGoalLeft = Vector.createReadOnly(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
+	wgeom.OpponentGoalRight = Vector.createReadOnly(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
 
 	wgeom.BoundaryWidth = geom.boundary_width
 	wgeom.RefereeWidth = geom.referee_width
+
+	World.Geometry = table.readonlytable(World.Geometry)
 
 	World.IsLargeField = wgeom.FieldWidth > 5 and wgeom.FieldHeight > 7
 end
