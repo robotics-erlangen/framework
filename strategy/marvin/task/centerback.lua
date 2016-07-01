@@ -103,7 +103,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 	for robot, target in pairs(centerBackApplications) do
 		-- the already calculated cbPos
 		local cbPos = centerBackPositions[robot]
-		
+
 		-- if the target is the ball, predict it
 		local targetPos = target.pos
 		if target == World.Ball then
@@ -326,7 +326,7 @@ function CenterBack:run()
 
 	local maxAngleTilt = 40 * math.pi / 180
 	dir = math.bound(fromGoalAngle - maxAngleTilt, dir, fromGoalAngle + maxAngleTilt)
-	
+
 	debug.set("target", destinationTarget)
 
 	if not Robot.hadBall(self._robot, 0) then
@@ -340,7 +340,7 @@ function CenterBack:run()
 			and self._robot.pos:distanceTo(destinationPos) < 1 then
 		debug.set("chip", true)
 		self:_doForceShoot()
-		self._robot:chip(3)
+		self._robot:chip(2)
 	end
 
 	local ignoreOpponents = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
