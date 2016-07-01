@@ -2,9 +2,11 @@ local Base = require "agent/base/behavior"
 local Shoot = Class("Agent.Attacker.Shoot", Base)
 
 local debug = require "../base/debug"
+local Field = require "../base/field"
 local World = require "../base/world"
 local Ball = require "observer/ball"
 local ObserverShoot = require "observer/shoot"
+local CenterBack = require "task/centerback"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
 local Rating = require "util/rating"
@@ -37,6 +39,11 @@ function Shoot:_updateTask()
 		self._taskStart = World.Time
 	end
 	local minTimeOver = World.Time - self._taskStart >= self._minTaskTime
+
+	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+	if selfDefenseDist < CenterBack.distanceToDefenseArea() + self._robot.radius + 0.03 then
+		self._send.preliminaryCenterbackTarget("all", self._robot)
+	end
 
 	debug.set("AAShoot/minTaskTime", self._minTaskTime)
 	debug.set("AAShoot/time active", World.Time-self._taskStart)
