@@ -100,6 +100,11 @@ function Duel:_contest()
 		self:_contestPush()
 	end
 
+	if self._robot.dir > 0 and self._robot.dir < math.pi and World.Ball.pos.y > 0.2
+			and not Robot.hadBall(self._opposer, 0) then
+		self._robot:shoot(7.5)
+	end
+
 	-- send the position of the ball
 	self._send.attackPosition("all", World.Ball.pos)
 	self:_checkBlockingBall()
