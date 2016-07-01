@@ -8,6 +8,7 @@ local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local DefUtil = require "util/defense"
 local Duel = require "task/duel"
+local CenterBack = require "task/centerback"
 local InterceptPass = require "task/interceptpass"
 local debug = require "../base/debug"
 
@@ -148,6 +149,11 @@ function HandleBall:check()
 end
 
 function HandleBall:_updateTask()
+	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+	if selfDefenseDist < CenterBack.distanceToDefenseArea() + self._robot.radius + 0.03 then
+		self._send.preliminaryCenterbackTarget("all", self._robot)
+	end
+
 	if self._taskDecision == "attacker" then
 		self._send.poolChangeRequest("trainer")
 	end
