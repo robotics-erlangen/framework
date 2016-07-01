@@ -20,12 +20,12 @@ end
 
 function HandleBall:_checkDefender()
 	-- stay defender if the ball is currently being shot at our goal
-	if DefUtil.dangerousBallTowardsDefense() then
+	if not DefUtil.dangerousBallTowardsDefense() then
 		self._forceDefenderFrameCounter = self._forceDefenderFrameCounter + 1
 	else
 		self._forceDefenderFrameCounter = 0
 	end
-	if self._forceDefenderFrameCounter > 5 then
+	if self._forceDefenderFrameCounter < 5 then
 		return true
 	end
 	return false
