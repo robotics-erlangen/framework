@@ -146,6 +146,13 @@ function Base:_applyForMainAttacker()
 				end
 			end
 
+			if timeToBall == math.huge then
+				local ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
+				if math.abs(ballOutPos.x) < World.Geometry.DefenseStretch / 2  + World.Geometry.DefenseRadius then
+					timeToBall = Physics.robotTimeToPos(self._robot, ballOutPos, Vector(0, 0))
+
+				end
+			end
 			-- rate the robot pos (generally, being behind the ball is better)
 			local relativeYPos = World.Ball.pos.y - self._robot.pos.y
 			local ratingBoost = math.sin(math.bound(0, relativeYPos*math.pi, math.pi))
