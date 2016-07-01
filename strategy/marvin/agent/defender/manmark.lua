@@ -3,6 +3,7 @@ local ManMark = Class("Agent.Defender.ManMark", Base)
 
 local debug = require "../base/debug"
 local Field = require "../base/field"
+local Referee = require "../base/referee"
 local World = require "../base/world"
 local vis = require "../base/vis"
 local CenterBack = require "task/centerback"
@@ -73,7 +74,7 @@ function ManMark:_updateTask()
 	local oppDefenseDist = Field.distanceToFriendlyDefenseArea(self._opp.pos, self._opp.radius)
 
 	-- if the opponent is near our defense area (or inside it), use the CenterBack task
-	if markingPosDefenseDist < markingPosThreshold or oppDefenseDist <= 0 then
+	if markingPosDefenseDist < markingPosThreshold or oppDefenseDist <= 0 or Referee.isStopState() then
 		return CenterBack, { self._opp }
 	end
 
