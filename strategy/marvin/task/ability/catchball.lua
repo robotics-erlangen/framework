@@ -109,7 +109,8 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	-- only allow endSpeed moving towards the targetPos
 	-- when moving around the ball, allow moving away from it
 	local endSpeed = predictedBall.speed:copy():rotate(-viewDir)
-	if method == HUNT_METHOD or method == STOP_METHOD then
+	local nearDefenseArea = Field.isInFriendlyDefenseArea(moveDest, self._robot.radius + 0.3)
+	if method == HUNT_METHOD or method == STOP_METHOD or nearDefenseArea then
 		endSpeed.x = math.max(0, endSpeed.x)
 	end
 	endSpeed:rotate(viewDir)
