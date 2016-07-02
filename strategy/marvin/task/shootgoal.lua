@@ -184,8 +184,7 @@ function ShootGoal:_init()
 	self._shootTargetWidth = 0
 	self._dirty = false
 	self._desperate = false
-	self._desperateChipTargetPoint = G.OpponentGoal
-		+ (World.Ball.pos - G.OpponentGoal):setLength(World.Geometry.DefenseRadius)
+	self._desperateChipTargetPoint = nil
 end
 
 function ShootGoal:run()
@@ -211,6 +210,9 @@ function ShootGoal:run()
 		end
 
 		-- perform a chip shot
+
+		self._desperateChipTargetPoint = G.OpponentGoal
+			+ (World.Ball.pos - G.OpponentGoal):setLength(World.Geometry.DefenseRadius)
 		self:_shoot(self._desperateChipTargetPoint,
 			self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, maxAngleError)
 	end
