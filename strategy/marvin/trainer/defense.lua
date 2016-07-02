@@ -354,21 +354,23 @@ function Defense:_assignDefenders()
 	end
 
 	-- assign zone defenders if there are not enough opponents to manmark
-	local zonePosOne = self._ballIsLeft and self._zonePosRight or self._zonePosLeft
-	local zonePosTwo = self._ballIsLeft and self._zonePosLeft or self._zonePosRight
-	local zoneDefenderPosOne = self._ballIsLeft and self._zoneDefenderPosRight or self._zoneDefenderPosLeft
-	local zoneDefenderPosTwo = self._ballIsLeft and self._zoneDefenderPosLeft or self._zoneDefenderPosRight
-	local zoneDefenderOne = UtilDefense.getClosestRobot(defenders, zoneDefenderPosOne)
-	if zoneDefenderOne and self:_checkZoneDefender(zonePosOne) then
-		table.removeValue(defenders, zoneDefenderOne)
-		self._send.roleAssignment(zoneDefenderOne,
-			{name = "ZoneDefense", params = zoneDefenderPosOne})
-	end
-	local zoneDefenderTwo = UtilDefense.getClosestRobot(defenders, zoneDefenderPosTwo)
-	if zoneDefenderTwo and self:_checkZoneDefender(zonePosTwo) then
-		table.removeValue(defenders, zoneDefenderTwo)
-		self._send.roleAssignment(zoneDefenderTwo,
-			{name = "ZoneDefense", params = zoneDefenderPosTwo})
+	if not Referee.isStopState() then
+		local zonePosOne = self._ballIsLeft and self._zonePosRight or self._zonePosLeft
+		local zonePosTwo = self._ballIsLeft and self._zonePosLeft or self._zonePosRight
+		local zoneDefenderPosOne = self._ballIsLeft and self._zoneDefenderPosRight or self._zoneDefenderPosLeft
+		local zoneDefenderPosTwo = self._ballIsLeft and self._zoneDefenderPosLeft or self._zoneDefenderPosRight
+		local zoneDefenderOne = UtilDefense.getClosestRobot(defenders, zoneDefenderPosOne)
+		if zoneDefenderOne and self:_checkZoneDefender(zonePosOne) then
+			table.removeValue(defenders, zoneDefenderOne)
+			self._send.roleAssignment(zoneDefenderOne,
+				{name = "ZoneDefense", params = zoneDefenderPosOne})
+		end
+		local zoneDefenderTwo = UtilDefense.getClosestRobot(defenders, zoneDefenderPosTwo)
+		if zoneDefenderTwo and self:_checkZoneDefender(zonePosTwo) then
+			table.removeValue(defenders, zoneDefenderTwo)
+			self._send.roleAssignment(zoneDefenderTwo,
+				{name = "ZoneDefense", params = zoneDefenderPosTwo})
+		end
 	end
 
 	-- in stop states: assign a centerback to follow the most dangerous unmarked opponent
