@@ -94,7 +94,7 @@ function MrlCorner:check()
             if Referee.isFriendlyFreeKickState() then
                 self._stayActive = true
             end
-            active = true
+            return true
         end
         if applicable or self._stayActive then
             self._send.standardMoveFlag("all")
