@@ -1060,25 +1060,25 @@ void FieldWidget::mouseMoveEvent(QMouseEvent *event)
 
 void FieldWidget::mouseReleaseEvent(QMouseEvent *event)
 {
+    if (m_dragType != DragNone && m_dragItem) {
+        // clear drag commands
+        Command command(new amun::Command);
+        amun::CommandSimulator *sim = command->mutable_simulator();
+        if (m_dragType == DragBall) {
+            sim->mutable_move_ball();
+        } else if (m_dragType == DragBlue) {
+            amun::SimulatorMoveRobot *robot = sim->add_move_blue();
+            robot->set_id(m_dragId);
+        } else if (m_dragType == DragYellow) {
+            amun::SimulatorMoveRobot *robot = sim->add_move_yellow();
+            robot->set_id(m_dragId);
+        }
+        emit sendCommand(command);
+    }
+
     if (event->button() == Qt::RightButton && (event->pos() - m_dragStart).manhattanLength() < 2) {
         // show context menu if mouse didn't move
         m_contextMenu->exec(mapToGlobal(event->pos()));
-    } else {
-        if (m_dragType != DragNone && m_dragItem) {
-            // clear drag commands
-            Command command(new amun::Command);
-            amun::CommandSimulator *sim = command->mutable_simulator();
-            if (m_dragType == DragBall) {
-                sim->mutable_move_ball();
-            } else if (m_dragType == DragBlue) {
-                amun::SimulatorMoveRobot *robot = sim->add_move_blue();
-                robot->set_id(m_dragId);
-            } else if (m_dragType == DragYellow) {
-                amun::SimulatorMoveRobot *robot = sim->add_move_yellow();
-                robot->set_id(m_dragId);
-            }
-            emit sendCommand(command);
-        }
     }
 
     m_dragType = DragNone;
