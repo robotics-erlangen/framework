@@ -88,7 +88,7 @@ function StrikerSampling:distanceToAttackers(pos)
 			end
 		end
 	end
-	return math.min(1, 0.2*closestDistance)
+	return math.min(1, 0.13*closestDistance)
 end
 
 function StrikerSampling:passInterception(pos)
@@ -116,7 +116,7 @@ function StrikerSampling:passInterception(pos)
 			local robotTime = Physics.robotTimeToPos(r, realPos, maxDirectionVelocity, false, false)
 			local fakeBall = {
 				pos = World.Ball.pos,
-				speed = Vector(self._robot:calculateShootSpeed(self._robot.constants.passSpeed, 
+				speed = Vector(self._robot:calculateShootSpeed(self._robot.constants.passSpeed,
 								World.Ball.pos:distanceTo(pos)), 0),
 				maxSpeed = World.Ball.maxSpeed,
 				radius = World.Ball.radius

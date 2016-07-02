@@ -19,7 +19,7 @@ local STAY_BEHIND_OPP_HYSTERESIS = 10/180 * math.pi
 local SIDEWARDS_ANGLE_MAX = 30/180 * math.pi
 local SIDEWARDS_ANGLE_SCALE = 1/3
 
-local BLOCK_DIST_MAX = 0.05
+local BLOCK_DIST_MAX = 0.08
 local BLOCK_DIST_HYSTERESIS = 0.02
 
 local BLOCK_POS_ALPHA = 0.1
@@ -182,7 +182,7 @@ function Duel:_checkBlockingBall()
 	local shortestTimeToBall = math.huge
 	local closestOpponentRobot = nil
 	closestOpponentRobot, shortestTimeToBall = Ball.firstRobotAtBall(World.OpponentRobots)
-	
+
 
 	local moveTime = Robot.minTimeToBall(self._robot)
 	local minTime = math.min(moveTime, shortestTimeToBall)
@@ -217,9 +217,9 @@ end
 
 
 function Duel:_moveToBall()
-	
+
 	local moveTime, shortestTimeToBall, closestOpponentRobot, intersectionDefenseArea = self:_checkBlockingBall()
-	
+
 	debug.set("oppTime", shortestTimeToBall)
 	debug.set("moveTime", moveTime)
 
@@ -261,9 +261,9 @@ function Duel:_moveToBall()
 	self._oldPosition = moveDest
 
 	debug.set("moveDest posOnLine", moveDest)
-	
+
 	local ignoreBall = false
-	
+
 	if self._blockingBall then
 		if closestOpponentRobot then
 			moveDest = self:_moveToNearBlock(closestOpponentRobot)

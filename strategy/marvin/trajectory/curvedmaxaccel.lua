@@ -578,7 +578,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	local exponentialError = 0.2 -- relative
 	local sidewardsErrorFactor = 10 -- used to scale sidewards speed error
 
-	local rotationExponentialTime = 0.15
+	local rotationExponentialTime = 0.1
 	local rotationAccelerationFactor = 0.8
 
 	--insert default values

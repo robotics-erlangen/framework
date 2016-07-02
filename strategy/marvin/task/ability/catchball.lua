@@ -53,7 +53,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	end
 
 	-- limit catch time to be inside the field
-	local timeLimit = Physics.ballOutTime(ball)
+	local timeLimit = Physics.ballOutTime(ball, -0.02)
 	self._catchTime = math.min(timeLimit, self._catchTime)
 
 	-- check for fast ball and that it moves towards the robot

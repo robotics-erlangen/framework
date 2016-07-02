@@ -18,7 +18,7 @@ function Pass:_init(targetRobot, passSpeed, dontWaitForTarget)
 	if passSpeed then
 		self._passSpeed = passSpeed
 	elseif dontWaitForTarget then
-		self._passSpeed = self._targetRobot.constants.passSpeed * 0.8
+		self._passSpeed = self._targetRobot.constants.passSpeed * 0.9
 	else
 		self._passSpeed = self._targetRobot.constants.passSpeed
 	end
