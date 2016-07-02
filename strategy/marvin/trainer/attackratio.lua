@@ -76,9 +76,9 @@ function AttackRatio:attackRatio()
 		if self._opponentFreeKickOngoing then
 			attackRatio = 1
 		else
-			attackRatio = self._ballInOpponentFieldHalf and 2 or 1
+			attackRatio = self._ballInOpponentFieldHalf and 3 or 2
 			if self._friendlyFreeKickOngoing then
-				attackRatio = attackRatio + 2
+				attackRatio = attackRatio + 1
 			end
 		end
 	end
