@@ -40,7 +40,10 @@ function KickoffPass:run()
 		end
 		self._dir =  (World.Ball.pos - self._robot.pos):angle()
 
-		local moveDest, moveTime = self._robot.trajectory:update(ToTarget, self._pos, self._dir)
+	    -- calculate the pass receive time
+
+		self._robot.trajectory:update(ToTarget, self._pos, self._dir)
+	    local moveTime = Physics.robotTimeToPos(self._robot, self._pos, Vector(0, 0), true)
 		self._send.moveDest("all", self._pos)
 
 		local mainAttacker = self._inbox.mainAttacker().trainer
