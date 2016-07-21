@@ -1,6 +1,6 @@
 require("../base/globalschecker").enable()
-Class = require "../base/class"
 require "../base/base"
+Class = require "../base/class"
 local Entrypoints = require "../base/entrypoints"
 local World = require "../base/world"
 

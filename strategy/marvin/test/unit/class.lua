@@ -25,9 +25,40 @@ context("base.class", function()
         function Middle:init()
             self.bla = 1
         end
-        assert_error(Middle.create,
+        assert_not_nil(function() Middle() end)
+        assert_error(function() Middle() end,
                 "a mixin shall not be able to define an attribute which is defined by a class")
     end)
+
+	test("attribute collision betweet two mixin", function()
+		local M3={}
+		function M3:init() self.bla=0 end
+		local M4={}
+		function M4:init() self.bla=1 end
+		local Middle2M = Class("Middle2M", Super, M3, M4)
+		assert_not_nil(function() Middle2M() end)
+		assert_error(function() Middle2M() end, "two mixin shall not be able to define the same attribute")
+	end)
+
+	test("reading in mixin", function()
+		local Mixin={}
+		function Mixin:init() self.bla=3 assert_not_nil(self.bla) end
+		local inst = Class("MiddleRM",Super,Mixin)()
+		assert_not_nil(inst.bla)
+	end)
+
+	test("reding undefined attributes", function()
+		local reader = Class("Reader",Super)
+		function reader:read() local loc = self._blub end
+		local inst = reader()
+		assert_error(function() inst:read() end, "reading an undefinded variable shall fail")
+	end)
+
+	test("mixin reading undefined attributes", function()
+		local Mixin = {}
+		function Mixin:init() self.bla = self.blub end
+		assert_error(function() Class("MReader",Super,Mixin)() end, "reading an undefined varibale in a Mixin shall fail")
+	end)
 
     test("mixin inheritance", function ()
         local Middle2 = Class("Middle2", Super)
@@ -39,7 +70,8 @@ context("base.class", function()
             self.someNewVar = 2
         end
         local Sub = Class("Sub", Middle2, M3)
-        assert_error(Sub.create,
+        assert_not_nil(function() Sub() end)
+        assert_error(function() Sub() end,
                 "a mixin shall not be able to define an attribute which is defined by a superclass")
 
 
