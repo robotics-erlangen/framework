@@ -63,7 +63,7 @@ function Pass:run()
 		end
 	end
 
-	local linearShootHysteresisFlag = self._linarShoot
+	local linearShootHysteresisFlag = self._linearShoot
 	self._linearShoot = true
 	for _, opp in ipairs(World.Robots) do
 		if opp == World.OpponentKeeper or opp == self._targetRobot or opp == self._robot then
