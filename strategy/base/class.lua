@@ -42,7 +42,7 @@ function Class.toClass(obj, failsafe)
 	if ctype == "class" then
 		return obj
 	elseif ctype == "instance" then
-		return rawget(getmetatable(obj) or {}, "__index")
+		return rawget(getmetatable(obj) or {}, "__class")
 	else
 		if failsafe then
 			return nil
@@ -99,7 +99,7 @@ local function forbidNewAttributes(table, key, value)
 	end
 end
 
-local function forbidReassignments(proxy, key, value)
+local function forbidReassignmentsNoDebug(proxy, key, value)
 	local orig = proxy[1]
 	if orig[key] ~= nil or getmetatable(orig).__attributes[key] then
 		error("attribute " .. key .. " is alredy defined")
@@ -107,16 +107,50 @@ local function forbidReassignments(proxy, key, value)
 	orig[key] = value
 end
 
-local proxyMt = { __newindex = forbidReassignments }
+local function forbidReassignmentsDebug(proxy,key,value)
+	local orig = proxy[1]
+	local mtOrig = getmetatable(orig)
+	local index = mtOrig.__index
+	mtOrig.__index = mtOrig.__class --don't throw errors when reading hopefully undefined instance values
+	if orig[key] ~= nil or mtOrig.__attributes[key] then
+		error("attribute " .. key .. " is already defined")
+	end
+	orig[key] = value
+	mtOrig.__index = index
+end
 
+local forbidReassignments = amun.isDebug and forbidReassignmentsDebug or forbidReassignmentsNoDebug
+
+local function forbidUnsetReading(table, key)
+	local mt = getmetatable(table)
+	local val = mt.__class[key]
+	if val or mt.__attributes[key] then
+		return val
+	else
+		error("Reading undefined instance variable " .. tostring(key))
+	end
+end
+
+local function proxyLookup(proxy, key)
+	return proxy[1][key]
+end
+
+local proxyMt = {
+	__index = proxyLookup, --the instance itself will throw errors if you read undefined values
+	__newindex = forbidReassignments,
+	__mode = "v" -- weak values, don't keep the instance if its not needed anymore
+}
+local proxy = {}
+setmetatable(proxy,proxyMt)
 local function constructInstance(class, ...)
 	local instance = {}
 	local instMt = {
 		__attributes = {}, -- remember attributes from init functions
 		__newindex = registerAttributes,
-		__index = class,
+		__index = amun.isDebug and forbidUnsetReading or class,
 		__tostring = getmetatable(class).__tostring,
-		type = "instance"
+		type = "instance",
+		__class = class
 	}
 	instMt.__metatable = instMt
 	setmetatable(instance, instMt)
@@ -125,8 +159,7 @@ local function constructInstance(class, ...)
 	end
 	local mixinInits = getmetatable(class)["mixinInits"]
 	if mixinInits then
-		local proxy = { instance }
-		setmetatable(proxy, proxyMt)
+		rawset(proxy,1,instance)
 		for _, init in ipairs(mixinInits) do
 			init(proxy)
 		end
