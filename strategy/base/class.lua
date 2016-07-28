@@ -101,21 +101,26 @@ end
 
 local function forbidReassignmentsNoDebug(proxy, key, value)
 	local orig = proxy[1]
-	if orig[key] ~= nil or getmetatable(orig).__attributes[key] then
+	local mtOrig = getmetatable(orig)
+	local myValue = mtOrig.__attributes[key] == proxy[2]
+	if not myValue and (orig[key] ~= nil or mtOrig.__attributes[key]) then
 		error("attribute " .. key .. " is alredy defined")
 	end
-	orig[key] = value
+	mtOrig.__attributes[key] = proxy[2]
+	rawset(orig,key,value)
 end
 
 local function forbidReassignmentsDebug(proxy,key,value)
 	local orig = proxy[1]
 	local mtOrig = getmetatable(orig)
 	local index = mtOrig.__index
+	local myValue = mtOrig.__attributes[key] == proxy[2]
 	mtOrig.__index = mtOrig.__class --don't throw errors when reading hopefully undefined instance values
-	if orig[key] ~= nil or mtOrig.__attributes[key] then
+	if not myValue and (orig[key] ~= nil or mtOrig.__attributes[key]) then
 		error("attribute " .. key .. " is already defined")
 	end
-	orig[key] = value
+	mtOrig.__attributes[key] = proxy[2]
+	rawset(orig,key,value)
 	mtOrig.__index = index
 end
 
@@ -160,7 +165,8 @@ local function constructInstance(class, ...)
 	local mixinInits = getmetatable(class)["mixinInits"]
 	if mixinInits then
 		rawset(proxy,1,instance)
-		for _, init in ipairs(mixinInits) do
+		for counter, init in ipairs(mixinInits) do
+			rawset(proxy,2,counter)
 			init(proxy)
 		end
 	end

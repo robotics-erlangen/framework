@@ -60,6 +60,17 @@ context("base.class", function()
 		assert_error(function() Class("MReader",Super,Mixin)() end, "reading an undefined varibale in a Mixin shall fail")
 	end)
 
+	test("mixin overriding own attributes during init", function()
+		local Mixin = {}
+		function Mixin:init()
+				self.bla = nil
+				self.bla = 3
+				self.bla = 2
+		end
+		local inst = Class("MOverride",Super,Mixin)()
+		assert_equal(inst.bla,2)
+	end)
+
     test("mixin inheritance", function ()
         local Middle2 = Class("Middle2", Super)
         local M3 = {}
