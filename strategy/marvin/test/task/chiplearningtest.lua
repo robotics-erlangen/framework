@@ -9,27 +9,27 @@ local TestHelper = require "test/helper/agent"
 
 local ChipLearningTest = Class("Test.Task.ChipLearningTest", require "task/base", Shoot)
 
-local DO_LINEAR_SHOOT = false
+local DO_LINEAR_SHOOT = true
 
 function ChipLearningTest:_init()
 	self._framesSinceMove = 0
 	self._shootSpeed = 0
 	self._shootPos = Vector(0, 0)
-	self._maxShootSpeed = 5
+	self._maxShootSpeed = 6
 end
 
 function ChipLearningTest:run()
 	local stayOnPos = false
-	if World.Ball.speed:length() < 0.05  and math.abs(World.Ball.pos.x) < World.Geometry.FieldWidthHalf and
+	if (World.Ball.speed:length() < 0.4 or self._robot.pos:distanceTo(World.Ball.pos) < 0.3)  and math.abs(World.Ball.pos.x) < World.Geometry.FieldWidthHalf and
 		math.abs(World.Ball.pos.y) < World.Geometry.FieldHeightHalf then
 		self._framesSinceMove = self._framesSinceMove + 1
-		if self._framesSinceMove == 100 then
+		if self._framesSinceMove == 9 then
 			local randX = World.Geometry.FieldWidthHalf * (math.random() * 2 - 1) * 0.8
 			local randY = World.Geometry.FieldHeightHalf * (math.random() * 2 - 1) * 0.8
 			self._shootPos = Vector(randX, randY)
 			self._shootSpeed = math.random() * self._maxShootSpeed
 		end
-		if self._framesSinceMove < 150 then
+		if self._framesSinceMove < 10 then
 			stayOnPos = true
 		else
 			self:_shoot(self._shootPos, self._shootSpeed, DO_LINEAR_SHOOT, 3 * math.pi/180, false)
