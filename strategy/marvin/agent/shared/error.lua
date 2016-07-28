@@ -15,35 +15,38 @@ function Error:errorMsg()
 	local out = tostring(self._robot.id) .. ": "
 	local msgParts = {}
 	local errorData = ErrorObserver.getErrorTable(self._robot)
-	if errorData.motor1Error then
+	if errorData.motor_1_error then
 		table.insert(msgParts, "motor 1 error")
 	end
-	if errorData.motor2Error then
+	if errorData.motor_2_error then
 		table.insert(msgParts, "motor 2 error")
 	end
-	if errorData.motor3Error then
+	if errorData.motor_3_error then
 		table.insert(msgParts, "motor 3 error")
 	end
-	if errorData.motor4Error then
+	if errorData.motor_4_error then
 		table.insert(msgParts, "motor 4 error")
 	end
-	if errorData.dribblerError then
+	if errorData.dribbler_error then
 		table.insert(msgParts, "dribber error")
 	end
-	if errorData.kickerError then
+	if errorData.kicker_error then
 		table.insert(msgParts, "kicker error")
 	end
 	if errorData.motorOverheatedError then
 		table.insert(msgParts, "motor overheat")
 	end
-	if errorData.motorEncoderError then
+	if errorData.motor_encoder_error then
 		table.insert(msgParts, "motor encoder")
 	end
-	if errorData.mainSensorError then
+	if errorData.main_sensor_error then
 		table.insert(msgParts, "main sensor")
 	end
+	if errorData.kicker_beak_beam_error then
+		table.insert(msgParts, "kicker beam error")
+	end
 	if errorData.temperature then
-		table.insert(msgParts, "temperature: " .. tostring(self._error.temperature))
+		table.insert(msgParts, "temperature: " .. tostring(errorData.temperature))
 	end
 	return out .. table.concat(msgParts, ",")
 end

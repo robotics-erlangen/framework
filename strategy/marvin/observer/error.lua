@@ -14,10 +14,10 @@ local function updateErrorTables(isLeavingStop)
 	end
 
 	for _, r in ipairs(World.FriendlyRobots) do
-		if r.radioResponse and r.radioResponse.errorPresent then
+		if r.radioResponse and r.radioResponse.error_present then
 			-- we have an error, save it for debugging purposes
-			if r.radioResponse.extendedError then
-				errorTables[r] = r.radioResponse.extendedError
+			if r.radioResponse.extended_error then
+				errorTables[r] = r.radioResponse.extended_error
 			else
 				errorTables[r] = {}
 			end
