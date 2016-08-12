@@ -28,6 +28,16 @@ module "amun"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
+--- Returns all roots of a given polynomial
+-- @class function
+-- @name computePolynomialRoots
+-- @param table - coefficients of the polynomial: highest power first (only real numbers)
+-- @return table - real parts of roots
+-- @return table - imaginary parts of roots
+
+--[[
+separator for luadoc]]--
+
 --- Returns world state
 -- @class function
 -- @name getWorldState
