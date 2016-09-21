@@ -53,11 +53,7 @@ end
 
 
 function Error:_updateTask()
-	local errorFound = false
-	for _, _ in pairs(ErrorObserver.getErrorTable(self._robot)) do
-		errorFound = true
-		break
-	end
+	local errorFound = next(ErrorObserver.getErrorTable(self._robot)) ~= nil
 	if errorFound and World.Time == ErrorObserver.getLastRefChange() then
 		log(self:errorMsg())
 	end

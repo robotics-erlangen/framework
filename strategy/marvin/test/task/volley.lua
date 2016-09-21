@@ -62,8 +62,6 @@ function VolleyProcess:run()
 		elseif math.abs(speedError) > lowSpeedError then
 			mu_x = mu_x + 0.01 * math.sign(speedError)
 			mu_y = mu_y + 0.01 * math.sign(speedError)
-		else
-			-- do nothing
 		end
 		Volley.setParams(mu_x, mu_y)
 		log(string.format("dirError %f speedError %f", dirError/math.pi*180, speedError))
