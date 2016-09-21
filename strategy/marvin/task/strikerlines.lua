@@ -129,12 +129,9 @@ function StrikerLines:_xLine()
 	return xPos
 end
 
-local POSITION_PADDING = 0.02 -- safety distance
-
 function StrikerLines:calcMoveDest()
 	local lineStart = 1/6 * World.Geometry.FieldHeightHalf
 	local lineEnd = 0.6 * World.Geometry.FieldHeightHalf
-	local possibleIntervals = { { lineStart, lineEnd } }
 
 	local ballPos = World.Ball.pos
 	local xPos = self:_xLine()
