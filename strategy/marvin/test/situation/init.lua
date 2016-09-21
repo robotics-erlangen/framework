@@ -68,7 +68,6 @@ local function computeDestinations()
 		blue = World.TeamIsBlue and World.FriendlyRobots or World.OpponentRobots,
 		yellow = World.TeamIsBlue and World.OpponentRobots or World.FriendlyRobots
 	}
-	local ownColor = World.TeamIsBlue and "blue" or "yellow"
 	for color, robots in pairs(fieldRobots) do
 		local index = 1
 		for id, dest in pairs(situation[color .. "Robots"] or {}) do

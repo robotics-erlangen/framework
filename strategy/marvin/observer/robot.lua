@@ -14,8 +14,6 @@ function Robot.wayToRobotFree(target, shooter)
 	return Robot.wayToPosFree(target.pos, shooter, target)
 end
 
-local oppChipDist = 0.2 -- min distance of opponent for chipping
-local recvChipDist = 0.3 -- min distance for receiving a chip pass
 function Robot.wayToPosFree(pos, ignoreRobot1, ignoreRobot2)
 	-- TODO consider speed of robots to look a little into the future
 	for _, robot in ipairs(World.Robots) do

@@ -571,7 +571,6 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength, lastTim
 	--local time0 = amun.getCurrentTime()
 	-- if the ball is extremely slow, consider it as stationary
 	if ball.speed:length() < 0.01 then
-		local endSpeed = (ball.pos - robot.pos):setLength(endSpeedLength)
 		local result = Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, 0)
 		--local time1 = amun.getCurrentTime()
 		--plot.aggregate("robotTimeToBall", time1 - time0)

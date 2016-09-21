@@ -151,9 +151,7 @@ function ShootGoal:getDecisionMakingBasis()
 end
 
 function ShootGoal:_drawDebugInfo()
-	local target = nil
-	local color = nil
-	local mode = nil
+	local target, color, mode
 	if self._desperate then
 		mode = "desperate"
 		target = self._desperateChipTargetPoint

@@ -102,7 +102,7 @@ function ManMark:run()
 	debug.set("moveDest posOnLine", moveDest)
 	debug.set("moveDest distToLine", distToLine)
 
-	local ignoreBall = false
+	-- local ignoreBall = false
 
 	if self._blockingShot then
 		--if closestOpponentRobot then

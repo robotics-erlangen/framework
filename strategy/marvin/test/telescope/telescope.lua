@@ -329,6 +329,7 @@ local function load_contexts(target, contexts)
 
 	setmetatable(env, {__index = _G})
 
+	-- luacheck: ignore err
 	local func, err = type(target) == 'string' and assert(loadfile(target)) or target
 	if err then error(err) end
 	setfenv(func, env)()
@@ -502,7 +503,7 @@ local function test_report(contexts, results)
 	local leading_space        = "  "
 	local level                = 0
 	local line_char            = "-"
-	local previous_level       = 0
+	local previous_level
 	local status_format_len    = 3
 	local status_format        = "[%s]"
 	local width                = 72

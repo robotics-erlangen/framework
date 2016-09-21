@@ -201,7 +201,6 @@ function Ball.ballCatchProbability(robot, shootTime, rollTime, catchPos, corrido
 	debug.set("v to sector", v_toSector)
 	local time = shootTime + rollTime -- the time from now to the moment to catch the ball
 	local expectedPos = v_toSector*time -- position, which the robot reaches without changing speed
-	local expPos = robot.pos + toCorridor:setLength(expectedPos)
 	local d0, flagAcc
 	if expectedPos < distToCorridor - corridorWidthHalf - robot.radius then -- if robot must accelerate to reach corridor in time
 		flagAcc = true

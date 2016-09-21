@@ -46,7 +46,6 @@ end
 function PlaceBall:run()
 	vis.addCircle("ball placement", World.BallPlacementPos, BALL_PLACEMENT_RADIUS, vis.colors.orangeHalf, true)
 	local ball = World.Ball
-	local ignoreBall = self._step ~= STEP_MOVE_AWAY and self._step ~= STEP_GO_TO_BALL
 	if self._step == STEP_GO_TO_BALL then
 		PathHelper.setDefaultObstacles(self._robot.path, self._robot, false, true, true)
 	elseif self._step == STEP_MOVE_AWAY then

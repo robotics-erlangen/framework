@@ -56,14 +56,11 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	-- check for fast ball and that it moves towards the robot
 	-- in principle this isn't neccessary but it stabilizes the catchtime
 	local hitTime = self:_calculateHitTime(ball)
-	local ballWillHitRobot = false
 	local ballInsideRobot = false
 	if ball.speed:length() > SLOW_BALL or hitTime == 0 then
 		-- check if robot would be hit by the ball
 		self._catchTime = math.min(self._catchTime, hitTime)
-		if hitTime > 0 and hitTime < math.huge then
-			ballWillHitRobot = true
-		elseif hitTime == 0 then
+		if hitTime == 0 then
 			ballInsideRobot = true
 		end
 	end

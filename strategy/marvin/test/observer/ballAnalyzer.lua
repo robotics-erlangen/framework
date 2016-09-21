@@ -24,7 +24,6 @@ local function CreateShot2()
 	local speedArray = {Vector(5, 0)}
 	local timeArray = {timeConstant}
 	local scale = (sf-rf)/math.pi
-	local offset = 0.5*(sf+rf)
 	for i = 2, 250 do
 		speedArray[i] = speedArray[i-1] - Vector(((math.atan((change-i)/5) + jitter*(0.5 - math.random())) + 1.9)*scale*timeConstant, 0)
 		--log("accelerationArray["..(i-1).."] = "..(speedArray[i-1].x - speedArray[i].x)*100)

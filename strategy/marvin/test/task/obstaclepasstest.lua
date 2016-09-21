@@ -84,7 +84,7 @@ local coord = nil
 local function run()
 	if coord == nil then
 		local trainer = Trainer()
-		local pools = nil
+		local pools
 		if World.TeamIsBlue then
 			-- these robots do the passing
 			pools = { pass = AgentPool(ObstaclePassAgent, 2) }

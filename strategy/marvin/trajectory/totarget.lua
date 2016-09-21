@@ -35,7 +35,6 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 		return {}, Coordinates.toLocal(targetPos), 0
 	end
 	maxSpeed = maxSpeed or self._robot.maxSpeed
-	endSpeed = endSpeed or 0
 
 	targetPos = Coordinates.toGlobal(targetPos)
 	targetDir = Coordinates.toGlobal(targetDir)
@@ -80,8 +79,6 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	local v = robotSpeed:length()
 
 	self.v_last = self.v_last or v
-	local brake2 = 1*brake
-	local faktor_e = 2;
 	if 0.5*v*v/brake+0.1 > dist  then -- bremsen
 		--log("break")
 		if v > brake/k then

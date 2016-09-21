@@ -76,6 +76,7 @@ end
 local minRecord = 20
 local fps = 100 -- 100 frames per second
 function BallAnalyzer:analyze()
+	-- luacheck: ignore endSliding2 deviation2 slippingFriction2 rollingFriction2
 	log("#self._record: "..#self._record)
 	if #self._record < minRecord then
 		return nil, nil

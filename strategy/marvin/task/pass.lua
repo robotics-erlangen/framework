@@ -82,7 +82,6 @@ function Pass:run()
 			-- no intersection between future robot and ball
 			goto continue
 		end
-		local onLine
 
 		if point1 == nil then
 			--robot is on the future ball line, parallel

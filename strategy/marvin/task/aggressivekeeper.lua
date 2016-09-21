@@ -42,8 +42,6 @@ function AggressiveKeeper:run()
 end
 
 
-local touchLineDir = Vector(0, 1)
-
 local leftFriendlyCorner = Vector(-World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
 local rightFriendlyCorner = Vector(World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
 

@@ -36,10 +36,6 @@ local CIRCLE_CENTER_ORIG = Vector(0,-1)
 local CIRCLE_CENTER = Vector(0,0)
 local MAX_RANDOM_POSITION_OFFSET = 0.3
 
-local function sortByX(robot1, robot2)
-	return robot1.pos.x > robot2.pos.x
-end
-
 local function shufflePositions()
 	for i, pos in ipairs (X_POSITIONS_ORIG) do
 		X_POSITIONS[i] = pos + (math.random()-0.5)*2 * MAX_RANDOM_POSITION_OFFSET
@@ -72,7 +68,6 @@ end
 
 function ArmadaTask:run()
 	debug.set("posIndex" , self._posIndex)
-	local moveDest = CIRCLE_CENTER
 	if World.RefereeState == "Stop" then
 		self._moveDest = self:_pointOnCircle()
 	else -- Direct or Indirect Freekick

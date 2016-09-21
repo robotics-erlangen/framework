@@ -199,8 +199,6 @@ function Goal.predictShot()
 				endOfField = pos + ballSpeed:scaleLength(lengthOfBallMovement)
 			end
 			vis.addCircle("o/goal: predictShot: end of field", endOfField, 0.02)
-			local target = nil
-			local targetDist = math.huge
 			local corridorHalf = ballSpeed:perpendicular():setLength(World.Ball.radius + Constants.positionError) * 2
 			for _, robot in ipairs(World.OpponentRobots) do
 				local pointOnLine = robot.pos:nearestPosOnLine(pos, endOfField)

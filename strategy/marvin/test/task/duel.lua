@@ -15,7 +15,6 @@ function Dueler:check()
 end
 
 function Dueler:_updateTask()
-	local otherRobot = next(self._inbox.attackerFlag())
 	if World.TeamIsBlue then
 		return Duel, {}
 	else

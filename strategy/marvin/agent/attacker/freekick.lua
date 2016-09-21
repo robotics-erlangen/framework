@@ -2,7 +2,6 @@ local Base = require "agent/base/behavior"
 local FreeKick = Class("Agent.Attacker.FreeKick", Base)
 
 local debug = require "../base/debug"
-local Field = require "../base/field"
 local World = require "../base/world"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
@@ -52,8 +51,6 @@ local nearBallDist = 0.15
 local hurryUp = 6
 local RECONSIDER_DECISION_DIST = 0.1
 function FreeKick:_updateTask()
-	local goalKickFlag = Field.isInOwnCorner(World.Ball.pos, false)
-
 	local switchDist = nearBallDist + self._robot.radius + World.Ball.radius + POSITION_PADDING
 	local atBall =  self._robot.pos:distanceTo(World.Ball.pos) < switchDist
 

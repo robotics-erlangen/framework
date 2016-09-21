@@ -139,7 +139,6 @@ local function calculateCenterBackPositions(centerBackApplications)
 	end
 
 
-
 	-- calculate middle position and way footprint
 	local waymaximum = math.pi * (World.Geometry.DefenseRadius + distanceToDefenseArea + robot_radius) +
 		World.Geometry.DefenseStretch

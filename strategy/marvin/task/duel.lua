@@ -179,10 +179,7 @@ function Duel:_moveToNearBlock(closestOpponentRobot)
 end
 
 function Duel:_checkBlockingBall()
-	local shortestTimeToBall = math.huge
-	local closestOpponentRobot = nil
-	closestOpponentRobot, shortestTimeToBall = Ball.firstRobotAtBall(World.OpponentRobots)
-
+	local closestOpponentRobot, shortestTimeToBall = Ball.firstRobotAtBall(World.OpponentRobots)
 
 	local moveTime = Robot.minTimeToBall(self._robot)
 	local minTime = math.min(moveTime, shortestTimeToBall)
@@ -242,7 +239,6 @@ function Duel:_moveToBall()
 	local viewDir = (self._futureBall - self._robot.pos):angle()
 
 	local moveDest
-	local basePos
 	if intersectionDefenseArea then
 		-- calculate new position between ball (regarding robot shootRadius) and the intersection with defense area
 		moveDest = self._futureBall + (intersectionDefenseArea - self._futureBall):setLength(self._robot.shootRadius + World.Ball.radius)
@@ -250,11 +246,9 @@ function Duel:_moveToBall()
 												self._robot.radius * 3 +  OPPONENT_DEFENSE_AREA_MIN_DISTANCE, true)
 		moveDest = opponentDefenseIntersection or moveDest
 		moveDest = self:_newPosRegardingOldPosition(moveDest, intersectionDefenseArea, self._oldPosition, BLOCK_POS_PRECISION)
-		basePos = intersectionDefenseArea
 	else
 		-- case if there isn't an intersection with the defense area
 		moveDest = self._futureBall + (self._robot.pos - self._futureBall):setLength(self._robot.shootRadius + World.Ball.radius)
-		basePos = self._robot.pos
 	end
 
 	-- remember position for the next iteration
