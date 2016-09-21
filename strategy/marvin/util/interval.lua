@@ -81,17 +81,6 @@ function Interval.getLargest(intervals)
 	return largestInterval
 end
 
-
-function table.max(t)
-	local max = t[1]
-	for _,v in ipairs(t) do
-		if v > max then
-			max = v
-		end
-	end
-	return max
-end
-
 --- Finds the closest point in an array of intervals with a given distance to its interval boarders
 -- @param mergedIntervals interval[] - list of intervals as returned by merge
 -- @param Q number - point to which the distance of the searched point is minimal
