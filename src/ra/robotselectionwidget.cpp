@@ -66,6 +66,7 @@ ItemDelegate::ItemDelegate(InputManager *inputManager, const RobotSelectionWidge
 
 QWidget *ItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
+    (void)option;
     const bool is_generation = index.data(DATA_ROBOT_ID).isNull();
     RobotWidget *widget = new RobotWidget(m_inputManager, is_generation, parent);
     widget->setSpecs(m_widget->specs(index));

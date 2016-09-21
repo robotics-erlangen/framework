@@ -58,7 +58,7 @@ public:
     qint64 time() const;
     bool isBlue() const { return m_type == StrategyType::BLUE; }
     const QDir baseDir() const { return m_baseDir; }
-    const bool refboxControlEnabled() const { return m_refboxControlEnabled; }
+    bool refboxControlEnabled() const { return m_refboxControlEnabled; }
     void setCommand(uint generation, uint robotId, robot::Command &command);
     void log(const QString &text);
     amun::Visualization *addVisualization();
