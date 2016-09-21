@@ -114,7 +114,7 @@ function geom.intersectLineCorridor(offset, direction, offsetCorridor, direction
 	local corridorPerpendicular = directionCorridor:perpendicular():setLength(widthHalf)
 	local offsetCorridorLeft = offsetCorridor + corridorPerpendicular
 	local offsetCorridorRight = offsetCorridor - corridorPerpendicular
-	local intersectionLeft, lambdaLeftLine, lambdaLeft = geom.intersectLineLine(offset, direction, 
+	local intersectionLeft, lambdaLeftLine, lambdaLeft = geom.intersectLineLine(offset, direction,
 															offsetCorridorLeft, directionCorridor)
 	if not intersectionLeft or direction == Vector(0, 0) then
 		-- Either no intersection or line is in corridor
@@ -125,7 +125,7 @@ function geom.intersectLineCorridor(offset, direction, offsetCorridor, direction
 		end
 		return nil, nil, nil, nil, nil, nil
 	end
-	local intersectionRight, lambdaRightLine, lambdaRight = geom.intersectLineLine(offset, direction, 
+	local intersectionRight, lambdaRightLine, lambdaRight = geom.intersectLineLine(offset, direction,
 																	offsetCorridorRight, directionCorridor)
 	if lambdaRightLine < lambdaLeftLine then
 		return intersectionRight, intersectionLeft, lambdaRightLine, lambdaLeftLine, lambdaRight, lambdaLeft

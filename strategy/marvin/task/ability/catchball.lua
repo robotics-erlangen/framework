@@ -257,8 +257,8 @@ function CatchBall:_createMoveAroundBallObstacle(path, minBall, predictedBall)
 		local lineDir = (minBall.pos - predictedBall.pos):setLength(extraDist)
 		local minBallShift = minBall.pos - lineDir
 		local predictedBallShift = predictedBall.pos + lineDir
-  		path:addLine(predictedBallShift.x, predictedBallShift.y, minBallShift.x, minBallShift.y,
-  				predictedBall.radius - OBSTACLE_EPSILON + extraDist, 'ball')
+		path:addLine(predictedBallShift.x, predictedBallShift.y, minBallShift.x, minBallShift.y,
+				predictedBall.radius - OBSTACLE_EPSILON + extraDist, 'ball')
 		vis.addPath("t/a/catchball: CatchBall", {predictedBallShift, minBallShift}, vis.colors.greenHalf)
 		vis.addCircle("t/a/catchball: CatchBall", minBallShift, predictedBall.radius - OBSTACLE_EPSILON + extraDist, vis.colors.greenHalf)
 		vis.addCircle("t/a/catchball: CatchBall", predictedBallShift, predictedBall.radius - OBSTACLE_EPSILON + extraDist, vis.colors.greenHalf)
@@ -274,20 +274,20 @@ function CatchBall:_createMoveAroundBallObstacle(path, minBall, predictedBall)
 		local extraDist = math.min(obstacleErrorDist, robotBallDist)
 		path:addCircle(minBall.pos.x, minBall.pos.y, minBall.radius - OBSTACLE_EPSILON + extraDist, 'ball2')
 		vis.addCircle("t/a/catchball: CatchBall", minBall.pos, minBall.radius + extraDist, vis.colors.redHalf)
-  	else
-  		-- no need to prevent collision with minBall, if both are the same
-  		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball')
-  	end
+	else
+		-- no need to prevent collision with minBall, if both are the same
+		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball')
+	end
 	vis.addCircle("t/a/catchball: CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.greenHalf)
 
 end
 
 function CatchBall:_createHuntingBallObstacle(path, viewDir, predictedBall)
-  	path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball')
+	path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball')
 	vis.addCircle("t/a/catchball: CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.skyBlueHalf)
 
 	local frontEnd = predictedBall.pos + Vector.fromAngle(viewDir) * 0.3
-  	path:addLine(predictedBall.pos.x, predictedBall.pos.y, frontEnd.x, frontEnd.y, predictedBall.radius - OBSTACLE_EPSILON, 'ballForward')
+	path:addLine(predictedBall.pos.x, predictedBall.pos.y, frontEnd.x, frontEnd.y, predictedBall.radius - OBSTACLE_EPSILON, 'ballForward')
 	vis.addPath("t/a/catchball: CatchBall", {predictedBall.pos, frontEnd}, vis.colors.skyBlueHalf)
 end
 

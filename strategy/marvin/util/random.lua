@@ -6,7 +6,7 @@ function Random.standardNormalDistributedNumber()
 	repeat
 		u = math.random() * 2 - 1
 		neg = u < 0
-		if neg then	u = -u end
+		if neg then u = -u end
 	until u ~= 0
 
 	-- box-muller transform

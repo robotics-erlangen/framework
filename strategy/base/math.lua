@@ -283,9 +283,9 @@ local function QuadIT(N, uu, vv, qp, NN, p, qk, K)
 	local v = vv
 	local relstp, omp, tFlag, a1, a3, a7, a, b, c, d, e, f, g, h, ui, vi, szr, szi, lzr, lzi
 	repeat
-		--log("u = "..u.."	v = "..v)
+		--log("u = "..u.."\tv = "..v)
 		szr, szi, lzr, lzi = Quad(1.0, u, v)
-		--log("sz = "..szr.." + "..szi.."i	lr = "..lzr.." + "..lzi.."i")
+		--log("sz = "..szr.." + "..szi.."i\tlr = "..lzr.." + "..lzi.."i")
 		if math.abs(math.abs(szr) - math.abs(lzr)) > 0.01*math.abs(lzr) then
 			break
 		end
@@ -344,14 +344,14 @@ end
 	local v = vv
 	local relstp, omp, tFlag, a1, a3, a7, a, b, c, d, e, f, g, h, ui, vi, szr, szi, lzr, lzi
 	repeat
-		log("u = "..u.."	v = "..v)
+		log("u = "..u.."\tv = "..v)
 		szr, szi, lzr, lzi = Quad(1.0, u, v)
-		log("sz = "..szr.." + "..szi.."i	lr = "..lzr.." + "..lzi.."i")
+		log("sz = "..szr.." + "..szi.."i\tlr = "..lzr.." + "..lzi.."i")
 		if math.abs(math.abs(szr) - math.abs(lzr)) > 0.01*math.abs(lzr) then
 			break
 		end
 		a, b = QuadSD(NN, u, v, p, qp)
-		log("a = "..a.."	b = "..b)
+		log("a = "..a.."\tb = "..b)
 		local mp = math.abs(a - szr*b) + math.abs(szi*b)
 		local zm = math.sqrt(math.abs(v))
 		local ee = 2.0*math.abs(qp[1])
@@ -402,7 +402,7 @@ end]]--
 
 local function Fxshfr(L2, sr, bnd, K, N, p, NN, qp)
 	--log("Fxshfr")
-	--log("sr = "..sr.."	bnd = "..bnd)
+	--log("sr = "..sr.."\tbnd = "..bnd)
 	local NZ = 0
 	local betav = 0.25
 	local betas = 0.25
@@ -411,7 +411,7 @@ local function Fxshfr(L2, sr, bnd, K, N, p, NN, qp)
 	local ovv = bnd
 	local v = bnd
 	local a, b = QuadSD(NN, u, v, p, qp)
-	--log("a = "..a.."	b = "..b)
+	--log("a = "..a.."\tb = "..b)
 	local qk = {}
 	local tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
 	--log("tFlag = "..tFlag)
@@ -421,7 +421,7 @@ local function Fxshfr(L2, sr, bnd, K, N, p, NN, qp)
 		tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
 		local ui, vi = newest(tFlag, a, a1, a3, a7, b, c, d, f, g, h, u, v, K, N, p)
 		--if j < 4 then
-		--	log(j..":	ui = "..ui.."	vi = "..vi)
+		--	log(j..":\tui = "..ui.."\tvi = "..vi)
 		--end
 		local vv = vi
 		local ss = (K[N] ~= 0.0) and -p[N+1]/K[N] or 0.0
@@ -524,7 +524,7 @@ function math.realRootsOfPolynomial(coefficients)
 		return math.realRootsOfPolynomial(coefficients)
 	end
 	local NN = #coefficients
-	local N = NN - 1	-- degree of polynomial
+	local N = NN - 1 -- degree of polynomial
 	if coefficients[NN] == 0.0 then
 		--log("eine Nullstelle ist schon mal 0")
 		--log("coefficients["..NN.."] = "..coefficients[NN])
@@ -548,9 +548,9 @@ function math.realRootsOfPolynomial(coefficients)
 			return {}
 		end
 	end
-	
+
 	-- put these coefficients out of the function once the debugging phase is over
-	
+
 	local moduli_max = 0.0
 	local moduli_min = FLT_MAX
 	for i = 1, NN do
@@ -579,7 +579,7 @@ function math.realRootsOfPolynomial(coefficients)
 			end
 		end
 	end
-	
+
 	local pt = {}
 	for i = 1, NN do
 		pt[i] = math.abs(coefficients[i])
@@ -619,7 +619,7 @@ function math.realRootsOfPolynomial(coefficients)
 		--log("x = "..x)
 	end
 	local bnd = x
-	
+
 	local K = {}
 	K[1] = coefficients[1]
 	for i = 2, N do
@@ -628,7 +628,7 @@ function math.realRootsOfPolynomial(coefficients)
 	local aa = coefficients[NN]
 	local bb = coefficients[N]
 	local zerok = (K[N] == 0.0)
-	for jj = 1, 5 do	-- magic constant
+	for jj = 1, 5 do -- magic constant
 		local cc = K[N]
 		if zerok then
 			for j = N, 2, -1 do
@@ -655,9 +655,9 @@ function math.realRootsOfPolynomial(coefficients)
 		yy = cosr*xx + sinr*yy
 		xx = xxx
 		local sr = bnd*xx
-		local qp = {}	-- passed per reference to Fxshfr as well as K and coefficients
-		local NZ, lzr, lzi, szr, szi = Fxshfr(20*jj, sr, bnd, K, N, coefficients, NN, qp)	-- Here also complex-valued zeros are returned: z1 = lzr + lzi*i, z2 = szr + szi*i where lzi = -szi
-		--log("lz: "..(lzr or 0).." + "..(lzi or 0).."i	sz: "..(szr or 0).." + "..(szi or 0).."i")
+		local qp = {} -- passed per reference to Fxshfr as well as K and coefficients
+		local NZ, lzr, lzi, szr, szi = Fxshfr(20*jj, sr, bnd, K, N, coefficients, NN, qp) -- Here also complex-valued zeros are returned: z1 = lzr + lzi*i, z2 = szr + szi*i where lzi = -szi
+		--log("lz: "..(lzr or 0).." + "..(lzi or 0).."i\tsz: "..(szr or 0).." + "..(szi or 0).."i")
 		--log(NZ.." zeros found")
 		-- for key, value in pairs(qp) do
 			-- log("qp["..key.."] = "..value)

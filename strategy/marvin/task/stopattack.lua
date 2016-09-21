@@ -41,7 +41,7 @@ function StopAttack:run()
 	if World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
 		self._robot:setDribblerSpeed(0.15)
 	end
-	
+
 	self._robot.trajectory:update(ToTarget, pos, (World.Ball.pos - pos):angle())
 end
 

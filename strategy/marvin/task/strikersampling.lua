@@ -16,7 +16,7 @@ local Interval = require "util/interval"
 local PositionProcessor = Class("Task.PositionProcessor", require "../base/process")
 
 local lastFramePositions = {} -- attacker -> position
-local newPositions 		 = {} -- attacker -> position
+local newPositions       = {} -- attacker -> position
 local processorRunning = false
 
 function PositionProcessor:run()

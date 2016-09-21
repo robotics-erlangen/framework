@@ -82,8 +82,8 @@ end
 function PathStub:get(start_x, start_y, end_x, end_y)
 	local robotPos = Vector(start_x, start_y)
 
-    if robotPos:distanceTo(Vector(self._waypoints[1].p_x, self._waypoints[1].p_y)) < 0.04 then
-    	table.remove(self._waypoints, 1)
+	if robotPos:distanceTo(Vector(self._waypoints[1].p_x, self._waypoints[1].p_y)) < 0.04 then
+		table.remove(self._waypoints, 1)
 	end
 	if #self._waypoints == 0 then
 		self:_resetPath()

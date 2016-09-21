@@ -32,7 +32,7 @@ function KickoffPass:run()
 		if not self._kickOffStart then
 			self._kickOffStart = true
 			--change sides you pass to when there are more opponents on current side
-			if (Game.attackSideWithLessOpponents() == "left" and self._pos.x == (G.FieldWidthHalf * 0.75)) or 
+			if (Game.attackSideWithLessOpponents() == "left" and self._pos.x == (G.FieldWidthHalf * 0.75)) or
 					(Game.attackSideWithLessOpponents() == "right" and self._pos.x == (-G.FieldWidthHalf * 0.75)) then
 				self._pos.x = -self._pos.x
 			end
@@ -40,10 +40,10 @@ function KickoffPass:run()
 		end
 		self._dir =  (World.Ball.pos - self._robot.pos):angle()
 
-	    -- calculate the pass receive time
+		-- calculate the pass receive time
 
 		self._robot.trajectory:update(ToTarget, self._pos, self._dir)
-	    local moveTime = Physics.robotTimeToPos(self._robot, self._pos, Vector(0, 0), true)
+		local moveTime = Physics.robotTimeToPos(self._robot, self._pos, Vector(0, 0), true)
 		self._send.moveDest("all", self._pos)
 
 		local mainAttacker = self._inbox.mainAttacker().trainer

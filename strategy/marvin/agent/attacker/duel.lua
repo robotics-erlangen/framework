@@ -65,7 +65,7 @@ function Duel:genericCheck()
 			return true
 		end
 		debug.set("duel check closerThanOpp", self._closerThanOpp)
-    else
+	else
 		self._closerThanOpp = false
 	end
 

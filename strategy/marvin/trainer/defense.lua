@@ -18,7 +18,7 @@ function Defense:init()
 	self._dangerousness = {} -- opponent -> rating
 	self._manmarkAssignments = {} -- opponent -> defender
 	self._previousManmarkAssignments = {} -- opponent -> defender
-	self._manmarkGroups	= {} -- (robots = {opponent}, rating)
+	self._manmarkGroups = {} -- (robots = {opponent}, rating)
 	self._partners = {} -- opponent -> opponent
 
 	self._ballInOurHalf = true
@@ -74,7 +74,7 @@ function Defense:_updateManmarkTargets()
 		local extrapolatedYPos = robot.pos.y + robot.speed.y * 0.5
 
 		-- don't follow the opponents into their own field half
-		-- local maxYPos = alreadyTargeted	and World.Geometry.FieldHeightHalf / 2 or World.Geometry.FieldHeightHalf / 6
+		-- local maxYPos = alreadyTargeted and World.Geometry.FieldHeightHalf / 2 or World.Geometry.FieldHeightHalf / 6
 		-- if extrapolatedYPos > maxYPos then
 		-- 	goto continue
 		-- end
@@ -153,7 +153,7 @@ function Defense:_nextManmarkAssignment(defenders)
 	if #defenders == 0 then
 		return
 	end
-	
+
 
 	local bestGroup = nil
 	local bestRating = -math.huge
@@ -206,9 +206,9 @@ function Defense:_assignDefenders()
 	self._previousManmarkAssignments = table.copy(self._manmarkAssignments)
 	self._manmarkAssignments = {}
 
-    if Referee.isKickoffState() or Referee.isNonGameStage() then
-        return
-    end
+	if Referee.isKickoffState() or Referee.isNonGameStage() then
+		return
+	end
 
 	self:_updateManmarkTargets()
 
@@ -284,7 +284,7 @@ function Defense:_assignDefenders()
 
 		local countersideTarget = self._lingeringBallIsLeft
 			and self._countersideTargetRight or self._countersideTargetLeft
-		
+
 		for opp, def in pairs(self._manmarkAssignments) do
 			if def.pos:distanceTo(countersideTarget.pos) < 0.4
 				and Field.distanceToFriendlyDefenseArea(def.pos, def.radius) < 0.25 then

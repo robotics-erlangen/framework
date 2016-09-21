@@ -86,8 +86,8 @@ local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxEr
 	local prev = waypoints[2]
 
 	-- {startSpeed, endSpeed, distance, linearSpeedChange}
- 	-- if not linear, then startSpeed is the maximum allowed speed, brakes down to endSpeed as late as possible
- 	-- !!! for every entry except the first: distance ~= 0 !!!
+	-- if not linear, then startSpeed is the maximum allowed speed, brakes down to endSpeed as late as possible
+	-- !!! for every entry except the first: distance ~= 0 !!!
 	local maxSpeedProfile = { {startSpeed, maxSpeed, 0} }
 
 	-- to calculate an angle two line segments are necessary
@@ -96,7 +96,7 @@ local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxEr
 		-- limit angle for extremely sharp corners
 		local angleDiff = math.min(lastPathDir:absoluteAngleDiff(newPathDir), math.pi - 0.001)
 
- 		-- next to straight line or too small path segment for a stable direction
+		-- next to straight line or too small path segment for a stable direction
 		if angleDiff < 0.001 or lastPathDir:length() < 0.005 then
 			if xRemaining > 0 then -- don't create empty segments
 				table.insert(maxSpeedProfile, {maxSpeed, maxSpeed, xRemaining}) -- just a straight line segment
@@ -188,7 +188,7 @@ local function _backpropagateSpeedLimit(speedProfile, maxSpeed, brake)
 		-- distance and start speed for braking over the distance
 		local brakeTime = (-maxSpeed + math.sqrt(maxSpeed*maxSpeed-2*brake*distance)) / (-brake)
 		local maxTimedSpeed = maxSpeed - brake * brakeTime
-		 -- can brake starting from the current entry
+		-- can brake starting from the current entry
 		if entry[2] < maxTimedSpeed then -- skips entries with zero timediff
 			-- acceleration currently used by the entry, always > brake
 			local oldAccel = (nextEntry[2] - entry[2]) / (nextEntry[1] - entry[1])
@@ -378,7 +378,7 @@ local function _injectExponentialFalloff(speedProfile, exponentialTime, exponent
 		local k = 1 / exponentialTime
 		local timeFactor = -math.log(exponentialError)
 		local expStartSpeed = exponentialTime * -brake
-		 -- integrate v(t) from 0 to +inf + distance traveled with endSpeed
+		-- integrate v(t) from 0 to +inf + distance traveled with endSpeed
 		local expDistance = expStartSpeed*exponentialTime
 		local distance = expDistance + timeFactor*exponentialTime*endSpeedLen
 		-- <= distance, < distance if speedProfile is too short
@@ -453,7 +453,7 @@ local function _calculateRotation(currentDir, currentOmega, targetDir, accelerat
 	-- v'(0) = brake -> k = 1/exponentialTime
 	local k = 1 / exponentialTime
 	local expStartSpeed = exponentialTime * -brake
-	 -- integrate v(t) from 0 to +inf
+	-- integrate v(t) from 0 to +inf
 	local expDistance = expStartSpeed*exponentialTime
 
 	local outSpeed
@@ -637,8 +637,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	_preprocessPath(waypoints, maxError, robotPos, robotSpeed)
 
 	-- calculate robot speed in target direction
- 	-- unexpected sidewards speed is handled in _calculateSpeed
- 	-- handling it here doesn't work as this adds a phantom speed
+	-- unexpected sidewards speed is handled in _calculateSpeed
+	-- handling it here doesn't work as this adds a phantom speed
 	local startSpeed = (waypoints[2] - waypoints[1]):normalize():dot(robotSpeed)
 	-- handle endSpeed
 	local endSpeedLen = math.max(0, (waypoints[#waypoints] - waypoints[#waypoints - 1]):normalize():dot(endSpeed))

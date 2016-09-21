@@ -22,7 +22,7 @@ function Dueler:_updateTask()
 	else
 		return ShootGoal --MoveToStaticBall, {1.5 * math.pi, 0}
 	end
-	
+
 end
 
 

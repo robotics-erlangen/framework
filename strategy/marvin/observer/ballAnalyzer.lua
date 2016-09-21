@@ -37,7 +37,7 @@ function BallAnalyzer:run()
 		else
 			self._recording = true
 		end
-		self._stopTime = World.Time + 8	-- stop one acquisition and start the next, when the ball is shot again before the 8 sec countdown
+		self._stopTime = World.Time + 8 -- stop one acquisition and start the next, when the ball is shot again before the 8 sec countdown
 	end
 	if self._recording then
 		if self._record[#self._record] and (self._ball.speed - self._record[#self._record]):lengthSq() > maxDiffSquared then
@@ -75,7 +75,7 @@ function BallAnalyzer:run()
 end
 
 local minRecord = 20
-local fps = 100	-- 100 frames per second
+local fps = 100 -- 100 frames per second
 function BallAnalyzer:analyze()
 	log("#self._record: "..#self._record)
 	if #self._record < minRecord then
@@ -105,7 +105,7 @@ function BallAnalyzer:analyze()
 	local slippingFriction2, rollingFriction2 = math.average(accelerationArray, 1, endSliding2), math.average(accelerationArray, startRolling2)
 	local deviation2 = math.variance(accelerationArray, slippingFriction2, 1, endSliding2) + math.variance(accelerationArray, rollingFriction2, startRolling2)
 	if deviation2 < deviation then
-		deviation, deviation2 = deviation2, deviation	-- deviation is the better point
+		deviation, deviation2 = deviation2, deviation -- deviation is the better point
 		startRolling, endSliding, startRolling2, endSliding2 = startRolling2, endSliding2, startRolling, endSliding
 		slippingFriction, rollingFriction, slippingFriction2, rollingFriction2 = slippingFriction2, rollingFriction2, slippingFriction, rollingFriction
 	end
@@ -124,10 +124,10 @@ function BallAnalyzer:analyze()
 		log("sl: "..slippingFriction.." | ro: "..rollingFriction)
 		if startRolling > startRolling2 then
 			startRolling2 = startRolling + 1
-			running = not (startRolling2 > #accelerationArray)	-- out of boundaries
+			running = not (startRolling2 > #accelerationArray) -- out of boundaries
 		else
 			startRolling2 = startRolling - 1
-			running = not (startRolling2 < 1)	-- out of boundaries
+			running = not (startRolling2 < 1) -- out of boundaries
 		end
 		if running then
 			endSliding2 = startRolling2 - 1

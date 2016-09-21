@@ -225,9 +225,9 @@ context("base.class", function()
 		end
 		local instance = Writer()
 		assert_error(function() instance:writeUndefined() end,
-		 		"writing an undefined attribute shall fail")
+				"writing an undefined attribute shall fail")
 		assert_not_error(function() instance:writeDefined() end,
-		 		"overwriting an attribute with old value of nil or false must succeed")
+				"overwriting an attribute with old value of nil or false must succeed")
 	end)
 
 	test("reading undefined attributes", function()
@@ -249,11 +249,11 @@ context("base.class", function()
 
 		local instance = Reader()
 		assert_error(function() instance:readUndefined() end,
-		 		"reading an undefined variable shall fail")
+				"reading an undefined variable shall fail")
 		assert_not_error(function() instance:readClassFalse() end,
-		 		"reading class attributes with value false must succeed")
+				"reading class attributes with value false must succeed")
 		assert_not_error(function() instance:readNilAttributes() end,
-		 		"reading attributes with value nil must succeed")
+				"reading attributes with value nil must succeed")
 	end)
 
 	test("mixin method collision", function()
@@ -349,7 +349,7 @@ context("base.class", function()
 		end
 		local Middle = Class("Middle2M", Super, M3, M4)
 		assert_error(function() Middle() end,
-		 		"two mixins shall not be able to define the same attribute")
+				"two mixins shall not be able to define the same attribute")
 	end)
 
 	test("two mixin init", function()
@@ -387,7 +387,7 @@ context("base.class", function()
 		end
 		local Reader = Class("MixinReader", Super, Mixin)
 		assert_error(function() Reader() end,
-		 		"reading an undefined variable in a mixin shall fail")
+				"reading an undefined variable in a mixin shall fail")
 	end)
 
 	test("mixin inheritance", function()

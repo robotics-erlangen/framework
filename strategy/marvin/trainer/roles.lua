@@ -9,13 +9,13 @@ local Messaging = require "control/messaging"
 local ROLE_HYSTERESIS = 0.05
 
 function Roles:init()
-    self._exclusiveRoles = {}
+	self._exclusiveRoles = {}
 end
 
 function Roles:_chooseExclusiveRoles()
 	local roleHysteresis = ROLE_HYSTERESIS
-    if Referee.isStopState() then
-    	roleHysteresis = math.huge
+	if Referee.isStopState() then
+		roleHysteresis = math.huge
 	end
 
 	local roleMsgs = self._inbox.exclusiveRole()

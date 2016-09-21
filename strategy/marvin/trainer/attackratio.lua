@@ -10,12 +10,12 @@ local Robot = require "observer/robot"
 
 function AttackRatio:init()
 	self._friendlyFreeKickOngoing = false
-    self._opponentFreeKickOngoing = false
-    self._ballInOpponentFieldHalf = false -- remember for hysteresis
+	self._opponentFreeKickOngoing = false
+	self._ballInOpponentFieldHalf = false -- remember for hysteresis
 end
 
 function AttackRatio:attackRatio()
-    local ball = World.Ball
+	local ball = World.Ball
 	local refState = World.RefereeState
 	if (self._ballInOpponentFieldHalf and ball.pos.y < -1.5) or
 		(not self._ballInOpponentFieldHalf and ball.pos.y > 1.5)
@@ -85,7 +85,7 @@ function AttackRatio:attackRatio()
 
 	local attackers = math.ceil(attackRatio/6 * #World.FriendlyRobots)
 
-    local _, mainAttacker = next(self._inbox.mainAttacker())
+	local _, mainAttacker = next(self._inbox.mainAttacker())
 	local mainAttackerIsDefender = false
 	if mainAttacker then
 		for robot, _ in pairs(self._inbox.defenderFlag()) do
@@ -100,21 +100,21 @@ function AttackRatio:attackRatio()
 		attackers = attackers - 1
 	end
 
-    debug.set("MainAttackerIsDefender", mainAttackerIsDefender)
+	debug.set("MainAttackerIsDefender", mainAttackerIsDefender)
 	debug.set("AttackRatio", attackRatio)
 
 	local defenders = #World.FriendlyRobots - attackers
 	if World.FriendlyKeeper and World.FriendlyKeeper.isVisible then
 		defenders = math.max(0, defenders - 1)
 	end
-    attackers, defenders = Ally.updateRoleNumbers(attackers, defenders)
+	attackers, defenders = Ally.updateRoleNumbers(attackers, defenders)
 	return attackers, defenders
 end
 
 function AttackRatio:changingRobot()
-    local robot = next(self._inbox.poolChangeRequest())
-    local isAttacker = self._inbox.attackerFlag()[robot]
-    return robot, isAttacker
+	local robot = next(self._inbox.poolChangeRequest())
+	local isAttacker = self._inbox.attackerFlag()[robot]
+	return robot, isAttacker
 end
 
 return AttackRatio

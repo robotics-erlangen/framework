@@ -50,7 +50,7 @@ function Keeper:run()
 		-- line starts a goal post, stay as near to the goal as possible
 		defenseLineStart = Vector(side*goalWidthHalf, G.FriendlyGoal.y)
 		local lineDir = ((Vector(0, defenseLineStart.y) - atkPos):perpendicular() * side):normalize()
-		if side*lineDir.x > 0 then 
+		if side*lineDir.x > 0 then
 			lineDir = Vector(0, 1)
 		end
 		-- move startpoint out of the goal along the direction

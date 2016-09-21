@@ -109,7 +109,7 @@ function Pass:run()
 		local ballTimeToPos2 = Physics.ballRollTime(shootBall, lambda4 * relativeShootPos:length())
 		local firstBallTime = math.min(ballTimeToPos1, ballTimeToPos2)
 		local secondBallTime = math.max(ballTimeToPos1, ballTimeToPos2)
-	    debug.set("pass interception"..opp.id, {
+		debug.set("pass interception"..opp.id, {
 			robot = opp,
 			["first robot time"] = oppTimeTo1,
 			["second robot time"] = oppTimeTo2,
@@ -118,7 +118,7 @@ function Pass:run()
 			pos1 = World.Ball.pos + relativeShootPos * lambda3,
 			pos2 = World.Ball.pos + relativeShootPos * lambda4
 		})
-  		if not (secondBallTime < oppTimeTo1 or firstBallTime > oppTimeTo2) then
+		if not (secondBallTime < oppTimeTo1 or firstBallTime > oppTimeTo2) then
 			if not opp.isFriendly then
 				vis.addCircle("t/pass: OppInterception", World.Ball.pos + relativeShootPos * lambda3, 0.1, vis.colors.blue, true)
 				vis.addCircle("t/pass: OppInterception", World.Ball.pos + relativeShootPos * lambda4, 0.1, vis.colors.blue, true)

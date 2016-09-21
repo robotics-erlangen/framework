@@ -38,7 +38,7 @@ function KickoffAssistant:_position(positionClash)
 		-- remember that player is in the back of the field
 		if self._moveDest == positions[2] or self._moveDest== positions[4] then
 			if (Game.attackSideWithLessOpponents()== "left" and self._moveDest== positions[4]) or
-				 (Game.attackSideWithLessOpponents()== "right" and self._moveDest== positions[2]) then
+					(Game.attackSideWithLessOpponents()== "right" and self._moveDest== positions[2]) then
 				return self:_position(true)
 			end
 			self._behind = true

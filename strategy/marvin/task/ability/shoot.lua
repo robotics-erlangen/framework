@@ -265,7 +265,7 @@ function Shoot:_correctSidewardsOffset(distToBall)
 	self._sideOffsetErrorSum = math.bound(errorMin, self._sideOffsetErrorSum + SIDEWARDS_KI * p_out * World.TimeDiff, errorMax)
 	debug.set("sideIntegral", self._sideOffsetErrorSum)
 
-	 -- correct sidewards pos error
+	-- correct sidewards pos error
 	return Vector.fromAngle(self._robot.dir):perpendicular():setLength(
 			math.bound(-speedLimit, p_out + self._sideOffsetErrorSum, speedLimit))
 end

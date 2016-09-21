@@ -203,17 +203,17 @@ function Ball.ballCatchProbability(robot, shootTime, rollTime, catchPos, corrido
 	local distToCorridor = toCorridor:length()
 	local v_toSector = robot.speed:dot(corridorHalf)*math.sign(toCorridor:dot(corridorHalf)) / corridorWidthHalf -- part of robot.speed perpendicular to shoot corridor
 	debug.set("v to sector", v_toSector)
-	local time = shootTime + rollTime	-- the time from now to the moment to catch the ball
-	local expectedPos = v_toSector*time	-- position, which the robot reaches without changing speed
+	local time = shootTime + rollTime -- the time from now to the moment to catch the ball
+	local expectedPos = v_toSector*time -- position, which the robot reaches without changing speed
 	local expPos = robot.pos + toCorridor:setLength(expectedPos)
 	local d0, flagAcc
-	if expectedPos < distToCorridor - corridorWidthHalf - robot.radius then	-- if robot must accelerate to reach corridor in time
+	if expectedPos < distToCorridor - corridorWidthHalf - robot.radius then -- if robot must accelerate to reach corridor in time
 		flagAcc = true
 		d0 = distToCorridor - robot.radius - corridorWidthHalf
-	elseif expectedPos > distToCorridor + corridorWidthHalf + robot.radius then	-- if robot must decelerate to stay in sector
+	elseif expectedPos > distToCorridor + corridorWidthHalf + robot.radius then -- if robot must decelerate to stay in sector
 		flagAcc = false
 		d0 = distToCorridor + robot.radius + corridorWidthHalf
-	else								-- if robot reaches the corridor in time with its current speed
+	else -- if robot reaches the corridor in time with its current speed
 		return 1
 	end
 	local maxAcceleration = robot.acceleration.aSpeedupFMax
@@ -222,8 +222,8 @@ function Ball.ballCatchProbability(robot, shootTime, rollTime, catchPos, corrido
 	if rollTime < latency then
 		neededAcc = 2*(d0 - expectedPos)/(damping*time*time)
 	else
-		local t1 = shootTime + latency	-- the time span while the robots can not react
-		local t2 = rollTime - latency	-- the time span while the robots can react
+		local t1 = shootTime + latency -- the time span while the robots can not react
+		local t2 = rollTime - latency -- the time span while the robots can react
 		neededAcc = (d0 - expectedPos)/(0.5*damping*t1*t1 + damping*t1*t2 + 0.5*t2*t2)
 	end
 	if flagAcc then

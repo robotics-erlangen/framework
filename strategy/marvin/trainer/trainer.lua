@@ -5,7 +5,7 @@ local debug = require "../base/debug"
 
 
 function Trainer:init(messaging)
-    self._send, self._inbox = nil, nil
+	self._send, self._inbox = nil, nil
 end
 
 function Trainer:setupMessaging(messaging)
@@ -26,8 +26,8 @@ function Trainer:_debugInbox()
 end
 
 function Trainer:run()
-    self:_debugInbox()
-    self:_chooseExclusiveRoles()
+	self:_debugInbox()
+	self:_chooseExclusiveRoles()
 end
 
 return Trainer

@@ -615,7 +615,7 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength, lastTim
 
 	if not t_ball_bsearch_start then
 		t_ball_bsearch_start, t_ball_bsearch_end
-				 = rttbQuadraticSampling(robot, ball, targetPos, endSpeedLength, t_max, t_stop, t_out)
+				= rttbQuadraticSampling(robot, ball, targetPos, endSpeedLength, t_max, t_stop, t_out)
 
 		if not t_ball_bsearch_start then
 			--local time1 = amun.getCurrentTime()
@@ -676,9 +676,9 @@ function Physics.getBallAsFastAsPossible(robot, ball, howClose)
 			-- -- in this case at least the first solution must be at negative time
 			-- -- so directly start searching for the two inner solutions
 			-- -- if none of them is at positive time, search the fourth solution
-			-- local t2 = math.sqrt(c/((-6)*a))	-- 12at²+2c=0	=> t=sqrt(-c/6a)
-			-- local t1 = -t2						-- points of inflection as starting points for Newton search
-			-- while math.abs(t2 - t1) > 2*epsilon_t do	-- if the two solutions are too close together, they are vulnerable to instabilities
+			-- local t2 = math.sqrt(c/((-6)*a)) -- 12at²+2c=0 => t=sqrt(-c/6a)
+			-- local t1 = -t2 -- points of inflection as starting points for Newton search
+			-- while math.abs(t2 - t1) > 2*epsilon_t do -- if the two solutions are too close together, they are vulnerable to instabilities
 				-- local t1New = t1 - (a*t1*t1*t1*t1 + c*t1*t1 + d*t1 + e)/(4*a*t1*t1*t1 + 2*c*t1 + d*t1)
 				-- local finished = (math.abs(t1 - t1New) < epsilon_t)
 				-- t1 = t1New
@@ -695,7 +695,7 @@ function Physics.getBallAsFastAsPossible(robot, ball, howClose)
 				-- local circleCenter = robot.pos + robot.speed*t1
 				-- local accelDir = ball.pos - circleCenter
 				-- local robotEndPos = ball.pos - accelDir:setLength(howClose)
-				-- local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*t1	-- end speed is max speed
+				-- local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*t1 -- end speed is max speed
 				-- return t1, robotEndPos, (robotEndSpeed:lengthSq() > robot.maxSpeed*robot.maxSpeed)
 			-- else
 				-- if t2 > 0 then
@@ -704,7 +704,7 @@ function Physics.getBallAsFastAsPossible(robot, ball, howClose)
 					-- local circleCenter = robot.pos + robot.speed*t2
 					-- local accelDir = ball.pos - circleCenter
 					-- local robotEndPos = ball.pos - accelDir:setLength(howClose)
-					-- local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*t2	-- end speed is max speed
+					-- local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*t2 -- end speed is max speed
 					-- return t2, robotEndPos, (robotEndSpeed:lengthSq() > robot.maxSpeed*robot.maxSpeed)
 				-- else
 					-- -- search for outer solution
@@ -735,7 +735,7 @@ function Physics.getBallAsFastAsPossible(robot, ball, howClose)
 					-- local circleCenter = robot.pos + robot.speed*upperBound
 					-- local accelDir = ball.pos - circleCenter
 					-- local robotEndPos = ball.pos - accelDir:setLength(howClose)
-					-- local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*upperBound	-- end speed is max speed
+					-- local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*upperBound -- end speed is max speed
 					-- return upperBound, robotEndPos, (robotEndSpeed:lengthSq() > robot.maxSpeed*robot.maxSpeed)
 				-- end
 			-- end
@@ -834,7 +834,7 @@ function Physics.getBallAsFastAsPossible(robot, ball, howClose)
 		-- end
 		-- if #t_touch == 0 then
 			-- -- robot circle cuts (or touches) the ball line for all t
-		
+
 		-- else
 			-- table.sort(t_touch)
 			-- -- now we have up to 3 t_touch -> up to two intervals in which we can search for the first possible catch position
@@ -862,7 +862,7 @@ function Physics.getBallAsFastAsPossible(robot, ball, howClose)
 			-- local dist1 = Physics.ballTravelledDistance(ball, t1)/ballTravelDistance - lambda[1]
 			-- local dist2 = Physics.ballTravelledDistance(ball, t2)/ballTravelDistance - lambda[2]
 			-- -- TODO lambdas anpassen, wenn t_touch modifiziert wurde (durch BallStrecke)
-			-- local sign1 = math.sign(dist1)	-- if negative the ball is in front of the robot at t_touch[1]
+			-- local sign1 = math.sign(dist1) -- if negative the ball is in front of the robot at t_touch[1]
 			-- if sign1 ~= math.sign(dist2) then
 			-- -- TODO: Das ist nicht die einzige Möglichkeit, wann es eine Lösung im earlyInterval geben kann
 				-- -- in earlyInterval there is a solution
@@ -876,7 +876,7 @@ function Physics.getBallAsFastAsPossible(robot, ball, howClose)
 		-- end
 		-- if not found then
 			-- -- search all times after t_touch[last]
-			
+
 		-- end
 		local t_sw, v_sw, s_sw = Physics.ballSwitchParameters(ball)
 		local found = false
@@ -957,7 +957,7 @@ function Physics.getBallAsFastAsPossible(robot, ball, howClose)
 	end
 	local accelDir = ballPosAtCatchTime - circleCenter
 	local robotEndPos = ballPosAtCatchTime - accelDir:setLength(howClose)
-	local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*t_catch	-- end speed is max speed
+	local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*t_catch -- end speed is max speed
 	return t_catch, robotEndPos, (robotEndSpeed:lengthSq() < robot.maxSpeed*robot.maxSpeed)
 end
 

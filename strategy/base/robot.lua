@@ -131,7 +131,7 @@ RobotMt.__tostring = Robot.tostring
 function Robot:_update(state, time, radioResponses)
 	-- keep current time for use by setStandby
 	self._currentTime = time
- 	-- bypass override check in setControllerInput
+	-- bypass override check in setControllerInput
 	self._controllerInput = {} -- halt robot by default
 	self:shootDisable() -- disable shoot
 	self:setDribblerSpeed(nil) -- stop dribbler

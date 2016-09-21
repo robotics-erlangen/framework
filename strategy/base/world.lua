@@ -354,7 +354,7 @@ function World._updateGameState(state)
 	World.OpponentKeeper = opponentKeeper
 
 	--[[
-    optional sint32 stage_time_left = 2;
+	optional sint32 stage_time_left = 2;
 	message TeamInfo {
 		// The team's name (empty string if operator has not typed anything).
 		required string name = 1;

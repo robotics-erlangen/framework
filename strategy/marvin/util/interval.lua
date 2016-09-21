@@ -71,7 +71,7 @@ end
 function Interval.getLargest(intervals)
 	local largestInterval = nil
 	local valueLargest = -1 -- size of the largest interval
-	for _, interval in ipairs(intervals) do	-- find the largest interval
+	for _, interval in ipairs(intervals) do -- find the largest interval
 		local diff = interval[2] - interval[1]
 		if diff > valueLargest then
 			largestInterval = interval

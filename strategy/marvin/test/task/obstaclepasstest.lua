@@ -65,7 +65,7 @@ local RETURN_LINES = {1.5,-1.5}
 
 local DriveToRandom = Class("Test.Task.ObstaclePassing.DriveToRandom", require "agent/base/behavior")
 function DriveToRandom:_stop()
-	self._randomPos = Vector((math.random()-0.5)* 2 * (RETURN_LINES[1]-0.2), 
+	self._randomPos = Vector((math.random()-0.5)* 2 * (RETURN_LINES[1]-0.2),
 							(math.random()-0.5) * 2 * (World.Geometry.FieldHeightHalf-1))
 end
 

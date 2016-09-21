@@ -12,14 +12,14 @@ local G = World.Geometry
 -- @param ignoreCorners bool - if robots which are somewhat away from the center are ignored
 -- @return Robot[], Robot[], Robot[] - 3 lists of robots representing the sectors
 function Game.divideOpponentsIntoSectors(ignoreCorners)
-	 -- _________________________ <- opponent's goal line
-	 -- |       |       |       |
-	 -- |       |       |       |
-	 -- |_______|   2   |_______| <- border: field height quarter
-	 -- |       |       |       |
-	 -- |   1   |       |   3   |
-	 -- |_______|_______|_______| <- center line
-	 -- |                       |
+	-- _________________________ <- opponent's goal line
+	-- |       |       |       |
+	-- |       |       |       |
+	-- |_______|   2   |_______| <- border: field height quarter
+	-- |       |       |       |
+	-- |   1   |       |   3   |
+	-- |_______|_______|_______| <- center line
+	-- |                       |
 	local sector = {{}, {}, {}}
 	local border = G.CenterCircleRadius + G.FieldWidthQuarter
 	for _,robot in ipairs(World.OpponentRobots) do

@@ -10,7 +10,7 @@ local _M = {}
 local compat_env = require("test/telescope/compat_env")
 local loadfile_orig = loadfile
 local loadfile = function(fn)
-  return loadfile(amun.strategyPath .. "/" .. fn ..".lua")
+	return loadfile(amun.strategyPath .. "/" .. fn ..".lua")
 end
 
 local getfenv = _G.getfenv or compat_env.getfenv
@@ -30,11 +30,11 @@ local _VERSION = "0.6.0"
 -- @field unassertive - This is returned when an invoked test does not produce
 -- errors, but does not contain any assertions.
 local status_codes = {
-  err         = 2,
-  fail        = 4,
-  pass        = 8,
-  pending     = 16,
-  unassertive = 32
+	err         = 2,
+	fail        = 4,
+	pass        = 8,
+	pending     = 16,
+	unassertive = 32
 }
 
 --- Labels used to show the various <tt>status_codes</tt> as a single character.
@@ -49,11 +49,11 @@ local status_codes = {
 -- @field status_codes.unassertive 'U'
 
 local status_labels = {
-  [status_codes.err]         = 'E',
-  [status_codes.fail]        = 'F',
-  [status_codes.pass]        = 'P',
-  [status_codes.pending]     = '?',
-  [status_codes.unassertive] = 'U'
+	[status_codes.err]         = 'E',
+	[status_codes.fail]        = 'F',
+	[status_codes.pass]        = 'P',
+	[status_codes.pending]     = '?',
+	[status_codes.unassertive] = 'U'
 }
 
 --- The default names for context blocks. It defaults to "context", "spec" and
@@ -147,46 +147,46 @@ local assertions = {}
 -- return a == b end)</tt>
 -- @function make_assertion
 local function make_assertion(name, message, func)
-  local num_vars = 0
-  -- if the last vararg ends up nil, we'll need to pad the table with nils so
-  -- that string.format gets the number of args it expects
-  local format_message
-  if type(message) == "function" then
-    format_message = message
-  else
-    for _, _ in message:gmatch("%%s") do num_vars = num_vars + 1 end
-    format_message = function(message, ...)
-      local a = {}
-      local args = {...}
-      local nargs = select('#', ...)
-      if nargs > num_vars then        
-        local userErrorMessage = args[num_vars+1]
-        if type(userErrorMessage) == "string" then
-          return(assertion_message_prefix .. userErrorMessage)
-        else
-          error(string.format('assert_%s expected %d arguments but got %d', name, num_vars, #args))
-        end
-      end
-      for i = 1, nargs do a[i] = tostring(args[i]) end
-      for i = nargs+1, num_vars do a[i] = 'nil' end
-      return (assertion_message_prefix .. message):format(unpack(a))
-    end
-  end
+	local num_vars = 0
+	-- if the last vararg ends up nil, we'll need to pad the table with nils so
+	-- that string.format gets the number of args it expects
+	local format_message
+	if type(message) == "function" then
+		format_message = message
+	else
+		for _, _ in message:gmatch("%%s") do num_vars = num_vars + 1 end
+		format_message = function(message, ...)
+			local a = {}
+			local args = {...}
+			local nargs = select('#', ...)
+			if nargs > num_vars then
+				local userErrorMessage = args[num_vars+1]
+				if type(userErrorMessage) == "string" then
+					return(assertion_message_prefix .. userErrorMessage)
+				else
+					error(string.format('assert_%s expected %d arguments but got %d', name, num_vars, #args))
+				end
+			end
+			for i = 1, nargs do a[i] = tostring(args[i]) end
+			for i = nargs+1, num_vars do a[i] = 'nil' end
+			return (assertion_message_prefix .. message):format(unpack(a))
+		end
+	end
 
-  assertions["assert_" .. name] = function(...)
-    if assertion_callback then assertion_callback(...) end
-    if not func(...) then
-      error({format_message(message, ...), debug.traceback()})
-    end
-  end
+	assertions["assert_" .. name] = function(...)
+		if assertion_callback then assertion_callback(...) end
+		if not func(...) then
+			error({format_message(message, ...), debug.traceback()})
+		end
+	end
 end
 
 --- (local) Return a table with table t's values as keys and keys as values.
 -- @param t The table.
 local function invert_table(t)
-  local t2 = {}
-  for k, v in pairs(t) do t2[v] = k end
-  return t2
+	local t2 = {}
+	for k, v in pairs(t) do t2[v] = k end
+	return t2
 end
 
 -- (local) Truncate a string "s" to length "len", optionally followed by the
@@ -196,12 +196,12 @@ end
 -- @param len The desired length.
 -- @param after A string to append to s, if it is truncated.
 local function truncate_string(s, len, after)
-  if #s <= len then
-    return s
-  else
-    local s = s:sub(1, len):gsub("%s*$", '')
-    if after then return s .. after else return s end
-  end
+	if #s <= len then
+		return s
+	else
+		local s = s:sub(1, len):gsub("%s*$", '')
+		if after then return s .. after else return s end
+	end
 end
 
 --- (local) Filter a table's values by function. This function iterates over a
@@ -210,13 +210,13 @@ end
 -- @param t The table over which to iterate.
 -- @param f The filter function.
 local function filter(t, f)
-  local a, b
-  return function()
-    repeat a, b = next(t, a)
-      if not b then return end
-      if f(a, b) then return a, b end
-    until not b
-  end
+	local a, b
+	return function()
+		repeat a, b = next(t, a)
+			if not b then return end
+			if f(a, b) then return a, b end
+		until not b
+	end
 end
 
 --- (local) Finds the value in the contexts table indexed with i, and returns a table
@@ -224,23 +224,23 @@ end
 -- @param i The index in the <tt>contexts</tt> table to get ancestors for.
 -- @param contexts The table in which to find the ancestors.
 local function ancestors(i, contexts)
-  if i == 0 then return end
-  local a = {}
-  local function func(j)
-    if contexts[j].parent == 0 then return nil end
-    table.insert(a, contexts[j].parent)
-    func(contexts[j].parent)
-  end
-  func(i)
-  return a
+	if i == 0 then return end
+	local a = {}
+	local function func(j)
+		if contexts[j].parent == 0 then return nil end
+		table.insert(a, contexts[j].parent)
+		func(contexts[j].parent)
+	end
+	func(i)
+	return a
 end
 
 local function error_msg(_, f, msg)
-  return assertion_message_prefix .. "result to be an error " .. tostring(msg)
+	return assertion_message_prefix .. "result to be an error " .. tostring(msg)
 end
 
 local function not_error_msg(_, f, msg)
-  return assertion_message_prefix .. "result not to be an error " .. tostring(msg)
+	return assertion_message_prefix .. "result not to be an error " .. tostring(msg)
 end
 
 make_assertion("blank",        "'%s' to be blank",                         function(a) return a == '' or a == nil end)
@@ -284,62 +284,62 @@ make_assertion("not_type",     "'%s' not to be a %s",                      funct
 -- and function.
 -- @function load_contexts
 local function load_contexts(target, contexts)
-  local env = {}
-  local current_index = 0
-  local context_table = contexts or {}
+	local env = {}
+	local current_index = 0
+	local context_table = contexts or {}
 
-  local function context_block(name, func)
-    table.insert(context_table, {parent = current_index, name = name, context = true})
-    local previous_index = current_index
-    current_index = #context_table
-    func()
-    current_index = previous_index
-  end
+	local function context_block(name, func)
+		table.insert(context_table, {parent = current_index, name = name, context = true})
+		local previous_index = current_index
+		current_index = #context_table
+		func()
+		current_index = previous_index
+	end
 
-  local function test_block(name, func)
-    local test_table = {name = name, parent = current_index, test = func or true}
-    if current_index ~= 0 then
-      test_table.context_name = context_table[current_index].name
-    else
-      test_table.context_name = 'top level'
-    end
-    table.insert(context_table, test_table)
-  end
+	local function test_block(name, func)
+		local test_table = {name = name, parent = current_index, test = func or true}
+		if current_index ~= 0 then
+			test_table.context_name = context_table[current_index].name
+		else
+			test_table.context_name = 'top level'
+		end
+		table.insert(context_table, test_table)
+	end
 
-  local function before_block(func)
-    context_table[current_index].before = func
-  end
+	local function before_block(func)
+		context_table[current_index].before = func
+	end
 
-  local function after_block(func)
-    context_table[current_index].after = func
-  end
+	local function after_block(func)
+		context_table[current_index].after = func
+	end
 
-  for _, v in ipairs(after_aliases)   do env[v] = after_block end
-  for _, v in ipairs(before_aliases)  do env[v] = before_block end
-  for _, v in ipairs(context_aliases) do env[v] = context_block end
-  for _, v in ipairs(test_aliases)    do env[v] = test_block end
+	for _, v in ipairs(after_aliases)   do env[v] = after_block end
+	for _, v in ipairs(before_aliases)  do env[v] = before_block end
+	for _, v in ipairs(context_aliases) do env[v] = context_block end
+	for _, v in ipairs(test_aliases)    do env[v] = test_block end
 
-  -- Set these functions in the module's meta table to allow accessing
-  -- telescope's test and context functions without env tricks. This will
-  -- however add tests to a context table used inside the module, so multiple
-  -- test files will add tests to the same top-level context, which may or may
-  -- not be desired.
-  setmetatable(_M, {__index = env})
+	-- Set these functions in the module's meta table to allow accessing
+	-- telescope's test and context functions without env tricks. This will
+	-- however add tests to a context table used inside the module, so multiple
+	-- test files will add tests to the same top-level context, which may or may
+	-- not be desired.
+	setmetatable(_M, {__index = env})
 
-  setmetatable(env, {__index = _G})
+	setmetatable(env, {__index = _G})
 
-  local func, err = type(target) == 'string' and assert(loadfile(target)) or target
-  if err then error(err) end
-  setfenv(func, env)()
-  return context_table
+	local func, err = type(target) == 'string' and assert(loadfile(target)) or target
+	if err then error(err) end
+	setfenv(func, env)()
+	return context_table
 end
 
 -- in-place table reverse.
 function table.reverse(t)
-     local len = #t+1
-     for i=1, (len-1)/2 do
-          t[i], t[len-i] = t[len-i], t[i]
-     end
+	local len = #t+1
+	for i=1, (len-1)/2 do
+		t[i], t[len-i] = t[len-i], t[i]
+	end
 end
 
 --- Run all tests.
@@ -389,105 +389,105 @@ end
 -- @function run
 local function run(contexts, callbacks, test_filter)
 
-  local results = {}
-  local status_names = invert_table(status_codes)
-  local test_filter = test_filter or function(a) return a end
+	local results = {}
+	local status_names = invert_table(status_codes)
+	local test_filter = test_filter or function(a) return a end
 
-  -- Setup a new environment suitable for running a new test
-  local function newEnv()
-    local env = {}
+	-- Setup a new environment suitable for running a new test
+	local function newEnv()
+		local env = {}
 
-    -- Make sure globals are accessible in the new environment
-    setmetatable(env, {__index = _G})
+		-- Make sure globals are accessible in the new environment
+		setmetatable(env, {__index = _G})
 
-    -- Setup all the assert functions in the new environment
-    for k, v in pairs(assertions) do
-      setfenv(v, env)
-      env[k] = v
-    end
+		-- Setup all the assert functions in the new environment
+		for k, v in pairs(assertions) do
+			setfenv(v, env)
+			env[k] = v
+		end
 
-    return env
-  end
+		return env
+	end
 
-  local env = newEnv()
+	local env = newEnv()
 
-  local function invoke_callback(name, test)
-    if not callbacks then return end
-    if type(callbacks[name]) == "table" then
-      for _, c in ipairs(callbacks[name]) do c(test) end
-    elseif callbacks[name] then
-      callbacks[name](test)
-    end
-  end
+	local function invoke_callback(name, test)
+		if not callbacks then return end
+		if type(callbacks[name]) == "table" then
+			for _, c in ipairs(callbacks[name]) do c(test) end
+		elseif callbacks[name] then
+			callbacks[name](test)
+		end
+	end
 
-  local function invoke_test(func)
-    local assertions_invoked = 0
-    env.assertion_callback = function()
-      assertions_invoked = assertions_invoked + 1
-    end
-    setfenv(func, env)
-    local result, message = xpcall(func, debug.traceback)
-    if result and assertions_invoked > 0 then
-      return status_codes.pass, assertions_invoked, nil
-    elseif result then
-      return status_codes.unassertive, 0, nil
-    elseif type(message) == "table" then
-      return status_codes.fail, assertions_invoked, message
-    else
-      return status_codes.err, assertions_invoked, {message, debug.traceback()}
-    end
-  end
+	local function invoke_test(func)
+		local assertions_invoked = 0
+		env.assertion_callback = function()
+			assertions_invoked = assertions_invoked + 1
+		end
+		setfenv(func, env)
+		local result, message = xpcall(func, debug.traceback)
+		if result and assertions_invoked > 0 then
+			return status_codes.pass, assertions_invoked, nil
+		elseif result then
+			return status_codes.unassertive, 0, nil
+		elseif type(message) == "table" then
+			return status_codes.fail, assertions_invoked, message
+		else
+			return status_codes.err, assertions_invoked, {message, debug.traceback()}
+		end
+	end
 
-  for i, v in filter(contexts, function(i, v) return v.test and test_filter(v) end) do
-    env = newEnv()    -- Setup a new environment for this test
+	for i, v in filter(contexts, function(i, v) return v.test and test_filter(v) end) do
+		env = newEnv()    -- Setup a new environment for this test
 
-    local ancestors = ancestors(i, contexts)
-    local context_name = 'Top level'
-    if contexts[i].parent ~= 0 then
-      context_name = contexts[contexts[i].parent].name
-    end
-    local result = {
-      assertions_invoked = 0,
-      name               = contexts[i].name,
-      context            = context_name,
-      test               = i
-    }
-    table.sort(ancestors)
-    -- this "before" is the test callback passed into the runner
-    invoke_callback("before", result)
-    
-    -- run all the "before" blocks/functions
-    for _, a in ipairs(ancestors) do
-      if contexts[a].before then 
-        setfenv(contexts[a].before, env)
-        contexts[a].before() 
-      end
-    end
+		local ancestors = ancestors(i, contexts)
+		local context_name = 'Top level'
+		if contexts[i].parent ~= 0 then
+			context_name = contexts[contexts[i].parent].name
+		end
+		local result = {
+			assertions_invoked = 0,
+			name               = contexts[i].name,
+			context            = context_name,
+			test               = i
+		}
+		table.sort(ancestors)
+		-- this "before" is the test callback passed into the runner
+		invoke_callback("before", result)
 
-    -- check if it's a function because pending tests will just have "true"
-    if type(v.test) == "function" then
-      result.status_code, result.assertions_invoked, result.message = invoke_test(v.test)
-      invoke_callback(status_names[result.status_code], result)
-    else
-      result.status_code = status_codes.pending
-      invoke_callback("pending", result)
-    end
-    result.status_label = status_labels[result.status_code]
+		-- run all the "before" blocks/functions
+		for _, a in ipairs(ancestors) do
+			if contexts[a].before then
+				setfenv(contexts[a].before, env)
+				contexts[a].before()
+			end
+		end
 
-    -- Run all the "after" blocks/functions
-    table.reverse(ancestors)
-    for _, a in ipairs(ancestors) do
-      if contexts[a].after then 
-        setfenv(contexts[a].after, env)
-        contexts[a].after() 
-      end
-    end
+		-- check if it's a function because pending tests will just have "true"
+		if type(v.test) == "function" then
+			result.status_code, result.assertions_invoked, result.message = invoke_test(v.test)
+			invoke_callback(status_names[result.status_code], result)
+		else
+			result.status_code = status_codes.pending
+			invoke_callback("pending", result)
+		end
+		result.status_label = status_labels[result.status_code]
 
-    invoke_callback("after", result)
-    results[i] = result
-  end
+		-- Run all the "after" blocks/functions
+		table.reverse(ancestors)
+		for _, a in ipairs(ancestors) do
+			if contexts[a].after then
+				setfenv(contexts[a].after, env)
+				contexts[a].after()
+			end
+		end
 
-  return results
+		invoke_callback("after", result)
+		results[i] = result
+	end
+
+	return results
 
 end
 
@@ -497,41 +497,41 @@ end
 -- @function test_report
 local function test_report(contexts, results)
 
-  local buffer               = {}
-  local leading_space        = "  "
-  local level                = 0
-  local line_char            = "-"
-  local previous_level       = 0
-  local status_format_len    = 3
-  local status_format        = "[%s]"
-  local width                = 72
-  local context_name_format  = "%-" .. width - status_format_len .. "s"
-  local function_name_format = "%-" .. width - status_format_len .. "s"
+	local buffer               = {}
+	local leading_space        = "  "
+	local level                = 0
+	local line_char            = "-"
+	local previous_level       = 0
+	local status_format_len    = 3
+	local status_format        = "[%s]"
+	local width                = 72
+	local context_name_format  = "%-" .. width - status_format_len .. "s"
+	local function_name_format = "%-" .. width - status_format_len .. "s"
 
-  local function space()
-    return leading_space:rep(level - 1)
-  end
+	local function space()
+		return leading_space:rep(level - 1)
+	end
 
-  local function add_divider()
-    table.insert(buffer, line_char:rep(width))
-  end
-  add_divider()
-  for i, item in ipairs(contexts) do
-    local ancestors = ancestors(i, contexts)
-    previous_level = level or 0
-    level = #ancestors
-    -- the 4 here is the length of "..." plus one space of padding
-    local name = truncate_string(item.name, width - status_format_len - 4 - #ancestors, '...')
-    if previous_level ~= level and level == 0 then add_divider() end
-    if item.context then
-      table.insert(buffer, context_name_format:format(space() .. name .. ':'))
-    elseif results[i] then
-      table.insert(buffer, function_name_format:format(space() .. name) ..
-        status_format:format(results[i].status_label))
-    end
-  end
-  add_divider()
-  return table.concat(buffer, "\n")
+	local function add_divider()
+		table.insert(buffer, line_char:rep(width))
+	end
+	add_divider()
+	for i, item in ipairs(contexts) do
+		local ancestors = ancestors(i, contexts)
+		previous_level = level or 0
+		level = #ancestors
+		-- the 4 here is the length of "..." plus one space of padding
+		local name = truncate_string(item.name, width - status_format_len - 4 - #ancestors, '...')
+		if previous_level ~= level and level == 0 then add_divider() end
+		if item.context then
+			table.insert(buffer, context_name_format:format(space() .. name .. ':'))
+		elseif results[i] then
+			table.insert(buffer, function_name_format:format(space() .. name) ..
+				status_format:format(results[i].status_label))
+		end
+	end
+	add_divider()
+	return table.concat(buffer, "\n")
 
 end
 
@@ -540,12 +540,12 @@ end
 -- @param results The results returned by <tt>run</tt>.
 -- @function error_report
 local function error_report(contexts, results)
-  local buffer = {}
-  for _, r in filter(results, function(i, r) return r.message end) do
-    local name = contexts[r.test].name
-    table.insert(buffer, name .. ":\n" .. r.message[1] .. "\n" .. r.message[2])
-  end
-  if #buffer > 0 then return table.concat(buffer, "\n") end
+	local buffer = {}
+	for _, r in filter(results, function(i, r) return r.message end) do
+		local name = contexts[r.test].name
+		table.insert(buffer, name .. ":\n" .. r.message[1] .. "\n" .. r.message[2])
+	end
+	if #buffer > 0 then return table.concat(buffer, "\n") end
 end
 
 --- Get a one-line report and a summary table with the status counts. The
@@ -559,35 +559,35 @@ end
 -- @param results The results returned by <tt>run</tt>.
 -- @function summary_report
 local function summary_report(contexts, results)
-  local r = {
-    assertions  = 0,
-    errors      = 0,
-    failed      = 0,
-    passed      = 0,
-    pending     = 0,
-    tests       = 0,
-    unassertive = 0
-  }
-  for _, v in pairs(results) do
-    r.tests = r.tests + 1
-    r.assertions = r.assertions + v.assertions_invoked
-    if v.status_code == status_codes.err then r.errors = r.errors + 1
-    elseif v.status_code == status_codes.fail then r.failed = r.failed + 1
-    elseif v.status_code == status_codes.pass then r.passed = r.passed + 1
-    elseif v.status_code == status_codes.pending then r.pending = r.pending + 1
-    elseif v.status_code == status_codes.unassertive then r.unassertive = r.unassertive + 1
-    end
-  end
-  local buffer = {}
-  for _, k in ipairs({"tests", "passed", "assertions", "failed", "errors", "unassertive", "pending"}) do
-    local number = r[k]
-    local label = k
-    if number == 1 then
-      label = label:gsub("s$", "")
-    end
-    table.insert(buffer, ("%d %s"):format(number, label))
-  end
-  return table.concat(buffer, " "), r
+	local r = {
+		assertions  = 0,
+		errors      = 0,
+		failed      = 0,
+		passed      = 0,
+		pending     = 0,
+		tests       = 0,
+		unassertive = 0
+	}
+	for _, v in pairs(results) do
+		r.tests = r.tests + 1
+		r.assertions = r.assertions + v.assertions_invoked
+		if v.status_code == status_codes.err then r.errors = r.errors + 1
+		elseif v.status_code == status_codes.fail then r.failed = r.failed + 1
+		elseif v.status_code == status_codes.pass then r.passed = r.passed + 1
+		elseif v.status_code == status_codes.pending then r.pending = r.pending + 1
+		elseif v.status_code == status_codes.unassertive then r.unassertive = r.unassertive + 1
+		end
+	end
+	local buffer = {}
+	for _, k in ipairs({"tests", "passed", "assertions", "failed", "errors", "unassertive", "pending"}) do
+		local number = r[k]
+		local label = k
+		if number == 1 then
+			label = label:gsub("s$", "")
+		end
+		table.insert(buffer, ("%d %s"):format(number, label))
+	end
+	return table.concat(buffer, " "), r
 end
 
 _M.after_aliases            = after_aliases

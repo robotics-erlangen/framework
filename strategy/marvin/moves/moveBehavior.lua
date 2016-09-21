@@ -12,7 +12,7 @@ local selectedMove = nil
 local isActive = false
 local isTired = false
 local moves = {
-		Armada
+	Armada
 }
 
 --TODO: Report Success / Failure to RoulettWheelSelection
@@ -24,9 +24,9 @@ end
 
 function Move:check()
 	local involvedRobots = {}
-    for robot, _ in pairs(self._inbox.standardMoveFlag("broadcast")) do
-        table.insert(involvedRobots, robot)
-    end
+	for robot, _ in pairs(self._inbox.standardMoveFlag("broadcast")) do
+		table.insert(involvedRobots, robot)
+	end
 
 	if isTired then
 		if #involvedRobots == 0 then
@@ -46,7 +46,7 @@ function Move:check()
 	end
 
 	if self._inbox.mainAttacker().trainer == self._robot then --MA mustn't participate in a move
-		return false 
+		return false
 	end
 
 	if selectedMove and selectedMove.excludeKeeper() and self._robot == World.FriendlyKeeper then
@@ -71,14 +71,14 @@ function Move:check()
 		end
 
 		self._send.standardMoveFlag("all")
-		
+
 		local offset = offsetTable[self._robot]
 		if offset then --regular case, we are already in the table
 			debug.set("offset","regular")
 			self._offset = offset
 			return true
 		end
-		
+
 		--we are not in the table, but the table is filled
 		if offsetTableSize == selectedMove.size() then
 			-- try to take the spot of the (new) mainattacker
@@ -90,7 +90,7 @@ function Move:check()
 					offsetTable[self._robot] = offset
 					offsetTable[mainAttacker] = nil
 					debug.set("offset","old MA")
-					return true	
+					return true
 				end
 			end
 
@@ -119,13 +119,13 @@ function Move:check()
 
 	end
 	--if not isActive and
-	if selectedMove then 
+	if selectedMove then
 		--this is the first frame of the selected Move. Static data is initialized.
 		--Nobody knows, whether there are enough robots for this move or not, so simply send a message, that we want to participate
-        self._send.standardMoveFlag("all")
+		self._send.standardMoveFlag("all")
 		return false
 	end
-	--else 
+	--else
 	local movesBitmap = {}
 	local anyMatch = false
 	for index,move in ipairs(moves) do
@@ -143,7 +143,7 @@ function Move:check()
 	selectedMove = moves[selectedIndex]
 	offsetTable = {}
 	offsetTableSize = 0
-	if not selectedMove.excludeKeeper() or World.FriendlyKeeper ~= self._robot then 
+	if not selectedMove.excludeKeeper() or World.FriendlyKeeper ~= self._robot then
 		self._send.standardMoveFlag("all")
 	end
 	return false
@@ -151,7 +151,7 @@ end
 
 function Move:_updateTask()
 	selectedMove.run(self)
-    return selectedMove.updateTask(self._offset)
+	return selectedMove.updateTask(self._offset)
 end
 
 return Move

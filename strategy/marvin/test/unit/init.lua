@@ -89,7 +89,7 @@ local function colored_report(contexts, results)
 
 	local function format_error(result)
 		local name = contexts[result.test].name
-	    return "&nbsp;&nbsp;&nbsp;&nbsp;" .. result.message[1] .. result.message[2]
+		return "&nbsp;&nbsp;&nbsp;&nbsp;" .. result.message[1] .. result.message[2]
 	end
 
 	table.insert(buffer, "")

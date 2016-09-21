@@ -25,18 +25,18 @@ function preproc:run()
 	Ball._updateReceivesPass()
 	Ball._updateIsAccelerating()
 	Ball._updateIsShot()
-    Robot.estimateOpponentDynamics()
-    Robot._resetMinTimeToBall()
-    Robot._updateHadBall()
-    Robot._updateTouchedBall()
-    Robot._updateOwnFreekickShooter()
-    Referee.checkTouching()
-    Referee.illustrateRefereeStates()
-    Error._update()
+	Robot.estimateOpponentDynamics()
+	Robot._resetMinTimeToBall()
+	Robot._updateHadBall()
+	Robot._updateTouchedBall()
+	Robot._updateOwnFreekickShooter()
+	Referee.checkTouching()
+	Referee.illustrateRefereeStates()
+	Error._update()
 
 end
 function preproc:isFinished()
-    return false
+	return false
 end
 Processor.addPre(preproc)
 -- local BallAnalyzer = require "observer/ballAnalyzer"

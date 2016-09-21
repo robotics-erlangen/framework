@@ -142,7 +142,7 @@ function Goal.allFreeSectors(viewPos, robotList)
 	--for i,sector in ipairs(occupiedSectors) do
 	--	debug.set("MOsectors["..i.."]", "{"..sector[1]..", "..sector[2].."}")
 	--end
-	local freeSectors = Interval.negate(occupiedSectors, -42, 1337)	-- magic constants, don't change!
+	local freeSectors = Interval.negate(occupiedSectors, -42, 1337) -- magic constants, don't change!
 	if #freeSectors > 2 then
 		local first = freeSectors[1]
 		local last = freeSectors[#freeSectors]
@@ -152,14 +152,14 @@ function Goal.allFreeSectors(viewPos, robotList)
 		--end
 		freeSectors[1] = {last[1], first[2]}
 		table.remove(freeSectors)
-	elseif #freeSectors > 1 then	-- exactly 2 halfs (that are actually 1 sector, but with a sign flip)
+	elseif #freeSectors > 1 then -- exactly 2 halfs (that are actually 1 sector, but with a sign flip)
 		local first = freeSectors[1]
 		local second = freeSectors[2]
 		freeSectors = {{second[1], first[2]}}
 		--for i,sector in ipairs(freeSectors) do
 		--	debug.set("Fsectors["..i.."]", "{"..sector[1]..", "..sector[2].."}")
 		--end
-	else	-- no free sector
+	else -- no free sector
 		freeSectors = {}
 	end
 	-- remove sectors that are broader than 2pi
@@ -193,7 +193,7 @@ function Goal.predictShot()
 		-- FIXME as the ball is moving also use pass check if it slightly misses the goal
 		-- TODO check whether an opponent robot may deflect the ball inside the keeper area?
 		-- check if there's a robot which may recieve the pass
-		if (intersectGoal and math.abs(intersectGoal.x) > World.Geometry.FieldWidthHalf) or ballSpeed.y > 0 then	-- if the ball moves away from our goal
+		if (intersectGoal and math.abs(intersectGoal.x) > World.Geometry.FieldWidthHalf) or ballSpeed.y > 0 then -- if the ball moves away from our goal
 			local endOfField = Field.nextLineCut(pos, ballSpeed)
 			local lengthOfBallMovement = 0.5*ballSpeed:lengthSq()/(-Constants.ballDeceleration)
 			if (endOfField - pos):lengthSq() > lengthOfBallMovement*lengthOfBallMovement then
@@ -210,7 +210,7 @@ function Goal.predictShot()
 				if chance > 0 then
 					local index = 1
 					local range = false
-					for k, p in ipairs(passReceivers) do	-- find the position in the table, so that the table is still sorted (after ascending chance) after insertion
+					for k, p in ipairs(passReceivers) do -- find the position in the table, so that the table is still sorted (after ascending chance) after insertion
 						index = k
 						if p[2] > chance then
 							range = true
