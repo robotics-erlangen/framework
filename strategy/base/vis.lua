@@ -169,7 +169,7 @@ end
 -- @name addCircleRaw
 -- @see addCircle
 function vis.addCircleRaw(name, center, radius, color, isFilled, background, style)
-	 -- if color is set use passed isFilled
+	-- if color is set use passed isFilled
 	if not color then
 		isFilled = gisFilled
 		color = gcolor
@@ -197,7 +197,7 @@ end
 -- @name addPolygonRaw
 -- @see addPolygon
 function vis.addPolygonRaw(name, points, color, isFilled, background, style)
-	 -- if color is set use passed isFilled
+	-- if color is set use passed isFilled
 	if not color then
 		isFilled = gisFilled
 		color = gcolor

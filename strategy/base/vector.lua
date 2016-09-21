@@ -42,16 +42,16 @@ local vector_c -- ffi constructor
 local vector_c_readonly -- ffi readonly constructor
 local vector_mt = {isVector = true} -- vector functions, local to prevent modifications
 local mt = {
-  __add = function(a, b) return vector_c(a.x+b.x, a.y+b.y) end,
-  __sub = function(a, b) return vector_c(a.x-b.x, a.y-b.y) end,
-  __unm = function(a) return vector_c(-a.x, -a.y) end,
-  __mul = function(a, b) return vector_c(a.x*b, a.y*b) end,
-  __div = function(a, b) return vector_c(a.x/b, a.y/b) end,
-  -- check that b is not nil, take care to not trigger __eq
-  __eq = function(a, b) return type(a) ~= "nil" and type(b) ~= "nil" and (a.x == b.x) and (a.y == b.y) end,
-  __len = function(a) return sqrt(a.x*a.x + a.y*a.y) end,
-  __tostring = function(a) return format("(%.4f, %.4f)", a.x, a.y) end,
-  __index = vector_mt,
+	__add = function(a, b) return vector_c(a.x+b.x, a.y+b.y) end,
+	__sub = function(a, b) return vector_c(a.x-b.x, a.y-b.y) end,
+	__unm = function(a) return vector_c(-a.x, -a.y) end,
+	__mul = function(a, b) return vector_c(a.x*b, a.y*b) end,
+	__div = function(a, b) return vector_c(a.x/b, a.y/b) end,
+	-- check that b is not nil, take care to not trigger __eq
+	__eq = function(a, b) return type(a) ~= "nil" and type(b) ~= "nil" and (a.x == b.x) and (a.y == b.y) end,
+	__len = function(a) return sqrt(a.x*a.x + a.y*a.y) end,
+	__tostring = function(a) return format("(%.4f, %.4f)", a.x, a.y) end,
+	__index = vector_mt,
 }
 
 function vector_mt:isReadonly()
@@ -227,19 +227,19 @@ end
 -- @param lineEnd Vector - end of line
 -- @return number - distance
 function vector_mt:distanceToLineSegment(lineStart, lineEnd)
-    local dir = (lineEnd - lineStart):normalize()
-    local d = self - lineStart
-    if d:dot(dir) < 0 then
-    	return d:length()
-    end
-    d = self - lineEnd
-    if d:dot(dir) > 0 then
-    	return d:length()
-    end
+	local dir = (lineEnd - lineStart):normalize()
+	local d = self - lineStart
+	if d:dot(dir) < 0 then
+		return d:length()
+	end
+	d = self - lineEnd
+	if d:dot(dir) > 0 then
+		return d:length()
+	end
 
-    --local normal = dir:perpendicular()
-    --return math.abs(d:dot(normal))
-    return abs(d.x * dir.y - d.y * dir.x)
+	--local normal = dir:perpendicular()
+	--return math.abs(d:dot(normal))
+	return abs(d.x * dir.y - d.y * dir.x)
 end
 
 --- Calculates the point on a line segment with the shortest distance to a given point.
@@ -307,17 +307,17 @@ function Vector.random(sigma, mean)
 	mean = mean or Vector(0, 0)
 	local u, v, s
 
-    repeat
-        u = -1.0 + 2.0 * math.uniformRandom()
-        v = -1.0 + 2.0 * math.uniformRandom()
+	repeat
+		u = -1.0 + 2.0 * math.uniformRandom()
+		v = -1.0 + 2.0 * math.uniformRandom()
 
-        s = u * u + v * v
-    until s ~= 0.0 and s < 1.0
+		s = u * u + v * v
+	until s ~= 0.0 and s < 1.0
 
-    -- Box-Muller transform (polar)
-    local tmp = sigma * math.sqrt(-2.0 * math.log(s) / s)
+	-- Box-Muller transform (polar)
+	local tmp = sigma * math.sqrt(-2.0 * math.log(s) / s)
 
-    return vector_c(tmp * u + mean.x, tmp * v + mean.y)
+	return vector_c(tmp * u + mean.x, tmp * v + mean.y)
 end
 
 function Vector._loadGeom()
@@ -325,9 +325,9 @@ function Vector._loadGeom()
 end
 
 local vector_class_mt = {
-  	__call = function (_, x, y, readonly)
-  		return vector_create(x, y, readonly)
-  	end
+	__call = function (_, x, y, readonly)
+		return vector_create(x, y, readonly)
+	end
 }
 setmetatable(Vector, vector_class_mt)
 
