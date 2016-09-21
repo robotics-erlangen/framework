@@ -7,6 +7,7 @@ local function set_global()
 end
 
 local function read_global()
+	-- luacheck: globals globalValue
 	local tmp = globalValue
 end
 
@@ -15,6 +16,7 @@ test("base.globalschecker", function ()
 	assert_error(set_global, "Must not write undefined globals")
 	assert_error(read_global, "Must not read undefined globals")
 	assert_not_error(function()
+		-- luacheck: globals amun
 		local oldAmun = amun
 		amun = 42
 		amun = oldAmun

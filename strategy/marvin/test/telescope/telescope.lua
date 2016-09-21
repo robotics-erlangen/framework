@@ -6,6 +6,7 @@
 -- @class module
 -- @module 'telescope'
 local _M = {}
+-- luacheck: globals assertion_callback
 
 local compat_env = require("test/telescope/compat_env")
 local loadfile_orig = loadfile

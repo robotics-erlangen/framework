@@ -1,6 +1,8 @@
 require("../base/globalschecker").enable()
 require "../base/base"
+-- luacheck: push globals Class
 Class = require "../base/class"
+-- luacheck: pop
 local Entrypoints = require "../base/entrypoints"
 local World = require "../base/world"
 
