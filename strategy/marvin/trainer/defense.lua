@@ -201,6 +201,20 @@ function Defense:_checkZoneDefender(zonePos)
 	return decision
 end
 
+function Defense:_assignManmarkDefenders(defenders, nReservedDefenders)
+	-- assign the remaining manmarks
+	while #defenders - nReservedDefenders > 0 do
+		local manmarkTarget, manmarker = self:_nextManmarkAssignment(defenders)
+		if not manmarkTarget or not manmarker then
+			break
+		end
+
+		table.removeValue(defenders, manmarker)
+		self._send.roleAssignment(manmarker,
+			{name = "ManMark", params = manmarkTarget})
+	end
+end
+
 function Defense:_assignDefenders()
 	self._previousManmarkAssignments = table.copy(self._manmarkAssignments)
 	self._manmarkAssignments = {}
@@ -262,17 +276,7 @@ function Defense:_assignDefenders()
 	-- 	end
 	-- end
 
-	-- assign the remaining manmarks
-	while #defenders - nReservedDefenders > 0 do
-		local manmarkTarget, manmarker = self:_nextManmarkAssignment(defenders)
-		if not manmarkTarget or not manmarker then
-			break
-		end
-
-		table.removeValue(defenders, manmarker)
-		self._send.roleAssignment(manmarker,
-			{name = "ManMark", params = manmarkTarget})
-	end
+	self:_assignManmarkDefenders(defenders, nReservedDefenders)
 
 	-- check if a counterside centerback is really necessary
 	if needCountersideCB then
@@ -305,17 +309,7 @@ function Defense:_assignDefenders()
 		self._lingeringFreekick = false
 	end
 
-	-- assign the remaining manmarks
-	while #defenders - nReservedDefenders > 0 do
-		local manmarkTarget, manmarker = self:_nextManmarkAssignment(defenders)
-		if not manmarkTarget or not manmarker then
-			break
-		end
-
-		table.removeValue(defenders, manmarker)
-		self._send.roleAssignment(manmarker,
-			{name = "ManMark", params = manmarkTarget})
-	end
+	self:_assignManmarkDefenders(defenders, nReservedDefenders)
 
 	-- in corner kick states: assign a sameside centerback
 	if needSamesideCB then
@@ -341,16 +335,7 @@ function Defense:_assignDefenders()
 		end
 	end
 
-	while #defenders - nReservedDefenders > 0 do
-		local manmarkTarget, manmarker = self:_nextManmarkAssignment(defenders)
-		if not manmarkTarget or not manmarker then
-			break
-		end
-
-		table.removeValue(defenders, manmarker)
-		self._send.roleAssignment(manmarker,
-			{name = "ManMark", params = manmarkTarget})
-	end
+	self:_assignManmarkDefenders(defenders, nReservedDefenders)
 
 	-- assign zone defenders if there are not enough opponents to manmark
 	if not Referee.isStopState() then
