@@ -55,7 +55,7 @@ end
 local BALL_OWN_HYSTERESIS = 0.03
 local ballOwnerEllipticCache = {}
 local ballOwnerCheckCache -- function is defined belwo
-local function ballOwner(robotlist, lastBallOwner)
+local function getBallOwner(robotlist, lastBallOwner)
 	if not ballOwnerEllipticCache["ballInDangerRating"] then
 		local ballInDangerRating = 0
 		for _, r in ipairs(World.Robots) do
@@ -109,7 +109,7 @@ function Ball.friendlyBallOwner()
 	end
 	ballOwnerCheckCache()
 	friendlyBallOwnerLastRun = World.Time
-	lastBallOwnerFriendly = ballOwner(World.FriendlyRobots, lastBallOwnerFriendly)
+	lastBallOwnerFriendly = getBallOwner(World.FriendlyRobots, lastBallOwnerFriendly)
 	debug.pushtop()
 	debug.set("last friendly ball owner", lastBallOwnerFriendly)
 	debug.pop()
@@ -126,7 +126,7 @@ function Ball.opponentBallOwner()
 	end
 	ballOwnerCheckCache()
 	opponentBallOwnerLastRun = World.Time
-	lastBallOwnerOpponent = ballOwner(World.OpponentRobots, lastBallOwnerOpponent)
+	lastBallOwnerOpponent = getBallOwner(World.OpponentRobots, lastBallOwnerOpponent)
 	debug.pushtop()
 	debug.set("last opponent ball owner", lastBallOwnerOpponent)
 	debug.pop()

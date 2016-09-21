@@ -14,7 +14,7 @@ function CurvedMaxAccel:_init()
 end
 
 function CurvedMaxAccel:_getPath(targetPos)
-	local targetPos = Coordinates.toGlobal(targetPos)
+	targetPos = Coordinates.toGlobal(targetPos)
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
 
 	self._robot.path:setProbabilities(0.15, 0.65)
@@ -186,8 +186,8 @@ local function _backpropagateSpeedLimit(speedProfile, maxSpeed, brake)
 		-- is less than the distance travelled with the original speed
 		distance = distance + (nextEntry[2] + entry[2]) / 2 * (nextEntry[1] - entry[1]) -- integrate distance
 		-- distance and start speed for braking over the distance
-		local brakeTime = (-maxSpeed + math.sqrt(maxSpeed*maxSpeed-2*brake*distance)) / (-brake)
-		local maxTimedSpeed = maxSpeed - brake * brakeTime
+		local fullBrakeTime = (-maxSpeed + math.sqrt(maxSpeed*maxSpeed-2*brake*distance)) / (-brake)
+		local maxTimedSpeed = maxSpeed - brake * fullBrakeTime
 		-- can brake starting from the current entry
 		if entry[2] < maxTimedSpeed then -- skips entries with zero timediff
 			-- acceleration currently used by the entry, always > brake
@@ -301,11 +301,11 @@ end
 -- speed profile for forward movement, the speed limits in maxSpeedProfile are derived from sidewards movement limits
 local function _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake)
 	local speedProfile = { {0, maxSpeedProfile[1][1]} } -- begin with start speed
-	local startSpeed = speedProfile[1][2]
+	local initialSpeed = speedProfile[1][2]
 	-- handle negative start speed by braking and moving back
-	if startSpeed < 0 then
-		local brakeTime = startSpeed / brake
-		local brakeDist = (-startSpeed)/2 * brakeTime
+	if initialSpeed < 0 then
+		local brakeTime = initialSpeed / brake
+		local brakeDist = (-initialSpeed)/2 * brakeTime
 		table.insert(speedProfile, {brakeTime, 0})
 		assert(brakeTime >= 0, "invalid brake time")
 		-- move back to start point
@@ -430,9 +430,9 @@ local function _injectExponentialFalloff(speedProfile, exponentialTime, exponent
 end
 
 local function _calculateRotation(currentDir, currentOmega, targetDir, accelerate, brake, maxSpeed, exponentialTime)
-	local brakeTime = math.abs(currentOmega / brake)
+	local fullBrakeTime = math.abs(currentOmega / brake)
 	-- how far the robot will rotate even if it brakes with maximum speed
-	local forcedRotation = math.sign(currentOmega) * -brake * brakeTime * brakeTime / 2
+	local forcedRotation = math.sign(currentOmega) * -brake * fullBrakeTime * fullBrakeTime / 2
 
 	-- FIXME assert: (maxSpeed/maxAccel)^2*maxSpeed/2 < math.pi
 

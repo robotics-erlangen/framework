@@ -589,7 +589,8 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength, lastTim
 	-- upper bound for sampling and binary search
 	local t_max = math.min(t_out, t_stop)
 
-	local t_max, specialCaseResult = rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t_out)
+	local specialCaseResult
+	t_max, specialCaseResult = rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t_out)
 	if specialCaseResult then
 		--local time1 = amun.getCurrentTime()
 		--plot.aggregate("robotTimeToBall", time1 - time0)

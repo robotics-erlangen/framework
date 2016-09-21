@@ -83,7 +83,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	distanceToBall = distanceToBall or 0
 	local viewDir = (targetPos - predictedBall.pos):angle()
 	if targetSpeed then
-		local targetDir, targetSpeed = self:calcPhi(predictedBall.speed, predictedBall.pos,
+		local targetDir, _ = self:calcPhi(predictedBall.speed, predictedBall.pos,
 				targetPos, targetSpeed)
 		viewDir = targetDir
 	end
@@ -271,9 +271,9 @@ function CatchBall:_createMoveAroundBallObstacle(path, minBall, predictedBall)
 		-- maximum error cause by moddeling the robot as circle
 		local obstacleErrorDist = self._robot.radius - self._robot.shootRadius + DIST_ERROR
 		-- if both predictions are near each othe the robot must still be able to reach predictedBall
-		local extraDist = math.min(obstacleErrorDist, robotBallDist)
-		path:addCircle(minBall.pos.x, minBall.pos.y, minBall.radius - OBSTACLE_EPSILON + extraDist, 'ball2')
-		vis.addCircle("t/a/catchball: CatchBall", minBall.pos, minBall.radius + extraDist, vis.colors.redHalf)
+		local antiCollisionDist = math.min(obstacleErrorDist, robotBallDist)
+		path:addCircle(minBall.pos.x, minBall.pos.y, minBall.radius - OBSTACLE_EPSILON + antiCollisionDist, 'ball2')
+		vis.addCircle("t/a/catchball: CatchBall", minBall.pos, minBall.radius + antiCollisionDist, vis.colors.redHalf)
 	else
 		-- no need to prevent collision with minBall, if both are the same
 		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball')

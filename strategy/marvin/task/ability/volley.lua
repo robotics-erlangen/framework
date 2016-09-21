@@ -73,7 +73,7 @@ end
 
 function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 	-- relative ball speed
-	local ballSpeed = ballSpeed - self._robot.speed
+	ballSpeed = ballSpeed - self._robot.speed
 	local v_in = ballSpeed:length()
 	local alpha = ballSpeed:angle()
 
@@ -131,9 +131,9 @@ function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 		table.insert(visData, phi)
 	end
 	-- don't block the jit by calling c code
-	for _, phi in ipairs(visData) do
+	for _, visPhi in ipairs(visData) do
 		vis.addPath("t/a/volley: Iterations",
-				{self._robot.pos, self._robot.pos + Vector.fromAngle(phi):scaleLength(100)},
+				{self._robot.pos, self._robot.pos + Vector.fromAngle(visPhi):scaleLength(100)},
 				vis.colors.greenHalf)
 	end
 

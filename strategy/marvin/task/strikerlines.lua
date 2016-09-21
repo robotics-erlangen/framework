@@ -248,7 +248,7 @@ function StrikerLines:calcMoveDest()
 	local shooter, shootDest = next(self._inbox.shootDestination())
 	local passToMe = next(self._inbox.passPos())
 	if shootDest and not passToMe then
-		local minBallDist = self._robot.radius + World.Ball.radius + POSITION_PADDING
+		local shootMinBallDist = self._robot.radius + World.Ball.radius + POSITION_PADDING
 		local intersection, dist = self._robot.pos:orthogonalProjection(shooter.pos, shootDest)
 		local intersectionWithPass, lambda, lambda2 =
 			geom.intersectLineLine(shooter.pos, (shootDest-shooter.pos),
@@ -264,10 +264,10 @@ function StrikerLines:calcMoveDest()
 			--log("did not interfere with passing")
 			--debug.set("switching pos")
 			if intersection.y < self._robot.pos.y then -- move upwards
-				self._moveDest.y = intersection.y + 1.5 * minBallDist
+				self._moveDest.y = intersection.y + 1.5 * shootMinBallDist
 				--log("y switched right")
 			else -- move downwards
-				self._moveDest.y = intersection.y - 1.5 * minBallDist
+				self._moveDest.y = intersection.y - 1.5 * shootMinBallDist
 				--log("y switched left")
 			end
 
