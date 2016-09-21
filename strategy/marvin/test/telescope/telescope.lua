@@ -11,10 +11,9 @@ local _M = {}
 local compat_env = require("test/telescope/compat_env")
 local loadfile_orig = loadfile
 local loadfile = function(fn)
-	return loadfile(amun.strategyPath .. "/" .. fn ..".lua")
+	return loadfile_orig(amun.strategyPath .. "/" .. fn ..".lua")
 end
 
-local getfenv = _G.getfenv or compat_env.getfenv
 local setfenv = _G.setfenv or compat_env.setfenv
 
 

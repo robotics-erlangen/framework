@@ -84,7 +84,6 @@ local function calculateCenterBackPositions(centerBackApplications)
 	-- parameters
 	local distanceBetweenDefenders = 0.01
 	local getImportant = 2 * robot_radius + 0.03
-	local getUnimportant = getImportant + robot_radius
 
 	if Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)
 		< 2 * robot_radius + distanceToDefenseArea + 0.4 then
@@ -97,30 +96,6 @@ local function calculateCenterBackPositions(centerBackApplications)
 	local robotSet = {} -- all important robots ([robot])
 	local unimportantApplications = {} -- (robot -> target)
 	for robot, target in pairs(centerBackApplications) do
-		-- the already calculated cbPos
-		local cbPos = centerBackPositions[robot]
-
-		-- if the target is the ball, predict it
-		local targetPos = target.pos
-		if target == World.Ball then
-			targetPos = Goal.predictShot()
-		end
-
-		-- where the robot would go if it was the only one
-		local pcbPos = CenterBack.defaultPos
-		local pcbWay = 0
-		if privateCenterBackPositions[robot] then
-			pcbPos = privateCenterBackPositions[robot].pos
-			pcbWay = privateCenterBackPositions[robot].way
-		else
-			local intersectionPos, intersectionWay = Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal,
-				targetPos - World.Geometry.FriendlyGoal, distanceToDefenseArea + robot_radius, false)
-			if intersectionPos then
-				pcbPos = intersectionPos
-				pcbWay = intersectionWay
-			end
-		end
-
 		local distToDefenseArea = Field.distanceToFriendlyDefenseArea(robot.pos, robot.radius)
 		local important = distToDefenseArea < getImportant
 

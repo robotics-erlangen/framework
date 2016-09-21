@@ -43,14 +43,7 @@ function Defense:init()
 	self._lastMMCBTargets = {} -- opponent -> bool
 end
 
-local compareDists = function(i1, i2)
-	return i1.dist < i2.dist
-end
-
 function Defense:_updateManmarkTargets()
-	local closestOppToBall, closestOppToBallDist =
-		UtilDefense.getClosestRobot(World.OpponentRobots, World.Ball.pos)
-
 	local newManmarkTargets = {}
 	self._dangerousness = UtilDefense.rateOpponentDangerousness()
 
