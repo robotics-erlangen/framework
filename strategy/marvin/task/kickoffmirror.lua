@@ -1,6 +1,5 @@
 local KickoffMirror = Class("Task.KickoffMirror", require "task/base")
 
-local debug = require "../base/debug"
 local Defense = require "util/defense"
 local Field = require "../base/field"
 local World = require "../base/world"

@@ -3,11 +3,8 @@ local Duel = Class("Agent.Attacker.Duel", Base)
 
 local debug = require "../base/debug"
 local geom = require "../base/geom"
-local vis = require "../base/vis"
 local World = require "../base/world"
 local Ball = require "observer/ball"
-local Physics = require "observer/physics"
-local Robot = require "observer/robot"
 
 local TaskDuel = require "task/duel"
 

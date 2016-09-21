@@ -1,7 +1,6 @@
 local CornerAttack = {}
 
 local constants = require "../base/constants"
-local debug = require "../base/debug"
 local Field = require "../base/field"
 local vis = require "../base/vis"
 local World = require "../base/world"

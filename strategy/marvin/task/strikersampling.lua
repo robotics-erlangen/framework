@@ -1,17 +1,14 @@
 local StrikerSampling = Class("Task.StrikerSampling", require "task/base")
 
-local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
 local Processor = require "../base/processor"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
-local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 local ObserverShoot = require "observer/shoot"
-local Interval = require "util/interval"
 
 local PositionProcessor = Class("Task.PositionProcessor", require "../base/process")
 

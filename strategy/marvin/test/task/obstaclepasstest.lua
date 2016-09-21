@@ -1,17 +1,13 @@
-local debug = require "../base/debug"
 local Entrypoints = require "../base/entrypoints"
 local Vector = require "../base/vector"
 local World = require "../base/world"
 local AgentPool = require "control/agentpool"
 local Coordinator = require "control/coordinator"
 local Ball = require "observer/ball"
-local Physics = require "observer/physics"
 local MoveToPos = require "task/movetopos"
 local Pass = require "task/pass"
 local Striker = require "task/striker"
 local Trainer = require "trainer/trainer"
-local PathHelper = require "trajectory/pathhelper"
-local ToTarget = require "trajectory/totarget"
 
 
 local lastShotBy = nil

@@ -3,8 +3,6 @@ local Defense = require "trainer/defense"
 local Trainer = require "trainer/trainer"
 local MainTrainer = Class("MainTrainer", Trainer, AttackRatio, Defense)
 
-local debug = require "../base/debug"
-
 
 function MainTrainer:init(mode)
 	Trainer.init(self)

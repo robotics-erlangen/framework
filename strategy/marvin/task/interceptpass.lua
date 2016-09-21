@@ -1,15 +1,11 @@
 local InterceptPass = Class("Task.InterceptPass", require "task/base")
 
 local Cache = require "../base/cache"
-local debug = require "../base/debug"
-local vis = require "../base/vis"
 local World = require "../base/world"
-local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
-local Defense = require "util/defense"
 
 
 function InterceptPass:_init()

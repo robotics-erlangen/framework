@@ -5,7 +5,6 @@ local debug = require "../base/debug"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 
-local Messaging = require "control/messaging"
 local Shooter = require "moves/mrlcorner/shooter"
 local Ball = require "observer/ball"
 local MoveToPos = require "task/movetopos"

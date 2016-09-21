@@ -2,16 +2,13 @@ local Volley = require "task/ability/volley" -- only for calcPhi
 local CatchBall = {}
 CatchBall.depends = { Volley }
 
-local Constants = require "../base/constants"
 local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
-local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
-local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 

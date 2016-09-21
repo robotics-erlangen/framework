@@ -3,7 +3,6 @@ local ArmadaTask = Class("Task.ArmadaTask", require "task/base", SuggestPass)
 
 local debug = require "../base/debug"
 local World = require "../base/world"
-local Messaging = require "control/messaging"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 

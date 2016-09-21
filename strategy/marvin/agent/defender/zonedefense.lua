@@ -1,7 +1,6 @@
 local Base = require "agent/base/behavior"
 local ZoneDefense = Class("Agent.Defender.ZoneDefense", Base)
 
-local World = require "../base/world"
 local BallEvadingMoveToPos = require "task/ballevadingmovetopos"
 
 function ZoneDefense:_stop()

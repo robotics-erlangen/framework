@@ -1,8 +1,6 @@
 local Base = require "agent/base/behavior"
 local KickoffOffensive = Class("Agent.Attacker.KickoffOffensive", Base)
 
-local debug = require "../base/debug"
-local vis = require "../base/vis"
 local World = require "../base/world"
 
 local MoveToStaticBall = require "task/movetostaticball"
@@ -10,7 +8,6 @@ local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
 
 
-local G = World.Geometry
 local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
 
 

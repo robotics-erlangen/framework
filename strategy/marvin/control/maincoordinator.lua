@@ -3,7 +3,6 @@ local MainCoordinator = Class("Control.MainCoordinator", Coordinator)
 
 local debug = require "../base/debug"
 local Entrypoints = require "../base/entrypoints"
-local vis = require "../base/vis"
 
 local Agent = {
 	Ally = require "agent/ally",

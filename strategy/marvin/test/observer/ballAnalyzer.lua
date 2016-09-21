@@ -1,4 +1,3 @@
-local World = require "../base/world"
 local BallAnalyzer = require "observer/ballAnalyzer"
 
 

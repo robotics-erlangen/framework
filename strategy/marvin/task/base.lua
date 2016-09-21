@@ -1,8 +1,5 @@
 local Base = Class("Task.Base")
 
-local debug = require "../base/debug"
-local Messaging = require "control/messaging"
-
 
 function Base:init(agent, ...)
 	assert(agent ~= nil, "no agent passed")

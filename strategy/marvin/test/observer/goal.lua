@@ -4,7 +4,6 @@ local debug = require "../base/debug"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Goal = require "observer/goal"
-local RobotList = require "util/robotlist"
 
 
 function GoalTest.testFreeSectors()

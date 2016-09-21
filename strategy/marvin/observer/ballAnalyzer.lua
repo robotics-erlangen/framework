@@ -4,7 +4,6 @@ local debug = require "../base/debug"
 local World = require "../base/world"
 local MovingAverage = require "learning/movingaverage"
 local Ball = require "observer/ball"
-local IO = require "util/io"
 
 
 function BallAnalyzer:init(ball, movingAverageSlipping, movingAverageRolling, slippingFrictionStart, rollingFrictionStart)

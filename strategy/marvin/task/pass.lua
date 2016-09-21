@@ -6,7 +6,6 @@ local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Physics = require "observer/physics"
-local Robot = require "observer/robot"
 local ObserverShoot = require "observer/shoot"
 
 

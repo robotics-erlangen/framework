@@ -2,7 +2,6 @@ local Goal = {}
 
 local Cache = require "../base/cache"
 local Constants = require "../base/constants"
-local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
 local vis = require "../base/vis"

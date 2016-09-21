@@ -1,8 +1,6 @@
 local DefenseTest = {}
 
-local debug = require "../base/debug"
 local vis = require "../base/vis"
-local World = require "../base/world"
 local Defense = require "util/defense"
 
 function DefenseTest.testDangerousness()

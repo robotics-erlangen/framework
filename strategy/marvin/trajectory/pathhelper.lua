@@ -3,7 +3,6 @@ local PathHelper = {}
 local Constants = require "../base/constants"
 local Referee = require "../base/referee"
 local World = require "../base/world"
-local vis = require "../base/vis"
 
 
 local G = World.Geometry

@@ -3,7 +3,6 @@ local World = require "../base/world"
 local AgentPool = require "control/agentpool"
 local Coordinator = require "control/coordinator"
 local Duel = require "task/duel"
-local MoveToStaticBall = require "task/movetostaticball"
 local ShootGoal = require "task/shootgoal"
 local Trainer = require "trainer/trainer"
 

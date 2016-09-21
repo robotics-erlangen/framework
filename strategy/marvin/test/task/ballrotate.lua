@@ -1,5 +1,4 @@
 local Entrypoints = require "../base/entrypoints"
-local World = require "../base/world"
 local TestHelper = require "test/helper/agent"
 local PathHelper = require "trajectory/pathhelper"
 local BallRotate = require "trajectory/ballrotate"

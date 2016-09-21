@@ -3,7 +3,6 @@ local Stop = Class("Agent.Attacker.Stop", Base)
 
 local World = require "../base/world"
 local Referee = require "../base/referee"
-local Ball = require "observer/ball"
 local StopAttack = require "task/stopattack"
 local PlaceBall = require "task/placeball"
 

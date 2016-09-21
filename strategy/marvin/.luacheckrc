@@ -2,7 +2,6 @@ return {
 	std = "luajit",
 	read_globals = { "Class", "Vector", "log", "amun" },
 	self = false,
-	unused = false,
 	unused_args = false,
 	unused_secondaries = false,
 	files = {

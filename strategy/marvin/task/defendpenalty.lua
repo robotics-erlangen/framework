@@ -1,6 +1,5 @@
 local DefendPenalty = Class("Task.DefendPenalty", require "task/base")
 
-local debug = require "../base/debug"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"

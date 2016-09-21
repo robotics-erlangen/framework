@@ -1,6 +1,5 @@
 local RobotTest = {}
 
-local debug = require "../base/debug"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Robot = require "observer/robot"

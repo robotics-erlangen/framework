@@ -2,11 +2,8 @@ local Base = require "agent/base/behavior"
 local Default = Class("Agent.Attacker.Default", Base)
 
 local Striker = require "task/striker"
-local Ball = require "observer/ball"
 local World = require "../base/world"
-local debug = require "../base/debug"
 
-local MAX_PASS_MSG_DELAY = 0.2
 local MIN_DIST_FOR_POOL_CHANGE = 0.7
 
 function Default:check()

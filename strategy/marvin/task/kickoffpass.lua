@@ -1,5 +1,4 @@
 local KickoffPass = Class("Task.KickoffPass", require "task/base")
-local SuggestPass = require "task/ability/suggestpass"
 
 local debug = require "../base/debug"
 local World = require "../base/world"
@@ -8,7 +7,6 @@ local Game = require "observer/game"
 local Physics = require "observer/physics"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
-local Rating = require "util/rating"
 
 
 local G = World.Geometry

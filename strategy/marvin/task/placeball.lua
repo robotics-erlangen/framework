@@ -12,7 +12,6 @@ local STEP_ENSURE_CONTACT = "contact"
 local STEP_PULL = "pull"
 local STEP_MOVE_AWAY = "moveAway"
 
-local BALL_SLOW = 0.1
 local BALL_PLACEMENT_RADIUS = 0.1
 local MAX_SPEED = 1.5
 local MAX_DRIBBLER_SPEED = 0.9

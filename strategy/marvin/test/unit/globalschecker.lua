@@ -7,7 +7,7 @@ local function set_global()
 end
 
 local function read_global()
-	-- luacheck: globals globalValue
+	-- luacheck: globals globalValue, ignore tmp
 	local tmp = globalValue
 end
 

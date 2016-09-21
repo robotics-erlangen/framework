@@ -4,17 +4,13 @@ local CenterBack = Class("Task.CenterBack", require "task/base", ForceShoot)
 local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
-local Processor = require "../base/processor"
 local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
-local Messaging = require "control/messaging"
-local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
-local Rating = require "util/rating"
 
 
 local G = World.Geometry

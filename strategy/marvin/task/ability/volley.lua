@@ -8,7 +8,6 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
-local Direct = require "trajectory/direct"
 local ToTarget = require "trajectory/totarget"
 
 

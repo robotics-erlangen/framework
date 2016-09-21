@@ -1,6 +1,5 @@
 local Coordinator = Class("Control.Coordinator")
 
-local debug = require "../base/debug"
 local World = require "../base/world"
 
 local Messaging = require "control/messaging"

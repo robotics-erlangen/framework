@@ -2,10 +2,8 @@ local Physics = {}
 
 local Cache = require "../base/cache"
 local Constants = require "../base/constants"
-local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
-local plot = require "../base/plot"
 local World = require "../base/world"
 local Robot -- = require "../observer/robot" -- cyclic dependency
 
@@ -509,8 +507,6 @@ local function rttbQuadraticSampling(robot, ball, targetPos, endSpeedLength, t_m
 	-- the first one occurs at the point where the robot actively catches the ball
 	-- the second one is the point where the robot moves to the slow or resting ball
 	-- check if the first maximum is > 0 (if it exists)
-	local MAXSEARCH_N_SAMPLES = 7
-
 	local t_ball_bsearch_start = nil
 	local t_ball_bsearch_end = nil
 	for i = 2, N_SAMPLES do

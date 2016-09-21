@@ -3,7 +3,7 @@ local Default = Class("Agent.Keeper.Default", Base)
 
 local World = require "../base/world"
 local Keeper = require "task/keeper"
-local RandomKeeper = require "task/randomkeeper"
+-- local RandomKeeper = require "task/randomkeeper"
 
 
 function Default:check()

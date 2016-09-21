@@ -1,17 +1,12 @@
 local StrikerLines = Class("Task.StrikerLines", require "task/base")
 
-local Constants = require "../base/constants"
 local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
-local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
-local Messaging = require "control/messaging"
 local ObserverGame = require "observer/game"
-local PathHelper = require "trajectory/pathhelper"
-local ToTarget = require "trajectory/totarget"
 local Interval = require "util/interval"
 
 

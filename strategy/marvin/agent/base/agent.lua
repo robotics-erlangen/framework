@@ -8,7 +8,7 @@ local Error = require "agent/shared/error"
 local Physics = require "observer/physics"
 local CenterBack = require "task/centerback"
 local Rating = require "util/rating"
-local plot = require "../base/plot"
+-- local plot = require "../base/plot"
 
 
 -- static method for pool

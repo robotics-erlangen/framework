@@ -15,9 +15,7 @@ local Penalty = require "agent/attacker/penalty"
 local Shoot = require "agent/attacker/shoot"
 local Stop = require "agent/attacker/stop"
 
-local Messaging = require "control/messaging"
 local Move = require "moves/moveBehavior"
-local Robot = require "observer/robot"
 
 
 Attacker._behaviors = {

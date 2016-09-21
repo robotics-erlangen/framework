@@ -1,17 +1,12 @@
 local SuggestPass = {}
 
-local debug = require "../base/debug"
-local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
-local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Shoot = require "observer/shoot"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 
-
-local SHOOT_DRIVE_SPEED = 0.5
 
 local MIN_OPP_DIST = 1
 local MIN_OPP_SPEED = 1

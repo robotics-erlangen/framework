@@ -1,5 +1,4 @@
 local Entrypoints = require "../base/entrypoints"
-local Field = require "../base/field"
 local World = require "../base/world"
 local Shoot = require "task/ability/shoot"
 local PathHelper = require "trajectory/pathhelper"

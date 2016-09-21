@@ -1,5 +1,4 @@
 local Entrypoints = require "../base/entrypoints"
-local World = require "../base/world"
 local ApplyForMainattacker = require "agent/attacker/applyformainattacker"
 local AgentPool = require "control/agentpool"
 local Coordinator = require "control/coordinator"

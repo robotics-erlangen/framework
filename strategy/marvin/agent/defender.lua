@@ -9,7 +9,6 @@ local ManMark = require "agent/defender/manmark"
 local ZoneDefense = require "agent/defender/zonedefense"
 local Penalty = require "agent/defender/penalty"
 
-local Messaging = require "control/messaging"
 local Move = require "moves/moveBehavior"
 
 

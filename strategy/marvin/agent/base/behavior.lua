@@ -1,7 +1,5 @@
 local Base = Class("Behavior.Base")
 
-local debug = require "../base/debug"
-
 
 function Base:init(agent)
 	self._agent = agent

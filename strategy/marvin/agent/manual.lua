@@ -1,7 +1,6 @@
 local Base = require "agent/base/agent"
 local Manual = Class("Agent.Manual", Base)
 
-local World = require "../base/world"
 local Default = require "agent/manual/default"
 
 

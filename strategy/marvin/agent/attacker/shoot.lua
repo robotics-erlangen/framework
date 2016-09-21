@@ -9,10 +9,9 @@ local ObserverShoot = require "observer/shoot"
 local CenterBack = require "task/centerback"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
-local Rating = require "util/rating"
 
 local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
-local MAX_PASS_MSG_DELAY = 0.7
+
 
 function Shoot:_stop()
 	self._taskClass = nil

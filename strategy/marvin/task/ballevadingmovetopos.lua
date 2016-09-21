@@ -2,7 +2,6 @@ local BallEvadingMoveToPos = Class("Task.BallEvadingMoveToPos", require "task/ba
 
 local Constants = require "../base/constants"
 local geom = require "../base/geom"
-local Referee = require "../base/referee"
 local World = require "../base/world"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"

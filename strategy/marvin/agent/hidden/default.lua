@@ -1,7 +1,6 @@
 local Base = require "agent/base/behavior"
 local Default = Class("Agent.Hidden.Default", Base)
 
-local World = require "../base/world"
 local RescueRobot = require "task/rescuerobot"
 
 

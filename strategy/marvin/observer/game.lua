@@ -1,9 +1,6 @@
 local Game = {}
 
-local Field = require "../base/field"
 local World = require "../base/world"
-local Ball = require "observer/ball"
-local Robotlist = require "util/robotlist"
 
 
 local G = World.Geometry
