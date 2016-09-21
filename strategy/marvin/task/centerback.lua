@@ -121,10 +121,10 @@ local function calculateCenterBackPositions(centerBackApplications)
 	for target, rlist in pairs(robots) do
 		-- if the target is the ball, predict it
 		local targetPos = target.pos
-		local pos, way
+		local _, way
 		if target == World.Ball then
-			local predictedSpeed, isShot
-			targetPos, predictedSpeed, isShot = Goal.predictShot()
+			local _, isShot
+			targetPos, _, isShot = Goal.predictShot()
 
 			if isShot then
 				local goalLineIntersection = geom.intersectLineLine(World.Ball.pos,
@@ -138,7 +138,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 		end
 		if not way then
 			targetPos = Field.limitToField(targetPos, -0.01)
-			pos, way = Field.intersectRayDefenseArea(G.FriendlyGoal, targetPos - G.FriendlyGoal,
+			_, way = Field.intersectRayDefenseArea(G.FriendlyGoal, targetPos - G.FriendlyGoal,
 				distanceToDefenseArea + robot_radius, false)
 		end
 		local occupiedWay = (#rlist) * (2 * robot_radius + distanceBetweenDefenders)
@@ -320,7 +320,7 @@ function CenterBack:run()
 		< 2 * self._robot.radius + self.distanceToDefenseArea() + 0.05
 
 	-- Quick fix to not interfere with goal shots
-	local shooter, shootDest = next(self._inbox.shootDestination())
+	local _, shootDest = next(self._inbox.shootDestination())
 	if shootDest then
 		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
 	end

@@ -3,7 +3,6 @@ return {
 	read_globals = { "Class", "Vector", "log", "amun" },
 	self = false,
 	unused_args = false,
-	unused_secondaries = false,
 	files = {
 		["test"] = { redefined = false },
 		["test/unit"] = {

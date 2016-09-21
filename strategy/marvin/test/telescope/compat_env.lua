@@ -247,7 +247,7 @@ else -- >= Lua 5.2
 	-- 5.1 style `setfenv` implemented in 5.2
 	function M.setfenv(f, t)
 		local f = envhelper(f, 'setfenv')
-		local up, val, unknown = envlookup(f)
+		local up, _, _ = envlookup(f)
 		if up then
 			debug.upvaluejoin(f, up, function() return up end, 1) -- unique upvalue [*]
 			debug.setupvalue(f, up, t)

@@ -75,7 +75,7 @@ function Pass:run()
 		end
 		local relativeShootPos = self._shootPos - World.Ball.pos
 
-		local point1, point2, oppTimeTo1, oppTimeTo2, lambda3, lambda4 = geom.intersectLineCorridor(opp.pos,
+		local point1, _, oppTimeTo1, oppTimeTo2, lambda3, lambda4 = geom.intersectLineCorridor(opp.pos,
 				opp.speed, World.Ball.pos, relativeShootPos, widthHalf)
 
 		if lambda3 == nil then

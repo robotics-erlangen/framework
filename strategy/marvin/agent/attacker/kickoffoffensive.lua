@@ -20,10 +20,10 @@ end
 function KickoffOffensive:_updateTask()
 
 	local shootGoalTmp = ShootGoal(self._agent)
-	local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
+	local _, sg_mae, _ = shootGoalTmp:getDecisionMakingBasis()
 	local canShootGoal = sg_mae and sg_mae > MIN_ANGLE_PRECISION
 
-	local rob, loc = next(self._inbox.kickoffPass())
+	local rob, _ = next(self._inbox.kickoffPass())
 	if World.RefereeState == "KickoffOffensivePrepare" then -- wait for kickoff
 		return MoveToStaticBall, { math.pi/2, 0.05 }
 	elseif canShootGoal then -- shoot if it is possible

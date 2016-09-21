@@ -69,7 +69,7 @@ function FreeKick:_updateTask()
 		end
 
 		local shootGoalTmp = ShootGoal(self._agent)
-		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
+		local _, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
 
 		-- search for the best pass suggestion
 		local bestPassRating = 0

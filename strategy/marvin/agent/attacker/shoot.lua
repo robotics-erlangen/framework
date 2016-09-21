@@ -49,7 +49,7 @@ function Shoot:_updateTask()
 	if not self._taskClass or minTimeOver then
 		-- shootgoal
 		local shootGoalTmp = ShootGoal(self._agent)
-		local sg_target, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
+		local sg_target, sg_mae, _ = shootGoalTmp:getDecisionMakingBasis()
 		local canShootGoal = sg_mae and sg_mae > MIN_ANGLE_PRECISION
 
 		debug.set("AAShoot/canShootGoal", canShootGoal and "true" or "false")

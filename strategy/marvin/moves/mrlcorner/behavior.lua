@@ -127,7 +127,7 @@ function MrlCorner:_updateTask()
 		if Ball.isShot() == self._robot then
 			self._stayActive = false
 		end
-		local passReceiver, passData = next(self._inbox.passSuggestion())
+		local passReceiver, _ = next(self._inbox.passSuggestion())
 		if passReceiver then
 			return Pass, { passReceiver}
 		else

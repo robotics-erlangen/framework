@@ -290,7 +290,7 @@ function Defense:_assignDefenders()
 		end
 
 		if needCountersideCB then
-			local countersideCB, d = UtilDefense.getClosestRobot(defenders, countersideTarget.pos)
+			local countersideCB, _ = UtilDefense.getClosestRobot(defenders, countersideTarget.pos)
 				if countersideCB then
 				table.removeValue(defenders, countersideCB)
 				self._send.roleAssignment(countersideCB,
@@ -318,7 +318,7 @@ function Defense:_assignDefenders()
 		end
 
 		if needSamesideCB then
-			local samesideCB, d = UtilDefense.getClosestRobot(defenders, samesideTarget.pos)
+			local samesideCB, _ = UtilDefense.getClosestRobot(defenders, samesideTarget.pos)
 			if samesideCB then
 				table.removeValue(defenders, samesideCB)
 				self._send.roleAssignment(samesideCB,

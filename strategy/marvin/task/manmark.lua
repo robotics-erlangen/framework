@@ -115,7 +115,7 @@ function ManMark:run()
 	end
 
 	-- Quick fix to not interfere with goal shots
-	local shooter, shootDest = next(self._inbox.shootDestination())
+	local _, shootDest = next(self._inbox.shootDestination())
 	if shootDest then
 		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
 		local distToShotPath = moveDest:distanceToLineSegment(World.Ball.pos, shootDest)
