@@ -1,7 +1,6 @@
 local mixedteam = {}
 
 local sendMixedTeamInfo = amun.sendMixedTeamInfo
-local debug = require "../base/debug"
 
 
 local function decodeLocation(loc)

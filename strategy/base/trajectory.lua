@@ -79,6 +79,7 @@ end
 -- New data to use for updating, returns controllerInput, moveDest and moveTime
 function Trajectory.Base:update(...)
 	error("Trajectory module not implemented")
+	-- luacheck: ignore controllerInput moveDest moveTime
 	return controllerInput, moveDest, moveTime
 end
 

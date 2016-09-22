@@ -24,6 +24,7 @@ module "math"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
+-- luacheck: globals math
 local max, min = math.max, math.min
 
 --- Limits value to interval [min, max].
@@ -135,12 +136,12 @@ function math.solveSq(a, b, c)
 	det = math.sqrt(det)
 	local t2 = (-b-sgn(b)*det)/(2*a)
 	local t1 = c/(a*t2)
-	local min = math.min(t1, t2)
+	local minTi = math.min(t1, t2)
 
 	-- if both are >= 0 return smallest
 	-- if only one is >= 0 the it's the larger value of both
 	-- and the smallest positive solution
-	if (min >= 0 and t1 < t2) or (min < 0 and t1 >= t2) then
+	if (minTi >= 0 and t1 < t2) or (minTi < 0 and t1 >= t2) then
 		return t1, t2
 	else
 		return t2, t1

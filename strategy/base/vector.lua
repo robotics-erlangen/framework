@@ -265,6 +265,7 @@ end
 
 vector_c = ffi.metatype("Vector", mt) -- create type
 vector_c_readonly = ffi.metatype("VectorReadOnly", mt)
+-- luacheck: globals Vector
 Vector = {} -- static functions, publish to global namespace
 
 --- Creates a new vector

@@ -45,13 +45,13 @@ Vector._loadGeom()
 math.randomseed(amun.getCurrentTime()) -- init rng
 
 -- preload classes that require access to the amun API
-local Coordinates = require "../base/coordinates"
-local debug = require "../base/debug"
-local debugcommands = require "../base/debugcommands"
-local plot = require "../base/plot"
-local Robot = require "../base/robot"
-local vis = require "../base/vis"
-local World = require "../base/world"
+require "../base/coordinates"
+require "../base/debug"
+require "../base/debugcommands"
+require "../base/plot"
+require "../base/robot"
+require "../base/vis"
+require "../base/world"
 
 -- prevent access to internal APIs
 amun._hideFunctions()

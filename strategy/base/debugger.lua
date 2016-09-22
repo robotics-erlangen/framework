@@ -330,7 +330,7 @@ local function evalFunction(code)
 end
 
 local function ppHelper(name, valueType, value, indent)
-	local indent = ("    "):rep(indent or 0)
+	indent = ("    "):rep(indent or 0)
 	printerrln(string.format("%s%-20s = (%s)\"%s\"", indent, name, valueType, tostring(value)))
 end
 
@@ -353,11 +353,7 @@ local function prettyPrint(name, value, visited, indent)
 		elseif class then
 			tableValue = Class.name(class)
 		else
-			local hasValues = false
-			for k, v in pairs(value) do
-				hasValues = true
-				break
-			end
+			local hasValues = next(value) ~= nil
 			if not hasValues then
 				tableValue = "empty table"
 			end
@@ -409,14 +405,14 @@ end
 
 local function helpHandler(args)
 	printerrln("Command list")
-	local commands = {}
+	local commandList = {}
 	for k,v in pairs(helpList) do
 		if v ~= nil then
-			table.insert(commands, k)
+			table.insert(commandList, k)
 		end
 	end
-	table.sort(commands)
-	for _, cmd in ipairs(commands) do
+	table.sort(commandList)
+	for _, cmd in ipairs(commandList) do
 		local desc = helpList[cmd]
 		printerrln(string.format("    %-20s - %s", cmd, desc))
 	end
@@ -615,6 +611,7 @@ function debugger.debug()
 end
 
 
+-- luacheck: globals debug
 -- register debugger
 debug.debugger = debugger
 
