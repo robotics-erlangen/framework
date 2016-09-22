@@ -16,13 +16,13 @@ local Shoot = require "agent/attacker/shoot"
 local Stop = require "agent/attacker/stop"
 
 local Messaging = require "control/messaging"
-local Armada = require "moves/armada/behavior"
+local Move = require "moves/moveBehavior"
 local Robot = require "observer/robot"
 
 
 Attacker._behaviors = {
 	ApplyForMainattacker,
-	Armada,
+	Move,
 	Stop,
 	KickoffOffensive,
 	KickoffDefensive,

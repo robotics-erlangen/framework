@@ -10,12 +10,12 @@ local ZoneDefense = require "agent/defender/zonedefense"
 local Penalty = require "agent/defender/penalty"
 
 local Messaging = require "control/messaging"
-local Armada = require "moves/armada/behavior"
+local Move = require "moves/moveBehavior"
 
 
 Defender._behaviors = {
 	Penalty,
-	Armada,
+	Move,
 	HandleBall,
 	ManMark,
 	ZoneDefense,

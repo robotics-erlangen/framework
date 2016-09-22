@@ -4,10 +4,12 @@ local Keeper = Class("Agent.Keeper", Base)
 local World = require "../base/world"
 local Default = require "agent/keeper/default"
 local HandleBall = require "agent/keeper/handleball"
+local Move = require "moves/moveBehavior"
 
 
 Keeper._behaviors = {
 	HandleBall,
+	Move,
 	Default
 }
 function Keeper.takeRobot(robots)
