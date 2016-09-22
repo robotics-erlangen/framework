@@ -25,6 +25,7 @@ module "math"
 *************************************************************************]]
 
 -- luacheck: globals math
+-- luacheck: no unused secondaries
 local max, min = math.max, math.min
 
 --- Limits value to interval [min, max].
