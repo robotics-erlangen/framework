@@ -1,8 +1,9 @@
 local PathTest = {}
 
-local World = require "../base/world"
-local vis = require "../base/vis"
 local Coordinates = require "../base/coordinates"
+local path = require "../base/path"
+local vis = require "../base/vis"
+local World = require "../base/world"
 
 
 --declare start, end and obstacles here

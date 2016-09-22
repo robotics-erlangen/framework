@@ -28,6 +28,7 @@ local Robot, RobotMt = (require "../base/class")("Robot")
 local Constants = require "../base/constants"
 local Coordinates = require "../base/coordinates"
 local debug = require "../base/debug"
+local path = require "../base/path"
 local Trajectory = require "../base/trajectory"
 
 

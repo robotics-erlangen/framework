@@ -155,6 +155,12 @@ separator for luadoc]]--
 -- @name path:addTreeVisualization
 
 require "path"
+local path = path
+
+-- kill all references
+_G["path"] = nil
+package.preload["path"] = nil
+package.loaded["path"] = nil
 
 local teamIsBlue = amun.isBlue()
 
@@ -196,3 +202,5 @@ if _addSeedTarget then
 		end
 	end
 end
+
+return path

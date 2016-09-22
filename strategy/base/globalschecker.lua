@@ -28,7 +28,6 @@ local GlobalsChecker = {}
 local validGlobals = {
 	amun = true,
 	log = true, -- amun and log musn't be reported, otherwise the checker will crash
-	path = true,
 	Vector = true,
 	Class = true,
 }
