@@ -24,6 +24,7 @@ module "debugger"
 *************************************************************************]]
 
 local debugger = {}
+local Class = require "../base/class"
 
 if not debug then
 	debugger.debug = function ()
@@ -130,7 +131,7 @@ local function hookCheck(line)
 	end
 	local info = debug.getinfo(3, "S")
 	for pattern, isActive in pairs(lineTable) do
-		if info.source:match(pattern) then
+		if isActive and info.source:match(pattern) then
 			return 1
 		end
 	end
@@ -527,7 +528,8 @@ local function listBreakpointsHandler(_args)
 	local list = {}
 	for line, lineTable in pairs(breakpoints) do
 		for pattern, isActive in pairs(lineTable) do
-			table.insert(list, string.format("    %s:%4d", pattern, line))
+			local state = (not isActive) and " (disabled)" or ""
+			table.insert(list, string.format("    %s:%4d%s", pattern, line, state))
 		end
 	end
 	table.sort(list)
