@@ -2,5 +2,7 @@ return {
 	std = "luajit",
 	read_globals = { "Vector", "log", "amun" },
 	self = false,
-	unused_args = false,
+	ignore = {
+		"212/_.*", -- filter unused argument, if variable starts with underscore (_)
+	},
 }

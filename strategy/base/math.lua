@@ -296,7 +296,7 @@ local function QuadIT(N, uu, vv, qp, NN, p, qk, K)
 		local zm = math.sqrt(math.abs(v))
 		local ee = 2.0*math.abs(qp[1])
 		local t = -szr*b
-		for i = 2, N do
+		for _ = 2, N do
 			ee = ee*zm + math.abs(a + t)
 		end
 		ee = (9.0*ee + 2.0*math.abs(t) - 7.0*(math.abs(a + t) + zm*math.abs(b)))*eta
@@ -630,7 +630,7 @@ function math.realRootsOfPolynomial(coefficients)
 	local aa = coefficients[NN]
 	local bb = coefficients[N]
 	local zerok = (K[N] == 0.0)
-	for jj = 1, 5 do -- magic constant
+	for _ = 1, 5 do -- magic constant
 		local cc = K[N]
 		if zerok then
 			for j = N, 2, -1 do

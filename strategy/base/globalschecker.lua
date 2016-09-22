@@ -45,7 +45,7 @@ local globalsChecker = {
 		rawset(t, k, v)
 	end,
 	-- check for reading undefined globals, only called for unknown globals
-	__index = function (t, k)
+	__index = function (_t, k)
 		-- report a read global only once to prevent log spam
 		if reportedReads[k] then
 			return

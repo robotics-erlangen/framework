@@ -380,7 +380,7 @@ end
 --- handler functions ---
 -- a handler function must return true to continue to programm's execution
 
-local function initHandler(args)
+local function initHandler(_args)
 	local baseFrame = getBaseStackLevel()
 	local info = debug.getinfo(baseFrame, "Snl")
 	if info ~= nil then
@@ -390,16 +390,16 @@ local function initHandler(args)
 	setScaling(0)
 end
 
-local function exitHandler(args)
+local function exitHandler(_args)
 	-- handle continuation commands
 	setScaling(1)
 	return true
 end
 
-local function nopHandler(args)
+local function nopHandler(_args)
 end
 
-local function helpHandler(args)
+local function helpHandler(_args)
 	printerrln("Command list")
 	local commandList = {}
 	for k,v in pairs(helpList) do
@@ -415,7 +415,7 @@ local function helpHandler(args)
 	printerrln("")
 end
 
-local function backtraceHandler(args)
+local function backtraceHandler(_args)
 	local str = debug.traceback()
 	str = string.gsub(str, "&nbsp;", " ")
 	str = string.gsub(str, "&gt;", ">")
@@ -447,7 +447,7 @@ local function printLocalVar(name, data)
 	return string.format("    %-20s%s = %s", name, marker, datastr)
 end
 
-local function localInfoHandler(args)
+local function localInfoHandler(_args)
 	printerrln("Locals")
 	local localLines = {}
 	for varname, value in pairs(getLocals()) do
@@ -519,11 +519,11 @@ local function removeBreakpointHandler(args)
 	removeBreakpoint(pattern, line)
 end
 
-local function clearBreakpointsHandler(args)
+local function clearBreakpointsHandler(_args)
 	clearBreakpoints()
 end
 
-local function listBreakpointsHandler(args)
+local function listBreakpointsHandler(_args)
 	local list = {}
 	for line, lineTable in pairs(breakpoints) do
 		for pattern, isActive in pairs(lineTable) do
@@ -535,17 +535,17 @@ local function listBreakpointsHandler(args)
 	printerrln(table.concat(list, "\n"))
 end
 
-local function continueHandler(args)
+local function continueHandler(_args)
 	hookSpecial = nil
 	return true
 end
 
-local function stepHandler(args)
+local function stepHandler(_args)
 	hookSpecial = function() return true end
 	return true
 end
 
-local function nextHandler(args)
+local function nextHandler(_args)
 	local initialDepth = getStackDepth()
 	hookSpecial = function()
 		return getStackDepth() <= initialDepth
@@ -553,7 +553,7 @@ local function nextHandler(args)
 	return true
 end
 
-local function stepOutHandler(args)
+local function stepOutHandler(_args)
 	local initialDepth = getStackDepth() - 1
 	hookSpecial = function()
 		return getStackDepth() <= initialDepth
@@ -561,7 +561,7 @@ local function stepOutHandler(args)
 	return true
 end
 
-local function quitHandler(args)
+local function quitHandler(_args)
 	hookSpecial = nil
 	clearBreakpoints()
 	-- don't puzzle the user with strategy no longer running

@@ -70,6 +70,8 @@ function Trajectory.Base:init(robot, ...)
 	self:_init(...)
 end
 
+-- disable unusued args warning for ...
+-- luacheck: ignore 212/...
 function Trajectory.Base:_init(...)
 	error("stub")
 end

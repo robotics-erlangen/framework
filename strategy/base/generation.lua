@@ -30,7 +30,7 @@ local Generation = {
 }
 
 local constantsMt = { __index = Robot.constants }
-for gen, cls in pairs(Generation) do
+for _, cls in pairs(Generation) do
 	setmetatable(cls.constants, constantsMt)
 end
 
