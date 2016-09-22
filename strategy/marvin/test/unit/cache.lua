@@ -94,7 +94,7 @@ context("base.cache", function ()
 
 	test("heavy", function ()
 		-- some number-crunching for time-measuring
-		for i = 1, 100000 do
+		for _ = 1, 100000 do
 			heavy()
 		end
 		assert_true(true)

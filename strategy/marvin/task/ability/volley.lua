@@ -99,7 +99,7 @@ function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 	local calcVOut = Volley.calcVOut
 	local visData = {}
 
-	for i = 1, 5 do
+	for _ = 1, 5 do
 		local j11, j12, j21, j22 = volley_Jf(v_s, phi, alpha, v_in)
 		local det = j11 * j22 - j21 * j12
 		local k11, k12, k21, k22 = j22/det, -j12/det, -j21/det, j11/det

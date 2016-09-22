@@ -37,7 +37,7 @@ function Direct:update(speed, targetDir, rotateSpeed, accel)
 	return {spline = spline}, self._robot.pos, 0
 end
 
-function Direct:canHandle(speed, targetDir)
+function Direct:canHandle()
 	return true
 end
 

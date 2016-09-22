@@ -396,7 +396,7 @@ local function _injectExponentialFalloff(speedProfile, exponentialTime, exponent
 			-- actualDistance decreases when getting closer to the target
 			local time = 2*exponentialTime -- initial guess
 			local expTime = timeFactor*exponentialTime
-			for i = 1, 10 do
+			for _ = 1, 10 do
 				local e = math.exp(-k*time)
 				-- only consider endSpeedLen for a distance of expTime * endSpeedLen
 				local err = math.max(0, time-expTime)*endSpeedLen-e*expDistance+actualDistance
@@ -663,7 +663,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	return {spline = spline}, targetPos, endTime
 end
 
-function CurvedMaxAccel:canHandle(targetPos, targetDir, maxSpeed, endSpeed)
+function CurvedMaxAccel:canHandle()
 	return true
 end
 

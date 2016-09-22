@@ -280,7 +280,7 @@ function Defense:_assignDefenders()
 		local countersideTarget = self._lingeringBallIsLeft
 			and self._countersideTargetRight or self._countersideTargetLeft
 
-		for opp, def in pairs(self._manmarkAssignments) do
+		for _, def in pairs(self._manmarkAssignments) do
 			if def.pos:distanceTo(countersideTarget.pos) < 0.4
 				and Field.distanceToFriendlyDefenseArea(def.pos, def.radius) < 0.25 then
 				nReservedDefenders = nReservedDefenders - 1
@@ -308,7 +308,7 @@ function Defense:_assignDefenders()
 		local samesideTarget = self._ballIsLeft
 			and self._countersideTargetLeft or self._countersideTargetRight
 
-		for opp, def in pairs(self._manmarkAssignments) do
+		for _, def in pairs(self._manmarkAssignments) do
 			if def.pos:distanceTo(samesideTarget.pos) < 0.4
 				and Field.distanceToFriendlyDefenseArea(def.pos, def.radius) < 0.25 then
 				nReservedDefenders = nReservedDefenders - 1

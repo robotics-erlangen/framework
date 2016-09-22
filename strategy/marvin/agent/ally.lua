@@ -61,7 +61,7 @@ function Ally:_run()
 					mixedTeamMessage[sender.id]["shootPos"] = pos
 				end
 			elseif name == "attackerFlag" then
-				for sender, msg in pairs(func()) do
+				for sender, _ in pairs(func()) do
 					if not allies[sender] then
 						if not mixedTeamMessage[sender.id] then
 							mixedTeamMessage[sender.id] = {}
@@ -70,7 +70,7 @@ function Ally:_run()
 					end
 				end
 			elseif name == "defenderFlag" then
-				for sender, msg in pairs(func()) do
+				for sender, _ in pairs(func()) do
 					if not allies[sender] then
 						if not mixedTeamMessage[sender.id] then
 							mixedTeamMessage[sender.id] = {}

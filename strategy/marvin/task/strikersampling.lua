@@ -285,7 +285,7 @@ function StrikerSampling:findLocation()
 	if oldScore > bestScore then
 		bestScore = oldScore
 	end
-	for i = 1, 10 do
+	for _ = 1, 10 do
 		local radius = 0.75 * (1 - bestScore)
 		local randPos = self:randomLocationAroundPoint(bestPos, radius)
 		local eval = self:evalLocation(randPos, bestScore)

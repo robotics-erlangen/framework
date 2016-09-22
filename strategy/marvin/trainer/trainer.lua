@@ -4,7 +4,7 @@ local Trainer = Class("Trainer", nil, Roles)
 local debug = require "../base/debug"
 
 
-function Trainer:init(messaging)
+function Trainer:init()
 	self._send, self._inbox = nil, nil
 end
 

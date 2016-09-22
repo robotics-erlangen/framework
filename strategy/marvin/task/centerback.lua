@@ -199,7 +199,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 		local delta = 2 * robot_radius + distanceBetweenDefenders
 		local way = i.waypos - i.wayrange/2 + delta/2
 		for _,t in ipairs(i.targets) do
-			for j = 1,t.n do
+			for _ = 1,t.n do
 				local final_pos = Field.defenseIntersectionByWay(way, robot_radius + distanceToDefenseArea, false)
 				vis.addCircle("t/centerback: Positions", final_pos, 0.1, vis.colors.skyBlue)
 				table.insert(defensePoints, {

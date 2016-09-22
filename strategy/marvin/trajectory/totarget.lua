@@ -28,8 +28,8 @@ function OldController:_init()
 	self._counter = nil
 end
 
--- FIXME update endSpeed meaning
-function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
+-- FIXME add endSpeed?
+function OldController:update(targetPos, targetDir, maxSpeed)
 	self:reset()
 	if not self.parameters then
 		return {}, Coordinates.toLocal(targetPos), 0
@@ -141,7 +141,7 @@ function OldController:update(targetPos, targetDir, maxSpeed, endSpeed)
 	return {spline = spline}, Coordinates.toLocal(targetPos), time
 end
 
-function OldController:canHandle(targetPos, targetDir, maxSpeed, endSpeed)
+function OldController:canHandle()
 	return true
 end
 

@@ -54,32 +54,32 @@ end
 function PathStub:clearObstacles()
 end
 
-function PathStub:setProbabilities(p_dest, p_waypoints)
+function PathStub:setProbabilities(_p_dest, _p_waypoints)
 end
 
-function PathStub:setBoundary(x1, y1, x2, y2)
+function PathStub:setBoundary(_x1, _y1, _x2, _y2)
 end
 
-function PathStub:addCircle(x, y, radius, name)
+function PathStub:addCircle(_x, _y, _radius, _name)
 end
 
-function PathStub:addLine(start_x, start_y, end_x, end_y, radius, name)
+function PathStub:addLine(_start_x, _start_y, _end_x, _end_y, _radius, _name)
 end
 
-function PathStub:addRect(start_x, start_y, end_x, end_y, name)
+function PathStub:addRect(_start_x, _start_y, _end_x, _end_y, _name)
 end
 
-function PathStub:test(path, radius)
+function PathStub:test(_path, _radius)
 	return false
 end
 
-function PathStub:setRadius(radius)
+function PathStub:setRadius(_radius)
 end
 
 function PathStub:addTreeVisualization()
 end
 
-function PathStub:get(start_x, start_y, end_x, end_y)
+function PathStub:get(start_x, start_y, _end_x, _end_y)
 	local robotPos = Vector(start_x, start_y)
 
 	if robotPos:distanceTo(Vector(self._waypoints[1].p_x, self._waypoints[1].p_y)) < 0.04 then

@@ -82,7 +82,7 @@ end
 
 function Messaging:_constructInbox(receiver)
 	local inbox = {}
-	for messageType, requiredType in pairs(msgDefs) do
+	for messageType, _ in pairs(msgDefs) do
 		inbox[messageType] = function(mode)
 			-- returns all messages of "messageType" which were sent to "all"
 			if mode == "broadcast" then

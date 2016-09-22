@@ -235,11 +235,11 @@ local function ancestors(i, contexts)
 	return a
 end
 
-local function error_msg(_, f, msg)
+local function error_msg(_, _f, msg)
 	return assertion_message_prefix .. "result to be an error " .. tostring(msg)
 end
 
-local function not_error_msg(_, f, msg)
+local function not_error_msg(_, _f, msg)
 	return assertion_message_prefix .. "result not to be an error " .. tostring(msg)
 end
 
@@ -439,7 +439,7 @@ local function run(contexts, callbacks, test_filter)
 		end
 	end
 
-	for i, v in filter(contexts, function(i, v) return v.test and test_filter(v) end) do
+	for i, v in filter(contexts, function(_i, v) return v.test and test_filter(v) end) do
 		env = newEnv()    -- Setup a new environment for this test
 
 		local ancestors = ancestors(i, contexts)
@@ -542,7 +542,7 @@ end
 -- @function error_report
 local function error_report(contexts, results)
 	local buffer = {}
-	for _, r in filter(results, function(i, r) return r.message end) do
+	for _, r in filter(results, function(_i, r) return r.message end) do
 		local name = contexts[r.test].name
 		table.insert(buffer, name .. ":\n" .. r.message[1] .. "\n" .. r.message[2])
 	end
@@ -559,7 +559,7 @@ end
 -- @param contexts The contexts returned by <tt>load_contexts</tt>.
 -- @param results The results returned by <tt>run</tt>.
 -- @function summary_report
-local function summary_report(contexts, results)
+local function summary_report(_contexts, results)
 	local r = {
 		assertions  = 0,
 		errors      = 0,

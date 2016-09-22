@@ -7,7 +7,7 @@ end
 
 local function agentStub(robotStub)
 	local agent = {}
-	agent.robot = function(self) return robotStub end
+	agent.robot = function() return robotStub end
 	return agent
 end
 

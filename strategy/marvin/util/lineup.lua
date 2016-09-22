@@ -43,7 +43,7 @@ local function generateLineup(lineStart, lineupDir)
 			distToStart = further
 			opponentIndex = opponentIndex + 1
 		else
-			local pseudoagent = {robot = function(...) return r end} --FIXME hack
+			local pseudoagent = {robot = function() return r end} --FIXME hack
 			local task = MoveToPos(pseudoagent, intendedPos, viewDir)
 			task.run(task)
 			friendlyIndex = friendlyIndex + 1

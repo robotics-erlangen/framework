@@ -169,7 +169,7 @@ end
 
 Entrypoints.add("Unit Tests/ all", function()
 	if not initialized then
-		for name, test in pairs(tests) do
+		for _, test in pairs(tests) do
 			initializeTest(test)
 		end
 	end

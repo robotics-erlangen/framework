@@ -12,7 +12,7 @@ local Rating = require "util/rating"
 
 
 -- static method for pool
-function Base.takeRobot(robots)
+function Base.takeRobot(_robots)
 	error("stub")
 end
 

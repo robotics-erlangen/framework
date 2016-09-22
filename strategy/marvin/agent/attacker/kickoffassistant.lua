@@ -12,7 +12,7 @@ local MoveToPos = require "task/movetopos"
 
 local G = World.Geometry
 
-function KickoffAssistant:_stop(d)
+function KickoffAssistant:_stop()
 	self._behind = false
 	self._moveDest = nil
 	self._movePos = nil

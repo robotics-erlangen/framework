@@ -10,7 +10,7 @@ function Hidden:update(speedForward, speedSide, omega)
 	return { v_f = speedForward, v_s = speedSide, omega = omega }, self._robot.pos, 0
 end
 
-function Hidden:canHandle(speed, targetDir)
+function Hidden:canHandle()
 	return true
 end
 

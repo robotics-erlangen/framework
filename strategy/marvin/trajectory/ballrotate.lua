@@ -34,7 +34,7 @@ function BallRotate:update(speedForward, radius, turnRight)
 	return {spline = spline}, self._robot.pos, 0
 end
 
-function BallRotate:canHandle(speed, targetDir)
+function BallRotate:canHandle()
 	return true
 end
 

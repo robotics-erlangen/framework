@@ -2,7 +2,6 @@ return {
 	std = "luajit",
 	read_globals = { "Class", "Vector", "log", "amun" },
 	self = false,
-	unused_args = false,
 	files = {
 		["test"] = { redefined = false },
 		["test/unit"] = {
@@ -16,5 +15,8 @@ return {
 				"assert_equal_eps", "assert_not_equal_eps", "assert_deep_equal",
 			 	"assert_not_deep_equal" }
 		},
+	},
+	ignore = {
+		"212/_.*", -- filter unused argument, if variable starts with underscore (_)
 	},
 }
