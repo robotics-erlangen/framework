@@ -17,7 +17,6 @@ local situations = {
 }
 
 
-local useBeaming = false -- or use World.IsSimulated
 local positionThreshold = 0.1 -- the precision for considering a position to be occupied
 local angleThreshold = math.pi / 18
 local goalies = { blue = nil, yellow = nil }
@@ -84,14 +83,6 @@ local function computeDestinations()
 	end
 end
 
-local function getBeamTargets(isBlue)
-	local moveTargets = {}
-	for robot, destination in pairs(destinations[isBlue and "blue" or "yellow"]) do
-		moveTargets[robot.id] = destination
-	end
-	return moveTargets
-end
-
 local function createAgentsAndMoveTasks()
 	for robot, destination in pairs(destinations[World.TeamIsBlue and "blue" or "yellow"]) do
 		table.insert(setupAgents, TestHelper.staticAgent(robot,
@@ -147,19 +138,9 @@ local function init(situation_)
 	if World.gameStageMapping[situation.gameStage] then -- support Protobuf and Strategy stage names
 		situation.gameStage = World.gameStageMapping[situation.gameStage]
 	end
-	if useBeaming then
-		if World.TeamIsBlue then
-			debugcommands.moveObjects(situation.ball, getBeamTargets(true), getBeamTargets(false))
-			debugcommands.sendRefereeCommand(situation.refereeState, situation.gameStage,
-				goalies.blue, goalies.yellow)
-			amun.situationtestSetBeamIndicator(true)
-		end
-		state = "game"
-	else
-		createAgentsAndMoveTasks()
-		debugcommands.sendRefereeCommand("GameForce", nil, goalies.blue, goalies.yellow)
-		state = "prepare"
-	end
+	createAgentsAndMoveTasks()
+	debugcommands.sendRefereeCommand("GameForce", nil, goalies.blue, goalies.yellow)
+	state = "prepare"
 	messaging:deliverMessages() -- initialize the module
 	initialized = true
 end
@@ -204,10 +185,6 @@ local function run()
 	elseif state == "game" then
 		if situation.observe then situation.observe() end
 		if not coordinator then coordinator = Coordinator() end
-		if useBeaming and amun.situationtestGetBeamIndicator() and (not World.TeamIsBlue) then
-			amun.situationtestSetBeamIndicator(false)
-			coordinator = Coordinator() -- reset
-		end
 		coordinator:run()
 	else
 		error("invalid game state " .. state)
