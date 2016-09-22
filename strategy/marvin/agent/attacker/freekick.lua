@@ -38,6 +38,7 @@ function FreeKick:check()
 	end
 
 	if World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
+		self._forceKeepingInPool = true
 		return true
 	end
 
