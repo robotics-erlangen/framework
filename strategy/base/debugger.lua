@@ -172,11 +172,7 @@ local function removeBreakpoint(file, line)
 	end
 	lineTable[file] = nil
 	-- remove lineTable if it is empty
-	local isEmpty = true
-	for k,v in pairs(lineTable) do
-		isEmpty = true
-		break
-	end
+	local isEmpty = (next(lineTable) == nil)
 	if isEmpty then
 		breakpoints[line] = nil
 	end
