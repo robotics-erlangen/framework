@@ -24,19 +24,25 @@ end
 --- decides randomly what to do
 -- @param n number - the number of possible choices
 -- @param module string - the name of the file in learning/parameters/
+-- @param bitmap table [optional] - a bitmap, wheather a choice is currently allowed or not.
+-- 			if not present, it is assumed, that all choices are allowed
 -- @return number - the index of the choice
-function RouletteWheelSelection.decide(module, n)
+function RouletteWheelSelection.decide(module, n, bitmap)
 	local successRates = RouletteWheelSelection._readRatings(n, module)
 	local percSum = 0
-	for _,rate in ipairs(successRates) do
-		percSum = percSum + rate.percentage
+	for index,rate in ipairs(successRates) do
+		if not bitmap or bitmap[index] then
+			percSum = percSum + rate.percentage
+		end
 	end
 	local rand = math.random() * percSum
 	local decSum = 0
 	for i,rate in ipairs(successRates) do
-		decSum = decSum + rate.percentage
-		if rand < decSum then
-			return i
+		if not bitmap or bitmap[i] then
+			decSum = decSum + rate.percentage
+			if rand < decSum then
+				return i
+			end
 		end
 	end
 	error("RouletteWheelSelection/decide - SHOULD NEVER HAPPEN")
