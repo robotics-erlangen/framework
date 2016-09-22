@@ -25,6 +25,7 @@ module "math"
 *************************************************************************]]
 
 -- luacheck: globals math
+-- luacheck: no unused secondaries
 local max, min = math.max, math.min
 
 --- Returns all roots of a given polynomial
@@ -103,33 +104,33 @@ local function CalcSC(N, a, b, K, u, v, qk)
 	end
 end
 
-local function nextK(N, tFlag, a, b, a1, a3, a7, K, qk, qp)
-	if tFlag == 3 then
-		K[1] = 0.0
-		K[2] = 0.0
-		for i = 3, N do
-			K[i] = qk[i-2]
-		end
-		return a3, a7
-	end
-	local temp = (tFlag == 1) and b or a
-	if math.abs(a1) > 10*eta*math.abs(temp) then
-		a7 = a7/a1
-		a3 = a3/a1
-		K[1] = qp[1]
-		K[2] = qp[2] - a7*qp[1]
-		for i = 3, N do
-			K[i] = qp[i] - a7*qp[i-1] + a3*qk[i-2]
-		end
-	else
-		K[1] = 0.0
-		K[2] = -a7*qp[1]
-		for i = 3, N do
-			K[i] = a3*qk[i-2] - a7*qp[i-1]
-		end
-	end
-	return a3, a7
-end
+-- local function nextK(N, tFlag, a, b, a1, a3, a7, K, qk, qp)
+-- 	if tFlag == 3 then
+-- 		K[1] = 0.0
+-- 		K[2] = 0.0
+-- 		for i = 3, N do
+-- 			K[i] = qk[i-2]
+-- 		end
+-- 		return a3, a7
+-- 	end
+-- 	local temp = (tFlag == 1) and b or a
+-- 	if math.abs(a1) > 10*eta*math.abs(temp) then
+-- 		a7 = a7/a1
+-- 		a3 = a3/a1
+-- 		K[1] = qp[1]
+-- 		K[2] = qp[2] - a7*qp[1]
+-- 		for i = 3, N do
+-- 			K[i] = qp[i] - a7*qp[i-1] + a3*qk[i-2]
+-- 		end
+-- 	else
+-- 		K[1] = 0.0
+-- 		K[2] = -a7*qp[1]
+-- 		for i = 3, N do
+-- 			K[i] = a3*qk[i-2] - a7*qp[i-1]
+-- 		end
+-- 	end
+-- 	return a3, a7
+-- end
 
 local function newest(tFlag, a, a1, a3, a7, b, c, d, f, g, h, u, v, K, N, p)
 	--log("newest")
@@ -314,17 +315,17 @@ local function QuadIT(N, uu, vv, qp, NN, p, qk, K)
 				u = u - u*relstp
 				v = v + v*relstp
 				a, b = QuadSD(NN, u, v, p ,qp)
-				for i = 1, 5 do
-					tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
-					a3, a7 = nextK(N, tFlag, a, b, a1, a3, a7, K, qk, qp)
-				end
+				-- for i = 1, 5 do
+					-- tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
+					-- a3, a7 = nextK(N, tFlag, a, b, a1, a3, a7, K, qk, qp)
+				-- end
 				triedFlag = true
 				j = 0
 			end
 		end
 		omp = mp
-		tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
-		a3, a7 = nextK(N, tFlag, a, b, a1, a3, a7, K, qk, qp)
+		-- tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
+		-- a3, a7 = nextK(N, tFlag, a, b, a1, a3, a7, K, qk, qp)
 		tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
 		ui, vi = newest(tFlag, a, a1, a3, a7, b, c, d, f, g, h, u, v, K, N, p)
 		if vi ~= 0 then
@@ -414,11 +415,11 @@ local function Fxshfr(L2, sr, bnd, K, N, p, NN, qp)
 	local a, b = QuadSD(NN, u, v, p, qp)
 	--log("a = "..a.."\tb = "..b)
 	local qk = {}
-	local tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
+	local tFlag, a1, a3, a7, c, d, e, f, g, h -- = CalcSC(N, a, b, K, u, v, qk)
 	--log("tFlag = "..tFlag)
 	local otv, ots, szr, szi, lzr, lzi
 	for j = 1, L2 do
-		a3, a7 = nextK(N, tFlag, a, b, a1, a3, a7, K, qk, qp)
+		-- a3, a7 = nextK(N, tFlag, a, b, a1, a3, a7, K, qk, qp)
 		tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
 		local ui, vi = newest(tFlag, a, a1, a3, a7, b, c, d, f, g, h, u, v, K, N, p)
 		--if j < 4 then
@@ -491,7 +492,7 @@ local function Fxshfr(L2, sr, bnd, K, N, p, NN, qp)
 					--log("und noch ein Durchlauf")
 				until (not vpass) or vtry
 				a, b = QuadSD(NN, u, v, p, qp)
-				tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
+				-- tFlag, a1, a3, a7, c, d, e, f, g, h = CalcSC(N, a, b, K, u, v, qk)
 			end
 		end
 		--log("tFlag = "..tFlag)
@@ -592,7 +593,7 @@ function math.realRootsOfPolynomial(coefficients)
 		local xm = -pt[NN]/pt[N]
 		x = math.min(xm, x)
 	end
-	local xm = x
+	local xm
 	while true do
 		xm = x*0.1
 		local ff = math.evaluatePolynomial(pt, xm)
