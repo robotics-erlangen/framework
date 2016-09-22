@@ -34,7 +34,7 @@ module "base"
 require "../base/debugger" -- preload debugger to allow triggering it later
 require "../base/amun"
 -- amun.isDebug must already be set, thus load after amun
-require("../base/globalschecker")._init()
+require("../base/globalschecker")._init(amun.isDebug)
 require "../base/math"
 require "../base/path"
 require "../base/table"

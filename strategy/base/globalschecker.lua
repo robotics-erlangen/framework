@@ -71,12 +71,12 @@ function GlobalsChecker.enable(extraGlobals)
 end
 
 -- Called directly after base/amun is loaded
-function GlobalsChecker._init()
+function GlobalsChecker._init(isDebug)
 	if not isEnabled then
 		return
 	end
 
-	if amun.isDebug then
+	if isDebug then
 		globalsWarn = error -- writing globals is an error in debug mode
 	else
 		globalsWarn = log -- just log illegal writes to globals when not in debug mode
