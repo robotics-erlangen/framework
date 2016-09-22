@@ -108,9 +108,7 @@ function Robot:init(data, isFriendly, geometry)
 	self._forceKick = false
 	self._dribblerSpeed = nil
 	self._standbyTimer = nil
-	self._standby = nil
 	self._standbyTick = nil
-	self._standbyEnd = nil
 	self.radioResponse = nil
 	self.isVisible = nil
 	self.pos = nil
@@ -218,6 +216,9 @@ function Robot:_setSpecs(specs)
 end
 
 function Robot:_setCommand()
+	local STANDBY_DELAY = 30
+	local standby = self._standbyTimer and (self._currentTime - self._standbyTimer > STANDBY_DELAY)
+
 	amun.setCommand(self.generation, self.id, {
 		controller = self._controllerInput,
 		v_f = self._controllerInput and self._controllerInput.v_f,
@@ -227,7 +228,7 @@ function Robot:_setCommand()
 		kick_power = self._kickPower,
 		force_kick = self._forceKick,
 		dribbler = self._dribblerSpeed,
-		standby = self._standby
+		standby = standby
 	})
 end
 
@@ -283,39 +284,21 @@ function Robot:halt()
 end
 
 --- Set standby
--- @param standby boolean - enable standy for robot if true
-function Robot:setStandby(standby, noDelay)
-	if not standby then
-		-- delay deleting the standby timer
-		if not self._standbyTick then
-			self._standbyTimer = nil
-		end
-		self._standby = nil
-	else
+-- @param standby boolean - enable standby for robot if true
+function Robot:setStandby(standby)
+	if standby then
 		-- start timer
 		if not self._standbyTimer then
 			self._standbyTimer = self._currentTime
 		end
-		if self._currentTime - self._standbyTimer > 30 or noDelay then
-			-- log when standby was enabled
-			if not self._standbyStart or not self._standby then
-				self._standbyEnd = self._currentTime
-			end
-			self._standby = true
+		self._standbyTick = true
+	else
+		-- disable standby if disabled two times in a row
+		if not self._standbyTick then
+			self._standbyTimer = nil
 		end
+		self._standbyTick = false
 	end
-	self._standbyTick = standby
-end
-
-function Robot:isCharged()
-	-- assume that recently invisble robots are not charged
-	if self._currentTime - self.lostSince < 3 then
-		return false
-	-- robot is discharged during standby
-	elseif self._standbyEnd and self._currentTime - self._standbyEnd < 5 then
-		return false
-	end
-	return true
 end
 
 --- Chip function
