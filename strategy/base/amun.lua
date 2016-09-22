@@ -178,6 +178,7 @@ separator for luadoc]]--
 -- @name sendNetworkRefereeCommand
 -- @param command SSL_Referee
 
+-- luacheck: globals amun log
 require "amun"
 log = amun.log
 -- publish debug status

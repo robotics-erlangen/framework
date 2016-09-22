@@ -23,6 +23,8 @@ module "table"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
+-- luacheck: globals table
+
 --- Create a shallow copy of the table.
 -- @name copy
 -- @param t table - Table to copy
@@ -170,7 +172,7 @@ end
 function table.readonlytable(table)
 	return setmetatable({}, {
 	__index = table,
-	__newindex = function(table, key, value)
+	__newindex = function(innerTable, key, value)
 					error("Attempt to modify read-only table")
 				end,
 	__metatable = false
