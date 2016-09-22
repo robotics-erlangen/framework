@@ -43,7 +43,7 @@ end
 -- @param array table - Array to truncate
 -- @param len number - target length
 function table.truncate(array, len) -- truncates an array to the first len elements
-	for i = #array, len + 1, -1 do
+	for _ = #array, len + 1, -1 do
 		table.remove(array)
 	end
 end
@@ -172,7 +172,7 @@ end
 function table.readonlytable(table)
 	return setmetatable({}, {
 	__index = table,
-	__newindex = function(innerTable, key, value)
+	__newindex = function(_table, _key, _value)
 					error("Attempt to modify read-only table")
 				end,
 	__metatable = false

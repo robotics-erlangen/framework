@@ -302,7 +302,7 @@ end
 
 --- Chip function
 -- @param distance number - Distance to chip [m]
-function Robot:chip(distance)
+function Robot:chip(_distance)
 	log("Error: no implementation for function chip for robot generation "..self.generation)
 end
 
@@ -358,7 +358,7 @@ end
 
 --- Shoot function
 -- @param speed number - Ball speed to shoot with [m/s]
-function Robot:_shoot(speed)
+function Robot:_shoot(_speed)
 	log("Error: no implementation for function shoot for robot generation "..self.generation)
 end
 

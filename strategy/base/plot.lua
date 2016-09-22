@@ -43,7 +43,7 @@ function plot._plotAggregated()
 	for k,v in pairs(aggregated) do
 		plot.addPlot(k, v)
 	end
-	for k,v in pairs(lastAggregated) do
+	for k,_ in pairs(lastAggregated) do
 		if not aggregated[k] then
 			-- line down to zero
 			plot.addPlot(k, 0)
