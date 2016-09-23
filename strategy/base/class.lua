@@ -28,8 +28,8 @@ local Class = {}
 local isDebug = false
 local registeredClassNames = {}
 
-function Class.setDebug(enableDebugMode)
-	-- only guaranteed for objects constructed calling this function
+--- Only affects objects constructed after calling this function
+function Class._setDebug(enableDebugMode)
 	isDebug = enableDebugMode
 end
 
@@ -48,7 +48,7 @@ function Class.toClass(obj, failsafe)
 	if ctype == "class" then
 		return obj
 	elseif ctype == "instance" then
-		return rawget(getmetatable(obj) or {}, "__class")
+		return rawget(getmetatable(obj) or {}, "class")
 	else
 		if failsafe then
 			return nil
@@ -93,12 +93,12 @@ function Class.instanceOf(obj, class)
 end
 
 local function registerAttributes(table, key, value)
-	getmetatable(table).__attributes[key] = true
+	getmetatable(table).attributes[key] = true
 	rawset(table, key, value)
 end
 
 local function forbidNewAttributes(table, key, value)
-	if getmetatable(table).__attributes[key] then
+	if getmetatable(table).attributes[key] then
 		rawset(table, key, value)
 	else
 		error(Class.name(table) .. ": attempt to set attribute " .. tostring(key))
@@ -108,8 +108,8 @@ end
 local function forbidUnsetReading(table, key)
 	-- only called if key doesn't exist in table
 	local mt = getmetatable(table)
-	local val = mt.__class[key]
-	if val ~= nil or mt.__attributes[key] then
+	local val = mt.class[key]
+	if val ~= nil or mt.attributes[key] then
 		return val
 	else
 		error(Class.name(table) .. ": attempt to read undefined attribute " .. tostring(key))
@@ -120,24 +120,24 @@ local function forbidReassignments(proxy, key, value)
 	local proxyMt = getmetatable(proxy)
 	local table = proxyMt.__index
 	local mt = getmetatable(table)
-	local isForeignInstanceAttribute = mt.__attributes[key] and mt.__attributes[key] ~= proxyMt.counter
-	local isClassAttribute = mt.__class[key] ~= nil
+	local isForeignInstanceAttribute = mt.attributes[key] and mt.attributes[key] ~= proxyMt.counter
+	local isClassAttribute = mt.class[key] ~= nil
 	if isClassAttribute or isForeignInstanceAttribute then
 		error(Class.name(table) .. ": mixin attempts to overwrite attribute " .. tostring(key))
 	end
-	mt.__attributes[key] = proxyMt.counter
+	mt.attributes[key] = proxyMt.counter
 	rawset(table, key, value)
 end
 
 local function constructInstance(class, ...)
 	local instance = {}
 	local instMt = {
-		__attributes = {}, -- remember attributes from init functions
-		__newindex = registerAttributes,
 		__index = isDebug and forbidUnsetReading or class,
+		__newindex = registerAttributes,
 		__tostring = class.__tostring,
+		attributes = {}, -- remember attributes from init functions
+		class = class,
 		type = "instance",
-		__class = class
 	}
 	instMt.__metatable = instMt
 	setmetatable(instance, instMt)
@@ -150,7 +150,7 @@ local function constructInstance(class, ...)
 		local proxyMt = {
 			__index = instance,
 			__newindex = forbidReassignments,
-			counter = 0
+			counter = 0,
 		}
 		local proxy = {}
 		setmetatable(proxy,proxyMt)
@@ -197,11 +197,11 @@ local function newClass(_, name, parent, ...)
 	registeredClassNames[name] = true
 	local class = {}
 	local classMt = {
-		type = "class",
+		__index = parent,
+		__call = constructInstance,
 		className = name,
 		classNameShort = getShortname(name),
-		__index = parent,
-		__call = constructInstance
+		type = "class",
 	}
 	classMt.__metatable = classMt
 	setmetatable(class, classMt)
@@ -228,16 +228,6 @@ local function newClass(_, name, parent, ...)
 
 	return class
 end
-
---- Values set on a class
--- @class table
--- @name Class
--- @field className string - Full name of the class
--- @field classNameShort string - Part of the class name after the last '.'
--- @field instanceOf function - InstanceOf function
--- @field classParent Class - parent class object
--- @field create Function - Creates a new class instance
--- @field init Function - Is called during construction if it exists
 
 local classMetatable = {
 	__call = newClass
