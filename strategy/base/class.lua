@@ -64,8 +64,8 @@ end
 
 --- Checks whether the given instance is of type class.
 -- Also checks parent class.
--- @usage local a = new("a")
--- local b = new("b", a)
+-- @usage local a = Class("a")
+-- local b = Class("b", a)
 -- local o = b()
 -- instanceOf(o, a) == true
 -- instanceOf(o, b) == true
@@ -74,7 +74,7 @@ end
 -- instanceOf(p, b) == false
 -- @param inst table - Instance to check
 -- @param class Class - Class object as created by define
--- @see new
+-- @see Class
 -- @return bool
 function Class.instanceOf(obj, class)
 	local iclass = Class.toClass(obj)
@@ -95,45 +95,32 @@ local function forbidNewAttributes(table, key, value)
 	if getmetatable(table).__attributes[key] then
 		rawset(table, key, value)
 	else
-		error(Class.name(table) .. ": attempt to set attribute " .. key)
+		error(Class.name(table) .. ": attempt to set attribute " .. tostring(key))
 	end
 end
-
-local function forbidReassignmentsNoDebug(proxy, key, value)
-	local orig = proxy[1]
-	local mtOrig = getmetatable(orig)
-	local myValue = mtOrig.__attributes[key] == proxy[2]
-	if not myValue and (orig[key] ~= nil or mtOrig.__attributes[key]) then
-		error("attribute " .. key .. " is alredy defined")
-	end
-	mtOrig.__attributes[key] = proxy[2]
-	rawset(orig,key,value)
-end
-
-local function forbidReassignmentsDebug(proxy,key,value)
-	local orig = proxy[1]
-	local mtOrig = getmetatable(orig)
-	local index = mtOrig.__index
-	local myValue = mtOrig.__attributes[key] == proxy[2]
-	mtOrig.__index = mtOrig.__class --don't throw errors when reading hopefully undefined instance values
-	if not myValue and (orig[key] ~= nil or mtOrig.__attributes[key]) then
-		error("attribute " .. key .. " is already defined")
-	end
-	mtOrig.__attributes[key] = proxy[2]
-	rawset(orig,key,value)
-	mtOrig.__index = index
-end
-
-local forbidReassignments = amun.isDebug and forbidReassignmentsDebug or forbidReassignmentsNoDebug
 
 local function forbidUnsetReading(table, key)
+	-- only called if key doesn't exist in table
 	local mt = getmetatable(table)
 	local val = mt.__class[key]
 	if val ~= nil or mt.__attributes[key] then
 		return val
 	else
-		error("Reading undefined instance variable " .. tostring(key))
+		error(Class.name(table) .. ": attempt to read undefined attribute " .. tostring(key))
 	end
+end
+
+local function forbidReassignments(proxy, key, value)
+	local table = proxy[1]
+	local counter = proxy[2]
+	local mt = getmetatable(table)
+	local isForeignInstanceAttribute = mt.__attributes[key] and mt.__attributes[key] ~= counter
+	local isClassAttribute = mt.__class[key] ~= nil
+	if isClassAttribute or isForeignInstanceAttribute then
+		error(Class.name(table) .. ": mixin attempts to overwrite attribute " .. tostring(key))
+	end
+	mt.__attributes[key] = counter
+	rawset(table, key, value)
 end
 
 local function proxyLookup(proxy, key)
@@ -162,7 +149,7 @@ local function constructInstance(class, ...)
 	if class.init then
 		class.init(instance, ...)
 	end
-	local mixinInits = getmetatable(class)["mixinInits"]
+	local mixinInits = getmetatable(class).mixinInits
 	if mixinInits then
 		rawset(proxy,1,instance)
 		for counter, init in ipairs(mixinInits) do
