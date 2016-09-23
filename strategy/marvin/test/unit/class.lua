@@ -256,6 +256,22 @@ context("base.class", function()
 				"reading attributes with value nil must succeed")
 	end)
 
+	test("class tostring", function()
+		local Middle = Class("ClassTS", Super)
+		function Middle:__tostring()
+			return "middle"
+		end
+
+		local instance = Middle()
+		assert_equal(tostring(instance), "middle",
+				"Custom tostring method missing")
+
+		local Child = Class("ChildTS", Middle)
+		local childInstance = Child()
+		assert_equal(tostring(childInstance), "middle",
+				"tostring method not inherited")
+	end)
+
 	test("mixin method collision", function()
 		local M1 = {}
 		function M1:run() end
