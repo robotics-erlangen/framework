@@ -416,4 +416,26 @@ context("base.class", function()
 		local instance = Middle()
 		assert_equal(instance.mixinAttribute, 4, "mixin dependency not resolved")
 	end)
+
+	test("mixin init reentrancy", function()
+		-- Check that the proxy object can handle nested initializations
+		local M3 = {}
+		function M3:init()
+			self.mixinAttribute = 4
+		end
+		local Outer = Class("MixinOuter", nil, M3)
+
+		local M4 = {}
+		function M4:init()
+			self.outer = Outer()
+			self.mixinAttribute = 3
+		end
+		local Inner = Class("MixinInner", nil, M4)
+
+		local instance = Inner()
+		assert_not_error(function()
+			assert_equal(instance.outer.mixinAttribute, 4)
+			assert_equal(instance.mixinAttribute, 3)
+		end, "mixinAttribute written on wrong object")
+	end)
 end)

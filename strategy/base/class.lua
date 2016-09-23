@@ -117,29 +117,18 @@ local function forbidUnsetReading(table, key)
 end
 
 local function forbidReassignments(proxy, key, value)
-	local table = proxy[1]
-	local counter = proxy[2]
+	local proxyMt = getmetatable(proxy)
+	local table = proxyMt.__index
 	local mt = getmetatable(table)
-	local isForeignInstanceAttribute = mt.__attributes[key] and mt.__attributes[key] ~= counter
+	local isForeignInstanceAttribute = mt.__attributes[key] and mt.__attributes[key] ~= proxyMt.counter
 	local isClassAttribute = mt.__class[key] ~= nil
 	if isClassAttribute or isForeignInstanceAttribute then
 		error(Class.name(table) .. ": mixin attempts to overwrite attribute " .. tostring(key))
 	end
-	mt.__attributes[key] = counter
+	mt.__attributes[key] = proxyMt.counter
 	rawset(table, key, value)
 end
 
-local function proxyLookup(proxy, key)
-	return proxy[1][key]
-end
-
-local proxyMt = {
-	__index = proxyLookup, --the instance itself will throw errors if you read undefined values
-	__newindex = forbidReassignments,
-	__mode = "v" -- weak values, don't keep the instance if its not needed anymore
-}
-local proxy = {}
-setmetatable(proxy,proxyMt)
 local function constructInstance(class, ...)
 	local instance = {}
 	local instMt = {
@@ -157,9 +146,17 @@ local function constructInstance(class, ...)
 	end
 	local mixinInits = getmetatable(class).mixinInits
 	if mixinInits then
-		rawset(proxy,1,instance)
+		-- local instance to allow instancing classes with mixin in the mixin constructor
+		local proxyMt = {
+			__index = instance,
+			__newindex = forbidReassignments,
+			counter = 0
+		}
+		local proxy = {}
+		setmetatable(proxy,proxyMt)
+
 		for counter, init in ipairs(mixinInits) do
-			rawset(proxy,2,counter)
+			proxyMt.counter = counter
 			init(proxy)
 		end
 	end
