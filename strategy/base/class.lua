@@ -25,7 +25,13 @@ module "Class"
 
 local Class = {}
 
+local isDebug = false
 local registeredClassNames = {}
+
+function Class.setDebug(enableDebugMode)
+	-- only guaranteed for objects constructed calling this function
+	isDebug = enableDebugMode
+end
 
 local function getShortname(name)
 	local rev = name:reverse()
@@ -139,7 +145,7 @@ local function constructInstance(class, ...)
 	local instMt = {
 		__attributes = {}, -- remember attributes from init functions
 		__newindex = registerAttributes,
-		__index = amun.isDebug and forbidUnsetReading or class,
+		__index = isDebug and forbidUnsetReading or class,
 		__tostring = getmetatable(class).__tostring,
 		type = "instance",
 		__class = class
