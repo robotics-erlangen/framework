@@ -135,7 +135,7 @@ local function constructInstance(class, ...)
 		__attributes = {}, -- remember attributes from init functions
 		__newindex = registerAttributes,
 		__index = isDebug and forbidUnsetReading or class,
-		__tostring = getmetatable(class).__tostring,
+		__tostring = class.__tostring,
 		type = "instance",
 		__class = class
 	}
@@ -226,7 +226,7 @@ local function newClass(_, name, parent, ...)
 	end
 	classMt.mixinInits = mixinInits
 
-	return class, classMt
+	return class
 end
 
 --- Values set on a class

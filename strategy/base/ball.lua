@@ -23,7 +23,7 @@ module "Ball"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-local Ball, BallMt = (require "../base/class")("Ball")
+local Ball = (require "../base/class")("Ball")
 
 local Constants = require "../base/constants"
 local Coordinates = require "../base/coordinates"
@@ -42,11 +42,6 @@ local plot = require "../base/plot"
 -- @field brakeTime number - Time in seconds until the ball stops moving
 -- @field lostSince number - Time when the ball was lost. Only has meaning when Ball isn't visible
 
-function BallMt:__tostring()
-	return string.format("Ball(pos = (%6.3f, %6.3f), speed = %3.1f)",
-		self.pos.x, self.pos.y, self.speed:length())
-end
-
 --- Initializes a new ball, must only be called by world!
 function Ball:init()
 	self.radius = 0.0215
@@ -59,6 +54,11 @@ function Ball:init()
 	self.deceleration = 0
 	self.maxSpeed = 0
 	self.framesDecelerating = math.huge
+end
+
+function Ball:__tostring()
+	return string.format("Ball(pos = (%6.3f, %6.3f), speed = %3.1f)",
+		self.pos.x, self.pos.y, self.speed:length())
 end
 
 -- Processes ball information from amun, passed by world

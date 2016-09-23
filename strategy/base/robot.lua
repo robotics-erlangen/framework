@@ -23,7 +23,7 @@ module "Robot"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-local Robot, RobotMt = (require "../base/class")("Robot")
+local Robot = (require "../base/class")("Robot")
 
 local Constants = require "../base/constants"
 local Coordinates = require "../base/coordinates"
@@ -117,14 +117,12 @@ function Robot:init(data, isFriendly, geometry)
 	self.userControl = nil
 end
 
-function Robot:tostring()
+function Robot:__tostring()
 	if not self.pos or not self.id then
 		return string.format("Robot(%s)", self.id and tostring(self.id) or "?")
 	end
 	return string.format("Robot(%d, pos%s)", self.id, tostring(self.pos))
 end
-
-RobotMt.__tostring = Robot.tostring
 
 -- reset robot commands and update data
 function Robot:_update(state, time, radioResponses)

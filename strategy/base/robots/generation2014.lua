@@ -24,9 +24,7 @@ module "Robot.Generation.Gen2014_3"
 *************************************************************************]]
 
 local Robot = require "../base/robot"
-local Gen2014, Gen2014Mt = (require "../base/class")("Robot.Generation.Gen2014_3", Robot)
-
-Gen2014Mt.__tostring = Robot.tostring
+local Gen2014 = (require "../base/class")("Robot.Generation.Gen2014_3", Robot)
 
 --- Robot specific constants
 -- @class table
