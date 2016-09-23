@@ -82,7 +82,7 @@ function Class.instanceOf(obj, class)
 		return true
 	else
 		local iparent = Class.parent(obj)
-		return iparent and Class.instanceOf(iparent, class)
+		return iparent and Class.instanceOf(iparent, class) or false
 	end
 end
 
@@ -129,7 +129,7 @@ local forbidReassignments = amun.isDebug and forbidReassignmentsDebug or forbidR
 local function forbidUnsetReading(table, key)
 	local mt = getmetatable(table)
 	local val = mt.__class[key]
-	if val or mt.__attributes[key] then
+	if val ~= nil or mt.__attributes[key] then
 		return val
 	else
 		error("Reading undefined instance variable " .. tostring(key))
