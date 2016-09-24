@@ -279,11 +279,16 @@ static void luaDebugHook(lua_State *state, lua_Debug *ar)
 
 static void luaKillHook(lua_State *state, lua_Debug */*ar*/)
 {
-    luaL_error(state, "os.exit()");
+    lua_getfield(state, LUA_REGISTRYINDEX, "ExitCode");
+    int exitCode = lua_tointeger(state, -1);
+    luaL_error(state, "os.exit(%d)", exitCode);
 }
 
 static int luaInstallKillHook(lua_State* state)
 {
+    int exitCode = luaL_optinteger(state, 1, 0);
+    lua_pushinteger(state, exitCode);
+    lua_setfield(state, LUA_REGISTRYINDEX, "ExitCode");
     lua_sethook(state, luaKillHook, LUA_MASKCALL | LUA_MASKRET | LUA_MASKLINE | LUA_MASKCOUNT, 1);
     return 0;
 }
@@ -387,6 +392,9 @@ bool Lua::loadScript(const QString &filename, const QString &entryPoint, const w
 
     lua_pushstring(m_state, m_entryPoint.toUtf8().constData());
     lua_setfield(m_state, LUA_REGISTRYINDEX, "EntryPointName");
+
+    lua_pushinteger(m_state, 0);
+    lua_setfield(m_state, LUA_REGISTRYINDEX, "ExitCode");
 
     lua_getfield(m_state, LUA_REGISTRYINDEX, "Debugger");
     m_hasDebugger = lua_isfunction(m_state, -1);
