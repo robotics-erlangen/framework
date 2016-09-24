@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2015 Michael Bleier, Philipp Nordhus                        *
+# *   Copyright 2016 Michael Eischer                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,16 +18,22 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-# firmware
-add_subdirectory(firmware)
+set(SOURCES
+    amuncli.cpp
+    amunclient.cpp
+    amunclient.h
+    connector.cpp
+    connector.h
+)
 
-# libs
-add_subdirectory(config)
-add_subdirectory(core)
-add_subdirectory(protobuf)
-add_subdirectory(amun)
-
-# apps
-add_subdirectory(ra)
-add_subdirectory(logplayer)
-add_subdirectory(amuncli)
+add_executable(amun-cli ${SOURCES} ${UIC_SOURCES})
+target_link_libraries(amun-cli
+    amun::amun
+    shared::protobuf
+    ${CMAKE_THREAD_LIBS_INIT}
+    Qt5::Core
+)
+target_include_directories(amun-cli
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+)
