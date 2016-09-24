@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2016 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -104,6 +104,7 @@ void Amun::start()
     Q_ASSERT(m_processor == NULL);
     m_processor = new Processor(m_timer);
     m_processor->moveToThread(m_processorThread);
+    connect(m_processorThread, SIGNAL(finished()), m_processor, SLOT(deleteLater()));
     // route commands to processor
     connect(this, SIGNAL(gotCommand(Command)), m_processor, SLOT(handleCommand(Command)));
     // relay tracking, geometry, referee, controller and accelerator information
@@ -114,6 +115,7 @@ void Amun::start()
         Q_ASSERT(m_strategy[i] == NULL);
         m_strategy[i] = new Strategy(m_timer, (i == 0) ? StrategyType::YELLOW : StrategyType::BLUE);
         m_strategy[i]->moveToThread(m_strategyThread[i]);
+        connect(m_strategyThread[i], SIGNAL(finished()), m_strategy[i], SLOT(deleteLater()));
 
         // send tracking, geometry and referee to strategy
         connect(m_processor, SIGNAL(sendStrategyStatus(Status)),
@@ -158,6 +160,7 @@ void Amun::start()
     Q_ASSERT(m_simulator == NULL);
     m_simulator = new Simulator(m_timer);
     m_simulator->moveToThread(m_simulatorThread);
+    connect(m_simulatorThread, SIGNAL(finished()), m_simulator, SLOT(deleteLater()));
     // pass on simulator and team settings
     connect(this, SIGNAL(gotCommand(Command)), m_simulator, SLOT(handleCommand(Command)));
     // pass simulator timing
@@ -166,6 +169,7 @@ void Amun::start()
     Q_ASSERT(m_transceiver == NULL);
     m_transceiver = new Transceiver();
     m_transceiver->moveToThread(m_processorThread);
+    connect(m_processorThread, SIGNAL(finished()), m_transceiver, SLOT(deleteLater()));
     // route commands to transceiver
     connect(this, SIGNAL(gotCommand(Command)), m_transceiver, SLOT(handleCommand(Command)));
     // relay transceiver status and timing
@@ -174,6 +178,7 @@ void Amun::start()
     Q_ASSERT(m_networkTransceiver == NULL);
     m_networkTransceiver = new NetworkTransceiver();
     m_networkTransceiver->moveToThread(m_processorThread);
+    connect(m_processorThread, SIGNAL(finished()), m_networkTransceiver, SLOT(deleteLater()));
     // route commands to transceiver
     connect(this, SIGNAL(gotCommand(Command)), m_networkTransceiver, SLOT(handleCommand(Command)));
     // relay transceiver status and timing
@@ -211,33 +216,17 @@ void Amun::stop()
     m_strategyThread[0]->wait();
     m_strategyThread[1]->wait();
 
-    delete m_transceiver;
+    // worker objects are destroyed on thread shutdown
     m_transceiver = NULL;
-
-    delete m_networkTransceiver;
     m_networkTransceiver = NULL;
-
-    delete m_networkCommand;
     m_networkCommand = NULL;
-
-    delete m_simulator;
     m_simulator = NULL;
-
-    delete m_vision;
     m_vision = NULL;
-
-    delete m_referee;
     m_referee = NULL;
-
-    delete m_mixedTeam;
     m_mixedTeam = NULL;
-
     for (int i = 0; i < 2; i++) {
-        delete m_strategy[i];
         m_strategy[i] = NULL;
     }
-
-    delete m_processor;
     m_processor = NULL;
 }
 
@@ -246,9 +235,9 @@ void Amun::setupReceiver(Receiver *&receiver, const QHostAddress &address, quint
     Q_ASSERT(receiver == NULL);
     receiver = new Receiver(address, port);
     receiver->moveToThread(m_networkThread);
+    connect(m_networkThread, SIGNAL(finished()), receiver, SLOT(deleteLater()));
     // start and stop socket
     connect(m_networkThread, SIGNAL(started()), receiver, SLOT(startListen()));
-    connect(m_networkThread, SIGNAL(finished()), receiver, SLOT(stopListen()));
     // pass packets to processor
     connect(m_networkInterfaceWatcher, &NetworkInterfaceWatcher::interfaceUpdated, receiver, &Receiver::updateInterface);
 }

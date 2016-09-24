@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2016 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -39,6 +39,7 @@ void AmunClient::start()
     m_amunThread = new QThread(this);
     m_amun = new Amun();
     m_amun->moveToThread(m_amunThread);
+    connect(m_amunThread, SIGNAL(finished()), m_amun, SLOT(deleteLater()));
 
     connect(m_amun, SIGNAL(sendStatus(Status)), SIGNAL(gotStatus(Status)));
     connect(this, SIGNAL(sendCommand(Command)), m_amun, SLOT(handleCommand(Command)));
@@ -53,6 +54,6 @@ void AmunClient::stop()
     delete m_amunThread;
     m_amunThread = NULL;
 
-    delete m_amun;
+    // deleted on thread shutdown
     m_amun = NULL;
 }
