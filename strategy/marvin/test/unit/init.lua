@@ -139,6 +139,7 @@ local function testrunner()
 		log("<font color=\"red\">" .. failing .. " failing testcase"
 			.. (failing > 1 and "s" or "") ..  "!</font>")
 	end
+	os.exit(failing)
 end
 
 local co = coroutine.create(testrunner)
