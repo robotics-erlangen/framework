@@ -47,6 +47,14 @@ context("base.math", function()
         assert_equal(math.round(2.5, 0), 3)
     end)
 
+    test("uniformRandom", function()
+        for _ = 1, 100 do
+            local rand = math.uniformRandom()
+            assert_greater_than(rand, 0)
+            assert_lte(rand, 1)
+        end
+    end)
+
     test("solveLin", function ()
         assert_equal(math.solveLin(1, 2), -2)
         assert_equal(math.solveLin(0, 2), nil)

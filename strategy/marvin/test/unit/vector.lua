@@ -327,6 +327,12 @@ context("base.vector", function()
         assert_equal(op5.y, 3.5)
         assert_equal_eps(dist5, -math.sqrt(2)*1.5, EPS)
         assert_equal(dist5, vec4:orthogonalDistance(point2, point1))
+
+        local op6, dist6 = vec2:orthogonalProjection(vec2, vec4)
+        assert_equal(op6.x, vec2.x)
+        assert_equal(op6.y, vec2.y)
+        assert_equal(dist6, 0)
+        assert_equal(dist6, vec2:orthogonalDistance(vec2, vec4))
     end)
 
     test("nearestPosOnLine+distanceToLineSegment", function ()
@@ -370,5 +376,27 @@ context("base.vector", function()
         local op5 = vec5:nearestPosOnLine(point1, point2)
         assert_equal(op5, point2)
         assert_equal_eps(dist5, math.sqrt(2), EPS)
+    end)
+
+    test("random", function()
+        for _ = 1, 100 do
+            local rand = Vector.random(1)
+            -- should be unlikely enough to never happen
+            assert_less_than(rand:length(), 100)
+        end
+
+        local center = Vector(10000, 10000)
+        for _ = 1, 100 do
+            local rand = Vector.random(1, center)
+            -- should be unlikely enough to never happen
+            assert_less_than(rand:distanceTo(center), 100)
+        end
+
+        local rand = Vector.random(1)
+        local hasOther = false
+        for _ = 1, 10 do
+            hasOther = hasOther or (rand ~= Vector.random(1))
+        end
+        assert_true(hasOther)
     end)
 end)

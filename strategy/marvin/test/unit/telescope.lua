@@ -35,5 +35,10 @@ context("telescope", function ()
 		assert_not_deep_equal(tablea, tableb)
 		tableb["def"][2] = 1
 		assert_deep_equal(tablea, tableb)
+
+		tableb["def"][3] = 1
+		assert_not_deep_equal(tablea, tableb)
+		tablea["def"][3] = 1
+		assert_deep_equal(tablea, tableb)
 	end)
 end)
