@@ -60,7 +60,9 @@ Amun::Amun(QObject *parent) :
     m_mixedTeam(nullptr),
     m_simulatorEnabled(false),
     m_scaling(1.0f),
-    m_useNetworkTransceiver(false)
+    m_useNetworkTransceiver(false),
+    m_simulatorOnly(false),
+    m_networkInterfaceWatcher(nullptr)
 {
     qRegisterMetaType<QNetworkInterface>("QNetworkInterface");
     qRegisterMetaType<Command>("Command");
@@ -80,8 +82,6 @@ Amun::Amun(QObject *parent) :
     m_simulatorThread = new QThread(this);
     m_strategyThread[0] = new QThread(this);
     m_strategyThread[1] = new QThread(this);
-
-    m_networkInterfaceWatcher = new NetworkInterfaceWatcher(this);
 }
 
 /*!
@@ -98,8 +98,10 @@ Amun::~Amun()
  *
  * This method starts all threads.
  */
-void Amun::start()
+void Amun::start(bool simulatorOnly)
 {
+    m_simulatorOnly = simulatorOnly;
+
     // create processor
     Q_ASSERT(m_processor == NULL);
     m_processor = new Processor(m_timer);
@@ -134,27 +136,30 @@ void Amun::start()
         connect(m_strategy[i], SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
     }
 
-    // create referee
-    setupReceiver(m_referee, QHostAddress("224.5.23.1"), 10003);
-    // move referee packets to processor
-    connect(m_referee, SIGNAL(gotPacket(QByteArray, qint64)), m_processor, SLOT(handleRefereePacket(QByteArray, qint64)));
+    if (!simulatorOnly) {
+        m_networkInterfaceWatcher = new NetworkInterfaceWatcher(this);
+        // create referee
+        setupReceiver(m_referee, QHostAddress("224.5.23.1"), 10003);
+        // move referee packets to processor
+        connect(m_referee, SIGNAL(gotPacket(QByteArray, qint64)), m_processor, SLOT(handleRefereePacket(QByteArray, qint64)));
 
-    // create vision
-    setupReceiver(m_vision, QHostAddress("224.5.23.2"), 10002);
-    // allow updating the port used to listen for ssl vision
-    connect(this, &Amun::updateVisionPort, m_vision, &Receiver::updatePort);
-    // vision is connected in setSimulatorEnabled
-    connect(m_vision, &Receiver::sendStatus, this, &Amun::handleStatus);
+        // create vision
+        setupReceiver(m_vision, QHostAddress("224.5.23.2"), 10002);
+        // allow updating the port used to listen for ssl vision
+        connect(this, &Amun::updateVisionPort, m_vision, &Receiver::updatePort);
+        // vision is connected in setSimulatorEnabled
+        connect(m_vision, &Receiver::sendStatus, this, &Amun::handleStatus);
 
-    // create network radio protocol receiver
-    setupReceiver(m_networkCommand, QHostAddress(), 10010);
-    // pass packets to processor
-    connect(m_networkCommand, SIGNAL(gotPacket(QByteArray, qint64)), m_processor, SLOT(handleNetworkCommand(QByteArray, qint64)));
+        // create network radio protocol receiver
+        setupReceiver(m_networkCommand, QHostAddress(), 10010);
+        // pass packets to processor
+        connect(m_networkCommand, SIGNAL(gotPacket(QByteArray, qint64)), m_processor, SLOT(handleNetworkCommand(QByteArray, qint64)));
 
-    // create mixed team information receiver
-    setupReceiver(m_mixedTeam, QHostAddress(), 10012);
-    // pass packets to processor
-    connect(m_mixedTeam, SIGNAL(gotPacket(QByteArray,qint64)), m_processor, SLOT(handleMixedTeamInfo(QByteArray, qint64)));
+        // create mixed team information receiver
+        setupReceiver(m_mixedTeam, QHostAddress(), 10012);
+        // pass packets to processor
+        connect(m_mixedTeam, SIGNAL(gotPacket(QByteArray,qint64)), m_processor, SLOT(handleMixedTeamInfo(QByteArray, qint64)));
+    }
 
     // create simulator
     Q_ASSERT(m_simulator == NULL);
@@ -166,26 +171,28 @@ void Amun::start()
     // pass simulator timing
     connect(m_simulator, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
 
-    Q_ASSERT(m_transceiver == NULL);
-    m_transceiver = new Transceiver();
-    m_transceiver->moveToThread(m_processorThread);
-    connect(m_processorThread, SIGNAL(finished()), m_transceiver, SLOT(deleteLater()));
-    // route commands to transceiver
-    connect(this, SIGNAL(gotCommand(Command)), m_transceiver, SLOT(handleCommand(Command)));
-    // relay transceiver status and timing
-    connect(m_transceiver, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
+    if (!simulatorOnly) {
+        Q_ASSERT(m_transceiver == NULL);
+        m_transceiver = new Transceiver();
+        m_transceiver->moveToThread(m_processorThread);
+        connect(m_processorThread, SIGNAL(finished()), m_transceiver, SLOT(deleteLater()));
+        // route commands to transceiver
+        connect(this, SIGNAL(gotCommand(Command)), m_transceiver, SLOT(handleCommand(Command)));
+        // relay transceiver status and timing
+        connect(m_transceiver, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
 
-    Q_ASSERT(m_networkTransceiver == NULL);
-    m_networkTransceiver = new NetworkTransceiver();
-    m_networkTransceiver->moveToThread(m_processorThread);
-    connect(m_processorThread, SIGNAL(finished()), m_networkTransceiver, SLOT(deleteLater()));
-    // route commands to transceiver
-    connect(this, SIGNAL(gotCommand(Command)), m_networkTransceiver, SLOT(handleCommand(Command)));
-    // relay transceiver status and timing
-    connect(m_networkTransceiver, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
+        Q_ASSERT(m_networkTransceiver == NULL);
+        m_networkTransceiver = new NetworkTransceiver();
+        m_networkTransceiver->moveToThread(m_processorThread);
+        connect(m_processorThread, SIGNAL(finished()), m_networkTransceiver, SLOT(deleteLater()));
+        // route commands to transceiver
+        connect(this, SIGNAL(gotCommand(Command)), m_networkTransceiver, SLOT(handleCommand(Command)));
+        // relay transceiver status and timing
+        connect(m_networkTransceiver, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
+    }
 
     // connect transceiver
-    setSimulatorEnabled(false, false);
+    setSimulatorEnabled(simulatorOnly, false);
 
     // start threads
     m_processorThread->start();
@@ -314,15 +321,22 @@ void Amun::handleStatus(const Status &status)
  */
 void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
 {
+    if (m_simulatorOnly) {
+        enabled = true;
+    }
     m_simulatorEnabled = enabled;
     m_useNetworkTransceiver = useNetworkTransceiver;
     // remove vision connections
     m_simulator->disconnect(m_processor);
-    m_vision->disconnect(m_processor);
+    if (!m_simulatorOnly) {
+        m_vision->disconnect(m_processor);
+    }
     //remove radio command and response connections
     m_processor->disconnect(m_simulator);
-    m_processor->disconnect(m_transceiver);
-    m_processor->disconnect(m_networkTransceiver);
+    if (!m_simulatorOnly) {
+        m_processor->disconnect(m_transceiver);
+        m_processor->disconnect(m_networkTransceiver);
+    }
 
     if (enabled) {
         connect(m_simulator, SIGNAL(gotPacket(QByteArray, qint64)),

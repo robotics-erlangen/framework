@@ -49,7 +49,7 @@ signals:
     void updateVisionPort(quint16 port);
 
 public:
-    void start();
+    void start(bool simulatorOnly = false);
     void stop();
 
 public slots:
@@ -83,6 +83,7 @@ private:
     bool m_simulatorEnabled;
     float m_scaling;
     bool m_useNetworkTransceiver;
+    bool m_simulatorOnly;
 
     NetworkInterfaceWatcher *m_networkInterfaceWatcher;
 };
