@@ -45,7 +45,7 @@ Vector._loadGeom()
 math.randomseed(amun.getCurrentTime()) -- init rng
 
 -- preload classes that require access to the amun API
-require "../base/coordinates"
+require("../base/coordinates")._setIsBlue(amun.isBlue())
 require "../base/debug"
 require "../base/debugcommands"
 require "../base/plot"
