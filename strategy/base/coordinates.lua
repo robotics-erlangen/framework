@@ -53,36 +53,41 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
-local teamIsBlue = amun.isBlue()
-
-if teamIsBlue then
-	Coordinates.toGlobal = function(data)
-		assert(nil ~= data, "nil isn't a coordinate")
-		if type(data) == "number" then
-			if data > math.pi then
-				return data - math.pi
-			else
-				return data + math.pi
-			end
+local function invertCoordinates(data)
+	assert(nil ~= data, "nil isn't a coordinate")
+	if type(data) == "number" then
+		if data > math.pi then
+			return data - math.pi
 		else
-			return Vector(-data.x, -data.y, data:isReadonly())
+			return data + math.pi
 		end
+	else
+		return Vector(-data.x, -data.y, data:isReadonly())
 	end
-	Coordinates.toLocal = Coordinates.toGlobal
+end
 
-	Coordinates.listToGlobal = function(data)
-		local inverted = {}
-		for k,v in ipairs(data) do
-			inverted[k] = Coordinates.toGlobal(v)
-		end
-		return inverted
+local function invertList(data)
+	local inverted = {}
+	for k,v in ipairs(data) do
+		inverted[k] = invertCoordinates(v)
 	end
-else
-	Coordinates.toGlobal = function (data)
-		return data
+	return inverted
+end
+
+local function passthrough(data)
+	return data
+end
+
+function Coordinates._setIsBlue(teamIsBlue)
+	if teamIsBlue then
+		Coordinates.toGlobal = invertCoordinates
+		Coordinates.toLocal = invertCoordinates
+		Coordinates.listToGlobal = invertList
+	else
+		Coordinates.toGlobal = passthrough
+		Coordinates.toLocal = passthrough
+		Coordinates.listToGlobal = passthrough
 	end
-	Coordinates.toLocal = Coordinates.toGlobal
-	Coordinates.listToGlobal = Coordinates.toGlobal
 end
 
 return Coordinates
