@@ -9,6 +9,7 @@ Test.GlobalsChecker = "test/unit/globalschecker"
 Test.math = "test/unit/math"
 Test.Messaging = "test/unit/messaging"
 Test.Telescope = "test/unit/telescope"
+Test.typecheck = "test/unit/typecheck"
 Test.Vector = "test/unit/vector"
 Test.Pools = "test/unit/pools"
 
