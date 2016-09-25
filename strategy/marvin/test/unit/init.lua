@@ -142,7 +142,18 @@ local function testrunner()
 	os.exit(failing)
 end
 
-local co = coroutine.create(testrunner)
+local function backtraceWrapper(func)
+	return function()
+		local result, message = xpcall(func, debug.traceback)
+		if result then
+			return message
+		else
+			error(message)
+		end
+	end
+end
+
+local co = coroutine.create(backtraceWrapper(testrunner))
 
 local function runTests()
 	if coroutine.status(co) == "dead" then
@@ -150,7 +161,8 @@ local function runTests()
 	end
 	local success, msg = coroutine.resume(co)
 	if not success then
-		error(msg)
+		log(msg)
+		error("Error during unit test setup / run")
 	end
 end
 
