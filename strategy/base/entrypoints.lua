@@ -32,7 +32,7 @@ local entries = {}
 -- @param name string - Entrypoint name parts are separated with '/'
 -- @param func function - Function to call for this entrypoint
 function Entrypoints.add(name, func)
-	assert(entries[name] == nil, "An entrypoint with name "..name.." already exists")
+	assert(entries[name] == nil, "An entrypoint with name "..tostring(name).." already exists")
 	entries[name] = func
 end
 
