@@ -29,7 +29,7 @@ Connector::Connector(QObject *parent) :
     QObject(parent),
     m_asBlue(false),
     m_debug(false),
-    m_exitCode(0)
+    m_exitCode(255)
 {
 }
 
