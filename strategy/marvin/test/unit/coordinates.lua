@@ -81,6 +81,19 @@ local function testfuncs(teamIsBlue)
 				assert_deep_equal(list, list2)
 			end
 		end)
+
+		test("sticky readonly", function()
+			local vec = Vector.createReadOnly(1, 2)
+			local vec2 = Coordinates.toGlobal(vec)
+			local vec3 = Coordinates.toLocal(vec)
+			assert_true(vec2:isReadonly())
+			assert_true(vec3:isReadonly())
+
+			local list = { Vector.createReadOnly(0, 1), Vector.createReadOnly(1, 2) }
+			local list2 = Coordinates.listToGlobal(list)
+			assert_true(list2[1]:isReadonly())
+			assert_true(list2[2]:isReadonly())
+		end)
 	end
 end
 
