@@ -25,7 +25,6 @@ module "Robot"
 
 local Robot, RobotMt = (require "../base/class")("Robot")
 
-local amun = amun
 local Constants = require "../base/constants"
 local Coordinates = require "../base/coordinates"
 local debug = require "../base/debug"
@@ -215,11 +214,11 @@ function Robot:_setSpecs(specs)
 	self.acceleration.aBrakePhiMax = accelData.a_brake_phi_max or 1.0
 end
 
-function Robot:_setCommand()
+function Robot:_command()
 	local STANDBY_DELAY = 30
 	local standby = self._standbyTimer and (self._currentTime - self._standbyTimer > STANDBY_DELAY)
 
-	amun.setCommand(self.generation, self.id, {
+	return {
 		controller = self._controllerInput,
 		v_f = self._controllerInput and self._controllerInput.v_f,
 		v_s = self._controllerInput and self._controllerInput.v_s,
@@ -229,7 +228,7 @@ function Robot:_setCommand()
 		force_kick = self._forceKick,
 		dribbler = self._dribblerSpeed,
 		standby = standby
-	})
+	}
 end
 
 --- Set output from trajectory planing on robot
