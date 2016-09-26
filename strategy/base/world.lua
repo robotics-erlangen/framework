@@ -406,7 +406,7 @@ end
 -- @name setRobotCommands
 function World.setRobotCommands()
 	for _, robot in ipairs(World.FriendlyRobotsAll) do
-		robot:_setCommand()
+		amun.setCommand(robot.generation, robot.id, robot:_command())
 	end
 end
 
