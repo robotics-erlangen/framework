@@ -2,6 +2,7 @@ local Test = {}
 
 Test.Telescope = "test/unit/telescope"
 
+Test.BaseBall = "test/unit/base/ball"
 Test.BaseCache = "test/unit/base/cache"
 Test.BaseCoordinates = "test/unit/base/coordinates"
 Test.BaseClass = "test/unit/base/class"
