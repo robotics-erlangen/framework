@@ -82,6 +82,10 @@ function Ball:_update(data, time)
 	self.posZ = data.p_z
 	self.speedZ = data.v_z
 
+	self:_updateTrackedState(lastSpeedLength)
+end
+
+function Ball:_updateTrackedState(lastSpeedLength)
 	-- speed tracking
 	-- framesDecelerating counts the number of frames since the last extreme acceleration
 	-- so even if the ball slowly accelerates, framesDecelerating will not reset
