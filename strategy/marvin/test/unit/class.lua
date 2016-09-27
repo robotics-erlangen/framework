@@ -1,10 +1,18 @@
+local Injector = require "test/unit/injector"
+
 context("base.class", function()
-	local Super = Class("Super")
-	Super.superClassAttribute = false
-	function Super:run() end
-	function Super:init()
-		self.superInstanceAttribute = nil
-	end
+	local Class, Super
+
+	before(function()
+		Class = Injector.newClassLoader()
+
+		Super = Class("Super")
+		Super.superClassAttribute = false
+		function Super:run() end
+		function Super:init()
+			self.superInstanceAttribute = nil
+		end
+	end)
 
 	test("class instance separation", function()
 		-- check for basic class / instance semantic
