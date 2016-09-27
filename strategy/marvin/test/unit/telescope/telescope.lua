@@ -8,7 +8,7 @@
 local _M = {}
 -- luacheck: globals assertion_callback
 
-local compat_env = require("test/telescope/compat_env")
+local compat_env = require "test/unit/telescope/compat_env"
 local loadfile_orig = loadfile
 local loadfile = function(fn)
 	return loadfile_orig(amun.strategyPath .. "/" .. fn ..".lua")

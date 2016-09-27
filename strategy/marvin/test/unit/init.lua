@@ -1,6 +1,6 @@
 local Entrypoints = require "../base/entrypoints"
 local tests = require "test/unit/tests"
-local telescope = require "test/telescope/telescope"
+local telescope = require "test/unit/telescope/telescope"
 
 local testContexts = {}
 local initialized = false

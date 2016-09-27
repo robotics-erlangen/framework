@@ -1,17 +1,19 @@
 local Test = {}
 
-Test.Cache = "test/unit/cache"
-Test.Coordinates = "test/unit/coordinates"
-Test.Class = "test/unit/class"
-Test.Entrypoints = "test/unit/entrypoint"
-Test.geom = "test/unit/geom"
-Test.GlobalsChecker = "test/unit/globalschecker"
-Test.math = "test/unit/math"
-Test.Messaging = "test/unit/messaging"
 Test.Telescope = "test/unit/telescope"
-Test.Processor = "test/unit/processor"
-Test.typecheck = "test/unit/typecheck"
-Test.Vector = "test/unit/vector"
-Test.Pools = "test/unit/pools"
+
+Test.BaseCache = "test/unit/base/cache"
+Test.BaseCoordinates = "test/unit/base/coordinates"
+Test.BaseClass = "test/unit/base/class"
+Test.BaseEntrypoints = "test/unit/base/entrypoints"
+Test.BaseGeom = "test/unit/base/geom"
+Test.BaseGlobalsChecker = "test/unit/base/globalschecker"
+Test.BaseMath = "test/unit/base/math"
+Test.BaseProcessor = "test/unit/base/processor"
+Test.BaseTypecheck = "test/unit/base/typecheck"
+Test.BaseVector = "test/unit/base/vector"
+
+Test.MarvinMessaging = "test/unit/marvin/messaging"
+Test.MarvinPools = "test/unit/marvin/pools"
 
 return Test
