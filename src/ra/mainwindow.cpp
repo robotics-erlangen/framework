@@ -131,6 +131,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionPlotter, SIGNAL(triggered()), m_plotter, SLOT(show()));
     connect(ui->actionRecord, SIGNAL(toggled(bool)), SLOT(setRecording(bool)));
     connect(ui->actionRobotParameters, SIGNAL(triggered()), m_robotParametersDialog, SLOT(exec()));
+    connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
 
     // setup data distribution
     connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
@@ -174,6 +175,7 @@ MainWindow::MainWindow(QWidget *parent) :
         setInternalRefereeEnabled(false);
     }
     ui->actionInputDevices->setChecked(s.value("InputDevices/Enabled").toBool());
+    ui->actionAutoPause->setChecked(s.value("Simulator/AutoPause").toBool());
 
     m_flip = s.value("Flip").toBool();
     sendFlip();
@@ -201,6 +203,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
     s.setValue("SplitterV", ui->splitterV->saveState());
     s.endGroup();
 
+    s.setValue("Simulator/AutoPause", ui->actionAutoPause->isChecked());
     s.setValue("Simulator/Enabled", ui->actionSimulator->isChecked());
     s.setValue("Referee/Internal", ui->actionInternalReferee->isChecked());
     s.setValue("InputDevices/Enabled", ui->actionInputDevices->isChecked());

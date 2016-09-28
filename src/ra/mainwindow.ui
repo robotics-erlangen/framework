@@ -70,6 +70,7 @@
     <addaction name="actionSimulator"/>
     <addaction name="actionInternalReferee"/>
     <addaction name="actionInputDevices"/>
+    <addaction name="actionAutoPause"/>
    </widget>
    <addaction name="menu_Game"/>
    <addaction name="menuTesting"/>
@@ -320,6 +321,14 @@
     <font>
      <pointsize>18</pointsize>
     </font>
+   </property>
+  </action>
+  <action name="actionAutoPause">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Pause, if unfocused</string>
    </property>
   </action>
  </widget>

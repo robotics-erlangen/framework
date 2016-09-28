@@ -44,6 +44,8 @@ public:
     float speed() const { return m_speed; }
 
 private slots:
+    void setEnableAutoPause(bool autoPause);
+    void handleAppState(Qt::ApplicationState state);
     void setSpeed(int speed);
     void start();
     void stop();
@@ -58,6 +60,8 @@ private:
     Ui::SimulatorWidget *ui;
     float m_speed;
     float m_lastSpeed;
+    bool m_enableAutoPause;
+    bool m_stoppedByUser;
 };
 
 #endif // SIMULATORWIDGET_H

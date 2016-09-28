@@ -28,7 +28,9 @@ SimulatorWidget::SimulatorWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::SimulatorWidget),
     m_speed(1.0f),
-    m_lastSpeed(1.0f)
+    m_lastSpeed(1.0f),
+    m_enableAutoPause(false),
+    m_stoppedByUser(false)
 {
     ui->setupUi(this);
 
@@ -53,11 +55,35 @@ SimulatorWidget::SimulatorWidget(QWidget *parent) :
     actionSpeedDecrease->setShortcut(QKeySequence("-"));
     connect(actionSpeedDecrease, SIGNAL(triggered()), SLOT(decreaseSpeed()));
     addAction(actionSpeedDecrease);
+
+    connect(qApp, &QGuiApplication::applicationStateChanged, this, &SimulatorWidget::handleAppState);
 }
 
 SimulatorWidget::~SimulatorWidget()
 {
     delete ui;
+}
+
+void SimulatorWidget::setEnableAutoPause(bool autoPause)
+{
+    m_enableAutoPause = autoPause;
+}
+
+void SimulatorWidget::handleAppState(Qt::ApplicationState state)
+{
+    if (!m_enableAutoPause) {
+        return;
+    }
+
+    bool isActive = (state == Qt::ApplicationActive);
+    if (isActive) {
+        if (!m_stoppedByUser) {
+            start();
+        }
+    } else {
+        m_stoppedByUser = (m_speed == 0.0f);
+        stop();
+    }
 }
 
 void SimulatorWidget::setSpeed(int speed)
