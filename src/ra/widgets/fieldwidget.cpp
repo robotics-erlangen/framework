@@ -550,19 +550,24 @@ void FieldWidget::clearTrace(Trace &trace)
     trace.traces.clear();
 }
 
-void FieldWidget::invalidateTraces(Trace &trace, qint64 time)
+void FieldWidget::invalidateTraces(Trace &trace, TraceMap::iterator begin,
+                                   TraceMap::iterator end)
 {
-    for (auto it = trace.traces.begin(); it != trace.traces.end();) {
-        if (qAbs(time - it.key()) < 1000*1000*1000) {
-            ++it;
-            continue;
-        }
-
+    for (auto it = begin; it != end;) {
         QGraphicsEllipseItem *item = it.value();
         item->hide();
         it = trace.traces.erase(it);
         trace.invalid.append(item);
     }
+}
+
+void FieldWidget::invalidateTraces(Trace &trace, qint64 time)
+{
+    const qint64 TIME_DIFF = 1000*1000*1000;
+    auto lower = trace.traces.lowerBound(time - TIME_DIFF);
+    auto upper = trace.traces.upperBound(time + TIME_DIFF);
+    invalidateTraces(trace, trace.traces.begin(), lower);
+    invalidateTraces(trace, upper, trace.traces.end());
 }
 
 void FieldWidget::addTrace(Trace &trace, const QPointF &pos, qint64 time)

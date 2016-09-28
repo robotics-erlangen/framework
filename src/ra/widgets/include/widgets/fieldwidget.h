@@ -49,9 +49,10 @@ private:
         void show();
     };
 
+    typedef QMultiMap<qint64, QGraphicsEllipseItem *> TraceMap;
     struct Trace
     {
-        QMultiMap<qint64, QGraphicsEllipseItem *> traces;
+        TraceMap traces;
         QLinkedList<QGraphicsEllipseItem *> invalid;
         QColor color;
         float z_index;
@@ -137,6 +138,7 @@ private:
     QGraphicsItem* createPolygon(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
     QGraphicsItem* createPath(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
 
+    void invalidateTraces(Trace &trace, TraceMap::iterator begin, TraceMap::iterator end);
     void invalidateTraces(Trace &trace, qint64 time);
     void addTrace(Trace &trace, const QPointF &pos, qint64 time);
     void clearTrace(Trace &trace);
