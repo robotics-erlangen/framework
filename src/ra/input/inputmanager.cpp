@@ -22,6 +22,7 @@
 #include "config/config.h"
 #include "keyboard.h"
 #include "protobuf/command.pb.h"
+#include <QGuiApplication>
 #include <QMutableMapIterator>
 #include <QTimer>
 #include <QtGlobal>
@@ -102,6 +103,9 @@ void InputManager::update()
             if (joystick != NULL) {
                 joystick->handleEvent(event);
             }
+            break;
+        case SDL_QUIT:
+            qApp->quit();
             break;
         }
     }
