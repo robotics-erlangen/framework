@@ -555,9 +555,9 @@ void FieldWidget::invalidateTraces(Trace &trace, TraceMap::iterator begin,
 {
     for (auto it = begin; it != end;) {
         QGraphicsEllipseItem *item = it.value();
-        item->hide();
         it = trace.traces.erase(it);
-        trace.invalid.append(item);
+        // stage item for now, to avoid hiding and immediatelly showing again
+        trace.staged.append(item);
     }
 }
 
@@ -570,10 +570,21 @@ void FieldWidget::invalidateTraces(Trace &trace, qint64 time)
     invalidateTraces(trace, upper, trace.traces.end());
 }
 
+void FieldWidget::finishInvalidateTraces(Trace &trace)
+{
+    for (auto &item: trace.staged) {
+        trace.invalid.append(item);
+        item->hide();
+    }
+    trace.staged.clear();
+}
+
 void FieldWidget::addTrace(Trace &trace, const QPointF &pos, qint64 time)
 {
     QGraphicsEllipseItem *item = nullptr;
-    if (!trace.invalid.isEmpty()) {
+    if (!trace.staged.isEmpty()) {
+        item = trace.staged.takeFirst();
+    } else if (!trace.invalid.isEmpty()) {
         item = trace.invalid.takeFirst();
         item->show();
     } else if (trace.traces.size() >= 1000) {
@@ -607,6 +618,14 @@ void FieldWidget::updateDetection()
         const world::State &worldState = m_worldState[k]->world_state();
         const bool isLast = (k == (m_worldState.size() - 1));
 
+        // pre-clean all traces, independent of existence of ball / robot
+        invalidateTraces(m_ballTrace, worldState.time());
+        invalidateTraces(m_ballRawTrace, worldState.time());
+        invalidateTraces(m_robotBlueTrace, worldState.time());
+        invalidateTraces(m_robotBlueRawTrace, worldState.time());
+        invalidateTraces(m_robotYellowTrace, worldState.time());
+        invalidateTraces(m_robotYellowRawTrace, worldState.time());
+
         if (worldState.has_ball()) {
             if (isLast) {
                 setBall(worldState.ball());
@@ -636,6 +655,14 @@ void FieldWidget::updateDetection()
         }
     }
 
+    // cleanup trace remainders
+    finishInvalidateTraces(m_ballTrace);
+    finishInvalidateTraces(m_ballRawTrace);
+    finishInvalidateTraces(m_robotBlueTrace);
+    finishInvalidateTraces(m_robotBlueRawTrace);
+    finishInvalidateTraces(m_robotYellowTrace);
+    finishInvalidateTraces(m_robotYellowRawTrace);
+
     // hide robots that are no longer tracked
     for(RobotMap::iterator it = m_robotsBlue.begin(); it != m_robotsBlue.end(); ++it) {
         it.value().tryHide();
@@ -664,9 +691,6 @@ void FieldWidget::setBall(const world::Ball &ball)
 
 void FieldWidget::addBallTrace(qint64 time, const world::Ball &ball)
 {
-    invalidateTraces(m_ballTrace, time);
-    invalidateTraces(m_ballRawTrace, time);
-
     if (m_actionShowBallTraces->isChecked()) {
         for (int i = 0; i < ball.raw_size(); ++i) {
             const world::BallPosition &p = ball.raw(i);
@@ -761,9 +785,6 @@ void FieldWidget::addBlob(float x, float y, const QBrush &brush, QGraphicsItem *
 
 void FieldWidget::addRobotTrace(qint64 time, const world::Robot &robot, Trace &robotTrace, Trace &robotRawTrace)
 {
-    invalidateTraces(robotTrace, time);
-    invalidateTraces(robotRawTrace, time);
-
     if (m_actionShowRobotTraces->isChecked()) {
         for (int i = 0; i < robot.raw_size(); ++i) {
             const world::RobotPosition &p = robot.raw(i);

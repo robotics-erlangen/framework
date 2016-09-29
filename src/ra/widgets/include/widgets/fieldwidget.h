@@ -53,6 +53,7 @@ private:
     struct Trace
     {
         TraceMap traces;
+        QLinkedList<QGraphicsEllipseItem *> staged;
         QLinkedList<QGraphicsEllipseItem *> invalid;
         QColor color;
         float z_index;
@@ -140,6 +141,7 @@ private:
 
     void invalidateTraces(Trace &trace, TraceMap::iterator begin, TraceMap::iterator end);
     void invalidateTraces(Trace &trace, qint64 time);
+    void finishInvalidateTraces(Trace &trace);
     void addTrace(Trace &trace, const QPointF &pos, qint64 time);
     void clearTrace(Trace &trace);
     void clearBallTraces();
