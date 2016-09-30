@@ -25,8 +25,6 @@ add_subdirectory(plotter)
 add_subdirectory(widgets)
 
 set(SOURCES
-    amunclient.cpp
-    amunclient.h
     configdialog.cpp
     configdialog.h
     internalreferee.cpp

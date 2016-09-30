@@ -20,8 +20,6 @@
 
 set(SOURCES
     amuncli.cpp
-    amunclient.cpp
-    amunclient.h
     connector.cpp
     connector.h
 )

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2016 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,42 +18,34 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "amunclient.h"
-#include "amun/amun.h"
-#include <QThread>
+#ifndef AMUNCLIENT_H
+#define AMUNCLIENT_H
 
-AmunClient::AmunClient(QObject *parent) :
-    QObject(parent),
-    m_amun(NULL),
-    m_amunThread(NULL)
+#include "protobuf/command.h"
+#include "protobuf/status.h"
+
+class Amun;
+class QThread;
+
+class AmunClient : public QObject
 {
-}
+    Q_OBJECT
 
-AmunClient::~AmunClient()
-{
-    stop();
-}
+public:
+    explicit AmunClient(QObject *parent = 0);
+    ~AmunClient() override;
 
-void AmunClient::start()
-{
-    m_amunThread = new QThread(this);
-    m_amun = new Amun();
-    m_amun->moveToThread(m_amunThread);
-    connect(m_amunThread, SIGNAL(finished()), m_amun, SLOT(deleteLater()));
+signals:
+    void gotStatus(const Status &status);
+    void sendCommand(const Command &command);
 
-    connect(m_amun, SIGNAL(sendStatus(Status)), SIGNAL(gotStatus(Status)));
-    connect(this, SIGNAL(sendCommand(Command)), m_amun, SLOT(handleCommand(Command)));
-    m_amun->start(true);
-    m_amunThread->start();
-}
+public:
+    void start(bool simulatorOnly = false);
+    void stop();
 
-void AmunClient::stop()
-{
-    m_amunThread->quit();
-    m_amunThread->wait();
-    delete m_amunThread;
-    m_amunThread = NULL;
+private:
+    Amun* m_amun;
+    QThread *m_amunThread;
+};
 
-    // deleted on thread shutdown
-    m_amun = NULL;
-}
+#endif // AMUNCLIENT_H

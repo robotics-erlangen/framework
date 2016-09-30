@@ -40,7 +40,7 @@ class Amun : public QObject
     Q_OBJECT
 
 public:
-    explicit Amun(QObject *parent = 0);
+    explicit Amun(bool simulatorOnly, QObject *parent = 0);
     ~Amun() override;
 
 signals:
@@ -49,7 +49,7 @@ signals:
     void updateVisionPort(quint16 port);
 
 public:
-    void start(bool simulatorOnly = false);
+    void start();
     void stop();
 
 public slots:
@@ -83,7 +83,7 @@ private:
     bool m_simulatorEnabled;
     float m_scaling;
     bool m_useNetworkTransceiver;
-    bool m_simulatorOnly;
+    const bool m_simulatorOnly;
 
     NetworkInterfaceWatcher *m_networkInterfaceWatcher;
 };

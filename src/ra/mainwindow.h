@@ -21,7 +21,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "amunclient.h"
+#include "amun/amunclient.h"
 #include "protobuf/robot.pb.h"
 #include <QMainWindow>
 #include <QSet>

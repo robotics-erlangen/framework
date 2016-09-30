@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #include "amunclient.h"
-#include "amun/amun.h"
+#include "amun.h"
 #include <QThread>
 
 AmunClient::AmunClient(QObject *parent) :
@@ -34,10 +34,10 @@ AmunClient::~AmunClient()
     stop();
 }
 
-void AmunClient::start()
+void AmunClient::start(bool simulatorOnly)
 {
     m_amunThread = new QThread(this);
-    m_amun = new Amun();
+    m_amun = new Amun(simulatorOnly);
     m_amun->moveToThread(m_amunThread);
     connect(m_amunThread, SIGNAL(finished()), m_amun, SLOT(deleteLater()));
 

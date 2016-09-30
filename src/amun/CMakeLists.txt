@@ -24,8 +24,10 @@ add_subdirectory(strategy)
 
 set(SOURCES
     include/amun/amun.h
+    include/amun/amunclient.h
 
     amun.cpp
+    amunclient.cpp
     networkinterfacewatcher.cpp
     networkinterfacewatcher.h
     receiver.cpp

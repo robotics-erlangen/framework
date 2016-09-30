@@ -18,7 +18,7 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "amunclient.h"
+#include "amun/amunclient.h"
 #include "connector.h"
 #include <clocale>
 #include <QCoreApplication>
@@ -58,7 +58,7 @@ int main(int argc, char* argv[])
     bool debug = parser.isSet(debugOption);
 
     AmunClient amun;
-    amun.start();
+    amun.start(true);
 
     Connector connector;
     connector.connect(&connector, &Connector::sendCommand, &amun, &AmunClient::sendCommand);

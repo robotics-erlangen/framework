@@ -48,7 +48,7 @@
  * \brief Creates an Amun instance
  * \param parent Parent object
  */
-Amun::Amun(QObject *parent) :
+Amun::Amun(bool simulatorOnly, QObject *parent) :
     QObject(parent),
     m_processor(nullptr),
     m_transceiver(nullptr),
@@ -61,7 +61,7 @@ Amun::Amun(QObject *parent) :
     m_simulatorEnabled(false),
     m_scaling(1.0f),
     m_useNetworkTransceiver(false),
-    m_simulatorOnly(false),
+    m_simulatorOnly(simulatorOnly),
     m_networkInterfaceWatcher(nullptr)
 {
     qRegisterMetaType<QNetworkInterface>("QNetworkInterface");
@@ -82,6 +82,8 @@ Amun::Amun(QObject *parent) :
     m_simulatorThread = new QThread(this);
     m_strategyThread[0] = new QThread(this);
     m_strategyThread[1] = new QThread(this);
+
+    m_networkInterfaceWatcher = (!m_simulatorOnly) ? new NetworkInterfaceWatcher(this) : nullptr;
 }
 
 /*!
@@ -98,10 +100,8 @@ Amun::~Amun()
  *
  * This method starts all threads.
  */
-void Amun::start(bool simulatorOnly)
+void Amun::start()
 {
-    m_simulatorOnly = simulatorOnly;
-
     // create processor
     Q_ASSERT(m_processor == NULL);
     m_processor = new Processor(m_timer);
@@ -136,8 +136,7 @@ void Amun::start(bool simulatorOnly)
         connect(m_strategy[i], SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
     }
 
-    if (!simulatorOnly) {
-        m_networkInterfaceWatcher = new NetworkInterfaceWatcher(this);
+    if (!m_simulatorOnly) {
         // create referee
         setupReceiver(m_referee, QHostAddress("224.5.23.1"), 10003);
         // move referee packets to processor
@@ -171,7 +170,7 @@ void Amun::start(bool simulatorOnly)
     // pass simulator timing
     connect(m_simulator, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
 
-    if (!simulatorOnly) {
+    if (!m_simulatorOnly) {
         Q_ASSERT(m_transceiver == NULL);
         m_transceiver = new Transceiver();
         m_transceiver->moveToThread(m_processorThread);
@@ -192,7 +191,7 @@ void Amun::start(bool simulatorOnly)
     }
 
     // connect transceiver
-    setSimulatorEnabled(simulatorOnly, false);
+    setSimulatorEnabled(m_simulatorOnly, false);
 
     // start threads
     m_processorThread->start();
