@@ -85,7 +85,7 @@ private:
     BindingsMap m_bindings;
     typedef QMap<QPair<uint, uint>, bool> NetworkControlMap;
     NetworkControlMap m_networkControl;
-    typedef QMap<QPair<uint, uint>, bool> EjectSdcardMap;
+    typedef QMap<QPair<uint, uint>, int> EjectSdcardMap;
     EjectSdcardMap m_ejectSdcard;
 
 #ifdef SDL2_FOUND
