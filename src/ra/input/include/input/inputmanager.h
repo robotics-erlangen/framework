@@ -98,6 +98,7 @@ private:
     float m_shootPower;
     bool m_enabled;
     bool m_direct;
+    bool m_lastCommandWasEmpty;
 };
 
 #endif // INPUTMANAGER_H

@@ -43,7 +43,8 @@ InputManager::InputManager(QObject *parent) :
     m_dribblerPower(1.0f),
     m_shootPower(10.0f),
     m_enabled(false),
-    m_direct(true)
+    m_direct(true),
+    m_lastCommandWasEmpty(true)
 {
     // add default keyboard
     addDevice(new Keyboard);
@@ -111,10 +112,21 @@ void InputManager::update()
     }
 #endif // SDL2_FOUND
 
+    bool isCommandEmpty = m_bindings.isEmpty() && m_networkControl.isEmpty() && m_ejectSdcard.isEmpty();
+    if (!m_enabled) {
+        isCommandEmpty = true;
+    }
+
+    // avoid sending empty commands, but make sure to send one empty disablement command
+    if (isCommandEmpty && m_lastCommandWasEmpty) {
+        return;
+    }
+    m_lastCommandWasEmpty = isCommandEmpty;
+
     Command command(new amun::Command);
     amun::CommandControl *control = command->mutable_control();
 
-    // only send if enabled
+    // only fill in if enabled
     if (m_enabled) {
         for(BindingsMap::const_iterator it = m_bindings.begin();
                 it != m_bindings.end(); ++it) {
