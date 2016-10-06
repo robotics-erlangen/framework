@@ -53,6 +53,12 @@ function Move:check()
 		return false
 	end
 
+	if selectedMove and #involvedRobots > selectedMove.size() and self._robot == World.FriendlyKeeper then
+		--we don't want to use the keeper, if we don't need to
+		return false
+	end
+
+
 	if isActive then
 		debug.set("selected Move",selectedMove.getName())
 		local continue = selectedMove.canContinue()
@@ -89,12 +95,12 @@ function Move:check()
 			end
 
 			-- try to take the spot of the (new) goalie, only if the goalie mustn't participate in this move
-			-- if you take the spot of the goalie, even if he may participate in this move, you'll only use your goalie if you need to
-			-- but then you'll have one frame, where its offset is take twice and the goalie swaps to the move behavior.
-			-- this should be ok, as long as we only start moves during Stop, but it's not very nice.
+			---- if you take the spot of the goalie, even if he may participate in this move, you'll only use your goalie if you need to
+			---- but then you'll have one frame, where its offset is take twice and the goalie swaps to the move behavior.
+			---- this should be ok, as long as we only start moves during Stop, but it's not very nice.
 			local keeper = World.FriendlyKeeper
 			offset = offsetTable[keeper]
-			if --[[selectedMove.excludeKeeper() and]]offset then
+			if selectedMove.excludeKeeper() and offset then
 				self._offset = offset
 				offsetTable[self._robot] = offset
 				offsetTable[keeper] = nil
