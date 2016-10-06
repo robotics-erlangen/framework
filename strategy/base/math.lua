@@ -26,6 +26,16 @@ module "math"
 
 local max, min = math.max, math.min
 
+--- Returns all roots of a given polynomial
+-- @class function
+-- @name computePolynomialRoots
+-- @param table - coefficients of the polynomial: highest power first (only real numbers)
+-- @return table - real parts of roots
+-- @return table - imaginary parts of roots
+
+--[[
+separator for luadoc]]--
+
 --- Limits value to interval [min, max].
 -- @name bound
 -- @param min number - lower bound of interval
