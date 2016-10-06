@@ -40,7 +40,8 @@ int main(int argc, char* argv[])
 
     QCommandLineOption asBlueOption({"b", "as-blue"}, "Run as blue strategy, defaults to yellow");
     QCommandLineOption debugOption({"v", "verbose"}, "Dump raw strategy output");
-    parser.addOptions({asBlueOption, debugOption});
+    parser.addOption(asBlueOption);
+    parser.addOption(debugOption);
     // parse command line, handles --version
     parser.process(app);
 
