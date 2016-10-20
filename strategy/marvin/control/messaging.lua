@@ -33,6 +33,15 @@ local msgDefs = {
 	shootActionPlan = "string", -- "goalShot" or "pass"
 }
 
+
+local collectedMessages = {
+	groupApplication = true -- { { name: string -> payload: table } }
+}
+for msg, _ in pairs(collectedMessages) do
+	msgDefs[msg] = "table"
+end
+
+
 local exclusiveRoles = {
 	passReceiver = true,
 	mainAttacker = true,
@@ -41,6 +50,7 @@ local exclusiveRoles = {
 for role, _ in pairs(exclusiveRoles) do
 	msgDefs[role] = Robot
 end
+
 
 local empty = {}
 setmetatable(empty, { __newindex = function()
@@ -167,7 +177,17 @@ function Messaging:_constructSender(sender)
 				mtypeBox[receiver] = receiveBox
 			end
 			local senderRobot = (sender == "trainer") and "trainer" or sender:robot()
-			receiveBox[senderRobot] = data
+
+			if collectedMessages[messageType] then
+				local collection = receiveBox[senderRobot]
+				if not collection then
+					collection = {}
+				end
+				table.insert(collection, data)
+				receiveBox[senderRobot] = collection
+			else
+				receiveBox[senderRobot] = data
+			end
 		end
 	end
 	return sendObj
