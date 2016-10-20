@@ -26,6 +26,7 @@ local msgDefs = {
 	-- single sender
 	attackPosition = "cdata",
 	shootDestination = "cdata",
+	centerBackPosTarget = "table", -- { pos: vector, target: table }
 	passPos = "table", -- { target: robot, pos: vector }
 	duelAssistantPos = "cdata",
 	duelAssistantDir = "number",
