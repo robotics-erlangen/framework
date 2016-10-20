@@ -1,5 +1,6 @@
+local Groups = require "trainer/groups"
 local Roles = require "trainer/roles"
-local Trainer = Class("Trainer", nil, Roles)
+local Trainer = Class("Trainer", nil, Roles, Groups)
 
 local debug = require "../base/debug"
 
@@ -28,6 +29,7 @@ end
 function Trainer:run()
 	self:_debugInbox()
 	self:_chooseExclusiveRoles()
+	self:_runGroups()
 end
 
 return Trainer
