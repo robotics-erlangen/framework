@@ -232,13 +232,13 @@ local function calculateCenterBackPositions(centerBackApplications)
 	end
 end
 
-function CenterBack:run(nRobots, messages)
+function CenterBack.run(trainerInstance, nRobots, messages)
 	calculateCenterBackPositions(messages)
 
 	for robot, _ in pairs(messages) do
 		local pos_target = centerBackPositions[robot]
 		pos_target = pos_target or privateCenterBackPositions[robot]
-		self._send.centerBackPosTarget(robot, pos_target)
+		trainerInstance._send.centerBackPosTarget(robot, pos_target)
 	end
 end
 
