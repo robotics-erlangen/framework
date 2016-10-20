@@ -1,9 +1,10 @@
 local Groups = {}
 
 local CenterBackGroup = require "groups/centerback"
+local MoveGroup = require "groups/moves"
 
 function Groups:init()
-	self._groupList = { CenterBackGroup }
+	self._groupList = { CenterBackGroup, MoveGroup }
 end
 
 function Groups:_runGroups()
@@ -29,7 +30,10 @@ function Groups:_runGroups()
 	for _,group in ipairs(self._groupList) do
 		local nRobots = robotApplicationsSize[group.name]
 		local messages = robotApplications[group.name]
-		group.run(self, nRobots, messages)
+		
+		if nRobots > 0 then
+			group.run(self, nRobots, messages)
+		end
 	end
 end
 
