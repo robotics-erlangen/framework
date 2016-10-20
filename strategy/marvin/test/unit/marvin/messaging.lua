@@ -62,4 +62,11 @@ test("Messaging", function()
 	messaging:deliverMessages()
 	assert_equal(agent1inbox.mainAttacker().trainer, agent2:robot(),
 			"Robot 2 shall get the mainAttacker role")
+
+	agent1send.groupApplication("trainer", { name = "A", payload = "payload_A" })
+	agent1send.groupApplication("trainer", { name = "B", payload = "payload_B" })
+	local groupApplications = trainerInbox.groupApplication()
+	assert_equal(#groupApplications[agent1:robot()], 2)
+	assert_equal(groupApplications[agent1:robot()][1].payload, "payload_A")
+	assert_equal(groupApplications[agent1:robot()][2].payload, "payload_B")
 end)
