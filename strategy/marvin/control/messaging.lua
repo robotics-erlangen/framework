@@ -165,7 +165,7 @@ function Messaging:_constructSender(sender)
 					data = true
 				end
 			else
-				checkType(data, msgDefs[messageType])
+				checkType(data, requiredType)
 			end
 			local mtypeBox = self._newMessages[messageType]
 			if not mtypeBox then

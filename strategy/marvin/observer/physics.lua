@@ -132,13 +132,6 @@ function Physics.ballTravelledDistance(ball, time)
 	local t_switch
 	local s_switch
 
-	-- result: the ball-like returned object
-	local result = {}
-
-	-- since we don't do collision calculation, maxSpeed always stays the same
-	result.maxSpeed = ball.maxSpeed
-	result.radius = ball.radius
-
 	-- the sliding stage
 	if v_current > v_switch then
 		t_switch = (v_switch - v_current) / a_slide
