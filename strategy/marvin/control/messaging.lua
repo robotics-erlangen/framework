@@ -11,7 +11,6 @@ local msgDefs = {
 	allyFlag = "flag",
 	poolChangeRequest = "flag",
 	standardMoveFlag = "flag",
-	preliminaryCenterbackTarget = "table",
 	defendedOpponent = Robot,
 	moveDest = "cdata",
 	moveDestDir = "number",

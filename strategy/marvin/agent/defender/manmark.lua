@@ -84,7 +84,8 @@ function ManMark:_updateTask()
 	-- PFUSCH: use yourself as the defense target
 	-- WARNING: only use temporarily as this code also halts at least one innocent centerback
 	if selfDefenseDist < CenterBack.distanceToDefenseArea() + self._robot.radius + 0.03 then
-		self._send.preliminaryCenterbackTarget("all", self._robot)
+		local groupApplication = { name = "centerback", payload = self._robot }
+		self._send.groupApplication("trainer", groupApplication)
 	end
 
 	return ManMarkTask, { self._opp }

@@ -29,9 +29,6 @@ function CenterBack:_init(centerbackTarget)
 end
 
 function CenterBack:run()
-	self._send.preliminaryCenterbackTarget("all", self._preliminaryCenterbackTarget)
-
-
 	local groupApplication = { name = "centerback", payload = self._preliminaryCenterbackTarget }
 	self._send.groupApplication("trainer", groupApplication)
 

@@ -151,7 +151,8 @@ end
 function HandleBall:_updateTask()
 	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 	if selfDefenseDist < CenterBack.distanceToDefenseArea() + self._robot.radius + 0.03 then
-		self._send.preliminaryCenterbackTarget("all", self._robot)
+		local groupApplication = { name = "centerback", payload = self._robot }
+		self._send.groupApplication("trainer", groupApplication)
 	end
 
 	if self._taskDecision == "attacker" then
