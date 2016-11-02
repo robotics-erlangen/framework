@@ -23,6 +23,10 @@ Defender._behaviors = {
 
 function Defender:_run()
 	self._activeBehavior._send.defenderFlag("all")
+	if self._inbox.mainAttacker().trainer ~= self._robot then
+		local groupApplication = { name = "moves", payload = nil }
+		self._activeBehavior._send.groupApplication("trainer", groupApplication)
+	end
 end
 
 function Defender.takeRobot(robots)

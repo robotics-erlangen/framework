@@ -41,7 +41,11 @@ function Attacker:_run()
 	if self._activeBehavior then
 		assert(self._activeBehavior._send, "behavior message interface changed")
 		self._activeBehavior._send.attackerFlag("all")
+
+		local groupApplication = { name = "moves", payload = nil }
+		self._activeBehavior._send.groupApplication("trainer", groupApplication)
 	end
+
 	debug.set("pool rating", self:rateRobot())
 end
 
