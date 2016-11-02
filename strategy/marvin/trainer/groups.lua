@@ -4,7 +4,12 @@ local CenterBackGroup = require "groups/centerback"
 local MoveGroup = require "groups/moves"
 
 function Groups:init()
-	self._groupList = { CenterBackGroup, MoveGroup }
+	local groupClasses = { CenterBackGroup, MoveGroup }
+	
+	self._groupList = {}
+	for _,group in ipairs(groupClasses) do
+		table.insert(self._groupList, group())
+	end
 end
 
 function Groups:_runGroups()
@@ -22,7 +27,11 @@ function Groups:_runGroups()
 	end
 	for robot, msg in pairs(groupApplications) do
 		for _, app in ipairs(msg) do
-			robotApplications[app.name][robot] = app.payload
+			local application = robotApplications[app.name]
+			if not application then
+				error("No group with name '" .. app.name .. "' found")
+			end
+			application[robot] = app.payload
 			robotApplicationsSize[app.name] = robotApplicationsSize[app.name] + 1
 		end
 	end
