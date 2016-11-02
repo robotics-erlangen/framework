@@ -1,5 +1,4 @@
-local CenterBack = {}
-CenterBack.name = "centerback"
+local CenterBack = Class("Group.CenterBack")
 
 local Field = require "../base/field"
 local geom = require "../base/geom"
@@ -232,13 +231,17 @@ local function calculateCenterBackPositions(centerBackApplications)
 	end
 end
 
-function CenterBack.run(trainerInstance, nRobots, messages)
+function CenterBack:init()
+	self.name = "centerback"
+end
+
+function CenterBack:run(sender, nRobots, messages)
 	calculateCenterBackPositions(messages)
 
 	for robot, _ in pairs(messages) do
 		local pos_target = centerBackPositions[robot]
 		pos_target = pos_target or privateCenterBackPositions[robot]
-		trainerInstance._send.centerBackPosTarget(robot, pos_target)
+		sender.centerBackPosTarget(robot, pos_target)
 	end
 end
 
