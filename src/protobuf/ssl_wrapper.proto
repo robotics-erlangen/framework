@@ -1,3 +1,4 @@
+syntax = "proto2";
 import "ssl_detection.proto";
 import "ssl_geometry.proto";
 

@@ -1,3 +1,4 @@
+syntax = "proto2";
 message SSL_GeometryFieldSize {
   required int32 line_width = 1;
   required int32 field_length = 2;

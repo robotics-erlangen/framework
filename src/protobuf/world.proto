@@ -1,3 +1,4 @@
+syntax = "proto2";
 import "robot.proto";
 import "ssl_mixed_team.proto";
 

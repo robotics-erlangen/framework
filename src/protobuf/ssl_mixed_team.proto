@@ -1,3 +1,4 @@
+syntax = "proto2";
 package ssl;
 //Protocol to communicate rough plans to other teammates
 //Units are specified as follows:

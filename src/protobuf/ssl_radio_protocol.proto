@@ -1,3 +1,4 @@
+syntax = "proto2";
 // taken from https://github.com/RoboCup-SSL/ssl-radio-protocol
 
 message SSL_RadioProtocolCommand {

@@ -1,3 +1,4 @@
+syntax = "proto2";
 import "debug.proto";
 import "gamestate.proto";
 //import "deprecated/gamestate.proto";

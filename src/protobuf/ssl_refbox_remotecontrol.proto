@@ -1,3 +1,4 @@
+syntax = "proto2";
 import "ssl_referee.proto";
 // taken from https://github.com/RoboCup-SSL/ssl-refbox/
 
