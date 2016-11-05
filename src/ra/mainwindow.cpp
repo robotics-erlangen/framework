@@ -175,7 +175,7 @@ MainWindow::MainWindow(QWidget *parent) :
         setInternalRefereeEnabled(false);
     }
     ui->actionInputDevices->setChecked(s.value("InputDevices/Enabled").toBool());
-    ui->actionAutoPause->setChecked(s.value("Simulator/AutoPause").toBool());
+    ui->actionAutoPause->setChecked(s.value("Simulator/AutoPause", true).toBool());
 
     m_flip = s.value("Flip").toBool();
     sendFlip();
