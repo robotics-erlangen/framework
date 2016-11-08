@@ -27,9 +27,9 @@ function Trainer:_debugInbox()
 end
 
 function Trainer:run()
-	self:_debugInbox()
 	self:_chooseExclusiveRoles()
 	self:_runGroups()
+	self:_debugInbox()
 end
 
 return Trainer
