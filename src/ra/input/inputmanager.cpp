@@ -161,7 +161,7 @@ void InputManager::update()
             radio_command->set_generation(it.key().first);
             radio_command->set_id(it.key().second);
             radio_command->mutable_command()->set_eject_sdcard(true);
-
+            it.value() -= 1;
             if (it.value() <= 0) {
                 it = m_ejectSdcard.erase(it);
             } else {
