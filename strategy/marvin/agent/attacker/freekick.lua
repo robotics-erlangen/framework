@@ -21,15 +21,14 @@ function FreeKick:_stop()
 	self._bestRating = -math.huge
 end
 
+function FreeKick:start()
+	self._startTime = World.Time
+end
+
 function FreeKick:check()
 	-- we have to be main attacker
 	if self._inbox.mainAttacker().trainer ~= self._robot then
 		return false
-	end
-
-	-- update timeout timer
-	if not self._active then
-		self._startTime = World.Time
 	end
 
 	if World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
