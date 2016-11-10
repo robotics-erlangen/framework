@@ -24,6 +24,10 @@ function Base:stop()
 	self:_stop()
 end
 
+function Base:start()
+	--override if necessary
+end
+
 function Base:run()
 	local bestTask, parameters = self:_updateTask()
 	if not self._task or Class.toClass(self._task) ~= bestTask then
