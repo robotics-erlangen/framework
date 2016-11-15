@@ -93,22 +93,21 @@ function Messaging:_constructInbox(receiver)
 	local inbox = {}
 	for messageType, _ in pairs(msgDefs) do
 		inbox[messageType] = function(mode)
-			-- returns all messages of "messageType" which were sent to "all"
-			if mode == "broadcast" then
-				if not self._deliveredMessages[messageType] or not self._deliveredMessages[messageType].all then
-					return empty
-				end
-				return self._deliveredMessages[messageType].all
-			elseif mode ~= nil then
-				error("Invalid request mode only nil or \"broadcast\" is allowed")
-			end
-
 			local mtypeBox = self._deliveredMessages[messageType]
 			if receiver == "trainer" then
 				mtypeBox = self._newMessages[messageType]
 			end
 			if not mtypeBox then
 				return empty
+			end
+			-- returns all messages of "messageType" which were sent to "all"
+			if mode == "broadcast" then
+				if not mtypeBox.all then
+					return empty
+				end
+				return mtypeBox.all
+			elseif mode ~= nil then
+				error("Invalid request mode only nil or \"broadcast\" is allowed")
 			end
 			local receiveBox = mtypeBox[receiver]
 			local allBox = mtypeBox.all
