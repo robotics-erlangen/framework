@@ -43,7 +43,7 @@ test("base.pools", function()
 	assert_not_nil(defenderAgent)
 
 	local defenderBefore, attackerBefore = defenderRobot, attackerRobot
-	attackerAgent._send.poolChangeRequest("trainer")
+	attackerAgent._send.poolChangeRequest("trainer", "defender")
 	coordinator:run()
 
 	attackerRobot = next(coordinator._trainer._inbox.attackerFlag())
@@ -52,7 +52,7 @@ test("base.pools", function()
 	assert_equal(defenderRobot, attackerBefore)
 
 	defenderBefore, attackerBefore = defenderRobot, attackerRobot
-	defenderAgent._send.poolChangeRequest("trainer")
+	defenderAgent._send.poolChangeRequest("trainer", "attacker")
 	coordinator:run()
 
 	attackerRobot = next(coordinator._trainer._inbox.attackerFlag())

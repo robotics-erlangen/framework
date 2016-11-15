@@ -156,7 +156,7 @@ function HandleBall:_updateTask()
 	end
 
 	if self._taskDecision == "attacker" then
-		self._send.poolChangeRequest("trainer")
+		self._send.poolChangeRequest("trainer", "attacker")
 	end
 
 	if self._taskDecision == "interceptpass" then
