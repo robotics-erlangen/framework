@@ -29,8 +29,8 @@ function Base:start()
 end
 
 function Base:run()
-	local bestTask, parameters = self:_updateTask()
-	if not self._task or Class.toClass(self._task) ~= bestTask then
+	local bestTask, parameters, forceNewTask = self:_updateTask()
+	if not self._task or Class.toClass(self._task) ~= bestTask or forceNewTask then
 		if parameters then
 			self._task = bestTask(self._agent, unpack(parameters))
 		else
