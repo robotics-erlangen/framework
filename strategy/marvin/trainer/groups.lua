@@ -41,7 +41,7 @@ function Groups:_runGroups()
 		local messages = robotApplications[group.name]
 		
 		if nRobots > 0 then
-			group:run(self._send, nRobots, messages)
+			group:run(self._send, self._inbox, nRobots, messages)
 		end
 	end
 end

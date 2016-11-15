@@ -1,54 +1,97 @@
 local Moves = Class("Group.Moves")
 
+local debug = require "../base/debug"
 local Armada = require "groups/moves/armada"
+local PassTest = require "groups/moves/passtest"
+local MrlTestCorner = require "groups/moves/mrltestcorner"
 
 function Moves:init()
 	self.name = "moves"
-	self.moveList = { Armada }
+	self.moveList = { }
 
 	for _,move in ipairs(self.moveList) do
-		if not move.MIN_ROBOTS or move.MIN_ROBOTS < 0 then
-			error("MIN_ROBOTS has to be set!")
+		if not move.N_ROBOTS or move.N_ROBOTS < 0 then
+			error("N_ROBOTS has to be set!")
 		end
 	end
 
+	self._chosenMove = nil
 	self._currentMove = nil
 	self._participatingRobots = {}
 end
 
-function Moves:run(sender, nRobots, messages)
+function Moves:run(sender, inbox, nRobots, messages)
 	-- check if all participating robots are still available
 	if self._currentMove then
 		for _,r in ipairs(self._participatingRobots) do
 			if not messages[r] then
 				self._currentMove = nil
+				self._chosenMove = nil
+				break
 			end
 		end
 	end
 
 	-- check if current move can be continued
-	if self._currentMove then
-		if not self._currentMove:canContinue() then
-			self._currentMove = nil
-		end
+	if self._currentMove and not self._currentMove:_canContinue() then
+		self._currentMove = nil
+		self._chosenMove = nil
 	end
 
 	-- choose a new move
-	if not self._currentMove then
+	if not self._chosenMove then
 		local candidates = {}
 		for _,move in ipairs(self.moveList) do
-			if nRobots >= move.MIN_ROBOTS and move.canStart() then
-				table.insert(candidates, move)
+			if move.canStart() then
+				local numCandidateRobots = 0
+				for r,_ in pairs(inbox.attackerFlag()) do
+					numCandidateRobots = numCandidateRobots + 1
+				end
+				for r,_ in pairs(inbox.defenderFlag()) do
+					numCandidateRobots = numCandidateRobots + 1
+				end
+				if numCandidateRobots >= move.N_ROBOTS then
+					table.insert(candidates, move)
+				end
 			end
 		end
 
-		
-		-- RANDOM
+		if #candidates > 0 then
+			local index = math.ceil(math.random() * #candidates)
+			self._chosenMove = candidates[index]
+		end
 	end
 
-	if self._currentMove then
-		-- run move
+	if not self._currentMove and self._chosenMove then
+		local availableRobots = {}
+		for r,_ in pairs(messages) do
+			table.insert(availableRobots, r)
+		end
+
+		if #availableRobots == self._chosenMove.N_ROBOTS then
+			self._currentMove = self._chosenMove(availableRobots, inbox)
+		end
 	end
+
+
+	-- reset participating robots
+	self._participatingRobots = {}
+
+	-- run
+	if self._currentMove then
+		local taskAssignments = self._currentMove:updateTasks()
+		for robot, assignment in pairs(taskAssignments) do
+			table.insert(self._participatingRobots, robot)
+			sender.moveAssignment(robot, assignment)
+		end
+	end
+
+	if self._chosenMove then
+		sender.moveNumAttackers("trainer", self._chosenMove.N_ROBOTS)
+	end
+
+	debug.set("Move/ParticipatingRobots", self._participatingRobots)
 end
 
 return Moves
+
