@@ -84,7 +84,7 @@ function AttackRatio:attackRatio()
 	end
 
 	local attackers = math.ceil(attackRatio/6 * #World.FriendlyRobots)
-
+	
 	local _, mainAttacker = next(self._inbox.mainAttacker())
 	local mainAttackerIsDefender = false
 	if mainAttacker then
@@ -102,6 +102,11 @@ function AttackRatio:attackRatio()
 
 	debug.set("MainAttackerIsDefender", mainAttackerIsDefender)
 	debug.set("AttackRatio", attackRatio)
+
+	local moveNumAttackers = self._inbox.moveNumAttackers().trainer
+	if moveNumAttackers then
+		attackers = moveNumAttackers
+	end
 
 	local defenders = #World.FriendlyRobots - attackers
 	if World.FriendlyKeeper and World.FriendlyKeeper.isVisible then
