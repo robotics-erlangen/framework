@@ -13,7 +13,7 @@ function Default:check()
 	for defender, _ in ipairs(self._inbox.defenderFlag()) do
 		if defender.pos:distanceTo(ownGoal) < self._robot.pos:distanceTo(ownGoal) and
 				defender.pos:distanceTo(self._robot.pos) < MIN_DIST_FOR_POOL_CHANGE then
-			self._send.poolChangeRequest("trainer")
+			self._send.poolChangeRequest("trainer", "defender")
 		end
 	end
 
