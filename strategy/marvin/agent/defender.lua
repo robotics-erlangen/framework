@@ -9,12 +9,10 @@ local ManMark = require "agent/defender/manmark"
 local ZoneDefense = require "agent/defender/zonedefense"
 local Penalty = require "agent/defender/penalty"
 
-local Move = require "moves/moveBehavior"
 
 
 Defender._behaviors = {
 	Penalty,
-	Move,
 	HandleBall,
 	ManMark,
 	ZoneDefense,
@@ -23,10 +21,6 @@ Defender._behaviors = {
 
 function Defender:_run()
 	self._activeBehavior._send.defenderFlag("all")
-	if self._inbox.mainAttacker().trainer ~= self._robot then
-		local groupApplication = { name = "moves", payload = nil }
-		self._activeBehavior._send.groupApplication("trainer", groupApplication)
-	end
 end
 
 function Defender.takeRobot(robots)
