@@ -31,14 +31,16 @@ local msgDefs = {
 	duelAssistantDir = "number",
 	roleAssignment = "table", -- { name: string, params: table }
 	shootActionPlan = "string", -- "goalShot" or "pass"
+	moveAssignment = "table", -- { class: class, params: table }
+	moveNumAttackers = "number"
 }
 
 
-local collectedMessages = {
-	groupApplication = true -- { { name: string -> payload: table } }
+local repeatedMessages = {
+	groupApplication = "table" -- { { name: string -> payload: table } }
 }
-for msg, _ in pairs(collectedMessages) do
-	msgDefs[msg] = "table"
+for msg, msgType in pairs(repeatedMessages) do
+	msgDefs[msg] = msgType
 end
 
 
@@ -177,7 +179,7 @@ function Messaging:_constructSender(sender)
 			end
 			local senderRobot = (sender == "trainer") and "trainer" or sender:robot()
 
-			if collectedMessages[messageType] then
+			if repeatedMessages[messageType] then
 				local collection = receiveBox[senderRobot]
 				if not collection then
 					collection = {}
