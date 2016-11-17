@@ -66,10 +66,14 @@ function Armada:_updateTasks()
 		taskAssignments[self._robots[5]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.5 } }
 	else
 		taskAssignments[self._robots[1]] = { behavior = FreeKick, params = { } }
-		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._positions[1], nil, true } }
-		taskAssignments[self._robots[3]] = { class = MoveToPos, params = { self._positions[2], nil, true } }
-		taskAssignments[self._robots[4]] = { class = MoveToPos, params = { self._positions[3], nil, true } }
-		taskAssignments[self._robots[5]] = { class = MoveToPos, params = { self._positions[4], nil, true } }
+		taskAssignments[self._robots[2]] = { class = MoveToPos,
+			params = { self._positions[1] + getRandomOffsetVector() , nil, true } }
+		taskAssignments[self._robots[3]] = { class = MoveToPos,
+			params = { self._positions[2] + getRandomOffsetVector() , nil, true } }
+		taskAssignments[self._robots[4]] = { class = MoveToPos,
+			params = { self._positions[3] + getRandomOffsetVector() , nil, true } }
+		taskAssignments[self._robots[5]] = { class = MoveToPos,
+			params = { self._positions[4] + getRandomOffsetVector() , nil, true } }
 	end
 	return taskAssignments
 end
