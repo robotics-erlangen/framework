@@ -1,12 +1,11 @@
 local Base = require "agent/base/behavior"
-local Move = Class("Agent.Shared.Move", Base)
+local Move = Class("Agent.Attacker.Move", Base)
 
 function Move:_stop()
 end
 
 function Move:check()
-	return Class.name(self._agent, true) == "Attacker"
-		and self._inbox.moveAssignment().trainer ~= nil
+	return self._inbox.moveAssignment().trainer ~= nil
 end
 
 function Move:_updateTask()

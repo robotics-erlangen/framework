@@ -11,11 +11,10 @@ local FreeKick = require "agent/attacker/freekick"
 local KickoffAssistant = require "agent/attacker/kickoffassistant"
 local KickoffDefensive = require "agent/attacker/kickoffdefensive"
 local KickoffOffensive = require "agent/attacker/kickoffoffensive"
+local Move = require "agent/attacker/move"
 local Penalty = require "agent/attacker/penalty"
 local Shoot = require "agent/attacker/shoot"
 local Stop = require "agent/attacker/stop"
-
-local Move = require "agent/shared/move"
 
 
 Attacker._behaviors = {
