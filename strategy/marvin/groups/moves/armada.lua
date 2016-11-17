@@ -3,32 +3,19 @@ local Armada = Class("Group.Move.Armada", require "groups/moves/base")
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local FreeKick = require "agent/attacker/freekick"
+local Circuit = require "task/circuit"
 local MoveToPos = require "task/movetopos"
-local MoveToStaticBall = require "task/movetostaticball"
 local StopAttack = require "task/stopattack"
-local ArmadaTask = require "groups/moves/armadatask"
 local G = World.Geometry
 
 Armada.N_ROBOTS = 5
 
 -- the armada has 4 steps to form stairs, depending on ball distance
-local X_POSITIONS_ORIG = {
-	G.FieldWidthHalf * 5/8,
-	G.FieldWidthHalf * 1/4,
-	-G.FieldWidthHalf * 1/4,
-	-G.FieldWidthHalf * 5/8
-}
-local Y_BALL_DISTS_RIGHT_ORIG = {
-	-G.FieldHeightHalf * 1/4,
-	0,
-	G.FieldHeightHalf * 1/4,
-	G.FieldHeightHalf * 1/2,
-}
-local Y_BALL_DISTS_LEFT_ORIG = {
-	G.FieldHeightHalf * 1/2,
-	G.FieldHeightHalf * 1/4,
-	0,
-	-G.FieldHeightHalf * 1/4
+local POSITIONS_ORIG = {
+	Vector(G.FieldWidthHalf * -0.6, G.FieldWidthHalf * -0.25),
+	Vector(G.FieldWidthHalf * -0.2, G.FieldWidthHalf *  0   ),
+	Vector(G.FieldWidthHalf *  0.2, G.FieldWidthHalf *  0.25),
+	Vector(G.FieldWidthHalf *  0.6, G.FieldWidthHalf *  0.5 ),
 }
 
 local MAX_RANDOM_POSITION_OFFSET = 0.3
@@ -49,7 +36,15 @@ end
 
 function Armada:_init()
 	self._circleCenter = Vector(0,0) + getRandomOffsetVector()
-	self._yPosOrig = World.Ball.pos.x > 0 and Y_BALL_DISTS_RIGHT_ORIG or Y_BALL_DISTS_LEFT_ORIG
+	
+	self._positions = {}
+	for i = 1, 4 do
+		local pos = POSITIONS_ORIG[i]
+		if World.Ball.pos.x > 0 then
+			pos.x = -pos.x
+		end
+		table.insert(self._positions, pos)
+	end
 end
 
 function Armada:_canContinue()
@@ -65,18 +60,18 @@ function Armada:_updateTasks()
 	local taskAssignments = {}
 	if World.RefereeState == "Stop" then
 		taskAssignments[self._robots[1]] = { class = StopAttack, params = { } }
+		taskAssignments[self._robots[2]] = { class = Circuit, params = { self._circleCenter, math.pi * 0.0 } }
+		taskAssignments[self._robots[3]] = { class = Circuit, params = { self._circleCenter, math.pi * 0.5 } }
+		taskAssignments[self._robots[4]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.0 } }
+		taskAssignments[self._robots[5]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.5 } }
 	else
 		taskAssignments[self._robots[1]] = { behavior = FreeKick, params = { } }
+		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._positions[1], nil, true } }
+		taskAssignments[self._robots[3]] = { class = MoveToPos, params = { self._positions[2], nil, true } }
+		taskAssignments[self._robots[4]] = { class = MoveToPos, params = { self._positions[3], nil, true } }
+		taskAssignments[self._robots[5]] = { class = MoveToPos, params = { self._positions[4], nil, true } }
 	end
-	taskAssignments[self._robots[2]] = { class = ArmadaTask, params = { 1, self._circleCenter,
-		Vector(X_POSITIONS_ORIG[1], self._yPosOrig[1]) + getRandomOffsetVector() } }
-	taskAssignments[self._robots[3]] = { class = ArmadaTask, params = { 2, self._circleCenter,
-		Vector(X_POSITIONS_ORIG[2], self._yPosOrig[2]) + getRandomOffsetVector() } }
-	taskAssignments[self._robots[4]] = { class = ArmadaTask, params = { 3, self._circleCenter,
-		Vector(X_POSITIONS_ORIG[3], self._yPosOrig[3]) + getRandomOffsetVector() } }
-	taskAssignments[self._robots[5]] = { class = ArmadaTask, params = { 4, self._circleCenter,
-		Vector(X_POSITIONS_ORIG[4], self._yPosOrig[4]) + getRandomOffsetVector() } }
-	return taskAssignments 
+	return taskAssignments
 end
 
 return Armada
