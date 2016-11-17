@@ -36,15 +36,7 @@ end
 
 function Armada:_init()
 	self._circleCenter = Vector(0,0) + getRandomOffsetVector()
-	
 	self._positions = {}
-	for i = 1, 4 do
-		local pos = POSITIONS_ORIG[i]
-		if World.Ball.pos.x > 0 then
-			pos.x = -pos.x
-		end
-		table.insert(self._positions, pos)
-	end
 end
 
 function Armada:_canContinue()
@@ -57,6 +49,18 @@ function Armada:_canContinue()
 end
 
 function Armada:_updateTasks()
+	if Referee.isStopState() then
+		self._positions = {}
+	elseif Referee.isFriendlyFreeKickState() and #self._positions == 0 then
+		for i = 1, 4 do
+			local pos = POSITIONS_ORIG[i]
+			if World.Ball.pos.x > 0 then
+				pos.x = -pos.x
+			end
+			table.insert(self._positions, pos)
+		end
+	end
+
 	local taskAssignments = {}
 	if World.RefereeState == "Stop" then
 		taskAssignments[self._robots[1]] = { class = StopAttack, params = { } }
