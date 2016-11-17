@@ -9,6 +9,8 @@ function Move:check()
 end
 
 function Move:_updateTask()
+	self._forceKeepingInPool = next(self._inbox.passPos()) ~= nil
+	
 	local assignment = self._inbox.moveAssignment().trainer
 	return assignment.class, assignment.params, assignment.restart
 end
