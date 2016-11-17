@@ -2,6 +2,10 @@ local Base = require "agent/base/behavior"
 local Move = Class("Agent.Attacker.Move", Base)
 
 function Move:_stop()
+	if self._behavior then
+		self._behavior:stop()
+	end
+	self._behavior = nil
 end
 
 function Move:check()
@@ -12,6 +16,19 @@ function Move:_updateTask()
 	self._forceKeepingInPool = next(self._inbox.passPos()) ~= nil
 	
 	local assignment = self._inbox.moveAssignment().trainer
+	if assignment.behavior then
+		if not self._behavior then
+			self._behavior = assignment.behavior(self._agent)
+			self._behavior:start()
+		end
+		return self._behavior:_updateTask()
+	end
+
+	if self._behavior then
+		self._behavior:stop()
+		self._behavior = nil
+	end
+
 	return assignment.class, assignment.params, assignment.restart
 end
 

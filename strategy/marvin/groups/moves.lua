@@ -19,6 +19,20 @@ function Moves:init()
 	self._participatingRobots = {}
 end
 
+local function validateAssignment(assignment)
+	-- don't assing a task and a behavior
+	if assignment.behavior and assignment.class then
+		return false
+	end
+
+	--don't assing nothing
+	if not assignment.behavior and not assignment.class then
+		return false
+	end
+
+	return true
+end
+
 function Moves:run(sender, inbox, messages)
 	-- check if all participating robots are still available
 	if self._currentMove then
@@ -81,6 +95,12 @@ function Moves:run(sender, inbox, messages)
 		local taskAssignments = self._currentMove:updateTasks()
 		for robot, assignment in pairs(taskAssignments) do
 			table.insert(self._participatingRobots, robot)
+			if not validateAssignment(assignment) then
+				for key,value in pairs(assignment) do
+					log(tostring(key) .. " -> " .. tostring(value))
+				end
+				error("invalid assingment for robot " .. tostring(robot.id))
+			end
 			sender.moveAssignment(robot, assignment)
 		end
 	end

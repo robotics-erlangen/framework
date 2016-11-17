@@ -2,6 +2,7 @@ local Armada = Class("Group.Move.Armada", require "groups/moves/base")
 
 local Referee = require "../base/referee"
 local World = require "../base/world"
+local FreeKick = require "agent/attacker/freekick"
 local MoveToPos = require "task/movetopos"
 local MoveToStaticBall = require "task/movetostaticball"
 local StopAttack = require "task/stopattack"
@@ -62,7 +63,11 @@ end
 
 function Armada:_updateTasks()
 	local taskAssignments = {}
-	taskAssignments[self._robots[1]] = { class = StopAttack, params = { } }
+	if World.RefereeState == "Stop" then
+		taskAssignments[self._robots[1]] = { class = StopAttack, params = { } }
+	else
+		taskAssignments[self._robots[1]] = { behavior = FreeKick, params = { } }
+	end
 	taskAssignments[self._robots[2]] = { class = ArmadaTask, params = { 1, self._circleCenter,
 		Vector(X_POSITIONS_ORIG[1], self._yPosOrig[1]) + getRandomOffsetVector() } }
 	taskAssignments[self._robots[3]] = { class = ArmadaTask, params = { 2, self._circleCenter,
