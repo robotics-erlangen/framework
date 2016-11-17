@@ -19,7 +19,7 @@ function Moves:init()
 	self._participatingRobots = {}
 end
 
-function Moves:run(sender, inbox, nRobots, messages)
+function Moves:run(sender, inbox, messages)
 	-- check if all participating robots are still available
 	if self._currentMove then
 		for _,r in ipairs(self._participatingRobots) do

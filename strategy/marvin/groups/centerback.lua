@@ -235,7 +235,7 @@ function CenterBack:init()
 	self.name = "centerback"
 end
 
-function CenterBack:run(sender, _, nRobots, messages)
+function CenterBack:run(sender, _, messages)
 	calculateCenterBackPositions(messages)
 
 	for robot, _ in pairs(messages) do
