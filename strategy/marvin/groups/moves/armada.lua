@@ -19,7 +19,6 @@ local POSITIONS_ORIG = {
 }
 
 local MAX_RANDOM_POSITION_OFFSET = 0.3
-local CIRCLE_CENTER_ORIG = Vector(0,-1)
 
 function Armada.canStart()
 	return  World.Ball.pos.y > G.FieldHeightHalf / 5 --and Referee.opponentTouchedLast()

@@ -2,12 +2,11 @@ local MrlTestCorner = Class("Group.Move.MrlTestCorner", require "groups/moves/ba
 
 local Referee = require "../base/referee"
 local World = require "../base/world"
-local MoveToPos = require "task/movetopos"
-local MoveToStaticBall = require "task/movetostaticball"
-local StopAttack = require "task/stopattack"
 local MrlTestCornerTask = require "groups/moves/mrltestcornertask"
 local Pass = require "task/pass"
+local StopAttack = require "task/stopattack"
 local G = World.Geometry
+
 
 MrlTestCorner.N_ROBOTS = 5
 

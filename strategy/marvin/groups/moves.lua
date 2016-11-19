@@ -57,10 +57,10 @@ function Moves:run(sender, inbox, messages)
 		for _,move in ipairs(self.moveList) do
 			if move.canStart() then
 				local numCandidateRobots = 0
-				for r,_ in pairs(inbox.attackerFlag()) do
+				for _,_ in pairs(inbox.attackerFlag()) do
 					numCandidateRobots = numCandidateRobots + 1
 				end
-				for r,_ in pairs(inbox.defenderFlag()) do
+				for _,_ in pairs(inbox.defenderFlag()) do
 					numCandidateRobots = numCandidateRobots + 1
 				end
 				if numCandidateRobots >= move.N_ROBOTS then

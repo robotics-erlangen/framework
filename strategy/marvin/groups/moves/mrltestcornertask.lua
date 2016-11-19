@@ -2,10 +2,10 @@ local SuggestPass = require "task/ability/suggestpass"
 local MrlTestCornerTask = Class("Group.Move.MrlCorner.MrlTestCornerTask", require "task/base", SuggestPass)
 
 local World = require "../base/world"
+local Physics = require "observer/physics"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
-local Physics = require "observer/physics"
-local G = World.Geometry
+
 
 function MrlTestCornerTask:_init(initPos, ballOwner)
 	self._moveDest = initPos
