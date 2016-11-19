@@ -8,6 +8,7 @@ local MoveToPos = require "task/movetopos"
 local StopAttack = require "task/stopattack"
 local G = World.Geometry
 
+
 Armada.N_ROBOTS = 5
 
 -- the armada has 4 steps to form stairs, depending on ball distance
@@ -42,7 +43,7 @@ function Armada:_canContinue()
 	if Referee.isFriendlyFreeKickState() then
 		return true
 	end
-	return World.Ball.pos.y > G.FieldHeightHalf / 5 - 0.2 
+	return World.Ball.pos.y > G.FieldHeightHalf / 5 - 0.2
 		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
 		and World.RefereeState == "Stop"
 end

@@ -4,13 +4,12 @@ local ShootGoal = Class("Task.ShootGoal", require "task/base", Shoot)
 local debug = require "../base/debug"
 local vis = require "../base/vis"
 local World = require "../base/world"
-local G = World.Geometry
 
 local Ball = require "observer/ball"
-
+local PathHelper = require "trajectory/pathhelper"
 local ShootGoalUtil = require "util/shootgoal"
 
-local PathHelper = require "trajectory/pathhelper"
+local G = World.Geometry
 
 
 function ShootGoal:_drawDebugInfo()
@@ -53,7 +52,7 @@ function ShootGoal:run()
 
 	if not self._shootTargetPoint or not Ball.receivesPass(self._robot) or
 			World.Ball.pos:distanceTo(self._robot.pos) > 0.8 then
-		self._shootTargetPoint, self._shootTargetWidth, self._dirty = 
+		self._shootTargetPoint, self._shootTargetWidth, self._dirty =
 			ShootGoalUtil.updateTarget(self._robot, self._shootTargetPoint, self._dirty)
 	end
 

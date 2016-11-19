@@ -84,7 +84,7 @@ function AttackRatio:attackRatio()
 	end
 
 	local attackers = math.ceil(attackRatio/6 * #World.FriendlyRobots)
-	
+
 	local _, mainAttacker = next(self._inbox.mainAttacker())
 	local mainAttackerIsDefender = false
 	if mainAttacker then

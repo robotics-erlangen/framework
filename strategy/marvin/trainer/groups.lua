@@ -5,7 +5,7 @@ local MoveGroup = require "groups/moves"
 
 function Groups:init()
 	local groupClasses = { CenterBackGroup, MoveGroup }
-	
+
 	self._groupList = {}
 	for _,group in ipairs(groupClasses) do
 		table.insert(self._groupList, group())
@@ -20,7 +20,7 @@ function Groups:_runGroups()
 	local robotApplications = {}
 	-- groupname -> number
 	local robotApplicationsSize = {}
-	
+
 	for _,group in ipairs(self._groupList) do
 		robotApplications[group.name] = {}
 		robotApplicationsSize[group.name] = 0
@@ -39,7 +39,7 @@ function Groups:_runGroups()
 	for _,group in ipairs(self._groupList) do
 		local nRobots = robotApplicationsSize[group.name]
 		local messages = robotApplications[group.name]
-		
+
 		if nRobots > 0 then
 			group:run(self._send, self._inbox, messages)
 		end
