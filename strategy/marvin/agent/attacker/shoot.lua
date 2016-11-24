@@ -9,6 +9,7 @@ local ObserverShoot = require "observer/shoot"
 local CenterBack = require "task/centerback"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
+local ShootGoalUtil = require "util/shootgoal"
 
 local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
 
@@ -49,8 +50,7 @@ function Shoot:_updateTask()
 	debug.set("AAShoot/time active", World.Time-self._taskStart)
 	if not self._taskClass or minTimeOver then
 		-- shootgoal
-		local shootGoalTmp = ShootGoal(self._agent)
-		local sg_target, sg_mae, _ = shootGoalTmp:getDecisionMakingBasis()
+		local sg_target, sg_mae = ShootGoalUtil.updateTarget(self._robot, nil, false)
 		local canShootGoal = sg_mae and sg_mae > MIN_ANGLE_PRECISION
 
 		debug.set("AAShoot/canShootGoal", canShootGoal and "true" or "false")

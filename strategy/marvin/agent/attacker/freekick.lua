@@ -9,6 +9,7 @@ local Shoot = require "observer/shoot"
 local MoveToStaticBall = require "task/movetostaticball"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
+local ShootGoalUtil = require "util/shootgoal"
 
 
 local POSITION_PADDING = 0.02 -- safety distance
@@ -67,8 +68,7 @@ function FreeKick:_updateTask()
 			self._decisionReconsidered = true
 		end
 
-		local shootGoalTmp = ShootGoal(self._agent)
-		local _, sg_mae, sg_clean = shootGoalTmp:getDecisionMakingBasis()
+		local _, sg_mae, sg_clean = ShootGoalUtil.updateTarget(self._robot, nil, false)
 
 		-- search for the best pass suggestion
 		local bestPassRating = 0
