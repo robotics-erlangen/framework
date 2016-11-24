@@ -13,40 +13,24 @@ local Defense = require "util/defense"
 
 
 function ManMark:_stop()
-	self._opps = {}
 	self._opp = nil
+	self._restartTask = true
 end
 
 function ManMark:check()
 	local role = self._inbox.roleAssignment().trainer
 	if role and role.name == "ManMark" then
-		local params = self._inbox.roleAssignment().trainer.params
-		if #self._opps ~= #params then
-			self._task = nil
-		else
-			for _,r in ipairs(self._opps) do
-				if not table.contains(params, r) then
-					self._task = nil
-					break
-				end
-			end
-		end
-		if self._task == nil then
-			self._opps = params
-		end
+		local newOpp = self._inbox.roleAssignment().trainer.params
+		self._restartTask = newOpp == self._opp
+		self._opp = newOpp
 		return true
 	end
 	return false
 end
 
 function ManMark:_updateTask()
-	local robotids = {}
-	for _,r in ipairs(self._opps) do
-		table.insert(robotids, tostring(r.id))
-	end
-	debug.set("targets", table.concat(robotids, " "))
+	debug.set("target", self._opp.id)
 
-	self._opp = Defense.manMarkFakeRobot(self._opps)
 	local dest = Defense.manMarkPos(self._opp)
 
 	-- try to intercept a possible goal shot
@@ -70,25 +54,19 @@ function ManMark:_updateTask()
 	local markingPosNearHigh = markingPosNearLow + 2 * self._robot.radius
 	local markingPosThreshold = (self._task and Class.instanceOf(self._task, CenterBack))
 			and markingPosNearHigh or markingPosNearLow
-
 	local oppDefenseDist = Field.distanceToFriendlyDefenseArea(self._opp.pos, self._opp.radius)
-
-	-- if the opponent is near our defense area (or inside it), use the CenterBack task
 	if markingPosDefenseDist < markingPosThreshold or oppDefenseDist <= 0 or Referee.isStopState() then
-		return CenterBack, { self._opp }
+		return CenterBack, { self._opp }, self._restartTask
 	end
 
-	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-
 	-- if we are still near the defense area but want to move away, disguise as a centerback
-	-- PFUSCH: use yourself as the defense target
-	-- WARNING: only use temporarily as this code also halts at least one innocent centerback
+	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 	if selfDefenseDist < CenterBack.distanceToDefenseArea() + self._robot.radius + 0.03 then
 		local groupApplication = { name = "centerback", payload = self._robot }
 		self._send.groupApplication("trainer", groupApplication)
 	end
 
-	return ManMarkTask, { self._opp }
+	return ManMarkTask, { self._opp }, self._restartTask
 end
 
 return ManMark
