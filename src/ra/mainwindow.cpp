@@ -163,6 +163,10 @@ MainWindow::MainWindow(QWidget *parent) :
 
     s.beginGroup("MainWindow");
     restoreGeometry(s.value("Geometry").toByteArray());
+    if (s.value("State").isNull()) {
+        tabifyDockWidget(ui->dockSimulator, ui->dockInput);
+        tabifyDockWidget(ui->dockInput, ui->dockVisualization);
+    }
     restoreState(s.value("State").toByteArray());
     ui->splitterV->restoreState(s.value("SplitterV").toByteArray());
     ui->splitterH->restoreState(s.value("SplitterH").toByteArray());
