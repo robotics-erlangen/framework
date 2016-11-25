@@ -20,17 +20,17 @@ end
 function ManMark:check()
 	local role = self._inbox.roleAssignment().trainer
 	if role and role.name == "ManMark" then
-		local newOpp = self._inbox.roleAssignment().trainer.params
-		self._restartTask = newOpp == self._opp
-		self._opp = newOpp
 		return true
 	end
 	return false
 end
 
 function ManMark:_updateTask()
-	debug.set("target", self._opp.id)
+	local newOpp = self._inbox.roleAssignment().trainer.params
+	self._restartTask = newOpp ~= self._opp
+	self._opp = newOpp
 
+	debug.set("target", self._opp.id)
 	local dest = Defense.manMarkPos(self._opp)
 
 	-- try to intercept a possible goal shot
