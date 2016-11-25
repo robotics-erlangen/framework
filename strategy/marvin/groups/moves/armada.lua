@@ -53,7 +53,7 @@ function Armada:_updateTasks()
 		self._positions = {}
 	elseif Referee.isFriendlyFreeKickState() and #self._positions == 0 then
 		for i = 1, 4 do
-			local pos = POSITIONS_ORIG[i]
+			local pos = POSITIONS_ORIG[i]:copy()
 			if World.Ball.pos.x > 0 then
 				pos.x = -pos.x
 			end
