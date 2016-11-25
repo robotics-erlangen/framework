@@ -10,6 +10,7 @@ local msgDefs = {
 	defenderFlag = "flag",
 	allyFlag = "flag",
 	poolChangeRequest = "string",
+	forcePoolChange = "table", -- { robot: robot, destPool: string }
 	standardMoveFlag = "flag",
 	defendedOpponent = Robot,
 	moveDest = "cdata",
