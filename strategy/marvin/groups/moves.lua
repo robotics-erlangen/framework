@@ -88,25 +88,38 @@ function Moves:run(sender, inbox, messages)
 
 
 	-- reset participating robots
+	local prevParticipatingRobots = self._participatingRobots
 	self._participatingRobots = {}
 
 	-- run
 	if self._currentMove then
 		local taskAssignments = self._currentMove:updateTasks()
-		for robot, assignment in pairs(taskAssignments) do
-			table.insert(self._participatingRobots, robot)
-			if not validateAssignment(assignment) then
-				for key,value in pairs(assignment) do
-					log(tostring(key) .. " -> " .. tostring(value))
+		if #prevParticipatingRobots == 0 then
+			prevParticipatingRobots = table.keys(taskAssignments)
+		end
+		for _, robot in ipairs(prevParticipatingRobots) do
+			local assignment = taskAssignments[robot]
+			if assignment then
+				if not validateAssignment(assignment) then
+					for key,value in pairs(assignment) do
+						log(tostring(key) .. " -> " .. tostring(value))
+					end
+					error("invalid assingment for robot " .. tostring(robot.id))
 				end
-				error("invalid assingment for robot " .. tostring(robot.id))
+				sender.moveAssignment(robot, assignment)
+				table.insert(self._participatingRobots, robot)
+			else
+				sender.forcePoolChange("trainer", { robot = robot, destPool = "defender" })
 			end
-			sender.moveAssignment(robot, assignment)
 		end
 	end
 
 	if self._chosenMove then
-		sender.moveNumAttackers("trainer", self._chosenMove.N_ROBOTS)
+		local n_attackers = self._chosenMove.N_ROBOTS
+		if self._currentMove then
+			n_attackers = #self._participatingRobots
+		end
+		sender.moveNumAttackers("trainer", n_attackers)
 	end
 
 	debug.set("Move/ParticipatingRobots", self._participatingRobots)
