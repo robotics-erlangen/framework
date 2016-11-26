@@ -37,7 +37,6 @@ function Groups:_runGroups()
 	end
 
 	for _,group in ipairs(self._groupList) do
-		local nRobots = robotApplicationsSize[group.name]
 		local messages = robotApplications[group.name]
 
 		group:run(self._send, self._inbox, messages)

@@ -3,7 +3,6 @@ local Defense = {}
 local Cache = require "../base/cache"
 local Constants = require "../base/constants"
 local Field = require "../base/field"
-local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Physics = require "observer/physics"
