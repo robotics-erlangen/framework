@@ -8,6 +8,27 @@ function Error.getErrorTable(robot)
 	return errorTables[robot]
 end
 
+local function addErrorTables(errorTable1, errorTable2)
+	if not errorTable1 and not errorTable2 then
+		return {}
+	end
+	if not errorTable1 then
+		return errorTable2
+	end
+	if not errorTable2 then
+		return errorTable1
+	end
+	local newTable = {}
+	for k,v in pairs(errorTable1) do
+		newTable[k] = v
+	end
+	for k,v in pairs(errorTable2) do
+		--errorTable2 is newer than errorTable1, so override errorTable1 if necessary
+		newTable[k] = v or newTable[k]
+	end
+	return newTable
+end
+
 local function updateErrorTables(isLeavingStop)
 	if isLeavingStop then
 		errorTables = {}
@@ -16,15 +37,10 @@ local function updateErrorTables(isLeavingStop)
 	for _, r in ipairs(World.FriendlyRobots) do
 		if r.radioResponse and r.radioResponse.error_present then
 			-- we have an error, save it for debugging purposes
-			if r.radioResponse.extended_error then
-				errorTables[r] = r.radioResponse.extended_error
-			else
-				errorTables[r] = {}
-			end
+			errorTables[r] = addErrorTables(errorTables[r], r.radioResponse.extended_error)
 		end
 	end
 end
-
 
 local lastRefChange, refereeState
 
@@ -42,7 +58,6 @@ end
 function Error.getLastRefChange()
 	return lastRefChange
 end
-
 
 function Error._update()
 	local leavingStop = isLeavingStop()
