@@ -73,7 +73,9 @@ function Base:_updateBehavior()
 			self._activeBehavior:stop()
 		end
 		self._activeBehavior = bestBehavior
-		self._activeBehavior:start()
+		if self._activeBehavior then
+			self._activeBehavior:start()
+		end
 	end
 end
 
