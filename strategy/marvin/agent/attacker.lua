@@ -15,7 +15,7 @@ local Move = require "agent/attacker/move"
 local Penalty = require "agent/attacker/penalty"
 local Shoot = require "agent/attacker/shoot"
 local Stop = require "agent/attacker/stop"
-
+local DoubleTouchGuard = require "agent/attacker/doubletouchguard"
 
 Attacker._behaviors = {
 	ApplyForMainattacker,
@@ -25,6 +25,7 @@ Attacker._behaviors = {
 	KickoffDefensive,
 	Penalty,
 	FreeKick,
+	DoubleTouchGuard,
 	Duel,
 	Shoot,
 	KickoffAssistant,
