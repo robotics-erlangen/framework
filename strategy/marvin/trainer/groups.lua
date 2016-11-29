@@ -1,7 +1,7 @@
 local Groups = {}
 
-local CenterBackGroup = require "groups/centerback"
-local MoveGroup = require "groups/moves"
+local CenterBackGroup = require "group/centerback"
+local MoveGroup = require "group/moves"
 
 function Groups:init()
 	local groupClasses = { CenterBackGroup, MoveGroup }

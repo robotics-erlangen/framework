@@ -1,4 +1,4 @@
-local LongMarch = Class("Group.Move.LongMarch", require "groups/moves/base")
+local LongMarch = Class("Group.Move.LongMarch", require "group/move/base")
 
 local Referee = require "../base/referee"
 local World = require "../base/world"

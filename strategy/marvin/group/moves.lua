@@ -1,8 +1,8 @@
 local Moves = Class("Group.Moves")
 
 local debug = require "../base/debug"
-local Armada = require "groups/moves/armada"
-local MrlTestCorner = require "groups/moves/mrltestcorner"
+local Armada = require "group/move/armada"
+local MrlTestCorner = require "group/move/mrltestcorner"
 
 function Moves:init()
 	self.name = "moves"

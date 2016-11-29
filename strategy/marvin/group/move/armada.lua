@@ -1,4 +1,4 @@
-local Armada = Class("Group.Move.Armada", require "groups/moves/base")
+local Armada = Class("Group.Move.Armada", require "group/move/base")
 
 local Referee = require "../base/referee"
 local World = require "../base/world"
