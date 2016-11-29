@@ -1,8 +1,8 @@
-local MrlTestCorner = Class("Group.Move.MrlTestCorner", require "groups/moves/base")
+local MrlTestCorner = Class("Group.Move.MrlTestCorner", require "group/move/base")
 
 local Referee = require "../base/referee"
 local World = require "../base/world"
-local MrlTestCornerTask = require "groups/moves/mrltestcornertask"
+local MrlTestCornerTask = require "group/move/mrltestcornertask"
 local Pass = require "task/pass"
 local StopAttack = require "task/stopattack"
 local G = World.Geometry

@@ -1,7 +1,7 @@
 local Groups = {}
 
-local CenterBackGroup = require "groups/centerback"
-local MoveGroup = require "groups/moves"
+local CenterBackGroup = require "group/centerback"
+local MoveGroup = require "group/moves"
 
 function Groups:init()
 	local groupClasses = { CenterBackGroup, MoveGroup }
@@ -37,7 +37,6 @@ function Groups:_runGroups()
 	end
 
 	for _,group in ipairs(self._groupList) do
-		local nRobots = robotApplicationsSize[group.name]
 		local messages = robotApplications[group.name]
 
 		group:run(self._send, self._inbox, messages)

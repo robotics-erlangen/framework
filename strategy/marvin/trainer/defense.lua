@@ -1,7 +1,6 @@
 local Defense = {}
 
 local Constants = require "../base/constants"
-local debug = require "../base/debug"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
 local vis = require "../base/vis"
@@ -39,7 +38,7 @@ function Defense:_updateManmarkTargets()
 
 	for _, robot in ipairs(World.OpponentRobots) do
 		local alreadyTargeted = self._previousManmarkAssignments[robot] ~= nil
-		
+
 		-- if we are already dueling the robot
 		-- the duel robot has to block the shot already
 		local sender, msg = next(self._inbox.defendedOpponent())

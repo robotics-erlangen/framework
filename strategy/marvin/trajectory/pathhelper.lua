@@ -9,8 +9,9 @@ local G = World.Geometry
 local POSITION_PADDING = 0.02
 local SEED_ANGLE_MOD = 2/180*math.pi
 local SEED_PREDICT_TIME = 0.5
+local EXTRA_BALL_DISTANCE = 0.2
 
-function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance, noSeedTarget, ignoreOpponentDefenseArea)
+function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance, noSeedTarget, ignoreOpponentDefenseArea, forceBallDistance)
 	radius = radius or robot.radius
 	stopBallDistance = stopBallDistance or Constants.stopBallDistance
 
@@ -59,6 +60,8 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 	end
 	if Referee.isStopState() and World.RefereeState ~= "BallPlacementOffensive" then
 		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + stopBallDistance, "BallStop")
+	elseif forceBallDistance then
+		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + EXTRA_BALL_DISTANCE, "ExtraBallDistance")
 	end
 
 	if not ignoreGoals then

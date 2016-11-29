@@ -6,6 +6,7 @@ local World = require "../base/world"
 local MoveToStaticBall = require "task/movetostaticball"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
+local ShootGoalUtil = require "util/shootgoal"
 
 
 local MIN_ANGLE_PRECISION = 1 / 180 * math.pi
@@ -18,9 +19,7 @@ end
 
 
 function KickoffOffensive:_updateTask()
-
-	local shootGoalTmp = ShootGoal(self._agent)
-	local _, sg_mae, _ = shootGoalTmp:getDecisionMakingBasis()
+	local sg_target, sg_mae = ShootGoalUtil.updateTarget(self._robot, nil, false)
 	local canShootGoal = sg_mae and sg_mae > MIN_ANGLE_PRECISION
 
 	local rob, _ = next(self._inbox.kickoffPass())
