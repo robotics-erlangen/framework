@@ -55,7 +55,7 @@ function ManMark:_updateTask()
 	local markingPosThreshold = (self._task and Class.instanceOf(self._task, CenterBack))
 			and markingPosNearHigh or markingPosNearLow
 	local oppDefenseDist = Field.distanceToFriendlyDefenseArea(self._opp.pos, self._opp.radius)
-	if markingPosDefenseDist < markingPosThreshold or oppDefenseDist <= 0 or Referee.isStopState() then
+	if markingPosDefenseDist < markingPosThreshold or oppDefenseDist <= 0 or Referee.isStopState() or Referee.isFriendlyFreeKickState() then
 		return CenterBack, { self._opp }, self._restartTask
 	end
 
