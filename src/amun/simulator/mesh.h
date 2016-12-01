@@ -31,37 +31,12 @@ class Mesh
 public:
     void clear();
     void createRobotMesh(float radius, float height, float angle);
-
-public:
-    const float* vertices() const { return m_vertices.data(); }
-    const float* normals() const { return m_normals.data(); }
-    const float* texCoords() const { return m_texCoords.data(); }
-    const uint* indices() const { return m_indices.data(); }
-
-    uint numVertices() const { return m_vertices.size() / 3; }
-    uint numIndices() const { return m_indices.size(); }
-
-    const uint* indices(const QString& name) const { return m_groups.value(name).data(); }
-    uint numIndices(const QString& name) const { return m_groups.value(name).size(); }
-
     const QList<QVector3D>& hull() const { return m_hull; }
 
 private:
-    void addVertex(float, float, float);
-    void addNormal(float, float, float);
-    void addTexCoord(float, float);
-    void addTriangle(uint, uint, uint);
-
     void addRobotCover(float radius, float height, uint num, float angle, float angleStep);
-    void addRobotFront(float radius, float height, float angleStart, float angleStop);
-    void addRobotPlate(float radius, float height, uint num, float angle, float angleStep, bool top);
 
 private:
-    QVector<float> m_vertices;
-    QVector<float> m_normals;
-    QVector<float> m_texCoords;
-    QVector<uint> m_indices;
-    QMap<QString, QVector<uint> > m_groups;
     QList<QVector3D> m_hull;
 };
 
