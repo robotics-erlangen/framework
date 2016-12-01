@@ -242,18 +242,18 @@ end
 -- @param name string - Visualization group
 -- @param points Vector[] - Points of the path
 -- @param color table - line color (optional)
-function vis.addPath(name, points, color, background, style)
-	vis.addPathRaw(name, Coordinates.listToGlobal(points), color, background, style)
+function vis.addPath(name, points, color, background, style, lineWidth)
+	vis.addPathRaw(name, Coordinates.listToGlobal(points), color, background, style, lineWidth)
 end
 
 --- Adds a path. Requires global coordinates.
 -- @name addPathRaw
 -- @see addPath
-function vis.addPathRaw(name, points, color, background, style)
+function vis.addPathRaw(name, points, color, background, style, lineWidth)
 	color = color or gcolor
 	amun.addVisualization({
 		name = name, pen = { color=color, style=style },
-		width = 0.01,
+		width = lineWidth or 0.01,
 		path = {point = points},
 		background = background
 	})
