@@ -58,7 +58,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	-- limit catch time to be inside the field
 	local timeLimit = Physics.ballOutTime(ball, -0.02)
 	self._catchTime = math.min(timeLimit, self._catchTime)
-	
+
 	-- check for fast ball and that it moves towards the robot
 	-- in principle this isn't neccessary but it stabilizes the catchtime
 	local hitTime = self:_calculateHitTime(ball)
@@ -91,7 +91,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 
 	local moveDest = predictedBall.pos - Vector.fromAngle(viewDir):scaleLength(
 				self._robot.shootRadius + distanceToBall + ball.radius)
-	
+
 	-- setup obstacles
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, false, false, self._robot.shootRadius)
 	local aggressiveMovement = (self._robot.pos:distanceTo(moveDest) < 0.5)
@@ -124,7 +124,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
 	self._send.moveDest("all", moveDest)
 	self._send.attackPosition("all", predictedBall.pos)
-	
+
 	-- update prediction
 	-- keep old time if no way was found
 	if time > 0 then

@@ -19,7 +19,7 @@ end
 
 
 function KickoffOffensive:_updateTask()
-	local sg_target, sg_mae = ShootGoalUtil.updateTarget(self._robot, nil, false)
+	local _, sg_mae = ShootGoalUtil.updateTarget(self._robot, nil, false)
 	local canShootGoal = sg_mae and sg_mae > MIN_ANGLE_PRECISION
 
 	local rob, _ = next(self._inbox.kickoffPass())
