@@ -32,7 +32,7 @@ function preproc:run()
 	Robot._updateHadBall()
 	Robot._updateTouchedBall()
 	Robot._updateOwnFreekickShooter()
-	Referee.checkTouching()
+	Referee.check()
 	Referee.illustrateRefereeStates()
 	Error._update()
 

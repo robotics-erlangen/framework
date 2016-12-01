@@ -164,6 +164,26 @@ local noBallTouchStates = {
 	TimeoutOffensive = true,
 	TimeoutDefensive = true
 }
+
+function Referee.check()
+	Referee.checkTouching()
+	Referee.checkStateChange()
+	
+end
+
+local lastState
+local lastChangedTime
+function Referee.checkStateChange()
+	if World.RefereeState ~= lastState then
+		lastChangedTime = World.Time
+		lastState = World.RefereeState
+	end
+end
+
+function Referee.lastStateChangeTime()
+	return lastChangedTime
+end
+
 --- Update the status of which team touched the ball last
 -- @name checkTouching
 function Referee.checkTouching()
