@@ -143,6 +143,10 @@ vis.colors.brownHalf = vis.fromRGBA(127, 63, 0, 127)
 vis.colors.skyBlue = vis.fromRGBA(127, 191, 255, 255)
 vis.colors.skyBlueHalf = vis.fromRGBA(127, 191, 255, 127)
 
+vis.colors.slate = vis.fromRGBA(112, 118, 144, 255)
+vis.colors.slateHalf = vis.fromRGBA(112, 118, 144, 127)
+
+
 --- Sets line and fill color.
 -- If filled is true polygons and circles are filled using color.
 -- @name setColor
