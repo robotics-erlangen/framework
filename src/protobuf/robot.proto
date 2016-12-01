@@ -49,6 +49,7 @@ message Specs
     optional LimitParameters strategy = 16;
     optional ControllerParameters controller = 14;
     optional float ir_param = 15;
+    optional float shoot_radius = 17;
 };
 
 message Generation

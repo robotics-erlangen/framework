@@ -11,6 +11,7 @@ default {
   shot_linear_max: 5.5
   shot_chip_max: 3
   dribbler_width: 0.08
+  shoot_radius: 0.074
   acceleration {
     a_speedup_f_max: 10
     a_speedup_s_max: 10

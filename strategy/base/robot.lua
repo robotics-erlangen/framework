@@ -73,7 +73,7 @@ function Robot:init(data, isFriendly, geometry)
 	else
 		self.radius = 0.09 -- set default radius if no specs are available
 		self.dribblerWidth = 0.07 --just a good default guess
-		self.shootRadius = math.sqrt(self.radius^2 - (self.dribblerWidth/2)^2)
+		self.shootRadius = 0.075 -- shoot radius of 2014 generation
 		self.generation = -1
 		self.id = data
 		self.maxSpeed = 2 -- Init max speed and acceleration for opponents
@@ -188,8 +188,10 @@ function Robot:_setSpecs(specs)
 	self.id = specs.id
 	self.radius = specs.radius
 	self.height = specs.height
-	if specs.angle then -- calculate shoot radius
-		self.shootRadius = self.radius * math.cos(specs.angle / 2)
+	if specs.shoot_radius then
+		self.shootRadius = specs.shoot_radius
+	elseif specs.angle then -- calculate shoot radius
+		self.shootRadius = self.radius * math.cos(specs.angle / 2) - 0.005
 	else
 		self.shootRadius = self.radius
 	end
