@@ -30,6 +30,7 @@ local msgDefs = {
 	passPos = "table", -- { target: robot, pos: vector }
 	duelAssistantPos = "cdata",
 	duelAssistantDir = "number",
+	strikerZone = "table", -- { defaultPos: vector, boundaries: table }
 	roleAssignment = "table", -- { name: string, params: table }
 	shootActionPlan = "string", -- "goalShot" or "pass"
 	moveAssignment = "table", -- { class: class, params: table }
