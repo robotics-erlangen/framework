@@ -249,7 +249,7 @@ if lastShootTime == World.Time then
 	return nil
 end
 function Ball.wasShot(time)
-	if lastShootTime + time > World.Time then
+	if lastShootTime + time >= World.Time then
 		return lastShootRobot
 	end
 	return nil
