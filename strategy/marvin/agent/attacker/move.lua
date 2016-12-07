@@ -8,6 +8,10 @@ function Move:_stop()
 	self._behavior = nil
 end
 
+function Move:_init()
+	self._behavior = nil
+end
+
 function Move:check()
 	return self._inbox.moveAssignment().trainer ~= nil
 end
