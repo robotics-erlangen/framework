@@ -104,7 +104,7 @@ function Moves:run(sender, inbox, messages)
 					for key,value in pairs(assignment) do
 						log(tostring(key) .. " -> " .. tostring(value))
 					end
-					error("invalid assingment for robot " .. tostring(robot.id))
+					error("invalid assignment for robot " .. tostring(robot.id))
 				end
 				sender.moveAssignment(robot, assignment)
 				table.insert(self._participatingRobots, robot)

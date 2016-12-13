@@ -1,5 +1,6 @@
 local Base = require "agent/base/behavior"
 local Move = Class("Agent.Attacker.Move", Base)
+local debug = require "../base/debug"
 
 function Move:_stop()
 	if self._behavior then
@@ -25,6 +26,7 @@ function Move:_updateTask()
 			self._behavior = assignment.behavior(self._agent)
 			self._behavior:start()
 		end
+		debug.set("Move Behavior", Class.name(self._behavior, true))
 		return self._behavior:_updateTask()
 	end
 
