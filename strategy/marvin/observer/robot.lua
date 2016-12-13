@@ -137,32 +137,36 @@ function Robot.minTimeToBall(robot)
 	return minTimeToBall[robot]
 end
 
-local freekickShooterRobot = nil
-function Robot._updateOwnFreekickShooter()
-	if Referee.isFriendlyFreeKickState() then
-		if not freekickShooterRobot or not Robot.hadBall(freekickShooterRobot, 0) then
+local standardShooterRobot = nil
+function Robot._updateOwnStandardShooter()
+	if Referee.isFriendlyFreeKickState() or World.RefereeState == "KickoffOffensive" then
+		if not standardShooterRobot or not Robot.hadBall(standardShooterRobot, 0) then
 			for _, robot in ipairs(World.FriendlyRobots) do
 				if Robot.hadBall(robot, 0) then
-					freekickShooterRobot = robot
+					standardShooterRobot = robot
 					break
 				end
 			end
 		end
-	elseif World.RefereeState == "Game" and freekickShooterRobot then
+	elseif World.RefereeState == "Game" and standardShooterRobot then
 		-- reset when any other robot touches the ball
 		for _, robot in ipairs(World.Robots) do
-			if robot ~= freekickShooterRobot and Robot.touchedBall(robot, 0) then
-				freekickShooterRobot = nil
+			if robot ~= standardShooterRobot and Robot.touchedBall(robot, 0) then
+				standardShooterRobot = nil
 			end
 		end
 	else
 		-- reset in any other states
-		freekickShooterRobot = nil
+		standardShooterRobot = nil
 	end
 end
 
-function Robot.ownFreeKickShooter()
-	return freekickShooterRobot
+function Robot.ownStandardShooter()
+	if World.RefereeState == "Game" then
+		return standardShooterRobot
+	else
+		return nil
+	end
 end
 
 return Robot

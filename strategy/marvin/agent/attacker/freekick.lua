@@ -39,7 +39,7 @@ function FreeKick:check()
 
 	-- stay active for one additional frame to avoid flickering to a different task
 	-- rely on being killed by applyForMainAttacker
-	if Robot.ownFreeKickShooter() == self._robot then
+	if Robot.ownStandardShooter() == self._robot then
 		return true
 	end
 

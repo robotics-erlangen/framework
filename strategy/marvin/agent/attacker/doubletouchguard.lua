@@ -12,7 +12,7 @@ local StopAttack = require "task/stopattack"
 
 function DoubleTouchGuard:check()
 
-	if World.RefereeState =="Game" and Robot.ownFreeKickShooter() == self._robot and not Ball.wasShot(World.Time-Referee.lastStateChangeTime()) then
+	if World.RefereeState =="Game" and Robot.ownStandardShooter() == self._robot and not Ball.wasShot(World.Time-Referee.lastStateChangeTime()) then
 		return true
 	end
 	return false

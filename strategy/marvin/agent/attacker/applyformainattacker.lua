@@ -41,8 +41,8 @@ function ApplyForMainattacker:check()
 		return false
 	end
 
-	if not Referee.isFriendlyFreeKickState() and Robot.ownFreeKickShooter() == self._robot then
-		-- prevent double touches after a failed freekick by preventing the freekicking robot as mainattacker
+	if Robot.ownStandardShooter() == self._robot then
+		-- prevent double touches after a failed freekick/kickoff by preventing the shooting robot as mainattacker
 		return false
 	end
 
