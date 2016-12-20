@@ -16,7 +16,8 @@ function MoveToStaticBall:run()
 
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
-	self._robot.path:addCircle(World.Ball.pos.x, World.Ball.pos.y, self._distanceToBall, "StaticBall")
+	self._robot.path:addCircle(World.Ball.pos.x, World.Ball.pos.y,
+		self._distanceToBall + World.Ball.radius, "StaticBall")
 
 	self._robot.trajectory:update(ToTarget, pos, self._rotation)
 
