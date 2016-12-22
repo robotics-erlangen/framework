@@ -90,10 +90,10 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	end
 
 	local moveDest = predictedBall.pos - Vector.fromAngle(viewDir):scaleLength(
-				self._robot.shootRadius + distanceToBall + ball.radius)
+				self._robot.radius + distanceToBall + ball.radius)
 
 	-- setup obstacles
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, false, false, self._robot.shootRadius)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, false, false, self._robot.radius)
 	local aggressiveMovement = (self._robot.pos:distanceTo(moveDest) < 0.5)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot, nil, nil, aggressiveMovement)
 
@@ -237,7 +237,7 @@ function CatchBall:_ballCatchMethod(currentBall, predictedBall, moveDest)
 
 
 	if ballHit and robotHit or lambda2 == math.huge and lambda4 == math.huge
-		or ((moveDest - self._robot.pos):absoluteAngleDiff(predictedBall.pos - moveDest) > 87/180*math.pi) then
+		or ((moveDest - self._robot.pos):absoluteAngleDiff(World.Ball.pos - moveDest) > 87/180*math.pi) then
 		-- the robot has to move around the predicted ball to reach the catch pos
 		return AROUND_METHOD
 	elseif moveDest:distanceTo(currentBall.pos) > robotTargetSpacing
