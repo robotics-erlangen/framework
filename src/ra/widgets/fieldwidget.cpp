@@ -1157,7 +1157,7 @@ bool FieldWidget::gestureEvent(QGestureEvent *event)
         QPinchGesture *pinch = static_cast<QPinchGesture *>(event->gesture(Qt::PinchGesture));
         if (pinch->changeFlags() & QPinchGesture::ScaleFactorChanged) {
             // faster scaling
-            qreal scaleChange = (pinch->scaleFactor() / pinch->lastScaleFactor() - 1.)*2. + 1.;
+            qreal scaleChange = (pinch->scaleFactor() - 1.)*1.6 + 1.;
             // similar to wheelEvent
             const QPointF p = mapToScene(pinch->centerPoint().toPoint());
             translate(p.x(), p.y());
