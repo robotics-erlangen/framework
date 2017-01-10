@@ -67,7 +67,6 @@ private:
         btVector3 dir;
     };
 
-    QList<Wheel> m_wheels;
     amun::SimulatorMoveRobot m_move;
     robot::Command m_command;
     bool m_charge;

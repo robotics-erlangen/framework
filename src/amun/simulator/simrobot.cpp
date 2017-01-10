@@ -106,18 +106,6 @@ SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld 
     m_constraint = new btHingeConstraint(*m_body, *dribblerBody, localA, localB);
     m_constraint->enableAngularMotor(false, 0, 0);
     m_world->addConstraint(m_constraint, true);
-
-    // FIXME wheels currently aren't used
-    const float angles[] = { 35.5, 135, 225, 324.5 };
-    m_wheels.reserve(4);
-    for (int i = 0; i < 4; i++) {
-        const float angle = (90 + angles[i]) / 180 * M_PI;
-        Wheel wheel;
-        wheel.angle = angle;
-        wheel.pos = btVector3(cos(angle), sin(angle), 0.0f) * m_specs.radius() * SIMULATOR_SCALE;
-        wheel.dir = btVector3(-sin(angle), cos(angle), 0.0f);
-        m_wheels.append(wheel);
-    }
 }
 
 SimRobot::~SimRobot()
