@@ -54,9 +54,11 @@ private:
     RNG *m_rng;
     robot::Specs m_specs;
     btDiscreteDynamicsWorld *m_world;
-    btCollisionShape *m_shape;
-    btRigidBody *m_body;
-    btMotionState* m_motionState;
+    btRigidBody * m_body;
+    btRigidBody * m_dribblerBody;
+    btHingeConstraint *m_constraint;
+    QList<btCollisionShape*> m_shapes;
+    btMotionState * m_motionState;
 
     struct Wheel
     {

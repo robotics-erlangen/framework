@@ -29,15 +29,21 @@
 class Mesh
 {
 public:
-    void clear();
-    void createRobotMesh(float radius, float height, float angle);
-    const QList<QVector3D>& hull() const { return m_hull; }
+    Mesh(float radius, float height, float angle, float holeSize, float boxHeight);
+    void createRobotMeshes(float radius, float height, float angle);
+    const QList<QList<QVector3D>> &hull() const { return m_hull; }
 
 private:
-    void addRobotCover(float radius, float height, uint num, float angle, float angleStep);
+    void addRobotCover(uint num, float startAngle, float endAngle);
+    void addSidePart(uint num, float angleStart, float angleStop, bool right);
 
 private:
-    QList<QVector3D> m_hull;
+    QList<QList<QVector3D>> m_hull;
+
+    const float m_radius;
+    const float m_height;
+    const float m_angle;
+    const float m_holeSize;
 };
 
 #endif // MESH_H

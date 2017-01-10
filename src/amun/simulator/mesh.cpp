@@ -27,33 +27,42 @@
  * \brief A 3D mesh
  */
 
-/*!
- * \brief Resets the mesh to its initial state
- */
-void Mesh::clear()
+Mesh::Mesh(float radius, float height, float angle, float holeSize, float boxHeight)
+    : m_radius(radius), m_height(height), m_angle(angle), m_holeSize(holeSize)
 {
-    m_hull.clear();
+    const float frontPlateLength = std::sin(angle / 2.0f) * radius;
+    const float frontPlatePos = radius * std::cos(angle / 2.0f);
+    const float holePlatePos = frontPlatePos - holeSize;
+    const float outerAngle = std::acos(holePlatePos / radius) * 2;
+    const float angleDiff = (outerAngle - angle) / 2.0f;
+    const float halfOuterAngle = outerAngle / 2.0f;
+    const float outerAngleStart = halfOuterAngle + M_PI_2;
+    const float outerAngleStop =  2.0f * M_PI - halfOuterAngle + M_PI_2;
+    addRobotCover(20, outerAngleStart, outerAngleStop);
+
+    //right pillar
+    addRobotCover(5, outerAngleStart - angleDiff, outerAngleStart);
+    m_hull.back().append(QVector3D(-frontPlateLength, holePlatePos,  m_height / 2.0f));
+    m_hull.back().append(QVector3D(-frontPlateLength, holePlatePos, -m_height / 2.0f));
+
+    //left pillar
+    addRobotCover(5, outerAngleStop, outerAngleStop + angleDiff);
+    m_hull.back().append(QVector3D(frontPlateLength, holePlatePos,  m_height / 2.0f));
+    m_hull.back().append(QVector3D(frontPlateLength, holePlatePos, -m_height / 2.0f));
+
+    //the remaining box
+    QList<QVector3D> boxPart;
+    boxPart.append(QVector3D(frontPlateLength, holePlatePos,  m_height / 2.0f));
+    boxPart.append(QVector3D(-frontPlateLength, holePlatePos,  m_height / 2.0f));
+    boxPart.append(QVector3D(frontPlateLength, holePlatePos,  -m_height / 2.0f + boxHeight));
+    boxPart.append(QVector3D(-frontPlateLength, holePlatePos,  -m_height / 2.0f + boxHeight));
+    boxPart.append(QVector3D(frontPlateLength, frontPlatePos,  m_height / 2.0f));
+    boxPart.append(QVector3D(-frontPlateLength, frontPlatePos,  m_height / 2.0f));
+    boxPart.append(QVector3D(frontPlateLength, frontPlatePos,  -m_height / 2.0f + boxHeight));
+    boxPart.append(QVector3D(-frontPlateLength, frontPlatePos,  -m_height / 2.0f + boxHeight));
+    m_hull.append(boxPart);
 }
 
-/*!
- * \brief Creates a mesh for a robot of a given size
- * \param radius Radius of the robot
- * \param height Height of the robot
- * \param angle Angle of the front side
- */
-void Mesh::createRobotMesh(float radius, float height, float angle)
-{
-    clear();
-
-    const float halfAngle = angle / 2.0f;
-
-    const float angleStart = halfAngle + M_PI_2;
-    const float angleStop =  2.0f * M_PI - halfAngle + M_PI_2 ;
-    const uint num = 20;
-    const float angleStep = (angleStop - angleStart) / num;
-
-    addRobotCover(radius, height, num, angleStart, angleStep);
-}
 
 /*!
  * \brief Adds triangles for the outer hull
@@ -63,12 +72,16 @@ void Mesh::createRobotMesh(float radius, float height, float angle)
  * \param angle Angle of the hull start
  * \param angleStep Step size in rad
  */
-void Mesh::addRobotCover(float radius, float height, uint num, float angle, float angleStep)
+void Mesh::addRobotCover(uint num, float startAngle, float endAngle)
 {
+    QList<QVector3D> covers;
+    float angle = startAngle;
+    float angleStep = (endAngle - startAngle) / num;
     for (uint i = 0; i <= num; i++) {
-        m_hull.append(QVector3D(radius * cos(angle), radius * sin(angle),  height / 2.0f));
-        m_hull.append(QVector3D(radius * cos(angle), radius * sin(angle), -height / 2.0f));
+        covers.append(QVector3D(m_radius * cos(angle), m_radius * sin(angle),  m_height / 2.0f));
+        covers.append(QVector3D(m_radius * cos(angle), m_radius * sin(angle), -m_height / 2.0f));
 
         angle += angleStep;
     }
+    m_hull.append(covers);
 }

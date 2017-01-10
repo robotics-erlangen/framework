@@ -38,29 +38,36 @@ SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld 
     error_sum_v_f(0),
     error_sum_omega(0)
 {
-    btConvexHullShape* shape = new btConvexHullShape;
-    m_shape = shape;
 
-    // setup robot collision shape
-    Mesh mesh;
-    // subtract collision margin from dimensions;
-    mesh.createRobotMesh(m_specs.radius() - COLLISION_MARGIN / SIMULATOR_SCALE,
-                         m_specs.height() - 2 * COLLISION_MARGIN / SIMULATOR_SCALE, m_specs.angle());
-    foreach (const QVector3D& v, mesh.hull()) {
-        shape->addPoint(btVector3(v.x(), v.y(), v.z()) * SIMULATOR_SCALE);
+    btCompoundShape * wholeShape = new btCompoundShape;
+    btTransform robotShapeTransform;
+    robotShapeTransform.setIdentity();
+
+    // subtract collision margin from dimensions
+    Mesh mesh(m_specs.radius() - COLLISION_MARGIN / SIMULATOR_SCALE,
+              m_specs.height() - 2 * COLLISION_MARGIN / SIMULATOR_SCALE, m_specs.angle(), 0.04f, m_specs.dribbler_height() + 0.02f);
+    for (const QList<QVector3D> & hullPart : mesh.hull()) {
+        btConvexHullShape* hullPartShape = new btConvexHullShape;
+        m_shapes.append(hullPartShape);
+        for (const QVector3D& v : hullPart) {
+            hullPartShape->addPoint(btVector3(v.x(), v.y(), v.z()) * SIMULATOR_SCALE);
+        }
+        wholeShape->addChildShape(robotShapeTransform, hullPartShape);
     }
-
-    btVector3 localInertia(0,0,0);
-    m_shape->calculateLocalInertia(m_specs.mass(), localInertia);
+    m_shapes.append(wholeShape);
 
     btTransform startWorldTransform;
     startWorldTransform.setIdentity();
-    startWorldTransform.setOrigin(btVector3(pos.x(), pos.y(), m_specs.height() / 2.0f) * SIMULATOR_SCALE);
+    btVector3 robotBasePos(btVector3(pos.x(), pos.y(), m_specs.height() / 2.0f) * SIMULATOR_SCALE);
+    startWorldTransform.setOrigin(robotBasePos);
     startWorldTransform.setRotation(btQuaternion(btVector3(0, 0, 1), dir - M_PI_2));
     m_motionState = new btDefaultMotionState(startWorldTransform);
 
     // set robot dynamics and move to start position
-    btRigidBody::btRigidBodyConstructionInfo rbInfo(m_specs.mass(), m_motionState, m_shape, localInertia);
+    btVector3 localInertia(0,0,0);
+    const float robotMassProportion = 49.0f / 50.0f;
+    wholeShape->calculateLocalInertia(robotMassProportion * m_specs.mass(), localInertia);
+    btRigidBody::btRigidBodyConstructionInfo rbInfo(robotMassProportion * m_specs.mass(), m_motionState, wholeShape, localInertia);
 
     m_body = new btRigidBody(rbInfo);
     // see simulator.cpp
@@ -68,10 +75,42 @@ SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld 
     m_body->setFriction(0.22f);
     m_world->addRigidBody(m_body);
 
+    btCylinderShape * dribblerShape = new btCylinderShapeX(btVector3(m_specs.dribbler_width() / 2.0f, 0.007f, 0.007f) * SIMULATOR_SCALE);
+    m_shapes.append(dribblerShape);
+    // WARNING: hack, instead of 0.02 should be the dribbler height
+    // the ball seems to get instable if the dribbler is at correct height
+    // possibly the ball gets 'sucked' onto the robot
+    btVector3 dribblerCenter(btVector3(0, m_specs.shoot_radius() - 0.01f, -m_specs.height() / 2.0f + 0.02f) * SIMULATOR_SCALE);
+    btTransform dribblerStartTransform;
+    dribblerStartTransform.setIdentity();
+    dribblerStartTransform.setOrigin(dribblerCenter + robotBasePos);
+    dribblerStartTransform.setRotation(btQuaternion(btVector3(0, 0, 1), dir - M_PI_2));
+
+    btVector3 dribblerInertia(0,0,0);
+    dribblerShape->calculateLocalInertia((1 - robotMassProportion) * m_specs.mass(), dribblerInertia);
+    btRigidBody::btRigidBodyConstructionInfo rbDribInfo((1 - robotMassProportion) * m_specs.mass(), nullptr, dribblerShape, dribblerInertia);
+    rbDribInfo.m_startWorldTransform = dribblerStartTransform;
+
+    btRigidBody * dribblerBody = new btRigidBody(rbDribInfo);
+    dribblerBody->setRestitution(0.2f);
+    dribblerBody->setFriction(1.5f);
+    m_dribblerBody = dribblerBody;
+    m_world->addRigidBody(dribblerBody);
+
+    btTransform localA, localB;
+    localA.setIdentity();
+    localB.setIdentity();
+    localA.setOrigin(dribblerCenter);
+    localA.setRotation(btQuaternion(btVector3(0, 1, 0), M_PI_2));
+    localB.setRotation(btQuaternion(btVector3(0, 1, 0), M_PI_2));
+    m_constraint = new btHingeConstraint(*m_body, *dribblerBody, localA, localB);
+    m_constraint->enableAngularMotor(false, 0, 0);
+    m_world->addConstraint(m_constraint, true);
+
     // FIXME wheels currently aren't used
     const float angles[] = { 35.5, 135, 225, 324.5 };
     m_wheels.reserve(4);
-    for (int i = 0; i < 4; i++){
+    for (int i = 0; i < 4; i++) {
         const float angle = (90 + angles[i]) / 180 * M_PI;
         Wheel wheel;
         wheel.angle = angle;
@@ -83,10 +122,14 @@ SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld 
 
 SimRobot::~SimRobot()
 {
+    m_world->removeConstraint(m_constraint);
+    m_world->removeRigidBody(m_dribblerBody);
     m_world->removeRigidBody(m_body);
+    delete m_constraint;
     delete m_body;
-    delete m_shape;
+    delete m_dribblerBody;
     delete m_motionState;
+    qDeleteAll(m_shapes);
 }
 
 void SimRobot::begin(SimBall *ball, double time)
@@ -96,6 +139,13 @@ void SimRobot::begin(SimBall *ball, double time)
     // after 0.1s without new command reset to stop
     if (m_commandTime > 0.1) {
         m_command.Clear();
+    }
+
+    //enable dribbler if necessary
+    if (m_command.has_dribbler() && m_command.dribbler() > 0) {
+        m_constraint->enableAngularMotor(true, 700 * m_command.dribbler(), 20 * m_command.dribbler());
+    } else {
+        m_constraint->enableAngularMotor(false, 0, 0);
     }
 
     if (m_move.has_p_x()) {
@@ -259,50 +309,30 @@ btVector3 SimRobot::relativeBallSpeed(SimBall *ball) const
 
 bool SimRobot::canKickBall(SimBall *ball) const
 {
-    bool ballCollidesWithRobot = false;
-
-    // check for collision between ball and robot
-    int numManifolds = m_world->getDispatcher()->getNumManifolds();
-    for (int i = 0; i < numManifolds; ++i) {
-        btPersistentManifold *contactManifold = m_world->getDispatcher()->getManifoldByIndexInternal(i);
-        btCollisionObject *objectA = (btCollisionObject*)(contactManifold->getBody0());
-        btCollisionObject *objectB = (btCollisionObject*)(contactManifold->getBody1());
-        if ((objectA == m_body && objectB == ball->body())
-                || (objectA == ball->body() && objectB == m_body)) {
-            int numContacts = contactManifold->getNumContacts();
-            for (int j = 0; j < numContacts; ++j) {
-                btManifoldPoint &pt = contactManifold->getContactPoint(j);
-                if (pt.getDistance() < 0.001f * SIMULATOR_SCALE) {
-                    ballCollidesWithRobot = true;
-                    break;
-                }
-            }
-        }
-    }
-
-    btTransform t = m_body->getWorldTransform();
-    const btVector3 position = t.getOrigin();
-    const btVector3 robotPos(position.x(), position.y(), 0);
     const btVector3 ballPos = ball->position();
     // can't kick jumping ball
     if (ballPos.z() > 0.05f * SIMULATOR_SCALE) {
         return false;
     }
 
-    const btQuaternion robotDir = t.getRotation();
-    const btVector3 diff = (ballPos - robotPos).rotate(robotDir.getAxis(), -robotDir.getAngle());
-
-    // check that the ball is in front of the dribbler
-    if (!ballCollidesWithRobot || diff.y() < 0) {
-        return false;
+    // check for collision between ball and dribbler
+    int numManifolds = m_world->getDispatcher()->getNumManifolds();
+    for (int i = 0; i < numManifolds; ++i) {
+        btPersistentManifold *contactManifold = m_world->getDispatcher()->getManifoldByIndexInternal(i);
+        btCollisionObject *objectA = (btCollisionObject*)(contactManifold->getBody0());
+        btCollisionObject *objectB = (btCollisionObject*)(contactManifold->getBody1());
+        if ((objectA == m_dribblerBody && objectB == ball->body())
+                || (objectA == ball->body() && objectB == m_dribblerBody)) {
+            int numContacts = contactManifold->getNumContacts();
+            for (int j = 0; j < numContacts; ++j) {
+                btManifoldPoint &pt = contactManifold->getContactPoint(j);
+                if (pt.getDistance() < 0.001f * SIMULATOR_SCALE) {
+                    return true;
+                }
+            }
+        }
     }
-
-    const float dribblerWidth = (m_specs.has_dribbler_width()) ? m_specs.dribbler_width() : 0.07f;
-    // check that ball is inside the dribbler, not left or right of it
-    if (fabs(diff.x()) > dribblerWidth * (0.5f * SIMULATOR_SCALE)) {
-        return false;
-    }
-    return true;
+    return false;
 }
 
 robot::RadioResponse SimRobot::setCommand(const robot::Command &command, SimBall *ball, bool charge)
