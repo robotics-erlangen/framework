@@ -27,10 +27,10 @@ function HandleBall:check()
 	if active then
 		-- force being mainAttacker
 		self:_applyForMainAttacker(nil, nil, 2)
-		return true
-	else
-		return false
 	end
+
+	local mainAttackerFlag = self._inbox.mainAttacker().trainer == self._robot
+	return mainAttackerFlag
 end
 
 function HandleBall:_updateTask()
