@@ -128,55 +128,54 @@ function Base:_applyForMainAttacker()
 		return
 	end
 
-	-- don't ever apply for MA if the robot is in our defense area
-	if Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) <= World.Ball.radius + 0.02 then
-		return false
-	end
-
-	if Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) <= CenterBack.distanceToDefenseArea()
-		and self._robot ~= World.FriendlyKeeper then
-		return false
-	end
-
-	debug.set("ma application tried", true)
-	if not Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) or World.RefereeState == "BallPlacementOffensive" then
-		local mainAttackerRating
-		if not overrideRating then
-			local targetPos = parameters[1] or World.Geometry.OpponentGoal
-			local endSpeedLength = parameters[2] or 0
-
-			local timeToBall = Physics.robotTimeToBall(self._robot,
-				World.Ball, targetPos, endSpeedLength, self._mainAttackerLastTime)
-			self._mainAttackerLastTime = timeToBall
-
-			-- if we have the ball, the time is 0
-			if timeToBall == math.huge then
-				local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir) * self._robot.shootRadius
-				if World.Ball.pos:distanceTo(dribblerPos) < 0.15 then
-					if World.Ball.speed:dot(self._robot.pos - World.Ball.pos) > 0 then
-						timeToBall = 0
-					end
-				end
-			end
-
-			if timeToBall == math.huge then
-				local ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
-				if math.abs(ballOutPos.x) > World.Geometry.DefenseStretch / 2  + World.Geometry.DefenseRadius then
-					timeToBall = Physics.robotTimeToPos(self._robot, ballOutPos, Vector(0, 0))
-				end
-			end
-			mainAttackerRating = Rating.timeToRating(timeToBall)
-
-			-- rate the robot pos (generally, being behind the ball is better)
-			local relativeYPos = World.Ball.pos.y - self._robot.pos.y
-			local ratingBoost = math.sin(math.bound(0, relativeYPos*math.pi, math.pi))
-			mainAttackerRating = mainAttackerRating + ratingBoost * 0.2
-		else
-			mainAttackerRating = overrideRating
+	if self._robot ~= World.FriendlyKeeper or World.RefereeState == "BallPlacementOffensive" then
+		-- only the keeper can apply for MA if it could touch the ball inside the defense area
+		if Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) <= World.Ball.radius + 0.02 then
+			return false
 		end
 
-		self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
+		-- only the keeper can apply for MA if the ball is behind the centerbacks
+		if Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) <= CenterBack.distanceToDefenseArea() then
+			return false
+		end
 	end
+
+	local mainAttackerRating
+	if not overrideRating then
+		local targetPos = parameters[1] or World.Geometry.OpponentGoal
+		local endSpeedLength = parameters[2] or 0
+
+		local timeToBall = Physics.robotTimeToBall(self._robot,
+			World.Ball, targetPos, endSpeedLength, self._mainAttackerLastTime)
+		self._mainAttackerLastTime = timeToBall
+
+		-- if we have the ball, the time is 0
+		if timeToBall == math.huge then
+			local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir) * self._robot.shootRadius
+			if World.Ball.pos:distanceTo(dribblerPos) < 0.15 then
+				if World.Ball.speed:dot(self._robot.pos - World.Ball.pos) > 0 then
+					timeToBall = 0
+				end
+			end
+		end
+
+		if timeToBall == math.huge then
+			local ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
+			if math.abs(ballOutPos.x) > World.Geometry.DefenseStretch / 2  + World.Geometry.DefenseRadius then
+				timeToBall = Physics.robotTimeToPos(self._robot, ballOutPos, Vector(0, 0))
+			end
+		end
+		mainAttackerRating = Rating.timeToRating(timeToBall)
+
+		-- rate the robot pos (generally, being behind the ball is better)
+		local relativeYPos = World.Ball.pos.y - self._robot.pos.y
+		local ratingBoost = math.sin(math.bound(0, relativeYPos*math.pi, math.pi))
+		mainAttackerRating = mainAttackerRating + ratingBoost * 0.2
+	else
+		mainAttackerRating = overrideRating
+	end
+
+	self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
 end
 
 -- controls whether the robot may be kept in its pool
