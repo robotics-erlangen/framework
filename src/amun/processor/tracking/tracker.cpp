@@ -215,6 +215,14 @@ Status Tracker::worldState(qint64 currentTime)
         status->mutable_geometry()->CopyFrom(m_geometry);
     }
 
+    if (m_aoiEnabled) {
+        amun::TrackingAOI *aoi = worldState->mutable_tracking_aoi();
+        aoi->set_x1(m_aoi_x1);
+        aoi->set_y1(m_aoi_y1);
+        aoi->set_x2(m_aoi_x2);
+        aoi->set_y2(m_aoi_y2);
+    }
+
     return status;
 }
 

@@ -67,6 +67,7 @@ local Robot = require "../base/robot"
 
 local World = {}
 
+World.AoI = nil
 World.Ball = Ball()
 World.FriendlyRobots = {}
 World.FriendlyInvisibleRobots = {}
@@ -278,6 +279,9 @@ function World._updateWorld(state)
 	else
 		World.MixedTeam = nil
 	end
+
+	-- update aoi data
+	World.AoI = state.tracking_aoi
 
 	-- no vision data only if the parameter is false
 	return state.has_vision_data ~= false

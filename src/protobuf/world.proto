@@ -1,4 +1,5 @@
 syntax = "proto2";
+import "command.proto";
 import "robot.proto";
 import "ssl_mixed_team.proto";
 
@@ -79,4 +80,5 @@ message State {
     optional bool is_simulated = 6;
     optional bool has_vision_data = 7;
     optional ssl.TeamPlan mixed_team_info = 8;
+    optional amun.TrackingAOI tracking_aoi = 9;
 }
