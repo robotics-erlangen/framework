@@ -143,7 +143,7 @@ function World._updateTeam(state)
 	local friendlyRobotsById = {}
 	local friendlyRobotsAll = {}
 	for _, rdata in ipairs(state.robot) do
-		local robot = Generation.factory(rdata, World.Geometry)
+		local robot = Generation.factory(rdata)
 		friendlyRobotsById[rdata.id] = robot
 		table.insert(friendlyRobotsAll, robot)
 	end
@@ -237,6 +237,7 @@ function World._updateWorld(state)
 			end
 
 			robot:_update(dataById[robot.id], World.Time, robotResponses)
+			robot:_updatePathBoundaries(World.Geometry, World.AoI)
 			-- sort robot into visible / not visible
 			if robot.isVisible then
 				table.insert(World.FriendlyRobots, robot)
