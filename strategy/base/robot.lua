@@ -94,11 +94,6 @@ function Robot:init(data, isFriendly, geometry)
 	if self.isFriendly then -- setup trajectory and path objects
 		self.trajectory = Trajectory(self)
 		self.path = path.create()
-		self.path:setBoundary(
-			-geometry.FieldWidthHalf  - geometry.BoundaryWidth - 0.02,
-			-geometry.FieldHeightHalf - geometry.BoundaryWidth - 0.02,
-			 geometry.FieldWidthHalf  + geometry.BoundaryWidth + 0.02,
-			 geometry.FieldHeightHalf + geometry.BoundaryWidth + 0.02)
 	end
 	self._currentTime = 0
 	self._controllerInput = nil
@@ -212,6 +207,18 @@ function Robot:_setSpecs(specs)
 	self.acceleration.aBrakeFMax = accelData.a_brake_f_max or 1.0
 	self.acceleration.aBrakeSMax = accelData.a_brake_s_max or 1.0
 	self.acceleration.aBrakePhiMax = accelData.a_brake_phi_max or 1.0
+end
+
+function Robot:_updatePathBoundaries(geometry, aoi)
+	if aoi ~= nil then
+		self.path:setBoundary(aoi.x1, aoi.y1, aoi.x2, aoi.y2)
+	else
+		self.path:setBoundary(
+			-geometry.FieldWidthHalf  - geometry.BoundaryWidth - 0.02,
+			-geometry.FieldHeightHalf - geometry.BoundaryWidth - 0.02,
+			 geometry.FieldWidthHalf  + geometry.BoundaryWidth + 0.02,
+			 geometry.FieldHeightHalf + geometry.BoundaryWidth + 0.02)
+	end
 end
 
 function Robot:_command()
