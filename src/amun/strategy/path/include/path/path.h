@@ -41,7 +41,6 @@ private:
         virtual ~Obstacle() {}
         virtual float distance(const Vector &v) const = 0;
         virtual float distance(const LineSegment &segment) const = 0;
-        virtual float size() const = 0;
 
         QString obstacleName() const { return name; }
         QString name;
@@ -51,7 +50,6 @@ private:
     {
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
-        float size() const override { return radius; }
 
         Vector center;
         float radius;
@@ -61,10 +59,17 @@ private:
     {
         float distance(const Vector &v) const override;
         float distance(const LineSegment &segment) const override;
-        float size() const override { return std::min(top_right.x-bottom_left.x, top_right.y-bottom_left.y); }
 
         Vector bottom_left;
         Vector top_right;
+    };
+
+    struct Triangle : Obstacle
+    {
+        float distance(const Vector &v) const override;
+        float distance(const LineSegment &segment) const override;
+
+        Vector p1, p2, p3;
     };
 
     // Avoid including LineSegment
@@ -97,6 +102,7 @@ public:
     void addCircle(float x, float y, float radius, const char *name);
     void addLine(float x1, float y1, float x2, float y2, float width, const char *name);
     void addRect(float x1, float y1, float x2, float y2, const char *name);
+    void addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, const char *name);
     bool testSpline(const robot::Spline &spline, float radius) const;
     // path finding
     void setProbabilities(float p_dest, float p_wp);

@@ -27,12 +27,12 @@
 #include <sys/time.h>
 //#include <QDebug>
 
+
 struct Path::Line : Obstacle
 {
     Line(const Vector &p1, const Vector &p2) : segment(p1, p2) {}
     float distance(const Vector &v) const override;
     float distance(const LineSegment &segment) const override;
-    float size() const override { return width; }
 
     LineSegment segment;
     float width;
@@ -102,6 +102,38 @@ float Path::Rect::distance(const LineSegment &segment) const
     float distRight = segment.distance(LineSegment(top_right, bottom_right));
 
     return std::min(std::min(distTop, distBottom), std::min(distLeft, distRight));
+}
+
+float Path::Triangle::distance(const Vector &v) const
+{
+    const float d1 = LineSegment(p2, p1).distanceSigned(v);
+    const float d2 = LineSegment(p3, p2).distanceSigned(v);
+    const float d3 = LineSegment(p1, p3).distanceSigned(v);
+    return std::max(d1, std::max(d2, d3));
+}
+
+float Path::Triangle::distance(const LineSegment &segment) const
+{
+    // at least one segment intersects a triangle side
+    const LineSegment seg1(p1, p2);
+    const LineSegment seg2(p2, p3);
+    const LineSegment seg3(p3, p1);
+    const float dseg1 = seg1.distance(segment);
+    const float dseg2 = seg2.distance(segment);
+    const float dseg3 = seg3.distance(segment);
+    if (dseg1 * dseg2 * dseg3 == 0) {
+        return 0;
+    }
+
+    // the segment lies entirely inside the triangle
+    const float dstart = distance(segment.start());
+    const float dend = distance(segment.end());
+    if (dstart < 0 && dend < 0) {
+        return std::max(dstart, dend);
+    }
+
+    // the segment lies entirely outside the triangle
+    return std::min(dseg1, std::min(dseg2, dseg3));
 }
 
 Path::Path(uint32_t rng_seed) :
@@ -185,6 +217,29 @@ void Path::addRect(float x1, float y1, float x2, float y2, const char* name)
     r->name = name;
     m_obstacles.append(r);
 }
+
+void Path::addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, const char *name)
+{
+    Triangle *t = new Triangle;
+    t->name = name;
+
+    // ensure that the triangle is oriented counter-clockwise
+    const Vector a(x1, y1);
+    const Vector b(x2, y2);
+    const Vector c(x3, y3);
+    const float det = Vector::det(a, b, c);
+    if (det > 0) {
+        t->p1 = a;
+        t->p2 = b;
+        t->p3 = c;
+    } else {
+        t->p1 = a;
+        t->p2 = c;
+        t->p3 = b;
+    }
+    m_obstacles.append(t);
+}
+
 
 bool Path::testSpline(const robot::Spline &spline, float radius) const
 {

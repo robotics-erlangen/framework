@@ -108,6 +108,21 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
+--- Adds a triangle as an obstacle.
+-- The triangle <strong>must</strong> be passed in strategy coordinates!
+-- @class function
+-- @name path:addTriangle
+-- @param x1 number - x coordinate of the first point
+-- @param y1 number - y coordinate of the first point
+-- @param x2 number - x coordinate of the second point
+-- @param y2 number - y coordinate of the second point
+-- @param x3 number - x coordinate of the third point
+-- @param y3 number - y coordinate of the third point
+-- @param name string - name of the obstacle
+
+--[[
+separator for luadoc]]--
+
 --- Tests a given path for collisions with any obstacle.
 -- The spline is based on the global coordinate system!
 -- @class function
@@ -190,6 +205,15 @@ function path:addRect(start_x, start_y, stop_x, stop_y, name)
 		_addRect(self, -start_x, -start_y, -stop_x, -stop_y, name)
 	else
 		_addRect(self, start_x, start_y, stop_x, stop_y, name)
+	end
+end
+
+local _addTriangle = path.addTriangle
+function path:addTriangle(x1, y1, x2, y2, x3, y3, name)
+	if teamIsBlue then
+		_addTriangle(self, -x1, -y1, -x2, -y2, -x3, -y3, name)
+	else
+		_addTriangle(self, x1, y1, x2, y2, x3, y3, name)
 	end
 end
 

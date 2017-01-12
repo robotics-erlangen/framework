@@ -174,6 +174,23 @@ static int pathAddRect(lua_State *L)
     return 0;
 }
 
+static int pathAddTriangle(lua_State *L)
+{
+    Path *p = checkPath(L, 1);
+    const float x1 = verifyNumber(L, 2);
+    const float y1 = verifyNumber(L, 3);
+    const float x2 = verifyNumber(L, 4);
+    const float y2 = verifyNumber(L, 5);
+    const float x3 = verifyNumber(L, 6);
+    const float y3 = verifyNumber(L, 7);
+
+    const char* name = NULL;
+    name = luaL_optlstring(L,8, "NoName", 0);
+
+    p->addTriangle(x1, y1, x2, y2, x3, y3, name);
+    return 0;
+}
+
 static int pathTest(lua_State *L)
 {
     const qint64 t = Timer::systemTime();
@@ -289,6 +306,7 @@ static const luaL_Reg pathMethods[] = {
     {"addCircle",       pathAddCircle},
     {"addLine",         pathAddLine},
     {"addRect",         pathAddRect},
+    {"addTriangle",     pathAddTriangle},
     {"addSeedTarget",   pathAddSeedTarget},
     {"setProbabilities",    pathSetProbabilities},
     {"test",            pathTest},

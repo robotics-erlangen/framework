@@ -62,6 +62,10 @@ public:
     float lengthSquared() const;
     float distance(const Vector &rho) const;
 
+    static float det(const Vector &a, const Vector &b, const Vector &c) {
+        return a.x * b.y + b.x * c.y + c.x * a.y - a.x * c.y - b.x * a.y - c.x * b.y;
+    }
+
 public:
     union {
         struct {
