@@ -345,7 +345,7 @@ function geom.inscribedAngle(point1, point2, theta)
 	local radius = point1:distanceTo(point2) / (2 * math.sin(theta))
 	local centerOfCircleOne = point1 + ((point2 - point1):rotate(math.pi/2 - theta)):setLength(radius)
 	local centerOfCircleTwo = point1 + ((point2 - point1):rotate(-(math.pi/2 - theta))):setLength(radius)
-	return circleOfCircleOne, centerOfCircleTwo, radius
+	return centerOfCircleOne, centerOfCircleTwo, radius
 end
 
 return geom
