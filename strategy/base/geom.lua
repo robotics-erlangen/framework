@@ -4,7 +4,8 @@ module "geom"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2015 Alexander Danzer, Michael Eischer, André Pscherer      *
+*   Copyright 2017 Alexander Danzer, Michael Eischer, Michael Niebisch,	  *
+*					André Pscherer      								  *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -330,6 +331,21 @@ end
 function geom.getAngleDiff(angle1, angle2)
 	local diff = angle2 - angle1
 	return geom.normalizeAngle(diff)
+end
+
+-- Applies the inscribed angle theorem.
+-- @name inscribedAngle
+-- @param point1 vector - first point on cirle
+-- @param point2 vector - second point on cirle
+-- @param theta number - angle inside in radians
+-- @return number - center of circle one
+-- @return number - center of circle two
+-- @return number - radius of circle
+function geom.inscribedAngle(point1, point2, theta)
+	local radius = point1:distanceTo(point2) / (2 * math.sin(theta))
+	local centerOfCircleOne = point1 + ((point2 - point1):rotate(math.pi/2 - theta)):setLength(radius)
+	local centerOfCircleTwo = point1 + ((point2 - point1):rotate(-(math.pi/2 - theta))):setLength(radius)
+	return circleOfCircleOne, centerOfCircleTwo, radius
 end
 
 return geom
