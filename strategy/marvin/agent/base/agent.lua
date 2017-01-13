@@ -128,7 +128,7 @@ function Base:_applyForMainAttacker()
 		return
 	end
 
-	if self._robot ~= World.FriendlyKeeper or World.RefereeState == "BallPlacementOffensive" then
+	if self._robot ~= World.FriendlyKeeper and World.RefereeState ~= "BallPlacementOffensive" then
 		-- only the keeper can apply for MA if it could touch the ball inside the defense area
 		if Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) <= World.Ball.radius + 0.02 then
 			return false
