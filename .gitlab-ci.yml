@@ -1,10 +1,13 @@
 compile-ra:
   script:
-    - mkdir build
+    - mkdir -p build
     - cd build
     - cmake -GNinja ..
     - cmake --build .
   stage: build
+  cache:
+    paths:
+      - build/
   artifacts:
     paths:
       - build/bin/
