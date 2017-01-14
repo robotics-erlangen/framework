@@ -3,7 +3,6 @@ local LongMarch = Class("Group.Move.LongMarch", require "group/move/base")
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local MoveToPos = require "task/movetopos"
-local MoveToStaticBall = require "task/movetostaticball"
 local StopAttack = require "task/stopattack"
 local Circuit = require "task/circuit"
 local Pass = require "task/pass"
@@ -20,7 +19,7 @@ local POSITIONS = {
 }
 
 
-function LongMarch.canStart() 
+function LongMarch.canStart()
 	return  World.Ball.pos.y < -G.FieldHeightHalf/4
 		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 4
 		and World.RefereeState == "Stop"
@@ -46,7 +45,7 @@ end
 
 function LongMarch:_updateTasks()
 	local taskAssignments = {}
-	
+
 	if World.RefereeState == "Stop" then
 		taskAssignments[self._robots[1]] = { class = StopAttack, params = { } }
 		taskAssignments[self._robots[2]] = { class = Circuit, params = { Vector(0, G.FieldHeightHalf/2), math.pi } }
@@ -65,7 +64,7 @@ function LongMarch:_updateTasks()
 
 	if World.RefereeState == "Game" then
 		self._state = "pass1"
-	end	
+	end
 
 
 

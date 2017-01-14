@@ -40,12 +40,12 @@ end
 -- @name create
 -- @param specs table - Specs as returned by getTeam()
 -- @return Robot - Specific generation if available or generic robot object
-function Generation.factory(specs, geometry)
+function Generation.factory(specs)
 	local robotGen = Generation["Gen" .. tostring(specs.year) .. "_" .. tostring(specs.generation)]
 	if robotGen then
-		return robotGen(specs, true, geometry)
+		return robotGen(specs, true)
 	end
-	return Robot(specs.id, true, geometry)
+	return Robot(specs.id, true)
 end
 
 return Generation

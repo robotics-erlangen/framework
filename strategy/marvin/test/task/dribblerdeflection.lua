@@ -40,7 +40,7 @@ function ShooterBehaviour:_stop()
 end
 
 function ShooterBehaviour:_updateTask()
-	if (World.Ball.speed:length() < 0.4 or self._robot.pos:distanceTo(World.Ball.pos) < 0.3)  and 
+	if (World.Ball.speed:length() < 0.4 or self._robot.pos:distanceTo(World.Ball.pos) < 0.3)  and
 			math.abs(World.Ball.pos.x) < World.Geometry.FieldWidthHalf and
 			math.abs(World.Ball.pos.y) < World.Geometry.FieldHeightHalf then
 
