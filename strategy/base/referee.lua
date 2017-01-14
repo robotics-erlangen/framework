@@ -168,7 +168,6 @@ local noBallTouchStates = {
 function Referee.check()
 	Referee.checkTouching()
 	Referee.checkStateChange()
-	
 end
 
 local lastState
