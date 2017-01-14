@@ -1,3 +1,15 @@
+compile-ra:
+  script:
+    - mkdir build
+    - cd build
+    - cmake ..
+    - make
+  stage: build
+  artifacts:
+    paths:
+      - build/bin/
+    expire_in: 1 day
+
 .luacheck: &luacheck_template
   script: "cd $CHECK_PATH && luacheck -q ."
   stage: test
