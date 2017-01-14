@@ -2,8 +2,8 @@ compile-ra:
   script:
     - mkdir build
     - cd build
-    - cmake ..
-    - make
+    - cmake -GNinja ..
+    - cmake --build .
   stage: build
   artifacts:
     paths:
