@@ -1,0 +1,10 @@
+.luacheck: &luacheck_template
+  script: "cd $CHECK_PATH && luacheck -q ."
+  stage: test
+  when: always
+  dependencies: []
+
+luacheck-base:
+  <<: *luacheck_template
+  variables:
+    CHECK_PATH: strategy/base
