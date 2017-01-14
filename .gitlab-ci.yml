@@ -14,7 +14,10 @@ compile-ra:
     expire_in: 1 day
 
 .luacheck: &luacheck_template
-  script: "cd $CHECK_PATH && luacheck -q ."
+  script:
+    - "echo running luacheck for $CHECK_PATH"
+    - "cd $CHECK_PATH"
+    - "luacheck -q ."
   stage: test
   when: always
   dependencies: []
