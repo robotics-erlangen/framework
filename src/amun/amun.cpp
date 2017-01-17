@@ -46,6 +46,7 @@
 
 /*!
  * \brief Creates an Amun instance
+ * \param simulatorOnly Only enable the simulator (for amun-cli + unittests)
  * \param parent Parent object
  */
 Amun::Amun(bool simulatorOnly, QObject *parent) :

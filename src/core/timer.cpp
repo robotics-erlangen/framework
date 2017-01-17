@@ -40,11 +40,6 @@
  */
 
 /*!
- * \fn void Timer::scalingUpdated(float scaling)
- * \brief Passes scaling parameter
- */
-
-/*!
  * \brief Creates a new timer object
  */
 Timer::Timer()
