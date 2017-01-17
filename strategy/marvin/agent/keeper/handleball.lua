@@ -59,9 +59,6 @@ function HandleBall:_updateTask()
 			pass.pos = sugg.pos
 			pass.receiveTime = sugg.time
 
-			log(pass.rating)
-			log(bestPass.rating)
-
 			if not bestPass.rating then
 				bestPass.rating = pass.rating
 				bestPass.target = pass.target
