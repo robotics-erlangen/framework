@@ -7,7 +7,6 @@ local geom = require "../base/geom"
 local MovesHelper = require "util/moveshelper"
 local MoveToPos = require "task/movetopos"
 local Referee = require "../base/referee"
-local vis = require "../base/vis"
 local World = require "../base/world"
 
 local G = World.Geometry
