@@ -59,8 +59,7 @@ local function getRandomPosition(positions)
 		local pos = circle + ((firstPointNearBall- circle):rotate(i * angleDiff)):setLength(randomExtension(radius + extraDistForRobotToShoot))
 		table.insert(positions, Field.limitToAllowedField(pos, 0.3))
 	end
-	return 
-	 
+	return
 end
 
 function BallCycle:_init()
@@ -96,7 +95,7 @@ function BallCycle:_updateTasks()
 	elseif Referee.isFriendlyFreeKickState() and #self._positions == 0 then
 		getRandomPosition(self._positions)
 	end
-	
+
 	local posForRobotBeforeShooting = World.Ball.pos + (World.Ball.pos - G.OpponentGoal):setLength(0.14)
 
 	local taskAssignments = {}
