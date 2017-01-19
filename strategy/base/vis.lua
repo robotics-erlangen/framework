@@ -169,14 +169,14 @@ end
 -- @param radius number - radius of the circle
 -- @param color table - color (optional)
 -- @param isFilled bool - fill circle (optional)
-function vis.addCircle(name, center, radius, color, isFilled, background, style)
-	vis.addCircleRaw(name, Coordinates.toGlobal(center), radius, color, isFilled, background, style)
+function vis.addCircle(name, center, radius, color, isFilled, background, style, lineWidth)
+	vis.addCircleRaw(name, Coordinates.toGlobal(center), radius, color, isFilled, background, style, lineWidth)
 end
 
 --- Adds a circle. Requires global coordinates.
 -- @name addCircleRaw
 -- @see addCircle
-function vis.addCircleRaw(name, center, radius, color, isFilled, background, style)
+function vis.addCircleRaw(name, center, radius, color, isFilled, background, style, lineWidth)
 	-- if color is set use passed isFilled
 	if not color then
 		isFilled = gisFilled
@@ -184,7 +184,7 @@ function vis.addCircleRaw(name, center, radius, color, isFilled, background, sty
 	end
 	amun.addVisualization({
 		name = name, pen = { color=color, style=style },
-		brush = isFilled and color or nil, width = 0.01,
+		brush = isFilled and color or nil, width = lineWidth or 0.01,
 		circle = {p_x = center.x, p_y = center.y, radius = radius},
 		background = background
 	})
