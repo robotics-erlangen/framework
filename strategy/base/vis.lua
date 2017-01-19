@@ -49,7 +49,7 @@ end
 --- Implements a red-yellow-green gradient
 -- @name fromTemperature
 -- @param value a normalized temperature [0, 1]
--- @param alpha the alpha value, default is 128
+-- @param alpha the alpha value, default is 127
 -- @return table color
 function vis.fromTemperature(value, alpha)
 	assert(value >= 0, "vis temperature too low: " .. value);
@@ -67,7 +67,7 @@ function vis.fromTemperature(value, alpha)
 	else
 		red = -3 * value + 3.5
 	end
-	return vis.fromRGBA(255 * red, 255 * green, 0, alpha or 128)
+	return vis.fromRGBA(255 * red, 255 * green, 0, alpha or 127)
 end
 
 --- Modifies alpha value on a copy of the given color
