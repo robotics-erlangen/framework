@@ -23,14 +23,14 @@ end
 
 -- biased random for setting the position backwards
 local function randomExtension(min)
-	return math.round(min + MAX_RANDOM_POSITION_OFFSET * math.pow(math.random(), 5), 1)
+	return math.round(min + MAX_RANDOM_POSITION_OFFSET * math.pow(math.random(), 2), 1)
 end
 
 -- calculates good recieving possions for our attackers
-local function getRandomPosition(positions)
+local function getRandomPosition(positions, maxShootingAngle)
 	local extraDistForRobotToShoot = 0.08
 	-- calculate circle for volley passes
-	local center1, center2, radius = geom.inscribedAngle(World.Ball.pos, G.OpponentGoal, 50 / 180 * math.pi)
+	local center1, center2, radius = geom.inscribedAngle(World.Ball.pos, G.OpponentGoal, maxShootingAngle)
 	local circle = center1.y < center2.y and center1 or center2
 	local angle = World.Ball.pos.x < 0 and math.pi / 4 or  - math.pi / 4
 	-- position close to current ball pos
@@ -66,6 +66,7 @@ function BallCycle:_init()
 	self._circleCenter = World.Ball.pos
 	self._circleRadius = 0.6
 	self._currentRefereeState = World.RefereeState
+	self._maxShootingAngle = 50 / 180 * math.pi
 	self._positions = {}
 end
 
@@ -86,14 +87,14 @@ function BallCycle:_updateTasks()
 		reload = true
 	end
 	-- draw circles where robots cannot shoot a volley
-	local center1, center2, radius = geom.inscribedAngle(World.Ball.pos, G.OpponentGoal, math.pi/3)
+	local center1, center2, radius = geom.inscribedAngle(World.Ball.pos, G.OpponentGoal, self._maxShootingAngle)
 	vis.addCircle("move/ballCycle", center1, radius, vis.colors.redHalf, true)
 	vis.addCircle("move/ballCycle", center2, radius, vis.colors.redHalf, true)
 
 	if Referee.isStopState() then
 		self._positions = {}
 	elseif Referee.isFriendlyFreeKickState() and #self._positions == 0 then
-		getRandomPosition(self._positions)
+		getRandomPosition(self._positions, self._maxShootingAngle)
 	end
 
 	local posForRobotBeforeShooting = World.Ball.pos + (World.Ball.pos - G.OpponentGoal):setLength(0.14)
