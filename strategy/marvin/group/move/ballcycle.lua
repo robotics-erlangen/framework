@@ -4,6 +4,7 @@ local Circuit = require "task/circuit"
 local Field = require "../base/field"
 local FreeKick = require "agent/attacker/freekick"
 local geom = require "../base/geom"
+local MovesHelper = require "util/moveshelper"
 local MoveToPos = require "task/movetopos"
 local Referee = require "../base/referee"
 local vis = require "../base/vis"
@@ -66,7 +67,7 @@ function BallCycle:_init()
 	self._circleCenter = World.Ball.pos
 	self._circleRadius = 0.6
 	self._currentRefereeState = World.RefereeState
-	self._maxShootingAngle = 50 / 180 * math.pi
+	self._maxShootingAngle = 60 / 180 * math.pi
 	self._positions = {}
 end
 
@@ -87,9 +88,7 @@ function BallCycle:_updateTasks()
 		reload = true
 	end
 	-- draw circles where robots cannot shoot a volley
-	local center1, center2, radius = geom.inscribedAngle(World.Ball.pos, G.OpponentGoal, self._maxShootingAngle)
-	vis.addCircle("move/ballCycle", center1, radius, vis.colors.redHalf, true)
-	vis.addCircle("move/ballCycle", center2, radius, vis.colors.redHalf, true)
+	MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, self._maxShootingAngle)
 
 	if Referee.isStopState() then
 		self._positions = {}
