@@ -83,6 +83,8 @@ inline float LineSegment::distance(const Vector& pos) const
     return std::abs(distanceSigned(pos));
 }
 
+// end caps are not signed!
+// USE WITH CAUTION!
 inline float LineSegment::distanceSigned(const Vector& pos) const
 {
     Vector d;

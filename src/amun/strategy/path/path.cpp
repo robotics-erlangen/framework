@@ -25,7 +25,7 @@
 #include "core/rng.h"
 #include <cstdlib>
 #include <sys/time.h>
-//#include <QDebug>
+#include <QDebug>
 
 
 struct Path::Line : Obstacle
@@ -106,10 +106,42 @@ float Path::Rect::distance(const LineSegment &segment) const
 
 float Path::Triangle::distance(const Vector &v) const
 {
-    const float d1 = LineSegment(p2, p1).distanceSigned(v);
-    const float d2 = LineSegment(p3, p2).distanceSigned(v);
-    const float d3 = LineSegment(p1, p3).distanceSigned(v);
-    return std::max(d1, std::max(d2, d3));
+    // positive det == left, negative det == right
+    const float det1 = Vector::det(p2, p3, v) / p2.distance(p3);
+    const float det2 = Vector::det(p3, p1, v) / p3.distance(p1);
+    const float det3 = Vector::det(p1, p2, v) / p1.distance(p2);
+    float distance;
+
+    // v lies inside the triangle
+    // 3 positive dets
+    if (det1 >= 0 && det2 >= 0 && det3 >= 0) {
+        distance = -std::min(det1, std::min(det2, det3));
+    }
+
+    // v lies closest to a side
+    // 2 positive dets, 1 negative det
+    else if (det1 * det2 * det3 < 0) {
+        distance = -std::min(det1, std::min(det2, det3));
+    }
+
+    // v lies closest to a corner
+    // 1 positive det, 2 negative dets
+    else if (det1 > 0) {
+        distance = p1.distance(v);
+    }
+    else if (det2 > 0) {
+        distance = p2.distance(v);
+    }
+    else if (det3 > 0) {
+        distance = p3.distance(v);
+    }
+
+    else {
+        qDebug() << "Error in Path::Triangle::distance()" << det1 << det2 << det3;
+        return 42;
+    }
+
+    return distance - lineWidth;
 }
 
 float Path::Triangle::distance(const LineSegment &segment) const
@@ -129,11 +161,11 @@ float Path::Triangle::distance(const LineSegment &segment) const
     const float dstart = distance(segment.start());
     const float dend = distance(segment.end());
     if (dstart < 0 && dend < 0) {
-        return std::max(dstart, dend);
+        return 0;
     }
 
     // the segment lies entirely outside the triangle
-    return std::min(dseg1, std::min(dseg2, dseg3));
+    return std::max(std::min(dseg1, std::min(dseg2, dseg3)) - lineWidth, 0.f);
 }
 
 Path::Path(uint32_t rng_seed) :
@@ -218,9 +250,10 @@ void Path::addRect(float x1, float y1, float x2, float y2, const char* name)
     m_obstacles.append(r);
 }
 
-void Path::addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, const char *name)
+void Path::addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, float lineWidth, const char *name)
 {
     Triangle *t = new Triangle;
+    t->lineWidth = lineWidth;
     t->name = name;
 
     // ensure that the triangle is oriented counter-clockwise

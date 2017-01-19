@@ -183,11 +183,12 @@ static int pathAddTriangle(lua_State *L)
     const float y2 = verifyNumber(L, 5);
     const float x3 = verifyNumber(L, 6);
     const float y3 = verifyNumber(L, 7);
+    const float lineWidth = verifyNumber(L, 8);
 
     const char* name = NULL;
-    name = luaL_optlstring(L,8, "NoName", 0);
+    name = luaL_optlstring(L, 9, "NoName", 0);
 
-    p->addTriangle(x1, y1, x2, y2, x3, y3, name);
+    p->addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name);
     return 0;
 }
 

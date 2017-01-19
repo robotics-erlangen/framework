@@ -118,6 +118,7 @@ separator for luadoc]]--
 -- @param y2 number - y coordinate of the second point
 -- @param x3 number - x coordinate of the third point
 -- @param y3 number - y coordinate of the third point
+-- @param lineWidth number - extra distance
 -- @param name string - name of the obstacle
 
 --[[
@@ -209,11 +210,11 @@ function path:addRect(start_x, start_y, stop_x, stop_y, name)
 end
 
 local _addTriangle = path.addTriangle
-function path:addTriangle(x1, y1, x2, y2, x3, y3, name)
+function path:addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name)
 	if teamIsBlue then
-		_addTriangle(self, -x1, -y1, -x2, -y2, -x3, -y3, name)
+		_addTriangle(self, -x1, -y1, -x2, -y2, -x3, -y3, lineWidth, name)
 	else
-		_addTriangle(self, x1, y1, x2, y2, x3, y3, name)
+		_addTriangle(self, x1, y1, x2, y2, x3, y3, lineWidth, name)
 	end
 end
 
