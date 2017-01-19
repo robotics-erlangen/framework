@@ -30,7 +30,7 @@ end
 local function getRandomPosition(positions)
 	local extraDistForRobotToShoot = 0.08
 	-- calculate circle for volley passes
-	local center1, center2, radius = geom.inscribedAngle(World.Ball.pos, G.OpponentGoal,  (5 * math.pi) / 18)
+	local center1, center2, radius = geom.inscribedAngle(World.Ball.pos, G.OpponentGoal, 50 / 180 * math.pi)
 	local circle = center1.y < center2.y and center1 or center2
 	local angle = World.Ball.pos.x < 0 and math.pi / 4 or  - math.pi / 4
 	-- position close to current ball pos
