@@ -46,15 +46,16 @@ public slots:
     bool writeStatus(const Status &status);
 
 private:
+    void writePackageEntry(qint64 time, const QByteArray &data);
+
     mutable QMutex *m_mutex;
     QFile m_file;
     QDataStream m_stream;
-    QByteArray m_data;
-    int m_currentStoredPackages;
+    QByteArray m_packageBuffer;
+    int m_packageBufferCount;
 
     const static qint32 GROUPED_PACKAGES = 100;
-    qint32 m_offsets[GROUPED_PACKAGES];
-
+    qint32 m_packageBufferOffsets[GROUPED_PACKAGES];
 };
 
 #endif // LOGFILEWRITER_H

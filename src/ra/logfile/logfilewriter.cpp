@@ -34,7 +34,7 @@ LogFileWriter::~LogFileWriter()
 {
     close();
 
-    m_data.clear();
+    m_packageBuffer.clear();
 }
 
 bool LogFileWriter::open(const QString &filename)
@@ -55,8 +55,8 @@ bool LogFileWriter::open(const QString &filename)
     m_stream << GROUPED_PACKAGES;
 
     // initialize variables
-    m_currentStoredPackages = 0;
-    m_data.clear();
+    m_packageBufferCount = 0;
+    m_packageBuffer.clear();
 
     return true;
 }
@@ -70,14 +70,11 @@ void LogFileWriter::close()
     }
 
     // write the last header part and compressed data
-    if (m_currentStoredPackages > 0) {
+    if (m_packageBufferCount > 0) {
         // packet with time 0 get discarded
-        while (++m_currentStoredPackages <= GROUPED_PACKAGES) {
-            m_offsets[m_currentStoredPackages - 1] = m_data.size();
-            m_stream << (qint64) 0;
+        while (m_packageBufferCount > 0) {
+            writePackageEntry(0, QByteArray());
         }
-        m_data.append((char*)(&m_offsets), sizeof(m_offsets));
-        m_stream << qCompress(m_data);
     }
     m_file.close();
 }
@@ -93,17 +90,26 @@ bool LogFileWriter::writeStatus(const Status &status)
     QByteArray data;
     data.resize(status->ByteSize());
     if (status->SerializeToArray(data.data(), data.size())) {
-        m_offsets[m_currentStoredPackages] = m_data.size();
-        m_data.append(data);
-        m_currentStoredPackages++;
-        m_stream << (qint64) status->time();
-        if (m_currentStoredPackages == GROUPED_PACKAGES) {
-            m_data.append((char*)(&m_offsets), sizeof(m_offsets));
-            m_stream << qCompress(m_data);
-            m_currentStoredPackages = 0;
-            m_data.clear();
-        }
+        writePackageEntry(status->time(), data);
         return true;
     }
     return false;
+}
+
+void LogFileWriter::writePackageEntry(qint64 time, const QByteArray &data)
+{
+    m_packageBufferOffsets[m_packageBufferCount] = m_packageBuffer.size();
+    m_packageBuffer.append(data);
+    m_packageBufferCount++;
+    m_stream << time;
+    if (m_packageBufferCount == GROUPED_PACKAGES) {
+        QDataStream ds(&m_packageBuffer, QIODevice::WriteOnly | QIODevice::Append);
+        ds.setVersion(QDataStream::Qt_4_6);
+        for (qint32 offset: m_packageBufferOffsets) {
+            ds << offset;
+        }
+        m_stream << qCompress(m_packageBuffer);
+        m_packageBufferCount = 0;
+        m_packageBuffer.clear();
+    }
 }

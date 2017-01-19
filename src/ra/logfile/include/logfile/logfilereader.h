@@ -59,7 +59,7 @@ private:
     bool readVersion();
     qint64 readTimestampVersion0();
     qint64 readTimestampVersion1();
-    qint64 readTimestampVersion2();
+    qint64 readTimestampVersion2(int packetIndex);
 
     mutable QMutex *m_mutex;
     QString m_errorMsg;
@@ -73,10 +73,9 @@ private:
     QList<qint64> m_timings;
     // a group of Status packages and an array of offsets
     QByteArray m_currentGroup;
-    int m_groupStart;
-    // used while reading timestamps; current index in the package group
-    int m_packetIndex;
-    qint32 m_groupedPackages;
+    QList<qint32> m_currentGroupOffsets;
+    int m_packageGroupStartIndex;
+    qint32 m_packageGroupSize;
 };
 
 #endif // LOGFILEREADER_H
