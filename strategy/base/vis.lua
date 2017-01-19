@@ -145,6 +145,10 @@ vis.colors.skyBlueHalf = vis.fromRGBA(127, 191, 255, 127)
 
 vis.colors.slate = vis.fromRGBA(112, 118, 144, 255)
 vis.colors.slateHalf = vis.fromRGBA(112, 118, 144, 127)
+vis.colors.orchid = vis.fromRGBA(218, 94, 224, 255)
+vis.colors.orchidHalf = vis.fromRGBA(218, 94, 224, 127)
+vis.colors.gold = vis.fromRGBA(239, 185, 15, 255)
+vis.colors.goldHalf = vis.fromRGBA(239, 185, 15, 127)
 
 
 --- Sets line and fill color.
