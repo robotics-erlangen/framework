@@ -7,15 +7,15 @@ local World = require "../base/world"
 
 
 --declare start, end and obstacles here
-local pointStart = Coordinates.toGlobal(Vector.create(0,-1))
-local pointEnd = Coordinates.toGlobal(Vector.create(0, 2))
+local pointStart = Coordinates.toGlobal(Vector.create(0, -0.35))
+local pointEnd = Coordinates.toGlobal(Vector.create(0, 1))
 local obstacles = {}
-table.insert(obstacles, {type='Circle', pos=Vector.create(0,0), radius=0.1})
-table.insert(obstacles, {type='Line',
-	posStart=Vector.create(-0.5,0.1), posEnd=Vector.create(1,0.1), radius=0.02})
-table.insert(obstacles, {type='Circle', pos=Vector.create(0,-0.5), radius=0.3})
-table.insert(obstacles, {type='Line',
-	posStart=Vector.create(-0.5,-0.5), posEnd=Vector.create(0.5,-0.5), radius=0.02})
+-- table.insert(obstacles, {type='Line',
+	-- posStart=Vector.create(-0.5,0.1), posEnd=Vector.create(1,0.1), radius=0.02})
+-- table.insert(obstacles, {type='Line',
+	-- posStart=Vector.create(-0.5,-0.5), posEnd=Vector.create(0.5,-0.5), radius=0.02})
+table.insert(obstacles, {type='Triangle',
+	p1=Vector(0.4,0), p2=Vector(-1,0.3), p3=Vector(-1,-0.3), lineWidth=0.3})
 
 
 local pathInstance = nil
@@ -39,6 +39,9 @@ local function setupPath()
 		elseif obstacle.type == 'Line' then
 			pathInstance:addLine(obstacle.posStart.x, obstacle.posStart.y,
 				obstacle.posEnd.x, obstacle.posEnd.y, obstacle.radius)
+		elseif obstacle.type == 'Triangle' then
+			pathInstance:addTriangle(obstacle.p1.x, obstacle.p1.y, obstacle.p2.x, obstacle.p2.y,
+				obstacle.p3.x, obstacle.p3.y, obstacle.lineWidth or 0)
 		end
 	end
 
@@ -51,8 +54,14 @@ local function drawObstacles()
 			vis.addCircle("obstacles", obstacle.pos, obstacle.radius, vis.colors.blue)
 		elseif obstacle.type == "Line" then
 			vis.addPath("obstacles", {obstacle.posStart, obstacle.posEnd}, vis.colors.blue)
+		elseif obstacle.type == "Triangle" then
+			vis.addPath("obstacles", {obstacle.p1, obstacle.p2}, vis.colors.blue)
+			vis.addPath("obstacles", {obstacle.p2, obstacle.p3}, vis.colors.blue)
+			vis.addPath("obstacles", {obstacle.p3, obstacle.p1}, vis.colors.blue)
 		end
 	end
+	vis.addCircle("obstacles", pointStart, 0.03, vis.colors.green)
+	vis.addCircle("obstacles", pointEnd, 0.03, vis.colors.green)
 end
 
 local function drawWaypoints(waypoints)
