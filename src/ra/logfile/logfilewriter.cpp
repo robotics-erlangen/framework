@@ -33,6 +33,8 @@ LogFileWriter::LogFileWriter() :
 LogFileWriter::~LogFileWriter()
 {
     close();
+
+    m_data.clear();
 }
 
 bool LogFileWriter::open(const QString &filename)
@@ -49,7 +51,12 @@ bool LogFileWriter::open(const QString &filename)
 
     // write log header
     m_stream << QString("AMUN-RA LOG");
-    m_stream << (int) 1; // log file version
+    m_stream << (int) 2; // log file version
+    m_stream << GROUPED_PACKAGES;
+
+    // initialize variables
+    m_currentStoredPackages = 0;
+    m_data.clear();
 
     return true;
 }
@@ -58,6 +65,20 @@ void LogFileWriter::close()
 {
     // cleanup everything and close file
     QMutexLocker locker(m_mutex);
+    if (!m_file.isOpen()) {
+        return;
+    }
+
+    // write the last header part and compressed data
+    if (m_currentStoredPackages > 0) {
+        // packet with time 0 get discarded
+        while (++m_currentStoredPackages <= GROUPED_PACKAGES) {
+            m_offsets[m_currentStoredPackages - 1] = m_data.size();
+            m_stream << (qint64) 0;
+        }
+        m_data.append((char*)(&m_offsets), sizeof(m_offsets));
+        m_stream << qCompress(m_data);
+    }
     m_file.close();
 }
 
@@ -72,8 +93,16 @@ bool LogFileWriter::writeStatus(const Status &status)
     QByteArray data;
     data.resize(status->ByteSize());
     if (status->SerializeToArray(data.data(), data.size())) {
+        m_offsets[m_currentStoredPackages] = m_data.size();
+        m_data.append(data);
+        m_currentStoredPackages++;
         m_stream << (qint64) status->time();
-        m_stream << qCompress(data);
+        if (m_currentStoredPackages == GROUPED_PACKAGES) {
+            m_data.append((char*)(&m_offsets), sizeof(m_offsets));
+            m_stream << qCompress(m_data);
+            m_currentStoredPackages = 0;
+            m_data.clear();
+        }
         return true;
     }
     return false;

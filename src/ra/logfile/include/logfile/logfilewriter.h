@@ -49,6 +49,12 @@ private:
     mutable QMutex *m_mutex;
     QFile m_file;
     QDataStream m_stream;
+    QByteArray m_data;
+    int m_currentStoredPackages;
+
+    const static qint32 GROUPED_PACKAGES = 100;
+    qint32 m_offsets[GROUPED_PACKAGES];
+
 };
 
 #endif // LOGFILEWRITER_H

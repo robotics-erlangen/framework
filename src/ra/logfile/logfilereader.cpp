@@ -57,6 +57,10 @@ bool LogFileReader::open(const QString &filename)
         return false;
     }
 
+    // initialize variables
+    m_groupStart = -1;
+    m_packetIndex = 0;
+
     // index the whole file
     while (!m_stream.atEnd()) {
         const qint64 offset = m_file.pos();
@@ -66,6 +70,8 @@ bool LogFileReader::open(const QString &filename)
             time = readTimestampVersion0();
         } else if (m_version == Version1) {
             time = readTimestampVersion1();
+        } else if (m_version == Version2) {
+            time = readTimestampVersion2();
         } else {
             // internal bugcheck
             qFatal("This log format is not yet implemented!");
@@ -96,6 +102,7 @@ void LogFileReader::close()
     m_errorMsg.clear();
     m_packets.clear();
     m_timings.clear();
+    m_currentGroup.clear();
 }
 
 bool LogFileReader::readVersion()
@@ -111,6 +118,11 @@ bool LogFileReader::readVersion()
         switch (v) {
         case 1:
             m_version = Version1;
+            break;
+
+        case 2:
+            m_version = Version2;
+            m_stream >>m_groupedPackages;
             break;
 
         default:
@@ -153,6 +165,21 @@ qint64 LogFileReader::readTimestampVersion1()
     return time;
 }
 
+qint64 LogFileReader::readTimestampVersion2()
+{
+    qint64 time;
+    m_stream >> time;
+
+    if (++m_packetIndex == m_groupedPackages) {
+        m_packetIndex = 0;
+        quint32 size;
+        m_stream >>size;
+        m_file.seek(m_file.pos() + size);
+    }
+
+    return time;
+}
+
 Status LogFileReader::readStatus(int packetNum)
 {
     // lock to prevent intermediate file changes
@@ -161,23 +188,63 @@ Status LogFileReader::readStatus(int packetNum)
         return Status();
     }
 
-    // seek to the requested packet
-    m_file.seek(m_packets.value(packetNum));
+    if (m_version == Version2) {
+        int groupIndex = packetNum % m_groupedPackages;
+        // if the packet is new and must be decompressed first
+        if (packetNum < m_groupStart || packetNum >= m_groupStart + m_groupedPackages || m_groupStart == -1) {
+            //seek to the requested packetgroup
+            m_file.seek(m_packets.value(packetNum) + sizeof(qint64) * (m_groupedPackages - groupIndex));
 
-    // skip timestamp of version one
-    if (m_version == Version1) {
-        qint64 time;
-        m_stream >> time;
-    }
+            // read and decompress group
+            m_groupStart = packetNum - groupIndex;
+            m_currentGroup.clear();
+            m_stream >> m_currentGroup;
+            m_currentGroup = qUncompress(m_currentGroup);
+            if (m_currentGroup.isEmpty()) {
+                return Status();
+            }
+        }
 
-    // read and parse status
-    QByteArray packet;
-    m_stream >> packet;
-    packet = qUncompress(packet);
-    if (!packet.isEmpty()) {
+        // pick the requested package from the group
+        // in case the endianness is different on writing and reading system, this will create problems
+        qint32 * offsetTable = (qint32*)(m_currentGroup.data() + m_currentGroup.size() -
+                                         sizeof(qint32) * (m_groupedPackages));
+        qint32 packetOffset = offsetTable[groupIndex];
+        //check for invalid offset
+        if (packetOffset >= m_currentGroup.size() || packetOffset < 0) {
+            return Status();
+        }
+
+        qint32 packetSize;
+        if (groupIndex < m_groupedPackages - 1 && packetNum < m_timings.size() - 1) {
+            packetSize = offsetTable[groupIndex + 1] - packetOffset;
+        } else {
+            packetSize = m_currentGroup.size() - sizeof(qint32) * m_groupedPackages - packetOffset;
+        }
+
         Status status(new amun::Status);
-        if (status->ParseFromArray(packet.data(), packet.size())) {
+        if (status->ParseFromArray(m_currentGroup.data() + packetOffset, packetSize)) {
             return status;
+        }
+    } else {
+        // seek to the requested packet
+        m_file.seek(m_packets.value(packetNum));
+
+        // skip timestamp of version one
+        if (m_version == Version1) {
+            qint64 time;
+            m_stream >> time;
+        }
+
+        // read and parse status
+        QByteArray packet;
+        m_stream >> packet;
+        packet = qUncompress(packet);
+        if (!packet.isEmpty()) {
+            Status status(new amun::Status);
+            if (status->ParseFromArray(packet.data(), packet.size())) {
+                return status;
+            }
         }
     }
 
