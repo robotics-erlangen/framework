@@ -8,7 +8,6 @@ local MovesHelper = require "util/moveshelper"
 local MoveToPos = require "task/movetopos"
 local Referee = require "../base/referee"
 local StopAttack = require "task/stopattack"
-local vis = require "../base/vis"
 local World = require "../base/world"
 
 local G = World.Geometry
@@ -65,7 +64,7 @@ function Armada:_updateTasks()
 	local circle = center1.y < center2.y and center1 or center2
 	if Referee.isStopState() then
 		self._positions = {}
-	elseif Referee.isFriendlyFreeKickState() and #self._positions == 0 then		
+	elseif Referee.isFriendlyFreeKickState() and #self._positions == 0 then
 		for i = 1, 4 do
 			local pos = POSITIONS_ORIG[i]:copy()
 			if World.Ball.pos.x > 0 then
