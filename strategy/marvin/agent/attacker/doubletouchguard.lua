@@ -1,7 +1,6 @@
 local Base = require "agent/base/behavior"
 local DoubleTouchGuard = Class("Agent.Attacker.DoubleTouchGuard", Base)
 
-local Referee = require "../base/referee"
 local World = require "../base/world"
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
