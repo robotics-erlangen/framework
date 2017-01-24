@@ -11,7 +11,7 @@ using the plotter built into Ra and usage of the log player.
 ## Building Ra
 See [COMPILE.md](COMPILE.md) for instructions on how to build Ra. On Windows the bin folder
 containing Ra and all other components can be move to any location. For Linux
-and Mac OS X it is required to leave the source folder in its current location
+and macOS it is required to leave the source folder in its current location
 as the generated binaries required the `config/` and `data/` folder located there.
 In order to remove this dependencies modify the config file `src/config.h.in`
 The log player is always built alongside Ra.
@@ -121,3 +121,49 @@ The plotter and the log window is also included. As both require continuous
 data their data is deleted when restarting playback after seeking. Thus only
 the last timespan which was played back without interim seeking is displayed.
 
+
+# LUA Strategy Linter
+The strategy scripts are written in LUA. As it is a dynamic, scripting language
+there are compile time checks for missing or unused variables and further
+possible problems. This job can however be taken over by a linter, which
+performs some basic validity checks. Our current AI and the base strategy
+scripts can be checked with _luacheck_. Run the following command in the
+strategy or base folder:
+> luacheck -q .
+
+
+## Luacheck installation
+
+Install according to the following platform dependent instructions.
+Alternatively, the source files are available at
+https://github.com/mpeterv/luacheck .
+
+### Linux
+Install luarocks and use it to install luacheck
+```
+sudo apt-get install luarocks
+sudo luarocks install luacheck
+```
+
+On Ubuntu 14.04 it may be necessary to use
+```
+luacheck -q **/*.lua
+```
+
+### macOS
+Install luarocks and use it to install luacheck
+```
+brew install luarocks
+sudo luarocks install luacheck
+```
+
+
+## Editor integration
+
+### Atom
+Install the _linter-luacheck_ package.
+
+### Sublime Text 3
+Install _Package Control_, see https://packagecontrol.io/installation for
+instructions. Then use it to install _SublimeLinter_ and _SublimeLinter-luacheck_.
+WARNING: The plugin doesn't correctly apply the luacheck rules for a few files.
