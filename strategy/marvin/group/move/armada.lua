@@ -38,7 +38,7 @@ local function randomExtension(min)
 end
 
 function Armada.canStart()
-	return  World.Ball.pos.y > G.FieldHeightHalf / 5 --and Referee.opponentTouchedLast()
+	return  World.Ball.pos.y > G.FieldHeightHalf / 5 and Referee.opponentTouchedLast()
 		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
 		and World.RefereeState == "Stop"
 end
@@ -71,8 +71,11 @@ function Armada:_updateTasks()
 				pos.x = -pos.x
 			end
 			-- shift positions to make volley possible
-			local intersectionWithCircle = geom.intersectLineCircle(World.Ball.pos, pos - World.Ball.pos, circle, radius)
-			pos = World.Ball.pos + (intersectionWithCircle - World.Ball.pos):setLength(randomExtension(intersectionWithCircle:distanceTo(World.Ball.pos) + 0.1))
+			if pos:distanceTo(circle) <= radius then
+				local posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2
+				local intersectionWithCircle = geom.intersectLineCircle(posToShiftFrom, pos - posToShiftFrom, circle, radius)
+				pos = posToShiftFrom + (intersectionWithCircle - posToShiftFrom):setLength(randomExtension(intersectionWithCircle:distanceTo(posToShiftFrom) + 0.1))
+			end
 			table.insert(self._positions, Field.limitToAllowedField(pos, 0.3))
 		end
 	end
