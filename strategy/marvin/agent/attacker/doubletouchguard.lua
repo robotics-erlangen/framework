@@ -9,10 +9,12 @@ local StopAttack = require "task/stopattack"
 
 
 --prevents freekicking robot from moving away after failed shot
-
+local lastFreekickTime = 0
 function DoubleTouchGuard:check()
-
-	if World.RefereeState =="Game" and Robot.ownStandardShooter() == self._robot and not Ball.wasShot(World.Time-Referee.lastStateChangeTime()) then
+	if World.RefereeState == "IndirectOffensive" then
+		lastFreekickTime = World.Time
+	end
+	if World.RefereeState == "Game" and Robot.ownStandardShooter() == self._robot and not Ball.wasShot(World.Time-lastFreekickTime) then
 		return true
 	end
 	return false
