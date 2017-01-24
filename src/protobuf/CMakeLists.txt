@@ -53,10 +53,12 @@ target_link_libraries(protobuf
     INTERFACE Qt5::Core
 )
 target_include_directories(protobuf
-    PUBLIC ${PROTOBUF_INCLUDE_DIR}
     PUBLIC include
     PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/..
     PRIVATE include/protobuf
+)
+target_include_directories(protobuf
+    SYSTEM PUBLIC ${PROTOBUF_INCLUDE_DIR}
 )
 
 if(MINGW)
