@@ -63,7 +63,7 @@ function Striker:run(sender, inbox, messages)
 
 	-- if the mainAttacker changes, assume that the previous mainAttacker becomes a striker instead
 	local robotsTmp = {}
-	for index, robot in ipairs(self._robots) do
+	for _, robot in ipairs(self._robots) do
 		if robot == mainAttacker and self._lastMainAttacker then
 			table.insert(robotsTmp, self._lastMainAttacker)
 		else
