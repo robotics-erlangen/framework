@@ -10,6 +10,7 @@ function Striker:init()
 
 	self._zoneCount = 0
 	self._unoccupiedZoneIndex = nil
+	self._lastMainAttacker = nil
 end
 
 local function compareRobotsByXPos(r1, r2)
@@ -57,6 +58,18 @@ function Striker:run(sender, inbox, messages)
 		end
 	end
 
+	-- if the mainAttacker changes, assume that the previous mainAttacker becomes a striker instead
+	local robotsTmp = {}
+	for index, robot in ipairs(self._robots) do
+		if robot == mainAttacker and self._lastMainAttacker then
+			table.insert(robotsTmp, self._lastMainAttacker)
+		else
+			table.insert(robotsTmp, robot)
+		end
+	end
+	self._robots = robotsTmp
+
+	-- assign the zones to the nearest strikers (sorted by x position)
 	table.sort(self._robots, compareRobotsByXPos)
 	local j = 1
 	for i = 1, zoneCount do
@@ -67,6 +80,8 @@ function Striker:run(sender, inbox, messages)
 			end
 		end
 	end
+
+	self._lastMainAttacker = mainAttacker
 end
 
 return Striker
