@@ -118,6 +118,12 @@ local function calculateCenterBackPositions(centerBackApplications)
 				distanceToDefenseArea + robot_radius, false)
 		end
 		local occupiedWay = (#rlist) * (2 * robot_radius + distanceBetweenDefenders)
+		 
+		 --shift position slightly to cover more of the opposite goal corner of the keeper position
+		if target == World.Ball and World.FriendlyKeeper then
+			way = way - (World.FriendlyKeeper.pos.x / (G.GoalWidth / 2)) * (robot_radius / 2)
+		end
+
 		way = math.max(way, occupiedWay/2)
 		way = math.min(way, waymaximum - occupiedWay/2)
 		table.insert(intersections, {
