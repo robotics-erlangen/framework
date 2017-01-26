@@ -159,6 +159,15 @@ luarocks install luacheck
 sudo chown root:wheel /usr/local
 ```
 
+### Windows
+- Download the prebuilt luacheck package from
+https://www.robotics-erlangen.de/downloads/libraries/luacheck-0.18.7z .
+- Extract the contained luacheck folder and move it to `%APPDATA%` (enter path in Explorer). The luacheck.bat in the _bin_ folder should now be located at
+`<USER>\AppData\Roaming\luacheck\bin\luacheck.bat`.
+- Open the _Control Panel_ (Systemsteuerung), open _User Account_ (Benutzerkonten), then _Change own Environment Variables_.
+Add to *User* variables:
+`PATH` = `%APPDATA%\luacheck\bin`
+
 
 ## Editor integration
 
