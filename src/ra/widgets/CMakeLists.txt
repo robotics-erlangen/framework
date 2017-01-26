@@ -25,6 +25,7 @@ set(SOURCES
     include/widgets/refereestatuswidget.h
     include/widgets/timingwidget.h
     include/widgets/visualizationwidget.h
+    include/widgets/teamwidget.h
 
     debugmodel.cpp
     debugmodel.h
@@ -36,6 +37,7 @@ set(SOURCES
     savesituation.h
     timingwidget.cpp
     visualizationwidget.cpp
+    teamwidget.cpp
 )
 
 set(UI_SOURCES

@@ -50,8 +50,6 @@ set(SOURCES
     optionswidget.h
     simulatorwidget.cpp
     simulatorwidget.h
-    teamwidget.cpp
-    teamwidget.h
 )
 
 set(UI_SOURCES
