@@ -3,7 +3,6 @@ local Goal = {}
 local Cache = require "../base/cache"
 local Constants = require "../base/constants"
 local Field = require "../base/field"
-local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
@@ -213,14 +212,13 @@ function Goal.predictShot()
 				endOfField = pos + ballSpeed:scaleLength(lengthOfBallMovement)
 			end
 			vis.addCircle("o/goal: predictShot: end of field", endOfField, 0.02)
-			local corridorHalf = ballSpeed:perpendicular():setLength(World.Ball.radius + Constants.positionError) * 2
 			for _, robot in ipairs(World.OpponentRobots) do
 				local pointOnLine = robot.pos:nearestPosOnLine(pos, endOfField)
 				local ballRollTime = Physics.checkedBallRollTime(World.Ball, pointOnLine)
 				local catchPos = pointOnLine + (robot.pos - pointOnLine):setLength(robot.shootRadius)
 
 				-- calculate chance of the robot reaching catchPos before the ball
-				local chance = 0
+				local chance
 				if robot.pos:distanceTo(catchPos) < 0.05 then
 					chance = 1
 				else
