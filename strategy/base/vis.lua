@@ -54,18 +54,12 @@ end
 function vis.fromTemperature(value, alpha)
 	assert(value >= 0, "vis temperature too low: " .. value);
 	assert(value <= 1, "vis temperature too high: " .. value);
-	local red = 0
-	local green = 0
-	if value < 1/6 then
-		green = 3 * value + 0.5
-	elseif value < 3/6 then
-		green = 1
-		red = 3 * value - 0.5
-	elseif value < 5/6 then
-		green = -3 * value + 2.5
-		red = 1
+	local red = 1
+	local green = 1
+	if value < 0.5 then
+		red = 2 * value
 	else
-		red = -3 * value + 3.5
+		green = 2 - 2 * value
 	end
 	return vis.fromRGBA(255 * red, 255 * green, 0, alpha or 127)
 end
