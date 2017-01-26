@@ -50,7 +50,7 @@ function ApplyForMainattacker:check()
 		return false
 	end
 
-	local passTargetOverrideTime = 0.7
+	local passTargetOverrideTime = 2
 	local angleDiff = math.huge
 	if self._lastIncomingPassPos then
 		angleDiff = World.Ball.speed:absoluteAngleDiff(self._lastIncomingPassPos - World.Ball.pos)
