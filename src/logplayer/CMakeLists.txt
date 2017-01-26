@@ -26,11 +26,14 @@ set(SOURCES
     logcutter.h
     logprocessor.cpp
     logprocessor.h
+    replayteamwidget.cpp
+    replayteamwidget.h
 )
 
 set(UI_SOURCES
     mainwindow.ui
     logcutter.ui
+    replayteamwidget.ui
 )
 
 if(MINGW)
