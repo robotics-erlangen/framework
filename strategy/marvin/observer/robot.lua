@@ -3,6 +3,7 @@ local Robot = {}
 local Cache = require "../base/cache"
 local Constants = require "../base/constants"
 local Referee = require "../base/referee"
+local vis = require "../base/vis"
 local World = require "../base/world"
 local Physics = require "observer/physics"
 
@@ -103,6 +104,8 @@ function Robot._updateHadBall()
 	for _,r in ipairs(World.Robots) do
 		if r:hasBall(World.Ball) then
 			hadBallTimes[r] = World.Time
+			vis.addCircle("o/robot: hasBall", r.pos, 0.15,
+				vis.fromRGBA(127, 191, 255, 63), true, true)
 		end
 	end
 end
