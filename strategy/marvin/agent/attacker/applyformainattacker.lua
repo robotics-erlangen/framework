@@ -22,8 +22,8 @@ end
 
 function ApplyForMainattacker:check()
 	-- track pass messages
-	for sender, msg in pairs(self._inbox.passPos()) do
-		if msg.robot == self._robot then
+	for sender, msg in pairs(self._inbox.passInfo()) do
+		if msg.target == self._robot then
 			self._lastIncomingPassTime = World.Time
 			self._lastIncomingPassSender = sender
 			self._lastIncomingPassPos = msg.pos

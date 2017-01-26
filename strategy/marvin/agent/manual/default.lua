@@ -77,7 +77,7 @@ function Default:check()
 	self._bestPassTarget = nil
 
 	-- look for incoming passes
-	for _,_ in pairs(self._inbox.passPos()) do --tests if table has content, runs 0-1 times, otherwise BUG
+	for _,_ in pairs(self._inbox.passInfo()) do --tests if table has content, runs 0-1 times, otherwise BUG
 		self._lastPass = World.Time
 	end
 	if World.Time - self._lastPass < 2 and Ball.isShot() then

@@ -238,7 +238,7 @@ function StrikerLines:calcMoveDest()
 	end
 	-- do not interfere with shots
 	local shooter, shootDest = next(self._inbox.shootDestination())
-	local passToMe = next(self._inbox.passPos())
+	local passToMe = next(self._inbox.passInfo())
 	if shootDest and not passToMe then
 		local shootMinBallDist = self._robot.radius + World.Ball.radius + POSITION_PADDING
 		local intersection, _ = self._robot.pos:orthogonalProjection(shooter.pos, shootDest)

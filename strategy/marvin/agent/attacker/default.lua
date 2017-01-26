@@ -17,8 +17,8 @@ function Default:check()
 		end
 	end
 
-	local passReceiver, _ = next(self._inbox.passPos())
-	self._forceKeepingInPool = passReceiver == self._robot
+	-- local passReceiver, _ = next(self._inbox.passInfo())
+	-- self._forceKeepingInPool = passReceiver == self._robot
 	return true
 end
 
