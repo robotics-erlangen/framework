@@ -107,7 +107,6 @@ function Field.isInField(pos, boundaryWidth)
 	return true
 end
 
-
 --- Returns the minimum distance to the field borders (extended by boundaryWidth)
 -- @name distanceToFieldBorders
 -- @param pos Vector - the position to limit
@@ -149,6 +148,17 @@ local function isInDefenseArea(pos, radius, friendly)
 
 	return (math.abs(pos.x) < defStretchHalf + radius and belowDefStretch) -- if robot is inside defense stretch
 		or p1:distanceTo(pos) < defRadius + radius or p2:distanceTo(pos) < defRadius + radius -- if robot is inside defense radius
+end
+
+--- check if pos is inside the field (extended by boundaryWidth)
+-- @name isInAllowedField
+-- @param pos Vector - the position to check
+-- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @return bool - is in field
+function Field.isInAllowedField(pos, boundaryWidth)
+	return Field.isInField(pos, boundaryWidth) and
+		not isInDefenseArea(pos, boundaryWidth, true) and
+		not isInDefenseArea(pos, boundaryWidth, false)
 end
 
 --- Returns true if the position is inside/touching the friendly defense area
