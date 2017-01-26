@@ -156,7 +156,8 @@ function Ball._updateReceivesPass()
 		local coneAngleMin = ballRecipients[robot] and coneAngleMinLarge or coneAngleMinSmall
 		local dribblerPos = robot.pos + Vector.fromAngle(robot.dir) * robot.shootRadius
 		local toRobotAngle = (dribblerPos - World.Ball.pos):angle()
-		if geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth then
+		if World.Ball.pos:distanceTo(robot.pos) > World.Ball.radius + robot.shootRadius
+				and geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth then
 			goto continue
 		end
 
