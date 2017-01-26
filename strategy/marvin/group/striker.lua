@@ -25,6 +25,7 @@ function Striker:run(sender, inbox, messages)
 	local zoneWidth = G.FieldWidth / zoneCount
 	local zoneWidthHalf = zoneWidth * 0.5
 
+	-- calculate and visualize the zone boundaries and default positions
 	for i = 1, zoneCount do
 		local x = i * zoneWidth - G.FieldWidthHalf - zoneWidthHalf
 		local y = G.FieldHeightQuarter + x * x / (G.FieldHeightQuarter * G.FieldHeightQuarter)
@@ -40,14 +41,16 @@ function Striker:run(sender, inbox, messages)
 		vis.addPath("g/striker", points, vis.colors.slateHalf, nil, nil, 0.02)
 	end
 
+	-- if the number of zones changes, invalidate the empty zone to get rid of the hysteresis
 	if self._zoneCount ~= zoneCount then
 		self._unoccupiedZoneIndex = nil
 		self._zoneCount = zoneCount
 	end
 
+	-- calculate the zone index of the current mainAttacker
+	-- this zone will stay empty
 	local mainAttacker = inbox.mainAttacker().trainer
 	local mainAttackerPos = mainAttacker and mainAttacker.pos or World.Ball.pos
-
 	local zoneWidthHysteresis = self._unoccupiedZoneIndex and 0.2 or 0
 	for i = 1, zoneCount do
 		local zone = zones[i]
