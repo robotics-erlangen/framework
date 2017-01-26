@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2017 Michael Eischer, Philipp Nordhus, Andreas Wendler      *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -29,6 +29,7 @@
 #include "logfile/logfilereader.h"
 #include "plotter/plotter.h"
 #include "logcutter.h"
+#include "strategy/strategy.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -36,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_scroll(true)
 {
     qRegisterMetaType<Status>("Status");
+    qRegisterMetaType<Command>("Command");
 
 #if (QT_VERSION < QT_VERSION_CHECK(5, 1, 0))
     setWindowIcon(QIcon("icon:logplayer.svg"));
@@ -112,13 +114,17 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->spinSpeed, SIGNAL(valueChanged(int)), SLOT(handlePlaySpeed(int)));
 
     // setup data distribution
-    connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotStatus(Status)), ui->visualization, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->timing, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), m_refereeStatus, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotPlayStatus(Status)), ui->log, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotPlayStatus(Status)), m_plotter, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->visualization, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->log, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
+
+    connect(ui->replay, SIGNAL(enableStrategyBlue(bool)), this, SLOT(enableStrategyBlue(bool)));
+    connect(ui->replay, SIGNAL(enableStrategyYellow(bool)), this, SLOT(enableStrategyYellow(bool)));
 
     // setup the timer used to trigger playing the next packets
     connect(&m_timer, SIGNAL(timeout()), SLOT(playNext()));
@@ -131,12 +137,106 @@ MainWindow::MainWindow(QWidget *parent) :
     restoreState(s.value("State").toByteArray());
     ui->splitter->restoreState(s.value("Splitter").toByteArray());
     s.endGroup();
+
+    // create strategy threads
+    m_strategyThreads[0] = new QThread(this);
+    m_strategyThreads[0]->start();
+    m_strategyThreads[1] = new QThread(this);
+    m_strategyThreads[1]->start();
+
+    m_strategys[0] = nullptr;
+    m_strategys[1] = nullptr;
 }
 
 MainWindow::~MainWindow()
 {
+    for (int i = 0; i < 2; i++) {
+        if (m_strategys[i] != nullptr) {
+            m_strategys[i]->deleteLater();
+        }
+        m_strategyThreads[i]->quit();
+        m_strategyThreads[i]->wait();
+    }
     delete m_logreader;
     delete ui;
+}
+
+void MainWindow::enableStrategyBlue(bool enable)
+{
+    if (enable) {
+        createStratey(1);
+    } else {
+        closeStrategy(1);
+    }
+}
+
+void MainWindow::enableStrategyYellow(bool enable)
+{
+    if (enable) {
+        createStratey(0);
+    } else {
+        closeStrategy(0);
+    }
+}
+
+void MainWindow::closeStrategy(int index)
+{
+    m_strategys[index]->deleteLater();
+    m_strategys[index] = nullptr;
+}
+
+void MainWindow::createStratey(int index)
+{
+    Q_ASSERT(m_strategys[index] == nullptr);
+    m_strategys[index] = new Strategy(&m_playTimer, (index == 0) ? StrategyType::YELLOW : StrategyType::BLUE);
+    m_strategys[index]->moveToThread(m_strategyThreads[index]);
+
+    // set up data distribution to and from strategy
+    connect( m_strategys[index], SIGNAL(sendStatus(Status)), ui->visualization, SLOT(handleStatus(Status)));
+    connect( m_strategys[index], SIGNAL(sendStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
+    connect( m_strategys[index], SIGNAL(sendStatus(Status)), ui->log, SLOT(handleStatus(Status)));
+    connect( m_strategys[index], SIGNAL(sendStatus(Status)), ui->field, SLOT(handleStatus(Status)));
+    connect( m_strategys[index], SIGNAL(sendStatus(Status)), ui->replay, SLOT(handleStatus(Status)));
+
+    connect( ui->replay, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
+    connect( this, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
+    connect( this, SIGNAL(gotStatus(Status)), m_strategys[index], SLOT(handleStatus(Status)));
+
+    // create a status packet with empty debug to reset field debug visualizations
+    Status status(new amun::Status);
+    status->set_time(m_playTimer.currentTime());
+    amun::DebugValues * debug = status->mutable_debug();
+    debug->set_source((index == 0) ? amun::StrategyYellow : amun::StrategyBlue);
+    emit gotStatus(status);
+}
+
+void MainWindow::processStatusDebug(Status & status)
+{
+    bool replayBlue = ui->replay->replayBlueEnabled();
+    bool replayYellow = ui->replay->replayYellowEnabled();
+    if (replayBlue || replayYellow) {
+        status->clear_debug();
+    }
+}
+
+void MainWindow::handleStatus(const Status &status)
+{
+    // give the team information to the strategy
+    Command command(new amun::Command);
+    bool commandChanged = false;
+    if (status->has_team_blue()) {
+        robot::Team * teamBlue = command->mutable_set_team_blue();
+        teamBlue->CopyFrom(status->team_blue());
+        commandChanged = true;
+    }
+    if (status->has_team_yellow()) {
+        robot::Team * teamYellow = command->mutable_set_team_yellow();
+        teamYellow->CopyFrom(status->team_yellow());
+        commandChanged = true;
+    }
+    if (commandChanged) {
+        emit sendCommand(command);
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
@@ -344,7 +444,7 @@ void MainWindow::playNext()
         // peek next packet
         QPair<int, Status> p = m_nextPackets.head();
         int currentPacket = p.first;
-        const Status status = p.second;
+        Status status = p.second;
 
         // ignore empty status
         if (!status.isNull()) {
@@ -365,6 +465,9 @@ void MainWindow::playNext()
                 }
                 break;
             }
+
+            // remove the debug part if a strategy is running
+            processStatusDebug(status);
 
             emit gotStatus(status);
             if (m_spoolCounter == 0) {

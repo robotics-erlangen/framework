@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2017 Michael Eischer, Philipp Nordhus, Andreas Wendler      *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -30,12 +30,14 @@
 #include <QList>
 #include "core/timer.h"
 #include "protobuf/status.h"
+#include "protobuf/command.h"
 
 class LogFileReader;
 class RefereeStatusWidget;
 class QLabel;
 class QThread;
 class Plotter;
+class Strategy;
 
 namespace Ui {
 class MainWindow;
@@ -53,10 +55,14 @@ public:
 protected:
     void closeEvent(QCloseEvent *e) override;
 
+public slots:
+    void handleStatus(const Status &status);
+
 signals:
     void gotStatus(const Status &status);
     void gotPlayStatus(const Status &status); // guarantees a continuous data stream
     void triggerRead(int startFrame, int count);
+    void sendCommand(const Command &command);
 
 private slots:
     void openFile();
@@ -68,6 +74,8 @@ private slots:
     void playNext();
     void togglePaused();
     void handlePlaySpeed(int value);
+    void enableStrategyBlue(bool enable);
+    void enableStrategyYellow(bool enable);
 
 private:
     void closeFile();
@@ -75,12 +83,16 @@ private:
     void initializeLabels();
     void setPaused(bool p);
     QString formatTime(qint64 time);
+    void processStatusDebug(Status & status);
+    void closeStrategy(int index);
+    void createStratey(int index);
 
 private:
     Ui::MainWindow *ui;
     RefereeStatusWidget *m_refereeStatus;
 
     QThread *m_logthread;
+    QThread *m_strategyThreads[2];
     LogFileReader *m_logreader;
 
     QList<int> m_frames;
@@ -103,6 +115,8 @@ private:
     bool m_scroll;
 
     Plotter *m_plotter;
+
+    Strategy *m_strategys[2];
 };
 
 #endif // MAINWINDOW_H

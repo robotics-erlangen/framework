@@ -58,6 +58,7 @@ target_link_libraries(logplayer
     ra::logfile
     ra::plotter
     ra::widgets
+    amun::strategy
     ${OPENGL_LIBRARIES}
     ${CMAKE_THREAD_LIBS_INIT}
     Qt5::Widgets

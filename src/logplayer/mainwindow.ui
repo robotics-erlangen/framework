@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>364</height>
+    <height>471</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -119,7 +119,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -188,6 +188,15 @@
     <number>2</number>
    </attribute>
    <widget class="LogWidget" name="log"/>
+  </widget>
+  <widget class="QDockWidget" name="dockTeam">
+   <property name="windowTitle">
+    <string>Replay</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>2</number>
+   </attribute>
+   <widget class="ReplayTeamWidget" name="replay"/>
   </widget>
   <action name="actionStepForward">
    <property name="text">
@@ -381,14 +390,20 @@
    <header>widgets/fieldwidget.h</header>
   </customwidget>
   <customwidget>
+   <class>LogWidget</class>
+   <extends>QPlainTextEdit</extends>
+   <header>widgets/logwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
    <class>DebugTreeWidget</class>
    <extends>QTreeView</extends>
    <header>widgets/debugtreewidget.h</header>
   </customwidget>
   <customwidget>
-   <class>LogWidget</class>
+   <class>ReplayTeamWidget</class>
    <extends>QWidget</extends>
-   <header>widgets/logwidget.h</header>
+   <header>replayteamwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
