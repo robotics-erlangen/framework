@@ -118,9 +118,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontSh
 		catchTime = self:_doCatch(targetPos, targetSpeed, futureBall)
 	end
 
-	if catchTime < 0.5 then
-		self._send.shootDestination("all", targetPos)
-	end
+	self._send.shootDestination("all", targetPos)
 end
 
 function Shoot:_doCatch(targetPos, targetSpeed, futureBall)
