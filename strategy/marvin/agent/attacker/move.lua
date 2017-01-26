@@ -18,8 +18,13 @@ function Move:check()
 end
 
 function Move:_updateTask()
-	self._forceKeepingInPool = next(self._inbox.passPos()) ~= nil
-
+	local _, msg = next(self._inbox.passPos())
+	if msg ~= nil then
+		if msg.robot == self._robot then
+			self._forceKeepingInPool = true
+		end
+	end
+	
 	local assignment = self._inbox.moveAssignment().trainer
 	if assignment.behavior then
 		if not self._behavior then
