@@ -7,6 +7,7 @@ local Entrypoints = require "../base/entrypoints"
 local World = require "../base/world"
 
 require "control/maincoordinator"
+require "observer/initReplay"
 require "test/observer/init"
 require "test/situation/init"
 require "test/task/init"
