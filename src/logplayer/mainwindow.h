@@ -63,6 +63,8 @@ signals:
     void gotPlayStatus(const Status &status); // guarantees a continuous data stream
     void triggerRead(int startFrame, int count);
     void sendCommand(const Command &command);
+    void enableStrategyCheckboxBlue(bool enable);
+    void enableStrategyCheckboxYellow(bool enable);
 
 private slots:
     void openFile();
@@ -86,6 +88,7 @@ private:
     void processStatusDebug(Status & status);
     void closeStrategy(int index);
     void createStratey(int index);
+    void sendResetDebugPacket(bool blue);
 
 private:
     Ui::MainWindow *ui;
@@ -113,6 +116,9 @@ private:
 
     int m_exactSliderValue;
     bool m_scroll;
+
+    Command m_lastTeamInfo;
+    bool m_lastTeamInfoUpdated;
 
     Plotter *m_plotter;
 

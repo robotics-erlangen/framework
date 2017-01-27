@@ -28,6 +28,9 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
     connect(ui->yellow, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
     connect(this, SIGNAL(gotStatusBlue(Status)), ui->blue, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatusYellow(Status)), ui->yellow, SLOT(handleStatus(Status)));
+
+    connect(this, SIGNAL(enableCheckboxBlue(bool)), ui->replayBlue, SLOT(setChecked(bool)));
+    connect(this, SIGNAL(enableCheckboxYellow(bool)), ui->replayYellow, SLOT(setChecked(bool)));
 }
 
 ReplayTeamWidget::~ReplayTeamWidget()

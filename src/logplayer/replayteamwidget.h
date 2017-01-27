@@ -29,6 +29,8 @@ signals:
     void gotStatusYellow(const Status & status);
     void enableStrategyBlue(bool enabled);
     void enableStrategyYellow(bool enabled);
+    void enableCheckboxBlue(bool enable);
+    void enableCheckboxYellow(bool enable);
 
 private:
     Ui::ReplayTeamWidget *ui;

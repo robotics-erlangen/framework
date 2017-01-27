@@ -25,6 +25,7 @@
 #include <QSettings>
 #include <QThread>
 #include <QSignalMapper>
+#include <QMessageBox>
 #include "widgets/refereestatuswidget.h"
 #include "logfile/logfilereader.h"
 #include "plotter/plotter.h"
@@ -34,7 +35,9 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    m_scroll(true)
+    m_scroll(true),
+    m_lastTeamInfo(new amun::Command),
+    m_lastTeamInfoUpdated(false)
 {
     qRegisterMetaType<Status>("Status");
     qRegisterMetaType<Command>("Command");
@@ -126,6 +129,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->replay, SIGNAL(enableStrategyBlue(bool)), this, SLOT(enableStrategyBlue(bool)));
     connect(ui->replay, SIGNAL(enableStrategyYellow(bool)), this, SLOT(enableStrategyYellow(bool)));
 
+    connect(this, SIGNAL(enableStrategyCheckboxBlue(bool)), ui->replay, SIGNAL(enableCheckboxBlue(bool)));
+    connect(this, SIGNAL(enableStrategyCheckboxYellow(bool)), ui->replay, SIGNAL(enableCheckboxYellow(bool)));
+
     // setup the timer used to trigger playing the next packets
     connect(&m_timer, SIGNAL(timeout()), SLOT(playNext()));
     m_timer.setSingleShot(true);
@@ -183,11 +189,22 @@ void MainWindow::closeStrategy(int index)
 {
     m_strategys[index]->deleteLater();
     m_strategys[index] = nullptr;
+    sendResetDebugPacket(index != 0);
 }
 
 void MainWindow::createStratey(int index)
 {
     Q_ASSERT(m_strategys[index] == nullptr);
+    if (!m_lastTeamInfoUpdated) {
+        QMessageBox messageBox;
+        messageBox.critical(0,"Error","Cannot Launch Strategy: No Team Info Read!");
+        if (index == 0) {
+            emit enableStrategyCheckboxYellow(false);
+        } else {
+            emit enableStrategyCheckboxBlue(false);
+        }
+        return;
+    }
     m_strategys[index] = new Strategy(&m_playTimer, (index == 0) ? StrategyType::YELLOW : StrategyType::BLUE);
     m_strategys[index]->moveToThread(m_strategyThreads[index]);
 
@@ -202,11 +219,18 @@ void MainWindow::createStratey(int index)
     connect( this, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
     connect( this, SIGNAL(gotStatus(Status)), m_strategys[index], SLOT(handleStatus(Status)));
 
+    emit sendCommand(m_lastTeamInfo);
+
     // create a status packet with empty debug to reset field debug visualizations
+    sendResetDebugPacket(index == 0);
+}
+
+void MainWindow::sendResetDebugPacket(bool blue)
+{
     Status status(new amun::Status);
     status->set_time(m_playTimer.currentTime());
     amun::DebugValues * debug = status->mutable_debug();
-    debug->set_source((index == 0) ? amun::StrategyBlue : amun::StrategyYellow);
+    debug->set_source(blue ? amun::StrategyBlue : amun::StrategyYellow);
     emit gotStatus(status);
 }
 
@@ -235,6 +259,8 @@ void MainWindow::handleStatus(const Status &status)
         commandChanged = true;
     }
     if (commandChanged) {
+        m_lastTeamInfo->CopyFrom(*command);
+        m_lastTeamInfoUpdated = true;
         emit sendCommand(command);
     }
 }
