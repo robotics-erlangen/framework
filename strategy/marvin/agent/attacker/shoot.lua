@@ -20,7 +20,7 @@ function Shoot:_stop()
 	self._nextDecisionTime = World.Time
 	self._decision = { task = "none" }
 
-	self._prevPassTarget = nil
+	self._prevPassPos = nil
 
 	self._attackPosition = nil
 	self._prevAttackPosition = nil
@@ -146,8 +146,8 @@ function Shoot:_updateTask()
 	-- time the pass
 	if self._decision.task == "pass" then
 		local suggestedTime = self._decision.time
-		local forceNewTask = self._prevPassTarget ~= self._decision.target
-		self._prevPassTarget = self._decision.target
+		local forceNewTask = self._decision.pos ~= self._prevPassPos
+		self._prevPassPos = self._decision.pos
 		local target = self._decision.target
 		local ballPos = self._decision.pos
 
