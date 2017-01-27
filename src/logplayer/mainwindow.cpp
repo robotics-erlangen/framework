@@ -206,7 +206,7 @@ void MainWindow::createStratey(int index)
     Status status(new amun::Status);
     status->set_time(m_playTimer.currentTime());
     amun::DebugValues * debug = status->mutable_debug();
-    debug->set_source((index == 0) ? amun::StrategyYellow : amun::StrategyBlue);
+    debug->set_source((index == 0) ? amun::StrategyBlue : amun::StrategyYellow);
     emit gotStatus(status);
 }
 
