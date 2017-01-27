@@ -27,8 +27,8 @@ local MAX_RANDOM_POSITION_OFFSET = 0.8
 
 local function getRandomOffsetVector()
 	local result = Vector(0,0)
-	result.x = (math.random() - 0.5) * 2 * (MAX_RANDOM_POSITION_OFFSET - 0.3)
-	result.y = (math.random() - 0.5) * 2 * (MAX_RANDOM_POSITION_OFFSET - 0.3)
+	result.x = (math.random() - 0.5) * 2 * (MAX_RANDOM_POSITION_OFFSET - 0.5)
+	result.y = (math.random() - 0.5) * 2 * (MAX_RANDOM_POSITION_OFFSET - 0.5)
 	return result
 end
 
@@ -70,6 +70,7 @@ function Armada:_updateTasks()
 			if World.Ball.pos.x > 0 then
 				pos.x = -pos.x
 			end
+			pos = pos + getRandomOffsetVector()
 			-- shift positions to make volley possible
 			if pos:distanceTo(circle) <= radius then
 				local posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2
