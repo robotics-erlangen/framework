@@ -38,6 +38,8 @@ Constants.maxDribbleDistance = 0.5
 
 Constants.maxRobotRadius = 0.09
 
+Constants.maxRobotHeight = 0.15
+
 function Constants.switchSimulatorConstants(isSimulated)
 	if isSimulated then
 		Constants.ballDeceleration = -0.35
