@@ -115,7 +115,7 @@ function Shoot:_updateTask()
 
 	-- update attack position
 	self._prevAttackPosition = self._attackPosition
-	local _, attackPosition = next(self._inbox.attackPosition())
+	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
 	self._attackPosition = attackPosition
 
 	-- redecide if necessary
