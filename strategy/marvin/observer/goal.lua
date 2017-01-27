@@ -229,7 +229,7 @@ function Goal.predictShot()
 						chance = 1 - robotTime / ballRollTime
 					end
 				end
-				if robot.id == lastBestRobotId then
+				if robot.id == lastBestRobotId and chance ~= 0 then
 					chance = chance + BEST_ROBOT_HYSTERESIS
 				end
 
