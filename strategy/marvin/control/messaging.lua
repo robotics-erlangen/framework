@@ -129,9 +129,13 @@ function Messaging:_constructInbox(receiver)
 						mtypeBox.allBoxMerged = allMerged
 					end
 					if not allMerged[receiver] then -- merge broadcasts into receiveBox
-						for sender, data in pairs(allBox) do
-							receiveBox[sender] = data
-						end
+						local receiverRobot = (receiver == "trainer") and "trainer" or receiver:robot()
+ 						for sender, data in pairs(allBox) do
+							if sender ~= receiverRobot or sender == "trainer" then
+								receiveBox[sender] = data
+							end
+ 						end
+
 						allMerged[receiver] = true
 					end
 				end
