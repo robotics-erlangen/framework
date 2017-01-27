@@ -1,5 +1,6 @@
 local Attack = {}
 
+local Cache = require "../base/cache"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Ball = require "observer/ball"
@@ -79,5 +80,23 @@ function Attack.visualizeAttack(robotPos, attackPos)
 	local color = World.TeamIsBlue and vis.fromRGBA(38, 48, 217, 63) or vis.fromRGBA(244, 214, 31, 63)
 	vis.addPath("u/a/Attack", {robotPos, attackPos}, color, nil, nil, 0.1)
 end
+
+local lastCPMA = nil
+function Attack.currentPlannedMainAttacker(passInfo, shootDestination)
+	local passInfoSender, passInfoMessage = next(passInfo)
+	if passInfoSender and Ball.wasShot(0.2) == passInfoSender
+			and Ball.receivesPass(passInfoMessage.target) then
+		lastCPMA = passInfoMessage.target
+		return lastCPMA
+	end
+
+	local shootDestinationSender, _ = next(shootDestination)
+	if lastCPMA == shootDestinationSender and Ball.receivesPass(shootDestinationSender) then
+		return lastCPMA
+	end
+
+	lastCPMA = nil
+end
+Attack.currentPlannedMainAttacker = Cache.forFrame(Attack.currentPlannedMainAttacker)
 
 return Attack
