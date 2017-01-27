@@ -428,7 +428,7 @@ function Robot:hasBall(ball, sideOffset)
 	end
 
 	self._hasBall[sideOffset] = relpos.x > self.shootRadius * (-1.5)
-			and relpos.x < latencyCompensation.x
+			and relpos.x < latencyCompensation.x and ball.posZ < Constants.maxRobotHeight*1.2 --*1.2 to compensate for vision error
 	return self._hasBall[sideOffset]
 end
 
