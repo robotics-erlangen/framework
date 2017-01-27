@@ -263,7 +263,7 @@ function Ball._updateIsShot()
 	local ballSpeedLength = World.Ball.speed:length()
 
 	-- if the ball was not shot in the last tenth second
-	local condCooldown = (World.Time > lastShootTime + 0.1)
+	local condCooldown = (World.Time > lastShootTime + 0.3)
 	-- if the ball accelerates
 	local condAccelerates = Ball.isAccelerating()
 	-- if the ball is fast
