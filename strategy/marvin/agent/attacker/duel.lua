@@ -69,7 +69,7 @@ function Duel:genericCheck()
 	-- if any opponent receives the ball (and we don't), duel him
 	-- this may cause duel to get active A LOT
 	for _,r in ipairs(World.OpponentRobots) do
-		if Ball.receivesPass(r) then
+		if Ball.receivesPass(r) and r.pos:distanceTo(self._robot.pos) < 1 then
 			return true
 		end
 	end
