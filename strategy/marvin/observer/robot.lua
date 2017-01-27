@@ -1,7 +1,9 @@
 local Robot = {}
 
+local Cache = require "../base/cache"
 local Constants = require "../base/constants"
 local Referee = require "../base/referee"
+local vis = require "../base/vis"
 local World = require "../base/world"
 local Physics = require "observer/physics"
 
@@ -102,6 +104,8 @@ function Robot._updateHadBall()
 	for _,r in ipairs(World.Robots) do
 		if r:hasBall(World.Ball) then
 			hadBallTimes[r] = World.Time
+			vis.addCircle("o/robot: hasBall", r.pos, 0.15,
+				vis.fromRGBA(127, 191, 255, 63), true, true)
 		end
 	end
 end
@@ -136,6 +140,22 @@ function Robot.minTimeToBall(robot)
 	minTimeToBall[robot] = Physics.robotTimeToBall(robot, World.Ball, targetPos, robot.maxSpeed, oldMinTimeToBall[robot])
 	return minTimeToBall[robot]
 end
+
+local previousMinShootTimes = {}
+function Robot.minShootTime(robot, shootPos)
+	local minDelay = 0.1
+	local prevTime = previousMinShootTimes[robot]
+	local time
+	if Robot.hadBall(robot, 0) then
+		time = minDelay
+	else
+		time = math.max(minDelay, Physics.robotTimeToBall(robot, World.Ball,
+			shootPos, robot.maxSpeed, prevTime))
+	end
+	previousMinShootTimes[robot] = time
+	return time
+end
+Robot.minShootTime = Cache.forFrame(Robot.minShootTime)
 
 local standardShooterRobot = nil
 function Robot._updateOwnStandardShooter()

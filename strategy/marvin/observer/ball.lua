@@ -156,7 +156,8 @@ function Ball._updateReceivesPass()
 		local coneAngleMin = ballRecipients[robot] and coneAngleMinLarge or coneAngleMinSmall
 		local dribblerPos = robot.pos + Vector.fromAngle(robot.dir) * robot.shootRadius
 		local toRobotAngle = (dribblerPos - World.Ball.pos):angle()
-		if geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth then
+		if World.Ball.pos:distanceTo(robot.pos) > World.Ball.radius + robot.shootRadius
+				and geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth then
 			goto continue
 		end
 
@@ -262,11 +263,11 @@ function Ball._updateIsShot()
 	local ballSpeedLength = World.Ball.speed:length()
 
 	-- if the ball was not shot in the last tenth second
-	local condCooldown = (World.Time > lastShootTime + 0.1)
+	local condCooldown = (World.Time > lastShootTime + 0.3)
 	-- if the ball accelerates
 	local condAccelerates = Ball.isAccelerating()
 	-- if the ball is fast
-	local condFast = (ballSpeedLength > 1.0)
+	local condFast = (ballSpeedLength > 0.5)
 	-- if one robot had the ball the last 0.1 seconds (equal to cooldown time)
 	local condHadBall = false
 	-- if this robot looks about in the same direction as the ball rolls
@@ -277,7 +278,7 @@ function Ball._updateIsShot()
 	local robot = nil
 	if condCooldown and condAccelerates and condFast then
 		for _,r in ipairs(World.Robots) do
-			if ObserverRobot.hadBall(r, 0.1) then
+			if ObserverRobot.hadBall(r, 0.3) then
 				condHadBall = true
 				local anglediff = math.abs(geom.getAngleDiff(r.dir, World.Ball.speed:angle()))
 				-- the ball has to be shot in the approximate direction the robot is facing

@@ -1,6 +1,8 @@
 local Roles = {}
 
 local Referee = require "../base/referee"
+local vis = require "../base/vis"
+local World = require "../base/world"
 
 
 local ROLE_HYSTERESIS = 0.05
@@ -42,6 +44,11 @@ function Roles:_chooseExclusiveRoles()
 		if bestRobot then
 			exclusiveRoles[role] = bestRobot
 			self._send[role]("all", bestRobot)
+
+			if role == "mainAttacker" then
+				vis.addCircle("tr/roles: MainAttacker", bestRobot.pos, 0.12,
+					World.TeamIsBlue and vis.colors.blue or vis.colors.yellow, true, true);
+			end
 		end
 	end
 	self._exclusiveRoles = exclusiveRoles

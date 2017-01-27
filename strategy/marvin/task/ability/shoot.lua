@@ -100,6 +100,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontSh
 	vis.addCircle("t/a/shoot: targetPos", targetPos, 0.04, vis.colors.pinkHalf, true)
 	debug.set("stopBall", self._stopBallHysteresis)
 	debug.set("inTheRun", self._inTheRunHysteresis)
+	debug.set("movingBall", self._movingBallHysteresis)
 	local catchTime = 0
 
 	-- don't allow pushing the ball into the opponent defense area
@@ -118,9 +119,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontSh
 		catchTime = self:_doCatch(targetPos, targetSpeed, futureBall)
 	end
 
-	if catchTime < 0.5 then
-		self._send.shootDestination("all", targetPos)
-	end
+	self._send.shootDestination("all", targetPos)
 end
 
 function Shoot:_doCatch(targetPos, targetSpeed, futureBall)

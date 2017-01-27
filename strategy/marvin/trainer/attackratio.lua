@@ -2,7 +2,6 @@ local AttackRatio = {}
 
 local debug = require "../base/debug"
 local Field = require "../base/field"
-local vis = require "../base/vis"
 local World = require "../base/world"
 local Ally = require "agent/ally"
 local Robot = require "observer/robot"
@@ -93,8 +92,6 @@ function AttackRatio:attackRatio()
 				mainAttackerIsDefender = true
 			end
 		end
-		local color = World.TeamIsBlue and vis.colors.blue or vis.colors.yellow
-		vis.addCircle("c/coordinator: MainAttacker", mainAttacker.pos, 0.12, color, true, true);
 	end
 	if mainAttackerIsDefender and not (self:changingRobot() == mainAttacker) then
 		attackers = attackers - 1

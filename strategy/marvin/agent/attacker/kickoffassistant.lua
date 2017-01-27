@@ -50,6 +50,12 @@ function KickoffAssistant:_position(positionClash)
 end
 
 function KickoffAssistant:check()
+	local isActive = World.RefereeState == "KickoffOffensivePrepare" or
+		(self._active and not Ball.isShot())
+	return isActive
+end
+
+function KickoffAssistant:_updateTask()
 	-- try every position in random order, take first free one
 	local positionClash = false
 	for _, pos in pairs(self._inbox.moveDest()) do
@@ -67,12 +73,6 @@ function KickoffAssistant:check()
 	--send
 	self._send.moveDest("all", self._moveDest)
 
-	local isActive = World.RefereeState == "KickoffOffensivePrepare" or
-		(self._active and not Ball.isShot())
-	return isActive
-end
-
-function KickoffAssistant:_updateTask()
 
 	if self._behind then -- player is in the back and wants a pass at kickoff
 		if self._movePos ~= self._moveDest then

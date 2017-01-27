@@ -5,21 +5,21 @@ local debug = require "../base/debug"
 local World = require "../base/world"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
+local G = World.Geometry
 
 local MoveToStaticBall = require "task/movetostaticball"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
+local Attack = require "util/attack"
 local ShootGoalUtil = require "util/shootgoal"
 
 
-local POSITION_PADDING = 0.02 -- safety distance
-
 function FreeKick:_stop()
 	self._startTime = 0
-	self._decision = nil
-	self._decisionReconsidered = false
+	self._state = "prepare"
+	self._dirty = false
 	self._pass = nil
-	self._bestRating = -math.huge
+	self._waitStartTime = nil
 end
 
 function FreeKick:start()
@@ -47,98 +47,80 @@ function FreeKick:check()
 end
 
 
-local nearBallDist = 0.15
-local hurryUp = 6
-local RECONSIDER_DECISION_DIST = 0.1
 function FreeKick:_updateTask()
-	local switchDist = nearBallDist + self._robot.radius + World.Ball.radius + POSITION_PADDING
-	local atBall =  self._robot.pos:distanceTo(World.Ball.pos) < switchDist
+	local prevState = self._state
 
-	-- if we are not near the ball yet, don't decide what to do
-	if World.Time - self._startTime < hurryUp and not atBall then
-		local viewDir = math.pi / 2
-		-- don't require moving around the ball when shooting a corner kick
-		return MoveToStaticBall, { viewDir, nearBallDist }
-	end
+	local distanceToBall = 0.15
+	local nearBall = self._robot.pos:distanceTo(World.Ball.pos)
+		< distanceToBall + self._robot.radius + World.Ball.radius + 0.02
 
-	local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*self._robot.shootRadius
-	local reconsiderDecision = dribblerPos:distanceTo(World.Ball.pos) < RECONSIDER_DECISION_DIST
-	if not self._decision or (reconsiderDecision and not self._decisionReconsidered) then
-		if reconsiderDecision then
-			self._decisionReconsidered = true
-		end
+	local _; _, _, self._dirty = ShootGoalUtil.updateTarget(self._robot, nil, self._dirty)
+	local shootgoalPossible = not self._dirty and World.RefereeState == "DirectOffensive"
 
-		local _, sg_mae, sg_clean = ShootGoalUtil.updateTarget(self._robot, nil, false)
-
-		-- search for the best pass suggestion
-		local bestPassRating = 0
-		local bestPass
-		for robot, sugg in pairs(self._inbox.passSuggestion()) do
-			local pass = {}
-			pass.rating = sugg.rating
-			pass.target = robot
-			pass.pos = sugg.pos
-			pass.receiveTime = sugg.time
-
-			if self._pass and self._pass.target == robot then
-				-- update data about current pass
-				self._pass = pass
-				self._bestRating = sugg.rating
-			end
-			if sugg.rating > bestPassRating then
-				bestPassRating = sugg.rating
-				bestPass = pass
-			end
-		end
-
-		-- if the robot is waiting and a better suggestion is available
-		local bestPassRatingHysteresis = 3 / 180 * math.pi
-		if bestPassRating > self._bestRating + bestPassRatingHysteresis then
-			self._bestRating = bestPassRating
-			if self._pass and self._pass.target ~= bestPass.target then
-				self._task = nil -- force creation of new task
-			end
-			self._pass = bestPass
-		end
-		if self._pass then
-			debug.set("pass target", self._pass.target)
-		end
-
-		-- wait if necessary
-		local delayPass = false
-		if self._pass and self._pass.pos and self._pass.receiveTime then
-			local shootTime = self._pass.receiveTime - Shoot.ballPassTime(World.Ball,
-					self._pass.pos, self._pass.target)
-			if World.Time < shootTime then
-				delayPass = true
-			end
-		end
-
-		local time = World.Time - self._startTime
-		local min_mae = math.max((3 - time)/3 * 3, 0.7) / 180 * math.pi
-		local min_pr = math.max((4 - time)/4 * 0.3, 0.005)
-		local must_be_clean = time < 3
-
-		if World.Ball.pos.y > 0 and World.RefereeState == "DirectOffensive"
-				and (sg_clean or not must_be_clean) and sg_mae and sg_mae > min_mae then
-			self._decision = "shootgoal"
-		elseif self._pass and bestPassRating > min_pr and not delayPass then
-			self._decision = "pass"
-		end
-
-		-- timeout
-		if time > 8 then
-			self._decision = "shootgoal"
+	-- prepare -> shootgoal
+	-- prepare -> wait
+	if self._state == "prepare" and nearBall then
+		if shootgoalPossible then
+			self._state = "shootgoal"
+		else
+			self._state = "wait"
+			self._waitStartTime = World.Time
 		end
 	end
 
+	-- wait -> shootgoal
+	-- wait -> pass_prepare
+	local MIN_PASS_WAIT_TIME = 2.5
+	if self._state == "wait" then
+		if shootgoalPossible then
+			self._state = "shootgoal"
+			self._pass = nil
+		elseif World.Time - self._waitStartTime > MIN_PASS_WAIT_TIME then
+			self._state = "pass_prepare"
+			self._pass = Attack.choosePassFromSuggestions(self._robot,
+				self._inbox.passSuggestion(), self._pass, false)
+		end
+	end
 
-	if self._decision == "shootgoal" then
+	-- pass_prepare -> pass
+	if self._state == "pass_prepare" then
+		local shootPos = self._pass.pos + (G.OpponentGoal - self._pass.pos):setLength(
+			self._pass.target.shootRadius + World.Ball.radius)
+		local ballTime = Shoot.ballPassTime(World.Ball.pos, shootPos, self._pass.target)
+		local robotTime = Robot.minShootTime(self._robot, shootPos)
+		if World.Time + robotTime + ballTime >= self._pass.time then
+			self._state = "pass"
+		end
+	end
+
+	if self._pass then
+		self._send.passInfo("all", self._pass)
+	end
+
+	-- visualize decision
+	local visTarget
+	if self._pass then
+		visTarget = self._pass.pos
+	elseif self._state == "shootgoal" then
+		visTarget = World.Geometry.OpponentGoal
+	end
+	if visTarget then
+		Attack.visualizeAttack(self._robot.pos, visTarget)
+	end
+
+
+
+	debug.set("state", self._state)
+	local stateChanged = prevState == self._state
+
+	if self._state == "prepare" then
+		return MoveToStaticBall, { math.pi / 2, distanceToBall }, stateChanged
+	elseif self._state == "shootgoal" then
 		return ShootGoal
-	elseif self._decision == "pass" then
-		return Pass, {self._pass.target}
-	else
-		return MoveToStaticBall
+	elseif self._state == "wait" or self._state == "pass_prepare" then
+		return MoveToStaticBall, { math.pi / 2 }, stateChanged
+	elseif self._state == "pass" then
+		return Pass, { self._pass.target, self._pass.pos }
 	end
 end
 

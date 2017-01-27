@@ -49,25 +49,19 @@ end
 --- Implements a red-yellow-green gradient
 -- @name fromTemperature
 -- @param value a normalized temperature [0, 1]
--- @param alpha the alpha value, default is 128
+-- @param alpha the alpha value, default is 127
 -- @return table color
 function vis.fromTemperature(value, alpha)
 	assert(value >= 0, "vis temperature too low: " .. value);
 	assert(value <= 1, "vis temperature too high: " .. value);
-	local red = 0
-	local green = 0
-	if value < 1/6 then
-		green = 3 * value + 0.5
-	elseif value < 3/6 then
-		green = 1
-		red = 3 * value - 0.5
-	elseif value < 5/6 then
-		green = -3 * value + 2.5
-		red = 1
+	local red = 1
+	local green = 1
+	if value < 0.5 then
+		red = 2 * value
 	else
-		red = -3 * value + 3.5
+		green = 2 - 2 * value
 	end
-	return vis.fromRGBA(255 * red, 255 * green, 0, alpha or 128)
+	return vis.fromRGBA(255 * red, 255 * green, 0, alpha or 127)
 end
 
 --- Modifies alpha value on a copy of the given color
@@ -143,6 +137,14 @@ vis.colors.brownHalf = vis.fromRGBA(127, 63, 0, 127)
 vis.colors.skyBlue = vis.fromRGBA(127, 191, 255, 255)
 vis.colors.skyBlueHalf = vis.fromRGBA(127, 191, 255, 127)
 
+vis.colors.slate = vis.fromRGBA(112, 118, 144, 255)
+vis.colors.slateHalf = vis.fromRGBA(112, 118, 144, 127)
+vis.colors.orchid = vis.fromRGBA(218, 94, 224, 255)
+vis.colors.orchidHalf = vis.fromRGBA(218, 94, 224, 127)
+vis.colors.gold = vis.fromRGBA(239, 185, 15, 255)
+vis.colors.goldHalf = vis.fromRGBA(239, 185, 15, 127)
+
+
 --- Sets line and fill color.
 -- If filled is true polygons and circles are filled using color.
 -- @name setColor
@@ -161,14 +163,14 @@ end
 -- @param radius number - radius of the circle
 -- @param color table - color (optional)
 -- @param isFilled bool - fill circle (optional)
-function vis.addCircle(name, center, radius, color, isFilled, background, style)
-	vis.addCircleRaw(name, Coordinates.toGlobal(center), radius, color, isFilled, background, style)
+function vis.addCircle(name, center, radius, color, isFilled, background, style, lineWidth)
+	vis.addCircleRaw(name, Coordinates.toGlobal(center), radius, color, isFilled, background, style, lineWidth)
 end
 
 --- Adds a circle. Requires global coordinates.
 -- @name addCircleRaw
 -- @see addCircle
-function vis.addCircleRaw(name, center, radius, color, isFilled, background, style)
+function vis.addCircleRaw(name, center, radius, color, isFilled, background, style, lineWidth)
 	-- if color is set use passed isFilled
 	if not color then
 		isFilled = gisFilled
@@ -176,7 +178,7 @@ function vis.addCircleRaw(name, center, radius, color, isFilled, background, sty
 	end
 	amun.addVisualization({
 		name = name, pen = { color=color, style=style },
-		brush = isFilled and color or nil, width = 0.01,
+		brush = isFilled and color or nil, width = lineWidth or 0.01,
 		circle = {p_x = center.x, p_y = center.y, radius = radius},
 		background = background
 	})
@@ -242,18 +244,18 @@ end
 -- @param name string - Visualization group
 -- @param points Vector[] - Points of the path
 -- @param color table - line color (optional)
-function vis.addPath(name, points, color, background, style)
-	vis.addPathRaw(name, Coordinates.listToGlobal(points), color, background, style)
+function vis.addPath(name, points, color, background, style, lineWidth)
+	vis.addPathRaw(name, Coordinates.listToGlobal(points), color, background, style, lineWidth)
 end
 
 --- Adds a path. Requires global coordinates.
 -- @name addPathRaw
 -- @see addPath
-function vis.addPathRaw(name, points, color, background, style)
+function vis.addPathRaw(name, points, color, background, style, lineWidth)
 	color = color or gcolor
 	amun.addVisualization({
 		name = name, pen = { color=color, style=style },
-		width = 0.01,
+		width = lineWidth or 0.01,
 		path = {point = points},
 		background = background
 	})

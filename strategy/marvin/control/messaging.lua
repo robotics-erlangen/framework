@@ -18,7 +18,7 @@ local msgDefs = {
 	distractedIndex = "number",
 	exclusiveRole = "table", -- value test is in getExclusiveRoleApplications
 	kickoffMirrorFlag = "flag",
-	passSuggestion = "table", -- { rating: number [, pos: Vector, time: number] }
+	passSuggestion = "table", -- { pos: Vector, time: number }
 	kickoffPass = "cdata",
 	kickoffStart = "number",
 	targetTime = "number",
@@ -27,9 +27,10 @@ local msgDefs = {
 	attackPosition = "cdata",
 	shootDestination = "cdata",
 	centerBackPosTarget = "table", -- { pos: vector, target: table }
-	passPos = "table", -- { target: robot, pos: vector }
+	passInfo = "table", -- { target: robot, pos: vector, time: number }
 	duelAssistantPos = "cdata",
 	duelAssistantDir = "number",
+	strikerZone = "table", -- { defaultPos: vector, boundaries: table }
 	roleAssignment = "table", -- { name: string, params: table }
 	shootActionPlan = "string", -- "goalShot" or "pass"
 	moveAssignment = "table", -- { class: class, params: table }
@@ -128,11 +129,8 @@ function Messaging:_constructInbox(receiver)
 						mtypeBox.allBoxMerged = allMerged
 					end
 					if not allMerged[receiver] then -- merge broadcasts into receiveBox
-						local receiverRobot = (receiver == "trainer") and "trainer" or receiver:robot()
 						for sender, data in pairs(allBox) do
-							if sender ~= receiverRobot or sender == "trainer" then
-								receiveBox[sender] = data
-							end
+							receiveBox[sender] = data
 						end
 						allMerged[receiver] = true
 					end
