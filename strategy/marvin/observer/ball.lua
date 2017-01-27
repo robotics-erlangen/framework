@@ -184,51 +184,6 @@ function Ball.receivesPass(robot)
 	return ballRecipients[robot]
 end
 
-
---- Calculates the probability that the given opponent robot catches the ball
--- @param robot Robot - opponent robot
--- @param shootTime number - how long to wait before shoot
--- @param rollTime number - how long it takes the ball to travel to the catchPos
--- @param catchPos Vector - where the robot might catch the ball
--- @param corridorHalf Vector - the ball can only be catched in [catchPos-corridorHalf, catchPos+corridorHalf]
--- @return catchProbability number - the chance that the given opponent robot catches the ball
-function Ball.ballCatchProbability(robot, shootTime, rollTime, catchPos, corridorHalf)
-	local latency = 0.1 -- MAGIC CONSTANT -- time the robot needs to react
-	local damping = 0.5 -- MYSTERIOUS MAGIC CONSTANT - this factor describes how much of their maximum acceleration the robots use before they can react
-	local corridorWidthHalf = corridorHalf:length()
-	local toCorridor = catchPos - robot.pos
-	local distToCorridor = toCorridor:length()
-	local v_toSector = robot.speed:dot(corridorHalf)*math.sign(toCorridor:dot(corridorHalf)) / corridorWidthHalf -- part of robot.speed perpendicular to shoot corridor
-	debug.set("v to sector", v_toSector)
-	local time = shootTime + rollTime -- the time from now to the moment to catch the ball
-	local expectedPos = v_toSector*time -- position, which the robot reaches without changing speed
-	local d0, flagAcc
-	if expectedPos < distToCorridor - corridorWidthHalf - robot.radius then -- if robot must accelerate to reach corridor in time
-		flagAcc = true
-		d0 = distToCorridor - robot.radius - corridorWidthHalf
-	elseif expectedPos > distToCorridor + corridorWidthHalf + robot.radius then -- if robot must decelerate to stay in sector
-		flagAcc = false
-		d0 = distToCorridor + robot.radius + corridorWidthHalf
-	else -- if robot reaches the corridor in time with its current speed
-		return 1
-	end
-	local maxAcceleration = robot.acceleration.aSpeedupFMax
-	local maxDeceleration = robot.acceleration.aBrakeFMax
-	local neededAcc
-	if rollTime < latency then
-		neededAcc = 2*(d0 - expectedPos)/(damping*time*time)
-	else
-		local t1 = shootTime + latency -- the time span while the robots can not react
-		local t2 = rollTime - latency -- the time span while the robots can react
-		neededAcc = (d0 - expectedPos)/(0.5*damping*t1*t1 + damping*t1*t2 + 0.5*t2*t2)
-	end
-	if flagAcc then
-		return (neededAcc >= maxAcceleration) and 0 or math.sqrt((maxAcceleration - neededAcc)/maxAcceleration)
-	else
-		return (neededAcc <= maxDeceleration) and 0 or math.sqrt((maxDeceleration - neededAcc)/maxDeceleration)
-	end
-end
-
 local lastBallSpeedLength = 0 -- used for both isAccelerating() and isShot()
 local ballIsAccelerating = false
 function Ball.isAccelerating()

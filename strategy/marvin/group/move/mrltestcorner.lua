@@ -1,44 +1,53 @@
 local MrlTestCorner = Class("Group.Move.MrlTestCorner", require "group/move/base")
 
-local Referee = require "../base/referee"
-local World = require "../base/world"
+local geom = require "../base/geom"
+local MovesHelper = require "util/moveshelper"
 local MrlTestCornerTask = require "group/move/mrltestcornertask"
 local Pass = require "task/pass"
+local Referee = require "../base/referee"
 local StopAttack = require "task/stopattack"
+local World = require "../base/world"
 local G = World.Geometry
 
 
 MrlTestCorner.N_ROBOTS = 5
 
 function MrlTestCorner.canStart()
-	return  World.Ball.pos.y > G.FieldHeightHalf / 5 --and Referee.opponentTouchedLast()
+	return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 --and Referee.opponentTouchedLast()
 		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
 		and World.RefereeState == "Stop"
 end
 
 function MrlTestCorner:_init()
 	local ballSide = (World.Ball.pos.x > 0) and -1 or 1
-	local goalDist = G.DefenseRadius+0.4
+	local goalDist = G.DefenseRadius + 0.4
 	self._distractorPositions = {
 		Vector(0.3, G.OpponentGoal.y - goalDist),
 		Vector(0.0, G.OpponentGoal.y - goalDist),
 		Vector(-0.3, G.OpponentGoal.y - goalDist)
 	}
 
-	self._activeRobotInitPos = Vector(ballSide*G.FieldWidthHalf/1.4, G.OpponentGoal.y-0.5)
-	self._activeRobotShootPos = Vector(-ballSide*G.FieldWidthHalf/2, G.OpponentGoal.y-2.5)
+	self._activeRobotInitPos = Vector(ballSide * G.FieldWidthHalf / 1.4, G.OpponentGoal.y - 0.5)
+	self._activeRobotShootPos = Vector(-ballSide * G.FieldWidthHalf / 2, G.OpponentGoal.y - 2.5)
 end
 
 function MrlTestCorner:_canContinue()
 	if Referee.isFriendlyFreeKickState() then
 		return true
 	end
-	return World.Ball.pos.y > G.FieldHeightHalf / 5 - 0.2
+	return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2
 		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
 		and World.RefereeState == "Stop"
 end
 
 function MrlTestCorner:_updateTasks()
+
+	-- draw circles where robots cannot shoot a volley
+	local center1, center2, radius = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, 55 / 180 * math.pi)
+	local circle = center1.y < center2.y and center1 or center2
+
+	local intersectionWithCircle = geom.intersectLineCircle(G.OpponentGoal, self._activeRobotShootPos - G.OpponentGoal, circle, radius)
+	self._activeRobotShootPos = G.OpponentGoal + (intersectionWithCircle - G.OpponentGoal):setLength(intersectionWithCircle:distanceTo(G.OpponentGoal) + 0.1)
 	local taskAssignments = {}
 
 	if World.RefereeState == "Stop" then

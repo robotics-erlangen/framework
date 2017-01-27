@@ -9,6 +9,7 @@ local Physics = require "observer/physics"
 local AggressiveKeeper = require "task/aggressivekeeper"
 local Keeper = require "task/keeper"
 local KeeperChipAway = require "task/chipaway"
+local Pass = require "task/pass"
 
 
 local SLOW_BALL = 0.5
@@ -46,9 +47,38 @@ function HandleBall:_updateTask()
 	if startInside and endPos.y < World.Geometry.FriendlyGoal.y + 0.01 then
 		-- if ball is inside defense area and will enter the goal -> block the ball
 		return Keeper
-	elseif startInside and endInside and not ballBehindKeeper then
+	elseif startInside and endInside and not ballBehindKeeper and self._inbox.passSuggestion() then
 		-- if ball is inside defense area and will not leave it -> we have time to act
-		return KeeperChipAway
+		-- try to find a good pass
+		local bestPass = {}
+
+		for robot, sugg in pairs(self._inbox.passSuggestion()) do
+			local pass = {}
+			pass.rating = sugg.rating
+			pass.target = robot
+			pass.pos = sugg.pos
+			pass.receiveTime = sugg.time
+
+			if not bestPass.rating then
+				bestPass.rating = pass.rating
+				bestPass.target = pass.target
+				bestPass.pos = pass.pos
+				bestPass.receiveTime = pass.receiveTime
+
+			elseif pass.rating > bestPass.rating then
+				bestPass.rating =pass.rating
+				bestPass.target = pass.target
+				bestPass.pos = pass.pos
+				bestPass.receiveTime = pass.receiveTime
+
+			end
+		end
+		if bestPass.target then --check if there is a good pass, else chip away
+			return Pass, {bestPass.target}
+		else
+			return KeeperChipAway
+		end
+
 	else
 		-- if inside and ball will leave or outside -> get rid of the ball
 		return AggressiveKeeper
