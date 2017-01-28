@@ -44,18 +44,18 @@ function Attack.ratePass(robot, pass, considerTiming)
 	return rating
 end
 
-function Attack.choosePass(robot, passes, currentPass, considerTiming)
+function Attack.choosePass(robot, passes, currentPassPos, considerTiming)
 	local bestPass
 	local bestPassRating = -math.huge
 	for _,pass in ipairs(passes) do
 		local rating = Attack.ratePass(robot, pass, considerTiming)
 		if rating > 0 then
-			-- give a bonus if the pos is near the currentPass.pos
-			if currentPass then
+			-- give a bonus if the pos is near the currentPassPos
+			if currentPassPos then
 				local ratingHystDistance = 0.1
 				local ratingHystPercentage = 0.1
 				rating = rating * (1 + ratingHystPercentage *
-					Rating.valueToRating(pass.pos:distanceTo(currentPass.pos), ratingHystDistance, 0))
+					Rating.valueToRating(pass.pos:distanceTo(currentPassPos), ratingHystDistance, 0))
 			end
 
 			if rating > bestPassRating then
@@ -68,12 +68,12 @@ function Attack.choosePass(robot, passes, currentPass, considerTiming)
 	return bestPass, bestPassRating
 end
 
-function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPass, considerTiming)
+function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPassPos, considerTiming)
 	local passes = {}
 	for sender, sugg in pairs(passSuggestions) do
 		table.insert(passes, {target = sender, pos = sugg.pos, time = sugg.time })
 	end
-	return Attack.choosePass(robot, passes, currentPass, considerTiming)
+	return Attack.choosePass(robot, passes, currentPassPos, considerTiming)
 end
 
 function Attack.visualizeAttack(robotPos, attackPos)
