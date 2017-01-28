@@ -123,7 +123,7 @@ function debug.set(name, value, visited)
 		local timeAsStr = tostring(value - World.Time)
 		value = string.sub(timeAsStr, 1, 5) .. " (" .. value .. ")"
 	end
-		
+
 	amun.addDebug(prefixName(name), value)
 end
 

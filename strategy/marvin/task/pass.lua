@@ -21,6 +21,11 @@ function Pass:_init(targetRobot, targetPos, chip, passSpeed)
 	end
 end
 
+function Pass:updateTarget(targetRobot, targetPos)
+	self._targetRobot = targetRobot
+	self._targetPos = targetPos
+end
+
 function Pass:run()
 	debug.set("targetRobot", self._targetRobot)
 	debug.set("targetPos", self._targetPos)
