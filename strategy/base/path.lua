@@ -179,11 +179,16 @@ _G["path"] = nil
 package.preload["path"] = nil
 package.loaded["path"] = nil
 
+local vis = require "../base/vis"
+
 local teamIsBlue = amun.isBlue()
 
 -- wrap add obstacle functions for automatic strategy to global coordinates conversion
 local _addCircle = path.addCircle
 function path:addCircle(x, y, radius, name)
+	if amun.isDebug then
+		vis.addCircle("obstacles", Vector(x,y), radius, vis.colors.red, true)
+	end
 	if teamIsBlue then
 		_addCircle(self, -x, -y, radius, name)
 	else
@@ -193,6 +198,13 @@ end
 
 local _addLine = path.addLine
 function path:addLine(start_x, start_y, stop_x, stop_y, radius, name)
+	if amun.isDebug then
+		local startVec = Vector(start_x, start_y)
+		local endVec = Vector(stop_x, stop_y)
+		local startToEnd = endVec - startVec
+		local offset = startToEnd:perpendicular():setLength(radius)
+		vis.addPolygon("obstacles", {startVec+offset, endVec+offset, endVec-offset, startVec-offset}, vis.colors.red, true)
+	end
 	if teamIsBlue then
 		_addLine(self, -start_x, -start_y, -stop_x, -stop_y, radius, name)
 	else
@@ -202,6 +214,10 @@ end
 
 local _addRect = path.addRect
 function path:addRect(start_x, start_y, stop_x, stop_y, name)
+	if amun.isDebug then
+		vis.addPolygon("obstacles", {Vector(start_x, start_y), Vector(start_x, stop_y), Vector(stop_x, stop_y), Vector(stop_x, start_y)},
+			vis.colors.red, true)
+	end
 	if teamIsBlue then
 		_addRect(self, -start_x, -start_y, -stop_x, -stop_y, name)
 	else
@@ -211,6 +227,13 @@ end
 
 local _addTriangle = path.addTriangle
 function path:addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name)
+	if amun.isDebug then
+		local p1 = Vector(x1,y1)
+		local p2 = Vector(x2,y2)
+		local p3 = Vector(x3,y3)
+
+		vis.addPolygon("obstacles", {p1, p2, p3}, vis.colors.red, true)
+	end
 	if teamIsBlue then
 		_addTriangle(self, -x1, -y1, -x2, -y2, -x3, -y3, lineWidth, name)
 	else
