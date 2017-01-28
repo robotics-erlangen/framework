@@ -68,6 +68,7 @@ private slots:
 private:
     bool eventFilter(QObject *obj, QEvent *event) override;
 
+    void loadScaling();
     void loadSelection();
     QStandardItem* getItem(const QString &name);
     void addRootItem(const QString &name, const QString &displayName);

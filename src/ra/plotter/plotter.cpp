@@ -99,6 +99,8 @@ Plotter::Plotter() :
     ui->tree->header()->restoreState(s.value(QStringLiteral("tree")).toByteArray());
     s.endGroup();
 
+    loadScaling();
+
     // setup invalidate timer
     m_guiTimer = new GuiTimer(1000, this);
     connect(m_guiTimer, &GuiTimer::timeout, this, &Plotter::invalidatePlots);
@@ -121,6 +123,11 @@ void Plotter::closeEvent(QCloseEvent *event)
     s.setValue(QStringLiteral("splitter"), ui->splitter->saveState());
     s.setValue(QStringLiteral("tree"), ui->tree->header()->saveState());
     s.setValue(QStringLiteral("visible"), QStringList(m_selection.toList()));
+    s.setValue(QStringLiteral("scaling"), QList<QVariant>({
+        ui->spinYMin->value(),
+        ui->spinYMax->value(),
+        ui->spinDuration->value()
+    }));
     s.endGroup();
 
     QWidget::closeEvent(event);
@@ -138,6 +145,20 @@ void Plotter::addRootItem(const QString &name, const QString &displayName)
     QStandardItem *item = new QStandardItem(displayName);
     m_model.appendRow(item);
     m_items[name] = item;
+}
+
+void Plotter::loadScaling()
+{
+    QSettings s;
+    s.beginGroup(QStringLiteral("Plotter"));
+    QList<QVariant> scaling = s.value(QStringLiteral("scaling")).toList();
+    if (scaling.size() == 3) {
+        float ymin = scaling[0].toFloat();
+        float ymax = scaling[1].toFloat();
+        float duration = scaling[2].toFloat();
+        setScaling(ymin, ymax, duration);
+    }
+    s.endGroup();
 }
 
 void Plotter::loadSelection()
