@@ -10,6 +10,7 @@ local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local Volley = require "task/ability/volley"
 local Interval = require "util/interval"
+local Rating = require "util/rating"
 
 
 local G = World.Geometry
@@ -176,8 +177,14 @@ end
 -- @return isShot bool - if the ball is fast (and should be considered as a threat)
 -- @return passReceivers list - list of all robots that could receive the pass
 local SLOW_BALL = 0.7
-local BEST_ROBOT_HYSTERESIS = 0.1
+local BEST_ROBOT_HYSTERESIS = 1.1
 local lastBestRobotId = nil
+local function comparePrediction(p1, p2)
+	if p1[2] == p2[2] then
+		return p1[3] < p2[3]
+	end
+	return p1[2] > p2[2]
+end
 function Goal.predictShot()
 	local ballSpeed = World.Ball.speed:copy() -- Defend ball by default
 	local pos = World.Ball.pos
@@ -205,57 +212,50 @@ function Goal.predictShot()
 		local volleyPos = ballLinePos + ballSpeedCopy:setLength(volleyPosDistance)
 		vis.addCircle("o/goal: predictShot: last volley pos", volleyPos, 0.1)
 
-		if Field.isInAllowedField(volleyPos, Constants.maxRobotRadius) then -- if a volley is possible
-			local endOfField = Field.nextLineCut(pos, ballSpeed)
+		if Field.isInField(volleyPos, 0) then -- if a volley is possible
 			local lengthOfBallMovement = 0.5 * ballSpeed:lengthSq() / (-Constants.ballDeceleration)
-			if (endOfField - pos):lengthSq() > lengthOfBallMovement * lengthOfBallMovement then
-				endOfField = pos + ballSpeed:scaleLength(lengthOfBallMovement)
+			local lineSegments = Field.allowedLineSegments(pos, ballSpeed, lengthOfBallMovement)
+			for _, line in ipairs(lineSegments) do
+				vis.addPath("o/goal: predictShot: allowed catch path", {line[1], line[2]}, vis.colors.cyan)
 			end
-			vis.addCircle("o/goal: predictShot: end of field", endOfField, 0.02)
+
 			for _, robot in ipairs(World.OpponentRobots) do
-				local pointOnLine = robot.pos:nearestPosOnLine(pos, endOfField)
-				local ballRollTime = Physics.checkedBallRollTime(World.Ball, pointOnLine)
-				local catchPos = pointOnLine + (robot.pos - pointOnLine):setLength(robot.shootRadius)
+				local bestPointOnLine = World.Ball.pos
+				local bestPointDistance = math.huge
+				for _, lineSegment in ipairs(lineSegments) do
+					local pointOnLine = robot.pos:nearestPosOnLine(lineSegment[1], lineSegment[2])
+					local distance = robot.pos:distanceTo(pointOnLine)
+					if distance < bestPointDistance then
+						bestPointDistance = distance
+						bestPointOnLine = pointOnLine
+					end
+				end
+				local ballRollTime = Physics.checkedBallRollTime(World.Ball, bestPointOnLine)
+				local catchPos = bestPointOnLine + (robot.pos - bestPointOnLine):setLength(robot.shootRadius)
 
 				-- calculate chance of the robot reaching catchPos before the ball
-				local chance
-				if robot.pos:distanceTo(catchPos) < 0.05 then
-					chance = 1
+				local weightedDistance
+				if math.abs(ballRollTime) == math.huge then
+					weightedDistance = 0
+				elseif robot.pos:distanceTo(catchPos) < 0.1 then
+					weightedDistance = math.huge
 				else
 					local robotTime = Physics.robotTimeToPos(robot, catchPos, Vector(0, 0))
-					if robotTime > ballRollTime then
-						chance = 0
-					else
-						chance = 1 - robotTime / ballRollTime
-					end
+					weightedDistance = Rating.valueToRating(robotTime, ballRollTime, 0) * 1 / pos:distanceTo(catchPos)
 				end
-				if robot.id == lastBestRobotId and chance ~= 0 then
-					chance = chance + BEST_ROBOT_HYSTERESIS
+				if robot.id == lastBestRobotId and weightedDistance > 0 then
+					weightedDistance = weightedDistance * BEST_ROBOT_HYSTERESIS
 				end
 
-				if chance > 0 then
-					local index = 1
-					local range = false
-					for k, p in ipairs(passReceivers) do -- find the position in the table, so that the table is still sorted (after ascending chance) after insertion
-						index = k
-						if p[2] > chance then
-							range = true
-							break
-						end
-					end
-					if range then
-						table.insert(passReceivers, index, {robot, chance})
-					else
-						table.insert(passReceivers, {robot, chance})
-					end
-					vis.addCircle("o/goal: predictShot: may recieve pass", robot.pos, robot.radius,
-							vis.fromRGBA(255, 63, 0, 255 * chance / (1 + BEST_ROBOT_HYSTERESIS)), true)
+				if weightedDistance > 0 then
+					table.insert(passReceivers, {robot, weightedDistance, ballRollTime})
 					vis.addPath("o/goal: predictShot: to catch position", {robot.pos, catchPos}, vis.colors.red)
 				end
 			end
-			local nPassReceivers = #passReceivers
-			if nPassReceivers > 0 then -- if there is a pass receiver, just block it
-				local passReciever = passReceivers[nPassReceivers]
+			table.sort(passReceivers, comparePrediction)
+
+			if #passReceivers > 0 then -- if there is a pass receiver, just block it
+				local passReciever = passReceivers[1]
 				lastBestRobotId = passReciever[1].id
 				pos = passReciever[1].pos + Vector.fromAngle(passReciever[1].dir) * (passReciever[1].shootRadius + World.Ball.radius)
 				local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(pos))
