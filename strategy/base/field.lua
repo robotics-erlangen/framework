@@ -260,17 +260,7 @@ local intersectRayArc = function(pos, dir, m, r, minangle, maxangle)
 	return intersections
 end
 
---- Returns one intersection of a given line with the (extended) defense area
---- The intersection is the one with the smallest t in x = pos + t * dir, t >= 0
--- @name intersectRayDefenseArea
--- @param pos Vector - starting point of the line
--- @param dir Vector - the direction of the line
--- @param extraDistance number - gets added to G.DefenseRadius
--- @param opp bool - whether the opponent or the friendly defense area is considered
--- @return Vector - the intersection position
--- @return number - the length of the way from the very left of the defense area to the
--- intersection point, when moving along its border
-function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp)
+local intersectRayDefenseArea = function(pos, dir, extraDistance, opp)
 	-- calculate defense radius
 	extraDistance = extraDistance or 0
 	local radius = G.DefenseRadius + extraDistance
@@ -308,6 +298,21 @@ function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp)
 	if lineIntersection and l1 >= 0 and math.abs(l2) <= G.DefenseStretch/2 then
 		table.insert(intersections, {lineIntersection, l2 + totalway/2, l1})
 	end
+	return intersections, totalway
+end
+
+--- Returns one intersection of a given line with the (extended) defense area
+--- The intersection is the one with the smallest t in x = pos + t * dir, t >= 0
+-- @name intersectRayDefenseArea
+-- @param pos Vector - starting point of the line
+-- @param dir Vector - the direction of the line
+-- @param extraDistance number - gets added to G.DefenseRadius
+-- @param opp bool - whether the opponent or the friendly defense area is considered
+-- @return Vector - the intersection position
+-- @return number - the length of the way from the very left of the defense area to the
+-- intersection point, when moving along its border
+function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp)
+	local intersections, totalway = intersectRayDefenseArea(pos, dir, extraDistance, opp)
 
 	-- choose nearest intersection
 	local minDistance = math.huge
@@ -322,6 +327,62 @@ function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp)
 		end
 	end
 	return minIntersection, minWay
+end
+
+--- Return all line segments of the line segment pos to pos + dir * maxLength which are in the allowed field part
+-- @name allowedLineSegments
+-- @param pos Vector - starting point of the line
+-- @param dir Vector - the direction of the line
+-- @param maxLength number - length of the line segment, optional
+-- @return table - contains n {pos1, pos2} tables representing the resulting line segments
+function Field.allowedLineSegments(pos, dir, maxLength)
+	maxLength = maxLength or math.inf
+	local direction = dir:copy()
+	direction:setLength(1)
+	local pos1, lambda1 = geom.intersectLineLine(pos, direction, Vector(G.FieldWidthHalf, 0), Vector(0, 1))
+	local pos2, lambda2 = geom.intersectLineLine(pos, direction, Vector(-G.FieldWidthHalf, 0), Vector(0, 1))
+	local pos3, lambda3 = geom.intersectLineLine(pos, direction, Vector(0, G.FieldHeightHalf), Vector(1, 0))
+	local pos4, lambda4 = geom.intersectLineLine(pos, direction, Vector(0, -G.FieldHeightHalf), Vector(1, 0))
+	local lambdas = {}
+	local fieldLambdas = {lambda1, lambda2, lambda3, lambda4}
+	local fieldPos = {pos1, pos2, pos3, pos4}
+	for i, lambda in ipairs(fieldLambdas) do
+		if lambda > maxLength then
+			lambda = maxLength
+		end
+		if lambda and Field.isInField(fieldPos[i], 0) and lambda > 0 then
+			table.insert(lambdas, lambda)
+		end
+	end
+
+	local intersectionsOwn = intersectRayDefenseArea(pos, direction, 0, false)
+	local intersectionsOpp = intersectRayDefenseArea(pos, direction, 0, true)
+	table.append(intersectionsOwn, intersectionsOpp)
+	for _, intersection in ipairs(intersectionsOwn) do
+		local lambda = pos:distanceTo(intersection[1])
+		if lambda > maxLength then
+			lambda = maxLength
+		end
+		if Field.isInField(intersection[1], 0) and lambda > 0 then
+			table.insert(lambdas, lambda)
+		end
+	end
+
+	if Field.isInAllowedField(pos, 0) then
+		table.insert(lambdas, 0)
+	end
+
+	table.sort(lambdas)
+
+	local result = {}
+	for i = 1, math.floor(#lambdas / 2) do
+		local p1 = pos + direction * lambdas[i * 2 - 1]
+		local p2 = pos + direction * lambdas[i * 2]
+		if p1:distanceTo(p2) > 0 then
+			table.insert(result, {p1, p2})
+		end
+	end
+	return result
 end
 
 --- Calculates the point on the (extended) defense area when given the way along its border
