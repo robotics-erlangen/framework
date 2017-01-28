@@ -47,7 +47,7 @@ function Striker:_searchForPassDest()
 				if not Field.isInOpponentDefenseArea(candidatePoint, self._robot.radius + 0.03) then
 					vis.addCircle("t/striker", candidatePoint, 0.03, vis.colors.slateHalf, true)
 
-					local score = self._sampling:evalLocation(candidatePoint, bestScore)
+					local score = self._sampling:evalLocation(candidatePoint)
 					if self._passDest and self._passDest:distanceTo(candidatePoint) < 0.01 then
 						score = score + 0.1
 					end

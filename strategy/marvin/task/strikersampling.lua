@@ -1,12 +1,9 @@
 local StrikerSampling = Class("Task.StrikerSampling", require "task/base")
 
-local Field = require "../base/field"
-local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
 local Ball = require "observer/ball"
-local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local ObserverShoot = require "observer/shoot"
@@ -70,7 +67,7 @@ function StrikerSampling:volleyPass(pos)
 end
 
 
-function StrikerSampling:evalLocation(pos, currentBestScore)
+function StrikerSampling:evalLocation(pos)
 	local score = 1
 
 	-- score = score * self:correctFieldHalf(pos)

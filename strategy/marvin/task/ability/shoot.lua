@@ -101,7 +101,6 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontSh
 	debug.set("stopBall", self._stopBallHysteresis)
 	debug.set("inTheRun", self._inTheRunHysteresis)
 	debug.set("movingBall", self._movingBallHysteresis)
-	local catchTime = 0
 
 	-- don't allow pushing the ball into the opponent defense area
 	if self._robot:hasBall(World.Ball, SHOOT_SIDE_OFFSET)
@@ -116,7 +115,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontSh
 	else
 		debug.set("shoot command", "none")
 		self:_resetShoot()
-		catchTime = self:_doCatch(targetPos, targetSpeed, futureBall)
+		self:_doCatch(targetPos, targetSpeed, futureBall)
 	end
 
 	self._send.shootDestination("all", targetPos)
