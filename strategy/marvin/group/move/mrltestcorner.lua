@@ -1,12 +1,12 @@
 local MrlTestCorner = Class("Group.Move.MrlTestCorner", require "group/move/base")
 
 local geom = require "../base/geom"
-local MovesHelper = require "util/moveshelper"
-local MrlTestCornerTask = require "group/move/mrltestcornertask"
-local Pass = require "task/pass"
 local Referee = require "../base/referee"
-local StopAttack = require "task/stopattack"
 local World = require "../base/world"
+local Freekick = require "agent/attacker/freekick"
+local MoveToPos = require "task/movetopos"
+local StopAttack = require "task/stopattack"
+local MovesHelper = require "util/moveshelper"
 local G = World.Geometry
 
 
@@ -52,15 +52,15 @@ function MrlTestCorner:_updateTasks()
 
 	if World.RefereeState == "Stop" then
 		taskAssignments[self._robots[1]] = { class = StopAttack, params = { } }
-		taskAssignments[self._robots[2]] = { class = MrlTestCornerTask, params = { self._activeRobotInitPos }}
+		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._activeRobotInitPos, nil, true }}
 	elseif Referee.isFriendlyFreeKickState() then
-		taskAssignments[self._robots[1]] = { class = Pass, params = { self._robots[2] } }
-		taskAssignments[self._robots[2]] = { class = MrlTestCornerTask, params = { self._activeRobotShootPos, self._robots[1] }, restart = true}
+		taskAssignments[self._robots[1]] = { behavior = Freekick }
+		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._activeRobotShootPos, nil, true }, restart = true}
 	end
 
-	taskAssignments[self._robots[3]] = { class = MrlTestCornerTask, params = { self._distractorPositions[1] }}
-	taskAssignments[self._robots[4]] = { class = MrlTestCornerTask, params = { self._distractorPositions[2] }}
-	taskAssignments[self._robots[5]] = { class = MrlTestCornerTask, params = { self._distractorPositions[3] }}
+	taskAssignments[self._robots[3]] = { class = MoveToPos, params = { self._distractorPositions[1] }}
+	taskAssignments[self._robots[4]] = { class = MoveToPos, params = { self._distractorPositions[2] }}
+	taskAssignments[self._robots[5]] = { class = MoveToPos, params = { self._distractorPositions[3] }}
 
 	return taskAssignments
 end
