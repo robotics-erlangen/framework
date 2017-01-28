@@ -76,9 +76,11 @@ function FreeKick:_updateTask()
 			self._state = "shootgoal"
 			self._pass = nil
 		elseif World.Time - self._waitStartTime > MIN_PASS_WAIT_TIME then
-			self._state = "pass_prepare"
 			self._pass = Attack.choosePassFromSuggestions(self._robot,
 				self._inbox.passSuggestion(), self._pass, false)
+			if self._pass then
+				self._state = "pass_prepare"
+			end
 		end
 	end
 
