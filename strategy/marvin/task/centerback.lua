@@ -3,11 +3,13 @@ local CenterBack = Class("Task.CenterBack", require "task/base", ForceShoot)
 
 local debug = require "../base/debug"
 local Field = require "../base/field"
-local Referee = require "../base/referee"
-local World = require "../base/world"
-local Robot = require "observer/robot"
+local geom = require "../base/geom"
 local PathHelper = require "trajectory/pathhelper"
+local Physics = require "observer/physics"
+local Referee = require "../base/referee"
+local Robot = require "observer/robot"
 local ToTarget = require "trajectory/totarget"
+local World = require "../base/world"
 
 local G = World.Geometry
 
@@ -88,10 +90,29 @@ function CenterBack:run()
 		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
 	end
 
+	-- The centerback that is blocking the ball, that is shot towards the goal has to
+	-- -fully drive into the shot
+	-- -drive as fast as possible, because it doesn't matter if we have an endSpeed when we have blocked the ball
+	local endSpeed = nil
+	local intersectionWithGoalLine = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, G.FriendlyGoal, Vector(1, 0))
+	if intersectionWithGoalLine and math.abs(intersectionWithGoalLine.x) < G.GoalWidth / 2 + 0.1 
+			and World.Ball.speed:length() > 0.5 and World.Ball.speed.y < 0 and destinationTarget == World.Ball then
+		local blockingPos = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, self.distanceToDefenseArea() + self._robot.radius, false)
+		--destinationPos = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, destinationPos, (destinationPos - self._robot.pos))
+		if blockingPos then
+			destinationPos = blockingPos
+		end
+		local ballTime = Physics.checkedBallRollTime(World.Ball, destinationPos + (World.Ball.pos - destinationPos):setLength(self._robot.shootRadius + World.Ball.radius))
+
+		if ballTime ~= -math.huge then
+			endSpeed = Physics.robotMinEndspeed(self._robot, destinationPos, ballTime)
+		end
+	end
+
 	--move robot
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreFriends, ignoreOpponents)
-	self._robot.trajectory:update(ToTarget, destinationPos, dir)
+	self._robot.trajectory:update(ToTarget, destinationPos, dir, nil, endSpeed)
 	self._send.moveDest("all", destinationPos)
 end
 
