@@ -122,7 +122,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 		 
 		 --shift position slightly to cover more of the opposite goal corner of the keeper position
 		if target == World.Ball and World.FriendlyKeeper then
-			way = way - (robot_radius / 2) * (Rating.valueToRating(World.FriendlyKeeper.pos.x, -0.05, 0.05) * 2 - 1)
+			way = way - (robot_radius / 2) * (Rating.valueToRating(World.FriendlyKeeper.pos.x, -0.2, 0.2) * 2 - 1)
 		end
 
 		way = math.max(way, occupiedWay/2)
