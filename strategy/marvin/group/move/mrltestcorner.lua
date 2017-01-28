@@ -46,8 +46,11 @@ function MrlTestCorner:_updateTasks()
 	local center1, center2, radius = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, 55 / 180 * math.pi)
 	local circle = center1.y < center2.y and center1 or center2
 
-	local intersectionWithCircle = geom.intersectLineCircle(G.OpponentGoal, self._activeRobotShootPos - G.OpponentGoal, circle, radius)
-	self._activeRobotShootPos = G.OpponentGoal + (intersectionWithCircle - G.OpponentGoal):setLength(intersectionWithCircle:distanceTo(G.OpponentGoal) + 0.1)
+	if self._activeRobotShootPos:distanceTo(circle) <= radius then
+		local posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2
+		local intersectionWithCircle = geom.intersectLineCircle(posToShiftFrom, self._activeRobotShootPos - posToShiftFrom, circle, radius)
+		self._activeRobotShootPos = posToShiftFrom + (intersectionWithCircle - posToShiftFrom):setLength(intersectionWithCircle:distanceTo(posToShiftFrom) + 0.1)
+	end
 	local taskAssignments = {}
 
 	if World.RefereeState == "Stop" then
