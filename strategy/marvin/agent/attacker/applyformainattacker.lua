@@ -22,8 +22,7 @@ function ApplyForMainattacker:check()
 		return false
 	end
 
-	if Attack.currentPlannedMainAttacker(self._inbox.passInfo(),
-			self._inbox.shootDestination()) == self._robot then
+	if Attack.currentPlannedMainAttacker(self._inbox.passInfo()) == self._robot then
 		self:_applyForMainAttacker(nil, nil, 2)
 		self._agent.beOffensive = true
 	else

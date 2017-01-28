@@ -1,6 +1,7 @@
 local Attack = {}
 
 local Cache = require "../base/cache"
+local debug = require "../base/debug"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Ball = require "observer/ball"
@@ -82,19 +83,28 @@ function Attack.visualizeAttack(robotPos, attackPos)
 end
 
 local lastCPMA = nil
-function Attack.currentPlannedMainAttacker(passInfo, shootDestination)
+local lastPasser = nil
+local lastReceiver = nil
+function Attack.currentPlannedMainAttacker(passInfo)
 	local passInfoSender, passInfoMessage = next(passInfo)
-	if passInfoSender and Ball.wasShot(0.2) == passInfoSender
+	if passInfoSender and Robot.hadBall(passInfoSender, 0) then
+		lastPasser = passInfoSender
+		lastReceiver = passInfoMessage.target
+	end
+
+	debug.set("plannedMA/lastCPMA", lastCPMA)
+	debug.set("plannedMA/lastPasser", lastPasser)
+	debug.set("plannedMA/lastReceiver", lastReceiver)
+
+	if lastPasser and Ball.wasShot(0.2) == lastPasser
 			and World.Ball.speed:length() > 1 and World.Ball.speed:absoluteAngleDiff(
-				passInfoMessage.target.pos - World.Ball.pos) < 45 / 180 * math.pi then
-		lastCPMA = passInfoMessage.target
+				lastReceiver.pos - World.Ball.pos) < 45 / 180 * math.pi then
+		lastCPMA = lastReceiver
 		return lastCPMA
 	end
 
-	local shootDestinationSender, _ = next(shootDestination)
-	if shootDestinationSender and lastCPMA == shootDestinationSender
-			and World.Ball.speed:length() > 1 and World.Ball.speed:absoluteAngleDiff(
-				shootDestinationSender.pos - World.Ball.pos) < 45 / 180 * math.pi then
+	if lastCPMA and World.Ball.speed:length() > 1 and World.Ball.speed:absoluteAngleDiff(
+				lastCPMA.pos - World.Ball.pos) < 45 / 180 * math.pi then
 		return lastCPMA
 	end
 
