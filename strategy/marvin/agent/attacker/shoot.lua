@@ -32,12 +32,23 @@ function Shoot:check()
 	return self._inbox.mainAttacker().trainer == self._robot
 end
 
-function Shoot:_decide()
+function Shoot:_shootGoalPossible()
 	local sg_target, _, sg_dirty = ShootGoalUtil.updateTarget(self._robot, nil, false)
-	local shootgoalPossible = not sg_dirty and ObserverShoot.volleyPossible(self._robot, sg_target)
+	
+	if sg_dirty then
+		return false
+	end
 
+	if World.Ball.speed:length() > 1.2 then
+		return ObserverShoot.volleyPossible(self._robot, sg_target)
+	end
+
+	return true
+end
+
+function Shoot:_decide()
 	-- perform clean goal shots if possible
-	if shootgoalPossible then
+	if self:_shootGoalPossible() then
 		return {
 			task = "shootgoal",
 			pos = World.Geometry.OpponentGoal,
