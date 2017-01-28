@@ -90,7 +90,14 @@ function Base:_runTaskAndBehavior()
 	for name, func in pairs(self._inbox) do
 		debug.push(name)
 		for sender, msg in pairs(func()) do
-			debug.set(sender.id or sender, msg)
+			if type(msg) == "table" and not getmetatable(msg) and msg.time then
+				local msgTmp = table.copy(msg)
+				local relTime = tostring(msg.time - World.Time)
+				msgTmp.time = string.sub(relTime, 1, 5) .. " (" .. msg.time .. ")"
+				debug.set(sender.id or sender, msgTmp)
+			else
+				debug.set(sender.id or sender, msg)
+			end
 		end
 		debug.pop() -- name
 	end

@@ -27,7 +27,6 @@ local debug = {}
 
 local amun = amun
 local Class = require "../base/class"
-local World = require "../base/world"
 
 
 local debugStack = { "" }
@@ -115,13 +114,6 @@ function debug.set(name, value, visited)
 		end
 	elseif type(value) == "userdata" or type(value) == "cdata" then
 		value = tostring(value)
-	end
-
-	-- display the relative time
-	local suffix = "time"
-	if name and string.sub(name, -string.len(suffix)) == suffix then
-		local timeAsStr = tostring(value - World.Time)
-		value = string.sub(timeAsStr, 1, 5) .. " (" .. value .. ")"
 	end
 
 	amun.addDebug(prefixName(name), value)
