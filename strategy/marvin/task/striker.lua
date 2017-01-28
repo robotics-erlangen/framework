@@ -133,7 +133,9 @@ function Striker:run()
 
 	-- send a suggestion for a pass in the run
 	local _, attackPosition = next(self._inbox.attackPosition())
-	self:_suggestPass(self._passDestSuggestion, attackPosition)
+	if self._passDestSuggestion and attackPosition then
+		self:_suggestPass(self._passDestSuggestion, attackPosition)
+	end
 
 	-- set path obstacles to not interfere with the current attack
 	if self._moveDest then
