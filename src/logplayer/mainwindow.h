@@ -87,7 +87,7 @@ private:
     QString formatTime(qint64 time);
     void processStatusDebug(Status & status);
     void closeStrategy(int index);
-    void createStratey(int index);
+    void createStrategy(int index);
     void sendResetDebugPacket(bool blue);
 
 private:

@@ -37,12 +37,12 @@ public:
 
 public slots:
     void clearData();
-    void handleStatus(const Status &status);
 
 private slots:
     void updateTree();
     void debugExpanded(const QModelIndex &index);
     void debugCollapsed(const QModelIndex &index);
+    void handleStatus(const Status &status);
 
 private:
     void load();

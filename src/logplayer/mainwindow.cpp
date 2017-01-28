@@ -25,7 +25,6 @@
 #include <QSettings>
 #include <QThread>
 #include <QSignalMapper>
-#include <QMessageBox>
 #include "widgets/refereestatuswidget.h"
 #include "logfile/logfilereader.h"
 #include "plotter/plotter.h"
@@ -117,20 +116,17 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->spinSpeed, SIGNAL(valueChanged(int)), SLOT(handlePlaySpeed(int)));
 
     // setup data distribution
+    connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->visualization, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->timing, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), m_refereeStatus, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotPlayStatus(Status)), ui->log, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotPlayStatus(Status)), m_plotter, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotStatus(Status)), ui->visualization, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotStatus(Status)), ui->log, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
 
     connect(ui->replay, SIGNAL(enableStrategyBlue(bool)), this, SLOT(enableStrategyBlue(bool)));
     connect(ui->replay, SIGNAL(enableStrategyYellow(bool)), this, SLOT(enableStrategyYellow(bool)));
-
-    connect(this, SIGNAL(enableStrategyCheckboxBlue(bool)), ui->replay, SIGNAL(enableCheckboxBlue(bool)));
-    connect(this, SIGNAL(enableStrategyCheckboxYellow(bool)), ui->replay, SIGNAL(enableCheckboxYellow(bool)));
 
     // setup the timer used to trigger playing the next packets
     connect(&m_timer, SIGNAL(timeout()), SLOT(playNext()));
@@ -170,7 +166,7 @@ MainWindow::~MainWindow()
 void MainWindow::enableStrategyBlue(bool enable)
 {
     if (enable) {
-        createStratey(1);
+        createStrategy(1);
     } else {
         closeStrategy(1);
     }
@@ -179,7 +175,7 @@ void MainWindow::enableStrategyBlue(bool enable)
 void MainWindow::enableStrategyYellow(bool enable)
 {
     if (enable) {
-        createStratey(0);
+        createStrategy(0);
     } else {
         closeStrategy(0);
     }
@@ -192,34 +188,27 @@ void MainWindow::closeStrategy(int index)
     sendResetDebugPacket(index != 0);
 }
 
-void MainWindow::createStratey(int index)
+void MainWindow::createStrategy(int index)
 {
     Q_ASSERT(m_strategys[index] == nullptr);
-    if (!m_lastTeamInfoUpdated) {
-        QMessageBox messageBox;
-        messageBox.critical(0,"Error","Cannot Launch Strategy: No Team Info Read!");
-        if (index == 0) {
-            emit enableStrategyCheckboxYellow(false);
-        } else {
-            emit enableStrategyCheckboxBlue(false);
-        }
-        return;
-    }
     m_strategys[index] = new Strategy(&m_playTimer, (index == 0) ? StrategyType::YELLOW : StrategyType::BLUE);
     m_strategys[index]->moveToThread(m_strategyThreads[index]);
 
     // set up data distribution to and from strategy
-    connect( m_strategys[index], SIGNAL(sendStatus(Status)), ui->visualization, SLOT(handleStatus(Status)));
-    connect( m_strategys[index], SIGNAL(sendStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
-    connect( m_strategys[index], SIGNAL(sendStatus(Status)), ui->log, SLOT(handleStatus(Status)));
-    connect( m_strategys[index], SIGNAL(sendStatus(Status)), ui->field, SLOT(handleStatus(Status)));
-    connect( m_strategys[index], SIGNAL(sendStatus(Status)), ui->replay, SLOT(handleStatus(Status)));
+    connect(m_strategys[index], SIGNAL(sendStatus(Status)), ui->visualization, SLOT(handleStatus(Status)));
+    connect(m_strategys[index], SIGNAL(sendStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
+    connect(m_strategys[index], SIGNAL(sendStatus(Status)), ui->log, SLOT(handleStatus(Status)));
+    connect(m_strategys[index], SIGNAL(sendStatus(Status)), ui->field, SLOT(handleStatus(Status)));
+    connect(m_strategys[index], SIGNAL(sendStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
 
-    connect( ui->replay, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
-    connect( this, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
-    connect( this, SIGNAL(gotStatus(Status)), m_strategys[index], SLOT(handleStatus(Status)));
+    connect(ui->replay, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
+    connect(this, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
+    connect(this, SIGNAL(gotStatus(Status)), m_strategys[index], SLOT(handleStatus(Status)));
 
-    emit sendCommand(m_lastTeamInfo);
+    // if the other strategy isnt running, reset debug data for it to remove visualizations
+    if (m_strategys[index ^ 1] == nullptr) {
+        emit sendCommand(m_lastTeamInfo);
+    }
 
     // create a status packet with empty debug to reset field debug visualizations
     sendResetDebugPacket(index == 0);

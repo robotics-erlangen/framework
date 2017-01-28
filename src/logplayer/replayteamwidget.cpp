@@ -26,11 +26,8 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
 
     connect(ui->blue, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
     connect(ui->yellow, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
-    connect(this, SIGNAL(gotStatusBlue(Status)), ui->blue, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotStatusYellow(Status)), ui->yellow, SLOT(handleStatus(Status)));
-
-    connect(this, SIGNAL(enableCheckboxBlue(bool)), ui->replayBlue, SLOT(setChecked(bool)));
-    connect(this, SIGNAL(enableCheckboxYellow(bool)), ui->replayYellow, SLOT(setChecked(bool)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->blue, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->yellow, SLOT(handleStatus(Status)));
 }
 
 ReplayTeamWidget::~ReplayTeamWidget()
@@ -40,16 +37,6 @@ ReplayTeamWidget::~ReplayTeamWidget()
     s.setValue("RecentScripts", m_recentScripts);
     s.endGroup();
     delete ui;
-}
-
-void ReplayTeamWidget::handleStatus(const Status &status)
-{
-    if (ui->replayBlue->isChecked()) {
-        emit gotStatusBlue(status);
-    }
-    if (ui->replayYellow->isChecked()) {
-        emit gotStatusYellow(status);
-    }
 }
 
 bool ReplayTeamWidget::replayBlueEnabled() const
