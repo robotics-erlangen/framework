@@ -586,7 +586,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 			or World.RefereeState == "BallPlacementOffensive" then
 		maxSpeed = math.min(maxSpeed, World.IsLargeField and 1.5 or 1)
 	end
-	endSpeed = endSpeed or Vector(0, 0)
+	-- change endSpeed to global coordinates
+	endSpeed = endSpeed and Coordinates.toGlobal(endSpeed) or Vector(0, 0)
 
 	-- helper variables
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
@@ -621,7 +622,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	end
 
 	-- no endspeed if the target can't be reached because it's in an obstacle
-	if waypoints[#waypoints]:distanceTo(targetPos) > 0.02 then
+	-- must be calculated in all global coordinates
+	if waypoints[#waypoints]:distanceTo(Coordinates.toGlobal(targetPos)) > 0.02 then
 		endSpeed = Vector(0, 0)
 	end
 
