@@ -90,9 +90,6 @@ function Base:_runTaskAndBehavior()
 	for name, func in pairs(self._inbox) do
 		debug.push(name)
 		for sender, msg in pairs(func()) do
-			if type(msg) == "table" and msg.time then
-				msg.time = msg.time - World.Time
-			end
 			debug.set(sender.id or sender, msg)
 		end
 		debug.pop() -- name

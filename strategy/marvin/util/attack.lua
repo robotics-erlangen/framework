@@ -1,6 +1,7 @@
 local Attack = {}
 
 local Cache = require "../base/cache"
+local debug = require "../base/debug"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Ball = require "observer/ball"
@@ -44,18 +45,18 @@ function Attack.ratePass(robot, pass, considerTiming)
 	return rating
 end
 
-function Attack.choosePass(robot, passes, currentPass, considerTiming)
+function Attack.choosePass(robot, passes, currentPassPos, considerTiming)
 	local bestPass
 	local bestPassRating = -math.huge
 	for _,pass in ipairs(passes) do
 		local rating = Attack.ratePass(robot, pass, considerTiming)
 		if rating > 0 then
-			-- give a bonus if the pos is near the currentPass.pos
-			if currentPass then
+			-- give a bonus if the pos is near the currentPassPos
+			if currentPassPos then
 				local ratingHystDistance = 0.1
 				local ratingHystPercentage = 0.1
 				rating = rating * (1 + ratingHystPercentage *
-					Rating.valueToRating(pass.pos:distanceTo(currentPass.pos), ratingHystDistance, 0))
+					Rating.valueToRating(pass.pos:distanceTo(currentPassPos), ratingHystDistance, 0))
 			end
 
 			if rating > bestPassRating then
@@ -68,12 +69,12 @@ function Attack.choosePass(robot, passes, currentPass, considerTiming)
 	return bestPass, bestPassRating
 end
 
-function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPass, considerTiming)
+function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPassPos, considerTiming)
 	local passes = {}
 	for sender, sugg in pairs(passSuggestions) do
 		table.insert(passes, {target = sender, pos = sugg.pos, time = sugg.time })
 	end
-	return Attack.choosePass(robot, passes, currentPass, considerTiming)
+	return Attack.choosePass(robot, passes, currentPassPos, considerTiming)
 end
 
 function Attack.visualizeAttack(robotPos, attackPos)
@@ -82,19 +83,28 @@ function Attack.visualizeAttack(robotPos, attackPos)
 end
 
 local lastCPMA = nil
-function Attack.currentPlannedMainAttacker(passInfo, shootDestination)
+local lastPasser = nil
+local lastReceiver = nil
+function Attack.currentPlannedMainAttacker(passInfo)
 	local passInfoSender, passInfoMessage = next(passInfo)
-	if passInfoSender and Ball.wasShot(0.2) == passInfoSender
+	if passInfoSender and Robot.hadBall(passInfoSender, 0) then
+		lastPasser = passInfoSender
+		lastReceiver = passInfoMessage.target
+	end
+
+	debug.set("plannedMA/lastCPMA", lastCPMA)
+	debug.set("plannedMA/lastPasser", lastPasser)
+	debug.set("plannedMA/lastReceiver", lastReceiver)
+
+	if lastPasser and Ball.wasShot(0.2) == lastPasser
 			and World.Ball.speed:length() > 1 and World.Ball.speed:absoluteAngleDiff(
-				passInfoMessage.target.pos - World.Ball.pos) < 45 / 180 * math.pi then
-		lastCPMA = passInfoMessage.target
+				lastReceiver.pos - World.Ball.pos) < 45 / 180 * math.pi then
+		lastCPMA = lastReceiver
 		return lastCPMA
 	end
 
-	local shootDestinationSender, _ = next(shootDestination)
-	if shootDestinationSender and lastCPMA == shootDestinationSender
-			and World.Ball.speed:length() > 1 and World.Ball.speed:absoluteAngleDiff(
-				shootDestinationSender.pos - World.Ball.pos) < 45 / 180 * math.pi then
+	if lastCPMA and World.Ball.speed:length() > 1 and World.Ball.speed:absoluteAngleDiff(
+				lastCPMA.pos - World.Ball.pos) < 45 / 180 * math.pi then
 		return lastCPMA
 	end
 
