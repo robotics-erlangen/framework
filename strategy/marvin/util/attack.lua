@@ -112,4 +112,28 @@ function Attack.currentPlannedMainAttacker(passInfo)
 end
 Attack.currentPlannedMainAttacker = Cache.forFrame(Attack.currentPlannedMainAttacker)
 
+local shootGoalIsActivated = false
+local shootGoalActivatedFrames = math.huge
+local shootGoalFastBall = false
+function Attack.activateShootGoal()
+	shootGoalIsActivated = true
+end
+
+function Attack.updateShootGoal()
+	if shootGoalIsActivated then
+		shootGoalActivatedFrames = 0
+	end
+	shootGoalIsActivated = false
+	shootGoalActivatedFrames = shootGoalActivatedFrames + 1
+	if World.Ball.speed:length() > 1.5 and (shootGoalActivatedFrames < 10 or shootGoalFastBall) then
+			shootGoalFastBall = true
+	else
+			shootGoalFastBall = false
+	end
+end
+
+function Attack.checkForGoalShot()
+		return shootGoalFastBall or shootGoalActivatedFrames < 10
+end
+
 return Attack

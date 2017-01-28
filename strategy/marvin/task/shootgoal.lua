@@ -7,6 +7,7 @@ local World = require "../base/world"
 
 local Ball = require "observer/ball"
 local PathHelper = require "trajectory/pathhelper"
+local AttackUtil = require "util/attack"
 local ShootGoalUtil = require "util/shootgoal"
 
 local G = World.Geometry
@@ -57,6 +58,10 @@ function ShootGoal:run()
 	end
 
 	debug.set("receivesPass", Ball.receivesPass(self._robot))
+
+	if Ball.receivesPass(self._robot) or World.Ball.pos:distanceTo(self._robot.pos) < self._robot.shootRadius + World.Ball.radius + 0.5 then
+		AttackUtil.activateShootGoal()
+	end
 
 	self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
 	if not self._desperate then

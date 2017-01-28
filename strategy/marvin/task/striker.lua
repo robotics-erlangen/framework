@@ -14,6 +14,8 @@ local Physics = require "observer/physics"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
+local UtilAttack = require "util/attack"
+
 
 -- the time between the arrival of the robot and the ball
 local bufferTime = 0.4
@@ -157,7 +159,7 @@ function Striker:run()
 
 		-- don't move between the ball and the opponent goal
 		-- relevant for goal shots
-		if not passInfo and attackPosition then
+		if not passInfo and attackPosition and UtilAttack.checkForGoalShot() then
 			local ballPos = World.Ball.pos
 			local leftGoal = G.OpponentGoalLeft
 			local rightGoal = G.OpponentGoalRight
