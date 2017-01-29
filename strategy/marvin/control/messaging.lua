@@ -16,7 +16,6 @@ local msgDefs = {
 	moveDest = "cdata",
 	moveDestDir = "number",
 	distractedIndex = "number",
-	exclusiveRole = "table", -- value test is in getExclusiveRoleApplications
 	kickoffMirrorFlag = "flag",
 	passSuggestion = "table", -- { pos: Vector, time: number }
 	kickoffPass = "cdata",
@@ -34,12 +33,13 @@ local msgDefs = {
 	roleAssignment = "table", -- { name: string, params: table }
 	shootActionPlan = "string", -- "goalShot" or "pass"
 	moveAssignment = "table", -- { class: class, params: table }
-	moveNumAttackers = "number"
+	moveNumAttackers = "number",
 }
 
 
 local repeatedMessages = {
-	groupApplication = "table" -- { { name: string -> payload: table } }
+	groupApplication = "table", -- { { name: string -> payload: table } }
+	exclusiveRole = "table",
 }
 for msg, msgType in pairs(repeatedMessages) do
 	msgDefs[msg] = msgType
