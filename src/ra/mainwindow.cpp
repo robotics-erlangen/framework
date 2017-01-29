@@ -27,6 +27,7 @@
 #include "plotter/plotter.h"
 #include "robotparametersdialog.h"
 #include "widgets/refereestatuswidget.h"
+#include "backlogwriter.h"
 #include <QDateTime>
 #include <QFile>
 #include <QFileDialog>
@@ -46,6 +47,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     qRegisterMetaType<SSL_Referee::Command>("SSL_Referee::Command");
     qRegisterMetaType<SSL_Referee::Stage>("SSL_Referee::Stage");
+    qRegisterMetaType<Status>("Status");
 
     setWindowIcon(QIcon("icon:ra.svg"));
     ui->setupUi(this);
@@ -76,6 +78,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_refereeStatus = new RefereeStatusWidget;
     statusBar()->addPermanentWidget(m_refereeStatus);
+
+    // start backlog writer thread
+    m_backlogThread = new QThread();
+    m_backlogThread->start(QThread::LowPriority);
+    m_backlogWriter = new BacklogWriter();
+    m_backlogWriter->moveToThread(m_backlogThread);
 
     // setup ui parts that send commands
     m_internalReferee = new InternalReferee(this);
@@ -132,6 +140,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionRecord, SIGNAL(toggled(bool)), SLOT(setRecording(bool)));
     connect(ui->actionRobotParameters, SIGNAL(triggered()), m_robotParametersDialog, SLOT(exec()));
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
+    connect(ui->actionSaveBacklog, SIGNAL(triggered()), this, SLOT(saveBacklog()));
+    connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), ui->actionSaveBacklog, SLOT(setEnabled(bool)));
+    connect(this, SIGNAL(saveBacklogFile(QString,Status)), m_backlogWriter, SLOT(saveBacklog(QString,Status)), Qt::QueuedConnection);
+    connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), this, SLOT(enableSaveBacklog(bool)));
+    connect(ui->actionRecord, SIGNAL(toggled(bool)), this, SLOT(disableSaveBacklog(bool)));
+    connect(ui->actionRecord, SIGNAL(toggled(bool)), ui->actionSaveBacklog, SLOT(setDisabled(bool)));
+    connect(ui->actionRecord, SIGNAL(toggled(bool)), m_backlogWriter, SLOT(clear(bool)));
 
     // setup data distribution
     connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
@@ -144,6 +159,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), m_refereeStatus, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->log, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->options, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), m_backlogWriter, SLOT(handleStatus(Status)), Qt::QueuedConnection);
 
     // start amun
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
@@ -193,7 +209,25 @@ MainWindow::~MainWindow()
         delete m_logFileThread;
     }
     delete m_logFile;
+    m_backlogThread->quit();
+    m_backlogThread->wait();
+    delete m_backlogThread;
+    delete m_backlogWriter;
     delete ui;
+}
+
+void MainWindow::disableSaveBacklog(bool disable)
+{
+    enableSaveBacklog(!disable);
+}
+
+void MainWindow::enableSaveBacklog(bool enable)
+{
+    if (enable) {
+        connect(this, SIGNAL(gotStatus(Status)), m_backlogWriter, SLOT(handleStatus(Status)), Qt::QueuedConnection);
+    } else {
+        disconnect(this, SIGNAL(gotStatus(Status)), m_backlogWriter, SLOT(handleStatus(Status)));
+    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
@@ -377,22 +411,38 @@ static QString toString(const QDateTime& dt)
     return date;
 }
 
+QString MainWindow::createLogFilename() const
+{
+    QString teamnames;
+    if (!m_yellowTeamName.isEmpty() && !m_blueTeamName.isEmpty()) {
+        teamnames = QString("%1 vs %2").arg(m_yellowTeamName).arg(m_blueTeamName);
+    } else if (!m_yellowTeamName.isEmpty()) {
+        teamnames = m_yellowTeamName;
+    } else  if (!m_blueTeamName.isEmpty()) {
+        teamnames = m_blueTeamName;
+    }
+
+    const QString date = toString(QDateTime::currentDateTime()).replace(":", "");
+    return QString("%1%2.log").arg(date).arg(teamnames);
+}
+
+void MainWindow::saveBacklog()
+{
+    const QString filename = createLogFilename();
+
+    Status status(new amun::Status);
+    status->mutable_team_yellow()->CopyFrom(m_yellowTeam);
+    status->mutable_team_blue()->CopyFrom(m_blueTeam);
+
+    emit saveBacklogFile(filename, status);
+}
+
 void MainWindow::setRecording(bool record)
 {
     if (record) {
         Q_ASSERT(!m_logFile);
 
-        QString teamnames;
-        if (!m_yellowTeamName.isEmpty() && !m_blueTeamName.isEmpty()) {
-            teamnames = QString("%1 vs %2").arg(m_yellowTeamName).arg(m_blueTeamName);
-        } else if (!m_yellowTeamName.isEmpty()) {
-            teamnames = m_yellowTeamName;
-        } else  if (!m_blueTeamName.isEmpty()) {
-            teamnames = m_blueTeamName;
-        }
-
-        const QString date = toString(QDateTime::currentDateTime()).replace(":", "");
-        const QString filename = QString("%1%2.log").arg(date).arg(teamnames);
+        const QString filename = createLogFilename();
 
         // create log file and forward status
         m_logFile = new LogFileWriter();

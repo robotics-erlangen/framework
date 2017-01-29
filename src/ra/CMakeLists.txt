@@ -50,6 +50,8 @@ set(SOURCES
     optionswidget.h
     simulatorwidget.cpp
     simulatorwidget.h
+	backlogwriter.cpp
+	backlogwriter.h
 )
 
 set(UI_SOURCES

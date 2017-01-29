@@ -26,6 +26,7 @@
 #include <QMainWindow>
 #include <QSet>
 
+class BacklogWriter;
 class ConfigDialog;
 class InputManager;
 class InternalReferee;
@@ -36,6 +37,7 @@ class RobotParametersDialog;
 class QLabel;
 class QModelIndex;
 class QThread;
+class QString;
 namespace Ui {
     class MainWindow;
 }
@@ -50,6 +52,7 @@ public:
 
 signals:
     void gotStatus(const Status &status);
+    void saveBacklogFile(QString filename, Status teamStatus);
 
 protected:
     void closeEvent(QCloseEvent *e) override;
@@ -65,9 +68,13 @@ private slots:
     void setRecording(bool record);
     void setCharge(bool charge);
     void showConfigDialog();
+    void saveBacklog();
+    void enableSaveBacklog(bool enable);
+    void disableSaveBacklog(bool disable);
 
 private:
     void sendFlip();
+    QString createLogFilename() const;
 
 private:
     Ui::MainWindow *ui;
@@ -82,6 +89,8 @@ private:
     QLabel *m_transceiverStatus;
     bool m_transceiverActive;
 
+    BacklogWriter *m_backlogWriter;
+    QThread *m_backlogThread;
     LogFileWriter *m_logFile;
     QThread *m_logFileThread;
     qint64 m_lastTime;

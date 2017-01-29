@@ -164,6 +164,7 @@
    <addaction name="actionConfiguration"/>
    <addaction name="actionPlotter"/>
    <addaction name="actionRecord"/>
+   <addaction name="actionSaveBacklog"/>
    <addaction name="actionRobotParameters"/>
   </widget>
   <widget class="QDockWidget" name="dockTiming">
@@ -329,6 +330,17 @@
    </property>
    <property name="text">
     <string>Pause, if unfocused</string>
+   </property>
+  </action>
+  <action name="actionSaveBacklog">
+   <property name="text">
+    <string>60s</string>
+   </property>
+   <property name="toolTip">
+    <string>Save Backlog</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+B</string>
    </property>
   </action>
  </widget>
