@@ -65,18 +65,6 @@ function table.append(t1, ...) -- for arrays (non nil)
 	return t1
 end
 
---- Copy the given array into an array.
--- @name extend
--- @param t1 table - Array to copy into
--- @param t2 table - Array to insert into t1
--- @return table - combined array
-function table.extend(t1, t2)
-	for k, v in pairs(t2) do
-		t1[k] = v
-	end
-	return t1
-end
-
 --- Combine two given arrays to a new one
 -- @name combine
 -- @param t1 table - first array
@@ -93,20 +81,16 @@ function table.combine(t1, t2)
 	return combined
 end
 
---- Deep copy the given array into an array.
--- @name extend
--- @param t1 table - Array to copy into
--- @param t2 table - Array to insert into t1
--- @return table - combined array
-function table.extendDeep(t1, t2)
-	for k, v in pairs(t2) do
-		if t1[k] and type(t1[k]) == "table" and type(v) == "table" then
-			table.extendDeep(t1[k], v)
-		else
-			t1[k] = v
-		end
+function table.split(t, lastIndexOfFirstPart)
+	local part1 = {}
+	for i = lastIndexOfFirstPart, 1, -1 do
+		part1[i] = t[i]
 	end
-	return t1
+	local part2 = {}
+	for i = #t, lastIndexOfFirstPart, -1 do
+		part2[i-lastIndexOfFirstPart] = t[i]
+	end
+	return part1, part2
 end
 
 --- Find the maximum in an array
@@ -165,18 +149,32 @@ function table.filter(array, p)
 	return filtered
 end
 
---- Returns a readonly proxy table.
--- @name readonlytable
--- @param table table - Table to write-protect
--- @return table - readonly proxy table
-function table.readonlytable(table)
-	return setmetatable({}, {
-	__index = table,
-	__newindex = function(_table, _key, _value)
-					error("Attempt to modify read-only table")
-				end,
-	__metatable = false
-	});
+--- Tests if any element of an array complies with a predicate
+-- @name any
+-- @param t table - Array to test
+-- @para func function - predicate function
+-- @return boolean - true if any element complies with a predicate, false otherwise
+function table.any(t, func)
+	for _, v in ipairs(t) do
+		if func(v) then
+			return true
+		end
+	end
+	return false
+end
+
+--- Checks if an array contains a given value
+-- @name contains
+-- @param t table
+-- @param value
+-- @return boolean
+function table.contains(t, value)
+	for _, entry in ipairs(t) do
+		if entry == value then
+			return true
+		end
+	end
+	return false
 end
 
 --- Remove first occurence of a value from the given array
@@ -212,30 +210,46 @@ function table.shuffle(t)
 	return res
 end
 
---- Tests if any element of an array complies with a predicate
--- @name any
--- @param t table - Array to test
--- @para func function - predicate function
--- @return boolean - true if any element complies with a predicate, false otherwise
-function table.any(t, func)
-	for _, v in ipairs(t) do
-		if func(v) then
-			return true
-		end
+--- Copy the given table into another table.
+-- @name extend
+-- @param t1 table - Table to copy into
+-- @param t2 table - Table to insert into t1
+-- @return table - combined table
+function table.extend(t1, t2)
+	for k, v in pairs(t2) do
+		t1[k] = v
 	end
-	return false
+	return t1
 end
 
-function table.split(t, lastIndexOfFirstPart)
-	local part1 = {}
-	for i = lastIndexOfFirstPart, 1, -1 do
-		part1[i] = t[i]
+--- Deep copy the given array into an array.
+-- @name extend
+-- @param t1 table - Array to copy into
+-- @param t2 table - Array to insert into t1
+-- @return table - combined array
+function table.extendDeep(t1, t2)
+	for k, v in pairs(t2) do
+		if t1[k] and type(t1[k]) == "table" and type(v) == "table" then
+			table.extendDeep(t1[k], v)
+		else
+			t1[k] = v
+		end
 	end
-	local part2 = {}
-	for i = #t, lastIndexOfFirstPart, -1 do
-		part2[i-lastIndexOfFirstPart] = t[i]
-	end
-	return part1, part2
+	return t1
+end
+
+--- Returns a readonly proxy table.
+-- @name readonlytable
+-- @param table table - Table to write-protect
+-- @return table - readonly proxy table
+function table.readonlytable(table)
+	return setmetatable({}, {
+	__index = table,
+	__newindex = function(_table, _key, _value)
+					error("Attempt to modify read-only table")
+				end,
+	__metatable = false
+	});
 end
 
 --- Counts the number of elements in a table, iterated with pairs()
@@ -248,20 +262,6 @@ function table.count(t)
 		count = count + 1
 	end
 	return count
-end
-
---- Checks if an array contains a given value
--- @name contains
--- @param t table
--- @param value
--- @return boolean
-function table.contains(t, value)
-	for _, entry in ipairs(t) do
-		if entry == value then
-			return true
-		end
-	end
-	return false
 end
 
 --- Returns an array containing the keys of a table
