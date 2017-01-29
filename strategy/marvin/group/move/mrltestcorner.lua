@@ -29,6 +29,7 @@ function MrlTestCorner:_init()
 
 	self._activeRobotInitPos = Vector(ballSide * G.FieldWidthHalf / 1.4, G.OpponentGoal.y - 0.5)
 	self._activeRobotShootPos = Vector(-ballSide * G.FieldWidthHalf / 2, G.OpponentGoal.y - 2.5)
+	self._restart = true
 end
 
 function MrlTestCorner:_canContinue()
@@ -58,7 +59,8 @@ function MrlTestCorner:_updateTasks()
 		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._activeRobotInitPos, nil, true }}
 	elseif Referee.isFriendlyFreeKickState() then
 		taskAssignments[self._robots[1]] = { behavior = Freekick }
-		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._activeRobotShootPos, nil, true }, restart = true}
+		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._activeRobotShootPos, nil, true }, restart = self._restart}
+		self._restart = false
 	end
 
 	taskAssignments[self._robots[3]] = { class = MoveToPos, params = { self._distractorPositions[1] }}
