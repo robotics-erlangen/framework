@@ -9,7 +9,6 @@ local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 
-local SHOOT_SPEED = 3
 local DRIBBLER_SPEED = 1
 
 local Position = Class("Test.Task.DribblerDeflection.Position", require "agent/base/behavior")
@@ -47,7 +46,7 @@ function ShooterBehaviour:_updateTask()
 		self._framesSinceMove = self._framesSinceMove + 1
 		if self._framesSinceMove > 10 then
 			local otherRobot = next(self._inbox.attackerFlag())
-			return Pass, {otherRobot, SHOOT_SPEED}
+			return Pass, {otherRobot}
 		end
 	else
 		self._framesSinceMove = 0

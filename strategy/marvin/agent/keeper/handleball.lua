@@ -74,7 +74,7 @@ function HandleBall:_updateTask()
 			end
 		end
 		if bestPass.target then --check if there is a good pass, else chip away
-			return Pass, {bestPass.target}
+			return Pass, {bestPass.target, nil, true}
 		else
 			return KeeperChipAway
 		end

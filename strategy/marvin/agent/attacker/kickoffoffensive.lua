@@ -29,7 +29,7 @@ function KickoffOffensive:_updateTask()
 		return ShootGoal
 	elseif rob then --pass the ball
 		self._send.kickoffStart("all", 1)
-		return Pass, {rob, 1.2}
+		return Pass, {rob, nil, false, 1.2}
 	else
 		return ShootGoal
 	end
