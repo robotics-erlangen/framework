@@ -142,11 +142,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
     connect(ui->actionSaveBacklog, SIGNAL(triggered()), this, SLOT(saveBacklog()));
     connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), ui->actionSaveBacklog, SLOT(setEnabled(bool)));
+    connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), ui->actionSave60s, SLOT(setEnabled(bool)));
     connect(this, SIGNAL(saveBacklogFile(QString,Status)), m_backlogWriter, SLOT(saveBacklog(QString,Status)), Qt::QueuedConnection);
     connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), this, SLOT(enableSaveBacklog(bool)));
     connect(ui->actionRecord, SIGNAL(toggled(bool)), this, SLOT(disableSaveBacklog(bool)));
     connect(ui->actionRecord, SIGNAL(toggled(bool)), ui->actionSaveBacklog, SLOT(setDisabled(bool)));
+    connect(ui->actionRecord, SIGNAL(toggled(bool)), ui->actionSave60s, SLOT(setDisabled(bool)));
     connect(ui->actionRecord, SIGNAL(toggled(bool)), m_backlogWriter, SLOT(clear(bool)));
+    connect(ui->actionSave60s, SIGNAL(triggered()), ui->actionSaveBacklog, SIGNAL(triggered()));
 
     // setup data distribution
     connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
