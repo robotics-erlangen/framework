@@ -134,6 +134,25 @@ function table.map(array, f)
 	return mapped
 end
 
+--- Reduce an array with a function.
+-- @name reduce
+-- @param array table - Array to reduce
+-- @param f function - reduce function
+-- @param [initialValue any - use as start value for reduction if not nil]
+-- @return table - reduced value
+function table.reduce(array, f, initialValue)
+	local value = initialValue
+	local isFirst = initialValue == nil
+	for _, entry in ipairs(array) do
+		if isFirst then
+			value = entry
+		else
+			value = f(value, entry)
+		end
+	end
+	return value
+end
+
 --- Filters an array with a predicate function.
 -- @name filter
 -- @param array table - Array to filter
