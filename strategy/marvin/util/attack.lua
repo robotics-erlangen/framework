@@ -18,18 +18,18 @@ function Attack.ratePass(robot, pass, considerTiming)
 	rating = rating * Rating.valueToRating(distanceToMA, 1, 2)
 
 	-- rate timing
+	local shootTime
+	if Ball.receivesPass(robot) then
+		local dribblerPos = robot.pos + (World.Ball.pos - robot.pos):setLength(
+			robot.shootRadius + World.Ball.radius)
+		shootTime = Physics.checkedBallRollTime(World.Ball, dribblerPos)
+	else
+		shootTime = Robot.minShootTime(robot, pass.pos)
+	end
+	local shootPos = Physics.ballAtTime(World.Ball, shootTime).pos
+	local passTime = Shoot.ballPassTime(shootPos, pass.pos, pass.target)
+	local ballArrivalTime = shootTime + passTime + World.Time
 	if considerTiming then
-		local shootTime
-		if Ball.receivesPass(robot) then
-			local dribblerPos = robot.pos + (World.Ball.pos - robot.pos):setLength(
-				robot.shootRadius + World.Ball.radius)
-			shootTime = Physics.checkedBallRollTime(World.Ball, dribblerPos)
-		else
-			shootTime = Robot.minShootTime(robot, pass.pos)
-		end
-		local shootPos = Physics.ballAtTime(World.Ball, shootTime).pos
-		local passTime = Shoot.ballPassTime(shootPos, pass.pos, pass.target)
-		local ballArrivalTime = shootTime + passTime + World.Time
 		rating = rating * Rating.valueToRating(ballArrivalTime - pass.time, -0.1, 0.1)
 	end
 
@@ -37,6 +37,17 @@ function Attack.ratePass(robot, pass, considerTiming)
 	if Ball.receivesPass(robot) then
 		local volleyAngle = World.Ball.speed:absoluteAngleDiff(robot.pos - pass.pos)
 		rating = rating * Rating.valueToRating(volleyAngle, 65 / 180 * math.pi, 50 / 180 * math.pi)
+	end
+
+	-- rate possible interceptions
+	local passVector = pass.pos - shootPos
+	for _,opp in ipairs(World.OpponentRobots) do
+		local oppVector = opp.pos - shootPos
+		if oppVector:length() > 0.2 then
+			local angle = oppVector:absoluteAngleDiff(passVector)
+			local angleRating = Rating.valueToRating(angle, 10 / 180 * math.pi, 20 / 180 * math.pi)
+			rating = rating * (angleRating / 2 + 0.5)
+		end
 	end
 
 	vis.addCircle("u/a/ratePass: rating", pass.pos, 0.2,
