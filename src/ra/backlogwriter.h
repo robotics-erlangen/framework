@@ -38,8 +38,8 @@ signals:
     void enableBacklogSave(bool enabled);
 
 private slots:
-    void clear(bool doClear);
     // these slots must be called in the same thread
+    void clear();
     void handleStatus(const Status &status);
     void saveBacklog(QString filename, Status teamStatus);
 

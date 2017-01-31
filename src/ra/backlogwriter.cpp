@@ -64,9 +64,7 @@ void BacklogWriter::saveBacklog(QString filename, Status teamStatus)
     emit enableBacklogSave(true);
 }
 
-void BacklogWriter::clear(bool doClear)
+void BacklogWriter::clear()
 {
-    if (doClear) {
-        m_packets.clear();
-    }
+    m_packets.clear();
 }

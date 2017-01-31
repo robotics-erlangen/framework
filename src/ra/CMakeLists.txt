@@ -25,6 +25,8 @@ add_subdirectory(plotter)
 add_subdirectory(widgets)
 
 set(SOURCES
+    backlogwriter.cpp
+    backlogwriter.h
     configdialog.cpp
     configdialog.h
     internalreferee.cpp
@@ -50,8 +52,6 @@ set(SOURCES
     optionswidget.h
     simulatorwidget.cpp
     simulatorwidget.h
-	backlogwriter.cpp
-	backlogwriter.h
 )
 
 set(UI_SOURCES

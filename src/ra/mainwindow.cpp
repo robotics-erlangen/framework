@@ -81,7 +81,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // start backlog writer thread
     m_backlogThread = new QThread();
-    m_backlogThread->start(QThread::LowPriority);
+    m_backlogThread->start();
     m_backlogWriter = new BacklogWriter();
     m_backlogWriter->moveToThread(m_backlogThread);
 
@@ -141,15 +141,15 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionRobotParameters, SIGNAL(triggered()), m_robotParametersDialog, SLOT(exec()));
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
     connect(ui->actionSaveBacklog, SIGNAL(triggered()), this, SLOT(saveBacklog()));
+    connect(ui->actionSave60s, SIGNAL(triggered()), ui->actionSaveBacklog, SIGNAL(triggered()));
+    connect(this, SIGNAL(saveBacklogFile(QString,Status)), m_backlogWriter, SLOT(saveBacklog(QString,Status)));
     connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), ui->actionSaveBacklog, SLOT(setEnabled(bool)));
     connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), ui->actionSave60s, SLOT(setEnabled(bool)));
-    connect(this, SIGNAL(saveBacklogFile(QString,Status)), m_backlogWriter, SLOT(saveBacklog(QString,Status)), Qt::QueuedConnection);
     connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), this, SLOT(enableSaveBacklog(bool)));
     connect(ui->actionRecord, SIGNAL(toggled(bool)), this, SLOT(disableSaveBacklog(bool)));
     connect(ui->actionRecord, SIGNAL(toggled(bool)), ui->actionSaveBacklog, SLOT(setDisabled(bool)));
     connect(ui->actionRecord, SIGNAL(toggled(bool)), ui->actionSave60s, SLOT(setDisabled(bool)));
-    connect(ui->actionRecord, SIGNAL(toggled(bool)), m_backlogWriter, SLOT(clear(bool)));
-    connect(ui->actionSave60s, SIGNAL(triggered()), ui->actionSaveBacklog, SIGNAL(triggered()));
+    connect(ui->actionRecord, SIGNAL(toggled(bool)), m_backlogWriter, SLOT(clear()));
 
     // setup data distribution
     connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
@@ -162,7 +162,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), m_refereeStatus, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->log, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->options, SLOT(handleStatus(Status)));
-    connect(this, SIGNAL(gotStatus(Status)), m_backlogWriter, SLOT(handleStatus(Status)), Qt::QueuedConnection);
+    enableSaveBacklog(true);
 
     // start amun
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
@@ -227,7 +227,7 @@ void MainWindow::disableSaveBacklog(bool disable)
 void MainWindow::enableSaveBacklog(bool enable)
 {
     if (enable) {
-        connect(this, SIGNAL(gotStatus(Status)), m_backlogWriter, SLOT(handleStatus(Status)), Qt::QueuedConnection);
+        connect(this, SIGNAL(gotStatus(Status)), m_backlogWriter, SLOT(handleStatus(Status)));
     } else {
         disconnect(this, SIGNAL(gotStatus(Status)), m_backlogWriter, SLOT(handleStatus(Status)));
     }
