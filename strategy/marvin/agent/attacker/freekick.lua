@@ -33,7 +33,7 @@ function FreeKick:check()
 		return false
 	end
 
-	if World.RefereeState == "DirectOffensive" or World.RefereeState == "IndirectOffensive" then
+	if Referee.isFriendlyFreeKickState() then
 		self._forceKeepingInPool = true
 		return true
 	end
@@ -78,7 +78,7 @@ function FreeKick:_updateTask()
 		if shootgoalPossible then
 			self._state = "shootgoal"
 			self._pass = nil
-		elseif timeRunningOut and World.RefereeState == "DirectOffensive" then
+		elseif timeRunningOut and Referee.isFriendlyFreeKickState() then
 			self._state = "shootgoal"
 		elseif World.Time - self._waitStartTime > MIN_PASS_WAIT_TIME then
 			self._pass = Attack.choosePassFromSuggestions(self._robot,
