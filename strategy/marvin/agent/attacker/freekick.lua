@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local FreeKick = Class("Agent.Attacker.FreeKick", Base)
 
 local debug = require "../base/debug"
+local Referee = require "../base/referee"
 local World = require "../base/world"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
@@ -71,10 +72,14 @@ function FreeKick:_updateTask()
 	-- wait -> shootgoal
 	-- wait -> pass_prepare
 	local MIN_PASS_WAIT_TIME = 2.5
+	local MAX_TIMEFRAME = 10
+	local timeRunningOut = World.Time - Referee.lastStateChangeTime() >= MAX_TIMEFRAME
 	if self._state == "wait" then
 		if shootgoalPossible then
 			self._state = "shootgoal"
 			self._pass = nil
+		elseif timeRunningOut and World.RefereeState == "DirectOffensive" then
+			self._state = "shootgoal"
 		elseif World.Time - self._waitStartTime > MIN_PASS_WAIT_TIME then
 			self._pass = Attack.choosePassFromSuggestions(self._robot,
 				self._inbox.passSuggestion(), self._pass, false)
