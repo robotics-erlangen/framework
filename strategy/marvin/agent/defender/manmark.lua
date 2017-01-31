@@ -15,6 +15,7 @@ local Defense = require "util/defense"
 function ManMark:_stop()
 	self._opp = nil
 	self._restartTask = true
+	self._wasCenterback = false
 end
 
 function ManMark:check()
@@ -29,6 +30,8 @@ function ManMark:_updateTask()
 	local newOpp = self._inbox.roleAssignment().trainer.params
 	self._restartTask = newOpp ~= self._opp
 	self._opp = newOpp
+	local wasCenterback = self._wasCenterback
+	self._wasCenterback = false
 
 	debug.set("target", self._opp.id)
 	local dest = Defense.manMarkPos(self._opp)
@@ -52,11 +55,12 @@ function ManMark:_updateTask()
 	local markingPosDefenseDist = Field.distanceToFriendlyDefenseArea(dest, self._opp.radius)
 	local markingPosNearLow = CenterBack.distanceToDefenseArea() + Defense.MARKING_DISTANCE
 	local markingPosNearHigh = markingPosNearLow + 2 * self._robot.radius
-	local markingPosThreshold = (self._task and Class.instanceOf(self._task, CenterBack))
+	local markingPosThreshold = wasCenterback
 			and markingPosNearHigh or markingPosNearLow
 	local oppDefenseDist = Field.distanceToFriendlyDefenseArea(self._opp.pos, self._opp.radius)
 	if markingPosDefenseDist < markingPosThreshold or oppDefenseDist <= 0 or Referee.isStopState() or Referee.isFriendlyFreeKickState()
 			or World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
+		self._wasCenterback = true
 		return CenterBack, { self._opp }, self._restartTask
 	end
 
