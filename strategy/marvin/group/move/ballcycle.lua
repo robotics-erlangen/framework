@@ -11,7 +11,6 @@ local World = require "../base/world"
 
 local G = World.Geometry
 
-BallCycle.NAME = "BallCycle"
 BallCycle.N_ROBOTS = 5
 
 local MAX_RANDOM_POSITION_OFFSET = 0.8
