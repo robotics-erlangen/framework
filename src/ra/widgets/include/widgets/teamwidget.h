@@ -48,6 +48,7 @@ public:
 
 public slots:
     void handleStatus(const Status &status);
+    void resendAll(bool send);
 
 private slots:
     void showOpenDialog();

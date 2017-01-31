@@ -23,6 +23,8 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
     connect(ui->replayYellow, SIGNAL(clicked(bool)), ui->yellow, SLOT(setEnabled(bool)));
     connect(ui->replayBlue, SIGNAL(clicked(bool)), this, SIGNAL(enableStrategyBlue(bool)));
     connect(ui->replayYellow, SIGNAL(clicked(bool)), this, SIGNAL(enableStrategyYellow(bool)));
+    connect(ui->replayBlue, SIGNAL(clicked(bool)), ui->blue, SLOT(resendAll(bool)));
+    connect(ui->replayYellow, SIGNAL(clicked(bool)), ui->yellow, SLOT(resendAll(bool)));
 
     connect(ui->blue, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
     connect(ui->yellow, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));

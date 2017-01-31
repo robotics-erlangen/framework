@@ -206,12 +206,12 @@ void MainWindow::createStrategy(int index)
     connect(this, SIGNAL(gotStatus(Status)), m_strategys[index], SLOT(handleStatus(Status)));
 
     // if the other strategy isnt running, reset debug data for it to remove visualizations
-    if (m_strategys[index ^ 1] == nullptr) {
-        emit sendCommand(m_lastTeamInfo);
-    }
+    emit sendCommand(m_lastTeamInfo);
 
     // create a status packet with empty debug to reset field debug visualizations
-    sendResetDebugPacket(index == 0);
+    if (m_strategys[index ^ 1] == nullptr) {
+        sendResetDebugPacket(index == 0);
+    }
 }
 
 void MainWindow::sendResetDebugPacket(bool blue)
