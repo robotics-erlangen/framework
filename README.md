@@ -177,4 +177,3 @@ Install the _linter-luacheck_ package.
 ### Sublime Text 3
 Install _Package Control_, see https://packagecontrol.io/installation for
 instructions. Then use it to install _SublimeLinter_ and _SublimeLinter-luacheck_.
-WARNING: The plugin doesn't correctly apply the luacheck rules for a few files.
