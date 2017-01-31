@@ -9,7 +9,7 @@ local StopAttack = require "task/stopattack"
 local MovesHelper = require "util/moveshelper"
 local G = World.Geometry
 
-
+MrlTestCorner.NAME = "MrlTestCorner"
 MrlTestCorner.N_ROBOTS = 5
 
 function MrlTestCorner.canStart()

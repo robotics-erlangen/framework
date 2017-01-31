@@ -9,6 +9,7 @@ local Pass = require "task/pass"
 local Ball = require "observer/ball"
 local G = World.Geometry
 
+LongMarch.NAME = "Longmarch"
 LongMarch.N_ROBOTS = 5
 
 local POSITIONS = {

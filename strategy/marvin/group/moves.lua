@@ -114,7 +114,7 @@ function Moves:run(sender, inbox, messages)
 			end
 		end
 	end
-
+	
 	if self._chosenMove then
 		local n_attackers = self._chosenMove.N_ROBOTS
 		if self._currentMove then
@@ -124,6 +124,9 @@ function Moves:run(sender, inbox, messages)
 	end
 
 	debug.set("Move/ParticipatingRobots", self._participatingRobots)
+	if self._currentMove then
+		debug.set("Move/Current Move", self._currentMove.NAME)
+	end
 end
 
 return Moves

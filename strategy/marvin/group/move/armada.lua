@@ -12,7 +12,7 @@ local World = require "../base/world"
 
 local G = World.Geometry
 
-
+Armada.NAME = "Armada"
 Armada.N_ROBOTS = 5
 
 -- the armada has 4 steps to form stairs, depending on ball distance

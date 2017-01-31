@@ -1,5 +1,6 @@
 local Base = Class("Group.Move.Base")
 
+Base.NAME = "Base"
 Base.N_ROBOTS = -1
 
 
