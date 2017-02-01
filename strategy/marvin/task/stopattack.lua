@@ -35,7 +35,7 @@ function StopAttack:run()
 		self._side = "left"
 	end
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, false, false, false, nil, 0.1)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, false, false, false, nil)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
 	if World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
