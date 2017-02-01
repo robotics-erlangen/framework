@@ -135,6 +135,16 @@ function vector_mt:distanceTo(other)
 		+ (other.y - self.y)*(other.y - self.y))
 end
 
+--- Distance between vectors squared.
+-- distance = (other - self):lengthSq()
+-- @param other Vector
+-- @return number - distance squared
+-- @name Vector:distanceToSq
+function vector_mt:distanceToSq(other)
+	return (other.x - self.x)*(other.x - self.x)
+		+ (other.y - self.y)*(other.y - self.y)
+end
+
 --- Calcualates dot product
 -- @param other Vector
 -- @return number - dot product
