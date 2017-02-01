@@ -123,7 +123,12 @@ function Moves:run(sender, inbox, messages)
 		sender.moveNumAttackers("trainer", n_attackers)
 	end
 
-	debug.set("Move/ParticipatingRobots", self._participatingRobots)
+	debug.push("Move")
+	debug.set("ParticipatingRobots", self._participatingRobots)
+	if self._currentMove then
+		debug.set(nil, Class.name(self._currentMove, true))
+	end
+	debug.pop()
 end
 
 return Moves

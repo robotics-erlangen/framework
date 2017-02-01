@@ -19,12 +19,14 @@ function Roles:_chooseExclusiveRoles()
 
 	local roleMsgs = self._inbox.exclusiveRole()
 	local roleApplications = {}
-	for robot, application in pairs(roleMsgs) do
-		for role, rating in pairs(application) do
-			if not roleApplications[role] then
-				roleApplications[role] = {}
+	for robot, applications in pairs(roleMsgs) do
+		for _, application in ipairs(applications) do
+			for role, rating in pairs(application) do
+				if not roleApplications[role] then
+					roleApplications[role] = {}
+				end
+				roleApplications[role][robot] = rating
 			end
-			roleApplications[role][robot] = rating
 		end
 	end
 

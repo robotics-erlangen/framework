@@ -18,7 +18,6 @@ end
 
 function Base:init(robot, messaging)
 	self._robot = robot
-	self._task = nil
 	self._send, self._inbox = messaging:registerAgent(self)
 	-- behaviors are ordered by decreasing priority
 	self._behaviors = {
@@ -32,7 +31,6 @@ function Base:init(robot, messaging)
 	self._mainAttackerParameters = nil
 	self._mainAttackerLastTime = nil
 	self._debugIdStr = "Agent " .. self._robot.id
-	self.lastIncomingPassTime = 0
 end
 
 function Base:_run()
@@ -43,9 +41,10 @@ function Base:run()
 	debug.set(nil, Class.name(self, true))
 	--local time0 = amun.getCurrentTime()
 
-	self:_updateBehavior()
-	self:_runTaskAndBehavior()
-	self:_applyForMainAttacker()
+	local task = self:_runBehavior()
+	self:_dumpInbox()
+	self:_runTask(task)
+	self:_applyForMainAttacker(task)
 	self:_run()
 
 	--local time1 = amun.getCurrentTime()
@@ -53,7 +52,7 @@ function Base:run()
 	debug.pop() -- Agent
 end
 
-function Base:_updateBehavior()
+function Base:_runBehavior()
 	-- choose best behavior, that is the behavior with the highest priority of all useable ones
 	local bestBehavior = nil
 	for _, behavior in ipairs(self._behaviors) do
@@ -77,15 +76,17 @@ function Base:_updateBehavior()
 			self._activeBehavior:start()
 		end
 	end
-end
-
-function Base:_runTaskAndBehavior()
+	-- run behavior
 	if self._activeBehavior then
 		debug.set("Behavior", Class.name(self._activeBehavior, true))
 		self._activeBehavior:run()
 	else
 		debug.set("Behavior", "none")
 	end
+	return self._activeBehavior and self._activeBehavior:task()
+end
+
+function Base:_dumpInbox()
 	debug.push("Inbox")
 	for name, func in pairs(self._inbox) do
 		debug.push(name)
@@ -102,21 +103,24 @@ function Base:_runTaskAndBehavior()
 		debug.pop() -- name
 	end
 	debug.pop() -- Inbox
+end
+
+function Base:_runTask(task)
 	debug.push("Task")
-	if self._task then
-		self._task:clearMainAttackerParameters()
+	if task then
+		task:clearMainAttackerParameters()
 		--local time0 = amun.getCurrentTime()
-		self._task:run()
+		task:run()
 		--local time1 = amun.getCurrentTime()
-		--plot.aggregate("Task." .. Class.name(self._task, true), time1-time0)
-		debug.set(nil, Class.name(self._task, true))
+		--plot.aggregate("Task." .. Class.name(task, true), time1-time0)
+		debug.set(nil, Class.name(task, true))
 	else
 		debug.set(nil, "none")
 	end
 	debug.pop() -- Task
 end
 
-function Base:_applyForMainAttacker()
+function Base:_applyForMainAttacker(task)
 	-- the keeper just overrides this
 	local parameters = nil
 	for _, behavior in ipairs(self._behaviors) do
@@ -126,9 +130,9 @@ function Base:_applyForMainAttacker()
 		end
 	end
 	local overrideRating = parameters and parameters[3]
-	if parameters and self._task and not overrideRating then
+	if parameters and task and not overrideRating then
 		-- only use task parameters if behavior asked for main attacker application
-		parameters = self._task:mainAttackerParameters() or parameters
+		parameters = task:mainAttackerParameters() or parameters
 	end
 	if not parameters then
 		self._mainAttackerLastTime = nil
@@ -194,14 +198,6 @@ end
 -- the robots with the lowest rating are removed until the robot limit is satisfied
 function Base:rateRobot()
 	error("stub")
-end
-
-function Base:setTask(task)
-	self._task = task
-end
-
-function Base:task()
-	return self._task
 end
 
 function Base:robot()

@@ -68,6 +68,7 @@ function BallCycle:_init()
 	self._currentRefereeState = World.RefereeState
 	self._maxShootingAngle = 60 / 180 * math.pi
 	self._positions = {}
+	self._assignment = {}
 end
 
 function BallCycle:_canContinue()
@@ -91,8 +92,10 @@ function BallCycle:_updateTasks()
 
 	if Referee.isStopState() then
 		self._positions = {}
+		self._assignment = {}
 	elseif Referee.isFriendlyFreeKickState() and #self._positions == 0 then
 		getRandomPosition(self._positions, self._maxShootingAngle)
+		self._assignment = MovesHelper.assignRobots(self._robots, self._positions, 1)
 	end
 
 	local posForRobotBeforeShooting = World.Ball.pos + (World.Ball.pos - G.OpponentGoal):setLength(0.14)
@@ -112,10 +115,14 @@ function BallCycle:_updateTasks()
 		taskAssignments[self._robots[5]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.5, self._circleRadius }, restart = reload }
 	elseif Referee.isFriendlyFreeKickState()  then
 		taskAssignments[self._robots[1]] = { behavior = FreeKick, params = { } }
-		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._positions[1] , nil, true } }
-		taskAssignments[self._robots[3]] = { class = MoveToPos, params = { self._positions[2] , nil, true } }
-		taskAssignments[self._robots[4]] = { class = MoveToPos, params = { self._positions[3] , nil, true } }
-		taskAssignments[self._robots[5]] = { class = MoveToPos, params = { self._positions[4] , nil, true } }
+		taskAssignments[self._robots[self._assignment[2]]]
+				= { class = MoveToPos, params = { self._positions[1] , nil, true } }
+		taskAssignments[self._robots[self._assignment[3]]]
+				= { class = MoveToPos, params = { self._positions[2] , nil, true } }
+		taskAssignments[self._robots[self._assignment[4]]]
+				= { class = MoveToPos, params = { self._positions[3] , nil, true } }
+		taskAssignments[self._robots[self._assignment[5]]]
+				= { class = MoveToPos, params = { self._positions[4] , nil, true } }
 	end
 	return taskAssignments
 end

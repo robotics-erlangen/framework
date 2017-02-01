@@ -12,7 +12,6 @@ local World = require "../base/world"
 
 local G = World.Geometry
 
-
 Armada.N_ROBOTS = 5
 
 -- the armada has 4 steps to form stairs, depending on ball distance
@@ -47,6 +46,7 @@ function Armada:_init()
 	self._circleCenter = Vector(0,0) + getRandomOffsetVector()
 	self._positions = {}
 	self._maxShootingAngle = 60 / 180 * math.pi
+	self._assignment = {}
 end
 
 function Armada:_canContinue()
@@ -62,9 +62,11 @@ function Armada:_updateTasks()
 	-- draw circles where robots cannot shoot a volley
 	local center1, center2, radius = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, self._maxShootingAngle)
 	local circle = center1.y < center2.y and center1 or center2
-	if Referee.isStopState() then
+	if World.RefereeState == "Stop" then
 		self._positions = {}
+		self._assignment = {}
 	elseif Referee.isFriendlyFreeKickState() and #self._positions == 0 then
+		-- calculate position
 		for i = 1, 4 do
 			local pos = POSITIONS_ORIG[i]:copy()
 			if World.Ball.pos.x > 0 then
@@ -79,6 +81,9 @@ function Armada:_updateTasks()
 			end
 			table.insert(self._positions, Field.limitToAllowedField(pos, 0.3))
 		end
+
+		-- assign robots to positions
+		self._assignment = MovesHelper.assignRobots(self._robots, self._positions, 1)
 	end
 
 	local taskAssignments = {}
@@ -90,10 +95,14 @@ function Armada:_updateTasks()
 		taskAssignments[self._robots[5]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.5 } }
 	else
 		taskAssignments[self._robots[1]] = { behavior = FreeKick, params = { } }
-		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._positions[1], nil, true } }
-		taskAssignments[self._robots[3]] = { class = MoveToPos, params = { self._positions[2], nil, true } }
-		taskAssignments[self._robots[4]] = { class = MoveToPos, params = { self._positions[3], nil, true } }
-		taskAssignments[self._robots[5]] = { class = MoveToPos, params = { self._positions[4], nil, true } }
+		taskAssignments[self._robots[self._assignment[2]]]
+				= { class = MoveToPos, params = { self._positions[1], nil, true } }
+		taskAssignments[self._robots[self._assignment[3]]]
+				= { class = MoveToPos, params = { self._positions[2], nil, true } }
+		taskAssignments[self._robots[self._assignment[4]]]
+				= { class = MoveToPos, params = { self._positions[3], nil, true } }
+		taskAssignments[self._robots[self._assignment[5]]]
+				= { class = MoveToPos, params = { self._positions[4], nil, true } }
 	end
 	return taskAssignments
 end

@@ -73,21 +73,17 @@ function KickoffAssistant:_updateTask()
 	--send
 	self._send.moveDest("all", self._moveDest)
 
+	local restartTask = self._movePos ~= self._moveDest
+	self._movePos = self._moveDest
 
-	if self._behind then -- player is in the back and wants a pass at kickoff
-		if self._movePos ~= self._moveDest then
-			self._movePos = self._moveDest
-			self._task = nil -- make sure a new task will be created
-		end
+	-- player is in the back and wants a pass at kickoff
+	if self._behind then
 		self._forceKeepingInPool = true
-		return KickoffPass, {self._moveDest, (G.OpponentGoal-self._moveDest):angle()}
+		return KickoffPass, {self._moveDest, (G.OpponentGoal-self._moveDest):angle()}, restartTask
 	end
 
-	if self._movePos ~= self._moveDest then  -- player is on the goalline
-		self._movePos = self._moveDest
-		self._task = nil -- make sure a new task will be created
-	end
-	return MoveToPos, {self._moveDest, (G.OpponentGoal-self._moveDest):angle()}
+	-- player is on the goalline
+	return MoveToPos, {self._moveDest, (G.OpponentGoal-self._moveDest):angle()}, restartTask
 end
 
 return KickoffAssistant

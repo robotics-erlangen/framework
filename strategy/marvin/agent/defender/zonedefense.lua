@@ -9,18 +9,14 @@ end
 
 function ZoneDefense:check()
 	local role = self._inbox.roleAssignment().trainer
-	if role and role.name == "ZoneDefense" then
-		if self._inbox.roleAssignment().trainer.params ~= self._movePos then
-			self._task = nil -- force creation of new task
-			self._movePos = self._inbox.roleAssignment().trainer.params
-		end
-		return true
-	end
-	return false
+	return role and role.name == "ZoneDefense"
 end
 
 function ZoneDefense:_updateTask()
-	return BallEvadingMoveToPos, {self._movePos, nil}
+	local roleParam = self._inbox.roleAssignment().trainer.params
+	local restartTask = roleParam ~= self._movePos
+	self._movePos = roleParam
+	return BallEvadingMoveToPos, {self._movePos, nil}, restartTask
 end
 
 return ZoneDefense

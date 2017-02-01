@@ -15,14 +15,15 @@ end
 
 test("base.pools", function()
 	local allFriendlyRobotsOrig = World.FriendlyRobotsAll
+	local refereeStateOrig = World.RefereeState
+	local mainTrainerAttackRatio = MainTrainer.attackRatio
 	World.FriendlyRobotsAll = { robotStub(1), robotStub(2) }
-
+	World.RefereeState = "Halt"
 	MainTrainer.attackRatio = function()
 		return 1, 1
 	end
 
 	local coordinator = MainCoordinator()
-
 	coordinator:run()
 
 	local attackerRobot = next(coordinator._trainer._inbox.attackerFlag())
@@ -61,4 +62,6 @@ test("base.pools", function()
 	assert_equal(defenderRobot, attackerBefore)
 
 	World.FriendlyRobotsAll = allFriendlyRobotsOrig
+	World.RefereeState = refereeStateOrig
+	MainTrainer.attackRatio = mainTrainerAttackRatio
 end)

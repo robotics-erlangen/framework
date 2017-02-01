@@ -3,6 +3,7 @@ local MainCoordinator = Class("Control.MainCoordinator", Coordinator)
 
 local debug = require "../base/debug"
 local Entrypoints = require "../base/entrypoints"
+local World = require "../base/world"
 
 local Agent = {
 	Ally = require "agent/ally",
@@ -60,7 +61,7 @@ function MainCoordinator:_updatePoolLimits(attackers, defenders, changingRobot, 
 
 		if self._pools[oldPool]:removeRobot(changingRobot) then
 			self._pools[newPool]:takeRobot({changingRobot}, self._messaging)
-		else
+		elseif changingRobot ~= World.FriendlyKeeper then
 			error("invalid pool change request from " .. changingRobot.id)
 		end
 	end
