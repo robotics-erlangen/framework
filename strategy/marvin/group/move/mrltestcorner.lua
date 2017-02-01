@@ -55,7 +55,7 @@ function MrlTestCorner:_updateTasks()
 
 	if World.RefereeState == "Stop" then
 		taskAssignments[self._robots[1]] = { class = StopAttack, params = { } }
-		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._activeRobotInitPos, nil, true }}
+		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._activeRobotInitPos }}
 	elseif Referee.isFriendlyFreeKickState() then
 		taskAssignments[self._robots[1]] = { behavior = Freekick }
 		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._activeRobotShootPos, nil, true }, restart = self._restart}
