@@ -399,4 +399,10 @@ context("base.vector", function()
 		end
 		assert_true(hasOther)
 	end)
+
+	test("distanceToSq", function()
+		local p1 = Vector(0, 0)
+		local p2 = Vector(0.5, 0)
+		assert_equal(0.25, p1:distanceToSq(p2))
+		end)
 end)
