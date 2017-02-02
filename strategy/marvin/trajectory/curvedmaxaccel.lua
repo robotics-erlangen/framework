@@ -551,7 +551,7 @@ local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile
 			local forwardDir = moveDir:copy():normalize():dot(robotSpeed)
 			-- add acceleration towards the curve center, reduce accerlation if the robot is slower than expected
 			local angle = (waypoints[2] - waypoints[1]):angleDiff(waypoints[3] - waypoints[2])
-			local scale = math.bound(0.02, math.max(forwardDir, speed) / math.min(maxSpeedProfile[2][1], maxSpeedProfile[2][2]), 1)
+			local scale = math.bound(0.02, math.min(forwardDir, speed) / math.max(maxSpeedProfile[2][1], maxSpeedProfile[2][2]), 1)
 			accelVector = accelVector - moveDir:perpendicular():setLength(math.sign(angle) * accelLimit * scale * scale)
 		end
 		-- calculate how fast the robot is moving perpendicular to the speedVector
@@ -575,7 +575,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	local accelerationFactor = (accelScale or 1.0) * 0.85 -- factor for max forward speedup and braking
 	local exponentialTime = 0.1 -- timespan in seconds replace with exponential falloff
 	local exponentialError = 0.2 -- relative
-	local sidewardsErrorFactor = 10 -- used to scale sidewards speed error
+	local sidewardsErrorFactor = 5 -- used to scale sidewards speed error
 
 	local rotationExponentialTime = 0.1
 	local rotationAccelerationFactor = 0.8
