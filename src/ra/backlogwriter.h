@@ -36,6 +36,7 @@ public:
 
 signals:
     void enableBacklogSave(bool enabled);
+    void clearData();
 
 private slots:
     // these slots must be called in the same thread

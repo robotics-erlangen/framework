@@ -26,6 +26,7 @@
 BacklogWriter::BacklogWriter()
 {
     m_packets.setCapacity(BACKLOG_SIZE);
+    connect(this, SIGNAL(clearData()), this, SLOT(clear()), Qt::QueuedConnection);
 }
 
 void BacklogWriter::handleStatus(const Status &status)
@@ -61,6 +62,7 @@ void BacklogWriter::saveBacklog(QString filename, Status teamStatus)
         }
         writer.close();
     }
+    emit clearData();
     emit enableBacklogSave(true);
 }
 
