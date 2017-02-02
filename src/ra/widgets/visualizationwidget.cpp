@@ -34,9 +34,16 @@ VisualizationWidget::VisualizationWidget(QWidget *parent) :
 
     // create item model
     m_model = new QStandardItemModel(this);
+
+    m_proxy = new QSortFilterProxyModel(this);
+    m_proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
+    m_proxy->setSourceModel(m_model);
+
     ui->list->setUniformItemSizes(true); // speed up
-    ui->list->setModel(m_model);
+    ui->list->setModel(m_proxy);
     connect(m_model, SIGNAL(itemChanged(QStandardItem*)), SLOT(itemChanged(QStandardItem*)));
+    connect(ui->filter, SIGNAL(textChanged(QString)), m_proxy, SLOT(setFilterFixedString(QString)));
+    connect(ui->filter, SIGNAL(returnPressed()), ui->filter, SLOT(clear()));
 
     // setup context menu
     m_contextMenu = new QMenu(this);

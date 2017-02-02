@@ -67,6 +67,7 @@ private:
     typedef QHash<QByteArray, QPair<QStandardItem*, qint64> > HashMap;
     Ui::VisualizationWidget *ui;
     QStandardItemModel *m_model;
+    QSortFilterProxyModel *m_proxy;
     QSet<QString> m_selection;
     HashMap m_items;
     qint64 m_time;

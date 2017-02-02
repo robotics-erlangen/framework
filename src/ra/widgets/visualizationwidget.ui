@@ -15,6 +15,9 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
+    <widget class="QLineEdit" name="filter"/>
+   </item>
+   <item>
     <widget class="QListView" name="list"/>
    </item>
   </layout>
