@@ -7,7 +7,7 @@ local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 
-local POSITION_PADDING = 0.02 -- safety distance
+local POSITION_PADDING = 0.03 -- safety distance
 
 function StopAttack:_init()
 	self._focusPoint = Vector(0, -World.Geometry.FieldHeightHalf + 4 * self._robot.radius)
