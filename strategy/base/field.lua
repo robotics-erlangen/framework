@@ -308,7 +308,7 @@ end
 -- @param dir Vector - the direction of the line
 -- @param extraDistance number - gets added to G.DefenseRadius
 -- @param opp bool - whether the opponent or the friendly defense area is considered
--- @return Vector - the intersection position
+-- @return Vector - the intersection position (May also be behind the goalline)
 -- @return number - the length of the way from the very left of the defense area to the
 -- intersection point, when moving along its border
 function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp)
