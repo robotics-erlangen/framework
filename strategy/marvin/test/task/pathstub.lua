@@ -19,15 +19,15 @@ end
 
 -- PathStub.setWaypoints( { Vector(1, -1), Vector(1, 1), Vector(-2, -2), Vector(0, 0) })
 
-PathStub.setWaypoints( { Vector(0, 0), Vector(0, 1), Vector(1, 1), Vector(1, 0), Vector(0, 0) })
+-- PathStub.setWaypoints( { Vector(0, 0), Vector(0, 1), Vector(1, 1), Vector(1, 0), Vector(0, 0) })
 
---[[local wps = {}
+local wps = {}
 local parts = 20
 for i=0,parts do
 	local angle = i / parts * 2 * math.pi
 	table.insert(wps, Vector.fromAngle(angle))
 end
-PathStub.setWaypoints(wps)]]
+PathStub.setWaypoints(wps)
 
 function PathStub.create()
 	return PathStub()
