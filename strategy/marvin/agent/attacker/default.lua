@@ -7,18 +7,21 @@ local World = require "../base/world"
 local MIN_DIST_FOR_POOL_CHANGE = 0.7
 
 function Default:check()
+	local _, passInfo = next(self._inbox.passInfo())
+	self._forceKeepingInPool = passInfo and passInfo.target == self._robot
+
 	-- if there is a defender further away from the own goal than we are,
 	-- request a pool change
-	local ownGoal = World.Geometry.FriendlyGoal
-	for defender, _ in ipairs(self._inbox.defenderFlag()) do
-		if defender.pos:distanceTo(ownGoal) < self._robot.pos:distanceTo(ownGoal) and
-				defender.pos:distanceTo(self._robot.pos) < MIN_DIST_FOR_POOL_CHANGE then
-			self._send.poolChangeRequest("trainer", "defender")
+	if not self._forceKeepingInPool then
+		local ownGoal = World.Geometry.FriendlyGoal
+		for defender, _ in ipairs(self._inbox.defenderFlag()) do
+			if defender.pos:distanceTo(ownGoal) < self._robot.pos:distanceTo(ownGoal) and
+					defender.pos:distanceTo(self._robot.pos) < MIN_DIST_FOR_POOL_CHANGE then
+				self._send.poolChangeRequest("trainer", "defender")
+			end
 		end
 	end
 
-	local _, passInfo = next(self._inbox.passInfo())
-	self._forceKeepingInPool = passInfo and passInfo.target == self._robot
 	return true
 end
 
