@@ -29,9 +29,7 @@ test("Messaging", function()
 
 	assert_error(function() agent2send.foo(agent1:robot(), dummyMsg) end,
 			"sending an invalid message shall fail")
-	assert_not_error(function() agent3send.moveDestDir(agent2:robot(), dummyMsg) end,
-			"sending a moveDestDir message shall be possible")
-	assert_error(function() agent3send.moveDestDir(agent2:robot(), "bla") end,
+	assert_error(function() agent3send.moveDest(agent2:robot(), "bla") end,
 			"messages shall be type-checked")
 
 	agent1send.moveDest("all", Vector(0,0))
@@ -51,15 +49,10 @@ test("Messaging", function()
 			"new agents shall receive broadcasts")
 
 	agent2send.exclusiveRole("trainer", {mainAttacker = 1})
-	agent2send.exclusiveRole("trainer", {cornerAttacker = 1})
 	agent1send.exclusiveRole("trainer", {mainAttacker = 0.5})
 
 	-- note that trainer can receive without calling deliverMessages() before
 	local applications = trainerInbox.exclusiveRole()
-	assert_equal(fold(applications[agent2:robot()]).cornerAttacker, 1,
-			"cornerAttacker rating of robot 2 shall be 1")
-	assert_equal(fold(applications[agent2:robot()]).mainAttacker, 1,
-			"mainAttacker rating of robot 2 shall be 1, seems to be overwritten by cornerAttacker")
 	assert_equal(fold(applications[agent1:robot()]).mainAttacker, 0.5,
 			"mainAttacker rating of robot 1 shall be 0.5")
 

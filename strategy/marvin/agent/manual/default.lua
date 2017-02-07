@@ -88,7 +88,7 @@ function Default:check()
 		self._catching = false
 	end
 	if self._catching then
-		self._send.exclusiveRole("trainer", { passReceiver = 1.5, mainAttacker = 1.5 })
+		self._send.exclusiveRole("trainer", { mainAttacker = 1.5 })
 	elseif self._robot.isVisible then
 		self._send.exclusiveRole("trainer", { mainAttacker = mainAttackerRating })
 	end

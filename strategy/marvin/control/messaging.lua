@@ -6,40 +6,34 @@ local checkType = require "../base/typecheck"
 
 local msgDefs = {
 	-- multiple senders
-	attackerFlag = "flag",
-	defenderFlag = "flag",
 	allyFlag = "flag",
-	poolChangeRequest = "string",
-	forcePoolChange = "table", -- { robot: robot, destPool: string }
-	standardMoveFlag = "flag",
+	attackerFlag = "flag",
 	defendedOpponent = Robot,
-	moveDest = "cdata",
-	moveDestDir = "number",
-	distractedIndex = "number",
+	defenderFlag = "flag",
+	forcePoolChange = "table", -- { robot: robot, destPool: string }
 	kickoffMirrorFlag = "flag",
-	passSuggestion = "table", -- { pos: Vector, time: number }
 	kickoffPass = "cdata",
 	kickoffStart = "number",
-	targetTime = "number",
+	moveDest = "cdata",
+	passSuggestion = "table", -- { pos: Vector, time: number }
+	poolChangeRequest = "string",
+	strikerSamplingTimestamp = "number",
 
 	-- single sender
 	attackPosition = "cdata",
-	shootDestination = "cdata",
 	centerBackPosTarget = "table", -- { pos: vector, target: table }
-	passInfo = "table", -- { robot: robot, pos: vector, time: number }
-	duelAssistantPos = "cdata",
-	duelAssistantDir = "number",
-	strikerZone = "table", -- { defaultPos: vector, boundaries: table }
-	roleAssignment = "table", -- { name: string, params: table }
-	shootActionPlan = "string", -- "goalShot" or "pass"
 	moveAssignment = "table", -- { class: class, params: table }
 	moveNumAttackers = "number",
+	passInfo = "table", -- { target: robot, pos: vector, time: number }
+	roleAssignment = "table", -- { name: string, params: table }
+	shootDestination = "cdata",
+	strikerZone = "table", -- { defaultPos: vector, boundaries: table }
 }
 
 
 local repeatedMessages = {
-	groupApplication = "table", -- { { name: string -> payload: table } }
 	exclusiveRole = "table",
+	groupApplication = "table", -- { { name: string -> payload: table } }
 }
 for msg, msgType in pairs(repeatedMessages) do
 	msgDefs[msg] = msgType
@@ -47,9 +41,7 @@ end
 
 
 local exclusiveRoles = {
-	passReceiver = true,
 	mainAttacker = true,
-	cornerAttacker = true,
 }
 for role, _ in pairs(exclusiveRoles) do
 	msgDefs[role] = Robot
