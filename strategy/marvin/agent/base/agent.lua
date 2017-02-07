@@ -2,13 +2,15 @@ local Base = Class("Agent.Base.Agent")
 
 local debug = require "../base/debug"
 local Field = require "../base/field"
+local timing = require "../base/timing"
 local World = require "../base/world"
 local Halt = require "agent/shared/halt"
 local Error = require "agent/shared/error"
 local Physics = require "observer/physics"
 local CenterBack = require "task/centerback"
 local Rating = require "util/rating"
--- local plot = require "../base/plot"
+
+local MEASURE_TIMING = false
 
 
 -- static method for pool
@@ -39,7 +41,6 @@ end
 function Base:run()
 	debug.pushtop(self._debugIdStr)
 	debug.set(nil, Class.name(self, true))
-	--local time0 = amun.getCurrentTime()
 
 	local task = self:_runBehavior()
 	self:_dumpInbox()
@@ -47,20 +48,19 @@ function Base:run()
 	self:_applyForMainAttacker(task)
 	self:_run()
 
-	--local time1 = amun.getCurrentTime()
-	--plot.aggregate("Agent." .. Class.name(self, true), time1-time0)
 	debug.pop() -- Agent
 end
 
 function Base:_runBehavior()
+	if MEASURE_TIMING then
+		timing.start("Behavior check", self._robot.id)
+	end
+
 	-- choose best behavior, that is the behavior with the highest priority of all useable ones
 	local bestBehavior = nil
 	for _, behavior in ipairs(self._behaviors) do
 		behavior:clearMainAttackerParameters()
-		--local time0 = amun.getCurrentTime()
 		local result = behavior:check()
-		--local time1 = amun.getCurrentTime()
-		--plot.aggregate("Behavior." .. Class.name(behavior, true), time1-time0)
 		if result then
 			bestBehavior = behavior
 			break
@@ -76,6 +76,12 @@ function Base:_runBehavior()
 			self._activeBehavior:start()
 		end
 	end
+
+	if MEASURE_TIMING then
+		timing.finish("Behavior check", self._robot.id)
+		timing.start("Behavior run", self._robot.id)
+	end
+
 	-- run behavior
 	if self._activeBehavior then
 		debug.set("Behavior", Class.name(self._activeBehavior, true))
@@ -83,6 +89,11 @@ function Base:_runBehavior()
 	else
 		debug.set("Behavior", "none")
 	end
+
+	if MEASURE_TIMING then
+		timing.finish("Behavior run", self._robot.id)
+	end
+
 	return self._activeBehavior and self._activeBehavior:task()
 end
 
@@ -106,18 +117,23 @@ function Base:_dumpInbox()
 end
 
 function Base:_runTask(task)
+	if MEASURE_TIMING then
+		timing.start("Task", self._robot.id)
+	end
+	
 	debug.push("Task")
 	if task then
 		task:clearMainAttackerParameters()
-		--local time0 = amun.getCurrentTime()
 		task:run()
-		--local time1 = amun.getCurrentTime()
-		--plot.aggregate("Task." .. Class.name(task, true), time1-time0)
 		debug.set(nil, Class.name(task, true))
 	else
 		debug.set(nil, "none")
 	end
 	debug.pop() -- Task
+
+	if MEASURE_TIMING then
+		timing.finish("Task", self._robot.id)
+	end
 end
 
 function Base:_applyForMainAttacker(task)
