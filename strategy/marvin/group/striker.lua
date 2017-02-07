@@ -33,10 +33,6 @@ function Striker:run(sender, inbox, messages)
 			top = G.FieldHeightHalf, bottom = 0 }
 		table.insert(zones, {defaultPos = Vector(x, y), boundaries = boundaries })
 	end
-	for i = 1, zoneCount - 1 do
-		local x = i * zoneWidth - G.FieldWidthHalf
-		local points = {Vector(x, 0), Vector(x, G.FieldHeightHalf)}
-	end
 
 	-- if the number of zones changes, invalidate the empty zone to get rid of the hysteresis
 	if self._zoneCount ~= zoneCount then
