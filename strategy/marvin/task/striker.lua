@@ -21,6 +21,40 @@ local UtilAttack = require "util/attack"
 local bufferTime = 0.4
 
 
+function Striker:_init()
+	self._moveDest = nil
+	self._passDest = nil
+	self._passDestSuggestion = nil
+	self._acceptPass = false
+
+	self._zone = nil
+
+	self._sampling = StrikerSampling(self._agent)
+	self._revaluateTimestamp = 0
+end
+
+function Striker:_revaluatePassDest()
+	local timestamps = self._inbox.strikerSamplingTimestamp("broadcast")
+	local nextCandidate = nil
+	local nextCandidateTimestamp = math.huge
+	for r, time in pairs(timestamps) do
+		if not nextCandidate or time < nextCandidateTimestamp
+				or time == nextCandidateTimestamp and r.id < nextCandidate.id then
+			nextCandidate = r
+			nextCandidateTimestamp = time
+		end
+	end
+
+	local revaluate = self._robot == nextCandidate
+	if revaluate then
+		self._revaluateTimestamp = World.Time
+	end
+
+	self._send.strikerSamplingTimestamp("all", self._revaluateTimestamp)
+
+	return revaluate
+end
+
 function Striker:_searchForPassDest()
 	self._sampling:precalculate()
 
@@ -47,8 +81,6 @@ function Striker:_searchForPassDest()
 			for y = grid_point_dist_y * 0.5 + min_y, G.FieldHeightHalf, grid_point_dist_y do
 				local candidatePoint = Vector(x, y)
 				if not Field.isInOpponentDefenseArea(candidatePoint, self._robot.radius + 0.03) then
-					vis.addCircle("t/striker", candidatePoint, 0.03, vis.colors.slateHalf, true)
-
 					local score = self._sampling:evalLocation(candidatePoint)
 					if self._passDest and self._passDest:distanceTo(candidatePoint) < 0.01 then
 						score = score + 0.1
@@ -63,21 +95,6 @@ function Striker:_searchForPassDest()
 	end
 
 	self._passDestSuggestion = bestPoint
-
-	if bestPoint then
-		vis.addCircle("t/striker", bestPoint, 0.1, vis.colors.magentaHalf, true)
-	end
-end
-
-function Striker:_init()
-	self._moveDest = nil
-	self._passDest = nil
-	self._passDestSuggestion = nil
-	self._acceptPass = false
-
-	self._zone = nil
-
-	self._sampling = StrikerSampling(self._agent)
 end
 
 function Striker:_avoidLineSegment(startPoint, endPoint)
@@ -103,8 +120,15 @@ function Striker:run()
 	end
 
 	-- search for a good pass dest
-	if not self._acceptPass then
+	if not self._acceptPass and self:_revaluatePassDest() then
 		self:_searchForPassDest()
+	end
+
+	vis.addCircle("t/striker", self._zone.defaultPos, 0.1, vis.colors.slateHalf, true)
+	if self._passDestSuggestion then
+		vis.addCircle("t/striker", self._passDestSuggestion, 0.1, vis.colors.whiteHalf, true)
+		vis.addPath("t/striker", {self._zone.defaultPos, self._passDestSuggestion},
+			vis.colors.slateHalf, nil, nil, 0.02)
 	end
 
 	-- check whether the striker should change its state to accepting an incoming pass

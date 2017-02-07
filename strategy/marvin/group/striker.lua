@@ -1,6 +1,5 @@
 local Striker = Class("Group.Striker")
 
-local vis = require "../base/vis"
 local World = require "../base/world"
 local G = World.Geometry
 
@@ -29,7 +28,6 @@ function Striker:run(sender, inbox, messages)
 	for i = 1, zoneCount do
 		local x = i * zoneWidth - G.FieldWidthHalf - zoneWidthHalf
 		local y = G.FieldHeightQuarter + x * x / (G.FieldHeightQuarter * G.FieldHeightQuarter)
-		vis.addCircle("g/striker", Vector(x, y), 0.1, vis.colors.slateHalf, true)
 
 		local boundaries = { left = x - zoneWidthHalf, right = x + zoneWidthHalf,
 			top = G.FieldHeightHalf, bottom = 0 }
@@ -38,7 +36,6 @@ function Striker:run(sender, inbox, messages)
 	for i = 1, zoneCount - 1 do
 		local x = i * zoneWidth - G.FieldWidthHalf
 		local points = {Vector(x, 0), Vector(x, G.FieldHeightHalf)}
-		vis.addPath("g/striker", points, vis.colors.slateHalf, nil, nil, 0.02)
 	end
 
 	-- if the number of zones changes, invalidate the empty zone to get rid of the hysteresis
