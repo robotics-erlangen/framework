@@ -48,6 +48,7 @@ Plotter::Plotter() :
     ui->tree->setUniformRowHeights(true);
     ui->tree->setModel(m_proxy);
     connect(ui->lineSearch, SIGNAL(textChanged(QString)), m_proxy, SLOT(setFilterFixedString(QString)));
+    connect(ui->lineSearch, SIGNAL(returnPressed()), ui->lineSearch, SLOT(clear()));
 
     // root items in the plotter
     addRootItem(QStringLiteral("Ball"), QStringLiteral("Ball"));
