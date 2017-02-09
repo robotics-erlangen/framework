@@ -124,16 +124,23 @@ function Striker:run()
 		self:_searchForPassDest()
 	end
 
+	-- check whether the striker should change its state to accepting an incoming pass
+	local _, passInfo = next(self._inbox.passInfo())
+	self._passDest = passInfo and passInfo.pos
+
 	vis.addCircle("t/striker", self._zone.defaultPos, 0.1, vis.colors.slateHalf, true)
 	if self._passDestSuggestion then
-		vis.addCircle("t/striker", self._passDestSuggestion, 0.1, vis.colors.whiteHalf, true)
+		if passInfo and passInfo.pos then
+			local color = passInfo.target == self._robot
+				and vis.colors.turquoiseHalf or vis.colors.whiteHalf
+			vis.addCircle("t/striker", passInfo.pos, 0.1, color, true)
+		end
+
+		vis.addCircle("t/striker", self._passDestSuggestion, 0.14,
+			vis.colors.whiteHalf, false, nil, nil, 0.03)
 		vis.addPath("t/striker", {self._zone.defaultPos, self._passDestSuggestion},
 			vis.colors.slateHalf, nil, nil, 0.02)
 	end
-
-	-- check whether the striker should change its state to accepting an incoming pass
-	local _, passInfo = next(self._inbox.passInfo())
-	self._passDest = passInfo and passInfo.pos or self._passDestSuggestion
 
 	if passInfo and passInfo.target == self._robot then
 		local robotTime = Physics.robotTimeToPos(self._robot, self._passDest, Vector(0, 0), true)
