@@ -14,7 +14,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 	local rating = 1
 
 	-- rate distance
-	local distanceToMA = robot.pos:distanceTo(pass.pos)
+	local distanceToMA = robot.pos:distanceTo(pass.ballPos)
 	rating = rating * Rating.valueToRating(distanceToMA, 1, 2)
 
 	-- rate timing
@@ -24,10 +24,10 @@ function Attack.ratePass(robot, pass, considerTiming)
 			robot.shootRadius + World.Ball.radius)
 		shootTime = Physics.checkedBallRollTime(World.Ball, dribblerPos)
 	else
-		shootTime = Robot.minShootTime(robot, pass.pos)
+		shootTime = Robot.minShootTime(robot, pass.ballPos)
 	end
 	local shootPos = Physics.ballAtTime(World.Ball, shootTime).pos
-	local passTime = Shoot.ballPassTime(shootPos, pass.pos, pass.target)
+	local passTime = Shoot.ballPassTime(shootPos, pass.ballPos, pass.target)
 	local ballArrivalTime = shootTime + passTime + World.Time
 	if considerTiming then
 		rating = rating * Rating.valueToRating(ballArrivalTime - pass.time, -0.1, 0.1)
@@ -35,12 +35,12 @@ function Attack.ratePass(robot, pass, considerTiming)
 
 	-- rate volley
 	if Ball.receivesPass(robot) then
-		local volleyAngle = World.Ball.speed:absoluteAngleDiff(robot.pos - pass.pos)
+		local volleyAngle = World.Ball.speed:absoluteAngleDiff(robot.pos - pass.ballPos)
 		rating = rating * Rating.valueToRating(volleyAngle, 65 / 180 * math.pi, 50 / 180 * math.pi)
 	end
 
 	-- rate possible interceptions
-	local passVector = pass.pos - shootPos
+	local passVector = pass.ballPos - shootPos
 	for _,opp in ipairs(World.OpponentRobots) do
 		local oppVector = opp.pos - shootPos
 		if oppVector:length() > 0.2 then
@@ -50,7 +50,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 		end
 	end
 
-	vis.addCircle("u/a/ratePass: rating", pass.pos, 0.2,
+	vis.addCircle("u/a/ratePass: rating", pass.ballPos, 0.2,
 		vis.fromTemperature(1 - rating, 127), true)
 
 	return rating
@@ -67,7 +67,7 @@ function Attack.choosePass(robot, passes, currentPassPos, considerTiming)
 				local ratingHystDistance = 0.1
 				local ratingHystPercentage = 0.1
 				rating = rating * (1 + ratingHystPercentage *
-					Rating.valueToRating(pass.pos:distanceTo(currentPassPos), ratingHystDistance, 0))
+					Rating.valueToRating(pass.ballPos:distanceTo(currentPassPos), ratingHystDistance, 0))
 			end
 
 			if rating > bestPassRating then
@@ -83,7 +83,7 @@ end
 function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPassPos, considerTiming)
 	local passes = {}
 	for sender, sugg in pairs(passSuggestions) do
-		table.insert(passes, {target = sender, pos = sugg.ballPos, time = sugg.time })
+		table.insert(passes, {target = sender, ballPos = sugg.ballPos, time = sugg.time })
 	end
 	return Attack.choosePass(robot, passes, currentPassPos, considerTiming)
 end

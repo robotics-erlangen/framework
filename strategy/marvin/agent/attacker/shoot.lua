@@ -62,7 +62,7 @@ function Shoot:_decide()
 		return {
 			task = "pass",
 			target = pass.target,
-			pos = pass.pos,
+			pos = pass.ballPos,
 			time = pass.time,
 			quality = "clean"
 		}
