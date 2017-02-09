@@ -174,7 +174,7 @@ function Striker:run()
 		-- don't move between the ball and the pass target
 		-- relevant for outgoing passes
 		if passInfo and passInfo.target ~= self._robot then
-			self:_avoidLineSegment(World.Ball.pos, passInfo.target.pos)
+			self:_avoidLineSegment(World.Ball.pos, self._passDest)
 		end
 
 		-- don't move between the ball and the opponent goal
