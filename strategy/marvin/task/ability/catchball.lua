@@ -119,7 +119,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	if distanceToBall == 0 then
 		endSpeed = endSpeed + (targetPos - moveDest):setLength(0.2)
 	end
-
+	
 	-- move to the predicted ball
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
 	self._send.moveDest("all", moveDest)
@@ -176,19 +176,19 @@ function CatchBall:_calculateHitTime(ball)
 		if dist < rollDist then
 			rollDist = dist
 			hitPoint = hitPoint2
-		end
+		end 
 	end
 	vis.addCircle("t/a/catchball: hitRobot", hitPoint, ball.radius, vis.colors.redHalf, true)
 
 	-- consider that the shootRadius is less than radius and thus the ball has to travel further
-	local dribberAngleHalf = math.atan(self._robot.dribblerWidth/2, self._robot.shootRadius)
+	local dribberAngleHalf = math.atan(self._robot.dribblerWidth/2 - ball.radius, self._robot.shootRadius)
 	-- check whether the hitpoint could be inside the dribbler
-	if math.abs(geom.getAngleDiff((hitPoint - self._robot.pos):angle(), dribberAngleHalf)) < dribberAngleHalf then
+	if math.abs(geom.getAngleDiff((hitPoint - self._robot.pos):angle(), self._robot.dir)) < dribberAngleHalf then
 		-- calculate where the ball would hit the dribbler
 		-- just use the current robot dir as any prediction will be just as wrong
 		local dribblerMid = self._robot.pos + Vector.fromAngle(self._robot.dir):scaleLength(self._robot.shootRadius)
 		-- points along the dribbler
-		local dribblerDir = Vector.fromAngle(self._robot.dir):perpendicular():scaleLength(self._robot.dribblerWidth / 2)
+		local dribblerDir = Vector.fromAngle(self._robot.dir):perpendicular():scaleLength(self._robot.dribblerWidth / 2 - ball.radius)
 		local intersection, _, lambda2 = geom.intersectLineLine(ball.pos, ball.speed, dribblerMid, dribblerDir)
 		-- abs(lambda2) <= 1 if intersection is inside the dribbler width
 		if intersection and math.abs(lambda2) <= 1 then
@@ -264,8 +264,9 @@ function CatchBall:_createMoveAroundBallObstacle(path, minBall, predictedBall)
 		local predictedBallShift = predictedBall.pos + lineDir
 
 		-- if the robot is closer to the predicted ball then the ball I can shorten the obstacle
-		if (robotDistToPredictedBall + self._robot.radius + ball.radius) < ballDistToPredictedBall then
-			predictedBallShift = minBall.pos - (minBall.pos - predictedBall.pos):setLength(0.01)
+		if (robotDistToPredictedBall + 2 * self._robot.radius + ball.radius) < ballDistToPredictedBall 
+			or robotDistToPredictedBall < 2 * self._robot.radius + minBall.radius then
+			predictedBallShift = minBall.pos - (minBall.pos - predictedBall.pos):setLength(ball.radius + 0.02)
 		end
 
 		path:addLine(predictedBallShift.x, predictedBallShift.y, minBallShift.x, minBallShift.y,
