@@ -85,7 +85,7 @@ function MoveToRandom:run()
 		if catchBallTest then
 			modifiedPos = targetPos - Vector(0,math.sign(targetPos.y)*0.5)
 		end
-		self._send.passSuggestion(mainAttacker, { rating = math.huge, pos = modifiedPos, time = timeOnPos })
+		self._send.passSuggestion(mainAttacker, { rating = math.huge, ballPos = modifiedPos, time = timeOnPos })
 	end
 
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)

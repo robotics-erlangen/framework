@@ -13,7 +13,7 @@ function Pass:_init(targetRobot, targetPos, chip, passSpeed)
 	if not targetPos then
 		local sugg = self._inbox.passSuggestion()[targetRobot]
 		if sugg then
-			self._targetPos = sugg.pos
+			self._targetPos = sugg.ballPos
 		else
 			self._targetPos = targetRobot.pos +
 				Vector.fromAngle(targetRobot.dir) * targetRobot.shootRadius

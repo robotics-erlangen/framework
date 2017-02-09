@@ -56,7 +56,7 @@ function HandleBall:_updateTask()
 			local pass = {}
 			pass.rating = sugg.rating
 			pass.target = robot
-			pass.pos = sugg.pos
+			pass.pos = sugg.ballPos
 			pass.receiveTime = sugg.time
 
 			if not bestPass.rating then

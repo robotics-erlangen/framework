@@ -46,7 +46,7 @@ function KickoffPass:run()
 
 		local mainAttacker = self._inbox.mainAttacker().trainer
 		if mainAttacker then
-			self._send.passSuggestion(mainAttacker, { rating = math.huge, pos = self._pos, time = (moveTime + World.Time) })
+			self._send.passSuggestion(mainAttacker, { rating = math.huge, ballPos = self._pos, time = (moveTime + World.Time) })
 		end
 	elseif World.RefereeState ~= "KickoffOffensive" and Ball.isShot() then
 		self:_applyForMainAttacker(nil, nil, 2)

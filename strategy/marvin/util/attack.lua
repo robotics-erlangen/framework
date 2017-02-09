@@ -83,7 +83,7 @@ end
 function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPassPos, considerTiming)
 	local passes = {}
 	for sender, sugg in pairs(passSuggestions) do
-		table.insert(passes, {target = sender, pos = sugg.pos, time = sugg.time })
+		table.insert(passes, {target = sender, pos = sugg.ballPos, time = sugg.time })
 	end
 	return Attack.choosePass(robot, passes, currentPassPos, considerTiming)
 end
