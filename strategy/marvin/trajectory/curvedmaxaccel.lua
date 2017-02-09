@@ -519,12 +519,12 @@ local function _speedAtTime(speedProfile, time)
 	end
 end
 
-local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile, robotSpeed, accelLimit, sidewardsErrorFactor)
+local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile, robotSpeed, accelLimit, sidewardsErrorFactor, accelerationOverdrive)
 	local timeOffset = 0.02
 	local timeStep = 0.02
 	local speed = _speedAtTime(speedProfile, timeOffset)
 	local speedNextStep = _speedAtTime(speedProfile, timeOffset+timeStep)
-	local accel = (speedNextStep-speed)*(1/timeStep)
+	local accel = (speedNextStep-speed)*(1/timeStep) * accelerationOverdrive
 	-- if target is reached
 	if speedProfile[2][1] == speedProfile[1][1] then
 		accel = 0
@@ -576,6 +576,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	local exponentialTime = 0.1 -- timespan in seconds replace with exponential falloff
 	local exponentialError = 0.2 -- relative
 	local sidewardsErrorFactor = 5 -- used to scale sidewards speed error
+	local accelerationOverdrive = 2 -- Send commands with too high acceleration to make sure the robot de/accelerates fast enough
 
 	local rotationExponentialTime = 0.1
 	local rotationAccelerationFactor = 0.8
@@ -653,7 +654,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	_injectExponentialFalloff(speedProfile, exponentialTime, exponentialError, brake, endSpeedLen)
 	--debug.set("speedProfile2", speedProfile)
 
-	local speedVector, accelVector = _calculateSpeed(self._robot.id, waypoints, maxSpeedProfile, speedProfile, robotSpeed, accelLimit, sidewardsErrorFactor)
+	local speedVector, accelVector = _calculateSpeed(self._robot.id, waypoints, maxSpeedProfile, speedProfile, robotSpeed, accelLimit, sidewardsErrorFactor, accelerationOverdrive)
 
 	local spline = { {t_start = 0, t_end = math.huge,
 		x = { a0 = robotPos.x, a1 = speedVector.x, a2 = accelVector.x / 2, a3 = 0 },
