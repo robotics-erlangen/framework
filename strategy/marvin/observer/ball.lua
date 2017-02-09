@@ -143,8 +143,8 @@ function Ball._updateReceivesPass()
 	end
 
 	local ballDir = World.Ball.speed:angle()
-	local coneWidthSmall = 30 * math.pi / 180
-	local coneWidthLarge = 70 * math.pi / 180
+	local coneWidthSmall = 40 * math.pi / 180
+	local coneWidthLarge = 60 * math.pi / 180
 	local coneAngleMinSmall = ballDir - coneWidthSmall / 2
 	local coneAngleMinLarge = ballDir - coneWidthLarge / 2
 
