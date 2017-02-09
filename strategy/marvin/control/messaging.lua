@@ -15,7 +15,7 @@ local msgDefs = {
 	kickoffPass = "cdata",
 	kickoffStart = "number",
 	moveDest = "cdata",
-	passSuggestion = "table", -- { pos: Vector, time: number }
+	passSuggestion = "table", -- { ballPos: vector, time: number }
 	poolChangeRequest = "string",
 	strikerSamplingTimestamp = "number",
 

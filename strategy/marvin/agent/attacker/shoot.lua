@@ -174,7 +174,7 @@ function Shoot:_updateTask()
 		local passReceiveTime = math.max(suggestedTime, minShootTime + ballTravelTime + World.Time)
 
 		self._send.passInfo("all", { target = target,
-			pos = ballPos, time = passReceiveTime })
+			ballPos = ballPos, time = passReceiveTime })
 
 		return Pass, { target, ballPos }
 	end

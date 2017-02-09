@@ -126,14 +126,14 @@ function Striker:run()
 
 	-- check whether the striker should change its state to accepting an incoming pass
 	local _, passInfo = next(self._inbox.passInfo())
-	self._passDest = passInfo and passInfo.pos
+	self._passDest = passInfo and passInfo.ballPos
 
 	vis.addCircle("t/striker", self._zone.defaultPos, 0.1, vis.colors.slateHalf, true)
 	if self._passDestSuggestion then
-		if passInfo and passInfo.pos then
+		if passInfo and passInfo.ballPos then
 			local color = passInfo.target == self._robot
 				and vis.colors.turquoiseHalf or vis.colors.whiteHalf
-			vis.addCircle("t/striker", passInfo.pos, 0.1, color, true)
+			vis.addCircle("t/striker", passInfo.ballPos, 0.1, color, true)
 		end
 
 		vis.addCircle("t/striker", self._passDestSuggestion, 0.14,

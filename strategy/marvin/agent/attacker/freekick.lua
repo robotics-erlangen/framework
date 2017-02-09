@@ -91,7 +91,7 @@ function FreeKick:_updateTask()
 
 	-- pass_prepare -> pass
 	if self._state == "pass_prepare" then
-		local shootPos = self._pass.pos + (G.OpponentGoal - self._pass.pos):setLength(
+		local shootPos = self._pass.ballPos + (G.OpponentGoal - self._pass.ballPos):setLength(
 			self._pass.target.shootRadius + World.Ball.radius)
 		local ballTime = Shoot.ballPassTime(World.Ball.pos, shootPos, self._pass.target)
 		local robotTime = Robot.minShootTime(self._robot, shootPos)
@@ -107,7 +107,7 @@ function FreeKick:_updateTask()
 	-- visualize decision
 	local visTarget
 	if self._pass then
-		visTarget = self._pass.pos
+		visTarget = self._pass.ballPos
 	elseif self._state == "shootgoal" then
 		visTarget = World.Geometry.OpponentGoal
 	end
@@ -127,7 +127,7 @@ function FreeKick:_updateTask()
 	elseif self._state == "wait" or self._state == "pass_prepare" then
 		return MoveToStaticBall, { math.pi / 2 }, stateChanged
 	elseif self._state == "pass" then
-		return Pass, { self._pass.target, self._pass.pos }
+		return Pass, { self._pass.target, self._pass.ballPos }
 	end
 end
 

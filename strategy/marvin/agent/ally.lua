@@ -45,8 +45,9 @@ function Ally:_run()
 					end
 				end
 			elseif name == "passInfo" then
-				local sender, pos = next(func())
+				local sender, info = next(func())
 				if sender then
+					local pos = info.ballPos
 					if not mixedTeamMessage[sender.id] then
 						mixedTeamMessage[sender.id] = {}
 					end
@@ -116,7 +117,7 @@ function Ally:_run()
 			for robot, _ in pairs(self._inbox.attackerFlag()) do
 				if robot.pos:distanceTo(msg) < MIN_DIST_FOR_PASS_POS then
 					vis.addCircle("a/ally/passpos", msg, 0.15, vis.colors.redHalf, true)
-					self._send.passInfo("all", { target = robot, pos = robot.pos })
+					self._send.passInfo("all", { target = robot, ballPos = msg })
 					passPosSent = true
 					break
 				end
