@@ -107,6 +107,17 @@ function CenterBack:run()
 		if ballTime ~= -math.huge then
 			endSpeed = Physics.robotMinEndspeed(self._robot, destinationPos, ballTime)
 		end
+		if endSpeed then
+			local phi = (destinationPos - G.FriendlyGoal):angle()
+			endSpeed:rotate(-phi)
+
+			if endSpeed.x < 0 then
+				endSpeed.x = 0
+			end
+
+			endSpeed:rotate(phi)
+		end
+		
 	end
 
 	--move robot
