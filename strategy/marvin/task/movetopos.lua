@@ -16,11 +16,11 @@ function MoveToPos:run()
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
-	if self._suggestPassFlag then
-		self:_suggestPass(self._pos)
-	end
+	local _, time = self._robot.trajectory:update(ToTarget, self._pos, self._dir)
 
-	self._robot.trajectory:update(ToTarget, self._pos, self._dir)
+	if self._suggestPassFlag then
+		self:_suggestPass(self._pos, nil, time)
+	end
 end
 
 return MoveToPos

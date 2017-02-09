@@ -157,13 +157,9 @@ function Striker:run()
 		self._moveDest = self._zone.defaultPos
 	end
 
-	-- send a suggestion for a pass in the run
-	local _, attackPosition = next(self._inbox.attackPosition())
-	if self._passDestSuggestion and attackPosition then
-		self:_suggestPass(self._passDestSuggestion, attackPosition)
-	end
-
 	-- set path obstacles to not interfere with the current attack
+	local moveTime = nil
+	local _, attackPosition = next(self._inbox.attackPosition())
 	if self._moveDest then
 		PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 		PathHelper.addRobotObstacles(self._robot.path, self._robot)
@@ -191,7 +187,13 @@ function Striker:run()
 				rightGoal.x, rightGoal.y, World.Ball.radius + 0.04)
 		end
 
-		self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
+		local _, time = self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
+		moveTime = time
+	end
+
+	-- send a suggestion for a pass in the run
+	if self._passDestSuggestion and attackPosition then
+		self:_suggestPass(self._passDestSuggestion, attackPosition, moveTime)
 	end
 end
 
