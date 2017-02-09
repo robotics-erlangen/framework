@@ -67,7 +67,7 @@ function StrikerSampling:volleyPass(pos)
 end
 
 
-function StrikerSampling:evalLocation(pos)
+function StrikerSampling:evalLocation(pos, bestScore)
 	local score = 1
 
 	-- score = score * self:correctFieldHalf(pos)
@@ -81,10 +81,14 @@ function StrikerSampling:evalLocation(pos)
 	-- score = score * self:passInterception(pos)
 
 	score = score * self:passTooShort(pos)
-	score = score * self:volleyPass(pos)
-	score = score * self:canReachInTime(pos)
-	visualizeRating("total", pos, score)
+	if score < bestScore then return score end
 
+	score = score * self:volleyPass(pos)
+	if score < bestScore then return score end
+
+	score = score * self:canReachInTime(pos)
+
+	visualizeRating("total", pos, score)
 	return score
 end
 
