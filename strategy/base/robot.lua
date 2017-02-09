@@ -377,8 +377,8 @@ end
 function Robot:hasBall(ball, sideOffset)
 	sideOffset = sideOffset or 0
 
-	-- handle sidewards balls
-	local latencyCompensation = (ball.speed - self.speed):scaleLength(Constants.systemLatency)
+	-- handle sidewards balls, add extra time for strategy timing jitter
+	local latencyCompensation = (ball.speed - self.speed):scaleLength(Constants.systemLatency + 0.03)
 	-- interpolate vector used for correction to circumvent noise
 	local MIN_COMPENSATION = 0.005
 	local BOUND_COMPENSATION_ANGLE = 70/180*math.pi
