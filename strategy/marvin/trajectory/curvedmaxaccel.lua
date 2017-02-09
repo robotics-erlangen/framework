@@ -267,7 +267,7 @@ local function _addLinearSpeedSegment(speedProfile, startSpeed, endSpeed, distan
 		accelTime = (-speed + math.sqrt(speed*speed+2*accelerate*distance))/accelerate
 		-- limit to time required for reaching maxSpeed (= startSpeed or endSpeed)
 		accelTime = math.min(accelTime, (startSpeed - speed) / accelerate)
-	elseif speed < startSpeed then
+	elseif speed < startSpeed - 0.001 then
 		-- Fomulas for wxMaxima
 		--solve(v_0+a*t_mid=v_s+(v_e-v_s)*t_mid/t_end,t_end); -> set t_end to result
 		--assume(a > (v_e-v_s)/t_end);assume(a > 0);assume(d > 0);
