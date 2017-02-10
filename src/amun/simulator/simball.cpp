@@ -189,7 +189,12 @@ btVector3 SimBall::speed() const
 bool SimBall::isInvalid() const
 {
     const btTransform transform = m_body->getWorldTransform();
-    bool isNan = std::isnan(transform.getOrigin().x()) || std::isnan(transform.getOrigin().y());
+    const btVector3 velocity = m_body->getLinearVelocity();
+    bool isNan = std::isnan(transform.getOrigin().x()) || std::isnan(transform.getOrigin().y())
+            || std::isnan(transform.getOrigin().z()) || std::isinf(transform.getOrigin().x())
+            || std::isinf(transform.getOrigin().y()) || std::isinf(transform.getOrigin().z())
+            || std::isnan(velocity.x()) || std::isnan(velocity.y()) || std::isnan(velocity.z())
+            || std::isinf(velocity.x()) || std::isinf(velocity.y()) || std::isinf(velocity.z());
     bool isBelowField = (transform.getOrigin().z() <= 0);
     return isNan || isBelowField;
 }

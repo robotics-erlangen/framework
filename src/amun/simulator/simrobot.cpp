@@ -392,7 +392,9 @@ void SimRobot::move(const amun::SimulatorMoveRobot &robot)
 bool SimRobot::isFlipped()
 {
     btTransform t = m_body->getWorldTransform();
-    bool isNan = std::isnan(t.getOrigin().x()) || std::isnan(t.getOrigin().y());
+    bool isNan = std::isnan(t.getOrigin().x()) || std::isnan(t.getOrigin().y())
+            || std::isnan(t.getOrigin().z()) || std::isinf(t.getOrigin().x())
+            || std::isinf(t.getOrigin().y()) || std::isinf(t.getOrigin().z());
     t.setOrigin(btVector3(0, 0, 0));
     return ((t * btVector3(0, 0, 1)).z() < 0) || isNan;
 }
