@@ -26,6 +26,14 @@
 #include "simulator.h"
 #include <cmath>
 
+const float MAX_SPEED = 1000;
+
+float boundSpeed(float speed)
+{
+    return qBound(-MAX_SPEED, speed, MAX_SPEED);
+}
+
+
 SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld *world, const btVector3 &pos, float dir) :
     m_rng(rng),
     m_specs(specs),
@@ -221,7 +229,7 @@ void SimRobot::begin(SimBall *ball, double time)
     Q_ASSERT(m_command.has_omega());
 
     btVector3 v_local(t.inverse() * m_body->getLinearVelocity());
-    btVector3 v_d_local(m_command.v_s(), m_command.v_f(), 0);
+    btVector3 v_d_local(boundSpeed(m_command.v_s()), boundSpeed(m_command.v_f()), 0);
 
     float v_f = v_local.y()/SIMULATOR_SCALE;
     float v_s = v_local.x()/SIMULATOR_SCALE;
@@ -229,7 +237,7 @@ void SimRobot::begin(SimBall *ball, double time)
 
     const float error_v_s = v_d_local.x() - v_s;
     const float error_v_f = v_d_local.y() - v_f;
-    const float error_omega = m_command.omega() - omega;
+    const float error_omega = boundSpeed(m_command.omega()) - omega;
 
     error_sum_v_s += error_v_s;
     error_sum_v_f += error_v_f;
