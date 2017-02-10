@@ -186,6 +186,14 @@ btVector3 SimBall::speed() const
     return m_body->getLinearVelocity();
 }
 
+bool SimBall::isInvalid() const
+{
+    const btTransform transform = m_body->getWorldTransform();
+    bool isNan = std::isnan(transform.getOrigin().x()) || std::isnan(transform.getOrigin().y());
+    bool isBelowField = (transform.getOrigin().z() <= 0);
+    return isNan || isBelowField;
+}
+
 void SimBall::kick(const btVector3 &power)
 {
     m_body->activate();

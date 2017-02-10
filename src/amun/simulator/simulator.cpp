@@ -236,6 +236,10 @@ void Simulator::handleSimulatorTick(double timeStep)
 
     resetFlipped(m_data->robotsBlue, 1.0f);
     resetFlipped(m_data->robotsYellow, -1.0f);
+    if (m_data->ball->isInvalid()) {
+        delete m_data->ball;
+        m_data->ball = new SimBall(&m_data->rng, m_data->dynamicsWorld, m_data->geometry.field_width(), m_data->geometry.field_height());
+    }
 
     // apply commands and forces to ball and robots
     m_data->ball->begin();

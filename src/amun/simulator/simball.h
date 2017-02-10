@@ -45,6 +45,7 @@ public:
     btVector3 position() const;
     btVector3 speed() const;
     const btRigidBody *body() const { return m_body; }
+    bool isInvalid() const;
 
 private:
     RNG *m_rng;
