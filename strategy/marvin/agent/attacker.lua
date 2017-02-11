@@ -42,7 +42,7 @@ function Attacker:_run()
 		assert(self._activeBehavior._send, "behavior message interface changed")
 		self._activeBehavior._send.attackerFlag("all")
 
-		local groupApplication = { name = "moves", payload = 0 }
+		local groupApplication = { name = "moves", payload = {} }
 		self._activeBehavior._send.groupApplication("trainer", groupApplication)
 	end
 

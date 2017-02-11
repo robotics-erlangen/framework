@@ -110,7 +110,7 @@ end
 
 function Striker:run()
 	-- participate in the striker group
-	local groupApplication = { name = "striker", payload = 0 }
+	local groupApplication = { name = "striker", payload = {} }
 	self._send.groupApplication("trainer", groupApplication)
 
 	-- retrieve the assigned zone from the striker group
