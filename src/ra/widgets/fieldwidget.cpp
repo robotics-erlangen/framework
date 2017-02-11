@@ -414,6 +414,8 @@ void FieldWidget::updateVisualizations(const amun::DebugValues &v)
         // setup pen style and color
         if (vis.has_pen()) {
             pen.setStyle(Qt::SolidLine);
+            pen.setCapStyle(Qt::RoundCap);
+            pen.setJoinStyle(Qt::RoundJoin);
 
             if (vis.pen().has_style()) {
                 switch (vis.pen().style()) {
