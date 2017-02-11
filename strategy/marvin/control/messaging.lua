@@ -12,21 +12,21 @@ local msgDefs = {
 	defenderFlag = "flag",
 	forcePoolChange = "table", -- { robot: robot, destPool: string }
 	kickoffMirrorFlag = "flag",
-	kickoffPass = "cdata",
+	kickoffPass = "vector",
 	kickoffStart = "number",
-	moveDest = "cdata",
+	moveDest = "vector",
 	passSuggestion = "table", -- { ballPos: vector, time: number }
 	poolChangeRequest = "string",
 	strikerSamplingTimestamp = "number",
 
 	-- single sender
-	attackPosition = "cdata",
+	attackPosition = "vector",
 	centerBackPosTarget = "table", -- { pos: vector, target: table }
 	moveAssignment = "table", -- { class: class, params: table }
 	moveNumAttackers = "number",
 	passInfo = "table", -- { target: robot, ballPos: vector, time: number }
 	roleAssignment = "table", -- { name: string, params: table }
-	shootDestination = "cdata",
+	shootDestination = "vector",
 	strikerZone = "table", -- { defaultPos: vector, boundaries: table }
 }
 

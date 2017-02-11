@@ -4,7 +4,7 @@ context("base.typecheck", function ()
 	local Class, typecheck
 	before(function ()
 		Class = Injector.newClassLoader()
-		local injector = Injector(Class, true)
+		local injector = Injector(Class)
 		typecheck = injector:load("../base/typecheck")
 	end)
 
@@ -15,12 +15,16 @@ context("base.typecheck", function ()
 		assert_not_error(function() typecheck(true, "boolean") end)
 		assert_not_error(function() typecheck({}, "table") end)
 		assert_not_error(function() typecheck(function() end, "function") end)
+		assert_not_error(function() typecheck(Vector(0, 0), "vector") end)
+		assert_not_error(function() typecheck(Vector.createReadOnly(0, 0), "vector") end)
 		assert_error(function() typecheck(nil, "string") end)
 		assert_error(function() typecheck(42, "string") end)
 		assert_error(function() typecheck("text", "number") end)
 		assert_error(function() typecheck(true, "string") end)
 		assert_error(function() typecheck({}, "string") end)
 		assert_error(function() typecheck(function() end, "string") end)
+		assert_error(function() typecheck(Vector(0, 0), "function") end)
+		assert_error(function() typecheck(Vector.createReadOnly(0, 0), "function") end)
 
 		-- test value passthrough
 		local inputString = "testValue"
