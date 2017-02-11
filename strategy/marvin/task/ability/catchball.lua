@@ -39,7 +39,7 @@ end
 -- @return moveDest Vector - the point where the robot will catch the ball
 function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	local ball = World.Ball
-    -- update catch time
+	-- update catch time
 	if self._catchTime and not Ball.isAccelerating() and self._recalculateCatchTimeCounter < 20 then
 		-- ball is slowing down
 		-- update time from last frame
@@ -119,7 +119,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	if distanceToBall == 0 then
 		endSpeed = endSpeed + (targetPos - moveDest):setLength(0.2)
 	end
-	
+
 	-- move to the predicted ball
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
 	self._send.moveDest("all", moveDest)
@@ -176,7 +176,7 @@ function CatchBall:_calculateHitTime(ball)
 		if dist < rollDist then
 			rollDist = dist
 			hitPoint = hitPoint2
-		end 
+		end
 	end
 	vis.addCircle("t/a/catchball: hitRobot", hitPoint, ball.radius, vis.colors.redHalf, true)
 
@@ -264,7 +264,7 @@ function CatchBall:_createMoveAroundBallObstacle(path, minBall, predictedBall)
 		local predictedBallShift = predictedBall.pos + lineDir
 
 		-- if the robot is closer to the predicted ball then the ball I can shorten the obstacle
-		if (robotDistToPredictedBall + 2 * self._robot.radius + ball.radius) < ballDistToPredictedBall 
+		if (robotDistToPredictedBall + 2 * self._robot.radius + ball.radius) < ballDistToPredictedBall
 			or robotDistToPredictedBall < 2 * self._robot.radius + minBall.radius then
 			predictedBallShift = minBall.pos - (minBall.pos - predictedBall.pos):setLength(ball.radius + 0.02)
 		end

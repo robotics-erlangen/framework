@@ -120,7 +120,7 @@ function Base:_runTask(task)
 	if MEASURE_TIMING then
 		timing.start("Task", self._robot.id)
 	end
-	
+
 	debug.push("Task")
 	if task then
 		task:clearMainAttackerParameters()

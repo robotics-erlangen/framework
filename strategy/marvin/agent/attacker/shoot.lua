@@ -34,7 +34,7 @@ end
 
 function Shoot:_shootGoalPossible()
 	local sg_target, _, sg_dirty = ShootGoalUtil.updateTarget(self._robot, nil, false)
-	
+
 	if sg_dirty then
 		return false
 	end

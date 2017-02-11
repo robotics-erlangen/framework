@@ -24,7 +24,7 @@ function Move:_updateTask()
 			self._forceKeepingInPool = true
 		end
 	end
-	
+
 	local assignment = self._inbox.moveAssignment().trainer
 	if assignment.behavior then
 		if not self._behavior then

@@ -14,7 +14,7 @@ function Groups:init()
 end
 
 function Groups:_runGroups()
-	 -- robot -> { groupname -> application }
+	-- robot -> { groupname -> application }
 	local groupApplications = self._inbox.groupApplication()
 
 	-- groupname -> { robot -> application }

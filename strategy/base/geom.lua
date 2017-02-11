@@ -4,8 +4,8 @@ module "geom"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2017 Alexander Danzer, Michael Eischer, Michael Niebisch,	  *
-*					André Pscherer      								  *
+*   Copyright 2017 Alexander Danzer, Michael Eischer, Michael Niebisch,   *
+*                  André Pscherer                                         *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *

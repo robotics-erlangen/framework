@@ -95,7 +95,7 @@ function CenterBack:run()
 	-- -drive as fast as possible, because it doesn't matter if we have an endSpeed when we have blocked the ball
 	local endSpeed = nil
 	local intersectionWithGoalLine = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, G.FriendlyGoal, Vector(1, 0))
-	if intersectionWithGoalLine and math.abs(intersectionWithGoalLine.x) < G.GoalWidth / 2 + 0.1 
+	if intersectionWithGoalLine and math.abs(intersectionWithGoalLine.x) < G.GoalWidth / 2 + 0.1
 			and World.Ball.speed:length() > 0.5 and World.Ball.speed.y < 0 and destinationTarget == World.Ball then
 		local blockingPos = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, self.distanceToDefenseArea() + self._robot.radius, false)
 		--destinationPos = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, destinationPos, (destinationPos - self._robot.pos))
@@ -117,7 +117,7 @@ function CenterBack:run()
 
 			endSpeed:rotate(phi)
 		end
-		
+
 	end
 
 	--move robot

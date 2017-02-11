@@ -119,8 +119,8 @@ local function calculateCenterBackPositions(centerBackApplications)
 				distanceToDefenseArea + robot_radius, false)
 		end
 		local occupiedWay = (#rlist) * (2 * robot_radius + distanceBetweenDefenders)
-		 
-		 --shift position slightly to cover more of the opposite goal corner of the keeper position
+
+		--shift position slightly to cover more of the opposite goal corner of the keeper position
 		if target == World.Ball and World.FriendlyKeeper then
 			way = way - (robot_radius / 2) * (Rating.valueToRating(World.FriendlyKeeper.pos.x, -0.2, 0.2) * 2 - 1)
 		end
