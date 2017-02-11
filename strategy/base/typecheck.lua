@@ -37,15 +37,19 @@ return function(value, requestedType)
 			if not Vector.isVector(value) then
 				error("Expected vector got " .. tval)
 			end
+		elseif requestedType == "class" then
+			if not value or Class.toClass(value, true) ~= value then
+				error("Expected class got " .. tval)
+			end
 		elseif tval ~= requestedType then
 			error("Expected type " .. requestedType .. " got " .. tval)
 		end
 	elseif type(requestedType) == "table" and Class.toClass(requestedType, true) then
 		if tval ~= "table" or not Class.toClass(value, true) then
-			error("Expected class "..Class.name(requestedType).. " got type " .. tval)
+			error("Expected instance of class "..Class.name(requestedType).. " got type " .. tval)
 		end
 		if not Class.instanceOf(value, requestedType) then
-			error("Expected class "..Class.name(requestedType).." got class "..Class.name(value))
+			error("Expected instance of class "..Class.name(requestedType).." got class "..Class.name(value))
 		end
 	else
 		error("Can't handle requestedType")
