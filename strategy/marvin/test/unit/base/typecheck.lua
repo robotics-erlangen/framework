@@ -9,6 +9,8 @@ context("base.typecheck", function ()
 	end)
 
 	test("type as string", function ()
+		local testClass = Class("test")
+
 		assert_not_error(function() typecheck(nil, "nil") end)
 		assert_not_error(function() typecheck(42, "number") end)
 		assert_not_error(function() typecheck("text", "string") end)
@@ -17,14 +19,17 @@ context("base.typecheck", function ()
 		assert_not_error(function() typecheck(function() end, "function") end)
 		assert_not_error(function() typecheck(Vector(0, 0), "vector") end)
 		assert_not_error(function() typecheck(Vector.createReadOnly(0, 0), "vector") end)
+		assert_not_error(function() typecheck(testClass, "class") end)
 		assert_error(function() typecheck(nil, "string") end)
 		assert_error(function() typecheck(42, "string") end)
 		assert_error(function() typecheck("text", "number") end)
 		assert_error(function() typecheck(true, "string") end)
 		assert_error(function() typecheck({}, "string") end)
 		assert_error(function() typecheck(function() end, "string") end)
-		assert_error(function() typecheck(Vector(0, 0), "function") end)
-		assert_error(function() typecheck(Vector.createReadOnly(0, 0), "function") end)
+		assert_error(function() typecheck(42, "vector") end)
+		assert_error(function() typecheck(nil, "vector") end)
+		assert_error(function() typecheck(42, "class") end)
+		assert_error(function() typecheck(nil, "class") end)
 
 		-- test value passthrough
 		local inputString = "testValue"
