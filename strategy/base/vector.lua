@@ -310,7 +310,7 @@ function Vector.fromAngle(angle)
 	return vector_c(cos(angle), sin(angle))
 end
 
--- Creates a random point around mean with a normal distribution
+--- Creates a random point around mean with a normal distribution
 -- @param sigma number - the sigma of the distribution
 -- @param mean Vector - the middle point of the distribution
 -- @return Vector - the random point
@@ -333,6 +333,13 @@ end
 
 function Vector._loadGeom()
 	geom = require "../base/geom"
+end
+
+--- Check whether a given value is a vector
+-- @param data any - The value to test
+-- @return bool - True, if data is a vector
+function Vector.isVector(data)
+	return ffi.istype(vector_c, data) or ffi.istype(vector_c_readonly, data)
 end
 
 local vector_class_mt = {
