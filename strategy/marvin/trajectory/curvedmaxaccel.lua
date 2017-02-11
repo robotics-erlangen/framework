@@ -524,7 +524,7 @@ local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile
 	local timeStep = 0.02
 	local speed = _speedAtTime(speedProfile, timeOffset)
 	local speedNextStep = _speedAtTime(speedProfile, timeOffset+timeStep)
-	local accel = (speedNextStep-speed)*(1/timeStep) * accelerationOverdrive
+	local accel = (speedNextStep-speed)*(1/timeStep)
 	-- if target is reached
 	if speedProfile[2][1] == speedProfile[1][1] then
 		accel = 0
@@ -535,11 +535,19 @@ local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile
 		accel = 0 -- too slow, don't brake to allow the robot to get up to speed
 	end
 
+	if speed + accel * accelerationOverdrive < 0 then
+		-- make sure the robot doesn't brake until it moves backwards
+		speed = 0
+		accel = 0
+	end
+
 	-- don't drive backwards, just brake as fast as possible
 	speed = math.max(0, speed)
 	local moveDir = waypoints[2] - waypoints[1]
 	local speedVector = moveDir:copy():setLength(speed)
 	local accelVector = moveDir:copy():setLength(accel)
+	-- add overdrive to ensure that the robot reaches the expected de/acceleration
+	speedVector = speedVector + accelVector * accelerationOverdrive
 
 	plot.addPlot(tostring(robotId) .. ".speed", speed)
 	--debug.set("speed", speedVector)
@@ -576,7 +584,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	local exponentialTime = 0.1 -- timespan in seconds replace with exponential falloff
 	local exponentialError = 0.2 -- relative
 	local sidewardsErrorFactor = 5 -- used to scale sidewards speed error
-	local accelerationOverdrive = 2 -- Send commands with too high acceleration to make sure the robot de/accelerates fast enough
+	local accelerationOverdrive = 0.02 -- Send commands with too high speed to make sure the robot de/accelerates fast enough
 
 	local rotationExponentialTime = 0.1
 	local rotationAccelerationFactor = 0.8
