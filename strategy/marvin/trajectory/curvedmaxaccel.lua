@@ -583,7 +583,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	local accelerationFactor = (accelScale or 1.0) * 0.85 -- factor for max forward speedup and braking
 	local exponentialTime = 0.1 -- timespan in seconds replace with exponential falloff
 	local exponentialError = 0.2 -- relative
-	local sidewardsErrorFactor = 5 -- used to scale sidewards speed error
+	local sidewardsErrorFactor = 10 -- used to scale sidewards speed error
 	local accelerationOverdrive = 0.02 -- Send commands with too high speed to make sure the robot de/accelerates fast enough
 
 	local rotationExponentialTime = 0.1
