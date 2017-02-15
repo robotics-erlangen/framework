@@ -21,6 +21,7 @@ local ToTarget = require "trajectory/totarget"
 
 local SIDEWARDS_KP = 9
 local SIDEWARDS_KI = 2.4
+local SIDEWARDS_SPEED_LIMIT = 0.5
 local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
 local SHOOT_SIDE_OFFSET = 0.023 -- extends the hasBall sidewards
 local SHOOT_HYSTERESIS_TIMEOUT = 0.08 -- reset shoot hysteresis after the timeout
@@ -153,7 +154,7 @@ function Shoot:_doCatch(targetPos, targetSpeed, futureBall)
 		ballDist = 0
 		debug.set("ballApproach", "catchBall (no dist)")
 	else
-		ballDist = STOPPED_BALL_DIST
+		ballDist = 0
 		debug.set("ballApproach", "catchBall")
 	end
 
@@ -253,7 +254,7 @@ function Shoot:_calculateDistToBall()
 end
 
 function Shoot:_correctSidewardsOffset(distToBall)
-	local speedLimit = 0.4
+	local speedLimit = SIDEWARDS_SPEED_LIMIT
 	local sidewardsKp = SIDEWARDS_KP
 	local errorVal = -distToBall.y
 	local p_out = sidewardsKp * errorVal
