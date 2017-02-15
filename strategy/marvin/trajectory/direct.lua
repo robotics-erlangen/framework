@@ -16,6 +16,11 @@ function Direct:update(speed, targetDir, rotateSpeed, accel)
 	else
 		accel = Vector(0, 0)
 	end
+	-- play motion controller
+	local robotSpeed = Coordinates.toGlobal(self._robot.speed)
+	local k_v = 0.5
+	speed = speed + (speed - robotSpeed) * k_v
+
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
 	local robotDir = Coordinates.toGlobal(self._robot.dir)
 	assert(targetDir == nil or rotateSpeed == nil, "rotating while having a fixed direction makes no sense")
