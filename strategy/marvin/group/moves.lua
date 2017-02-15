@@ -84,6 +84,7 @@ function Moves:run(sender, inbox, messages)
 
 		if #availableRobots == self._chosenMove.N_ROBOTS then
 			self._currentMove = self._chosenMove(availableRobots, inbox)
+			self._participatingRobots = availableRobots
 		end
 	end
 
@@ -95,9 +96,6 @@ function Moves:run(sender, inbox, messages)
 	-- run
 	if self._currentMove then
 		local taskAssignments = self._currentMove:updateTasks()
-		if #prevParticipatingRobots == 0 then
-			prevParticipatingRobots = table.keys(taskAssignments)
-		end
 		for _, robot in ipairs(prevParticipatingRobots) do
 			local assignment = taskAssignments[robot]
 			if assignment then
