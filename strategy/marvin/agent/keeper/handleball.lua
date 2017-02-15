@@ -10,9 +10,14 @@ local AggressiveKeeper = require "task/aggressivekeeper"
 local Keeper = require "task/keeper"
 local KeeperChipAway = require "task/chipaway"
 local Pass = require "task/pass"
+local Attack = require "util/attack"
 
 
 local SLOW_BALL = 0.5
+
+function HandleBall:_init()
+	self._pass = nil
+end
 
 function HandleBall:behindCenterbacks(object)
 	local defenseDistance = self._robot.radius + self._robot.shootRadius
@@ -50,35 +55,12 @@ function HandleBall:_updateTask()
 	elseif startInside and endInside and not ballBehindKeeper and self._inbox.passSuggestion() then
 		-- if ball is inside defense area and will not leave it -> we have time to act
 		-- try to find a good pass
-		local bestPass = {}
-
-		for robot, sugg in pairs(self._inbox.passSuggestion()) do
-			local pass = {}
-			pass.rating = sugg.rating
-			pass.target = robot
-			pass.pos = sugg.ballPos
-			pass.receiveTime = sugg.time
-
-			if not bestPass.rating then
-				bestPass.rating = pass.rating
-				bestPass.target = pass.target
-				bestPass.pos = pass.pos
-				bestPass.receiveTime = pass.receiveTime
-
-			elseif pass.rating > bestPass.rating then
-				bestPass.rating =pass.rating
-				bestPass.target = pass.target
-				bestPass.pos = pass.pos
-				bestPass.receiveTime = pass.receiveTime
-
-			end
-		end
-		if bestPass.target then --check if there is a good pass, else chip away
-			return Pass, {bestPass.target, nil, true}
+		self._pass = Attack.choosePassFromSuggestions(self._robot, self._inbox.passSuggestion(), self._pass and self._pass.ballPos, false)
+		if self._pass then --check if there is a good pass, else chip away
+			return Pass, { self._pass.target, self._pass.ballPos, true }
 		else
 			return KeeperChipAway
 		end
-
 	else
 		-- if inside and ball will leave or outside -> get rid of the ball
 		return AggressiveKeeper
