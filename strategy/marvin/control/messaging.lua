@@ -22,8 +22,7 @@ local msgDefs = {
 	defenderFlag = "flag",
 
 	-- sent by gr/moves to make sure that unassigned robots become defenders
-	-- { robot: robot, destPool: string }
-	forcePoolChange = "table",
+	forcePoolChange = { robot = Robot, destPool = "string" },
 
 	-- LEGACY
 	kickoffMirrorFlag = "flag",
@@ -35,8 +34,7 @@ local msgDefs = {
 
 	-- sent by strikers to the MA to propose a possible pass
 	-- requests that the ball is at msg.ballPos when the time reaches msg.time
-	-- { ballPos: vector, time: number }
-	passSuggestion = "table",
+	passSuggestion = { ballPos = "vector", time = "number" },
 
 	-- sent by various behaviors which want to change the pool
 	-- the string can be "attacker" or "defender"
@@ -45,7 +43,7 @@ local msgDefs = {
 	-- sent by t/striker to tell all other strikers about the currency of the sampled pass position
 	strikerSamplingTimestamp = "number",
 
-	
+
 	-- =====================
 	-- === single sender ===
 	-- =====================
@@ -55,34 +53,37 @@ local msgDefs = {
 
 	-- sent by gr/centerback to assign a target and a position to the centerback tasks
 	-- target can be any table (preferably a ball-like or robot-like object)
-	-- { pos: vector, target: table }
-	centerBackPosTarget = "table",
+	centerBackPosTarget = { pos = "vector", target = "table", way = "number" },
 
 	-- sent by gr/moves to the participating agents
-	-- { class or behavior: class, params: table }
-	moveAssignment = "table",
+	moveAssignment = { behavior = "class", class = "class", params = "table", restart = "boolean" },
 
 	-- sent by gr/moves to tr/attackratio to overwrite the number of attackers
 	moveNumAttackers = "number",
 
 	-- sent by the MA to notify all agents about an upcoming pass
 	-- the ball is at msg.ballPos when the time reaches msg.time
-	-- { target: robot, ballPos: vector, time: number }
-	passInfo = "table",
+	passInfo = { target = Robot, ballPos = "vector", time = "number" },
 
 	-- sent by tr/defense to assign a behavior to each defender
 	-- possible names are "CenterBack", "ManMark" and "ZoneDefense"
-	-- { name: string, params: table }
-	roleAssignment = "table",
+	roleAssignment = { name = "string", params = "table" },
 
 	-- sent by the MA to tell other attackers about the destination of the next shot
 	shootDestination = "vector",
 
 	-- sent by gr/striker to assign zones to the striker tasks
 	-- msg.boundaries = { left: number, right: number }
-	-- { defaultPos: vector, boundaries: table }
-	strikerZone = "table",
+	strikerZone = { defaultPos = "vector", boundaries = "table" },
 }
+
+
+local exclusiveRoles = {
+	mainAttacker = "number",
+}
+for role, _ in pairs(exclusiveRoles) do
+	msgDefs[role] = Robot
+end
 
 
 local repeatedMessages = {
@@ -93,8 +94,7 @@ local repeatedMessages = {
 
 	-- sent by agents that want to join a specific group
 	-- the list of groups is defined in tr/groups
-	-- { name: string, payload: table }
-	groupApplication = "table",
+	groupApplication = { name = "string", payload = "table" },
 }
 
 for msg, msgType in pairs(repeatedMessages) do
@@ -102,11 +102,13 @@ for msg, msgType in pairs(repeatedMessages) do
 end
 
 
-local exclusiveRoles = {
-	mainAttacker = true,
-}
-for role, _ in pairs(exclusiveRoles) do
-	msgDefs[role] = Robot
+-- extract types of typed tuples
+local msgDefsTypedTuple = {}
+for msg, msgType in pairs(msgDefs) do
+	if type(msgType) == "table" and not Class.toClass(msgType, true) then
+		msgDefsTypedTuple[msg] = msgType
+		msgDefs[msg] = "table"
+	end
 end
 
 
@@ -114,6 +116,31 @@ local empty = {}
 setmetatable(empty, { __newindex = function()
 	error("this table is supposed to be empty")
 end })
+
+local function typedTuple(description)
+	return setmetatable({}, {
+		__index = function(_table, key)
+			if not description[key] then
+				error("Trying to read invalid key "..tostring(key))
+			end
+		end,
+		__newindex = function(table, key, value)
+			if not description[key] then
+				error("Trying to write invalid key "..tostring(key))
+			end
+			checkType(value, description[key])
+			rawset(table, key, value)
+		end,
+	})
+end
+
+local function convertToTypedTuple(value, description)
+	local tuple = typedTuple(description)
+	for k, v in pairs(value) do
+		tuple[k] = v
+	end
+	return tuple
+end
 
 
 function Messaging:init()
@@ -223,6 +250,9 @@ function Messaging:_constructSender(sender)
 				end
 			else
 				checkType(data, requiredType)
+				if msgDefsTypedTuple[messageType] then
+					data = convertToTypedTuple(data, msgDefsTypedTuple[messageType])
+				end
 			end
 			local mtypeBox = self._newMessages[messageType]
 			if not mtypeBox then
