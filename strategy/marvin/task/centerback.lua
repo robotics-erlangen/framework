@@ -4,12 +4,13 @@ local CenterBack = Class("Task.CenterBack", require "task/base", ForceShoot)
 local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
-local PathHelper = require "trajectory/pathhelper"
-local Physics = require "observer/physics"
 local Referee = require "../base/referee"
-local Robot = require "observer/robot"
-local ToTarget = require "trajectory/totarget"
 local World = require "../base/world"
+local Physics = require "observer/physics"
+local Robot = require "observer/robot"
+local PathHelper = require "trajectory/pathhelper"
+local ToTarget = require "trajectory/totarget"
+local Attack = require "util/attack"
 
 local G = World.Geometry
 
@@ -120,9 +121,17 @@ function CenterBack:run()
 
 	end
 
-	--move robot
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreFriends, ignoreOpponents)
+
+	local _, attackPosition = next(self._inbox.attackPosition())
+	local attackPos = attackPosition or World.Ball.pos
+	local distAttackPosOpponentGoal = attackPos:distanceTo(World.Geometry.OpponentGoal)
+	local distSelfOpponentGoal = self._robot.pos:distanceTo(World.Geometry.OpponentGoal)
+	if distAttackPosOpponentGoal > distSelfOpponentGoal and Attack.checkForGoalShot() then
+		PathHelper.addShootGoalObstacle(self._robot.path, attackPos)
+	end
+
 	self._robot.trajectory:update(ToTarget, destinationPos, dir, nil, endSpeed)
 	self._send.moveDest("all", destinationPos)
 end

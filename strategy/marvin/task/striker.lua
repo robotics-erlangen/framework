@@ -14,7 +14,7 @@ local Physics = require "observer/physics"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
-local UtilAttack = require "util/attack"
+local Attack = require "util/attack"
 
 
 -- the time between the arrival of the robot and the ball
@@ -186,12 +186,11 @@ function Striker:run()
 
 		-- don't move between the ball and the opponent goal
 		-- relevant for goal shots
-		if not passInfo and attackPosition and UtilAttack.checkForGoalShot() then
-			local ballPos = World.Ball.pos
-			local leftGoal = G.OpponentGoalLeft
-			local rightGoal = G.OpponentGoalRight
-			self._robot.path:addTriangle(ballPos.x, ballPos.y, leftGoal.x, leftGoal.y,
-				rightGoal.x, rightGoal.y, World.Ball.radius + 0.04)
+		local attackPos = attackPosition or World.Ball.pos
+		local distAttackPosOpponentGoal = attackPos:distanceTo(World.Geometry.OpponentGoal)
+		local distSelfOpponentGoal = self._robot.pos:distanceTo(World.Geometry.OpponentGoal)
+		if distAttackPosOpponentGoal > distSelfOpponentGoal and Attack.checkForGoalShot() then
+			PathHelper.addShootGoalObstacle(self._robot.path, attackPos)
 		end
 
 		local _, time = self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
