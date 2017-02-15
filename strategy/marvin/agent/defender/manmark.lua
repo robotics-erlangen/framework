@@ -20,14 +20,11 @@ end
 
 function ManMark:check()
 	local role = self._inbox.roleAssignment().trainer
-	if role and role.name == "ManMark" then
-		return true
-	end
-	return false
+	return role and role.name == "ManMark"
 end
 
 function ManMark:_updateTask()
-	local newOpp = self._inbox.roleAssignment().trainer.params
+	local newOpp = self._inbox.roleAssignment().trainer.params[1]
 	self._restartTask = newOpp ~= self._opp
 	self._opp = newOpp
 	local wasCenterback = self._wasCenterback

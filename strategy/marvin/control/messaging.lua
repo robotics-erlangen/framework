@@ -56,6 +56,7 @@ local msgDefs = {
 	centerBackPosTarget = { pos = "vector", target = "table", way = "number" },
 
 	-- sent by gr/moves to the participating agents
+	-- params is a list of parameters
 	moveAssignment = { behavior = "class", class = "class", params = "table", restart = "boolean" },
 
 	-- sent by gr/moves to tr/attackratio to overwrite the number of attackers
@@ -67,6 +68,7 @@ local msgDefs = {
 
 	-- sent by tr/defense to assign a behavior to each defender
 	-- possible names are "CenterBack", "ManMark" and "ZoneDefense"
+	-- params is a list of parameters
 	roleAssignment = { name = "string", params = "table" },
 
 	-- sent by the MA to tell other attackers about the destination of the next shot

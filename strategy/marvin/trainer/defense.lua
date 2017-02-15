@@ -119,7 +119,7 @@ function Defense:_assignManmarkDefenders(defenders, nReservedDefenders)
 
 		table.removeValue(defenders, manmarker)
 		self._send.roleAssignment(manmarker,
-			{name = "ManMark", params = manmarkTarget})
+			{name = "ManMark", params = { manmarkTarget }})
 	end
 end
 
@@ -143,7 +143,7 @@ function Defense:_assignDefenders()
 		if defaultCB then
 			table.removeValue(defenders, defaultCB)
 			self._send.roleAssignment(defaultCB,
-				{name = "CenterBack", params = World.Ball})
+				{name = "CenterBack", params = { World.Ball }})
 		end
 	end
 
@@ -160,13 +160,13 @@ function Defense:_assignDefenders()
 		if zoneDefenderOne and self:_checkZoneDefender(zonePosOne) then
 			table.removeValue(defenders, zoneDefenderOne)
 			self._send.roleAssignment(zoneDefenderOne,
-				{name = "ZoneDefense", params = zoneDefenderPosOne})
+				{name = "ZoneDefense", params = { zoneDefenderPosOne }})
 		end
 		local zoneDefenderTwo = UtilDefense.getClosestRobot(defenders, zoneDefenderPosTwo)
 		if zoneDefenderTwo and self:_checkZoneDefender(zonePosTwo) then
 			table.removeValue(defenders, zoneDefenderTwo)
 			self._send.roleAssignment(zoneDefenderTwo,
-				{name = "ZoneDefense", params = zoneDefenderPosTwo})
+				{name = "ZoneDefense", params = { zoneDefenderPosTwo }})
 		end
 	end
 end

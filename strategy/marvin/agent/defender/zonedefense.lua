@@ -13,9 +13,10 @@ function ZoneDefense:check()
 end
 
 function ZoneDefense:_updateTask()
-	local roleParam = self._inbox.roleAssignment().trainer.params
-	local restartTask = roleParam ~= self._movePos
-	self._movePos = roleParam
+	local movePos = self._inbox.roleAssignment().trainer.params[1]
+	local restartTask = movePos ~= self._movePos
+	self._movePos = movePos
+
 	return BallEvadingMoveToPos, {self._movePos, nil}, restartTask
 end
 
