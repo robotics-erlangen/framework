@@ -271,9 +271,7 @@ function CatchBall:_createMoveAroundBallObstacle(path, minBall, predictedBall)
 
 		path:addLine(predictedBallShift.x, predictedBallShift.y, minBallShift.x, minBallShift.y,
 				predictedBall.radius - OBSTACLE_EPSILON + extraDist, 'ball')
-		vis.addPath("t/a/catchball: CatchBall", {predictedBallShift, minBallShift}, vis.colors.greenHalf)
-		vis.addCircle("t/a/catchball: CatchBall", minBallShift, predictedBall.radius - OBSTACLE_EPSILON + extraDist, vis.colors.greenHalf)
-		vis.addCircle("t/a/catchball: CatchBall", predictedBallShift, predictedBall.radius - OBSTACLE_EPSILON + extraDist, vis.colors.greenHalf)
+		vis.addPath("t/a/catchball: CatchBall", {predictedBallShift, minBallShift}, vis.colors.greenHalf, nil, nil, 2*(predictedBall.radius - OBSTACLE_EPSILON + extraDist))
 
 		-- prevent robot from colliding with the ball
 		-- calculate distance of ball connection line projected on the robot direction
@@ -300,7 +298,7 @@ function CatchBall:_createHuntingBallObstacle(path, viewDir, predictedBall)
 
 	local frontEnd = predictedBall.pos + Vector.fromAngle(viewDir) * 0.3
 	path:addLine(predictedBall.pos.x, predictedBall.pos.y, frontEnd.x, frontEnd.y, predictedBall.radius - OBSTACLE_EPSILON, 'ballForward')
-	vis.addPath("t/a/catchball: CatchBall", {predictedBall.pos, frontEnd}, vis.colors.skyBlueHalf)
+	vis.addPath("t/a/catchball: CatchBall", {predictedBall.pos, frontEnd}, vis.colors.skyBlueHalf, nil, nil, 2*(predictedBall.radius - OBSTACLE_EPSILON))
 end
 
 function CatchBall:_createBallCorridor(path, viewDir, predictedBall)
@@ -323,11 +321,7 @@ function CatchBall:_createBallCorridor(path, viewDir, predictedBall)
 		path:addLine(corridorRightFar.x, corridorRightFar.y, corridorRightNear.x, corridorRightNear.y, corridorRadius, "ball_corridor3")
 
 		-- visualize obstacles
-		vis.addPath("t/a/catchball: MoveCorridor", {corridorLeftNear, corridorLeftFar, corridorRightFar, corridorRightNear}, vis.colors.redHalf)
-		vis.addCircle("t/a/catchball: MoveCorridor", corridorLeftNear, corridorRadius, vis.colors.redHalf)
-		vis.addCircle("t/a/catchball: MoveCorridor", corridorLeftFar, corridorRadius, vis.colors.redHalf)
-		vis.addCircle("t/a/catchball: MoveCorridor", corridorRightNear, corridorRadius, vis.colors.redHalf)
-		vis.addCircle("t/a/catchball: MoveCorridor", corridorRightFar, corridorRadius, vis.colors.redHalf)
+		vis.addPath("t/a/catchball: MoveCorridor", {corridorLeftNear, corridorLeftFar, corridorRightFar, corridorRightNear}, vis.colors.redHalf, nil, nil, 2*corridorRadius)
 	end
 	-- bracket with negative obstacle radius, enforces approaching the ball from behind
 	-- Obstacle checking is done as: distance(robot, obstacle) < robot.radius + obstacle.radius
@@ -352,11 +346,7 @@ function CatchBall:_createBallCorridor(path, viewDir, predictedBall)
 		path:addLine(negRightFar.x, negRightFar.y, negRightNear.x, negRightNear.y, negativeRadius, "ball_negcorridor3")
 
 		-- visualize obstacles
-		vis.addPath("t/a/catchball: NegMoveCorridor", {negLeftNear, negLeftFar, negRightFar, negRightNear}, vis.colors.orangeHalf)
-		vis.addCircle("t/a/catchball: NegMoveCorridor", negLeftNear, effectiveObstacleRadius, vis.colors.orangeHalf)
-		vis.addCircle("t/a/catchball: NegMoveCorridor", negLeftFar, effectiveObstacleRadius, vis.colors.orangeHalf)
-		vis.addCircle("t/a/catchball: NegMoveCorridor", negRightNear, effectiveObstacleRadius, vis.colors.orangeHalf)
-		vis.addCircle("t/a/catchball: NegMoveCorridor", negRightFar, effectiveObstacleRadius, vis.colors.orangeHalf)
+		vis.addPath("t/a/catchball: NegMoveCorridor", {negLeftNear, negLeftFar, negRightFar, negRightNear}, vis.colors.orangeHalf, nil, nil, 2*effectiveObstacleRadius)
 	end
 end
 
