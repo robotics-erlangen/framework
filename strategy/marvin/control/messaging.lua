@@ -5,36 +5,98 @@ local checkType = require "../base/typecheck"
 
 
 local msgDefs = {
-	-- multiple senders
+	-- ========================
+	-- === multiple senders ===
+	-- ========================
+
+	-- sent by robots we don't control (mixed team challenge)
 	allyFlag = "flag",
+
+	-- sent by all attackers
 	attackerFlag = "flag",
+
+	-- sent by t/duel to make sure that the opponent duelist does not get marked as well
 	defendedOpponent = Robot,
+
+	-- sent by all defenders
 	defenderFlag = "flag",
-	forcePoolChange = "table", -- { robot: robot, destPool: string }
+
+	-- sent by gr/moves to make sure that unassigned robots become defenders
+	-- { robot: robot, destPool: string }
+	forcePoolChange = "table",
+
+	-- LEGACY
 	kickoffMirrorFlag = "flag",
 	kickoffPass = "vector",
 	kickoffStart = "number",
+
+	-- sent by various tasks to notify other robots about their future positioning
 	moveDest = "vector",
-	passSuggestion = "table", -- { ballPos: vector, time: number }
+
+	-- sent by strikers to the MA to propose a possible pass
+	-- requests that the ball is at msg.ballPos when the time reaches msg.time
+	-- { ballPos: vector, time: number }
+	passSuggestion = "table",
+
+	-- sent by various behaviors which want to change the pool
+	-- the string can be "attacker" or "defender"
 	poolChangeRequest = "string",
+
+	-- sent by t/striker to tell all other strikers about the currency of the sampled pass position
 	strikerSamplingTimestamp = "number",
 
-	-- single sender
+	
+	-- =====================
+	-- === single sender ===
+	-- =====================
+
+	-- sent by the MA to tell other attackers about the origin of the next shot
 	attackPosition = "vector",
-	centerBackPosTarget = "table", -- { pos: vector, target: table }
-	moveAssignment = "table", -- { class: class, params: table }
+
+	-- sent by gr/centerback to assign a target and a position to the centerback tasks
+	-- target can be any table (preferably a ball-like or robot-like object)
+	-- { pos: vector, target: table }
+	centerBackPosTarget = "table",
+
+	-- sent by gr/moves to the participating agents
+	-- { class or behavior: class, params: table }
+	moveAssignment = "table",
+
+	-- sent by gr/moves to tr/attackratio to overwrite the number of attackers
 	moveNumAttackers = "number",
-	passInfo = "table", -- { target: robot, ballPos: vector, time: number }
-	roleAssignment = "table", -- { name: string, params: table }
+
+	-- sent by the MA to notify all agents about an upcoming pass
+	-- the ball is at msg.ballPos when the time reaches msg.time
+	-- { target: robot, ballPos: vector, time: number }
+	passInfo = "table",
+
+	-- sent by tr/defense to assign a behavior to each defender
+	-- possible names are "CenterBack", "ManMark" and "ZoneDefense"
+	-- { name: string, params: table }
+	roleAssignment = "table",
+
+	-- sent by the MA to tell other attackers about the destination of the next shot
 	shootDestination = "vector",
-	strikerZone = "table", -- { defaultPos: vector, boundaries: table }
+
+	-- sent by gr/striker to assign zones to the striker tasks
+	-- msg.boundaries = { left: number, right: number }
+	-- { defaultPos: vector, boundaries: table }
+	strikerZone = "table",
 }
 
 
 local repeatedMessages = {
+	-- sent by agents that want to apply for an exclusive role
+	-- the list of exclusive roles is defined below
+	-- format: msg.<role>: number
 	exclusiveRole = "table",
-	groupApplication = "table", -- { { name: string -> payload: table } }
+
+	-- sent by agents that want to join a specific group
+	-- the list of groups is defined in tr/groups
+	-- { name: string, payload: table }
+	groupApplication = "table",
 }
+
 for msg, msgType in pairs(repeatedMessages) do
 	msgDefs[msg] = msgType
 end
