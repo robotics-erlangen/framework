@@ -2,6 +2,7 @@ local Attack = {}
 
 local Cache = require "../base/cache"
 local debug = require "../base/debug"
+local Field = require "../base/field"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Ball = require "observer/ball"
@@ -40,19 +41,49 @@ function Attack.ratePass(robot, pass, considerTiming)
 	end
 
 	-- rate possible interceptions
-	local passVector = pass.ballPos - shootPos
 	for _,opp in ipairs(World.OpponentRobots) do
 		local oppVector = opp.pos - shootPos
 		if oppVector:length() > 0.2 then
-			local angle = oppVector:absoluteAngleDiff(passVector)
-			local angleRating = Rating.valueToRating(angle, 10 / 180 * math.pi, 20 / 180 * math.pi)
-			rating = rating * (angleRating / 2 + 0.5)
+
+			-- check if robot would have to move through defense area to intercept the pass
+			local orthogonalProjection = opp.pos:orthogonalProjection(shootPos, pass.ballPos)
+			local intersection = Field.intersectRayDefenseArea(opp.pos, orthogonalProjection - opp.pos, 0, true)
+			local validIntersection = false
+			if intersection then
+				validIntersection = Field.isInField(intersection) and (opp.pos - intersection):length() < (opp.pos - orthogonalProjection):length()
+				if validIntersection then
+					vis.addCircle("u/a/ratePass", intersection, 0.05, vis.colors.red, true)
+					vis.addPath("u/a/ratePass", {opp.pos, intersection}, vis.colors.slate, true)
+				end
+			end
+
+			if not validIntersection and orthogonalProjection:distanceToLineSegment(shootPos, pass.ballPos) < 0.1
+						and opp ~= World.OpponentKeeper then
+				vis.addPath("u/a/ratePass", {opp.pos, orthogonalProjection}, vis.colors.blue, true)
+
+				-- calculate the time the ball needs to arrive at the intersection point
+				local shootSpeed = Vector(1,1):setLength(robot:calculateShootSpeed(3, (shootPos-pass.ballPos):length()))
+				local fakeBall = {speed = shootSpeed, maxSpeed = shootSpeed:length()}
+				local ballRollTime = Physics.ballRollTime(fakeBall, (orthogonalProjection - shootPos):length() - World.Ball.radius - opp.shootRadius)
+
+				-- calculate the time the robot needs to arrive at the intersection point
+				-- to achieve more relevant results, the speed component parallel to the pass trajectory is ignored
+				local projectedSpeed = opp.speed - ((opp.pos + opp.speed):orthogonalProjection(shootPos, pass.ballPos) - orthogonalProjection)
+				vis.addPath("u/a/ratePass", {opp.pos, opp.pos + projectedSpeed}, vis.colors.pink, true)
+				local fakeRobot = {acceleration = opp.acceleration, pos = opp.pos, maxSpeed = opp.maxSpeed, speed = projectedSpeed}
+				local timeToPos = Physics.robotTimeToPos(fakeRobot, orthogonalProjection, Vector(0,0), false)
+
+				local passRating = Rating.valueToRating(timeToPos, ballRollTime - 0.5, ballRollTime + 0.2)
+				--log("Rating: "..tostring(opp)..", ballRollTime: "..tostring(ballRollTime)..", timeToPos: "..tostring(timeToPos)..", passRating: "..tostring(passRating))
+				rating = rating * (passRating / 2 + 0.5)
+
+			end
 		end
 	end
-
+	vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true)
+	vis.addPath("u/a/ratePass", {shootPos, pass.ballPos}, vis.colors.red)
 	vis.addCircle("u/a/ratePass: rating", pass.ballPos, 0.2,
-		vis.fromTemperature(1 - rating, 127), true)
-
+	vis.fromTemperature(1 - rating, 127), true)
 	return rating
 end
 
