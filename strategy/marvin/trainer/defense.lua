@@ -58,11 +58,6 @@ function Defense:_updateManmarkTargets()
 			goto continue
 		end
 
-		-- if the robot just shot the ball
-		if Robot.hadBall(robot, 1.5) then
-			goto continue
-		end
-
 		-- otherwise, target the opponent
 		self._manmarkTargets[robot] = dangerousness[robot]
 ::continue::
