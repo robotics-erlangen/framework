@@ -12,6 +12,12 @@ local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
 local Rating = require "util/rating"
 
+--- evaluates a given pass object
+-- @name ratePass
+-- @param robot Robot - the pass sender / main attacker
+-- @param pass table - a pass object (target: Robot, ballPos: Vector, time: number)
+-- @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
+-- @return number - a rating between 0 and 1 (1 = perfect, 0 = poor)
 function Attack.ratePass(robot, pass, considerTiming)
 	local rating = 1
 
@@ -88,6 +94,13 @@ function Attack.ratePass(robot, pass, considerTiming)
 	return rating
 end
 
+--- chooses a pass from a list of pass objects using Attack.ratePass
+-- @name choosePass
+-- @param robot Robot - the pass sender / main attacker
+-- @param passes table - a list of pass objects
+-- @param currentPassPos - the ballPos of the last frame, used for stability
+-- @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
+-- @return table - the best pass object
 function Attack.choosePass(robot, passes, currentPassPos, considerTiming)
 	local bestPass
 	local bestPassRating = -math.huge
@@ -112,6 +125,13 @@ function Attack.choosePass(robot, passes, currentPassPos, considerTiming)
 	return bestPass, bestPassRating
 end
 
+--- chooses a pass from a list of pass suggestions using Attack.ratePass
+-- @name choosePassFromSuggestions
+-- @param robot Robot - the pass sender / main attacker
+-- @param passSuggestions table - all incoming passSuggestion messages
+-- @param currentPassPos - the ballPos of the last frame, used for stability
+-- @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
+-- @return table - the best pass object
 function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPassPos, considerTiming)
 	local passes = {}
 	for sender, sugg in pairs(passSuggestions) do
@@ -120,11 +140,19 @@ function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPassPos
 	return Attack.choosePass(robot, passes, currentPassPos, considerTiming)
 end
 
-function Attack.visualizeAttack(robotPos, attackPos)
+--- draws a broad line beween the main attacker (robotPos) and the next attack destination (shootDest)
+-- @name visualizeAttack
+-- @param robotPos Vector - the position of the main attacker
+-- @param shootDest Vector - the position of the next shoot destination
+function Attack.visualizeAttack(robotPos, shootDest)
 	local color = World.TeamIsBlue and vis.fromRGBA(38, 48, 217, 63) or vis.fromRGBA(244, 214, 31, 63)
-	vis.addPath("u/a/Attack", {robotPos, attackPos}, color, nil, nil, 0.1)
+	vis.addPath("u/a/Attack", {robotPos, shootDest}, color, nil, nil, 0.1)
 end
 
+--- decides whether a robot has to be a main attacker because it will receive a pass
+-- used in a/a/applyformainattacker
+-- @param passInfo table - all incoming passInfo messages
+-- @return Robot - the main attacker that receives a pass, or nil
 local lastCPMA = nil
 local lastPasser = nil
 local lastReceiver = nil
@@ -155,6 +183,10 @@ function Attack.currentPlannedMainAttacker(passInfo)
 end
 Attack.currentPlannedMainAttacker = Cache.forFrame(Attack.currentPlannedMainAttacker)
 
+--- checks whether we are shooting a goal and returns a position for a path obstacle, or nil
+-- @param shootDest Vector - the content of the shootDestination message
+-- @param attackPos Vector - the content of the attackPosition message
+-- @return Vector - robots should not move between the returned position and the opponent goal
 function Attack.shootGoalViewPos(shootDest, attackPos)
 	-- if we want to shoot a goal
 	if shootDest then
@@ -178,6 +210,12 @@ function Attack.shootGoalViewPos(shootDest, attackPos)
 end
 Attack.checkForGoalShot = Cache.forFrame(Attack.checkForGoalShot)
 
+--- makes sure that a robot does not intercept our goal shot
+-- only adds a path obstacle if necessary
+-- has to be called after PathHelper.setDefaultObstacles
+-- @param robot Robot - the robot that gets the obstacle
+-- @param shootDest Vector - the content of the shootDestination message
+-- @param attackPos Vector - the content of the attackPosition message
 function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 	if not attackPos then
 		return
