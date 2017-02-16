@@ -3,6 +3,7 @@ local Attack = {}
 local Cache = require "../base/cache"
 local debug = require "../base/debug"
 local Field = require "../base/field"
+local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Ball = require "observer/ball"
@@ -154,28 +155,50 @@ function Attack.currentPlannedMainAttacker(passInfo)
 end
 Attack.currentPlannedMainAttacker = Cache.forFrame(Attack.currentPlannedMainAttacker)
 
-local shootGoalIsActivated = false
-local shootGoalActivatedFrames = math.huge
-local shootGoalFastBall = false
-function Attack.activateShootGoal()
-	shootGoalIsActivated = true
-end
-
-function Attack.updateShootGoal()
-	if shootGoalIsActivated then
-		shootGoalActivatedFrames = 0
+function Attack.shootGoalViewPos(shootDest, attackPos)
+	-- if we want to shoot a goal
+	if shootDest then
+		if World.Geometry.OpponentGoal:distanceTo(shootDest) <= World.Geometry.GoalWidth / 2 then
+			return attackPos
+		end
 	end
-	shootGoalIsActivated = false
-	shootGoalActivatedFrames = shootGoalActivatedFrames + 1
-	if World.Ball.speed:length() > 1.5 and (shootGoalActivatedFrames < 10 or shootGoalFastBall) then
-			shootGoalFastBall = true
-	else
-			shootGoalFastBall = false
-	end
-end
 
-function Attack.checkForGoalShot()
-		return shootGoalFastBall or shootGoalActivatedFrames < 10
+	-- if the ball is rolling towards the opponent goal
+	if World.Ball.speed:length() > 3 then
+		local intersection, _, l2 = geom.intersectLineLine(World.Ball.pos, World.Ball.speed,
+			World.Geometry.OpponentGoal, Vector(1, 0))
+		if intersection and math.abs(l2) < World.Geometry.GoalWidth / 2 + 0.2 then
+			if Physics.checkedBallRollTime(World.Ball, intersection) < math.huge then
+				return World.Ball.pos
+			end
+		end
+	end
+
+	return nil
+end
+Attack.checkForGoalShot = Cache.forFrame(Attack.checkForGoalShot)
+
+function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
+	if not attackPos then
+		return
+	end
+
+	-- check whether the robot could possibly interfere with a goal shot
+	local distRobotOpponentGoal = robot.pos:distanceTo(World.Geometry.OpponentGoal)
+	local distAttackPosOpponentGoal = attackPos:distanceTo(World.Geometry.OpponentGoal)
+	local distBallOpponentGoal = World.Ball.pos:distanceTo(World.Geometry.OpponentGoal)
+	if distRobotOpponentGoal > distAttackPosOpponentGoal
+			and distRobotOpponentGoal > distBallOpponentGoal then
+		return
+	end
+
+	local viewPos = Attack.shootGoalViewPos(shootDest, attackPos)
+	if viewPos then
+		local leftGoal = World.Geometry.OpponentGoalLeft
+		local rightGoal = World.Geometry.OpponentGoalRight
+		robot.path:addTriangle(viewPos.x, viewPos.y, leftGoal.x, leftGoal.y,
+			rightGoal.x, rightGoal.y, World.Ball.radius + 0.05)
+	end
 end
 
 return Attack

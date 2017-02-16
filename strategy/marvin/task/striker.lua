@@ -186,12 +186,8 @@ function Striker:run()
 
 		-- don't move between the ball and the opponent goal
 		-- relevant for goal shots
-		local attackPos = attackPosition or World.Ball.pos
-		local distAttackPosOpponentGoal = attackPos:distanceTo(World.Geometry.OpponentGoal)
-		local distSelfOpponentGoal = self._robot.pos:distanceTo(World.Geometry.OpponentGoal)
-		if distAttackPosOpponentGoal > distSelfOpponentGoal and Attack.checkForGoalShot() then
-			PathHelper.addShootGoalObstacle(self._robot.path, attackPos)
-		end
+		local _, shootDest = next(self._inbox.shootDestination())
+		Attack.addShootGoalObstacle(self._robot, shootDest, attackPosition)
 
 		local _, time = self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
 		moveTime = time

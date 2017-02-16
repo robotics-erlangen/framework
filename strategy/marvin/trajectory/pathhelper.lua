@@ -129,13 +129,4 @@ function PathHelper.addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreO
 	end
 end
 
-function PathHelper.addShootGoalObstacle(path, viewPos, extraDistance)
-	local ballPos = viewPos or World.Ball.pos
-	local extraDist = extraDistance or 0.04
-	local leftGoal = World.Geometry.OpponentGoalLeft
-	local rightGoal = World.Geometry.OpponentGoalRight
-	path:addTriangle(ballPos.x, ballPos.y, leftGoal.x, leftGoal.y,
-		rightGoal.x, rightGoal.y, World.Ball.radius + extraDist)
-end
-
 return PathHelper

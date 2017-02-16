@@ -140,12 +140,7 @@ function ManMark:run()
 	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreFriends, ignoreOpponents)
 
 	local _, attackPosition = next(self._inbox.attackPosition())
-	local attackPos = attackPosition or World.Ball.pos
-	local distAttackPosOpponentGoal = attackPos:distanceTo(World.Geometry.OpponentGoal)
-	local distSelfOpponentGoal = self._robot.pos:distanceTo(World.Geometry.OpponentGoal)
-	if distAttackPosOpponentGoal > distSelfOpponentGoal and Attack.checkForGoalShot() then
-		PathHelper.addShootGoalObstacle(self._robot.path, attackPos)
-	end
+	Attack.addShootGoalObstacle(self._robot, shootDest, attackPosition)
 
 	self._robot.trajectory:update(ToTarget, preferredPos, preferredDir, nil, self._targetRobot.speed)
 	self._send.moveDest("all", preferredPos)
