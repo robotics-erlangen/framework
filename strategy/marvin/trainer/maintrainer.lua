@@ -8,9 +8,9 @@ function MainTrainer:init(mode)
 	Trainer.init(self)
 	-- the instance function 'attackRatio' overwrites the method
 	if mode == "passive" then
-		self.attackRatio = function() return 0, 6 end
+		self.attackRatio = function() return 0 end
 	elseif mode == "aggressive" then
-		self.attackRatio = function() return 6, 0 end
+		self.attackRatio = function() return 6 end
 	end
 end
 

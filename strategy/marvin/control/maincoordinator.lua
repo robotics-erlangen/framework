@@ -40,7 +40,7 @@ end
 
 function MainCoordinator:_postTrainerHook()
 	-- the trainer inbox is empty after deliverMessages
-	local attackers, defenders = self._trainer:attackRatio()
+	local attackers, defenders = self._trainer:attackerDefenderDistribution()
 	debug.set("#attackers", attackers)
 	-- only take one change request per frame
 	local changingRobot, isAttacker = self._trainer:changingRobot()

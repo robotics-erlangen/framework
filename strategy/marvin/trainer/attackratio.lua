@@ -82,6 +82,12 @@ function AttackRatio:attackRatio()
 		end
 	end
 
+	return attackRatio
+end
+
+function AttackRatio:attackerDefenderDistribution()
+	local attackRatio = self:attackRatio()
+
 	local attackers = math.ceil(attackRatio/6 * #World.FriendlyRobots)
 
 	local _, mainAttacker = next(self._inbox.mainAttacker())
