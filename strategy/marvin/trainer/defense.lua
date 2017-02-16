@@ -6,7 +6,6 @@ local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
-local Robot = require "observer/robot"
 local UtilDefense = require "util/defense"
 local Rating = require "util/rating"
 
