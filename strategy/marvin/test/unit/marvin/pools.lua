@@ -16,10 +16,10 @@ end
 test("base.pools", function()
 	local allFriendlyRobotsOrig = World.FriendlyRobotsAll
 	local refereeStateOrig = World.RefereeState
-	local mainTrainerAttackRatio = MainTrainer.attackRatio
+	local mainTrainerAttackerDefenderDistribution = MainTrainer.attackerDefenderDistribution
 	World.FriendlyRobotsAll = { robotStub(1), robotStub(2) }
 	World.RefereeState = "Halt"
-	MainTrainer.attackRatio = function()
+	MainTrainer.attackerDefenderDistribution = function()
 		return 1, 1
 	end
 
@@ -63,5 +63,5 @@ test("base.pools", function()
 
 	World.FriendlyRobotsAll = allFriendlyRobotsOrig
 	World.RefereeState = refereeStateOrig
-	MainTrainer.attackRatio = mainTrainerAttackRatio
+	MainTrainer.attackerDefenderDistribution = mainTrainerAttackerDefenderDistribution
 end)
