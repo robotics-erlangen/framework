@@ -116,7 +116,7 @@ function Striker:_avoidLineSegment(startPoint, endPoint)
 end
 
 function Striker:run()
-	local defaultPos = nil
+	local defaultPos
 
 	if self._manualDefaultPos then
 		defaultPos = self._manualDefaultPos
