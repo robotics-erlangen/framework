@@ -125,7 +125,7 @@ function FreeKick:_updateTask()
 	elseif self._state == "shootgoal" then
 		return ShootGoal
 	elseif self._state == "wait" or self._state == "pass_prepare" then
-		return MoveToStaticBall, { math.pi / 2 }, stateChanged
+		return MoveToStaticBall, { - math.pi / 2 }, stateChanged
 	elseif self._state == "pass" then
 		return Pass, { self._pass.target, self._pass.ballPos }
 	end
