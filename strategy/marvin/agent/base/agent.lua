@@ -102,7 +102,7 @@ function Base:_dumpInbox()
 	for name, func in pairs(self._inbox) do
 		debug.push(name)
 		for sender, msg in pairs(func()) do
-			if type(msg) == "table" and not getmetatable(msg) and msg.time then
+			if type(msg) == "table" and rawget(msg, "time") then
 				local msgTmp = table.copy(msg)
 				local relTime = tostring(msg.time - World.Time)
 				msgTmp.time = string.sub(relTime, 1, 5) .. " (" .. msg.time .. ")"
