@@ -120,6 +120,16 @@ function FreeKick:_updateTask()
 	debug.set("state", self._state)
 	local stateChanged = prevState == self._state
 
+	if self._pass then
+		debug.push("pass", self._pass.target.id)
+		debug.set("ballPos", self._pass.ballPos)
+		debug.set("time (rel)", self._pass.time - World.Time)
+		debug.set("time (abs)", self._pass.time)
+		debug.pop()
+	else
+		debug.set("pass", nil)
+	end
+
 	if self._state == "prepare" then
 		return MoveToStaticBall, { math.pi / 2, distanceToBall }, stateChanged
 	elseif self._state == "shootgoal" then
