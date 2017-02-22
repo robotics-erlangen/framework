@@ -18,31 +18,12 @@ local lessthan_targets = function(t1, t2)
 	return t1.way < t2.way
 end
 
-local lastOrder = {}
-local robotAngleHysteresis = 0.0
 local lessthan_robots = function(r1, r2)
 	local a1 = (r1.pos - World.Geometry.FriendlyGoal):angle()
 	local a2 = (r2.pos - World.Geometry.FriendlyGoal):angle()
 	if a1 < -math.pi/2 then a1 = a1 + 2 * math.pi end
 	if a2 < -math.pi/2 then a2 = a2 + 2 * math.pi end
-
-	if a1 <= a2 - robotAngleHysteresis then
-		return false
-	elseif a2 < a1 - robotAngleHysteresis then
-		return true
-	else
-		local ix1 = r1.id + 1000
-		local ix2 = r2.id + 1000
-		for ix,r in ipairs(lastOrder) do
-			if r == r1 then
-				ix1 = ix
-			elseif r == r2 then
-				ix2 = ix
-			end
-		end
-		log("blooooh")
-		return ix1 < ix2
-	end
+	return a1 > a2
 end
 
 local privateCenterBackPositions = {}
@@ -203,7 +184,6 @@ local function calculateCenterBackPositions(centerBackApplications)
 	end
 	assert(#defensePoints == #sortedRobots)
 	table.sort(sortedRobots, lessthan_robots)
-	lastOrder = sortedRobots
 
 	-- store result (robot -> (pos, target, way))
 	centerBackPositions = {}
