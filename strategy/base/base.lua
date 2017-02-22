@@ -31,7 +31,7 @@ module "base"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-require "../base/debugger" -- preload debugger to allow triggering it later
+local debugger = require "../base/debugger" -- preload debugger to allow triggering it later
 require "../base/amun"
 require "../base/path"
 -- amun.isDebug must already be set, thus load after amun
@@ -52,6 +52,9 @@ require "../base/plot"
 require "../base/robot"
 require "../base/vis"
 require "../base/world"
+if amun.isDebug then
+	debugger._loadBaseDebug()
+end
 
 -- prevent access to internal APIs
 amun._hideFunctions()

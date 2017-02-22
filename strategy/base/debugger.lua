@@ -30,6 +30,8 @@ if not debug then
 	debugger.debug = function ()
 		error("Debugger is only available in debug mode!")
 	end
+	debugger.dumpLocals = function()
+	end
 	return debugger
 end
 
@@ -608,6 +610,37 @@ function debugger.debug()
 	hookCtr = 1
 end
 
+local baseDebug
+
+function debugger._loadBaseDebug()
+	baseDebug = require "../base/debug"
+end
+
+function debugger.dumpLocals()
+	baseDebug.push("Locals")
+	local localLines = {}
+	for varname, value in pairs(getLocals()) do
+		baseDebug.set(varname, value[1])
+	end
+	baseDebug.pop()
+	table.sort(localLines)
+	for _, line in ipairs(localLines) do
+		baseDebug.set(line, "")
+	end
+
+	local closureParameters = getClosureParameters()
+	local isFirstClosureParameter = true
+	for varname, value in pairs(closureParameters) do
+		if isFirstClosureParameter then
+			baseDebug.push("Closure parameters")
+			isFirstClosureParameter = false
+		end
+		baseDebug.set(varname, value[1])
+	end
+	if not isFirstClosureParameter then
+		baseDebug.pop()
+	end
+end
 
 -- luacheck: globals debug
 -- register debugger
