@@ -21,10 +21,13 @@ local Attack = require "util/attack"
 local bufferTime = 0.4
 
 
-function Striker:_init()
+function Striker:_init(manualDefaultPos, manualPassDest)
+	self._manualDefaultPos = manualDefaultPos
+	self._manualPassDest = manualPassDest
+	self._passDestSuggestion = manualPassDest
+
 	self._moveDest = nil
 	self._passDest = nil
-	self._passDestSuggestion = nil
 	self._acceptPass = false
 
 	self._zone = nil
@@ -34,6 +37,10 @@ function Striker:_init()
 end
 
 function Striker:_revaluatePassDest()
+	if self._manualPassDest then
+		return false
+	end
+
 	local timestamps = self._inbox.strikerSamplingTimestamp("broadcast")
 	local nextCandidate = nil
 	local nextCandidateTimestamp = math.huge
@@ -109,14 +116,21 @@ function Striker:_avoidLineSegment(startPoint, endPoint)
 end
 
 function Striker:run()
-	-- participate in the striker group
-	local groupApplication = { name = "striker", payload = {} }
-	self._send.groupApplication("trainer", groupApplication)
+	local defaultPos = nil
 
-	-- retrieve the assigned zone from the striker group
-	self._zone = self._inbox.strikerZone().trainer
-	if not self._zone then
-		return
+	if self._manualDefaultPos then
+		defaultPos = self._manualDefaultPos
+	else
+		-- participate in the striker group
+		local groupApplication = { name = "striker", payload = {} }
+		self._send.groupApplication("trainer", groupApplication)
+
+		-- retrieve the assigned zone from the striker group
+		self._zone = self._inbox.strikerZone().trainer
+		if not self._zone then
+			return
+		end
+		defaultPos = self._zone.defaultPos
 	end
 
 	-- search for a good pass dest
@@ -128,7 +142,7 @@ function Striker:run()
 	local _, passInfo = next(self._inbox.passInfo())
 	self._passDest = passInfo and passInfo.ballPos
 
-	vis.addCircle("t/striker", self._zone.defaultPos, 0.1, vis.colors.slateHalf, true)
+	vis.addCircle("t/striker", defaultPos, 0.1, vis.colors.slateHalf, true)
 	if self._passDestSuggestion then
 		if passInfo and passInfo.ballPos then
 			local color = passInfo.target == self._robot
@@ -138,7 +152,7 @@ function Striker:run()
 
 		vis.addCircle("t/striker", self._passDestSuggestion, 0.14,
 			vis.colors.whiteHalf, false, nil, nil, 0.03)
-		vis.addPath("t/striker", {self._zone.defaultPos, self._passDestSuggestion},
+		vis.addPath("t/striker", {defaultPos, self._passDestSuggestion},
 			vis.colors.slateHalf, nil, nil, 0.02)
 	end
 
@@ -161,7 +175,7 @@ function Striker:run()
 	if self._acceptPass then
 		self._moveDest = self._passDest
 	else
-		self._moveDest = self._zone.defaultPos
+		self._moveDest = defaultPos
 	end
 
 	-- set path obstacles to not interfere with the current attack
@@ -190,7 +204,9 @@ function Striker:run()
 		Attack.addShootGoalObstacle(self._robot, shootDest, attackPosition)
 
 		local _, time = self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
-		moveTime = time
+		if self._acceptPass then
+			moveTime = time
+		end
 	end
 
 	-- send a suggestion for a pass in the run
