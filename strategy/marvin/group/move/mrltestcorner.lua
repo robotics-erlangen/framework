@@ -6,6 +6,7 @@ local World = require "../base/world"
 local Freekick = require "agent/attacker/freekick"
 local MoveToPos = require "task/movetopos"
 local StopAttack = require "task/stopattack"
+local Striker = require "task/striker"
 local MovesHelper = require "util/moveshelper"
 local G = World.Geometry
 
@@ -26,8 +27,8 @@ function MrlTestCorner:_init()
 		Vector(-0.3, G.OpponentGoal.y - goalDist)
 	}
 
-	self._activeRobotInitPos = Vector(ballSide * G.FieldWidthHalf / 1.4, G.OpponentGoal.y - 0.5)
-	self._activeRobotShootPos = Vector(-ballSide * G.FieldWidthHalf / 2, G.OpponentGoal.y - 2.5)
+	self._activeRobotInitPos = Vector(ballSide * G.FieldWidthHalf / 1.4, G.FieldHeightHalf - 1)
+	self._activeRobotShootPos = Vector(-ballSide * G.FieldWidthHalf / 2, G.FieldHeightHalf * 0.3)
 	self._restart = true
 end
 
@@ -55,13 +56,12 @@ function MrlTestCorner:_updateTasks()
 
 	if World.RefereeState == "Stop" then
 		taskAssignments[self._robots[1]] = { class = StopAttack, params = { } }
-		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._activeRobotInitPos }}
 	elseif Referee.isFriendlyFreeKickState() then
 		taskAssignments[self._robots[1]] = { behavior = Freekick }
-		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._activeRobotShootPos, nil, true }, restart = self._restart}
 		self._restart = false
 	end
 
+	taskAssignments[self._robots[2]] = { class = Striker, params = { self._activeRobotInitPos, self._activeRobotShootPos }}
 	taskAssignments[self._robots[3]] = { class = MoveToPos, params = { self._distractorPositions[1] }}
 	taskAssignments[self._robots[4]] = { class = MoveToPos, params = { self._distractorPositions[2] }}
 	taskAssignments[self._robots[5]] = { class = MoveToPos, params = { self._distractorPositions[3] }}
