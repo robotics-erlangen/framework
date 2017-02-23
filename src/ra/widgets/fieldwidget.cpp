@@ -1143,6 +1143,10 @@ void FieldWidget::wheelEvent(QWheelEvent *event)
 
 void FieldWidget::resizeEvent(QResizeEvent *event)
 {
+    QTransform t;
+    t.rotate(m_rotation);
+    t.scale(1, -1);
+    setTransform(t);
     fitInView(m_fieldRect, Qt::KeepAspectRatio);
     QGraphicsView::resizeEvent(event);
 }
