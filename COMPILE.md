@@ -105,6 +105,16 @@ mkdir bin/platforms && cp /c/Qt/5.6/mingw492_32/plugins/platforms/qwindows.dll b
 Finished!
 
 
+#### Windows 7 - problems with usb driver installation
+In case windows does not automatically find the driver for the transceiver, follow
+the following steps:
+- Access the website http://catalog.update.microsoft.com/
+- Search for "windows phone winusb" and download "Windows Phone - Other hardware - WinUsb Device"
+- Unpack the downloaded _cab_ files, so that there is a file with the name `winusbcompat.inf`
+- Open the device manager and choose to manually select a driver for the transceiver.
+  Then select the folder containing the `winusbcompat.inf`.
+
+
 ## Mac OS X
 Get dependencies using [Homebrew](http://brew.sh):
 ```
