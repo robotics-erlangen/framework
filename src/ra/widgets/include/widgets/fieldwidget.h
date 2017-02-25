@@ -131,6 +131,7 @@ private:
     void setRobot(const world::Robot &robot, const robot::Specs &specs, RobotMap &robots, const QColor &color);
     void addBlob(float x, float y, const QBrush &brush, QGraphicsItem *parent);
     void addRobotTrace(qint64 time, const world::Robot &robot, Trace &robotTrace, Trace &robotRawTrace);
+    void showWholeField();
     void setFieldOrientation(float rotation);
     void sendSimulatorMoveCommand(const QPointF &p);
     void drawLines(QPainter *painter, QRectF rect, bool cosmetic);

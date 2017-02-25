@@ -824,20 +824,24 @@ void FieldWidget::updateGeometry()
 
         // allow showing a small area around the field
         setSceneRect(rect.adjusted(-2, -2, 2, 2));
-        // display the whole field
-        centerOn(m_fieldRect.center());
-        fitInView(m_fieldRect, Qt::KeepAspectRatio);
+        showWholeField();
     }
+}
+
+void FieldWidget::showWholeField()
+{
+    // reset aspect ratio and rotation to avoid problems during resize
+    QTransform t;
+    t.rotate(m_rotation);
+    t.scale(1, -1);
+    setTransform(t);
+    fitInView(m_fieldRect, Qt::KeepAspectRatio);
 }
 
 void FieldWidget::setFieldOrientation(float rotation)
 {
     m_rotation = rotation;
-    QTransform t;
-    t.rotate(rotation);
-    t.scale(1, -1);
-    setTransform(t);
-    fitInView(m_fieldRect, Qt::KeepAspectRatio);
+    showWholeField();
 
     // force redrawing robots, required to update the label orientation
     foreach (Robot r, m_robotsBlue) {
@@ -1143,11 +1147,7 @@ void FieldWidget::wheelEvent(QWheelEvent *event)
 
 void FieldWidget::resizeEvent(QResizeEvent *event)
 {
-    QTransform t;
-    t.rotate(m_rotation);
-    t.scale(1, -1);
-    setTransform(t);
-    fitInView(m_fieldRect, Qt::KeepAspectRatio);
+    showWholeField();
     QGraphicsView::resizeEvent(event);
 }
 
