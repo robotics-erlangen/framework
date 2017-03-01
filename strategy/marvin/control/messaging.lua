@@ -26,8 +26,6 @@ local msgDefs = {
 
 	-- LEGACY
 	kickoffMirrorFlag = "flag",
-	kickoffPass = "vector",
-	kickoffStart = "number",
 
 	-- sent by various tasks to notify other robots about their future positioning
 	moveDest = "vector",
