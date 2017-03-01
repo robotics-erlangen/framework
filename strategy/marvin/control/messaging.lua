@@ -21,9 +21,6 @@ local msgDefs = {
 	-- sent by all defenders
 	defenderFlag = "flag",
 
-	-- sent by gr/moves to make sure that unassigned robots become defenders
-	forcePoolChange = { robot = Robot, destPool = "string" },
-
 	-- LEGACY
 	kickoffMirrorFlag = "flag",
 
@@ -91,6 +88,9 @@ local repeatedMessages = {
 	-- the list of exclusive roles is defined below
 	-- format: msg.<role>: number
 	exclusiveRole = "table",
+
+	-- sent by gr/moves to make sure that unassigned robots become defenders
+	forcePoolChange = { robot = Robot, destPool = "string" },
 
 	-- sent by agents that want to join a specific group
 	-- the list of groups is defined in tr/groups

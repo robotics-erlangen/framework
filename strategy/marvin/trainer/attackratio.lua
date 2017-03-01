@@ -99,8 +99,13 @@ function AttackRatio:attackerDefenderDistribution()
 			end
 		end
 	end
-	if mainAttackerIsDefender and not (self:changingRobot() == mainAttacker) then
-		attackers = attackers - 1
+	if mainAttackerIsDefender then
+		for _,poolChangeEntry in ipairs(self:changingRobots()) do
+			if poolChangeEntry.robot == mainAttacker then
+				attackers = attackers - 1
+				break
+			end
+		end
 	end
 
 	debug.set("MainAttackerIsDefender", mainAttackerIsDefender)
@@ -119,11 +124,24 @@ function AttackRatio:attackerDefenderDistribution()
 	return attackers, defenders
 end
 
-function AttackRatio:changingRobot()
-	local _,forcedChange = next(self._inbox.forcePoolChange())
-	local robot = forcedChange and forcedChange.robot or next(self._inbox.poolChangeRequest())
-	local isAttacker = self._inbox.attackerFlag()[robot]
-	return robot, isAttacker
+function AttackRatio:changingRobots()
+	local robots = {}
+	local _,forcePoolChangeMsg = next(self._inbox.forcePoolChange())
+	if forcePoolChangeMsg then
+		for _,forcedChange in pairs(forcePoolChangeMsg) do
+			table.insert(robots, forcedChange.robot)
+		end
+	end
+	for sender,_ in pairs(self._inbox.poolChangeRequest()) do
+		table.insert(robots, sender)
+	end
+
+	local robotList = {}
+	for _,r in ipairs(robots) do
+		table.insert(robotList, { robot = r, isAttacker = self._inbox.attackerFlag()[r]})
+	end
+
+	return robotList
 end
 
 return AttackRatio
