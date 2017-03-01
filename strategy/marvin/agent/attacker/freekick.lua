@@ -72,7 +72,7 @@ function FreeKick:_updateTask()
 
 	-- wait -> shootgoal
 	-- wait -> pass_prepare
-	local MIN_PASS_WAIT_TIME = 2.5
+	local MIN_PASS_WAIT_TIME = 1.5
 	local MAX_TIMEFRAME = 8
 	local timeRunningOut = World.Time - Referee.lastStateChangeTime() >= MAX_TIMEFRAME
 	if self._state == "wait" then
