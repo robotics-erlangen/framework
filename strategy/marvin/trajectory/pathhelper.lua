@@ -51,6 +51,10 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 
 	if forbidOppFieldHalf then
 		path:addRect(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5,
+			-G.CenterCircleRadius, 0.02, "OppFieldHalf")
+		path:addRect(-G.CenterCircleRadius, G.FieldHeightHalf + 0.5,
+			G.CenterCircleRadius, 0.15, "OppFieldHalf")
+		path:addRect(G.CenterCircleRadius, G.FieldHeightHalf + 0.5,
 			G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf")
 	end
 
