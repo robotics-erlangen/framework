@@ -8,7 +8,6 @@ local ApplyForMainattacker = require "agent/attacker/applyformainattacker"
 local Default = require "agent/attacker/default"
 local Duel = require "agent/attacker/duel"
 local FreeKick = require "agent/attacker/freekick"
-local KickoffDefensive = require "agent/attacker/kickoffdefensive"
 local Move = require "agent/attacker/move"
 local Penalty = require "agent/attacker/penalty"
 local Shoot = require "agent/attacker/shoot"
@@ -19,7 +18,6 @@ Attacker._behaviors = {
 	ApplyForMainattacker,
 	Move,
 	Stop,
-	KickoffDefensive,
 	Penalty,
 	FreeKick,
 	DoubleTouchGuard,

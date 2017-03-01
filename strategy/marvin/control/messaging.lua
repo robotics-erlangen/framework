@@ -21,9 +21,6 @@ local msgDefs = {
 	-- sent by all defenders
 	defenderFlag = "flag",
 
-	-- LEGACY
-	kickoffMirrorFlag = "flag",
-
 	-- sent by various tasks to notify other robots about their future positioning
 	moveDest = "vector",
 

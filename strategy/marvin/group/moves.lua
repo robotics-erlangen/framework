@@ -4,11 +4,12 @@ local debug = require "../base/debug"
 local Armada = require "group/move/armada"
 local BallCycle = require "group/move/ballcycle"
 local Kickoff = require "group/move/kickoff"
+local KickoffDefensive = require "group/move/kickoffdefensive"
 local MrlTestCorner = require "group/move/mrltestcorner"
 
 function Moves:init()
 	self.name = "moves"
-	self.moveList = {Armada, BallCycle, Kickoff, MrlTestCorner}
+	self.moveList = {Armada, BallCycle, Kickoff, KickoffDefensive, MrlTestCorner}
 
 	for _,move in ipairs(self.moveList) do
 		if not move.N_ROBOTS or move.N_ROBOTS < 0 then
