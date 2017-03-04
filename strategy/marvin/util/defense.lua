@@ -3,9 +3,11 @@ local Defense = {}
 local Cache = require "../base/cache"
 local Constants = require "../base/constants"
 local Field = require "../base/field"
+local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local CenterBack = require "task/centerback"
 local Rating = require "util/rating"
 
@@ -81,7 +83,7 @@ function Defense.getClosestRobot(robotlist, pos)
 	return minRobot, minDist
 end
 
-local function rateOpponentDangerousness()
+local function ratePassThreats()
 	local dangerousness = {}
 	for _,opp in ipairs(World.OpponentRobots) do
 		-- TODO comment
@@ -105,6 +107,44 @@ local function rateOpponentDangerousness()
 			* ratingDistOppBall * ratingDistOppGoal
 		dangerousness[opp] = rating
 	end
+	return dangerousness
+end
+Defense.ratePassThreats = Cache.forFrame(ratePassThreats)
+
+local function rateVolleyGoalShotThreats()
+	local dangerousness = {}
+	if World.Ball.speed:length() > 1.5 then
+		for _,opp in ipairs(World.OpponentRobots) do
+			local rating = 1
+			if not Robot.hadBall(opp, 0.2) then
+				local angleBallOppGoal = (World.Ball.pos - opp.pos):absoluteAngleDiff(
+						World.Geometry.FriendlyGoal - opp.pos)
+				local angleBallSpeedOpp = World.Ball.speed:absoluteAngleDiff(opp.pos - World.Ball.pos)
+				local ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 85 * math.pi/180, 65 * math.pi/180)
+				local ratingAngleBallSpeedOpp = Rating.valueToRating(angleBallSpeedOpp, 45 * math.pi/180, 30 * math.pi/180)
+				rating = ratingAngleBallOppGoal * ratingAngleBallSpeedOpp
+			end
+			local absAngleOppDirGoal = math.abs(geom.normalizeAngle(
+					opp.dir - (World.Geometry.FriendlyGoal - opp.pos):angle()))
+			local ratingAbsAngleOppDirGoal = Rating.valueToRating(absAngleOppDirGoal, 60 * math.pi/180, 20 * math.pi/180)
+			dangerousness[opp] = rating * ratingAbsAngleOppDirGoal
+		end
+	end
+	return dangerousness
+end
+Defense.rateVolleyGoalShotThreats = Cache.forFrame(rateVolleyGoalShotThreats)
+
+local function rateOpponentDangerousness()
+	local passThreats = ratePassThreats()
+	local goalThreats = rateVolleyGoalShotThreats()
+
+	local dangerousness = {}
+	for _,opp in ipairs(World.OpponentRobots) do
+		local passDangerousness = passThreats[opp] or 0
+		local goalDangerousness = goalThreats[opp] or 0
+		dangerousness[opp] = math.max(passDangerousness, goalDangerousness)
+	end
+
 	return dangerousness
 end
 Defense.rateOpponentDangerousness = Cache.forFrame(rateOpponentDangerousness)
