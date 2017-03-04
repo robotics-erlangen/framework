@@ -20,11 +20,19 @@ local function addErrorTables(errorTable1, errorTable2)
 	end
 	local newTable = {}
 	for k,v in pairs(errorTable1) do
-		newTable[k] = v
+		if type(v) == "number" then
+			newTable[k] = v
+		elseif v then
+			newTable[k] = 1
+		end
 	end
 	for k,v in pairs(errorTable2) do
-		--errorTable2 is newer than errorTable1, so override errorTable1 if necessary
-		newTable[k] = v or newTable[k]
+		if type(v) == "number" then
+			--errorTable2 is newer than errorTable1, so override errorTable1
+			newTable[k] = v
+		elseif v then
+			newTable[k] = newTable[k] + 1
+		end
 	end
 	return newTable
 end
