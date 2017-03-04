@@ -4,11 +4,20 @@ local Error = Class("Agent.Shared.Error",Base)
 local ErrorTask = require "task/error"
 local World = require "../base/world"
 local ErrorObserver = require "observer/error"
+local ERROR_TOLERANCE = 50
 
 function Error:check()
-	return World.RefereeState == "Stop"
-		and (World.Time - ErrorObserver.getLastRefChange()) < 3
-		and ErrorObserver.getErrorTable(self._robot)
+	local errorTable = ErrorObserver.getErrorTable(self._robot)
+	if not errorTable then
+		return false
+	end
+	for k,v in pairs(errorTable) do
+		if v > ERROR_TOLERANCE and k ~= "temperature" then
+			return World.RefereeState == "Stop"
+			and (World.Time - ErrorObserver.getLastRefChange()) < 3
+		end
+	end
+	return false
 end
 
 function Error:errorMsg()
