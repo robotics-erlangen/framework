@@ -8,15 +8,27 @@ function Error.getErrorTable(robot)
 	return errorTables[robot]
 end
 
+local function convertErrorTable(errorTable)
+	local newTable = {}
+	for k,v in pairs(errorTable) do
+		if type(v) == "number" then
+			newTable[k] = v
+		elseif v then
+			newTable[k] = 1
+		end
+	end
+	return newTable
+end
+
 local function addErrorTables(errorTable1, errorTable2)
 	if not errorTable1 and not errorTable2 then
 		return {}
 	end
 	if not errorTable1 then
-		return errorTable2
+		return convertErrorTable(errorTable2)
 	end
 	if not errorTable2 then
-		return errorTable1
+		return convertErrorTable(errorTable1)
 	end
 	local newTable = {}
 	for k,v in pairs(errorTable1) do
