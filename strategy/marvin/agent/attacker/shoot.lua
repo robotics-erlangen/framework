@@ -97,6 +97,12 @@ function Shoot:_redeciding()
 		return false
 	end
 
+	-- redecide if the ball is still accelerating due to the tracking
+	if Ball.isAccelerating() then
+		debug.set("redeciding", "TRUE (accelerating)")
+		return true
+	end
+
 	-- redecide if the attackPosition changed a lot
 	if self._attackPosition and self._prevAttackPosition
 			and self._attackPosition:distanceTo(self._prevAttackPosition) > 0.3 then
