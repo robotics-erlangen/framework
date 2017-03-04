@@ -123,13 +123,14 @@ end
 -- @name ownRobot Robot - the robot that will shoot the ball
 -- @param oldTarget Vector - the target position that was chosen in the last frame
 -- @param oldDirty bool - whether the dirty flag was set in the last frame
+-- @param attackPosition Vector - optional, if set, use this position instead of robot dribbler
 -- @return Vector - the midpoint of the chosen sector
 -- @return angle - the witdh of the chosen sector
 -- @return bool - the dirty flag
-function ShootGoal.updateTarget(ownRobot, oldTarget, oldDirty)
+function ShootGoal.updateTarget(ownRobot, oldTarget, oldDirty, attackPosition)
 	-- compute viewPos relative to the current robot pos
-	local viewPos = ownRobot.pos + Vector.fromAngle(ownRobot.dir) *
-		(ownRobot.shootRadius + World.Ball.radius)
+	local viewPos = attackPosition or (ownRobot.pos + Vector.fromAngle(ownRobot.dir) *
+										(ownRobot.shootRadius + World.Ball.radius))
 
 	-- search a good target
 	local targetPoint, targetWidth = ShootGoal.findTarget(ownRobot, viewPos, false, oldTarget)

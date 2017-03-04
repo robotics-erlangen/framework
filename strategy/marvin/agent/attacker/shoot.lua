@@ -33,7 +33,7 @@ function Shoot:check()
 end
 
 function Shoot:_shootGoalPossible()
-	local sg_target, _, sg_dirty = ShootGoalUtil.updateTarget(self._robot, nil, false)
+	local sg_target, _, sg_dirty = ShootGoalUtil.updateTarget(self._robot, nil, false, self._attackPosition)
 
 	if sg_dirty then
 		return false
