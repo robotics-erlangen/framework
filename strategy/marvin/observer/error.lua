@@ -31,7 +31,11 @@ local function addErrorTables(errorTable1, errorTable2)
 			--errorTable2 is newer than errorTable1, so override errorTable1
 			newTable[k] = v
 		elseif v then
-			newTable[k] = newTable[k] + 1
+			if newTable[k] then
+				newTable[k] = newTable[k] + 1
+			else
+				newTable[k] = 1
+			end
 		end
 	end
 	return newTable
