@@ -29,6 +29,25 @@ end
 local privateCenterBackPositions = {}
 local centerBackPositions = {}
 
+local function calculateBallPosition(distanceToDefenseArea, robot_radius)
+	local targetPos = World.Ball.pos
+	if World.Ball.speed.y > 0 then
+		local isShot, targetDir
+		targetPos, targetDir, isShot = Goal.predictShot()
+
+		if isShot then
+			local goalLineIntersection = geom.intersectLineLine(targetPos,
+				targetDir, G.FriendlyGoal, Vector(1, 0))
+			if goalLineIntersection and targetDir.y < 0 and
+					math.abs(goalLineIntersection.x) < G.GoalWidth / 2 + 0.15 then
+				return Field.intersectRayDefenseArea(targetPos, targetDir,
+					distanceToDefenseArea + robot_radius, false)
+			end
+		end
+	end
+	return targetPos, nil
+end
+
 -- gets all CB applications as parameter (robot -> target)
 local function calculateCenterBackPositions(centerBackApplications)
 	-- important = if the centerbacks should take notice of that robot
@@ -81,18 +100,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 		local targetPos = target.pos
 		local _, way
 		if target == World.Ball then
-			local _, isShot
-			targetPos, _, isShot = Goal.predictShot()
-
-			if isShot then
-				local goalLineIntersection = geom.intersectLineLine(World.Ball.pos,
-					World.Ball.speed, G.FriendlyGoal, Vector(1, 0))
-				if goalLineIntersection and World.Ball.speed.y < 0 and
-						math.abs(goalLineIntersection.x) < G.GoalWidth / 2 + 0.15 then
-					targetPos, way = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed,
-						distanceToDefenseArea + robot_radius, false)
-				end
-			end
+			targetPos, way = calculateBallPosition(distanceToDefenseArea, robot_radius)
 		end
 		if not way then
 			targetPos = Field.limitToField(targetPos, -0.01)
@@ -196,12 +204,15 @@ local function calculateCenterBackPositions(centerBackApplications)
 	for robot, target in pairs(unimportantApplications) do
 		-- if the target is the ball, predict it
 		local targetPos = target.pos
+		local _, target_way = nil
 		if target == World.Ball then
-			targetPos = Goal.predictShot()
+			targetPos, target_way = calculateBallPosition(distanceToDefenseArea, robot_radius)
 		end
-		targetPos = Field.limitToField(targetPos, -0.01)
-		local _, target_way = Field.intersectRayDefenseArea(G.FriendlyGoal, targetPos - G.FriendlyGoal,
-				distanceToDefenseArea + robot_radius, false)
+		if not target_way then
+			targetPos = Field.limitToField(targetPos, -0.01)
+			_, target_way = Field.intersectRayDefenseArea(G.FriendlyGoal, targetPos - G.FriendlyGoal,
+					distanceToDefenseArea + robot_radius, false)
+		end
 		local _, robot_way = Field.intersectRayDefenseArea(G.FriendlyGoal, robot.pos - G.FriendlyGoal,
 				distanceToDefenseArea + robot_radius, false)
 		for _,i in ipairs(intersections) do
