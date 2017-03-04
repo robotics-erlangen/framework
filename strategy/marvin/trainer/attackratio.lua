@@ -66,14 +66,19 @@ function AttackRatio:attackRatio()
 			attackRatio = 3 -- Throw-In Offensive
 		end
 	elseif refState == "DirectDefensive" or refState == "IndirectDefensive" then
-		attackRatio = 1
+		local opponentCorner = Field.isInOwnCorner(ball.pos, true)
+		if opponentCorner then
+			attackRatio = 2
+		else
+			attackRatio = 1
+		end
 	elseif refState == "Stop" then
 		attackRatio = 1
 	elseif World.GameStage == "PenaltyShootout" then
 		attackRatio = 6
 	else -- Game, GameForce
 		if self._opponentFreeKickOngoing then
-			attackRatio = 1
+			attackRatio = 0
 		else
 			attackRatio = self._ballInOpponentFieldHalf and 3 or 2
 			if self._friendlyFreeKickOngoing then
