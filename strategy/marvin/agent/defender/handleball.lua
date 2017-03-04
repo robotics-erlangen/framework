@@ -111,6 +111,11 @@ function HandleBall:_checkDuel()
 		return false
 	end
 
+	-- don't if the ball is moving horizontally (e.g. for a pass)
+	if math.abs(World.Ball.speed.x) > 2 then
+		return false
+	end
+
 	return true
 end
 
