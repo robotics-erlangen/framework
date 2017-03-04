@@ -88,7 +88,7 @@ function KickOffDefensive:_updateTasks()
 		taskAssignments[self._robots[self._assignments[3]]] = { class = MoveToPos, params = { self._fallbackPos[2] } }
 	end
 
-	return taskAssignments, self._robots[1]
+	return taskAssignments, self._robots[self._assignments[1]]
 end
 
 return KickOffDefensive
