@@ -25,9 +25,14 @@ function HandleBall:_checkDefender()
 	else
 		self._forceDefenderFrameCounter = 0
 	end
+
 	if self._forceDefenderFrameCounter < 5 then
-		return true
+		local assignment = self._inbox.roleAssignment().trainer
+		if assignment and assignment.name == "CenterBack" then
+			return true
+		end
 	end
+
 	return false
 end
 
@@ -45,6 +50,13 @@ function HandleBall:_checkAttacker()
 	local _,closestOppDist = DefUtil.getClosestRobot(World.OpponentRobots, self._robot.pos)
 	if closestOppDist < distToOppLimit then
 		return false
+	end
+
+	-- don't if an opponent receives a pass
+	for _,r in ipairs(World.OpponentRobots) do
+		if Ball.receivesPass(r) then
+			return false
+		end
 	end
 
 	return true
