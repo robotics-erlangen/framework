@@ -2,10 +2,13 @@ local Error = Class("Task.Error", require "task/base")
 local World = require "../base/world"
 local Direct = require "trajectory/direct"
 local ToTarget = require "trajectory/totarget"
+local PathHelper = require "trajectory/pathhelper"
 
-local EXCHANGE_TARGET = Vector(World.Geometry.FieldWidthHalf - 1, -1)
+local EXCHANGE_TARGET = Vector(-World.Geometry.FieldWidthHalf + 0.3, -0.3)
 
 function Error:run()
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 	if self._robot.pos:distanceTo(EXCHANGE_TARGET) > 0.5 then
 		self._robot.trajectory:update(ToTarget, EXCHANGE_TARGET, 0)
 	else
