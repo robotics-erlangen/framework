@@ -12,7 +12,7 @@ KickOffDefensive.N_ROBOTS = 3
 
 function KickOffDefensive.canStart()
 	return World.RefereeState == "KickoffDefensivePrepare"
-			or World.RefereeState == "KickOffDefensive"
+			or World.RefereeState == "KickoffDefensive"
 end
 
 function KickOffDefensive:_init()
@@ -32,7 +32,7 @@ end
 
 function KickOffDefensive:_canContinue()
 	return World.RefereeState == "KickoffDefensivePrepare"
-			or World.RefereeState == "KickOffDefensive"
+			or World.RefereeState == "KickoffDefensive"
 end
 
 local function getTarget(prevTarget, fallbackPos)
