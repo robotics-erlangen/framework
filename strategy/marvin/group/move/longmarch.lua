@@ -68,7 +68,7 @@ function LongMarch:_updateTasks()
 
 
 
-	return taskAssignments
+	return taskAssignments, self._robots[1]
 end
 
 return LongMarch

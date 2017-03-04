@@ -104,7 +104,7 @@ function Armada:_updateTasks()
 		taskAssignments[self._robots[self._assignment[5]]]
 				= { class = MoveToPos, params = { self._positions[4], nil, true } }
 	end
-	return taskAssignments
+	return taskAssignments, self._robots[1]
 end
 
 return Armada

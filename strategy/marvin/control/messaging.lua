@@ -49,7 +49,7 @@ local msgDefs = {
 
 	-- sent by gr/moves to the participating agents
 	-- params is a list of parameters
-	moveAssignment = { behavior = "class", class = "class", params = "table", restart = "boolean" },
+	moveAssignment = { behavior = "class", class = "class", params = "table", restart = "boolean", mainAttacker = "boolean" },
 
 	-- sent by gr/moves to tr/attackratio to overwrite the number of attackers
 	moveNumAttackers = "number",

@@ -14,7 +14,7 @@ end
 function Roles:_chooseExclusiveRoles()
 	local roleHysteresis = ROLE_HYSTERESIS
 	if Referee.isStopState() then
-		roleHysteresis = math.huge
+		roleHysteresis = 1
 	end
 
 	local roleMsgs = self._inbox.exclusiveRole()

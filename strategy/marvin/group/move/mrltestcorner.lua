@@ -66,7 +66,7 @@ function MrlTestCorner:_updateTasks()
 	taskAssignments[self._robots[4]] = { class = MoveToPos, params = { self._distractorPositions[2] }}
 	taskAssignments[self._robots[5]] = { class = MoveToPos, params = { self._distractorPositions[3] }}
 
-	return taskAssignments
+	return taskAssignments, self._robots[1]
 end
 
 return MrlTestCorner

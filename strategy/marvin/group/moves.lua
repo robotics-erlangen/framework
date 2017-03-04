@@ -97,7 +97,7 @@ function Moves:run(sender, inbox, messages)
 
 	-- run
 	if self._currentMove then
-		local taskAssignments = self._currentMove:updateTasks()
+		local taskAssignments, mainAttacker = self._currentMove:updateTasks()
 		for _, robot in ipairs(prevParticipatingRobots) do
 			local assignment = taskAssignments[robot]
 			if assignment then
@@ -107,6 +107,7 @@ function Moves:run(sender, inbox, messages)
 					end
 					error("invalid assignment for robot " .. tostring(robot.id))
 				end
+				assignment.mainAttacker = robot == mainAttacker
 				sender.moveAssignment(robot, assignment)
 				table.insert(self._participatingRobots, robot)
 			else

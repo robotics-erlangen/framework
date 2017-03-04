@@ -40,6 +40,10 @@ function Move:_updateTask()
 		self._behavior = nil
 	end
 
+	if assignment.mainAttacker then
+		self:_applyForMainAttacker(nil, nil, 2)
+	end
+
 	return assignment.class, assignment.params, assignment.restart
 end
 
