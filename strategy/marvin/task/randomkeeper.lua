@@ -22,12 +22,14 @@ function RandomKeeper:run()
 	local moveDest = Vector(self._nextX,
 			-World.Geometry.FieldHeightHalf + self._robot.radius + GOAL_DISTANCE)
 
-	-- add obstacles if outside keeper area
+	-- ignore goal walls if ball is shot
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, false, true, self._robot.radius, 0.05)
+
+		-- add obstacles if outside keeper area
 	if not Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
 		PathHelper.addRobotObstacles(self._robot.path, self._robot, false, false)
 	end
-	-- ignore goal walls if ball is shot
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, false, true, self._robot.radius, 0.05)
+
 	self._robot.trajectory:update(ToTarget, moveDest, math.pi/2)
 end
 

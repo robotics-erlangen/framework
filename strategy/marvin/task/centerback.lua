@@ -85,12 +85,6 @@ function CenterBack:run()
 	local ignoreFriends = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 		< 2 * self._robot.radius + self.distanceToDefenseArea() + 0.05
 
-	-- Quick fix to not interfere with goal shots
-	local _, shootDest = next(self._inbox.shootDestination())
-	if shootDest then
-		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
-	end
-
 	-- The centerback that is blocking the ball, that is shot towards the goal has to
 	-- -fully drive into the shot
 	-- -drive as fast as possible, because it doesn't matter if we have an endSpeed when we have blocked the ball
@@ -123,6 +117,12 @@ function CenterBack:run()
 
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreFriends, ignoreOpponents)
+
+		-- Quick fix to not interfere with goal shots
+	local _, shootDest = next(self._inbox.shootDestination())
+	if shootDest then
+		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
+	end
 
 	local _, attackPosition = next(self._inbox.attackPosition())
 	Attack.addShootGoalObstacle(self._robot, shootDest, attackPosition)

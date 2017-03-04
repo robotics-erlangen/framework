@@ -116,6 +116,14 @@ function ManMark:run()
 		--end
 	end
 
+	local ignoreOpponents = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+		< 4 * self._robot.radius + 0.13
+	local ignoreFriends = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+		< 2 * self._robot.radius + 0.13
+
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreFriends, ignoreOpponents)
+
 	-- Quick fix to not interfere with goal shots
 	local _, shootDest = next(self._inbox.shootDestination())
 	if shootDest then
@@ -129,15 +137,6 @@ function ManMark:run()
 	end
 
 	preferredPos = moveDest
-
-
-	local ignoreOpponents = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-		< 4 * self._robot.radius + 0.13
-	local ignoreFriends = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-		< 2 * self._robot.radius + 0.13
-
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreFriends, ignoreOpponents)
 
 	local _, attackPosition = next(self._inbox.attackPosition())
 	Attack.addShootGoalObstacle(self._robot, shootDest, attackPosition)
