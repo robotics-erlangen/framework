@@ -53,7 +53,7 @@ end
 Defense.centerBackPos = Cache.forFrame(centerBackPos)
 
 -- if the ball will reach our defense area with at least that speed, stay defender
-local DANGEROUS_BALL_SPEED = 2.0
+local DANGEROUS_BALL_SPEED = 3.0
 function Defense.dangerousBallTowardsDefense()
 	-- if the ball rolls towards our defense area with high speed, stay defender
 	local defenseLineIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed)
