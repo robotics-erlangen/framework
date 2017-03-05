@@ -9,6 +9,7 @@ local Error = require "agent/shared/error"
 local Physics = require "observer/physics"
 local CenterBack = require "task/centerback"
 local Rating = require "util/rating"
+local G = World.Geometry
 
 local MEASURE_TIMING = false
 
@@ -195,9 +196,16 @@ function Base:_applyForMainAttacker(task)
 		mainAttackerRating = Rating.timeToRating(timeToBall)
 
 		-- rate the robot pos (generally, being behind the ball is better)
-		local relativeYPos = World.Ball.pos.y - self._robot.pos.y
-		local ratingBoost = math.sin(math.bound(0, relativeYPos*math.pi, math.pi))
-		mainAttackerRating = mainAttackerRating + ratingBoost * 0.2
+		local mainAttacker = self._inbox.mainAttacker().trainer
+		if mainAttacker then
+			local ownAngle = G.OpponentGoal:absoluteAngleDiff(self._robot.pos-World.Ball.pos)
+			local mainAttackerAngle = G.OpponentGoal:absoluteAngleDiff(mainAttacker.pos-World.Ball.pos)
+			if ownAngle >= mainAttackerAngle then
+				local relativeYPos = World.Ball.pos.y - self._robot.pos.y
+				local ratingBoost = math.sin(math.bound(0, relativeYPos*math.pi, math.pi))
+				mainAttackerRating = mainAttackerRating + ratingBoost * 0.2
+			end
+		end
 	else
 		mainAttackerRating = overrideRating
 	end
