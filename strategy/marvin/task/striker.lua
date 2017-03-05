@@ -9,8 +9,6 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 local G = World.Geometry
 
-local Physics = require "observer/physics"
-
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
