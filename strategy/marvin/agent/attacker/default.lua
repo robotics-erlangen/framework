@@ -1,8 +1,10 @@
 local Base = require "agent/base/behavior"
 local Default = Class("Agent.Attacker.Default", Base)
 
-local Striker = require "task/striker"
 local World = require "../base/world"
+local AcceptPass = require "task/acceptpass"
+local Striker = require "task/striker"
+local Attack = require "util/attack"
 
 local MIN_DIST_FOR_POOL_CHANGE = 0.7
 
@@ -26,6 +28,10 @@ function Default:check()
 end
 
 function Default:_updateTask()
+	local  _,passInfo = next(self._inbox.passInfo())
+	if Attack.checkPassInfo(self._robot,passInfo) then
+		return AcceptPass
+	end
 	return Striker
 end
 

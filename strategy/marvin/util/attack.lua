@@ -239,4 +239,48 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 	end
 end
 
+-- the time between the arrival of the robot and the ball
+local bufferTime = 0.4
+local function calculatePassInfoTiming(robot, passInfo)
+	if passInfo then
+		local robotTime = Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true)
+
+		debug.set("robotTime", robotTime + bufferTime)
+		debug.set("ballTime", passInfo.time - World.Time)
+		debug.set("passInfoTime", passInfo.time)
+		if World.Time + robotTime + bufferTime >= passInfo.time then
+			return true
+		end
+	else
+		return false
+	end
+end
+
+--checks if an attacker has to start to move towards its pass
+--@param robot Robot
+--@param passInfo Message - the passInfo-Message
+--@retrun bool - if we have to start to move
+function Attack.checkPassInfo(robot, passInfo)
+	return calculatePassInfoTiming(robot, passInfo) and passInfo.target == robot
+end
+
+--checks if an attacker has to start to move towards its pass
+--@param robot Robot - to copy its specs
+--@param passInfo Message - the passInfo-Message
+--@param position Vector - an alternative starting position for the timing calculations
+--@param speed Vector - an alternative starting speed for timing, or Vector(0,0)
+--@retrun bool - if we have to start to move
+function Attack.checkPassInfoFromPosition(robot, passInfo, position, speed)
+	if position then
+		speed = speed or Vector(0,0)
+		local fakeRobot = {
+			acceleration = robot.acceleration,
+			pos = position,
+			maxSpeed = robot.maxSpeed,
+			speed = speed
+		}
+		return calculatePassInfoTiming(fakeRobot, passInfo)
+	end
+	return false
+end
 return Attack

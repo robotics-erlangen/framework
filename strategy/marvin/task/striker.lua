@@ -17,9 +17,6 @@ local ToTarget = require "trajectory/totarget"
 local Attack = require "util/attack"
 
 
--- the time between the arrival of the robot and the ball
-local bufferTime = 0.4
-
 
 function Striker:_init(manualDefaultPos, manualPassDest)
 	self._manualDefaultPos = manualDefaultPos
@@ -156,19 +153,7 @@ function Striker:run()
 			vis.colors.slateHalf, nil, nil, 0.02)
 	end
 
-	if passInfo and passInfo.target == self._robot then
-		local robotTime = Physics.robotTimeToPos(self._robot, self._passDest, Vector(0, 0), true)
-
-		-- TODO: never ever change back to default pos
-		debug.set("robotTime", robotTime + bufferTime)
-		debug.set("ballTime", passInfo.time - World.Time)
-		debug.set("passInfoTime", passInfo.time)
-		if World.Time + robotTime + bufferTime >= passInfo.time then
-			self._acceptPass = true
-		end
-	else
-		self._acceptPass = false
-	end
+	self._acceptPass = Attack.checkPassInfo(self._robot, passInfo)
 
 	-- set the move dest accordingly
 	debug.set("acceptPass", self._acceptPass)
