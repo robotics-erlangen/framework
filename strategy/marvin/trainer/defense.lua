@@ -141,28 +141,24 @@ function Defense:_assignDefenders()
 		end
 	end
 
-	self:_assignManmarkDefenders(defenders, nReservedDefenders)
-
-	-- assign zone defenders if there are not enough opponents to manmark
-	self._ballIsLeft = self._ballIsLeft and World.Ball.pos.x < 0.5 or World.Ball.pos.x < -0.5
-	if not Referee.isStopState() then
-		local zonePosOne = self._ballIsLeft and self._zonePosRight or self._zonePosLeft
-		local zonePosTwo = self._ballIsLeft and self._zonePosLeft or self._zonePosRight
-		local zoneDefenderPosOne = self._ballIsLeft and self._zoneDefenderPosRight or self._zoneDefenderPosLeft
-		local zoneDefenderPosTwo = self._ballIsLeft and self._zoneDefenderPosLeft or self._zoneDefenderPosRight
-		local zoneDefenderOne = UtilDefense.getClosestRobot(defenders, zoneDefenderPosOne)
-		if zoneDefenderOne and self:_checkZoneDefender(zonePosOne) then
-			table.removeValue(defenders, zoneDefenderOne)
-			self._send.roleAssignment(zoneDefenderOne,
-				{name = "ZoneDefense", params = { zoneDefenderPosOne }})
-		end
-		local zoneDefenderTwo = UtilDefense.getClosestRobot(defenders, zoneDefenderPosTwo)
-		if zoneDefenderTwo and self:_checkZoneDefender(zonePosTwo) then
-			table.removeValue(defenders, zoneDefenderTwo)
-			self._send.roleAssignment(zoneDefenderTwo,
-				{name = "ZoneDefense", params = { zoneDefenderPosTwo }})
+	if needDefaultCB then
+		local volleyDangerousness = UtilDefense.rateVolleyGoalShotThreats()
+		for _, robot in ipairs(World.OpponentRobots) do
+			if volleyDangerousness[robot] and volleyDangerousness[robot] > 0.5 then
+				for _ = 1,2 do
+					local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
+					if defaultCB then
+						table.removeValue(defenders, defaultCB)
+						self._send.roleAssignment(defaultCB,
+							{name = "CenterBack", params = { World.Ball }})
+					end
+				end
+				break
+			end
 		end
 	end
+
+	self:_assignManmarkDefenders(defenders, nReservedDefenders)
 end
 
 
