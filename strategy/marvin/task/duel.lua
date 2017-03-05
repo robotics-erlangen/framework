@@ -271,7 +271,8 @@ function Duel:_moveToBall()
 
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignoreBall, false, false, self._robot.shootRadius)
 	-- don't predict opponents, to avoid them blocking the target position
-	PathHelper.addRobotObstacles(self._robot.path, self._robot, nil, nil, true)
+	local ignoreOpponents = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + self._robot.radius + 0.1
+	PathHelper.addRobotObstacles(self._robot.path, self._robot, false, ignoreOpponents, true)
 
 	debug.set("moveDest dribbler", moveDest)
 

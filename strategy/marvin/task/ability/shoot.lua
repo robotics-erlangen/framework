@@ -213,7 +213,8 @@ function Shoot:_tryReceivePass(targetPos, targetSpeed, futureBall)
 
 		-- block ball by moving in its way
 		PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
-		PathHelper.addRobotObstacles(self._robot.path, self._robot)
+		local ignoreOpponents = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + self._robot.radius + 0.1
+		PathHelper.addRobotObstacles(self._robot.path, self._robot, false, ignoreOpponents)
 		self._robot.trajectory:update(ToTarget, robotPos, viewDir)
 		self._robot:setDribblerSpeed(0.1)
 		self._receivePassHysteresis = true
