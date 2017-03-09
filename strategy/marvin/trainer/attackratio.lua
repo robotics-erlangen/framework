@@ -90,12 +90,17 @@ function AttackRatio:attackRatio()
 	return attackRatio
 end
 
+local previousMainAttacker = nil
 function AttackRatio:attackerDefenderDistribution()
 	local attackRatio = self:attackRatio()
 
 	local attackers = math.ceil(attackRatio/6 * #World.FriendlyRobots)
 
 	local _, mainAttacker = next(self._inbox.mainAttacker())
+	if mainAttacker and mainAttacker ~= previousMainAttacker then
+		previousMainAttacker = mainAttacker
+	end
+
 	local mainAttackerIsDefender = false
 	if mainAttacker then
 		for robot, _ in pairs(self._inbox.defenderFlag()) do
@@ -103,6 +108,11 @@ function AttackRatio:attackerDefenderDistribution()
 				mainAttackerIsDefender = true
 			end
 		end
+	end
+
+	if mainAttackerIsDefender and previousMainAttacker
+			and Field.distanceToFriendlyDefenseArea(previousMainAttacker.pos, previousMainAttacker.radius) < 0.5 then
+		self._send.forcePoolChange("trainer", { robot = previousMainAttacker, destPool = "defender" })
 	end
 	if mainAttackerIsDefender then
 		for _,poolChangeEntry in ipairs(self:changingRobots()) do
