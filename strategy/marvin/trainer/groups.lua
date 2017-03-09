@@ -13,6 +13,10 @@ function Groups:init()
 	end
 end
 
+function Groups:setGroups(groupList)
+	self._groupList = groupList
+end
+
 function Groups:_runGroups()
 	-- robot -> { groupname -> application }
 	local groupApplications = self._inbox.groupApplication()
