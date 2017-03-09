@@ -7,7 +7,7 @@ function Base.canStart()
 	error("stub")
 end
 
-function Base:_init(_availableRobots)
+function Base:_init()
 	error("stub")
 end
 
