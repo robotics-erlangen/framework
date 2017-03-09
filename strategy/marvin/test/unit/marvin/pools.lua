@@ -23,7 +23,7 @@ test("base.pools", function()
 		return 1, 1
 	end
 
-	local coordinator = MainCoordinator()
+	local coordinator = MainCoordinator(MainTrainer())
 	coordinator:run()
 
 	local attackerRobot = next(coordinator._trainer._inbox.attackerFlag())
