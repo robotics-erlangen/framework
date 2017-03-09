@@ -15,11 +15,10 @@ local Agent = {
 }
 
 local AgentPool = require "control/agentpool"
-local Trainer = require "trainer/maintrainer"
+local MainTrainer = require "trainer/maintrainer"
 
 
-function MainCoordinator:init(mode)
-	local trainer = Trainer(mode)
+function MainCoordinator:init(trainer)
 	local pools = {
 		manual = AgentPool(Agent.Manual),
 		ally = AgentPool(Agent.Ally),
@@ -74,24 +73,20 @@ function MainCoordinator:_changeRobot(attackers, defenders, changingRobot, isAtt
 	end
 end
 
+
 local coord = nil
-Entrypoints.add(" main", function()
-	if not coord then
-		coord = MainCoordinator()
+local function createCoordinator(mode)
+	return function()
+		if not coord then
+			local trainer = MainTrainer(mode)
+			coord = MainCoordinator(trainer)
+		end
+		coord:run()
 	end
-	coord:run()
-end)
-Entrypoints.add(" main aggressive", function()
-	if not coord then
-		coord = MainCoordinator("aggressive")
-	end
-	coord:run()
-end)
-Entrypoints.add(" main passive", function()
-	if not coord then
-		coord = MainCoordinator("passive")
-	end
-	coord:run()
-end)
+end
+
+Entrypoints.add(" main", createCoordinator())
+Entrypoints.add(" main aggressive", createCoordinator("aggressive"))
+Entrypoints.add(" main passive", createCoordinator("passive"))
 
 return MainCoordinator
