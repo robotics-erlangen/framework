@@ -29,6 +29,16 @@ function Ball.firstRobotAtBall(robotlist)
 end
 Ball.firstRobotAtBall = Cache.forFrame(Ball.firstRobotAtBall)
 
+--- Returns wether or not the ball is heading for a goal
+-- @param ball - a ball like structure
+-- @param ownGoal - wether to use the friendly goal or the opponent goal
+-- @return bool - wether or not the ball is heading for the
+function Ball.ballHeadingForGoal(ball, ownGoal)
+	local goalCenter = ownGoal and World.Geometry.FriendlyGoal or World.Geometry.OpponentGoal
+	local _, lambda = geom.intersectLineLine(goalCenter, Vector(1, 0), ball.pos, ball.speed)
+	return lambda and math.abs(lambda) < World.Geometry.GoalWidth / 2 + 0.2
+end
+
 
 
 --- Calculates the effective distance between ball and dribbler

@@ -230,7 +230,12 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 		return
 	end
 
-	local viewPos = Attack.shootGoalViewPos(shootDest, attackPos)
+	local viewPos
+	if Ball.ballHeadingForGoal(World.Ball) then
+		viewPos = World.Ball.pos
+	else
+		viewPos = Attack.shootGoalViewPos(shootDest, attackPos)
+	end
 	if viewPos then
 		local leftGoal = World.Geometry.OpponentGoalLeft
 		local rightGoal = World.Geometry.OpponentGoalRight
