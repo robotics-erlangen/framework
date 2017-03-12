@@ -36,7 +36,7 @@ Ball.firstRobotAtBall = Cache.forFrame(Ball.firstRobotAtBall)
 function Ball.ballHeadingForGoal(ball, ownGoal)
 	local goalCenter = ownGoal and World.Geometry.FriendlyGoal or World.Geometry.OpponentGoal
 	local _, lambda = geom.intersectLineLine(goalCenter, Vector(1, 0), ball.pos, ball.speed)
-	return lambda and math.abs(lambda) < World.Geometry.GoalWidth / 2 + 0.2
+	return lambda and math.abs(lambda) < World.Geometry.GoalWidth / 2 + 0.2 and World.Ball.speed.y < 0
 end
 
 
