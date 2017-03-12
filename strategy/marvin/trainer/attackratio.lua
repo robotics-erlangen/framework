@@ -97,20 +97,21 @@ function AttackRatio:attackerDefenderDistribution()
 	local attackers = math.ceil(attackRatio/6 * #World.FriendlyRobots)
 
 	local _, mainAttacker = next(self._inbox.mainAttacker())
-	if mainAttacker and mainAttacker ~= previousMainAttacker then
-		previousMainAttacker = mainAttacker
-	end
 
 	local mainAttackerIsDefender = false
+	local previousMainAttackerIsDefender = false
 	if mainAttacker then
 		for robot, _ in pairs(self._inbox.defenderFlag()) do
 			if robot == mainAttacker then
 				mainAttackerIsDefender = true
 			end
+			if robot == previousMainAttacker then
+				previousMainAttackerIsDefender = true
+			end
 		end
 	end
 
-	if mainAttackerIsDefender and previousMainAttacker
+	if mainAttackerIsDefender and previousMainAttacker and not previousMainAttackerIsDefender
 			and Field.distanceToFriendlyDefenseArea(previousMainAttacker.pos, previousMainAttacker.radius) < 0.5 then
 		self._send.forcePoolChange("trainer", { robot = previousMainAttacker, destPool = "defender" })
 	end
@@ -121,6 +122,10 @@ function AttackRatio:attackerDefenderDistribution()
 				break
 			end
 		end
+	end
+
+	if mainAttacker and mainAttacker ~= previousMainAttacker then
+		previousMainAttacker = mainAttacker
 	end
 
 	debug.set("MainAttackerIsDefender", mainAttackerIsDefender)
