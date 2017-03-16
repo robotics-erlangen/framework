@@ -165,7 +165,7 @@ local function _backpropagateSpeedLimit(speedProfile, maxSpeed, brake)
 
 	-- main idea:
 	-- the current robot speed is too high
-	-- thus start braking earlier as brake is the fastest possible deacceleration
+	-- thus start braking earlier as brake is the fastest possible deceleration
 	-- the new speed will always be lower than the old one, except for the injectTime
 	-- The injectTime is required to keep the total distance unchanged
 	-- TODO robot could be faster during time injection

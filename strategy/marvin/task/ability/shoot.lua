@@ -61,7 +61,7 @@ function Shoot:init()
 	self._inTheRunHysteresis = false
 end
 
--- shoot immediatelly if angle error is below maxAngleError
+-- shoot immediately if angle error is below maxAngleError
 function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontShoot)
 	local robotFront = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
 	local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(robotFront))
