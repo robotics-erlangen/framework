@@ -52,12 +52,13 @@ local function generateLineup(lineStart, lineupDir)
 	end
 end
 
-local fleft = Vector(-World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
-local fright = Vector(World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
-local oleft = Vector(-World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf)
-local oright = Vector(World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf)
-local mleft = Vector(-World.Geometry.FieldWidthHalf, 0)
-local mright = Vector(World.Geometry.FieldWidthHalf, 0)
+local distToLine = 0.4
+local fleft = Vector(-World.Geometry.FieldWidthHalf + distToLine, -World.Geometry.FieldHeightHalf + distToLine)
+local fright = Vector(World.Geometry.FieldWidthHalf - distToLine, -World.Geometry.FieldHeightHalf + distToLine)
+local oleft = Vector(-World.Geometry.FieldWidthHalf + distToLine, World.Geometry.FieldHeightHalf - distToLine)
+local oright = Vector(World.Geometry.FieldWidthHalf - distToLine, World.Geometry.FieldHeightHalf- distToLine)
+local mleft = Vector(-World.Geometry.FieldWidthHalf + distToLine, 0)
+local mright = Vector(World.Geometry.FieldWidthHalf - distToLine, 0)
 Entrypoints.add("Lineup/Friendly Left", function() generateLineup(fleft, math.pi/2) end)
 Entrypoints.add("Lineup/Friendly Right", function() generateLineup(fright, math.pi/2) end)
 Entrypoints.add("Lineup/Opponent Left", function() generateLineup(oleft, -math.pi/2) end)
