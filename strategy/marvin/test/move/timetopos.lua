@@ -16,13 +16,13 @@ function TimeToPos:_init()
 	self._state = 1
 
 	self._positions = {
-		Vector(G.FieldWidthQuarter, -G.FieldHeightQuarter),
-		Vector(-G.FieldWidthHalf, -G.FieldHeightQuarter),
-		-- Vector(-G.FieldWidthHalf, -G.FieldHeightQuarter),
-		Vector(0, G.FieldHeightQuarter),
+		Vector(1.5, -2),
+		Vector(-3, -2),
+		Vector(0, -1),
 	}
 
-	self._estimation = nil
+	self._estimation1 = nil
+	self._estimation2 = nil
 	self._startTime = nil
 end
 
@@ -40,12 +40,15 @@ function TimeToPos:_updateTasks()
 	elseif self._state == 2 and pos.x < 0 then
 		state = 3
 		self._startTime = World.Time
-		self._estimation = Physics.robotTimeToPos(self._robots[1], self._positions[3], Vector(0, 0), true)
-		log("Estimation: " .. tostring(self._estimation))
+		self._estimation1 = Physics.robotTimeToPos(self._robots[1], self._positions[3], Vector(0, 0), true)
+		self._estimation2 = Physics.robotTimeToPos2(self._robots[1], self._positions[3], Vector(0, 0))
+		log("Estimation 1: " .. tostring(self._estimation1))
+		log("Estimation 2: " .. tostring(self._estimation2))
 	elseif self._state == 3 and pos:distanceTo(self._positions[3]) < 0.01 then
 		local measuredTime = World.Time - self._startTime
 		log("Measurement: " .. tostring(measuredTime))
-		log("Error: " .. tostring(self._estimation - measuredTime))
+		log("Error 1: " .. tostring(self._estimation1 - measuredTime))
+		log("Error 2: " .. tostring(self._estimation2 - measuredTime))
 		state = 1
 	end
 

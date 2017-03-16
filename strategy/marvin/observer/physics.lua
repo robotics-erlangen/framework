@@ -285,6 +285,11 @@ function Physics.ballLandPos(ball)
 end
 
 
+
+function Physics.robotTimeToPos2(robot, pos, endSpeed)
+	return 0
+end
+
 --- approximates the time the given robot needs to pos for a given endSpeed
 -- uses a bang-bang motion profile
 -- calculations are done in 1D (along the line from robot.pos to pos)
@@ -297,7 +302,7 @@ end
 -- @param lowAccel - assume reduced acceleration
 -- @return number - the estimated time
 function Physics.robotTimeToPos(robot, pos, endSpeed, brakeAndReturn, lowAccel)
-	local accelerationFactor = lowAccel and 0.7 or 0.9 -- factor for max forward speedup and braking
+	local accelerationFactor = lowAccel and 0.7 or 0.7 -- factor for max forward speedup and braking
 	local tolerance = 0.01 -- cutoff low distances to prevent instabilities
 	-- forward acceleration and deceleration
 	local accelerate = math.abs(robot.acceleration
