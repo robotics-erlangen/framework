@@ -1,13 +1,11 @@
 local SafeCorner = Class("Group.Move.SafeCorner", require "group/move/base")
 
-local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Freekick = require "agent/attacker/freekick"
 local MoveToPos = require "task/movetopos"
 local StopAttack = require "task/stopattack"
 local Striker = require "task/striker"
-local MovesHelper = require "util/moveshelper"
 local G = World.Geometry
 
 SafeCorner.N_ROBOTS = 5
