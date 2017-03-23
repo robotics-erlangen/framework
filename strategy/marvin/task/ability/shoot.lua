@@ -63,9 +63,7 @@ end
 
 -- shoot immediately if angle error is below maxAngleError
 function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontShoot)
-	local robotFront = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
-	local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(robotFront))
-	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
+	local futureBall = self:_calculateFutureBall(World.Ball, self._robot.pos, self._robot.dir)
 
 	if futureBall.speed:length() > MOVING_BALL then
 		self._movingBallHysteresis = true
@@ -291,11 +289,31 @@ function Shoot:_calculateMovementSpeed(lastBallSpeed, distToBall, shotAtRobot)
 	return speed
 end
 
+function Shoot:_calculateFutureBall(ball, robotPos, robotDir)
+	local ballTouchPos = robotPos + Vector.fromAngle(robotDir) * (self._robot.shootRadius + ball.radius)
+	local ballRollTime = Physics.checkedBallRollTime(ball, ballTouchPos)
+
+	local futureBall
+	if ballRollTime < 0 then
+		futureBall = {
+			maxSpeed = ball.maxSpeed,
+			radius = ball.radius,
+			speed = ball.speed,
+			pos = ballTouchPos
+		}
+		log(ballRollTime)
+	else
+		futureBall = Physics.ballAtTime(ball, ballRollTime)
+	end
+
+	vis.addCircle("t/a/shoot: futureBall", futureBall.pos, 0.04, vis.colors.orangeHalf, true)
+	return futureBall
+end
+
 function Shoot:_calculateShootDirection(targetPos, targetSpeed)
 	-- calculate shoot direction
-	local ballTouchPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)
-	local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(ballTouchPos))
-	local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
+	local futureBall = self:_calculateFutureBall(World.Ball, self._robot.pos, self._robot.dir)
+	
 	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos,
 				targetPos, targetSpeed)
 	kickSpeed = math.max(MIN_SHOOT_SPEED, kickSpeed)
@@ -303,7 +321,7 @@ function Shoot:_calculateShootDirection(targetPos, targetSpeed)
 
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(self._robot.dir)*20 }, vis.colors.blue)
 	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.pink)
-	vis.addPath("t/a/shoot: Direction simple", { self._robot.pos, self._robot.pos + Vector.fromAngle(rawPhi)*20 }, vis.colors.greenHalf)
+	vis.addPath("t/a/shoot: Direction simple", { futureBall.pos, futureBall.pos + Vector.fromAngle(rawPhi)*20 }, vis.colors.greenHalf)
 
 	return targetDir, kickSpeed
 end
