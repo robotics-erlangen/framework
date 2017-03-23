@@ -301,7 +301,6 @@ function Shoot:_calculateFutureBall(ball, robotPos, robotDir)
 			speed = ball.speed,
 			pos = ballTouchPos
 		}
-		log(ballRollTime)
 	else
 		futureBall = Physics.ballAtTime(ball, ballRollTime)
 	end
