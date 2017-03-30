@@ -82,6 +82,8 @@ function Ball:_update(data, time)
 	self.speed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y))
 	self.posZ = data.p_z
 	self.speedZ = data.v_z
+	self.touchdownPos = Coordinates.toLocal(Vector.createReadOnly(data.touchdown_x, data.touchdown_y))
+	self.isBouncing = data.is_bouncing
 
 	self:_updateTrackedState(lastSpeedLength)
 end
