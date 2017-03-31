@@ -236,9 +236,9 @@ end
 -- @return number - the estimated time
 function Physics.ballTravelTime(ball, distance)
 	if ball.posZ > 0 or ball.initSpeedZ > 0 then -- ball is flying
-		local ball, time, restDist = ballFlightTime(ball, distance)
+		local newBall, time, restDist = ballFlightTime(ball, distance)
 		if restDist then -- bouncing over
-			return time + Physics.ballRollTime(ball, restDist)
+			return time + Physics.ballRollTime(newBall, restDist)
 		else -- ball still in the air or bouncing
 			return time
 		end
