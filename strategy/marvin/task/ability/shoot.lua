@@ -312,7 +312,7 @@ end
 function Shoot:_calculateShootDirection(targetPos, targetSpeed)
 	-- calculate shoot direction
 	local futureBall = self:_calculateFutureBall(World.Ball, self._robot.pos, self._robot.dir)
-	
+
 	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos,
 				targetPos, targetSpeed)
 	kickSpeed = math.max(MIN_SHOOT_SPEED, kickSpeed)
@@ -400,7 +400,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dont
 		else
 			--shorten distance because ball will bounce
 			-- optimal values is 0.62, but give the robot a bit more room
-			self._robot:chip(dist*0.45)
+			self._robot:chip(dist*Constants.floorDamping)
 			debug.set("shoot command", "chip")
 		end
 		self:_doForceShoot()

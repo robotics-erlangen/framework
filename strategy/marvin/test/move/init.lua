@@ -8,7 +8,8 @@ local MoveGroup = require "group/moves"
 local StrikerGroup = require "group/striker"
 
 local moves = {
-	require "test/move/timetopos"
+	require "test/move/timetopos",
+	require "test/move/chiptime"
 }
 
 local coord = nil

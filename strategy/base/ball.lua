@@ -53,6 +53,7 @@ function Ball:init()
 	self.speedZ = 0
 	self.deceleration = 0
 	self.maxSpeed = 0
+	self.initSpeedZ = 0
 	self.framesDecelerating = math.huge
 end
 

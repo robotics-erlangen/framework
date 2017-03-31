@@ -104,6 +104,47 @@ function Physics.ballAtTime(ball, time)
 	return result
 end
 
+--- Estimates how long a ball will be flying or subsequently bouncing for a given distance
+-- @param ball Ball - a ball-like structure
+-- @param distance number - the distance in meter
+-- @return Ball, number, number - predicted ball, time, distance left
+-- The third return value indicates how much distance is left when the ball stopped bouncing
+local function ballFlightTime(ball, distance)
+	local liftTime = ball.initSpeedZ / 9.81
+	local timeAlreadyFlying = (ball.initSpeedZ-ball.speedZ) / 9.81
+	local flightTime = (2*liftTime) - timeAlreadyFlying
+	local flightDist = ball.maxSpeed * flightTime
+	local flightDistDone = 0
+	local timePassed = 0
+
+	while flightDist < distance do -- subsequent bouncing
+		timePassed = timePassed + flightTime
+		ball.initSpeedZ = ball.initSpeedZ * Constants.floorDamping
+		liftTime = ball.initSpeedZ / 9.81
+		local flightHeight = ball.initSpeedZ*liftTime - (9.81/2)*liftTime*liftTime
+		if flightHeight < 0.03 then -- consider ball rolling
+			break
+		end
+		flightTime = 2*liftTime
+		flightDistDone = flightDist
+		flightDist = flightDist + ball.speed:length() * flightTime
+	end
+
+	if flightDist > distance then -- flight or bouncing not finished
+		local t = (distance-flightDistDone) / ball.speed:length()
+		ball.pos = ball.pos + ball.speed:copy():setLength(distance)
+		ball.posZ = ball.posZ + ball.initSpeedZ*t - 0.5*9.81*t*t
+		ball.speedZ = ball.speedZ - t*9.81
+		return ball, timePassed, 0
+	else -- ball is rolling
+		ball.pos = ball.pos + ball.speed*timePassed
+		ball.posZ = 0
+		ball.speedZ = 0
+		return ball, timePassed, distance-flightDistDone
+	end
+end
+
+
 --- predicts how far the ball will travel in the given time
 -- this is almost the same as Physics.ballAtTime, but it's a bit faster as it doesn't have to care about vectors and end speed
 -- @param ball Ball - a ball-like structure, must contain the fields pos, speed, maxSpeed and radius
@@ -161,8 +202,52 @@ function Physics.ballTravelledDistance(ball, time)
 	return a_roll / 2 * t_roll * t_roll + v_switch * t_roll + s_switch
 end
 
+function Physics.calculateChipSpeed(dist)
+	-- this flightDistance can be further investigated
+	-- also, a spinning ball could be considered
+	local flightDistance = Constants.floorDamping * dist
+
+	-- flight time t = 2 * vz/g => v = (t*g) / 2  (1)
+	-- t = distance / vground                     (2)
+	-- assume 45 degree chip angle => vz = vground
+	-- (2) in (1): v = sqrt(distance*g / 2)
+	return math.sqrt((flightDistance*9.81) / 2)
+end
+
+--- estimates the time the ball needs to travel for a chip pass from startPos to endPos
+function Physics.chipPassTime(startPos, endPos)
+	local dist = (endPos - startPos):length()
+	local zSpeed = Physics.calculateChipSpeed(dist)
+	local ball = {
+		posZ = 0,
+		initSpeedZ = zSpeed,
+		speedZ = zSpeed,
+		pos = startPos,
+		-- assume 45 degree chip angle => xySpeed = zSpeed
+		speed = (endPos - startPos):setLength(zSpeed),
+		maxSpeed = zSpeed
+	}
+	return Physics.ballTravelTime(ball, dist)
+end
 
 --- estimates the time the ball needs to travel a given distance
+-- @param ball Ball - a ball-like structure
+-- @param distance number - the distance in meter
+-- @return number - the estimated time
+function Physics.ballTravelTime(ball, distance)
+	if ball.posZ > 0 or ball.initSpeedZ > 0 then -- ball is flying
+		local ball, time, restDist = ballFlightTime(ball, distance)
+		if restDist then -- bouncing over
+			return time + Physics.ballRollTime(ball, restDist)
+		else -- ball still in the air or bouncing
+			return time
+		end
+	else
+		return Physics.ballRollTime(ball, distance)
+	end
+end
+
+--- estimates the time the ball needs to travel a given distance on the floor
 -- the estimation does not exceed ballStopTime() unless the distance is too large, then it returns math.huge
 -- @param ball Ball - a ball-like structure
 -- @param distance number - the distance in meter
