@@ -123,6 +123,8 @@ function AttackRatio:attackerDefenderDistribution()
 		end
 	end
 
+	attackers = math.max(0, attackers)
+
 	debug.set("MainAttackerIsDefender", mainAttackerIsDefender)
 	debug.set("AttackRatio", attackRatio)
 
