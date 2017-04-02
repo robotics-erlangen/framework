@@ -43,7 +43,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 
 	-- rate volley
 	if Ball.receivesPass(robot) then
-		local volleyAngle = World.Ball.speed:absoluteAngleDiff(robot.pos - pass.ballPos)
+		local volleyAngle = World.Ball.speed:absoluteAngleDiff(shootPos - pass.ballPos)
 		rating = rating * Rating.valueToRating(volleyAngle, 65 / 180 * math.pi, 50 / 180 * math.pi)
 	end
 
@@ -245,7 +245,7 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 end
 
 -- the time between the arrival of the robot and the ball
-local bufferTime = 0.4
+local bufferTime = 0.2
 local function calculatePassInfoTiming(robot, passInfo)
 	if passInfo then
 		local robotTime = Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true)

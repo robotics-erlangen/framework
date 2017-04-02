@@ -8,6 +8,10 @@ local Attack = require "util/attack"
 
 local MIN_DIST_FOR_POOL_CHANGE = 0.7
 
+function Default:_stop()
+	self._acceptingPass = false
+end
+
 function Default:check()
 	local _, passInfo = next(self._inbox.passInfo())
 	self._forceKeepingInPool = passInfo and passInfo.target == self._robot
@@ -28,11 +32,12 @@ function Default:check()
 end
 
 function Default:_updateTask()
-	local  _,passInfo = next(self._inbox.passInfo())
-	if Attack.checkPassInfo(self._robot,passInfo) then
-		return AcceptPass
+	local  _, passInfo = next(self._inbox.passInfo())
+	if Attack.checkPassInfo(self._robot, passInfo) then
+		self._acceptingPass = true
 	end
-	return Striker
+
+	return passInfo and self._acceptingPass and AcceptPass or Striker
 end
 
 return Default

@@ -33,7 +33,8 @@ function ManMark:_findBestPointToBlockOpponentShot(boundaryOne, boundaryTwo, pre
 	local timeToBoundaryTwo = Physics.robotTimeToPos(self._robot, boundaryTwo, Vector(0, 0), false, false)
 
 	-- time diff between the two bounds
-	if math.abs(timeToBoundaryOne - timeToBoundaryTwo) < precision then
+	if math.abs(timeToBoundaryOne - timeToBoundaryTwo) < precision or
+			boundaryOne:distanceTo(boundaryTwo) < 0.005 then
 		return boundaryOne
 	end
 
