@@ -1,11 +1,7 @@
 local ChipTimeTest = Class("Test.Move.ChipTimeTest", require "group/move/base")
 
 local World = require "../base/world"
-local G = World.Geometry
-local debug = require "../base/debug"
-
 local Physics = require "observer/physics"
-local MoveToPos = require "task/movetopos"
 local Pass = require "task/pass"
 
 ChipTimeTest.N_ROBOTS = 1
