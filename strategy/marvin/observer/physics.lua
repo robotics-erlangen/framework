@@ -286,7 +286,7 @@ end
 
 
 -- assumes that the path is a direct line from robot.pos to endPos
-function Physics.robotTimeToPosNEW(robot, endPos, endSpeedVector)
+function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 	-- acceleration parameters
 	local hardBrakeAccel = 10
 	local brakeAccelFactor = 0.78
@@ -433,7 +433,7 @@ end
 -- Then the robot must do a full stop and return to pos with zero endSpeed!
 -- @param lowAccel - assume reduced acceleration
 -- @return number - the estimated time
-function Physics.robotTimeToPos(robot, pos, endSpeed, brakeAndReturn, lowAccel)
+function Physics.robotTimeToPosOLD(robot, pos, endSpeed, brakeAndReturn, lowAccel)
 	local accelerationFactor = lowAccel and 0.7 or 0.7 -- factor for max forward speedup and braking
 	local tolerance = 0.01 -- cutoff low distances to prevent instabilities
 	-- forward acceleration and deceleration
