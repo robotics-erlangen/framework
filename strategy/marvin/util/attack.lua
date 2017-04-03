@@ -245,10 +245,10 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 end
 
 -- the time between the arrival of the robot and the ball
-local bufferTime = 0.2
 local function calculatePassInfoTiming(robot, passInfo)
 	if passInfo then
 		local robotTime = Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true)
+		local bufferTime = 0.2 + 0.1 * robot.speed:length()
 
 		debug.set("robotTime", robotTime + bufferTime)
 		debug.set("ballTime", passInfo.time - World.Time)
