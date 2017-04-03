@@ -5,10 +5,13 @@ local debug = require "../base/debug"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 
+local Robot = require "observer/robot"
+
 function Pass:_init(targetRobot, targetPos, chip, passSpeed)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
 	self._chip = chip
+	self._chipOverride = chip
 	self._passSpeed = passSpeed or self._targetRobot.constants.passSpeed
 
 	-- retrieve targetPos from messages if no argument was given
@@ -35,6 +38,10 @@ function Pass:run()
 	local maxAngleError = 3 * math.pi / 180
 	if Referee.isFriendlyFreeKickState() or World.RefereeState == "KickoffOffensive" then
 		maxAngleError = 1 * math.pi / 180
+	end
+
+	if self._chipOverride == nil then
+		self._chip = not Robot.wayToPosFree(self._targetPos, self._robot, self._targetRobot)
 	end
 
 	self:_shoot(self._targetPos, self._passSpeed, not self._chip, maxAngleError, false)
