@@ -2,6 +2,8 @@ local Shoot = require "task/ability/shoot"
 local Pass = Class("Task.Pass", require "task/base", Shoot)
 
 local debug = require "../base/debug"
+local Referee = require "../base/referee"
+local World = require "../base/world"
 
 function Pass:_init(targetRobot, targetPos, chip, passSpeed)
 	self._targetRobot = targetRobot
@@ -30,7 +32,12 @@ function Pass:run()
 	debug.set("targetRobot", self._targetRobot)
 	debug.set("targetPos", self._targetPos)
 
-	self:_shoot(self._targetPos, self._passSpeed, not self._chip, 3 * math.pi/180, false)
+	local maxAngleError = 3 * math.pi / 180
+	if Referee.isFriendlyFreeKickState() or World.RefereeState == "KickoffOffensive" then
+		maxAngleError = 1 * math.pi / 180
+	end
+
+	self:_shoot(self._targetPos, self._passSpeed, not self._chip, maxAngleError, false)
 end
 
 return Pass
