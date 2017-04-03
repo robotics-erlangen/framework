@@ -4,16 +4,18 @@ local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Freekick = require "agent/attacker/freekick"
+local AcceptPass = require "task/acceptpass"
 local MoveToPos = require "task/movetopos"
 local StopAttack = require "task/stopattack"
 local Striker = require "task/striker"
 local MovesHelper = require "util/moveshelper"
+local Attack = require "util/attack"
 local G = World.Geometry
 
 MrlTestCorner.N_ROBOTS = 5
 
 function MrlTestCorner.canStart()
-	return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 --and Referee.opponentTouchedLast()
+	return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 and Referee.opponentTouchedLast()
 		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
 		and World.RefereeState == "Stop"
 end
@@ -61,7 +63,13 @@ function MrlTestCorner:_updateTasks()
 		self._restart = false
 	end
 
-	taskAssignments[self._robots[2]] = { class = Striker, params = { self._activeRobotInitPos, self._activeRobotShootPos }}
+	local _, passInfo = next(self._inbox.passInfo())
+	if Attack.checkPassInfo(self._robots[2], passInfo) then
+		taskAssignments[self._robots[2]] = { class = AcceptPass }
+	else
+		taskAssignments[self._robots[2]] = { class = Striker, params = { self._activeRobotInitPos, self._activeRobotShootPos }}
+	end
+
 	taskAssignments[self._robots[3]] = { class = MoveToPos, params = { self._distractorPositions[1] }}
 	taskAssignments[self._robots[4]] = { class = MoveToPos, params = { self._distractorPositions[2] }}
 	taskAssignments[self._robots[5]] = { class = MoveToPos, params = { self._distractorPositions[3] }}

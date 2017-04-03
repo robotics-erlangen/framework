@@ -156,6 +156,7 @@ function Striker:run()
 	-- set the move dest accordingly
 	debug.set("acceptPass", self._acceptPass)
 	if self._acceptPass then
+		error("Striker shouldn't accept passes " .. tostring(self._robot.id))
 		self._moveDest = self._passDest
 	else
 		self._moveDest = defaultPos
