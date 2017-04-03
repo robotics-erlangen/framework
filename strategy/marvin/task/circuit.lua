@@ -1,14 +1,15 @@
-local Circuit = Class("Task.Circuit", require "task/base")
+local Circuit = Class("Task.Circuit", require "task/base", require "task/ability/suggestpass")
 
 local World = require "../base/world"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 
-function Circuit:_init(center, angleOffset, radius)
+function Circuit:_init(center, angleOffset, radius, passPos)
 	self._center = center
 	self._angleOffset = angleOffset
 	self._radius = radius or 0.5
+	self._passPos = passPos
 end
 
 function Circuit:run()
@@ -20,6 +21,10 @@ function Circuit:run()
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
 	self._robot.trajectory:update(ToTarget, pos, dir)
+
+	if self._passPos then
+		self:_suggestPass(self._passPos)
+	end
 end
 
 return Circuit
