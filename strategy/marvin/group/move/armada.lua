@@ -4,8 +4,10 @@ local Circuit = require "task/circuit"
 local Field = require "../base/field"
 local FreeKick = require "agent/attacker/freekick"
 local geom = require "../base/geom"
-local MovesHelper = require "util/moveshelper"
+local AcceptPass = require "task/acceptpass"
 local MoveToPos = require "task/movetopos"
+local Attack = require "util/attack"
+local MovesHelper = require "util/moveshelper"
 local Referee = require "../base/referee"
 local StopAttack = require "task/stopattack"
 local World = require "../base/world"
@@ -47,6 +49,7 @@ function Armada:_init()
 	self._positions = {}
 	self._maxShootingAngle = 60 / 180 * math.pi
 	self._assignment = {}
+	self._startedSendPassPos = false
 end
 
 function Armada:_canContinue()
@@ -62,6 +65,8 @@ function Armada:_updateTasks()
 	-- draw circles where robots cannot shoot a volley
 	local center1, center2, radius = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, self._maxShootingAngle)
 	local circle = center1.y < center2.y and center1 or center2
+	local _, passInfo = next(self._inbox.passInfo())
+	local startMoving = Attack.checkPassInfoFromPosition(self._robots[1], passInfo, self._circleCenter)
 	if World.RefereeState == "Stop" then
 		self._positions = {}
 		self._assignment = {}
@@ -81,7 +86,8 @@ function Armada:_updateTasks()
 			end
 			table.insert(self._positions, Field.limitToAllowedField(pos, 0.3))
 		end
-
+	end
+	if startMoving then
 		-- assign robots to positions
 		self._assignment = MovesHelper.assignRobots(self._robots, self._positions, 1)
 	end
@@ -89,20 +95,29 @@ function Armada:_updateTasks()
 	local taskAssignments = {}
 	if World.RefereeState == "Stop" then
 		taskAssignments[self._robots[1]] = { class = StopAttack, params = { } }
-		taskAssignments[self._robots[2]] = { class = Circuit, params = { self._circleCenter, math.pi * 0.0 } }
-		taskAssignments[self._robots[3]] = { class = Circuit, params = { self._circleCenter, math.pi * 0.5 } }
-		taskAssignments[self._robots[4]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.0 } }
-		taskAssignments[self._robots[5]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.5 } }
+		taskAssignments[self._robots[2]] = { class = Circuit, params = { self._circleCenter, math.pi * 0.0 }, restart = self._startedSendPassPos }
+		taskAssignments[self._robots[3]] = { class = Circuit, params = { self._circleCenter, math.pi * 0.5 }, restart = self._startedSendPassPos }
+		taskAssignments[self._robots[4]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.0 }, restart = self._startedSendPassPos }
+		taskAssignments[self._robots[5]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.5 }, restart = self._startedSendPassPos }
+		self._startedSendPassPos = false
+	elseif startMoving then
+		taskAssignments[self._robots[1]] = { behavior = FreeKick, params = { } }
+		for i = 2,5 do
+			if self._positions[i-1]:distanceTo(passInfo.ballPos) < 0.5 then
+				taskAssignments[self._robots[self._assignment[i]]]
+				= {class = AcceptPass}
+			else
+			taskAssignments[self._robots[self._assignment[i]]]
+				= {class = MoveToPos, params = { self._positions[i-1] } }
+			end
+		end
 	else
 		taskAssignments[self._robots[1]] = { behavior = FreeKick, params = { } }
-		taskAssignments[self._robots[self._assignment[2]]]
-				= { class = MoveToPos, params = { self._positions[1], nil, true } }
-		taskAssignments[self._robots[self._assignment[3]]]
-				= { class = MoveToPos, params = { self._positions[2], nil, true } }
-		taskAssignments[self._robots[self._assignment[4]]]
-				= { class = MoveToPos, params = { self._positions[3], nil, true } }
-		taskAssignments[self._robots[self._assignment[5]]]
-				= { class = MoveToPos, params = { self._positions[4], nil, true } }
+		for i = 2,5 do
+			taskAssignments[self._robots[i]] = { class = Circuit, params = { self._circleCenter,
+				math.pi * 0.5 * (i-2), nil,	self._positions[i-1] }, restart = not self._startedSendPassPos }
+		end
+		self._startedSendPassPos = true
 	end
 	return taskAssignments, self._robots[1]
 end

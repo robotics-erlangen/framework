@@ -4,10 +4,12 @@ local World = require "../base/world"
 local G = World.Geometry
 
 local Freekick = require "agent/attacker/freekick"
+local AcceptPass = require "task/acceptpass"
 local MoveToPos = require "task/movetopos"
 local StopAttack = require "task/stopattack"
 local Striker = require "task/striker"
 local MovesHelper = require "util/moveshelper"
+local Attack = require "util/attack"
 
 KickOff.N_ROBOTS = 3
 
@@ -45,9 +47,15 @@ function KickOff:_updateTasks()
 		taskAssignments[self._robots[self._assignments[2]]] = { class = MoveToPos, params = { self._assistantPos[1] } }
 		taskAssignments[self._robots[self._assignments[3]]] = { class = MoveToPos, params = { self._assistantPos[2] } }
 	else
+		local _, passInfo = next(self._inbox.passInfo())
 		taskAssignments[self._robots[self._assignments[1]]] = { behavior = Freekick }
-		taskAssignments[self._robots[self._assignments[2]]] = { class = Striker, params = { self._assistantPos[1], self._passDest[1] } }
-		taskAssignments[self._robots[self._assignments[3]]] = { class = Striker, params = { self._assistantPos[2], self._passDest[2] } }
+		for i=1,2 do
+			if Attack.checkPassInfo(self._robots[self._assignments[i+1]], passInfo) then
+				taskAssignments[self._robots[self._assignments[i+1]]] = { class = AcceptPass }
+			else
+				taskAssignments[self._robots[self._assignments[i+1]]] = { class = Striker, params = { self._assistantPos[i], self._passDest[i] } }
+			end
+		end
 	end
 
 	return taskAssignments, self._robots[self._assignments[1]]

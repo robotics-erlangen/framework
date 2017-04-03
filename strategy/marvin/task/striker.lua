@@ -156,6 +156,7 @@ function Striker:run()
 	-- set the move dest accordingly
 	debug.set("acceptPass", self._acceptPass)
 	if self._acceptPass then
+		error("Striker shouldn't accept passes " .. tostring(self._robot.id))
 		self._moveDest = self._passDest
 	else
 		self._moveDest = defaultPos
@@ -179,6 +180,13 @@ function Striker:run()
 		-- relevant for outgoing passes
 		if passInfo and passInfo.target ~= self._robot then
 			self:_avoidLineSegment(World.Ball.pos, self._passDest)
+		end
+
+		-- don't block the pass receiver
+		if passInfo and passInfo.target ~= self._robot then
+			local startPoint = passInfo.target.pos
+			local endPoint = passInfo.ballPos
+			self._robot.path:addLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, 0.2)
 		end
 
 		-- don't move between the ball and the opponent goal

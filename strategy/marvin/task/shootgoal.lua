@@ -2,6 +2,7 @@ local Shoot = require "task/ability/shoot"
 local ShootGoal = Class("Task.ShootGoal", require "task/base", Shoot)
 
 local debug = require "../base/debug"
+local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
@@ -65,9 +66,13 @@ function ShootGoal:run()
 			math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
 	else
 		local maxAngleError = 10 * math.pi / 180
+		-- prevent icing
 		if World.Ball.pos.y < 0 then
-			-- prevent icing
 			maxAngleError = 2 * math.pi / 180
+		end
+
+		if Referee.isFriendlyFreeKickState() or World.RefereeState == "KickoffOffensive" then
+			maxAngleError = 0.5 * math.pi / 180
 		end
 
 		-- perform a chip shot

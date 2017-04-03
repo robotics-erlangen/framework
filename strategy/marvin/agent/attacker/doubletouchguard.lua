@@ -13,15 +13,14 @@ local StopAttack = require "task/stopattack"
 local lastFreekickTime = 1
 function DoubleTouchGuard:check()
 	if Referee.isFriendlyFreeKickState() then
-		lastFreekickTime = World.Time
+		-- subtract half a second to ensure that the freekick shot gets detected
+		lastFreekickTime = World.Time - 0.5
 	end
 
 	debug.push("DoubleTouchConditions")
-	debug.set("RefereeState Condition", World.RefereeState == "Game")
 	debug.set("ownStandardShooter", Robot.ownStandardShooter())
-	debug.set("StandardShooter Condition", Robot.ownStandardShooter() == self._robot)
 	debug.set("Last Freekick Time", lastFreekickTime)
-	debug.set("wasShot Condition", not Ball.wasShot(World.Time-lastFreekickTime))
+	debug.set("wasShot Condition", not Ball.wasShot(World.Time - lastFreekickTime))
 	debug.pop()
 
 	if World.RefereeState == "Game" and Robot.ownStandardShooter() == self._robot and not Ball.wasShot(World.Time-lastFreekickTime) then

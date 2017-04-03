@@ -236,9 +236,9 @@ end
 -- @return number - the estimated time
 function Physics.ballTravelTime(ball, distance)
 	if ball.posZ > 0 or ball.initSpeedZ > 0 then -- ball is flying
-		local ball, time, restDist = ballFlightTime(ball, distance)
+		local newBall, time, restDist = ballFlightTime(ball, distance)
 		if restDist then -- bouncing over
-			return time + Physics.ballRollTime(ball, restDist)
+			return time + Physics.ballRollTime(newBall, restDist)
 		else -- ball still in the air or bouncing
 			return time
 		end
@@ -370,6 +370,143 @@ function Physics.ballLandPos(ball)
 end
 
 
+-- assumes that the path is a direct line from robot.pos to endPos
+function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
+	-- acceleration parameters
+	local hardBrakeAccel = 10
+	local brakeAccelFactor = 0.78
+	local speedupAccelFactor = 0.85
+
+	-- corridor width
+	local maxError = 0.07
+
+	-- retrieve parameters given via the robot object
+	local startPos = robot.pos
+	local startSpeed = robot.speed
+	local maxSpeed = robot.maxSpeed
+	local accelerationProfile = robot.acceleration
+
+	-- ignore direction of endSpeed
+	local endSpeed = endSpeedVector:length()
+
+	-- retrieve acceleration values
+	local brakeAccel = accelerationProfile.aBrakeFMax * brakeAccelFactor
+	local speedupAccel = accelerationProfile.aSpeedupFMax * speedupAccelFactor
+
+	-- init current state
+	local currentTime = 0
+	local currentSpeed = startSpeed:length()
+	local currentPos = startPos
+
+	-- calculate curve radius and speed
+	local rawAngleDiff = (endPos - startPos):absoluteAngleDiff(startSpeed)
+	local absAngleDiff = math.min(math.abs(rawAngleDiff), math.pi - 0.001)
+	local angleSin = math.sin((math.pi - absAngleDiff)/2)
+	local radius = maxError * angleSin / (1 - angleSin) * 0.5
+	local maxCurveSpeed = math.sqrt(hardBrakeAccel * radius)
+
+	-- check if brake and return is necessary (BAT)
+	if endSpeed < currentSpeed then
+		local BATspeedDiff = currentSpeed - endSpeed
+		local BATtime = BATspeedDiff / hardBrakeAccel
+		local BATdist = 0.5 * hardBrakeAccel * BATtime * BATtime + endSpeed * BATtime
+		if BATdist > endPos:distanceTo(startPos) then
+			radius = 0
+			maxCurveSpeed = 0.001
+		end
+	end
+
+	-- TODO: model system delay
+	local reactionTime = 0
+	local reactionDist = reactionTime * currentSpeed
+	local reactionPathVec = startSpeed:copy():setLength(reactionDist)
+	currentTime = currentTime + reactionTime
+	currentPos = currentPos + reactionPathVec
+
+	-- we need to brake down to maxCurveSpeed
+	if currentSpeed > maxCurveSpeed then
+		-- log("brake to curve")
+
+		local brakeTime = (currentSpeed - maxCurveSpeed) / hardBrakeAccel
+		local brakeDist = 0.5 * hardBrakeAccel * brakeTime * brakeTime + maxCurveSpeed * brakeTime
+
+		local curveDist = absAngleDiff * radius
+		local curveTime = curveDist / maxCurveSpeed
+
+		currentTime = brakeTime + curveTime
+		currentSpeed = maxCurveSpeed
+
+		local linearPathVec = startSpeed:copy():setLength(brakeDist)
+		local curvePathVec = Vector(math.sin(rawAngleDiff), math.cos(rawAngleDiff) - 1) * radius
+		curvePathVec:rotate(startSpeed:angle())
+		currentPos = currentPos + linearPathVec + curvePathVec
+	end
+
+	-- the remaining trajectory is a simple 1D line
+	local remainingDist = currentPos:distanceTo(endPos)
+
+	local linearAccelTime = (maxSpeed - currentSpeed) / speedupAccel
+	local linearBrakeTime = (maxSpeed - endSpeed) / brakeAccel
+	local linearAccelDist = 0.5 * speedupAccel * linearAccelTime * linearAccelTime + currentSpeed * linearAccelTime 
+	local linearBrakeDist = 0.5 * brakeAccel * linearBrakeTime * linearBrakeTime + endSpeed * linearBrakeTime
+
+	-- case 1: robot reaches maxSpeed
+	local maxSpeedDist = remainingDist - linearAccelDist - linearBrakeDist
+	if maxSpeedDist >= 0 then
+		local maxSpeedTime = maxSpeedDist / maxSpeed
+		local expBrakeExtraTime = 0
+		return currentTime + linearAccelTime + maxSpeedTime + linearBrakeTime + expBrakeExtraTime
+	end
+
+	-- case 2: robot has to brake immediately
+	if currentSpeed > endSpeed then
+		local slowBrakeTime = (currentSpeed - endSpeed) / brakeAccel
+		local slowBrakeDist = 0.5 * brakeAccel * slowBrakeTime * slowBrakeTime + endSpeed * slowBrakeTime
+		if slowBrakeDist > remainingDist then
+			local speedDiff = endSpeed - currentSpeed
+			local immediateBrakeAccel = (0.5 * speedDiff * speedDiff + currentSpeed * speedDiff) / remainingDist
+			local immediateBrakeTime = speedDiff / immediateBrakeAccel
+			local expBrakeExtraTime = 0
+			return currentTime + immediateBrakeTime + expBrakeExtraTime
+		end
+	end
+
+	-- case 3: robot cannot even reach endSpeed
+	if currentSpeed < endSpeed then
+		local slowAccelTime = (endSpeed - currentSpeed) / speedupAccel
+		local slowAccelDist = 0.5 * speedupAccel * slowAccelTime * slowAccelTime + currentSpeed * slowAccelTime
+		if slowAccelDist > remainingDist then
+			local accelTime = (-currentSpeed + math.sqrt(currentSpeed * currentSpeed + 2 * speedupAccel * remainingDist)) / speedupAccel
+			return currentTime + accelTime
+		end
+	end
+
+	-- case 4: robot does not reach maxSpeed
+	local speedDiff, accelDiff, minSpeed, plateauSpeed
+	if endSpeed < currentSpeed then
+		speedDiff = currentSpeed - endSpeed
+		accelDiff = brakeAccel
+		minSpeed = endSpeed
+		plateauSpeed = currentSpeed
+	else
+		speedDiff = endSpeed - currentSpeed
+		accelDiff = speedupAccel
+		minSpeed = currentSpeed
+		plateauSpeed = endSpeed
+	end
+	local timeDiff = speedDiff / accelDiff
+	local distDiff = 0.5 * accelDiff * timeDiff * timeDiff + minSpeed * timeDiff
+	local distSym = math.max(0, remainingDist - distDiff)
+
+	local A = 0.5 * speedupAccel * brakeAccel / (speedupAccel + brakeAccel)
+	local B = plateauSpeed
+	local C = -distSym
+	local timeSym = math.solveSq(A, B, C)
+
+	local expBrakeExtraTime = 0
+	return currentTime + timeDiff + timeSym + expBrakeExtraTime
+end
+
 --- approximates the time the given robot needs to pos for a given endSpeed
 -- uses a bang-bang motion profile
 -- calculations are done in 1D (along the line from robot.pos to pos)
@@ -381,8 +518,8 @@ end
 -- Then the robot must do a full stop and return to pos with zero endSpeed!
 -- @param lowAccel - assume reduced acceleration
 -- @return number - the estimated time
-function Physics.robotTimeToPos(robot, pos, endSpeed, brakeAndReturn, lowAccel)
-	local accelerationFactor = lowAccel and 0.7 or 0.9 -- factor for max forward speedup and braking
+function Physics.robotTimeToPosOLD(robot, pos, endSpeed, brakeAndReturn, lowAccel)
+	local accelerationFactor = lowAccel and 0.7 or 0.7 -- factor for max forward speedup and braking
 	local tolerance = 0.01 -- cutoff low distances to prevent instabilities
 	-- forward acceleration and deceleration
 	local accelerate = math.abs(robot.acceleration

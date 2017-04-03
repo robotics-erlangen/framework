@@ -43,7 +43,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 
 	-- rate volley
 	if Ball.receivesPass(robot) then
-		local volleyAngle = World.Ball.speed:absoluteAngleDiff(robot.pos - pass.ballPos)
+		local volleyAngle = World.Ball.speed:absoluteAngleDiff(shootPos - pass.ballPos)
 		rating = rating * Rating.valueToRating(volleyAngle, 65 / 180 * math.pi, 50 / 180 * math.pi)
 	end
 
@@ -78,7 +78,13 @@ function Attack.ratePass(robot, pass, considerTiming)
 				local projectedSpeed = opp.speed - ((opp.pos + opp.speed):orthogonalProjection(shootPos, pass.ballPos) - orthogonalProjection)
 				vis.addPath("u/a/ratePass", {opp.pos, opp.pos + projectedSpeed}, vis.colors.pink, true)
 				local fakeRobot = {acceleration = opp.acceleration, pos = opp.pos, maxSpeed = opp.maxSpeed, speed = projectedSpeed}
-				local timeToPos = Physics.robotTimeToPos(fakeRobot, orthogonalProjection, Vector(0,0), false)
+
+				local timeToPos = 0
+				local minDist = World.Ball.radius + opp.radius
+				if opp.pos:distanceTo(orthogonalProjection) > minDist then
+					local hitPoint = orthogonalProjection + (opp.pos - orthogonalProjection):setLength(minDist)
+					timeToPos = Physics.robotTimeToPos(fakeRobot, hitPoint, Vector(0,0), false)
+				end
 
 				local passRating = Rating.valueToRating(timeToPos, ballRollTime - 0.5, ballRollTime + 0.2)
 				--log("Rating: "..tostring(opp)..", ballRollTime: "..tostring(ballRollTime)..", timeToPos: "..tostring(timeToPos)..", passRating: "..tostring(passRating))
@@ -245,10 +251,10 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 end
 
 -- the time between the arrival of the robot and the ball
-local bufferTime = 0.4
 local function calculatePassInfoTiming(robot, passInfo)
 	if passInfo then
 		local robotTime = Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true)
+		local bufferTime = 0.2 + 0.1 * robot.speed:length()
 
 		debug.set("robotTime", robotTime + bufferTime)
 		debug.set("ballTime", passInfo.time - World.Time)
