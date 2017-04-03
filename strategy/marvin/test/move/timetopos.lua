@@ -16,9 +16,9 @@ function TimeToPos:_init()
 	self._state = 1
 
 	self._positions = {
-		Vector(0, -2),
-		Vector(-0.01, -2),
-		Vector(-0.01, -2),
+		Vector(1, -2),
+		Vector(-3, -2),
+		Vector(1, 0),
 	}
 
 	self._endSpeedLength = 0
@@ -45,7 +45,7 @@ function TimeToPos:_updateTasks()
 	elseif self._state == 2 and pos.x < 0 then
 		state = 3
 		self._startTime = World.Time
-		self._estimation2, self._brakeTime, self._curveTime = Physics.robotTimeToPos3(self._robots[1], self._positions[3], Vector(0, self._endSpeedLength))
+		self._estimation2, self._brakeTime, self._curveTime = Physics.robotTimeToPos(self._robots[1], self._positions[3], Vector(0, self._endSpeedLength))
 		log("Estimation 2: " .. tostring(self._estimation2))
 	elseif self._state == 3 and pos:distanceTo(self._positions[3]) < 0.001 and self._robots[1].speed:length() <= self._endSpeedLength + 0.1 then
 		local measuredTime = World.Time - self._startTime
