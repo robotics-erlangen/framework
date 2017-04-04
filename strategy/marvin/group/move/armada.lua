@@ -108,7 +108,7 @@ function Armada:_updateTasks()
 				= {class = AcceptPass}
 			else
 			taskAssignments[self._robots[self._assignment[i]]]
-				= {class = MoveToPos, params = { self._positions[i-1] } }
+				= {class = MoveToPos, params = { self._positions[i-1], nil, true } } --offer other positions for redeciding
 			end
 		end
 	else
