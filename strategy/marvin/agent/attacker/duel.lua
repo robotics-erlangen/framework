@@ -21,12 +21,27 @@ local SAFTY_SPACE = 0.05
 local DIST_HYSTERESIS = 0.02 -- must be always smaller than SAFTY_SPACE
 local MAX_BALL_SPEED = 1
 function Duel:genericCheck()
-	-- if we receive the ball, try shootgoal or something
+	-- if we receive the ball first, try shootgoal or something
 	local receivesPass = Ball.receivesPass(self._robot)
-	debug.set("duel check receivesPass", receivesPass)
 	if receivesPass then
-		return false
+		local firstAtBall = true
+		local selfDistToBall = self._robot.pos:distanceTo(World.Ball.pos)
+		for _,opp in ipairs(World.OpponentRobots) do
+			if Ball.receivesPass(opp) then
+				local oppDistToBall = opp.pos:distanceTo(World.Ball.pos)
+				if oppDistToBall < selfDistToBall then
+					local distToBallLine = opp.pos:orthogonalDistance(World.Ball.pos, World.Ball.pos + World.Ball.speed)
+					if distToBallLine < 0.3 then
+						firstAtBall = false
+					end
+				end
+			end
+		end
+		if firstAtBall then
+			return false
+		end
 	end
+
 
 	if self._agent.beOffensive then
 		return false
