@@ -20,7 +20,7 @@ end
 function Shoot.volleyPossible(passRobot, targetPos)
 	if Ball.receivesPass(passRobot) then
 		local volleyAngle = (targetPos - passRobot.pos):absoluteAngleDiff(World.Ball.pos - passRobot.pos)
-		if volleyAngle < 60 * math.pi / 180 then
+		if volleyAngle < 66 * math.pi / 180 then
 			return true
 		end
 	end
