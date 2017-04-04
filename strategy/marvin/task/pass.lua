@@ -43,8 +43,8 @@ function Pass:run()
 	local chip = self._chip
 	if self._chip == nil then
 		local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
-		local corridor = ObserverShoot.evaluatePassCorridor(attackPosition or World.Ball.pos, self._targetPos)
-		log(corridor)
+		local corridor = ObserverShoot.evaluatePassCorridor(
+			attackPosition or World.Ball.pos, self._targetPos, Shoot.CHIP_PASS_DISTANCE_FACTOR)
 		chip = corridor == "chip"
 	end
 
