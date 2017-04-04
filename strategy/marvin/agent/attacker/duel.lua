@@ -5,6 +5,7 @@ local debug = require "../base/debug"
 local geom = require "../base/geom"
 local World = require "../base/world"
 local Ball = require "observer/ball"
+local Robot = require "observer/robot"
 
 local TaskDuel = require "task/duel"
 
@@ -13,6 +14,7 @@ function Duel:_stop()
 	self._opponentHasBall = false
 	self._closerThanOpp = false
 	self._lastChippedHysteresis = false
+	self._active = false
 end
 
 local SAFTY_SPACE = 0.05
@@ -70,6 +72,16 @@ function Duel:genericCheck()
 			return true
 		end
 	end
+
+
+	local timeToBallHysteresis = self._active and 0 or 0.3
+	if not Ball.receivesPass(self._robot) then
+		local opposer, oppTime = Ball.firstRobotAtBall(World.OpponentRobots)
+		if oppTime + timeToBallHysteresis < Robot.minTimeToBall(self._robot) then
+			return true
+		end
+	end
+
 	return false
 end
 
@@ -79,9 +91,11 @@ function Duel:check()
 	self._forceKeepingInPool = isMainAttacker
 
 	if not isMainAttacker then
-		return false
+		self._active = false
+	else
+		self._active = self:genericCheck()
 	end
-	return self:genericCheck()
+	return self._active
 end
 
 
