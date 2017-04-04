@@ -8,32 +8,6 @@ local World = require "../base/world"
 local Physics = require "observer/physics"
 
 
---- checks if the ball can be shot directly to another robot
--- @param target, robot - robot to which the ball corridor is being tested
--- @param shooter, robot
--- @return bool - true if way is free, false otherwise
-function Robot.wayToRobotFree(target, shooter)
-	return Robot.wayToPosFree(target.pos, shooter, target)
-end
-
-function Robot.wayToPosFree(pos, ignoreRobot1, ignoreRobot2)
-	-- TODO consider speed of robots to look a little into the future
-	for _, robot in ipairs(World.Robots) do
-		if robot ~= ignoreRobot1 and robot ~= ignoreRobot2 then
-			local _, distToBallCorridor = robot.pos:orthogonalProjection(World.Ball.pos, pos)
-			local targetDist = World.Ball.pos:distanceTo(pos)
-			local isInTheWay = math.abs(distToBallCorridor) < (robot.radius + World.Ball.radius)
-				and robot.pos:distanceTo(World.Ball.pos) < targetDist
-				and robot.pos:distanceTo(pos) < targetDist
-			if isInTheWay then
-				return false
-			end
-		end
-	end
-	return true
-end
-
-
 local lastLocalSpeed = {}
 local lastRotation = {}
 local speedSmoothed = {}

@@ -8,7 +8,6 @@ local Tests = {
 	Goal = require "test/observer/goal",
 	path = require "test/observer/path",
 	Physics = require "test/observer/physics",
-	Robot = require "test/observer/robot",
 }
 
 
