@@ -12,10 +12,11 @@ local RobotList = require "util/robotlist"
 
 local POSITION_PADDING = 0.03 -- safety distance
 
-function StopAttack:_init()
+function StopAttack:_init(minDistToBall)
 	self._focusPoint = Vector(0, -World.Geometry.FieldHeightHalf + 4 * self._robot.radius)
 	self._side = World.Ball.pos.x < 0 and "left" or "right"
 	self._defenseHysteresis = false
+	self._minDistToBall = minDistToBall or Constants.stopBallDistance
 end
 
 -- normalize angle created by direction to be always relative to segment ball to field border
@@ -28,7 +29,7 @@ local function getNormalizedAngle(direction)
 end
 
 function StopAttack:run()
-	local stopRadius = Constants.stopBallDistance + self._robot.radius + POSITION_PADDING
+	local stopRadius = self._minDistToBall + self._robot.radius + POSITION_PADDING
 	local pos = World.Ball.pos + (self._focusPoint - World.Ball.pos):setLength(stopRadius)
 	local driveAngle = (World.Ball.pos - pos):angle()
 
