@@ -13,8 +13,10 @@ function Error:check()
 	end
 	for k,v in pairs(errorTable) do
 		if v > ERROR_TOLERANCE and k ~= "temperature" then
-			return World.RefereeState == "Stop"
-			and (World.Time - ErrorObserver.getLastRefChange()) < 3
+			if World.RefereeState == "Stop"
+			and (World.Time - ErrorObserver.getLastRefChange()) == 0 then -- < 3
+				log(self:errorMsg())
+			end
 		end
 	end
 	return false
