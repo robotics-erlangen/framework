@@ -5,7 +5,6 @@ local debug = require "../base/debug"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 
-local Robot = require "observer/robot"
 local ObserverShoot = require "observer/shoot"
 
 function Pass:_init(targetRobot, targetPos, chip, passSpeed)

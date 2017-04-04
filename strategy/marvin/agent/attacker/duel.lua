@@ -91,7 +91,7 @@ function Duel:genericCheck()
 
 	local timeToBallHysteresis = self._active and 0 or 0.3
 	if not Ball.receivesPass(self._robot) then
-		local opposer, oppTime = Ball.firstRobotAtBall(World.OpponentRobots)
+		local _, oppTime = Ball.firstRobotAtBall(World.OpponentRobots)
 		if oppTime + timeToBallHysteresis < Robot.minTimeToBall(self._robot) then
 			return true
 		end
