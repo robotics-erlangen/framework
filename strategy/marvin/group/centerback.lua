@@ -60,7 +60,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 
 	-- parameters
 	local distanceBetweenDefenders = World.RefereeState == "Stop" and 0.03 or 0.01
-	local getImportant = 2 * robot_radius + 0.03
+	local getImportant = 2 * robot_radius + 0.02 + distanceToDefenseArea
 
 	if Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)
 		< 2 * robot_radius + distanceToDefenseArea + 0.4 then
