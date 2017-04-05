@@ -5,6 +5,7 @@ local debug = require "../base/debug"
 local geom = require "../base/geom"
 local World = require "../base/world"
 local Ball = require "observer/ball"
+local Robot = require "observer/robot"
 
 local TaskDuel = require "task/duel"
 
@@ -13,18 +14,34 @@ function Duel:_stop()
 	self._opponentHasBall = false
 	self._closerThanOpp = false
 	self._lastChippedHysteresis = false
+	self._active = false
 end
 
 local SAFTY_SPACE = 0.05
 local DIST_HYSTERESIS = 0.02 -- must be always smaller than SAFTY_SPACE
 local MAX_BALL_SPEED = 1
 function Duel:genericCheck()
-	-- if we receive the ball, try shootgoal or something
+	-- if we receive the ball first, try shootgoal or something
 	local receivesPass = Ball.receivesPass(self._robot)
-	debug.set("duel check receivesPass", receivesPass)
 	if receivesPass then
-		return false
+		local firstAtBall = true
+		local selfDistToBall = self._robot.pos:distanceTo(World.Ball.pos)
+		for _,opp in ipairs(World.OpponentRobots) do
+			if Ball.receivesPass(opp) then
+				local oppDistToBall = opp.pos:distanceTo(World.Ball.pos)
+				if oppDistToBall < selfDistToBall then
+					local distToBallLine = opp.pos:orthogonalDistance(World.Ball.pos, World.Ball.pos + World.Ball.speed)
+					if distToBallLine < 0.3 then
+						firstAtBall = false
+					end
+				end
+			end
+		end
+		if firstAtBall then
+			return false
+		end
 	end
+
 
 	if self._agent.beOffensive then
 		return false
@@ -70,6 +87,16 @@ function Duel:genericCheck()
 			return true
 		end
 	end
+
+
+	local timeToBallHysteresis = self._active and 0 or 0.3
+	if not Ball.receivesPass(self._robot) then
+		local _, oppTime = Ball.firstRobotAtBall(World.OpponentRobots)
+		if oppTime + timeToBallHysteresis < Robot.minTimeToBall(self._robot) then
+			return true
+		end
+	end
+
 	return false
 end
 
@@ -79,9 +106,11 @@ function Duel:check()
 	self._forceKeepingInPool = isMainAttacker
 
 	if not isMainAttacker then
-		return false
+		self._active = false
+	else
+		self._active = self:genericCheck()
 	end
-	return self:genericCheck()
+	return self._active
 end
 
 
