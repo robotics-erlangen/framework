@@ -192,7 +192,12 @@ function Goal.predictShot()
 	local passReceivers = {}
 
 	local oppBallOwner = Ball.opponentBallOwner()
-	if oppBallOwner and ballSpeed:length() <= SLOW_BALL then
+	local oppBallDribbler = Ball.opponentBallDribbler()
+	if oppBallDribbler then
+		ballSpeed = Vector.fromAngle(oppBallDribbler.dir)
+		vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false)
+		vis.addPath("o/goal: predictShot: dribbling robot", {oppBallDribbler.pos, oppBallDribbler.pos + ballSpeed * 10}, vis.colors.blue)
+	elseif oppBallOwner and ballSpeed:length() <= SLOW_BALL then
 		-- if opponent is close to ball use its orientation
 		ballSpeed = Vector.fromAngle(oppBallOwner.dir)
 	elseif ballSpeed:length() > SLOW_BALL then

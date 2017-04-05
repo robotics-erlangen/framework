@@ -29,6 +29,26 @@ function Ball.firstRobotAtBall(robotlist)
 end
 Ball.firstRobotAtBall = Cache.forFrame(Ball.firstRobotAtBall)
 
+function Ball.opponentBallDribbler()
+	local MAX_SPEED_DIFF = 0.4
+	local MAX_DISTANCE = 0.3
+	local MAX_ANGLE = 60 / 180 * math.pi
+	local bestRobot = nil
+	local bestDist = math.huge
+	for _, robot in ipairs(World.OpponentRobots) do
+		local distance = robot.pos:distanceTo(World.Ball.pos)
+		local direction = Vector.fromAngle(robot.dir)
+		if (robot.speed - World.Ball.speed):length() < MAX_SPEED_DIFF and
+				distance < MAX_DISTANCE and distance < bestDist and
+				direction:absoluteAngleDiff(World.Ball.pos - robot.pos) < MAX_ANGLE then
+			bestRobot = robot
+			bestDist = distance
+		end
+	end
+	return bestRobot
+end
+Ball.opponentBallDribbler = Cache.forFrame(Ball.opponentBallDribbler)
+
 --- Returns wether or not the ball is heading for a goal
 -- @param ball - a ball like structure
 -- @param ownGoal - wether to use the friendly goal or the opponent goal
