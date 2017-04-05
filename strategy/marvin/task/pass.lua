@@ -5,13 +5,12 @@ local debug = require "../base/debug"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 
-local Robot = require "observer/robot"
+local ObserverShoot = require "observer/shoot"
 
 function Pass:_init(targetRobot, targetPos, chip, passSpeed)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
 	self._chip = chip
-	self._chipOverride = chip
 	self._passSpeed = passSpeed or self._targetRobot.constants.passSpeed
 
 	-- retrieve targetPos from messages if no argument was given
@@ -40,11 +39,15 @@ function Pass:run()
 		maxAngleError = 1 * math.pi / 180
 	end
 
-	if self._chipOverride == nil then
-		self._chip = not Robot.wayToPosFree(self._targetPos, self._robot, self._targetRobot)
+	local chip = self._chip
+	if self._chip == nil then
+		local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
+		local corridor = ObserverShoot.evaluatePassCorridor(
+			attackPosition or World.Ball.pos, self._targetPos, Shoot.CHIP_PASS_DISTANCE_FACTOR)
+		chip = corridor == "chip"
 	end
 
-	self:_shoot(self._targetPos, self._passSpeed, not self._chip, maxAngleError, false)
+	self:_shoot(self._targetPos, self._passSpeed, not chip, maxAngleError, false)
 end
 
 return Pass

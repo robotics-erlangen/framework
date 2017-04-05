@@ -30,7 +30,7 @@ function DoubleTouchGuard:check()
 end
 
 function DoubleTouchGuard:_updateTask()
-	return StopAttack
+	return StopAttack, {0.15}
 end
 
 return DoubleTouchGuard

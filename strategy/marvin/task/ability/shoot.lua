@@ -35,10 +35,12 @@ local EXTRA_MOVE_SPEED_LIMIT = 0.5
 
 local SAFETY_TIME = 0.2
 local SAFETY_TIME_HYSTERESIS = 0.4
-local BLOCK_ANGLE = 65 / 180 * math.pi
+local BLOCK_ANGLE = 75 / 180 * math.pi
 local BLOCK_HYSTERESIS = 20 / 180 * math.pi
 local OPP_TIME_HYSTERESIS = 0.1
 local IN_THE_RUN = 1.5
+
+Shoot.CHIP_PASS_DISTANCE_FACTOR = 0.65
 
 
 function Shoot:init()
@@ -400,7 +402,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dont
 		else
 			--shorten distance because ball will bounce
 			-- optimal values is 0.62, but give the robot a bit more room
-			self._robot:chip(dist * (1 - Constants.floorDamping))
+			self._robot:chip(dist * Shoot.CHIP_PASS_DISTANCE_FACTOR)
 			debug.set("shoot command", "chip")
 		end
 		self:_doForceShoot()

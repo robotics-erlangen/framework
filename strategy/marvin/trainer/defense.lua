@@ -141,22 +141,22 @@ function Defense:_assignDefenders()
 		end
 	end
 
-	if needDefaultCB then
-		local volleyDangerousness = UtilDefense.rateVolleyGoalShotThreats()
-		for _, robot in ipairs(World.OpponentRobots) do
-			if volleyDangerousness[robot] and volleyDangerousness[robot] > 0.5 then
-				for _ = 1,2 do
-					local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
-					if defaultCB then
-						table.removeValue(defenders, defaultCB)
-						self._send.roleAssignment(defaultCB,
-							{name = "CenterBack", params = { World.Ball }})
-					end
-				end
-				break
-			end
-		end
-	end
+	-- if needDefaultCB then
+	-- 	local volleyDangerousness = UtilDefense.rateVolleyGoalShotThreats()
+	-- 	for _, robot in ipairs(World.OpponentRobots) do
+	-- 		if volleyDangerousness[robot] and volleyDangerousness[robot] > 0.5 then
+	-- 			for _ = 1,2 do
+	-- 				local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
+	-- 				if defaultCB then
+	-- 					table.removeValue(defenders, defaultCB)
+	-- 					self._send.roleAssignment(defaultCB,
+	-- 						{name = "CenterBack", params = { World.Ball }})
+	-- 				end
+	-- 			end
+	-- 			break
+	-- 		end
+	-- 	end
+	-- end
 
 	self:_assignManmarkDefenders(defenders, nReservedDefenders)
 end
