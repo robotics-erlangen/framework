@@ -47,10 +47,9 @@ function Striker:run(sender, inbox, messages)
 		self._prevZoneCount = zoneCount
 	end
 
-	local zoneWidth = G.FieldWidth / zoneCount
-	local zoneWidthHalf = zoneWidth * 0.5
 
 	-- calculate and visualize the zone boundaries and default positions
+	local zoneWidth = G.FieldWidth / zoneCount
 	for i = 1, zoneCount do
 		local zoneLeft = -G.FieldWidthHalf + (i - 1) * zoneWidth
 		local zoneRight = zoneLeft + zoneWidth

@@ -307,7 +307,7 @@ function Ball._updateIsDangerousDuelSituation()
 		return false
 	end
 
-	for time, entry in pairs(ballPosBuffer) do
+	for time in pairs(ballPosBuffer) do
 		if World.Time - time > ballPosBufferTimeFrame then
 			ballPosBuffer[time] = nil
 		end
