@@ -7,7 +7,7 @@ local ToTarget = require "trajectory/totarget"
 
 function MoveToStaticBall:_init(rotation, distanceToBall)
 	self._rotation = rotation or math.pi/2
-	self._distanceToBall = distanceToBall or 0.05
+	self._distanceToBall = distanceToBall or 0.03
 end
 
 function MoveToStaticBall:run()

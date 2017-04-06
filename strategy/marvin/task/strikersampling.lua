@@ -66,6 +66,10 @@ function StrikerSampling:volleyPass(pos)
 	return rating
 end
 
+function StrikerSampling:distToGoal(pos)
+	return Rating.valueToRating(pos:distanceTo(World.Geometry.OpponentGoal), World.Geometry.FieldHeight * 0.7, World.Geometry.FieldHeight * 0.2)
+end
+
 
 function StrikerSampling:evalLocation(pos, bestScore)
 	local score = 1
@@ -79,6 +83,9 @@ function StrikerSampling:evalLocation(pos, bestScore)
 	-- score = score * self:oneTouchShot(pos)
 	-- score = score * self:dontAnnoyMainAttacker(pos)
 	-- score = score * self:passInterception(pos)
+
+	score = score * self:distToGoal(pos)
+	if score < bestScore then return score end
 
 	score = score * self:passTooShort(pos)
 	if score < bestScore then return score end

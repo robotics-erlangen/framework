@@ -63,7 +63,7 @@ function Striker:_searchForPassDest()
 	local grid_point_count_x = 5
 	local grid_point_count_y = 5
 
-	local min_y = -G.FieldHeightHalf / 4
+	local min_y = 0 -- -G.FieldHeightHalf / 4
 
 	local grid_point_dist_x = G.FieldWidth / grid_point_count_x
 	local grid_point_dist_y = (G.FieldHeightHalf - min_y) / grid_point_count_y

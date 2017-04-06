@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local FreeKick = Class("Agent.Attacker.FreeKick", Base)
 
 local debug = require "../base/debug"
+local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Robot = require "observer/robot"
@@ -12,6 +13,7 @@ local MoveToStaticBall = require "task/movetostaticball"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
 local Attack = require "util/attack"
+local Rating = require "util/rating"
 local ShootGoalUtil = require "util/shootgoal"
 
 
