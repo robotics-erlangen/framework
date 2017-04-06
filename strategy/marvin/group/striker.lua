@@ -1,5 +1,6 @@
 local Striker = Class("Group.Striker")
 
+local Field = require "../base/field"
 local World = require "../base/world"
 local G = World.Geometry
 
@@ -7,9 +8,24 @@ function Striker:init()
 	self.name = "striker"
 	self._robots = {}
 
+	self._defaultPositions = {}
+
 	self._zoneCount = 0
+	self._prevZoneCount = nil
 	self._unoccupiedZoneIndex = nil
 	self._lastMainAttacker = nil
+end
+
+function Striker:_setDefaultPositions(zoneCount)
+	local zoneWidth = G.FieldWidth / zoneCount
+	for i = 1, zoneCount do
+		local x = (math.random() * 0.8 + 0.1) * zoneWidth + (i - 1) * zoneWidth - G.FieldWidthHalf
+		local y
+		repeat
+			y = math.random() * 0.9 * G.FieldHeightHalf
+		until not Field.isInOpponentDefenseArea(Vector(x, y), 0.2)
+		self._defaultPositions[i] = Vector(x, y)
+	end
 end
 
 function Striker:run(sender, inbox, messages)
@@ -26,17 +42,20 @@ function Striker:run(sender, inbox, messages)
 		zoneCount = zoneCount + 1
 	end
 
+	if zoneCount ~= self._prevZoneCount then
+		self:_setDefaultPositions(zoneCount)
+		self._prevZoneCount = zoneCount
+	end
+
 	local zoneWidth = G.FieldWidth / zoneCount
 	local zoneWidthHalf = zoneWidth * 0.5
 
 	-- calculate and visualize the zone boundaries and default positions
 	for i = 1, zoneCount do
-		local x = i * zoneWidth - G.FieldWidthHalf - zoneWidthHalf
-		local y = G.FieldHeightQuarter + x * x / (G.FieldHeightQuarter * G.FieldHeightQuarter)
-
-		local boundaries = { left = x - zoneWidthHalf, right = x + zoneWidthHalf,
-			top = G.FieldHeightHalf, bottom = 0 }
-		table.insert(zones, {defaultPos = Vector(x, y), boundaries = boundaries })
+		local zoneLeft = -G.FieldWidthHalf + (i - 1) * zoneWidth
+		local zoneRight = zoneLeft + zoneWidth
+		local boundaries = { left = zoneLeft, right = zoneRight, top = G.FieldHeightHalf, bottom = 0 }
+		table.insert(zones, {defaultPos = self._defaultPositions[i], boundaries = boundaries })
 	end
 
 	-- if the number of zones changes, invalidate the empty zone to get rid of the hysteresis
