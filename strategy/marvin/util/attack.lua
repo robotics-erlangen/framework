@@ -254,7 +254,7 @@ end
 local function calculatePassInfoTiming(robot, passInfo)
 	if passInfo then
 		local robotTime = Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true)
-		local bufferTime = 0.2 + 0.1 * robot.speed:length()
+		local bufferTime = 0.4 + 0.1 * robot.speed:length()
 
 		debug.set("robotTime", robotTime + bufferTime)
 		debug.set("ballTime", passInfo.time - World.Time)

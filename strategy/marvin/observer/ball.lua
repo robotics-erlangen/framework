@@ -4,6 +4,7 @@ local Cache = require "../base/cache"
 local debug = require "../base/debug"
 local geom = require "../base/geom"
 local plot = require "../base/plot"
+local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
@@ -28,6 +29,26 @@ function Ball.firstRobotAtBall(robotlist)
 	return minRobot, minTime
 end
 Ball.firstRobotAtBall = Cache.forFrame(Ball.firstRobotAtBall)
+
+function Ball.opponentBallDribbler()
+	local MAX_SPEED_DIFF = 0.4
+	local MAX_DISTANCE = 0.3
+	local MAX_ANGLE = 60 / 180 * math.pi
+	local bestRobot = nil
+	local bestDist = math.huge
+	for _, robot in ipairs(World.OpponentRobots) do
+		local distance = robot.pos:distanceTo(World.Ball.pos)
+		local direction = Vector.fromAngle(robot.dir)
+		if (robot.speed - World.Ball.speed):length() < MAX_SPEED_DIFF and
+				distance < MAX_DISTANCE and distance < bestDist and
+				direction:absoluteAngleDiff(World.Ball.pos - robot.pos) < MAX_ANGLE then
+			bestRobot = robot
+			bestDist = distance
+		end
+	end
+	return bestRobot
+end
+Ball.opponentBallDribbler = Cache.forFrame(Ball.opponentBallDribbler)
 
 --- Returns wether or not the ball is heading for a goal
 -- @param ball - a ball like structure
@@ -276,5 +297,56 @@ function Ball._updateIsShot()
 
 	plot.addPlot("isShot", robot and (robot.id + (robot.isFriendly and 0 or 0.5)) or -1)
 end
+
+local ballPosBuffer = {}
+local ballPosBufferTimeFrame = 1
+local ballPosBufferMaxBallSpeed = 1
+function Ball._updateIsDangerousDuelSituation()
+	if not Referee.isGameState() or World.Ball.speed:length() > ballPosBufferMaxBallSpeed then
+		ballPosBuffer = {}
+		return false
+	end
+
+	for time in pairs(ballPosBuffer) do
+		if World.Time - time > ballPosBufferTimeFrame then
+			ballPosBuffer[time] = nil
+		end
+	end
+
+	-- if World.Ball.speed:length() < ballPosBufferMaxBallSpeed then
+		ballPosBuffer[World.Time] = World.Ball.pos
+	-- end
+end
+
+local ballPosHysteresis = 0.5 -- to each side
+local function isDangerousDuelSituation(lastDecision)
+	local max_y = -math.huge
+	local min_time = math.huge
+	local max_time = 0
+	for time, ballPos in pairs(ballPosBuffer) do
+		if ballPos.y > max_y then
+			max_y = ballPos.y
+		end
+		if time < min_time then
+			min_time = time
+		end
+		if time > max_time then
+			max_time = time
+		end
+	end
+
+	local time_interval = max_time - min_time
+	if time_interval == math.huge or time_interval <= 0.5 then
+		return false
+	end
+
+	local hysteresis = lastDecision and -ballPosHysteresis or ballPosHysteresis
+	local danger = max_y + hysteresis < -0.2 * World.Geometry.FieldHeightHalf
+
+	if danger then
+		vis.addCircle("o/ball: dangerous duel situation", World.Ball.pos, 0.07, vis.colors.redHalf, true)
+	end
+end
+Ball.isDangerousDuelSituation = Cache.forFrame(isDangerousDuelSituation)
 
 return Ball

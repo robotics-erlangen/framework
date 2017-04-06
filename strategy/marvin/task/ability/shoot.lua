@@ -40,7 +40,7 @@ local BLOCK_HYSTERESIS = 20 / 180 * math.pi
 local OPP_TIME_HYSTERESIS = 0.1
 local IN_THE_RUN = 1.5
 
-Shoot.CHIP_PASS_DISTANCE_FACTOR = 0.65
+Shoot.CHIP_PASS_DISTANCE_FACTOR = 0.4
 
 
 function Shoot:init()

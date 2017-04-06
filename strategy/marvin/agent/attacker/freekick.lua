@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local FreeKick = Class("Agent.Attacker.FreeKick", Base)
 
 local debug = require "../base/debug"
+local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Robot = require "observer/robot"
@@ -12,6 +13,7 @@ local MoveToStaticBall = require "task/movetostaticball"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
 local Attack = require "util/attack"
+local Rating = require "util/rating"
 local ShootGoalUtil = require "util/shootgoal"
 
 
@@ -21,10 +23,6 @@ function FreeKick:_stop()
 	self._dirty = false
 	self._pass = nil
 	self._waitStartTime = nil
-
-	self._redeciding = false
-	self._redecisionContingent = 3
-	self._nextRedecisionTime = 0
 end
 
 function FreeKick:start()
@@ -50,21 +48,6 @@ function FreeKick:check()
 
 	return false
 end
-
-function FreeKick:_redecide()
-	if self._redecisionContingent > 0 and World.Time > self._nextRedecisionTime then
-		self._pass = Attack.choosePassFromSuggestions(self._robot,
-			self._inbox.passSuggestion(), nil, false)
-
-		self._redecisionContingent = self._redecisionContingent - 1
-		self._nextRedecisionTime = World.Time + 0.5
-		self._redeciding = true
-		log("redeciding")
-	else
-		self._redeciding = false
-	end
-end
-
 
 function FreeKick:_updateTask()
 	local prevState = self._state
@@ -100,15 +83,12 @@ function FreeKick:_updateTask()
 		elseif timeRunningOut and Referee.isFriendlyFreeKickState() then
 			self._state = "shootgoal"
 		elseif World.Time - self._waitStartTime > MIN_PASS_WAIT_TIME then
-			self:_redecide()
+			self._pass = Attack.choosePassFromSuggestions(self._robot,
+				self._inbox.passSuggestion(), nil, false)
 			if self._pass then
 				self._state = "pass_prepare"
 			end
 		end
-	end
-
-	if self._state == "pass_prepare" or self._state == "pass" then
-		self:_redecide()
 	end
 
 	-- pass_prepare -> pass
@@ -116,7 +96,9 @@ function FreeKick:_updateTask()
 		local shootPos = self._pass.ballPos + (G.OpponentGoal - self._pass.ballPos):setLength(
 			self._pass.target.shootRadius + World.Ball.radius)
 		local ballTime = Shoot.ballPassTime(World.Ball.pos, shootPos, self._pass.target)
-		local robotTime = Robot.minShootTime(self._robot, shootPos)
+		local extraTime = Rating.valueToRating(math.abs(geom.getAngleDiff(self._robot.dir,
+			(shootPos - World.Ball.pos):angle())), 0, math.pi) * 0.8
+		local robotTime = Robot.minShootTime(self._robot, shootPos) + extraTime
 		if World.Time + robotTime + ballTime >= self._pass.time then
 			self._state = "pass"
 		end

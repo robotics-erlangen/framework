@@ -6,6 +6,7 @@ local Field = require "../base/field"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local vis = require "../base/vis"
+local Goal = require "observer/goal"
 local CenterBack = require "task/centerback"
 local Duel = require "task/duel"
 local ManMarkTask = require "task/manmark"
@@ -34,7 +35,9 @@ function ManMark:_updateTask()
 	local dest = Defense.manMarkPos(self._opp)
 
 	-- try to intercept a possible goal shot
-	if Defense.dangerousBallTowardsDefense() then
+	local _, _, _, passReceivers = Goal.predictShot()
+	local passReceiver = passReceivers[1] and passReceivers[1][1]
+	if Defense.dangerousBallTowardsDefense() or self._opp == passReceiver then
 		local defenseAreaIntersection = Field.intersectRayDefenseArea(World.Ball.pos,
 			World.Ball.pos + World.Ball.speed, 0, false)
 		if defenseAreaIntersection and World.Ball.pos:distanceTo(defenseAreaIntersection)
