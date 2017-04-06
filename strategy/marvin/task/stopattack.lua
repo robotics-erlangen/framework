@@ -43,8 +43,9 @@ function StopAttack:run()
 	-- try to always be where the opponent shooter will try to shoot
 	local isOpponentFreekickState = World.RefereeState == "IndirectDefensive" or World.RefereeState == "DirectDefensive"
 	local defendOpponentPasses = World.Ball.pos.y > 0 and isOpponentFreekickState
-	if dist < 0.2 + self._robot.radius and defendOpponentPasses then
-		local passReceivers = RobotList.excludeRobots(World.OpponentRobots, {opponentShooter, World.OpponentKeeper})
+
+	local passReceivers = RobotList.excludeRobots(World.OpponentRobots, {opponentShooter, World.OpponentKeeper})
+	if dist < 0.2 + self._robot.radius and defendOpponentPasses and #passReceivers > 0 then
 		local minAngle = math.huge
 		local maxAngle = -math.huge
 		for _, robot in ipairs(passReceivers) do
