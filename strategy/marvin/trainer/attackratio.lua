@@ -118,12 +118,16 @@ function AttackRatio:attackerDefenderDistribution()
 		self._send.forcePoolChange("trainer", { robot = previousMainAttacker, destPool = "defender" })
 	end
 	if mainAttackerIsDefender then
-		-- for _,poolChangeEntry in ipairs(self:changingRobots()) do
-		-- 	if poolChangeEntry.robot == mainAttacker then
-				attackers = attackers - 1
-		-- 		break
-		-- 	end
-		-- end
+		local mainAttackerWantsToChange = false
+		for _,poolChangeEntry in ipairs(self:changingRobots()) do
+			if poolChangeEntry.robot == mainAttacker then
+				mainAttackerWantsToChange = true
+				break
+			end
+		end
+		if not mainAttackerWantsToChange then
+			attackers = attackers - 1
+		end
 	end
 
 	self._dangerousDuelSituation = Ball.isDangerousDuelSituation(self._dangerousDuelSituation)
