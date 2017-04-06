@@ -75,7 +75,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 
 	-- predict ball and catch it
 	local predictedBall = Physics.ballAtTime(ball, self._catchTime)
-	if ballInsideRobot then
+	if ballInsideRobot or predictedBall.pos:isNan() or predictedBall.speed:isNan() then
 		predictedBall = { pos = self._lastReasonableBallPos, speed = Vector(0, 0), maxSpeed = ball.maxSpeed, radius = ball.radius }
 	end
 
