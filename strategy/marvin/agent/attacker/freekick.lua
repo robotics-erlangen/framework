@@ -94,7 +94,9 @@ function FreeKick:_updateTask()
 		local shootPos = self._pass.ballPos + (G.OpponentGoal - self._pass.ballPos):setLength(
 			self._pass.target.shootRadius + World.Ball.radius)
 		local ballTime = Shoot.ballPassTime(World.Ball.pos, shootPos, self._pass.target)
-		local robotTime = Robot.minShootTime(self._robot, shootPos) + 0.7
+		local extraTime = Rating.valueToRating(math.abs(geom.getAngleDiff(self._robot.dir,
+			(shootPos - World.Ball.pos):angle())), 0, math.pi) * 0.8
+		local robotTime = Robot.minShootTime(self._robot, shootPos) + extraTime
 		if World.Time + robotTime + ballTime >= self._pass.time then
 			self._state = "pass"
 		end
