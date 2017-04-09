@@ -4,7 +4,6 @@ local Physics = require "observer/physics"
 local IO = require "util/io"
 local debug = require "../base/debug"
 local vis = require "../base/vis"
-local World = require "../base/world"
 
 
 function PhysicsTest.testBallVsRobotTime()
