@@ -115,6 +115,7 @@ function debug.set(name, value, visited)
 	elseif type(value) == "userdata" or type(value) == "cdata" then
 		value = tostring(value)
 	end
+
 	amun.addDebug(prefixName(name), value)
 end
 
