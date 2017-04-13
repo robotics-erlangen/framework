@@ -11,9 +11,6 @@ local Robot = require "observer/robot"
 local BallEscortTask = require "task/ballescort"
 local InterceptPass = require "task/interceptpass"
 
-local G = World.Geometry
-local ballOutPos
-
 
 function BallEscort:_init()
 	self._ownTask = nil

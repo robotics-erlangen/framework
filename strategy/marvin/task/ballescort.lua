@@ -1,9 +1,8 @@
 local BallEscort = Class("Task.BallEscort", require "task/base")
 
-local geom = require "../base/geom"
 local World = require "../base/world"
-local ToTarget = require "trajectory/totarget"
 local PathHelper = require "trajectory/pathhelper"
+local ToTarget = require "trajectory/totarget"
 
 
 function BallEscort:_init(opponentRobot)
