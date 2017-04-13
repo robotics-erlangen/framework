@@ -7,6 +7,8 @@ local World = require "../base/world"
 
 local ObserverShoot = require "observer/shoot"
 
+local CHIP_PASS_DISTANCE_FACTOR = 0.4
+
 function Pass:_init(targetRobot, targetPos, chip, passSpeed)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
@@ -39,15 +41,23 @@ function Pass:run()
 		maxAngleError = 1 * math.pi / 180
 	end
 
+	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
+	attackPosition = attackPosition or World.Ball.pos
+
+
 	local chip = self._chip
 	if self._chip == nil then
-		local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
-		local corridor = ObserverShoot.evaluatePassCorridor(
-			attackPosition or World.Ball.pos, self._targetPos, Shoot.CHIP_PASS_DISTANCE_FACTOR)
+		local corridor = ObserverShoot.evaluatePassCorridor(attackPosition,
+			self._targetPos, CHIP_PASS_DISTANCE_FACTOR)
 		chip = corridor == "chip"
 	end
 
-	self:_shoot(self._targetPos, self._passSpeed, not chip, maxAngleError, false)
+	local targetPos = self._targetPos
+	if chip then
+		targetPos = attackPosition + (targetPos - attackPosition) * CHIP_PASS_DISTANCE_FACTOR
+	end
+
+	self:_shoot(targetPos, self._passSpeed, not chip, maxAngleError, false)
 end
 
 return Pass

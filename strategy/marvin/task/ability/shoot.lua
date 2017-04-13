@@ -40,8 +40,6 @@ local BLOCK_HYSTERESIS = 20 / 180 * math.pi
 local OPP_TIME_HYSTERESIS = 0.1
 local IN_THE_RUN = 1.5
 
-Shoot.CHIP_PASS_DISTANCE_FACTOR = 0.4
-
 
 function Shoot:init()
 	self._shootHysteresis = false
@@ -395,14 +393,12 @@ function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dont
 		accel = Vector.fromAngle(targetDir) * accelerate
 		extraSpeed = Vector.fromAngle(targetDir) * self._extraMoveSpeed
 
-		local dist = targetPos:distanceTo(self._robot.pos)
+		local dist = targetPos:distanceTo(World.Ball.pos)
 		if linearShoot then
 			self._robot:shoot(kickSpeed, true)
 			debug.set("shoot command", "linear")
 		else
-			--shorten distance because ball will bounce
-			-- optimal values is 0.62, but give the robot a bit more room
-			self._robot:chip(dist * Shoot.CHIP_PASS_DISTANCE_FACTOR)
+			self._robot:chip(dist)
 			debug.set("shoot command", "chip")
 		end
 		self:_doForceShoot()

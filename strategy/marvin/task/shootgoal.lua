@@ -78,9 +78,8 @@ function ShootGoal:run()
 		-- perform a chip shot
 		self._desperateChipTargetPoint = G.OpponentGoal
 			+ (World.Ball.pos - G.OpponentGoal):setLength(World.Geometry.DefenseRadius+0.1)
-		local chipDest = self._desperateChipTargetPoint + (self._desperateChipTargetPoint - World.Ball.pos) * (1 / Shoot.CHIP_PASS_DISTANCE_FACTOR)
-		self:_shoot(chipDest,
-			chipDest:distanceTo(World.Ball.pos), false, maxAngleError)
+		self:_shoot(self._desperateChipTargetPoint,
+			self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, maxAngleError)
 	end
 	self:_drawDebugInfo()
 end
