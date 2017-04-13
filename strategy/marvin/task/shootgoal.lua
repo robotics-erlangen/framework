@@ -8,6 +8,7 @@ local World = require "../base/world"
 
 local Ball = require "observer/ball"
 local PathHelper = require "trajectory/pathhelper"
+local Rating = require "util/rating"
 local ShootGoalUtil = require "util/shootgoal"
 
 local G = World.Geometry
@@ -57,6 +58,13 @@ function ShootGoal:run()
 			ShootGoalUtil.updateTarget(self._robot, self._shootTargetPoint, self._dirty)
 	end
 
+	-- aim at the center of the goal when shooting from too far away
+	local maxDistance = 0.75 * G.FieldHeight
+	local minDistance = 0.25 * G.FieldHeight
+	local distance = self._robot.pos:distanceTo(self._shootTargetPoint)
+	local localTargetX = Rating.valueToRating(distance, maxDistance, minDistance) * self._shootTargetPoint.x
+	local localTarget = Vector(localTargetX, self._shootTargetPoint.y)
+	
 	debug.set("receivesPass", Ball.receivesPass(self._robot))
 
 	self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
