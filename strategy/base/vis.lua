@@ -164,6 +164,7 @@ end
 -- @param color table - color (optional)
 -- @param isFilled bool - fill circle (optional)
 function vis.addCircle(name, center, radius, color, isFilled, background, style, lineWidth)
+	assert(radius)
 	vis.addCircleRaw(name, Coordinates.toGlobal(center), radius, color, isFilled, background, style, lineWidth)
 end
 
