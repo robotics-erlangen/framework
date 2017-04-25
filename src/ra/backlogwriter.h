@@ -32,7 +32,7 @@ class BacklogWriter : public QObject
 {
     Q_OBJECT
 public:
-    BacklogWriter();
+    BacklogWriter(unsigned seconds);
 
 signals:
     void enableBacklogSave(bool enabled);
@@ -50,8 +50,8 @@ private:
 private:
     QContiguousCache<QByteArray> m_packets;
 
-    // with both strategys running around 70 seconds
-    const int BACKLOG_SIZE = 40000;
+    // approximately, with both strategys running
+    const int BACKLOG_SIZE_PER_SECOND = 570;
 };
 
 #endif // BACKLOGWRITER_H

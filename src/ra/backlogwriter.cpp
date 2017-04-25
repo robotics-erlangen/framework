@@ -23,9 +23,9 @@
 #include <QString>
 #include <QByteArray>
 
-BacklogWriter::BacklogWriter()
+BacklogWriter::BacklogWriter(unsigned seconds)
 {
-    m_packets.setCapacity(BACKLOG_SIZE);
+    m_packets.setCapacity(BACKLOG_SIZE_PER_SECOND*seconds);
     connect(this, SIGNAL(clearData()), this, SLOT(clear()), Qt::QueuedConnection);
 }
 

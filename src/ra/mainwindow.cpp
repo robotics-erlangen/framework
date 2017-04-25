@@ -82,7 +82,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // start backlog writer thread
     m_backlogThread = new QThread();
     m_backlogThread->start();
-    m_backlogWriter = new BacklogWriter();
+    m_backlogWriter = new BacklogWriter(60);
     m_backlogWriter->moveToThread(m_backlogThread);
 
     // setup ui parts that send commands
