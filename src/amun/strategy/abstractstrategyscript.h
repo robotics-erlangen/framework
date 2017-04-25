@@ -77,6 +77,7 @@ signals:
     void sendStrategyCommand(bool blue, uint generation, uint id, const QByteArray &data, qint64 time);
     void sendMixedTeamInfo(const QByteArray &data);
     void sendNetworkRefereeCommand(const QByteArray &data);
+    void sendAutorefEvent(const QByteArray &data);
 
 protected:
     QStringList m_entryPoints;

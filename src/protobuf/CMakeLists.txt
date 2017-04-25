@@ -33,6 +33,7 @@ set(PROTO_FILES
     debug.proto
     gamestate.proto
     robot.proto
+    ssl_autoref.proto
     ssl_detection.proto
     ssl_geometry.proto
     ssl_mixed_team.proto

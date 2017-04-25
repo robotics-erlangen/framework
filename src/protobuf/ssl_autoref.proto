@@ -1,0 +1,64 @@
+syntax = "proto2";
+package ssl;
+import "ssl_referee.proto";
+
+message SSL_Autoref {
+    message GameTimeStamp {
+        required SSL_Referee.Stage game_stage = 1;
+        optional sint32 stage_time_left = 2;
+    }
+    required GameTimeStamp game_timestamp = 1;
+
+    // The UNIX timestamp when the command was issued, in microseconds.
+    optional uint64 command_timestamp = 2;
+
+    enum Team {
+        BLUE = 1;
+        YELLOW = 2;
+    }
+
+    message RuleInfringement {
+        enum FoulType {
+            BALL_SPEED = 1;
+            DEFENDER_DEFENSE_AREA_PARTIAL = 2;
+            DEFENDER_DEFENSE_AREA_FULL = 3;
+            ATTACKER_DEFENSE_AREA = 4;
+            DEFENSE_AREA_DISTANCE = 5;
+            COLLISION = 6;
+            DOUBLE_TOUCH = 7;
+            DRIBBLING = 8;
+            STOP_BALL_DISTANCE = 9;
+            STOP_SPEED = 10;
+            NUMBER_OF_PLAYERS = 11;
+            CARPETING = 12;
+            OUT_OF_FIELD = 13;
+        }
+        required FoulType foul_type = 1;
+        required Team offending_team = 2;
+        repeated uint32 offending_robots = 3;
+        optional string reason = 4;
+    }
+
+    message Point {
+        required float x = 1;
+        required float y = 2;
+    }
+
+    message Goal {
+        required Team scoring_team = 1;
+        optional Point position = 2;
+        optional uint32 scoring_robot = 3;
+    }
+
+    message BallOutOfField {
+        required Team last_touch = 1;
+        required Point position = 2;
+    }
+
+    oneof event {
+        BallOutOfField ball_out_of_field = 3;
+        RuleInfringement foul = 4;
+        Goal goal = 5;
+        bool lack_of_progress = 6;
+    }
+}

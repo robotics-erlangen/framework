@@ -513,6 +513,15 @@ void Lua::sendMixedTeam(const QByteArray &info)
     emit sendMixedTeamInfo(info);
 }
 
+bool Lua::sendAutoref(const QByteArray &event)
+{
+    if (m_type != StrategyType::AUTOREF) {
+        return false;
+    }
+    emit sendAutorefEvent(event);
+    return true;
+}
+
 void Lua::watch(const QString &filename)
 {
     m_watcher->addFile(filename);

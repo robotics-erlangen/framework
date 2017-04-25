@@ -22,6 +22,7 @@
 #include "lua.h"
 #include "lua_protobuf.h"
 #include "protobuf/ssl_refbox_remotecontrol.pb.h"
+#include "protobuf/ssl_autoref.pb.h"
 #include <QtEndian>
 
 static int amunGetGeometry(lua_State *state)
@@ -238,6 +239,23 @@ static int amunSendMixedTeamInfo(lua_State *state)
     return 0;
 }
 
+static int amunSendAutorefEvent(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+
+    ssl::SSL_Autoref autorefEvent;
+    protobufToMessage(state, 1, autorefEvent);
+
+    QByteArray data;
+    data.resize(autorefEvent.ByteSize());
+    if (!autorefEvent.SerializeToArray(data.data(), data.size())) {
+        luaL_error(state, "Invalid autoref event packet!");
+    }
+
+    thread->sendAutoref(data);
+    return 0;
+}
+
 static int amunSendNetworkRefereeCommand(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
@@ -287,6 +305,7 @@ static const luaL_Reg amunMethods[] = {
     {"sendRefereeCommand",  amunSendRefereeCommand},
     {"sendMixedTeamInfo",   amunSendMixedTeamInfo},
     {"sendNetworkRefereeCommand",  amunSendNetworkRefereeCommand},
+    {"sendAutorefEvent",    amunSendAutorefEvent},
     {0, 0}
 };
 
