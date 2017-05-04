@@ -8,10 +8,8 @@ local Constants = require "../base/constants"
 local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
-local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
-local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local TrajectoryDirect = require "trajectory/direct"
@@ -44,6 +42,10 @@ local SIDEWARDS_SPEED_LIMIT = 0.5
 -- chip distance scaling factor for passes
 local CHIP_PASS_DISTANCE_FACTOR = 0.4
 
+-- if the robot view direction and the shoot direction differ less than MIN_PRECISION
+-- the robot is allowed to shoot the ball
+local MIN_PRECISION = 5 * math.pi / 180
+
 
 function Shoot:init()
 	-- possible values = { StationaryBall, ChaseBall, Volley, StopBall }
@@ -55,6 +57,9 @@ function Shoot:init()
 
 	self._lastTargetPos = nil
 	self._linearShoot = true
+
+	self._precision = 0
+	self._rightOrientation = false
 end
 
 
@@ -140,11 +145,23 @@ function Shoot:_correctSidewardsOffset()
 end
 
 function Shoot:_sendShootCommand(kickSpeed, targetPos)
-	if self._linearShoot then
-		self._robot:shoot(kickSpeed, true)
-	else
-		local dist = World.Ball.pos:distanceTo(targetPos)
-		self._robot:chip(dist)
+	local dribblerOffset = Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
+	local dribblerPos = self._robot.pos + dribblerOffset
+	local shootVector = targetPos - dribblerPos
+	local angleDiff = math.abs(geom.normalizeAngle(self._robot.dir - shootVector:angle()))
+	debug.set("Shoot/angleDiff (degrees)", angleDiff * 180 / math.pi)
+
+	local threshhold = self._precision * (self._rightOrientation and 1.5 or 0.5)
+	self._rightOrientation = angleDiff < threshhold
+	debug.set("Shoot/rightOrientation", self._rightOrientation)
+
+	if self._rightOrientation then
+		if self._linearShoot then
+			self._robot:shoot(kickSpeed, true)
+		else
+			local dist = World.Ball.pos:distanceTo(targetPos)
+			self._robot:chip(dist)
+		end
 	end
 end
 
@@ -195,7 +212,6 @@ function Shoot:_shootChaseBall(targetPos, targetSpeed)
 
 	local currentDribblerPos = self._robot.pos + dribblerOffset
 	if World.Ball.pos:distanceTo(currentDribblerPos) < 0.15 then
-		local distance = targetPos:distanceTo(futureBall.pos)
 		self:_sendShootCommand(kickSpeed, targetPos)
 	end
 end
@@ -222,7 +238,7 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 	end
 end
 
-function Shoot:_shootStopBall(targetPos, targetSpeed, futureBall, futureBallTime)
+function Shoot:_shootStopBall(futureBall, futureBallTime)
 	local ballOrigin = futureBall.pos - futureBall.speed
 	local targetDir = (-futureBall.speed):angle()
 	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
@@ -236,9 +252,11 @@ function Shoot:_shootStopBall(targetPos, targetSpeed, futureBall, futureBallTime
 	else
 		self:_catchBall(ballOrigin, 0, 8)
 	end
+
+	self._rightOrientation = false
 end
 
-function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot)
+function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, precision)
 	local futureBall, futureBallTime = self:_calculateFutureBall(ballReceiptPos)
 	debug.set("Shoot/futureBallTime", futureBallTime - World.Time)
 
@@ -246,6 +264,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot)
 	debug.set("Shoot/State", self._state)
 
 	self._linearShoot = linearShoot
+	self._precision = precision or MIN_PRECISION
 
 	local color
 	if self._state == "StationaryBall" then
@@ -258,7 +277,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot)
 		self:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 		color = vis.colors.greenHalf
 	else -- "StopBall"
-		self:_shootStopBall(targetPos, targetSpeed, futureBall, futureBallTime)
+		self:_shootStopBall(futureBall, futureBallTime)
 		color = vis.colors.redHalf
 	end
 
@@ -271,32 +290,32 @@ end
 -- @param targetPos Vector - where to shoot at
 -- @param targetSpeed Vector - the velocity of the ball when it reaches targetPos
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
-function Shoot:_shootNEW(targetPos, targetSpeed, ballReceiptPos)
-	self:_doShoot(targetPos, targetSpeed, ballReceiptPos, true)
+function Shoot:_shootNEW(targetPos, targetSpeed, ballReceiptPos, precision)
+	self:_doShoot(targetPos, targetSpeed, ballReceiptPos, true, precision)
 end
 
 --- chips the ball such that it hits the ground at firstContactPos
 -- @param firstContactPos Vector - where the ball hits the ground the first time
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
-function Shoot:_chipToPos(firstContactPos, ballReceiptPos)
-	self:_doShoot(firstContactPos, 8, ballReceiptPos, false)
+function Shoot:_chipToPos(firstContactPos, ballReceiptPos, precision)
+	self:_doShoot(firstContactPos, 8, ballReceiptPos, false, precision)
 end
 
 --- chips the ball such that it can be accepted at rollingBallPos
 -- @param rollingBallPos Vector - where the ball is starting to roll
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
-function Shoot:_chipPass(rollingBallPos, ballReceiptPos)
+function Shoot:_chipPass(rollingBallPos, ballReceiptPos, precision)
 	local origin = ballReceiptPos or World.Ball.pos
 	local firstContactPos = origin + (rollingBallPos - origin):scaleLength(CHIP_PASS_DISTANCE_FACTOR)
-	self:_chipToPos(firstContactPos, ballReceiptPos)
+	self:_chipToPos(firstContactPos, ballReceiptPos, precision)
 end
 
 -- LEGACY
-function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError, ballReceiptPos)
+function Shoot:_shoot(targetPos, targetSpeed, linearShoot, precision, ballReceiptPos)
 	if linearShoot then
-		self:_shootNEW(targetPos, targetSpeed, ballReceiptPos)
+		self:_shootNEW(targetPos, targetSpeed, ballReceiptPos, precision)
 	else
-		self:_chipToPos(targetPos, nil, ballReceiptPos)
+		self:_chipToPos(targetPos, nil, ballReceiptPos, precision)
 	end
 end
 
