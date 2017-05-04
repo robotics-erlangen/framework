@@ -174,8 +174,8 @@ function Ball._updateReceivesPass()
 	end
 
 	local ballDir = World.Ball.speed:angle()
-	local coneWidthSmall = 40 * math.pi / 180
-	local coneWidthLarge = 60 * math.pi / 180
+	local coneWidthSmall = 50 * math.pi / 180
+	local coneWidthLarge = 65 * math.pi / 180
 	local coneAngleMinSmall = ballDir - coneWidthSmall / 2
 	local coneAngleMinLarge = ballDir - coneWidthLarge / 2
 
@@ -185,7 +185,8 @@ function Ball._updateReceivesPass()
 		-- check if the robot is inside the cone (hysteresis)
 		local coneWidth = ballRecipients[robot] and coneWidthLarge or coneWidthSmall
 		local coneAngleMin = ballRecipients[robot] and coneAngleMinLarge or coneAngleMinSmall
-		local dribblerPos = robot.pos + Vector.fromAngle(robot.dir) * robot.shootRadius
+		local extrapolatedRobotPos = robot.pos + robot.speed * 0.4
+		local dribblerPos = extrapolatedRobotPos + Vector.fromAngle(robot.dir) * robot.shootRadius
 		local toRobotAngle = (dribblerPos - World.Ball.pos):angle()
 		if World.Ball.pos:distanceTo(robot.pos) > World.Ball.radius + robot.shootRadius
 				and geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth then
