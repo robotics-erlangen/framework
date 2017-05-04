@@ -18,10 +18,13 @@ function Move:check()
 end
 
 function Move:_updateTask()
-	local _, msg = next(self._inbox.passInfo())
-	if msg ~= nil then
-		if msg.robot == self._robot then
-			self._forceKeepingInPool = true
+	local _, passInfoTable = next(self._inbox.passInfo())
+	if passInfoTable then
+		for _, passInfo in ipairs(passInfoTable) do
+			if passInfo.target == self._robot then
+				self._forceKeepingInPool = true
+				break
+			end
 		end
 	end
 

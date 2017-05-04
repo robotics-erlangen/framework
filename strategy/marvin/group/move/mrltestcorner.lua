@@ -63,8 +63,8 @@ function MrlTestCorner:_updateTasks()
 		self._restart = false
 	end
 
-	local _, passInfo = next(self._inbox.passInfo())
-	if Attack.checkPassInfo(self._robots[2], passInfo) then
+	local _, passInfoTable = next(self._inbox.passInfo())
+	if Attack.checkPassInfos(self._robots[2], passInfoTable) then
 		taskAssignments[self._robots[2]] = { class = AcceptPass }
 	else
 		taskAssignments[self._robots[2]] = { class = Striker, params = { self._activeRobotInitPos, self._activeRobotShootPos }}

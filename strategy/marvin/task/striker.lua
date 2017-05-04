@@ -22,7 +22,6 @@ function Striker:_init(manualDefaultPos, manualPassDest)
 	self._passDestSuggestion = manualPassDest
 
 	self._moveDest = nil
-	self._passDest = nil
 	self._acceptPass = false
 
 	self._zone = nil
@@ -84,8 +83,13 @@ function Striker:_searchForPassDest()
 				local candidatePoint = Vector(x, y)
 				if not Field.isInOpponentDefenseArea(candidatePoint, self._robot.radius + 0.03) then
 					local score = self._sampling:evalLocation(candidatePoint, bestScore)
-					if self._passDest and self._passDest:distanceTo(candidatePoint) < 0.01 then
-						score = score + 0.1
+					local _, passInfoTable = next(self._inbox.passInfo())
+					if passInfoTable then
+						for _, passInfo in pairs(passInfoTable) do
+							if passInfo.ballPos:distanceTo(candidatePoint) < 0.01 then
+								score = score + 0.1
+							end
+						end
 					end
 					if score > bestScore then
 						bestScore = score
@@ -132,41 +136,48 @@ function Striker:run()
 	if not self._acceptPass and self:_revaluatePassDest() then
 		self:_searchForPassDest()
 	end
+	self._moveDest = defaultPos
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 
 	-- check whether the striker should change its state to accepting an incoming pass
-	local _, passInfo = next(self._inbox.passInfo())
-	self._passDest = passInfo and passInfo.ballPos
+	local _, passInfoTable = next(self._inbox.passInfo())
+	if passInfoTable then
+		for _, passInfo in ipairs(passInfoTable) do
+			local passDest = passInfo.ballPos
+			vis.addCircle("t/striker", defaultPos, 0.1, vis.colors.slateHalf, true)
+			if self._passDestSuggestion then
+				local color = passInfo.target == self._robot
+					and vis.colors.turquoiseHalf or vis.colors.whiteHalf
+				vis.addCircle("t/striker", passInfo.ballPos, 0.1, color, true)
+				vis.addCircle("t/striker", self._passDestSuggestion, 0.14,
+					vis.colors.whiteHalf, false, nil, nil, 0.03)
+				vis.addPath("t/striker", {defaultPos, self._passDestSuggestion},
+					vis.colors.slateHalf, nil, nil, 0.02)
+			end
 
-	vis.addCircle("t/striker", defaultPos, 0.1, vis.colors.slateHalf, true)
-	if self._passDestSuggestion then
-		if passInfo and passInfo.ballPos then
-			local color = passInfo.target == self._robot
-				and vis.colors.turquoiseHalf or vis.colors.whiteHalf
-			vis.addCircle("t/striker", passInfo.ballPos, 0.1, color, true)
+			-- check for error
+			self._acceptPass = Attack.checkPassInfo(self._robot, passInfo)
+			debug.set("acceptPass", self._acceptPass)
+			assert(not self._acceptPass, "Striker shouldn't accept passes")
+
+			-- don't move between the ball and the pass target
+			-- relevant for outgoing passes
+			if passInfo.target ~= self._robot then
+				self:_avoidLineSegment(World.Ball.pos, passDest)
+			end
+
+			-- don't block the pass receiver
+			if passInfo.target ~= self._robot then
+				local startPoint = passInfo.target.pos
+				local endPoint = passInfo.ballPos
+				self._robot.path:addLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, 0.2)
+			end
 		end
-
-		vis.addCircle("t/striker", self._passDestSuggestion, 0.14,
-			vis.colors.whiteHalf, false, nil, nil, 0.03)
-		vis.addPath("t/striker", {defaultPos, self._passDestSuggestion},
-			vis.colors.slateHalf, nil, nil, 0.02)
 	end
-
-	self._acceptPass = Attack.checkPassInfo(self._robot, passInfo)
-
-	-- set the move dest accordingly
-	debug.set("acceptPass", self._acceptPass)
-	if self._acceptPass then
-		error("Striker shouldn't accept passes " .. tostring(self._robot.id))
-		self._moveDest = self._passDest
-	else
-		self._moveDest = defaultPos
-	end
-
 	-- set path obstacles to not interfere with the current attack
 	local moveTime = nil
 	local _, attackPosition = next(self._inbox.attackPosition())
 	if self._moveDest then
-		PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 		PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
 		-- don't move between the ball and the main attacker
@@ -176,34 +187,19 @@ function Striker:run()
 			self:_avoidLineSegment(World.Ball.pos, mainAttacker.pos)
 		end
 
-		-- don't move between the ball and the pass target
-		-- relevant for outgoing passes
-		if passInfo and passInfo.target ~= self._robot then
-			self:_avoidLineSegment(World.Ball.pos, self._passDest)
-		end
-
-		-- don't block the pass receiver
-		if passInfo and passInfo.target ~= self._robot then
-			local startPoint = passInfo.target.pos
-			local endPoint = passInfo.ballPos
-			self._robot.path:addLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, 0.2)
-		end
-
 		-- don't move between the ball and the opponent goal
 		-- relevant for goal shots
 		local _, shootDest = next(self._inbox.shootDestination())
 		Attack.addShootGoalObstacle(self._robot, shootDest, attackPosition)
-
-		local _, time = self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
-		if self._acceptPass then
-			moveTime = time
-		end
 	end
 
 	-- send a suggestion for a pass in the run
 	if self._passDestSuggestion and attackPosition then
 		self:_suggestPass(self._passDestSuggestion, attackPosition, moveTime)
 	end
+
+	self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
 end
+
 
 return Striker

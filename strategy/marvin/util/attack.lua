@@ -199,16 +199,24 @@ end
 
 --- decides whether a robot has to be a main attacker because it will receive a pass
 -- used in a/a/applyformainattacker
--- @param passInfo table - all incoming passInfo messages
+-- @param passInfoSender Robot - the sender of the passInfo message
+-- @param passInfoMessage table - passInfo, for format details see messaging.lua
 -- @return Robot - the main attacker that receives a pass, or nil
 local lastCPMA = nil
 local lastPasser = nil
 local lastReceiver = nil
-function Attack.currentPlannedMainAttacker(passInfo)
-	local passInfoSender, passInfoMessage = next(passInfo)
-	if passInfoSender and Robot.hadBall(passInfoSender, 0) then
-		lastPasser = passInfoSender
-		lastReceiver = passInfoMessage.target
+function Attack.currentPlannedMainAttacker(passInfoSender, passInfoTable)
+	local passInfoMessage
+	if passInfoTable then
+		if #passInfoTable > 1 then
+			return nil
+		end
+		local _
+		_, passInfoMessage = next(passInfoTable)
+		if passInfoSender and Robot.hadBall(passInfoSender, 0) then
+			lastPasser = passInfoSender
+			lastReceiver = passInfoMessage.target
+		end
 	end
 
 	debug.set("plannedMA/lastCPMA", lastCPMA)
@@ -304,9 +312,8 @@ local function calculatePassInfoTiming(robot, passInfo)
 		if World.Time + robotTime + bufferTime >= passInfo.time then
 			return true
 		end
-	else
-		return false
 	end
+	return false
 end
 
 --checks if an attacker has to start to move towards its pass
@@ -315,6 +322,26 @@ end
 --@return bool - if we have to start to move
 function Attack.checkPassInfo(robot, passInfo)
 	return calculatePassInfoTiming(robot, passInfo) and passInfo.target == robot
+end
+
+--checks if an attacker has to start to move towards its pass
+--@param robot Robot
+--@param passInfoTable table - all of the passInfos currently being sent out
+--@return bool - if we have to start to move
+function Attack.checkPassInfos(robot, passInfoTable)
+	local relevantPassInfoMessage -- a passInfo in which the robot is the target
+	if passInfoTable then
+		for _, passInfo in ipairs(passInfoTable) do
+			if passInfo.target == robot then
+				relevantPassInfoMessage = passInfo
+				break
+			end
+		end
+	end
+	if relevantPassInfoMessage then
+		return calculatePassInfoTiming(robot, relevantPassInfoMessage)
+	end
+	return false
 end
 
 --checks if an attacker has to start to move towards its pass

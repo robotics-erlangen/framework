@@ -89,8 +89,15 @@ function Striker:run(sender, inbox, messages)
 	-- assign the zones to the nearest strikers (sorted by x position)
 	local robotXPositions = {}
 	for _, r in ipairs(self._robots) do
-		local _, passInfo = next(inbox.passInfo())
-		local xPos = (passInfo and passInfo.target == r) and passInfo.ballPos.x or r.pos.x
+		local _, passInfoTable = next(inbox.passInfo())
+		local xPos = r.posX
+		if passInfoTable then
+			for _, passInfo in ipairs(passInfoTable) do
+				if passInfo.target == r then
+					xPos = passInfo.ballPos.x
+				end
+			end
+		end
 		table.insert(robotXPositions, xPos)
 	end
 	local bubbleChange = true

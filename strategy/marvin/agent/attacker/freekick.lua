@@ -21,6 +21,7 @@ function FreeKick:_stop()
 	self._startTime = 0
 	self._state = "prepare"
 	self._dirty = false
+	self._passList = nil
 	self._pass = nil
 	self._waitStartTime = nil
 end
@@ -79,13 +80,13 @@ function FreeKick:_updateTask()
 	if self._state == "wait" then
 		if shootgoalPossible then
 			self._state = "shootgoal"
-			self._pass = nil
+			self._passList = nil
 		elseif timeRunningOut and Referee.isFriendlyFreeKickState() then
 			self._state = "shootgoal"
 		elseif World.Time - self._waitStartTime > MIN_PASS_WAIT_TIME then
-			self._pass = Attack.choosePassFromSuggestions(self._robot,
-				self._inbox.passSuggestion(), nil, false)
-			if self._pass then
+			self._passList = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false)
+			if self._passList then
+				_, self._pass = next(self._passList)
 				self._state = "pass_prepare"
 			end
 		end
@@ -104,8 +105,10 @@ function FreeKick:_updateTask()
 		end
 	end
 
-	if self._pass then
-		self._send.passInfo("all", self._pass)
+	if self._passList and self._state == "pass" then
+		self._send.passInfo("all", {self._pass})
+	elseif self._passList then
+		self._send.passInfo("all", self._passList)
 	end
 
 	-- visualize decision
