@@ -9,11 +9,12 @@ local ObserverShoot = require "observer/shoot"
 
 local CHIP_PASS_DISTANCE_FACTOR = 0.4
 
-function Pass:_init(targetRobot, targetPos, chip, passSpeed)
+function Pass:_init(targetRobot, targetPos, chip, passSpeed, ballReceiptPos)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
 	self._chip = chip
 	self._passSpeed = passSpeed or self._targetRobot.constants.passSpeed
+	self._ballReceiptPos = ballReceiptPos
 
 	-- retrieve targetPos from messages if no argument was given
 	if not targetPos then
@@ -57,7 +58,7 @@ function Pass:run()
 		targetPos = attackPosition + (targetPos - attackPosition) * CHIP_PASS_DISTANCE_FACTOR
 	end
 
-	self:_shoot(targetPos, self._passSpeed, not chip, maxAngleError, false)
+	self:_shoot(targetPos, self._passSpeed, not chip, maxAngleError, self._ballReceiptPos)
 end
 
 return Pass

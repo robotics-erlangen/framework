@@ -35,7 +35,7 @@ function ShootGoal:_drawDebugInfo()
 	vis.addCircle("t/shootgoal: target", target, 0.05, color, true)
 end
 
-function ShootGoal:_init()
+function ShootGoal:_init(ballReceiptPos)
 	self._robotList = {}
 	self._robotListWithoutKeeper = {}
 
@@ -47,6 +47,8 @@ function ShootGoal:_init()
 	self._dirty = false
 	self._desperate = false
 	self._desperateChipTargetPoint = nil
+
+	self._ballReceiptPos = ballReceiptPos
 end
 
 function ShootGoal:run()
@@ -56,6 +58,10 @@ function ShootGoal:run()
 			World.Ball.pos:distanceTo(self._robot.pos) > 0.8 then
 		self._shootTargetPoint, self._shootTargetWidth, self._dirty =
 			ShootGoalUtil.updateTarget(self._robot, self._shootTargetPoint, self._dirty)
+	end
+
+	if self._ballReceiptPos then
+		vis.addCircle("ballReceiptPos", self._ballReceiptPos, 0.15, vis.colors.magentaHalf, true)
 	end
 
 	-- aim at the center of the goal when shooting from too far away
@@ -71,7 +77,7 @@ function ShootGoal:run()
 	if not self._desperate then
 		-- perform a linear shot
 		self:_shoot(localTarget, math.huge, true,
-			math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
+			math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge), self._ballReceiptPos)
 	else
 		local maxAngleError = 10 * math.pi / 180
 		-- prevent icing
@@ -87,7 +93,7 @@ function ShootGoal:run()
 		self._desperateChipTargetPoint = G.OpponentGoal
 			+ (World.Ball.pos - G.OpponentGoal):setLength(World.Geometry.DefenseRadius+0.1)
 		self:_shoot(self._desperateChipTargetPoint,
-			self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, maxAngleError)
+			self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, maxAngleError, self._ballReceiptPos)
 	end
 	self:_drawDebugInfo()
 end
