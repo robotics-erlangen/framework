@@ -1,5 +1,6 @@
 local Striker = Class("Group.Striker")
 
+local debug = require "../base/debug"
 local Field = require "../base/field"
 local World = require "../base/world"
 local G = World.Geometry
@@ -125,6 +126,9 @@ function Striker:run(sender, inbox, messages)
 			end
 		end
 	end
+
+	debug.set("number of zones", self._zoneCount)
+	debug.set("empty zone index", self._unoccupiedZoneIndex)
 
 	self._lastMainAttacker = mainAttacker
 end
