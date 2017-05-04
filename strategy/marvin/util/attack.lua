@@ -304,7 +304,7 @@ end
 local function calculatePassInfoTiming(robot, passInfo)
 	if passInfo then
 		local robotTime = Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true)
-		local bufferTime = 0.4 + 0.1 * robot.speed:length()
+		local bufferTime = 0.15
 
 		debug.set("robotTime", robotTime + bufferTime)
 		debug.set("ballTime", passInfo.time - World.Time)
@@ -319,9 +319,15 @@ end
 --checks if an attacker has to start to move towards its pass
 --@param robot Robot
 --@param passInfo Message - the passInfo-Message
---@return bool - if we have to start to move
-function Attack.checkPassInfo(robot, passInfo)
-	return calculatePassInfoTiming(robot, passInfo) and passInfo.target == robot
+--@retrun bool - if we have to start to move
+function Attack.checkPassInfo(robot, passInfo, lastResult)
+	if not passInfo or passInfo.target ~= robot then
+		return false
+	end
+	if lastResult then
+		return true
+	end
+	return calculatePassInfoTiming(robot, passInfo)
 end
 
 --checks if an attacker has to start to move towards its pass
