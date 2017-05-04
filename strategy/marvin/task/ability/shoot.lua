@@ -4,9 +4,7 @@ local Shoot = {}
 -- note: CatchBall depends on Volley
 Shoot.depends = { CatchBall, ForceShoot }
 
-local Constants = require "../base/constants"
 local debug = require "../base/debug"
-local Field = require "../base/field"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"
