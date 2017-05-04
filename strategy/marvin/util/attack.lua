@@ -44,7 +44,9 @@ function Attack.ratePass(robot, pass, considerTiming)
 	-- rate volley
 	if Ball.receivesPass(robot) then
 		local volleyAngle = World.Ball.speed:absoluteAngleDiff(shootPos - pass.ballPos)
-		rating = rating * Rating.valueToRating(volleyAngle, 65 / 180 * math.pi, 50 / 180 * math.pi)
+		local volleyWeight = 0.7
+		local volleyRating = Rating.valueToRating(volleyAngle, 65 / 180 * math.pi, 50 / 180 * math.pi)
+		rating = rating * (1 - volleyWeight + volleyWeight * volleyRating)
 	end
 
 	-- rate possible interceptions
