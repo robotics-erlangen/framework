@@ -313,7 +313,7 @@ function Shoot:_shoot(targetPos, targetSpeed, linearShoot, precision, ballReceip
 	if linearShoot then
 		self:_shootNEW(targetPos, targetSpeed, ballReceiptPos, precision)
 	else
-		self:_chipToPos(targetPos, nil, ballReceiptPos, precision)
+		self:_chipToPos(targetPos, ballReceiptPos, precision)
 	end
 end
 
