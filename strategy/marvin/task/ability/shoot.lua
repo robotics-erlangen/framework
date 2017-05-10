@@ -148,8 +148,6 @@ function Shoot:_correctSidewardsOffset()
 end
 
 function Shoot:_sendShootCommand(kickSpeed, targetPos, targetDir)
-	local dribblerOffset = Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
-	local dribblerPos = self._robot.pos + dribblerOffset
 	local angleDiff = math.abs(geom.normalizeAngle(self._robot.dir - targetDir))
 	debug.set("Shoot/angleDiff (degrees)", angleDiff * 180 / math.pi)
 
