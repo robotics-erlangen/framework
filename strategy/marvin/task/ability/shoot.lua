@@ -99,6 +99,11 @@ function Shoot:_getState(targetPos, futureBall, futureBallTime)
 		return "StationaryBall"
 	end
 
+	-- don't spoil volley shots by redeciding
+	if self._state == "Volley" and futureBallTime < 0.2 then
+		return "Volley"
+	end
+
 	-- if the targetPos changed significantly, reset to stopBall
 	if self._lastTargetPos and targetPos:distanceTo(self._lastTargetPos) > 0.05 then
 		self._state = "StopBall"
