@@ -154,6 +154,7 @@ function Shoot:_sendShootCommand(kickSpeed, targetPos)
 	debug.set("Shoot/rightOrientation", self._rightOrientation)
 
 	if self._rightOrientation then
+		debug.set("Shoot/shootCommand", self._linearShoot and "linear" or "chip")
 		if self._linearShoot then
 			self._robot:shoot(kickSpeed, true)
 		else
