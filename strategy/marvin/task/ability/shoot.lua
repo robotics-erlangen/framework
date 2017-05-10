@@ -257,7 +257,7 @@ end
 
 function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, precision)
 	local futureBall, futureBallTime = self:_calculateFutureBall(ballReceiptPos)
-	debug.set("Shoot/futureBallTime", futureBallTime - World.Time)
+	debug.set("Shoot/futureBallTime", futureBallTime)
 
 	self._state = self:_getState(targetPos, futureBall, futureBallTime)
 	debug.set("Shoot/State", self._state)
