@@ -142,11 +142,11 @@ function Shoot:_correctSidewardsOffset()
 			math.bound(-SIDEWARDS_SPEED_LIMIT, p_out + self._sideOffsetErrorSum, SIDEWARDS_SPEED_LIMIT))
 end
 
-function Shoot:_sendShootCommand(kickSpeed, targetPos)
+function Shoot:_sendShootCommand(kickSpeed, targetPos, targetDir)
 	local dribblerOffset = Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
 	local dribblerPos = self._robot.pos + dribblerOffset
 	local shootVector = targetPos - dribblerPos
-	local angleDiff = math.abs(geom.normalizeAngle(self._robot.dir - shootVector:angle()))
+	local angleDiff = math.abs(geom.normalizeAngle(self._robot.dir - targetDir))
 	debug.set("Shoot/angleDiff (degrees)", angleDiff * 180 / math.pi)
 
 	local threshhold = self._precision * (self._rightOrientation and 1.5 or 0.5)
@@ -185,7 +185,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, futureBall)
 		debug.set("Shoot/directDir", targetDir)
 		debug.set("Shoot/directAccel", accel)
 		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, nil, accel)
-		self:_sendShootCommand(kickSpeed, targetPos)
+		self:_sendShootCommand(kickSpeed, targetPos, targetDir)
 		self._send.attackPosition("all", futureBall.pos)
 	else
 		self:_catchBall(targetPos, 0, targetSpeed)
@@ -211,7 +211,7 @@ function Shoot:_shootChaseBall(targetPos, targetSpeed)
 
 	local currentDribblerPos = self._robot.pos + dribblerOffset
 	if World.Ball.pos:distanceTo(currentDribblerPos) < 0.15 then
-		self:_sendShootCommand(kickSpeed, targetPos)
+		self:_sendShootCommand(kickSpeed, targetPos, targetDir)
 	end
 end
 
@@ -233,7 +233,7 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 
 	local currentDribblerPos = self._robot.pos + dribblerOffset
 	if World.Ball.pos:distanceTo(currentDribblerPos) < 0.15 then
-		self:_sendShootCommand(kickSpeed, targetPos)
+		self:_sendShootCommand(kickSpeed, targetPos, targetDir)
 	end
 end
 
