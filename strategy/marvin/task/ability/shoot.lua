@@ -288,7 +288,7 @@ end
 -- @param targetPos Vector - where to shoot at
 -- @param targetSpeed Vector - the velocity of the ball when it reaches targetPos
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
-function Shoot:_shootNEW(targetPos, targetSpeed, ballReceiptPos, precision)
+function Shoot:_shoot(targetPos, targetSpeed, ballReceiptPos, precision)
 	self:_doShoot(targetPos, targetSpeed, ballReceiptPos, true, precision)
 end
 
@@ -306,15 +306,6 @@ function Shoot:_chipPass(rollingBallPos, ballReceiptPos, precision)
 	local origin = ballReceiptPos or World.Ball.pos
 	local firstContactPos = origin + (rollingBallPos - origin):scaleLength(CHIP_PASS_DISTANCE_FACTOR)
 	self:_chipToPos(firstContactPos, ballReceiptPos, precision)
-end
-
--- LEGACY
-function Shoot:_shoot(targetPos, targetSpeed, linearShoot, precision, ballReceiptPos)
-	if linearShoot then
-		self:_shootNEW(targetPos, targetSpeed, ballReceiptPos, precision)
-	else
-		self:_chipToPos(targetPos, ballReceiptPos, precision)
-	end
 end
 
 return Shoot

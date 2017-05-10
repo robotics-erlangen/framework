@@ -76,8 +76,7 @@ function ShootGoal:run()
 	self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
 	if not self._desperate then
 		-- perform a linear shot
-		self:_shoot(localTarget, math.huge, true,
-			math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge), self._ballReceiptPos)
+		self:_shoot(localTarget, math.huge, self._ballReceiptPos, math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
 	else
 		local maxAngleError = 10 * math.pi / 180
 		-- prevent icing
@@ -92,8 +91,7 @@ function ShootGoal:run()
 		-- perform a chip shot
 		self._desperateChipTargetPoint = G.OpponentGoal
 			+ (World.Ball.pos - G.OpponentGoal):setLength(World.Geometry.DefenseRadius+0.1)
-		self:_shoot(self._desperateChipTargetPoint,
-			self._desperateChipTargetPoint:distanceTo(World.Ball.pos), false, maxAngleError, self._ballReceiptPos)
+		self:_chipToPos(self._desperateChipTargetPoint, self._ballReceiptPos, maxAngleError)
 	end
 	self:_drawDebugInfo()
 end

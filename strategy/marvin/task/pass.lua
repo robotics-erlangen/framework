@@ -55,10 +55,10 @@ function Pass:run()
 
 	local targetPos = self._targetPos
 	if chip then
-		targetPos = attackPosition + (targetPos - attackPosition) * CHIP_PASS_DISTANCE_FACTOR
+		self:_chipPass(targetPos, self._ballReceiptPos, maxAngleError)
+	else
+		self:_shoot(targetPos, self._passSpeed, self._ballReceiptPos, maxAngleError)
 	end
-
-	self:_shoot(targetPos, self._passSpeed, not chip, maxAngleError, self._ballReceiptPos)
 end
 
 return Pass

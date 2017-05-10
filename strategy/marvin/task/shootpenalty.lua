@@ -80,7 +80,7 @@ function ShootPenalty:run()
 		if self._cornerChange then
 			self:_rotateAndShoot((self._targetPos - World.Ball.pos):angle())
 		else
-			self:_shoot(self._targetPos, math.huge, true, shootErrorThreshold)
+			self:_shoot(self._targetPos, math.huge, nil, shootErrorThreshold)
 		end
 	end
 end
