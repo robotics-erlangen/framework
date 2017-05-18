@@ -50,6 +50,7 @@ public:
 private:
     btVector3 relativeBallSpeed(SimBall *ball) const;
     float bound(float acceleration, float oldSpeed, float speedupLimit, float brakeLimit) const;
+    void calculateDribblerMove(const btVector3 pos, const btQuaternion rot, const btVector3 linVel);
 
     RNG *m_rng;
     robot::Specs m_specs;
@@ -59,6 +60,7 @@ private:
     btHingeConstraint *m_constraint;
     QList<btCollisionShape*> m_shapes;
     btMotionState * m_motionState;
+    btVector3 m_dribblerCenter;
 
     struct Wheel
     {

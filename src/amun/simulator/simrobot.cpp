@@ -88,10 +88,10 @@ SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld 
     // WARNING: hack, instead of 0.02 should be the dribbler height
     // the ball seems to get instable if the dribbler is at correct height
     // possibly the ball gets 'sucked' onto the robot
-    btVector3 dribblerCenter(btVector3(0, m_specs.shoot_radius() - 0.01f, -m_specs.height() / 2.0f + 0.02f) * SIMULATOR_SCALE);
+    m_dribblerCenter = btVector3(btVector3(0, m_specs.shoot_radius() - 0.01f, -m_specs.height() / 2.0f + 0.02f) * SIMULATOR_SCALE);
     btTransform dribblerStartTransform;
     dribblerStartTransform.setIdentity();
-    dribblerStartTransform.setOrigin(dribblerCenter + robotBasePos);
+    dribblerStartTransform.setOrigin(m_dribblerCenter + robotBasePos);
     dribblerStartTransform.setRotation(btQuaternion(btVector3(0, 0, 1), dir - M_PI_2));
 
     btVector3 dribblerInertia(0,0,0);
@@ -108,7 +108,7 @@ SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld 
     btTransform localA, localB;
     localA.setIdentity();
     localB.setIdentity();
-    localA.setOrigin(dribblerCenter);
+    localA.setOrigin(m_dribblerCenter);
     localA.setRotation(btQuaternion(btVector3(0, 1, 0), M_PI_2));
     localB.setRotation(btQuaternion(btVector3(0, 1, 0), M_PI_2));
     m_constraint = new btHingeConstraint(*m_body, *dribblerBody, localA, localB);
@@ -126,6 +126,18 @@ SimRobot::~SimRobot()
     delete m_dribblerBody;
     delete m_motionState;
     qDeleteAll(m_shapes);
+}
+
+void SimRobot::calculateDribblerMove(const btVector3 pos, const btQuaternion rot, const btVector3 linVel)
+{
+    const btQuaternion rotated = rot * btQuaternion(m_dribblerCenter, 0);
+    const btVector3 dribblerPos = rotated.getAxis() + pos * SIMULATOR_SCALE;
+    const btVector3 dribblerDirection(1, 0, 0);
+    const btQuaternion dribblerDirectionRot(dribblerDirection, 0);
+    const btQuaternion newDribblerRot = rot * dribblerDirectionRot;
+    m_dribblerBody->setWorldTransform(btTransform(newDribblerRot, dribblerPos));
+    m_dribblerBody->setLinearVelocity(linVel + newDribblerRot.getAxis() * (-m_move.omega()));
+    m_dribblerBody->setAngularVelocity(btVector3(0, 0, 0));
 }
 
 void SimRobot::begin(SimBall *ball, double time)
@@ -151,14 +163,17 @@ void SimRobot::begin(SimBall *ball, double time)
             const btVector3 pos(m_move.p_x(), m_move.p_y(), m_specs.height() / 2.0f);
             const btQuaternion rot = btQuaternion(btVector3(0, 0, 1), m_move.phi() - M_PI_2);
             m_body->setWorldTransform(btTransform(rot, pos * SIMULATOR_SCALE));
-
             const btVector3 linVel(m_move.v_x(), m_move.v_y(), 0.0f);
             m_body->setLinearVelocity(linVel * SIMULATOR_SCALE);
-
             const btVector3 angVel(m_move.omega(), 0.0f, 0.0f);
             m_body->setAngularVelocity(angVel);
+
+            calculateDribblerMove(pos, rot, linVel);
+
             m_body->activate();
+            m_dribblerBody->activate();
             m_body->setDamping(0.0, 0.0);
+            m_dribblerBody->setDamping(0.0, 0.0);
             m_move.Clear(); // clear move command
             // reset is neccessary, as the command is only sent once
             // without one canceling it
