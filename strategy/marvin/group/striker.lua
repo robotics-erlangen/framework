@@ -91,7 +91,7 @@ function Striker:run(sender, inbox, messages)
 	local robotXPositions = {}
 	for _, r in ipairs(self._robots) do
 		local _, passInfoTable = next(inbox.passInfo())
-		local xPos = r.posX
+		local xPos = r.pos.x
 		if passInfoTable then
 			for _, passInfo in ipairs(passInfoTable) do
 				if passInfo.target == r then
