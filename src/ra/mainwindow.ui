@@ -335,7 +335,7 @@
   </action>
   <action name="actionSaveBacklog">
    <property name="text">
-    <string>60s</string>
+    <string>20s</string>
    </property>
    <property name="toolTip">
     <string>Save Backlog</string>
