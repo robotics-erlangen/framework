@@ -22,11 +22,9 @@ function ApplyForMainattacker:check()
 		return false
 	end
 	local sender, passInfoTable = next(self._inbox.passInfo())
-	if passInfoTable then
-			if Attack.currentPlannedMainAttacker(sender, passInfoTable) == self._robot then
-				self:_applyForMainAttacker(nil, nil, 2)
-				self._agent.beOffensive = true
-			end
+	if passInfoTable and Attack.currentPlannedMainAttacker(sender, passInfoTable) == self._robot then
+		self:_applyForMainAttacker(nil, nil, 2)
+		self._agent.beOffensive = true
 	else
 		self:_applyForMainAttacker()
 		self._agent.beOffensive = false
