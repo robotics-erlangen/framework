@@ -186,8 +186,7 @@ function Ball._updateReceivesPass()
 		local coneWidth = ballRecipients[robot] and coneWidthLarge or coneWidthSmall
 		local coneAngleMin = ballRecipients[robot] and coneAngleMinLarge or coneAngleMinSmall
 		local extrapolatedRobotPos = robot.pos + robot.speed * 0.4
-		local dribblerPos = extrapolatedRobotPos + Vector.fromAngle(robot.dir) * robot.shootRadius
-		local toRobotAngle = (dribblerPos - World.Ball.pos):angle()
+		local toRobotAngle = (extrapolatedRobotPos - World.Ball.pos):angle()
 		if World.Ball.pos:distanceTo(robot.pos) > World.Ball.radius + robot.shootRadius
 				and geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth then
 			goto continue
@@ -195,6 +194,7 @@ function Ball._updateReceivesPass()
 
 		-- check if the arriving ball is fast enough (hysteresis)
 		local minBallSpeed = ballRecipients[robot] and 0.5 or 1.0
+		local dribblerPos = extrapolatedRobotPos + Vector.fromAngle(robot.dir) * robot.shootRadius
 		local distanceToRobot = World.Ball.pos:distanceTo(dribblerPos)
 		if Physics.ballAtTime(World.Ball, Physics.ballRollTime(
 				World.Ball, distanceToRobot)).speed:length() < minBallSpeed then
