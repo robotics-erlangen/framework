@@ -284,6 +284,8 @@ function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, pre
 
 	vis.addCircle("t/a/shoot: State", World.Ball.pos, 0.07, color, true)
 
+	self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
+
 	self._lastTargetPos = targetPos
 end
 
