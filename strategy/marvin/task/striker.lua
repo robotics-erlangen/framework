@@ -3,7 +3,6 @@ local Striker = Class("Task.Striker", require "task/base", SuggestPass)
 
 local StrikerSampling = require "task/strikersampling"
 
-local debug = require "../base/debug"
 local Field = require "../base/field"
 local vis = require "../base/vis"
 local World = require "../base/world"
