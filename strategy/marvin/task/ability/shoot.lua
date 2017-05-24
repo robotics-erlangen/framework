@@ -283,7 +283,9 @@ function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, pre
 		color = vis.colors.redHalf
 	end
 
-	vis.addCircle("t/a/shoot: State", World.Ball.pos, 0.07, color, true)
+	vis.addCircle("t/a/shoot: State", futureBall.pos, 0.07, color, true)
+	vis.addCircle("t/a/shoot: State", targetPos, 0.07, color, true)
+	vis.addPath("t/a/shoot: State", {futureBall.pos, targetPos}, color, nil, nil, 0.03)
 
 	self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
 
