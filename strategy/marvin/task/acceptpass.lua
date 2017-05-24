@@ -39,5 +39,7 @@ function AcceptPass:run()
 	if attackPosition then
 		self:_suggestPass(position, attackPosition, moveTime)
 	end
+
+	self:setMainAttackerParameters(World.Ball.pos, self._robot.maxSpeed)
 end
 return AcceptPass
