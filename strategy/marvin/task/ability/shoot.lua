@@ -113,7 +113,8 @@ function Shoot:_getState(targetPos, futureBall, futureBallTime)
 	local chaseBallAngle = CHASE_BALL_ANGLE + (self._state == "ChaseBall" and 1 or -1) * CHASE_BALL_ANGLE_HYST
 	local shootVector = targetPos - futureBall.pos
 	local angleDiff = futureBall.speed:absoluteAngleDiff(shootVector)
-	if angleDiff < chaseBallAngle then
+	local relativeBallPos = World.Ball.pos - self._robot.pos
+	if angleDiff < chaseBallAngle and World.Ball.speed:dot(relativeBallPos) > 0 then
 		return "ChaseBall"
 	end
 
