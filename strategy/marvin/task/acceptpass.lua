@@ -1,5 +1,5 @@
 local SuggestPass = require "task/ability/suggestpass"
-local AcceptPass = Class("Task/AcceptPass", require "task/base", SuggestPass)
+local AcceptPass = Class("Task.AcceptPass", require "task/base", SuggestPass)
 
 local vis = require "../base/vis"
 local World = require "../base/world"
