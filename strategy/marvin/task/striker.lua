@@ -22,7 +22,6 @@ function Striker:_init(manualDefaultPos, manualPassDest)
 	self._passDestSuggestion = manualPassDest
 
 	self._moveDest = nil
-	self._acceptPass = false
 
 	self._zone = nil
 
@@ -133,14 +132,16 @@ function Striker:run()
 	end
 
 	-- search for a good pass dest
-	if not self._acceptPass and self:_revaluatePassDest() then
+	if self:_revaluatePassDest() then
 		self:_searchForPassDest()
 	end
 	self._moveDest = defaultPos
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 
-	-- check whether the striker should change its state to accepting an incoming pass
+	-- check whether the agent would change its state to accepting an incoming pass (striker should not be active then)
 	local _, passInfoTable = next(self._inbox.passInfo())
+	assert(Attack.checkPassInfos(self._robot, passInfoTable, false) == false, "Striker shouldn't accept passes")
+
 	if passInfoTable then
 		for _, passInfo in ipairs(passInfoTable) do
 			local passDest = passInfo.ballPos
@@ -154,11 +155,6 @@ function Striker:run()
 				vis.addPath("t/striker", {defaultPos, self._passDestSuggestion},
 					vis.colors.slateHalf, nil, nil, 0.02)
 			end
-
-			-- check for error
-			self._acceptPass = Attack.checkPassInfo(self._robot, passInfo)
-			debug.set("acceptPass", self._acceptPass)
-			assert(not self._acceptPass, "Striker shouldn't accept passes")
 
 			-- don't move between the ball and the pass target
 			-- relevant for outgoing passes

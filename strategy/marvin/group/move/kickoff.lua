@@ -32,6 +32,7 @@ function KickOff:_init()
 		table.insert(positions, pos)
 	end
 	self._assignments = MovesHelper.assignRobots(self._robots, positions, 0)
+	self._acceptPassTable = {false, false}
 end
 
 function KickOff:_canContinue()
@@ -50,7 +51,8 @@ function KickOff:_updateTasks()
 		local _, passInfoTable = next(self._inbox.passInfo())
 		taskAssignments[self._robots[self._assignments[1]]] = { behavior = Freekick }
 		for i=1,2 do
-			if Attack.checkPassInfos(self._robots[self._assignments[i+1]], passInfoTable) then
+			self._acceptPassTable[i] = Attack.checkPassInfos(self._robots[self._assignments[i+1]], passInfoTable, self._acceptPassTable[i])
+			if self._acceptPassTable[i] then
 				taskAssignments[self._robots[self._assignments[i+1]]] = { class = AcceptPass }
 			else
 				taskAssignments[self._robots[self._assignments[i+1]]] = { class = Striker, params = { self._assistantPos[i], self._passDest[i] } }

@@ -321,8 +321,10 @@ end
 --checks if an attacker has to start to move towards its pass
 --@param robot Robot
 --@param passInfo Message - the passInfo-Message
+--@param lastResult bool - the return value of the last call to this function, or false
 --@retrun bool - if we have to start to move
 function Attack.checkPassInfo(robot, passInfo, lastResult)
+	assert(lastResult ~= nil)
 	if not passInfo or passInfo.target ~= robot then
 		return false
 	end
@@ -335,9 +337,11 @@ end
 --checks if an attacker has to start to move towards its pass
 --@param robot Robot
 --@param passInfoTable table - all of the passInfos currently being sent out
+--@param lastResult bool - the return value of the last call to this function, or false
 --@return bool - if we have to start to move
-function Attack.checkPassInfos(robot, passInfoTable)
-	local relevantPassInfoMessage -- a passInfo in which the robot is the target
+function Attack.checkPassInfos(robot, passInfoTable, lastResult)
+	assert(lastResult ~= nil)
+	local relevantPassInfoMessage = nil -- a passInfo in which the robot is the target
 	if passInfoTable then
 		for _, passInfo in ipairs(passInfoTable) do
 			if passInfo.target == robot then
@@ -346,10 +350,12 @@ function Attack.checkPassInfos(robot, passInfoTable)
 			end
 		end
 	end
-	if relevantPassInfoMessage then
-		return calculatePassInfoTiming(robot, relevantPassInfoMessage)
+	if not relevantPassInfoMessage then
+		return false
+	elseif lastResult then
+		return true
 	end
-	return false
+	return calculatePassInfoTiming(robot, relevantPassInfoMessage)
 end
 
 --checks if an attacker has to start to move towards its pass
