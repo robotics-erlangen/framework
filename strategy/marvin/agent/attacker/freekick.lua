@@ -24,6 +24,7 @@ function FreeKick:_stop()
 	self._passList = nil
 	self._pass = nil
 	self._waitStartTime = nil
+	self._redeciding = false
 end
 
 function FreeKick:start()
