@@ -7,7 +7,6 @@ local Referee = require "../base/referee"
 local World = require "../base/world"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
-local G = World.Geometry
 
 local MoveToStaticBall = require "task/movetostaticball"
 local Pass = require "task/pass"
