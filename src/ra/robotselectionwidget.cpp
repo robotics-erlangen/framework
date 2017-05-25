@@ -81,6 +81,7 @@ QWidget *ItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem 
         connect(widget, SIGNAL(teamSelected(uint,uint,RobotWidget::Team)), m_widget, SLOT(selectTeam(uint,uint,RobotWidget::Team)));
         connect(m_widget, SIGNAL(setInputDevice(uint,uint,QString)), widget, SLOT(setInputDevice(uint,uint,QString)));
     }
+    connect(m_widget, SIGNAL(setRobotExchangeIcon(uint,uint,bool)), widget, SLOT(exchangeRobot(uint,uint,bool)));
     return widget;
 }
 
@@ -381,6 +382,14 @@ void RobotSelectionWidget::handleStatus(const Status &status)
         const world::State &state = status->world_state();
         for (int i = 0; i < state.radio_response_size(); ++i) {
             sendRadioResponse(state.radio_response(i));
+        }
+    }
+
+    if (status->has_debug()) {
+        const amun::DebugValues &debug = status->debug();
+        for (int i = 0;i<debug.robot_size();i++) {
+            const amun::RobotValue &value = debug.robot(i);
+            emit setRobotExchangeIcon(value.generation(), value.id(), value.exchange());
         }
     }
 }

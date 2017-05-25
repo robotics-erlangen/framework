@@ -64,6 +64,7 @@ public:
     amun::Visualization *addVisualization();
     amun::DebugValue *addDebug();
     amun::PlotValue *addPlot();
+    amun::RobotValue *addRobotValue();
     bool sendCommand(const Command &command);
     bool sendNetworkReferee(const QByteArray &referee);
     void sendMixedTeam(const QByteArray &info);

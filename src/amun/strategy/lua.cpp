@@ -490,6 +490,11 @@ amun::PlotValue *Lua::addPlot()
     return m_debug.add_plot();
 }
 
+amun::RobotValue *Lua::addRobotValue()
+{
+    return m_debug.add_robot();
+}
+
 bool Lua::sendCommand(const Command &command)
 {
     if (!m_debugEnabled) {

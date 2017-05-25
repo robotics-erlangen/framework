@@ -67,6 +67,12 @@ message PlotValue {
     required float value = 2;
 }
 
+message RobotValue {
+    required uint32 generation = 1;
+    required uint32 id = 2;
+    optional bool exchange = 3;
+}
+
 enum DebugSource { StrategyBlue = 1; StrategyYellow = 2; Controller = 3; Autoref = 4; };
 
 message DebugValues {
@@ -75,4 +81,5 @@ message DebugValues {
     repeated Visualization visualization = 3;
     repeated StatusLog log = 4;
     repeated PlotValue plot = 5;
+    repeated RobotValue robot = 6;
 }

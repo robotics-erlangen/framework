@@ -58,6 +58,7 @@ public slots:
     void setInputDevice(uint generation, uint id, const QString &inputDevice);
     void handleResponse(const robot::RadioResponse &response);
     void generationChanged(uint generation, RobotWidget::Team team);
+    void exchangeRobot(uint generation, uint id, bool exchange);
 
 private slots:
     void selectInput();
@@ -71,6 +72,7 @@ private slots:
 
     void updateRobotStatus();
     void hideRobotStatus();
+    void hideExchangeRobot();
 
 private:
     void addTeamType(const QString &name, const RobotWidget::Team team);
@@ -95,6 +97,9 @@ private:
     robot::RadioResponse m_lastResponse;
     GuiTimer *m_guiResponseTimer;
     int m_statusCtr;
+
+    GuiTimer *m_exchangeRobotTimer;
+    bool m_exchangeRobotUpdated;
 
     int m_lastBatteryLevel;
     float m_smoothedBatteryLevel;
@@ -123,6 +128,8 @@ private:
     QLabel *m_rfOkay;
     QLabel *m_rfGood;
     QLabel *m_rfExcellent;
+
+    QLabel *m_exchangeRobot;
 
     InputManager *m_inputManager;
     QToolButton *m_btnControl;

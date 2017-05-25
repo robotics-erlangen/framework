@@ -282,6 +282,16 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
     return 0;
 }
 
+static int amunSetRobotExchangeSymbol(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    amun::RobotValue *value = thread->addRobotValue();
+    value->set_generation((uint32_t)lua_tonumber(state, 1));
+    value->set_id((uint32_t)lua_tonumber(state, 2));
+    value->set_exchange(lua_toboolean(state, 3));
+    return 0;
+}
+
 static const luaL_Reg amunMethods[] = {
     // fixed during strategy runtime
     {"getGeometry",         amunGetGeometry},
@@ -300,6 +310,7 @@ static const luaL_Reg amunMethods[] = {
     {"addVisualization",    amunAddVisualization},
     {"addDebug",            amunAddDebug},
     {"addPlot",             amunAddPlot},
+    {"setRobotExchangeSymbol", amunSetRobotExchangeSymbol},
     // debug only
     {"sendCommand",         amunSendCommand},
     {"sendRefereeCommand",  amunSendRefereeCommand},

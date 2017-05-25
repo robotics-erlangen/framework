@@ -36,6 +36,7 @@ void AbstractStrategyScript::clearDebug()
     m_debug.clear_visualization();
     m_debug.clear_log();
     m_debug.clear_plot();
+    m_debug.clear_robot();
 }
 
 void AbstractStrategyScript::setSelectedOptions(const QStringList &options)

@@ -100,6 +100,8 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
         setupIcon(m_rfGood, "icon:16/rf_75.png", iconLayout);
         setupIcon(m_rfExcellent, "icon:16/rf_100.png", iconLayout);
 
+        setupIcon(m_exchangeRobot, "icon:16/exchange.png", iconLayout);
+
         layout->addLayout(iconLayout);
     }
 
@@ -136,6 +138,10 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
 
     m_guiResponseTimer = new GuiTimer(1000, this);
     connect(m_guiResponseTimer, &GuiTimer::timeout, this, &RobotWidget::hideRobotStatus);
+
+    m_exchangeRobotTimer = new GuiTimer(1000, this);
+    connect(m_exchangeRobotTimer, &GuiTimer::timeout, this, &RobotWidget::hideExchangeRobot);
+    m_exchangeRobotUpdated = false;
 }
 
 RobotWidget::~RobotWidget()
@@ -387,6 +393,25 @@ void RobotWidget::updateBatteryStatus(int percentage)
     m_batteryLow->setToolTip(toolTip);
     m_batteryMid->setToolTip(toolTip);
     m_batteryFull->setToolTip(toolTip);
+}
+
+void RobotWidget::exchangeRobot(uint generation, uint id, bool exchange)
+{
+    if (generation == m_specs.generation() && id == m_specs.id()) {
+        m_exchangeRobot->setVisible(exchange);
+        m_exchangeRobotUpdated = true;
+        m_exchangeRobotTimer->requestTriggering();
+    }
+}
+
+void RobotWidget::hideExchangeRobot()
+{
+    if (!m_exchangeRobotUpdated) {
+        m_exchangeRobot->setVisible(false);
+    } else {
+        m_exchangeRobotTimer->requestTriggering();
+    }
+    m_exchangeRobotUpdated = false;
 }
 
 void RobotWidget::updateRadioStatus(int packetLossRx, int packetLossTx)
