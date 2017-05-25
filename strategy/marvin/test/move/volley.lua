@@ -38,8 +38,8 @@ function Volley:_updateTasks()
 		self._freekickFlag = true
 	end
 
-	local _, passInfo = next(self._inbox.passInfo())
-	self._startMoving = Attack.checkPassInfo(self._robots[2], passInfo, self._startMoving)
+	local _, passInfoTable = next(self._inbox.passInfo())
+	self._startMoving = Attack.checkPassInfos(self._robots[2], passInfoTable, self._startMoving)
 	if self._startMoving then
 		taskAssignments[self._robots[2]] = { class = AcceptPass }
 	else
