@@ -40,7 +40,7 @@ function StrikerSampling:canReachInTime(pos)
 	local robotTime = Physics.robotTimeToPos(self._robot, pos,
 		(pos - self._robot.pos):setLength(self._robot.maxSpeed))
 	local shootTime = Robot.minShootTime(self._mainAttacker, shootPos)
-	local ballTime = ObserverShoot.ballPassTime(self._attackPosition, shootPos, self._robot)
+	local ballTime = ObserverShoot.ballPassTime(self._attackPosition, shootPos, self._robot, nil, self._mainAttacker)
 
 	local rating = Rating.valueToRating(shootTime + ballTime - robotTime, 0.2, 0.5)
 	visualizeRating("canReachInTime", pos, rating)

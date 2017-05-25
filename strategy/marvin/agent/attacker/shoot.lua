@@ -202,7 +202,7 @@ function Shoot:_updateTask()
 
 		local minShootTime = Robot.minShootTime(self._robot, ballPos)
 		local shootPos = Physics.ballAtTime(World.Ball, minShootTime).pos
-		local ballTravelTime = ObserverShoot.ballPassTime(shootPos, ballPos, target)
+		local ballTravelTime = ObserverShoot.ballPassTime(shootPos, ballPos, target, nil, self._robot)
 		local passReceiveTime = math.max(suggestedTime, minShootTime + ballTravelTime + World.Time)
 
 		self._send.passInfo("all", {{ target = target,

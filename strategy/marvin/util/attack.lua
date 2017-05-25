@@ -35,7 +35,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 		shootTime = Robot.minShootTime(robot, pass.ballPos)
 	end
 	local shootPos = Physics.ballAtTime(World.Ball, shootTime).pos
-	local passTime = Shoot.ballPassTime(shootPos, pass.ballPos, pass.target)
+	local passTime = Shoot.ballPassTime(shootPos, pass.ballPos, pass.target, nil, robot)
 	local ballArrivalTime = shootTime + passTime + World.Time
 	if considerTiming then
 		rating = rating * Rating.valueToRating(ballArrivalTime - pass.time, -0.1, 0.1)
