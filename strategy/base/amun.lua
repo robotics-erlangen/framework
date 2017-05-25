@@ -147,6 +147,16 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
+--- Set the exchange symbol for a robot
+-- @class function
+-- @name setRobotExchangeSymbol
+-- @param generation number
+-- @param id number
+-- @param exchange bool
+
+--[[
+separator for luadoc]]--
+
 --- Send arbitrary commands. Only works in debug mode
 -- @class function
 -- @name sendCommand
@@ -200,7 +210,8 @@ function amun._hideFunctions()
 		sendAutorefEvent = sendAutorefEvent,
 		getCurrentTime = function ()
 			return getCurrentTime() * 1E-9
-		end
+		end,
+		setRobotExchangeSymbol = amun.setRobotExchangeSymbol
 	}
 	if isDebug then
 		amun.sendCommand = sendCommand
