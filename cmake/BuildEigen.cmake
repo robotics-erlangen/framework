@@ -21,8 +21,8 @@
 include(ExternalProject)
 
 ExternalProject_Add(project_eigen
-    URL http://www.robotics-erlangen.de/downloads/libraries/eigen-eigen-c58038c56923.tar.bz2
-    URL_MD5 87274966745d2d3e7964fcc654d0a24b
+    URL http://www.robotics-erlangen.de/downloads/libraries/eigen-3.3.3-67e894c6cd8f.tar.bz2
+    URL_MD5 b2ddade41040d9cf73b39b4b51e8775b
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DCMAKE_C_COMPILER:PATH=${CMAKE_C_COMPILER}
