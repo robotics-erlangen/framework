@@ -20,10 +20,8 @@
 
 include(ExternalProject)
 ExternalProject_Add(project_openocd
-    URL http://www.robotics-erlangen.de/downloads/libraries/openocd-0.9.0.tar.bz2
-    URL_MD5 665cc98ae9e7297e09ec6ac7235fee49
-    PATCH_COMMAND cat ${CMAKE_SOURCE_DIR}/cmake/openocd-clang-compile-fix.diff
-        | patch -p1
+    URL http://www.robotics-erlangen.de/downloads/libraries/openocd-0.10.0.tar.bz2
+    URL_MD5 b412bdef0481a3859c6585eb69f6f6ba
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
         --prefix=<INSTALL_DIR>
         --enable-ftdi
