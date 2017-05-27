@@ -6,6 +6,7 @@ compile-ra:
     - cmake --build .
   stage: build
   cache:
+    key: "default"
     paths:
       - build/
   artifacts:
@@ -13,16 +14,19 @@ compile-ra:
       - build/bin/
     expire_in: 1 day
 
-.luacheck: &luacheck_template
+.test: &test_template
   script:
-    - "echo running luacheck for $CHECK_PATH"
-    - "cd $CHECK_PATH"
-    - "luacheck -q ."
+    - "echo running test \"$TEST_PATTERN\""
+    - "cd build"
+    - "cmake -GNinja .."
+    - "ctest --output-on-failure -R \"$TEST_PATTERN\""
   stage: test
-  when: always
-  dependencies: []
+  cache:
+    key: "tests"
+    paths:
+      - build/
 
-luacheck-base:
-  <<: *luacheck_template
+tests:
+  <<: *test_template
   variables:
-    CHECK_PATH: strategy/base
+    TEST_PATTERN: "."

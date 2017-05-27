@@ -20,6 +20,7 @@
 
 cmake_minimum_required(VERSION 2.8.12)
 project(erforce)
+enable_testing()
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 # CMP0028 and CMP0037 enforce restrictions of cmake target names added in CMake 3.0
 if(POLICY CMP0028 AND POLICY CMP0037 AND POLICY CMP0045)
@@ -93,3 +94,5 @@ if(UNIX AND NOT APPLE)
 endif()
 
 fixup_targets()
+
+include(AddTests)

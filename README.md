@@ -124,13 +124,12 @@ the last timespan which was played back without interim seeking is displayed.
 
 # LUA Strategy Linter
 The strategy scripts are written in LUA. As it is a dynamic, scripting language
-there are compile time checks for missing or unused variables and further
+there are no compile time checks for missing or unused variables and further
 possible problems. This job can however be taken over by a linter, which
 performs some basic validity checks. Our current AI and the base strategy
-scripts can be checked with _luacheck_. Run the following command in the
-strategy or base folder:
+scripts can be checked with _luacheck_. Run the following command inside a
+strategy or the base folder:
 > luacheck -q .
-
 
 ## Luacheck installation
 
@@ -176,4 +175,13 @@ Install the _linter-luacheck_ package.
 
 ### Sublime Text 3
 Install _Package Control_, see https://packagecontrol.io/installation for
-instructions. Then use it to install _SublimeLinter_ and _SublimeLinter-luacheck_.
+instructions. Tohen use it to install _SublimeLinter_ and _SublimeLinter-luacheck_.
+
+# Tests
+The lualinter checks and the strategy unit tests can be executed by running the
+following command inside the build folder
+
+```
+cd build
+make check
+```
