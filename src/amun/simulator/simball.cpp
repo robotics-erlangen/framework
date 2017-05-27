@@ -67,10 +67,10 @@ SimBall::~SimBall()
 void SimBall::begin()
 {
     // custom implementation of rolling friction
-    const btVector3 p = m_body->getWorldTransform().getOrigin() / SIMULATOR_SCALE;
-    if (p.z() < BALL_RADIUS * 1.1) { // ball is on the ground
-        const btVector3 velocity = m_body->getLinearVelocity() / SIMULATOR_SCALE;
-        if (velocity.length() < 0.01) {
+    const btVector3 p = m_body->getWorldTransform().getOrigin();
+    if (p.z() < BALL_RADIUS * 1.1 * SIMULATOR_SCALE) { // ball is on the ground
+        const btVector3 velocity = m_body->getLinearVelocity();
+        if (velocity.length() < 0.01 * SIMULATOR_SCALE) {
             // stop the ball if it is really slow
             // -> the real ball snaps to a dimple
             m_body->setLinearVelocity(btVector3(0, 0, 0));
