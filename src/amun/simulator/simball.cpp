@@ -81,7 +81,7 @@ void SimBall::begin()
             const btScalar hackFactor = 1.4;
             const btScalar rollingDeceleration = hackFactor * 0.35;
             btVector3 force(velocity.x(), velocity.y(), 0.0f);
-            force.normalize();
+            force.safeNormalize();
             m_body->applyCentralImpulse(-force * rollingDeceleration * SIMULATOR_SCALE * BALL_MASS * SUB_TIMESTEP);
         }
     }
