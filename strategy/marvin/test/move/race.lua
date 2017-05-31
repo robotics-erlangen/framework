@@ -5,7 +5,7 @@ local MoveToPos = require "task/movetopos"
 
 Race.N_ROBOTS = 1
 
-local Y_END = 0
+local Y_END = -(-World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius + 0.5)
 local Y_START = -World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius + 0.5
 local TOLERANCE = 0.02
 
@@ -53,7 +53,7 @@ function Race:_updateTasks()
 
 	for i = 1, Race.N_ROBOTS do
 		taskAssignments[self._robots[i]] = { class = MoveToPos,
-			params = { Vector(-0.5 * (Race.N_ROBOTS + 1) + i + 2, self._atStart and Y_END or Y_START) }, restart = restart}
+			params = { Vector(-0.5 * (Race.N_ROBOTS + 1) + i + 0, self._atStart and Y_END or Y_START) }, restart = restart}
 		end
 	return taskAssignments
 end
