@@ -80,8 +80,8 @@ QWidget *ItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem 
         connect(m_widget, SIGNAL(sendRadioResponse(robot::RadioResponse)), widget, SLOT(handleResponse(robot::RadioResponse)));
         connect(widget, SIGNAL(teamSelected(uint,uint,RobotWidget::Team)), m_widget, SLOT(selectTeam(uint,uint,RobotWidget::Team)));
         connect(m_widget, SIGNAL(setInputDevice(uint,uint,QString)), widget, SLOT(setInputDevice(uint,uint,QString)));
+        connect(m_widget, SIGNAL(setRobotExchangeIcon(uint,uint,bool)), widget, SLOT(exchangeRobot(uint,uint,bool)));
     }
-    connect(m_widget, SIGNAL(setRobotExchangeIcon(uint,uint,bool)), widget, SLOT(exchangeRobot(uint,uint,bool)));
     return widget;
 }
 
