@@ -5,7 +5,7 @@ local G = World.Geometry
 
 local Freekick = require "agent/attacker/freekick"
 local MoveToStaticBall = require "task/movetostaticball"
-local OverchipReceiver = require "task/overchipReceiver"
+local OverchipReceiver = require "task/overchipreceiver"
 local Shootgoal = require "task/shootgoal"
 local Striker = require "task/striker"
 local Field = require "../base/field"
