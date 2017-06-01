@@ -199,11 +199,7 @@ end
 local _addLine = path.addLine
 function path:addLine(start_x, start_y, stop_x, stop_y, radius, name)
 	if amun.isDebug then
-		local startVec = Vector(start_x, start_y)
-		local endVec = Vector(stop_x, stop_y)
-		local startToEnd = endVec - startVec
-		local offset = startToEnd:perpendicular():setLength(radius)
-		vis.addPolygon("obstacles: "..tostring(path.robotId(self)), {startVec+offset, endVec+offset, endVec-offset, startVec-offset}, vis.colors.red, true)
+		vis.addPath("obstacles: "..tostring(path.robotId(self)), {Vector(start_x, start_y), Vector(stop_x, stop_y)}, vis.colors.red, nil, nil, 2 * radius)
 	end
 	if teamIsBlue then
 		_addLine(self, -start_x, -start_y, -stop_x, -stop_y, radius, name)
