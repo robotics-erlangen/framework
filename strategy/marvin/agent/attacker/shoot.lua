@@ -181,7 +181,7 @@ function Shoot:_updateTask()
 		end
 	end
 
-	-- return shoot goal if the decision sais so
+	-- return shoot goal if the decision says so
 	if self._decision.task == "shootgoal" then
 		return ShootGoal, { self._lastIncomingPassInfoPos }
 	end
