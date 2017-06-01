@@ -93,7 +93,7 @@ function Robot:init(data, isFriendly)
 	self._hasBall = {}
 	if self.isFriendly then -- setup trajectory and path objects
 		self.trajectory = Trajectory(self)
-		self.path = path.create()
+		self.path = path.create(self.id)
 	end
 	self._currentTime = 0
 	self._controllerInput = nil

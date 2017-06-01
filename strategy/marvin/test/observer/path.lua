@@ -26,7 +26,8 @@ local function setupPath()
 	end
 
 	local geometry = World.Geometry
-	pathInstance = path.create()
+	pathInstance = path.create(0)
+	assert(pathInstance:robotId() == 0)
 	pathInstance:setBoundary(
 					-geometry.FieldWidthHalf  - geometry.BoundaryWidth - 0.02,
 					-geometry.FieldHeightHalf - geometry.BoundaryWidth - 0.02,
