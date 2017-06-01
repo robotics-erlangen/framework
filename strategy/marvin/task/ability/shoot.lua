@@ -288,6 +288,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, pre
 	vis.addPath("t/a/shoot: State", {futureBall.pos, targetPos}, color, nil, nil, 0.03)
 
 	self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
+	self._send.shootDestination("all", targetPos)
 
 	self._lastTargetPos = targetPos
 end
