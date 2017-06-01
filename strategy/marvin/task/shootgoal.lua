@@ -8,6 +8,7 @@ local World = require "../base/world"
 
 local Ball = require "observer/ball"
 local PathHelper = require "trajectory/pathhelper"
+local Rating = require "util/rating"
 local ShootGoalUtil = require "util/shootgoal"
 
 local G = World.Geometry
@@ -34,7 +35,7 @@ function ShootGoal:_drawDebugInfo()
 	vis.addCircle("t/shootgoal: target", target, 0.05, color, true)
 end
 
-function ShootGoal:_init()
+function ShootGoal:_init(ballReceiptPos)
 	self._robotList = {}
 	self._robotListWithoutKeeper = {}
 
@@ -46,6 +47,8 @@ function ShootGoal:_init()
 	self._dirty = false
 	self._desperate = false
 	self._desperateChipTargetPoint = nil
+
+	self._ballReceiptPos = ballReceiptPos
 end
 
 function ShootGoal:run()
@@ -57,13 +60,23 @@ function ShootGoal:run()
 			ShootGoalUtil.updateTarget(self._robot, self._shootTargetPoint, self._dirty)
 	end
 
+	if self._ballReceiptPos then
+		vis.addCircle("ballReceiptPos", self._ballReceiptPos, 0.15, vis.colors.magentaHalf, true)
+	end
+
+	-- aim at the center of the goal when shooting from too far away
+	local maxDistance = 0.75 * G.FieldHeight
+	local minDistance = 0.25 * G.FieldHeight
+	local distance = self._robot.pos:distanceTo(self._shootTargetPoint)
+	local localTargetX = Rating.valueToRating(distance, maxDistance, minDistance) * self._shootTargetPoint.x
+	local localTarget = Vector(localTargetX, self._shootTargetPoint.y)
+	
 	debug.set("receivesPass", Ball.receivesPass(self._robot))
 
 	self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
 	if not self._desperate then
 		-- perform a linear shot
-		self:_shoot(self._shootTargetPoint, math.huge, true,
-			math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
+		self:_shoot(localTarget, math.huge, self._ballReceiptPos, math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
 	else
 		local maxAngleError = 10 * math.pi / 180
 		-- prevent icing
@@ -78,9 +91,7 @@ function ShootGoal:run()
 		-- perform a chip shot
 		self._desperateChipTargetPoint = G.OpponentGoal
 			+ (World.Ball.pos - G.OpponentGoal):setLength(World.Geometry.DefenseRadius+0.1)
-		local chipDest = self._desperateChipTargetPoint + (self._desperateChipTargetPoint - World.Ball.pos) * (1 / Shoot.CHIP_PASS_DISTANCE_FACTOR)
-		self:_shoot(chipDest,
-			chipDest:distanceTo(World.Ball.pos), false, maxAngleError)
+		self:_chipToPos(self._desperateChipTargetPoint, self._ballReceiptPos, maxAngleError)
 	end
 	self:_drawDebugInfo()
 end

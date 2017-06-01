@@ -4,14 +4,10 @@ local Shoot = {}
 -- note: CatchBall depends on Volley
 Shoot.depends = { CatchBall, ForceShoot }
 
-local Constants = require "../base/constants"
 local debug = require "../base/debug"
-local Field = require "../base/field"
 local geom = require "../base/geom"
-local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
-local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local TrajectoryDirect = require "trajectory/direct"
@@ -19,440 +15,306 @@ local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 
+
+-- if the ball speed is lower than STATIONARY_BALL_SPEED
+-- we pretend that the ball is resting
+local STATIONARY_BALL_SPEED = 0.3
+local STATIONARY_BALL_SPEED_HYST = 0.2
+
+-- if the ball movement direction and the shoot direction differ less than CHASE_BALL_ANGLE
+-- we chase the ball instead of stopping it
+local CHASE_BALL_ANGLE = 30 * math.pi / 180
+local CHASE_BALL_ANGLE_HYST = 8 * math.pi / 180
+
+-- if inverse ball movement direction and the shoot direction differ less than VOLLEY_ANGLE
+-- we can shoot the ball as soon as it touches the dribbler instead of stopping it
+local VOLLEY_ANGLE = 70 * math.pi / 180
+local VOLLEY_ANGLE_HYST = 5 * math.pi / 180
+
+-- direct movement
+local EXTRA_MOVE_SPEED_LIMIT = 0.5
 local SIDEWARDS_KP = 9
 local SIDEWARDS_KI = 2.4
 local SIDEWARDS_SPEED_LIMIT = 0.5
-local MIN_ANGLE_PRECISION = 0.5 / 180 * math.pi
-local SHOOT_SIDE_OFFSET = 0.023 -- extends the hasBall sidewards
-local SHOOT_HYSTERESIS_TIMEOUT = 0.08 -- reset shoot hysteresis after the timeout
-local CAN_SHOOT_HYSTERESIS = 0.5 / 180 * math.pi
-local MIN_SHOOT_SPEED = 0.7
 
-local MOVING_BALL = 0.6
-local STOPPED_BALL = 0.2
-local STOPPED_BALL_DIST = 2*Constants.positionError
-local EXTRA_MOVE_SPEED_LIMIT = 0.5
+-- chip distance scaling factor for passes
+local CHIP_PASS_DISTANCE_FACTOR = 0.4
 
-local SAFETY_TIME = 0.2
-local SAFETY_TIME_HYSTERESIS = 0.4
-local BLOCK_ANGLE = 75 / 180 * math.pi
-local BLOCK_HYSTERESIS = 20 / 180 * math.pi
-local OPP_TIME_HYSTERESIS = 0.1
-local IN_THE_RUN = 1.5
-
-Shoot.CHIP_PASS_DISTANCE_FACTOR = 0.4
+-- if the robot view direction and the shoot direction differ less than MIN_PRECISION
+-- the robot is allowed to shoot the ball
+local MIN_PRECISION = 5 * math.pi / 180
 
 
 function Shoot:init()
-	self._shootHysteresis = false
-	self._canShootHysteresis = false
-	self._shootHysteresisTimer = 0
+	-- possible values = { StationaryBall, ChaseBall, Volley, StopBall }
+	self._state = "StationaryBall"
+
+	-- direct movement
+	self._directExtraSpeed = 0
 	self._sideOffsetErrorSum = 0
 
-	self._lastBallSpeed = nil
-	self._extraMoveSpeed = 0
-	self._travelStart = nil
-	self._travelLimit = false
+	self._lastTargetPos = nil
+	self._linearShoot = true
 
-	self._movingBallHysteresis = false
-	self._stopBallHysteresis = false
-	self._receivePassHysteresis = false
-	self._receivePassMoveTime = nil
-	self._oppTimeHysteresis = false
-	-- Ball is fast but slow enough to reach it
-	self._inTheRunHysteresis = false
+	self._precision = 0
+	self._rightOrientation = false
 end
 
--- shoot immediately if angle error is below maxAngleError
-function Shoot:_shoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontShoot)
-	local futureBall = self:_calculateFutureBall(World.Ball, self._robot.pos, self._robot.dir)
 
-	if futureBall.speed:length() > MOVING_BALL then
-		self._movingBallHysteresis = true
-	elseif futureBall.speed:length() < STOPPED_BALL then
-		self._movingBallHysteresis = false
-	end
-
-	local shotAtBack = (targetPos - self._robot.pos):dot(World.Ball.speed) > 0
-			and (targetPos - self._robot.pos):dot(World.Ball.pos - self._robot.pos) < 0
-	if shotAtBack and self._movingBallHysteresis then
-		self._inTheRunHysteresis = false
-	elseif futureBall.speed:length() > IN_THE_RUN then
-		self._inTheRunHysteresis = false
-	elseif futureBall.speed:length() < IN_THE_RUN - 0.2 then
-		self._inTheRunHysteresis = true
-	end
-
-	-- stop ball if angle is too sharp
-	if self._movingBallHysteresis then
-		local angleToBall = World.Ball.speed:absoluteAngleDiff(self._robot.pos - targetPos)
-		if self._inTheRunHysteresis and angleToBall > math.pi / 2 then
-			angleToBall = math.pi - angleToBall
-		end
-		if angleToBall > BLOCK_ANGLE then
-			self._stopBallHysteresis = true
-		elseif angleToBall < BLOCK_ANGLE - BLOCK_HYSTERESIS then
-			self._stopBallHysteresis = false
-		end
+function Shoot:_calculateFutureBall(ballReceiptPos)
+	local futureBallPos
+	if ballReceiptPos then
+		futureBallPos = ballReceiptPos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
 	else
-		self._stopBallHysteresis = false
+		local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir):scaleLength(
+			self._robot.shootRadius + World.Ball.radius)
+		futureBallPos = dribblerPos:nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed * 3)
 	end
 
-	vis.addCircle("t/a/shoot: targetPos", targetPos, 0.04, vis.colors.pinkHalf, true)
-	debug.set("stopBall", self._stopBallHysteresis)
-	debug.set("inTheRun", self._inTheRunHysteresis)
-	debug.set("movingBall", self._movingBallHysteresis)
-
-	-- don't allow pushing the ball into the opponent defense area
-	if self._robot:hasBall(World.Ball, SHOOT_SIDE_OFFSET)
-			and not self._stopBallHysteresis
-			and (targetPos - self._robot.pos):absoluteAngleDiff(World.Ball.pos - self._robot.pos) < math.pi / 4
-			and (not Field.isInOpponentDefenseArea(self._robot.pos, self._robot.shootRadius)
-				or Referee.isFriendlyPenaltyState()) then -- if we got the ball
-		debug.set("ballApproach", "hasBall")
-		self:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontShoot)
-		-- send the position of the ball
-		self._send.attackPosition("all", World.Ball.pos)
+	local ballTime = Physics.checkedBallRollTime(World.Ball, futureBallPos)
+	local futureBall
+	if ballTime > 0 then
+		futureBall = Physics.ballAtTime(World.Ball, ballTime)
 	else
-		debug.set("shoot command", "none")
-		self:_resetShoot()
-		self:_doCatch(targetPos, targetSpeed, futureBall)
+		futureBall = {
+			maxSpeed = World.Ball.maxSpeed,
+			radius = World.Ball.radius,
+			speed = World.Ball.speed,
+			pos = futureBallPos
+		}
 	end
 
-	self._send.shootDestination("all", targetPos)
+	if ballReceiptPos then
+		vis.addCircle("t/a/shoot: ballReceiptPos", ballReceiptPos, 0.04, vis.colors.magentaHalf, true)
+	end
+	vis.addCircle("t/a/shoot: futureBall", futureBall.pos, futureBall.radius, vis.colors.orangeHalf, true)
+
+	return futureBall, math.max(0, ballTime)
 end
 
-function Shoot:_doCatch(targetPos, targetSpeed, futureBall)
-	-- face the ball if it should be stopped
-	if self._stopBallHysteresis then
-		targetPos = World.Ball.pos - World.Ball.speed
+function Shoot:_getState(targetPos, futureBall, futureBallTime)
+	-- check if the ball is stationary
+	local stationaryBallSpeed = STATIONARY_BALL_SPEED + (self._state == "StationaryBall" and 1 or -1) * STATIONARY_BALL_SPEED_HYST
+	if futureBall.speed:length() < stationaryBallSpeed then
+		return "StationaryBall"
 	end
 
-	self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
-
-	if self._movingBallHysteresis and Ball.receivesPass(self._robot) then
-		local moveTime = self:_tryReceivePass(targetPos, targetSpeed, futureBall)
-		if moveTime then
-			debug.set("ballApproach", "receivePass")
-			return moveTime
-		end
-	else
-		self._receivePassMoveTime = nil
-	end
-	self._receivePassHysteresis = false
-
-	if World.Ball.speed.y > 0 then
-		self._robot:setDribblerSpeed(0.15)
+	-- don't spoil volley shots by redeciding
+	if self._state == "Volley" and futureBallTime < 0.2 then
+		return "Volley"
 	end
 
-	-- universal catch ball
-	-- just catch the ball, but keep a little distance to allow braking the robot
-	local ballOffset = (World.Ball.pos - self._robot.pos):rotate(-self._robot.dir)
-	local ballDist
-	if self._movingBallHysteresis and ballOffset.x > 0 then
-		-- the ball is infront of the robot, no extra distance necessary
-		ballDist = 0
-		debug.set("ballApproach", "catchBall (no dist)")
-	else
-		ballDist = 0
-		debug.set("ballApproach", "catchBall")
+	-- if the targetPos changed significantly, reset to stopBall
+	if self._lastTargetPos and targetPos:distanceTo(self._lastTargetPos) > 0.05 then
+		self._state = "StopBall"
 	end
 
-	return self:_catchBall(targetPos, ballDist, targetSpeed)
+	-- check if the ball can be chased
+	local chaseBallAngle = CHASE_BALL_ANGLE + (self._state == "ChaseBall" and 1 or -1) * CHASE_BALL_ANGLE_HYST
+	local shootVector = targetPos - futureBall.pos
+	local angleDiff = futureBall.speed:absoluteAngleDiff(shootVector)
+	local relativeBallPos = World.Ball.pos - self._robot.pos
+	if angleDiff < chaseBallAngle and (World.Ball.speed:dot(relativeBallPos) > 0 or World.Ball.posZ > 0) then
+		return "ChaseBall"
+	end
+
+	-- don't redecide if the ball is very close
+	if futureBallTime < 0.3 then
+		return self._state
+	end
+
+	-- check if the ball can be shot volley
+	local volleyAngle = VOLLEY_ANGLE + (self._state == "Volley" and 1 or -1) * VOLLEY_ANGLE_HYST
+	if math.pi - angleDiff < volleyAngle then
+		return "Volley"
+	end
+
+	-- otherwise stop the ball
+	return "StopBall"
 end
 
-function Shoot:_tryReceivePass(targetPos, targetSpeed, futureBall)
-	local robotFront = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
-	local viewDir, _ = self:calcPhi(futureBall.speed, futureBall.pos,
-				targetPos, targetSpeed)
-	local ballPos = robotFront:nearestPosOnLine(World.Ball.pos, World.Ball.pos+(World.Ball.speed * 30))
-	local ballDist = ballPos:distanceTo(World.Ball.pos)
-
-	local robotPos = ballPos - Vector.fromAngle(viewDir):scaleLength(self._robot.shootRadius + World.Ball.radius)
-
-	local moveTime = Physics.robotTimeToPos(self._robot, robotPos, Vector.create(0,0))
-	local ballTime = Physics.ballRollTime(World.Ball, ballDist)
-
-	if self._receivePassMoveTime == nil then
-		self._receivePassMoveTime = moveTime
-	else
-		local alpha = 0.3
-		self._receivePassMoveTime = (1-alpha)*self._receivePassMoveTime + alpha*moveTime
-	end
-
-	local waitTime = ballTime - self._receivePassMoveTime
-
-	--see if an opponent is closer to the ball
-	local minTimeOpp = math.huge
-	for _,r in ipairs(World.OpponentRobots) do
-		local tmp = Robot.minTimeToBall(r)
-		if tmp < minTimeOpp then
-			minTimeOpp = tmp
-		end
-	end
-	debug.set("wait time", waitTime)
-	debug.set("opp time", minTimeOpp)
-
-	-- hysteresis around the time
-	if minTimeOpp > waitTime + OPP_TIME_HYSTERESIS then
-		self._oppTimeHysteresis = false
-	elseif minTimeOpp < waitTime - OPP_TIME_HYSTERESIS then
-		self._oppTimeHysteresis = true
-	end
-
-	-- wait for recieving the ball
-	if self._oppTimeHysteresis or waitTime > SAFETY_TIME
-			or (self._receivePassHysteresis and waitTime > SAFETY_TIME - SAFETY_TIME_HYSTERESIS) then
-		if self._oppTimeHysteresis then
-			-- move to the ball if the opponent would be there before us
-			moveTime = Physics.robotTimeToBall(self._robot, World.Ball, targetPos, 0)
-			local ball = Physics.ballAtTime(World.Ball, moveTime)
-			ballPos = ball.pos
-			robotPos = ballPos - Vector.fromAngle(viewDir):scaleLength(self._robot.shootRadius + World.Ball.radius)
-		end
-
-		-- block ball by moving in its way
-		PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
-		local ignoreOpponents = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + self._robot.radius + 0.3
-		PathHelper.addRobotObstacles(self._robot.path, self._robot, false, ignoreOpponents)
-		self._robot.trajectory:update(ToTarget, robotPos, viewDir)
-		self._robot:setDribblerSpeed(0.1)
-		self._receivePassHysteresis = true
-		self._send.moveDest("all", robotPos)
-		-- send the position where the ball is catched
-		self._send.attackPosition("all", ballPos)
-		debug.set("Moving to Ball", self._oppTimeHysteresis)
-
-		return moveTime
-	end
-	return nil
-end
-
-function Shoot:_calculateDistToBall()
-	-- calculate current distance to the ball
+function Shoot:_correctSidewardsOffset()
 	local distToBall = (World.Ball.pos - self._robot.pos):rotate(-self._robot.dir)
-	distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius
-	local shotAtRobot = false
+	distToBall.x = distToBall.x - self._robot.shootRadius - World.Ball.radius - 0.01
 
-	if self._movingBallHysteresis then
-		local posDiff = World.Ball.pos - self._robot.pos
-		if World.Ball.speed:length() >= MOVING_BALL and World.Ball.speed:dot(posDiff) < 0 then
-			-- ball shoot towards robots
-			local ballTouchPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*(self._robot.shootRadius+World.Ball.radius)
-			local dribblerPerp = Vector.fromAngle(self._robot.dir):perpendicular()
-			-- calculate offset to ball hitpoint
-			local _, _, lambda = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, ballTouchPos, dribblerPerp)
-			if lambda then
-				debug.set("special", "shot at robot")
-				local errorVec = dribblerPerp * lambda
-				distToBall = errorVec:rotate(-self._robot.dir)
-				shotAtRobot = true
-			end
-		end
-	end
-	debug.set("distToBall", distToBall)
-	return distToBall, shotAtRobot
-end
-
-function Shoot:_correctSidewardsOffset(distToBall)
-	local speedLimit = SIDEWARDS_SPEED_LIMIT
-	local sidewardsKp = SIDEWARDS_KP
-	local errorVal = -distToBall.y
-	local p_out = sidewardsKp * errorVal
-
-	local errorMax = math.bound(0, speedLimit - p_out, speedLimit)
-	local errorMin = math.bound(-speedLimit, -speedLimit - p_out, 0)
+	local p_out = SIDEWARDS_KP * -distToBall.y
+	local errorMax = math.bound(0, SIDEWARDS_SPEED_LIMIT - p_out, SIDEWARDS_SPEED_LIMIT)
+	local errorMin = math.bound(-SIDEWARDS_SPEED_LIMIT, -SIDEWARDS_SPEED_LIMIT - p_out, 0)
 	self._sideOffsetErrorSum = math.bound(errorMin, self._sideOffsetErrorSum + SIDEWARDS_KI * p_out * World.TimeDiff, errorMax)
-	debug.set("sideIntegral", self._sideOffsetErrorSum)
+	debug.set("Shoot/sideIntegral", self._sideOffsetErrorSum)
 
 	-- correct sidewards pos error
 	return Vector.fromAngle(self._robot.dir):perpendicular():setLength(
-			math.bound(-speedLimit, p_out + self._sideOffsetErrorSum, speedLimit))
+			math.bound(-SIDEWARDS_SPEED_LIMIT, p_out + self._sideOffsetErrorSum, SIDEWARDS_SPEED_LIMIT))
 end
 
-function Shoot:_calculateMovementSpeed(lastBallSpeed, distToBall, shotAtRobot)
-	-- compensate ball movement
-	local speed = World.Ball.speed:copy()
-	local speedLimit = lastBallSpeed:length()
-	-- prevent ball speed windup
-	if speed:length() > speedLimit then
-		speed:setLength(speedLimit)
-	end
-	-- don't drive backwards if the ball moves towards the robot
-	speed = speed:rotate(-self._robot.dir)
-	if shotAtRobot then
-		speed = Vector(0, 0)
-	elseif speed.x < 0 then
-		speed.x = 0
-	end
-	speed = speed:rotate(self._robot.dir)
-	-- sidewards offset
-	speed = speed + self:_correctSidewardsOffset(distToBall)
-	return speed
-end
+function Shoot:_sendShootCommand(kickSpeed, targetPos, targetDir)
+	local angleDiff = math.abs(geom.normalizeAngle(self._robot.dir - targetDir))
+	debug.set("Shoot/angleDiff (degrees)", angleDiff * 180 / math.pi)
 
-function Shoot:_calculateFutureBall(ball, robotPos, robotDir)
-	local ballTouchPos = robotPos + Vector.fromAngle(robotDir) * (self._robot.shootRadius + ball.radius)
-	local ballRollTime = Physics.checkedBallRollTime(ball, ballTouchPos)
+	local threshhold = self._precision * (self._rightOrientation and 1.5 or 0.5)
+	self._rightOrientation = angleDiff < threshhold
+	debug.set("Shoot/rightOrientation", self._rightOrientation)
 
-	local futureBall
-	if ballRollTime < 0 then
-		futureBall = {
-			maxSpeed = ball.maxSpeed,
-			radius = ball.radius,
-			speed = ball.speed,
-			pos = ballTouchPos
-		}
-	else
-		futureBall = Physics.ballAtTime(ball, ballRollTime)
-	end
-
-	vis.addCircle("t/a/shoot: futureBall", futureBall.pos, 0.04, vis.colors.orangeHalf, true)
-	return futureBall
-end
-
-function Shoot:_calculateShootDirection(targetPos, targetSpeed)
-	-- calculate shoot direction
-	local futureBall = self:_calculateFutureBall(World.Ball, self._robot.pos, self._robot.dir)
-
-	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos,
-				targetPos, targetSpeed)
-	kickSpeed = math.max(MIN_SHOOT_SPEED, kickSpeed)
-	local rawPhi = (targetPos - futureBall.pos):angle()
-
-	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(self._robot.dir)*20 }, vis.colors.blue)
-	vis.addPath("t/a/shoot: Direction", { self._robot.pos, self._robot.pos + Vector.fromAngle(targetDir)*20 }, vis.colors.pink)
-	vis.addPath("t/a/shoot: Direction simple", { futureBall.pos, futureBall.pos + Vector.fromAngle(rawPhi)*20 }, vis.colors.greenHalf)
-
-	return targetDir, kickSpeed
-end
-
-function Shoot:_checkShootHysteresis(targetDir, maxAngleError, dontShoot)
-	-- check robot orientation
-	local angleDiff = math.abs(geom.getAngleDiff(targetDir, self._robot.dir))
-	local csHysteresis = math.min(maxAngleError / 2, CAN_SHOOT_HYSTERESIS)
-
-	if angleDiff < maxAngleError - csHysteresis then
-		self._canShootHysteresis = true
-	elseif angleDiff > maxAngleError then
-		self._canShootHysteresis = false
-	end
-
-	-- only start kicking if the robot got the ball
-	if self._robot:hasBall(World.Ball, -0.005) then
-		-- shootHysteresis stays true after maxAngleError was satisfied once
-		if self._canShootHysteresis then
-			self._shootHysteresis = true
-			self._shootHysteresisTimer = World.Time
-		elseif self._shootHysteresisTimer + SHOOT_HYSTERESIS_TIMEOUT >= World.Time then
-			self._shootHysteresis = false
-		end
-	else
-		self._shootHysteresis = false
-	end
-
-	-- don't shoot if told so
-	if dontShoot then
-		self._canShootHysteresis = false
-		self._shootHysteresis = false
-	end
-
-	debug.set("canShoot", self._canShootHysteresis)
-	debug.set("hasBall hysteresis", self._shootHysteresis)
-end
-
-function Shoot:_doShoot(targetPos, targetSpeed, linearShoot, maxAngleError, dontShoot)
-	self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
-	self._lastBallSpeed = self._lastBallSpeed or World.Ball.speed
-
-	local distToBall, shotAtRobot = self:_calculateDistToBall()
-	local speed = self:_calculateMovementSpeed(self._lastBallSpeed, distToBall, shotAtRobot)
-	local targetDir, kickSpeed = self:_calculateShootDirection(targetPos, targetSpeed)
-
-	if self._movingBallHysteresis and World.Ball.speed:length() >= IN_THE_RUN
-			and World.Ball.speed:dot(World.Ball.pos - self._robot.pos) < 0 then
-		-- HACK: if the ball is shot at the robot, shoot rather than let the ball bounce away
-		maxAngleError = 3 * maxAngleError
-	end
-	maxAngleError = math.max(MIN_ANGLE_PRECISION, maxAngleError)
-	self:_checkShootHysteresis(targetDir, maxAngleError, dontShoot)
-
-	-- must not dribble further than maxDribbleDistance
-	if not self._travelStart then
-		self._travelStart = self._robot.pos
-		self._travelLimit = false
-	end
-	-- debug.set("travelDist", self._travelStart:distanceTo(self._robot.pos))
-	if self._travelStart:distanceTo(self._robot.pos) >= Constants.maxDribbleDistance then
-		self._travelLimit = true
-	end
-	local accel = nil
-	local extraSpeed = Vector(0, 0)
-	if self._shootHysteresis and not self._travelLimit then
-		-- speed towards ball
-		local accelerate = self._robot.acceleration.aSpeedupFMax * 0.5
-		self._extraMoveSpeed = math.min(self._extraMoveSpeed + accelerate * World.TimeDiff, EXTRA_MOVE_SPEED_LIMIT)
-		accel = Vector.fromAngle(targetDir) * accelerate
-		extraSpeed = Vector.fromAngle(targetDir) * self._extraMoveSpeed
-
-		local dist = targetPos:distanceTo(self._robot.pos)
-		if linearShoot then
+	if self._rightOrientation then
+		debug.set("Shoot/shootCommand", self._linearShoot and "linear" or "chip")
+		if self._linearShoot then
 			self._robot:shoot(kickSpeed, true)
-			debug.set("shoot command", "linear")
 		else
-			--shorten distance because ball will bounce
-			-- optimal values is 0.62, but give the robot a bit more room
-			self._robot:chip(dist * Shoot.CHIP_PASS_DISTANCE_FACTOR)
-			debug.set("shoot command", "chip")
+			local dist = World.Ball.pos:distanceTo(targetPos)
+			self._robot:chip(dist)
 		end
-		self:_doForceShoot()
+	end
+end
+
+function Shoot:_shootStationaryBall(targetPos, targetSpeed, futureBall)
+	local shootDir = (targetPos - self._robot.pos):angle()
+	local directMovement = Robot.hadBall(self._robot, 0)
+		and math.abs(geom.normalizeAngle((World.Ball.pos - self._robot.pos):angle() - shootDir)) < 30 * math.pi / 180
+		and math.abs(geom.normalizeAngle(self._robot.dir - shootDir)) < 3 * math.pi / 180
+
+	debug.set("Shoot/AngleError", geom.normalizeAngle(math.abs(self._robot.dir - shootDir)) * 180 / math.pi)
+
+	if directMovement then
+		local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
+		local accelerate = self._robot.acceleration.aSpeedupFMax * 0.5
+		self._directExtraSpeed = math.min(self._directExtraSpeed + accelerate * World.TimeDiff, EXTRA_MOVE_SPEED_LIMIT)
+		local accel = Vector.fromAngle(targetDir) * accelerate
+		local speed = Vector.fromAngle(targetDir) * self._directExtraSpeed
+
+		speed = speed + self:_correctSidewardsOffset()
+
+		debug.set("Shoot/directSpeed", speed)
+		debug.set("Shoot/directDir", targetDir)
+		debug.set("Shoot/directAccel", accel)
+		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, nil, accel)
+		self:_sendShootCommand(kickSpeed, targetPos, targetDir)
+		self._send.attackPosition("all", futureBall.pos)
 	else
-		self._extraMoveSpeed = 0
-		self._lastBallSpeed = World.Ball.speed
-		self._shootHysteresis = false
-		self._forceShootTimer = nil
+		self:_catchBall(targetPos, 0, targetSpeed)
+	end
+	
+	debug.set("Shoot/DirectMovement", directMovement)
+end
 
-		-- slowly dissolve travel distance
-		local travelDist = math.max(self._travelStart:distanceTo(self._robot.pos) - 5 * World.TimeDiff, 0)
-		self._travelStart = self._robot.pos + (self._travelStart - self._robot.pos):setLength(travelDist)
-		if travelDist == 0 then
-			self._travelLimit = false
-		end
+function Shoot:_shootChaseBall(targetPos, targetSpeed)
+	local relativeEndSpeed = 1
 
-		-- keep distance to the ball
-		local minDist
-		if self._travelLimit then
-			minDist = 0.075
-		elseif self._movingBallHysteresis or World.RefereeState == "Game" then
-			-- don't keep any distance to a moving ball
-			minDist = 0
-		else
-			-- don't push the ball until the robot is correctly oriented
-			minDist = STOPPED_BALL_DIST
-		end
+	local robotTimeToCurrentBall = Physics.robotTimeToPos(self._robot, World.Ball.pos, World.Ball.speed)
+	local futureBall = Physics.ballAtTime(World.Ball, robotTimeToCurrentBall)
+	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
 
-		local distError = minDist - distToBall.x
-		if distError > 0 then
-			-- too near
-			speed = speed - Vector.fromAngle(targetDir):setLength(distError * 20)
-		else
-			-- get as near to the ball as allowed
-			speed = speed - Vector.fromAngle(targetDir):setLength(distError * 5)
-		end
+	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
+	local moveDest = futureBall.pos - dribblerOffset
+	local endSpeed = futureBall.speed:copy():setLength(futureBall.speed:length() + relativeEndSpeed)
 
-		debug.set("shoot command", "none")
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
+	self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, endSpeed)
+	self._send.attackPosition("all", futureBall.pos)	
+
+	local currentDribblerPos = self._robot.pos + dribblerOffset
+	if World.Ball.pos:distanceTo(currentDribblerPos) < 0.15 then
+		self:_sendShootCommand(kickSpeed, targetPos, targetDir)
+	end
+end
+
+function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
+	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
+	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
+	local moveDest = futureBall.pos - dribblerOffset
+
+	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
+	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0) then
+		PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
+		local endSpeed = Physics.robotMinEndspeed(self._robot, moveDest, math.max(0, futureBallTime))
+		self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, endSpeed)
+		vis.addPath("t/a/shoot: endSpeed", {moveDest, moveDest + endSpeed}, vis.colors.red, nil, nil, 0.03)
+		self._send.attackPosition("all", futureBall.pos)
+	else
+		self:_catchBall(targetPos, 0, targetSpeed)
 	end
 
-	self._robot.trajectory:update(TrajectoryDirect, speed + extraSpeed, targetDir, nil, accel)
+	local currentDribblerPos = self._robot.pos + dribblerOffset
+	if World.Ball.pos:distanceTo(currentDribblerPos) < 0.15 then
+		self:_sendShootCommand(kickSpeed, targetPos, targetDir)
+	end
 end
 
-function Shoot:_resetShoot()
-	self._shootHysteresis = false
-	self._travelStart = nil
-	self._travelLimit = false
-	self._canShootHysteresis = false
-	self._sideOffsetErrorSum = 0
+function Shoot:_shootStopBall(futureBall, futureBallTime)
+	local ballOrigin = futureBall.pos - futureBall.speed
+	local targetDir = (-futureBall.speed):angle()
+	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
+	local moveDest = futureBall.pos - dribblerOffset
+
+	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
+	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0) then
+		PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
+		self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, nil)
+		self._send.attackPosition("all", futureBall.pos)
+	else
+		self:_catchBall(ballOrigin, 0, 8)
+	end
+
+	self._rightOrientation = false
 end
 
+function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, precision)
+	local futureBall, futureBallTime = self:_calculateFutureBall(ballReceiptPos)
+	debug.set("Shoot/futureBallTime", futureBallTime)
+
+	self._state = self:_getState(targetPos, futureBall, futureBallTime)
+	debug.set("Shoot/State", self._state)
+
+	self._linearShoot = linearShoot
+	self._precision = precision or MIN_PRECISION
+
+	local color
+	if self._state == "StationaryBall" then
+		self:_shootStationaryBall(targetPos, targetSpeed, futureBall)
+		color = vis.colors.whiteHalf
+	elseif self._state == "ChaseBall" then
+		self:_shootChaseBall(targetPos, targetSpeed, futureBall)
+		color = vis.colors.skyBlueHalf
+	elseif self._state == "Volley" then
+		self:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
+		color = vis.colors.greenHalf
+	else -- "StopBall"
+		self:_shootStopBall(futureBall, futureBallTime)
+		color = vis.colors.redHalf
+	end
+
+	vis.addCircle("t/a/shoot: State", futureBall.pos, 0.07, color, true)
+	vis.addCircle("t/a/shoot: State", targetPos, 0.07, color, true)
+	vis.addPath("t/a/shoot: State", {futureBall.pos, targetPos}, color, nil, nil, 0.03)
+
+	self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
+	self._send.shootDestination("all", targetPos)
+
+	self._lastTargetPos = targetPos
+end
+
+--- shoot the ball such that it reaches targetPos with a speed of targetSpeed
+-- @param targetPos Vector - where to shoot at
+-- @param targetSpeed Vector - the velocity of the ball when it reaches targetPos
+-- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
+function Shoot:_shoot(targetPos, targetSpeed, ballReceiptPos, precision)
+	self:_doShoot(targetPos, targetSpeed, ballReceiptPos, true, precision)
+end
+
+--- chips the ball such that it hits the ground at firstContactPos
+-- @param firstContactPos Vector - where the ball hits the ground the first time
+-- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
+function Shoot:_chipToPos(firstContactPos, ballReceiptPos, precision)
+	self:_doShoot(firstContactPos, 8, ballReceiptPos, false, precision)
+end
+
+--- chips the ball such that it can be accepted at rollingBallPos
+-- @param rollingBallPos Vector - where the ball is starting to roll
+-- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
+function Shoot:_chipPass(rollingBallPos, ballReceiptPos, precision)
+	local origin = ballReceiptPos or World.Ball.pos
+	local firstContactPos = origin + (rollingBallPos - origin):scaleLength(CHIP_PASS_DISTANCE_FACTOR)
+	self:_chipToPos(firstContactPos, ballReceiptPos, precision)
+end
 
 return Shoot

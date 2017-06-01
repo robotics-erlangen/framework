@@ -12,6 +12,7 @@ local Move = require "agent/attacker/move"
 local Penalty = require "agent/attacker/penalty"
 local Shoot = require "agent/attacker/shoot"
 local Stop = require "agent/attacker/stop"
+local BallEscort = require "agent/attacker/ballescort"
 local DoubleTouchGuard = require "agent/attacker/doubletouchguard"
 
 Attacker._behaviors = {
@@ -22,6 +23,7 @@ Attacker._behaviors = {
 	FreeKick,
 	DoubleTouchGuard,
 	Duel,
+	BallEscort,
 	Shoot,
 	Default
 }

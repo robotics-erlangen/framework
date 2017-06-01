@@ -51,7 +51,7 @@ local Trajectory = require "../base/trajectory"
 -- @field dribblerWidth number - Width of the dribbler
 -- @field maxSpeed number - maximum speed
 -- @field maxAngularSpeed number - maximum angular speed
--- @filed acceleration table - Acceleration and deceleration parameters: aSpeedupFMax, aSpeedupSMax, aSpeedupPhiMax, aBrakeFMax, aBrakeSMax, aBrakePhiMax
+-- @field acceleration table - Acceleration and deceleration parameters: aSpeedupFMax, aSpeedupSMax, aSpeedupPhiMax, aBrakeFMax, aBrakeSMax, aBrakePhiMax
 -- @field lastResponseTime number - strategy time when the last radio response was handled *
 -- @field radioResponse table - response from the robot, only set if there is a current response *
 -- @field userControl table - command from input devices (fields: speed, omega, kickStyle, kickPower, dribblerSpeed) *
@@ -93,7 +93,7 @@ function Robot:init(data, isFriendly)
 	self._hasBall = {}
 	if self.isFriendly then -- setup trajectory and path objects
 		self.trajectory = Trajectory(self)
-		self.path = path.create()
+		self.path = path.create(self.id)
 	end
 	self._currentTime = 0
 	self._controllerInput = nil

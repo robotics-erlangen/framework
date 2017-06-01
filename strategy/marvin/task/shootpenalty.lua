@@ -43,7 +43,7 @@ local DIST_TO_BALL = 0.015
 function ShootPenalty:run()
 	if not self._targetPos then
 		local keeper = World.OpponentKeeper
-		local keeperInsideDefArea =  keeper and Field.isInOpponentDefenseArea(keeper.pos, -keeper.radius)
+		local keeperInsideDefArea =  keeper and Field.isInOpponentDefenseArea(keeper.pos, keeper.radius)
 		debug.set("keeperInsideDefArea", keeperInsideDefArea)
 		if World.Time - self._startTime < self._waitTime then
 			self:_catchBall(cornerPoint(self._lookDir), constants.positionError + DIST_TO_BALL)
@@ -80,7 +80,7 @@ function ShootPenalty:run()
 		if self._cornerChange then
 			self:_rotateAndShoot((self._targetPos - World.Ball.pos):angle())
 		else
-			self:_shoot(self._targetPos, math.huge, true, shootErrorThreshold)
+			self:_shoot(self._targetPos, math.huge, nil, shootErrorThreshold)
 		end
 	end
 end

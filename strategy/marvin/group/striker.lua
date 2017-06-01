@@ -1,5 +1,6 @@
 local Striker = Class("Group.Striker")
 
+local debug = require "../base/debug"
 local Field = require "../base/field"
 local World = require "../base/world"
 local G = World.Geometry
@@ -89,8 +90,15 @@ function Striker:run(sender, inbox, messages)
 	-- assign the zones to the nearest strikers (sorted by x position)
 	local robotXPositions = {}
 	for _, r in ipairs(self._robots) do
-		local _, passInfo = next(inbox.passInfo())
-		local xPos = (passInfo and passInfo.target == r) and passInfo.ballPos.x or r.pos.x
+		local _, passInfoTable = next(inbox.passInfo())
+		local xPos = r.pos.x
+		if passInfoTable then
+			for _, passInfo in ipairs(passInfoTable) do
+				if passInfo.target == r then
+					xPos = passInfo.ballPos.x
+				end
+			end
+		end
 		table.insert(robotXPositions, xPos)
 	end
 	local bubbleChange = true
@@ -118,6 +126,9 @@ function Striker:run(sender, inbox, messages)
 			end
 		end
 	end
+
+	debug.set("number of zones", self._zoneCount)
+	debug.set("empty zone index", self._unoccupiedZoneIndex)
 
 	self._lastMainAttacker = mainAttacker
 end

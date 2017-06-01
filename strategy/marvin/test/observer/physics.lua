@@ -4,7 +4,6 @@ local Physics = require "observer/physics"
 local IO = require "util/io"
 local debug = require "../base/debug"
 local vis = require "../base/vis"
-local World = require "../base/world"
 
 
 function PhysicsTest.testBallVsRobotTime()
@@ -72,18 +71,6 @@ function PhysicsTest.testBallStopTime()
 	local t_stop2 = Physics.ballStopTime(ball)
 
 	log(t_stop2 .. "     " .. t_stop)
-end
-
-function PhysicsTest.testGetBallAsFastAsPossible()
-	local catchTime, catchPos, speedOK = Physics.getBallAsFastAsPossible(World.FriendlyRobots[1], World.Ball)
-	local ballCatchPos = Physics.ballAtTime(World.Ball, catchTime).pos
-	debug.set("catch time", catchTime)
-	debug.set("speed OK?", speedOK)
-	debug.set("robot max speed", World.FriendlyRobots[1].maxSpeed)
-	debug.set("Ball max speed", World.Ball.maxSpeed)
-	vis.addCircle("Where the Ball will be catched", ballCatchPos, World.Ball.radius, vis.colors.orangeHalf, true)
-	vis.addCircle("Where the Robot stands when catching the Ball", catchPos, World.FriendlyRobots[1].radius, speedOK and vis.fromRGBA(127, 255, 127, 127) or vis.colors.redHalf, true)
-	debug.set("Robot catches ball at", catchPos)
 end
 
 return PhysicsTest

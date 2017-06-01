@@ -18,16 +18,24 @@ function Move:check()
 end
 
 function Move:_updateTask()
-	local _, msg = next(self._inbox.passInfo())
-	if msg ~= nil then
-		if msg.robot == self._robot then
-			self._forceKeepingInPool = true
+	local _, passInfoTable = next(self._inbox.passInfo())
+	if passInfoTable then
+		for _, passInfo in ipairs(passInfoTable) do
+			if passInfo.target == self._robot then
+				self._forceKeepingInPool = true
+				break
+			end
 		end
 	end
 
 	local assignment = self._inbox.moveAssignment().trainer
+
+	if assignment.mainAttacker then
+		self:_applyForMainAttacker(nil, nil, 2)
+	end
+
 	if assignment.behavior then
-		if not self._behavior then
+		if not self._behavior or assignment.restart then
 			self._behavior = assignment.behavior(self._agent)
 			self._behavior:start()
 		end
@@ -38,10 +46,6 @@ function Move:_updateTask()
 	if self._behavior then
 		self._behavior:stop()
 		self._behavior = nil
-	end
-
-	if assignment.mainAttacker then
-		self:_applyForMainAttacker(nil, nil, 2)
 	end
 
 	return assignment.class, assignment.params, assignment.restart

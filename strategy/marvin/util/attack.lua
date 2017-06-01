@@ -35,7 +35,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 		shootTime = Robot.minShootTime(robot, pass.ballPos)
 	end
 	local shootPos = Physics.ballAtTime(World.Ball, shootTime).pos
-	local passTime = Shoot.ballPassTime(shootPos, pass.ballPos, pass.target)
+	local passTime = Shoot.ballPassTime(shootPos, pass.ballPos, pass.target, nil, robot)
 	local ballArrivalTime = shootTime + passTime + World.Time
 	if considerTiming then
 		rating = rating * Rating.valueToRating(ballArrivalTime - pass.time, -0.1, 0.1)
@@ -44,7 +44,9 @@ function Attack.ratePass(robot, pass, considerTiming)
 	-- rate volley
 	if Ball.receivesPass(robot) then
 		local volleyAngle = World.Ball.speed:absoluteAngleDiff(shootPos - pass.ballPos)
-		rating = rating * Rating.valueToRating(volleyAngle, 65 / 180 * math.pi, 50 / 180 * math.pi)
+		local volleyWeight = 0.7
+		local volleyRating = Rating.valueToRating(volleyAngle, 65 / 180 * math.pi, 50 / 180 * math.pi)
+		rating = rating * (1 - volleyWeight + volleyWeight * volleyRating)
 	end
 
 	-- rate possible interceptions
@@ -146,6 +148,48 @@ function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPassPos
 	return Attack.choosePass(robot, passes, currentPassPos, considerTiming)
 end
 
+local function sortByRating(a, b)
+	return a.rating > b.rating
+end
+
+--- sorts the passes by their rating
+-- @name sortPassesFromSuggestions
+-- @param robot Robot - the pass sender / main attacker
+-- @param passSuggestions table - all incoming passSuggestion messages
+-- @param currentPassPositions table - the ballPositions of the last frame, used for stability
+-- @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
+-- @param threshold - number between 0 and 1, ratings lower than the threshold won't be included (unless we would have none otherwise)
+-- @return table - list of passes, sorted by their rating
+function Attack.sortPassesFromSuggestions(robot, passSuggestions, currentPassPositions, considerTiming, threshold)
+	local passes = {}
+	threshold = threshold or 0.5
+	for sender, sugg in pairs(passSuggestions) do
+		local pass = {target = sender, ballPos = sugg.ballPos, time = sugg.time}
+		local rating = Attack.ratePass(robot, pass, considerTiming)
+		-- give a bonus if the pos is near the currentPassPos
+		if currentPassPositions then
+			local ratingHystDistance = 0.1
+			local ratingHystPercentage = 0.1
+			local hystBonus = -math.huge
+			for _, pos in ipairs(currentPassPositions) do
+				local bonus = (1 + ratingHystPercentage *
+					Rating.valueToRating(sugg.ballPos:distanceTo(pos), ratingHystDistance, 0))
+				if bonus > hystBonus then
+					hystBonus = bonus
+				end
+			end
+			rating = rating * hystBonus
+		end
+
+		if rating > threshold or not passes[1] then
+			table.insert(passes, {target = sender, ballPos = sugg.ballPos, time = sugg.time, rating = rating})
+		end
+	end
+
+	table.sort(passes, sortByRating)
+	return passes
+end
+
 --- draws a broad line beween the main attacker (robotPos) and the next attack destination (shootDest)
 -- @name visualizeAttack
 -- @param robotPos Vector - the position of the main attacker
@@ -157,16 +201,24 @@ end
 
 --- decides whether a robot has to be a main attacker because it will receive a pass
 -- used in a/a/applyformainattacker
--- @param passInfo table - all incoming passInfo messages
+-- @param passInfoSender Robot - the sender of the passInfo message
+-- @param passInfoMessage table - passInfo, for format details see messaging.lua
 -- @return Robot - the main attacker that receives a pass, or nil
 local lastCPMA = nil
 local lastPasser = nil
 local lastReceiver = nil
-function Attack.currentPlannedMainAttacker(passInfo)
-	local passInfoSender, passInfoMessage = next(passInfo)
-	if passInfoSender and Robot.hadBall(passInfoSender, 0) then
-		lastPasser = passInfoSender
-		lastReceiver = passInfoMessage.target
+function Attack.currentPlannedMainAttacker(passInfoSender, passInfoTable)
+	local passInfoMessage
+	if passInfoTable then
+		if #passInfoTable > 1 then
+			return nil
+		end
+		local _
+		_, passInfoMessage = next(passInfoTable)
+		if passInfoSender and Robot.hadBall(passInfoSender, 0) then
+			lastPasser = passInfoSender
+			lastReceiver = passInfoMessage.target
+		end
 	end
 
 	debug.set("plannedMA/lastCPMA", lastCPMA)
@@ -254,7 +306,7 @@ end
 local function calculatePassInfoTiming(robot, passInfo)
 	if passInfo then
 		local robotTime = Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true)
-		local bufferTime = 0.4 + 0.1 * robot.speed:length()
+		local bufferTime = 0.15
 
 		debug.set("robotTime", robotTime + bufferTime)
 		debug.set("ballTime", passInfo.time - World.Time)
@@ -262,17 +314,32 @@ local function calculatePassInfoTiming(robot, passInfo)
 		if World.Time + robotTime + bufferTime >= passInfo.time then
 			return true
 		end
-	else
-		return false
 	end
+	return false
 end
 
 --checks if an attacker has to start to move towards its pass
 --@param robot Robot
---@param passInfo Message - the passInfo-Message
---@retrun bool - if we have to start to move
-function Attack.checkPassInfo(robot, passInfo)
-	return calculatePassInfoTiming(robot, passInfo) and passInfo.target == robot
+--@param passInfoTable table - all of the passInfos currently being sent out
+--@param lastResult bool - the return value of the last call to this function, or false
+--@return bool - if we have to start to move
+function Attack.checkPassInfos(robot, passInfoTable, lastResult)
+	assert(lastResult ~= nil)
+	local relevantPassInfoMessage = nil -- a passInfo in which the robot is the target
+	if passInfoTable then
+		for _, passInfo in ipairs(passInfoTable) do
+			if passInfo.target == robot then
+				relevantPassInfoMessage = passInfo
+				break
+			end
+		end
+	end
+	if not relevantPassInfoMessage then
+		return false
+	elseif lastResult then
+		return true
+	end
+	return calculatePassInfoTiming(robot, relevantPassInfoMessage)
 end
 
 --checks if an attacker has to start to move towards its pass
@@ -280,7 +347,7 @@ end
 --@param passInfo Message - the passInfo-Message
 --@param position Vector - an alternative starting position for the timing calculations
 --@param speed Vector - an alternative starting speed for timing, or Vector(0,0)
---@retrun bool - if we have to start to move
+--@return bool - if we have to start to move
 function Attack.checkPassInfoFromPosition(robot, passInfo, position, speed)
 	if position then
 		speed = speed or Vector(0,0)
