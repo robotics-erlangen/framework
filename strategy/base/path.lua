@@ -252,4 +252,18 @@ if _addSeedTarget then
 	end
 end
 
+local _create = path.create
+local pathToIdMap = {}
+setmetatable(pathToIdMap, {__mode = "k"})
+
+path.create = function (robotId)
+	local pathInst = _create()
+	pathToIdMap[pathInst] = robotId
+	return pathInst
+end
+
+path.robotId = function (self)
+	return pathToIdMap[self]
+end
+
 return path
