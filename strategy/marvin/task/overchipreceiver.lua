@@ -6,7 +6,7 @@ local ToTarget = require "trajectory/totarget"
 local World = require "../base/world"
 local G = World.Geometry
 
-local DISTANCE_FACTOR = 22 -- used to determine the passSuggestion position
+local DISTANCE_FACTOR = 19 -- used to determine the passSuggestion position
 local DISTANCE_TO_DEFENSE_AREA = 1 -- faraway robots and goalie don't interfere with our runup
 
 
