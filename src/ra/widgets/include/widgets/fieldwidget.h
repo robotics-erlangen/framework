@@ -23,6 +23,7 @@
 
 #include "protobuf/command.h"
 #include "protobuf/status.h"
+#include "protobuf/ssl_referee.h"
 #include <QGraphicsView>
 #include <QMap>
 #include <QHash>
@@ -115,6 +116,8 @@ private slots:
     void setAOIVisible(bool visible);
     void takeScreenshot();
     void saveSituation();
+    void ballPlacementBlue();
+    void ballPlacementYellow();
 
 private:
     void resizeAOI(QPointF pos);
@@ -147,6 +150,7 @@ private:
     void clearTrace(Trace &trace);
     void clearBallTraces();
     void clearRobotTraces();
+    void ballPlacement(bool blue);
 
 private:
     QGraphicsScene *m_scene;
@@ -158,6 +162,8 @@ private:
     QAction *m_actionShowControllerVis;
     QAction *m_actionShowBallTraces;
     QAction *m_actionShowRobotTraces;
+    QAction *m_actionBallPlacementBlue;
+    QAction *m_actionBallPlacementYellow;
     QAction *m_actionAntialiasing;
     QAction *m_actionGL;
 
@@ -206,6 +212,8 @@ private:
     int m_dragId;
 
     bool m_isLogplayer;
+
+    SSL_Referee m_referee;
 };
 
 #endif // FIELDWIDGET_H

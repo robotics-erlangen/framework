@@ -153,6 +153,13 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_actionShowRobotTraces->setChecked(true);
     connect(m_actionShowRobotTraces, &QAction::triggered, this, &FieldWidget::updateTracesVisibility);
 
+    // ball placement commands
+    m_contextMenu->addSeparator();
+    m_actionBallPlacementBlue = m_contextMenu->addAction("Ball placement Blue");
+    connect(m_actionBallPlacementBlue, SIGNAL(triggered()), SLOT(ballPlacementBlue()));
+    m_actionBallPlacementYellow = m_contextMenu->addAction("Ball placement Yellow");
+    connect(m_actionBallPlacementYellow, SIGNAL(triggered()), SLOT(ballPlacementYellow()));
+
     // other actions
     m_contextMenu->addSeparator();
     QAction *actionShowAOI = m_contextMenu->addAction("Enable custom vision area");
@@ -238,6 +245,15 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_actionShowBallTraces->setChecked(s.value("BallTraces", true).toBool());
     m_actionShowRobotTraces->setChecked(s.value("RobotTraces", true).toBool());
     s.endGroup();
+
+    // set up ssl referee packet
+    m_referee.set_packet_timestamp(0);
+    m_referee.set_stage(SSL_Referee::NORMAL_FIRST_HALF);
+    m_referee.set_command(SSL_Referee::BALL_PLACEMENT_BLUE);
+    m_referee.set_command_counter(1);
+    m_referee.set_command_timestamp(0);
+    teamInfoSetDefault(m_referee.mutable_yellow());
+    teamInfoSetDefault(m_referee.mutable_blue());
 }
 
 FieldWidget::~FieldWidget()
@@ -256,6 +272,8 @@ FieldWidget::~FieldWidget()
 void FieldWidget::setLogplayer()
 {
     m_isLogplayer = true;
+    m_actionBallPlacementBlue->setVisible(false);
+    m_actionBallPlacementYellow->setVisible(false);
 }
 
 void FieldWidget::handleStatus(const Status &status)
@@ -264,6 +282,14 @@ void FieldWidget::handleStatus(const Status &status)
         m_worldState.append(status);
         m_lastWorldState = status;
         m_guiTimer->requestTriggering();
+    }
+
+    if (status->has_game_state()) {
+        const amun::GameState &state = status->game_state();
+        // update referee information
+        m_referee.set_stage(state.stage());
+        m_referee.mutable_yellow()->CopyFrom(state.yellow());
+        m_referee.mutable_blue()->CopyFrom(state.blue());
     }
 
     if (status->has_game_state()) {
@@ -1417,6 +1443,31 @@ void FieldWidget::saveSituation()
         return;
     }
     ::saveSituation(m_lastWorldState->world_state(), m_gameState);
+}
+
+void FieldWidget::ballPlacement(bool blue)
+{
+    m_referee.set_command(blue ? SSL_Referee::BALL_PLACEMENT_BLUE : SSL_Referee::BALL_PLACEMENT_YELLOW);
+    m_referee.mutable_designated_position()->set_x(m_mouseBegin.y() * 1000.0f);
+    m_referee.mutable_designated_position()->set_y(-m_mouseBegin.x() * 1000.0f);
+    assert(m_referee.IsInitialized());
+
+    std::string referee;
+    if (m_referee.SerializeToString(&referee)) {
+        Command command(new amun::Command);
+        command->mutable_referee()->set_command(referee);
+        emit sendCommand(command);
+    }
+}
+
+void FieldWidget::ballPlacementBlue()
+{
+    ballPlacement(true);
+}
+
+void FieldWidget::ballPlacementYellow()
+{
+    ballPlacement(false);
 }
 
 void FieldWidget::Robot::tryHide()
