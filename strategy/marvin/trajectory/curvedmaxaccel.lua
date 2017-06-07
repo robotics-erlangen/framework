@@ -573,7 +573,7 @@ local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile
 end
 
 
-function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelScale)
+function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelScale, dribble)
 	if targetPos == nil then
 		error("targetPos is nil")
 	end
@@ -645,7 +645,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	local accelLimit = math.abs(self._robot.acceleration.aSpeedupSMax)
 	-- forward acceleration and deceleration
 	local accelerate = math.abs(self._robot.acceleration.aSpeedupFMax) * accelerationFactor
-	local brake = -math.abs(self._robot.acceleration.aBrakeFMax) * accelerationFactor
+	local brake = -math.abs(self._robot.acceleration.aBrakeFMax) * accelerationFactor * (dribble and 0.5 or 1)
 
 	-- smooth first corner
 	_preprocessPath(waypoints, maxError, robotPos, robotSpeed)
