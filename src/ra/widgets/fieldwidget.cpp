@@ -1016,11 +1016,29 @@ void FieldWidget::sendSimulatorMoveCommand(const QPointF &p)
     emit sendCommand(command);
 }
 
+void FieldWidget::sendSimulatorTeleportBall(const QPointF &p)
+{
+    Command command(new amun::Command);
+    amun::CommandSimulator *sim = command->mutable_simulator();
+    amun::SimulatorMoveBall *ball = sim->mutable_move_ball();
+    ball->set_p_x(p.x());
+    ball->set_p_y(p.y());
+    ball->set_v_x(0);
+    ball->set_v_y(0);
+    ball->set_position(true);
+    emit sendCommand(command);
+}
+
 void FieldWidget::mousePressEvent(QMouseEvent *event)
 {
     const QPointF p = mapToScene(event->pos());
 
     if (event->button() == Qt::LeftButton) {
+        if (event->modifiers().testFlag(Qt::ControlModifier)) {
+            sendSimulatorTeleportBall(p);
+            return;
+        }
+
         m_dragItem = NULL;
         m_dragType = DragNone;
         if (m_aoiItem->isVisible()) {

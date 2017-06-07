@@ -137,6 +137,7 @@ private:
     void showWholeField();
     void setFieldOrientation(float rotation);
     void sendSimulatorMoveCommand(const QPointF &p);
+    void sendSimulatorTeleportBall(const QPointF &p);
     void drawLines(QPainter *painter, QRectF rect, bool cosmetic);
     void drawGoal(QPainter *painter, float side, bool cosmetic);
     QGraphicsItem* createCircle(const QPen &pen, const QBrush &brush, const amun::Visualization &vis);
