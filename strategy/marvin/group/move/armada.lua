@@ -73,7 +73,7 @@ function Armada:_updateTasks()
 	local startMoving = Attack.checkPassInfoFromPosition(self._robots[1], passInfo, self._circleCenter)
 	if World.RefereeState == "Stop" then
 		self._positions = {}
-		self._assignment = {}
+		self._assignment = nil
 	elseif Referee.isFriendlyFreeKickState() and #self._positions == 0 then
 		-- calculate position
 		for i = 1, 4 do
@@ -91,7 +91,7 @@ function Armada:_updateTasks()
 			table.insert(self._positions, Field.limitToAllowedField(pos, 0.3))
 		end
 	end
-	if startMoving then
+	if startMoving and not self._assignment then
 		-- assign robots to positions
 		self._assignment = MovesHelper.assignRobots(self._robots, self._positions, 1)
 	end
@@ -107,7 +107,7 @@ function Armada:_updateTasks()
 	elseif startMoving then
 		taskAssignments[self._robots[1]] = { behavior = FreeKick, params = { } }
 		for i = 2,5 do
-			if self._positions[i-1]:distanceTo(passInfo.ballPos) < 0.5 then
+			if self._positions[i-1]:distanceTo(passInfo.ballPos) < 0.1 then
 				taskAssignments[self._robots[self._assignment[i]]]
 				= {class = AcceptPass}
 			else
@@ -119,7 +119,7 @@ function Armada:_updateTasks()
 		taskAssignments[self._robots[1]] = { behavior = FreeKick, params = { } }
 		for i = 2,5 do
 			taskAssignments[self._robots[i]] = { class = Circuit, params = { self._circleCenter,
-				math.pi * 0.5 * (i-2), nil,	self._positions[i-1] }, restart = not self._startedSendPassPos }
+				math.pi * 0.5 * (i-2), nil, self._positions[i-1], true }, restart = not self._startedSendPassPos }
 		end
 		self._startedSendPassPos = true
 	end

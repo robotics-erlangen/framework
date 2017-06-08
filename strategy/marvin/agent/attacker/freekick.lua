@@ -92,6 +92,20 @@ function FreeKick:_updateTask()
 		end
 	end
 
+	--check for annonymous pass
+	if self._state == "pass_prepare" or self._state == "pass" then
+		if not self._pass.target then
+			-- try to find the target
+			-- look for a suggestion that matches our pass
+			local passes = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false, 0)
+			for _,pass in ipairs(passes) do
+				if pass.target and pass.ballPos:distanceTo(self._pass.ballPos) < 0.1 then
+						self._pass.target = pass.target
+				end
+			end
+		end
+	end
+
 	-- pass_prepare -> pass
 	if self._state == "pass_prepare" then
 		local shootPos = self._pass.ballPos
@@ -127,7 +141,7 @@ function FreeKick:_updateTask()
 	local stateChanged = prevState == self._state
 
 	if self._pass then
-		debug.push("pass", self._pass.target.id)
+		debug.push("pass", self._pass.target and self._pass.target.id or "annonymous")
 		debug.set("ballPos", self._pass.ballPos)
 		debug.set("time (rel)", self._pass.time - World.Time)
 		debug.set("time (abs)", self._pass.time)

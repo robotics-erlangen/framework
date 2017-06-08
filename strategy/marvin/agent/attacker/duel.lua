@@ -6,6 +6,7 @@ local geom = require "../base/geom"
 local World = require "../base/world"
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
+local Attack = require "util/attack"
 
 local TaskDuel = require "task/duel"
 
@@ -106,6 +107,8 @@ function Duel:check()
 	self._forceKeepingInPool = isMainAttacker
 
 	if not isMainAttacker then
+		self._active = false
+	elseif not Attack.checkPassInfos(self._robot, next(self._inbox.passInfo()), true) then
 		self._active = false
 	else
 		self._active = self:genericCheck()
