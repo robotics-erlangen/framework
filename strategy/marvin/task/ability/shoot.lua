@@ -210,7 +210,7 @@ function Shoot:_shootChaseBall(targetPos, targetSpeed)
 
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 	self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, endSpeed)
-	self._send.attackPosition("all", futureBall.pos)	
+	self._send.attackPosition("all", futureBall.pos)
 
 	local currentDribblerPos = self._robot.pos + dribblerOffset
 	if World.Ball.pos:distanceTo(currentDribblerPos) < 0.15 then
