@@ -17,7 +17,7 @@ function AcceptPass:run()
 	local _, passInfoTable = next(self._inbox.passInfo())
 	assert(passInfoTable, "AcceptPass runs although there is no passInfo message")
 	for _, pass in ipairs(passInfoTable) do
-		if pass.target == self._robot then
+		if pass.target == self._robot or pass.target == nil then
 			passInfo = pass
 			break
 		end

@@ -8,16 +8,18 @@ local World = require "../base/world"
 local ObserverShoot = require "observer/shoot"
 
 local CHIP_PASS_DISTANCE_FACTOR = 0.4
+local MIN_PASS_SPEED = 3
 
 function Pass:_init(targetRobot, targetPos, chip, passSpeed, ballReceiptPos)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
 	self._chip = chip
-	self._passSpeed = passSpeed or self._targetRobot.constants.passSpeed
+	self._passSpeed = passSpeed or targetRobot and self._targetRobot.constants.passSpeed or MIN_PASS_SPEED
 	self._ballReceiptPos = ballReceiptPos
 
 	-- retrieve targetPos from messages if no argument was given
 	if not targetPos then
+		assert(targetRobot,"Annonymous passes need to have a targetPos")
 		local sugg = self._inbox.passSuggestion()[targetRobot]
 		if sugg then
 			self._targetPos = sugg.ballPos
@@ -28,9 +30,10 @@ function Pass:_init(targetRobot, targetPos, chip, passSpeed, ballReceiptPos)
 	end
 end
 
-function Pass:updateTarget(targetRobot, targetPos)
+function Pass:updateTarget(targetRobot, targetPos, passSpeed)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
+	self._passSpeed = passSpeed or targetRobot and self._targetRobot.constants.passSpeed or MIN_PASS_SPEED
 end
 
 function Pass:run()
