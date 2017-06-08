@@ -336,7 +336,6 @@ end
 --@param lastResult bool - the return value of the last call to this function, or false
 --@return bool - if we have to start to move
 function Attack.checkPassInfos(robot, passInfoTable, lastResult)
-	assert(lastResult ~= nil)
 	local relevantPassInfoMessage = nil -- a passInfo in which the robot is the target
 	if passInfoTable then
 		for _, passInfo in ipairs(passInfoTable) do
