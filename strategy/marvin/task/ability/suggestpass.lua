@@ -22,7 +22,7 @@ function SuggestPass:_suggestPass(passPosRobot, attackPos, relativeTime)
 
 	vis.addCircle("t/a/suggestpass: passSuggestion", passPosRobot, 0.1, vis.colors.redHalf, true)
 
-	self._send.passSuggestion(mainAttacker,
+	self._send.passSuggestion("all",
 		{ ballPos = passPosBall, time = receiveTime })
 end
 

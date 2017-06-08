@@ -187,7 +187,7 @@ local teamIsBlue = amun.isBlue()
 local _addCircle = path.addCircle
 function path:addCircle(x, y, radius, name)
 	if amun.isDebug then
-		vis.addCircle("obstacles", Vector(x,y), radius, vis.colors.red, true)
+		vis.addCircle("obstacles: "..tostring(path.robotId(self)), Vector(x,y), radius, vis.colors.red, true)
 	end
 	if teamIsBlue then
 		_addCircle(self, -x, -y, radius, name)
@@ -199,11 +199,7 @@ end
 local _addLine = path.addLine
 function path:addLine(start_x, start_y, stop_x, stop_y, radius, name)
 	if amun.isDebug then
-		local startVec = Vector(start_x, start_y)
-		local endVec = Vector(stop_x, stop_y)
-		local startToEnd = endVec - startVec
-		local offset = startToEnd:perpendicular():setLength(radius)
-		vis.addPolygon("obstacles", {startVec+offset, endVec+offset, endVec-offset, startVec-offset}, vis.colors.red, true)
+		vis.addPath("obstacles: "..tostring(path.robotId(self)), {Vector(start_x, start_y), Vector(stop_x, stop_y)}, vis.colors.red, nil, nil, 2 * radius)
 	end
 	if teamIsBlue then
 		_addLine(self, -start_x, -start_y, -stop_x, -stop_y, radius, name)
@@ -215,7 +211,7 @@ end
 local _addRect = path.addRect
 function path:addRect(start_x, start_y, stop_x, stop_y, name)
 	if amun.isDebug then
-		vis.addPolygon("obstacles", {Vector(start_x, start_y), Vector(start_x, stop_y), Vector(stop_x, stop_y), Vector(stop_x, start_y)},
+		vis.addPolygon("obstacles: "..tostring(path.robotId(self)), {Vector(start_x, start_y), Vector(start_x, stop_y), Vector(stop_x, stop_y), Vector(stop_x, start_y)},
 			vis.colors.red, true)
 	end
 	if teamIsBlue then
@@ -232,7 +228,7 @@ function path:addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name)
 		local p2 = Vector(x2,y2)
 		local p3 = Vector(x3,y3)
 
-		vis.addPolygon("obstacles", {p1, p2, p3}, vis.colors.red, true)
+		vis.addPolygon("obstacles: "..tostring(path.robotId(self)), {p1, p2, p3}, vis.colors.red, true)
 	end
 	if teamIsBlue then
 		_addTriangle(self, -x1, -y1, -x2, -y2, -x3, -y3, lineWidth, name)
@@ -250,6 +246,20 @@ if _addSeedTarget then
 			_addSeedTarget(self, x, y)
 		end
 	end
+end
+
+local _create = path.create
+local pathToIdMap = {}
+setmetatable(pathToIdMap, {__mode = "k"})
+
+path.create = function (robotId)
+	local pathInst = _create()
+	pathToIdMap[pathInst] = robotId
+	return pathInst
+end
+
+path.robotId = function (self)
+	return pathToIdMap[self]
 end
 
 return path

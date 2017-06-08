@@ -55,8 +55,11 @@ local msgDefs = {
 	moveNumAttackers = "number",
 
 	-- sent by the MA to notify all agents about an upcoming pass
+	-- when the ball is actually shot, there should only be one entry in the table 
+	-- this is needed to choose the correct mainAttacker
 	-- the ball is at msg.ballPos when the time reaches msg.time
-	passInfo = { target = Robot, ballPos = "vector", time = "number" },
+	-- table is of entries of the format: { target = Robot, ballPos = "vector", time = "number" }
+	passInfo = "table",
 
 	-- sent by tr/defense to assign a behavior to each defender
 	-- possible names are "CenterBack", "ManMark" and "ZoneDefense"

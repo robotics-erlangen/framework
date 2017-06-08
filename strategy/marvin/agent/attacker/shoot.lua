@@ -26,6 +26,9 @@ function Shoot:_stop()
 	self._prevAttackPosition = nil
 
 	self._activeFrames = 0
+
+	self._lastIncomingPassInfoPos = nil
+	self._lastIncomingPassInfoInvalidationCounter = 0
 end
 
 function Shoot:check()
@@ -127,6 +130,28 @@ function Shoot:_redeciding()
 end
 
 function Shoot:_updateTask()
+	local incomingPassInfo = nil
+	local _, passInfoTable = next(self._inbox.passInfo())
+	if passInfoTable then
+		for _, passInfoEntry in ipairs(passInfoTable) do
+			if passInfoEntry.target == self._robot then
+				incomingPassInfo = passInfoEntry
+			end
+		end
+	end
+
+	if incomingPassInfo then
+		self._lastIncomingPassInfoPos = incomingPassInfo.ballPos
+		self._lastIncomingPassInfoInvalidationCounter = 0
+	elseif not Ball.isAccelerating() and not Ball.receivesPass(self._robot) then
+		self._lastIncomingPassInfoInvalidationCounter = self._lastIncomingPassInfoInvalidationCounter + 1
+	end
+	if self._lastIncomingPassInfoInvalidationCounter == 5 then
+		self._lastIncomingPassInfoPos = nil
+		self._lastIncomingPassInfoInvalidationCounter = 0
+	end
+	debug.set("last incoming passInfo", self._lastIncomingPassInfoPos)
+
 	self._forceKeepingInPool = true
 	self._activeFrames = self._activeFrames + 1
 
@@ -141,6 +166,7 @@ function Shoot:_updateTask()
 		self._decision = self:_decide()
 		self._nextDecisionTime = World.Time + 1.5
 	end
+	debug.set("redeciding", redeciding)
 
 	-- visualize decision
 	if self._decision.pos then
@@ -155,9 +181,9 @@ function Shoot:_updateTask()
 		end
 	end
 
-	-- return shoot goal if the decision sais so
+	-- return shoot goal if the decision says so
 	if self._decision.task == "shootgoal" then
-		return ShootGoal
+		return ShootGoal, { self._lastIncomingPassInfoPos }
 	end
 
 	-- time the pass
@@ -168,7 +194,7 @@ function Shoot:_updateTask()
 
 		-- update target if the decision changed
 		-- creating a new task instance would mess up catchBall
-		if self._task and Class.name(self._task, true) == "Pass"
+		if self._task and Class.instanceOf(self._task, Pass)
 				and self._decision.pos ~= self._prevPassPos then
 			self._task:updateTarget(self._decision.target, self._decision.pos)
 		end
@@ -176,13 +202,13 @@ function Shoot:_updateTask()
 
 		local minShootTime = Robot.minShootTime(self._robot, ballPos)
 		local shootPos = Physics.ballAtTime(World.Ball, minShootTime).pos
-		local ballTravelTime = ObserverShoot.ballPassTime(shootPos, ballPos, target)
+		local ballTravelTime = ObserverShoot.ballPassTime(shootPos, ballPos, target, nil, self._robot)
 		local passReceiveTime = math.max(suggestedTime, minShootTime + ballTravelTime + World.Time)
 
-		self._send.passInfo("all", { target = target,
-			ballPos = ballPos, time = passReceiveTime })
+		self._send.passInfo("all", {{ target = target,
+			ballPos = ballPos, time = passReceiveTime }})
 
-		return Pass, { target, ballPos }
+		return Pass, { target, ballPos, nil, nil, self._lastIncomingPassInfoPos }
 	end
 
 	-- error: invalid decision

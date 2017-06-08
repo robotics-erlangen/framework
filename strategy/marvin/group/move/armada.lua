@@ -65,7 +65,11 @@ function Armada:_updateTasks()
 	-- draw circles where robots cannot shoot a volley
 	local center1, center2, radius = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, self._maxShootingAngle)
 	local circle = center1.y < center2.y and center1 or center2
-	local _, passInfo = next(self._inbox.passInfo())
+	local _, passInfoTable = next(self._inbox.passInfo())
+	local passInfo
+	if passInfoTable then
+		_, passInfo = next(passInfoTable)
+	end
 	local startMoving = Attack.checkPassInfoFromPosition(self._robots[1], passInfo, self._circleCenter)
 	if World.RefereeState == "Stop" then
 		self._positions = {}

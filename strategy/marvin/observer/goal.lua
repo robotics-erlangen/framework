@@ -194,6 +194,7 @@ function Goal.predictShot()
 	local oppBallOwner = Ball.opponentBallOwner()
 	local oppBallDribbler = Ball.opponentBallDribbler()
 	if oppBallDribbler then
+		isShot = true
 		ballSpeed = Vector.fromAngle(oppBallDribbler.dir)
 		vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false)
 		vis.addPath("o/goal: predictShot: dribbling robot", {oppBallDribbler.pos, oppBallDribbler.pos + ballSpeed * 10}, vis.colors.blue)

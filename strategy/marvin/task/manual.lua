@@ -37,9 +37,14 @@ function Manual:run()
 
 	if input.kickPower and input.kickPower > 0 and Ball.friendlyBallOwner() == self._robot then
 		-- shoot
-		local shootPos = self._robot.pos + Vector.fromAngle(self._robot.dir)
+		local shootDistance = 1.5
+		local shootPos = self._robot.pos + Vector.fromAngle(self._robot.dir):scaleLength(shootDistance)
 		local linear = input.kickStyle == "Linear"
-		self:_shoot(shootPos, math.huge, linear, 3 * math.pi/180)
+		if linear then
+			self:_shoot(shootPos, math.huge)
+		else
+			self:_chipToPos(shootPos)
+		end
 	elseif not self._robot.isVisible then
 		local limitedSpeed = input.speed
 		if limitedSpeed:length() > 0.3 then

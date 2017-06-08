@@ -578,6 +578,10 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 		error("targetPos is nil")
 	end
 
+	local directionVector = Vector.fromAngle(targetDir):scaleLength(0.09)
+	vis.addPath("MoveTo", {targetPos, targetPos + directionVector}, vis.colors.yellowHalf)
+
+
 	-- configuration
 	local maxError = 0.03 -- maxError in meters when driving a curve
 	local accelerationFactor = (accelScale or 1.0) * 0.85 -- factor for max forward speedup and braking
