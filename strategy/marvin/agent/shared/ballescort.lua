@@ -1,5 +1,5 @@
 local Base = require "agent/base/behavior"
-local BallEscort = Class("Agent.Attacker.BallEscort", Base)
+local BallEscort = Class("Agent.Shared.BallEscort", Base)
 
 local debug = require "../base/debug"
 local Field = require "../base/field"
