@@ -93,6 +93,7 @@ function FreeKick:_updateTask()
 	end
 
 	--check for anonymous pass
+	local restartTask = self._redeciding
 	if self._state == "pass_prepare" or self._state == "pass" then
 		if not self._pass.target then
 			-- try to find the target
@@ -100,7 +101,10 @@ function FreeKick:_updateTask()
 			local passes = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false, 0)
 			for _,pass in ipairs(passes) do
 				if pass.target and pass.ballPos:distanceTo(self._pass.ballPos) < 0.1 then
-						self._pass.target = pass.target
+					self._pass.target = pass.target
+					if self._state == "pass" then
+						restartTask = true
+					end
 				end
 			end
 		end
@@ -157,7 +161,7 @@ function FreeKick:_updateTask()
 	elseif self._state == "wait" or self._state == "pass_prepare" then
 		return MoveToStaticBall, { math.pi / 2 }, stateChanged
 	elseif self._state == "pass" then
-		return Pass, { self._pass.target, self._pass.ballPos }, self._redeciding
+		return Pass, { self._pass.target, self._pass.ballPos }, restartTask
 	end
 end
 
