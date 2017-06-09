@@ -95,6 +95,7 @@ void SimBall::begin()
             m_body->setWorldTransform(transform);
             const btVector3 linVel(m_move.v_x(), m_move.v_y(), 0.0f);
             m_body->setLinearVelocity(linVel * SIMULATOR_SCALE);
+            m_body->setAngularVelocity(btVector3(0, 0, 0));
             m_body->activate();
             m_body->setDamping(0.0, 0.0);
             m_move.Clear(); // clear move command
