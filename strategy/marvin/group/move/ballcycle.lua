@@ -99,7 +99,6 @@ function BallCycle:_updateTasks()
 		self._assignment = MovesHelper.assignRobots(self._robots, self._positions, 1)
 	end
 
-	local posForRobotBeforeShooting = World.Ball.pos + (World.Ball.pos - G.OpponentGoal):setLength(0.14)
 	local _, passInfoTable = next(self._inbox.passInfo())
 	local passInfo
 	if passInfoTable then
