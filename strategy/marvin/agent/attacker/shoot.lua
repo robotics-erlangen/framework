@@ -132,14 +132,18 @@ end
 function Shoot:_updateTask()
 	local incomingPassInfo = nil
 	local _, passInfoTable = next(self._inbox.passInfo())
+	local anonymousPass = false
 	if passInfoTable then
 		for _, passInfoEntry in ipairs(passInfoTable) do
+			if passInfoEntry.target == nil then
+				anonymousPass = true
+			end
 			if passInfoEntry.target == self._robot then
 				incomingPassInfo = passInfoEntry
 			end
 		end
 	end
-
+	assert(incomingPassInfo or not anonymousPass, "a/a/Shoot does not know how to handle anonymous passes")
 	if incomingPassInfo then
 		self._lastIncomingPassInfoPos = incomingPassInfo.ballPos
 		self._lastIncomingPassInfoInvalidationCounter = 0
@@ -181,7 +185,7 @@ function Shoot:_updateTask()
 		end
 	end
 
-	-- return shoot goal if the decision sais so
+	-- return shoot goal if the decision says so
 	if self._decision.task == "shootgoal" then
 		return ShootGoal, { self._lastIncomingPassInfoPos }
 	end

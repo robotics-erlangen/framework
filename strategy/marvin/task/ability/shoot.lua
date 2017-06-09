@@ -60,6 +60,11 @@ function Shoot:init()
 	self._rightOrientation = false
 end
 
+function Shoot:_setObstacles()
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
+	local ignoreOpponents = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + self._robot.radius + 0.3
+	PathHelper.addRobotObstacles(self._robot.path, self._robot, false, ignoreOpponents)
+end
 
 function Shoot:_calculateFutureBall(ballReceiptPos)
 	local futureBallPos
@@ -187,6 +192,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, futureBall)
 		debug.set("Shoot/directSpeed", speed)
 		debug.set("Shoot/directDir", targetDir)
 		debug.set("Shoot/directAccel", accel)
+		self:_setObstacles()
 		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, nil, accel)
 		self:_sendShootCommand(kickSpeed, targetPos, targetDir)
 		self._send.attackPosition("all", futureBall.pos)
@@ -208,9 +214,9 @@ function Shoot:_shootChaseBall(targetPos, targetSpeed)
 	local moveDest = futureBall.pos - dribblerOffset
 	local endSpeed = futureBall.speed:copy():setLength(futureBall.speed:length() + relativeEndSpeed)
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
+	self:_setObstacles()
 	self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, endSpeed)
-	self._send.attackPosition("all", futureBall.pos)	
+	self._send.attackPosition("all", futureBall.pos)
 
 	local currentDribblerPos = self._robot.pos + dribblerOffset
 	if World.Ball.pos:distanceTo(currentDribblerPos) < 0.15 then
@@ -225,7 +231,7 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 
 	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
 	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0) then
-		PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
+		self:_setObstacles()
 		local endSpeed = Physics.robotMinEndspeed(self._robot, moveDest, math.max(0, futureBallTime))
 		self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, endSpeed)
 		vis.addPath("t/a/shoot: endSpeed", {moveDest, moveDest + endSpeed}, vis.colors.red, nil, nil, 0.03)
@@ -248,7 +254,7 @@ function Shoot:_shootStopBall(futureBall, futureBallTime)
 
 	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
 	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0) then
-		PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
+		self:_setObstacles()
 		self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, nil)
 		self._send.attackPosition("all", futureBall.pos)
 	else
