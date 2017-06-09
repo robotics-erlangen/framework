@@ -229,6 +229,11 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
 	local moveDest = futureBall.pos - dribblerOffset
 
+	-- don't follow the ball if it is inside the robot (because of the ball extrapolation)
+	if futureBallTime == 0 and World.Ball.pos:distanceTo(self._robot.pos) < self._robot.radius + World.Ball.radius then
+		moveDest = self._robot.pos
+	end
+
 	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
 	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0) then
 		self:_setObstacles()
