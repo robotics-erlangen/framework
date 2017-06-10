@@ -362,7 +362,7 @@ local function checkPassInfos(robot, passInfoTable, lastResult, lastPassInfo)
 			end
 		end
 	end
-	printPassInfo(robot, relevantPassInfoMessage, lastResult)
+	printPassInfo(robot, relevantPassInfoMessage, lastResult, lastPassInfo)
 	if not relevantPassInfoMessage then
 		return nil, false
 	elseif lastResult then
@@ -397,7 +397,7 @@ function Attack.checkPassInfoFromPosition(robot, passInfo, position, speed)
 			maxSpeed = robot.maxSpeed,
 			speed = speed
 		}
-		printPassInfo(fakeRobot, passInfo, false)
+		printPassInfo(fakeRobot, passInfo, false, nil)
 		return calculatePassInfoTiming(fakeRobot, passInfo)
 	end
 	return false
