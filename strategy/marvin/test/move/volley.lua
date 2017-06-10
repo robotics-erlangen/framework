@@ -19,7 +19,6 @@ function Volley:_init()
 	self._startPos = Vector(-2, 0)
 	self._shootPos = Vector(-2, 4)
 	self._freekickFlag = false
-	self._startMoving = false
 end
 
 function Volley:_canContinue()
@@ -39,8 +38,8 @@ function Volley:_updateTasks()
 	end
 
 	local _, passInfoTable = next(self._inbox.passInfo())
-	self._startMoving = Attack.checkPassInfos(self._robots[2], passInfoTable, self._startMoving)
-	if self._startMoving then
+	local startMoving = Attack.checkPassInfos(self._robots[2], passInfoTable)
+	if startMoving then
 		taskAssignments[self._robots[2]] = { class = AcceptPass }
 	else
 		taskAssignments[self._robots[2]] = { class = Striker, params = { self._startPos, self._shootPos } }

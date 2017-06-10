@@ -314,15 +314,32 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 	end
 end
 
+local BUFFER_TIME = 0.15
+local function printPassInfo(robot, passInfo, hysteresis, hysteresisPassInfo)
+	if passInfo then
+		local robotTime = Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true)
+		debug.push("PassInfo")
+		debug.set("robotTime",robotTime + BUFFER_TIME)
+		debug.set("ballTime", passInfo.time - World.Time)
+		debug.set("passInfoTime", passInfo.time)
+		debug.set("hysteresis", hysteresis)
+		debug.push("hysteresisPassInfo")
+		debug.set("passInfo", hysteresisPassInfo)
+		if hysteresisPassInfo then
+			for k,v in pairs(hysteresisPassInfo) do
+				debug.set("hyseresis "..tostring(k), v)
+			end
+		end
+		debug.pop()
+		debug.pop()
+	end
+end
+
 -- the time between the arrival of the robot and the ball
 local function calculatePassInfoTiming(robot, passInfo)
 	if passInfo then
 		local robotTime = Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true)
-		local bufferTime = 0.15
-
-		debug.set("robotTime", robotTime + bufferTime)
-		debug.set("ballTime", passInfo.time - World.Time)
-		debug.set("passInfoTime", passInfo.time)
+		local bufferTime = BUFFER_TIME
 		if World.Time + robotTime + bufferTime >= passInfo.time then
 			return true
 		end
@@ -335,7 +352,7 @@ end
 --@param passInfoTable table - all of the passInfos currently being sent out
 --@param lastResult bool - the return value of the last call to this function, or false
 --@return bool - if we have to start to move
-function Attack.checkPassInfos(robot, passInfoTable, lastResult)
+local function checkPassInfos(robot, passInfoTable, lastResult, lastPassInfo)
 	local relevantPassInfoMessage = nil -- a passInfo in which the robot is the target
 	if passInfoTable then
 		for _, passInfo in ipairs(passInfoTable) do
@@ -345,12 +362,24 @@ function Attack.checkPassInfos(robot, passInfoTable, lastResult)
 			end
 		end
 	end
+	printPassInfo(robot, relevantPassInfoMessage, lastResult, lastPassInfo)
 	if not relevantPassInfoMessage then
-		return false
+		return nil, false
 	elseif lastResult then
-		return true
+		return relevantPassInfoMessage, true
 	end
-	return calculatePassInfoTiming(robot, relevantPassInfoMessage)
+	return relevantPassInfoMessage, calculatePassInfoTiming(robot, relevantPassInfoMessage)
+end
+
+local checkedPassInfoPerRobot = {}
+
+function Attack.checkPassInfos(robot, passInfoTable)
+	local cachedPassInfo = checkedPassInfoPerRobot[robot]
+	local preResult = cachedPassInfo and cachedPassInfo.result
+	local preMessage = cachedPassInfo and cachedPassInfo.message
+	local message, result = checkPassInfos(robot, passInfoTable, preResult, preMessage)
+	checkedPassInfoPerRobot[robot] = {message = message, result = result}
+	return result
 end
 
 --checks if an attacker has to start to move towards its pass
@@ -368,6 +397,7 @@ function Attack.checkPassInfoFromPosition(robot, passInfo, position, speed)
 			maxSpeed = robot.maxSpeed,
 			speed = speed
 		}
+		printPassInfo(fakeRobot, passInfo, false, nil)
 		return calculatePassInfoTiming(fakeRobot, passInfo)
 	end
 	return false

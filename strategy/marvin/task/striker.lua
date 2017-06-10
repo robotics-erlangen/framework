@@ -139,7 +139,7 @@ function Striker:run()
 
 	-- check whether the agent would change its state to accepting an incoming pass (striker should not be active then)
 	local _, passInfoTable = next(self._inbox.passInfo())
-	assert(Attack.checkPassInfos(self._robot, passInfoTable, false) == false, "Striker shouldn't accept passes")
+	assert(Attack.checkPassInfos(self._robot, passInfoTable) == false, "Striker shouldn't accept passes")
 
 	if passInfoTable then
 		for _, passInfo in ipairs(passInfoTable) do

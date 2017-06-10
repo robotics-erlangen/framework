@@ -42,7 +42,7 @@ local CHIP_PASS_DISTANCE_FACTOR = 0.4
 
 -- if the robot view direction and the shoot direction differ less than MIN_PRECISION
 -- the robot is allowed to shoot the ball
-local MIN_PRECISION = 5 * math.pi / 180
+local MIN_PRECISION = 3.5 * math.pi / 180
 
 
 function Shoot:init()
@@ -62,18 +62,23 @@ end
 
 function Shoot:_setObstacles()
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
-	local ignoreOpponents = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + self._robot.radius + 0.3
-	PathHelper.addRobotObstacles(self._robot.path, self._robot, false, ignoreOpponents)
+	local ignoreRobots = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + self._robot.radius + 0.3
+	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreRobots, ignoreRobots)
 end
 
 function Shoot:_calculateFutureBall(ballReceiptPos)
 	local futureBallPos
-	if ballReceiptPos then
-		futureBallPos = ballReceiptPos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
+
+	if World.Ball.speed:length() > 0.1 then
+		if ballReceiptPos then
+			futureBallPos = ballReceiptPos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
+		else
+			local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir):scaleLength(
+				self._robot.shootRadius + World.Ball.radius)
+			futureBallPos = dribblerPos:nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed * 3)
+		end
 	else
-		local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir):scaleLength(
-			self._robot.shootRadius + World.Ball.radius)
-		futureBallPos = dribblerPos:nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed * 3)
+		futureBallPos = World.Ball.pos
 	end
 
 	local ballTime = Physics.checkedBallRollTime(World.Ball, futureBallPos)
@@ -228,6 +233,11 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
 	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
 	local moveDest = futureBall.pos - dribblerOffset
+
+	-- don't follow the ball if it is inside the robot (because of the ball extrapolation)
+	if futureBallTime == 0 and World.Ball.pos:distanceTo(self._robot.pos) < self._robot.radius + World.Ball.radius then
+		moveDest = self._robot.pos
+	end
 
 	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
 	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0) then
