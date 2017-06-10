@@ -13,6 +13,7 @@ function Default:_stop()
 end
 
 function Default:check()
+	self._forceKeepingInPool = false
 	local _, passInfoTable = next(self._inbox.passInfo())
 	if passInfoTable then
 		for _, passInfo in pairs(passInfoTable) do
