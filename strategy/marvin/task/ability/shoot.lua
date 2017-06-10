@@ -62,8 +62,8 @@ end
 
 function Shoot:_setObstacles()
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
-	local ignoreOpponents = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + self._robot.radius + 0.3
-	PathHelper.addRobotObstacles(self._robot.path, self._robot, false, ignoreOpponents)
+	local ignoreRobots = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + self._robot.radius + 0.3
+	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreRobots, ignoreRobots)
 end
 
 function Shoot:_calculateFutureBall(ballReceiptPos)
@@ -233,6 +233,11 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
 	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
 	local moveDest = futureBall.pos - dribblerOffset
+
+	-- don't follow the ball if it is inside the robot (because of the ball extrapolation)
+	if futureBallTime == 0 and World.Ball.pos:distanceTo(self._robot.pos) < self._robot.radius + World.Ball.radius then
+		moveDest = self._robot.pos
+	end
 
 	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
 	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0) then

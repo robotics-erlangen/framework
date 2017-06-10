@@ -55,7 +55,7 @@ local msgDefs = {
 	moveNumAttackers = "number",
 
 	-- sent by the MA to notify all agents about an upcoming pass
-	-- when the ball is actually shot, there should only be one entry in the table 
+	-- when the ball is actually shot, there should only be one entry in the table
 	-- this is needed to choose the correct mainAttacker
 	-- the ball is at msg.ballPos when the time reaches msg.time
 	-- table is of entries of the format: { target = Robot, ballPos = "vector", time = "number" }

@@ -32,7 +32,7 @@ function CatchBall:init()
 end
 
 --- Tries to catch the ball, is designed for catching a moving ball
--- @param targetPos Vector - point to look at when having catched the ball
+-- @param targetPos Vector - point to look at when having caught the ball
 -- @param distanceToBall number - distance the robot should keep to the ball, only sensible for a stopped ball, defaults to 0
 -- @param [targetSpeed number - intended ball speed at target]
 -- @param [maxSpeed number - maximum speed of the robot]
