@@ -32,7 +32,6 @@ function MrlTestCorner:_init()
 	self._activeRobotInitPos = Vector(ballSide * G.FieldWidthHalf / 1.4, G.FieldHeightHalf - 1)
 	self._activeRobotShootPos = Vector(-ballSide * G.FieldWidthHalf / 2, G.FieldHeightHalf * 0.3)
 	self._restart = true
-	self._acceptPass = false
 end
 
 function MrlTestCorner:_canContinue()
@@ -65,8 +64,8 @@ function MrlTestCorner:_updateTasks()
 	end
 
 	local _, passInfoTable = next(self._inbox.passInfo())
-	self._acceptPass = Attack.checkPassInfos(self._robots[2], passInfoTable, self._acceptPass)
-	if self._acceptPass then
+	local acceptPass = Attack.checkPassInfos(self._robots[2], passInfoTable)
+	if acceptPass then
 		taskAssignments[self._robots[2]] = { class = AcceptPass }
 	else
 		taskAssignments[self._robots[2]] = { class = Striker, params = { self._activeRobotInitPos, self._activeRobotShootPos }}
