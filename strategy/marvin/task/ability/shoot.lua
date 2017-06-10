@@ -42,7 +42,7 @@ local CHIP_PASS_DISTANCE_FACTOR = 0.4
 
 -- if the robot view direction and the shoot direction differ less than MIN_PRECISION
 -- the robot is allowed to shoot the ball
-local MIN_PRECISION = 5 * math.pi / 180
+local MIN_PRECISION = 3.5 * math.pi / 180
 
 
 function Shoot:init()
