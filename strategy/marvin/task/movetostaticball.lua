@@ -1,6 +1,7 @@
 local MoveToStaticBall = Class("Task.MoveToStaticBall", require "task/base")
 
 local World = require "../base/world"
+local Physics = require "observer/physics"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
@@ -23,6 +24,7 @@ function MoveToStaticBall:run()
 
 	-- send the position of the ball
 	self._send.attackPosition("all", World.Ball.pos)
+	self._send.attackTime("all", Physics.robotTimeToPos(self._robot, pos, Vector(0, 0)))
 end
 
 return MoveToStaticBall

@@ -5,6 +5,8 @@ local MixedTeam = require "../base/mixedteam"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
+local Physics = require "observer/physics"
+
 local PassSuggestion = require "task/ability/suggestpass"
 
 
@@ -125,6 +127,7 @@ function Ally:_run()
 			if not passPosSent then
 				vis.addCircle("a/ally/attackposition", msg, 0.15, vis.colors.magentaHalf, true)
 				self._send.attackPosition("all", msg)
+				self._send.attackTime("all", Physics.robotTimeToPos(self._robot, msg, Vector(0, 0)))
 			end
 		end
 	end
