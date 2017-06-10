@@ -142,7 +142,7 @@ void Controller::controlAlgorithm(const world::Robot &robot, qint64 world_time, 
             || std::isnan(m_a_phi_d) || std::isinf(m_a_phi_d)) {
         amun::StatusLog *log = debug->add_log();
         log->set_timestamp(world_time);
-        log->set_text(QString("Invalid commmand for robot %1-%2").arg(m_specs.generation()).arg(m_specs.id()).toStdString());
+        log->set_text(QString("Invalid command for robot %1-%2").arg(m_specs.generation()).arg(m_specs.id()).toStdString());
         return;
     }
 
