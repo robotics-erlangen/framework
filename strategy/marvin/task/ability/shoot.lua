@@ -18,13 +18,15 @@ local ToTarget = require "trajectory/totarget"
 
 -- if the ball speed is lower than STATIONARY_BALL_SPEED
 -- we pretend that the ball is resting
-local STATIONARY_BALL_SPEED = 0.3
-local STATIONARY_BALL_SPEED_HYST = 0.2
+local STATIONARY_BALL_SPEED = 0.15
+local STATIONARY_BALL_SPEED_HYST = 0.05
 
 -- if the ball movement direction and the shoot direction differ less than CHASE_BALL_ANGLE
 -- we chase the ball instead of stopping it
-local CHASE_BALL_ANGLE = 30 * math.pi / 180
-local CHASE_BALL_ANGLE_HYST = 8 * math.pi / 180
+local CHASE_BALL_ANGLE = 70 * math.pi / 180
+local CHASE_BALL_ANGLE_HYST = 5 * math.pi / 180
+local CHASE_BALL_SIDE_SPEED = 1.25
+local CHASE_BALL_SIDE_SPEED_HYST = 0.25
 
 -- if inverse ball movement direction and the shoot direction differ less than VOLLEY_ANGLE
 -- we can shoot the ball as soon as it touches the dribbler instead of stopping it
@@ -120,11 +122,15 @@ function Shoot:_getState(targetPos, futureBall, futureBallTime)
 	end
 
 	-- check if the ball can be chased
-	local chaseBallAngle = CHASE_BALL_ANGLE + (self._state == "ChaseBall" and 1 or -1) * CHASE_BALL_ANGLE_HYST
 	local shootVector = targetPos - futureBall.pos
 	local angleDiff = futureBall.speed:absoluteAngleDiff(shootVector)
 	local relativeBallPos = World.Ball.pos - self._robot.pos
-	if angleDiff < chaseBallAngle and (World.Ball.speed:dot(relativeBallPos) > 0 or World.Ball.posZ > 0) then
+	local sidewardsVector = shootVector:perpendicular():normalize()
+	local sidewardsBallSpeed = World.Ball.speed:dot(sidewardsVector)
+	local chaseBallAngle = CHASE_BALL_ANGLE + (self._state == "ChaseBall" and 1 or -1) * CHASE_BALL_ANGLE_HYST
+	local sidewardsSpeedLimit = CHASE_BALL_SIDE_SPEED + (self._state == "ChaseBall" and 1 or -1) * CHASE_BALL_SIDE_SPEED_HYST
+	if angleDiff < chaseBallAngle and (World.Ball.speed:dot(relativeBallPos) > 0 or World.Ball.posZ > 0)
+			and sidewardsBallSpeed < sidewardsSpeedLimit then
 		return "ChaseBall"
 	end
 
