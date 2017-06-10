@@ -51,50 +51,51 @@ function Attack.ratePass(robot, pass, considerTiming)
 
 	-- rate possible interceptions
 	for _,opp in ipairs(World.OpponentRobots) do
-		local oppVector = opp.pos - shootPos
-		if oppVector:length() > 0.2 then
 
-			-- check if robot would have to move through defense area to intercept the pass
-			local orthogonalProjection = opp.pos:orthogonalProjection(shootPos, pass.ballPos)
-			local intersection = Field.intersectRayDefenseArea(opp.pos, orthogonalProjection - opp.pos, 0, true)
-			local validIntersection = false
-			if intersection then
-				validIntersection = Field.isInField(intersection) and (opp.pos - intersection):length() < (opp.pos - orthogonalProjection):length()
-				if validIntersection then
-					vis.addCircle("u/a/ratePass", intersection, 0.05, vis.colors.red, true)
-					vis.addPath("u/a/ratePass", {opp.pos, intersection}, vis.colors.slate, true)
-				end
-			end
-
-			if not validIntersection and orthogonalProjection:distanceToLineSegment(shootPos, pass.ballPos) < 0.1
-						and opp ~= World.OpponentKeeper then
-				vis.addPath("u/a/ratePass", {opp.pos, orthogonalProjection}, vis.colors.blue, true)
-
-				-- calculate the time the ball needs to arrive at the intersection point
-				local shootSpeed = Vector(1,1):setLength(robot:calculateShootSpeed(3, (shootPos-pass.ballPos):length()))
-				local fakeBall = {speed = shootSpeed, maxSpeed = shootSpeed:length()}
-				local ballRollTime = Physics.ballRollTime(fakeBall, (orthogonalProjection - shootPos):length() - World.Ball.radius - opp.shootRadius)
-
-				-- calculate the time the robot needs to arrive at the intersection point
-				-- to achieve more relevant results, the speed component parallel to the pass trajectory is ignored
-				local projectedSpeed = opp.speed - ((opp.pos + opp.speed):orthogonalProjection(shootPos, pass.ballPos) - orthogonalProjection)
-				vis.addPath("u/a/ratePass", {opp.pos, opp.pos + projectedSpeed}, vis.colors.pink, true)
-				local fakeRobot = {acceleration = opp.acceleration, pos = opp.pos, maxSpeed = opp.maxSpeed, speed = projectedSpeed}
-
-				local timeToPos = 0
-				local minDist = World.Ball.radius + opp.radius
-				if opp.pos:distanceTo(orthogonalProjection) > minDist then
-					local hitPoint = orthogonalProjection + (opp.pos - orthogonalProjection):setLength(minDist)
-					timeToPos = Physics.robotTimeToPos(fakeRobot, hitPoint, Vector(0,0), false)
-				end
-
-				local passRating = Rating.valueToRating(timeToPos, ballRollTime - 0.5, ballRollTime + 0.2)
-				--log("Rating: "..tostring(opp)..", ballRollTime: "..tostring(ballRollTime)..", timeToPos: "..tostring(timeToPos)..", passRating: "..tostring(passRating))
-				rating = rating * (passRating / 2 + 0.5)
-
+		-- check if robot would have to move through defense area to intercept the pass
+		local orthogonalProjection = opp.pos:orthogonalProjection(shootPos, pass.ballPos)
+		local intersection = Field.intersectRayDefenseArea(opp.pos, orthogonalProjection - opp.pos, 0, true)
+		local validIntersection = false
+		if intersection then
+			validIntersection = Field.isInField(intersection) and (opp.pos - intersection):length() < (opp.pos - orthogonalProjection):length()
+			if validIntersection then
+				vis.addCircle("u/a/ratePass", intersection, 0.05, vis.colors.red, true)
+				vis.addPath("u/a/ratePass", {opp.pos, intersection}, vis.colors.slate, true)
 			end
 		end
+
+		-- rate opponent's ability to intercept the pass
+		if not validIntersection and orthogonalProjection:distanceToLineSegment(shootPos, pass.ballPos) < 1
+					and opp ~= World.OpponentKeeper then
+			local passInterception = orthogonalProjection:distanceToLineSegment(shootPos, pass.ballPos) > 0.5
+					and pass.ballPos or orthogonalProjection
+			vis.addPath("u/a/ratePass", {opp.pos, passInterception}, vis.colors.blue, true)
+
+			-- calculate the time the ball needs to arrive at the intersection point
+			local shootSpeed = Vector(1,1):setLength(robot:calculateShootSpeed(3, (shootPos-pass.ballPos):length())) -- direction doesn't actually matter
+			local fakeBall = {speed = shootSpeed, maxSpeed = shootSpeed:length()}
+			local ballRollTime = Physics.ballRollTime(fakeBall, (passInterception - shootPos):length() - World.Ball.radius - opp.shootRadius)
+
+			-- calculate the time the robot needs to arrive at the intersection point
+			-- to achieve more relevant results, the speed component parallel to the pass trajectory is ignored
+			local projectedSpeed = opp.speed - ((opp.pos + opp.speed):orthogonalProjection(shootPos, pass.ballPos) - orthogonalProjection)
+			vis.addPath("u/a/ratePass", {opp.pos, opp.pos + projectedSpeed}, vis.colors.pink, true)
+			local fakeRobot = {acceleration = opp.acceleration, pos = opp.pos, maxSpeed = opp.maxSpeed, speed = projectedSpeed}
+
+			local timeToPos = 0
+			local minDist = World.Ball.radius + opp.radius
+			if opp.pos:distanceTo(passInterception) > minDist then
+				local hitPoint = passInterception + (opp.pos - passInterception):setLength(minDist)
+				timeToPos = Physics.robotTimeToPos(fakeRobot, hitPoint, Vector(0,0), false)
+			end
+
+			local passRating = Rating.valueToRating(timeToPos, ballRollTime - 1, ballRollTime + 0.5)
+			-- uncomment to debug: log("Rating: "..tostring(opp)..", ballRollTime: "..tostring(ballRollTime)..", timeToPos: "..tostring(timeToPos)..", passRating: "..tostring(passRating))
+			rating = rating * (passRating / 2 + 0.5)
+
+		end
 	end
+
 	vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true)
 	vis.addPath("u/a/ratePass", {shootPos, pass.ballPos}, vis.colors.red)
 	vis.addCircle("u/a/ratePass: rating", pass.ballPos, 0.2,
@@ -119,8 +120,8 @@ function Attack.choosePass(robot, passes, currentPassPos, considerTiming)
 			if currentPassPos then
 				local ratingHystDistance = 0.1
 				local ratingHystPercentage = 0.1
-				rating = rating * (1 + ratingHystPercentage *
-					Rating.valueToRating(pass.ballPos:distanceTo(currentPassPos), ratingHystDistance, 0))
+				rating = math.min(1, rating * (1 + ratingHystPercentage *
+					Rating.valueToRating(pass.ballPos:distanceTo(currentPassPos), ratingHystDistance, 0)))
 			end
 
 			if rating > bestPassRating then
