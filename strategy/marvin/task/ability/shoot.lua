@@ -68,12 +68,17 @@ end
 
 function Shoot:_calculateFutureBall(ballReceiptPos)
 	local futureBallPos
-	if ballReceiptPos then
-		futureBallPos = ballReceiptPos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
+
+	if World.Ball.speed:length() > 0.1 then
+		if ballReceiptPos then
+			futureBallPos = ballReceiptPos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
+		else
+			local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir):scaleLength(
+				self._robot.shootRadius + World.Ball.radius)
+			futureBallPos = dribblerPos:nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed * 3)
+		end
 	else
-		local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir):scaleLength(
-			self._robot.shootRadius + World.Ball.radius)
-		futureBallPos = dribblerPos:nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed * 3)
+		futureBallPos = World.Ball.pos
 	end
 
 	local ballTime = Physics.checkedBallRollTime(World.Ball, futureBallPos)
