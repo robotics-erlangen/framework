@@ -18,13 +18,15 @@ local ToTarget = require "trajectory/totarget"
 
 -- if the ball speed is lower than STATIONARY_BALL_SPEED
 -- we pretend that the ball is resting
-local STATIONARY_BALL_SPEED = 0.3
-local STATIONARY_BALL_SPEED_HYST = 0.2
+local STATIONARY_BALL_SPEED = 0.15
+local STATIONARY_BALL_SPEED_HYST = 0.05
 
 -- if the ball movement direction and the shoot direction differ less than CHASE_BALL_ANGLE
 -- we chase the ball instead of stopping it
-local CHASE_BALL_ANGLE = 30 * math.pi / 180
-local CHASE_BALL_ANGLE_HYST = 8 * math.pi / 180
+local CHASE_BALL_ANGLE = 70 * math.pi / 180
+local CHASE_BALL_ANGLE_HYST = 5 * math.pi / 180
+local CHASE_BALL_SIDE_SPEED = 1.25
+local CHASE_BALL_SIDE_SPEED_HYST = 0.25
 
 -- if inverse ball movement direction and the shoot direction differ less than VOLLEY_ANGLE
 -- we can shoot the ball as soon as it touches the dribbler instead of stopping it
@@ -120,11 +122,15 @@ function Shoot:_getState(targetPos, futureBall, futureBallTime)
 	end
 
 	-- check if the ball can be chased
-	local chaseBallAngle = CHASE_BALL_ANGLE + (self._state == "ChaseBall" and 1 or -1) * CHASE_BALL_ANGLE_HYST
 	local shootVector = targetPos - futureBall.pos
 	local angleDiff = futureBall.speed:absoluteAngleDiff(shootVector)
 	local relativeBallPos = World.Ball.pos - self._robot.pos
-	if angleDiff < chaseBallAngle and (World.Ball.speed:dot(relativeBallPos) > 0 or World.Ball.posZ > 0) then
+	local sidewardsVector = shootVector:perpendicular():normalize()
+	local sidewardsBallSpeed = World.Ball.speed:dot(sidewardsVector)
+	local chaseBallAngle = CHASE_BALL_ANGLE + (self._state == "ChaseBall" and 1 or -1) * CHASE_BALL_ANGLE_HYST
+	local sidewardsSpeedLimit = CHASE_BALL_SIDE_SPEED + (self._state == "ChaseBall" and 1 or -1) * CHASE_BALL_SIDE_SPEED_HYST
+	if angleDiff < chaseBallAngle and (World.Ball.speed:dot(relativeBallPos) > 0 or World.Ball.posZ > 0)
+			and sidewardsBallSpeed < sidewardsSpeedLimit then
 		return "ChaseBall"
 	end
 
@@ -201,6 +207,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, futureBall)
 		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, nil, accel)
 		self:_sendShootCommand(kickSpeed, targetPos, targetDir)
 		self._send.attackPosition("all", futureBall.pos)
+		self._send.attackTime("all", 0)
 	else
 		self:_catchBall(targetPos, 0, targetSpeed)
 	end
@@ -211,17 +218,20 @@ end
 function Shoot:_shootChaseBall(targetPos, targetSpeed)
 	local relativeEndSpeed = 1
 
-	local robotTimeToCurrentBall = Physics.robotTimeToPos(self._robot, World.Ball.pos, World.Ball.speed)
-	local futureBall = Physics.ballAtTime(World.Ball, robotTimeToCurrentBall)
+	local dribblerOffset = (targetPos - World.Ball.pos):setLength(self._robot.shootRadius + World.Ball.radius)
+	local moveDest = World.Ball.pos - dribblerOffset
+	local moveTime = moveDest:distanceTo(self._robot.pos) / math.min(self._robot.speed:length(), 1)
+	local futureBall = Physics.ballAtTime(World.Ball, moveTime)
 	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
 
-	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
-	local moveDest = futureBall.pos - dribblerOffset
+	dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
+	moveDest = futureBall.pos - dribblerOffset
 	local endSpeed = futureBall.speed:copy():setLength(futureBall.speed:length() + relativeEndSpeed)
 
 	self:_setObstacles()
 	self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, endSpeed)
 	self._send.attackPosition("all", futureBall.pos)
+	self._send.attackTime("all", Physics.robotTimeToPos(self._robot, moveDest, endSpeed))
 
 	local currentDribblerPos = self._robot.pos + dribblerOffset
 	if World.Ball.pos:distanceTo(currentDribblerPos) < 0.15 then
@@ -246,6 +256,7 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 		self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, endSpeed)
 		vis.addPath("t/a/shoot: endSpeed", {moveDest, moveDest + endSpeed}, vis.colors.red, nil, nil, 0.03)
 		self._send.attackPosition("all", futureBall.pos)
+		self._send.attackTime("all", Physics.robotTimeToPos(self._robot, moveDest, endSpeed))
 	else
 		self:_catchBall(targetPos, 0, targetSpeed)
 	end
@@ -263,10 +274,11 @@ function Shoot:_shootStopBall(futureBall, futureBallTime)
 	local moveDest = futureBall.pos - dribblerOffset
 
 	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
-	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0) then
+	if robotTime < futureBallTime + 0.1 or Robot.hadBall(self._robot, 0) then
 		self:_setObstacles()
 		self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, nil)
 		self._send.attackPosition("all", futureBall.pos)
+		self._send.attackTime("all", Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0)))
 	else
 		self:_catchBall(ballOrigin, 0, 8)
 	end

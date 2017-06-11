@@ -43,6 +43,9 @@ local msgDefs = {
 	-- sent by the MA to tell other attackers about the origin of the next shot
 	attackPosition = "vector",
 
+	-- sent by the MA to tell other attackers about the time of the next shot
+	attackTime = "number",
+
 	-- sent by gr/centerback to assign a target and a position to the centerback tasks
 	-- target can be any table (preferably a ball-like or robot-like object)
 	centerBackPosTarget = { pos = "vector", target = "table", way = "number" },

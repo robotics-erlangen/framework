@@ -40,9 +40,9 @@ function Pass:run()
 	debug.set("targetRobot", self._targetRobot)
 	debug.set("targetPos", self._targetPos)
 
-	local maxAngleError = 3 * math.pi / 180
+	local maxAngleError = 3.5 * math.pi / 180
 	if Referee.isFriendlyFreeKickState() or World.RefereeState == "KickoffOffensive" then
-		maxAngleError = 1 * math.pi / 180
+		maxAngleError = 1.5 * math.pi / 180
 	end
 
 	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
