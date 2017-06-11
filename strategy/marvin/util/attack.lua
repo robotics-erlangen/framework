@@ -241,7 +241,7 @@ function Attack.currentPlannedMainAttacker(passInfoSender, passInfoTable)
 		debug.set("plannedMA/lastReceiver", lastReceiver)
 	end
 
-	if lastPasser and Ball.wasShot(0.2) == lastPasser
+	if lastPasser and Ball.wasShot(0.5) == lastPasser
 			and World.Ball.speed:length() > 1 and World.Ball.speed:absoluteAngleDiff(
 				lastReceiver.pos - World.Ball.pos) < 45 / 180 * math.pi then
 		lastCPMA = lastReceiver
