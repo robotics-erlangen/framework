@@ -150,7 +150,6 @@ function Shoot:_updateTask()
 		self._decision = self:_decide()
 		self._nextDecisionTime = World.Time + 1.5
 	end
-	debug.set("redeciding", redeciding)
 
 	-- visualize decision
 	if self._decision.pos then
