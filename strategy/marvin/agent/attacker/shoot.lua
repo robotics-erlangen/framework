@@ -132,7 +132,7 @@ end
 function Shoot:_updateTask()
 	local lastIncomingPassInfo = Attack.lastIncomingPassInfo(self._robot, self._inbox.passInfo())
 	if lastIncomingPassInfo then
-		self._lastIncomingPassInfoPos = lastIncomingPassInfo.pos
+		self._lastIncomingPassInfoPos = lastIncomingPassInfo.ballPos
 	end
 	debug.set("last incoming passInfo", self._lastIncomingPassInfoPos)
 
