@@ -96,7 +96,7 @@ function Striker:_updateZones(robots)
 	local totalLeft = -G.FieldWidthHalf
 	local totalRight = G.FieldWidthHalf
 	local totalTop = G.FieldHeightHalf
-	local totalBottom = -G.FieldHeightQuarter
+	local totalBottom = -G.FieldHeightHalf / 4
 
 	local nStrikers = #robots
 	local remainingZones = nStrikers + 1 -- one zone will stay empty
@@ -110,7 +110,7 @@ function Striker:_updateZones(robots)
 
 	-- create midfield zone
 	do
-		local boundaries = { left = totalLeft, right = totalRight, top = 0, bottom = totalBottom }
+		local boundaries = { left = totalLeft, right = totalRight, top = G.FieldHeightHalf/4, bottom = totalBottom }
 		local defaultPos = getDefaultPosition(boundaries)
 		table.insert(self._zones, {boundaries = boundaries, defaultPos = defaultPos})
 		remainingZones = remainingZones - 1
@@ -120,7 +120,7 @@ function Striker:_updateZones(robots)
 	local zoneWidth = (totalRight - totalLeft) / remainingZones
 	for i = 1, remainingZones do
 		local boundaries = { left = totalLeft + (i - 1) * zoneWidth, right = totalLeft + i * zoneWidth,
-				top = totalTop, bottom = 0 }
+				top = totalTop, bottom = G.FieldHeightHalf / 4 }
 		local defaultPos = getDefaultPosition(boundaries)
 		table.insert(self._zones, {boundaries = boundaries, defaultPos = defaultPos})
 	end
