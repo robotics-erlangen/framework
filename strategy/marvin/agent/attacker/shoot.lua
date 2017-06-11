@@ -125,6 +125,14 @@ function Shoot:_redeciding()
 		return true
 	end
 
+	if self._decision.pos and Ball.receivesPass(self._robot) then
+		local shootAngle = World.Ball.speed:absoluteAngleDiff(self._robot.pos - self._decision.pos)
+		if shootAngle > 75 * math.pi / 180 then
+			debug.set("redeciding", "TRUE (large angle)")
+			return true
+		end
+	end
+
 	debug.set("redeciding", "FALSE (default)")
 	return false
 end
