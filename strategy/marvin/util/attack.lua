@@ -406,4 +406,43 @@ function Attack.checkPassInfoFromPosition(robot, passInfo, position, speed)
 	end
 	return false
 end
+
+---returns last incoming passInfo for each robot
+--@param robot Robot
+--@param passInfo Message - passInfo-Message
+--@return passInfo Message - last passInfo-Message
+local InvalidationCounter = {}
+local lastIncomingPassInfo = {}
+
+function Attack.lastIncomingPassInfo(robot, passInfo)
+	local incomingPassInfo = nil
+	local anonymousPass = false
+	local _, passInfoTable = next(passInfo)
+
+	if not InvalidationCounter[robot] then
+		InvalidationCounter[robot] = 0
+	end
+	if passInfoTable then
+		for _, passInfoEntry in ipairs(passInfoTable) do
+			if passInfoEntry.target == nil then
+				anonymousPass = true
+			end
+			if passInfoEntry.target == robot then
+				incomingPassInfo = passInfoEntry
+			end
+		end
+	end
+	assert(incomingPassInfo or not anonymousPass, "a/a/Shoot does not know how to handle anonymous passes")
+	if incomingPassInfo then
+		lastIncomingPassInfo[robot] = incomingPassInfo
+		InvalidationCounter[robot] = 0
+	elseif not Ball.isAccelerating() and not Ball.receivesPass(robot) then
+		InvalidationCounter[robot] = InvalidationCounter[robot] + 1
+	end
+	if InvalidationCounter[robot] == 5 then
+		lastIncomingPassInfo[robot] = nil
+		InvalidationCounter[robot] = 0
+	end
+	return lastIncomingPassInfo[robot]
+end
 return Attack
