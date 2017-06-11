@@ -19,9 +19,11 @@
 # ***************************************************************************
 
 set(SOURCES
+    include/logfile/backlogwriter.h
     include/logfile/logfilereader.h
     include/logfile/logfilewriter.h
 
+    backlogwriter.cpp
     logfilereader.cpp
     logfilewriter.cpp
 )

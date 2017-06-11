@@ -27,7 +27,7 @@
 #include "plotter/plotter.h"
 #include "robotparametersdialog.h"
 #include "widgets/refereestatuswidget.h"
-#include "backlogwriter.h"
+#include "logfile/backlogwriter.h"
 #include <QDateTime>
 #include <QFile>
 #include <QFileDialog>

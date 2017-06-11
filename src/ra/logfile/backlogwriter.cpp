@@ -19,7 +19,7 @@
  ***************************************************************************/
 
 #include "backlogwriter.h"
-#include "logfile/logfilewriter.h"
+#include "logfilewriter.h"
 #include <QString>
 #include <QByteArray>
 
