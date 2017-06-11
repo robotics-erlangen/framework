@@ -109,8 +109,9 @@ end
 -- @param passes table - a list of pass objects
 -- @param currentPassPos - the ballPos of the last frame, used for stability
 -- @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
+-- @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
 -- @return table - the best pass object
-function Attack.choosePass(robot, passes, currentPassPos, considerTiming)
+function Attack.choosePass(robot, passes, currentPassPos, considerTiming, customHysteresis)
 	local bestPass
 	local bestPassRating = -math.huge
 	for _,pass in ipairs(passes) do
@@ -118,8 +119,8 @@ function Attack.choosePass(robot, passes, currentPassPos, considerTiming)
 		if rating > 0 then
 			-- give a bonus if the pos is near the currentPassPos
 			if currentPassPos then
-				local ratingHystDistance = 0.1
-				local ratingHystPercentage = 0.1
+				local ratingHystDistance = customHysteresis or 0.1
+				local ratingHystPercentage = customHysteresis or 0.1
 				rating = math.min(1, rating * (1 + ratingHystPercentage *
 					Rating.valueToRating(pass.ballPos:distanceTo(currentPassPos), ratingHystDistance, 0)))
 			end
@@ -140,8 +141,9 @@ end
 -- @param passSuggestions table - all incoming passSuggestion messages
 -- @param currentPassPos - the ballPos of the last frame, used for stability
 -- @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
+-- @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
 -- @return table - the best pass object
-function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPassPos, considerTiming)
+function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPassPos, considerTiming, customHysteresis)
 	local passes = {}
 	for sender, sugg in pairs(passSuggestions) do
 		local target = sender
@@ -150,7 +152,7 @@ function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPassPos
 		end
 		table.insert(passes, {target = target, ballPos = sugg.ballPos, time = sugg.time })
 	end
-	return Attack.choosePass(robot, passes, currentPassPos, considerTiming)
+	return Attack.choosePass(robot, passes, currentPassPos, considerTiming, customHysteresis)
 end
 
 local function sortByRating(a, b)
@@ -164,8 +166,9 @@ end
 -- @param currentPassPositions table - the ballPositions of the last frame, used for stability
 -- @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
 -- @param threshold - number between 0 and 1, ratings lower than the threshold won't be included (unless we would have none otherwise)
+-- @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
 -- @return table - list of passes, sorted by their rating
-function Attack.sortPassesFromSuggestions(robot, passSuggestions, currentPassPositions, considerTiming, threshold)
+function Attack.sortPassesFromSuggestions(robot, passSuggestions, currentPassPositions, considerTiming, threshold, customHysteresis)
 	local passes = {}
 	threshold = threshold or 0.5
 	for sender, sugg in pairs(passSuggestions) do
@@ -173,8 +176,8 @@ function Attack.sortPassesFromSuggestions(robot, passSuggestions, currentPassPos
 		local rating = Attack.ratePass(robot, pass, considerTiming)
 		-- give a bonus if the pos is near the currentPassPos
 		if currentPassPositions then
-			local ratingHystDistance = 0.1
-			local ratingHystPercentage = 0.1
+			local ratingHystDistance = customHysteresis or 0.1
+			local ratingHystPercentage = customHysteresis or 0.1
 			local hystBonus = -math.huge
 			for _, pos in ipairs(currentPassPositions) do
 				local bonus = (1 + ratingHystPercentage *

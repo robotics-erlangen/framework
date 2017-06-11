@@ -124,13 +124,10 @@ function FreeKick:_updateTask()
 		-- redecide if beneficial
 		local enoughTime = World.Time - Referee.lastStateChangeTime() <= 5
 		if enoughTime then
-			local currentPassRating = Attack.ratePass(self._robot, self._pass) * 1.05
-			local possibleNewPass, newPassRating = Attack.choosePassFromSuggestions(self._robot,
-					self._inbox.passSuggestion(), self._pass.ballPos)
-			-- reactivate for debug info:
-			-- log("currentPassRating = "..tostring(currentPassRating)..", possibleNewPass ="..tostring(possibleNewPass)
-			-- 	..", newPassRating ="..tostring(newPassRating))
-			if possibleNewPass and possibleNewPass.ballPos:distanceTo(self._pass.ballPos) < 0.2 and newPassRating > currentPassRating then
+			local hysteresis = 0.05
+			local newPass = Attack.choosePassFromSuggestions(self._robot, self._inbox.passSuggestion(),
+					self._pass.ballPos, false, hysteresis)
+			if newPass and newPass.ballPos:distanceTo(self._pass.ballPos) > 0.2 then
 				self._state = "wait" -- wait state will deal with setting up a new pass
 			end
 		end
