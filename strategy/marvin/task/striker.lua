@@ -80,20 +80,19 @@ function Striker:_searchForPassDest()
 			for y = grid_point_dist_y * 0.5 - G.FieldHeightHalf, G.FieldHeightHalf, grid_point_dist_y do
 				if y > bottom and y < top then
 					local candidatePoint = Vector(x, y)
-					if not Field.isInOpponentDefenseArea(candidatePoint, self._robot.radius + 0.03) then
-						local score = self._sampling:evalLocation(candidatePoint, bestScore)
-						local _, passInfoTable = next(self._inbox.passInfo())
-						if passInfoTable then
-							for _, passInfo in pairs(passInfoTable) do
-								if passInfo.ballPos:distanceTo(candidatePoint) < 0.01 then
-									score = score + 0.1
-								end
+					candidatePoint = Field.limitToAllowedField(candidatePoint, 3 * self._robot.radius + 0.1)
+					local score = self._sampling:evalLocation(candidatePoint, bestScore)
+					local _, passInfoTable = next(self._inbox.passInfo())
+					if passInfoTable then
+						for _, passInfo in pairs(passInfoTable) do
+							if passInfo.ballPos:distanceTo(candidatePoint) < 0.01 then
+								score = score + 0.1
 							end
 						end
-						if score > bestScore then
-							bestScore = score
-							bestPoint = candidatePoint
-						end
+					end
+					if score > bestScore then
+						bestScore = score
+						bestPoint = candidatePoint
 					end
 				end
 			end
