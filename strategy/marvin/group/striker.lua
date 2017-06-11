@@ -176,11 +176,11 @@ function Striker:run(sender, inbox, messages)
 	local robotPositions = {} -- robot -> pos
 	local _, passInfoTable = next(inbox.passInfo())
 	for _, r in ipairs(robots) do
-		local pos = r.pos + Vector.fromAngle(r.dir) * (r.shootRadius + World.Ball.radius)
+		local pos = r.pos
 		if passInfoTable then
 			for _, passInfo in ipairs(passInfoTable) do
 				if passInfo.target == r then
-					pos = passInfo.ballPos
+					pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos):setLength(r.shootRadius + World.Ball.radius)
 				end
 			end
 		end
