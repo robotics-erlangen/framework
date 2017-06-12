@@ -6,7 +6,10 @@ compile-ra:
     - cmake --build .
   stage: build
   cache:
-    key: "default"
+    # Increase the number in the cache key to start with
+    # a fresh build cache. This is only useful in case of
+    # build system bug and/or updates of ExternalProjects!
+    key: "default-2"
     paths:
       - build/
   artifacts:
