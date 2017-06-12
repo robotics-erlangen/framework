@@ -30,6 +30,7 @@ signals:
     void changeLogTimeLabel(QString text);
     void showLogTimeLabel(bool show);
     void resetBacklog();
+    void disableSkipping(bool disable);
 
 public slots:
     void handleStatus(const Status &status);

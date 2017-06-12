@@ -28,6 +28,7 @@
 #include <QQueue>
 #include <QPair>
 #include <QList>
+#include "logfile/combinedlogwriter.h"
 #include "core/timer.h"
 #include "protobuf/status.h"
 #include "protobuf/command.h"
@@ -123,6 +124,7 @@ private:
     Plotter *m_plotter;
 
     Strategy *m_strategys[2];
+    CombinedLogWriter m_logWriter;
 };
 
 #endif // MAINWINDOW_H

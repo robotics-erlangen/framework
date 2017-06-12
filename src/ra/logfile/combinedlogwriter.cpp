@@ -41,6 +41,10 @@ CombinedLogWriter::~CombinedLogWriter()
 
 void CombinedLogWriter::handleStatus(const Status &status)
 {
+    if (!status->has_time()) {
+        status->set_time(m_lastTime);
+    }
+
     // keep team configurations for the logfile
     if (status->has_team_yellow()) {
         m_yellowTeam.CopyFrom(status->team_yellow());
@@ -136,6 +140,7 @@ QString CombinedLogWriter::createLogFilename() const
 void CombinedLogWriter::recordButtonToggled(bool enabled)
 {
     emit enableBacklogButton(!enabled);
+    emit disableSkipping(enabled);
     m_isRecording = enabled;
     if (enabled) {
         Q_ASSERT(!m_logFile);

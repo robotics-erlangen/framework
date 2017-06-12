@@ -36,7 +36,8 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     m_scroll(true),
     m_lastTeamInfo(new amun::Command),
-    m_lastTeamInfoUpdated(false)
+    m_lastTeamInfoUpdated(false),
+    m_logWriter(true, 20)
 {
     qRegisterMetaType<Status>("Status");
     qRegisterMetaType<Command>("Command");
@@ -148,6 +149,32 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_strategys[0] = nullptr;
     m_strategys[1] = nullptr;
+
+    // set up log connections
+    connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
+    connect(ui->replay, SIGNAL(saveBacklog()), &m_logWriter, SLOT(backLogButtonClicked()));
+    connect(ui->replay, SIGNAL(enableRecording(bool)), &m_logWriter, SLOT(recordButtonToggled(bool)));
+    connect(ui->replay, SIGNAL(enableLogging(bool)), &m_logWriter, SLOT(enableLogging(bool)));
+    connect(&m_logWriter, SIGNAL(enableBacklogButton(bool)), ui->replay, SIGNAL(enableBackLogLogButton(bool)));
+    connect(&m_logWriter, SIGNAL(enableRecordButton(bool)), ui->replay, SIGNAL(enableLogLogButton(bool)));
+    connect(&m_logWriter, SIGNAL(enableBacklogButton(bool)), ui->replay, SIGNAL(enableBackLogLogButton(bool)));
+    connect(&m_logWriter, SIGNAL(setRecordButton(bool)), ui->replay, SIGNAL(setLogLogButton(bool)));
+
+    // disable all possibilities of skipping / going back packets when recording
+    connect(&m_logWriter, SIGNAL(disableSkipping(bool)), ui->spinPacketCurrent, SLOT(setDisabled(bool)));
+    connect(&m_logWriter, SIGNAL(disableSkipping(bool)), ui->horizontalSlider, SLOT(setDisabled(bool)));
+    connect(&m_logWriter, SIGNAL(disableSkipping(bool)), ui->actionBackward, SLOT(setDisabled(bool)));
+    connect(&m_logWriter, SIGNAL(disableSkipping(bool)), ui->actionForward, SLOT(setDisabled(bool)));
+    connect(&m_logWriter, SIGNAL(disableSkipping(bool)), ui->actionStepBackward, SLOT(setDisabled(bool)));
+    connect(&m_logWriter, SIGNAL(disableSkipping(bool)), ui->actionStepForward, SLOT(setDisabled(bool)));
+
+    // reset backlog if packets have been skipped
+    connect(ui->actionForward, SIGNAL(triggered(bool)), &m_logWriter, SIGNAL(resetBacklog()));
+    connect(ui->actionBackward, SIGNAL(triggered(bool)), &m_logWriter, SIGNAL(resetBacklog()));
+    connect(ui->actionStepForward, SIGNAL(triggered(bool)), &m_logWriter, SIGNAL(resetBacklog()));
+    connect(ui->actionStepBackward, SIGNAL(triggered(bool)), &m_logWriter, SIGNAL(resetBacklog()));
+    connect(ui->horizontalSlider, SIGNAL(sliderPressed()), &m_logWriter, SIGNAL(resetBacklog()));
+    connect(ui->horizontalSlider, SIGNAL(sliderReleased()), &m_logWriter, SIGNAL(resetBacklog()));
 }
 
 MainWindow::~MainWindow()
@@ -200,6 +227,7 @@ void MainWindow::createStrategy(int index)
     connect(m_strategys[index], SIGNAL(sendStatus(Status)), ui->log, SLOT(handleStatus(Status)));
     connect(m_strategys[index], SIGNAL(sendStatus(Status)), ui->field, SLOT(handleStatus(Status)));
     connect(m_strategys[index], SIGNAL(sendStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
+    connect(m_strategys[index], SIGNAL(sendStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
 
     connect(ui->replay, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
     connect(this, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
