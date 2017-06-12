@@ -20,14 +20,14 @@
 
 set(SOURCES
     include/logfile/backlogwriter.h
+    include/logfile/combinedlogwriter.h
     include/logfile/logfilereader.h
     include/logfile/logfilewriter.h
-    include/logfile/loghelper.h
 
     backlogwriter.cpp
+    combinedlogwriter.cpp
     logfilereader.cpp
     logfilewriter.cpp
-    loghelper.cpp
 )
 
 add_library(logfile ${SOURCES})

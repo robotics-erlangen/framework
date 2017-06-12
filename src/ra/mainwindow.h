@@ -22,11 +22,12 @@
 #define MAINWINDOW_H
 
 #include "amun/amunclient.h"
-#include "protobuf/robot.pb.h"
+#include "logfile/combinedlogwriter.h"
 #include <QMainWindow>
 #include <QSet>
 
 class BacklogWriter;
+class CombinedLogWriter;
 class ConfigDialog;
 class InputManager;
 class InternalReferee;
@@ -52,7 +53,6 @@ public:
 
 signals:
     void gotStatus(const Status &status);
-    void saveBacklogFile(QString filename, Status teamStatus);
 
 protected:
     void closeEvent(QCloseEvent *e) override;
@@ -65,16 +65,11 @@ private slots:
     void setTransceiver(bool enabled);
     void disableTransceiver();
     void toggleFlip();
-    void setRecording(bool record);
     void setCharge(bool charge);
     void showConfigDialog();
-    void saveBacklog();
-    void enableSaveBacklog(bool enable);
-    void disableSaveBacklog(bool disable);
 
 private:
     void sendFlip();
-    QString createLogFilename() const;
 
 private:
     Ui::MainWindow *ui;
@@ -88,19 +83,9 @@ private:
     bool m_flip;
     QLabel *m_transceiverStatus;
     bool m_transceiverActive;
-
-    BacklogWriter *m_backlogWriter;
-    QThread *m_backlogThread;
-    LogFileWriter *m_logFile;
-    QThread *m_logFileThread;
-    qint64 m_lastTime;
     qint32 m_lastStageTime;
     QLabel *m_logTimeLabel;
-    qint64 m_logStartTime;
-    robot::Team m_yellowTeam;
-    robot::Team m_blueTeam;
-    QString m_yellowTeamName;
-    QString m_blueTeamName;
+    CombinedLogWriter m_logWriter;
 };
 
 #endif // MAINWINDOW_H

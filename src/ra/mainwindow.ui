@@ -62,7 +62,7 @@
      <string>Logging</string>
     </property>
     <addaction name="actionRecord"/>
-    <addaction name="actionSave60s"/>
+    <addaction name="actionSave20s"/>
    </widget>
    <widget class="QMenu" name="menuTesting">
     <property name="title">
@@ -341,9 +341,9 @@
     <string>Save Backlog</string>
    </property>
   </action>
-  <action name="actionSave60s">
+  <action name="actionSave20s">
    <property name="text">
-    <string>Save last 60s</string>
+    <string>Save last 20s</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+B</string>

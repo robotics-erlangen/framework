@@ -23,13 +23,9 @@
 #include "configdialog.h"
 #include "input/inputmanager.h"
 #include "internalreferee.h"
-#include "logfile/logfilewriter.h"
-#include "logfile/backlogwriter.h"
-#include "logfile/loghelper.h"
 #include "plotter/plotter.h"
 #include "robotparametersdialog.h"
 #include "widgets/refereestatuswidget.h"
-#include <QDateTime>
 #include <QFile>
 #include <QFileDialog>
 #include <QLabel>
@@ -41,10 +37,8 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_transceiverActive(false),
-    m_logFile(NULL),
-    m_logFileThread(NULL),
     m_lastStageTime(0),
-    m_logStartTime(0)
+    m_logWriter(false, 20)
 {
     qRegisterMetaType<SSL_Referee::Command>("SSL_Referee::Command");
     qRegisterMetaType<SSL_Referee::Stage>("SSL_Referee::Stage");
@@ -79,12 +73,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_refereeStatus = new RefereeStatusWidget;
     statusBar()->addPermanentWidget(m_refereeStatus);
-
-    // start backlog writer thread
-    m_backlogThread = new QThread();
-    m_backlogThread->start();
-    m_backlogWriter = new BacklogWriter(20);
-    m_backlogWriter->moveToThread(m_backlogThread);
 
     // setup ui parts that send commands
     m_internalReferee = new InternalReferee(this);
@@ -138,19 +126,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->actionConfiguration, SIGNAL(triggered()), SLOT(showConfigDialog()));
     connect(ui->actionPlotter, SIGNAL(triggered()), m_plotter, SLOT(show()));
-    connect(ui->actionRecord, SIGNAL(toggled(bool)), SLOT(setRecording(bool)));
     connect(ui->actionRobotParameters, SIGNAL(triggered()), m_robotParametersDialog, SLOT(exec()));
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
-    connect(ui->actionSaveBacklog, SIGNAL(triggered()), this, SLOT(saveBacklog()));
-    connect(ui->actionSave60s, SIGNAL(triggered()), ui->actionSaveBacklog, SIGNAL(triggered()));
-    connect(this, SIGNAL(saveBacklogFile(QString,Status)), m_backlogWriter, SLOT(saveBacklog(QString,Status)));
-    connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), ui->actionSaveBacklog, SLOT(setEnabled(bool)));
-    connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), ui->actionSave60s, SLOT(setEnabled(bool)));
-    connect(m_backlogWriter, SIGNAL(enableBacklogSave(bool)), this, SLOT(enableSaveBacklog(bool)));
-    connect(ui->actionRecord, SIGNAL(toggled(bool)), this, SLOT(disableSaveBacklog(bool)));
-    connect(ui->actionRecord, SIGNAL(toggled(bool)), ui->actionSaveBacklog, SLOT(setDisabled(bool)));
-    connect(ui->actionRecord, SIGNAL(toggled(bool)), ui->actionSave60s, SLOT(setDisabled(bool)));
-    connect(ui->actionRecord, SIGNAL(toggled(bool)), m_backlogWriter, SLOT(clear()));
 
     // setup data distribution
     connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
@@ -163,7 +140,19 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), m_refereeStatus, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->log, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->options, SLOT(handleStatus(Status)));
-    enableSaveBacklog(true);
+
+    // set up log connections
+    connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
+    connect(ui->actionRecord, SIGNAL(toggled(bool)), &m_logWriter, SLOT(recordButtonToggled(bool)));
+    connect(ui->actionSave20s, SIGNAL(triggered(bool)), &m_logWriter, SLOT(backLogButtonClicked()));
+    connect(ui->actionSaveBacklog, SIGNAL(triggered(bool)), &m_logWriter, SLOT(backLogButtonClicked()));
+    connect(&m_logWriter, SIGNAL(setRecordButton(bool)), ui->actionRecord, SLOT(setChecked(bool)));
+    connect(&m_logWriter, SIGNAL(enableRecordButton(bool)), ui->actionRecord, SLOT(setEnabled(bool)));
+    connect(&m_logWriter, SIGNAL(enableBacklogButton(bool)), ui->actionSave20s, SLOT(setEnabled(bool)));
+    connect(&m_logWriter, SIGNAL(enableBacklogButton(bool)), ui->actionSaveBacklog, SLOT(setEnabled(bool)));
+    connect(&m_logWriter, SIGNAL(changeLogTimeLabel(QString)), m_logTimeLabel, SLOT(setText(QString)));
+    connect(&m_logWriter, SIGNAL(showLogTimeLabel(bool)), m_logTimeLabel, SLOT(setVisible(bool)));
+    //TODO: alle buttons nicht nur die direkt sichtbaren
 
     // start amun
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
@@ -207,31 +196,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
 MainWindow::~MainWindow()
 {
-    if (m_logFileThread) {
-        m_logFileThread->quit();
-        m_logFileThread->wait();
-        delete m_logFileThread;
-    }
-    delete m_logFile;
-    m_backlogThread->quit();
-    m_backlogThread->wait();
-    delete m_backlogThread;
-    delete m_backlogWriter;
     delete ui;
-}
-
-void MainWindow::disableSaveBacklog(bool disable)
-{
-    enableSaveBacklog(!disable);
-}
-
-void MainWindow::enableSaveBacklog(bool enable)
-{
-    if (enable) {
-        connect(this, SIGNAL(gotStatus(Status)), m_backlogWriter, SLOT(handleStatus(Status)));
-    } else {
-        disconnect(this, SIGNAL(gotStatus(Status)), m_backlogWriter, SLOT(handleStatus(Status)));
-    }
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
@@ -289,7 +254,6 @@ void MainWindow::handleStatus(const Status &status)
         m_transceiverStatus->setText(text);
     }
 
-    // keep team names for the logfile
     if (status->has_game_state()) {
         const amun::GameState &state = status->game_state();
 
@@ -300,31 +264,6 @@ void MainWindow::handleStatus(const Status &status)
                 ui->actionSideChangeNotify->setVisible(true);
             }
             m_lastStageTime = state.stage_time_left();
-        }
-
-        const SSL_Referee_TeamInfo &teamBlue = state.blue();
-        m_blueTeamName = QString::fromStdString(teamBlue.name());
-
-        const SSL_Referee_TeamInfo &teamYellow = state.yellow();
-        m_yellowTeamName = QString::fromStdString(teamYellow.name());
-    }
-
-    // keep team configurations for the logfile
-    if (status->has_team_yellow()) {
-        m_yellowTeam.CopyFrom(status->team_yellow());
-    }
-    if (status->has_team_blue()) {
-        m_blueTeam.CopyFrom(status->team_blue());
-    }
-    m_lastTime = status->time();
-
-    if (m_logStartTime != 0) {
-        qint64 timeDelta = m_lastTime - m_logStartTime;
-        const double dtime = timeDelta / 1E9;
-        QString logLabel = "Log time: " + QString("%1:%2").arg((int) dtime / 60)
-                .arg((int) dtime % 60, 2, 10, QChar('0'));
-        if (m_logTimeLabel->text() != logLabel) {
-            m_logTimeLabel->setText(logLabel);
         }
     }
 
@@ -401,73 +340,6 @@ void MainWindow::sendFlip()
     command->set_flip(m_flip);
     sendCommand(command);
     ui->field->flipAOI();
-}
-
-QString MainWindow::createLogFilename() const
-{
-    QString teamnames;
-    if (!m_yellowTeamName.isEmpty() && !m_blueTeamName.isEmpty()) {
-        teamnames = QString("%1 vs %2").arg(m_yellowTeamName).arg(m_blueTeamName);
-    } else if (!m_yellowTeamName.isEmpty()) {
-        teamnames = m_yellowTeamName;
-    } else  if (!m_blueTeamName.isEmpty()) {
-        teamnames = m_blueTeamName;
-    }
-
-    const QString date = LogHelper::dateTimeToString(QDateTime::currentDateTime()).replace(":", "");
-    return QString("%1%2.log").arg(date).arg(teamnames);
-}
-
-void MainWindow::saveBacklog()
-{
-    const QString filename = createLogFilename();
-
-    Status status(new amun::Status);
-    status->mutable_team_yellow()->CopyFrom(m_yellowTeam);
-    status->mutable_team_blue()->CopyFrom(m_blueTeam);
-
-    emit saveBacklogFile(filename, status);
-}
-
-void MainWindow::setRecording(bool record)
-{
-    if (record) {
-        Q_ASSERT(!m_logFile);
-
-        const QString filename = createLogFilename();
-
-        // create log file and forward status
-        m_logFile = new LogFileWriter();
-        if (!m_logFile->open(filename)) {
-            ui->actionRecord->setChecked(false);
-            delete m_logFile;
-            return;
-        }
-        connect(this, SIGNAL(gotStatus(Status)), m_logFile, SLOT(writeStatus(Status)));
-
-        // create thread if not done yet and move to seperate thread
-        if (m_logFileThread == NULL) {
-            m_logFileThread = new QThread();
-            m_logFileThread->start();
-        }
-        m_logFile->moveToThread(m_logFileThread);
-
-        // add the current team settings to the logfile
-        Status status(new amun::Status);
-        status->set_time(m_lastTime);
-        status->mutable_team_yellow()->CopyFrom(m_yellowTeam);
-        status->mutable_team_blue()->CopyFrom(m_blueTeam);
-        m_logFile->writeStatus(status);
-        m_logStartTime = m_lastTime;
-        m_logTimeLabel->show();
-    } else {
-        // defer log file deletion to happen in its thread
-        m_logFile->deleteLater();
-        m_logFile = NULL;
-        m_logStartTime = 0;
-        m_logTimeLabel->setText("");
-        m_logTimeLabel->hide();
-    }
 }
 
 void MainWindow::showConfigDialog()
