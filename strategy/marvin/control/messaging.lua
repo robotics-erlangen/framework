@@ -26,7 +26,7 @@ local msgDefs = {
 
 	-- sent by strikers to the MA to propose a possible pass
 	-- requests that the ball is at msg.ballPos when the time reaches msg.time
-	passSuggestion = { ballPos = "vector", time = "number" },
+	passSuggestion = { ballPos = "vector", time = "number", anonymous = "boolean" },
 
 	-- sent by various behaviors which want to change the pool
 	-- the string can be "attacker" or "defender"
@@ -43,6 +43,9 @@ local msgDefs = {
 	-- sent by the MA to tell other attackers about the origin of the next shot
 	attackPosition = "vector",
 
+	-- sent by the MA to tell other attackers about the time of the next shot
+	attackTime = "number",
+
 	-- sent by gr/centerback to assign a target and a position to the centerback tasks
 	-- target can be any table (preferably a ball-like or robot-like object)
 	centerBackPosTarget = { pos = "vector", target = "table", way = "number" },
@@ -55,7 +58,7 @@ local msgDefs = {
 	moveNumAttackers = "number",
 
 	-- sent by the MA to notify all agents about an upcoming pass
-	-- when the ball is actually shot, there should only be one entry in the table 
+	-- when the ball is actually shot, there should only be one entry in the table
 	-- this is needed to choose the correct mainAttacker
 	-- the ball is at msg.ballPos when the time reaches msg.time
 	-- table is of entries of the format: { target = Robot, ballPos = "vector", time = "number" }

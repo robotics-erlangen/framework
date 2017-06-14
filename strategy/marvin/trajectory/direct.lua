@@ -27,7 +27,7 @@ function Direct:update(speed, targetDir, rotateSpeed, accel)
 
 	if rotateSpeed == nil then
 		local limitRot = 4 * math.pi
-		local k_omega = 5
+		local k_omega = 10
 		targetDir = Coordinates.toGlobal(targetDir)
 		local error_phi = geom.getAngleDiff(robotDir, targetDir)
 		rotateSpeed = math.bound(-limitRot, error_phi * k_omega, limitRot)

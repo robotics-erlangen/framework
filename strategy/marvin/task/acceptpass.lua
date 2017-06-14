@@ -13,13 +13,13 @@ function AcceptPass:run()
 	local groupApplication = { name = "striker", payload = {}}
 	self._send.groupApplication("trainer", groupApplication)
 	
-	local passInfo
+	local passInfo = nil
 	local _, passInfoTable = next(self._inbox.passInfo())
 	assert(passInfoTable, "AcceptPass runs although there is no passInfo message")
 	for _, pass in ipairs(passInfoTable) do
-		if pass.target == self._robot then
+		if pass.target == self._robot or pass.target == nil then
+			assert(not passInfo, "AcceptPass doesn't know which pass to accept")
 			passInfo = pass
-			break
 		end
 	end
 	assert(passInfo, "AcceptPass runs despite not being a target")
