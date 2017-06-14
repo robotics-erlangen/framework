@@ -199,7 +199,7 @@ function Attack.sortPassesFromSuggestions(robot, passSuggestions, currentPassPos
 	end
 
 	table.sort(passes, sortByRating)
-	return passes
+	return next(passes) and passes or nil
 end
 
 --- draws a broad line beween the main attacker (robotPos) and the next attack destination (shootDest)

@@ -87,7 +87,9 @@ function FreeKick:_updateTask()
 			self._passList = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false)
 			if self._passList then
 				_, self._pass = next(self._passList)
-				self._state = "pass_prepare"
+				if self._pass then
+					self._state = "pass_prepare"
+				end
 			end
 		end
 	end
