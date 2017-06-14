@@ -506,7 +506,7 @@ void RobotWidget::updateRobotStatus()
 
         QString errorMsg = "";
         if (extendedError.motor_encoder_error()) {
-            errorMsg += "One or multiple motors have no working hall sensor and/or encoder\n";
+            errorMsg += "One or multiple motors have broken hall sensors\n";
         }
         if (extendedError.main_sensor_error()) {
             errorMsg += "Gryoscope or accelerometer not working\n";
