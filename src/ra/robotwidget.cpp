@@ -470,7 +470,11 @@ void RobotWidget::updateRobotStatus()
     if (m_mergedResponse.has_battery() && m_mergedResponse.has_packet_loss_rx() && m_mergedResponse.has_packet_loss_tx()) {
         // smooth and update battery data
         const float alpha = 0.05f;
-        m_smoothedBatteryLevel = alpha * m_mergedResponse.battery() + (1-alpha) * m_smoothedBatteryLevel;
+        if (m_statusCtr == 0) {
+            m_smoothedBatteryLevel = m_mergedResponse.battery();
+        } else {
+            m_smoothedBatteryLevel = alpha * m_mergedResponse.battery() + (1-alpha) * m_smoothedBatteryLevel;
+        }
         updateBatteryStatus(std::ceil(m_smoothedBatteryLevel * 100));
 
         // update radio status if changed
@@ -516,7 +520,7 @@ void RobotWidget::updateRobotStatus()
     }
 
     // update counter to indicate status was updated
-    m_statusCtr = 10;
+    m_statusCtr = 11;
     m_guiResponseTimer->requestTriggering();
     m_lastResponse = m_mergedResponse;
     m_mergedResponse.Clear();
@@ -524,7 +528,7 @@ void RobotWidget::updateRobotStatus()
 
 void RobotWidget::hideRobotStatus()
 {
-    if (m_statusCtr > 0) {
+    if (m_statusCtr > 1) {
         // restart timer
         m_guiResponseTimer->requestTriggering();
         m_statusCtr--;
