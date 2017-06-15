@@ -67,7 +67,13 @@ message PlotValue {
     required float value = 2;
 }
 
-enum DebugSource { StrategyBlue = 1; StrategyYellow = 2; Controller = 3; Autoref = 4; Tracking = 5; };
+enum DebugSource {
+    StrategyBlue = 1;
+    StrategyYellow = 2;
+    Controller = 3;
+    Autoref = 4;
+    Tracking = 5;
+}
 
 message RobotValue {
     required uint32 generation = 1;
