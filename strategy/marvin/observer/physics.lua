@@ -651,8 +651,7 @@ function Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_
 
 	-- calculate and save the robot time
 	local endSpeed = (x_robot - robot.pos):setLength(endSpeedLength)
-	-- return Physics.robotTimeToPos(robot, x_robot, endSpeed, true)
-	return 0.2
+	return Physics.robotTimeToPos(robot, x_robot, endSpeed, true)
 end
 
 local function rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t_out)
