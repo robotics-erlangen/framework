@@ -550,6 +550,7 @@ void RobotWidget::hideRobotStatus()
     m_warning->hide();
 
     m_mergedResponse.Clear();
+    m_lastResponse.Clear();
 }
 
 void RobotWidget::generationChanged(uint generation, RobotWidget::Team team)
