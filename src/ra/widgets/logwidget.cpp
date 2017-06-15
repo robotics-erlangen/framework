@@ -72,6 +72,9 @@ void LogWidget::handleStatus(const Status &status)
             case amun::Autoref:
                 prefix = "A";
                 break;
+            case amun::RadioResponse:
+                prefix = "R";
+                break;
             }
 
             qint64 ldate = log.timestamp() / 1000000000L / 60; // divide down to minutes

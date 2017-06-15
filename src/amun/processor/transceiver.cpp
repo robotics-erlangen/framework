@@ -28,7 +28,6 @@
 #include "usbthread.h"
 #include "usbdevice.h"
 #include <QTimer>
-#include <QDebug>
 
 static_assert(sizeof(RadioCommand2014) == 11, "Expected radio command packet of size 11");
 static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet of size 10");
@@ -356,7 +355,13 @@ void Transceiver::handleStatusPacket(const char *data, uint size)
 
 void Transceiver::handleDatagramPacket(const char *data, uint size)
 {
-    qDebug() << QByteArray(data, size);
+    Status status(new amun::Status);
+    status->mutable_debug()->set_source(amun::RadioResponse);
+    QString debugMessage = QString("[Length: %1] %2").arg(size).arg(data);
+    amun::StatusLog *logEntry = status->mutable_debug()->add_log();
+    logEntry->set_timestamp(Timer::systemTime());
+    logEntry->set_text(debugMessage.toStdString());
+    emit sendStatus(status);
 }
 
 float Transceiver::calculateDroppedFramesRatio(uint generation, uint id, uint8_t counter, int skipedFrames)
