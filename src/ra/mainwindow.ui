@@ -53,6 +53,7 @@
      <string>&amp;Game</string>
     </property>
     <addaction name="actionEnableTransceiver"/>
+    <addaction name="actionChargeKicker"/>
     <addaction name="actionFlipSides"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
@@ -260,7 +261,7 @@
     <string>Charge kicker</string>
    </property>
    <property name="shortcut">
-    <string>Ctrl+C</string>
+    <string>Ctrl+K</string>
    </property>
   </action>
   <action name="actionSimulator">
