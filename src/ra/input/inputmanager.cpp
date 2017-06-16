@@ -113,7 +113,8 @@ void InputManager::update()
 #endif // SDL2_FOUND
 
     bool isCommandEmpty = m_bindings.isEmpty() && m_networkControl.isEmpty() && m_ejectSdcard.isEmpty();
-    if (!m_enabled) {
+    // always allow sending eject sdcard commands
+    if (!m_enabled && m_ejectSdcard.isEmpty()) {
         isCommandEmpty = true;
     }
 
@@ -155,18 +156,19 @@ void InputManager::update()
             radio_command->set_id(it.key().second);
             radio_command->mutable_command()->set_network_controlled(it.value());
         }
-        for(EjectSdcardMap::iterator it = m_ejectSdcard.begin();
-                it != m_ejectSdcard.end();) {
-            robot::RadioCommand *radio_command = control->add_commands();
-            radio_command->set_generation(it.key().first);
-            radio_command->set_id(it.key().second);
-            radio_command->mutable_command()->set_eject_sdcard(true);
-            it.value() -= 1;
-            if (it.value() <= 0) {
-                it = m_ejectSdcard.erase(it);
-            } else {
-                ++it;
-            }
+    }
+
+    for(EjectSdcardMap::iterator it = m_ejectSdcard.begin();
+            it != m_ejectSdcard.end();) {
+        robot::RadioCommand *radio_command = control->add_commands();
+        radio_command->set_generation(it.key().first);
+        radio_command->set_id(it.key().second);
+        radio_command->mutable_command()->set_eject_sdcard(true);
+        it.value() -= 1;
+        if (it.value() <= 0) {
+            it = m_ejectSdcard.erase(it);
+        } else {
+            ++it;
         }
     }
 
