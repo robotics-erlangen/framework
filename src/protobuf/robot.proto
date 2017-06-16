@@ -1,26 +1,6 @@
 syntax = "proto2";
 package robot;
 
-message ControllerParameters
-{
-    // deprecated = 1 to 12;
-    optional float k_p_s = 13;
-    optional float k_p_f = 14;
-    optional float k_p_omega = 15;
-
-    optional float k_i_s = 16;
-    optional float k_i_f = 17;
-    optional float k_i_omega = 18;
-
-    optional float i_max_s = 19;
-    optional float i_max_f = 20;
-    optional float i_max_omega = 21;
-
-    optional float k_ff_s = 22;
-    optional float k_ff_f = 23;
-    optional float k_ff_omega = 24;
-};
-
 message LimitParameters
 {
     optional float a_speedup_f_max = 1;
@@ -47,7 +27,7 @@ message Specs
     optional float dribbler_width = 12;
     optional LimitParameters acceleration = 13;
     optional LimitParameters strategy = 16;
-    optional ControllerParameters controller = 14;
+    // deprecated = 14;
     optional float ir_param = 15;
     optional float shoot_radius = 17;
     optional float dribbler_height = 18;
@@ -86,23 +66,6 @@ message ControllerInput
     repeated Spline spline = 1;
 };
 
-message ControllerDebug
-{
-    optional float p_desired_x = 1;
-    optional float p_desired_y = 2;
-    optional float v_desired_x = 3;
-    optional float v_desired_y = 4;
-    optional float v_ctrl_out_s = 5;
-    optional float v_ctrl_out_f = 6;
-    optional float v_ctrl_out_omega = 7;
-    optional float traj_age = 8;
-    optional float a_desired_x = 9;
-    optional float a_desired_y = 10;
-    optional float i_s = 11;
-    optional float i_f = 12;
-    optional float i_omega = 13;
-};
-
 message Command
 {
     enum KickStyle
@@ -122,7 +85,7 @@ message Command
     optional float v_x = 9;
     optional float v_y = 10;
     optional bool standby = 11;
-    optional ControllerDebug debug = 12;
+    // deprecated = 12
     optional bool strategy_controlled = 13;
     optional bool force_kick = 14;
     optional bool network_controlled = 15;

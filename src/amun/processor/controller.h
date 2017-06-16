@@ -41,7 +41,7 @@ public:
     void setInput(const robot::ControllerInput &input, qint64 world_time);
     void clearInput();
 
-    //! Returns the robot specs
+    // Returns the robot specs
     const robot::Specs& specs() const { return m_specs; }
 
 private:
@@ -49,50 +49,24 @@ private:
     void getDesiredState_ManualControl(const world::Robot &robot, const robot::Command &command);
     void getDesiredState_AutomaticControl(const robot::Spline &spline, const float t);
 
-    //----------- misc helper functions ----------------
     void drawSpline(amun::DebugValues *debug, const google::protobuf::RepeatedPtrField<robot::Spline> &input);
 
 private:
-    //----------- misc class variables ----------------
-    //! @brief Constant specs of the robot controlled by this instance of Controller
+    // Constant specs of the robot controlled by this instance of Controller
     const robot::Specs m_specs;
-    //! @brief Input defining the desired control output
+
+    // Input defining the desired control output
     robot::ControllerInput m_input;
-    //! @brief Instant of time (absolute) when new input arrives, in ns.
+    // Instant of time (absolute) when new input arrives, in ns.
     qint64 m_startTime;
-    //! @brief Instant of time when the control algorithm was last called, in ns.
-    qint64 m_lastWorldTime;
 
 private:
-    //----------- variables required by control algorithm ----------------
-
-    //! @brief desired position in x-direction (global coordinates)
-    float m_p_x_d;
-    //! @brief desired position in y-direction (global coordinates)
-    float m_p_y_d;
-    //! @brief desired orientation (global coordinates)
-    float m_phi_d;
-
-    //! @brief desired velocity in x-direction (global coordinates)
+    // desired velocity in x-direction (global coordinates)
     float m_v_x_d;
-    //! @brief desired velocity in y-direction (global coordinates)
+    // desired velocity in y-direction (global coordinates)
     float m_v_y_d;
-    //! @brief desired rotational speed (global coordinates)
+    // desired rotational speed (global coordinates)
     float m_omega_d;
-
-    //! @brief desired acceleration in x-direction (global coordinates)
-    float m_a_x_d;
-    //! @brief desired acceleration in y-direction (global coordinates)
-    float m_a_y_d;
-    //! @brief desired rotational acceleration (global coordinates)
-    float m_a_phi_d;
-
-    //! @brief Sum of error (position deviation) in x-direction (global coordinates), for integral part of control
-    float m_error_i_s;
-    //! @brief Sum of error (position deviation) in y-direction (global coordinates), for integral part of control
-    float m_error_i_f;
-    //! @brief Sum of error (position deviation) in orientation (global coordinates), for integral part of control
-    float m_error_i_omega;
 };
 
 #endif // CONTROLLER_H

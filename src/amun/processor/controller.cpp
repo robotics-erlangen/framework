@@ -39,11 +39,7 @@
  */
 Controller::Controller(const robot::Specs &specs) :
     m_specs(specs),
-    m_startTime(0),
-    m_lastWorldTime(0),
-    m_error_i_s(0.f),
-    m_error_i_f(0.f),
-    m_error_i_omega(0.f)
+    m_startTime(0)
 {
 }
 
@@ -122,7 +118,6 @@ void Controller::calculateCommand(const world::Robot &robot, qint64 world_time, 
 }
 
 //----------- control functionality ----------------
-#include <QDebug>
 
 /*!
  * \brief The actual control algorithm implementation
@@ -134,96 +129,23 @@ void Controller::calculateCommand(const world::Robot &robot, qint64 world_time, 
 void Controller::controlAlgorithm(const world::Robot &robot, qint64 world_time, robot::Command &command, amun::DebugValues *debug)
 {
     // abort if desired state is invalid
-    if (std::isnan(m_p_x_d) || std::isinf(m_p_x_d) || std::isnan(m_p_y_d) || std::isinf(m_p_y_d)
-            || std::isnan(m_phi_d) || std::isinf(m_phi_d)
-            || std::isnan(m_v_x_d) || std::isinf(m_v_x_d) || std::isnan(m_v_y_d) || std::isinf(m_v_y_d)
-            || std::isnan(m_omega_d) || std::isinf(m_omega_d)
-            || std::isnan(m_a_x_d) || std::isinf(m_a_x_d) || std::isnan(m_a_y_d) || std::isinf(m_a_y_d)
-            || std::isnan(m_a_phi_d) || std::isinf(m_a_phi_d)) {
+    if (std::isnan(m_v_x_d) || std::isinf(m_v_x_d) || std::isnan(m_v_y_d) || std::isinf(m_v_y_d)
+            || std::isnan(m_omega_d) || std::isinf(m_omega_d)) {
         amun::StatusLog *log = debug->add_log();
         log->set_timestamp(world_time);
         log->set_text(QString("Invalid command for robot %1-%2").arg(m_specs.generation()).arg(m_specs.id()).toStdString());
         return;
     }
 
-    // calculate the time since the controller was last run
-    float timestep = (world_time - m_lastWorldTime) * 1E-9;          // world time is in ns, time in s
-    // set timeDiff = 0 for first iteration
-    if (m_lastWorldTime == 0) {
-        timestep = 0.0;
-    }
-    // store this time instant
-    m_lastWorldTime = world_time;
-
-    // Add the desired control data to the debug output plotter
-    robot::ControllerDebug *pDebug = command.mutable_debug();
-    pDebug->set_p_desired_x(m_p_x_d);
-    pDebug->set_p_desired_y(m_p_y_d);
-    pDebug->set_v_desired_x(m_v_x_d);
-    pDebug->set_v_desired_y(m_v_y_d);
-    pDebug->set_a_desired_x(m_a_x_d);
-    pDebug->set_a_desired_y(m_a_y_d);
-    pDebug->set_traj_age((world_time - m_startTime) / 1E9);
-
     // coordinate systems (global and robot coordinates) have rotational offset of pi/2
     const float robot_phi = robot.phi() - M_PI_2;
     // rotate cw
     const float v_s_d = std::cos(-robot_phi) * m_v_x_d - std::sin(-robot_phi) * m_v_y_d;
     const float v_f_d = std::sin(-robot_phi) * m_v_x_d + std::cos(-robot_phi) * m_v_y_d;
-    const float v_s = std::cos(-robot_phi) * robot.v_x() - std::sin(-robot_phi) * robot.v_y();
-    const float v_f = std::sin(-robot_phi) * robot.v_x() + std::cos(-robot_phi) * robot.v_y();
 
-    // try to detect i-Anteil error
-    /*const float i_max_s_error=0.25;
-    const float i_max_f_error=0.25;
-    const float v_max_s_error=0.1;
-    const float v_max_f_error=0.1;
-    //dedicate error state seitwaerts;
-    if ( ( v_s<v_max_s_error || v_s>-v_max_s_error ) && (m_error_i_s>i_max_s_error || m_error_i_s<-i_max_s_error)) {
-        m_error_i_s = 0;
-    }
-    //dedicate error state forward;
-    if ( ( v_f<v_max_f_error || v_f>-v_max_f_error ) && (m_error_i_f>i_max_f_error || m_error_i_f<-i_max_f_error)) {
-        m_error_i_f = 0;
-    }*/
-
-    // calculate position and velocity errors
-    float error_s   = v_s_d - v_s;
-    float error_f   = v_f_d - v_f;
-    float error_omega = m_omega_d - robot.omega();
-
-    // controller logic implementation
-    // s-PID Controller
-    float pout_s = m_specs.controller().k_p_s() * error_s;
-    m_error_i_s += m_specs.controller().k_i_s() * error_s * timestep;
-    m_error_i_s = qBound(-m_specs.controller().i_max_s(), m_error_i_s, m_specs.controller().i_max_s());
-
-    // f-PID Controller
-    float pout_f =  m_specs.controller().k_p_f() * error_f;
-    m_error_i_f += m_specs.controller().k_i_f() * error_f * timestep;
-    m_error_i_f = qBound(-m_specs.controller().i_max_f(), m_error_i_f, m_specs.controller().i_max_f());
-
-    // OMEGA-PID Controller
-    float pout_omega = m_specs.controller().k_p_omega() * error_omega;
-    m_error_i_omega += m_specs.controller().k_i_omega() * error_omega * timestep;
-    m_error_i_omega = qBound(-m_specs.controller().i_max_omega(), m_error_i_omega, m_specs.controller().i_max_omega());
-
-
-    float output_v_s = m_specs.controller().k_ff_s() * v_s_d + pout_s + m_error_i_s;
-    float output_v_f = m_specs.controller().k_ff_f() * v_f_d + pout_f + m_error_i_f;
-    float output_v_omega = m_specs.controller().k_ff_omega() * m_omega_d + pout_omega + m_error_i_omega;
-
-    command.set_v_s(output_v_s);
-    command.set_v_f(output_v_f);
-    command.set_omega(output_v_omega);
-
-    pDebug->set_v_ctrl_out_s(output_v_s);
-    pDebug->set_v_ctrl_out_f(output_v_f);
-    pDebug->set_v_ctrl_out_omega(output_v_omega);
-
-    pDebug->set_i_s(m_error_i_s);
-    pDebug->set_i_f(m_error_i_f);
-    pDebug->set_i_omega(m_error_i_omega);
+    command.set_v_s(v_s_d);
+    command.set_v_f(v_f_d);
+    command.set_omega(m_omega_d);
 }
 
 /*!
@@ -233,20 +155,10 @@ void Controller::controlAlgorithm(const world::Robot &robot, qint64 world_time, 
  */
 void Controller::getDesiredState_ManualControl(const world::Robot &robot, const robot::Command &command)
 {
-    // The robot position shall remain the desired position - WTF? @TODO @FIXME
-    m_p_x_d = robot.p_x();
-    m_p_y_d = robot.p_y();
-    m_phi_d = robot.phi();
-
-    // The desired speeds of the robot simply are the commanded speeds - WTF? @TODO @FIXME
+    // The desired speeds of the robot simply are the commanded speeds
     m_v_x_d = command.v_s();
     m_v_y_d = command.v_f();
     m_omega_d = command.omega();
-
-    // fuck off acceleration
-    m_a_x_d = 0.0f;
-    m_a_y_d = 0.0f;
-    m_a_phi_d = 0.0f;
 }
 
 /*!
@@ -256,20 +168,10 @@ void Controller::getDesiredState_ManualControl(const world::Robot &robot, const 
  */
 void Controller::getDesiredState_AutomaticControl(const robot::Spline &spline, const float t)
 {
-    // calculate desired position from spline part
-    m_p_x_d = spline.x().a0() + (spline.x().a1() + (spline.x().a2() + spline.x().a3() * t) * t) * t;
-    m_p_y_d = spline.y().a0() + (spline.y().a1() + (spline.y().a2() + spline.y().a3() * t) * t) * t;
-    m_phi_d = spline.phi().a0() + (spline.phi().a1() + (spline.phi().a2() + spline.phi().a3() * t) * t) * t;
-
     // calculate desired velocity from spline part
     m_v_x_d   = spline.x().a1() + (2 * spline.x().a2() + 3 * spline.x().a3() * t) * t;
     m_v_y_d   = spline.y().a1() + (2 * spline.y().a2() + 3 * spline.y().a3() * t) * t;
     m_omega_d = spline.phi().a1() + (2 * spline.phi().a2() + 3 * spline.phi().a3() * t) * t;
-
-    // calculate desired acceleration from spline part
-    m_a_x_d   = 2 * spline.x().a2() + 6 * spline.x().a3() * t;
-    m_a_y_d   = 2 * spline.y().a2() + 6 * spline.y().a3() * t;
-    m_a_phi_d = 2 * spline.phi().a2() + 6 * spline.phi().a3() * t;
 }
 
 //-------------- util functions ---------------------

@@ -275,7 +275,7 @@ void RobotSelectionWidget::saveRobots(const QString &group, RobotWidget::Team te
 
 bool RobotSelectionWidget::validate(const robot::Generation &g)
 {
-    if (!g.default_().IsInitialized() || !g.default_().controller().IsInitialized()) {
+    if (!g.default_().IsInitialized()) {
         return false;
     }
 
