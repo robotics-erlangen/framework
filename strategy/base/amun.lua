@@ -191,11 +191,13 @@ function amun._hideFunctions()
 	local getCurrentTime = amun.getCurrentTime
 	local sendCommand = amun.sendCommand
 	local sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand
+	local sendAutorefEvent = amun.sendAutorefEvent
 
 	-- overwrite global amun
 	amun = {
 		isDebug = isDebug,
 		strategyPath = strategyPath,
+		sendAutorefEvent = sendAutorefEvent,
 		getCurrentTime = function ()
 			return getCurrentTime() * 1E-9
 		end
