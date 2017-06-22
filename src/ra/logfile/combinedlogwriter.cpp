@@ -87,10 +87,13 @@ void CombinedLogWriter::handleStatus(const Status &status)
 
 void CombinedLogWriter::enableLogging(bool enable)
 {
-    m_isLoggingEnabled = enable;
     if (!enable) {
-        emit setRecordButton(false); //TODO: muss das auch noch intern gehandelt werden?
+        emit setRecordButton(false);
+        if (m_isLoggingEnabled) {
+            recordButtonToggled(false);
+        }
     }
+    m_isLoggingEnabled = enable;
     emit enableRecordButton(enable);
     emit enableBacklogButton(enable);
 }
@@ -131,7 +134,7 @@ QString CombinedLogWriter::createLogFilename() const
 
     const QString date = dateTimeToString(QDateTime::currentDateTime()).replace(":", "");
     if (m_isReplay) {
-        return QString("replay%1%2.log").arg(date);//.arg(teamnames); TODO?
+        return QString("replay%1.log").arg(date);
     } else {
         return QString("%1%2.log").arg(date).arg(teamnames);
     }
