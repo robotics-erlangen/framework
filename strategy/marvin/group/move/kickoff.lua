@@ -11,7 +11,7 @@ local Striker = require "task/striker"
 local MovesHelper = require "util/moveshelper"
 local Attack = require "util/attack"
 
-KickOff.MIN_ROBOTS = 3
+KickOff.MIN_ROBOTS = 2
 KickOff.MAX_ROBOTS = 3
 
 function KickOff.canStart()
@@ -29,8 +29,8 @@ function KickOff:_init()
 	}
 
 	local positions = { Vector(0, 0) }
-	for _,pos in ipairs(self._assistantPos) do
-		table.insert(positions, pos)
+	for i = 1,#self._robots-1 do
+		table.insert(positions, self._assistantPos[i])
 	end
 	self._assignments = MovesHelper.assignRobots(self._robots, positions, 0)
 end
@@ -46,11 +46,13 @@ function KickOff:_updateTasks()
 	if World.RefereeState == "KickoffOffensivePrepare" then
 		taskAssignments[self._robots[self._assignments[1]]] = { class = StopAttack, params = {} }
 		taskAssignments[self._robots[self._assignments[2]]] = { class = MoveToPos, params = { self._assistantPos[1] } }
-		taskAssignments[self._robots[self._assignments[3]]] = { class = MoveToPos, params = { self._assistantPos[2] } }
+		if #self._robots == 3 then
+			taskAssignments[self._robots[self._assignments[3]]] = { class = MoveToPos, params = { self._assistantPos[2] } }
+		end
 	else
 		local _, passInfoTable = next(self._inbox.passInfo())
 		taskAssignments[self._robots[self._assignments[1]]] = { behavior = Freekick }
-		for i=1,2 do
+		for i=1,#self._robots-1 do
 			if Attack.checkPassInfos(self._robots[self._assignments[i+1]], passInfoTable) then
 				taskAssignments[self._robots[self._assignments[i+1]]] = { class = AcceptPass }
 			else
