@@ -472,6 +472,9 @@ void Strategy::copyDebugValues(Status &status)
     Q_ASSERT(m_strategy != NULL);
     status->mutable_debug()->CopyFrom(m_strategy->debugValues());
     status->mutable_debug()->set_source(debugSource());
+    if (!m_status.isNull()) {
+        status->mutable_debug()->set_time(m_status->world_state().time());
+    }
 }
 
 amun::DebugSource Strategy::debugSource() const

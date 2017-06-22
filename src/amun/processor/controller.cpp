@@ -78,7 +78,7 @@ void Controller::calculateCommand(const world::Robot &robot, qint64 world_time, 
 {
     // calculate elapsed time since the trajectory was planned
     // calculate expected state for the next strategy call
-    float timeElapsed = (world_time - m_startTime) / 1E9 + (1.f / Processor::FREQUENCY);
+    float timeElapsed = (world_time - m_startTime) / 1E9;
 
     // If the command contains desired local robot speeds, the robot is being controlled
     // manually.

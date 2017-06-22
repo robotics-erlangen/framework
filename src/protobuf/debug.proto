@@ -84,6 +84,7 @@ message RobotValue {
 
 message DebugValues {
     required DebugSource source = 1;
+    optional int64 time = 7;
     repeated DebugValue value = 2;
     repeated Visualization visualization = 3;
     repeated StatusLog log = 4;

@@ -135,37 +135,24 @@ void Processor::process()
     // run tracking
     m_tracker->process(current_time);
     Status status = m_tracker->worldState(current_time);
-    // prediction which accounts for the strategy runtime
-    Status strategyStatus = m_tracker->worldState(current_time + tickDuration);
 
     // add information, about whether the world state is from the simulator or not
     status->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
-    strategyStatus->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
 
     // run referee
     Referee* activeReferee = (m_refereeInternalActive) ? m_refereeInternal : m_referee;
     activeReferee->process(status->world_state());
     status->mutable_game_state()->CopyFrom(activeReferee->gameState());
-    strategyStatus->mutable_game_state()->CopyFrom(activeReferee->gameState());
 
     // add radio responses from robots and mixed team data
     injectExtraData(status);
-    injectExtraData(strategyStatus);
-    // remove responses after injecting to avoid sending them a second time
-    m_responses.clear();
-    m_mixedTeamInfo.Clear();
-    m_mixedTeamInfoSet = false;
 
     // add input / commands from the user for the strategy
-    injectUserControl(strategyStatus, true);
-    injectUserControl(strategyStatus, false);
-    // copy to other status message
-    status->mutable_user_input_yellow()->CopyFrom(strategyStatus->user_input_yellow());
-    status->mutable_user_input_blue()->CopyFrom(strategyStatus->user_input_blue());
+    injectUserControl(status, true);
+    injectUserControl(status, false);
 
     //publish world status
     emit sendStatus(status);
-    emit sendStrategyStatus(strategyStatus);
 
     Status status_debug(new amun::Status);
     const qint64 controller_start = Timer::systemTime();
@@ -180,12 +167,30 @@ void Processor::process()
     processTeam(m_blueTeam, true, status->world_state().blue(), radio_commands, status_debug, controllerTime);
     processTeam(m_yellowTeam, false, status->world_state().yellow(), radio_commands, status_debug, controllerTime);
 
+    if (m_transceiverEnabled) {
+        // the command is active starting from now
+        m_tracker->queueRadioCommands(radio_commands, current_time+1);
+    }
+
+    // prediction which accounts for the strategy runtime
+    // depends on the just created radio command
+    Status strategyStatus = m_tracker->worldState(current_time + tickDuration);
+    strategyStatus->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
+    strategyStatus->mutable_game_state()->CopyFrom(activeReferee->gameState());
+    injectExtraData(strategyStatus);
+    // remove responses after injecting to avoid sending them a second time
+    m_responses.clear();
+    m_mixedTeamInfo.Clear();
+    m_mixedTeamInfoSet = false;
+    // copy to other status message
+    strategyStatus->mutable_user_input_yellow()->CopyFrom(status->user_input_yellow());
+    strategyStatus->mutable_user_input_blue()->CopyFrom(status->user_input_blue());
+    emit sendStrategyStatus(strategyStatus);
+
     status_debug->mutable_timing()->set_controller((Timer::systemTime() - controller_start) / 1E9);
     emit sendStatus(status_debug);
 
     if (m_transceiverEnabled) {
-        // the command is the target for controllerTime and should be applied by then
-        m_tracker->queueRadioCommands(radio_commands, controllerTime);
         emit sendRadioCommands(radio_commands);
     }
 }

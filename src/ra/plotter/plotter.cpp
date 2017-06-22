@@ -325,13 +325,14 @@ void Plotter::handleStatus(const Status &status)
         const amun::DebugValues &debug = status->debug();
         // ignore controller as it can create plots via RadioCommand.%1.debug
         if (debug.source() != amun::Controller) {
+            float debugTime = (debug.has_time()) ? (debug.time() - m_startTime) / 1E9 : time;
             QVector<QStandardItem *> emptyLookup;
             const QString parent = (debug.source() == amun::StrategyBlue) ?
                         QStringLiteral("BlueStrategy") : QStringLiteral("YellowStrategy");
             // strategies can add plots with arbitrary names
             for (int i = 0; i < debug.plot_size(); ++i) {
                 const amun::PlotValue &value = debug.plot(i);
-                addPoint(value.name(), parent, time, value.value(), emptyLookup, 0);
+                addPoint(value.name(), parent, debugTime, value.value(), emptyLookup, 0);
             }
         }
     }

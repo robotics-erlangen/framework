@@ -177,22 +177,23 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
         float cmd_omega = cmd.first.omega();
         float bounded_a_omega = qBound(-MAX_ROTATION_ACCELERATION, (cmd_omega - omega)/cmd_interval, MAX_ROTATION_ACCELERATION);
 
+        float cmd_phi = phi + bounded_a_omega * cmd_interval;
         float cmd_v_s = cmd.first.v_s();
         float cmd_v_f = cmd.first.v_f();
-        float cmd_v_x = std::cos(phi)*cmd_v_s - std::sin(phi)*cmd_v_f;
-        float cmd_v_y = std::sin(phi)*cmd_v_s + std::cos(phi)*cmd_v_f;
+        float cmd_v_x = std::cos(cmd_phi)*cmd_v_s - std::sin(cmd_phi)*cmd_v_f;
+        float cmd_v_y = std::sin(cmd_phi)*cmd_v_s + std::cos(cmd_phi)*cmd_v_f;
 
         float accel_x = (cmd_v_x - v_x)/cmd_interval;
         float accel_y = (cmd_v_y - v_y)/cmd_interval;
-        float accel_s = std::cos(-phi)*accel_x - std::sin(-phi)*accel_y;
-        float accel_f = std::sin(-phi)*accel_x + std::cos(-phi)*accel_y;
+        float accel_s = std::cos(-cmd_phi)*accel_x - std::sin(-cmd_phi)*accel_y;
+        float accel_f = std::sin(-cmd_phi)*accel_x + std::cos(-cmd_phi)*accel_y;
 
         float bounded_a_s = qBound(-MAX_LINEAR_ACCELERATION, accel_s, MAX_LINEAR_ACCELERATION);
         float bounded_a_f = qBound(-MAX_LINEAR_ACCELERATION, accel_f, MAX_LINEAR_ACCELERATION);
 
-        kalman->u(0) = 0;
-        kalman->u(1) = 0;
-        kalman->u(2) = 0;
+        kalman->u(0) = bounded_a_s * timeDiff * timeDiff / 2;
+        kalman->u(1) = bounded_a_f * timeDiff * timeDiff / 2;
+        kalman->u(2) = bounded_a_omega * timeDiff * timeDiff / 2;
         kalman->u(3) = bounded_a_s * timeDiff;
         kalman->u(4) = bounded_a_f * timeDiff;
         kalman->u(5) = bounded_a_omega * timeDiff;
