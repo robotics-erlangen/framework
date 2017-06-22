@@ -582,13 +582,13 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 
 	-- configuration
 	local maxError = 0.03 -- maxError in meters when driving a curve
-	local accelerationFactor = (accelScale or 1.0) * 0.85 -- factor for max forward speedup and braking
+	local accelerationFactor = (accelScale or 1.0) -- factor for max forward speedup and braking
 	local exponentialTime = 0.1 -- timespan in seconds replace with exponential falloff
 	local exponentialError = 0.2 -- relative
 	local sidewardsErrorFactor = 10 -- used to scale sidewards speed error
 
 	local rotationExponentialTime = 0.1
-	local rotationAccelerationFactor = 0.8
+	local rotationAccelerationFactor = 1
 
 	--insert default values
 	maxSpeed = maxSpeed or self._robot.maxSpeed
