@@ -20,6 +20,7 @@ function Moves:init()
 		end
 	end
 
+	self._numAttackersSent = false
 	self._chosenMove = nil
 	self._currentMove = nil
 	self._participatingRobots = {}
@@ -55,6 +56,7 @@ function Moves:run(sender, inbox, messages)
 	if self._currentMove and not self._currentMove:_canContinue() then
 		self._currentMove = nil
 		self._chosenMove = nil
+		self._numAttackersSent = false
 	end
 
 	-- choose a new move
@@ -88,7 +90,8 @@ function Moves:run(sender, inbox, messages)
 		end
 
 		if #availableRobots >= self._chosenMove.MIN_ROBOTS and
-			#availableRobots <= self._chosenMove.MAX_ROBOTS then
+			#availableRobots <= self._chosenMove.MAX_ROBOTS and
+			self._numAttackersSent then
 			self._currentMove = self._chosenMove(availableRobots, inbox)
 			self._participatingRobots = availableRobots
 		end
@@ -125,6 +128,7 @@ function Moves:run(sender, inbox, messages)
 		if self._currentMove then
 			n_attackers = #self._participatingRobots
 		end
+		self._numAttackersSent = true
 		sender.moveNumAttackers("trainer", n_attackers)
 	end
 
