@@ -1,6 +1,7 @@
 local Base = Class("Group.Move.Base")
 
-Base.N_ROBOTS = -1
+Base.MIN_ROBOTS = -1
+Base.MAX_ROBOTS = -1
 
 
 function Base.canStart()

@@ -12,7 +12,8 @@ local MovesHelper = require "util/moveshelper"
 local Attack = require "util/attack"
 local G = World.Geometry
 
-MrlTestCorner.N_ROBOTS = 5
+MrlTestCorner.MIN_ROBOTS = 5
+MrlTestCorner.MAX_ROBOTS = 5
 
 function MrlTestCorner.canStart()
 	return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 and Referee.opponentTouchedLast()

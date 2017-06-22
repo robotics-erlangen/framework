@@ -8,7 +8,8 @@ local MoveToPos = require "task/movetopos"
 local StopAttack = require "task/stopattack"
 local MovesHelper = require "util/moveshelper"
 
-KickOffDefensive.N_ROBOTS = 3
+KickOffDefensive.MIN_ROBOTS = 3
+KickOffDefensive.MAX_ROBOTS = 3
 
 function KickOffDefensive.canStart()
 	return World.RefereeState == "KickoffDefensivePrepare"

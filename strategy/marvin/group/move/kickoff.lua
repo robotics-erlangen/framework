@@ -11,7 +11,8 @@ local Striker = require "task/striker"
 local MovesHelper = require "util/moveshelper"
 local Attack = require "util/attack"
 
-KickOff.N_ROBOTS = 3
+KickOff.MIN_ROBOTS = 3
+KickOff.MAX_ROBOTS = 3
 
 function KickOff.canStart()
 	return World.RefereeState == "KickoffOffensivePrepare"

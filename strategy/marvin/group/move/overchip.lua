@@ -17,7 +17,8 @@ local MIN_RUNWAY_LENGTH = 1.3 -- how much room we need (measured horizontally)
 local DISTANCE_TO_DEFENSE_AREA = 1.5 -- how far our runway should go, running into the defenders won't help
 local MAX_CHIP_DISTANCE = 2 -- how far we can (reliably) chip
 
-Overchip.N_ROBOTS = 2
+Overchip.MIN_ROBOTS = 2
+Overchip.MAX_ROBOTS = 2
 
 function Overchip.canStart()
 	return Referee.isFriendlyFreeKickState()
