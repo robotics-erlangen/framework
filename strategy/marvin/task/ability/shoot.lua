@@ -252,11 +252,9 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
 	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0) then
 		self:_setObstacles()
-		local endSpeed = Physics.robotMinEndspeed(self._robot, moveDest, math.max(0, futureBallTime))
-		self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, endSpeed)
-		vis.addPath("t/a/shoot: endSpeed", {moveDest, moveDest + endSpeed}, vis.colors.red, nil, nil, 0.03)
+		self._robot.trajectory:update(ToTarget, moveDest, targetDir)
 		self._send.attackPosition("all", futureBall.pos)
-		self._send.attackTime("all", Physics.robotTimeToPos(self._robot, moveDest, endSpeed))
+		self._send.attackTime("all", Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0)))
 	else
 		self:_catchBall(targetPos, 0, targetSpeed)
 	end
