@@ -170,26 +170,20 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
     // clear control input
     kalman->u = Kalman::Vector::Zero();
     if (time < cmd.second + 2 * PROCESSOR_TICK_DURATION) {
-        float v_x = std::cos(phi)*v_s - std::sin(phi)*v_f;
-        float v_y = std::sin(phi)*v_s + std::cos(phi)*v_f;
-
         // radio commands are intended to be applied over 10ms
         float cmd_interval = (float)std::max(PROCESSOR_TICK_DURATION*1E-9, timeDiff);
-        float cmd_omega = cmd.first.omega();
-        float bounded_a_omega = qBound(-MAX_ROTATION_ACCELERATION, (cmd_omega - omega)/cmd_interval, MAX_ROTATION_ACCELERATION);
 
         float cmd_v_s = cmd.first.v_s();
         float cmd_v_f = cmd.first.v_f();
-        float cmd_v_x = std::cos(phi)*cmd_v_s - std::sin(phi)*cmd_v_f;
-        float cmd_v_y = std::sin(phi)*cmd_v_s + std::cos(phi)*cmd_v_f;
+        float cmd_omega = cmd.first.omega();
 
-        float accel_x = (cmd_v_x - v_x)/cmd_interval;
-        float accel_y = (cmd_v_y - v_y)/cmd_interval;
-        float accel_s = std::cos(-phi)*accel_x - std::sin(-phi)*accel_y;
-        float accel_f = std::sin(-phi)*accel_x + std::cos(-phi)*accel_y;
+        float accel_s = (cmd_v_s - v_s)/cmd_interval;
+        float accel_f = (cmd_v_f - v_f)/cmd_interval;
+        float accel_omega = (cmd_omega - omega)/cmd_interval;
 
         float bounded_a_s = qBound(-MAX_LINEAR_ACCELERATION, accel_s, MAX_LINEAR_ACCELERATION);
         float bounded_a_f = qBound(-MAX_LINEAR_ACCELERATION, accel_f, MAX_LINEAR_ACCELERATION);
+        float bounded_a_omega = qBound(-MAX_ROTATION_ACCELERATION, accel_omega, MAX_ROTATION_ACCELERATION);
 
         kalman->u(0) = 0;
         kalman->u(1) = 0;
