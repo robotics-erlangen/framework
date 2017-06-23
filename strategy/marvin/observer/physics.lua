@@ -374,8 +374,8 @@ end
 function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 	-- acceleration parameters
 	local hardBrakeAccel = 8
-	local brakeAccelFactor = 0.78
-	local speedupAccelFactor = 0.85
+	local brakeAccelFactor = 1
+	local speedupAccelFactor = 1
 
 	-- corridor width
 	local maxError = 0.07
@@ -453,7 +453,7 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 
 	local linearAccelTime = (maxSpeed - currentSpeed) / speedupAccel
 	local linearBrakeTime = (maxSpeed - endSpeed) / brakeAccel
-	local linearAccelDist = 0.5 * speedupAccel * linearAccelTime * linearAccelTime + currentSpeed * linearAccelTime 
+	local linearAccelDist = 0.5 * speedupAccel * linearAccelTime * linearAccelTime + currentSpeed * linearAccelTime
 	local linearBrakeDist = 0.5 * brakeAccel * linearBrakeTime * linearBrakeTime + endSpeed * linearBrakeTime
 
 	-- case 1: robot reaches maxSpeed
