@@ -24,6 +24,7 @@
 const qint64 PROCESSOR_TICK_DURATION = 10 * 1000 * 1000;
 const float MAX_LINEAR_ACCELERATION = 10.;
 const float MAX_ROTATION_ACCELERATION = 60.;
+const float OMEGA_MAX = 10 * 2 * M_PI;
 
 RobotFilter::RobotFilter(const SSL_DetectionRobot &robot, qint64 last_time) :
     Filter(last_time),
@@ -196,6 +197,13 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
         kalman->u(3) = bounded_a_s * timeDiff;
         kalman->u(4) = bounded_a_f * timeDiff;
         kalman->u(5) = bounded_a_omega * timeDiff;
+    }
+
+    // prevent rotation speed windup
+    if (omega > OMEGA_MAX) {
+        kalman->u(5) = std::min<float>(kalman->u(5), OMEGA_MAX - omega);
+    } else if (omega < -OMEGA_MAX) {
+        kalman->u(5) = std::max<float>(kalman->u(5), -OMEGA_MAX + omega);
     }
 
     // update covariance jacobian
