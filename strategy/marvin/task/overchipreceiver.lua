@@ -11,9 +11,9 @@ local DISTANCE_TO_DEFENSE_AREA = 1 -- faraway robots and goalie don't interfere 
 
 
 function OverchipReceiver:_init()
-	local goal = G.OpponentGoal - World.Ball.pos
+	local goalVector = G.OpponentGoal - World.Ball.pos
 	self._obstacleRobot = nil
-	self._pos = goal:setLength(0.5 + 3 * self._robot.radius)
+	self._pos = goalVector:setLength(0.5 + 3 * self._robot.radius)
 end
 
 function OverchipReceiver:_updateObstacleRobot()
@@ -29,11 +29,10 @@ function OverchipReceiver:_updateObstacleRobot()
 		local projectedVector = orthogonalProjection - ballPos
 		if robot.pos.y > ballPos.y and robot.pos.y < boundary 
 				and robot.pos.y > ballPos.y and robot.pos.y < boundary
-				and (robot.pos - orthogonalProjection):length() < 0.3 then
-			if projectedVector:length() > maxLength then
-				self._obstacleRobot = robot
-				maxLength = projectedVector:length()
-			end
+				and robot.pos:distanceToLineSegment(ballPos, goal) < 0.3
+				and projectedVector:length() > maxLength then
+			self._obstacleRobot = robot
+			maxLength = projectedVector:length()
 		end
 	end
 end

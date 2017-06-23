@@ -14,11 +14,13 @@ function Moves:init()
 	self.moveList = {Kickoff, KickoffDefensive, Armada, MrlTestCorner, Overchip, BallCycle}
 
 	for _,move in ipairs(self.moveList) do
-		if not move.N_ROBOTS or move.N_ROBOTS < 0 then
-			error("N_ROBOTS has to be set!")
+		if not move.MIN_ROBOTS or move.MIN_ROBOTS < 0
+			or not move.MAX_ROBOTS or move.MAX_ROBOTS < move.MIN_ROBOTS then
+			error("MIN_ROBOTS and/or MAX_ROBOT are invalid or not set!")
 		end
 	end
 
+	self._numAttackersSent = false
 	self._chosenMove = nil
 	self._currentMove = nil
 	self._participatingRobots = {}
@@ -54,6 +56,7 @@ function Moves:run(sender, inbox, messages)
 	if self._currentMove and not self._currentMove:_canContinue() then
 		self._currentMove = nil
 		self._chosenMove = nil
+		self._numAttackersSent = false
 	end
 
 	-- choose a new move
@@ -68,7 +71,7 @@ function Moves:run(sender, inbox, messages)
 		end
 		for _,move in ipairs(self.moveList) do
 			if move.canStart() then
-				if numCandidateRobots >= move.N_ROBOTS then
+				if numCandidateRobots >= move.MIN_ROBOTS then
 					table.insert(candidates, move)
 				end
 			end
@@ -86,7 +89,9 @@ function Moves:run(sender, inbox, messages)
 			table.insert(availableRobots, r)
 		end
 
-		if #availableRobots == self._chosenMove.N_ROBOTS then
+		if #availableRobots >= self._chosenMove.MIN_ROBOTS and
+			#availableRobots <= self._chosenMove.MAX_ROBOTS and
+			self._numAttackersSent then
 			self._currentMove = self._chosenMove(availableRobots, inbox)
 			self._participatingRobots = availableRobots
 		end
@@ -119,10 +124,11 @@ function Moves:run(sender, inbox, messages)
 	end
 
 	if self._chosenMove then
-		local n_attackers = self._chosenMove.N_ROBOTS
+		local n_attackers = self._chosenMove.MAX_ROBOTS
 		if self._currentMove then
 			n_attackers = #self._participatingRobots
 		end
+		self._numAttackersSent = true
 		sender.moveNumAttackers("trainer", n_attackers)
 	end
 

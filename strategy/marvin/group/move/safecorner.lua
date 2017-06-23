@@ -8,7 +8,8 @@ local StopAttack = require "task/stopattack"
 local Striker = require "task/striker"
 local G = World.Geometry
 
-SafeCorner.N_ROBOTS = 5
+SafeCorner.MIN_ROBOTS = 5
+SafeCorner.MAX_ROBOTS = 5
 
 function SafeCorner.canStart()
 	return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 --and Referee.opponentTouchedLast()

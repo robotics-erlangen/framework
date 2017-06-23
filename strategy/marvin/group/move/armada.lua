@@ -14,7 +14,8 @@ local World = require "../base/world"
 
 local G = World.Geometry
 
-Armada.N_ROBOTS = 5
+Armada.MIN_ROBOTS = 5
+Armada.MAX_ROBOTS = 5
 
 -- the armada has 4 steps to form stairs, depending on ball distance
 local POSITIONS_ORIG = {

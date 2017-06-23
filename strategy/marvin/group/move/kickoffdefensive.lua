@@ -8,7 +8,8 @@ local MoveToPos = require "task/movetopos"
 local StopAttack = require "task/stopattack"
 local MovesHelper = require "util/moveshelper"
 
-KickOffDefensive.N_ROBOTS = 3
+KickOffDefensive.MIN_ROBOTS = 1
+KickOffDefensive.MAX_ROBOTS = 3
 
 function KickOffDefensive.canStart()
 	return World.RefereeState == "KickoffDefensivePrepare"
@@ -22,8 +23,8 @@ function KickOffDefensive:_init()
 	}
 
 	local positions = { Vector(0, 0) }
-	for _,pos in ipairs(self._fallbackPos) do
-		table.insert(positions, pos)
+	for i = 1, #self._robots-1 do
+		table.insert(positions, self._fallbackPos[i])
 	end
 	self._assignments = MovesHelper.assignRobots(self._robots, positions, 0)
 	self._targetLeft = nil
@@ -78,15 +79,19 @@ function KickOffDefensive:_updateTasks()
 	local taskAssignments = {}
 	taskAssignments[self._robots[self._assignments[1]]] = { class = StopAttack, params = {} }
 
-	if self._targetLeft then
-		taskAssignments[self._robots[self._assignments[2]]] = { class = ManMark, params = { self._targetLeft }, restart = restartLeft }
-	else
-		taskAssignments[self._robots[self._assignments[2]]] = { class = MoveToPos, params = { self._fallbackPos[1] } }
+	if #self._robots > 1 then
+		if self._targetLeft then
+			taskAssignments[self._robots[self._assignments[2]]] = { class = ManMark, params = { self._targetLeft }, restart = restartLeft }
+		else
+			taskAssignments[self._robots[self._assignments[2]]] = { class = MoveToPos, params = { self._fallbackPos[1] } }
+		end
 	end
-	if self._targetRight then
-		taskAssignments[self._robots[self._assignments[3]]] = { class = ManMark, params = { self._targetRight }, restart = restartRight }
-	else
-		taskAssignments[self._robots[self._assignments[3]]] = { class = MoveToPos, params = { self._fallbackPos[2] } }
+	if #self._robots > 2 then
+		if self._targetRight then
+			taskAssignments[self._robots[self._assignments[3]]] = { class = ManMark, params = { self._targetRight }, restart = restartRight }
+		else
+			taskAssignments[self._robots[self._assignments[3]]] = { class = MoveToPos, params = { self._fallbackPos[2] } }
+		end
 	end
 
 	return taskAssignments, self._robots[self._assignments[1]]

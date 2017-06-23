@@ -9,7 +9,8 @@ local Pass = require "task/pass"
 local Ball = require "observer/ball"
 local G = World.Geometry
 
-LongMarch.N_ROBOTS = 5
+LongMarch.MIN_ROBOTS = 5
+LongMarch.MAX_ROBOTS = 5
 
 local POSITIONS = {
 	Vector((G.FieldWidthHalf-G.DefenseRadius)/1.5 + G.DefenseRadius  , G.FieldHeightHalf-G.DefenseRadius),
