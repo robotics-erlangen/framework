@@ -64,7 +64,7 @@ end
 
 function Shoot:_setObstacles()
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
-	local ignoreRobots = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + self._robot.radius + 0.3
+	local ignoreRobots = self._robot.speed:length() < 1
 	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreRobots, ignoreRobots)
 end
 
