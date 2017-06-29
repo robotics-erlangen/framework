@@ -31,7 +31,7 @@ end
 Ball.firstRobotAtBall = Cache.forFrame(Ball.firstRobotAtBall)
 
 function Ball.opponentBallDribbler()
-	local MAX_SPEED_DIFF = 0.4
+	local MAX_SPEED_DIFF = 1.5
 	local MAX_DISTANCE = 0.5
 	local MAX_ANGLE_TO_BALL_POS = 60 / 180 * math.pi
 	local MAX_ANGLE_TO_BALL_SPEED = 10 / 180 * math.pi
@@ -40,10 +40,11 @@ function Ball.opponentBallDribbler()
 	for _, robot in ipairs(World.OpponentRobots) do
 		local distance = robot.pos:distanceTo(World.Ball.pos)
 		local direction = Vector.fromAngle(robot.dir)
-		if ((robot.speed - World.Ball.speed):length() < MAX_SPEED_DIFF or
-				robot.speed:angleDiff(World.Ball.speed) < MAX_ANGLE_TO_BALL_SPEED) and
-				distance < MAX_DISTANCE and distance < bestDist and
-				direction:absoluteAngleDiff(World.Ball.pos - robot.pos) < MAX_ANGLE_TO_BALL_POS then
+		if (robot.speed - World.Ball.speed):length() < MAX_SPEED_DIFF 
+				and robot.speed:angleDiff(World.Ball.speed) < MAX_ANGLE_TO_BALL_SPEED 
+				and distance < MAX_DISTANCE and distance < bestDist
+				and World.Ball.posZ < 0.1
+				and direction:absoluteAngleDiff(World.Ball.pos - robot.pos) < MAX_ANGLE_TO_BALL_POS then
 			bestRobot = robot
 			bestDist = distance
 		end
