@@ -13,7 +13,7 @@ local Shootgoal = require "task/shootgoal"
 local Striker = require "task/striker"
 
 -- "runway" refers to the way on which we have to accelerate to receive the rolling ball
-local MIN_RUNWAY_LENGTH = 1.3 -- how much room we need (measured horizontally)
+local MIN_RUNWAY_LENGTH = 1.5 -- how much room we need (measured horizontally)
 local DISTANCE_TO_DEFENSE_AREA = 1.5 -- how far our runway should go, running into the defenders won't help
 local MAX_CHIP_DISTANCE = 2 -- how far we can (reliably) chip
 
@@ -22,8 +22,10 @@ Overchip.MAX_ROBOTS = 2
 
 function Overchip.canStart()
 	return Referee.isFriendlyFreeKickState()
+			and World.Time - Referee.lastStateChangeTime() < 2 -- move should not start if freekick state is already running for some time
 			and G.FieldHeightHalf - (G.DefenseRadius + DISTANCE_TO_DEFENSE_AREA) - World.Ball.pos.y > MIN_RUNWAY_LENGTH -- how much room we need
-			and World.Time - Referee.lastStateChangeTime() < 2 -- move should start if freekick state is already running for some time
+			and not (World.Ball.pos.y < -G.FieldHeightHalf * 1/3)
+			and math.abs(World.Ball.pos.x) > G.FieldWidthHalf * 3/4
 			and not Overchip._runwayObstructed()
 end
 
