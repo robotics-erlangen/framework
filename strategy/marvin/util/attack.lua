@@ -318,7 +318,7 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 	end
 end
 
-local BUFFER_TIME = 0.15
+local BUFFER_TIME = 0.25
 local function printPassInfo(robot, passInfo, hysteresis, hysteresisPassInfo)
 	if passInfo then
 		local robotTime = Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true)
@@ -342,9 +342,11 @@ end
 -- the time between the arrival of the robot and the ball
 local function calculatePassInfoTiming(robot, passInfo)
 	if passInfo then
-		local robotTime = Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true)
+		local robotTime = math.min(Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true), 0.5)
+		local ballTime = Physics.ballTravelTime(World.Ball, World.Ball.pos:distanceTo(passInfo.ballPos))
+		local messageTime = passInfo.time - World.Time
 		local bufferTime = BUFFER_TIME
-		if World.Time + robotTime + bufferTime >= passInfo.time then
+		if robotTime + bufferTime >= math.min(messageTime, ballTime) then
 			return true
 		end
 	end
