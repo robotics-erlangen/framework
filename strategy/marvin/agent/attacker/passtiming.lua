@@ -1,9 +1,6 @@
 local Base = require "agent/base/behavior"
 local PassTiming = Class("Agent.Attacker.PassTiming", Base)
 
-local debug	 = require "../base/debug"
-local World = require "../base/world"
-local Physics = require "observer/physics"
 local MoveToPos = require "task/movetopos"
 local Attack = require "util/attack"
 
@@ -19,16 +16,8 @@ function PassTiming:check()
 		lastIncomingPassInfoPos = lastIncomingPassInfo.ballPos
 	end
 
-	if lastIncomingPassInfoPos then
-		local robotTimeToPassPos = Physics.robotTimeToPos(self._robot, lastIncomingPassInfoPos, Vector(0,0))
-		local ballTimeToPassPos = Physics.ballTravelTime(World.Ball, World.Ball.pos:distanceTo(lastIncomingPassInfoPos))
-		if robotTimeToPassPos + 0.035 <= ballTimeToPassPos then
-			if not Attack.checkPassInfos(self._robot, lastIncomingPassInfo) then
-				debug.set("PassTiming/robotTime", robotTimeToPassPos)
-				debug.set("PassTiming/ballTime", ballTimeToPassPos)
-				return true
-			end
-		end
+	if lastIncomingPassInfoPos and not Attack.checkPassInfos(self._robot, lastIncomingPassInfo) then
+		return true
 	end
 
 	return false
