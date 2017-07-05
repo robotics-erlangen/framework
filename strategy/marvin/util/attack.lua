@@ -324,7 +324,8 @@ local function printPassInfo(robot, passInfo, hysteresis, hysteresisPassInfo)
 		local robotTime = Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true)
 		debug.push("PassInfo")
 		debug.set("robotTime",robotTime + BUFFER_TIME)
-		debug.set("ballTime", passInfo.time - World.Time)
+		debug.set("messageTime", passInfo.time - World.Time)
+		debug.set("ballTime", Physics.ballTravelTime(World.Ball, World.Ball.pos:distanceTo(passInfo.ballPos)))
 		debug.set("passInfoTime", passInfo.time)
 		debug.set("hysteresis", hysteresis)
 		debug.push("hysteresisPassInfo")
@@ -342,7 +343,7 @@ end
 -- the time between the arrival of the robot and the ball
 local function calculatePassInfoTiming(robot, passInfo)
 	if passInfo then
-		local robotTime = math.min(Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true), 0.5)
+		local robotTime = math.max(Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true), 0.5)
 		local ballTime = Physics.ballTravelTime(World.Ball, World.Ball.pos:distanceTo(passInfo.ballPos))
 		local messageTime = passInfo.time - World.Time
 		local bufferTime = BUFFER_TIME
