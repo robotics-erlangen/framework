@@ -114,10 +114,8 @@ function Striker:_avoidLineSegment(startPoint, endPoint)
 end
 
 function Striker:run()
-	local defaultPos
-
 	if self._manualDefaultPos then
-		defaultPos = self._manualDefaultPos
+		self._moveDest = self._manualDefaultPos
 	else
 		-- participate in the striker group
 		local groupApplication = { name = "striker", payload = {} }
@@ -128,14 +126,13 @@ function Striker:run()
 		if not self._zone then
 			return
 		end
-		defaultPos = self._zone.defaultPos
+		self._moveDest = self._zone.defaultPos
 	end
 
 	-- search for a good pass dest
 	if self:_revaluatePassDest() then
 		self:_searchForPassDest()
 	end
-	self._moveDest = defaultPos
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 
 	-- check whether the agent would change its state to accepting an incoming pass (striker should not be active then)
@@ -145,14 +142,14 @@ function Striker:run()
 	if passInfoTable then
 		for _, passInfo in ipairs(passInfoTable) do
 			local passDest = passInfo.ballPos
-			vis.addCircle("t/striker", defaultPos, 0.1, vis.colors.slateHalf, true)
+			vis.addCircle("t/striker", self._moveDest, 0.1, vis.colors.slateHalf, true)
 			if self._passDestSuggestion then
 				local color = passInfo.target == self._robot
 					and vis.colors.turquoiseHalf or vis.colors.whiteHalf
 				vis.addCircle("t/striker", passInfo.ballPos, 0.1, color, true)
 				vis.addCircle("t/striker", self._passDestSuggestion, 0.14,
 					vis.colors.whiteHalf, false, nil, nil, 0.03)
-				vis.addPath("t/striker", {defaultPos, self._passDestSuggestion},
+				vis.addPath("t/striker", {self._moveDest, self._passDestSuggestion},
 					vis.colors.slateHalf, nil, nil, 0.02)
 			end
 
@@ -173,21 +170,19 @@ function Striker:run()
 	-- set path obstacles to not interfere with the current attack
 	local moveTime = nil
 	local _, attackPosition = next(self._inbox.attackPosition())
-	if self._moveDest then
-		PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
-		-- don't move between the ball and the main attacker
-		-- relevant for incoming passes
-		local mainAttacker = self._inbox.mainAttacker().trainer
-		if mainAttacker then
-			self:_avoidLineSegment(World.Ball.pos, mainAttacker.pos)
-		end
-
-		-- don't move between the ball and the opponent goal
-		-- relevant for goal shots
-		local _, shootDest = next(self._inbox.shootDestination())
-		Attack.addShootGoalObstacle(self._robot, shootDest, attackPosition)
+	-- don't move between the ball and the main attacker
+	-- relevant for incoming passes
+	local mainAttacker = self._inbox.mainAttacker().trainer
+	if mainAttacker then
+		self:_avoidLineSegment(World.Ball.pos, mainAttacker.pos)
 	end
+
+	-- don't move between the ball and the opponent goal
+	-- relevant for goal shots
+	local _, shootDest = next(self._inbox.shootDestination())
+	Attack.addShootGoalObstacle(self._robot, shootDest, attackPosition)
 
 	-- send a suggestion for a pass in the run
 	if self._passDestSuggestion and attackPosition then
