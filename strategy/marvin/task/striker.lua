@@ -160,7 +160,7 @@ function Striker:run()
 			end
 
 			-- don't block the pass receiver
-			if passInfo.target ~= self._robot then
+			if passInfo.target and passInfo.target ~= self._robot then
 				local startPoint = passInfo.target.pos
 				local endPoint = passInfo.ballPos
 				self._robot.path:addLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, 0.2)
