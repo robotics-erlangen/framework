@@ -1,134 +1,205 @@
 local Striker = Class("Group.Striker")
 
-local debug = require "../base/debug"
 local Field = require "../base/field"
+local vis = require "../base/vis"
 local World = require "../base/world"
 local G = World.Geometry
 
 function Striker:init()
 	self.name = "striker"
-	self._robots = {}
 
-	self._defaultPositions = {}
+	self._strikerCount = 0
 
-	self._zoneCount = 0
-	self._prevZoneCount = nil
-	self._unoccupiedZoneIndex = nil
+	self._zones = {}
+	self._emptyZone = nil
+
 	self._lastMainAttacker = nil
 end
 
-function Striker:_setDefaultPositions(zoneCount)
-	local zoneWidth = G.FieldWidth / zoneCount
-	for i = 1, zoneCount do
-		local x = (math.random() * 0.8 + 0.1) * zoneWidth + (i - 1) * zoneWidth - G.FieldWidthHalf
-		local y
-		repeat
-			y = math.random() * 0.9 * G.FieldHeightHalf
-		until not Field.isInOpponentDefenseArea(Vector(x, y), 0.2)
-		self._defaultPositions[i] = Vector(x, y)
+local function getDefaultPosition(boundaries)
+	local zoneWidth = boundaries.right - boundaries.left
+	local zoneHeight = boundaries.top - boundaries.bottom
+	local x, y
+	repeat
+		x = (math.random() * 0.6 + 0.2) * zoneWidth + boundaries.left
+		y = (math.random() * 0.6 + 0.2) * zoneHeight + boundaries.bottom
+	until not Field.isInOpponentDefenseArea(Vector(x, y), 0.2)
+	return Vector(x, y)
+end
+
+local function visualizeZone(zone)
+	local edge = 0.05
+	local left = zone.boundaries.left + edge
+	local right = zone.boundaries.right - edge
+	local top = zone.boundaries.top - edge
+	local bottom = zone.boundaries.bottom + edge
+	local points = { Vector(left, top), Vector(left, bottom), Vector(right, bottom), Vector(right, top), Vector(left, top) }
+	vis.addPath("g/striker: Zones", points, vis.colors.gold, nil, nil, 0.02)
+end
+
+local function assignRobotsToZones(robotPositions, zones)
+	local n = #zones
+	if n == 0 then
+		return {}
+	end
+
+	local robots = {}
+	local costMatrix = {}
+
+	local robotIndex = 1
+	for robot, robotPos in pairs(robotPositions) do
+		table.insert(robots, robot)
+		table.insert(costMatrix, {})
+		for _, zone in ipairs(zones) do
+			table.insert(costMatrix[robotIndex], robotPos:distanceTo(zone.defaultPos))
+		end
+		robotIndex = robotIndex + 1
+	end
+
+	local remainingRobotIndices = {}
+	local remainingZoneIndices = {}
+	for _ = 1, n do
+		table.insert(remainingRobotIndices, true)
+		table.insert(remainingZoneIndices, true)
+	end
+
+	local zoneAssignment = {}
+	for _ = 1, n do
+		local minCost = math.huge
+		local minCostRobotIdx
+		local minCostZoneIdx
+		for robotIdx = 1, n do
+			if remainingRobotIndices[robotIdx] then
+				for zoneIdx = 1, n do
+					if remainingZoneIndices[zoneIdx] then
+						local cost = costMatrix[robotIdx][zoneIdx]
+						if cost < minCost then
+							minCost = cost
+							minCostRobotIdx = robotIdx
+							minCostZoneIdx = zoneIdx
+						end
+					end
+				end
+			end
+		end
+		remainingRobotIndices[minCostRobotIdx] = false
+		remainingZoneIndices[minCostZoneIdx] = false
+		local robot = robots[minCostRobotIdx]
+		local zone = zones[minCostZoneIdx]
+		zoneAssignment[zone] = robot
+	end
+
+	return zoneAssignment
+end
+
+function Striker:_updateZones(robots)
+	local totalLeft = -G.FieldWidthHalf
+	local totalRight = G.FieldWidthHalf
+	local totalTop = G.FieldHeightHalf
+	local totalBottom = -G.FieldHeightHalf / 4
+
+	local nStrikers = #robots
+	local remainingZones = nStrikers + 1 -- one zone will stay empty
+	self._strikerCount = nStrikers
+
+	-- reset the zones
+	self._zones = {}
+	if remainingZones == 0 then
+		return
+	end
+
+	-- create midfield zone
+	do
+		local boundaries = { left = totalLeft, right = totalRight, top = G.FieldHeightHalf/4, bottom = totalBottom }
+		local defaultPos = getDefaultPosition(boundaries)
+		table.insert(self._zones, {boundaries = boundaries, defaultPos = defaultPos})
+		remainingZones = remainingZones - 1
+	end
+
+	-- create offensive zones
+	local zoneWidth = (totalRight - totalLeft) / remainingZones
+	for i = 1, remainingZones do
+		local boundaries = { left = totalLeft + (i - 1) * zoneWidth, right = totalLeft + i * zoneWidth,
+				top = totalTop, bottom = G.FieldHeightHalf / 4 }
+		local defaultPos = getDefaultPosition(boundaries)
+		table.insert(self._zones, {boundaries = boundaries, defaultPos = defaultPos})
+	end
+
+	-- reset empty zone hysteresis
+	self._emptyZone = nil
+end
+
+function Striker:_chooseEmptyZone(mainAttackerPos)
+	local emptyZoneHysteresis = self._emptyZone and 0.2 or 0
+	if mainAttackerPos then
+		for _, zone in ipairs(self._zones) do
+			if mainAttackerPos.x >= zone.boundaries.left + emptyZoneHysteresis
+					and mainAttackerPos.x <= zone.boundaries.right - emptyZoneHysteresis 
+					and mainAttackerPos.y >= zone.boundaries.bottom + emptyZoneHysteresis
+					and mainAttackerPos.y <= zone.boundaries.top - emptyZoneHysteresis then
+				self._emptyZone = zone
+				break
+			end
+		end
+	end
+
+	-- default: midfield zone is empty
+	if not self._emptyZone and #self._zones > 0 then
+		self._emptyZone = self._zones[1]
 	end
 end
 
 function Striker:run(sender, inbox, messages)
-	self._robots = table.keys(messages)
-
+	local robots = table.keys(messages)
 	local mainAttacker = inbox.mainAttacker().trainer
-	local mainAttackerPos = Vector(math.huge, math.huge)
-
-	local zones = {}
-	local zoneCount = #self._robots
-	
-	if mainAttacker and mainAttacker.pos.y > -G.FieldHeightHalf / 4 then
-		mainAttackerPos = mainAttacker.pos
-		zoneCount = zoneCount + 1
-	end
-
-	if zoneCount ~= self._prevZoneCount then
-		self:_setDefaultPositions(zoneCount)
-		self._prevZoneCount = zoneCount
-	end
-
-
-	-- calculate and visualize the zone boundaries and default positions
-	local zoneWidth = G.FieldWidth / zoneCount
-	for i = 1, zoneCount do
-		local zoneLeft = -G.FieldWidthHalf + (i - 1) * zoneWidth
-		local zoneRight = zoneLeft + zoneWidth
-		local boundaries = { left = zoneLeft, right = zoneRight, top = G.FieldHeightHalf, bottom = 0 }
-		table.insert(zones, {defaultPos = self._defaultPositions[i], boundaries = boundaries })
-	end
-
-	-- if the number of zones changes, invalidate the empty zone to get rid of the hysteresis
-	if self._zoneCount ~= zoneCount then
-		self._unoccupiedZoneIndex = nil
-		self._zoneCount = zoneCount
-	end
-
-	-- calculate the zone index of the current mainAttacker
-	-- this zone will stay empty
-	local zoneWidthHysteresis = self._unoccupiedZoneIndex and 0.2 or 0
-	for i = 1, zoneCount do
-		local zone = zones[i]
-		if mainAttackerPos.x >= zone.boundaries.left + zoneWidthHysteresis
-				and mainAttackerPos.x <= zone.boundaries.right - zoneWidthHysteresis then
-			self._unoccupiedZoneIndex = i
-			break
-		end
-	end
 
 	-- if the mainAttacker changes, assume that the previous mainAttacker becomes a striker instead
 	local robotsTmp = {}
-	for _, robot in ipairs(self._robots) do
+	for _, robot in ipairs(robots) do
 		if robot == mainAttacker and self._lastMainAttacker then
 			table.insert(robotsTmp, self._lastMainAttacker)
 		else
 			table.insert(robotsTmp, robot)
 		end
 	end
-	self._robots = robotsTmp
+	robots = robotsTmp
 
-	-- assign the zones to the nearest strikers (sorted by x position)
-	local robotXPositions = {}
-	for _, r in ipairs(self._robots) do
-		local _, passInfoTable = next(inbox.passInfo())
-		local xPos = r.pos.x
+	-- update zones if necessary
+	if #robots ~= self._strikerCount then
+		self:_updateZones(robots)
+	end
+
+	-- choose which zone is occupied by the mainAttacker
+	self:_chooseEmptyZone(mainAttacker and mainAttacker.pos)
+
+	-- assign the zones to the nearest strikers
+	local robotPositions = {} -- robot -> pos
+	local _, passInfoTable = next(inbox.passInfo())
+	for _, r in ipairs(robots) do
+		local pos = r.pos
 		if passInfoTable then
 			for _, passInfo in ipairs(passInfoTable) do
 				if passInfo.target == r then
-					xPos = passInfo.ballPos.x
+					pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos):setLength(r.shootRadius + World.Ball.radius)
 				end
 			end
 		end
-		table.insert(robotXPositions, xPos)
+		robotPositions[r] = pos
 	end
-	local bubbleChange = true
-	while bubbleChange do
-		bubbleChange = false
-		for i = 2, #robotXPositions do
-			if robotXPositions[i] < robotXPositions[i - 1] then
-				local tmpX = robotXPositions[i]
-				local tmpR = self._robots[i]
-				robotXPositions[i] = robotXPositions[i - 1]
-				self._robots[i] = self._robots[i - 1]
-				robotXPositions[i - 1] = tmpX
-				self._robots[i - 1] = tmpR
-				bubbleChange = true
-			end
+
+	local zoneList = {} -- { zone }
+	for _, zone in ipairs(self._zones) do
+		if zone ~= self._emptyZone then
+			table.insert(zoneList, zone)
+			visualizeZone(zone)
 		end
 	end
 
-	local j = 1
-	for i = 1, zoneCount do
-		if i ~= self._unoccupiedZoneIndex then
-			if j <= #self._robots then
-				sender.strikerZone(self._robots[j], zones[i])
-				j = j + 1
-			end
-		end
-	end
+	local robotZones = assignRobotsToZones(robotPositions, zoneList)
 
-	debug.set("number of zones", self._zoneCount)
-	debug.set("empty zone index", self._unoccupiedZoneIndex)
+	for zone, robot in pairs(robotZones) do
+		sender.strikerZone(robot, zone)
+	end
 
 	self._lastMainAttacker = mainAttacker
 end

@@ -373,9 +373,9 @@ end
 -- assumes that the path is a direct line from robot.pos to endPos
 function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 	-- acceleration parameters
-	local hardBrakeAccel = 10
-	local brakeAccelFactor = 0.78
-	local speedupAccelFactor = 0.85
+	local hardBrakeAccel = 8
+	local brakeAccelFactor = 1
+	local speedupAccelFactor = 1
 
 	-- corridor width
 	local maxError = 0.07
@@ -398,12 +398,18 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 	local currentSpeed = startSpeed:length()
 	local currentPos = startPos
 
-	-- calculate curve radius and speed
+
 	local rawAngleDiff = (endPos - startPos):absoluteAngleDiff(startSpeed)
 	local absAngleDiff = math.min(math.abs(rawAngleDiff), math.pi - 0.001)
+
+	-- calculate curve radius and speed
 	local angleSin = math.sin((math.pi - absAngleDiff)/2)
 	local radius = maxError * angleSin / (1 - angleSin) * 0.5
 	local maxCurveSpeed = math.sqrt(hardBrakeAccel * radius)
+	if maxCurveSpeed > currentSpeed then
+		radius = currentSpeed * currentSpeed / hardBrakeAccel
+		maxCurveSpeed = currentSpeed
+	end
 
 	-- check if brake and return is necessary (BAT)
 	if endSpeed < currentSpeed then
@@ -423,12 +429,13 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 	currentTime = currentTime + reactionTime
 	currentPos = currentPos + reactionPathVec
 
+	maxCurveSpeed = math.min(maxCurveSpeed, currentSpeed)
+
 	-- we need to brake down to maxCurveSpeed
 	if currentSpeed > maxCurveSpeed then
-		-- log("brake to curve")
-
 		local brakeTime = (currentSpeed - maxCurveSpeed) / hardBrakeAccel
 		local brakeDist = 0.5 * hardBrakeAccel * brakeTime * brakeTime + maxCurveSpeed * brakeTime
+		local linearPathVec = startSpeed:copy():setLength(brakeDist)
 
 		local curveDist = absAngleDiff * radius
 		local curveTime = curveDist / maxCurveSpeed
@@ -436,7 +443,6 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 		currentTime = brakeTime + curveTime
 		currentSpeed = maxCurveSpeed
 
-		local linearPathVec = startSpeed:copy():setLength(brakeDist)
 		local curvePathVec = Vector(math.sin(rawAngleDiff), math.cos(rawAngleDiff) - 1) * radius
 		curvePathVec:rotate(startSpeed:angle())
 		currentPos = currentPos + linearPathVec + curvePathVec
@@ -447,15 +453,15 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 
 	local linearAccelTime = (maxSpeed - currentSpeed) / speedupAccel
 	local linearBrakeTime = (maxSpeed - endSpeed) / brakeAccel
-	local linearAccelDist = 0.5 * speedupAccel * linearAccelTime * linearAccelTime + currentSpeed * linearAccelTime 
+	local linearAccelDist = 0.5 * speedupAccel * linearAccelTime * linearAccelTime + currentSpeed * linearAccelTime
 	local linearBrakeDist = 0.5 * brakeAccel * linearBrakeTime * linearBrakeTime + endSpeed * linearBrakeTime
 
 	-- case 1: robot reaches maxSpeed
 	local maxSpeedDist = remainingDist - linearAccelDist - linearBrakeDist
 	if maxSpeedDist >= 0 then
 		local maxSpeedTime = maxSpeedDist / maxSpeed
-		local expBrakeExtraTime = 0
-		return currentTime + linearAccelTime + maxSpeedTime + linearBrakeTime + expBrakeExtraTime
+		local expBrakeExtraTime = 0.1
+		return currentTime + linearAccelTime + maxSpeedTime + linearBrakeTime + expBrakeExtraTime, currentTime
 	end
 
 	-- case 2: robot has to brake immediately
@@ -466,8 +472,8 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 			local speedDiff = endSpeed - currentSpeed
 			local immediateBrakeAccel = (0.5 * speedDiff * speedDiff + currentSpeed * speedDiff) / remainingDist
 			local immediateBrakeTime = speedDiff / immediateBrakeAccel
-			local expBrakeExtraTime = 0
-			return currentTime + immediateBrakeTime + expBrakeExtraTime
+			local expBrakeExtraTime = 0.1
+			return currentTime + immediateBrakeTime + expBrakeExtraTime, currentTime
 		end
 	end
 
@@ -477,7 +483,7 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 		local slowAccelDist = 0.5 * speedupAccel * slowAccelTime * slowAccelTime + currentSpeed * slowAccelTime
 		if slowAccelDist > remainingDist then
 			local accelTime = (-currentSpeed + math.sqrt(currentSpeed * currentSpeed + 2 * speedupAccel * remainingDist)) / speedupAccel
-			return currentTime + accelTime
+			return currentTime + accelTime, currentTime
 		end
 	end
 
@@ -503,8 +509,8 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 	local C = -distSym
 	local timeSym = math.solveSq(A, B, C)
 
-	local expBrakeExtraTime = 0
-	return currentTime + timeDiff + timeSym + expBrakeExtraTime
+	local expBrakeExtraTime = 0.1
+	return currentTime + timeDiff + timeSym + expBrakeExtraTime, currentTime
 end
 
 --- approximates the time the given robot needs to pos for a given endSpeed

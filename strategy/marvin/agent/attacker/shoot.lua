@@ -125,34 +125,22 @@ function Shoot:_redeciding()
 		return true
 	end
 
+	if self._decision.pos and Ball.receivesPass(self._robot) then
+		local shootAngle = World.Ball.speed:absoluteAngleDiff(self._robot.pos - self._decision.pos)
+		if shootAngle > 75 * math.pi / 180 then
+			debug.set("redeciding", "TRUE (large angle)")
+			return true
+		end
+	end
+
 	debug.set("redeciding", "FALSE (default)")
 	return false
 end
 
 function Shoot:_updateTask()
-	local incomingPassInfo = nil
-	local _, passInfoTable = next(self._inbox.passInfo())
-	local anonymousPass = false
-	if passInfoTable then
-		for _, passInfoEntry in ipairs(passInfoTable) do
-			if passInfoEntry.target == nil then
-				anonymousPass = true
-			end
-			if passInfoEntry.target == self._robot then
-				incomingPassInfo = passInfoEntry
-			end
-		end
-	end
-	assert(incomingPassInfo or not anonymousPass, "a/a/Shoot does not know how to handle anonymous passes")
-	if incomingPassInfo then
-		self._lastIncomingPassInfoPos = incomingPassInfo.ballPos
-		self._lastIncomingPassInfoInvalidationCounter = 0
-	elseif not Ball.isAccelerating() and not Ball.receivesPass(self._robot) then
-		self._lastIncomingPassInfoInvalidationCounter = self._lastIncomingPassInfoInvalidationCounter + 1
-	end
-	if self._lastIncomingPassInfoInvalidationCounter == 5 then
-		self._lastIncomingPassInfoPos = nil
-		self._lastIncomingPassInfoInvalidationCounter = 0
+	local lastIncomingPassInfo = Attack.lastIncomingPassInfo(self._robot, self._inbox.passInfo())
+	if lastIncomingPassInfo then
+		self._lastIncomingPassInfoPos = lastIncomingPassInfo.ballPos
 	end
 	debug.set("last incoming passInfo", self._lastIncomingPassInfoPos)
 
@@ -170,7 +158,6 @@ function Shoot:_updateTask()
 		self._decision = self:_decide()
 		self._nextDecisionTime = World.Time + 1.5
 	end
-	debug.set("redeciding", redeciding)
 
 	-- visualize decision
 	if self._decision.pos then

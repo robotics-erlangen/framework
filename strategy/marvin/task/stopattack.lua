@@ -71,7 +71,7 @@ function StopAttack:run()
 		driveAngle = (opponentShooter.pos - pos):angle() + 0.02
 
 		self._defenseHysteresis = true
-		self._robot:setDribblerSpeed(0.5) -- might be quite loud
+		self._robot:setDribblerSpeed(0.8) -- might be quite loud
 	else
 		-- position between ball and goal
 		self._defenseHysteresis = false
@@ -93,7 +93,7 @@ function StopAttack:run()
 		end
 
 		if World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
-			self._robot:setDribblerSpeed(0.15)
+			self._robot:setDribblerSpeed(0.6)
 		end
 	end
 

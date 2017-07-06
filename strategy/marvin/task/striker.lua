@@ -57,17 +57,17 @@ end
 function Striker:_searchForPassDest()
 	self._sampling:precalculate()
 
-	local grid_point_count_x = 5
-	local grid_point_count_y = 5
-
-	local min_y = 0 -- -G.FieldHeightHalf / 4
+	local grid_point_count_x = 6
+	local grid_point_count_y = 10
 
 	local grid_point_dist_x = G.FieldWidth / grid_point_count_x
-	local grid_point_dist_y = (G.FieldHeightHalf - min_y) / grid_point_count_y
+	local grid_point_dist_y = G.FieldHeight / grid_point_count_y
 
 	local boundaries = self._zone.boundaries
 	local left = boundaries.left
 	local right = boundaries.right
+	local top = boundaries.top
+	local bottom = boundaries.bottom
 
 	-- TODO hysteresis
 	-- TODO only consider well-timed pass positions
@@ -77,9 +77,10 @@ function Striker:_searchForPassDest()
 	local bestScore = -math.huge
 	for x = grid_point_dist_x * 0.5 - G.FieldWidthHalf, G.FieldWidthHalf, grid_point_dist_x do
 		if x > left and x < right then
-			for y = grid_point_dist_y * 0.5 + min_y, G.FieldHeightHalf, grid_point_dist_y do
-				local candidatePoint = Vector(x, y)
-				if not Field.isInOpponentDefenseArea(candidatePoint, self._robot.radius + 0.03) then
+			for y = grid_point_dist_y * 0.5 - G.FieldHeightHalf, G.FieldHeightHalf, grid_point_dist_y do
+				if y > bottom and y < top then
+					local candidatePoint = Vector(x, y)
+					candidatePoint = Field.limitToAllowedField(candidatePoint, 3 * self._robot.radius + 0.1)
 					local score = self._sampling:evalLocation(candidatePoint, bestScore)
 					local _, passInfoTable = next(self._inbox.passInfo())
 					if passInfoTable then
