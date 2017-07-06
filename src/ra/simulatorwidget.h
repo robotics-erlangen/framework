@@ -56,6 +56,8 @@ private slots:
     void setStddevRobotPos(double stddev);
     void setStddevRobotPhi(double stddev);
 
+    void on_btnToggle_clicked();
+
 private:
     Ui::SimulatorWidget *ui;
     float m_speed;

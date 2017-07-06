@@ -161,3 +161,12 @@ void SimulatorWidget::setStddevRobotPhi(double stddev)
     command->mutable_simulator()->set_stddev_robot_phi(stddev);
     emit sendCommand(command);
 }
+
+void SimulatorWidget::on_btnToggle_clicked()
+{
+    if (ui->spinSpeed->value() == 0) {
+        start();
+    } else {
+        stop();
+    }
+}
