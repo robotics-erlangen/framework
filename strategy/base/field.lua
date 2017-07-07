@@ -350,7 +350,10 @@ function Field.allowedLineSegments(pos, dir, maxLength)
 		if lambda > maxLength then
 			lambda = maxLength
 		end
-		if lambda and Field.isInField(fieldPos[i], 0) and lambda > 0 then
+		-- an offset 0f 0.05 is used here and below as the calculated point is on
+		-- the border of the field anyways, otherwise it might flicker due to floating
+		-- point inaccuracies
+		if lambda and Field.isInField(fieldPos[i], 0.05) and lambda > 0 then
 			table.insert(lambdas, lambda)
 		end
 	end
@@ -363,7 +366,7 @@ function Field.allowedLineSegments(pos, dir, maxLength)
 		if lambda > maxLength then
 			lambda = maxLength
 		end
-		if Field.isInField(intersection[1], 0) and lambda > 0 then
+		if Field.isInField(intersection[1], 0.05) and lambda > 0 then
 			table.insert(lambdas, lambda)
 		end
 	end
