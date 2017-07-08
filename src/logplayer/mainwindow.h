@@ -66,6 +66,7 @@ signals:
     void sendCommand(const Command &command);
     void enableStrategyCheckboxBlue(bool enable);
     void enableStrategyCheckboxYellow(bool enable);
+    void reloadStrategy();
 
 private slots:
     void openFile();

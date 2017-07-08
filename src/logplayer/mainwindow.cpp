@@ -232,6 +232,7 @@ void MainWindow::createStrategy(int index)
     connect(ui->replay, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
     connect(this, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
     connect(this, SIGNAL(gotStatus(Status)), m_strategys[index], SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(reloadStrategy()), m_strategys[index], SLOT(reload()));
 
     // if the other strategy isnt running, reset debug data for it to remove visualizations
     emit sendCommand(m_lastTeamInfo);
@@ -397,6 +398,7 @@ void MainWindow::clearPlayConsumers()
     ui->log->clear();
     m_plotter->clearData();
     ui->field->clearTraces();
+    emit reloadStrategy();
 }
 
 void MainWindow::initializeLabels()
