@@ -63,7 +63,7 @@ function Keeper:run()
 		local _, lambdaLine = geom.intersectLineLine(defenseLineStart, lineDir,
 				otherGoalPost, atkPos - otherGoalPost)
 
-		-- allow moving behind ball we it's shot
+		-- allow moving behind ball when it's shot
 		if not isShot then
 			lambdaLine = lambdaLine - self._robot.radius
 		end
