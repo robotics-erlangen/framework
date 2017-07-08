@@ -398,6 +398,9 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 	local currentSpeed = startSpeed:length()
 	local currentPos = startPos
 
+	if startPos == endPos and currentSpeed <= endSpeed then
+		return 0, 0
+	end
 
 	local rawAngleDiff = (endPos - startPos):absoluteAngleDiff(startSpeed)
 	local absAngleDiff = math.min(math.abs(rawAngleDiff), math.pi - 0.001)
