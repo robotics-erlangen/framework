@@ -90,7 +90,8 @@ function ShootGoal.findTarget(ownRobot, viewPos, ignoreGoalie, oldTarget)
 	-- get time left until the ball reaches viewPos
 	local distance = (viewPos - World.Ball.pos):length()
 	local fakeBall = {speed = World.Ball.speed, pos = World.Ball.pos, maxSpeed = World.Ball.maxSpeed}
-	local timeLeft = math.max(Physics.ballRollTime(fakeBall, distance), Physics.robotTimeToPos(ownRobot, viewPos, Vector(0,0)))
+	local catchPos = viewPos + (ownRobot.pos - viewPos):setLength(ownRobot.shootRadius + World.Ball.radius)
+	local timeLeft = math.max(Physics.ballRollTime(fakeBall, distance), Physics.robotTimeToPos(ownRobot, catchPos, ownRobot.speed))
 	debug.set("timeLeft", timeLeft)
 
 	-- get possible rotation in the time we have left
