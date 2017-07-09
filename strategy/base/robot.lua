@@ -66,7 +66,6 @@ Robot.constants = {
 -- Init function must be called for EVERY robot.
 -- @param data table/number - data from amun.getTeam or robot id for opponents
 -- @param isFriendly boolean - true if own robot
--- @param geometry World.Geometry - used to setup path object and avoid a circular dependency with world, only required for own robots
 function Robot:init(data, isFriendly)
 	if type(data) == "table" then
 		self:_setSpecs(data)

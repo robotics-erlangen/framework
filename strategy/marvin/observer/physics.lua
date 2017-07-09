@@ -398,6 +398,9 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 	local currentSpeed = startSpeed:length()
 	local currentPos = startPos
 
+	if startPos == endPos and currentSpeed <= endSpeed then
+		return 0, 0
+	end
 
 	local rawAngleDiff = (endPos - startPos):absoluteAngleDiff(startSpeed)
 	local absAngleDiff = math.min(math.abs(rawAngleDiff), math.pi - 0.001)
@@ -652,6 +655,49 @@ function Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_
 	-- calculate and save the robot time
 	local endSpeed = (x_robot - robot.pos):setLength(endSpeedLength)
 	return Physics.robotTimeToPos(robot, x_robot, endSpeed, true)
+end
+
+local function dist(v0, v1, a)
+	local t = math.abs(v0 - v1) / a
+	return (v0 + v1) * t / 2, t
+end
+
+local function angleForTime(accA, accB, time, startSpeed)
+	-- y1 = t * accA + startSpeed
+	-- y2 = (t - time) * -accB + endSpeed
+
+	local t = (time * accB - startSpeed) / (accA + accB)
+	local maxSpeed = t * accA + startSpeed
+
+	return dist(startSpeed, maxSpeed, accA) + dist(maxSpeed, 0, accB)
+end
+
+
+-- calculates the degrees that a robot can turn in a given timespan
+-- @param robot Robot
+-- @param time Number - how much time (in seconds) the robot has to turn
+-- @return dist1 Number - the angle the robot can turn clockwise
+-- @return dist2 Number - the angle the robot can turn counter-clockwise
+function Physics.robotRotationRangeForTime(robot, time)
+	local angularSpeed = robot.angularSpeed
+	local maxAccel = robot.acceleration.aSpeedupPhiMax
+	local maxDecel = robot.acceleration.aBrakePhiMax
+	local extraDist, brakeTime = dist(angularSpeed, 0, maxDecel)
+
+	local dist1 = angleForTime(maxAccel, maxDecel, time, math.abs(angularSpeed))
+	local dist2
+	if brakeTime < time then
+		dist2 = angleForTime(maxAccel, maxDecel, time - brakeTime, 0) - extraDist
+	else
+		local minEndSpeed = math.abs(angularSpeed) - time*maxDecel
+		dist2 = -dist(math.abs(angularSpeed), minEndSpeed, maxDecel)
+	end
+
+	if angularSpeed < 0 then
+		return dist1, dist2
+	else
+		return dist2, dist1
+	end
 end
 
 local function rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t_out)
