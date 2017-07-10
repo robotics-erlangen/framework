@@ -9,12 +9,19 @@ local Attack = require "util/attack"
 local MIN_DIST_FOR_POOL_CHANGE = 0.7
 
 function Default:_stop()
-	self._acceptingPass = -math.huge
+	self._forceKeepingInPool = false
 end
 
 function Default:check()
-	local _, passInfo = next(self._inbox.passInfo())
-	self._forceKeepingInPool = passInfo and passInfo.target == self._robot
+	self._forceKeepingInPool = false
+	local _, passInfoTable = next(self._inbox.passInfo())
+	if passInfoTable then
+		for _, passInfo in pairs(passInfoTable) do
+			if passInfo and passInfo.target == self._robot then
+				self._forceKeepingInPool = true
+			end
+		end
+	end
 
 	-- if there is a defender further away from the own goal than we are,
 	-- request a pool change
@@ -32,12 +39,10 @@ function Default:check()
 end
 
 function Default:_updateTask()
-	local  _, passInfo = next(self._inbox.passInfo())
-	if Attack.checkPassInfo(self._robot, passInfo) then
-		self._acceptingPass = World.Time
-	end
+	local _, passInfoTable = next(self._inbox.passInfo())
+	local acceptingPass = Attack.checkPassInfos(self._robot, passInfoTable)
 
-	return passInfo and World.Time - self._acceptingPass < 0.5 and AcceptPass or Striker
+	return acceptingPass and AcceptPass or Striker
 end
 
 return Default

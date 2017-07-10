@@ -12,7 +12,8 @@ local MovesHelper = require "util/moveshelper"
 local Attack = require "util/attack"
 local G = World.Geometry
 
-MrlTestCorner.N_ROBOTS = 5
+MrlTestCorner.MIN_ROBOTS = 5
+MrlTestCorner.MAX_ROBOTS = 5
 
 function MrlTestCorner.canStart()
 	return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 and Referee.opponentTouchedLast()
@@ -63,8 +64,9 @@ function MrlTestCorner:_updateTasks()
 		self._restart = false
 	end
 
-	local _, passInfo = next(self._inbox.passInfo())
-	if Attack.checkPassInfo(self._robots[2], passInfo) then
+	local _, passInfoTable = next(self._inbox.passInfo())
+	local acceptPass = Attack.checkPassInfos(self._robots[2], passInfoTable)
+	if acceptPass then
 		taskAssignments[self._robots[2]] = { class = AcceptPass }
 	else
 		taskAssignments[self._robots[2]] = { class = Striker, params = { self._activeRobotInitPos, self._activeRobotShootPos }}

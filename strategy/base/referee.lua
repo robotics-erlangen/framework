@@ -63,6 +63,11 @@ local friendlyPenaltyStates = {
 	PenaltyOffensive = true
 }
 
+local gameStates = {
+	Game = true,
+	GameForce = true
+}
+
 local nonGameStages = {
 	FirstHalfPre = true,
 	HalfTime = true,
@@ -105,6 +110,10 @@ end
 
 function Referee.isFriendlyPenaltyState()
 	return friendlyPenaltyStates[World.RefereeState]
+end
+
+function Referee.isGameState()
+	return gameStates[World.RefereeState]
 end
 
 function Referee.isNonGameStage()

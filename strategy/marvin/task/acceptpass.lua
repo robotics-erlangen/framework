@@ -1,5 +1,5 @@
 local SuggestPass = require "task/ability/suggestpass"
-local AcceptPass = Class("Task/AcceptPass", require "task/base", SuggestPass)
+local AcceptPass = Class("Task.AcceptPass", require "task/base", SuggestPass)
 
 local vis = require "../base/vis"
 local World = require "../base/world"
@@ -13,7 +13,16 @@ function AcceptPass:run()
 	local groupApplication = { name = "striker", payload = {}}
 	self._send.groupApplication("trainer", groupApplication)
 	
-	local _, passInfo = next(self._inbox.passInfo())
+	local passInfo = nil
+	local _, passInfoTable = next(self._inbox.passInfo())
+	assert(passInfoTable, "AcceptPass runs although there is no passInfo message")
+	for _, pass in ipairs(passInfoTable) do
+		if pass.target == self._robot or pass.target == nil then
+			assert(not passInfo, "AcceptPass doesn't know which pass to accept")
+			passInfo = pass
+		end
+	end
+	assert(passInfo, "AcceptPass runs despite not being a target")
 	vis.addCircle("t/striker", passInfo.ballPos, 0.1, vis.colors.turquoiseHalf, true)
 	local position = passInfo.ballPos
 	local _, attackPosition = next(self._inbox.attackPosition())
@@ -30,5 +39,7 @@ function AcceptPass:run()
 	if attackPosition then
 		self:_suggestPass(position, attackPosition, moveTime)
 	end
+
+	self:setMainAttackerParameters(World.Ball.pos, self._robot.maxSpeed)
 end
 return AcceptPass

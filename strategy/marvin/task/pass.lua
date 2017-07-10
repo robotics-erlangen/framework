@@ -7,14 +7,19 @@ local World = require "../base/world"
 
 local ObserverShoot = require "observer/shoot"
 
-function Pass:_init(targetRobot, targetPos, chip, passSpeed)
+local CHIP_PASS_DISTANCE_FACTOR = 0.4
+local MIN_PASS_SPEED = 3
+
+function Pass:_init(targetRobot, targetPos, chip, passSpeed, ballReceiptPos)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
 	self._chip = chip
-	self._passSpeed = passSpeed or self._targetRobot.constants.passSpeed
+	self._passSpeed = passSpeed or targetRobot and self._targetRobot.constants.passSpeed or MIN_PASS_SPEED
+	self._ballReceiptPos = ballReceiptPos
 
 	-- retrieve targetPos from messages if no argument was given
 	if not targetPos then
+		assert(targetRobot,"anonymous passes need to have a targetPos")
 		local sugg = self._inbox.passSuggestion()[targetRobot]
 		if sugg then
 			self._targetPos = sugg.ballPos
@@ -25,29 +30,38 @@ function Pass:_init(targetRobot, targetPos, chip, passSpeed)
 	end
 end
 
-function Pass:updateTarget(targetRobot, targetPos)
+function Pass:updateTarget(targetRobot, targetPos, passSpeed)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
+	self._passSpeed = passSpeed or targetRobot and self._targetRobot.constants.passSpeed or MIN_PASS_SPEED
 end
 
 function Pass:run()
 	debug.set("targetRobot", self._targetRobot)
 	debug.set("targetPos", self._targetPos)
 
-	local maxAngleError = 3 * math.pi / 180
+	local maxAngleError = 3.5 * math.pi / 180
 	if Referee.isFriendlyFreeKickState() or World.RefereeState == "KickoffOffensive" then
-		maxAngleError = 1 * math.pi / 180
+		maxAngleError = 1.5 * math.pi / 180
 	end
+
+	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
+	attackPosition = attackPosition or World.Ball.pos
+
 
 	local chip = self._chip
 	if self._chip == nil then
-		local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
-		local corridor = ObserverShoot.evaluatePassCorridor(
-			attackPosition or World.Ball.pos, self._targetPos, Shoot.CHIP_PASS_DISTANCE_FACTOR)
+		local corridor = ObserverShoot.evaluatePassCorridor(attackPosition,
+			self._targetPos, CHIP_PASS_DISTANCE_FACTOR)
 		chip = corridor == "chip"
 	end
 
-	self:_shoot(self._targetPos, self._passSpeed, not chip, maxAngleError, false)
+	local targetPos = self._targetPos
+	if chip then
+		self:_chipPass(targetPos, self._ballReceiptPos, maxAngleError)
+	else
+		self:_shoot(targetPos, self._passSpeed, self._ballReceiptPos, maxAngleError)
+	end
 end
 
 return Pass

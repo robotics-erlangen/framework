@@ -18,13 +18,16 @@ end
 
 function StrikerSampling:_init()
 	self._attackPosition = nil
+	self._attackTime = nil
 	self._mainAttacker = nil
 end
 
 function StrikerSampling:precalculate()
-	local _, pos = next(self._inbox.attackPosition())
-	self._attackPosition = pos or World.Ball.pos
 	self._mainAttacker = self._inbox.mainAttacker().trainer
+	local _, pos = next(self._inbox.attackPosition())
+	local _, time = next(self._inbox.attackTime())
+	self._attackPosition = pos or World.Ball.pos
+	self._attackTime = time or (self._mainAttacker and Robot.minTimeToBall(self._mainAttacker)) or 0
 
 	vis.addCircle("t/a/strikersampling: attackPosition", self._attackPosition, 0.13,
 		vis.colors.orchidHalf, false, nil, nil, 0.02)
@@ -39,8 +42,8 @@ function StrikerSampling:canReachInTime(pos)
 	local shootPos = pos + (self._attackPosition - pos):setLength(self._robot.shootRadius + World.Ball.radius)
 	local robotTime = Physics.robotTimeToPos(self._robot, pos,
 		(pos - self._robot.pos):setLength(self._robot.maxSpeed))
-	local shootTime = Robot.minShootTime(self._mainAttacker, shootPos)
-	local ballTime = ObserverShoot.ballPassTime(self._attackPosition, shootPos, self._robot)
+	local shootTime = self._attackTime
+	local ballTime = ObserverShoot.ballPassTime(self._attackPosition, shootPos, self._robot, nil, self._mainAttacker)
 
 	local rating = Rating.valueToRating(shootTime + ballTime - robotTime, 0.2, 0.5)
 	visualizeRating("canReachInTime", pos, rating)
@@ -58,12 +61,16 @@ function StrikerSampling:volleyPass(pos)
 		return 1
 	end
 
-	local minRating = 0
+	local minRating = 0.5
 	local volleyAngle = World.Ball.speed:absoluteAngleDiff(self._attackPosition - pos)
 	local volleySuccessProbability = Rating.valueToRating(volleyAngle, 65 / 180 * math.pi, 50 / 180 * math.pi)
 	local rating = volleySuccessProbability * (1 - minRating) + minRating
 	visualizeRating("volleyPass", pos, rating)
 	return rating
+end
+
+function StrikerSampling:distToGoal(pos)
+	return Rating.valueToRating(pos:distanceTo(World.Geometry.OpponentGoal), World.Geometry.FieldHeight * 0.7, World.Geometry.FieldHeight * 0.2)
 end
 
 
@@ -79,6 +86,9 @@ function StrikerSampling:evalLocation(pos, bestScore)
 	-- score = score * self:oneTouchShot(pos)
 	-- score = score * self:dontAnnoyMainAttacker(pos)
 	-- score = score * self:passInterception(pos)
+
+	score = score * self:distToGoal(pos)
+	if score < bestScore then return score end
 
 	score = score * self:passTooShort(pos)
 	if score < bestScore then return score end

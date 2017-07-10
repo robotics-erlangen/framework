@@ -43,8 +43,9 @@ function StopAttack:run()
 	-- try to always be where the opponent shooter will try to shoot
 	local isOpponentFreekickState = World.RefereeState == "IndirectDefensive" or World.RefereeState == "DirectDefensive"
 	local defendOpponentPasses = World.Ball.pos.y > 0 and isOpponentFreekickState
-	if dist < 0.2 + self._robot.radius and defendOpponentPasses then
-		local passReceivers = RobotList.excludeRobots(World.OpponentRobots, {opponentShooter, World.OpponentKeeper})
+
+	local passReceivers = RobotList.excludeRobots(World.OpponentRobots, {opponentShooter, World.OpponentKeeper})
+	if dist < 0.2 + self._robot.radius and defendOpponentPasses and #passReceivers > 0 then
 		local minAngle = math.huge
 		local maxAngle = -math.huge
 		for _, robot in ipairs(passReceivers) do
@@ -70,7 +71,7 @@ function StopAttack:run()
 		driveAngle = (opponentShooter.pos - pos):angle() + 0.02
 
 		self._defenseHysteresis = true
-		self._robot:setDribblerSpeed(0.5) -- might be quite loud
+		self._robot:setDribblerSpeed(0.8) -- might be quite loud
 	else
 		-- position between ball and goal
 		self._defenseHysteresis = false
@@ -92,7 +93,7 @@ function StopAttack:run()
 		end
 
 		if World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
-			self._robot:setDribblerSpeed(0.15)
+			self._robot:setDribblerSpeed(0.6)
 		end
 	end
 

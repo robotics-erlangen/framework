@@ -12,6 +12,8 @@ local CenterBack = require "task/centerback"
 local InterceptPass = require "task/interceptpass"
 local debug = require "../base/debug"
 
+local G = World.Geometry
+
 
 function HandleBall:_stop()
 	self._taskDecision = nil
@@ -43,6 +45,11 @@ function HandleBall:_checkAttacker()
 	local timeToBallLimit = isAttacker and 1.5 or 1.0
 	if Physics.robotTimeToBall(self._robot, World.Ball, World.Geometry.OpponentGoal, 0) > timeToBallLimit then
 		return false
+	end
+
+	-- true if we are in opponentFieldHalf
+	if self._robot.pos.y > G.FieldHeightHalf * 0.1  then
+		return true
 	end
 
 	-- don't if an opponent is close to us

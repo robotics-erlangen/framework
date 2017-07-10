@@ -4,10 +4,11 @@ local Physics = require "observer/physics"
 local Ball = require "observer/ball"
 local World = require "../base/world"
 
-function Shoot.ballPassTime(shootPos, passPos, targetRobot, destSpeedLength)
+local MIN_PASS_SPEED = 2.5
+function Shoot.ballPassTime(shootPos, passPos, targetRobot, destSpeedLength, shootRobot)
 	local dist = shootPos:distanceTo(passPos)
-	destSpeedLength = destSpeedLength or targetRobot.constants.passSpeed
-	local shootSpeed = targetRobot:calculateShootSpeed(destSpeedLength, dist)
+	destSpeedLength = destSpeedLength or targetRobot and targetRobot.constants.passSpeed or MIN_PASS_SPEED
+	local shootSpeed = shootRobot:calculateShootSpeed(destSpeedLength, dist)
 	local shootBall = {
 		pos = shootPos,
 		speed = (passPos - shootPos):setLength(shootSpeed),

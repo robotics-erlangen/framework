@@ -51,7 +51,7 @@ local Trajectory = require "../base/trajectory"
 -- @field dribblerWidth number - Width of the dribbler
 -- @field maxSpeed number - maximum speed
 -- @field maxAngularSpeed number - maximum angular speed
--- @filed acceleration table - Acceleration and deceleration parameters: aSpeedupFMax, aSpeedupSMax, aSpeedupPhiMax, aBrakeFMax, aBrakeSMax, aBrakePhiMax
+-- @field acceleration table - Acceleration and deceleration parameters: aSpeedupFMax, aSpeedupSMax, aSpeedupPhiMax, aBrakeFMax, aBrakeSMax, aBrakePhiMax
 -- @field lastResponseTime number - strategy time when the last radio response was handled *
 -- @field radioResponse table - response from the robot, only set if there is a current response *
 -- @field userControl table - command from input devices (fields: speed, omega, kickStyle, kickPower, dribblerSpeed) *
@@ -66,7 +66,6 @@ Robot.constants = {
 -- Init function must be called for EVERY robot.
 -- @param data table/number - data from amun.getTeam or robot id for opponents
 -- @param isFriendly boolean - true if own robot
--- @param geometry World.Geometry - used to setup path object and avoid a circular dependency with world, only required for own robots
 function Robot:init(data, isFriendly)
 	if type(data) == "table" then
 		self:_setSpecs(data)
@@ -93,7 +92,7 @@ function Robot:init(data, isFriendly)
 	self._hasBall = {}
 	if self.isFriendly then -- setup trajectory and path objects
 		self.trajectory = Trajectory(self)
-		self.path = path.create()
+		self.path = path.create(self.id)
 	end
 	self._currentTime = 0
 	self._controllerInput = nil

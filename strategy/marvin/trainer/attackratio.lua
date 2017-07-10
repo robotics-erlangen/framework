@@ -4,6 +4,7 @@ local debug = require "../base/debug"
 local Field = require "../base/field"
 local World = require "../base/world"
 local Ally = require "agent/ally"
+local Ball = require "observer/ball"
 local Robot = require "observer/robot"
 
 
@@ -11,6 +12,7 @@ function AttackRatio:init()
 	self._friendlyFreeKickOngoing = false
 	self._opponentFreeKickOngoing = false
 	self._ballInOpponentFieldHalf = false -- remember for hysteresis
+	self._dangerousDuelSituation = false
 end
 
 function AttackRatio:attackRatio()
@@ -116,13 +118,23 @@ function AttackRatio:attackerDefenderDistribution()
 		self._send.forcePoolChange("trainer", { robot = previousMainAttacker, destPool = "defender" })
 	end
 	if mainAttackerIsDefender then
+		local mainAttackerWantsToChange = false
 		for _,poolChangeEntry in ipairs(self:changingRobots()) do
 			if poolChangeEntry.robot == mainAttacker then
-				attackers = attackers - 1
+				mainAttackerWantsToChange = true
 				break
 			end
 		end
+		if not mainAttackerWantsToChange then
+			attackers = attackers - 1
+		end
 	end
+
+	self._dangerousDuelSituation = Ball.isDangerousDuelSituation(self._dangerousDuelSituation)
+	if self._dangerousDuelSituation then
+		attackers = attackers - 1
+	end
+	debug.set("Dangerous Duel", self._dangerousDuelSituation)
 
 	if mainAttacker and mainAttacker ~= previousMainAttacker then
 		previousMainAttacker = mainAttacker

@@ -2,16 +2,17 @@ local Base = require "agent/base/behavior"
 local FreeKick = Class("Agent.Attacker.FreeKick", Base)
 
 local debug = require "../base/debug"
+local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
-local G = World.Geometry
 
 local MoveToStaticBall = require "task/movetostaticball"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
 local Attack = require "util/attack"
+local Rating = require "util/rating"
 local ShootGoalUtil = require "util/shootgoal"
 
 
@@ -19,12 +20,10 @@ function FreeKick:_stop()
 	self._startTime = 0
 	self._state = "prepare"
 	self._dirty = false
+	self._passList = nil
 	self._pass = nil
 	self._waitStartTime = nil
-
 	self._redeciding = false
-	self._redecisionContingent = 3
-	self._nextRedecisionTime = 0
 end
 
 function FreeKick:start()
@@ -50,21 +49,6 @@ function FreeKick:check()
 
 	return false
 end
-
-function FreeKick:_redecide()
-	if self._redecisionContingent > 0 and World.Time > self._nextRedecisionTime then
-		self._pass = Attack.choosePassFromSuggestions(self._robot,
-			self._inbox.passSuggestion(), nil, false)
-
-		self._redecisionContingent = self._redecisionContingent - 1
-		self._nextRedecisionTime = World.Time + 0.5
-		self._redeciding = true
-		log("redeciding")
-	else
-		self._redeciding = false
-	end
-end
-
 
 function FreeKick:_updateTask()
 	local prevState = self._state
@@ -96,34 +80,65 @@ function FreeKick:_updateTask()
 	if self._state == "wait" then
 		if shootgoalPossible then
 			self._state = "shootgoal"
-			self._pass = nil
+			self._passList = nil
 		elseif timeRunningOut and Referee.isFriendlyFreeKickState() then
 			self._state = "shootgoal"
 		elseif World.Time - self._waitStartTime > MIN_PASS_WAIT_TIME then
-			self:_redecide()
-			if self._pass then
-				self._state = "pass_prepare"
+			self._passList = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false)
+			if self._passList then
+				_, self._pass = next(self._passList)
+				if self._pass then
+					self._state = "pass_prepare"
+				end
 			end
 		end
 	end
 
+	--check for anonymous pass
+	local restartTask = self._redeciding
 	if self._state == "pass_prepare" or self._state == "pass" then
-		self:_redecide()
+		if not self._pass.target then
+			-- try to find the target
+			-- look for a suggestion that matches our pass
+			local passes = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false, 0)
+			for _,pass in ipairs(passes) do
+				if pass.target and pass.ballPos:distanceTo(self._pass.ballPos) < 0.1 then
+					self._pass.target = pass.target
+					if self._state == "pass" then
+						restartTask = true
+					end
+				end
+			end
+		end
 	end
 
 	-- pass_prepare -> pass
 	if self._state == "pass_prepare" then
-		local shootPos = self._pass.ballPos + (G.OpponentGoal - self._pass.ballPos):setLength(
-			self._pass.target.shootRadius + World.Ball.radius)
-		local ballTime = Shoot.ballPassTime(World.Ball.pos, shootPos, self._pass.target)
-		local robotTime = Robot.minShootTime(self._robot, shootPos)
+		local shootPos = self._pass.ballPos
+		local ballTime = Shoot.ballPassTime(World.Ball.pos, shootPos, self._pass.target, nil, self._robot)
+		local extraTime = Rating.valueToRating(math.abs(geom.getAngleDiff(self._robot.dir,
+			(shootPos - World.Ball.pos):angle())), 0, math.pi) * 0.8
+		local robotTime = Robot.minShootTime(self._robot, shootPos) + extraTime
 		if World.Time + robotTime + ballTime >= self._pass.time then
 			self._state = "pass"
 		end
+
+		-- redecide if beneficial
+		local enoughTime = World.Time - Referee.lastStateChangeTime() <= 5
+		if enoughTime then
+			local hysteresis = 0.05
+			local newPass = Attack.choosePassFromSuggestions(self._robot, self._inbox.passSuggestion(),
+					self._pass.ballPos, false, hysteresis)
+			if newPass and newPass.ballPos:distanceTo(self._pass.ballPos) > 0.2 then
+				self._state = "wait" -- wait state will deal with setting up a new pass
+			end
+		end
 	end
 
-	if self._pass then
-		self._send.passInfo("all", self._pass)
+	if self._passList and self._state == "pass" then
+		self._send.passInfo("all", {self._pass})
+	elseif self._passList then
+		self._send.passInfo("all", self._passList)
 	end
 
 	-- visualize decision
@@ -143,7 +158,7 @@ function FreeKick:_updateTask()
 	local stateChanged = prevState == self._state
 
 	if self._pass then
-		debug.push("pass", self._pass.target.id)
+		debug.push("pass", self._pass.target and self._pass.target.id or "anonymous")
 		debug.set("ballPos", self._pass.ballPos)
 		debug.set("time (rel)", self._pass.time - World.Time)
 		debug.set("time (abs)", self._pass.time)
@@ -159,7 +174,7 @@ function FreeKick:_updateTask()
 	elseif self._state == "wait" or self._state == "pass_prepare" then
 		return MoveToStaticBall, { math.pi / 2 }, stateChanged
 	elseif self._state == "pass" then
-		return Pass, { self._pass.target, self._pass.ballPos }, self._redeciding
+		return Pass, { self._pass.target, self._pass.ballPos }, restartTask
 	end
 end
 

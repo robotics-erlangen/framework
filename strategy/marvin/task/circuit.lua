@@ -5,11 +5,12 @@ local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 
-function Circuit:_init(center, angleOffset, radius, passPos)
+function Circuit:_init(center, angleOffset, radius, passPos, anonym)
 	self._center = center
 	self._angleOffset = angleOffset
 	self._radius = radius or 0.5
 	self._passPos = passPos
+	self._anonym = anonym
 end
 
 function Circuit:run()
@@ -23,7 +24,7 @@ function Circuit:run()
 	self._robot.trajectory:update(ToTarget, pos, dir)
 
 	if self._passPos then
-		self:_suggestPass(self._passPos)
+		self:_suggestPass(self._passPos,nil,nil, self._anonym)
 	end
 end
 

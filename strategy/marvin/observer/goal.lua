@@ -192,7 +192,13 @@ function Goal.predictShot()
 	local passReceivers = {}
 
 	local oppBallOwner = Ball.opponentBallOwner()
-	if oppBallOwner and ballSpeed:length() <= SLOW_BALL then
+	local oppBallDribbler = Ball.opponentBallDribbler()
+	if oppBallDribbler then
+		isShot = true
+		ballSpeed = Vector.fromAngle(oppBallDribbler.dir)
+		vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false)
+		vis.addPath("o/goal: predictShot: dribbling robot", {oppBallDribbler.pos, oppBallDribbler.pos + ballSpeed * 10}, vis.colors.blue)
+	elseif oppBallOwner and ballSpeed:length() <= SLOW_BALL then
 		-- if opponent is close to ball use its orientation
 		ballSpeed = Vector.fromAngle(oppBallOwner.dir)
 	elseif ballSpeed:length() > SLOW_BALL then
@@ -240,7 +246,7 @@ function Goal.predictShot()
 				elseif robot.pos:distanceTo(catchPos) < 0.1 then
 					weightedDistance = math.huge
 				else
-					local robotTime = Physics.robotTimeToPos(robot, catchPos, Vector(0, 0))
+					local robotTime = Physics.robotTimeToPos(robot, catchPos, Vector(robot.maxSpeed, 0))
 					weightedDistance = Rating.valueToRating(robotTime, ballRollTime, 0) * 1 / pos:distanceTo(catchPos)
 				end
 				if robot.id == lastBestRobotId and weightedDistance > 0 then

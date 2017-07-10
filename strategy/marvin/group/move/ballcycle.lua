@@ -4,6 +4,7 @@ local Circuit = require "task/circuit"
 local Field = require "../base/field"
 local FreeKick = require "agent/attacker/freekick"
 local geom = require "../base/geom"
+local Attack = require "util/attack"
 local MovesHelper = require "util/moveshelper"
 local MoveToPos = require "task/movetopos"
 local Referee = require "../base/referee"
@@ -11,12 +12,13 @@ local World = require "../base/world"
 
 local G = World.Geometry
 
-BallCycle.N_ROBOTS = 5
+BallCycle.MIN_ROBOTS = 5
+BallCycle.MAX_ROBOTS = 5
 
 local MAX_RANDOM_POSITION_OFFSET = 0.8
 
 function BallCycle.canStart()
-	return  World.Ball.pos.y > G.FieldHeightHalf / 5 and Referee.opponentTouchedLast()
+	return World.Ball.pos.y > G.FieldHeightHalf / 5 and Referee.opponentTouchedLast()
 		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
 		and World.RefereeState == "Stop" and Field.distanceToFieldBorder(World.Ball.pos) >= 0.6
 end
@@ -98,7 +100,12 @@ function BallCycle:_updateTasks()
 		self._assignment = MovesHelper.assignRobots(self._robots, self._positions, 1)
 	end
 
-	local posForRobotBeforeShooting = World.Ball.pos + (World.Ball.pos - G.OpponentGoal):setLength(0.14)
+	local _, passInfoTable = next(self._inbox.passInfo())
+	local passInfo
+	if passInfoTable then
+		_, passInfo = next(passInfoTable)
+	end
+	local startMoving = Attack.checkPassInfoFromPosition(self._robots[1], passInfo, self._circleCenter);
 
 	local taskAssignments = {}
 	if World.RefereeState == "Stop" then
@@ -107,12 +114,12 @@ function BallCycle:_updateTasks()
 		taskAssignments[self._robots[3]] = { class = Circuit, params = { self._circleCenter, math.pi * 0.8, self._circleRadius }, restart = reload }
 		taskAssignments[self._robots[4]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.2, self._circleRadius }, restart = reload }
 		taskAssignments[self._robots[5]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.6, self._circleRadius }, restart = reload }
-	elseif Referee.isFriendlyFreeKickState() and self._robots[1].pos:distanceTo(posForRobotBeforeShooting) > 0.20 then
-		taskAssignments[self._robots[1]] = { class = MoveToPos, params = { posForRobotBeforeShooting , nil, true } }
-		taskAssignments[self._robots[2]] = { class = Circuit, params = { self._circleCenter, math.pi * 0.0, self._circleRadius }, restart = reload }
-		taskAssignments[self._robots[3]] = { class = Circuit, params = { self._circleCenter, math.pi * 0.5, self._circleRadius }, restart = reload }
-		taskAssignments[self._robots[4]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.0, self._circleRadius }, restart = reload }
-		taskAssignments[self._robots[5]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.5, self._circleRadius }, restart = reload }
+	elseif Referee.isFriendlyFreeKickState() and not startMoving then
+		taskAssignments[self._robots[1]] = { behavior = FreeKick, params = {} }
+		taskAssignments[self._robots[2]] = { class = Circuit, params = { self._circleCenter, math.pi * 0.0, self._circleRadius, self._positions[1], true }, restart = reload }
+		taskAssignments[self._robots[3]] = { class = Circuit, params = { self._circleCenter, math.pi * 0.5, self._circleRadius, self._positions[2], true }, restart = reload }
+		taskAssignments[self._robots[4]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.0, self._circleRadius, self._positions[3], true }, restart = reload }
+		taskAssignments[self._robots[5]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.5, self._circleRadius, self._positions[4], true }, restart = reload }
 	elseif Referee.isFriendlyFreeKickState()  then
 		taskAssignments[self._robots[1]] = { behavior = FreeKick, params = { } }
 		taskAssignments[self._robots[self._assignment[2]]]

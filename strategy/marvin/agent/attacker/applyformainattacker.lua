@@ -21,15 +21,14 @@ function ApplyForMainattacker:check()
 	if not Referee.isFriendlyFreeKickState() and Robot.ownStandardShooter() == self._robot then
 		return false
 	end
-
-	if Attack.currentPlannedMainAttacker(self._inbox.passInfo()) == self._robot then
+	local sender, passInfoTable = next(self._inbox.passInfo())
+	if Attack.currentPlannedMainAttacker(sender, passInfoTable) == self._robot then
 		self:_applyForMainAttacker(nil, nil, 2)
 		self._agent.beOffensive = true
 	else
 		self:_applyForMainAttacker()
 		self._agent.beOffensive = false
 	end
-
 	return false
 end
 

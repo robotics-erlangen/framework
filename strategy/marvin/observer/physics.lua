@@ -373,9 +373,9 @@ end
 -- assumes that the path is a direct line from robot.pos to endPos
 function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 	-- acceleration parameters
-	local hardBrakeAccel = 10
-	local brakeAccelFactor = 0.78
-	local speedupAccelFactor = 0.85
+	local hardBrakeAccel = 8
+	local brakeAccelFactor = 1
+	local speedupAccelFactor = 1
 
 	-- corridor width
 	local maxError = 0.07
@@ -398,12 +398,21 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 	local currentSpeed = startSpeed:length()
 	local currentPos = startPos
 
-	-- calculate curve radius and speed
+	if startPos == endPos and currentSpeed <= endSpeed then
+		return 0, 0
+	end
+
 	local rawAngleDiff = (endPos - startPos):absoluteAngleDiff(startSpeed)
 	local absAngleDiff = math.min(math.abs(rawAngleDiff), math.pi - 0.001)
+
+	-- calculate curve radius and speed
 	local angleSin = math.sin((math.pi - absAngleDiff)/2)
 	local radius = maxError * angleSin / (1 - angleSin) * 0.5
 	local maxCurveSpeed = math.sqrt(hardBrakeAccel * radius)
+	if maxCurveSpeed > currentSpeed then
+		radius = currentSpeed * currentSpeed / hardBrakeAccel
+		maxCurveSpeed = currentSpeed
+	end
 
 	-- check if brake and return is necessary (BAT)
 	if endSpeed < currentSpeed then
@@ -423,12 +432,13 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 	currentTime = currentTime + reactionTime
 	currentPos = currentPos + reactionPathVec
 
+	maxCurveSpeed = math.min(maxCurveSpeed, currentSpeed)
+
 	-- we need to brake down to maxCurveSpeed
 	if currentSpeed > maxCurveSpeed then
-		-- log("brake to curve")
-
 		local brakeTime = (currentSpeed - maxCurveSpeed) / hardBrakeAccel
 		local brakeDist = 0.5 * hardBrakeAccel * brakeTime * brakeTime + maxCurveSpeed * brakeTime
+		local linearPathVec = startSpeed:copy():setLength(brakeDist)
 
 		local curveDist = absAngleDiff * radius
 		local curveTime = curveDist / maxCurveSpeed
@@ -436,7 +446,6 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 		currentTime = brakeTime + curveTime
 		currentSpeed = maxCurveSpeed
 
-		local linearPathVec = startSpeed:copy():setLength(brakeDist)
 		local curvePathVec = Vector(math.sin(rawAngleDiff), math.cos(rawAngleDiff) - 1) * radius
 		curvePathVec:rotate(startSpeed:angle())
 		currentPos = currentPos + linearPathVec + curvePathVec
@@ -447,15 +456,15 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 
 	local linearAccelTime = (maxSpeed - currentSpeed) / speedupAccel
 	local linearBrakeTime = (maxSpeed - endSpeed) / brakeAccel
-	local linearAccelDist = 0.5 * speedupAccel * linearAccelTime * linearAccelTime + currentSpeed * linearAccelTime 
+	local linearAccelDist = 0.5 * speedupAccel * linearAccelTime * linearAccelTime + currentSpeed * linearAccelTime
 	local linearBrakeDist = 0.5 * brakeAccel * linearBrakeTime * linearBrakeTime + endSpeed * linearBrakeTime
 
 	-- case 1: robot reaches maxSpeed
 	local maxSpeedDist = remainingDist - linearAccelDist - linearBrakeDist
 	if maxSpeedDist >= 0 then
 		local maxSpeedTime = maxSpeedDist / maxSpeed
-		local expBrakeExtraTime = 0
-		return currentTime + linearAccelTime + maxSpeedTime + linearBrakeTime + expBrakeExtraTime
+		local expBrakeExtraTime = 0.1
+		return currentTime + linearAccelTime + maxSpeedTime + linearBrakeTime + expBrakeExtraTime, currentTime
 	end
 
 	-- case 2: robot has to brake immediately
@@ -466,8 +475,8 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 			local speedDiff = endSpeed - currentSpeed
 			local immediateBrakeAccel = (0.5 * speedDiff * speedDiff + currentSpeed * speedDiff) / remainingDist
 			local immediateBrakeTime = speedDiff / immediateBrakeAccel
-			local expBrakeExtraTime = 0
-			return currentTime + immediateBrakeTime + expBrakeExtraTime
+			local expBrakeExtraTime = 0.1
+			return currentTime + immediateBrakeTime + expBrakeExtraTime, currentTime
 		end
 	end
 
@@ -477,7 +486,7 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 		local slowAccelDist = 0.5 * speedupAccel * slowAccelTime * slowAccelTime + currentSpeed * slowAccelTime
 		if slowAccelDist > remainingDist then
 			local accelTime = (-currentSpeed + math.sqrt(currentSpeed * currentSpeed + 2 * speedupAccel * remainingDist)) / speedupAccel
-			return currentTime + accelTime
+			return currentTime + accelTime, currentTime
 		end
 	end
 
@@ -503,8 +512,8 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector)
 	local C = -distSym
 	local timeSym = math.solveSq(A, B, C)
 
-	local expBrakeExtraTime = 0
-	return currentTime + timeDiff + timeSym + expBrakeExtraTime
+	local expBrakeExtraTime = 0.1
+	return currentTime + timeDiff + timeSym + expBrakeExtraTime, currentTime
 end
 
 --- approximates the time the given robot needs to pos for a given endSpeed
@@ -646,6 +655,49 @@ function Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_
 	-- calculate and save the robot time
 	local endSpeed = (x_robot - robot.pos):setLength(endSpeedLength)
 	return Physics.robotTimeToPos(robot, x_robot, endSpeed, true)
+end
+
+local function dist(v0, v1, a)
+	local t = math.abs(v0 - v1) / a
+	return (v0 + v1) * t / 2, t
+end
+
+local function angleForTime(accA, accB, time, startSpeed)
+	-- y1 = t * accA + startSpeed
+	-- y2 = (t - time) * -accB + endSpeed
+
+	local t = (time * accB - startSpeed) / (accA + accB)
+	local maxSpeed = t * accA + startSpeed
+
+	return dist(startSpeed, maxSpeed, accA) + dist(maxSpeed, 0, accB)
+end
+
+
+-- calculates the degrees that a robot can turn in a given timespan
+-- @param robot Robot
+-- @param time Number - how much time (in seconds) the robot has to turn
+-- @return dist1 Number - the angle the robot can turn clockwise
+-- @return dist2 Number - the angle the robot can turn counter-clockwise
+function Physics.robotRotationRangeForTime(robot, time)
+	local angularSpeed = robot.angularSpeed
+	local maxAccel = robot.acceleration.aSpeedupPhiMax
+	local maxDecel = robot.acceleration.aBrakePhiMax
+	local extraDist, brakeTime = dist(angularSpeed, 0, maxDecel)
+
+	local dist1 = angleForTime(maxAccel, maxDecel, time, math.abs(angularSpeed))
+	local dist2
+	if brakeTime < time then
+		dist2 = angleForTime(maxAccel, maxDecel, time - brakeTime, 0) - extraDist
+	else
+		local minEndSpeed = math.abs(angularSpeed) - time*maxDecel
+		dist2 = -dist(math.abs(angularSpeed), minEndSpeed, maxDecel)
+	end
+
+	if angularSpeed < 0 then
+		return dist1, dist2
+	else
+		return dist2, dist1
+	end
 end
 
 local function rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t_out)
@@ -840,336 +892,6 @@ function Physics.robotTimeToBall(robot, ball, targetPos, endSpeedLength, lastTim
 	--local time1 = amun.getCurrentTime()
 	--plot.aggregate("robotTimeToBall", time1 - time0)
 	return t_ball
-end
-
---- calculates the time the robot takes to reach the ball (without caring about directions and stuff)
--- @param robot Robot - the robot
--- @param ball Ball - a ball-like structure
--- @param howClose number - the intended distance between the centers of robot and ball; this defaults to robot.radius + ball.radius
--- @return number - the estimated time
--- @return Vector - the catch position
--- @return bool - was robot.maxSpeed exceeded?
-local epsilon_t = 0.001
-function Physics.getBallAsFastAsPossible(robot, ball, howClose)
-	howClose = howClose or robot.radius + ball.radius
-	if ball.pos:distanceTo(robot.pos) < howClose then
-		-- we already have the ball, but still some idiot called this function
-		return 0, robot.pos, true
-	end
-	--local t = 0
-	local a_max = math.abs(robot.acceleration and robot.acceleration.aSpeedupFMax or 1.0)
-	local ballStopTime = Physics.ballStopTime(ball)
-	local ballPosAtCatchTime
-	local t_catch = math.huge
-	if ballStopTime < 10*epsilon_t then
-		-- easy, such that no search over different times (of the ball position) must be done
-		--log("ball is lying already")
-		ballPosAtCatchTime = ball.pos
-		local coefficients = {-0.25*a_max*a_max, 0, robot.speed:lengthSq() - a_max*howClose, 2*(robot.pos - ballPosAtCatchTime):dot(robot.speed), (robot.pos - ballPosAtCatchTime):lengthSq() - howClose*howClose}
-		--log(coefficients[1].."x^4 + "..coefficients[2].."x^3 + "..coefficients[3].."x^2 + "..coefficients[4].."x + "..coefficients[5])
-		local zeros = math.realRootsOfPolynomial(coefficients)
-		-- 0 zeros is not possible because that would mean we have the ball for all times, also for t = 0 which was checked before
-		-- furthermore the condition that we don't have the ball at t = 0 leads to at least 1 zero for t > 0 because we will definitely get the ball for large t
-		for _, t in ipairs(zeros) do
-			if t > 0 then
-				if t < t_catch then
-					t_catch = t
-				end
-			end
-		end
-		-- local a = -0.25*a_max*a_max
-		-- local c = robot.speed:lengthSq() - a_max*howClose
-		-- local d = 2*(robot.pos - ball.pos):dot(robot.speed)
-		-- local e = (robot.pos - ball.pos):lengthSq() - howClose*howClose
-		-- local discr4 = 256*a*a*a*e*e*e - 128*a*a*c*c*e*e + 144*a*a*c*d*d*e - 27*a*a*d*d*d*d + 16*a*c*c*c*c*e - 4*a*c*c*c*d*d
-		-- if discr4 > 0 then
-			-- -- 4 real solutions
-			-- -- in this case at least the first solution must be at negative time
-			-- -- so directly start searching for the two inner solutions
-			-- -- if none of them is at positive time, search the fourth solution
-			-- local t2 = math.sqrt(c/((-6)*a)) -- 12at²+2c=0 => t=sqrt(-c/6a)
-			-- local t1 = -t2 -- points of inflection as starting points for Newton search
-			-- while math.abs(t2 - t1) > 2*epsilon_t do -- if the two solutions are too close together, they are vulnerable to instabilities
-				-- local t1New = t1 - (a*t1*t1*t1*t1 + c*t1*t1 + d*t1 + e)/(4*a*t1*t1*t1 + 2*c*t1 + d*t1)
-				-- local finished = (math.abs(t1 - t1New) < epsilon_t)
-				-- t1 = t1New
-				-- local t2New = t2 - (a*t2*t2*t2*t2 + c*t2*t2 + d*t2 + e)/(4*a*t2*t2*t2 + 2*c*t2 + d*t2)
-				-- finished = finished and (math.abs(t2 - t2New) < epsilon_t)
-				-- t2 = t2New
-				-- if finished then
-					-- break
-				-- end
-			-- end
-			-- if t1 > 0 then
-				-- -- accept solution 1
-				-- -- calculate position and whether robot.maxSpeed was exceeded
-				-- local circleCenter = robot.pos + robot.speed*t1
-				-- local accelDir = ball.pos - circleCenter
-				-- local robotEndPos = ball.pos - accelDir:setLength(howClose)
-				-- local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*t1 -- end speed is max speed
-				-- return t1, robotEndPos, (robotEndSpeed:lengthSq() > robot.maxSpeed*robot.maxSpeed)
-			-- else
-				-- if t2 > 0 then
-					-- -- accept solution 2
-					-- -- calculate position and whether robot.maxSpeed was exceeded
-					-- local circleCenter = robot.pos + robot.speed*t2
-					-- local accelDir = ball.pos - circleCenter
-					-- local robotEndPos = ball.pos - accelDir:setLength(howClose)
-					-- local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*t2 -- end speed is max speed
-					-- return t2, robotEndPos, (robotEndSpeed:lengthSq() > robot.maxSpeed*robot.maxSpeed)
-				-- else
-					-- -- search for outer solution
-					-- local lowerBound = t2 + epsilon_t
-					-- local f_low = a*lowerBound*lowerBound*lowerBound*lowerBound + c*lowerBound*lowerBound + d*lowerBound + e
-					-- local upperBound = lowerBound + 1
-					-- local f_upp = a*upperBound*upperBound*upperBound*upperBound + c*upperBound*upperBound + d*upperBound + e
-					-- -- search for suiting interval that includes the solution
-					-- while math.sign(f_low) == math.sign(f_upp) do
-						-- lowerBound = upperBound
-						-- f_low = f_upp
-						-- upperBound = upperBound + 1
-						-- f_upp = a*upperBound*upperBound*upperBound*upperBound + c*upperBound*upperBound + d*upperBound + e
-					-- end
-					-- -- find solution via bisection
-					-- while upperBound - lowerBound > epsilon_t do
-						-- local newBound = lowerBound + f_low*(upperBound - lowerBound)/(f_low + f_upp)
-						-- local f_new = a*newBound*newBound*newBound*newBound + c*newBound*newBound + d*newBound + e
-						-- if math.sign(f_new) == math.sign(f_low) then
-							-- lowerBound = newBound
-							-- f_low = f_new
-						-- else
-							-- upperBound = newBound
-							-- f_upp = f_new
-						-- end
-					-- end
-					-- -- calculate position and whether robot.maxSpeed was exceeded
-					-- local circleCenter = robot.pos + robot.speed*upperBound
-					-- local accelDir = ball.pos - circleCenter
-					-- local robotEndPos = ball.pos - accelDir:setLength(howClose)
-					-- local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*upperBound -- end speed is max speed
-					-- return upperBound, robotEndPos, (robotEndSpeed:lengthSq() > robot.maxSpeed*robot.maxSpeed)
-				-- end
-			-- end
-		--else
-			-- 2 real solutions (the case of 0 solutions cannot occur here) where exactly 1 of them is at positive time
-		--end
-	-- end
-	-- local ballStopPos = Physics.ballAtTime(ball, ballStopTime).pos
-	-- local tr_ball = ballStopPos - ball.pos
-	-- local a = tr_ball:lengthSq()
-	-- local dist0 = ball.pos - robot.pos
-	-- local b0 = 2*tr_ball:dot(dist0)
-	-- local c0 = dist0:lengthSq() - R*R
-	-- local lambda01, lambda02 = math.solveSq(a, b0, c0)
-	-- if lambda01 then
-		-- if lambda01 <= 1 and lambda01 > 0 then
-			-- if lambda02 <= 1 and lambda02 > 0 then
-				-- -- case 2
-			-- else
-				-- -- case 3
-			-- end
-		-- else
-			-- if lambda02 <= 1 and lambda02 > 0 then
-				-- -- case 3
-			-- else
-				-- -- only possible in case 1
-			-- end
-		-- end
-	-- else
-		-- -- case 4
-	-- end
-	-- while todo do -- FIXME
-		-- local R = 0.5*a_max*t*t + robot.radius
-		-- local otherStuff = tr_ball*t - dist0
-		-- --solve |ball.pos(lambda) - (x_0 + v_0*t)|² = (1/2*a_max*t² + robot.radius)² for lambda
-		-- local b = -2*tr_ball:dot(otherStuff)
-		-- local c = otherStuff:lengthSq() - R*R
-		-- local lambda1, lambda2 = math.solveSq(a, b, c)
-		-- if lambda1 then
-			-- local ballRollTime
-			-- if lambda1 >= 0 and lambda1 <= 1 then
-				-- local dist = lambda1*math.sqrt(a)
-				-- ballRollTime = Physics.ballRollTime(ball, dist)
-			-- end
-			-- if lambda2 then
-
-			-- else
-
-			-- end
-		-- else
-
-		-- end
-	-- end
-	else
-		-- check if we can catch the ball while rolling
-		-- local ballStopPosition = Physics.ballAtTime(ball, ballStopTime)
-		-- local ballTranslationVector = ball.pos - ballStopPosition
-		-- -- calculate the points where the robot circle touches the ball line
-		-- -- therefore calculate all cuts of the robot circle with the ball line
-		-- -- which is done by solving the following polynomial of 2nd degree for lambda:
-		-- -- lambda²*|ballTranslationVector|² + 2*lambda*ballTranslationVector:dot(ball.pos - (robot.pos + robot.speed*t)) + |ball.pos - (robot.pos + robot.speed*t)|² - (howClose + a_max*t²/2)² = 0
-		-- -- this gives 0 to 2 solutions; the "touching points" are the cases with exactly 1 solution -> discriminant = 0
-		-- -- discriminant = 4*(ballTranslationVector:dot(ball.pos - (robot.pos + robot.speed*t)))² - 4*|ballTranslationVector|²*(|ball.pos - (robot.pos + robot.speed*t)|² - (howClose + a_max*t²/2)²)
-		-- -- this is 0 for 0, 2 or 4 real t depending on its discriminant (=discriminant2plus/minus)
-		-- local det = robot.speed.y*ballTranslationVector.x - robot.speed.x*ballTranslationVector.y
-		-- local ballTravelDistance = ballTranslationVector:length()
-		-- local g = math.abs(det)/ballTravelDistance
-		-- local diff = ball.pos - robot.pos
-		-- local det2 = diff.y*ballTranslationVector.x - diff.x*ballTranslationVector.y
-		-- local detdet = math.sign(det)*det2
-		-- local discriminant2plus = g*g - 2*a_max*(howClose + detdet)
-		-- local discriminant2minus = g*g - 2*a_max*(howClose - detdet)
-		-- local t_touch = {}
-		-- if discriminant2plus > 0 then
-			-- local sqrtDiscriminant2plus = math.sqrt(discriminant2plus)
-			-- local temp = (-g + sqrtDiscriminant2plus)/a_max
-			-- if temp > 0 then
-				-- -- only regard positive times
-				-- t_touch[1] = temp
-			-- end
-			-- temp = (-g - sqrtDiscriminant2plus)/a_max
-			-- if temp > 0 then
-				-- table.insert(t_touch, temp)
-			-- end
-		-- end
-		-- if discriminant2minus > 0 then
-			-- local sqrtDiscriminant2minus = math.sqrt(discriminant2minus)
-			-- local temp = (g + sqrtDiscriminant2minus)/a_max
-			-- if temp > 0 then
-				-- table.insert(t_touch, temp)
-			-- end
-			-- temp = (g - sqrtDiscriminant2minus)/a_max
-			-- if temp > 0 then
-				-- table.insert(t_touch, temp)
-			-- end
-		-- end
-		-- if #t_touch == 0 then
-			-- -- robot circle cuts (or touches) the ball line for all t
-
-		-- else
-			-- table.sort(t_touch)
-			-- -- now we have up to 3 t_touch -> up to two intervals in which we can search for the first possible catch position
-			-- -- but maybe some of them lie outside of the ball line segment -> calculate the corresponding lambdas
-			-- local lambda = {}
-			-- local slope = robot.speed:dot(ballTranslationVector)
-			-- for i = 1, #t_touch do
-				-- local a = ballTravelDistance*ballTravelDistance
-				-- local centerDistance = diff - robot.speed*t_touch[i]
-				-- local bHalf = ballTranslationVector:dot(centerDistance)
-				-- lambda[i] = -bHalf/a
-				-- -- if lambda lies outside [0,1] we have to find the point of time when the robot circle leaves the ball line segment
-				-- -- here we can make use of the fact that the lambdas are monotically with respect to its index depending on sign(slope)
-				-- -- i.e. if lamda[2] > 1 and lambda[1] < 1 then lambda[3] > 1
-				-- -- TODO
-			-- end
-		-- end
-		-- -- now we have 1 or 2 time intervals during which the robot circle cuts the ball line segment
-		-- -- -> perform a search on these intervals to find the earliest moment when the ball touches the robot circle
-		-- -- beginning with the earlier one of the intervals
-		-- -- TODO: Zeitintervalle in earlyInterval und lateInterval aufteilen
-		-- local found = false
-		-- if earlyInterval then
-			-- local t1, t2 = t_touch[1], t_touch[2]
-			-- local dist1 = Physics.ballTravelledDistance(ball, t1)/ballTravelDistance - lambda[1]
-			-- local dist2 = Physics.ballTravelledDistance(ball, t2)/ballTravelDistance - lambda[2]
-			-- -- TODO lambdas anpassen, wenn t_touch modifiziert wurde (durch BallStrecke)
-			-- local sign1 = math.sign(dist1) -- if negative the ball is in front of the robot at t_touch[1]
-			-- if sign1 ~= math.sign(dist2) then
-			-- -- TODO: Das ist nicht die einzige Möglichkeit, wann es eine Lösung im earlyInterval geben kann
-				-- -- in earlyInterval there is a solution
-				-- while t2 - t1 > epsilon_t do
-					-- local tNew = t2 - (t2 - t1)/(dist2 - dist1)*dist2
-					-- local _, _, l1, l2 = geom.intersectLineCircle(ball.pos, ballTranslationVector, robot.pos + robot.speed*tNew, howClose + 0.5*a_max*tNew*tNew)
-					-- local ballLambdaNew = Physics.ballTravelledDistance(ball, tNew)/ballTravelDistance
-				-- end
-				-- found = true
-			-- end
-		-- end
-		-- if not found then
-			-- -- search all times after t_touch[last]
-
-		-- end
-		local t_sw, v_sw, s_sw = Physics.ballSwitchParameters(ball)
-		local found = false
-		local vBall, vDiff, sDiff
-		if t_sw > 0 then
-			-- search for a solution in [0, t_sw]
-			local a = 0.25*(Constants.fastBallDeceleration*Constants.fastBallDeceleration - a_max*a_max)
-			vBall = ball.speed:length()
-			vDiff = robot.speed - ball.speed
-			sDiff = robot.pos - ball.pos
-			local b = vDiff:dot(ball.speed)*Constants.fastBallDeceleration/vBall
-			local c = vDiff:lengthSq() + ball.speed:dot(sDiff) - a_max*howClose
-			local d = 2*sDiff:dot(vDiff)
-			local e = sDiff:lengthSq() - howClose*howClose
-			local coefficients = {a, b, c, d, e}
-			local zeros = math.realRootsOfPolynomial(coefficients)
-			for _, t in ipairs(zeros) do
-				if t > 0 then
-					if t < t_catch then
-						t_catch = t
-					end
-				end
-			end
-			if t_catch < t_sw then
-				found = true
-			else
-				t_catch = math.huge
-			end
-		end
-		if not found then
-			-- search for a solution in [t_sw, ballStopTime]
-			local a = 0.25*(Constants.ballDeceleration*Constants.ballDeceleration - a_max*a_max)
-			local vBallSwitch = ball.speed:copy():setLength(v_sw)
-			vDiff = robot.speed - vBallSwitch
-			local sBallSwitch = ball.pos + ball.speed:copy():setLength(s_sw)
-			sDiff = robot.pos - sBallSwitch
-			local b = vDiff:dot(vBallSwitch)*Constants.ballDeceleration/v_sw
-			local c = vDiff:lengthSq() + vBallSwitch:dot(sDiff) - a_max*howClose
-			local d = 2*sDiff:dot(vDiff)
-			local e = sDiff:lengthSq() - howClose*howClose
-			local coefficients = {a, b, c, d, e}
-			local zeros = math.realRootsOfPolynomial(coefficients)
-			local lowerBound = math.max(0, t_sw)
-			for _, t in ipairs(zeros) do
-				if t > lowerBound then
-					if t < t_catch then
-						t_catch = t
-					end
-				end
-			end
-			if t_catch < ballStopTime then
-				found = true
-			else
-				t_catch = math.huge
-			end
-		end
-		if not found then
-			-- search for a solution in [ballStopTime, math.huge[
-			local sRoll = v_sw*v_sw/(2*Constants.ballDeceleration)
-			local ballStopPos = ball.pos + ball.speed:copy():setLength(s_sw + sRoll)
-			sDiff = robot.pos - ballStopPos
-			local coefficients = {-0.25*a_max*a_max, 0, robot.speed:lengthSq() - a_max*howClose, 2*sDiff:dot(robot.speed), sDiff:lengthSq() - howClose*howClose}
-			local zeros = math.realRootsOfPolynomial(coefficients)
-			for _, t in ipairs(zeros) do
-				if t > ballStopTime then
-					if t < t_catch then
-						t_catch = t
-					end
-				end
-			end
-			-- there must be a solution now
-			-- otherwise there is a mistake in the function
-		end
-	end
-	local circleCenter = robot.pos + robot.speed*t_catch
-	if not ballPosAtCatchTime then
-		ballPosAtCatchTime = Physics.ballAtTime(ball, t_catch).pos
-	end
-	local accelDir = ballPosAtCatchTime - circleCenter
-	local robotEndPos = ballPosAtCatchTime - accelDir:setLength(howClose)
-	local robotEndSpeed = robot.speed + accelDir:setLength(a_max)*t_catch -- end speed is max speed
-	return t_catch, robotEndPos, (robotEndSpeed:lengthSq() < robot.maxSpeed*robot.maxSpeed)
 end
 
 return Physics

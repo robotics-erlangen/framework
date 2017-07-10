@@ -32,7 +32,7 @@ function CatchBall:init()
 end
 
 --- Tries to catch the ball, is designed for catching a moving ball
--- @param targetPos Vector - point to look at when having catched the ball
+-- @param targetPos Vector - point to look at when having caught the ball
 -- @param distanceToBall number - distance the robot should keep to the ball, only sensible for a stopped ball, defaults to 0
 -- @param [targetSpeed number - intended ball speed at target]
 -- @param [maxSpeed number - maximum speed of the robot]
@@ -75,7 +75,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 
 	-- predict ball and catch it
 	local predictedBall = Physics.ballAtTime(ball, self._catchTime)
-	if ballInsideRobot then
+	if ballInsideRobot or predictedBall.pos:isNan() or predictedBall.speed:isNan() then
 		predictedBall = { pos = self._lastReasonableBallPos, speed = Vector(0, 0), maxSpeed = ball.maxSpeed, radius = ball.radius }
 	end
 
@@ -125,6 +125,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
 	self._send.moveDest("all", moveDest)
 	self._send.attackPosition("all", predictedBall.pos)
+	self._send.attackTime("all", time)
 
 	-- update prediction
 	-- keep old time if no way was found
