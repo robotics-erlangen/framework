@@ -161,7 +161,7 @@ function Robot:_updateUserControl(command)
 
 	local v = Vector(command.v_s, command.v_f)
 	local omega = command.omega
-	if command.direct then
+	if command["local"] then
 		-- correctly align local and strategy coordinate system
 		-- self.dir can be nil if robot was not yet visible
 		local dir = self.isVisible and self.dir or math.pi/2
