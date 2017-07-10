@@ -7,7 +7,8 @@ local World = require "../base/world"
 local Physics = require "observer/physics"
 local MoveToPos = require "task/movetopos"
 
-TimeToPos.N_ROBOTS = 1
+TimeToPos.MIN_ROBOTS = 1
+TimeToPos.MAX_ROBOTS = 1
 
 function TimeToPos.canStart()
 	return true

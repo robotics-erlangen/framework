@@ -4,7 +4,8 @@ local World = require "../base/world"
 local Physics = require "observer/physics"
 local Pass = require "task/pass"
 
-ChipTimeTest.N_ROBOTS = 1
+ChipTimeTest.MIN_ROBOTS = 1
+ChipTimeTest.MAX_ROBOTS = 1
 
 function ChipTimeTest.canStart()
 	return true

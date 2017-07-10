@@ -8,7 +8,8 @@ local AcceptPass = require "task/acceptpass"
 local Striker = require "task/striker"
 local Attack = require "util/attack"
 
-Volley.N_ROBOTS = 2
+Volley.MIN_ROBOTS = 2
+Volley.MAX_ROBOTS = 2
 
 function Volley.canStart()
 	return World.RefereeState == "Stop" or World.RefereeState == "IndirectOffensive"
