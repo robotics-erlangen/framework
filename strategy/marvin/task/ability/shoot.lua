@@ -136,7 +136,8 @@ function Shoot:_getState(targetPos, futureBall, futureBallTime)
 	end
 
 	-- don't redecide if the ball is very close
-	if futureBallTime < 0.3 then
+	-- if the the state is stop (especially when reset) give it a chance to redecide
+	if self._state == "StopBall" and futureBallTime < 0.25 or futureBallTime < 0.3 then
 		return self._state
 	end
 
