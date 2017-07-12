@@ -49,6 +49,13 @@ function Attack.ratePass(robot, pass, considerTiming)
 		rating = rating * (1 - volleyWeight + volleyWeight * volleyRating)
 	end
 
+	-- rate angle shooter-goal-receiver
+	local shooterGoalReceiverAngle = (shootPos - World.Geometry.OpponentGoal):absoluteAngleDiff(
+			pass.ballPos - World.Geometry.OpponentGoal)
+	local shooterGoalReceiverRating = Rating.valueToRating(shooterGoalReceiverAngle, 0, 180 / 180 * math.pi)
+	local shooterGoalReceiverWeight = 0.5
+	rating = rating * (1 - shooterGoalReceiverWeight + shooterGoalReceiverWeight * shooterGoalReceiverRating)
+
 	-- rate possible interceptions
 	for _,opp in ipairs(World.OpponentRobots) do
 
