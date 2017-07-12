@@ -345,7 +345,12 @@ end
 -- @param rollingBallPos Vector - where the ball is starting to roll
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
 function Shoot:_chipPass(rollingBallPos, ballReceiptPos, precision)
-	local origin = ballReceiptPos or World.Ball.pos
+	local origin
+	if ballReceiptPos and (ballReceiptPos - World.Ball.pos):dot(World.Ball.speed) > 0 then
+		origin = ballReceiptPos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
+	else
+		origin = World.Ball.pos
+	end
 	local firstContactPos = origin + (rollingBallPos - origin):scaleLength(CHIP_PASS_DISTANCE_FACTOR)
 	self:_chipToPos(firstContactPos, ballReceiptPos, precision)
 end
