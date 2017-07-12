@@ -50,14 +50,14 @@ local function getRandomPosition(positions, maxShootingAngle)
 	-- extend the found position backwards
 	lastPointNearOppDefenseArea = circle + (lastPointNearOppDefenseArea - circle):setLength(randomExtension(radius + extraDistForRobotToShoot))
 	-- angleDiff between the found positions
-	local angleDiff = ((firstPointNearBall - circle)):angleDiff((lastPointNearOppDefenseArea - circle)) / (BallCycle.N_ROBOTS - 2)
+	local angleDiff = ((firstPointNearBall - circle)):angleDiff((lastPointNearOppDefenseArea - circle)) / (BallCycle.MIN_ROBOTS - 2)
 	-- make sure all positions are inside the field
 	firstPointNearBall = Field.limitToAllowedField(firstPointNearBall, 0.3)
 	lastPointNearOppDefenseArea = Field.limitToAllowedField(lastPointNearOppDefenseArea, 0.3)
 	table.insert(positions, firstPointNearBall)
 	table.insert(positions, lastPointNearOppDefenseArea)
 	-- find positions for the other robots
-	for i = 1, (BallCycle.N_ROBOTS - 3) do
+	for i = 1, (BallCycle.MIN_ROBOTS - 3) do
 		local pos = circle + ((firstPointNearBall- circle):rotate(i * angleDiff)):setLength(randomExtension(radius + extraDistForRobotToShoot))
 		table.insert(positions, Field.limitToAllowedField(pos, 0.3))
 	end
