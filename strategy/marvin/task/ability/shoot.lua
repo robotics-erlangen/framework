@@ -283,6 +283,11 @@ function Shoot:_shootStopBall(futureBall, futureBallTime)
 		self:_catchBall(ballOrigin, 0, 8)
 	end
 
+	-- activate dribbler to stop the ball
+	if futureBallTime < 0.3 then
+		self._robot:setDribblerSpeed(1)
+	end
+
 	self._rightOrientation = false
 end
 
