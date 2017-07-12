@@ -57,8 +57,9 @@ function ShootGoal:run()
 
 	if not self._shootTargetPoint or World.Ball.speed:length() < 1 or
 			World.Ball.pos:distanceTo(self._robot.pos) > 0.8 then
+		local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
 		self._shootTargetPoint, self._shootTargetWidth, self._dirty =
-			ShootGoalUtil.updateTarget(self._robot, self._shootTargetPoint, self._dirty)
+			ShootGoalUtil.updateTarget(self._robot, self._shootTargetPoint, self._dirty, attackPosition)
 	end
 
 	if self._ballReceiptPos then
