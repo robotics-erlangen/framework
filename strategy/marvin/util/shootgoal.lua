@@ -8,6 +8,8 @@ local G = World.Geometry
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 
+local Volley = require "task/ability/volley"
+
 -- for testing purpose, used in ShootGoal.findTarget
 local vis = require "../base/vis"
 local debug = require "../base/debug"
@@ -89,34 +91,46 @@ function ShootGoal.findTarget(ownRobot, viewPos, ignoreGoalie, oldTarget)
 
 	-- get time left until the ball reaches viewPos
 	local distance = (viewPos - World.Ball.pos):length()
-	local fakeBall = {speed = World.Ball.speed, pos = World.Ball.pos, maxSpeed = World.Ball.maxSpeed}
-	local catchPos = viewPos + (ownRobot.pos - viewPos):setLength(ownRobot.shootRadius + World.Ball.radius)
-	local timeLeft = math.max(Physics.ballRollTime(fakeBall, distance), Physics.robotTimeToPos(ownRobot, catchPos, ownRobot.speed))
+	local timeLeft = Physics.ballRollTime(World.Ball, distance)
 	debug.set("timeLeft", timeLeft)
 
 	-- get possible rotation in the time we have left
 	local dist1, dist2 = Physics.robotRotationRangeForTime(ownRobot, timeLeft)
 	local startAngle, endAngle
 
-	if math.abs(dist1) + math.abs(dist2) < 2* math.pi then
-		debug.set("clockwise", ownRobot.dir - dist1)
-		debug.set("counter-clockwise", ownRobot.dir + dist2)
-		startAngle = math.max(goalStart, ownRobot.dir - dist1)
-		endAngle = math.min(goalEnd, ownRobot.dir + dist2)
+	-- apply volley calculations
+	local volleyDir
+	if oldTarget then
+		volleyDir = (oldTarget - viewPos):angle()
+	else
+		local volley_x, volley_y = Volley.calcVOut(8, World.Ball.speed:length(), ownRobot.dir, World.Ball.speed:angle())
+		volleyDir = Vector(volley_x, volley_y):angle()
+	end
+
+	if math.abs(dist1) + math.abs(dist2) < 2 * math.pi then
+		dist1 = math.max(dist1, 1 * math.pi / 180)
+		dist2 = math.max(dist2, 1 * math.pi / 180)
+		debug.set("clockwise", volleyDir - dist1)
+		debug.set("counter-clockwise", volleyDir + dist2)
+		startAngle = math.max(goalStart, volleyDir - dist1)
+		endAngle = math.min(goalEnd, volleyDir + dist2)
 	else
 		startAngle = goalStart
 		endAngle = goalEnd
 	end
 	debug.pop()
 
+
 	-- vis test
 	local vecGS = viewPos + Vector.fromAngle(startAngle):setLength(8)
 	local vecGE = viewPos + Vector.fromAngle(endAngle):setLength(8)
+	vis.addPath("u/shootgoal findTarget Range", {viewPos, viewPos + Vector.fromAngle(volleyDir)}, vis.colors.black)
+	vis.addPath("u/shootgoal findTarget Range", {viewPos, viewPos + Vector.fromAngle(ownRobot.dir)}, vis.colors.yellow)
 	vis.addPath("u/shootgoal findTarget Range", {viewPos, vecGS}, vis.colors.blue)
 	vis.addPath("u/shootgoal findTarget Range", {viewPos, vecGE}, vis.colors.blue)
 	if math.abs(dist1) + math.abs(dist2) < 2* math.pi then
-		vis.addPath("u/shootgoal findTarget Range", {viewPos, viewPos + Vector.fromAngle(ownRobot.dir - dist1):setLength(8)}, vis.colors.green)
-		vis.addPath("u/shootgoal findTarget Range", {viewPos, viewPos + Vector.fromAngle(ownRobot.dir + dist2):setLength(8)}, vis.colors.red)
+		vis.addPath("u/shootgoal findTarget Range", {viewPos, viewPos + Vector.fromAngle(volleyDir - dist1):setLength(8)}, vis.colors.green)
+		vis.addPath("u/shootgoal findTarget Range", {viewPos, viewPos + Vector.fromAngle(volleyDir + dist2):setLength(8)}, vis.colors.red)
 	end
 
 	-- get all free sectors
