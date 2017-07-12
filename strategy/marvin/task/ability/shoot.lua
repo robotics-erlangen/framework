@@ -72,7 +72,7 @@ function Shoot:_calculateFutureBall(ballReceiptPos)
 	local futureBallPos
 
 	if World.Ball.speed:length() > 0.1 then
-		if ballReceiptPos then
+		if ballReceiptPos and (ballReceiptPos - World.Ball.pos):dot(World.Ball.speed) > 0 then
 			futureBallPos = ballReceiptPos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
 		else
 			local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir):scaleLength(
