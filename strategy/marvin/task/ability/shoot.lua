@@ -49,7 +49,7 @@ local MIN_PRECISION = 3.5 * math.pi / 180
 
 function Shoot:init()
 	-- possible values = { StationaryBall, ChaseBall, Volley, StopBall }
-	self._state = "StationaryBall"
+	self._state = nil
 
 	-- direct movement
 	self._directExtraSpeed = 0
@@ -137,7 +137,7 @@ function Shoot:_getState(targetPos, futureBall, futureBallTime)
 
 	-- don't redecide if the ball is very close
 	-- if the the state is stop (especially when reset) give it a chance to redecide
-	if self._state == "StopBall" and futureBallTime < 0.25 or futureBallTime < 0.3 then
+	if self._state ~= nil and (self._state == "StopBall" and futureBallTime < 0.25 or futureBallTime < 0.3) then
 		return self._state
 	end
 
