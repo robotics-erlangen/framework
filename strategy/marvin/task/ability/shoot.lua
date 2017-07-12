@@ -170,7 +170,7 @@ function Shoot:_sendShootCommand(kickSpeed, targetPos, targetDir)
 	local angleDiff = math.abs(geom.normalizeAngle(self._robot.dir - targetDir))
 	debug.set("Shoot/angleDiff (degrees)", angleDiff * 180 / math.pi)
 
-	local threshhold = self._precision * (self._rightOrientation and 1.5 or 0.5)
+	local threshhold = self._precision * (self._rightOrientation and 1.2 or 0.8)
 	self._rightOrientation = angleDiff < threshhold
 	debug.set("Shoot/rightOrientation", self._rightOrientation)
 
