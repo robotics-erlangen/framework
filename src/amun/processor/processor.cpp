@@ -326,6 +326,8 @@ void Processor::updateCommandVLocal(const world::Robot *robot, robot::Command &c
     float robot_phi = 0;
     if (robot) {
         robot_phi = robot->phi() - M_PI_2;
+        // predict a bit
+        robot_phi += (robot->omega() + command.omega())/2 * (1. / FREQUENCY);
     }
     // rotate cw
     command.set_v_s(std::cos(-robot_phi) * command.v_x() - std::sin(-robot_phi) * command.v_y());

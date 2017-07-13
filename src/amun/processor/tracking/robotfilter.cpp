@@ -170,7 +170,7 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
         float cmd_omega = cmd.first.omega();
 
         // predict phi to execution end time
-        float cmd_phi = phi;
+        float cmd_phi = phi + (omega + cmd_omega) / 2 * cmd_interval;
         float cmd_v_x = std::cos(cmd_phi)*cmd_v_s - std::sin(cmd_phi)*cmd_v_f;
         float cmd_v_y = std::sin(cmd_phi)*cmd_v_s + std::cos(cmd_phi)*cmd_v_f;
 
