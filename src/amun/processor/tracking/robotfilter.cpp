@@ -145,23 +145,15 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
     const double timeDiff = (time - lastTime) * 1E-9;
     Q_ASSERT(timeDiff >= 0);
 
-    // for the filter model see:
-    // Browning, Brett; Bowling, Michael; and Veloso, Manuela M., "Improbability Filtering for Rejecting False Positives" (2002).
-    // Robotics Institute. Paper 123. http://repository.cmu.edu/robotics/123
-
-    // state vector description: (v_s and v_f are swapped in comparision to the paper)
-    // (x y phi v_s v_f omega)
     // local and global coordinate system are rotated by 90 degree (see processor)
     const float phi = kalman->baseState()(2) - M_PI_2;
-    const float v_s = kalman->baseState()(3);
-    const float v_f = kalman->baseState()(4);
+    const float v_x = kalman->baseState()(3);
+    const float v_y = kalman->baseState()(4);
     const float omega = kalman->baseState()(5);
 
     // Process state transition: update position with the current speed
-    kalman->F(0, 3) = std::cos(phi) * timeDiff;
-    kalman->F(0, 4) = -std::sin(phi) * timeDiff;
-    kalman->F(1, 3) = std::sin(phi) * timeDiff;
-    kalman->F(1, 4) = std::cos(phi) * timeDiff;
+    kalman->F(0, 3) = timeDiff;
+    kalman->F(1, 4) = timeDiff;
     kalman->F(2, 5) = timeDiff;
 
     kalman->F(3, 3) = 1;
@@ -177,19 +169,24 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
         float cmd_v_f = cmd.first.v_f();
         float cmd_omega = cmd.first.omega();
 
-        float accel_s = (cmd_v_s - v_s)/cmd_interval;
-        float accel_f = (cmd_v_f - v_f)/cmd_interval;
+        // predict phi to execution end time
+        float cmd_phi = phi;
+        float cmd_v_x = std::cos(cmd_phi)*cmd_v_s - std::sin(cmd_phi)*cmd_v_f;
+        float cmd_v_y = std::sin(cmd_phi)*cmd_v_s + std::cos(cmd_phi)*cmd_v_f;
+
+        float accel_x = (cmd_v_x - v_x)/cmd_interval;
+        float accel_y = (cmd_v_y - v_y)/cmd_interval;
         float accel_omega = (cmd_omega - omega)/cmd_interval;
 
-        float bounded_a_s = qBound(-MAX_LINEAR_ACCELERATION, accel_s, MAX_LINEAR_ACCELERATION);
-        float bounded_a_f = qBound(-MAX_LINEAR_ACCELERATION, accel_f, MAX_LINEAR_ACCELERATION);
+        float bounded_a_x = qBound(-MAX_LINEAR_ACCELERATION, accel_x, MAX_LINEAR_ACCELERATION);
+        float bounded_a_y = qBound(-MAX_LINEAR_ACCELERATION, accel_y, MAX_LINEAR_ACCELERATION);
         float bounded_a_omega = qBound(-MAX_ROTATION_ACCELERATION, accel_omega, MAX_ROTATION_ACCELERATION);
 
         kalman->u(0) = 0;
         kalman->u(1) = 0;
         kalman->u(2) = 0;
-        kalman->u(3) = bounded_a_s * timeDiff;
-        kalman->u(4) = bounded_a_f * timeDiff;
+        kalman->u(3) = bounded_a_x * timeDiff;
+        kalman->u(4) = bounded_a_y * timeDiff;
         kalman->u(5) = bounded_a_omega * timeDiff;
     }
 
@@ -202,8 +199,6 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
 
     // update covariance jacobian
     kalman->B = kalman->F;
-    kalman->B(0, 2) = -(v_s*std::sin(phi) + v_f*std::cos(phi)) * timeDiff;
-    kalman->B(1, 2) = (v_s*std::cos(phi) - v_f*std::sin(phi)) * timeDiff;
 
     // Process noise: stddev for acceleration
     // guessed from the accelerations that are possible on average
@@ -320,11 +315,8 @@ void RobotFilter::get(world::Robot *robot, bool flip, bool noRawData)
     float py = m_futureKalman->state()(1);
     float phi = m_futureKalman->state()(2);
     // convert to global coordinates
-    const float v_s = m_futureKalman->state()(3);
-    const float v_f = m_futureKalman->state()(4);
-    const float tmpPhi = phi - M_PI_2;
-    float vx = std::cos(tmpPhi)*v_s - std::sin(tmpPhi)*v_f;
-    float vy = std::sin(tmpPhi)*v_s + std::cos(tmpPhi)*v_f;
+    float vx = m_futureKalman->state()(3);
+    float vy = m_futureKalman->state()(4);
     float omega = m_futureKalman->state()(5);
 
     if (flip) {
