@@ -180,10 +180,10 @@ local SLOW_BALL = 0.7
 local BEST_ROBOT_HYSTERESIS = 1.1
 local lastBestRobotId = nil
 local function comparePrediction(p1, p2)
-	if p1[2] == p2[2] then
-		return p1[3] < p2[3]
+	if p1.dist == p2.dist then
+		return p1.ballTime < p2.ballTime
 	end
-	return p1[2] > p2[2]
+	return p1.dist > p2.dist
 end
 function Goal.predictShot()
 	local ballSpeed = World.Ball.speed:copy() -- Defend ball by default
@@ -237,7 +237,8 @@ function Goal.predictShot()
 					end
 				end
 				local ballRollTime = Physics.checkedBallRollTime(World.Ball, bestPointOnLine)
-				local catchPos = bestPointOnLine + (robot.pos - bestPointOnLine):setLength(robot.shootRadius)
+				local offsetLength = math.min(robot.shootRadius + World.Ball.radius, robot.pos:distanceTo(bestPointOnLine))
+				local catchPos = bestPointOnLine + (robot.pos - bestPointOnLine):setLength(offsetLength)
 
 				-- calculate chance of the robot reaching catchPos before the ball
 				local weightedDistance
@@ -254,23 +255,25 @@ function Goal.predictShot()
 				end
 
 				if weightedDistance > 0 then
-					table.insert(passReceivers, {robot, weightedDistance, ballRollTime})
+					table.insert(passReceivers, {robot = robot, dist = weightedDistance, ballTime = ballRollTime,
+						catchPos = catchPos})
 					vis.addPath("o/goal: predictShot: to catch position", {robot.pos, catchPos}, vis.colors.red)
 				end
 			end
 			table.sort(passReceivers, comparePrediction)
 
 			if #passReceivers > 0 then -- if there is a pass receiver, just block it
-				local passReciever = passReceivers[1]
-				lastBestRobotId = passReciever[1].id
-				pos = passReciever[1].pos + Vector.fromAngle(passReciever[1].dir) * (passReciever[1].shootRadius + World.Ball.radius)
+				local passReceiver = passReceivers[1]
+				lastBestRobotId = passReceiver.id
+				pos = passReceiver.catchPos
 				local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(pos))
 				local ballSpeedLength = Physics.ballAtTime(World.Ball, ballRollTime).speed:length()
 				local ballAngle = World.Ball.speed:angle()
-				local robotAngle = passReciever[1].dir
+				local robotAngle = passReceiver.robot.dir
 				local dirx, diry = Volley.calcVOut(8, ballSpeedLength, robotAngle, ballAngle)
 				ballSpeed = Vector(dirx, diry):normalize()
-				vis.addCircle("o/goal: predictShot: receives pass", pos, passReciever[1].radius, vis.colors.pink, false)
+				vis.addPath("o/goal: predictShot: receives pass", {passReceiver.robot.pos, pos}, vis.colors.pink)
+				vis.addCircle("o/goal: predictShot: receives pass", pos, passReceiver.robot.radius, vis.colors.pink, false)
 				vis.addPath("o/goal: predictShot: receives pass", {pos, pos + ballSpeed * 10}, vis.colors.pink)
 			end
 		end

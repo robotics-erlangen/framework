@@ -36,7 +36,7 @@ function ManMark:_updateTask()
 
 	-- try to intercept a possible goal shot
 	local _, _, _, passReceivers = Goal.predictShot()
-	local passReceiver = passReceivers[1] and passReceivers[1][1]
+	local passReceiver = passReceivers[1] and passReceivers[1].robot
 	if Defense.dangerousBallTowardsDefense() or self._opp == passReceiver then
 		local defenseAreaIntersection = Field.intersectRayDefenseArea(World.Ball.pos,
 			World.Ball.pos + World.Ball.speed, 0, false)
