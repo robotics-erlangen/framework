@@ -12,15 +12,16 @@ local KeeperChipAway = require "task/chipaway"
 local Pass = require "task/pass"
 local Attack = require "util/attack"
 
-
 local SLOW_BALL = 0.5
 
 function HandleBall:_init()
 	self._pass = nil
+	self._hysteresis = false
 end
 
 function HandleBall:behindCenterbacks(object)
-	local defenseDistance = self._robot.radius + self._robot.shootRadius
+	local hyst = self._hysteresis and 0.1 or 0
+	local defenseDistance = self._robot.radius + self._robot.shootRadius + hyst
 	return Field.distanceToFriendlyDefenseArea(object.pos, object.radius) < defenseDistance
 end
 
@@ -32,7 +33,10 @@ function HandleBall:check()
 	local active = self:behindCenterbacks(World.Ball) and World.Ball.speed:length() <= SLOW_BALL
 	if active then
 		-- force being mainAttacker
+		self._hysteresis = true
 		self:_applyForMainAttacker(nil, nil, 2)
+	else
+		self._hysteresis = false
 	end
 
 	local mainAttackerFlag = self._inbox.mainAttacker().trainer == self._robot

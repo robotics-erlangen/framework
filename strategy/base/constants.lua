@@ -40,7 +40,7 @@ Constants.maxRobotRadius = 0.09
 
 Constants.maxRobotHeight = 0.15
 
-Constants.floorDamping = 0.2 -- vertical speed damping coeffient for a ball hitting the ground
+Constants.floorDamping = 0.55 -- vertical speed damping coeffient for a ball hitting the ground
 
 function Constants.switchSimulatorConstants(isSimulated)
 	if isSimulated then
