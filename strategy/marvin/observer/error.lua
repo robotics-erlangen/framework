@@ -5,6 +5,7 @@ local World = require "../base/world"
 local errorTables = {}
 local batteryTable = {}
 local BATTERY_TABLE_SIZE = 50
+local lastStopTime = 0
 
 function Error.getAverageBatterySate(robot)
 	if not batteryTable[robot] or batteryTable[robot].size == 0 then
@@ -108,8 +109,18 @@ local function updateRefereeState()
 	end
 end
 
+local function updateLastStopTime(isLeavingStop)
+	if isLeavingStop then
+		lastStopTime = World.Time
+	end
+end
+
 function Error.getLastRefChange()
 	return lastRefChange
+end
+
+function Error.getLastStopTime()
+	return lastStopTime
 end
 
 function Error._update()
@@ -120,6 +131,7 @@ function Error._update()
 		end
 	end
 	updateRefereeState()
+	updateLastStopTime(isLeavingStop)
 	updateErrorTables(leavingStop)
 end
 

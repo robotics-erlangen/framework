@@ -3,22 +3,25 @@ local Error = Class("Agent.Shared.Error",Base)
 local ErrorTask = require "task/error"
 local World = require "../base/world"
 local ErrorObserver = require "observer/error"
-local ERROR_TOLERANCE = 50
+local ERROR_TOLERANCE_PER_SEC = 0.8 -- <- [0.5,1]
+local EXCHANGE_ERROR_ROBOTS = true
 
 function Error:check()
 	local errorTable = ErrorObserver.getErrorTable(self._robot)
-	if ErrorObserver.getAverageBatterySate(self._robot)< 0.15 and 0 > ErrorObserver.getAverageBatterySate(self._robot) then
-	--	log(self._robot.id .. " is running low on Battery" ..  ErrorObserver.getAverageBatterySate(self._robot))
+	if ErrorObserver.getAverageBatterySate(self._robot)< 0.11 then
+		return true
+	elseif ErrorObserver.getAverageBatterySate(self._robot)< 0.20
+		and World.RefereeState == "Stop" then
 		return true
 	elseif not errorTable then
 		return false
 	end
 	for k,v in pairs(errorTable) do
-		if v > ERROR_TOLERANCE and k ~= "temperature" then
-			if World.RefereeState == "Stop"
-			and (World.Time - ErrorObserver.getLastRefChange()) == 0 then -- < 3
-				log(self:errorMsg())
-				return true
+		if v > ERROR_TOLERANCE_PER_SEC * (World.Time - ErrorObserver.getLastStopTime())
+		 and k ~= "temperature" and k~="main_sensor_error" then
+			if World.RefereeState == "Stop" then
+				--log(self._robot.id .. " --------   " .. k ..  "  --------------  " .. v)
+				return EXCHANGE_ERROR_ROBOTS
 			end
 		end
 	end
