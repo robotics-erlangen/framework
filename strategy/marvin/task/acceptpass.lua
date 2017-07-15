@@ -6,7 +6,9 @@ local World = require "../base/world"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
-function AcceptPass:_init()
+function AcceptPass:_init(manualPassPos, manualDistance)
+	self._passPos = manualPassPos -- if manualPassPos is set, acceptPass will only try to accept passes close to passPoss
+	self._distance = manualDistance or 0.1
 end
 
 function AcceptPass:run()
@@ -18,8 +20,10 @@ function AcceptPass:run()
 	assert(passInfoTable, "AcceptPass runs although there is no passInfo message")
 	for _, pass in ipairs(passInfoTable) do
 		if pass.target == self._robot or pass.target == nil then
-			assert(not passInfo, "AcceptPass doesn't know which pass to accept")
-			passInfo = pass
+			if not self._pass or self._passPos and self._passPos:distanceTo(pass.ballPos) < self._distance then
+				assert(not passInfo, "AcceptPass doesn't know which pass to accept")
+				passInfo = pass
+			end
 		end
 	end
 	assert(passInfo, "AcceptPass runs despite not being a target")
