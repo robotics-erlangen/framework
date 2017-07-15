@@ -16,7 +16,7 @@ end
 
 function Dribble:run()
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
-	--PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 	self._robot:setDribblerSpeed(0.7)
 
 	local endSpeed = (self._pos - self._robot.pos):setLength(self._endSpeedLength)
