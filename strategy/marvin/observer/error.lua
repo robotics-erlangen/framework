@@ -3,6 +3,35 @@ local Error = {}
 local World = require "../base/world"
 
 local errorTables = {}
+local batteryTable = {}
+local BATTERY_TABLE_SIZE = 50
+
+function Error.getAverageBatterySate(robot)
+	if not batteryTable[robot] or batteryTable[robot].size == 0 then
+		return 1
+	end
+	return batteryTable[robot].sum / batteryTable[robot].size
+end
+
+local function initBatteryTable(robot)
+	batteryTable[robot] = {size= 0, next = 1, sum = 0}
+end
+
+local function addBatteryState(robot, newBatteryState)
+	local robotBatteryTable = batteryTable[robot]
+	if not robotBatteryTable then
+		initBatteryTable(robot)
+		robotBatteryTable = batteryTable[robot]
+	end
+	if robotBatteryTable.size < 50 then
+		robotBatteryTable.sum = robotBatteryTable.sum + newBatteryState
+		robotBatteryTable.size = robotBatteryTable.size  + 1
+	else
+		robotBatteryTable.sum = robotBatteryTable.sum  + newBatteryState - robotBatteryTable[robotBatteryTable.next]
+	end
+	robotBatteryTable[robotBatteryTable.next] = newBatteryState
+	robotBatteryTable.next = math.fmod(robotBatteryTable.next + 1, BATTERY_TABLE_SIZE)
+end
 
 function Error.getErrorTable(robot)
 	return errorTables[robot]
@@ -85,6 +114,11 @@ end
 
 function Error._update()
 	local leavingStop = isLeavingStop()
+	for _, r in ipairs(World.FriendlyRobots) do
+		if r.radioResponse and r.radioResponse.battery then
+			addBatteryState(r,r.radioResponse.battery)
+		end
+	end
 	updateRefereeState()
 	updateErrorTables(leavingStop)
 end

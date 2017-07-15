@@ -1,6 +1,5 @@
 local Base = require "agent/base/behavior"
 local Error = Class("Agent.Shared.Error",Base)
-
 local ErrorTask = require "task/error"
 local World = require "../base/world"
 local ErrorObserver = require "observer/error"
@@ -8,7 +7,10 @@ local ERROR_TOLERANCE = 50
 
 function Error:check()
 	local errorTable = ErrorObserver.getErrorTable(self._robot)
-	if not errorTable then
+	if ErrorObserver.getAverageBatterySate(self._robot)< 0.15 and 0 > ErrorObserver.getAverageBatterySate(self._robot) then
+	--	log(self._robot.id .. " is running low on Battery" ..  ErrorObserver.getAverageBatterySate(self._robot))
+		return true
+	elseif not errorTable then
 		return false
 	end
 	for k,v in pairs(errorTable) do
@@ -16,6 +18,7 @@ function Error:check()
 			if World.RefereeState == "Stop"
 			and (World.Time - ErrorObserver.getLastRefChange()) == 0 then -- < 3
 				log(self:errorMsg())
+				return true
 			end
 		end
 	end
@@ -64,10 +67,10 @@ end
 
 
 function Error:_updateTask()
-	local errorFound = next(ErrorObserver.getErrorTable(self._robot)) ~= nil
-	if errorFound and World.Time == ErrorObserver.getLastRefChange() then
-		log(self:errorMsg())
-	end
+	--local errorFound = next(ErrorObserver.getErrorTable(self._robot)) ~= nil
+	--if errorFound and World.Time == ErrorObserver.getLastRefChange() then
+	--	log(self:errorMsg())
+	--end
 	return ErrorTask
 end
 
