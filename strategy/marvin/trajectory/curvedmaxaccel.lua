@@ -6,6 +6,7 @@ local plot = require "../base/plot"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
+local Constants = require "../base/constants"
 
 function CurvedMaxAccel:_init()
 	self._lastTargetDir = nil
@@ -70,13 +71,16 @@ local function _preprocessPath(waypoints, maxError, robotPos, robotSpeed)
 	end
 end
 
+local G = 9.81
+local MY = Constants.fastBallDeceleration / G
+
 -- create a list of segments with speedLimits at their start and end
 -- idea: instead of targeting the next path corner, target a point some time
 -- in the future (point depents on robot velocity!). This causes the robot
 -- to drive on an approximatelly circular trajectory, the calculations are done using
 -- the osculating circle and the path curvature. Then limit the speed in corners
 -- such that the centripetal force doesn't exceed the possible sidewards acceleration
-local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeed)
+local function _calculateCurveSpeedLimits(robot, waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeed)
 	-- ignore angle between current robot speed and move destination
 	-- this only leads to problems if the path is changing fast
 	local lastPathDir = waypoints[2] - waypoints[1]
@@ -84,7 +88,7 @@ local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxEr
 	local xRemaining = lastPathDir:length()
 	local prev = waypoints[2]
 
-	-- {startSpeed, endSpeed, distance, linearSpeedChange}
+	-- {startSpeed, endSpeed, distance, linearSpeedChange, desiredPhiForDribbling TODO}
 	-- if not linear, then startSpeed is the maximum allowed speed, brakes down to endSpeed as late as possible
 	-- !!! for every entry except the first: distance ~= 0 !!!
 	local maxSpeedProfile = { {startSpeed, maxSpeed, 0} }
@@ -122,6 +126,7 @@ local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxEr
 			local possibleEndRadius = xMaxNext * angleTan -- limit circle radius to available space
 			local endRadius = math.min(radius, possibleEndRadius)
 			local maxEndSpeed = math.sqrt(endRadius * accelLimit)
+		--	log(startRadius .. "," .. endRadius)
 
 			-- time and speed calculation
 			local startDist = startRadius * (1 / angleTan)
@@ -137,8 +142,19 @@ local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxEr
 				table.insert(maxSpeedProfile, {maxSpeed, maxSpeed, xRemaining - startDist}) -- straight line segment
 				-- vis.addPathRaw("waypoints"..tostring(i), {prev - lastPathDir:copy():setLength(xRemaining), prev - lastPathDir:copy():setLength(startDist)}, vis.colors.blue)
 			end
-			table.insert(maxSpeedProfile, {maxStartSpeed, maxEndSpeed, actualDist, true}) -- curved part
-			--vis.addPathRaw("waypoints"..tostring(i), {prev - lastPathDir:copy():setLength(startDist), prev + newPathDir:copy():setLength(endDist)}, vis.colors.blue)
+			-- phi = atan(v * v / r * MY * G)
+			-- G: acceleration of gravity\
+			-- MY: friction of the carpet, m_ball * Costants.fastBallDeceleration = MY * m_ball * G
+			-- -> MY * G = Constants.fastBallDeceleration
+			local startPhi = math.atan(maxStartSpeed * maxStartSpeed / (startRadius * Constants.fastBallDeceleration))
+			local endPhi = math.atan(maxEndSpeed * maxEndSpeed / (endRadius * Constants.fastBallDeceleration))
+			local phi = (startPhi + endPhi) * 0.5
+			vis.addCircleRaw("dribbling", Coordinates.toGlobal(robot.pos)+ Coordinates.toGlobal(robot.speed:copy():normalize()), 0.5, vis.colors.orange)
+			vis.addCircleRaw("dribbling", Coordinates.toGlobal(robot.pos)+ Coordinates.toGlobal(robot.speed:copy():normalize())+Vector.fromAngle(phi), 0.5, vis.colors.red)
+			table.insert(maxSpeedProfile, {maxStartSpeed, maxEndSpeed, actualDist, true, phi}) -- curved part
+			vis.addPathRaw("waypoints"
+--..tostring(i)
+, {prev - lastPathDir:copy():setLength(startDist), prev + newPathDir:copy():setLength(endDist)}, vis.colors.blue)
 			xRemaining = newPathDir:length() - endDist -- >= newPathDir:length() / 2
 		end
 		-- update path segments
@@ -429,6 +445,7 @@ local function _injectExponentialFalloff(speedProfile, exponentialTime, exponent
 end
 
 local function _calculateRotation(currentDir, currentOmega, targetDir, accelerate, brake, maxSpeed, exponentialTime)
+--	log(targetDir)
 	local fullBrakeTime = math.abs(currentOmega / brake)
 	-- how far the robot will rotate even if it brakes with maximum speed
 	local forcedRotation = math.sign(currentOmega) * -brake * fullBrakeTime * fullBrakeTime / 2
@@ -554,7 +571,9 @@ local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile
 	if speedVector:length() >= 0.0001 then
 		-- check if the robot is on a curve segment
 		if #maxSpeedProfile >= 2 and maxSpeedProfile[2][4] then
+			log("@do")
 			local forwardDir = moveDir:copy():normalize():dot(robotSpeed)
+			log(forwardDir.."..".. speed)
 			-- add acceleration towards the curve center, reduce accerlation if the robot is slower than expected
 			local angle = (waypoints[2] - waypoints[1]):angleDiff(waypoints[3] - waypoints[2])
 			local scale = math.bound(0.02, math.min(forwardDir, speed) / math.max(maxSpeedProfile[2][1], maxSpeedProfile[2][2]), 1)
@@ -610,7 +629,13 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 			and self._robot.acceleration.aBrakePhiMax or 1.0) * rotationAccelerationFactor
 	local rotMaxSpeed = self._robot.maxAngularSpeed
 
-	local angularSpeed, angularAccel = _calculateRotation(robotDir, self._robot.angularSpeed, Coordinates.toGlobal(targetDir),
+	local waypoints = self:_getPath(targetPos)
+	if dribble and #waypoints > 1 and waypoints[1]:distanceTo(waypoints[2]) > 0.01 then
+		targetDir = (waypoints[2] - waypoints[1]):angle()
+	else
+		targetDir = Coordinates.toGlobal(targetDir)
+	end
+	local angularSpeed, angularAccel = _calculateRotation(robotDir, self._robot.angularSpeed, targetDir,
 			rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime)
 	if self._lastTime then
 		-- feedforward of target direction change
@@ -621,7 +646,6 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	self._lastTargetDir = targetDir
 	self._lastTime = World.Time
 
-	local waypoints = self:_getPath(targetPos)
 	if #waypoints == 0 then -- no waypoints left, just stay here but also update the orientation
 		local spline = { {t_start = 0, t_end = math.huge,
 			x = { a0 = robotPos.x, a1 = endSpeed.x, a2 = 0, a3 = 0 },
@@ -641,11 +665,19 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	-- maximum sidewards acceleration
 	local accelLimit = math.abs(self._robot.acceleration.aSpeedupSMax)
 	-- forward acceleration and deceleration
-	local accelerate = math.abs(self._robot.acceleration.aSpeedupFMax) * accelerationFactor
-	local brake = -math.abs(self._robot.acceleration.aBrakeFMax) * accelerationFactor * (dribble and 0.5 or 1)
+
+	--dribble: backward: speed & accel, forward brake
+	local accelerate = math.abs(self._robot.acceleration.aSpeedupFMax) * accelerationFactor --* (dribble and 0.2 or 1)
+	local brake = -math.abs(self._robot.acceleration.aBrakeFMax) * accelerationFactor  *(dribble and 0.8 or 1)
+--	if dribble then
+--		maxSpeed = 0.5
+--	end
 
 	-- smooth first corner
 	_preprocessPath(waypoints, maxError, robotPos, robotSpeed)
+	for i,w in ipairs(waypoints) do
+		vis.addCircleRaw("waypoints", w, 0.1, vis.colors.green)
+	end
 
 	-- calculate robot speed in target direction
 	-- unexpected sidewards speed is handled in _calculateSpeed
@@ -654,7 +686,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	-- handle endSpeed
 	local endSpeedLen = math.max(0, (waypoints[#waypoints] - waypoints[#waypoints - 1]):normalize():dot(endSpeed))
 	-- calculate speed limits for curve segments based on sidewards acceleration limits while driving curves
-	local maxSpeedProfile = _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeedLen)
+	local maxSpeedProfile = _calculateCurveSpeedLimits(self._robot, waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeedLen)
 	--debug.set("maxSpeedProfile", maxSpeedProfile)
 	-- convert to actual speed curve
 	local speedProfile = _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake)
