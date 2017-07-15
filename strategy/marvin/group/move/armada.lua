@@ -110,7 +110,7 @@ function Armada:_updateTasks()
 		for i = 2,5 do
 			if self._positions[i-1]:distanceTo(passInfo.ballPos) < 0.1 then
 				taskAssignments[self._robots[self._assignment[i]]]
-				= {class = AcceptPass}
+				= {class = AcceptPass, params = {self._positions[i-1], 0.1}}
 			else
 			taskAssignments[self._robots[self._assignment[i]]]
 				= {class = MoveToPos, params = { self._positions[i-1], nil, true } } --offer other positions for redeciding
