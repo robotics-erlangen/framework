@@ -130,15 +130,25 @@ local function rateVolleyGoalShotThreats()
 end
 Defense.rateVolleyGoalShotThreats = Cache.forFrame(rateVolleyGoalShotThreats)
 
+local function rateProximityThreats()
+	local dangerousness = {}
+	for _,opp in ipairs(World.OpponentRobots) do
+		dangerousness[opp] = 0.01 * Rating.valueToRating(opp.pos:distanceTo(World.Geometry.FriendlyGoal), World.Geometry.FieldHeightHalf, 0)
+	end
+	return dangerousness
+end
+
 local function rateOpponentDangerousness()
 	local passThreats = ratePassThreats()
 	local goalThreats = rateVolleyGoalShotThreats()
+	local proximityThreats = rateProximityThreats()
 
 	local dangerousness = {}
 	for _,opp in ipairs(World.OpponentRobots) do
 		local passDangerousness = passThreats[opp] or 0
 		local goalDangerousness = goalThreats[opp] or 0
-		dangerousness[opp] = math.max(passDangerousness, goalDangerousness)
+		local proximityDangerousness = proximityThreats[opp]
+		dangerousness[opp] = math.max(passDangerousness, math.max(goalDangerousness, proximityDangerousness))
 	end
 
 	return dangerousness
