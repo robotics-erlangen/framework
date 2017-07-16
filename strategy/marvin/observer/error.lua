@@ -98,10 +98,6 @@ end
 
 local lastRefChange, refereeState
 
-local function isLeavingStop()
-	return refereeState == "Stop" and World.RefereeState ~= "Stop"
-end
-
 local function updateRefereeState()
 	if refereeState ~= World.RefereeState then
 		refereeState = World.RefereeState
@@ -121,6 +117,10 @@ end
 
 function Error.getLastStopTime()
 	return lastStopTime
+end
+
+local function isLeavingStop()
+	return refereeState == "Stop" and World.RefereeState ~= "Stop"
 end
 
 function Error._update()
