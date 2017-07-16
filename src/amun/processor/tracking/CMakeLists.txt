@@ -20,9 +20,13 @@
 
 set(SOURCES
     include/tracking/tracker.h
-
-    ballfilter.cpp
-    ballfilter.h
+    abstractballfilter.h
+    balltracker.cpp
+    balltracker.h
+    ballflyfilter.h
+    ballflyfilter.cpp
+    ballgroundfilter.h
+    ballgroundfilter.cpp
     filter.cpp
     filter.h
     kalmanfilter.h

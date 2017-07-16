@@ -32,6 +32,8 @@ message SSL_Autoref {
             NUMBER_OF_PLAYERS = 11;
             CARPETING = 12;
             OUT_OF_FIELD = 13;
+            CHIP_GOAL = 14;
+            FREEKICK_DISTANCE = 15;
         }
         required FoulType foul_type = 1;
         required Team offending_team = 2;

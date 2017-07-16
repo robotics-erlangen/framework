@@ -28,15 +28,14 @@
 #include <QPair>
 #include <QByteArray>
 
-class BallFilter;
+class BallTracker;
 class RobotFilter;
 class SSL_DetectionBall;
 class SSL_DetectionFrame;
 class SSL_DetectionRobot;
 class SSL_GeometryFieldSize;
 class SSL_GeometryCameraCalibration;
-// Avoid inclusion of eigen
-class TrackerPrivate;
+struct CameraInfo;
 
 class Tracker
 {
@@ -44,6 +43,7 @@ private:
     typedef QMap<uint, QList<RobotFilter*> > RobotMap;
 
 public:
+    Tracker(qint64 startTime, float tdX, float tdY); // constructor for visionanalyzer
     Tracker();
     ~Tracker();
 
@@ -67,21 +67,18 @@ private:
     static void invalidateRobots(RobotMap &map, qint64 currentTime);
 
     QList<RobotFilter *> getBestRobots(qint64 currentTime);
-    world::Robot findNearestRobot(const QList<RobotFilter *> &robots, const world::Ball &ball) const;
-
-    void trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, qint32 cameraId, const QList<RobotFilter *> &bestRobots);
+    void trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint32 cameraId, const QList<RobotFilter *> &bestRobots);
     void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId);
 
-    template<class Filter>
-    static Filter* bestFilter(QList<Filter*> &filters, int minFrameCount);
 private:
     typedef QPair<QByteArray, qint64> Packet;
     typedef QPair<robot::RadioCommand, qint64> RadioCommand;
-    TrackerPrivate * const m_p;
+    CameraInfo * const m_cameraInfo;
 
     bool m_flip;
     qint64 m_systemDelay;
     qint64 m_resetTime;
+    qint64 m_startTime;
 
     world::Geometry m_geometry;
     bool m_geometryUpdated;
@@ -89,11 +86,18 @@ private:
 
     qint64 m_lastUpdateTime;
     QList<Packet> m_visionPackets;
-    QList<RadioCommand> m_radioCommands;
 
-    QList<BallFilter*> m_ballFilter;
+    QList<BallTracker*> m_ballFilter;
+    BallTracker* m_currentBallFilter;
+
     RobotMap m_robotFilterYellow;
     RobotMap m_robotFilterBlue;
+
+    BallTracker* bestBallFilter();
+    void prioritizeBallFilters();
+
+    float m_touchdownX;
+    float m_touchdownY;
 
     bool m_aoiEnabled;
     float m_aoi_x1;

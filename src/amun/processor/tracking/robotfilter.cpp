@@ -21,6 +21,10 @@
 #include "robotfilter.h"
 #include "core/timer.h"
 
+const qint64 PROCESSOR_TICK_DURATION = 10 * 1000 * 1000;
+const float MAX_LINEAR_ACCELERATION = 10.;
+const float MAX_ROTATION_ACCELERATION = 60.;
+
 RobotFilter::RobotFilter(const SSL_DetectionRobot &robot, qint64 last_time) :
     Filter(last_time),
     m_id(robot.robot_id()),
@@ -76,11 +80,21 @@ void RobotFilter::update(qint64 time)
         if (frame.time > time) {
             break;
         }
+
+        // only apply radio commands that have reached the robot yet
+        foreach (const RadioCommand &command, m_radioCommands) {
+            const qint64 commandTime = command.second;
+            if (commandTime > frame.time) {
+                break;
+            }
+            predict(commandTime, false, true, false, m_lastRadioCommand);
+            m_lastRadioCommand = command;
+        }
         invalidateRobotCommand(frame.time);
 
         // switch to the new camera if the primary camera data is too old
         bool cameraSwitched = checkCamera(frame.cameraId, frame.time);
-        predict(frame.time, false, true, cameraSwitched);
+        predict(frame.time, false, true, cameraSwitched, m_lastRadioCommand);
         applyVisionFrame(frame);
 
         isVisionUpdated = true;
@@ -89,6 +103,7 @@ void RobotFilter::update(qint64 time)
     if (isVisionUpdated || time < m_futureTime) {
         // prediction is rebased on latest vision frame
         resetFutureKalman();
+        m_futureRadioCommand = m_lastRadioCommand;
     }
 
     // only apply radio commands that have reached the robot yet
@@ -100,13 +115,13 @@ void RobotFilter::update(qint64 time)
         // only apply radio commands not used yet
         if (commandTime > m_futureTime) {
             // updates m_futureKalman
-            predict(commandTime, true, true, false);
-            applyRobotCommand(command.first);
+            predict(commandTime, true, true, false, m_futureRadioCommand);
+            m_futureRadioCommand = command;
         }
     }
 
     // predict to requested timestep
-    predict(time, true, false, false);
+    predict(time, true, false, false, m_futureRadioCommand);
 }
 
 void RobotFilter::invalidateRobotCommand(qint64 time)
@@ -121,12 +136,12 @@ void RobotFilter::invalidateRobotCommand(qint64 time)
     }
 }
 
-void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, bool cameraSwitched)
+void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, bool cameraSwitched, const RadioCommand &cmd)
 {
     // just assume that the prediction step is the same for now and the future
     Kalman* kalman = (updateFuture) ? m_futureKalman : m_kalman;
     const qint64 lastTime = (updateFuture) ? m_futureTime : m_lastTime;
-    const double timeDiff = (time  - lastTime) * 1E-9;
+    const double timeDiff = (time - lastTime) * 1E-9;
     Q_ASSERT(timeDiff >= 0);
 
     // for the filter model see:
@@ -136,9 +151,10 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
     // state vector description: (v_s and v_f are swapped in comparision to the paper)
     // (x y phi v_s v_f omega)
     // local and global coordinate system are rotated by 90 degree (see processor)
-    const double phi = kalman->baseState()(2) - M_PI_2;
-    const double v_s = kalman->baseState()(3);
-    const double v_f = kalman->baseState()(4);
+    const float phi = kalman->baseState()(2) - M_PI_2;
+    const float v_s = kalman->baseState()(3);
+    const float v_f = kalman->baseState()(4);
+    const float omega = kalman->baseState()(5);
 
     // Process state transition: update position with the current speed
     kalman->F(0, 3) = std::cos(phi) * timeDiff;
@@ -147,11 +163,40 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
     kalman->F(1, 4) = std::cos(phi) * timeDiff;
     kalman->F(2, 5) = timeDiff;
 
-    // don't use control input
     kalman->F(3, 3) = 1;
     kalman->F(4, 4) = 1;
     kalman->F(5, 5) = 1;
+    // clear control input
     kalman->u = Kalman::Vector::Zero();
+    if (time < cmd.second + 2 * PROCESSOR_TICK_DURATION) {
+        float v_x = std::cos(phi)*v_s - std::sin(phi)*v_f;
+        float v_y = std::sin(phi)*v_s + std::cos(phi)*v_f;
+
+        // radio commands are intended to be applied over 10ms
+        float cmd_interval = (float)std::max(PROCESSOR_TICK_DURATION*1E-9, timeDiff);
+        float cmd_omega = cmd.first.omega();
+        float bounded_a_omega = qBound(-MAX_ROTATION_ACCELERATION, (cmd_omega - omega)/cmd_interval, MAX_ROTATION_ACCELERATION);
+
+        float cmd_v_s = cmd.first.v_s();
+        float cmd_v_f = cmd.first.v_f();
+        float cmd_v_x = std::cos(phi)*cmd_v_s - std::sin(phi)*cmd_v_f;
+        float cmd_v_y = std::sin(phi)*cmd_v_s + std::cos(phi)*cmd_v_f;
+
+        float accel_x = (cmd_v_x - v_x)/cmd_interval;
+        float accel_y = (cmd_v_y - v_y)/cmd_interval;
+        float accel_s = std::cos(-phi)*accel_x - std::sin(-phi)*accel_y;
+        float accel_f = std::sin(-phi)*accel_x + std::cos(-phi)*accel_y;
+
+        float bounded_a_s = qBound(-MAX_LINEAR_ACCELERATION, accel_s, MAX_LINEAR_ACCELERATION);
+        float bounded_a_f = qBound(-MAX_LINEAR_ACCELERATION, accel_f, MAX_LINEAR_ACCELERATION);
+
+        kalman->u(0) = 0;
+        kalman->u(1) = 0;
+        kalman->u(2) = 0;
+        kalman->u(3) = bounded_a_s * timeDiff;
+        kalman->u(4) = bounded_a_f * timeDiff;
+        kalman->u(5) = bounded_a_omega * timeDiff;
+    }
 
     // update covariance jacobian
     kalman->B = kalman->F;
@@ -267,22 +312,6 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
     m_kalman->update();
 }
 
-void RobotFilter::applyRobotCommand(const robot::Command &command)
-{
-    m_futureKalman->z(0) = command.v_s();
-    m_futureKalman->z(1) = command.v_f();
-    m_futureKalman->z(2) = command.omega();
-
-    // measurement covariance matrix
-    // FIXME just a guess
-    Kalman::MatrixMM R = Kalman::MatrixMM::Zero();
-    R(0, 0) = 0.2;
-    R(1, 1) = 0.2;
-    R(2, 2) = 0.1;
-    m_futureKalman->R = R.cwiseProduct(R);
-    m_futureKalman->update();
-}
-
 void RobotFilter::get(world::Robot *robot, bool flip, bool noRawData)
 {
     float px = m_futureKalman->state()(0);
@@ -362,33 +391,18 @@ float RobotFilter::distanceTo(const SSL_DetectionRobot &robot) const
     return (b - p).norm();
 }
 
-float RobotFilter::distanceTo(const world::Ball &ball) const
+Eigen::Vector2f RobotFilter::dribblerPos() const
 {
-    Eigen::Vector3f b;
-    b(0) = ball.p_x();
-    b(1) = ball.p_y();
-    b(2) = ball.p_z();
-
-    Eigen::Vector3f p;
-    p(0) = m_kalman->state()(0);
-    p(1) = m_kalman->state()(1);
-    p(2) = 0.f;
-
-    return (b - p).norm();
+    Eigen::Vector2f robotMiddle(m_kalman->state()(0), m_kalman->state()(1));
+    float phi = limitAngle(m_kalman->state()(2));
+    return robotMiddle + 0.08*Eigen::Vector2f(cos(phi), sin(phi));
 }
 
-bool RobotFilter::isInAOI(const SSL_DetectionRobot &robot, bool flip, float x1, float y1, float x2, float y2)
+Eigen::Vector2f RobotFilter::robotPos() const
 {
-    float x = -robot.y() / 1000.0f;
-    float y = robot.x() / 1000.0f;
-
-    if (flip) {
-        x = -x;
-        y = -y;
-    }
-
-    return (x > x1 && x < x2 && y > y1 && y < y2);
+    return Eigen::Vector2f(m_kalman->state()(0), m_kalman->state()(1));
 }
+
 
 void RobotFilter::addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time)
 {
@@ -401,6 +415,5 @@ void RobotFilter::addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robo
 
 void RobotFilter::addRadioCommand(const robot::Command &radioCommand, qint64 time)
 {
-    // delay the radio command application to one processor frame after it was sent
-    m_radioCommands.append(qMakePair(radioCommand, time + 9*1000*1000));
+    m_radioCommands.append(qMakePair(radioCommand, time));
 }

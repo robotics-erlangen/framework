@@ -45,8 +45,8 @@ public:
     void addRadioCommand(const robot::Command &radioCommand, qint64 time);
 
     float distanceTo(const SSL_DetectionRobot &robot) const;
-    float distanceTo(const world::Ball &ball) const;
-    static bool isInAOI(const SSL_DetectionRobot &robot, bool flip, float x1, float y1, float x2, float y2);
+    Eigen::Vector2f dribblerPos() const;
+    Eigen::Vector2f robotPos() const;
 
 private:
     struct VisionFrame
@@ -61,9 +61,8 @@ private:
     typedef KalmanFilter<6, 3> Kalman;
 
     void resetFutureKalman();
-    void predict(qint64 time, bool updateFuture, bool permanentUpdate, bool cameraSwitched);
+    void predict(qint64 time, bool updateFuture, bool permanentUpdate, bool cameraSwitched, const RadioCommand &cmd);
     void applyVisionFrame(const VisionFrame &frame);
-    void applyRobotCommand(const robot::Command &command);
     void invalidateRobotCommand(qint64 time);
     double limitAngle(double angle) const;
 
@@ -76,6 +75,8 @@ private:
     // m_lastTime is inherited from Filter
     Kalman *m_futureKalman;
     qint64 m_futureTime;
+    RadioCommand m_lastRadioCommand;
+    RadioCommand m_futureRadioCommand;
     QList<VisionFrame> m_visionFrames;
     QList<RadioCommand> m_radioCommands;
 };
