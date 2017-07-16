@@ -654,7 +654,7 @@ function Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_
 
 	-- calculate and save the robot time
 	local endSpeed = (x_robot - robot.pos):setLength(endSpeedLength)
-	return Physics.robotTimeToPos(robot, x_robot, endSpeed, true)
+	return Physics.robotTimeToPos(robot, x_robot, endSpeed)
 end
 
 local function dist(v0, v1, a)
