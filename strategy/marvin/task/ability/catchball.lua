@@ -83,7 +83,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	-- a distance other than 0 is only useful for moving to a stopped ball
 	distanceToBall = distanceToBall or 0
 	local viewDir = (targetPos - predictedBall.pos):angle()
-	if targetSpeed then
+	if targetSpeed and ball.speed:length() > SLOW_BALL then
 		local targetDir, _ = self:calcPhi(predictedBall.speed, predictedBall.pos,
 				targetPos, targetSpeed)
 		viewDir = targetDir
