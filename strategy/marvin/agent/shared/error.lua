@@ -1,21 +1,27 @@
 local Base = require "agent/base/behavior"
 local Error = Class("Agent.Shared.Error",Base)
-
 local ErrorTask = require "task/error"
 local World = require "../base/world"
 local ErrorObserver = require "observer/error"
-local ERROR_TOLERANCE = 50
+local ERROR_TOLERANCE_PER_SEC = 0.8 -- <- [0.5,1]
+local EXCHANGE_ERROR_ROBOTS = true
 
 function Error:check()
 	local errorTable = ErrorObserver.getErrorTable(self._robot)
-	if not errorTable then
+	if ErrorObserver.getAverageBatterySate(self._robot)< 0.11 then
+		return true
+	elseif ErrorObserver.getAverageBatterySate(self._robot)< 0.20
+		and World.RefereeState == "Stop" then
+		return true
+	elseif not errorTable then
 		return false
 	end
 	for k,v in pairs(errorTable) do
-		if v > ERROR_TOLERANCE and k ~= "temperature" then
-			if World.RefereeState == "Stop"
-			and (World.Time - ErrorObserver.getLastRefChange()) == 0 then -- < 3
-				log(self:errorMsg())
+		if v > ERROR_TOLERANCE_PER_SEC * (World.Time - ErrorObserver.getLastStopTime())
+		 and k ~= "temperature" and k~="main_sensor_error" then
+			if World.RefereeState == "Stop" then
+				--log(self._robot.id .. " --------   " .. k ..  "  --------------  " .. v)
+				return EXCHANGE_ERROR_ROBOTS
 			end
 		end
 	end
@@ -64,10 +70,10 @@ end
 
 
 function Error:_updateTask()
-	local errorFound = next(ErrorObserver.getErrorTable(self._robot)) ~= nil
-	if errorFound and World.Time == ErrorObserver.getLastRefChange() then
-		log(self:errorMsg())
-	end
+	--local errorFound = next(ErrorObserver.getErrorTable(self._robot)) ~= nil
+	--if errorFound and World.Time == ErrorObserver.getLastRefChange() then
+	--	log(self:errorMsg())
+	--end
 	return ErrorTask
 end
 

@@ -72,7 +72,7 @@ function Robot:init(data, isFriendly)
 	else
 		self.radius = 0.09 -- set default radius if no specs are available
 		self.dribblerWidth = 0.07 --just a good default guess
-		self.shootRadius = 0.075 -- shoot radius of 2014 generation
+		self.shootRadius = 0.067 -- shoot radius of 2014 generation
 		self.generation = -1
 		self.id = data
 		self.maxSpeed = 2 -- Init max speed and acceleration for opponents

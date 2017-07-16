@@ -47,10 +47,8 @@ function Roles:_chooseExclusiveRoles()
 			exclusiveRoles[role] = bestRobot
 			self._send[role]("all", bestRobot)
 
-			if role == "mainAttacker" then
-				vis.addCircle("tr/roles: MainAttacker", bestRobot.pos, 0.12,
-					World.TeamIsBlue and vis.colors.blue or vis.colors.yellow, true, true);
-			end
+			vis.addCircle("tr/roles: "..role, bestRobot.pos, 0.12,
+				World.TeamIsBlue and vis.colors.blue or vis.colors.yellow, true, true)
 		end
 	end
 	self._exclusiveRoles = exclusiveRoles

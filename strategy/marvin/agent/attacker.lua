@@ -7,6 +7,7 @@ local debug = require "../base/debug"
 local ApplyForMainattacker = require "agent/attacker/applyformainattacker"
 local Default = require "agent/attacker/default"
 local Duel = require "agent/attacker/duel"
+local DuelAssistant = require "agent/attacker/duelassistant"
 local FreeKick = require "agent/attacker/freekick"
 local Move = require "agent/attacker/move"
 local PassTiming = require "agent/attacker/passtiming"
@@ -24,6 +25,7 @@ Attacker._behaviors = {
 	FreeKick,
 	DoubleTouchGuard,
 	Duel,
+	DuelAssistant,
 	BallEscort,
 	PassTiming,
 	Shoot,
