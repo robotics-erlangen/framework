@@ -274,7 +274,7 @@ function Shoot:_shootStopBall(futureBall, futureBallTime)
 		self._send.attackPosition("all", futureBall.pos)
 		self._send.attackTime("all", Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0)))
 	else
-		self:_catchBall(ballOrigin, 0, 8)
+		self:_catchBall(ballOrigin, 0, nil)
 	end
 
 	-- activate dribbler to stop the ball
