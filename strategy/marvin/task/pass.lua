@@ -53,7 +53,8 @@ function Pass:run()
 
 
 	if not self._chipOverride then
-		local lockDecision = self._chip ~= nil and attackTime and attackTime < 0.3
+		local lockTime = World.Ball.speed:length() > 0.5 and 0.3 or 0.1
+		local lockDecision = self._chip ~= nil and attackTime and attackTime < lockTime
 		if not lockDecision then
 			local corridor = ObserverShoot.evaluatePassCorridor(attackPosition,
 				self._targetPos, CHIP_PASS_DISTANCE_FACTOR)
