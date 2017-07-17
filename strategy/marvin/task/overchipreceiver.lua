@@ -6,7 +6,7 @@ local ToTarget = require "trajectory/totarget"
 local World = require "../base/world"
 local G = World.Geometry
 
-local DISTANCE_FACTOR = 19 -- used to determine the passSuggestion position
+local DISTANCE_FACTOR = 22 -- used to determine the passSuggestion position
 local DISTANCE_TO_DEFENSE_AREA = 1 -- faraway robots and goalie don't interfere with our runup
 
 
@@ -38,9 +38,12 @@ function OverchipReceiver:_updateObstacleRobot()
 end
 
 function OverchipReceiver:_updatePos()
-	local goalVector = G.OpponentGoal - World.Ball.pos
+	local ballPos = World.Ball.pos
+	local goal = G.OpponentGoal
+	local goalVector = goal - ballPos
 	if self._obstacleRobot then
-		self._pos = self._obstacleRobot.pos + goalVector:setLength(3 * self._robot.radius)
+		local orthogonalProjection = self._obstacleRobot.pos:orthogonalProjection(ballPos, goal)
+		self._pos = orthogonalProjection + goalVector:setLength(3 * self._robot.radius)
 	else
 		self._pos = World.Ball.pos + goalVector:setLength(0.5 + 3 * self._robot.radius)
 	end
