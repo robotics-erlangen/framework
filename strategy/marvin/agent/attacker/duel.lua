@@ -5,6 +5,7 @@ local debug = require "../base/debug"
 local geom = require "../base/geom"
 local World = require "../base/world"
 local Ball = require "observer/ball"
+local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 
 local TaskDuel = require "task/duel"
@@ -30,9 +31,14 @@ function Duel:genericCheck()
 			if Ball.receivesPass(opp) then
 				local oppDistToBall = opp.pos:distanceTo(World.Ball.pos)
 				if oppDistToBall < selfDistToBall then
-					local distToBallLine = opp.pos:orthogonalDistance(World.Ball.pos, World.Ball.pos + World.Ball.speed)
-					if distToBallLine < 0.3 then
-						firstAtBall = false
+					local pointOnBallLine = opp.pos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
+					if opp.pos:distanceTo(pointOnBallLine) < 0.5 then
+						local robotTime = Physics.robotTimeToPos(opp, pointOnBallLine, Vector(0, 0))
+						local ballOffset = World.Ball.speed:copy():setLength(World.Ball.radius + opp.shootRadius)
+						local ballTime = Physics.checkedBallRollTime(World.Ball, pointOnBallLine - ballOffset)
+						if ballTime > robotTime + 0.1 then
+							firstAtBall = false
+						end
 					end
 				end
 			end

@@ -80,7 +80,7 @@ function AttackRatio:attackRatio()
 		attackRatio = 6
 	else -- Game, GameForce
 		if self._opponentFreeKickOngoing then
-			attackRatio = 0
+			attackRatio = 1
 		else
 			attackRatio = self._ballInOpponentFieldHalf and 3 or 2
 			if self._friendlyFreeKickOngoing then

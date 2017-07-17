@@ -16,15 +16,22 @@ Defense.POSITION_PADDING = 0.02 -- safety distance
 Defense.PENALTY_LINE_DISTANCE = 0.35 -- prevent robots from crossing the penalty line
 
 Defense.MARKING_DISTANCE = 0.6
+Defense.OFFENSIVE_MARKING_DISTANCE = 0.3
 
 local function manMarkPos(opponent)
-	local oppDistToGoal = opponent.pos:distanceTo(World.Geometry.FriendlyGoal)
-	local markingDistance = Defense.MARKING_DISTANCE + math.max(0, (oppDistToGoal - World.Geometry.FieldHeightHalf * 0.8) * 0.5)
-	if Referee.isFriendlyFreeKickState() then
-		markingDistance = markingDistance + 0.4
+	local targetPos
+	if World.Ball.pos.y > World.Geometry.FieldHeightHalf * 0.7 and World.Ball.speed:length() < 0.5 and Referee.isStopState() then
+		local dist = opponent.radius + Constants.maxRobotRadius + Defense.OFFENSIVE_MARKING_DISTANCE
+		targetPos = opponent.pos + (World.Ball.pos - opponent.pos):setLength(dist)
+	else
+		local oppDistToGoal = opponent.pos:distanceTo(World.Geometry.FriendlyGoal)
+		local markingDistance = Defense.MARKING_DISTANCE + math.max(0, (oppDistToGoal - World.Geometry.FieldHeightHalf * 0.8) * 0.5)
+		if Referee.isFriendlyFreeKickState() then
+			markingDistance = markingDistance + 0.4
+		end
+		local dist = opponent.radius + Constants.maxRobotRadius + markingDistance
+		targetPos = opponent.pos + (World.Geometry.FriendlyGoal - opponent.pos):setLength(dist)
 	end
-	local dist = opponent.radius + Constants.maxRobotRadius + markingDistance
-	local targetPos = opponent.pos + (World.Geometry.FriendlyGoal - opponent.pos):setLength(dist)
 
 	-- extend position with speed of opponent, parameters can be improved
 	local maxPosExtension = Constants.maxRobotRadius
@@ -130,15 +137,25 @@ local function rateVolleyGoalShotThreats()
 end
 Defense.rateVolleyGoalShotThreats = Cache.forFrame(rateVolleyGoalShotThreats)
 
+local function rateProximityThreats()
+	local dangerousness = {}
+	for _,opp in ipairs(World.OpponentRobots) do
+		dangerousness[opp] = 0.01 * Rating.valueToRating(opp.pos:distanceTo(World.Geometry.FriendlyGoal), World.Geometry.FieldHeightHalf, 0)
+	end
+	return dangerousness
+end
+
 local function rateOpponentDangerousness()
 	local passThreats = ratePassThreats()
 	local goalThreats = rateVolleyGoalShotThreats()
+	local proximityThreats = rateProximityThreats()
 
 	local dangerousness = {}
 	for _,opp in ipairs(World.OpponentRobots) do
 		local passDangerousness = passThreats[opp] or 0
 		local goalDangerousness = goalThreats[opp] or 0
-		dangerousness[opp] = math.max(passDangerousness, goalDangerousness)
+		local proximityDangerousness = proximityThreats[opp]
+		dangerousness[opp] = math.max(passDangerousness, math.max(goalDangerousness, proximityDangerousness))
 	end
 
 	return dangerousness

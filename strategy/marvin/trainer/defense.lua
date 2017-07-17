@@ -82,7 +82,7 @@ function Defense:_nextManmarkAssignment(defenders)
 		end
 	end
 
-	if mostDangerousRobot then
+	if mostDangerousRobot and highestDangerousness > 0 then
 		local manMarkPos = UtilDefense.manMarkPos(mostDangerousRobot)
 		local bestDefender = UtilDefense.getClosestRobot(defenders, manMarkPos)
 		self._manmarkAssignments[mostDangerousRobot] = bestDefender
