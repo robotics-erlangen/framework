@@ -64,6 +64,7 @@ function Keeper:run()
 				otherGoalPost, atkPos - otherGoalPost)
 
 		-- allow moving behind ball when it's shot
+		lambdaLine = lambdaLine or 0
 		if not isShot then
 			lambdaLine = lambdaLine - self._robot.radius
 		end
