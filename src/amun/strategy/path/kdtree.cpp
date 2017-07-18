@@ -190,7 +190,7 @@ KdTree::Node* KdTree::nearest(const Vector &position, Node *root, float &bestDis
 
     do {
         const float dist = (currentNode->position() - position).lengthSquared();
-        if (dist < bestDistSquared) {
+        if (dist < bestDistSquared || bestNode == NULL) {
             bestDistSquared = dist;
             bestDist = std::sqrt(dist);
             bestNode = currentNode;
