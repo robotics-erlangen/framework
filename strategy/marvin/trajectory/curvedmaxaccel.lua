@@ -5,6 +5,7 @@ local geom = require "../base/geom"
 local plot = require "../base/plot"
 local vis = require "../base/vis"
 local World = require "../base/world"
+local Geom = require "../base/geom"
 
 local Constants = require "../base/constants"
 
@@ -88,7 +89,7 @@ local function _calculateCurveSpeedLimits(robot, waypoints, accelLimit, maxSpeed
 	local xRemaining = lastPathDir:length()
 	local prev = waypoints[2]
 
-	-- {startSpeed, endSpeed, distance, linearSpeedChange, desiredPhiForDribbling TODO}
+	-- {startSpeed, endSpeed, distance, linearSpeedChange}
 	-- if not linear, then startSpeed is the maximum allowed speed, brakes down to endSpeed as late as possible
 	-- !!! for every entry except the first: distance ~= 0 !!!
 	local maxSpeedProfile = { {startSpeed, maxSpeed, 0} }
@@ -142,15 +143,6 @@ local function _calculateCurveSpeedLimits(robot, waypoints, accelLimit, maxSpeed
 				table.insert(maxSpeedProfile, {maxSpeed, maxSpeed, xRemaining - startDist}) -- straight line segment
 				-- vis.addPathRaw("waypoints"..tostring(i), {prev - lastPathDir:copy():setLength(xRemaining), prev - lastPathDir:copy():setLength(startDist)}, vis.colors.blue)
 			end
-			-- phi = atan(v * v / r * MY * G)
-			-- G: acceleration of gravity\
-			-- MY: friction of the carpet, m_ball * Costants.fastBallDeceleration = MY * m_ball * G
-			-- -> MY * G = Constants.fastBallDeceleration
-			local startPhi = math.atan(maxStartSpeed * maxStartSpeed / (startRadius * Constants.fastBallDeceleration))
-			local endPhi = math.atan(maxEndSpeed * maxEndSpeed / (endRadius * Constants.fastBallDeceleration))
-			local phi = (startPhi + endPhi) * 0.5
-			vis.addCircleRaw("dribbling", Coordinates.toGlobal(robot.pos)+ Coordinates.toGlobal(robot.speed:copy():normalize()), 0.5, vis.colors.orange)
-			vis.addCircleRaw("dribbling", Coordinates.toGlobal(robot.pos)+ Coordinates.toGlobal(robot.speed:copy():normalize())+Vector.fromAngle(phi), 0.5, vis.colors.red)
 			table.insert(maxSpeedProfile, {maxStartSpeed, maxEndSpeed, actualDist, true, phi}) -- curved part
 			vis.addPathRaw("waypoints"
 --..tostring(i)
@@ -630,23 +622,18 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	local rotMaxSpeed = self._robot.maxAngularSpeed
 
 	local waypoints = self:_getPath(targetPos)
-	if dribble and #waypoints > 1 and waypoints[1]:distanceTo(waypoints[2]) > 0.01 then
-		targetDir = (waypoints[2] - waypoints[1]):angle()
-	else
-		targetDir = Coordinates.toGlobal(targetDir)
-	end
-	local angularSpeed, angularAccel = _calculateRotation(robotDir, self._robot.angularSpeed, targetDir,
-			rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime)
-	if self._lastTime then
-		-- feedforward of target direction change
-		-- as tracking a direction only works if it changes slow enough, using feedforwad shouldn't cause any trouble
-		local directionChange = (targetDir - self._lastTargetDir) / (World.Time - self._lastTime)
-		angularSpeed = angularSpeed + directionChange
-	end
-	self._lastTargetDir = targetDir
-	self._lastTime = World.Time
-
 	if #waypoints == 0 then -- no waypoints left, just stay here but also update the orientation
+		targetDir = Coordinates.toGlobal(targetDir)
+		local angularSpeed, angularAccel = _calculateRotation(robotDir, self._robot.angularSpeed, targetDir,
+			rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime)
+		if self._lastTime then
+			-- feedforward of target direction change
+			-- as tracking a direction only works if it changes slow enough, using feedforwad shouldn't cause any trouble
+			local directionChange = (targetDir - self._lastTargetDir) / (World.Time - self._lastTime)
+			angularSpeed = angularSpeed + directionChange
+		end
+		self._lastTargetDir = targetDir
+		self._lastTime = World.Time
 		local spline = { {t_start = 0, t_end = math.huge,
 			x = { a0 = robotPos.x, a1 = endSpeed.x, a2 = 0, a3 = 0 },
 			y = { a0 = robotPos.y, a1 = endSpeed.y, a2 = 0, a3 = 0 },
@@ -654,6 +641,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 		} }
 		return {spline = spline}, targetPos, 0
 	end
+
 
 	-- no endspeed if the target can't be reached because it's in an obstacle
 	-- must be calculated in all global coordinates
@@ -696,6 +684,44 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	--debug.set("speedProfile2", speedProfile)
 
 	local speedVector, accelVector = _calculateSpeed(self._robot.id, waypoints, maxSpeedProfile, speedProfile, robotSpeed, accelLimit, sidewardsErrorFactor)
+
+	if dribble and #waypoints > 1 and waypoints[1]:distanceTo(waypoints[2]) > 0.01 then
+		targetDir = (waypoints[2] - waypoints[1]):angle()
+		local sgn = 1
+		local sin = math.sin(accelVector:angleDiff(speedVector))
+		-- if acceleration is not large eanough or is almost parallel, we assume we're not going to drive a curve.
+		if math.abs(sin) < 0.1 or accelVector:length() < 0.1 then
+			sgn = 0
+		elseif sin < 0 then
+			sgn = -1
+		end
+		if sgn ~= 0 then
+			-- although we drive a parabel, we try to fit a circle to calculate centripetal acceleration for the ball
+			-- we assume |v| as r
+			vis.addCircleRaw("circle_fitting", robotPos + speedVector:perpendicular():setLength(speedVector:length()) * sgn, speedVector:length(), vis.colors.green)
+			-- phi = atan(v * v / r * MY * G)
+			-- G: acceleration of gravity\
+			-- MY: friction of the carpet, m_ball * Costants.fastBallDeceleration = MY * m_ball * G
+			-- -> MY * G = Constants.fastBallDeceleration
+			-- we assume v = r, so phi = atan (v / Constants.fBD)
+			local speed = speedVector:length()
+			local phi = math.atan(speed / Constants.fastBallDeceleration)
+			vis.addPathRaw("dribbling", {robotPos, robotPos + speedVector:copy():normalize()}, vis.colors.orange)
+			vis.addCircleRaw("dribbling", {robotPos, robotPos + speedVector:copy():normalize()+Vector.fromAngle(sgn * phi)}, vis.colors.red)
+		end
+	else
+		targetDir = Coordinates.toGlobal(targetDir)
+	end
+	local angularSpeed, angularAccel = _calculateRotation(robotDir, self._robot.angularSpeed, targetDir,
+			rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime)
+	if self._lastTime then
+		-- feedforward of target direction change
+		-- as tracking a direction only works if it changes slow enough, using feedforwad shouldn't cause any trouble
+		local directionChange = (targetDir - self._lastTargetDir) / (World.Time - self._lastTime)
+		angularSpeed = angularSpeed + directionChange
+	end
+	self._lastTargetDir = targetDir
+	self._lastTime = World.Time
 
 	local spline = { {t_start = 0, t_end = math.huge,
 		x = { a0 = robotPos.x, a1 = speedVector.x, a2 = accelVector.x / 2, a3 = 0 },
