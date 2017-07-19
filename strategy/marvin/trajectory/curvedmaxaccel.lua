@@ -5,7 +5,6 @@ local geom = require "../base/geom"
 local plot = require "../base/plot"
 local vis = require "../base/vis"
 local World = require "../base/world"
-local Geom = require "../base/geom"
 
 local Constants = require "../base/constants"
 
@@ -71,9 +70,6 @@ local function _preprocessPath(waypoints, maxError, robotPos, robotSpeed)
 		end
 	end
 end
-
-local G = 9.81
-local MY = Constants.fastBallDeceleration / G
 
 -- create a list of segments with speedLimits at their start and end
 -- idea: instead of targeting the next path corner, target a point some time
@@ -143,7 +139,7 @@ local function _calculateCurveSpeedLimits(robot, waypoints, accelLimit, maxSpeed
 				table.insert(maxSpeedProfile, {maxSpeed, maxSpeed, xRemaining - startDist}) -- straight line segment
 				-- vis.addPathRaw("waypoints"..tostring(i), {prev - lastPathDir:copy():setLength(xRemaining), prev - lastPathDir:copy():setLength(startDist)}, vis.colors.blue)
 			end
-			table.insert(maxSpeedProfile, {maxStartSpeed, maxEndSpeed, actualDist, true, phi}) -- curved part
+			table.insert(maxSpeedProfile, {maxStartSpeed, maxEndSpeed, actualDist, true}) -- curved part
 			vis.addPathRaw("waypoints"
 --..tostring(i)
 , {prev - lastPathDir:copy():setLength(startDist), prev + newPathDir:copy():setLength(endDist)}, vis.colors.blue)
@@ -663,7 +659,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 
 	-- smooth first corner
 	_preprocessPath(waypoints, maxError, robotPos, robotSpeed)
-	for i,w in ipairs(waypoints) do
+	for _,w in ipairs(waypoints) do
 		vis.addCircleRaw("waypoints", w, 0.1, vis.colors.green)
 	end
 
