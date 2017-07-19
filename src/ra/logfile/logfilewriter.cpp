@@ -89,7 +89,7 @@ bool LogFileWriter::writeStatus(const Status &status)
 
     QByteArray data;
     data.resize(status->ByteSize());
-    if (status->SerializeToArray(data.data(), data.size())) {
+    if (status->IsInitialized() && status->SerializeToArray(data.data(), data.size())) {
         writePackageEntry(status->time(), data);
         return true;
     }

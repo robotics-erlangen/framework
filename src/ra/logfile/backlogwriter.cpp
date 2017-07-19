@@ -33,7 +33,7 @@ void BacklogWriter::handleStatus(const Status &status)
 {
     QByteArray packetData;
     packetData.resize(status->ByteSize());
-    if (status->SerializeToArray(packetData.data(), packetData.size())) {
+    if (status->IsInitialized() && status->SerializeToArray(packetData.data(), packetData.size())) {
         m_packets.append(qCompress(packetData));
     }
 }
