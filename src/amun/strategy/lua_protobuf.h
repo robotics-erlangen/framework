@@ -23,8 +23,9 @@
 
 #include <lua.hpp>
 #include <google/protobuf/message.h>
+#include <string>
 
 void protobufPushMessage(lua_State *L, const google::protobuf::Message &message);
-void protobufToMessage(lua_State *L, int index, google::protobuf::Message &message);
+void protobufToMessage(lua_State *L, int index, google::protobuf::Message &message, std::string *errorMessage);
 
 #endif // LUA_PROTOBUF_H

@@ -200,7 +200,7 @@ static int pathTest(lua_State *L)
 
     // get spline
     robot::Spline spline;
-    protobufToMessage(L, 2, spline);
+    protobufToMessage(L, 2, spline, NULL);
 
     if (spline.t_start() >= spline.t_end()) {
         luaL_error(L, "t_start (%f) has to be less than t_end (%f)", spline.t_start(), spline.t_end());

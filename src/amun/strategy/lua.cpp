@@ -480,6 +480,11 @@ amun::Visualization *Lua::addVisualization()
     return m_debug.add_visualization();
 }
 
+void Lua::removeVisualizations()
+{
+    m_debug.clear_visualization();
+}
+
 amun::DebugValue *Lua::addDebug()
 {
     return m_debug.add_value();

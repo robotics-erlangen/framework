@@ -102,7 +102,7 @@ static int amunSetCommand(lua_State *state)
     robot::Command command;
     const uint generation = lua_tointeger(state, 1);
     const uint robotId = lua_tointeger(state, 2);
-    protobufToMessage(state, 3, command);
+    protobufToMessage(state, 3, command, NULL);
 
     thread->setCommand(generation, robotId, command);
     return 0;
@@ -146,7 +146,12 @@ static int amunAddVisualization(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
     amun::Visualization *vis = thread->addVisualization();
-    protobufToMessage(state, 1, *vis);
+    std::string errorMsg;
+    protobufToMessage(state, 1, *vis, &errorMsg);
+    if (errorMsg.size() > 0) {
+        thread->removeVisualizations();
+        luaL_error(state, errorMsg.c_str());
+    }
     return 0;
 }
 
@@ -191,7 +196,7 @@ static int amunSendCommand(lua_State *state)
     Lua *thread = getStrategyThread(state);
 
     Command command(new amun::Command);
-    protobufToMessage(state, 1, *command);
+    protobufToMessage(state, 1, *command, NULL);
 
     if (!thread->sendCommand(command)) {
         luaL_error(state, "This function is only allowed in debug mode!");
@@ -205,7 +210,7 @@ static int amunSendRefereeCommand(lua_State *state)
     Lua *thread = getStrategyThread(state);
 
     SSL_Referee referee;
-    protobufToMessage(state, 1, referee);
+    protobufToMessage(state, 1, referee, NULL);
 
     std::string refereeStr;
     if (!referee.SerializeToString(&refereeStr)) {
@@ -227,7 +232,7 @@ static int amunSendMixedTeamInfo(lua_State *state)
     Lua *thread = getStrategyThread(state);
 
     ssl::TeamPlan mixedTeamInfo;
-    protobufToMessage(state, 1, mixedTeamInfo);
+    protobufToMessage(state, 1, mixedTeamInfo, NULL);
 
     QByteArray data;
     data.resize(mixedTeamInfo.ByteSize());
@@ -244,7 +249,7 @@ static int amunSendAutorefEvent(lua_State *state)
     Lua *thread = getStrategyThread(state);
 
     ssl::SSL_Autoref autorefEvent;
-    protobufToMessage(state, 1, autorefEvent);
+    protobufToMessage(state, 1, autorefEvent, NULL);
 
     QByteArray data;
     data.resize(autorefEvent.ByteSize());
@@ -266,7 +271,7 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
     }
 
     SSL_RefereeRemoteControlRequest request;
-    protobufToMessage(state, 1, request);
+    protobufToMessage(state, 1, request, NULL);
 
     QByteArray data;
     // the first 4 bytes denote the packet's size in big endian

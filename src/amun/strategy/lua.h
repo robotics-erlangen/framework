@@ -62,6 +62,7 @@ public:
     void setCommand(uint generation, uint robotId, robot::Command &command);
     void log(const QString &text);
     amun::Visualization *addVisualization();
+    void removeVisualizations();
     amun::DebugValue *addDebug();
     amun::PlotValue *addPlot();
     amun::RobotValue *addRobotValue();

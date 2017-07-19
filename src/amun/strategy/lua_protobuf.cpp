@@ -206,7 +206,7 @@ static void toField(lua_State *L, google::protobuf::Message &message, const goog
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
-        protobufToMessage(L, -1, *refl->MutableMessage(&message, field));
+        protobufToMessage(L, -1, *refl->MutableMessage(&message, field), nullptr);
         break;
     }
 }
@@ -264,13 +264,13 @@ static void toRepeatedField(lua_State *L, google::protobuf::Message &message, co
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
-        protobufToMessage(L, -1, *refl->AddMessage(&message, field));
+        protobufToMessage(L, -1, *refl->AddMessage(&message, field), NULL);
         break;
     }
 }
 
 // translate lua table to protobuf message
-void protobufToMessage(lua_State *L, int index, google::protobuf::Message &message)
+void protobufToMessage(lua_State *L, int index, google::protobuf::Message &message, std::string * errorMessage)
 {
     // iterate over message fields
     for (int i = 0; i < message.GetDescriptor()->field_count(); i++) {
@@ -301,6 +301,9 @@ void protobufToMessage(lua_State *L, int index, google::protobuf::Message &messa
 
     // ensure protobuf message is valid
     if (!message.IsInitialized()) {
-        luaL_error(L, "One more required fields are not set: %s", message.InitializationErrorString().c_str());
+        if (errorMessage == NULL) {
+            luaL_error(L, "One more required fields are not set: %s", message.InitializationErrorString().c_str());
+        }
+        *errorMessage += "One more required fields are not set: " + message.InitializationErrorString();
     }
 }
