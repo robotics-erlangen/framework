@@ -61,20 +61,15 @@ function FreeKick:_updateTask()
 	local shootgoalPossible = not self._dirty and
 		(World.RefereeState == "DirectOffensive" or World.RefereeState == "KickoffOffensive")
 
-	-- prepare -> shootgoal
 	-- prepare -> wait
 	if self._state == "prepare" and nearBall then
-		if shootgoalPossible then
-			self._state = "shootgoal"
-		else
-			self._state = "wait"
-			self._waitStartTime = World.Time
-		end
+		self._state = "wait"
+		self._waitStartTime = World.Time
 	end
 
 	-- wait -> shootgoal
 	-- wait -> pass_prepare
-	local MIN_PASS_WAIT_TIME = 1.5
+	local MIN_WAIT_TIME = 1.5
 	local MAX_TIMEFRAME = 8
 	local timeRunningOut = World.Time - Referee.lastStateChangeTime() >= MAX_TIMEFRAME
 	if self._state == "wait" then
@@ -83,10 +78,10 @@ function FreeKick:_updateTask()
 			self._passList = nil
 		elseif timeRunningOut and Referee.isFriendlyFreeKickState() then
 			self._state = "shootgoal"
-		elseif World.Time - self._waitStartTime > MIN_PASS_WAIT_TIME then
+		elseif World.Time - self._waitStartTime > MIN_WAIT_TIME then
 			self._passList = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false)
 			if self._passList then
-				_, self._pass = next(self._passList)
+				local _; _, self._pass = next(self._passList)
 				if self._pass then
 					self._state = "pass_prepare"
 				end

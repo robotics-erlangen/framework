@@ -7,12 +7,13 @@ local World = require "../base/world"
 
 local ObserverShoot = require "observer/shoot"
 
-local CHIP_PASS_DISTANCE_FACTOR = 0.4
+local CHIP_PASS_DISTANCE_FACTOR = 0.5
 local MIN_PASS_SPEED = 3
 
 function Pass:_init(targetRobot, targetPos, chip, passSpeed, ballReceiptPos)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
+	self._chipOverride = chip ~= nil
 	self._chip = chip
 	self._passSpeed = passSpeed or targetRobot and self._targetRobot.constants.passSpeed or MIN_PASS_SPEED
 	self._ballReceiptPos = ballReceiptPos
@@ -48,16 +49,24 @@ function Pass:run()
 	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
 	attackPosition = attackPosition or World.Ball.pos
 
+	local _, attackTime = next(self._inbox.attackTime("broadcast"))
 
-	local chip = self._chip
-	if self._chip == nil then
-		local corridor = ObserverShoot.evaluatePassCorridor(attackPosition,
-			self._targetPos, CHIP_PASS_DISTANCE_FACTOR)
-		chip = corridor == "chip"
+
+	if not self._chipOverride then
+		local lockTime = World.Ball.speed:length() > 0.5 and 0.3 or 0.1
+		local lockDecision = self._chip ~= nil and attackTime and attackTime < lockTime
+		if not lockDecision then
+			local corridor = ObserverShoot.evaluatePassCorridor(attackPosition,
+				self._targetPos, CHIP_PASS_DISTANCE_FACTOR)
+			self._chip = corridor == "chip"
+		end
 	end
 
+	debug.set("chipOverride", self._chipOverride)
+	debug.set("chip", self._chip)
+
 	local targetPos = self._targetPos
-	if chip then
+	if self._chip then
 		self:_chipPass(targetPos, self._ballReceiptPos, maxAngleError)
 	else
 		self:_shoot(targetPos, self._passSpeed, self._ballReceiptPos, maxAngleError)

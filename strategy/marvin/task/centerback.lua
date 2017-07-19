@@ -61,6 +61,7 @@ function CenterBack:run()
 	end
 
 	local maxAngleTilt = 40 * math.pi / 180
+	dir = geom.normalizeAnglePositive(dir + 0.5 * math.pi) - 0.5 * math.pi
 	dir = math.bound(fromGoalAngle - maxAngleTilt, dir, fromGoalAngle + maxAngleTilt)
 
 	debug.set("target", destinationTarget)

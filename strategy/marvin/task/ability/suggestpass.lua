@@ -4,7 +4,7 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 local Physics = require "observer/physics"
 
-function SuggestPass:_suggestPass(passPosRobot, attackPos, relativeTime , anonymous)
+function SuggestPass:_suggestPass(passPosRobot, attackPos, relativeTime, anonymous)
 	-- check for mainAttacker
 	local mainAttacker = self._inbox.mainAttacker().trainer
 	if not mainAttacker then
@@ -17,8 +17,9 @@ function SuggestPass:_suggestPass(passPosRobot, attackPos, relativeTime , anonym
 		(ballPos - passPosRobot):setLength(self._robot.shootRadius + World.Ball.radius)
 
 	-- calculate receive time
-	local moveTime = relativeTime or Physics.robotTimeToPos(self._robot, passPosRobot, Vector(0, 0), true)
-	local receiveTime = World.Time + moveTime + 0.7
+	local extraTime = 0.2
+	local moveTime = relativeTime or Physics.robotTimeToPos(self._robot, passPosRobot, Vector(0, 0), true) + extraTime
+	local receiveTime = World.Time + moveTime
 
 	vis.addCircle("t/a/suggestpass: passSuggestion", passPosRobot, 0.1, vis.colors.redHalf, true)
 

@@ -80,7 +80,6 @@ function ShootGoal.findTarget(ownRobot, viewPos, ignoreGoalie, oldTarget)
 		return G.OpponentGoal, 0
 	end
 
-
 	-- get all free sectors
 	local robotListWithKeeper, robotListWithoutKeeper = ShootGoal.getRobotLists(ownRobot)
 	local robotList = ignoreGoalie and robotListWithoutKeeper or robotListWithKeeper

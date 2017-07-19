@@ -5,7 +5,8 @@ local G = World.Geometry
 local MoveToPos = require "task/movetopos"
 local Pass = require "task/pass"
 
-ChipTC.N_ROBOTS = 1
+ChipTC.MIN_ROBOTS = 1
+ChipTC.MAX_ROBOTS = 1
 
 local pos_y = -G.FieldHeightHalf + 0.1
 local positions = {

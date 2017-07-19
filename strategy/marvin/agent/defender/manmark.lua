@@ -36,7 +36,7 @@ function ManMark:_updateTask()
 
 	-- try to intercept a possible goal shot
 	local _, _, _, passReceivers = Goal.predictShot()
-	local passReceiver = passReceivers[1] and passReceivers[1][1]
+	local passReceiver = passReceivers[1] and passReceivers[1].robot
 	if Defense.dangerousBallTowardsDefense() or self._opp == passReceiver then
 		local defenseAreaIntersection = Field.intersectRayDefenseArea(World.Ball.pos,
 			World.Ball.pos + World.Ball.speed, 0, false)
@@ -58,7 +58,9 @@ function ManMark:_updateTask()
 	local markingPosThreshold = wasCenterback
 			and markingPosNearHigh or markingPosNearLow
 	local oppDefenseDist = Field.distanceToFriendlyDefenseArea(self._opp.pos, self._opp.radius)
-	if markingPosDefenseDist < markingPosThreshold or oppDefenseDist <= 0 or Referee.isStopState() or Referee.isFriendlyFreeKickState()
+	if markingPosDefenseDist < markingPosThreshold or oppDefenseDist <= 0
+			or (Referee.isStopState() and (World.Ball.pos.y < 0.7 * World.Geometry.FieldHeightHalf or World.RefereeState ~= "DirectDefensive"))
+			or Referee.isFriendlyFreeKickState()
 			or World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
 		self._wasCenterback = true
 		return CenterBack, { self._opp }, self._restartTask

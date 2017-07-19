@@ -66,14 +66,13 @@ Robot.constants = {
 -- Init function must be called for EVERY robot.
 -- @param data table/number - data from amun.getTeam or robot id for opponents
 -- @param isFriendly boolean - true if own robot
--- @param geometry World.Geometry - used to setup path object and avoid a circular dependency with world, only required for own robots
 function Robot:init(data, isFriendly)
 	if type(data) == "table" then
 		self:_setSpecs(data)
 	else
 		self.radius = 0.09 -- set default radius if no specs are available
 		self.dribblerWidth = 0.07 --just a good default guess
-		self.shootRadius = 0.075 -- shoot radius of 2014 generation
+		self.shootRadius = 0.067 -- shoot radius of 2014 generation
 		self.generation = -1
 		self.id = data
 		self.maxSpeed = 2 -- Init max speed and acceleration for opponents

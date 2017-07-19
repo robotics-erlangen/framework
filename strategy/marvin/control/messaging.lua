@@ -80,6 +80,7 @@ local msgDefs = {
 
 local exclusiveRoles = {
 	mainAttacker = "number",
+	duelAssistant = "number",
 }
 for role, _ in pairs(exclusiveRoles) do
 	msgDefs[role] = Robot
@@ -283,5 +284,6 @@ function Messaging:_constructSender(sender)
 	end
 	return sendObj
 end
+
 
 return Messaging

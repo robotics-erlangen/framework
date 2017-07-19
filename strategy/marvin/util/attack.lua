@@ -49,6 +49,13 @@ function Attack.ratePass(robot, pass, considerTiming)
 		rating = rating * (1 - volleyWeight + volleyWeight * volleyRating)
 	end
 
+	-- rate angle shooter-goal-receiver
+	local shooterGoalReceiverAngle = (shootPos - World.Geometry.OpponentGoal):absoluteAngleDiff(
+			pass.ballPos - World.Geometry.OpponentGoal)
+	local shooterGoalReceiverRating = Rating.valueToRating(shooterGoalReceiverAngle, 0, 180 / 180 * math.pi)
+	local shooterGoalReceiverWeight = 0.5
+	rating = rating * (1 - shooterGoalReceiverWeight + shooterGoalReceiverWeight * shooterGoalReceiverRating)
+
 	-- rate possible interceptions
 	for _,opp in ipairs(World.OpponentRobots) do
 
@@ -318,13 +325,14 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 	end
 end
 
-local BUFFER_TIME = 0.25
+local BUFFER_TIME = 0.15
 local function printPassInfo(robot, passInfo, hysteresis, hysteresisPassInfo)
 	if passInfo then
 		local robotTime = Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true)
 		debug.push("PassInfo")
 		debug.set("robotTime",robotTime + BUFFER_TIME)
-		debug.set("ballTime", passInfo.time - World.Time)
+		debug.set("messageTime", passInfo.time - World.Time)
+		debug.set("ballTime", Physics.ballTravelTime(World.Ball, World.Ball.pos:distanceTo(passInfo.ballPos)))
 		debug.set("passInfoTime", passInfo.time)
 		debug.set("hysteresis", hysteresis)
 		debug.push("hysteresisPassInfo")
@@ -342,7 +350,7 @@ end
 -- the time between the arrival of the robot and the ball
 local function calculatePassInfoTiming(robot, passInfo)
 	if passInfo then
-		local robotTime = math.min(Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true), 0.5)
+		local robotTime = math.max(Physics.robotTimeToPos(robot, passInfo.ballPos, Vector(0, 0), true), 0.5)
 		local ballTime = Physics.ballTravelTime(World.Ball, World.Ball.pos:distanceTo(passInfo.ballPos))
 		local messageTime = passInfo.time - World.Time
 		local bufferTime = BUFFER_TIME

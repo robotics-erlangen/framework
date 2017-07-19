@@ -77,7 +77,7 @@ function Duel:_contestRotate()
 			self._robot.pos, toOpponentDir, World.Geometry.FriendlyGoal, Vector(1, 0))
 	local ccw = intersection and -math.sign(intersection.x) or -1 --negative = ccw, positive = cw
 	local toBall = World.Ball.speed + (World.Ball.pos - self._robot.pos):setLength(0.4)
-	self._robot:setDribblerSpeed(0.6)
+	self._robot:setDribblerSpeed(0.8)
 	self._robot.trajectory:update(Direct, toBall, nil, ccw * 2*math.pi) -- 1 turn per second
 end
 
