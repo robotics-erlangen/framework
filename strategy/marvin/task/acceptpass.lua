@@ -20,7 +20,7 @@ function AcceptPass:run()
 	assert(passInfoTable, "AcceptPass runs although there is no passInfo message")
 	for _, pass in ipairs(passInfoTable) do
 		if pass.target == self._robot or pass.target == nil then
-			if not self._pass or self._passPos and self._passPos:distanceTo(pass.ballPos) < self._distance then
+			if not self._passPos or self._passPos and self._passPos:distanceTo(pass.ballPos) < self._distance then
 				assert(not passInfo, "AcceptPass doesn't know which pass to accept")
 				passInfo = pass
 			end
