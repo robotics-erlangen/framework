@@ -196,16 +196,20 @@ function Attack.sortPassesFromSuggestions(robot, passSuggestions, currentPassPos
 			rating = rating * hystBonus
 		end
 
-		if rating > threshold or not passes[1] then
-			local target = sender
-			if sugg.anonymous then
-				target = nil
-			end
-			table.insert(passes, {target = target, ballPos = sugg.ballPos, time = sugg.time, rating = rating})
+		local target = sender
+		if sugg.anonymous then
+			target = nil
 		end
+		table.insert(passes, {target = target, ballPos = sugg.ballPos, time = sugg.time, rating = rating})
 	end
 
 	table.sort(passes, sortByRating)
+
+	for i = 2, #passes do
+		if passes[i].rating < threshold then
+			passes[i] = nil
+		end
+	end
 	return next(passes) and passes or nil
 end
 
@@ -367,15 +371,7 @@ end
 --@param lastResult bool - the return value of the last call to this function, or false
 --@return bool - if we have to start to move
 local function checkPassInfos(robot, passInfoTable, lastResult, lastPassInfo)
-	local relevantPassInfoMessage = nil -- a passInfo in which the robot is the target
-	if passInfoTable then
-		for _, passInfo in ipairs(passInfoTable) do
-			if passInfo.target == robot then
-				relevantPassInfoMessage = passInfo
-				break
-			end
-		end
-	end
+	local relevantPassInfoMessage = Attack.relevantPassInfoMessage(robot, passInfoTable)
 	printPassInfo(robot, relevantPassInfoMessage, lastResult, lastPassInfo)
 	if not relevantPassInfoMessage then
 		return nil, false
@@ -415,6 +411,23 @@ function Attack.checkPassInfoFromPosition(robot, passInfo, position, speed)
 		return calculatePassInfoTiming(fakeRobot, passInfo)
 	end
 	return false
+end
+
+-- returns the passInfo that targets the robot
+-- @param robot Robot
+-- @param passInfoTable table - all of the passInfos currently being sent out
+-- @return Message relevantPassInfoMessage (the passInfo message that targets the robot), nil if there isn't one
+function Attack.relevantPassInfoMessage(robot, passInfoTable)
+	local relevantPassInfoMessage = nil
+	if passInfoTable then
+		for _, passInfo in ipairs(passInfoTable) do
+			if passInfo.target == robot then
+				relevantPassInfoMessage = passInfo
+				break
+			end
+		end
+	end
+	return relevantPassInfoMessage
 end
 
 ---returns last incoming passInfo for each robot
