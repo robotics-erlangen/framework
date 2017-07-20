@@ -6,7 +6,7 @@ local MoveToPos = require "task/movetopos"
 Race.MIN_ROBOTS = 1
 Race.MAX_ROBOTS = 1
 
-local Y_END = 0
+local Y_END = -(-World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius + 0.5)
 local Y_START = -World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius + 0.5
 local TOLERANCE = 0.02
 
