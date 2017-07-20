@@ -9,7 +9,6 @@ local Physics = require "observer/physics"
 
 local PassSuggestion = require "task/ability/suggestpass"
 
-
 Ally._behaviors = {}
 
 local attackerAllies = {}
@@ -137,11 +136,8 @@ function Ally:_run()
 	local dirVector = Vector.fromAngle(self._robot.dir)
 	local dribblerPos = self._robot.pos + dirVector*self._robot.shootRadius
 	local ballDist = dribblerPos:distanceTo(ballPos)
-	if ballDist < ALLY_MAINATTACKER_DIST then
+	if ballDist < ALLY_MAINATTACKER_DIST and World.Ball.speed:length() < 1 then
 		self._send.exclusiveRole("trainer", {mainAttacker = 2})
-	elseif self._robot.speed:length() > 0.5 and
-			self._robot.speed:absoluteAngleDiff(ballPos-dirVector) < 20/180*math.pi then
-		(require "agent/base")._applyForMainAttacker(self) -- HACK
 	end
 end
 
