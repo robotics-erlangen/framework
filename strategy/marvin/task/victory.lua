@@ -13,15 +13,14 @@ function Victory:_init(center, startingAngle, angle, radius)
 end
 
 function Victory:run()
-	log("Center: "..tostring(self._center))
 	local endSpeed = Vector(0, 0)
-	self._centerAngle = self._centerAngle + math.pi / 720
-	self._outerAngle = self._outerAngle + math.pi / 360
+	self._centerAngle = self._centerAngle + math.pi / 480
+	self._outerAngle = self._outerAngle + math.pi / 180
 	local origin = Vector.fromAngle(self._centerAngle):setLength(self._radius / 2)
-	local pos = origin + Vector.fromAngle(self._outerAngle):setLength(self._radius / 2 - 0.25)
+	local pos = self._center + origin + Vector.fromAngle(self._outerAngle):setLength(self._radius / 2 - 0.25)
 
 	self._robot.path:clearObstacles()
-	self._robot.trajectory:update(ToTarget, pos, (origin - pos):angle(), 1, endSpeed)
+	self._robot.trajectory:update(ToTarget, pos, (self._center + origin - pos):angle(), 1, endSpeed)
 end
 
 return Victory

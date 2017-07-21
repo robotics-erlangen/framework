@@ -29,18 +29,15 @@ function Victory:_updateTasks()
 	local nRobots = #self._robots
 	-- TODO: radius sinnvoller
 	local radius = (G.FieldHeightHalf - G.DefenseRadius) / 2
-	local center = Vector(0, -radius)
+	local center = Vector(0, -radius - 0.5)
 	radius = radius - 0.5
-	log("center = "..radius..", radius = "..radius)
 	vis.addCircle("test", center, 0.05, vis.colors.yellow, true)
 	local angleStep = 2 * math.pi / nRobots
 
 	if self._state == "init" then -- todo startposition fixen
-		log("ho")
 		for i, _ in ipairs(self._robots) do
 			local angle = i * angleStep
 			local moveLine = Vector.fromAngle(angle):setLength(radius/2)
-			log("moveLine = "..tostring(moveLine))
 			local pos = center - Vector(0, -radius/2) + moveLine
 			taskAssignments[self._robots[i]] = { class = MoveToPos, params = {pos}}
 			if self._robots[i].pos:distanceTo(pos) > 0.1 then
