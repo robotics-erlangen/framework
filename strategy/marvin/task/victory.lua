@@ -2,9 +2,6 @@ local SuggestPass = require "task/ability/suggestpass"
 local Victory = Class("Task.Victory", require "task/base", SuggestPass)
 
 local ToTarget = require "trajectory/totarget"
-local World = require "../base/world"
-
-local vis = require "../base/vis"
 
 
 function Victory:_init(center, startingAngle, angle, radius)
@@ -23,6 +20,7 @@ function Victory:run()
 	local origin = Vector.fromAngle(self._centerAngle):setLength(self._radius / 2)
 	local pos = origin + Vector.fromAngle(self._outerAngle):setLength(self._radius / 2 - 0.25)
 
+	self._robot.path:clearObstacles()
 	self._robot.trajectory:update(ToTarget, pos, (origin - pos):angle(), 1, endSpeed)
 end
 
