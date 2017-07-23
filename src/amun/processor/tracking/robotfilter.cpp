@@ -385,6 +385,18 @@ float RobotFilter::distanceTo(const SSL_DetectionRobot &robot) const
     return (b - p).norm();
 }
 
+bool RobotFilter::kickIsChip()
+{
+    const auto& cmd = m_lastRadioCommand.first;
+    return cmd.has_kick_style() && cmd.kick_style() == robot::Command::Chip;
+}
+
+bool RobotFilter::kickIsLinear()
+{
+    const auto& cmd = m_lastRadioCommand.first;
+    return cmd.has_kick_style() && cmd.kick_style() == robot::Command::Linear;
+}
+
 Eigen::Vector2f RobotFilter::dribblerPos() const
 {
     Eigen::Vector2f robotMiddle(m_kalman->state()(0), m_kalman->state()(1));

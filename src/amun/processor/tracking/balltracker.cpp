@@ -23,7 +23,7 @@
 #include "ballgroundfilter.h"
 #include <random>
 
-BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo *cameraInfo, Eigen::Vector2f dribblerPos, Eigen::Vector2f robotPos) :
+BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo *cameraInfo, RobotInfo robotInfo) :
     Filter(last_time),
     m_lastUpdateTime(last_time),
     m_cameraInfo(cameraInfo),
@@ -31,7 +31,7 @@ BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32
     m_lastFrameTime(0)
 {
     m_primaryCamera = primaryCamera;
-    VisionFrame frame(ball, last_time, primaryCamera, dribblerPos, robotPos);
+    VisionFrame frame(ball, last_time, primaryCamera, robotInfo);
     m_groundFilter = new GroundFilter(frame, cameraInfo);
     // TODO collision filter
     m_flyFilter = new FlyFilter(frame, cameraInfo);
@@ -64,9 +64,9 @@ BallTracker::~BallTracker()
     delete m_groundFilter;
 }
 
-bool BallTracker::acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, Eigen::Vector2f dribblerPos)
+bool BallTracker::acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo)
 {
-    VisionFrame frame(ball, time, cameraId, dribblerPos, dribblerPos);
+    VisionFrame frame(ball, time, cameraId, robotInfo);
     bool accept = m_flyFilter->acceptDetection(frame) || m_groundFilter->acceptDetection(frame);
     debug("accept", accept);
     debug("acceptId", cameraId);
@@ -167,9 +167,9 @@ void BallTracker::get(world::Ball *ball, bool flip)
     m_rawMeasurements.clear();
 }
 
-void BallTracker::addVisionFrame(const SSL_DetectionBall &ball, qint64 time, qint32 cameraId, Eigen::Vector2f dribblerPos, Eigen::Vector2f robotPos)
+void BallTracker::addVisionFrame(const SSL_DetectionBall &ball, qint64 time, qint32 cameraId, RobotInfo robotInfo)
 {
     m_lastTime = time;
-    m_visionFrames.append(VisionFrame(ball, time, cameraId, dribblerPos, robotPos));
+    m_visionFrames.append(VisionFrame(ball, time, cameraId, robotInfo));
     m_frameCounter++;
 }

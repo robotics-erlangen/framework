@@ -386,12 +386,13 @@ QList<RobotFilter *> Tracker::getBestRobots(qint64 currentTime)
     return filters;
 }
 
-static Eigen::Vector2f nearestDribbler(const QList<RobotFilter *> &robots, const SSL_DetectionBall &b)
-{
+static RobotInfo nearestRobotInfo(const QList<RobotFilter *> &robots, const SSL_DetectionBall &b) {
     Eigen::Vector2f ball(-b.y()/1000, b.x()/1000); // convert from ssl vision coordinates
 
+    RobotInfo rInfo{Eigen::Vector2f(0,0), Eigen::Vector2f(0,0), false, false};
+
     float minDist = 10000; // big enough for the ball filter
-    Eigen::Vector2f dribblerPos(0,0);
+
     RobotFilter *best = nullptr;
     for (RobotFilter *filter : robots) {
         Eigen::Vector2f dribbler = filter->dribblerPos();
@@ -399,29 +400,10 @@ static Eigen::Vector2f nearestDribbler(const QList<RobotFilter *> &robots, const
         if (dist < minDist || best == nullptr) {
             minDist = dist;
             best = filter;
-            dribblerPos = dribbler;
+            rInfo = {filter->robotPos(), filter->dribblerPos(), filter->kickIsChip(), filter->kickIsLinear()};
         }
     }
-    return dribblerPos;
-}
-
-static Eigen::Vector2f nearestRobot(const QList<RobotFilter *> &robots, const SSL_DetectionBall &b)
-{
-    Eigen::Vector2f ball(-b.y()/1000, b.x()/1000); // convert from ssl vision coordinates
-
-    float minDist = 10000; // big enough for the ball filter
-    Eigen::Vector2f robotPos(0,0);
-    RobotFilter *best = nullptr;
-    for (RobotFilter *filter : robots) {
-        Eigen::Vector2f pos = filter->robotPos();
-        const float dist = (ball - pos).norm();
-        if (dist < minDist || best == nullptr) {
-            minDist = dist;
-            best = filter;
-            robotPos = pos;
-        }
-    }
-    return robotPos;
+    return rInfo;
 }
 
 void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint32 cameraId, const QList<RobotFilter *> &bestRobots)
@@ -433,16 +415,15 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint
     if (! m_cameraInfo->cameraPosition.contains(cameraId)) {
         return;
     }
-    Eigen::Vector2f dribbler = nearestDribbler(bestRobots, ball);
-    Eigen::Vector2f robot = nearestRobot(bestRobots, ball);
+    RobotInfo robotInfo = nearestRobotInfo(bestRobots, ball);
 
     bool acceptingFilterWithCamId = false;
     BallTracker *acceptingFilterWithOtherCamId = nullptr;
     foreach (BallTracker *filter, m_ballFilter) {
         filter->update(receiveTime);
-        if (filter->acceptDetection(ball, receiveTime, cameraId, dribbler)) {
+        if (filter->acceptDetection(ball, receiveTime, cameraId, robotInfo)) {
             if (filter->primaryCamera() == cameraId) {
-                filter->addVisionFrame(ball, receiveTime, cameraId, dribbler, robot);
+                filter->addVisionFrame(ball, receiveTime, cameraId, robotInfo);
                 acceptingFilterWithCamId = true;
             } else {
                 // remember filter for copying its state in case that no filter
@@ -460,10 +441,10 @@ void Tracker::trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint
             bt = new BallTracker(*acceptingFilterWithOtherCamId, cameraId);
         } else {
             // create new Ball Filter without initial movement
-            bt = new BallTracker(ball, receiveTime, cameraId, m_cameraInfo, dribbler, robot);
+            bt = new BallTracker(ball, receiveTime, cameraId, m_cameraInfo, robotInfo);
         }
         m_ballFilter.append(bt);
-        bt->addVisionFrame(ball, receiveTime, cameraId, dribbler, robot);
+        bt->addVisionFrame(ball, receiveTime, cameraId, robotInfo);
     } else {
         // only prioritize when detection was accepted
         prioritizeBallFilters();

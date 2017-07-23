@@ -761,7 +761,9 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
         absSpeed = (reportedBallPos-m_shotDetectionWindow.back().ballPos).norm() / timeDiff;
     }
 
-    ChipDetection currentDetection(dribblerSpeed, absSpeed, timeSinceInit, reportedBallPos, frame.dribblerPos, frame.ballArea, frame.robotPos, frame.cameraId);
+    ChipDetection currentDetection(dribblerSpeed, absSpeed, timeSinceInit,
+        reportedBallPos, frame.dribblerPos, frame.ballArea, frame.robotPos,
+        frame.cameraId, frame.chipCommand, frame.linearCommand);
     m_shotDetectionWindow.append(currentDetection);
     if (m_shotDetectionWindow.size() > 4) {
         m_shotDetectionWindow.pop_front();
@@ -794,10 +796,19 @@ void FlyFilter::processVisionFrame(const VisionFrame& frame)
         if(!m_bouncing){
             debug("chip detected", m_chipDetected);
             PinvResult pinvRes = calcPinvAndIntersection();
+            if(m_kickFrames.front().linearCommand) {
+                resetFlightReconstruction();
+                debug("kick command", "linear");
+                return; // no detection for linear kicks
+            }
             if (!m_chipDetected) {
                 bool heightSaysChip = detectionHeight(); // run for debug info
-                bool isCurvy = detectionCurviness(pinvRes);                
-                if (detectionSpeed()) {
+                bool isCurvy = detectionCurviness(pinvRes);
+                if (m_kickFrames.front().chipCommand) {
+                    debug("kick command", "chip");
+                    m_chipDetected = true;
+                } else if (detectionSpeed()) {
+                    debug("kick command", "unavailable");
                     Eigen::Vector3f cam3d = m_cameraInfo->cameraPosition.value(m_kickFrames.back().cameraId);
                     Eigen::Vector2f cam(cam3d(0), cam3d(1));
                     auto angleToCam = innerAngle(m_kickFrames.first().ballPos,

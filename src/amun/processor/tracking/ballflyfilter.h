@@ -27,8 +27,8 @@
 #include "protobuf/world.pb.h"
 
 struct ChipDetection{
-    ChipDetection(float s, float as, float t, Eigen::Vector2f bp, Eigen::Vector2f dp,  float a, Eigen::Vector2f r, quint32 cid)
-        :  dribblerSpeed(s), absSpeed(as), time(t), ballPos(bp), dribblerPos(dp), robotPos(r), cameraId(cid), ballArea(a)  {}
+    ChipDetection(float s, float as, float t, Eigen::Vector2f bp, Eigen::Vector2f dp,  float a, Eigen::Vector2f r, quint32 cid, bool cc, bool lc)
+        :  dribblerSpeed(s), absSpeed(as), time(t), ballPos(bp), dribblerPos(dp), robotPos(r), cameraId(cid), ballArea(a), chipCommand(cc), linearCommand(lc)  {}
     ChipDetection(){} // make QVector happy
     float dribblerSpeed;
     float absSpeed;
@@ -38,6 +38,8 @@ struct ChipDetection{
     Eigen::Vector2f robotPos;
     quint32 cameraId;
     float ballArea;
+    bool chipCommand;
+    bool linearCommand;
 };
 
 class FlyFilter : public AbstractBallFilter

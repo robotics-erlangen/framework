@@ -45,6 +45,8 @@ public:
     void addRadioCommand(const robot::Command &radioCommand, qint64 time);
 
     float distanceTo(const SSL_DetectionRobot &robot) const;
+    bool kickIsChip();
+    bool kickIsLinear();
     Eigen::Vector2f dribblerPos() const;
     Eigen::Vector2f robotPos() const;
 

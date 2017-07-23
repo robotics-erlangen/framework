@@ -10,11 +10,18 @@
 #include <QMap>
 #include <QString>
 
+struct RobotInfo {
+    Eigen::Vector2f robotPos;
+    Eigen::Vector2f dribblerPos;
+    bool chipCommand;
+    bool linearCommand;
+};
+
 struct VisionFrame
 {
     // rotate position and convert to meter
-    VisionFrame(const SSL_DetectionBall& b, qint64 t, qint32 c, Eigen::Vector2f d, Eigen::Vector2f r)
-        : cameraId(c), ballArea(b.area()), x(-b.y()/1000), y(b.x()/1000), time(t), dribblerPos(d), robotPos(r) {}
+    VisionFrame(const SSL_DetectionBall& b, qint64 t, qint32 c, RobotInfo r)
+        : cameraId(c), ballArea(b.area()), x(-b.y()/1000), y(b.x()/1000), time(t), dribblerPos(r.dribblerPos), robotPos(r.robotPos), chipCommand(r.chipCommand), linearCommand(r.linearCommand) {}
     // b.area is optional in the protobuf but defaults to 0, so nothing bad can happen
     const qint32 cameraId;
     const quint32 ballArea;
@@ -23,6 +30,8 @@ struct VisionFrame
     const qint64 time;
     Eigen::Vector2f dribblerPos;
     Eigen::Vector2f robotPos;
+    bool chipCommand;
+    bool linearCommand;
 };
 
 struct CameraInfo {
