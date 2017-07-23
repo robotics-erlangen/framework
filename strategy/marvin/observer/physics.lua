@@ -214,6 +214,13 @@ function Physics.calculateChipSpeed(dist)
 	return math.sqrt((flightDistance*9.81) / 2)
 end
 
+function Physics.robotBreakPos(robot)
+	local BREAK_DEFAULT = 5 -- rather overestimate than underestimte the opponent
+	local brkSpeed = robot.acceleration and robot.acceleration.aBrakeFMax or BREAK_DEFAULT
+	local brkLength = robot.speed:length() / brkSpeed
+	return robot.pos + robot.speed:copy():normalize():scaleLength(brkLength)
+end
+
 --- estimates the time the ball needs to travel for a chip pass from startPos to endPos
 function Physics.chipPassTime(startPos, endPos)
 	local dist = (endPos - startPos):length()

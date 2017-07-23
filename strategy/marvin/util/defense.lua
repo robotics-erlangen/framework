@@ -33,11 +33,8 @@ local function manMarkPos(opponent)
 		targetPos = opponent.pos + (World.Geometry.FriendlyGoal - opponent.pos):setLength(dist)
 	end
 
-	-- extend position with speed of opponent, parameters can be improved
-	local maxPosExtension = Constants.maxRobotRadius
-	local extensionTime = 0.8
-	local posExtension = math.min(maxPosExtension, opponent.speed:length()*extensionTime)
-	targetPos = targetPos + opponent.speed:copy():setLength(posExtension)
+	-- use the position at which the robot would break if it started immediately
+	targetPos = Physics.robotBreakPos({pos = targetPos, speed = opponent.speed, radius = opponent.radius})
 
 	targetPos = Field.limitToAllowedField(targetPos, Constants.maxRobotRadius)
 	if Referee.isStopState() then
