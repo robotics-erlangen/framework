@@ -8,8 +8,8 @@ local VictoryTask = require "task/victory"
 
 local vis = require "../base/vis"
 
-Victory.MIN_ROBOTS = 4
-Victory.MAX_ROBOTS = 5
+Victory.MIN_ROBOTS = 3
+Victory.MAX_ROBOTS = 6
 
 function Victory.canStart() -- TODO
 	return true
@@ -29,7 +29,7 @@ function Victory:_updateTasks()
 	local nRobots = #self._robots
 	-- TODO: radius sinnvoller
 	local radius = (G.FieldHeightHalf - G.DefenseRadius) / 2
-	local center = Vector(0, -radius - 0.5)
+	local center = Vector(0, -radius - 0.75)
 	radius = radius - 0.5
 	vis.addCircle("test", center, 0.05, vis.colors.yellow, true)
 	local angleStep = 2 * math.pi / nRobots
