@@ -1,4 +1,4 @@
-local Dribble = Class("Tesst.Move.Dribble", require "group/move/base")
+local Dribble = Class("Test.Move.Dribble", require "group/move/base")
 
 local DribbleTask = require "task/dribble"
 local World = require "../base/world"
@@ -33,10 +33,8 @@ end
 function Dribble:_updateTasks()
 	local state_changed = false
 	local delay = false
-	local class = DribbleTask
 	if World.Time - self._time < 3 then
 		delay = true
-	--	class = MoveToPos
 	end
 	if not delay and self._state == 5 then
 		self._state = 1
@@ -44,16 +42,13 @@ function Dribble:_updateTasks()
 	end
 	if self._robots[1].pos:distanceTo(POSITIONS_ORIG[self._state]) < 0.01 and not delay then
 		if self._state == 4 then
-			self._state = 5
 			self._time = World.Time
-			state_changed = true
-		else
-			state_changed = true
-			self._state = self._state + 1
 		end
+		self._state = self._state + 1
+		state_changed = true
 	end
 	local taskAssignments = {}
-	taskAssignments[self._robots[1]] = { class = class, params = {POSITIONS_ORIG[self._state]}, restart = state_changed }
+	taskAssignments[self._robots[1]] = { class = DribbleTask, params = {POSITIONS_ORIG[self._state]}, restart = state_changed }
 	return taskAssignments, self._robots[1]
 end
 
