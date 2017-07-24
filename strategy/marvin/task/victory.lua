@@ -1,8 +1,9 @@
 local SuggestPass = require "task/ability/suggestpass"
 local Victory = Class("Task.Victory", require "task/base", SuggestPass)
 
-local ToTarget = require "trajectory/totarget"
 local geom = require "../base/geom"
+local ToTarget = require "trajectory/totarget"
+local PathHelper = require "trajectory/pathhelper"
 
 local NUM_OF_REVOLUTIONS = 2
 
@@ -21,11 +22,10 @@ end
 function Victory:run()
 	self._centerAngle = self._centerAngle + math.pi / 480
 	self._outerAngle = self._outerAngle + math.pi / (180 + self._ticks*180)
-	local pos, dir
+	local pos
 	if self._state == "double circle" then
 		local origin = Vector.fromAngle(self._centerAngle):setLength(self._radius / 2)
 		pos = self._center + origin + Vector.fromAngle(self._outerAngle):setLength(self._radius / (4 - self._ticks*2))
-		dir = (self._center + origin - pos):angle()
 		self._state = math.abs(self._centerAngle) < NUM_OF_REVOLUTIONS * 2 * math.pi and "double circle" or "spiral prepare"
 		if self._state == "spiral prepare" then
 			self._ticks = 1
@@ -34,11 +34,9 @@ function Victory:run()
 	elseif self._state == "spiral prepare" then
 		local origin = Vector.fromAngle(self._centerAngle):setLength((self._radius / 2) * self._ticks)
 		pos = self._center + origin + Vector.fromAngle(self._outerAngle):setLength(self._radius / (4 - self._ticks*2))
-		dir = (self._center + origin - pos):angle()
 		self._state = self._ticks > 0 and "spiral prepare" or "spiral"
 	elseif self._state == "spiral" then
 		pos = self._center + Vector.fromAngle(self._outerAngle):setLength(self._radius - self._ticks * self._radius * 3/4)
-		dir = (self._center - self._robot.pos):angle()
 		self._state = self._centerAngle > 2 * NUM_OF_REVOLUTIONS * 2 * math.pi and "double circle prepare" or "spiral"
 		if self._state == "double circle prepare" then
 			self._centerAngle = geom.normalizeAnglePositive(self._centerAngle)
@@ -48,7 +46,6 @@ function Victory:run()
 	elseif self._state == "double circle prepare" then
 		local origin = Vector.fromAngle(self._centerAngle):setLength((self._radius / 2) * self._ticks)
 		pos = self._center + origin + Vector.fromAngle(self._outerAngle):setLength(self._radius / (4 - self._ticks*2))
-		dir = (self._center + origin - pos):angle()
 		self._state = self._ticks > 1 and "double circle" or "double circle prepare"
 	end
 
@@ -61,6 +58,9 @@ function Victory:run()
 	end
 	self._robot.path:clearObstacles()
 	local endSpeed = Vector(0, 0)
+	local dir = (pos - self._robot.pos):angle()
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, true, true)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 	self._robot.trajectory:update(ToTarget, pos, dir, 1, endSpeed)
 end
 
