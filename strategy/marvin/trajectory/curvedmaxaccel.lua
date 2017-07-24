@@ -699,9 +699,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 			-- -> MY * G = Constants.fastBallDeceleration
 			-- we assume v = r, so phi = atan (v / Constants.fBD)
 			local speed = speedVector:length()
-			local phi = math.atan(speed / Constants.fastBallDeceleration)
-			vis.addPathRaw("dribbling", {robotPos, robotPos + speedVector:copy():normalize()}, vis.colors.orange)
-			vis.addCircleRaw("dribbling", {robotPos, robotPos + speedVector:copy():normalize()+Vector.fromAngle(sgn * phi)}, vis.colors.red)
+			local phi = -math.atan(speed / math.abs(Constants.fastBallDeceleration))
+			targetDir = targetDir + sgn * phi
 		end
 	else
 		targetDir = Coordinates.toGlobal(targetDir)
