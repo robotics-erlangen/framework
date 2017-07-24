@@ -1,12 +1,12 @@
-local Test = Class("Group.Move.Test", require "group/move/base")
+local Dribble = Class("Tesst.Move.Dribble", require "group/move/base")
 
-local Dribble = require "task/dribble"
+local DribbleTask = require "task/dribble"
 local World = require "../base/world"
 
 local G = World.Geometry
 
-Test.MIN_ROBOTS = 1
-Test.MAX_ROBOTS = 1
+Dribble.MIN_ROBOTS = 1
+Dribble.MAX_ROBOTS = 1
 
 -- the armada has 4 steps to form stairs, depending on ball distance
 local POSITIONS_ORIG = {
@@ -17,23 +17,23 @@ local POSITIONS_ORIG = {
 	Vector(G.FieldWidthHalf * -0.56, G.FieldWidthHalf * -0.225),
 }
 
-function Test.canStart()
+function Dribble.canStart()
 	return true
 end
 
-function Test:_init()
+function Dribble:_init()
 	self._state=1
 	self._time = World.Time
 end
 
-function Test:_canContinue()
+function Dribble:_canContinue()
 	return true
 end
 
-function Test:_updateTasks()
+function Dribble:_updateTasks()
 	local state_changed = false
 	local delay = false
-	local class = Dribble
+	local class = DribbleTask
 	if World.Time - self._time < 3 then
 		delay = true
 	--	class = MoveToPos
@@ -48,7 +48,6 @@ function Test:_updateTasks()
 			self._time = World.Time
 			delay = true
 			state_changed = true
-	--		class = MoveToPos
 		else
 			state_changed = true
 			self._state = self._state + 1
@@ -59,4 +58,4 @@ function Test:_updateTasks()
 	return taskAssignments, self._robots[1]
 end
 
-return Test
+return Dribble

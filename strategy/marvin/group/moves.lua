@@ -7,12 +7,11 @@ local Kickoff = require "group/move/kickoff"
 local KickoffDefensive = require "group/move/kickoffdefensive"
 local MrlTestCorner = require "group/move/mrltestcorner"
 local Overchip = require "group/move/overchip"
-local DribbleTest = require "group/move/test"
 --local SafeCorner = require "group/move/safecorner"
 
 function Moves:init()
 	self.name = "moves"
-	self.moveList = {Kickoff, KickoffDefensive, Armada, MrlTestCorner, Overchip, BallCycle, DribbleTest}
+	self.moveList = {Kickoff, KickoffDefensive, Armada, MrlTestCorner, Overchip, BallCycle}
 
 	for _,move in ipairs(self.moveList) do
 		if not move.MIN_ROBOTS or move.MIN_ROBOTS < 0
