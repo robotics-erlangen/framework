@@ -3,7 +3,6 @@ local Dribble = Class("Task.Dribble", require "task/base", SuggestPass)
 
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
-local World = require "../base/world"
 
 
 function Dribble:_init(pos, dir, suggestPass, endSpeedLength)
