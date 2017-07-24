@@ -149,6 +149,10 @@ void BallTracker::get(world::Ball *ball, bool flip)
         ball->set_p_y(-ball->p_y());
         ball->set_v_x(-ball->v_x());
         ball->set_v_y(-ball->v_y());
+        if (ball->has_touchdown_x() && ball->has_touchdown_y()) {
+            ball->set_touchdown_x(-ball->touchdown_x());
+            ball->set_touchdown_y(-ball->touchdown_y());
+        }
     }
     for (auto& frame: m_rawMeasurements) {
         world::BallPosition* raw = ball->add_raw();
