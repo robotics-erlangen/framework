@@ -10,6 +10,8 @@ local StrikerGroup = require "group/striker"
 local moves = {
 	require "test/move/timetopos",
 	require "test/move/chiptime",
+	require "test/move/commchallengemaster",
+	require "test/move/commchallengeslave",
 	require "test/move/race",
 	require "test/move/volley",
 	require "test/move/victory"
