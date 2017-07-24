@@ -1,12 +1,12 @@
 local CurvedMaxAccel = Class("Trajectory.CurvedMaxAccel", (require "../base/trajectory").Base)
 
 local Coordinates = require "../base/coordinates"
+local Constants = require "../base/constants"
 local geom = require "../base/geom"
 local plot = require "../base/plot"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
-local Constants = require "../base/constants"
 
 function CurvedMaxAccel:_init()
 	self._lastTargetDir = nil
@@ -573,6 +573,20 @@ local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile
 	return speedVector, accelVector
 end
 
+function CurvedMaxAccel:_calculateRotationHysteresis(robotDir, angularSpeed, targetDir, rotAccel, rotBrake,
+			rotSpeed, rotExpTime)
+		local angularSpeed, angularAccel = _calculateRotation(robotDir, angularSpeed, targetDir,
+			rotAccel, rotBrake, rotpeed, rotationExpTime)
+		if self._lastTime then
+			-- feedforward of target direction change
+			-- as tracking a direction only works if it changes slow enough, using feedforwad shouldn't cause any trouble
+			local directionChange = (targetDir - self._lastTargetDir) / (World.Time - self._lastTime)
+			angularSpeed = angularSpeed + directionChange
+		end
+		self._lastTargetDir = targetDir
+		self._lastTime = World.Time
+end
+
 
 function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelScale, dribble)
 	if targetPos == nil then
@@ -616,16 +630,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	local waypoints = self:_getPath(targetPos)
 	if #waypoints == 0 then -- no waypoints left, just stay here but also update the orientation
 		targetDir = Coordinates.toGlobal(targetDir)
-		local angularSpeed, angularAccel = _calculateRotation(robotDir, self._robot.angularSpeed, targetDir,
+		local angularSpeed, angularAccel = _calculateRotationHysteresis(robotDir, self._robot.angularSpeed, targetDir,
 			rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime)
-		if self._lastTime then
-			-- feedforward of target direction change
-			-- as tracking a direction only works if it changes slow enough, using feedforwad shouldn't cause any trouble
-			local directionChange = (targetDir - self._lastTargetDir) / (World.Time - self._lastTime)
-			angularSpeed = angularSpeed + directionChange
-		end
-		self._lastTargetDir = targetDir
-		self._lastTime = World.Time
 		local spline = { {t_start = 0, t_end = math.huge,
 			x = { a0 = robotPos.x, a1 = endSpeed.x, a2 = 0, a3 = 0 },
 			y = { a0 = robotPos.y, a1 = endSpeed.y, a2 = 0, a3 = 0 },
@@ -648,7 +654,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 
 	--dribble: backward: speed & accel, forward brake
 	local accelerate = math.abs(self._robot.acceleration.aSpeedupFMax) * accelerationFactor --* (dribble and 0.2 or 1)
-	local brake = -math.abs(self._robot.acceleration.aBrakeFMax) * accelerationFactor  *(dribble and 0.8 or 1)
+	local brake = -math.abs(self._robot.acceleration.aBrakeFMax) * accelerationFactor  * (dribble and 0.8 or 1)
 --	if dribble then
 --		maxSpeed = 0.5
 --	end
@@ -690,7 +696,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 		if sgn ~= 0 then
 			-- although we drive a parabel, we try to fit a circle to calculate centripetal acceleration for the ball
 			-- we assume |v| as r
-			vis.addCircleRaw("circle_fitting", robotPos + speedVector:perpendicular():setLength(speedVector:length()) * sgn, speedVector:length(), vis.colors.green)
+			vis.addCircleRaw("circle_fitting", robotPos + speedVector:perpendicular() * sgn, speedVector:length(), vis.colors.green)
 			-- phi = atan(v * v / r * MY * G)
 			-- G: acceleration of gravity\
 			-- MY: friction of the carpet, m_ball * Costants.fastBallDeceleration = MY * m_ball * G
@@ -703,16 +709,8 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	else
 		targetDir = Coordinates.toGlobal(targetDir)
 	end
-	local angularSpeed, angularAccel = _calculateRotation(robotDir, self._robot.angularSpeed, targetDir,
+	local angularSpeed, angularAccel = _calculateRotationHysteresis(robotDir, self._robot.angularSpeed, targetDir,
 			rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime)
-	if self._lastTime then
-		-- feedforward of target direction change
-		-- as tracking a direction only works if it changes slow enough, using feedforwad shouldn't cause any trouble
-		local directionChange = (targetDir - self._lastTargetDir) / (World.Time - self._lastTime)
-		angularSpeed = angularSpeed + directionChange
-	end
-	self._lastTargetDir = targetDir
-	self._lastTime = World.Time
 
 	local spline = { {t_start = 0, t_end = math.huge,
 		x = { a0 = robotPos.x, a1 = speedVector.x, a2 = accelVector.x / 2, a3 = 0 },
