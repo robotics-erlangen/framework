@@ -170,7 +170,11 @@ function Striker:run(sender, inbox, messages)
 	end
 
 	-- choose which zone is occupied by the mainAttacker
-	self:_chooseEmptyZone(mainAttacker and mainAttacker.pos)
+	local mainAttackerPos = nil
+	if mainAttacker then
+		mainAttackerPos = inbox.attackPosition()[mainAttacker] or mainAttacker.pos
+	end
+	self:_chooseEmptyZone(mainAttackerPos)
 
 	-- assign the zones to the nearest strikers
 	local robotPositions = {} -- robot -> pos
