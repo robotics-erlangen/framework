@@ -22,7 +22,7 @@ function Dribble.canStart()
 end
 
 function Dribble:_init()
-	self._state=1
+	self._state = 1
 	self._time = World.Time
 end
 
