@@ -559,9 +559,7 @@ local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile
 	if speedVector:length() >= 0.0001 then
 		-- check if the robot is on a curve segment
 		if #maxSpeedProfile >= 2 and maxSpeedProfile[2][4] then
-			log("@do")
 			local forwardDir = moveDir:copy():normalize():dot(robotSpeed)
-			log(forwardDir.."..".. speed)
 			-- add acceleration towards the curve center, reduce accerlation if the robot is slower than expected
 			local angle = (waypoints[2] - waypoints[1]):angleDiff(waypoints[3] - waypoints[2])
 			local scale = math.bound(0.02, math.min(forwardDir, speed) / math.max(maxSpeedProfile[2][1], maxSpeedProfile[2][2]), 1)
