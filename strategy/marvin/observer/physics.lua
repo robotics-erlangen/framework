@@ -216,8 +216,9 @@ end
 
 function Physics.robotBreakPos(robot)
 	local BREAK_DEFAULT = 5 -- rather overestimate than underestimte the opponent
-	local brkSpeed = robot.acceleration and robot.acceleration.aBrakeFMax or BREAK_DEFAULT
-	local brkLength = robot.speed:length() / brkSpeed
+	local brkAcc = robot.acceleration and robot.acceleration.aBrakeFMax or BREAK_DEFAULT
+	local robotSpeed = robot.speed:length()
+	local brkLength = 0.5 * robotSpeed * robotSpeed / brkAcc
 	return robot.pos + robot.speed:copy():normalize():scaleLength(brkLength)
 end
 
