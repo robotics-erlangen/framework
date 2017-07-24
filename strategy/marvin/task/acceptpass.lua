@@ -33,15 +33,20 @@ function AcceptPass:run()
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
-	-- don't move between the ball and the main attacker
-	-- relevant for incoming passes
 	local mainAttacker = self._inbox.mainAttacker().trainer
+	local dangerPos = nil
 	if mainAttacker then
-		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, mainAttacker.pos.x, mainAttacker.pos.y, 0.2)
+		dangerPos = mainAttacker.pos
 	end
 	local  _, moveTime = self._robot.trajectory:update(ToTarget, position, (World.Ball.pos - self._robot.pos):angle())
 	if attackPosition then
+		dangerPos = attackPosition
 		self:_suggestPass(position, attackPosition, moveTime)
+	end
+	-- don't move between the ball and the main attacker
+	-- relevant for incoming passes
+	if dangerPos then
+		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, dangerPos.x, dangerPos.y, 0.2)
 	end
 
 	self:setMainAttackerParameters(World.Ball.pos, self._robot.maxSpeed)
