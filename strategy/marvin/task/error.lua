@@ -3,6 +3,7 @@ local World = require "../base/world"
 local Direct = require "trajectory/direct"
 local ToTarget = require "trajectory/totarget"
 local PathHelper = require "trajectory/pathhelper"
+local G = World.Geometry
 
 -- [robotId] => (firstLocationId, secoundLocationId)
 local EXCHANGE_TARGET = {{firstPosI = 0, secPosI = 17},
@@ -23,18 +24,31 @@ local L = 0.25
 
 function Error:_init()
 	self._id = EXCHANGE_TARGET[self._robot.id+1].firstPosI
+	self._goToTopBlock = false
 end
 
 function Error:run()
 	amun.setRobotExchangeSymbol(self._robot.generation, self._robot.id,true)
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
-	local y0 = 2
+
+	local y0
+	if self._goToTopBlock then
+		y0 = G.FieldWidthHalf - 1
+	else
+		y0 = -G.FieldWidthHalf
+	end
 	-- check Ball
-	if y0 == 2 and 1.5 < World.Ball.pos.x  and World.Ball.pos.x < 3.5 and -1.5< World.Ball.pos.y and World.Ball.pos.y < 1.5  then
-		y0 = -3
-	elseif y0 == -3 and -1.5 > World.Ball.pos.x  and World.Ball.pos.x > -3.5 and -1.5 < World.Ball.pos.y and World.Ball.pos.y < 1.5  then
-		y0 = 2
+	if self._goToTopBlock and
+		G.FieldWidthHalf-1.5 < World.Ball.pos.x  and World.Ball.pos.x < G.FieldWidthHalf+0.5 and
+		-1.5< World.Ball.pos.y and World.Ball.pos.y < 1.5  then
+		y0 = G.FieldWidthHalf * (-1)
+		self._goToTopBlock = false
+	elseif not self._goToTopBlock and
+	 -G.FieldWidthHalf+1.5 > World.Ball.pos.x  and World.Ball.pos.x > -G.FieldWidthHalf-0.5 and
+	  -1.5 < World.Ball.pos.y and World.Ball.pos.y < 1.5  then
+		y0 = G.FieldWidthHalf - 1
+		self._goToTopBlock = true
 	end
 	local xi = X0 + B * math.fmod(self._id, 6) + B/2
 	local yi = y0 + L * math.floor(self._id/6) + L/2

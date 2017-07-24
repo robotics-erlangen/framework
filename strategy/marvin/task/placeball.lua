@@ -13,8 +13,9 @@ local STEP_PULL = "pull"
 local STEP_MOVE_AWAY = "moveAway"
 
 local BALL_PLACEMENT_RADIUS = 0.1
-local MAX_SPEED = 1.5
-local MAX_DRIBBLER_SPEED = 0.9
+local MAX_PULL_SPEED = 1.1
+local MAX_DRIBBLER_SPEED = 0.8
+local MAX_ACCEL_WITH_BALL = 0.04
 
 function PlaceBall:_init()
 	self._step = STEP_GO_TO_BALL
@@ -85,13 +86,13 @@ function PlaceBall:run()
 	elseif self._step == STEP_ENSURE_CONTACT then
 		self._robot:setDribblerSpeed(MAX_DRIBBLER_SPEED)
 		-- Push ball a little bit then move backwards
-		local speed = self._lastOffset:copy():setLength(0.3)
+		local speed = self._lastOffset:copy():setLength(0.15)
 		self._robot.trajectory:update(Direct, speed, dir)
 
 		debug.set("ball dist", self._ballStartPos:distanceTo(ball.pos))
 		debug.set("ball valid", ball:isPositionValid())
 
-		if not self:_isBallNearRobot(ball) then
+		if not self:_isBallNearRobot(ball) and ball:isPositionValid() then
 			self._step = STEP_GO_TO_BALL
 		elseif not ball:isPositionValid() or self._ballStartPos:distanceTo(ball.pos) > 0.03 then
 			self._step = STEP_PULL
@@ -99,14 +100,15 @@ function PlaceBall:run()
 	elseif self._step == STEP_PULL then
 		-- move ball into position
 		local targetPos = World.BallPlacementPos - self._lastOffset
-		self._robot.trajectory:update(ToTarget, targetPos, dir, MAX_SPEED)
+		self._robot.trajectory:update(ToTarget, targetPos, dir, MAX_PULL_SPEED, nil, MAX_ACCEL_WITH_BALL)
 
 		if self._positionReachedTime == 0 then
-			local dribblerSpeed = math.min((ball.pos:distanceTo(World.BallPlacementPos) - 0.02) * 3, MAX_DRIBBLER_SPEED)
+			local dribblerSpeed = math.min((ball.pos:distanceTo(World.BallPlacementPos) - 0.02) * 2, MAX_DRIBBLER_SPEED)
+			debug.set("dribblerSpeed", dribblerSpeed)
 			self._robot:setDribblerSpeed(dribblerSpeed)
 		end
 
-		if not self:_isBallNearRobot(ball) and self._positionReachedTime == 0 then
+		if ball:isPositionValid() and not self:_isBallNearRobot(ball) and self._positionReachedTime == 0 then
 			self._step = STEP_GO_TO_BALL
 		end
 
@@ -120,7 +122,7 @@ function PlaceBall:run()
 		if self._positionReachedTime ~= 0 and World.Time - self._positionReachedTime > 1 then
 			self._step = STEP_MOVE_AWAY
 			-- 20cm away from the ball, keeping current direction
-			self._moveAwayPos = self._robot.pos - Vector.fromAngle(self._robot.dir):setLength(0.4)
+			self._moveAwayPos = self._robot.pos - Vector.fromAngle(self._robot.dir):setLength(0.2)
 			self._moveAwayState = "KeepDirection"
 		end
 	elseif self._step == STEP_MOVE_AWAY then

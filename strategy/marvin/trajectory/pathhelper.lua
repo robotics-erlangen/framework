@@ -89,13 +89,20 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 	end
 end
 
+local function ignoreRobot(ownRobot, robot)
+	if robot.speed:length() > 1 and ownRobot.pos:distanceTo(robot.pos) > 2 then
+		return true
+	end
+	return false
+end
+
 function PathHelper.addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreOpponentRobots, disableOpponentPrediction)
 	-- TODO: better robot prediction and time estimation
 	-- use 1 seconds for the navigation challenge
 	local estimationTime = 0.1 -- just a fixed time for now
 	if not ignoreFriendlyRobots then
 		for _, r in ipairs(World.FriendlyRobots) do
-			if r.id ~= robot.id then -- don't add current robot
+			if r.id ~= robot.id and not ignoreRobot(robot, r) then -- don't add current robot
 				-- use speed difference to calculate the safety distance
 				local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.05, 0.05)
 				local estimatedPosition = r.pos + r.speed * estimationTime
@@ -115,19 +122,21 @@ function PathHelper.addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreO
 	end
 	if not ignoreOpponentRobots then
 		for _, r in ipairs(World.OpponentRobots) do
-			-- use speed difference to calculate the safety distance
-			local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.08, 0.10)
-			if disableOpponentPrediction then -- be more aggressive
-				safetyDistance = safetyDistance / 2
-			end
-			local estimatedPosition = r.pos + r.speed * estimationTime
-			-- only use estimated position if it doesn't collide with the robot
-			if robot.pos:distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
-					and r.pos:distanceTo(estimatedPosition) > 0.0001 then
-				path:addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
-						r.radius + safetyDistance, "OppRobot_"..r.id)
-			else
-				path:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OppRobot_"..r.id)
+			if not ignoreRobot(robot, r) then
+				-- use speed difference to calculate the safety distance
+				local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.08, 0.10)
+				if disableOpponentPrediction then -- be more aggressive
+					safetyDistance = safetyDistance / 2
+				end
+				local estimatedPosition = r.pos + r.speed * estimationTime
+				-- only use estimated position if it doesn't collide with the robot
+				if robot.pos:distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
+						and r.pos:distanceTo(estimatedPosition) > 0.0001 then
+					path:addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
+							r.radius + safetyDistance, "OppRobot_"..r.id)
+				else
+					path:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OppRobot_"..r.id)
+				end
 			end
 		end
 	end
