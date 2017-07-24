@@ -123,7 +123,6 @@ local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxEr
 			local possibleEndRadius = xMaxNext * angleTan -- limit circle radius to available space
 			local endRadius = math.min(radius, possibleEndRadius)
 			local maxEndSpeed = math.sqrt(endRadius * accelLimit)
-		--	log(startRadius .. "," .. endRadius)
 
 			-- time and speed calculation
 			local startDist = startRadius * (1 / angleTan)
@@ -433,7 +432,6 @@ local function _injectExponentialFalloff(speedProfile, exponentialTime, exponent
 end
 
 local function _calculateRotation(currentDir, currentOmega, targetDir, accelerate, brake, maxSpeed, exponentialTime)
---	log(targetDir)
 	local fullBrakeTime = math.abs(currentOmega / brake)
 	-- how far the robot will rotate even if it brakes with maximum speed
 	local forcedRotation = math.sign(currentOmega) * -brake * fullBrakeTime * fullBrakeTime / 2
