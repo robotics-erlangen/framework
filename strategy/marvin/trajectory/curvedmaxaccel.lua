@@ -77,7 +77,7 @@ end
 -- to drive on an approximatelly circular trajectory, the calculations are done using
 -- the osculating circle and the path curvature. Then limit the speed in corners
 -- such that the centripetal force doesn't exceed the possible sidewards acceleration
-local function _calculateCurveSpeedLimits(robot, waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeed)
+local function _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeed)
 	-- ignore angle between current robot speed and move destination
 	-- this only leads to problems if the path is changing fast
 	local lastPathDir = waypoints[2] - waypoints[1]
@@ -670,7 +670,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	-- handle endSpeed
 	local endSpeedLen = math.max(0, (waypoints[#waypoints] - waypoints[#waypoints - 1]):normalize():dot(endSpeed))
 	-- calculate speed limits for curve segments based on sidewards acceleration limits while driving curves
-	local maxSpeedProfile = _calculateCurveSpeedLimits(self._robot, waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeedLen)
+	local maxSpeedProfile = _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeedLen)
 	--debug.set("maxSpeedProfile", maxSpeedProfile)
 	-- convert to actual speed curve
 	local speedProfile = _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake)
