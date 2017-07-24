@@ -46,7 +46,6 @@ function Dribble:_updateTasks()
 		if self._state == 4 then
 			self._state = 5
 			self._time = World.Time
-			delay = true
 			state_changed = true
 		else
 			state_changed = true
