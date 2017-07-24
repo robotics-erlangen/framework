@@ -90,7 +90,7 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 end
 
 local function ignoreRobot(ownRobot, robot)
-	if robot.speed:length() > 1 and ownRobot.pos:distanceTo(robot.pos) < 2 then
+	if robot.speed:length() > 1 and ownRobot.pos:distanceTo(robot.pos) > 2 then
 		return true
 	end
 	return false
