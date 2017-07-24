@@ -10,8 +10,7 @@ local ToTarget = require "trajectory/totarget"
 
 function Dribble:_init(pos, dir, suggestPass, endSpeedLength)
 	self._pos = pos
-	log(pos)
-	self._dir = dir or (-(self._robot.pos - pos)):angle()
+	self._dir = dir or (pos - self._robot.pos):angle()
 	self._suggestPassFlag = suggestPass
 	self._endSpeedLength = endSpeedLength or 0
 end
