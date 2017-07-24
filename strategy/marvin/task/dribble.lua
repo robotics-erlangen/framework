@@ -8,9 +8,9 @@ local ToTarget = require "trajectory/totarget"
 -- 1. It will only work if you have the ball in the dribbler at the start
 -- 2. you have to make sure (somehow) that the (robotPos - waypoint[2]  {returned by path}):absoluteAngleDiff(viewDir) is pretty small
 
-function Dribble:_init(pos, dir, suggestPass, endSpeedLength)
+function Dribble:_init(pos, suggestPass, endSpeedLength)
 	self._pos = pos
-	self._dir = dir or (pos - self._robot.pos):angle()
+	self._dir = (pos - self._robot.pos):angle()
 	self._suggestPassFlag = suggestPass
 	self._endSpeedLength = endSpeedLength or 0
 end
