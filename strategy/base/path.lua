@@ -198,6 +198,10 @@ end
 
 local _addLine = path.addLine
 function path:addLine(start_x, start_y, stop_x, stop_y, radius, name)
+	if start_x == stop_x and start_y == stop_y then
+		log("WARNING: start and end points for a line obstacle are the same!")
+		return
+	end
 	if amun.isDebug then
 		vis.addPath("obstacles: "..tostring(path.robotId(self)), {Vector(start_x, start_y), Vector(stop_x, stop_y)}, vis.colors.red, nil, nil, 2 * radius)
 	end
