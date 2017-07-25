@@ -61,7 +61,7 @@ function Shoot:_decide()
 
 	local pass = Attack.choosePassFromSuggestions(self._robot,
 		self._inbox.passSuggestion(), self._prevPassPos, true)
-	if pass and not ObserverShoot.volleyPossible(self._robot, pass.ballPos) then
+	if pass and ObserverShoot.volleyPossible(self._robot, pass.ballPos) then 
 		return {
 			task = "pass",
 			target = pass.target,
