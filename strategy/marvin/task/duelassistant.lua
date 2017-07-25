@@ -36,7 +36,6 @@ function DuelAssistant:run()
 	local friendlyPos = self._duelist.pos
 	local opponentPos = self._opponent.pos
 	local duelVector = opponentPos - friendlyPos
-	local duelAngle = duelVector:angle()
 	local totalOffset = duelVector:complexMultiplication(Vector.fromAngle(angleOffset)):setLength(3 * self._robot.radius)
 	local pos = friendlyPos + totalOffset
 	local viewDir = duelVector:angle()
