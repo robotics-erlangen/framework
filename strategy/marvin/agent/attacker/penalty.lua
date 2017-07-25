@@ -7,6 +7,9 @@ local G = World.Geometry
 local MoveToStaticBall = require "task/movetostaticball"
 local ShootPenalty = require "task/shootpenalty"
 
+function Penalty:_stop()
+	self.lookDir = nil
+end
 
 function Penalty:check()
 	local mainAttacker = self._inbox.mainAttacker().trainer == self._robot
@@ -20,10 +23,6 @@ function Penalty:_updateTask()
 	else -- PenaltyOffensive
 		return ShootPenalty
 	end
-end
-
-function Penalty:_stop()
-	self.lookDir = nil
 end
 
 return Penalty
