@@ -12,6 +12,7 @@ local FreeKick = require "agent/attacker/freekick"
 local Move = require "agent/attacker/move"
 local PassTiming = require "agent/attacker/passtiming"
 local Penalty = require "agent/attacker/penalty"
+local PenaltyShootout = require "agent/attacker/penaltyshootout"
 local Shoot = require "agent/attacker/shoot"
 local Stop = require "agent/attacker/stop"
 local BallEscort = require "agent/shared/ballescort"
@@ -21,6 +22,7 @@ Attacker._behaviors = {
 	ApplyForMainattacker,
 	Move,
 	Stop,
+	PenaltyShootout,
 	Penalty,
 	FreeKick,
 	DoubleTouchGuard,
