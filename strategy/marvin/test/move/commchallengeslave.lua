@@ -2,7 +2,8 @@ local CommChallengeSlave = Class("Test.Move.CommChallengeSlave", require "group/
 
 local World = require "../base/world"
 local MoveToPos = require "task/movetopos"
-local debug = require "../base/debug"
+local vis = require "../base/vis"
+local Field = require "../base/field"
 
 CommChallengeSlave.MIN_ROBOTS = 1
 CommChallengeSlave.MAX_ROBOTS = 6

@@ -3,7 +3,6 @@ local CommChallengeMaster = Class("Test.Move.CommChallengeMaster", require "grou
 local World = require "../base/world"
 local Field = require "../base/field"
 local MoveToPos = require "task/movetopos"
-local debug = require "../base/debug"
 local vis = require "../base/vis"
 local mixedteam = require "../base/mixedteam"
 
@@ -53,8 +52,6 @@ end
 
 local function task2()
 	local taskAssignments = {}
-
-	local taskAssignments = {}
 	local partnerPlan = {}
 
 	-- alle hinter
@@ -80,7 +77,7 @@ local passKicker
 local passReceiver
 local function task3()
 	local taskAssignments = {}
-
+	local partnerPlan = {}
 
 	if World.RefereeState ~= "IndirectOffensive" then
 		passKicker = nil
@@ -115,7 +112,7 @@ local function task3()
 		end
 	end
 
-
+	mixedteam.sendInfo(partnerPlan)
 	return taskAssignments
 end
 
