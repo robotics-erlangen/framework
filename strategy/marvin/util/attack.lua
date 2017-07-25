@@ -253,7 +253,7 @@ function Attack.currentPlannedMainAttacker(passInfoSender, passInfoTable)
 	end
 
 	if lastPasser and Ball.wasShot(0.5) == lastPasser
-			and World.Ball.speed:length() > 1 and World.Ball.speed:absoluteAngleDiff(
+			and World.Ball.speed:length() > 1 and lastReceiver and World.Ball.speed:absoluteAngleDiff(
 				lastReceiver.pos - World.Ball.pos) < 45 / 180 * math.pi then
 		lastCPMA = lastReceiver
 		return lastCPMA
@@ -448,15 +448,12 @@ function Attack.lastIncomingPassInfo(robot, passInfo)
 	end
 	if passInfoTable then
 		for _, passInfoEntry in ipairs(passInfoTable) do
-			if passInfoEntry.target == nil then
-				anonymousPass = true
-			end
+--			TODO?: this code ignores annonymous passes
 			if passInfoEntry.target == robot then
 				incomingPassInfo = passInfoEntry
 			end
 		end
 	end
-	assert(incomingPassInfo or not anonymousPass, "a/a/Shoot does not know how to handle anonymous passes")
 	if incomingPassInfo then
 		lastIncomingPassInfo[robot] = incomingPassInfo
 		InvalidationCounter[robot] = 0
