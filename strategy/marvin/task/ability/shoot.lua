@@ -83,7 +83,7 @@ function Shoot:_calculateFutureBall(ballReceiptPos)
 		futureBallPos = World.Ball.pos
 	end
 
-	local ballTime = Physics.checkedBallRollTime(World.Ball, futureBallPos)
+	local ballTime = Physics.checkedBallTravelTime(World.Ball, futureBallPos)
 	local futureBall
 	if ballTime > 0 then
 		futureBall = Physics.ballAtTime(World.Ball, ballTime)
