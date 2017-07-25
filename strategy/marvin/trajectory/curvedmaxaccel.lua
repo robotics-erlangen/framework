@@ -573,10 +573,10 @@ local function _calculateSpeed(robotId, waypoints, maxSpeedProfile, speedProfile
 	return speedVector, accelVector
 end
 
-function CurvedMaxAccel:_calculateRotationHysteresis(robotDir, angularSpeed, targetDir, rotAccel, rotBrake,
+function CurvedMaxAccel:_calculateRotationHysteresis(robotDir, currentOmega, targetDir, rotAccel, rotBrake,
 			rotSpeed, rotExpTime)
-		local angularSpeed, angularAccel = _calculateRotation(robotDir, angularSpeed, targetDir,
-			rotAccel, rotBrake, rotpeed, rotationExpTime)
+		local angularSpeed, angularAccel = _calculateRotation(robotDir, currentOmega, targetDir,
+			rotAccel, rotBrake, rotSpeed, rotExpTime)
 		if self._lastTime then
 			-- feedforward of target direction change
 			-- as tracking a direction only works if it changes slow enough, using feedforwad shouldn't cause any trouble
@@ -585,6 +585,7 @@ function CurvedMaxAccel:_calculateRotationHysteresis(robotDir, angularSpeed, tar
 		end
 		self._lastTargetDir = targetDir
 		self._lastTime = World.Time
+		return angularSpeed, angularAccel
 end
 
 
@@ -630,7 +631,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	local waypoints = self:_getPath(targetPos)
 	if #waypoints == 0 then -- no waypoints left, just stay here but also update the orientation
 		targetDir = Coordinates.toGlobal(targetDir)
-		local angularSpeed, angularAccel = _calculateRotationHysteresis(robotDir, self._robot.angularSpeed, targetDir,
+		local angularSpeed, angularAccel = self:_calculateRotationHysteresis(robotDir, self._robot.angularSpeed, targetDir,
 			rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime)
 		local spline = { {t_start = 0, t_end = math.huge,
 			x = { a0 = robotPos.x, a1 = endSpeed.x, a2 = 0, a3 = 0 },
@@ -709,7 +710,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	else
 		targetDir = Coordinates.toGlobal(targetDir)
 	end
-	local angularSpeed, angularAccel = _calculateRotationHysteresis(robotDir, self._robot.angularSpeed, targetDir,
+	local angularSpeed, angularAccel = self:_calculateRotationHysteresis(robotDir, self._robot.angularSpeed, targetDir,
 			rotAccelerate, rotBrake, rotMaxSpeed, rotationExponentialTime)
 
 	local spline = { {t_start = 0, t_end = math.huge,
