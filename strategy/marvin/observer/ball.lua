@@ -55,6 +55,7 @@ end
 Ball.opponentBallDribbler = Cache.forFrame(Ball.opponentBallDribbler)
 
 --- Returns wether or not the ball is heading for a goal
+-- WARNING: this function has no hysteresis and must be used with care
 -- @param ball - a ball like structure
 -- @param ownGoal - wether to use the friendly goal or the opponent goal
 -- @return bool - wether or not the ball is heading for the

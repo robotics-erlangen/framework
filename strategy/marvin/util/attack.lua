@@ -316,7 +316,7 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 	end
 
 	local viewPos
-	if Ball.ballHeadingForGoal(World.Ball) then
+	if World.Ball.speed:length() > 0.5 and Ball.ballHeadingForGoal(World.Ball) then
 		viewPos = World.Ball.pos
 	else
 		viewPos = Attack.shootGoalViewPos(shootDest, attackPos)
