@@ -18,7 +18,7 @@ function SuggestPass:_suggestPass(passPosRobot, attackPos, relativeTime, anonymo
 
 	-- calculate receive time
 	local extraTime = 0.2
-	local moveTime = relativeTime or Physics.robotTimeToPos(self._robot, passPosRobot, Vector(0, 0), true) + extraTime
+	local moveTime = relativeTime or Physics.robotTimeToPos(self._robot, passPosRobot, Vector(0, 0)) + extraTime
 	local receiveTime = World.Time + moveTime
 
 	vis.addCircle("t/a/suggestpass: passSuggestion", passPosRobot, 0.1, vis.colors.redHalf, true)
