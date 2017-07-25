@@ -405,7 +405,8 @@ function Attack.checkPassInfoFromPosition(robot, passInfo, position, speed, pass
 			acceleration = robot.acceleration,
 			pos = position,
 			maxSpeed = robot.maxSpeed,
-			speed = speed
+			speed = speed,
+			shootRadius = robot.shootRadius
 		}
 		printPassInfo(fakeRobot, passInfo, false, nil)
 		return calculatePassInfoTiming(fakeRobot, passInfo, passIncoming) < 0
