@@ -11,7 +11,7 @@ local Overchip = require "group/move/overchip"
 
 function Moves:init()
 	self.name = "moves"
-	self.moveList = {Kickoff, KickoffDefensive, Armada, MrlTestCorner, Overchip, BallCycle}
+	self.moveList = {Kickoff, KickoffDefensive, MrlTestCorner, Armada, Overchip, BallCycle}
 
 	for _,move in ipairs(self.moveList) do
 		if not move.MIN_ROBOTS or move.MIN_ROBOTS < 0

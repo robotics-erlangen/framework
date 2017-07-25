@@ -14,6 +14,7 @@ local moves = {
 	require "test/move/commchallengeslave",
 	require "test/move/race",
 	require "test/move/volley",
+	require "test/move/dribble",
 	require "test/move/victory"
 }
 
