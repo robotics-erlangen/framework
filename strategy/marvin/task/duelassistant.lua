@@ -11,6 +11,7 @@ function DuelAssistant:_init()
 	self._duelist = nil
 	self._opponent = nil
 	self:_update()
+	self._hyst = 0
 	assert(self._duelist and self._opponent, "there is no duel to assist")
 end
 
@@ -18,7 +19,6 @@ function DuelAssistant:_update()
 	local duelist, opponent = next(self._inbox.defendedOpponent())
 	self._duelist = duelist or self._duelist
 	self._opponent = opponent or self._opponent
-	self._hyst = 0
 end
 
 local HYSTERESIS_DISTANCE = 0.3
