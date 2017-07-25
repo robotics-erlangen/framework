@@ -4,6 +4,7 @@ local Field = require "../base/field"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local G = World.Geometry
+local MovesHelper = require "util/moveshelper"
 
 function Striker:init()
 	self.name = "striker"
@@ -43,52 +44,22 @@ local function assignRobotsToZones(robotPositions, zones)
 		return {}
 	end
 
+	local positions = {}
 	local robots = {}
-	local costMatrix = {}
-
-	local robotIndex = 1
 	for robot, robotPos in pairs(robotPositions) do
+		table.insert(positions, {pos = robotPos})
 		table.insert(robots, robot)
-		table.insert(costMatrix, {})
-		for _, zone in ipairs(zones) do
-			table.insert(costMatrix[robotIndex], robotPos:distanceTo(zone.defaultPos))
-		end
-		robotIndex = robotIndex + 1
 	end
-
-	local remainingRobotIndices = {}
-	local remainingZoneIndices = {}
-	for _ = 1, n do
-		table.insert(remainingRobotIndices, true)
-		table.insert(remainingZoneIndices, true)
+	local zonePositions = {}
+	for _, zone in ipairs(zones) do
+		table.insert(zonePositions, zone.defaultPos)
 	end
+	local assignment = MovesHelper.assignRobots(positions, zonePositions, 0)
 
 	local zoneAssignment = {}
-	for _ = 1, n do
-		local minCost = math.huge
-		local minCostRobotIdx
-		local minCostZoneIdx
-		for robotIdx = 1, n do
-			if remainingRobotIndices[robotIdx] then
-				for zoneIdx = 1, n do
-					if remainingZoneIndices[zoneIdx] then
-						local cost = costMatrix[robotIdx][zoneIdx]
-						if cost < minCost then
-							minCost = cost
-							minCostRobotIdx = robotIdx
-							minCostZoneIdx = zoneIdx
-						end
-					end
-				end
-			end
-		end
-		remainingRobotIndices[minCostRobotIdx] = false
-		remainingZoneIndices[minCostZoneIdx] = false
-		local robot = robots[minCostRobotIdx]
-		local zone = zones[minCostZoneIdx]
-		zoneAssignment[zone] = robot
+	for i, zone in ipairs(zones) do
+		zoneAssignment[zone] = robots[assignment[i]]
 	end
-
 	return zoneAssignment
 end
 
