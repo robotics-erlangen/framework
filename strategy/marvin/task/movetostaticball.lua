@@ -24,7 +24,7 @@ function MoveToStaticBall:run()
 
 	-- send the position of the ball
 	self._send.attackPosition("all", World.Ball.pos)
-	self._send.attackTime("all", Physics.robotTimeToPos(self._robot, pos, Vector(0, 0)))
+	self._send.attackTime("all", World.Time + Physics.robotTimeToPos(self._robot, pos, Vector(0, 0)))
 end
 
 return MoveToStaticBall

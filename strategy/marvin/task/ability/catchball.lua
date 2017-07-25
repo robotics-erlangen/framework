@@ -125,7 +125,6 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
 	self._send.moveDest("all", moveDest)
 	self._send.attackPosition("all", predictedBall.pos)
-	self._send.attackTime("all", time)
 
 	-- update prediction
 	-- keep old time if no way was found
