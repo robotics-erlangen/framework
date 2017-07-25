@@ -440,7 +440,6 @@ local lastIncomingPassInfo = {}
 
 function Attack.lastIncomingPassInfo(robot, passInfo)
 	local incomingPassInfo = nil
-	local anonymousPass = false
 	local _, passInfoTable = next(passInfo)
 
 	if not InvalidationCounter[robot] then
