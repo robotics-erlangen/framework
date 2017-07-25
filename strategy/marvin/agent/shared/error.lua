@@ -8,12 +8,14 @@ local EXCHANGE_ERROR_ROBOTS = true
 
 function Error:check()
 	local errorTable = ErrorObserver.getErrorTable(self._robot)
-	if ErrorObserver.getAverageBatterySate(self._robot)< 0.11 then
+	if ErrorObserver.getAverageBatterySate(self._robot)< 0.11 and self._robot ~= World.FriendlyKeeper then
 		return true
 	elseif ErrorObserver.getAverageBatterySate(self._robot)< 0.20
 		and World.RefereeState == "Stop" then
 		return true
 	elseif not errorTable then
+		return false
+	elseif self._robot == World.FriendlyKeeper then
 		return false
 	end
 	local timespan = World.Time - ErrorObserver.getLastStopTime()
