@@ -356,7 +356,8 @@ end
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
 function Shoot:_chipPass(rollingBallPos, ballReceiptPos, precision)
 	local origin
-	if ballReceiptPos and (ballReceiptPos - World.Ball.pos):dot(World.Ball.speed) > 0 then
+	if ballReceiptPos and (ballReceiptPos - World.Ball.pos):dot(World.Ball.speed) > 0
+		and World.Ball.speed:length() > 0.5 then
 		origin = ballReceiptPos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
 	else
 		origin = World.Ball.pos
