@@ -70,6 +70,14 @@ function StrikerSampling:volleyPass(ballPos)
 	return rating
 end
 
+function StrikerSampling:goalAngle(ballPos)
+	local minRating = 0.0
+	local angle = (World.Geometry.OpponentGoalRight - ballPos):absoluteAngleDiff(World.Geometry.OpponentGoalLeft - ballPos)
+	local rating = Rating.valueToRating(angle, 0, 20 / 180 * math.pi) * (1 - minRating) + minRating
+	visualizeRating("goalAngle", ballPos, rating)
+	return rating
+end
+
 function StrikerSampling:distToGoal(ballPos)
 	return Rating.valueToRating(ballPos:distanceTo(World.Geometry.OpponentGoal),
 		World.Geometry.FieldHeight * 0.7, World.Geometry.FieldHeight * 0.2)
@@ -80,6 +88,9 @@ function StrikerSampling:evalLocation(ballPos, bestScore)
 	local score = 1
 
 	score = score * self:distToGoal(ballPos)
+	if score < bestScore then return score end
+
+	score = score * self:goalAngle(ballPos)
 	if score < bestScore then return score end
 
 	score = score * self:passTooShort(ballPos)
