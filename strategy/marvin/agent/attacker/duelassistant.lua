@@ -14,7 +14,6 @@ function DuelAssistant:_stop()
 	self._lastChippedHysteresis = false
 	self._active = false
 	self._lastTrue = nil
-	self._duellingRobot = nil
 end
 
 function DuelAssistant:rateRobot(sender)
@@ -39,29 +38,26 @@ function DuelAssistant:check()
 		return false
 	end
 	if sender then
-		self._duellingRobot = sender
-	end
-	local rating = -1
-	if self._duellingRobot then
-		if self._duellingRobot.pos:distanceTo(World.Ball.pos) > 1 then
+		local duellingRobot = sender
+		if duellingRobot.pos:distanceTo(World.Ball.pos) > 1 then
 			self._active = false
 			self._lastTrue = nil
 			return false
 		end
-		rating = self:rateRobot(self._duellingRobot)
+		local rating = self:rateRobot(duellingRobot)
+		self._send.exclusiveRole("trainer", { duelAssistant = rating })
 	end
-	self._send.exclusiveRole("trainer", { duelAssistant = rating })
-	
+
 	local isDuelAssistant = (self._inbox.duelAssistant().trainer == self._robot)
 
-	if not isDuelAssistant then
-		self._lastTrue = nil
-		self._active = false
+	if isDuelAssistant then
+		self._lastTrue = World.Time
+		self._active = true
 	elseif self._lastTrue and (World.Time - self._lastTrue) <= 1 then
 		self._active = true
 	else
-		self._lastTrue = World.Time
-		self._active = true
+		self._lastTrue = nil
+		self._active = false
 	end
 
 	return self._active
