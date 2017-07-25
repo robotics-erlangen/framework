@@ -96,12 +96,12 @@ function Ally:_run()
 	local allyMessages = World.MixedTeam and World.MixedTeam[self._robot.id] or {}
 	for msgType, msg in pairs(allyMessages) do
 		if msgType == "role" then
-			if msg == "Defense" then
+			if msg == "Offense" then
 				self._send.attackerFlag("all")
-				self:_suggestPass(self._robot.pos)
+				self:_suggestPassRobotPosition(self._robot.pos)
 				attackerAllies[self._robot] = true
 				defenderAllies[self._robot] = nil
-			elseif msg == "Offense" then
+			elseif msg == "Defense" then
 				self._send.defenderFlag("all")
 				attackerAllies[self._robot] = nil
 				defenderAllies[self._robot] = true

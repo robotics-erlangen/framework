@@ -28,7 +28,7 @@ function AcceptPass:run()
 	end
 	assert(passInfo, "AcceptPass runs despite not being a target")
 	vis.addCircle("t/striker", passInfo.ballPos, 0.1, vis.colors.turquoiseHalf, true)
-	local position = passInfo.ballPos
+	local ballPos = passInfo.ballPos
 	local _, attackPosition = next(self._inbox.attackPosition())
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
@@ -38,10 +38,10 @@ function AcceptPass:run()
 	if mainAttacker then
 		dangerPos = mainAttacker.pos
 	end
-	local  _, moveTime = self._robot.trajectory:update(ToTarget, position, (World.Ball.pos - self._robot.pos):angle())
+	local  _, moveTime = self._robot.trajectory:update(ToTarget, ballPos, (World.Ball.pos - self._robot.pos):angle())
 	if attackPosition then
 		dangerPos = attackPosition
-		self:_suggestPass(position, attackPosition, moveTime)
+		self:_suggestPass(ballPos, attackPosition, moveTime)
 	end
 	-- don't move between the ball and the main attacker
 	-- relevant for incoming passes

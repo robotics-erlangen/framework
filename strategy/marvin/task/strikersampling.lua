@@ -1,5 +1,6 @@
 local StrikerSampling = Class("Task.StrikerSampling", require "task/base")
 
+local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
@@ -27,78 +28,69 @@ function StrikerSampling:precalculate()
 	local _, pos = next(self._inbox.attackPosition())
 	local _, time = next(self._inbox.attackTime())
 	self._attackPosition = pos or World.Ball.pos
-	self._attackTime = time or (self._mainAttacker and Robot.minTimeToBall(self._mainAttacker)) or 0
+	self._attackTime = time or (self._mainAttacker and World.Time + Robot.minTimeToBall(self._mainAttacker)) or World.Time
 
 	vis.addCircle("t/a/strikersampling: attackPosition", self._attackPosition, 0.13,
 		vis.colors.orchidHalf, false, nil, nil, 0.02)
 end
 
 
-function StrikerSampling:canReachInTime(pos)
+function StrikerSampling:canReachInTime(ballPos)
 	if not self._mainAttacker then
 		return 1
 	end
 
-	local shootPos = pos + (self._attackPosition - pos):setLength(self._robot.shootRadius + World.Ball.radius)
-	local robotTime = Physics.robotTimeToPos(self._robot, pos,
-		(pos - self._robot.pos):setLength(self._robot.maxSpeed))
-	local shootTime = self._attackTime
-	local ballTime = ObserverShoot.ballPassTime(self._attackPosition, shootPos, self._robot, nil, self._mainAttacker)
+	local robotPos = ballPos + (ballPos - self._attackPosition):setLength(self._robot.shootRadius + World.Ball.radius)
+	local robotTime = Physics.robotTimeToPos(self._robot, robotPos,
+		(robotPos - self._robot.pos):setLength(self._robot.maxSpeed))
+	local shootTime = self._attackTime - World.Time
+	local ballTime = ObserverShoot.ballPassTime(self._attackPosition, ballPos, self._robot, nil, self._mainAttacker)
 
 	local rating = Rating.valueToRating(shootTime + ballTime - robotTime, 0.2, 0.5)
-	visualizeRating("canReachInTime", pos, rating)
+	visualizeRating("canReachInTime", ballPos, rating)
 	return rating
 end
 
-function StrikerSampling:passTooShort(pos)
-	local rating = Rating.valueToRating(pos:distanceTo(self._attackPosition), 2, 3)
-	visualizeRating("passTooShort", pos, rating)
+function StrikerSampling:passTooShort(ballPos)
+	local rating = Rating.valueToRating(ballPos:distanceTo(self._attackPosition), 2, 3)
+	visualizeRating("passTooShort", ballPos, rating)
 	return rating
 end
 
-function StrikerSampling:volleyPass(pos)
+function StrikerSampling:volleyPass(ballPos)
 	if not Ball.receivesPass(self._mainAttacker) then
 		return 1
 	end
 
 	local minRating = 0.5
-	local volleyAngle = World.Ball.speed:absoluteAngleDiff(self._attackPosition - pos)
+	local volleyAngle = World.Ball.speed:absoluteAngleDiff(self._attackPosition - ballPos)
 	local volleySuccessProbability = Rating.valueToRating(volleyAngle, 65 / 180 * math.pi, 50 / 180 * math.pi)
 	local rating = volleySuccessProbability * (1 - minRating) + minRating
-	visualizeRating("volleyPass", pos, rating)
+	visualizeRating("volleyPass", ballPos, rating)
 	return rating
 end
 
-function StrikerSampling:distToGoal(pos)
-	return Rating.valueToRating(pos:distanceTo(World.Geometry.OpponentGoal), World.Geometry.FieldHeight * 0.7, World.Geometry.FieldHeight * 0.2)
+function StrikerSampling:distToGoal(ballPos)
+	return Rating.valueToRating(ballPos:distanceTo(World.Geometry.OpponentGoal),
+		World.Geometry.FieldHeight * 0.7, World.Geometry.FieldHeight * 0.2)
 end
 
 
-function StrikerSampling:evalLocation(pos, bestScore)
+function StrikerSampling:evalLocation(ballPos, bestScore)
 	local score = 1
 
-	-- score = score * self:correctFieldHalf(pos)
-	-- score = score * self:openAngle(pos)
-	-- score = score * self:posNearEnough(pos)
-	-- score = score * self:dontDriveIntoPass(pos)
-	-- score = score * self:distanceToOtherRobots(pos)
-	-- score = score * self:distanceToAttackers(pos)
-	-- score = score * self:oneTouchShot(pos)
-	-- score = score * self:dontAnnoyMainAttacker(pos)
-	-- score = score * self:passInterception(pos)
-
-	score = score * self:distToGoal(pos)
+	score = score * self:distToGoal(ballPos)
 	if score < bestScore then return score end
 
-	score = score * self:passTooShort(pos)
+	score = score * self:passTooShort(ballPos)
 	if score < bestScore then return score end
 
-	score = score * self:volleyPass(pos)
+	score = score * self:volleyPass(ballPos)
 	if score < bestScore then return score end
 
-	score = score * self:canReachInTime(pos)
+	score = score * self:canReachInTime(ballPos)
 
-	visualizeRating("total", pos, score)
+	visualizeRating("total", ballPos, score)
 	return score
 end
 

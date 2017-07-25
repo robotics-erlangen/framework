@@ -39,7 +39,7 @@ function DuelAssistant:run()
 	local totalOffset = duelVector:complexMultiplication(Vector.fromAngle(angleOffset)):setLength(3 * self._robot.radius)
 	local pos = friendlyPos + totalOffset
 	local viewDir = duelVector:angle()
-	self:_suggestPass(pos + duelVector)
+	self:_suggestPassRobotPosition(pos + duelVector)
 	self._robot.trajectory:update(ToTarget, pos, viewDir)
 end
 
