@@ -3,7 +3,7 @@ local Error = Class("Agent.Shared.Error",Base)
 local ErrorTask = require "task/error"
 local World = require "../base/world"
 local ErrorObserver = require "observer/error"
-local ERROR_TOLERANCE_PER_SEC = 0.8 -- <- [0.5,1]
+local ERROR_TOLERANCE_PER_SEC = 3 -- <- [0.5,1]
 local EXCHANGE_ERROR_ROBOTS = true
 
 function Error:check()
@@ -16,8 +16,10 @@ function Error:check()
 	elseif not errorTable then
 		return false
 	end
+	local timespan = World.Time - ErrorObserver.getLastStopTime()
+
 	for k,v in pairs(errorTable) do
-		if v > ERROR_TOLERANCE_PER_SEC * (World.Time - ErrorObserver.getLastStopTime())
+		if timespan > 2 and v > ERROR_TOLERANCE_PER_SEC * timespan
 		 and k ~= "temperature" and k~="main_sensor_error" then
 			if World.RefereeState == "Stop" then
 				--log(self._robot.id .. " --------   " .. k ..  "  --------------  " .. v)
@@ -29,7 +31,7 @@ function Error:check()
 end
 
 function Error:start()
-	log(self:errorMessage())
+	log(self:errorMsg())
 end
 
 function Error:errorMsg()
