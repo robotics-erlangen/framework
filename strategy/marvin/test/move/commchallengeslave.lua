@@ -4,6 +4,8 @@ local World = require "../base/world"
 local MoveToPos = require "task/movetopos"
 local vis = require "../base/vis"
 local Field = require "../base/field"
+local Ball = require "observer/ball"
+local ShootGoal = require "task/shootgoal"
 
 CommChallengeSlave.MIN_ROBOTS = 1
 CommChallengeSlave.MAX_ROBOTS = 6
@@ -26,43 +28,47 @@ local function defAreaPos(robotId, opponentGoal)
 	return pos
 end
 
+local ballWasShot = false
+local passReceiver = nil
 function CommChallengeSlave:_updateTasks()
 	local taskAssignments = {}
 
-	if World.MixedTeam then
+	if World.RefereeState == "Stop" then
+		ballWasShot = false
+		passReceiver = nil
+	end
 
-		-- if World.RefereeState == "IndirectOffensive" then
-		-- 		for robotId, msg in pairs(World.MixedTeam) do
-		-- 			local robot = World.FriendlyRobotsById[robotId]
-		-- 			if robot and robot.generation == 3 then
-		-- 				if msg.shootPos then
-		-- 					-- wenn ball noch nicht geschossen oder schnell:
-		-- 					-- receivepass
-		--
-		-- 					-- wenn ball geschossen und langsam: shootgoal
-		-- 				else
-		-- 					taskAssignments[robot] =  { class = MoveToPos,
-		-- 						params = {defAreaPos(robotId, false)}, restart = true }
-		-- 				end
-		-- 			end
-		-- 		end
-		-- end
+	if Ball.isShot() then
+		ballWasShot = true
+	end
+
+	if World.MixedTeam then
 
 
 		for robotId, msg in pairs(World.MixedTeam) do
 			local robot = World.FriendlyRobotsById[robotId]
 			if robot and robot.generation == 3 then
 				local pos
+				if msg.shootPos then
+					passReceiver = robot
+					log(robot.id)
+				end
 				if msg.targetPos then
 					pos = msg.targetPos
 				else
 					pos = defAreaPos(robotId, msg.role == "Offense")
 				end
 
+
 				taskAssignments[robot] =  { class = MoveToPos,
 					params = {pos}, restart = true }
+
 			end
 		end
+	end
+
+	if ballWasShot and passReceiver then
+		taskAssignments[passReceiver] = { class = ShootGoal }
 	end
 
 	for _, robot in pairs(World.FriendlyRobots) do

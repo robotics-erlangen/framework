@@ -8,7 +8,7 @@ local mixedteam = require "../base/mixedteam"
 local Pass = require "task/pass"
 
 CommChallengeMaster.MIN_ROBOTS = 3
-CommChallengeMaster.MAX_ROBOTS = 6
+CommChallengeMaster.MAX_ROBOTS = 12
 
 function CommChallengeMaster.canStart()
 	return true
@@ -64,7 +64,7 @@ local function task2()
 		else -- own robot
 			local pos = defAreaPos(id, false)
 			partnerPlan[id] = { targetPos = pos, role = "Defense" }
-			taskAssignments[robot] =  { class = MoveToPos, params = {pos} }
+			taskAssignments[robot] =  { class = MoveToPos, params = {pos}, restart=true }
 		end
 	end
 
