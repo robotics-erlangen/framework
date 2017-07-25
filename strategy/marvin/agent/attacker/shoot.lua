@@ -191,15 +191,16 @@ function Shoot:_updateTask()
 		end
 		self._prevPassPos = self._decision.pos
 
-		local minShootTime = Robot.minShootTime(self._robot, ballPos)
-		local shootPos = Physics.ballAtTime(World.Ball, minShootTime).pos
+		local _, attackTime = next(self._inbox.attackTime("broadcast"))
+		local shootTime = attackTime and attackTime - World.Time or Robot.minShootTime(self._robot, ballPos)
+		local shootPos = Physics.ballAtTime(World.Ball, shootTime).pos
 		local ballTravelTime = ObserverShoot.ballPassTime(shootPos, ballPos, target, nil, self._robot)
-		local passReceiveTime = math.max(suggestedTime, minShootTime + ballTravelTime + World.Time)
+		local passReceiveTime = math.max(suggestedTime, shootTime + ballTravelTime + World.Time)
 
 		self._send.passInfo("all", {{ target = target,
 			ballPos = ballPos, time = passReceiveTime }})
 
-		return Pass, { target, ballPos, nil, nil, self._lastIncomingPassInfoPos }
+		return Pass, { target, ballPos, nil, self._lastIncomingPassInfoPos }
 	end
 
 	-- error: invalid decision
