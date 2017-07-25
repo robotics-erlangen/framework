@@ -273,6 +273,11 @@ function vector_mt:nearestPosOnLine(lineStart, lineEnd)
 	return vector_c(x1, x2)
 end
 
+function vector_mt:complexMultiplication(other)
+	return vector_c(self.x * other.x - self.y * other.y, self.x * other.y + self.y * other.x)
+end
+
+
 vector_c = ffi.metatype("Vector", mt) -- create type
 vector_c_readonly = ffi.metatype("VectorReadOnly", mt)
 -- luacheck: globals Vector
