@@ -30,13 +30,16 @@ local function cornerPoint(corner)
 	end
 end
 
-function ShootPenalty:_init(lookDir)
-	self._lookDir = assert(lookDir, "parameter lookDir missing")
-	self._targetPos = nil
-	self._startTime = World.Time
-	self._waitTime = math.random() * 5 + 2
-	self._cornerChange = false
-	self:_initRAS()
+function ShootPenalty:_init()
+		self._lookDir = "Right"
+		if math.random() < 0.5 then
+			self._lookDir = "Left"
+		end
+		self._targetPos = nil
+		self._startTime = World.Time
+		self._waitTime = math.random() * 5 + 2
+		self._cornerChange = false
+		self:_initRAS()
 end
 
 local DIST_TO_BALL = 0.015

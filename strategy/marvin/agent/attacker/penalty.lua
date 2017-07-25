@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local Penalty = Class("Agent.Attacker.Penalty", Base)
 
 local World = require "../base/world"
+local G = World.Geometry
 
 local MoveToStaticBall = require "task/movetostaticball"
 local ShootPenalty = require "task/shootpenalty"
@@ -14,17 +15,10 @@ function Penalty:check()
 end
 
 function Penalty:_updateTask()
-	if not self.lookDir then
-		self.lookDir = "Right"
-		if math.random() < 0.5 then
-			self.lookDir = "Left"
-		end
-	end
-
 	if World.RefereeState == "PenaltyOffensivePrepare" then
-		return MoveToStaticBall, {(World.Geometry["OpponentGoal"..self.lookDir] - World.Ball.pos):angle(), 0.08}
+		return MoveToStaticBall, {(G.OpponentGoal - World.Ball.pos):angle(), 0.08}
 	else -- PenaltyOffensive
-		return ShootPenalty, {self.lookDir }
+		return ShootPenalty
 	end
 end
 
