@@ -105,7 +105,7 @@ function BallCycle:_updateTasks()
 	if passInfoTable then
 		_, passInfo = next(passInfoTable)
 	end
-	local startMoving = Attack.checkPassInfoFromPosition(self._robots[1], passInfo, self._circleCenter);
+	local startMoving = Attack.checkPassInfoFromPosition(self._robots[1], passInfo, self._circleCenter, false)
 
 	local taskAssignments = {}
 	if World.RefereeState == "Stop" then

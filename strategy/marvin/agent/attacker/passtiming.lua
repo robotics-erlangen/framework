@@ -17,7 +17,7 @@ function PassTiming:check()
 		lastIncomingPassInfoPos = lastIncomingPassInfo.ballPos
 	end
 
-	if lastIncomingPassInfoPos and not Attack.checkPassInfos(self._robot, {lastIncomingPassInfo}) then
+	if lastIncomingPassInfoPos and not Attack.checkPassInfos(self._robot, {lastIncomingPassInfo}, true) then
 		return true
 	end
 

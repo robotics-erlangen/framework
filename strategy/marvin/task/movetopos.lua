@@ -21,7 +21,7 @@ function MoveToPos:run()
 	local _, time = self._robot.trajectory:update(ToTarget, self._pos, self._dir, nil, endSpeed)
 
 	if self._suggestPassFlag then
-		self:_suggestPass(self._pos, nil, time)
+		self:_suggestPassRobotPosition(self._pos, nil, time)
 	end
 end
 

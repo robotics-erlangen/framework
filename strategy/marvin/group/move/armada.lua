@@ -71,7 +71,7 @@ function Armada:_updateTasks()
 	if passInfoTable then
 		_, passInfo = next(passInfoTable)
 	end
-	local startMoving = Attack.checkPassInfoFromPosition(self._robots[1], passInfo, self._circleCenter)
+	local startMoving = Attack.checkPassInfoFromPosition(self._robots[1], passInfo, self._circleCenter, false)
 	if World.RefereeState == "Stop" then
 		self._positions = {}
 		self._assignment = nil

@@ -24,7 +24,7 @@ function Circuit:run()
 	self._robot.trajectory:update(ToTarget, pos, dir)
 
 	if self._passPos then
-		self:_suggestPass(self._passPos,nil,nil, self._anonym)
+		self:_suggestPassRobotPosition(self._passPos,nil,nil, self._anonym)
 	end
 end
 

@@ -41,8 +41,8 @@ end
 
 function Default:_updateTask()
 	local _, passInfoTable = next(self._inbox.passInfo())
-	local acceptingPass = Attack.checkPassInfos(self._robot, passInfoTable)
 	local relevantPassInfo = Attack.relevantPassInfoMessage(self._robot, passInfoTable)
+	local acceptingPass = Attack.checkPassInfos(self._robot, passInfoTable, false)
 
 	if not relevantPassInfo then
 		return Striker

@@ -39,7 +39,7 @@ function Volley:_updateTasks()
 	end
 
 	local _, passInfoTable = next(self._inbox.passInfo())
-	local startMoving = Attack.checkPassInfos(self._robots[2], passInfoTable)
+	local startMoving = Attack.checkPassInfos(self._robots[2], passInfoTable, false)
 	if startMoving then
 		taskAssignments[self._robots[2]] = { class = AcceptPass }
 	else

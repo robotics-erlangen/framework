@@ -65,7 +65,7 @@ function MrlTestCorner:_updateTasks()
 	end
 
 	local _, passInfoTable = next(self._inbox.passInfo())
-	local acceptPass = Attack.checkPassInfos(self._robots[2], passInfoTable)
+	local acceptPass = Attack.checkPassInfos(self._robots[2], passInfoTable, false)
 	if acceptPass then
 		taskAssignments[self._robots[2]] = { class = AcceptPass }
 	else
