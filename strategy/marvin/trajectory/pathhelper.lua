@@ -1,5 +1,6 @@
 local PathHelper = {}
 
+local Rating = require "util/rating"
 local Constants = require "../base/constants"
 local Referee = require "../base/referee"
 local World = require "../base/world"
@@ -124,7 +125,7 @@ function PathHelper.addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreO
 		for _, r in ipairs(World.OpponentRobots) do
 			if not ignoreRobot(robot, r) then
 				-- use speed difference to calculate the safety distance
-				local safetyDistance = math.bound(0, robot.speed:distanceTo(r.speed)*0.08, 0.10)
+				local safetyDistance = Rating.valueToRating(robot.speed:distanceTo(r.speed), 0, 1.25) * 0.15 - 0.05
 				if disableOpponentPrediction then -- be more aggressive
 					safetyDistance = safetyDistance / 2
 				end
