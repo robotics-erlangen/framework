@@ -1,6 +1,5 @@
 local StrikerSampling = Class("Task.StrikerSampling", require "task/base")
 
-local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
