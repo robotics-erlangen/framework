@@ -3,6 +3,7 @@ local Default = Class("Agent.Attacker.Default", Base)
 
 local World = require "../base/world"
 local AcceptPass = require "task/acceptpass"
+local SideStep = require "task/sidestep"
 local Striker = require "task/striker"
 local Attack = require "util/attack"
 
@@ -41,8 +42,12 @@ end
 function Default:_updateTask()
 	local _, passInfoTable = next(self._inbox.passInfo())
 	local acceptingPass = Attack.checkPassInfos(self._robot, passInfoTable)
+	local relevantPassInfo = Attack.relevantPassInfoMessage(self._robot, passInfoTable)
 
-	return acceptingPass and AcceptPass or Striker
+	if not relevantPassInfo then
+		return Striker
+	end
+	return acceptingPass and AcceptPass or SideStep
 end
 
 return Default
