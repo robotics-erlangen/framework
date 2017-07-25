@@ -12,7 +12,6 @@ local MoveToStaticBall = require "task/movetostaticball"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
 local Attack = require "util/attack"
-local Rating = require "util/rating"
 local ShootGoalUtil = require "util/shootgoal"
 
 
@@ -82,8 +81,10 @@ function FreeKick:_updateTask()
 			self._passList = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false)
 			if self._passList then
 				local _; _, self._pass = next(self._passList)
-				if self._pass then
+				if self._pass then					
 					self._state = "pass_prepare"
+					-- make sure that timing is not an issue for the strikers
+					self._pass.time = self._pass.time + 1.5
 				end
 			end
 		end
