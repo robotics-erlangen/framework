@@ -111,8 +111,7 @@ function FreeKick:_updateTask()
 	if self._state == "pass_prepare" then
 		local shootPos = self._pass.ballPos
 		local ballTime = Shoot.ballPassTime(World.Ball.pos, shootPos, self._pass.target, nil, self._robot)
-		local extraTime = Rating.valueToRating(math.abs(geom.getAngleDiff(self._robot.dir,
-			(shootPos - World.Ball.pos):angle())), 0, math.pi) * 0.8
+		local extraTime = math.abs(self._robot.dir - (shootPos - self._robot.pos):angle()) / math.pi * 1.3 + 0.2
 		local robotTime = Robot.minShootTime(self._robot, shootPos) + extraTime
 		if World.Time + robotTime + ballTime >= self._pass.time then
 			self._state = "pass"
