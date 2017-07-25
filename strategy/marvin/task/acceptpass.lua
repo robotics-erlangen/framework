@@ -45,7 +45,7 @@ function AcceptPass:run()
 	end
 	-- don't move between the ball and the main attacker
 	-- relevant for incoming passes
-	if dangerPos then
+	if dangerPos and dangerPos:distanceTo(World.Ball.pos) > 0.1 then
 		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, dangerPos.x, dangerPos.y, 0.2)
 	end
 
