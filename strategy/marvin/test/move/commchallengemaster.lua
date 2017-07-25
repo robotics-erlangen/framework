@@ -5,6 +5,7 @@ local Field = require "../base/field"
 local MoveToPos = require "task/movetopos"
 local vis = require "../base/vis"
 local mixedteam = require "../base/mixedteam"
+local Pass = require "task/pass"
 
 CommChallengeMaster.MIN_ROBOTS = 3
 CommChallengeMaster.MAX_ROBOTS = 6
@@ -85,27 +86,42 @@ local function task3()
 		return {}
 	end
 
-	if not passKicker then
-		-- naehester eigener um pass zu spielen
+	if not passKicker then -- do choice only once
 
-		-- vorderster partner um pass anzunehmen
+		local minDist = math.huge
+		local maxPartnerY = -math.huge
+		for _, robot in pairs(World.FriendlyRobotsById) do
+			if robot.generation == 3 then
+				local dist = robot.pos:distanceTo(World.Ball.pos)
+				if dist < minDist then
+					minDist = dist
+					passKicker = robot
+				end
+			elseif robot.generation == 2 then
+				if robot.pos.y > maxPartnerY then
+					maxPartnerY = robot.pos.y
+					passReceiver = robot
+				end
+			end
+		end
 	end
 
-
-
+	if passReceiver then
+		partnerPlan[passReceiver.id] = { targetPos = passReceiver.pos,
+			role = "Offense", shootPos =  passReceiver.pos }
+	end
+	if passKicker then
+		partnerPlan[passKicker.id] = { targetPos = World.Ball.pos, role = "Offense" }
+		taskAssignments[passKicker] =  { class = Pass, params =
+			{passReceiver, passReceiver.pos, false, nil, passReceiver.pos } }
+	end
 
 	for id, robot in pairs(World.FriendlyRobotsById) do
 		if robot == World.FriendlyRobot then
 			partnerPlan[id] = { targetPos = World.Geometry.FriendlyGoal, role = "Goalie" }
-		elseif robot.generation == 2 then -- ally
-
-
-
-			-- pass partner auswaehlen
+		elseif robot.generation == 2 and robot ~= passReceiver then -- ally
 			partnerPlan[id] = { targetPos = defAreaPos(id, false), role = "Defense" }
-		else -- own robot
-
-
+		elseif robot.generation == 3 and robot ~= passKicker then
 			local pos = defAreaPos(id, false)
 			partnerPlan[id] = { targetPos = pos, role = "Defense" }
 			taskAssignments[robot] =  { class = MoveToPos, params = {pos}, restart=true }
