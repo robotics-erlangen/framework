@@ -10,12 +10,13 @@ local ObserverShoot = require "observer/shoot"
 local CHIP_PASS_DISTANCE_FACTOR = 0.5
 local MIN_PASS_SPEED = 3
 
-function Pass:_init(targetRobot, targetPos, chip, passSpeed, ballReceiptPos)
+function Pass:_init(targetRobot, targetPos, chip, ballReceiptPos, targetTime)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
+	self._targetTime = targetTime
 	self._chipOverride = chip ~= nil
 	self._chip = chip
-	self._passSpeed = passSpeed or targetRobot and self._targetRobot.constants.passSpeed or MIN_PASS_SPEED
+	self._passSpeed = targetRobot and self._targetRobot.constants.passSpeed or MIN_PASS_SPEED
 	self._ballReceiptPos = ballReceiptPos
 
 	-- retrieve targetPos from messages if no argument was given
@@ -54,7 +55,7 @@ function Pass:run()
 
 	if not self._chipOverride then
 		local lockTime = World.Ball.speed:length() > 0.5 and 0.3 or 0.1
-		local lockDecision = self._chip ~= nil and attackTime and attackTime < lockTime
+		local lockDecision = self._chip ~= nil and attackTime and attackTime < World.Time + lockTime
 		if not lockDecision then
 			local corridor = ObserverShoot.evaluatePassCorridor(attackPosition,
 				self._targetPos, CHIP_PASS_DISTANCE_FACTOR)
@@ -69,7 +70,11 @@ function Pass:run()
 	if self._chip then
 		self:_chipPass(targetPos, self._ballReceiptPos, maxAngleError)
 	else
-		self:_shoot(targetPos, self._passSpeed, self._ballReceiptPos, maxAngleError)
+		if self._targetTime then
+			self:_shootFreeKick(targetPos, self._passSpeed, self._targetTime, maxAngleError)
+		else
+			self:_shoot(targetPos, self._passSpeed, self._ballReceiptPos, maxAngleError)
+		end
 	end
 end
 

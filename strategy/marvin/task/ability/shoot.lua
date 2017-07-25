@@ -179,16 +179,25 @@ function Shoot:_sendShootCommand(kickSpeed, targetPos, targetDir)
 	end
 end
 
-function Shoot:_shootStationaryBall(targetPos, targetSpeed, futureBall)
+function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBall)
 	local shootDir = (targetPos - self._robot.pos):angle()
 	local directMovement = Robot.hadBall(self._robot, 0)
 		and math.abs(geom.normalizeAngle((World.Ball.pos - self._robot.pos):angle() - shootDir)) < 30 * math.pi / 180
-		and math.abs(geom.normalizeAngle(self._robot.dir - shootDir)) < 3 * math.pi / 180
+		and math.abs(geom.normalizeAngle(self._robot.dir - shootDir)) < 2 * math.pi / 180
 
 	debug.set("Shoot/AngleError", geom.normalizeAngle(math.abs(self._robot.dir - shootDir)) * 180 / math.pi)
 
+	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
+	if targetTime > 0 then
+		local kickSpeedVector = (targetPos - futureBall.pos):setLength(kickSpeed)
+		local shootBall = { maxSpeed = kickSpeed, speed = kickSpeedVector }
+		local ballTime = Physics.ballRollTime(shootBall, futureBall.pos:distanceTo(targetPos))
+		if World.Time + 0.2 + ballTime < targetTime then
+			directMovement = false
+		end
+	end
+
 	if directMovement then
-		local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
 		local accelerate = self._robot.acceleration.aSpeedupFMax * 0.5
 		self._directExtraSpeed = math.min(self._directExtraSpeed + accelerate * World.TimeDiff, EXTRA_MOVE_SPEED_LIMIT)
 		local accel = Vector.fromAngle(targetDir) * accelerate
@@ -288,6 +297,12 @@ function Shoot:_shootStopBall(futureBall, futureBallTime)
 	self._rightOrientation = false
 end
 
+function Shoot._visualizeShoot(futureBall, targetPos, color)
+	vis.addCircle("t/a/shoot: State", futureBall.pos, 0.07, color, true)
+	vis.addCircle("t/a/shoot: State", targetPos, 0.07, color, true)
+	vis.addPath("t/a/shoot: State", {futureBall.pos, targetPos}, color, nil, nil, 0.03)
+end
+
 function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, precision)
 	local futureBall, futureBallTime = self:_calculateFutureBall(ballReceiptPos)
 	debug.set("Shoot/futureBallTime", futureBallTime)
@@ -300,7 +315,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, pre
 
 	local color
 	if self._state == "StationaryBall" then
-		self:_shootStationaryBall(targetPos, targetSpeed, futureBall)
+		self:_shootStationaryBall(targetPos, targetSpeed, 0, futureBall)
 		color = vis.colors.whiteHalf
 	elseif self._state == "ChaseBall" then
 		self:_shootChaseBall(targetPos, targetSpeed, futureBall)
@@ -313,9 +328,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, pre
 		color = vis.colors.redHalf
 	end
 
-	vis.addCircle("t/a/shoot: State", futureBall.pos, 0.07, color, true)
-	vis.addCircle("t/a/shoot: State", targetPos, 0.07, color, true)
-	vis.addPath("t/a/shoot: State", {futureBall.pos, targetPos}, color, nil, nil, 0.03)
+	self._visualizeShoot(futureBall, targetPos, color)
 
 	self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
 	self._send.shootDestination("all", targetPos)
@@ -350,6 +363,16 @@ function Shoot:_chipPass(rollingBallPos, ballReceiptPos, precision)
 	end
 	local firstContactPos = origin + (rollingBallPos - origin):scaleLength(CHIP_PASS_DISTANCE_FACTOR)
 	self:_chipToPos(firstContactPos, ballReceiptPos, precision)
+end
+
+function Shoot:_shootFreeKick(targetPos, targetSpeed, targetTime, precision)
+	self._linearShoot = true
+	self._precision = precision or MIN_PRECISION
+	self:_shootStationaryBall(targetPos, targetSpeed, targetTime, World.Ball)
+	
+	self._visualizeShoot(World.Ball, targetPos, vis.colors.whiteHalf)
+
+	self._lastTargetPos = targetPos
 end
 
 return Shoot
