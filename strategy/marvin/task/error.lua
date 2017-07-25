@@ -25,6 +25,7 @@ local L = 0.25
 function Error:_init()
 	self._id = EXCHANGE_TARGET[self._robot.id+1].firstPosI
 	self._goToTopBlock = false
+	self._startRotate = nil
 end
 
 function Error:run()
@@ -64,7 +65,10 @@ function Error:run()
 	end
 	if self._robot.pos:distanceTo(toPos) > 0.05 then
 		self._robot.trajectory:update(ToTarget,toPos, 0)
-	else
+	elseif self._startRotate == nil then
+		self._startRotate = World.Time
+	end
+	if self._startRotate and World.Time - self._startRotate < 1 then
 		self._robot.trajectory:update(Direct, Vector(0, 0), nil, 2*math.pi)
 	end
 end
