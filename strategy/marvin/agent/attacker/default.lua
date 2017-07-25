@@ -44,10 +44,10 @@ function Default:_updateTask()
 	local relevantPassInfo = Attack.relevantPassInfoMessage(self._robot, passInfoTable)
 	local acceptingPass = Attack.checkPassInfos(self._robot, passInfoTable, false)
 
-	if not relevantPassInfo then
-		return Striker
+	if relevantPassInfo and not acceptingPass then
+		return SideStep, {relevantPassInfo}
 	end
-	return acceptingPass and AcceptPass or SideStep
+	return acceptingPass and AcceptPass or Striker
 end
 
 return Default

@@ -5,7 +5,7 @@ local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 local World = require "../base/world"
 
-function SideStep:_init(pass)
+function SideStep:_init(passInfo)
 	self._passInfo = passInfo
 end
 
