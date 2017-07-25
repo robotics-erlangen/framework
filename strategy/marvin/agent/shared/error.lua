@@ -28,6 +28,10 @@ function Error:check()
 	return false
 end
 
+function Error:start()
+	log(self:errorMessage())
+end
+
 function Error:errorMsg()
 	local out = tostring(self._robot.id) .. ": "
 	local msgParts = {}
