@@ -255,6 +255,19 @@ function Physics.ballTravelTime(ball, distance)
 	end
 end
 
+--- estimates the time the ball needs to travel to a given position
+-- checks if the position lies in front of the ball +- 90 degrees
+-- if the pos is behind the ball, negative infinity is returned
+function Physics.checkedBallTravelTime(ball, pos)
+	local toPos = pos - ball.pos
+	if ball.speed:dot(toPos) > 0 then
+		local distance = ball.pos:distanceTo(pos)
+		return Physics.ballTravelTime(ball, distance)
+	end
+	return -math.huge
+end
+
+
 --- estimates the time the ball needs to travel a given distance on the floor
 -- the estimation does not exceed ballStopTime() unless the distance is too large, then it returns math.huge
 -- @param ball Ball - a ball-like structure
