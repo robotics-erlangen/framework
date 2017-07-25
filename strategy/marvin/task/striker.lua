@@ -176,7 +176,13 @@ function Striker:run()
 	-- relevant for incoming passes
 	local mainAttacker = self._inbox.mainAttacker().trainer
 	if mainAttacker then
-		self:_avoidLineSegment(World.Ball.pos, mainAttacker.pos)
+		local dangerPos = attackPosition or mainAttacker.pos
+		if dangerPos:distanceTo(World.Ball.pos) > 0.1 then
+			self:_avoidLineSegment(World.Ball.pos, dangerPos)
+		end
+		if attackPosition then
+			self._robot.path:addLine(mainAttacker.pos.x, mainAttacker.pos.y, attackPosition.x, attackPosition.y, 0.2)
+		end
 	end
 
 	-- don't move between the ball and the opponent goal
