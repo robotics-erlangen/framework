@@ -152,7 +152,7 @@ void SimRobot::begin(SimBall *ball, double time)
     //enable dribbler if necessary
     if (m_command.has_dribbler() && m_command.dribbler() > 0) {
         float boundedDribbler = qBound(0.0f, m_command.dribbler(), 1.0f);
-        m_constraint->enableAngularMotor(true, 700 * boundedDribbler, 20 * boundedDribbler);
+        m_constraint->enableAngularMotor(true, 150 * boundedDribbler, 20 * boundedDribbler);
     } else {
         m_constraint->enableAngularMotor(false, 0, 0);
     }
