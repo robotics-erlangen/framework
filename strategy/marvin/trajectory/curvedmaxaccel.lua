@@ -666,7 +666,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 	-- smooth first corner
 	_preprocessPath(waypoints, maxError, robotPos, robotSpeed)
 	for _,w in ipairs(waypoints) do
-		vis.addCircleRaw("waypoints", w, 0.1, vis.colors.green)
+		vis.addCircleRaw("waypoints_raw", w, 0.1, vis.colors.green)
 	end
 
 	-- calculate robot speed in target direction
