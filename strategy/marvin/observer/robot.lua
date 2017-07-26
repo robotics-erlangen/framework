@@ -97,19 +97,6 @@ function Robot._updateTouchedBall()
 	end
 end
 
-local lastSpeeds = {}
-function Robot._updateLastFriendlyRobotSpeed()
-	for _, robot in ipairs(World.FriendlyRobots) do
-		if robot.isVisible and robot.speed ~= nil then
-			lastSpeeds[robot] = robot.speed
-		end
-	end
-end
-
-function Robot.lastFriendlyRobotSpeed(robot)
-	return lastSpeeds[robot]
-end
-
 
 local minTimeToBall = {}
 local oldMinTimeToBall = {}
