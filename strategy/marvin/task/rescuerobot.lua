@@ -19,7 +19,12 @@ function RescueRobot:run()
 
 	if not self._rotation then
 		-- align forward direction with the opposite speed the robot had when it was lost
-		local backwardsDir = self._robot.speed:copy():scaleLength(-1):angle()
+		local robotSpeed = self._robot.speed:copy()
+		if robotSpeed:length() < 0.0001 then
+			-- ensure that backwardsDir points to the opponent goal, if the robot doesn't move
+			robotSpeed = Vector(0, -1)
+		end
+		local backwardsDir = robotSpeed:scaleLength(-1):angle()
 		local frontDir = self._robot.dir
 		self._rotation = geom.getAngleDiff(frontDir, backwardsDir)
 
