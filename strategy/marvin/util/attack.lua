@@ -205,7 +205,7 @@ function Attack.sortPassesFromSuggestions(robot, passSuggestions, currentPassPos
 		if sugg.anonymous then
 			target = nil
 		end
-		table.insert(passes, {target = target, ballPos = sugg.ballPos, time = sugg.time, rating = rating})
+		table.insert(passes, {target = target, ballPos = sugg.ballPos, time = sugg.time, rating = rating, chip = sugg.chip})
 	end
 
 	table.sort(passes, sortByRating)

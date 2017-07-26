@@ -57,7 +57,7 @@ function OverchipReceiver:run()
 	local dir = (G.OpponentGoal - self._pos):angle()
 	local ballPos = self._pos + Vector.fromAngle(dir):setLength(DISTANCE_FACTOR * self._robot.radius)
 	local _, time = self._robot.trajectory:update(ToTarget, self._pos, dir)
-	self:_suggestPass(ballPos, nil, time)
+	self:_suggestPass(ballPos, nil, time, false, true)
 end
 
 return OverchipReceiver

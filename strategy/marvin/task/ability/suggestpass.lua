@@ -4,7 +4,7 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 local Physics = require "observer/physics"
 
-function SuggestPass:_suggestPass(destBallPos, attackPos, relativeTime, anonymous)
+function SuggestPass:_suggestPass(destBallPos, attackPos, relativeTime, anonymous, chip)
 	-- check for mainAttacker
 	local mainAttacker = self._inbox.mainAttacker().trainer
 	if not mainAttacker then
@@ -24,7 +24,7 @@ function SuggestPass:_suggestPass(destBallPos, attackPos, relativeTime, anonymou
 
 	anonymous = anonymous or false
 	self._send.passSuggestion("all",
-		{ ballPos = destBallPos, time = receiveTime , anonymous = anonymous})
+		{ ballPos = destBallPos, time = receiveTime , anonymous = anonymous, chip = chip})
 end
 
 function SuggestPass:_suggestPassRobotPosition(destRobotPos, attackPos, relativeTime, anonymous)

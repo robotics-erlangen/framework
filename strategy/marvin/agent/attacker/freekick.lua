@@ -182,7 +182,7 @@ function FreeKick:_updateTask()
 	elseif self._state == "wait" or self._state == "pass_prepare" then
 		return MoveToStaticBall, { math.pi / 2 }, stateChanged
 	elseif self._state == "pass" then
-		return Pass, { self._pass.target, self._pass.ballPos, nil, World.Ball.pos, self._pass.time }, restartTask
+		return Pass, { self._pass.target, self._pass.ballPos, self._pass.chip, World.Ball.pos, self._pass.time }, restartTask
 	end
 end
 
