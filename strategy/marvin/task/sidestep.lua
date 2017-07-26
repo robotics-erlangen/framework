@@ -97,7 +97,6 @@ local function draw(table)
 		debug.set(a, b)
 	end
 	debug.pop()
-	log("startingPoint2: "..tostring(t.startingPoint))
 	vis.addCircle("sideStep", t.startingPoint, 0.05, vis.colors.blue, true)
 	vis.addCircle("sideStep", t.feintPos, 0.05, vis.colors.red, true)
 	vis.addPath("sideStep", {t.ballPos, t.ballPos + t.cw:setLength(t.cwDist)}, vis.fromTemperature(t.cwRating))
