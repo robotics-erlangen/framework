@@ -84,18 +84,11 @@ function Shoot:_calculateFutureBall(ballReceiptPos)
 	end
 
 	local ballTime = Physics.checkedBallTravelTime(World.Ball, futureBallPos)
-	local futureBall
-	if ballTime > 0 then
-		futureBall = Physics.ballAtTime(World.Ball, ballTime)
-	else
-		futureBall = {
-			maxSpeed = World.Ball.maxSpeed,
-			radius = World.Ball.radius,
-			speed = World.Ball.speed,
-			pos = futureBallPos
-		}
+	if ballTime < 0.01 then
+		ballTime = Robot.minTimeToBall(self._robot)
 	end
-
+	local futureBall = Physics.ballAtTime(World.Ball, ballTime)
+	
 	if ballReceiptPos then
 		vis.addCircle("t/a/shoot: ballReceiptPos", ballReceiptPos, 0.04, vis.colors.magentaHalf, true)
 	end
