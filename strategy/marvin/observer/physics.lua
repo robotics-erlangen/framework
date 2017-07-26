@@ -394,7 +394,7 @@ end
 -- assumes that the path is a direct line from robot.pos to endPos
 function Physics.robotTimeToPos(robot, endPos, endSpeedVector) --, debugFlag)
 	-- acceleration parameters
-	local hardBrakeAccel = 10
+	local hardBrakeAccel = 4.7
 	local brakeAccelFactor = 1
 	local speedupAccelFactor = 1
 
