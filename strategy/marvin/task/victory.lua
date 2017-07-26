@@ -5,7 +5,8 @@ local geom = require "../base/geom"
 local ToTarget = require "trajectory/totarget"
 local PathHelper = require "trajectory/pathhelper"
 
-local NUM_OF_REVOLUTIONS = 2
+local NUM_OF_REVOLUTIONS = 3
+local ANGULAR_SPEED_FACTOR = 0.8 -- the higher it is, the longer it takes
 
 function Victory:_init(center, startingAngle, angle, radius)
 	assert(center and angle, "Missing Parameters for Victory-Task")
@@ -20,8 +21,8 @@ function Victory:_init(center, startingAngle, angle, radius)
 end
 
 function Victory:run()
-	self._centerAngle = self._centerAngle + math.pi / 480
-	self._outerAngle = self._outerAngle + math.pi / (180 + self._ticks*180)
+	self._centerAngle = self._centerAngle + math.pi / (480*ANGULAR_SPEED_FACTOR)
+	self._outerAngle = self._outerAngle + math.pi / (180 + self._ticks*180)*ANGULAR_SPEED_FACTOR
 	local pos
 	if self._state == "double circle" then
 		local origin = Vector.fromAngle(self._centerAngle):setLength(self._radius / 2)
