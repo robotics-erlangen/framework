@@ -4,7 +4,6 @@ local FreeKick = Class("Agent.Attacker.FreeKick", Base)
 local debug = require "../base/debug"
 local Referee = require "../base/referee"
 local World = require "../base/world"
-local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
 
@@ -81,7 +80,7 @@ function FreeKick:_updateTask()
 			self._passList = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false)
 			if self._passList then
 				local _; _, self._pass = next(self._passList)
-				if self._pass then					
+				if self._pass then
 					self._state = "pass_prepare"
 					-- make sure that timing is not an issue for the strikers
 					self._pass.time = self._pass.time + 1.5
