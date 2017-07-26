@@ -540,7 +540,8 @@ end
 -- @param startPos vector - the initial point of the half-line
 -- @param dir vector - the direction of the half-line
 -- @param extraDistance number - the radius of the object (gets added to G.DefenseRadius)
--- @return [vector]
+-- @return Vector - minLineCut
+-- @return Number - the lambda for the line cut
 function Field.nextAllowedFieldLineCut(startPos, dir, extraDistance)
 	local normalizedDir = dir:copy():normalize()
 	local perpendicularDir = normalizedDir:perpendicular()
