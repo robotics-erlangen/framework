@@ -67,8 +67,7 @@ function Error:run()
 		self._robot.trajectory:update(ToTarget,toPos, 0)
 	elseif self._startRotate == nil then
 		self._startRotate = World.Time
-	end
-	if self._startRotate and World.Time - self._startRotate < 1 then
+	elseif self._startRotate and World.Time - self._startRotate < 1 then
 		self._robot.trajectory:update(Direct, Vector(0, 0), nil, 2*math.pi)
 	end
 end
