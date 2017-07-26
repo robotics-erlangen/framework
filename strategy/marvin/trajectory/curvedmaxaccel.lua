@@ -596,6 +596,9 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 
 	local directionVector = Vector.fromAngle(targetDir):scaleLength(0.09)
 	vis.addPath("MoveTo", {targetPos, targetPos + directionVector}, vis.colors.yellowHalf)
+	if endSpeed and endSpeed:length() > 0.001 then
+		vis.addPath("MoveTo", {targetPos, targetPos + endSpeed}, vis.colors.whiteHalf)
+	end
 
 
 	-- configuration
