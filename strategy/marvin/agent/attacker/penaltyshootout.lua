@@ -5,10 +5,10 @@ local Referee = require "../base/referee"
 local World = require "../base/world"
 local G = World.Geometry
 
---local Goal = require "observer/goal"
+local Goal = require "observer/goal"
 local Robot = require "observer/robot"
 local MoveToStaticBall = require "task/movetostaticball"
---local ShootPenalty = require "task/shootpenalty"
+local ShootPenalty = require "task/shootpenalty"
 local StopAttack = require "task/stopattack"
 local ShootGoal = require "task/shootgoal"
 
@@ -16,7 +16,7 @@ local Dribble = require "task/dribble"
 
 
 local DISTANCE_TO_DEFENSE_AREA = 0.40 -- the furthest we'll go before we shoot
---local SECTOR
+local MAX_DIST_PER_DEGREE = 0.05
 
 
 function PenaltyShootout:_stop()
@@ -30,14 +30,15 @@ function PenaltyShootout:_start()
 end
 
 function PenaltyShootout:check()
-	return true
+	local mainAttacker = self._inbox.mainAttacker().trainer == self._robot
+	local isPenalty = World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive"
+	local isShootout = World.GameStage == "PenaltyShootout"
+	log(tostring(mainAttacker)..", "..tostring(isPenalty)..", "..tostring(isShootout)..", "..tostring(self:_checkPenaltyOngoing()))
+	return false and mainAttacker and isShootout and (isPenalty or self:_checkPenaltyOngoing())
 end
 
 function PenaltyShootout:_checkPenaltyOngoing()
-	if self._PenaltyStartTime and World.Time - self._penaltyStartTime < 10 and Referee.lastStateChangeTime == self._penaltyStartTime then
-		return true
-	end
-	return true
+	return self._penaltyStartTime and World.Time - self._penaltyStartTime < 15 and Referee.lastStateChangeTime == self._penaltyStartTime
 end
 
 function PenaltyShootout:_updateDribbling()
@@ -49,18 +50,20 @@ function PenaltyShootout:_updateDribbling()
 end
 
 function PenaltyShootout:_updateShootGoal()
-	if self._shootGoalFlag then
-		return
-	end
-	if World.time - self._penaltyStartTime > 8 then
+	local sector = Goal.largestFreeSector(World.Ball.pos, World.Robots, true)
+	local width = sector and math.abs(sector[1] - sector[2]) or 0
+	if self._shootGoalFlag
+			or (self._penltyStartTime and World.Time - self._penaltyStartTime > 8)
+			or G.FieldHeightHalf - World.Ball.pos.y > width * MAX_DIST_PER_DEGREE
+			or World.Ball.pos.y > G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA then
 		self._shootGoalFlag = true
 	end
-	-- local sector = Goal.getLargestFreeSector(World.Ball.pos, World.Robots, true)
-	--local width = math.abs(sector[1] - sector[2])
 end
 
 function PenaltyShootout:_updateTask()
 	self:_updateDribbling()
+	self:_updateShootGoal()
+	local annoyingKeeper = World.OpponentKeeper and World.OpponentKeeper.pos.y < G.FieldHeightHalf - 0.3 or false
 	if self._contactPoint and self._contactPoint:distanceTo(self._robot.pos) > 1 then
 		return StopAttack
 	elseif self._shootGoalFlag then
@@ -68,16 +71,14 @@ function PenaltyShootout:_updateTask()
 	end
 	if World.RefereeState == "PenaltyOffensivePrepare" then
 		return MoveToStaticBall, {math.pi / 2, 0.1}
+	elseif self._shootGoalFlag then
+		return ShootGoal
+	elseif self._contactPoint and self._contactPoint:distanceTo(self._robot.pos) > 1 then
+		return StopAttack
+	elseif not annoyingKeeper and World.Ball.pos.y > G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA then
+		return ShootPenalty
 	else
-		local annoyingKeeper = World.OpponentKeeper.pos.y < G.FieldHeightHalf - 0.3
-		if not annoyingKeeper and World.Ball.pos.y > G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA then
-			return ShootGoal
-		elseif World.Ball.pos.y > G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA then
-			self._shootGoalFlag = true
-			return ShootGoal
-		else
-			return Dribble, {Vector(0, G.FieldHeightHalf - G.DefenseRadius - 0.2)}
-		end
+		return Dribble, {Vector(0, G.FieldHeightHalf - G.DefenseRadius - 0.2)}
 	end
 end
 
