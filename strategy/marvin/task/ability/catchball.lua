@@ -3,7 +3,6 @@ local CatchBall = {}
 CatchBall.depends = { Volley }
 
 local debug = require "../base/debug"
-local Field = require "../base/field"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"
@@ -109,24 +108,10 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 		self:_createBallCorridor(self._robot.path, viewDir, predictedBall)
 	end
 
-	-- only allow endSpeed moving towards the targetPos
-	-- when moving around the ball, allow moving away from it
-	local endSpeed = predictedBall.speed:copy():rotate(-viewDir)
-	local nearDefenseArea = Field.isInFriendlyDefenseArea(moveDest, self._robot.radius + 0.3)
-	if method == HUNT_METHOD or method == STOP_METHOD or nearDefenseArea then
-		endSpeed.x = math.max(0, endSpeed.x)
-	end
-	endSpeed:rotate(viewDir)
-	if distanceToBall == 0 then
-		endSpeed = endSpeed + (targetPos - moveDest):setLength(0.2)
-	end
-
-	endSpeed = self:limitEndSpeedToField(moveDest, endSpeed)
-
 
 	-- move to the predicted ball
-	self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
-	local time = Physics.robotTimeToPos(self._robot, moveDest, endSpeed)
+	self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed)
+	local time = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
 	self._send.moveDest("all", moveDest)
 	self._send.attackPosition("all", predictedBall.pos)
 
@@ -150,26 +135,6 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	vis.addCircle("t/a/catchball: CatchBall", Physics.ballAtTime(ball, self._catchTime).pos, predictedBall.radius, vis.colors.blueHalf)
 
 	return self._catchTime
-end
-
-function CatchBall:limitEndSpeedToField(moveDest, endSpeed)
-	local endSpeedLength = endSpeed:length()
-	if endSpeed:length() > 0.01 then
-		local extrapolatedRobot = {
-			pos = moveDest,
-			speed = endSpeed,
-			acceleration = self._robot.acceleration
-		}
-		local extrapolatedPos = Physics.robotBrakePos(extrapolatedRobot)
-		local extraDistance = 0
-		if not Field.isInAllowedField(moveDest, -extraDistance) then
-			endSpeedLength = 0
-		elseif not Field.isInAllowedField(extrapolatedPos, extraDistance) then
-			local _, nextLineCutLambda = Field.nextAllowedFieldLineCut(moveDest, endSpeed, extraDistance)
-			endSpeedLength = math.min(math.sqrt(2 * self._robot.acceleration.aBrakeFMax * nextLineCutLambda), endSpeedLength)
-		end
-	end
-	return endSpeed:copy():setLength(endSpeedLength)
 end
 
 function CatchBall:_calculateHitTime(ball)
