@@ -67,7 +67,7 @@ function Striker:_updateZones(robots)
 	local totalLeft = -G.FieldWidthHalf
 	local totalRight = G.FieldWidthHalf
 	local totalTop = G.FieldHeightHalf
-	local totalBottom = -G.FieldHeightHalf / 4
+	local totalBottom = -G.FieldHeightQuarter
 
 	local nStrikers = #robots
 	local remainingZones = nStrikers + 1 -- one zone will stay empty
