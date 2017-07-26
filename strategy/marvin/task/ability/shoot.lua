@@ -18,8 +18,8 @@ local ToTarget = require "trajectory/totarget"
 
 -- if the ball speed is lower than STATIONARY_BALL_SPEED
 -- we pretend that the ball is resting
-local STATIONARY_BALL_SPEED = 0.15
-local STATIONARY_BALL_SPEED_HYST = 0.05
+local STATIONARY_BALL_SPEED = 0.8
+local STATIONARY_BALL_SPEED_HYST = 0.4
 
 -- if the ball movement direction and the shoot direction differ less than CHASE_BALL_ANGLE
 -- we chase the ball instead of stopping it
