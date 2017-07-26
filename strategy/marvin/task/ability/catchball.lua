@@ -3,6 +3,7 @@ local CatchBall = {}
 CatchBall.depends = { Volley }
 
 local debug = require "../base/debug"
+local Field = require "../base/field"
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"
@@ -194,6 +195,26 @@ function CatchBall:_calculateHitTime(ball)
 	-- timeToRobot is the upper bound for the catch time, musn't be an underestimation
 	-- can be much lower if the robot moves towards the ball
 	return timeToRobot
+end
+
+function CatchBall:limitEndSpeedToField(moveDest, endSpeed)
+	local endSpeedLength = endSpeed:length()
+	if endSpeed:length() > 0.01 then
+		local extrapolatedRobot = {
+			pos = moveDest,
+			speed = endSpeed,
+			acceleration = self._robot.acceleration
+		}
+		local extrapolatedPos = Physics.robotBrakePos(extrapolatedRobot)
+		local extraDistance = 0
+		if not Field.isInAllowedField(moveDest, -extraDistance) then
+			endSpeedLength = 0
+		elseif not Field.isInAllowedField(extrapolatedPos, extraDistance) then
+			local _, nextLineCutLambda = Field.nextAllowedFieldLineCut(moveDest, endSpeed, extraDistance)
+			endSpeedLength = math.min(math.sqrt(2 * self._robot.acceleration.aBrakeFMax * nextLineCutLambda), endSpeedLength)
+		end
+	end
+	return endSpeed:copy():setLength(endSpeedLength)
 end
 
 function CatchBall:_updateReasonableBallPos(ball, ballInsideRobot)
