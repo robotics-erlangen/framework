@@ -103,6 +103,11 @@ function Attack.ratePass(robot, pass, considerTiming)
 		end
 	end
 
+	local goalAngle = (World.Geometry.OpponentGoalRight - pass.ballPos):absoluteAngleDiff(World.Geometry.OpponentGoalLeft - pass.ballPos)
+	local goalAngleWeight = 0.5
+	local goalAngleRating = Rating.valueToRating(goalAngle, 0, 50 / 180 * math.pi)
+	rating = rating * (1 - goalAngleWeight + goalAngleWeight * goalAngleRating)
+
 	vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true)
 	vis.addPath("u/a/ratePass", {shootPos, pass.ballPos}, vis.colors.red)
 	vis.addCircle("u/a/ratePass: rating", pass.ballPos, 0.2,
