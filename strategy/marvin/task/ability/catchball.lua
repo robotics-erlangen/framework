@@ -165,7 +165,7 @@ function CatchBall:limitEndSpeedToField(moveDest, endSpeed)
 		if not Field.isInAllowedField(moveDest, -extraDistance) then
 			endSpeedLength = 0
 		elseif not Field.isInAllowedField(extrapolatedPos, extraDistance) then
-			local nextLineCut, nextLineCutLambda = Field.nextAllowedFieldLineCut(moveDest, endSpeed, extraDistance)
+			local _, nextLineCutLambda = Field.nextAllowedFieldLineCut(moveDest, endSpeed, extraDistance)
 			endSpeedLength = math.min(math.sqrt(2 * self._robot.acceleration.aBrakeFMax * nextLineCutLambda), endSpeedLength)
 		end
 	end
