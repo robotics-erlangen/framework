@@ -214,7 +214,7 @@ function Physics.calculateChipSpeed(dist)
 	return math.sqrt((flightDistance*9.81) / 2)
 end
 
-function Physics.robotBreakPos(robot)
+function Physics.robotBrakePos(robot)
 	local BREAK_DEFAULT = 5 -- rather overestimate than underestimte the opponent
 	local brkAcc = robot.acceleration and robot.acceleration.aBrakeFMax or BREAK_DEFAULT
 	local robotSpeed = robot.speed:length()

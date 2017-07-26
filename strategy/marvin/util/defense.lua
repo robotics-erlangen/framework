@@ -34,7 +34,7 @@ local function manMarkPos(opponent)
 	end
 
 	-- use the position at which the robot would break if it started immediately
-	targetPos = Physics.robotBreakPos({pos = targetPos, speed = opponent.speed, radius = opponent.radius})
+	targetPos = Physics.robotBrakePos({pos = targetPos, speed = opponent.speed, radius = opponent.radius})
 
 	targetPos = Field.limitToAllowedField(targetPos, Constants.maxRobotRadius)
 	if Referee.isStopState() then
