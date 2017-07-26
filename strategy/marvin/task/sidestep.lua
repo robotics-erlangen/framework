@@ -88,7 +88,7 @@ function SideStep:run()
 
 	local _, attackPosition = next(self._inbox.attackPosition())
 	if attackPosition then
-		self:_suggestPass(self._passInfo.ballPos, attackPosition, self._passInfo.time)
+		self:_suggestPass(self._passInfo.ballPos, attackPosition, self._passInfo.time - World.Time)
 	end
 
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
