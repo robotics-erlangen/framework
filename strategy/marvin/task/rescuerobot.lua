@@ -2,6 +2,7 @@ local RescueRobot = Class("Task.RescueRobot", require "task/base")
 
 local geom = require "../base/geom"
 local World = require "../base/world"
+local Robot = require "observer/robot"
 local TrajectoryHidden = require "trajectory/hidden"
 
 
@@ -13,13 +14,14 @@ end
 
 function RescueRobot:run()
 	-- ignore visible robots
-	if self._robot.isVisible or not self._robot.speed then
+	local robotSpeed = self._robot.speed or Robot.lastFriendlyRobotSpeed(self._robot)
+	if self._robot.isVisible or not robotSpeed then
 		return
 	end
 
 	if not self._rotation then
 		-- align forward direction with the opposite speed the robot had when it was lost
-		local backwardsDir = self._robot.speed:copy():scaleLength(-1):angle()
+		local backwardsDir = robotSpeed:copy():scaleLength(-1):angle()
 		local frontDir = self._robot.dir
 		self._rotation = geom.getAngleDiff(frontDir, backwardsDir)
 
