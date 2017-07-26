@@ -534,4 +534,38 @@ function Field.nextLineCut(startPos, dir, offset)
 end
 
 
+
+--- Calculates the next intersection with the field boundaries or the defense areas
+-- @name nextAllowedFieldLineCut
+-- @param startPos vector - the initial point of the half-line
+-- @param dir vector - the direction of the half-line
+-- @param extraDistance number - the radius of the object (gets added to G.DefenseRadius)
+-- @return [vector]
+function Field.nextAllowedFieldLineCut(startPos, dir, extraDistance)
+	local normalizedDir = dir:copy():normalize()
+	local perpendicularDir = normalizedDir:perpendicular()
+
+	local boundaryLineCut = Field.nextLineCut(startPos, normalizedDir, -extraDistance)
+	local friendlyDefenseLineCut = Field.intersectRayDefenseArea(startPos, normalizedDir, extraDistance, false)
+	local opponentDefenseLineCut = Field.intersectRayDefenseArea(startPos, normalizedDir, extraDistance, true)
+
+	local lineCuts = {}
+	if boundaryLineCut then table.insert(lineCuts, boundaryLineCut) end
+	if friendlyDefenseLineCut then table.insert(lineCuts, friendlyDefenseLineCut) end
+	if opponentDefenseLineCut then table.insert(lineCuts, opponentDefenseLineCut) end
+
+	local minLambda = math.huge
+	local minLineCut = nil
+	for _, lineCut in ipairs(lineCuts) do
+		local _, lambda = geom.intersectLineLine(startPos, normalizedDir, lineCut, perpendicularDir)
+		if lambda and lambda > 0 and lambda < minLambda then
+			minLambda = lambda
+			minLineCut = lineCut
+		end
+	end
+
+	return minLineCut, minLineCut and minLambda or 0
+end
+
+
 return Field
