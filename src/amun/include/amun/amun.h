@@ -47,6 +47,7 @@ signals:
     void sendStatus(const Status &status);
     void gotCommand(const Command &command);
     void updateVisionPort(quint16 port);
+    void updateRefereePort(quint16 port);
 
 public:
     void start();

@@ -102,6 +102,7 @@ message CommandTracking {
 
 message CommandAmun {
     optional uint32 vision_port = 1;
+    optional uint32 referee_port = 2;
 }
 
 message Command {

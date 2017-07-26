@@ -28,6 +28,7 @@ const uint DEFAULT_TRANSCEIVER_CHANNEL = 11;
 const uint DEFAULT_SIM_VISION_DELAY = 35; // in ms
 const uint DEFAULT_SIM_PROCESSING_TIME = 5; // in ms
 const uint DEFAULT_VISION_PORT = 10005;
+const uint DEFAULT_REFEREE_PORT = 10003;
 
 const bool DEFAULT_NETWORK_ENABLE = false;
 const QString DEFAULT_NETWORK_HOST = QStringLiteral("");
@@ -63,6 +64,7 @@ void ConfigDialog::sendConfiguration()
     command->mutable_simulator()->set_vision_processing_time(ui->simProcessingTime->value() * 1000 * 1000);
 
     command->mutable_amun()->set_vision_port(ui->visionPort->value());
+    command->mutable_amun()->set_referee_port(ui->refPort->value());
 
     command->mutable_transceiver()->set_use_network(ui->networkUse->isChecked());
     amun::HostAddress *nc = command->mutable_transceiver()->mutable_network_configuration();
@@ -87,6 +89,7 @@ void ConfigDialog::load()
     ui->simProcessingTime->setValue(s.value("Simulator/ProcessingTime", DEFAULT_SIM_PROCESSING_TIME).toUInt());
 
     ui->visionPort->setValue(s.value("Amun/VisionPort", DEFAULT_VISION_PORT).toUInt());
+    ui->refPort->setValue(s.value("Amun/RefereePort", DEFAULT_REFEREE_PORT).toUInt());
 
     ui->networkUse->setChecked(s.value("Network/Use", DEFAULT_NETWORK_ENABLE).toBool());
     ui->networkHost->setText(s.value("Network/Host", DEFAULT_NETWORK_HOST).toString());
@@ -104,6 +107,7 @@ void ConfigDialog::reset()
     ui->simVisionDelay->setValue(DEFAULT_SIM_VISION_DELAY);
     ui->simProcessingTime->setValue(DEFAULT_SIM_PROCESSING_TIME);
     ui->visionPort->setValue(DEFAULT_VISION_PORT);
+    ui->refPort->setValue(DEFAULT_REFEREE_PORT);
     ui->networkUse->setChecked(DEFAULT_NETWORK_ENABLE);
     ui->networkHost->setText(DEFAULT_NETWORK_HOST);
     ui->networkPort->setValue(DEFAULT_NETWORK_PORT);
@@ -121,6 +125,7 @@ void ConfigDialog::apply()
     s.setValue("Simulator/ProcessingTime", ui->simProcessingTime->value());
 
     s.setValue("Amun/VisionPort", ui->visionPort->value());
+    s.setValue("Amun/RefereePort", ui->refPort->value());
 
     s.setValue("Network/Use", ui->networkUse->isChecked());
     s.setValue("Network/Host", ui->networkHost->text());

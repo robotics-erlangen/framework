@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>331</width>
-    <height>568</height>
+    <height>644</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -37,6 +37,26 @@
         </property>
         <property name="value">
          <number>10002</number>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QLabel" name="label_6">
+        <property name="text">
+         <string>Ref Port</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="1">
+       <widget class="QSpinBox" name="refPort">
+        <property name="minimum">
+         <number>1</number>
+        </property>
+        <property name="maximum">
+         <number>65535</number>
+        </property>
+        <property name="value">
+         <number>99</number>
         </property>
        </widget>
       </item>
@@ -208,13 +228,13 @@
       <string>Remote Refbox Control</string>
      </property>
      <layout class="QFormLayout" name="formLayout_7">
-     <item row="0" column="0" colspan="2">
-      <widget class="QCheckBox" name="refboxControlUse">
-       <property name="text">
-        <string>Enable refbox control</string>
-       </property>
-      </widget>
-     </item>
+      <item row="0" column="0" colspan="2">
+       <widget class="QCheckBox" name="refboxControlUse">
+        <property name="text">
+         <string>Enable refbox control</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

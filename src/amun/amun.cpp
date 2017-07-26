@@ -140,6 +140,7 @@ void Amun::start()
     if (!m_simulatorOnly) {
         // create referee
         setupReceiver(m_referee, QHostAddress("224.5.23.1"), 10003);
+        connect(this, &Amun::updateRefereePort, m_referee, &Receiver::updatePort);
         // move referee packets to processor
         connect(m_referee, SIGNAL(gotPacket(QByteArray, qint64)), m_processor, SLOT(handleRefereePacket(QByteArray, qint64)));
 
@@ -280,6 +281,9 @@ void Amun::handleCommand(const Command &command)
     if (command->has_amun()) {
         if (command->amun().has_vision_port()) {
             emit updateVisionPort(command->amun().vision_port());
+        }
+        if (command->amun().has_referee_port()) {
+            emit updateRefereePort(command->amun().referee_port());
         }
     }
 
