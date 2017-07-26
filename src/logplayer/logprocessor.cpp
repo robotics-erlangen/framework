@@ -208,6 +208,12 @@ qint64 LogProcessor::filterLog(LogFileReader &reader, Exchanger *writer, Exchang
                 it->set_time(it->time() - timeRemoved);
             }
         }
+        if (status->has_debug()) {
+            amun::DebugValues *debug = status->mutable_debug();
+            if (debug->has_time()) {
+                 debug->set_time(debug->time() - timeRemoved);
+            }
+        }
 
         // keep game status to find relevant frames
         if (status->has_game_state()) {
