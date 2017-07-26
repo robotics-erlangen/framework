@@ -5,7 +5,6 @@ local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 local Rating = require "util/rating"
 local Field = require "../base/field"
-local geom = require "../base/geom"
 local World = require "../base/world"
 local vis = require "../base/vis"
 local debug = require "../base/debug"
@@ -25,38 +24,17 @@ function SideStep:_projectBotsOnLine(point1, point2)
 end
 
 function SideStep:_rateLine(line)
-	local h = G.FieldHeightHalf
-	local w = G.FieldWidthHalf
-	local topLeft = Vector(-w, h)
-	local topRight = Vector(w, h)
-	local bottomLeft = Vector(-w, -h)
-	local bottomRight = Vector(w, -h)
-	local horizontal = Vector(0, 1)
-	local vertical = Vector(1, 0)
-	local point, lambda = geom.intersectLineLine(self._passInfo.ballPos, line, topLeft, -horizontal)
-	if not lambda or lambda < 0 or (point:distanceToLineSegment(topLeft, bottomLeft) > 0.01) then
-		point, lambda = geom.intersectLineLine(self._passInfo.ballPos, line, bottomRight, horizontal)
-	end
-	if not lambda or lambda < 0 or (point:distanceToLineSegment(topRight, bottomLeft) > 0.01) then
-		local intersection = Field.intersectRayDefenseArea(self._passInfo.ballPos, line, 0.2, true)
-		intersection = intersection or Field.intersectRayDefenseArea(self._passInfo.ballPos, line, 0.2)
-		if intersection then
-			lambda = intersection:distanceTo(self._passInfo.ballPos)
-		end
-	end
-	if not lambda or lambda < 0 then
-		point, lambda = geom.intersectLineLine(self._passInfo.ballPos, line, topLeft, vertical)
-	end
-	if not lambda or lambda < 0 or (point:distanceToLineSegment(topLeft, topRight) > 0.01) then
-		local _
-		_, lambda = geom.intersectLineLine(self._passInfo.ballPos, line, bottomRight, -vertical)
-	end
-	local rating = 1 - Rating.valueToRating(lambda, 2, 0)/2
-	local dist = self:_projectBotsOnLine(self._passInfo.ballPos, self._passInfo.ballPos + line)
-	local distRating = Rating.valueToRating(dist, 1, MANMARK_DISTANCE_THRESHOLD)
+	local intersection, lambda = Field.nextAllowedFieldLineCut(self._passInfo.ballPos, line, self._robot.radius)
+	if intersection then
+		local rating = 1 - Rating.valueToRating(lambda, 2, 0)/2
+		local dist = self:_projectBotsOnLine(self._passInfo.ballPos, self._passInfo.ballPos + line)
+		local distRating = Rating.valueToRating(dist, 1, MANMARK_DISTANCE_THRESHOLD)
 
-	rating = rating - (1 - distRating) / 10
-	return lambda, rating
+		rating = rating - (1 - distRating) / 10
+		return lambda, rating
+	else
+		return 0, 0
+	end
 end
 
 function SideStep:_init(passInfo)
