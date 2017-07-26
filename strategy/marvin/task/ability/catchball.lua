@@ -121,6 +121,9 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 		endSpeed = endSpeed + (targetPos - moveDest):setLength(0.2)
 	end
 
+	endSpeed = self:limitEndSpeedToField(moveDest, endSpeed)
+
+
 	-- move to the predicted ball
 	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
 	self._send.moveDest("all", moveDest)
@@ -146,6 +149,26 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	vis.addCircle("t/a/catchball: CatchBall", Physics.ballAtTime(ball, self._catchTime).pos, predictedBall.radius, vis.colors.blueHalf)
 
 	return self._catchTime
+end
+
+function CatchBall:limitEndSpeedToField(moveDest, endSpeed)
+	local endSpeedLength = endSpeed:length()
+	if endSpeed:length() > 0.01 then
+		local extrapolatedRobot = {
+			pos = moveDest,
+			speed = endSpeed,
+			acceleration = self._robot.acceleration
+		}
+		local extrapolatedPos = Physics.robotBrakePos(extrapolatedRobot)
+		local extraDistance = 0
+		if not Field.isInAllowedField(moveDest, -extraDistance) then
+			endSpeedLength = 0
+		elseif not Field.isInAllowedField(extrapolatedPos, extraDistance) then
+			local nextLineCut, nextLineCutLambda = Field.nextAllowedFieldLineCut(moveDest, endSpeed, extraDistance)
+			endSpeedLength = math.min(math.sqrt(2 * self._robot.acceleration.aBrakeFMax * nextLineCutLambda), endSpeedLength)
+		end
+	end
+	return endSpeed:copy():setLength(endSpeedLength)
 end
 
 function CatchBall:_calculateHitTime(ball)

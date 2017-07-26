@@ -234,6 +234,8 @@ function Shoot:_shootChaseBall(targetPos, targetSpeed)
 	moveDest = futureBall.pos - dribblerOffset
 	local endSpeed = futureBall.speed:copy():setLength(futureBall.speed:length() + relativeEndSpeed)
 
+	endSpeed = self:limitEndSpeedToField(moveDest, endSpeed)
+
 	self:_setObstacles()
 	self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, endSpeed)
 	self._send.attackPosition("all", futureBall.pos)
