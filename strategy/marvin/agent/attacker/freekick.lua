@@ -111,11 +111,9 @@ function FreeKick:_updateTask()
 	if (self._state == "pass_prepare" or self._state == "pass" and self._pass.time - World.Time > 0.5) and not timeRunningOut then
 		local suggestion = self._inbox.passSuggestion()[self._pass.target]
 		if suggestion and suggestion.ballPos:distanceTo(self._pass.ballPos) < 0.01 then
-			local robotPos = suggestion.ballPos + 
-					(suggestion.ballPos - World.Ball.pos):setLength(self._pass.target.shootRadius + World.Ball.radius)
-			local robotTime = Physics.robotTimeToPos(self._pass.target, robotPos, Vector(0, 0))
+			local robotTime = suggestion.time
 			local bufferTime = 0.1
-			if World.Time + robotTime - self._pass.time > bufferTime * 0.5 then
+			if robotTime - self._pass.time > bufferTime * 0.5 then
 				self._pass.time = World.Time + robotTime + bufferTime
 			end
 		end
