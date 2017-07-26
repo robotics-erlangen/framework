@@ -157,8 +157,8 @@ end
 -- @return bool - is in field
 function Field.isInAllowedField(pos, boundaryWidth)
 	return Field.isInField(pos, boundaryWidth) and
-		not isInDefenseArea(pos, boundaryWidth, true) and
-		not isInDefenseArea(pos, boundaryWidth, false)
+		not isInDefenseArea(pos, -boundaryWidth, true) and
+		not isInDefenseArea(pos, -boundaryWidth, false)
 end
 
 --- Returns true if the position is inside/touching the friendly defense area
