@@ -125,7 +125,8 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 
 
 	-- move to the predicted ball
-	local _, time = self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
+	self._robot.trajectory:update(ToTarget, moveDest, viewDir, maxSpeed, endSpeed)
+	local time = Physics.robotTimeToPos(self._robot, moveDest, endSpeed)
 	self._send.moveDest("all", moveDest)
 	self._send.attackPosition("all", predictedBall.pos)
 
