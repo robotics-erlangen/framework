@@ -108,7 +108,7 @@ function FreeKick:_updateTask()
 		end
 	end
 
-	if self._state == "pass_prepare" or self._state == "pass" and self._pass.time - World.Time > 0.5 then
+	if (self._state == "pass_prepare" or self._state == "pass" and self._pass.time - World.Time > 0.5) and not timeRunningOut then
 		local suggestion = self._inbox.passSuggestion()[self._pass.target]
 		if suggestion and suggestion.ballPos:distanceTo(self._pass.ballPos) < 0.01 then
 			local robotPos = suggestion.ballPos + 
