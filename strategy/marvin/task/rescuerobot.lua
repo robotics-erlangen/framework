@@ -50,7 +50,7 @@ function RescueRobot:run()
 
 	if speed then
 		speed = speed:copy():rotate(self._rotation)
-		self._robot.trajectory:update(TrajectoryHidden, speed.x, speed.y)
+		self._robot.trajectory:update(TrajectoryHidden, speed.x, speed.y, 0)
 	end
 end
 
