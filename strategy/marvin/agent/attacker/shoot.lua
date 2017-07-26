@@ -28,7 +28,9 @@ function Shoot:_stop()
 	self._activeFrames = 0
 
 	self._lastIncomingPassInfoPos = nil
-	self._lastIncomingPassInfoInvalidationCounter = 0
+
+	self._hadBallCounter = 0
+	self._touchedBall = false
 end
 
 function Shoot:check()
@@ -61,7 +63,7 @@ function Shoot:_decide()
 
 	local pass = Attack.choosePassFromSuggestions(self._robot,
 		self._inbox.passSuggestion(), self._prevPassPos, true)
-	if pass and ObserverShoot.volleyPossible(self._robot, pass.ballPos) then 
+	if pass then 
 		return {
 			task = "pass",
 			target = pass.target,
@@ -80,6 +82,15 @@ function Shoot:_decide()
 end
 
 function Shoot:_redeciding()
+
+	if Ball.wasShot(0.25) then
+		self._hadBallCounter = 0
+	end
+
+	if Robot.touchedBall(self._robot, 0) then
+		self._touchedBall = true
+	end
+
 	-- always redecide if no decision has been made yet
 	if self._activeFrames < 2 or self._decision.task == "none" then
 		debug.set("redeciding", "TRUE (initial)")
@@ -94,8 +105,16 @@ function Shoot:_redeciding()
 		return false
 	end
 
+	-- redecide if rebound
+	if self._touchedBall and self._hadBallCounter > 5 and self._robot.pos:distanceTo(World.Ball.pos) > 0.13 then
+		debug.set("redeciding", "TRUE (rebound)")
+		self._hadBallCounter = 0
+		return true
+	end
+
 	-- never redecide if the ball is being shot (but isShot did not trigger yet)
 	if Robot.hadBall(self._robot, 0.25) then
+		self._hadBallCounter = self._hadBallCounter + 1
 		debug.set("redeciding", "FALSE (hadBall)")
 		return false
 	end
