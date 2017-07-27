@@ -349,7 +349,7 @@ end
 --- chips the ball such that it can be accepted at rollingBallPos
 -- @param rollingBallPos Vector - where the ball is starting to roll
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
-function Shoot:_chipPass(rollingBallPos, ballReceiptPos, precision)
+function Shoot:_chipPass(rollingBallPos, ballReceiptPos, precision, manualChipDistFactor)
 	local origin
 	if ballReceiptPos and (ballReceiptPos - World.Ball.pos):dot(World.Ball.speed) > 0
 		and World.Ball.speed:length() > 0.5 then
@@ -357,7 +357,7 @@ function Shoot:_chipPass(rollingBallPos, ballReceiptPos, precision)
 	else
 		origin = World.Ball.pos
 	end
-	local firstContactPos = origin + (rollingBallPos - origin):scaleLength(CHIP_PASS_DISTANCE_FACTOR)
+	local firstContactPos = origin + (rollingBallPos - origin):scaleLength(manualChipDistFactor or CHIP_PASS_DISTANCE_FACTOR)
 	self:_chipToPos(firstContactPos, ballReceiptPos, precision)
 end
 

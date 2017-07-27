@@ -92,7 +92,7 @@ function ShootGoal:run()
 
 		-- perform a chip shot
 		self._desperateChipTargetPoint = G.OpponentGoal
-		self:_chipPass(self._desperateChipTargetPoint, self._ballReceiptPos, maxAngleError)
+		self:_chipPass(self._desperateChipTargetPoint, self._ballReceiptPos, maxAngleError, 0.5)
 	end
 	self:_drawDebugInfo()
 end
