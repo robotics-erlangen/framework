@@ -16,7 +16,7 @@ local moves = {
 	require "test/move/volley",
 	require "test/move/dribble",
 	require "test/move/victory",
-	require "test/move/chipDribble"
+	require "test/move/chipdribble"
 }
 
 local coord = nil
