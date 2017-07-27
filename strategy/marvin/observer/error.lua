@@ -32,7 +32,7 @@ local function addBatteryState(robot, newBatteryState)
 		if math.abs(avg - newBatteryState) > 0.2 then
 				if robotBatteryTable.outlayers > 15 then
 					initBatteryTable(robot)
-					addBateryState(robot, newBatteryState)
+					addBatteryState(robot, newBatteryState)
 					return
 				end
 				robotBatteryTable.outlayers = robotBatteryTable.outlayers + 1
