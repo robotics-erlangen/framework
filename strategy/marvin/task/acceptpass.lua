@@ -38,7 +38,9 @@ function AcceptPass:run()
 	if mainAttacker then
 		dangerPos = mainAttacker.pos
 	end
-	local  _, moveTime = self._robot.trajectory:update(ToTarget, ballPos, (World.Ball.pos - self._robot.pos):angle())
+	local dir = (World.Ball.pos - ballPos):angle()
+	local robotPos = ballPos - Vector.fromAngle(dir) * (self._robot.shootRadius + World.Ball.radius)
+	local _, moveTime = self._robot.trajectory:update(ToTarget, robotPos, dir)
 	if attackPosition then
 		dangerPos = attackPosition
 		self:_suggestPass(ballPos, attackPosition, moveTime)
