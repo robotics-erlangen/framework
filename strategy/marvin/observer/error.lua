@@ -15,7 +15,7 @@ function Error.getAverageBatterySate(robot)
 end
 
 local function initBatteryTable(robot)
-	batteryTable[robot] = {size= 0, next = 1, sum = 0}
+	batteryTable[robot] = {size= 0, next = 1, sum = 0, outlayers = 0}
 end
 
 local function addBatteryState(robot, newBatteryState)
@@ -24,12 +24,23 @@ local function addBatteryState(robot, newBatteryState)
 		initBatteryTable(robot)
 		robotBatteryTable = batteryTable[robot]
 	end
-	if robotBatteryTable.size < 50 then
+	if robotBatteryTable.size < BATTERY_TABLE_SIZE then
 		robotBatteryTable.sum = robotBatteryTable.sum + newBatteryState
 		robotBatteryTable.size = robotBatteryTable.size  + 1
 	else
+		local avg = Error.getAverageBatterySate(robot)
+		if math.abs(avg - newBatteryState) > 0.2 then
+				if robotBatteryTable.outlayers > 15 then
+					initBatteryTable(robot)
+					addBateryState(robot, newBatteryState)
+					return
+				end
+				robotBatteryTable.outlayers = robotBatteryTable.outlayers + 1
+				return
+		end
 		robotBatteryTable.sum = robotBatteryTable.sum  + newBatteryState - robotBatteryTable[robotBatteryTable.next]
 	end
+	robotBatteryTable.outlayers = 0
 	robotBatteryTable[robotBatteryTable.next] = newBatteryState
 	robotBatteryTable.next = math.fmod(robotBatteryTable.next + 1, BATTERY_TABLE_SIZE)
 end
