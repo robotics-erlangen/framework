@@ -113,6 +113,7 @@ function FreeKick:_updateTask()
 			local bufferTime = 0.1
 			if suggestion.time - self._pass.time > bufferTime * 0.5 then
 				self._pass.time = suggestion.time + bufferTime
+				restartTask = true
 			end
 		end
 	end
