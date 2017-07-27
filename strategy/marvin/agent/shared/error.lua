@@ -47,9 +47,7 @@ function Error:errorMsg()
 	local out = tostring(self._robot.id) .. ": "
 	local msgParts = {}
 	local errorData = ErrorObserver.getErrorTable(self._robot)
-	if not errorData then
-		return out .. "Low battery"
-	end
+	out = out .. "battery: " .. tostring(ErrorObserver.getAverageBatterySate(self._robot)) .." "
 	if errorData.motor_1_error then
 		table.insert(msgParts, "motor 1 error" .. tostring(errorData.motor_1_error))
 	end
