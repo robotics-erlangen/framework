@@ -55,7 +55,7 @@ function Duel:genericCheck()
 
 	-- if the ball is shot fast at the opponent goal, dont duel it since it might be chipped by us
 	local ballSpeed = World.Ball.speed:length()
-	if ballSpeed > MAX_BALL_SPEED + (self._lastChippedHysteresis and 0.5 or 0) then
+	if ballSpeed > MAX_BALL_SPEED + (self._lastChippedHysteresis and 0 or 0.5) then
 		local intersection = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, World.Geometry.OpponentGoal, Vector(1, 0))
 		if intersection and math.abs(intersection.x) < World.Geometry.GoalWidth / 2 + (self._lastChippedHysteresis and 1 or 0) then
 			self._lastChippedHysteresis = true
