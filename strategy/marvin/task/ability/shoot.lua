@@ -179,6 +179,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 	local maxSidewardsAngle
 	local maxOrientationAngle
 	local minCatchBallDistance
+	local hasBallDistance
 	if Referee.isFriendlyFreeKickState() then
 		maxSidewardsAngle = 30 * math.pi / 180
 		maxOrientationAngle = 2 * math.pi / 180
