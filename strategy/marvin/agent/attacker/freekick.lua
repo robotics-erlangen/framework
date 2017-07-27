@@ -7,6 +7,7 @@ local World = require "../base/world"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
 
+local MoveToPos = require "task/movetopos"
 local MoveToStaticBall = require "task/movetostaticball"
 local Pass = require "task/pass"
 local ShootGoal = require "task/shootgoal"
@@ -54,6 +55,7 @@ function FreeKick:_updateTask()
 	local distanceToBall = 0.15
 	local nearBall = self._robot.pos:distanceTo(World.Ball.pos)
 		< distanceToBall + self._robot.radius + World.Ball.radius + 0.02
+	local farBall = self._robot.pos:distanceTo(World.Ball.pos) > distanceToBall + self._robot.radius + World.Ball.radius - 0.02
 
 	local _; _, _, self._dirty = ShootGoalUtil.updateTarget(self._robot, nil, self._dirty, World.Ball.pos)
 	local shootgoalPossible = not self._dirty and
@@ -63,6 +65,11 @@ function FreeKick:_updateTask()
 	if self._state == "prepare" and nearBall then
 		self._state = "wait"
 		self._waitStartTime = World.Time
+	end
+
+	-- cooldown -> wait
+	if self._state == "cooldown" and farBall then
+		self._state = "wait"
 	end
 
 	-- wait -> shootgoal
@@ -118,6 +125,8 @@ function FreeKick:_updateTask()
 		end
 	end
 
+	local enoughTime = World.Time - Referee.lastStateChangeTime() <= 5
+
 	-- pass_prepare -> pass
 	if self._state == "pass_prepare" then
 		local shootPos = self._pass.ballPos
@@ -129,7 +138,6 @@ function FreeKick:_updateTask()
 		end
 
 		-- redecide if beneficial
-		local enoughTime = World.Time - Referee.lastStateChangeTime() <= 5
 		if enoughTime then
 			local hysteresis = 0.05
 			local newPass = Attack.choosePassFromSuggestions(self._robot, self._inbox.passSuggestion(),
@@ -140,11 +148,18 @@ function FreeKick:_updateTask()
 		end
 	end
 
+	-- shootgoal -> cooldown
+	if not shootgoalPossible and self._state == "shootgoal" and enoughTime
+			and self._robot.pos:distanceTo(World.Ball.pos) > self._robot.shootRadius + World.Ball.radius + 0.03 then
+		self._state = "cooldown"
+	end
+
 	if self._passList and self._state == "pass" then
 		self._send.passInfo("all", {self._pass})
 	elseif self._passList then
 		self._send.passInfo("all", self._passList)
 	end
+
 
 	-- visualize decision
 	local visTarget
@@ -174,6 +189,8 @@ function FreeKick:_updateTask()
 
 	if self._state == "prepare" then
 		return MoveToStaticBall, { math.pi / 2, distanceToBall }, stateChanged
+	elseif self._state == "cooldown" then
+			return MoveToPos, {self._robot.pos + (self._robot.pos-World.Ball.pos):setLength(distanceToBall+self._robot.radius+World.Ball.radius)}
 	elseif self._state == "shootgoal" then
 		return ShootGoal
 	elseif self._state == "wait" or self._state == "pass_prepare" then
