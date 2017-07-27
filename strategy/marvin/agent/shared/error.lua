@@ -8,7 +8,9 @@ local EXCHANGE_ERROR_ROBOTS = true
 
 function Error:check()
 	local errorTable = ErrorObserver.getErrorTable(self._robot)
-	if ErrorObserver.getAverageBatterySate(self._robot)< 0.11 and self._robot ~= World.FriendlyKeeper then
+	if self._active and World.RefereeState == "Stop" then
+		return true
+	elseif ErrorObserver.getAverageBatterySate(self._robot)< 0.11 and self._robot ~= World.FriendlyKeeper then
 		return true
 	elseif ErrorObserver.getAverageBatterySate(self._robot)< 0.20
 		and World.RefereeState == "Stop" then
@@ -18,10 +20,10 @@ function Error:check()
 	elseif self._robot == World.FriendlyKeeper then
 		return false
 	end
-	local timespan = World.Time - ErrorObserver.getLastStopTime()
+	local gameTimespan = World.Time - ErrorObserver.getLastStopTime()
 
 	for k,v in pairs(errorTable) do
-		if timespan > 2 and v > ERROR_TOLERANCE_PER_SEC * timespan
+		if gameTimespan > 2 and v > ERROR_TOLERANCE_PER_SEC * gameTimespan
 		 and k ~= "temperature" and k~="main_sensor_error" then
 			if World.RefereeState == "Stop" then
 				--log(self._robot.id .. " --------   " .. k ..  "  --------------  " .. v)
@@ -34,6 +36,11 @@ end
 
 function Error:start()
 	log(self:errorMsg())
+	self._active = true
+end
+
+function Error:_stop()
+	self._active = false
 end
 
 function Error:errorMsg()
