@@ -92,8 +92,7 @@ function ShootGoal:run()
 
 		-- perform a chip shot
 		self._desperateChipTargetPoint = G.OpponentGoal
-			+ (World.Ball.pos - G.OpponentGoal):setLength(World.Geometry.DefenseRadius+0.1)
-		self:_chipToPos(self._desperateChipTargetPoint, self._ballReceiptPos, maxAngleError)
+		self:_chipPass(self._desperateChipTargetPoint, self._ballReceiptPos, maxAngleError)
 	end
 	self:_drawDebugInfo()
 end
