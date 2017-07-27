@@ -11,8 +11,8 @@ local Robot = require "observer/robot"
 local ToTarget = require "trajectory/totarget"
 
 
-local mu_x = 0.78
-local mu_y = 0.1
+local mu_x = 0.75
+local mu_y = 0.07
 
 local paramsUpdated = false
 
