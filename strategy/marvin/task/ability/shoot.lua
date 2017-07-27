@@ -6,6 +6,7 @@ Shoot.depends = { CatchBall, ForceShoot }
 
 local debug = require "../base/debug"
 local geom = require "../base/geom"
+local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Physics = require "observer/physics"
@@ -174,9 +175,25 @@ end
 
 function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBall)
 	local shootDir = (targetPos - self._robot.pos):angle()
-	local directMovement = Robot.hadBall(self._robot, 0)
-		and math.abs(geom.normalizeAngle((World.Ball.pos - self._robot.pos):angle() - shootDir)) < 30 * math.pi / 180
-		and math.abs(geom.normalizeAngle(self._robot.dir - shootDir)) < 2 * math.pi / 180
+
+	local maxSidewardsAngle
+	local maxOrientationAngle
+	local minCatchBallDistance
+	if Referee.isFriendlyFreeKickState() then
+		maxSidewardsAngle = 30 * math.pi / 180
+		maxOrientationAngle = 2 * math.pi / 180
+		minCatchBallDistance = 0.01
+		hasBallDistance = 0.04
+	else
+		maxSidewardsAngle = 30 * math.pi / 180
+		maxOrientationAngle = 8 * math.pi / 180
+		minCatchBallDistance = 0.00
+		hasBallDistance = 0.1
+	end
+
+	local directMovement = self._robot:hasBall(World.Ball, 0, hasBallDistance)
+		and math.abs(geom.normalizeAngle((World.Ball.pos - self._robot.pos):angle() - shootDir)) < maxSidewardsAngle
+		and math.abs(geom.normalizeAngle(self._robot.dir - shootDir)) < maxOrientationAngle
 
 	debug.set("Shoot/AngleError", geom.normalizeAngle(math.abs(self._robot.dir - shootDir)) * 180 / math.pi)
 

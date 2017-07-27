@@ -373,7 +373,7 @@ end
 -- @param ball Ball - must be World.Ball to make sure hysteresis will work
 -- @param [sideOffset number - extends the hasBall area sidewards]
 -- @return boolean - has ball
-function Robot:hasBall(ball, sideOffset)
+function Robot:hasBall(ball, sideOffset, manualHasBallDistance)
 	sideOffset = sideOffset or 0
 
 	-- handle sidewards balls, add extra time for strategy timing jitter
@@ -403,9 +403,9 @@ function Robot:hasBall(ball, sideOffset)
 
 	-- add hasBallDistance
 	if lclen <= 0.001 then
-		latencyCompensation = Vector(self.constants.hasBallDistance, 0)
+		latencyCompensation = Vector((manualHasBallDistance or self.constants.hasBallDistance), 0)
 	else
-		latencyCompensation = latencyCompensation:setLength(lclen + self.constants.hasBallDistance)
+		latencyCompensation = latencyCompensation:setLength(lclen + (manualHasBallDistance or self.constants.hasBallDistance))
 	end
 
 	-- Ball position relative to dribbler mid
