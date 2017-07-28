@@ -2,8 +2,7 @@ local CenterBack = Class("Group.CenterBack")
 
 local CenterBackTask = require "task/centerback"
 local Field = require "../base/field"
-local geom = require "../base/geom"
-local Goal = require "observer/goal"
+local UtilDefense = require "util/defense"
 local Rating = require "util/rating"
 local vis = require "../base/vis"
 local World = require "../base/world"
@@ -28,21 +27,6 @@ end
 
 local privateCenterBackPositions = {}
 local centerBackPositions = {}
-
-local function calculateBallPosition(distanceToDefenseArea, robot_radius)
-	local targetPos, targetDir, isShot = Goal.predictShot()
-
-	if isShot then
-		local goalLineIntersection = geom.intersectLineLine(targetPos,
-			targetDir, G.FriendlyGoal, Vector(1, 0))
-		if goalLineIntersection and targetDir.y < 0 and
-				math.abs(goalLineIntersection.x) < G.GoalWidth / 2 + 0.15 then
-			return Field.intersectRayDefenseArea(targetPos, targetDir,
-				distanceToDefenseArea + robot_radius, false)
-		end
-	end
-	return targetPos, nil
-end
 
 -- gets all CB applications as parameter (robot -> target)
 local function calculateCenterBackPositions(centerBackApplications)
@@ -96,7 +80,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 		local targetPos = target.pos
 		local _, way
 		if target == World.Ball then
-			targetPos, way = calculateBallPosition(distanceToDefenseArea, robot_radius)
+			targetPos, way = UtilDefense.calculateBallPosition(distanceToDefenseArea, robot_radius)
 		end
 		if not way then
 			targetPos = Field.limitToField(targetPos, -0.01)
@@ -202,7 +186,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 		local targetPos = target.pos
 		local _, target_way = nil
 		if target == World.Ball then
-			targetPos, target_way = calculateBallPosition(distanceToDefenseArea, robot_radius)
+			targetPos, target_way = UtilDefense.calculateBallPosition(distanceToDefenseArea, robot_radius)
 		end
 		if not target_way then
 			targetPos = Field.limitToField(targetPos, -0.01)

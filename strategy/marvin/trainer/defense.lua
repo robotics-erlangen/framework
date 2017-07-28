@@ -8,6 +8,7 @@ local World = require "../base/world"
 
 local UtilDefense = require "util/defense"
 local Rating = require "util/rating"
+local CenterBackTask = require "task/centerback"
 
 
 function Defense:init()
@@ -133,7 +134,8 @@ function Defense:_assignDefenders()
 	-- not in opponent corner attacks: assign a ball centerback
 	local needDefaultCB = not Referee.isDefensiveCornerKick() and not Referee.isFriendlyFreeKickState()
 	if needDefaultCB then
-		local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
+		local futureBallPos = UtilDefense.calculateBallPosition(CenterBackTask.distanceToDefenseArea(), 0.09)
+		local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(futureBallPos))
 		if defaultCB then
 			table.removeValue(defenders, defaultCB)
 			self._send.roleAssignment(defaultCB,

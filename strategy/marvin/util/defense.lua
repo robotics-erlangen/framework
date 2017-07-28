@@ -6,6 +6,7 @@ local Field = require "../base/field"
 local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local World = require "../base/world"
+local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local CenterBack = require "task/centerback"
@@ -50,6 +51,22 @@ local function manMarkPos(opponent)
 	return targetPos
 end
 Defense.manMarkPos = Cache.forFrame(manMarkPos)
+
+local function calculateBallPosition(distanceToDefenseArea, robot_radius)
+	local targetPos, targetDir, isShot = Goal.predictShot()
+
+	if isShot then
+		local goalLineIntersection = geom.intersectLineLine(targetPos,
+			targetDir, World.Geometry.FriendlyGoal, Vector(1, 0))
+		if goalLineIntersection and targetDir.y < 0 and
+				math.abs(goalLineIntersection.x) < World.Geometry.GoalWidth / 2 + 0.15 then
+			return Field.intersectRayDefenseArea(targetPos, targetDir,
+				distanceToDefenseArea + robot_radius, false)
+		end
+	end
+	return targetPos, nil
+end
+Defense.calculateBallPosition = Cache.forFrame(calculateBallPosition)
 
 local function centerBackPos(targetPos)
 	local dist = CenterBack.distanceToDefenseArea() + Constants.maxRobotRadius
