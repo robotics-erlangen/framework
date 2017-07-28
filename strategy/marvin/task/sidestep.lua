@@ -93,8 +93,8 @@ function SideStep:run()
 
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
-
-	local dir = (World.Geometry.OpponentGoal - self._robot.pos):angle()
+	local viewPos = attackPosition or World.Geometry.OpponentGoal
+	local dir = (viewPos - self._robot.pos):angle()
 	self._robot.trajectory:update(ToTarget, self._feintPos, dir)
 end
 

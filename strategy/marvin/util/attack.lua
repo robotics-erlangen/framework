@@ -334,7 +334,7 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 	end
 end
 
-local BUFFER_TIME = 0.5
+local BUFFER_TIME = 0.4
 local function printPassInfo(robot, passInfo, hysteresis, hysteresisPassInfo)
 	if passInfo then
 		local robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos):setLength(robot.shootRadius + World.Ball.radius)
