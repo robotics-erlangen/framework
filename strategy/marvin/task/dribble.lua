@@ -1,6 +1,9 @@
+local CatchBall = require "task/ability/catchball"
 local SuggestPass = require "task/ability/suggestpass"
-local Dribble = Class("Task.Dribble", require "task/base", SuggestPass)
+local Dribble = Class("Task.Dribble", require "task/base", SuggestPass, CatchBall)
 
+local World = require "../base/world"
+local Physics = require "observer/Physics"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
@@ -20,8 +23,15 @@ function Dribble:run()
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 	self._robot:setDribblerSpeed(0.7)
 
-	local endSpeed = (self._pos - self._robot.pos):setLength(self._endSpeedLength)
-	local _, time = self._robot.trajectory:update(ToTarget, self._pos, self._dir, 1.0, endSpeed, nil, true)
+	local time
+	if World.Ball.pos:distanceTo(self._robot.pos) > self._robot.radius + World.Ball.radius + 0.05 then
+		local catchTime = self:_catchBall(self._pos, 0)
+		time = catchTime + Physics.robotTimeToPos(self._robot, self._pos, Vector(0, 0))
+	else
+		local endSpeed = (self._pos - self._robot.pos):setLength(self._endSpeedLength)
+		local _; _, time = self._robot.trajectory:update(ToTarget, self._pos, self._dir, 1.0, endSpeed, nil, true)
+	end
+
 
 	if self._suggestPassFlag then
 		self:_suggestPass(self._pos, nil, time)
