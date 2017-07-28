@@ -231,7 +231,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 		self._send.attackPosition("all", futureBall.pos)
 		self._send.attackTime("all", targetTime or World.Time)
 	else
-		local attackTime = self:_catchBall(targetPos, 0.01, targetSpeed)
+		local attackTime = self:_catchBall(targetPos, minCatchBallDistance, targetSpeed)
 		self._send.attackTime("all", targetTime or attackTime + World.Time)
 	end
 	
