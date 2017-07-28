@@ -29,6 +29,7 @@ function CatchBall:init()
 	self._lastReasonableBallPos = nil
 	self._catchTime = nil
 	self._recalculateCatchTimeCounter = 0
+	self._ignoringOpponents = false
 end
 
 --- Tries to catch the ball, is designed for catching a moving ball
@@ -94,9 +95,20 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 
 	-- setup obstacles
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, false, false, self._robot.radius)
-	local ignoreOpponents = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + self._robot.radius + 0.1
+	if World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + self._robot.radius + 0.1 then
+		self._ignoringOpponents = true
+	elseif World.Ball.pos:distanceTo(self._robot.pos) < 1 then
+		if self._robot.speed:length() < 1 then
+			self._ignoringOpponents = true
+		elseif self._robot.speed:length() > 1.5 then
+			self._ignoringOpponents = false
+		end
+	else
+		self._ignoringOpponents = false
+	end
+
 	local aggressiveMovement = (self._robot.pos:distanceTo(moveDest) < 0.5)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot, false, ignoreOpponents, aggressiveMovement)
+	PathHelper.addRobotObstacles(self._robot.path, self._robot, false, self._ignoringOpponents, aggressiveMovement)
 
 	local method = self:_ballCatchMethod(ball, predictedBall, moveDest)
 	if method == AROUND_METHOD then
