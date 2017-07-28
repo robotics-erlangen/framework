@@ -111,6 +111,8 @@ function AttackRatio:attackerDefenderDistribution()
 				previousMainAttackerIsDefender = true
 			end
 		end
+	elseif attackers > 0 then
+		attackers = attackers - 1
 	end
 
 	if mainAttackerIsDefender and previousMainAttacker and not previousMainAttackerIsDefender
