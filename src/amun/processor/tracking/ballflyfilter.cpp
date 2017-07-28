@@ -153,10 +153,11 @@ bool FlyFilter::collision() {
 
     float robotDist = (m_kickFrames.back().ballPos - m_kickFrames.back().robotPos).norm();
     debug("collision dist", robotDist);
-    float height = 0;
-    if(m_isActive) {
-        height = predictTrajectory(m_lastPredictionTime).pos(2);
+
+    if(!m_isActive) {
+        return false;
     }
+    float height = predictTrajectory(m_lastPredictionTime).pos(2);
 
     float collision = (angle < 0.86*M_PI || angle > 1.14*M_PI) && height < 0.15 && robotDist < 0.18;
     if (collision) {
