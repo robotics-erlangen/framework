@@ -54,17 +54,22 @@ Defense.manMarkPos = Cache.forFrame(manMarkPos)
 
 local function calculateBallPosition(distanceToDefenseArea, robot_radius)
 	local targetPos, targetDir, isShot = Goal.predictShot()
+	local targetWay = nil
 
 	if isShot then
 		local goalLineIntersection = geom.intersectLineLine(targetPos,
 			targetDir, World.Geometry.FriendlyGoal, Vector(1, 0))
 		if goalLineIntersection and targetDir.y < 0 and
 				math.abs(goalLineIntersection.x) < World.Geometry.GoalWidth / 2 + 0.15 then
-			return Field.intersectRayDefenseArea(targetPos, targetDir,
+			targetPos, targetWay = Field.intersectRayDefenseArea(targetPos, targetDir,
 				distanceToDefenseArea + robot_radius, false)
 		end
 	end
-	return targetPos, nil
+	if not targetPos then
+		targetPos = World.Ball.pos
+	end
+
+	return targetPos, targetWay
 end
 Defense.calculateBallPosition = Cache.forFrame(calculateBallPosition)
 
