@@ -30,19 +30,15 @@ local privateCenterBackPositions = {}
 local centerBackPositions = {}
 
 local function calculateBallPosition(distanceToDefenseArea, robot_radius)
-	local targetPos = World.Ball.pos
-	if World.Ball.speed.y > 0 then
-		local isShot, targetDir
-		targetPos, targetDir, isShot = Goal.predictShot()
+	local targetPos, targetDir, isShot = Goal.predictShot()
 
-		if isShot then
-			local goalLineIntersection = geom.intersectLineLine(targetPos,
-				targetDir, G.FriendlyGoal, Vector(1, 0))
-			if goalLineIntersection and targetDir.y < 0 and
-					math.abs(goalLineIntersection.x) < G.GoalWidth / 2 + 0.15 then
-				return Field.intersectRayDefenseArea(targetPos, targetDir,
-					distanceToDefenseArea + robot_radius, false)
-			end
+	if isShot then
+		local goalLineIntersection = geom.intersectLineLine(targetPos,
+			targetDir, G.FriendlyGoal, Vector(1, 0))
+		if goalLineIntersection and targetDir.y < 0 and
+				math.abs(goalLineIntersection.x) < G.GoalWidth / 2 + 0.15 then
+			return Field.intersectRayDefenseArea(targetPos, targetDir,
+				distanceToDefenseArea + robot_radius, false)
 		end
 	end
 	return targetPos, nil
