@@ -106,11 +106,12 @@ end
 
 local function ratePassThreats()
 	local dangerousness = {}
+	local futureBallPos = Goal.predictShot()
 	for _,opp in ipairs(World.OpponentRobots) do
 		-- TODO comment
 		local angleOppGoalBall = (opp.pos - World.Geometry.FriendlyGoal):absoluteAngleDiff(
-			World.Ball.pos - World.Geometry.FriendlyGoal)
-		local angleBallOppGoal = (World.Ball.pos - opp.pos):absoluteAngleDiff(
+			futureBallPos - World.Geometry.FriendlyGoal)
+		local angleBallOppGoal = (futureBallPos - opp.pos):absoluteAngleDiff(
 			World.Geometry.FriendlyGoal - opp.pos)
 		local angleOppGoalY = (opp.pos - World.Geometry.FriendlyGoal):absoluteAngleDiff(Vector(0, 1))
 		local distOppGoal = opp.pos:distanceTo(World.Geometry.FriendlyGoal)
