@@ -13,7 +13,7 @@ local ShootGoalUtil = require "util/shootgoal"
 
 local G = World.Geometry
 
-local DESPERATE_EXTRA_DISTANCE = 0.5 -- extra chip distance when performing a goal chip
+local DESPERATE_CHIP_EXTRA_DISTANCE = 0.5 -- extra chip distance when performing a goal chip
 
 function ShootGoal:_drawDebugInfo()
 	local target, color, mode
@@ -91,7 +91,7 @@ function ShootGoal:run()
 		end
 
 		-- perform a chip shot
-		self._desperateChipTargetPoint = G.OpponentGoal + Vector(0, 0.5)
+		self._desperateChipTargetPoint = G.OpponentGoal + Vector(0, DESPERATE_CHIP_EXTRA_DISTANCE)
 		self:_chipPass(self._desperateChipTargetPoint, ballReceiptPos, maxAngleError, 0.5)
 	end
 	self:_drawDebugInfo()
