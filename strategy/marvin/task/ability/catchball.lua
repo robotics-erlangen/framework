@@ -37,7 +37,7 @@ end
 -- @param distanceToBall number - distance the robot should keep to the ball, only sensible for a stopped ball, defaults to 0
 -- @param [targetSpeed number - intended ball speed at target]
 -- @param [maxSpeed number - maximum speed of the robot]
--- @return moveDest Vector - the point where the robot will catch the ball
+-- @return catchTime - when we will catch the ball (relative Time)
 function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	local ball = World.Ball
 	-- update catch time
