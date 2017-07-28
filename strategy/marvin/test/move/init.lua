@@ -12,6 +12,7 @@ local moves = {
 	require "test/move/chiptime",
 	require "test/move/commchallengemaster",
 	require "test/move/commchallengeslave",
+	require "test/move/goalshot",
 	require "test/move/race",
 	require "test/move/volley",
 	require "test/move/dribble",
