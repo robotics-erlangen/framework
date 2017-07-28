@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local Error = Class("Agent.Shared.Error",Base)
 local ErrorTask = require "task/error"
 local World = require "../base/world"
+local Referee = require "../base/referee"
 local ErrorObserver = require "observer/error"
 local ERROR_TOLERANCE_PER_SEC = 3 -- <- [0.5,1]
 local EXCHANGE_ERROR_ROBOTS = true
@@ -14,10 +15,19 @@ function Error:check()
 		return true
 	elseif ErrorObserver.getAverageBatterySate(self._robot)< 0.20
 		and World.RefereeState == "Stop" then
+		if self._robot == World.FriendlyKeeper then
+			if Referee.lastStateChangeTime() == World.Time then
+				log(self:errorMsg())
+			end
+			return false
+		end
 		return true
 	elseif not errorTable then
 		return false
 	elseif self._robot == World.FriendlyKeeper then
+		if Referee.lastStateChangeTime() == World.Time then
+			log(self:errorMsg())
+		end
 		return false
 	end
 	local gameTimespan = World.Time - ErrorObserver.getLastStopTime()
@@ -48,6 +58,9 @@ function Error:errorMsg()
 	local msgParts = {}
 	local errorData = ErrorObserver.getErrorTable(self._robot)
 	out = out .. "battery: " .. tostring(ErrorObserver.getAverageBatterySate(self._robot)) .." "
+	if not errorData then
+		return out
+	end
 	if errorData.motor_1_error then
 		table.insert(msgParts, "motor 1 error" .. tostring(errorData.motor_1_error))
 	end
