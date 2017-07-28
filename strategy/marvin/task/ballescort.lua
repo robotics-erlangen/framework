@@ -10,7 +10,7 @@ function BallEscort:_init(opponentRobot)
 end
 
 function BallEscort:run()
-	local pos = World.Ball.pos + (self._opponentRobot.pos - World.Ball.pos):setLength(0.2+self._robot.radius*2)
+	local pos = World.Ball.pos + (self._opponentRobot.pos - World.Ball.pos):setLength(0.2 + self._robot.radius)
 
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot, nil, nil, nil, nil, nil, nil, nil, 0.3)

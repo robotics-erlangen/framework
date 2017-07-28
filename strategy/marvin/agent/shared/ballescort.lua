@@ -36,7 +36,7 @@ function BallEscort:check()
 		end
 
 		-- don't if ballOutPos flickers
-		if self._lastballOutPos and ballOutPos and ((self._lastballOutPos-ballOutPos):length() > self._ballOutDistance) then
+		if self._lastballOutPos and ballOutPos and (self._lastballOutPos-ballOutPos):length() > self._ballOutDistance then
 			self._counter = 0
 			self._lastballOutPos = ballOutPos
 			return false
