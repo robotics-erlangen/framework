@@ -260,7 +260,7 @@ function Shoot:_shootChaseBall(targetPos, targetSpeed)
 	self._send.attackTime("all", Physics.robotTimeToPos(self._robot, moveDest, endSpeed) + World.Time)
 
 	local currentDribblerPos = self._robot.pos + dribblerOffset
-	if World.Ball.pos:distanceTo(currentDribblerPos) < 0.15 then
+	if World.Ball.pos:distanceTo(currentDribblerPos) < 0.35 then
 		self:_sendShootCommand(kickSpeed, targetPos, targetDir)
 	end
 end
@@ -287,7 +287,7 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 	end
 
 	local currentDribblerPos = self._robot.pos + dribblerOffset
-	if World.Ball.pos:distanceTo(currentDribblerPos) < 0.15 then
+	if World.Ball.pos:distanceTo(currentDribblerPos) < 0.35 then
 		self:_sendShootCommand(kickSpeed, targetPos, targetDir)
 	end
 end
