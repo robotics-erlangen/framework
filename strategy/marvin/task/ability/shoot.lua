@@ -65,6 +65,8 @@ function Shoot:init()
 
 	self._precision = 0
 	self._rightOrientation = false
+
+	self._lastBallInsideRobotTime = 0
 end
 
 function Shoot:_setObstacles()
@@ -91,8 +93,12 @@ function Shoot:_calculateFutureBall(ballReceiptPos)
 	local ballTime = math.max(0, Physics.checkedBallTravelTime(World.Ball, futureBallPos))
 	local futureBall = Physics.ballAtTime(World.Ball, ballTime)
 
-	if futureBall.pos:distanceTo(self._robot.pos) < self._robot.shootRadius + World.Ball.radius then
+	-- if futureBall.pos:distanceTo(self._robot.pos) < self._robot.shootRadius + World.Ball.radius then
+	-- end
+
+	if World.Ball.pos:distanceTo(self._robot.pos) < self._robot.shootRadius + World.Ball.radius then
 		futureBall.pos = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
+		self._lastBallInsideRobotTime = World.Time
 	end
 	
 	if ballReceiptPos then
@@ -271,9 +277,10 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 	local moveDest = futureBall.pos - dribblerOffset
 
 	-- don't follow the ball if it is inside the robot (because of the ball extrapolation)
-	if futureBallTime == 0 and World.Ball.pos:distanceTo(self._robot.pos) < self._robot.radius + World.Ball.radius then
+	if World.Time - self._lastBallInsideRobotTime < 0.1 then
 		moveDest = self._robot.pos
 	end
+	debug.set("ballinsiderobot", World.Time - self._lastBallInsideRobotTime)
 
 	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
 	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0) then
