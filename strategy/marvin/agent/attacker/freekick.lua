@@ -172,11 +172,14 @@ function FreeKick:_updateTask()
 		debug.set("pass", nil)
 	end
 
+	local PASS_TIMEFRAME = 4
 	if self._state == "prepare" then
+		self._send.attackTime("all", Referee.lastStateChangeTime() + PASS_TIMEFRAME)
 		return MoveToStaticBall, { math.pi / 2, distanceToBall }, stateChanged
 	elseif self._state == "shootgoal" then
 		return ShootGoal
 	elseif self._state == "wait" or self._state == "pass_prepare" then
+		self._send.attackTime("all", Referee.lastStateChangeTime() + PASS_TIMEFRAME)
 		return MoveToStaticBall, { math.pi / 2 }, stateChanged
 	elseif self._state == "pass" then
 		return Pass, { self._pass.target, self._pass.ballPos, self._pass.chip, World.Ball.pos, self._pass.time }, restartTask
