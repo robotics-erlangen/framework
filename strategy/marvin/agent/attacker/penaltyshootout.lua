@@ -14,6 +14,7 @@ local ShootGoal = require "task/shootgoal"
 local Dribble = require "task/dribble"
 
 local vis = require "../base/vis"
+local debug = require "../base/debug"
 
 
 local DISTANCE_TO_DEFENSE_AREA = 0.6 -- the furthest we'll go before we shoot
@@ -25,6 +26,7 @@ function PenaltyShootout:_stop()
 	self._penaltyStartTime = nil
 	self._contactPoint = nil
 	self._shootGoalFlag = false
+	self._forceDesperate = false
 end
 
 function PenaltyShootout:check()
@@ -56,8 +58,34 @@ function PenaltyShootout:_updateDribbling()
 end
 
 function PenaltyShootout:_updateShootGoal()
-	local sector = Goal.largestFreeSector(World.Ball.pos, World.Robots, true)
+	local sector = Goal.largestFreeSector(World.Ball.pos, {World.OpponentKeeper}, true)
 	local width = sector and math.abs(sector[1] - sector[2]) or 0
+
+	debug.push("Shootgoal Criterias")
+	debug.push("Time Criteria")
+	debug.set("penaltyStartTime", self._penaltyStartTime)
+	if self._penaltyStartTime then
+		debug.set("timeSinceStart", World.Time - self._penaltyStartTime)
+		debug.set("criteriaMet", World.Time -self._penaltyStartTime > 8)
+	else
+		debug.set("time", "not set yet")
+		debug.set("criteriaMet", false)
+	end
+	debug.pop()
+	debug.push("Position Criteria")
+	debug.set("ballPosY", World.Ball.pos.y)
+	debug.set("DistanceToGoalLine", G.DefenseRadius + DISTANCE_TO_DEFENSE_AREA)
+	debug.set("CriticalMark", G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA)
+	debug.set("CriteriaMet", World.Ball.pos.y > G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA)
+	debug.pop()
+	debug.push("Angle Criteria")
+	debug.set("width", width*180)
+	debug.set("minRelativeSectorSize", MIN_RELATIVE_SECTOR_SIZE)
+	debug.set("maxAngleForPosition(in deg)", 180 * 2 * math.tan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y)))
+	debug.set("CriteriaMet", width < 2 * math.tan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y)) * MIN_RELATIVE_SECTOR_SIZE)
+	debug.pop()
+	debug.pop()
+
 
 	-- if (self._penltyStartTime and World.Time - self._penaltyStartTime > 8) then
 	-- 	log("2")
@@ -70,17 +98,24 @@ function PenaltyShootout:_updateShootGoal()
 	-- 	log("threshold = "..tostring(2 * math.tan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y)) * MIN_RELATIVE_SECTOR_SIZE) * 180)
 	-- end
 
-	if self._shootGoalFlag
-			or (self._penltyStartTime and World.Time - self._penaltyStartTime > 8)
-			or World.Ball.pos.y > G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA 
-			or width < 2 * math.tan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y)) * MIN_RELATIVE_SECTOR_SIZE then
-		self._shootGoalFlag = true
+	if self._penaltyStartTime then
+		if self._shootGoalFlag
+				or (self._penaltyStartTime and World.Time - self._penaltyStartTime > 8)
+				or World.Ball.pos.y > G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA then
+			self._shootGoalFlag = true
+		end
+		if width < 2 * math.tan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y)) * MIN_RELATIVE_SECTOR_SIZE then
+			self._shootGoalFlag = true
+			self._forceDesperate = true
+		end
 	end
 end
 
 function PenaltyShootout:_updateTask()
 	self:_updateDribbling()
 	self:_updateShootGoal()
+	debug.set("ShootGoalFlag", self._shootGoalFlag)
+	--log(self._shootGoalFlag)
 	if self._contactPoint then
 		vis.addCircle("1test", self._contactPoint, 0.05, vis.colors.green, true)
 	end
@@ -93,7 +128,7 @@ function PenaltyShootout:_updateTask()
 	if World.RefereeState == "PenaltyOffensivePrepare" then
 		return MoveToStaticBall, {math.pi / 2, 0.1}
 	elseif self._shootGoalFlag then
-		return ShootGoal
+		return ShootGoal, {nil, self._forceDesperate}
 	elseif self._contactPoint and self._contactPoint:distanceTo(World.Ball.pos) > 1 then
 		--log("distance: "..self._contactPoint:distanceTo(self._robot.pos))		
 		return StopAttack

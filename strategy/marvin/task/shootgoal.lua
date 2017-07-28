@@ -13,6 +13,7 @@ local ShootGoalUtil = require "util/shootgoal"
 
 local G = World.Geometry
 
+local DESPERATE_EXTRA_DISTANCE = 0.5 -- extra chip distance when performing a goal chip
 
 function ShootGoal:_drawDebugInfo()
 	local target, color, mode
@@ -36,7 +37,7 @@ function ShootGoal:_drawDebugInfo()
 	vis.addCircle("t/shootgoal: target", target, 0.05, color, true)
 end
 
-function ShootGoal:_init(ballReceiptPos)
+function ShootGoal:_init(ballReceiptPos, forceDesperate)
 	self._robotList = {}
 	self._robotListWithoutKeeper = {}
 
@@ -46,7 +47,7 @@ function ShootGoal:_init(ballReceiptPos)
 	self._shootTargetPoint = nil
 	self._shootTargetWidth = 0
 	self._dirty = false
-	self._desperate = false
+	self._desperate = forceDesperate or false
 	self._desperateChipTargetPoint = nil
 
 	self._ballReceiptPos = ballReceiptPos
@@ -72,7 +73,9 @@ function ShootGoal:run()
 	
 	debug.set("receivesPass", Ball.receivesPass(self._robot))
 
-	self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
+	if not self._desperate then
+		self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
+	end
 	if not self._desperate then
 		-- perform a linear shot
 		self:_shoot(localTarget, math.huge, ballReceiptPos, math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
@@ -88,7 +91,7 @@ function ShootGoal:run()
 		end
 
 		-- perform a chip shot
-		self._desperateChipTargetPoint = G.OpponentGoal
+		self._desperateChipTargetPoint = G.OpponentGoal + Vector(0, 0.5)
 		self:_chipPass(self._desperateChipTargetPoint, ballReceiptPos, maxAngleError, 0.5)
 	end
 	self:_drawDebugInfo()
