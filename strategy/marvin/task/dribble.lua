@@ -3,7 +3,7 @@ local SuggestPass = require "task/ability/suggestpass"
 local Dribble = Class("Task.Dribble", require "task/base", SuggestPass, CatchBall)
 
 local World = require "../base/world"
-local Physics = require "observer/Physics"
+local Physics = require "observer/physics"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
