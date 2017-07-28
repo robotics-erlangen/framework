@@ -15,7 +15,28 @@ function Error.getAverageBatterySate(robot)
 end
 
 local function initBatteryTable(robot)
-	batteryTable[robot] = {size= 0, next = 1, sum = 0, outlayers = 0}
+	batteryTable[robot] = {size= 0, next = 1, sum = 0, outlayers = {size = 0, next = 1, sum = 0}}
+end
+
+local function insertRingBuffer(ringbuffer, value)
+	if not ringbuffer then
+		return
+	end
+
+	if not ringbuffer.next then
+		ringbuffer.size = 0
+		ringbuffer.next = 1
+		ringbuffer.sum = 0
+	end
+
+	if ringbuffer.size < BATTERY_TABLE_SIZE then
+		ringbuffer.sum = ringbuffer.sum + value
+		ringbuffer.size = ringbuffer.size + 1
+	else
+		ringbuffer.sum = ringbuffer.sum + value - ringbuffer[ringbuffer.next]
+	end
+	ringbuffer[ringbuffer.next] = value
+	ringbuffer.next = math.fmod(ringbuffer.next + 1, BATTERY_TABLE_SIZE)
 end
 
 local function addBatteryState(robot, newBatteryState)
@@ -24,25 +45,21 @@ local function addBatteryState(robot, newBatteryState)
 		initBatteryTable(robot)
 		robotBatteryTable = batteryTable[robot]
 	end
-	if robotBatteryTable.size < BATTERY_TABLE_SIZE then
-		robotBatteryTable.sum = robotBatteryTable.sum + newBatteryState
-		robotBatteryTable.size = robotBatteryTable.size  + 1
-	else
+	if robotBatteryTable.size == BATTERY_TABLE_SIZE then
 		local avg = Error.getAverageBatterySate(robot)
 		if math.abs(avg - newBatteryState) > 0.2 then
-				if robotBatteryTable.outlayers > 15 then
-					initBatteryTable(robot)
-					addBatteryState(robot, newBatteryState)
-					return
-				end
-				robotBatteryTable.outlayers = robotBatteryTable.outlayers + 1
+			if robotBatteryTable.outlayers.size > 15 then
+				batteryTable[robot] = robotBatteryTable.outlayers
+				batteryTable[robot].outlayers = {size = 0}
+				addBatteryState(robot, newBatteryState)
 				return
+			end
+			insertRingBuffer(robotBatteryTable.outlayers, newBatteryState)
+			return
 		end
-		robotBatteryTable.sum = robotBatteryTable.sum  + newBatteryState - robotBatteryTable[robotBatteryTable.next]
 	end
-	robotBatteryTable.outlayers = 0
-	robotBatteryTable[robotBatteryTable.next] = newBatteryState
-	robotBatteryTable.next = math.fmod(robotBatteryTable.next + 1, BATTERY_TABLE_SIZE)
+	robotBatteryTable.outlayers = {size = 0}
+	insertRingBuffer(robotBatteryTable, newBatteryState)
 end
 
 function Error.getErrorTable(robot)
