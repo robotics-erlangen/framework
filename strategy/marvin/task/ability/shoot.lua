@@ -16,11 +16,15 @@ local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 
+-- if the ball speed is lower than RESTING_BALL_SPEED
+-- the ball is resting or at least very slow
+local RESTING_BALL_SPEED = 0.2
+local RESTING_BALL_SPEED_HYST = 0.1
 
--- if the ball speed is lower than STATIONARY_BALL_SPEED
--- we pretend that the ball is resting
-local STATIONARY_BALL_SPEED = 0.8
-local STATIONARY_BALL_SPEED_HYST = 0.4
+-- if the ball speed is lower than WOBBLING_BALL_SPEED
+-- the ball is probably resting
+local WOBBLING_BALL_SPEED = 0.8
+local WOBBLING_BALL_SPEED_HYST = 0.3
 
 -- if the ball movement direction and the shoot direction differ less than CHASE_BALL_ANGLE
 -- we chase the ball instead of stopping it
@@ -99,18 +103,8 @@ function Shoot:_calculateFutureBall(ballReceiptPos)
 end
 
 function Shoot:_getState(targetPos, futureBall, futureBallTime)
-	-- check if the ball is stationary
-	local stationaryBallSpeed = STATIONARY_BALL_SPEED + (self._state == "StationaryBall" and 1 or -1) * STATIONARY_BALL_SPEED_HYST
-	if futureBall.speed:length() < stationaryBallSpeed then
-		return "StationaryBall"
-	end
-
-	-- if the targetPos changed significantly, reset to stopBall
-	if self._lastTargetPos and targetPos:distanceTo(self._lastTargetPos) > 0.05 and futureBallTime > 0.35 then
-		self._state = "StopBall"
-	end
-
 	-- check if the ball can be chased
+	local restingBallSpeed = RESTING_BALL_SPEED + (self._state == "ChaseBall" and -1 or 1) * RESTING_BALL_SPEED_HYST
 	local shootVector = targetPos - futureBall.pos
 	local angleDiff = futureBall.speed:absoluteAngleDiff(shootVector)
 	local relativeBallPos = World.Ball.pos - self._robot.pos
@@ -118,10 +112,22 @@ function Shoot:_getState(targetPos, futureBall, futureBallTime)
 	local sidewardsBallSpeed = World.Ball.speed:dot(sidewardsVector)
 	local chaseBallAngle = CHASE_BALL_ANGLE + (self._state == "ChaseBall" and 1 or -1) * CHASE_BALL_ANGLE_HYST
 	local sidewardsSpeedLimit = CHASE_BALL_SIDE_SPEED + (self._state == "ChaseBall" and 1 or -1) * CHASE_BALL_SIDE_SPEED_HYST
-	if angleDiff < chaseBallAngle and (World.Ball.speed:dot(relativeBallPos) > 0 or World.Ball.posZ > 0)
+	if futureBall.speed:length() > restingBallSpeed
+			and angleDiff < chaseBallAngle and (World.Ball.speed:dot(relativeBallPos) > 0 or World.Ball.posZ > 0)
 			and World.Ball.speed:dot(futureBall.pos - self._robot.pos) > 0
 			and sidewardsBallSpeed < sidewardsSpeedLimit then
 		return "ChaseBall"
+	end
+
+	-- check if the ball is stationary
+	local wobblingBallSpeed = WOBBLING_BALL_SPEED + (self._state == "StationaryBall" and 1 or -1) * WOBBLING_BALL_SPEED_HYST
+	if futureBall.speed:length() < wobblingBallSpeed then
+		return "StationaryBall"
+	end
+
+	-- if the targetPos changed significantly, reset to stopBall
+	if self._lastTargetPos and targetPos:distanceTo(self._lastTargetPos) > 0.05 and futureBallTime > 0.35 then
+		self._state = "StopBall"
 	end
 
 	-- don't redecide if the ball is very close
