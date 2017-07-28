@@ -39,7 +39,13 @@ local function calculateCenterBackPositions(centerBackApplications)
 	local distanceToDefenseArea = CenterBackTask.distanceToDefenseArea()
 
 	-- parameters
-	local distanceBetweenDefenders = World.RefereeState == "Stop" and 0.03 or 0.01
+	local ballDistanceToDefenseArea = Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0)
+	local extraDistanceBetweenDefenders = Rating.valueToRating(ballDistanceToDefenseArea, 2, 4) * 0.06
+	local minDistanceBetweenDefenders = 0.01
+	local distanceBetweenDefenders = minDistanceBetweenDefenders + extraDistanceBetweenDefenders
+	if World.RefereeState == "Stop" then
+		distanceBetweenDefenders = math.max(distanceBetweenDefenders, 0.03)
+	end
 	local getImportant = 2 * robot_radius + 0.02 + distanceToDefenseArea
 
 	if Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)
