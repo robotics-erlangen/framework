@@ -206,7 +206,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 	debug.set("Shoot/AngleError", geom.normalizeAngle(math.abs(self._robot.dir - shootDir)) * 180 / math.pi)
 
 	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
-	if targetTime > 0 then
+	if targetTime then
 		local kickSpeedVector = (targetPos - futureBall.pos):setLength(kickSpeed)
 		local shootBall = { maxSpeed = kickSpeed, speed = kickSpeedVector }
 		local ballTime = Physics.ballRollTime(shootBall, futureBall.pos:distanceTo(targetPos))
@@ -335,7 +335,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, pre
 
 	local color
 	if self._state == "StationaryBall" then
-		self:_shootStationaryBall(targetPos, targetSpeed, 0, futureBall)
+		self:_shootStationaryBall(targetPos, targetSpeed, nil, futureBall)
 		color = vis.colors.whiteHalf
 	elseif self._state == "ChaseBall" then
 		self:_shootChaseBall(targetPos, targetSpeed, futureBall)
