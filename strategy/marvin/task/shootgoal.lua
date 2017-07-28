@@ -55,15 +55,12 @@ end
 function ShootGoal:run()
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 
+	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
+	local ballReceiptPos = self._ballReceiptPos or attackPosition
 	if not self._shootTargetPoint or World.Ball.speed:length() < 1 or
 			World.Ball.pos:distanceTo(self._robot.pos) > 0.8 then
-		local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
 		self._shootTargetPoint, self._shootTargetWidth, self._dirty =
 			ShootGoalUtil.updateTarget(self._robot, self._shootTargetPoint, self._dirty, attackPosition)
-	end
-
-	if self._ballReceiptPos then
-		vis.addCircle("ballReceiptPos", self._ballReceiptPos, 0.15, vis.colors.magentaHalf, true)
 	end
 
 	-- aim at the center of the goal when shooting from too far away
@@ -78,7 +75,7 @@ function ShootGoal:run()
 	self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
 	if not self._desperate then
 		-- perform a linear shot
-		self:_shoot(localTarget, math.huge, self._ballReceiptPos, math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
+		self:_shoot(localTarget, math.huge, ballReceiptPos, math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
 	else
 		local maxAngleError = 10 * math.pi / 180
 		-- prevent icing
@@ -92,7 +89,7 @@ function ShootGoal:run()
 
 		-- perform a chip shot
 		self._desperateChipTargetPoint = G.OpponentGoal
-		self:_chipPass(self._desperateChipTargetPoint, self._ballReceiptPos, maxAngleError, 0.5)
+		self:_chipPass(self._desperateChipTargetPoint, ballReceiptPos, maxAngleError, 0.5)
 	end
 	self:_drawDebugInfo()
 end
