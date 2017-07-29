@@ -51,7 +51,7 @@ function StrikerSampling:canReachInTime(ballPos)
 end
 
 function StrikerSampling:passTooShort(ballPos)
-	local rating = Rating.valueToRating(ballPos:distanceTo(self._attackPosition), 2, 3)
+	local rating = Rating.valueToRating(ballPos:distanceTo(self._attackPosition), 3, 5)
 	visualizeRating("passTooShort", ballPos, rating)
 	return rating
 end
@@ -77,9 +77,31 @@ function StrikerSampling:goalAngle(ballPos)
 	return rating
 end
 
+-- function StrikerSampling:advance(ballPos)
+-- 	local distToGoal = ballPos:distanceTo(World.Geometry.OpponentGoal)
+-- 	local currentDistToGoal = self._attackPosition:distanceTo(World.Geometry.OpponentGoal)
+-- 	local bestAdvance = World.Geometry.FieldHeightHalf * 0.3
+-- 	local 
+-- 	local distAdvance = currentDistToGoal - distToGoal - bestAdvance
+-- 	local rating = 1 / (distAdvance * distAdvance / World.Geometry.FieldHeight + 1)
+-- 	visualizeRating("advance", ballPos, rating)
+-- 	return rating
+-- end
+
+function StrikerSampling:crossPass(ballPos)
+	local angleAttackGoalBall = (ballPos - World.Geometry.OpponentGoal):absoluteAngleDiff(
+		self._attackPosition - World.Geometry.OpponentGoal)
+	local rating = Rating.valueToRating(angleAttackGoalBall, 0, math.pi * 0.5)
+	visualizeRating("crossPass", ballPos, rating)
+	return rating * 0.5 + 0.5
+end
+
 function StrikerSampling:distToGoal(ballPos)
-	return Rating.valueToRating(ballPos:distanceTo(World.Geometry.OpponentGoal),
-		World.Geometry.FieldHeight * 0.7, World.Geometry.FieldHeight * 0.2)
+	local distToGoal = ballPos:distanceTo(World.Geometry.OpponentGoal)
+	local minDist = World.Geometry.DefenseRadius + 0.3
+	local rating = Rating.valueToRating(distToGoal, World.Geometry.FieldHeight * 0.7, minDist)
+	visualizeRating("distToGoal", ballPos, rating)
+	return rating
 end
 
 
@@ -87,6 +109,9 @@ function StrikerSampling:evalLocation(ballPos, bestScore)
 	local score = 1
 
 	score = score * self:distToGoal(ballPos)
+	if score < bestScore then return score end
+
+	score = score * self:crossPass(ballPos)
 	if score < bestScore then return score end
 
 	score = score * self:goalAngle(ballPos)
