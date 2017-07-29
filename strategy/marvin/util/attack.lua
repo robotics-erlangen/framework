@@ -442,6 +442,7 @@ end
 --@return passInfo Message - last passInfo-Message
 local InvalidationCounter = {}
 local lastIncomingPassInfo = {}
+local lastIPIUpdateTime = {}
 
 function Attack.lastIncomingPassInfo(robot, passInfo)
 	local incomingPassInfo = nil
@@ -458,11 +459,15 @@ function Attack.lastIncomingPassInfo(robot, passInfo)
 			end
 		end
 	end
-	if incomingPassInfo then
+	if lastIPIUpdateTime[robot] and lastIPIUpdateTime[robot] == World.Time then
+		return lastIncomingPassInfo[robot]
+	elseif incomingPassInfo then
 		lastIncomingPassInfo[robot] = incomingPassInfo
 		InvalidationCounter[robot] = 0
+		lastIPIUpdateTime[robot] = World.Time
 	elseif not Ball.isAccelerating() and not Ball.receivesPass(robot) then
 		InvalidationCounter[robot] = InvalidationCounter[robot] + 1
+		lastIPIUpdateTime[robot] = World.Time
 	end
 	if InvalidationCounter[robot] == 5 then
 		lastIncomingPassInfo[robot] = nil

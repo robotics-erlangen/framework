@@ -1,7 +1,7 @@
 local Base = require "agent/base/behavior"
 local PassTiming = Class("Agent.Attacker.PassTiming", Base)
 
-local MoveToPos = require "task/movetopos"
+local Sidestep = require "task/sidestep"
 local Attack = require "util/attack"
 
 function PassTiming:check()
@@ -25,7 +25,7 @@ function PassTiming:check()
 end
 
 function PassTiming:_updateTask()
-	return MoveToPos, {self._robot.pos}
+	return Sidestep, {Attack.lastIncomingPassInfo(self._robot, self._inbox.passInfo())}
 end
 
 return PassTiming
