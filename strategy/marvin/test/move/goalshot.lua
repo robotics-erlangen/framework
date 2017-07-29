@@ -1,14 +1,9 @@
 local GoalShot = Class("Test.Move.GoalShot", require "group/move/base")
 
 local MoveToPos = require "task/movetopos"
-local Pass = require "task/pass"
-local World = require "../base/world"
-local Robot = require "../base/robot"
 local World = require "../base/world"
 local G = World.Geometry
 local Ball = require "observer/ball"
-local Default = require "agent/attacker/default"
-local Halt
 
 local ShootGoal = require "task/shootgoal"
 
