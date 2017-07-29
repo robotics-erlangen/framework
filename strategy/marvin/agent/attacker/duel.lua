@@ -53,6 +53,14 @@ function Duel:genericCheck()
 		return false
 	end
 
+	-- duel is not beneficial in opponent corners
+	local cornerMinX = World.Geometry.FieldWidthHalf * (self._active and 0.6 or 0.7)
+	local cornerMinY = World.Geometry.FieldHeightHalf * (self._active and 0.5 or 0.6)
+	if World.Ball.pos.y > cornerMinY and math.abs(World.Ball.pos.x) > cornerMinX then
+		return false
+	end
+
+
 	-- if the ball is shot fast at the opponent goal, dont duel it since it might be chipped by us
 	local ballSpeed = World.Ball.speed:length()
 	if ballSpeed > MAX_BALL_SPEED + (self._lastChippedHysteresis and 0 or 0.5) then
