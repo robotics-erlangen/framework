@@ -24,7 +24,10 @@ function Ally:init(robot, messaging)
 end
 
 -- below this distance from dribbler to ball, an ally is considered mainAttacker
-local ALLY_MAINATTACKER_DIST = 0.16
+
+--
+local MASTER = true
+local ALLY_MAINATTACKER_DIST = MASTER and 0 or 10
 local MIN_DIST_FOR_PASS_POS = 0.2
 local timeSentToPartnerTeam = 0 -- messaging the allied team should only happen once per frame
 function Ally:_run()
@@ -49,10 +52,12 @@ function Ally:_run()
 				local sender, info = next(func())
 				if sender then
 					local pos = info.ballPos
-					if not mixedTeamMessage[sender.id] then
-						mixedTeamMessage[sender.id] = {}
+					local receiver = info.target
+					if not mixedTeamMessage[receiver.id] then
+						mixedTeamMessage[receiver.id] = {}
 					end
-					mixedTeamMessage[sender.id]["shootPos"] = pos
+					mixedTeamMessage[receiver.id]["targetPos"] = pos
+					mixedTeamMessage[receiver.id]["shootPos"] = pos
 				end
 			elseif name == "attackPosition" then
 				local sender, pos = next(func())
@@ -137,6 +142,11 @@ function Ally:_run()
 	local dribblerPos = self._robot.pos + dirVector*self._robot.shootRadius
 	local ballDist = dribblerPos:distanceTo(ballPos)
 	if ballDist < ALLY_MAINATTACKER_DIST and World.Ball.speed:length() < 1 then
+		for _, robot in ipairs(World.FriendlyRobots) do
+			if robot ~= self._robot and robot.pos:distanceTo(World.Ball.pos) < 0.15 then
+				return -- no application if someone already has the ball
+			end
+		end
 		self._send.exclusiveRole("trainer", {mainAttacker = 2})
 	end
 end
