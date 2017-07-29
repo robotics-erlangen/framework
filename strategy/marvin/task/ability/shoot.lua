@@ -67,6 +67,7 @@ function Shoot:init()
 	self._rightOrientation = false
 
 	self._lastBallInsideRobotTime = 0
+	self._directMovement = false
 end
 
 function Shoot:_setObstacles()
@@ -208,7 +209,8 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 		speedupFactor = 0.8
 	end
 
-	local directMovement = self._robot:hasBall(World.Ball, 0, hasBallDistance)
+	local hasBallSideOffset = self._directMovement and 0.02 or 0
+	self._directMovement = self._robot:hasBall(World.Ball, hasBallSideOffset, hasBallDistance)
 		and math.abs(geom.normalizeAngle((World.Ball.pos - self._robot.pos):angle() - shootDir)) < maxSidewardsAngle
 		and math.abs(geom.normalizeAngle(self._robot.dir - shootDir)) < maxOrientationAngle
 
@@ -220,11 +222,11 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 		local shootBall = { maxSpeed = kickSpeed, speed = kickSpeedVector }
 		local ballTime = Physics.ballRollTime(shootBall, futureBall.pos:distanceTo(targetPos))
 		if World.Time + 0.2 + ballTime < targetTime then
-			directMovement = false
+			self._directMovement = false
 		end
 	end
 
-	if directMovement then
+	if self._directMovement then
 		local accelerate = self._robot.acceleration.aSpeedupFMax * speedupFactor
 		self._directExtraSpeed = math.min(self._directExtraSpeed + accelerate * World.TimeDiff, EXTRA_MOVE_SPEED_LIMIT)
 		local accel = Vector.fromAngle(targetDir) * accelerate
@@ -245,7 +247,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 		self._send.attackTime("all", targetTime or attackTime + World.Time)
 	end
 	
-	debug.set("Shoot/DirectMovement", directMovement)
+	debug.set("Shoot/DirectMovement", self._directMovement)
 end
 
 function Shoot:_shootChaseBall(targetPos, targetSpeed)
@@ -356,6 +358,10 @@ function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, pre
 	else -- "StopBall"
 		self:_shootStopBall(futureBall, futureBallTime)
 		color = vis.colors.redHalf
+	end
+
+	if self._state ~= "StationaryBall" then
+		self._directMovement = false
 	end
 
 	self._visualizeShoot(futureBall, targetPos, color)
