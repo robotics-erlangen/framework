@@ -47,8 +47,10 @@ local function assignRobotsToZones(robotPositions, zones)
 	local positions = {}
 	local robots = {}
 	for robot, robotPos in pairs(robotPositions) do
-		table.insert(positions, {pos = robotPos})
-		table.insert(robots, robot)
+		if #positions >= #zones then
+			table.insert(positions, {pos = robotPos})
+			table.insert(robots, robot)
+		end
 	end
 	local zonePositions = {}
 	for _, zone in ipairs(zones) do
