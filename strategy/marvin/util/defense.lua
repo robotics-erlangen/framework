@@ -61,8 +61,9 @@ local function calculateBallPosition(distanceToDefenseArea, robot_radius)
 			targetDir, World.Geometry.FriendlyGoal, Vector(1, 0))
 		if goalLineIntersection and targetDir.y < 0 and
 				math.abs(goalLineIntersection.x) < World.Geometry.GoalWidth / 2 + 0.15 then
+			-- FIXME: HACK FOR FLOATS
 			targetPos, targetWay = Field.intersectRayDefenseArea(targetPos, targetDir,
-				distanceToDefenseArea + robot_radius, false)
+				distanceToDefenseArea + robot_radius + 0.02 , false)
 		end
 	end
 	if not targetPos then
