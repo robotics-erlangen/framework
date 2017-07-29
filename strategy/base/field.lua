@@ -398,13 +398,13 @@ function Field.defenseIntersectionByWay(way, extraDistance, opp)
 	-- calculate defense radius
 	extraDistance = extraDistance or 0
 	local radius = G.DefenseRadius + extraDistance
-	assert(radius >= 0, "extraDistance must not be smaller than -G.DefenseRadius")
+	assert(radius >= 0, "extraDistance must not be smaller than -G.DefenseRadius: "..tostring(extraDistance))
 
 	-- calculate length of defense border (arc - line - arc)
 	local arcway = radius * math.pi/2
 	local lineway = G.DefenseStretch
 	local totalway = 2 * arcway + lineway
-	assert(way >= -arcway and way <= totalway + arcway, "way is out of bounds")
+	assert(way >= -arcway and way <= totalway + arcway, "way is out of bounds (".. tostring(way)..", "..tostring(extraDistance).. ", "..tostring(opp))
 
 	local intersection
 	if way < arcway then
