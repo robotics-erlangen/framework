@@ -1,7 +1,6 @@
 local MoveToStaticBall = Class("Task.MoveToStaticBall", require "task/base")
 
 local World = require "../base/world"
-local Physics = require "observer/physics"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
