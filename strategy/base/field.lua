@@ -406,12 +406,15 @@ function Field.defenseIntersectionByWay(way, extraDistance, opp)
 	local totalway = 2 * arcway + lineway
 
 	-- bind way to [0, totalway] by mirroring it
+	-- inserted way can be in [-2*totalway, 2*totalway]
 	if way < 0 then
 		way = -way
 	end
 	if way > totalway then
-		way = totalway - way
+		way = 2*totalway - way -- if abs(way) > 2*totalway, way will be negative and be eaten by the folling assert
 	end
+
+	assert(way >= 0, "way is out of bounds ("..tostring(way)..", "..tostring(extraDistance)..", "..tostring(opp))
 
 	local intersection
 	if way < arcway then
