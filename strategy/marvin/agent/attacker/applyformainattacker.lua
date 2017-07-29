@@ -35,6 +35,10 @@ function ApplyForMainattacker:check()
 		applying = true
 	else
 		if not Defense.dangerousBallTowardsDefense(true) then
+			self:_applyForMainAttacker()
+			self._agent.beOffensive = false
+			applying = true
+		else
 			local robotDistToGoal = self._robot.pos:distanceTo(World.Geometry.OpponentGoal)
 			local ballDistToGoal = World.Ball.pos:distanceTo(World.Geometry.OpponentGoal)
 			local maxDistDiff = (self._applying and -1 or 1) * (World.Ball.radius + self._robot.shootRadius)
