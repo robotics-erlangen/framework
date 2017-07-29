@@ -2,9 +2,12 @@ local Base = require "agent/base/behavior"
 local HandleBall = Class("Agent.Defender.HandleBall", Base)
 
 local Field = require "../base/field"
+local geom = require "../base/geom"
 local Referee = require "../base/referee"
+local vis = require "../base/vis"
 local World = require "../base/world"
 local Ball = require "observer/ball"
+local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 local DefUtil = require "util/defense"
 local Duel = require "task/duel"
@@ -78,14 +81,13 @@ function HandleBall:_checkInterceptPass()
 		return false
 	end
 
-	-- don't if the ball is between the robot and our goal
-	local moveDest, moveTime = InterceptPass.calculateMoveDest(self._robot)
-	debug.set("moveTime", moveTime)
-	local towardsGoal = World.Geometry.FriendlyGoal - moveDest
-	local towardsBall = World.Ball.pos - moveDest
-	local angleLimit = isInterceptPass and 100 * math.pi/180 or 115 * math.pi/180
-	if towardsGoal:absoluteAngleDiff(towardsBall) < angleLimit then
-		debug.set("ball between robot and goal", towardsGoal:absoluteAngleDiff(towardsBall))
+	-- don't intercept chip kicks
+	if Ball.isFlyingOrBouncing() then
+		return false
+	end
+
+	local moveDest, moveTime = InterceptPass.calculateInterceptPos(self._robot)
+	if not moveDest then
 		return false
 	end
 
@@ -95,29 +97,22 @@ function HandleBall:_checkInterceptPass()
 		return false
 	end
 
-	-- don't if there is no opponent pass receiver
-	local opponentPassReceipients = {}
-	for _,r in ipairs(World.OpponentRobots) do
-		if Ball.receivesPass(r) then
-			table.insert(opponentPassReceipients, r)
-		end
-	end
-	if #opponentPassReceipients == 0 then
-		debug.set("no opponent pass receiver", true)
+	vis.addCircle("InterceptPassPos", moveDest, 0.05, vis.colors.cyan, true)
+	vis.addPath("InterceptPassPos", {self._robot.pos, moveDest}, vis.colors.cyan)
+	debug.set("moveTime", moveTime)
+
+	-- don't intercept if there is no pass receiver or the ball is not passed
+	local _, _, _, receivers, isVolley = Goal.predictShot()
+	if not isVolley or #receivers == 0 then
 		return false
 	end
 
-	-- don't if we are positioned behind a dangerous pass receipient
-	local distDiffLimit = isInterceptPass and 0 or 4 * self._robot.radius
-	local selfPosOnBallLine = self._robot.pos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
-	local selfDistToBall = World.Ball.pos:distanceTo(selfPosOnBallLine)
-	for _,r in ipairs(opponentPassReceipients) do
-		local oppPosOnBallLine = r.pos:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
-		local oppDistToBall = World.Ball.pos:distanceTo(oppPosOnBallLine)
-		if selfDistToBall + distDiffLimit > oppDistToBall then
-			debug.set("behind a dangerous pass recipient", true)
-			return false
-		end
+	-- don't intercept if it might have been kicked by our goalie
+	local defenseIntersection = geom.intersectLineLine(World.Geometry.FriendlyGoal, Vector(1, 0),
+				World.Ball.pos, -World.Ball.speed)
+	local defenseWidth = World.Geometry.DefenseRadius + World.Geometry.DefenseStretch / 2 + 0.2
+	if defenseIntersection and math.abs(defenseIntersection.x) < defenseWidth then
+		return false
 	end
 
 	return true
@@ -179,7 +174,7 @@ function HandleBall:_updateTask()
 		self._send.groupApplication("trainer", groupApplication)
 	end
 
-	if self._taskDecision == "attacker" then
+	if self._taskDecision == "attacker" or self._taskDecision == "interceptpass" then
 		self._send.poolChangeRequest("trainer", "attacker")
 	end
 
