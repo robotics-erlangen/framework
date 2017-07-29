@@ -40,7 +40,7 @@ local function randomExtension(min)
 end
 
 function Armada.canStart()
-	return  World.Ball.pos.y > G.FieldHeightHalf / 5 and Referee.opponentTouchedLast()
+	return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 and Referee.opponentTouchedLast()
 		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
 		and World.RefereeState == "Stop"
 end
@@ -57,7 +57,7 @@ function Armada:_canContinue()
 	if Referee.isFriendlyFreeKickState() then
 		return true
 	end
-	return World.Ball.pos.y > G.FieldHeightHalf / 5 - 0.2
+	return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2
 		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
 		and World.RefereeState == "Stop"
 end
