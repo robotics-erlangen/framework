@@ -5,7 +5,6 @@ local Referee = require "../base/referee"
 local World = require "../base/world"
 local G = World.Geometry
 local Keeper = require "task/keeper"
-local Duel = require "task/duel"
 local AggressiveKeeper = require "task/aggressivekeeper"
 
 local CRITICAL_DISTANCE = 3
