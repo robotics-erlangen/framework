@@ -101,7 +101,7 @@ function StrikerSampling:distToGoal(ballPos)
 	local minDist = World.Geometry.DefenseRadius + 0.3
 	local rating = Rating.valueToRating(distToGoal, World.Geometry.FieldHeight * 0.7, minDist)
 	visualizeRating("distToGoal", ballPos, rating)
-	return rating
+	return rating * 0.9 + 0.1
 end
 
 
