@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local ApplyForMainattacker = Class("Agent.Attacker.ApplyForMainattacker", Base)
 
 local Referee = require "../base/referee"
+local World = require "../base/world"
 local Robot = require "observer/robot"
 local Attack = require "util/attack"
 local Defense = require "util/defense"
