@@ -63,7 +63,9 @@ function AttackRatio:attackRatio()
 		if friendlyCorner then -- Goal-Kick Offensive
 			attackRatio = 3
 		elseif opponentCorner then -- Corner-Kick Offensive
-			attackRatio = 4
+			attackRatio = 5
+		elseif ball.pos.y > 1.2 then
+			attackRatio = 4 -- Throw-In Offensive
 		else
 			attackRatio = 3 -- Throw-In Offensive
 		end
