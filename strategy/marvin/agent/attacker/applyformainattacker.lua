@@ -4,6 +4,7 @@ local ApplyForMainattacker = Class("Agent.Attacker.ApplyForMainattacker", Base)
 local Referee = require "../base/referee"
 local Robot = require "observer/robot"
 local Attack = require "util/attack"
+local Defense = require "util/defense"
 
 
 function ApplyForMainattacker:_init()
@@ -26,8 +27,10 @@ function ApplyForMainattacker:check()
 		self:_applyForMainAttacker(nil, nil, 2)
 		self._agent.beOffensive = true
 	else
-		self:_applyForMainAttacker()
-		self._agent.beOffensive = false
+		if not Defense.dangerousBallTowardsDefense(true) then
+			self:_applyForMainAttacker()
+			self._agent.beOffensive = false
+		end
 	end
 	return false
 end
