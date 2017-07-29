@@ -193,16 +193,19 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 	local maxOrientationAngle
 	local minCatchBallDistance
 	local hasBallDistance
+	local speedupFactor
 	if Referee.isFriendlyFreeKickState() then
 		maxSidewardsAngle = 30 * math.pi / 180
 		maxOrientationAngle = 2 * math.pi / 180
 		minCatchBallDistance = 0.01
 		hasBallDistance = 0.04
+		speedupFactor = 0.4
 	else
 		maxSidewardsAngle = 30 * math.pi / 180
 		maxOrientationAngle = 8 * math.pi / 180
 		minCatchBallDistance = 0.00
 		hasBallDistance = 0.1
+		speedupFactor = 0.8
 	end
 
 	local directMovement = self._robot:hasBall(World.Ball, 0, hasBallDistance)
@@ -222,7 +225,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 	end
 
 	if directMovement then
-		local accelerate = self._robot.acceleration.aSpeedupFMax * 0.5
+		local accelerate = self._robot.acceleration.aSpeedupFMax * speedupFactor
 		self._directExtraSpeed = math.min(self._directExtraSpeed + accelerate * World.TimeDiff, EXTRA_MOVE_SPEED_LIMIT)
 		local accel = Vector.fromAngle(targetDir) * accelerate
 		local speed = Vector.fromAngle(targetDir) * self._directExtraSpeed
