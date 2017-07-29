@@ -356,4 +356,14 @@ local function isDangerousDuelSituation(lastDecision)
 end
 Ball.isDangerousDuelSituation = Cache.forFrame(isDangerousDuelSituation)
 
+local flyingOrBouncingTimestamp = 0
+function Ball._updateIsFlyingOrBouncing()
+	if World.Ball.posZ ~= 0 then
+		flyingOrBouncingTimestamp = World.Time
+	end
+end
+
+function Ball.isFlyingOrBouncing()
+	return World.Time - flyingOrBouncingTimestamp < 0.1
+end
 return Ball
