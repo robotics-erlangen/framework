@@ -7,6 +7,7 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 
 local Ball = require "observer/ball"
+local ObserverShoot = require "observer/shoot"
 local PathHelper = require "trajectory/pathhelper"
 local Rating = require "util/rating"
 local ShootGoalUtil = require "util/shootgoal"
@@ -51,6 +52,7 @@ function ShootGoal:_init(ballReceiptPos, forceDesperate)
 	self._desperateChipTargetPoint = nil
 
 	self._ballReceiptPos = ballReceiptPos
+	self._lastReceivesPassTime = 0
 end
 
 function ShootGoal:run()
@@ -71,11 +73,22 @@ function ShootGoal:run()
 	local localTargetX = Rating.valueToRating(distance, maxDistance, minDistance) * self._shootTargetPoint.x
 	local localTarget = Vector(localTargetX, self._shootTargetPoint.y)
 	
-	debug.set("receivesPass", Ball.receivesPass(self._robot))
-
 	if not self._desperate then
 		self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
 	end
+
+	local receivesPass = Ball.receivesPass(self._robot)
+	debug.set("receivesPass", receivesPass)
+	if receivesPass then
+		self._lastReceivesPassTime = World.Time
+	end
+
+	local linearOverride = World.Time - self._lastReceivesPassTime < 0.1 and ObserverShoot.volleyPossible(self._robot, localTarget)
+	debug.set("linearOverride", linearOverride)
+	if linearOverride then
+		self._desperate = false
+	end
+
 	if not self._desperate then
 		-- perform a linear shot
 		self:_shoot(localTarget, math.huge, ballReceiptPos, math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
