@@ -27,11 +27,7 @@ end
 
 -- this function searches for a position between boundaryOne and boundaryTwo to which the robot will take
 -- the shortest amount of time, up to a precision value, using a ternary algorithm
-function ManMark:_findBestPointToBlockOpponentShot(boundaryOne, boundaryTwo, precision)
-	-- time to the boundaries
-	local timeToBoundaryOne = Physics.robotTimeToPos(self._robot, boundaryOne, Vector(0, 0), false, false)
-	local timeToBoundaryTwo = Physics.robotTimeToPos(self._robot, boundaryTwo, Vector(0, 0), false, false)
-
+function ManMark:_findBestPointToBlockOpponentShot(boundaryOne, boundaryTwo, timeToBoundaryOne, timeToBoundaryTwo, precision)
 	-- time diff between the two bounds
 	if math.abs(timeToBoundaryOne - timeToBoundaryTwo) < precision or
 			boundaryOne:distanceTo(boundaryTwo) < 0.005 then
@@ -48,15 +44,19 @@ function ManMark:_findBestPointToBlockOpponentShot(boundaryOne, boundaryTwo, pre
 
 	-- depending on which time is smaller recursively call the function with new boundaries
 	if timeToLeftThird < timeToRightThird then
-		return self:_findBestPointToBlockOpponentShot(boundaryOne, rightThird, precision)
+		return self:_findBestPointToBlockOpponentShot(boundaryOne, rightThird, timeToBoundaryOne, timeToRightThird, precision)
 	else
-		return self:_findBestPointToBlockOpponentShot(leftThird, boundaryTwo, precision)
+		return self:_findBestPointToBlockOpponentShot(leftThird, boundaryTwo, timeToLeftThird, timeToBoundaryTwo, precision)
 	end
 end
 
 -- this method calculates a new position between boundaryOne and boundaryTwo regarding the oldPosition
 function ManMark:_newPosRegardingOldPosition(boundaryOne, boundaryTwo, oldPos, precision)
-	local newPos = self:_findBestPointToBlockOpponentShot(boundaryOne, boundaryTwo, precision)
+	-- time to the boundaries
+	local timeToBoundaryOne = Physics.robotTimeToPos(self._robot, boundaryOne, Vector(0, 0), false, false)
+	local timeToBoundaryTwo = Physics.robotTimeToPos(self._robot, boundaryTwo, Vector(0, 0), false, false)
+
+	local newPos = self:_findBestPointToBlockOpponentShot(boundaryOne, boundaryTwo, timeToBoundaryOne, timeToBoundaryTwo, precision)
 	if oldPos then
 		oldPos = oldPos:nearestPosOnLine(boundaryOne, boundaryTwo)
 	else

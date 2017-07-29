@@ -447,11 +447,11 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector) --, debugFlag)
 	end
 
 	-- TODO: model system delay
-	local reactionTime = 0
-	local reactionDist = reactionTime * currentSpeed
-	local reactionPathVec = startSpeed:copy():setLength(reactionDist)
-	currentTime = currentTime + reactionTime
-	currentPos = currentPos + reactionPathVec
+	-- local reactionTime = 0
+	-- local reactionDist = reactionTime * currentSpeed
+	-- local reactionPathVec = startSpeed:copy():setLength(reactionDist)
+	-- currentTime = currentTime + reactionTime
+	-- currentPos = currentPos + reactionPathVec
 
 	maxCurveSpeed = math.min(maxCurveSpeed, currentSpeed)
 
@@ -665,11 +665,12 @@ end
 --- calculates the time the robot needs to move to the position next to the ball at given t_ball
 function Physics.robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball)
 	local x_ball = Physics.ballAtTime(ball, t_ball).pos
-	local offset = (x_ball - targetPos):setLength(ball.radius + robot.shootRadius)
+	local axis = (x_ball - targetPos):normalize()
+	local offset = axis * (ball.radius + robot.shootRadius)
 	local x_robot = x_ball + offset
 
 	-- anywhere on the dribbler is okay, not only the center
-	local dribblerHalf = (targetPos - x_ball):perpendicular():setLength(robot.dribblerWidth / 2)
+	local dribblerHalf = axis:perpendicular():scaleLength(-robot.dribblerWidth / 2)
 	x_robot = robot.pos:nearestPosOnLine(x_robot + dribblerHalf, x_robot - dribblerHalf)
 
 	-- calculate and save the robot time
