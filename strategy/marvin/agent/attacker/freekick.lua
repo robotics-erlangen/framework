@@ -118,6 +118,10 @@ function FreeKick:_updateTask()
 		end
 	end
 
+	if self._state == "pass" and timeRunningOut then
+		self._state = "wait"
+	end
+
 	-- pass_prepare -> pass
 	if self._state == "pass_prepare" then
 		local shootPos = self._pass.ballPos
