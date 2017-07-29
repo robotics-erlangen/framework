@@ -143,6 +143,10 @@ vis.colors.orchid = vis.fromRGBA(218, 94, 224, 255)
 vis.colors.orchidHalf = vis.fromRGBA(218, 94, 224, 127)
 vis.colors.gold = vis.fromRGBA(239, 185, 15, 255)
 vis.colors.goldHalf = vis.fromRGBA(239, 185, 15, 127)
+vis.colors.mediumPurple = vis.fromRGBA(171, 130, 255, 255)
+vis.colors.mediumPurpleHalf = vis.fromRGBA(171, 130, 255, 127)
+vis.colors.darkPurple = vis.fromRGBA(93, 71, 139, 255)
+vis.colors.darkPurpleHalf = vis.fromRGBA(93, 71, 139, 127)
 
 
 --- Sets line and fill color.
