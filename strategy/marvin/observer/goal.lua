@@ -198,6 +198,9 @@ function Goal.predictShot()
 		ballSpeed = Vector.fromAngle(oppBallDribbler.dir)
 		vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false)
 		vis.addPath("o/goal: predictShot: dribbling robot", {oppBallDribbler.pos, oppBallDribbler.pos + ballSpeed * 10}, vis.colors.blue)
+		local relativeSpeedLength = World.Ball.speed - oppBallDribbler.speed
+		local dirx, diry = Volley.calcVOut(8, relativeSpeedLength:length(), oppBallDribbler.dir, World.Ball.speed:angle())
+		ballSpeed = Vector(dirx, diry):normalize()
 	elseif oppBallOwner and ballSpeed:length() <= SLOW_BALL then
 		-- if opponent is close to ball use its orientation
 		ballSpeed = Vector.fromAngle(oppBallOwner.dir)
@@ -267,10 +270,13 @@ function Goal.predictShot()
 				lastBestRobotId = passReceiver.id
 				pos = passReceiver.catchPos
 				local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(pos))
-				local ballSpeedLength = Physics.ballAtTime(World.Ball, ballRollTime).speed:length()
+				-- assume that the opponent will try to stop for the volley and brake from now
+				local oppBrakeSpeed = math.max(0, passReceiver.robot.speed:length() - 4 * ballRollTime)
+				local minRobotSpeed = passReceiver.robot.speed:copy():setLength(oppBrakeSpeed)
+				local relativeSpeed = Physics.ballAtTime(World.Ball, ballRollTime).speed - minRobotSpeed
 				local ballAngle = World.Ball.speed:angle()
 				local robotAngle = passReceiver.robot.dir
-				local dirx, diry = Volley.calcVOut(8, ballSpeedLength, robotAngle, ballAngle)
+				local dirx, diry = Volley.calcVOut(8, relativeSpeed:length(), robotAngle, ballAngle)
 				ballSpeed = Vector(dirx, diry):normalize()
 				vis.addPath("o/goal: predictShot: receives pass", {passReceiver.robot.pos, pos}, vis.colors.pink)
 				vis.addCircle("o/goal: predictShot: receives pass", pos, passReceiver.robot.radius, vis.colors.pink, false)
