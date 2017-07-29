@@ -22,6 +22,7 @@
 
 AbstractStrategyScript::AbstractStrategyScript() {
     m_hasDebugger = false;
+    takeDebugStatus();
 }
 
 bool AbstractStrategyScript::triggerDebugger()
@@ -30,13 +31,11 @@ bool AbstractStrategyScript::triggerDebugger()
     return false;
 }
 
-void AbstractStrategyScript::clearDebug()
+Status AbstractStrategyScript::takeDebugStatus()
 {
-    m_debug.clear_value();
-    m_debug.clear_visualization();
-    m_debug.clear_log();
-    m_debug.clear_plot();
-    m_debug.clear_robot();
+    Status status = m_debugStatus;
+    m_debugStatus = Status(new amun::Status);
+    return status;
 }
 
 void AbstractStrategyScript::setSelectedOptions(const QStringList &options)

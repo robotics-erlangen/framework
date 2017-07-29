@@ -354,7 +354,7 @@ bool Lua::loadScript(const QString &filename, const QString &entryPoint, const w
 
     m_geometry.CopyFrom(geometry);
     m_team.CopyFrom(team);
-    clearDebug();
+    takeDebugStatus();
 
     // start init script loader, sets strategy name and entrypoints
     lua_pushcfunction(m_state, luaLoadInitScript);
@@ -410,7 +410,7 @@ bool Lua::process(double &pathPlanning, const world::State &worldState, const am
     m_worldState.CopyFrom(worldState);
     m_refereeState.CopyFrom(refereeState);
     m_userInput.CopyFrom(userInput);
-    clearDebug();
+    takeDebugStatus();
 
     // used to check for script timeout
     m_startTime = Timer::systemTime();
@@ -470,34 +470,34 @@ void Lua::setCommand(uint generation, uint robotId, robot::Command &command)
 
 void Lua::log(const QString &text)
 {
-    amun::StatusLog *log = m_debug.add_log();
+    amun::StatusLog *log = m_debugStatus->mutable_debug()->add_log();
     log->set_timestamp(time());
     log->set_text(text.toStdString());
 }
 
 amun::Visualization *Lua::addVisualization()
 {
-    return m_debug.add_visualization();
+    return m_debugStatus->mutable_debug()->add_visualization();
 }
 
 void Lua::removeVisualizations()
 {
-    m_debug.clear_visualization();
+    m_debugStatus->mutable_debug()->clear_visualization();
 }
 
 amun::DebugValue *Lua::addDebug()
 {
-    return m_debug.add_value();
+    return m_debugStatus->mutable_debug()->add_value();
 }
 
 amun::PlotValue *Lua::addPlot()
 {
-    return m_debug.add_plot();
+    return m_debugStatus->mutable_debug()->add_plot();
 }
 
 amun::RobotValue *Lua::addRobotValue()
 {
-    return m_debug.add_robot();
+    return m_debugStatus->mutable_debug()->add_robot();
 }
 
 bool Lua::sendCommand(const Command &command)

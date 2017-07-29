@@ -66,7 +66,7 @@ private:
     void triggerDebugger();
     void fail(const QString &error);
     void setStrategyStatus(Status &status, amun::StatusStrategy::STATE state);
-    void copyDebugValues(Status &status);
+    Status takeStrategyDebugStatus();
     amun::DebugSource debugSource() const;
 
 private:

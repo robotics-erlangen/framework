@@ -296,7 +296,7 @@ void Strategy::process()
         double totalTime = (Timer::systemTime() - startTime) / 1E9;
 
         // publish timings and debug output
-        Status status(new amun::Status);
+        Status status = takeStrategyDebugStatus();
         amun::Timing *timing = status->mutable_timing();
         if (m_type == StrategyType::BLUE) {
             timing->set_blue_total(totalTime);
@@ -305,7 +305,6 @@ void Strategy::process()
             timing->set_yellow_total(totalTime);
             timing->set_yellow_path(pathPlanning);
         }
-        copyDebugValues(status);
         emit sendStatus(status);
     } else {
         fail(m_strategy->errorMsg());
@@ -364,9 +363,8 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         m_strategy->setSelectedOptions(m_selectedOptions);
 
         // prepare strategy status message
-        Status status(new amun::Status);
+        Status status = takeStrategyDebugStatus();
         setStrategyStatus(status, amun::StatusStrategy::RUNNING);
-        copyDebugValues(status);
 
         // inform about successful load
         amun::StatusLog *log = status->mutable_debug()->add_log();
@@ -411,9 +409,8 @@ void Strategy::fail(const QString &error)
     }
 
     // update status
-    Status status(new amun::Status);
+    Status status = takeStrategyDebugStatus();
     setStrategyStatus(status, amun::StatusStrategy::FAILED);
-    copyDebugValues(status);
 
     // log error
     amun::StatusLog *log = status->mutable_debug()->add_log();
@@ -467,14 +464,15 @@ void Strategy::setStrategyStatus(Status &status, amun::StatusStrategy::STATE sta
     }
 }
 
-void Strategy::copyDebugValues(Status &status)
+Status Strategy::takeStrategyDebugStatus()
 {
     Q_ASSERT(m_strategy != NULL);
-    status->mutable_debug()->CopyFrom(m_strategy->debugValues());
+    Status status = m_strategy->takeDebugStatus();
     status->mutable_debug()->set_source(debugSource());
     if (!m_status.isNull()) {
         status->mutable_debug()->set_time(m_status->world_state().time());
     }
+    return status;
 }
 
 amun::DebugSource Strategy::debugSource() const

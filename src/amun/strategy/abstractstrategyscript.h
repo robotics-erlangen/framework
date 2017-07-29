@@ -25,6 +25,7 @@
 #include "protobuf/debug.pb.h"
 #include "protobuf/gamestate.pb.h"
 #include "protobuf/robot.pb.h"
+#include "protobuf/status.h"
 #include "protobuf/userinput.pb.h"
 #include "protobuf/world.pb.h"
 #include "strategytype.h"
@@ -57,8 +58,8 @@ public:
 
     // getter functions
     QString errorMsg() const { return m_errorMsg; }
-    // may be polled after is call to loadScript / process
-    const amun::DebugValues &debugValues() const { return m_debug; }
+    // may be called after loadScript / process
+    Status takeDebugStatus();
 
     QStringList entryPoints() const { return m_entryPoints; }
     QString entryPoint() const { return m_entryPoint; }
@@ -66,9 +67,6 @@ public:
     QStringList options() const { return m_options; }
     QStringList selectedOptions() const { return m_selectedOptions; }
     bool hasDebugger() const { return m_hasDebugger; }
-
-protected:
-    void clearDebug();
 
 signals:
     // wrapper may listen to reload request, but doesn't have to
@@ -87,7 +85,7 @@ protected:
     QStringList m_selectedOptions;
 
     QString m_errorMsg;
-    amun::DebugValues m_debug;
+    Status m_debugStatus;
     bool m_hasDebugger;
 };
 
