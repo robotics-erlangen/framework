@@ -29,6 +29,7 @@ local Constants = require "../base/constants"
 local Coordinates = require "../base/coordinates"
 local path = require "../base/path"
 local Trajectory = require "../base/trajectory"
+local vis = require "../base/vis"
 
 
 --- Values provided by a robot object.
@@ -261,6 +262,7 @@ end
 function Robot:shootLinear(power)
 	self._kickStyle = "Linear"
 	self._kickPower = power
+	vis.addCircle("shoot command", self.pos, self.radius + 0.04, vis.colors.mediumPurple, nil, nil, nil, 0.03)
 end
 
 --- Enable chip kick.
@@ -269,6 +271,7 @@ end
 function Robot:shootChip(power)
 	self._kickStyle = "Chip"
 	self._kickPower = power
+	vis.addCircle("shoot command", self.pos, self.radius + 0.04, vis.colors.darkPurple, nil, nil, nil, 0.03)
 end
 
 --- Force the robot to shoot even if the IR isn't triggered
