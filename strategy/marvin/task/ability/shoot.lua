@@ -14,6 +14,7 @@ local Robot = require "observer/robot"
 local TrajectoryDirect = require "trajectory/direct"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
+local Rating = require "util/rating"
 
 
 -- if the ball speed is lower than RESTING_BALL_SPEED
@@ -71,10 +72,18 @@ function Shoot:init()
 	self._directMovement = false
 end
 
-function Shoot:_setObstacles()
+function Shoot:_setObstacles(moveDest)
 	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 	local ignoreRobots = self._robot.speed:length() < 1
 	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreRobots, ignoreRobots)
+
+	if moveDest then
+		local distToBall = moveDest:distanceTo(World.Ball.pos)
+		local obstacleSize = Rating.valueToRating(distToBall, 0.2, 0.4) * (World.Ball.radius + 0.01)
+		if obstacleSize > 0 then
+			self._robot.path:addCircle(World.Ball.pos.x, World.Ball.pos.y, obstacleSize, "t/a/shoot ball")
+		end
+	end
 end
 
 function Shoot:_calculateFutureBall(ballReceiptPos)
@@ -238,7 +247,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 		debug.set("Shoot/directSpeed", speed)
 		debug.set("Shoot/directDir", targetDir)
 		debug.set("Shoot/directAccel", accel)
-		self:_setObstacles()
+		self:_setObstacles(nil)
 		self._robot.trajectory:update(TrajectoryDirect, speed, targetDir, nil, accel)
 		self:_sendShootCommand(kickSpeed, targetPos, targetDir)
 		self._send.attackPosition("all", futureBall.pos)
@@ -268,7 +277,7 @@ function Shoot:_shootChaseBall(targetPos, targetSpeed)
 
 	endSpeed = self:limitEndSpeedToField(moveDest, endSpeed)
 
-	self:_setObstacles()
+	self:_setObstacles(moveDest)
 	self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, endSpeed)
 	self._send.attackPosition("all", futureBall.pos)
 	self._send.attackTime("all", Physics.robotTimeToPos(self._robot, moveDest, endSpeed) + World.Time)
@@ -292,7 +301,7 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 
 	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
 	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0) then
-		self:_setObstacles()
+		self:_setObstacles(moveDest)
 		self._robot.trajectory:update(ToTarget, moveDest, targetDir)
 		self._send.attackPosition("all", futureBall.pos)
 		self._send.attackTime("all", futureBallTime + World.Time)
@@ -315,7 +324,7 @@ function Shoot:_shootStopBall(futureBall, futureBallTime)
 
 	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
 	if robotTime < futureBallTime + 0.1 or Robot.hadBall(self._robot, 0) then
-		self:_setObstacles()
+		self:_setObstacles(moveDest)
 		self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, nil)
 		self._send.attackPosition("all", futureBall.pos)
 		self._send.attackTime("all", Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0)) + World.Time)
