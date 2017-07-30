@@ -54,7 +54,9 @@ local function assignRobotsToZones(robotPositions, zones)
 	end
 	local zonePositions = {}
 	for _, zone in ipairs(zones) do
-		table.insert(zonePositions, zone.defaultPos)
+		if #zonePositions < #robots then
+			table.insert(zonePositions, zone.defaultPos)
+		end
 	end
 	local assignment = MovesHelper.assignRobots(positions, zonePositions, 0)
 
