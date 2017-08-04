@@ -79,8 +79,6 @@ include(BuildBullet)
 include(BuildEigen)
 include(BuildLuaJIT2)
 
-include(FixCodeBlocks)
-
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 add_subdirectory(src)
 
@@ -92,7 +90,5 @@ if(UNIX AND NOT APPLE)
         COMMENT "Installing menu entries" VERBATIM
     )
 endif()
-
-fixup_targets()
 
 include(AddTests)
