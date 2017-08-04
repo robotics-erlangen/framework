@@ -67,4 +67,5 @@ message Status {
     optional UserInput user_input_blue = 16;
     optional UserInput user_input_yellow = 17;
     optional StatusAmun amun_state = 19;
+    optional float timer_scaling = 20;
 }

@@ -33,6 +33,7 @@ typedef int32_t SDL_JoystickID; // avoid pulling in the sdl header
 
 class InputDevice;
 class Joystick;
+class QTimer;
 
 class InputManager : public QObject
 {
@@ -54,6 +55,9 @@ public:
     QStringList devices() const;
 
 public slots:
+    void enableInputCollection();
+    void disableInputCollection();
+
     bool addBinding(uint generation, uint id, const QString &device);
     void removeBinding(uint generation, uint id);
     void setStrategyControlled(uint generation, uint id, bool strategyControlled);
@@ -99,6 +103,8 @@ private:
     bool m_enabled;
     bool m_isLocal;
     bool m_lastCommandWasEmpty;
+
+    QTimer *m_timer;
 };
 
 #endif // INPUTMANAGER_H

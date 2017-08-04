@@ -302,6 +302,10 @@ void Amun::handleCommand(const Command &command)
 void Amun::updateScaling(float scaling)
 {
     m_timer->setScaling(scaling);
+
+    Status status(new amun::Status);
+    status->set_timer_scaling(scaling);
+    handleStatus(status);
 }
 
 /*!

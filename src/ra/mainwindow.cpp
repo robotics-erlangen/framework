@@ -273,6 +273,14 @@ void MainWindow::handleStatus(const Status &status)
         statusBar()->addPermanentWidget(label);
     }
 
+    if (status->has_timer_scaling()) {
+        if (status->timer_scaling() != 0.f) {
+            m_inputManager->enableInputCollection();
+        } else {
+            m_inputManager->disableInputCollection();
+        }
+    }
+
     emit gotStatus(status);
 }
 

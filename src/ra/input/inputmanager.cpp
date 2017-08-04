@@ -62,11 +62,10 @@ InputManager::InputManager(QObject *parent) :
     // gamepads are added by initial events
 #endif // SDL2_FOUND
 
-    // trigger updates with processor frequency
     // must run in gui thread!!!
-    QTimer *timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), SLOT(update()));
-    timer->start(10);
+    m_timer = new QTimer(this);
+    connect(m_timer, SIGNAL(timeout()), SLOT(update()));
+    enableInputCollection();
 }
 
 InputManager::~InputManager()
@@ -239,6 +238,19 @@ QStringList InputManager::devices() const
 {
     // device names
     return m_devices.keys();
+}
+
+void InputManager::enableInputCollection()
+{
+    if (!m_timer->isActive()) {
+        // trigger updates with processor frequency
+        m_timer->start(10);
+    }
+}
+
+void InputManager::disableInputCollection()
+{
+    m_timer->stop();
 }
 
 bool InputManager::addBinding(uint generation, uint id, const QString &device)
