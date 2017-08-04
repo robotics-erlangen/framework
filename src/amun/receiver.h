@@ -24,8 +24,6 @@
 #include <QUdpSocket>
 #include "protobuf/status.h"
 
-class QTimer;
-
 class Receiver : public QObject
 {
     Q_OBJECT

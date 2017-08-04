@@ -22,7 +22,6 @@
 #include "core/timer.h"
 #include <QNetworkInterface>
 #include <QUdpSocket>
-#include <QTimer>
 
 /*!
  * \class Receiver
