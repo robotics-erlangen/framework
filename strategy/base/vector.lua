@@ -78,13 +78,17 @@ end
 -- @name Vector:length
 -- @return number - length
 function vector_mt:length()
-	return sqrt(self.x * self.x + self.y * self.y)
+	local x = self.x
+	local y = self.y
+	return sqrt(x * x + y * y)
 end
 
 --- Get squared vector length
 -- @return number - squared length
 function vector_mt:lengthSq()
-	return self.x * self.x + self.y * self.y
+	local x = self.x
+	local y = self.y
+	return x * x + y * y
 end
 
 --- Normalizes current vector.
@@ -94,10 +98,13 @@ end
 -- @name Vector:normalize
 -- @return Vector - reference to self
 function vector_mt:normalize()
-	local l = sqrt(self.x * self.x + self.y * self.y)
+	local x = self.x
+	local y = self.y
+	local l = sqrt(x * x + y * y)
 	if l > 0 then
-		self.x = self.x / l
-		self.y = self.y / l
+		local invLen = 1 / l
+		self.x = x * invLen
+		self.y = y * invLen
 	end
 	return self
 end
@@ -106,11 +113,18 @@ end
 -- @param len number - New length of current vector
 -- @return Vector - reference to self
 function vector_mt:setLength(len)
-	local l = sqrt(self.x * self.x + self.y * self.y)
+	if len == 0 then
+		self.x = 0
+		self.y = 0
+		return self
+	end
+	local x = self.x
+	local y = self.y
+	local l = sqrt(x * x + y * y)
 	if l > 0 then
 		l = len / l
-		self.x = self.x * l
-		self.y = self.y * l
+		self.x = x * l
+		self.y = y * l
 	end
 	return self
 end
@@ -131,8 +145,9 @@ end
 -- @class function
 -- @name Vector:distanceTo
 function vector_mt:distanceTo(other)
-	return sqrt((other.x - self.x)*(other.x - self.x)
-		+ (other.y - self.y)*(other.y - self.y))
+	local dx = other.x - self.x
+	local dy = other.y - self.y
+	return sqrt(dx*dx + dy*dy)
 end
 
 --- Distance between vectors squared.
@@ -141,8 +156,9 @@ end
 -- @return number - distance squared
 -- @name Vector:distanceToSq
 function vector_mt:distanceToSq(other)
-	return (other.x - self.x)*(other.x - self.x)
-		+ (other.y - self.y)*(other.y - self.y)
+	local dx = other.x - self.x
+	local dy = other.y - self.y
+	return dx*dx + dy*dy
 end
 
 --- Calcualates dot product
