@@ -91,17 +91,27 @@ local function getBallOwner(robotlist, lastBallOwner)
 	if not ballOwnerEllipticCache["ballInDangerRating"] then
 		local ballInDangerRating = 0
 		for _, r in ipairs(World.Robots) do
-			local dist = ellipticDistance(r, World.Ball.pos)
+			local dist
+			-- pre filter robots
+			-- dist = max(ballInDangerMaxDist, ballOwnDistance) + 2 * robot.radius
+			-- = 0.3 + 0.18 = 0.5
+			if r.pos:distanceToSq(World.Ball.pos) > 0.5 * 0.5 then
+				dist = 0.5
+			else
+				dist = ellipticDistance(r, World.Ball.pos)
+			end
 			ballOwnerEllipticCache[r] = dist
 			if dist < 0.05 then
 				ballInDangerRating = ballInDangerRating + 1
 			elseif dist < 0.30 then
+				-- distance must correlate to pre filter distance
 				ballInDangerRating = ballInDangerRating + (0.30 - dist)*4
 			end
 		end
 		ballOwnerEllipticCache["ballInDangerRating"] = ballInDangerRating
 	end
 	local ballInDangerRating = ballOwnerEllipticCache["ballInDangerRating"]
+	-- distance must correlate to pre filter distance
 	local ballOwnDistance = 0.2 - math.min(ballInDangerRating, 2)*0.04
 
 	-- search robot with min dist to ball
