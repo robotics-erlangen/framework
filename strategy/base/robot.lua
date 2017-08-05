@@ -103,6 +103,7 @@ function Robot:init(data, isFriendly)
 	self._dribblerSpeed = nil
 	self._standbyTimer = nil
 	self._standbyTick = nil
+	self._toStringCache = nil
 	self.radioResponse = nil
 	self.isVisible = nil
 	self.pos = nil
@@ -113,10 +114,15 @@ function Robot:init(data, isFriendly)
 end
 
 function Robot:__tostring()
-	if not self.pos or not self.id then
-		return string.format("Robot(%s)", self.id and tostring(self.id) or "?")
+	if self._toStringCache then
+		return self._toStringCache
 	end
-	return string.format("Robot(%d, pos%s)", self.id, tostring(self.pos))
+	if not self.pos or not self.id then
+		self._toStringCache = string.format("Robot(%s)", self.id and tostring(self.id) or "?")
+	else
+		self._toStringCache = string.format("Robot(%d, pos%s)", self.id, tostring(self.pos))
+	end
+	return self._toStringCache
 end
 
 -- reset robot commands and update data
@@ -147,6 +153,7 @@ function Robot:_update(state, time, radioResponses)
 		return
 	end
 
+	self._toStringCache = nil
 	self.isVisible = true
 	self.pos = Coordinates.toLocal(Vector.createReadOnly(state.p_x, state.p_y))
 	self.dir = Coordinates.toLocal(state.phi)
