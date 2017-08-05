@@ -34,8 +34,8 @@ local function visualizeZone(zone)
 	local right = zone.boundaries.right - edge
 	local top = zone.boundaries.top - edge
 	local bottom = zone.boundaries.bottom + edge
-	local points = { Vector(left, top), Vector(left, bottom), Vector(right, bottom), Vector(right, top), Vector(left, top) }
-	vis.addPath("g/striker: Zones", points, vis.colors.gold, nil, nil, 0.02)
+	local points = { Vector(left, top), Vector(left, bottom), Vector(right, bottom), Vector(right, top) }
+	vis.addPolygon("g/striker: Zones", points, vis.colors.gold, nil, nil, 0.02)
 end
 
 local function assignRobotsToZones(robotPositions, zones)

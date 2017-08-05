@@ -17,17 +17,18 @@ local accelerationSmoothed = {}
 local alpha = 0.02
 function Robot.estimateOpponentDynamics()
 	local nullVector = Vector(0,0)
+	local invTimeDiff = (1 / World.TimeDiff)
 	for _, robot in ipairs(World.OpponentRobots) do
 		local localRobotSpeed = robot.speed:copy():rotate(-robot.dir)
 		localRobotSpeed.x = math.abs(localRobotSpeed.x)
 		localRobotSpeed.y = math.abs(localRobotSpeed.y)
 		local localRobotDir = math.abs(robot.angularSpeed)
 		if lastLocalSpeed[robot] then
-			local accel = (localRobotSpeed - lastLocalSpeed[robot]) / World.TimeDiff -- classic derivative without smoothing
-			accelerationSmoothed[robot] = accel * alpha + (accelerationSmoothed[robot] or nullVector) * (1 - alpha) -- smoothed acceleration curve
+			local accel = (localRobotSpeed - lastLocalSpeed[robot]):scaleLength(invTimeDiff)  -- classic derivative without smoothing
+			accelerationSmoothed[robot] = accel:scaleLength(alpha) + (accelerationSmoothed[robot] or nullVector) * (1 - alpha) -- smoothed acceleration curve
 		end
 		if lastRotation[robot] then
-			local accel = (localRobotDir - lastRotation[robot]) / World.TimeDiff
+			local accel = (localRobotDir - lastRotation[robot]) * invTimeDiff
 			rotationAcclerationSmoothed[robot] = accel * alpha + (rotationAcclerationSmoothed[robot] or 0) * (1 - alpha)
 		end
 		speedSmoothed[robot] = robot.speed:length() * alpha + (speedSmoothed[robot] or 0) * (1 - alpha)
@@ -91,7 +92,8 @@ end
 
 function Robot._updateTouchedBall()
 	for _,r in ipairs(World.Robots) do
-		if r.pos:distanceTo(World.Ball.pos) < r.radius + World.Ball.radius + Constants.positionError then
+		local touchDist = World.Ball.radius + Constants.positionError + r.radius
+		if r.pos:distanceToSq(World.Ball.pos) < touchDist * touchDist then
 			touchedByBall[r] = World.Time
 		end
 	end
