@@ -34,7 +34,9 @@ void BacklogWriter::handleStatus(const Status &status)
     QByteArray packetData;
     packetData.resize(status->ByteSize());
     if (status->IsInitialized() && status->SerializeToArray(packetData.data(), packetData.size())) {
-        m_packets.append(qCompress(packetData));
+        // compress the status to save a lot of memory, but be quick
+        // the packets are uncompressed before writing to a logfile
+        m_packets.append(qCompress(packetData, 1));
     }
 }
 
