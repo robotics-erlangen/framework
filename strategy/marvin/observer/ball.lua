@@ -173,7 +173,8 @@ end
 
 local ballRecipients = {}
 function Ball._updateReceivesPass()
-	if World.Ball.speed:length() < 0.5 then
+	local ballSpeed = World.Ball.speed:length()
+	if ballSpeed < 0.5 then
 		ballRecipients = {}
 		return
 	end
@@ -190,10 +191,19 @@ function Ball._updateReceivesPass()
 		-- check if the robot is inside the cone (hysteresis)
 		local coneWidth = ballRecipients[robot] and coneWidthLarge or coneWidthSmall
 		local coneAngleMin = ballRecipients[robot] and coneAngleMinLarge or coneAngleMinSmall
-		local robotTime = math.bound(0, ObserverRobot.minTimeToBall(robot), 0.4)
+
+		local maxRobotTime = 0.4
+		local robotBallDistance = World.Ball.pos:distanceTo(robot.pos)
+		local maxMoveDistance = (ballSpeed + robot.maxSpeed) * maxRobotTime
+		local robotTime
+		if maxMoveDistance < robotBallDistance then
+			robotTime = maxRobotTime
+		else
+			robotTime = math.bound(0, ObserverRobot.minTimeToBall(robot), maxRobotTime)
+		end
 		local extrapolatedRobotPos = robot.pos + robot.speed * robotTime
 		local toRobotAngle = (extrapolatedRobotPos - World.Ball.pos):angle()
-		if World.Ball.pos:distanceTo(robot.pos) > World.Ball.radius + robot.shootRadius
+		if robotBallDistance > World.Ball.radius + robot.shootRadius
 				and geom.normalizeAnglePositive(toRobotAngle - coneAngleMin) > coneWidth then
 			goto continue
 		end
