@@ -378,13 +378,23 @@ end
 -- @return boolean - has ball
 function Robot:hasBall(ball, sideOffset, manualHasBallDistance)
 	sideOffset = sideOffset or 0
+	local hasBallDistance = (manualHasBallDistance or self.constants.hasBallDistance)
 
 	-- handle sidewards balls, add extra time for strategy timing jitter
 	local latencyCompensation = (ball.speed - self.speed):scaleLength(Constants.systemLatency + 0.03)
+	local lclen = latencyCompensation:length()
+
+	-- fast fail
+	local approxMaxDist = lclen + hasBallDistance + self.shootRadius + ball.radius + self.dribblerWidth / 2 + sideOffset
+	if ball.pos:distanceToSq(self.pos) > approxMaxDist * approxMaxDist then
+		-- reset hystersis
+		self._hasBall[sideOffset] = false
+		return false
+	end
+
 	-- interpolate vector used for correction to circumvent noise
 	local MIN_COMPENSATION = 0.005
 	local BOUND_COMPENSATION_ANGLE = 70/180*math.pi
-	local lclen = latencyCompensation:length()
 	if lclen < MIN_COMPENSATION then
 		latencyCompensation = Vector(0, 0)
 	elseif lclen < 2*MIN_COMPENSATION then
@@ -406,9 +416,9 @@ function Robot:hasBall(ball, sideOffset, manualHasBallDistance)
 
 	-- add hasBallDistance
 	if lclen <= 0.001 then
-		latencyCompensation = Vector((manualHasBallDistance or self.constants.hasBallDistance), 0)
+		latencyCompensation = Vector(hasBallDistance, 0)
 	else
-		latencyCompensation = latencyCompensation:setLength(lclen + (manualHasBallDistance or self.constants.hasBallDistance))
+		latencyCompensation = latencyCompensation:setLength(lclen + hasBallDistance)
 	end
 
 	-- Ball position relative to dribbler mid
