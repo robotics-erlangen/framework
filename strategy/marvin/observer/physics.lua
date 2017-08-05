@@ -224,7 +224,7 @@ end
 
 --- estimates the time the ball needs to travel for a chip pass from startPos to endPos
 function Physics.chipPassTime(startPos, endPos)
-	local dist = (endPos - startPos):length()
+	local dist = endPos:distanceTo(startPos)
 	local zSpeed = Physics.calculateChipSpeed(dist)
 	local ball = {
 		posZ = 0,

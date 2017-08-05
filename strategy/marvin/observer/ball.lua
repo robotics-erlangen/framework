@@ -41,7 +41,7 @@ function Ball.opponentBallDribbler()
 	for _, robot in ipairs(World.OpponentRobots) do
 		local distance = robot.pos:distanceTo(World.Ball.pos)
 		local direction = Vector.fromAngle(robot.dir)
-		if (robot.speed - World.Ball.speed):length() < MAX_SPEED_DIFF 
+		if robot.speed:distanceTo(World.Ball.speed) < MAX_SPEED_DIFF
 				and (SLOW_BALL or robot.speed:angleDiff(World.Ball.speed) < MAX_ANGLE_TO_BALL_SPEED)
 				and distance < MAX_DISTANCE and distance < bestDist
 				and World.Ball.posZ < 0.1

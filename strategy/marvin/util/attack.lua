@@ -64,7 +64,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 		local intersection = Field.intersectRayDefenseArea(opp.pos, orthogonalProjection - opp.pos, 0, true)
 		local validIntersection = false
 		if intersection then
-			validIntersection = Field.isInField(intersection) and (opp.pos - intersection):length() < (opp.pos - orthogonalProjection):length()
+			validIntersection = Field.isInField(intersection) and opp.pos:distanceTo(intersection) < opp.pos:distanceTo(orthogonalProjection)
 			if validIntersection then
 				vis.addCircle("u/a/ratePass", intersection, 0.05, vis.colors.red, true)
 				vis.addPath("u/a/ratePass", {opp.pos, intersection}, vis.colors.slate, true)
@@ -79,9 +79,9 @@ function Attack.ratePass(robot, pass, considerTiming)
 			vis.addPath("u/a/ratePass", {opp.pos, passInterception}, vis.colors.blue, true)
 
 			-- calculate the time the ball needs to arrive at the intersection point
-			local shootSpeed = Vector(1,1):setLength(robot:calculateShootSpeed(3, (shootPos-pass.ballPos):length())) -- direction doesn't actually matter
+			local shootSpeed = Vector(1,1):setLength(robot:calculateShootSpeed(3, shootPos:distanceTo(pass.ballPos))) -- direction doesn't actually matter
 			local fakeBall = {speed = shootSpeed, maxSpeed = shootSpeed:length()}
-			local ballRollTime = Physics.ballRollTime(fakeBall, (passInterception - shootPos):length() - World.Ball.radius - opp.shootRadius)
+			local ballRollTime = Physics.ballRollTime(fakeBall, passInterception:distanceTo(shootPos) - World.Ball.radius - opp.shootRadius)
 
 			-- calculate the time the robot needs to arrive at the intersection point
 			-- to achieve more relevant results, the speed component parallel to the pass trajectory is ignored

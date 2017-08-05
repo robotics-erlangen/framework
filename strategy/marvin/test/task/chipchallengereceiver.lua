@@ -23,7 +23,7 @@ function ChipChallengeReceiver:run()
 
 
     local kickingRobot = World.OpponentRobots[1]
-    if self._ballKicked and kickingRobot and (kickingRobot.pos-World.Ball.pos):length() > 1.5 then
+    if self._ballKicked and kickingRobot and kickingRobot.pos:distanceTo(World.Ball.pos) > 1.5 then
         self._moveDest = World.Ball.touchdownPos
     elseif kickingRobot and World.Ball.speed:length() < 0.3 then
         debug.set("ball speed", World.Ball.speed:length())

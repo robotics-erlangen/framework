@@ -27,7 +27,7 @@ function BallTest.testBallCatchProbability()
 		local corridorHalf = World.Ball.speed:perpendicular():setLength(World.Ball.radius + Constants.positionError) * 2
 		for _,robot in ipairs(World.OpponentRobots) do
 			local pointOnLine = robot.pos:nearestPosOnLine(World.Ball.pos, endOfField)
-			local ballRollTime = Physics.ballRollTime(World.Ball, (pointOnLine - World.Ball.pos):length())
+			local ballRollTime = Physics.ballRollTime(World.Ball, pointOnLine:distanceTo(World.Ball.pos))
 			local chance = Ball.ballCatchProbability(robot, 0, ballRollTime, pointOnLine, corridorHalf)
 			if chance == chance then
 				vis.addCircle("test: BallCatchProb", robot.pos, 0.2, vis.fromTemperature(chance), true)
