@@ -1,5 +1,19 @@
+#.rst:
+# FindJemalloc
+# -------
+#
+# Finds the jemalloc library
+#
+# This will define the following variables::
+#
+#   JEMALLOC_FOUND - True if the system has the jemalloc library
+#
+# and the following imported targets::
+#
+#   lib::jemalloc  - The jemalloc library
+
 # ***************************************************************************
-# *   Copyright 2016 Michael Eischer                                        *
+# *   Copyright 2017 Michael Eischer                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,23 +32,52 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
-    amuncli.cpp
-    connector.cpp
-    connector.h
+find_path(JEMALLOC_INCLUDE_DIR
+  NAMES jemalloc.h
+  HINTS $ENV{JEMALLOC_DIR}
+  PATH_SUFFIXES include/jemalloc
+  PATHS
+    ~/Library/Frameworks
+    /Library/Frameworks
+    /usr/local
+    /usr
+    /sw # Fink
+    /opt/local # DarwinPorts
+    /opt/csw # Blastwave
+    /opt
 )
 
-add_executable(amun-cli ${SOURCES} ${UIC_SOURCES})
-target_link_libraries(amun-cli
-    amun::amun
-    shared::protobuf
-    ${CMAKE_THREAD_LIBS_INIT}
-    Qt5::Core
+find_library(JEMALLOC_LIBRARY
+  NAMES jemalloc
+  HINTS $ENV{JEMALLOC_DIR}
+  PATH_SUFFIXES lib64 lib
+  PATHS
+    ~/Library/Frameworks
+    /Library/Frameworks
+    /usr/local
+    /usr
+    /sw
+    /opt/local
+    /opt/csw
+    /opt
 )
-target_include_directories(amun-cli
-    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+
+include(FindPackageHandleStandardArgs)
+find_package_handle_standard_args(JEMALLOC
+  FOUND_VAR JEMALLOC_FOUND
+  REQUIRED_VARS
+    JEMALLOC_LIBRARY
+    JEMALLOC_INCLUDE_DIR
 )
-if (JEMALLOC_FOUND)
-    target_link_libraries(amun-cli lib::jemalloc)
-endif(JEMALLOC_FOUND)
+mark_as_advanced(
+  JEMALLOC_INCLUDE_DIR
+  JEMALLOC_LIBRARY
+)
+
+if(JEMALLOC_FOUND)
+  add_library(lib::jemalloc UNKNOWN IMPORTED)
+  set_target_properties(lib::jemalloc PROPERTIES
+    IMPORTED_LOCATION "${JEMALLOC_LIBRARY}"
+    INTERFACE_INCLUDE_DIRECTORIES "${JEMALLOC_INCLUDE_DIR}"
+  )
+endif()

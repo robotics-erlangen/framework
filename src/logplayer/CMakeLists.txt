@@ -68,6 +68,9 @@ target_include_directories(logplayer
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+if (JEMALLOC_FOUND)
+    target_link_libraries(logplayer lib::jemalloc)
+endif(JEMALLOC_FOUND)
 
 # add plist file
 if(APPLE)

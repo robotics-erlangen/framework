@@ -96,6 +96,9 @@ target_include_directories(ra
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+if (JEMALLOC_FOUND)
+    target_link_libraries(ra lib::jemalloc)
+endif(JEMALLOC_FOUND)
 
 # add plist file
 if(APPLE)

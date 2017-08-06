@@ -56,4 +56,7 @@ target_include_directories(visionanalyzer
 target_compile_options(visionanalyzer
     PRIVATE "-DENABLE_TRACKING_DEBUG"
 )
+if (JEMALLOC_FOUND)
+    target_link_libraries(visionanalyzer PRIVATE lib::jemalloc)
+endif(JEMALLOC_FOUND)
 
