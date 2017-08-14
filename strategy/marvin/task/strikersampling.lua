@@ -81,7 +81,7 @@ end
 -- 	local distToGoal = ballPos:distanceTo(World.Geometry.OpponentGoal)
 -- 	local currentDistToGoal = self._attackPosition:distanceTo(World.Geometry.OpponentGoal)
 -- 	local bestAdvance = World.Geometry.FieldHeightHalf * 0.3
--- 	local 
+-- 	local
 -- 	local distAdvance = currentDistToGoal - distToGoal - bestAdvance
 -- 	local rating = 1 / (distAdvance * distAdvance / World.Geometry.FieldHeight + 1)
 -- 	visualizeRating("advance", ballPos, rating)

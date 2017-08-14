@@ -130,7 +130,7 @@ function PenaltyShootout:_updateTask()
 	elseif self._shootGoalFlag then
 		return ShootGoal, {nil, self._forceDesperate}
 	elseif self._contactPoint and self._contactPoint:distanceTo(World.Ball.pos) > 1 then
-		--log("distance: "..self._contactPoint:distanceTo(self._robot.pos))		
+		--log("distance: "..self._contactPoint:distanceTo(self._robot.pos))
 		return StopAttack
 	else
 		return Dribble, {Vector(0, G.FieldHeightHalf - G.DefenseRadius - 0.2)}
