@@ -24,6 +24,7 @@ set(SOURCES
     include/widgets/logwidget.h
     include/widgets/refereestatuswidget.h
     include/widgets/timingwidget.h
+    include/widgets/visualizationproxymodel.h
     include/widgets/visualizationwidget.h
     include/widgets/teamwidget.h
 
@@ -36,6 +37,7 @@ set(SOURCES
     savesituation.cpp
     savesituation.h
     timingwidget.cpp
+    visualizationproxymodel.cpp
     visualizationwidget.cpp
     teamwidget.cpp
 )

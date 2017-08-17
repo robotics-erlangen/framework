@@ -20,10 +20,10 @@
 
 #include "visualizationwidget.h"
 #include "ui_visualizationwidget.h"
+#include "visualizationproxymodel.h"
 #include "guihelper/guitimer.h"
 #include <QMenu>
 #include <QSettings>
-#include <QSortFilterProxyModel>
 #include <QStandardItemModel>
 
 VisualizationWidget::VisualizationWidget(QWidget *parent) :
@@ -35,7 +35,7 @@ VisualizationWidget::VisualizationWidget(QWidget *parent) :
     // create item model
     m_model = new QStandardItemModel(this);
 
-    m_proxy = new QSortFilterProxyModel(this);
+    m_proxy = new VisualizationProxyModel(this);
     m_proxy->setFilterCaseSensitivity(Qt::CaseInsensitive);
     m_proxy->setSourceModel(m_model);
 
@@ -91,7 +91,7 @@ void VisualizationWidget::load()
     s.endGroup();
 
     // just sort the model afterwards
-    m_model->sort(0);
+    m_proxy->sort(0);
 
     sendItemsChanged();
 }
@@ -127,7 +127,7 @@ void VisualizationWidget::handleStatus(const Status &status)
                 entry = qMakePair(item, m_time);
                 m_model->appendRow(item);
                 // new visualizations are rarely added, just sort everything
-                m_model->sort(0);
+                m_proxy->sort(0);
             }
 
             // mark as visible
@@ -192,6 +192,7 @@ void VisualizationWidget::itemChanged(QStandardItem *item)
     }
 
     if (changed) {
+        m_proxy->sort(0);
         sendItemsChanged();
     }
 }
