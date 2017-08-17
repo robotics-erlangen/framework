@@ -25,8 +25,6 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
     connect(ui->replayYellow, SIGNAL(clicked(bool)), this, SIGNAL(enableStrategyYellow(bool)));
     connect(ui->replayBlue, SIGNAL(clicked(bool)), ui->blue, SLOT(resendAll(bool)));
     connect(ui->replayYellow, SIGNAL(clicked(bool)), ui->yellow, SLOT(resendAll(bool)));
-    connect(ui->replayBlue, SIGNAL(clicked(bool)), this, SLOT(toggleStrategy()));
-    connect(ui->replayYellow, SIGNAL(clicked(bool)), this, SLOT(toggleStrategy()));
 
     connect(ui->blue, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
     connect(ui->yellow, SIGNAL(sendCommand(Command)), this, SIGNAL(sendCommand(Command)));
@@ -47,15 +45,6 @@ ReplayTeamWidget::~ReplayTeamWidget()
     s.setValue("RecentScripts", m_recentScripts);
     s.endGroup();
     delete ui;
-}
-
-void ReplayTeamWidget::toggleStrategy()
-{
-    if (replayBlueEnabled() || replayYellowEnabled()) {
-        emit enableLogging(true);
-    } else {
-        emit enableLogging(false);
-    }
 }
 
 bool ReplayTeamWidget::replayBlueEnabled() const

@@ -154,10 +154,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
     connect(ui->replay, SIGNAL(saveBacklog()), &m_logWriter, SLOT(backLogButtonClicked()));
     connect(ui->replay, SIGNAL(enableRecording(bool)), &m_logWriter, SLOT(recordButtonToggled(bool)));
-    connect(ui->replay, SIGNAL(enableLogging(bool)), &m_logWriter, SLOT(enableLogging(bool)));
     connect(&m_logWriter, SIGNAL(enableBacklogButton(bool)), ui->replay, SIGNAL(enableBackLogLogButton(bool)));
     connect(&m_logWriter, SIGNAL(enableRecordButton(bool)), ui->replay, SIGNAL(enableLogLogButton(bool)));
-    connect(&m_logWriter, SIGNAL(enableBacklogButton(bool)), ui->replay, SIGNAL(enableBackLogLogButton(bool)));
     connect(&m_logWriter, SIGNAL(setRecordButton(bool)), ui->replay, SIGNAL(setLogLogButton(bool)));
 
     // disable all possibilities of skipping / going back packets when recording

@@ -30,11 +30,7 @@ signals:
     void enableRecording(bool enabled);
     void enableBackLogLogButton(bool enable);
     void enableLogLogButton(bool enable);
-    void enableLogging(bool enable);
     void setLogLogButton(bool on);
-
-private slots:
-    void toggleStrategy();
 
 private:
     Ui::ReplayTeamWidget *ui;

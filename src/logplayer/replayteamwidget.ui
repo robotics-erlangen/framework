@@ -60,7 +60,7 @@
      <item>
       <widget class="QCheckBox" name="loglog">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="text">
         <string>LogLog</string>
@@ -70,7 +70,7 @@
      <item>
       <widget class="QPushButton" name="backloglog">
        <property name="enabled">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
        <property name="text">
         <string>BackLogLog</string>
