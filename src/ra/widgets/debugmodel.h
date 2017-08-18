@@ -47,6 +47,7 @@ private:
 
 private:
     QHash<int, QStandardItem*> m_itemRoots;
+    QHash<int, int> m_debugSourceCounter;
     Map m_entryMap;
     QHash<int, Map> m_debug;
 };

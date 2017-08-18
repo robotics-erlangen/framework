@@ -310,9 +310,21 @@ void FieldWidget::handleStatus(const Status &status)
         m_guiTimer->requestTriggering();
     }
 
+    for (auto it = m_debugSourceCounter.begin(); it != m_debugSourceCounter.end(); it++) {
+        // don't try to clear multiple times
+        if (it.value() >= 0) {
+            it.value()++;
+        }
+        if (it.value() > 100) {
+            it.value() = -1;
+            m_visualizations.remove(it.key());
+            m_guiTimer->requestTriggering();
+        }
+    }
     if (status->has_debug()) {
         // just save status to avoid copying the visualizations
         m_visualizations[status->debug().source()] = status;
+        m_debugSourceCounter[status->debug().source()] = 0;
         m_visualizationsUpdated = true;
         m_guiTimer->requestTriggering();
     }

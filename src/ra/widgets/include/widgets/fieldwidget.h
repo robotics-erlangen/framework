@@ -183,6 +183,7 @@ private:
     QMap<int, bool> m_visibleVisSources;
     // save status to avoid copying the debug values
     QMap<int, Status> m_visualizations;
+    QMap<int, int> m_debugSourceCounter;
     bool m_visualizationsUpdated;
     amun::GameState m_gameState;
 

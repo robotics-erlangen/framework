@@ -70,6 +70,20 @@ void DebugModel::clearData()
 
 void DebugModel::setDebug(const amun::DebugValues &debug, const QSet<QString> &debug_expanded)
 {
+    m_debugSourceCounter[debug.source()] = 0;
+    for (auto it = m_debugSourceCounter.begin(); it != m_debugSourceCounter.end(); it++) {
+        // don't try to clear multiple times
+        if (it.value() >= 0) {
+            it.value()++;
+        }
+        if (it.value() > 50) {
+            it.value() = -1;
+            amun::DebugValues debug;
+            debug.set_source((amun::DebugSource)it.key());
+            setDebug(debug, QSet<QString>());
+        }
+    }
+
     Map &map = m_debug[debug.source()];
 
     QStandardItem *parentItem = m_itemRoots.value(debug.source());
