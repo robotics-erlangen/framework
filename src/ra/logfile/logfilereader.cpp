@@ -62,6 +62,7 @@ bool LogFileReader::open(const QString &filename)
     int packetIndex = 0;
 
     // index the whole file
+    qint64 lastTime = 0;
     while (!m_stream.atEnd()) {
         const qint64 offset = m_file.pos();
         packetIndex++;
@@ -80,10 +81,18 @@ bool LogFileReader::open(const QString &filename)
 
         // a timestamp of 0 indicates a invalid packet
         if (time != 0) {
+            // timestamps that are too far apart mean that the logfile is corrupt
+            if (lastTime != 0 && (time - lastTime < 0 || time - lastTime > 1000000000)) {
+                m_errorMsg = "Invalid or corrupt logfile";
+                m_file.close();
+                return false;
+            }
+
             // remember the start of the current frame
             m_packets.append(offset);
             m_timings.append(time);
         }
+        lastTime = time;
     }
     if (m_packets.size() == 0) {
         m_errorMsg = "Invalid or empty logfile";
