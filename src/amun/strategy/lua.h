@@ -49,11 +49,11 @@ public:
     bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput) override;
     bool triggerDebugger() override;
 
-    world::Geometry geometry() const { return m_geometry; }
-    robot::Team team() const { return m_team; }
-    world::State worldState() const { return m_worldState; }
-    amun::GameState refereeState() const { return m_refereeState; }
-    amun::UserInput userInput() const { return m_userInput; }
+    const world::Geometry& geometry() const { return m_geometry; }
+    const robot::Team& team() const { return m_team; }
+    const world::State& worldState() const { return m_worldState; }
+    const amun::GameState& refereeState() const { return m_refereeState; }
+    const amun::UserInput& userInput() const { return m_userInput; }
     qint64 startTime() const { return m_startTime; }
     qint64 time() const;
     bool isBlue() const { return m_type == StrategyType::BLUE; }
