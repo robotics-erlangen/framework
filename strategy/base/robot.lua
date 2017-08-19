@@ -97,13 +97,13 @@ function Robot:init(data, isFriendly)
 	end
 	self._currentTime = 0
 	self._controllerInput = nil
-	self._kickStyle = nil
-	self._kickPower = nil
+	self._kickStyle = false
+	self._kickPower = 0
 	self._forceKick = false
-	self._dribblerSpeed = nil
-	self._standbyTimer = nil
-	self._standbyTick = nil
-	self._toStringCache = nil
+	self._dribblerSpeed = 0
+	self._standbyTimer = -1
+	self._standbyTick = false
+	self._toStringCache = ""
 	self.radioResponse = nil
 	self.isVisible = nil
 	self.pos = nil
@@ -114,7 +114,7 @@ function Robot:init(data, isFriendly)
 end
 
 function Robot:__tostring()
-	if self._toStringCache then
+	if self._toStringCache ~= "" then
 		return self._toStringCache
 	end
 	if not self.pos or not self.id then
@@ -132,7 +132,7 @@ function Robot:_update(state, time, radioResponses)
 	-- bypass override check in setControllerInput
 	self._controllerInput = {} -- halt robot by default
 	self:shootDisable() -- disable shoot
-	self:setDribblerSpeed(nil) -- stop dribbler
+	self:setDribblerSpeed(0) -- stop dribbler
 	self:setStandby(nil) -- activate robot
 
 	if radioResponses and #radioResponses > 0 then
@@ -153,7 +153,7 @@ function Robot:_update(state, time, radioResponses)
 		return
 	end
 
-	self._toStringCache = nil
+	self._toStringCache = ""
 	self.isVisible = true
 	self.pos = Coordinates.toLocal(Vector.createReadOnly(state.p_x, state.p_y))
 	self.dir = Coordinates.toLocal(state.phi)
@@ -237,8 +237,8 @@ function Robot:_command()
 		v_f = self._controllerInput and self._controllerInput.v_f,
 		v_s = self._controllerInput and self._controllerInput.v_s,
 		omega = self._controllerInput and self._controllerInput.omega,
-		kick_style = self._kickStyle,
-		kick_power = self._kickPower,
+		kick_style = self._kickStyle or nil,
+		kick_power = self._kickPower > 0 and self._kickPower or nil,
 		force_kick = self._forceKick,
 		dribbler = self._dribblerSpeed,
 		standby = standby
@@ -258,8 +258,8 @@ end
 
 --- Disable shoot
 function Robot:shootDisable()
-	self._kickStyle = nil
-	self._kickPower = nil
+	self._kickStyle = false
+	self._kickPower = 0
 	self._forceKick = false
 end
 
@@ -303,14 +303,14 @@ end
 function Robot:setStandby(standby)
 	if standby then
 		-- start timer
-		if not self._standbyTimer then
+		if self._standbyTimer < 0 then
 			self._standbyTimer = self._currentTime
 		end
 		self._standbyTick = true
 	else
 		-- disable standby if disabled two times in a row
 		if not self._standbyTick then
-			self._standbyTimer = nil
+			self._standbyTimer = -1
 		end
 		self._standbyTick = false
 	end
