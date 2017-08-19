@@ -19,7 +19,7 @@ Certain features require additional libraries:
  * libudev - Required for joystick support (only required if libsdl2 is not available via the package manager)
 
 ## Linux
-Names of required package for Ubuntu 16.04: `cmake protobuf-compiler qtbase5-dev libsdl2-dev libusb-1.0-0-dev g++`
+Names of required package for Ubuntu 16.04: `cmake protobuf-compiler libprotobuf-dev qtbase5-dev libsdl2-dev libusb-1.0-0-dev g++`
 
 The recommended way of building a project with CMake is by doing an
 out-of-source build. This can be done like this:
