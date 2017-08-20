@@ -40,11 +40,12 @@ function geom.intersectCircleCircle(c1, r1, c2, r2)
 	if dist > r1 + r2 then return nil
 	elseif dist == r1 + r2 then return c1 + (c1-c2):scaleLength(0.5)
 	elseif dist < r1 + r2 then
-		local a1 = (r1*r1 - r2*r2 - c1.x*c1.x + c2.x*c2.x - c1.y*c1.y + c2.y*c2.y) / (2*c2.x - 2*c1.x)
-		local a2 = (c1.y - c2.y) / (c2.x - c1.x)
+		local c1x, c1y, c2x, c2y = c1.x, c1.y, c2.x, c2.y
+		local a1 = (r1*r1 - r2*r2 - c1x*c1x + c2x*c2x - c1y*c1y + c2y*c2y) / (2*c2x - 2*c1x)
+		local a2 = (c1y - c2y) / (c2x - c1x)
 		local k1 = 1 + (1 / (a2*a2))
-		local k2 = 2*c1.x + (2*c1.y)/a2 + (2*a1)/(a2*a2)
-		local k3 = c1.x*c1.x + (a1*a1)/(a2*a2) + (2*c1.y*a1)/a2 + (c1.y*c1.y) - (r1*r1)
+		local k2 = 2*c1x + (2*c1y)/a2 + (2*a1)/(a2*a2)
+		local k3 = c1x*c1x + (a1*a1)/(a2*a2) + (2*c1y*a1)/a2 + (c1y*c1y) - (r1*r1)
 
 		local finalX1 = ((k2/k1) / 2) + math.sqrt( ((k2/k1)*(k2/k1) / 4) - (k3/k1) )
 		local finalX2 = ((k2/k1) / 2) - math.sqrt( ((k2/k1)*(k2/k1) / 4) - (k3/k1) )
