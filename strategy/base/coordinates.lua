@@ -54,13 +54,15 @@ separator for luadoc]]--
 separator for luadoc]]--
 
 local function invertCoordinates(data)
-	assert(nil ~= data, "nil isn't a coordinate")
-	if type(data) == "number" then
+	local dtype = type(data)
+	if dtype == "number" then
 		if data > math.pi then
 			return data - math.pi
 		else
 			return data + math.pi
 		end
+	elseif dtype == "nil" then
+		error("nil isn't a coordinate")
 	else
 		return Vector(-data.x, -data.y, data:isReadonly())
 	end
