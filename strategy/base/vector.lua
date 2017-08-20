@@ -48,7 +48,7 @@ local mt = {
 	__mul = function(a, b) return vector_c(a.x*b, a.y*b) end,
 	__div = function(a, b) return vector_c(a.x/b, a.y/b) end,
 	-- check that b is not nil, take care to not trigger __eq
-	__eq = function(a, b) return type(a) ~= "nil" and type(b) ~= "nil" and (a.x == b.x) and (a.y == b.y) end,
+	__eq = function(a, b) return type(b) ~= "nil" and (a.x == b.x) and (a.y == b.y) end,
 	__len = function(a) return sqrt(a.x*a.x + a.y*a.y) end,
 	__tostring = function(a) return format("(%.4f, %.4f)", a.x, a.y) end,
 	__index = vector_mt,
