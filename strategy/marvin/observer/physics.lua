@@ -423,12 +423,28 @@ function Physics.robotTimeToPos(robot, endPos, endSpeedVector) --, debugFlag)
 		return 0, 0
 	end
 
+	-- given currentSpeed, currentPos, endPos and corridorWidth calculate a curve.
+	-- the curve has to stay in the corridor, while being as fast as possible.
 	local rawAngleDiff = (endPos - startPos):absoluteAngleDiff(startSpeed)
 	local absAngleDiff = math.min(math.abs(rawAngleDiff), math.pi - 0.001)
 
-	-- calculate curve radius and speed
+	-- Let ABCM be the quadrilateral where A is the point where the robot is
+	-- B the hypothetical point where we stop and change direction,
+	-- C the point where we start to drive straight again,
+	-- M the center of the circlesegment AC.
+	-- We want to know the radius for the curve, that is length([AM]).
+
+	-- Angle MAB and angle BCM are pi/2, because BC and AB are tangents to the circle.
+	-- Triangle AMC is isosceles, because length([AM]) = length([MC]) = radius r.
+	-- These two facts make sure that Angle MBC = Angle ABM and therefore both of them are 1/2 * Angle ABC = (pi - absAngleDiff)/2
+	-- Now look at triangle ABM: Angle MAB is pi/2, Angle ABM is known too. length([BM]) = e + length(AM), where e is corridorWidth / 2
+
+	-- sin(Angle ABM) * length([BM]) = length([AM]) <=> sin(Angle ABM) * (e+r) = r <=> sin(ABM) * e + sin(ABM) * r = r
+	-- <=> sin(ABM) * e = r - sin(ABM) r <=> sin(ABM) * e = r (1-sin(ABM)) <=> sin(ABM) * e / (1-sin(ABM)) = r
 	local angleSin = math.sin((math.pi - absAngleDiff)/2)
 	local radius = maxError * angleSin / (1 - angleSin) * 0.5
+
+
 	local maxCurveSpeed = math.sqrt(hardBrakeAccel * radius)
 	if maxCurveSpeed > currentSpeed then
 		radius = currentSpeed * currentSpeed / hardBrakeAccel
