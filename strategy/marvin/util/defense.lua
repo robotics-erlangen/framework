@@ -183,4 +183,46 @@ local function rateOpponentDangerousness()
 end
 Defense.rateOpponentDangerousness = Cache.forFrame(rateOpponentDangerousness)
 
+-- this function searches for a position between boundaryOne and boundaryTwo to which the robot will take
+-- the shortest amount of time, up to a precision value, using a ternary algorithm
+function Defense.findBestPointToBlockOpponentShot(robot, boundaryOne, boundaryTwo, timeToBoundaryOne, timeToBoundaryTwo, precision)
+	-- time diff between the two bounds
+	if math.abs(timeToBoundaryOne - timeToBoundaryTwo) < precision or
+			boundaryOne:distanceTo(boundaryTwo) < 0.005 then
+		return boundaryOne
+	end
+
+	-- calculate two new positions on the line
+	local leftThird = (boundaryOne * 2 + boundaryTwo) / 3
+	local rightThird = (boundaryOne + boundaryTwo * 2) / 3
+
+	-- calculate time to the new positions
+	local timeToLeftThird = Physics.robotTimeToPos(robot, leftThird, Vector(0, 0), false, false)
+	local timeToRightThird = Physics.robotTimeToPos(robot, rightThird, Vector(0,0), false, false)
+
+	-- depending on which time is smaller recursively call the function with new boundaries
+	if timeToLeftThird < timeToRightThird then
+		return Defense.findBestPointToBlockOpponentShot(robot, boundaryOne, rightThird, timeToBoundaryOne, timeToRightThird, precision)
+	else
+		return Defense.findBestPointToBlockOpponentShot(robot, leftThird, boundaryTwo, timeToLeftThird, timeToBoundaryTwo, precision)
+	end
+end
+
+-- this function calculates a new position between boundaryOne and boundaryTwo regarding the oldPosition
+function Defense.fastestPointInInterval(robot, boundaryOne, boundaryTwo, oldPos, precision, blockAlpha)
+	-- time to the boundaries
+	local timeToBoundaryOne = Physics.robotTimeToPos(robot, boundaryOne, Vector(0, 0), false, false)
+	local timeToBoundaryTwo = Physics.robotTimeToPos(robot, boundaryTwo, Vector(0, 0), false, false)
+
+	local newPos = Defense.findBestPointToBlockOpponentShot(robot, boundaryOne, boundaryTwo, timeToBoundaryOne, timeToBoundaryTwo, precision)
+	if oldPos then
+		oldPos = oldPos:nearestPosOnLine(boundaryOne, boundaryTwo)
+	else
+		oldPos = newPos
+	end
+
+	-- don't let the postion jump to much between frames
+	return newPos * blockAlpha + oldPos * (1-blockAlpha)
+end
+
 return Defense

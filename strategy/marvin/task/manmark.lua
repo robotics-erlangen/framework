@@ -3,7 +3,6 @@ local ManMark = Class("Task.ManMark", require "task/base")
 local debug = require "../base/debug"
 local World = require "../base/world"
 local Field = require "../base/field"
-local Physics = require "observer/physics"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 local Attack = require "util/attack"
@@ -25,49 +24,6 @@ function ManMark:_init(targetRobot)
 	self._blockingShot = false
 end
 
--- this function searches for a position between boundaryOne and boundaryTwo to which the robot will take
--- the shortest amount of time, up to a precision value, using a ternary algorithm
-function ManMark:_findBestPointToBlockOpponentShot(boundaryOne, boundaryTwo, timeToBoundaryOne, timeToBoundaryTwo, precision)
-	-- time diff between the two bounds
-	if math.abs(timeToBoundaryOne - timeToBoundaryTwo) < precision or
-			boundaryOne:distanceTo(boundaryTwo) < 0.005 then
-		return boundaryOne
-	end
-
-	-- calculate two new positions on the line
-	local leftThird = (boundaryOne * 2 + boundaryTwo) / 3
-	local rightThird = (boundaryOne + boundaryTwo * 2) / 3
-
-	-- calculate time to the new positions
-	local timeToLeftThird = Physics.robotTimeToPos(self._robot, leftThird, Vector(0, 0), false, false)
-	local timeToRightThird = Physics.robotTimeToPos(self._robot, rightThird, Vector(0,0), false, false)
-
-	-- depending on which time is smaller recursively call the function with new boundaries
-	if timeToLeftThird < timeToRightThird then
-		return self:_findBestPointToBlockOpponentShot(boundaryOne, rightThird, timeToBoundaryOne, timeToRightThird, precision)
-	else
-		return self:_findBestPointToBlockOpponentShot(leftThird, boundaryTwo, timeToLeftThird, timeToBoundaryTwo, precision)
-	end
-end
-
--- this method calculates a new position between boundaryOne and boundaryTwo regarding the oldPosition
-function ManMark:_newPosRegardingOldPosition(boundaryOne, boundaryTwo, oldPos, precision)
-	-- time to the boundaries
-	local timeToBoundaryOne = Physics.robotTimeToPos(self._robot, boundaryOne, Vector(0, 0), false, false)
-	local timeToBoundaryTwo = Physics.robotTimeToPos(self._robot, boundaryTwo, Vector(0, 0), false, false)
-
-	local newPos = self:_findBestPointToBlockOpponentShot(boundaryOne, boundaryTwo, timeToBoundaryOne, timeToBoundaryTwo, precision)
-	if oldPos then
-		oldPos = oldPos:nearestPosOnLine(boundaryOne, boundaryTwo)
-	else
-		oldPos = newPos
-	end
-
-	-- don't let the postion jump to much between frames
-	return newPos * BLOCK_POS_ALPHA + oldPos * (1-BLOCK_POS_ALPHA)
-end
-
-
 function ManMark:run()
 	local preferredPos = Defense.manMarkPos(self._targetRobot)
 	local preferredDir = (World.Ball.pos - self._robot.pos):angle()
@@ -84,7 +40,8 @@ function ManMark:run()
 	if intersectionDefenseArea then
 		-- calculate new position between ball (regarding robot shootRadius) and the intersection with defense area
 		moveDest = preferredPos --+ (intersectionDefenseArea - preferredPos):setLength(0)--self._robot.shootRadius + World.Ball.radius)
-		moveDest = self:_newPosRegardingOldPosition(moveDest, intersectionDefenseArea, self._oldPosition, BLOCK_POS_PRECISION)
+		moveDest = Defense.fastestPointInInterval(self._robot, moveDest, intersectionDefenseArea,
+							self._oldPosition, BLOCK_POS_PRECISION, BLOCK_POS_ALPHA)
 		basePos = intersectionDefenseArea
 	else
 		-- case if there isn't an intersection with the defense area

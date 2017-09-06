@@ -12,6 +12,7 @@ local Robot = require "observer/robot"
 local Direct = require "trajectory/direct"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
+local UtilDefense = require "util/defense"
 
 
 local STAY_BEHIND_OPP_ANGLE = 120/180 * math.pi
@@ -110,48 +111,6 @@ function Duel:_contest()
 	self:_checkBlockingBall()
 end
 
--- this function searches for a position between boundaryOne and boundaryTwo to which the robot will take
--- the shortest amount of time, up to a precision value, using a ternary algorithm
-function Duel:_findBestPointToBlockOpponentShot(boundaryOne, boundaryTwo, timeToBoundaryOne, timeToBoundaryTwo, precision)
-	-- time diff between the two bounds
-	if math.abs(timeToBoundaryOne - timeToBoundaryTwo) < precision or
-			boundaryOne:distanceTo(boundaryTwo) < 0.005 then
-		return boundaryOne
-	end
-
-	-- calculate two new positions on the line
-	local leftThird = (boundaryOne * 2 + boundaryTwo) / 3
-	local rightThird = (boundaryOne + boundaryTwo * 2) / 3
-
-	-- calculate time to the new positions
-	local timeToLeftThird = Physics.robotTimeToPos(self._robot, leftThird, Vector(0, 0), false, false)
-	local timeToRightThird = Physics.robotTimeToPos(self._robot, rightThird, Vector(0,0), false, false)
-
-	-- depending on which time is smaller recursively call the function with new boundaries
-	if timeToLeftThird < timeToRightThird then
-		return self:_findBestPointToBlockOpponentShot(boundaryOne, rightThird, timeToBoundaryOne, timeToRightThird, precision)
-	else
-		return self:_findBestPointToBlockOpponentShot(leftThird, boundaryTwo, timeToLeftThird, timeToBoundaryTwo, precision)
-	end
-end
-
--- this method calculates a new position between boundaryOne and boundaryTwo regarding the oldPosition
-function Duel:_newPosRegardingOldPosition(boundaryOne, boundaryTwo, oldPos, precision)
-	-- time to the boundaries
-	local timeToBoundaryOne = Physics.robotTimeToPos(self._robot, boundaryOne, Vector(0, 0), false, false)
-	local timeToBoundaryTwo = Physics.robotTimeToPos(self._robot, boundaryTwo, Vector(0, 0), false, false)
-
-	local newPos = self:_findBestPointToBlockOpponentShot(boundaryOne, boundaryTwo, timeToBoundaryOne, timeToBoundaryTwo, precision)
-	if oldPos then
-		oldPos = oldPos:nearestPosOnLine(boundaryOne, boundaryTwo)
-	else
-		oldPos = newPos
-	end
-
-	-- don't let the postion jump to much between frames
-	return newPos * BLOCK_POS_ALPHA + oldPos * (1-BLOCK_POS_ALPHA)
-end
-
 function Duel:_moveToNearBlock(closestOpponentRobot)
 	-- all decisions are made to keep the own goal covered
 	local baseDir = (self._futureBall - World.Geometry.FriendlyGoal):angle()
@@ -215,7 +174,6 @@ end
 
 
 function Duel:_moveToBall()
-
 	local moveTime, shortestTimeToBall, closestOpponentRobot, intersectionDefenseArea = self:_checkBlockingBall()
 
 	debug.set("oppTime", shortestTimeToBall)
@@ -246,7 +204,8 @@ function Duel:_moveToBall()
 		local opponentDefenseIntersection = Field.intersectRayDefenseArea(moveDest, World.Geometry.FriendlyGoal - moveDest,
 												self._robot.radius * 3 +  OPPONENT_DEFENSE_AREA_MIN_DISTANCE, true)
 		moveDest = opponentDefenseIntersection or moveDest
-		moveDest = self:_newPosRegardingOldPosition(moveDest, intersectionDefenseArea, self._oldPosition, BLOCK_POS_PRECISION)
+		moveDest = UtilDefense.fastestPointInInterval(self._robot, moveDest, intersectionDefenseArea,
+						self._oldPosition, BLOCK_POS_PRECISION, BLOCK_POS_ALPHA)
 	else
 		-- case if there isn't an intersection with the defense area
 		moveDest = self._futureBall + (self._robot.pos - self._futureBall):setLength(self._robot.shootRadius + World.Ball.radius)
