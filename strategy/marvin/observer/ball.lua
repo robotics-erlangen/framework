@@ -58,7 +58,7 @@ Ball.opponentBallDribbler = Cache.forFrame(Ball.opponentBallDribbler)
 -- WARNING: this function has no hysteresis and must be used with care
 -- @param ball - a ball like structure
 -- @param ownGoal - wether to use the friendly goal or the opponent goal
--- @return bool - wether or not the ball is heading for the
+-- @return bool - wether or not the ball is heading for the goal
 function Ball.ballHeadingForGoal(ball, ownGoal)
 	local goalCenter = ownGoal and World.Geometry.FriendlyGoal or World.Geometry.OpponentGoal
 	local _, lambda = geom.intersectLineLine(goalCenter, Vector(1, 0), ball.pos, ball.speed)
