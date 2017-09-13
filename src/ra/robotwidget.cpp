@@ -188,7 +188,7 @@ void RobotWidget::selectInput()
 {
     QAction *action = dynamic_cast<QAction*>(sender());
     Q_ASSERT(action);
-    selectInput(action->text());
+    selectInput(action->data().toString());
 }
 
 void RobotWidget::disableInput()
@@ -261,6 +261,7 @@ void RobotWidget::updateInputMenu()
     bool deviceFound = false; // input device may have been removed
     foreach (const QString &device, devices) {
         QAction *action = m_inputMenu->addAction(device);
+        action->setData(device);
         connect(action, SIGNAL(triggered()), SLOT(selectInput()));
         m_inputDeviceGroup->addAction(action);
         action->setCheckable(true);
