@@ -47,6 +47,8 @@ if(MINGW)
     set(CMAKE_RC_COMPILER_INIT ${WINDRES_EXECUTABLE})
     enable_language(RC)
     set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> -I${CMAKE_SOURCE_DIR}/data/pkg -i <SOURCE> -o <OBJECT>")
+    # make sure MinGW doesn't screw up packing the radiocommands
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mno-ms-bitfields")
 endif(MINGW)
 
 if(APPLE)
