@@ -48,31 +48,46 @@ with sudo cp data/udev/99-robotics-usb-devices.rules /etc/udev/rules.d/99-roboti
 
 ## Windows
 Get dependencies (tested using the given versions):
-* cmake 3.5.2 - http://www.cmake.org/files/v3.5/cmake-3.5.2-win32-x86.msi
+* cmake 3.9.2 - https://cmake.org/files/v3.9/cmake-3.9.2-win32-x86.msi
 * mingw-get - http://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.exe
-* ninja - https://github.com/martine/ninja/releases/download/v1.6.0/ninja-win.zip
-* Qt 5 - http://download.qt.io/official_releases/online_installers/qt-opensource-windows-x86-online.exe
+* ninja - https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip
+* Qt 5 - http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe
 * protobuf 2.6.1 - https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.bz2
 * libusb 1.20 - http://downloads.sourceforge.net/project/libusb/libusb-1.0/libusb-1.0.20/libusb-1.0.20.tar.bz2
 * libsdl2 2.0.2 - http://libsdl.org/release/SDL2-devel-2.0.2-mingw.tar.gz
+
+### install compiler environment
 
 #### install cmake
 use the installer, select add to PATH
 
 #### install qt
-run installer (use default install path! ), install "Qt 5.6 > MinGW 4.9.2" and "Tools > MinGW 4.9.2"
+Use the online installer! run installer (use default install path! ), install "Qt 5.6 > MinGW 4.9.2" and "Tools > MinGW 4.9.2". Qt 5.6 is a LTS release and thus should stay supported for some time.
+In case you use the offline installer, change to install path such that Qt 5.6 ends up in `c:\Qt\5.6`
 
 #### install mingw-get
 Run installer (use default path C:\MinGW !) and install `msys-base, msys-patch`
 
 Run `C:\mingw\msys\1.0\postinstall\pi.bat` set mingw path to `c:/Qt/Tools/mingw492_32`
+Verify that `C:\mingw\msys\1.0\etc\fstab` contains the following line:
+```
+c:/Qt/Tools/mingw492_32 /mingw
+```
 
 use `msys.bat` in `msys\1.0` to open msys console
 
 #### install ninja
 Extract `ninja.exe` to `C:\MinGW\msys\1.0\bin`
 
-**!!! USE MSYS TO COMPILE EVERYTHING !!!**
+### build libs
+
+*Do:*
+- **!!! USE THE MSYS CONSOLE TO COMPILE EVERYTHING !!!**
+- Use a folder with a short path like `C:\Robocup` as base folder
+
+*Don't:*
+- Use a folder whose path contains whitespace
+- Use a base folder with a path name longer than 30 characters
 
 #### compile protobuf
 ```
@@ -91,15 +106,15 @@ mkdir build && cd build
 make install-package arch=i686-w64-mingw32 prefix=/usr/local
 ```
 
-#### compile ra
+### compile ra
 ```
 mkdir build-win && cd build-win
-cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.5/mingw492_32/lib/cmake -DCMAKE_BUILD_TYPE=Release -DPROTOBUF_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include -DPROTOBUF_LIBRARY=C:/MinGW/msys/1.0/local/lib/libprotobuf.dll.a -DSDL2_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/SDL2 -DUSB_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/libusb-1.0 ..
+cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.6/mingw49_32/lib/cmake -DCMAKE_BUILD_TYPE=Release -DPROTOBUF_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include -DPROTOBUF_LIBRARY=C:/MinGW/msys/1.0/local/lib/libprotobuf.dll.a -DSDL2_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/SDL2 -DUSB_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/libusb-1.0 ..
 cmake --build .
 cp -r ../config ../data bin
 cp project_luajit-prefix/lib/lua51.dll bin
-cp /usr/local/bin/{libprotobuf-9,libusb-1.0,SDL2}.dll /c/Qt/5.6/mingw492_32/bin/{icudt54,icuin54,icuuc54,libgcc_s_dw2-1,libstdc++-6,libwinpthread-1,Qt5Core,Qt5Gui,Qt5Network,Qt5OpenGL,Qt5Widgets}.dll bin
-mkdir bin/platforms && cp /c/Qt/5.6/mingw492_32/plugins/platforms/qwindows.dll bin/platforms
+cp /usr/local/bin/{libprotobuf-9,libusb-1.0,SDL2}.dll /c/Qt/5.6/mingw49_32/bin/{icudt54,icuin54,icuuc54,libgcc_s_dw2-1,libstdc++-6,libwinpthread-1,Qt5Core,Qt5Gui,Qt5Network,Qt5OpenGL,Qt5Widgets}.dll bin
+mkdir bin/platforms && cp /c/Qt/5.6/mingw49_32/plugins/platforms/qwindows.dll bin/platforms
 ```
 
 Finished!
