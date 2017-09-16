@@ -85,7 +85,7 @@ function Striker:_searchForPassDest()
 					local _, passInfoTable = next(self._inbox.passInfo())
 					if passInfoTable then
 						for _, passInfo in pairs(passInfoTable) do
-							if passInfo.ballPos:distanceTo(candidatePoint) < 0.01 then
+							if passInfo.ballPos:distanceToSq(candidatePoint) < 0.01*0.01 then
 								score = score + 0.1
 							end
 						end
