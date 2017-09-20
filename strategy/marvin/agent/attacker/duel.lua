@@ -54,8 +54,8 @@ function Duel:genericCheck()
 	end
 
 	-- duel is not beneficial in opponent corners
-	local cornerMinX = World.Geometry.FieldWidthHalf * (self._active and 0.6 or 0.7)
-	local cornerMinY = World.Geometry.FieldHeightHalf * (self._active and 0.5 or 0.6)
+	local cornerMinX = World.Geometry.FieldWidthHalf * (self._active and 0.7 or 0.6)
+	local cornerMinY = World.Geometry.FieldHeightHalf * (self._active and 0.6 or 0.5)
 	if World.Ball.pos.y > cornerMinY and math.abs(World.Ball.pos.x) > cornerMinX then
 		return false
 	end
