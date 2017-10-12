@@ -1,6 +1,7 @@
 #include "combinedlogwriter.h"
 #include "backlogwriter.h"
 #include "logfilewriter.h"
+#include "statussource.h"
 
 #include <QThread>
 #include <QDateTime>
@@ -37,6 +38,11 @@ CombinedLogWriter::~CombinedLogWriter()
     m_backlogThread->wait();
     delete m_backlogThread;
     delete m_backlogWriter;
+}
+
+StatusSource * CombinedLogWriter::makeStatusSource()
+{
+    return m_backlogWriter->makeStatusSource();
 }
 
 void CombinedLogWriter::handleStatus(const Status &status)

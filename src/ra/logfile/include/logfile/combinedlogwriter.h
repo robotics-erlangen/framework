@@ -12,6 +12,7 @@ class BacklogWriter;
 class QThread;
 class QDateTime;
 class QLabel;
+class StatusSource;
 
 class CombinedLogWriter : public QObject
 {
@@ -19,6 +20,7 @@ class CombinedLogWriter : public QObject
 public:
     CombinedLogWriter(bool replay, int backlogLength);
     ~CombinedLogWriter();
+    StatusSource * makeStatusSource();
 
 signals:
     void setRecordButton(bool on);

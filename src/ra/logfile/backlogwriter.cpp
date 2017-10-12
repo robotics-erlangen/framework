@@ -23,10 +23,44 @@
 #include <QString>
 #include <QByteArray>
 
+BacklogStatusSource::BacklogStatusSource(QContiguousCache<QByteArray> &backlog, QContiguousCache<qint64> &timings)
+    : m_packets(backlog)
+{
+    m_timings.reserve(timings.size());
+    for (int i = timings.firstIndex();i<=timings.lastIndex();i++) {
+        m_timings.append(timings[i]);
+    }
+}
+
+Status BacklogStatusSource::readStatus(int packet)
+{
+    if (packet < 0 || packet >= m_timings.size()) {
+        return Status();
+    }
+    QByteArray uncompressed = qUncompress(m_packets.at(packet + m_packets.firstIndex()));
+    Status status(new amun::Status);
+    status->ParseFromArray(uncompressed.data(), uncompressed.size());
+    return status;
+}
+
+void BacklogStatusSource::readPackets(int startPacket, int count)
+{
+    for (int i = startPacket; i < startPacket + count; ++i) {
+        emit gotStatus(i, readStatus(i));
+    }
+}
+
+
 BacklogWriter::BacklogWriter(unsigned seconds)
 {
-    m_packets.setCapacity(BACKLOG_SIZE_PER_SECOND*seconds);
+    m_packets.setCapacity(BACKLOG_SIZE_PER_SECOND * seconds);
+    m_timings.setCapacity(BACKLOG_SIZE_PER_SECOND * seconds);
     connect(this, SIGNAL(clearData()), this, SLOT(clear()), Qt::QueuedConnection);
+}
+
+BacklogStatusSource * BacklogWriter::makeStatusSource()
+{
+    return new BacklogStatusSource(m_packets, m_timings);
 }
 
 void BacklogWriter::handleStatus(const Status &status)
@@ -37,6 +71,7 @@ void BacklogWriter::handleStatus(const Status &status)
         // compress the status to save a lot of memory, but be quick
         // the packets are uncompressed before writing to a logfile
         m_packets.append(qCompress(packetData, 1));
+        m_timings.append(status->time());
     }
 }
 
@@ -71,4 +106,5 @@ void BacklogWriter::saveBacklog(QString filename, Status teamStatus)
 void BacklogWriter::clear()
 {
     m_packets.clear();
+    m_timings.clear();
 }

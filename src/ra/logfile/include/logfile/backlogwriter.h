@@ -22,17 +22,43 @@
 #define BACKLOGWRITER_H
 
 #include "protobuf/status.h"
+#include "statussource.h"
 #include <QContiguousCache>
 #include <QObject>
 
 class QString;
 class QByteArray;
 
+class BacklogStatusSource : public StatusSource
+{
+    Q_OBJECT
+public:
+    BacklogStatusSource(QContiguousCache<QByteArray> &backlog, QContiguousCache<qint64> &timings);
+    bool isOpen() const { return true; }
+
+    const QList<qint64>& timings() const { return m_timings; }
+    // equals timings().size()
+    int packetCount() const { return m_timings.size(); }
+    Status readStatus(int packet);
+
+public slots:
+    void readPackets(int startPacket, int count);
+
+signals:
+    void gotStatus(int packet, const Status &status);
+
+private:
+    QContiguousCache<QByteArray> m_packets;
+    QList<qint64> m_timings;
+};
+
+
 class BacklogWriter : public QObject
 {
     Q_OBJECT
 public:
     BacklogWriter(unsigned seconds);
+    BacklogStatusSource * makeStatusSource();
 
 signals:
     void enableBacklogSave(bool enabled);
@@ -49,6 +75,7 @@ private:
 
 private:
     QContiguousCache<QByteArray> m_packets;
+    QContiguousCache<qint64> m_timings;
 
     // approximately, with both strategys running
     const int BACKLOG_SIZE_PER_SECOND = 570;

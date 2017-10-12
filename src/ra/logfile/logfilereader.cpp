@@ -24,7 +24,7 @@
 #include <QMutexLocker>
 
 LogFileReader::LogFileReader() :
-    QObject(), m_stream(&m_file)
+    m_stream(&m_file)
 {
     m_mutex = new QMutex(QMutex::Recursive);
     // ensure compatibility across qt versions

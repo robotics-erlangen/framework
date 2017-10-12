@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer                                        *
+ *   Copyright 2017 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,65 +18,29 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef LOGFILEREADER_H
-#define LOGFILEREADER_H
+#ifndef STATUSSOURCE_H
+#define STATUSSOURCE_H
 
 #include "protobuf/status.h"
-#include "statussource.h"
-#include <QObject>
 #include <QString>
-#include <QDataStream>
-#include <QFile>
-#include <QList>
+#include <QObject>
 
-class QMutex;
-
-class LogFileReader : public StatusSource
+class StatusSource : public QObject
 {
     Q_OBJECT
 public:
-    explicit LogFileReader();
-    ~LogFileReader() override;
+    virtual bool isOpen() const = 0;
 
-    bool open(const QString &filename);
-    void close();
-    bool isOpen() const { return m_file.isOpen(); }
-
-    QString filename() const { return m_file.fileName(); }
-    QString errorMsg() const { return m_errorMsg; }
-
-    const QList<qint64>& timings() const { return m_timings; }
+    virtual const QList<qint64>& timings() const = 0;
     // equals timings().size()
-    int packetCount() const { return m_packets.size(); }
-    Status readStatus(int packet);
+    virtual int packetCount() const = 0;
+    virtual Status readStatus(int packet) = 0;
 
 public slots:
-    void readPackets(int startPacket, int count);
+    virtual void readPackets(int startPacket, int count) = 0;
 
 signals:
-    void gotStatus(int packet, const Status &status);
-
-private:
-    bool readVersion();
-    qint64 readTimestampVersion0();
-    qint64 readTimestampVersion1();
-    qint64 readTimestampVersion2(int packetIndex);
-
-    mutable QMutex *m_mutex;
-    QString m_errorMsg;
-
-    QFile m_file;
-    QDataStream m_stream;
-
-    enum Version { Version0, Version1, Version2 };
-    Version m_version;
-    QList<qint64> m_packets;
-    QList<qint64> m_timings;
-    // a group of Status packages and an array of offsets
-    QByteArray m_currentGroup;
-    QList<qint32> m_currentGroupOffsets;
-    int m_packageGroupStartIndex;
-    qint32 m_packageGroupSize;
+    virtual void gotStatus(int packet, const Status &status) = 0;
 };
 
-#endif // LOGFILEREADER_H
+#endif // STATUSSOURCE_H
