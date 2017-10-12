@@ -34,7 +34,6 @@
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
-    m_scroll(true),
     m_lastTeamInfo(new amun::Command),
     m_lastTeamInfoUpdated(false),
     m_logWriter(true, 20)
@@ -47,29 +46,21 @@ MainWindow::MainWindow(QWidget *parent) :
 #endif
     ui->setupUi(this);
 
-    // create log reader and the belonging thread
-    m_logthread = new QThread();
-    m_logthread->start();
-
-    m_logreader = new LogFileReader();
-    m_logreader->moveToThread(m_logthread);
-    connect(m_logreader, SIGNAL(gotStatus(int,Status)), this, SLOT(addStatus(int,Status)));
-    connect(this, SIGNAL(triggerRead(int,int)), m_logreader, SLOT(readPackets(int,int)));
-
     m_plotter = new Plotter();
 
     LogCutter *logCutter = new LogCutter();
 
-    // setup icons
-    ui->btnOpen->setIcon(QIcon::fromTheme("document-open"));
-    // disable button to prevent resizing errors
-    ui->btnPlay->setEnabled(false);
-    closeFile(); // reset internals
-    initializeLabels(); // disables play button
+    m_playTimer = ui->logManager->getPlayTimer();
 
     // setup status bar
     m_refereeStatus = new RefereeStatusWidget;
     statusBar()->addPermanentWidget(m_refereeStatus);
+
+    m_logfile = new LogFileReader();
+    m_logfile->close();
+
+    // setup icons
+    ui->btnOpen->setIcon(QIcon::fromTheme("document-open"));
 
     // setup visualization parts of the ui
     connect(ui->visualization, SIGNAL(itemsChanged(QStringList)), ui->field, SLOT(visualizationsChanged(QStringList)));
@@ -77,19 +68,19 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->visualization->load();
 
     // add shortcuts
-    connect(ui->actionOpen_Logfile, SIGNAL(triggered()), ui->btnOpen, SLOT(click()));
+    connect(ui->actionOpen_Logfile, SIGNAL(triggered()), SLOT(openFile()));
     connect(ui->actionExit, SIGNAL(triggered()), qApp, SLOT(quit()));
-    connect(ui->actionStepBackward, SIGNAL(triggered()), ui->spinPacketCurrent, SLOT(stepDown()));
-    connect(ui->actionStepForward, SIGNAL(triggered()), ui->spinPacketCurrent, SLOT(stepUp()));
-    connect(ui->actionPlay, SIGNAL(triggered()), ui->btnPlay, SLOT(click()));
-    connect(ui->actionBackward, SIGNAL(triggered()), SLOT(previousFrame()));
-    connect(ui->actionForward, SIGNAL(triggered()), SLOT(nextFrame()));
+    connect(ui->actionStepBackward, SIGNAL(triggered()), ui->logManager, SIGNAL(stepBackward()));
+    connect(ui->actionStepForward, SIGNAL(triggered()), ui->logManager, SIGNAL(stepForward()));
+    connect(ui->actionPlay, SIGNAL(triggered()), ui->logManager, SLOT(togglePaused()));
+    connect(ui->actionBackward, SIGNAL(triggered()), ui->logManager, SLOT(previousFrame()));
+    connect(ui->actionForward, SIGNAL(triggered()), ui->logManager, SLOT(nextFrame()));
     connect(ui->actionOpen_Plotter, SIGNAL(triggered()), m_plotter, SLOT(show()));
     connect(ui->actionLogCutter, &QAction::triggered, logCutter, &LogCutter::show);
 
     // playback speed shortcuts
     QSignalMapper *mapper = new QSignalMapper(this);
-    connect(mapper, SIGNAL(mapped(int)), ui->spinSpeed, SLOT(setValue(int)));
+    connect(mapper, SIGNAL(mapped(int)), ui->logManager, SIGNAL(setSpeed(int)));
     QAction *speedActions[] = { ui->actionSpeed1, ui->actionSpeed5, ui->actionSpeed10, ui->actionSpeed20,
                               ui->actionSpeed50, ui->actionSpeed100, ui->actionSpeed200, ui->actionSpeed1000 };
     int playSpeeds[] = { 1, 5, 10, 20, 50, 100, 200, 1000 };
@@ -109,14 +100,10 @@ MainWindow::MainWindow(QWidget *parent) :
     addAction(ui->actionBackward);
     addAction(ui->actionForward);
 
-    // connect buttons, ...
-    connect(ui->btnOpen, SIGNAL(clicked()), SLOT(openFile()));
-    connect(ui->btnPlay, SIGNAL(clicked()), SLOT(togglePaused()));
-    connect(ui->horizontalSlider, SIGNAL(valueChanged(int)), SLOT(seekFrame(int)));
-    connect(ui->spinPacketCurrent, SIGNAL(valueChanged(int)), SLOT(seekPacket(int)));
-    connect(ui->spinSpeed, SIGNAL(valueChanged(int)), SLOT(handlePlaySpeed(int)));
-
     // setup data distribution
+    connect(ui->logManager, SIGNAL(gotStatus(Status)), SLOT(gotPreStatus(Status)));
+    connect(ui->logManager, SIGNAL(gotPlayStatus(Status)), SLOT(gotPrePlayStatus(Status)));
+
     connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->visualization, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->timing, SLOT(handleStatus(Status)));
@@ -128,10 +115,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->replay, SIGNAL(enableStrategyBlue(bool)), this, SLOT(enableStrategyBlue(bool)));
     connect(ui->replay, SIGNAL(enableStrategyYellow(bool)), this, SLOT(enableStrategyYellow(bool)));
-
-    // setup the timer used to trigger playing the next packets
-    connect(&m_timer, SIGNAL(timeout()), SLOT(playNext()));
-    m_timer.setSingleShot(true);
 
     // restore configuration
     QSettings s;
@@ -159,8 +142,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&m_logWriter, SIGNAL(setRecordButton(bool)), ui->replay, SIGNAL(setLogLogButton(bool)));
 
     // disable all possibilities of skipping / going back packets when recording
-    connect(&m_logWriter, SIGNAL(disableSkipping(bool)), ui->spinPacketCurrent, SLOT(setDisabled(bool)));
-    connect(&m_logWriter, SIGNAL(disableSkipping(bool)), ui->horizontalSlider, SLOT(setDisabled(bool)));
+    connect(&m_logWriter, SIGNAL(disableSkipping(bool)), ui->logManager, SIGNAL(disableSkipping(bool)));
     connect(&m_logWriter, SIGNAL(disableSkipping(bool)), ui->actionBackward, SLOT(setDisabled(bool)));
     connect(&m_logWriter, SIGNAL(disableSkipping(bool)), ui->actionForward, SLOT(setDisabled(bool)));
     connect(&m_logWriter, SIGNAL(disableSkipping(bool)), ui->actionStepBackward, SLOT(setDisabled(bool)));
@@ -171,8 +153,10 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionBackward, SIGNAL(triggered(bool)), &m_logWriter, SIGNAL(resetBacklog()));
     connect(ui->actionStepForward, SIGNAL(triggered(bool)), &m_logWriter, SIGNAL(resetBacklog()));
     connect(ui->actionStepBackward, SIGNAL(triggered(bool)), &m_logWriter, SIGNAL(resetBacklog()));
-    connect(ui->horizontalSlider, SIGNAL(sliderPressed()), &m_logWriter, SIGNAL(resetBacklog()));
-    connect(ui->horizontalSlider, SIGNAL(sliderReleased()), &m_logWriter, SIGNAL(resetBacklog()));
+    connect(ui->logManager, SIGNAL(resetBacklog()), &m_logWriter, SIGNAL(resetBacklog()));
+
+    // connect buttons, ...
+    connect(ui->btnOpen, SIGNAL(clicked()), SLOT(openFile()));
 }
 
 MainWindow::~MainWindow()
@@ -184,8 +168,35 @@ MainWindow::~MainWindow()
         m_strategyThreads[i]->quit();
         m_strategyThreads[i]->wait();
     }
-    delete m_logreader;
     delete ui;
+}
+
+void MainWindow::openFile()
+{
+    QString previousDir;
+    // open again in previously used folder
+    if (m_logfile->isOpen()) {
+        QFileInfo finfo(m_logfile->filename());
+        previousDir = finfo.dir().path();
+    }
+
+    QString filename = QFileDialog::getOpenFileName(this, "Select log file", previousDir);
+    openFile(filename);
+}
+
+void MainWindow::openFile(const QString &filename)
+{
+    // don't do anything if the user couldn't decide for a new log file
+    if (!filename.isEmpty()) {
+        if (m_logfile->open(filename)) {
+            ui->logManager->setStatusSource(m_logfile);
+        } else {
+            QMessageBox::critical(this, "Error", m_logfile->errorMsg());
+            m_logfile->close();
+        }
+
+        setWindowTitle("Log Player - " + QFileInfo(filename).fileName());
+    }
 }
 
 void MainWindow::enableStrategyBlue(bool enable)
@@ -216,7 +227,7 @@ void MainWindow::closeStrategy(int index)
 void MainWindow::createStrategy(int index)
 {
     Q_ASSERT(m_strategys[index] == nullptr);
-    m_strategys[index] = new Strategy(&m_playTimer, (index == 0) ? StrategyType::YELLOW : StrategyType::BLUE);
+    m_strategys[index] = new Strategy(m_playTimer, (index == 0) ? StrategyType::YELLOW : StrategyType::BLUE);
     m_strategys[index]->moveToThread(m_strategyThreads[index]);
 
     // set up data distribution to and from strategy
@@ -244,19 +255,31 @@ void MainWindow::createStrategy(int index)
 void MainWindow::sendResetDebugPacket(bool blue)
 {
     Status status(new amun::Status);
-    status->set_time(m_playTimer.currentTime());
+    status->set_time(m_playTimer->currentTime());
     amun::DebugValues * debug = status->mutable_debug();
     debug->set_source(blue ? amun::StrategyBlue : amun::StrategyYellow);
     emit gotStatus(status);
 }
 
-void MainWindow::processStatusDebug(Status & status)
+void MainWindow::processStatusDebug(const Status & status)
 {
     bool replayBlue = ui->replay->replayBlueEnabled();
     bool replayYellow = ui->replay->replayYellowEnabled();
     if (replayBlue || replayYellow) {
         status->clear_debug();
     }
+}
+
+void MainWindow::gotPreStatus(const Status &status)
+{
+    processStatusDebug(status);
+    emit gotStatus(status);
+}
+
+void MainWindow::gotPrePlayStatus(Status status)
+{
+    processStatusDebug(status);
+    emit gotPlayStatus(status);
 }
 
 void MainWindow::handleStatus(const Status &status)
@@ -283,7 +306,7 @@ void MainWindow::handleStatus(const Status &status)
 
 void MainWindow::closeEvent(QCloseEvent *e)
 {
-    setPaused(true);
+    ui->logManager->setPaused(true);
 
     // save configuration
     QSettings s;
@@ -310,86 +333,6 @@ QString MainWindow::formatTime(qint64 time) {
            .arg((int) (dtime * 1000) % 1000, 3, 10, QChar('0'));
 }
 
-void MainWindow::openFile()
-{
-    QString previousDir;
-    // open again in previously used folder
-    if (m_logreader->isOpen()) {
-        QFileInfo finfo(m_logreader->filename());
-        previousDir = finfo.dir().path();
-    }
-
-    QString filename = QFileDialog::getOpenFileName(this, "Select log file", previousDir);
-    openFile(filename);
-}
-
-void MainWindow::openFile(const QString &filename)
-{
-    // don't do anything if the user couldn't decide for a new log file
-    if (!filename.isEmpty()) {
-        closeFile(); // cleanup
-        if (m_logreader->open(filename)) {
-            // get start time and duration
-            const QList<qint64> &timings = m_logreader->timings();
-            if (!timings.isEmpty()) {
-                m_startTime = timings.first();
-                m_duration = timings.last() - m_startTime;
-            } else {
-                m_startTime = 0;
-                m_duration = 0;
-            }
-
-            // create frame index for the scroll bar
-            qint64 seekTime = 0;
-            for (int i = 0; i < timings.size(); ++i) {
-                // time indexing is done with 0.1s precision
-                const qint64 curTime = (timings.value(i) - m_startTime) / 1E8;
-                while (seekTime <= curTime) {
-                    // index of the belonging packet
-                    m_frames.append(i);
-                    seekTime++;
-                }
-            }
-
-            // load first frame
-            seekPacket(0);
-        } else {
-            QMessageBox::critical(this, "Error", m_logreader->errorMsg());
-            m_logreader->close();
-        }
-
-        initializeLabels();
-        setWindowTitle("Log Player - " + QFileInfo(filename).fileName());
-    }
-}
-
-void MainWindow::closeFile()
-{
-    // close log
-    m_logreader->close();
-
-    // delete index
-    m_frames.clear();
-    m_startTime = 0;
-    m_duration = 0;
-    m_exactSliderValue = 0;
-
-    // clear buffer and invalidate play timer
-    m_nextPackets.clear();
-    m_nextPacket = -1;
-    m_nextRequestPacket = 0;
-    m_preloadedPackets = 0;
-    m_spoolCounter = 0;
-    m_playEnd = -1;
-
-    // pause playback
-    setPaused(true);
-
-    ui->debugTree->clearData();
-    ui->field->clearData();
-    clearPlayConsumers();
-}
-
 void MainWindow::clearPlayConsumers()
 {
     // the log just displays messages of a continuously played timespan
@@ -399,239 +342,8 @@ void MainWindow::clearPlayConsumers()
     emit reloadStrategy();
 }
 
-void MainWindow::initializeLabels()
+void MainWindow::clearAll()
 {
-    m_scroll = false; // disable scrolling, can be triggered by maximum updates
-    // play button if file is loaded
-    ui->btnPlay->setEnabled(m_logreader->isOpen());
-
-    // set log information
-    ui->spinPacketCurrent->setMinimum(0);
-    ui->spinPacketCurrent->setMaximum(m_logreader->packetCount() - 1);
-    ui->lblPacketMax->setText(QString::number(m_logreader->packetCount() - 1));
-    ui->lblTimeMax->setText(formatTime(m_duration));
-    ui->horizontalSlider->setMaximum(m_frames.size() - 1);
-
-    ui->lblTimeCurrent->setText(formatTime(m_duration)); // approximatelly max length
-    // prevent unneccessary relayouts
-    // no relayouting is done, if min and max sizes are equal
-    const QSize lblSize = ui->lblTimeCurrent->sizeHint();
-    ui->lblTimeCurrent->setMinimumSize(lblSize);
-    ui->lblTimeCurrent->setMaximumSize(lblSize);
-    // reset
-    ui->lblTimeCurrent->setText(formatTime(0));
-    m_scroll = true;
-}
-
-void MainWindow::previousFrame()
-{
-    int frame = ui->horizontalSlider->value();
-    int prevPacket = m_frames.value(std::max(0, frame - 1));
-
-    while (prevPacket >= ui->spinPacketCurrent->value() && frame > 0) {
-        frame--;
-        prevPacket = m_frames.value(std::max(0, frame - 1));
-    }
-    seekPacket(prevPacket);
-}
-
-void MainWindow::nextFrame()
-{
-    ui->horizontalSlider->setValue(ui->horizontalSlider->value() + 1);
-}
-
-void MainWindow::seekFrame(int frame)
-{
-    // seek to packet associated with the given frame
-    seekPacket(m_frames.value(frame));
-}
-
-void MainWindow::seekPacket(int packet)
-{
-    if (!m_scroll) { // don't trigger for updates of the horizontal slider
-        return;
-    }
-
-    // read a few packets before the new one to have a complete up-to-date status
-    // except if we just move to the next packet
-    int preloadCount = (packet == m_nextRequestPacket) ? 1 : 10;
-    const int preloadPacket = std::max(0, packet - preloadCount + 1);
-    preloadCount = packet - preloadPacket + 1; // allow playback of the first frames
-
-    // fast forward unwanted packets and the preload
-    m_spoolCounter += preloadCount + m_preloadedPackets; // playback without time checks
-    m_preloadedPackets = 0; // the preloaded frames for normal playback are skipped
-    m_nextRequestPacket = packet + 1;
-
-    emit triggerRead(preloadPacket, preloadCount); // load the required packets
-}
-
-void MainWindow::addStatus(int packet, const Status &status)
-{
-    // trigger playing if the buffer ran empty and we should play or after seeking
-    if (!m_timer.isActive() && (!m_paused || m_spoolCounter > 0)) {
-        // reading can't keep up with the play timer, thus reset it to prevent hickups
-        m_nextPacket = -1;
-        m_timer.start(0);
-    }
-    m_nextPackets.enqueue(qMakePair(packet, status));
-}
-
-void MainWindow::playNext()
-{
-    const double scaling = m_playTimer.scaling();
-    const bool isSpooling = m_spoolCounter > 0;
-    qint64 timeCurrent = 0;
-    bool hasChanged = false;
-    while (!m_nextPackets.isEmpty()) {
-        // peek next packet
-        QPair<int, Status> p = m_nextPackets.head();
-        int currentPacket = p.first;
-        Status status = p.second;
-
-        // ignore empty status
-        if (!status.isNull()) {
-            qint64 packetTime = status->time();
-            // reset the timer if the current packet wasn't expected
-            if (currentPacket != m_nextPacket) {
-                // the timer has to run with the intended playback speed
-                m_playTimer.setTime(packetTime, scaling);
-            }
-            const qint64 elapsedTime = m_playTimer.currentTime();
-            // break if the frame shouldn't be played yet
-            if (packetTime > elapsedTime && m_spoolCounter == 0) {
-                // only restart the timer if the log should be played
-                if (!m_paused && scaling > 0) {
-                    const qint64 timeDiff = packetTime - elapsedTime;
-                    // limit interval to at least 1 ms, to prevent flooding with timer events
-                    m_timer.start(qMax(timeDiff * 1E-6 / scaling, 1.));
-                }
-                break;
-            }
-
-            // remove the debug part if a strategy is running
-            processStatusDebug(status);
-
-            emit gotStatus(status);
-            if (m_spoolCounter == 0) {
-                emit gotPlayStatus(status);
-            }
-            timeCurrent = packetTime;
-        }
-
-        m_nextPacket = currentPacket + 1;
-        if (m_spoolCounter > 0) { // passthrough a certain amount of packets
-            m_spoolCounter--;
-        } else if (m_preloadedPackets > 0) {
-            // precached frames for normal playback, tracking is required for accurate seeking
-            m_preloadedPackets--;
-        }
-        // remove from queue
-        m_nextPackets.dequeue();
-        hasChanged = true;
-
-        // stop after last packet
-        if (m_nextPacket == m_logreader->packetCount()) {
-            setPaused(true);
-        }
-    }
-
-    // only update sliders if something changed and only once
-    if (hasChanged) {
-        // update current position
-        const double position = timeCurrent - m_startTime;
-        ui->lblTimeCurrent->setText(formatTime(position));
-
-        // prevent sliders from seeking
-        m_scroll = false;
-        ui->spinPacketCurrent->setValue(m_nextPacket - 1);
-
-        // don't do updates for the slider which would only cause subpixel movement
-        // as that won't be visible but is very expensive to redraw
-        m_exactSliderValue = position / 1E8;
-        float sliderStep = std::max(1, m_frames.size() / ui->horizontalSlider->width());
-        const int sliderPixel = (int)(m_exactSliderValue / sliderStep);
-        const int curSliderPixel = (int)(ui->horizontalSlider->value() / sliderStep);
-        // compare whether the playback pos and the currently visible pos of the slider differ
-        if (sliderPixel != curSliderPixel || isSpooling) {
-            // move the slider to the current position
-            ui->horizontalSlider->setValue(m_exactSliderValue);
-        }
-        m_scroll = true;
-    }
-
-    // about 500 status per second, prefetch 0.1 seconds
-    int bufferLimit = 50 * qMax(1., scaling);
-    // if the buffer starts to become empty, request further packets
-    // but only if these should be played and we didn't reach the end yet
-    if (!m_paused && m_preloadedPackets < bufferLimit && m_nextRequestPacket < m_logreader->packetCount()) {
-        int lastRequest = m_nextRequestPacket;
-        m_nextRequestPacket = std::min(m_nextRequestPacket + bufferLimit/5, m_logreader->packetCount());
-        // track requested packet count
-        int packetCount = m_nextRequestPacket - lastRequest;
-        m_preloadedPackets += packetCount;
-        emit triggerRead(lastRequest, packetCount);
-    }
-}
-
-void MainWindow::togglePaused()
-{
-    setPaused(!m_paused);
-}
-
-void MainWindow::setPaused(bool p)
-{
-    m_paused = p;
-    // pause if playback has reached the end
-    if (m_nextPacket == m_logreader->packetCount()) {
-        m_paused = true;
-    }
-
-    bool hasIcon = !QIcon::fromTheme("media-playback-start").isNull();
-    const QString playText("Play");
-    const QString pauseText("Pause");
-    // Ensure that the button has a fixed size
-    if (!hasIcon && ui->btnPlay->isEnabled()) {
-        auto playSize = ui->btnPlay->fontMetrics().size(Qt::TextShowMnemonic, playText);
-        auto pauseSize = ui->btnPlay->fontMetrics().size(Qt::TextShowMnemonic, pauseText);
-        QStyleOptionButton opt;
-        opt.initFrom(ui->btnPlay);
-        opt.rect.setSize(playSize);
-        auto playRealSize = ui->btnPlay->style()->sizeFromContents(QStyle::CT_ToolButton, &opt, playSize);
-        opt.rect.setSize(pauseSize);
-        auto pauseRealSize = ui->btnPlay->style()->sizeFromContents(QStyle::CT_ToolButton, &opt, pauseSize);
-        ui->btnPlay->setFixedSize(playRealSize.expandedTo(pauseRealSize));
-    }
-
-    if (m_paused) {
-        ui->btnPlay->setText(playText);
-        ui->btnPlay->setIcon(QIcon::fromTheme("media-playback-start"));
-        m_timer.stop();
-        // move horizontal slider to its exact position
-        m_scroll = false;
-        ui->horizontalSlider->setValue(m_exactSliderValue);
-        m_scroll = true;
-        m_playEnd = ui->spinPacketCurrent->value();
-    } else {
-        ui->btnPlay->setText(pauseText);
-        ui->btnPlay->setIcon(QIcon::fromTheme("media-playback-pause"));
-        // the play timer has to be reset after a pause to match the timings again
-        m_nextPacket = -1; // trigger play timer reset
-        m_timer.start(0);
-
-        // clear if any seeking was done
-        if (ui->spinPacketCurrent->value() != m_playEnd) {
-            clearPlayConsumers();
-        }
-    }
-}
-
-void MainWindow::handlePlaySpeed(int value)
-{
-    // update scaling
-    m_playTimer.setScaling(value / 100.);
-    if (!m_paused) {
-        // trigger the timer to account for the changed playback speed
-        m_timer.start(0);
-    }
+    ui->debugTree->clearData();
+    ui->field->clearData();
 }

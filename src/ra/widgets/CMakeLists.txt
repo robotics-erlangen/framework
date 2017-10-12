@@ -22,6 +22,7 @@ set(SOURCES
     include/widgets/debugtreewidget.h
     include/widgets/fieldwidget.h
     include/widgets/logwidget.h
+    include/widgets/logmanager.h
     include/widgets/refereestatuswidget.h
     include/widgets/timingwidget.h
     include/widgets/visualizationproxymodel.h
@@ -32,6 +33,7 @@ set(SOURCES
     debugmodel.h
     debugtreewidget.cpp
     fieldwidget.cpp
+    logmanager.cpp
     logwidget.cpp
     refereestatuswidget.cpp
     savesituation.cpp
@@ -43,6 +45,7 @@ set(SOURCES
 )
 
 set(UI_SOURCES
+    logmanager.ui
     refereestatuswidget.ui
     timingwidget.ui
     visualizationwidget.ui
@@ -52,7 +55,9 @@ qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 
 add_library(widgets ${SOURCES} ${UIC_SOURCES})
 target_link_libraries(widgets
+    PRIVATE shared::core
     PUBLIC shared::protobuf
+    PRIVATE ra::logfile
     PRIVATE ra::guihelper
     PUBLIC Qt5::Widgets
     PRIVATE Qt5::OpenGL

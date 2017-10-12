@@ -80,6 +80,7 @@ qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
 add_executable(ra WIN32 MACOSX_BUNDLE ${SOURCES} ${UIC_SOURCES})
 target_link_libraries(ra
     amun::amun
+    shared::core
     shared::config
     shared::protobuf
     ra::guihelper

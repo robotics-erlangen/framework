@@ -23,6 +23,7 @@ set(SOURCES
     include/logfile/combinedlogwriter.h
     include/logfile/logfilereader.h
     include/logfile/logfilewriter.h
+    include/logfile/statussource.h
 
     backlogwriter.cpp
     combinedlogwriter.cpp

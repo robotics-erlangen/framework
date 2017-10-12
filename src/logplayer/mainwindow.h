@@ -24,7 +24,6 @@
 #include <QMainWindow>
 #include <QMap>
 #include <QFile>
-#include <QTimer>
 #include <QQueue>
 #include <QPair>
 #include <QList>
@@ -32,8 +31,10 @@
 #include "core/timer.h"
 #include "protobuf/status.h"
 #include "protobuf/command.h"
+#include "widgets/logmanager.h"
 
 class LogFileReader;
+class LogManager;
 class RefereeStatusWidget;
 class QLabel;
 class QThread;
@@ -58,36 +59,27 @@ protected:
 
 public slots:
     void handleStatus(const Status &status);
+    void gotPreStatus(const Status &status);
+    void gotPrePlayStatus(Status status);
 
 signals:
     void gotStatus(const Status &status);
     void gotPlayStatus(const Status &status); // guarantees a continuous data stream
-    void triggerRead(int startFrame, int count);
     void sendCommand(const Command &command);
     void enableStrategyCheckboxBlue(bool enable);
     void enableStrategyCheckboxYellow(bool enable);
     void reloadStrategy();
 
 private slots:
-    void openFile();
-    void previousFrame();
-    void nextFrame();
-    void seekFrame(int frame);
-    void seekPacket(int packet);
-    void addStatus(int packet, const Status &status);
-    void playNext();
-    void togglePaused();
-    void handlePlaySpeed(int value);
     void enableStrategyBlue(bool enable);
     void enableStrategyYellow(bool enable);
+    void clearPlayConsumers();
+    void clearAll();
+    void openFile();
 
 private:
-    void closeFile();
-    void clearPlayConsumers();
-    void initializeLabels();
-    void setPaused(bool p);
     QString formatTime(qint64 time);
-    void processStatusDebug(Status & status);
+    void processStatusDebug(const Status & status);
     void closeStrategy(int index);
     void createStrategy(int index);
     void sendResetDebugPacket(bool blue);
@@ -96,28 +88,7 @@ private:
     Ui::MainWindow *ui;
     RefereeStatusWidget *m_refereeStatus;
 
-    QThread *m_logthread;
     QThread *m_strategyThreads[2];
-    LogFileReader *m_logreader;
-
-    QList<int> m_frames;
-    qint64 m_startTime;
-    qint64 m_duration;
-
-    QQueue<QPair<int,Status> > m_nextPackets;
-    int m_nextPacket;
-    int m_nextRequestPacket;
-    int m_preloadedPackets;
-    int m_spoolCounter;
-
-    int m_playEnd;
-
-    QTimer m_timer;
-    bool m_paused;
-    Timer m_playTimer;
-
-    int m_exactSliderValue;
-    bool m_scroll;
 
     Command m_lastTeamInfo;
     bool m_lastTeamInfoUpdated;
@@ -126,6 +97,10 @@ private:
 
     Strategy *m_strategys[2];
     CombinedLogWriter m_logWriter;
+
+    Timer *m_playTimer;
+
+    LogFileReader * m_logfile;
 };
 
 #endif // MAINWINDOW_H

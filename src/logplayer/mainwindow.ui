@@ -17,6 +17,12 @@
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
      <widget class="QSplitter" name="splitter">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -30,82 +36,29 @@
     </item>
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
       <item>
-       <widget class="QToolButton" name="btnOpen">
+       <widget class="QPushButton" name="btnOpen">
         <property name="text">
          <string>Open</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QToolButton" name="btnPlay">
-        <property name="text">
-         <string>Play</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout">
-        <item>
-         <widget class="QLabel" name="lblTimeCurrent">
-          <property name="text">
-           <string>TextLabel</string>
-          </property>
-          <property name="alignment">
-           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QSpinBox" name="spinPacketCurrent">
-          <property name="maximum">
-           <number>0</number>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QSlider" name="horizontalSlider">
-        <property name="maximum">
-         <number>0</number>
-        </property>
-        <property name="pageStep">
-         <number>100</number>
-        </property>
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
-        <item>
-         <widget class="QLabel" name="lblTimeMax">
-          <property name="text">
-           <string>TextLabel</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLabel" name="lblPacketMax">
-          <property name="text">
-           <string>TextLabel</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QSpinBox" name="spinSpeed">
-        <property name="suffix">
-         <string> %</string>
-        </property>
-        <property name="maximum">
-         <number>1000</number>
-        </property>
-        <property name="value">
-         <number>100</number>
+       <widget class="LogManager" name="logManager" native="true">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
         </property>
        </widget>
       </item>
@@ -119,7 +72,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>19</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -399,6 +352,12 @@
    <class>DebugTreeWidget</class>
    <extends>QTreeView</extends>
    <header>widgets/debugtreewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LogManager</class>
+   <extends>QWidget</extends>
+   <header>widgets/logmanager.h</header>
+   <container>1</container>
   </customwidget>
   <customwidget>
    <class>ReplayTeamWidget</class>
