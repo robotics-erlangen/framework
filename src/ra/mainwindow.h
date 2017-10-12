@@ -67,9 +67,13 @@ private slots:
     void toggleFlip();
     void setCharge(bool charge);
     void showConfigDialog();
+    void liveMode();
+    void showBacklogMode();
+    void recordFileToggled(bool enabled);
 
 private:
     void sendFlip();
+    void toggleInstantReplay(bool enable);
 
 private:
     Ui::MainWindow *ui;

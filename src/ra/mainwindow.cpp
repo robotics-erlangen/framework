@@ -32,6 +32,7 @@
 #include <QMetaType>
 #include <QSettings>
 #include <QThread>
+#include <QSignalMapper>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -46,6 +47,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     setWindowIcon(QIcon("icon:ra.svg"));
     ui->setupUi(this);
+
+    ui->logManager->setMinimalMode();
+    ui->logManager->hide();
 
     // setup icons
     ui->actionEnableTransceiver->setIcon(QIcon("icon:32/network-wireless.png"));
@@ -129,6 +133,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionRobotParameters, SIGNAL(triggered()), m_robotParametersDialog, SLOT(exec()));
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
 
+    connect(ui->actionGoLive, SIGNAL(triggered()), SLOT(liveMode()));
+    connect(ui->actionShowBacklog, SIGNAL(triggered()), SLOT(showBacklogMode()));
+    connect(ui->actionFrameBack, SIGNAL(triggered()), ui->logManager, SLOT(previousFrame()));
+    connect(ui->actionFrameForward, SIGNAL(triggered()), ui->logManager, SLOT(nextFrame()));
+    connect(ui->actionStepBack, SIGNAL(triggered()), ui->logManager, SIGNAL(stepBackward()));
+    connect(ui->actionStepBack, SIGNAL(triggered()), ui->logManager, SIGNAL(stepForward()));
+    connect(ui->actionTogglePause, SIGNAL(triggered()), ui->logManager, SLOT(togglePaused()));
+
     // setup data distribution
     connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), m_plotter, SLOT(handleStatus(Status)));
@@ -144,6 +156,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // set up log connections
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
     connect(ui->actionRecord, SIGNAL(toggled(bool)), &m_logWriter, SLOT(recordButtonToggled(bool)));
+    connect(ui->actionRecord, SIGNAL(toggled(bool)), SLOT(recordFileToggled(bool)));
     connect(ui->actionSave20s, SIGNAL(triggered(bool)), &m_logWriter, SLOT(backLogButtonClicked()));
     connect(ui->actionSaveBacklog, SIGNAL(triggered(bool)), &m_logWriter, SLOT(backLogButtonClicked()));
     connect(&m_logWriter, SIGNAL(setRecordButton(bool)), ui->actionRecord, SLOT(setChecked(bool)));
@@ -192,6 +205,28 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_flip = s.value("Flip").toBool();
     sendFlip();
+
+    // playback speed shortcuts
+    QSignalMapper *mapper = new QSignalMapper(this);
+    connect(mapper, SIGNAL(mapped(int)), ui->logManager, SIGNAL(setSpeed(int)));
+    QAction *speedActions[] = { ui->actionSpeed1, ui->actionSpeed5, ui->actionSpeed10, ui->actionSpeed20,
+                              ui->actionSpeed50, ui->actionSpeed100, ui->actionSpeed200, ui->actionSpeed1000 };
+    int playSpeeds[] = { 1, 5, 10, 20, 50, 100, 200, 1000 };
+    for (uint i = 0; i < sizeof(speedActions) / sizeof(speedActions[0]); ++i) {
+        QAction *action = speedActions[i];
+        connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
+        mapper->setMapping(action, playSpeeds[i]);
+        // readd bug, see below
+        addAction(action);
+    }
+
+    addAction(ui->actionGoLive);
+    addAction(ui->actionFrameBack);
+    addAction(ui->actionFrameForward);
+    addAction(ui->actionStepBack);
+    addAction(ui->actionStepForward);
+    addAction(ui->actionShowBacklog);
+    addAction(ui->actionTogglePause);
 }
 
 MainWindow::~MainWindow()
@@ -340,6 +375,63 @@ void MainWindow::toggleFlip()
     QSettings s;
     s.setValue("Flip", m_flip);
     sendFlip();
+}
+
+void MainWindow::liveMode()
+{
+    ui->simulator->start();
+    ui->logManager->setDisabled(true);
+    ui->logManager->hide();
+    connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
+    disconnect(ui->logManager, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
+
+    toggleInstantReplay(false);
+}
+
+void MainWindow::showBacklogMode()
+{
+    if (ui->actionSimulator->isChecked()) {
+        ui->simulator->stop();
+        ui->logManager->setEnabled(true);
+        ui->logManager->show();
+        ui->logManager->setStatusSource(m_logWriter.makeStatusSource());
+        disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
+        connect(ui->logManager, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
+        ui->logManager->gotToEnd();
+
+        toggleInstantReplay(true);
+    }
+}
+
+void MainWindow::recordFileToggled(bool enabled)
+{
+    if (ui->actionShowBacklog->isEnabled() && enabled) {
+        ui->actionShowBacklog->setEnabled(false);
+    } else if(!ui->actionShowBacklog->isEnabled() && ! enabled && !ui->actionGoLive->isEnabled()) {
+        ui->actionShowBacklog->setEnabled(true);
+    }
+}
+
+void MainWindow::toggleInstantReplay(bool enable)
+{
+    ui->actionGoLive->setEnabled(enable);
+    ui->actionFrameBack->setEnabled(enable);
+    ui->actionFrameForward->setEnabled(enable);
+    ui->actionStepBack->setEnabled(enable);
+    ui->actionStepForward->setEnabled(enable);
+    ui->actionTogglePause->setEnabled(enable);
+    ui->actionShowBacklog->setEnabled(!enable);
+    ui->actionSpeed1->setEnabled(enable);
+    ui->actionSpeed5->setEnabled(enable);
+    ui->actionSpeed10->setEnabled(enable);
+    ui->actionSpeed20->setEnabled(enable);
+    ui->actionSpeed50->setEnabled(enable);
+    ui->actionSpeed100->setEnabled(enable);
+    ui->actionSpeed200->setEnabled(enable);
+    ui->actionSpeed1000->setEnabled(enable);
+    ui->referee->setEnabled(!enable);
+    ui->simulator->setEnabled(!enable);
+    ui->robots->setEnabled(!enable);
 }
 
 void MainWindow::sendFlip()

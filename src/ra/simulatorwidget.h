@@ -43,12 +43,14 @@ signals:
 public:
     float speed() const { return m_speed; }
 
+public slots:
+    void stop();
+    void start();
+
 private slots:
     void setEnableAutoPause(bool autoPause);
     void handleAppState(Qt::ApplicationState state);
     void setSpeed(int speed);
-    void start();
-    void stop();
     void increaseSpeed();
     void decreaseSpeed();
     void setEnableNoise(int state);

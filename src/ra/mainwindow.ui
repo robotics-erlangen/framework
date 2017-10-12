@@ -20,6 +20,12 @@
    <layout class="QVBoxLayout" name="verticalLayout">
     <item>
      <widget class="QSplitter" name="splitterH">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
@@ -32,8 +38,34 @@
        <property name="orientation">
         <enum>Qt::Vertical</enum>
        </property>
-       <widget class="FieldWidget" name="field"/>
-       <widget class="LogWidget" name="log"/>
+       <widget class="QWidget" name="verticalLayoutWidget">
+        <layout class="QVBoxLayout" name="verticalLayout_2">
+         <item>
+          <widget class="FieldWidget" name="field">
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="LogManager" name="logManager" native="true">
+           <property name="enabled">
+            <bool>false</bool>
+           </property>
+           <property name="sizePolicy">
+            <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+             <horstretch>0</horstretch>
+             <verstretch>0</verstretch>
+            </sizepolicy>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+       <widget class="LogWidget" name="log" native="true"/>
       </widget>
      </widget>
     </item>
@@ -45,7 +77,7 @@
      <x>0</x>
      <y>0</y>
      <width>842</width>
-     <height>23</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_Game">
@@ -74,9 +106,31 @@
     <addaction name="actionInputDevices"/>
     <addaction name="actionAutoPause"/>
    </widget>
+   <widget class="QMenu" name="menuInstant_Replay">
+    <property name="title">
+     <string>Instant Replay</string>
+    </property>
+    <addaction name="actionGoLive"/>
+    <addaction name="actionStepBack"/>
+    <addaction name="actionStepForward"/>
+    <addaction name="actionFrameBack"/>
+    <addaction name="actionFrameForward"/>
+    <addaction name="actionTogglePause"/>
+    <addaction name="actionShowBacklog"/>
+    <addaction name="separator"/>
+    <addaction name="actionSpeed1"/>
+    <addaction name="actionSpeed5"/>
+    <addaction name="actionSpeed10"/>
+    <addaction name="actionSpeed20"/>
+    <addaction name="actionSpeed50"/>
+    <addaction name="actionSpeed100"/>
+    <addaction name="actionSpeed200"/>
+    <addaction name="actionSpeed1000"/>
+   </widget>
    <addaction name="menu_Game"/>
    <addaction name="menuTesting"/>
    <addaction name="menuVideo"/>
+   <addaction name="menuInstant_Replay"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolCommands">
@@ -350,8 +404,204 @@
     <string>Ctrl+B</string>
    </property>
   </action>
+  <action name="actionGoLive">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Go Live</string>
+   </property>
+   <property name="shortcut">
+    <string>Return</string>
+   </property>
+  </action>
+  <action name="actionStepBack">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Step back</string>
+   </property>
+   <property name="shortcut">
+    <string>Q</string>
+   </property>
+  </action>
+  <action name="actionStepForward">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Step forward</string>
+   </property>
+   <property name="shortcut">
+    <string>E</string>
+   </property>
+  </action>
+  <action name="actionFrameBack">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Frame back</string>
+   </property>
+   <property name="shortcut">
+    <string>A</string>
+   </property>
+  </action>
+  <action name="actionFrameForward">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Frame forward</string>
+   </property>
+   <property name="shortcut">
+    <string>D</string>
+   </property>
+  </action>
+  <action name="actionShowBacklog">
+   <property name="text">
+    <string>Show Backlog</string>
+   </property>
+   <property name="shortcut">
+    <string>A</string>
+   </property>
+  </action>
+  <action name="actionTogglePause">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Toggle Pause</string>
+   </property>
+   <property name="shortcut">
+    <string>Space</string>
+   </property>
+  </action>
+  <action name="actionSpeed1">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Speed 1%</string>
+   </property>
+   <property name="shortcut">
+    <string>1</string>
+   </property>
+  </action>
+  <action name="actionSpeed5">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Speed 5%</string>
+   </property>
+   <property name="shortcut">
+    <string>2</string>
+   </property>
+  </action>
+  <action name="actionSpeed10">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Speed 10%</string>
+   </property>
+   <property name="shortcut">
+    <string>3</string>
+   </property>
+  </action>
+  <action name="actionSpeed50">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Speed 50%</string>
+   </property>
+   <property name="shortcut">
+    <string>5</string>
+   </property>
+  </action>
+  <action name="actionSpeed100">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Speed 100%</string>
+   </property>
+   <property name="shortcut">
+    <string>6</string>
+   </property>
+  </action>
+  <action name="actionSpeed200">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Speed 200%</string>
+   </property>
+   <property name="shortcut">
+    <string>7</string>
+   </property>
+  </action>
+  <action name="actionSpeed1000">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Speed 1000%</string>
+   </property>
+   <property name="shortcut">
+    <string>8</string>
+   </property>
+  </action>
+  <action name="actionSpeed20">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Speed 20%</string>
+   </property>
+   <property name="shortcut">
+    <string>4</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
+  <customwidget>
+   <class>VisualizationWidget</class>
+   <extends>QWidget</extends>
+   <header>widgets/visualizationwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>TimingWidget</class>
+   <extends>QWidget</extends>
+   <header>widgets/timingwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>FieldWidget</class>
+   <extends>QGraphicsView</extends>
+   <header>widgets/fieldwidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LogWidget</class>
+   <extends>QWidget</extends>
+   <header>widgets/logwidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>DebugTreeWidget</class>
+   <extends>QTreeView</extends>
+   <header>widgets/debugtreewidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>LogManager</class>
+   <extends>QWidget</extends>
+   <header>widgets/logmanager.h</header>
+   <container>1</container>
+  </customwidget>
   <customwidget>
    <class>RefereeWidget</class>
    <extends>QWidget</extends>
@@ -371,37 +621,15 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>VisualizationWidget</class>
-   <extends>QWidget</extends>
-   <header>widgets/visualizationwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>TimingWidget</class>
-   <extends>QWidget</extends>
-   <header>widgets/timingwidget.h</header>
-   <container>1</container>
-  </customwidget>
-  <customwidget>
    <class>RobotSelectionWidget</class>
    <extends>QWidget</extends>
    <header>robotselectionwidget.h</header>
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>FieldWidget</class>
-   <extends>QGraphicsView</extends>
-   <header>widgets/fieldwidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>LogWidget</class>
-   <extends>QPlainTextEdit</extends>
-   <header>widgets/logwidget.h</header>
-  </customwidget>
-  <customwidget>
-   <class>DebugTreeWidget</class>
-   <extends>QTreeView</extends>
-   <header>widgets/debugtreewidget.h</header>
+   <class>OptionsWidget</class>
+   <extends>QWidget</extends>
+   <header>optionswidget.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
