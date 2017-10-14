@@ -384,6 +384,7 @@ void MainWindow::liveMode()
     ui->logManager->hide();
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
     disconnect(ui->logManager, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
 
     toggleInstantReplay(false);
 }
@@ -398,6 +399,7 @@ void MainWindow::showBacklogMode()
         disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
         connect(ui->logManager, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
         ui->logManager->gotToEnd();
+        disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
 
         toggleInstantReplay(true);
     }
