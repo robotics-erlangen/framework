@@ -91,6 +91,7 @@ function Moves:run(sender, inbox, messages)
 		if #availableRobots >= self._chosenMove.MIN_ROBOTS and
 			#availableRobots <= self._chosenMove.MAX_ROBOTS and
 			self._numAttackersSent then
+			table.sort(availableRobots, function(a, b) return a.id < b.id end)
 			self._currentMove = self._chosenMove(availableRobots, inbox)
 			self._participatingRobots = availableRobots
 		end
