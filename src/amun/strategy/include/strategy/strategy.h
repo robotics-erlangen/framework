@@ -95,6 +95,7 @@ private:
     QByteArray m_networkRefereeCommand;
 
     amun::UserInput m_lastMoveCommand;
+    bool m_isReplay;
 };
 
 #endif // STRATEGY_H

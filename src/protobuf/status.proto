@@ -68,4 +68,9 @@ message Status {
     optional UserInput user_input_yellow = 17;
     optional StatusAmun amun_state = 19;
     optional float timer_scaling = 20;
+    optional bool blue_running = 21;
+    optional bool yellow_running = 22;
+    optional world.State execution_state = 23;
+    optional GameState execution_game_state = 24;
+    optional UserInput execution_user_input = 25;
 }

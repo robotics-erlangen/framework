@@ -60,7 +60,8 @@ Strategy::Strategy(const Timer *timer, StrategyType type) :
     m_debugEnabled(type == StrategyType::AUTOREF),
     m_refboxControlEnabled(false),
     m_autoReload(false),
-    m_strategyFailed(false)
+    m_strategyFailed(false),
+    m_isReplay(false)
 {
     m_udpSenderSocket = new QUdpSocket(this);
     m_refboxSocket = new QTcpSocket(this);
@@ -104,7 +105,7 @@ void Strategy::handleStatus(const Status &status)
         }
     }
 
-    if (status->has_world_state() && status->has_game_state()) {
+    if (status->has_world_state() && status->has_game_state() && !m_isReplay) {
         m_status = status;
 
         // This timer delays execution of the entrypoint (executeScript) until all currently
@@ -113,6 +114,13 @@ void Strategy::handleStatus(const Status &status)
         // will be used.
         // guarantees that the tracking packet used by the strategy is at most 10 ms old
         m_idleTimer->start();
+    }
+    if ((status->has_blue_running() && status->blue_running() && m_type == StrategyType::BLUE)
+            || (status->has_yellow_running() && status->yellow_running() && m_type == StrategyType::YELLOW)) {
+        m_idleTimer->stop();
+        m_isReplay = true;
+        m_status = status;
+        process();
     }
 }
 
@@ -243,21 +251,26 @@ void Strategy::process()
         return;
     }
 
-    Q_ASSERT(m_status->game_state().IsInitialized());
-    Q_ASSERT(m_status->world_state().IsInitialized());
+    Q_ASSERT(m_status->game_state().IsInitialized() || m_status->execution_state().IsInitialized());
+    Q_ASSERT(m_status->world_state().IsInitialized() || m_status->execution_game_state().IsInitialized());
 
     double pathPlanning = 0;
     qint64 startTime = Timer::systemTime();
 
     amun::UserInput userInput;
-    if (m_type == StrategyType::BLUE) {
-        userInput.CopyFrom(m_status->user_input_blue());
-    } else if (m_type == StrategyType::YELLOW) {
-        userInput.CopyFrom(m_status->user_input_yellow());
+    if (m_status->has_execution_user_input()) {
+        userInput.CopyFrom(m_status->execution_user_input());
+    } else {
+        if (m_type == StrategyType::BLUE) {
+            userInput.CopyFrom(m_status->user_input_blue());
+        } else if (m_type == StrategyType::YELLOW) {
+            userInput.CopyFrom(m_status->user_input_yellow());
+        }
     }
     userInput.mutable_move_command()->CopyFrom(m_lastMoveCommand.move_command());
 
-    if (m_strategy->process(pathPlanning, m_status->world_state(), m_status->game_state(), userInput)) {
+    if (m_strategy->process(pathPlanning, m_status->execution_state().IsInitialized() ? m_status->execution_state() : m_status->world_state(),
+                            m_status->execution_game_state().IsInitialized() ? m_status->execution_game_state() : m_status->game_state(), userInput)) {
         if (!m_p->mixedTeamData.isNull()) {
             int bytesSent = m_udpSenderSocket->writeDatagram(m_p->mixedTeamData, m_p->mixedTeamHost, m_p->mixedTeamPort);
             int origSize = m_p->mixedTeamData.size();
@@ -311,10 +324,15 @@ void Strategy::process()
         if (m_type == StrategyType::BLUE) {
             timing->set_blue_total(totalTime);
             timing->set_blue_path(pathPlanning);
+            status->set_blue_running(true);
         } else if (m_type == StrategyType::YELLOW) {
             timing->set_yellow_total(totalTime);
             timing->set_yellow_path(pathPlanning);
+            status->set_yellow_running(true);
         }
+        status->mutable_execution_state()->CopyFrom(m_status->world_state());
+        status->mutable_execution_game_state()->CopyFrom(m_status->game_state());
+        status->mutable_execution_user_input()->CopyFrom(userInput);
         emit sendStatus(status);
     } else {
         fail(m_strategy->errorMsg());
