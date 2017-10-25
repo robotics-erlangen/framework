@@ -56,6 +56,7 @@ local wrapper = function (func)
 			end
 			return -- skip processing if no vision data is available yet
 		end
+		math.randomseed(World.Time)
 		debug.set("frame", frameCount)
 		--local time0 = amun.getCurrentTime()
 		Processor.pre()
