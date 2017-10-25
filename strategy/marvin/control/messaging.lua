@@ -178,6 +178,40 @@ function Messaging:deliverMessages()
 	self._newMessages = {}
 end
 
+-- to work properly this requires LUA 5.2, in luajit this needs to be explicitely enabled an then recompiled
+local function makeSortedPairsTable(messages)
+	local sortedMessages = {}
+	for sender, message in pairs(messages) do
+		table.insert(sortedMessages, {sender = sender, data = message})
+	end
+	table.sort(sortedMessages, function(a, b)
+		if not a.sender.id then
+			return false
+		end
+		return a.sender.id < b.sender.id end)
+	local robotToIndex = {}
+	for i, message in ipairs(sortedMessages) do
+		robotToIndex[message.sender] = i
+	end
+	robotToIndex["dummy"] = 0
+	local messageMT = {
+		__pairs = function(_)
+			local function ipairs_it(t, lastSender)
+				local i = robotToIndex[lastSender] + 1
+				local v = t[i]
+				if v ~= nil then
+					return v.sender, v.data
+				else
+					return nil
+				end
+			end
+			return ipairs_it, sortedMessages, "dummy"
+		end
+	}
+	setmetatable(messages, messageMT)
+	return messages
+end
+
 function Messaging:_constructInbox(receiver)
 	local inbox = {}
 	for messageType, _ in pairs(msgDefs) do
@@ -194,7 +228,7 @@ function Messaging:_constructInbox(receiver)
 				if not mtypeBox.all then
 					return empty
 				end
-				return mtypeBox.all
+				return makeSortedPairsTable(mtypeBox.all)
 			elseif mode ~= nil then
 				error("Invalid request mode only nil or \"broadcast\" is allowed")
 			end
@@ -220,11 +254,11 @@ function Messaging:_constructInbox(receiver)
 								receiveBox[sender] = data
 							end
 						end
-
 						allMerged[receiver] = true
 					end
 				end
-				return receiveBox
+
+				return makeSortedPairsTable(receiveBox)
 			end
 		end
 	end
