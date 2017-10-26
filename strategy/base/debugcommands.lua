@@ -131,8 +131,8 @@ function DebugCommands.sendRefereeCommand(refereeCommand, gameStage, blueKeeperI
 end
 
 --- Move ball and robots to a given position.
--- Every parameter in these data structures is required!
--- ball: { pos = Vector, speed = Vector } <br/>
+-- Every parameter except posZ and speedZ in these data structures is required!
+-- ball: { pos = Vector, posZ = number, speed = Vector, speedZ = number } <br/>
 -- robot: { pos = Vector, dir = number, speed = Vector, angularSpeed = number }
 -- @param [ball ball - ball target]
 -- @param [friendlyRobots robot[] - friendly robots by id]
@@ -148,8 +148,8 @@ function DebugCommands.moveObjects(ball, friendlyRobots, opponentRobots)
 		local speed = Coordinates.toGlobal(ball.speed)
 		simCommand.move_ball = {
 			position = true, -- just position
-			p_x = pos.x, p_y = pos.y,
-			v_x = speed.x, v_y = speed.y
+			p_x = pos.x, p_y = pos.y, p_z = ball.posZ or 0,
+			v_x = speed.x, v_y = speed.y, v_z = ball.speedZ or 0
 		}
 	end
 
@@ -187,3 +187,4 @@ function DebugCommands.moveObjects(ball, friendlyRobots, opponentRobots)
 end
 
 return DebugCommands
+
