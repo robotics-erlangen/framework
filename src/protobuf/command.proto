@@ -6,9 +6,11 @@ package amun;
 message SimulatorMoveBall {
     optional float p_x = 1;
     optional float p_y = 2;
+    optional float p_z = 6;
     optional bool position = 3 [default = false]; // set pos and speed to given values
     optional float v_x = 4;
     optional float v_y = 5;
+    optional float v_z = 7;
 }
 
 message SimulatorMoveRobot {

@@ -89,11 +89,11 @@ void SimBall::begin()
     if (m_move.has_p_x()) {
         if (m_move.position()) {
             // set ball to the given position and speed
-            const btVector3 pos(m_move.p_x(), m_move.p_y(), BALL_RADIUS);
+            const btVector3 pos(m_move.p_x(), m_move.p_y(), BALL_RADIUS + m_move.p_z());
             btTransform transform = m_body->getWorldTransform();
             transform.setOrigin(pos * SIMULATOR_SCALE);
             m_body->setWorldTransform(transform);
-            const btVector3 linVel(m_move.v_x(), m_move.v_y(), 0.0f);
+            const btVector3 linVel(m_move.v_x(), m_move.v_y(), m_move.v_z());
             m_body->setLinearVelocity(linVel * SIMULATOR_SCALE);
             m_body->setAngularVelocity(btVector3(0, 0, 0));
             m_body->activate();
