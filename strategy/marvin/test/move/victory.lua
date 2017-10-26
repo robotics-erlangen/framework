@@ -9,7 +9,7 @@ local VictoryTask = require "task/victory"
 local vis = require "../base/vis"
 
 Victory.MIN_ROBOTS = 3
-Victory.MAX_ROBOTS = 6
+Victory.MAX_ROBOTS = 12
 
 function Victory.canStart() -- TODO
 	return true
