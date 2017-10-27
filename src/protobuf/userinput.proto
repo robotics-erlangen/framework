@@ -1,8 +1,10 @@
 syntax = "proto2";
 import "robot.proto";
+import "command.proto";
 package amun;
 
 // for strategy
 message UserInput {
     repeated robot.RadioCommand radio_command = 1;
+    repeated amun.RobotMoveCommand move_command = 2;
 }

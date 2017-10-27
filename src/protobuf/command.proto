@@ -24,6 +24,12 @@ message SimulatorMoveRobot {
     optional float omega = 8;
 }
 
+message RobotMoveCommand {
+    required uint32 id = 1;
+    optional float p_x = 2;
+    optional float p_y = 3;
+}
+
 message CommandSimulator {
     optional bool enable = 1;
     optional int64 vision_delay = 9;
@@ -123,4 +129,6 @@ message Command {
     optional CommandTracking tracking = 12;
     optional CommandAmun amun = 14;
     optional HostAddress mixed_team_destination = 15;
+    repeated RobotMoveCommand robot_move_blue = 16;
+    repeated RobotMoveCommand robot_move_yellow = 17;
 }

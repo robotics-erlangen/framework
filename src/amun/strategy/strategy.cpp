@@ -129,6 +129,12 @@ void Strategy::handleCommand(const Command &command)
         cmd = &command->strategy_autoref();
     }
 
+    if (m_type == StrategyType::BLUE) {
+        m_lastMoveCommand.mutable_move_command()->CopyFrom(command->robot_move_blue());
+    } else if (m_type == StrategyType::YELLOW) {
+        m_lastMoveCommand.mutable_move_command()->CopyFrom(command->robot_move_yellow());
+    }
+
     bool reloadStrategy = false;
 
     // update team robots, but only if something has changed
@@ -243,11 +249,12 @@ void Strategy::process()
     double pathPlanning = 0;
     qint64 startTime = Timer::systemTime();
 
-    const amun::UserInput& userInput = (m_type == StrategyType::BLUE) ? m_status->user_input_blue() :
-                                    ((m_type == StrategyType::YELLOW) ? m_status->user_input_yellow() :
-                                            amun::UserInput());
+    amun::UserInput *userInput = (m_type == StrategyType::BLUE) ? m_status->mutable_user_input_blue() :
+                                    ((m_type == StrategyType::YELLOW) ? m_status->mutable_user_input_yellow() :
+                                            new amun::UserInput()); //TODO: memory leak
+    userInput->mutable_move_command()->CopyFrom(m_lastMoveCommand.move_command());
 
-    if (m_strategy->process(pathPlanning, m_status->world_state(), m_status->game_state(), userInput)) {
+    if (m_strategy->process(pathPlanning, m_status->world_state(), m_status->game_state(), *userInput)) {
         if (!m_p->mixedTeamData.isNull()) {
             int bytesSent = m_udpSenderSocket->writeDatagram(m_p->mixedTeamData, m_p->mixedTeamHost, m_p->mixedTeamPort);
             int origSize = m_p->mixedTeamData.size();
