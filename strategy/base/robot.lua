@@ -230,7 +230,7 @@ end
 
 function Robot:_command()
 	local STANDBY_DELAY = 30
-	local standby = self._standbyTimer and (self._currentTime - self._standbyTimer > STANDBY_DELAY)
+	local standby = self._standbyTimer >= 0 and (self._currentTime - self._standbyTimer > STANDBY_DELAY)
 
 	return {
 		controller = self._controllerInput,
