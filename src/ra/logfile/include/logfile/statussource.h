@@ -40,7 +40,7 @@ public slots:
     virtual void readPackets(int startPacket, int count) = 0;
 
 signals:
-    virtual void gotStatus(int packet, const Status &status) = 0;
+    void gotStatus(int packet, const Status &status);
 };
 
 #endif // STATUSSOURCE_H

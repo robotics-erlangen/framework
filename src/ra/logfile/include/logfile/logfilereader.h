@@ -53,9 +53,6 @@ public:
 public slots:
     void readPackets(int startPacket, int count) override;
 
-signals:
-    void gotStatus(int packet, const Status &status);
-
 private:
     bool readVersion();
     qint64 readTimestampVersion0();

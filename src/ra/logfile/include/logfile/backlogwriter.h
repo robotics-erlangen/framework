@@ -44,9 +44,6 @@ public:
 public slots:
     void readPackets(int startPacket, int count) override;
 
-signals:
-    void gotStatus(int packet, const Status &status);
-
 private:
     QContiguousCache<QByteArray> m_packets;
     QList<qint64> m_timings;
