@@ -111,6 +111,7 @@ function Robot:init(data, isFriendly)
 	self.speed = nil
 	self.angularSpeed = nil
 	self.userControl = nil
+	self.moveCommand = nil
 end
 
 function Robot:__tostring()

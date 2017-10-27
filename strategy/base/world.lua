@@ -394,6 +394,14 @@ function World._updateUserInput(input)
 			end
 		end
 	end
+	if input.move_command then
+		for _, robot in ipairs(World.FriendlyRobotsAll) do
+			robot.moveCommand = nil
+		end
+		for _, cmd in ipairs(input.move_command) do
+			World.FriendlyRobotsById[cmd.id].moveCommand = Coordinates.toGlobal(Vector(cmd.p_x, cmd.p_y))
+		end
+	end
 end
 
 
@@ -401,8 +409,10 @@ end
 -- @name haltOwnRobots
 function World.haltOwnRobots()
 	for _, robot in ipairs(World.FriendlyRobotsAll) do
-		robot:setStandby(true)
-		robot:halt()
+		if not robot.moveCommand then
+			robot:setStandby(true)
+			robot:halt()
+		end
 	end
 end
 

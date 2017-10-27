@@ -6,6 +6,7 @@ local timing = require "../base/timing"
 local World = require "../base/world"
 local Halt = require "agent/shared/halt"
 local Error = require "agent/shared/error"
+local MoveCommand = require "agent/shared/movecommand"
 local Physics = require "observer/physics"
 local CenterBack = require "task/centerback"
 local Rating = require "util/rating"
@@ -25,6 +26,7 @@ function Base:init(robot, messaging)
 	self._send, self._inbox = messaging:registerAgent(self)
 	-- behaviors are ordered by decreasing priority
 	self._behaviors = {
+		MoveCommand(self),
 		Halt(self),
 		Error(self),
 		unpack(table.map(self._behaviors,
