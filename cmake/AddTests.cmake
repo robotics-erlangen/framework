@@ -15,3 +15,4 @@ endif()
 # show what went wrong by default
 add_custom_target(check COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure
     ${TEST_NINJA_CONSOLE})
+add_dependencies(check amun-cli)
