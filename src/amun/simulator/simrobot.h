@@ -73,6 +73,7 @@ private:
     robot::Command m_command;
     bool m_charge;
     bool m_isCharged;
+    bool m_inStandby;
     double m_shootTime;
     double m_commandTime;
 

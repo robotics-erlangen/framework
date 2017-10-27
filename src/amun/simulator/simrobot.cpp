@@ -40,6 +40,7 @@ SimRobot::SimRobot(RNG *rng, const robot::Specs &specs, btDiscreteDynamicsWorld 
     m_world(world),
     m_charge(false),
     m_isCharged(false),
+    m_inStandby(false),
     m_shootTime(0.0),
     m_commandTime(0.0),
     error_sum_v_s(0),
@@ -143,14 +144,17 @@ void SimRobot::calculateDribblerMove(const btVector3 pos, const btQuaternion rot
 void SimRobot::begin(SimBall *ball, double time)
 {
     m_commandTime += time;
+    m_inStandby = m_command.standby();
 
     // after 0.1s without new command reset to stop
     if (m_commandTime > 0.1) {
         m_command.Clear();
+        // the real robot switches to standby after a short delay
+        m_inStandby = true;
     }
 
     //enable dribbler if necessary
-    if (m_command.has_dribbler() && m_command.dribbler() > 0) {
+    if (!m_inStandby && m_command.has_dribbler() && m_command.dribbler() > 0) {
         float boundedDribbler = qBound(0.0f, m_command.dribbler(), 1.0f);
         m_constraint->enableAngularMotor(true, 150 * boundedDribbler, 20 * boundedDribbler);
     } else {
@@ -195,7 +199,7 @@ void SimRobot::begin(SimBall *ball, double time)
     t.setOrigin(btVector3(0,0,0));
 
     // charge kicker only if enabled
-    if (m_charge) {
+    if (!m_inStandby && m_charge) {
         m_shootTime += time;
         // recharge only after a short timeout, to prevent kick the ball twice
         if (!m_isCharged && m_shootTime > 0.1) {
@@ -237,7 +241,7 @@ void SimRobot::begin(SimBall *ball, double time)
         m_shootTime = 0.0;
     }
 
-    if (!m_command.has_output1() || !m_command.output1().has_v_f() || !m_command.output1().has_v_s() || !m_command.output1().has_omega()) {
+    if (m_inStandby || !m_command.has_output1() || !m_command.output1().has_v_f() || !m_command.output1().has_v_s() || !m_command.output1().has_omega()) {
         return;
     }
 
