@@ -34,15 +34,15 @@ class BacklogStatusSource : public StatusSource
     Q_OBJECT
 public:
     BacklogStatusSource(QContiguousCache<QByteArray> &backlog, QContiguousCache<qint64> &timings);
-    bool isOpen() const { return true; }
+    bool isOpen() const override { return true; }
 
-    const QList<qint64>& timings() const { return m_timings; }
+    const QList<qint64>& timings() const override { return m_timings; }
     // equals timings().size()
-    int packetCount() const { return m_timings.size(); }
-    Status readStatus(int packet);
+    int packetCount() const override { return m_timings.size(); }
+    Status readStatus(int packet) override;
 
 public slots:
-    void readPackets(int startPacket, int count);
+    void readPackets(int startPacket, int count) override;
 
 signals:
     void gotStatus(int packet, const Status &status);
