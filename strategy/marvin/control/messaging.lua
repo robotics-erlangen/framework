@@ -179,36 +179,31 @@ function Messaging:deliverMessages()
 end
 
 -- to work properly this requires LUA 5.2, in luajit this needs to be explicitely enabled an then recompiled
-local function makeSortedPairsTable(messages)
-	local sortedMessages = {}
-	for sender, message in pairs(messages) do
-		table.insert(sortedMessages, {sender = sender, data = message})
-	end
-	table.sort(sortedMessages, function(a, b)
-		if not a.sender.id then
-			return false
-		end
-		return a.sender.id < b.sender.id end)
-	local robotToIndex = {}
-	for i, message in ipairs(sortedMessages) do
-		robotToIndex[message.sender] = i
-	end
-	robotToIndex["dummy"] = 0
-	local messageMT = {
-		__pairs = function(_)
-			local function ipairs_it(t, lastSender)
-				local i = robotToIndex[lastSender] + 1
-				local v = t[i]
-				if v ~= nil then
-					return v.sender, v.data
-				else
-					return nil
+local messageMT = {
+	__pairs = function(messageTable)
+		local function pairs_it(t, lastRobot)
+			local minRobot = nil
+			local minID = 17
+			local mt = getmetatable(t)
+			setmetatable(t, {})
+			for robot, _ in pairs(t) do
+				if robot.id < minID and robot.id > lastRobot.id then
+					minRobot = robot
+					minID = robot.id
 				end
 			end
-			return ipairs_it, sortedMessages, "dummy"
+			setmetatable(t, mt)
+			return minRobot, minRobot and t[minRobot]
 		end
-	}
-	setmetatable(messages, messageMT)
+		return pairs_it, messageTable, {id = -1}
+	end
+}
+
+local function makeSortedPairsTable(messages)
+	local index = next(messages)
+	if index and index ~= "trainer" then
+		setmetatable(messages, messageMT)
+	end
 	return messages
 end
 
