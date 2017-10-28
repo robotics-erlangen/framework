@@ -152,7 +152,6 @@ void LogManager::addStatus(int packet, const Status &status)
 void LogManager::playNext()
 {
     const double scaling = m_playTimer.scaling();
-    const bool isSpooling = m_spoolCounter > 0;
     qint64 timeCurrent = 0;
     bool hasChanged = false;
     while (!m_nextPackets.isEmpty()) {
@@ -206,7 +205,8 @@ void LogManager::playNext()
     }
 
     // only update sliders if something changed and only once
-    if (hasChanged) {
+    // spooled packets are ignored as these weren't explicitly requested by the user
+    if (hasChanged && m_spoolCounter == 0) {
         // update current position
         const double position = timeCurrent - m_startTime;
         ui->lblTimeCurrent->setText(formatTime(position));
@@ -218,11 +218,11 @@ void LogManager::playNext()
         // don't do updates for the slider which would only cause subpixel movement
         // as that won't be visible but is very expensive to redraw
         m_exactSliderValue = position / 1E8;
-        float sliderStep = std::max(1, m_frames.size() / ui->horizontalSlider->width());
+        float sliderStep = std::max(1.f, (float)m_frames.size() / ui->horizontalSlider->width());
         const int sliderPixel = (int)(m_exactSliderValue / sliderStep);
         const int curSliderPixel = (int)(ui->horizontalSlider->value() / sliderStep);
         // compare whether the playback pos and the currently visible pos of the slider differ
-        if (sliderPixel != curSliderPixel || isSpooling) {
+        if (sliderPixel != curSliderPixel) {
             // move the slider to the current position
             ui->horizontalSlider->setValue(m_exactSliderValue);
         }
