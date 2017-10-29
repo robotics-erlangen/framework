@@ -1006,7 +1006,7 @@ void FieldWidget::updateAOI()
     emit sendCommand(command);
 }
 
-void FieldWidget::sendSimulatorMoveCommand(const QPointF &p)
+void FieldWidget::sendRobotMoveCommands(const QPointF &p)
 {
     Command command(new amun::Command);
     amun::CommandSimulator *sim = command->mutable_simulator();
@@ -1015,20 +1015,20 @@ void FieldWidget::sendSimulatorMoveCommand(const QPointF &p)
         ball->set_p_x(p.x());
         ball->set_p_y(p.y());
     } else if (m_dragType == DragBlue) {
-        /*amun::SimulatorMoveRobot *robot = sim->add_move_blue();
+        amun::SimulatorMoveRobot *robot = sim->add_move_blue();
         robot->set_id(m_dragId);
         robot->set_p_x(p.x());
-        robot->set_p_y(p.y());*/
+        robot->set_p_y(p.y());
 
         amun::RobotMoveCommand *move = command->add_robot_move_blue();
         move->set_id(m_dragId);
         move->set_p_x(p.x());
         move->set_p_y(p.y());
     } else if (m_dragType == DragYellow) {
-        /*amun::SimulatorMoveRobot *robot = sim->add_move_yellow();
+        amun::SimulatorMoveRobot *robot = sim->add_move_yellow();
         robot->set_id(m_dragId);
         robot->set_p_x(p.x());
-        robot->set_p_y(p.y());*/
+        robot->set_p_y(p.y());
 
         amun::RobotMoveCommand *move = command->add_robot_move_yellow();
         move->set_id(m_dragId);
@@ -1119,7 +1119,7 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
         }
 
         if (m_dragType != DragMeasure) {
-            sendSimulatorMoveCommand(p);
+            sendRobotMoveCommands(p);
         }
     }
 
@@ -1146,7 +1146,7 @@ void FieldWidget::mouseMoveEvent(QMouseEvent *event)
             resizeAOI(p);
         } else if (m_dragType != DragNone) {
             if (m_dragItem) {
-                sendSimulatorMoveCommand(p);
+                sendRobotMoveCommands(p);
             }
         } else {
             QPointF d = p - m_mouseBegin;
