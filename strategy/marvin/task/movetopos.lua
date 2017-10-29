@@ -6,15 +6,17 @@ local ToTarget = require "trajectory/totarget"
 local World = require "../base/world"
 
 
-function MoveToPos:_init(pos, dir, suggestPass, endSpeedLength)
+function MoveToPos:_init(pos, dir, suggestPass, endSpeedLength, ignoreDefaultObstacles)
 	self._pos = pos
 	self._dir = dir or (World.Ball.pos - pos):angle()
 	self._suggestPassFlag = suggestPass
 	self._endSpeedLength = endSpeedLength or 0
+	self._ignoreDefaultObstacles = ignoreDefaultObstacles or false
 end
 
 function MoveToPos:run()
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	local ignore = self._ignoreDefaultObstacles
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignore, ignore, ignore, nil, nil, nil, ignore)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
 	local endSpeed = (self._pos - self._robot.pos):setLength(self._endSpeedLength)
