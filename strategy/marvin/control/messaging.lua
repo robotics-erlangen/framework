@@ -184,15 +184,12 @@ local messageMT = {
 		local function pairs_it(t, lastRobot)
 			local minRobot = nil
 			local minID = 17
-			local mt = getmetatable(t)
-			setmetatable(t, {})
-			for robot, _ in pairs(t) do
+			for robot, _ in next, t do
 				if robot.id < minID and robot.id > lastRobot.id then
 					minRobot = robot
 					minID = robot.id
 				end
 			end
-			setmetatable(t, mt)
 			return minRobot, minRobot and t[minRobot]
 		end
 		return pairs_it, messageTable, {id = -1}
