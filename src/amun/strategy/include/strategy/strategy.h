@@ -41,6 +41,7 @@ class Strategy : public QObject
 public:
     Strategy(const Timer *timer, StrategyType type);
     ~Strategy() override;
+    void resetIsReplay() { m_isReplay = false; }
 
 signals:
     void gotCommand(const Command &command);

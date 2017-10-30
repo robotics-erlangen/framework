@@ -189,6 +189,12 @@ void MainWindow::openFile(const QString &filename)
     // don't do anything if the user couldn't decide for a new log file
     if (!filename.isEmpty()) {
         if (m_logfile->open(filename)) {
+            if (m_strategys[0] != nullptr) {
+                m_strategys[0]->resetIsReplay();
+            }
+            if (m_strategys[1] != nullptr) {
+                m_strategys[1]->resetIsReplay();
+            }
             ui->logManager->setStatusSource(m_logfile);
         } else {
             QMessageBox::critical(this, "Error", m_logfile->errorMsg());
