@@ -44,8 +44,39 @@ if (UNIX AND NOT APPLE)
         message(WARNING "SDL2 requires libudev for game controller support")
         set(SDL2_FOUND false)
     endif()
-else()
+elseif(MINGW)
     # use prebuilt binaries on windows
+	set(LIBSDL_SUBPATH "bin/SDL2.dll")
+	if(POLICY CMP0058) # exists since cmake 3.3
+		set(LIBSDL_BUILD_BYPRODUCTS "<INSTALL_DIR>/${LIBSDL_SUBPATH}")
+	else()
+		set(LIBSDL_BUILD_BYPRODUCTS "")
+	endif()
+	include(ExternalProject)
+	ExternalProject_Add(project_sdl2
+		EXCLUDE_FROM_ALL true
+		URL http://www.robotics-erlangen.de/downloads/libraries/SDL2-devel-2.0.7-mingw.tar.gz
+		URL_MD5 a9d309e784871004e19fe5282d712b18
+		CONFIGURE_COMMAND ""
+		BUILD_COMMAND ""
+		BUILD_IN_SOURCE true
+		INSTALL_COMMAND make install-package arch=i686-w64-mingw32 prefix=<INSTALL_DIR>
+		COMMAND ${CMAKE_COMMAND} -E copy <INSTALL_DIR>/bin/SDL2.dll ${CMAKE_BINARY_DIR}/bin
+		BUILD_BYPRODUCTS ${LIBSDL_BUILD_BYPRODUCTS}
+	)
+
+	externalproject_get_property(project_sdl2 install_dir)
+	add_library(lib::sdl2 UNKNOWN IMPORTED)
+	# cmake enforces that the include directory exists
+	file(MAKE_DIRECTORY "${install_dir}/include/SDL2")
+	set_target_properties(lib::sdl2 PROPERTIES
+		IMPORTED_LOCATION "${install_dir}/${LIBSDL_SUBPATH}"
+		INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/SDL2"
+	)
+	add_dependencies(lib::sdl2 project_sdl2)
+	set(SDL2_FOUND true)
+	set(SDL2_VERSION "2.0.7")
+else()
     message(WARNING "Get libsdl2 with version >= 2.0.2 for game controller support")
-        set(SDL2_FOUND false)
+    set(SDL2_FOUND false)
 endif()
