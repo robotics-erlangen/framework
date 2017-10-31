@@ -52,7 +52,6 @@ Get dependencies (tested using the given versions):
 * mingw-get - http://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.exe
 * ninja - https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip
 * Qt 5 - http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe
-* protobuf 2.6.1 - https://github.com/google/protobuf/releases/download/v2.6.1/protobuf-2.6.1.tar.bz2
 
 ### install compiler environment
 
@@ -87,19 +86,13 @@ Extract `ninja.exe` to `C:\MinGW\msys\1.0\bin`
 - Use a folder whose path contains whitespace
 - Use a base folder with a path name longer than 30 characters
 
-#### compile protobuf
-```
-mkdir build && cd build
-../configure --prefix=/usr/local --without-zlib && make && make install
-```
-
 ### compile ra
 ```
 mkdir build-win && cd build-win
 cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.6/mingw49_32/lib/cmake -DCMAKE_BUILD_TYPE=Release -DPROTOBUF_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include -DPROTOBUF_LIBRARY=C:/MinGW/msys/1.0/local/lib/libprotobuf.dll.a -DSDL2_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/SDL2 -DUSB_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/libusb-1.0 ..
 cmake --build .
 cp -r ../config ../data bin
-cp /usr/local/bin/libprotobuf-9.dll /c/Qt/5.6/mingw49_32/bin/{icudt54,icuin54,icuuc54,libgcc_s_dw2-1,libstdc++-6,libwinpthread-1,Qt5Core,Qt5Gui,Qt5Network,Qt5OpenGL,Qt5Widgets}.dll bin
+cp /c/Qt/5.6/mingw49_32/bin/{icudt54,icuin54,icuuc54,libgcc_s_dw2-1,libstdc++-6,libwinpthread-1,Qt5Core,Qt5Gui,Qt5Network,Qt5OpenGL,Qt5Widgets}.dll bin
 mkdir bin/platforms && cp /c/Qt/5.6/mingw49_32/plugins/platforms/qwindows.dll bin/platforms
 ```
 

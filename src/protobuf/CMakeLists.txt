@@ -58,13 +58,17 @@ target_include_directories(protobuf
     PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/..
     PRIVATE include/protobuf
 )
-target_include_directories(protobuf
-    SYSTEM PUBLIC ${PROTOBUF_INCLUDE_DIR}
+target_include_directories(protobuf SYSTEM
+    PUBLIC ${PROTOBUF_INCLUDE_DIR}
+    PRIVATE ${PROTOBUF_INCLUDE_DIR}
 )
 
 if(MINGW)
     # silence unsigned vs. signed comparison warnings in protobuf headers
     set_property(TARGET protobuf APPEND PROPERTY COMPILE_FLAGS "-Wno-sign-compare")
 endif(MINGW)
+if(TARGET project_protobuf)
+	add_dependencies(protobuf project_protobuf)
+endif()
 
 add_library(shared::protobuf ALIAS protobuf)

@@ -62,7 +62,10 @@ endif()
 
 find_package(OpenGL REQUIRED)
 find_package(Threads REQUIRED)
-find_package(Protobuf REQUIRED)
+find_package(Protobuf)
+if(NOT ${PROTOBUF_FOUND})
+    include(BuildProtobuf)
+endif()
 
 set(CMAKE_AUTOMOC ON)
 find_package(Qt5Core REQUIRED)
