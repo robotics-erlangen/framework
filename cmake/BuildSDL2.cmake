@@ -1,6 +1,5 @@
-
 # ***************************************************************************
-# *   Copyright 2016 Michael Eischer                                        *
+# *   Copyright 2017 Michael Eischer                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -59,7 +58,7 @@ if (UNIX AND NOT APPLE)
     endif()
 elseif(MINGW)
     # use prebuilt binaries on windows
-	set(LIBSDL_SUBPATH "bin/SDL2.dll")
+	set(LIBSDL_SUBPATH "bin/SDL2${CMAKE_SHARED_LIBRARY_SUFFIX}")
 	if(POLICY CMP0058) # exists since cmake 3.3
 		set(LIBSDL_BUILD_BYPRODUCTS "<INSTALL_DIR>/${LIBSDL_SUBPATH}")
 	else()
@@ -75,7 +74,6 @@ elseif(MINGW)
 		BUILD_COMMAND ""
 		BUILD_IN_SOURCE true
 		INSTALL_COMMAND make install-package arch=i686-w64-mingw32 prefix=<INSTALL_DIR>
-		COMMAND ${CMAKE_COMMAND} -E copy <INSTALL_DIR>/bin/SDL2.dll ${CMAKE_BINARY_DIR}/bin
 		BUILD_BYPRODUCTS ${LIBSDL_BUILD_BYPRODUCTS}
 	)
 

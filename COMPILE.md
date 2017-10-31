@@ -89,11 +89,11 @@ Extract `ninja.exe` to `C:\MinGW\msys\1.0\bin`
 ### compile ra
 ```
 mkdir build-win && cd build-win
-cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.6/mingw49_32/lib/cmake -DCMAKE_BUILD_TYPE=Release -DPROTOBUF_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include -DPROTOBUF_LIBRARY=C:/MinGW/msys/1.0/local/lib/libprotobuf.dll.a -DSDL2_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/SDL2 -DUSB_INCLUDE_DIR=C:/MinGW/msys/1.0/local/include/libusb-1.0 ..
+cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.6/mingw49_32/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
-cp -r ../config ../data bin
-cp /c/Qt/5.6/mingw49_32/bin/{icudt54,icuin54,icuuc54,libgcc_s_dw2-1,libstdc++-6,libwinpthread-1,Qt5Core,Qt5Gui,Qt5Network,Qt5OpenGL,Qt5Widgets}.dll bin
-mkdir bin/platforms && cp /c/Qt/5.6/mingw49_32/plugins/platforms/qwindows.dll bin/platforms
+cmake --build . --target assemble
+# only for Qt <= 5.6
+cp /c/Qt/5.6/mingw49_32/bin/{icudt54,icuin54,icuuc54}.dll bin
 ```
 
 Finished!

@@ -102,3 +102,7 @@ if(UNIX AND NOT APPLE)
 endif()
 
 include(AddTests)
+
+if(MINGW)
+	include(CollectWindows)
+endif()
