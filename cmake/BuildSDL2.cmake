@@ -23,22 +23,34 @@ if (UNIX AND NOT APPLE)
     include(CheckIncludeFile)
     check_include_file("libudev.h" LIBUDEV_FOUND)
     if (LIBUDEV_FOUND)
-        message(STATUS "Building SDL 2.0.2 myself")
+        message(STATUS "Building SDL 2.0.7 myself")
+		set(LIBSDL_SUBPATH "lib/${CMAKE_SHARED_LIBRARY_PREFIX}SDL2${CMAKE_SHARED_LIBRARY_SUFFIX}")
+		if(POLICY CMP0058) # exists since cmake 3.3
+			set(LIBSDL_BUILD_BYPRODUCTS "<INSTALL_DIR>/${LIBSDL_SUBPATH}")
+		else()
+			set(LIBSDL_BUILD_BYPRODUCTS "")
+		endif()
+
         include(ExternalProject)
         ExternalProject_Add(project_sdl2
-            URL http://www.robotics-erlangen.de/downloads/libraries/SDL2-2.0.2.tar.gz
-            URL_MD5 e8070e8b6335def073a80cee78f3a7f0
+			EXCLUDE_FROM_ALL true
+            URL http://www.robotics-erlangen.de/downloads/libraries/SDL2-2.0.7.tar.gz
+            URL_MD5 cdb071009d250e1782371049f0d5ca42
             CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+			BUILD_BYPRODUCTS ${LIBSDL_BUILD_BYPRODUCTS}
         )
 
         externalproject_get_property(project_sdl2 install_dir)
-        set_target_properties(project_sdl2 PROPERTIES EXCLUDE_FROM_ALL true)
         add_library(lib::sdl2 UNKNOWN IMPORTED)
-        set_property(TARGET lib::sdl2 PROPERTY INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/SDL2")
-        set_target_properties(lib::sdl2 PROPERTIES IMPORTED_LOCATION "${install_dir}/lib/${CMAKE_SHARED_LIBRARY_PREFIX}SDL2${CMAKE_SHARED_LIBRARY_SUFFIX}")
+		# cmake enforces that the include directory exists
+		file(MAKE_DIRECTORY "${install_dir}/include/SDL2")
+		set_target_properties(lib::sdl2 PROPERTIES
+			IMPORTED_LOCATION "${install_dir}/${LIBSDL_SUBPATH}"
+			INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/SDL2"
+		)
         add_dependencies(lib::sdl2 project_sdl2)
         set(SDL2_FOUND true)
-        set(SDL2_VERSION "2.0.2")
+        set(SDL2_VERSION "2.0.7")
     else()
         # actually just for plug & play, but it won't work without ...
         message(WARNING "SDL2 requires libudev for game controller support")
