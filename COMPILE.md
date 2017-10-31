@@ -76,8 +76,7 @@ use `msys.bat` in `msys\1.0` to open msys console
 #### install ninja
 Extract `ninja.exe` to `C:\MinGW\msys\1.0\bin`
 
-### build libs
-
+### compile ra
 *Do:*
 - **!!! USE THE MSYS CONSOLE TO COMPILE EVERYTHING !!!**
 - Use a folder with a short path like `C:\Robocup` as base folder
@@ -86,7 +85,6 @@ Extract `ninja.exe` to `C:\MinGW\msys\1.0\bin`
 - Use a folder whose path contains whitespace
 - Use a base folder with a path name longer than 30 characters
 
-### compile ra
 ```
 mkdir build-win && cd build-win
 cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.6/mingw49_32/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
