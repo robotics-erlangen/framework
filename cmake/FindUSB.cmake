@@ -62,16 +62,38 @@ find_library(USB_LIBRARY
     /opt
 )
 
+if (MINGW)
+	find_program(USB_LIBRARY_DLL
+	  NAMES libusb-1.0.dll
+	  HINTS $ENV{USB_DIR}
+	  PATH_SUFFIXES bin
+	  PATHS
+		~/Library/Frameworks
+		/Library/Frameworks
+		/usr/local
+		/usr
+		/sw
+		/opt/local
+		/opt/csw
+		/opt
+	)
+	set(USB_LIB_EXTRA USB_LIBRARY_DLL)
+elseif()
+	set(USB_LIB_EXTRA)
+endif()
+
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(USB
   FOUND_VAR USB_FOUND
   REQUIRED_VARS
     USB_LIBRARY
     USB_INCLUDE_DIR
+	${USB_LIB_EXTRA}
 )
 mark_as_advanced(
   USB_INCLUDE_DIR
   USB_LIBRARY
+  ${USB_LIB_EXTRA}
 )
 
 if(USB_FOUND)
@@ -80,4 +102,10 @@ if(USB_FOUND)
     IMPORTED_LOCATION "${USB_LIBRARY}"
     INTERFACE_INCLUDE_DIRECTORIES "${USB_INCLUDE_DIR}"
   )
+  if(MINGW)
+    set_target_properties(lib::usb PROPERTIES
+      IMPORTED_LOCATION "${USB_LIBRARY_DLL}"
+      INTERFACE_LINK_LIBRARIES "${USB_LIBRARY}"
+    )
+  endif()
 endif()

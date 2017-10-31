@@ -66,6 +66,26 @@ find_library(SDL2_LIBRARY
     /opt
 )
 
+if (MINGW)
+	find_program(SDL2_LIBRARY_DLL
+	  NAMES SDL2.dll
+	  HINTS $ENV{SDL2_DIR}
+	  PATH_SUFFIXES bin
+	  PATHS
+		~/Library/Frameworks
+		/Library/Frameworks
+		/usr/local
+		/usr
+		/sw # Fink
+		/opt/local # DarwinPorts
+		/opt/csw # Blastwave
+		/opt
+	)
+	set(SDL2_LIB_EXTRA SDL2_LIBRARY_DLL)
+elseif()
+	set(SDL2_LIB_EXTRA)
+endif()
+
 if(SDL2_INCLUDE_DIR AND EXISTS "${SDL2_INCLUDE_DIR}/SDL_version.h")
   file(STRINGS "${SDL2_INCLUDE_DIR}/SDL_version.h" SDL2_VERSION_MAJOR_LINE REGEX "^#define[ \t]+SDL_MAJOR_VERSION[ \t]+([0-9]+)$")
   file(STRINGS "${SDL2_INCLUDE_DIR}/SDL_version.h" SDL2_VERSION_MINOR_LINE REGEX "^#define[ \t]+SDL_MINOR_VERSION[ \t]+([0-9]+)$")
@@ -89,11 +109,13 @@ find_package_handle_standard_args(SDL2
   REQUIRED_VARS
     SDL2_LIBRARY
     SDL2_INCLUDE_DIR
+	${SDL2_LIB_EXTRA}
   VERSION_VAR SDL2_VERSION
 )
 mark_as_advanced(
   SDL2_INCLUDE_DIR
   SDL2_LIBRARY
+  ${SDL2_LIB_EXTRA}
 )
 
 if(SDL2_FOUND)
@@ -105,5 +127,11 @@ if(SDL2_FOUND)
   if (APPLE)
     # For OS X, SDL uses Cocoa as a backend so it must link to Cocoa.
     set_property(TARGET lib::sdl2 PROPERTY IMPORTED_LINK_INTERFACE_LIBRARIES "-framework Cocoa")
+  endif()
+  if(MINGW)
+    set_target_properties(lib::sdl2 PROPERTIES
+      IMPORTED_LOCATION "${SDL2_LIBRARY_DLL}"
+      INTERFACE_LINK_LIBRARIES "${SDL2_LIBRARY}"
+    )
   endif()
 endif()
