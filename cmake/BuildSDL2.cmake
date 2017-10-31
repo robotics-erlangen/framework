@@ -36,6 +36,7 @@ if (UNIX AND NOT APPLE)
 			EXCLUDE_FROM_ALL true
             URL http://www.robotics-erlangen.de/downloads/libraries/SDL2-2.0.7.tar.gz
             URL_MD5 cdb071009d250e1782371049f0d5ca42
+			DOWNLOAD_NO_PROGRESS true
             CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
 			BUILD_BYPRODUCTS ${LIBSDL_BUILD_BYPRODUCTS}
         )
@@ -69,6 +70,7 @@ elseif(MINGW)
 		EXCLUDE_FROM_ALL true
 		URL http://www.robotics-erlangen.de/downloads/libraries/SDL2-devel-2.0.7-mingw.tar.gz
 		URL_MD5 a9d309e784871004e19fe5282d712b18
+		DOWNLOAD_NO_PROGRESS true
 		CONFIGURE_COMMAND ""
 		BUILD_COMMAND ""
 		BUILD_IN_SOURCE true
