@@ -59,8 +59,12 @@ if (UNIX AND NOT APPLE)
 elseif(MINGW)
     # use prebuilt binaries on windows
 	set(LIBSDL_SUBPATH "bin/SDL2${CMAKE_SHARED_LIBRARY_SUFFIX}")
+	set(LIBSDL_LIBSUBPATH "lib/libSDL2${CMAKE_SHARED_LIBRARY_SUFFIX}.a")
 	if(POLICY CMP0058) # exists since cmake 3.3
-		set(LIBSDL_BUILD_BYPRODUCTS "<INSTALL_DIR>/${LIBSDL_SUBPATH}")
+		set(LIBSDL_BUILD_BYPRODUCTS
+			"<INSTALL_DIR>/${LIBSDL_SUBPATH}"
+			"<INSTALL_DIR>/${LIBSDL_LIBSUBPATH}"
+		)
 	else()
 		set(LIBSDL_BUILD_BYPRODUCTS "")
 	endif()
@@ -83,6 +87,7 @@ elseif(MINGW)
 	file(MAKE_DIRECTORY "${install_dir}/include/SDL2")
 	set_target_properties(lib::sdl2 PROPERTIES
 		IMPORTED_LOCATION "${install_dir}/${LIBSDL_SUBPATH}"
+		INTERFACE_LINK_LIBRARIES "${install_dir}/${LIBSDL_LIBSUBPATH}"
 		INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/SDL2"
 	)
 	add_dependencies(lib::sdl2 project_sdl2)

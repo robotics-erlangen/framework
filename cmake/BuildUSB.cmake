@@ -22,7 +22,10 @@ if(MINGW)
     # use prebuilt binaries on windows
 	set(LIBUSB_SUBPATH "bin/libusb-1.0${CMAKE_SHARED_LIBRARY_SUFFIX}")
 	if(POLICY CMP0058) # exists since cmake 3.3
-		set(LIBUSB_BUILD_BYPRODUCTS "<INSTALL_DIR>/${LIBUSB_SUBPATH}")
+		set(LIBUSB_BUILD_BYPRODUCTS
+			"<INSTALL_DIR>/${LIBUSB_SUBPATH}"
+			"<INSTALL_DIR>/${LIBUSB_SUBPATH}.a"
+		)
 	else()
 		set(LIBUSB_BUILD_BYPRODUCTS "")
 	endif()
@@ -36,6 +39,7 @@ if(MINGW)
 		BUILD_COMMAND ""
 		BUILD_IN_SOURCE true
 		INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/MinGW32/dll/libusb-1.0.dll <INSTALL_DIR>/bin
+		COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/MinGW32/dll/libusb-1.0.dll.a <INSTALL_DIR>/bin
 		COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include <INSTALL_DIR>/include
 		BUILD_BYPRODUCTS ${LIBUSB_BUILD_BYPRODUCTS}
 	)
@@ -46,6 +50,7 @@ if(MINGW)
 	file(MAKE_DIRECTORY "${install_dir}/include/libusb-1.0")
 	set_target_properties(lib::usb PROPERTIES
 		IMPORTED_LOCATION "${install_dir}/${LIBUSB_SUBPATH}"
+		INTERFACE_LINK_LIBRARIES "${install_dir}/${LIBUSB_SUBPATH}.a"
 		INTERFACE_INCLUDE_DIRECTORIES "${install_dir}/include/libusb-1.0"
 	)
 	add_dependencies(lib::usb project_usb)
