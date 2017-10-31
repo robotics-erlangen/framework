@@ -33,6 +33,7 @@ endif()
 ExternalProject_Add(project_bullet
     URL http://www.robotics-erlangen.de/downloads/libraries/bullet3-2.83.6.tar.gz
     URL_MD5 44cb2464336a2082b2c144194c2a2668
+    DOWNLOAD_NO_PROGRESS true
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DCMAKE_C_COMPILER:PATH=${CMAKE_C_COMPILER}

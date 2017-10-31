@@ -22,6 +22,7 @@ include(ExternalProject)
 ExternalProject_Add(project_openocd
     URL http://www.robotics-erlangen.de/downloads/libraries/openocd-0.10.0.tar.bz2
     URL_MD5 b412bdef0481a3859c6585eb69f6f6ba
+    DOWNLOAD_NO_PROGRESS true
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
         --prefix=<INSTALL_DIR>
         --enable-ftdi
