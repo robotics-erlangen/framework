@@ -33,6 +33,9 @@ module "base"
 
 local debugger = require "../base/debugger" -- preload debugger to allow triggering it later
 require "../base/amun"
+if math.mod ~= nil then
+	log("Warning: Using LuaJIT without lua 5.2 compatibility mode. Strategy behaviour on replay may be unstable")
+end
 require "../base/path"
 -- amun.isDebug must already be set, thus load after amun
 require("../base/globalschecker")._init(amun.isDebug)
