@@ -73,6 +73,9 @@ find_package(Qt5OpenGL REQUIRED)
 find_package(Jemalloc)
 
 find_package(USB)
+if(MINGW AND NOT TARGET lib::usb)
+    include(BuildUSB)
+endif()
 # sdl2 version 2.0.2 required for loading controller mappings from config file
 find_package(SDL2 2.0.2)
 if (NOT TARGET lib::sdl2)
