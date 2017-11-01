@@ -192,6 +192,8 @@ void VisualizationWidget::itemChanged(QStandardItem *item)
     }
 
     if (changed) {
+        m_proxy->setLastChangedItem(item);
+        m_proxy->invalidate();
         m_proxy->sort(0);
         sendItemsChanged();
     }

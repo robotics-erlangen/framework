@@ -23,15 +23,21 @@
 
 #include <QSortFilterProxyModel>
 
+class QStandardItem;
+
 class VisualizationProxyModel : public QSortFilterProxyModel
 {
     Q_OBJECT
 
 public:
     VisualizationProxyModel(QObject *parent = 0);
+    void setLastChangedItem(QStandardItem * item);
 
 protected:
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const Q_DECL_OVERRIDE;
+
+private:
+    QStandardItem * m_lastChangedItem = nullptr;
 };
 
 #endif // VISUALIZATIONPROXYMODEL_H

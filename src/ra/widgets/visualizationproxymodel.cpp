@@ -27,14 +27,24 @@ VisualizationProxyModel::VisualizationProxyModel(QObject *parent)
     : QSortFilterProxyModel(parent)
 { }
 
+void VisualizationProxyModel::setLastChangedItem(QStandardItem * item)
+{
+    if (item == m_lastChangedItem) {
+        m_lastChangedItem = nullptr;
+    } else {
+        m_lastChangedItem = item;
+    }
+}
+
 bool VisualizationProxyModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
 {
     QStandardItemModel * source = (QStandardItemModel*)sourceModel();
     QStandardItem * leftItem = source->itemFromIndex(left);
     QStandardItem * rightItem = source->itemFromIndex(right);
 
-    if ((leftItem->checkState() == Qt::Checked) != (rightItem->checkState() == Qt::Checked)) {
-        return leftItem->checkState() == Qt::Checked;
+    if ((leftItem->checkState() == Qt::Checked || leftItem == m_lastChangedItem) !=
+            (rightItem->checkState() == Qt::Checked || rightItem == m_lastChangedItem)) {
+        return leftItem->checkState() == Qt::Checked || leftItem == m_lastChangedItem;
     } else {
         return QString::localeAwareCompare(leftItem->text(), rightItem->text()) < 0;
     }
