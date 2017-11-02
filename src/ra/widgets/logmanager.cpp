@@ -79,6 +79,7 @@ void LogManager::setMinimalMode()
 
 void LogManager::setStatusSource(StatusSource * source)
 {
+    ui->btnPlay->setEnabled(true);
     if (source != m_statusSource) {
         delete m_statusSource;
         m_statusSource = source;
@@ -254,7 +255,9 @@ QString LogManager::formatTime(qint64 time) {
 
 void LogManager::togglePaused()
 {
-    setPaused(!m_paused);
+    if (m_statusSource != nullptr) {
+        setPaused(!m_paused);
+    }
 }
 
 void LogManager::setPaused(bool p)

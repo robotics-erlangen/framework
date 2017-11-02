@@ -48,6 +48,9 @@
      </property>
      <item>
       <widget class="QToolButton" name="btnPlay">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
        <property name="text">
         <string>Play</string>
        </property>
