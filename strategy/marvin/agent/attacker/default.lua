@@ -1,13 +1,10 @@
 local Base = require "agent/base/behavior"
 local Default = Class("Agent.Attacker.Default", Base)
 
-local World = require "../base/world"
 local AcceptPass = require "task/acceptpass"
 local SideStep = require "task/sidestep"
 local Striker = require "task/striker"
 local Attack = require "util/attack"
-
-local MIN_DIST_FOR_POOL_CHANGE = 0.7
 
 function Default:_stop()
 	self._forceKeepingInPool = false
