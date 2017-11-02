@@ -59,6 +59,8 @@ add_custom_target(assemble
 	COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:ra>/platforms
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different
 		$<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
+            $<TARGET_FILE_DIR:ra>/platforms
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
 		$<TARGET_FILE_DIR:Qt5::Core>/libgcc_s_dw2-1.dll
 		$<TARGET_FILE_DIR:Qt5::Core>/libstdc++-6.dll
 		$<TARGET_FILE_DIR:Qt5::Core>/libwinpthread-1.dll
