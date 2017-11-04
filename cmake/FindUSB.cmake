@@ -63,6 +63,7 @@ find_library(USB_LIBRARY
 )
 
 if (MINGW)
+	sanitize_env()
 	find_program(USB_LIBRARY_DLL
 	  NAMES libusb-1.0.dll
 	  HINTS $ENV{USB_DIR}
@@ -78,6 +79,7 @@ if (MINGW)
 		/opt
 	)
 	set(USB_LIB_EXTRA USB_LIBRARY_DLL)
+	restore_env()
 elseif()
 	set(USB_LIB_EXTRA)
 endif()

@@ -67,6 +67,7 @@ find_library(SDL2_LIBRARY
 )
 
 if (MINGW)
+	sanitize_env()
 	find_program(SDL2_LIBRARY_DLL
 	  NAMES SDL2.dll
 	  HINTS $ENV{SDL2_DIR}
@@ -81,6 +82,7 @@ if (MINGW)
 		/opt/csw # Blastwave
 		/opt
 	)
+	restore_env()
 	set(SDL2_LIB_EXTRA SDL2_LIBRARY_DLL)
 elseif()
 	set(SDL2_LIB_EXTRA)

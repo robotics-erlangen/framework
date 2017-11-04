@@ -60,9 +60,13 @@ if(APPLE)
     SET(CMAKE_CXX_ARCHIVE_FINISH "<CMAKE_RANLIB> -no_warning_for_no_symbols <TARGET>")
 endif()
 
+include(EnvHelper)
+
 find_package(OpenGL REQUIRED)
 find_package(Threads REQUIRED)
+sanitize_env()
 find_package(Protobuf)
+restore_env()
 if(NOT ${PROTOBUF_FOUND})
     include(BuildProtobuf)
 endif()
