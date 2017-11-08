@@ -45,7 +45,7 @@ function VolleyProcess:run()
 		self._hadBall = true
 	end
 	-- If ball has traveled the target distance or left the field
-	if self._hadBall
+	if self._hadBall and self._viewPos
 			and (World.Ball.pos:distanceTo(self._viewPos) > self._targetPos:distanceTo(self._viewPos)
 			or not Field.isInField(World.Ball.pos)) then
 		local dirError = (World.Ball.pos - self._viewPos):angleDiff(self._targetPos - self._viewPos)
