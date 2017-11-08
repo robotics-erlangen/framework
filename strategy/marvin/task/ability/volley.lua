@@ -20,6 +20,8 @@ local function setSimulatorParams()
 	if not World.IsSimulated or paramsUpdated then
 		return
 	end
+	mu_x = 0.93
+	mu_y = 0.26
 	paramsUpdated = true
 end
 
