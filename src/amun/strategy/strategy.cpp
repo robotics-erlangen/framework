@@ -335,7 +335,7 @@ void Strategy::process()
         status->mutable_execution_user_input()->CopyFrom(userInput);
         emit sendStatus(status);
     } else {
-        fail(m_strategy->errorMsg());
+        fail(m_strategy->errorMsg(), userInput);
     }
 }
 
@@ -430,7 +430,7 @@ void Strategy::triggerDebugger()
     }
 }
 
-void Strategy::fail(const QString &error)
+void Strategy::fail(const QString &error, const amun::UserInput & userInput)
 {
     if (m_type == StrategyType::BLUE || m_type == StrategyType::YELLOW) {
         emit sendHalt(m_type == StrategyType::BLUE);
@@ -439,6 +439,9 @@ void Strategy::fail(const QString &error)
     // update status
     Status status = takeStrategyDebugStatus();
     setStrategyStatus(status, amun::StatusStrategy::FAILED);
+    status->mutable_execution_game_state()->CopyFrom(m_status->game_state());
+    status->mutable_execution_state()->CopyFrom(m_status->world_state());
+    status->mutable_execution_user_input()->CopyFrom(userInput);
 
     // log error
     amun::StatusLog *log = status->mutable_debug()->add_log();
