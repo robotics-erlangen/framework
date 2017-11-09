@@ -100,9 +100,15 @@ function debug.set(name, value, visited)
 			debug.push(tostring(name))
 			local class = Class.toClass(value, true)
 			local hasValues = false
+			local entryCounter = 1
 			for k, v in pairs(value) do
-				debug.set(k, v, visited)
-				hasValues = true
+				if type(k) == "table" then
+					debug.set("[entry-"..tostring(entryCounter).."]/key", k, visited)
+					debug.set("[entry-"..tostring(entryCounter).."]/value", v, visited)
+					entryCounter = entryCounter + 1
+				else
+					debug.set(tostring(k), v, visited)
+				end
 			end
 			if class then
 				debug.set(nil, Class.name(class))
