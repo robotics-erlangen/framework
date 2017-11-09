@@ -4,7 +4,7 @@ module "debug"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+*   Copyright 2017 Michael Eischer, Philipp Nordhus                       *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -85,44 +85,49 @@ end
 -- @name set
 -- @param name string - Name of the value
 -- @param value string - Value to set
-function debug.set(name, value, visited)
+function debug.set(name, value, visited, tableCounter)
 	visited = visited or {}
+	tableCounter = tableCounter or { 0 }
+
 	if type(value) == "table" then
 		if visited[value] then
 			debug.set(name, visited[value])
 			return
 		end
-		visited[value] = "(unknown)"
+		local suffix = " [table #"..tostring(tableCounter[1]).."]"
+		tableCounter[1] = tableCounter[1] + 1
+		visited[value] = suffix
 
 		if rawget(getmetatable(value) or {}, "__tostring") then
 			local origValue = value
-			value = tostring(value)
+			value = tostring(value)..suffix
 			visited[origValue] = value
 		else
-			local friendlyName = nil
 			local class = Class.toClass(value, true)
 			local hasValues = next(value) ~= nil
 
+			local friendlyName
 			if class then
 				friendlyName = Class.name(class)
 			elseif not hasValues then
 				friendlyName = "empty table"
+			else
+				friendlyName = ""
 			end
 
 			debug.push(tostring(name))
-			if friendlyName ~= nil then
-				debug.set(nil, friendlyName)
-				visited[value] = friendlyName
-			end
+			friendlyName = friendlyName..suffix
+			debug.set(nil, friendlyName)
+			visited[value] = friendlyName
 
 			local entryCounter = 1
 			for k, v in pairs(value) do
 				if type(k) == "table" then
-					debug.set("[entry-"..tostring(entryCounter).."]/key", k, visited)
-					debug.set("[entry-"..tostring(entryCounter).."]/value", v, visited)
+					debug.set("[entry-"..tostring(entryCounter).."]/key", k, visited, tableCounter)
+					debug.set("[entry-"..tostring(entryCounter).."]/value", v, visited, tableCounter)
 					entryCounter = entryCounter + 1
 				else
-					debug.set(tostring(k), v, visited)
+					debug.set(tostring(k), v, visited, tableCounter)
 				end
 			end
 			debug.pop()
