@@ -89,17 +89,32 @@ function debug.set(name, value, visited)
 	visited = visited or {}
 	if type(value) == "table" then
 		if visited[value] then
-			debug.set(name, tostring(value))
+			debug.set(name, visited[value])
 			return
 		end
-		visited[value] = true
+		visited[value] = "(unknown)"
 
 		if rawget(getmetatable(value) or {}, "__tostring") then
+			local origValue = value
 			value = tostring(value)
+			visited[origValue] = value
 		else
-			debug.push(tostring(name))
+			local friendlyName = nil
 			local class = Class.toClass(value, true)
-			local hasValues = false
+			local hasValues = next(value) ~= nil
+
+			if class then
+				friendlyName = Class.name(class)
+			elseif not hasValues then
+				friendlyName = "empty table"
+			end
+
+			debug.push(tostring(name))
+			if friendlyName ~= nil then
+				debug.set(nil, friendlyName)
+				visited[value] = friendlyName
+			end
+
 			local entryCounter = 1
 			for k, v in pairs(value) do
 				if type(k) == "table" then
@@ -109,11 +124,6 @@ function debug.set(name, value, visited)
 				else
 					debug.set(tostring(k), v, visited)
 				end
-			end
-			if class then
-				debug.set(nil, Class.name(class))
-			elseif not hasValues then
-				debug.set(nil, "empty table")
 			end
 			debug.pop()
 			return
