@@ -439,9 +439,11 @@ void Strategy::fail(const QString &error, const amun::UserInput & userInput)
     // update status
     Status status = takeStrategyDebugStatus();
     setStrategyStatus(status, amun::StatusStrategy::FAILED);
-    status->mutable_execution_game_state()->CopyFrom(m_status->game_state());
-    status->mutable_execution_state()->CopyFrom(m_status->world_state());
-    status->mutable_execution_user_input()->CopyFrom(userInput);
+    if (!m_status.isNull()) {
+        status->mutable_execution_game_state()->CopyFrom(m_status->game_state());
+        status->mutable_execution_state()->CopyFrom(m_status->world_state());
+        status->mutable_execution_user_input()->CopyFrom(userInput);
+    }
 
     // log error
     amun::StatusLog *log = status->mutable_debug()->add_log();
