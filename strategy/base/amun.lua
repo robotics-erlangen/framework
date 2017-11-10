@@ -192,7 +192,8 @@ separator for luadoc]]--
 require "amun"
 log = amun.log
 -- publish debug status
-amun.isDebug = pcall(require, "debug")
+local hasDebugTable = pcall(require, "debug")
+amun.isDebug = hasDebugTable and debug.sethook ~= nil
 
 -- prevent direct access to the amun api by other code
 function amun._hideFunctions()
@@ -226,4 +227,13 @@ function amun._hideFunctions()
 	package.preload["amun"] = nil
 	-- update reference used by require
 	package.loaded["amun"] = amun
+
+	-- lua debug funcitons are only accessible with enabled debug
+	if not isDebug and hasDebugTable then
+		-- luacheck: push globals debug
+		debug = nil
+		-- luacheck: pop
+		package.preload["debug"] = nil
+		package.loaded["debug"] = nil
+	end
 end

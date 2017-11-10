@@ -304,6 +304,8 @@ Lua::Lua(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxCo
     loadLibs();
     if (debugEnabled) {
         loadDebugLibs();
+    } else {
+        loadRestrictedDebugLibs();
     }
     setupPackageLoader();
 
@@ -572,6 +574,28 @@ void Lua::loadDebugLibs()
     loadLib(LUA_JITLIBNAME,     luaopen_jit);
 }
 
+void Lua::loadRestrictedDebugLibs()
+{
+    loadLib(LUA_DBLIBNAME,      luaopen_debug);
+    replaceLuaFunction("debug", "traceback", luaErrorHandler);
+
+    // remove everything which is likely to be problematic
+    const char* functionsToRemove[] = { "debug", "getregistry", "setfenv", "sethook", "setlocal", "setmetatable", "setupvalue" };
+    for (const char *name: functionsToRemove) {
+        removeLuaFunction("debug", name);
+    }
+}
+
+void Lua::removeLuaFunction(const char *module, const char *key)
+{
+    lua_getglobal(m_state, module);
+    Q_ASSERT(lua_istable(m_state, -1));
+
+    lua_pushnil(m_state);
+    lua_setfield(m_state, -2, key);
+
+    lua_pop(m_state, 1);
+}
 void Lua::loadLib(const char* name, lua_CFunction function)
 {
     lua_pushcfunction(m_state, function);

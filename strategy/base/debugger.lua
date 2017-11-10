@@ -25,20 +25,26 @@ module "debugger"
 
 local debugger = {}
 local Class = require "../base/class"
+local debug = debug
+local baseDebug
+
+function debugger._loadBaseDebug()
+	baseDebug = require "../base/debug"
+end
+
 
 if not debug then
-	debugger.debug = function ()
+	-- compatibility with old ra versions by default which provide no lua debug at all
+	function debugger.debug()
 		error("Debugger is only available in debug mode!")
 	end
-	debugger.dumpLocals = function()
-	end
-	debugger.dumpStack = function()
-	end
-	debugger.getStackDepth = function()
+	function debugger.dumpLocals() end
+	function debugger.dumpStack() end
+	function debugger.getStackDepth()
 		return 0
 	end
 	local warningPrinted = false
-	debugger.dumpLocalsOnError = function(f)
+	function debugger.dumpLocalsOnError(f)
 		if not warningPrinted then
 			log("Can't dump locals on error, debug is disabled")
 			warningPrinted = true
@@ -621,21 +627,20 @@ registerCommand({"next", "n"}, nextHandler, "Step over code")
 registerCommand({"stepout"}, stepOutHandler, "Step out of function code")
 registerCommand({"quit", "q"}, quitHandler, "Quit debugger")
 
-
-function debugger.debug()
-	-- disable hooks
-	hookCtr = -1
-	-- ensure that our hook is installed
-	setupHook()
-	debugLoop()
-	-- skip first line breakpoint (exit from this function!)
-	hookCtr = 1
-end
-
-local baseDebug
-
-function debugger._loadBaseDebug()
-	baseDebug = require "../base/debug"
+if debug.sethook then
+	function debugger.debug()
+		-- disable hooks
+		hookCtr = -1
+		-- ensure that our hook is installed
+		setupHook()
+		debugLoop()
+		-- skip first line breakpoint (exit from this function!)
+		hookCtr = 1
+	end
+else
+	function debugger.debug()
+		error("Debugger is only available in debug mode!")
+	end
 end
 
 local function formatValue(value)
@@ -711,8 +716,9 @@ function debugger.dumpLocalsOnError(f)
 	end
 end
 
--- luacheck: globals debug
+-- luacheck: push globals debug
 -- register debugger
 debug.debugger = debugger
+-- luacheck: pop
 
 return debugger

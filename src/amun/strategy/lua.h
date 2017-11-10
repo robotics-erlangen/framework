@@ -73,10 +73,12 @@ public:
     void watch(const QString &filename);
 private:
     void loadLibs();
+    void loadRestrictedDebugLibs();
     void loadDebugLibs();
     void loadLib(const char* name, lua_CFunction function);
     void setupPackageLoader();
     void replaceLuaFunction(const char *module, const char *key, lua_CFunction replacement);
+    void removeLuaFunction(const char *module, const char *key);
 
 private:
     lua_State *m_state;
