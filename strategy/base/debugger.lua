@@ -37,6 +37,14 @@ if not debug then
 	debugger.getStackDepth = function()
 		return 0
 	end
+	local warningPrinted = false
+	debugger.dumpLocalsOnError = function(f)
+		if not warningPrinted then
+			log("Can't dump locals on error, debug is disabled")
+			warningPrinted = true
+		end
+		return f
+	end
 	return debugger
 end
 
@@ -687,6 +695,21 @@ function debugger.dumpStack(offset, debugKey)
 end
 
 debugger.getStackDepth = getStackDepth
+
+function debugger.dumpLocalsOnError(f)
+	local function dumpError(a, b, c)
+		debugger.dumpStack()
+		return debug.traceback(a, b, c)
+	end
+	return function()
+		local succeeded, result = xpcall(f, dumpError)
+		if not succeeded then
+			log(result)
+			-- silent error propagation
+			error()
+		end
+	end
+end
 
 -- luacheck: globals debug
 -- register debugger
