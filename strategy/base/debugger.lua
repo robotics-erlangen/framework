@@ -423,7 +423,7 @@ local function helpHandler(_args)
 	printerrln("")
 end
 
-local function backtraceHandler(_args)
+local function filteredBacktrace()
 	local str = debug.traceback()
 	str = string.gsub(str, "&nbsp;", " ")
 	str = string.gsub(str, "&gt;", ">")
@@ -432,6 +432,7 @@ local function backtraceHandler(_args)
 	str = string.gsub(str, "<font[^>]+>", "")
 
 	local skipFrames = getBaseStackLevel() - 1
+	local lines = {}
 	for line in string.gmatch(str, "[^\n]+") do
 		-- skip backtrace frames belonging to the debugger
 		local isFrame = string.sub(line, 1, 4) == "   >"
@@ -439,8 +440,16 @@ local function backtraceHandler(_args)
 		if isFrame and skipFrames > 0 then
 			skipFrames = skipFrames - 1
 		else
-			printerrln(line)
+			table.insert(lines, line)
 		end
+	end
+	return lines
+end
+
+local function backtraceHandler(_args)
+	local lines = filteredBacktrace()
+	for _, line in ipairs(lines) do
+		printerrln(line)
 	end
 end
 
@@ -653,7 +662,6 @@ function debugger.dumpLocals(offset, extraParams)
 	end
 	table.sort(keys)
 
-	baseDebug.set(nil, "")
 	if not extraParams then
 		extraParams = baseDebug.getInitialExtraParams()
 	end
@@ -667,8 +675,10 @@ function debugger.dumpStack(debugKey)
 	debugKey = debugKey or "Stacktrace"
 	baseDebug.pushtop(debugKey)
 	local extraParams = baseDebug.getInitialExtraParams()
+	local backtrace = filteredBacktrace()
 	for i = 1, debugger.getStackDepth() do
 		baseDebug.push(tostring(i))
+		baseDebug.set(nil, backtrace[i+1])
 		debugger.dumpLocals(i, extraParams)
 		baseDebug.pop()
 	end
