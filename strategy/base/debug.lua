@@ -94,7 +94,7 @@ function debug.set(name, value, visited, tableCounter)
 			debug.set(name, visited[value])
 			return
 		end
-		local suffix = " [table #"..tostring(tableCounter[1]).."]"
+		local suffix = " [#"..tostring(tableCounter[1]).."]"
 		tableCounter[1] = tableCounter[1] + 1
 		visited[value] = suffix
 
@@ -123,8 +123,10 @@ function debug.set(name, value, visited, tableCounter)
 			local entryCounter = 1
 			for k, v in pairs(value) do
 				if type(k) == "table" then
-					debug.set("[entry-"..tostring(entryCounter).."]/key", k, visited, tableCounter)
-					debug.set("[entry-"..tostring(entryCounter).."]/value", v, visited, tableCounter)
+					local baseName = "[entry-"..tostring(entryCounter).."]"
+					debug.set(baseName.."/key", k, visited, tableCounter)
+					debug.set(baseName.."/value", v, visited, tableCounter)
+					debug.set(baseName, "MapEntry")
 					entryCounter = entryCounter + 1
 				else
 					debug.set(tostring(k), v, visited, tableCounter)
