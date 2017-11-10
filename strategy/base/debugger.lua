@@ -644,7 +644,7 @@ local function getMergedLocals(offset)
 	return data
 end
 
-function debugger.dumpLocals(offset)
+function debugger.dumpLocals(offset, extraParams)
 	local locals = getMergedLocals(offset)
 
 	local keys = {}
@@ -654,8 +654,11 @@ function debugger.dumpLocals(offset)
 	table.sort(keys)
 
 	baseDebug.set(nil, "")
+	if not extraParams then
+		extraParams = baseDebug.getInitialExtraParams()
+	end
 	for _, varname in ipairs(keys) do
-		baseDebug.set(varname, locals[varname])
+		baseDebug.set(varname, locals[varname], unpack(extraParams))
 	end
 end
 
@@ -663,9 +666,10 @@ end
 function debugger.dumpStack(debugKey)
 	debugKey = debugKey or "Stacktrace"
 	baseDebug.pushtop(debugKey)
+	local extraParams = baseDebug.getInitialExtraParams()
 	for i = 1, debugger.getStackDepth() do
 		baseDebug.push(tostring(i))
-		debugger.dumpLocals(i)
+		debugger.dumpLocals(i, extraParams)
 		baseDebug.pop()
 	end
 end
