@@ -32,6 +32,11 @@ if not debug then
 	end
 	debugger.dumpLocals = function()
 	end
+	debugger.dumpStack = function()
+	end
+	debugger.getStackDepth = function()
+		return 0
+	end
 	return debugger
 end
 
@@ -253,8 +258,8 @@ local function getStackDepth()
 	return i - 1 - getBaseStackLevel()
 end
 
-local function getLocals()
-	local baseFrame = getBaseStackLevel()
+local function getLocals(offset)
+	local baseFrame = getBaseStackLevel() + offset
 
 	local locals = {}
 	if debug.getinfo(baseFrame, "") == nil then
@@ -277,8 +282,8 @@ local function getLocals()
 	return locals
 end
 
-local function getClosureParameters()
-	local baseFrame = getBaseStackLevel()
+local function getClosureParameters(offset)
+	local baseFrame = getBaseStackLevel() + offset
 
 	local parameters = {}
 	local info = debug.getinfo(baseFrame, "uf")
@@ -616,31 +621,56 @@ function debugger._loadBaseDebug()
 	baseDebug = require "../base/debug"
 end
 
-function debugger.dumpLocals()
-	baseDebug.push("Locals")
-	local localLines = {}
-	for varname, value in pairs(getLocals()) do
-		baseDebug.set(varname, value[1])
+local function formatValue(value)
+	local v = value[1]
+	if v == nil then
+		v = "*NIL*"
 	end
-	baseDebug.pop()
-	table.sort(localLines)
-	for _, line in ipairs(localLines) do
-		baseDebug.set(line, "")
+	return v
+end
+
+local function getMergedLocals(offset)
+	local data = {}
+	for varname, value in pairs(getLocals(offset)) do
+		data[varname] = formatValue(value)
 	end
 
-	local closureParameters = getClosureParameters()
-	local isFirstClosureParameter = true
+	local closureParameters = getClosureParameters(offset)
 	for varname, value in pairs(closureParameters) do
-		if isFirstClosureParameter then
-			baseDebug.push("Closure parameters")
-			isFirstClosureParameter = false
-		end
-		baseDebug.set(varname, value[1])
+		varname = "(Closure) "..varname
+		data[varname] = formatValue(value)
 	end
-	if not isFirstClosureParameter then
+
+	return data
+end
+
+function debugger.dumpLocals(offset)
+	local locals = getMergedLocals(offset)
+
+	local keys = {}
+	for varname, _ in pairs(locals) do
+		table.insert(keys, varname)
+	end
+	table.sort(keys)
+
+	baseDebug.set(nil, "")
+	for _, varname in ipairs(keys) do
+		baseDebug.set(varname, locals[varname])
+	end
+end
+
+
+function debugger.dumpStack(debugKey)
+	debugKey = debugKey or "Stacktrace"
+	baseDebug.pushtop(debugKey)
+	for i = 1, debugger.getStackDepth() do
+		baseDebug.push(tostring(i))
+		debugger.dumpLocals(i)
 		baseDebug.pop()
 	end
 end
+
+debugger.getStackDepth = getStackDepth
 
 -- luacheck: globals debug
 -- register debugger
