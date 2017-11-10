@@ -150,7 +150,8 @@ function debug.set(name, value, visited, tableCounter)
 			debug.pop()
 			return
 		end
-	elseif type(value) == "userdata" or type(value) == "cdata" then
+	elseif type(value) == "userdata" or type(value) == "cdata"
+			or type(value) == "function" or type(value) == "thread" then
 		value = tostring(value)
 	end
 
