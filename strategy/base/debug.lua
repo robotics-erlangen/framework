@@ -4,7 +4,7 @@ module "debug"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+*   Copyright 2017 Michael Eischer, Philipp Nordhus                       *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -79,40 +79,79 @@ function debug.pop()
 	end
 end
 
+
+--- Get extra params for debug.set.
+-- This can be used to keep the table # stable across calls to debug.set
+-- Usage: local extraParams = debug.getInitialExtraParams()
+-- debug.set(key, value, unpack(extraParams))
+-- @name getInitialExtraParams
+-- @return Initial extra params
+function debug.getInitialExtraParams()
+	local visited = {}
+	local tableCounter = { 0 }
+	return { visited, tableCounter }
+end
+
+
 --- Sets value for the given name.
 -- If value is nil store it as text
 -- For the special value nil the value is set for the current key
 -- @name set
 -- @param name string - Name of the value
 -- @param value string - Value to set
-function debug.set(name, value, visited)
+function debug.set(name, value, visited, tableCounter)
+	-- must be synchronized with getInitialExtraParams
 	visited = visited or {}
+	tableCounter = tableCounter or { 0 }
+
 	if type(value) == "table" then
 		if visited[value] then
-			debug.set(name, tostring(value))
+			debug.set(name, visited[value])
 			return
 		end
-		visited[value] = true
+		local suffix = " [#"..tostring(tableCounter[1]).."]"
+		tableCounter[1] = tableCounter[1] + 1
+		visited[value] = suffix
 
 		if rawget(getmetatable(value) or {}, "__tostring") then
-			value = tostring(value)
+			local origValue = value
+			value = tostring(value)..suffix
+			visited[origValue] = value
 		else
-			debug.push(tostring(name))
 			local class = Class.toClass(value, true)
-			local hasValues = false
-			for k, v in pairs(value) do
-				debug.set(k, v, visited)
-				hasValues = true
-			end
+			local hasValues = next(value) ~= nil
+
+			local friendlyName
 			if class then
-				debug.set(nil, Class.name(class))
+				friendlyName = Class.name(class)
 			elseif not hasValues then
-				debug.set(nil, "empty table")
+				friendlyName = "empty table"
+			else
+				friendlyName = ""
+			end
+
+			debug.push(tostring(name))
+			friendlyName = friendlyName..suffix
+			debug.set(nil, friendlyName)
+			visited[value] = friendlyName
+
+			local entryCounter = 1
+			for k, v in pairs(value) do
+				if type(k) == "table" then
+					local baseName = "[entry-"..tostring(entryCounter).."]"
+					debug.set(baseName.."/key", k, visited, tableCounter)
+					debug.set(baseName.."/value", v, visited, tableCounter)
+					debug.set(baseName, "MapEntry")
+					entryCounter = entryCounter + 1
+				else
+					debug.set(tostring(k), v, visited, tableCounter)
+				end
 			end
 			debug.pop()
 			return
 		end
-	elseif type(value) == "userdata" or type(value) == "cdata" then
+	elseif type(value) == "userdata" or type(value) == "cdata"
+			or type(value) == "function" or type(value) == "thread" then
 		value = tostring(value)
 	end
 

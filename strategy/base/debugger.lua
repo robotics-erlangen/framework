@@ -25,12 +25,31 @@ module "debugger"
 
 local debugger = {}
 local Class = require "../base/class"
+local debug = debug
+local baseDebug
+
+function debugger._loadBaseDebug()
+	baseDebug = require "../base/debug"
+end
+
 
 if not debug then
-	debugger.debug = function ()
+	-- compatibility with old ra versions by default which provide no lua debug at all
+	function debugger.debug()
 		error("Debugger is only available in debug mode!")
 	end
-	debugger.dumpLocals = function()
+	function debugger.dumpLocals() end
+	function debugger.dumpStack() end
+	function debugger.getStackDepth()
+		return 0
+	end
+	local warningPrinted = false
+	function debugger.dumpLocalsOnError(f)
+		if not warningPrinted then
+			log("Can't dump locals on error, debug is disabled")
+			warningPrinted = true
+		end
+		return f
 	end
 	return debugger
 end
@@ -253,8 +272,8 @@ local function getStackDepth()
 	return i - 1 - getBaseStackLevel()
 end
 
-local function getLocals()
-	local baseFrame = getBaseStackLevel()
+local function getLocals(offset)
+	local baseFrame = getBaseStackLevel() + offset
 
 	local locals = {}
 	if debug.getinfo(baseFrame, "") == nil then
@@ -277,8 +296,8 @@ local function getLocals()
 	return locals
 end
 
-local function getClosureParameters()
-	local baseFrame = getBaseStackLevel()
+local function getClosureParameters(offset)
+	local baseFrame = getBaseStackLevel() + offset
 
 	local parameters = {}
 	local info = debug.getinfo(baseFrame, "uf")
@@ -418,7 +437,7 @@ local function helpHandler(_args)
 	printerrln("")
 end
 
-local function backtraceHandler(_args)
+local function filteredBacktrace()
 	local str = debug.traceback()
 	str = string.gsub(str, "&nbsp;", " ")
 	str = string.gsub(str, "&gt;", ">")
@@ -427,6 +446,7 @@ local function backtraceHandler(_args)
 	str = string.gsub(str, "<font[^>]+>", "")
 
 	local skipFrames = getBaseStackLevel() - 1
+	local lines = {}
 	for line in string.gmatch(str, "[^\n]+") do
 		-- skip backtrace frames belonging to the debugger
 		local isFrame = string.sub(line, 1, 4) == "   >"
@@ -434,8 +454,16 @@ local function backtraceHandler(_args)
 		if isFrame and skipFrames > 0 then
 			skipFrames = skipFrames - 1
 		else
-			printerrln(line)
+			table.insert(lines, line)
 		end
+	end
+	return lines
+end
+
+local function backtraceHandler(_args)
+	local lines = filteredBacktrace()
+	for _, line in ipairs(lines) do
+		printerrln(line)
 	end
 end
 
@@ -599,51 +627,98 @@ registerCommand({"next", "n"}, nextHandler, "Step over code")
 registerCommand({"stepout"}, stepOutHandler, "Step out of function code")
 registerCommand({"quit", "q"}, quitHandler, "Quit debugger")
 
-
-function debugger.debug()
-	-- disable hooks
-	hookCtr = -1
-	-- ensure that our hook is installed
-	setupHook()
-	debugLoop()
-	-- skip first line breakpoint (exit from this function!)
-	hookCtr = 1
+if debug.sethook then
+	function debugger.debug()
+		-- disable hooks
+		hookCtr = -1
+		-- ensure that our hook is installed
+		setupHook()
+		debugLoop()
+		-- skip first line breakpoint (exit from this function!)
+		hookCtr = 1
+	end
+else
+	function debugger.debug()
+		error("Debugger is only available in debug mode!")
+	end
 end
 
-local baseDebug
-
-function debugger._loadBaseDebug()
-	baseDebug = require "../base/debug"
+local function formatValue(value)
+	local v = value[1]
+	if v == nil then
+		v = "*NIL*"
+	end
+	return v
 end
 
-function debugger.dumpLocals()
-	baseDebug.push("Locals")
-	local localLines = {}
-	for varname, value in pairs(getLocals()) do
-		baseDebug.set(varname, value[1])
-	end
-	baseDebug.pop()
-	table.sort(localLines)
-	for _, line in ipairs(localLines) do
-		baseDebug.set(line, "")
+local function getMergedLocals(offset)
+	local data = {}
+	for varname, value in pairs(getLocals(offset)) do
+		data[varname] = formatValue(value)
 	end
 
-	local closureParameters = getClosureParameters()
-	local isFirstClosureParameter = true
+	local closureParameters = getClosureParameters(offset)
 	for varname, value in pairs(closureParameters) do
-		if isFirstClosureParameter then
-			baseDebug.push("Closure parameters")
-			isFirstClosureParameter = false
-		end
-		baseDebug.set(varname, value[1])
+		varname = "(Closure) "..varname
+		data[varname] = formatValue(value)
 	end
-	if not isFirstClosureParameter then
+
+	return data
+end
+
+function debugger.dumpLocals(offset, extraParams)
+	local locals = getMergedLocals(offset)
+
+	local keys = {}
+	for varname, _ in pairs(locals) do
+		table.insert(keys, varname)
+	end
+	table.sort(keys)
+
+	if not extraParams then
+		extraParams = baseDebug.getInitialExtraParams()
+	end
+	for _, varname in ipairs(keys) do
+		baseDebug.set(varname, locals[varname], unpack(extraParams))
+	end
+end
+
+
+function debugger.dumpStack(offset, debugKey)
+	offset = offset or 0
+	debugKey = debugKey or "Stacktrace"
+	baseDebug.pushtop(debugKey)
+	local extraParams = baseDebug.getInitialExtraParams()
+	local backtrace = filteredBacktrace()
+	for i = offset, debugger.getStackDepth() do
+		-- stack offset is 0-based, backtrace is 1-based
+		baseDebug.push(tostring(i))
+		baseDebug.set(nil, backtrace[i+1])
+		debugger.dumpLocals(i, extraParams)
 		baseDebug.pop()
 	end
 end
 
--- luacheck: globals debug
+debugger.getStackDepth = getStackDepth
+
+function debugger.dumpLocalsOnError(f)
+	local function dumpError(a, b, c)
+		debugger.dumpStack()
+		return debug.traceback(a, b, c)
+	end
+	return function()
+		local succeeded, result = xpcall(f, dumpError)
+		if not succeeded then
+			log(result)
+			-- silent error propagation
+			error()
+		end
+	end
+end
+
+-- luacheck: push globals debug
 -- register debugger
 debug.debugger = debugger
+-- luacheck: pop
 
 return debugger

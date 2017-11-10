@@ -17,6 +17,7 @@ require "util/lineup"
 
 local Cache = require "../base/cache"
 local debug = require "../base/debug"
+local debugger = require "../base/debugger"
 local Processor = require "../base/processor"
 local Referee = require "../base/referee"
 local Ball = require "observer/ball"
@@ -48,7 +49,7 @@ Processor.addPre(preproc)
 -- Processor.addPre(BallAnalyzer())
 local frameCount = 0
 local wrapper = function (func)
-	return function()
+	local f = function()
 		frameCount = frameCount + 1
 		if not World.update() then
 			if (frameCount % 100) == 0 then
@@ -72,6 +73,8 @@ local wrapper = function (func)
 		Cache.resetFrame()
 		plot._plotAggregated()
 	end
+
+	return debugger.dumpLocalsOnError(f)
 end
 
 return {name = "Marvin", entrypoints = Entrypoints.get(wrapper)}
