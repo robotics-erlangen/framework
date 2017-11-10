@@ -53,9 +53,7 @@ require "../base/plot"
 require "../base/robot"
 require "../base/vis"
 require "../base/world"
-if amun.isDebug then
-	debugger._loadBaseDebug()
-end
+debugger._loadBaseDebug()
 
 -- prevent access to internal APIs
 amun._hideFunctions()
