@@ -79,6 +79,20 @@ function debug.pop()
 	end
 end
 
+
+--- Get extra params for debug.set.
+-- This can be used to keep the table # stable across calls to debug.set
+-- Usage: local extraParams = debug.getInitialExtraParams()
+-- debug.set(key, value, unpack(extraParams))
+-- @name getInitialExtraParams
+-- @return Initial extra params
+function debug.getInitialExtraParams()
+	local visited = {}
+	local tableCounter = { 0 }
+	return { visited, tableCounter }
+end
+
+
 --- Sets value for the given name.
 -- If value is nil store it as text
 -- For the special value nil the value is set for the current key
@@ -86,6 +100,7 @@ end
 -- @param name string - Name of the value
 -- @param value string - Value to set
 function debug.set(name, value, visited, tableCounter)
+	-- must be synchronized with getInitialExtraParams
 	visited = visited or {}
 	tableCounter = tableCounter or { 0 }
 
