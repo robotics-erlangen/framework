@@ -671,12 +671,14 @@ function debugger.dumpLocals(offset, extraParams)
 end
 
 
-function debugger.dumpStack(debugKey)
+function debugger.dumpStack(offset, debugKey)
+	offset = offset or 0
 	debugKey = debugKey or "Stacktrace"
 	baseDebug.pushtop(debugKey)
 	local extraParams = baseDebug.getInitialExtraParams()
 	local backtrace = filteredBacktrace()
-	for i = 1, debugger.getStackDepth() do
+	for i = offset, debugger.getStackDepth() do
+		-- stack offset is 0-based, backtrace is 1-based
 		baseDebug.push(tostring(i))
 		baseDebug.set(nil, backtrace[i+1])
 		debugger.dumpLocals(i, extraParams)
