@@ -46,7 +46,8 @@ if not debug then
 	local warningPrinted = false
 	function debugger.dumpLocalsOnError(f)
 		if not warningPrinted then
-			log("Can't dump locals on error, debug is disabled")
+			log("Can't dump locals on error, debug is disabled.")
+			log("<font color=\"red\">Please update your Ra build!</font>")
 			warningPrinted = true
 		end
 		return f
