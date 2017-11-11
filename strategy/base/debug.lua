@@ -100,17 +100,20 @@ end
 -- @param name string - Name of the value
 -- @param value string - Value to set
 function debug.set(name, value, visited, tableCounter)
-	-- must be synchronized with getInitialExtraParams
+	-- must be compatible with getInitialExtraParams
 	visited = visited or {}
-	tableCounter = tableCounter or { 0 }
+	tableCounter = tableCounter
 
 	if type(value) == "table" then
 		if visited[value] then
 			debug.set(name, visited[value])
 			return
 		end
-		local suffix = " [#"..tostring(tableCounter[1]).."]"
-		tableCounter[1] = tableCounter[1] + 1
+		local suffix = ""
+		if tableCounter then
+			suffix = " [#"..tostring(tableCounter[1]).."]"
+			tableCounter[1] = tableCounter[1] + 1
+		end
 		visited[value] = suffix
 
 		if rawget(getmetatable(value) or {}, "__tostring") then
