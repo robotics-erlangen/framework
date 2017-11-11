@@ -43,8 +43,8 @@ if (NOT TARGET project_protobuf)
 endif()
 
 add_custom_target(assemble
-	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/config $<TARGET_FILE_DIR:ra>/config
-	COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data $<TARGET_FILE_DIR:ra>/data
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/config ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/config
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/data ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/data
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different
 		$<TARGET_FILE:lib::luajit>
 		$<TARGET_FILE:lib::sdl2>
@@ -55,14 +55,14 @@ add_custom_target(assemble
 		$<TARGET_FILE:Qt5::OpenGL>
 		$<TARGET_FILE:Qt5::Widgets>
 		${Protobuf_DLL}
-			$<TARGET_FILE_DIR:ra>
-	COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:ra>/platforms
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms
 	COMMAND ${CMAKE_COMMAND} -E copy_if_different
 		$<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
-            $<TARGET_FILE_DIR:ra>/platforms
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
 		$<TARGET_FILE_DIR:Qt5::Core>/libgcc_s_dw2-1.dll
 		$<TARGET_FILE_DIR:Qt5::Core>/libstdc++-6.dll
 		$<TARGET_FILE_DIR:Qt5::Core>/libwinpthread-1.dll
-			$<TARGET_FILE_DIR:ra>
+            ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
