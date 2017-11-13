@@ -29,11 +29,7 @@ VisualizationProxyModel::VisualizationProxyModel(QObject *parent)
 
 void VisualizationProxyModel::setLastChangedItem(QStandardItem * item)
 {
-    if (item == m_lastChangedItem) {
-        m_lastChangedItem = nullptr;
-    } else {
-        m_lastChangedItem = item;
-    }
+    m_lastChangedItem = item;
 }
 
 bool VisualizationProxyModel::lessThan(const QModelIndex &left, const QModelIndex &right) const
