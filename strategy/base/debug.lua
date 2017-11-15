@@ -106,7 +106,7 @@ function debug.set(name, value, visited, tableCounter)
 
 	if type(value) == "table" then
 		if visited[value] then
-			debug.set(name, visited[value])
+			debug.set(name, visited[value] .. " (duplicate)")
 			return
 		end
 		local suffix = ""
