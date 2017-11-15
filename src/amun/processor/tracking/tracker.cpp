@@ -205,7 +205,7 @@ BallTracker* Tracker::bestBallFilter()
 
 Status Tracker::worldState(qint64 currentTime)
 {
-    const qint64 resetTimeout = 100*1000*1000;
+    const qint64 resetTimeout = 500*1000*1000;
     // only return objects which have been tracked for more than minFrameCount frames
     // if the tracker was reset recently, allow for fast repopulation
     const int minFrameCount = (currentTime > m_resetTime + resetTimeout) ? 5: 0;
