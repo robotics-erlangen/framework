@@ -94,6 +94,7 @@ void BacklogWriter::saveBacklog(QString filename, Status teamStatus)
         teamStatus->set_time(packetFromByteArray(m_packets.first())->time());
         writer.writeStatus(teamStatus);
         while (m_packets.size() > 0) {
+            m_timings.takeFirst();
             Status status = packetFromByteArray(m_packets.takeFirst());
             writer.writeStatus(status);
         }
