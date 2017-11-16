@@ -18,7 +18,8 @@ local moves = {
 	require "test/move/dribble",
 	require "test/move/victory",
 	require "test/move/chipdribble",
-	require "test/move/interceptpass"
+	require "test/move/interceptpass",
+	require "test/move/debugchip"
 }
 
 local coord = nil
