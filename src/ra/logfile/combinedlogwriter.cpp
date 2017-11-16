@@ -153,6 +153,7 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
     m_isRecording = enabled;
     if (enabled) {
         Q_ASSERT(!m_logFile);
+        emit resetBacklog();
 
         const QString filename = createLogFilename();
 
