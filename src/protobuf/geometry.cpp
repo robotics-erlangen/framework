@@ -36,6 +36,8 @@ void geometrySetDefault(world::Geometry *geometry)
     geometry->set_free_kick_from_defense_dist(0.20f);
     geometry->set_penalty_spot_from_field_line_dist(1.00f);
     geometry->set_penalty_line_from_spot_dist(0.40f);
+    geometry->set_defense_width(2.00f);
+    geometry->set_defense_height(1.00f);
     geometry->set_goal_height(0.155f);
     assert(geometry->IsInitialized());
 }

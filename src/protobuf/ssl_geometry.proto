@@ -14,6 +14,8 @@ message SSL_GeometryFieldSize {
   required int32 free_kick_from_defense_dist = 12;
   required int32 penalty_spot_from_field_line_dist = 13;
   required int32 penalty_line_from_spot_dist = 14;
+  optional int32 defense_width = 15;
+  optional int32 defense_height = 16;
 }
 
 message SSL_GeometryCameraCalibration {

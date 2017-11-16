@@ -21,6 +21,8 @@ message Geometry {
     required float penalty_spot_from_field_line_dist = 13;
     required float penalty_line_from_spot_dist = 14;
     required float goal_height = 15;
+    optional float defense_width = 16 [default = 2.0];
+    optional float defense_height = 17 [default = 1.0];
 }
 
 message BallPosition

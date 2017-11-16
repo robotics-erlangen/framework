@@ -1383,6 +1383,7 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
     painter->setPen(pen);
 
     {
+        
         // defense areas
         float dr = m_geometry.defense_radius();
         const float ds = m_geometry.defense_stretch();
@@ -1403,6 +1404,20 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
         path.arcTo(-dr - ds / 2.0f, rect.top() - dr, dr * 2, dr * 2, -90, -90);
 
         painter->drawPath(path);
+        
+
+        float dw = m_geometry.defense_width();
+        float dh = m_geometry.defense_height();
+
+        if (!cosmetic) {
+            dw -= lwh;
+            dh -= lwh;
+        }
+
+        QRectF defAreaBlue(QPointF(-0.5 * dw, rect.bottom() - dh), QPointF(0.5 * dw, rect.bottom()));
+        QRectF defAreaYellow(QPointF(0.5 * dw, rect.top() + dh), QPointF(-0.5 * dw, rect.top()));
+        painter->drawRect(defAreaBlue);
+        painter->drawRect(defAreaYellow);
     }
 
     if (!cosmetic) {

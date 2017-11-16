@@ -295,6 +295,8 @@ void Tracker::updateGeometry(const SSL_GeometryFieldSize &g)
     m_geometry.set_center_circle_radius(g.center_circle_radius() / 1000.0f);
     m_geometry.set_defense_radius(g.defense_radius() / 1000.0f);
     m_geometry.set_defense_stretch(g.defense_stretch() / 1000.0f);
+    m_geometry.set_defense_width(g.defense_width() / 1000.0f);
+    m_geometry.set_defense_height(g.defense_height() / 1000.0f);
     m_geometry.set_free_kick_from_defense_dist(g.free_kick_from_defense_dist() / 1000.0f);
     m_geometry.set_penalty_spot_from_field_line_dist(g.penalty_spot_from_field_line_dist() / 1000.0f);
     m_geometry.set_penalty_line_from_spot_dist(g.penalty_line_from_spot_dist() / 1000.0f);

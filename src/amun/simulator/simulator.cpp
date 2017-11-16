@@ -295,6 +295,8 @@ QByteArray Simulator::createVisionPacket()
     field->set_center_circle_radius(m_data->geometry.center_circle_radius() * 1000.0f);
     field->set_defense_radius(m_data->geometry.defense_radius() * 1000.0f);
     field->set_defense_stretch(m_data->geometry.defense_stretch() * 1000.0f);
+    field->set_defense_width(m_data->geometry.defense_width() * 1000.0f);
+    field->set_defense_height(m_data->geometry.defense_height() * 1000.0f);
     field->set_free_kick_from_defense_dist(m_data->geometry.free_kick_from_defense_dist() * 1000.0f);
     field->set_penalty_spot_from_field_line_dist(m_data->geometry.penalty_spot_from_field_line_dist() * 1000.0f);
     field->set_penalty_line_from_spot_dist(m_data->geometry.penalty_line_from_spot_dist() * 1000.0f);
