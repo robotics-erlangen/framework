@@ -58,6 +58,7 @@ function Moves:run(sender, inbox, messages)
 		self._numAttackersSent = false
 	end
 
+	local n_attackers
 	-- choose a new move
 	if not self._chosenMove then
 		local candidates = {}
@@ -79,6 +80,7 @@ function Moves:run(sender, inbox, messages)
 		if #candidates > 0 then
 			local index = math.ceil(math.random() * #candidates)
 			self._chosenMove = candidates[index]
+			n_attackers = math.min(numCandidateRobots, candidates[index].MAX_ROBOTS)
 		end
 	end
 
@@ -121,13 +123,11 @@ function Moves:run(sender, inbox, messages)
 				sender.forcePoolChange("trainer", { robot = robot, destPool = "defender" })
 			end
 		end
+		n_attackers = #self._participatingRobots
 	end
 
-	if self._chosenMove then
-		local n_attackers = self._chosenMove.MAX_ROBOTS
-		if self._currentMove then
-			n_attackers = #self._participatingRobots
-		end
+	if self._chosenMove and n_attackers then
+		assert(n_attackers)
 		self._numAttackersSent = true
 		sender.moveNumAttackers("trainer", n_attackers)
 	end
