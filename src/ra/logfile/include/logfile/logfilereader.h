@@ -39,7 +39,6 @@ public:
     ~LogFileReader() override;
 
     bool open(const QString &filename);
-    void close();
     bool isOpen() const override { return m_file.isOpen(); }
 
     QString filename() const { return m_file.fileName(); }
@@ -54,6 +53,7 @@ public slots:
     void readPackets(int startPacket, int count) override;
 
 private:
+    void close();
     bool readVersion();
     qint64 readTimestampVersion0();
     qint64 readTimestampVersion1();

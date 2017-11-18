@@ -57,7 +57,6 @@ MainWindow::MainWindow(QWidget *parent) :
     statusBar()->addPermanentWidget(m_refereeStatus);
 
     m_logfile = new LogFileReader();
-    m_logfile->close();
 
     // setup icons
     ui->btnOpen->setIcon(QIcon::fromTheme("document-open"));
@@ -198,7 +197,6 @@ void MainWindow::openFile(const QString &filename)
             ui->logManager->setStatusSource(m_logfile);
         } else {
             QMessageBox::critical(this, "Error", m_logfile->errorMsg());
-            m_logfile->close();
         }
 
         setWindowTitle("Log Player - " + QFileInfo(filename).fileName());
