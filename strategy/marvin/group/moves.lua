@@ -78,7 +78,7 @@ function Moves:run(sender, inbox, messages)
 		end
 
 		if #candidates > 0 then
-			local index = math.ceil(math.random() * #candidates)
+			local index = math.random(#candidates)
 			self._chosenMove = candidates[index]
 			n_attackers = math.min(numCandidateRobots, candidates[index].MAX_ROBOTS)
 		end
