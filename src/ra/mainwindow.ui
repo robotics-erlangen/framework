@@ -464,7 +464,7 @@
     <string>Show Backlog</string>
    </property>
    <property name="shortcut">
-    <string>A</string>
+    <string>Ctrl+A</string>
    </property>
   </action>
   <action name="actionTogglePause">
