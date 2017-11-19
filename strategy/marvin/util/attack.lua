@@ -65,7 +65,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 		local validIntersection = false
 		if intersection then
 			validIntersection = Field.isInField(intersection) and opp.pos:distanceTo(intersection) < opp.pos:distanceTo(orthogonalProjection)
-			if validIntersection then
+			if validIntersection and amun.isDebug then
 				vis.addCircle("u/a/ratePass", intersection, 0.05, vis.colors.red, true)
 				vis.addPath("u/a/ratePass", {opp.pos, intersection}, vis.colors.slate, true)
 			end
@@ -76,7 +76,9 @@ function Attack.ratePass(robot, pass, considerTiming)
 					and opp ~= World.OpponentKeeper then
 			local passInterception = orthogonalProjection:distanceToLineSegment(shootPos, pass.ballPos) > 0.5
 					and pass.ballPos or orthogonalProjection
-			vis.addPath("u/a/ratePass", {opp.pos, passInterception}, vis.colors.blue, true)
+			if amun.isDebug then
+				vis.addPath("u/a/ratePass", {opp.pos, passInterception}, vis.colors.blue, true)
+			end
 
 			-- calculate the time the ball needs to arrive at the intersection point
 			local shootSpeed = Vector(1,1):setLength(robot:calculateShootSpeed(3, shootPos:distanceTo(pass.ballPos))) -- direction doesn't actually matter
@@ -86,7 +88,9 @@ function Attack.ratePass(robot, pass, considerTiming)
 			-- calculate the time the robot needs to arrive at the intersection point
 			-- to achieve more relevant results, the speed component parallel to the pass trajectory is ignored
 			local projectedSpeed = opp.speed - ((opp.pos + opp.speed):orthogonalProjection(shootPos, pass.ballPos) - orthogonalProjection)
-			vis.addPath("u/a/ratePass", {opp.pos, opp.pos + projectedSpeed}, vis.colors.pink, true)
+			if amun.isDebug then
+				vis.addPath("u/a/ratePass", {opp.pos, opp.pos + projectedSpeed}, vis.colors.pink, true)
+			end
 			local fakeRobot = {acceleration = opp.acceleration, pos = opp.pos, maxSpeed = opp.maxSpeed, speed = projectedSpeed}
 
 			local timeToPos = 0
@@ -108,10 +112,13 @@ function Attack.ratePass(robot, pass, considerTiming)
 	local goalAngleRating = Rating.valueToRating(goalAngle, 0, 50 / 180 * math.pi)
 	rating = rating * (1 - goalAngleWeight + goalAngleWeight * goalAngleRating)
 
-	vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true)
-	vis.addPath("u/a/ratePass", {shootPos, pass.ballPos}, vis.colors.red)
-	vis.addCircle("u/a/ratePass: rating", pass.ballPos, 0.2,
-	vis.fromTemperature(1 - rating, 127), true)
+	if amun.isDebug then
+		vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true)
+		vis.addPath("u/a/ratePass", {shootPos, pass.ballPos}, vis.colors.red)
+		vis.addCircle("u/a/ratePass: rating", pass.ballPos, 0.2,
+				vis.fromTemperature(1 - rating, 127), true)
+	end
+
 	return rating
 end
 
