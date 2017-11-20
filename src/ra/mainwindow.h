@@ -70,7 +70,6 @@ private slots:
     void showConfigDialog();
     void liveMode();
     void showBacklogMode();
-    void recordFileToggled(bool enabled);
 
 private:
     void sendFlip();
