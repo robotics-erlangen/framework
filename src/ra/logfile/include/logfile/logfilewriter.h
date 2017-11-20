@@ -26,8 +26,10 @@
 #include <QString>
 #include <QDataStream>
 #include <QFile>
+#include <QList>
 
 class QMutex;
+class LogFileReader;
 
 class LogFileWriter : public QObject
 {
@@ -41,6 +43,7 @@ public:
     bool isOpen() const { return m_file.isOpen(); }
 
     QString filename() const { return m_file.fileName(); }
+    LogFileReader * makeStatusSource();
 
 public slots:
     bool writeStatus(const Status &status);
@@ -53,6 +56,9 @@ private:
     QDataStream m_stream;
     QByteArray m_packageBuffer;
     int m_packageBufferCount;
+    QList<qint64> m_timeStamps;
+    QList<qint64> m_packetOffsets;
+    qint64 m_writtenPackages;
 
     const static qint32 GROUPED_PACKAGES = 100;
     qint32 m_packageBufferOffsets[GROUPED_PACKAGES];

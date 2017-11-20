@@ -42,7 +42,11 @@ CombinedLogWriter::~CombinedLogWriter()
 
 StatusSource * CombinedLogWriter::makeStatusSource()
 {
-    return m_backlogWriter->makeStatusSource();
+    if (m_isRecording) {
+        return (StatusSource*)m_logFile->makeStatusSource();
+    } else {
+        return m_backlogWriter->makeStatusSource();
+    }
 }
 
 void CombinedLogWriter::handleStatus(const Status &status)

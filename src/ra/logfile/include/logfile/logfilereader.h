@@ -35,7 +35,7 @@ class LogFileReader : public StatusSource
 {
     Q_OBJECT
 public:
-    explicit LogFileReader();
+    explicit LogFileReader(const QList<qint64> &timings = QList<qint64>(), const QList<qint64> &offsets = QList<qint64>());
     ~LogFileReader() override;
 
     bool open(const QString &filename);
@@ -53,6 +53,7 @@ public slots:
     void readPackets(int startPacket, int count) override;
 
 private:
+    bool indexFile();
     void close();
     bool readVersion();
     qint64 readTimestampVersion0();

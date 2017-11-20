@@ -23,13 +23,14 @@
 #include <QMutex>
 #include <QMutexLocker>
 
-LogFileReader::LogFileReader() :
-    m_stream(&m_file)
+LogFileReader::LogFileReader(const QList<qint64> &timings, const QList<qint64> &offsets) :
+    m_stream(&m_file),
+    m_packets(offsets),
+    m_timings(timings)
 {
     m_mutex = new QMutex(QMutex::Recursive);
     // ensure compatibility across qt versions
     m_stream.setVersion(QDataStream::Qt_4_6);
-    close();
 }
 
 LogFileReader::~LogFileReader()
@@ -41,7 +42,9 @@ bool LogFileReader::open(const QString &filename)
 {
     // lock for atomar opening
     QMutexLocker locker(m_mutex);
-    close();
+    if (m_file.isOpen()) {
+        close();
+    }
 
     // try to open the requested file
     m_file.setFileName(filename);
@@ -59,9 +62,37 @@ bool LogFileReader::open(const QString &filename)
 
     // initialize variables
     m_packageGroupStartIndex = -1;
-    int packetIndex = 0;
 
     // index the whole file
+    if (m_timings.size() == 0 && !indexFile()) {
+        m_file.close();
+        return false;
+    }
+
+    if (m_packets.size() == 0) {
+        m_errorMsg = "Invalid or empty logfile";
+        m_file.close();
+        return false;
+    }
+
+    return true;
+}
+
+void LogFileReader::close()
+{
+    // cleanup everything and close file
+    QMutexLocker locker(m_mutex);
+    m_file.close();
+
+    m_errorMsg.clear();
+    m_packets.clear();
+    m_timings.clear();
+    m_currentGroup.clear();
+}
+
+bool LogFileReader::indexFile()
+{
+    int packetIndex = 0;
     qint64 lastTime = 0;
     while (!m_stream.atEnd()) {
         const qint64 offset = m_file.pos();
@@ -84,7 +115,6 @@ bool LogFileReader::open(const QString &filename)
             // timestamps that are too far apart mean that the logfile is corrupt
             if (lastTime != 0 && (time - lastTime < 0 || time - lastTime > 1000000000)) {
                 m_errorMsg = "Invalid or corrupt logfile";
-                m_file.close();
                 return false;
             }
 
@@ -94,25 +124,7 @@ bool LogFileReader::open(const QString &filename)
         }
         lastTime = time;
     }
-    if (m_packets.size() == 0) {
-        m_errorMsg = "Invalid or empty logfile";
-        m_file.close();
-        return false;
-    }
-
     return true;
-}
-
-void LogFileReader::close()
-{
-    // cleanup everything and close file
-    QMutexLocker locker(m_mutex);
-    m_file.close();
-
-    m_errorMsg.clear();
-    m_packets.clear();
-    m_timings.clear();
-    m_currentGroup.clear();
 }
 
 bool LogFileReader::readVersion()

@@ -156,7 +156,6 @@ MainWindow::MainWindow(QWidget *parent) :
     // set up log connections
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
     connect(ui->actionRecord, SIGNAL(toggled(bool)), &m_logWriter, SLOT(recordButtonToggled(bool)));
-    connect(ui->actionRecord, SIGNAL(toggled(bool)), SLOT(recordFileToggled(bool)));
     connect(ui->actionSave20s, SIGNAL(triggered(bool)), &m_logWriter, SLOT(backLogButtonClicked()));
     connect(ui->actionSaveBacklog, SIGNAL(triggered(bool)), &m_logWriter, SLOT(backLogButtonClicked()));
     connect(&m_logWriter, SIGNAL(setRecordButton(bool)), ui->actionRecord, SLOT(setChecked(bool)));
@@ -300,6 +299,8 @@ void MainWindow::handleStatus(const Status &status)
             }
             m_lastStageTime = state.stage_time_left();
         }
+
+        m_lastRefState = state.state();
     }
 
     if (status->has_amun_state() && status->amun_state().has_port_bind_error()) {
@@ -379,10 +380,13 @@ void MainWindow::toggleFlip()
 
 void MainWindow::liveMode()
 {
-    ui->simulator->start();
+    if (ui->actionSimulator->isChecked()) {
+        ui->simulator->start();
+    }
     ui->logManager->setDisabled(true);
     ui->logManager->hide();
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
+    disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleCheckHaltStatus(Status)));
     disconnect(ui->logManager, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
 
@@ -391,12 +395,15 @@ void MainWindow::liveMode()
 
 void MainWindow::showBacklogMode()
 {
-    if (ui->actionSimulator->isChecked()) {
-        ui->simulator->stop();
+    if (ui->actionSimulator->isChecked() || m_lastRefState == amun::GameState::Halt) {
+        if (ui->actionSimulator->isChecked()) {
+            ui->simulator->stop();
+        }
         ui->logManager->setEnabled(true);
         ui->logManager->show();
         ui->logManager->setStatusSource(m_logWriter.makeStatusSource());
         disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
+        connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleCheckHaltStatus(Status)));
         connect(ui->logManager, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
         ui->logManager->gotToEnd();
         disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
@@ -405,12 +412,13 @@ void MainWindow::showBacklogMode()
     }
 }
 
-void MainWindow::recordFileToggled(bool enabled)
+void MainWindow::handleCheckHaltStatus(const Status &status)
 {
-    if (ui->actionShowBacklog->isEnabled() && enabled) {
-        ui->actionShowBacklog->setEnabled(false);
-    } else if(!ui->actionShowBacklog->isEnabled() && ! enabled && !ui->actionGoLive->isEnabled()) {
-        ui->actionShowBacklog->setEnabled(true);
+    if (status->has_game_state()) {
+        const amun::GameState &gameState = status->game_state();
+        if (gameState.state() != amun::GameState::Halt) {
+            liveMode();
+        }
     }
 }
 

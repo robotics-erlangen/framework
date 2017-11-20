@@ -22,6 +22,8 @@
 #include <QByteArray>
 #include <QMutexLocker>
 
+#include "logfilereader.h"
+
 LogFileWriter::LogFileWriter() :
     QObject(), m_stream(&m_file)
 {
@@ -35,6 +37,15 @@ LogFileWriter::~LogFileWriter()
     close();
 
     m_packageBuffer.clear();
+}
+
+LogFileReader * LogFileWriter::makeStatusSource()
+{
+    m_packetOffsets.erase(m_packetOffsets.begin() + m_writtenPackages, m_packetOffsets.end());
+    m_timeStamps.erase(m_timeStamps.begin() + m_writtenPackages, m_timeStamps.end());
+    LogFileReader * reader = new LogFileReader(m_timeStamps, m_packetOffsets);
+    reader->open(m_file.fileName());
+    return reader;
 }
 
 bool LogFileWriter::open(const QString &filename)
@@ -57,6 +68,7 @@ bool LogFileWriter::open(const QString &filename)
     // initialize variables
     m_packageBufferCount = 0;
     m_packageBuffer.clear();
+    m_writtenPackages = 0;
 
     return true;
 }
@@ -98,6 +110,9 @@ bool LogFileWriter::writeStatus(const Status &status)
 
 void LogFileWriter::writePackageEntry(qint64 time, const QByteArray &data)
 {
+    m_timeStamps.append(time);
+    m_packetOffsets.append(m_file.pos());
+
     m_packageBufferOffsets[m_packageBufferCount] = m_packageBuffer.size();
     m_packageBuffer.append(data);
     m_packageBufferCount++;
@@ -111,5 +126,6 @@ void LogFileWriter::writePackageEntry(qint64 time, const QByteArray &data)
         m_stream << qCompress(m_packageBuffer);
         m_packageBufferCount = 0;
         m_packageBuffer.clear();
+        m_writtenPackages += GROUPED_PACKAGES;
     }
 }
