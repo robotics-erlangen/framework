@@ -35,7 +35,7 @@ class RobotWidget : public QWidget
     Q_OBJECT
 
 public:
-    enum Team { NoTeam, Blue, Yellow, Mixed, PartialBlue, PartialYellow };
+    enum Team { NoTeam, Blue, Yellow, HalfHalf, Mixed, PartialBlue, PartialYellow };
 
 public:
     explicit RobotWidget(InputManager *inputManager, bool is_generation, QWidget *parent = 0);

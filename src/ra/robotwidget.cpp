@@ -47,13 +47,16 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
     m_teamGroup = new QActionGroup(this);
     connect(m_teamMenu, SIGNAL(triggered(QAction*)), SLOT(selectTeam(QAction*)));
 
-    addTeamType("No team", NoTeam);
-    addTeamType("Blue", Blue);
-    addTeamType("Yellow", Yellow);
     if (is_generation) {
         // partial blue and yellow only set the team of the first half of the robots
-        addTeamType("Half Blue", PartialBlue);
-        addTeamType("Half Yellow", PartialYellow);
+        addTeamType("No Team", NoTeam);
+        addTeamType("All Blue", Blue);
+        addTeamType("All Yellow", Yellow);
+        addTeamType("Blue - Yellow", HalfHalf);
+    } else {
+        addTeamType("No team", NoTeam);
+        addTeamType("Blue", Blue);
+        addTeamType("Yellow", Yellow);
     }
 
     m_team = new QToolButton;
@@ -312,6 +315,7 @@ void RobotWidget::selectTeam(Team team)
 
     case Mixed:
     case PartialBlue:
+    case HalfHalf:
         brush = QBrush("dodgerblue");
         break;
 
