@@ -25,7 +25,8 @@ module "debugger"
 
 local debugger = {}
 local Class = require "../base/class"
-local debug = debug
+local amun, debug = amun, debug
+local strategyPath = amun.getStrategyPath()
 local baseDebug
 
 function debugger._loadBaseDebug()
@@ -60,7 +61,7 @@ end
 --- io helper ---
 
 local function printerr(str)
-	io.stderr:write(str)
+	amun.debuggerWrite(str)
 end
 
 local function printerrln(str)
@@ -87,7 +88,7 @@ debugger.registerCommand = registerCommand
 
 local function getUserInput()
 	printerr("debug> ")
-	local input = io.stdin:read("*l")
+	local input = amun.debuggerRead()
 	return input
 end
 
@@ -390,7 +391,7 @@ local function prettyPrint(name, value, visited, indent)
 end
 
 local function shortPath(path)
-	local basePath = "@" .. amun.strategyPath .. "/"
+	local basePath = "@" .. strategyPath .. "/"
 	if path:sub(1, #basePath) == basePath then
 		return path:sub(#basePath+1)
 	else
