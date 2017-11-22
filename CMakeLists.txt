@@ -67,7 +67,6 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Network REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 
-find_package(LuaJIT2 REQUIRED)
 find_package(USB)
 # sdl2 version 2.0.2 required for loading controller mappings from config file
 find_package(SDL2 2.0.2)
@@ -77,6 +76,7 @@ endif()
 
 include(BuildBullet)
 include(BuildEigen)
+include(BuildLuaJIT2)
 
 include(FixCodeBlocks)
 
