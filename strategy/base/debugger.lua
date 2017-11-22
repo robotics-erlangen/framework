@@ -316,12 +316,12 @@ end
 local function evalFunction(code)
 	local varnames = {}
 	local values = {}
-	for varname, value in pairs(getClosureParameters()) do
+	for varname, value in pairs(getClosureParameters(0)) do
 		table.insert(varnames, varname)
 		-- support storing nil
 		values[#varnames] = value[1]
 	end
-	for varname, value in pairs(getLocals()) do
+	for varname, value in pairs(getLocals(0)) do
 		table.insert(varnames, varname)
 		values[#varnames] = value[1]
 	end
@@ -482,7 +482,7 @@ end
 local function localInfoHandler(_args)
 	printerrln("Locals")
 	local localLines = {}
-	for varname, value in pairs(getLocals()) do
+	for varname, value in pairs(getLocals(0)) do
 		table.insert(localLines, printLocalVar(varname, value[1]))
 	end
 	table.sort(localLines)
@@ -490,7 +490,7 @@ local function localInfoHandler(_args)
 		printerrln(line)
 	end
 
-	local closureParameters = getClosureParameters()
+	local closureParameters = getClosureParameters(0)
 	local isFirstClosureParameter = true
 	for varname, value in pairs(closureParameters) do
 		if isFirstClosureParameter then
