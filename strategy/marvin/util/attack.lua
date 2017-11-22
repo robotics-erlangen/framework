@@ -115,9 +115,9 @@ function Attack.ratePass(robot, pass, considerTiming)
 	if amun.isDebug then
 		vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true)
 		vis.addPath("u/a/ratePass", {shootPos, pass.ballPos}, vis.colors.red)
-		vis.addCircle("u/a/ratePass: rating", pass.ballPos, 0.2,
-				vis.fromTemperature(1 - rating, 127), true)
 	end
+	vis.addCircle("u/a/ratePass: rating", pass.ballPos, 0.2,
+			vis.fromTemperature(1 - rating, 127), true)
 
 	return rating
 end
