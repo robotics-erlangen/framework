@@ -25,6 +25,7 @@
 #include "processor/transceiver.h"
 #include "processor/networktransceiver.h"
 #include "simulator/simulator.h"
+#include "strategy/debughelper.h"
 #include "strategy/strategy.h"
 #include "networkinterfacewatcher.h"
 #include <QMetaType>
@@ -71,8 +72,10 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     qRegisterMetaType< QList<robot::RadioResponse> >("QList<robot::RadioResponse>");
     qRegisterMetaType<Status>("Status");
 
-    m_strategy[0] = NULL;
-    m_strategy[1] = NULL;
+    for (int i = 0; i < 2; ++i) {
+        m_strategy[i] = nullptr;
+        m_debugHelper[i] = nullptr;
+    }
 
     // global timer, which can be slowed down / sped up
     m_timer = new Timer;
@@ -83,6 +86,7 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_simulatorThread = new QThread(this);
     m_strategyThread[0] = new QThread(this);
     m_strategyThread[1] = new QThread(this);
+    m_debugHelperThread = new QThread(this);
 
     m_networkInterfaceWatcher = (!m_simulatorOnly) ? new NetworkInterfaceWatcher(this) : nullptr;
 }
@@ -115,8 +119,17 @@ void Amun::start()
 
     // start strategy threads
     for (int i = 0; i < 2; i++) {
-        Q_ASSERT(m_strategy[i] == NULL);
-        m_strategy[i] = new Strategy(m_timer, (i == 0) ? StrategyType::YELLOW : StrategyType::BLUE);
+        StrategyType strategy = (i == 0) ? StrategyType::YELLOW : StrategyType::BLUE;
+
+        Q_ASSERT(m_debugHelper[i] == nullptr);
+        m_debugHelper[i] = new DebugHelper(strategy);
+        m_debugHelper[i]->moveToThread(m_debugHelperThread);
+        connect(this, SIGNAL(gotCommand(Command)),
+                m_debugHelper[i], SLOT(handleCommand(Command)));
+        connect(m_debugHelper[i], SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
+
+        Q_ASSERT(m_strategy[i] == nullptr);
+        m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i]);
         m_strategy[i]->moveToThread(m_strategyThread[i]);
         connect(m_strategyThread[i], SIGNAL(finished()), m_strategy[i], SLOT(deleteLater()));
 
@@ -201,6 +214,7 @@ void Amun::start()
     m_simulatorThread->start();
     m_strategyThread[0]->start();
     m_strategyThread[1]->start();
+    m_debugHelperThread->start();
 }
 
 /*!
@@ -216,6 +230,7 @@ void Amun::stop()
     m_simulatorThread->quit();
     m_strategyThread[0]->quit();
     m_strategyThread[1]->quit();
+    m_debugHelperThread->quit();
 
     // wait for threads
     m_processorThread->wait();
@@ -223,6 +238,7 @@ void Amun::stop()
     m_simulatorThread->wait();
     m_strategyThread[0]->wait();
     m_strategyThread[1]->wait();
+    m_debugHelperThread->wait();
 
     // worker objects are destroyed on thread shutdown
     m_transceiver = NULL;
@@ -234,6 +250,7 @@ void Amun::stop()
     m_mixedTeam = NULL;
     for (int i = 0; i < 2; i++) {
         m_strategy[i] = NULL;
+        m_debugHelper[i] = nullptr;
     }
     m_processor = NULL;
 }

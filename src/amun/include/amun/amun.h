@@ -25,6 +25,7 @@
 #include "protobuf/status.h"
 #include <QObject>
 
+class DebugHelper;
 class NetworkInterfaceWatcher;
 class Processor;
 class Receiver;
@@ -69,6 +70,7 @@ private:
     QThread *m_networkThread;
     QThread *m_simulatorThread;
     QThread *m_strategyThread[2];
+    QThread *m_debugHelperThread;
 
     Processor *m_processor;
     Transceiver *m_transceiver;
@@ -79,6 +81,7 @@ private:
     Receiver *m_networkCommand;
     Receiver *m_mixedTeam;
     Strategy *m_strategy[2];
+    DebugHelper *m_debugHelper[2];
     qint64 m_lastTime;
     Timer *m_timer;
     bool m_simulatorEnabled;

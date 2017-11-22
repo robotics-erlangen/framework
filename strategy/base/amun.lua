@@ -188,6 +188,22 @@ separator for luadoc]]--
 -- @name sendNetworkRefereeCommand
 -- @param command SSL_Referee
 
+--[[
+separator for luadoc]]--
+
+--- Write output to debugger console
+-- @class function
+-- @name debuggerWrite
+-- @param line string
+
+--[[
+separator for luadoc]]--
+
+--- Wait for and read input from debugger console
+-- @class function
+-- @name debuggerRead
+-- @return line string
+
 -- luacheck: globals amun log
 require "amun"
 log = amun.log

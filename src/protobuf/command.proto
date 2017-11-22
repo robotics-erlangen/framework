@@ -113,6 +113,28 @@ message CommandAmun {
     optional uint32 referee_port = 2;
 }
 
+enum DebuggerInputTarget {
+    DITStrategyYellow = 0;
+    DITStrategyBlue = 1;
+    DITAutoref = 2;
+}
+
+message CommandDebuggerInputEnable {
+}
+
+message CommandDebuggerInputDisable {
+}
+
+message CommandDebuggerInputLine {
+    optional string line = 1;
+}
+
+message CommandDebuggerInput {
+    required DebuggerInputTarget strategy_type = 1;
+    optional CommandDebuggerInputDisable disable = 2;
+    optional CommandDebuggerInputLine queue_line = 3;
+}
+
 message Command {
     optional CommandSimulator simulator = 1;
     optional CommandReferee referee = 2;
@@ -131,4 +153,5 @@ message Command {
     optional HostAddress mixed_team_destination = 15;
     repeated RobotMoveCommand robot_move_blue = 16;
     repeated RobotMoveCommand robot_move_yellow = 17;
+    optional CommandDebuggerInput debugger_input = 18;
 }

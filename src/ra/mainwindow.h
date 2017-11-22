@@ -29,6 +29,7 @@
 class BacklogWriter;
 class CombinedLogWriter;
 class ConfigDialog;
+class DebuggerConsole;
 class InputManager;
 class InternalReferee;
 class LogFileWriter;
@@ -91,6 +92,8 @@ private:
     QLabel *m_logTimeLabel;
     CombinedLogWriter m_logWriter;
     amun::GameState::State m_lastRefState;
+
+    DebuggerConsole *m_console;
 };
 
 #endif // MAINWINDOW_H

@@ -28,6 +28,7 @@
 #include "abstractstrategyscript.h"
 #include "strategytype.h"
 
+class DebugHelper;
 class FileWatcher;
 class Lua;
 class Timer;
@@ -71,6 +72,8 @@ public:
     void sendMixedTeam(const QByteArray &info);
     bool sendAutoref(const QByteArray &event);
     void watch(const QString &filename);
+    QString debuggerRead();
+    bool debuggerWrite(const QString& line);
 private:
     void loadLibs();
     void loadRestrictedDebugLibs();

@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer                                        *
+ *   Copyright 2017 Michael Eischer                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,32 +18,43 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "abstractstrategyscript.h"
+#ifndef DEBUGGERCONSOLE_H
+#define DEBUGGERCONSOLE_H
 
-AbstractStrategyScript::AbstractStrategyScript() {
-    m_hasDebugger = false;
-    m_debugHelper = nullptr;
-    takeDebugStatus();
-}
+#include <QString>
+#include <QPlainTextEdit>
+#include "protobuf/command.h"
+#include "protobuf/status.h"
 
-bool AbstractStrategyScript::triggerDebugger()
+class DebuggerConsole : public QPlainTextEdit
 {
-    // fail as default
-    return false;
-}
+    Q_OBJECT
 
-Status AbstractStrategyScript::takeDebugStatus()
-{
-    Status status = m_debugStatus;
-    m_debugStatus = Status(new amun::Status);
-    return status;
-}
+public:
+    explicit DebuggerConsole(QWidget *parent = 0);
+    ~DebuggerConsole();
 
-void AbstractStrategyScript::setSelectedOptions(const QStringList &options)
-{
-    m_selectedOptions = options;
-}
+    void setStrategy(amun::DebugSource debugSource);
 
-void AbstractStrategyScript::setDebugHelper(DebugHelper *helper) {
-    m_debugHelper = helper;
-}
+public slots:
+    void handleStatus(const Status &status);
+
+signals:
+    void sendCommand(const Command &command);
+
+protected:
+    void closeEvent(QCloseEvent *event);
+    void keyPressEvent(QKeyEvent *e);
+    void mousePressEvent(QMouseEvent *e);
+    void mouseDoubleClickEvent(QMouseEvent *e);
+
+private:
+    amun::DebuggerInputTarget fromDebuggerInput(amun::DebugSource target);
+    void outputLine(const QString &line);
+
+    QString m_line;
+    amun::DebugSource m_debugSource;
+    amun::DebuggerInputTarget m_debuggerTarget;
+};
+
+#endif // DEBUGGERCONSOLE_H

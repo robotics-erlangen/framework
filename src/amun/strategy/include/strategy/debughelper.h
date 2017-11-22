@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer                                        *
+ *   Copyright 2017 Michael Eischer                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,32 +18,50 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "abstractstrategyscript.h"
+#ifndef DEBUGHELPER_H
+#define DEBUGHELPER_H
 
-AbstractStrategyScript::AbstractStrategyScript() {
-    m_hasDebugger = false;
-    m_debugHelper = nullptr;
-    takeDebugStatus();
-}
+#include <QList>
+#include <QMutex>
+#include <QObject>
+#include <QString>
+#include <QWaitCondition>
+#include "strategytype.h"
+#include "protobuf/command.h"
+#include "protobuf/status.h"
 
-bool AbstractStrategyScript::triggerDebugger()
+class DebugHelper : public QObject
 {
-    // fail as default
-    return false;
-}
+    Q_OBJECT
+public:
+    explicit DebugHelper(StrategyType strategy);
 
-Status AbstractStrategyScript::takeDebugStatus()
-{
-    Status status = m_debugStatus;
-    m_debugStatus = Status(new amun::Status);
-    return status;
-}
+    void enableQueue();
+    QString takeInput();
+    void sendOutput(const QString &line);
+signals:
+    void sendStatus(const Status &status);
 
-void AbstractStrategyScript::setSelectedOptions(const QStringList &options)
-{
-    m_selectedOptions = options;
-}
+public slots:
+    void handleCommand(const Command &command);
 
-void AbstractStrategyScript::setDebugHelper(DebugHelper *helper) {
-    m_debugHelper = helper;
-}
+private:
+    void queueInput(QString line);
+    void clearAndDisableQueue();
+    void clearQueue();
+    void queueSetStatus(bool isEnabled);
+
+    StrategyType fromDebuggerInput(amun::DebuggerInputTarget target);
+    amun::DebugSource toDebugSource(StrategyType strategy);
+
+    const amun::CommandStrategy *getOwnStrategyCommand(const Command &command);
+
+    const StrategyType m_strategy;
+
+    QWaitCondition m_condition;
+    QMutex m_queueLock;
+    QList<QString> m_queue;
+    bool m_queueEnabled;
+};
+
+#endif // DEBUGHELPER_H

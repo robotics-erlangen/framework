@@ -25,6 +25,7 @@
 #include "internalreferee.h"
 #include "plotter/plotter.h"
 #include "robotparametersdialog.h"
+#include "widgets/debuggerconsole.h"
 #include "widgets/refereestatuswidget.h"
 #include <QFile>
 #include <QFileDialog>
@@ -107,6 +108,12 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->options, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
 
+    ui->blueDebugger->setStrategy(amun::DebugSource::StrategyBlue);
+    connect(ui->blueDebugger, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+
+    ui->yellowDebugger->setStrategy(amun::DebugSource::StrategyYellow);
+    connect(ui->yellowDebugger, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+
     // setup visualization only parts of the ui
     connect(ui->visualization, SIGNAL(itemsChanged(QStringList)), ui->field, SLOT(visualizationsChanged(QStringList)));
 
@@ -152,6 +159,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), m_refereeStatus, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->log, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->options, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->blueDebugger, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), ui->yellowDebugger, SLOT(handleStatus(Status)));
 
     // set up log connections
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
@@ -187,6 +196,11 @@ MainWindow::MainWindow(QWidget *parent) :
     if (s.value("State").isNull()) {
         tabifyDockWidget(ui->dockSimulator, ui->dockInput);
         tabifyDockWidget(ui->dockInput, ui->dockVisualization);
+        tabifyDockWidget(ui->dockRobots, ui->dockBlueDebugger);
+        tabifyDockWidget(ui->dockRobots, ui->dockYellowDebugger);
+
+        ui->dockBlueDebugger->close();
+        ui->dockYellowDebugger->close();
     }
     restoreState(s.value("State").toByteArray());
     ui->splitterV->restoreState(s.value("SplitterV").toByteArray());

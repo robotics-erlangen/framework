@@ -21,11 +21,13 @@
 add_subdirectory(path)
 
 set(SOURCES
+    include/strategy/debughelper.h
     include/strategy/strategy.h
     include/strategy/strategytype.h
 
     abstractstrategyscript.cpp
     abstractstrategyscript.h
+    debughelper.cpp
     filewatcher.cpp
     filewatcher.h
     lua.cpp

@@ -19,6 +19,7 @@
 # ***************************************************************************
 
 set(SOURCES
+    include/widgets/debuggerconsole.h
     include/widgets/debugtreewidget.h
     include/widgets/fieldwidget.h
     include/widgets/logwidget.h
@@ -29,6 +30,7 @@ set(SOURCES
     include/widgets/visualizationwidget.h
     include/widgets/teamwidget.h
 
+    debuggerconsole.cpp
     debugmodel.cpp
     debugmodel.h
     debugtreewidget.cpp

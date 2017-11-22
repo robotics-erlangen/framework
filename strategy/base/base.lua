@@ -31,8 +31,8 @@ module "base"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-local debugger = require "../base/debugger" -- preload debugger to allow triggering it later
 require "../base/amun"
+local debugger = require "../base/debugger" -- preload debugger to allow triggering it later
 if math.mod ~= nil then
 	log("Warning: Using LuaJIT without lua 5.2 compatibility mode. Strategy behaviour on replay may be unstable")
 end

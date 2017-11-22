@@ -23,6 +23,7 @@
 #include "lua_path.h"
 #include "lua_protobuf.h"
 #include "core/timer.h"
+#include "debughelper.h"
 #include "filewatcher.h"
 
 Lua *getStrategyThread(lua_State *state)
@@ -537,6 +538,23 @@ bool Lua::sendAutoref(const QByteArray &event)
 void Lua::watch(const QString &filename)
 {
     m_watcher->addFile(filename);
+}
+
+QString Lua::debuggerRead()
+{
+    if (!m_debugEnabled) {
+        return QString();
+    }
+    return m_debugHelper->takeInput();
+}
+
+bool Lua::debuggerWrite(const QString &line)
+{
+    if (!m_debugEnabled) {
+        return false;
+    }
+    m_debugHelper->sendOutput(line);
+    return true;
 }
 
 void Lua::loadLibs()

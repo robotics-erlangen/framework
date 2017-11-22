@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "lua.h"
+#include "debughelper.h"
 #include "strategy.h"
 #include "core/timer.h"
 #include "protobuf/geometry.h"
@@ -52,7 +53,7 @@ public:
  * \param timer Timer to be used for time scaling
  * \param type can be blue or yellow team or autoref
  */
-Strategy::Strategy(const Timer *timer, StrategyType type) :
+Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper) :
     m_p(new StrategyPrivate),
     m_timer(timer),
     m_strategy(nullptr),
@@ -61,7 +62,8 @@ Strategy::Strategy(const Timer *timer, StrategyType type) :
     m_refboxControlEnabled(false),
     m_autoReload(false),
     m_strategyFailed(false),
-    m_isReplay(false)
+    m_isReplay(false),
+    m_debugHelper(helper)
 {
     m_udpSenderSocket = new QUdpSocket(this);
     m_refboxSocket = new QTcpSocket(this);
@@ -374,6 +376,12 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     } else {
         fail(QString("No strategy handler for file %1").arg(filename));
         return;
+    }
+
+    if (m_debugEnabled) {
+        m_strategy->setDebugHelper(m_debugHelper);
+        // the debug helper doesn't know the exact moment when the strategy gets reloaded
+        m_debugHelper->enableQueue();
     }
 
     // delay reload until strategy is no longer running

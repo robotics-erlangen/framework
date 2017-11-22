@@ -250,6 +250,24 @@
    </attribute>
    <widget class="OptionsWidget" name="options"/>
   </widget>
+  <widget class="QDockWidget" name="dockBlueDebugger">
+   <property name="windowTitle">
+    <string>Blue Debugger</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="DebuggerConsole" name="blueDebugger"/>
+  </widget>
+  <widget class="QDockWidget" name="dockYellowDebugger">
+   <property name="windowTitle">
+    <string>Yellow Debugger</string>
+   </property>
+   <attribute name="dockWidgetArea">
+    <number>1</number>
+   </attribute>
+   <widget class="DebuggerConsole" name="yellowDebugger"/>
+  </widget>
   <action name="actionQuit">
    <property name="text">
     <string>&amp;Quit</string>
@@ -630,6 +648,12 @@
    <class>OptionsWidget</class>
    <extends>QWidget</extends>
    <header>optionswidget.h</header>
+  </customwidget>
+  <customwidget>
+   <class>DebuggerConsole</class>
+   <extends>QWidget</extends>
+   <header>widgets/debuggerconsole.h</header>
+   <container>1</container>
   </customwidget>
  </customwidgets>
  <resources/>

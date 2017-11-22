@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
     qRegisterMetaType<Status>("Status");
     qRegisterMetaType<Command>("Command");
 
-    Strategy* strategy = new Strategy(timer, StrategyType::AUTOREF);
+    Strategy* strategy = new Strategy(timer, StrategyType::AUTOREF, nullptr);
     MiniProcessor processor(strategy);
     QThread* processorThread = new QThread();
     processor.moveToThread(processorThread);

@@ -28,6 +28,7 @@
 #include <QStringList>
 
 class AbstractStrategyScript;
+class DebugHelper;
 class StrategyPrivate;
 class Timer;
 class QTimer;
@@ -39,7 +40,7 @@ class Strategy : public QObject
     Q_OBJECT
 
 public:
-    Strategy(const Timer *timer, StrategyType type);
+    Strategy(const Timer *timer, StrategyType type, DebugHelper *helper);
     ~Strategy() override;
     void resetIsReplay() { m_isReplay = false; }
 
@@ -97,6 +98,7 @@ private:
 
     amun::UserInput m_lastMoveCommand;
     bool m_isReplay;
+    DebugHelper *m_debugHelper;
 };
 
 #endif // STRATEGY_H

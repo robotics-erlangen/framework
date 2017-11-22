@@ -82,6 +82,10 @@ message RobotValue {
     optional bool exchange = 3;
 }
 
+message DebuggerOutput {
+    optional string line = 1;
+}
+
 message DebugValues {
     required DebugSource source = 1;
     optional int64 time = 7;
@@ -90,4 +94,5 @@ message DebugValues {
     repeated StatusLog log = 4;
     repeated PlotValue plot = 5;
     repeated RobotValue robot = 6;
+    optional DebuggerOutput debugger_output = 8;
 }

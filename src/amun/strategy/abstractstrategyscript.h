@@ -33,6 +33,7 @@
 #include <QString>
 #include <QStringList>
 
+class DebugHelper;
 class Timer;
 
 class AbstractStrategyScript : public QObject
@@ -55,6 +56,7 @@ public:
     virtual bool triggerDebugger();
 
     void setSelectedOptions(const QStringList &options);
+    void setDebugHelper(DebugHelper *helper);
 
     // getter functions
     QString errorMsg() const { return m_errorMsg; }
@@ -87,6 +89,7 @@ protected:
     QString m_errorMsg;
     Status m_debugStatus;
     bool m_hasDebugger;
+    DebugHelper *m_debugHelper;
 };
 
 #endif // ABSTRACTSTRATEGYSCRIPT_H

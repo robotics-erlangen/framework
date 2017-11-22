@@ -297,6 +297,27 @@ static int amunSetRobotExchangeSymbol(lua_State *state)
     return 0;
 }
 
+static int amunDebuggerRead(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    QString line = thread->debuggerRead();
+    if (line.isNull()) {
+        luaL_error(state, "This function is only allowed in debug mode!");
+    }
+    lua_pushstring(state, line.toLatin1());
+    return 1;
+}
+
+static int amunDebuggerWrite(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    QString line = QString::fromLatin1(luaL_checkstring(state, 1));
+    if (!thread->debuggerWrite(line)) {
+        luaL_error(state, "This function is only allowed in debug mode!");
+    }
+    return 0;
+}
+
 static const luaL_Reg amunMethods[] = {
     // fixed during strategy runtime
     {"getGeometry",         amunGetGeometry},
@@ -322,6 +343,9 @@ static const luaL_Reg amunMethods[] = {
     {"sendMixedTeamInfo",   amunSendMixedTeamInfo},
     {"sendNetworkRefereeCommand",  amunSendNetworkRefereeCommand},
     {"sendAutorefEvent",    amunSendAutorefEvent},
+    // debugger io
+    {"debuggerRead",        amunDebuggerRead},
+    {"debuggerWrite",       amunDebuggerWrite},
     {0, 0}
 };
 
