@@ -5,13 +5,13 @@
     info@robotics-erlangen.de
 
 
-All programs should work on GNU/Linux (tested on Ubuntu 14.04), Mac OS X 10.10 and Windows >= 7.
+All programs should work on GNU/Linux (tested on Ubuntu 16.04), Mac OS X 10.10 and Windows >= 7.
 
 In order to build Ra you will need:
  * cmake >= 2.8.12
  * g++ >= 4.6
- * qt >= 5.1.0, NOT 5.4.2 and 5.5.0 on all system; NOT 5.4.x on Mac
- * protobuf >= 2.0.0
+ * qt >= 5.6.0, NOT 5.4.2 and 5.5.0 on all system; NOT 5.4.x on Mac; NOT 5.9.[0-2] on Windows
+ * protobuf >= 2.6.0
 
 Certain features require additional libraries:
  * libusb-1.0 - USB communication (version >= 1.0.9)
@@ -59,17 +59,17 @@ Get dependencies (tested using the given versions):
 use the installer, select add to PATH
 
 #### install qt
-Use the online installer! run installer (use default install path! ), install "Qt 5.6 > MinGW 4.9.2" and "Tools > MinGW 4.9.2". Qt 5.6 is a LTS release and thus should stay supported for some time.
-In case you use the offline installer, change to install path such that Qt 5.6 ends up in `c:\Qt\5.6`
+Use the online installer! run installer (use default install path! ), install "Qt 5.9.3 > MinGW 5.3.0" and "Tools > MinGW 5.3.0". Qt 5.9.3 is a LTS release and thus should stay supported for some time.
+In case you use the offline installer, change to install path such that Qt 5.9.3 ends up in `c:\Qt\5.9.3`
 
 #### install mingw-get
 Run installer (use default path C:\MinGW !) and install `msys-base, msys-patch`
 
-Run `C:\mingw\msys\1.0\postinstall\pi.bat` set mingw path to `c:/Qt/Tools/mingw492_32`
-Verify that `C:\mingw\msys\1.0\etc\fstab` contains the following line:
+Add the following line at the end of `C:\mingw\msys\1.0\etc\fstab`:
 ```
-c:/Qt/Tools/mingw492_32 /mingw
+c:/Qt/Tools/mingw53_32 /mingw
 ```
+Make sure that only one line with /mingw exists!
 
 use `msys.bat` in `msys\1.0` to open msys console
 
@@ -87,11 +87,9 @@ Extract `ninja.exe` to `C:\MinGW\msys\1.0\bin`
 
 ```
 mkdir build-win && cd build-win
-cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.6/mingw49_32/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.9.3/mingw53_32/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
 cmake --build . --target assemble
-# only for Qt <= 5.6
-cp /c/Qt/5.6/mingw49_32/bin/{icudt54,icuin54,icuuc54}.dll bin
 ```
 
 Finished!
