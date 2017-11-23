@@ -84,7 +84,9 @@ function FastBallPlacement:_updateTasks()
 		taskAssignments[self.RECEIVER] = { class = MoveToPos, params = { self._computedReceiverPos}, restart = self._restartTask }
 	elseif self._state == STATE_ACCEPT_PASS then
 		self._mainAttacker = self.RECEIVER
-
+		-- Ignore shooter
+		taskAssignments[self.SHOOTER] = { class = MoveToPos, params = { self.SHOOTER.pos }, restart = self._restartTask }
+		
 		self.RECEIVER:setDribblerSpeed(0.6)
 
 		local ballSpeed = World.Ball.speed:copy()
@@ -92,8 +94,11 @@ function FastBallPlacement:_updateTasks()
 
 		self._ballReceiverIntersects = ballLambda > 0
 
-		taskAssignments[self.SHOOTER] = { class = MoveToPos, params = { self._computedShooterPos }, restart = self._restartTask }
 		taskAssignments[self.RECEIVER] = { class = MoveToPos, params = { intersection }, restart = true }
+		-- Stop moving if the ball is near the receiver
+		if World.Ball.pos:distanceTo(self.RECEIVER.pos) < World.Ball.radius + self.RECEIVER.shootRadius + 0.1 then
+			taskAssignments[self.RECEIVER] = {class = MoveToPos, params = { self.RECEIVER.pos, self.RECEIVER.dir }, restart = true }
+		end
 
 	elseif self._state == STATE_WAITING_FOR_ADJUST then
 		self._mainAttacker = self.RECEIVER
