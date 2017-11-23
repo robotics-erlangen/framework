@@ -69,6 +69,9 @@ elseif(MINGW)
 		set(LIBSDL_BUILD_BYPRODUCTS "")
 	endif()
 	include(ExternalProject)
+  set(SPACE_FREE_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/project_sdl2-prefix")
+  string(REPLACE " " "\\ " SPACE_FREE_INSTALL_DIR "${SPACE_FREE_INSTALL_DIR}")
+
 	ExternalProject_Add(project_sdl2
 		EXCLUDE_FROM_ALL true
 		URL http://www.robotics-erlangen.de/downloads/libraries/SDL2-devel-2.0.7-mingw.tar.gz
@@ -77,7 +80,7 @@ elseif(MINGW)
 		CONFIGURE_COMMAND ""
 		BUILD_COMMAND ""
 		BUILD_IN_SOURCE true
-		INSTALL_COMMAND make install-package arch=i686-w64-mingw32 prefix=<INSTALL_DIR>
+		INSTALL_COMMAND make install-package arch=i686-w64-mingw32 prefix=${SPACE_FREE_INSTALL_DIR}
 		BUILD_BYPRODUCTS ${LIBSDL_BUILD_BYPRODUCTS}
 	)
 
