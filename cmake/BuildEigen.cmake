@@ -24,6 +24,7 @@ ExternalProject_Add(project_eigen
     URL http://www.robotics-erlangen.de/downloads/libraries/eigen-3.3.3-67e894c6cd8f.tar.bz2
     URL_MD5 b2ddade41040d9cf73b39b4b51e8775b
     DOWNLOAD_NO_PROGRESS true
+    BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/project_eigen-prefix/build"
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DCMAKE_C_COMPILER:PATH=${CMAKE_C_COMPILER}
