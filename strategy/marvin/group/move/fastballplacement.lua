@@ -209,19 +209,17 @@ function FastBallPlacement:_getNextState(currentState)
 end
 
 function FastBallPlacement:_determineRoles()
-
 	local robotOnePos = self._robots[1].pos
-	local robotOneBallDistance = robotOnePos:distanceTo(World.Ball.pos)
-	local robotOnePlacementDistance = robotOnePos:distanceTo(World.BallPlacementPos)
-
 	local robotTwoPos = self._robots[2].pos
-	local robotTwoBallDistance = robotTwoPos:distanceTo(World.Ball.pos)
-	local robotTwoPlacementDistance = robotTwoPos:distanceTo(World.BallPlacementPos)
 
-	-- TODO distance vergleich
-	self.SHOOTER = self._robots[1]
-	self.RECEIVER = self._robots[2]
-
+	if robotOnePos:distanceTo(World.Ball.pos) + robotTwoPos:distanceTo(World.BallPlacementPos)
+		< robotTwoPos:distanceTo(World.Ball.pos) + robotOnePos:distanceTo(World.BallPlacementPos) then
+		self.SHOOTER = self._robots[1]
+		self.RECEIVER = self._robots[2]
+	else
+		self.SHOOTER = self._robots[2]
+		self.RECEIVER = self._robots[1]
+	end
 end
 
 function FastBallPlacement:_recomputePositions()
