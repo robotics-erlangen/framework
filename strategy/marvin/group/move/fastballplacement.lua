@@ -21,6 +21,7 @@ local STATE_FINE_ADJUST = "STATE_FINE_ADJUST"
 
 local PASS_SPEED = 1.0
 local PLACEMENT_RADIUS = 0.1
+local MOVE_VS_ADJUST_DISTANCE = 0.5
 
 function FastBallPlacement.canStart()
 	return World.RefereeState == "BallPlacementOffensive"
@@ -64,6 +65,9 @@ function FastBallPlacement:_updateTasks()
 	if self._state == STATE_START then
 		self:_determineRoles()
 		self:_recomputePositions()
+
+		taskAssignments[self.SHOOTER] = { class = MoveToPos, params = { self.SHOOTER.pos }, restart = self._restartTask }
+		taskAssignments[self.RECEIVER] = { class = MoveToPos, params = { self.RECEIVER.pos }, restart = self._restartTask }
 	elseif self._state == STATE_MOVE_TO_POS then
 		self._mainAttacker = self.SHOOTER
 
@@ -145,7 +149,7 @@ function FastBallPlacement:_getNextState(currentState)
 	-- state is nil after init
 	if currentState == STATE_START then
 		self._stateChangeTime = World.Time
-		if World.Ball.pos:distanceTo(World.BallPlacementPos) > 0.5 then
+		if World.Ball.pos:distanceTo(World.BallPlacementPos) > MOVE_VS_ADJUST_DISTANCE then
 			nextState = STATE_MOVE_TO_POS
 		else
 			nextState = STATE_FINE_ADJUST
@@ -172,7 +176,7 @@ function FastBallPlacement:_getNextState(currentState)
 		-- TODO better state change
 		if World.Ball.speed:length() < 0.05 then
 			self._stateChangeTime = World.Time
-			if World.Ball.pos:distanceTo(self.RECEIVER.pos) > 0.5 then
+			if World.Ball.pos:distanceTo(self.RECEIVER.pos) > MOVE_VS_ADJUST_DISTANCE then
 				nextState = STATE_MOVE_TO_POS
 			else
 				nextState = STATE_WAITING_FOR_ADJUST
@@ -197,7 +201,10 @@ function FastBallPlacement:_getNextState(currentState)
 		end
 
 	elseif currentState == STATE_FINE_ADJUST then
-		-- TODO change back to STATE_START if the ball moves to far away
+		nextState = currentState
+		if World.Ball.pos:distanceTo(World.BallPlacementPos) > MOVE_VS_ADJUST_DISTANCE then
+			nextState = STATE_START
+		end
 	else
 		-- Invalid state
 		nextState = nil
