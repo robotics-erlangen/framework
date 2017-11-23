@@ -6,6 +6,7 @@ local MoveToPos = require "task/movetopos"
 local Pass = require "task/pass"
 local PlaceBall = require "task/placeball"
 local World = require "../base/world"
+local vis = require "../base/vis"
 
 FastBallPlacement.MIN_ROBOTS = 2
 FastBallPlacement.MAX_ROBOTS = 2
@@ -19,6 +20,7 @@ local STATE_SET_BACK = "STATE_SET_BACK"
 local STATE_FINE_ADJUST = "STATE_FINE_ADJUST"
 
 local PASS_SPEED = 1.0
+local PLACEMENT_RADIUS = 0.1
 
 function FastBallPlacement.canStart()
 	return World.RefereeState == "BallPlacementOffensive"
@@ -56,6 +58,8 @@ function FastBallPlacement:_updateTasks()
 	debug.set("state", self._state)
 	debug.set("state change time", self._stateChangeTime)
 	debug.pop()
+
+	vis.addCircle("ball placement", World.BallPlacementPos, PLACEMENT_RADIUS, vis.colors.orange)
 
 	if self._state == STATE_START then
 		self:_determineRoles()
