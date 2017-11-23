@@ -91,8 +91,9 @@ function FastBallPlacement:_updateTasks()
 
 		local ballSpeed = World.Ball.speed:copy()
 		local intersection, ballLambda = geom.intersectLineLine(World.Ball.pos, ballSpeed, self.RECEIVER.pos, ballSpeed:perpendicular());
-
 		self._ballReceiverIntersects = ballLambda > 0
+
+		vis.addPath("ball placement", { self.RECEIVER.pos, intersection, World.Ball.pos }, vis.colors.red)
 
 		taskAssignments[self.RECEIVER] = { class = MoveToPos, params = { intersection }, restart = true }
 		-- Stop moving if the ball is near the receiver
