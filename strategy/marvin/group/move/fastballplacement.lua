@@ -144,7 +144,7 @@ function FastBallPlacement:_getNextState(currentState)
 	-- state is nil after init
 	if currentState == STATE_START then
 		self._stateChangeTime = World.Time
-		if World.Ball.pos:distanceTo(World.BallPlacementPos) > 0.3 then
+		if World.Ball.pos:distanceTo(World.BallPlacementPos) > 0.5 then
 			nextState = STATE_MOVE_TO_POS
 		else
 			nextState = STATE_FINE_ADJUST
@@ -171,7 +171,7 @@ function FastBallPlacement:_getNextState(currentState)
 		-- TODO better state change
 		if World.Ball.speed:length() < 0.05 then
 			self._stateChangeTime = World.Time
-			if World.Ball.pos:distanceTo(self.RECEIVER.pos) > 0.3 then
+			if World.Ball.pos:distanceTo(self.RECEIVER.pos) > 0.5 then
 				nextState = STATE_MOVE_TO_POS
 			else
 				nextState = STATE_WAITING_FOR_ADJUST
