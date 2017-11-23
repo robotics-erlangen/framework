@@ -10,18 +10,20 @@ local Physics = require "observer/physics"
 DebugChip.MIN_ROBOTS = 1
 DebugChip.MAX_ROBOTS = 1
 
-local distance = nil
 function DebugChip.canStart()
 	return true
 end
 
 function DebugChip:_init()
+	log("init")
 	assert(amun.isDebug, "This move has to be run in debug mode!")
-	self._idlePos = Vector (0, -3)
-	self._restartFlag = false
-	self._distance = nil
+	self._angle = math.pi/2
+	self._distance = 3
+	self._timer = 10
+
+	self._idlePos = Vector(1, -2)
 	self._initBall = {
-		pos = self._idlePos + Vector.fromAngle(math.pi/2):setLength(self._robots[1].radius + self._robots[1].shootRadius),
+		pos = self._idlePos + (self._idlePos * -1):setLength(self._robots[1].radius + self._robots[1].shootRadius),
 		posZ = 0,
 		speed = Vector(0,0),
 		speedZ = 0
@@ -44,28 +46,35 @@ function DebugChip:_canContinue()
 end
 
 function DebugChip:_resetChip()
-	self._restartFlag = true
-	if not distance then
-		distance = 1
-	elseif distance > 4 then
-		log("Test finished. See plotter and debug tree for results")
-		self._restartFlag = false
+	self._timer = 50
+
+	if not self._distance then
+		self._distance = 1
+	elseif self._distance > 4 then
+		self._distance = 1
+		if self._angle < math.pi then
+			self._angle = self._angle + math.pi/8
+		else
+			self._angle = 0
+		end
+		self._idlePos = Vector(0, -2) + Vector.fromAngle(self._angle + math.pi)
+		self._initBall.pos = self._idlePos + (self._idlePos * -1):setLength(self._robots[1].radius + self._robots[1].shootRadius)
 	else
-		distance = distance + 0.25
+		self._distance = self._distance + 0.25
 	end
 
-	log("dist: "..tostring(distance))
+	log("dist: "..tostring(self._distance))
 	log("")
 	
-	if self._restartFlag then
-		local time = World.Time 
-		self._testStart = time
-		self._lastTimestamp = time
-		self._wasShot = false
-		self._lastBall = World.Ball
-		self._earlyBallTable = {}
-		DebugCommands.moveObjects(self._initBall)
-	end
+
+	local time = World.Time 
+	self._testStart = time
+	self._lastTimestamp = time
+	self._wasShot = false
+	self._lastBall = World.Ball
+	self._earlyBallTable = {}
+	DebugCommands.moveObjects(self._initBall)
+
 end
 
 function DebugChip:_plotError(ballOld, time, string)
@@ -121,12 +130,17 @@ end
 function DebugChip:_updateTasks()
 	local taskAssignments = {}
 
-	if World.Ball.pos.y > self._idlePos.y + distance + 1.5 then
+	if self._timer > 0 then
+		self._timer = self._timer - 1
+	end
+
+	local restartNecessary
+	if World.Ball.pos:distanceTo(self._idlePos) > self._distance + 1.5 and self._timer == 0 then
+		restartNecessary = true
 		self:_resetChip()
 	end
 
-	taskAssignments[self._robots[1]] = { class = ChipTask, params = {self._idlePos, distance }, restart = self._restartFlag }
-	self._restartFlag = false
+	taskAssignments[self._robots[1]] = { class = ChipTask, params = {self._idlePos, self._distance }, restart = restartNecessary }
 
 	self:_evaluate()
 
