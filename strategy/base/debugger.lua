@@ -88,11 +88,18 @@ debugger.registerCommand = registerCommand
 
 local function getUserInput()
 	printerr("debug> ")
-	local input = amun.debuggerRead()
+	local success, input = pcall(amun.debuggerRead)
+	if not success then
+		return nil
+	end
 	return input
 end
 
 local function parseCommand(input)
+	if input == nil then
+		return nil, nil
+	end
+
 	local chunks = {}
 	for chunk in string.gmatch(input, "[^ \t]+") do
 		table.insert(chunks, chunk)
@@ -218,7 +225,9 @@ function debugLoop()
 			table.remove(autoCommands, 1)
 		end
 		local handler, args = parseCommand(input)
-		if handler == nil then
+		if input == nil then
+			autoCommands = { "__quit__" }
+		elseif handler == nil then
 			printerrln("Unknown command. Run \"help\" for help")
 		else
 			local success, continueExecution = pcall(handler, args)
@@ -610,6 +619,7 @@ end
 -- special hooks
 registerCommand({"__init__"}, initHandler, nil)
 registerCommand({"__exit__"}, exitHandler, nil)
+registerCommand({"__quit__"}, quitHandler, nil)
 -- helper commands
 registerCommand({""}, nopHandler, nil)
 registerCommand({"help"}, helpHandler, "Print command list")
