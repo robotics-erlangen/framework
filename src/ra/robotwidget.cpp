@@ -47,7 +47,7 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
     m_teamGroup = new QActionGroup(this);
     connect(m_teamMenu, SIGNAL(triggered(QAction*)), SLOT(selectTeam(QAction*)));
 
-    if (is_generation) {
+    if (m_isGeneration) {
         // partial blue and yellow only set the team of the first half of the robots
         addTeamType("No Team", NoTeam);
         addTeamType("All Blue", Blue);
@@ -108,7 +108,7 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
         layout->addLayout(iconLayout);
     }
 
-    if (!is_generation) {
+    if (!m_isGeneration) {
         connect(this, SIGNAL(addBinding(uint,uint,QString)), inputManager, SLOT(addBinding(uint,uint,QString)));
         connect(this, SIGNAL(removeBinding(uint,uint)), inputManager, SLOT(removeBinding(uint,uint)));
         connect(this, SIGNAL(strategyControlled(uint,uint,bool)), inputManager, SLOT(setStrategyControlled(uint,uint,bool)));
