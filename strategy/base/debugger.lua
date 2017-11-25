@@ -468,16 +468,25 @@ local function filteredBacktrace()
 		if isFrame and skipFrames > 0 then
 			skipFrames = skipFrames - 1
 		else
-			local isActive = (#lines == stackLevelOffset) and "*" or " "
-			local level = string.format("%s %3d: ", isActive, #lines)
-			table.insert(lines, level..string.sub(line, 6))
+			table.insert(lines, line)
 		end
 	end
 	return lines
 end
 
-local function backtraceHandler(_args)
+local function markedBacktrace()
 	local lines = filteredBacktrace()
+	local marked = {}
+	for _, line in ipairs(lines) do
+		local isActive = (#marked == stackLevelOffset) and "*" or " "
+		local level = string.format("%s %3d: ", isActive, #marked)
+		table.insert(marked, level..string.sub(line, 6))
+	end
+	return marked
+end
+
+local function backtraceHandler(_args)
+	local lines = markedBacktrace()
 	for _, line in ipairs(lines) do
 		printerrln(line)
 	end
