@@ -36,7 +36,13 @@ DebuggerConsole::DebuggerConsole(QWidget *parent) : QPlainTextEdit(parent),
     document()->setDefaultFont(monospaceFont);
     setFont(monospaceFont);
 
+    setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextEditable);
+
     m_line = "";
+    m_expectedCursorPosition = 0;
+    m_inUserInput = false;
+
+    connect(document(), SIGNAL(contentsChange(int,int,int)), SLOT(handleDocumentChange(int,int,int)));
 }
 
 DebuggerConsole::~DebuggerConsole()
@@ -87,7 +93,15 @@ void DebuggerConsole::handleStatus(const Status &status)
 
 void DebuggerConsole::outputLine(const QString &line)
 {
-    insertPlainText(line);
+    QTextCursor cursor = textCursor();
+    cursor.setPosition(m_expectedCursorPosition);
+    m_expectedCursorPosition += line.length();
+    cursor.insertText(line);
+    ensureDockVisible();
+}
+
+void DebuggerConsole::ensureDockVisible()
+{
     show();
     if (parentWidget() != nullptr) {
         parentWidget()->show();
@@ -98,10 +112,12 @@ void DebuggerConsole::keyPressEvent(QKeyEvent *e)
 {
     switch(e->key()) {
     case Qt::Key_Backspace:
+        resetCursorPosition();
         if (m_line.length() > 0) {
-            m_line = m_line.mid(0, m_line.length() - 1);
-            QPlainTextEdit::keyPressEvent(e);
+            processDefaultInput(e);
         }
+        break;
+    case Qt::Key_Delete:
         break;
     case Qt::Key_Up:
     case Qt::Key_Down:
@@ -112,28 +128,84 @@ void DebuggerConsole::keyPressEvent(QKeyEvent *e)
     case Qt::Key_Return:
     case Qt::Key_Enter: // on numpad
     {
-        Command command(new amun::Command);
-        amun::CommandDebuggerInput *input = command->mutable_debugger_input();
-        input->set_strategy_type(m_debuggerTarget);
-        input->mutable_queue_line()->set_line(m_line.toStdString());
-        emit sendCommand(command);
+        sendCurrentLine();
+        processDefaultInput(e);
         m_line = "";
-        QPlainTextEdit::keyPressEvent(e);
         break;
     }
     default:
-        m_line += e->text();
-        QPlainTextEdit::keyPressEvent(e);
+        processDefaultInput(e);
     }
 }
 
-void DebuggerConsole::mousePressEvent(QMouseEvent *e)
+void DebuggerConsole::processDefaultInput(QKeyEvent *e)
 {
-    (void)e;
-    setFocus();
+    m_inUserInput = true;
+    if (e->matches(QKeySequence::Cut) || e->matches(QKeySequence::Paste)) {
+        resetCursorPosition();
+    } else if (e->text().length() > 0) {
+        resetCursorPosition();
+    }
+    QPlainTextEdit::keyPressEvent(e);
+    m_inUserInput = false;
 }
 
-void DebuggerConsole::mouseDoubleClickEvent(QMouseEvent *e)
+void DebuggerConsole::mouseReleaseEvent(QMouseEvent *e)
 {
-    (void)e;
+    fixCursorPosition();
+    QPlainTextEdit::mouseReleaseEvent(e);
+}
+
+void DebuggerConsole::fixCursorPosition()
+{
+    if (!textCursor().hasSelection()) {
+        resetCursorPosition();
+    }
+}
+
+void DebuggerConsole::resetCursorPosition()
+{
+    if (m_expectedCursorPosition != textCursor().position()) {
+        QTextCursor cursor = textCursor();
+        cursor.setPosition(m_expectedCursorPosition);
+        if (cursor.position() != m_expectedCursorPosition) {
+            // something went wrong, make sure we don't break everything ...
+            cursor.movePosition(QTextCursor::End);
+            m_expectedCursorPosition = cursor.position();
+        }
+        setTextCursor(cursor);
+
+        // remove any unexpected text
+        QTextCursor cleanupCursor = textCursor();
+        cleanupCursor.movePosition(QTextCursor::End, QTextCursor::KeepAnchor);
+        cleanupCursor.removeSelectedText();
+    }
+}
+
+void DebuggerConsole::sendCurrentLine()
+{
+    Command command(new amun::Command);
+    amun::CommandDebuggerInput *input = command->mutable_debugger_input();
+    input->set_strategy_type(m_debuggerTarget);
+    input->mutable_queue_line()->set_line(m_line.toStdString());
+    emit sendCommand(command);
+}
+
+void DebuggerConsole::handleDocumentChange(int from, int charsRemove, int charsAdded)
+{
+    if (!m_inUserInput) {
+        return;
+    }
+
+    int removedLineChars = std::min(m_line.length(), charsRemove);
+    m_line = m_line.mid(0, m_line.length() - removedLineChars);
+    m_expectedCursorPosition -= removedLineChars;
+
+    // select chars added
+    QTextCursor cursor = textCursor();
+    cursor.setPosition(from);
+    cursor.setPosition(from + charsAdded, QTextCursor::KeepAnchor);
+
+    m_line += cursor.selectedText();
+    m_expectedCursorPosition += cursor.selectedText().size();
 }

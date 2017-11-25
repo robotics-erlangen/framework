@@ -45,16 +45,26 @@ signals:
 protected:
     void closeEvent(QCloseEvent *event);
     void keyPressEvent(QKeyEvent *e);
-    void mousePressEvent(QMouseEvent *e);
-    void mouseDoubleClickEvent(QMouseEvent *e);
+    void mouseReleaseEvent(QMouseEvent *e);
+
+private slots:
+    void fixCursorPosition();
+    void resetCursorPosition();
+    void handleDocumentChange(int from, int charsRemove, int charsAdded);
 
 private:
     amun::DebuggerInputTarget fromDebuggerInput(amun::DebugSource target);
     void outputLine(const QString &line);
+    void ensureDockVisible();
+    void sendCurrentLine();
+    void processDefaultInput(QKeyEvent *e);
 
     QString m_line;
     amun::DebugSource m_debugSource;
     amun::DebuggerInputTarget m_debuggerTarget;
+
+    int m_expectedCursorPosition;
+    bool m_inUserInput;
 };
 
 #endif // DEBUGGERCONSOLE_H
