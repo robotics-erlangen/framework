@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "debuggerconsole.h"
+#include <QDebug>
 #include <QFont>
 
 DebuggerConsole::DebuggerConsole(QWidget *parent) : QPlainTextEdit(parent),
@@ -169,6 +170,7 @@ void DebuggerConsole::resetCursorPosition()
         QTextCursor cursor = textCursor();
         cursor.setPosition(m_expectedCursorPosition);
         if (cursor.position() != m_expectedCursorPosition) {
+            qDebug() << "unexpected document modifications!";
             // something went wrong, make sure we don't break everything ...
             cursor.movePosition(QTextCursor::End);
             m_expectedCursorPosition = cursor.position();
