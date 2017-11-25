@@ -129,6 +129,9 @@ StrategyType DebugHelper::fromDebuggerInput(amun::DebuggerInputTarget target)
         return StrategyType::BLUE;
     case amun::DITAutoref:
         return StrategyType::AUTOREF;
+    default:
+        // make the compiler happy
+        return StrategyType::YELLOW;
     }
 }
 
@@ -141,5 +144,8 @@ amun::DebugSource DebugHelper::toDebugSource(StrategyType strategy)
         return amun::DebugSource::StrategyBlue;
     case StrategyType::AUTOREF:
         return amun::DebugSource::Autoref;
+    default:
+        // make the compiler happy
+        return amun::DebugSource::StrategyYellow;
     }
 }
