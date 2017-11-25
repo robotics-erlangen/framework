@@ -21,6 +21,7 @@
 #include "debuggerconsole.h"
 #include <QDebug>
 #include <QFont>
+#include <QScrollBar>
 
 DebuggerConsole::DebuggerConsole(QWidget *parent) : QPlainTextEdit(parent),
     m_debugSource(amun::StrategyYellow),
@@ -42,8 +43,11 @@ DebuggerConsole::DebuggerConsole(QWidget *parent) : QPlainTextEdit(parent),
     m_line = "";
     m_expectedCursorPosition = 0;
     m_inUserInput = false;
+    m_atScrollEnd = true;
 
     connect(document(), SIGNAL(contentsChange(int,int,int)), SLOT(handleDocumentChange(int,int,int)));
+    connect(verticalScrollBar(), SIGNAL(valueChanged(int)), SLOT(trackAtScrollEnd()));
+    connect(verticalScrollBar(), SIGNAL(rangeChanged(int,int)), SLOT(followScrollResizes()));
 }
 
 DebuggerConsole::~DebuggerConsole()
@@ -99,6 +103,18 @@ void DebuggerConsole::outputLine(const QString &line)
     m_expectedCursorPosition += line.length();
     cursor.insertText(line);
     ensureDockVisible();
+}
+
+void DebuggerConsole::trackAtScrollEnd()
+{
+    m_atScrollEnd = (verticalScrollBar()->value() == verticalScrollBar()->maximum());
+}
+
+void DebuggerConsole::followScrollResizes()
+{
+    if (m_atScrollEnd) {
+        verticalScrollBar()->setValue(verticalScrollBar()->maximum());
+    }
 }
 
 void DebuggerConsole::ensureDockVisible()

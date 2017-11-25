@@ -54,6 +54,8 @@ private slots:
     void fixCursorPosition();
     void resetCursorPosition();
     void handleDocumentChange(int from, int charsRemove, int charsAdded);
+    void trackAtScrollEnd();
+    void followScrollResizes();
 
 private:
     amun::DebuggerInputTarget fromDebuggerInput(amun::DebugSource target);
@@ -68,6 +70,7 @@ private:
 
     int m_expectedCursorPosition;
     bool m_inUserInput;
+    bool m_atScrollEnd;
 };
 
 #endif // DEBUGGERCONSOLE_H
