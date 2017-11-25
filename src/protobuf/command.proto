@@ -119,9 +119,6 @@ enum DebuggerInputTarget {
     DITAutoref = 2;
 }
 
-message CommandDebuggerInputEnable {
-}
-
 message CommandDebuggerInputDisable {
 }
 
