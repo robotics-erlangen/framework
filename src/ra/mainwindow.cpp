@@ -267,6 +267,9 @@ void MainWindow::closeEvent(QCloseEvent *e)
     // this also ensure that a closeEvent is triggered
     m_plotter->close();
 
+    // unblock stopped strategies
+    ui->robots->shutdown();
+
     QMainWindow::closeEvent(e);
 }
 

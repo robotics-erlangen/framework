@@ -123,6 +123,12 @@ RobotSelectionWidget::~RobotSelectionWidget()
     delete m_itemDelegate;
 }
 
+void RobotSelectionWidget::shutdown()
+{
+    ui->yellow->shutdown();
+    ui->blue->shutdown();
+}
+
 void RobotSelectionWidget::init(QWidget *window, InputManager *inputManager)
 {
     connect(window, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));

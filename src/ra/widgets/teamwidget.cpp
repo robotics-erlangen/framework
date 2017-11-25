@@ -40,12 +40,18 @@ TeamWidget::TeamWidget(QWidget *parent) :
 
 TeamWidget::~TeamWidget()
 {
+}
+
+void TeamWidget::shutdown()
+{
     QSettings s;
     s.beginGroup(m_blue ? "BlueTeam" : "YellowTeam");
     s.setValue("Script", m_filename);
     s.setValue("EntryPoint", m_entryPoint);
     s.setValue("AutoReload", m_userAutoReload);
     s.endGroup();
+
+    closeScript();
 }
 
 void TeamWidget::init(bool blue)

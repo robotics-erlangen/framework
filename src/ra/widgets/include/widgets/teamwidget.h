@@ -45,6 +45,7 @@ public:
     void load();
     void setRecentScripts(QStringList *recent);
     void forceAutoReload(bool force);
+    void shutdown();
 
 public slots:
     void handleStatus(const Status &status);

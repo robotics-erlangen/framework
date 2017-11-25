@@ -53,6 +53,7 @@ public:
 public:
     explicit RobotSelectionWidget(QWidget *parent = 0);
     ~RobotSelectionWidget() override;
+    void shutdown();
 
 signals:
     void setTeam(uint generation, uint id, RobotWidget::Team team);
