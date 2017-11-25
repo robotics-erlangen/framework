@@ -119,7 +119,7 @@ function FastBallPlacement:_updateTasks()
 		-- Ignore shooter
 		taskAssignments[self.SHOOTER] = { class = MoveToPos, params = { self.SHOOTER.pos }, restart = self._restartTask }
 
-		if self._setBackPosition == nil then
+		if self._restartTask then
 			self._setBackPosition = self.RECEIVER.pos + (self.RECEIVER.pos - World.Ball.pos):setLength(self.RECEIVER.radius * 2)
 		end
 
@@ -195,7 +195,6 @@ function FastBallPlacement:_getNextState(currentState)
 	elseif currentState == STATE_SET_BACK then
 
 		if self.RECEIVER.pos:distanceTo(self._setBackPosition) < 0.05 then
-			self._setBackPosition = nil
 			self._stateChangeTime = World.Time
 			nextState = STATE_FINE_ADJUST
 		end
