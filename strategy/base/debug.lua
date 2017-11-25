@@ -23,6 +23,7 @@ module "debug"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
+local luaDebug = debug
 local debug = {}
 
 local amun = amun
@@ -137,6 +138,11 @@ function debug.set(name, value, visited, tableCounter)
 			friendlyName = friendlyName..suffix
 			debug.set(nil, friendlyName)
 			visited[value] = friendlyName
+
+			local mt = tableCounter and luaDebug and luaDebug.getmetatable(value)
+			if mt then
+				debug.set("[__metatable]", mt, visited, tableCounter)
+			end
 
 			local entryCounter = 1
 			for k, v in pairs(value) do
