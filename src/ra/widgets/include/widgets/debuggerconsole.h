@@ -46,6 +46,9 @@ protected:
     void closeEvent(QCloseEvent *event);
     void keyPressEvent(QKeyEvent *e);
     void mouseReleaseEvent(QMouseEvent *e);
+    void dragEnterEvent(QDragEnterEvent *e);
+    void dragMoveEvent(QDragMoveEvent *e);
+    void dragLeaveEvent(QDragLeaveEvent *e);
 
 private slots:
     void fixCursorPosition();

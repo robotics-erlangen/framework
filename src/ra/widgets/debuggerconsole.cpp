@@ -209,3 +209,21 @@ void DebuggerConsole::handleDocumentChange(int from, int charsRemove, int charsA
     m_line += cursor.selectedText();
     m_expectedCursorPosition += cursor.selectedText().size();
 }
+
+void DebuggerConsole::dragEnterEvent(QDragEnterEvent *e)
+{
+    // just ignore it
+    (void)e;
+}
+
+void DebuggerConsole::dragMoveEvent(QDragMoveEvent *e)
+{
+    // just ignore it
+    (void)e;
+}
+
+void DebuggerConsole::dragLeaveEvent(QDragLeaveEvent *e)
+{
+    // just ignore it
+    (void)e;
+}
