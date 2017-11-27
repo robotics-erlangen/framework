@@ -36,7 +36,7 @@ string(REPLACE " " "\\ " SPACE_FREE_INSTALL_DIR "${SPACE_FREE_INSTALL_DIR}")
 
 ExternalProject_Add(project_luajit
     URL http://www.robotics-erlangen.de/downloads/libraries/LuaJIT-2.0.5.tar.gz
-    URL_MD5 48353202cbcacab84ee41a5a70ea0a2c
+    URL_HASH SHA256=874b1f8297c697821f561f9b73b57ffd419ed8f4278c82e05b48806d30c1e979
     DOWNLOAD_NO_PROGRESS true
     BUILD_IN_SOURCE true
     CONFIGURE_COMMAND ""

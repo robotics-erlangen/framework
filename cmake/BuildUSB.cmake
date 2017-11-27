@@ -25,7 +25,7 @@ if(MINGW)
 	ExternalProject_Add(project_usb
 		EXCLUDE_FROM_ALL true
 		URL http://www.robotics-erlangen.de/downloads/libraries/libusb-1.0.21.7z
-		URL_MD5 7fbcf5580b8ffc88f3af6eddd638de9f
+        URL_HASH SHA256=acdde63a40b1477898aee6153f9d91d1a2e8a5d93f832ca8ab876498f3a6d2b8
 		DOWNLOAD_NO_PROGRESS true
 		CONFIGURE_COMMAND ""
 		BUILD_COMMAND ""

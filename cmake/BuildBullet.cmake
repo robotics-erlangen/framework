@@ -22,7 +22,7 @@ include(ExternalProject)
 
 ExternalProject_Add(project_bullet
     URL http://www.robotics-erlangen.de/downloads/libraries/bullet3-2.83.6.tar.gz
-    URL_MD5 44cb2464336a2082b2c144194c2a2668
+    URL_HASH SHA256=dcd5448f31ded71c7bd22fddd7d816ac590ae7b97e1fdda8d1253f8ff3655571
     DOWNLOAD_NO_PROGRESS true
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>

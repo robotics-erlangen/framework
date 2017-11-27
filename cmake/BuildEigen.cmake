@@ -22,7 +22,7 @@ include(ExternalProject)
 
 ExternalProject_Add(project_eigen
     URL http://www.robotics-erlangen.de/downloads/libraries/eigen-3.3.3-67e894c6cd8f.tar.bz2
-    URL_MD5 b2ddade41040d9cf73b39b4b51e8775b
+    URL_HASH SHA256=a4143fc45e4454b4b98fcea3516b3a79b8cdb3bc7fadf996d088c6a0d805fea1
     DOWNLOAD_NO_PROGRESS true
     BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/project_eigen-prefix/build"
     CMAKE_ARGS

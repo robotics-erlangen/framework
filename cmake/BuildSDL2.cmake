@@ -28,7 +28,7 @@ if (UNIX AND NOT APPLE)
         ExternalProject_Add(project_sdl2
 			EXCLUDE_FROM_ALL true
             URL http://www.robotics-erlangen.de/downloads/libraries/SDL2-2.0.7.tar.gz
-            URL_MD5 cdb071009d250e1782371049f0d5ca42
+            URL_HASH SHA256=ee35c74c4313e2eda104b14b1b86f7db84a04eeab9430d56e001cea268bf4d5e
 			DOWNLOAD_NO_PROGRESS true
             CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
             BUILD_BYPRODUCTS "<INSTALL_DIR>/${LIBSDL_SUBPATH}"
@@ -62,7 +62,7 @@ elseif(MINGW)
 	ExternalProject_Add(project_sdl2
 		EXCLUDE_FROM_ALL true
 		URL http://www.robotics-erlangen.de/downloads/libraries/SDL2-devel-2.0.7-mingw.tar.gz
-		URL_MD5 a9d309e784871004e19fe5282d712b18
+        URL_HASH SHA256=232c399087f50f50f76219e3789452b46054503cfc33b53ab8a4b14519df35cf
 		DOWNLOAD_NO_PROGRESS true
 		CONFIGURE_COMMAND ""
 		BUILD_COMMAND ""

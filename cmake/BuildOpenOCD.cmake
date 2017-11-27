@@ -21,7 +21,7 @@
 include(ExternalProject)
 ExternalProject_Add(project_openocd
     URL http://www.robotics-erlangen.de/downloads/libraries/openocd-0.10.0.tar.bz2
-    URL_MD5 b412bdef0481a3859c6585eb69f6f6ba
+    URL_HASH SHA256=7312e7d680752ac088b8b8f2b5ba3ff0d30e0a78139531847be4b75c101316ae
     DOWNLOAD_NO_PROGRESS true
     CONFIGURE_COMMAND <SOURCE_DIR>/configure
         --prefix=<INSTALL_DIR>

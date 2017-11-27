@@ -28,7 +28,7 @@ set(PROTOC_SUBPATH "bin/protoc${CMAKE_EXECUTABLE_SUFFIX}")
 include(ExternalProject)
 ExternalProject_Add(project_protobuf
     URL http://www.robotics-erlangen.de/downloads/libraries/protobuf-cpp-3.4.1.tar.gz
-    URL_MD5 74446d310ce79cf20bab3ffd0e8f8f8f
+    URL_HASH SHA256=2bb34b4a8211a30d12ef29fd8660995023d119c99fbab2e5fe46f17528c9cc78
     DOWNLOAD_NO_PROGRESS true
     SOURCE_SUBDIR cmake
     CMAKE_ARGS
