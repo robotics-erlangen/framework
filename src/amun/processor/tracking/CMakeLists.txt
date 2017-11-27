@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
+add_library(tracking
     include/tracking/tracker.h
     include/tracking/speedtracker.h
 
@@ -39,8 +39,6 @@ set(SOURCES
     tracker.cpp
     speedtracker.cpp
 )
-
-add_library(tracking ${SOURCES})
 target_link_libraries(tracking
     PRIVATE shared::core
     PRIVATE lib::eigen

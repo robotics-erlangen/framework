@@ -18,28 +18,22 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../amun/processor/tracking)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../amun/processor/tracking/include/tracking)
-
-set(SOURCES
-   visionanalyzer.cpp
-   visionlogreader.cpp
-   visionlogreader.h
-   miniprocessor.cpp
-   miniprocessor.h
-   ../amun/processor/referee.h
-   ../amun/processor/tracking/ballcollisionfilter.cpp
-   ../amun/processor/tracking/ballflyfilter.cpp
-   ../amun/processor/tracking/ballgroundfilter.cpp
-   ../amun/processor/tracking/balltracker.cpp
-   ../amun/processor/tracking/filter.cpp
-   ../amun/processor/tracking/quadraticleastsquaresfitter.cpp
-   ../amun/processor/tracking/robotfilter.cpp
-   ../amun/processor/tracking/tracker.cpp
-)
-
-add_executable(visionanalyzer ${SOURCES} ${UIC_SOURCES})
+add_executable(visionanalyzer
+    visionanalyzer.cpp
+    visionlogreader.cpp
+    visionlogreader.h
+    miniprocessor.cpp
+    miniprocessor.h
+    ../amun/processor/referee.h
+    ../amun/processor/tracking/ballcollisionfilter.cpp
+    ../amun/processor/tracking/ballflyfilter.cpp
+    ../amun/processor/tracking/ballgroundfilter.cpp
+    ../amun/processor/tracking/balltracker.cpp
+    ../amun/processor/tracking/filter.cpp
+    ../amun/processor/tracking/quadraticleastsquaresfitter.cpp
+    ../amun/processor/tracking/robotfilter.cpp
+    ../amun/processor/tracking/tracker.cpp
+ )
 target_link_libraries(visionanalyzer
     PRIVATE shared::core
     PRIVATE ra::logfile
@@ -52,11 +46,13 @@ target_link_libraries(visionanalyzer
 target_include_directories(visionanalyzer
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../amun/processor/tracking"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../amun/processor/tracking/include/tracking"
 )
 target_compile_options(visionanalyzer
     PRIVATE "-DENABLE_TRACKING_DEBUG"
 )
-if (JEMALLOC_FOUND)
+if (TARGET lib::jemalloc)
     target_link_libraries(visionanalyzer PRIVATE lib::jemalloc)
-endif(JEMALLOC_FOUND)
+endif()
 

@@ -18,13 +18,11 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
+add_library(guihelper
     include/guihelper/guitimer.h
 
     guitimer.cpp
 )
-
-add_library(guihelper ${SOURCES})
 target_link_libraries(guihelper
 	PRIVATE shared::core
 	PUBLIC Qt5::Core

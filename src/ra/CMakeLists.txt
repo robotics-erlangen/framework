@@ -24,7 +24,7 @@ add_subdirectory(logfile)
 add_subdirectory(plotter)
 add_subdirectory(widgets)
 
-set(SOURCES
+add_executable(ra WIN32 MACOSX_BUNDLE
     configdialog.cpp
     configdialog.h
     internalreferee.cpp
@@ -63,21 +63,20 @@ set(UI_SOURCES
     optionswidget.ui
     simulatorwidget.ui
 )
+qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
+target_sources(ra PRIVATE ${UIC_SOURCES})
 
 if(MINGW)
-    list(APPEND SOURCES ${CMAKE_SOURCE_DIR}/data/pkg/ra.rc)
+    target_sources(ra PRIVATE ${CMAKE_SOURCE_DIR}/data/pkg/ra.rc)
 endif(MINGW)
 
 # add ra icon
 if(APPLE)
     set(RA_ICON ${CMAKE_SOURCE_DIR}/data/pkg/ra.icns)
     set_source_files_properties(${RA_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    list(APPEND SOURCES ${RA_ICON})
+    target_sources(ra PRIVATE ${RA_ICON})
 endif(APPLE)
 
-qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
-
-add_executable(ra WIN32 MACOSX_BUNDLE ${SOURCES} ${UIC_SOURCES})
 target_link_libraries(ra
     amun::amun
     shared::core
@@ -97,9 +96,9 @@ target_include_directories(ra
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
-if (JEMALLOC_FOUND)
+if (TARGET lib::jemalloc)
     target_link_libraries(ra lib::jemalloc)
-endif(JEMALLOC_FOUND)
+endif()
 
 # add plist file
 if(APPLE)

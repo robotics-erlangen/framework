@@ -20,7 +20,7 @@
 
 add_subdirectory(tracking)
 
-set(SOURCES
+add_library(processor
     include/processor/networktransceiver.h
     include/processor/processor.h
     include/processor/transceiver.h
@@ -37,12 +37,6 @@ set(SOURCES
     referee.h
     transceiver.cpp
 )
-
-if(TARGET lib::usb)
-    list(APPEND SOURCES usbdevice.cpp usbdevice.h usbthread.cpp usbthread.h)
-endif()
-
-add_library(processor ${SOURCES})
 target_link_libraries(processor
     PRIVATE shared::core
     PUBLIC shared::protobuf
@@ -57,6 +51,12 @@ target_include_directories(processor
 )
 
 if(TARGET lib::usb)
+    target_sources(processor PRIVATE
+        usbdevice.cpp
+        usbdevice.h
+        usbthread.cpp
+        usbthread.h
+    )
     target_link_libraries(processor PRIVATE lib::usb)
     target_compile_definitions(processor PRIVATE USB_FOUND)
 endif()

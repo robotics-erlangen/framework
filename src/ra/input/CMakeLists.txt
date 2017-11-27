@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
+add_library(input
     include/input/inputmanager.h
 
     inputdevice.cpp
@@ -27,15 +27,6 @@ set(SOURCES
     keyboard.cpp
     keyboard.h
 )
-
-if(TARGET lib::sdl2)
-    list(APPEND SOURCES
-        joystick.cpp
-        joystick.h
-    )
-endif()
-
-add_library(input ${SOURCES})
 target_link_libraries(input
     PRIVATE shared::config
     PUBLIC shared::protobuf
@@ -47,6 +38,10 @@ target_include_directories(input
 )
 
 if(TARGET lib::sdl2)
+    target_sources(input PRIVATE
+        joystick.cpp
+        joystick.h
+    )
 	target_link_libraries(input PRIVATE lib::sdl2)
     target_compile_definitions(input PUBLIC SDL2_FOUND)
 endif()

@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
+add_library(widgets
     include/widgets/debuggerconsole.h
     include/widgets/debugtreewidget.h
     include/widgets/fieldwidget.h
@@ -52,10 +52,9 @@ set(UI_SOURCES
     timingwidget.ui
     visualizationwidget.ui
 )
-
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
+target_sources(widgets PRIVATE ${UIC_SOURCES})
 
-add_library(widgets ${SOURCES} ${UIC_SOURCES})
 target_link_libraries(widgets
     PRIVATE shared::core
     PUBLIC shared::protobuf

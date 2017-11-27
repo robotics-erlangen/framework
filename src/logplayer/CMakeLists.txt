@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
+add_executable(logplayer WIN32 MACOSX_BUNDLE
     logplayer.cpp
     mainwindow.cpp
     mainwindow.h
@@ -35,6 +35,8 @@ set(UI_SOURCES
     logcutter.ui
     replayteamwidget.ui
 )
+qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
+target_sources(logplayer PRIVATE ${UIC_SOURCES})
 
 if(MINGW)
     list(APPEND SOURCES ${CMAKE_SOURCE_DIR}/data/pkg/logplayer.rc)
@@ -44,12 +46,9 @@ endif(MINGW)
 if(APPLE)
     set(LOGPLAYER_ICON ${CMAKE_SOURCE_DIR}/data/pkg/logplayer.icns)
     set_source_files_properties(${LOGPLAYER_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    list(APPEND SOURCES ${LOGPLAYER_ICON})
+    target_sources(logplayer PRIVATE ${LOGPLAYER_ICON})
 endif(APPLE)
 
-qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
-
-add_executable(logplayer WIN32 MACOSX_BUNDLE ${SOURCES} ${UIC_SOURCES})
 target_link_libraries(logplayer
     shared::config
     shared::core
@@ -68,9 +67,9 @@ target_include_directories(logplayer
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
-if (JEMALLOC_FOUND)
+if (TARGET lib::jemalloc)
     target_link_libraries(logplayer lib::jemalloc)
-endif(JEMALLOC_FOUND)
+endif()
 
 # add plist file
 if(APPLE)

@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
+add_library(simulator
     include/simulator/simulator.h
 
     mesh.cpp
@@ -31,8 +31,6 @@ set(SOURCES
     simrobot.h
     simulator.cpp
 )
-
-add_library(simulator ${SOURCES})
 target_link_libraries(simulator
     PRIVATE shared::core
     PUBLIC shared::protobuf

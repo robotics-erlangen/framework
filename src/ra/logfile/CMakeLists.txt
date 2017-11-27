@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
+add_library(logfile
     include/logfile/backlogwriter.h
     include/logfile/combinedlogwriter.h
     include/logfile/logfilereader.h
@@ -30,8 +30,6 @@ set(SOURCES
     logfilereader.cpp
     logfilewriter.cpp
 )
-
-add_library(logfile ${SOURCES})
 target_link_libraries(logfile
 	PUBLIC shared::protobuf
 )

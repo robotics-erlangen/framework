@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
+add_library(plotter
     include/plotter/plotter.h
 
     leaffilterproxymodel.cpp
@@ -35,10 +35,9 @@ set(SOURCES
 set(UI_SOURCES
     plotter.ui
 )
-
 qt5_wrap_ui(UIC_SOURCES ${UI_SOURCES})
+target_sources(plotter PRIVATE ${UIC_SOURCES})
 
-add_library(plotter ${SOURCES} ${UIC_SOURCES})
 target_link_libraries(plotter
     PRIVATE shared::core
     PUBLIC shared::protobuf

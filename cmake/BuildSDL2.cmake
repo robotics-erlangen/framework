@@ -22,12 +22,7 @@ if (UNIX AND NOT APPLE)
     include(CheckIncludeFile)
     check_include_file("libudev.h" LIBUDEV_FOUND)
     if (LIBUDEV_FOUND)
-		set(LIBSDL_SUBPATH "lib/${CMAKE_SHARED_LIBRARY_PREFIX}SDL2${CMAKE_SHARED_LIBRARY_SUFFIX}")
-		if(POLICY CMP0058) # exists since cmake 3.3
-			set(LIBSDL_BUILD_BYPRODUCTS "<INSTALL_DIR>/${LIBSDL_SUBPATH}")
-		else()
-			set(LIBSDL_BUILD_BYPRODUCTS "")
-		endif()
+        set(LIBSDL_SUBPATH "lib/${CMAKE_SHARED_LIBRARY_PREFIX}SDL2${CMAKE_SHARED_LIBRARY_SUFFIX}")
 
         include(ExternalProject)
         ExternalProject_Add(project_sdl2
@@ -36,7 +31,7 @@ if (UNIX AND NOT APPLE)
             URL_MD5 cdb071009d250e1782371049f0d5ca42
 			DOWNLOAD_NO_PROGRESS true
             CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
-			BUILD_BYPRODUCTS ${LIBSDL_BUILD_BYPRODUCTS}
+            BUILD_BYPRODUCTS "<INSTALL_DIR>/${LIBSDL_SUBPATH}"
         )
 
         externalproject_get_property(project_sdl2 install_dir)
@@ -59,15 +54,7 @@ if (UNIX AND NOT APPLE)
 elseif(MINGW)
     # use prebuilt binaries on windows
 	set(LIBSDL_SUBPATH "bin/SDL2${CMAKE_SHARED_LIBRARY_SUFFIX}")
-	set(LIBSDL_LIBSUBPATH "lib/libSDL2${CMAKE_SHARED_LIBRARY_SUFFIX}.a")
-	if(POLICY CMP0058) # exists since cmake 3.3
-		set(LIBSDL_BUILD_BYPRODUCTS
-			"<INSTALL_DIR>/${LIBSDL_SUBPATH}"
-			"<INSTALL_DIR>/${LIBSDL_LIBSUBPATH}"
-		)
-	else()
-		set(LIBSDL_BUILD_BYPRODUCTS "")
-	endif()
+    set(LIBSDL_LIBSUBPATH "lib/libSDL2${CMAKE_SHARED_LIBRARY_SUFFIX}.a")
 	include(ExternalProject)
   set(SPACE_FREE_INSTALL_DIR "${CMAKE_CURRENT_BINARY_DIR}/project_sdl2-prefix")
   string(REPLACE " " "\\ " SPACE_FREE_INSTALL_DIR "${SPACE_FREE_INSTALL_DIR}")
@@ -81,7 +68,9 @@ elseif(MINGW)
 		BUILD_COMMAND ""
 		BUILD_IN_SOURCE true
 		INSTALL_COMMAND make install-package arch=i686-w64-mingw32 prefix=${SPACE_FREE_INSTALL_DIR}
-		BUILD_BYPRODUCTS ${LIBSDL_BUILD_BYPRODUCTS}
+        BUILD_BYPRODUCTS
+            "<INSTALL_DIR>/${LIBSDL_SUBPATH}"
+            "<INSTALL_DIR>/${LIBSDL_LIBSUBPATH}"
 	)
 
 	externalproject_get_property(project_sdl2 install_dir)

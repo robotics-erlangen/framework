@@ -22,7 +22,7 @@ add_subdirectory(processor)
 add_subdirectory(simulator)
 add_subdirectory(strategy)
 
-set(SOURCES
+add_library(amun
     include/amun/amun.h
     include/amun/amunclient.h
 
@@ -33,8 +33,6 @@ set(SOURCES
     receiver.cpp
     receiver.h
 )
-
-add_library(amun ${SOURCES})
 target_link_libraries(amun
     PRIVATE shared::core
 	PRIVATE amun::processor

@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
+add_library(path
     include/path/kdtree.h
     include/path/path.h
     include/path/vector.h
@@ -27,8 +27,6 @@ set(SOURCES
     linesegment.h
     path.cpp
 )
-
-add_library(path ${SOURCES})
 target_link_libraries(path
 	PRIVATE shared::core
 	PUBLIC shared::protobuf

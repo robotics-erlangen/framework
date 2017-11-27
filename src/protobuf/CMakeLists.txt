@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
+add_library(protobuf
     include/protobuf/command.h
     include/protobuf/geometry.h
     include/protobuf/ssl_referee.h
@@ -45,10 +45,9 @@ set(PROTO_FILES
     userinput.proto
     world.proto
 )
-
 protobuf_generate_cpp(PROTO_SOURCES PROTO_HEADERS ${PROTO_FILES})
+target_sources(protobuf PRIVATE ${PROTO_SOURCES} ${PROTO_HEADERS} ${PROTO_FILES})
 
-add_library(protobuf ${SOURCES} ${PROTO_SOURCES} ${PROTO_HEADERS} ${PROTO_FILES})
 target_link_libraries(protobuf
     PUBLIC ${PROTOBUF_LIBRARY}
     INTERFACE Qt5::Core

@@ -20,15 +20,7 @@
 
 if(MINGW)
     # use prebuilt binaries on windows
-	set(LIBUSB_SUBPATH "bin/libusb-1.0${CMAKE_SHARED_LIBRARY_SUFFIX}")
-	if(POLICY CMP0058) # exists since cmake 3.3
-		set(LIBUSB_BUILD_BYPRODUCTS
-			"<INSTALL_DIR>/${LIBUSB_SUBPATH}"
-			"<INSTALL_DIR>/${LIBUSB_SUBPATH}.a"
-		)
-	else()
-		set(LIBUSB_BUILD_BYPRODUCTS "")
-	endif()
+    set(LIBUSB_SUBPATH "bin/libusb-1.0${CMAKE_SHARED_LIBRARY_SUFFIX}")
 	include(ExternalProject)
 	ExternalProject_Add(project_usb
 		EXCLUDE_FROM_ALL true
@@ -41,7 +33,9 @@ if(MINGW)
 		INSTALL_COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/MinGW32/dll/libusb-1.0.dll <INSTALL_DIR>/bin
 		COMMAND ${CMAKE_COMMAND} -E copy <SOURCE_DIR>/MinGW32/dll/libusb-1.0.dll.a <INSTALL_DIR>/bin
 		COMMAND ${CMAKE_COMMAND} -E copy_directory <SOURCE_DIR>/include <INSTALL_DIR>/include
-		BUILD_BYPRODUCTS ${LIBUSB_BUILD_BYPRODUCTS}
+        BUILD_BYPRODUCTS
+            "<INSTALL_DIR>/${LIBUSB_SUBPATH}"
+            "<INSTALL_DIR>/${LIBUSB_SUBPATH}.a"
 	)
 
 	externalproject_get_property(project_usb install_dir)

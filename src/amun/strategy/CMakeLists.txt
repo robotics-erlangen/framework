@@ -20,7 +20,7 @@
 
 add_subdirectory(path)
 
-set(SOURCES
+add_library(strategy
     include/strategy/debughelper.h
     include/strategy/strategy.h
     include/strategy/strategytype.h
@@ -40,8 +40,6 @@ set(SOURCES
     lua_protobuf.h
     strategy.cpp
 )
-
-add_library(strategy ${SOURCES})
 target_link_libraries(strategy
     PRIVATE lib::luajit
     PRIVATE shared::core

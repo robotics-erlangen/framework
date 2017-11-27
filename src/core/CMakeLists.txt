@@ -18,7 +18,7 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
+add_library(core
     include/core/rng.h
     include/core/timer.h
     include/core/vector2.h
@@ -26,8 +26,6 @@ set(SOURCES
     rng.cpp
     timer.cpp
 )
-
-add_library(core ${SOURCES})
 target_link_libraries(core
 	PUBLIC Qt5::Core
 )

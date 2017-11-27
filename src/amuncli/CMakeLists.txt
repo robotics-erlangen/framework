@@ -18,13 +18,11 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-set(SOURCES
+add_executable(amun-cli
     amuncli.cpp
     connector.cpp
     connector.h
 )
-
-add_executable(amun-cli ${SOURCES} ${UIC_SOURCES})
 target_link_libraries(amun-cli
     amun::amun
     shared::protobuf
@@ -35,6 +33,6 @@ target_include_directories(amun-cli
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
-if (JEMALLOC_FOUND)
+if (TARGET lib::jemalloc)
     target_link_libraries(amun-cli lib::jemalloc)
-endif(JEMALLOC_FOUND)
+endif()
