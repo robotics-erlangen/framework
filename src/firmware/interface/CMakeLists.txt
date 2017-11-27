@@ -18,23 +18,16 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-if (${CMAKE_VERSION} VERSION_GREATER 2.8.13)
-	add_library(firmware-interface INTERFACE)
-else()
-	file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp" "\n")
-	add_library(firmware-interface "${CMAKE_CURRENT_BINARY_DIR}/dummy.cpp")
-endif()
+add_library(firmware-interface INTERFACE)
 
 target_include_directories(firmware-interface
     INTERFACE include
 )
 add_library(firmware::interface ALIAS firmware-interface)
 
-if (${CMAKE_VERSION} VERSION_GREATER 3.0.4)
-    target_sources(firmware-interface INTERFACE
-        ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/radiocommand2012.h
-        ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/radiocommand2014.h
-        ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/radiocommand.h
-        ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/transceiver2012.h
-    )
-endif()
+target_sources(firmware-interface INTERFACE
+    ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/radiocommand2012.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/radiocommand2014.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/radiocommand.h
+    ${CMAKE_CURRENT_LIST_DIR}/include/firmware-interface/transceiver2012.h
+)

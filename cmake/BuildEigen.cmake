@@ -34,12 +34,7 @@ ExternalProject_Add(project_eigen
 )
 externalproject_get_property(project_eigen install_dir)
 set_target_properties(project_eigen PROPERTIES EXCLUDE_FROM_ALL true)
-if (${CMAKE_VERSION} VERSION_GREATER 3.2.4)
-	add_library(eigen INTERFACE)
-else()
-	file(WRITE "${install_dir}/dummy.cpp" "\n")
-	add_library(eigen "${install_dir}/dummy.cpp")
-endif()
+add_library(eigen INTERFACE)
 
 target_compile_options(eigen INTERFACE -Wno-deprecated-declarations)
 add_dependencies(eigen project_eigen)

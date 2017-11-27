@@ -20,16 +20,6 @@
 
 include(ExternalProject)
 
-if(POLICY CMP0058) # exists since cmake 3.3
-    set(BULLET_BUILD_BYPRODUCTS
-        "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletDynamics${CMAKE_STATIC_LIBRARY_SUFFIX}"
-        "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletCollision${CMAKE_STATIC_LIBRARY_SUFFIX}"
-        "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}LinearMath${CMAKE_STATIC_LIBRARY_SUFFIX}"
-    )
-else()
-    set(BULLET_BUILD_BYPRODUCTS "")
-endif()
-
 ExternalProject_Add(project_bullet
     URL http://www.robotics-erlangen.de/downloads/libraries/bullet3-2.83.6.tar.gz
     URL_MD5 44cb2464336a2082b2c144194c2a2668
@@ -49,7 +39,10 @@ ExternalProject_Add(project_bullet
         -DUSE_GLUT:BOOL=OFF
         -DUSE_GRAPHICAL_BENCHMARK:BOOL=OFF
         -DINSTALL_LIBS:BOOL=ON
-    BUILD_BYPRODUCTS ${BULLET_BUILD_BYPRODUCTS}
+    BUILD_BYPRODUCTS
+        "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletDynamics${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletCollision${CMAKE_STATIC_LIBRARY_SUFFIX}"
+        "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}LinearMath${CMAKE_STATIC_LIBRARY_SUFFIX}"
 )
 
 externalproject_get_property(project_bullet install_dir)
