@@ -58,4 +58,10 @@ set(PROTOBUF_INCLUDE_DIRS "${PROTOBUF_INCLUDE_DIR}")
 set(PROTOBUF_LIBRARY "${install_dir}/${PROTOBUF_SUBPATH}")
 set(PROTOBUF_LIBRARIES "${PROTOBUF_LIBRARY}")
 set(Protobuf_PROTOC_EXECUTABLE "${install_dir}/${PROTOC_SUBPATH}")
+# compatibility with cmake 3.10
+add_executable(protobuf::protoc IMPORTED)
+set_target_properties(protobuf::protoc PROPERTIES
+    IMPORTED_LOCATION "${Protobuf_PROTOC_EXECUTABLE}"
+)
+
 message(STATUS "Building protobuf ${PROTOBUF_VERSION}")
