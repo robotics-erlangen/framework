@@ -65,8 +65,10 @@ find_package(Qt5Widgets REQUIRED)
 find_package(Qt5Network REQUIRED)
 find_package(Qt5OpenGL REQUIRED)
 
-find_package(Jemalloc)
-
+if(NOT APPLE)
+    # file open dialogs crash on mac
+    find_package(Jemalloc)
+endif()
 find_package(USB)
 if(MINGW AND NOT TARGET lib::usb)
     include(BuildUSB)
