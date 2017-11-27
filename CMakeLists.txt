@@ -18,22 +18,10 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.5.0)
 project(erforce)
 enable_testing()
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-# CMP0028 and CMP0037 enforce restrictions of cmake target names added in CMake 3.0
-if(POLICY CMP0028 AND POLICY CMP0037 AND POLICY CMP0045)
-    cmake_policy(SET CMP0028 NEW)
-    cmake_policy(SET CMP0037 NEW)
-    cmake_policy(SET CMP0045 NEW)
-endif()
-if(POLICY CMP0043) # compatibility with CMake 3.0.1
-    cmake_policy(SET CMP0043 OLD)
-endif()
-if(POLICY CMP0058)
-    cmake_policy(SET CMP0058 NEW)
-endif()
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -std=gnu++11")
 

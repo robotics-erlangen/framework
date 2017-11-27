@@ -8,7 +8,7 @@
 All programs should work on GNU/Linux (tested on Ubuntu 16.04), Mac OS X 10.10 and Windows >= 7.
 
 In order to build Ra you will need:
- * cmake >= 2.8.12
+ * cmake >= 3.5 (3.7 on Windows)
  * g++ >= 4.6
  * qt >= 5.6.0, NOT 5.4.2 and 5.5.0 on all system; NOT 5.4.x on Mac; NOT 5.9.[0-2] on Windows
  * protobuf >= 2.6.0
@@ -20,6 +20,7 @@ Certain features require additional libraries:
 
 ## Linux
 Names of required package for Ubuntu 16.04: `cmake protobuf-compiler libprotobuf-dev qtbase5-dev libsdl2-dev libusb-1.0-0-dev g++`
+Only on Ubuntu 14.04 you'll need `cmake3`.
 
 The recommended way of building a project with CMake is by doing an
 out-of-source build. This can be done like this:
