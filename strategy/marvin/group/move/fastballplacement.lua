@@ -167,20 +167,18 @@ function FastBallPlacement:_getNextState(currentState)
 			nextState = STATE_ACCEPT_PASS
 		end
 	elseif currentState == STATE_ACCEPT_PASS then
+		local ballDist = World.Ball.pos:distanceTo(self.RECEIVER.pos)
 
-		if not self._ballReceiverIntersects then
-			self._stateChangeTime = World.Time
-			nextState = STATE_MOVE_TO_POS
-		end
-
-		-- TODO better state change
 		if World.Ball.speed:length() < 0.05 then
 			self._stateChangeTime = World.Time
-			if World.Ball.pos:distanceTo(self.RECEIVER.pos) > MOVE_VS_ADJUST_DISTANCE then
+			if ballDist > MOVE_VS_ADJUST_DISTANCE then
 				nextState = STATE_MOVE_TO_POS
 			else
-				nextState = STATE_WAITING_FOR_ADJUST
+				nextState = STATE_FINE_ADJUST
 			end
+		elseif not self._ballReceiverIntersects and ballDist > (0.15 + World.Ball.radius + self.RECEIVER.radius) then
+			self._stateChangeTime = World.Time
+			nextState = STATE_MOVE_TO_POS
 		end
 
 	elseif currentState == STATE_WAITING_FOR_ADJUST then
