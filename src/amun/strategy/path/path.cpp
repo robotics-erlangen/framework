@@ -221,25 +221,27 @@ void Path::clearObstacles()
     m_seedTargets.clear();
 }
 
-void Path::addCircle(float x, float y, float radius, const char* name)
+void Path::addCircle(float x, float y, float radius, const char* name, int prio)
 {
     Circle *c = new Circle;
     c->center.x = x;
     c->center.y = y;
     c->radius = radius;
     c->name = name;
+    c->prio = prio;
     m_obstacles.append(c);
 }
 
-void Path::addLine(float x1, float y1, float x2, float y2, float width, const char* name)
+void Path::addLine(float x1, float y1, float x2, float y2, float width, const char* name, int prio)
 {
     Line *l = new Line(Vector(x1, y1), Vector(x2, y2));
     l->width = width;
     l->name = name;
+    l->prio = prio;
     m_obstacles.append(l);
 }
 
-void Path::addRect(float x1, float y1, float x2, float y2, const char* name)
+void Path::addRect(float x1, float y1, float x2, float y2, const char* name, int prio)
 {
     Rect *r = new Rect;
     r->bottom_left.x = std::min(x1, x2);
@@ -247,14 +249,16 @@ void Path::addRect(float x1, float y1, float x2, float y2, const char* name)
     r->top_right.x = std::max(x1, x2);
     r->top_right.y = std::max(y1, y2);
     r->name = name;
+    r->prio = prio;
     m_obstacles.append(r);
 }
 
-void Path::addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, float lineWidth, const char *name)
+void Path::addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, float lineWidth, const char *name, int prio)
 {
     Triangle *t = new Triangle;
     t->lineWidth = lineWidth;
     t->name = name;
+    t->prio = prio;
 
     // ensure that the triangle is oriented counter-clockwise
     const Vector a(x1, y1);
@@ -347,16 +351,29 @@ bool Path::checkMovementRelativeToObstacles(const LineSegment &segment, const QL
 
     // split obstacle lists, the amount of start obstacles is decreasing for each tree
     QList<const Obstacle *> startObstacles;
+    QList<const Obstacle *> tmpObstacles;
     QList<const Obstacle *> otherObstacles;
+    int maxObstaclePrio = -1;
     // nearly all obstacles should go in here
     otherObstacles.reserve(obstacles.size() - 1);
+    // allow moving from an obstacle with high prio into one with lower prio
     foreach (const Obstacle *o, obstacles) {
         if (o->distance(p) < radius) {
+            if (o->prio > maxObstaclePrio) {
+                startObstacles.clear();
+                maxObstaclePrio = o->prio;
+            }
             startObstacles.append(o);
         } else {
+            tmpObstacles.append(o);
+        }
+    }
+    for (const Obstacle *o: tmpObstacles) {
+        if (o->prio >= maxObstaclePrio) {
             otherObstacles.append(o);
         }
     }
+    tmpObstacles.clear();
 
     if (startObstacles.size() == 1) {
         float stepSize = std::min(1E-3f, l);

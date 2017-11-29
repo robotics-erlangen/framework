@@ -117,7 +117,8 @@ static int pathAddCircle(lua_State *L)
     const float r = verifyNumber(L, 4);
     const char* name = NULL;
     name = luaL_optlstring(L,5, "NoName", 0);
-    p->addCircle(x, y, r, name);
+    const int prio = verifyNumber(L, 6);
+    p->addCircle(x, y, r, name, prio);
     return 0;
 }
 
@@ -132,12 +133,13 @@ static int pathAddLine(lua_State *L)
 
     const char* name = NULL;
     name = luaL_optlstring(L,7, "NoName", 0);
+    const int prio = verifyNumber(L, 8);
 
     // a line musn't have length zero
     if (x1 == x2 && y1 == y2) {
         luaL_error(L, "Points are identical");
     }
-    p->addLine(x1, y1, x2, y2, width, name);
+    p->addLine(x1, y1, x2, y2, width, name, prio);
     return 0;
 }
 
@@ -169,8 +171,9 @@ static int pathAddRect(lua_State *L)
 
     const char* name = NULL;
     name = luaL_optlstring(L,6, "NoName", 0);
+    const int prio = verifyNumber(L, 7);
 
-    p->addRect(x1, y1, x2, y2, name);
+    p->addRect(x1, y1, x2, y2, name, prio);
     return 0;
 }
 
@@ -187,8 +190,9 @@ static int pathAddTriangle(lua_State *L)
 
     const char* name = NULL;
     name = luaL_optlstring(L, 9, "NoName", 0);
+    const int prio = verifyNumber(L, 10);
 
-    p->addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name);
+    p->addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name, prio);
     return 0;
 }
 
