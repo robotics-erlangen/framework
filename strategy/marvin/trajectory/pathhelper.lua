@@ -40,33 +40,33 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 		-- line with round end caps
 		path:addLine(G.FriendlyGoal.x - G.DefenseStretch / 2, G.FriendlyGoal.y,
 				G.FriendlyGoal.x + G.DefenseStretch / 2, G.FriendlyGoal.y,
-				G.DefenseRadius + POSITION_PADDING, "DefenseArea")
+				G.DefenseRadius + POSITION_PADDING, "DefenseArea", 35)
 	end
 
 	if not ignoreOpponentDefenseArea and robot.pos.y > 0 and (not Referee.isFriendlyPenaltyState()) and
 			World.RefereeState ~= "BallPlacementOffensive" then
 		path:addLine(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
 				G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y,
-				G.DefenseRadius + World.Ball.radius + oppDefAreaDist, "DefenseAreaOpp")
+				G.DefenseRadius + World.Ball.radius + oppDefAreaDist, "DefenseAreaOpp", 35)
 	end
 
 	if forbidOppFieldHalf then
 		path:addRect(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5,
-			-G.CenterCircleRadius, 0.02, "OppFieldHalf")
-		path:addRect(-G.CenterCircleRadius, G.FieldHeightHalf + 0.5,
-			G.CenterCircleRadius, 0.15, "OppFieldHalf")
+			-G.CenterCircleRadius, 0.02, "OppFieldHalf", 25)
+		path:addRect(-G.CenterCircleRadius - 0.2, G.FieldHeightHalf + 0.5,
+			G.CenterCircleRadius + 0.2, 0.15, "OppFieldHalf", 26)
 		path:addRect(G.CenterCircleRadius, G.FieldHeightHalf + 0.5,
-			G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf")
+			G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf", 25)
 	end
 
 	if not ignoreBall or (Referee.isStopState() and World.RefereeState ~= "BallPlacementOffensive") then
 		-- always add the actual ball obstacle, otherwise the ball may be pushed during stop
-		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius, "Ball")
+		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius, "Ball", 50)
 	end
 	if Referee.isStopState() and World.RefereeState ~= "BallPlacementOffensive" then
-		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + stopBallDistance, "BallStop")
+		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + stopBallDistance, "BallStop", 50)
 	elseif forceBallDistance then
-		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + EXTRA_BALL_DISTANCE, "ExtraBallDistance")
+		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + EXTRA_BALL_DISTANCE, "ExtraBallDistance", 50)
 	end
 
 	if not ignoreGoals then
@@ -74,18 +74,18 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 		-- add goal obstacles for the field half the robot is in
 		if robot.pos.y < 0 then
 			path:addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - gw,
-					G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw, gw, "OwnGoal_Left")
+					G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw, gw, "OwnGoal_Left", 100)
 			path:addLine(G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - gw,
-					G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Right")
+					G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Right", 100)
 			path:addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw,
-					G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Back")
+					G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Back", 100)
 		else
 			path:addLine(G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + gw,
-					G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw, gw, "OppGoal_Left")
+					G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw, gw, "OppGoal_Left", 100)
 			path:addLine(G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + gw,
-					G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Right")
+					G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Right", 100)
 			path:addLine(G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw,
-					G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Center")
+					G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Center", 100)
 		end
 	end
 end
@@ -112,9 +112,9 @@ function PathHelper.addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreO
 				if robot.pos:distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
 						and r.pos:distanceTo(estimatedPosition) > 0.0001 then
 					path:addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
-							r.radius + safetyDistance, "OwnRobot_"..r.id)
+							r.radius + safetyDistance, "OwnRobot_"..r.id, 100)
 				else
-					path:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OwnRobot_"..r.id)
+					path:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OwnRobot_"..r.id, 100)
 				end
 			end
 		end
@@ -137,9 +137,9 @@ function PathHelper.addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreO
 				if robot.pos:distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
 						and r.pos:distanceTo(estimatedPosition) > 0.0001 then
 					path:addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
-							r.radius + safetyDistance, "OppRobot_"..r.id)
+							r.radius + safetyDistance, "OppRobot_"..r.id, 100)
 				else
-					path:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OppRobot_"..r.id)
+					path:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OppRobot_"..r.id, 100)
 				end
 			end
 		end
