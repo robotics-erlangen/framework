@@ -10,6 +10,7 @@ function Moves:init()
 		require "group/move/mrltestcorner",
 		require "group/move/armada",
 		-- require "group/move/overchip",
+		require "group/move/windshieldwiper"
 	}
 
 	for _,move in ipairs(self.moveList) do
