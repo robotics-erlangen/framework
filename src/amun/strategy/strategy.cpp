@@ -507,7 +507,9 @@ void Strategy::setStrategyStatus(Status &status, amun::StatusStrategy::STATE sta
 
 Status Strategy::takeStrategyDebugStatus()
 {
-    Q_ASSERT(m_strategy != NULL);
+    if (m_strategy == nullptr) {
+        return Status(new amun::Status);
+    }
     Status status = m_strategy->takeDebugStatus();
     status->mutable_debug()->set_source(debugSource());
     if (!m_status.isNull()) {
