@@ -104,7 +104,7 @@ function PenaltyShootout:_updateShootGoal()
 				or World.Ball.pos.y > G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA then
 			self._shootGoalFlag = true
 		end
-		if width < 2 * math.tan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y)) * MIN_RELATIVE_SECTOR_SIZE then
+		if width < 2 * math.atan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y)) * MIN_RELATIVE_SECTOR_SIZE then
 			self._shootGoalFlag = true
 			self._forceDesperate = true
 		end
