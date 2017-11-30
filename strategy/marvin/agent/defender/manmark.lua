@@ -67,7 +67,7 @@ function ManMark:_updateTask()
 	-- if we are still near the defense area but want to move away, disguise as a centerback
 	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 	if selfDefenseDist < CenterBack.distanceToDefenseArea() + self._robot.radius + 0.03 then
-		local groupApplication = { name = "centerback", payload = self._robot }
+		local groupApplication = { name = "centerback", payload = nil }
 		self._send.groupApplication("trainer", groupApplication)
 	end
 

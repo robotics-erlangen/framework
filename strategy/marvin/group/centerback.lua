@@ -111,7 +111,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 	end
 
 
-	-- merge overlapping way intervals
+	-- merge overlapping way intervals (got-)merged
 	local merged = true
 	while merged do
 		merged = false
@@ -132,6 +132,11 @@ local function calculateCenterBackPositions(centerBackApplications)
 						j.waypos = totalPos
 						j.wayrange = totalWay
 						j.n = totalN
+						if next(i.targets) == nil then
+							i.targets = j.targets
+						elseif next(j.targets) == nil then
+							j.targets = i.targets
+						end
 						j.targets = table.append(i.targets, j.targets)
 						table.remove(intersections, ix)
 						break
@@ -143,7 +148,6 @@ local function calculateCenterBackPositions(centerBackApplications)
 			end
 		end
 	end
-
 
 	-- sort intersection interval table
 	table.sort(intersections, lessthan_intersections)
