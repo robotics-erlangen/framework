@@ -479,14 +479,14 @@ void Strategy::fail(const QString &error, const amun::UserInput & userInput)
 
 void Strategy::setStrategyStatus(Status &status, amun::StatusStrategy::STATE state)
 {
-    Q_ASSERT(m_strategy != NULL || state == amun::StatusStrategy::CLOSED);
+    Q_ASSERT(m_strategy != nullptr || state != amun::StatusStrategy::RUNNING);
 
     amun::StatusStrategy *strategy = (m_type == StrategyType::BLUE) ? status->mutable_strategy_blue() :
                                             (m_type == StrategyType::YELLOW) ? status->mutable_strategy_yellow() :
                                                     status->mutable_strategy_autoref();
     strategy->set_state(state);
 
-    if (state != amun::StatusStrategy::CLOSED) {
+    if (m_strategy != nullptr && state != amun::StatusStrategy::CLOSED) {
         strategy->set_filename(m_filename.toStdString());
         strategy->set_name(m_strategy->name().toStdString());
         // copy entrypoints
