@@ -152,6 +152,7 @@ void RobotSelectionWidget::load()
     m_recentScripts = s.value("RecentScripts").toStringList();
     s.endGroup();
 
+    sanitizeRecentScripts();
     ui->blue->setRecentScripts(&m_recentScripts);
     ui->yellow->setRecentScripts(&m_recentScripts);
 
@@ -159,6 +160,18 @@ void RobotSelectionWidget::load()
 
     ui->blue->load();
     ui->yellow->load();
+}
+
+void RobotSelectionWidget::sanitizeRecentScripts()
+{
+    QStringList recentScripts;
+    for (QString script: m_recentScripts) {
+        QFileInfo file(script);
+        if (file.exists() && file.fileName() == "init.lua") {
+            recentScripts.append(script);
+        }
+    }
+    m_recentScripts = recentScripts;
 }
 
 void RobotSelectionWidget::loadRobots()

@@ -91,6 +91,7 @@ private:
     void sendTeam(robot::Team *t, RobotWidget::Team team);
     void unsetTeam(uint id, uint skip_generation, RobotWidget::Team team);
     void updateGenerationTeam();
+    void sanitizeRecentScripts();
 
 private:
     Ui::RobotSelectionWidget *ui;
