@@ -92,6 +92,7 @@ private:
     void unsetTeam(uint id, uint skip_generation, RobotWidget::Team team);
     void updateGenerationTeam();
     void sanitizeRecentScripts();
+    void searchForStrategies();
 
 private:
     Ui::RobotSelectionWidget *ui;

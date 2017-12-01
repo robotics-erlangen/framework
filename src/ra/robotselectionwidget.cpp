@@ -153,6 +153,7 @@ void RobotSelectionWidget::load()
     s.endGroup();
 
     sanitizeRecentScripts();
+    searchForStrategies();
     ui->blue->setRecentScripts(&m_recentScripts);
     ui->yellow->setRecentScripts(&m_recentScripts);
 
@@ -172,6 +173,29 @@ void RobotSelectionWidget::sanitizeRecentScripts()
         }
     }
     m_recentScripts = recentScripts;
+}
+
+void RobotSelectionWidget::searchForStrategies()
+{
+    QDir strategyFolder(ERFORCE_STRATEGYDIR);
+    if (!strategyFolder.exists()) {
+        return;
+    }
+
+    QFileInfoList infoList = strategyFolder.entryInfoList(QDir::Dirs | QDir::NoDotAndDotDot);
+    for (QFileInfo &dirfile: infoList) {
+        QDir dir(dirfile.absoluteFilePath());
+        QString entrypoint = dir.absoluteFilePath("init.lua");
+        QFileInfo file(entrypoint);
+        if (!file.exists()) {
+            continue;
+        }
+
+        QString scriptPath = file.absoluteFilePath();
+        if (!m_recentScripts.contains(scriptPath)) {
+            m_recentScripts.append(scriptPath);
+        }
+    }
 }
 
 void RobotSelectionWidget::loadRobots()
