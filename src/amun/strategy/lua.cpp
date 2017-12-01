@@ -333,7 +333,8 @@ Lua::Lua(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxCo
 
 bool Lua::canHandle(const QString &filename)
 {
-    return filename.endsWith(".lua");
+    QFileInfo file(filename);
+    return file.fileName() == "init.lua";
 }
 
 AbstractStrategyScript* Lua::createStrategy(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) {
