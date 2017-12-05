@@ -158,26 +158,22 @@ function FastBallPlacement:_getNextState(currentState)
 		-- We dont care if SHOOTER already arrived at his position as task/pass will move to the ball automatically
 		-- His MoveToPos is only for optimization
 		if self.RECEIVER.pos:distanceTo(self._computedReceiverPos) < 0.05 then
-			self._stateChangeTime = World.Time
 			nextState = STATE_EXECUTE_PASS
 		end
 	elseif currentState == STATE_EXECUTE_PASS then
 		if World.Ball.speed:length() > 0.5 then
-			self._stateChangeTime = World.Time
 			nextState = STATE_ACCEPT_PASS
 		end
 	elseif currentState == STATE_ACCEPT_PASS then
 		local ballDist = World.Ball.pos:distanceTo(self.RECEIVER.pos)
 
 		if World.Ball.speed:length() < 0.05 then
-			self._stateChangeTime = World.Time
 			if ballDist > MOVE_VS_ADJUST_DISTANCE then
 				nextState = STATE_MOVE_TO_POS
 			else
 				nextState = STATE_FINE_ADJUST
 			end
 		elseif not self._ballReceiverIntersects and ballDist > (0.15 + World.Ball.radius + self.RECEIVER.radius) then
-			self._stateChangeTime = World.Time
 			nextState = STATE_MOVE_TO_POS
 		end
 
@@ -186,14 +182,12 @@ function FastBallPlacement:_getNextState(currentState)
 		local timeInState = World.Time - self._stateChangeTime
 
 		if timeInState > 2 then
-			self._stateChangeTime = World.Time
 			nextState = STATE_SET_BACK
 		end
 
 	elseif currentState == STATE_SET_BACK then
 
 		if self.RECEIVER.pos:distanceTo(self._setBackPosition) < 0.05 then
-			self._stateChangeTime = World.Time
 			nextState = STATE_FINE_ADJUST
 		end
 
@@ -205,6 +199,10 @@ function FastBallPlacement:_getNextState(currentState)
 	else
 		-- Invalid state
 		nextState = nil
+	end
+
+	if nextState ~= currentState then
+		self._stateChangeTime = World.Time
 	end
 
 	assert(nextState, "nextState can't be nil, currentState is probably invalid")
