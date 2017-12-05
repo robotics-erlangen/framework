@@ -55,9 +55,14 @@ function FastBallPlacement:_updateTasks()
 	local oldState = self._state
 	self._state = self:_getNextState(self._state)
 	self._restartTask = oldState ~= self._state
+	if self._restartTask then
+		self._stateChangeTime = World.Time
+	end
+
 	debug.push("ball placement")
 	debug.set("state", self._state)
 	debug.set("state change time", self._stateChangeTime)
+	debug.set("ball pushable", self:_isBallPushable(World.Ball))
 	debug.pop()
 
 	vis.addCircle("ball placement", World.BallPlacementPos, PLACEMENT_RADIUS, vis.colors.orange)
@@ -199,10 +204,6 @@ function FastBallPlacement:_getNextState(currentState)
 	else
 		-- Invalid state
 		nextState = nil
-	end
-
-	if nextState ~= currentState then
-		self._stateChangeTime = World.Time
 	end
 
 	assert(nextState, "nextState can't be nil, currentState is probably invalid")
