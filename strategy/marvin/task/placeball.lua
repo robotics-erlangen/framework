@@ -17,7 +17,9 @@ local MAX_PULL_SPEED = 1.1
 local MAX_DRIBBLER_SPEED = 0.8
 local MAX_ACCEL_WITH_BALL = 0.04
 
-function PlaceBall:_init()
+-- the pos parameter is optional, will default to World.BallPlacementPos
+function PlaceBall:_init(targetPos)
+	self._targetPos = targetPos
 	self._step = STEP_GO_TO_BALL
 	self._lastOffset = nil
 	self._ballStartPos = nil
@@ -45,7 +47,9 @@ function PlaceBall:_isBallNearRobot(ball)
 end
 
 function PlaceBall:run()
-	vis.addCircle("ball placement", World.BallPlacementPos, BALL_PLACEMENT_RADIUS, vis.colors.orangeHalf, true)
+	local ballPlacementPos = self._targetPos or World.BallPlacementPos
+	assert(ballPlacementPos, "Where should I place the ball")
+	vis.addCircle("ball placement", ballPlacementPos, BALL_PLACEMENT_RADIUS, vis.colors.orangeHalf, true)
 	local ball = World.Ball
 	if self._step == STEP_GO_TO_BALL then
 		PathHelper.setDefaultObstacles(self._robot.path, self._robot, false, true, true)
@@ -58,8 +62,8 @@ function PlaceBall:run()
 
 	debug.set("step", self._step)
 	-- offset to ball pos, don't update if near the ball placement pos
-	if not self._lastOffset or ball.pos:distanceTo(World.BallPlacementPos) > 0.2 then
-		self._lastOffset = (ball.pos - World.BallPlacementPos):setLength(World.Ball.radius + self._robot.shootRadius + 0.05)
+	if not self._lastOffset or ball.pos:distanceTo(ballPlacementPos) > 0.2 then
+		self._lastOffset = (ball.pos - ballPlacementPos):setLength(World.Ball.radius + self._robot.shootRadius + 0.05)
 	end
 	local dir = self._lastOffset:angle()
 
@@ -99,11 +103,11 @@ function PlaceBall:run()
 		end
 	elseif self._step == STEP_PULL then
 		-- move ball into position
-		local targetPos = World.BallPlacementPos - self._lastOffset
+		local targetPos = ballPlacementPos - self._lastOffset
 		self._robot.trajectory:update(ToTarget, targetPos, dir, MAX_PULL_SPEED, nil, MAX_ACCEL_WITH_BALL)
 
 		if self._positionReachedTime == 0 then
-			local dribblerSpeed = math.min((ball.pos:distanceTo(World.BallPlacementPos) - 0.02) * 2, MAX_DRIBBLER_SPEED)
+			local dribblerSpeed = math.min((ball.pos:distanceTo(ballPlacementPos) - 0.02) * 2, MAX_DRIBBLER_SPEED)
 			debug.set("dribblerSpeed", dribblerSpeed)
 			self._robot:setDribblerSpeed(dribblerSpeed)
 		end
@@ -114,7 +118,7 @@ function PlaceBall:run()
 
 		local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir)*self._robot.shootRadius
 		if self:_isBallNearRobot(ball) and
-				dribblerPos:distanceTo(World.BallPlacementPos) < BALL_PLACEMENT_RADIUS
+				dribblerPos:distanceTo(ballPlacementPos) < BALL_PLACEMENT_RADIUS
 				and self._positionReachedTime == 0 then
 			self._positionReachedTime = World.Time
 		end
@@ -132,7 +136,7 @@ function PlaceBall:run()
 				self._moveAwayState = "MoveToCenter"
 			end
 		elseif self._moveAwayState == "MoveToCenter" then
-			if World.BallPlacementPos:distanceTo(Vector(0,0)) > 0.7 then
+			if ballPlacementPos:distanceTo(Vector(0,0)) > 0.7 then
 				self._robot.trajectory:update(ToTarget, Vector(0,0), 0)
 			else
 				self._robot.trajectory:update(ToTarget, Vector(1.3,0), 0)
