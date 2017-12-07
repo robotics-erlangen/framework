@@ -4,6 +4,7 @@ local DebugCommands = require "../base/debugcommands"
 local Plotter = require "../base/plot"
 local World = require "../base/world"
 local ChipTask = require "task/debugchip"
+local PlaceBall = require "task/placeball"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 
@@ -20,6 +21,7 @@ function DebugChip:_init()
 	self._angle = math.pi/2
 	self._distance = 3
 	self._timer = 10
+	self._ballPlacement = false
 
 	self._idlePos = Vector(1, -2)
 	self._initBall = {
@@ -29,8 +31,7 @@ function DebugChip:_init()
 		speedZ = 0
 	}
 
-	local time = World.Time 
-	self._testStart = time
+	local time = World.Time
 	self._lastTimestamp = time
 	self._wasShot = false
 	self._lastBall = World.Ball
@@ -38,7 +39,7 @@ function DebugChip:_init()
 
 	-- TODO more testcases
 
-	self:_resetChip()	
+	self:_resetChip()
 end
 
 function DebugChip:_canContinue()
@@ -68,12 +69,14 @@ function DebugChip:_resetChip()
 	
 
 	local time = World.Time 
-	self._testStart = time
 	self._lastTimestamp = time
 	self._wasShot = false
 	self._lastBall = World.Ball
 	self._earlyBallTable = {}
-	DebugCommands.moveObjects(self._initBall)
+
+	if World.IsSimulated then
+		DebugCommands.moveObjects(self._initBall)
+	end
 
 end
 
@@ -135,12 +138,24 @@ function DebugChip:_updateTasks()
 	end
 
 	local restartNecessary
-	if World.Ball.pos:distanceTo(self._idlePos) > self._distance + 1.5 and self._timer == 0 then
+	if World.Ball.pos:distanceTo(self._idlePos) > self._distance + 1.5 
+				and self._timer == 0 and self._ballPlacement == false then
 		restartNecessary = true
+		if World.IsSimulated == false then
+			self._ballPlacement = true
+		end
 		self:_resetChip()
 	end
 
-	taskAssignments[self._robots[1]] = { class = ChipTask, params = {self._idlePos, self._distance }, restart = restartNecessary }
+	if not self._ballPlacement then
+		taskAssignments[self._robots[1]] = { class = ChipTask, params = {self._idlePos, self._distance }, restart = restartNecessary }
+	else
+		taskAssignments[self._robots[1]] = { class = PlaceBall, params = {self._initBall.pos}, restart = restartNecessary }
+	end
+
+	if World.Ball.pos:distanceTo(self._initBall.pos) < 0.3 then
+		self._ballPlacement = false
+	end
 
 	self:_evaluate()
 
