@@ -47,6 +47,25 @@ end
 Processor.addPre(preproc)
 -- local BallAnalyzer = require "observer/ballAnalyzer"
 -- Processor.addPre(BallAnalyzer())
+
+local lastMemoryUsage = 0
+local function deferredGarbageCollection()
+	-- usually takes 0.8ms, with spikes up to several milliseconds
+	-- local startGCTime = amun.getCurrentTime()
+
+	local currentMemoryUsage = collectgarbage("count")
+	local usageDiff = currentMemoryUsage - lastMemoryUsage
+	-- trigger collection of some amount of memory
+	collectgarbage("step", math.max(0, 2*usageDiff))
+	-- reset gc thresholds
+	collectgarbage("restart")
+	lastMemoryUsage = collectgarbage("count")
+
+	-- local endGCTime = amun.getCurrentTime()
+	-- plot.addPlot("gcTime", endGCTime-startGCTime)
+end
+
+
 local frameCount = 0
 local wrapper = function (func)
 	local f = function()
@@ -72,6 +91,7 @@ local wrapper = function (func)
 		debug.resetStack()
 		Cache.resetFrame()
 		plot._plotAggregated()
+		deferredGarbageCollection()
 	end
 
 	return debugger.dumpLocalsOnError(f)
