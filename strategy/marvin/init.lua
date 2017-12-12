@@ -50,19 +50,19 @@ Processor.addPre(preproc)
 
 local lastMemoryUsage = 0
 local function deferredGarbageCollection()
-	-- usually takes 0.8ms, with spikes up to several milliseconds
-	-- local startGCTime = amun.getCurrentTime()
-
 	local currentMemoryUsage = collectgarbage("count")
-	local usageDiff = currentMemoryUsage - lastMemoryUsage
-	-- trigger collection of some amount of memory
-	collectgarbage("step", math.max(0, 2*usageDiff))
-	-- reset gc thresholds
-	collectgarbage("restart")
-	lastMemoryUsage = collectgarbage("count")
-
-	-- local endGCTime = amun.getCurrentTime()
-	-- plot.addPlot("gcTime", endGCTime-startGCTime)
+	-- plot.addPlot("memInGB", currentMemoryUsage/1024/1024)
+	local gcPauseThreshold = 2
+	if currentMemoryUsage > gcPauseThreshold * lastMemoryUsage then
+		local debt = currentMemoryUsage - lastMemoryUsage
+		-- trigger collection of some amount of memory
+		local cycleCompleted = collectgarbage("step", debt)
+		-- disable gc again, it should only run after the strategy commands are passed on
+		collectgarbage("stop")
+		if cycleCompleted then
+			lastMemoryUsage = collectgarbage("count")
+		end
+	end
 end
 
 
