@@ -35,18 +35,13 @@ function DebugChip:_init()
 	self._lastTimestamp = time
 	self._wasShot = false
 	self._lastBall = World.Ball
-	self._earlyBallTable = {}
-
-	-- TODO more testcases
-
-	self:_resetChip()
 end
 
 function DebugChip:_canContinue()
 	return true
 end
 
-function DebugChip:_resetChip()
+local function resetChip(self)
 	self._timer = 50
 
 	if not self._distance then
@@ -71,8 +66,7 @@ function DebugChip:_resetChip()
 	local time = World.Time 
 	self._lastTimestamp = time
 	self._wasShot = false
-	self._lastBall = World.Ball
-	self._earlyBallTable = {}
+	self._lastBall = table.copy(World.Ball)
 
 	if World.IsSimulated then
 		DebugCommands.moveObjects(self._initBall)
@@ -80,28 +74,32 @@ function DebugChip:_resetChip()
 
 end
 
-function DebugChip:_plotError(ballOld, time, string)
-		local ballNew = World.Ball
-		local predictedBall = Physics.ballAtTime(ballOld, time)
-
-		if predictedBall then
-			local horizontalError = ballNew.pos:distanceTo(predictedBall.pos)
-			Plotter.addPlot("DebugChip."..string..".horizontalError", horizontalError)
-
-			local horizontalSpeedError = math.abs(ballNew.speed:length() - predictedBall.speed:length())
-			Plotter.addPlot("DebugChip."..string..".horizontalSpeedError", horizontalSpeedError)
-
-			if predictedBall.posZ then
-				local verticalError = math.abs(ballNew.posZ - predictedBall.posZ)
-				Plotter.addPlot("DebugChip."..string..".verticalError", verticalError)
-
-				local verticalSpeedError = math.abs(ballNew.posZ, predictedBall.posZ)
-				Plotter.addPlot("DebugChip."..string..".verticalSpeedError", verticalSpeedError)
-			end
-		end
+local function plotError(string, horErr, horSpeedErr, vertErr, vertSpeedErr)
+	Plotter.addPlot("DebugChip."..string..".horizontalError", horErr)
+	Plotter.addPlot("DebugChip."..string..".horizontalSpeedError", horSpeedErr)
+	Plotter.addPlot("DebugChip."..string..".verticalError", vertErr)
+	Plotter.addPlot("DebugChip."..string..".verticalSpeedError", vertSpeedErr)
 end
 
-function DebugChip:_evaluate()
+local function plotErrorTwoBalls(ballOld, time, string)
+	local horizontalError, horizontalSpeedError
+	local verticalError, verticalSpeedError = 0, 0
+
+	local ballNew = World.Ball
+	local predictedBall = Physics.ballAtTime(ballOld, time)
+
+	horizontalError = ballNew.pos:distanceTo(predictedBall.pos)
+	horizontalSpeedError = math.abs(ballNew.speed:length() - predictedBall.speed:length())
+
+	if predictedBall.posZ then
+		verticalError = math.abs(ballNew.posZ - predictedBall.posZ)
+		verticalSpeedError = math.abs(ballNew.posZ, predictedBall.posZ)
+	end
+
+	plotError(string, horizontalError, horizontalSpeedError, verticalError, verticalSpeedError)
+end
+
+local function evaluate(self)
 
 	if Ball.isShot() then
 		self._wasShot = true
@@ -114,20 +112,11 @@ function DebugChip:_evaluate()
 	else
 		local time = World.Time - self._lastTimestamp
 		local string = "infinitesimal"
-		self:_plotError(self._lastBall, time, string)
+		plotErrorTwoBalls(self._lastBall, time, string)
 	end
 
 	-- long term prediction
-	if self._wasShot and #self._earlyBallTable == 5 then
-		for i, entry in ipairs(self._earlyBallTable) do 
-			local string = "longterm"..i..""
-			local time = World.Time - entry.time
-			self:_plotError(entry.ball, time, string)
-		end 
-	elseif #self._earlyBallTable < 5 then
-		local index = #self._earlyBallTable + 1
-		self._earlyBallTable[index] = {ball = World.Ball, time = World.Time}
-	end
+
 end
 
 function DebugChip:_updateTasks()
@@ -144,7 +133,7 @@ function DebugChip:_updateTasks()
 		if World.IsSimulated == false then
 			self._ballPlacement = true
 		end
-		self:_resetChip()
+		resetChip(self)
 	end
 
 	if not self._ballPlacement then
@@ -157,7 +146,7 @@ function DebugChip:_updateTasks()
 		self._ballPlacement = false
 	end
 
-	self:_evaluate()
+	evaluate(self)
 
 	return taskAssignments
 end
