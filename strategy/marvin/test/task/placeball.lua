@@ -1,5 +1,5 @@
 local Entrypoints = require "../base/entrypoints"
-local PlaceBall = require "task/placeball2"
+local PlaceBall = require "task/placeball"
 local Coordinator = require "control/coordinator"
 local Trainer = require "trainer/trainer"
 local AgentPool = require "control/agentpool"

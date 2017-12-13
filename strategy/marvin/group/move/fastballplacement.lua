@@ -1,10 +1,11 @@
 local FastBallPlacement = Class("Test.Move.FastBallPlacement", require "group/move/base")
 
 local debug = require "../base/debug"
+local Field = require "../base/field"
 local geom = require "../base/geom"
 local MoveToPos = require "task/movetopos"
 local Pass = require "task/pass"
-local PlaceBall = require "task/placeball"
+local PlaceBall = require "task/placeball2"
 local World = require "../base/world"
 local vis = require "../base/vis"
 
@@ -18,10 +19,12 @@ local STATE_ACCEPT_PASS = "STATE_ACCEPT_PASS"
 local STATE_WAITING_FOR_ADJUST = "STATE_WAITING_FOR_ADJUST"
 local STATE_SET_BACK = "STATE_SET_BACK"
 local STATE_FINE_ADJUST = "STATE_FINE_ADJUST"
+local STATE_PULL_TO_FIELD = "STATE_PULL_TO_FIELD"
 
 local PASS_SPEED = 1.0
 local PLACEMENT_RADIUS = 0.1
 local MOVE_VS_ADJUST_DISTANCE = 0.5
+local BORDER_FIELD_EXTENSION = 0.2
 
 function FastBallPlacement.canStart()
 	return World.RefereeState == "BallPlacementOffensive"
@@ -73,6 +76,10 @@ function FastBallPlacement:_updateTasks()
 
 		taskAssignments[self.SHOOTER] = { class = MoveToPos, params = { self.SHOOTER.pos }, restart = self._restartTask }
 		taskAssignments[self.RECEIVER] = { class = MoveToPos, params = { self.RECEIVER.pos }, restart = self._restartTask }
+	elseif self._state == STATE_PULL_TO_FIELD then
+
+		taskAssignments[self.SHOOTER] = { class = PlaceBall, params = { Field.limitToField(World.Ball.pos) }, restart = self._restartTask}
+		taskAssignments[self.RECEIVER] = { class = MoveToPos, params = { self._computedReceiverPos }, restart = self._restartTask }
 	elseif self._state == STATE_MOVE_TO_POS then
 		self._mainAttacker = self.SHOOTER
 
@@ -151,13 +158,17 @@ function FastBallPlacement:_getNextState(currentState)
 
 	local nextState = currentState
 
-	-- state is nil after init
 	if currentState == STATE_START then
-		self._stateChangeTime = World.Time
-		if World.Ball.pos:distanceTo(World.BallPlacementPos) > MOVE_VS_ADJUST_DISTANCE then
+		if not self:_isBallPushable(World.Ball) then 
+			nextState = STATE_PULL_TO_FIELD
+		elseif World.Ball.pos:distanceTo(World.BallPlacementPos) > MOVE_VS_ADJUST_DISTANCE then
 			nextState = STATE_MOVE_TO_POS
 		else
 			nextState = STATE_FINE_ADJUST
+		end
+	elseif currentState == STATE_PULL_TO_FIELD then
+		if self:_isBallPushable(World.Ball) then
+			nextState = STATE_START
 		end
 	elseif currentState == STATE_MOVE_TO_POS then
 		-- We dont care if SHOOTER already arrived at his position as task/pass will move to the ball automatically
@@ -176,7 +187,7 @@ function FastBallPlacement:_getNextState(currentState)
 			if ballDist > MOVE_VS_ADJUST_DISTANCE then
 				nextState = STATE_MOVE_TO_POS
 			else
-				nextState = STATE_FINE_ADJUST
+				nextState = STATE_WAITING_FOR_ADJUST
 			end
 		elseif not self._ballReceiverIntersects and ballDist > (0.15 + World.Ball.radius + self.RECEIVER.radius) then
 			nextState = STATE_MOVE_TO_POS
@@ -230,6 +241,10 @@ function FastBallPlacement:_recomputePositions()
 	local ballToPlacement = (World.BallPlacementPos - World.Ball.pos):setLength(distanceToPos)
 	self._computedShooterPos = World.Ball.pos - ballToPlacement
 	self._computedReceiverPos = World.BallPlacementPos + ballToPlacement
+end
+
+function FastBallPlacement:_isBallPushable(ball)
+	return Field.isInField(ball.pos)
 end
 
 return FastBallPlacement
