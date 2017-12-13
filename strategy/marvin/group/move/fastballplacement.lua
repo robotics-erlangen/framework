@@ -5,7 +5,7 @@ local Field = require "../base/field"
 local geom = require "../base/geom"
 local MoveToPos = require "task/movetopos"
 local Pass = require "task/pass"
-local PlaceBall = require "task/placeball2"
+local PlaceBall = require "task/placeball"
 local World = require "../base/world"
 local vis = require "../base/vis"
 
@@ -77,7 +77,10 @@ function FastBallPlacement:_updateTasks()
 		taskAssignments[self.RECEIVER] = { class = MoveToPos, params = { self.RECEIVER.pos }, restart = self._restartTask }
 	elseif self._state == STATE_PULL_TO_FIELD then
 
-		taskAssignments[self.SHOOTER] = { class = PlaceBall, params = { Field.limitToField(World.Ball.pos) }, restart = self._restartTask}
+		local nearestFieldPos = Field.limitToField(World.Ball.pos)
+		local placePos = nearestFieldPos + (nearestFieldPos - World.Ball.pos):setLength(2 * World.Ball.radius)
+
+		taskAssignments[self.SHOOTER] = { class = PlaceBall, params = { placePos }, restart = self._restartTask}
 		taskAssignments[self.RECEIVER] = { class = MoveToPos, params = { self._computedReceiverPos }, restart = self._restartTask }
 	elseif self._state == STATE_MOVE_TO_POS then
 		self._mainAttacker = self.SHOOTER
