@@ -24,7 +24,6 @@ local STATE_PULL_TO_FIELD = "STATE_PULL_TO_FIELD"
 local PASS_SPEED = 1.0
 local PLACEMENT_RADIUS = 0.1
 local MOVE_VS_ADJUST_DISTANCE = 0.5
-local BORDER_FIELD_EXTENSION = 0.2
 
 function FastBallPlacement.canStart()
 	return World.RefereeState == "BallPlacementOffensive"
