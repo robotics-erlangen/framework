@@ -84,6 +84,8 @@ World.IsLargeField = false
 World.MixedTeam = nil
 World.SelectedOptions = nil
 
+World.RULEVERSION = nil
+
 World.Geometry = {}
 --- Field geometry.
 -- Lengths in meter
@@ -124,6 +126,7 @@ function World._init()
 	World.TeamIsBlue = amun.isBlue()
 	World._updateGeometry(amun.getGeometry())
 	World._updateTeam(amun.getTeam())
+	World.RULEVERSION = "2018"
 end
 
 --- Update world state.
@@ -174,8 +177,10 @@ function World._updateGeometry(geom)
 
 	wgeom.DefenseRadius = geom.defense_radius
 	wgeom.DefenseStretch = geom.defense_stretch
+	wgeom.DefenseStretchHalf = geom.defense_stretch / 2
 	wgeom.DefenseWidth = geom.defense_width
 	wgeom.DefenseHeight = geom.defense_height
+	wgeom.DefenseWidthHalf = geom.defense_width / 2
 
 	wgeom.FriendlyPenaltySpot = Vector.createReadOnly(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist)
 	wgeom.OpponentPenaltySpot = Vector.createReadOnly(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist)
