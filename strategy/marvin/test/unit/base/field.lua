@@ -1,15 +1,13 @@
 local Injector = require "test/unit/injector"
 
-
 context("base.field", function()
-	local Referee, Field, World, math, geom
+	local Referee, Field, World
 	local injector = Injector(nil)
 
 	before(function()
-		
-		math = injector:load("../base/math")
-		geom = injector:load("../base/geom")
 
+		injector:load("../base/math")
+		injector:load("../base/geom")
 
 		World = {
 			Geometry = {
