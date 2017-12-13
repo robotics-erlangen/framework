@@ -104,6 +104,125 @@ function Physics.ballAtTime(ball, time)
 	return result
 end
 
+--- predicts the ball
+-- @param ball Ball - a ball-like structure, must contain the fields pos, speed, maxSpeed, posZ, speedZ and radius
+-- @param time number - the number of seconds from now on
+-- @return Ball - the predicted ball as a ball-like structure
+function Physics.ballAtTimeExperimental(ball, time)
+	-- formulas used:
+	-- v = a * t + v0
+	-- t = (v - v0) / a
+	-- s = 1/2 * a * t^2 + v0 * t + s0
+
+	-- a_slide: the negative acceleration while the ball is sliding [m/s^2]
+	-- a_roll: the negative acceleration while the ball is rolling [m/s^2]
+	local a_slide = Constants.fastBallDeceleration
+	local a_roll = Constants.ballDeceleration
+
+	-- v_max: the speed at which the ball was shot [m/s]
+	-- v_switch: the speed of the ball at the moment where the ball starts rolling [m/s]
+	-- v_current: the speed of the ball, now [m/s]
+	local v_max = ball.maxSpeed
+	local v_switch = Constants.ballSwitchRatio * v_max
+	local v_current = ball.speed:length()
+
+	-- t_switch: the moment the ball starts rolling, from now [s]
+	-- s_switch: the distance the ball traveled before starting to roll [m]
+	local t_switch
+	local s_switch
+
+	-- result: the ball-like returned object
+	local result = {}
+
+	-- since we don't do collision calculation, maxSpeed always stays the same
+	result.maxSpeed = ball.maxSpeed
+	result.radius = ball.radius
+	result.pos = ball.pos
+	result.posZ = ball.posZ
+	result.speed = ball.speed
+	result.speedZ = ball.speedZ
+
+
+
+	-- flying stage
+	if ball.posZ > 0.1 then
+
+		local v0 = ball.speedZ
+		local h0 = ball.posZ
+
+		-- h(t) = (t^2 / 2) * (-9.81) + t * v0 + h0
+		-- h(t) == 0; midnight formula
+		local impactTime = (-v0 + math.sqrt(v0*v0 + (4 * (-9.81/2) * h0))) / (-9.81)
+		local impactSpeed = impactTime * 9.81 - v0
+		local timePassed = 0
+
+		while impactTime < time - timePassed do -- subsequent bouncing
+			timePassed = timePassed + impactTime
+			v0 = impactSpeed * Constants.floorDamping
+			h0 = 0
+
+			local liftTime = v0 / 9.81
+			local flightHeight = liftTime*liftTime * (-9.81) / 2 + liftTime * v0 
+			if flightHeight < 0.03 then -- consider ball rolling
+				break
+			end
+
+			result.pos = result.pos + ball.speed * impactTime
+
+			impactTime = (-v0 + math.sqrt(v0*v0 + (2 * (-9.81) * h0))) / (-9.81)
+			impactSpeed = impactTime * 9.81 - v0
+		end
+
+		if impactTime > time - timePassed then -- flight or bouncing not finished
+			local t = time - timePassed
+			result.pos = result.pos + ball.speed * t
+			result.posZ = h0 + v0*t - 0.5*9.81*t*t
+			result.speedZ = v0 - t*9.81
+			return result
+		end
+		time = time - timePassed
+	end
+
+	-- the sliding stage
+	if v_current > v_switch then
+		t_switch = (v_switch - v_current) / a_slide
+		s_switch = a_slide / 2 * t_switch * t_switch + v_current * t_switch
+
+		-- if "time" is in the sliding stage
+		if time <= t_switch then
+			local v_result = a_slide * time + v_current
+			local s_result = a_slide / 2 * time * time + v_current * time
+			result.speed = ball.speed:copy():setLength(v_result)
+			result.pos = result.pos + ball.speed:copy():setLength(s_result)
+			return result
+		end
+	else
+		t_switch = 0
+		s_switch = 0
+		v_switch = v_current
+	end
+
+	-- t_roll: how long the ball stays in the rolling stage
+	local t_roll = (0 - v_switch) / a_roll
+
+	-- if "time" is after the ball has stopped
+	if time >= t_switch + t_roll then
+		local s_result = a_roll / 2 * t_roll * t_roll + v_switch * t_roll + s_switch
+		result.speed = Vector.create(0, 0)
+		result.pos = result.pos + ball.speed:copy():setLength(s_result)
+		return result
+	end
+
+	-- if the ball is still in the rolling stage at time "time", change t_roll accordingly
+	t_roll = time - t_switch
+
+	local v_result = a_roll * t_roll + v_switch
+	local s_result = a_roll / 2 * t_roll * t_roll + v_switch * t_roll + s_switch
+	result.speed = ball.speed:copy():setLength(v_result)
+	result.pos = result.pos + ball.speed:copy():setLength(s_result)
+	return result
+end
+
 --- Estimates how long a ball will be flying or subsequently bouncing for a given distance
 -- @param ball Ball - a ball-like structure
 -- @param distance number - the distance in meter
