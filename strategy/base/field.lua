@@ -64,7 +64,7 @@ function Field.limitToAllowedField(pos, extraLimit)
 	end
 	pos = Field.limitToField(pos, -extraLimit)
 	if Field.isInFriendlyDefenseArea(pos, extraLimit) then
-		if math.abs(pos.x) <= G.DefenseStrechHalf then
+		if math.abs(pos.x) <= G.DefenseStretchHalf then
 			pos = Vector(pos.x, -G.FieldHeightHalf + G.DefenseRadius + extraLimit)
 		else
 			local circleMidpoint = Vector(
@@ -190,8 +190,8 @@ end
 -- @return bool - is in field
 function Field.isInAllowedField(pos, boundaryWidth)
 	return Field.isInField(pos, boundaryWidth) and
-		not isInDefenseArea(pos, -boundaryWidth, true) and
-		not isInDefenseArea(pos, -boundaryWidth, false)
+		not Field.isInDefenseArea(pos, -boundaryWidth, true) and
+		not Field.isInDefenseArea(pos, -boundaryWidth, false)
 end
 
 --- Returns true if the position is inside/touching the friendly defense area
@@ -200,7 +200,7 @@ end
 -- @param radius number - Radius of object to check
 -- @return bool
 function Field.isInFriendlyDefenseArea(pos, radius)
-	return isInDefenseArea(pos, radius, true)
+	return Field.isInDefenseArea(pos, radius, true)
 end
 
 --- Returns true if the position is inside/touching the opponent defense area
@@ -209,7 +209,7 @@ end
 -- @param radius number - Radius of object to check
 -- @return bool
 function Field.isInOpponentDefenseArea(pos, radius)
-	return isInDefenseArea(pos, radius, false)
+	return Field.isInDefenseArea(pos, radius, false)
 end
 
 --- Calculates the distance (between robot hull and field line) to the friendly defense area
@@ -218,7 +218,7 @@ end
 -- @param radius number - Radius of object to check
 -- @return number - distance
 function Field.distanceToFriendlyDefenseArea(pos, radius)
-	return distanceToDefenseArea(pos, radius, true)
+	return Field.distanceToDefenseArea(pos, radius, true)
 end
 
 --- Calculates the distance (between robot hull and field line) to the opponent defense area
@@ -227,7 +227,7 @@ end
 -- @param radius number - Radius of object to check
 -- @return number - distance
 function Field.distanceToOpponentDefenseArea(pos, radius)
-	return distanceToDefenseArea(pos, radius, false)
+	return Field.distanceToDefenseArea(pos, radius, false)
 end
 
 local normalize = function(angle)
@@ -290,7 +290,7 @@ local intersectRayDefenseArea = function(pos, dir, extraDistance, opp)
 	-- calculate intersection point with defense stretch
 	local defenseLineOnpoint = Vector(0, -G.FieldHeightHalf + radius) * oppfac
 	local lineIntersection,l1,l2 = geom.intersectLineLine(pos, dir, defenseLineOnpoint, Vector(1,0))
-	if lineIntersection and l1 >= 0 and math.abs(l2) <= G.DefenseStrechHalf then
+	if lineIntersection and l1 >= 0 and math.abs(l2) <= G.DefenseStretchHalf then
 		table.insert(intersections, {lineIntersection, l2 + totalway/2, l1})
 	end
 	return intersections, totalway

@@ -126,7 +126,7 @@ function World._init()
 	World.TeamIsBlue = amun.isBlue()
 	World._updateGeometry(amun.getGeometry())
 	World._updateTeam(amun.getTeam())
-	World.RULEVERSION = "2018"
+	World.RULEVERSION = "2017"
 end
 
 --- Update world state.
