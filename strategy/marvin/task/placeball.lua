@@ -118,7 +118,15 @@ function PlaceBall:run()
 		robot:halt()
 	elseif self._state == STATE_BACK_UP then
 
-		self._currentTargetPos = ball.pos + (robot.pos - ball.pos):setLength(ball.radius + robot.shootRadius + 0.2)
+		-- TODO better backup (maybe only update offsets if ball is visible? much testing required)
+		if self._stateChanged then
+			if ballVisible then
+				self._currentTargetPos = robot.pos - (ball.pos - robot.pos):setLength(robot.shootRadius + ball.radius + 0.05)
+			else
+				self._currentTargetPos = robot.pos - self._placementOffset
+			end
+		end
+
 		-- TODO fix at placement pos
 		robot.trajectory:update(ToTarget, self._currentTargetPos, robot.dir, 0.4)
 
