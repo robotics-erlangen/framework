@@ -34,7 +34,8 @@ function DebugChip:_init()
 	local time = World.Time
 	self._lastTimestamp = time
 	self._wasShot = false
-	self._lastBall = World.Ball
+	self._lastBall = table.copy(World.Ball)
+	self._ballTable = {}
 end
 
 function DebugChip:_canContinue()
@@ -86,7 +87,7 @@ local function plotErrorTwoBalls(ballOld, time, string)
 	local verticalError, verticalSpeedError = 0, 0
 
 	local ballNew = World.Ball
-	local predictedBall = Physics.ballAtTime(ballOld, time)
+	local predictedBall = Physics.ballAtTimeExperimental(ballOld, time)
 
 	horizontalError = ballNew.pos:distanceTo(predictedBall.pos)
 	horizontalSpeedError = math.abs(ballNew.speed:length() - predictedBall.speed:length())
@@ -97,6 +98,19 @@ local function plotErrorTwoBalls(ballOld, time, string)
 	end
 
 	plotError(string, horizontalError, horizontalSpeedError, verticalError, verticalSpeedError)
+end
+
+local function compareBalls(predictedBall, actualBall)
+	log(predictedBall.pos)
+	log(actualBall.pos)
+	local horErr = math.abs(predictedBall.pos:distanceTo(actualBall.pos))
+	local horSpeedErr = math.abs(predictedBall.speed:length() - predictedBall.speed:length())
+	local vertErr, vertSpeedErr = 0, 0
+	if predictedBall.posZ then
+		vertErr = math.abs(predictedBall.posZ - predictedBall.posZ)
+		vertSpeedErr = math.abs(predictedBall.posZ, predictedBall.posZ)
+	end
+	return {horErr = horErr, horSpeedErr = horSpeedErr, vertErr = vertErr, vertSpeedErr = vertSpeedErr}
 end
 
 local function evaluate(self)
@@ -115,7 +129,29 @@ local function evaluate(self)
 		plotErrorTwoBalls(self._lastBall, time, string)
 	end
 
-	-- long term prediction
+	-- mid term prediction
+	if #self._ballTable == 10 then
+		local sumHorErr, sumHorSpeedErr, sumVertErr, sumVertSpeedErr = 0, 0, 0, 0
+		for id, entry in ipairs(self._ballTable) do
+			if id ~= 1 then
+				local predictedBall = Physics.ballAtTimeExperimental(entry.ball, World.Time - entry.time)
+				local errTable = compareBalls(predictedBall, entry.ball)
+				sumHorErr = sumHorErr + errTable.horErr
+				sumHorSpeedErr = sumHorSpeedErr + errTable.horSpeedErr
+				sumVertErr = sumVertErr + errTable.vertErr
+				sumVertSpeedErr = sumVertSpeedErr + errTable.vertSpeedErr
+			end
+		end
+		local avgHorErr = sumHorErr / 9
+		local avgHorSpeedErr = sumHorSpeedErr / 9
+		local avgVertErr = sumVertErr / 9
+		local avgVertSpeedErr = sumVertSpeedErr/ 9
+		plotError("midTerm", avgHorErr, avgHorSpeedErr, avgVertErr, avgVertSpeedErr)
+		table.remove(self._ballTable, 1)
+		table.insert(self._ballTable, {ball = table.copy(World.Ball), time = World.Time})
+	else
+		table.insert(self._ballTable, {ball = table.copy(World.Ball), time = World.Time})
+	end
 
 end
 
