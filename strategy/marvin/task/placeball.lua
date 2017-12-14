@@ -19,7 +19,8 @@ local STATE_PUSH_TO_POS = "STATE_PUSH_TO_POS"
 local STATE_END = "STATE_END"
 
 local TOLERANCE = 0.1
-local MAX_BALL_SPEED = 0.2
+local MAX_SPEED_WITH_BALL = 0.2
+local MAX_ACCEL_WITH_BALL = 0.2
 local MAX_DRIBBLER_SPEED = 0.8
 
 -- during ENSURE_CONTACT, if robot:hasBall, this is the timespan after which the state is changed to pull 
@@ -37,7 +38,13 @@ function PlaceBall:_init(placementPos)
 	self._ballStartPos = World.Ball.pos:copy()
 	
 	self._currentTargetPos = nil
+	-- To ensure we actually have the ball
 	self._hasBallTime = nil
+	-- Hysteresis before we say we lost it
+	self._notHasBallTime = nil
+
+	self._barrierDetects = false
+	self._ballInDribbler = false
 end
 
 function PlaceBall:run()
@@ -57,6 +64,13 @@ function PlaceBall:run()
 	vis.addCircle("PlaceBall", nearestFieldPos, TOLERANCE, vis.colors.orange)
 	vis.addPath("PlaceBall", { self._placementPos, self._placementPos + self._placementOffset }, vis.colors.black)
 	vis.addPath("PlaceBall", { nearestFieldPos, nearestFieldPos + self._borderOffset }, vis.colors.black)
+
+	if robot.radioResponse then
+		self._barrierDetects = robot.radioResponse.ball_detected
+	end
+	debug.set("barrier detects", self._barrierDetects)
+	local ballVisible = ball:isPositionValid()
+	self._ballInDribbler = not ballVisible and self._barrierDetects or ballVisible and robot:hasBall(ball)
 
 	local oldState = self._state
 	self._state = self:_getNextState(oldState)
@@ -97,8 +111,8 @@ function PlaceBall:run()
 
 		robot:setDribblerSpeed(MAX_DRIBBLER_SPEED)
 
-		local speed = -self._borderOffset:copy():setLength(0.1)
-		robot.trajectory:update(Direct, speed, self._borderOffset:angle())
+		self._currentTargetPos = nearestFieldPos - self._borderOffset:copy():scaleLength(1.5)
+		robot.trajectory:update(ToTarget, self._currentTargetPos, self._borderOffset:angle(), MAX_SPEED_WITH_BALL, nil, MAX_ACCEL_WITH_BALL)
 
 	elseif self._state == STATE_WAIT_FOR_STOP then
 		robot:halt()
@@ -116,9 +130,9 @@ function PlaceBall:run()
 	elseif self._state == STATE_PUSH_TO_POS then
 		-- TODO Faster push at higher distance
 		robot:setDribblerSpeed(MAX_DRIBBLER_SPEED)
-		self._currentTargetPos = ball.pos - self._placementOffset
+		self._currentTargetPos = self._placementPos + self._placementOffset:copy():setLength(robot.shootRadius + ball.radius)
 
-		robot.trajectory:update(ToTarget, self._currentTargetPos, (-self._placementOffset):angle(), MAX_BALL_SPEED)
+		robot.trajectory:update(ToTarget, self._currentTargetPos, (-self._placementOffset):angle(), MAX_SPEED_WITH_BALL, nil, MAX_ACCEL_WITH_BALL)
 
 	elseif self._state == STATE_END then
 		robot:halt()
@@ -153,7 +167,7 @@ function PlaceBall:_getNextState(currentState)
 		end
 	elseif currentState == STATE_ENSURE_PULL_CONTACT then
 
-		if robot:hasBall(ball) then
+		if self._ballInDribbler then
 			if not self._hasBallTime then
 				self._hasBallTime = World.Time
 			elseif World.Time - self._hasBallTime > HAS_BALL_MIN_TIME then
@@ -165,10 +179,11 @@ function PlaceBall:_getNextState(currentState)
 
 	elseif currentState == STATE_PULL_TO_FIELD then
 
-		if not robot:hasBall(ball)
-			or ball.pos:distanceTo(robot.pos) > robot.shootRadius + ball.radius + 0.05 then
+		local ballVisible = ball:isPositionValid()
+
+		if not self._ballInDribbler and ballVisible and ball.pos:distanceTo(robot.pos) > robot.shootRadius + ball.radius + 0.05 then
 			nextState = STATE_START
-		elseif self:_isBallPushable(ball) then
+		elseif robot.pos:distanceTo(self._currentTargetPos) < 0.01 then
 			nextState = STATE_WAIT_FOR_STOP
 		end
 
@@ -189,7 +204,8 @@ function PlaceBall:_getNextState(currentState)
 			nextState = STATE_PUSH_TO_POS
 		end
 	elseif currentState == STATE_PUSH_TO_POS then
-		if ball.pos:distanceTo(self._placementPos) < 0.25 * TOLERANCE then
+		-- TODO test this at indirect situation (ball must get moved to corner)
+		if robot.pos:distanceTo(self._currentTargetPos) < 0.01 then
 			nextState = STATE_WAIT_FOR_STOP
 		elseif ball.pos:distanceTo(robot.pos) > 2 * TOLERANCE then
 			nextState = STATE_START
