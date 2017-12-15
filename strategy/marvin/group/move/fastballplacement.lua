@@ -49,6 +49,9 @@ function FastBallPlacement:_init()
 
 	self._setBackPosition = nil
 
+	-- For PlaceBall hack
+	self._ballInFieldTimer = nil
+
 end
 
 function FastBallPlacement:_updateTasks()
@@ -170,8 +173,16 @@ function FastBallPlacement:_getNextState(currentState)
 			nextState = STATE_FINE_ADJUST
 		end
 	elseif currentState == STATE_PULL_TO_FIELD then
+		-- TODO mieser hack, Zeit überprüfen ist unsauber, messaging is better
 		if self:_isBallPushable(World.Ball) then
-			nextState = STATE_START
+			if not self._ballInFieldTimer then
+				self._ballInFieldTimer = World.Time
+			end
+			if World.Time - self._ballInFieldTimer > 3 then
+				nextState = STATE_START
+			end
+		else
+			self._ballInFieldTimer = nil
 		end
 	elseif currentState == STATE_MOVE_TO_POS then
 		if self.RECEIVER.pos:distanceTo(self._computedReceiverPos) < 0.05 
