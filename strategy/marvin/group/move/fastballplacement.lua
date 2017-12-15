@@ -165,12 +165,12 @@ function FastBallPlacement:_getNextState(currentState)
 	local nextState = currentState
 
 	if currentState == STATE_START then
-		if not self:_isBallPushable(World.Ball) then 
-			nextState = STATE_PULL_TO_FIELD
-		elseif World.Ball.pos:distanceTo(World.BallPlacementPos) > MOVE_VS_ADJUST_DISTANCE then
-			nextState = STATE_MOVE_TO_POS
-		else
+		if World.Ball.pos:distanceTo(World.BallPlacementPos) < MOVE_VS_ADJUST_DISTANCE then
 			nextState = STATE_FINE_ADJUST
+		elseif not self:_isBallPushable(World.Ball) then
+			nextState = STATE_PULL_TO_FIELD
+		else
+			nextState = STATE_MOVE_TO_POS
 		end
 	elseif currentState == STATE_PULL_TO_FIELD then
 		-- TODO mieser hack, Zeit überprüfen ist unsauber, messaging is better
