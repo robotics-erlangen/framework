@@ -1,6 +1,7 @@
 local PlaceBall = Class("Task.PlaceBall", require "task/base")
 
 local debug = require "../base/debug"
+local geom = require "../base/geom"
 local World = require "../base/world"
 local Direct = require "trajectory/direct"
 local Field = require "../base/field"
@@ -56,6 +57,7 @@ function PlaceBall:run()
 	if not self._placementOffset or ball.pos:distanceTo(self._placementPos) > TOLERANCE then
 		self._placementOffset = (ball.pos - self._placementPos):setLength(offsetLen)
 	end
+
 	local nearestFieldPos = Field.limitToField(ball.pos)
 	if not self._borderOffset or ball.pos:distanceTo(nearestFieldPos) > TOLERANCE then
 		self._borderOffset = (ball.pos - nearestFieldPos):setLength(offsetLen)
@@ -110,8 +112,9 @@ function PlaceBall:run()
 	elseif self._state == STATE_PULL_TO_FIELD then
 
 		robot:setDribblerSpeed(MAX_DRIBBLER_SPEED)
-
-		self._currentTargetPos = nearestFieldPos - self._borderOffset:copy():scaleLength(1.5)
+		if not Field.isInField(nearestFieldPos, -0.01) then
+			self._currentTargetPos = nearestFieldPos - self._borderOffset:copy():scaleLength(1.5)
+		end
 		robot.trajectory:update(ToTarget, self._currentTargetPos, self._borderOffset:angle(), MAX_SPEED_WITH_BALL, nil, MAX_ACCEL_WITH_BALL)
 
 	elseif self._state == STATE_WAIT_FOR_STOP then
@@ -166,7 +169,7 @@ function PlaceBall:_getNextState(currentState)
 		end
 	elseif currentState == STATE_GO_TO_PULL then
 		local dist = robot.pos:distanceTo(self._currentTargetPos)
-		local angleDiff = math.abs(robot.dir - self._borderOffset:angle())
+		local angleDiff = math.abs(geom.getAngleDiff(robot.dir, self._borderOffset:angle()))
 		debug.set("dist", dist)
 		debug.set("angleDiff", angleDiff)
 		-- pi/36 = 5 degree
