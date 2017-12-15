@@ -3,6 +3,7 @@ local FastBallPlacement = Class("Test.Move.FastBallPlacement", require "group/mo
 local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
+local Halt = require "task/halt"
 local MoveToPos = require "task/movetopos"
 local Pass = require "task/pass"
 local PlaceBall = require "task/placeball"
@@ -73,8 +74,8 @@ function FastBallPlacement:_updateTasks()
 		self:_determineRoles()
 		self:_recomputePositions()
 
-		taskAssignments[self.SHOOTER] = { class = MoveToPos, params = { self.SHOOTER.pos }, restart = self._restartTask }
-		taskAssignments[self.RECEIVER] = { class = MoveToPos, params = { self.RECEIVER.pos }, restart = self._restartTask }
+		taskAssignments[self.SHOOTER] = { class = Halt, restart = self._restartTask }
+		taskAssignments[self.RECEIVER] = { class = Halt, restart = self._restartTask }
 	elseif self._state == STATE_PULL_TO_FIELD then
 
 		local nearestFieldPos = Field.limitToField(World.Ball.pos)
@@ -103,7 +104,7 @@ function FastBallPlacement:_updateTasks()
 	elseif self._state == STATE_ACCEPT_PASS then
 		self._mainAttacker = self.RECEIVER
 		-- Ignore shooter
-		taskAssignments[self.SHOOTER] = { class = MoveToPos, params = { self.SHOOTER.pos }, restart = self._restartTask }
+		taskAssignments[self.SHOOTER] = { class = Halt, restart = self._restartTask }
 		
 		self.RECEIVER:setDribblerSpeed(0.6)
 
@@ -123,7 +124,7 @@ function FastBallPlacement:_updateTasks()
 		self._mainAttacker = self.RECEIVER
 
 		-- Ignore shooter
-		taskAssignments[self.SHOOTER] = { class = MoveToPos, params = { self.SHOOTER.pos }, restart = self._restartTask }
+		taskAssignments[self.SHOOTER] = { class = Halt, restart = self._restartTask }
 		-- We change after a certain time because we want the ball to stop spinning
 		-- See getNextState
 		taskAssignments[self.RECEIVER] = { class = MoveToPos, params = { self.RECEIVER.pos, self.RECEIVER.dir }, restart = self._restartTask }
@@ -131,7 +132,7 @@ function FastBallPlacement:_updateTasks()
 		self._mainAttacker = self.RECEIVER
 
 		-- Ignore shooter
-		taskAssignments[self.SHOOTER] = { class = MoveToPos, params = { self.SHOOTER.pos }, restart = self._restartTask }
+		taskAssignments[self.SHOOTER] = { class = Halt, restart = self._restartTask }
 
 		if self._restartTask then
 			self._setBackPosition = self.RECEIVER.pos + (self.RECEIVER.pos - World.Ball.pos):setLength(self.RECEIVER.radius * 2)
@@ -143,7 +144,7 @@ function FastBallPlacement:_updateTasks()
 		self._mainAttacker = self.RECEIVER
 
 		-- Ignore shooter
-		taskAssignments[self.SHOOTER] = { class = MoveToPos, params = { self.SHOOTER.pos }, restart = self._restartTask }
+		taskAssignments[self.SHOOTER] = { class = Halt, restart = self._restartTask }
 
 		taskAssignments[self.RECEIVER] = { class = PlaceBall }
 
@@ -173,9 +174,8 @@ function FastBallPlacement:_getNextState(currentState)
 			nextState = STATE_START
 		end
 	elseif currentState == STATE_MOVE_TO_POS then
-		-- We dont care if SHOOTER already arrived at his position as task/pass will move to the ball automatically
-		-- His MoveToPos is only for optimization
-		if self.RECEIVER.pos:distanceTo(self._computedReceiverPos) < 0.05 then
+		if self.RECEIVER.pos:distanceTo(self._computedReceiverPos) < 0.05 
+			and self.SHOOTER.pos:distanceTo(self._computedShooterPos) < 0.05 then
 			nextState = STATE_EXECUTE_PASS
 		end
 	elseif currentState == STATE_EXECUTE_PASS then
