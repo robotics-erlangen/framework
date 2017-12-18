@@ -178,9 +178,9 @@ function World._updateGeometry(geom)
 	wgeom.DefenseRadius = geom.defense_radius
 	wgeom.DefenseStretch = geom.defense_stretch
 	wgeom.DefenseStretchHalf = geom.defense_stretch / 2
-	wgeom.DefenseWidth = geom.defense_width
-	wgeom.DefenseHeight = geom.defense_height
-	wgeom.DefenseWidthHalf = geom.defense_width / 2
+	wgeom.DefenseWidth = geom.defense_width or geom.defense_stretch
+	wgeom.DefenseHeight = geom.defense_height or geom.defense_radius
+	wgeom.DefenseWidthHalf = (geom.defense_width or geom.defense_stretch) / 2
 
 	wgeom.FriendlyPenaltySpot = Vector.createReadOnly(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist)
 	wgeom.OpponentPenaltySpot = Vector.createReadOnly(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist)
