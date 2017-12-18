@@ -378,7 +378,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         return;
     }
 
-    if (m_debugEnabled) {
+    if (m_debugEnabled && m_debugHelper) {
         m_strategy->setDebugHelper(m_debugHelper);
         // the debug helper doesn't know the exact moment when the strategy gets reloaded
         m_debugHelper->enableQueue();
