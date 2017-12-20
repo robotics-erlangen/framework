@@ -54,18 +54,18 @@ function PlaceBall:run()
 	local robot = self._robot
 
 	local offsetLen = ball.radius + robot.shootRadius + 0.05
-	if not self._placementOffset or ball.pos:distanceTo(self._placementPos) > TOLERANCE then
+	if not self._placementOffset or ball.pos:distanceTo(self._placementPos) > 0.25 * TOLERANCE then
 		self._placementOffset = (ball.pos - self._placementPos):setLength(offsetLen)
 	end
 
 	local nearestFieldPos = Field.limitToField(ball.pos)
-	if not self._borderOffset or ball.pos:distanceTo(nearestFieldPos) > TOLERANCE then
+	if not self._borderOffset or ball.pos:distanceTo(nearestFieldPos) > 0.25 * TOLERANCE then
 		self._borderOffset = (ball.pos - nearestFieldPos):setLength(offsetLen)
 	end
-	vis.addCircle("PlaceBall", self._placementPos, TOLERANCE, vis.colors.orange)
-	vis.addCircle("PlaceBall", nearestFieldPos, TOLERANCE, vis.colors.orange)
-	vis.addPath("PlaceBall", { self._placementPos, self._placementPos + self._placementOffset }, vis.colors.black)
-	vis.addPath("PlaceBall", { nearestFieldPos, nearestFieldPos + self._borderOffset }, vis.colors.black)
+	vis.addCircle("PlaceBall Placement Pos", self._placementPos, TOLERANCE, vis.colors.orange)
+	vis.addCircle("PlaceBall Border Pos", nearestFieldPos, TOLERANCE, vis.colors.orange)
+	vis.addPath("PlaceBall Placement Pos", { self._placementPos, self._placementPos + self._placementOffset }, vis.colors.black)
+	vis.addPath("PlaceBall Border Pos", { nearestFieldPos, nearestFieldPos + self._borderOffset }, vis.colors.black)
 
 	if robot.radioResponse then
 		self._barrierDetects = robot.radioResponse.ball_detected
