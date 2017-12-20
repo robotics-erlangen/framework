@@ -100,9 +100,13 @@ function FastBallPlacement:_updateTasks()
 
 	elseif self._state == STATE_EXECUTE_PASS then
 		self._mainAttacker = self.SHOOTER
-		-- TODO make pass speed depend on distance
 
-		taskAssignments[self.SHOOTER] = { class = Pass, params = { self.RECEIVER, World.BallPlacementPos, false, nil, nil, PASS_SPEED}, restart = self._restartTask }
+		-- TODO test on 9x12 field
+		local dist = (self.SHOOTER.pos - self.RECEIVER.pos):length()
+
+		local ballSpeed = math.max(2, 0.14 * dist + 1.3)
+
+		taskAssignments[self.SHOOTER] = { class = Pass, params = { self.RECEIVER, World.BallPlacementPos, false, nil, nil, ballSpeed}, restart = self._restartTask }
 		taskAssignments[self.RECEIVER] = { class = MoveToPos, params = { self._computedReceiverPos}, restart = self._restartTask }
 	elseif self._state == STATE_ACCEPT_PASS then
 		self._mainAttacker = self.RECEIVER
