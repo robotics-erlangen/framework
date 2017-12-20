@@ -159,7 +159,6 @@ function PlaceBall:_getNextState(currentState)
 	local nextState = currentState
 
 	if currentState == STATE_START then
-		-- TODO Change to end state if the ball is at the placement pos
 		if ball.pos:distanceTo(self._placementPos) < 0.25 * TOLERANCE then
 			nextState = STATE_END
 		elseif self:_isBallPushable(ball) then

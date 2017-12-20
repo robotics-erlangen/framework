@@ -9,6 +9,7 @@ function Moves:init()
 		require "group/move/kickoffdefensive",
 		require "group/move/mrltestcorner",
 		require "group/move/armada",
+		require "group/move/fastballplacement",
 		-- require "group/move/overchip",
 	}
 

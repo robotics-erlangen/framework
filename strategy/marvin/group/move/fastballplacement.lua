@@ -1,6 +1,7 @@
 local FastBallPlacement = Class("Test.Move.FastBallPlacement", require "group/move/base")
 
 local debug = require "../base/debug"
+local BallObserver = require "observer/ball"
 local Field = require "../base/field"
 local geom = require "../base/geom"
 local Halt = require "task/halt"
@@ -22,9 +23,17 @@ local STATE_SET_BACK = "STATE_SET_BACK"
 local STATE_FINE_ADJUST = "STATE_FINE_ADJUST"
 local STATE_PULL_TO_FIELD = "STATE_PULL_TO_FIELD"
 
-local PASS_SPEED = 1.0
-local PLACEMENT_RADIUS = 0.1
+local RECOMPUTE_DISTANCE = 0.05
+local ARRIVED_DISTANCE = 0.05
 local MOVE_VS_ADJUST_DISTANCE = 0.5
+
+local PLACEMENT_RADIUS = 0.1
+local ACCEPT_DRIBBLER_SPEED = 0.6
+
+-- Time the robot waits after accepting a task before he moves a bit to the back
+local SETBACK_WAIT_TIME = 2
+
+local PULL_TO_FIELD_HACK_TIME = 3
 
 function FastBallPlacement.canStart()
 	return World.RefereeState == "BallPlacementOffensive"
@@ -90,7 +99,7 @@ function FastBallPlacement:_updateTasks()
 		self._mainAttacker = self.SHOOTER
 
 		-- We want to recompute positions if the ball moves away from the originally computed position too much
-		if self._computedShooterPos:distanceTo(World.Ball.pos) > 0.1 then
+		if self._computedShooterPos:distanceTo(World.Ball.pos) > RECOMPUTE_DISTANCE then
 			self:_recomputePositions()
 			self._restartTask = true
 		end
@@ -113,7 +122,7 @@ function FastBallPlacement:_updateTasks()
 		-- Ignore shooter
 		taskAssignments[self.SHOOTER] = { class = Halt, restart = self._restartTask }
 		
-		self.RECEIVER:setDribblerSpeed(0.6)
+		self.RECEIVER:setDribblerSpeed(ACCEPT_DRIBBLER_SPEED)
 
 		local ballSpeed = World.Ball.speed:copy()
 		local intersection, ballLambda = geom.intersectLineLine(World.Ball.pos, ballSpeed, self.RECEIVER.pos, ballSpeed:perpendicular());
@@ -182,19 +191,19 @@ function FastBallPlacement:_getNextState(currentState)
 			if not self._ballInFieldTimer then
 				self._ballInFieldTimer = World.Time
 			end
-			if World.Time - self._ballInFieldTimer > 3 then
+			if World.Time - self._ballInFieldTimer > PULL_TO_FIELD_HACK_TIME then
 				nextState = STATE_START
 			end
 		else
 			self._ballInFieldTimer = nil
 		end
 	elseif currentState == STATE_MOVE_TO_POS then
-		if self.RECEIVER.pos:distanceTo(self._computedReceiverPos) < 0.05 
-			and self.SHOOTER.pos:distanceTo(self._computedShooterPos) < 0.05 then
+		if self.RECEIVER.pos:distanceTo(self._computedReceiverPos) < ARRIVED_DISTANCE 
+			and self.SHOOTER.pos:distanceTo(self._computedShooterPos) < ARRIVED_DISTANCE then
 			nextState = STATE_EXECUTE_PASS
 		end
 	elseif currentState == STATE_EXECUTE_PASS then
-		if World.Ball.speed:length() > 0.5 then
+		if BallObserver.isShot() then
 			nextState = STATE_ACCEPT_PASS
 		end
 	elseif currentState == STATE_ACCEPT_PASS then
@@ -206,7 +215,7 @@ function FastBallPlacement:_getNextState(currentState)
 			else
 				nextState = STATE_WAITING_FOR_ADJUST
 			end
-		elseif not self._ballReceiverIntersects and ballDist > (0.15 + World.Ball.radius + self.RECEIVER.radius) then
+		elseif not self._ballReceiverIntersects and ballDist > MOVE_VS_ADJUST_DISTANCE then
 			nextState = STATE_MOVE_TO_POS
 		end
 
@@ -214,13 +223,13 @@ function FastBallPlacement:_getNextState(currentState)
 
 		local timeInState = World.Time - self._stateChangeTime
 
-		if timeInState > 2 then
+		if timeInState > SETBACK_WAIT_TIME then
 			nextState = STATE_SET_BACK
 		end
 
 	elseif currentState == STATE_SET_BACK then
 
-		if self.RECEIVER.pos:distanceTo(self._setBackPosition) < 0.05 then
+		if self.RECEIVER.pos:distanceTo(self._setBackPosition) < ARRIVED_DISTANCE then
 			nextState = STATE_FINE_ADJUST
 		end
 
