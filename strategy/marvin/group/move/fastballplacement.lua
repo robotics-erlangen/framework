@@ -263,7 +263,7 @@ function FastBallPlacement:_determineRoles()
 end
 
 function FastBallPlacement:_recomputePositions()
-	local distanceToPos = self.SHOOTER.shootRadius + World.Ball.radius
+	local distanceToPos = self.SHOOTER.shootRadius + World.Ball.radius + 0.03
 	local ballToPlacement = (World.BallPlacementPos - World.Ball.pos):setLength(distanceToPos)
 	self._computedShooterPos = World.Ball.pos - ballToPlacement
 	self._computedReceiverPos = World.BallPlacementPos + ballToPlacement
