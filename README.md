@@ -153,9 +153,7 @@ luacheck -q **/*.lua
 Install luarocks and use it to install luacheck
 ```
 brew install lua
-sudo chown $(whoami) /usr/local
 luarocks install luacheck
-sudo chown root:wheel /usr/local
 ```
 
 ### Windows
