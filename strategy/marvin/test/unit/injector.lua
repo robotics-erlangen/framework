@@ -52,6 +52,9 @@ function Injector:addGlobalOverlay(variableName, value)
 end
 
 function Injector:load(newModuleName)
+	if self._modules[newModuleName] ~= nil then
+		error("Module " .. newModuleName .. " already loaded in this injector instance!")
+	end
 	local errors = {}
 
 	for i, loader in ipairs(package.loaders) do
