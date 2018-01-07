@@ -187,4 +187,3 @@ function DebugCommands.moveObjects(ball, friendlyRobots, opponentRobots)
 end
 
 return DebugCommands
-
