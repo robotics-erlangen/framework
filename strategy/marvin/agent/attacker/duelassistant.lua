@@ -27,7 +27,7 @@ function DuelAssistant:rateRobot(sender)
 	local rateDistanceBallToOwnGoal = Rating.valueToRating(distanceBallToOwnGoal, 8, 1)
 	local rateDistanceRobotToBall = Rating.valueToRating(distanceRobotToBall, 4, 0)
 
-	return (rateDistanceToDuelRobot + rateDistanceToOwnGoal 
+	return (rateDistanceToDuelRobot + rateDistanceToOwnGoal
 		+ rateDistanceBallToOwnGoal + rateDistanceRobotToBall) / 4
 
 end

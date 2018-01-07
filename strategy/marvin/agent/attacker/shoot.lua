@@ -63,7 +63,7 @@ function Shoot:_decide()
 
 	local pass = Attack.choosePassFromSuggestions(self._robot,
 		self._inbox.passSuggestion(), self._prevPassPos, true)
-	if pass then 
+	if pass then
 		return {
 			task = "pass",
 			target = pass.target,

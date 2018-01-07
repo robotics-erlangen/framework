@@ -10,30 +10,30 @@ local ChipChallengeReceiver = Class("Test.Task.ChipChallengeReceiver", require "
 
 
 function ChipChallengeReceiver:_init()
-    self._ballKicked = false
+	self._ballKicked = false
 	self._moveDest =  World.Geometry.FriendlyGoal -- random fallback
 end
 
 function ChipChallengeReceiver:run()
-    local ball = World.Ball
+	local ball = World.Ball
 
-    if World.Ball.posZ > 0 then
+	if World.Ball.posZ > 0 then
 		self._ballKicked = true
 	end
 
 
-    local kickingRobot = World.OpponentRobots[1]
-    if self._ballKicked and kickingRobot and kickingRobot.pos:distanceTo(World.Ball.pos) > 1.5 then
-        self._moveDest = World.Ball.touchdownPos
-    elseif kickingRobot and World.Ball.speed:length() < 0.3 then
-        debug.set("ball speed", World.Ball.speed:length())
-        local bp = World.Ball.pos
+	local kickingRobot = World.OpponentRobots[1]
+	if self._ballKicked and kickingRobot and kickingRobot.pos:distanceTo(World.Ball.pos) > 1.5 then
+		self._moveDest = World.Ball.touchdownPos
+	elseif kickingRobot and World.Ball.speed:length() < 0.3 then
+		debug.set("ball speed", World.Ball.speed:length())
+		local bp = World.Ball.pos
 		self._moveDest = bp + Vector.fromAngle(kickingRobot.dir):setLength(3.1)
-    end
+	end
 
-    local toBall = (ball.pos - self._robot.pos):angle()
+	local toBall = (ball.pos - self._robot.pos):angle()
 
-    PathHelper.setDefaultObstacles(self._robot.path, self._robot, false, true, true, 0, 0.1)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, false, true, true, 0, 0.1)
 	self._robot.trajectory:update(ToTarget, self._moveDest, toBall)
 end
 

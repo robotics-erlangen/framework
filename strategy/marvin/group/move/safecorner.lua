@@ -26,7 +26,7 @@ function SafeCorner:_canContinue()
 	if Referee.isFriendlyFreeKickState() then
 		return true
 	end
-	return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2	--Eckposition festlegen
+	return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2 --Eckposition festlegen
 		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2 --G: geometry
 		and World.RefereeState == "Stop"
 end

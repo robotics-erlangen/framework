@@ -111,7 +111,7 @@ function Shoot:_calculateFutureBall(ballReceiptPos)
 		futureBall.pos = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
 		self._lastBallInsideRobotTime = World.Time
 	end
-	
+
 	if ballReceiptPos then
 		vis.addCircle("t/a/shoot: ballReceiptPos", ballReceiptPos, 0.04, vis.colors.magentaHalf, true)
 	end
@@ -256,7 +256,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 		local attackTime = self:_catchBall(targetPos, minCatchBallDistance, targetSpeed)
 		self._send.attackTime("all", targetTime or attackTime + World.Time)
 	end
-	
+
 	debug.set("Shoot/DirectMovement", self._directMovement)
 end
 
@@ -418,7 +418,7 @@ function Shoot:_shootFreeKick(targetPos, targetSpeed, targetTime, precision)
 	self._linearShoot = true
 	self._precision = precision or MIN_PRECISION
 	self:_shootStationaryBall(targetPos, targetSpeed, targetTime, World.Ball)
-	
+
 	self._visualizeShoot(World.Ball, targetPos, vis.colors.whiteHalf)
 
 	self._lastTargetPos = targetPos

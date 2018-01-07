@@ -14,7 +14,7 @@ end
 function AcceptPass:run()
 	local groupApplication = { name = "striker", payload = {}}
 	self._send.groupApplication("trainer", groupApplication)
-	
+
 	local passInfo = nil
 	local _, passInfoTable = next(self._inbox.passInfo())
 	assert(passInfoTable, "AcceptPass runs although there is no passInfo message")

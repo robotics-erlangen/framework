@@ -105,7 +105,7 @@ function Striker:_chooseEmptyZone(mainAttackerPos)
 	if mainAttackerPos then
 		for _, zone in ipairs(self._zones) do
 			if mainAttackerPos.x >= zone.boundaries.left + emptyZoneHysteresis
-					and mainAttackerPos.x <= zone.boundaries.right - emptyZoneHysteresis 
+					and mainAttackerPos.x <= zone.boundaries.right - emptyZoneHysteresis
 					and mainAttackerPos.y >= zone.boundaries.bottom + emptyZoneHysteresis
 					and mainAttackerPos.y <= zone.boundaries.top - emptyZoneHysteresis then
 				self._emptyZone = zone

@@ -34,9 +34,9 @@ function ChipDribble:_updateTasks()
 		self._ballWasShot = false
 		taskAssignments[self._robots[1]] = { class = Pass, params = { self._robots[2], self._positionRobot2, true } }
 		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._positionRobot2, nil, true } }
-	end		
+	end
 
-	if self._state == 3 or (self._ballWasShot and self._robots[2].pos:distanceTo(World.Ball.pos) <= 0.4) then 
+	if self._state == 3 or (self._ballWasShot and self._robots[2].pos:distanceTo(World.Ball.pos) <= 0.4) then
 		self._state = 3
 		self._ballWasShot = false
 		taskAssignments[self._robots[1]] = { class = MoveToPos, params = { self._shootPosition, nil } }

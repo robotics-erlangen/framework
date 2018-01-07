@@ -162,7 +162,7 @@ function Physics.ballAtTimeExperimental(ball, time)
 			h0 = 0
 
 			local liftTime = v0 / 9.81
-			local flightHeight = liftTime*liftTime * (-9.81) / 2 + liftTime * v0 
+			local flightHeight = liftTime*liftTime * (-9.81) / 2 + liftTime * v0
 			if flightHeight < 0.03 then -- consider ball rolling
 				break
 			end

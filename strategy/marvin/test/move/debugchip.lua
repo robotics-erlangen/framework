@@ -62,9 +62,9 @@ local function resetChip(self)
 
 	log("dist: "..tostring(self._distance))
 	log("")
-	
 
-	local time = World.Time 
+
+	local time = World.Time
 	self._lastTimestamp = time
 	self._wasShot = false
 	self._lastBall = table.copy(World.Ball)
@@ -163,7 +163,7 @@ function DebugChip:_updateTasks()
 	end
 
 	local restartNecessary
-	if World.Ball.pos:distanceTo(self._idlePos) > self._distance + 1.5 
+	if World.Ball.pos:distanceTo(self._idlePos) > self._distance + 1.5
 				and self._timer == 0 and self._ballPlacement == false then
 		restartNecessary = true
 		if World.IsSimulated == false then

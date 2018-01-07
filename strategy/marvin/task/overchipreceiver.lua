@@ -27,7 +27,7 @@ function OverchipReceiver:_updateObstacleRobot()
 	for _, robot in pairs(World.OpponentRobots) do
 		local orthogonalProjection = robot.pos:orthogonalProjection(goal, ballPos)
 		local projectedVector = orthogonalProjection - ballPos
-		if robot.pos.y > ballPos.y and robot.pos.y < boundary 
+		if robot.pos.y > ballPos.y and robot.pos.y < boundary
 				and robot.pos.y > ballPos.y and robot.pos.y < boundary
 				and robot.pos:distanceToLineSegment(ballPos, goal) < 0.3
 				and projectedVector:length() > maxLength then

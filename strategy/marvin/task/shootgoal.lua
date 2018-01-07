@@ -72,7 +72,7 @@ function ShootGoal:run()
 	local distance = self._robot.pos:distanceTo(self._shootTargetPoint)
 	local localTargetX = Rating.valueToRating(distance, maxDistance, minDistance) * self._shootTargetPoint.x
 	local localTarget = Vector(localTargetX, self._shootTargetPoint.y)
-	
+
 	if not self._desperate then
 		self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
 	end

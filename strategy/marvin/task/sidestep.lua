@@ -56,16 +56,18 @@ function SideStep:_init(passInfo)
 	else
 		self._feintPos = passInfo.ballPos + counterClockwise:setLength(ccwDist)
 	end
-	self._debugTable = {	startingPoint = self._passInfo.ballPos,
-							ballPos = passInfo.ballPos,
-							passBlocked = passBlocked, 
-							line = line, cw = clockwise,
-							cwDist = cwDist,
-							cwRating = cwRating,
-							ccw = counterClockwise,
-							ccwDist = ccwDist,
-							ccwRating = ccwRating,
-							feintPos = self._feintPos}
+	self._debugTable = {
+		startingPoint = self._passInfo.ballPos,
+		ballPos = passInfo.ballPos,
+		passBlocked = passBlocked,
+		line = line, cw = clockwise,
+		cwDist = cwDist,
+		cwRating = cwRating,
+		ccw = counterClockwise,
+		ccwDist = ccwDist,
+		ccwRating = ccwRating,
+		feintPos = self._feintPos
+	}
 end
 
 local function draw(table)
