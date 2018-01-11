@@ -1,7 +1,6 @@
 local SuggestPass = require "task/ability/suggestpass"
-local Striker = Class("Task.Striker", require "task/base", SuggestPass)
-
-local StrikerSampling = require "task/strikersampling"
+local StrikerSampling = require "task/ability/strikersampling"
+local Striker = Class("Task.Striker", require "task/base", SuggestPass, StrikerSampling)
 
 local Field = require "../base/field"
 local vis = require "../base/vis"
@@ -24,7 +23,7 @@ function Striker:_init(manualDefaultPos, manualPassDest)
 
 	self._zone = nil
 
-	self._sampling = StrikerSampling(self._agent)
+	self:_initStrikerSampling()
 	self._revaluateTimestamp = 0
 end
 
@@ -55,7 +54,7 @@ function Striker:_revaluatePassDest()
 end
 
 function Striker:_searchForPassDest()
-	self._sampling:precalculate()
+	self:precalculate()
 
 	local grid_point_count_x = 6
 	local grid_point_count_y = 10
@@ -81,7 +80,7 @@ function Striker:_searchForPassDest()
 				if y > bottom and y < top then
 					local candidatePoint = Vector(x, y)
 					candidatePoint = Field.limitToAllowedField(candidatePoint, 3 * self._robot.radius + 0.1)
-					local score = self._sampling:evalLocation(candidatePoint, bestScore)
+					local score = self:evalLocation(candidatePoint, bestScore)
 					local _, passInfoTable = next(self._inbox.passInfo())
 					if passInfoTable then
 						for _, passInfo in pairs(passInfoTable) do
