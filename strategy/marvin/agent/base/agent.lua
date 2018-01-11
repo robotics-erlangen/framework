@@ -45,9 +45,9 @@ end
 function Base:run()
 	debug.pushtop(self._debugIdStr)
 	debug.set(nil, Class.name(self, true))
+	self:_dumpInbox()
 
 	local task = self:_runBehavior()
-	self:_dumpInbox()
 	self:_runTask(task)
 	self:_applyForMainAttacker(task)
 	self:_run()
