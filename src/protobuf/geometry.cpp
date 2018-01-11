@@ -22,22 +22,24 @@
 
 void geometrySetDefault(world::Geometry *geometry)
 {
+    const bool useQuadField = true;
+
     geometry->set_line_width(0.01f);
-    geometry->set_field_width(6.f);
-    geometry->set_field_height(9.f);
-    geometry->set_boundary_width(0.25f);
-    geometry->set_referee_width(0.425f);
-    geometry->set_goal_width(1.00f);
+    geometry->set_field_width((useQuadField) ? 9.00f : 6.00f);
+    geometry->set_field_height((useQuadField) ? 12.00f : 9.00f);
+    geometry->set_boundary_width((useQuadField) ? 0.30f : 0.25f);
+    geometry->set_referee_width((useQuadField) ? 0.40f : 0.425f);
+    geometry->set_goal_width((useQuadField) ? 1.20f : 1.00f);
     geometry->set_goal_depth(0.18f);
     geometry->set_goal_wall_width(0.02f);
     geometry->set_center_circle_radius(0.50f);
-    geometry->set_defense_radius(1.00f);
-    geometry->set_defense_stretch(0.50f);
+    geometry->set_defense_radius((useQuadField) ? 1.20f : 1.00f);
+    geometry->set_defense_stretch((useQuadField) ? 0.60f : 0.50f);
     geometry->set_free_kick_from_defense_dist(0.20f);
-    geometry->set_penalty_spot_from_field_line_dist(1.00f);
+    geometry->set_penalty_spot_from_field_line_dist((useQuadField) ? 1.20f : 1.00f);
     geometry->set_penalty_line_from_spot_dist(0.40f);
-    geometry->set_defense_width(2.00f);
-    geometry->set_defense_height(1.00f);
+    geometry->set_defense_width((useQuadField) ? 2.40f : 2.00f);
+    geometry->set_defense_height((useQuadField) ? 1.20f : 1.00f);
     geometry->set_goal_height(0.155f);
     assert(geometry->IsInitialized());
 }
