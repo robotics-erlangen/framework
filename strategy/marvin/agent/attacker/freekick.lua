@@ -96,11 +96,13 @@ function FreeKick:_updateTask()
 			-- try to find the target
 			-- look for a suggestion that matches our pass
 			local passes = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false, 0)
-			for _,pass in ipairs(passes) do
-				if pass.target and pass.ballPos:distanceTo(self._pass.ballPos) < 0.1 then
-					self._pass.target = pass.target
-					if self._state == "pass" then
-						restartTask = true
+			if passes then
+				for _,pass in ipairs(passes) do
+					if pass.target and pass.ballPos:distanceTo(self._pass.ballPos) < 0.1 then
+						self._pass.target = pass.target
+						if self._state == "pass" then
+							restartTask = true
+						end
 					end
 				end
 			end
