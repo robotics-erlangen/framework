@@ -9,7 +9,7 @@ local Ball = require "observer/ball"
 
 function DebugChip:_init(pos, distance)
 	assert(distance, "How long should I chip?")
-	self._timer = 50
+	self._timer = 200
 	self._pos = pos
 	self._distance = distance
 	self._wasShot = false

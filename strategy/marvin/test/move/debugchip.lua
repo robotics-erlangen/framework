@@ -35,7 +35,8 @@ function DebugChip:_init()
 	self._lastTimestamp = time
 	self._wasShot = false
 	self._lastBall = table.copy(World.Ball)
-	self._ballTable = {}
+	self._midTermBallTable = {}
+	self._oneSecondBallTable = {}
 end
 
 function DebugChip:_canContinue()
@@ -101,8 +102,6 @@ local function plotErrorTwoBalls(ballOld, time, string)
 end
 
 local function compareBalls(predictedBall, actualBall)
-	log(predictedBall.pos)
-	log(actualBall.pos)
 	local horErr = math.abs(predictedBall.pos:distanceTo(actualBall.pos))
 	local horSpeedErr = math.abs(predictedBall.speed:length() - predictedBall.speed:length())
 	local vertErr, vertSpeedErr = 0, 0
@@ -111,6 +110,16 @@ local function compareBalls(predictedBall, actualBall)
 		vertSpeedErr = math.abs(predictedBall.posZ, predictedBall.posZ)
 	end
 	return {horErr = horErr, horSpeedErr = horSpeedErr, vertErr = vertErr, vertSpeedErr = vertSpeedErr}
+end
+
+local function printTable(balls)
+	log("table:")
+	if balls[1] then
+	log(tostring(balls[1].ball).." | "..tostring(balls[1].time))
+	end-- for _, entry in ipairs(balls) do
+	-- 	log(tostring(entry.ball).." | "..tostring(entry.time))
+	-- end
+	log("")
 end
 
 local function evaluate(self)
@@ -130,9 +139,9 @@ local function evaluate(self)
 	end
 
 	-- mid term prediction
-	if #self._ballTable == 10 then
+	if #self._midTermBallTable == 10 then
 		local sumHorErr, sumHorSpeedErr, sumVertErr, sumVertSpeedErr = 0, 0, 0, 0
-		for id, entry in ipairs(self._ballTable) do
+		for id, entry in ipairs(self._midTermBallTable) do
 			if id ~= 1 then
 				local predictedBall = Physics.ballAtTimeExperimental(entry.ball, World.Time - entry.time)
 				local errTable = compareBalls(predictedBall, entry.ball)
@@ -147,10 +156,30 @@ local function evaluate(self)
 		local avgVertErr = sumVertErr / 9
 		local avgVertSpeedErr = sumVertSpeedErr/ 9
 		plotError("midTerm", avgHorErr, avgHorSpeedErr, avgVertErr, avgVertSpeedErr)
-		table.remove(self._ballTable, 1)
-		table.insert(self._ballTable, {ball = table.copy(World.Ball), time = World.Time})
+		table.remove(self._midTermBallTable, 1)
+		table.insert(self._midTermBallTable, {ball = table.copy(World.Ball), time = World.Time})
 	else
-		table.insert(self._ballTable, {ball = table.copy(World.Ball), time = World.Time})
+		table.insert(self._midTermBallTable, {ball = table.copy(World.Ball), time = World.Time})
+	end
+
+	-- half second prediction
+	local halfSecTable = self._oneSecondBallTable
+	printTable(self._oneSecondBallTable)
+	-- if halfSecTable[1] then
+	-- 	--log(World.Time - halfSecTable[1].time.." ||| "..tostring(#halfSecTable)
+	-- end
+	if #halfSecTable == 5 and World.Time - halfSecTable[1].time > 0.5 then
+		--log("hallo")
+		local ball = halfSecTable[1].ball
+		local time = World.Time - halfSecTable[1].time
+		local errTable = compareBalls(Physics.ballAtTimeExperimental(ball, time), World.Ball)
+		plotError("half second", errTable.horErr, errTable.speedErr, errTable.vertErr, errTable.vertSpeedErr)
+		table.remove(self._oneSecondBallTable, 1)
+		table.insert(self._oneSecondBallTable, {ball = table.copy(World.Ball), time = World.Time})
+	elseif #halfSecTable < 5 and halfSecTable[1] and World.Time - halfSecTable[#halfSecTable].time > 0.2 then
+		table.insert(self._oneSecondBallTable, {ball = table.copy(World.Ball), time = World.Time})
+	elseif not halfSecTable[1] then
+		table.insert(self._oneSecondBallTable, {ball = table.copy(World.Ball), time = World.Time})
 	end
 
 end
