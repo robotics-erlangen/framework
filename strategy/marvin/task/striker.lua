@@ -23,7 +23,6 @@ function Striker:_init(manualDefaultPos, manualPassDest)
 
 	self._zone = nil
 
-	self:_initStrikerSampling()
 	self._revaluateTimestamp = 0
 end
 

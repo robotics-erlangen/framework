@@ -16,7 +16,7 @@ local function visualizeRating(name, pos, rating)
 		vis.fromTemperature(1 - rating), true)
 end
 
-function StrikerSampling:_initStrikerSampling()
+function StrikerSampling:init()
 	self._attackPosition = nil
 	self._attackTime = nil
 	self._mainAttacker = nil

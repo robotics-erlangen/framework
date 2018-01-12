@@ -4,7 +4,7 @@ local World = require "../base/world"
 local Direct = require "trajectory/direct"
 
 
-function RotateAndShoot:_initRAS()
+function RotateAndShoot:init()
 	self._RAS_startTime = nil
 end
 
