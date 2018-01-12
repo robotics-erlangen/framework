@@ -25,7 +25,7 @@ local MAX_ACCEL_WITH_BALL = 0.2
 local MAX_DRIBBLER_SPEED = 0.8
 
 -- during ENSURE_CONTACT, if robot:hasBall, this is the timespan after which the state is changed to pull 
-local HAS_BALL_MIN_TIME = 2
+local HAS_BALL_MIN_TIME = 0.85
 
 function PlaceBall:_init(placementPos)
 	self._placementPos = placementPos or World.BallPlacementPos
@@ -53,13 +53,14 @@ function PlaceBall:run()
 	local ball = World.Ball
 	local robot = self._robot
 
+	--TODO flackern mehr beachten
 	local offsetLen = ball.radius + robot.shootRadius + 0.05
-	if not self._placementOffset or ball.pos:distanceTo(self._placementPos) > 0.25 * TOLERANCE then
+	if not self._placementOffset or ball.pos:distanceTo(self._placementPos) > 0.5 * TOLERANCE then
 		self._placementOffset = (ball.pos - self._placementPos):setLength(offsetLen)
 	end
 
 	local nearestFieldPos = Field.limitToField(ball.pos)
-	if not self._borderOffset or ball.pos:distanceTo(nearestFieldPos) > 0.25 * TOLERANCE then
+	if not self._borderOffset or ball.pos:distanceTo(nearestFieldPos) > 0.5 * TOLERANCE then
 		self._borderOffset = (ball.pos - nearestFieldPos):setLength(offsetLen)
 	end
 	vis.addCircle("PlaceBall Placement Pos", self._placementPos, TOLERANCE, vis.colors.orange)
@@ -73,6 +74,7 @@ function PlaceBall:run()
 	debug.set("barrier detects", self._barrierDetects)
 	local ballVisible = ball:isPositionValid()
 	self._ballInDribbler = not ballVisible and self._barrierDetects or ballVisible and robot:hasBall(ball)
+	debug.set("ball in dribbler", self._ballInDribbler)
 
 	local oldState = self._state
 	self._state = self:_getNextState(oldState)
@@ -104,9 +106,9 @@ function PlaceBall:run()
 
 	elseif self._state == STATE_ENSURE_PULL_CONTACT then
 
-		robot:setDribblerSpeed(MAX_DRIBBLER_SPEED)
+		robot:setDribblerSpeed(0.4)
 
-		local speed = self._borderOffset:copy():setLength(0.1)
+		local speed = self._borderOffset:copy():setLength(0.05)
 		robot.trajectory:update(Direct, speed, speed:angle())
 
 	elseif self._state == STATE_PULL_TO_FIELD then
