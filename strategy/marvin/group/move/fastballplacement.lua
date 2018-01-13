@@ -31,7 +31,7 @@ local PLACEMENT_RADIUS = 0.1
 local ACCEPT_DRIBBLER_SPEED = 0.6
 
 -- Time the robot waits after accepting a task before he moves a bit to the back
-local SETBACK_WAIT_TIME = 2
+local SETBACK_WAIT_TIME = 0.4
 
 local PULL_TO_FIELD_HACK_TIME = 3
 
@@ -143,7 +143,7 @@ function FastBallPlacement:_updateTasks()
 		taskAssignments[self.SHOOTER] = { class = Halt, restart = self._restartTask }
 		-- We change after a certain time because we want the ball to stop spinning
 		-- See getNextState
-		taskAssignments[self.RECEIVER] = { class = MoveToPos, params = { self.RECEIVER.pos, self.RECEIVER.dir }, restart = self._restartTask }
+		taskAssignments[self.RECEIVER] = { class = Halt, restart = self._restartTask }
 	elseif self._state == STATE_SET_BACK then
 		self._mainAttacker = self.RECEIVER
 

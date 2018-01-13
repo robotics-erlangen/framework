@@ -24,23 +24,24 @@ local STATE_END = "STATE_END"
 -- Other constants
 
 -- Maximum final distance from ball to placement pos
-local END_DISTANCE = 0.025
+local END_DISTANCE = 0.07
 
 -- If ball distance is larger than this, the corresponding offset gets recalculated
-local OFFSET_DISTANCE = 0.1
+local OFFSET_DISTANCE = 0.07
 
 local BACK_TO_START_DISTANCE = 0.2
 
-local STOP_WAIT_TIME = 2
+local STOP_WAIT_TIME = 0.4
 
 local ENSURE_CONTACT_DRIBBLER_SPEED = 0.4
 local ENSURE_CONTACT_DIRECT_SPEED = 0.05
-local ENSURE_CONTACT_TIME = 0.8
+local ENSURE_CONTACT_TIME = 0.5
+local ENSURE_CONTACT_MAX_TIME = 1.7
 
 local PULL_DRIBBLER_SPEED = 0.8
-local MAX_PULL_SPEED = 0.2
-local MAX_PULL_ACCEL = 0.2
-local PULL_LOST_BALL_HYSTERESIS = 0.8
+local MAX_PULL_SPEED = 0.15
+local MAX_PULL_ACCEL = 0.15
+local PULL_LOST_BALL_HYSTERESIS = 1.0
 
 local PUSH_DRIBBLER_SPEED = 0.8
 -- TODO test max speeds for push
@@ -68,6 +69,7 @@ function PlaceBall:_init(placementPos)
 	self._barrierDetects = false
 	self._ballInDribbler = false
 	self._hasBallTime = nil
+	self._lostBallTime = nil
 end
 
 function PlaceBall:run()
@@ -180,7 +182,10 @@ function PlaceBall:_getNextState(currentState)
 
 	elseif currentState == STATE_ENSURE_PULL_CONTACT then
 
-		if self._barrierDetects then
+		if World.Time - self._stateChangeTime > ENSURE_CONTACT_MAX_TIME then
+			nextState = STATE_PULL_TO_FIELD
+
+		elseif self._barrierDetects then
 			if not self._hasBallTime then
 				self._hasBallTime = World.Time
 			elseif World.Time - self._hasBallTime > ENSURE_CONTACT_TIME then
@@ -253,14 +258,16 @@ end
 
 function PlaceBall:_calculateOffsets()
 
+	local ballVisible = self._ball:isPositionValid()
+
 	self._nearestFieldPos = Field.limitToField(self._ball.pos)
 	local offsetLen = self._ball.radius + self._robot.shootRadius + 0.05
 
-	if not self._placementOffset or self._ball.pos:distanceTo(self._placementPos) > OFFSET_DISTANCE then
+	if (not self._placementOffset or self._ball.pos:distanceTo(self._placementPos) > OFFSET_DISTANCE) and ballVisible then
 		self._placementOffset = (self._ball.pos - self._placementPos):setLength(offsetLen)
 	end
 
-	if not self._borderOffset or self._ball.pos:distanceTo(self._nearestFieldPos) > OFFSET_DISTANCE then
+	if (not self._borderOffset or self._ball.pos:distanceTo(self._nearestFieldPos) > OFFSET_DISTANCE) and ballVisible then
 		self._borderOffset = (self._ball.pos - self._nearestFieldPos):setLength(offsetLen)
 	end
 
