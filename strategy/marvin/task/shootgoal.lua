@@ -16,14 +16,13 @@ local G = World.Geometry
 
 local DESPERATE_CHIP_EXTRA_DISTANCE = 0.5 -- extra chip distance when performing a goal chip
 
-function ShootGoal:_drawDebugInfo()
-	local target, color, mode
+local function _drawDebugInfo(self, target)
+	local color, mode
 	if self._desperate then
 		mode = "desperate"
 		target = self._desperateChipTargetPoint
 		color = vis.colors.redHalf
 	else
-		target = self._shootTargetPoint
 		if self._dirty then
 			mode = "dirty"
 			color = vis.colors.orangeHalf
@@ -107,7 +106,7 @@ function ShootGoal:run()
 		self._desperateChipTargetPoint = G.OpponentGoal + Vector(0, DESPERATE_CHIP_EXTRA_DISTANCE)
 		self:_chipPass(self._desperateChipTargetPoint, ballReceiptPos, maxAngleError, 0.5)
 	end
-	self:_drawDebugInfo()
+	_drawDebugInfo(self, localTarget)
 end
 
 return ShootGoal
