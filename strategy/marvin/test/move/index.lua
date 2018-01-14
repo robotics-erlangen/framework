@@ -20,7 +20,8 @@ local moves = {
 	require "test/move/chipdribble",
 	require "test/move/interceptpass",
 	require "test/move/debugchip",
-	require "group/move/fastballplacement"
+	require "group/move/fastballplacement",
+	require "test/move/movesrc1",
 }
 
 local coord = nil
