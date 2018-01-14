@@ -205,7 +205,8 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 	local minCatchBallDistance
 	local hasBallDistance
 	local speedupFactor
-	if Referee.isFriendlyFreeKickState() then
+
+	if Referee.isFriendlyFreeKickState() or World.RefereeState == "BallPlacementOffensive" then
 		maxSidewardsAngle = 30 * math.pi / 180
 		maxOrientationAngle = 2 * math.pi / 180
 		minCatchBallDistance = 0.01

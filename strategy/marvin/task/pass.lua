@@ -10,13 +10,13 @@ local ObserverShoot = require "observer/shoot"
 local CHIP_PASS_DISTANCE_FACTOR = 0.5
 local MIN_PASS_SPEED = 3
 
-function Pass:_init(targetRobot, targetPos, chip, ballReceiptPos, targetTime)
+function Pass:_init(targetRobot, targetPos, chip, ballReceiptPos, targetTime, targetSpeed)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
 	self._targetTime = targetTime
 	self._chipOverride = chip ~= nil
 	self._chip = chip
-	self._passSpeed = targetRobot and self._targetRobot.constants.passSpeed or MIN_PASS_SPEED
+	self._passSpeed = targetSpeed or targetRobot and self._targetRobot.constants.passSpeed or MIN_PASS_SPEED
 	self._ballReceiptPos = ballReceiptPos
 
 	-- retrieve targetPos from messages if no argument was given
