@@ -13,7 +13,6 @@ local ToTarget = require "trajectory/totarget"
 local Attack = require "util/attack"
 
 
-
 function Striker:_init(manualDefaultPos, manualPassDest)
 	self._manualDefaultPos = manualDefaultPos
 	self._manualPassDest = manualPassDest
@@ -24,6 +23,22 @@ function Striker:_init(manualDefaultPos, manualPassDest)
 	self._zone = nil
 
 	self._revaluateTimestamp = 0
+
+	self._obstacleTable  = {
+	ignoreBall = true,
+	-- ignoreGoals = false,
+	-- ignoreDefenseArea = false,
+	-- pathRadius = nil,
+	-- stopBallDistance = nil,
+	-- noSeedTarget = false,
+	-- ignoreOpponentDefenseArea = false,
+	-- forceBallDistance = nil,
+	inbox = self._inbox
+	-- ignorePass = false
+	-- ignoreFriendlyRobots = false,
+	-- ignoreOpponentRobots = false,
+	-- disableOpponentPrediction = false,
+	}
 end
 
 function Striker:_revaluatePassDest()
@@ -131,7 +146,6 @@ function Striker:run()
 	if self:_revaluatePassDest() then
 		self:_searchForPassDest()
 	end
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 
 	-- check whether the agent would change its state to accepting an incoming pass (striker should not be active then)
 	local _, passInfoTable = next(self._inbox.passInfo())
@@ -139,7 +153,6 @@ function Striker:run()
 
 	if passInfoTable then
 		for _, passInfo in ipairs(passInfoTable) do
-			local passDest = passInfo.ballPos
 			vis.addCircle("t/striker", self._moveDest, 0.1, vis.colors.slateHalf, true)
 			if self._passDestSuggestion then
 				local color = passInfo.target == self._robot
@@ -150,38 +163,12 @@ function Striker:run()
 				vis.addPath("t/striker", {self._moveDest, self._passDestSuggestion},
 					vis.colors.slateHalf, nil, nil, 0.02)
 			end
-
-			-- don't move between the ball and the pass target
-			-- relevant for outgoing passes
-			if passInfo.target ~= self._robot then
-				self:_avoidLineSegment(World.Ball.pos, passDest)
-			end
-
-			-- don't block the pass receiver
-			if passInfo.target and passInfo.target ~= self._robot then
-				local startPoint = passInfo.target.pos
-				local endPoint = passInfo.ballPos
-				self._robot.path:addLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, 0.2)
-			end
 		end
 	end
 	-- set path obstacles to not interfere with the current attack
 	local moveTime = nil
 	local _, attackPosition = next(self._inbox.attackPosition())
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
-
-	-- don't move between the ball and the main attacker
-	-- relevant for incoming passes
-	local mainAttacker = self._inbox.mainAttacker().trainer
-	if mainAttacker then
-		local dangerPos = attackPosition or mainAttacker.pos
-		if dangerPos:distanceTo(World.Ball.pos) > 0.1 then
-			self:_avoidLineSegment(World.Ball.pos, dangerPos)
-		end
-		if attackPosition then
-			self._robot.path:addLine(mainAttacker.pos.x, mainAttacker.pos.y, attackPosition.x, attackPosition.y, 0.2)
-		end
-	end
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 
 	-- don't move between the ball and the opponent goal
 	-- relevant for goal shots
