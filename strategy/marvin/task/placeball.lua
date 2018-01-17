@@ -45,8 +45,8 @@ local PULL_LOST_BALL_HYSTERESIS = 1.0
 
 local PUSH_DRIBBLER_SPEED = 0.8
 -- TODO test max speeds for push
-local MAX_PUSH_SPEED = 0.2
-local MAX_PUSH_ACCEL = 0.2
+local MAX_PUSH_SPEED = 4
+local PUSH_ACCEL_SCALE = 0.5625
 
 local BACK_UP_SPEED = 0.4
 
@@ -133,7 +133,7 @@ function PlaceBall:run()
 		self._robot:setDribblerSpeed(PUSH_DRIBBLER_SPEED)
 		self._currentTargetPos = self._placementPos + self._placementOffset:copy():setLength(self._robot.shootRadius + self._ball.radius)
 
-		self._robot.trajectory:update(ToTarget, self._currentTargetPos, (-self._placementOffset):angle(), MAX_PUSH_SPEED, nil, MAX_PUSH_ACCEL)
+		self._robot.trajectory:update(ToTarget, self._currentTargetPos, (-self._placementOffset):angle(), MAX_PUSH_SPEED, nil, PUSH_ACCEL_SCALE)
 
 	elseif self._state == STATE_WAIT_FOR_STOP then
 
