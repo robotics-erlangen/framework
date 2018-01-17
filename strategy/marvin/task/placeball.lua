@@ -95,7 +95,7 @@ function PlaceBall:run()
 					or self._state == STATE_PULL_TO_FIELD
 					or self._state == STATE_WAIT_FOR_STOP
 					or self._state == STATE_PUSH_TO_POS
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignoreBall, false, true)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignoreBall, false, true, nil, nil, nil, true)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
 	if self._state == STATE_START then
