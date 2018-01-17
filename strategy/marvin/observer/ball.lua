@@ -63,7 +63,7 @@ function Ball.ballHeadingForGoal(ball, ownGoal)
 	local friendlyFactor = ownGoal and 1  or -1
 	local goalCenter = ownGoal and World.Geometry.FriendlyGoal or World.Geometry.OpponentGoal
 	local _, lambda = geom.intersectLineLine(goalCenter, Vector(1, 0), ball.pos, ball.speed)
-	return lambda and math.abs(lambda) < World.Geometry.GoalWidth / 2 + 0.2 and World.Ball.speed * friendlyFactor < 0
+	return lambda and math.abs(lambda) < World.Geometry.GoalWidth / 2 + 0.2 and World.Ball.speed.y * friendlyFactor < 0
 end
 
 
