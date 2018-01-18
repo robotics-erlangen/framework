@@ -145,7 +145,7 @@ function PlaceBall:run()
 			if self._ball:isPositionValid() then
 				self._currentTargetPos = self._robot.pos - (self._ball.pos - self._robot.pos):setLength(self._robot.shootRadius + self._ball.radius + 0.05)
 			else
-				self._currentTargetPos = self._robot.pos - self._placementOffset
+				self._currentTargetPos = self._robot.pos + self._placementOffset
 			end
 		end
 
