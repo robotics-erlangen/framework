@@ -28,11 +28,12 @@ end
 
 function MoveSRC1:_init()
 	self._state = 0
+	self._stopStart = Referee.lastStateChangeTime()
 end
 
 
 function MoveSRC1:_canContinue()
-	return self._state < 5
+	return self._state < 5 and (World.RefereeState == "Stop" and Referee.lastStateChangeTime() == self._stopStart or Referee.isFriendlyFreeKickState() or World.RefereeState == "Game")
 end
 
 function MoveSRC1:_updateTasks()
