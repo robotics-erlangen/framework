@@ -57,7 +57,6 @@ function MoveSRC1:_updateTasks()
 	else
 		taskAssignments[self._robots[5]] = {class = MoveToPos, params = {POS5[(self._state % 5) +1]}, restart = changed}
 	end
-		changed = false
 
 	if self._state%5 == 3 then
 		return taskAssignments, self._robots[4]
