@@ -42,6 +42,8 @@ Constants.maxRobotHeight = 0.15
 
 Constants.floorDamping = 0.55 -- vertical speed damping coeffient for a ball hitting the ground
 
+Constants.stopSpeed = 1.5 -- maximum allowed driving speed during stop states [m/s]
+
 function Constants.switchSimulatorConstants(isSimulated)
 	if isSimulated then
 		Constants.ballDeceleration = -0.35
