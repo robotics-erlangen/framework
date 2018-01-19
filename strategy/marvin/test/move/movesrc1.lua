@@ -6,9 +6,12 @@ local Ball = require "observer/ball"
 local ShootGoal = require "task/shootgoal"
 local Referee = require "../base/referee"
 local World =   require "../base/world"
+local debug = require "../base/debug"
 
-local XFACTOR = World.Geometry.FieldWidthHalf / 3
-local YFACTOR = World.Geometry.FieldHeightHalf / 4.5
+local G = World.Geometry
+
+local XFACTOR = G.FieldWidthHalf / 3
+local YFACTOR = G.FieldHeightHalf / 4.5
 
 local POS1 = {Vector(-1.5 * XFACTOR, 3.5 * YFACTOR), Vector(-1.5 * XFACTOR, 3.5 * YFACTOR), Vector(-1.4 * XFACTOR, 2.9 * YFACTOR), Vector(-1.01 * XFACTOR, 1.47 * YFACTOR), Vector(0.6 * XFACTOR, -3.4 * YFACTOR)}
 local POS2 = {Vector(-0.7 * XFACTOR, 2.5 * YFACTOR), Vector(-0.7 * XFACTOR, 2.5 * YFACTOR), Vector(-1.7 * XFACTOR, 3.6 * YFACTOR), Vector(-2.7 * XFACTOR, 2.0 * YFACTOR), Vector(0.3 * XFACTOR, -2.9 * YFACTOR)}
@@ -36,6 +39,7 @@ end
 function MoveSRC1:_updateTasks()
 	local taskAssignments = {}
 	local changed = false
+	debug.set("state", self._state)
 	
 	if self._robots[1].pos:distanceTo(POS1[(self._state % 5) +1]) < 0.1 and self._robots[2].pos:distanceTo(POS2[(self._state % 5) +1]) < 0.1 and self._robots[3].pos:distanceTo(POS3[(self._state % 5) +1]) < 0.1 and self._robots[4].pos:distanceTo(POS4[(self._state % 5) +1]) < 0.1 and self._robots[5].pos:distanceTo(POS5[(self._state % 5) +1]) < 0.1 and (Referee.isFriendlyFreeKickState() or self._state ~= 0) 
 		or Ball.isShot() then
