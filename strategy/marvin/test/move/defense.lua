@@ -3,7 +3,6 @@ local Defense = Class("Group.Move.Defense", require "group/move/base")
 local World = require "../base/world"
 local G = World.Geometry
 
-local MoveToPos = require "task/movetopos"
 local DefenderDefault = require "agent/defender/default"
 
 local vis = require "../base/vis"
@@ -64,6 +63,7 @@ end
 
 function Defense:_updateTasks()
 		local taskAssignments = {}
+		local innerMainAttacker = nil
 		for _,r in ipairs(self._robots) do
 				taskAssignments[r] = {behavior = DefenderDefault, params = {} }
 		end
@@ -80,7 +80,8 @@ function Defense:_updateTasks()
 		if self._selected then
 			debug.set("running", true)
 			debug.set("ParticipatingRobots", self._lastRobots)
-			local innerTaskAssignment, innerMainAttacker = self._selected:updateTasks()
+			local innerTaskAssignment
+			innerTaskAssignment, innerMainAttacker = self._selected:updateTasks()
 			table.extend(taskAssignments, innerTaskAssignment)
 		elseif World.RefereeState == "GameForce" or not self._poly then
 			self._number = self._number % #MOVES +1
@@ -123,6 +124,6 @@ function Defense:_updateTasks()
 		elseif self._stopTime then
 				debug.set("Time to refStateChange",  - World.Time + self._stopTime + (G.FieldWidth + G.FieldHeight) / Constants.stopSpeed)
 		end
-		return taskAssignments
+		return taskAssignments, innerMainAttacker
 end
 return Defense
