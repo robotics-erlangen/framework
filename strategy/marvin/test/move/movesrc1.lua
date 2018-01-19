@@ -23,7 +23,7 @@ MoveSRC1.MIN_ROBOTS = 5
 MoveSRC1.MAX_ROBOTS = 5
 
 function MoveSRC1.canStart()
-	return true
+	return World.RefereeState == "Stop" or Referee.isFriendlyFreeKickState()
 end
 
 function MoveSRC1:_init()
