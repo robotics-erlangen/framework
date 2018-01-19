@@ -108,6 +108,7 @@ function Moves:run(sender, inbox, messages)
 
 	-- run
 	if self._currentMove then
+		debug.push("Move")
 		local taskAssignments, mainAttacker = self._currentMove:updateTasks()
 		for _, robot in ipairs(prevParticipatingRobots) do
 			local assignment = taskAssignments[robot]
@@ -126,6 +127,7 @@ function Moves:run(sender, inbox, messages)
 			end
 		end
 		n_attackers = #self._participatingRobots
+		debug.pop()
 	end
 
 	if self._chosenMove and n_attackers then
