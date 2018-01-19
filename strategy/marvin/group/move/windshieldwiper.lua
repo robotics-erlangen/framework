@@ -5,7 +5,6 @@ local G = World.Geometry
 
 local MoveToPos = require "task/movetopos"
 local Freekick = require "agent/attacker/freekick"
-local Referee = require "../base/referee"
 local StopAttack = require "task/stopattack"
 
 local AcceptPass = require "task/acceptpass"
@@ -17,7 +16,7 @@ WindshieldWiper.MAX_ROBOTS = 5
 
 
 function WindshieldWiper.canStart()
-	if Referee.isFriendlyFreeKickState() then
+	if WindshieldWiper.Referee.isFriendlyFreeKickState() then
 		return math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
 			and World.Ball.pos.y > 3 * G.FieldHeightHalf / 5
 		--return true
@@ -26,7 +25,7 @@ function WindshieldWiper.canStart()
 end
 
 function WindshieldWiper:_canContinue()
-	if Referee.isFriendlyFreeKickState() then
+	if WindshieldWiper.Referee.isFriendlyFreeKickState() then
 		return true
 	end
 		return false
@@ -74,7 +73,7 @@ function WindshieldWiper:_updateTasks()
 
 	if World.RefereeState == "Stop" then
 		taskAssignments[mainrobot] = { class = StopAttack, params = { } }
-	elseif Referee.isFriendlyFreeKickState() then
+	elseif WindshieldWiper.Referee.isFriendlyFreeKickState() then
 		taskAssignments[mainrobot] = { behavior = Freekick }
 	end
 

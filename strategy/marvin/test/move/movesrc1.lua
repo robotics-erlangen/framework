@@ -22,6 +22,11 @@ local POS5 = {Vector(0.4 * XFACTOR, -3.4 * YFACTOR), Vector(0.4 * XFACTOR, -3.4 
 MoveSRC1.MIN_ROBOTS = 5
 MoveSRC1.MAX_ROBOTS = 5
 
+
+MoveSRC1.DEBUG_GOOD_POS = {
+		{Vector(4*G.FieldWidthHalf / 5,4*G.FieldHeightHalf / 5), Vector(G.FieldWidthHalf, G.FieldHeightHalf)},
+}
+
 function MoveSRC1.canStart()
 	return World.RefereeState == "Stop" or Referee.isFriendlyFreeKickState()
 end

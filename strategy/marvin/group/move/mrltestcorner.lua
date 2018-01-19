@@ -1,7 +1,6 @@
 local MrlTestCorner = Class("Group.Move.MrlTestCorner", require "group/move/base")
 
 local geom = require "../base/geom"
-local Referee = require "../base/referee"
 local World = require "../base/world"
 local Freekick = require "agent/attacker/freekick"
 local AcceptPass = require "task/acceptpass"
@@ -16,7 +15,7 @@ MrlTestCorner.MIN_ROBOTS = 5
 MrlTestCorner.MAX_ROBOTS = 5
 
 function MrlTestCorner.canStart()
-	return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 and Referee.opponentTouchedLast()
+	return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 and MrlTestCorner.Referee.opponentTouchedLast()
 		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
 		and World.RefereeState == "Stop"
 end
@@ -36,7 +35,7 @@ function MrlTestCorner:_init()
 end
 
 function MrlTestCorner:_canContinue()
-	if Referee.isFriendlyFreeKickState() then
+	if MrlTestCorner.Referee.isFriendlyFreeKickState() then
 		return true
 	end
 	return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2
@@ -59,7 +58,7 @@ function MrlTestCorner:_updateTasks()
 
 	if World.RefereeState == "Stop" then
 		taskAssignments[self._robots[1]] = { class = StopAttack, params = { } }
-	elseif Referee.isFriendlyFreeKickState() then
+	elseif MrlTestCorner.Referee.isFriendlyFreeKickState() then
 		taskAssignments[self._robots[1]] = { behavior = Freekick }
 		self._restart = false
 	end
