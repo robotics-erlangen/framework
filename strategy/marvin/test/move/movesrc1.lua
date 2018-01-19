@@ -27,7 +27,6 @@ function MoveSRC1.canStart()
 end
 
 function MoveSRC1:_init()
-	self._init = true
 	self._state = 0
 end
 
