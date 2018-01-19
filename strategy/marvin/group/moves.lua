@@ -120,7 +120,9 @@ function Moves:run(sender, inbox, messages)
 					error("invalid assignment for robot " .. tostring(robot.id))
 				end
 				assignment.mainAttacker = robot == mainAttacker
-				sender.moveAssignment(robot, assignment)
+				if assignment.class ~= "none" then
+					sender.moveAssignment(robot, assignment)
+				end
 				table.insert(self._participatingRobots, robot)
 			else
 				sender.forcePoolChange("trainer", { robot = robot, destPool = "defender" })
