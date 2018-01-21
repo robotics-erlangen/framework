@@ -68,9 +68,11 @@ Run installer (use default path C:\MinGW !) and install `msys-base, msys-patch`
 
 Add the following line at the end of `C:\mingw\msys\1.0\etc\fstab`:
 ```
-c:/Qt/Tools/mingw53_32 /mingw
+c:/Qt/Tools/mingw530_32 /mingw
 ```
-Make sure that only one line with /mingw exists!
+Make sure that only one line with /mingw exists! Try to run `g++` to verify that the compiler is found!
+The compiler should complain about missing input files; if 'command not found' is printed then the path
+to the compiler is wrong or you forgot to install MinGW along with Qt.
 
 use `msys.bat` in `msys\1.0` to open msys console
 
