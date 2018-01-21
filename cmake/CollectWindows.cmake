@@ -66,3 +66,9 @@ add_custom_target(assemble
 		$<TARGET_FILE_DIR:Qt5::Core>/libwinpthread-1.dll
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
+
+add_custom_target(pack
+	COMMAND bash ${CMAKE_SOURCE_DIR}/data/pkg/win-pack.sh ${CMAKE_COMMAND} ${CMAKE_SOURCE_DIR}
+	WORKING_DIRECTORY ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
+	DEPENDS amun-cli logplayer ra visionanalyzer assemble
+)

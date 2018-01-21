@@ -95,6 +95,11 @@ cmake --build .
 cmake --build . --target assemble
 ```
 
+Automatic packing of ra is possible with (Note that the other calls to `cmake --build` are **not** necessary):
+```
+cmake --build . --target pack
+```
+
 Finished!
 
 
