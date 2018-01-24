@@ -4,7 +4,7 @@ module "debugcommands"
 ]]--
 
 --[[***********************************************************************
-*   Copyright 2015 Alexander Danzer, Michael Eischer                      *
+*   Copyright 2018 Alexander Danzer, Michael Eischer, Tobias Heineken     *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -65,7 +65,9 @@ local commandUnmapping = {
 	IndirectYellow = "INDIRECT_FREE_YELLOW",
 	IndirectBlue = "INDIRECT_FREE_BLUE",
 	TimeoutYellow = "TIMEOUT_YELLOW",
-	TimeoutBlue = "TIMEOUT_BLUE"
+	TimeoutBlue = "TIMEOUT_BLUE",
+	BallPlacementBlue = "BALL_PLACEMENT_BLUE",
+	BallPlacementYellow = "BALL_PLACEMENT_YELLOW"
 }
 
 
@@ -77,8 +79,9 @@ local commandUnmapping = {
 -- @param [refereeCommand string - similar to values of World.RefereeState]
 -- @param [gameStage string - use value of World.GameStage]
 -- @param [blueKeeperID int - yellow keeper id]
--- @param [yellowKeeperID int - blue keeper id]
-function DebugCommands.sendRefereeCommand(refereeCommand, gameStage, blueKeeperID, yellowKeeperID)
+-- @param [yellowKeeperID int - blue keeper id
+-- @param [pos Vector - the position for ballPlacement]
+function DebugCommands.sendRefereeCommand(refereeCommand, gameStage, blueKeeperID, yellowKeeperID, pos)
 	assert(amun.isDebug, "only works in debug mode")
 	local origState = World._getFullRefereeState()
 	-- require origState to be populated, is guaranteed once World.update() was called
@@ -125,6 +128,10 @@ function DebugCommands.sendRefereeCommand(refereeCommand, gameStage, blueKeeperI
 
 	if yellowKeeperID then
 		state.yellow.goalie = yellowKeeperID
+	end
+
+	if pos then
+		state.designated_position = pos
 	end
 
 	sendRefereeCommand(state)
