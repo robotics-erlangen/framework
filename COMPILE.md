@@ -83,6 +83,7 @@ Extract `ninja.exe` to `C:\MinGW\msys\1.0\bin`
 *Do:*
 - **!!! USE THE MSYS CONSOLE TO COMPILE EVERYTHING !!!**
 - Use a folder with a short path like `C:\Robocup` as base folder
+- Recreate the build folder after updating Qt or the Compiler
 
 *Don't:*
 - Use a folder whose path contains whitespace
