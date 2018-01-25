@@ -86,8 +86,6 @@ function Defense:_updateTasks()
 		elseif World.RefereeState == "GameForce" or not self._poly then
 			self._number = self._number % #MOVES +1
 			self._lastRobots = {}
-			DebugCommands.sendRefereeCommand("Stop")
-			self._stopTime = World.Time
 			local goodPosList = MOVES[self._number].DEBUG_GOOD_POS
 			if #goodPosList == 0 then
 					error("Impossible to use a move for defense testing if there are no good positions")
@@ -101,7 +99,19 @@ function Defense:_updateTasks()
 			local xRand = xMin + math.random() * (xMax - xMin)
 			local yRand = yMin + math.random() * (yMax - yMin)
 			local ball = {pos = Vector(xRand, yRand), speed = Vector(0,0)}
-			DebugCommands.moveObjects(ball)
+			if World.isSimulated then
+				DebugCommands.sendRefereeCommand("Stop")
+				DebugCommands.moveObjects(ball)
+				self._stopTime = World.Time
+			else
+				DebugCommands.sendRefereeCommand("BallPlacementDefensive", nil, nil, nil, ball.pos) --TODO: Test if works
+				self._stopTime = nil
+			end
+		elseif World.RefereeState == "BallPlacementDefensive" and World.Ball.pos:distanceToSq(World.BallPlacementPos) < 0.0025 and not self._stopTime then
+			self._stopTime = World.Time
+			DebugCommands.sendRefereeCommand("Stop")
+		elseif World.RefereeState == "BallPlacementDefensive" then
+			debug.set("distanceToSq", World.Ball.pos:distanceToSq(World.BallPlacementPos))
 		end
 		if self._poly then
 			vis.addPolygon("t/m/defend: selectedRect", self._poly, vis.colors.red, true, true)
