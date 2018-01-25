@@ -131,9 +131,12 @@ function DebugCommands.sendRefereeCommand(refereeCommand, gameStage, blueKeeperI
 	end
 
 	if pos then
-		state.designated_position = pos
+		pos = pos*1000
+		pos = Coordinates.toGlobal(pos)
+		state.designated_position = {}
+		state.designated_position.x = pos.y
+		state.designated_position.y = -pos.x
 	end
-
 	sendRefereeCommand(state)
 end
 
