@@ -60,6 +60,13 @@ local function assignRobotsToZones(robotPositions, zones)
 	for i, zone in ipairs(zones) do
 		zoneAssignment[zone] = robots[assignment[i]]
 	end
+
+	-- visualize assignments
+	if amun.isDebug then
+		for zone, robot in pairs(zoneAssignment) do
+			vis.addPath("g/striker: zone assignment", {zone.defaultPos, robot.pos}, vis.colors.white)
+		end
+	end
 	return zoneAssignment
 end
 
