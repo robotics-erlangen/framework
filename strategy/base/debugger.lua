@@ -743,14 +743,21 @@ end
 debugger.getStackDepth = getStackDepth
 
 function debugger.dumpLocalsOnError(f)
+	local tracebackSave = nil
 	local function dumpError(a, b, c)
+		-- save traceback before dumping the stack
+		-- this ensure that we always get a traceback even if the stack dump fails
+		tracebackSave = debug.traceback(a, b, c)
 		debugger.dumpStack()
-		return debug.traceback(a, b, c)
+		return
 	end
 	return function()
 		local succeeded, result = xpcall(f, dumpError)
 		if not succeeded then
-			log(result)
+			log(tracebackSave)
+			if result ~= nil then
+				log(result)
+			end
 			-- silent error propagation
 			error()
 		end
