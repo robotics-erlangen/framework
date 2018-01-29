@@ -253,7 +253,7 @@ function PlaceBall:_getNextState(currentState)
 		if ballVisible and self._ball.pos:distanceTo(self._robot.pos) > self._robot.radius + 0.1 then
 			if not self._lostBallTime then
 				self._lostBallTime = World.Time
-			elseif World.Time - self._lostBallTime > PULL_LOST_BALL_HYSTERESIS then
+			elseif World.Time - self._lostBallTime > PUSH_LOST_BALL_HYSTERESIS then
 				self._lostBallTime = nil
 				nextState = STATE_WAIT_FOR_BALL_STOP
 			end
