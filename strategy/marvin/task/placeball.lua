@@ -175,9 +175,9 @@ function PlaceBall:_getNextState(currentState)
 
 	if currentState == STATE_WAIT_FOR_BALL_STOP then
 
-		if self._ball.speed:length() > BALL_STOP_SPEED then
-			nextState = STATE_WAIT_FOR_BALL_STOP
-		else
+		nextState = STATE_WAIT_FOR_BALL_STOP
+
+		if self._ball.speed:length() < BALL_STOP_SPEED then
 
 			if self._ball.pos:distanceTo(self._placementPos) < END_DISTANCE then
 				nextState = STATE_MOVE_AWAY
@@ -191,98 +191,98 @@ function PlaceBall:_getNextState(currentState)
 
 	elseif currentState == STATE_GO_TO_PULL then
 
+		nextState = STATE_GO_TO_PULL
+
 		if self._ball.speed:length() > BALL_STOP_SPEED then
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		elseif self._robot.pos:distanceTo(self._currentTargetPos) < 0.01 then
 			nextState = STATE_ENSURE_PULL_CONTACT
-		else
-			nextState = STATE_GO_TO_PULL
 		end
 
 	elseif currentState == STATE_ENSURE_PULL_CONTACT then
 
+		nextState = STATE_ENSURE_PULL_CONTACT
+
 		if World.Time - self._stateChangeTime > ENSURE_CONTACT_MAX_TIME then
+			self._hasBallTime = nil
 			nextState = STATE_PULL_TO_FIELD
 		elseif self._barrierDetects then
 			if not self._hasBallTime then
-				nextState = STATE_ENSURE_PULL_CONTACT
 				self._hasBallTime = World.Time
 			elseif World.Time - self._hasBallTime > ENSURE_CONTACT_TIME then
+				self._hasBallTime = nil
 				nextState = STATE_PULL_TO_FIELD
 			end
 		else
-			nextState = STATE_ENSURE_PULL_CONTACT
 			self._hasBallTime = nil
 		end
 
 	elseif currentState == STATE_PULL_TO_FIELD then
 
+		nextState = STATE_PULL_TO_FIELD
 		local ballVisible = self._ball:isPositionValid()
 
 		if ballVisible and self._ball.pos:distanceTo(self._robot.pos) > self._robot.radius + 0.1 then
 			if not self._lostBallTime then
 				self._lostBallTime = World.Time
 			elseif World.Time - self._lostBallTime > PULL_LOST_BALL_HYSTERESIS then
+				self._lostBallTime = nil
 				nextState = STATE_WAIT_FOR_BALL_STOP
 			end
 		else
 			self._lostBallTime = nil
 			if self._robot.pos:distanceTo(self._currentTargetPos) < 0.01 then
 				nextState = STATE_BACK_UP_WAIT
-			else
-				nextState = STATE_PULL_TO_FIELD
 			end
 		end
 
 	elseif currentState == STATE_GO_TO_PUSH then
 
+		nextState = STATE_GO_TO_PUSH
 		if self._ball.speed:length() > BALL_STOP_SPEED then
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		elseif self._robot.pos:distanceTo(self._currentTargetPos) < 0.01 then
 			nextState = STATE_PUSH_TO_POS
-		else
-			nextState = STATE_GO_TO_PUSH
 		end
 
 	elseif currentState == STATE_PUSH_TO_POS then
 
+		nextState = STATE_PUSH_TO_POS
 		local ballVisible = self._ball:isPositionValid()
 
-		if ballVisible and self._robot.pos:distanceTo(self._ball.pos) > self._robot.radius + 0.1 then
-			nextState = STATE_PUSH_TO_POS
+		if ballVisible and self._ball.pos:distanceTo(self._robot.pos) > self._robot.radius + 0.1 then
 			if not self._lostBallTime then
 				self._lostBallTime = World.Time
-			elseif World.Time - self._lostBallTime > PUSH_LOST_BALL_HYSTERESIS then
+			elseif World.Time - self._lostBallTime > PULL_LOST_BALL_HYSTERESIS then
+				self._lostBallTime = nil
 				nextState = STATE_WAIT_FOR_BALL_STOP
 			end
-		elseif self._robot.pos:distanceTo(self._currentTargetPos) < 0.01 then
-			nextState = STATE_BACK_UP_WAIT
 		else
-			nextState = STATE_PUSH_TO_POS
+			self._lostBallTime = nil
+			if self._robot.pos:distanceTo(self._currentTargetPos) < 0.01 then
+				nextState = STATE_BACK_UP_WAIT
+			end
 		end
 
 	elseif currentState == STATE_BACK_UP_WAIT then
 
+		nextState = STATE_BACK_UP_WAIT
 		if World.Time - self._stateChangeTime > BACK_UP_WAIT_TIME then
 			nextState = STATE_BACK_UP
-		else
-			nextState = STATE_BACK_UP_WAIT
 		end
 
 	elseif currentState == STATE_BACK_UP then
 
+		nextState = STATE_BACK_UP
 		if self._robot.pos:distanceTo(self._currentTargetPos) < 0.01 then
 			nextState = STATE_WAIT_FOR_BALL_STOP
-		else
-			nextState = STATE_BACK_UP
 		end
 
 	elseif currentState == STATE_MOVE_AWAY then
 
+		nextState = STATE_MOVE_AWAY
 		if self._ball.pos:distanceTo(self._placementPos) > END_DISTANCE then
 			nextState = STATE_WAIT_FOR_BALL_STOP
-		else
-			nextState = STATE_MOVE_AWAY
 		end
 
 	end
