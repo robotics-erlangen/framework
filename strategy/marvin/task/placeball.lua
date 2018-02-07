@@ -1,4 +1,4 @@
-local PlaceBall = Class("Task.PlaceBall2", require "task/base")
+local PlaceBall = Class("Task.PlaceBall", require "task/base")
 
 -- Requires
 local Constants = require "../base/constants"
