@@ -333,6 +333,12 @@ context("base.vector", function()
 		assert_equal(op6.y, vec2.y)
 		assert_equal(dist6, 0)
 		assert_equal(dist6, vec2:orthogonalDistance(vec2, vec4))
+
+		local op7, dist7 = vec2:orthogonalProjection(vec2, vec2)
+		assert_equal(op7.x, vec2.x)
+		assert_equal(op7.y, vec2.y)
+		assert_equal(dist7, 0)
+		assert_false(op7:isNan())
 	end)
 
 	test("nearestPosOnLine+distanceToLineSegment", function ()
