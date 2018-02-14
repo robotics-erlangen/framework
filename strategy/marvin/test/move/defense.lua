@@ -22,15 +22,13 @@ local function injectReferee(move)
 		local pseudoRefMeta = {}
 		pseudoRefMeta.__index = require "../base/referee"
 		setmetatable(pseudoRef, pseudoRefMeta)
+		local originalCanStart = move.canStart
 		local function canStartInjectedReferee()
 			local oldRef = move.Referee
 			move.injectReferee(pseudoRef)
-			local res = Class.parent(move).canStart()
+			local res = originalCanStart()
 			move.injectReferee(oldRef)
 			return res
-		end
-		if rawget(move, "canStart") then
-			error("Overriding a non-blanc canStart")
 		end
 		move.canStart = canStartInjectedReferee
 		return move
@@ -42,7 +40,7 @@ local MOVES = {
 		injectReferee(require "test/move/defend/mrltestcorner"),
 		injectReferee(require "test/move/defend/ballcycle"),
 		injectReferee(require "test/move/defend/windshieldwiper"),
-		injectReferee(Class("Test.Move.Defend.MoveSRC1", require "test/move/movesrc1")),
+		injectReferee(require "test/move/movesrc1"),
 }
 
 function Defense.canStart()
