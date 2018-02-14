@@ -48,10 +48,10 @@ function Defense.canStart()
 end
 
 function Defense:_init()
-	self._selected = nil
-	self._number = 5
-	self._lastRobots = {}
-	self._poly = nil
+	self._selectedMove = nil
+	self._number = #MOVES
+	self._activeRobots = {}
+	self._visPolygon = nil
 	self._stopTime = nil
 end
 
@@ -65,35 +65,35 @@ function Defense:_updateTasks()
 		for _,r in ipairs(self._robots) do
 				taskAssignments[r] = {behavior = DefenderDefault, params = {} }
 		end
-		for _,r in  ipairs(self._lastRobots) do
+		for _,r in  ipairs(self._activeRobots) do
 				taskAssignments[r] = {class = "none", params = {}}
 		end
-		if self._selected and not self._selected:_canContinue() then
-			self._selected = nil
+		if self._selectedMove and not self._selectedMove:_canContinue() then
+			self._selectedMove = nil
 		end
 		debug.push("Inner Move")
 		debug.set(nil, Class.name(MOVES[self._number], true))
 		debug.set("running", false)
 
-		if self._selected then
+		if self._selectedMove then
 			debug.set("running", true)
-			debug.set("ParticipatingRobots", self._lastRobots)
+			debug.set("ParticipatingRobots", self._activeRobots)
 			local innerTaskAssignment
-			innerTaskAssignment, innerMainAttacker = self._selected:updateTasks()
+			innerTaskAssignment, innerMainAttacker = self._selectedMove:updateTasks()
 			table.extend(taskAssignments, innerTaskAssignment)
-		elseif World.RefereeState == "GameForce" or not self._poly then
+		elseif World.RefereeState == "GameForce" or not self._visPolygon then
 			self._number = self._number % #MOVES +1
-			self._lastRobots = {}
-			local goodPosList = MOVES[self._number].DEBUG_GOOD_POS
-			if #goodPosList == 0 then
+			self._activeRobots = {}
+			local startRectList = MOVES[self._number].TEST_BALL_START_RECTS
+			if #startRectList == 0 then
 					error("Impossible to use a move for defense testing if there are no good positions")
 			end
-			local selectedRect = goodPosList[math.random(#goodPosList)]
+			local selectedRect = startRectList[math.random(#startRectList)]
 			local xMin = math.min(selectedRect[1].x, selectedRect[2].x)
 			local xMax = math.max(selectedRect[1].x, selectedRect[2].x)
 			local yMin = math.min(selectedRect[1].y, selectedRect[2].y)
 			local yMax = math.max(selectedRect[1].y, selectedRect[2].y)
-			self._poly = {Vector(xMin, yMin), Vector(xMin, yMax), Vector(xMax, yMax), Vector(xMax, yMin)}
+			self._visPolygon = {Vector(xMin, yMin), Vector(xMin, yMax), Vector(xMax, yMax), Vector(xMax, yMin)}
 			local xRand = xMin + math.random() * (xMax - xMin)
 			local yRand = yMin + math.random() * (yMax - yMin)
 			local ball = {pos = Vector(xRand, yRand), speed = Vector(0,0)}
@@ -111,10 +111,10 @@ function Defense:_updateTasks()
 		elseif World.RefereeState == "BallPlacementDefensive" then
 			debug.set("distanceToSq", World.Ball.pos:distanceToSq(World.BallPlacementPos))
 		end
-		if self._poly then
-			vis.addPolygon("t/m/defend: selectedRect", self._poly, vis.colors.red, true, true)
+		if self._visPolygon then
+			vis.addPolygon("t/m/defend: selectedRect", self._visPolygon, vis.colors.red, true, true)
 		end
-		if not self._selected and MOVES[self._number].canStart() and #self._robots >= MOVES[self._number].MIN_ROBOTS then
+		if not self._selectedMove and MOVES[self._number].canStart() and #self._robots >= MOVES[self._number].MIN_ROBOTS then
 			local class = MOVES[self._number]
 			local maxRobots = math.min(class.MAX_ROBOTS, #self._robots)
 			local amm = math.random(class.MIN_ROBOTS, maxRobots)
@@ -122,15 +122,17 @@ function Defense:_updateTasks()
 			for i=amm+1, #self._robots do
 				truncatedRobots[i] = nil
 			end
-			self._selected = class(truncatedRobots, self._inbox)
-			self._lastRobots = truncatedRobots
+			self._selectedMove = class(truncatedRobots, self._inbox)
+			self._activeRobots = truncatedRobots
+			debug.set("lastRobots", self._activeRobots)
 		end
 		debug.pop()
-		if self._stopTime and (World.Time - self._stopTime) > ((G.FieldWidth + G.FieldHeight ) / Constants.stopSpeed) then -- wait for both teams to prepare
+		local graceTime = ((G.FieldWidth + G.FieldHeight) / Constants.stopSpeed)
+		if self._stopTime and (World.Time - self._stopTime) > graceTime then -- wait for both teams to prepare
 				DebugCommands.sendRefereeCommand("IndirectOffensive")
 				self._stopTime = nil
 		elseif self._stopTime then
-				debug.set("Time to refStateChange",  - World.Time + self._stopTime + (G.FieldWidth + G.FieldHeight) / Constants.stopSpeed)
+				debug.set("Time to refStateChange",  - World.Time + self._stopTime + graceTime)
 		end
 		return taskAssignments, innerMainAttacker
 end

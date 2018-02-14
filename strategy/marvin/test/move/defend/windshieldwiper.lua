@@ -2,7 +2,7 @@ local WindshieldWiper = Class("Test.Move.Defend.WindshieldWiper", require "group
 
 local G = (require "../base/world").Geometry
 
-WindshieldWiper.DEBUG_GOOD_POS = {
+WindshieldWiper.TEST_BALL_START_RECTS = {
 		{Vector(G.FieldWidthHalf / 2,3*G.FieldHeightHalf / 5), Vector(G.FieldWidthHalf, G.FieldHeightHalf)},
 		{Vector(-G.FieldWidthHalf/2, 3*G.FieldHeightHalf / 5), Vector(-G.FieldWidthHalf, G.FieldHeightHalf)},
 --		{Vector(), Vector()}
