@@ -7,6 +7,7 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 
 local DefenderDefault = require "agent/defender/default"
+local UtilDebug = require "util/debug"
 
 local G = World.Geometry
 
@@ -96,20 +97,15 @@ function Defense:_updateTasks()
 			self._visPolygon = {Vector(xMin, yMin), Vector(xMin, yMax), Vector(xMax, yMax), Vector(xMax, yMin)}
 			local xRand = xMin + math.random() * (xMax - xMin)
 			local yRand = yMin + math.random() * (yMax - yMin)
-			local ball = {pos = Vector(xRand, yRand), speed = Vector(0,0)}
-			if World.isSimulated then
-				DebugCommands.sendRefereeCommand("Stop")
-				DebugCommands.moveObjects(ball)
-				self._stopTime = World.Time
-			else
-				DebugCommands.sendRefereeCommand("BallPlacementDefensive", nil, nil, nil, ball.pos) --TODO: Test if works
-				self._stopTime = nil
-			end
-		elseif World.RefereeState == "BallPlacementDefensive" and World.Ball.pos:distanceToSq(World.BallPlacementPos) < 0.0025 and not self._stopTime then
+			UtilDebug.moveBall("Stop", Vector(xRand, yRand))
+			self._stopTime = nil
+		end
+		if World.RefereeState == "Stop" and not self._stopTime then
 			self._stopTime = World.Time
-			DebugCommands.sendRefereeCommand("Stop")
 		elseif World.RefereeState == "BallPlacementDefensive" then
 			debug.set("distanceToSq", World.Ball.pos:distanceToSq(World.BallPlacementPos))
+			debug.set("speedSp", World.Ball.speed:lengthSq())
+			UtilDebug.moveBall("Stop")
 		end
 		if self._visPolygon then
 			vis.addPolygon("t/m/defend: selectedRect", self._visPolygon, vis.colors.red, true, true)
