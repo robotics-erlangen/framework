@@ -106,8 +106,17 @@ function PlaceBall:run()
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
 	if self._state == STATE_WAIT_FOR_BALL_STOP then
-		-- TODO move in general direction
-		self._robot:halt()
+
+		local ballVisible = self._ball:isPositionValid()
+
+		local specificOffset = self._placementOffsetAverage:copy():setLength(0.5)
+		if ballVisible then
+			self._currentTargetPos = self._ball.pos - specificOffset
+		else
+			self._currentTargetPos = self._robot.pos - specificOffset
+		end
+		self._robot.trajectory:update(ToTarget, self._currentTargetPos, specificOffset:angle())
+
 	elseif self._state == STATE_GO_TO_PULL then
 
 		self._currentTargetPos = self._ball.pos - self._borderOffsetAverage
