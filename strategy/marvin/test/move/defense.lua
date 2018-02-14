@@ -74,10 +74,11 @@ function Defense:_updateTasks()
 		end
 		debug.push("Inner Move")
 		debug.set(nil, Class.name(MOVES[self._number], true))
-		debug.set("running", false)
+
+		local running = false
 
 		if self._selectedMove then
-			debug.set("running", true)
+			running = true
 			debug.set("ParticipatingRobots", self._activeRobots)
 			local innerTaskAssignment
 			innerTaskAssignment, innerMainAttacker = self._selectedMove:updateTasks()
@@ -111,6 +112,7 @@ function Defense:_updateTasks()
 		if self._visPolygon then
 			vis.addPolygon("t/m/defend: selectedRect", self._visPolygon, vis.colors.red, true, true)
 		end
+		debug.set("running", running)
 		if not self._selectedMove and MOVES[self._number].canStart() and #self._robots >= MOVES[self._number].MIN_ROBOTS then
 			local class = MOVES[self._number]
 			local maxRobots = math.min(class.MAX_ROBOTS, #self._robots)
