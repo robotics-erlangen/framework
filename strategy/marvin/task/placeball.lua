@@ -25,7 +25,7 @@ local STATE_MOVE_AWAY = "STATE_MOVE_AWAY"
 
 -- Maximum final distance from ball to placement pos
 local END_DISTANCE = 0.07
-local BALL_STOP_SPEED = 0.03
+local BALL_STOP_SPEED = 0.2
 
 -- If ball distance is larger than this, the corresponding offset gets recalculated
 local OFFSET_DISTANCE = 0.07
