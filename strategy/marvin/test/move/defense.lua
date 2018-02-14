@@ -115,9 +115,9 @@ function Defense:_updateTasks()
 			local class = MOVES[self._number]
 			local maxRobots = math.min(class.MAX_ROBOTS, #self._robots)
 			local amm = math.random(class.MIN_ROBOTS, maxRobots)
-			local truncatedRobots = table.copy(self._robots)
-			for i=amm+1, #self._robots do
-				truncatedRobots[i] = nil
+			local truncatedRobots = {}
+			for i=1, amm do
+				truncatedRobots[i] = self._robots[i]
 			end
 			self._selectedMove = class(truncatedRobots, self._inbox)
 			self._activeRobots = truncatedRobots
