@@ -105,6 +105,7 @@ function Defense:_updateTasks()
 		elseif World.RefereeState == "BallPlacementDefensive" then
 			debug.set("distanceToSq", World.Ball.pos:distanceToSq(World.BallPlacementPos))
 			debug.set("speedSp", World.Ball.speed:lengthSq())
+			self._stopTime = nil -- don't use parts of the graceTime for BallPlacement, relevant in the first run of this move
 			UtilDebug.moveBall("Stop")
 		end
 		if self._visPolygon then
