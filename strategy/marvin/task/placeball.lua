@@ -64,7 +64,7 @@ function PlaceBall:_init(placementPos)
 
 	self._currentTargetPos = nil
 
-	-- Offset stuff
+	-- See _calculateOffsets()
 	self._placementOffsets = {}
 	self._placementOffsetAverage = nil
 	self._placementOffsetFrame = 1
@@ -74,11 +74,15 @@ function PlaceBall:_init(placementPos)
 	self._borderOffsetAverage = nil
 	self._borderOffsetFrame = 1
 
-	-- Ball contact stuff
 	self._barrierDetects = false
 	self._ballInDribbler = false
 	self._hasBallTime = nil
 	self._lostBallTime = nil
+
+	-- Needed for back up
+	-- True if the previous ball moving state was STATE_PUSH_TO_POS, false otherwise
+	-- If additional ball moving states are to be added in the future, this boolean probably won't be enough
+	self._pushedBefore = false
 end
 
 function PlaceBall:run()
@@ -162,7 +166,8 @@ function PlaceBall:run()
 			if self._ball:isPositionValid() then
 				self._currentTargetPos = self._robot.pos - (self._ball.pos - self._robot.pos):setLength(self._robot.shootRadius + self._ball.radius + 0.05)
 			else
-				self._currentTargetPos = self._robot.pos + self._placementOffsetAverage
+				local offset = self._pushedBefore and self._placementOffsetAverage or -self._borderOffsetAverage
+				self._currentTargetPos = self._robot.pos + offset
 			end
 		end
 
@@ -228,6 +233,8 @@ function PlaceBall:_getNextState(currentState)
 
 	elseif currentState == STATE_PULL_TO_FIELD then
 
+		self._pushedBefore = false
+
 		nextState = STATE_PULL_TO_FIELD
 		local ballVisible = self._ball:isPositionValid()
 
@@ -255,6 +262,8 @@ function PlaceBall:_getNextState(currentState)
 		end
 
 	elseif currentState == STATE_PUSH_TO_POS then
+
+		self._pushedBefore = true
 
 		nextState = STATE_PUSH_TO_POS
 		local ballVisible = self._ball:isPositionValid()
