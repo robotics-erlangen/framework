@@ -1,15 +1,15 @@
 local Defense = Class("Group.Move.Defense", require "group/move/base")
 
+local Constants = require "../base/constants"
+local debug = require "../base/debug"
+local DebugCommands = require "../base/debugcommands"
+local vis = require "../base/vis"
 local World = require "../base/world"
-local G = World.Geometry
 
 local DefenderDefault = require "agent/defender/default"
 
-local vis = require "../base/vis"
-local DebugCommands = require "../base/debugcommands"
-local Constants = require "../base/constants"
+local G = World.Geometry
 
-local debug = require "../base/debug"
 
 Defense.MIN_ROBOTS = 1
 Defense.MAX_ROBOTS = 8
