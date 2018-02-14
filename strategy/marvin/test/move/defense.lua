@@ -1,3 +1,29 @@
+--[[
+A move to test the defense.
+
+Usage:
+To use this move, select the strategy that should be tested as one team, and this move as the other team.
+The defending team should be able to fullfill the default ruleset and should be able to respond to placeball commands if tested on the real field.
+If used in the simulator, ballplacement is not needed.
+The move will start automatically with the first attack. It'll give "Stop" and "Indirect Offensive" on its own. As soon as the situation is resolved (i.e. the ball goes out of play or there's lack of progress), "ForceGame" should be given by the human beeing to continue with the next situation.
+There is no automatic logging or detection for mistakes in the defending strategy. If this move is able to score, its in the users responsibility to use a backlog or instant replay and analyse the problem.
+
+Extensions:
+If you want to include your newly written move in this test, please make sure to obey the following rules:
+
+* If you use base/referee, make sure that you don't require it on your own, but rely on the Referee you get by inheriting from g/m/base.
+	You can use that referee by simply calling <YourMove>.Referee (i.e. Armada.Referee, Ballcycle.Referee etc.)
+
+* Your move-class needs a Field called "TEST_BALL_START_RECTS" that contains a list of axis alligned rectangles. Please make sure that your move will start for every point in one of the rectangles in the list. If your move gets used in normal play, and you don't like the idea of floating your move with this field, you can make a subclass in g/m/defend that extends your move and offers that field.
+
+* Your canStart should start the move if the Ball is in one of the TEST_BALL_START_RECTS (tolerance 5 cm), either during "Stop" or during "IndirectOffensive". However, you can use Referee.opponentTouchedLast, as that will be "true" whenever executed during this move.
+
+* Your canContnue should not continue forever, but stop as soon as the move is over. If canContinue is false, the attack will continue using dynamic attack. So it's very likely that you don't want to include your final goalshoot in your move, but only the first few passes and positions. At least you should stop your move in "Stop" and "GameForce".
+
+To add your move, simply add it to the MOVES table, like the other moves.
+]]
+
+
 local Defense = Class("Group.Move.Defense", require "group/move/base")
 
 local Constants = require "../base/constants"
