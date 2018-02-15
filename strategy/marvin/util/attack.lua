@@ -12,6 +12,8 @@ local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
 local Rating = require "util/rating"
 
+local G = World.Geometry
+
 --- evaluates a given pass object
 -- @name ratePass
 -- @param robot Robot - the pass sender / main attacker
@@ -50,8 +52,8 @@ function Attack.ratePass(robot, pass, considerTiming)
 	end
 
 	-- rate angle shooter-goal-receiver
-	local shooterGoalReceiverAngle = (shootPos - World.Geometry.OpponentGoal):absoluteAngleDiff(
-			pass.ballPos - World.Geometry.OpponentGoal)
+	local shooterGoalReceiverAngle = (shootPos - G.OpponentGoal):absoluteAngleDiff(
+			pass.ballPos - G.OpponentGoal)
 	local shooterGoalReceiverRating = Rating.valueToRating(shooterGoalReceiverAngle, 0, 180 / 180 * math.pi)
 	local shooterGoalReceiverWeight = 0.5
 	rating = rating * (1 - shooterGoalReceiverWeight + shooterGoalReceiverWeight * shooterGoalReceiverRating)
@@ -107,7 +109,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 		end
 	end
 
-	local goalAngle = (World.Geometry.OpponentGoalRight - pass.ballPos):absoluteAngleDiff(World.Geometry.OpponentGoalLeft - pass.ballPos)
+	local goalAngle = (G.OpponentGoalRight - pass.ballPos):absoluteAngleDiff(G.OpponentGoalLeft - pass.ballPos)
 	local goalAngleWeight = 0.5
 	local goalAngleRating = Rating.valueToRating(goalAngle, 0, 50 / 180 * math.pi)
 	rating = rating * (1 - goalAngleWeight + goalAngleWeight * goalAngleRating)
@@ -287,7 +289,7 @@ Attack.currentPlannedMainAttacker = Cache.forFrame(Attack.currentPlannedMainAtta
 function Attack.shootGoalViewPos(shootDest, attackPos)
 	-- if we want to shoot a goal
 	if shootDest then
-		if World.Geometry.OpponentGoal:distanceTo(shootDest) <= World.Geometry.GoalWidth / 2 then
+		if G.OpponentGoal:distanceToSq(shootDest) <= G.GoalWidth * G.GoalWidth / 4 then
 			return attackPos
 		end
 	end
@@ -295,8 +297,8 @@ function Attack.shootGoalViewPos(shootDest, attackPos)
 	-- if the ball is rolling towards the opponent goal
 	if World.Ball.speed:length() > 3 then
 		local intersection, _, l2 = geom.intersectLineLine(World.Ball.pos, World.Ball.speed,
-			World.Geometry.OpponentGoal, Vector(1, 0))
-		if intersection and math.abs(l2) < World.Geometry.GoalWidth / 2 + 0.2 then
+			G.OpponentGoal, Vector(1, 0))
+		if intersection and math.abs(l2) < G.GoalWidth / 2 + 0.2 then
 			if Physics.checkedBallRollTime(World.Ball, intersection) < math.huge then
 				return World.Ball.pos
 			end
@@ -319,13 +321,14 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 	end
 
 	-- check whether the robot could possibly interfere with a goal shot
-	local distRobotOpponentGoal = robot.pos:distanceTo(World.Geometry.OpponentGoal)
-	local distAttackPosOpponentGoal = attackPos:distanceTo(World.Geometry.OpponentGoal)
-	local distBallOpponentGoal = World.Ball.pos:distanceTo(World.Geometry.OpponentGoal)
+	local distRobotOpponentGoal = robot.pos:distanceToSq(G.OpponentGoal)
+	local distAttackPosOpponentGoal = attackPos:distanceToSq(G.OpponentGoal)
+	local distBallOpponentGoal = World.Ball.pos:distanceToSq(G.OpponentGoal)
 	if distRobotOpponentGoal > distAttackPosOpponentGoal
 			and distRobotOpponentGoal > distBallOpponentGoal then
 		return
 	end
+
 
 	local viewPos
 	if World.Ball.speed:length() > 0.5 and Ball.ballHeadingForGoal(World.Ball) then
@@ -333,12 +336,14 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 	else
 		viewPos = Attack.shootGoalViewPos(shootDest, attackPos)
 	end
+
 	if viewPos then
-		local leftGoal = World.Geometry.OpponentGoalLeft
-		local rightGoal = World.Geometry.OpponentGoalRight
+		local leftGoal = G.OpponentGoalLeft
+		local rightGoal = G.OpponentGoalRight
 		robot.path:addTriangle(viewPos.x, viewPos.y, leftGoal.x, leftGoal.y,
 			rightGoal.x, rightGoal.y, World.Ball.radius + 0.05)
 	end
+
 end
 
 local BUFFER_TIME = 0.4
