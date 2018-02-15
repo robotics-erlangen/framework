@@ -6,6 +6,7 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local Direct = require "trajectory/direct"
 local Hidden = require "trajectory/hidden"
+local PathHelper = require "trajectory/pathhelper.lua"
 
 
 function Manual:_limitRobotSpeed(v)
@@ -32,7 +33,17 @@ function Manual:_limitRobotSpeed(v)
 	return vlimited
 end
 
+
+local obstacleTable = {
+	ignoreBall = true,
+	ignoreDefenseArea = true,
+	stopBallDistance = 0,
+	ignoreOpponentDefenseArea = true,
+	ignorePass = true
+}
 function Manual:run()
+	PathHelper.setObstaclesByTable(self._robot.path, self._robot, obstacleTable)
+
 	local input = self._robot.userControl
 
 	if input.kickPower and input.kickPower > 0 and Ball.friendlyBallOwner() == self._robot then

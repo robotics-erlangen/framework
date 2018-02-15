@@ -25,19 +25,8 @@ function Striker:_init(manualDefaultPos, manualPassDest)
 	self._revaluateTimestamp = 0
 
 	self._obstacleTable  = {
-	ignoreBall = true,
-	-- ignoreGoals = false,
-	-- ignoreDefenseArea = false,
-	-- pathRadius = nil,
-	-- stopBallDistance = nil,
-	-- noSeedTarget = false,
-	-- ignoreOpponentDefenseArea = false,
-	-- forceBallDistance = nil,
-	inbox = self._inbox
-	-- ignorePass = false
-	-- ignoreFriendlyRobots = false,
-	-- ignoreOpponentRobots = false,
-	-- disableOpponentPrediction = false,
+		ignoreBall = true,
+		inbox = self._inbox
 	}
 end
 
@@ -169,11 +158,6 @@ function Striker:run()
 	local moveTime = nil
 	local _, attackPosition = next(self._inbox.attackPosition())
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
-
-	-- don't move between the ball and the opponent goal
-	-- relevant for goal shots
-	local _, shootDest = next(self._inbox.shootDestination())
-	Attack.addShootGoalObstacle(self._robot, shootDest, attackPosition)
 
 	-- send a suggestion for a pass in the run
 	if self._passDestSuggestion and attackPosition then

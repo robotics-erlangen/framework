@@ -8,14 +8,14 @@ local ToTarget = require "trajectory/totarget"
 function MoveToStaticBall:_init(rotation, distanceToBall)
 	self._rotation = rotation or math.pi/2
 	self._distanceToBall = distanceToBall or 0.03
+	self._obstacleTable = {extraBallDistance = self._distanceToBall, ignorePass = true}
 end
 
 function MoveToStaticBall:run()
 	local absDistToBall = self._distanceToBall + self._robot.radius + World.Ball.radius
 	local pos = World.Ball.pos - Vector.fromAngle(self._rotation) * absDistToBall
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 	self._robot.path:addCircle(World.Ball.pos.x, World.Ball.pos.y,
 		self._distanceToBall + World.Ball.radius, "StaticBall")
 

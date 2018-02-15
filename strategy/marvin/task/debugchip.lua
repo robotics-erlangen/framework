@@ -13,11 +13,16 @@ function DebugChip:_init(pos, distance)
 	self._pos = pos
 	self._distance = distance
 	self._wasShot = false
+	self._obstacleTable = {
+	ignoreBall = true,
+	ignoreGoals = true,
+	ignoreDefenseArea = true,
+	ignoreOpponentDefenseArea = true,
+	}
 end
 
 function DebugChip:run()
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, true, true, nil, nil, nil, true)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, self._obstacleTable)
 
 	if Ball.isShot() then
 		self._wasShot = true

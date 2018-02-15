@@ -23,13 +23,17 @@ function RandomKeeper:run()
 			-World.Geometry.FieldHeightHalf + self._robot.radius + GOAL_DISTANCE)
 
 	-- ignore goal walls if ball is shot
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, false, true, self._robot.radius, 0.05)
-
-		-- add obstacles if outside keeper area
+	local obstacleTable = {
+		ignoreBall = true,
+		ignoreGoals = false,
+		ignoreDefenseArea = true,
+		stopBallDistance = 0.05
+	}
 	if not Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
-		PathHelper.addRobotObstacles(self._robot.path, self._robot, false, false)
+		obstacleTable.ignoreFriendlyRobots = true
+		obstacleTable.ignoreOpponentRobots = true
 	end
-
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, moveDest, math.pi/2)
 end
 

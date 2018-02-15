@@ -8,7 +8,7 @@ local World = require "../base/world"
 
 local Ball = require "observer/ball"
 local ObserverShoot = require "observer/shoot"
-local PathHelper = require "trajectory/pathhelper"
+-- local PathHelper = require "trajectory/pathhelper"
 local Rating = require "util/rating"
 local ShootGoalUtil = require "util/shootgoal"
 
@@ -55,7 +55,8 @@ function ShootGoal:_init(ballReceiptPos, forceDesperate)
 end
 
 function ShootGoal:run()
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
+	-- :dead code
+	-- PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 
 	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
 	local ballReceiptPos = self._ballReceiptPos or attackPosition

@@ -10,6 +10,10 @@ local ToTarget = require "trajectory/totarget"
 function BallEvadingMoveToPos:_init(pos, dir)
 	self._pos = pos
 	self._dir = dir
+	self._obstacleTable = {
+		ignoreBall = false,
+		inbox = self._inbox
+	}
 end
 
 function BallEvadingMoveToPos:run()
@@ -21,8 +25,7 @@ function BallEvadingMoveToPos:run()
 			World.Geometry.FriendlyGoal - self._pos, World.Ball.pos, minDist)
 	end
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 
 	local dir = self._dir or (World.Ball.pos - pos):angle()
 	self._robot.trajectory:update(ToTarget, pos, dir)

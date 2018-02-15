@@ -50,8 +50,7 @@ function OverchipReceiver:_updatePos()
 end
 
 function OverchipReceiver:run()
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, {ignorePass = true})
 	self:_updateObstacleRobot()
 	self:_updatePos()
 	local dir = (G.OpponentGoal - self._pos):angle()

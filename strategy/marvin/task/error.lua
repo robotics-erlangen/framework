@@ -30,8 +30,7 @@ end
 
 function Error:run()
 	amun.setRobotExchangeSymbol(self._robot.generation, self._robot.id,true)
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, {ignorePass = true})
 
 	local y0
 	if self._goToTopBlock then

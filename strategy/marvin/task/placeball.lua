@@ -72,6 +72,13 @@ function PlaceBall:_init(placementPos)
 	self._lostBallTime = nil
 end
 
+local obstacleTable = {
+	ignoreBall = true,
+	ignoreDefenseArea = true,
+	ignoreOpponentDefenseArea = true,
+	ignorePass = true,
+}
+
 function PlaceBall:run()
 
 	self:_calculateOffsets()
@@ -91,12 +98,11 @@ function PlaceBall:run()
 	debug.set("state", self._state)
 
 	-- Path helping
-	local ignoreBall = self._state == STATE_ENSURE_PULL_CONTACT
+	obstacleTable.ignoreBall = self._state == STATE_ENSURE_PULL_CONTACT
 					or self._state == STATE_PULL_TO_FIELD
 					or self._state == STATE_WAIT_FOR_STOP
 					or self._state == STATE_PUSH_TO_POS
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignoreBall, false, true)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
 	if self._state == STATE_START then
 		self._robot:halt()
