@@ -31,7 +31,6 @@ local math = require "../base/math"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 
-
 local G = World.Geometry
 
 --- returns the nearest position inside the field (extended by boundaryWidth)
@@ -130,13 +129,14 @@ end
 
 
 local function distanceToDefenseAreaSq_2018(pos, friendly)
-	local defenseYmin = friendly and -G.FieldHeightHalf or G.FieldHeightHalf - G.DefenseHeight
-	local defenseYmax = friendly and -G.FieldHeightHalf + G.DefenseHeight or G.FieldHeightHalf
 
-	local inside = Vector(math.bound(-G.DefenseWidthHalf, pos.x, G.DefenseWidthHalf),
-				math.bound(defenseYmin, pos.y, defenseYmax))
+	local defenseMin = Vector(-G.DefenseWidthHalf,G.FieldHeightHalf-G.DefenseHeight)
+	local defenseMax = Vector(G.DefenseWidthHalf,G.FieldHeightHalf)
+	if friendly then
+		defenseMin, defenseMax = -defenseMax, -defenseMin
+	end
 
-	return pos:distanceToSq(inside)
+	return pos:distanceToSq(geom.boundRect(defenseMin, pos, defenseMax))
 end
 local function distanceToDefenseArea_2018(pos, radius, friendly)
 	local distance = math.sqrt(distanceToDefenseAreaSq_2018(pos, friendly)) - radius
@@ -149,11 +149,9 @@ local function distanceToDefenseArea_2017(pos, radius, friendly)
 	local distance = pos:distanceTo(inside) - radius
 	return (distance < 0) and 0 or distance
 end
-
-if World.RULEVERSION == "2018" then
-	Field.distanceToDefenseArea = distanceToDefenseArea_2018
-else
-	Field.distanceToDefenseArea = distanceToDefenseArea_2017
+local function distanceToDefenseAreaSq_2017(pos, friendly)
+	local d = distanceToDefenseArea_2017(pos, 0, friendly)
+	return d * d
 end
 
 
@@ -177,8 +175,12 @@ local function isInDefenseArea_2018(pos, radius, friendly)
 end
 
 if World.RULEVERSION == "2018" then
+	Field.distanceToDefenseAreaSq = distanceToDefenseAreaSq_2018
+	Field.distanceToDefenseArea = distanceToDefenseArea_2018
 	Field.isInDefenseArea = isInDefenseArea_2018
 else
+	Field.distanceToDefenseAreaSq = distanceToDefenseAreaSq_2017
+	Field.distanceToDefenseArea = distanceToDefenseArea_2017
 	Field.isInDefenseArea = isInDefenseArea_2017
 end
 
@@ -254,6 +256,51 @@ local intersectRayArc = function(pos, dir, m, r, minangle, maxangle)
 	end
 	return intersections
 end
+
+
+function Field.intersectDefenseArea_2018(pos, dir, extraDistance, friendly)
+
+	local corners = {}
+	corners[1] = Vector(G.DefenseWidthHalf+extraDistance, G.FieldHeightHalf)
+	corners[2] = Vector(G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight-extraDistance)
+	corners[3] = Vector(-G.DefenseWidthHalf-extraDistance, G.FieldHeightHalf-G.DefenseHeight)
+	-- corners[4] = Vector(-G.DefenseWidthHalf, G.FieldHeightHalf+extraDistance)
+	local directions = {}
+	directions[1] = Vector(0,-1)
+	directions[2] = Vector(-1,0)
+	directions[3] = Vector(0,1)
+	-- directions[4] = Vector(1,0)
+	local f = friendly and -1 or 1
+
+	local intersections = {}
+	for i,v in ipairs(corners) do
+		local length = (i%2 == 0) and G.DefenseWidth or G.DefenseHeight
+		local ipos, l1, l2 = geom.intersectLineLine(pos, dir, v*f, directions[i]*f)
+		if l1 and l1 >= 0 and l2 >= - extraDistance and l2 <= length + extraDistance then
+			if not (l1 == 0 and l2 == 0) or ipos:distanceToSq(v*f) < 0.0001 then
+				intersections[i] = {pos = ipos, l1 = l1, l2 = l2, length = length}
+			end
+		end
+		if #intersections == 2 then
+			break
+		end
+	end
+	local min
+	for i,v in pairs(intersections) do
+		if (not min) or v.l1 < intersections[min].l1 then
+			min = i
+		end
+	end
+	if not min then
+		return
+	end
+	if extraDistance < 0.001 then
+		return intersections[min]
+	end
+	return intersections[min]
+end
+
+
 
 local intersectRayDefenseArea = function(pos, dir, extraDistance, opp)
 	-- calculate defense radius
