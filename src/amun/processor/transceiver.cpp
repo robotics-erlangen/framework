@@ -567,8 +567,8 @@ void Transceiver::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter,
 
     TransceiverSendNRF24Packet targetAddress;
     memcpy(targetAddress.address, robot_datagram, sizeof(targetAddress.address));
-    // broadcast (0x0f) to generation 2014 (0x20)
-    targetAddress.address[0] = 0x0f | 0x20;
+    // broadcast (0x1f) to generation 2014 (0x20)
+    targetAddress.address[0] = 0x1f | 0x20;
     targetAddress.expectedResponseSize = 0;
 
     usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));

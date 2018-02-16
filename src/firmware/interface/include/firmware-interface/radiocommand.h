@@ -46,10 +46,37 @@ typedef struct {
     uint8_t datagramCount:4; // allows 15*30=450 bytes as message size
 } __attribute__ ((packed)) RadioDatagramHdr;
 
-static const uint8_t transceiver_address[] = { 0x33, 0xC0, 0xFF, 0xEE, 0xD7 };
+// only frequencies between 2400 and 2525 can be used
+// change frequencies here, channel is selected in the ra settings!
+// flash robots AND transceiver after changes!
+static const uint16_t transceiver_frequencies[16][2] = {
+    // frequencies in MHz
+    // nrf1 + nrf2, nrf3 + nrf4
+    // receiver, transmitter
+    { 2507, 2513 }, // Channel 0
+    { 2508, 2514 }, // Channel 1
+    { 2509, 2515 }, // Channel 2
+    { 2510, 2516 }, // Channel 3
+    { 2511, 2517 }, // Channel 4
+    { 2512, 2518 }, // Channel 5
+    { 2513, 2519 }, // Channel 6
+    { 2514, 2520 }, // Channel 7
+    { 2515, 2521 }, // Channel 8
+    { 2516, 2522 }, // Channel 9
+    { 2498, 2519 }, // Channel 10
+    { 2505, 2515 }, // Channel 11
+    { 2519, 2525 }, // Channel 12
+    { 2506, 2512 }, // Channel 13
+    { 2503, 2511 }, // Channel 14
+    { 2504, 2510 }  // Channel 15
+};
 
+// Target for radio response from robot
+static const uint8_t transceiver_address[] = { 0x33, 0xC0, 0xFF, 0xEE, 0xD7 };
+// Target for datagram packet from robot
 static const uint8_t transceiver_datagram[] = { 0x54, 0xC0, 0xFF, 0xEE, 0xB5 };
-// id from datagram is used as last byte
+// Target for datagrom packet sent to the robot
+// the robot id is embedded in the first byte along with a robot generation tag
 static const uint8_t robot_datagram[] = { 0x00, 0xC0, 0xFF, 0xEE, 0x55 };
 
 #endif // COMMON_RADIOCOMMAND_H
