@@ -25,6 +25,12 @@
 #include <QSettings>
 #include <QThread>
 #include <QSignalMapper>
+#include <QDragEnterEvent>
+#include <QDragLeaveEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QUrl>
 #include "widgets/refereestatuswidget.h"
 #include "logfile/logfilereader.h"
 #include "plotter/plotter.h"
@@ -51,6 +57,9 @@ MainWindow::MainWindow(QWidget *parent) :
     LogCutter *logCutter = new LogCutter();
 
     m_playTimer = ui->logManager->getPlayTimer();
+
+    setAcceptDrops(true);
+    connect(ui->field, SIGNAL(fileDropped(QString)), this, SLOT(openFile(QString)));
 
     // setup status bar
     m_refereeStatus = new RefereeStatusWidget;
@@ -326,6 +335,34 @@ void MainWindow::closeEvent(QCloseEvent *e)
     m_plotter->close();
 
     QMainWindow::closeEvent(e);
+}
+
+void MainWindow::dragEnterEvent(QDragEnterEvent *event)
+{
+    event->acceptProposedAction();
+}
+
+void MainWindow::dragMoveEvent(QDragMoveEvent *event)
+{
+    event->acceptProposedAction();
+}
+
+void MainWindow::dragLeaveEvent(QDragLeaveEvent *event)
+{
+    event->accept();
+}
+
+void MainWindow::dropEvent(QDropEvent *event)
+{
+    const QMimeData* mimeData = event->mimeData();
+
+    if (mimeData->hasUrls()) {
+        QList<QUrl> urlList = mimeData->urls();
+        if (urlList.size() > 0) {
+            openFile(urlList.at(0).toLocalFile());
+            event->acceptProposedAction();
+        }
+    }
 }
 
 QString MainWindow::formatTime(qint64 time) {

@@ -82,6 +82,7 @@ public:
 
 signals:
     void sendCommand(const Command &command);
+    void fileDropped(const QString &fileName);
 
 public slots:
     void handleStatus(const Status &status);
@@ -102,6 +103,10 @@ protected:
     void drawBackground(QPainter *painter, const QRectF &rect) override;
     void leaveEvent(QEvent *event) override;
     bool event(QEvent *event) override;
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dragMoveEvent(QDragMoveEvent *event) override;
+    void dragLeaveEvent(QDragLeaveEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
 
     void setInfoText(const QString &str);
 private slots:

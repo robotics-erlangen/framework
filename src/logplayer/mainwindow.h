@@ -52,15 +52,19 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow() override;
-    void openFile(const QString &filename);
 
 protected:
     void closeEvent(QCloseEvent *e) override;
+    void dragEnterEvent(QDragEnterEvent *event) override;
+    void dragMoveEvent(QDragMoveEvent *event) override;
+    void dragLeaveEvent(QDragLeaveEvent *event) override;
+    void dropEvent(QDropEvent *event) override;
 
 public slots:
     void handleStatus(const Status &status);
     void gotPreStatus(const Status &status);
     void gotPrePlayStatus(Status status);
+    void openFile(const QString &filename);
 
 signals:
     void gotStatus(const Status &status);

@@ -34,6 +34,12 @@
 #include <QGesture>
 #include <QGestureRecognizer>
 #include <QGuiApplication>
+#include <QDragEnterEvent>
+#include <QDragLeaveEvent>
+#include <QDragMoveEvent>
+#include <QDropEvent>
+#include <QMimeData>
+#include <QUrl>
 
 class TouchStatusGesture : public QGesture
 {
@@ -117,6 +123,8 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_guiTimer->requestTriggering();
 
     geometrySetDefault(&m_geometry);
+
+    setAcceptDrops(true);
 
     // setup context menu
     m_contextMenu = new QMenu(this);
@@ -1055,6 +1063,33 @@ void FieldWidget::sendSimulatorTeleportBall(const QPointF &p)
     ball->set_v_y(0);
     ball->set_position(true);
     emit sendCommand(command);
+}
+
+void FieldWidget::dragEnterEvent(QDragEnterEvent *event)
+{
+    event->acceptProposedAction();
+}
+
+void FieldWidget::dragMoveEvent(QDragMoveEvent *event)
+{
+    event->acceptProposedAction();
+}
+
+void FieldWidget::dragLeaveEvent(QDragLeaveEvent *event)
+{
+    event->accept();
+}
+
+void FieldWidget::dropEvent(QDropEvent *event)
+{
+    const QMimeData* mimeData = event->mimeData();
+
+    if (mimeData->hasUrls() && m_isLogplayer) {
+        QList<QUrl> urlList = mimeData->urls();
+        if (urlList.size() > 0) {
+            emit fileDropped(urlList.at(0).toLocalFile());
+        }
+    }
 }
 
 void FieldWidget::mousePressEvent(QMouseEvent *event)
