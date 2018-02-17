@@ -268,8 +268,8 @@ void Strategy::process()
         } else if (m_type == StrategyType::YELLOW) {
             userInput.CopyFrom(m_status->user_input_yellow());
         }
+        userInput.mutable_move_command()->CopyFrom(m_lastMoveCommand.move_command());
     }
-    userInput.mutable_move_command()->CopyFrom(m_lastMoveCommand.move_command());
 
     if (m_strategy->process(pathPlanning, m_status->execution_state().IsInitialized() ? m_status->execution_state() : m_status->world_state(),
                             m_status->execution_game_state().IsInitialized() ? m_status->execution_game_state() : m_status->game_state(), userInput)) {
