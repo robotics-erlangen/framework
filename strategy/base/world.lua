@@ -405,11 +405,16 @@ function World._updateUserInput(input)
 		end
 	end
 	if input.move_command then
+		-- cache the movecommands for 0.3 seconds if it not there every frame
 		for _, robot in ipairs(World.FriendlyRobotsAll) do
-			robot.moveCommand = nil
+			-- < 0 for going back in logfiles while replaying
+			if robot.moveCommand and (World.Time - robot.moveCommand.time > 0.3 or
+				World.Time - robot.moveCommand.time < 0) then
+				robot.moveCommand = nil
+			end
 		end
 		for _, cmd in ipairs(input.move_command) do
-			World.FriendlyRobotsById[cmd.id].moveCommand = Coordinates.toGlobal(Vector(cmd.p_x, cmd.p_y))
+			World.FriendlyRobotsById[cmd.id].moveCommand = {time = World.Time, pos = Coordinates.toGlobal(Vector(cmd.p_x, cmd.p_y))}
 		end
 	end
 end
