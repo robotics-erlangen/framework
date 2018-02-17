@@ -25,6 +25,7 @@
 #include "logfile/combinedlogwriter.h"
 #include <QMainWindow>
 #include <QSet>
+#include <QList>
 
 class BacklogWriter;
 class CombinedLogWriter;
@@ -92,6 +93,7 @@ private:
     QLabel *m_logTimeLabel;
     CombinedLogWriter m_logWriter;
     amun::GameState::State m_lastRefState;
+    QList<Status> m_replayStrategyBuffer;
 
     DebuggerConsole *m_console;
 };

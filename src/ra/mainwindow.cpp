@@ -397,6 +397,11 @@ void MainWindow::toggleFlip()
 
 void MainWindow::liveMode()
 {
+    for (const Status &status : m_replayStrategyBuffer) {
+        handleStatus(status);
+        m_logWriter.handleStatus(status);
+    }
+    m_replayStrategyBuffer.clear();
     if (ui->actionSimulator->isChecked()) {
         ui->simulator->start();
     }
@@ -435,6 +440,12 @@ void MainWindow::handleCheckHaltStatus(const Status &status)
         const amun::GameState &gameState = status->game_state();
         if (gameState.state() != amun::GameState::Halt) {
             liveMode();
+        }
+    }
+    if (status->has_strategy_blue() || status->has_strategy_yellow() || status->has_debug()) {
+        // use 50 as some upper limit, the exact number is irrelevant
+        if (m_replayStrategyBuffer.size() < 50) {
+            m_replayStrategyBuffer.push_back(status);
         }
     }
 }
