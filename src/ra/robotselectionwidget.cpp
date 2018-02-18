@@ -88,7 +88,8 @@ QWidget *ItemDelegate::createEditor(QWidget *parent, const QStyleOptionViewItem 
 RobotSelectionWidget::RobotSelectionWidget(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::RobotSelectionWidget),
-    m_itemDelegate(NULL)
+    m_itemDelegate(NULL),
+    m_contentDisabled(false)
 {
     ui->setupUi(this);
 
@@ -127,6 +128,14 @@ void RobotSelectionWidget::shutdown()
 {
     ui->yellow->shutdown();
     ui->blue->shutdown();
+}
+
+void RobotSelectionWidget::enableContent(bool enable)
+{
+    ui->blue->enableContent(enable);
+    ui->yellow->enableContent(enable);
+    ui->robots->viewport()->setEnabled(enable);
+    m_contentDisabled = !enable;
 }
 
 void RobotSelectionWidget::init(QWidget *window, InputManager *inputManager)
@@ -439,6 +448,9 @@ void RobotSelectionWidget::handleStatus(const Status &status)
 
 void RobotSelectionWidget::showConfigDialog(const QModelIndex &index)
 {
+    if (m_contentDisabled) {
+        return;
+    }
     const uint generation_id = index.data(DATA_GENERATION_ID).toUInt();
     Generation &generation = m_generations[generation_id];
 

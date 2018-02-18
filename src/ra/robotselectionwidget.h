@@ -54,6 +54,7 @@ public:
     explicit RobotSelectionWidget(QWidget *parent = 0);
     ~RobotSelectionWidget() override;
     void shutdown();
+    void enableContent(bool enable);
 
 signals:
     void setTeam(uint generation, uint id, RobotWidget::Team team);
@@ -100,6 +101,7 @@ private:
     QMap<uint, Generation> m_generations;
     QStringList m_recentScripts;
     ItemDelegate *m_itemDelegate;
+    bool m_contentDisabled;
 };
 
 #endif // ROBOTSELECTIONWIDGET_H

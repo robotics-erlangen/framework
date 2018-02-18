@@ -469,7 +469,7 @@ void MainWindow::toggleInstantReplay(bool enable)
     ui->actionSpeed1000->setEnabled(enable);
     ui->referee->setEnabled(!enable);
     ui->simulator->setEnabled(!enable);
-    ui->robots->setEnabled(!enable);
+    ui->robots->enableContent(!enable);
 }
 
 void MainWindow::sendFlip()

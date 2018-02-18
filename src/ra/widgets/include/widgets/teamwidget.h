@@ -46,6 +46,7 @@ public:
     void setRecentScripts(QStringList *recent);
     void forceAutoReload(bool force);
     void shutdown();
+    void enableContent(bool enable);
 
 public slots:
     void handleStatus(const Status &status);
@@ -81,6 +82,7 @@ private:
     QString m_entryPoint;
     QAction *m_actionDisable;
     QAction *m_reloadAction;
+    QAction *m_enableDebugAction;
     QAction *m_debugAction;
     bool m_userAutoReload;
     bool m_notification;

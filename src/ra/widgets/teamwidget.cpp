@@ -94,9 +94,9 @@ void TeamWidget::init(bool blue)
     m_reloadAction->setCheckable(true);
     connect(m_reloadAction, SIGNAL(toggled(bool)), SLOT(sendAutoReload()));
 
-    QAction *debugAction = reload_menu->addAction("Enable debugging");
-    debugAction->setCheckable(true);
-    connect(debugAction, SIGNAL(toggled(bool)), SLOT(sendEnableDebug(bool)));
+    m_enableDebugAction = reload_menu->addAction("Enable debugging");
+    m_enableDebugAction->setCheckable(true);
+    connect(m_enableDebugAction, SIGNAL(toggled(bool)), SLOT(sendEnableDebug(bool)));
 
     m_debugAction = reload_menu->addAction("Trigger debugger");
     m_debugAction->setEnabled(false);
@@ -111,6 +111,16 @@ void TeamWidget::init(bool blue)
     hLayout->addWidget(m_btnReload);
 
     updateStyleSheet();
+}
+
+void TeamWidget::enableContent(bool enable)
+{
+    m_btnOpen->setEnabled(enable);
+    m_btnEntryPoint->setEnabled(enable);
+    m_btnReload->blockSignals(!enable);
+    m_reloadAction->setEnabled(enable);
+    m_enableDebugAction->setEnabled(enable);
+    m_debugAction->setEnabled(enable);
 }
 
 void TeamWidget::load()
