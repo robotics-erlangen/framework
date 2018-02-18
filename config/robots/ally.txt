@@ -1,6 +1,7 @@
 default {
-  generation: 2
+  generation: 9999
   year: 2012
+  type: Ally
   id: 0
   radius: 0.089
   height: 0.147

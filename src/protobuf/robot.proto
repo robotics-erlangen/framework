@@ -13,9 +13,15 @@ message LimitParameters
 
 message Specs
 {
+    enum GenerationType
+    {
+        Regular = 1;
+        Ally = 2;
+    }
     required uint32 generation = 1;
     required uint32 year = 2;
     required uint32 id = 3;
+    optional GenerationType type = 19;
     optional float radius = 4 [default = 0.09];
     optional float height = 5 [default = 0.15];
     optional float mass = 6;

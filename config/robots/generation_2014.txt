@@ -2,6 +2,7 @@ default {
   generation: 3
   year: 2014
   id: 0
+  type: Regular
   radius: 0.089
   height: 0.138
   mass: 1.5
