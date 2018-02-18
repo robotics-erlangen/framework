@@ -112,11 +112,6 @@ message RadioCommand
     required Command command = 3;
 };
 
-message RadioParameters
-{
-    repeated int32 p = 1;
-}
-
 message SpeedStatus
 {
     required float v_f = 1;

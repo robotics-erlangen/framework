@@ -21,7 +21,6 @@
 
 #include "core/timer.h"
 #include "firmware-interface/radiocommand.h"
-#include "firmware-interface/radiocommand2012.h"
 #include "firmware-interface/transceiver2012.h"
 #include "firmware-interface/radiocommand2014.h"
 #include "transceiver.h"
@@ -105,10 +104,6 @@ void Transceiver::handleCommand(const Command &command)
             m_configuration = t.configuration();
             sendTransceiverConfiguration();
         }
-    }
-
-    if (command->has_robot_parameters()) {
-        sendParameters(command->robot_parameters());
     }
 
     if (command->has_set_team_blue()) {
@@ -401,30 +396,7 @@ void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, c
     size -= sizeof(RadioResponseHeader);
     data += sizeof(RadioResponseHeader);
 
-    if (header->command == RESPONSE_2012_DEFAULT && size == sizeof(RadioResponse2012)) {
-        const RadioResponse2012 *packet = (const RadioResponse2012 *)data;
-
-        robot::RadioResponse r;
-        r.set_time(time);
-        r.set_generation(2);
-        r.set_id(packet->id);
-        r.set_battery(packet->battery / 255.0f);
-        r.set_packet_loss_rx(packet->packet_loss / 255.0f);
-        float df = calculateDroppedFramesRatio(2, packet->id, packet->counter, 0);
-        r.set_packet_loss_tx(df);
-        if (packet->main_active) {
-            robot::SpeedStatus *speedStatus = r.mutable_estimated_speed();
-            speedStatus->set_v_f(packet->v_f / 1000.f);
-            speedStatus->set_v_s(packet->v_s / 1000.f);
-            speedStatus->set_omega(packet->omega / 1000.f);
-            r.set_error_present(packet->motor_in_power_limit);
-        }
-        if (packet->kicker_active) {
-            r.set_ball_detected(packet->ball_detected);
-            r.set_cap_charged(packet->cap_charged);
-        }
-        responses.append(r);
-    } else  if (header->command == RESPONSE_2014_DEFAULT && size == sizeof(RadioResponse2014)) {
+    if (header->command == RESPONSE_2014_DEFAULT && size == sizeof(RadioResponse2014)) {
         const RadioResponse2014 *packet = (const RadioResponse2014 *)data;
 
         robot::RadioResponse r;
@@ -474,36 +446,6 @@ void Transceiver::handleResponsePacket(QList<robot::RadioResponse> &responses, c
         }
         responses.append(r);
     }
-}
-
-void Transceiver::addRobot2012Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet)
-{
-    // copy command
-    RadioCommand2012 data;
-    data.charge = charge;
-    data.standby = command.standby();
-    data.counter = packetCounter;
-    data.dribbler = qBound<qint32>(-RADIOCOMMAND2012_DRIBBLER_MAX, command.dribbler() * RADIOCOMMAND2012_DRIBBLER_MAX, RADIOCOMMAND2012_DRIBBLER_MAX);
-    data.chip = command.kick_style() == robot::Command::Chip;
-    data.shot_power = qMin<quint32>(command.kick_power() * RADIOCOMMAND2012_KICK_MAX, RADIOCOMMAND2012_KICK_MAX);
-    data.v_x = qBound<qint32>(-RADIOCOMMAND2012_V_MAX, command.output1().v_s() * 1000.0f, RADIOCOMMAND2012_V_MAX);
-    data.v_y = qBound<qint32>(-RADIOCOMMAND2012_V_MAX, command.output1().v_f() * 1000.0f, RADIOCOMMAND2012_V_MAX);
-    data.omega = qBound<qint32>(-RADIOCOMMAND2012_OMEGA_MAX, command.output1().omega() * 1000.0f, RADIOCOMMAND2012_OMEGA_MAX);
-    data.id = id;
-
-    // set address
-    TransceiverCommandPacket senderCommand;
-    senderCommand.command = COMMAND_SEND_NRF24;
-    senderCommand.size = sizeof(data) + sizeof(TransceiverSendNRF24Packet);
-
-    TransceiverSendNRF24Packet targetAddress;
-    memcpy(targetAddress.address, robot2012_address, sizeof(targetAddress.address));
-    targetAddress.address[4] |= id;
-    targetAddress.expectedResponseSize = sizeof(RadioResponseHeader) + sizeof(RadioResponse2012);
-
-    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
-    usb_packet.append((const char*) &targetAddress, sizeof(targetAddress));
-    usb_packet.append((const char*) &data, sizeof(data));
 }
 
 void Transceiver::addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet)
@@ -667,9 +609,7 @@ void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool c
         it.next();
 
         foreach (const robot::RadioCommand &radio_command, it.value()) {
-            if (it.key() == 2) {
-                addRobot2012Command(radio_command.id(), radio_command.command(), charge, m_packetCounter, usb_packet);
-            } else if (it.key() == 3) {
+            if (it.key() == 3) {
                 addRobot2014Command(radio_command.id(), radio_command.command(), charge, m_packetCounter, usb_packet);
             }
         }
@@ -691,35 +631,6 @@ void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool c
     if (!m_timeoutTimer->isActive()) {
         m_timeoutTimer->start(1000);
     }
-}
-
-void Transceiver::sendParameters(const robot::RadioParameters &parameters)
-{
-    if (!ensureOpen()) {
-        return;
-    }
-    RadioParameters2012 p;
-    memset(&p, 0, sizeof(p));
-
-    // copy up to 16 radio parameters, 2 bytes per parameter
-    for (int i=0; i<parameters.p_size() && i<16; i++) {
-        p.k[i] = parameters.p(i);
-    }
-
-    // broadcast config
-    TransceiverCommandPacket senderCommand;
-    senderCommand.command = COMMAND_SEND_NRF24;
-    senderCommand.size = sizeof(p) + sizeof(TransceiverSendNRF24Packet);
-
-    TransceiverSendNRF24Packet targetAddress;
-    memcpy(targetAddress.address, robot2012_config_broadcast, sizeof(targetAddress.address));
-    targetAddress.expectedResponseSize = 0;
-
-    QByteArray usb_packet;
-    usb_packet.append((const char *) &senderCommand, sizeof(senderCommand));
-    usb_packet.append((const char *) &targetAddress, sizeof(targetAddress));
-    usb_packet.append((const char *) &p, senderCommand.size);
-    write(usb_packet.data(), usb_packet.size());
 }
 
 void Transceiver::sendTransceiverConfiguration()

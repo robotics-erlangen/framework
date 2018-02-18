@@ -221,7 +221,6 @@
    <addaction name="actionPlotter"/>
    <addaction name="actionRecord"/>
    <addaction name="actionSaveBacklog"/>
-   <addaction name="actionRobotParameters"/>
   </widget>
   <widget class="QDockWidget" name="dockTiming">
    <property name="windowTitle">
@@ -381,11 +380,6 @@
   <action name="actionConfiguration">
    <property name="text">
     <string>Configuration</string>
-   </property>
-  </action>
-  <action name="actionRobotParameters">
-   <property name="text">
-    <string>Robot parameters</string>
    </property>
   </action>
   <action name="actionSideChangeNotify">

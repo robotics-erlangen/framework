@@ -38,8 +38,6 @@ add_executable(ra WIN32 MACOSX_BUNDLE
     refereewidget.h
     resettableitemdelegate.cpp
     resettableitemdelegate.h
-    robotparametersdialog.cpp
-    robotparametersdialog.h
     robotselectionwidget.cpp
     robotselectionwidget.h
     robotspecsdialog.cpp
@@ -57,7 +55,6 @@ set(UI_SOURCES
     inputwidget.ui
     mainwindow.ui
     refereewidget.ui
-    robotparametersdialog.ui
     robotselectionwidget.ui
     robotspecsdialog.ui
     optionswidget.ui

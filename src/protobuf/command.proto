@@ -143,7 +143,7 @@ message Command {
     optional CommandStrategy strategy_autoref = 13;
     optional CommandControl control = 8;
     optional CommandTransceiver transceiver = 9;
-    optional robot.RadioParameters robot_parameters = 10;
+    // deprecated = 10;
     optional float speed = 11;
     optional CommandTracking tracking = 12;
     optional CommandAmun amun = 14;

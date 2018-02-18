@@ -24,7 +24,6 @@
 #include "input/inputmanager.h"
 #include "internalreferee.h"
 #include "plotter/plotter.h"
-#include "robotparametersdialog.h"
 #include "widgets/debuggerconsole.h"
 #include "widgets/refereestatuswidget.h"
 #include <QFile>
@@ -97,10 +96,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->robots->init(this, m_inputManager);
 
     connect(ui->simulator, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
-
-    m_robotParametersDialog = new RobotParametersDialog(this);
-    connect(m_robotParametersDialog, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
-
     connect(ui->field, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
 
     m_configDialog = new ConfigDialog(this);
@@ -137,7 +132,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->actionConfiguration, SIGNAL(triggered()), SLOT(showConfigDialog()));
     connect(ui->actionPlotter, SIGNAL(triggered()), m_plotter, SLOT(show()));
-    connect(ui->actionRobotParameters, SIGNAL(triggered()), m_robotParametersDialog, SLOT(exec()));
     connect(ui->actionAutoPause, SIGNAL(toggled(bool)), ui->simulator, SLOT(setEnableAutoPause(bool)));
 
     connect(ui->actionGoLive, SIGNAL(triggered()), SLOT(liveMode()));

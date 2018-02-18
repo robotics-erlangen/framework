@@ -36,7 +36,6 @@ class InternalReferee;
 class LogFileWriter;
 class Plotter;
 class RefereeStatusWidget;
-class RobotParametersDialog;
 class QLabel;
 class QModelIndex;
 class QThread;
@@ -84,7 +83,6 @@ private:
     RefereeStatusWidget *m_refereeStatus;
     InputManager *m_inputManager;
     InternalReferee *m_internalReferee;
-    RobotParametersDialog *m_robotParametersDialog;
     ConfigDialog *m_configDialog;
     bool m_flip;
     QLabel *m_transceiverStatus;
