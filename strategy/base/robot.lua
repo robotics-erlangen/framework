@@ -63,6 +63,8 @@ Robot.constants = {
 	shootDriveSpeed = 0.2, -- how fast the shoot task drives at the ball [m/s]
 	minAngleError = 4/180 * math.pi -- minimal angular precision that the shoot task guarantees [in radians]
 }
+Robot.ALLY_GENERATION_ID = 9999
+Robot.GENERATION_2014_ID = 3
 
 --- Creates a new robot object.
 -- Init function must be called for EVERY robot.
