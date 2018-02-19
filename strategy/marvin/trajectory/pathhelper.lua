@@ -4,9 +4,9 @@ local Rating = require "util/rating"
 local Constants = require "../base/constants"
 local Referee = require "../base/referee"
 local World = require "../base/world"
-local Physics = require "observer/physics.lua"
+local Physics = require "observer/physics"
 local geom = require "../base/geom"
-local Cache = require "../base/cache.lua"
+local Cache = require "../base/cache"
 
 local G = World.Geometry
 local POSITION_PADDING = 0.02
@@ -105,8 +105,6 @@ local function obstacle_OpponentDefenseArea(path, robot)
 		end
 		if geom.insideRect(_GoalArea[1], _GoalArea[2], robot.pos) then
 			path:addRect(_GoalArea[1].x, _GoalArea[1].y, _GoalArea[2].x, _GoalArea[2].y, "EvacuateGoal", 90)
-			log("sdds")
-			log(robot)
 		end
 	end
 end
@@ -152,17 +150,19 @@ local function obstacle_goal(path, robot)
 end
 
 
-local isGoalShot = Cache.forFrame(
-	function()
-		if World.Ball.speed:length() > 0.5 then 
-			local intersection, _, lambda = geom.intersectLineLine(G.OpponentGoal, Vector(1,0), World.Ball.pos, World.Ball.speed)
-			if intersection and math.abs(lambda) < G.GoalWidth / 2 + 0.2
-					and Physics.checkedBallRollTime(World.Ball, intersection) < math.huge then
-					return true
+local function isGoalShot()
+	if World.Ball.speed:length() > 0.5 then 
+		local intersection, lambda1, lambda2 = geom.intersectLineLine(G.OpponentGoal, Vector(1,0), World.Ball.pos, World.Ball.speed)
+		if intersection and math.abs(lambda1) < G.GoalWidth / 2 + 0.2 then
+			if lambda2 > 0 and Physics.checkedBallRollTime(World.Ball, intersection) < math.huge then
+				return true
 			end
 		end
-		return false
-	end)
+	end
+	return false
+end
+
+isGoalShot = Cache.forFrame(isGoalShot)
 
 -- @return disablePass bool - no obstacles for pass needed
 local function obstacle_goalShot(path, robot, inbox)

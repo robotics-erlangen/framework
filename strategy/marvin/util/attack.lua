@@ -296,9 +296,8 @@ function Attack.shootGoalViewPos(shootDest, attackPos)
 
 	-- if the ball is rolling towards the opponent goal
 	if World.Ball.speed:length() > 3 then
-		local intersection, _, l2 = geom.intersectLineLine(World.Ball.pos, World.Ball.speed,
-			G.OpponentGoal, Vector(1, 0))
-		if intersection and math.abs(l2) < G.GoalWidth / 2 + 0.2 then
+		local intersection, l1, l2 = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, G.OpponentGoal, Vector(1, 0))
+		if intersection and math.abs(l2) < G.GoalWidth / 2 + 0.2 and l1 > 0 then
 			if Physics.checkedBallRollTime(World.Ball, intersection) < math.huge then
 				return World.Ball.pos
 			end

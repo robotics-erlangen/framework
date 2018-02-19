@@ -6,7 +6,7 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local Direct = require "trajectory/direct"
 local Hidden = require "trajectory/hidden"
-local PathHelper = require "trajectory/pathhelper.lua"
+local PathHelper = require "trajectory/pathhelper"
 
 
 function Manual:_limitRobotSpeed(v)
