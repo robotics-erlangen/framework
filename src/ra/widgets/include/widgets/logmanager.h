@@ -47,6 +47,10 @@ public:
     void setMinimalMode();
     void gotToEnd();
     void setPaused(bool p);
+    int getLastFrame();
+
+public slots:
+    void seekPacket(int packet);
 
 signals:
     void gotStatus(const Status &status);
@@ -62,7 +66,6 @@ signals:
 
 private slots:
     void seekFrame(int frame);
-    void seekPacket(int packet);
     void addStatus(int packet, const Status &status);
     void playNext();
     void togglePaused();

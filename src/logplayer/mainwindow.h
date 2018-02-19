@@ -52,6 +52,7 @@ class MainWindow : public QMainWindow
 public:
     explicit MainWindow(QWidget *parent = 0);
     ~MainWindow() override;
+    void selectFrame(int frame);
 
 protected:
     void closeEvent(QCloseEvent *e) override;

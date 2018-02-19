@@ -37,6 +37,7 @@
 #include "logcutter.h"
 #include "strategy/strategy.h"
 
+
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
@@ -387,4 +388,10 @@ void MainWindow::clearAll()
 {
     ui->debugTree->clearData();
     ui->field->clearData();
+}
+
+void MainWindow::selectFrame(int amm)
+{
+	int frame = std::max(0,std::min(amm, ui->logManager->getLastFrame()));
+	ui->logManager->seekPacket(frame);
 }

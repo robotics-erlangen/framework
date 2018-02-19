@@ -96,6 +96,11 @@ void LogManager::gotToEnd()
     seekPacket(m_frames.back());
 }
 
+int LogManager::getLastFrame()
+{
+	return m_frames.back();
+}
+
 void LogManager::previousFrame()
 {
     int frame = ui->horizontalSlider->value();
