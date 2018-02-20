@@ -151,10 +151,7 @@ static int luaLoadFile(lua_State* state)
     bool error = false;
     {
         // add .lua extension
-        QString fileName = QString::fromUtf8(lua_tostring(state, 1));
-        if (!fileName.endsWith(QStringLiteral(".lua"))) {
-            fileName += QStringLiteral(".lua");
-        }
+        QString fileName = QString::fromUtf8(lua_tostring(state, 1)) + QStringLiteral(".lua");
 
         // get filename and add to filewatcher
         QString fullFileName = getBaseDir(state)->absoluteFilePath(fileName);
@@ -362,7 +359,12 @@ bool Lua::loadScript(const QString &filename, const QString &entryPoint, const w
 
     // start init script loader, sets strategy name and entrypoints
     lua_pushcfunction(m_state, luaLoadInitScript);
-    lua_pushstring(m_state, m_baseDir.relativeFilePath(m_filename).toUtf8().constData());
+    // only the init script filename may be passed with '.lua'
+    QString relFilename = m_baseDir.relativeFilePath(m_filename);
+    if (relFilename.endsWith(".lua")) {
+        relFilename.chop(4);
+    }
+    lua_pushstring(m_state, relFilename.toUtf8().constData());
     lua_pushlightuserdata(m_state, &m_name);
     lua_pushlightuserdata(m_state, &m_entryPoints);
     lua_pushlightuserdata(m_state, &m_options);
