@@ -289,6 +289,7 @@ function Ball._updateIsShot()
 	-- if the ball is distinctly faster than this robot
 	local condFasterThanRobot = false
 
+	debug.pushtop("Ball.isShot")
 	local robot = nil
 	if condCooldown and condAccelerates and condFast then
 		for _,r in ipairs(World.Robots) do
@@ -314,7 +315,6 @@ function Ball._updateIsShot()
 		lastShootRobot = robot
 	end
 
-	debug.pushtop("Ball.isShot")
 	debug.set("cooldown", condCooldown)
 	debug.set("accelerates", condAccelerates)
 	debug.set("fast", condFast)
