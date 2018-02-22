@@ -67,6 +67,12 @@ local msgDefs = {
 	-- sent by tr/defense to assign a behavior to each defender
 	-- possible names are "CenterBack", "ManMark" and "ZoneDefense"
 	-- params is a list of parameters
+		-- Centerback:
+			-- params[1]: Table target, a ball-like or robot-like structure
+		-- ManMark:
+			-- params[1]: Robot manMarkTarget
+		-- ZoneDefense
+			-- params[1]: Vector movePos
 	roleAssignment = { name = "string", params = "table" },
 
 	-- sent by the MA to tell other attackers about the destination of the next shot
