@@ -46,7 +46,8 @@ Transceiver::Transceiver(QObject *parent) :
     m_context(nullptr),
     m_device(nullptr),
     m_connectionState(State::DISCONNECTED),
-    m_simulatorEnabled(false)
+    m_simulatorEnabled(false),
+    m_onlyRestartAfterTimestamp(0)
 {
     // default channel
     m_configuration.set_channel(10);
@@ -182,14 +183,14 @@ void Transceiver::open()
 
 bool Transceiver::ensureOpen()
 {
-    if (!m_device) {
+    if (!m_device && Timer::systemTime() > m_onlyRestartAfterTimestamp) {
         open();
         return false;
     }
     return m_connectionState == State::CONNECTED;
 }
 
-void Transceiver::close(const QString &errorMsg)
+void Transceiver::close(const QString &errorMsg, qint64 restartDelayInNs)
 {
 #ifdef USB_FOUND
     // close and cleanup
@@ -208,12 +209,13 @@ void Transceiver::close(const QString &errorMsg)
         m_timeoutTimer->stop();
     }
     m_connectionState = State::DISCONNECTED;
+    m_onlyRestartAfterTimestamp = Timer::systemTime() + restartDelayInNs;
 #endif // USB_FOUND
 }
 
 void Transceiver::timeout()
 {
-    close("Transceiver is not responding");
+    close("Transceiver is not responding", (qint64)100*1000*1000);
 }
 
 bool Transceiver::write(const char *data, qint64 size)
@@ -224,6 +226,8 @@ bool Transceiver::write(const char *data, qint64 size)
     }
 
     // close radio link on errors
+    // transmission usually either succeeds completely or fails horribly
+    // write does not actually guarantee complete delivery!
     if (m_device->write(data, size) < 0) {
         close();
         return false;
@@ -297,16 +301,16 @@ void Transceiver::handleInitPacket(const char *data, uint size)
 {
     // only allowed during handshake
     if (m_connectionState != State::HANDSHAKE || size < 2) {
-        close("Invalid reply from transceiver");
+        close("Invalid reply from transceiver", (qint64)10*1000*1000*1000);
         return;
     }
 
     const TransceiverInitPacket *handshake = (const TransceiverInitPacket *)data;
     if (handshake->protocolVersion < PROTOCOL_VERSION) {
-        close("Outdated firmware");
+        close("Outdated firmware", (qint64)10*1000*1000*1000);
         return;
     } else if (handshake->protocolVersion > PROTOCOL_VERSION) {
-        close("Not yet supported transceiver firmware");
+        close("Not yet supported transceiver firmware", (qint64)10*1000*1000*1000);
         return;
     }
 

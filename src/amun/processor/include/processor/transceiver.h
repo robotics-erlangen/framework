@@ -71,7 +71,7 @@ private slots:
 private:
     void open();
     bool ensureOpen();
-    void close(const QString &errorMsg = QString());
+    void close(const QString &errorMsg = QString(), qint64 restartDelayInNs = 0);
     bool write(const char *data, qint64 size);
 
     void handleInitPacket(const char *data, uint size);
@@ -103,6 +103,7 @@ private:
     QTimer *m_timeoutTimer;
     State m_connectionState;
     bool m_simulatorEnabled;
+    qint64 m_onlyRestartAfterTimestamp;
 };
 
 #endif // TRANSCEIVER_H
