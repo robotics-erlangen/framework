@@ -25,6 +25,7 @@ ExternalProject_Add(project_eigen
     URL_HASH SHA256=a4143fc45e4454b4b98fcea3516b3a79b8cdb3bc7fadf996d088c6a0d805fea1
     DOWNLOAD_NO_PROGRESS true
     BINARY_DIR "${CMAKE_CURRENT_BINARY_DIR}/project_eigen-prefix/build"
+    PATCH_COMMAND cat ${CMAKE_SOURCE_DIR}/cmake/eigen.patch | patch -p1
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DCMAKE_C_COMPILER:PATH=${CMAKE_C_COMPILER}
