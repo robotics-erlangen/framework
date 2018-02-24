@@ -170,17 +170,6 @@ bool USBDevice::open(OpenMode)
     }
     m_serialNumber = QString::fromUtf16((const ushort *) &c[2], (qMin<int>(ret, c[0]) - 2) / 2);
 
-    // get id
-    ret = libusb_get_string_descriptor(m_data->handle, 4, 0, c, sizeof(c));
-    if (ret < 0) {
-        setErrorString(ret);
-        libusb_release_interface(m_data->handle, 0);
-        libusb_close(m_data->handle);
-        m_data->handle = NULL;
-        return false;
-    }
-    m_id = QString::fromUtf16((const ushort *) &c[2], (qMin<int>(ret, c[0]) - 2) / 2);
-
     // create transfer for receiving robot status
     startInTransfer();
     return QIODevice::open(ReadWrite | Unbuffered);

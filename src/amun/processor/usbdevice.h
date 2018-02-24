@@ -54,7 +54,6 @@ public:
     quint16 vendorId() const;
     quint16 productId() const;
     const QString &serialNumber() const { return m_serialNumber; }
-    const QString &id() const { return m_id; }
 
 public:
     void inCallback(libusb_transfer *transfer);
@@ -81,7 +80,6 @@ private:
 
     std::atomic_bool m_readError;
     QString m_serialNumber;
-    QString m_id;
 };
 
 #endif // USBDEVICE_H
