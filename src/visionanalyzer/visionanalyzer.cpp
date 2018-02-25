@@ -101,7 +101,7 @@ int main(int argc, char* argv[])
 
         do {
             // collect all packets until current system time
-            if (msg_type == MESSAGE_SSL_VISION_2010) {
+            if (msg_type == MESSAGE_SSL_VISION_2014) {
                 tracker->queuePacket(visionFrame, receiveTimeNanos);
             } else if (msg_type == MESSAGE_SSL_REFBOX_2013) {
                 ref.handlePacket(visionFrame);
@@ -110,7 +110,6 @@ int main(int argc, char* argv[])
             receiveTimeNanos = packet.first;
             msg_type = packet.second;
         } while(receiveTimeNanos < systemTimeNanos && receiveTimeNanos != -1);
-
 
         tracker->process(systemTimeNanos);
 

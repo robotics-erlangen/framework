@@ -23,8 +23,10 @@
 #include "protobuf/ssl_wrapper.pb.h"
 #include "robotfilter.h"
 #include "protobuf/debug.pb.h"
+#include "protobuf/geometry.h"
 #include <QDebug>
 #include <iostream>
+#include <limits>
 
 Tracker::Tracker(qint64 startTime, float tdX, float tdY) : Tracker()
 {
@@ -49,6 +51,7 @@ Tracker::Tracker() :
     m_aoi_x2(0.0f),
     m_aoi_y2(0.0f)
 {
+    geometrySetDefault(&m_geometry, true);
 }
 
 Tracker::~Tracker()
@@ -284,23 +287,56 @@ Status Tracker::worldState(qint64 currentTime)
 
 void Tracker::updateGeometry(const SSL_GeometryFieldSize &g)
 {
-    m_geometry.set_line_width(g.line_width() / 1000.0f);
+    // assumes that the packet using the ssl vision naming convention for field markings
+    // also the packet should be consistent, complete and use only one rule version (no mixed penalty arcs and rectangles)
     m_geometry.set_field_width(g.field_width() / 1000.0f);
     m_geometry.set_field_height(g.field_length() / 1000.0f);
-    m_geometry.set_boundary_width(g.boundary_width() / 1000.0f);
-    m_geometry.set_referee_width(g.referee_width() / 1000.0f);
     m_geometry.set_goal_width(g.goal_width() / 1000.0f);
     m_geometry.set_goal_depth(g.goal_depth() / 1000.0f);
-    m_geometry.set_goal_wall_width(g.goal_wall_width() / 1000.0f);
-    m_geometry.set_center_circle_radius(g.center_circle_radius() / 1000.0f);
-    m_geometry.set_defense_radius(g.defense_radius() / 1000.0f);
-    m_geometry.set_defense_stretch(g.defense_stretch() / 1000.0f);
-    m_geometry.set_defense_width(g.defense_width() / 1000.0f);
-    m_geometry.set_defense_height(g.defense_height() / 1000.0f);
-    m_geometry.set_free_kick_from_defense_dist(g.free_kick_from_defense_dist() / 1000.0f);
-    m_geometry.set_penalty_spot_from_field_line_dist(g.penalty_spot_from_field_line_dist() / 1000.0f);
-    m_geometry.set_penalty_line_from_spot_dist(g.penalty_line_from_spot_dist() / 1000.0f);
-    m_geometry.set_goal_height(0.16f);
+    m_geometry.set_boundary_width(g.boundary_width() / 1000.0f);
+    m_geometry.set_goal_height(0.155f);
+    m_geometry.set_goal_wall_width(0.02f);
+    m_geometry.set_free_kick_from_defense_dist(0.20f);
+    m_geometry.set_penalty_line_from_spot_dist(0.40f);
+
+    float minThickness = std::numeric_limits<float>::max();
+    bool is2014Geometry = true;
+    for (const SSL_FieldLineSegment &line : g.field_lines()) {
+        minThickness = std::min(minThickness, line.thickness());
+        std::string name = line.name();
+        if (name == "LeftPenaltyStretch") {
+            m_geometry.set_defense_stretch(std::abs(line.p1().y() - line.p2().y()) / 1000.0f);
+            m_geometry.set_defense_width(std::abs(line.p1().y() - line.p2().y()) / 1000.0f);
+        } else if (name == "LeftFieldLeftPenaltyStretch") {
+            m_geometry.set_defense_height(std::abs(line.p1().x() - line.p2().x()) / 1000.0f);
+            is2014Geometry = false;
+        }
+    }
+
+    for (const SSL_FieldCircularArc &arc : g.field_arcs()) {
+        minThickness = std::min(minThickness, arc.thickness());
+        std::string name = arc.name();
+        if (name == "LeftFieldLeftPenaltyArc") {
+            is2014Geometry = true;
+            m_geometry.set_defense_radius(arc.radius() / 1000.0f);
+        } else if (name == "CenterCircle") {
+            m_geometry.set_center_circle_radius(arc.radius() / 1000.0f);
+        }
+    }
+    m_geometry.set_line_width(minThickness / 1000.0f);
+
+    // fill out the other required fields
+    m_geometry.set_referee_width((is2014Geometry) ? 0.425f : 0.40f);
+    m_geometry.set_penalty_spot_from_field_line_dist((is2014Geometry) ? 1.00f : 1.20f);
+    if (!m_geometry.has_defense_radius()) {
+        m_geometry.set_defense_radius(m_geometry.defense_height());
+    }
+
+    if (is2014Geometry) {
+        m_geometry.set_type(world::Geometry::TYPE_2014);
+    } else {
+        m_geometry.set_type(world::Geometry::TYPE_2018);
+    }
 }
 
 void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c)

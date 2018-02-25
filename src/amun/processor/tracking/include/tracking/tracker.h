@@ -34,6 +34,8 @@ class SSL_DetectionBall;
 class SSL_DetectionFrame;
 class SSL_DetectionRobot;
 class SSL_GeometryFieldSize;
+class SSL_FieldCircularArc;
+class SSL_FieldLineSegment;
 class SSL_GeometryCameraCalibration;
 struct CameraInfo;
 

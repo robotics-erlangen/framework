@@ -6,6 +6,10 @@ import "ssl_mixed_team.proto";
 package world;
 
 message Geometry {
+    enum GeometryType {
+        TYPE_2014 = 1;
+        TYPE_2018 = 2;
+    }
     required float line_width = 1;
     required float field_width = 2;
     required float field_height = 3;
@@ -23,10 +27,10 @@ message Geometry {
     required float goal_height = 15;
     optional float defense_width = 16 [default = 2.0];
     optional float defense_height = 17 [default = 1.0];
+    optional GeometryType type = 18 [default = TYPE_2014];
 }
 
-message BallPosition
-{
+message BallPosition {
     required int64 time = 1;
     required float p_x = 2;
     required float p_y = 3;
@@ -52,8 +56,7 @@ message Ball {
     repeated BallPosition raw = 5;
 }
 
-message RobotPosition
-{
+message RobotPosition {
     required int64 time = 1;
     required float p_x = 2;
     required float p_y = 3;

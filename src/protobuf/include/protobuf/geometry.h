@@ -23,6 +23,6 @@
 
 #include "protobuf/world.pb.h"
 
-void geometrySetDefault(world::Geometry *geometry);
+void geometrySetDefault(world::Geometry *geometry, bool useQuadField = true);
 
 #endif // GEOMETRY_H
