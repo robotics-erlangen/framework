@@ -31,6 +31,10 @@ message RobotMoveCommand {
 }
 
 message CommandSimulator {
+    enum RuleVersion {
+        RULES2017 = 1;
+        RULES2018 = 2;
+    }
     optional bool enable = 1;
     optional int64 vision_delay = 9;
     optional int64 vision_processing_time = 10;
@@ -40,6 +44,7 @@ message CommandSimulator {
     optional float stddev_ball_p = 6;
     optional float stddev_robot_p = 7;
     optional float stddev_robot_phi = 8;
+    optional RuleVersion rule_version = 11;
 }
 
 message CommandReferee {

@@ -177,13 +177,7 @@ void Amun::start()
 
     // create simulator
     Q_ASSERT(m_simulator == NULL);
-    m_simulator = new Simulator(m_timer);
-    m_simulator->moveToThread(m_simulatorThread);
-    connect(m_simulatorThread, SIGNAL(finished()), m_simulator, SLOT(deleteLater()));
-    // pass on simulator and team settings
-    connect(this, SIGNAL(gotCommand(Command)), m_simulator, SLOT(handleCommand(Command)));
-    // pass simulator timing
-    connect(m_simulator, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
+    createSimulator(amun::CommandSimulator::RULES2018);
 
     if (!m_simulatorOnly) {
         Q_ASSERT(m_transceiver == NULL);
@@ -267,6 +261,17 @@ void Amun::setupReceiver(Receiver *&receiver, const QHostAddress &address, quint
     connect(m_networkInterfaceWatcher, &NetworkInterfaceWatcher::interfaceUpdated, receiver, &Receiver::updateInterface);
 }
 
+void Amun::createSimulator(amun::CommandSimulator::RuleVersion ruleVersion)
+{
+    m_simulator = new Simulator(m_timer, ruleVersion);
+    m_simulator->moveToThread(m_simulatorThread);
+    connect(m_simulatorThread, SIGNAL(finished()), m_simulator, SLOT(deleteLater()));
+    // pass on simulator and team settings
+    connect(this, SIGNAL(gotCommand(Command)), m_simulator, SLOT(handleCommand(Command)));
+    // pass simulator timing
+    connect(m_simulator, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
+}
+
 /*!
  * \brief Process a command
  * \param command Command to process
@@ -274,8 +279,9 @@ void Amun::setupReceiver(Receiver *&receiver, const QHostAddress &address, quint
 void Amun::handleCommand(const Command &command)
 {
     if (command->has_simulator()) {
-        if (command->simulator().has_enable()) {
-            setSimulatorEnabled(command->simulator().enable(), m_useNetworkTransceiver);
+        const amun::CommandSimulator &sim = command->simulator();
+        if (sim.has_enable()) {
+            setSimulatorEnabled(sim.enable(), m_useNetworkTransceiver);
 
             // time scaling can only be used with the simulator
             if (m_simulatorEnabled) {
@@ -285,6 +291,14 @@ void Amun::handleCommand(const Command &command)
                 m_timer->reset();
                 updateScaling(1.0);
             }
+        }
+
+        if (sim.has_rule_version()) {
+            m_simulator->blockSignals(true);
+            m_simulator->deleteLater();
+            m_timer->reset();
+            createSimulator(sim.rule_version());
+            setSimulatorEnabled(m_simulatorEnabled, m_useNetworkTransceiver);
         }
     }
 

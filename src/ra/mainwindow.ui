@@ -127,10 +127,18 @@
     <addaction name="actionSpeed200"/>
     <addaction name="actionSpeed1000"/>
    </widget>
+   <widget class="QMenu" name="menuRules">
+    <property name="title">
+     <string>Rules</string>
+    </property>
+    <addaction name="rules2017"/>
+    <addaction name="rules2018"/>
+   </widget>
    <addaction name="menu_Game"/>
    <addaction name="menuTesting"/>
    <addaction name="menuVideo"/>
    <addaction name="menuInstant_Replay"/>
+   <addaction name="menuRules"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <widget class="QToolBar" name="toolCommands">
@@ -576,6 +584,25 @@
    </property>
    <property name="shortcut">
     <string>4</string>
+   </property>
+  </action>
+  <action name="rules2017">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>2017</string>
+   </property>
+  </action>
+  <action name="rules2018">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>2018</string>
    </property>
   </action>
  </widget>

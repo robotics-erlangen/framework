@@ -40,6 +40,7 @@ class QTimer;
 class SimRobot;
 struct SimulatorData;
 class Timer;
+class SSL_GeometryFieldSize;
 
 class Simulator : public QObject
 {
@@ -48,7 +49,7 @@ class Simulator : public QObject
 public:
     typedef QMap<QPair<unsigned int, unsigned int>, SimRobot *> RobotMap;
 
-    explicit Simulator(const Timer *timer);
+    explicit Simulator(const Timer *timer, amun::CommandSimulator::RuleVersion ruleVersion);
     ~Simulator() override;
     void handleSimulatorTick(double timeStep);
 
@@ -67,13 +68,14 @@ private slots:
     void sendVisionPacket();
 
 private:
-
     void resetFlipped(RobotMap &robots, float side);
     QByteArray createVisionPacket();
     void resetVisionPackets();
     void setTeam(RobotMap &list, float side, const robot::Team &team);
     void moveBall(const amun::SimulatorMoveBall &ball);
     void moveRobot(const RobotMap &list, const amun::SimulatorMoveRobot &robot);
+    void fieldAddLine(SSL_GeometryFieldSize *field, std::string name, float x1, float y1, float x2, float y2) const;
+    void fieldAddCircularArc(SSL_GeometryFieldSize *field, std::string name, float x, float y, float radius, float a1, float a2) const;
 
 private:
     typedef QPair<QList<robot::RadioCommand>, qint64> RadioCommand;
@@ -91,6 +93,7 @@ private:
     // systemDelay + visionProcessingTime = visionDelay
     qint64 m_visionDelay;
     qint64 m_visionProcessingTime;
+    amun::CommandSimulator::RuleVersion m_currentRuleVersion;
 };
 
 #endif // SIMULATOR_H

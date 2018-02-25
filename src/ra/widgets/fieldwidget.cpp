@@ -852,7 +852,7 @@ void FieldWidget::updateGeometry()
 {
     if (!m_geometry.IsInitialized() || !m_geometryUpdated) {
         return;
-}
+    }
     m_geometryUpdated = false; // don't process geometry again and again
 
     // check if geometry changed
@@ -1420,39 +1420,41 @@ void FieldWidget::drawLines(QPainter *painter, QRectF rect, bool cosmetic)
     {
         
         // defense areas
-        float dr = m_geometry.defense_radius();
-        const float ds = m_geometry.defense_stretch();
+        if (m_geometry.type() == world::Geometry::TYPE_2014) {
+            float dr = m_geometry.defense_radius();
+            const float ds = m_geometry.defense_stretch();
 
-        if (!cosmetic) {
-            dr -= lwh;
+            if (!cosmetic) {
+                dr -= lwh;
+            }
+
+            QPainterPath path;
+            path.moveTo(dr + ds / 2.0f, rect.bottom());
+            path.arcTo(-dr + ds / 2.0f, rect.bottom() - dr, dr * 2, dr * 2, 0, 90);
+            path.lineTo(-ds / 2.0f, rect.bottom() - dr);
+            path.arcTo(-dr - ds / 2.0f, rect.bottom() - dr, dr * 2, dr * 2, 90, 90);
+
+            path.moveTo(dr + ds / 2.0f, rect.top());
+            path.arcTo(-dr + ds / 2.0f, rect.top() - dr, dr * 2, dr * 2, 0, -90);
+            path.lineTo(-ds / 2.0f, rect.top() + dr);
+            path.arcTo(-dr - ds / 2.0f, rect.top() - dr, dr * 2, dr * 2, -90, -90);
+
+            painter->drawPath(path);
+
+        } else {
+            float dw = m_geometry.defense_width();
+            float dh = m_geometry.defense_height();
+
+            if (!cosmetic) {
+                dw -= lwh;
+                dh -= lwh;
+            }
+
+            QRectF defAreaBlue(QPointF(-0.5 * dw, rect.bottom() - dh), QPointF(0.5 * dw, rect.bottom()));
+            QRectF defAreaYellow(QPointF(0.5 * dw, rect.top() + dh), QPointF(-0.5 * dw, rect.top()));
+            painter->drawRect(defAreaBlue);
+            painter->drawRect(defAreaYellow);
         }
-
-        QPainterPath path;
-        path.moveTo(dr + ds / 2.0f, rect.bottom());
-        path.arcTo(-dr + ds / 2.0f, rect.bottom() - dr, dr * 2, dr * 2, 0, 90);
-        path.lineTo(-ds / 2.0f, rect.bottom() - dr);
-        path.arcTo(-dr - ds / 2.0f, rect.bottom() - dr, dr * 2, dr * 2, 90, 90);
-
-        path.moveTo(dr + ds / 2.0f, rect.top());
-        path.arcTo(-dr + ds / 2.0f, rect.top() - dr, dr * 2, dr * 2, 0, -90);
-        path.lineTo(-ds / 2.0f, rect.top() + dr);
-        path.arcTo(-dr - ds / 2.0f, rect.top() - dr, dr * 2, dr * 2, -90, -90);
-
-        painter->drawPath(path);
-        
-
-        float dw = m_geometry.defense_width();
-        float dh = m_geometry.defense_height();
-
-        if (!cosmetic) {
-            dw -= lwh;
-            dh -= lwh;
-        }
-
-        QRectF defAreaBlue(QPointF(-0.5 * dw, rect.bottom() - dh), QPointF(0.5 * dw, rect.bottom()));
-        QRectF defAreaYellow(QPointF(0.5 * dw, rect.top() + dh), QPointF(-0.5 * dw, rect.top()));
-        painter->drawRect(defAreaBlue);
-        painter->drawRect(defAreaYellow);
     }
 
     if (!cosmetic) {

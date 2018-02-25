@@ -541,6 +541,10 @@ void RobotSelectionWidget::unsetTeam(uint id, uint skip_generation, RobotWidget:
     }
 }
 
+void RobotSelectionWidget::resend()
+{
+    sendTeams();
+}
 
 void RobotSelectionWidget::updateGenerationTeam()
 {

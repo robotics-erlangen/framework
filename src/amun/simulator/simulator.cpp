@@ -87,7 +87,7 @@ static void simulatorTickCallback(btDynamicsWorld *world, btScalar timeStep)
  * \brief %Simulator interface
  */
 
-Simulator::Simulator(const Timer *timer) :
+Simulator::Simulator(const Timer *timer, amun::CommandSimulator::RuleVersion ruleVersion) :
     m_timer(timer),
     m_time(0),
     m_lastSentStatusTime(0),
@@ -95,7 +95,8 @@ Simulator::Simulator(const Timer *timer) :
     m_enabled(false),
     m_charge(false),
     m_visionDelay(35 * 1000 * 1000),
-    m_visionProcessingTime(5 * 1000 * 1000)
+    m_visionProcessingTime(5 * 1000 * 1000),
+    m_currentRuleVersion(ruleVersion)
 {
     // triggers by default every 5 milliseconds if simulator is enabled
     // timing may change if time is scaled
@@ -113,7 +114,7 @@ Simulator::Simulator(const Timer *timer) :
     m_data->dynamicsWorld->setGravity(btVector3(0.0f, 0.0f, -9.81f * SIMULATOR_SCALE));
     m_data->dynamicsWorld->setInternalTickCallback(simulatorTickCallback, this, true);
 
-    geometrySetDefault(&m_data->geometry);
+    geometrySetDefault(&m_data->geometry, ruleVersion == amun::CommandSimulator::RULES2018);
 
     // add field and ball
     m_data->field = new SimField(m_data->dynamicsWorld, m_data->geometry);
@@ -255,6 +256,32 @@ void Simulator::handleSimulatorTick(double timeStep)
     m_data->dynamicsWorld->applyGravity();
 }
 
+void Simulator::fieldAddLine(SSL_GeometryFieldSize *field, std::string name, float x1, float y1, float x2, float y2) const
+{
+    SSL_FieldLineSegment * line = field->add_field_lines();
+    line->set_name(name);
+    Vector2f * p1 = line->mutable_p1();
+    p1->set_x(x1);
+    p1->set_y(y1);
+    Vector2f * p2 = line->mutable_p2();
+    p2->set_x(x2);
+    p2->set_y(y2);
+    line->set_thickness(m_data->geometry.line_width() * 1000.0f);
+}
+
+void Simulator::fieldAddCircularArc(SSL_GeometryFieldSize *field, std::string name, float x, float y, float radius, float a1, float a2) const
+{
+    SSL_FieldCircularArc * arc = field->add_field_arcs();
+    arc->set_name(name);
+    Vector2f * center = arc->mutable_center();
+    center->set_x(x);
+    center->set_y(y);
+    arc->set_radius(radius);
+    arc->set_a1(a1);
+    arc->set_a2(a2);
+    arc->set_thickness(m_data->geometry.line_width() * 1000.0f);
+}
+
 QByteArray Simulator::createVisionPacket()
 {
     // setup vision packet
@@ -284,22 +311,45 @@ QByteArray Simulator::createVisionPacket()
     // add field geometry
     SSL_GeometryData *geometry = packet.mutable_geometry();
     SSL_GeometryFieldSize *field = geometry->mutable_field();
-    field->set_line_width(m_data->geometry.line_width() * 1000.0f);
     field->set_field_width(m_data->geometry.field_width() * 1000.0f);
     field->set_field_length(m_data->geometry.field_height() * 1000.0f);
     field->set_boundary_width(m_data->geometry.boundary_width() * 1000.0f);
-    field->set_referee_width(m_data->geometry.referee_width() * 1000.0f);
     field->set_goal_width(m_data->geometry.goal_width() * 1000.0f);
     field->set_goal_depth(m_data->geometry.goal_depth() * 1000.0f);
-    field->set_goal_wall_width(m_data->geometry.goal_wall_width() * 1000.0f);
-    field->set_center_circle_radius(m_data->geometry.center_circle_radius() * 1000.0f);
-    field->set_defense_radius(m_data->geometry.defense_radius() * 1000.0f);
-    field->set_defense_stretch(m_data->geometry.defense_stretch() * 1000.0f);
-    field->set_defense_width(m_data->geometry.defense_width() * 1000.0f);
-    field->set_defense_height(m_data->geometry.defense_height() * 1000.0f);
-    field->set_free_kick_from_defense_dist(m_data->geometry.free_kick_from_defense_dist() * 1000.0f);
-    field->set_penalty_spot_from_field_line_dist(m_data->geometry.penalty_spot_from_field_line_dist() * 1000.0f);
-    field->set_penalty_line_from_spot_dist(m_data->geometry.penalty_line_from_spot_dist() * 1000.0f);
+
+    float fieldLengthHalf = m_data->geometry.field_height() * 1000.0f / 2.0f;
+    float fieldWidthHalf = m_data->geometry.field_width() * 1000.0f / 2.0f;
+    fieldAddLine(field, "TopTouchLine", -fieldLengthHalf, fieldWidthHalf, fieldLengthHalf, fieldWidthHalf);
+    fieldAddLine(field, "BottomTouchLine", -fieldLengthHalf, -fieldWidthHalf, fieldLengthHalf, -fieldWidthHalf);
+    fieldAddLine(field, "LeftGoalLine", -fieldLengthHalf, -fieldWidthHalf, -fieldLengthHalf, fieldWidthHalf);
+    fieldAddLine(field, "RightGoalLine", fieldLengthHalf, -fieldWidthHalf, fieldLengthHalf, fieldWidthHalf);
+    fieldAddLine(field, "HalfwayLine", 0, -fieldWidthHalf, 0, fieldWidthHalf);
+    fieldAddLine(field, "CenterLine", -fieldLengthHalf, 0, fieldLengthHalf, 0);
+    fieldAddCircularArc(field, "CenterCircle", 0, 0, m_data->geometry.center_circle_radius() * 1000.0f, 0, 2.0f * M_PI);
+
+    if (m_currentRuleVersion == amun::CommandSimulator::RULES2018) {
+        float defenseDistance = m_data->geometry.defense_height() * 1000.0f;
+        float defensePos = -fieldLengthHalf + defenseDistance;
+        float defenseWidthHalf = m_data->geometry.defense_width() * 1000.0f / 2.0f;
+        fieldAddLine(field, "LeftPenaltyStretch", defensePos, -defenseWidthHalf, defensePos, defenseWidthHalf);
+        fieldAddLine(field, "RightPenaltyStretch", -defensePos, -defenseWidthHalf, -defensePos, defenseWidthHalf);
+        fieldAddLine(field, "LeftFieldLeftPenaltyStretch", -fieldLengthHalf, -defenseWidthHalf, defensePos, -defenseWidthHalf);
+        fieldAddLine(field, "LeftFieldRightPenaltyStretch", -fieldLengthHalf, defenseWidthHalf, defensePos, defenseWidthHalf);
+        fieldAddLine(field, "RightFieldRightPenaltyStretch", fieldLengthHalf, -defenseWidthHalf, -defensePos, -defenseWidthHalf);
+        fieldAddLine(field, "RightFieldLeftPenaltyStretch", fieldLengthHalf, defenseWidthHalf, -defensePos, defenseWidthHalf);
+
+    } else {
+        float defenseDistance = m_data->geometry.defense_radius() * 1000.0f;
+        float defensePos = -fieldLengthHalf + defenseDistance;
+        float defenseStretchHalf = m_data->geometry.defense_stretch() * 1000.0f / 2.0f;
+        fieldAddLine(field, "LeftPenaltyStretch", defensePos, -defenseStretchHalf, defensePos, defenseStretchHalf);
+        fieldAddLine(field, "RightPenaltyStretch", -defensePos, -defenseStretchHalf, -defensePos, defenseStretchHalf);
+
+        fieldAddCircularArc(field, "LeftFieldLeftPenaltyArc", -fieldLengthHalf, -defenseStretchHalf, defenseDistance, 0, 0.5f * M_PI);
+        fieldAddCircularArc(field, "LeftFieldRightPenaltyArc", -fieldLengthHalf, defenseStretchHalf, defenseDistance, 1.5f * M_PI, 2.0f * M_PI);
+        fieldAddCircularArc(field, "RightFieldLeftPenaltyArc", fieldLengthHalf, -defenseStretchHalf, defenseDistance, M_PI, 1.5f * M_PI);
+        fieldAddCircularArc(field, "RightFieldRightPenaltyArc", fieldLengthHalf, defenseStretchHalf, defenseDistance, 0.5f * M_PI, M_PI);
+    }
 
     for (int i = 0; i < 4; ++i) {
         int signX = (i&1) ? 1 : -1;

@@ -64,6 +64,7 @@ private:
     void setupReceiver(Receiver *&receiver, const QHostAddress &address, quint16 port);
     void setSimulatorEnabled(bool enabled, bool useNetworkTransceiver);
     void updateScaling(float scaling);
+    void createSimulator(amun::CommandSimulator::RuleVersion ruleVersion);
 
 private:
     QThread *m_processorThread;

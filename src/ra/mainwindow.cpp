@@ -213,6 +213,13 @@ MainWindow::MainWindow(QWidget *parent) :
     m_flip = s.value("Flip").toBool();
     sendFlip();
 
+    QActionGroup* rulesActionGroup = new QActionGroup(this);
+    ui->rules2017->setActionGroup(rulesActionGroup);
+    ui->rules2018->setActionGroup(rulesActionGroup);
+    connect(ui->actionSimulator, SIGNAL(toggled(bool)), ui->rules2017, SLOT(setEnabled(bool)));
+    connect(ui->actionSimulator, SIGNAL(toggled(bool)), ui->rules2018, SLOT(setEnabled(bool)));
+    connect(rulesActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(ruleVersionChanged(QAction*)));
+
     // playback speed shortcuts
     QSignalMapper *mapper = new QSignalMapper(this);
     connect(mapper, SIGNAL(mapped(int)), ui->logManager, SIGNAL(setSpeed(int)));
@@ -265,6 +272,23 @@ void MainWindow::closeEvent(QCloseEvent *e)
     ui->robots->shutdown();
 
     QMainWindow::closeEvent(e);
+}
+
+void MainWindow::ruleVersionChanged(QAction * action)
+{
+    Command command(new amun::Command);
+    amun::CommandSimulator *sim = command->mutable_simulator();
+    if (action == ui->rules2017) {
+        sim->set_rule_version(amun::CommandSimulator::RULES2017);
+    } else if (action == ui->rules2018) {
+        sim->set_rule_version(amun::CommandSimulator::RULES2018);
+    }
+    sendCommand(command);
+
+    // resend all the information the simulator needs
+    ui->robots->resend();
+    setCharge(ui->actionChargeKicker->isChecked());
+    setSimulatorEnabled(ui->actionSimulator->isChecked());
 }
 
 void MainWindow::handleStatus(const Status &status)

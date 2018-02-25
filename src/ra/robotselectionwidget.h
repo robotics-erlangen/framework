@@ -55,6 +55,7 @@ public:
     ~RobotSelectionWidget() override;
     void shutdown();
     void enableContent(bool enable);
+    void resend();
 
 signals:
     void setTeam(uint generation, uint id, RobotWidget::Team team);

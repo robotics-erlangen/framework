@@ -71,6 +71,7 @@ private slots:
     void showConfigDialog();
     void liveMode();
     void showBacklogMode();
+    void ruleVersionChanged(QAction * action);
 
 private:
     void sendFlip();
