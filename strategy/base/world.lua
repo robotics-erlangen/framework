@@ -124,9 +124,10 @@ World.Geometry = {}
 -- initializes Team and Geometry data
 function World._init()
 	World.TeamIsBlue = amun.isBlue()
-	World._updateGeometry(amun.getGeometry())
+	local geom = amun.getGeometry()
+	World._updateGeometry(geom)
+	World._updateRuleVersion(geom)
 	World._updateTeam(amun.getTeam())
-	World.RULEVERSION = "2017"
 end
 
 --- Update world state.
@@ -140,6 +141,7 @@ function World.update()
 	local hasVisionData = World._updateWorld(amun.getWorldState())
 	World._updateGameState(amun.getGameState())
 	World._updateUserInput(amun.getUserInput())
+	World._updateRuleVersion(amun.getGeometry())
 	return hasVisionData
 end
 
@@ -154,6 +156,15 @@ function World._updateTeam(state)
 	end
 	World.FriendlyRobotsById = friendlyRobotsById
 	World.FriendlyRobotsAll = friendlyRobotsAll
+end
+
+-- Get rule version from geometry
+function World._updateRuleVersion(geom)
+	if not geom.type or geom.type == "TYPE_2014" then
+		World.RULEVERSION = "2017"
+	else
+		World.RULEVERSION = "2018"
+	end
 end
 
 -- Setup field geometry
