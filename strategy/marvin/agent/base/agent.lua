@@ -8,6 +8,7 @@ local Halt = require "agent/shared/halt"
 local Error = require "agent/shared/error"
 local MoveCommand = require "agent/shared/movecommand"
 local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local CenterBack = require "task/centerback"
 local Rating = require "util/rating"
 
@@ -174,12 +175,15 @@ function Base:_applyForMainAttacker(task)
 
 	local mainAttackerRating
 	if not overrideRating then
-		local targetPos = parameters[1] or World.Geometry.OpponentGoal
-		local endSpeedLength = parameters[2] or 0
-
-		local timeToBall = Physics.robotTimeToBall(self._robot,
-			World.Ball, targetPos, endSpeedLength, self._mainAttackerLastTime)
-		self._mainAttackerLastTime = timeToBall
+		local timeToBall
+		if parameters[1] or parameters[2] then
+			local targetPos = parameters[1] or World.Geometry.OpponentGoal
+			local endSpeedLength = parameters[2] or self._robot.maxSpeed
+			timeToBall = Physics.robotTimeToBall(self._robot,
+				World.Ball, targetPos, endSpeedLength, self._mainAttackerLastTime)
+		else
+			timeToBall = Robot.minTimeToBall(self._robot)
+		end
 
 		-- if we have the ball, the time is 0
 		if timeToBall == math.huge then
