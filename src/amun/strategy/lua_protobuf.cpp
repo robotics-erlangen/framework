@@ -302,8 +302,8 @@ void protobufToMessage(lua_State *L, int index, google::protobuf::Message &messa
     // ensure protobuf message is valid
     if (!message.IsInitialized()) {
         if (errorMessage == NULL) {
-            luaL_error(L, "One more required fields are not set: %s", message.InitializationErrorString().c_str());
+            luaL_error(L, "One or more required fields are not set: %s", message.InitializationErrorString().c_str());
         }
-        *errorMessage += "One more required fields are not set: " + message.InitializationErrorString();
+        *errorMessage += "One or more required fields are not set: " + message.InitializationErrorString();
     }
 }
