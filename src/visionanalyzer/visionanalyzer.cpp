@@ -61,14 +61,7 @@ int main(int argc, char* argv[])
     qint64 receiveTimeNanos = packet.first;
     int msg_type = packet.second;
 
-    Tracker* tracker;
-    if (argCount > 2) {
-        tracker = new Tracker(receiveTimeNanos,
-            parser.positionalArguments().at(1).toFloat(),
-            parser.positionalArguments().at(2).toFloat());
-    } else {
-        tracker = new Tracker(receiveTimeNanos, 0, 0);
-    }
+    Tracker* tracker = new Tracker();
     tracker->reset();
 
     Timer* timer = new Timer;

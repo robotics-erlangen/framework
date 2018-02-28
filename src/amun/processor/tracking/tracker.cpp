@@ -28,19 +28,11 @@
 #include <iostream>
 #include <limits>
 
-Tracker::Tracker(qint64 startTime, float tdX, float tdY) : Tracker()
-{
-    m_touchdownX = tdX;
-    m_touchdownY = tdY;
-    m_startTime = startTime;
-}
-
 Tracker::Tracker() :
     m_cameraInfo(new CameraInfo),
     m_flip(false),
     m_systemDelay(0),
     m_resetTime(0),
-    m_startTime(0),
     m_geometryUpdated(false),
     m_hasVisionData(false),
     m_lastUpdateTime(0),
@@ -224,18 +216,6 @@ Status Tracker::worldState(qint64 currentTime)
     if (ball != NULL) {
         ball->update(currentTime);
         ball->get(worldState->mutable_ball(), m_flip);
-
-#ifdef ENABLE_TRACKING_DEBUG
-        if (m_touchdownX * m_touchdownY != 0 && ball->isFlying()
-                 && worldState->ball().has_touchdown_x() && !worldState->ball().is_bouncing()) {
-            Eigen::Vector2f tp(worldState->ball().touchdown_x(), worldState->ball().touchdown_y());
-            Eigen::Vector2f ref(m_touchdownX, m_touchdownY);
-            static double accu = 0;
-            double dist = (tp-ref).norm();
-            accu += dist;
-            std::cout << accu << std::endl;
-        }
-#endif
     }
 
 

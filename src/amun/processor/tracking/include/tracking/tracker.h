@@ -45,7 +45,6 @@ private:
     typedef QMap<uint, QList<RobotFilter*> > RobotMap;
 
 public:
-    Tracker(qint64 startTime, float tdX, float tdY); // constructor for visionanalyzer
     Tracker();
     ~Tracker();
 
@@ -80,7 +79,6 @@ private:
     bool m_flip;
     qint64 m_systemDelay;
     qint64 m_resetTime;
-    qint64 m_startTime;
 
     world::Geometry m_geometry;
     bool m_geometryUpdated;
@@ -97,9 +95,6 @@ private:
 
     BallTracker* bestBallFilter();
     void prioritizeBallFilters();
-
-    float m_touchdownX;
-    float m_touchdownY;
 
     bool m_aoiEnabled;
     float m_aoi_x1;
