@@ -115,6 +115,14 @@ function PlaceBall:run()
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
+	-- Extend field boundary so that the robot can pull the ball to the field from further out
+	self._robot.path:setBoundary(
+		-(World.Geometry.FieldWidthHalf + 5),
+		-(World.Geometry.FieldHeightHalf + 5),
+		World.Geometry.FieldWidthHalf + 5,
+		World.Geometry.FieldHeightHalf + 5
+	)
+
 	if self._state == STATE_WAIT_FOR_BALL_STOP then
 
 		local ballVisible = self._ball:isPositionValid()
