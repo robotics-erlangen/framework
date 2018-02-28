@@ -105,8 +105,8 @@ function Defense:_checkZoneDefender(zonePos)
 	return decision
 end
 
-function Defense:_assignManmarkDefenders(defenders, nReservedDefenders)
-	while #defenders - nReservedDefenders > 0 do
+function Defense:_assignManmarkDefenders(defenders)
+	while #defenders > 0 do
 		local manmarkTarget, manmarker = self:_nextManmarkAssignment(defenders)
 		if not manmarkTarget or not manmarker then
 			break
@@ -129,7 +129,6 @@ function Defense:_assignDefenders()
 	self:_updateManmarkTargets()
 
 	local defenders = table.keys(self._inbox.defenderFlag())
-	local nReservedDefenders = 0
 
 	-- not in opponent corner attacks: assign a ball centerback
 	local needDefaultCB = not Referee.isDefensiveCornerKick() and not Referee.isFriendlyFreeKickState()
@@ -160,7 +159,7 @@ function Defense:_assignDefenders()
 	-- 	end
 	-- end
 
-	self:_assignManmarkDefenders(defenders, nReservedDefenders)
+	self:_assignManmarkDefenders(defenders)
 end
 
 
