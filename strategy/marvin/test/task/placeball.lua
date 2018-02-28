@@ -11,7 +11,7 @@ function Placer:check()
 end
 
 function Placer:_updateTask()
-	return PlaceBall, { Vector(0, 0) }
+	return PlaceBall
 end
 
 local PlacerAgent = Class("Test.Task.PlaceBall.PlacerAgent", require "agent/base/simpleagent")
