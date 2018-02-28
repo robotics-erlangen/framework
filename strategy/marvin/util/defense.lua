@@ -2,16 +2,19 @@ local Defense = {}
 
 local Cache = require "../base/cache"
 local Constants = require "../base/constants"
+local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local World = require "../base/world"
+local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local CenterBack = require "task/centerback"
 local Rating = require "util/rating"
 
+local G = World.Geometry
 
 Defense.POSITION_PADDING = 0.02 -- safety distance
 Defense.PENALTY_LINE_DISTANCE = 0.35 -- prevent robots from crossing the penalty line
@@ -179,6 +182,60 @@ local function rateOpponentDangerousness()
 	return dangerousness
 end
 Defense.rateOpponentDangerousness = Cache.forFrame(rateOpponentDangerousness)
+
+local function rateOpponentPassViability()
+	if amun.isDebug then
+		debug.push("Util Defense")
+		debug.push("passViability")
+	end
+
+	local passViability = {} -- opponent -> rating
+
+	local ballPos = World.Ball.pos + World.Ball.speed/2
+	for _, opp in ipairs(World.OpponentRobots) do
+
+		-- ignore the ball owner
+		if opp.pos:distanceToSq(ballPos) < 0.5 then
+			passViability[opp] = 0
+			goto continue
+		end
+
+		-- ignore opponents close to enemy defense area
+		if opp.pos.y > G.FieldHeight - G.DefenseHeight - 1 then
+			passViability[opp] = 0
+			goto continue
+		end
+
+		-- we can successfully intercept long passes more easily
+		local distToBallOwner = opp.pos:distanceTo(ballPos)
+		local distToBallOwnerRating = Rating.valueToRating(distToBallOwner, 2, 5)
+
+		-- we do not want the enemy to move the ball closer to our goal
+		local distToGoal = opp.pos.y + opp.speed.y/2 + G.FieldHeightHalf
+		local distToGoalRating = Rating.valueToRating(distToGoal, G.FieldHeight - G.DefenseHeight, G.DefenseHeight + 1)
+
+		local rating = 0.75 * distToGoalRating + 0.25 * distToBallOwnerRating
+		passViability[opp] = rating
+
+		if amun.isDebug then
+			debug.push(tostring(opp.id))
+			debug.set("distToBallOwnerRating", distToBallOwnerRating)
+			debug.set("distToGoalRating", distToGoalRating)
+			debug.set("total rating", rating)
+			debug.pop()
+		end
+
+		::continue::
+	end
+
+	if amun.isDebug then
+		debug.pop()
+		debug.pop()
+	end
+
+	return passViability
+end
+Defense.rateOpponentPassViability = Cache.forFrame(rateOpponentPassViability)
 
 -- this function searches for a position between boundaryOne and boundaryTwo to which the robot will take
 -- the shortest amount of time, up to a precision value, using a ternary algorithm
