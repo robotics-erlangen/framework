@@ -27,7 +27,7 @@ const uint DEFAULT_SYSTEM_DELAY = 30; // in ms
 const uint DEFAULT_TRANSCEIVER_CHANNEL = 11;
 const uint DEFAULT_SIM_VISION_DELAY = 35; // in ms
 const uint DEFAULT_SIM_PROCESSING_TIME = 5; // in ms
-const uint DEFAULT_VISION_PORT = 10005;
+const uint DEFAULT_VISION_PORT = 10006;
 const uint DEFAULT_REFEREE_PORT = 10003;
 
 const bool DEFAULT_NETWORK_ENABLE = false;
@@ -88,7 +88,7 @@ void ConfigDialog::load()
     ui->simVisionDelay->setValue(s.value("Simulator/VisionDelay", DEFAULT_SIM_VISION_DELAY).toUInt());
     ui->simProcessingTime->setValue(s.value("Simulator/ProcessingTime", DEFAULT_SIM_PROCESSING_TIME).toUInt());
 
-    ui->visionPort->setValue(s.value("Amun/VisionPort", DEFAULT_VISION_PORT).toUInt());
+    ui->visionPort->setValue(s.value("Amun/VisionPort2018", DEFAULT_VISION_PORT).toUInt());
     ui->refPort->setValue(s.value("Amun/RefereePort", DEFAULT_REFEREE_PORT).toUInt());
 
     ui->networkUse->setChecked(s.value("Network/Use", DEFAULT_NETWORK_ENABLE).toBool());
@@ -124,7 +124,7 @@ void ConfigDialog::apply()
     s.setValue("Simulator/VisionDelay", ui->simVisionDelay->value());
     s.setValue("Simulator/ProcessingTime", ui->simProcessingTime->value());
 
-    s.setValue("Amun/VisionPort", ui->visionPort->value());
+    s.setValue("Amun/VisionPort2018", ui->visionPort->value());
     s.setValue("Amun/RefereePort", ui->refPort->value());
 
     s.setValue("Network/Use", ui->networkUse->isChecked());
