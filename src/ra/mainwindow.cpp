@@ -173,6 +173,13 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
     m_amun.start();
 
+    QActionGroup* rulesActionGroup = new QActionGroup(this);
+    ui->rules2017->setActionGroup(rulesActionGroup);
+    ui->rules2018->setActionGroup(rulesActionGroup);
+    connect(ui->actionSimulator, SIGNAL(toggled(bool)), ui->rules2017, SLOT(setEnabled(bool)));
+    connect(ui->actionSimulator, SIGNAL(toggled(bool)), ui->rules2018, SLOT(setEnabled(bool)));
+    connect(rulesActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(ruleVersionChanged(QAction*)));
+
     // restore configuration and initialize everything
     ui->input->load();
     ui->robots->load();
@@ -212,13 +219,6 @@ MainWindow::MainWindow(QWidget *parent) :
 
     m_flip = s.value("Flip").toBool();
     sendFlip();
-
-    QActionGroup* rulesActionGroup = new QActionGroup(this);
-    ui->rules2017->setActionGroup(rulesActionGroup);
-    ui->rules2018->setActionGroup(rulesActionGroup);
-    connect(ui->actionSimulator, SIGNAL(toggled(bool)), ui->rules2017, SLOT(setEnabled(bool)));
-    connect(ui->actionSimulator, SIGNAL(toggled(bool)), ui->rules2018, SLOT(setEnabled(bool)));
-    connect(rulesActionGroup, SIGNAL(triggered(QAction*)), this, SLOT(ruleVersionChanged(QAction*)));
 
     // playback speed shortcuts
     QSignalMapper *mapper = new QSignalMapper(this);
