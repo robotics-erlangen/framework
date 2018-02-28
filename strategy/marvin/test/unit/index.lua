@@ -45,7 +45,7 @@ local function initializeTest(name)
 	end
 
 	-- local timeout = 1000000000 -- number of instructions before hook is called
-	-- debug.sethook(function() error("Timeout (adjustable in tests/unit/init.lua)") end, "", timeout)
+	-- debug.sethook(function() error("Timeout (adjustable in tests/unit/index.lua)") end, "", timeout)
 
 	-- just load to ensure autoreloading is enabled
 	pcall(require, name)

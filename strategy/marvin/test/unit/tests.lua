@@ -13,6 +13,7 @@ Test.BaseMath = "test/unit/base/math"
 Test.BaseProcessor = "test/unit/base/processor"
 Test.BaseTypecheck = "test/unit/base/typecheck"
 Test.BaseVector = "test/unit/base/vector"
+Test.BaseField = "test/unit/base/field"
 
 Test.MarvinMessaging = "test/unit/marvin/messaging"
 Test.MarvinPools = "test/unit/marvin/pools"

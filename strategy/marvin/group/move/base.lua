@@ -1,11 +1,17 @@
 local Base = Class("Group.Move.Base")
 
+Base.Referee = require "../base/referee"
+
 Base.MIN_ROBOTS = -1
 Base.MAX_ROBOTS = -1
 
 
 function Base.canStart()
 	error("stub")
+end
+
+function Base.injectReferee(pseudoRef)
+	Base.Referee = pseudoRef
 end
 
 function Base:_init()

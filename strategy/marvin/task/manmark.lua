@@ -5,7 +5,6 @@ local World = require "../base/world"
 local Field = require "../base/field"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
-local Attack = require "util/attack"
 local Defense = require "util/defense"
 
 
@@ -22,6 +21,10 @@ function ManMark:_init(targetRobot)
 	self._targetRobot = targetRobot
 	self._oldPosition = nil
 	self._blockingShot = false
+	self._obstacleTable = {
+		ignoreBall = true,
+		inbox = self._inbox
+	}
 end
 
 function ManMark:run()
@@ -74,30 +77,14 @@ function ManMark:run()
 		--end
 	end
 
-	local ignoreOpponents = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+	self._obstacleTable.ignoreOpponents = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 		< 4 * self._robot.radius + 0.13
-	local ignoreFriends = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+	self._obstacleTable.ignoreFriends = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 		< 2 * self._robot.radius + 0.13
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreFriends, ignoreOpponents)
-
-	-- Quick fix to not interfere with goal shots
-	local _, shootDest = next(self._inbox.shootDestination())
-	if shootDest then
-		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
-		local distToShotPath = moveDest:distanceToLineSegment(World.Ball.pos, shootDest)
-		if distToShotPath < self._robot.radius + World.Ball.radius + 0.05 then
-			moveDest = moveDest + (World.Geometry.FriendlyGoal - moveDest):setLength(0.2)
-			debug.set("moveDest changed shot")
-		end
-		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
-	end
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 
 	preferredPos = moveDest
-
-	local _, attackPosition = next(self._inbox.attackPosition())
-	Attack.addShootGoalObstacle(self._robot, shootDest, attackPosition)
 
 	self._robot.trajectory:update(ToTarget, preferredPos, preferredDir, nil, self._targetRobot.speed)
 	self._send.moveDest("all", preferredPos)

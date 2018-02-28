@@ -11,6 +11,7 @@ function Moves:init()
 		require "group/move/armada",
 		require "group/move/fastballplacement",
 		-- require "group/move/overchip",
+		require "group/move/windshieldwiper"
 	}
 
 	for _,move in ipairs(self.moveList) do
@@ -107,6 +108,7 @@ function Moves:run(sender, inbox, messages)
 
 	-- run
 	if self._currentMove then
+		debug.push("Move")
 		local taskAssignments, mainAttacker = self._currentMove:updateTasks()
 		for _, robot in ipairs(prevParticipatingRobots) do
 			local assignment = taskAssignments[robot]
@@ -118,13 +120,16 @@ function Moves:run(sender, inbox, messages)
 					error("invalid assignment for robot " .. tostring(robot.id))
 				end
 				assignment.mainAttacker = robot == mainAttacker
-				sender.moveAssignment(robot, assignment)
+				if assignment.class ~= "none" then
+					sender.moveAssignment(robot, assignment)
+				end
 				table.insert(self._participatingRobots, robot)
 			else
 				sender.forcePoolChange("trainer", { robot = robot, destPool = "defender" })
 			end
 		end
 		n_attackers = #self._participatingRobots
+		debug.pop()
 	end
 
 	if self._chosenMove and n_attackers then

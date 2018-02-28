@@ -39,7 +39,6 @@ function ShootPenalty:_init()
 		self._startTime = World.Time
 		self._waitTime = math.random() * 5 + 2
 		self._cornerChange = false
-		self:_initRAS()
 end
 
 local DIST_TO_BALL = 0.015

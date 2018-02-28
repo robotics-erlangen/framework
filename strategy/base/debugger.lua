@@ -25,7 +25,8 @@ module "debugger"
 
 local debugger = {}
 local Class = require "../base/class"
-local debug = debug
+local amun, debug = amun, debug
+local strategyPath = amun.getStrategyPath()
 local baseDebug
 
 function debugger._loadBaseDebug()
@@ -60,7 +61,7 @@ end
 --- io helper ---
 
 local function printerr(str)
-	io.stderr:write(str)
+	amun.debuggerWrite(str)
 end
 
 local function printerrln(str)
@@ -87,11 +88,18 @@ debugger.registerCommand = registerCommand
 
 local function getUserInput()
 	printerr("debug> ")
-	local input = io.stdin:read("*l")
+	local success, input = pcall(amun.debuggerRead)
+	if not success then
+		return nil
+	end
 	return input
 end
 
 local function parseCommand(input)
+	if input == nil then
+		return nil, nil
+	end
+
 	local chunks = {}
 	for chunk in string.gmatch(input, "[^ \t]+") do
 		table.insert(chunks, chunk)
@@ -217,7 +225,9 @@ function debugLoop()
 			table.remove(autoCommands, 1)
 		end
 		local handler, args = parseCommand(input)
-		if handler == nil then
+		if input == nil then
+			autoCommands = { "__quit__" }
+		elseif handler == nil then
 			printerrln("Unknown command. Run \"help\" for help")
 		else
 			local success, continueExecution = pcall(handler, args)
@@ -313,15 +323,15 @@ local function getClosureParameters(offset)
 	return parameters
 end
 
-local function evalFunction(code)
+local function evalFunction(code, offset)
 	local varnames = {}
 	local values = {}
-	for varname, value in pairs(getClosureParameters()) do
+	for varname, value in pairs(getClosureParameters(offset)) do
 		table.insert(varnames, varname)
 		-- support storing nil
 		values[#varnames] = value[1]
 	end
-	for varname, value in pairs(getLocals()) do
+	for varname, value in pairs(getLocals(offset)) do
 		table.insert(varnames, varname)
 		values[#varnames] = value[1]
 	end
@@ -390,7 +400,7 @@ local function prettyPrint(name, value, visited, indent)
 end
 
 local function shortPath(path)
-	local basePath = "@" .. amun.strategyPath .. "/"
+	local basePath = "@" .. strategyPath .. "/"
 	if path:sub(1, #basePath) == basePath then
 		return path:sub(#basePath+1)
 	else
@@ -403,7 +413,10 @@ end
 --- handler functions ---
 -- a handler function must return true to continue to programm's execution
 
+local stackLevelOffset = 0
+
 local function initHandler(_args)
+	stackLevelOffset = 0
 	local baseFrame = getBaseStackLevel()
 	local info = debug.getinfo(baseFrame, "Snl")
 	if info ~= nil then
@@ -449,9 +462,9 @@ local function filteredBacktrace()
 	local skipFrames = getBaseStackLevel() - 1
 	local lines = {}
 	for line in string.gmatch(str, "[^\n]+") do
-		-- skip backtrace frames belonging to the debugger
 		local isFrame = string.sub(line, 1, 4) == "   >"
 
+		-- skip backtrace frames belonging to the debugger
 		if isFrame and skipFrames > 0 then
 			skipFrames = skipFrames - 1
 		else
@@ -461,8 +474,19 @@ local function filteredBacktrace()
 	return lines
 end
 
-local function backtraceHandler(_args)
+local function markedBacktrace()
 	local lines = filteredBacktrace()
+	local marked = {}
+	for _, line in ipairs(lines) do
+		local isActive = (#marked == stackLevelOffset) and "*" or " "
+		local level = string.format("%s %3d: ", isActive, #marked)
+		table.insert(marked, level..string.sub(line, 6))
+	end
+	return marked
+end
+
+local function backtraceHandler(_args)
+	local lines = markedBacktrace()
 	for _, line in ipairs(lines) do
 		printerrln(line)
 	end
@@ -482,7 +506,7 @@ end
 local function localInfoHandler(_args)
 	printerrln("Locals")
 	local localLines = {}
-	for varname, value in pairs(getLocals()) do
+	for varname, value in pairs(getLocals(stackLevelOffset)) do
 		table.insert(localLines, printLocalVar(varname, value[1]))
 	end
 	table.sort(localLines)
@@ -490,7 +514,7 @@ local function localInfoHandler(_args)
 		printerrln(line)
 	end
 
-	local closureParameters = getClosureParameters()
+	local closureParameters = getClosureParameters(stackLevelOffset)
 	local isFirstClosureParameter = true
 	for varname, value in pairs(closureParameters) do
 		if isFirstClosureParameter then
@@ -503,7 +527,7 @@ end
 
 
 local function evalHandler(args)
-	local success, result = evalFunction(table.concat(args, " "))
+	local success, result = evalFunction(table.concat(args, " "), stackLevelOffset)
 	if not success then
 		printerrln(result)
 		return
@@ -516,6 +540,20 @@ local function evalHandler(args)
 		return
 	end
 	prettyPrint("expression", result)
+end
+
+local function stackLevelHandler(args)
+	if #args == 1 then
+		local level = tonumber(args[1])
+		if level < 0 or math.round(level) ~= level or level > getStackDepth() then
+			printerrln("Invalid stack level")
+		else
+			stackLevelOffset = level
+		end
+	else
+		printerrln("Stack level expected")
+	end
+	return
 end
 
 -- TODO: conditional breakpoints
@@ -609,6 +647,7 @@ end
 -- special hooks
 registerCommand({"__init__"}, initHandler, nil)
 registerCommand({"__exit__"}, exitHandler, nil)
+registerCommand({"__quit__"}, quitHandler, nil)
 -- helper commands
 registerCommand({""}, nopHandler, nil)
 registerCommand({"help"}, helpHandler, "Print command list")
@@ -616,6 +655,7 @@ registerCommand({"help"}, helpHandler, "Print command list")
 registerCommand({"backtrace", "bt"}, backtraceHandler, "Print a backtrace of the current stack")
 registerCommand({"locals", "l"}, localInfoHandler, "Print local variables")
 registerCommand({"eval", "e"}, evalHandler, "Evaluate the given expression an print the result")
+registerCommand({"level"}, stackLevelHandler, "Select the active stack level")
 -- breakpoints
 registerCommand({"breakpoint add", "bp"}, breakpointHandler, "Add breakpoints")
 registerCommand({"breakpoint remove"}, removeBreakpointHandler, "Remove breakpoint")
@@ -703,14 +743,21 @@ end
 debugger.getStackDepth = getStackDepth
 
 function debugger.dumpLocalsOnError(f)
+	local tracebackSave = nil
 	local function dumpError(a, b, c)
+		-- save traceback before dumping the stack
+		-- this ensure that we always get a traceback even if the stack dump fails
+		tracebackSave = debug.traceback(a, b, c)
 		debugger.dumpStack()
-		return debug.traceback(a, b, c)
+		return
 	end
 	return function()
 		local succeeded, result = xpcall(f, dumpError)
 		if not succeeded then
-			log(result)
+			log(tracebackSave)
+			if result ~= nil then
+				log(result)
+			end
 			-- silent error propagation
 			error()
 		end

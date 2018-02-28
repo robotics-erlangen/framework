@@ -1,4 +1,4 @@
-local StrikerSampling = Class("Task.StrikerSampling", require "task/base")
+local StrikerSampling = {}
 
 local vis = require "../base/vis"
 local World = require "../base/world"
@@ -16,7 +16,7 @@ local function visualizeRating(name, pos, rating)
 		vis.fromTemperature(1 - rating), true)
 end
 
-function StrikerSampling:_init()
+function StrikerSampling:init()
 	self._attackPosition = nil
 	self._attackTime = nil
 	self._mainAttacker = nil

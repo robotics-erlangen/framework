@@ -98,12 +98,15 @@ local function calculateInterceptPos(robot)
 end
 InterceptPass.calculateInterceptPos = Cache.forFrame(calculateInterceptPos)
 
+local obstacleTable = {
+	ignoreBall = true,
+	ignorePass = true,
+	ignoreOpponentRobots = true,
+}
 
 function InterceptPass:run()
 	local moveDest = self.calculateInterceptPos(self._robot)
-
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true) -- ignore ball
-	PathHelper.addRobotObstacles(self._robot.path, self._robot, false, true) -- ignore opponents
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
 	local dir = (-World.Ball.speed):angle()
 	local endSpeed = (World.Ball.pos - self._robot.pos):setLength(2)

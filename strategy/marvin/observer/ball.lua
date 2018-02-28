@@ -60,9 +60,10 @@ Ball.opponentBallDribbler = Cache.forFrame(Ball.opponentBallDribbler)
 -- @param ownGoal - wether to use the friendly goal or the opponent goal
 -- @return bool - wether or not the ball is heading for the goal
 function Ball.ballHeadingForGoal(ball, ownGoal)
+	local friendlyFactor = ownGoal and 1  or -1
 	local goalCenter = ownGoal and World.Geometry.FriendlyGoal or World.Geometry.OpponentGoal
 	local _, lambda = geom.intersectLineLine(goalCenter, Vector(1, 0), ball.pos, ball.speed)
-	return lambda and math.abs(lambda) < World.Geometry.GoalWidth / 2 + 0.2 and World.Ball.speed.y < 0
+	return lambda and math.abs(lambda) < World.Geometry.GoalWidth / 2 + 0.2 and World.Ball.speed.y * friendlyFactor < 0
 end
 
 
@@ -288,6 +289,7 @@ function Ball._updateIsShot()
 	-- if the ball is distinctly faster than this robot
 	local condFasterThanRobot = false
 
+	debug.pushtop("Ball.isShot")
 	local robot = nil
 	if condCooldown and condAccelerates and condFast then
 		for _,r in ipairs(World.Robots) do
@@ -313,7 +315,6 @@ function Ball._updateIsShot()
 		lastShootRobot = robot
 	end
 
-	debug.pushtop("Ball.isShot")
 	debug.set("cooldown", condCooldown)
 	debug.set("accelerates", condAccelerates)
 	debug.set("fast", condFast)

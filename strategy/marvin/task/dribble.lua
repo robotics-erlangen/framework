@@ -11,6 +11,10 @@ local ToTarget = require "trajectory/totarget"
 -- 1. It will only work if you have the ball in the dribbler at the start
 -- 2. you have to make sure (somehow) that the (robotPos - waypoint[2]  {returned by path}):absoluteAngleDiff(viewDir) is pretty small
 
+local obstacleTable = {
+	ignoreBall = true,
+	ignorePass = true
+}
 function Dribble:_init(pos, suggestPass, endSpeedLength)
 	self._pos = pos
 	self._dir = (pos - self._robot.pos):angle()
@@ -19,8 +23,7 @@ function Dribble:_init(pos, suggestPass, endSpeedLength)
 end
 
 function Dribble:run()
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, obstacleTable)
 	self._robot:setDribblerSpeed(0.7)
 
 	local time

@@ -54,7 +54,7 @@ function ChipTC:_updateTasks()
 		end
 	else
 		self._recalculate = true
-	end	
+	end
 
 	if World.RefereeState == "DirectOffensive" then
 		local ballPos = CURRENT_POS + Vector(0, self._robots[1].shootRadius + World.Ball.radius)

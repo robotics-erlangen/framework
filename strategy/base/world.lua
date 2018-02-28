@@ -84,6 +84,8 @@ World.IsLargeField = false
 World.MixedTeam = nil
 World.SelectedOptions = nil
 
+World.RULEVERSION = nil
+
 World.Geometry = {}
 --- Field geometry.
 -- Lengths in meter
@@ -122,7 +124,9 @@ World.Geometry = {}
 -- initializes Team and Geometry data
 function World._init()
 	World.TeamIsBlue = amun.isBlue()
-	World._updateGeometry(amun.getGeometry())
+	local geom = amun.getGeometry()
+	World._updateGeometry(geom)
+	World._updateRuleVersion(geom)
 	World._updateTeam(amun.getTeam())
 end
 
@@ -137,6 +141,7 @@ function World.update()
 	local hasVisionData = World._updateWorld(amun.getWorldState())
 	World._updateGameState(amun.getGameState())
 	World._updateUserInput(amun.getUserInput())
+	World._updateRuleVersion(amun.getGeometry())
 	return hasVisionData
 end
 
@@ -151,6 +156,15 @@ function World._updateTeam(state)
 	end
 	World.FriendlyRobotsById = friendlyRobotsById
 	World.FriendlyRobotsAll = friendlyRobotsAll
+end
+
+-- Get rule version from geometry
+function World._updateRuleVersion(geom)
+	if not geom.type or geom.type == "TYPE_2014" then
+		World.RULEVERSION = "2017"
+	else
+		World.RULEVERSION = "2018"
+	end
 end
 
 -- Setup field geometry
@@ -174,8 +188,10 @@ function World._updateGeometry(geom)
 
 	wgeom.DefenseRadius = geom.defense_radius
 	wgeom.DefenseStretch = geom.defense_stretch
-	wgeom.DefenseWidth = geom.defense_width
-	wgeom.DefenseHeight = geom.defense_height
+	wgeom.DefenseStretchHalf = geom.defense_stretch / 2
+	wgeom.DefenseWidth = geom.defense_width or geom.defense_stretch
+	wgeom.DefenseHeight = geom.defense_height or geom.defense_radius
+	wgeom.DefenseWidthHalf = (geom.defense_width or geom.defense_stretch) / 2
 
 	wgeom.FriendlyPenaltySpot = Vector.createReadOnly(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist)
 	wgeom.OpponentPenaltySpot = Vector.createReadOnly(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist)
@@ -400,11 +416,16 @@ function World._updateUserInput(input)
 		end
 	end
 	if input.move_command then
+		-- cache the movecommands for 0.3 seconds if it not there every frame
 		for _, robot in ipairs(World.FriendlyRobotsAll) do
-			robot.moveCommand = nil
+			-- < 0 for going back in logfiles while replaying
+			if robot.moveCommand and (World.Time - robot.moveCommand.time > 0.3 or
+				World.Time - robot.moveCommand.time < 0) then
+				robot.moveCommand = nil
+			end
 		end
 		for _, cmd in ipairs(input.move_command) do
-			World.FriendlyRobotsById[cmd.id].moveCommand = Coordinates.toGlobal(Vector(cmd.p_x, cmd.p_y))
+			World.FriendlyRobotsById[cmd.id].moveCommand = {time = World.Time, pos = Coordinates.toGlobal(Vector(cmd.p_x, cmd.p_y))}
 		end
 	end
 end

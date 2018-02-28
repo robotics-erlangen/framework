@@ -6,7 +6,6 @@ local MainTrainer = require "trainer/maintrainer"
 local CenterBackGroup = require "group/centerback"
 local MoveGroup = require "group/moves"
 local StrikerGroup = require "group/striker"
-
 local moves = {
 	require "test/move/timetopos",
 	require "test/move/chiptime",
@@ -20,7 +19,9 @@ local moves = {
 	require "test/move/chipdribble",
 	require "test/move/interceptpass",
 	require "test/move/debugchip",
-	require "group/move/fastballplacement"
+	require "group/move/fastballplacement",
+	require "test/move/movesrc1",
+	require "test/move/defense"
 }
 
 local coord = nil

@@ -30,8 +30,7 @@ end
 
 function Error:run()
 	amun.setRobotExchangeSymbol(self._robot.generation, self._robot.id,true)
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, {ignorePass = true})
 
 	local y0
 	if self._goToTopBlock then
@@ -41,13 +40,13 @@ function Error:run()
 	end
 	-- check Ball
 	if self._goToTopBlock and
-		G.FieldWidthHalf-1.5 < World.Ball.pos.x  and World.Ball.pos.x < G.FieldWidthHalf+0.5 and
-		-1.5< World.Ball.pos.y and World.Ball.pos.y < 1.5  then
+			G.FieldWidthHalf-1.5 < World.Ball.pos.x  and World.Ball.pos.x < G.FieldWidthHalf+0.5 and
+			-1.5< World.Ball.pos.y and World.Ball.pos.y < 1.5  then
 		y0 = G.FieldWidthHalf * (-1)
 		self._goToTopBlock = false
 	elseif not self._goToTopBlock and
-	 -G.FieldWidthHalf+1.5 > World.Ball.pos.x  and World.Ball.pos.x > -G.FieldWidthHalf-0.5 and
-	  -1.5 < World.Ball.pos.y and World.Ball.pos.y < 1.5  then
+			-G.FieldWidthHalf+1.5 > World.Ball.pos.x and World.Ball.pos.x > -G.FieldWidthHalf-0.5 and
+			-1.5 < World.Ball.pos.y and World.Ball.pos.y < 1.5  then
 		y0 = G.FieldWidthHalf - 1
 		self._goToTopBlock = true
 	end

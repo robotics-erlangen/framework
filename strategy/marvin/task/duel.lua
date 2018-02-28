@@ -85,9 +85,7 @@ end
 function Duel:_contestPush()
 	local viewDir = (World.Ball.pos - World.Geometry.FriendlyGoal):angle()
 	local destinationPos = World.Ball.pos - Vector.fromAngle(viewDir) * self._robot.shootRadius
-
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true) -- ignore ball
-	PathHelper.addRobotObstacles(self._robot.path, self._robot, false, true) -- ignore opponents
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, {ignoreBall = true, inbox = self._inbox})
 	self._robot.trajectory:update(ToTarget, destinationPos, viewDir)
 end
 
@@ -229,10 +227,15 @@ function Duel:_moveToBall()
 	end
 	debug.set("ignoreBall", ignoreBall)
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignoreBall, false, false, self._robot.shootRadius)
-	-- don't predict opponents, to avoid them blocking the target position
 	local ignoreOpponents = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + 2 * self._robot.radius + 0.1
-	PathHelper.addRobotObstacles(self._robot.path, self._robot, false, ignoreOpponents, true)
+	local obstacleTable = {
+		ignoreBall = ignoreBall,
+		inbox = self._inbox,
+		pathRadius = self._robot.shootRadius,
+		ignoreOpponents = ignoreOpponents,
+		disableOpponentPrediction = true
+	}
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
 	debug.set("moveDest dribbler", moveDest)
 

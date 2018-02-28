@@ -10,7 +10,7 @@ function MoveCommand:check()
 end
 
 function MoveCommand:_updateTask()
-	return MoveToPos, {self._robot.moveCommand, nil, nil, nil, true}, true
+	return MoveToPos, {self._robot.moveCommand.pos, nil, nil, nil, true}, true
 end
 
 return MoveCommand

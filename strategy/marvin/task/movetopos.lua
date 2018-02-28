@@ -11,13 +11,19 @@ function MoveToPos:_init(pos, dir, suggestPass, endSpeedLength, ignoreDefaultObs
 	self._dir = dir or (World.Ball.pos - pos):angle()
 	self._suggestPassFlag = suggestPass
 	self._endSpeedLength = endSpeedLength or 0
-	self._ignoreDefaultObstacles = ignoreDefaultObstacles or false
+	local ignore = ignoreDefaultObstacles or false
+	self._obstacleTable = {
+		ignoreBall = ignore,
+		ignoreGoals = ignore,
+		ignoreDefenseArea = ignore,
+		ignoreOpponentDefenseArea = ignore,
+		inbox = self._inbox,
+		ignorePass = ignore,
+	}
 end
 
 function MoveToPos:run()
-	local ignore = self._ignoreDefaultObstacles
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignore, ignore, ignore, nil, nil, nil, ignore)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 
 	local endSpeed = (self._pos - self._robot.pos):setLength(self._endSpeedLength)
 	local _, time = self._robot.trajectory:update(ToTarget, self._pos, self._dir, nil, endSpeed)

@@ -18,7 +18,7 @@ BallCycle.MAX_ROBOTS = 5
 local MAX_RANDOM_POSITION_OFFSET = 0.8
 
 function BallCycle.canStart()
-	return World.Ball.pos.y > G.FieldHeightHalf / 5 and Referee.opponentTouchedLast()
+	return World.Ball.pos.y > G.FieldHeightHalf / 5 and BallCycle.Referee.opponentTouchedLast()
 		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
 		and World.RefereeState == "Stop" and Field.distanceToFieldBorder(World.Ball.pos) >= 0.6
 end
@@ -74,7 +74,7 @@ function BallCycle:_init()
 end
 
 function BallCycle:_canContinue()
-	if Referee.isFriendlyFreeKickState() and Field.distanceToFieldBorder(World.Ball.pos) >= self._circleRadius then
+	if BallCycle.Referee.isFriendlyFreeKickState() and Field.distanceToFieldBorder(World.Ball.pos) >= self._circleRadius then
 		return true
 	end
 	return World.Ball.pos.y > G.FieldHeightHalf / 5 - 0.2

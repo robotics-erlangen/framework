@@ -227,6 +227,9 @@ end
 -- @return number - distance to line
 function vector_mt:orthogonalProjection(linePoint1, linePoint2)
 	local rv = linePoint2 - linePoint1
+	if rv:lengthSq() < 0.00001 * 0.00001 then
+		return linePoint1, self:distanceTo(linePoint1)
+	end
 	local is, dist = geom.intersectLineLine(self, rv:perpendicular(), linePoint1, rv)
 	if is then
 		return is, dist * rv:length()

@@ -38,7 +38,7 @@ local function task1()
 	for id, robot in pairs(World.FriendlyRobotsById) do
 		if robot == World.FriendlyRobot then
 			partnerPlan[id] = { targetPos = World.Geometry.FriendlyGoal, role = "Goalie" }
-		elseif robot.generation == 2 then -- ally
+		elseif robot.generation == robot.ALLY_GENERATION_ID then
 			partnerPlan[id] = { targetPos = defAreaPos(id, true), role = "Offense" }
 		else -- own robot
 			local pos = defAreaPos(id, false)
@@ -59,7 +59,7 @@ local function task2()
 	for id, robot in pairs(World.FriendlyRobotsById) do
 		if robot == World.FriendlyRobot then
 			partnerPlan[id] = { targetPos = World.Geometry.FriendlyGoal, role = "Goalie" }
-		elseif robot.generation == 2 then -- ally
+		elseif robot.generation == robot.ALLY_GENERATION_ID then
 			partnerPlan[id] = { targetPos = defAreaPos(id, false), role = "Defense" }
 		else -- own robot
 			local pos = defAreaPos(id, false)
@@ -91,13 +91,13 @@ local function task3()
 		local minDist = math.huge
 		local maxPartnerY = -math.huge
 		for _, robot in pairs(World.FriendlyRobotsById) do
-			if robot.generation == 3 then
+			if robot.generation == robot.GENERATION_2014_ID then
 				local dist = robot.pos:distanceTo(World.Ball.pos)
 				if dist < minDist then
 					minDist = dist
 					passKicker = robot
 				end
-			elseif robot.generation == 2 then
+			elseif robot.generation == robot.ALLY_GENERATION_ID then
 				if robot.pos.y > maxPartnerY then
 					maxPartnerY = robot.pos.y
 					passReceiver = robot
@@ -119,9 +119,9 @@ local function task3()
 	for id, robot in pairs(World.FriendlyRobotsById) do
 		if robot == World.FriendlyRobot then
 			partnerPlan[id] = { targetPos = World.Geometry.FriendlyGoal, role = "Goalie" }
-		elseif robot.generation == 2 and robot ~= passReceiver then -- ally
+		elseif robot.generation == robot.ALLY_GENERATION_ID and robot ~= passReceiver then
 			partnerPlan[id] = { targetPos = defAreaPos(id, false), role = "Defense" }
-		elseif robot.generation == 3 and robot ~= passKicker then
+		elseif robot.generation == robot.GENERATION_2014_ID and robot ~= passKicker then
 			local pos = defAreaPos(id, false)
 			partnerPlan[id] = { targetPos = pos, role = "Defense" }
 			taskAssignments[robot] =  { class = MoveToPos, params = {pos}, restart=true }
@@ -135,7 +135,7 @@ end
 local function stopPositions()
 	local taskAssignments = {}
 	for _, robot in pairs(World.FriendlyRobots) do
-		if robot.generation == 3 then
+		if robot.generation == robot.GENERATION_2014_ID then
 			local pos = Vector(
 				-World.Geometry.FieldWidthHalf+1+robot.id*0.4,
 				-0.7)

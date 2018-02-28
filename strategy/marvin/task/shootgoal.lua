@@ -8,7 +8,7 @@ local World = require "../base/world"
 
 local Ball = require "observer/ball"
 local ObserverShoot = require "observer/shoot"
-local PathHelper = require "trajectory/pathhelper"
+-- local PathHelper = require "trajectory/pathhelper"
 local Rating = require "util/rating"
 local ShootGoalUtil = require "util/shootgoal"
 
@@ -16,14 +16,13 @@ local G = World.Geometry
 
 local DESPERATE_CHIP_EXTRA_DISTANCE = 0.5 -- extra chip distance when performing a goal chip
 
-function ShootGoal:_drawDebugInfo()
-	local target, color, mode
+local function _drawDebugInfo(self, target)
+	local color, mode
 	if self._desperate then
 		mode = "desperate"
 		target = self._desperateChipTargetPoint
 		color = vis.colors.redHalf
 	else
-		target = self._shootTargetPoint
 		if self._dirty then
 			mode = "dirty"
 			color = vis.colors.orangeHalf
@@ -56,7 +55,8 @@ function ShootGoal:_init(ballReceiptPos, forceDesperate)
 end
 
 function ShootGoal:run()
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
+	-- :dead code
+	-- PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 
 	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
 	local ballReceiptPos = self._ballReceiptPos or attackPosition
@@ -72,7 +72,7 @@ function ShootGoal:run()
 	local distance = self._robot.pos:distanceTo(self._shootTargetPoint)
 	local localTargetX = Rating.valueToRating(distance, maxDistance, minDistance) * self._shootTargetPoint.x
 	local localTarget = Vector(localTargetX, self._shootTargetPoint.y)
-	
+
 	if not self._desperate then
 		self._desperate = self._shootTargetWidth < 0.5 * math.pi / 180
 	end
@@ -107,7 +107,7 @@ function ShootGoal:run()
 		self._desperateChipTargetPoint = G.OpponentGoal + Vector(0, DESPERATE_CHIP_EXTRA_DISTANCE)
 		self:_chipPass(self._desperateChipTargetPoint, ballReceiptPos, maxAngleError, 0.5)
 	end
-	self:_drawDebugInfo()
+	_drawDebugInfo(self, localTarget)
 end
 
 return ShootGoal

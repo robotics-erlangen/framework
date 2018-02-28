@@ -15,6 +15,8 @@ function Striker:init()
 	self._emptyZone = nil
 
 	self._lastMainAttacker = nil
+	self._lastRobots = nil
+	self._lastAssignments = nil
 end
 
 local function getDefaultPosition(boundaries)
@@ -59,6 +61,13 @@ local function assignRobotsToZones(robotPositions, zones)
 	local zoneAssignment = {}
 	for i, zone in ipairs(zones) do
 		zoneAssignment[zone] = robots[assignment[i]]
+	end
+
+	-- visualize assignments
+	if amun.isDebug then
+		for zone, robot in pairs(zoneAssignment) do
+			vis.addPath("g/striker: zone assignment", {zone.defaultPos, robot.pos}, vis.colors.white)
+		end
 	end
 	return zoneAssignment
 end
@@ -105,7 +114,7 @@ function Striker:_chooseEmptyZone(mainAttackerPos)
 	if mainAttackerPos then
 		for _, zone in ipairs(self._zones) do
 			if mainAttackerPos.x >= zone.boundaries.left + emptyZoneHysteresis
-					and mainAttackerPos.x <= zone.boundaries.right - emptyZoneHysteresis 
+					and mainAttackerPos.x <= zone.boundaries.right - emptyZoneHysteresis
 					and mainAttackerPos.y >= zone.boundaries.bottom + emptyZoneHysteresis
 					and mainAttackerPos.y <= zone.boundaries.top - emptyZoneHysteresis then
 				self._emptyZone = zone
@@ -135,8 +144,20 @@ function Striker:run(sender, inbox, messages)
 	end
 	robots = robotsTmp
 
+	-- update assignments if necessary
+	local updateAssignments = not self._lastRobots or not self._lastAssignments or #robots ~= #self._lastRobots
+	if not updateAssignments then
+		for i, r in ipairs(robots) do
+			if r ~= self._lastRobots[i] then
+				updateAssignments = true
+				break
+			end
+		end
+	end
+
 	-- update zones if necessary
 	if #robots ~= self._strikerCount then
+		updateAssignments = true
 		self:_updateZones(robots)
 	end
 
@@ -170,13 +191,16 @@ function Striker:run(sender, inbox, messages)
 		end
 	end
 
-	local robotZones = assignRobotsToZones(robotPositions, zoneList)
+	local robotZones = updateAssignments and assignRobotsToZones(robotPositions, zoneList) or self._lastAssignments
 
 	for zone, robot in pairs(robotZones) do
 		sender.strikerZone(robot, zone)
 	end
 
+
 	self._lastMainAttacker = mainAttacker
+	self._lastRobots = robots
+	self._lastAssignments = robotZones
 end
 
 return Striker

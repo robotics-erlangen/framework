@@ -23,8 +23,7 @@ end
 
 local HYSTERESIS_DISTANCE = 0.3
 function DuelAssistant:run()
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, {inbox = self._inbox})
 	self:_update()
 	local angleOffset = math.pi / 2
 	local ballPos = World.Ball.pos

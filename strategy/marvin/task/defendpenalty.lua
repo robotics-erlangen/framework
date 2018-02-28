@@ -10,6 +10,12 @@ local Interval = require "util/interval"
 
 local PENALTY_LINE_DISTANCE = 0.35 -- prevent robots from crossing the penalty line
 
+local obstacleTable = {
+	ignoreBall = false,
+	ignorePass = true
+}
+
+
 function DefendPenalty:run()
 	local rr = self._robot.radius --assume all robots have the same radius
 	local penaltyLine = World.Geometry.OwnPenaltyLine + PENALTY_LINE_DISTANCE
@@ -110,8 +116,7 @@ function DefendPenalty:run()
 		targetPos = Vector(targetPos, penaltyLine)
 	end
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstacles(self._robot.path, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, targetPos, (World.Ball.pos - self._robot.pos):angle())
 
 	self._send.moveDest("all", targetPos)

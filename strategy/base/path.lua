@@ -185,7 +185,7 @@ local teamIsBlue = amun.isBlue()
 
 -- wrap add obstacle functions for automatic strategy to global coordinates conversion
 local _addCircle = path.addCircle
-function path:addCircle(x, y, radius, name)
+function path:addCircle(x, y, radius, name, prio)
 	if teamIsBlue then
 		x = -x
 		y = -y
@@ -193,11 +193,11 @@ function path:addCircle(x, y, radius, name)
 	if amun.isDebug then
 		vis.addCircleRaw("obstacles: "..tostring(path.robotId(self)), Vector(x,y), radius, vis.colors.redHalf, true)
 	end
-	_addCircle(self, x, y, radius, name)
+	_addCircle(self, x, y, radius, name, prio or 0)
 end
 
 local _addLine = path.addLine
-function path:addLine(start_x, start_y, stop_x, stop_y, radius, name)
+function path:addLine(start_x, start_y, stop_x, stop_y, radius, name, prio)
 	if start_x == stop_x and start_y == stop_y then
 		log("WARNING: start and end points for a line obstacle are the same!")
 		return
@@ -211,11 +211,11 @@ function path:addLine(start_x, start_y, stop_x, stop_y, radius, name)
 	if amun.isDebug then
 		vis.addPathRaw("obstacles: "..tostring(path.robotId(self)), {Vector(start_x, start_y), Vector(stop_x, stop_y)}, vis.colors.redHalf, nil, nil, 2 * radius)
 	end
-	_addLine(self, start_x, start_y, stop_x, stop_y, radius, name)
+	_addLine(self, start_x, start_y, stop_x, stop_y, radius, name, prio or 0)
 end
 
 local _addRect = path.addRect
-function path:addRect(start_x, start_y, stop_x, stop_y, name)
+function path:addRect(start_x, start_y, stop_x, stop_y, name, prio)
 	if teamIsBlue then
 		start_x = -start_x
 		start_y = -start_y
@@ -226,11 +226,11 @@ function path:addRect(start_x, start_y, stop_x, stop_y, name)
 		vis.addPolygonRaw("obstacles: "..tostring(path.robotId(self)), {Vector(start_x, start_y), Vector(start_x, stop_y), Vector(stop_x, stop_y), Vector(stop_x, start_y)},
 			vis.colors.redHalf, true)
 	end
-	_addRect(self, start_x, start_y, stop_x, stop_y, name)
+	_addRect(self, start_x, start_y, stop_x, stop_y, name, prio or 0)
 end
 
 local _addTriangle = path.addTriangle
-function path:addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name)
+function path:addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name, prio)
 	if teamIsBlue then
 		x1 = -x1
 		y1 = -y1
@@ -245,7 +245,7 @@ function path:addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name)
 		local p3 = Vector(x3,y3)
 		vis.addPolygonRaw("obstacles: "..tostring(path.robotId(self)), {p1, p2, p3}, vis.colors.redHalf, true)
 	end
-	_addTriangle(self, x1, y1, x2, y2, x3, y3, lineWidth, name)
+	_addTriangle(self, x1, y1, x2, y2, x3, y3, lineWidth, name, prio or 0)
 end
 
 local _addSeedTarget = path.addSeedTarget

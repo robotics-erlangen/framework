@@ -8,6 +8,7 @@ local Halt = require "agent/shared/halt"
 local Error = require "agent/shared/error"
 local MoveCommand = require "agent/shared/movecommand"
 local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local CenterBack = require "task/centerback"
 local Rating = require "util/rating"
 
@@ -45,9 +46,9 @@ end
 function Base:run()
 	debug.pushtop(self._debugIdStr)
 	debug.set(nil, Class.name(self, true))
+	self:_dumpInbox()
 
 	local task = self:_runBehavior()
-	self:_dumpInbox()
 	self:_runTask(task)
 	self:_applyForMainAttacker(task)
 	self:_run()
@@ -161,25 +162,28 @@ function Base:_applyForMainAttacker(task)
 
 	if self._robot ~= World.FriendlyKeeper and World.RefereeState ~= "BallPlacementOffensive" then
 		-- only the keeper can apply for MA if it could touch the ball inside the defense area
-		if Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius) <= World.Ball.radius + 0.02 
+		if Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius + World.Ball.radius + 0.02)
 			and World.Ball.pos.y < self._robot.pos.y + self._robot.radius * 3 then
 			return
 		end
 
 		-- only the keeper can apply for MA if the ball is behind the centerbacks
-		if Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) <= CenterBack.distanceToDefenseArea() then
+		if Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius + CenterBack.distanceToDefenseArea())  then
 			return
 		end
 	end
 
 	local mainAttackerRating
 	if not overrideRating then
-		local targetPos = parameters[1] or World.Geometry.OpponentGoal
-		local endSpeedLength = parameters[2] or 0
-
-		local timeToBall = Physics.robotTimeToBall(self._robot,
-			World.Ball, targetPos, endSpeedLength, self._mainAttackerLastTime)
-		self._mainAttackerLastTime = timeToBall
+		local timeToBall
+		if parameters[1] or parameters[2] then
+			local targetPos = parameters[1] or World.Geometry.OpponentGoal
+			local endSpeedLength = parameters[2] or self._robot.maxSpeed
+			timeToBall = Physics.robotTimeToBall(self._robot,
+				World.Ball, targetPos, endSpeedLength, self._mainAttackerLastTime)
+		else
+			timeToBall = Robot.minTimeToBall(self._robot)
+		end
 
 		-- if we have the ball, the time is 0
 		if timeToBall == math.huge then

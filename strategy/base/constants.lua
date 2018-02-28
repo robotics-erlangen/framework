@@ -32,7 +32,7 @@ Constants.systemLatency = 0.04 -- total system latency [s]
 
 Constants.positionError = 0.005 -- possible position error from vision [m]
 
-Constants.maxBallSpeed = 7.5 -- maximum allowed shooting speed [m/s]
+Constants.maxBallSpeed = 6.5 -- maximum allowed shooting speed [m/s]
 
 Constants.maxDribbleDistance = 0.5
 
@@ -41,6 +41,8 @@ Constants.maxRobotRadius = 0.09
 Constants.maxRobotHeight = 0.15
 
 Constants.floorDamping = 0.55 -- vertical speed damping coeffient for a ball hitting the ground
+
+Constants.stopSpeed = 1.5 -- maximum allowed driving speed during stop states [m/s]
 
 function Constants.switchSimulatorConstants(isSimulated)
 	if isSimulated then

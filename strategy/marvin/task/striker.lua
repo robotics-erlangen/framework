@@ -1,7 +1,6 @@
 local SuggestPass = require "task/ability/suggestpass"
-local Striker = Class("Task.Striker", require "task/base", SuggestPass)
-
-local StrikerSampling = require "task/strikersampling"
+local StrikerSampling = require "task/ability/strikersampling"
+local Striker = Class("Task.Striker", require "task/base", SuggestPass, StrikerSampling)
 
 local Field = require "../base/field"
 local vis = require "../base/vis"
@@ -14,7 +13,6 @@ local ToTarget = require "trajectory/totarget"
 local Attack = require "util/attack"
 
 
-
 function Striker:_init(manualDefaultPos, manualPassDest)
 	self._manualDefaultPos = manualDefaultPos
 	self._manualPassDest = manualPassDest
@@ -24,8 +22,12 @@ function Striker:_init(manualDefaultPos, manualPassDest)
 
 	self._zone = nil
 
-	self._sampling = StrikerSampling(self._agent)
 	self._revaluateTimestamp = 0
+
+	self._obstacleTable  = {
+		ignoreBall = true,
+		inbox = self._inbox
+	}
 end
 
 function Striker:_revaluatePassDest()
@@ -55,7 +57,7 @@ function Striker:_revaluatePassDest()
 end
 
 function Striker:_searchForPassDest()
-	self._sampling:precalculate()
+	self:precalculate()
 
 	local grid_point_count_x = 6
 	local grid_point_count_y = 10
@@ -81,7 +83,7 @@ function Striker:_searchForPassDest()
 				if y > bottom and y < top then
 					local candidatePoint = Vector(x, y)
 					candidatePoint = Field.limitToAllowedField(candidatePoint, 3 * self._robot.radius + 0.1)
-					local score = self._sampling:evalLocation(candidatePoint, bestScore)
+					local score = self:evalLocation(candidatePoint, bestScore)
 					local _, passInfoTable = next(self._inbox.passInfo())
 					if passInfoTable then
 						for _, passInfo in pairs(passInfoTable) do
@@ -133,7 +135,6 @@ function Striker:run()
 	if self:_revaluatePassDest() then
 		self:_searchForPassDest()
 	end
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
 
 	-- check whether the agent would change its state to accepting an incoming pass (striker should not be active then)
 	local _, passInfoTable = next(self._inbox.passInfo())
@@ -141,7 +142,6 @@ function Striker:run()
 
 	if passInfoTable then
 		for _, passInfo in ipairs(passInfoTable) do
-			local passDest = passInfo.ballPos
 			vis.addCircle("t/striker", self._moveDest, 0.1, vis.colors.slateHalf, true)
 			if self._passDestSuggestion then
 				local color = passInfo.target == self._robot
@@ -152,43 +152,12 @@ function Striker:run()
 				vis.addPath("t/striker", {self._moveDest, self._passDestSuggestion},
 					vis.colors.slateHalf, nil, nil, 0.02)
 			end
-
-			-- don't move between the ball and the pass target
-			-- relevant for outgoing passes
-			if passInfo.target ~= self._robot then
-				self:_avoidLineSegment(World.Ball.pos, passDest)
-			end
-
-			-- don't block the pass receiver
-			if passInfo.target and passInfo.target ~= self._robot then
-				local startPoint = passInfo.target.pos
-				local endPoint = passInfo.ballPos
-				self._robot.path:addLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, 0.2)
-			end
 		end
 	end
 	-- set path obstacles to not interfere with the current attack
 	local moveTime = nil
 	local _, attackPosition = next(self._inbox.attackPosition())
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
-
-	-- don't move between the ball and the main attacker
-	-- relevant for incoming passes
-	local mainAttacker = self._inbox.mainAttacker().trainer
-	if mainAttacker then
-		local dangerPos = attackPosition or mainAttacker.pos
-		if dangerPos:distanceTo(World.Ball.pos) > 0.1 then
-			self:_avoidLineSegment(World.Ball.pos, dangerPos)
-		end
-		if attackPosition then
-			self._robot.path:addLine(mainAttacker.pos.x, mainAttacker.pos.y, attackPosition.x, attackPosition.y, 0.2)
-		end
-	end
-
-	-- don't move between the ball and the opponent goal
-	-- relevant for goal shots
-	local _, shootDest = next(self._inbox.shootDestination())
-	Attack.addShootGoalObstacle(self._robot, shootDest, attackPosition)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 
 	-- send a suggestion for a pass in the run
 	if self._passDestSuggestion and attackPosition then

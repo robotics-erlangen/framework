@@ -8,7 +8,6 @@ local AcceptPass = require "task/acceptpass"
 local MoveToPos = require "task/movetopos"
 local Attack = require "util/attack"
 local MovesHelper = require "util/moveshelper"
-local Referee = require "../base/referee"
 local StopAttack = require "task/stopattack"
 local World = require "../base/world"
 
@@ -40,7 +39,7 @@ local function randomExtension(min)
 end
 
 function Armada.canStart()
-	return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 and Referee.opponentTouchedLast()
+	return  World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 and Armada.Referee.opponentTouchedLast()
 		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
 		and World.RefereeState == "Stop"
 end
@@ -54,7 +53,7 @@ function Armada:_init()
 end
 
 function Armada:_canContinue()
-	if Referee.isFriendlyFreeKickState() then
+	if Armada.Referee.isFriendlyFreeKickState() then
 		return true
 	end
 	return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2
@@ -75,7 +74,7 @@ function Armada:_updateTasks()
 	if World.RefereeState == "Stop" then
 		self._positions = {}
 		self._assignment = nil
-	elseif Referee.isFriendlyFreeKickState() and #self._positions == 0 then
+	elseif Armada.Referee.isFriendlyFreeKickState() and #self._positions == 0 then
 		-- calculate position
 		for i = 1, 4 do
 			local pos = POSITIONS_ORIG[i]:copy()

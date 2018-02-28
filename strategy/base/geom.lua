@@ -38,7 +38,7 @@ local geom = {}
 function geom.intersectCircleCircle(c1, r1, c2, r2)
 	local dist = c1:distanceTo(c2)
 	if dist > r1 + r2 then return nil
-	elseif dist == r1 + r2 then return c1 + (c1-c2):scaleLength(0.5)
+	elseif dist == r1 + r2 then return c1 + (c2-c1):scaleLength(0.5)
 	elseif dist < r1 + r2 then
 		local c1x, c1y, c2x, c2y = c1.x, c1.y, c2.x, c2.y
 		local a1 = (r1*r1 - r2*r2 - c1x*c1x + c2x*c2x - c1y*c1y + c2y*c2y) / (2*c2x - 2*c1x)
@@ -54,6 +54,11 @@ function geom.intersectCircleCircle(c1, r1, c2, r2)
 
 		return Vector(finalX1, finalY1), Vector(finalX2, finalY2)
 	end
+end
+
+function geom.boundRect(p1, pos, p2)
+	return Vector(math.bound(math.min(p1.x,p2.x), pos.x, math.max(p1.x,p2.x)), math.bound(math.min(p1.y,p2.y), pos.y, math.max(p1.y,p2.y)))
+	-- return Vector(math.bound(min.x, pos.x, max.x), math.bound(min.y, pos.y, max.y))
 end
 
 --- Intersects a line with a circle.
@@ -347,6 +352,22 @@ function geom.inscribedAngle(point1, point2, theta)
 	local centerOfCircleOne = point1 + ((point2 - point1):rotate(math.pi/2 - theta)):setLength(radius)
 	local centerOfCircleTwo = point1 + ((point2 - point1):rotate(-(math.pi/2 - theta))):setLength(radius)
 	return centerOfCircleOne, centerOfCircleTwo, radius
+end
+
+function geom.insideRect(corner1, corner2, x)
+	local minCornerX, maxCornerX, minCornerY, maxCornerY
+	if corner1.x < corner2.x then
+		minCornerX, maxCornerX = corner1.x, corner2.x
+	else
+		minCornerX, maxCornerX = corner2.x, corner1.x
+	end
+	if corner1.y < corner2.y then
+		minCornerY, maxCornerY = corner1.y, corner2.y
+	else
+		minCornerY, maxCornerY = corner2.y, corner1.y
+	end
+	return minCornerX < x.x and x.x < maxCornerX and
+			minCornerY < x.y and x.y < maxCornerY
 end
 
 return geom

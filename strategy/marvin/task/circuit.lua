@@ -11,6 +11,9 @@ function Circuit:_init(center, angleOffset, radius, passPos, anonym)
 	self._radius = radius or 0.5
 	self._passPos = passPos
 	self._anonym = anonym
+	self._obstacleTable = {
+		ignorePass = true
+	}
 end
 
 function Circuit:run()
@@ -18,9 +21,7 @@ function Circuit:run()
 	local pos = self._center + Vector.fromAngle(angle) * self._radius
 	local dir = (World.Ball.pos - pos):angle()
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
-
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 	self._robot.trajectory:update(ToTarget, pos, dir)
 
 	if self._passPos then

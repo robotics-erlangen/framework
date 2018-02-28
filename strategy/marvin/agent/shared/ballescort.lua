@@ -52,10 +52,10 @@ function BallEscort:check()
 		if Referee.opponentTouchedLast() and not Ball.receivesPass(self._robot) then
 
 			if ballOutPos then
-				
+
 				local oppTimeToPos = math.huge
 				for _, oppRobots in ipairs(World.OpponentRobots) do
-					
+
 					-- don't if opponent can reach the ball
 					if Physics.robotTimeToBall(oppRobots, World.Ball, World.Geometry.OpponentGoal, 0) ~= math.huge or Ball.receivesPass(oppRobots) then
 						self._counter = 0
@@ -73,7 +73,7 @@ function BallEscort:check()
 				debug.set("robotTimeToBall", Physics.robotTimeToBall(self._robot, World.Ball, World.Geometry.OpponentGoal, 0))
 				debug.pop()
 
-				if Physics.robotTimeToBall(self._robot, World.Ball, World.Geometry.OpponentGoal, 0) == math.huge then 
+				if Physics.robotTimeToBall(self._robot, World.Ball, World.Geometry.OpponentGoal, 0) == math.huge then
 
 					-- ballOutPos should not be in penalty area
 					if Referee.opponentTouchedLast() and (math.abs(ballOutPos.x) > World.Geometry.DefenseStretch/2 + World.Geometry.DefenseRadius) then
@@ -98,7 +98,7 @@ function BallEscort:check()
 							-- to make sure the decision is not too early
 							if self._counter > 5 then
 								self._ownTask = "BallEscort"
-								return true	
+								return true
 							end
 						end
 					end
@@ -106,7 +106,7 @@ function BallEscort:check()
 			end
 		end
 	end
-	return false 
+	return false
 end
 
 function BallEscort:_updateTask()

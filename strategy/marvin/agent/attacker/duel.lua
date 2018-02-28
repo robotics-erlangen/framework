@@ -44,12 +44,14 @@ function Duel:genericCheck()
 			end
 		end
 		if firstAtBall then
+			debug.set("duel check", "firstAtBall")
 			return false
 		end
 	end
 
 
 	if self._agent.beOffensive then
+		debug.set("duel check", "beOffensive")
 		return false
 	end
 
@@ -67,6 +69,7 @@ function Duel:genericCheck()
 		local intersection = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, World.Geometry.OpponentGoal, Vector(1, 0))
 		if intersection and math.abs(intersection.x) < World.Geometry.GoalWidth / 2 + (self._lastChippedHysteresis and 1 or 0) then
 			self._lastChippedHysteresis = true
+			debug.set("duel check", "ball speed")
 			return false
 		else
 			self._lastChippedHysteresis = false
@@ -87,6 +90,7 @@ function Duel:genericCheck()
 		else
 			self._closerThanOpp = false
 			debug.set("duel check closerThanOpp", self._closerThanOpp)
+			debug.set("duel check", "closerThanOpp")
 			return true
 		end
 		debug.set("duel check closerThanOpp", self._closerThanOpp)
@@ -98,6 +102,7 @@ function Duel:genericCheck()
 	-- this may cause duel to get active A LOT
 	for _,r in ipairs(World.OpponentRobots) do
 		if Ball.receivesPass(r) and r.pos:distanceTo(self._robot.pos) < 1 then
+			debug.set("duel check", "oppGetsBall")
 			return true
 		end
 	end
@@ -107,9 +112,11 @@ function Duel:genericCheck()
 	if not Ball.receivesPass(self._robot) then
 		local _, oppTime = Ball.firstRobotAtBall(World.OpponentRobots)
 		if oppTime + timeToBallHysteresis < Robot.minTimeToBall(self._robot) then
+			debug.set("duel check", "hysteresis")
 			return true
 		end
 	end
+	debug.set("duel check", "default")
 
 	return false
 end
@@ -120,7 +127,7 @@ function Duel:check()
 	self._forceKeepingInPool = isMainAttacker
 
 	if not isMainAttacker then
-		debug.set("/a/attacker", "not mainAttacker")
+		debug.set("duel check", "not mainAttacker")
 		self._active = false
 	else
 		self._active = self:genericCheck()

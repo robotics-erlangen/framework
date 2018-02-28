@@ -34,7 +34,7 @@ function Error:check()
 
 	for k,v in pairs(errorTable) do
 		if gameTimespan > 2 and v > ERROR_TOLERANCE_PER_SEC * gameTimespan
-		 and k ~= "temperature" and k~="main_sensor_error" then
+				and k ~= "temperature" and k~="main_sensor_error" then
 			if World.RefereeState == "Stop" then
 				--log(self._robot.id .. " --------   " .. k ..  "  --------------  " .. v)
 				return EXCHANGE_ERROR_ROBOTS

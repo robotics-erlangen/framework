@@ -12,6 +12,8 @@ local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
 local Rating = require "util/rating"
 
+local G = World.Geometry
+
 --- evaluates a given pass object
 -- @name ratePass
 -- @param robot Robot - the pass sender / main attacker
@@ -50,8 +52,8 @@ function Attack.ratePass(robot, pass, considerTiming)
 	end
 
 	-- rate angle shooter-goal-receiver
-	local shooterGoalReceiverAngle = (shootPos - World.Geometry.OpponentGoal):absoluteAngleDiff(
-			pass.ballPos - World.Geometry.OpponentGoal)
+	local shooterGoalReceiverAngle = (shootPos - G.OpponentGoal):absoluteAngleDiff(
+			pass.ballPos - G.OpponentGoal)
 	local shooterGoalReceiverRating = Rating.valueToRating(shooterGoalReceiverAngle, 0, 180 / 180 * math.pi)
 	local shooterGoalReceiverWeight = 0.5
 	rating = rating * (1 - shooterGoalReceiverWeight + shooterGoalReceiverWeight * shooterGoalReceiverRating)
@@ -65,7 +67,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 		local validIntersection = false
 		if intersection then
 			validIntersection = Field.isInField(intersection) and opp.pos:distanceTo(intersection) < opp.pos:distanceTo(orthogonalProjection)
-			if validIntersection then
+			if validIntersection and amun.isDebug then
 				vis.addCircle("u/a/ratePass", intersection, 0.05, vis.colors.red, true)
 				vis.addPath("u/a/ratePass", {opp.pos, intersection}, vis.colors.slate, true)
 			end
@@ -76,7 +78,9 @@ function Attack.ratePass(robot, pass, considerTiming)
 					and opp ~= World.OpponentKeeper then
 			local passInterception = orthogonalProjection:distanceToLineSegment(shootPos, pass.ballPos) > 0.5
 					and pass.ballPos or orthogonalProjection
-			vis.addPath("u/a/ratePass", {opp.pos, passInterception}, vis.colors.blue, true)
+			if amun.isDebug then
+				vis.addPath("u/a/ratePass", {opp.pos, passInterception}, vis.colors.blue, true)
+			end
 
 			-- calculate the time the ball needs to arrive at the intersection point
 			local shootSpeed = Vector(1,1):setLength(robot:calculateShootSpeed(3, shootPos:distanceTo(pass.ballPos))) -- direction doesn't actually matter
@@ -86,7 +90,9 @@ function Attack.ratePass(robot, pass, considerTiming)
 			-- calculate the time the robot needs to arrive at the intersection point
 			-- to achieve more relevant results, the speed component parallel to the pass trajectory is ignored
 			local projectedSpeed = opp.speed - ((opp.pos + opp.speed):orthogonalProjection(shootPos, pass.ballPos) - orthogonalProjection)
-			vis.addPath("u/a/ratePass", {opp.pos, opp.pos + projectedSpeed}, vis.colors.pink, true)
+			if amun.isDebug then
+				vis.addPath("u/a/ratePass", {opp.pos, opp.pos + projectedSpeed}, vis.colors.pink, true)
+			end
 			local fakeRobot = {acceleration = opp.acceleration, pos = opp.pos, maxSpeed = opp.maxSpeed, speed = projectedSpeed}
 
 			local timeToPos = 0
@@ -103,15 +109,18 @@ function Attack.ratePass(robot, pass, considerTiming)
 		end
 	end
 
-	local goalAngle = (World.Geometry.OpponentGoalRight - pass.ballPos):absoluteAngleDiff(World.Geometry.OpponentGoalLeft - pass.ballPos)
+	local goalAngle = (G.OpponentGoalRight - pass.ballPos):absoluteAngleDiff(G.OpponentGoalLeft - pass.ballPos)
 	local goalAngleWeight = 0.5
 	local goalAngleRating = Rating.valueToRating(goalAngle, 0, 50 / 180 * math.pi)
 	rating = rating * (1 - goalAngleWeight + goalAngleWeight * goalAngleRating)
 
-	vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true)
-	vis.addPath("u/a/ratePass", {shootPos, pass.ballPos}, vis.colors.red)
+	if amun.isDebug then
+		vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true)
+		vis.addPath("u/a/ratePass", {shootPos, pass.ballPos}, vis.colors.red)
+	end
 	vis.addCircle("u/a/ratePass: rating", pass.ballPos, 0.2,
-	vis.fromTemperature(1 - rating, 127), true)
+			vis.fromTemperature(1 - rating, 127), true)
+
 	return rating
 end
 
@@ -280,16 +289,15 @@ Attack.currentPlannedMainAttacker = Cache.forFrame(Attack.currentPlannedMainAtta
 function Attack.shootGoalViewPos(shootDest, attackPos)
 	-- if we want to shoot a goal
 	if shootDest then
-		if World.Geometry.OpponentGoal:distanceTo(shootDest) <= World.Geometry.GoalWidth / 2 then
+		if G.OpponentGoal:distanceToSq(shootDest) <= G.GoalWidth * G.GoalWidth / 4 then
 			return attackPos
 		end
 	end
 
 	-- if the ball is rolling towards the opponent goal
 	if World.Ball.speed:length() > 3 then
-		local intersection, _, l2 = geom.intersectLineLine(World.Ball.pos, World.Ball.speed,
-			World.Geometry.OpponentGoal, Vector(1, 0))
-		if intersection and math.abs(l2) < World.Geometry.GoalWidth / 2 + 0.2 then
+		local intersection, l1, l2 = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, G.OpponentGoal, Vector(1, 0))
+		if intersection and math.abs(l2) < G.GoalWidth / 2 + 0.2 and l1 > 0 then
 			if Physics.checkedBallRollTime(World.Ball, intersection) < math.huge then
 				return World.Ball.pos
 			end
@@ -312,13 +320,14 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 	end
 
 	-- check whether the robot could possibly interfere with a goal shot
-	local distRobotOpponentGoal = robot.pos:distanceTo(World.Geometry.OpponentGoal)
-	local distAttackPosOpponentGoal = attackPos:distanceTo(World.Geometry.OpponentGoal)
-	local distBallOpponentGoal = World.Ball.pos:distanceTo(World.Geometry.OpponentGoal)
+	local distRobotOpponentGoal = robot.pos:distanceToSq(G.OpponentGoal)
+	local distAttackPosOpponentGoal = attackPos:distanceToSq(G.OpponentGoal)
+	local distBallOpponentGoal = World.Ball.pos:distanceToSq(G.OpponentGoal)
 	if distRobotOpponentGoal > distAttackPosOpponentGoal
 			and distRobotOpponentGoal > distBallOpponentGoal then
 		return
 	end
+
 
 	local viewPos
 	if World.Ball.speed:length() > 0.5 and Ball.ballHeadingForGoal(World.Ball) then
@@ -326,12 +335,14 @@ function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
 	else
 		viewPos = Attack.shootGoalViewPos(shootDest, attackPos)
 	end
+
 	if viewPos then
-		local leftGoal = World.Geometry.OpponentGoalLeft
-		local rightGoal = World.Geometry.OpponentGoalRight
+		local leftGoal = G.OpponentGoalLeft
+		local rightGoal = G.OpponentGoalRight
 		robot.path:addTriangle(viewPos.x, viewPos.y, leftGoal.x, leftGoal.y,
 			rightGoal.x, rightGoal.y, World.Ball.radius + 0.05)
 	end
+
 end
 
 local BUFFER_TIME = 0.4

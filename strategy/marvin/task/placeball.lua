@@ -50,6 +50,12 @@ local PUSH_LOST_BALL_HYSTERESIS = 1
 local BACK_UP_WAIT_TIME = 1
 local BACK_UP_SPEED = 0.4
 
+local obstacleTable = {
+	ignoreBall = true,
+	ignoreDefenseArea = true,
+	ignoreOpponentDefenseArea = true,
+	ignorePass = true,
+}
 
 function PlaceBall:_init(placementPos)
 
@@ -102,11 +108,11 @@ function PlaceBall:run()
 	debug.set("state", self._state)
 
 	-- Path helping
-	local ignoreBall = self._state == STATE_ENSURE_PULL_CONTACT
+	obstacleTable.ignoreBall = self._state == STATE_ENSURE_PULL_CONTACT
 					or self._state == STATE_PULL_TO_FIELD
 					or self._state == STATE_BACK_UP_WAIT
 					or self._state == STATE_PUSH_TO_POS
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignoreBall, false, true, nil, nil, nil, true)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
 	if self._state == STATE_WAIT_FOR_BALL_STOP then
@@ -356,7 +362,6 @@ function PlaceBall:_updateBallStatus()
 		self._barrierDetects = self._robot.radioResponse.ball_detected
 	end
 	debug.set("barrier detects", self._barrierDetects)
-
 end
 
 function PlaceBall:_isBallPushable()

@@ -47,7 +47,7 @@ function CommChallengeSlave:_updateTasks()
 
 		for robotId, msg in pairs(World.MixedTeam) do
 			local robot = World.FriendlyRobotsById[robotId]
-			if robot and robot.generation == 3 then
+			if robot and robot.generation == robot.GENERATION_2014_ID then
 				local pos
 				if msg.shootPos then
 					passReceiver = robot

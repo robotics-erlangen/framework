@@ -8,11 +8,11 @@ local World = require "../base/world"
 
 require "control/maincoordinator"
 require "observer/initReplay"
-require "test/move/init"
-require "test/observer/init"
-require "test/situation/init"
-require "test/task/init"
-require "test/unit/init"
+require "test/move/index"
+require "test/observer/index"
+require "test/situation/index"
+require "test/task/index"
+require "test/unit/index"
 require "util/lineup"
 
 local Cache = require "../base/cache"
@@ -47,6 +47,25 @@ end
 Processor.addPre(preproc)
 -- local BallAnalyzer = require "observer/ballAnalyzer"
 -- Processor.addPre(BallAnalyzer())
+
+local lastMemoryUsage = 0
+local function deferredGarbageCollection()
+	local currentMemoryUsage = collectgarbage("count")
+	-- plot.addPlot("memInGB", currentMemoryUsage/1024/1024)
+	local gcPauseThreshold = 2
+	if currentMemoryUsage > gcPauseThreshold * lastMemoryUsage then
+		local debt = currentMemoryUsage - lastMemoryUsage
+		-- trigger collection of some amount of memory
+		local cycleCompleted = collectgarbage("step", debt)
+		-- disable gc again, it should only run after the strategy commands are passed on
+		collectgarbage("stop")
+		if cycleCompleted then
+			lastMemoryUsage = collectgarbage("count")
+		end
+	end
+end
+
+
 local frameCount = 0
 local wrapper = function (func)
 	local f = function()
@@ -72,6 +91,7 @@ local wrapper = function (func)
 		debug.resetStack()
 		Cache.resetFrame()
 		plot._plotAggregated()
+		deferredGarbageCollection()
 	end
 
 	return debugger.dumpLocalsOnError(f)

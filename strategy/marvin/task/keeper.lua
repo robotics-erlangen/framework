@@ -160,11 +160,19 @@ function Keeper:run()
 	end
 
 	-- ignore goal walls if ball is shot
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, isShot, true, self._robot.radius, 0.05)
+	local obstacleTable = {
+		ignoreBall = true,
+		ignoreGoals = isShot,
+		ignoreDefenseArea = true,
+		stopBallDistance = 0.05,
+		ignorePass = true
+	}
 	-- add obstacles if outside keeper area, when drivin to goal initially
 	if not Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
-		PathHelper.addRobotObstacles(self._robot.path, self._robot, false, false)
+		obstacleTable.ignoreFriendlyRobots = true
+		obstacleTable.ignoreOpponentRobots = true
 	end
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, moveTo, (atkPos - moveTo):angle(), nil, endSpeed)
 
 	if not Robot.hadBall(self._robot, 0) then

@@ -10,7 +10,6 @@ local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
-local Attack = require "util/attack"
 
 local G = World.Geometry
 
@@ -29,6 +28,10 @@ CenterBack.defaultPos = Vector(0, -World.Geometry.FieldHeightHalf + World.Geomet
 function CenterBack:_init(centerbackTarget)
 	self._preliminaryCenterbackTarget = centerbackTarget or World.Ball
 	self._lookingToGoal = true
+	self._obstacleTable = {
+		ignoreBall = true,
+		inbox = self._inbox
+	}
 end
 
 function CenterBack:run()
@@ -80,12 +83,12 @@ function CenterBack:run()
 		self._robot:chip(2)
 	end
 
-	local ignoreOpponents = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+	self._obstacleTable.ignoreOpponentRobots = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 		< 4 * self._robot.radius + self.distanceToDefenseArea() + 0.05
 
-	local ignoreFriends = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+	self._obstacleTable.ignoreFriendlyRobots = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 		< 2 * self._robot.radius + self.distanceToDefenseArea() + 0.05
-
+	self._obstacleTable.ignorePass = self._obstacleTable.ignoreFriendlyRobots
 	-- The centerback that is blocking the ball, that is shot towards the goal has to
 	-- -fully drive into the shot
 	-- -drive as fast as possible, because it doesn't matter if we have an endSpeed when we have blocked the ball
@@ -116,17 +119,7 @@ function CenterBack:run()
 
 	end
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreFriends, ignoreOpponents)
-
-		-- Quick fix to not interfere with goal shots
-	local _, shootDest = next(self._inbox.shootDestination())
-	if shootDest then
-		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, shootDest.x, shootDest.y, self._robot.radius)
-	end
-
-	local _, attackPosition = next(self._inbox.attackPosition())
-	Attack.addShootGoalObstacle(self._robot, shootDest, attackPosition)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 
 	self._robot.trajectory:update(ToTarget, destinationPos, dir, nil, endSpeed)
 	self._send.moveDest("all", destinationPos)
