@@ -121,7 +121,7 @@ function FastBallPlacement:_updateTasks()
 		self._mainAttacker = self.RECEIVER
 		-- Ignore shooter
 		taskAssignments[self.SHOOTER] = { class = Halt, restart = self._restartTask }
-		
+
 		self.RECEIVER:setDribblerSpeed(ACCEPT_DRIBBLER_SPEED)
 
 		local ballSpeed = World.Ball.speed:copy()
@@ -166,8 +166,12 @@ function FastBallPlacement:_updateTasks()
 
 	end
 
-	assert(taskAssignments[self.SHOOTER], "No task assigned to shooter (state = " .. self._state .. ")")
-	assert(taskAssignments[self.RECEIVER], "No task assigned to receiver (state = " .. self._state .. ")")
+	if not taskAssignments[self.SHOOTER] then
+		error( "No task assigned to shooter (state = " .. self._state .. ")")
+	end
+	if not taskAssignments[self.RECEIVER] then
+		error("No task assigned to receiver (state = " .. self._state .. ")")
+	end
 
 	return taskAssignments, self._mainAttacker
 
@@ -198,7 +202,7 @@ function FastBallPlacement:_getNextState(currentState)
 			self._ballInFieldTimer = nil
 		end
 	elseif currentState == STATE_MOVE_TO_POS then
-		if self.RECEIVER.pos:distanceTo(self._computedReceiverPos) < ARRIVED_DISTANCE 
+		if self.RECEIVER.pos:distanceTo(self._computedReceiverPos) < ARRIVED_DISTANCE
 			and self.SHOOTER.pos:distanceTo(self._computedShooterPos) < ARRIVED_DISTANCE then
 			nextState = STATE_EXECUTE_PASS
 		end

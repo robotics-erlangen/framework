@@ -158,7 +158,7 @@ function PlaceBall:run()
 		self._robot.trajectory:update(ToTarget, self._currentTargetPos, self._borderOffsetAverage:angle(), MAX_PULL_SPEED, nil, MAX_PULL_ACCEL)
 
 	elseif self._state == STATE_GO_TO_PUSH then
-	
+
 		self._currentTargetPos = self._ball.pos + self._placementOffsetAverage
 		self._robot.trajectory:update(ToTarget, self._currentTargetPos, (-self._placementOffsetAverage):angle())
 
@@ -319,7 +319,9 @@ function PlaceBall:_getNextState(currentState)
 
 	end
 
-	assert(nextState, "nextState can't be nil, currentState=" .. currentState .. " is probably invalid")
+	if not nextState then
+		error("nextState can't be nil, currentState=" .. currentState .. " is probably invalid")
+	end
 	return nextState
 
 end

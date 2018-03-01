@@ -193,7 +193,9 @@ end
 -- @param mixins tables - arbitrary number of mixin modules
 -- @return class object
 local function newClass(_, name, parent, ...)
-	assert(not registeredClassNames[name], "class names must be unique: "..tostring(name))
+	if registeredClassNames[name] then
+		error("class names must be unique: "..tostring(name))
+	end
 	registeredClassNames[name] = true
 	local class = {}
 	local classMt = {
