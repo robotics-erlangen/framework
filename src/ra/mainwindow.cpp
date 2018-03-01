@@ -285,9 +285,6 @@ void MainWindow::ruleVersionChanged(QAction * action)
     }
 
     // reload the strategies / autoref
-    command->mutable_strategy_blue()->set_reload(true);
-    command->mutable_strategy_yellow()->set_reload(true);
-    command->mutable_strategy_autoref()->set_reload(true);
     sendCommand(command);
 
     // resend all the information the simulator needs

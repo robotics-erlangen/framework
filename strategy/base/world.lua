@@ -141,7 +141,6 @@ function World.update()
 	local hasVisionData = World._updateWorld(amun.getWorldState())
 	World._updateGameState(amun.getGameState())
 	World._updateUserInput(amun.getUserInput())
-	World._updateRuleVersion(amun.getGeometry())
 	return hasVisionData
 end
 
