@@ -6,6 +6,7 @@ local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
+local Ball = require "observer/ball"
 local UtilDefense = require "util/defense"
 local Rating = require "util/rating"
 local CenterBackTask = require "task/centerback"
@@ -14,7 +15,12 @@ local CenterBackTask = require "task/centerback"
 function Defense:init()
 	self._manmarkTargets = {} -- opponent -> rating
 	self._manmarkAssignments = {} -- opponent -> defender
+
+	self._piggyTargets = {} -- opponent -> rating
+	self._piggyAssignments = {} -- opponent -> defender
+
 	self._previousManmarkAssignments = {} -- opponent -> defender
+	self._previousPiggyAssignments = {} -- opponent -> defender
 
 	self._ballIsLeft = true
 
@@ -118,6 +124,97 @@ function Defense:_assignManmarkDefenders(defenders)
 	end
 end
 
+function Defense:_updatePiggyTargets()
+	local passViability = UtilDefense.rateOpponentPassViability() -- opponent -> rating
+	for robot, rating in pairs(passViability) do
+		vis.addCircle("tr/defense: passViability", robot.pos, 0.2, vis.fromTemperature(rating), true)
+	end
+
+	-- remove targets with lowest rating
+	for opp, rating in pairs(passViability) do
+		if rating < 0.1 then
+			passViability[opp] = nil
+		end
+	end
+
+	self._piggyTargets = passViability
+end
+
+local function determineNumberOfPiggies(defenderCount, manmarkTargets, piggyTargets)
+	local dangerousnessThreshold
+	local viabilityThreshold
+
+	-- prioritize manmarks over piggies when in own field half
+	-- TODO hysteresis
+
+	if World.Ball.pos.y < 0 then
+		dangerousnessThreshold = 0.5
+		viabilityThreshold = 0.8
+	else
+		dangerousnessThreshold = 0.8
+		viabilityThreshold = 0.3
+	end
+
+	local piggieCount = 0
+	if not Ball.ballHeadingForGoal(World.Ball) then
+		local nRelevantManMarkTargets = 0
+		for _, dangerousness in pairs(manmarkTargets) do
+			if dangerousness > dangerousnessThreshold then
+				nRelevantManMarkTargets = nRelevantManMarkTargets + 1
+			end
+		end
+		piggieCount = math.max(0, defenderCount - nRelevantManMarkTargets)
+	end
+
+	if piggieCount > 0 then
+		local nRelevantPiggyTargets = 0
+		for _, viability in pairs(piggyTargets) do
+			if viability > viabilityThreshold then
+				nRelevantPiggyTargets = nRelevantPiggyTargets + 1
+			end
+		end
+		piggieCount = math.min(piggieCount, nRelevantPiggyTargets)
+	end
+
+	return piggieCount
+end
+
+local function findMostViableTarget(piggyTargets)
+	local highestViability = -math.huge
+	local mostViableTarget = nil
+	for target, viability in pairs(piggyTargets) do
+		if viability > highestViability then
+			highestViability = viability
+			mostViableTarget = target
+		end
+	end
+
+	return mostViableTarget
+end
+
+function Defense:_assignPiggies(defenders)
+	-- assign piggies
+	local nPiggies = determineNumberOfPiggies(#defenders, self._manmarkTargets, self._piggyTargets)
+	while nPiggies > 0 do
+		local target = findMostViableTarget(self._piggyTargets)
+		self._piggyTargets[target] = nil
+
+		local piggy = UtilDefense.getClosestRobot(defenders, target.pos)
+
+		if not piggy or not target then
+			break
+		end
+
+		table.removeValue(defenders, piggy)
+		self._send.roleAssignment(piggy,
+			{name = "Piggy", params = { target }})
+		nPiggies = nPiggies - 1
+	end
+
+	-- return the defenders that are left after assigning piggies
+	return defenders
+end
+
 function Defense:_assignDefenders()
 	self._previousManmarkAssignments = table.copy(self._manmarkAssignments)
 	self._manmarkAssignments = {}
@@ -127,6 +224,7 @@ function Defense:_assignDefenders()
 	end
 
 	self:_updateManmarkTargets()
+	self:_updatePiggyTargets()
 
 	local defenders = table.keys(self._inbox.defenderFlag())
 
@@ -159,6 +257,7 @@ function Defense:_assignDefenders()
 	-- 	end
 	-- end
 
+	defenders = self:_assignPiggies(defenders)
 	self:_assignManmarkDefenders(defenders)
 end
 
