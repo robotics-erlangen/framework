@@ -22,16 +22,17 @@
 #include "strategy/strategy.h"
 #include "logfile/logfilewriter.h"
 
-#include <QMutex>
-static QMutex mutex;
-MiniProcessor::MiniProcessor(Strategy *strategy):
-    m_status(new amun::Status)
+MiniProcessor::MiniProcessor(Strategy *strategy, QString outputFilename):
+    m_status(new amun::Status),
+    m_hasStrategy(strategy != nullptr)
 {
-    connect(this, SIGNAL(sendStatus(Status)), strategy, SLOT(handleStatus(Status)));
-    connect(strategy, SIGNAL(sendStatus(Status)), this, SLOT(handleStatus(Status)), Qt::BlockingQueuedConnection);
-    connect(this, SIGNAL(sendCommand(Command)), strategy, SLOT(handleCommand(Command)));
+    if (m_hasStrategy) {
+        connect(this, SIGNAL(sendStatus(Status)), strategy, SLOT(handleStatus(Status)));
+        connect(strategy, SIGNAL(sendStatus(Status)), this, SLOT(handleStatus(Status)), Qt::BlockingQueuedConnection);
+        connect(this, SIGNAL(sendCommand(Command)), strategy, SLOT(handleCommand(Command)));
+    }
 
-    m_logFileOut.open("va_out.log");
+    m_logFileOut.open(outputFilename);
 }
 
 MiniProcessor::~MiniProcessor()
@@ -45,14 +46,18 @@ void MiniProcessor::handleStatus(const Status &status)
     status->set_time(m_status->time());
     m_logFileOut.writeStatus(status);
     m_logFileOut.writeStatus(m_status);
-    mutex.unlock();
+    m_mutex.unlock();
 }
 
 
 void MiniProcessor::setCurrentStatus(const Status &status)
 {
-    mutex.lock();
-    m_status->CopyFrom(*status);
+    if (m_hasStrategy) {
+        m_mutex.lock();
+        m_status->CopyFrom(*status);
+    } else {
+        m_logFileOut.writeStatus(status);
+    }
 }
 
 

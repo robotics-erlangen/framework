@@ -22,6 +22,7 @@
 #define MINIPROCESSOR_H
 
 #include <QObject>
+#include <QMutex>
 
 #include "protobuf/status.h"
 #include "protobuf/command.h"
@@ -34,7 +35,7 @@ class MiniProcessor : public QObject
     Q_OBJECT
 
 public:
-    MiniProcessor(Strategy* strategy);
+    MiniProcessor(Strategy* strategy, QString outputFilename);
     ~MiniProcessor();
     void setCurrentStatus(const Status &status);
 
@@ -48,6 +49,8 @@ private slots:
 private:
     LogFileWriter m_logFileOut;
     Status m_status;
+    bool m_hasStrategy;
+    QMutex m_mutex;
 };
 
 #endif // MINIPROCESSOR_H

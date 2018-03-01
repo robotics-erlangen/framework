@@ -45,7 +45,15 @@ int main(int argc, char* argv[])
     QCommandLineParser parser;
     parser.setApplicationDescription("Analyzer for recorded vision data");
     parser.addHelpOption();
-    parser.addPositionalArgument("filename", "Path of the logfile");
+    parser.addPositionalArgument("source", "The log file to read");
+    QCommandLineOption autorefDirOption(QStringList() << "a" << "autoref",
+                                        "Path to the autorefs init.lua file",
+                                        "autorefDir");
+    parser.addOption(autorefDirOption);
+    QCommandLineOption outputDirOption(QStringList() << "o" << "output",
+                                       "Location to output the resulting log file",
+                                       "outputFile", "va_out.log");
+    parser.addOption(outputDirOption);
     parser.process(app);
 
     int argCount = parser.positionalArguments().size();
@@ -61,8 +69,8 @@ int main(int argc, char* argv[])
     qint64 receiveTimeNanos = packet.first;
     int msg_type = packet.second;
 
-    Tracker* tracker = new Tracker();
-    tracker->reset();
+    Tracker tracker;
+    tracker.reset();
 
     Timer* timer = new Timer;
     timer->setTime(receiveTimeNanos, 1.0);
@@ -70,22 +78,30 @@ int main(int argc, char* argv[])
     qRegisterMetaType<Status>("Status");
     qRegisterMetaType<Command>("Command");
 
-    Strategy* strategy = new Strategy(timer, StrategyType::AUTOREF, nullptr);
-    MiniProcessor processor(strategy);
+    Strategy* strategy = nullptr;
+    QThread* strategyThread = nullptr;
+    if (parser.isSet(autorefDirOption)) {
+        strategy = new Strategy(timer, StrategyType::AUTOREF, nullptr);
+
+        strategyThread = new QThread();
+        strategy->moveToThread(strategyThread);
+        strategyThread->start();
+    }
+
+    MiniProcessor processor(strategy, parser.value(outputDirOption));
     QThread* processorThread = new QThread();
     processor.moveToThread(processorThread);
     processorThread->start();
 
-    QThread* strategyThread = new QThread();
-    strategy->moveToThread(strategyThread);
-    strategyThread->start();
+    if (strategy != nullptr) {
+        // load the autoref strategy
+        Command command(new amun::Command);
+        amun::CommandStrategyLoad *load =
+                command->mutable_strategy_autoref()->mutable_load();
 
-    Command command(new amun::Command);
-    amun::CommandStrategyLoad *load =
-            command->mutable_strategy_autoref()->mutable_load();
-
-    load->set_filename("/home/alex/robotics/autoref/autoref/init.lua");
-    emit processor.sendCommand(command);
+        load->set_filename(parser.value(autorefDirOption).toStdString());
+        emit processor.sendCommand(command);
+    }
 
     Referee ref(false);
 
@@ -95,7 +111,7 @@ int main(int argc, char* argv[])
         do {
             // collect all packets until current system time
             if (msg_type == MESSAGE_SSL_VISION_2014) {
-                tracker->queuePacket(visionFrame, receiveTimeNanos);
+                tracker.queuePacket(visionFrame, receiveTimeNanos);
             } else if (msg_type == MESSAGE_SSL_REFBOX_2013) {
                 ref.handlePacket(visionFrame);
             }
@@ -104,11 +120,11 @@ int main(int argc, char* argv[])
             msg_type = packet.second;
         } while(receiveTimeNanos < systemTimeNanos && receiveTimeNanos != -1);
 
-        tracker->process(systemTimeNanos);
+        tracker.process(systemTimeNanos);
 
         timer->setTime(systemTimeNanos, 1.0); // update timer for strategy
 
-        Status status = tracker->worldState(systemTimeNanos);
+        Status status = tracker.worldState(systemTimeNanos);
         status->set_time(systemTimeNanos);
 
         ref.process(status->world_state());
@@ -119,12 +135,13 @@ int main(int argc, char* argv[])
     }
 
     QThread::msleep(50); // wait for strategy thread to finish its work
-    strategyThread->quit();
-    strategyThread->deleteLater();
-    strategy->deleteLater();
+    if (strategy != nullptr) {
+        strategyThread->quit();
+        strategyThread->deleteLater();
+        strategy->deleteLater();
+    }
     processorThread->quit();
     processorThread->deleteLater();
-    delete tracker;
     delete timer;
 
     return 0;

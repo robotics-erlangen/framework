@@ -50,7 +50,7 @@ VisionLogReader::VisionLogReader(const QString& filename):
     in_stream = new std::ifstream(fname, std::ios_base::in | std::ios_base::binary);
     if (!in_stream->is_open()) {
         std::cerr << "Error opening log file \"" << fname << "\"!" << std::endl;
-        QCoreApplication::exit(1);
+        exit(1);
     }
 
     FileHeader fileHeader;
@@ -60,7 +60,7 @@ VisionLogReader::VisionLogReader(const QString& filename):
 
     if (strncmp(fileHeader.name, DEFAULT_FILE_HEADER_NAME, sizeof(fileHeader.name)) != 0) {
         qWarning() << "Unrecognized logfile header";
-        QCoreApplication::exit(1);
+        exit(1);
     }
 }
 
