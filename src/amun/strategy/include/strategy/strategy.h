@@ -49,6 +49,7 @@ signals:
     void sendStatus(const Status &status);
     void sendStrategyCommand(bool blue, uint generation, uint id, const QByteArray &data, qint64 time);
     void sendHalt(bool blue);
+    void startReadingStatus();
 
 public slots:
     void handleStatus(const Status &status);

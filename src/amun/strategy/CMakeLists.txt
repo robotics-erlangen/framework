@@ -24,6 +24,7 @@ add_library(strategy
     include/strategy/debughelper.h
     include/strategy/strategy.h
     include/strategy/strategytype.h
+    include/strategy/strategyreplayhelper.h
 
     abstractstrategyscript.cpp
     abstractstrategyscript.h
@@ -39,6 +40,7 @@ add_library(strategy
     lua_protobuf.cpp
     lua_protobuf.h
     strategy.cpp
+    strategyreplayhelper.cpp
 )
 target_link_libraries(strategy
     PRIVATE lib::luajit

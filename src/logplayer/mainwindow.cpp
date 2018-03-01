@@ -36,6 +36,7 @@
 #include "plotter/plotter.h"
 #include "logcutter.h"
 #include "strategy/strategy.h"
+#include "strategy/strategyreplayhelper.h"
 
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -174,6 +175,7 @@ MainWindow::~MainWindow()
         if (m_strategys[i] != nullptr) {
             m_strategys[i]->deleteLater();
         }
+        m_strategyBlocker[i]->deleteLater();
         m_strategyThreads[i]->quit();
         m_strategyThreads[i]->wait();
     }
@@ -235,6 +237,8 @@ void MainWindow::closeStrategy(int index)
 {
     m_strategys[index]->deleteLater();
     m_strategys[index] = nullptr;
+    m_strategyBlocker[index]->deleteLater();
+    m_strategyBlocker[index] = nullptr;
     sendResetDebugPacket(index != 0);
 }
 
@@ -243,18 +247,19 @@ void MainWindow::createStrategy(int index)
     Q_ASSERT(m_strategys[index] == nullptr);
     m_strategys[index] = new Strategy(m_playTimer, (index == 0) ? StrategyType::YELLOW : StrategyType::BLUE, nullptr);
     m_strategys[index]->moveToThread(m_strategyThreads[index]);
+    m_strategyBlocker[index] = new BlockingStrategyReplay(m_strategys[index]);
 
     // set up data distribution to and from strategy
-    connect(m_strategys[index], SIGNAL(sendStatus(Status)), ui->visualization, SLOT(handleStatus(Status)));
-    connect(m_strategys[index], SIGNAL(sendStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
-    connect(m_strategys[index], SIGNAL(sendStatus(Status)), ui->log, SLOT(handleStatus(Status)));
-    connect(m_strategys[index], SIGNAL(sendStatus(Status)), ui->field, SLOT(handleStatus(Status)));
-    connect(m_strategys[index], SIGNAL(sendStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
-    connect(m_strategys[index], SIGNAL(sendStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
+    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->visualization, SLOT(handleStatus(Status)));
+    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
+    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->log, SLOT(handleStatus(Status)));
+    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
+    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
+    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
 
     connect(ui->replay, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
     connect(this, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
-    connect(this, SIGNAL(gotStatus(Status)), m_strategys[index], SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), m_strategyBlocker[index], SLOT(handleStatus(Status)));
     connect(this, SIGNAL(reloadStrategy()), m_strategys[index], SLOT(reload()));
 
     // if the other strategy isnt running, reset debug data for it to remove visualizations

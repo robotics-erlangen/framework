@@ -97,6 +97,7 @@ Strategy::~Strategy()
 
 void Strategy::handleStatus(const Status &status)
 {
+    emit startReadingStatus();
     if (status->has_geometry()) {
         const std::string str = status->geometry().SerializeAsString();
         // reload only if geometry has changed

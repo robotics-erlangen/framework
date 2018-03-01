@@ -40,6 +40,7 @@ class QLabel;
 class QThread;
 class Plotter;
 class Strategy;
+class BlockingStrategyReplay;
 
 namespace Ui {
 class MainWindow;
@@ -101,6 +102,7 @@ private:
     Plotter *m_plotter;
 
     Strategy *m_strategys[2];
+    BlockingStrategyReplay *m_strategyBlocker[2];
     CombinedLogWriter m_logWriter;
 
     Timer *m_playTimer;
