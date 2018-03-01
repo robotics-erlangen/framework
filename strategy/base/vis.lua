@@ -33,6 +33,12 @@ local Coordinates = require "../base/coordinates"
 local gcolor = {}
 local gisFilled = true
 
+local ffi = require("ffi")
+ffi.cdef[[
+typedef struct { const unsigned char red, green, blue, alpha; } RGBA;
+]]
+local color_type_mt = {}
+local color_type = ffi.metatype("RGBA", color_type_mt)
 
 --- Joins rgba-value to a color.
 -- Values from 0 to 255
@@ -43,7 +49,7 @@ local gisFilled = true
 -- @param alpha number
 -- @return table color
 function vis.fromRGBA(red, green, blue, alpha)
-	return {red = red, green = green, blue = blue, alpha = alpha}
+	return color_type(red, green, blue, alpha)
 end
 
 --- Implements a red-yellow-green gradient
@@ -61,7 +67,7 @@ function vis.fromTemperature(value, alpha)
 	else
 		green = 2 - 2 * value
 	end
-	return vis.fromRGBA(255 * red, 255 * green, 0, alpha or 127)
+	return color_type(255 * red, 255 * green, 0, alpha or 127)
 end
 
 --- Modifies alpha value on a copy of the given color
