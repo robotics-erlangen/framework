@@ -46,13 +46,21 @@ function StrikerSampling:canReachInTime(ballPos)
 	local ballTime = ObserverShoot.ballPassTime(self._attackPosition, ballPos, self._robot, nil, self._mainAttacker)
 
 	local rating = Rating.valueToRating(shootTime + ballTime - robotTime, 0.2, 0.5)
-	visualizeRating("canReachInTime", ballPos, rating)
+	
+	if amun.isDebug then
+		visualizeRating("canReachInTime", ballPos, rating)
+	end
+
 	return rating
 end
 
 function StrikerSampling:passTooShort(ballPos)
 	local rating = Rating.valueToRating(ballPos:distanceTo(self._attackPosition), 3, 5)
-	visualizeRating("passTooShort", ballPos, rating)
+
+	if amun.isDebug then
+		visualizeRating("passTooShort", ballPos, rating)
+	end
+
 	return rating
 end
 
@@ -65,7 +73,11 @@ function StrikerSampling:volleyPass(ballPos)
 	local volleyAngle = World.Ball.speed:absoluteAngleDiff(self._attackPosition - ballPos)
 	local volleySuccessProbability = Rating.valueToRating(volleyAngle, 65 / 180 * math.pi, 50 / 180 * math.pi)
 	local rating = volleySuccessProbability * (1 - minRating) + minRating
-	visualizeRating("volleyPass", ballPos, rating)
+	
+	if amun.isDebug then
+		visualizeRating("volleyPass", ballPos, rating)
+	end
+
 	return rating
 end
 
@@ -73,7 +85,10 @@ function StrikerSampling:goalAngle(ballPos)
 	local minRating = 0.0
 	local angle = (World.Geometry.OpponentGoalRight - ballPos):absoluteAngleDiff(World.Geometry.OpponentGoalLeft - ballPos)
 	local rating = Rating.valueToRating(angle, 0, 20 / 180 * math.pi) * (1 - minRating) + minRating
-	visualizeRating("goalAngle", ballPos, rating)
+
+	if amun.isDebug then
+		visualizeRating("goalAngle", ballPos, rating)
+	end
 	return rating
 end
 
@@ -92,7 +107,11 @@ function StrikerSampling:crossPass(ballPos)
 	local angleAttackGoalBall = (ballPos - World.Geometry.OpponentGoal):absoluteAngleDiff(
 		self._attackPosition - World.Geometry.OpponentGoal)
 	local rating = Rating.valueToRating(angleAttackGoalBall, 0, math.pi * 0.5)
-	visualizeRating("crossPass", ballPos, rating)
+
+	if amun.isDebug then
+		visualizeRating("crossPass", ballPos, rating)
+	end
+
 	return rating * 0.5 + 0.5
 end
 
@@ -100,7 +119,11 @@ function StrikerSampling:distToGoal(ballPos)
 	local distToGoal = ballPos:distanceTo(World.Geometry.OpponentGoal)
 	local minDist = World.Geometry.DefenseRadius + 0.3
 	local rating = Rating.valueToRating(distToGoal, World.Geometry.FieldHeight * 0.7, minDist)
-	visualizeRating("distToGoal", ballPos, rating)
+
+	if amun.isDebug then
+		visualizeRating("distToGoal", ballPos, rating)
+	end
+
 	return rating * 0.9 + 0.1
 end
 
@@ -125,7 +148,10 @@ function StrikerSampling:evalLocation(ballPos, bestScore)
 
 	score = score * self:canReachInTime(ballPos)
 
-	visualizeRating("total", ballPos, score)
+	if amun.isDebug then
+		visualizeRating("total", ballPos, score)
+	end
+
 	return score
 end
 
