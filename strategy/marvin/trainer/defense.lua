@@ -179,10 +179,20 @@ local function determineNumberOfPiggies(defenderCount, manmarkTargets, piggyTarg
 	return piggieCount
 end
 
-local function findMostViableTarget(piggyTargets)
+local function findMostViableTarget(piggyTargets, defenders, previousAssignments)
 	local highestViability = -math.huge
 	local mostViableTarget = nil
 	for target, viability in pairs(piggyTargets) do
+
+		-- hysteresis
+		if previousAssignments[target] then
+			for _, defender in ipairs(defenders) do
+				if previousAssignments[target] == defender then
+					viability = viability + 0.3
+				end
+			end
+		end
+
 		if viability > highestViability then
 			highestViability = viability
 			mostViableTarget = target
@@ -196,7 +206,7 @@ function Defense:_assignPiggies(defenders)
 	-- assign piggies
 	local nPiggies = determineNumberOfPiggies(#defenders, self._manmarkTargets, self._piggyTargets)
 	while nPiggies > 0 do
-		local target = findMostViableTarget(self._piggyTargets)
+		local target = findMostViableTarget(self._piggyTargets, defenders, self._previousPiggyAssignments)
 		self._piggyTargets[target] = nil
 
 		local piggy = UtilDefense.getClosestRobot(defenders, target.pos)
@@ -205,6 +215,7 @@ function Defense:_assignPiggies(defenders)
 			break
 		end
 
+		self._piggyAssignments[target] = piggy
 		table.removeValue(defenders, piggy)
 		self._send.roleAssignment(piggy,
 			{name = "Piggy", params = { target }})
@@ -217,6 +228,7 @@ end
 
 function Defense:_assignDefenders()
 	self._previousManmarkAssignments = table.copy(self._manmarkAssignments)
+	self._previousPiggyAssignments = table.copy(self._piggyAssignments)
 	self._manmarkAssignments = {}
 
 	if Referee.isNonGameStage() then
