@@ -213,7 +213,7 @@ local function rateOpponentPassViability()
 		local distToGoal = opp.pos.y + opp.speed.y/2 + G.FieldHeightHalf
 		local distToGoalRating = Rating.valueToRating(distToGoal, G.FieldHeight - G.DefenseHeight, G.DefenseHeight + 1)
 
-		local rating = 0.75 * distToGoalRating + 0.25 * distToBallOwnerRating
+		local rating = 0.6 * distToGoalRating + 0.4 * distToBallOwnerRating
 		passViability[opp] = rating
 
 		if amun.isDebug then
