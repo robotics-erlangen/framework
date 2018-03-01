@@ -8,6 +8,7 @@ local HandleBall = require "agent/defender/handleball"
 local ManMark = require "agent/defender/manmark"
 local ZoneDefense = require "agent/defender/zonedefense"
 local Penalty = require "agent/defender/penalty"
+local Piggy = require "agent/defender/piggy"
 local BallEscort = require "agent/shared/ballescort"
 
 
@@ -17,6 +18,7 @@ Defender._behaviors = {
 	BallEscort,
 	HandleBall,
 	ManMark,
+	Piggy,
 	ZoneDefense,
 	Default
 }
