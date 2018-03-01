@@ -1,5 +1,6 @@
 local Piggy = Class("Task.Piggy", require "task/base")
 
+local Ball = require "observer/ball"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 local World = require "../base/world"
@@ -29,6 +30,11 @@ function Piggy:run()
 
 	local offset = Vector(x, y)
 	local piggyPos = self._targetRobot.pos + offset
+
+	-- temporary, should be replaced with intercept pass ASAP
+	if Ball.receivesPass(self._targetRobot) then
+		piggyPos = self._robot.pos:nearestPosOnLine(self._targetRobot.pos, World.Ball.pos)
+	end
 
 
 	self._send.moveDest("all", piggyPos)

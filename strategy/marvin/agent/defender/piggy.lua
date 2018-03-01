@@ -2,6 +2,10 @@ local Base = require "agent/base/behavior"
 local Piggy = Class("Agent.Defender.Piggy", Base)
 
 local debug = require "../base/debug"
+
+-- TODO use interceptPass as soon as it works
+--local InterceptPass = require "task/interceptpass"
+
 local PiggyTask = require "task/piggy"
 
 
