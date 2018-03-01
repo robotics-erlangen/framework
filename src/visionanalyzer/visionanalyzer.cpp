@@ -26,10 +26,10 @@
 
 #include "tracking/tracker.h"
 #include "strategy/strategy.h"
+#include "strategy/strategyreplayhelper.h"
 #include "core/timer.h"
 #include "logfile/logfilewriter.h"
 #include "visionlogreader.h"
-#include "miniprocessor.h"
 #include "processor/referee.h"
 #include <QThread>
 #include <QDebug>
@@ -79,6 +79,7 @@ int main(int argc, char* argv[])
     qRegisterMetaType<Command>("Command");
 
     Strategy* strategy = nullptr;
+    FeedbackStrategyReplay * strategyReplay = nullptr;
     QThread* strategyThread = nullptr;
     if (parser.isSet(autorefDirOption)) {
         strategy = new Strategy(timer, StrategyType::AUTOREF, nullptr);
@@ -86,22 +87,20 @@ int main(int argc, char* argv[])
         strategyThread = new QThread();
         strategy->moveToThread(strategyThread);
         strategyThread->start();
-    }
 
-    MiniProcessor processor(strategy, parser.value(outputDirOption));
-    QThread* processorThread = new QThread();
-    processor.moveToThread(processorThread);
-    processorThread->start();
+        strategyReplay = new FeedbackStrategyReplay(strategy);
 
-    if (strategy != nullptr) {
         // load the autoref strategy
         Command command(new amun::Command);
         amun::CommandStrategyLoad *load =
                 command->mutable_strategy_autoref()->mutable_load();
 
         load->set_filename(parser.value(autorefDirOption).toStdString());
-        emit processor.sendCommand(command);
+        strategy->handleCommand(command);
     }
+
+    LogFileWriter logFile;
+    logFile.open(parser.value(outputDirOption));
 
     Referee ref(false);
 
@@ -130,8 +129,11 @@ int main(int argc, char* argv[])
         ref.process(status->world_state());
         status->mutable_game_state()->CopyFrom(ref.gameState());
 
-        processor.setCurrentStatus(status);
-        emit processor.sendStatus(status); // trigger strategy
+        if (strategy != nullptr) {
+            logFile.writeStatus(strategyReplay->executeWithFeedback(status));
+        } else {
+            logFile.writeStatus(status);
+        }
     }
 
     QThread::msleep(50); // wait for strategy thread to finish its work
@@ -139,9 +141,8 @@ int main(int argc, char* argv[])
         strategyThread->quit();
         strategyThread->deleteLater();
         strategy->deleteLater();
+        strategyReplay->deleteLater();
     }
-    processorThread->quit();
-    processorThread->deleteLater();
     delete timer;
 
     return 0;

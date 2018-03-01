@@ -22,8 +22,6 @@ add_executable(visionanalyzer
     visionanalyzer.cpp
     visionlogreader.cpp
     visionlogreader.h
-    miniprocessor.cpp
-    miniprocessor.h
 )
 target_link_libraries(visionanalyzer
     PRIVATE shared::core
