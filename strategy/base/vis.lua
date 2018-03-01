@@ -58,8 +58,12 @@ end
 -- @param alpha the alpha value, default is 127
 -- @return table color
 function vis.fromTemperature(value, alpha)
-	assert(value >= 0, "vis temperature too low: " .. value);
-	assert(value <= 1, "vis temperature too high: " .. value);
+	if value < 0 then
+		error("vis temperature too low: " .. value)
+	end
+	if value > 1 then
+		error("vis temperature too high: " .. value)
+	end
 	local red = 1
 	local green = 1
 	if value < 0.5 then
