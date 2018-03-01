@@ -24,16 +24,7 @@ add_executable(visionanalyzer
     visionlogreader.h
     miniprocessor.cpp
     miniprocessor.h
-    ../amun/processor/referee.h
-    ../amun/processor/tracking/ballcollisionfilter.cpp
-    ../amun/processor/tracking/ballflyfilter.cpp
-    ../amun/processor/tracking/ballgroundfilter.cpp
-    ../amun/processor/tracking/balltracker.cpp
-    ../amun/processor/tracking/filter.cpp
-    ../amun/processor/tracking/quadraticleastsquaresfitter.cpp
-    ../amun/processor/tracking/robotfilter.cpp
-    ../amun/processor/tracking/tracker.cpp
- )
+)
 target_link_libraries(visionanalyzer
     PRIVATE shared::core
     PRIVATE ra::logfile
@@ -46,8 +37,6 @@ target_link_libraries(visionanalyzer
 target_include_directories(visionanalyzer
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../amun/processor/tracking"
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/../amun/processor/tracking/include/tracking"
 )
 target_compile_options(visionanalyzer
     PRIVATE "-DENABLE_TRACKING_DEBUG"

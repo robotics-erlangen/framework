@@ -24,6 +24,7 @@ add_library(processor
     include/processor/networktransceiver.h
     include/processor/processor.h
     include/processor/transceiver.h
+    include/processor/referee.h
 
     commandevaluator.cpp
     commandevaluator.h
@@ -34,13 +35,12 @@ add_library(processor
     networktransceiver.cpp
     processor.cpp
     referee.cpp
-    referee.h
     transceiver.cpp
 )
 target_link_libraries(processor
     PRIVATE shared::core
     PUBLIC shared::protobuf
-    PRIVATE amun::tracking
+    PUBLIC amun::tracking
     PRIVATE firmware::interface
     PUBLIC Qt5::Core
     PRIVATE Qt5::Network

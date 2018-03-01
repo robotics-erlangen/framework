@@ -24,13 +24,13 @@
 #include "protobuf/status.h"
 #include "protobuf/ssl_wrapper.pb.h"
 
-#include "tracker.h"
+#include "tracking/tracker.h"
 #include "strategy/strategy.h"
 #include "core/timer.h"
 #include "logfile/logfilewriter.h"
 #include "visionlogreader.h"
 #include "miniprocessor.h"
-#include "../amun/processor/referee.h"
+#include "processor/referee.h"
 #include <QThread>
 #include <QDebug>
 
