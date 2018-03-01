@@ -148,9 +148,7 @@ function StrikerSampling:evalLocation(ballPos, bestScore)
 
 	score = score * self:canReachInTime(ballPos)
 
-	if amun.isDebug then
-		visualizeRating("total", ballPos, score)
-	end
+	visualizeRating("total", ballPos, score)
 
 	return score
 end
