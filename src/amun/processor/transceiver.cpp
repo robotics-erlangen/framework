@@ -39,21 +39,27 @@ typedef struct
 } __attribute__ ((packed)) TransceiverPingData;
 
 
-Transceiver::Transceiver(QObject *parent) :
-    QObject(parent),
+Transceiver::Transceiver(const Timer *timer) :
     m_charge(false),
     m_packetCounter(0),
     m_context(nullptr),
     m_device(nullptr),
     m_connectionState(State::DISCONNECTED),
     m_simulatorEnabled(false),
-    m_onlyRestartAfterTimestamp(0)
+    m_onlyRestartAfterTimestamp(0),
+    m_timer(timer),
+    m_droppedCommands(0)
 {
     // default channel
     m_configuration.set_channel(10);
 
     m_timeoutTimer = new QTimer(this);
+    m_timeoutTimer->setSingleShot(true);
     connect(m_timeoutTimer, &QTimer::timeout, this, &Transceiver::timeout);
+
+    m_processTimer = new QTimer(this);
+    m_processTimer->setSingleShot(true);
+    connect(m_processTimer, &QTimer::timeout, this, &Transceiver::process);
 }
 
 Transceiver::~Transceiver()
@@ -64,13 +70,24 @@ Transceiver::~Transceiver()
 #endif
 }
 
-void Transceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay)
+void Transceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart)
+{
+    m_commands = commands;
+    m_processingStart = processingStart;
+    if (m_processTimer->isActive()) {
+        // the timer is stil active, that is the last commands were not yet processed!
+        m_droppedCommands++;
+    }
+    m_processTimer->start(0);
+}
+
+void Transceiver::process()
 {
     Status status(new amun::Status);
     const qint64 transceiver_start = Timer::systemTime();
 
     // charging the condensator can be enabled / disable separately
-    sendCommand(commands, m_charge, processingDelay);
+    sendCommand(m_commands, m_charge, m_processingStart);
 
     status->mutable_timing()->set_transceiver((Timer::systemTime() - transceiver_start) / 1E9);
     emit sendStatus(status);
@@ -349,7 +366,9 @@ void Transceiver::handleStatusPacket(const char *data, uint size)
     Status status(new amun::Status);
     status->mutable_transceiver()->set_active(true);
     status->mutable_transceiver()->set_dropped_usb_packets(transceiverStatus->droppedPackets);
+    status->mutable_transceiver()->set_dropped_commands(m_droppedCommands);
     emit sendStatus(status);
+    m_droppedCommands = 0;
 }
 
 void Transceiver::handleDatagramPacket(const char *data, uint size)
@@ -581,7 +600,7 @@ void Transceiver::addStatusPacket(QByteArray &usb_packet)
     usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
 }
 
-void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingDelay)
+void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart)
 {
     if (!ensureOpen()) {
         return;
@@ -605,7 +624,8 @@ void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool c
 
     bool hasRobot2014Commands = generations.keys().contains(3);
     if (hasRobot2014Commands) {
-        addRobot2014Sync(processingDelay, m_packetCounter, usb_packet);
+        const qint64 completionTime = m_timer->currentTime();
+        addRobot2014Sync(processingStart - completionTime, m_packetCounter, usb_packet);
     }
 
     QMapIterator<uint, RobotList> it(generations);

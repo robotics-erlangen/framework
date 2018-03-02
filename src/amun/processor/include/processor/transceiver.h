@@ -28,6 +28,7 @@
 #include <QPair>
 
 class QTimer;
+class Timer;
 class USBThread;
 class USBDevice;
 
@@ -53,7 +54,7 @@ private:
     };
 
 public:
-    explicit Transceiver(QObject *parent = NULL);
+    explicit Transceiver(const Timer *timer);
     ~Transceiver() override;
 
 signals:
@@ -61,10 +62,11 @@ signals:
     void sendRadioResponses(const QList<robot::RadioResponse> &responses);
 
 public slots:
-    void handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay);
+    void handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart);
     void handleCommand(const Command &command);
 
 private slots:
+    void process();
     void receive();
     void timeout();
 
@@ -88,7 +90,7 @@ private:
     void addRobot2014Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet);
     void addPingPacket(qint64 time, QByteArray &usb_packet);
     void addStatusPacket(QByteArray &usb_packet);
-    void sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingDelay);
+    void sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingStart);
 
 private:
     bool m_charge;
@@ -101,9 +103,15 @@ private:
     USBThread *m_context;
     USBDevice *m_device;
     QTimer *m_timeoutTimer;
+    QTimer *m_processTimer;
     State m_connectionState;
     bool m_simulatorEnabled;
     qint64 m_onlyRestartAfterTimestamp;
+
+    const Timer *m_timer;
+    QList<robot::RadioCommand> m_commands;
+    qint64 m_processingStart;
+    int m_droppedCommands;
 };
 
 #endif // TRANSCEIVER_H

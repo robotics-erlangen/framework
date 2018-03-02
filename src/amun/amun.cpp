@@ -85,6 +85,7 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     // these threads just run an event loop
     // using the signal-slot mechanism the objects in these can be called
     m_processorThread = new QThread(this);
+    m_transceiverThread = new QThread(this);
     m_networkThread = new QThread(this);
     m_simulatorThread = new QThread(this);
     for (int i = 0;i<3;i++) {
@@ -190,8 +191,8 @@ void Amun::start()
 
     if (!m_simulatorOnly) {
         Q_ASSERT(m_transceiver == NULL);
-        m_transceiver = new Transceiver();
-        m_transceiver->moveToThread(m_processorThread);
+        m_transceiver = new Transceiver(m_timer);
+        m_transceiver->moveToThread(m_transceiverThread);
         connect(m_processorThread, SIGNAL(finished()), m_transceiver, SLOT(deleteLater()));
         // route commands to transceiver
         connect(this, SIGNAL(gotCommand(Command)), m_transceiver, SLOT(handleCommand(Command)));
@@ -200,7 +201,7 @@ void Amun::start()
 
         Q_ASSERT(m_networkTransceiver == NULL);
         m_networkTransceiver = new NetworkTransceiver();
-        m_networkTransceiver->moveToThread(m_processorThread);
+        m_networkTransceiver->moveToThread(m_transceiverThread);
         connect(m_processorThread, SIGNAL(finished()), m_networkTransceiver, SLOT(deleteLater()));
         // route commands to transceiver
         connect(this, SIGNAL(gotCommand(Command)), m_networkTransceiver, SLOT(handleCommand(Command)));
@@ -213,6 +214,7 @@ void Amun::start()
 
     // start threads
     m_processorThread->start();
+    m_transceiverThread->start();
     m_networkThread->start();
     m_simulatorThread->start();
     for (int i = 0;i<3;i++) {
@@ -230,6 +232,7 @@ void Amun::stop()
 {
     // stop threads
     m_processorThread->quit();
+    m_transceiverThread->quit();
     m_networkThread->quit();
     m_simulatorThread->quit();
     for (int i = 0;i<3;i++) {
@@ -239,6 +242,7 @@ void Amun::stop()
 
     // wait for threads
     m_processorThread->wait();
+    m_transceiverThread->wait();
     m_networkThread->wait();
     m_simulatorThread->wait();
     for (int i = 0;i<3;i++) {

@@ -31,9 +31,9 @@ NetworkTransceiver::NetworkTransceiver(QObject *parent) : QObject(parent),
 
 NetworkTransceiver::~NetworkTransceiver() { }
 
-void NetworkTransceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay)
+void NetworkTransceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart)
 {
-    (void)processingDelay;
+    (void)processingStart;
     Status status(new amun::Status);
     const qint64 transceiver_start = Timer::systemTime();
 

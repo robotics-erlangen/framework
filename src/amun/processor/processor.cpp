@@ -217,11 +217,8 @@ void Processor::process()
     status_debug->mutable_timing()->set_controller((Timer::systemTime() - controller_start) / 1E9);
     emit sendStatus(status_debug);
 
-    const qint64 completion_time = m_timer->currentTime();
-
     if (m_transceiverEnabled) {
-        qint64 processingDelay = completion_time - current_time;
-        emit sendRadioCommands(radio_commands, processingDelay);
+        emit sendRadioCommands(radio_commands, current_time);
     }
 }
 

@@ -36,6 +36,7 @@ message StatusTransceiver {
     required bool active = 1;
     optional string error = 2;
     optional int32 dropped_usb_packets = 3;
+    optional int32 dropped_commands = 4;
 }
 
 message PortBindError {

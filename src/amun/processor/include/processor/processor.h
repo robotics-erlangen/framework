@@ -50,7 +50,7 @@ public:
 signals:
     void sendStatus(const Status &status);
     void sendStrategyStatus(const Status &status);
-    void sendRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay);
+    void sendRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart);
 
 public slots:
     void setScaling(double scaling);

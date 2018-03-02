@@ -306,12 +306,17 @@ void MainWindow::handleStatus(const Status &status)
         m_transceiverActive = t.active();
 
         if (m_transceiverActive) {
+            color = "darkGreen";
+
             if (t.dropped_usb_packets() > 0) {
                 color = "yellow";
-                tooltip = QString("Dropped usb packets: %1").arg(t.dropped_usb_packets());
-            } else {
-                color = "darkGreen";
+                tooltip += QString("\nDropped usb packets: %1").arg(t.dropped_usb_packets());
             }
+            if (t.dropped_commands() > 0) {
+                color = "yellow";
+                tooltip += QString("\nDropped commands: %1").arg(t.dropped_commands());
+            }
+            tooltip = tooltip.mid(1);
         } else {
             color = "red";
         }
