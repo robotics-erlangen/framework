@@ -284,6 +284,13 @@ void Simulator::fieldAddCircularArc(SSL_GeometryFieldSize *field, std::string na
 
 QByteArray Simulator::createVisionPacket()
 {
+    int numCameras;
+    if (m_currentRuleVersion == amun::CommandSimulator::RULES2018) {
+        numCameras = 8;
+    } else {
+        numCameras = 4;
+    }
+
     // setup vision packet
     SSL_WrapperPacket packet;
     SSL_DetectionFrame *detection = packet.mutable_detection();
@@ -293,7 +300,7 @@ QByteArray Simulator::createVisionPacket()
     detection->set_t_sent((m_time + m_visionDelay)*1E-9);
 
     // get ball and robot position
-    int cameraId = m_data->ball->update(detection->add_balls(), m_data->stddevBall);
+    int cameraId = m_data->ball->update(detection->add_balls(), m_data->stddevBall, numCameras);
     if (cameraId >= 0) {
         // just move everything to the ball camera
         detection->set_camera_id(cameraId);
@@ -337,7 +344,6 @@ QByteArray Simulator::createVisionPacket()
         fieldAddLine(field, "LeftFieldRightPenaltyStretch", -fieldLengthHalf, defenseWidthHalf, defensePos, defenseWidthHalf);
         fieldAddLine(field, "RightFieldRightPenaltyStretch", fieldLengthHalf, -defenseWidthHalf, -defensePos, -defenseWidthHalf);
         fieldAddLine(field, "RightFieldLeftPenaltyStretch", fieldLengthHalf, defenseWidthHalf, -defensePos, defenseWidthHalf);
-
     } else {
         float defenseDistance = m_data->geometry.defense_radius() * 1000.0f;
         float defensePos = -fieldLengthHalf + defenseDistance;
@@ -351,13 +357,15 @@ QByteArray Simulator::createVisionPacket()
         fieldAddCircularArc(field, "RightFieldRightPenaltyArc", fieldLengthHalf, defenseStretchHalf, defenseDistance, 0.5f * M_PI, M_PI);
     }
 
-    for (int i = 0; i < 4; ++i) {
-        int signX = (i&1) ? 1 : -1;
-        int signY = (i&2) ? 1 : -1;
+    for (int i = 0; i < numCameras; ++i) {
+        // camera position calculation must match SimBall
+        int signX = (i >= numCameras / 2) ? 1 : -1;
+        int partsY = 2 * (i % (numCameras / 2)) - (numCameras / 2 - 1);
 
-        // must match SimBall
-        const float cameraX = m_data->geometry.field_width() / 4;
-        const float cameraY = m_data->geometry.field_height() / 4;
+        const float cameraHalfAreaX = m_data->geometry.field_width() / 4;
+        const float cameraHalfAreaY = m_data->geometry.field_height() / numCameras;
+        const float cameraX = cameraHalfAreaX * signX;
+        const float cameraY = cameraHalfAreaY * partsY;
         const float cameraZ = 4.f;
 
         SSL_GeometryCameraCalibration *calib = geometry->add_calib();
@@ -375,8 +383,8 @@ QByteArray Simulator::createVisionPacket()
         calib->set_ty(0);
         calib->set_tz(3500);
 
-        calib->set_derived_camera_world_tx(cameraY * 1000 * signY);
-        calib->set_derived_camera_world_ty(-cameraX * 1000 * signX);
+        calib->set_derived_camera_world_tx(cameraY * 1000);
+        calib->set_derived_camera_world_ty(-cameraX * 1000);
         calib->set_derived_camera_world_tz(cameraZ * 1000);
     }
 

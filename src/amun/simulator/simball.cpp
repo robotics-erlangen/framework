@@ -23,6 +23,7 @@
 #include "core/rng.h"
 #include "protobuf/ssl_detection.pb.h"
 #include <cmath>
+#include <QDebug>
 
 SimBall::SimBall(RNG *rng, btDiscreteDynamicsWorld *world, float fieldWidth, float fieldHeight) :
     m_rng(rng),
@@ -116,14 +117,7 @@ void SimBall::begin()
     }
 }
 
-float sign(float a)
-{
-    return (a >= 0) ? 1 : -1;
-}
-
-// #include <QDebug>
-
-int SimBall::update(SSL_DetectionBall *ball, float stddev)
+int SimBall::update(SSL_DetectionBall *ball, float stddev, int numCameras)
 {
     // setup ssl-vision ball detection
     ball->set_confidence(1.0);
@@ -134,38 +128,65 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev)
     m_motionState->getWorldTransform(transform);
     const btVector3 p = transform.getOrigin() / SIMULATOR_SCALE;
 
+    int cameraId;
+    if (numCameras == 4) {
+        // setup differs from ssl-vision!
+        //    +y
+        // |---G---|
+        // | 1 | 3 |
+        // |---o---| +x
+        // | 0 | 2 |
+        // |---G---|
+        cameraId = ((p.y() > 0) ? 1 : 0) + ((p.x() > 0) ? 2 : 0);
+    } else if (numCameras == 8) {
+        // setup differs from ssl-vision!
+        //      +y
+        // |-----G-----|
+        // |  3  |  7  |
+        // |----- -----|
+        // |  2  |  6  |
+        // |-----o-----| +x
+        // |  1  |  5  |
+        // |----- -----|
+        // |  0  |  4  |
+        // |-----G-----|
+        // avoid duplicate check for positive and negative p.x
+        float normalizedY = ((p.y() <= 0) ? m_fieldHeight/2 : 0) + p.y();
+        cameraId = ((normalizedY > m_fieldHeight/4) ? 1 : 0)
+                + ((p.y() > 0) ? 2 : 0) + ((p.x() > 0) ? 4 : 0);
+    } else {
+        qDebug() << "SimBall: Unsupported number of cameras" << numCameras;
+        return -1;
+    }
+
+    const float SCALING_LIMIT = 0.9f;
+    const float MAX_OVERLAP = 0.5f;
+
     // must match simulator camera geometry!!!
-    const float cameraHeight = 4.f;
-    const float cameraX = m_fieldWidth / 4;
-    const float cameraY = m_fieldHeight / 4;
-    const float maxOverlap = 0.4f;
+    int signX = (cameraId >= numCameras / 2) ? 1 : -1;
+    int partsY = 2 * (cameraId % (numCameras / 2)) - (numCameras / 2 - 1);
 
-    const float scalingLimit = 0.9f;
-    const float widthHalf = cameraX * 2.7f;
-    const float heightHalf = cameraY * 2.7f;
-    int cameraId = ((p.x() > 0) ? 1 : 0) + ((p.y() > 0) ? 2 : 0);
+    const float cameraHalfAreaX = m_fieldWidth / 4;
+    const float cameraHalfAreaY = m_fieldHeight / numCameras;
+    const float cameraX = cameraHalfAreaX * signX;
+    const float cameraY = cameraHalfAreaY * partsY;
+    const float cameraZ = 4.f;
 
-    float height = std::min(scalingLimit * cameraHeight, std::max(0.f, p.z() - BALL_RADIUS));
-    float abs_x = std::abs(p.x());
-    float abs_y = std::abs(p.y());
-    abs_x = (abs_x - cameraX) * (cameraHeight / (cameraHeight - height)) + cameraX;
-    abs_y = (abs_y - cameraY) * (cameraHeight / (cameraHeight - height)) + cameraY;
+    float modZ = std::min(SCALING_LIMIT * cameraZ, std::max(0.f, p.z() - BALL_RADIUS));
+    float modX = (p.x() - cameraX) * (cameraZ / (cameraZ - modZ)) + cameraX;
+    float modY = (p.y() - cameraY) * (cameraZ / (cameraZ - modZ)) + cameraY;
 
-    float camX = (cameraId%2 == 0) ? -cameraX : cameraX;
-    float camY = (cameraId < 2)    ? -cameraY : cameraY;
-    float distBallCam = std::sqrt((cameraHeight-height)*(cameraHeight-height)+
-        (camX-p.x())*(camX-p.x())+(camY-p.y())*(camY-p.y()));
+    float distBallCam = std::sqrt((cameraZ-modZ)*(cameraZ-modZ)+
+        (cameraX-p.x())*(cameraX-p.x())+(cameraY-p.y())*(cameraY-p.y()));
     float denomSqrt = (distBallCam*1000)/FOCAL_LENGTH - 1;
     float area = (BALL_RADIUS*BALL_RADIUS*1000000*M_PI) / (denomSqrt*denomSqrt);
     ball->set_area(area);
 
-    if (abs_x < -maxOverlap || abs_x > widthHalf || abs_y < -maxOverlap || abs_y > heightHalf) {
+    if (std::abs(modX - cameraX) > cameraHalfAreaX + MAX_OVERLAP
+            || std::abs(modY - cameraY) > cameraHalfAreaY + MAX_OVERLAP) {
         // invalid
         return -1;
     }
-
-    const float ball_x = sign(p.x()) * abs_x;
-    const float ball_y = sign(p.y()) * abs_y;
 
     // if (height > 0.1f) {
     //     qDebug() << "simball" << p.x() << p.y() << height << "ttt" << ball_x << ball_y;
@@ -174,8 +195,8 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev)
     // add noise to coordinates
     // to convert from bullet coordinate system to ssl-vision rotate by 90 degree ccw
     const Vector2 noise = m_rng->normalVector(stddev);
-    ball->set_x((ball_y + noise.x) * 1000.0f);
-    ball->set_y(-(ball_x + noise.y) * 1000.0f);
+    ball->set_x((modY + noise.x) * 1000.0f);
+    ball->set_y(-(modX + noise.y) * 1000.0f);
     return cameraId;
 }
 
