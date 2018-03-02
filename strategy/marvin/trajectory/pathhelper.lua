@@ -118,15 +118,42 @@ local function obstacle_forbidOppFieldHalf(path)
 		G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf", 25)
 end
 
-local function obstacle_ball(path, stopBallDistance, ignoreBall, extraBallDistance)
-	if (not ignoreBall) and extraBallDistance and extraBallDistance > stopBallDistance then
-		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + extraBallDistance, "BallDistance", 50)
-	elseif Referee.isStopState() and World.RefereeState ~= "BallPlacementOffensive" then
-		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + stopBallDistance, "BallStop", 50)
-	elseif not ignoreBall and not extraBallDistance then
-		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius, "Ball", 50)
+local function addZonedBallObstacles(robot, innerBallDistance, outerBallDistance)
+	local ball = World.Ball
+	local distSq = robot.pos:distanceToSq(ball.pos)
+	local outermost = math.huge
+
+	if outerBallDistance then
+		outermost = outerBallDistance * outerBallDistance
+		robot.path:addCircle(ball.pos.x, ball.pos.y, ball.radius + outerBallDistance, "OuterBallObstacle", 48)
+	end
+	if distSq < outermost and innerBallDistance then
+		outermost = innerBallDistance * innerBallDistance
+		robot.path:addCircle(ball.pos.x, ball.pos.y, ball.radius + innerBallDistance, "InnerBallObstacle", 49)
+	end
+	if distSq < outermost then
+		robot.path:addCircle(ball.pos.x, ball.pos.y, ball.radius, "Ball", 50)
+	end
+end
+
+local function obstacle_ball(robot, ignoreBall, stopBallDistance, extraBallDistance)
+	-- Since I had some trouble figuring out the semantic when I changed this I'll document it here
+	-- (Even if it should be clear from the code now)
+	-- If we are in a defensive stop state, the ignoreBall parameter is ignored (because that is how it was before)
+	-- In the other two cases (ball placement and normal game), ignoreBall is considered.
+	-- If it is false, we don't want to set a stopDistance but still consider an eventual extraBallDistance
+	-- addZonedBallObstacles takes care of the nil handling
+	local isDefensiveStopState = Referee.isStopState() and World.RefereeState ~= "BallPlacementOffensive"
+	if isDefensiveStopState then
+		if stopBallDistance and extraBallDistance and stopBallDistance > extraBallDistance then
+			local temp = stopBallDistance
+			stopBallDistance = extraBallDistance
+			extraBallDistance = temp
+		end
+
+		addZonedBallObstacles(robot, stopBallDistance, extraBallDistance)
 	elseif not ignoreBall then
-		path:addCircle(World.Ball.pos.x, World.Ball.pos.y, World.Ball.radius + extraBallDistance, "ExtraBallDistance", 50)
+		addZonedBallObstacles(robot, nil, extraBallDistance)
 	end
 end
 
@@ -273,7 +300,7 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 	if forbidOppFieldHalf then
 		obstacle_forbidOppFieldHalf(path)
 	end
-	obstacle_ball(path, stopBallDistance, ignoreBall, extraBallDistance)
+	obstacle_ball(robot, ignoreBall, stopBallDistance, extraBallDistance)
 
 	if not ignoreGoals then
 		obstacle_goal(path, robot)
