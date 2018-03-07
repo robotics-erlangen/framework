@@ -200,7 +200,7 @@ local function rateOpponentPassViability()
 		end
 
 		-- ignore opponents close to enemy defense area
-		if opp.pos.y > G.FieldHeight - G.DefenseHeight - 1 then
+		if opp.pos.y > G.FieldHeightHalf - G.DefenseHeight - 1 then
 			passViability[opp] = 0
 			goto continue
 		end
