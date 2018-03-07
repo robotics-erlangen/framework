@@ -111,8 +111,8 @@ function Defense:_checkZoneDefender(zonePos)
 	return decision
 end
 
-function Defense:_assignManmarkDefenders(defenders)
-	while #defenders > 0 do
+function Defense:_assignManmarkDefenders(defenders, nReservedDefenders)
+	while #defenders - nReservedDefenders > 0 do
 		local manmarkTarget, manmarker = self:_nextManmarkAssignment(defenders)
 		if not manmarkTarget or not manmarker then
 			break
@@ -197,6 +197,7 @@ local function findMostViableTarget(piggyTargets, defenders, previousAssignments
 			highestViability = viability
 			mostViableTarget = target
 		end
+
 	end
 
 	return mostViableTarget
@@ -204,9 +205,13 @@ end
 
 function Defense:_assignPiggies(defenders)
 	-- assign piggies
-	local nPiggies = determineNumberOfPiggies(#defenders, self._manmarkTargets, self._piggyTargets)
-	while nPiggies > 0 do
+	while #defenders > 0 do
+
 		local target = findMostViableTarget(self._piggyTargets, defenders, self._previousPiggyAssignments)
+		if not target then
+			break
+		end
+
 		self._piggyTargets[target] = nil
 
 		local piggy = UtilDefense.getClosestRobot(defenders, target.pos)
@@ -219,11 +224,7 @@ function Defense:_assignPiggies(defenders)
 		table.removeValue(defenders, piggy)
 		self._send.roleAssignment(piggy,
 			{name = "Piggy", params = { target }})
-		nPiggies = nPiggies - 1
 	end
-
-	-- return the defenders that are left after assigning piggies
-	return defenders
 end
 
 function Defense:_assignDefenders()
@@ -239,6 +240,7 @@ function Defense:_assignDefenders()
 	self:_updatePiggyTargets()
 
 	local defenders = table.keys(self._inbox.defenderFlag())
+	local nReservedDefenders = determineNumberOfPiggies(#defenders, self._manmarkTargets, self._piggyTargets)
 
 	-- not in opponent corner attacks: assign a ball centerback
 	local needDefaultCB = not Referee.isDefensiveCornerKick() and not Referee.isFriendlyFreeKickState()
@@ -269,8 +271,8 @@ function Defense:_assignDefenders()
 	-- 	end
 	-- end
 
-	defenders = self:_assignPiggies(defenders)
-	self:_assignManmarkDefenders(defenders)
+	self:_assignManmarkDefenders(defenders, nReservedDefenders)
+	self:_assignPiggies(defenders)
 end
 
 
