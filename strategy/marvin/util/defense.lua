@@ -206,8 +206,8 @@ local function rateOpponentPassViability()
 		end
 
 		-- we can successfully intercept long passes more easily
-		local distToBallOwner = opp.pos:distanceTo(ballPos)
-		local distToBallOwnerRating = Rating.valueToRating(distToBallOwner, 2, 5)
+		local distToBallOwner = opp.pos:distanceToSq(ballPos)
+		local distToBallOwnerRating = Rating.valueToRating(distToBallOwner, 2*2, 5*5)
 
 		-- we do not want the enemy to move the ball closer to our goal
 		local distToGoal = opp.pos.y + opp.speed.y/2 + G.FieldHeightHalf
