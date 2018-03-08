@@ -44,7 +44,26 @@ function Volley:init()
 	self._ball_in = nil
 end
 
-function Volley.calcVOut(v_s, v_in, phi, alpha)
+function Volley.calcVOutFromVOutAbs(v_out_length, v_in, phi, alpha)
+	local v_refl_x, v_refl_y = Volley.calcVOutFromVS(0, v_in, phi, alpha)
+	local sinp = math.sin(phi)
+	local cosp = math.cos(phi)
+	--calcVOut(x,v_in,phi,alpha) = cosp * x + v_refl_x, sinp * x + v_refl_y
+	--we want to find x, so that Vector(cops * x + v_refl_x, sinp * x + v_refl_y):length() = v_out_length
+	--wolphramalpha: sqrt((cos(p)*x+b)^2 + (sin(p)*x+d)^2)-v = 0 solve for x
+	--tells you x = (sqrt((2 b cos(p) + 2 d sin(p))^2 - 4 (b^2 + d^2 - v^2) (sin^2(p) + cos^2(p))) - 2 b cos(p) - 2 d sin(p))/(2 (sin^2(p) + cos^2(p)))
+	-- using sin^2(p) + cos^2(p) = 1, that simplifies to
+	-- x = (sqrt((2 b cos(p) + 2 d sin(p))^2 - 4 (b^2 + d^2 - v^2)) - 2 b cos(p) - 2 d sin(p))/2
+	local bcos = v_refl_x * cosp
+	local dsin = v_refl_y * sinp
+	local sqrt1 = 2*bcos + 2* dsin
+	sqrt1 = sqrt1 * sqrt1
+	local sqrt2 = -4*(v_refl_x * v_refl_x + v_refl_y * v_refl_y - v_out_length * v_out_length)
+	local v_s = 0.5 * math.sqrt(sqrt1+sqrt2)-bcos-dsin
+	return Volley.calcVOutFromVS(v_s, v_in, phi, alpha)
+end
+
+function Volley.calcVOutFromVS(v_s, v_in, phi, alpha)
 	local sinp = math.sin(phi)
 	local cosp = math.cos(phi)
 	local sinpa = math.sin(phi - alpha)
@@ -96,7 +115,7 @@ function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 	local v_s = abs_v_out
 	local phi = (targetPos - viewPos):angle()
 	-- caching
-	local calcVOut = Volley.calcVOut
+	local calcVOut = Volley.calcVOutFromVS
 	local visData = {}
 
 	for _ = 1, 5 do
