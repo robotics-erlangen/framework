@@ -7,6 +7,7 @@ local World = require "../base/world"
 local Physics = require "observer/physics"
 local geom = require "../base/geom"
 local Cache = require "../base/cache"
+local Field = require "../base/field"
 
 local G = World.Geometry
 local POSITION_PADDING = 0.02
@@ -80,7 +81,7 @@ local function obstacle_friendlyDefenseArea(path, robot)
 					G.FriendlyGoal.x + G.DefenseStretch / 2, G.FriendlyGoal.y,
 					G.DefenseRadius + POSITION_PADDING, "DefenseArea", 35)
 		end
-		if geom.insideRect(_GoalAreaFriendly[1], _GoalAreaFriendly[2], robot.pos) then
+		if geom.insideRect(_GoalAreaFriendly[1], _GoalAreaFriendly[2], robot.pos) or Field.isInFriendlyDefenseArea(robot.pos, robot.radius * 2) then
 			path:addRect(_GoalAreaFriendly[1].x, _GoalAreaFriendly[1].y, _GoalAreaFriendly[2].x, _GoalAreaFriendly[2].y, "EvacuateGoal", 90)
 		end
 	end
@@ -103,7 +104,7 @@ local function obstacle_OpponentDefenseArea(path, robot)
 					G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y,
 					G.DefenseRadius + POSITION_PADDING, "DefenseArea", 35)
 		end
-		if geom.insideRect(_GoalArea[1], _GoalArea[2], robot.pos) then
+		if geom.insideRect(_GoalArea[1], _GoalArea[2], robot.pos) or Field.isInOpponentDefenseArea(robot.pos, robot.radius * 2) then
 			path:addRect(_GoalArea[1].x, _GoalArea[1].y, _GoalArea[2].x, _GoalArea[2].y, "EvacuateGoal", 90)
 		end
 	end
