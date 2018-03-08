@@ -29,7 +29,7 @@ function RandomKeeper:run()
 		ignoreDefenseArea = true,
 		stopBallDistance = 0.05
 	}
-	if not Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
+	if Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
 		obstacleTable.ignoreFriendlyRobots = true
 		obstacleTable.ignoreOpponentRobots = true
 	end

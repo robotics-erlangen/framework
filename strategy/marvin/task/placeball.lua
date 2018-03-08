@@ -50,12 +50,6 @@ local PUSH_LOST_BALL_HYSTERESIS = 1
 local BACK_UP_WAIT_TIME = 1
 local BACK_UP_SPEED = 0.4
 
-local obstacleTable = {
-	ignoreBall = true,
-	ignoreDefenseArea = true,
-	ignoreOpponentDefenseArea = true,
-	ignorePass = true,
-}
 
 function PlaceBall:_init(placementPos)
 
@@ -108,6 +102,11 @@ function PlaceBall:run()
 	debug.set("state", self._state)
 
 	-- Path helping
+	local obstacleTable = {
+		ignoreDefenseArea = true,
+		ignoreOpponentDefenseArea = true,
+		ignorePass = true,
+	}
 	obstacleTable.ignoreBall = self._state == STATE_ENSURE_PULL_CONTACT
 					or self._state == STATE_PULL_TO_FIELD
 					or self._state == STATE_BACK_UP_WAIT

@@ -85,7 +85,12 @@ end
 function Duel:_contestPush()
 	local viewDir = (World.Ball.pos - World.Geometry.FriendlyGoal):angle()
 	local destinationPos = World.Ball.pos - Vector.fromAngle(viewDir) * self._robot.shootRadius
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, {ignoreBall = true, inbox = self._inbox})
+	local obstacleTable = {
+		ignoreBall = true,
+		inbox = self._inbox,
+		ignoreOpponents = true
+	}
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, destinationPos, viewDir)
 end
 

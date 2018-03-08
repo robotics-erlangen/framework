@@ -16,8 +16,6 @@ function MoveToStaticBall:run()
 	local pos = World.Ball.pos - Vector.fromAngle(self._rotation) * absDistToBall
 
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
-	self._robot.path:addCircle(World.Ball.pos.x, World.Ball.pos.y,
-		self._distanceToBall + World.Ball.radius, "StaticBall")
 
 	self._robot.trajectory:update(ToTarget, pos, self._rotation)
 

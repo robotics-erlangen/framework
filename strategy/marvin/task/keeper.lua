@@ -167,8 +167,8 @@ function Keeper:run()
 		stopBallDistance = 0.05,
 		ignorePass = true
 	}
-	-- add obstacles if outside keeper area, when drivin to goal initially
-	if not Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
+	-- don't add obstacles if inside keeper area, when drivin to goal initially
+	if Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius) then
 		obstacleTable.ignoreFriendlyRobots = true
 		obstacleTable.ignoreOpponentRobots = true
 	end
