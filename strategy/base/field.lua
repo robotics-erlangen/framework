@@ -166,12 +166,12 @@ local function isInDefenseArea_2017(pos, radius, friendly)
 	radius = radius + G.DefenseRadius
 	local defenseY = friendly and -G.FieldHeightHalf or G.FieldHeightHalf
 	local inside = Vector(math.bound(-G.DefenseStretchHalf, pos.x, G.DefenseStretchHalf), defenseY)
-	return pos:distanceToSq(inside) < radius * radius
+	return pos:distanceToSq(inside) <= radius * radius
 end
 
 
 local function isInDefenseArea_2018(pos, radius, friendly)
-	return distanceToDefenseAreaSq_2018(pos, friendly) < radius * radius
+	return distanceToDefenseAreaSq_2018(pos, friendly) <= radius * radius
 end
 
 if World.RULEVERSION == "2018" then
