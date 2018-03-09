@@ -212,8 +212,11 @@ end
 -- @param angle number - angle in radians
 -- @return Vector - this (rotated) vector
 function vector_mt:rotate(angle)
-	local xnew = cos(angle) * self.x - sin(angle) * self.y
-	self.y = sin(angle) * self.x + cos(angle) * self.y
+	local x = self.x
+	local y = self.y
+
+	local xnew = cos(angle) * x - sin(angle) * y
+	self.y = sin(angle) * x + cos(angle) * y
 	self.x = xnew
 	return self
 end
