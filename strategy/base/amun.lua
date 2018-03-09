@@ -68,6 +68,24 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
+--- Add a circle
+-- @class function
+-- @name addVisualizationCircle
+-- @param string name
+-- @param number centerX
+-- @param number centerY
+-- @param number radius
+-- @param number colorRed
+-- @param number colorGreen
+-- @param number colorBlue
+-- @param number colorAlpha
+-- @param bool isFilled
+-- @param bool background
+-- @param number linewidth
+
+--[[
+separator for luadoc]]--
+
 --- Set commands for a robot
 -- @class function
 -- @name setCommand

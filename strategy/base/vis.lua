@@ -185,7 +185,7 @@ end
 --- Adds a circle. Requires global coordinates.
 -- @name addCircleRaw
 -- @see addCircle
-function vis.addCircleRaw(name, center, radius, color, isFilled, background, style, lineWidth)
+function vis.addCircleRawGeneric(name, center, radius, color, isFilled, background, style, lineWidth)
 	-- if color is set use passed isFilled
 	if not color then
 		isFilled = gisFilled
@@ -197,6 +197,28 @@ function vis.addCircleRaw(name, center, radius, color, isFilled, background, sty
 		circle = {p_x = center.x, p_y = center.y, radius = radius},
 		background = background
 	})
+end
+
+if amun.addVisualizationCircle then
+	--- Adds a circle. Requires global coordinates.
+	-- @name addCircleRaw
+	-- @see addCircle
+	function vis.addCircleRaw(name, center, radius, color, isFilled, background, style, lineWidth)
+		if style ~= nil then
+			return vis.addCircleRawGeneric(name, center, radius, color, isFilled, background, style, lineWidth)
+		end
+
+		-- if color is set use passed isFilled
+		if not color then
+			isFilled = gisFilled
+			color = gcolor
+		end
+		amun.addVisualizationCircle(name, center.x, center.y, radius,
+				color.red, color.green, color.blue, color.alpha,
+				isFilled, background, lineWidth or 0.01)
+	end
+else
+	vis.addCircleRaw = vis.addCircleRawGeneric
 end
 
 --- Adds a polygon.
