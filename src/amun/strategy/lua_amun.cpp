@@ -155,6 +155,45 @@ static int amunAddVisualization(lua_State *state)
     return 0;
 }
 
+static int amunAddVisualizationCircle(lua_State *state)
+{
+    const int numArgs = lua_gettop(state);
+    if (numArgs < 8) {
+        luaL_error(state, "Too few arguments expected at least 8, got %d", numArgs);
+    }
+
+    Lua *thread = getStrategyThread(state);
+    amun::Visualization *vis = thread->addVisualization();
+
+    const char *name = lua_tostring(state, 1);
+    const float center_x = lua_tonumber(state, 2);
+    const float center_y = lua_tonumber(state, 3);
+    const float radius = lua_tonumber(state, 4);
+    const float color_red = lua_tonumber(state, 5);
+    const float color_green = lua_tonumber(state, 6);
+    const float color_blue = lua_tonumber(state, 7);
+    const float color_alpha = lua_tonumber(state, 8);
+    const bool isFilled = lua_toboolean(state, 9);
+    const bool background = lua_toboolean(state, 10);
+    const float width = lua_tonumber(state, 11);
+
+    vis->set_name(name);
+    vis->mutable_circle()->set_p_x(center_x);
+    vis->mutable_circle()->set_p_y(center_y);
+    vis->mutable_circle()->set_radius(radius);
+    vis->mutable_pen()->mutable_color()->set_red(color_red);
+    vis->mutable_pen()->mutable_color()->set_green(color_green);
+    vis->mutable_pen()->mutable_color()->set_blue(color_blue);
+    vis->mutable_pen()->mutable_color()->set_alpha(color_alpha);
+
+    if (isFilled) {
+        vis->mutable_brush()->CopyFrom(vis->mutable_pen()->color());
+    }
+    vis->set_background(background);
+    vis->set_width(width);
+    return 0;
+}
+
 static int amunAddDebug(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
@@ -345,6 +384,7 @@ static const luaL_Reg amunMethods[] = {
     {"setCommand",          amunSetCommand},
     {"log",                 amunLog},
     {"addVisualization",    amunAddVisualization},
+    {"addVisualizationCircle", amunAddVisualizationCircle},
     {"addDebug",            amunAddDebug},
     {"addPlot",             amunAddPlot},
     {"setRobotExchangeSymbol", amunSetRobotExchangeSymbol},
