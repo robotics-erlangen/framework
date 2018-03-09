@@ -48,6 +48,7 @@ private:
     int m_pos;
     int m_count;
     float m_time;
+    float m_maxTime;
 };
 
 Q_DECLARE_METATYPE(Plot*)
