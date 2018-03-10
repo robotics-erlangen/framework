@@ -115,8 +115,8 @@ static int pathAddCircle(lua_State *L)
     const float x = verifyNumber(L, 2);
     const float y = verifyNumber(L, 3);
     const float r = verifyNumber(L, 4);
-    const char* name = NULL;
-    name = luaL_optlstring(L,5, "NoName", 0);
+    const char* name = nullptr;
+    name = luaL_optstring(L,5, nullptr);
     const int prio = luaL_optint(L, 6, 0);
     p->addCircle(x, y, r, name, prio);
     return 0;
@@ -131,8 +131,8 @@ static int pathAddLine(lua_State *L)
     const float y2 = verifyNumber(L, 5);
     const float width = verifyNumber(L, 6);
 
-    const char* name = NULL;
-    name = luaL_optlstring(L,7, "NoName", 0);
+    const char* name = nullptr;
+    name = luaL_optstring(L,7, nullptr);
     const int prio = luaL_optint(L, 8, 0);
 
     // a line musn't have length zero
@@ -169,8 +169,8 @@ static int pathAddRect(lua_State *L)
     const float x2 = verifyNumber(L, 4);
     const float y2 = verifyNumber(L, 5);
 
-    const char* name = NULL;
-    name = luaL_optlstring(L,6, "NoName", 0);
+    const char* name = nullptr;
+    name = luaL_optstring(L,6, nullptr);
     const int prio = luaL_optint(L, 7, 0);
 
     p->addRect(x1, y1, x2, y2, name, prio);
@@ -188,8 +188,8 @@ static int pathAddTriangle(lua_State *L)
     const float y3 = verifyNumber(L, 7);
     const float lineWidth = verifyNumber(L, 8);
 
-    const char* name = NULL;
-    name = luaL_optlstring(L, 9, "NoName", 0);
+    const char* name = nullptr;
+    name = luaL_optstring(L, 9, nullptr);
     const int prio = luaL_optint(L, 10, 0);
 
     p->addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name, prio);

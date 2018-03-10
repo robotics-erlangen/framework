@@ -24,8 +24,8 @@
 
 #include "kdtree.h"
 #include "protobuf/robot.pb.h"
+#include <QByteArray>
 #include <QList>
-#include <QString>
 
 class LineSegment;
 class RNG;
@@ -42,8 +42,8 @@ private:
         virtual float distance(const Vector &v) const = 0;
         virtual float distance(const LineSegment &segment) const = 0;
 
-        QString obstacleName() const { return name; }
-        QString name;
+        QByteArray obstacleName() const { return name; }
+        QByteArray name;
         int prio;
     };
 
