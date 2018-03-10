@@ -353,11 +353,12 @@ bool Path::checkMovementRelativeToObstacles(const LineSegment &segment, const QV
 
     // split obstacle lists, the amount of start obstacles is decreasing for each tree
     QVector<const Obstacle *> startObstacles;
-    QVector<const Obstacle *> tmpObstacles;
     QVector<const Obstacle *> otherObstacles;
     int maxObstaclePrio = -1;
-    // nearly all obstacles should go in here
-    otherObstacles.reserve(obstacles.size() - 1);
+
+    {
+    QVarLengthArray<const Obstacle *, 100> tmpObstacles;
+    tmpObstacles.reserve(obstacles.size() - 1);
     // allow moving from an obstacle with high prio into one with lower prio
     foreach (const Obstacle *o, obstacles) {
         if (o->distance(p) < radius) {
@@ -370,12 +371,13 @@ bool Path::checkMovementRelativeToObstacles(const LineSegment &segment, const QV
             tmpObstacles.append(o);
         }
     }
+    otherObstacles.reserve(tmpObstacles.size());
     for (const Obstacle *o: tmpObstacles) {
         if (o->prio >= maxObstaclePrio) {
             otherObstacles.append(o);
         }
     }
-    tmpObstacles.clear();
+    }
 
     if (startObstacles.size() == 1) {
         float stepSize = std::min(1E-3f, l);
