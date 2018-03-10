@@ -129,13 +129,11 @@ end
 
 
 local function distanceToDefenseAreaSq_2018(pos, friendly)
-
 	local defenseMin = Vector(-G.DefenseWidthHalf,G.FieldHeightHalf-G.DefenseHeight)
 	local defenseMax = Vector(G.DefenseWidthHalf,G.FieldHeightHalf)
 	if friendly then
 		defenseMin, defenseMax = -defenseMax, -defenseMin
 	end
-
 	return pos:distanceToSq(geom.boundRect(defenseMin, pos, defenseMax))
 end
 local function distanceToDefenseArea_2018(pos, radius, friendly)
@@ -232,6 +230,17 @@ function Field.distanceToOpponentDefenseArea(pos, radius)
 	return Field.distanceToDefenseArea(pos, radius, false)
 end
 
+local function insideSector(s,a)
+	local v1,v2 = (-s[1]):perpendicular(), s[2]:perpendicular()
+	local b1 = v1:dot(a) >= 0
+	local b2 = v2:dot(a) >= 0
+	if v1:dot(s[2]) >= 0 then
+		return b1 and b2
+	else
+		return b1 or b2
+	end
+end
+
 local normalize = function(angle)
 	while angle >= 2*math.pi do angle = angle - 2*math.pi end
 	while angle < 0 do angle = angle + 2*math.pi end
@@ -257,8 +266,7 @@ local intersectRayArc = function(pos, dir, m, r, minangle, maxangle)
 	return intersections
 end
 
-
-function Field.intersectDefenseArea_2018(pos, dir, extraDistance, friendly)
+local function intersectionsDefenseArea_2018crude(pos, dir, extraDistance, friendly)
 
 	local corners = {}
 	corners[1] = Vector(G.DefenseWidthHalf+extraDistance, G.FieldHeightHalf)
@@ -272,37 +280,142 @@ function Field.intersectDefenseArea_2018(pos, dir, extraDistance, friendly)
 	-- directions[4] = Vector(1,0)
 	local f = friendly and -1 or 1
 
+	local way = 0
 	local intersections = {}
 	for i,v in ipairs(corners) do
 		local length = (i%2 == 0) and G.DefenseWidth or G.DefenseHeight
 		local ipos, l1, l2 = geom.intersectLineLine(pos, dir, v*f, directions[i]*f)
 		if l1 and l1 >= 0 and l2 >= - extraDistance and l2 <= length + extraDistance then
 			if not (l1 == 0 and l2 == 0) or ipos:distanceToSq(v*f) < 0.0001 then
-				intersections[i] = {pos = ipos, l1 = l1, l2 = l2, length = length}
+				intersections[i] = {ipos, way, l1}
 			end
 		end
+		way = way + length + 2*extraDistance
 		if #intersections == 2 then
 			break
 		end
 	end
-	local min
-	for i,v in pairs(intersections) do
-		if (not min) or v.l1 < intersections[min].l1 then
-			min = i
-		end
-	end
-	if not min then
-		return
-	end
-	if extraDistance < 0.001 then
-		return intersections[min]
-	end
-	return intersections[min]
+	local totalway = G.DefenseWidth + G.DefenseHeight * 2 + extraDistance * 4
+	return intersections, totalway
 end
 
 
+local wayCornerFactor
+do
+	local roborRadius = 0.09
+	local buffer = 0.02
+	local distanceRHalf = (roborRadius + buffer)/2
+	local distanceD = 0.08 + roborRadius
+	wayCornerFactor = distanceRHalf/distanceD/(math.asin(distanceRHalf/distanceD))
+end
+local function intersectDefenseArea_2018(pos, dir, extraDistance, friendly)
+	local corners = {}
+	corners[1] = Vector(G.DefenseWidthHalf+extraDistance, G.FieldHeightHalf)
+	corners[2] = Vector(G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight-extraDistance)
+	corners[3] = Vector(-G.DefenseWidthHalf-extraDistance, G.FieldHeightHalf-G.DefenseHeight)
+	-- corners[4] = Vector(-G.DefenseWidthHalf, G.FieldHeightHalf+extraDistance)
+	local directions = {}
+	directions[1] = Vector(0,-1)
+	directions[2] = Vector(-1,0)
+	directions[3] = Vector(0,1)
+	-- directions[4] = Vector(1,0)
+	local f = friendly and -1 or 1
+	local iIntersections = 1
+	local way = 0
+	local intersections = {}
+	for i,v in ipairs(corners) do
+		-- intersections on lines
+		local length = (i%2 == 0) and G.DefenseWidth or G.DefenseHeight
+		local ipos, l1, l2 = geom.intersectLineLine(pos, dir, v*f, directions[i]*f)
+		if l1 and l1 >= 0 and l2 >= 0 and l2 <= length then
+			-- no intersections with parallel lines
+			if not (l1 == 0 and l2 == 0) or ipos:distanceToSq(v*f) < 0.0001 then
+				intersections[iIntersections] = {pos = ipos, l1 = l1, l2 = l2, length = length, way = way + l2}
+				-- there can't be more than 2 intersections
+				if iIntersections == 2 then
+					break
+				end
+				iIntersections = iIntersections + 1
+			end
+		end
+		way = way + length
+		-- intersections with arc segments
+		if i < 3 then
+			local corner = Vector((3-i*2)*G.DefenseWidthHalf,G.FieldHeightHalf-G.DefenseHeight)*f
+			local pos1, pos2
+			pos1, pos2, l1, l2 = geom.intersectLineCircle(pos-corner, dir, Vector(0,0), extraDistance)
+			if pos1 and not insideSector({directions[i]*f,-directions[i+1]*f}, pos1) then
+				pos1 = nil
+			end
+			if pos2 and not insideSector({directions[i]*f,-directions[i+1]*f}, pos2) then
+				pos2 = nil
+			end
+			if pos2 and ((not pos1) or (l2 < l1)) then
+				pos1 = pos2
+				l1 = l2
+			end
+			if pos1 then
+				intersections[iIntersections] = {pos = pos1, l1 = l1, corner = (3-i*2), way = way}
+				if iIntersections == 2 then
+					break
+				end
+				iIntersections = iIntersections + 1
+			end
+		end
+		way = way + math.pi*extraDistance/2 * wayCornerFactor
+		if #intersections == 2 then
+			break
+		end
+	end
+	if intersections[2] and intersections[2].l1 < intersections[1].l1 then
+		intersections[1] = intersections[2]
+	end
+	local result = intersections[1]
+	if not result then
+		return
+	end
+	if result.corner then
+		local vDir = result.pos*f
+		if result.corner == -1 then
+			vDir = -vDir:perpendicular()
+			end 
+		local angle = -vDir:angle()
+		local corner = Vector(result.corner*G.DefenseWidthHalf,G.FieldHeightHalf-G.DefenseHeight)*f
+		result.pos = result.pos + corner
+		result.way = result.way + angle * extraDistance * wayCornerFactor
+	end
+	return result.pos, result.way, result.corner
+end
 
-local intersectRayDefenseArea = function(pos, dir, extraDistance, opp)
+local function defenseIntersectionByWay_2018(way, extraDistance, friendly)
+	local corners = {}
+	corners[1] = Vector(G.DefenseWidthHalf+extraDistance, G.FieldHeightHalf)
+	corners[2] = Vector(G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight-extraDistance)
+	corners[3] = Vector(-G.DefenseWidthHalf-extraDistance, G.FieldHeightHalf-G.DefenseHeight)
+	-- corners[4] = Vector(-G.DefenseWidthHalf, G.FieldHeightHalf+extraDistance)
+	local directions = {}
+	directions[1] = Vector(0,-1)
+	directions[2] = Vector(-1,0)
+	directions[3] = Vector(0,1)
+	-- directions[4] = Vector(1,0)
+	local f = friendly and -1 or 1
+
+	for i,v in ipairs(corners) do
+		local length = (i%2 == 0) and G.DefenseWidth or G.DefenseHeight
+		if way < length then
+			return (v + directions[i]*way)*f
+		end
+		way = way - length - math.pi/2 * extraDistance * wayCornerFactor
+		if way < 0 then
+			local corner = Vector((3-i*2)*G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight)*f
+			local dir = Vector.fromAngle(-math.pi/(3-i) - way/extraDistance/wayCornerFactor)*f
+			return corner + dir * extraDistance
+		end
+	end
+end
+
+
+local intersectionsRayDefenseArea = function(pos, dir, extraDistance, friendly)
 	-- calculate defense radius
 	extraDistance = extraDistance or 0
 	local radius = G.DefenseRadius + extraDistance
@@ -314,12 +427,12 @@ local intersectRayDefenseArea = function(pos, dir, extraDistance, opp)
 	local totalway = 2 * arcway + lineway
 
 	-- calculate global positions
-	local oppfac = opp and -1 or 1
+	local oppfac = friendly and 1 or -1
 	local leftCenter = Vector(-G.DefenseStretchHalf, -G.FieldHeightHalf) * oppfac
 	local rightCenter = Vector(G.DefenseStretchHalf, -G.FieldHeightHalf) * oppfac
 
 	-- calclulate global angles
-	local oppadd = opp and math.pi or 0
+	local oppadd = friendly and 0 or math.pi
 	local to_opponent = normalize(oppadd + math.pi/2)
 	local to_friendly = normalize(oppadd - math.pi/2)
 
@@ -353,8 +466,8 @@ end
 -- @return Vector - the intersection position (May also be behind the goalline)
 -- @return number - the length of the way from the very left of the defense area to the
 -- intersection point, when moving along its border
-function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp)
-	local intersections, totalway = intersectRayDefenseArea(pos, dir, extraDistance, opp)
+local function intersectRayDefenseArea_2017(pos, dir, extraDistance, friendly)
+	local intersections, totalway = intersectionsRayDefenseArea(pos, dir, extraDistance, friendly)
 
 	-- choose nearest intersection
 	local minDistance = math.huge
@@ -371,6 +484,13 @@ function Field.intersectRayDefenseArea(pos, dir, extraDistance, opp)
 	return minIntersection, minWay
 end
 
+if World.RULEVERSION == "2018" then
+	Field.intersectRayDefenseArea = intersectDefenseArea_2018
+	Field.intersectionsRayDefenseArea = intersectionsDefenseArea_2018crude
+else
+	Field.intersectRayDefenseArea = intersectRayDefenseArea_2017
+	Field.intersectionsRayDefenseArea = intersectionsRayDefenseArea
+end
 --- Return all line segments of the line segment pos to pos + dir * maxLength which are in the allowed field part
 -- @name allowedLineSegments
 -- @param pos Vector - starting point of the line
@@ -400,8 +520,8 @@ function Field.allowedLineSegments(pos, dir, maxLength)
 		end
 	end
 
-	local intersectionsOwn = intersectRayDefenseArea(pos, direction, 0, false)
-	local intersectionsOpp = intersectRayDefenseArea(pos, direction, 0, true)
+	local intersectionsOwn = Field.intersectionsRayDefenseArea(pos, direction, 0, true)
+	local intersectionsOpp = Field.intersectionsRayDefenseArea(pos, direction, 0, false)
 	table.append(intersectionsOwn, intersectionsOpp)
 	for _, intersection in ipairs(intersectionsOwn) do
 		local lambda = pos:distanceTo(intersection[1])
@@ -434,9 +554,9 @@ end
 -- @name defenseIntersectionByWay
 -- @param way number - the way along the border
 -- @param extraDistance number - gets added to G.DefenseRadius
--- @param opp bool - whether the opponent or the friendly defense area is considered
+-- @param friendly bool - whether the opponent or the friendly defense area is considered
 -- @return Vector - the position
-function Field.defenseIntersectionByWay(way, extraDistance, opp)
+local function defenseIntersectionByWay_2017(way, extraDistance, friendly)
 	-- calculate defense radius
 	extraDistance = extraDistance or 0
 	local radius = G.DefenseRadius + extraDistance
@@ -459,27 +579,33 @@ function Field.defenseIntersectionByWay(way, extraDistance, opp)
 	end
 
 	if way < 0 then
-		error("way is out of bounds ("..tostring(way)..", "..tostring(extraDistance)..", "..tostring(opp))
+		error("way is out of bounds ("..tostring(way)..", "..tostring(extraDistance)..", "..tostring(friendly))
 	end
 
 	local intersection
 	if way < arcway then
 		local angle = way / radius
-		intersection = Vector.fromAngle(math.pi - angle) * radius +
-			Vector(-G.DefenseStretchHalf, -G.FieldHeightHalf)
+		intersection = Vector.fromAngle( - angle) * radius +
+			Vector(G.DefenseStretchHalf, G.FieldHeightHalf)
 	elseif way <= arcway + lineway then
-		intersection = Vector(way - arcway - G.DefenseStretchHalf, radius - G.FieldHeightHalf)
+		intersection = Vector( -way + arcway + G.DefenseStretchHalf, G.FieldHeightHalf - radius)
 	else
 		local angle = (way - arcway - lineway) / radius
-		intersection = Vector.fromAngle(math.pi/2 - angle) * radius +
-			Vector(G.DefenseStretchHalf, -G.FieldHeightHalf)
+		intersection = Vector.fromAngle(- math.pi/2 - angle) * radius +
+			Vector(-G.DefenseStretchHalf, G.FieldHeightHalf)
 	end
 
-	if opp then
+	if friendly then
 		intersection = -intersection
 	end
 
 	return intersection
+end
+
+if World.RULEVERSION == "2018" then
+	Field.defenseIntersectionByWay = defenseIntersectionByWay_2018
+else
+	Field.defenseIntersectionByWay = defenseIntersectionByWay_2017
 end
 
 --- Calculates all intersections (0 to 4) of a given circle with the (extended) defense area
@@ -487,14 +613,14 @@ end
 -- @param pos Vector - center point of the circle
 -- @param radius number - radius of the circle
 -- @param extraDistance number - gets added to G.DefenseRadius
--- @param opp bool - whether the opponent or the friendly defense area is considered
+-- @param friendly bool - whether the opponent or the friendly defense area is considered
 -- @return [Vector] - a list of intersection points, not sorted
-function Field.intersectCircleDefenseArea(pos, radius, extraDistance, opp)
+local function intersectCircleDefenseArea_2017(pos, radius, extraDistance, friendly)
 	-- invert coordinates if opp-flag is set
-	if opp then pos = pos * -1 end
+	if friendly then pos = pos * -1 end
 
-	local leftCenter = Vector(-G.DefenseStretchHalf, -G.FieldHeightHalf)
-	local rightCenter = Vector(G.DefenseStretchHalf, -G.FieldHeightHalf)
+	local leftCenter = Vector(-G.DefenseStretchHalf, G.FieldHeightHalf)
+	local rightCenter = Vector(G.DefenseStretchHalf, G.FieldHeightHalf)
 	local defenseRadius = G.DefenseRadius + extraDistance
 
 	local intersections = {}
@@ -502,22 +628,22 @@ function Field.intersectCircleDefenseArea(pos, radius, extraDistance, opp)
 	-- get intersections with circles
 	local li1, li2 = geom.intersectCircleCircle(leftCenter, defenseRadius, pos, radius)
 	local ri1, ri2 = geom.intersectCircleCircle(rightCenter, defenseRadius, pos, radius)
-	if li1 and li1.x < G.DefenseStretchHalf and li1.y > -G.FieldHeightHalf then
+	if li1 and li1.x < G.DefenseStretchHalf and li1.y < G.FieldHeightHalf then
 		table.insert(intersections, li1)
 	end
-	if li2 and li2.x < G.DefenseStretchHalf and li2.y > -G.FieldHeightHalf then
+	if li2 and li2.x < G.DefenseStretchHalf and li2.y < G.FieldHeightHalf then
 		table.insert(intersections, li2)
 	end
-	if ri1 and ri1.x > G.DefenseStretchHalf and ri1.y > -G.FieldHeightHalf then
+	if ri1 and ri1.x > G.DefenseStretchHalf and ri1.y < G.FieldHeightHalf then
 		table.insert(intersections, ri1)
 	end
-	if ri2 and ri2.x > G.DefenseStretchHalf and ri2.y > -G.FieldHeightHalf then
+	if ri2 and ri2.x > G.DefenseStretchHalf and ri2.y < G.FieldHeightHalf then
 		table.insert(intersections, ri2)
 	end
 
 	-- get intersections with line
 	local mi1, mi2 = geom.intersectLineCircle(
-				Vector(0, -G.FieldHeightHalf+defenseRadius), Vector(1, 0), pos, radius)
+				Vector(0, G.FieldHeightHalf-defenseRadius), Vector(1, 0), pos, radius)
 	if mi1 and math.abs(mi1.x) <= G.DefenseStretchHalf then
 		table.insert(intersections, li1)
 	end
@@ -527,13 +653,72 @@ function Field.intersectCircleDefenseArea(pos, radius, extraDistance, opp)
 
 
 	-- invert coordinates if opp-flag is set
-	if opp then
+	if friendly then
 		for i, intersection in ipairs(intersections) do
 			intersections[i] = intersection * -1
 		end
 	end
 
 	return intersections
+end
+local function intersectCircleDefenseArea_2018(pos, radius, extraDistance, friendly)
+	if not isInDefenseArea_2018(pos, radius+extraDistance, friendly) then
+		return {}
+	end
+	local corners = {}
+	corners[1] = Vector(G.DefenseWidthHalf, G.FieldHeightHalf)
+	corners[2] = Vector(G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight)
+	corners[3] = Vector(-G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight)
+	corners[4] = Vector(-G.DefenseWidthHalf, G.FieldHeightHalf)
+	corners[5] = Vector(corners[1].x + extraDistance, corners[1].y)
+	corners[6] = Vector(corners[2].x, corners[2].y - extraDistance)
+	corners[7] = Vector(corners[3].x - extraDistance, corners[3].y)
+	corners[8] = Vector(corners[4].x, corners[4].y + extraDistance)
+	-- invert coordinates if friendly-flag is set
+	if friendly then pos = pos * -1 end
+
+	local intersections = {}
+
+	local ci1, ci2
+	local zero = Vector(0, 0)
+	local li1, li2, lambda1, lambda2
+	local dirPrev = corners[1] - corners[4]
+	for i=1,3 do
+		local dir = corners[i%4+1]-corners[i]
+		-- get intersections with circles
+		if i > 1 and i < 4 then
+			ci1, ci2 = geom.intersectCircleCircle(zero, extraDistance, pos-corners[i], radius)
+			if ci1 and insideSector({dirPrev, -dir}, ci1) then
+				table.insert(intersections, ci1 + corners[i])
+			end
+			if ci2 and insideSector({dirPrev, -dir}, ci2) then
+				table.insert(intersections, ci2 + corners[i])
+			end
+		end
+		dirPrev = dir
+		-- get intersections with line
+		li1, li2, lambda1, lambda2 = geom.intersectLineCircle(corners[i+4], dir, pos, radius)
+		if lambda1 and lambda1 >= 0 and lambda1*lambda1 < dir:lengthSq() then
+			table.insert(intersections, li1)
+		end
+		if lambda2 and lambda2 >= 0 and lambda2*lambda2 < dir:lengthSq() then
+			table.insert(intersections, li2)
+		end
+	end
+	-- invert coordinates if opp-flag is set
+	if friendly then
+		for i, intersection in ipairs(intersections) do
+			intersections[i] = intersection * -1
+		end
+	end
+
+	return intersections
+end
+
+if World.RULEVERSION == "2018" then
+	Field.intersectCircleDefenseArea = intersectCircleDefenseArea_2018
+else
+	Field.intersectCircleDefenseArea = intersectCircleDefenseArea_2017
 end
 
 --- Calculates the distance (between robot hull and field line) to the own goal line
