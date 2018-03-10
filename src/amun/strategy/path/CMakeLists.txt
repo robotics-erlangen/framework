@@ -20,11 +20,11 @@
 
 add_library(path
     include/path/kdtree.h
+    include/path/linesegment.h
     include/path/path.h
     include/path/vector.h
 
     kdtree.cpp
-    linesegment.h
     path.cpp
 )
 target_link_libraries(path

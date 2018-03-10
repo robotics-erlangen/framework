@@ -21,22 +21,11 @@
 
 #include "path.h"
 #include "kdtree.h"
-#include "linesegment.h"
 #include "core/rng.h"
 #include <cstdlib>
 #include <sys/time.h>
 #include <QDebug>
 
-
-struct Path::Line : Obstacle
-{
-    Line(const Vector &p1, const Vector &p2) : segment(p1, p2) {}
-    float distance(const Vector &v) const override;
-    float distance(const LineSegment &segment) const override;
-
-    LineSegment segment;
-    float width;
-};
 
 /*!
  * \class Path
@@ -216,49 +205,52 @@ void Path::addSeedTarget(float x, float y)
 
 void Path::clearObstacles()
 {
-    qDeleteAll(m_obstacles);
-    m_obstacles.clear();
+    m_circleObstacles.clear();
+    m_rectObstacles.clear();
+    m_triangleObstacles.clear();
+    m_lineObstacles.clear();
+
     m_seedTargets.clear();
 }
 
 void Path::addCircle(float x, float y, float radius, const char* name, int prio)
 {
-    Circle *c = new Circle;
-    c->center.x = x;
-    c->center.y = y;
-    c->radius = radius;
-    c->name = name;
-    c->prio = prio;
-    m_obstacles.append(c);
+    Circle c;
+    c.center.x = x;
+    c.center.y = y;
+    c.radius = radius;
+    c.name = name;
+    c.prio = prio;
+    m_circleObstacles.append(c);
 }
 
 void Path::addLine(float x1, float y1, float x2, float y2, float width, const char* name, int prio)
 {
-    Line *l = new Line(Vector(x1, y1), Vector(x2, y2));
-    l->width = width;
-    l->name = name;
-    l->prio = prio;
-    m_obstacles.append(l);
+    Line l(Vector(x1, y1), Vector(x2, y2));
+    l.width = width;
+    l.name = name;
+    l.prio = prio;
+    m_lineObstacles.append(l);
 }
 
 void Path::addRect(float x1, float y1, float x2, float y2, const char* name, int prio)
 {
-    Rect *r = new Rect;
-    r->bottom_left.x = std::min(x1, x2);
-    r->bottom_left.y = std::min(y1, y2);
-    r->top_right.x = std::max(x1, x2);
-    r->top_right.y = std::max(y1, y2);
-    r->name = name;
-    r->prio = prio;
-    m_obstacles.append(r);
+    Rect r;
+    r.bottom_left.x = std::min(x1, x2);
+    r.bottom_left.y = std::min(y1, y2);
+    r.top_right.x = std::max(x1, x2);
+    r.top_right.y = std::max(y1, y2);
+    r.name = name;
+    r.prio = prio;
+    m_rectObstacles.append(r);
 }
 
 void Path::addTriangle(float x1, float y1, float x2, float y2, float x3, float y3, float lineWidth, const char *name, int prio)
 {
-    Triangle *t = new Triangle;
-    t->lineWidth = lineWidth;
-    t->name = name;
-    t->prio = prio;
+    Triangle t;
+    t.lineWidth = lineWidth;
+    t.name = name;
+    t.prio = prio;
 
     // ensure that the triangle is oriented counter-clockwise
     const Vector a(x1, y1);
@@ -266,15 +258,15 @@ void Path::addTriangle(float x1, float y1, float x2, float y2, float x3, float y
     const Vector c(x3, y3);
     const float det = Vector::det(a, b, c);
     if (det > 0) {
-        t->p1 = a;
-        t->p2 = b;
-        t->p3 = c;
+        t.p1 = a;
+        t.p2 = b;
+        t.p3 = c;
     } else {
-        t->p1 = a;
-        t->p2 = c;
-        t->p3 = b;
+        t.p1 = a;
+        t.p2 = c;
+        t.p3 = b;
     }
-    m_obstacles.append(t);
+    m_triangleObstacles.append(t);
 }
 
 
@@ -300,6 +292,7 @@ bool Path::testSpline(const robot::Spline &spline, float radius) const
         t += step_size;
     }
 
+    collectObstacles();
     for (int i = 1; i < points.size(); i++) {
         if (points[i - 1] == points[i]) {
             continue;
@@ -319,6 +312,15 @@ Vector Path::evalSpline(const robot::Spline &spline, float t) const
     p.x = spline.x().a0() + (spline.x().a1() + (spline.x().a2() + spline.x().a3() * t) * t) * t;
     p.y = spline.y().a0() + (spline.y().a1() + (spline.y().a2() + spline.y().a3() * t) * t) * t;
     return p;
+}
+
+void Path::collectObstacles() const
+{
+    m_obstacles.clear();
+    for (const Circle &c: m_circleObstacles) { m_obstacles.append(&c); }
+    for (const Rect &r: m_rectObstacles) { m_obstacles.append(&r); }
+    for (const Triangle &t: m_triangleObstacles) { m_obstacles.append(&t); }
+    for (const Line &l: m_lineObstacles) { m_obstacles.append(&l); }
 }
 
 //! @brief calculate how far we are standing in the (multiple) obstacles
@@ -434,6 +436,8 @@ void Path::setProbabilities(float p_dest, float p_wp)
 Path::List Path::get(float start_x, float start_y, float end_x, float end_y)
 {
     const int extendMultiSteps = 4;
+
+    collectObstacles();
 
     const Vector start(start_x, start_y);
     const Vector end(end_x, end_y);

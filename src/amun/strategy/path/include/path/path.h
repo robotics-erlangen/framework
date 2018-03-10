@@ -23,6 +23,7 @@
 #define PATH_H
 
 #include "kdtree.h"
+#include "linesegment.h"
 #include "protobuf/robot.pb.h"
 #include <QByteArray>
 #include <QVector>
@@ -74,8 +75,16 @@ private:
         float lineWidth;
     };
 
-    // Avoid including LineSegment
-    struct Line;
+    struct Line : Obstacle
+    {
+        Line() : segment(Vector(0,0), Vector(0,0)) {}
+        Line(const Vector &p1, const Vector &p2) : segment(p1, p2) {}
+        float distance(const Vector &v) const override;
+        float distance(const LineSegment &segment) const override;
+
+        LineSegment segment;
+        float width;
+    };
 
 public:
     struct Waypoint
@@ -115,6 +124,7 @@ public:
 private:
     Vector evalSpline(const robot::Spline &spline, float t) const;
 
+    void collectObstacles() const;
     Vector randomState() const;
     Vector getTarget(const Vector &end);
     void addToWaypointCache(const Vector &pos);
@@ -136,8 +146,15 @@ private:
 
 private:
     QVector<Vector> m_waypoints;
-    QVector<const Obstacle*> m_obstacles;
     QVector<Vector> m_seedTargets;
+    // only valid after a call to collectObstacles, may become invalid after the calling function returns!
+    mutable QVector<const Obstacle*> m_obstacles;
+
+    QVector<Circle> m_circleObstacles;
+    QVector<Rect> m_rectObstacles;
+    QVector<Triangle> m_triangleObstacles;
+    QVector<Line> m_lineObstacles;
+
     Rect m_boundary;
     Rect m_sampleRect;
     float m_p_dest;
