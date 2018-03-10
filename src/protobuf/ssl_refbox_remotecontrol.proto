@@ -1,4 +1,6 @@
 syntax = "proto2";
+option cc_enable_arenas = true;
+
 import "ssl_referee.proto";
 import "ssl_referee_game_event.proto";
 // taken from https://github.com/RoboCup-SSL/ssl-refbox/

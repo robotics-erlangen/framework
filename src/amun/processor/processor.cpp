@@ -190,7 +190,7 @@ void Processor::process()
     //publish world status
     emit sendStatus(status);
 
-    Status status_debug(new amun::Status);
+    Status status_debug = Status::createArena();
     const qint64 controller_start = Timer::systemTime();
     // just ignore the referee for timing
     status_debug->mutable_timing()->set_tracking((controller_start - tracker_start) / 1E9);

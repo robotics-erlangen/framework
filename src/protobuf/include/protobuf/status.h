@@ -28,8 +28,56 @@
 //! @addtogroup protobuf
 //! @{
 
-//! Protobuf status wrapper with reference counting
-typedef QSharedPointer<amun::Status> Status;
+class Status {
+public:
+    Status() {}
+
+    Status(amun::Status *status) {
+        m_status = QSharedPointer<amun::Status>(status);
+    }
+
+    Status(amun::Status *status, google::protobuf::Arena* arena) {
+        m_arenaStatus = status;
+        m_arena = QSharedPointer<google::protobuf::Arena>(arena);
+    }
+
+    void clear() {
+        m_status.clear();
+        m_arena.clear();
+    }
+
+    bool isNull() const {
+        return m_arena.isNull() && m_status.isNull();
+    }
+
+    amun::Status & operator*() const {
+        if (m_arena.isNull())
+            return *m_status;
+        else
+            return *m_arenaStatus;
+    }
+
+    amun::Status * operator->() const {
+        if (m_arena.isNull())
+            return &(*m_status);
+        else
+            return m_arenaStatus;
+    }
+
+    static Status createArena() {
+        google::protobuf::ArenaOptions options;
+        options.initial_block_size = 512;
+        options.max_block_size = 32 * 1024;
+        google::protobuf::Arena *arena = new google::protobuf::Arena(options);
+        amun::Status *s = google::protobuf::Arena::CreateMessage<amun::Status>(arena);
+        return Status(s, arena);
+    }
+
+private:
+    QSharedPointer<amun::Status> m_status;
+    amun::Status *m_arenaStatus;
+    QSharedPointer<google::protobuf::Arena> m_arena;
+};
 
 //! @}
 

@@ -38,7 +38,7 @@ Status BacklogStatusSource::readStatus(int packet)
         return Status();
     }
     QByteArray uncompressed = qUncompress(m_packets.at(packet + m_packets.firstIndex()));
-    Status status(new amun::Status);
+    Status status = Status::createArena();
     status->ParseFromArray(uncompressed.data(), uncompressed.size());
     return status;
 }
@@ -78,7 +78,7 @@ void BacklogWriter::handleStatus(const Status &status)
 Status BacklogWriter::packetFromByteArray(QByteArray packetData)
 {
     QByteArray uncompressed = qUncompress(packetData);
-    Status status(new amun::Status);
+    Status status = Status::createArena();
     status->ParseFromArray(uncompressed.data(), uncompressed.size());
     return status;
 }

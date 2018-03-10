@@ -267,7 +267,7 @@ Status LogFileReader::readStatus(int packetNum)
             packetSize = m_currentGroup.size() - sizeof(qint32) * m_packageGroupSize - packetOffset;
         }
 
-        Status status(new amun::Status);
+        Status status = Status::createArena();
         if (status->ParseFromArray(m_currentGroup.data() + packetOffset, packetSize)) {
             return status;
         }
@@ -286,7 +286,7 @@ Status LogFileReader::readStatus(int packetNum)
         m_stream >> packet;
         packet = qUncompress(packet);
         if (!packet.isEmpty()) {
-            Status status(new amun::Status);
+            Status status = Status::createArena();
             if (status->ParseFromArray(packet.data(), packet.size())) {
                 return status;
             }

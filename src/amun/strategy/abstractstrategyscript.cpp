@@ -26,7 +26,7 @@ AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType 
     m_type(type),
     m_debugEnabled(debugEnabled),
     m_refboxControlEnabled(refboxControlEnabled),
-    m_debugStatus(new amun::Status),
+    m_debugStatus(Status::createArena()),
     m_hasDebugger(false),
     m_debugHelper(nullptr),
     m_isInternalAutoref(false)
@@ -40,7 +40,7 @@ bool AbstractStrategyScript::triggerDebugger()
 
 Status AbstractStrategyScript::takeDebugStatus()
 {
-    Status status(new amun::Status);
+    Status status = Status::createArena();
     status->CopyFrom(*m_debugStatus);
     m_debugStatus->Clear();
     return status;
