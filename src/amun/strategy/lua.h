@@ -60,7 +60,7 @@ public:
     bool isBlue() const { return m_type == StrategyType::BLUE; }
     const QDir baseDir() const { return m_baseDir; }
     bool refboxControlEnabled() const { return m_refboxControlEnabled; }
-    void setCommand(uint generation, uint robotId, robot::Command &command);
+    void setCommand(uint generation, uint robotId, const RobotCommand &command);
     void log(const QString &text);
     amun::Visualization *addVisualization();
     void removeVisualizations();

@@ -48,16 +48,16 @@ struct Processor::Robot
 
     void clearStrategyCommand()
     {
-        delete strategy_command;
-        strategy_command = NULL;
+        strategy_command.clear();
     }
 
-    bool setStrategyCommand(const void *data, int size)
+    bool setStrategyCommand(const RobotCommand &command)
     {
-        if (!strategy_command) {
-            strategy_command = new robot::Command;
+        if (!command->IsInitialized()) {
+            return false;
         }
-        return strategy_command->ParseFromArray(data, size);
+        strategy_command = command;
+        return true;
     }
 
     void clearManualCommand()
@@ -80,7 +80,7 @@ struct Processor::Robot
             // this has precedence over any strategy command
             command.CopyFrom(*manual_command);
             command.set_strategy_controlled(false);
-        } else if (strategy_command) {
+        } else if (!strategy_command.isNull()) {
             // copy strategy command
             command.CopyFrom(*strategy_command);
             command.set_strategy_controlled(true);
@@ -98,7 +98,7 @@ struct Processor::Robot
     const quint32 generation;
     const quint32 id;
     CommandEvaluator controller;
-    robot::Command *strategy_command;
+    RobotCommand strategy_command;
     robot::Command *manual_command;
 };
 
@@ -459,7 +459,7 @@ void Processor::handleControl(Team &team, const amun::CommandControl &control)
 }
 
 // blue is actually redundant, but this ensures that only the right strategy can control a robot
-void Processor::handleStrategyCommand(bool blue, uint generation, uint id, QByteArray data, qint64 time)
+void Processor::handleStrategyCommand(bool blue, uint generation, uint id, const RobotCommand &command, qint64 time)
 {
     Team &team = blue ? m_blueTeam : m_yellowTeam;
     Robot *robot = team.robots.value(qMakePair(generation, id));
@@ -469,7 +469,7 @@ void Processor::handleStrategyCommand(bool blue, uint generation, uint id, QByte
     }
 
     // halt robot on invalid strategy command
-    if (!robot->setStrategyCommand(data.data(), data.size())) {
+    if (!robot->setStrategyCommand(command)) {
         robot->clearStrategyCommand();
         robot->controller.clearInput();
         return;

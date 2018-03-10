@@ -98,13 +98,22 @@ static int amunSetCommand(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
 
-    // set robot movement command
-    robot::Command command;
-    const uint generation = lua_tointeger(state, 1);
-    const uint robotId = lua_tointeger(state, 2);
-    protobufToMessage(state, 3, command, NULL);
+    std::string errorMsg;
+    {
+        // set robot movement command
+        RobotCommand command(new robot::Command);
+        const uint generation = lua_tointeger(state, 1);
+        const uint robotId = lua_tointeger(state, 2);
+        protobufToMessage(state, 3, *command, &errorMsg);
 
-    thread->setCommand(generation, robotId, command);
+        if (errorMsg.size() == 0) {
+            thread->setCommand(generation, robotId, command);
+            return 0;
+        }
+    }
+
+    // give robot command the chance to cleanup its memory
+    luaL_error(state, errorMsg.c_str());
     return 0;
 }
 

@@ -22,6 +22,7 @@
 #define STRATEGY_H
 
 #include "protobuf/command.h"
+#include "protobuf/robotcommand.h"
 #include "protobuf/status.h"
 #include "strategytype.h"
 #include <QString>
@@ -48,7 +49,7 @@ public:
 signals:
     void gotCommand(const Command &command);
     void sendStatus(const Status &status);
-    void sendStrategyCommand(bool blue, uint generation, uint id, const QByteArray &data, qint64 time);
+    void sendStrategyCommand(bool blue, uint generation, uint id, const RobotCommand &command, qint64 time);
     void sendHalt(bool blue);
     void startReadingStatus();
 

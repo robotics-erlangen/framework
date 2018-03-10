@@ -22,6 +22,7 @@
 #define PROCESSOR_H
 
 #include "protobuf/command.h"
+#include "protobuf/robotcommand.h"
 #include "protobuf/ssl_mixed_team.pb.h"
 #include "protobuf/ssl_radio_protocol.pb.h"
 #include "protobuf/status.h"
@@ -59,7 +60,7 @@ public slots:
     void handleMixedTeamInfo(const QByteArray &data, qint64 time);
     void handleRadioResponses(const QList<robot::RadioResponse> &responses);
     void handleCommand(const Command &command);
-    void handleStrategyCommand(bool blue, uint generation, uint id, QByteArray data, qint64 time);
+    void handleStrategyCommand(bool blue, uint generation, uint id, const RobotCommand &command, qint64 time);
     void handleStrategyHalt(bool blue);
 
 private:

@@ -459,7 +459,7 @@ qint64 Lua::time() const
     return m_timer->currentTime();
 }
 
-void Lua::setCommand(uint generation, uint robotId, robot::Command &command)
+void Lua::setCommand(uint generation, uint robotId, const RobotCommand &command)
 {
     if (m_type != StrategyType::BLUE && m_type != StrategyType::YELLOW) {
         log("Only blue or yellow strategy may send robot commands!");
@@ -467,11 +467,7 @@ void Lua::setCommand(uint generation, uint robotId, robot::Command &command)
     }
     // movement commands are immediatelly forwarded to the processor
     // that is while the strategy is still running
-    QByteArray data;
-    data.resize(command.ByteSize());
-    if (command.SerializeToArray(data.data(), data.size())) {
-        emit sendStrategyCommand(m_type == StrategyType::BLUE, generation, robotId, data, m_worldState.time());
-    }
+    emit sendStrategyCommand(m_type == StrategyType::BLUE, generation, robotId, command, m_worldState.time());
 }
 
 void Lua::log(const QString &text)

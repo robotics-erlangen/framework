@@ -25,6 +25,7 @@
 #include "protobuf/debug.pb.h"
 #include "protobuf/gamestate.pb.h"
 #include "protobuf/robot.pb.h"
+#include "protobuf/robotcommand.h"
 #include "protobuf/status.h"
 #include "protobuf/userinput.pb.h"
 #include "protobuf/world.pb.h"
@@ -76,7 +77,7 @@ signals:
     // wrapper may listen to reload request, but doesn't have to
     void requestReload();
     void gotCommand(const Command &command);
-    void sendStrategyCommand(bool blue, uint generation, uint id, const QByteArray &data, qint64 time);
+    void sendStrategyCommand(bool blue, uint generation, uint id, const RobotCommand &command, qint64 time);
     void sendMixedTeamInfo(const QByteArray &data);
     void sendNetworkRefereeCommand(const QByteArray &data);
     void sendAutorefEvent(const QByteArray &data);
