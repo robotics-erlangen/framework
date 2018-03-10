@@ -63,7 +63,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 
 		-- check if robot would have to move through defense area to intercept the pass
 		local orthogonalProjection = opp.pos:orthogonalProjection(shootPos, pass.ballPos)
-		local intersection = Field.intersectRayDefenseArea(opp.pos, orthogonalProjection - opp.pos, 0, true)
+		local intersection = Field.intersectRayDefenseArea(opp.pos, orthogonalProjection - opp.pos, 0, false)
 		local validIntersection = false
 		if intersection then
 			validIntersection = Field.isInField(intersection) and opp.pos:distanceTo(intersection) < opp.pos:distanceTo(orthogonalProjection)

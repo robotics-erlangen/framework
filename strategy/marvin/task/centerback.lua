@@ -96,7 +96,7 @@ function CenterBack:run()
 	local intersectionWithGoalLine = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, G.FriendlyGoal, Vector(1, 0))
 	if intersectionWithGoalLine and math.abs(intersectionWithGoalLine.x) < G.GoalWidth / 2 + 0.1
 			and World.Ball.speed:length() > 0.5 and World.Ball.speed.y < 0 and destinationTarget == World.Ball then
-		local blockingPos = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, self.distanceToDefenseArea() + self._robot.radius, false)
+		local blockingPos = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, self.distanceToDefenseArea() + self._robot.radius, true)
 		--destinationPos = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, destinationPos, (destinationPos - self._robot.pos))
 		if blockingPos then
 			destinationPos = blockingPos

@@ -6,6 +6,7 @@ local UtilDefense = require "util/defense"
 local Rating = require "util/rating"
 local vis = require "../base/vis"
 local World = require "../base/world"
+local Constants = require "../base/constants"
 
 local G = World.Geometry
 
@@ -48,8 +49,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 	end
 	local getImportant = 2 * robot_radius + 0.02 + distanceToDefenseArea
 
-	if Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)
-		< 2 * robot_radius + distanceToDefenseArea + 0.4 then
+	if Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius + 2 * robot_radius + distanceToDefenseArea + 0.4) then
 		distanceBetweenDefenders = 0
 	end
 
@@ -77,9 +77,14 @@ local function calculateCenterBackPositions(centerBackApplications)
 	end
 
 
-	-- calculate middle position and way footprint
-	local waymaximum = math.pi * (World.Geometry.DefenseRadius + distanceToDefenseArea + robot_radius) +
-		World.Geometry.DefenseStretch
+	-- -- calculate middle position and way footprint
+	local waymaximum
+	if World.RULEVERSION == "2018" then
+		waymaximum = math.pi * (distanceToDefenseArea + robot_radius) + G.DefenseWidth + 2* G.DefenseHeight
+	else
+		waymaximum = math.pi * (World.Geometry.DefenseRadius + distanceToDefenseArea + robot_radius) +
+				World.Geometry.DefenseStretch
+	end
 	local intersections = {}
 	for target, rlist in pairs(robots) do
 		-- if the target is the ball, predict it
@@ -91,7 +96,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 		if not way then
 			targetPos = Field.limitToField(targetPos, -0.01)
 			_, way = Field.intersectRayDefenseArea(G.FriendlyGoal, targetPos - G.FriendlyGoal,
-				distanceToDefenseArea + robot_radius, false)
+				distanceToDefenseArea + robot_radius, true)
 		end
 		local occupiedWay = (#rlist) * (2 * robot_radius + distanceBetweenDefenders)
 
@@ -162,7 +167,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 		local way = i.waypos - i.wayrange/2 + delta/2
 		for _,t in ipairs(i.targets) do
 			for _ = 1,t.n do
-				local final_pos = Field.defenseIntersectionByWay(way, robot_radius + distanceToDefenseArea, false)
+				local final_pos = Field.defenseIntersectionByWay(way, robot_radius + distanceToDefenseArea, true)
 				vis.addCircle("g/centerback: Positions", final_pos, 0.1, vis.colors.skyBlue)
 				table.insert(defensePoints, {
 					["pos"] = final_pos,
@@ -194,17 +199,21 @@ local function calculateCenterBackPositions(centerBackApplications)
 	for robot, target in pairs(unimportantApplications) do
 		-- if the target is the ball, predict it
 		local targetPos = target.pos
-		local _, target_way = nil
+		local _, target_way, robot_way = nil
 		if target == World.Ball then
 			targetPos, target_way = UtilDefense.calculateBallPosition(distanceToDefenseArea, robot_radius)
 		end
 		if not target_way then
 			targetPos = Field.limitToField(targetPos, -0.01)
 			_, target_way = Field.intersectRayDefenseArea(G.FriendlyGoal, targetPos - G.FriendlyGoal,
-					distanceToDefenseArea + robot_radius, false)
+					distanceToDefenseArea + robot_radius, true)
 		end
-		local _, robot_way = Field.intersectRayDefenseArea(G.FriendlyGoal, robot.pos - G.FriendlyGoal,
-				distanceToDefenseArea + robot_radius, false)
+		local dir = robot.pos - G.FriendlyGoal
+		if dir.y < 0 then
+			dir.y = 0.01
+		end
+		_, robot_way = Field.intersectRayDefenseArea(G.FriendlyGoal, dir,
+				distanceToDefenseArea + robot_radius, true)
 		for _,i in ipairs(intersections) do
 			if target_way - robot_radius < i.waypos + i.wayrange/2
 					and target_way + robot_radius > i.waypos - i.wayrange/2 then
@@ -213,7 +222,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 			end
 		end
 
-		local pos = Field.defenseIntersectionByWay(target_way, robot_radius + distanceToDefenseArea, false)
+		local pos = Field.defenseIntersectionByWay(target_way, robot_radius + distanceToDefenseArea, true)
 		vis.addCircle("g/centerback: Positions", pos, 0.1, vis.colors.greenHalf)
 		privateCenterBackPositions[robot] = {["pos"] = pos, ["target"] = target, ["way"] = target_way}
 	end

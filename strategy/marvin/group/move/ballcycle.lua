@@ -38,7 +38,7 @@ local function getRandomPosition(positions, maxShootingAngle)
 	-- position close to current ball pos
 	local firstPointNearBall = circle + ((World.Ball.pos - circle):rotate(angle)):setLength(randomExtension(radius + extraDistForRobotToShoot))
 	-- position close to opponent defence area with some distance
-	local intersections = Field.intersectCircleDefenseArea(circle, radius, 0.75, true)
+	local intersections = Field.intersectCircleDefenseArea(circle, radius, 0.75, false)
 	local lastPointNearOppDefenseArea = nil
 	for i = 1, 4 do
 		if lastPointNearOppDefenseArea == nil then

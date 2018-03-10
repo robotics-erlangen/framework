@@ -77,7 +77,7 @@ function StopAttack:run()
 		self._defenseHysteresis = false
 		if Field.isInFriendlyDefenseArea(pos, 4 * self._robot.radius + 0.05) then
 			local intersections = Field.intersectCircleDefenseArea(World.Ball.pos,
-					stopRadius, 4 * self._robot.radius + 0.05, false)
+					stopRadius, 4 * self._robot.radius + 0.05, true)
 			if #intersections > 0 then
 				pos = nil
 				for _,p in ipairs(intersections) do

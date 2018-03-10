@@ -36,7 +36,7 @@ function ManMark:run()
 	-- and the probabilty of it being the final position is small
 	local intersectionDefenseArea = Field.intersectRayDefenseArea(preferredPos,
 			World.Geometry.FriendlyGoal - preferredPos,
-			self._robot.radius + DEFENSE_AREA_MIN_DISTANCE, false)
+			self._robot.radius + DEFENSE_AREA_MIN_DISTANCE, true)
 
 	local moveDest
 	local basePos

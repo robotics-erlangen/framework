@@ -64,8 +64,7 @@ local function calculateBallPosition(distanceToDefenseArea, robot_radius)
 		if goalLineIntersection and
 				math.abs(goalLineIntersection.x) < World.Geometry.GoalWidth / 2 + 0.15 then
 			-- FIXME: HACK FOR FLOATS
-			targetPos, targetWay = Field.intersectRayDefenseArea(targetPos, targetDir,
-				distanceToDefenseArea + robot_radius + 0.02 , false)
+			targetPos, targetWay = Field.intersectRayDefenseArea(targetPos, targetDir, distanceToDefenseArea + robot_radius + 0.02 , true)
 		end
 	end
 	if not targetPos then
@@ -79,7 +78,7 @@ Defense.calculateBallPosition = Cache.forFrame(calculateBallPosition)
 local function centerBackPos(targetPos)
 	local dist = CenterBack.distanceToDefenseArea() + Constants.maxRobotRadius
 	local dir = World.Geometry.FriendlyGoal - targetPos
-	return Field.intersectRayDefenseArea(targetPos, dir, dist) or CenterBack.defaultPos
+	return Field.intersectRayDefenseArea(targetPos, dir, dist, true) or CenterBack.defaultPos
 end
 Defense.centerBackPos = Cache.forFrame(centerBackPos)
 
@@ -87,7 +86,7 @@ Defense.centerBackPos = Cache.forFrame(centerBackPos)
 local DANGEROUS_BALL_SPEED = 3.0
 function Defense.dangerousBallTowardsDefense(opp)
 	-- if the ball rolls towards our defense area with high speed, stay defender
-	local defenseLineIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, 0, opp)
+	local defenseLineIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, 0, not opp)
 	if defenseLineIntersection then
 		local timeToDefenseLine = Physics.ballRollTime(World.Ball,
 			World.Ball.pos:distanceTo(defenseLineIntersection))

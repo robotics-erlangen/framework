@@ -39,7 +39,7 @@ function ManMark:_updateTask()
 	local passReceiver = passReceivers[1] and passReceivers[1].robot
 	if Defense.dangerousBallTowardsDefense() or self._opp == passReceiver then
 		local defenseAreaIntersection = Field.intersectRayDefenseArea(World.Ball.pos,
-			World.Ball.pos + World.Ball.speed, 0, false)
+			World.Ball.pos + World.Ball.speed, 0, true)
 		if defenseAreaIntersection and World.Ball.pos:distanceTo(defenseAreaIntersection)
 			> World.Ball.pos:distanceTo(self._robot.pos)
 			and (self._robot.pos - World.Ball.pos):dot(World.Ball.speed) > 0 then
@@ -55,8 +55,7 @@ function ManMark:_updateTask()
 	local markingPosDefenseDist = Field.distanceToFriendlyDefenseArea(dest, self._opp.radius)
 	local markingPosNearLow = CenterBack.distanceToDefenseArea() + Defense.MARKING_DISTANCE
 	local markingPosNearHigh = markingPosNearLow + 2 * self._robot.radius
-	local markingPosThreshold = wasCenterback
-			and markingPosNearHigh or markingPosNearLow
+	local markingPosThreshold = wasCenterback and markingPosNearHigh or markingPosNearLow
 	local oppDefenseDist = Field.distanceToFriendlyDefenseArea(self._opp.pos, self._opp.radius)
 	if markingPosDefenseDist < markingPosThreshold or oppDefenseDist <= 0 or Referee.isStopState() or Referee.isFriendlyFreeKickState()
 			or World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then

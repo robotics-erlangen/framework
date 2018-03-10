@@ -153,7 +153,7 @@ function Duel:_checkBlockingBall()
 	-- and the probabilty of it being the final position is small
 	local intersectionDefenseArea = Field.intersectRayDefenseArea(self._futureBall,
 			World.Geometry.FriendlyGoal - self._futureBall,
-			self._robot.radius + DEFENSE_AREA_MIN_DISTANCE, false)
+			self._robot.radius + DEFENSE_AREA_MIN_DISTANCE, true)
 	local basePos
 
 	if intersectionDefenseArea then
@@ -205,7 +205,7 @@ function Duel:_moveToBall()
 		-- calculate new position between ball (regarding robot shootRadius) and the intersection with defense area
 		moveDest = self._futureBall + (intersectionDefenseArea - self._futureBall):setLength(self._robot.shootRadius + World.Ball.radius)
 		local opponentDefenseIntersection = Field.intersectRayDefenseArea(moveDest, World.Geometry.FriendlyGoal - moveDest,
-												self._robot.radius * 3 +  OPPONENT_DEFENSE_AREA_MIN_DISTANCE, true)
+												self._robot.radius * 3 +  OPPONENT_DEFENSE_AREA_MIN_DISTANCE, false)
 		moveDest = opponentDefenseIntersection or moveDest
 		moveDest = UtilDefense.fastestPointInInterval(self._robot, moveDest, intersectionDefenseArea,
 						self._oldPosition, BLOCK_POS_PRECISION, BLOCK_POS_ALPHA)

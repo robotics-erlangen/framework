@@ -24,7 +24,7 @@ end
 
 local wayLength = 2.7 -- meters, only correct for official field
 local function defAreaPos(num, opponentGoal)
-	local pos = Field.defenseIntersectionByWay(wayLength*((num+1)/8), 0.23, opponentGoal)
+	local pos = Field.defenseIntersectionByWay(wayLength*((num+1)/8), 0.23, not opponentGoal)
 	vis.addCircle("defAreaPos", pos, 0.1, vis.colors.orangeHalf, true)
 	-- return position at defense area, determined by robot id
 	return pos
