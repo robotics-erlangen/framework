@@ -25,7 +25,7 @@
 #include "kdtree.h"
 #include "protobuf/robot.pb.h"
 #include <QByteArray>
-#include <QList>
+#include <QVector>
 
 class LineSegment;
 class RNG;
@@ -86,7 +86,7 @@ public:
         float r;
     };
 
-    typedef QList<Waypoint> List;
+    typedef QVector<Waypoint> List;
 
 public:
     Path(uint32_t rng_seed);
@@ -122,22 +122,22 @@ private:
     const KdTree::Node * rasterPath(const LineSegment &segment, const KdTree::Node * lastNode, float step_size);
 
     bool test(const LineSegment &segment, float radius) const;
-    bool test(const LineSegment &segment, float radius, const QList<const Obstacle*> &obstacles) const;
-    bool test(const Vector &v, float radius, const QList<const Obstacle*> &obstacles) const;
-    float calculateObstacleCoverage(const Vector &v, const QList<const Obstacle*> &obstacles, float robotRadius) const;
-    bool checkMovementRelativeToObstacles(const LineSegment &segment, const QList<const Obstacle*> &obstacles, float radius) const;
+    bool test(const LineSegment &segment, float radius, const QVector<const Obstacle*> &obstacles) const;
+    bool test(const Vector &v, float radius, const QVector<const Obstacle*> &obstacles) const;
+    float calculateObstacleCoverage(const Vector &v, const QVector<const Obstacle*> &obstacles, float robotRadius) const;
+    bool checkMovementRelativeToObstacles(const LineSegment &segment, const QVector<const Obstacle*> &obstacles, float radius) const;
     bool pointInPlayfield(const Vector &point, float radius) const;
     float outsidePlayfieldCoverage(const Vector &point, float radius) const;
 
     Vector findValidPoint(const LineSegment &segment, float radius) const;
-    void simplify(QList<Vector> &points, float radius);
-    void cutCorners(QList<Vector> &points, float radius);
+    void simplify(QVector<Vector> &points, float radius);
+    void cutCorners(QVector<Vector> &points, float radius);
     void calculateCorridor(const Vector &start, List &list, float radius);
 
 private:
-    QList<Vector> m_waypoints;
-    QList<const Obstacle*> m_obstacles;
-    QList<Vector> m_seedTargets;
+    QVector<Vector> m_waypoints;
+    QVector<const Obstacle*> m_obstacles;
+    QVector<Vector> m_seedTargets;
     Rect m_boundary;
     Rect m_sampleRect;
     float m_p_dest;
