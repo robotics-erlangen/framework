@@ -75,14 +75,16 @@ function StopAttack:run()
 	else
 		-- position between ball and goal
 		self._defenseHysteresis = false
-		local intersections = Field.intersectCircleDefenseArea(World.Ball.pos,
-				stopRadius, 4 * self._robot.radius, false)
-		if #intersections > 0 then
-			pos = nil
-			for _,p in ipairs(intersections) do
-				if not pos or (self._side == "left" and p.x < pos.x) or
-						(self._side == "right" and p.x > pos.x) then
-					pos = p
+		if Field.isInFriendlyDefenseArea(pos, 4 * self._robot.radius + 0.05) then
+			local intersections = Field.intersectCircleDefenseArea(World.Ball.pos,
+					stopRadius, 4 * self._robot.radius + 0.05, false)
+			if #intersections > 0 then
+				pos = nil
+				for _,p in ipairs(intersections) do
+					if not pos or (self._side == "left" and p.x < pos.x) or
+							(self._side == "right" and p.x > pos.x) then
+						pos = p
+					end
 				end
 			end
 		end
