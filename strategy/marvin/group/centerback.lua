@@ -6,7 +6,6 @@ local UtilDefense = require "util/defense"
 local Rating = require "util/rating"
 local vis = require "../base/vis"
 local World = require "../base/world"
-local Constants = require "../base/constants"
 
 local G = World.Geometry
 
