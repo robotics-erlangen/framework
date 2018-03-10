@@ -192,6 +192,9 @@ function path:addCircle(x, y, radius, name, prio)
 	end
 	if amun.isDebug then
 		vis.addCircleRaw("obstacles: "..tostring(path.robotId(self)), Vector(x,y), radius, vis.colors.redHalf, true)
+	else
+		-- avoid string allocations in ra
+		name = nil
 	end
 	_addCircle(self, x, y, radius, name, prio or 0)
 end
@@ -210,6 +213,9 @@ function path:addLine(start_x, start_y, stop_x, stop_y, radius, name, prio)
 	end
 	if amun.isDebug then
 		vis.addPathRaw("obstacles: "..tostring(path.robotId(self)), {Vector(start_x, start_y), Vector(stop_x, stop_y)}, vis.colors.redHalf, nil, nil, 2 * radius)
+	else
+		-- avoid string allocations in ra
+		name = nil
 	end
 	_addLine(self, start_x, start_y, stop_x, stop_y, radius, name, prio or 0)
 end
@@ -225,6 +231,9 @@ function path:addRect(start_x, start_y, stop_x, stop_y, name, prio)
 	if amun.isDebug then
 		vis.addPolygonRaw("obstacles: "..tostring(path.robotId(self)), {Vector(start_x, start_y), Vector(start_x, stop_y), Vector(stop_x, stop_y), Vector(stop_x, start_y)},
 			vis.colors.redHalf, true)
+	else
+		-- avoid string allocations in ra
+		name = nil
 	end
 	_addRect(self, start_x, start_y, stop_x, stop_y, name, prio or 0)
 end
@@ -244,6 +253,9 @@ function path:addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name, prio)
 		local p2 = Vector(x2,y2)
 		local p3 = Vector(x3,y3)
 		vis.addPolygonRaw("obstacles: "..tostring(path.robotId(self)), {p1, p2, p3}, vis.colors.redHalf, true)
+	else
+		-- avoid string allocations in ra
+		name = nil
 	end
 	_addTriangle(self, x1, y1, x2, y2, x3, y3, lineWidth, name, prio or 0)
 end
