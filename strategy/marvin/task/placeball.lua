@@ -24,17 +24,19 @@ local STATE_MOVE_AWAY = "STATE_MOVE_AWAY"
 -- Other constants
 
 -- Maximum final distance from ball to placement pos
-local END_DISTANCE = 0.07
+local END_DISTANCE = 0.1
 local BALL_STOP_SPEED = 0.2
 
 -- If ball distance is larger than this, the corresponding offset gets recalculated
 local OFFSET_DISTANCE = 0.07
 local OFFSET_FRAME_COUNT = 50
+local OFFSET_SHOOT_LENGTH
+local OFFSET_EXTRA_LENGTH
 
 local ENSURE_CONTACT_TIME = 0.5
 local ENSURE_CONTACT_MAX_TIME = 2
 local ENSURE_CONTACT_DRIBBLER_SPEED = 0.4
-local ENSURE_CONTACT_DIRECT_SPEED = 0.05
+local ENSURE_CONTACT_DIRECT_SPEED = 0.12
 
 local PULL_DRIBBLER_SPEED = 0.8
 local MAX_PULL_SPEED = 0.15
@@ -52,7 +54,6 @@ local BACK_UP_SPEED = 0.4
 
 
 function PlaceBall:_init(placementPos)
-
 	self._placementPos = placementPos or World.BallPlacementPos
 
 	self._ball = World.Ball
@@ -64,14 +65,17 @@ function PlaceBall:_init(placementPos)
 
 	self._currentTargetPos = nil
 
+	OFFSET_SHOOT_LENGTH = self._robot.shootRadius + self._ball.radius
+	OFFSET_EXTRA_LENGTH = OFFSET_SHOOT_LENGTH + 0.1
+
 	-- See _calculateOffsets()
 	self._placementOffsets = {}
-	self._placementOffsetAverage = nil
+	self._placementOffsetAverage = -self._robot.pos:copy():setLength(OFFSET_EXTRA_LENGTH)
 	self._placementOffsetFrame = 1
 
 	self._nearestFieldPos = nil
 	self._borderOffsets = {}
-	self._borderOffsetAverage = nil
+	self._borderOffsetAverage = -self._robot.pos:copy():setLength(OFFSET_EXTRA_LENGTH)
 	self._borderOffsetFrame = 1
 
 	self._barrierDetects = false
@@ -111,8 +115,10 @@ function PlaceBall:run()
 					or self._state == STATE_PULL_TO_FIELD
 					or self._state == STATE_BACK_UP_WAIT
 					or self._state == STATE_PUSH_TO_POS
+	obstacleTable.extraBallDistance = (self._state == STATE_GO_TO_PUSH or self._state == STATE_MOVE_AWAY)
+		and self._ball.radius
+		or nil
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
 
 	-- Extend field boundary so that the robot can pull the ball to the field from further out
 	self._robot.path:setBoundary(
@@ -151,7 +157,7 @@ function PlaceBall:run()
 
 		self._robot:setDribblerSpeed(PULL_DRIBBLER_SPEED)
 		-- For _nearestFieldPos, see in calculateOffset
-		if not Field.isInField(self._nearestFieldPos, -0.01) then
+		if self._stateChanged then
 			self._currentTargetPos = self._nearestFieldPos - self._borderOffsetAverage:copy():scaleLength(1.5)
 		end
 		self._robot.trajectory:update(ToTarget, self._currentTargetPos, self._borderOffsetAverage:angle(), MAX_PULL_SPEED, nil, MAX_PULL_ACCEL)
@@ -165,7 +171,7 @@ function PlaceBall:run()
 
 		--TODO faster push at higher distance
 		self._robot:setDribblerSpeed(PUSH_DRIBBLER_SPEED)
-		self._currentTargetPos = self._placementPos + self._placementOffsetAverage:copy():setLength(self._robot.shootRadius + self._ball.radius)
+		self._currentTargetPos = self._placementPos + self._placementOffsetAverage:copy():setLength(OFFSET_SHOOT_LENGTH)
 
 		self._robot.trajectory:update(ToTarget, self._currentTargetPos, (-self._placementOffsetAverage):angle(), MAX_PUSH_SPEED, nil, PUSH_ACCEL_SCALE)
 
@@ -176,12 +182,8 @@ function PlaceBall:run()
 	elseif self._state == STATE_BACK_UP then
 
 		if self._stateChanged then
-			if self._ball:isPositionValid() then
-				self._currentTargetPos = self._robot.pos - (self._ball.pos - self._robot.pos):setLength(self._robot.shootRadius + self._ball.radius + 0.05)
-			else
-				local offset = self._pushedBefore and self._placementOffsetAverage or -self._borderOffsetAverage
-				self._currentTargetPos = self._robot.pos + offset
-			end
+			local offset = self._pushedBefore and self._placementOffsetAverage or -self._borderOffsetAverage
+			self._currentTargetPos = self._robot.pos + offset
 		end
 
 		self._robot.trajectory:update(ToTarget, self._currentTargetPos, self._robot.dir, BACK_UP_SPEED)
@@ -208,10 +210,12 @@ function PlaceBall:_getNextState(currentState)
 
 			if self._ball.pos:distanceTo(self._placementPos) < END_DISTANCE then
 				nextState = STATE_MOVE_AWAY
-			elseif self:_isBallPushable() then
-				nextState = STATE_GO_TO_PUSH
-			else
+			elseif not Field.isInField(self._ball.pos)
+					or Field.isInFriendlyGoal(self._ball.pos)
+					or Field.isInOpponentGoal(self._ball.pos) then
 				nextState = STATE_GO_TO_PULL
+			else
+				nextState = STATE_GO_TO_PUSH
 			end
 
 		end
@@ -348,16 +352,15 @@ function PlaceBall:_calculateOffsets()
 	local ballVisible = self._ball:isPositionValid()
 
 	self._nearestFieldPos = Field.limitToField(self._ball.pos)
-	local offsetLen = self._ball.radius + self._robot.shootRadius + 0.05
 
 	if (not self._placementOffsetAverage or self._ball.pos:distanceTo(self._placementPos) > OFFSET_DISTANCE) and ballVisible then
-		self._placementOffsets[self._placementOffsetFrame] = (self._ball.pos - self._placementPos):setLength(offsetLen)
+		self._placementOffsets[self._placementOffsetFrame] = (self._ball.pos - self._placementPos):setLength(OFFSET_EXTRA_LENGTH)
 		self._placementOffsetFrame = (self._placementOffsetFrame % OFFSET_FRAME_COUNT) + 1
 		self._placementOffsetAverage = vectorAverage(self._placementOffsets)
 	end
 
 	if (not self._borderOffsetAverage or self._ball.pos:distanceTo(self._nearestFieldPos) > OFFSET_DISTANCE) and ballVisible then
-		self._borderOffsets[self._borderOffsetFrame] = (self._ball.pos - self._nearestFieldPos):setLength(offsetLen)
+		self._borderOffsets[self._borderOffsetFrame] = (self._ball.pos - self._nearestFieldPos):setLength(OFFSET_EXTRA_LENGTH)
 		self._borderOffsetFrame = (self._borderOffsetFrame % OFFSET_FRAME_COUNT) + 1
 		self._borderOffsetAverage = vectorAverage(self._borderOffsets)
 	end
@@ -371,10 +374,6 @@ function PlaceBall:_updateBallStatus()
 		self._barrierDetects = self._robot.radioResponse.ball_detected
 	end
 	debug.set("barrier detects", self._barrierDetects)
-end
-
-function PlaceBall:_isBallPushable()
-	return Field.isInField(self._ball.pos)
 end
 
 return PlaceBall
