@@ -172,14 +172,14 @@ end
 -- @name any
 -- @param t table - Array to test
 -- @para func function - predicate function
--- @return boolean - true if any element complies with a predicate, false otherwise
+-- @return entry - an arbitrary element that complies with the predicate, nil otherwise
 function table.any(t, func)
 	for _, v in ipairs(t) do
 		if func(v) then
-			return true
+			return v
 		end
 	end
-	return false
+	return nil
 end
 
 --- Checks if an array contains a given value
