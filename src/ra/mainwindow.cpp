@@ -450,7 +450,7 @@ void MainWindow::showBacklogMode()
         disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
         connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleCheckHaltStatus(Status)));
         connect(ui->logManager, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
-        ui->logManager->gotToEnd();
+        ui->logManager->goToEnd();
         disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
 
         toggleInstantReplay(true);

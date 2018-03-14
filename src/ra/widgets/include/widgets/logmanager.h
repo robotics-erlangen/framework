@@ -45,7 +45,7 @@ public:
     void setStatusSource(StatusSource * source);
     Timer * getPlayTimer() { return &m_playTimer; }
     void setMinimalMode();
-    void gotToEnd();
+    void goToEnd();
     void setPaused(bool p);
     int getLastFrame();
 

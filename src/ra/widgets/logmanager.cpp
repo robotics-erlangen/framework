@@ -91,7 +91,7 @@ void LogManager::setStatusSource(StatusSource * source)
     indexLogFile();
 }
 
-void LogManager::gotToEnd()
+void LogManager::goToEnd()
 {
     seekPacket(m_frames.back());
 }
