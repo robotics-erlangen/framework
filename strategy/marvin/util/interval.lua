@@ -13,6 +13,9 @@ function Interval.merge(sortedIntervals)
 			-- ensure that joined interval doesn't shrink
 			if currentInterval[2] < interval[2] then
 				currentInterval[2] = interval[2]
+				if currentInterval[3] then
+					currentInterval[3][2] = interval[3][2]
+				end
 			end
 		else
 			-- save interval if not overlapping

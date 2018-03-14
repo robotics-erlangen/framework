@@ -22,8 +22,9 @@ local G = World.Geometry
 -- @param robotList list - all robots that may block the sight
 -- @param startAngle number - start angle of the sector to scan
 -- @param endAngle number - end angle of the sector to scan
+-- @param insertRobots - set to true iff you want the robots included in its sector
 -- @return occupiedSectors list - all unsorted, unmerged occupied sectors
-function Goal.getOccupiedSectors(viewPos, robotList, startAngle, endAngle)
+function Goal.getOccupiedSectors(viewPos, robotList, startAngle, endAngle, insertRobots)
 	if endAngle < startAngle then -- normalize angles
 		endAngle = endAngle + 2 * math.pi
 	end
@@ -42,14 +43,22 @@ function Goal.getOccupiedSectors(viewPos, robotList, startAngle, endAngle)
 		local robotStart = robotAngle - robotAngleDiff -- can be < 0
 		local robotEnd = robotAngle + robotAngleDiff -- can be > 2pi
 		if robotStart < endAngle and robotEnd > startAngle then -- if the robot covers a part of the goal
-			table.insert(occupiedSectors, {math.max(robotStart, startAngle), math.min(robotEnd, endAngle)}) -- add the occupied sector to the list
+			local resultTable = {math.max(robotStart, startAngle), math.min(robotEnd, endAngle)}
+			if insertRobots then
+				resultTable[3] = {robot, robot}
+			end
+			table.insert(occupiedSectors, resultTable) -- add the occupied sector to the list
 		end
 		if robotStart + 2 * math.pi < endAngle then -- normalize angles
 			-- checking for robotEnd + 2*pi > startAngle is not needed, as robotEnd is always >= 0 and startAngle < 2pi
 			-- and thus is always true
 			robotStart = robotStart + 2 * math.pi
 			robotEnd = robotEnd + 2 * math.pi
-			table.insert(occupiedSectors, {math.max(robotStart, startAngle), math.min(robotEnd, endAngle)}) -- add the occupied sector to the list
+			local resultTable = {math.max(robotStart, startAngle), math.min(robotEnd, endAngle)}
+			if insertRobots then
+				resultTable[3] = {robot, robot}
+			end
+			table.insert(occupiedSectors, resultTable) -- add the occupied sector to the list
 		end
 	end
 	return occupiedSectors
