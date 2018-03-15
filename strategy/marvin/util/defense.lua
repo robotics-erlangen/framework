@@ -38,18 +38,20 @@ local function manMarkPos(opponent)
 
 	-- use the position at which the robot would brake if it started immediately
 	targetPos = Physics.robotBrakePos({pos = targetPos, speed = opponent.speed, radius = opponent.radius})
-
 	targetPos = Field.limitToAllowedField(targetPos, Constants.maxRobotRadius)
+
 	if Referee.isStopState() then
-		local minDist = World.Ball.radius + Constants.maxRobotRadius +
-				Constants.stopBallDistance + Defense.POSITION_PADDING
-		if targetPos:distanceTo(World.Ball.pos) < minDist then
-			targetPos = World.Ball.pos + (targetPos - World.Ball.pos):setLength(minDist)
-		end
+
+		local intersectionDefenseArea = Field.intersectRayDefenseArea(targetPos,
+				World.Geometry.FriendlyGoal - targetPos,
+				Constants.maxRobotRadius + 0.1, true)
+
+		targetPos = intersectionDefenseArea or targetPos
 	end
 	if World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive" then
 		targetPos.y = math.min(targetPos.y, World.Geometry.PenaltyLine - Defense.PENALTY_LINE_DISTANCE)
 	end
+
 	return targetPos
 end
 Defense.manMarkPos = Cache.forFrame(manMarkPos)
