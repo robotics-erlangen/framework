@@ -90,8 +90,35 @@ function Defense:_nextManmarkAssignment(defenders)
 	end
 
 	if mostDangerousRobot and highestDangerousness > 0 then
+		local targetBot = mostDangerousRobot
+		local bestDefender = targetBot
+
+		local intersectionDefenseArea = Field.intersectRayDefenseArea(targetBot.pos, G.FriendlyGoal - targetBot.pos, 0.2, true)
 		local manMarkPos = UtilDefense.manMarkPos(mostDangerousRobot)
-		local bestDefender = UtilDefense.getClosestRobot(defenders, manMarkPos)
+		if intersectionDefenseArea then
+			-- manmark should quickly move into the goalline
+			-- whichever robot is close to the goalline and close to the defense area is preferred
+			local bestDistance = math.huge
+			for _, bot in ipairs(defenders) do
+				local posOnGoalLine, distanceToGoalLine = bot.pos:orthogonalProjection(intersectionDefenseArea, targetBot.pos)
+
+				-- a figurative distance, the distance to the goalline is weighted more than the distance to the manMarkPos
+				-- this is because a manMark will first try to intercept the goal line
+				local totalDistance = distanceToGoalLine * 1.5 + posOnGoalLine:distanceTo(manMarkPos)
+				if self._previousManmarkAssignments[targetBot] == bot then
+					totalDistance = 0.75 * totalDistance
+				end
+
+				if totalDistance < bestDistance then
+					bestDistance = totalDistance
+					bestDefender = bot
+				end
+			end
+		else
+			bestDefender = UtilDefense.getClosestRobot(defenders, manMarkPos)
+		end
+
+
 		self._manmarkAssignments[mostDangerousRobot] = bestDefender
 		self._manmarkTargets[mostDangerousRobot] = nil
 
