@@ -11,6 +11,8 @@ local UtilDefense = require "util/defense"
 local Rating = require "util/rating"
 local CenterBackTask = require "task/centerback"
 
+local G = World.Geometry
+
 
 function Defense:init()
 	self._manmarkTargets = {} -- opponent -> rating
