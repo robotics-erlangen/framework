@@ -103,11 +103,10 @@ function Defense:_nextManmarkAssignment(defenders)
 			local bestDistance = math.huge
 			for _, bot in ipairs(defenders) do
 				local posOnGoalLine, distanceToGoalLine = bot.pos:orthogonalProjection(intersectionDefenseArea, targetBot.pos)
-
 				distanceToGoalLine = math.abs(distanceToGoalLine)
 
 				if Field.isInDefenseArea(posOnGoalLine, 0.05, true) then
-					posOnGoalLine = Field.intersectRayDefenseArea(posOnGoalLine, targetBot.pos-posOnGoalLine, 0.2, true)
+					posOnGoalLine = Field.intersectRayDefenseArea(posOnGoalLine, targetBot.pos-posOnGoalLine, 0.2, true) or posOnGoalLine
 				end
 
 				-- a figurative distance, the distance to the goalline is weighted more than the distance to the manMarkPos
