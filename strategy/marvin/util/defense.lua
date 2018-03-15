@@ -36,7 +36,7 @@ local function manMarkPos(opponent)
 		targetPos = opponent.pos + (World.Geometry.FriendlyGoal - opponent.pos):setLength(dist)
 	end
 
-	-- use the position at which the robot would break if it started immediately
+	-- use the position at which the robot would brake if it started immediately
 	targetPos = Physics.robotBrakePos({pos = targetPos, speed = opponent.speed, radius = opponent.radius})
 
 	targetPos = Field.limitToAllowedField(targetPos, Constants.maxRobotRadius)
