@@ -809,5 +809,29 @@ function Field.nextAllowedFieldLineCut(startPos, dir, extraDistance)
 	return minLineCut, minLineCut and minLambda or 0
 end
 
+-- Checks wether a position lies inside the friendly goal
+-- @name isInFriendlyGoal
+-- @param pos vector - the position to check
+-- @return bool - is in friendly goal
+function Field.isInFriendlyGoal(pos)
+	local g = G.FriendlyGoalLeft
+	return pos.x >= g.x
+		and pos.x <= g.x + G.GoalWidth
+		and pos.y <= g.y
+		and pos.y >= g.y - G.GoalDepth
+end
+
+-- Checks wether a position lies inside the opponent goal
+-- @name isInOpponentGoal
+-- @param pos vector - the position to check
+-- @return bool - is in friendly goal
+function Field.isInOpponentGoal(pos)
+	local g = G.OpponentGoalLeft
+	return pos.x >= g.x
+		and pos.x <= g.x + G.GoalWidth
+		and pos.y >= g.y
+		and pos.y <= g.y + G.GoalDepth
+end
+
 
 return Field
