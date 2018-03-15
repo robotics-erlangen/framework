@@ -227,7 +227,7 @@ end
 -- @param linePoint1 Vector - point of line
 -- @param linePoint2 Vector - point of line
 -- @return Vector - projected point
--- @return number - distance to line
+-- @return number - (signed) distance to line
 function vector_mt:orthogonalProjection(linePoint1, linePoint2)
 	local rv = linePoint2 - linePoint1
 	if rv:lengthSq() < 0.00001 * 0.00001 then
