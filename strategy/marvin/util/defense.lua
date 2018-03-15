@@ -40,12 +40,12 @@ local function manMarkPos(opponent)
 	targetPos = Physics.robotBrakePos({pos = targetPos, speed = opponent.speed, radius = opponent.radius})
 	targetPos = Field.limitToAllowedField(targetPos, Constants.maxRobotRadius)
 
-	if Referee.isStopState() then
-
-		local intersectionDefenseArea = Field.intersectRayDefenseArea(targetPos,
+	local intersectionDefenseArea = Field.intersectRayDefenseArea(targetPos,
 				World.Geometry.FriendlyGoal - targetPos,
 				Constants.maxRobotRadius + 0.1, true)
-
+	
+	if Referee.isStopState() or intersectionDefenseArea 
+				and intersectionDefenseArea:distanceToSq(targetPos) < 0.75*0.75 then
 		targetPos = intersectionDefenseArea or targetPos
 	end
 	if World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive" then
