@@ -408,7 +408,7 @@ local function defenseIntersectionByWay_2018(way, extraDistance, friendly)
 		way = way - length - math.pi/2 * extraDistance * wayCornerFactor
 		if way < 0 then
 			local corner = Vector((3-i*2)*G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight)*f
-			local dir = Vector.fromAngle(-math.pi/(3-i) - way/extraDistance/wayCornerFactor)*f
+			local dir = Vector.fromAngle(-math.pi/2*i - way/extraDistance/wayCornerFactor)*f
 			return corner + dir * extraDistance
 		end
 	end
