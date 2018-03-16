@@ -73,9 +73,14 @@ function Shoot:init()
 end
 
 function Shoot:_setObstacles(moveDest)
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 	local ignoreRobots = self._robot.speed:length() < 1
-	PathHelper.addRobotObstacles(self._robot.path, self._robot, ignoreRobots, ignoreRobots)
+	local obstacleTable = {
+		ignoreBall = true,
+		ignorePass = true,
+		ignoreFriendlyRobots = ignoreRobots,
+		ignoreOpponentRobots = ignoreRobots
+	}
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
 	if moveDest then
 		local distToBall = moveDest:distanceTo(World.Ball.pos)

@@ -95,8 +95,11 @@ function SideStep:run()
 		self:_suggestPass(self._passInfo.ballPos, attackPosition, self._passInfo.time - World.Time)
 	end
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	local obstacleTable = {
+		ignorePass = false,
+		inbox = self._inbox
+	}
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	local viewPos = attackPosition or World.Geometry.OpponentGoal
 	local dir = (viewPos - self._robot.pos):angle()
 	self._robot.trajectory:update(ToTarget, self._feintPos, dir)

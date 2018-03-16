@@ -55,8 +55,6 @@ function ShootGoal:_init(ballReceiptPos, forceDesperate)
 end
 
 function ShootGoal:run()
-	-- :dead code
-	-- PathHelper.setDefaultObstacles(self._robot.path, self._robot, true)
 
 	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
 	local ballReceiptPos = self._ballReceiptPos or attackPosition

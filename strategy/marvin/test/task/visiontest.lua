@@ -16,6 +16,12 @@ local ROBOT_ORIENTATION = 90/180*math.pi
 local ROBOT_ORIENTATION_STEP = 0/180*math.pi
 local POS_LIST = { Vector(-1.8, 3.9), Vector(0, 3.9), Vector(0, -3.9), Vector(1.8, -3.9), Vector(1.8, 3.9), Vector(-1.8, -3.9) }
 
+local obstacleTable = {
+	ignoreBall = true,
+	ignorePass = true,
+	ignoreDefenseArea = true,
+	ignoreOpponentDefenseArea = true
+}
 
 local function indexCalculation(inbox, robotId)
 	local idx = 0
@@ -44,8 +50,7 @@ function VisionTestTask:_init()
 end
 
 function VisionTestTask:run()
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot,true , false, true, nil, nil, nil, true)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
 	local idx, total = indexCalculation(self._inbox, self._robot.id)
 	local offset = Vector((idx - total/2) * 0.25, 0)

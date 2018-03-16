@@ -8,6 +8,13 @@ local PathHelper = require "trajectory/pathhelper"
 local NUM_OF_REVOLUTIONS = 3
 local ANGULAR_SPEED_FACTOR = 0.8 -- the higher it is, the longer it takes
 
+local obstacleTable = {
+	ignoreBall = true,
+	ignorePass = true,
+	ignoreGoals = true,
+	ignoreDefenseArea = true
+}
+
 function Victory:_init(center, startingAngle, angle, radius)
 	assert(center and angle, "Missing Parameters for Victory-Task")
 	self._center = center
@@ -60,8 +67,7 @@ function Victory:run()
 	self._robot.path:clearObstacles()
 	local endSpeed = Vector(0, 0)
 	local dir = (pos - self._robot.pos):angle()
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, true, true)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, pos, dir, 1, endSpeed)
 end
 

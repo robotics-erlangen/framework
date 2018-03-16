@@ -16,6 +16,9 @@ local WAIT_TIME = 3
 local ROBOT_ORIENTATION = 0/180*math.pi
 local ROBOT_ORIENTATION_STEP = 300/180*math.pi
 
+local obstacleTable = {
+	ignorePass = true
+}
 
 local MoveTestTask = Class("Test.Task.MoveTest.Task", require "task/base")
 function MoveTestTask:_init(idx, total)
@@ -28,8 +31,7 @@ function MoveTestTask:_init(idx, total)
 end
 
 function MoveTestTask:run()
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
 	local pos
 	if self._dest then

@@ -10,6 +10,10 @@ local ChipLearningTest = Class("Test.Task.ChipLearningTest", require "task/base"
 
 local DO_LINEAR_SHOOT = true
 
+local obstacleTable = {
+	ignorePass = true
+}
+
 function ChipLearningTest:_init()
 	self._framesSinceMove = 0
 	self._shootSpeed = 0
@@ -38,7 +42,7 @@ function ChipLearningTest:run()
 		stayOnPos = true
 	end
 	if stayOnPos then
-		PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+		PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 		self._robot.trajectory:update(ToTarget, self._robot.pos, math.pi/2)
 	end
 end

@@ -6,12 +6,15 @@ local BallRotate = require "trajectory/ballrotate"
 
 local Task = Class("Test.Task.BallRotate.Task", require "task/base")
 
+local obstacleTable = {
+	ignorePass = true
+}
+
 function Task:_init()
 end
 
 function Task:run()
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
 	self._robot.trajectory:update(BallRotate, 0.3, 0.2, true)
 end

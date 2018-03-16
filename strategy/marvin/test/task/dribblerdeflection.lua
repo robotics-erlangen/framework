@@ -11,12 +11,15 @@ local ToTarget = require "trajectory/totarget"
 
 local DRIBBLER_SPEED = 1
 
+local obstacleTable = {
+	ignorePass = true
+}
+
 local Position = Class("Test.Task.DribblerDeflection.Position", require "agent/base/behavior")
 function Position:run()
 	self._robot:setDribblerSpeed(DRIBBLER_SPEED)
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, self._robot.pos, (World.Ball.pos - self._robot.pos):angle())
 end
 

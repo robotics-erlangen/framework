@@ -8,6 +8,13 @@ local debug = require "../base/debug"
 
 local ChipChallengeReceiver = Class("Test.Task.ChipChallengeReceiver", require "task/base", Shoot)
 
+local obstacleTable = {
+	ignoreGoals = true,
+	ignoreDefenseArea = true,
+	ignorePass = true,
+	pathRadius = 0,
+	stopBallDistance = 0.1
+}
 
 function ChipChallengeReceiver:_init()
 	self._ballKicked = false
@@ -33,7 +40,7 @@ function ChipChallengeReceiver:run()
 
 	local toBall = (ball.pos - self._robot.pos):angle()
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, false, true, true, 0, 0.1)
+	PathHelper.setDefaultObstaclesByTable(self._robot, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, self._moveDest, toBall)
 end
 

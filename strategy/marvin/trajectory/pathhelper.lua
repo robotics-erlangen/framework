@@ -276,7 +276,7 @@ local function addFriendlyPassObstacle(path, robot, inbox, radius)
 	end
 end
 
-function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance, noSeedTarget, ignoreOpponentDefenseArea, extraBallDistance)
+local function setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance, noSeedTarget, ignoreOpponentDefenseArea, extraBallDistance)
 	radius = radius or robot.radius
 	stopBallDistance = stopBallDistance or Constants.stopBallDistance
 
@@ -343,7 +343,7 @@ local function ignoreRobot(ownRobot, robot)
 	return false
 end
 
-function PathHelper.addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreOpponentRobots, disableOpponentPrediction)
+local function addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreOpponentRobots, disableOpponentPrediction)
 	-- TODO: better robot prediction and time estimation
 	-- use 1 seconds for the navigation challenge
 	local estimationTime = 0.1 -- just a fixed time for now

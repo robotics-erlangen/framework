@@ -47,6 +47,9 @@ function Passer:_updateTask()
 end
 
 
+local obstacleTable = {
+	ignorePass = true
+}
 
 local MoveToRandom = Class("Test.Task.LinePassing.MoveToRandom", require "task/base")
 function MoveToRandom:_init()
@@ -88,8 +91,7 @@ function MoveToRandom:run()
 		self._send.passSuggestion("all", { ballPos = modifiedPos, time = timeOnPos })
 	end
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
 	self._robot.trajectory:update(ToTarget, targetPos, (-targetPos):angle())
 end

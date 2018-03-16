@@ -4,6 +4,9 @@ local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 local TestHelper = require "test/helper/agent"
 
+local obstacleTable = {
+	ignorePass = true
+}
 
 local ShootSpeedTest = Class("Test.Task.ShootSpeedTest", require "task/base")
 
@@ -24,7 +27,7 @@ function ShootSpeedTest:run()
 
 	local shootSpeed = self._robot:calculateShootSpeed(self._shootSpeed, shootDistance)
 	self._robot:shoot(shootSpeed)
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, self._robot.pos, self._robot.pos.y < 0 and math.pi/2 or -math.pi/2)
 end
 

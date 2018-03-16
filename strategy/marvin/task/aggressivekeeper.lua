@@ -36,7 +36,11 @@ function AggressiveKeeper:run()
 
 	self:_chipToBorderIfSafe()
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, ignoreBall)
+	local obstacleTable = {
+		["ignoreBall"] = ignoreBall,
+		ignorePass = true
+	}
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	local viewDir = World.Ball.pos - safeGoalMid
 	self._robot.trajectory:update(ToTarget, moveDest, viewDir:angle(), nil, viewDir * 0.5)
 end

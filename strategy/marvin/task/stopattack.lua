@@ -99,8 +99,11 @@ function StopAttack:run()
 		end
 	end
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, false, false, false, nil)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot)
+	local obstacleTable = {
+		ignorePass = false,
+		inbox = self._inbox
+	}
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
 	self._robot.trajectory:update(ToTarget, pos, driveAngle)
 end

@@ -94,7 +94,12 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 				self._robot.radius + distanceToBall + ball.radius)
 
 	-- setup obstacles
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, true, false, false, self._robot.radius)
+	local obstacleTable = {
+		ignoreBall = true,
+		ignorePass = true,
+		pathRadius = self._robot.radius
+	}
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	if World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + self._robot.radius + 0.1 then
 		self._ignoringOpponents = true
 	elseif World.Ball.pos:distanceTo(self._robot.pos) < 1 then
@@ -107,8 +112,8 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 		self._ignoringOpponents = false
 	end
 
-	local aggressiveMovement = (self._robot.pos:distanceTo(moveDest) < 0.5)
-	PathHelper.addRobotObstacles(self._robot.path, self._robot, false, self._ignoringOpponents, aggressiveMovement)
+	--local aggressiveMovement = (self._robot.pos:distanceTo(moveDest) < 0.5)
+	--PathHelper.addRobotObstacles(self._robot.path, self._robot, false, self._ignoringOpponents, aggressiveMovement)
 
 	local method = self:_ballCatchMethod(ball, predictedBall, moveDest)
 	if method == AROUND_METHOD then

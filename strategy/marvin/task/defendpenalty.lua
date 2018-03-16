@@ -116,7 +116,7 @@ function DefendPenalty:run()
 		targetPos = Vector(targetPos, penaltyLine)
 	end
 
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, obstacleTable)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, targetPos, (World.Ball.pos - self._robot.pos):angle())
 
 	self._send.moveDest("all", targetPos)

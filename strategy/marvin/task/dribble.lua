@@ -23,7 +23,7 @@ function Dribble:_init(pos, suggestPass, endSpeedLength)
 end
 
 function Dribble:run()
-	PathHelper.setDefaultObstacles(self._robot.path, self._robot, obstacleTable)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	self._robot:setDribblerSpeed(0.7)
 
 	local time
