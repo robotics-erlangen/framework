@@ -45,7 +45,7 @@ local SEED_PREDICT_TIME = 0.5
 -- @param forceBallDistance bool - keeps EXTRA_BALL_DISTANCE
 -- @return nil
 
-local function obstacle_SeedTarget(path, robot)
+local function addSeedTargets(path, robot)
 	if path.addSeedTarget and robot.speed:length() > 0.1 then
 		local angleMod = { -SEED_ANGLE_MOD, 0, SEED_ANGLE_MOD }
 		for _, angle in ipairs(angleMod) do
@@ -65,7 +65,7 @@ local _GoalAreaFriendly = {
 	-_GoalArea[1],
 	-_GoalArea[2]
 }
-local function obstacle_friendlyDefenseArea(path, robot)
+local function addFriendlyDefenseAreaObstacle(path, robot)
 	-- only keeper may enter friendly defense area
 	-- don't add obstacles for friendly defense area if the robot is in the opponent half
 	if World.FriendlyKeeper ~= robot and robot.pos.y < 0 then
@@ -86,7 +86,8 @@ local function obstacle_friendlyDefenseArea(path, robot)
 		end
 	end
 end
-local function obstacle_OpponentDefenseArea(path, robot)
+
+local function addOpponentDefenseAreaObstacle(path, robot)
 	-- don't add obstacles for opponent defense area if the robot is in the friendly half
 	local oppDefAreaDist = Referee.isFriendlyFreeKickState() and G.FreeKickDefenseDist or 0
 	-- TODO: adjust to rect with distance instead of larger rect
@@ -109,7 +110,7 @@ local function obstacle_OpponentDefenseArea(path, robot)
 		end
 	end
 end
-local function obstacle_forbidOppFieldHalf(path)
+local function addOpponentFieldHalfObstacle(path)
 	path:addRect(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5,
 		-G.CenterCircleRadius, 0.02, "OppFieldHalf", 25)
 	path:addRect(-G.CenterCircleRadius - 0.2, G.FieldHeightHalf + 0.5,
@@ -136,7 +137,7 @@ local function addZonedBallObstacles(robot, innerBallDistance, outerBallDistance
 	end
 end
 
-local function obstacle_ball(robot, ignoreBall, stopBallDistance, extraBallDistance)
+local function addBallObstacle(robot, ignoreBall, stopBallDistance, extraBallDistance)
 	-- Since I had some trouble figuring out the semantic when I changed this I'll document it here
 	-- (Even if it should be clear from the code now)
 	-- If we are in a defensive stop state, the ignoreBall parameter is ignored (because that is how it was before)
@@ -157,7 +158,7 @@ local function obstacle_ball(robot, ignoreBall, stopBallDistance, extraBallDista
 	end
 end
 
-local function obstacle_goal(path, robot)
+local function addGoalObstacle(path, robot)
 	local gw = G.GoalWallWidth / 2
 	-- add goal obstacles for the field half the robot is in
 	if robot.pos.y < 0 then
@@ -179,7 +180,7 @@ end
 
 
 local function isGoalShot()
-	if World.Ball.speed:length() > 0.5 then 
+	if World.Ball.speed:length() > 0.5 then
 		local intersection, lambda1, lambda2 = geom.intersectLineLine(G.OpponentGoal, Vector(1,0), World.Ball.pos, World.Ball.speed)
 		if intersection and math.abs(lambda1) < G.GoalWidth / 2 + 0.2 then
 			if lambda2 > 0 and Physics.checkedBallRollTime(World.Ball, intersection) < math.huge then
@@ -193,7 +194,7 @@ end
 isGoalShot = Cache.forFrame(isGoalShot)
 
 -- @return disablePass bool - no obstacles for pass needed
-local function obstacle_goalShot(path, robot, inbox)
+local function addGoalObstacleShot(path, robot, inbox)
 	if not inbox then
 		error("missing parameter: inbox")
 	end
@@ -238,7 +239,7 @@ end
 
 
 local PASS_OBSTACLE_RADIUS = 0.2
-function PathHelper.obstacle_friendlyPass(path, robot, inbox, radius)
+local function addFriendlyPassObstacle(path, robot, inbox, radius)
 	if not inbox then
 		error("missing parameter: inbox")
 	end
@@ -256,7 +257,7 @@ function PathHelper.obstacle_friendlyPass(path, robot, inbox, radius)
 			path:addLine(World.Ball.pos.x, World.Ball.pos.y, dangerPos.x, dangerPos.y, radius, "pass1", 16)
 		end
 		-- MA - intercept
-		if attackPosition and attackPosition:distanceToSq(mainAttacker.pos) > epsilonSq then	
+		if attackPosition and attackPosition:distanceToSq(mainAttacker.pos) > epsilonSq then
 			path:addLine(mainAttacker.pos.x, mainAttacker.pos.y, attackPosition.x, attackPosition.y, radiusRobot, "pass1", 16)
 		end
 		local _, passInfoTable = next(inbox.passInfo())
@@ -279,7 +280,6 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 	radius = radius or robot.radius
 	stopBallDistance = stopBallDistance or Constants.stopBallDistance
 
-	
 	local forbidOppFieldHalf = Referee.isKickoffState()
 
 	-- clear and add obstacles
@@ -289,21 +289,21 @@ function PathHelper.setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ig
 	path:setRadius(radius)
 
 	if not noSeedTarget then
-		obstacle_SeedTarget(path, robot)
+		addSeedTargets(path, robot)
 	end
 	if not ignoreDefenseArea then
-		obstacle_friendlyDefenseArea(path, robot)
+		addFriendlyDefenseAreaObstacle(path, robot)
 	end
 	if not ignoreOpponentDefenseArea then
-		obstacle_OpponentDefenseArea(path, robot)
+		addOpponentDefenseAreaObstacle(path, robot)
 	end
 	if forbidOppFieldHalf then
-		obstacle_forbidOppFieldHalf(path)
+		addOpponentFieldHalfObstacle(path)
 	end
-	obstacle_ball(robot, ignoreBall, stopBallDistance, extraBallDistance)
+	addBallObstacle(robot, ignoreBall, stopBallDistance, extraBallDistance)
 
 	if not ignoreGoals then
-		obstacle_goal(path, robot)
+		addGoalObstacle(path, robot)
 	end
 end
 
@@ -328,9 +328,9 @@ function PathHelper.setDefaultObstaclesByTable(path, robot, t)
 	PathHelper.setDefaultObstacles(path, robot, t.ignoreBall, t.ignoreGoals, t.ignoreDefenseArea, t.pathRadius,
 			t.stopBallDistance, t.noSeedTarget, t.ignoreOpponentDefenseArea, t.extraBallDistance)
 	if not t.ignorePass then
-		local disablePass = obstacle_goalShot(path, robot, t.inbox)
+		local disablePass = addGoalObstacleShot(path, robot, t.inbox)
 		if not disablePass then
-			PathHelper.obstacle_friendlyPass(path, robot, t.inbox)
+			addFriendlyPassObstacle(path, robot, t.inbox)
 		end
 	end
 	PathHelper.addRobotObstacles(path, robot, t.ignoreFriendlyRobots, t.ignoreOpponentRobots, t.disableOpponentPrediction)
