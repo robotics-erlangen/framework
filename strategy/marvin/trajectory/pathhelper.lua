@@ -324,18 +324,6 @@ end
 	-- 	disableOpponentPrediction = false,
 	-- }
 
-function PathHelper.setDefaultObstaclesByTable(path, robot, t)
-	PathHelper.setDefaultObstacles(path, robot, t.ignoreBall, t.ignoreGoals, t.ignoreDefenseArea, t.pathRadius,
-			t.stopBallDistance, t.noSeedTarget, t.ignoreOpponentDefenseArea, t.extraBallDistance)
-	if not t.ignorePass then
-		local disablePass = addGoalObstacleShot(path, robot, t.inbox)
-		if not disablePass then
-			addFriendlyPassObstacle(path, robot, t.inbox)
-		end
-	end
-	PathHelper.addRobotObstacles(path, robot, t.ignoreFriendlyRobots, t.ignoreOpponentRobots, t.disableOpponentPrediction)
-end
-
 local function ignoreRobot(ownRobot, robot)
 	if robot.speed:length() > 1 and ownRobot.pos:distanceTo(robot.pos) > 2 then
 		return true
@@ -390,6 +378,18 @@ local function addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreOppone
 			end
 		end
 	end
+end
+
+function PathHelper.setDefaultObstaclesByTable(path, robot, t)
+	setDefaultObstacles(path, robot, t.ignoreBall, t.ignoreGoals, t.ignoreDefenseArea, t.pathRadius,
+			t.stopBallDistance, t.noSeedTarget, t.ignoreOpponentDefenseArea, t.extraBallDistance)
+	if not t.ignorePass then
+		local disablePass = addGoalObstacleShot(path, robot, t.inbox)
+		if not disablePass then
+			addFriendlyPassObstacle(path, robot, t.inbox)
+		end
+	end
+	addRobotObstacles(path, robot, t.ignoreFriendlyRobots, t.ignoreOpponentRobots, t.disableOpponentPrediction)
 end
 
 return PathHelper
