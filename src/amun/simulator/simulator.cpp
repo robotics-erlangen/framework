@@ -300,7 +300,8 @@ QByteArray Simulator::createVisionPacket()
     detection->set_t_sent((m_time + m_visionDelay)*1E-9);
 
     // get ball and robot position
-    int cameraId = m_data->ball->update(detection->add_balls(), m_data->stddevBall, numCameras);
+    const float totalBoundaryWidth = m_data->geometry.boundary_width() + m_data->geometry.referee_width();
+    int cameraId = m_data->ball->update(detection->add_balls(), m_data->stddevBall, numCameras, totalBoundaryWidth);
     if (cameraId >= 0) {
         // just move everything to the ball camera
         detection->set_camera_id(cameraId);

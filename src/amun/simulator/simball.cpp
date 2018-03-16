@@ -117,7 +117,8 @@ void SimBall::begin()
     }
 }
 
-int SimBall::update(SSL_DetectionBall *ball, float stddev, int numCameras)
+int SimBall::update(SSL_DetectionBall *ball, float stddev, int numCameras,
+                    float fieldBoundaryWidth)
 {
     // setup ssl-vision ball detection
     ball->set_confidence(1.0);
@@ -160,7 +161,7 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, int numCameras)
     }
 
     const float SCALING_LIMIT = 0.9f;
-    const float MAX_OVERLAP = 0.5f;
+    const float MAX_EXTRA_OVERLAP = 0.05f;
 
     // must match simulator camera geometry!!!
     int signX = (cameraId >= numCameras / 2) ? 1 : -1;
@@ -182,8 +183,8 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev, int numCameras)
     float area = (BALL_RADIUS*BALL_RADIUS*1000000*M_PI) / (denomSqrt*denomSqrt);
     ball->set_area(area);
 
-    if (std::abs(modX - cameraX) > cameraHalfAreaX + MAX_OVERLAP
-            || std::abs(modY - cameraY) > cameraHalfAreaY + MAX_OVERLAP) {
+    if (std::abs(modX - cameraX) > cameraHalfAreaX + fieldBoundaryWidth + MAX_EXTRA_OVERLAP
+            || std::abs(modY - cameraY) > cameraHalfAreaY + fieldBoundaryWidth + MAX_EXTRA_OVERLAP) {
         // invalid
         return -1;
     }
