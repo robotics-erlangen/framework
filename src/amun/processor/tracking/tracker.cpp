@@ -259,7 +259,7 @@ Status Tracker::worldState(qint64 currentTime)
         }
         filter->clearDebugValues();
     }
-    status->mutable_debug()->set_source(amun::StrategyYellow);
+    status->mutable_debug()->set_source(amun::Tracking);
 #endif
 
     return status;

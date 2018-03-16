@@ -44,6 +44,7 @@ DebugModel::DebugModel(QObject *parent) :
     addRootItem("Team Blue", amun::StrategyBlue);
     addRootItem("Team Yellow", amun::StrategyYellow);
     addRootItem("Autoref", amun::Autoref);
+    addRootItem("Tracking", amun::Tracking);
 }
 
 DebugModel::~DebugModel() {
