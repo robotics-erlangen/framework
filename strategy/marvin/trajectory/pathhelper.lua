@@ -346,14 +346,14 @@ local obstacles = {}
 
 function PathHelper.setObstacleParam(robot, name, value)
 	if not obstacles[robot] then
-		error("setObstacleParam got called before setDefaultObstaclesByTable for robot " .. robot)
+		error("setObstacleParam got called before setDefaultObstaclesByTable for robot " .. robot.id)
 	end
 	obstacles[robot][name] = value
 end
 
 function PathHelper.getObstacleParam(robot, name)
 	if not obstacles[robot] then
-		error("getObstacleParam got called before setDefaultObstaclesByTable for robot " .. robot)
+		error("getObstacleParam got called before setDefaultObstaclesByTable for robot " .. robot.id)
 	end
 	return obstacles[robot][name]
 end

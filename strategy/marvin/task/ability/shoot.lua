@@ -73,14 +73,11 @@ function Shoot:init()
 end
 
 function Shoot:_setObstacles(moveDest)
-	local ignoreRobots = self._robot.speed:length() < 1
-	local obstacleTable = {
-		ignoreBall = true,
-		ignorePass = true,
-		ignoreFriendlyRobots = ignoreRobots,
-		ignoreOpponentRobots = ignoreRobots
-	}
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
+    local ignoreRobots = self._robot.speed:length() < 1
+    PathHelper.setObstacleParam(self._robot, "ignoreBall", true)
+    PathHelper.setObstacleParam(self._robot, "ignorePass", true)
+    PathHelper.setObstacleParam(self._robot, "ignoreFriendlyRobots", ignoreRobots)
+    PathHelper.setObstacleParam(self._robot, "ignoreOpponentRobots", ignoreRobots)
 
 	if moveDest then
 		local distToBall = moveDest:distanceTo(World.Ball.pos)
@@ -391,6 +388,8 @@ function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, pre
 end
 
 --- shoot the ball such that it reaches targetPos with a speed of targetSpeed
+-- This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
+-- and ignoreOpponentRobots obstacle parameters
 -- @param targetPos Vector - where to shoot at
 -- @param targetSpeed Vector - the velocity of the ball when it reaches targetPos
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
@@ -399,6 +398,8 @@ function Shoot:_shoot(targetPos, targetSpeed, ballReceiptPos, precision)
 end
 
 --- chips the ball such that it hits the ground at firstContactPos
+-- This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
+-- and ignoreOpponentRobots obstacle parameters
 -- @param firstContactPos Vector - where the ball hits the ground the first time
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
 function Shoot:_chipToPos(firstContactPos, ballReceiptPos, precision)
@@ -406,6 +407,8 @@ function Shoot:_chipToPos(firstContactPos, ballReceiptPos, precision)
 end
 
 --- chips the ball such that it can be accepted at rollingBallPos
+-- This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
+-- and ignoreOpponentRobots obstacle parameters
 -- @param rollingBallPos Vector - where the ball is starting to roll
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
 function Shoot:_chipPass(rollingBallPos, ballReceiptPos, precision, manualChipDistFactor)

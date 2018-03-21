@@ -8,7 +8,7 @@ local World = require "../base/world"
 
 local Ball = require "observer/ball"
 local ObserverShoot = require "observer/shoot"
--- local PathHelper = require "trajectory/pathhelper"
+local PathHelper = require "trajectory/pathhelper"
 local Rating = require "util/rating"
 local ShootGoalUtil = require "util/shootgoal"
 
@@ -55,6 +55,10 @@ function ShootGoal:_init(ballReceiptPos, forceDesperate)
 end
 
 function ShootGoal:run()
+    local obstacleTable = {
+        inbox = self._inbox
+    }
+    PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
 	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
 	local ballReceiptPos = self._ballReceiptPos or attackPosition

@@ -6,6 +6,7 @@ local Referee = require "../base/referee"
 local World = require "../base/world"
 
 local ObserverShoot = require "observer/shoot"
+local PathHelper = require "trajectory/pathhelper"
 
 local CHIP_PASS_DISTANCE_FACTOR = 0.5
 local MIN_PASS_SPEED = 3
@@ -39,6 +40,10 @@ function Pass:updateTarget(targetRobot, targetPos, passSpeed)
 end
 
 function Pass:run()
+    local obstacleTable = {
+        inbox = self._inbox
+    }
+    PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	debug.set("targetRobot", self._targetRobot)
 	debug.set("targetPos", self._targetPos)
 

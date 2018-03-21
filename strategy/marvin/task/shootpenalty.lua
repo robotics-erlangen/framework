@@ -20,6 +20,9 @@ local KeeperPosTolerance = 0.04 -- if keeper's distance to the goals center is b
 local shootErrorThreshold = 4.0 * math.pi/180 -- maximum angle error
 local keeperMoveSpeedThreshold = 0.4 -- for random keeper movement detection
 
+local obstacleTable = {
+    ignorePass = true
+}
 
 local goalLine = (G.OpponentGoalLeft - G.OpponentGoalRight):normalize()
 local function cornerPoint(corner)
@@ -43,6 +46,7 @@ end
 
 local DIST_TO_BALL = 0.015
 function ShootPenalty:run()
+    PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	if not self._targetPos then
 		local keeper = World.OpponentKeeper
 		local keeperInsideDefArea =  keeper and Field.isInOpponentDefenseArea(keeper.pos, keeper.radius)

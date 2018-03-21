@@ -33,6 +33,8 @@ function CatchBall:init()
 end
 
 --- Tries to catch the ball, is designed for catching a moving ball
+-- This ability will overwrite the ignoreBall, ignorePass, ignoreOpponentRobots
+-- and disableOpponentPrediction obstacle parameters.
 -- @param targetPos Vector - point to look at when having caught the ball
 -- @param distanceToBall number - distance the robot should keep to the ball, only sensible for a stopped ball, defaults to 0
 -- @param [targetSpeed number - intended ball speed at target]
@@ -93,13 +95,6 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	local moveDest = predictedBall.pos - Vector.fromAngle(viewDir):scaleLength(
 				self._robot.radius + distanceToBall + ball.radius)
 
-	-- setup obstacles
-	local obstacleTable = {
-		ignoreBall = true,
-		ignorePass = true,
-		pathRadius = self._robot.radius
-	}
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	if World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + self._robot.radius + 0.1 then
 		self._ignoringOpponents = true
 	elseif World.Ball.pos:distanceTo(self._robot.pos) < 1 then
@@ -112,8 +107,11 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 		self._ignoringOpponents = false
 	end
 
-	--local aggressiveMovement = (self._robot.pos:distanceTo(moveDest) < 0.5)
-	--PathHelper.addRobotObstacles(self._robot.path, self._robot, false, self._ignoringOpponents, aggressiveMovement)
+	local aggressiveMovement = (self._robot.pos:distanceTo(moveDest) < 0.5)
+    PathHelper.setObstacleParam(self._robot, "disableOpponentPrediction", aggressiveMovement)
+    PathHelper.setObstacleParam(self._robot, "ignoreOpponentRobots", self._ignoringOpponents)
+    PathHelper.setObstacleParam(self._robot, "ignoreBall", true)
+    PathHelper.setObstacleParam(self._robot, "ignorePass", true)
 
 	local method = self:_ballCatchMethod(ball, predictedBall, moveDest)
 	if method == AROUND_METHOD then
