@@ -6,7 +6,7 @@ local geom = require "../base/geom"
 local plot = require "../base/plot"
 local vis = require "../base/vis"
 local World = require "../base/world"
-
+local PathHelper = require "trajectory/pathhelper"
 
 function CurvedMaxAccel:_init()
 	self._lastTargetDir = nil
@@ -18,6 +18,7 @@ function CurvedMaxAccel:_getPath(targetPos)
 	local robotPos = Coordinates.toGlobal(self._robot.pos)
 
 	self._robot.path:setProbabilities(0.15, 0.65)
+	PathHelper.insertObstacles(self._robot)
 	-- first waypoint is the current robot position
 	-- if reaching the end is possible there's a waypoint at the end
 	local waypoints = self._robot.path:get(robotPos.x, robotPos.y, targetPos.x, targetPos.y)

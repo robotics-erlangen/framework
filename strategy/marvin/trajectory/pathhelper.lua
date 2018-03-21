@@ -27,24 +27,6 @@ local SEED_PREDICT_TIME = 0.5
 -- 	PhysicalWalls = 100,
 -- }
 
-
-
-
--- local EXTRA_BALL_DISTANCE = 0.2
--- @name setDefaultObstacles
--- @param path base/path - path the obstacle takes
--- @param robot robot - robot which recieves the obstacles;
--- 		also serves as generic robot
--- @param ignoreBall bool - the ball may be pushed
--- @param ignoreGoals bool - adds the goal walls as obstacles
--- @param ignoreDefenseArea bool - friendly Defense Area
--- @param radius number - radus used for path; defaults to robot radius
--- @param stopBallDistance number - distance to ball in StopState
--- @param noSeedTarget bool - something
--- @param ignoreOpponentDefenseArea bool - opponent Defense Area
--- @param forceBallDistance bool - keeps EXTRA_BALL_DISTANCE
--- @return nil
-
 local function addSeedTargets(path, robot)
 	if path.addSeedTarget and robot.speed:length() > 0.1 then
 		local angleMod = { -SEED_ANGLE_MOD, 0, SEED_ANGLE_MOD }
@@ -282,9 +264,6 @@ local function setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreD
 
 	local forbidOppFieldHalf = Referee.isKickoffState()
 
-	-- clear and add obstacles
-	path:clearObstacles()
-
 	-- set radius for path finding
 	path:setRadius(radius)
 
@@ -306,23 +285,6 @@ local function setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreD
 		addGoalObstacle(path, robot)
 	end
 end
-
-
-	-- local obstacleTable = {
-	-- 	ignoreBall = false,
-	-- 	ignoreGoals = false,
-	-- 	ignoreDefenseArea = false,
-	-- 	pathRadius = nil,
-	-- 	stopBallDistance = nil,
-	-- 	noSeedTarget = false,
-	-- 	ignoreOpponentDefenseArea = false,
-	-- 	extraBallDistance = 0.3,
-	-- 	inbox = self._inbox,
-	-- 	ignorePass = true,
-	-- 	ignoreFriendlyRobots = false,
-	-- 	ignoreOpponentRobots = false,
-	-- 	disableOpponentPrediction = false,
-	-- }
 
 local function ignoreRobot(ownRobot, robot)
 	if robot.speed:length() > 1 and ownRobot.pos:distanceTo(robot.pos) > 2 then
@@ -380,16 +342,61 @@ local function addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreOppone
 	end
 end
 
-function PathHelper.setDefaultObstaclesByTable(path, robot, t)
-	setDefaultObstacles(path, robot, t.ignoreBall, t.ignoreGoals, t.ignoreDefenseArea, t.pathRadius,
-			t.stopBallDistance, t.noSeedTarget, t.ignoreOpponentDefenseArea, t.extraBallDistance)
-	if not t.ignorePass then
-		local disablePass = addGoalObstacleShot(path, robot, t.inbox)
+local obstacles = {}
+
+function PathHelper.setObstacleParam(robot, name, value)
+	if not obstacles[robot] then
+		error("setObstacleParam got called before setDefaultObstaclesByTable for robot " .. robot)
+	end
+	obstacles[robot][name] = value
+end
+
+function PathHelper.getObstacleParam(robot, name)
+	if not obstacles[robot] then
+		error("getObstacleParam got called before setDefaultObstaclesByTable for robot " .. robot)
+	end
+	return obstacles[robot][name]
+end
+
+-- Possible parameters
+-- ignoreBall                       bool
+-- ignoreGoals                      bool
+-- ignoreDefenseArea                bool
+-- noSeedTarget                     bool
+-- ignorePass                       bool
+-- ignoreFriendlyRobots             bool
+-- ignoreOpponentRobots             bool
+-- disableOpponentPrediction        bool
+-- pathRadius                       number
+-- stopBallDistance                 number
+-- extraBallDistance                number
+-- inbox                            agent inbox
+function PathHelper.setDefaultObstaclesByTable(path, robot, params)
+	if not params then
+		error("setDefaultObstaclesByTable called with nil parameter table")
+	end
+
+	path:clearObstacles()
+
+	params["path"] = path or robot.path
+	params["pathRadius"] = params.pathRadius or robot.radius
+	params["stopBallDistance"] = params.stopBallDistance or Constants.stopBallDistance
+	obstacles[robot] = table.copy(params)
+end
+
+function PathHelper.insertObstacles(robot)
+	local p = obstacles[robot]
+	setDefaultObstacles(p.path, robot, p.ignoreBall, p.ignoreGoals, p.ignoreDefenseArea,
+		p.pathRadius, p.stopBallDistance, p.noSeedTarget, p.ignoreOpponentDefenseArea, p.extraBallDistance)
+	if not p.ignorePass then
+		local disablePass = addGoalObstacleShot(p.path, robot, p.inbox)
 		if not disablePass then
-			addFriendlyPassObstacle(path, robot, t.inbox)
+			addFriendlyPassObstacle(p.path, robot, p.inbox)
 		end
 	end
-	addRobotObstacles(path, robot, t.ignoreFriendlyRobots, t.ignoreOpponentRobots, t.disableOpponentPrediction)
+	addRobotObstacles(p.path, robot, p.ignoreFriendlyRobots, p.ignoreOpponentRobots, p.disableOpponentPrediction)
+	-- Clear obstacle params because obstacles gets kept over multiple frames
+	obstacles[robot] = nil
 end
 
 return PathHelper
