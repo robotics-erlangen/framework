@@ -41,7 +41,7 @@ public:
     void update(qint64 time);
     void get(world::Robot *robot, bool flip, bool noRawData);
 
-    void addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time);
+    void addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time, qint64 visionProcessingTime);
     void addRadioCommand(const robot::Command &radioCommand, qint64 time);
 
     float distanceTo(const SSL_DetectionRobot &robot) const;
@@ -53,11 +53,12 @@ public:
 private:
     struct VisionFrame
     {
-        VisionFrame(qint32 cameraId, const SSL_DetectionRobot &detection, qint64 time)
-            : cameraId(cameraId), detection(detection), time(time) {}
+        VisionFrame(qint32 cameraId, const SSL_DetectionRobot &detection, qint64 time, qint64 vPT)
+            : cameraId(cameraId), detection(detection), time(time), visionProcessingTime(vPT) {}
         qint32 cameraId;
         SSL_DetectionRobot detection;
         qint64 time;
+        qint64 visionProcessingTime;
     };
     typedef QPair<robot::Command, qint64> RadioCommand;
     typedef KalmanFilter<6, 3> Kalman;

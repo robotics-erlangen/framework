@@ -32,15 +32,15 @@ class GroundFilter;
 class BallTracker : public Filter
 {
 public:
-    BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo* cameraInfo, RobotInfo robotInfo);
+    BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo* cameraInfo, RobotInfo robotInfo, qint64 visionProcessingDelay);
     BallTracker(const BallTracker& previousFilter, qint32 primaryCamera);
     ~BallTracker() override;
 
 public:
     void update(qint64 time);
     void get(world::Ball *ball, bool flip); // writes to world state
-    void addVisionFrame(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo);
-    bool acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo);
+    void addVisionFrame(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingDelay);
+    bool acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingDelay);
     float distToCamera(bool flying);
     bool isFlying() const;
     const qint64 initTime() const { return m_initTime; }

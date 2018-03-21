@@ -89,11 +89,11 @@ void SpeedTracker::process(qint64 currentTime)
         }
 
         for (int i = 0; i < detection.robots_yellow_size(); i++) {
-            trackRobot(m_robotFilterYellow, detection.robots_yellow(i), sourceTime, detection.camera_id());
+            trackRobot(m_robotFilterYellow, detection.robots_yellow(i), sourceTime, detection.camera_id(), visionProcessingTime);
         }
 
         for (int i = 0; i < detection.robots_blue_size(); i++) {
-            trackRobot(m_robotFilterBlue, detection.robots_blue(i), sourceTime, detection.camera_id());
+            trackRobot(m_robotFilterBlue, detection.robots_blue(i), sourceTime, detection.camera_id(), visionProcessingTime);
         }
 
         m_lastUpdateTime = sourceTime;
@@ -210,7 +210,7 @@ QList<RobotFilter *> SpeedTracker::getBestRobots(qint64 currentTime)
     return filters;
 }
 
-void SpeedTracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId)
+void SpeedTracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId, qint64 visionProcessingTime)
 {
     if (!robot.has_robot_id()) {
         return;
@@ -239,7 +239,7 @@ void SpeedTracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robo
         list.append(nearestFilter);
     }
 
-    nearestFilter->addVisionFrame(cameraId, robot, receiveTime);
+    nearestFilter->addVisionFrame(cameraId, robot, receiveTime, visionProcessingTime);
 }
 
 void SpeedTracker::queuePacket(const QByteArray &packet, qint64 time)

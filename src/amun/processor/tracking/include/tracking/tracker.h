@@ -68,8 +68,8 @@ private:
     static void invalidateRobots(RobotMap &map, qint64 currentTime);
 
     QList<RobotFilter *> getBestRobots(qint64 currentTime);
-    void trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint32 cameraId, const QList<RobotFilter *> &bestRobots);
-    void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId);
+    void trackBall(const SSL_DetectionBall &ball, qint64 receiveTime, quint32 cameraId, const QList<RobotFilter *> &bestRobots, qint64 visionProcessingDelay);
+    void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId, qint64 visionProcessingDelay);
 
 private:
     typedef QPair<QByteArray, qint64> Packet;

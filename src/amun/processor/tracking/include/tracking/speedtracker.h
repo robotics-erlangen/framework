@@ -57,7 +57,7 @@ private:
 
     QList<RobotFilter *> getBestRobots(qint64 currentTime);
 
-    void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId);
+    void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId, qint64 visionProcessingTime);
 
     template<class Filter>
     static Filter* bestFilter(QList<Filter*> &filters, int minFrameCount);

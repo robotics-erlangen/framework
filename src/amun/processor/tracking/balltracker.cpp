@@ -23,7 +23,7 @@
 #include "ballgroundfilter.h"
 #include <random>
 
-BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo *cameraInfo, RobotInfo robotInfo) :
+BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32 primaryCamera, CameraInfo *cameraInfo, RobotInfo robotInfo, qint64 visionProcessingTime) :
     Filter(last_time),
     m_lastUpdateTime(last_time),
     m_cameraInfo(cameraInfo),
@@ -31,7 +31,7 @@ BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32
     m_lastFrameTime(0)
 {
     m_primaryCamera = primaryCamera;
-    VisionFrame frame(ball, last_time, primaryCamera, robotInfo);
+    VisionFrame frame(ball, last_time, primaryCamera, robotInfo, visionProcessingTime);
     m_groundFilter = new GroundFilter(frame, cameraInfo);
     // TODO collision filter
     m_flyFilter = new FlyFilter(frame, cameraInfo);
@@ -64,9 +64,9 @@ BallTracker::~BallTracker()
     delete m_groundFilter;
 }
 
-bool BallTracker::acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo)
+bool BallTracker::acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingTime)
 {
-    VisionFrame frame(ball, time, cameraId, robotInfo);
+    VisionFrame frame(ball, time, cameraId, robotInfo, visionProcessingTime);
     bool accept = m_flyFilter->acceptDetection(frame) || m_groundFilter->acceptDetection(frame);
     debug("accept", accept);
     debug("acceptId", cameraId);
@@ -167,13 +167,14 @@ void BallTracker::get(world::Ball *ball, bool flip)
 
         raw->set_camera_id(frame.cameraId);
         raw->set_area(frame.ballArea);
+        raw->set_vision_processing_time(frame.visionProcessingTime);
     }
     m_rawMeasurements.clear();
 }
 
-void BallTracker::addVisionFrame(const SSL_DetectionBall &ball, qint64 time, qint32 cameraId, RobotInfo robotInfo)
+void BallTracker::addVisionFrame(const SSL_DetectionBall &ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingTime)
 {
     m_lastTime = time;
-    m_visionFrames.append(VisionFrame(ball, time, cameraId, robotInfo));
+    m_visionFrames.append(VisionFrame(ball, time, cameraId, robotInfo, visionProcessingTime));
     m_frameCounter++;
 }

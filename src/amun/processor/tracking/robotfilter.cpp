@@ -283,6 +283,7 @@ void RobotFilter::applyVisionFrame(const VisionFrame &frame)
     p.set_p_y(frame.detection.x() / 1000.0);
     p.set_phi(pRotLimited + diff);
     p.set_camera_id(frame.cameraId);
+    p.set_vision_processing_time(frame.visionProcessingTime);
     m_measurements.append(p);
 
     m_kalman->z(0) = p.p_x();
@@ -354,6 +355,7 @@ void RobotFilter::get(world::Robot *robot, bool flip, bool noRawData)
         }
         np->set_phi(limitAngle(rot));
         np->set_camera_id(p.camera_id());
+        np->set_vision_processing_time(p.vision_processing_time());
 
         const world::RobotPosition &prevPos = m_lastRaw[np->camera_id()];
 
@@ -410,9 +412,9 @@ Eigen::Vector2f RobotFilter::robotPos() const
 }
 
 
-void RobotFilter::addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time)
+void RobotFilter::addVisionFrame(qint32 cameraId, const SSL_DetectionRobot &robot, qint64 time, qint64 visionProcessingTime)
 {
-    m_visionFrames.append(VisionFrame(cameraId, robot, time));
+    m_visionFrames.append(VisionFrame(cameraId, robot, time, visionProcessingTime));
     // only count frames for the primary camera
     if (m_primaryCamera == -1 || m_primaryCamera == cameraId) {
         m_frameCounter++;

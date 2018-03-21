@@ -41,6 +41,7 @@ message BallPosition {
     optional float time_diff_scaled = 8; // scaled by factor 100
     optional uint32 camera_id = 9;
     optional float area = 11;
+    optional int64 vision_processing_time = 12;
 }
 
 message Ball {
@@ -67,6 +68,7 @@ message RobotPosition {
     optional float time_diff_scaled = 8; // scaled by factor 100
     optional float omega = 9;
     optional uint32 camera_id = 10;
+    optional int64 vision_processing_time = 11;
 }
 
 message Robot {

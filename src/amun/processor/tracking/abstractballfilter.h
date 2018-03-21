@@ -20,8 +20,8 @@ struct RobotInfo {
 struct VisionFrame
 {
     // rotate position and convert to meter
-    VisionFrame(const SSL_DetectionBall& b, qint64 t, qint32 c, RobotInfo r)
-        : cameraId(c), ballArea(b.area()), x(-b.y()/1000), y(b.x()/1000), time(t), dribblerPos(r.dribblerPos), robotPos(r.robotPos), chipCommand(r.chipCommand), linearCommand(r.linearCommand) {}
+    VisionFrame(const SSL_DetectionBall& b, qint64 t, qint32 c, RobotInfo r, qint64 vPT)
+        : cameraId(c), ballArea(b.area()), x(-b.y()/1000), y(b.x()/1000), time(t), dribblerPos(r.dribblerPos), robotPos(r.robotPos), chipCommand(r.chipCommand), linearCommand(r.linearCommand), visionProcessingTime(vPT) {}
     // b.area is optional in the protobuf but defaults to 0, so nothing bad can happen
     qint32 cameraId;
     quint32 ballArea;
@@ -32,6 +32,7 @@ struct VisionFrame
     Eigen::Vector2f robotPos;
     bool chipCommand;
     bool linearCommand;
+    qint64 visionProcessingTime;
 };
 
 struct CameraInfo {
