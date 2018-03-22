@@ -117,7 +117,7 @@ int main(int argc, char* argv[])
             auto packet = logFileIn.nextVisionPacket(visionFrame);
             receiveTimeNanos = packet.first;
             msg_type = packet.second;
-        } while(receiveTimeNanos < systemTimeNanos && receiveTimeNanos != -1);
+        } while(receiveTimeNanos <= systemTimeNanos && receiveTimeNanos != -1);
 
         tracker.process(systemTimeNanos);
 
