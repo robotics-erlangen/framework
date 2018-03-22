@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "visionlogreader.h"
+#include "visionlogheader.h"
 #include <QCoreApplication>
 #include <QtDebug>
 #include <QtEndian>
@@ -27,21 +28,7 @@
 #include <iomanip>
 #include <utility>
 
-struct FileHeader
-{
-    char name[12]; // "SSL_LOG_FILE"
-    int32_t version; // Default file format is version 1
-};
-
-const char* DEFAULT_FILE_HEADER_NAME = "SSL_LOG_FILE";
-
-struct DataHeader
-{
-    int64_t timestamp; // Timestamp in ns
-    int32_t messageType; // Message type
-    int32_t messageSize; // Size of protobuf message in bytes
-};
-
+const char * VisionLog::DEFAULT_FILE_HEADER_NAME = "SSL_LOG_FILE";
 
 VisionLogReader::VisionLogReader(const QString& filename):
     QObject()
@@ -53,12 +40,12 @@ VisionLogReader::VisionLogReader(const QString& filename):
         exit(1);
     }
 
-    FileHeader fileHeader;
+	VisionLog::FileHeader fileHeader;
     in_stream->read((char*) &fileHeader, sizeof(fileHeader));
     // Log data is stored big endian, convert to host byte order
     fileHeader.version = qFromBigEndian(fileHeader.version);
 
-    if (strncmp(fileHeader.name, DEFAULT_FILE_HEADER_NAME, sizeof(fileHeader.name)) != 0) {
+    if (strncmp(fileHeader.name, VisionLog::DEFAULT_FILE_HEADER_NAME, sizeof(fileHeader.name)) != 0) {
         qWarning() << "Unrecognized logfile header";
         exit(1);
     }
@@ -67,7 +54,7 @@ VisionLogReader::VisionLogReader(const QString& filename):
 
 std::pair<qint64, int> VisionLogReader::nextVisionPacket(QByteArray& data)
 {
-    DataHeader dataHeader;
+    VisionLog::DataHeader dataHeader;
     while (!in_stream->eof()) {
         in_stream->read((char*) &dataHeader, sizeof(dataHeader));
         if (in_stream->eof()) {

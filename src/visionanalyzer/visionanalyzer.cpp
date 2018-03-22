@@ -29,7 +29,8 @@
 #include "strategy/strategyreplayhelper.h"
 #include "core/timer.h"
 #include "logfile/logfilewriter.h"
-#include "visionlogreader.h"
+#include "visionlog/visionlogreader.h"
+#include "visionlog/messagetype.h"
 #include "processor/referee.h"
 #include <QThread>
 #include <QDebug>
@@ -109,9 +110,9 @@ int main(int argc, char* argv[])
 
         do {
             // collect all packets until current system time
-            if (msg_type == MESSAGE_SSL_VISION_2014) {
+            if (msg_type == VisionLog::MESSAGE_SSL_VISION_2014) {
                 tracker.queuePacket(visionFrame, receiveTimeNanos);
-            } else if (msg_type == MESSAGE_SSL_REFBOX_2013) {
+            } else if (msg_type == VisionLog::MESSAGE_SSL_REFBOX_2013) {
                 ref.handlePacket(visionFrame);
             }
             auto packet = logFileIn.nextVisionPacket(visionFrame);

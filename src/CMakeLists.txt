@@ -26,6 +26,7 @@ add_subdirectory(config)
 add_subdirectory(core)
 add_subdirectory(protobuf)
 add_subdirectory(amun)
+add_subdirectory(visionlog)
 
 # apps
 add_subdirectory(ra)

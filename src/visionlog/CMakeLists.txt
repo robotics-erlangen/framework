@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2017 Alexander Danzer                                       *
+# *   Copyright 2018 Tobias Heineken                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,27 +18,23 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_executable(visionanalyzer
-    visionanalyzer.cpp
+add_library(visionlog
+    include/visionlog/visionlogwriter.h
+    include/visionlog/visionlogreader.h
+    include/visionlog/messagetype.h
+
+    visionlogwriter.cpp
+    visionlogreader.cpp
+    visionlogheader.h
 )
-target_link_libraries(visionanalyzer
-    PRIVATE shared::core
-    PRIVATE ra::logfile
-    PRIVATE lib::eigen
-    PRIVATE amun::strategy
-    PRIVATE amun::processor
+
+target_link_libraries(visionlog
     PRIVATE shared::protobuf
-    PRIVATE visionlog::visionlog
     PUBLIC Qt5::Core
 )
-target_include_directories(visionanalyzer
-    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
-    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
-)
-target_compile_options(visionanalyzer
-    PRIVATE "-DENABLE_TRACKING_DEBUG"
-)
-if (TARGET lib::jemalloc)
-    target_link_libraries(visionanalyzer PRIVATE lib::jemalloc)
-endif()
 
+target_include_directories(visionlog
+    INTERFACE include
+    PRIVATE include/visionlog
+)
+add_library(visionlog::visionlog ALIAS visionlog)

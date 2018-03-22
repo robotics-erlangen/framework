@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2017 Alexander Danzer                                       *
+ *   Copyright 2018 Tobias Heineken                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,35 +18,29 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef VISIONLOGREADER_H
-#define VISIONLOGREADER_H
+#ifndef VISIONLOGWRITER_H
+#define VISIONLOGWRITER_H
 
 #include <QObject>
 #include <QString>
-#include <QByteArray>
-
 #include <iostream>
 
-enum MessageType
-{
-    MESSAGE_BLANK = 0,
-    MESSAGE_UNKNOWN = 1,
-    MESSAGE_SSL_VISION_2010 = 2,
-    MESSAGE_SSL_REFBOX_2013 = 3,
-    MESSAGE_SSL_VISION_2014 = 4
-};
+#include "protobuf/ssl_detection.pb.h"
 
-class VisionLogReader : public QObject
+class VisionLogWriter: public QObject
 {
     Q_OBJECT
 public:
-    explicit VisionLogReader(const QString& filename);
-    ~VisionLogReader() override;
-    std::pair<qint64, int> nextVisionPacket(QByteArray& data);
+    explicit VisionLogWriter(const QString& filename);
+    ~VisionLogWriter() override;
+    void addVisionPacket(const SSL_DetectionFrame& data);
+    void passTime();
 
 
 private:
-    std::ifstream* in_stream;
+    std::ofstream* out_stream;
+    qint64 time;
 };
 
-#endif // VISIONLOGREADER_H
+
+#endif //VISIONLOGWRITER_H
