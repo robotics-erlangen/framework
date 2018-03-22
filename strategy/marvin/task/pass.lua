@@ -41,7 +41,8 @@ end
 
 function Pass:run()
     local obstacleTable = {
-        inbox = self._inbox
+        inbox = self._inbox,
+        ignoreBallPlacementObstacle = true
     }
     PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	debug.set("targetRobot", self._targetRobot)

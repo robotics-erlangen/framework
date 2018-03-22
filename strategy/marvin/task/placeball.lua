@@ -110,6 +110,7 @@ function PlaceBall:run()
 		ignoreDefenseArea = true,
 		ignoreOpponentDefenseArea = true,
 		ignorePass = true,
+        ignoreBallPlacementObstacle = true
 	}
 	obstacleTable.ignoreBall = self._state == STATE_ENSURE_PULL_CONTACT
 					or self._state == STATE_PULL_TO_FIELD

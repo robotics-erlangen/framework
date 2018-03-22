@@ -9,7 +9,7 @@ local World = require "../base/world"
 -- customObstacles is a table of obstacle tables
 -- An obstacle table contains a string field called type and parameters relevant for Path:addX
 -- Type can be "circle", "line", "rect" and "triangle"
-function MoveToPos:_init(pos, dir, suggestPass, endSpeedLength, ignoreDefaultObstacles, customObstacles)
+function MoveToPos:_init(pos, dir, suggestPass, endSpeedLength, ignoreDefaultObstacles, customObstacles, ignoreBallPlacement)
 	self._pos = pos
 	self._dir = dir or (World.Ball.pos - pos):angle()
 	self._suggestPassFlag = suggestPass
@@ -22,6 +22,7 @@ function MoveToPos:_init(pos, dir, suggestPass, endSpeedLength, ignoreDefaultObs
 		ignoreOpponentDefenseArea = ignore,
 		inbox = self._inbox,
 		ignorePass = ignore,
+        ignoreBallPlacementObstacle = ignoreBallPlacement
 	}
 	self._customObstacles = customObstacles or {}
 end

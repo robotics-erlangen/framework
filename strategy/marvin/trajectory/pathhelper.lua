@@ -258,6 +258,19 @@ local function addFriendlyPassObstacle(path, robot, inbox, radius)
 	end
 end
 
+local function addBallPlacementObstacle(path)
+    if World.RefereeState == "BallPlacementOffensive" or World.RefereeState == "BallPlacementDefensive" then
+        path:addLine(
+            World.Ball.pos.x,
+            World.Ball.pos.y,
+            World.BallPlacementPos.x,
+            World.BallPlacementPos.y,
+            Constants.stopBallDistance,
+            "BallPlacement"
+        )
+    end
+end
+
 local function setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance, noSeedTarget, ignoreOpponentDefenseArea, extraBallDistance)
 	radius = radius or robot.radius
 	stopBallDistance = stopBallDistance or Constants.stopBallDistance
@@ -366,6 +379,7 @@ end
 -- ignorePass                       bool
 -- ignoreFriendlyRobots             bool
 -- ignoreOpponentRobots             bool
+-- ignoreBallPlacementObstacle      bool
 -- disableOpponentPrediction        bool
 -- pathRadius                       number
 -- stopBallDistance                 number
@@ -394,6 +408,9 @@ function PathHelper.insertObstacles(robot)
 			addFriendlyPassObstacle(p.path, robot, p.inbox)
 		end
 	end
+    if not p.ignoreBallPlacementObstacle then
+        addBallPlacementObstacle(p.path)
+    end
 	addRobotObstacles(p.path, robot, p.ignoreFriendlyRobots, p.ignoreOpponentRobots, p.disableOpponentPrediction)
 	-- Clear obstacle params because obstacles gets kept over multiple frames
 	obstacles[robot] = nil

@@ -97,19 +97,19 @@ function FastBallPlacement:_updateTasks()
 		self:_determinePositions()
 		taskAssignments[self.RECEIVER] = {
 			class = MoveToPos,
-			params = { self._computedReceiverPos },
+			params = { self._computedReceiverPos, nil, nil, nil, nil, nil, true },
 			restart = true
 		}
 		taskAssignments[self.SHOOTER] = {
 			class = MoveToPos,
-			params = { Field.limitToField(self._computedShooterPos), nil, nil, nil, true, SHOOTER_OBSTACLES },
+			params = { Field.limitToField(self._computedShooterPos), nil, nil, nil, true, SHOOTER_OBSTACLES, true },
 			restart = true
 		}
 	elseif self._state == STATE_PULL_TO_FIELD then
 		self._mainAttacker = self.SHOOTER
 		taskAssignments[self.RECEIVER] = {
 			class = MoveToPos,
-			params = { self._computedReceiverPos },
+			params = { self._computedReceiverPos, nil, nil, nil, nil, nil, true },
 			restart = self._stateChanged
 		}
 		taskAssignments[self.SHOOTER] = {
@@ -122,12 +122,12 @@ function FastBallPlacement:_updateTasks()
 		self:_determinePositions()
 		taskAssignments[self.RECEIVER] = {
 			class = MoveToPos,
-			params = { self._computedReceiverPos },
+			params = { self._computedReceiverPos, nil, nil, nil, nil, nil, true },
 			restart = true
 		}
 		taskAssignments[self.SHOOTER] = {
 			class = MoveToPos,
-			params = { self._computedShooterPos, nil, nil, nil, true, SHOOTER_OBSTACLES },
+			params = { self._computedShooterPos, nil, nil, nil, true, SHOOTER_OBSTACLES, true },
 			restart = true
 		}
 	elseif self._state == STATE_EXECUTE_PASS then
@@ -144,7 +144,7 @@ function FastBallPlacement:_updateTasks()
 		}
 		taskAssignments[self.RECEIVER] = {
 			class = MoveToPos,
-			params = { self._computedReceiverPos},
+			params = { self._computedReceiverPos, nil, nil, nil, nil, nil, true },
 			restart = self._stateChanged
 		}
 	elseif self._state == STATE_ACCEPT_PASS then
@@ -159,13 +159,17 @@ function FastBallPlacement:_updateTasks()
 
 		vis.addPath("g/m/fastballplacement", { self.RECEIVER.pos, intersection, World.Ball.pos }, vis.colors.red)
 
-		taskAssignments[self.RECEIVER] = { class = MoveToPos, params = { intersection }, restart = true }
+		taskAssignments[self.RECEIVER] = {
+            class = MoveToPos,
+            params = { intersection, nil, nil, nil, nil, nil, true },
+            restart = true
+        }
 		-- Stop moving if the ball is near the receiver
 		-- TODO maybe use Halt
 		if World.Ball.pos:distanceTo(self.RECEIVER.pos) < World.Ball.radius + self.RECEIVER.shootRadius + 0.1 then
 			taskAssignments[self.RECEIVER] = {
 				class = MoveToPos,
-				params = { self.RECEIVER.pos, self.RECEIVER.dir },
+				params = { self.RECEIVER.pos, self.RECEIVER.dir, nil, nil, nil, nil, true },
 				restart = true
 			}
 		end
@@ -181,7 +185,7 @@ function FastBallPlacement:_updateTasks()
 		end
 		taskAssignments[self.RECEIVER] = {
 			class = MoveToPos,
-			params = { self._computedReceiverPos },
+			params = { self._computedReceiverPos, nil, nil, nil, nil, nil, true },
 			restart = self._stateChanged
 		}
 	elseif self._state == STATE_FINE_ADJUST then
@@ -196,7 +200,7 @@ function FastBallPlacement:_updateTasks()
 		end
 		taskAssignments[self.SHOOTER] = {
 			class = MoveToPos,
-			params = { shooterTargetPos, nil, nil, nil, nil, SHOOTER_OBSTACLES },
+			params = { shooterTargetPos, nil, nil, nil, nil, SHOOTER_OBSTACLES, true },
 			restart = true
 		}
 	end
