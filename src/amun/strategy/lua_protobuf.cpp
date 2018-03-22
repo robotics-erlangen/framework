@@ -131,15 +131,15 @@ static void pushRepeatedField(lua_State *L, const google::protobuf::Message &mes
 // translate protobuf message to lua table
 void protobufPushMessage(lua_State *L, const google::protobuf::Message &message)
 {
-    lua_newtable(L);
+    lua_createtable(L, 0, message.GetDescriptor()->field_count());
 
     // iterate over message fields
     for (int i = 0; i < message.GetDescriptor()->field_count(); i++) {
         const google::protobuf::FieldDescriptor *field = message.GetDescriptor()->field(i);
 
         if (field->is_repeated()) {
-            lua_newtable(L);
             const google::protobuf::Reflection *refl = message.GetReflection();
+            lua_createtable(L, refl->FieldSize(message, field), 0);
             for (int r = 0; r < refl->FieldSize(message, field); r++) {
                 lua_pushinteger(L, r + 1);
                 pushRepeatedField(L, message, field, r);
