@@ -41,8 +41,9 @@ local obstacleTable = {
 	ignoreOpponentDefenseArea = true,
 	ignorePass = true
 }
+
 function Manual:run()
-	PathHelper.setObstaclesByTable(self._robot.path, self._robot, obstacleTable)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
 	local input = self._robot.userControl
 
