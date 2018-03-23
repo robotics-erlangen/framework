@@ -39,6 +39,7 @@ else()
 	add_library(eigen "${install_dir}/dummy.cpp")
 endif()
 
+target_compile_options(eigen INTERFACE -Wno-deprecated-declarations)
 add_dependencies(eigen project_eigen)
 target_include_directories(eigen INTERFACE "${install_dir}/include/eigen3")
 add_library(lib::eigen ALIAS eigen)
