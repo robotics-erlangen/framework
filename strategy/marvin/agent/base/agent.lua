@@ -201,14 +201,25 @@ function Base:_applyForMainAttacker(task)
 				timeToBall = Physics.robotTimeToPos(self._robot, ballOutPos, Vector(0, 0))
 			end
 		end
-		if World.Ball.speed:length() < SLOW_BALL then
+
+		local ballSpeedLength = World.Ball.speed:length()
+		local ratingBoost
+		if ballSpeedLength < SLOW_BALL then
+			-- slow ball: being behind the ball is better
 			local relativeYPos = World.Ball.pos.y - self._robot.pos.y
-			local ratingBoost = math.sin(math.bound(0, relativeYPos * math.pi, math.pi / 2))
-			timeToBall = timeToBall - math.min(timeToBall / 2, ratingBoost * MAX_RATING_TIME_BOOST)
+			ratingBoost = math.min(timeToBall / 2, math.sin(math.bound(0, relativeYPos * math.pi, math.pi / 2)) * MAX_RATING_TIME_BOOST)
+		else
+			-- fast ball: being in the direction of the ball is better
+			local ballToRobot = self._robot.pos - World.Ball.pos
+			local ballToRobotLength = ballToRobot:length()
+			local cosAngle = World.Ball.speed:dot(ballToRobot) / ballToRobotLength / ballSpeedLength
+			ratingBoost = math.bound(-1, cosAngle * cosAngle * cosAngle / ballToRobotLength, 1) * 5
 		end
+		debug.set("mainAttackerRating/ratingBoost", ratingBoost)
+		timeToBall = timeToBall - ratingBoost
+		
 		mainAttackerRating = Rating.timeToRating(timeToBall)
 
-		-- rate the robot pos (generally, being behind the ball is better)
 	else
 		mainAttackerRating = overrideRating
 	end
