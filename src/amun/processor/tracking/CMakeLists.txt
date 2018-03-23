@@ -20,6 +20,8 @@
 
 set(SOURCES
     include/tracking/tracker.h
+    include/tracking/speedtracker.h
+
     abstractballfilter.h
     balltracker.cpp
     balltracker.h
@@ -35,6 +37,7 @@ set(SOURCES
     robotfilter.cpp
     robotfilter.h
     tracker.cpp
+    speedtracker.cpp
 )
 
 add_library(tracking ${SOURCES})

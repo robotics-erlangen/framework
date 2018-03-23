@@ -18,43 +18,63 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef INPUTDEVICE_H
-#define INPUTDEVICE_H
+#ifndef SPEEDTRACKER_H
+#define SPEEDTRACKER_H
 
-#include "protobuf/robot.pb.h"
-#include "protobuf/ssl_referee.pb.h"
-#include <QObject>
+#include "protobuf/command.pb.h"
+#include "protobuf/status.h"
+#include "protobuf/world.pb.h"
+#include <QMap>
+#include <QPair>
+#include <QByteArray>
 
-class InputDevice : public QObject
+class RobotFilter;
+class SSL_DetectionFrame;
+class SSL_DetectionRobot;
+
+class SpeedTracker
 {
-    Q_OBJECT
+private:
+    typedef QMap<uint, QList<RobotFilter*> > RobotMap;
 
 public:
-    explicit InputDevice(const QString &name);
-    ~InputDevice() override;
-
-signals:
-    void sendRefereeCommand(SSL_Referee::Command command);
-    void toggleTransceiver();
+    SpeedTracker();
+    ~SpeedTracker();
 
 public:
-    void setLocal(bool local);
-    bool isLocal() const { return m_local; }
-    void setStrategyControlled(bool isControlled);
-    bool isStrategyControlled() const { return m_strategyControlled; }
-    QString name() const { return m_name; }
-    const robot::Command& command() const { return m_command; }
+    void process(qint64 currentTime);
+    Status worldState(qint64 currentTime);
 
-protected:
-    void resetCommand();
-
-protected:
-    robot::Command m_command;
+    void setFlip(bool flip);
+    void queuePacket(const QByteArray &packet, qint64 time);
+    void handleCommand(const amun::CommandTracking &command);
+    void reset();
 
 private:
-    const QString m_name;
-    bool m_local;
-    bool m_strategyControlled;
+    template<class Filter>
+    static void invalidate(QList<Filter*> &filters, const qint64 maxTime, const qint64 maxTimeLast, qint64 currentTime);
+    static void invalidateRobots(RobotMap &map, qint64 currentTime);
+
+    QList<RobotFilter *> getBestRobots(qint64 currentTime);
+
+    void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId);
+
+    template<class Filter>
+    static Filter* bestFilter(QList<Filter*> &filters, int minFrameCount);
+private:
+    typedef QPair<QByteArray, qint64> Packet;
+
+    bool m_flip;
+    qint64 m_systemDelay;
+    qint64 m_resetTime;
+
+    bool m_hasVisionData;
+
+    qint64 m_lastUpdateTime;
+    QList<Packet> m_visionPackets;
+
+    RobotMap m_robotFilterYellow;
+    RobotMap m_robotFilterBlue;
 };
 
-#endif // INPUTDEVICE_H
+#endif // SPEEDTRACKER_H

@@ -164,10 +164,10 @@ void RobotFilter::predict(qint64 time, bool updateFuture, bool permanentUpdate, 
     if (time < cmd.second + 2 * PROCESSOR_TICK_DURATION) {
         // radio commands are intended to be applied over 10ms
         float cmd_interval = (float)std::max(PROCESSOR_TICK_DURATION*1E-9, timeDiff);
+        float cmd_omega = cmd.first.output1().omega();
 
-        float cmd_v_s = cmd.first.v_s();
-        float cmd_v_f = cmd.first.v_f();
-        float cmd_omega = cmd.first.omega();
+        float cmd_v_s = cmd.first.output1().v_s();
+        float cmd_v_f = cmd.first.output1().v_f();
 
         // predict phi to execution end time
         float cmd_phi = phi + (omega + cmd_omega) / 2 * cmd_interval;

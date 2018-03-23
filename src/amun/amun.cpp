@@ -343,19 +343,19 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
                 m_processor, SLOT(handleVisionPacket(QByteArray,qint64)));
         connect(m_simulator, SIGNAL(sendRadioResponses(QList<robot::RadioResponse>)),
                 m_processor, SLOT(handleRadioResponses(QList<robot::RadioResponse>)));
-        connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>)),
-                m_simulator, SLOT(handleRadioCommands(QList<robot::RadioCommand>)));
+        connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
+                m_simulator, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
     } else {
         connect(m_vision, SIGNAL(gotPacket(QByteArray, qint64)),
                 m_processor, SLOT(handleVisionPacket(QByteArray,qint64)));
         if (!useNetworkTransceiver) {
             connect(m_transceiver, SIGNAL(sendRadioResponses(QList<robot::RadioResponse>)),
                     m_processor, SLOT(handleRadioResponses(QList<robot::RadioResponse>)));
-            connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>)),
-                    m_transceiver, SLOT(handleRadioCommands(QList<robot::RadioCommand>)));
+            connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
+                    m_transceiver, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
         } else {
-            connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>)),
-                    m_networkTransceiver, SLOT(handleRadioCommands(QList<robot::RadioCommand>)));
+            connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
+                    m_networkTransceiver, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
         }
     }
 }

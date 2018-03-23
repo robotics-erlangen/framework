@@ -19,54 +19,59 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef CONTROLLER_H
-#define CONTROLLER_H
+#ifndef COMMAND_EVALUATOR_H
+#define COMMAND_EVALUATOR_H
 
+#include "coordinatehelper.h"
 #include "protobuf/robot.pb.h"
 #include <QtGlobal>
 
 namespace amun { class DebugValues; }
 namespace world { class Robot; }
 
-class Controller
+class LocalSpeed;
+class GlobalSpeed;
+
+class CommandEvaluator
 {
     // no copy of this instance
-    Q_DISABLE_COPY(Controller)
+    Q_DISABLE_COPY(CommandEvaluator)
 
 public:
-    explicit Controller(const robot::Specs &specs);
+    explicit CommandEvaluator(const robot::Specs &specs);
 
 public:
-    void calculateCommand(const world::Robot &robot, qint64 world_time, robot::Command &command, amun::DebugValues *debug);
-    void setInput(const robot::ControllerInput &input, qint64 world_time);
+    void calculateCommand(const world::Robot *robot, qint64 worldTime, robot::Command &command, amun::DebugValues *debug);
+    void setInput(const robot::ControllerInput &input, qint64 currentTime);
     void clearInput();
 
-    // Returns the robot specs
-    const robot::Specs& specs() const { return m_specs; }
+private:
+    static float robotToPhi(const world::Robot *robot);
+    GlobalSpeed evaluateInput(bool hasTrackedRobot, float robotPhi, qint64 worldTime, const robot::Command &command, amun::DebugValues *debug);
+    LocalSpeed evaluateLocalManualControl(const robot::Command &command);
+    GlobalSpeed evaluateManualControl(const robot::Command &command);
+    GlobalSpeed evaluateSplineAtTime(const qint64 worldTime);
+    int findActiveSpline(const float time);
+    GlobalSpeed evaluateSplinePartAtTime(const robot::Spline &spline, const float t);
+
+    void logInvalidCommand(amun::DebugValues *debug, qint64 worldTime);
+    void drawSpline(amun::DebugValues *debug);
+
+    void prepareBaseSpeed(const world::Robot *robot, qint64 worldTime);
+    void updateBaseSpeed(qint64 worldTime, GlobalSpeed limitedOutput);
+    GlobalSpeed limitAcceleration(float robotPhi, const GlobalSpeed &command, const GlobalSpeed &baseSpeed, float timeStep);
+    float boundAcceleration(float acceleration, float oldSpeed, float speedupLimit, float brakeLimit) const;
+    void drawSpeed(const world::Robot *robot, const GlobalSpeed &output, amun::DebugValues *debug);
 
 private:
-    void controlAlgorithm(const world::Robot &robot, qint64 world_time, robot::Command &command, amun::DebugValues *debug);
-    void getDesiredState_ManualControl(const world::Robot &robot, const robot::Command &command);
-    void getDesiredState_AutomaticControl(const robot::Spline &spline, const float t);
-
-    void drawSpline(amun::DebugValues *debug, const google::protobuf::RepeatedPtrField<robot::Spline> &input);
-
-private:
-    // Constant specs of the robot controlled by this instance of Controller
     const robot::Specs m_specs;
 
-    // Input defining the desired control output
     robot::ControllerInput m_input;
-    // Instant of time (absolute) when new input arrives, in ns.
+    // Time (absolute) when new input arrived, in ns.
     qint64 m_startTime;
 
-private:
-    // desired velocity in x-direction (global coordinates)
-    float m_v_x_d;
-    // desired velocity in y-direction (global coordinates)
-    float m_v_y_d;
-    // desired rotational speed (global coordinates)
-    float m_omega_d;
+    GlobalSpeed m_baseSpeed;
+    qint64 m_baseSpeedTime;
 };
 
-#endif // CONTROLLER_H
+#endif // COMMAND_EVALUATOR_H

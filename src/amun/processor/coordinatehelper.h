@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Jan Kallwies, Philipp Nordhus         *
+ *   Copyright 2017 Michahel Eischer                                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,37 +18,53 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef ACCELERATOR_H
-#define ACCELERATOR_H
+#ifndef COORDINATEHELPER_H
+#define COORDINATEHELPER_H
 
-#include "protobuf/robot.pb.h"
-#include "protobuf/world.pb.h"
-#include <QtGlobal>
+class GlobalSpeed;
+class GlobalAcceleration;
+namespace robot { class SpeedVector; }
 
-namespace amun { class DebugValues; }
-
-class Accelerator
-{
+class LocalSpeed {
 public:
-    explicit Accelerator(const robot::Specs &specs);
+    LocalSpeed(float v_s, float v_f, float omega);
+    GlobalSpeed toGlobal(float phi) const;
+    void copyToSpeedVector(robot::SpeedVector &vector) const;
 
-public:
-    void limit(const world::Robot *robot, robot::Command &command, qint64 time, amun::DebugValues *debug);
-
-private:
-    float bound(float acceleration, float oldSpeed, float speedupLimit, float brakeLimit) const;
-
-private:
-    //! Specs of the robot being accelerated
-    const robot::Specs m_specs;
-    //! Instant of time in ns when limit was last calleds
-    qint64 m_lastTime;
-    //! Desired velocity in global x direction
-    float m_v_d_x;
-    //! Desired velocity in global y direction
-    float m_v_d_y;
-    //! Desired rotational velocity
-    float m_v_d_omega;
+    float v_s;
+    float v_f;
+    float omega;
 };
 
-#endif // ACCELERATOR_H
+class GlobalSpeed {
+public:
+    GlobalSpeed(float v_x, float v_y, float omega);
+    LocalSpeed toLocal(float phi) const;
+    bool isValid() const;
+
+    float v_x;
+    float v_y;
+    float omega;
+};
+
+class LocalAcceleration {
+public:
+    LocalAcceleration(float a_s, float a_f, float a_phi);
+    GlobalAcceleration toGlobal(float phi) const;
+
+    float a_s;
+    float a_f;
+    float a_phi;
+};
+
+class GlobalAcceleration {
+public:
+    GlobalAcceleration(float a_x, float a_y, float a_phi);
+    LocalAcceleration toLocal(float phi) const;
+
+    float a_x;
+    float a_y;
+    float a_phi;
+};
+
+#endif // COORDINATEHELPER_H

@@ -43,7 +43,7 @@ InputManager::InputManager(QObject *parent) :
     m_dribblerPower(1.0f),
     m_shootPower(10.0f),
     m_enabled(false),
-    m_direct(true),
+    m_isLocal(true),
     m_lastCommandWasEmpty(true)
 {
     // add default keyboard
@@ -176,7 +176,7 @@ void InputManager::update()
 }
 
 void InputManager::addDevice(InputDevice *device) {
-    device->setDirect(m_direct); // pass setting
+    device->setLocal(m_isLocal); // pass setting
     // connect signals for forwarding
     connect(device, SIGNAL(sendRefereeCommand(SSL_Referee::Command)),
             SIGNAL(sendRefereeCommand(SSL_Referee::Command)));
@@ -315,13 +315,13 @@ void InputManager::setEnabled(bool enabled)
 
 void InputManager::setGlobal(bool global)
 {
-    setDirect(!global);
+    setLocal(!global);
 }
 
-void InputManager::setDirect(bool direct)
+void InputManager::setLocal(bool local)
 {
-    m_direct = direct;
+    m_isLocal = local;
     foreach (InputDevice *device, m_devices) {
-        device->setDirect(m_direct);
+        device->setLocal(m_isLocal);
     }
 }

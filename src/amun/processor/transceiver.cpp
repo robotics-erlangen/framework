@@ -29,7 +29,7 @@
 #include "usbdevice.h"
 #include <QTimer>
 
-static_assert(sizeof(RadioCommand2014) == 11, "Expected radio command packet of size 11");
+static_assert(sizeof(RadioCommand2014) == 23, "Expected radio command packet of size 23");
 static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet of size 10");
 
 const int PROTOCOL_VERSION = 2;
@@ -64,13 +64,13 @@ Transceiver::~Transceiver()
 #endif
 }
 
-void Transceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands)
+void Transceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay)
 {
     Status status(new amun::Status);
     const qint64 transceiver_start = Timer::systemTime();
 
     // charging the condensator can be enabled / disable separately
-    sendCommand(commands, m_charge);
+    sendCommand(commands, m_charge, processingDelay);
 
     status->mutable_timing()->set_transceiver((Timer::systemTime() - transceiver_start) / 1E9);
     emit sendStatus(status);
@@ -486,9 +486,9 @@ void Transceiver::addRobot2012Command(int id, const robot::Command &command, boo
     data.dribbler = qBound<qint32>(-RADIOCOMMAND2012_DRIBBLER_MAX, command.dribbler() * RADIOCOMMAND2012_DRIBBLER_MAX, RADIOCOMMAND2012_DRIBBLER_MAX);
     data.chip = command.kick_style() == robot::Command::Chip;
     data.shot_power = qMin<quint32>(command.kick_power() * RADIOCOMMAND2012_KICK_MAX, RADIOCOMMAND2012_KICK_MAX);
-    data.v_x = qBound<qint32>(-RADIOCOMMAND2012_V_MAX, command.v_s() * 1000.0f, RADIOCOMMAND2012_V_MAX);
-    data.v_y = qBound<qint32>(-RADIOCOMMAND2012_V_MAX, command.v_f() * 1000.0f, RADIOCOMMAND2012_V_MAX);
-    data.omega = qBound<qint32>(-RADIOCOMMAND2012_OMEGA_MAX, command.omega() * 1000.0f, RADIOCOMMAND2012_OMEGA_MAX);
+    data.v_x = qBound<qint32>(-RADIOCOMMAND2012_V_MAX, command.output1().v_s() * 1000.0f, RADIOCOMMAND2012_V_MAX);
+    data.v_y = qBound<qint32>(-RADIOCOMMAND2012_V_MAX, command.output1().v_f() * 1000.0f, RADIOCOMMAND2012_V_MAX);
+    data.omega = qBound<qint32>(-RADIOCOMMAND2012_OMEGA_MAX, command.output1().omega() * 1000.0f, RADIOCOMMAND2012_OMEGA_MAX);
     data.id = id;
 
     // set address
@@ -520,14 +520,44 @@ void Transceiver::addRobot2014Command(int id, const robot::Command &command, boo
     } else {
         data.shot_power = qMin<quint32>(command.kick_power() / RADIOCOMMAND2014_LINEAR_MAX * RADIOCOMMAND2014_KICK_MAX, RADIOCOMMAND2014_KICK_MAX);
     }
-    data.v_x = qBound<qint32>(-RADIOCOMMAND2014_V_MAX, command.v_s() * 1000.0f, RADIOCOMMAND2014_V_MAX);
-    data.v_y = qBound<qint32>(-RADIOCOMMAND2014_V_MAX, command.v_f() * 1000.0f, RADIOCOMMAND2014_V_MAX);
-    data.omega = qBound<qint32>(-RADIOCOMMAND2014_OMEGA_MAX, command.omega() * 1000.0f, RADIOCOMMAND2014_OMEGA_MAX);
+    data.v_s = qBound<qint32>(-RADIOCOMMAND2014_V_MAX, command.output0().v_s() * 1000.0f, RADIOCOMMAND2014_V_MAX);
+    data.v_f = qBound<qint32>(-RADIOCOMMAND2014_V_MAX, command.output0().v_f() * 1000.0f, RADIOCOMMAND2014_V_MAX);
+    data.omega = qBound<qint32>(-RADIOCOMMAND2014_OMEGA_MAX, command.output0().omega() * 1000.0f, RADIOCOMMAND2014_OMEGA_MAX);
+
+    const int OMEGA_QUANTIZATION = 5;
+    const int V_QUANTIZATION = 2;
+    const float delta1_v_s = command.output1().v_s() - command.output0().v_s();
+    const float delta1_v_f = command.output1().v_f() - command.output0().v_f();
+    const float delta1_omega = command.output1().omega() - command.output0().omega();
+    data.delta1_v_s = qBound<qint32>(-RADIOCOMMAND2014_DELTA_V_MAX, delta1_v_s * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2014_DELTA_V_MAX);
+    data.delta1_v_f = qBound<qint32>(-RADIOCOMMAND2014_DELTA_V_MAX, delta1_v_f * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2014_DELTA_V_MAX);
+    data.delta1_omega = qBound<qint32>(-RADIOCOMMAND2014_DELTA_OMEGA_MAX, delta1_omega * (1000.0f / OMEGA_QUANTIZATION), RADIOCOMMAND2014_DELTA_OMEGA_MAX);
+
+    const float delta2_v_s = command.output2().v_s() - command.output1().v_s();
+    const float delta2_v_f = command.output2().v_f() - command.output1().v_f();
+    // compensate for possible quantization errors
+    const float sent_delta1_omega = data.delta1_omega * (OMEGA_QUANTIZATION / 1000.0f);
+    const float omegaWithDelta1 = command.output0().omega() + sent_delta1_omega;
+    const float delta2_omega = command.output2().omega() - omegaWithDelta1;
+    data.delta2_v_s = qBound<qint32>(-RADIOCOMMAND2014_DELTA_V_MAX, delta2_v_s * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2014_DELTA_V_MAX);
+    data.delta2_v_f = qBound<qint32>(-RADIOCOMMAND2014_DELTA_V_MAX, delta2_v_f * 1000.0f / V_QUANTIZATION, RADIOCOMMAND2014_DELTA_V_MAX);
+    data.delta2_omega = qBound<qint32>(-RADIOCOMMAND2014_DELTA_OMEGA_MAX, delta2_omega * (1000.0f / OMEGA_QUANTIZATION), RADIOCOMMAND2014_DELTA_OMEGA_MAX);
+
     data.id = id;
     data.force_kick = command.force_kick();
     data.ir_param = qBound<quint8>(0, m_ir_param[qMakePair(3, id)], 63);
     data.eject_sdcard = command.eject_sdcard();
     data.unused = 0;
+
+    if (command.has_cur_v_s()) {
+        data.cur_v_s = qBound<qint32>(-RADIOCOMMAND2014_V_MAX, command.cur_v_s() * 1000.0f, RADIOCOMMAND2014_V_MAX);
+        data.cur_v_f = qBound<qint32>(-RADIOCOMMAND2014_V_MAX, command.cur_v_f() * 1000.0f, RADIOCOMMAND2014_V_MAX);
+        data.cur_omega = qBound<qint32>(-RADIOCOMMAND2014_OMEGA_MAX, command.cur_omega() * 1000.0f, RADIOCOMMAND2014_OMEGA_MAX);
+    } else {
+        data.cur_v_s = RADIOCOMMAND2014_INVALID_SPEED;
+        data.cur_v_f = RADIOCOMMAND2014_INVALID_SPEED;
+        data.cur_omega = RADIOCOMMAND2014_INVALID_SPEED;
+    }
 
     // set address
     TransceiverCommandPacket senderCommand;
@@ -538,6 +568,43 @@ void Transceiver::addRobot2014Command(int id, const robot::Command &command, boo
     memcpy(targetAddress.address, robot2014_address, sizeof(targetAddress.address));
     targetAddress.address[4] |= id;
     targetAddress.expectedResponseSize = sizeof(RadioResponseHeader) + sizeof(RadioResponse2014);
+
+    usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
+    usb_packet.append((const char*) &targetAddress, sizeof(targetAddress));
+    usb_packet.append((const char*) &data, sizeof(data));
+}
+
+void Transceiver::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet)
+{
+    // processing usually takes a few hundred microseconds, bound to 2ms to avoid outliers
+    processingDelay = qMin((qint64)2*1000*1000, processingDelay);
+
+    // times are in nanoseconds
+    qint64 US_TO_NS = 1000;
+    // just an estimate
+    qint64 usbTransferTime = 250 * US_TO_NS;
+    qint64 nrfRadioStartupTime = 130 * US_TO_NS;
+    int nrfPacketHeaderBits = 65;
+    int syncPacketPayloadBytes = sizeof(RadioSync2014);
+    int BITS_PER_BYTE = 8;
+    // transfer rate: 1MBit/s
+    int BIT_TRANSFER_TIME = 1 * US_TO_NS;
+    qint64 syncPacketTransmissionTime = (nrfPacketHeaderBits + BITS_PER_BYTE * syncPacketPayloadBytes) * BIT_TRANSFER_TIME;
+    qint64 syncPacketDelay = usbTransferTime + nrfRadioStartupTime + syncPacketTransmissionTime;
+
+    RadioSync2014 data;
+    data.counter = packetCounter;
+    data.time_offset = (processingDelay + syncPacketDelay) / 1000;
+
+    TransceiverCommandPacket senderCommand;
+    senderCommand.command = COMMAND_SEND_NRF24;
+    senderCommand.size = sizeof(data) + sizeof(TransceiverSendNRF24Packet);
+
+    TransceiverSendNRF24Packet targetAddress;
+    memcpy(targetAddress.address, robot_datagram, sizeof(targetAddress.address));
+    // broadcast (0x0f) to generation 2014 (0x20)
+    targetAddress.address[0] = 0x0f | 0x20;
+    targetAddress.expectedResponseSize = 0;
 
     usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
     usb_packet.append((const char*) &targetAddress, sizeof(targetAddress));
@@ -568,7 +635,7 @@ void Transceiver::addStatusPacket(QByteArray &usb_packet)
     usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
 }
 
-void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool charge)
+void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingDelay)
 {
     if (!ensureOpen()) {
         return;
@@ -589,6 +656,11 @@ void Transceiver::sendCommand(const QList<robot::RadioCommand> &commands, bool c
 
     // used for packet assembly
     QByteArray usb_packet;
+
+    bool hasRobot2014Commands = generations.keys().contains(3);
+    if (hasRobot2014Commands) {
+        addRobot2014Sync(processingDelay, m_packetCounter, usb_packet);
+    }
 
     QMapIterator<uint, RobotList> it(generations);
     while (it.hasNext()) {

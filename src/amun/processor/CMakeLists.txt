@@ -25,10 +25,10 @@ set(SOURCES
     include/processor/processor.h
     include/processor/transceiver.h
 
-    accelerator.cpp
-    accelerator.h
-    controller.cpp
-    controller.h
+    commandevaluator.cpp
+    commandevaluator.h
+    coordinatehelper.cpp
+    coordinatehelper.h
     debughelper.cpp
     debughelper.h
     networktransceiver.cpp

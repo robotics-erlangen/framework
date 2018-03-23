@@ -19,11 +19,12 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "accelerator.h"
-#include "controller.h"
+#include "commandevaluator.h"
+#include "coordinatehelper.h"
 #include "processor.h"
 #include "referee.h"
 #include "core/timer.h"
+#include "tracking/speedtracker.h"
 #include "tracking/tracker.h"
 #include <cmath>
 #include <QTimer>
@@ -31,8 +32,9 @@
 struct Processor::Robot
 {
     explicit Robot(const robot::Specs &specs) :
+        generation(specs.generation()),
+        id(specs.id()),
         controller(specs),
-        accelerator(specs),
         strategy_command(NULL),
         manual_command(NULL)
     {
@@ -72,8 +74,30 @@ struct Processor::Robot
         manual_command->CopyFrom(command);
     }
 
-    Controller controller;
-    Accelerator accelerator;
+    void mergeIntoCommand(robot::Command& command) {
+        if (manual_command && !manual_command->strategy_controlled()) {
+            // use manual command, if available
+            // this has precedence over any strategy command
+            command.CopyFrom(*manual_command);
+            command.set_strategy_controlled(false);
+        } else if (strategy_command) {
+            // copy strategy command
+            command.CopyFrom(*strategy_command);
+            command.set_strategy_controlled(true);
+        } else {
+            // no command -> standby
+            command.set_standby(true);
+            command.set_strategy_controlled(false);
+        }
+
+        if (manual_command && manual_command->eject_sdcard()) {
+            command.set_eject_sdcard(true);
+        }
+    }
+
+    const quint32 generation;
+    const quint32 id;
+    CommandEvaluator controller;
     robot::Command *strategy_command;
     robot::Command *manual_command;
 };
@@ -101,6 +125,7 @@ Processor::Processor(const Timer *timer) :
     m_referee = new Referee(false);
     m_refereeInternal = new Referee(true);
     m_tracker = new Tracker;
+    m_speedTracker = new SpeedTracker;
 
     // start processing
     m_trigger = new QTimer(this);
@@ -130,11 +155,13 @@ void Processor::process()
 
     const qint64 current_time = m_timer->currentTime();
     // the controller runs with 100 Hz -> 10ms ticks
-    const qint64 tickDuration = 10 * 1000 * 1000;
+    const qint64 tickDuration = 1000 * 1000 * 1000 / FREQUENCY;
 
     // run tracking
     m_tracker->process(current_time);
+    m_speedTracker->process(current_time);
     Status status = m_tracker->worldState(current_time);
+    Status radioStatus = m_speedTracker->worldState(current_time);
 
     // add information, about whether the world state is from the simulator or not
     status->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
@@ -164,8 +191,8 @@ void Processor::process()
 
     // assume that current_time is still "now"
     const qint64 controllerTime = current_time + tickDuration;
-    processTeam(m_blueTeam, true, status->world_state().blue(), radio_commands, status_debug, controllerTime);
-    processTeam(m_yellowTeam, false, status->world_state().yellow(), radio_commands, status_debug, controllerTime);
+    processTeam(m_blueTeam, true, status->world_state().blue(), radio_commands, status_debug, controllerTime, radioStatus->world_state().blue());
+    processTeam(m_yellowTeam, false, status->world_state().yellow(), radio_commands, status_debug, controllerTime, radioStatus->world_state().yellow());
 
     if (m_transceiverEnabled) {
         // the command is active starting from now
@@ -190,8 +217,11 @@ void Processor::process()
     status_debug->mutable_timing()->set_controller((Timer::systemTime() - controller_start) / 1E9);
     emit sendStatus(status_debug);
 
+    const qint64 completion_time = m_timer->currentTime();
+
     if (m_transceiverEnabled) {
-        emit sendRadioCommands(radio_commands);
+        qint64 processingDelay = completion_time - current_time;
+        emit sendRadioCommands(radio_commands, processingDelay);
     }
 }
 
@@ -231,9 +261,9 @@ void Processor::injectUserControl(Status &status, bool isBlue)
 
         if (robot->manual_command->network_controlled()
                 && m_networkCommandTime + 200*1000*1000 > status->world_state().time()
-                && m_networkCommand.contains(robot->controller.specs().id())) {
+                && m_networkCommand.contains(robot->id)) {
 
-            const SSL_RadioProtocolCommand &cmd = m_networkCommand[robot->controller.specs().id()];
+            const SSL_RadioProtocolCommand &cmd = m_networkCommand[robot->id];
 
             robot->manual_command->set_v_f(cmd.velocity_x());
             robot->manual_command->set_v_s(-cmd.velocity_y());
@@ -246,7 +276,7 @@ void Processor::injectUserControl(Status &status, bool isBlue)
                 robot->manual_command->set_kick_power(cmd.chip_kick());
             }
             robot->manual_command->set_dribbler(cmd.dribbler_spin());
-            robot->manual_command->set_direct(true);
+            robot->manual_command->set_local(true);
         }
 
         if (!robot->manual_command->strategy_controlled()) {
@@ -254,84 +284,47 @@ void Processor::injectUserControl(Status &status, bool isBlue)
         }
 
         robot::RadioCommand *radio_command = userInput->add_radio_command();
-        radio_command->set_generation(robot->controller.specs().generation());
-        radio_command->set_id(robot->controller.specs().id());
+        radio_command->set_generation(robot->generation);
+        radio_command->set_id(robot->id);
         radio_command->set_is_blue(isBlue);
         radio_command->mutable_command()->CopyFrom(*robot->manual_command);
     }
 }
 
-void Processor::processTeam(Team &team, bool isBlue, const RobotList &robots, QList<robot::RadioCommand> &radio_commands, Status &status, qint64 time)
+void Processor::processTeam(Team &team, bool isBlue, const RobotList &robots, QList<robot::RadioCommand> &radio_commands, Status &status, qint64 time, const RobotList &radioRobots)
 {
     foreach (Robot *robot, team.robots) {
         robot::RadioCommand *radio_command = status->add_radio_command();
-        radio_command->set_generation(robot->controller.specs().generation());
-        radio_command->set_id(robot->controller.specs().id());
+        radio_command->set_generation(robot->generation);
+        radio_command->set_id(robot->id);
         radio_command->set_is_blue(isBlue);
 
         robot::Command& command = *radio_command->mutable_command();
-
-        if (robot->manual_command && !robot->manual_command->strategy_controlled()) {
-            // use manual command, if available
-            // this has precedence over any strategy command
-            command.CopyFrom(*robot->manual_command);
-            command.set_strategy_controlled(false);
-        } else if (robot->strategy_command) {
-            // copy strategy command
-            command.CopyFrom(*robot->strategy_command);
-            command.set_strategy_controlled(true);
-        } else {
-            // no command -> standby
-            command.set_standby(true);
-            command.set_strategy_controlled(false);
-        }
-
-        if (robot->manual_command && robot->manual_command->eject_sdcard()) {
-            command.set_eject_sdcard(true);
-        }
+        robot->mergeIntoCommand(command);
 
         // Get current robot
-        const world::Robot* currentRobot = getWorldRobot(robots, robot->controller.specs().id());
-        // only run controller if we know where the robot is
-        if (currentRobot) {
-            robot->controller.calculateCommand(*currentRobot, time, command, status->mutable_debug());
-        }
+        const world::Robot* currentRobot = getWorldRobot(robots, robot->id);
+        robot->controller.calculateCommand(currentRobot, time, command, status->mutable_debug());
 
-        // Limit acceleration and velocities (in global coordinates)
-        // if robot is invisible use local coordinates
-        updateCommandVGlobal(currentRobot, command);
-        robot->accelerator.limit(currentRobot, command, time, status->mutable_debug());
-        updateCommandVLocal(currentRobot, command);
+        injectRawSpeedIfAvailable(radio_command, radioRobots);
 
         // Prepare radio command
         radio_commands.append(*radio_command);
     }
 }
 
-// Transform local robot coordinates to global field coordinates
-void Processor::updateCommandVGlobal(const world::Robot *robot, robot::Command &command) {
-    float robot_phi = 0;
-    if (robot) {
-        // coordinate systems are x-y and s-f for the right-up axis
-        // moving in x direction = moving in forward direction -> 90 degree cw
-        robot_phi = robot->phi() - M_PI_2;
-    }
-    // rotate ccw
-    command.set_v_x(std::cos(robot_phi) * command.v_s() - std::sin(robot_phi) * command.v_f());
-    command.set_v_y(std::sin(robot_phi) * command.v_s() + std::cos(robot_phi) * command.v_f());
-}
+void Processor::injectRawSpeedIfAvailable(robot::RadioCommand *radioCommand, const RobotList &radioRobots) {
+    robot::Command& command = *radioCommand->mutable_command();
+    const world::Robot* currentRadioRobot = getWorldRobot(radioRobots, radioCommand->id());
+    if (currentRadioRobot) {
+        float robot_phi = currentRadioRobot->phi() - M_PI_2;
+        GlobalSpeed currentPos(currentRadioRobot->v_x(), currentRadioRobot->v_y(), currentRadioRobot->omega());
+        LocalSpeed localPos = currentPos.toLocal(robot_phi);
 
-// Transform global field coordinates to local robot coordinates
-void Processor::updateCommandVLocal(const world::Robot *robot, robot::Command &command) {
-    float robot_phi = 0;
-    if (robot) {
-        robot_phi = robot->phi() - M_PI_2;
-        // predict a bit
-        robot_phi += (robot->omega() + command.omega())/2 * (1. / FREQUENCY);
+        command.set_cur_v_s(localPos.v_s);
+        command.set_cur_v_f(localPos.v_f);
+        command.set_cur_omega(localPos.omega);
     }
-    // rotate cw
-    command.set_v_s(std::cos(-robot_phi) * command.v_x() - std::sin(-robot_phi) * command.v_y());
-    command.set_v_f(std::sin(-robot_phi) * command.v_x() + std::cos(-robot_phi) * command.v_y());
 }
 
 void Processor::handleRefereePacket(const QByteArray &data, qint64 /*time*/)
@@ -342,6 +335,7 @@ void Processor::handleRefereePacket(const QByteArray &data, qint64 /*time*/)
 void Processor::handleVisionPacket(const QByteArray &data, qint64 time)
 {
     m_tracker->queuePacket(data, time);
+    m_speedTracker->queuePacket(data, time);
 }
 
 void Processor::handleNetworkCommand(const QByteArray &data, qint64 time)
@@ -400,16 +394,19 @@ void Processor::handleCommand(const Command &command)
 
     if (command->has_simulator() && command->simulator().has_enable()) {
         m_tracker->reset();
+        m_speedTracker->reset();
         m_simulatorEnabled = command->simulator().enable();
     }
 
     if (teamsChanged) {
         m_tracker->reset();
+        m_speedTracker->reset();
         sendTeams();
     }
 
     if (command->has_flip()) {
         m_tracker->setFlip(command->flip());
+        m_speedTracker->setFlip(command->flip());
     }
 
     if (command->has_referee()) {
@@ -430,6 +427,7 @@ void Processor::handleCommand(const Command &command)
 
     if (command->has_tracking()) {
         m_tracker->handleCommand(command->tracking());
+        m_speedTracker->handleCommand(command->tracking());
     }
 
     if (command->has_transceiver()) {

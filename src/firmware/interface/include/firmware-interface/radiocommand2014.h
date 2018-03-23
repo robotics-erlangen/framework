@@ -27,10 +27,13 @@ static const uint8_t robot2014_address[] = { 0xAA, 0xC0, 0xFF, 0xEE, 0x40 };
 
 static const int16_t RADIOCOMMAND2014_V_MAX = 32767;
 static const int16_t RADIOCOMMAND2014_OMEGA_MAX = 32767;
+static const int16_t RADIOCOMMAND2014_DELTA_V_MAX = 127;
+static const int16_t RADIOCOMMAND2014_DELTA_OMEGA_MAX = 127;
 static const uint8_t RADIOCOMMAND2014_KICK_MAX = 255;
 static const uint8_t RADIOCOMMAND2014_DRIBBLER_MAX = 100;
 static const float RADIOCOMMAND2014_LINEAR_MAX = 10;
 static const float RADIOCOMMAND2014_CHIP_MAX = 5;
+static const int16_t RADIOCOMMAND2014_INVALID_SPEED = 0x8000;
 
 // WARNING: time slots for reply must be adjusted if the radio command size changes!
 typedef struct
@@ -43,12 +46,21 @@ typedef struct
     uint8_t id:4;
     uint8_t force_kick:1;
     int8_t dribbler;
-    int16_t v_x; // mm/s
-    int16_t v_y; // mm/s
+    int16_t v_s; // mm/s
+    int16_t v_f; // mm/s
     int16_t omega; // mrad/s
     uint8_t ir_param:6;
     uint8_t eject_sdcard:1;
     uint8_t unused:1;
+    int16_t cur_v_s; // mm/s
+    int16_t cur_v_f; // mm/s
+    int16_t cur_omega; // mrad/s
+    int8_t delta1_v_s; // mm/s
+    int8_t delta1_v_f; // mm/s
+    int8_t delta1_omega; // 5 mrad/s
+    int8_t delta2_v_s; // mm/s
+    int8_t delta2_v_f; // mm/s
+    int8_t delta2_omega; // 5 mrad/s
 } __attribute__ ((packed)) RadioCommand2014;
 
 enum RadioExtension2014 {
@@ -90,5 +102,11 @@ typedef struct
     int32_t v_f:14; // mm/s
     int16_t omega; // mrad/s
 } __attribute__ ((packed)) RadioResponse2014;
+
+typedef struct
+{
+    uint8_t counter;
+    int16_t time_offset; // microseconds
+} __attribute__ ((packed)) RadioSync2014;
 
 #endif // COMMON_RADIOCOMMAND2014_H

@@ -59,7 +59,7 @@ signals:
 
 public slots:
     void handleCommand(const Command &command);
-    void handleRadioCommands(const QList<robot::RadioCommand> &commands);
+    void handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay);
     void setScaling(double scaling);
 
 private slots:

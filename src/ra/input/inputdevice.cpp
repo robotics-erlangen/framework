@@ -22,7 +22,7 @@
 
 InputDevice::InputDevice(const QString &name) :
     m_name(name),
-    m_direct(true),
+    m_local(true),
     m_strategyControlled(false)
 {
     resetCommand();
@@ -33,10 +33,10 @@ InputDevice::~InputDevice()
 
 }
 
-void InputDevice::setDirect(bool direct)
+void InputDevice::setLocal(bool local)
 {
-    m_direct = direct;
-    m_command.set_direct(m_direct);
+    m_local = local;
+    m_command.set_local(m_local);
 }
 
 void InputDevice::setStrategyControlled(bool isControlled)
@@ -48,6 +48,6 @@ void InputDevice::setStrategyControlled(bool isControlled)
 void InputDevice::resetCommand()
 {
     m_command.Clear();
-    m_command.set_direct(m_direct);
+    m_command.set_local(m_local);
     m_command.set_strategy_controlled(m_strategyControlled);
 }

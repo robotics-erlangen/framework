@@ -314,6 +314,9 @@ void Plotter::handleStatus(const Status &status)
 
         const robot::Command &cmd = command.command();
         parseMessage(cmd, QString(QStringLiteral("RadioCommand.%1")).arg(name), time);
+        parseMessage(cmd.output0(), QString(QStringLiteral("RadioCommand.%1.output0")).arg(name), time);
+        parseMessage(cmd.output1(), QString(QStringLiteral("RadioCommand.%1.output1")).arg(name), time);
+        parseMessage(cmd.output2(), QString(QStringLiteral("RadioCommand.%1.output2")).arg(name), time);
     }
 
     if (status->has_timing()) {

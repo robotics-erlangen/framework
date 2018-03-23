@@ -354,9 +354,9 @@ void Simulator::resetVisionPackets()
     m_visionPackets.clear();
 }
 
-void Simulator::handleRadioCommands(const QList<robot::RadioCommand> &commands)
+void Simulator::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay)
 {
-    qint64 receiveTime = m_timer->currentTime();
+    qint64 receiveTime = m_timer->currentTime() - processingDelay;
     m_radioCommands.enqueue(qMakePair(commands, receiveTime));
 }
 

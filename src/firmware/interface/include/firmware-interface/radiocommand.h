@@ -50,6 +50,6 @@ static const uint8_t transceiver_address[] = { 0x33, 0xC0, 0xFF, 0xEE, 0xD7 };
 
 static const uint8_t transceiver_datagram[] = { 0x54, 0xC0, 0xFF, 0xEE, 0xB5 };
 // id from datagram is used as last byte
-static const uint8_t robot_datagram[] = { 0x55, 0xC0, 0xFF, 0xEE, 0x00 };
+static const uint8_t robot_datagram[] = { 0x00, 0xC0, 0xFF, 0xEE, 0x55 };
 
 #endif // COMMON_RADIOCOMMAND_H

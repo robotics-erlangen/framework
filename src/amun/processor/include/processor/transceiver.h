@@ -61,7 +61,7 @@ signals:
     void sendRadioResponses(const QList<robot::RadioResponse> &responses);
 
 public slots:
-    void handleRadioCommands(const QList<robot::RadioCommand> &commands);
+    void handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay);
     void handleCommand(const Command &command);
 
 private slots:
@@ -86,9 +86,10 @@ private:
     void sendTransceiverConfiguration();
     void addRobot2012Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet);
     void addRobot2014Command(int id, const robot::Command &command, bool charge, quint8 packetCounter, QByteArray &usb_packet);
+    void addRobot2014Sync(qint64 processingDelay, quint8 packetCounter, QByteArray &usb_packet);
     void addPingPacket(qint64 time, QByteArray &usb_packet);
     void addStatusPacket(QByteArray &usb_packet);
-    void sendCommand(const QList<robot::RadioCommand> &commands, bool charge);
+    void sendCommand(const QList<robot::RadioCommand> &commands, bool charge, qint64 processingDelay);
     void sendParameters(const robot::RadioParameters &parameters);
 
 private:

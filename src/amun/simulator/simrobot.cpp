@@ -237,14 +237,12 @@ void SimRobot::begin(SimBall *ball, double time)
         m_shootTime = 0.0;
     }
 
-    if (!m_command.has_v_f() || !m_command.has_v_s() || !m_command.has_omega()) {
+    if (!m_command.has_output1() || !m_command.output1().has_v_f() || !m_command.output1().has_v_s() || !m_command.output1().has_omega()) {
         return;
     }
 
-    Q_ASSERT(m_command.has_omega());
-
     btVector3 v_local(t.inverse() * m_body->getLinearVelocity());
-    btVector3 v_d_local(boundSpeed(m_command.v_s()), boundSpeed(m_command.v_f()), 0);
+    btVector3 v_d_local(boundSpeed(m_command.output1().v_s()), boundSpeed(m_command.output1().v_f()), 0);
 
     float v_f = v_local.y()/SIMULATOR_SCALE;
     float v_s = v_local.x()/SIMULATOR_SCALE;
@@ -252,7 +250,7 @@ void SimRobot::begin(SimBall *ball, double time)
 
     const float error_v_s = v_d_local.x() - v_s;
     const float error_v_f = v_d_local.y() - v_f;
-    const float error_omega = boundSpeed(m_command.omega()) - omega;
+    const float error_omega = boundSpeed(m_command.output1().omega()) - omega;
 
     error_sum_v_s += error_v_s;
     error_sum_v_f += error_v_f;

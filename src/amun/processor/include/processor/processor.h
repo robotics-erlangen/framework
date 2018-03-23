@@ -29,8 +29,9 @@
 #include <QPair>
 #include <QObject>
 
-class Controller;
+class CommandEvaluator;
 class Referee;
+class SpeedTracker;
 class Timer;
 class Tracker;
 class QTimer;
@@ -48,7 +49,7 @@ public:
 signals:
     void sendStatus(const Status &status);
     void sendStrategyStatus(const Status &status);
-    void sendRadioCommands(const QList<robot::RadioCommand> &commands);
+    void sendRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay);
 
 public slots:
     void setScaling(double scaling);
@@ -76,10 +77,9 @@ private:
     typedef google::protobuf::RepeatedPtrField<world::Robot> RobotList;
 
     void setTeam(const robot::Team &t, Team &team);
-    void processTeam(Team &team, bool isBlue, const RobotList &robots, QList<robot::RadioCommand> &radio_commands, Status &status, qint64 time);
+    void processTeam(Team &team, bool isBlue, const RobotList &robots, QList<robot::RadioCommand> &radio_commands, Status &status, qint64 time, const RobotList &radioRobots);
+    void injectRawSpeedIfAvailable(robot::RadioCommand *radioCommand, const RobotList &radioRobots);
     void handleControl(Team &team, const amun::CommandControl &control);
-    void updateCommandVGlobal(const world::Robot *robot, robot::Command &command);
-    void updateCommandVLocal(const world::Robot *robot, robot::Command &command);
     const world::Robot *getWorldRobot(const RobotList &robots, uint id);
     void injectExtraData(Status &status);
     void injectUserControl(Status &status, bool isBlue);
@@ -91,6 +91,7 @@ private:
     Referee *m_referee;
     Referee *m_refereeInternal;
     Tracker *m_tracker;
+    SpeedTracker *m_speedTracker;
     QList<robot::RadioResponse> m_responses;
     QMap<uint, SSL_RadioProtocolCommand> m_networkCommand;
     ssl::TeamPlan m_mixedTeamInfo;

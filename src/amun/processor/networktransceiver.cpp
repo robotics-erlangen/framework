@@ -31,8 +31,9 @@ NetworkTransceiver::NetworkTransceiver(QObject *parent) : QObject(parent),
 
 NetworkTransceiver::~NetworkTransceiver() { }
 
-void NetworkTransceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands)
+void NetworkTransceiver::handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay)
 {
+    (void)processingDelay;
     Status status(new amun::Status);
     const qint64 transceiver_start = Timer::systemTime();
 
@@ -41,9 +42,9 @@ void NetworkTransceiver::handleRadioCommands(const QList<robot::RadioCommand> &c
     foreach (const robot::RadioCommand &robot, commands) {
         SSL_RadioProtocolCommand *cmd = wrapper.add_command();
         cmd->set_robot_id(robot.id());
-        cmd->set_velocity_x(robot.command().v_f());
-        cmd->set_velocity_y(-robot.command().v_s());
-        cmd->set_velocity_r(robot.command().omega());
+        cmd->set_velocity_x(robot.command().output1().v_f());
+        cmd->set_velocity_y(-robot.command().output1().v_s());
+        cmd->set_velocity_r(robot.command().output1().omega());
         if (robot.command().kick_power() > 0 && m_charge) {
             if (robot.command().kick_style() == robot::Command::Chip) {
                 cmd->set_chip_kick(qBound(0.f, robot.command().kick_power(), 20.f));

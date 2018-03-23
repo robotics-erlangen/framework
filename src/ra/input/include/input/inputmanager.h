@@ -64,7 +64,7 @@ public slots:
     void setDribblerPower(double dribblerPower);
     void setShootPower(double shootPower);
     void setEnabled(bool enabled);
-    void setDirect(bool direct);
+    void setLocal(bool local);
     void setGlobal(bool global);
 
 private slots:
@@ -97,7 +97,7 @@ private:
     float m_dribblerPower;
     float m_shootPower;
     bool m_enabled;
-    bool m_direct;
+    bool m_isLocal;
     bool m_lastCommandWasEmpty;
 };
 

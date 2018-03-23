@@ -66,6 +66,13 @@ message ControllerInput
     repeated Spline spline = 1;
 };
 
+message SpeedVector
+{
+    optional float v_s = 1;
+    optional float v_f = 2;
+    optional float omega = 3;
+};
+
 message Command
 {
     enum KickStyle
@@ -81,15 +88,20 @@ message Command
     optional KickStyle kick_style = 5;
     optional float kick_power = 6;
     optional float dribbler = 7;
-    optional bool direct = 8;
-    optional float v_x = 9;
-    optional float v_y = 10;
+    optional bool local = 8;
+    // deprecated = 9-10;
     optional bool standby = 11;
     // deprecated = 12
     optional bool strategy_controlled = 13;
     optional bool force_kick = 14;
     optional bool network_controlled = 15;
     optional bool eject_sdcard = 16;
+    optional float cur_v_f = 17;
+    optional float cur_v_s = 18;
+    optional float cur_omega = 19;
+    optional SpeedVector output0 = 20;
+    optional SpeedVector output1 = 21;
+    optional SpeedVector output2 = 22;
 }
 
 message RadioCommand

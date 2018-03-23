@@ -38,7 +38,7 @@ signals:
     void sendStatus(const Status &status);
 
 public slots:
-    void handleRadioCommands(const QList<robot::RadioCommand> &commands);
+    void handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay);
     void handleCommand(const Command &command);
 
 private:
