@@ -9,6 +9,7 @@ local Field = require "../base/field"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
+local PathHelper = require "trajectory/pathhelper"
 
 local G = World.Geometry
 --=====================--
