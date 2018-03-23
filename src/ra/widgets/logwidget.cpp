@@ -66,6 +66,9 @@ void LogWidget::handleStatus(const Status &status)
             case amun::Controller:
                 prefix = "C";
                 break;
+            case amun::Tracking:
+                prefix = "T";
+                break;
             case amun::Autoref:
                 prefix = "A";
                 break;

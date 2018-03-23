@@ -25,6 +25,7 @@
 #include "protobuf/status.h"
 #include "strategytype.h"
 #include <QString>
+#include <QStringList>
 
 class AbstractStrategyScript;
 class StrategyPrivate;

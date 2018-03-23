@@ -18,8 +18,8 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#include "lua_amun.h"
 #include "lua.h"
+#include "lua_amun.h"
 #include "lua_protobuf.h"
 #include "protobuf/ssl_refbox_remotecontrol.pb.h"
 #include "protobuf/ssl_autoref.pb.h"

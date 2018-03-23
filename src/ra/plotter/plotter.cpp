@@ -399,7 +399,8 @@ enum class SpecialFieldNames: int {
     v_d_y = 6,
     v_ctrl_out_f = 7,
     v_ctrl_out_s = 8,
-    max = 9
+    area = 9,
+    max = 10
 };
 
 static const std::unordered_map<std::string, SpecialFieldNames> fieldNameMap = {
@@ -411,6 +412,7 @@ static const std::unordered_map<std::string, SpecialFieldNames> fieldNameMap = {
     std::make_pair("v_desired_y", SpecialFieldNames::v_d_y),
     std::make_pair("v_ctrl_out_f", SpecialFieldNames::v_ctrl_out_f),
     std::make_pair("v_ctrl_out_s", SpecialFieldNames::v_ctrl_out_s),
+    std::make_pair("area", SpecialFieldNames::area),
 };
 
 void Plotter::parseMessage(const google::protobuf::Message &message, const QString &parent, float time)

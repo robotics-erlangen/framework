@@ -333,4 +333,19 @@ function geom.getAngleDiff(angle1, angle2)
 	return geom.normalizeAngle(diff)
 end
 
+-- Applies the inscribed angle theorem.
+-- @name inscribedAngle
+-- @param point1 vector - first point on cirle
+-- @param point2 vector - second point on cirle
+-- @param theta number - angle inside in radians
+-- @return number - center of circle one
+-- @return number - center of circle two
+-- @return number - radius of circle
+function geom.inscribedAngle(point1, point2, theta)
+	local radius = point1:distanceTo(point2) / (2 * math.sin(theta))
+	local centerOfCircleOne = point1 + ((point2 - point1):rotate(math.pi/2 - theta)):setLength(radius)
+	local centerOfCircleTwo = point1 + ((point2 - point1):rotate(-(math.pi/2 - theta))):setLength(radius)
+	return centerOfCircleOne, centerOfCircleTwo, radius
+end
+
 return geom

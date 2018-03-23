@@ -11,8 +11,6 @@ default {
   shot_linear_max: 8
   shot_chip_max: 5
   dribbler_width: 0.05
-  shoot_radius: 0.074
-  dribbler_height: 0.04
   acceleration {
     a_speedup_f_max: 3
     a_speedup_s_max: 1.2
@@ -41,6 +39,8 @@ default {
     a_brake_s_max: 5
     a_brake_phi_max: 60
   }
+  shoot_radius: 0.074
+  dribbler_height: 0.04
 }
 robot {
   id: 0
