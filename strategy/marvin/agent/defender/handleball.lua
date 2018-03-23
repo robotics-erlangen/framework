@@ -9,6 +9,7 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local DefUtil = require "util/defense"
 local Duel = require "task/duel"
 local CenterBack = require "task/centerback"
@@ -45,8 +46,9 @@ function HandleBall:_checkAttacker()
 	local isAttacker = self._taskDecision == "attacker"
 
 	-- don't if we take too long to get the ball
-	local timeToBallLimit = isAttacker and 1.5 or 1.0
-	if Physics.robotTimeToBall(self._robot, World.Ball, World.Geometry.OpponentGoal, 0) > timeToBallLimit then
+	local timeDiff = isAttacker and 0.5 or 1.0
+	local _, firstOppTime = Ball.firstRobotAtBall(World.OpponentRobots)
+	if firstOppTime < Robot.minTimeToBall(self._robot) + timeDiff then
 		return false
 	end
 
