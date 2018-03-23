@@ -26,7 +26,7 @@ local msgDefs = {
 
 	-- sent by strikers to the MA to propose a possible pass
 	-- requests that the ball is at msg.ballPos when the time reaches msg.time
-	passSuggestion = { ballPos = "vector", time = "number", anonymous = "boolean", chip = "boolean" },
+	passSuggestion = { ballPos = "vector", time = "number", anonymous = "boolean", chip = "boolean", manual = "boolean" },
 
 	-- sent by various behaviors which want to change the pool
 	-- the string can be "attacker" or "defender"

@@ -23,6 +23,11 @@ local G = World.Geometry
 function Attack.ratePass(robot, pass, considerTiming)
 	local rating = 1
 
+	-- if the robot is controlled manually
+	if pass.manual then
+		return 2
+	end
+
 	-- rate distance
 	local distanceToMA = robot.pos:distanceTo(pass.ballPos)
 	rating = rating * Rating.valueToRating(distanceToMA, 1, 2)
@@ -171,7 +176,7 @@ function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPassPos
 		if sugg.anonymous then
 			target = nil
 		end
-		table.insert(passes, {target = target, ballPos = sugg.ballPos, time = sugg.time })
+		table.insert(passes, {target = target, ballPos = sugg.ballPos, time = sugg.time, manual = sugg.manual })
 	end
 	return Attack.choosePass(robot, passes, currentPassPos, considerTiming, customHysteresis)
 end
