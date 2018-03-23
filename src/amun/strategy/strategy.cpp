@@ -57,7 +57,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type) :
     m_timer(timer),
     m_strategy(nullptr),
     m_type(type),
-    m_debugEnabled(false),
+    m_debugEnabled(type == StrategyType::AUTOREF),
     m_refboxControlEnabled(false),
     m_autoReload(false),
     m_strategyFailed(false)

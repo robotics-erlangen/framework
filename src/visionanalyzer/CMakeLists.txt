@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2015 Michael Bleier, Philipp Nordhus                        *
+# *   Copyright 2017 Alexander Danzer                                       *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,18 +18,42 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-# firmware
-add_subdirectory(firmware)
 
-# libs
-add_subdirectory(config)
-add_subdirectory(core)
-add_subdirectory(protobuf)
-add_subdirectory(amun)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../amun/processor/tracking)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../amun/processor/tracking/include/tracking)
 
-# apps
-add_subdirectory(ra)
-add_subdirectory(logplayer)
-add_subdirectory(amuncli)
-add_subdirectory(visionanalyzer)
+set(SOURCES
+   visionanalyzer.cpp
+   visionlogreader.cpp
+   visionlogreader.h
+   miniprocessor.cpp
+   miniprocessor.h
+   ../amun/processor/referee.h
+   ../amun/processor/tracking/ballcollisionfilter.cpp
+   ../amun/processor/tracking/ballflyfilter.cpp
+   ../amun/processor/tracking/ballgroundfilter.cpp
+   ../amun/processor/tracking/balltracker.cpp
+   ../amun/processor/tracking/filter.cpp
+   ../amun/processor/tracking/quadraticleastsquaresfitter.cpp
+   ../amun/processor/tracking/robotfilter.cpp
+   ../amun/processor/tracking/tracker.cpp
+)
+
+add_executable(visionanalyzer ${SOURCES} ${UIC_SOURCES})
+target_link_libraries(visionanalyzer
+    PRIVATE shared::core
+    PRIVATE ra::logfile
+    PRIVATE lib::eigen
+    PRIVATE amun::strategy
+    PRIVATE amun::processor
+    PRIVATE shared::protobuf
+    PUBLIC Qt5::Core
+)
+target_include_directories(visionanalyzer
+    PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
+    PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+target_compile_options(visionanalyzer
+    PRIVATE "-DENABLE_TRACKING_DEBUG"
+)
 

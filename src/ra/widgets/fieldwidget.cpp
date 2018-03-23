@@ -203,7 +203,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
     QColor ballColor(255, 66, 0);
     m_ballTrace.color = ballColor.darker();
     m_ballTrace.z_index = 2.f;
-    m_ballRawTrace.color = ballColor.darker(300);
+    m_ballRawTrace.color =  QColor(Qt::blue);//ballColor.darker(300);
     m_ballRawTrace.z_index = 1.f;
 
     QColor robotYellowColor = QColor(Qt::yellow);

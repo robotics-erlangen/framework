@@ -151,6 +151,14 @@ int SimBall::update(SSL_DetectionBall *ball, float stddev)
     abs_x = (abs_x - cameraX) * (cameraHeight / (cameraHeight - height)) + cameraX;
     abs_y = (abs_y - cameraY) * (cameraHeight / (cameraHeight - height)) + cameraY;
 
+    float camX = (cameraId%2 == 0) ? -cameraX : cameraX;
+    float camY = (cameraId < 2)    ? -cameraY : cameraY;
+    float distBallCam = std::sqrt((cameraHeight-height)*(cameraHeight-height)+
+        (camX-p.x())*(camX-p.x())+(camY-p.y())*(camY-p.y()));
+    float denomSqrt = (distBallCam*1000)/FOCAL_LENGTH - 1;
+    float area = (BALL_RADIUS*BALL_RADIUS*1000000*M_PI) / (denomSqrt*denomSqrt);
+    ball->set_area(area);
+
     if (abs_x < -maxOverlap || abs_x > widthHalf || abs_y < -maxOverlap || abs_y > heightHalf) {
         // invalid
         return -1;

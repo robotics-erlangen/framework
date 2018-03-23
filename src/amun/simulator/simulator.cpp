@@ -312,7 +312,7 @@ QByteArray Simulator::createVisionPacket()
         calib->set_camera_id(i);
         // DUMMY VALUES
         calib->set_distortion(0.2);
-        calib->set_focal_length(390);
+        calib->set_focal_length(FOCAL_LENGTH);
         calib->set_principal_point_x(300);
         calib->set_principal_point_y(300);
         calib->set_q0(0.7);

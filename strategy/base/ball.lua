@@ -53,6 +53,9 @@ function Ball:init()
 	self.speedZ = 0
 	self.deceleration = 0
 	self.maxSpeed = 0
+	self.initSpeedZ = 0
+	self.touchdownPos = nil
+	self.isBouncing = false
 	self.framesDecelerating = math.huge
 end
 
@@ -81,6 +84,10 @@ function Ball:_update(data, time)
 	self.speed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y))
 	self.posZ = data.p_z
 	self.speedZ = data.v_z
+	if data.touchdown_x and data.touchdown_y then
+		self.touchdownPos = Coordinates.toLocal(Vector.createReadOnly(data.touchdown_x, data.touchdown_y))
+	end
+	self.isBouncing = data.is_bouncing
 
 	self:_updateTrackedState(lastSpeedLength)
 end
