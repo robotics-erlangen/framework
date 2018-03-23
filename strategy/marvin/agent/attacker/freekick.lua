@@ -56,7 +56,7 @@ function FreeKick:_updateTask()
 		< distanceToBall + self._robot.radius + World.Ball.radius + 0.02
 
 	local _; _, _, self._dirty = ShootGoalUtil.updateTarget(self._robot, nil, self._dirty, World.Ball.pos)
-	local shootgoalPossible = not self._dirty and
+	local shootgoalPossible = not self._dirty and World.Ball.pos.y > -0.2 and
 		(World.RefereeState == "DirectOffensive" or World.RefereeState == "KickoffOffensive")
 
 	-- prepare -> wait
