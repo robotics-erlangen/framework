@@ -31,6 +31,8 @@ function Shoot:_stop()
 
 	self._hadBallCounter = 0
 	self._touchedBall = false
+
+	self._manualFlag = false
 end
 
 function Shoot:check()
@@ -49,6 +51,22 @@ function Shoot:_shootGoalPossible()
 	end
 
 	return true
+end
+
+function Shoot:_checkForManualAlly()
+	self._manualFlag = false
+	for sender, passSuggestion in pairs(self._inbox.passSuggestion()) do
+		if passSuggestion.manual then
+			self._manualFlag = true
+			self._decision = {
+				task = "pass",
+				target = sender,
+				pos = passSuggestion.ballPos,
+				time = passSuggestion.time,
+				quality = "clean"
+			}
+		end
+	end
 end
 
 function Shoot:_decide()
@@ -89,6 +107,11 @@ function Shoot:_redeciding()
 
 	if Robot.touchedBall(self._robot, 0) then
 		self._touchedBall = true
+	end
+
+	if self._manualFlag then
+		debug.set("redeciding", "FALSE (manual)")
+		return false
 	end
 
 	-- always redecide if no decision has been made yet
@@ -170,6 +193,8 @@ function Shoot:_updateTask()
 	self._prevAttackPosition = self._attackPosition
 	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
 	self._attackPosition = attackPosition
+
+	self:_checkForManualAlly()
 
 	-- redecide if necessary
 	local redeciding = self:_redeciding()
