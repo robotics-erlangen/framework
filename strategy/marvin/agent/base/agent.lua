@@ -213,7 +213,7 @@ function Base:_applyForMainAttacker(task)
 			local ballToRobot = self._robot.pos - World.Ball.pos
 			local ballToRobotLength = ballToRobot:length()
 			local cosAngle = World.Ball.speed:dot(ballToRobot) / ballToRobotLength / ballSpeedLength
-			ratingBoost = math.bound(-1, cosAngle * cosAngle * cosAngle / ballToRobotLength, 1) * 5
+			ratingBoost = cosAngle * cosAngle * cosAngle * ballSpeedLength * 0.5
 		end
 		debug.set("mainAttackerRating/ratingBoost", ratingBoost)
 		timeToBall = timeToBall - ratingBoost
