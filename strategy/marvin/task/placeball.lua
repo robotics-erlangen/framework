@@ -75,7 +75,7 @@ function PlaceBall:_init(placementPos)
 
 	self._nearestFieldPos = nil
 	self._borderOffsets = {}
-	self._borderOffsetAverage = -self._robot.pos:copy():setLength(OFFSET_EXTRA_LENGTH)
+	self._borderOffsetAverage = self._robot.pos:copy():setLength(OFFSET_EXTRA_LENGTH)
 	self._borderOffsetFrame = 1
 
 	self._barrierDetects = false

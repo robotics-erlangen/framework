@@ -50,7 +50,8 @@ local _GoalAreaFriendly = {
 local function addFriendlyDefenseAreaObstacle(path, robot)
 	-- only keeper may enter friendly defense area
 	-- don't add obstacles for friendly defense area if the robot is in the opponent half
-	if World.FriendlyKeeper ~= robot and robot.pos.y < 0 then
+	if World.FriendlyKeeper ~= robot and robot.pos.y < 0
+        and World.RefereeState ~= "BallPlacementOffensive" then
 		if World.RULEVERSION == "2018" then
 			path:addRect(G.FriendlyGoal.x - G.DefenseWidthHalf - POSITION_PADDING,
 					G.FriendlyGoal.y,

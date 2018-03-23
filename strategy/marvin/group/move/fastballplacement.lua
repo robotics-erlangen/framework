@@ -114,7 +114,7 @@ function FastBallPlacement:_updateTasks()
 		}
 		taskAssignments[self.SHOOTER] = {
 			class = PlaceBall,
-			params = { Field.limitToField(World.Ball.pos, -0.05) },
+			params = { Field.limitToField(World.Ball.pos, -TOLERANCE) },
 			restart = self._stateChanged
 		}
 	elseif self._state == STATE_GET_INTO_POSITION then
@@ -223,7 +223,9 @@ function FastBallPlacement:_getNextState(currentState)
 			self._ballStartPos = World.Ball.pos
 			if World.Ball.pos:distanceTo(World.BallPlacementPos) < FINE_ADJUST_ZONE then
 				nextState = STATE_FINE_ADJUST
-			elseif not Field.isInField(World.Ball.pos) then
+			elseif not Field.isInField(World.Ball.pos)
+                    or Field.isInFriendlyGoal(World.Ball.pos)
+                    or Field.isInOpponentGoal(World.Ball.pos) then
 				nextState = STATE_PULL_TO_FIELD
 			else
 				nextState = STATE_GET_INTO_POSITION
@@ -232,6 +234,7 @@ function FastBallPlacement:_getNextState(currentState)
 	elseif currentState == STATE_PULL_TO_FIELD then
 		nextState = STATE_PULL_TO_FIELD
 		if Field.isInField(World.Ball.pos)
+            and not (Field.isInFriendlyGoal(World.Ball.pos) or Field.isInOpponentGoal(World.Ball.pos))
 			and self.SHOOTER.pos:distanceTo(World.Ball.pos) > Constants.stopBallDistance / 3 then
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		end
