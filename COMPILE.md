@@ -34,6 +34,12 @@ cmake ..
 make
 ```
 
+To be able to use the USB transceiver / JTAG programmer the rights for udev have to be modified.
+This only needs to be done once.
+```
+sudo cp data/udev/99-robotics-usb-devices.rules /etc/udev/rules.d/99-robotics-usb-devices.rules
+```
+
 Ra and the Logplayer can be started from the build/bin/ directory.
 To install the desktop files use this command:
 ```
@@ -44,10 +50,6 @@ In order to select which Qt-Installation to use specify it using a similar comma
 ```
 cmake -DCMAKE_PREFIX_PATH=~/Qt/5.6/gcc_64/lib/cmake ..
 ```
-
-To be able to use the USB transceiver / JTAG programmer the rights for udev have to be modified.
-Just copy the file at `data/udev/99-robotics-usb-devices.rules` to `/etc/udev/rules.d/99-robotics-usb-devices.rules`
-with sudo cp data/udev/99-robotics-usb-devices.rules /etc/udev/rules.d/99-robotics-usb-devices.rules
 
 ## Windows
 Get dependencies (tested using the given versions):
