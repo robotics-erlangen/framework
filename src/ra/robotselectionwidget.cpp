@@ -96,6 +96,7 @@ RobotSelectionWidget::RobotSelectionWidget(QWidget *parent) :
     m_model = new QStandardItemModel(this);
     ui->robots->setModel(m_model);
     connect(ui->robots, SIGNAL(doubleClicked(QModelIndex)), SLOT(showConfigDialog(QModelIndex)));
+    connect(this, SIGNAL(enableInternalAutoref(bool)), ui->autoref, SLOT(setEnabled(bool)));
 }
 
 RobotSelectionWidget::~RobotSelectionWidget()
@@ -128,12 +129,14 @@ void RobotSelectionWidget::shutdown()
 {
     ui->yellow->shutdown();
     ui->blue->shutdown();
+    ui->autoref->shutdown();
 }
 
 void RobotSelectionWidget::enableContent(bool enable)
 {
     ui->blue->enableContent(enable);
     ui->yellow->enableContent(enable);
+    ui->autoref->enableContent(enable);
     ui->robots->viewport()->setEnabled(enable);
     m_contentDisabled = !enable;
 }
@@ -146,9 +149,12 @@ void RobotSelectionWidget::init(QWidget *window, InputManager *inputManager)
     connect(ui->blue, SIGNAL(sendCommand(Command)), window, SLOT(sendCommand(Command)));
     connect(window, SIGNAL(gotStatus(Status)), ui->yellow, SLOT(handleStatus(Status)));
     connect(ui->yellow, SIGNAL(sendCommand(Command)), window, SLOT(sendCommand(Command)));
+    connect(window, SIGNAL(gotStatus(Status)), ui->autoref, SLOT(handleStatus(Status)));
+    connect(ui->autoref, SIGNAL(sendCommand(Command)), window, SLOT(sendCommand(Command)));
 
-    ui->blue->init(true);
-    ui->yellow->init(false);
+    ui->blue->init(TeamWidget::BLUE);
+    ui->yellow->init(TeamWidget::YELLOW);
+    ui->autoref->init(TeamWidget::AUTOREF);
 
     m_itemDelegate = new ItemDelegate(inputManager, this);
     ui->robots->setItemDelegate(m_itemDelegate);
@@ -165,11 +171,13 @@ void RobotSelectionWidget::load()
     searchForStrategies();
     ui->blue->setRecentScripts(&m_recentScripts);
     ui->yellow->setRecentScripts(&m_recentScripts);
+    ui->autoref->setRecentScripts(&m_recentScripts);
 
     loadRobots();
 
     ui->blue->load();
     ui->yellow->load();
+    ui->autoref->load();
 }
 
 void RobotSelectionWidget::sanitizeRecentScripts()
@@ -404,6 +412,7 @@ void RobotSelectionWidget::forceAutoReload(bool force)
 {
     ui->blue->forceAutoReload(force);
     ui->yellow->forceAutoReload(force);
+    ui->autoref->forceAutoReload(force);
 }
 
 robot::Specs RobotSelectionWidget::specs(const QModelIndex &index) const

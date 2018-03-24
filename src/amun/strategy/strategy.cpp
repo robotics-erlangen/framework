@@ -53,7 +53,7 @@ public:
  * \param timer Timer to be used for time scaling
  * \param type can be blue or yellow team or autoref
  */
-Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper) :
+Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, bool internalAutoref) :
     m_p(new StrategyPrivate),
     m_timer(timer),
     m_strategy(nullptr),
@@ -62,8 +62,10 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper) :
     m_refboxControlEnabled(false),
     m_autoReload(false),
     m_strategyFailed(false),
+    m_isEnabled(true),
     m_isReplay(false),
-    m_debugHelper(helper)
+    m_debugHelper(helper),
+    m_isInternalAutoref(internalAutoref)
 {
     m_udpSenderSocket = new QUdpSocket(this);
     m_refboxSocket = new QTcpSocket(this);
@@ -101,11 +103,16 @@ void Strategy::handleStatus(const Status &status)
     if (status->has_geometry()) {
         const std::string str = status->geometry().SerializeAsString();
         // reload only if geometry has changed
+
         if (str != m_geometryString) {
             m_geometryString = str;
             m_geometry = status->geometry();
             reload();
         }
+    }
+
+    if (!m_isEnabled) {
+        return;
     }
 
     if (status->has_world_state() && status->has_game_state() && !m_isReplay) {
@@ -269,6 +276,7 @@ void Strategy::process()
         } else if (m_type == StrategyType::YELLOW) {
             userInput.CopyFrom(m_status->user_input_yellow());
         }
+        // autoref has no user input
         userInput.mutable_move_command()->CopyFrom(m_lastMoveCommand.move_command());
     }
 
@@ -332,6 +340,9 @@ void Strategy::process()
             timing->set_yellow_total(totalTime);
             timing->set_yellow_path(pathPlanning);
             status->set_yellow_running(true);
+        } else if (m_type == StrategyType::AUTOREF) {
+            timing->set_autoref_total(totalTime);
+            status->set_autoref_running(true);
         }
         status->mutable_execution_state()->CopyFrom(m_status->world_state());
         status->mutable_execution_game_state()->CopyFrom(m_status->game_state());
@@ -384,6 +395,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         // the debug helper doesn't know the exact moment when the strategy gets reloaded
         m_debugHelper->enableQueue();
     }
+    m_strategy->setIsInternalAutoref(m_isInternalAutoref);
 
     // delay reload until strategy is no longer running
     connect(m_strategy, SIGNAL(requestReload()), SLOT(reload()), Qt::QueuedConnection);

@@ -34,6 +34,10 @@ class TeamWidget : public QFrame
     Q_OBJECT
 
 public:
+    enum TeamType {
+        BLUE, YELLOW, AUTOREF
+    };
+
     explicit TeamWidget(QWidget *parent = 0);
     ~TeamWidget() override;
 
@@ -41,7 +45,7 @@ signals:
     void sendCommand(const Command &command);
 
 public:
-    void init(bool blue);
+    void init(TeamType type);
     void load();
     void setRecentScripts(QStringList *recent);
     void forceAutoReload(bool force);
@@ -70,9 +74,11 @@ private:
     void updateStyleSheet();
     void addEntryPoint(QMenu *menu, const QString &name, const QString &entryPoint);
     QString shortenEntrypointName(const QMenu *menu, const QString &name, int targetLength);
+    QString teamTypeName() const;
+    amun::CommandStrategy *commandStrategyFromType(const Command &command) const;
 
 private:
-    bool m_blue;
+    TeamType m_type;
     QToolButton *m_btnOpen;
     QToolButton *m_btnEntryPoint;
     QToolButton *m_btnReload;

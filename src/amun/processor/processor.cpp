@@ -418,6 +418,10 @@ void Processor::handleCommand(const Command &command)
             const std::string &c = command->referee().command();
             m_refereeInternal->handlePacket(QByteArray(c.data(), c.size()));
         }
+
+        if (command->referee().has_autoref_command()) {
+            m_refereeInternal->handleRemoteControlRequest(command->referee().autoref_command());
+        }
     }
 
     if (command->has_control()) {

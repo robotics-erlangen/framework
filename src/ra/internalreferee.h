@@ -40,6 +40,7 @@ public slots:
     void changeStage(SSL_Referee::Stage stage);
     void changeYellowKeeper(uint id);
     void changeBlueKeeper(uint id);
+    void enableInternalAutoref(bool enable);
 
     void handleStatus(const Status &status);
 

@@ -7,8 +7,8 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
     ui(new Ui::ReplayTeamWidget)
 {
     ui->setupUi(this);
-    ui->blue->init(true);
-    ui->yellow->init(false);
+    ui->blue->init(TeamWidget::BLUE);
+    ui->yellow->init(TeamWidget::YELLOW);
     QSettings s;
     s.beginGroup("Strategy");
     m_recentScripts = s.value("RecentScripts").toStringList();

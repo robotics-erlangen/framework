@@ -64,6 +64,7 @@ signals:
     void sendRadioResponse(const robot::RadioResponse &response);
     void generationChanged(uint generation, RobotWidget::Team team);
     void setRobotExchangeIcon(uint generation, uint id, bool exchange);
+    void enableInternalAutoref(bool enable);
 
 public slots:
     void selectTeam(uint generation, uint id, RobotWidget::Team team);

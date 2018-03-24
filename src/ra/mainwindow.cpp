@@ -85,6 +85,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->referee, SIGNAL(changeStage(SSL_Referee::Stage)), m_internalReferee, SLOT(changeStage(SSL_Referee::Stage)));
     connect(ui->referee, SIGNAL(changeYellowKeeper(uint)), m_internalReferee, SLOT(changeYellowKeeper(uint)));
     connect(ui->referee, SIGNAL(changeBlueKeeper(uint)), m_internalReferee, SLOT(changeBlueKeeper(uint)));
+    connect(ui->referee, SIGNAL(enableInternalAutoref(bool)), m_internalReferee, SLOT(enableInternalAutoref(bool)));
 
     m_inputManager = new InputManager(this);
     connect(m_inputManager, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
@@ -141,6 +142,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionStepBack, SIGNAL(triggered()), ui->logManager, SIGNAL(stepBackward()));
     connect(ui->actionStepBack, SIGNAL(triggered()), ui->logManager, SIGNAL(stepForward()));
     connect(ui->actionTogglePause, SIGNAL(triggered()), ui->logManager, SLOT(togglePaused()));
+
+    connect(ui->referee, SIGNAL(enableInternalAutoref(bool)), ui->robots, SIGNAL(enableInternalAutoref(bool)));
 
     // setup data distribution
     connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
@@ -462,7 +465,8 @@ void MainWindow::handleCheckHaltStatus(const Status &status)
             liveMode();
         }
     }
-    if (status->has_strategy_blue() || status->has_strategy_yellow() || status->has_debug()) {
+    if (status->has_strategy_blue() || status->has_strategy_yellow() ||
+            status->has_strategy_autoref() || status->has_debug()) {
         // use 50 as some upper limit, the exact number is irrelevant
         if (m_replayStrategyBuffer.size() < 50) {
             m_replayStrategyBuffer.push_back(status);

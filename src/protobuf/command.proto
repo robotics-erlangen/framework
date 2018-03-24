@@ -1,5 +1,6 @@
 syntax = "proto2";
 import "robot.proto";
+import "ssl_refbox_remotecontrol.proto";
 
 package amun;
 
@@ -50,6 +51,8 @@ message CommandSimulator {
 message CommandReferee {
     optional bool active = 1;
     optional bytes command = 2;
+    optional bool use_internal_autoref = 3;
+    optional SSL_RefereeRemoteControlRequest autoref_command = 4;
 }
 
 message CommandStrategyLoad {

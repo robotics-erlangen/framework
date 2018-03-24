@@ -44,6 +44,7 @@ signals:
     void changeStage(SSL_Referee::Stage stage);
     void changeYellowKeeper(uint id);
     void changeBlueKeeper(uint id);
+    void enableInternalAutoref(bool enable);
 
 public slots:
     void handleStatus(const Status &status);

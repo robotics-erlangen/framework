@@ -265,25 +265,36 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
 
-    if (!thread->refboxControlEnabled()) {
-        thread->log("Warning: Command not sent to refbox! (Enable the config option if you wish to send)");
-        return 0;
+    if (thread->isInternalAutoref()) {
+        Command command(new amun::Command);
+        SSL_RefereeRemoteControlRequest * request = command->mutable_referee()->mutable_autoref_command();
+        protobufToMessage(state, 1, *request, NULL);
+
+        if (!thread->sendCommand(command)) {
+            luaL_error(state, "This function is only allowed in debug mode!");
+        }
+    } else {
+        if (!thread->refboxControlEnabled()) {
+            thread->log("Warning: Command not sent to refbox! (Enable the config option if you wish to send)");
+            return 0;
+        }
+
+        SSL_RefereeRemoteControlRequest request;
+        protobufToMessage(state, 1, request, NULL);
+
+        QByteArray data;
+        // the first 4 bytes denote the packet's size in big endian
+        data.resize(request.ByteSize()+4);
+        qToBigEndian<quint32>(request.ByteSize(), (uchar*)data.data());
+        if (!request.SerializeToArray(data.data()+4, request.ByteSize())) {
+            luaL_error(state, "Invalid referee packet!");
+        }
+
+        if (!thread->sendNetworkReferee(data)) {
+            luaL_error(state, "This function is only allowed in debug mode!");
+        }
     }
 
-    SSL_RefereeRemoteControlRequest request;
-    protobufToMessage(state, 1, request, NULL);
-
-    QByteArray data;
-    // the first 4 bytes denote the packet's size in big endian
-    data.resize(request.ByteSize()+4);
-    qToBigEndian<quint32>(request.ByteSize(), (uchar*)data.data());
-    if (!request.SerializeToArray(data.data()+4, request.ByteSize())) {
-        luaL_error(state, "Invalid referee packet!");
-    }
-
-    if (!thread->sendNetworkReferee(data)) {
-        luaL_error(state, "This function is only allowed in debug mode!");
-    }
     return 0;
 }
 

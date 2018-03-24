@@ -31,7 +31,7 @@
 
 TeamWidget::TeamWidget(QWidget *parent) :
     QFrame(parent),
-    m_blue(false),
+    m_type(BLUE),
     m_userAutoReload(false),
     m_notification(false),
     m_recentScripts(NULL)
@@ -45,7 +45,7 @@ TeamWidget::~TeamWidget()
 void TeamWidget::shutdown()
 {
     QSettings s;
-    s.beginGroup(m_blue ? "BlueTeam" : "YellowTeam");
+    s.beginGroup(teamTypeName());
     s.setValue("Script", m_filename);
     s.setValue("EntryPoint", m_entryPoint);
     s.setValue("AutoReload", m_userAutoReload);
@@ -54,9 +54,9 @@ void TeamWidget::shutdown()
     closeScript();
 }
 
-void TeamWidget::init(bool blue)
+void TeamWidget::init(TeamType type)
 {
-    m_blue = blue;
+    m_type = type;
 
     QBoxLayout *hLayout = new QHBoxLayout(this);
     hLayout->setMargin(4);
@@ -96,6 +96,10 @@ void TeamWidget::init(bool blue)
 
     m_enableDebugAction = reload_menu->addAction("Enable debugging");
     m_enableDebugAction->setCheckable(true);
+    if (m_type == AUTOREF) {
+        m_enableDebugAction->setChecked(true);
+        m_enableDebugAction->setDisabled(true);
+    }
     connect(m_enableDebugAction, SIGNAL(toggled(bool)), SLOT(sendEnableDebug(bool)));
 
     m_debugAction = reload_menu->addAction("Trigger debugger");
@@ -113,6 +117,19 @@ void TeamWidget::init(bool blue)
     updateStyleSheet();
 }
 
+QString TeamWidget::teamTypeName() const
+{
+    switch (m_type) {
+    case BLUE:
+        return "BlueTeam";
+    case YELLOW:
+        return "YellowTeam";
+    case AUTOREF:
+        return "Autoref";
+    }
+    return "";
+}
+
 void TeamWidget::enableContent(bool enable)
 {
     m_btnOpen->setEnabled(enable);
@@ -126,7 +143,7 @@ void TeamWidget::enableContent(bool enable)
 void TeamWidget::load()
 {
     QSettings s;
-    s.beginGroup(m_blue ? "BlueTeam" : "YellowTeam");
+    s.beginGroup(teamTypeName());
     m_filename = s.value("Script").toString();
     m_entryPoint = s.value("EntryPoint").toString();
     m_reloadAction->setChecked(s.value("AutoReload").toBool());
@@ -159,10 +176,12 @@ void TeamWidget::handleStatus(const Status &status)
 {
     // select corresponding strategy status
     const amun::StatusStrategy *strategy = NULL;
-    if (m_blue && status->has_strategy_blue()) {
+    if (m_type == BLUE && status->has_strategy_blue()) {
         strategy = &status->strategy_blue();
-    } else if (!m_blue && status->has_strategy_yellow()) {
+    } else if (m_type == YELLOW && status->has_strategy_yellow()) {
         strategy = &status->strategy_yellow();
+    } else if (m_type == AUTOREF && status->has_strategy_autoref()) {
+        strategy = &status->strategy_autoref();
     }
 
     if (strategy) {
@@ -300,6 +319,19 @@ void TeamWidget::open()
     open(filename);
 }
 
+amun::CommandStrategy * TeamWidget::commandStrategyFromType(const Command &command) const
+{
+    switch (m_type) {
+    case BLUE:
+        return command->mutable_strategy_blue();
+    case YELLOW:
+        return command->mutable_strategy_yellow();
+    case AUTOREF:
+        return command->mutable_strategy_autoref();
+    }
+    return nullptr;
+}
+
 void TeamWidget::open(const QString &filename)
 {
     m_filename = filename;
@@ -314,9 +346,7 @@ void TeamWidget::open(const QString &filename)
         }
     }
     Command command(new amun::Command);
-    amun::CommandStrategyLoad *strategy = m_blue ?
-                command->mutable_strategy_blue()->mutable_load() :
-                command->mutable_strategy_yellow()->mutable_load();
+    amun::CommandStrategyLoad *strategy = commandStrategyFromType(command)->mutable_load();
 
     strategy->set_filename(filename.toStdString());
     emit sendCommand(command);
@@ -325,9 +355,7 @@ void TeamWidget::open(const QString &filename)
 void TeamWidget::closeScript()
 {
     Command command(new amun::Command);
-    amun::CommandStrategy *strategy = m_blue ?
-                command->mutable_strategy_blue() :
-                command->mutable_strategy_yellow();
+    amun::CommandStrategy *strategy = commandStrategyFromType(command);
 
     strategy->mutable_close();
     emit sendCommand(command);
@@ -356,9 +384,7 @@ void TeamWidget::prepareScriptMenu()
 void TeamWidget::selectEntryPoint(const QString &entry_point)
 {
     Command command(new amun::Command);
-    amun::CommandStrategyLoad *strategy = m_blue ?
-                command->mutable_strategy_blue()->mutable_load() :
-                command->mutable_strategy_yellow()->mutable_load();
+    amun::CommandStrategyLoad *strategy = commandStrategyFromType(command)->mutable_load();
 
     strategy->set_filename(m_filename.toStdString());
     strategy->set_entry_point(entry_point.toStdString());
@@ -375,9 +401,7 @@ void TeamWidget::resendAll(bool send)
 {
     if (send && !m_filename.isEmpty() && !m_entryPoint.isEmpty()) {
         Command command(new amun::Command);
-        amun::CommandStrategy *strategy = m_blue ?
-                    command->mutable_strategy_blue() :
-                    command->mutable_strategy_yellow();
+        amun::CommandStrategy *strategy = commandStrategyFromType(command);
         amun::CommandStrategyLoad *strategyLoad = strategy->mutable_load();
 
         strategyLoad->set_filename(m_filename.toStdString());
@@ -392,9 +416,7 @@ void TeamWidget::resendAll(bool send)
 void TeamWidget::sendReload()
 {
     Command command(new amun::Command);
-    amun::CommandStrategy *strategy = m_blue ?
-                command->mutable_strategy_blue() :
-                command->mutable_strategy_yellow();
+    amun::CommandStrategy *strategy = commandStrategyFromType(command);
 
     strategy->set_reload(true);
     emit sendCommand(command);
@@ -406,9 +428,7 @@ void TeamWidget::sendAutoReload()
         m_userAutoReload = m_reloadAction->isChecked();
     }
     Command command(new amun::Command);
-    amun::CommandStrategy *strategy = m_blue ?
-                command->mutable_strategy_blue() :
-                command->mutable_strategy_yellow();
+    amun::CommandStrategy *strategy = commandStrategyFromType(command);
 
     strategy->set_auto_reload(m_reloadAction->isChecked());
     emit sendCommand(command);
@@ -417,9 +437,7 @@ void TeamWidget::sendAutoReload()
 void TeamWidget::sendEnableDebug(bool enable)
 {
     Command command(new amun::Command);
-    amun::CommandStrategy *strategy = m_blue ?
-                command->mutable_strategy_blue() :
-                command->mutable_strategy_yellow();
+    amun::CommandStrategy *strategy = commandStrategyFromType(command);
 
     strategy->set_enable_debug(enable);
     sendCommand(command);
@@ -428,9 +446,7 @@ void TeamWidget::sendEnableDebug(bool enable)
 void TeamWidget::sendTriggerDebug()
 {
     Command command(new amun::Command);
-    amun::CommandStrategy *strategy = m_blue ?
-                command->mutable_strategy_blue() :
-                command->mutable_strategy_yellow();
+    amun::CommandStrategy *strategy = commandStrategyFromType(command);
 
     strategy->mutable_debug();
     sendCommand(command);
@@ -439,7 +455,18 @@ void TeamWidget::sendTriggerDebug()
 void TeamWidget::updateStyleSheet()
 {
     // update background and border color
-    const QColor color = m_blue ? "dodgerblue" : "yellow";
+    QColor color;
+    switch (m_type) {
+    case BLUE:
+        color = "dodgerblue";
+        break;
+    case YELLOW:
+        color = "yellow";
+        break;
+    case AUTOREF:
+        color = "lightgray";
+        break;
+    }
     const QColor bgColor = m_notification ? "red" : color.lighter(170);
 
     QString ss("TeamWidget { background-color: %2; border: 1px solid %1; border-radius: 5px; }");

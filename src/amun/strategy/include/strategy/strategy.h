@@ -40,9 +40,10 @@ class Strategy : public QObject
     Q_OBJECT
 
 public:
-    Strategy(const Timer *timer, StrategyType type, DebugHelper *helper);
+    Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, bool internalAutoref = false);
     ~Strategy() override;
     void resetIsReplay() { m_isReplay = false; }
+    void setEnabled(bool enable) { m_isEnabled = enable; }
 
 signals:
     void gotCommand(const Command &command);
@@ -92,6 +93,7 @@ private:
     QTimer *m_reloadTimer;
     bool m_autoReload;
     bool m_strategyFailed;
+    bool m_isEnabled;
 
     QUdpSocket *m_udpSenderSocket;
     QTcpSocket *m_refboxSocket;
@@ -100,6 +102,7 @@ private:
     amun::UserInput m_lastMoveCommand;
     bool m_isReplay;
     DebugHelper *m_debugHelper;
+    bool m_isInternalAutoref;
 };
 
 #endif // STRATEGY_H

@@ -64,6 +64,8 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_scaling(1.0f),
     m_useNetworkTransceiver(false),
     m_simulatorOnly(simulatorOnly),
+    m_useInternalReferee(true),
+    m_useAutoref(true),
     m_networkInterfaceWatcher(nullptr)
 {
     qRegisterMetaType<QNetworkInterface>("QNetworkInterface");
@@ -72,7 +74,7 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     qRegisterMetaType< QList<robot::RadioResponse> >("QList<robot::RadioResponse>");
     qRegisterMetaType<Status>("Status");
 
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 3; ++i) {
         m_strategy[i] = nullptr;
         m_debugHelper[i] = nullptr;
     }
@@ -84,8 +86,9 @@ Amun::Amun(bool simulatorOnly, QObject *parent) :
     m_processorThread = new QThread(this);
     m_networkThread = new QThread(this);
     m_simulatorThread = new QThread(this);
-    m_strategyThread[0] = new QThread(this);
-    m_strategyThread[1] = new QThread(this);
+    for (int i = 0;i<3;i++) {
+        m_strategyThread[i] = new QThread(this);
+    }
     m_debugHelperThread = new QThread(this);
 
     m_networkInterfaceWatcher = (!m_simulatorOnly) ? new NetworkInterfaceWatcher(this) : nullptr;
@@ -118,8 +121,13 @@ void Amun::start()
     connect(m_processor, SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
 
     // start strategy threads
-    for (int i = 0; i < 2; i++) {
-        StrategyType strategy = (i == 0) ? StrategyType::YELLOW : StrategyType::BLUE;
+    for (int i = 0; i < 3; i++) {
+        StrategyType strategy = StrategyType::BLUE;
+        if (i == 1) {
+            strategy = StrategyType::YELLOW;
+        } else if (i == 2) {
+            strategy = StrategyType::AUTOREF;
+        }
 
         Q_ASSERT(m_debugHelper[i] == nullptr);
         m_debugHelper[i] = new DebugHelper(strategy);
@@ -129,7 +137,7 @@ void Amun::start()
         connect(m_debugHelper[i], SIGNAL(sendStatus(Status)), SLOT(handleStatus(Status)));
 
         Q_ASSERT(m_strategy[i] == nullptr);
-        m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i]);
+        m_strategy[i] = new Strategy(m_timer, strategy, m_debugHelper[i], i == 2);
         m_strategy[i]->moveToThread(m_strategyThread[i]);
         connect(m_strategyThread[i], SIGNAL(finished()), m_strategy[i], SLOT(deleteLater()));
 
@@ -206,8 +214,9 @@ void Amun::start()
     m_processorThread->start();
     m_networkThread->start();
     m_simulatorThread->start();
-    m_strategyThread[0]->start();
-    m_strategyThread[1]->start();
+    for (int i = 0;i<3;i++) {
+        m_strategyThread[i]->start();
+    }
     m_debugHelperThread->start();
 }
 
@@ -222,16 +231,18 @@ void Amun::stop()
     m_processorThread->quit();
     m_networkThread->quit();
     m_simulatorThread->quit();
-    m_strategyThread[0]->quit();
-    m_strategyThread[1]->quit();
+    for (int i = 0;i<3;i++) {
+        m_strategyThread[i]->quit();
+    }
     m_debugHelperThread->quit();
 
     // wait for threads
     m_processorThread->wait();
     m_networkThread->wait();
     m_simulatorThread->wait();
-    m_strategyThread[0]->wait();
-    m_strategyThread[1]->wait();
+    for (int i = 0;i<3;i++) {
+        m_strategyThread[i]->wait();
+    }
     m_debugHelperThread->wait();
 
     // worker objects are destroyed on thread shutdown
@@ -242,7 +253,7 @@ void Amun::stop()
     m_vision = NULL;
     m_referee = NULL;
     m_mixedTeam = NULL;
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < 3; i++) {
         m_strategy[i] = NULL;
         m_debugHelper[i] = nullptr;
     }
@@ -323,7 +334,29 @@ void Amun::handleCommand(const Command &command)
             setSimulatorEnabled(m_simulatorEnabled, command->transceiver().use_network());
         }
     }
+
+    if (command->has_referee()) {
+        const amun::CommandReferee &referee = command->referee();
+        bool internalAutorefBefore = m_useInternalReferee && m_useAutoref;
+        if (referee.has_active()) {
+            m_useInternalReferee = referee.active();
+        }
+        if (referee.has_use_internal_autoref()) {
+            m_useAutoref = referee.use_internal_autoref();
+        }
+        bool internalAutoref = m_useInternalReferee && m_useAutoref;
+        if (internalAutoref != internalAutorefBefore) {
+            enableAutoref(internalAutoref);
+        }
+    }
+
     emit gotCommand(command);
+}
+
+void Amun::enableAutoref(bool enable)
+{
+    m_strategy[2]->blockSignals(!enable);
+    m_strategy[2]->setEnabled(enable);
 }
 
 /*!

@@ -57,6 +57,7 @@ public:
 
     void setSelectedOptions(const QStringList &options);
     void setDebugHelper(DebugHelper *helper);
+    void setIsInternalAutoref(bool internal) { m_isInternalAutoref = internal; }
 
     // getter functions
     QString errorMsg() const { return m_errorMsg; }
@@ -69,6 +70,7 @@ public:
     QStringList options() const { return m_options; }
     QStringList selectedOptions() const { return m_selectedOptions; }
     bool hasDebugger() const { return m_hasDebugger; }
+    bool isInternalAutoref() const { return m_isInternalAutoref; }
 
 signals:
     // wrapper may listen to reload request, but doesn't have to
@@ -90,6 +92,7 @@ protected:
     Status m_debugStatus;
     bool m_hasDebugger;
     DebugHelper *m_debugHelper;
+    bool m_isInternalAutoref;
 };
 
 #endif // ABSTRACTSTRATEGYSCRIPT_H

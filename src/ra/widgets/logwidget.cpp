@@ -28,7 +28,8 @@ LogWidget::LogWidget(QWidget *parent) :
     m_lastDate(0),
     m_hideLogToggles(false),
     m_logBlueStrategy(true),
-    m_logYellowStrategy(true)
+    m_logYellowStrategy(true),
+    m_logAutoref(true)
 {
     this->setMaximumBlockCount(1000);
     this->setReadOnly(true);
@@ -70,6 +71,9 @@ void LogWidget::handleStatus(const Status &status)
                 prefix = "T";
                 break;
             case amun::Autoref:
+                if (!m_logAutoref) {
+                    continue;
+                }
                 prefix = "A";
                 break;
             case amun::RadioResponse:
@@ -117,6 +121,12 @@ void LogWidget::contextMenuEvent(QContextMenuEvent *event)
         yellow->setChecked(m_logYellowStrategy);
         yellow->setData(amun::StrategyYellow);
         connect(yellow, SIGNAL(triggered(bool)), SLOT(setLogVisibility(bool)));
+
+        QAction* autoref = menu->addAction("Autoref");
+        autoref->setCheckable(true);
+        autoref->setChecked(m_logAutoref);
+        autoref->setData(amun::Autoref);
+        connect(autoref, SIGNAL(triggered(bool)), SLOT(setLogVisibility(bool)));
     }
 
     menu->exec(event->globalPos());
@@ -130,5 +140,7 @@ void LogWidget::setLogVisibility(bool visible)
         m_logBlueStrategy = visible;
     } else if (source == amun::StrategyYellow) {
         m_logYellowStrategy = visible;
+    } else if (source == amun::Autoref) {
+        m_logAutoref = visible;
     }
 }

@@ -76,6 +76,20 @@ void Referee::handlePacket(const QByteArray &data)
     }
 }
 
+void Referee::handleRemoteControlRequest(const SSL_RefereeRemoteControlRequest &request)
+{
+    if (request.has_designated_position()) {
+        m_gameState.mutable_designated_position()->CopyFrom(request.designated_position());
+    }
+    if (request.has_command()) {
+        handleCommand(request.command());
+    }
+    if (request.has_stage()) {
+        m_gameState.set_stage(request.stage());
+    }
+    // ignore yellow, red cards for now
+}
+
 /*!
  * \brief Update referee state
  * \param worldState Current world state, used to identify ball movement

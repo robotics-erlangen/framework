@@ -20,9 +20,11 @@
 
 #include "abstractstrategyscript.h"
 
-AbstractStrategyScript::AbstractStrategyScript() {
-    m_hasDebugger = false;
-    m_debugHelper = nullptr;
+AbstractStrategyScript::AbstractStrategyScript() :
+    m_hasDebugger(false),
+    m_debugHelper(nullptr),
+    m_isInternalAutoref(false)
+{
     takeDebugStatus();
 }
 

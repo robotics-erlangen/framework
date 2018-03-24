@@ -65,12 +65,13 @@ private:
     void setSimulatorEnabled(bool enabled, bool useNetworkTransceiver);
     void updateScaling(float scaling);
     void createSimulator(amun::CommandSimulator::RuleVersion ruleVersion);
+    void enableAutoref(bool enable);
 
 private:
     QThread *m_processorThread;
     QThread *m_networkThread;
     QThread *m_simulatorThread;
-    QThread *m_strategyThread[2];
+    QThread *m_strategyThread[3];
     QThread *m_debugHelperThread;
 
     Processor *m_processor;
@@ -81,14 +82,16 @@ private:
     Receiver *m_vision;
     Receiver *m_networkCommand;
     Receiver *m_mixedTeam;
-    Strategy *m_strategy[2];
-    DebugHelper *m_debugHelper[2];
+    Strategy *m_strategy[3];
+    DebugHelper *m_debugHelper[3];
     qint64 m_lastTime;
     Timer *m_timer;
     bool m_simulatorEnabled;
     float m_scaling;
     bool m_useNetworkTransceiver;
     const bool m_simulatorOnly;
+    bool m_useInternalReferee;
+    bool m_useAutoref;
 
     NetworkInterfaceWatcher *m_networkInterfaceWatcher;
 };

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>216</width>
+    <width>222</width>
     <height>311</height>
    </rect>
   </property>
@@ -14,23 +14,7 @@
    <string>Referee</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="1" column="1">
-    <widget class="QToolButton" name="btnRefereeStart">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Start</string>
-     </property>
-     <property name="shortcut">
-      <string>Enter</string>
-     </property>
-    </widget>
-   </item>
-   <item row="11" column="0" colspan="2">
+   <item row="13" column="0" colspan="2">
     <spacer name="verticalSpacer">
      <property name="orientation">
       <enum>Qt::Vertical</enum>
@@ -43,70 +27,13 @@
      </property>
     </spacer>
    </item>
-   <item row="5" column="1">
-    <widget class="QToolButton" name="btnRefereeDirectBlue">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Direct</string>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>36</width>
-       <height>12</height>
-      </size>
-     </property>
-     <property name="shortcut">
-      <string>9</string>
-     </property>
-    </widget>
-   </item>
-   <item row="5" column="0">
-    <widget class="QToolButton" name="btnRefereeDirectYellow">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Direct</string>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>36</width>
-       <height>12</height>
-      </size>
-     </property>
-     <property name="shortcut">
-      <string>7</string>
-     </property>
-    </widget>
-   </item>
-   <item row="9" column="0">
-    <widget class="QSpinBox" name="keeperIdYellow">
-     <property name="specialValueText">
-      <string/>
-     </property>
+   <item row="9" column="1">
+    <widget class="QSpinBox" name="keeperIdBlue">
      <property name="prefix">
       <string>Goalie: </string>
      </property>
      <property name="maximum">
       <number>15</number>
-     </property>
-     <property name="value">
-      <number>8</number>
-     </property>
-    </widget>
-   </item>
-   <item row="8" column="0" colspan="2">
-    <widget class="Line" name="line_2">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
      </property>
     </widget>
    </item>
@@ -132,60 +59,6 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="1">
-    <widget class="QToolButton" name="btnRefereeStop">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Stop</string>
-     </property>
-     <property name="shortcut">
-      <string>0</string>
-     </property>
-    </widget>
-   </item>
-   <item row="4" column="0">
-    <widget class="QToolButton" name="btnRefereePenaltyYellow">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Penalty</string>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>36</width>
-       <height>12</height>
-      </size>
-     </property>
-     <property name="shortcut">
-      <string>/</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QToolButton" name="btnRefereeForceStart">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Force</string>
-     </property>
-     <property name="shortcut">
-      <string>5</string>
-     </property>
-    </widget>
-   </item>
    <item row="3" column="1">
     <widget class="QToolButton" name="btnRefereeKickoffBlue">
      <property name="sizePolicy">
@@ -208,18 +81,11 @@
      </property>
     </widget>
    </item>
-   <item row="9" column="1">
-    <widget class="QSpinBox" name="keeperIdBlue">
-     <property name="prefix">
-      <string>Goalie: </string>
-     </property>
-     <property name="maximum">
-      <number>15</number>
-     </property>
-    </widget>
+   <item row="10" column="0" colspan="2">
+    <widget class="QComboBox" name="gameStage"/>
    </item>
-   <item row="3" column="0">
-    <widget class="QToolButton" name="btnRefereeKickoffYellow">
+   <item row="0" column="1">
+    <widget class="QToolButton" name="btnRefereeStop">
      <property name="sizePolicy">
       <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
        <horstretch>0</horstretch>
@@ -227,7 +93,23 @@
       </sizepolicy>
      </property>
      <property name="text">
-      <string>Kickoff</string>
+      <string>Stop</string>
+     </property>
+     <property name="shortcut">
+      <string>0</string>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QToolButton" name="btnRefereeDirectBlue">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Direct</string>
      </property>
      <property name="iconSize">
       <size>
@@ -236,29 +118,7 @@
       </size>
      </property>
      <property name="shortcut">
-      <string>1</string>
-     </property>
-    </widget>
-   </item>
-   <item row="6" column="0">
-    <widget class="QToolButton" name="btnRefereeIndirectYellow">
-     <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
-       <horstretch>0</horstretch>
-       <verstretch>0</verstretch>
-      </sizepolicy>
-     </property>
-     <property name="text">
-      <string>Indirect</string>
-     </property>
-     <property name="iconSize">
-      <size>
-       <width>36</width>
-       <height>12</height>
-      </size>
-     </property>
-     <property name="shortcut">
-      <string>4</string>
+      <string>9</string>
      </property>
     </widget>
    </item>
@@ -285,6 +145,80 @@
      </property>
     </widget>
    </item>
+   <item row="6" column="0">
+    <widget class="QToolButton" name="btnRefereeIndirectYellow">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Indirect</string>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>36</width>
+       <height>12</height>
+      </size>
+     </property>
+     <property name="shortcut">
+      <string>4</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0" colspan="2">
+    <widget class="Line" name="line_2">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1">
+    <widget class="QToolButton" name="btnRefereeStart">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Start</string>
+     </property>
+     <property name="shortcut">
+      <string>Enter</string>
+     </property>
+    </widget>
+   </item>
+   <item row="11" column="0" colspan="2">
+    <widget class="Line" name="line_3">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0">
+    <widget class="QToolButton" name="btnRefereePenaltyYellow">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Penalty</string>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>36</width>
+       <height>12</height>
+      </size>
+     </property>
+     <property name="shortcut">
+      <string>/</string>
+     </property>
+    </widget>
+   </item>
    <item row="4" column="1">
     <widget class="QToolButton" name="btnRefereePenaltyBlue">
      <property name="sizePolicy">
@@ -307,8 +241,91 @@
      </property>
     </widget>
    </item>
-   <item row="10" column="0" colspan="2">
-    <widget class="QComboBox" name="gameStage"/>
+   <item row="9" column="0">
+    <widget class="QSpinBox" name="keeperIdYellow">
+     <property name="specialValueText">
+      <string/>
+     </property>
+     <property name="prefix">
+      <string>Goalie: </string>
+     </property>
+     <property name="maximum">
+      <number>15</number>
+     </property>
+     <property name="value">
+      <number>8</number>
+     </property>
+    </widget>
+   </item>
+   <item row="5" column="0">
+    <widget class="QToolButton" name="btnRefereeDirectYellow">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Direct</string>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>36</width>
+       <height>12</height>
+      </size>
+     </property>
+     <property name="shortcut">
+      <string>7</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="0">
+    <widget class="QToolButton" name="btnRefereeKickoffYellow">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Kickoff</string>
+     </property>
+     <property name="iconSize">
+      <size>
+       <width>36</width>
+       <height>12</height>
+      </size>
+     </property>
+     <property name="shortcut">
+      <string>1</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="0">
+    <widget class="QToolButton" name="btnRefereeForceStart">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Force</string>
+     </property>
+     <property name="shortcut">
+      <string>5</string>
+     </property>
+    </widget>
+   </item>
+   <item row="12" column="0" colspan="2">
+    <widget class="QCheckBox" name="useInternalAutoref">
+     <property name="text">
+      <string>Internal Autoref</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

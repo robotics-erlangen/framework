@@ -45,6 +45,7 @@ private:
     bool m_hideLogToggles;
     bool m_logBlueStrategy;
     bool m_logYellowStrategy;
+    bool m_logAutoref;
 };
 
 #endif // LOGWIDGET_H
