@@ -4,9 +4,9 @@ local Default = Class("Agent.Manual.Default", Base)
 local geom = require "../base/geom"
 local World = require "../base/world"
 
-local Manual = require "task/manual"
-local Pass = require "task/pass"
-local ShootGoal = require "task/shootgoal"
+local Manual = require "task/manual/manual"
+local Pass = require "task/shared/pass"
+local ShootGoal = require "task/attacker/shootgoal"
 
 
 function Default:_stop()

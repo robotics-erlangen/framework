@@ -1,6 +1,6 @@
 local CenterBack = Class("Group.CenterBack")
 
-local CenterBackTask = require "task/centerback"
+local CenterBackTask = require "task/defender/centerback"
 local Field = require "../base/field"
 local UtilDefense = require "util/defense"
 local Rating = require "util/rating"

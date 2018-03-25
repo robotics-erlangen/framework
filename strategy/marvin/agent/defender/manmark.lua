@@ -7,9 +7,9 @@ local Referee = require "../base/referee"
 local World = require "../base/world"
 local vis = require "../base/vis"
 local Goal = require "observer/goal"
-local CenterBack = require "task/centerback"
-local Duel = require "task/duel"
-local ManMarkTask = require "task/manmark"
+local CenterBack = require "task/defender/centerback"
+local Duel = require "task/shared/duel"
+local ManMarkTask = require "task/defender/manmark"
 local Defense = require "util/defense"
 
 

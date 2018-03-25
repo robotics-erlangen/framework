@@ -5,7 +5,7 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 
 local Physics = require "observer/physics"
-local MoveToPos = require "task/movetopos"
+local MoveToPos = require "task/shared/movetopos"
 
 TimeToPos.MIN_ROBOTS = 1
 TimeToPos.MAX_ROBOTS = 1

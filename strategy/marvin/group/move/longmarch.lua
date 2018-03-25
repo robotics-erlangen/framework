@@ -2,10 +2,10 @@ local LongMarch = Class("Group.Move.LongMarch", require "group/move/base")
 
 local Referee = require "../base/referee"
 local World = require "../base/world"
-local MoveToPos = require "task/movetopos"
-local StopAttack = require "task/stopattack"
-local Circuit = require "task/circuit"
-local Pass = require "task/pass"
+local MoveToPos = require "task/shared/movetopos"
+local StopAttack = require "task/attacker/stopattack"
+local Circuit = require "task/attacker/circuit"
+local Pass = require "task/shared/pass"
 local Ball = require "observer/ball"
 local G = World.Geometry
 

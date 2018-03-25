@@ -3,9 +3,9 @@ local KickOffDefensive = Class("Group.Move.KickOffDefensive", require "group/mov
 local World = require "../base/world"
 local G = World.Geometry
 
-local ManMark = require "task/manmark"
-local MoveToPos = require "task/movetopos"
-local StopAttack = require "task/stopattack"
+local ManMark = require "task/defender/manmark"
+local MoveToPos = require "task/shared/movetopos"
+local StopAttack = require "task/attacker/stopattack"
 local MovesHelper = require "util/moveshelper"
 
 KickOffDefensive.MIN_ROBOTS = 1

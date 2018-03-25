@@ -2,7 +2,7 @@ local Base = require "agent/base/behavior"
 local MoveCommand = Class("Agent.Shared.MoveCommand", Base)
 
 local World = require "../base/world"
-local MoveToPos = require "task/movetopos"
+local MoveToPos = require "task/shared/movetopos"
 
 
 function MoveCommand:check()

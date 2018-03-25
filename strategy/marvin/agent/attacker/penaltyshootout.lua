@@ -7,11 +7,11 @@ local G = World.Geometry
 
 local Goal = require "observer/goal"
 local Robot = require "observer/robot"
-local MoveToStaticBall = require "task/movetostaticball"
-local StopAttack = require "task/stopattack"
-local ShootGoal = require "task/shootgoal"
+local MoveToStaticBall = require "task/attacker/movetostaticball"
+local StopAttack = require "task/attacker/stopattack"
+local ShootGoal = require "task/attacker/shootgoal"
 
-local Dribble = require "task/dribble"
+local Dribble = require "task/attacker/dribble"
 
 local vis = require "../base/vis"
 local debug = require "../base/debug"

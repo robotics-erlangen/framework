@@ -3,9 +3,9 @@ local SafeCorner = Class("Group.Move.SafeCorner", require "group/move/base")
 local Referee = require "../base/referee"
 local World = require "../base/world"
 local Freekick = require "agent/attacker/freekick"
-local MoveToPos = require "task/movetopos"
-local StopAttack = require "task/stopattack"
-local Striker = require "task/striker"
+local MoveToPos = require "task/shared/movetopos"
+local StopAttack = require "task/attacker/stopattack"
+local Striker = require "task/attacker/striker"
 local G = World.Geometry
 
 SafeCorner.MIN_ROBOTS = 5

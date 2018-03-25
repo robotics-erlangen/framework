@@ -1,7 +1,7 @@
 local Base = require "agent/base/behavior"
 local PassTiming = Class("Agent.Attacker.PassTiming", Base)
 
-local Sidestep = require "task/sidestep"
+local Sidestep = require "task/attacker/sidestep"
 local Attack = require "util/attack"
 
 function PassTiming:check()

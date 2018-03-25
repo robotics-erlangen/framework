@@ -6,7 +6,7 @@ local World = require "../base/world"
 
 local Coordinator = require "control/maincoordinator"
 local Messaging = require "control/messaging"
-local MoveToPos = require "task/movetopos"
+local MoveToPos = require "task/shared/movetopos"
 local TestHelper = require "test/helper/agent"
 
 local situations = {

@@ -2,8 +2,8 @@ local ChipTC = Class("Test.Move.ChipTC", require "group/move/base")
 
 local World = require "../base/world"
 local G = World.Geometry
-local MoveToPos = require "task/movetopos"
-local Pass = require "task/pass"
+local MoveToPos = require "task/shared/movetopos"
+local Pass = require "task/shared/pass"
 
 ChipTC.MIN_ROBOTS = 1
 ChipTC.MAX_ROBOTS = 1

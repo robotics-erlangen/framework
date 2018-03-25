@@ -9,9 +9,9 @@ local Coordinator = require "control/coordinator"
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
 local Volley = require "task/ability/volley"
-local MoveToPos = require "task/movetopos"
-local Pass = require "task/pass"
-local ShootGoal = require "task/shootgoal"
+local MoveToPos = require "task/shared/movetopos"
+local Pass = require "task/shared/pass"
+local ShootGoal = require "task/attacker/shootgoal"
 local Trainer = require "trainer/trainer"
 
 local Static = Class("Test.Task.Volley.Static", require "agent/base/behavior")

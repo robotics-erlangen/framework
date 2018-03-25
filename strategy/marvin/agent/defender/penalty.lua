@@ -2,7 +2,7 @@ local Base = require "agent/base/behavior"
 local Penalty = Class("Agent.Defender.Penalty", Base)
 
 local World = require "../base/world"
-local DefendPenalty = require "task/defendpenalty"
+local DefendPenalty = require "task/defender/defendpenalty"
 
 
 function Penalty:check()

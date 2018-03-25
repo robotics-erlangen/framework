@@ -1,7 +1,7 @@
 local Base = require "agent/base/behavior"
 local Default = Class("Agent.Hidden.Default", Base)
 
-local RescueRobot = require "task/rescuerobot"
+local RescueRobot = require "task/hidden/rescuerobot"
 
 
 function Default:check()

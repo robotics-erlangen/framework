@@ -1,7 +1,7 @@
 local Race = Class("Test.Move.Race", require "group/move/base")
 
 local World = require "../base/world"
-local MoveToPos = require "task/movetopos"
+local MoveToPos = require "task/shared/movetopos"
 
 Race.MIN_ROBOTS = 1
 Race.MAX_ROBOTS = 1

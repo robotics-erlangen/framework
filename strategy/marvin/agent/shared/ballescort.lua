@@ -7,7 +7,7 @@ local Referee = require "../base/referee"
 local World = require "../base/world"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
-local BallEscortTask = require "task/ballescort"
+local BallEscortTask = require "task/shared/ballescort"
 
 
 function BallEscort:_init()

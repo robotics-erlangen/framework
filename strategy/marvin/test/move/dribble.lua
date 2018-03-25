@@ -1,6 +1,6 @@
 local Dribble = Class("Test.Move.Dribble", require "group/move/base")
 
-local DribbleTask = require "task/dribble"
+local DribbleTask = require "task/attacker/dribble"
 local World = require "../base/world"
 
 local G = World.Geometry

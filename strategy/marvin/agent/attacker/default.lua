@@ -1,9 +1,9 @@
 local Base = require "agent/base/behavior"
 local Default = Class("Agent.Attacker.Default", Base)
 
-local AcceptPass = require "task/acceptpass"
-local SideStep = require "task/sidestep"
-local Striker = require "task/striker"
+local AcceptPass = require "task/attacker/acceptpass"
+local SideStep = require "task/attacker/sidestep"
+local Striker = require "task/attacker/striker"
 local Attack = require "util/attack"
 
 function Default:_stop()

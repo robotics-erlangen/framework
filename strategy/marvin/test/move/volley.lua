@@ -4,8 +4,8 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 local Freekick = require "agent/attacker/freekick"
 local Stop = require "agent/attacker/stop"
-local AcceptPass = require "task/acceptpass"
-local Striker = require "task/striker"
+local AcceptPass = require "task/attacker/acceptpass"
+local Striker = require "task/attacker/striker"
 local Attack = require "util/attack"
 
 Volley.MIN_ROBOTS = 2

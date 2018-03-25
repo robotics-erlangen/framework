@@ -7,10 +7,10 @@ local Field = require "../base/field"
 local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local Freekick = require "agent/attacker/freekick"
-local MoveToStaticBall = require "task/movetostaticball"
-local OverchipReceiver = require "task/overchipreceiver"
-local Shootgoal = require "task/shootgoal"
-local Striker = require "task/striker"
+local MoveToStaticBall = require "task/attacker/movetostaticball"
+local OverchipReceiver = require "task/attacker/overchipreceiver"
+local Shootgoal = require "task/attacker/shootgoal"
+local Striker = require "task/attacker/striker"
 
 -- "runway" refers to the way on which we have to accelerate to receive the rolling ball
 local MIN_RUNWAY_LENGTH = 1.5 -- how much room we need (measured horizontally)

@@ -2,8 +2,8 @@ local Entrypoints = require "../base/entrypoints"
 local ApplyForMainattacker = require "agent/attacker/applyformainattacker"
 local AgentPool = require "control/agentpool"
 local Coordinator = require "control/coordinator"
-local MoveToPos = require "task/movetopos"
-local Pass = require "task/pass"
+local MoveToPos = require "task/shared/movetopos"
+local Pass = require "task/shared/pass"
 local Trainer = require "trainer/trainer"
 
 

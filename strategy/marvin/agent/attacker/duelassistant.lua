@@ -5,7 +5,7 @@ local World = require "../base/world"
 local Rating = require "util/rating"
 
 
-local TaskDuelAssistant = require "task/duelassistant"
+local TaskDuelAssistant = require "task/attacker/duelassistant"
 
 
 function DuelAssistant:_stop()

@@ -4,8 +4,8 @@ local Penalty = Class("Agent.Attacker.Penalty", Base)
 local World = require "../base/world"
 local G = World.Geometry
 
-local MoveToStaticBall = require "task/movetostaticball"
-local ShootPenalty = require "task/shootpenalty"
+local MoveToStaticBall = require "task/attacker/movetostaticball"
+local ShootPenalty = require "task/attacker/shootpenalty"
 
 function Penalty:_stop()
 	self.lookDir = nil

@@ -3,12 +3,12 @@ local WindshieldWiper = Class("Group.Move.WindshieldWiper", require "group/move/
 local World = require "../base/world"
 local G = World.Geometry
 
-local MoveToPos = require "task/movetopos"
+local MoveToPos = require "task/shared/movetopos"
 local Freekick = require "agent/attacker/freekick"
-local StopAttack = require "task/stopattack"
+local StopAttack = require "task/attacker/stopattack"
 
-local AcceptPass = require "task/acceptpass"
-local Striker = require "task/striker"
+local AcceptPass = require "task/attacker/acceptpass"
+local Striker = require "task/attacker/striker"
 local Attack = require "util/attack"
 
 WindshieldWiper.MIN_ROBOTS = 1

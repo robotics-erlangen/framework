@@ -9,8 +9,8 @@ local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local ObserverShoot = require "observer/shoot"
 
-local Pass = require "task/pass"
-local ShootGoal = require "task/shootgoal"
+local Pass = require "task/shared/pass"
+local ShootGoal = require "task/attacker/shootgoal"
 
 local Attack = require "util/attack"
 local ShootGoalUtil = require "util/shootgoal"

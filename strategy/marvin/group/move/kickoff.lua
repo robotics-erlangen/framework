@@ -4,10 +4,10 @@ local World = require "../base/world"
 local G = World.Geometry
 
 local Freekick = require "agent/attacker/freekick"
-local AcceptPass = require "task/acceptpass"
-local MoveToPos = require "task/movetopos"
-local StopAttack = require "task/stopattack"
-local Striker = require "task/striker"
+local AcceptPass = require "task/attacker/acceptpass"
+local MoveToPos = require "task/shared/movetopos"
+local StopAttack = require "task/attacker/stopattack"
+local Striker = require "task/attacker/striker"
 local MovesHelper = require "util/moveshelper"
 local Attack = require "util/attack"
 

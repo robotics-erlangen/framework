@@ -1,12 +1,12 @@
 local BallCycle = Class("Group.Move.BallCycle", require "group/move/base")
 
-local Circuit = require "task/circuit"
+local Circuit = require "task/attacker/circuit"
 local Field = require "../base/field"
 local FreeKick = require "agent/attacker/freekick"
 local geom = require "../base/geom"
 local Attack = require "util/attack"
 local MovesHelper = require "util/moveshelper"
-local MoveToPos = require "task/movetopos"
+local MoveToPos = require "task/shared/movetopos"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 

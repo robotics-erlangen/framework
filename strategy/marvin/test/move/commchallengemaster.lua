@@ -2,10 +2,10 @@ local CommChallengeMaster = Class("Test.Move.CommChallengeMaster", require "grou
 
 local World = require "../base/world"
 local Field = require "../base/field"
-local MoveToPos = require "task/movetopos"
+local MoveToPos = require "task/shared/movetopos"
 local vis = require "../base/vis"
 local mixedteam = require "../base/mixedteam"
-local Pass = require "task/pass"
+local Pass = require "task/shared/pass"
 
 CommChallengeMaster.MIN_ROBOTS = 3
 CommChallengeMaster.MAX_ROBOTS = 12

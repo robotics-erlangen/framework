@@ -4,9 +4,9 @@ local World = require "../base/world"
 local AgentPool = require "control/agentpool"
 local Coordinator = require "control/coordinator"
 local Ball = require "observer/ball"
-local MoveToPos = require "task/movetopos"
-local Pass = require "task/pass"
-local Striker = require "task/striker"
+local MoveToPos = require "task/shared/movetopos"
+local Pass = require "task/shared/pass"
+local Striker = require "task/attacker/striker"
 local Trainer = require "trainer/trainer"
 
 

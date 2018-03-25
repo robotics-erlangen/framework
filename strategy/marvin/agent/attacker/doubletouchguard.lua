@@ -6,7 +6,7 @@ local Referee = require "../base/referee"
 local World = require "../base/world"
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
-local StopAttack = require "task/stopattack"
+local StopAttack = require "task/attacker/stopattack"
 
 
 --prevents freekicking robot from moving away after failed shot

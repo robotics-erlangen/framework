@@ -7,9 +7,9 @@ local World = require "../base/world"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
 
-local MoveToStaticBall = require "task/movetostaticball"
-local Pass = require "task/pass"
-local ShootGoal = require "task/shootgoal"
+local MoveToStaticBall = require "task/attacker/movetostaticball"
+local Pass = require "task/shared/pass"
+local ShootGoal = require "task/attacker/shootgoal"
 local Attack = require "util/attack"
 local ShootGoalUtil = require "util/shootgoal"
 

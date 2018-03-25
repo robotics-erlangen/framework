@@ -1,6 +1,6 @@
 local Base = require "agent/base/behavior"
 local Error = Class("Agent.Shared.Error",Base)
-local ErrorTask = require "task/error"
+local ErrorTask = require "task/shared/error"
 local World = require "../base/world"
 local Referee = require "../base/referee"
 local ErrorObserver = require "observer/error"

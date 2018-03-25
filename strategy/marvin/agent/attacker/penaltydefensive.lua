@@ -5,7 +5,7 @@ local Referee = require "../base/referee"
 local World = require "../base/world"
 local G = World.Geometry
 
-local MoveToPos = require "task/movetopos"
+local MoveToPos = require "task/shared/movetopos"
 
 function PenaltyShootoutDefensive:_stop()
 	self._penaltyStartTime = nil

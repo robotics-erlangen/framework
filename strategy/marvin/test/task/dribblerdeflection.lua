@@ -3,7 +3,7 @@ local World = require "../base/world"
 
 local AgentPool = require "control/agentpool"
 local Coordinator = require "control/coordinator"
-local Pass = require "task/pass"
+local Pass = require "task/shared/pass"
 local Trainer = require "trainer/trainer"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"

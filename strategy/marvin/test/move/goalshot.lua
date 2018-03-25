@@ -1,11 +1,11 @@
 local GoalShot = Class("Test.Move.GoalShot", require "group/move/base")
 
-local MoveToPos = require "task/movetopos"
+local MoveToPos = require "task/shared/movetopos"
 local World = require "../base/world"
 local G = World.Geometry
 local Ball = require "observer/ball"
 
-local ShootGoal = require "task/shootgoal"
+local ShootGoal = require "task/attacker/shootgoal"
 
 GoalShot.MIN_ROBOTS = 1
 GoalShot.MAX_ROBOTS = 1

@@ -3,8 +3,8 @@ local Victory = Class("Group.Move.Victory", require "group/move/base")
 local World = require "../base/world"
 local G = World.Geometry
 
-local MoveToPos = require "task/movetopos"
-local VictoryTask = require "task/victory"
+local MoveToPos = require "task/shared/movetopos"
+local VictoryTask = require "task/test/victory"
 
 local vis = require "../base/vis"
 

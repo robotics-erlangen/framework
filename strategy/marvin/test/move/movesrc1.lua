@@ -1,9 +1,9 @@
 local MoveSRC1 = Class("Group.Move.MoveSRC1", require "group/move/base")
 
-local MoveToPos = require "task/movetopos"
-local Pass = require "task/pass"
+local MoveToPos = require "task/shared/movetopos"
+local Pass = require "task/shared/pass"
 local Ball = require "observer/ball"
-local ShootGoal = require "task/shootgoal"
+local ShootGoal = require "task/attacker/shootgoal"
 local Referee = require "../base/referee"
 local World =   require "../base/world"
 local debug = require "../base/debug"

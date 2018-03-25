@@ -1,7 +1,7 @@
 local Entrypoints = require "../base/entrypoints"
 local geom = require "../base/geom"
 local World = require "../base/world"
-local MoveToPos = require "task/movetopos"
+local MoveToPos = require "task/shared/movetopos"
 
 
 local function generateLineup(lineStart, lineupDir)

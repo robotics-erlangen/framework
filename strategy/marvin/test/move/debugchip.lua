@@ -3,8 +3,8 @@ local DebugChip = Class("Test.Move.DebugChip", require "group/move/base")
 local DebugCommands = require "../base/debugcommands"
 local Plotter = require "../base/plot"
 local World = require "../base/world"
-local ChipTask = require "task/debugchip"
-local PlaceBall = require "task/placeball"
+local ChipTask = require "task/test/debugchip"
+local PlaceBall = require "task/attacker/placeball"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 

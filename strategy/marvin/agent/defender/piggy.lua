@@ -4,9 +4,9 @@ local Piggy = Class("Agent.Defender.Piggy", Base)
 local debug = require "../base/debug"
 
 -- TODO use interceptPass as soon as it works
---local InterceptPass = require "task/interceptpass"
+--local InterceptPass = require "task/defender/interceptpass"
 
-local PiggyTask = require "task/piggy"
+local PiggyTask = require "task/defender/piggy"
 
 
 function Piggy:_stop()

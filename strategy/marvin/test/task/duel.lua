@@ -2,8 +2,8 @@ local Entrypoints = require "../base/entrypoints"
 local World = require "../base/world"
 local AgentPool = require "control/agentpool"
 local Coordinator = require "control/coordinator"
-local Duel = require "task/duel"
-local ShootGoal = require "task/shootgoal"
+local Duel = require "task/shared/duel"
+local ShootGoal = require "task/attacker/shootgoal"
 local Trainer = require "trainer/trainer"
 
 

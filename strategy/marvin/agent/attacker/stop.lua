@@ -3,8 +3,8 @@ local Stop = Class("Agent.Attacker.Stop", Base)
 
 local World = require "../base/world"
 local Referee = require "../base/referee"
-local StopAttack = require "task/stopattack"
-local PlaceBall = require "task/placeball"
+local StopAttack = require "task/attacker/stopattack"
+local PlaceBall = require "task/attacker/placeball"
 
 
 function Stop:check()

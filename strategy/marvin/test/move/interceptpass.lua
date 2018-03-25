@@ -1,8 +1,8 @@
 local InterceptPass = Class("Test.Move.InterceptPass", require "group/move/base")
 
 local World = require "../base/world"
-local Pass = require "task/pass"
-local Striker = require "task/striker"
+local Pass = require "task/shared/pass"
+local Striker = require "task/attacker/striker"
 local Ball = require "observer/ball"
 
 InterceptPass.MIN_ROBOTS = 2

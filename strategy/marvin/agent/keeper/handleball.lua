@@ -6,10 +6,10 @@ local Referee = require "../base/referee"
 local World = require "../base/world"
 
 local Physics = require "observer/physics"
-local AggressiveKeeper = require "task/aggressivekeeper"
-local Keeper = require "task/keeper"
-local KeeperChipAway = require "task/chipaway"
-local Pass = require "task/pass"
+local AggressiveKeeper = require "task/keeper/aggressivekeeper"
+local Keeper = require "task/keeper/keeper"
+local KeeperChipAway = require "task/keeper/chipaway"
+local Pass = require "task/shared/pass"
 local Attack = require "util/attack"
 
 local SLOW_BALL = 0.5

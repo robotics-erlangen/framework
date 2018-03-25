@@ -1,14 +1,14 @@
 local Armada = Class("Group.Move.Armada", require "group/move/base")
 
-local Circuit = require "task/circuit"
+local Circuit = require "task/attacker/circuit"
 local Field = require "../base/field"
 local FreeKick = require "agent/attacker/freekick"
 local geom = require "../base/geom"
-local AcceptPass = require "task/acceptpass"
-local MoveToPos = require "task/movetopos"
+local AcceptPass = require "task/attacker/acceptpass"
+local MoveToPos = require "task/shared/movetopos"
 local Attack = require "util/attack"
 local MovesHelper = require "util/moveshelper"
-local StopAttack = require "task/stopattack"
+local StopAttack = require "task/attacker/stopattack"
 local World = require "../base/world"
 
 local G = World.Geometry

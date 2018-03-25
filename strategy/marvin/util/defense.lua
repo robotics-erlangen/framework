@@ -10,7 +10,7 @@ local World = require "../base/world"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
-local CenterBack = require "task/centerback"
+local CenterBack = require "task/defender/centerback"
 local Rating = require "util/rating"
 
 local G = World.Geometry

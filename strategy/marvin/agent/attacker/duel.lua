@@ -8,7 +8,7 @@ local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 
-local TaskDuel = require "task/duel"
+local TaskDuel = require "task/shared/duel"
 
 
 function Duel:_stop()

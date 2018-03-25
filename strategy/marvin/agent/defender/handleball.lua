@@ -10,9 +10,9 @@ local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Robot = require "observer/robot"
 local DefUtil = require "util/defense"
-local Duel = require "task/duel"
-local CenterBack = require "task/centerback"
-local InterceptPass = require "task/interceptpass"
+local Duel = require "task/shared/duel"
+local CenterBack = require "task/defender/centerback"
+local InterceptPass = require "task/defender/interceptpass"
 local debug = require "../base/debug"
 
 local G = World.Geometry

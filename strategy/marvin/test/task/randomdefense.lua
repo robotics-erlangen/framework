@@ -1,6 +1,6 @@
 local Entrypoints = require "../base/entrypoints"
 local World = require "../base/world"
-local CenterBack = require "task/centerback"
+local CenterBack = require "task/defender/centerback"
 local TestHelper = require "test/helper/agent"
 
 

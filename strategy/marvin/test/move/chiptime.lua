@@ -2,7 +2,7 @@ local ChipTimeTest = Class("Test.Move.ChipTimeTest", require "group/move/base")
 
 local World = require "../base/world"
 local Physics = require "observer/physics"
-local Pass = require "task/pass"
+local Pass = require "task/shared/pass"
 
 ChipTimeTest.MIN_ROBOTS = 1
 ChipTimeTest.MAX_ROBOTS = 1

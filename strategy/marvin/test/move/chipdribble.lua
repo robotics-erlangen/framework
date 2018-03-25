@@ -1,8 +1,8 @@
 local ChipDribble = Class("Test.Move.ChipDribble", require "group/move/base")
 
-local MoveToPos = require "task/movetopos"
-local PassDribble = require "task/passDribble"
-local Pass = require "task/pass"
+local MoveToPos = require "task/shared/movetopos"
+local PassDribble = require "task/test/passdribble"
+local Pass = require "task/shared/pass"
 local World = require "../base/world"
 local Ball = require "observer/ball"
 

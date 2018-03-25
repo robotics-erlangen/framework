@@ -9,7 +9,7 @@ local Error = require "agent/shared/error"
 local MoveCommand = require "agent/shared/movecommand"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
-local CenterBack = require "task/centerback"
+local CenterBack = require "task/defender/centerback"
 local Rating = require "util/rating"
 
 local MEASURE_TIMING = false
