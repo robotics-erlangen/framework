@@ -21,7 +21,8 @@ local moves = {
 	require "test/move/debugchip",
 	require "group/move/fastballplacement",
 	require "test/move/movesrc1",
-	require "test/move/defense"
+	require "test/move/defense",
+	require "test/move/keepertest"
 }
 
 local coord = nil
