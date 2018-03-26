@@ -22,6 +22,7 @@ function HallucinatingKeeper:_init(filename)
 	self._ballData = IO.readLines(filename)
 	self._ball = World.Ball
 	self._line = 1
+	self._hit = nil
 	self._predictShot = {
 		atkPos = nil,
 		atkDir = nil,
@@ -34,6 +35,7 @@ function HallucinatingKeeper:_update()
 
 	if ballDataString:sub(1, 8) == "New Shot" then
 		log(ballDataString)
+		self._hit = nil
 		self._line = (self._line % #self._ballData) + 1
 		return self:_update()
 	end
@@ -70,6 +72,12 @@ function HallucinatingKeeper:_update()
 		atkDir = Vector(atkDirX, atkDirY),
 		isShot = isShot
 	}
+
+	if not self._hit and self._ball.pos:distanceTo(self._robot.pos) < self._ball.radius+self._robot.radius then
+		self._hit = (self._ball.pos-self._robot.pos):angle() - self._robot.dir
+	elseif self._hit then
+		vis.addCircle("test/move/keepertest: Hit", self._robot.pos + Vector.fromAngle(self._hit+self._robot.dir):setLength(self._robot.radius), 0.015, vis.colors.red, true)
+	end
 
 	self._line = (self._line % #self._ballData) + 1
 end

@@ -58,13 +58,13 @@ function KeeperTest:_increment()
 		if self._distance > MAX_DISTANCE then
 			self._distance = MIN_DISTANCE
 		end
+	end
 
-		local angle = self._angle / math.pi
-		local message = "New Shot from distance "..tostring(self._distance).." and angle "..tostring(angle)
-		log(message)
-		if RECORD then
-			IO.append(DESTINATION, message)
-		end
+	local angle = self._angle / math.pi
+	local message = "New Shot from distance "..tostring(self._distance).." and angle "..tostring(angle)
+	log(message)
+	if RECORD then
+		IO.append(DESTINATION, message)
 	end
 end
 
