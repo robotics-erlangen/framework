@@ -63,10 +63,7 @@ if(NOT ${PROTOBUF_FOUND})
 endif()
 
 set(CMAKE_AUTOMOC ON)
-find_package(Qt5Core REQUIRED)
-find_package(Qt5Widgets REQUIRED)
-find_package(Qt5Network REQUIRED)
-find_package(Qt5OpenGL REQUIRED)
+find_package(Qt5 COMPONENTS Core Widgets Network OpenGL REQUIRED)
 
 if(NOT APPLE)
     # file open dialogs crash on mac
