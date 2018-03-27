@@ -26,6 +26,7 @@ local STATE_MOVE_AWAY = "STATE_MOVE_AWAY"
 -- Maximum final distance from ball to placement pos
 local END_DISTANCE = 0.1
 local BALL_STOP_SPEED = 0.2
+local MAX_BALL_DISTANCE = 0.25
 
 -- If ball distance is larger than this, the corresponding offset gets recalculated
 local OFFSET_DISTANCE = 0.07
@@ -182,11 +183,21 @@ function PlaceBall:run()
 
 	elseif self._state == STATE_BACK_UP then
 
-		if self._stateChanged then
-			local offset = self._pushedBefore and self._placementOffsetAverage or -self._borderOffsetAverage
-			self._currentTargetPos = self._robot.pos + offset
-		end
-
+        if self._stateChanged then
+            local offset
+            if self._ball:isPositionValid() then
+                offset = self._robot.pos - self._ball.pos
+            else
+                -- Normally backup in direction where we came from
+                offset = self._ballStartPos - self._robot.pos
+                -- Backup in reverse direction if the ball was pulled
+                if not self._pushedBefore then
+                    offset = -offset
+                end
+            end
+            offset:setLength(OFFSET_EXTRA_LENGTH)
+            self._currentTargetPos = self._robot.pos + offset
+        end
 		self._robot.trajectory:update(ToTarget, self._currentTargetPos, self._robot.dir, BACK_UP_SPEED)
 
 	elseif self._state == STATE_MOVE_AWAY then
@@ -209,6 +220,8 @@ function PlaceBall:_getNextState(currentState)
 
 		if self._ball.speed:length() < BALL_STOP_SPEED then
 
+            self._ballStartPos = self._ball.pos
+
 			if self._ball.pos:distanceTo(self._placementPos) < END_DISTANCE then
 				nextState = STATE_MOVE_AWAY
 			elseif not Field.isInField(self._ball.pos)
@@ -225,7 +238,8 @@ function PlaceBall:_getNextState(currentState)
 
 		nextState = STATE_GO_TO_PULL
 
-		if self._ball.speed:length() > BALL_STOP_SPEED then
+		if self._ball.speed:length() > BALL_STOP_SPEED
+                or self._ball.pos:distanceTo(self._ballStartPos) > MAX_BALL_DISTANCE then
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		elseif self._robot.pos:distanceTo(self._currentTargetPos) < 0.01 then
 			nextState = STATE_ENSURE_PULL_CONTACT
@@ -273,7 +287,8 @@ function PlaceBall:_getNextState(currentState)
 	elseif currentState == STATE_GO_TO_PUSH then
 
 		nextState = STATE_GO_TO_PUSH
-		if self._ball.speed:length() > BALL_STOP_SPEED then
+		if self._ball.speed:length() > BALL_STOP_SPEED
+                or self._ball.pos:distanceTo(self._ballStartPos) > MAX_BALL_DISTANCE then
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		elseif self._robot.pos:distanceTo(self._currentTargetPos) < 0.01 then
 			nextState = STATE_PUSH_TO_POS
