@@ -43,11 +43,16 @@ local function manMarkPos(opponent)
 	local intersectionDefenseArea = Field.intersectRayDefenseArea(targetPos,
 				World.Geometry.FriendlyGoal - targetPos,
 				Constants.maxRobotRadius + 0.1, true)
-	
+
+	if intersectionDefenseArea and not Referee.isStopState() then
+		targetPos = intersectionDefenseArea + (targetPos - intersectionDefenseArea) :scaleLength(0.3)
+	end
+
 	if Referee.isStopState() or intersectionDefenseArea 
 				and intersectionDefenseArea:distanceToSq(targetPos) < 0.75*0.75 then
 		targetPos = intersectionDefenseArea or targetPos
 	end
+
 	if World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive" then
 		targetPos.y = math.min(targetPos.y, World.Geometry.PenaltyLine - Defense.PENALTY_LINE_DISTANCE)
 	end
