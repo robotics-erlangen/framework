@@ -116,6 +116,10 @@ function Defense:_nextManmarkAssignment(defenders)
 					totalDistance = 0.75 * totalDistance
 				end
 
+				if self._previousPiggyAssignments[mostDangerousRobot] == bot then
+					totalDistance = totalDistance * 1.2
+				end
+
 				if totalDistance < bestDistance then
 					bestDistance = totalDistance
 					bestDefender = bot
