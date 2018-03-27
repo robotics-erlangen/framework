@@ -211,6 +211,12 @@ local function rateOpponentPassViability()
 			goto continue
 		end
 
+		-- ignore opponents that are behind the ball
+		if opp.pos.y - World.Ball.pos.y > 2 * Constants.maxRobotRadius then
+			passViability[opp] = 0
+			goto continue
+		end
+
 		-- we can successfully intercept long passes more easily
 		local distToBallOwner = opp.pos:distanceToSq(ballPos)
 		local distToBallOwnerRating = Rating.valueToRating(distToBallOwner, 2*2, 5*5)
