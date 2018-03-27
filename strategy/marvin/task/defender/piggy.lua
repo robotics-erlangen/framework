@@ -33,6 +33,7 @@ function Piggy:run()
 
 	-- temporary, should be replaced with intercept pass ASAP
 	if Ball.receivesPass(self._targetRobot) then
+		self._send.exclusiveRole("trainer", {mainAttacker = 1})
 		piggyPos = self._robot.pos:nearestPosOnLine(self._targetRobot.pos, World.Ball.pos)
 	end
 
