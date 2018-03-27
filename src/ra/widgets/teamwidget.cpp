@@ -49,6 +49,7 @@ void TeamWidget::shutdown()
     s.setValue("Script", m_filename);
     s.setValue("EntryPoint", m_entryPoint);
     s.setValue("AutoReload", m_userAutoReload);
+    s.setValue("EnableDebugAction", m_enableDebugAction->isChecked());
     s.endGroup();
 
     closeScript();
@@ -147,6 +148,9 @@ void TeamWidget::load()
     m_filename = s.value("Script").toString();
     m_entryPoint = s.value("EntryPoint").toString();
     m_reloadAction->setChecked(s.value("AutoReload").toBool());
+    if (m_type != AUTOREF) {
+        m_enableDebugAction->setChecked(s.value("EnableDebugAction", false).toBool());
+    }
     s.endGroup();
 
     if (QFileInfo(m_filename).exists()) {
