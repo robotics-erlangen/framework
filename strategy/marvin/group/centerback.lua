@@ -8,7 +8,7 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 
 local G = World.Geometry
-
+local adjustWay = World.RULEVERSION == "2018"
 
 local lessthan_intersections = function(i1, i2)
 	return i1.waypos < i2.waypos
@@ -78,24 +78,27 @@ local function calculateCenterBackPositions(centerBackApplications)
 
 	-- -- calculate middle position and way footprint
 	local waymaximum
-	if World.RULEVERSION == "2018" then
-		waymaximum = math.pi * (distanceToDefenseArea + robot_radius) + G.DefenseWidth + 2* G.DefenseHeight
+	if adjustWay then
+		waymaximum = math.pi * (distanceToDefenseArea + robot_radius) * UtilDefense.cornerFactor + G.DefenseWidth + 2* G.DefenseHeight
 	else
 		waymaximum = math.pi * (World.Geometry.DefenseRadius + distanceToDefenseArea + robot_radius) +
 				World.Geometry.DefenseStretch
 	end
+	local extraDistance = distanceToDefenseArea + robot_radius
 	local intersections = {}
 	for target, rlist in pairs(robots) do
 		-- if the target is the ball, predict it
 		local targetPos = target.pos
-		local _, way
+		local _, way, sec
 		if target == World.Ball then
 			targetPos, way = UtilDefense.calculateBallPosition(distanceToDefenseArea, robot_radius)
 		end
 		if not way then
 			targetPos = Field.limitToField(targetPos, -0.01)
-			_, way = Field.intersectRayDefenseArea(G.FriendlyGoal, targetPos - G.FriendlyGoal,
-				distanceToDefenseArea + robot_radius, true)
+			_, way, sec = Field.intersectRayDefenseArea(G.FriendlyGoal, targetPos - G.FriendlyGoal, extraDistance, true)
+			if adjustWay and sec then
+				way = UtilDefense.mulCornerFactor(way, sec, extraDistance)
+			end
 		end
 		local occupiedWay = (#rlist) * (2 * robot_radius + distanceBetweenDefenders)
 
@@ -104,8 +107,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 			way = way - (robot_radius / 2) * (Rating.valueToRating(World.FriendlyKeeper.pos.x, -0.2, 0.2) * 2 - 1)
 		end
 
-		way = math.max(way, occupiedWay/2)
-		way = math.min(way, waymaximum - occupiedWay/2)
+		way = math.bound(occupiedWay/2, way, waymaximum - occupiedWay/2)
 		table.insert(intersections, {
 			["waypos"] = way,
 			["wayrange"] = occupiedWay,
@@ -166,14 +168,17 @@ local function calculateCenterBackPositions(centerBackApplications)
 		local way = i.waypos - i.wayrange/2 + delta/2
 		for _,t in ipairs(i.targets) do
 			for _ = 1,t.n do
-				local final_pos = Field.defenseIntersectionByWay(way, robot_radius + distanceToDefenseArea, true)
+				local realWay = way
+				if adjustWay then
+					realWay = UtilDefense.divCornerFactor(way, extraDistance)
+				end
+				local final_pos = Field.defenseIntersectionByWay(realWay, extraDistance, true)
 				vis.addCircle("g/centerback: Positions", final_pos, 0.1, vis.colors.skyBlue)
 				table.insert(defensePoints, {
 					["pos"] = final_pos,
 					["target"] = t.target,
 					["way"] = way
 				})
-
 				way = way + delta
 			end
 		end
@@ -198,7 +203,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 	for robot, target in pairs(unimportantApplications) do
 		-- if the target is the ball, predict it
 		local targetPos = target.pos
-		local _, target_way, robot_way = nil
+		local _, target_way, robot_way, robot_sec = nil
 		if target == World.Ball then
 			targetPos, target_way = UtilDefense.calculateBallPosition(distanceToDefenseArea, robot_radius)
 		end
@@ -211,8 +216,11 @@ local function calculateCenterBackPositions(centerBackApplications)
 		if dir.y < 0 then
 			dir.y = 0.01
 		end
-		_, robot_way = Field.intersectRayDefenseArea(G.FriendlyGoal, dir,
-				distanceToDefenseArea + robot_radius, true)
+		-- stay on one end of a group of CenterBacks
+		_, robot_way, robot_sec = Field.intersectRayDefenseArea(G.FriendlyGoal, dir, extraDistance, true)
+		if adjustWay and robot_sec then
+			robot_way = UtilDefense.mulCornerFactor(robot_way, robot_sec, extraDistance)
+		end
 		for _,i in ipairs(intersections) do
 			if target_way - robot_radius < i.waypos + i.wayrange/2
 					and target_way + robot_radius > i.waypos - i.wayrange/2 then
@@ -220,8 +228,10 @@ local function calculateCenterBackPositions(centerBackApplications)
 						robot_way, i.waypos + i.wayrange/2 + robot_radius)
 			end
 		end
-
-		local pos = Field.defenseIntersectionByWay(target_way, robot_radius + distanceToDefenseArea, true)
+		if adjustWay and robot_sec then
+			target_way = UtilDefense.divCornerFactor(target_way, extraDistance)
+		end
+		local pos = Field.defenseIntersectionByWay(target_way, extraDistance, true)
 		vis.addCircle("g/centerback: Positions", pos, 0.1, vis.colors.greenHalf)
 		privateCenterBackPositions[robot] = {["pos"] = pos, ["target"] = target, ["way"] = target_way}
 	end

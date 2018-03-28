@@ -290,4 +290,69 @@ function Defense.fastestPointInInterval(robot, boundaryOne, boundaryTwo, oldPos,
 	return newPos * blockAlpha + oldPos * (1-blockAlpha)
 end
 
+local function calculateDefenseCornerFactor(robot_radius, buffer, distance)
+	local distanceRHalf = robot_radius + buffer/2
+	local extraDistance = distance + robot_radius
+	return distanceRHalf/extraDistance / math.asin(distanceRHalf/ extraDistance)
+end
+Defense.cornerFactor = calculateDefenseCornerFactor(0.09, 0.02, 0.08)
+
+-- sec - Sector:
+-- 2  3  4
+-- 1     5
+local switchSecMul
+function Defense.mulCornerFactor(way, sec, distance)
+	if not switchSecMul then
+		switchSecMul = {}
+		local defenseHeight = G.DefenseHeight
+		local defenseWidth = G.DefenseWidth
+		local factor = Defense.cornerFactor
+		switchSecMul[1] = function(_way)
+			return _way
+		end
+		switchSecMul[2] = function(_way)
+			return defenseHeight + (_way - defenseHeight) * factor
+		end
+		switchSecMul[3] = function(_way, _distance)
+			return _way + (math.pi/2 * _distance * (factor-1))
+		end
+		switchSecMul[4] = function(_way)
+			return defenseHeight + defenseWidth + (_way - defenseHeight - defenseWidth) * factor
+		end
+		switchSecMul[5] = function(_way, _distance)
+			return _way + (math.pi * _distance * (factor-1))
+		end
+	end
+	return switchSecMul[sec](way, distance)
+end
+function Defense.divCornerFactor(way, distance)
+	local defenseHeight = G.DefenseHeight
+	local defenseWidth = G.DefenseWidth
+	local factor = Defense.cornerFactor
+	local corner = distance * math.pi/2
+	local maxCornerWay = corner * factor
+	local restWay = way
+
+	if restWay <= defenseHeight then
+		return restWay
+	end
+	restWay = restWay - defenseHeight
+
+	if restWay <= maxCornerWay then
+		return defenseHeight + restWay/factor
+	end
+	restWay = restWay - maxCornerWay
+
+	if restWay <= defenseWidth then
+		return defenseHeight + corner + restWay
+	end
+	restWay = restWay - defenseWidth
+
+	if restWay <= maxCornerWay then
+		return defenseHeight + defenseWidth + corner + restWay/factor
+	end
+	restWay = restWay - maxCornerWay
+	return defenseHeight + defenseWidth + corner*2 + restWay
+end
+
 return Defense
