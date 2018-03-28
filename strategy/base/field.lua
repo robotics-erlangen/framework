@@ -299,15 +299,6 @@ local function intersectionsDefenseArea_2018crude(pos, dir, extraDistance, frien
 	return intersections, totalway
 end
 
-
-local wayCornerFactor
-do
-	local roborRadius = 0.09
-	local buffer = 0.02
-	local distanceRHalf = (roborRadius + buffer)/2
-	local distanceD = 0.08 + roborRadius
-	wayCornerFactor = distanceRHalf/distanceD/(math.asin(distanceRHalf/distanceD))
-end
 local function intersectDefenseArea_2018(pos, dir, extraDistance, friendly)
 	local corners = {}
 	corners[1] = Vector(G.DefenseWidthHalf+extraDistance, G.FieldHeightHalf)
@@ -330,7 +321,7 @@ local function intersectDefenseArea_2018(pos, dir, extraDistance, friendly)
 		if l1 and l1 >= 0 and l2 >= 0 and l2 <= length then
 			-- no intersections with parallel lines
 			if not (l1 == 0 and l2 == 0) or ipos:distanceToSq(v*f) < 0.0001 then
-				intersections[iIntersections] = {pos = ipos, l1 = l1, l2 = l2, length = length, way = way + l2}
+				intersections[iIntersections] = {pos = ipos, l1 = l1, l2 = l2, length = length, way = way + l2, sec = i*2-1}
 				-- there can't be more than 2 intersections
 				if iIntersections == 2 then
 					break
@@ -355,14 +346,14 @@ local function intersectDefenseArea_2018(pos, dir, extraDistance, friendly)
 				l1 = l2
 			end
 			if pos1 then
-				intersections[iIntersections] = {pos = pos1, l1 = l1, corner = (3-i*2), way = way}
+				intersections[iIntersections] = {pos = pos1, l1 = l1, corner = (3-i*2), way = way, sec = i*2}
 				if iIntersections == 2 then
 					break
 				end
 				iIntersections = iIntersections + 1
 			end
 		end
-		way = way + math.pi*extraDistance/2 * wayCornerFactor
+		way = way + math.pi*extraDistance/2
 		if #intersections == 2 then
 			break
 		end
@@ -378,13 +369,13 @@ local function intersectDefenseArea_2018(pos, dir, extraDistance, friendly)
 		local vDir = result.pos*f
 		if result.corner == -1 then
 			vDir = -vDir:perpendicular()
-			end 
+			end
 		local angle = -vDir:angle()
 		local corner = Vector(result.corner*G.DefenseWidthHalf,G.FieldHeightHalf-G.DefenseHeight)*f
 		result.pos = result.pos + corner
-		result.way = result.way + angle * extraDistance * wayCornerFactor
+		result.way = result.way + angle * extraDistance
 	end
-	return result.pos, result.way, result.corner
+	return result.pos, result.way, result.sec
 end
 
 local function defenseIntersectionByWay_2018(way, extraDistance, friendly)
@@ -402,13 +393,14 @@ local function defenseIntersectionByWay_2018(way, extraDistance, friendly)
 
 	for i,v in ipairs(corners) do
 		local length = (i%2 == 0) and G.DefenseWidth or G.DefenseHeight
-		if way < length then
+		if way <= length then
 			return (v + directions[i]*way)*f
 		end
-		way = way - length - math.pi/2 * extraDistance * wayCornerFactor
+		way = way - length - math.pi/2 * extraDistance
 		if way < 0 then
+
 			local corner = Vector((3-i*2)*G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight)*f
-			local dir = Vector.fromAngle(-math.pi/2*i - way/extraDistance/wayCornerFactor)*f
+			local dir = Vector.fromAngle(-math.pi/2*i - way/extraDistance)*f
 			return corner + dir * extraDistance
 		end
 	end
