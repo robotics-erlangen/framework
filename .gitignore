@@ -2,3 +2,5 @@
 /build*
 /src/html/
 Makefile
+error.html
+*.swp
