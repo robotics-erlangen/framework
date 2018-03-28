@@ -83,6 +83,7 @@ function Shoot:_setObstacles(moveDest)
 		local distToBall = moveDest:distanceTo(World.Ball.pos)
 		local obstacleSize = Rating.valueToRating(distToBall, 0.2, 0.4) * (World.Ball.radius + 0.01)
 		if obstacleSize > 0 then
+            -- PAULTAG set priority (same as ball)
 			self._robot.path:addCircle(World.Ball.pos.x, World.Ball.pos.y, obstacleSize, "t/a/shoot ball")
 		end
 	end
