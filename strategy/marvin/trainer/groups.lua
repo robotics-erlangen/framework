@@ -1,9 +1,9 @@
 local Groups = {}
 
 function Groups:init()
-	local groupClasses = { 
-		require "group/centerback", 
-		require "group/moves", 
+	local groupClasses = {
+		require "group/centerback",
+		require "group/moves",
 		require "group/striker"
 	}
 
