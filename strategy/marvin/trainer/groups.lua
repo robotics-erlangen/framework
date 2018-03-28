@@ -1,11 +1,11 @@
 local Groups = {}
 
-local CenterBackGroup = require "group/centerback"
-local MoveGroup = require "group/moves"
-local StrikerGroup = require "group/striker"
-
 function Groups:init()
-	local groupClasses = { CenterBackGroup, MoveGroup, StrikerGroup }
+	local groupClasses = { 
+		require "group/centerback", 
+		require "group/moves", 
+		require "group/striker"
+	}
 
 	self._groupList = {}
 	for _,group in ipairs(groupClasses) do
