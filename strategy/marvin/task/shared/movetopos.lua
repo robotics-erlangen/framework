@@ -21,7 +21,7 @@ function MoveToPos:_init(pos, dir, suggestPass, endSpeedLength, ignoreDefaultObs
 		ignoreDefenseArea = ignore,
 		ignoreOpponentDefenseArea = ignore,
 		inbox = self._inbox,
-		ignorePass = ignore,
+		ignorePass = (not self._inbox) or ignore,
         ignoreBallPlacementObstacle = ignoreBallPlacement
 	}
 	self._customObstacles = customObstacles or {}
