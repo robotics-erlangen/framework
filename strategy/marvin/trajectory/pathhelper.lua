@@ -14,18 +14,22 @@ local POSITION_PADDING = 0.02
 local SEED_ANGLE_MOD = 2/180*math.pi
 local SEED_PREDICT_TIME = 0.5
 
--- suggested table
--- local priorities = {
--- 	-- seedTarget = unknown
--- 	Pass2 = 15
--- 	Pass1 = 16
--- 	GoalShot = 20
--- 	KickoffStateFieldHalf = 25,
--- 	DefenseArea = 35,
--- 	Ball = 50,
--- 	PhysicalRobots = 100,
--- 	PhysicalWalls = 100,
--- }
+local Priorities = {
+	GOAL = 100,
+	ROBOT = 92,
+	-- The obstacle in t/a/shoot should have the same priority as the ball obstacle here
+	BALL = 84,
+	EVACUATE_GOAL = 76,
+	INNER_BALL = 68,
+	OUTER_BALL = 66,
+	BALL_PLACEMENT = 52,
+	DEFENSE_AREA = 44,
+	OPP_FIELD_HALF_INNER = 37,
+	OPP_FIELD_HALF = 36,
+	GOAL_SHOT = 20,
+	PASS_MA_BALL = 13,
+	PASS_BALL_STRIKER = 12
+}
 
 local function addSeedTargets(path, robot)
 	if path.addSeedTarget and robot.speed:length() > 0.1 then
@@ -57,15 +61,15 @@ local function addFriendlyDefenseAreaObstacle(path, robot)
 					G.FriendlyGoal.y,
 					G.FriendlyGoal.x + G.DefenseWidthHalf + POSITION_PADDING,
 					G.FriendlyGoal.y + G.DefenseHeight + POSITION_PADDING,
-					"DefenseArea", 35)
+					"DefenseArea", Priorities.DEFENSE_AREA)
 		else
 		-- line with round end caps
 			path:addLine(G.FriendlyGoal.x - G.DefenseStretch / 2, G.FriendlyGoal.y,
 					G.FriendlyGoal.x + G.DefenseStretch / 2, G.FriendlyGoal.y,
-					G.DefenseRadius + POSITION_PADDING, "DefenseArea", 35)
+					G.DefenseRadius + POSITION_PADDING, "DefenseArea", Priorities.DEFENSE_AREA)
 		end
 		if geom.insideRect(_GoalAreaFriendly[1], _GoalAreaFriendly[2], robot.pos) or Field.isInFriendlyDefenseArea(robot.pos, robot.radius * 2) then
-			path:addRect(_GoalAreaFriendly[1].x, _GoalAreaFriendly[1].y, _GoalAreaFriendly[2].x, _GoalAreaFriendly[2].y, "EvacuateGoal", 90)
+			path:addRect(_GoalAreaFriendly[1].x, _GoalAreaFriendly[1].y, _GoalAreaFriendly[2].x, _GoalAreaFriendly[2].y, "EvacuateGoal", Priorities.EVACUATE_GOAL)
 		end
 	end
 end
@@ -82,24 +86,24 @@ local function addOpponentDefenseAreaObstacle(path, robot)
 					G.OpponentGoal.y - G.DefenseHeight - distance,
 					G.OpponentGoal.x + G.DefenseWidthHalf + distance,
 					G.OpponentGoal.y,
-					"DefenseArea", 35)
+					"DefenseArea", Priorities.DEFENSE_AREA)
 		else
 			path:addLine(G.OpponentGoal.x - G.DefenseStretch / 2, G.OpponentGoal.y,
 					G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y,
-					G.DefenseRadius + POSITION_PADDING, "DefenseArea", 35)
+					G.DefenseRadius + POSITION_PADDING, "DefenseArea", Priorities.DEFENSE_AREA)
 		end
 		if geom.insideRect(_GoalArea[1], _GoalArea[2], robot.pos) or Field.isInOpponentDefenseArea(robot.pos, robot.radius * 2) then
-			path:addRect(_GoalArea[1].x, _GoalArea[1].y, _GoalArea[2].x, _GoalArea[2].y, "EvacuateGoal", 90)
+			path:addRect(_GoalArea[1].x, _GoalArea[1].y, _GoalArea[2].x, _GoalArea[2].y, "EvacuateGoal", Priorities.EVACUATE_GOAL)
 		end
 	end
 end
 local function addOpponentFieldHalfObstacle(path)
 	path:addRect(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5,
-		-G.CenterCircleRadius, 0.02, "OppFieldHalf", 25)
+		-G.CenterCircleRadius, 0.02, "OppFieldHalf", Priorities.OPP_FIELD_HALF)
 	path:addRect(-G.CenterCircleRadius - 0.2, G.FieldHeightHalf + 0.5,
-		G.CenterCircleRadius + 0.2, G.CenterCircleRadius, "OppFieldHalf", 26)
+		G.CenterCircleRadius + 0.2, G.CenterCircleRadius, "OppFieldHalf", Priorities.OPP_FIELD_HALF_INNER)
 	path:addRect(G.CenterCircleRadius, G.FieldHeightHalf + 0.5,
-		G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf", 25)
+		G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf", Priorities.OPP_FIELD_HALF)
 end
 
 local function addZonedBallObstacles(robot, innerBallDistance, outerBallDistance)
@@ -109,14 +113,14 @@ local function addZonedBallObstacles(robot, innerBallDistance, outerBallDistance
 
 	if outerBallDistance then
 		outermost = outerBallDistance * outerBallDistance
-		robot.path:addCircle(ball.pos.x, ball.pos.y, ball.radius + outerBallDistance, "OuterBallObstacle", 48)
+		robot.path:addCircle(ball.pos.x, ball.pos.y, ball.radius + outerBallDistance, "OuterBallObstacle", Priorities.OUTER_BALL)
 	end
 	if distSq < outermost and innerBallDistance then
 		outermost = innerBallDistance * innerBallDistance
-		robot.path:addCircle(ball.pos.x, ball.pos.y, ball.radius + innerBallDistance, "InnerBallObstacle", 49)
+		robot.path:addCircle(ball.pos.x, ball.pos.y, ball.radius + innerBallDistance, "InnerBallObstacle", Priorities.INNER_BALL)
 	end
 	if distSq < outermost then
-		robot.path:addCircle(ball.pos.x, ball.pos.y, ball.radius, "Ball", 50)
+		robot.path:addCircle(ball.pos.x, ball.pos.y, ball.radius, "Ball", Priorities.BALL)
 	end
 end
 
@@ -146,18 +150,18 @@ local function addGoalObstacle(path, robot)
 	-- add goal obstacles for the field half the robot is in
 	if robot.pos.y < 0 then
 		path:addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - gw,
-				G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw, gw, "OwnGoal_Left", 100)
+				G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw, gw, "OwnGoal_Left", Priorities.GOAL)
 		path:addLine(G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - gw,
-				G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Right", 100)
+				G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Right", Priorities.GOAL)
 		path:addLine(G.FriendlyGoalLeft.x - gw, G.FriendlyGoalLeft.y - G.GoalDepth - gw,
-				G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Back", 100)
+				G.FriendlyGoalRight.x + gw, G.FriendlyGoalRight.y - G.GoalDepth - gw, gw, "OwnGoal_Back", Priorities.GOAL)
 	else
 		path:addLine(G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + gw,
-				G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw, gw, "OppGoal_Left", 100)
+				G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw, gw, "OppGoal_Left", Priorities.GOAL)
 		path:addLine(G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + gw,
-				G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Right", 100)
+				G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Right", Priorities.GOAL)
 		path:addLine(G.OpponentGoalLeft.x - gw, G.OpponentGoalLeft.y + G.GoalDepth + gw,
-				G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Center", 100)
+				G.OpponentGoalRight.x + gw, G.OpponentGoalRight.y + G.GoalDepth + gw, gw, "OppGoal_Center", Priorities.GOAL)
 	end
 end
 
@@ -215,7 +219,7 @@ local function addGoalObstacleShot(path, robot, inbox)
 		local leftGoal = G.OpponentGoalLeft
 		local rightGoal = G.OpponentGoalRight
 		path:addTriangle(viewPos.x, viewPos.y, leftGoal.x, leftGoal.y,
-			rightGoal.x, rightGoal.y, World.Ball.radius + 0.05, "goalShot", 20)
+			rightGoal.x, rightGoal.y, World.Ball.radius + 0.05, "goalShot", Priorities.GOAL_SHOT)
 	end
 	return disablePass
 end
@@ -237,11 +241,11 @@ local function addFriendlyPassObstacle(path, robot, inbox, radius)
 		local dangerPos = attackPosition or mainAttacker.pos
 		-- ball - intercept
 		if dangerPos:distanceToSq(World.Ball.pos) > epsilonSq then
-			path:addLine(World.Ball.pos.x, World.Ball.pos.y, dangerPos.x, dangerPos.y, radius, "pass1", 16)
+			path:addLine(World.Ball.pos.x, World.Ball.pos.y, dangerPos.x, dangerPos.y, radius, "pass1", Priorities.PASS_MA_BALL)
 		end
 		-- MA - intercept
 		if attackPosition and attackPosition:distanceToSq(mainAttacker.pos) > epsilonSq then
-			path:addLine(mainAttacker.pos.x, mainAttacker.pos.y, attackPosition.x, attackPosition.y, radiusRobot, "pass1", 16)
+			path:addLine(mainAttacker.pos.x, mainAttacker.pos.y, attackPosition.x, attackPosition.y, radiusRobot, "pass1", Priorities.PASS_MA_BALL)
 		end
 		local _, passInfoTable = next(inbox.passInfo())
 		if passInfoTable then
@@ -250,8 +254,8 @@ local function addFriendlyPassObstacle(path, robot, inbox, radius)
 				if passInfo.target and passInfo.target ~= robot then
 					local startPoint = passInfo.target.pos
 					local endPoint = passInfo.ballPos
-					path:addLine(endPoint.x, endPoint.y, dangerPos.x, dangerPos.y, radius, "pass2", 15)
-					path:addLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, radiusRobot, "pass2", 15)
+					path:addLine(endPoint.x, endPoint.y, dangerPos.x, dangerPos.y, radius, "pass2", Priorities.PASS_BALL_STRIKER)
+					path:addLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, radiusRobot, "pass2", Priorities.PASS_BALL_STRIKER)
 				end
 
 			end
@@ -267,7 +271,8 @@ local function addBallPlacementObstacle(path)
             World.BallPlacementPos.x,
             World.BallPlacementPos.y,
             Constants.stopBallDistance,
-            "BallPlacement"
+            "BallPlacement",
+			Priorities.BALL_PLACEMENT
         )
     end
 end
@@ -322,9 +327,9 @@ local function addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreOppone
 				if robot.pos:distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
 						and r.pos:distanceTo(estimatedPosition) > 0.0001 then
 					path:addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
-							r.radius + safetyDistance, "OwnRobot_"..r.id, 100)
+							r.radius + safetyDistance, "OwnRobot_"..r.id, Priorities.ROBOT)
 				else
-					path:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OwnRobot_"..r.id, 100)
+					path:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OwnRobot_"..r.id, Priorities.ROBOT)
 				end
 			end
 		end
@@ -347,9 +352,9 @@ local function addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreOppone
 				if robot.pos:distanceToLineSegment(r.pos, estimatedPosition) >= robot.radius + r.radius
 						and r.pos:distanceTo(estimatedPosition) > 0.0001 then
 					path:addLine(r.pos.x, r.pos.y, estimatedPosition.x, estimatedPosition.y,
-							r.radius + safetyDistance, "OppRobot_"..r.id, 100)
+							r.radius + safetyDistance, "OppRobot_"..r.id, Priorities.ROBOT)
 				else
-					path:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OppRobot_"..r.id, 100)
+					path:addCircle(r.pos.x, r.pos.y, r.radius + safetyDistance, "OppRobot_"..r.id, Priorities.ROBOT)
 				end
 			end
 		end

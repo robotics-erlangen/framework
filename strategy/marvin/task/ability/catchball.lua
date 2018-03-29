@@ -19,7 +19,7 @@ local SIDE_DEPTH = 0.015
 -- reduce obstacle size by one millimeter to avoid collisions
 local OBSTACLE_EPSILON = 0.001
 local SLOW_BALL = 0.5
-
+local OBSTACLE_PRIORITY = 28
 
 local AROUND_METHOD = "around"
 local STOP_METHOD = "stop"
@@ -296,7 +296,7 @@ function CatchBall:_createMoveAroundBallObstacle(path, minBall, predictedBall)
 		end
 
 		path:addLine(predictedBallShift.x, predictedBallShift.y, minBallShift.x, minBallShift.y,
-				predictedBall.radius - OBSTACLE_EPSILON + extraDist, 'ball')
+				predictedBall.radius - OBSTACLE_EPSILON + extraDist, 'ball', OBSTACLE_PRIORITY)
 		vis.addPath("t/a/catchball: CatchBall", {predictedBallShift, minBallShift}, vis.colors.greenHalf, nil, nil, 2*(predictedBall.radius - OBSTACLE_EPSILON + extraDist))
 
 		-- prevent robot from colliding with the ball
@@ -308,22 +308,24 @@ function CatchBall:_createMoveAroundBallObstacle(path, minBall, predictedBall)
 		local obstacleErrorDist = self._robot.radius - self._robot.shootRadius + DIST_ERROR
 		-- if both predictions are near each othe the robot must still be able to reach predictedBall
 		local antiCollisionDist = math.min(obstacleErrorDist, robotBallDist)
-		path:addCircle(minBall.pos.x, minBall.pos.y, minBall.radius - OBSTACLE_EPSILON + antiCollisionDist, 'ball2')
+        -- PAULTAG obstacle um den ball nicht umzufahren
+		path:addCircle(minBall.pos.x, minBall.pos.y, minBall.radius - OBSTACLE_EPSILON + antiCollisionDist, 'ball2', OBSTACLE_PRIORITY)
 		vis.addCircle("t/a/catchball: CatchBall", minBall.pos, minBall.radius + antiCollisionDist, vis.colors.redHalf)
 	else
 		-- no need to prevent collision with minBall, if both are the same
-		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball')
+        -- PAULTAG obstacle um den ball nicht umzufahren wenn predicted position und aktuelle nicht so auseinander liegen -> kein schlauch
+		path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball', OBSTACLE_PRIORITY)
 	end
 	vis.addCircle("t/a/catchball: CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.greenHalf)
 
 end
 
 function CatchBall:_createHuntingBallObstacle(path, viewDir, predictedBall)
-	path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball')
+	path:addCircle(predictedBall.pos.x, predictedBall.pos.y, predictedBall.radius - OBSTACLE_EPSILON, 'ball', OBSTACLE_PRIORITY)
 	vis.addCircle("t/a/catchball: CatchBall", predictedBall.pos, predictedBall.radius, vis.colors.skyBlueHalf)
 
 	local frontEnd = predictedBall.pos + Vector.fromAngle(viewDir) * 0.3
-	path:addLine(predictedBall.pos.x, predictedBall.pos.y, frontEnd.x, frontEnd.y, predictedBall.radius - OBSTACLE_EPSILON, 'ballForward')
+	path:addLine(predictedBall.pos.x, predictedBall.pos.y, frontEnd.x, frontEnd.y, predictedBall.radius - OBSTACLE_EPSILON, 'ballForward', OBSTACLE_PRIORITY)
 	vis.addPath("t/a/catchball: CatchBall", {predictedBall.pos, frontEnd}, vis.colors.skyBlueHalf, nil, nil, 2*(predictedBall.radius - OBSTACLE_EPSILON))
 end
 
@@ -342,9 +344,9 @@ function CatchBall:_createBallCorridor(path, viewDir, predictedBall)
 	local corridorRightNear = predictedBall.pos + rightOfs
 	local corridorRightFar = corridorRightNear + depthOfs
 	if World.Ball.speed:length() < SLOW_BALL then
-		path:addLine(corridorLeftNear.x, corridorLeftNear.y, corridorLeftFar.x, corridorLeftFar.y, corridorRadius, "ball_corridor1")
-		path:addLine(corridorLeftFar.x, corridorLeftFar.y, corridorRightFar.x, corridorRightFar.y, corridorRadius, "ball_corridor2")
-		path:addLine(corridorRightFar.x, corridorRightFar.y, corridorRightNear.x, corridorRightNear.y, corridorRadius, "ball_corridor3")
+		path:addLine(corridorLeftNear.x, corridorLeftNear.y, corridorLeftFar.x, corridorLeftFar.y, corridorRadius, "ball_corridor1", OBSTACLE_PRIORITY)
+		path:addLine(corridorLeftFar.x, corridorLeftFar.y, corridorRightFar.x, corridorRightFar.y, corridorRadius, "ball_corridor2", OBSTACLE_PRIORITY)
+		path:addLine(corridorRightFar.x, corridorRightFar.y, corridorRightNear.x, corridorRightNear.y, corridorRadius, "ball_corridor3", OBSTACLE_PRIORITY)
 
 		-- visualize obstacles
 		vis.addPath("t/a/catchball: MoveCorridor", {corridorLeftNear, corridorLeftFar, corridorRightFar, corridorRightNear}, vis.colors.redHalf, nil, nil, 2*corridorRadius)
@@ -363,7 +365,7 @@ function CatchBall:_createBallCorridor(path, viewDir, predictedBall)
 	local negRightFar = predictedBall.pos + negRightOfs + negBaseDepthOfs
 
 	if World.Ball.speed:length() < SLOW_BALL then
-		path:addLine(negLeftFar.x, negLeftFar.y, negRightFar.x, negRightFar.y, negativeRadius, "ball_negcorridor2")
+		path:addLine(negLeftFar.x, negLeftFar.y, negRightFar.x, negRightFar.y, negativeRadius, "ball_negcorridor2", OBSTACLE_PRIORITY)
 
 		-- visualize obstacles
 		vis.addPath("t/a/catchball: NegMoveCorridor", {negLeftFar, negRightFar}, vis.colors.orangeHalf, nil, nil, 2*effectiveObstacleRadius)
