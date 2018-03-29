@@ -63,7 +63,7 @@ Defense.manMarkPos = Cache.forFrame(manMarkPos)
 
 local function calculateBallPosition(distanceToDefenseArea, robot_radius)
 	local targetPos, targetDir, isShot = Goal.predictShot()
-	local targetWay = nil
+	local targetWay, targetSec
 
 	if isShot and targetDir.y < 0 then
 		local goalLineIntersection = geom.intersectLineLine(targetPos,
@@ -71,14 +71,14 @@ local function calculateBallPosition(distanceToDefenseArea, robot_radius)
 		if goalLineIntersection and
 				math.abs(goalLineIntersection.x) < World.Geometry.GoalWidth / 2 + 0.15 then
 			-- FIXME: HACK FOR FLOATS
-			targetPos, targetWay = Field.intersectRayDefenseArea(targetPos, targetDir, distanceToDefenseArea + robot_radius + 0.02 , true)
+			targetPos, targetWay, targetSec = Field.intersectRayDefenseArea(targetPos, targetDir, distanceToDefenseArea + robot_radius + 0.02, true)
 		end
 	end
 	if not targetPos then
 		targetPos = World.Ball.pos
 	end
 
-	return targetPos, targetWay
+	return targetPos, targetWay, targetSec
 end
 Defense.calculateBallPosition = Cache.forFrame(calculateBallPosition)
 

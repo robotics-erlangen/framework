@@ -91,14 +91,14 @@ local function calculateCenterBackPositions(centerBackApplications)
 		local targetPos = target.pos
 		local _, way, sec
 		if target == World.Ball then
-			targetPos, way = UtilDefense.calculateBallPosition(distanceToDefenseArea, robot_radius)
+			targetPos, way, sec = UtilDefense.calculateBallPosition(distanceToDefenseArea, robot_radius)
 		end
 		if not way then
 			targetPos = Field.limitToField(targetPos, -0.01)
 			_, way, sec = Field.intersectRayDefenseArea(G.FriendlyGoal, targetPos - G.FriendlyGoal, extraDistance, true)
-			if adjustWay and sec then
-				way = UtilDefense.mulCornerFactor(way, sec, extraDistance)
-			end
+		end
+		if adjustWay and sec then
+			way = UtilDefense.mulCornerFactor(way, sec, extraDistance)
 		end
 		local occupiedWay = (#rlist) * (2 * robot_radius + distanceBetweenDefenders)
 
