@@ -806,11 +806,11 @@ end
 -- @param pos vector - the position to check
 -- @return bool - is in friendly goal
 function Field.isInFriendlyGoal(pos)
-	local g = G.FriendlyGoalLeft
-	return pos.x >= g.x
-		and pos.x <= g.x + G.GoalWidth
-		and pos.y <= g.y
-		and pos.y >= g.y - G.GoalDepth
+	return geom.insideRect(
+		G.FriendlyGoalLeft - Vector(0, G.GoalDepth),
+		G.FriendlyGoalRight,
+		pos
+	)
 end
 
 -- Checks wether a position lies inside the opponent goal
@@ -818,11 +818,11 @@ end
 -- @param pos vector - the position to check
 -- @return bool - is in friendly goal
 function Field.isInOpponentGoal(pos)
-	local g = G.OpponentGoalLeft
-	return pos.x >= g.x
-		and pos.x <= g.x + G.GoalWidth
-		and pos.y >= g.y
-		and pos.y <= g.y + G.GoalDepth
+	return geom.insideRect(
+		G.OpponentGoalRight + Vector(0, G.GoalDepth),
+		G.OpponentGoalLeft,
+		pos
+	)
 end
 
 
