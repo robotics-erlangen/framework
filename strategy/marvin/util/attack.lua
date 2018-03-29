@@ -313,43 +313,6 @@ function Attack.shootGoalViewPos(shootDest, attackPos)
 end
 Attack.checkForGoalShot = Cache.forFrame(Attack.checkForGoalShot)
 
---- makes sure that a robot does not intercept our goal shot
--- only adds a path obstacle if necessary
--- has to be called after PathHelper.setDefaultObstacles
--- @param robot Robot - the robot that gets the obstacle
--- @param shootDest Vector - the content of the shootDestination message
--- @param attackPos Vector - the content of the attackPosition message
-function Attack.addShootGoalObstacle(robot, shootDest, attackPos)
-	if not attackPos then
-		return
-	end
-
-	-- check whether the robot could possibly interfere with a goal shot
-	local distRobotOpponentGoal = robot.pos:distanceToSq(G.OpponentGoal)
-	local distAttackPosOpponentGoal = attackPos:distanceToSq(G.OpponentGoal)
-	local distBallOpponentGoal = World.Ball.pos:distanceToSq(G.OpponentGoal)
-	if distRobotOpponentGoal > distAttackPosOpponentGoal
-			and distRobotOpponentGoal > distBallOpponentGoal then
-		return
-	end
-
-
-	local viewPos
-	if World.Ball.speed:length() > 0.5 and Ball.ballHeadingForGoal(World.Ball) then
-		viewPos = World.Ball.pos
-	else
-		viewPos = Attack.shootGoalViewPos(shootDest, attackPos)
-	end
-
-	if viewPos then
-		local leftGoal = G.OpponentGoalLeft
-		local rightGoal = G.OpponentGoalRight
-		robot.path:addTriangle(viewPos.x, viewPos.y, leftGoal.x, leftGoal.y,
-			rightGoal.x, rightGoal.y, World.Ball.radius + 0.05)
-	end
-
-end
-
 local BUFFER_TIME = 0.4
 local function printPassInfo(robot, passInfo, hysteresis, hysteresisPassInfo)
 	if passInfo then

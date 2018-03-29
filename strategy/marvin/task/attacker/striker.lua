@@ -104,17 +104,6 @@ function Striker:_searchForPassDest()
 	self._passDestSuggestion = bestPoint
 end
 
-function Striker:_avoidLineSegment(startPoint, endPoint)
-	self._robot.path:addLine(startPoint.x, startPoint.y, endPoint.x, endPoint.y, 0.2)
-
-	-- actively dodge a pass
-	local pointOnLine = self._moveDest:nearestPosOnLine(startPoint, endPoint)
-	local minDistToBall = self._robot.radius + World.Ball.radius + 0.1
-	if self._moveDest:distanceTo(pointOnLine) < minDistToBall then
-		self._moveDest = self._moveDest + (G.OpponentGoal - self._moveDest):setLength(minDistToBall)
-	end
-end
-
 function Striker:run()
 	if self._manualDefaultPos then
 		self._moveDest = self._manualDefaultPos
