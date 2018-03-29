@@ -48,7 +48,7 @@ local function manMarkPos(opponent)
 		targetPos = intersectionDefenseArea + (targetPos - intersectionDefenseArea) :scaleLength(0.3)
 	end
 
-	if Referee.isStopState() or intersectionDefenseArea 
+	if Referee.isStopState() and not Referee.isKickoffState() or intersectionDefenseArea 
 				and intersectionDefenseArea:distanceToSq(targetPos) < 0.75*0.75 then
 		targetPos = intersectionDefenseArea or targetPos
 	end
