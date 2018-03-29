@@ -97,7 +97,7 @@ local function addOpponentFieldHalfObstacle(path)
 	path:addRect(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5,
 		-G.CenterCircleRadius, 0.02, "OppFieldHalf", 25)
 	path:addRect(-G.CenterCircleRadius - 0.2, G.FieldHeightHalf + 0.5,
-		G.CenterCircleRadius + 0.2, 0.15, "OppFieldHalf", 26)
+		G.CenterCircleRadius + 0.2, G.CenterCircleRadius, "OppFieldHalf", 26)
 	path:addRect(G.CenterCircleRadius, G.FieldHeightHalf + 0.5,
 		G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf", 25)
 end
