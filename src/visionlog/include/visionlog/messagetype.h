@@ -21,17 +21,16 @@
 #ifndef VISIONLOG_MESSAGETYPE_H
 #define VISIONLOG_MESSAGETYPE_H
 
-namespace VisionLog{
-
-enum MessageType
-{
-    MESSAGE_BLANK = 0,
-    MESSAGE_UNKNOWN = 1,
-    MESSAGE_SSL_VISION_2010 = 2,
-    MESSAGE_SSL_REFBOX_2013 = 3,
-    MESSAGE_SSL_VISION_2014 = 4
-};
-
+namespace VisionLog {
+    enum class MessageType: int32_t
+    {
+        MESSAGE_INVALID = -1,
+        MESSAGE_BLANK = 0,
+        MESSAGE_UNKNOWN = 1,
+        MESSAGE_SSL_VISION_2010 = 2,
+        MESSAGE_SSL_REFBOX_2013 = 3,
+        MESSAGE_SSL_VISION_2014 = 4
+    };
 }
 
 #endif //VISIONLOG_MESSAGETYPE_H

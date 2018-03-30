@@ -27,14 +27,15 @@
 
 #include <iostream>
 
+#include "messagetype.h"
+
 class VisionLogReader : public QObject
 {
     Q_OBJECT
 public:
     explicit VisionLogReader(const QString& filename);
     ~VisionLogReader() override;
-    std::pair<qint64, int> nextVisionPacket(QByteArray& data);
-
+    std::pair<qint64, VisionLog::MessageType> nextVisionPacket(QByteArray& data);
 
 private:
     std::ifstream* in_stream;

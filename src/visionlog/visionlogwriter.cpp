@@ -64,15 +64,12 @@ void VisionLogWriter::addVisionPacket(const SSL_DetectionFrame& frame)
 
     VisionLog::DataHeader dataHeader;
     dataHeader.timestamp = time;
-    dataHeader.messageType = VisionLog::MESSAGE_SSL_VISION_2014;
+    dataHeader.messageType = VisionLog::MessageType::MESSAGE_SSL_VISION_2014;
     dataHeader.messageSize = data.size();
 
-
     // Log data is stored big endian, convert from host byte order
-    // converting to qint64 is necessary for 64 bit
-    qint64 timestamp = dataHeader.timestamp;
-    dataHeader.timestamp = qToBigEndian(timestamp);
-    dataHeader.messageType = qToBigEndian(dataHeader.messageType);
+    dataHeader.timestamp = qToBigEndian((qint64)dataHeader.timestamp);
+    dataHeader.messageType = (VisionLog::MessageType) qToBigEndian((int32_t) dataHeader.messageType);
     dataHeader.messageSize = qToBigEndian(dataHeader.messageSize);
 
     out_stream->write((char*) &dataHeader, sizeof(dataHeader));

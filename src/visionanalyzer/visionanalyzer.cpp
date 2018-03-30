@@ -68,7 +68,7 @@ int main(int argc, char* argv[])
     QByteArray visionFrame;
     auto packet = logFileIn.nextVisionPacket(visionFrame);
     qint64 receiveTimeNanos = packet.first;
-    int msg_type = packet.second;
+    VisionLog::MessageType msg_type = packet.second;
 
     Tracker tracker;
     tracker.reset();
@@ -110,9 +110,9 @@ int main(int argc, char* argv[])
 
         do {
             // collect all packets until current system time
-            if (msg_type == VisionLog::MESSAGE_SSL_VISION_2014) {
+            if (msg_type == VisionLog::MessageType::MESSAGE_SSL_VISION_2014) {
                 tracker.queuePacket(visionFrame, receiveTimeNanos);
-            } else if (msg_type == VisionLog::MESSAGE_SSL_REFBOX_2013) {
+            } else if (msg_type == VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013) {
                 ref.handlePacket(visionFrame);
             }
             auto packet = logFileIn.nextVisionPacket(visionFrame);

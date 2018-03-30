@@ -21,6 +21,8 @@
 #ifndef VISIONLOGHEADER_H
 #define VISIONLOGHEADER_H
 
+#include "messagetype.h"
+
 namespace VisionLog{
 
     struct FileHeader
@@ -34,7 +36,7 @@ namespace VisionLog{
     struct DataHeader
     {
         int64_t timestamp; // Timestamp in ns
-        int32_t messageType; // Message type
+        MessageType messageType; // Message type
         int32_t messageSize; // Size of protobuf message in bytes
     };
 

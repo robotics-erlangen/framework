@@ -52,18 +52,18 @@ VisionLogReader::VisionLogReader(const QString& filename):
 }
 
 
-std::pair<qint64, int> VisionLogReader::nextVisionPacket(QByteArray& data)
+std::pair<qint64, VisionLog::MessageType> VisionLogReader::nextVisionPacket(QByteArray& data)
 {
     VisionLog::DataHeader dataHeader;
     while (!in_stream->eof()) {
         in_stream->read((char*) &dataHeader, sizeof(dataHeader));
         if (in_stream->eof()) {
-            return std::make_pair(-1,-1);
+            return std::make_pair(-1, VisionLog::MessageType::MESSAGE_INVALID);
         }
 
         // Log data is stored big endian, convert to host byte order
         dataHeader.timestamp = qFromBigEndian((qint64)dataHeader.timestamp);
-        dataHeader.messageType = qFromBigEndian(dataHeader.messageType);
+        dataHeader.messageType = (VisionLog::MessageType) qFromBigEndian((int32_t) dataHeader.messageType);
         dataHeader.messageSize = qFromBigEndian(dataHeader.messageSize);
 
         char buffer[dataHeader.messageSize];
@@ -72,7 +72,7 @@ std::pair<qint64, int> VisionLogReader::nextVisionPacket(QByteArray& data)
         data = QByteArray(buffer, dataHeader.messageSize);
         return std::make_pair(dataHeader.timestamp, dataHeader.messageType);
     }
-    return std::make_pair(-1,-1);
+    return std::make_pair(-1, VisionLog::MessageType::MESSAGE_INVALID);
 }
 
 VisionLogReader::~VisionLogReader()
