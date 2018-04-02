@@ -10,7 +10,7 @@ function MainTrainer:init(mode)
 	if mode == "passive" then
 		self.attackRatio = function() return 0 end
 	elseif mode == "aggressive" then
-		self.attackRatio = function() return 6 end
+		self.attackRatio = function() return 8 end
 	end
 end
 

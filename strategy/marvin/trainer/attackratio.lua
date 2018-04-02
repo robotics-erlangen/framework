@@ -54,20 +54,20 @@ function AttackRatio:attackRatio()
 
 	local attackRatio
 	if refState == "KickoffOffensivePrepare" or refState == "KickoffOffensive" then
-		attackRatio = 4
+		attackRatio = 6
 	elseif refState == "KickoffDefensivePrepare" or refState == "KickoffDefensive" then
 		attackRatio = 3
 	elseif refState == "DirectOffensive" or refState == "IndirectOffensive" then
 		local friendlyCorner = Field.isInOwnCorner(ball.pos, false)
 		local opponentCorner = Field.isInOwnCorner(ball.pos, true)
 		if friendlyCorner then -- Goal-Kick Offensive
-			attackRatio = 3
+			attackRatio = 4
 		elseif opponentCorner then -- Corner-Kick Offensive
-			attackRatio = 5
+			attackRatio = 7
 		elseif ball.pos.y > 1.2 then
-			attackRatio = 4 -- Throw-In Offensive
+			attackRatio = 6 -- Throw-In Offensive
 		else
-			attackRatio = 3 -- Throw-In Offensive
+			attackRatio = 4 -- Throw-In Offensive
 		end
 	elseif refState == "DirectDefensive" or refState == "IndirectDefensive" then
 		local opponentCorner = Field.isInOwnCorner(ball.pos, true)
@@ -79,12 +79,12 @@ function AttackRatio:attackRatio()
 	elseif refState == "Stop" then
 		attackRatio = 1
 	elseif World.GameStage == "PenaltyShootout" then
-		attackRatio = 6
+		attackRatio = 8
 	else -- Game, GameForce
 		if self._opponentFreeKickOngoing then
 			attackRatio = 1
 		else
-			attackRatio = self._ballInOpponentFieldHalf and 3 or 2
+			attackRatio = self._ballInOpponentFieldHalf and 4 or 3
 			if self._friendlyFreeKickOngoing then
 				attackRatio = attackRatio + 1
 			end
@@ -98,7 +98,7 @@ local previousMainAttacker = nil
 function AttackRatio:attackerDefenderDistribution()
 	local attackRatio = self:attackRatio()
 
-	local attackers = math.ceil(attackRatio/6 * #World.FriendlyRobots)
+	local attackers = math.ceil(attackRatio/8 * #World.FriendlyRobots)
 
 	local _, mainAttacker = next(self._inbox.mainAttacker())
 
