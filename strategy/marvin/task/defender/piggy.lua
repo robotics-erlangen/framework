@@ -31,13 +31,6 @@ function Piggy:run()
 	local offset = Vector(x, y)
 	local piggyPos = self._targetRobot.pos + offset
 
-	-- temporary, should be replaced with intercept pass ASAP
-	if Ball.receivesPass(self._targetRobot) then
-		self._send.exclusiveRole("trainer", {mainAttacker = 1})
-		piggyPos = self._robot.pos:nearestPosOnLine(self._targetRobot.pos, World.Ball.pos)
-	end
-
-
 	self._send.moveDest("all", piggyPos)
 
 	local dir = (World.Ball.pos - self._targetRobot.pos):angle()

@@ -2,10 +2,8 @@ local Base = require "agent/base/behavior"
 local Piggy = Class("Agent.Defender.Piggy", Base)
 
 local debug = require "../base/debug"
-
--- TODO use interceptPass as soon as it works
---local InterceptPass = require "task/defender/interceptpass"
-
+local Ball = require "observer/ball"
+local InterceptPass = require "task/defender/interceptpass"
 local PiggyTask = require "task/defender/piggy"
 
 
@@ -25,7 +23,12 @@ function Piggy:_updateTask()
 
 	debug.set("target", self._opp.id)
 
-	return PiggyTask, { self._opp }, restartTask
+	if Ball.receivesPass(self._opp) then
+		return InterceptPass
+	else
+		return PiggyTask, { self._opp }, restartTask
+	end
+
 end
 
 return Piggy

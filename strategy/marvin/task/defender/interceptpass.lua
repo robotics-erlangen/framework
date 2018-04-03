@@ -3,59 +3,62 @@ local InterceptPass = Class("Task.InterceptPass", require "task/base")
 local Cache = require "../base/cache"
 local Field = require "../base/field"
 local World = require "../base/world"
+local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
+local vis = require "../base/vis"
 
 
 function InterceptPass:_init()
 end
 
-local function minMovePos(robot)
-	local minTime = Robot.minTimeToBall(robot)
-	local futureBallPos = Physics.ballAtTime(minTime)
-	-- TODO: schneller, stärker, besser
-	return futureBallPos
-end
-InterceptPass.minMovePos = Cache.forFrame(minMovePos)
 
-local function evaulateInterceptPosition(robot, pos)
+local function evaluateInterceptPos(robot, pos)
 	local OPP_EXTRA_TIME = 0.05
 
-	if pos.y < robot.pos.y + robot.radius * 2 then
+	-- checks if the pos is behind our robot
+	if pos.y < robot.pos.y + 2 * robot.radius then
 		return -math.huge, math.huge
 	end
-	if not Field.isInAllowedField(pos, -robot.radius * 2) then
-		-- it either goes through the defense area (dont intercept) or is out of field
-		return -1, math.huge
+
+	-- checks if the pos is in the allowed field
+	if not Field.isInAllowedField(pos, -2 * robot.radius) then
+		return -math.huge, math.huge
 	end
-	local ownTime = Physics.robotTimeToPos(robot, pos, Vector(robot.maxSpeed, 0))
+
+	local ownTime = Physics.robotTimeToPos(robot, pos, (pos - robot.pos):setLength(robot.maxSpeed))
 	local bestOppTime = math.huge
+
+	-- search the closest opponent
 	for _, oppRobot in ipairs(World.OpponentRobots) do
 		if oppRobot.pos:distanceTo(pos) < 3 * robot.pos:distanceTo(pos) then
-			local oppTime = Physics.robotTimeToPos(oppRobot, pos, Vector(robot.maxSpeed, 0))
+			local oppTime = Physics.robotTimeToPos(oppRobot, pos, (pos - oppRobot.pos):setLength(robot.maxSpeed))
 			if oppTime < ownTime + OPP_EXTRA_TIME then
 				return -math.huge, ownTime, bestOppTime
 			end
 			bestOppTime = math.min(bestOppTime, oppTime)
 		end
 	end
-	if bestOppTime < ownTime + OPP_EXTRA_TIME then
-		return -math.huge, ownTime, bestOppTime
-	end
+
 	return ownTime - bestOppTime, ownTime, bestOppTime
+
 end
 
+
+-- lastPositions[robot][1] - Vector pos
+-- lastPositions[robot][2] - number time (of pos)
 local lastPositions = {}
 local function calculateInterceptPos(robot)
 	local BALL_EXTRA_TIME = 0.05
 	local HYST_TIME = 0.1
+
 	-- make sure the last position is reasonable and valid
-	if lastPositions[robot] and World.Ball.speed:length() > 0.5 then
-		local pos, dist = lastPositions[robot]:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
-		if dist > 0.2 then
+	if lastPositions[robot] and World.Ball.speed:lengthSq() > 0.5 * 0.5 then
+		local pos, dist = lastPositions[robot][1]:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
+		if dist > 0.2 or World.Time - lastPosition[robot][2] > 0.5 then
 			lastPositions[robot] = nil
 		else
 			lastPositions[robot] = pos
@@ -65,37 +68,60 @@ local function calculateInterceptPos(robot)
 	-- evaluate a few positions on the line
 	local minTime = Robot.minTimeToBall(robot) + BALL_EXTRA_TIME
 	local ballOutTime = Physics.ballOutTime(World.Ball, 0)
-	local predictedOpp = Goal.predictShot() -- TODO: ball oder roboterposition
-	local minOppTime = Physics.ballTravelTime(World.Ball, predictedOpp:distanceTo(World.Ball.pos))
-	local maxTime = math.min(ballOutTime, minOppTime)
+	local predictedBallOriginPos,_,_,passReceiver = Goal.predictShot()
+	if not passReceiver then
+		error("InterceptPass is running with no pass to intercept")
+	end
+	local minTimeToOpp = Physics.ballTravelTime(World.Ball, predictedBallOriginPos:distanceTo(World.Ball.pos))
+	local maxTime = math.min(ballOutTime, minTimeToOpp)
 
 	local bestPos
 	local bestRating = -math.huge
 	local bestRatingOppTime = math.huge
 	local posTime
 	for i = -1, 10 do
-		local useTime = minTime + i * (maxTime - minTime) / 10
-		local futureBallPos = Physics.ballAtTime(World.Ball, useTime).pos
+		local useTime
+		local futureBallPos
 		local rating = 0
+
+		-- reevaluate the previous result
 		if i == -1 then
 			rating = rating + (lastPositions[robot] and HYST_TIME or 0)
-			futureBallPos = lastPositions[robot] or futureBallPos
+			if lastPositions[robot] then
+				futureBallPos = lastPositions[robot][1]
+			else
+				i = i + 1
+			end
 		end
-		local evaluation, ownTime, bestOppTime = evaulateInterceptPosition(robot, futureBallPos)
-		if evaluation == -1 and i ~= -1 then
-			break
-		end
-		rating = rating + evaluation
-		if rating > bestRating then
-			bestRating = rating
-			bestPos = futureBallPos
-			posTime = ownTime
-			bestRatingOppTime = bestOppTime
+
+		useTime = minTime + i * (maxTime - minTime) / 10
+		futureBallPos = futureBallPos or Physics.ballAtTime(World.Ball, useTime).pos
+
+		local robMinEndSpeed = Physics.robotMinEndspeed(robot, futureBallPos, useTime)
+		vis.addPath("task/InterceptPass", {futureBallPos, futureBallPos + robMinEndSpeed}, vis.colors.darkPurple)
+
+		local evaluation, ownTime, bestOppTime = evaluateInterceptPos(robot, futureBallPos)
+
+		if evaluation >= 0 then
+			rating = rating + evaluation --TODO consider endspeed together with the current time advantage
+			if rating > bestRating then
+				bestRating = rating
+				bestPos = futureBallPos
+				posTime = ownTime
+				bestRatingOppTime = bestOppTime
+			end
 		end
 	end
-	lastPositions[robot] = bestPos
+
+	if bestPos then
+		lastPositions[robot] = {bestPos, World.Time}
+	else
+		lastPositions[robot] = nil
+	end
+
 	return bestPos, posTime, bestRatingOppTime, bestRating
 end
+
 InterceptPass.calculateInterceptPos = Cache.forFrame(calculateInterceptPos)
 
 local obstacleTable = {
@@ -105,11 +131,32 @@ local obstacleTable = {
 }
 
 function InterceptPass:run()
-	local moveDest = self.calculateInterceptPos(self._robot)
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
+	local moveDest, time, oppTime = self.calculateInterceptPos(self._robot)
 
+	if moveDest == nil then
+		local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir):scaleLength(
+				self._robot.shootRadius + World.Ball.radius)
+		moveDest = dribblerPos:nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed * 3)
+		time = Physics.robotTimeToPos(self._robot, moveDest, moveDest:copy():setLength(self._robot.maxSpeed * 0.5))
+		local firstEnemy = Ball.firstRobotAtBall(World.OpponentRobots)
+		if not firstEnemy then
+			oppTime = math.huge
+		else
+			local nearestPosOnLine = firstEnemy.pos:nearestPosOnLine(
+						World.Ball.pos, World.Ball.pos + World.Ball.speed * 3)
+			oppTime = Physics.checkedBallTravelTime(World.Ball, nearestPosOnLine)
+		end
+	end
+
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	local dir = (-World.Ball.speed):angle()
-	local endSpeed = (World.Ball.pos - self._robot.pos):setLength(2)
+	local endSpeed = Physics.robotMinEndspeed(self._robot, moveDest, time)
+
+	if oppTime - time > 0.3 and time < 0.8 then
+		self:setMainAttackerParameters(World.Ball.pos, endSpeed:length())
+		self._agent._activeBehavior:_applyForMainAttacker()
+	end
+
 	self._robot.trajectory:update(ToTarget, moveDest, dir, nil, endSpeed)
 end
 
