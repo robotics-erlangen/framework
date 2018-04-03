@@ -42,3 +42,13 @@ if (TARGET lib::jemalloc)
     target_link_libraries(visionanalyzer PRIVATE lib::jemalloc)
 endif()
 
+add_executable(visionextractor
+    visionextractor.cpp
+)
+
+target_link_libraries(visionextractor
+	PRIVATE ra::logfile
+	PRIVATE shared::protobuf
+	PRIVATE visionlog::visionlog
+	PUBLIC Qt5::Core
+)
