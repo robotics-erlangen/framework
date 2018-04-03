@@ -65,7 +65,7 @@ function HandleBall:_checkAttacker()
 
 	-- don't if an opponent receives a pass
 	for _,r in ipairs(World.OpponentRobots) do
-		if Ball.receivesPass(r) then
+		if Ball.receivesPass(r) and (r.pos:distanceTo(World.Ball.pos) < 1.0 or r.pos:distanceTo(self._robot.pos) < 1.0)then
 			return false
 		end
 	end
