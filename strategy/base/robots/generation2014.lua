@@ -33,18 +33,4 @@ Gen2014.constants = {
 	dribblerSpinupTime = 0.4
 }
 
---- Chip wrapper
--- @name Gen2014_3:chip
--- @param distance number - Distance to chip
-function Gen2014:chip(distance)
-	self:shootChip(math.bound(0.05, distance, self.maxShotChip))
-end
-
---- Shoot wrapper
--- @name Gen2014_3:_shoot
--- @param speed number - Target shoot speed
-function Gen2014:_shoot(speed)
-	self:shootLinear(math.bound(0.05, speed, self.maxShotLinear))
-end
-
 return Gen2014
