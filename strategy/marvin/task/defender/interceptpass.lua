@@ -58,7 +58,7 @@ local function calculateInterceptPos(robot)
 	-- make sure the last position is reasonable and valid
 	if lastPositions[robot] and World.Ball.speed:lengthSq() > 0.5 * 0.5 then
 		local pos, dist = lastPositions[robot][1]:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
-		if dist > 0.2 or World.Time - lastPosition[robot][2] > 0.5 then
+		if dist > 0.2 or World.Time - lastPositions[robot][2] > 0.5 then
 			lastPositions[robot] = nil
 		else
 			lastPositions[robot] = pos

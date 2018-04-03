@@ -1,9 +1,8 @@
 local Piggy = Class("Task.Piggy", require "task/base")
 
-local Ball = require "observer/ball"
+local World = require "../base/world"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
-local World = require "../base/world"
 
 function Piggy:_init(targetRobot)
 	assert(targetRobot, "Piggy task needs a target robot")
