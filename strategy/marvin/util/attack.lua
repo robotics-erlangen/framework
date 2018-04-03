@@ -30,7 +30,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 
 	-- rate distance
 	local distanceToMA = robot.pos:distanceTo(pass.ballPos)
-	rating = rating * Rating.valueToRating(distanceToMA, 1, 2)
+	rating = rating * (Rating.valueToRating(distanceToMA, 1, 2) - Rating.valueToRating(distanceToMA, 4, 8))
 
 	-- rate timing
 	local shootTime
