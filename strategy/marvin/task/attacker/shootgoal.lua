@@ -2,25 +2,25 @@ local Shoot = require "task/ability/shoot"
 local ShootGoal = Class("Task.ShootGoal", require "task/base", Shoot)
 
 local debug = require "../base/debug"
+local Field = require "../base/field"
 local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
 local Ball = require "observer/ball"
+local Goal = require "observer/goal"
 local ObserverShoot = require "observer/shoot"
 local PathHelper = require "trajectory/pathhelper"
+local Interval = require "util/interval"
 local Rating = require "util/rating"
 local ShootGoalUtil = require "util/shootgoal"
 
 local G = World.Geometry
 
-local DESPERATE_CHIP_EXTRA_DISTANCE = 0.5 -- extra chip distance when performing a goal chip
-
-local function _drawDebugInfo(self, target)
-	local color, mode
+local function _drawDebugInfo(self, target, mode)
+	local color
 	if self._desperate then
-		mode = "desperate"
-		target = self._desperateChipTargetPoint
+		mode = mode or "desperate unspcified"
 		color = vis.colors.redHalf
 	else
 		if self._dirty then
@@ -48,7 +48,8 @@ function ShootGoal:_init(ballReceiptPos, forceDesperate)
 	self._shootTargetWidth = 0
 	self._dirty = false
 	self._desperate = forceDesperate or false
-	self._desperateChipTargetPoint = nil
+	self._desperateTargetPoint = nil
+	self._desperateTargetID = nil
 
 	self._ballReceiptPos = ballReceiptPos
 	self._lastReceivesPassTime = 0
@@ -87,9 +88,8 @@ function ShootGoal:run()
 
 	local linearOverride = World.Time - self._lastReceivesPassTime < 0.1 and ObserverShoot.volleyPossible(self._robot, localTarget)
 	debug.set("linearOverride", linearOverride)
-	if linearOverride then
-		self._desperate = false
-	end
+
+	local mode = nil
 
 	if not self._desperate then
 		-- perform a linear shot
@@ -105,11 +105,107 @@ function ShootGoal:run()
 			maxAngleError = 0.5 * math.pi / 180
 		end
 
-		-- perform a chip shot
-		self._desperateChipTargetPoint = G.OpponentGoal + Vector(0, DESPERATE_CHIP_EXTRA_DISTANCE)
-		self:_chipPass(self._desperateChipTargetPoint, ballReceiptPos, maxAngleError, 0.5)
+		ballReceiptPos = ballReceiptPos or World.Ball.pos
+		debug.set("ballReceiptPos", ballReceiptPos)
+
+		local onlyOppOcc = {}
+		local disabled = true --FIXME after solving TODO
+		localTarget = nil
+
+		if not disabled then
+
+			local occupied = Goal.getOccupiedSectors(ballReceiptPos, World.OpponentRobots,  0, math.pi, true)
+			Interval.sort(occupied)
+			Interval.merge(occupied)
+
+			local bothOcc = Goal.getOccupiedSectors(ballReceiptPos, World.Robots, 0, math.pi, true)
+			Interval.sort(bothOcc)
+			Interval.merge(bothOcc)
+
+			local bothCnt , occCnt = 1,1
+			while true do
+				if occCnt > #occupied or bothCnt > #bothOcc then
+					break
+				end
+				local intervalB = bothOcc[bothCnt]
+				local intervalE = occupied[occCnt]
+				--floatEq is correct here
+				if intervalB[1] == intervalE[1] and intervalB[2] == intervalE[2] then
+					table.insert(onlyOppOcc, intervalB)
+					occCnt = occCnt + 1
+					bothCnt = bothCnt + 1
+				elseif intervalB[1] < intervalE[1] then
+					bothCnt = bothCnt + 1
+				else
+					occCnt = occCnt + 1
+				end
+			end
+		end
+
+		if #onlyOppOcc <= 0 then
+			self._desperateTargetID = nil
+		end
+
+		if #onlyOppOcc > 0 and not self._desperateTargetPoint then
+			local EPSILON = 0.0001
+			--state: desperate clean
+			repeat
+				local selectedInterval = nil
+				if self._desperateTargetID then
+					--try to continue shooting at the same bot
+					--TODO: don't pretend its always going to be that side
+					for _,v in ipairs(onlyOppOcc) do
+						if v[3][1].id == self._desperateTargetID then
+							selectedInterval = v
+							break
+						end
+					end
+				end
+				if not selectedInterval then
+					self._desperateTargetID = nil
+					--TODO: Use heuristic instead of random
+					selectedInterval = onlyOppOcc[math.random(#onlyOppOcc)]
+				end
+				local selectedDir = selectedInterval[1] + 1/2 * ((selectedInterval[3][1].pos - ballReceiptPos):angle() - selectedInterval[1]) --TODO: select side
+				local angleError = selectedDir - selectedInterval[1]
+				local avoidIcing = ballReceiptPos.y < 0.3
+				if avoidIcing then
+					local lineCut = Field.nextLineCut(ballReceiptPos, Vector.fromAngle(selectedDir + angleError))
+					if lineCut and math.abs(lineCut.y - G.FieldHeightHalf) < EPSILON then
+						table.removeValue(onlyOppOcc, selectedInterval)
+						goto continue
+					end
+					lineCut = Field.nextLineCut(ballReceiptPos, Vector.fromAngle(selectedDir - angleError))
+					if lineCut and math.abs(lineCut.y - G.FieldHeightHalf) < EPSILON then
+						table.removeValue(onlyOppOcc, selectedInterval)
+						goto continue
+					end
+				end
+
+				self._desperateTargetID = selectedInterval[3][1].id
+				localTarget = Vector.fromAngle(selectedDir) + ballReceiptPos
+				mode = "desperate clean"
+				self:_shoot(localTarget, math.huge, ballReceiptPos, angleError)
+				::continue::
+			until (self._desperateTargetID ~= nil or #onlyOppOcc == 0)
+		end
+		if (ballReceiptPos.y < (self._desperateTargetPoint and 0.5 or 0)) and not linearOverride and not self._desperateTargetID then
+			mode = "desperate chip"
+			localTarget = Vector(0, G.FieldHeightQuarter)
+			self:_chipPass(localTarget, ballReceiptPos, maxAngleError, 0.5)
+			self._desperateTargetPoint = localTarget
+		else
+			self._desperateTargetPoint = nil
+		end
+		if localTarget == nil then
+			mode = "desperate desperate"
+			--state: desperate desperate
+			--shoot at the center of the opponent goal
+			localTarget = Vector(0, G.FieldHeightHalf)
+			self:_shoot(localTarget, math.huge, ballReceiptPos, maxAngleError)
+		end
 	end
-	_drawDebugInfo(self, localTarget)
+	_drawDebugInfo(self, localTarget, mode)
 end
 
 return ShootGoal
