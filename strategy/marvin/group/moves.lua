@@ -11,7 +11,8 @@ function Moves:init()
 		require "group/move/armada",
 		require "group/move/fastballplacement",
 		-- require "group/move/overchip",
-		require "group/move/windshieldwiper"
+		require "group/move/windshieldwiper",
+		require "group/move/none"
 	}
 
 	for _,move in ipairs(self.moveList) do
