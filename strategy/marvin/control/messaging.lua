@@ -32,6 +32,9 @@ local msgDefs = {
 	-- the string can be "attacker" or "defender"
 	poolChangeRequest = "string",
 
+	-- sent by all strikers
+	strikerFlag = "flag",
+
 	-- sent by t/striker to tell all other strikers about the currency of the sampled pass position
 	strikerSamplingTimestamp = "number",
 

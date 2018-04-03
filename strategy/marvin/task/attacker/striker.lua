@@ -105,6 +105,8 @@ function Striker:_searchForPassDest()
 end
 
 function Striker:run()
+	self._send.strikerFlag("all")
+
 	if self._manualDefaultPos then
 		self._moveDest = self._manualDefaultPos
 	else
