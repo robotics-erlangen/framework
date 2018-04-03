@@ -398,10 +398,12 @@ function PathHelper.setDefaultObstaclesByTable(path, robot, params)
 
 	path:clearObstacles()
 
-	params["path"] = path or robot.path
-	params["pathRadius"] = params.pathRadius or robot.radius
-	params["stopBallDistance"] = params.stopBallDistance or Constants.stopBallDistance
-	obstacles[robot] = table.copy(params)
+	-- Mmmh Bananen
+	local obst = table.copy(params)
+	obst["path"] = path or robot.path
+	obst["pathRadius"] = obst.pathRadius or robot.radius
+	obst["stopBallDistance"] = obst.stopBallDistance or Constants.stopBallDistance
+	obstacles[robot] = obst
 end
 
 function PathHelper.insertObstacles(robot)
