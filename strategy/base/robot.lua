@@ -270,7 +270,12 @@ end
 --- Enable linear kick.
 -- The different kick styles are exclusive, that is only one of them can be active at a time.
 -- @param speed number - Shoot speed [m/s]
-function Robot:shootLinear(speed)
+-- @param ignoreLimit bool - Don't enforce shoot speed limit, if true
+function Robot:shoot(speed, ignoreLimit)
+	if not ignoreLimit then
+		speed = math.min(Constants.maxBallSpeed, speed)
+	end
+	speed = math.bound(0.05, speed, self.maxShotLinear)
 	self._kickStyle = "Linear"
 	self._kickPower = speed
 	vis.addCircle("shoot command", self.pos, self.radius + 0.04, vis.colors.mediumPurple, nil, nil, nil, 0.03)
@@ -279,7 +284,8 @@ end
 --- Enable chip kick.
 -- The different kick styles are exclusive, that is only one of them can be active at a time.
 -- @param distance number - Chip distance [m]
-function Robot:shootChip(distance)
+function Robot:chip(distance)
+	distance = math.bound(0.05, distance, self.maxShotChip)
 	self._kickStyle = "Chip"
 	self._kickPower = distance
 	vis.addCircle("shoot command", self.pos, self.radius + 0.04, vis.colors.darkPurple, nil, nil, nil, 0.03)
@@ -320,12 +326,6 @@ function Robot:setStandby(standby)
 	end
 end
 
---- Chip function
--- @param distance number - Distance to chip [m]
-function Robot:chip(_distance)
-	log("Error: no implementation for function chip for robot generation "..self.generation)
-end
-
 --- Calculate shoot speed neccessary for linear shoot to reach the target with a certain speed
 -- @param destSpeed number - Ball speed at destination [m/s]
 -- @param distance number - Distance to chip [m]
@@ -363,23 +363,6 @@ function Robot:calculateShootSpeed(destSpeed, distance)
 	else
 		return v_0
 	end
-end
-
---- Shoot function wrapper.
--- Calls Robot:_shoot with distance adapted speed
--- @param speed number - Shoot speed destination [m/s]
--- @param ignoreLimit bool - Don't enforce shoot speed limit, if true
-function Robot:shoot(speed, ignoreLimit)
-	if not ignoreLimit then
-		speed = math.min(Constants.maxBallSpeed, speed)
-	end
-	self:_shoot(speed)
-end
-
---- Shoot function
--- @param speed number - Ball speed to shoot with [m/s]
-function Robot:_shoot(_speed)
-	log("Error: no implementation for function shoot for robot generation "..self.generation)
 end
 
 --- Check whether the robot has the given ball.
