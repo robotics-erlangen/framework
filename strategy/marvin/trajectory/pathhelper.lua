@@ -341,7 +341,7 @@ local function addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreOppone
 		for _, r in ipairs(World.OpponentRobots) do
 			if not ignoreRobot(robot, r) then
 				-- use speed difference to calculate the safety distance
-				local safetyDistance = Rating.valueToRating(robot.speed:distanceTo(r.speed), 0, 1.25) * 0.15 - 0.05
+				local safetyDistance = math.max(0, Rating.valueToRating(robot.speed:distanceTo(r.speed), 0, 1.25) * 0.15 - 0.05)
 				if disableOpponentPrediction then -- be more aggressive
 					safetyDistance = safetyDistance / 2
 				elseif robot.speed:length() < SLOW_ROBOT and r.speed:length() < SLOW_ROBOT then
