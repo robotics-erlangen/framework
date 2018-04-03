@@ -269,19 +269,19 @@ end
 
 --- Enable linear kick.
 -- The different kick styles are exclusive, that is only one of them can be active at a time.
--- @param power number - robotspecific value between 0 and 1
-function Robot:shootLinear(power)
+-- @param speed number - Shoot speed [m/s]
+function Robot:shootLinear(speed)
 	self._kickStyle = "Linear"
-	self._kickPower = power
+	self._kickPower = speed
 	vis.addCircle("shoot command", self.pos, self.radius + 0.04, vis.colors.mediumPurple, nil, nil, nil, 0.03)
 end
 
 --- Enable chip kick.
 -- The different kick styles are exclusive, that is only one of them can be active at a time.
--- @param power number - robotspecific value between 0 and 1
-function Robot:shootChip(power)
+-- @param distance number - Chip distance [m]
+function Robot:shootChip(distance)
 	self._kickStyle = "Chip"
-	self._kickPower = power
+	self._kickPower = distance
 	vis.addCircle("shoot command", self.pos, self.radius + 0.04, vis.colors.darkPurple, nil, nil, nil, 0.03)
 end
 
