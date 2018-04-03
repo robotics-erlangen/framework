@@ -7,6 +7,7 @@ local Referee = require "../base/referee"
 local World = require "../base/world"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local BallEscortTask = require "task/shared/ballescort"
 
 
@@ -57,23 +58,26 @@ function BallEscort:check()
 				for _, oppRobots in ipairs(World.OpponentRobots) do
 
 					-- don't if opponent can reach the ball
-					if Physics.robotTimeToBall(oppRobots, World.Ball, World.Geometry.OpponentGoal, 0) ~= math.huge or Ball.receivesPass(oppRobots) then
+					if Ball.receivesPass(oppRobots) or Robot.minTimeToBall(oppRobots) then
 						self._counter = 0
 						return false
 					end
 
-					if Physics.robotTimeToPos(oppRobots, ballOutPos, Vector(0,0)) < oppTimeToPos then
-						oppTimeToPos = Physics.robotTimeToPos(oppRobots, ballOutPos, Vector(0,0))
+					local robotTimeToPos = Physics.robotTimeToPos(oppRobots, ballOutPos, Vector(0,0))
+
+					if robotTimeToPos < oppTimeToPos then
+						oppTimeToPos = robotTimeToPos
 						self._minRobot  = oppRobots
 					end
 
 				end
 
 				debug.push("BallEscort")
-				debug.set("robotTimeToBall", Physics.robotTimeToBall(self._robot, World.Ball, World.Geometry.OpponentGoal, 0))
+				local robotTimeToBall = Physics.robotTimeToBall(self._robot, World.Ball, World.Geometry.OpponentGoal, 0)
+				debug.set("robotTimeToBall", robotTimeToBall)
 				debug.pop()
 
-				if Physics.robotTimeToBall(self._robot, World.Ball, World.Geometry.OpponentGoal, 0) == math.huge then
+				if robotTimeToBall == math.huge then
 
 					-- ballOutPos should not be in penalty area
 					if Referee.opponentTouchedLast() and (math.abs(ballOutPos.x) > World.Geometry.DefenseStretch/2 + World.Geometry.DefenseRadius) then
