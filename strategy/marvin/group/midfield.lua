@@ -13,6 +13,7 @@ function Midfield:init()
 	self._noMidfielderHyst = false -- we are attacking the goal and dont want midfielders at all
 
 	self._zones = {}
+	self._topHalfHyst = false
 
 	self._lastMainAttacker = nil
 	self._lastRobots = nil
@@ -98,14 +99,23 @@ end
 function Midfield:_updateZones(nMidfielders)
 	self._zones = {}
 
+	local topHalfThreshold = self._topHalfHyst and 1 or 0
+	local isInTopHalf = World.Ball.pos.x < topHalfThreshold
+
+	local updateAssignments = self._topHalfHyst ~= isInTopHalf
+
+	self._topHalfHyst = isInTopHalf
+
 	local totalLeft = -G.FieldWidthHalf
-	local totalRight = G.FieldWidthHalf
 
 	local remainingZones = nMidfielders
 
 	local robotRadius = Constants.maxRobotRadius
 	local zoneWidth = 2
-	local offset = 1.4
+	local top = isInTopHalf and -1 or 1
+	local verticalOffset = 1.4
+	local horizontalOffset = 1.5
+
 
 	-- three hardcoded zones, depending on the number of robots we have
 	if remainingZones >= 1 then
@@ -113,8 +123,8 @@ function Midfield:_updateZones(nMidfielders)
 		zone.boundaries = {
 			bottom = -2,
 			top = 2,
-			left = totalLeft + robotRadius + offset,
-			right = totalLeft + robotRadius + offset + zoneWidth
+			left = top * (totalLeft + robotRadius + verticalOffset),
+			right = top * (totalLeft + robotRadius + verticalOffset + zoneWidth)
 		}
 		zone.defaultPos = getDefaultPosition(zone.boundaries)
 		remainingZones = remainingZones - 1
@@ -124,10 +134,10 @@ function Midfield:_updateZones(nMidfielders)
 	if remainingZones >= 1 then
 		local zone = {}
 		zone.boundaries = {
-			bottom = -2,
-			top = 2,
-			right = totalRight - robotRadius - offset,
-			left = totalRight - robotRadius - offset - zoneWidth
+			bottom = -2 + horizontalOffset,
+			top = 2 + horizontalOffset,
+			right = -top * (totalLeft + robotRadius + verticalOffset),
+			left = -top * (totalLeft + robotRadius + verticalOffset + zoneWidth)
 		}
 		zone.defaultPos = getDefaultPosition(zone.boundaries)
 		remainingZones = remainingZones - 1
@@ -145,6 +155,8 @@ function Midfield:_updateZones(nMidfielders)
 		zone.defaultPos = getDefaultPosition(zone.boundaries)
 		table.insert(self._zones, zone)
 	end
+
+	return updateAssignments
 end
 
 
@@ -166,10 +178,10 @@ function Midfield:run(sender, inbox, messages)
 
 	local numAttackers = #table.keys(inbox.attackerFlag())
 	local remainingMidfielders = determineMidfielderCount(self, numAttackers)
+	updateAssignments = updateAssignments or self._lastRobots and #self._lastRobots ~= remainingMidfielders
 
-	if #robots ~= self._lastRobots then
-		self:_updateZones(remainingMidfielders)
-	end
+	updateAssignments = updateAssignments or self:_updateZones(remainingMidfielders)
+
 
 	-- assign the zones to the nearest Midfields
 	local robotPositions = {} -- robot -> pos
