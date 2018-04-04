@@ -5,28 +5,30 @@ local World = require "../base/world"
 local Referee = require "../base/referee"
 local ErrorObserver = require "observer/error"
 local ERROR_TOLERANCE_PER_SEC = 3 -- <- [0.5,1]
-local EXCHANGE_ERROR_ROBOTS = true
+local EXCHANGE_ERROR_ROBOTS = false
+local EXCHANGE_LOW_BAT_ROBOTS = false
+local EXCHANGE_LOW_BAT_DURING_GAME = false
 
 function Error:check()
 	local errorTable = ErrorObserver.getErrorTable(self._robot)
 	if self._active and World.RefereeState == "Stop" then
 		return true
 	elseif ErrorObserver.getAverageBatterySate(self._robot)< 0.11 and self._robot ~= World.FriendlyKeeper then
-		return true
+		return EXCHANGE_LOW_BAT_DURING_GAME
 	elseif ErrorObserver.getAverageBatterySate(self._robot)< 0.20
 		and World.RefereeState == "Stop" then
 		if self._robot == World.FriendlyKeeper then
 			if Referee.lastStateChangeTime() == World.Time then
-				log(self:errorMsg())
+				log("keeper ".. self:errorMsg())
 			end
 			return false
 		end
-		return true
+		return EXCHANGE_LOW_BAT_ROBOTS
 	elseif not errorTable then
 		return false
 	elseif self._robot == World.FriendlyKeeper then
 		if Referee.lastStateChangeTime() == World.Time then
-			log(self:errorMsg())
+			log("keeper " .. self:errorMsg())
 		end
 		return false
 	end
