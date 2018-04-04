@@ -182,6 +182,10 @@ local function determineNumberOfPiggies(defenderCount, manmarkTargets, piggyTarg
 	local dangerousnessThreshold
 	local viabilityThreshold
 
+	if Referee.isKickoffState() then
+		return 0
+	end
+
 	-- prioritize manmarks over piggies when in own field half
 	-- TODO hysteresis
 
