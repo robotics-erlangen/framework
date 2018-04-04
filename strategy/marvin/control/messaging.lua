@@ -84,6 +84,10 @@ local msgDefs = {
 	-- sent by gr/striker to assign zones to the striker tasks
 	-- msg.boundaries = { left: number, right: number }
 	strikerZone = { defaultPos = "vector", boundaries = "table" },
+
+	-- sent by gr/midfield to assign zones to the midfield tasks
+	-- msg.boundaries = { left: number, right: number }
+	midfieldZone = { defaultPos = "vector", boundaries = "table" },
 }
 
 

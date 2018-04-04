@@ -4,7 +4,8 @@ function Groups:init()
 	local groupClasses = {
 		require "group/centerback",
 		require "group/moves",
-		require "group/striker"
+		require "group/striker",
+		require "group/midfield"
 	}
 
 	self._groupList = {}
