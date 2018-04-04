@@ -1,5 +1,6 @@
 local Defense = {}
 
+local Ball = require "observer/ball"
 local Cache = require "../base/cache"
 local Constants = require "../base/constants"
 local debug = require "../base/debug"
@@ -218,8 +219,8 @@ local function rateOpponentPassViability()
 		end
 
 		-- we can successfully intercept long passes more easily
-		local distToBallOwner = opp.pos:distanceToSq(ballPos)
-		local distToBallOwnerRating = Rating.valueToRating(distToBallOwner, 2*2, 5*5)
+		local distToBallOwner = opp.pos:distanceTo(ballPos)
+		local distToBallOwnerRating = Rating.valueToRating(distToBallOwner, 2, 5)
 
 		-- we do not want the enemy to move the ball closer to our goal
 		local distToGoal = opp.pos.y + opp.speed.y/2 + G.FieldHeightHalf
@@ -227,6 +228,10 @@ local function rateOpponentPassViability()
 
 		local rating = 0.6 * distToGoalRating + 0.4 * distToBallOwnerRating
 		passViability[opp] = rating
+
+		if Ball.receivesPass(opp) then
+			rating = rating + 0.5
+		end
 
 		if amun.isDebug then
 			debug.push(tostring(opp.id))
