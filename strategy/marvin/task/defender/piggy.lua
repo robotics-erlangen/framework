@@ -13,21 +13,13 @@ function Piggy:run()
 	local obstacleTable = { inbox = self._inbox}
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
-	local x
-	if self._targetRobot.pos.x > World.Ball.pos.x then
-		x = -0.3
-	else
-		x = 0.3
-	end
+	local ball = World.Ball
+	local passLine = ball.pos-self._targetRobot.pos
 
-	local y
-	if self._targetRobot.pos.y > World.Ball.pos.y then
-		y = 0.2
-	else
-		y = -0.2
-	end
+	local perpendicularOffset = passLine:perpendicular():setLength(0.3)
 
-	local offset = Vector(x, y)
+
+	local offset = passLine:setLength(0.3) + perpendicularOffset
 	local piggyPos = self._targetRobot.pos + offset
 
 	self._send.moveDest("all", piggyPos)
