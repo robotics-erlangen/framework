@@ -85,7 +85,7 @@ end
 
 function SideStep:run()
 	draw(self._debugTable)
-	if not self._inbox.mainAttacker().trainer == self._robot then
+	if self._inbox.mainAttacker().trainer ~= self._robot then
 		local groupApplication = { name = "striker", payload = {}}
 		self._send.groupApplication("trainer", groupApplication)
 	end
