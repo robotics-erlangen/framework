@@ -344,8 +344,10 @@ void Strategy::process()
             timing->set_autoref_total(totalTime);
             status->set_autoref_running(true);
         }
-        status->mutable_execution_state()->CopyFrom(m_status->world_state());
-        status->mutable_execution_game_state()->CopyFrom(m_status->game_state());
+        status->mutable_execution_state()->CopyFrom(m_status->execution_state().IsInitialized() ?
+                                                        m_status->execution_state() : m_status->world_state());
+        status->mutable_execution_game_state()->CopyFrom(m_status->execution_game_state().IsInitialized() ?
+                                                             m_status->execution_game_state() : m_status->game_state());
         status->mutable_execution_user_input()->CopyFrom(userInput);
         emit sendStatus(status);
     } else {
