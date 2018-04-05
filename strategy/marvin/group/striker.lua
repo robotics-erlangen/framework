@@ -132,6 +132,7 @@ end
 function Striker:run(sender, inbox, messages)
 	local robots = table.keys(messages)
 	local mainAttacker = inbox.mainAttacker().trainer
+	local prevEmptyZone = self._emptyZone
 
 	-- if the mainAttacker changes, assume that the previous mainAttacker becomes a striker instead
 	local robotsTmp = {}
@@ -167,6 +168,9 @@ function Striker:run(sender, inbox, messages)
 		mainAttackerPos = inbox.attackPosition()[mainAttacker] or mainAttacker.pos
 	end
 	self:_chooseEmptyZone(mainAttackerPos)
+
+	--update assignments if empty zone changed
+	updateAssignments = updateAssignments or self._emptyZone ~= prevEmptyZone
 
 	-- assign the zones to the nearest strikers
 	local robotPositions = {} -- robot -> pos
