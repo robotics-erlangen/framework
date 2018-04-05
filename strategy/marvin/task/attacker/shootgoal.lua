@@ -114,11 +114,11 @@ function ShootGoal:run()
 
 		if not disabled then
 
-			local occupied = Goal.getOccupiedSectors(ballReceiptPos, World.OpponentRobots,  0, math.pi, true)
+			local occupied = Goal.getOccupiedSectors(ballReceiptPos, World.OpponentRobots,  0, math.pi, true) --TODO extrapolate them
 			Interval.sort(occupied)
 			Interval.merge(occupied)
 
-			local bothOcc = Goal.getOccupiedSectors(ballReceiptPos, World.Robots, 0, math.pi, true)
+			local bothOcc = Goal.getOccupiedSectors(ballReceiptPos, World.Robots, 0, math.pi, true) -- TODO extrapolate them
 			Interval.sort(bothOcc)
 			Interval.merge(bothOcc)
 
@@ -191,7 +191,7 @@ function ShootGoal:run()
 		end
 		if (ballReceiptPos.y < (self._desperateTargetPoint and 0.5 or 0)) and not linearOverride and not self._desperateTargetID then
 			mode = "desperate chip"
-			localTarget = Vector(0, G.FieldHeightQuarter)
+			localTarget = Vector(0, (G.FieldHeightHalf + self._robot.pos.y) / 2)
 			self:_chipPass(localTarget, ballReceiptPos, maxAngleError, 0.5)
 			self._desperateTargetPoint = localTarget
 		else
