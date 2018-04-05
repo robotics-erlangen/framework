@@ -60,6 +60,10 @@ function DuelAssistant:check()
 		self._active = false
 	end
 
+	if self._active and self._robot == self._inbox.mainAttacker().trainer then
+		-- log("duel assistant as mainAttacker " .. tostring(self._robot))
+		return false
+	end
 	return self._active
 end
 
