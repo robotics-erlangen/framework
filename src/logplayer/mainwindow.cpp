@@ -135,13 +135,12 @@ MainWindow::MainWindow(QWidget *parent) :
     s.endGroup();
 
     // create strategy threads
-    m_strategyThreads[0] = new QThread(this);
-    m_strategyThreads[0]->start();
-    m_strategyThreads[1] = new QThread(this);
-    m_strategyThreads[1]->start();
-
-    m_strategys[0] = nullptr;
-    m_strategys[1] = nullptr;
+    for (int i = 0;i<2;i++) {
+        m_strategyThreads[i] = new QThread(this);
+        m_strategyThreads[i]->start();
+        m_strategys[i] = nullptr;
+        m_strategyBlocker[i] = nullptr;
+    }
 
     // set up log connections
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
@@ -175,7 +174,9 @@ MainWindow::~MainWindow()
         if (m_strategys[i] != nullptr) {
             m_strategys[i]->deleteLater();
         }
-        m_strategyBlocker[i]->deleteLater();
+        if (m_strategyBlocker[i] != nullptr) {
+            m_strategyBlocker[i]->deleteLater();
+        }
         m_strategyThreads[i]->quit();
         m_strategyThreads[i]->wait();
     }
