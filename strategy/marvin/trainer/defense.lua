@@ -257,7 +257,8 @@ function Defense:_assignPiggies(defenders)
 
 		self._piggyTargets[target] = nil
 
-		local piggy = UtilDefense.getClosestRobot(defenders, target.pos)
+		local piggyPos = UtilDefense.piggyPos(target)
+		local piggy = UtilDefense.getClosestRobot(defenders, piggyPos)
 
 		if not piggy or not target then
 			break

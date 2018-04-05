@@ -62,6 +62,18 @@ local function manMarkPos(opponent)
 end
 Defense.manMarkPos = Cache.forFrame(manMarkPos)
 
+local function piggyPos(opponent)
+	local passLine = World.Ball.pos-opponent.pos
+
+	local perpendicularOffset = passLine:perpendicular():setLength(0.3)
+
+
+	local offset = passLine:setLength(0.3) + perpendicularOffset
+
+	return opponent.pos + offset
+end
+Defense.piggyPos = Cache.forFrame(piggyPos)
+
 local function calculateBallPosition(distanceToDefenseArea, robot_radius)
 	local targetPos, targetDir, isShot = Goal.predictShot()
 	local targetWay, targetSec
