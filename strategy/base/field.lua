@@ -55,7 +55,7 @@ end
 -- @param extraLimit number - how much the field should be additionally limited
 -- @param pos Vector - the position to limit
 -- @return Vector - limited vector
-function Field.limitToAllowedField(pos, extraLimit)
+local function limitToAllowedField_2017(pos, extraLimit)
 	extraLimit = extraLimit or 0
 	local oppExtraLimit = extraLimit
 	if Referee.isStopState() or Referee.isFriendlyFreeKickState() then
@@ -80,6 +80,36 @@ function Field.limitToAllowedField(pos, extraLimit)
 			pos = circleMidpoint + (pos - circleMidpoint):setLength(G.DefenseRadius+oppExtraLimit)
 		end
 		return pos
+	end
+	return pos
+end
+local function limitToAllowedField_2018(pos, extraLimit)
+	extraLimit = extraLimit or 0
+	local oppExtraLimit = extraLimit
+	if Referee.isStopState() or Referee.isFriendlyFreeKickState() then
+		oppExtraLimit = oppExtraLimit + G.FreeKickDefenseDist + 0.10
+	end
+	pos = Field.limitToField(pos, -extraLimit)
+	if Field.isInFriendlyDefenseArea(pos, extraLimit) then
+		local targety = G.FieldHeightHalf - G.DefenseHeight - extraLimit
+		local targetx = G.DefenseWidthHalf + extraLimit
+		local dy = targety - pos.y
+		local dx = math.abs(targetx - pos.x)
+		if dx > dy then
+			return Vector(pos.x, -targety)
+		else
+			return Vector(math.sign(pos.x)*targetx, pos.y)
+		end
+	elseif Field.isInOpponentDefenseArea(pos, oppExtraLimit) then
+		local targety = G.FieldHeightHalf - G.DefenseHeight - oppExtraLimit
+		local targetx = G.DefenseWidthHalf + oppExtraLimit
+		local dy = pos.y - targety
+		local dx = math.abs(targetx - pos.x)
+		if dx > dy then
+			return Vector(pos.x, targety)
+		else
+			return Vector(math.sign(pos.x)*targetx, pos.y)
+		end
 	end
 	return pos
 end
@@ -176,10 +206,12 @@ if World.RULEVERSION == "2018" then
 	Field.distanceToDefenseAreaSq = distanceToDefenseAreaSq_2018
 	Field.distanceToDefenseArea = distanceToDefenseArea_2018
 	Field.isInDefenseArea = isInDefenseArea_2018
+	Field.limitToAllowedField = limitToAllowedField_2018
 else
 	Field.distanceToDefenseAreaSq = distanceToDefenseAreaSq_2017
 	Field.distanceToDefenseArea = distanceToDefenseArea_2017
 	Field.isInDefenseArea = isInDefenseArea_2017
+	Field.limitToAllowedField = limitToAllowedField_2017
 end
 
 
