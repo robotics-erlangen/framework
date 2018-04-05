@@ -411,7 +411,7 @@ function PathHelper.insertObstacles(robot)
 	setDefaultObstacles(p.path, robot, p.ignoreBall, p.ignoreGoals, p.ignoreDefenseArea,
 		p.pathRadius, p.stopBallDistance, p.noSeedTarget, p.ignoreOpponentDefenseArea, p.extraBallDistance)
 	if not p.ignorePass then
-		local disablePass = addGoalObstacleShot(p.path, robot, p.inbox)
+		local disablePass = addGoalObstacleShot(p.path, robot, p.inbox) or World.RefereeState == "Stop"
 		if not disablePass then
 			addFriendlyPassObstacle(p.path, robot, p.inbox)
 		end
