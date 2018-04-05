@@ -11,6 +11,9 @@ local AcceptPass = require "task/attacker/acceptpass"
 local Striker = require "task/attacker/striker"
 local Attack = require "util/attack"
 
+local MovesHelper = require "util/moveshelper"
+local geom = require "../base/geom"
+
 WindshieldWiper.MIN_ROBOTS = 1
 WindshieldWiper.MAX_ROBOTS = 5
 
@@ -80,9 +83,13 @@ function WindshieldWiper:_updateTasks()
 	local _, passInfoTable = next(self._inbox.passInfo())
 	local nr = false
 	local pos = self._positions
+		local center1, center2, radius = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, 55 / 180 * math.pi)
+		local circle = center1.y < center2.y and center1 or center2
+		local posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2
 	for i=2,#self._robots do
 		nr = Attack.checkPassInfos(distances[i].robot, passInfoTable, false) and i or nr
-		taskAssignments[distances[i].robot] = {class = Striker, params = {Vector(-pos[i].x,pos[i].y),pos[i]}}
+		local acceptPos = geom.intersectLineCircle(posToShiftFrom, pos[i] - posToShiftFrom, circle, radius)
+		taskAssignments[distances[i].robot] = {class = Striker, params = {Vector(-pos[i].x,pos[i].y), acceptPos}}
 	end
 	if nr then
 		taskAssignments[distances[nr].robot] = { class = AcceptPass}
