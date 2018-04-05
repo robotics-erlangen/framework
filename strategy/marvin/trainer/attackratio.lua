@@ -98,7 +98,7 @@ local previousMainAttacker = nil
 function AttackRatio:attackerDefenderDistribution()
 	local attackRatio = self:attackRatio()
 
-	local attackers = math.ceil(attackRatio/8 * #World.FriendlyRobots)
+	local attackers = attackRatio > 0 and math.max(1, math.floor(attackRatio/8 * #World.FriendlyRobots)) or 0
 
 	local _, mainAttacker = next(self._inbox.mainAttacker())
 
