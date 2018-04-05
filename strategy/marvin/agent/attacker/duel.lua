@@ -79,7 +79,7 @@ function Duel:genericCheck()
 	end
 
 	-- if the opponent controls the ball, duel him
-	local ballOwner = Ball.opponentBallOwner()
+	local ballOwner = Ball.opponentBallOwner() or Ball.opponentBallDribbler()
 	if ballOwner then
 		local dist = self._closerThanOpp and -SAFTY_SPACE or (-SAFTY_SPACE - DIST_HYSTERESIS)
 		local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir) * self._robot.shootRadius
