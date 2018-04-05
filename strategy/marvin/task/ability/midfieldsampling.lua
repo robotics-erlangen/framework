@@ -12,7 +12,7 @@ local Rating = require "util/rating"
 
 
 local function visualizeRating(name, pos, rating)
-	if not name == "total" then
+	if name ~= "total" then
 		return
 	end
 
