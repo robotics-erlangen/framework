@@ -93,7 +93,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	end
 
 	-- QUICKFIX to prevent hish speed movement towards defenseArea
-	if predictedBall.pos and not Field.isInAllowedField(predictedBall.pos, World.Ball.radius) then
+	if predictedBall.pos and not Field.isInAllowedField(predictedBall.pos, World.Ball.radius) and self._robot ~= World.FriendlyKeeper then
 		predictedBall.pos = Field.limitToAllowedField(predictedBall.pos, World.Ball.radius)
 	end
 	local moveDest = predictedBall.pos - Vector.fromAngle(viewDir):scaleLength(
