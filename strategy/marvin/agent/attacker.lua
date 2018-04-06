@@ -13,6 +13,7 @@ local Move = require "agent/attacker/move"
 local PassTiming = require "agent/attacker/passtiming"
 local Penalty = require "agent/attacker/penalty"
 local PenaltyDefensive = require "agent/attacker/penaltydefensive"
+local PenaltyPassive = require "agent/shared/penaltypassive"
 local PenaltyShootout = require "agent/attacker/penaltyshootout"
 local Shoot = require "agent/attacker/shoot"
 local Stop = require "agent/attacker/stop"
@@ -23,8 +24,9 @@ Attacker._behaviors = {
 	ApplyForMainattacker,
 	Move,
 	Stop,
-	PenaltyDefensive,
 	PenaltyShootout,
+	PenaltyDefensive,
+	PenaltyPassive,
 	Penalty,
 	FreeKick,
 	DoubleTouchGuard,

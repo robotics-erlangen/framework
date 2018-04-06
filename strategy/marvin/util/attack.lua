@@ -343,7 +343,8 @@ local function calculatePassInfoTiming(robot, passInfo, passIncoming)
 		local robotTime = math.max(Physics.robotTimeToPos(robot, robotPos, Vector(0, 0), true), 0.5)
 		local ballTime = passIncoming and Physics.ballTravelTime(World.Ball, World.Ball.pos:distanceTo(passInfo.ballPos)) or math.huge
 		local messageTime = passInfo.time - World.Time
-		local bufferTime = BUFFER_TIME
+		local isInOpponentFieldHalf = passInfo.ballPos.y > 0
+		local bufferTime = isInOpponentFieldHalf and BUFFER_TIME or 1.5 * BUFFER_TIME
 		return math.min(messageTime, ballTime) - (robotTime + bufferTime)
 	end
 	return math.huge
