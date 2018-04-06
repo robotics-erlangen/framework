@@ -21,16 +21,19 @@ function MrlTestCorner.canStart()
 end
 
 function MrlTestCorner:_init()
-	local ballSide = (World.Ball.pos.x > 0) and -1 or 1
 	local goalDist = G.DefenseRadius + 0.4
 	self._distractorPositions = {
 		Vector(0.3, G.OpponentGoal.y - goalDist),
 		Vector(0.0, G.OpponentGoal.y - goalDist),
 		Vector(-0.3, G.OpponentGoal.y - goalDist)
 	}
+	self._distractorAttackPos = {}
+	for i=1,3 do
+		self._distractorAttackPos[i] = self._distractorPositions[i] - Vector((i)*0.3 + 0.3, 0.5)
+	end
 
-	self._activeRobotInitPos = Vector(ballSide * G.FieldWidthHalf / 1.4, G.FieldHeightHalf - 1)
-	self._activeRobotShootPos = Vector(-ballSide * G.FieldWidthHalf / 2, G.FieldHeightHalf * 0.3)
+	self._activeRobotInitPos = Vector(-G.FieldWidthHalf / 1.4, G.FieldHeightHalf - 1)
+	self._activeRobotShootPos = Vector(G.FieldWidthHalf / 2, G.FieldHeightHalf * 0.3)
 	self._restart = true
 end
 
@@ -43,6 +46,15 @@ function MrlTestCorner:_canContinue()
 		and World.RefereeState == "Stop"
 end
 
+local function getRobotsInRect(c1, c2, robots, buffer)
+	local r = {}
+	for _,v in ipairs(robots) do
+		if geom.insideRect(c1 + Vector(-buffer, buffer), c2 + Vector(buffer, -buffer), v.pos) then
+			table.insert(r, v)
+		end
+	end
+	return r
+end
 function MrlTestCorner:_updateTasks()
 
 	-- draw circles where robots cannot shoot a volley
@@ -64,18 +76,33 @@ function MrlTestCorner:_updateTasks()
 	end
 
 	local _, passInfoTable = next(self._inbox.passInfo())
-	local acceptPass = Attack.checkPassInfos(self._robots[2], passInfoTable, false)
-	if acceptPass then
-		taskAssignments[self._robots[2]] = { class = AcceptPass }
-	else
-		taskAssignments[self._robots[2]] = { class = Striker, params = { self._activeRobotInitPos, self._activeRobotShootPos }}
-	end
+
+	local buffer = 0.1
+	taskAssignments[self._robots[2]] = self:_taskAssignment(passInfoTable, self._activeRobotInitPos, self._activeRobotShootPos, self._robots[2])
 
 	taskAssignments[self._robots[3]] = { class = MoveToPos, params = { self._distractorPositions[1] }}
-	taskAssignments[self._robots[4]] = { class = MoveToPos, params = { self._distractorPositions[2] }}
-	taskAssignments[self._robots[5]] = { class = MoveToPos, params = { self._distractorPositions[3] }}
+
+	local enemyRobots = getRobotsInRect(self._distractorPositions[2], self._distractorPositions[3] + Vector(-0.6,0.4), World.OpponentRobots, buffer)
+	if #enemyRobots > 0 then
+		for i=2,3 do
+				taskAssignments[self._robots[i+2]] = { class = MoveToPos, params = { self._distractorPositions[i] }}
+		end
+	else
+		for i=2,3 do
+			taskAssignments[self._robots[i+2]] = MrlTestCorner:_taskAssignment(passInfoTable, self._distractorPositions[i], self._distractorAttackPos[i], self._robots[i+2])
+		end
+	end
 
 	return taskAssignments, self._robots[1]
+end
+function MrlTestCorner:_taskAssignment( passInfoTable, pos1, pos2, robot)
+	local ballSide = (World.Ball.pos.x > 0) and 1 or -1
+	local acceptPass = Attack.checkPassInfos(robot, passInfoTable, false)
+	if acceptPass then
+		return { class = AcceptPass }
+	else
+		return { class = Striker, params = { Vector(pos1.x * ballSide, pos1.y), Vector(pos2.x * ballSide, pos2.y) }}
+	end
 end
 
 return MrlTestCorner
