@@ -235,10 +235,11 @@ local function rateOpponentPassViability()
 		local distToBallOwnerRating = Rating.valueToRating(distToBallOwner, 2, 5)
 
 		-- we do not want the enemy to move the ball closer to our goal
+		local minRating = 0.6
 		local distToGoal = opp.pos.y + opp.speed.y/2 + G.FieldHeightHalf
-		local distToGoalRating = Rating.valueToRating(distToGoal, G.FieldHeight - G.DefenseHeight, G.DefenseHeight + 1)
+		local distToGoalRating = (1 - minRating) * Rating.valueToRating(distToGoal, G.FieldHeight - G.DefenseHeight, G.DefenseHeight + 1) + minRating
 
-		local rating = 0.6 * distToGoalRating + 0.4 * distToBallOwnerRating
+		local rating = distToGoalRating * distToBallOwnerRating
 		passViability[opp] = rating
 
 		if Ball.receivesPass(opp) then
