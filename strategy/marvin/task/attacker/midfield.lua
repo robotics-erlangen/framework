@@ -3,15 +3,14 @@ local MidfieldSampling = require "task/ability/midfieldsampling"
 local Midfield = Class("Task.Midfield", require "task/base", SuggestPass, MidfieldSampling)
 
 local Physics = require "observer/physics"
-
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
-
---local vis = require "../base/vis"
-
 function Midfield:_init()
 	self._passPos = nil
+
+	-- ewwwww hack
+	self._frameCount = 0
 
 	local ignore = false
 	self._obstacleTable = {
@@ -71,7 +70,11 @@ function Midfield:run()
 
 	self:precalculate()
 
-	self._passPos = self:_samplePassPosition()
+	-- Hacky quickfix for messaging delay problems
+	if (self._frameCount % 2) == 0 then
+		self._passPos = self:_samplePassPosition()
+	end
+	self._frameCount = self._frameCount + 1
 
 	-- local random = math.round(math.random() * #disco)
 	-- vis.addCircle("middy", self._robot.pos, 0.1, disco[random] or vis.colors.orange, true)
