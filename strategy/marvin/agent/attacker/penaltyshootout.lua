@@ -35,7 +35,8 @@ function PenaltyShootout:_stop()
 	self._baseDribblePos = Vector(0, G.FieldHeightHalf)
 	self._addPos = Vector(0, 0)
 	self._state = nil
-	self._futureKeeper = {pos = World.Geometry.OpponentGoal, speed = Vector(0,0)}
+	self._futureKeeper = {pos = World.Geometry.OpponentGoal, speed = Vector(0,0.1), radius = 0.09}
+	self._lastKeeper = {pos = World.Geometry.OpponentGoal, speed = Vector(0,0.1), radius = 0.09}
 end
 
 function PenaltyShootout:check()
@@ -76,7 +77,7 @@ function PenaltyShootout:_updateShootGoal()
 	end
 	local lastContact = self._contactPoint
 	local addDistance = lastContact and math.max(0, lastContact:distanceTo(World.Ball.pos) - 0.5)*3 or 0.2
-		self._futureKeeper.pos = self._futureKeeper.pos + World.OpponentKeeper.speed * 0.4
+		self._futureKeeper.pos = self._futureKeeper.pos + self._lastKeeper.speed * 0.4
 	if self._state == "pass" then
 		self._futureKeeper.pos = self._futureKeeper.pos + (self._robot.pos - self._futureKeeper.pos):setLength(self._robot.speed:length()/3)
 	end
@@ -139,7 +140,11 @@ function PenaltyShootout:_updateTask()
 	local lastContact = self._contactPoint
 	local robotPos = self._robot.pos
 	local freeway = self._state == "pass" and 0.1 or 0
-	local keeperPos = World.OpponentKeeper.pos
+	local keeperPos
+	if World.OpponentKeeper and World.OpponentKeeper.pos then
+		self._lastKeeper = World.OpponentKeeper
+	end
+		keeperPos = self._lastKeeper.pos
 
 	self:_updateDribbling()
 	self:_updateShootGoal()
@@ -157,7 +162,7 @@ function PenaltyShootout:_updateTask()
 	if World.RefereeState == "PenaltyOffensivePrepare" then
 		return MoveToStaticBall, {math.pi / 2, 0.1}
 	elseif self._shootGoalFlag then
-		return ShootGoal, nil, true
+		return ShootGoal--, nil, true
 	elseif lastContact and lastContact:distanceTo(World.Ball.pos) > 1 + 0.3 then
 		return ShootGoal
 	elseif not lastContact or robotPos:distanceTo(World.Ball.pos) > self._robot.radius + World.Ball.radius + freeway then --math.abs(geom.getAngleDiff(self._robot.dir, (World.Ball.pos - self._robot.pos):angle())) > 30 * math.pi/180 then
@@ -167,7 +172,7 @@ function PenaltyShootout:_updateTask()
 	elseif lastContact and lastContact:distanceTo(World.Ball.pos) > 1 - 0.3 then
 		--log("distance: "..lastContact:distanceTo(robotPos))
 		local shootlength = (0.1 + self._robot.speed:length())
-		if World.OpponentKeeper.speed.y > 0.5 and self._robot.pos.y > 2 then
+		if self._lastKeeper.speed.y > 0.5 and self._robot.pos.y > 2 then
 			return Pass, {nil, World.Ball.pos + Vector(0.4, 0.5), false, nil, nil, shootlength*0.6}
 		else
 			local shootpos = Vector(0, shootlength/3 + 0.2) * 0.6 + World.Ball.speed/3 * 0.4

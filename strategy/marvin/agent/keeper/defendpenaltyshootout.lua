@@ -7,7 +7,7 @@ local G = World.Geometry
 local Keeper = require "task/keeper/keeper"
 local AggressiveKeeper = require "task/keeper/aggressivekeeper"
 
-local CRITICAL_DISTANCE = 5
+local CRITICAL_DISTANCE = 4
 
 
 function DefendPenaltyShootout:_stop()
