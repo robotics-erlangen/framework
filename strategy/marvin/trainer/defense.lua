@@ -190,7 +190,7 @@ local function determineNumberOfPiggies(defenderCount, manmarkTargets, piggyTarg
 	-- TODO hysteresis
 
 	if World.Ball.pos.y < 0 then
-		dangerousnessThreshold = 0.5
+		dangerousnessThreshold = 0.3
 		viabilityThreshold = 0.8
 	else
 		dangerousnessThreshold = 0.8
