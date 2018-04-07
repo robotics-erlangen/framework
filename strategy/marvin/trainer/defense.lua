@@ -246,9 +246,9 @@ local function findMostViableTarget(piggyTargets, defenders, previousAssignments
 	return mostViableTarget
 end
 
-function Defense:_assignPiggies(defenders)
+function Defense:_assignPiggies(defenders, nPiggies)
 	-- assign piggies
-	while #defenders > 0 do
+	while #defenders > 0 and nPiggies > 0 do
 
 		local target = findMostViableTarget(self._piggyTargets, defenders, self._previousPiggyAssignments)
 		if not target then
@@ -268,6 +268,7 @@ function Defense:_assignPiggies(defenders)
 		table.removeValue(defenders, piggy)
 		self._send.roleAssignment(piggy,
 			{name = "Piggy", params = { target }})
+		nPiggies = nPiggies - 1
 	end
 end
 
@@ -284,7 +285,6 @@ function Defense:_assignDefenders()
 	self:_updatePiggyTargets()
 
 	local defenders = table.keys(self._inbox.defenderFlag())
-	local nReservedDefenders = determineNumberOfPiggies(#defenders, self._manmarkTargets, self._piggyTargets)
 
 	-- not in opponent corner attacks: assign a ball centerback
 	local needDefaultCB = not Referee.isDefensiveCornerKick() and not Referee.isFriendlyFreeKickState()
@@ -314,9 +314,11 @@ function Defense:_assignDefenders()
 	-- 		end
 	-- 	end
 	-- end
+	local nPiggies = determineNumberOfPiggies(#defenders, self._manmarkTargets, self._piggyTargets)
+	local nReservedDefenders = nPiggies
 
 	self:_assignManmarkDefenders(defenders, nReservedDefenders)
-	self:_assignPiggies(defenders)
+	self:_assignPiggies(defenders, nPiggies)
 end
 
 
