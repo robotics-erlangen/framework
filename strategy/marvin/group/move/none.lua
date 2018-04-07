@@ -7,7 +7,7 @@ local WindshieldWiper = require "group/move/windshieldwiper"
 local G = World.Geometry
 
 None.MIN_ROBOTS = 5
-None.MAX_ROBOTS = 7
+None.MAX_ROBOTS = 5
 
 function None:_updateTasks()
 	local taskAssignments = {}
