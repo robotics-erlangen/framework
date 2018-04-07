@@ -230,6 +230,12 @@ local function rateOpponentPassViability()
 			goto continue
 		end
 
+		-- ignore opponents that are too close to the defense area
+		if Field.distanceToDefenseAreaSq(opp.pos, true) < 1.5 * 1.5 then
+			passViability[opp] = 0
+			goto continue
+		end
+
 		-- ignore opponents that are behind the ball
 		if opp.pos.y - World.Ball.pos.y > 2 * Constants.maxRobotRadius then
 			passViability[opp] = 0
