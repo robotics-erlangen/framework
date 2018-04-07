@@ -33,6 +33,10 @@ function DuelAssistant:rateRobot(sender)
 end
 
 function DuelAssistant:check()
+	if self._robot == self._inbox.mainAttacker().trainer then
+		return false
+	end
+
 	local sender, _ = next(self._inbox.defendedOpponent())
 	if not sender and not self._lastTrue then
 		return false
@@ -60,10 +64,6 @@ function DuelAssistant:check()
 		self._active = false
 	end
 
-	if self._active and self._robot == self._inbox.mainAttacker().trainer then
-		-- log("duel assistant as mainAttacker " .. tostring(self._robot))
-		return false
-	end
 	return self._active
 end
 
