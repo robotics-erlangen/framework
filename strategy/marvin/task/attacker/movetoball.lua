@@ -7,7 +7,7 @@ local vis = require "../base/vis"
 
 
 function moveToBall:_init(ballAddSpeed)
-	self._addspeed = 0
+	self._addspeed = ballAddSpeed or 0
 	self._angleWeight = 1
 	self._obstacleTable = {
 		ignoreBall = true,
@@ -30,7 +30,7 @@ function moveToBall:run()
 	dir = dir:angle()
 
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
-	self._robot.trajectory:update(ToTarget, pos, dir, nil, ball.speed + Vector(dir2:setLength(0.1).x, self._addspeed))
+	self._robot.trajectory:update(ToTarget, pos, dir, nil, ball.speed * 0.98 + Vector(dir2:setLength(0.1).x, self._addspeed))
 
 end
 

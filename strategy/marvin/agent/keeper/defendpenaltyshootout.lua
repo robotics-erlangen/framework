@@ -7,7 +7,7 @@ local G = World.Geometry
 local Keeper = require "task/keeper/keeper"
 local AggressiveKeeper = require "task/keeper/aggressivekeeper"
 
-local CRITICAL_DISTANCE = 3
+local CRITICAL_DISTANCE = 5
 
 
 function DefendPenaltyShootout:_stop()
@@ -34,7 +34,7 @@ function DefendPenaltyShootout:_updateTask()
 	end
 
 	for _, r in ipairs(World.OpponentRobots) do
-		if r.pos:distanceTo(G.FriendlyGoal) < CRITICAL_DISTANCE then
+		if World.RefereeState == "PenaltyDefensive" or r.pos:distanceTo(G.FriendlyGoal) < CRITICAL_DISTANCE then
 			return AggressiveKeeper
 		end
 	end

@@ -15,6 +15,7 @@ local MoveToBall = require "task/attacker/movetoball"
 local geom = require "../base/geom"
 local Dribble = require "task/attacker/dribble"
 local Pass = require "task/shared/pass"
+local Field = require "../base/field"
 
 local vis = require "../base/vis"
 local debug = require "../base/debug"
@@ -31,8 +32,10 @@ function PenaltyShootout:_stop()
 	self._shootGoalFlag = false
 	self._forceDesperate = false
 	self._changeContact = false
-	self._baseDribblePos = Vector(0, G.FieldHeightHalf - G.DefenseHeight - 0.2)
+	self._baseDribblePos = Vector(0, G.FieldHeightHalf)
 	self._addPos = Vector(0, 0)
+	self._state = nil
+	self._futureKeeper = {pos = World.Geometry.OpponentGoal, speed = Vector(0,0)}
 end
 
 function PenaltyShootout:check()
@@ -68,7 +71,17 @@ function PenaltyShootout:_updateDribbling()
 end
 
 function PenaltyShootout:_updateShootGoal()
-	local sector = Goal.largestFreeSector(World.Ball.pos, {World.OpponentKeeper}, true)
+	if World.OpponentKeeper and World.OpponentKeeper.pos then
+		self._futureKeeper = {pos = World.OpponentKeeper.pos, radius = World.OpponentKeeper.radius}
+	end
+	local lastContact = self._contactPoint
+	local addDistance = lastContact and math.max(0, lastContact:distanceTo(World.Ball.pos) - 0.5)*3 or 0.2
+		self._futureKeeper.pos = self._futureKeeper.pos + World.OpponentKeeper.speed * 0.4
+	if self._state == "pass" then
+		self._futureKeeper.pos = self._futureKeeper.pos + (self._robot.pos - self._futureKeeper.pos):setLength(self._robot.speed:length()/3)
+	end
+	vis.addCircle("1test", self._futureKeeper.pos, 0.2, vis.colors.green, false)
+	local sector = Goal.largestFreeSector(World.Ball.pos, {self._futureKeeper}, true)
 	local width = sector and math.abs(sector[1] - sector[2]) or 0
 
 	debug.push("Shootgoal Criterias")
@@ -107,28 +120,33 @@ function PenaltyShootout:_updateShootGoal()
 	-- 	log("sector = "..tostring(sector))
 	-- 	log("threshold = "..tostring(2 * math.tan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y)) * MIN_RELATIVE_SECTOR_SIZE) * 180)
 	-- end
-
+	debug.set("addDistance",addDistance)
 	if self._penaltyStartTime then
 		if self._shootGoalFlag
 				or (self._penaltyStartTime and World.Time - self._penaltyStartTime > 8)
-				or World.Ball.pos.y > G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA then
+				or World.Ball.pos.y > G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA - addDistance then
 			self._shootGoalFlag = true
 		end
-		if width < 2 * math.atan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y)) * MIN_RELATIVE_SECTOR_SIZE then
+		local angle = 2 * math.atan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y))
+		-- log(tostring(width *180/math.pi) .. " / " .. tostring(angle * 180/math.pi))
+		if width < angle * MIN_RELATIVE_SECTOR_SIZE then
 			self._shootGoalFlag = true
-			self._forceDesperate = true
 		end
 	end
 end
 
 function PenaltyShootout:_updateTask()
 	local lastContact = self._contactPoint
+	local robotPos = self._robot.pos
+	local freeway = self._state == "pass" and 0.1 or 0
+	local keeperPos = World.OpponentKeeper.pos
+
 	self:_updateDribbling()
 	self:_updateShootGoal()
 	debug.set("ShootGoalFlag", self._shootGoalFlag)
 	--log(self._shootGoalFlag)
-	if self._contactPoint then
-		vis.addCircle("1test", self._contactPoint, 1, vis.colors.green, false)
+	if lastContact then
+		vis.addCircle("1test", lastContact, 1, vis.colors.green, false)
 	end
 
 	if World.RefereeState == "PenaltyOffensive" and not self._penaltyStartTime then
@@ -139,30 +157,45 @@ function PenaltyShootout:_updateTask()
 	if World.RefereeState == "PenaltyOffensivePrepare" then
 		return MoveToStaticBall, {math.pi / 2, 0.1}
 	elseif self._shootGoalFlag then
-		return ShootGoal, {nil, self._forceDesperate}
-	elseif not self._contactPoint or self._robot.pos:distanceTo(World.Ball.pos) > self._robot.radius + World.Ball.radius then --math.abs(geom.getAngleDiff(self._robot.dir, (World.Ball.pos - self._robot.pos):angle())) > 30 * math.pi/180 then
-		return MoveToBall, {0.01}
-	elseif self._contactPoint and self._contactPoint:distanceTo(World.Ball.pos) > 1 - 0.2 then
-		--log("distance: "..self._contactPoint:distanceTo(self._robot.pos))
-		local shootlength = (0.1 + self._robot.speed:length())
-		return Pass, {nil, World.Ball.pos + Vector(0, shootlength/3 + 0.2), false, nil, nil, shootlength}, true
-	elseif self._contactPoint and self._contactPoint:distanceTo(World.Ball.pos) > 1 + 0.3 then
+		return ShootGoal, nil, true
+	elseif lastContact and lastContact:distanceTo(World.Ball.pos) > 1 + 0.3 then
 		return ShootGoal
+	elseif not lastContact or robotPos:distanceTo(World.Ball.pos) > self._robot.radius + World.Ball.radius + freeway then --math.abs(geom.getAngleDiff(self._robot.dir, (World.Ball.pos - self._robot.pos):angle())) > 30 * math.pi/180 then
+		return MoveToBall, {0.01}
+	elseif lastContact and lastContact:distanceTo(World.Ball.pos) > 1 - 0.05 then
+		return StopAttack
+	elseif lastContact and lastContact:distanceTo(World.Ball.pos) > 1 - 0.3 then
+		--log("distance: "..lastContact:distanceTo(robotPos))
+		local shootlength = (0.1 + self._robot.speed:length())
+		if World.OpponentKeeper.speed.y > 0.5 and self._robot.pos.y > 2 then
+			return Pass, {nil, World.Ball.pos + Vector(0.4, 0.5), false, nil, nil, shootlength*0.6}
+		else
+			local shootpos = Vector(0, shootlength/3 + 0.2) * 0.6 + World.Ball.speed/3 * 0.4
+			self._state = "pass"
+			return Pass, {nil, World.Ball.pos + shootpos, false, nil, nil, shootlength}, true
+		end
+	elseif lastContact and lastContact:distanceTo(World.Ball.pos) > 1 - 0.35 then
+		return MoveToBall, {0.00}
 	else
+		self._state = "dribble"
 		-- self._robot:setDribblerSpeed(0.5)
 		-- return MoveToBall, {-0.1}, self._changeContact
-		local keeperPos = World.OpponentKeeper.pos
-		local rate = 0.02 * self._robot.pos:distanceTo(keeperPos)
-		-- if self._contactPoint:distanceTo(World.Ball.pos) < 1 - 0.2 then
+		local rate = 0.02 * robotPos:distanceTo(keeperPos)
+		-- if lastContact:distanceTo(World.Ball.pos) < 1 - 0.2 then
 			if keeperPos.x < 0 then
-				self._addPos.x = (self._addPos.x + rate) / (1+math.abs(self._robot.pos.x - keeperPos.x))
+				self._addPos.x = (self._addPos.x + rate) / (1+math.abs(robotPos.x - keeperPos.x))
 			else
-				self._addPos.x = (self._addPos.x - rate) / (1+math.abs(self._robot.pos.x - keeperPos.x))
+				self._addPos.x = (self._addPos.x - rate) / (1+math.abs(robotPos.x - keeperPos.x))
 			end
 		-- else
 		-- 	self._addPos.x = 0
 		-- end
-		return Dribble, {self._baseDribblePos + self._addPos}, true
+		local dribblePoint = self._baseDribblePos + self._addPos
+		local intersection = Field.intersectRayDefenseArea(dribblePoint, robotPos - dribblePoint, 0.2, false)
+		if intersection then
+			dribblePoint = intersection
+		end
+		return Dribble, {dribblePoint}, true
 	end
 end
 
