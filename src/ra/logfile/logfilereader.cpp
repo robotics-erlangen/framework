@@ -113,7 +113,7 @@ bool LogFileReader::indexFile()
         // a timestamp of 0 indicates a invalid packet
         if (time != 0) {
             // timestamps that are too far apart mean that the logfile is corrupt
-            if (lastTime != 0 && (time - lastTime < 0 || time - lastTime > 1000000000)) {
+            if (lastTime != 0 && (time - lastTime < 0 || time - lastTime > 50000000000L)) {
                 m_errorMsg = "Invalid or corrupt logfile";
                 return false;
             }
