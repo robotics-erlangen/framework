@@ -24,6 +24,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QIcon>
+#include <QCommandLineParser>
 
 int main(int argc, char* argv[])
 {
@@ -44,7 +45,14 @@ int main(int argc, char* argv[])
 
     QDir::addSearchPath("icon", QString(ERFORCE_DATADIR) + "/icons");
 
-    MainWindow window;
+    QCommandLineParser parser;
+    parser.setApplicationDescription("Ra");
+    parser.addHelpOption();
+    QCommandLineOption tournamentOption({"t", "game", "tournament"}, "Tournament mode");
+    parser.addOption(tournamentOption);
+    parser.process(app);
+
+    MainWindow window(parser.isSet(tournamentOption));
     window.show();
 
     return app.exec();

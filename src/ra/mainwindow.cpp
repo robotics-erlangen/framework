@@ -34,7 +34,7 @@
 #include <QThread>
 #include <QSignalMapper>
 
-MainWindow::MainWindow(QWidget *parent) :
+MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_transceiverActive(false),
@@ -253,6 +253,14 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->field, SLOT(saveConfig()));
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->timing, SLOT(saveConfig()));
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->visualization, SLOT(saveConfig()));
+
+    if (tournamentMode) {
+        ui->actionRecord->setChecked(true);
+        ui->actionChargeKicker->setChecked(true);
+        ui->actionEnableTransceiver->setChecked(true);
+        ui->actionSimulator->setChecked(false);
+        ui->actionInternalReferee->setChecked(false);
+    }
 }
 
 MainWindow::~MainWindow()
