@@ -28,6 +28,7 @@
 #include <QListView>
 #include <QToolButton>
 #include <QStringList>
+#include <QPushButton>
 
 class TeamWidget : public QFrame
 {
@@ -83,13 +84,13 @@ private:
     QToolButton *m_btnOpen;
     QToolButton *m_btnEntryPoint;
     QToolButton *m_btnReload;
+    QPushButton *m_btnEnableDebug;
     QMenu *m_scriptMenu;
     QMenu *m_entryPoints;
     QString m_filename;
     QString m_entryPoint;
     QAction *m_actionDisable;
     QAction *m_reloadAction;
-    QAction *m_enableDebugAction;
     QAction *m_debugAction;
     bool m_userAutoReload;
     bool m_notification;

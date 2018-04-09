@@ -55,7 +55,7 @@ void TeamWidget::saveConfig()
     s.setValue("Script", m_filename);
     s.setValue("EntryPoint", m_entryPoint);
     s.setValue("AutoReload", m_userAutoReload);
-    s.setValue("EnableDebugAction", m_enableDebugAction->isChecked());
+    s.setValue("EnableDebug", m_btnEnableDebug->isChecked());
     s.endGroup();
 }
 
@@ -94,18 +94,24 @@ void TeamWidget::init(TeamType type)
     connect(m_btnEntryPoint, SIGNAL(triggered(QAction*)), SLOT(selectEntryPoint(QAction*)));
     hLayout->addWidget(m_btnEntryPoint);
 
+    QIcon debugIcon;
+    debugIcon.addFile("icon:32/debugging-disabled.png", QSize(), QIcon::Normal, QIcon::Off);
+    debugIcon.addFile("icon:32/debugging-enabled.png", QSize(), QIcon::Normal, QIcon::On);
+    m_btnEnableDebug = new QPushButton;
+    m_btnEnableDebug->setIcon(debugIcon);
+    m_btnEnableDebug->setToolTip("Enable debugging");
+    m_btnEnableDebug->setCheckable(true);
+    if (m_type == AUTOREF) {
+        m_btnEnableDebug->setChecked(true);
+        m_btnEnableDebug->setDisabled(true);
+    }
+    connect(m_btnEnableDebug, SIGNAL(toggled(bool)), SLOT(sendEnableDebug(bool)));
+    hLayout->addWidget(m_btnEnableDebug);
+
     QMenu *reload_menu = new QMenu(this);
     m_reloadAction = reload_menu->addAction("Reload automatically");
     m_reloadAction->setCheckable(true);
     connect(m_reloadAction, SIGNAL(toggled(bool)), SLOT(sendAutoReload()));
-
-    m_enableDebugAction = reload_menu->addAction("Enable debugging");
-    m_enableDebugAction->setCheckable(true);
-    if (m_type == AUTOREF) {
-        m_enableDebugAction->setChecked(true);
-        m_enableDebugAction->setDisabled(true);
-    }
-    connect(m_enableDebugAction, SIGNAL(toggled(bool)), SLOT(sendEnableDebug(bool)));
 
     m_debugAction = reload_menu->addAction("Trigger debugger");
     m_debugAction->setEnabled(false);
@@ -141,7 +147,7 @@ void TeamWidget::enableContent(bool enable)
     m_btnEntryPoint->setEnabled(enable);
     m_btnReload->blockSignals(!enable);
     m_reloadAction->setEnabled(enable);
-    m_enableDebugAction->setEnabled(enable);
+    m_btnEnableDebug->setEnabled(enable);
     m_debugAction->setEnabled(enable);
 }
 
@@ -153,7 +159,7 @@ void TeamWidget::load()
     m_entryPoint = s.value("EntryPoint").toString();
     m_reloadAction->setChecked(s.value("AutoReload").toBool());
     if (m_type != AUTOREF) {
-        m_enableDebugAction->setChecked(s.value("EnableDebugAction", false).toBool());
+        m_btnEnableDebug->setChecked(s.value("EnableDebug", false).toBool());
     }
     s.endGroup();
 
