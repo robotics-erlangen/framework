@@ -48,6 +48,7 @@ signals:
 
 public slots:
     void handleStatus(const Status &status);
+    void saveConfig();
 
 private slots:
     void handleCommand();

@@ -244,6 +244,15 @@ MainWindow::MainWindow(QWidget *parent) :
     addAction(ui->actionStepForward);
     addAction(ui->actionShowBacklog);
     addAction(ui->actionTogglePause);
+
+    // set up save config connections
+    connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), this, SLOT(saveConfig()));
+    connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->input, SLOT(saveConfig()));
+    connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->referee, SLOT(saveConfig()));
+    connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->robots, SLOT(saveConfig()));
+    connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->field, SLOT(saveConfig()));
+    connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->timing, SLOT(saveConfig()));
+    connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->visualization, SLOT(saveConfig()));
 }
 
 MainWindow::~MainWindow()
@@ -252,6 +261,20 @@ MainWindow::~MainWindow()
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)
+{
+    saveConfig();
+
+    // make sure the plotter is closed along with the mainwindow
+    // this also ensure that a closeEvent is triggered
+    m_plotter->close();
+
+    // unblock stopped strategies
+    ui->robots->shutdown();
+
+    QMainWindow::closeEvent(e);
+}
+
+void MainWindow::saveConfig()
 {
     QSettings s;
 
@@ -266,15 +289,6 @@ void MainWindow::closeEvent(QCloseEvent *e)
     s.setValue("Simulator/Enabled", ui->actionSimulator->isChecked());
     s.setValue("Referee/Internal", ui->actionInternalReferee->isChecked());
     s.setValue("InputDevices/Enabled", ui->actionInputDevices->isChecked());
-
-    // make sure the plotter is closed along with the mainwindow
-    // this also ensure that a closeEvent is triggered
-    m_plotter->close();
-
-    // unblock stopped strategies
-    ui->robots->shutdown();
-
-    QMainWindow::closeEvent(e);
 }
 
 void MainWindow::ruleVersionChanged(QAction * action)

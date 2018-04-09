@@ -44,6 +44,12 @@ TeamWidget::~TeamWidget()
 
 void TeamWidget::shutdown()
 {
+    saveConfig();
+    closeScript();
+}
+
+void TeamWidget::saveConfig()
+{
     QSettings s;
     s.beginGroup(teamTypeName());
     s.setValue("Script", m_filename);
@@ -51,8 +57,6 @@ void TeamWidget::shutdown()
     s.setValue("AutoReload", m_userAutoReload);
     s.setValue("EnableDebugAction", m_enableDebugAction->isChecked());
     s.endGroup();
-
-    closeScript();
 }
 
 void TeamWidget::init(TeamType type)

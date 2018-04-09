@@ -91,6 +91,7 @@ public slots:
     void clearTraces();
     void hideVisualizationToggles();
     void flipAOI();
+    void saveConfig();
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;

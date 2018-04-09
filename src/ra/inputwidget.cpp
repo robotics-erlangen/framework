@@ -32,14 +32,18 @@ InputWidget::InputWidget(QWidget *parent) :
 
 InputWidget::~InputWidget()
 {
+    saveConfig();
+    delete ui;
+}
+
+void InputWidget::saveConfig()
+{
     QSettings s;
     s.beginGroup("Input");
     s.setValue("SpeedLinear", ui->spinLinear->value());
     s.setValue("SpeedRotation", ui->spinRotation->value());
     s.setValue("Global", ui->checkGlobal->isChecked());
     s.endGroup();
-
-    delete ui;
 }
 
 void InputWidget::init(InputManager *inputManager)

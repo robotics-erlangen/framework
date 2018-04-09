@@ -101,6 +101,14 @@ RobotSelectionWidget::RobotSelectionWidget(QWidget *parent) :
 
 RobotSelectionWidget::~RobotSelectionWidget()
 {
+    saveConfig(false);
+
+    delete ui;
+    delete m_itemDelegate;
+}
+
+void RobotSelectionWidget::saveConfig(bool saveTeams)
+{
     QSettings s;
     s.beginGroup("Robots");
     s.beginWriteArray("Generations");
@@ -121,8 +129,11 @@ RobotSelectionWidget::~RobotSelectionWidget()
     saveRobots("BlueTeam", RobotWidget::Blue);
     saveRobots("YellowTeam", RobotWidget::Yellow);
 
-    delete ui;
-    delete m_itemDelegate;
+    if (saveTeams) {
+        ui->blue->saveConfig();
+        ui->yellow->saveConfig();
+        ui->autoref->saveConfig();
+    }
 }
 
 void RobotSelectionWidget::shutdown()

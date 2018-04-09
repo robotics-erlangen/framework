@@ -40,6 +40,9 @@ public:
     void init(InputManager *inputManager);
     void load();
 
+public slots:
+    void saveConfig();
+
 private:
     Ui::InputWidget *ui;
 };

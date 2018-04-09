@@ -61,12 +61,16 @@ VisualizationWidget::VisualizationWidget(QWidget *parent) :
 
 VisualizationWidget::~VisualizationWidget()
 {
+    saveConfig();
+    delete ui;
+}
+
+void VisualizationWidget::saveConfig()
+{
     QSettings s;
     s.beginGroup(QStringLiteral("Visualization"));
     s.setValue(QStringLiteral("Visible"), QStringList(m_selection.toList()));
     s.endGroup();
-
-    delete ui;
 }
 
 void VisualizationWidget::load()

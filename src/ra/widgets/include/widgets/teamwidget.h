@@ -55,6 +55,7 @@ public:
 public slots:
     void handleStatus(const Status &status);
     void resendAll(bool send);
+    void saveConfig();
 
 private slots:
     void showOpenDialog();

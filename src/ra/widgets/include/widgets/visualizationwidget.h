@@ -59,6 +59,7 @@ private slots:
     void invalidateItems();
     void clearItems();
     void showContextMenu(const QPoint &pos);
+    void saveConfig();
 
 private:
     void clearForeground(QStandardItem *item) const;

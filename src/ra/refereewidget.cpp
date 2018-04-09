@@ -76,14 +76,18 @@ RefereeWidget::RefereeWidget(QWidget *parent) :
 
 RefereeWidget::~RefereeWidget()
 {
+    saveConfig();
+    delete ui;
+}
+
+void RefereeWidget::saveConfig()
+{
     QSettings s;
     s.beginGroup("Referee");
     s.setValue("YellowKeeper", ui->keeperIdYellow->value());
     s.setValue("BlueKeeper", ui->keeperIdBlue->value());
     s.setValue("useInternalAutoref", ui->useInternalAutoref->isChecked());
     s.endGroup();
-
-    delete ui;
 }
 
 void RefereeWidget::load()

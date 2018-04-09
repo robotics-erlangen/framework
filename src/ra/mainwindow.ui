@@ -88,6 +88,7 @@
     <addaction name="actionChargeKicker"/>
     <addaction name="actionFlipSides"/>
     <addaction name="separator"/>
+    <addaction name="actionSaveConfiguration"/>
     <addaction name="actionQuit"/>
    </widget>
    <widget class="QMenu" name="menuVideo">
@@ -609,6 +610,11 @@
    </property>
    <property name="text">
     <string>2018</string>
+   </property>
+  </action>
+  <action name="actionSaveConfiguration">
+   <property name="text">
+    <string>Save configuration</string>
    </property>
   </action>
  </widget>

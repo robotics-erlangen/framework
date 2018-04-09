@@ -70,6 +70,7 @@ public slots:
     void selectTeam(uint generation, uint id, RobotWidget::Team team);
     void selectTeamForGeneration(uint generation, uint id, RobotWidget::Team team);
     void selectInputDeviceForGeneration(uint generation, const QString &inputDevice);
+    void saveConfig(bool saveTeams = true);
 
 public:
     void init(QWidget *window, InputManager *inputManager);

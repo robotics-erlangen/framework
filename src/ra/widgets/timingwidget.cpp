@@ -61,12 +61,16 @@ TimingWidget::TimingWidget(QWidget *parent) :
 
 TimingWidget::~TimingWidget()
 {
+    saveConfig();
+    delete ui;
+}
+
+void TimingWidget::saveConfig()
+{
     QSettings s;
     s.beginGroup("Timing");
     s.setValue("Header", ui->treeView->header()->saveState());
     s.endGroup();
-
-    delete ui;
 }
 
 void TimingWidget::handleStatus(const Status &status)

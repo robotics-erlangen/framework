@@ -266,8 +266,12 @@ FieldWidget::FieldWidget(QWidget *parent) :
 
 FieldWidget::~FieldWidget()
 {
+    saveConfig();
     QGestureRecognizer::unregisterRecognizer(m_touchStatusType);
+}
 
+void FieldWidget::saveConfig()
+{
     QSettings s;
     s.beginGroup("Field");
     s.setValue("OpenGL", m_actionGL->isChecked());
