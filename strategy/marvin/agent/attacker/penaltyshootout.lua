@@ -8,11 +8,8 @@ local G = World.Geometry
 local Goal = require "observer/goal"
 local Robot = require "observer/robot"
 local MoveToStaticBall = require "task/attacker/movetostaticball"
-local StopAttack = require "task/attacker/stopattack"
 local ShootGoal = require "task/attacker/shootgoal"
-local Shoot = require "task/ability/shoot"
 local MoveToBall = require "task/attacker/movetoball"
-local geom = require "../base/geom"
 local Dribble = require "task/attacker/dribble"
 local Pass = require "task/shared/pass"
 
@@ -122,7 +119,6 @@ function PenaltyShootout:_updateShootGoal()
 end
 
 function PenaltyShootout:_updateTask()
-	local lastContact = self._contactPoint
 	self:_updateDribbling()
 	self:_updateShootGoal()
 	debug.set("ShootGoalFlag", self._shootGoalFlag)

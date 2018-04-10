@@ -6,7 +6,7 @@ local ToTarget = require "trajectory/totarget"
 local vis = require "../base/vis"
 
 
-function moveToBall:_init(ballAddSpeed)
+function moveToBall:_init()
 	self._addspeed = 0
 	self._angleWeight = 1
 	self._obstacleTable = {
