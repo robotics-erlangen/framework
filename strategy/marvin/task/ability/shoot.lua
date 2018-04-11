@@ -9,6 +9,7 @@ local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
+local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local TrajectoryDirect = require "trajectory/direct"
@@ -142,7 +143,7 @@ function Shoot:_getState(targetPos, futureBall, futureBallTime)
 
 	-- check if the ball is stationary
 	local wobblingBallSpeed = WOBBLING_BALL_SPEED + (self._state == "StationaryBall" and 1 or -1) * WOBBLING_BALL_SPEED_HYST
-	if futureBall.speed:length() < wobblingBallSpeed then
+	if not Ball.wasShot(0.5) and futureBall.speed:length() < wobblingBallSpeed then
 		return "StationaryBall"
 	end
 
