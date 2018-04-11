@@ -53,6 +53,8 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
         addTeamType("All Blue", Blue);
         addTeamType("All Yellow", Yellow);
         addTeamType("Blue - Yellow", HalfHalf);
+        // TODO maybe rename this function to be more general since SwapTeam is more of an action and not a team type
+        addTeamType("Swap teams", SwapTeam);
     } else {
         addTeamType("No team", NoTeam);
         addTeamType("Blue", Blue);
@@ -305,6 +307,7 @@ void RobotWidget::selectTeam(Team team)
 
     switch (team) {
     case NoTeam:
+    case SwapTeam:
         brush = QBrush("white");
         m_inputLabel->setEnabled(false);
         break;

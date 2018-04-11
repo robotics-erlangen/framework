@@ -519,10 +519,21 @@ void RobotSelectionWidget::selectTeamForGeneration(uint generation, uint, RobotW
         it.next();
         Generation::Robot &r = it.value();
         RobotWidget::Team t = team;
-        if (team == RobotWidget::HalfHalf && robotCounter < g.robots.size() / 2) {
-            t = RobotWidget::Blue;
-        } else if (team == RobotWidget::HalfHalf) {
-            t = RobotWidget::Yellow;
+        switch (team) {
+        case RobotWidget::HalfHalf:
+            t = robotCounter < g.robots.size() / 2 ? RobotWidget::Blue : RobotWidget::Yellow;
+            break;
+        case RobotWidget::SwapTeam:
+            // Can't swap the team if none is assigned
+            if (r.team != RobotWidget::NoTeam) {
+                t = r.team == RobotWidget::Blue ? RobotWidget::Yellow : RobotWidget::Blue;
+            }
+            else {
+                t = RobotWidget::NoTeam;
+            }
+            break;
+        default:
+            break;
         }
         robotCounter++;
         unsetTeam(r.specs.id(), generation, t);
