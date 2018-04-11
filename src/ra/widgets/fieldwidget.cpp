@@ -776,18 +776,17 @@ void FieldWidget::setRobot(const world::Robot &robot, const robot::Specs &specs,
         const uint id = robot.id();
         // team id blobs
         // positions are as seen in the ssl rules (dribbler is on the upper side)
-        // TODO: update the robot patterns for 12-15 when the new rules are out
         // upper left
-        brush = (id == 0 || id == 3 || id == 4 || id == 7 || id == 9 || id == 10 || id == 13 || id == 14) ? pink : green;
+        brush = (id == 0 || id == 3 || id == 4 || id == 7 || id == 9 || id == 10 || id == 14 || id == 15) ? pink : green;
         addBlob(-0.054772f,  0.035f, brush, r.robot);
         // lower left
-        brush = (id == 4 || id == 5 || id == 6 || id == 7 || id == 9 || id == 11 || id == 14  || id == 15) ? pink : green;
+        brush = (id == 4 || id == 5 || id == 6 || id == 7 || id == 9 || id == 11 || id == 13  || id == 15) ? pink : green;
         addBlob(-0.035f, -0.054772f, brush, r.robot);
         // lower right
-        brush = (id == 0 || id == 1 || id == 2 || id == 3 || id == 9 || id == 11 || id == 14  || id == 15) ? pink : green;
+        brush = (id == 0 || id == 1 || id == 2 || id == 3 || id == 9 || id == 11 || id == 13  || id == 15) ? pink : green;
         addBlob( 0.035f, -0.054772f, brush, r.robot);
         // upper right
-        brush = (id == 0 || id == 1 || id == 4 || id == 5 || id == 9 || id == 10 || id == 12  || id == 15) ? pink : green;
+        brush = (id == 0 || id == 1 || id == 4 || id == 5 || id == 9 || id == 10 || id == 12  || id == 13) ? pink : green;
         addBlob( 0.054772f,  0.035f, brush, r.robot);
 
         const float angle = specs.has_angle() ? (specs.angle() / M_PI * 180.0f) : 70.0f;
