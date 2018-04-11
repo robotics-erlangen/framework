@@ -146,6 +146,17 @@ function FreeKick:_updateTask()
 		end
 	end
 
+	-- delay the pass if the receiver is not ready yet
+	if self._state == "pass" then
+		local passSuggestion = self._inbox.passSuggestion()[self._pass.target]
+		if passSuggestion and passSuggestion.ballPos == self._pass.ballPos then
+			if self._pass.time < passSuggestion.time then
+				self._pass.time = passSuggestion.time
+			end
+		end
+	end
+
+
 	if self._passList and self._state == "pass" then
 		self._send.passInfo("all", {self._pass})
 	elseif self._passList then
@@ -188,6 +199,9 @@ function FreeKick:_updateTask()
 		self._send.attackTime("all", Referee.lastStateChangeTime() + PASS_TIMEFRAME)
 		return MoveToStaticBall, { math.pi / 2 }, stateChanged
 	elseif self._state == "pass" then
+		if self._task and Class.instanceOf(self._task, Pass) then
+			self._task:updateTarget(self._pass.target, self._pass.ballPos, self._pass.time)
+		end
 		return Pass, { self._pass.target, self._pass.ballPos, self._pass.chip, World.Ball.pos, self._pass.time }, restartTask
 	end
 end

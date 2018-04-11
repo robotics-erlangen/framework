@@ -33,10 +33,11 @@ function Pass:_init(targetRobot, targetPos, chip, ballReceiptPos, targetTime, ta
 	end
 end
 
-function Pass:updateTarget(targetRobot, targetPos, passSpeed)
+function Pass:updateTarget(targetRobot, targetPos, targetTime, targetSpeed)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
-	self._passSpeed = passSpeed or targetRobot and self._targetRobot.constants.passSpeed or MIN_PASS_SPEED
+	self._passSpeed = targetSpeed or targetRobot and self._targetRobot.constants.passSpeed or MIN_PASS_SPEED
+	self._targetTime = targetTime
 end
 
 function Pass:run()
