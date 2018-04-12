@@ -22,6 +22,7 @@
 
 #include <QDateTime>
 #include <QMenu>
+#include <QTextBlock>
 
 LogWidget::LogWidget(QWidget *parent) :
     QPlainTextEdit(parent),
@@ -31,8 +32,10 @@ LogWidget::LogWidget(QWidget *parent) :
     m_logYellowStrategy(true),
     m_logAutoref(true)
 {
-    this->setMaximumBlockCount(1000);
+    const int MAX_BLOCKS = 1000;
+    this->setMaximumBlockCount(MAX_BLOCKS);
     this->setReadOnly(true);
+    m_lastTimes.setCapacity(MAX_BLOCKS);
 }
 
 void LogWidget::hideLogToggles()
@@ -43,6 +46,14 @@ void LogWidget::hideLogToggles()
 void LogWidget::handleStatus(const Status &status)
 {
     if (status->has_debug()) {
+        while (m_lastTimes.size() > 0 && m_lastTimes.last() >= status->time()) {
+            m_lastTimes.removeLast();
+            QTextBlock block = document()->lastBlock();
+            QTextCursor cursor(block);
+            cursor.select(QTextCursor::BlockUnderCursor);
+            cursor.removeSelectedText();
+        }
+
         const amun::DebugValues &debug = status->debug();
 
         QString logAppend;
@@ -97,6 +108,7 @@ void LogWidget::handleStatus(const Status &status)
         }
         if (logAppend.size() > 0) {
             appendHtml(logAppend);
+            m_lastTimes.append(status->time());
         }
     }
 }

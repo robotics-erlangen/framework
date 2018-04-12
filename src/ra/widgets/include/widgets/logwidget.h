@@ -22,6 +22,7 @@
 #define LOGWIDGET_H
 
 #include <QPlainTextEdit>
+#include <QContiguousCache>
 #include "protobuf/status.h"
 
 class LogWidget : public QPlainTextEdit
@@ -41,6 +42,7 @@ private slots:
     void setLogVisibility(bool visible);
     
 private:
+    QContiguousCache<qint64> m_lastTimes;
     qint64 m_lastDate;
     bool m_hideLogToggles;
     bool m_logBlueStrategy;
