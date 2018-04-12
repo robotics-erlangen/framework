@@ -135,7 +135,7 @@ function ShootGoal.updateTarget(ownRobot, oldTarget, oldDirty, attackPosition)
 	local targetPoint, targetWidth = ShootGoal.findTarget(ownRobot, viewPos, false, oldTarget)
 
 	-- update decision if we ignore the goalie and check for ricochets
-	local dirtyCheckAngle = 1.2 * math.pi/180
+	local dirtyCheckAngle = 2.5 * math.pi/180
 	local dirtyCheckAngleHysteresis = 0.3 * math.pi/180
 	local dirty = targetWidth < dirtyCheckAngle - dirtyCheckAngleHysteresis or
 		(oldDirty and targetWidth < dirtyCheckAngle + dirtyCheckAngleHysteresis)
@@ -143,6 +143,10 @@ function ShootGoal.updateTarget(ownRobot, oldTarget, oldDirty, attackPosition)
 	-- search a second time if necessary
 	if dirty then
 		targetPoint, targetWidth = ShootGoal.findTarget(ownRobot, viewPos, true, oldTarget)
+	end
+
+	if viewPos.y < -0.3 or oldDirty and viewPos.y < -0.1 then
+		dirty = true
 	end
 
 	return targetPoint, targetWidth, dirty
