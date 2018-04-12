@@ -42,7 +42,7 @@ VisualizationWidget::VisualizationWidget(QWidget *parent) :
     ui->list->setUniformItemSizes(true); // speed up
     ui->list->setModel(m_proxy);
     connect(m_model, SIGNAL(itemChanged(QStandardItem*)), SLOT(itemChanged(QStandardItem*)));
-    connect(ui->filter, SIGNAL(textChanged(QString)), m_proxy, SLOT(setFilterFixedString(QString)));
+    connect(ui->filter, SIGNAL(textChanged(QString)), this, SLOT(filterTextChanged(QString)));
     connect(ui->filter, SIGNAL(returnPressed()), ui->filter, SLOT(clear()));
 
     // setup context menu
@@ -201,4 +201,16 @@ void VisualizationWidget::itemChanged(QStandardItem *item)
         m_proxy->sort(0);
         sendItemsChanged();
     }
+}
+
+void VisualizationWidget::filterTextChanged(QString text)
+{
+    QString regex = ".*";
+    for (int i = 0;i<text.length();i++) {
+        if (text.at(i) != ' ') {
+            regex += text.at(i);
+            regex += ".*";
+        }
+    }
+    m_proxy->setFilterRegExp(regex);
 }

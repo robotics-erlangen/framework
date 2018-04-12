@@ -60,6 +60,7 @@ private slots:
     void clearItems();
     void showContextMenu(const QPoint &pos);
     void saveConfig();
+    void filterTextChanged(QString text);
 
 private:
     void clearForeground(QStandardItem *item) const;
