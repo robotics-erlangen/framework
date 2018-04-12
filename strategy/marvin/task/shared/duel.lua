@@ -204,9 +204,12 @@ function Duel:_moveToBall()
 	if intersectionDefenseArea then
 		-- calculate new position between ball (regarding robot shootRadius) and the intersection with defense area
 		moveDest = self._futureBall + (intersectionDefenseArea - self._futureBall):setLength(self._robot.shootRadius + World.Ball.radius)
-		local opponentDefenseIntersection = Field.intersectRayDefenseArea(moveDest, World.Geometry.FriendlyGoal - moveDest,
-												self._robot.radius * 3 +  OPPONENT_DEFENSE_AREA_MIN_DISTANCE, false)
-		moveDest = opponentDefenseIntersection or moveDest
+		local defenseIntersectionRadius = self._robot.radius * 3 +  OPPONENT_DEFENSE_AREA_MIN_DISTANCE
+		if Field.isInOpponentDefenseArea(moveDest, defenseIntersectionRadius) then
+			local opponentDefenseIntersection = Field.intersectRayDefenseArea(moveDest, World.Geometry.FriendlyGoal - moveDest,
+													defenseIntersectionRadius, false)
+			moveDest = opponentDefenseIntersection or moveDest
+		end
 		moveDest = UtilDefense.fastestPointInInterval(self._robot, moveDest, intersectionDefenseArea,
 						self._oldPosition, BLOCK_POS_PRECISION, BLOCK_POS_ALPHA)
 	else
