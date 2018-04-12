@@ -125,6 +125,24 @@ function Shoot:_calculateFutureBall(ballReceiptPos)
 	return futureBall, math.max(0, ballTime)
 end
 
+function Shoot:_catchBallNecessary(moveDest, futureBallTime)
+	if Robot.hadBall(self._robot, 0) then
+		return false
+	end
+
+	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))	
+	if robotTime < futureBallTime + 0.1 then
+		return false
+	end
+
+	if not self._catchBallActive and robotTime < 0.7 and World.Ball.speed:lengthSq() > 0.3
+			and World.Ball.speed:dot(self._robot.pos - World.Ball.pos) > 0 then
+		return false
+	end
+
+	return true
+end
+
 function Shoot:_getState(targetPos, futureBall, futureBallTime)
 	-- check if the ball can be chased
 	local restingBallSpeed = RESTING_BALL_SPEED + (self._state == "ChaseBall" and -1 or 1) * RESTING_BALL_SPEED_HYST
@@ -307,9 +325,7 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 	end
 	debug.set("ballinsiderobot", World.Time - self._lastBallInsideRobotTime)
 
-	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
-	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0)
-			or (not self._catchBallActive and robotTime < 0.7) then
+	if not self:_catchBallNecessary(moveDest, futureBallTime) then
 		self:_setObstacles(moveDest)
 		self._robot.trajectory:update(ToTarget, moveDest, targetDir)
 		self._send.attackPosition("all", futureBall.pos)
@@ -333,9 +349,7 @@ function Shoot:_shootStopBall(futureBall, futureBallTime)
 	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
 	local moveDest = futureBall.pos - dribblerOffset
 
-	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
-	if robotTime < futureBallTime + 0.1 or Robot.hadBall(self._robot, 0) 
-			or (not self._catchBallActive and robotTime < 0.7) then
+	if not self:_catchBallNecessary(moveDest, futureBallTime) then
 		self:_setObstacles(moveDest)
 		self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, nil)
 		self._send.attackPosition("all", futureBall.pos)
