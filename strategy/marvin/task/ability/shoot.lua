@@ -71,6 +71,7 @@ function Shoot:init()
 
 	self._lastBallInsideRobotTime = 0
 	self._directMovement = false
+	self._catchBallActive = false
 end
 
 function Shoot:_setObstacles(moveDest)
@@ -257,9 +258,11 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 		self:_sendShootCommand(kickSpeed, targetPos, targetDir)
 		self._send.attackPosition("all", futureBall.pos)
 		self._send.attackTime("all", targetTime or World.Time)
+		self._catchBallActive = false
 	else
 		local attackTime = self:_catchBall(targetPos, minCatchBallDistance, targetSpeed)
 		self._send.attackTime("all", targetTime or attackTime + World.Time)
+		self._catchBallActive = true
 	end
 
 	debug.set("Shoot/DirectMovement", self._directMovement)
@@ -305,14 +308,17 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 	debug.set("ballinsiderobot", World.Time - self._lastBallInsideRobotTime)
 
 	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
-	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0) then
+	if robotTime < futureBallTime + 0.2 or Robot.hadBall(self._robot, 0)
+			or (not self._catchBallActive and robotTime < 0.7) then
 		self:_setObstacles(moveDest)
 		self._robot.trajectory:update(ToTarget, moveDest, targetDir)
 		self._send.attackPosition("all", futureBall.pos)
 		self._send.attackTime("all", futureBallTime + World.Time)
+		self._catchBallActive = false
 	else
 		self:_catchBall(targetPos, 0, targetSpeed)
 		self._send.attackTime("all", futureBallTime + World.Time)
+		self._catchBallActive = true
 	end
 
 	local currentDribblerPos = self._robot.pos + dribblerOffset
@@ -328,14 +334,17 @@ function Shoot:_shootStopBall(futureBall, futureBallTime)
 	local moveDest = futureBall.pos - dribblerOffset
 
 	local robotTime = Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0))
-	if robotTime < futureBallTime + 0.1 or Robot.hadBall(self._robot, 0) then
+	if robotTime < futureBallTime + 0.1 or Robot.hadBall(self._robot, 0) 
+			or (not self._catchBallActive and robotTime < 0.7) then
 		self:_setObstacles(moveDest)
 		self._robot.trajectory:update(ToTarget, moveDest, targetDir, nil, nil)
 		self._send.attackPosition("all", futureBall.pos)
 		self._send.attackTime("all", Physics.robotTimeToPos(self._robot, moveDest, Vector(0, 0)) + World.Time)
+		self._catchBallActive = false
 	else
 		local attackTime = self:_catchBall(ballOrigin, 0, nil)
 		self._send.attackTime("all", attackTime + World.Time)
+		self._catchBallActive = true
 	end
 
 	-- activate dribbler to stop the ball
