@@ -80,8 +80,10 @@ void Plot::plot(const QColor &color) const
     glColor3f(color.redF(), color.greenF(), color.blueF());
     glVertexPointer(2, GL_FLOAT, 0, m_data.data());
     glEnableClientState(GL_VERTEX_ARRAY);
-    glDrawArrays(GL_LINE_STRIP, m_pos / 2, (m_count - m_pos) / 2);
-    glDrawArrays(GL_LINE_STRIP, 0, m_pos / 2);
+    if (m_count > m_pos) {
+        glDrawArrays(GL_LINE_STRIP, (m_data.size() - (m_count - m_pos)) / 2, (m_count - m_pos) / 2);
+    }
+    glDrawArrays(GL_LINE_STRIP, std::max(m_pos - m_count, 0) / 2, (m_pos - std::max(m_pos - m_count, 0)) / 2);
     glLineWidth(1.0f);
 }
 
