@@ -10,6 +10,7 @@ CombinedLogWriter::CombinedLogWriter(bool replay, int backlogLength) :
     m_isReplay(replay),
     m_logFile(NULL),
     m_logFileThread(NULL),
+    m_lastTime(0),
     m_logStartTime(0),
     m_isLoggingEnabled(true),
     m_isRecording(false)
@@ -75,6 +76,9 @@ void CombinedLogWriter::handleStatus(const Status &status)
 
     m_lastTime = status->time();
 
+    if (m_logStartTime == 0 && m_isRecording) {
+        startLogfile();
+    }
     if (m_logStartTime != 0) {
         qint64 timeDelta = m_lastTime - m_logStartTime;
         const double dtime = timeDelta / 1E9;
@@ -150,6 +154,17 @@ QString CombinedLogWriter::createLogFilename() const
     }
 }
 
+void CombinedLogWriter::startLogfile()
+{
+    Status status(new amun::Status);
+    status->set_time(m_lastTime);
+    status->mutable_team_yellow()->CopyFrom(m_yellowTeam);
+    status->mutable_team_blue()->CopyFrom(m_blueTeam);
+    m_logFile->writeStatus(status);
+    m_logStartTime = m_lastTime;
+    emit showLogTimeLabel(true);
+}
+
 void CombinedLogWriter::recordButtonToggled(bool enabled)
 {
     emit enableBacklogButton(!enabled);
@@ -178,13 +193,9 @@ void CombinedLogWriter::recordButtonToggled(bool enabled)
         m_logFile->moveToThread(m_logFileThread);
 
         // add the current team settings to the logfile
-        Status status(new amun::Status);
-        status->set_time(m_lastTime);
-        status->mutable_team_yellow()->CopyFrom(m_yellowTeam);
-        status->mutable_team_blue()->CopyFrom(m_blueTeam);
-        m_logFile->writeStatus(status);
-        m_logStartTime = m_lastTime;
-        emit showLogTimeLabel(true);
+        if (m_lastTime != 0) {
+            startLogfile();
+        }
     } else {
         // defer log file deletion to happen in its thread
         m_logFile->deleteLater();

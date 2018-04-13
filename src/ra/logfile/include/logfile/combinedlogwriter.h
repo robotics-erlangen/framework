@@ -43,6 +43,7 @@ public slots:
 private:
     QString createLogFilename() const;
     static QString dateTimeToString(const QDateTime & dt);
+    void startLogfile();
 
 private:
     bool m_isReplay;
