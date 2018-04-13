@@ -147,7 +147,7 @@ void TeamWidget::enableContent(bool enable)
     m_btnEntryPoint->setEnabled(enable);
     m_btnReload->blockSignals(!enable);
     m_reloadAction->setEnabled(enable);
-    m_btnEnableDebug->setEnabled(enable);
+    m_btnEnableDebug->setEnabled(enable && m_type != AUTOREF);
     m_debugAction->setEnabled(enable);
 }
 
