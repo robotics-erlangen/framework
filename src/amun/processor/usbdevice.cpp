@@ -110,7 +110,11 @@ QString USBDevice::getErrorString(int error)
     case LIBUSB_ERROR_INVALID_PARAM:
         return "Invalid parameter";
     case LIBUSB_ERROR_ACCESS:
+#ifdef Q_OS_LINUX
+        return "Access denied. udev rules installed? (see COMPILE.md)";
+#else
         return "Access denied (insufficient permissions)";
+#endif
     case LIBUSB_ERROR_NO_DEVICE:
         return "No such device (it may have been disconnected)";
     case LIBUSB_ERROR_NOT_FOUND:
