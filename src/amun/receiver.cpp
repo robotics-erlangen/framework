@@ -21,6 +21,7 @@
 #include "receiver.h"
 #include "core/timer.h"
 #include <QNetworkInterface>
+#include <QNetworkProxy>
 #include <QUdpSocket>
 
 /*!
@@ -66,6 +67,10 @@ void Receiver::startListen()
     stopListen();
 
     m_socket = new QUdpSocket(this);
+    // Proxying vision / referee packets won't work
+    // ssh can't handle udp proxying
+    // unsure if IP Multicast has even the slightest chance of working
+    m_socket->setProxy(QNetworkProxy::NoProxy);
     connect(m_socket, SIGNAL(readyRead()), SLOT(readData()));
     m_socket->bind(QHostAddress::AnyIPv4, m_port, QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint);
 
