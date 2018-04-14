@@ -79,6 +79,11 @@ void Receiver::startListen()
         Status status(new amun::Status);
         status->mutable_amun_state()->mutable_port_bind_error()->set_port(m_port);
         emit sendStatus(status);
+
+        qWarning() << "Failed to bind the receiver to" << m_port << m_socket->errorString();
+        if (!m_groupAddress.isNull()) {
+            qWarning() << "  requested multicast group" << m_groupAddress;
+        }
         return;
     }
 
