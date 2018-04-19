@@ -10,7 +10,7 @@ local ToTarget = require "trajectory/totarget"
 local UtilDefense = require "util/defense"
 local RobotList = require "util/robotlist"
 
-local POSITION_PADDING = 0.1 -- safety distance
+local POSITION_PADDING = 0.2 -- safety distance
 
 function StopAttack:_init(minDistToBall)
 	self._focusPoint = Vector(0, -World.Geometry.FieldHeightHalf + 4 * self._robot.radius)
