@@ -12,7 +12,6 @@ function DuelAssistant:_stop()
 	self._opponentHasBall = false
 	self._closerThanOpp = false
 	self._lastChippedHysteresis = false
-	self._active = false
 	self._lastTrue = nil
 end
 
@@ -34,6 +33,7 @@ end
 
 function DuelAssistant:check()
 	if self._robot == self._inbox.mainAttacker().trainer then
+		self._lastTrue = nil
 		return false
 	end
 
@@ -44,7 +44,6 @@ function DuelAssistant:check()
 	if sender then
 		local duellingRobot = sender
 		if duellingRobot.pos:distanceTo(World.Ball.pos) > 1 then
-			self._active = false
 			self._lastTrue = nil
 			return false
 		end
@@ -56,15 +55,11 @@ function DuelAssistant:check()
 
 	if isDuelAssistant then
 		self._lastTrue = World.Time
-		self._active = true
-	elseif self._lastTrue and (World.Time - self._lastTrue) <= 1 then
-		self._active = true
-	else
+	elseif not (self._lastTrue and (World.Time - self._lastTrue) <= 1) then
 		self._lastTrue = nil
-		self._active = false
 	end
 
-	return self._active
+	return self._lastTrue
 end
 
 
