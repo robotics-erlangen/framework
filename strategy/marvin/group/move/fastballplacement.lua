@@ -32,9 +32,16 @@ local TOLERANCE = 0.1
 local ARRIVED_DISTANCE = 0.05
 local BALL_STOP_SPEED = 0.2
 local MAX_BALL_DISTANCE = 0.25
-local FINE_ADJUST_ZONE = 2
+local FINE_ADJUST_ZONE = 1
 local MAX_DRIBBLER_SPEED = 0.8
 local SETBACK_WAIT_TIME = 0.4
+
+local SHOOTER_EVADING_POSITIONS = {
+	Vector(0.5 * World.Geometry.FieldWidthHalf, 0.5 * World.Geometry.FieldHeightHalf),
+	Vector(-0.5 * World.Geometry.FieldWidthHalf, 0.5 * World.Geometry.FieldHeightHalf),
+	Vector(0.5 * World.Geometry.FieldWidthHalf, -0.5 * World.Geometry.FieldHeightHalf),
+	Vector(-0.5 * World.Geometry.FieldWidthHalf, -0.5 * World.Geometry.FieldHeightHalf)
+}
 
 function FastBallPlacement.canStart()
 	return World.RefereeState == "BallPlacementOffensive"
@@ -56,6 +63,8 @@ function FastBallPlacement:_init()
 	self:_determineRoles()
 	self:_determinePositions()
 	self._mainAttacker = self.SHOOTER
+
+	self._selectedEvadingPos = SHOOTER_EVADING_POSITIONS[1]
 end
 
 function FastBallPlacement:_updateTasks()
@@ -136,7 +145,6 @@ function FastBallPlacement:_updateTasks()
 		local dist = (self.SHOOTER.pos - self.RECEIVER.pos):length()
 		local ballSpeed = math.max(2, 0.14 * dist + 1.3)
 
-		-- TODO fix in defense area
 		taskAssignments[self.SHOOTER] = {
 			class = Pass,
 			params = { self.RECEIVER, World.BallPlacementPos, false, nil, nil, ballSpeed},
@@ -165,7 +173,7 @@ function FastBallPlacement:_updateTasks()
             restart = true
         }
 		-- Stop moving if the ball is near the receiver
-		-- TODO maybe use Halt
+		-- We don't use halt because Halt could possibly stop the dribbler from spinning
 		if World.Ball.pos:distanceTo(self.RECEIVER.pos) < World.Ball.radius + self.RECEIVER.shootRadius + 0.1 then
 			taskAssignments[self.RECEIVER] = {
 				class = MoveToPos,
@@ -194,14 +202,20 @@ function FastBallPlacement:_updateTasks()
 			class = PlaceBall,
 			restart = self._stateChanged
 		}
-		local shooterTargetPos = self.SHOOTER.pos
-		if self.SHOOTER.pos:distanceTo(World.BallPlacementPos) < FINE_ADJUST_ZONE then
-			shooterTargetPos = World.Geometry.FriendlyGoal
+		if self._stateChanged then
+			-- Simple sampling from some preselected positions
+			-- If no fitting position could be found (because the field is too small) the last used position is chosen as fallback
+			for _, pos in ipairs(SHOOTER_EVADING_POSITIONS) do
+				if pos:distanceTo(World.BallPlacementPos) > FINE_ADJUST_ZONE then
+					self._selectedEvadingPos = pos
+					break
+				end
+			end
 		end
 		taskAssignments[self.SHOOTER] = {
 			class = MoveToPos,
-			params = { shooterTargetPos, nil, nil, nil, nil, SHOOTER_OBSTACLES, true },
-			restart = true
+			params = { self._selectedEvadingPos, nil, nil, nil, nil, SHOOTER_OBSTACLES, true},
+			restart = self._stateChanged
 		}
 	end
 
