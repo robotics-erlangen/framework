@@ -404,6 +404,8 @@ void Processor::handleCommand(const Command &command)
     if (command->has_flip()) {
         m_tracker->setFlip(command->flip());
         m_speedTracker->setFlip(command->flip());
+        m_referee->setFlip(command->flip());
+        m_refereeInternal->setFlip(command->flip());
     }
 
     if (command->has_referee()) {

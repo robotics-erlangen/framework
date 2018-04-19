@@ -31,7 +31,7 @@
  * \brief Create a new Referee instance
  */
 Referee::Referee(bool isInternalReferee) :
-    m_isInternalReferee(isInternalReferee), m_counter(-1)
+    m_isInternalReferee(isInternalReferee), m_counter(-1), m_flip(false)
 {
     // initialize with first half to simplify testing
     m_gameState.set_stage(SSL_Referee::NORMAL_FIRST_HALF);
@@ -60,6 +60,10 @@ void Referee::handlePacket(const QByteArray &data)
     m_gameState.set_stage(packet.stage());
     if (packet.has_designated_position()) {
         m_gameState.mutable_designated_position()->CopyFrom(packet.designated_position());
+        if (m_flip) {
+            m_gameState.mutable_designated_position()->set_x(-m_gameState.designated_position().x());
+            m_gameState.mutable_designated_position()->set_y(-m_gameState.designated_position().y());
+        }
     }
 
     if (m_isInternalReferee) {
