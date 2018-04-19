@@ -9,6 +9,7 @@ local World = require "../base/world"
 
 local Ball = require "observer/ball"
 local Goal = require "observer/goal"
+local Physics = require "observer/physics"
 local ObserverShoot = require "observer/shoot"
 local PathHelper = require "trajectory/pathhelper"
 local Interval = require "util/interval"
@@ -63,8 +64,11 @@ function ShootGoal:run()
 
 	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
 	local ballReceiptPos = self._ballReceiptPos or attackPosition
-	if not self._shootTargetPoint or World.Ball.speed:length() < 1 or
-			World.Ball.pos:distanceTo(self._robot.pos) > 0.8 then
+
+	local lockTarget = self._shootTargetPoint and World.Ball.speed:length() > 1 and
+		(Ball.receivesPass(self._robot) and Physics.checkedBallRollTime(World.Ball, ballReceiptPos) < 0.5 or
+			World.Ball.pos:distanceTo(self._robot.pos) < 0.5)
+	if not lockTarget then
 		self._shootTargetPoint, self._shootTargetWidth, self._dirty =
 			ShootGoalUtil.updateTarget(self._robot, self._shootTargetPoint, self._dirty, attackPosition)
 	end
