@@ -257,13 +257,16 @@ function Goal.predictShot()
 				if math.abs(ballRollTime) == math.huge then
 					weightedDistance = 0
 				elseif robot.pos:distanceTo(catchPos) < 0.1 then
-					weightedDistance = math.huge
+					weightedDistance = 100000000 -- very large number smaller than math.huge
 				else
 					local robotTime = Physics.robotTimeToPos(robot, catchPos, Vector(robot.maxSpeed, 0))
 					weightedDistance = Rating.valueToRating(robotTime, ballRollTime, 0) * 1 / pos:distanceTo(catchPos)
 				end
 				if robot.id == lastBestRobotId and weightedDistance > 0 then
 					weightedDistance = weightedDistance * BEST_ROBOT_HYSTERESIS
+				end
+				if (robot.pos:distanceTo(World.Ball.pos)) < robot.shootRadius then
+					weightedDistance = math.huge
 				end
 
 				if weightedDistance > 0 then
