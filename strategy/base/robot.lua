@@ -59,7 +59,7 @@ local vis = require "../base/vis"
 -- @field moveCommand table - command used when robots are dragged with the mouse (fields: time, pos (global)) * (optional)
 Robot.constants = {
 	hasBallDistance = 0.04, -- 4 cm, robots where the balls distance to the dribbler is less than 2cm are considered to have the ball [m]
-	passSpeed = 4, -- speed with which the ball should arrive at the pass target  [m/s]
+	passSpeed = 2, -- speed with which the ball should arrive at the pass target  [m/s]
 	shootDriveSpeed = 0.2, -- how fast the shoot task drives at the ball [m/s]
 	minAngleError = 4/180 * math.pi -- minimal angular precision that the shoot task guarantees [in radians]
 }
