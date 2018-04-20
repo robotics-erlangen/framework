@@ -50,6 +50,10 @@ function Shoot:_shootGoalPossible()
 		return ObserverShoot.volleyPossible(self._robot, sg_target)
 	end
 
+	if Field.distanceToOpponentDefenseArea(self._attackPosition, 0) > 1 and Robot.isPressed(self._robot, self._attackPosition) then
+		return false
+	end
+
 	return true
 end
 
