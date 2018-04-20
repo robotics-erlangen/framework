@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local Shoot = Class("Agent.Attacker.Shoot", Base)
 
 local debug = require "../base/debug"
+local Field = require "../base/field"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
@@ -32,6 +33,8 @@ function Shoot:_stop()
 
 	self._hadBallCounter = 0
 	self._touchedBall = false
+
+	self._wasPressed = false
 
 	self._manualFlag = false
 end
@@ -75,6 +78,8 @@ function Shoot:_checkForManualAlly()
 end
 
 function Shoot:_decide()
+	self._wasPressed = Robot.isPressed(self._robot)
+
 	-- perform clean goal shots if possible
 	if self:_shootGoalPossible() then
 		return {
@@ -178,6 +183,11 @@ function Shoot:_redeciding()
 			debug.set("redeciding", "TRUE (large angle)")
 			return true
 		end
+	end
+
+	if not self._wasPressed and Robot.isPressed(self._robot) then
+		debug.set("redeciding", "TRUE (pressed)")
+		return true
 	end
 
 	debug.set("redeciding", "FALSE (default)")
