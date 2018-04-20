@@ -166,10 +166,12 @@ local function distanceToDefenseAreaSq_2018(pos, friendly)
 	end
 	return pos:distanceToSq(geom.boundRect(defenseMin, pos, defenseMax))
 end
+
 local function distanceToDefenseArea_2018(pos, radius, friendly)
 	local distance = math.sqrt(distanceToDefenseAreaSq_2018(pos, friendly)) - radius
 	return (distance < 0) and 0 or distance
 end
+
 local function distanceToDefenseArea_2017(pos, radius, friendly)
 	radius = radius + G.DefenseRadius
 	local defenseY = friendly and -G.FieldHeightHalf or G.FieldHeightHalf
@@ -429,6 +431,9 @@ local function defenseIntersectionByWay_2018(way, extraDistance, friendly)
 			return (v + directions[i]*way)*f
 		end
 		way = way - length - math.pi/2 * extraDistance
+		if i == 3 then
+			return Vector(-corners[1].x, corners[1].y)*f
+		end
 		if way < 0 then
 
 			local corner = Vector((3-i*2)*G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight)*f
