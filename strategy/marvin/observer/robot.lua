@@ -165,4 +165,22 @@ function Robot.ownStandardShooter()
 	end
 end
 
+
+function Robot.isPressed(robot, attackPos)
+	local directionOffset = (World.Geometry.OpponentGoal - robot.pos):setLength(robot.shootRadius + World.Ball.radius)
+	local ballPos = attackPos or robot.pos + directionOffset
+	local blockPos = ballPos + directionOffset
+
+	local radius = 2.5
+	for _,opp in ipairs(World.OpponentRobots) do
+		if opp.pos:distanceToSq(blockPos) < radius * radius then
+			if Physics.robotTimeToPos(opp, blockPos, Vector(0, 0)) < 1 then
+				return true
+			end
+		end
+	end
+	return false
+end
+Robot.isPressed = Cache.forFrame(Robot.isPressed)
+
 return Robot
