@@ -32,7 +32,7 @@ local TOLERANCE = 0.1
 local ARRIVED_DISTANCE = 0.05
 local BALL_STOP_SPEED = 0.2
 local MAX_BALL_DISTANCE = 0.25
-local FINE_ADJUST_ZONE = 1
+local FINE_ADJUST_ZONE = 1.5
 local MAX_DRIBBLER_SPEED = 0.8
 local SETBACK_WAIT_TIME = 0.4
 
@@ -57,6 +57,7 @@ function FastBallPlacement:_init()
 	self._stateChangeTime = World.Time
 
 	self._ballStartPos = World.Ball.pos
+	self._ballTeleportTime = nil
 
 	self._ballReceiverIntersects = false
 
@@ -289,7 +290,12 @@ function FastBallPlacement:_getNextState(currentState)
 		end
 	elseif currentState == STATE_FINE_ADJUST then
 		nextState = STATE_FINE_ADJUST
-		if World.Ball.pos:distanceTo(World.BallPlacementPos) > FINE_ADJUST_ZONE then
+		if not World.Ball:isPositionValid() then
+			self._ballTeleportTime = nil
+		elseif World.Ball.pos:distanceTo(World.BallPlacementPos) > FINE_ADJUST_ZONE then
+			self._ballTeleportTime = World.Time
+		end
+		if self._ballTeleportTime and World.Time - self._ballTeleportTime > 1 then
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		end
 	end

@@ -117,7 +117,7 @@ function PlaceBall:run()
 					or self._state == STATE_PULL_TO_FIELD
 					or self._state == STATE_BACK_UP_WAIT
 					or self._state == STATE_PUSH_TO_POS
-	obstacleTable.extraBallDistance = (self._state == STATE_GO_TO_PUSH or self._state == STATE_MOVE_AWAY)
+	obstacleTable.extraBallDistance = (self._state == STATE_GO_TO_PUSH or self._state == STATE_MOVE_AWAY or self._state == STATE_WAIT_FOR_BALL_STOP)
 		and self._ball.radius
 		or nil
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
