@@ -290,7 +290,7 @@ function FastBallPlacement:_getNextState(currentState)
 		end
 	elseif currentState == STATE_FINE_ADJUST then
 		nextState = STATE_FINE_ADJUST
-		if not World.Ball:isPositionValid() then
+		if not World.Ball:isPositionValid() or World.Ball.pos:distanceTo(World.BallPlacementPos) <= FINE_ADJUST_ZONE then
 			self._ballTeleportTime = nil
 		elseif World.Ball.pos:distanceTo(World.BallPlacementPos) > FINE_ADJUST_ZONE then
 			self._ballTeleportTime = World.Time
