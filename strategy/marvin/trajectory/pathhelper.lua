@@ -279,7 +279,7 @@ end
 
 local function setDefaultObstacles(path, robot, ignoreBall, ignoreGoals, ignoreDefenseArea, radius, stopBallDistance, noSeedTarget, ignoreOpponentDefenseArea, extraBallDistance)
 	radius = radius or robot.radius
-	stopBallDistance = stopBallDistance or Constants.stopBallDistance
+	stopBallDistance = stopBallDistance or Constants.stopBallDistance + 0.05
 
 	local forbidOppFieldHalf = Referee.isKickoffState()
 
