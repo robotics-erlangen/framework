@@ -65,6 +65,9 @@ void Referee::handlePacket(const QByteArray &data)
             m_gameState.mutable_designated_position()->set_y(-m_gameState.designated_position().y());
         }
     }
+    if (packet.has_gameevent()) {
+        m_gameState.mutable_game_event()->CopyFrom(packet.gameevent());
+    }
 
     if (m_isInternalReferee) {
         // the internal referee sends the counter delta since the last referee command

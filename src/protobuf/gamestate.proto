@@ -1,5 +1,6 @@
 syntax = "proto2";
 import "ssl_referee.proto";
+import "ssl_referee_game_event.proto";
 package amun;
 
 message GameState {
@@ -41,4 +42,5 @@ message GameState {
     required .SSL_Referee.TeamInfo blue = 5;
 
     optional .SSL_Referee.Point designated_position = 6;
+    optional SSL_Referee_Game_Event game_event = 7;
 }
