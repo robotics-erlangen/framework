@@ -10,6 +10,7 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
+local Robot = require "observer/robot"
 local ObserverShoot = require "observer/shoot"
 local PathHelper = require "trajectory/pathhelper"
 local Interval = require "util/interval"
@@ -56,6 +57,22 @@ function ShootGoal:_init(ballReceiptPos, forceDesperate)
 	self._lastReceivesPassTime = 0
 end
 
+function ShootGoal:_lockTarget(ballReceiptPos)
+	if not self._shootTargetPoint then
+		return false
+	end
+
+	if Ball.receivesPass and Physics.checkedBallRollTime(World.Ball, ballReceiptPos) < 0.5 then
+		return true
+	end
+
+	if Robot.isPressed(self._robot) then
+		return true
+	end
+
+	return false
+end
+
 function ShootGoal:run()
     local obstacleTable = {
         inbox = self._inbox
@@ -65,10 +82,7 @@ function ShootGoal:run()
 	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
 	local ballReceiptPos = self._ballReceiptPos or attackPosition
 
-	local lockTarget = self._shootTargetPoint and World.Ball.speed:length() > 1 and
-		(Ball.receivesPass(self._robot) and Physics.checkedBallRollTime(World.Ball, ballReceiptPos) < 0.5 or
-			World.Ball.pos:distanceTo(self._robot.pos) < 0.5)
-	if not lockTarget then
+	if not self:_lockTarget(ballReceiptPos) then
 		self._shootTargetPoint, self._shootTargetWidth, self._dirty =
 			ShootGoalUtil.updateTarget(self._robot, self._shootTargetPoint, self._dirty, attackPosition)
 	end
