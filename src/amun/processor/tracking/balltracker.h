@@ -38,6 +38,7 @@ public:
 
 public:
     void update(qint64 time);
+    void updateConfidence();
     void get(world::Ball *ball, bool flip); // writes to world state
     void addVisionFrame(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingDelay);
     bool acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingDelay);
@@ -45,6 +46,7 @@ public:
     bool isFlying() const;
     const qint64 initTime() const { return m_initTime; }
     bool isShot() const;
+    double confidence() const { return m_confidence; }
 #ifdef ENABLE_TRACKING_DEBUG
     const amun::DebugValues &debugValues() const { return m_debug; }
     void clearDebugValues() {
@@ -66,6 +68,8 @@ private:
     qint64 m_initTime;
     Eigen::Vector2f m_lastBallPos;
     qint64 m_lastFrameTime;
+    double m_confidence;
+    int m_updateFrameCounter;
 
 #ifdef ENABLE_TRACKING_DEBUG
     amun::DebugValues m_debug;

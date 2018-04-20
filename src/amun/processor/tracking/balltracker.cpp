@@ -28,7 +28,9 @@ BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32
     m_lastUpdateTime(last_time),
     m_cameraInfo(cameraInfo),
     m_initTime(last_time),
-    m_lastFrameTime(0)
+    m_lastFrameTime(0),
+    m_confidence(0),
+    m_updateFrameCounter(0)
 {
     m_primaryCamera = primaryCamera;
     VisionFrame frame(ball, last_time, primaryCamera, robotInfo, visionProcessingTime);
@@ -45,7 +47,9 @@ BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera
     m_cameraInfo(previousFilter.m_cameraInfo),
     m_initTime(previousFilter.m_initTime),
     m_lastBallPos(previousFilter.m_lastBallPos),
-    m_lastFrameTime(previousFilter.m_lastFrameTime)
+    m_lastFrameTime(previousFilter.m_lastFrameTime),
+    m_confidence(previousFilter.m_confidence),
+    m_updateFrameCounter(previousFilter.m_updateFrameCounter)
 {
     m_primaryCamera = primaryCamera;
 
@@ -70,6 +74,8 @@ bool BallTracker::acceptDetection(const SSL_DetectionBall& ball, qint64 time, qi
     bool accept = m_flyFilter->acceptDetection(frame) || m_groundFilter->acceptDetection(frame);
     debug("accept", accept);
     debug("acceptId", cameraId);
+    debug("age", std::to_string(initTime()).c_str());
+    debug("confidence", m_confidence);
     return accept;
 }
 
@@ -92,6 +98,12 @@ bool BallTracker::isFlying() const
 bool BallTracker::isShot() const
 {
     return m_flyFilter->isShot();
+}
+
+void BallTracker::updateConfidence()
+{
+    m_confidence = 0.98 * m_confidence + 0.02 * double(m_updateFrameCounter);
+    m_updateFrameCounter = 0;
 }
 
 void BallTracker::update(qint64 time)
@@ -177,4 +189,5 @@ void BallTracker::addVisionFrame(const SSL_DetectionBall &ball, qint64 time, qin
     m_lastTime = time;
     m_visionFrames.append(VisionFrame(ball, time, cameraId, robotInfo, visionProcessingTime));
     m_frameCounter++;
+    m_updateFrameCounter++;
 }

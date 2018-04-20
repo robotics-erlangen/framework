@@ -146,6 +146,9 @@ void Tracker::process(qint64 currentTime)
         for (int i = 0; i < detection.balls_size(); i++) {
             trackBall(detection.balls(i), sourceTime, detection.camera_id(), bestRobots, visionProcessingTime);
         }
+        for (BallTracker * filter : m_ballFilter) {
+            filter->updateConfidence();
+        }
 
         m_lastUpdateTime = sourceTime;
     }
@@ -168,9 +171,9 @@ template<class Filter> static Filter* bestFilter(QList<Filter*> &filters, int mi
     return NULL;
 }
 
-
 void Tracker::prioritizeBallFilters()
 {
+    // TODO: this ist partially obsolete due to changes in bestBallFilter
     // assures that the one with its camera closest to its last detection is taken.
     bool flying = m_ballFilter.contains(m_currentBallFilter) && m_currentBallFilter->isFlying();
     // when the current filter is tracking a flight, prioritize flight reconstruction
@@ -184,14 +187,19 @@ void Tracker::prioritizeBallFilters()
 
 BallTracker* Tracker::bestBallFilter()
 {
+    const double CONFIDENCE_HYSTERESIS = 0.15;
     // find oldest filter. if there are multiple with same initTime
     // (i.e. camera handover filters) this picks the first (prioritized) one.
     BallTracker* best = nullptr;
     qint64 oldestTime = 0;
+    double bestConfidence = -1.0;
     for (auto f : m_ballFilter) {
-        if (best == nullptr || f->initTime() < oldestTime) {
+        double confidence = f->confidence() + (m_currentBallFilter == f ? CONFIDENCE_HYSTERESIS : 0.0);
+        if (best == nullptr || f->initTime() < oldestTime ||
+                (f->initTime() == oldestTime && confidence > bestConfidence)) {
             best = f;
             oldestTime = f->initTime();
+            bestConfidence = confidence;
         }
     }
     m_currentBallFilter = best;
