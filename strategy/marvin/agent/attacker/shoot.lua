@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local Shoot = Class("Agent.Attacker.Shoot", Base)
 
 local debug = require "../base/debug"
+local vis = require "../base/vis"
 local World = require "../base/world"
 
 local Ball = require "observer/ball"
@@ -184,6 +185,11 @@ function Shoot:_redeciding()
 end
 
 function Shoot:_updateTask()
+	local pressed = Robot.isPressed(self._robot)
+	local color = pressed and vis.colors.redHalf or vis.colors.greenHalf
+	vis.addCircle("a/a/shoot: pressed", self._robot.pos, 0.3, color, true)
+
+
 	local lastIncomingPassInfo = Attack.lastIncomingPassInfo(self._robot, self._inbox.passInfo())
 	if lastIncomingPassInfo then
 		self._lastIncomingPassInfoPos = lastIncomingPassInfo.ballPos
