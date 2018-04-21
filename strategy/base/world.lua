@@ -424,7 +424,13 @@ function World._updateUserInput(input)
 			end
 		end
 		for _, cmd in ipairs(input.move_command) do
-			World.FriendlyRobotsById[cmd.id].moveCommand = {time = World.Time, pos = Coordinates.toGlobal(Vector(cmd.p_x, cmd.p_y))}
+			if World.FriendlyRobotsById[cmd.id] then
+				World.FriendlyRobotsById[cmd.id].moveCommand = {time = World.Time, pos = Coordinates.toGlobal(Vector(cmd.p_x, cmd.p_y))}
+			else
+				local teamColorString = World.TeamIsBlue and "blue" or "yellow"
+				log("<font color=\"red\">WARNING: </font>please select robot "..cmd.id.." for team "..teamColorString..
+					" for pulling it!")
+			end
 		end
 	end
 end
