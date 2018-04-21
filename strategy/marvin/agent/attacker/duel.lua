@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local Duel = Class("Agent.Attacker.Duel", Base)
 
 local debug = require "../base/debug"
+local Field = require "../base/field"
 local geom = require "../base/geom"
 local World = require "../base/world"
 local Ball = require "observer/ball"
@@ -78,6 +79,14 @@ function Duel:genericCheck()
 		self._lastChippedHysteresis = false
 	end
 
+	-- prefer passing instead of duelling when being in the opponent half of the field
+	local ballYHysteresis = self._active and 1.0 or 0.0
+	local ballDefAreaHysteresis = self._active and 0.8 or 0.4
+	if World.Ball.pos.y > ballYHysteresis and Field.distanceToOpponentDefenseArea(World.Ball.pos, 0) > ballDefAreaHysteresis then
+		debug.set("duel check", "attack area")
+		return false
+	end
+
 	-- if the opponent controls the ball, duel him
 	local ballOwner = Ball.opponentBallOwner() or Ball.opponentBallDribbler()
 	if ballOwner then
@@ -106,7 +115,6 @@ function Duel:genericCheck()
 			return true
 		end
 	end
-
 
 	local timeToBallHysteresis = self._active and 0 or 0.3
 	if not Ball.receivesPass(self._robot) then
