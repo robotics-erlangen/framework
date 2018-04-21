@@ -249,6 +249,7 @@ end
 local lastCPMA = nil
 local lastPasser = nil
 local lastReceiver = nil
+local lastCPMATime = 0
 function Attack.currentPlannedMainAttacker(passInfoSender, passInfoTable)
 	local passInfoMessage
 	if passInfoTable then
@@ -275,15 +276,19 @@ function Attack.currentPlannedMainAttacker(passInfoSender, passInfoTable)
 			and World.Ball.speed:length() > 1 and lastReceiver and World.Ball.speed:absoluteAngleDiff(
 				lastReceiver.pos - World.Ball.pos) < 45 / 180 * math.pi then
 		lastCPMA = lastReceiver
+		lastCPMATime = World.Time
 		return lastCPMA
 	end
 
 	if lastCPMA and World.Ball.speed:length() > 1 and World.Ball.speed:absoluteAngleDiff(
 				lastCPMA.pos - World.Ball.pos) < 45 / 180 * math.pi then
+		lastCPMATime = World.Time
 		return lastCPMA
 	end
 
-	lastCPMA = nil
+	if World.Time - lastCPMATime > 0.2 then
+		lastCPMA = nil
+	end
 end
 Attack.currentPlannedMainAttacker = Cache.forFrame(Attack.currentPlannedMainAttacker)
 
