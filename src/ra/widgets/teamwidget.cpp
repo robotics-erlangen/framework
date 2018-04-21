@@ -97,9 +97,10 @@ void TeamWidget::init(TeamType type)
     QIcon debugIcon;
     debugIcon.addFile("icon:32/debugging-disabled.png", QSize(), QIcon::Normal, QIcon::Off);
     debugIcon.addFile("icon:32/debugging-enabled.png", QSize(), QIcon::Normal, QIcon::On);
-    m_btnEnableDebug = new QPushButton;
+    m_btnEnableDebug = new QToolButton;
     m_btnEnableDebug->setIcon(debugIcon);
     m_btnEnableDebug->setToolTip("Enable debugging");
+    m_btnEnableDebug->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Preferred);
     m_btnEnableDebug->setCheckable(true);
     if (m_type == AUTOREF) {
         m_btnEnableDebug->setChecked(true);

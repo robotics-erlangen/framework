@@ -84,7 +84,7 @@ private:
     QToolButton *m_btnOpen;
     QToolButton *m_btnEntryPoint;
     QToolButton *m_btnReload;
-    QPushButton *m_btnEnableDebug;
+    QToolButton *m_btnEnableDebug;
     QMenu *m_scriptMenu;
     QMenu *m_entryPoints;
     QString m_filename;
