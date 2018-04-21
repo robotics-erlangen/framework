@@ -53,6 +53,7 @@ public:
     explicit ResettableItemDelegate(QObject *parent);
 
     QWidget *createEditor(QWidget *parent, const QStyleOptionViewItem &option, const QModelIndex &index ) const override;
+    bool eventFilter(QObject *object, QEvent *event) override;
     void setEditorData(QWidget *editor, const QModelIndex &index) const override;
     void setModelData(QWidget *editor, QAbstractItemModel *model, const QModelIndex &index) const override;
 

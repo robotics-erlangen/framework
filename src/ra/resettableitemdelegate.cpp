@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "resettableitemdelegate.h"
+#include <QEvent>
 #include <QHBoxLayout>
 #include <QToolButton>
 
@@ -61,6 +62,23 @@ QWidget *ResettableItemDelegate::createEditor(QWidget *parent, const QStyleOptio
     // connect reset signal
     connect(wrapper, SIGNAL(resetValue()), this, SLOT(resetValue()));
     return wrapper;
+}
+
+bool ResettableItemDelegate::eventFilter(QObject *object, QEvent *event)
+{
+    // cast and check taken from QAbstractItemDelegatePrivate::editorEventFilter
+    QWidget *editor = qobject_cast<QWidget*>(object);
+    if (!editor)
+        return false;
+
+    if (event->type() == QEvent::Hide) {
+        // properly close the editor if the dialog gets hidden
+        commitData(editor);
+        closeEditor(editor);
+        // don't swallow the hide event
+        return false;
+    }
+    return QStyledItemDelegate::eventFilter(object, event);
 }
 
 void ResettableItemDelegate::setEditorData(QWidget *editor, const QModelIndex &index) const
