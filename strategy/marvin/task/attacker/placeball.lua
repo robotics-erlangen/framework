@@ -186,17 +186,13 @@ function PlaceBall:run()
 	elseif self._state == STATE_BACK_UP then
 
         if self._stateChanged then
-            local offset
-            if self._ball:isPositionValid() then
-                offset = self._robot.pos - self._ball.pos
-            else
-                -- Normally backup in direction where we came from
-                offset = self._ballStartPos - self._robot.pos
-                -- Backup in reverse direction if the ball was pulled
-                if not self._pushedBefore then
-                    offset = -offset
-                end
-            end
+			-- Normally backup in direction where we came from
+			-- I choose not to make this dependent on the current ball position as it can teleport randomly
+			local offset = self._ballStartPos - self._robot.pos
+			-- Backup in reverse direction if the ball was pulled
+			if not self._pushedBefore then
+				offset = -offset
+			end
             offset:setLength(OFFSET_EXTRA_LENGTH)
             self._currentTargetPos = self._robot.pos + offset
         end
