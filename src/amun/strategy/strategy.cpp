@@ -45,6 +45,10 @@ public:
     QHostAddress autorefEventHost;
     quint16 autorefEventPort;
     QByteArray autorefEventData;
+
+    QHostAddress remoteControlHost;
+    quint16 remoteControlPort;
+    QByteArray remoteControlData;
 };
 
 /*!
@@ -235,6 +239,11 @@ void Strategy::handleCommand(const Command &command)
         m_p->mixedTeamPort = command->mixed_team_destination().port();
     }
 
+    if (command->has_remote_control_destination()) {
+        m_p->remoteControlHost = QHostAddress(QString::fromStdString(command->remote_control_destination().host()));
+        m_p->remoteControlPort = command->remote_control_destination().port();
+    }
+
     if (reloadStrategy && m_strategy) {
         reload();
     }
@@ -247,7 +256,7 @@ void Strategy::sendMixedTeamInfo(const QByteArray &data)
 
 void Strategy::sendNetworkRefereeCommand(const QByteArray &data)
 {
-    m_networkRefereeCommand = data;
+    m_p->remoteControlData = data;
 }
 
 void Strategy::sendAutorefEvent(const QByteArray &data)
@@ -304,23 +313,23 @@ void Strategy::process()
             }
         }
 
-        if (!m_networkRefereeCommand.isNull()) {
+        if (!m_p->remoteControlData.isNull()) {
             if (m_refboxSocket->state() != QAbstractSocket::ConnectedState) {
-                m_refboxSocket->connectToHost(QHostAddress::LocalHost, 10007);
+                m_refboxSocket->connectToHost(m_p->remoteControlHost, m_p->remoteControlPort);
                 if (!m_refboxSocket->waitForConnected(1000)) {
-                    m_networkRefereeCommand = QByteArray(); // reset
+                    m_p->remoteControlData = QByteArray(); // reset
                     fail("Failed to connect to refbox");
                     return;
                 }
             }
-            int origSize = m_networkRefereeCommand.size();
-            int bytesSent = m_refboxSocket->write(m_networkRefereeCommand, origSize);
+            int origSize = m_p->remoteControlData.size();
+            int bytesSent = m_refboxSocket->write(m_p->remoteControlData, origSize);
 
             // discard responses, so they don't occupy ressources or block communication
             // RefereeStatus is currently enough feedback for the autoref
             m_refboxSocket->readAll();
 
-            m_networkRefereeCommand = QByteArray(); // reset
+            m_p->remoteControlData = QByteArray(); // reset
             if (bytesSent != origSize) {
                 fail("Failed to send referee command over network");
                 return;

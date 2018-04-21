@@ -98,7 +98,6 @@ private:
 
     QUdpSocket *m_udpSenderSocket;
     QTcpSocket *m_refboxSocket;
-    QByteArray m_networkRefereeCommand;
 
     amun::UserInput m_lastMoveCommand;
     bool m_isReplay;
