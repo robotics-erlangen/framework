@@ -60,10 +60,10 @@ void LogCutter::startProcess()
     QString outputFile = ui->outputFile->text();
 
     LogProcessor::Options options = LogProcessor::NoOptions;
-    if (ui->cutHaltChk) {
+    if (ui->cutHaltChk->isChecked()) {
         options |= LogProcessor::CutHalt;
     }
-    if (ui->cutNonGameChk) {
+    if (ui->cutNonGameChk->isChecked()) {
         options |= LogProcessor::CutNonGame;
     }
 
