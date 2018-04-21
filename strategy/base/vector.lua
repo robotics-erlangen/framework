@@ -369,6 +369,12 @@ function Vector.isVector(data)
 	return ffi.istype(vector_c, data) or ffi.istype(vector_c_readonly, data)
 end
 
+--- Creates a read only copy of the vector
+-- @return vector
+function vector_mt:readOnly()
+	return Vector.createReadOnly(self.x, self.y)
+end
+
 local vector_class_mt = {
 	__call = function (_, x, y, readonly)
 		return vector_create(x, y, readonly)
