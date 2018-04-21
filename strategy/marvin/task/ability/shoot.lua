@@ -243,6 +243,13 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 		speedupFactor = 0.8
 	end
 
+	-- hysteresis to cope with mediocre vision
+	if self._directMovement then
+		maxSidewardsAngle = maxSidewardsAngle * 1.5
+		maxOrientationAngle = maxOrientationAngle * 1.5
+		hasBallDistance = hasBallDistance * 1.5
+	end
+
 	local hasBallSideOffset = self._directMovement and 0.02 or 0
 	self._directMovement = self._robot:hasBall(World.Ball, hasBallSideOffset, hasBallDistance)
 		and math.abs(geom.normalizeAngle((World.Ball.pos - self._robot.pos):angle() - shootDir)) < maxSidewardsAngle
