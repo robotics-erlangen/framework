@@ -45,9 +45,9 @@ local MAX_PULL_ACCEL = 0.15
 local PULL_LOST_BALL_HYSTERESIS = 1
 
 -- TODO test max speeds for push
-local PUSH_DRIBBLER_SPEED = 0.8
-local MAX_PUSH_SPEED = 4
-local PUSH_ACCEL_SCALE = 0.5625
+local PUSH_DRIBBLER_SPEED = 0.6
+local MAX_PUSH_SPEED = 1
+local PUSH_ACCEL_SCALE = 0.2
 local PUSH_LOST_BALL_HYSTERESIS = 1
 
 local BACK_UP_WAIT_TIME = 1
@@ -160,7 +160,7 @@ function PlaceBall:run()
 		self._robot:setDribblerSpeed(PULL_DRIBBLER_SPEED)
 		-- For _nearestFieldPos, see in calculateOffset
 		if self._stateChanged then
-			self._currentTargetPos = self._nearestFieldPos - self._borderOffsetAverage:copy():scaleLength(1.5)
+			self._currentTargetPos = Field.limitToField(self._robot.pos) - self._borderOffsetAverage
 		end
 		self._robot.trajectory:update(ToTarget, self._currentTargetPos, self._borderOffsetAverage:angle(), MAX_PULL_SPEED, nil, MAX_PULL_ACCEL)
 
@@ -370,22 +370,27 @@ function PlaceBall:_calculateOffsets()
 	self._nearestFieldPos = Field.limitToField(self._ball.pos)
 
 	if (not self._placementOffsetAverage or self._ball.pos:distanceTo(self._placementPos) > OFFSET_DISTANCE) and ballVisible then
-		self._placementOffsets[self._placementOffsetFrame] = (self._ball.pos - self._placementPos):setLength(OFFSET_EXTRA_LENGTH)
-		self._placementOffsetFrame = (self._placementOffsetFrame % OFFSET_FRAME_COUNT) + 1
-		self._placementOffsetAverage = vectorAverage(self._placementOffsets)
+		local currentOffset = (self._ball.pos - self._placementPos):normalize()
+		if currentOffset:lengthSq() > 1e-9 then
+			self._placementOffsets[self._placementOffsetFrame] = currentOffset
+			self._placementOffsetFrame = (self._placementOffsetFrame % OFFSET_FRAME_COUNT) + 1
+			self._placementOffsetAverage = vectorAverage(self._placementOffsets):setLength(OFFSET_EXTRA_LENGTH)
+		end
 	end
 
 	if (not self._borderOffsetAverage or self._ball.pos:distanceTo(self._nearestFieldPos) > OFFSET_DISTANCE) and ballVisible then
-		self._borderOffsets[self._borderOffsetFrame] = (self._ball.pos - self._nearestFieldPos):setLength(OFFSET_EXTRA_LENGTH)
-		self._borderOffsetFrame = (self._borderOffsetFrame % OFFSET_FRAME_COUNT) + 1
-		self._borderOffsetAverage = vectorAverage(self._borderOffsets)
+		local currentOffset = (self._ball.pos - self._placementPos):normalize()
+		if currentOffset:lengthSq() > 1e-9 then
+			self._borderOffsets[self._borderOffsetFrame] = (self._ball.pos - self._nearestFieldPos):normalize()
+			self._borderOffsetFrame = (self._borderOffsetFrame % OFFSET_FRAME_COUNT) + 1
+			self._borderOffsetAverage = vectorAverage(self._borderOffsets):setLength(OFFSET_EXTRA_LENGTH)
+		end
 	end
 
 end
 
 
 function PlaceBall:_updateBallStatus()
-
 	if self._robot.radioResponse then
 		self._barrierDetects = self._robot.radioResponse.ball_detected
 	end
