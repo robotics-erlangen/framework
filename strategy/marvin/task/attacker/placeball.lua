@@ -364,10 +364,15 @@ end
 function PlaceBall:_calculateOffsets()
 
 	local ballVisible = self._ball:isPositionValid()
-
+	
+	local isModifyingState = self._state == STATE_PUSH_TO_POS or self._state == STATE_PULL_TO_FIELD
+	local ballTeleported = isModifyingState and ballVisible and self._ball.pos:distanceTo(self._robot.pos) > 0.3
+	
 	self._nearestFieldPos = Field.limitToField(self._ball.pos)
 
-	if (not self._placementOffsetAverage or self._ball.pos:distanceTo(self._placementPos) > OFFSET_DISTANCE) and ballVisible then
+	if (not self._placementOffsetAverage or self._ball.pos:distanceTo(self._placementPos) > OFFSET_DISTANCE)
+			and ballVisible
+			and not ballTeleported then
 		local currentOffset = (self._ball.pos - self._placementPos):normalize()
 		if currentOffset:lengthSq() > 1e-9 then
 			self._placementOffsets[self._placementOffsetFrame] = currentOffset
@@ -376,7 +381,9 @@ function PlaceBall:_calculateOffsets()
 		end
 	end
 
-	if (not self._borderOffsetAverage or self._ball.pos:distanceTo(self._nearestFieldPos) > OFFSET_DISTANCE) and ballVisible then
+	if (not self._borderOffsetAverage or self._ball.pos:distanceTo(self._nearestFieldPos) > OFFSET_DISTANCE)
+			and ballVisible
+			and not ballTeleported then
 		local currentOffset = (self._ball.pos - self._placementPos):normalize()
 		if currentOffset:lengthSq() > 1e-9 then
 			self._borderOffsets[self._borderOffsetFrame] = (self._ball.pos - self._nearestFieldPos):normalize()
