@@ -9,6 +9,7 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Robot = require "observer/robot"
+local Physics = require "observer/physics"
 local DefUtil = require "util/defense"
 local Duel = require "task/shared/duel"
 local CenterBack = require "task/defender/centerback"
@@ -46,9 +47,17 @@ function HandleBall:_checkAttacker()
 
 	-- don't if we take too long to get the ball
 	local timeDiff = isAttacker and 0.5 or 1.0
-	local _, firstOppTime = Ball.firstRobotAtBall(World.OpponentRobots)
+	local distanceFactor = isAttacker and 1 or 1.5
+	local distanceOffset = isAttacker and 3 * self._robot.radius or 5* self._robot.radius
+	local firstOpp, firstOppTime = Ball.firstRobotAtBall(World.OpponentRobots)
+
 	if firstOppTime < Robot.minTimeToBall(self._robot) + timeDiff then
-		return false
+		-- do if we are pretty close to our acceptPos
+		local acceptPos = Physics.ballAtTime(World.Ball, Robot.minTimeToBall(self._robot)).pos
+		local enemyPos = Physics.ballAtTime(World.Ball, firstOppTime).pos
+		if not(self._robot.pos:distanceTo(acceptPos) < firstOpp.pos:distanceTo(enemyPos) * distanceFactor + distanceOffset and World.Ball.pos:distanceTo(acceptPos) + distanceOffset < World.Ball.pos:distanceTo(enemyPos)) then
+			return false
+		end
 	end
 
 	-- true if we are in opponentFieldHalf
