@@ -250,17 +250,17 @@ function FastBallPlacement:_getNextState(currentState)
 	elseif currentState == STATE_PULL_TO_FIELD then
 		nextState = STATE_PULL_TO_FIELD
 		if Field.isInField(usedBallPos)
-            and not (Field.isInFriendlyGoal(usedBallPos) or Field.isInOpponentGoal(usedBallPos))
-			and self.SHOOTER.pos:distanceTo(usedBallPos) > Constants.stopBallDistance / 3 then
+				and not (Field.isInFriendlyGoal(usedBallPos) or Field.isInOpponentGoal(usedBallPos))
+				and self.SHOOTER.pos:distanceTo(usedBallPos) > Constants.stopBallDistance / 3 then
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		end
 	elseif currentState == STATE_GET_INTO_POSITION then
 		nextState = STATE_GET_INTO_POSITION
 		if World.Ball.speed:length() > BALL_STOP_SPEED
-			or World.Ball.pos:distanceTo(self._ballStartPos) > MAX_BALL_DISTANCE then
+				or World.Ball.pos:distanceTo(self._ballStartPos) > MAX_BALL_DISTANCE then
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		elseif self.SHOOTER.pos:distanceTo(self._computedShooterPos) < ARRIVED_DISTANCE
-			and self.RECEIVER.pos:distanceTo(self._computedReceiverPos) < ARRIVED_DISTANCE then
+				and self.RECEIVER.pos:distanceTo(self._computedReceiverPos) < ARRIVED_DISTANCE then
 			nextState = STATE_EXECUTE_PASS
 		end
 	elseif currentState == STATE_EXECUTE_PASS then
@@ -272,8 +272,6 @@ function FastBallPlacement:_getNextState(currentState)
 		end
 	elseif currentState == STATE_ACCEPT_PASS then
 		nextState = STATE_ACCEPT_PASS
-
-		-- TODO Add additional states (because of wiggling after changing to fine adjust)
 		local ballDist = World.Ball.pos:distanceTo(self.RECEIVER.pos)
 		if (not self._ballReceiverIntersects and ballDist > MAX_BALL_DISTANCE)
 				or World.Ball.speed:length() < BALL_STOP_SPEED then
@@ -291,12 +289,7 @@ function FastBallPlacement:_getNextState(currentState)
 		end
 	elseif currentState == STATE_FINE_ADJUST then
 		nextState = STATE_FINE_ADJUST
-		if not World.Ball:isPositionValid() or World.Ball.pos:distanceTo(World.BallPlacementPos) <= FINE_ADJUST_ZONE then
-			self._ballTeleportTime = nil
-		elseif World.Ball.pos:distanceTo(World.BallPlacementPos) > FINE_ADJUST_ZONE then
-			self._ballTeleportTime = World.Time
-		end
-		if self._ballTeleportTime and World.Time - self._ballTeleportTime > 1 then
+		if usedBallPos:distanceTo(World.BallPlacementPos) > FINE_ADJUST_ZONE then
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		end
 	end
