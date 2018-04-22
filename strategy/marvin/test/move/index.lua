@@ -6,6 +6,7 @@ local MainTrainer = require "trainer/maintrainer"
 local CenterBackGroup = require "group/centerback"
 local MoveGroup = require "group/moves"
 local StrikerGroup = require "group/striker"
+local MidfieldGroup = require "group/midfield"
 local moves = {
 	require "test/move/timetopos",
 	require "test/move/chiptime",
@@ -32,7 +33,7 @@ local function createEntrypoint(move)
 			local moveGroup = MoveGroup()
 			moveGroup.moveList = { move }
 
-			local groupList = { CenterBackGroup(), StrikerGroup(), moveGroup }
+			local groupList = { CenterBackGroup(), StrikerGroup(), moveGroup, MidfieldGroup() }
 
 			local trainer = MainTrainer()
 			trainer:setGroups(groupList)
