@@ -232,6 +232,7 @@ end
 function FastBallPlacement:_getNextState(currentState)
 	local nextState
 
+	local usedBallPos = BallObserver.getRealisticBallPos()
 	if currentState == STATE_WAIT_FOR_BALL_STOP then
 		nextState = STATE_WAIT_FOR_BALL_STOP
 		if World.Ball.speed:length() < BALL_STOP_SPEED then
@@ -248,9 +249,9 @@ function FastBallPlacement:_getNextState(currentState)
 		end
 	elseif currentState == STATE_PULL_TO_FIELD then
 		nextState = STATE_PULL_TO_FIELD
-		if Field.isInField(World.Ball.pos)
-            and not (Field.isInFriendlyGoal(World.Ball.pos) or Field.isInOpponentGoal(World.Ball.pos))
-			and self.SHOOTER.pos:distanceTo(World.Ball.pos) > Constants.stopBallDistance / 3 then
+		if Field.isInField(usedBallPos)
+            and not (Field.isInFriendlyGoal(usedBallPos) or Field.isInOpponentGoal(usedBallPos))
+			and self.SHOOTER.pos:distanceTo(usedBallPos) > Constants.stopBallDistance / 3 then
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		end
 	elseif currentState == STATE_GET_INTO_POSITION then
