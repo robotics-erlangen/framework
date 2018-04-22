@@ -248,6 +248,9 @@ function Goal.predictShot()
 						bestPointOnLine = pointOnLine
 					end
 				end
+				if math.sin(robot.dir) > 0 then
+					goto continue
+				end
 				local ballRollTime = Physics.checkedBallRollTime(World.Ball, bestPointOnLine)
 				local offsetLength = math.min(robot.shootRadius + World.Ball.radius, robot.pos:distanceTo(bestPointOnLine))
 				local catchPos = bestPointOnLine + (robot.pos - bestPointOnLine):setLength(offsetLength)
@@ -274,6 +277,7 @@ function Goal.predictShot()
 						catchPos = catchPos})
 					vis.addPath("o/goal: predictShot: to catch position", {robot.pos, catchPos}, vis.colors.red)
 				end
+::continue::
 			end
 			table.sort(passReceivers, comparePrediction)
 
