@@ -80,11 +80,19 @@ function StopAttack:run()
 					stopRadius, 4 * self._robot.radius + 0.05, true)
 			if #intersections > 0 then
 				pos = nil
+				local distanceToSqMin = math.huge
 				for _,p in ipairs(intersections) do
-					if not pos or (self._side == "left" and p.x < pos.x) or
-							(self._side == "right" and p.x > pos.x) then
+					local distanceToSqCur = p:distanceToSq(World.Geometry.FriendlyGoal)
+					if distanceToSqCur < distanceToSqMin then
 						pos = p
+						distanceToSqMin = distanceToSqCur
 					end
+
+--					TODO: Think!
+--					if not pos or (self._side == "left" and p.x < pos.x) or
+--							(self._side == "right" and p.x > pos.x) then
+--						pos = p
+--					end
 				end
 			end
 		end
