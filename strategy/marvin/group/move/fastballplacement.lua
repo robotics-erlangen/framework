@@ -236,12 +236,12 @@ function FastBallPlacement:_getNextState(currentState)
 	if currentState == STATE_WAIT_FOR_BALL_STOP then
 		nextState = STATE_WAIT_FOR_BALL_STOP
 		if World.Ball.speed:length() < BALL_STOP_SPEED then
-			self._ballStartPos = World.Ball.pos
-			if World.Ball.pos:distanceTo(World.BallPlacementPos) < FINE_ADJUST_ZONE then
+			self._ballStartPos = usedBallPos
+			if usedBallPos:distanceTo(World.BallPlacementPos) < FINE_ADJUST_ZONE then
 				nextState = STATE_FINE_ADJUST
-			elseif not Field.isInField(World.Ball.pos)
-                    or Field.isInFriendlyGoal(World.Ball.pos)
-                    or Field.isInOpponentGoal(World.Ball.pos) then
+			elseif not Field.isInField(usedBallPos)
+                    or Field.isInFriendlyGoal(usedBallPos)
+                    or Field.isInOpponentGoal(usedBallPos) then
 				nextState = STATE_PULL_TO_FIELD
 			else
 				nextState = STATE_GET_INTO_POSITION
@@ -257,7 +257,7 @@ function FastBallPlacement:_getNextState(currentState)
 	elseif currentState == STATE_GET_INTO_POSITION then
 		nextState = STATE_GET_INTO_POSITION
 		if World.Ball.speed:length() > BALL_STOP_SPEED
-				or World.Ball.pos:distanceTo(self._ballStartPos) > MAX_BALL_DISTANCE then
+				or usedBallPos:distanceTo(self._ballStartPos) > MAX_BALL_DISTANCE then
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		elseif self.SHOOTER.pos:distanceTo(self._computedShooterPos) < ARRIVED_DISTANCE
 				and self.RECEIVER.pos:distanceTo(self._computedReceiverPos) < ARRIVED_DISTANCE then
@@ -267,7 +267,7 @@ function FastBallPlacement:_getNextState(currentState)
 		nextState = STATE_EXECUTE_PASS
 		if BallObserver.isShot() then
 			nextState = STATE_ACCEPT_PASS
-		elseif World.Ball.pos:distanceTo(self._ballStartPos) > MAX_BALL_DISTANCE then
+		elseif usedBallPos:distanceTo(self._ballStartPos) > MAX_BALL_DISTANCE then
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		end
 	elseif currentState == STATE_ACCEPT_PASS then

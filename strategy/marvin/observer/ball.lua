@@ -390,7 +390,7 @@ end
 
 -- TODO: might be better to implement a more refined version in the tracking
 local MAX_FRAME_DISTANCE = 1.5
-local MAX_INVISIBLE_TIME = 1
+local MAX_INVISIBLE_TIME = 1.5
 local lastRealisticBallPos
 local lastRealisticBallTime = 0
 function Ball.getRealisticBallPos()
@@ -400,7 +400,7 @@ end
 function Ball._updateLastRealisticBall()
 	if not lastRealisticBallPos or lastRealisticBallPos:distanceTo(World.Ball.pos) < MAX_FRAME_DISTANCE
 		or World.Time - lastRealisticBallTime > MAX_INVISIBLE_TIME then
-		lastRealisticBallPos = World.Ball.pos
+		lastRealisticBallPos = World.Ball.pos:copy()
 		lastRealisticBallTime = World.Time
 	end
 end
