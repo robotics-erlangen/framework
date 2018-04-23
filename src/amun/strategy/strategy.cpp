@@ -537,6 +537,7 @@ Status Strategy::takeStrategyDebugStatus()
     Status status = m_strategy->takeDebugStatus();
     status->mutable_debug()->set_source(debugSource());
     if (!m_status.isNull()) {
+        status->set_time(m_status->time());
         status->mutable_debug()->set_time(m_status->world_state().time());
     }
     return status;
