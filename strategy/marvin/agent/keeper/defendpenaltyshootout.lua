@@ -34,7 +34,7 @@ function DefendPenaltyShootout:_updateTask()
 	end
 
 	for _, r in ipairs(World.OpponentRobots) do
-		if World.RefereeState == "PenaltyDefensive" or r.pos:distanceTo(G.FriendlyGoal) < CRITICAL_DISTANCE then
+		if World.RefereeState == "Game" and r.pos:distanceTo(G.FriendlyGoal) < CRITICAL_DISTANCE then
 			return AggressiveKeeper
 		end
 	end
