@@ -69,7 +69,7 @@ function AttackRatio:attackRatio()
 		else
 			attackRatio = 4 -- Throw-In Offensive
 		end
-	elseif refState == "DirectDefensive" or refState == "IndirectDefensive" then
+	elseif refState == "DirectDefensive" or refState == "IndirectDefensive" or refState == "BallPlacementDefensive" then
 		local opponentCorner = Field.isInOwnCorner(ball.pos, true)
 		if opponentCorner then
 			attackRatio = 2
