@@ -24,6 +24,7 @@
 #include "protobuf/status.h"
 
 #include <QWidget>
+#include <QString>
 
 namespace Ui {
 class RefereeStatusWidget;
@@ -39,6 +40,9 @@ public:
 
 public slots:
     void handleStatus(const Status &status);
+
+private:
+    QString formatTime(int time);
 
 private:
     Ui::RefereeStatusWidget *ui;

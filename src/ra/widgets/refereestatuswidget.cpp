@@ -35,6 +35,14 @@ RefereeStatusWidget::~RefereeStatusWidget()
     delete ui;
 }
 
+QString RefereeStatusWidget::formatTime(int time)
+{
+    return QString("(%1%2:%3)")
+            .arg(time < 0 ? "-" : "")
+            .arg(std::abs(time) / 60, 2, 10, QChar('0'))
+            .arg(std::abs(time) % 60, 2, 10, QChar('0'));
+}
+
 void RefereeStatusWidget::handleStatus(const Status &status)
 {
     if (status->has_game_state()) {
@@ -48,10 +56,9 @@ void RefereeStatusWidget::handleStatus(const Status &status)
                                                   QString::fromStdString(game_state.blue().name()));
         }
 
-        ui->refereePhase->setText(QString("%1 (%2:%3) %6Goals: %4:%5")
+        ui->refereePhase->setText(QString("%1 %2 %5Goals: %3:%4")
                 .arg(QString::fromStdString(SSL_Referee::Stage_Name(stage)))
-                .arg(timeRemaining / 60, 2, 10, QChar('0'))
-                .arg(timeRemaining % 60, 2, 10, QChar('0'))
+                .arg(formatTime(timeRemaining))
                 .arg(game_state.yellow().score()).arg(game_state.blue().score())
                 .arg(teamNames));
 
@@ -64,9 +71,7 @@ void RefereeStatusWidget::handleStatus(const Status &status)
             } else {
                 timeoutLeft = game_state.yellow().timeout_time() / 1000000;
             }
-            timeout = QString("(%1:%2)")
-                    .arg(timeoutLeft / 60, 2, 10, QChar('0'))
-                    .arg(timeoutLeft % 60, 2, 10, QChar('0'));
+            timeout = formatTime(timeoutLeft);
         }
 
         ui->refereeState->setText(QString::fromStdString(game_state.State_Name(state)) + timeout);
