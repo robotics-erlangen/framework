@@ -154,10 +154,6 @@ function Field.distanceToFieldBorder(pos, boundaryWidth)
 	return math.bound(0, dx, dy)
 end
 
-
-
-
-
 local function distanceToDefenseAreaSq_2018(pos, friendly)
 	local defenseMin = Vector(-G.DefenseWidthHalf,G.FieldHeightHalf-G.DefenseHeight)
 	local defenseMax = Vector(G.DefenseWidthHalf,G.FieldHeightHalf)
@@ -167,9 +163,38 @@ local function distanceToDefenseAreaSq_2018(pos, friendly)
 	return pos:distanceToSq(geom.boundRect(defenseMin, pos, defenseMax))
 end
 
+local function isInDefenseArea_2018(pos, radius, friendly)
+	if radius < 0 then
+		local defenseMin = Vector(-G.DefenseWidthHalf-radius, G.FieldHeightHalf-G.DefenseHeight-radius)
+		local defenseMax = Vector(G.DefenseWidthHalf+radius, G.FieldHeightHalf+radius)
+		if friendly then
+			defenseMin, defenseMax = -defenseMax, -defenseMin
+		end
+		if defenseMin.x > defenseMax.x or defenseMin.y > defenseMax.y then
+			return false
+		end
+		return geom.insideRect(defenseMin, defenseMax, pos)
+	end
+	return distanceToDefenseAreaSq_2018(pos, friendly) <= radius * radius
+end
+
 local function distanceToDefenseArea_2018(pos, radius, friendly)
-	local distance = math.sqrt(distanceToDefenseAreaSq_2018(pos, friendly)) - radius
-	return (distance < 0) and 0 or distance
+	local defenseMin = Vector(-G.DefenseWidthHalf,G.FieldHeightHalf-G.DefenseHeight)
+	local defenseMax = Vector(G.DefenseWidthHalf,G.FieldHeightHalf)
+	local distance
+	if friendly then
+		pos = -pos
+	end
+	if radius < 0 and isInDefenseArea_2018(pos, 0) then
+		local min = defenseMax.x-pos.x
+		min = math.min(min, pos.x-defenseMin.x)
+		min = math.min(min, defenseMax.y-pos.y)
+		min = math.min(min, pos.y-defenseMin.y)
+		distance = min + radius
+		return math.max(-distance, 0)
+	end
+	distance = pos:distanceTo(geom.boundRect(defenseMin, pos, defenseMax)) - radius
+	return math.max(distance, 0)
 end
 
 local function distanceToDefenseArea_2017(pos, radius, friendly)
@@ -184,7 +209,6 @@ local function distanceToDefenseAreaSq_2017(pos, friendly)
 	return d * d
 end
 
-
 --- check if position is inside/touching the (friendly) defense area
 -- @name isInDefenseArea
 -- @param pos Vector - the position to check
@@ -193,15 +217,13 @@ end
 -- @return bool
 
 local function isInDefenseArea_2017(pos, radius, friendly)
+	if radius < -G.DefenseRadius then
+		return false
+	end
 	radius = radius + G.DefenseRadius
 	local defenseY = friendly and -G.FieldHeightHalf or G.FieldHeightHalf
 	local inside = Vector(math.bound(-G.DefenseStretchHalf, pos.x, G.DefenseStretchHalf), defenseY)
 	return pos:distanceToSq(inside) <= radius * radius
-end
-
-
-local function isInDefenseArea_2018(pos, radius, friendly)
-	return distanceToDefenseAreaSq_2018(pos, friendly) <= radius * radius
 end
 
 if World.RULEVERSION == "2018" then
