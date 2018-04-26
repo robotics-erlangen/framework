@@ -350,11 +350,11 @@ function World._updateGameState(state)
 	end
 
 	if state.designated_position and state.designated_position.x then
-		World.BallPlacementPos = Coordinates.toLocal(Vector(
+		World.BallPlacementPos = Coordinates.toLocal(Vector.createReadOnly(
 			-- refbox position message uses millimeters
 			-- ssl-vision's coordinate system is rotated by 90 degrees
 			-state.designated_position.y / 1000,
-			state.designated_position.x / 1000)):readOnly()
+			state.designated_position.x / 1000))
 	end
 
 	World.GameStage = World.gameStageMapping[state.stage]
