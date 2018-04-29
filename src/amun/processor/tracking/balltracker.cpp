@@ -119,7 +119,7 @@ void BallTracker::update(qint64 time)
 
         }
         if (frame.time > time) {
-            return; // try again later
+            break; // try again later
         }
 
         m_flyFilter->processVisionFrame(frame);
