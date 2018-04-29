@@ -126,10 +126,12 @@ void BallTracker::update(qint64 time)
         m_groundFilter->processVisionFrame(frame);
         m_rawMeasurements.append(frame);
 
-        m_visionFrames.removeFirst();
         m_lastFrameTime = frame.time;
         m_lastTime = time;
         m_lastBallPos = Eigen::Vector2f(frame.x, frame.y);
+
+        // remove invalidates the reference to frame
+        m_visionFrames.removeFirst();
     }
     m_lastUpdateTime = time;
 #ifdef ENABLE_TRACKING_DEBUG
