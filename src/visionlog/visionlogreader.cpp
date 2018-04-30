@@ -33,7 +33,9 @@ const char * VisionLog::DEFAULT_FILE_HEADER_NAME = "SSL_LOG_FILE";
 VisionLogReader::VisionLogReader(const QString& filename):
     QObject()
 {
-    const char *fname = filename.toLatin1().data();;
+    // keep reference to filename bytes alive
+    QByteArray filenameBytes = filename.toUtf8();
+    const char *fname = filenameBytes.data();
     in_stream = new std::ifstream(fname, std::ios_base::in | std::ios_base::binary);
     if (!in_stream->is_open()) {
         std::cerr << "Error opening log file \"" << fname << "\"!" << std::endl;
