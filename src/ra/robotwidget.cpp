@@ -131,12 +131,11 @@ RobotWidget::RobotWidget(InputManager *inputManager, bool is_generation, QWidget
     m_btnControl->setAutoRaise(true);
     m_btnControl->setPopupMode(QToolButton::InstantPopup);
     layout->addWidget(m_btnControl);
-    updateInputMenu();
+    // calls updateInputMenu
+    selectTeam(NoTeam);
     if (!m_isGeneration) {
         disableInput();
     }
-
-    selectTeam(NoTeam);
 
     m_guiUpdateTimer = new GuiTimer(100, this);
     connect(m_guiUpdateTimer, &GuiTimer::timeout, this, &RobotWidget::updateRobotStatus);
