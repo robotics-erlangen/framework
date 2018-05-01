@@ -40,6 +40,10 @@ if(MINGW)
     set(CMAKE_RC_COMPILE_OBJECT "<CMAKE_RC_COMPILER> <FLAGS> -O coff <DEFINES> \"-I${CMAKE_SOURCE_DIR}/data/pkg\" -i <SOURCE> -o <OBJECT>")
     # make sure MinGW doesn't screw up packing the radiocommands
     SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -mno-ms-bitfields")
+    # use sse floats, not the insane x87 fpu where intermediate values
+    # may have up to 80bit precision, instead of the expected 32bit for floats
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse2 -mfpmath=sse")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -msse2 -mfpmath=sse")
 endif(MINGW)
 
 if(APPLE)
