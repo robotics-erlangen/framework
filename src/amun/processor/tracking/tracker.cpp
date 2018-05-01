@@ -182,12 +182,13 @@ void Tracker::prioritizeBallFilters()
     // in unstable comparisons during sort. Either fstDist or sndDist
     // seems to be passed directly via register and thus has too much
     // precision on a x87 fpu which is only used on x32 platforms.
+
+    // when the current filter is tracking a flight, prioritize flight reconstruction
     for (auto &filter: m_ballFilter) {
         filter->calcDistToCamera(flying);
     }
 
-    // when the current filter is tracking a flight, prioritize flight reconstruction
-    auto cmp = [ flying ] ( BallTracker* fst, BallTracker* snd ) -> bool {
+    auto cmp = [ ] ( BallTracker* fst, BallTracker* snd ) -> bool {
         float fstDist = fst->cachedDistToCamera();
         float sndDist = snd->cachedDistToCamera();
         return fstDist < sndDist;
