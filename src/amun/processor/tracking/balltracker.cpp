@@ -30,7 +30,8 @@ BallTracker::BallTracker(const SSL_DetectionBall &ball, qint64 last_time, qint32
     m_initTime(last_time),
     m_lastFrameTime(0),
     m_confidence(0),
-    m_updateFrameCounter(0)
+    m_updateFrameCounter(0),
+    m_cachedDistToCamera(0)
 {
     m_primaryCamera = primaryCamera;
     VisionFrame frame(ball, last_time, primaryCamera, robotInfo, visionProcessingTime);
@@ -49,7 +50,8 @@ BallTracker::BallTracker(const BallTracker& previousFilter, qint32 primaryCamera
     m_lastBallPos(previousFilter.m_lastBallPos),
     m_lastFrameTime(previousFilter.m_lastFrameTime),
     m_confidence(previousFilter.m_confidence),
-    m_updateFrameCounter(previousFilter.m_updateFrameCounter)
+    m_updateFrameCounter(previousFilter.m_updateFrameCounter),
+    m_cachedDistToCamera(0)
 {
     m_primaryCamera = primaryCamera;
 
@@ -79,15 +81,21 @@ bool BallTracker::acceptDetection(const SSL_DetectionBall& ball, qint64 time, qi
     return accept;
 }
 
-float BallTracker::distToCamera(bool flying)
+void BallTracker::calcDistToCamera(bool flying)
 {
     Eigen::Vector3f cam = m_cameraInfo->cameraPosition.value(m_primaryCamera);
     float dist = (m_lastBallPos - Eigen::Vector2f(cam(0), cam(1))).norm();
     if (flying && m_flyFilter->isActive()) {
         dist = m_flyFilter->distToStartPos();
     }
+
     debug("dist", dist);
-    return dist;
+    m_cachedDistToCamera = dist;
+}
+
+float BallTracker::cachedDistToCamera()
+{
+    return m_cachedDistToCamera;
 }
 
 bool BallTracker::isFlying() const

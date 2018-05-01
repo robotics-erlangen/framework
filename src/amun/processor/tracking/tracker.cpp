@@ -176,10 +176,20 @@ void Tracker::prioritizeBallFilters()
     // TODO: this ist partially obsolete due to changes in bestBallFilter
     // assures that the one with its camera closest to its last detection is taken.
     bool flying = m_ballFilter.contains(m_currentBallFilter) && m_currentBallFilter->isFlying();
+
+    // cache distance to camera for performance reasons and to avoid
+    // that intermediate values have excess precision, which results
+    // in unstable comparisons during sort. Either fstDist or sndDist
+    // seems to be passed directly via register and thus has too much
+    // precision on a x87 fpu which is only used on x32 platforms.
+    for (auto &filter: m_ballFilter) {
+        filter->calcDistToCamera(flying);
+    }
+
     // when the current filter is tracking a flight, prioritize flight reconstruction
     auto cmp = [ flying ] ( BallTracker* fst, BallTracker* snd ) -> bool {
-        float fstDist = fst->distToCamera(flying);
-        float sndDist = snd->distToCamera(flying);
+        float fstDist = fst->cachedDistToCamera();
+        float sndDist = snd->cachedDistToCamera();
         return fstDist < sndDist;
     };
     std::sort(m_ballFilter.begin(), m_ballFilter.end(), cmp);

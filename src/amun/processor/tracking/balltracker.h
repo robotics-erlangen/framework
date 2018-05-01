@@ -42,7 +42,8 @@ public:
     void get(world::Ball *ball, bool flip); // writes to world state
     void addVisionFrame(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingDelay);
     bool acceptDetection(const SSL_DetectionBall& ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingDelay);
-    float distToCamera(bool flying);
+    void calcDistToCamera(bool flying);
+    float cachedDistToCamera();
     bool isFlying() const;
     const qint64 initTime() const { return m_initTime; }
     bool isShot() const;
@@ -70,6 +71,7 @@ private:
     qint64 m_lastFrameTime;
     double m_confidence;
     int m_updateFrameCounter;
+    float m_cachedDistToCamera;
 
 #ifdef ENABLE_TRACKING_DEBUG
     amun::DebugValues m_debug;
