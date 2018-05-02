@@ -30,7 +30,9 @@
 VisionLogWriter::VisionLogWriter(const QString& filename):
     QObject()
 {
-    const char *fname = filename.toUtf8().data();;
+    //keep reference to filename bytes alive
+    QByteArray filenameBytes = filename.toUtf8();
+    const char *fname = filenameBytes.constData();
     out_stream = new std::ofstream(fname, std::ios_base::out | std::ios_base::binary);
     if (!out_stream->is_open()) {
         std::cerr << "Error opening log file \"" << fname << "\"!" << std::endl;
