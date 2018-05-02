@@ -77,14 +77,14 @@ private:
     amun::DebugValues m_debug;
     void debug(const char* key, float value){
         amun::DebugValue *debugValue = m_debug.add_value();
-        const char* k = (QString::number(m_primaryCamera)+QString("/")+QString(key)).toUtf8().constData();
-        debugValue->set_key(k);
+        std::string str = (QString::number(m_primaryCamera)+QString("/")+QString(key)).toStdString();
+        debugValue->set_key(str);
         debugValue->set_float_value(value);
     }
     void debug(const char* key, const char* value){
         amun::DebugValue *debugValue = m_debug.add_value();
-        const char* k = (QString::number(m_primaryCamera)+QString("/")+QString(key)).toUtf8().constData();
-        debugValue->set_key(k);
+        std::string str = (QString::number(m_primaryCamera)+QString("/")+QString(key)).toStdString();
+        debugValue->set_key(str);
         debugValue->set_string_value(value);
     }
 #else
