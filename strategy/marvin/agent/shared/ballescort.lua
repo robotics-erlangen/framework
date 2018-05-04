@@ -7,110 +7,96 @@ local Referee = require "../base/referee"
 local World = require "../base/world"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
+local RefereeObs = require "observer/referee"
 local Robot = require "observer/robot"
 local BallEscortTask = require "task/shared/ballescort"
 
-
 function BallEscort:_init()
-	self._ownTask = nil
-	self._maxDistanceToBall = 0.2 + self._robot.radius
-	self._lastballOutPos = nil
-	self._ballOutDistance = 0.3
 	self._minRobot = nil
-	self._counter = 0
 end
 
 function BallEscort:_stop()
-	self._ownTask = nil
 end
 
-function BallEscort:check()
+function BallEscort:_checkOpponentTimings()
+	local minOppRobot, minOppTime = Ball.firstRobotAtBall(World.OpponentRobots)
 
-	if (World.RefereeState == "Game" or World.RefereeState == "GameForce") and self._inbox.mainAttacker().trainer == self._robot then
-
-		local ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed, 0)
-
-		-- hysteresis
-		if self._ownTask == "BallEscort" then
-			self._maxDistanceToBall = 0.10 + self._robot.radius
-			self._ballOutDistance = 0.4
-		end
-
-		-- don't if ballOutPos flickers
-		if self._lastballOutPos and ballOutPos and self._lastballOutPos:distanceTo(ballOutPos) > self._ballOutDistance then
-			self._counter = 0
-			self._lastballOutPos = ballOutPos
-			return false
-		end
-
-		self._lastballOutPos = ballOutPos
-
-		debug.push("BallEscort")
-		debug.set("touchedLast", Referee.opponentTouchedLast())
-		debug.set("receivesPass", Ball.receivesPass(self._robot))
-		debug.pop()
-
-		if Referee.opponentTouchedLast() and not Ball.receivesPass(self._robot) then
-
-			if ballOutPos then
-
-				local oppTimeToPos = math.huge
-				for _, oppRobots in ipairs(World.OpponentRobots) do
-
-					-- don't if opponent can reach the ball
-					if Ball.receivesPass(oppRobots) or Robot.minTimeToBall(oppRobots) then
-						self._counter = 0
-						return false
-					end
-
-					local robotTimeToPos = Physics.robotTimeToPos(oppRobots, ballOutPos, Vector(0,0))
-
-					if robotTimeToPos < oppTimeToPos then
-						oppTimeToPos = robotTimeToPos
-						self._minRobot  = oppRobots
-					end
-
-				end
-
-				debug.push("BallEscort")
-				local robotTimeToBall = Physics.robotTimeToBall(self._robot, World.Ball, World.Geometry.OpponentGoal, 0)
-				debug.set("robotTimeToBall", robotTimeToBall)
-				debug.pop()
-
-				if robotTimeToBall == math.huge then
-
-					-- ballOutPos should not be in penalty area
-					if Referee.opponentTouchedLast() and (math.abs(ballOutPos.x) > World.Geometry.DefenseStretch/2 + World.Geometry.DefenseRadius) then
-
-						local minRobotDistanceToBall = self._minRobot.pos:distanceTo(World.Ball.pos)
-						local ownDistanceToBall = self._robot.pos:distanceTo(World.Ball.pos)
-						local opponentMaxDistanceToBall = 0.2 + self._robot.radius*3
-
-						debug.push("BallEscort")
-						debug.set("ownDistanceToBall", ownDistanceToBall > self._maxDistanceToBall)
-						debug.set("oppDistanceToBall", minRobotDistanceToBall > opponentMaxDistanceToBall)
-						debug.pop()
-
-						-- both robots should not be too close
-						if ownDistanceToBall > self._maxDistanceToBall and minRobotDistanceToBall > opponentMaxDistanceToBall then
-
-							self._counter = self._counter + 1
-							debug.push("BallEscort")
-							debug.set("counter", self._counter)
-							debug.pop()
-
-							-- to make sure the decision is not too early
-							if self._counter > 5 then
-								self._ownTask = "BallEscort"
-								return true
-							end
-						end
-					end
+	if minOppTime == math.huge then
+		-- firstRobotAtBall calls minTimeToBall which assumes the robot wants to look at it's opponent's goal
+		-- This can lead to situations where the function returns math.huge even though it wouldn't if we checked
+		-- with a different position (here: the ball position while receiving a pass)
+		for _, robot in pairs(World.OpponentRobots) do
+			if Ball.receivesPass(robot) then
+				local time = Physics.robotTimeToBall(robot, World.Ball, World.Ball.pos, robot.maxSpeed)
+				if time < minOppTime then
+					minOppRobot = robot
+					minOppTime = time
 				end
 			end
 		end
 	end
-	return false
+
+	return minOppRobot, minOppTime
+end
+
+function BallEscort:_isReachabilityOk(oppTime, ownTime)
+	if not (oppTime < math.huge) then
+		return true
+	end
+
+	if not self._active then
+		return false
+	end
+
+	return oppTime - ownTime > 1
+end
+
+function BallEscort:check()
+	local shotHysteresis = self._active and 0.075 or 0.15
+
+	if not (World.RefereeState == "Game" or World.RefereeState == "GameForce")
+			or self._inbox.mainAttacker().trainer ~= self._robot
+			or not Referee.opponentTouchedLast()
+			or Ball.wasShot(shotHysteresis) then
+		return false
+	end
+
+	local ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
+
+	debug.set("BallEscort/ballOutPos", ballOutPos)
+
+	-- ballOutPos should not be in defense area
+	if not ballOutPos or math.abs(ballOutPos.x) <= Field.defenseBaselineIntersectionDistance() then
+		return false
+	end
+
+	local minOppRobot, minOppTime = self:_checkOpponentTimings()
+	local ownTimeToBall = Robot.minTimeToBall(self._robot)
+
+	debug.set("BallEscort/ownTimeToBall", ownTimeToBall)
+	debug.set("BallEscort/minRobot", minOppRobot)
+	debug.set("BallEscort/minOppTime", minOppTime)
+
+	if minOppRobot then
+		self._minRobot = minOppRobot
+	end
+
+	if not self:_isReachabilityOk(minOppTime, ownTimeToBall) then
+		return false
+	end
+
+	local icing = RefereeObs.opponentIcingPredicted(World.Ball)
+	debug.set("BallEscort/icing", icing)
+	if icing then
+		return true
+	end
+
+	-- If we can reach the ball we should try to
+	if ownTimeToBall < math.huge then
+		return false
+	end
+
+	return true
 end
 
 function BallEscort:_updateTask()
