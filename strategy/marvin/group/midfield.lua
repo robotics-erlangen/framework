@@ -178,9 +178,12 @@ function Midfield:run(sender, inbox, messages)
 
 	local numAttackers = #table.keys(inbox.attackerFlag())
 	local remainingMidfielders = determineMidfielderCount(self, numAttackers)
+	if self._lastAssignments and #self._lastAssignments ~= remainingMidfielders then
+		updateAssignments = self:_updateZones(remainingMidfielders) or updateAssignments
+	end
 	updateAssignments = updateAssignments or self._lastRobots and #self._lastRobots ~= remainingMidfielders
 
-	updateAssignments = updateAssignments or self:_updateZones(remainingMidfielders)
+	
 
 
 	-- assign the zones to the nearest Midfields
