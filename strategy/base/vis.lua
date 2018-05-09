@@ -249,6 +249,30 @@ function vis.addPolygonRaw(name, points, color, isFilled, background, style)
 	})
 end
 
+
+--Paints an axis aligned rectangle
+--@name addAxisAlignedRectangle
+--@param name string - Visualization group
+--@param corner1 Vector - One corner of the rectangle
+--@param corner2 Vector - The other corner of the rectangle
+--@param color table - see @addPolygon
+--@param isFilled bool - see @addPolygon
+--@param background - see @addPolygon
+--@param style - see @addPolygon
+function vis.addAxisAlignedRectangle(name, corner1, corner2, color, isFilled, background, style)
+	local minX, minY, maxX, maxY
+	minX = math.min(corner1.x, corner2.x)
+	minY = math.min(corner1.y, corner2.y)
+	maxX = math.max(corner1.x, corner2.x)
+	maxY = math.max(corner1.y, corner2.y)
+	local path = {}
+	table.insert(path, Vector(minX, minY));
+	table.insert(path, Vector(minX, maxY));
+	table.insert(path, Vector(maxX, maxY));
+	table.insert(path, Vector(maxX, minY));
+	vis.addPolygon(name, path, color, isFilled, background, style)
+end
+
 --- Paints a Pizza where everything outside of [startAngle, endAngle] is filled
 --- The shape of the pizza is approximated by a regular hexagon
 -- @param name string - Name of the pizza
