@@ -35,8 +35,8 @@ function Midfield:_samplePassPosition()
 	local width = right - left
 	local height = top - bottom
 
-	local xStep = width / 5
-	local yStep = height / 10
+	local xStep = width / 3
+	local yStep = height / 6
 
 	local bestScore = -math.huge
 	local bestPoint = nil
