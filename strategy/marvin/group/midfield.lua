@@ -113,18 +113,18 @@ function Midfield:_updateZones(nMidfielders)
 	local robotRadius = Constants.maxRobotRadius
 	local zoneWidth = 2
 	local top = isInTopHalf and -1 or 1
-	local verticalOffset = 1.4
-	local horizontalOffset = 1.5
+	local verticalOffset = 2.2
+	local horizontalOffset = 0.5
 
-
+	log("remiauning zones: "..tostring(remainingZones))
 	-- three hardcoded zones, depending on the number of robots we have
 	if remainingZones >= 1 then
 		local zone = {}
 		zone.boundaries = {
-			bottom = -2,
-			top = 2,
-			left = top * (totalLeft + robotRadius + verticalOffset),
-			right = top * (totalLeft + robotRadius + verticalOffset + zoneWidth)
+			bottom = -3.5,
+			top = 0.5,
+			left = top * (totalLeft + robotRadius + verticalOffset)+ top,
+			right = top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top
 		}
 		zone.defaultPos = getDefaultPosition(zone.boundaries)
 		remainingZones = remainingZones - 1
@@ -134,10 +134,10 @@ function Midfield:_updateZones(nMidfielders)
 	if remainingZones >= 1 then
 		local zone = {}
 		zone.boundaries = {
-			bottom = -2 + horizontalOffset,
-			top = 2 + horizontalOffset,
-			right = -top * (totalLeft + robotRadius + verticalOffset),
-			left = -top * (totalLeft + robotRadius + verticalOffset + zoneWidth)
+			bottom = -3.5 + horizontalOffset,
+			top = 0.5 + horizontalOffset,
+			right = -top * (totalLeft + robotRadius + verticalOffset) + top,
+			left = -top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top
 		}
 		zone.defaultPos = getDefaultPosition(zone.boundaries)
 		remainingZones = remainingZones - 1
