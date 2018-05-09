@@ -265,7 +265,7 @@ end
 
 local function addBallPlacementObstacle(path)
     if World.RefereeState == "BallPlacementOffensive" or World.RefereeState == "BallPlacementDefensive" then
-        if World.Ball.pos ~= World.BallPlacementPos then
+        if World.Ball.pos:distanceToSq(World.BallPlacementPos) > 0.001 then
 	        path:addLine(
 	            World.Ball.pos.x,
 	            World.Ball.pos.y,
@@ -275,6 +275,8 @@ local function addBallPlacementObstacle(path)
 	            "BallPlacement",
 				Priorities.BALL_PLACEMENT
 	        )
+		else
+			path:addCircle(World.Ball.pos.x, World.Ball.pos.y, Constants.stopBallDistance, "BallPlacement")
 	    end
     end
 end
