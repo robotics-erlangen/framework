@@ -504,6 +504,7 @@ else
 	Field.intersectRayDefenseArea = intersectRayDefenseArea_2017
 	Field.intersectionsRayDefenseArea = intersectionsRayDefenseArea
 end
+
 --- Return all line segments of the line segment pos to pos + dir * maxLength which are in the allowed field part
 -- @name allowedLineSegments
 -- @param pos Vector - starting point of the line
@@ -674,6 +675,7 @@ local function intersectCircleDefenseArea_2017(pos, radius, extraDistance, frien
 
 	return intersections
 end
+
 local function intersectCircleDefenseArea_2018(pos, radius, extraDistance, friendly)
 	if not isInDefenseArea_2018(pos, radius+extraDistance, friendly) then
 		return {}
@@ -788,7 +790,6 @@ function Field.nextLineCut(startPos, dir, offset)
 end
 
 
-
 --- Calculates the next intersection with the field boundaries or the defense areas
 -- @name nextAllowedFieldLineCut
 -- @param startPos vector - the initial point of the half-line
@@ -844,6 +845,21 @@ function Field.isInOpponentGoal(pos)
 		G.OpponentGoalLeft,
 		pos
 	)
+end
+
+
+local function defenseBaselineIntersectionDistance_2017()
+	return World.Geometry.DefenseRadius + (World.Geometry.DefenseStretch / 2)
+end
+
+local function defenseBaselineIntersectionDistance_2018()
+	return World.Geometry.DefenseWidth / 2
+end
+
+if World.RULEVERSION == "2018" then
+	Field.defenseBaselineIntersectionDistance = defenseBaselineIntersectionDistance_2018
+else
+	Field.defenseBaselineIntersectionDistance = defenseBaselineIntersectionDistance_2017
 end
 
 

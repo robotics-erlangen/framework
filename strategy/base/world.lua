@@ -106,8 +106,8 @@ World.Geometry = {}
 -- @field FreeKickDefenseDist number - Distance to keep to opponent defense area during a freekick
 -- @field DefenseRadius number - Radius of the defense area corners (pre 2018)
 -- @field DefenseStretch number - Distance between the defense areas quarter circles (pre 2018)
--- @field DefenseWidth number - Width of the rectangular defense area (since 2018)
--- @field DefenseHeight number - Height of the rectangular defense area (since 2018)
+-- @field DefenseWidth number - Width of the rectangular defense area (longer side) (since 2018)
+-- @field DefenseHeight number - Height of the rectangular defense area (shorter side) (since 2018)
 -- @field FriendlyPenaltySpot Vector - Position of our own penalty spot
 -- @field OpponentPenaltySpot Vector - Position of the opponent's penalty spot
 -- @field PenaltyLine number - Maximal distance from centerline during an offensive penalty
