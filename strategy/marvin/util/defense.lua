@@ -202,7 +202,7 @@ end
 Defense.rateOpponentDangerousness = Cache.forFrame(rateOpponentDangerousness)
 
 local function rateOpponentPassViability()
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		debug.push("Util Defense")
 		debug.push("passViability")
 	end
@@ -258,7 +258,7 @@ local function rateOpponentPassViability()
 			rating = rating + 0.5
 		end
 
-		if amun.isDebug then
+		if not amun.isPerformanceMode then
 			debug.push(tostring(opp.id))
 			debug.set("distToBallOwnerRating", distToBallOwnerRating)
 			debug.set("distToGoalRating", distToGoalRating)
@@ -269,7 +269,7 @@ local function rateOpponentPassViability()
 		::continue::
 	end
 
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		debug.pop()
 		debug.pop()
 	end

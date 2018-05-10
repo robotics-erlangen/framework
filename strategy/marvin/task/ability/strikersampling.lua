@@ -47,7 +47,7 @@ function StrikerSampling:canReachInTime(ballPos)
 
 	local rating = Rating.valueToRating(shootTime + ballTime - robotTime, 0.2, 0.5)
 	
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		visualizeRating("canReachInTime", ballPos, rating)
 	end
 
@@ -57,7 +57,7 @@ end
 function StrikerSampling:passTooShort(ballPos)
 	local rating = Rating.valueToRating(ballPos:distanceTo(self._attackPosition), 3, 5)
 
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		visualizeRating("passTooShort", ballPos, rating)
 	end
 
@@ -74,7 +74,7 @@ function StrikerSampling:volleyPass(ballPos)
 	local volleySuccessProbability = Rating.valueToRating(volleyAngle, 65 / 180 * math.pi, 50 / 180 * math.pi)
 	local rating = volleySuccessProbability * (1 - minRating) + minRating
 	
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		visualizeRating("volleyPass", ballPos, rating)
 	end
 
@@ -86,7 +86,7 @@ function StrikerSampling:goalAngle(ballPos)
 	local angle = (World.Geometry.OpponentGoalRight - ballPos):absoluteAngleDiff(World.Geometry.OpponentGoalLeft - ballPos)
 	local rating = Rating.valueToRating(angle, 0, 20 / 180 * math.pi) * (1 - minRating) + minRating
 
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		visualizeRating("goalAngle", ballPos, rating)
 	end
 	return rating
@@ -108,7 +108,7 @@ function StrikerSampling:crossPass(ballPos)
 		self._attackPosition - World.Geometry.OpponentGoal)
 	local rating = Rating.valueToRating(angleAttackGoalBall, 0, math.pi * 0.5)
 
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		visualizeRating("crossPass", ballPos, rating)
 	end
 
@@ -120,7 +120,7 @@ function StrikerSampling:distToGoal(ballPos)
 	local minDist = World.Geometry.DefenseRadius + 0.3
 	local rating = Rating.valueToRating(distToGoal, World.Geometry.FieldHeight * 0.7, minDist)
 
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		visualizeRating("distToGoal", ballPos, rating)
 	end
 

@@ -70,7 +70,7 @@ function MidfieldSampling:closeOpponents(ballPos)
 
 	closestDistance = math.sqrt(closestDistance)
 	local rating = (1 - minRating) * Rating.valueToRating(closestDistance, 0.4, 1.5) + minRating
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		visualizeRating("closeOpponents", ballPos, rating)
 	end
 
@@ -84,7 +84,7 @@ function MidfieldSampling:movingAhead(ballPos)
 	local plannedY = ballPos.y
 	local rating = (1 - minRating) * Rating.valueToRating(plannedY, currentY - 0.2, currentY + 1) + minRating
 
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		visualizeRating("movingAhead", ballPos, rating)
 	end
 
@@ -96,7 +96,7 @@ function MidfieldSampling:passDistance(ballPos)
 	local dist = self._attackPosition:distanceTo(ballPos)
 	local rating = (1 - minRating) * Rating.valueToRating(dist, 8, 5) + minRating
 
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		visualizeRating("passDistance", ballPos, rating)
 	end
 
@@ -121,7 +121,7 @@ function MidfieldSampling:volleyToStriker(ballPos)
 		rating = rating + ratingWeight * volleySuccessProbability
 	end
 
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		visualizeRating("volleyToStriker", ballPos, rating)
 	end
 
@@ -138,7 +138,7 @@ function MidfieldSampling:volleyPass(ballPos)
 	local volleySuccessProbability = Rating.valueToRating(volleyAngle, 65 / 180 * math.pi, 50 / 180 * math.pi)
 	local rating = volleySuccessProbability * (1 - minRating) + minRating
 
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		visualizeRating("volleyPass", ballPos, rating)
 	end
 
@@ -158,7 +158,7 @@ function MidfieldSampling:canReachInTime(ballPos)
 
 	local rating = Rating.valueToRating(shootTime + ballTime - robotTime, 0.2, 0.5)
 	
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		visualizeRating("canReachInTime", ballPos, rating)
 	end
 

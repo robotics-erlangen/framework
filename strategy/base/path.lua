@@ -190,7 +190,7 @@ function path:addCircle(x, y, radius, name, prio)
 		x = -x
 		y = -y
 	end
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		vis.addCircleRaw("obstacles: "..tostring(path.robotId(self)), Vector(x,y), radius, vis.colors.redHalf, true)
 	else
 		-- avoid string allocations in ra
@@ -211,7 +211,7 @@ function path:addLine(start_x, start_y, stop_x, stop_y, radius, name, prio)
 		stop_x = -stop_x
 		stop_y = -stop_y
 	end
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		vis.addPathRaw("obstacles: "..tostring(path.robotId(self)), {Vector(start_x, start_y), Vector(stop_x, stop_y)}, vis.colors.redHalf, nil, nil, 2 * radius)
 	else
 		-- avoid string allocations in ra
@@ -228,7 +228,7 @@ function path:addRect(start_x, start_y, stop_x, stop_y, name, prio)
 		stop_x = -stop_x
 		stop_y = -stop_y
 	end
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		vis.addPolygonRaw("obstacles: "..tostring(path.robotId(self)), {Vector(start_x, start_y), Vector(start_x, stop_y), Vector(stop_x, stop_y), Vector(stop_x, start_y)},
 			vis.colors.redHalf, true)
 	else
@@ -248,7 +248,7 @@ function path:addTriangle(x1, y1, x2, y2, x3, y3, lineWidth, name, prio)
 		x3 = -x3
 		y3 = -y3
 	end
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		local p1 = Vector(x1,y1)
 		local p2 = Vector(x2,y2)
 		local p3 = Vector(x3,y3)

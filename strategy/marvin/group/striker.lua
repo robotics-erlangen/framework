@@ -64,7 +64,7 @@ local function assignRobotsToZones(robotPositions, zones)
 	end
 
 	-- visualize assignments
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		for zone, robot in pairs(zoneAssignment) do
 			vis.addPath("g/striker: zone assignment", {zone.defaultPos, robot.pos}, vis.colors.white)
 		end

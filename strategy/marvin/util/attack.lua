@@ -72,7 +72,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 		local validIntersection = false
 		if intersection then
 			validIntersection = Field.isInField(intersection) and opp.pos:distanceTo(intersection) < opp.pos:distanceTo(orthogonalProjection)
-			if validIntersection and amun.isDebug then
+			if validIntersection and not amun.isPerformanceMode then
 				vis.addCircle("u/a/ratePass", intersection, 0.05, vis.colors.red, true)
 				vis.addPath("u/a/ratePass", {opp.pos, intersection}, vis.colors.slate, true)
 			end
@@ -83,7 +83,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 					and opp ~= World.OpponentKeeper then
 			local passInterception = orthogonalProjection:distanceToLineSegment(shootPos, pass.ballPos) > 0.5
 					and pass.ballPos or orthogonalProjection
-			if amun.isDebug then
+			if not amun.isPerformanceMode then
 				vis.addPath("u/a/ratePass", {opp.pos, passInterception}, vis.colors.blue, true)
 			end
 
@@ -95,7 +95,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 			-- calculate the time the robot needs to arrive at the intersection point
 			-- to achieve more relevant results, the speed component parallel to the pass trajectory is ignored
 			local projectedSpeed = opp.speed - ((opp.pos + opp.speed):orthogonalProjection(shootPos, pass.ballPos) - orthogonalProjection)
-			if amun.isDebug then
+			if not amun.isPerformanceMode then
 				vis.addPath("u/a/ratePass", {opp.pos, opp.pos + projectedSpeed}, vis.colors.pink, true)
 			end
 			local fakeRobot = {acceleration = opp.acceleration, pos = opp.pos, maxSpeed = opp.maxSpeed, speed = projectedSpeed}
@@ -119,7 +119,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 	local goalAngleRating = Rating.valueToRating(goalAngle, 0, 50 / 180 * math.pi)
 	rating = rating * (1 - goalAngleWeight + goalAngleWeight * goalAngleRating)
 
-	if amun.isDebug then
+	if not amun.isPerformanceMode then
 		vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true)
 		vis.addPath("u/a/ratePass", {shootPos, pass.ballPos}, vis.colors.red)
 	end
