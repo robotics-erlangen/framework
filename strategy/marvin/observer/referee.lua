@@ -16,10 +16,28 @@ function Referee.icingPredicted(ball, friendly)
 	if not lastTouchPos or not ballOutPos then
 		return false
 	end
-	local lastTouchedCorrect = friendly == BaseRef.friendlyTouchedLast()
-	local shotFromCorrect = friendly and lastTouchPos.y < 0 or lastTouchPos.y > 0
-	local outAtGoalline = (friendly and math.abs(ballOutPos.y + G.FieldHeightHalf) or math.abs(ballOutPos.y - G.FieldHeightHalf)) < 0.001
-	return lastTouchedCorrect and shotFromCorrect and outAtGoalline
+	-- Touched by correct team?
+	if friendly ~= BaseRef.friendlyTouchedLast() then
+		return false
+	end
+	-- On the correct side?
+	if friendly and lastTouchPos.y > 0 or lastTouchPos.y < 0 then
+		return false
+	end
+	-- Does the ball cross the middle line?
+	if lastTouchPos.y * ballOutPos.y > 0 then
+		return false
+	end
+	-- Will it go out at the goal line?
+	if (friendly and math.abs(ballOutPos.y + G.FieldHeightHalf) or math.abs(ballOutPos.y - G.FieldHeightHalf)) > 0.001 then
+		return false
+	end
+	-- Will it cross the line at the goal?
+	if math.abs(ballOutPos.x) < G.GoalWidth / 2 then
+		return false
+	end
+
+	return true
 end
 
 -- Returns true if the ball's next line cut would result in an opponent icing
