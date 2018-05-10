@@ -193,7 +193,7 @@ void MainWindow::openFile()
         previousDir = finfo.dir().path();
     }
 
-    QString filename = QFileDialog::getOpenFileName(this, "Select log file", previousDir);
+    QString filename = QFileDialog::getOpenFileName(this, "Select log file", previousDir, "Log files (*.log)");
     openFile(filename);
 }
 
