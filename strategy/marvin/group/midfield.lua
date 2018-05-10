@@ -116,7 +116,6 @@ function Midfield:_updateZones(nMidfielders)
 	local verticalOffset = 2.2
 	local horizontalOffset = 0.5
 
-	log("remiauning zones: "..tostring(remainingZones))
 	-- three hardcoded zones, depending on the number of robots we have
 	if remainingZones >= 1 then
 		local zone = {}
