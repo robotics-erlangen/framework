@@ -23,7 +23,11 @@ end
 local function getDefaultPosition(boundaries)
 	local zoneWidth = math.abs(boundaries.right - boundaries.left)
 	local zoneHeight = math.abs(boundaries.top - boundaries.bottom)
-	return Vector(boundaries.right - zoneWidth/2, boundaries.bottom + zoneHeight/2)
+
+	local isInTopHalf = math.abs(boundaries.right) > math.abs(boundaries.left)
+	local fraction = isInTopHalf and 1/8 or 7/8
+
+	return Vector(boundaries.right - zoneWidth * fraction, boundaries.bottom + zoneHeight * 2/3)
 end
 
 local function visualizeZone(zone)
