@@ -144,6 +144,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // set up log connections
     connect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotReplayStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
     connect(ui->replay, SIGNAL(saveBacklog()), &m_logWriter, SLOT(backLogButtonClicked()));
     connect(ui->replay, SIGNAL(enableRecording(bool)), &m_logWriter, SLOT(recordButtonToggled(bool)));
     connect(&m_logWriter, SIGNAL(enableBacklogButton(bool)), ui->replay, SIGNAL(enableBackLogLogButton(bool)));
@@ -256,7 +257,7 @@ void MainWindow::createStrategy(int index)
     connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->log, SLOT(handleStatus(Status)));
     connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
     connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
-    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
+    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), SLOT(handleReplayStatus(Status)));
 
     connect(ui->replay, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
     connect(this, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));
@@ -322,6 +323,14 @@ void MainWindow::handleStatus(const Status &status)
         m_lastTeamInfoUpdated = true;
         emit sendCommand(command);
     }
+}
+
+void MainWindow::handleReplayStatus(const Status &status)
+{
+    // adapt strategy replay time, since it may be smaller than times already written to the log
+    // it will be filled in by m_logWriter
+    status->clear_time();
+    emit gotReplayStatus(status);
 }
 
 void MainWindow::closeEvent(QCloseEvent *e)

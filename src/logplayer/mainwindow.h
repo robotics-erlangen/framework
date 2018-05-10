@@ -64,6 +64,7 @@ protected:
 
 public slots:
     void handleStatus(const Status &status);
+    void handleReplayStatus(const Status &status);
     void gotPreStatus(const Status &status);
     void gotPrePlayStatus(Status status);
     void openFile(const QString &filename);
@@ -71,6 +72,7 @@ public slots:
 signals:
     void gotStatus(const Status &status);
     void gotPlayStatus(const Status &status); // guarantees a continuous data stream
+    void gotReplayStatus(const Status &status); // any status coming from the strategy
     void sendCommand(const Command &command);
     void enableStrategyCheckboxBlue(bool enable);
     void enableStrategyCheckboxYellow(bool enable);
