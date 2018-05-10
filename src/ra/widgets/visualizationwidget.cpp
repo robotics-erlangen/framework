@@ -213,4 +213,5 @@ void VisualizationWidget::filterTextChanged(QString text)
         }
     }
     m_proxy->setFilterRegExp(regex);
+    m_proxy->setSortByChecked(text.length() == 0);
 }

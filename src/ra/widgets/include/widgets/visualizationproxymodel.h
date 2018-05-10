@@ -32,12 +32,14 @@ class VisualizationProxyModel : public QSortFilterProxyModel
 public:
     VisualizationProxyModel(QObject *parent = 0);
     void setLastChangedItem(QStandardItem * item);
+    void setSortByChecked(bool sort) { m_sortByChecked = sort; }
 
 protected:
     bool lessThan(const QModelIndex &left, const QModelIndex &right) const Q_DECL_OVERRIDE;
 
 private:
     QStandardItem * m_lastChangedItem = nullptr;
+    bool m_sortByChecked = true;
 };
 
 #endif // VISUALIZATIONPROXYMODEL_H
