@@ -56,6 +56,7 @@ void TeamWidget::saveConfig()
     s.setValue("EntryPoint", m_entryPoint);
     s.setValue("AutoReload", m_userAutoReload);
     s.setValue("EnableDebug", m_btnEnableDebug->isChecked());
+    s.setValue("PerformanceMode", m_performanceAction->isChecked());
     s.endGroup();
 }
 
@@ -118,6 +119,11 @@ void TeamWidget::init(TeamType type)
     m_debugAction->setEnabled(false);
     connect(m_debugAction, SIGNAL(triggered(bool)), SLOT(sendTriggerDebug()));
 
+    m_performanceAction = reload_menu->addAction("Performance Mode");
+    m_performanceAction->setCheckable(true);
+    m_performanceAction->setChecked(true);
+    connect(m_performanceAction, SIGNAL(toggled(bool)), SLOT(sendPerformanceDebug(bool)));
+
     m_btnReload = new QToolButton;
     m_btnReload->setToolTip("Reload script");
     m_btnReload->setIcon(QIcon("icon:32/view-refresh.png"));
@@ -150,6 +156,7 @@ void TeamWidget::enableContent(bool enable)
     m_reloadAction->setEnabled(enable);
     m_btnEnableDebug->setEnabled(enable && m_type != AUTOREF);
     m_debugAction->setEnabled(enable);
+    m_performanceAction->setEnabled(enable);
 }
 
 void TeamWidget::load()
@@ -159,6 +166,7 @@ void TeamWidget::load()
     m_filename = s.value("Script").toString();
     m_entryPoint = s.value("EntryPoint").toString();
     m_reloadAction->setChecked(s.value("AutoReload").toBool());
+    m_performanceAction->setChecked(s.value("PerformanceMode", true).toBool());
     if (m_type != AUTOREF) {
         m_btnEnableDebug->setChecked(s.value("EnableDebug", false).toBool());
     }
@@ -423,6 +431,7 @@ void TeamWidget::resendAll(bool send)
         strategyLoad->set_entry_point(m_entryPoint.toStdString());
         strategy->set_auto_reload(m_reloadAction->isChecked());
         strategy->set_enable_debug(m_debugAction->isChecked());
+        strategy->set_performance_mode(m_performanceAction->isChecked());
 
         emit sendCommand(command);
     }
@@ -464,6 +473,15 @@ void TeamWidget::sendTriggerDebug()
     amun::CommandStrategy *strategy = commandStrategyFromType(command);
 
     strategy->mutable_debug();
+    sendCommand(command);
+}
+
+void TeamWidget::sendPerformanceDebug(bool enable)
+{
+    Command command(new amun::Command);
+    amun::CommandStrategy *strategy = commandStrategyFromType(command);
+
+    strategy->set_performance_mode(enable);
     sendCommand(command);
 }
 

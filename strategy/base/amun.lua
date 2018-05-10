@@ -222,12 +222,24 @@ separator for luadoc]]--
 -- @name debuggerRead
 -- @return line string
 
+--[[
+separator for luadoc]]--
+
+--- Check if performance mode is active
+-- @class function
+-- @name getPerformanceMode
+-- @return mode boolean
+
 -- luacheck: globals amun log
 require "amun"
 log = amun.log
 -- publish debug status
 local hasDebugTable = pcall(require, "debug")
 amun.isDebug = hasDebugTable and debug.sethook ~= nil
+amun.isPerformanceMode = true
+if amun.getPerformanceMode then
+	amun.isPerformanceMode = amun.getPerformanceMode()
+end
 
 -- prevent direct access to the amun api by other code
 function amun._hideFunctions()
@@ -237,6 +249,7 @@ function amun._hideFunctions()
 	local sendCommand = amun.sendCommand
 	local sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand
 	local sendAutorefEvent = amun.sendAutorefEvent
+	local performanceMode = amun.isPerformanceMode
 
 	-- overwrite global amun
 	amun = {
@@ -246,7 +259,8 @@ function amun._hideFunctions()
 		getCurrentTime = function ()
 			return getCurrentTime() * 1E-9
 		end,
-		setRobotExchangeSymbol = amun.setRobotExchangeSymbol
+		setRobotExchangeSymbol = amun.setRobotExchangeSymbol,
+		isPerformanceMode = performanceMode
 	}
 	if isDebug then
 		amun.sendCommand = sendCommand

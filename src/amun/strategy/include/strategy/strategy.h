@@ -103,6 +103,7 @@ private:
     bool m_isReplay;
     DebugHelper *m_debugHelper;
     bool m_isInternalAutoref;
+    bool m_isPerformanceMode;
 };
 
 #endif // STRATEGY_H

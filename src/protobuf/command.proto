@@ -79,6 +79,7 @@ message CommandStrategy {
     optional bool enable_refbox_control = 6;
     optional CommandStrategySetOptions options = 7;
     optional CommandStrategyTriggerDebugger debug = 8;
+    optional bool performance_mode = 9;
 }
 
 message CommandControl {

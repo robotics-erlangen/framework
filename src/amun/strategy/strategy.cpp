@@ -69,7 +69,8 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     m_isEnabled(true),
     m_isReplay(false),
     m_debugHelper(helper),
-    m_isInternalAutoref(internalAutoref)
+    m_isInternalAutoref(internalAutoref),
+    m_isPerformanceMode(true)
 {
     m_udpSenderSocket = new QUdpSocket(this);
     m_refboxSocket = new QTcpSocket(this);
@@ -210,6 +211,13 @@ void Strategy::handleCommand(const Command &command)
             options.sort();
             if (m_selectedOptions != options) {
                 m_selectedOptions = options;
+                reloadStrategy = true;
+            }
+        }
+
+        if (cmd->has_performance_mode()) {
+            if (m_isPerformanceMode != cmd->performance_mode()) {
+                m_isPerformanceMode = cmd->performance_mode();
                 reloadStrategy = true;
             }
         }
@@ -407,6 +415,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         m_debugHelper->enableQueue();
     }
     m_strategy->setIsInternalAutoref(m_isInternalAutoref);
+    m_strategy->setIsPerformanceMode(m_isPerformanceMode);
 
     // delay reload until strategy is no longer running
     connect(m_strategy, SIGNAL(requestReload()), SLOT(reload()), Qt::QueuedConnection);

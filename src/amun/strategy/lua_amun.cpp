@@ -377,6 +377,13 @@ static int amunDebuggerWrite(lua_State *state)
     return 0;
 }
 
+static int amunGetPerformanceMode(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    lua_pushboolean(state, thread->isPerformanceMode());
+    return 1;
+}
+
 static const luaL_Reg amunMethods[] = {
     // fixed during strategy runtime
     {"getGeometry",         amunGetGeometry},
@@ -389,6 +396,7 @@ static const luaL_Reg amunMethods[] = {
     {"getGameState",        amunGetGameState},
     {"getUserInput",        amunGetUserInput},
     {"getCurrentTime",      amunGetCurrentTime},
+    {"getPerformanceMode",  amunGetPerformanceMode},
     // control + visualization
     {"setCommand",          amunSetCommand},
     {"log",                 amunLog},
