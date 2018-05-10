@@ -69,7 +69,7 @@ function MidfieldSampling:closeOpponents(ballPos)
 	end
 
 	closestDistance = math.sqrt(closestDistance)
-	local rating = (1 - minRating) * Rating.valueToRating(closestDistance, 0.4, 1.5) + minRating
+	local rating = (1 - minRating) * Rating.valueToRating(closestDistance, 0.6, 2) + minRating
 	if not amun.isPerformanceMode then
 		visualizeRating("closeOpponents", ballPos, rating)
 	end
@@ -82,7 +82,7 @@ function MidfieldSampling:movingAhead(ballPos)
 	local minRating = 0.3
 	local currentY = self._attackPosition.y
 	local plannedY = ballPos.y
-	local rating = (1 - minRating) * Rating.valueToRating(plannedY, currentY - 0.2, currentY + 1) + minRating
+	local rating = (1 - minRating) * Rating.valueToRating(plannedY, currentY - 0.2, currentY + 2) + minRating
 
 	if not amun.isPerformanceMode then
 		visualizeRating("movingAhead", ballPos, rating)
@@ -94,7 +94,7 @@ end
 function MidfieldSampling:passDistance(ballPos)
 	local minRating = 0.4
 	local dist = self._attackPosition:distanceTo(ballPos)
-	local rating = (1 - minRating) * Rating.valueToRating(dist, 8, 5) + minRating
+	local rating = (1 - minRating) * Rating.valueToRating(dist, 6, 3) + minRating
 
 	if not amun.isPerformanceMode then
 		visualizeRating("passDistance", ballPos, rating)
