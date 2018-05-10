@@ -147,18 +147,6 @@ function Midfield:_updateZones(nMidfielders)
 		table.insert(self._zones, zone)
 	end
 
-	if remainingZones >= 1 then
-		local zone = {}
-		zone.boundaries = {
-			bottom = 2,
-			top = 2,
-			right = zoneWidth/2,
-			left = -zoneWidth/2
-		}
-		zone.defaultPos = getDefaultPosition(zone.boundaries)
-		table.insert(self._zones, zone)
-	end
-
 	return updateAssignments
 end
 
