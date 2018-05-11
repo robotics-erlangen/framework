@@ -183,7 +183,7 @@ ballOwnerCheckCache = function()
 end
 
 local ballRecipients = {}
-function Ball._updateReceivesPass()
+local function updateReceivesPass()
 	local ballSpeed = World.Ball.speed:length()
 	if ballSpeed < 0.5 then
 		ballRecipients = {}
@@ -248,7 +248,8 @@ local ballIsAccelerating = false
 function Ball.isAccelerating()
 	return ballIsAccelerating
 end
-function Ball._updateIsAccelerating()
+
+local function updateIsAccelerating()
 	local currentBallSpeedLength = World.Ball.speed:length()
 	ballIsAccelerating = currentBallSpeedLength > lastBallSpeedLength + 0.2
 	lastBallSpeedLength = currentBallSpeedLength
@@ -258,18 +259,20 @@ end
 local lastShootTime = 0
 local lastShootRobot = nil
 function Ball.isShot()
-if lastShootTime == World.Time then
+	if lastShootTime == World.Time then
 		return lastShootRobot
 	end
 	return nil
 end
+
 function Ball.wasShot(time)
 	if lastShootTime + time >= World.Time then
 		return lastShootRobot
 	end
 	return nil
 end
-function Ball._updateIsShot()
+
+local function updateIsShot()
 	if not World.Ball:isPositionValid() then
 		return
 	end
@@ -329,7 +332,7 @@ end
 local ballPosBuffer = {}
 local ballPosBufferTimeFrame = 1
 local ballPosBufferMaxBallSpeed = 1
-function Ball._updateIsDangerousDuelSituation()
+local function updateIsDangerousDuelSituation()
 	if not Referee.isGameState() or World.Ball.speed:length() > ballPosBufferMaxBallSpeed then
 		ballPosBuffer = {}
 		return false
@@ -378,7 +381,7 @@ end
 Ball.isDangerousDuelSituation = Cache.forFrame(isDangerousDuelSituation)
 
 local flyingOrBouncingTimestamp = 0
-function Ball._updateIsFlyingOrBouncing()
+local function updateIsFlyingOrBouncing()
 	if World.Ball.posZ ~= 0 then
 		flyingOrBouncingTimestamp = World.Time
 	end
@@ -397,11 +400,21 @@ function Ball.getRealisticBallPos()
 	return lastRealisticBallPos
 end
 
-function Ball._updateLastRealisticBall()
+local function updateLastRealisticBall()
 	if not lastRealisticBallPos or lastRealisticBallPos:distanceTo(World.Ball.pos) < MAX_FRAME_DISTANCE
 		or World.Time - lastRealisticBallTime > MAX_INVISIBLE_TIME then
 		lastRealisticBallPos = World.Ball.pos:copy()
 		lastRealisticBallTime = World.Time
 	end
 end
+
+function Ball._update()
+	updateReceivesPass()
+	updateIsAccelerating()
+	updateIsShot()
+	updateIsDangerousDuelSituation()
+	updateIsFlyingOrBouncing()
+	updateLastRealisticBall()
+end
+
 return Ball

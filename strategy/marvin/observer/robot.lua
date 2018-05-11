@@ -15,7 +15,7 @@ local rotationSmoothed = {}
 local rotationAcclerationSmoothed = {}
 local accelerationSmoothed = {}
 local alpha = 0.02
-function Robot.estimateOpponentDynamics()
+local function estimateOpponentDynamics()
 	local nullVector = Vector(0,0)
 	local invTimeDiff = (1 / World.TimeDiff)
 	for _, robot in ipairs(World.OpponentRobots) do
@@ -75,7 +75,7 @@ function Robot.hadBall(robot, time)
 	return hadBallTimes[robot] and World.Time - hadBallTimes[robot] <= time
 end
 
-function Robot._updateHadBall()
+local function updateHadBall()
 	for _,r in ipairs(World.Robots) do
 		if r:hasBall(World.Ball) then
 			hadBallTimes[r] = World.Time
@@ -90,7 +90,7 @@ function Robot.touchedBall(robot, time)
 	return touchedByBall[robot] and World.Time - touchedByBall[robot] <= time
 end
 
-function Robot._updateTouchedBall()
+local function updateTouchedBall()
 	for _,r in ipairs(World.Robots) do
 		local touchDist = World.Ball.radius + Constants.positionError + r.radius
 		if r.pos:distanceToSq(World.Ball.pos) < touchDist * touchDist then
@@ -102,7 +102,7 @@ end
 
 local minTimeToBall = {}
 local oldMinTimeToBall = {}
-function Robot._resetMinTimeToBall()
+local function resetMinTimeToBall()
 	oldMinTimeToBall = minTimeToBall
 	minTimeToBall = {}
 end
@@ -134,7 +134,7 @@ end
 Robot.minShootTime = Cache.forFrame(Robot.minShootTime)
 
 local standardShooterRobot = nil
-function Robot._updateOwnStandardShooter()
+local function updateOwnStandardShooter()
 	if Referee.isFriendlyFreeKickState() or World.RefereeState == "KickoffOffensive" then
 		if not standardShooterRobot or not Robot.hadBall(standardShooterRobot, 0) then
 			for _, robot in ipairs(World.FriendlyRobots) do
@@ -182,5 +182,13 @@ function Robot.isPressed(robot, attackPos)
 	return false
 end
 Robot.isPressed = Cache.forFrame(Robot.isPressed)
+
+function Robot._update()
+	estimateOpponentDynamics()
+	resetMinTimeToBall()
+	updateHadBall()
+	updateTouchedBall()
+	updateOwnStandardShooter()
+end
 
 return Robot
