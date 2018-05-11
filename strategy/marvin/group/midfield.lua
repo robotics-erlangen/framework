@@ -143,7 +143,6 @@ function Midfield:_updateZones(nMidfielders)
 			left = -top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top
 		}
 		zone.defaultPos = getDefaultPosition(zone.boundaries)
-		remainingZones = remainingZones - 1
 		table.insert(self._zones, zone)
 	end
 
