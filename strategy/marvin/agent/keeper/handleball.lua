@@ -5,14 +5,13 @@ local Field = require "../base/field"
 local Referee = require "../base/referee"
 local World = require "../base/world"
 
+local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local AggressiveKeeper = require "task/keeper/aggressivekeeper"
 local Keeper = require "task/keeper/keeper"
 local KeeperChipAway = require "task/keeper/chipaway"
 local Pass = require "task/shared/pass"
 local Attack = require "util/attack"
-
-local SLOW_BALL = 0.5
 
 function HandleBall:_init()
 	self._pass = nil
@@ -30,7 +29,7 @@ function HandleBall:check()
 		return false
 	end
 	-- if a slow ball enters the defense area
-	local active = self:behindCenterbacks(World.Ball) and World.Ball.speed:length() <= SLOW_BALL
+	local active = self:behindCenterbacks(World.Ball) and Ball.isSlowBall()
 	if active then
 		-- force being mainAttacker
 		self._hysteresis = true

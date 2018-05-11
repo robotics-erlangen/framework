@@ -18,7 +18,6 @@ local DIST_ERROR = 0.025
 local SIDE_DEPTH = 0.015
 -- reduce obstacle size by one millimeter to avoid collisions
 local OBSTACLE_EPSILON = 0.001
-local SLOW_BALL = 0.5
 local OBSTACLE_PRIORITY = 28
 
 local AROUND_METHOD = "around"
@@ -66,7 +65,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	-- in principle this isn't neccessary but it stabilizes the catchtime
 	local hitTime = self:_calculateHitTime(ball)
 	local ballInsideRobot = false
-	if ball.speed:length() > SLOW_BALL or hitTime == 0 then
+	if not Ball.isSlowBall() or hitTime == 0 then
 		-- check if robot would be hit by the ball
 		self._catchTime = math.min(self._catchTime, hitTime)
 		if hitTime == 0 then
@@ -86,7 +85,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	-- a distance other than 0 is only useful for moving to a stopped ball
 	distanceToBall = distanceToBall or 0
 	local viewDir = (targetPos - predictedBall.pos):angle()
-	if targetSpeed and ball.speed:length() > SLOW_BALL then
+	if targetSpeed and not Ball.isSlowBall() then
 		local targetDir, _ = self:calcPhi(predictedBall.speed, predictedBall.pos,
 				targetPos, targetSpeed)
 		viewDir = targetDir
@@ -350,7 +349,7 @@ function CatchBall:_createBallCorridor(path, viewDir, predictedBall)
 	local corridorLeftFar = corridorLeftNear + depthOfs
 	local corridorRightNear = predictedBall.pos + rightOfs
 	local corridorRightFar = corridorRightNear + depthOfs
-	if World.Ball.speed:length() < SLOW_BALL then
+	if Ball.isSlowBall() then
 		path:addLine(corridorLeftNear.x, corridorLeftNear.y, corridorLeftFar.x, corridorLeftFar.y, corridorRadius, "ball_corridor1", OBSTACLE_PRIORITY)
 		path:addLine(corridorLeftFar.x, corridorLeftFar.y, corridorRightFar.x, corridorRightFar.y, corridorRadius, "ball_corridor2", OBSTACLE_PRIORITY)
 		path:addLine(corridorRightFar.x, corridorRightFar.y, corridorRightNear.x, corridorRightNear.y, corridorRadius, "ball_corridor3", OBSTACLE_PRIORITY)
@@ -371,7 +370,7 @@ function CatchBall:_createBallCorridor(path, viewDir, predictedBall)
 	local negLeftFar = predictedBall.pos - negRightOfs + negBaseDepthOfs
 	local negRightFar = predictedBall.pos + negRightOfs + negBaseDepthOfs
 
-	if World.Ball.speed:length() < SLOW_BALL then
+	if Ball.isSlowBall() then
 		path:addLine(negLeftFar.x, negLeftFar.y, negRightFar.x, negRightFar.y, negativeRadius, "ball_negcorridor2", OBSTACLE_PRIORITY)
 
 		-- visualize obstacles

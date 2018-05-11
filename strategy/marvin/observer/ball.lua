@@ -35,14 +35,14 @@ function Ball.opponentBallDribbler()
 	local MAX_DISTANCE = 0.5
 	local MAX_ANGLE_TO_BALL_POS = 60 / 180 * math.pi
 	local MAX_ANGLE_TO_BALL_SPEED = 10 / 180 * math.pi
-	local SLOW_BALL = World.Ball.speed:length() < 0.5
+	local slowBall = Ball.isSlowBall()
 	local bestRobot = nil
 	local bestDist = math.huge
 	for _, robot in ipairs(World.OpponentRobots) do
 		local distance = robot.pos:distanceTo(World.Ball.pos)
 		local direction = Vector.fromAngle(robot.dir)
 		if robot.speed:distanceTo(World.Ball.speed) < MAX_SPEED_DIFF
-				and (SLOW_BALL or robot.speed:angleDiff(World.Ball.speed) < MAX_ANGLE_TO_BALL_SPEED)
+				and (slowBall or robot.speed:angleDiff(World.Ball.speed) < MAX_ANGLE_TO_BALL_SPEED)
 				and distance < MAX_DISTANCE and distance < bestDist
 				and World.Ball.posZ < 0.1
 				and direction:absoluteAngleDiff(World.Ball.pos - robot.pos) < MAX_ANGLE_TO_BALL_POS then
@@ -408,6 +408,18 @@ local function updateLastRealisticBall()
 	end
 end
 
+local SLOW_BALL_SPEED = 0.5
+local SLOW_BALL_HYSTERESIS = 0.1
+local slowBall = false
+function Ball.isSlowBall()
+	return slowBall
+end
+
+local function updateIsSlowBall()
+	local hysteresisSpeed = SLOW_BALL_SPEED + (slowBall and SLOW_BALL_HYSTERESIS or 0)
+	slowBall = World.Ball.speed:lengthSq() < hysteresisSpeed * hysteresisSpeed
+end
+
 function Ball._update()
 	updateReceivesPass()
 	updateIsAccelerating()
@@ -415,6 +427,7 @@ function Ball._update()
 	updateIsDangerousDuelSituation()
 	updateIsFlyingOrBouncing()
 	updateLastRealisticBall()
+	updateIsSlowBall()
 end
 
 return Ball

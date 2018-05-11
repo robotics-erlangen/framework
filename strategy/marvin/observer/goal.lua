@@ -185,7 +185,6 @@ end
 -- @return dir Vector - ball movement direction and speed
 -- @return isShot bool - if the ball is fast (and should be considered as a threat)
 -- @return passReceivers list - list of all robots that could receive the pass
-local SLOW_BALL = 0.7
 local BEST_ROBOT_HYSTERESIS = 1.1
 local lastBestRobotId = nil
 local function comparePrediction(p1, p2)
@@ -210,10 +209,10 @@ function Goal.predictShot()
 		local relativeSpeedLength = World.Ball.speed - oppBallDribbler.speed
 		local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeedLength:length(), oppBallDribbler.dir, World.Ball.speed:angle())
 		ballSpeed = Vector(dirx, diry):normalize()
-	elseif oppBallOwner and ballSpeed:length() <= SLOW_BALL then
+	elseif oppBallOwner and Ball.isSlowBall() then
 		-- if opponent is close to ball use its orientation
 		ballSpeed = Vector.fromAngle(oppBallOwner.dir)
-	elseif ballSpeed:length() > SLOW_BALL then
+	elseif not Ball.isSlowBall() then
 		-- FIXME as the ball is moving also use pass check if it slightly misses the goal
 		-- TODO check whether an opponent robot may deflect the ball inside the keeper area?
 		-- check if there's a robot which may recieve the pass

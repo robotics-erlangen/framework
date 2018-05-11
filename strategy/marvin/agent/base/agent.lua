@@ -7,13 +7,13 @@ local World = require "../base/world"
 local Halt = require "agent/shared/halt"
 local Error = require "agent/shared/error"
 local MoveCommand = require "agent/shared/movecommand"
+local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local CenterBack = require "task/defender/centerback"
 local Rating = require "util/rating"
 
 local MEASURE_TIMING = false
-local SLOW_BALL = 0.5
 local MAX_RATING_TIME_BOOST = 0.1
 
 
@@ -204,7 +204,7 @@ function Base:_applyForMainAttacker(task)
 
 		local ballSpeedLength = World.Ball.speed:length()
 		local ratingBoost
-		if ballSpeedLength < SLOW_BALL then
+		if Ball.isSlowBall() then
 			-- slow ball: being behind the ball is better
 			local relativeYPos = World.Ball.pos.y - self._robot.pos.y
 			ratingBoost = math.min(timeToBall / 2, math.sin(math.bound(0, relativeYPos * math.pi, math.pi / 2)) * MAX_RATING_TIME_BOOST)
@@ -217,7 +217,7 @@ function Base:_applyForMainAttacker(task)
 		end
 		debug.set("mainAttackerRating/ratingBoost", ratingBoost)
 		timeToBall = timeToBall - ratingBoost
-		
+
 		mainAttackerRating = Rating.timeToRating(timeToBall)
 
 	else
