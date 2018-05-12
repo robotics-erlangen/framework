@@ -76,7 +76,7 @@ end
 
 local function addOpponentDefenseAreaObstacle(path, robot)
 	-- don't add obstacles for opponent defense area if the robot is in the friendly half
-	local oppDefAreaDist = Referee.isFriendlyFreeKickState() and G.FreeKickDefenseDist or 0
+	local oppDefAreaDist = Referee.isFriendlyFreeKickState() and G.FreeKickDefenseDist + 0.05 or 0
 	-- TODO: adjust to rect with distance instead of larger rect
 	local distance = oppDefAreaDist + POSITION_PADDING
 	if robot.pos.y > 0 and (not Referee.isFriendlyPenaltyState()) and
