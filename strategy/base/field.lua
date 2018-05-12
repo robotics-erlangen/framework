@@ -350,8 +350,10 @@ local function intersectionsRayDefenseArea_2018(pos, dir, extraDistance, friendl
 		-- intersections with arc segments
 		if i < 3 and extraDistance > 0 then
 			local corner = Vector((3 - i*2) * G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight) * f
-			local circleIntersections = intersectRayArc(pos, dir, corner, extraDistance,
-				math.pi - i * 0.5 * math.pi, 1.5 * math.pi - i * 0.5 * math.pi)
+			local circleIntersections
+			local oppRotation = friendly and 0 or math.pi
+			circleIntersections = intersectRayArc(pos, dir, corner, extraDistance,
+				math.pi - i * 0.5 * math.pi + oppRotation, 1.5 * math.pi - i * 0.5 * math.pi + oppRotation)
 			for _, intersection in ipairs(circleIntersections) do
 				table.insert(intersections, {pos = intersection[1], way = way + (math.pi / 2 - intersection[2]) * extraDistance, sec = i*2})
 			end
