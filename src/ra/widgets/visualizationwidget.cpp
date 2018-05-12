@@ -212,6 +212,6 @@ void VisualizationWidget::filterTextChanged(QString text)
             regex += ".*";
         }
     }
-    m_proxy->setFilterRegExp(regex);
     m_proxy->setSortByChecked(text.length() == 0);
+    m_proxy->setFilterRegExp(regex);
 }
