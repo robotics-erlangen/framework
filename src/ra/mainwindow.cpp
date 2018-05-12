@@ -447,6 +447,7 @@ void MainWindow::toggleFlip()
 
 void MainWindow::liveMode()
 {
+    ui->field->enableDragMeasure(false);
     for (const Status &status : m_replayStrategyBuffer) {
         handleStatus(status);
         m_logWriter.handleStatus(status);
@@ -468,6 +469,7 @@ void MainWindow::liveMode()
 void MainWindow::showBacklogMode()
 {
     if (ui->actionSimulator->isChecked() || m_lastRefState == amun::GameState::Halt) {
+        ui->field->enableDragMeasure(true);
         if (ui->actionSimulator->isChecked()) {
             ui->simulator->stop();
         }

@@ -92,6 +92,7 @@ public slots:
     void hideVisualizationToggles();
     void flipAOI();
     void saveConfig();
+    void enableDragMeasure(bool enable) { m_enableDragMeasure = enable; }
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -220,6 +221,7 @@ private:
     int m_dragId;
 
     bool m_isLogplayer;
+    bool m_enableDragMeasure;
 
     SSL_Referee m_referee;
 };

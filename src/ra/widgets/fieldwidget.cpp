@@ -111,7 +111,8 @@ FieldWidget::FieldWidget(QWidget *parent) :
     m_hasTouchInput(false),
     m_dragType(DragNone),
     m_dragItem(NULL),
-    m_isLogplayer(false)
+    m_isLogplayer(false),
+    m_enableDragMeasure(false)
 {
     m_touchStatusType = QGestureRecognizer::registerRecognizer(new TouchStatusRecognizer);
     grabGesture(m_touchStatusType);
@@ -1131,7 +1132,7 @@ void FieldWidget::mousePressEvent(QMouseEvent *event)
             }
         }
 
-        if (m_isLogplayer) {
+        if (m_isLogplayer || m_enableDragMeasure) {
             m_dragType = DragMeasure;
         }
 
