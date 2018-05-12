@@ -55,7 +55,10 @@ function HandleBall:_checkAttacker()
 		-- do if we are pretty close to our acceptPos
 		local acceptPos = Physics.ballAtTime(World.Ball, Robot.minTimeToBall(self._robot)).pos
 		local enemyPos = Physics.ballAtTime(World.Ball, firstOppTime).pos
-		if not(self._robot.pos:distanceTo(acceptPos) < firstOpp.pos:distanceTo(enemyPos) * distanceFactor + distanceOffset and World.Ball.pos:distanceTo(acceptPos) + distanceOffset < World.Ball.pos:distanceTo(enemyPos)) then
+		if self._robot.pos:distanceTo(acceptPos) * distanceFactor + distanceOffset > firstOpp.pos:distanceTo(enemyPos) then
+			return false
+		end
+		if World.Ball.pos:distanceTo(acceptPos) + distanceOffset > World.Ball.pos:distanceTo(enemyPos) and not Ball.isSlowBall() then
 			return false
 		end
 	end
