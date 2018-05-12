@@ -72,6 +72,9 @@ function Attacker:rateRobot()
 	if self._activeBehavior and self._activeBehavior:forceKeepingInPool()  then
 		return math.huge
 	end
+	if self._inbox.mainAttacker().trainer == self._robot then
+		return 0
+	end
 	return -World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
 end
 
