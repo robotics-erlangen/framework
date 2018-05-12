@@ -24,6 +24,8 @@
 
 #include "logfile/logfilereader.h"
 #include "visionlog/visionlogwriter.h"
+
+#define MAX_CAMERA 8
 int main(int argc, char* argv[])
 {
     QCoreApplication app(argc, argv);
@@ -56,7 +58,21 @@ int main(int argc, char* argv[])
 
     for(int i = 0; i < logfileIn.packetCount(); ++i){
         Status current = logfileIn.readStatus(i);
-        SSL_DetectionFrame visionFrame;
-        visionFrame.set_frame_number(i);
+        SSL_DetectionFrame visionFrame[MAX_CAMERA];
+        for (int j=0; j < MAX_CAMERA; ++j){
+            visionFrame[j].set_frame_number(i);
+        }
+        if (!current->has_world_state()){
+            continue;
+        }
+        const world::State& worldState = current->world_state();
+        if (worldState.has_ball()){
+            const world::Ball& ball = worldState.ball();
+            for( world::BallPosition entry : ball.raw()){
+			//	if (!entry.has_camera_id()){
+					std::cerr << "entry has no camera " << entry.DebugString() << std::endl;
+			//	}
+			}
+        }
     }
 }
