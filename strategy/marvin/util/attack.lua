@@ -10,6 +10,7 @@ local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
+local CenterBack = require "task/defender/centerback"
 local Rating = require "util/rating"
 
 local G = World.Geometry
@@ -62,6 +63,17 @@ function Attack.ratePass(robot, pass, considerTiming)
 	local shooterGoalReceiverRating = Rating.valueToRating(shooterGoalReceiverAngle, 0, 180 / 180 * math.pi)
 	local shooterGoalReceiverWeight = 0.5
 	rating = rating * (1 - shooterGoalReceiverWeight + shooterGoalReceiverWeight * shooterGoalReceiverRating)
+
+	-- rate passes going through or near our own defense area lower
+	-- this is to lower the chance of a centerback being in the way of a kick,
+	-- since they won't dodge the pass
+	local CROSSING_DEFENSE_AREA_FACTOR = 0.6
+	local defenseAreaDistance = CenterBack.distanceToDefenseArea() + robot.radius + World.Ball.radius + 0.02
+	local intersect = Field.intersectRayDefenseArea(shootPos, pass.ballPos - shootPos, defenseAreaDistance, true)
+	-- if there is an intersection in the line segment shootPos <-> pass.ballPos
+	if intersect and shootPos:distanceToSq(intersect) < shootPos:distanceToSq(pass.ballPos) then
+		rating = rating * CROSSING_DEFENSE_AREA_FACTOR
+	end
 
 	-- rate possible interceptions
 	for _,opp in ipairs(World.OpponentRobots) do
