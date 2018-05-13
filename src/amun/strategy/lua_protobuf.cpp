@@ -154,7 +154,7 @@ void protobufPushMessage(lua_State *L, const google::protobuf::Message &message)
     // leaves new table on lua stack
 }
 
-static void toField(lua_State *L, google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field)
+static void toField(lua_State *L, google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field, std::string *errorMessage)
 {
     const google::protobuf::Reflection *refl = message.GetReflection();
     const char *str;
@@ -206,12 +206,12 @@ static void toField(lua_State *L, google::protobuf::Message &message, const goog
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
-        protobufToMessage(L, -1, *refl->MutableMessage(&message, field), nullptr);
+        protobufToMessage(L, -1, *refl->MutableMessage(&message, field), errorMessage);
         break;
     }
 }
 
-static void toRepeatedField(lua_State *L, google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field)
+static void toRepeatedField(lua_State *L, google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field, std::string *errorMessage)
 {
     const google::protobuf::Reflection *refl = message.GetReflection();
     const char *str;
@@ -264,7 +264,7 @@ static void toRepeatedField(lua_State *L, google::protobuf::Message &message, co
         break;
 
     case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
-        protobufToMessage(L, -1, *refl->AddMessage(&message, field), NULL);
+        protobufToMessage(L, -1, *refl->AddMessage(&message, field), errorMessage);
         break;
     }
 }
@@ -285,7 +285,7 @@ void protobufToMessage(lua_State *L, int index, google::protobuf::Message &messa
                     lua_gettable(L, -2);
 
                     if (!lua_isnil(L, -1)) {
-                        toRepeatedField(L, message, field);
+                        toRepeatedField(L, message, field, errorMessage);
                         lua_pop(L, 1);
                     } else {
                         lua_pop(L, 1);
@@ -293,7 +293,7 @@ void protobufToMessage(lua_State *L, int index, google::protobuf::Message &messa
                     }
                 }
             } else {
-                toField(L, message, field);
+                toField(L, message, field, errorMessage);
             }
         }
         lua_pop(L, 1);
@@ -301,9 +301,10 @@ void protobufToMessage(lua_State *L, int index, google::protobuf::Message &messa
 
     // ensure protobuf message is valid
     if (!message.IsInitialized()) {
-        if (errorMessage == NULL) {
+        if (errorMessage == nullptr) {
             luaL_error(L, "One or more required fields are not set: %s", message.InitializationErrorString().c_str());
+        } else {
+            *errorMessage += "One or more required fields are not set: " + message.InitializationErrorString();
         }
-        *errorMessage += "One or more required fields are not set: " + message.InitializationErrorString();
     }
 }
