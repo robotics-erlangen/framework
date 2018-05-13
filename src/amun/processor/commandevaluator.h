@@ -47,7 +47,7 @@ public:
 
 private:
     static float robotToPhi(const world::Robot *robot);
-    GlobalSpeed evaluateInput(bool hasTrackedRobot, float robotPhi, qint64 worldTime, const robot::Command &command, amun::DebugValues *debug);
+    GlobalSpeed evaluateInput(bool hasTrackedRobot, float robotPhi, qint64 worldTime, const robot::Command &command, amun::DebugValues *debug, bool drawSplines);
     LocalSpeed evaluateLocalManualControl(const robot::Command &command);
     GlobalSpeed evaluateManualControl(const robot::Command &command);
     GlobalSpeed evaluateSplineAtTime(const qint64 worldTime);

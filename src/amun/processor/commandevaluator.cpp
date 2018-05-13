@@ -54,7 +54,7 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
 
     // falls back to local coordinates if robot is invisible
     const float robotPhi = robotToPhi(robot);
-    GlobalSpeed output = evaluateInput(hasRobot, robotPhi, worldTime, command, debug);
+    GlobalSpeed output = evaluateInput(hasRobot, robotPhi, worldTime, command, debug, true);
 
     prepareBaseSpeed(robot, worldTime);
     LocalSpeed localOutputBase = m_baseSpeed.toLocal(robotPhi);
@@ -69,7 +69,7 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
     LocalSpeed localOutput = limitedOutput.toLocal(robotPhiOne);
 
     const qint64 worldTimeTwo = worldTime + (qint64)(CONTROL_STEP * 1000 * 1000 * 1000);
-    GlobalSpeed outputTwo = evaluateInput(hasRobot, robotPhiOne, worldTimeTwo, command, nullptr);
+    GlobalSpeed outputTwo = evaluateInput(hasRobot, robotPhiOne, worldTimeTwo, command, debug, false);
     float timeStepTwo = CONTROL_STEP;
     GlobalSpeed limitedOutputTwo = limitAcceleration(robotPhiOne, outputTwo, limitedOutput, timeStepTwo);
 
@@ -95,7 +95,8 @@ float CommandEvaluator::robotToPhi(const world::Robot *robot)
     return robot_phi;
 }
 
-GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotPhi, qint64 worldTime, const robot::Command &command, amun::DebugValues *debug)
+GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotPhi, qint64 worldTime, const robot::Command &command,
+                                            amun::DebugValues *debug, bool drawSplines)
 {
     // default to stopping
     GlobalSpeed output(0, 0, 0);
@@ -110,7 +111,7 @@ GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotPhi
             output = evaluateManualControl(command);
         }
     } else if (hasTrackedRobot) {
-        if (debug) {
+        if (drawSplines) {
             // splines only work if we know where the robot is
             drawSpline(debug);
         }
