@@ -91,12 +91,12 @@ local function limitToAllowedField_2018(pos, extraLimit)
 	end
 	pos = Field.limitToField(pos, -extraLimit)
 	if Field.isInFriendlyDefenseArea(pos, extraLimit) then
-		local targety = G.FieldHeightHalf - G.DefenseHeight - extraLimit
+		local targety = -G.FieldHeightHalf + G.DefenseHeight + extraLimit
 		local targetx = G.DefenseWidthHalf + extraLimit
 		local dy = targety - pos.y
-		local dx = math.abs(targetx - pos.x)
+		local dx = targetx - math.abs(pos.x)
 		if dx > dy then
-			return Vector(pos.x, -targety)
+			return Vector(pos.x, targety)
 		else
 			return Vector(math.sign(pos.x)*targetx, pos.y)
 		end
@@ -104,7 +104,7 @@ local function limitToAllowedField_2018(pos, extraLimit)
 		local targety = G.FieldHeightHalf - G.DefenseHeight - oppExtraLimit
 		local targetx = G.DefenseWidthHalf + oppExtraLimit
 		local dy = pos.y - targety
-		local dx = math.abs(targetx - pos.x)
+		local dx = targetx - math.abs(pos.x)
 		if dx > dy then
 			return Vector(pos.x, targety)
 		else
