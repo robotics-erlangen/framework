@@ -43,7 +43,7 @@ void Plot::addPoint(float time, float value)
     m_time = time; // remember last update
     if (time < m_maxTime) {
         // make sure all data points are always ordered increasing by time
-        int arrayStart = m_count == m_data.size() ? m_pos : 0;
+        int arrayStart = (m_pos + m_data.size() - m_count) % m_data.size();
         // binary search
         int max = m_count / 2;
         int min = 0;
