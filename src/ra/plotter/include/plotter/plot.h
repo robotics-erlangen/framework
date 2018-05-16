@@ -37,6 +37,7 @@ public:
     void plot(const QColor &color) const;
     void mergeFrom(const Plot *p);
     void clearData();
+    static int bufferSize() { return BUFFER_SIZE; }
 
     const QString& name() const { return m_name; }
     float time() const { return m_time; }
@@ -49,6 +50,7 @@ private:
     int m_count;
     float m_time;
     float m_maxTime;
+    static const int BUFFER_SIZE = 6000;
 };
 
 Q_DECLARE_METATYPE(Plot*)

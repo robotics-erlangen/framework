@@ -77,6 +77,8 @@ signals:
     void enableStrategyCheckboxBlue(bool enable);
     void enableStrategyCheckboxYellow(bool enable);
     void reloadStrategy();
+    void gotBacklogData(QList<Status> backlogData);
+    void showPlotter();
 
 private slots:
     void enableStrategyBlue(bool enable);
@@ -84,6 +86,7 @@ private slots:
     void clearPlayConsumers();
     void clearAll();
     void openFile();
+    void openPlotter();
 
 private:
     QString formatTime(qint64 time);

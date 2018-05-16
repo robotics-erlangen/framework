@@ -31,7 +31,7 @@ Plot::Plot(const QString &name, QObject *parent) :
     m_maxTime(-std::numeric_limits<float>::max())
 {
     // ringbuffer with 6000 entrys as time, value pair
-    m_data.resize(6000 * 2);
+    m_data.resize(BUFFER_SIZE * 2);
 }
 
 void Plot::addPoint(float time, float value)

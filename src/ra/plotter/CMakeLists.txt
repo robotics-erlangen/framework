@@ -19,12 +19,12 @@
 # ***************************************************************************
 
 add_library(plotter
+	include/plotter/plot.h
     include/plotter/plotter.h
 
     leaffilterproxymodel.cpp
     leaffilterproxymodel.h
     plot.cpp
-    plot.h
     plotter.cpp
     plotterwidget.cpp
     plotterwidget.h

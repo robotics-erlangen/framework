@@ -36,7 +36,8 @@ Plotter::Plotter() :
     QWidget(nullptr, Qt::Window),
     ui(new Ui::Plotter),
     m_startTime(0),
-    m_freeze(false)
+    m_freeze(false),
+    m_playingBacklog(false)
 {
     setWindowIcon(QIcon("icon:plotter.svg"));
     ui->setupUi(this);
@@ -246,10 +247,28 @@ void Plotter::setFreeze(bool freeze)
     ui->btnFreeze->setChecked(freeze); // update button
 }
 
-void Plotter::handleStatus(const Status &status)
+void Plotter::handleBacklogStatus(QList<Status> backlog)
+{
+    m_playingBacklog = true;
+    m_backlog.append(backlog);
+    for (int i = 0;i<m_backlog.size();i++) {
+        handleStatus(m_backlog[i], true);
+        QCoreApplication::processEvents();
+    }
+    m_backlog.clear();
+    m_playingBacklog = false;
+}
+
+void Plotter::handleStatus(const Status &status, bool backlogStatus)
 {
     // don't consume cpu while closed
     if (!isVisible()) {
+        return;
+    }
+
+    // don't discard newer packets when handling backlog status
+    if (m_playingBacklog && !backlogStatus) {
+        m_backlog.append(status);
         return;
     }
 

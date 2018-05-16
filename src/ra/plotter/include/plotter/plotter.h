@@ -25,6 +25,7 @@
 #include "protobuf/world.pb.h"
 #include <QDialog>
 #include <QSet>
+#include <QList>
 #include <QStandardItemModel>
 
 class LeafFilterProxyModel;
@@ -45,8 +46,9 @@ public:
 
 public slots:
     void setScaling(float min, float max, float timespan);
-    void handleStatus(const Status &status);
+    void handleStatus(const Status &status, bool backlogStatus = false);
     void clearData();
+    void handleBacklogStatus(QList<Status> backlog);
 
 signals:
     void addPlot(const Plot *plot);
@@ -95,6 +97,8 @@ private:
     QStandardItemModel m_model;
     LeafFilterProxyModel *m_proxy;
     QMenu *m_plotMenu;
+    bool m_playingBacklog;
+    QList<Status> m_backlog;
 };
 
 #endif // PLOTTER_H

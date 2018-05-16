@@ -33,6 +33,7 @@
 #include <QUrl>
 #include "widgets/refereestatuswidget.h"
 #include "logfile/logfilereader.h"
+#include "plotter/plot.h"
 #include "plotter/plotter.h"
 #include "logcutter.h"
 #include "strategy/strategy.h"
@@ -85,7 +86,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionPlay, SIGNAL(triggered()), ui->logManager, SLOT(togglePaused()));
     connect(ui->actionBackward, SIGNAL(triggered()), ui->logManager, SLOT(previousFrame()));
     connect(ui->actionForward, SIGNAL(triggered()), ui->logManager, SLOT(nextFrame()));
-    connect(ui->actionOpen_Plotter, SIGNAL(triggered()), m_plotter, SLOT(show()));
+    connect(ui->actionOpen_Plotter, SIGNAL(triggered()), SLOT(openPlotter()));
     connect(ui->actionLogCutter, &QAction::triggered, logCutter, &LogCutter::show);
 
     // playback speed shortcuts
@@ -122,6 +123,9 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(gotPlayStatus(Status)), ui->log, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotPlayStatus(Status)), m_plotter, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
+
+    connect(this, SIGNAL(gotBacklogData(QList<Status>)), m_plotter, SLOT(handleBacklogStatus(QList<Status>)));
+    connect(this, SIGNAL(showPlotter()), m_plotter, SLOT(show()));
 
     connect(ui->replay, SIGNAL(enableStrategyBlue(bool)), this, SLOT(enableStrategyBlue(bool)));
     connect(ui->replay, SIGNAL(enableStrategyYellow(bool)), this, SLOT(enableStrategyYellow(bool)));
@@ -271,6 +275,13 @@ void MainWindow::createStrategy(int index)
     if (m_strategys[index ^ 1] == nullptr) {
         sendResetDebugPacket(index == 0);
     }
+}
+
+void MainWindow::openPlotter()
+{
+    QList<Status> backlogPackets = m_logWriter.getBacklogStatus(Plot::bufferSize());
+    emit showPlotter();
+    emit gotBacklogData(backlogPackets);
 }
 
 void MainWindow::sendResetDebugPacket(bool blue)

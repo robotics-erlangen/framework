@@ -6,6 +6,7 @@
 
 #include <QString>
 #include <QObject>
+#include <QList>
 
 class LogFileWriter;
 class BacklogWriter;
@@ -21,6 +22,7 @@ public:
     CombinedLogWriter(bool replay, int backlogLength);
     ~CombinedLogWriter();
     StatusSource * makeStatusSource();
+    QList<Status> getBacklogStatus(int lastNPackets);
 
 signals:
     void setRecordButton(bool on);
