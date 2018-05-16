@@ -7,6 +7,7 @@ local Trainer = require "trainer/trainer"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
+local G = World.Geometry
 
 local CENTER_DIST = 7.8
 local START_ANGLE = 90/180*math.pi
@@ -14,7 +15,19 @@ local ANGLE_STEP = 360/180*math.pi
 local WAIT_TIME = 3
 local ROBOT_ORIENTATION = 90/180*math.pi
 local ROBOT_ORIENTATION_STEP = 0/180*math.pi
-local POS_LIST = { Vector(-1.8, 3.9), Vector(0, 3.9), Vector(0, -3.9), Vector(1.8, -3.9), Vector(1.8, 3.9), Vector(-1.8, -3.9) }
+
+local heightHalf = G.FieldHeightHalf * 7/8
+local widthHalf = G.FieldWidthHalf * 3/5
+
+local POS_LIST = { 
+		Vector(-widthHalf, heightHalf),
+		Vector(0, heightHalf),
+		Vector(0, -heightHalf), 
+		Vector(widthHalf, -heightHalf),
+		Vector(widthHalf, heightHalf),
+		Vector(-widthHalf, -heightHalf)
+}
+--{ Vector(-1.8, 3.9), Vector(0, 3.9), Vector(0, -3.9), Vector(1.8, -3.9), Vector(1.8, 3.9), Vector(-1.8, -3.9) }
 
 local obstacleTable = {
 	ignoreBall = true,
