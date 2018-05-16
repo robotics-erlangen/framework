@@ -9,8 +9,6 @@ function Base:init(agent)
 	self._send = self._agent._send
 	self._inbox = self._agent._inbox
 	self._mainAttackerParameters = nil
-	self._deferredBehaviour = nil
-	self._deferredBehaviourClass = nil
 	self:_init()
 	self:stop()
 end
@@ -24,12 +22,9 @@ function Base:stop()
 	self._task = nil -- reset task
 	self._active = false
 	self._forceKeepingInPool = false
-	if self._deferredBehaviour then
-		self._deferredBehaviourClass:stop()
-	end
-	self._deferredBehaviourClass = nil
-	self._deferredBehaviour = nil
-	self._deferredBehaviourRunning = false
+	--stopping _deferredBehavior is unnecessary, as it goes out of scope.
+	self._deferredBehavior = nil
+	self._deferredBehaviorRunning = false
 	self:_stop()
 end
 
@@ -37,29 +32,27 @@ function Base:start()
 	--override if necessary
 end
 
--- when running a deferred behaviour the results of this function should then be returned
--- by the main behaviour in order to use the task assignment of the deferred behaviour
--- a deferred behaviour will be terminated as soon as it is not called in at least one frame
+-- when running a deferred behavior the results of this function should then be returned
+-- by the main behavior in order to use the task assignment of the deferred behavior
+-- a deferred behavior will be terminated as soon as it is not called in at least one frame
 -- this function MUST only be called in _updateTask
-function Base:runDeferredBehaviour(behaviour, restart)
-	if not self._deferredBehaviour or self._deferredBehaviourClass ~= behaviour or restart then
-		self._deferredBehaviourClass = behaviour
-		self._deferredBehaviour = behaviour(self._agent)
-		self._deferredBehaviour:start()
+function Base:runDeferredBehavior(behavior, restart)
+	if not self._deferredBehavior or Class.toClass(self._deferredBehavior) ~= behavior or restart then
+		self._deferredBehavior = behavior(self._agent)
+		self._deferredBehavior:start()
 	end
-	self._deferredBehaviourRunning = true
-	debug.set("deferred behavior", Class.name(self._deferredBehaviour, true))
-	return self._deferredBehaviour:_updateTask()
+	self._deferredBehaviorRunning = true
+	debug.set("deferred behavior", Class.name(self._deferredBehavior, true))
+	return self._deferredBehavior:_updateTask()
 end
 
 function Base:run()
-	self._deferredBehaviourRunning = false
+	self._deferredBehaviorRunning = false
 	local bestTask, parameters, forceNewTask = self:_updateTask()
-	-- terminate the deferred behaviour if it has not been run this frame
-	if not self._deferredBehaviourRunning and self._deferredBehaviour then
-		self._deferredBehaviourClass:stop()
-		self._deferredBehaviourClass = nil
-		self._deferredBehaviour = nil
+	-- terminate the deferred behavior if it has not been run this frame
+	if not self._deferredBehaviorRunning and self._deferredBehavior then
+		--stopping _deferredBehavior is unnecessary, as it goes out of scope.
+		self._deferredBehavior = nil
 	end
 	if not self._task or Class.toClass(self._task) ~= bestTask or forceNewTask then
 		if parameters then
@@ -78,7 +71,7 @@ function Base:check()
 end
 
 function Base:forceKeepingInPool()
-	return self._forceKeepingInPool
+	return self._deferredBehavior and self._deferredBehavior:forceKeepingInPool() or self._forceKeepingInPool
 end
 
 function Base:task()

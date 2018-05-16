@@ -22,7 +22,7 @@ function Move:_updateTask()
 		self:_applyForMainAttacker(nil, nil, 2)
 	end
 	if assignment.behavior then
-		return self:runDeferredBehaviour(assignment.behavior)
+		return self:runDeferredBehavior(assignment.behavior, assignment.restart)
 	end
 
 	return assignment.class, assignment.params, assignment.restart
