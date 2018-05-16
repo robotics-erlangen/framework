@@ -86,7 +86,11 @@ function HandleBall:_checkAttacker()
 end
 
 function HandleBall:_checkInterceptPass()
+
 	local isInterceptPass = self._taskDecision == "interceptpass"
+
+	--TODO: don't if we want to intercept our own pass
+
 
 	-- don't if the ball is too slow
 	local ballSpeedLimit = isInterceptPass and 1.5 or 2.0
@@ -114,17 +118,17 @@ function HandleBall:_checkInterceptPass()
 	vis.addPath("InterceptPassPos", {self._robot.pos, moveDest}, vis.colors.cyan)
 	debug.set("moveTime", moveTime)
 
-	-- don't intercept if there is no pass receiver or the ball is not passed
-	local _, _, _, receivers, isVolley = Goal.predictShot()
-	if not isVolley or #receivers == 0 then
+	-- don't intercept if there is no pass receiver
+	local _, _, _, receivers = Goal.predictShot()
+	if not receivers or #receivers == 0 then
 		return false
 	end
 
 	-- don't intercept if it might have been kicked by our goalie
 	local defenseIntersection = geom.intersectLineLine(World.Geometry.FriendlyGoal, Vector(1, 0),
 				World.Ball.pos, -World.Ball.speed)
-	local defenseWidth = World.Geometry.DefenseRadius + World.Geometry.DefenseStretch / 2 + 0.2
-	if defenseIntersection and math.abs(defenseIntersection.x) < defenseWidth then
+	local defenseWidthHalf = Field.defenseBaselineIntersectionDistance() + 0.2
+	if defenseIntersection and math.abs(defenseIntersection.x) < defenseWidthHalf then
 		return false
 	end
 

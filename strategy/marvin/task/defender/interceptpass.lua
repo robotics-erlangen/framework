@@ -39,11 +39,13 @@ local function evaluateInterceptPos(robot, pos)
 			if oppTime < ownTime + OPP_EXTRA_TIME then
 				return -math.huge, ownTime, bestOppTime
 			end
+
 			bestOppTime = math.min(bestOppTime, oppTime)
+
 		end
 	end
 
-	return ownTime - bestOppTime, ownTime, bestOppTime
+	return bestOppTime - ownTime, ownTime, bestOppTime
 
 end
 
@@ -61,7 +63,7 @@ local function calculateInterceptPos(robot)
 		if dist > 0.2 or World.Time - lastPositions[robot][2] > 0.5 then
 			lastPositions[robot] = nil
 		else
-			lastPositions[robot] = pos
+			lastPositions[robot] = {pos, World.Time}
 		end
 	end
 
@@ -129,6 +131,7 @@ local obstacleTable = {
 	ignorePass = true,
 	ignoreOpponentRobots = true,
 }
+
 
 function InterceptPass:run()
 	local moveDest, time, oppTime = self.calculateInterceptPos(self._robot)
