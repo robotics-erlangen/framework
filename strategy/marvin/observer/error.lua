@@ -159,7 +159,7 @@ function Error._update()
 		end
 	end
 	updateRefereeState()
-	updateLastStopTime(isLeavingStop)
+	updateLastStopTime(leavingStop)
 	updateErrorTables(leavingStop)
 end
 
