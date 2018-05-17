@@ -346,6 +346,14 @@ void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c)
             || !c.has_derived_camera_world_tz()) {
         return;
     }
+    // remove any camera that has a distortion of 0 or 1
+    // these are impossible values that come from being the
+    // default (at least 0) in the vision software.
+    // This might happen when the camera ids are poorly
+    // calibrated in the vision when using multiple vision pcs
+    if (c.has_distortion() && (c.distortion() == 0.0f || c.distortion() == 1.0f)) {
+        return;
+    }
     Eigen::Vector3f cameraPos;
     cameraPos(0) = -c.derived_camera_world_ty() / 1000.f;
     cameraPos(1) = c.derived_camera_world_tx() / 1000.f;
