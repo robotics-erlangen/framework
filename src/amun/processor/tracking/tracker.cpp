@@ -82,6 +82,8 @@ void Tracker::reset()
     m_resetTime = 0;
     m_lastUpdateTime = 0;
     m_visionPackets.clear();
+    m_cameraInfo->cameraPosition.clear();
+    m_cameraInfo->focalLength.clear();
 }
 
 void Tracker::setFlip(bool flip)
