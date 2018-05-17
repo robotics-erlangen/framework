@@ -151,6 +151,40 @@ local function isLeavingStop()
 	return refereeState == "Stop" and World.RefereeState ~= "Stop"
 end
 
+--we don't have any feedback by our robots. At least we have to assume its like that
+--We still want to be able to detect broken bots.
+--To do so, we use the previous moveTo. If it is far (~0.5m) from our current pos while our speed is slow we increase a counter.
+--If that stays true for 4.5 s (that is, 450 runs), we consider the robot to be damaged.
+--We reset this counter if the robot gets fast eanough, or reaches its destination.
+--We want the robot to stay at the error position if it was decided that it's broken. Therefore, we don't tick down due to position if the robot was
+--detected as failure, and will only tick down if a certain speed was reached.
+--If the robot is invisible, speedError does tick down, this is to ensure that a exchanged robot that may have been repaired by humans is ok after reinsertion
+local speedError = {}
+local function updateSpeedError()
+	for _,robot in ipairs(World.FriendlyRobots) do
+		if robot.prevMoveTo then
+			if robot.speed:lengthSq() < 1.5 * 1.5 and robot.pos:distanceToSq(robot.prevMoveTo) > 0.5 * 0.5 then
+				if speedError[robot] and speedError[robot] <= 450 then
+					speedError[robot] = speedError[robot] + 1
+				elseif not speedError[robot] then
+					speedError[robot] = 1
+				end
+			elseif speedError[robot] and speedError[robot] >= 10 and (speedError[robot] <= 300 or robot.speed:lengthSq() > 1.5 * 1.5) then
+				speedError[robot] = speedError[robot] - 10
+			end
+		end
+	end
+	for _, robot in ipairs(World.FriendlyInvisibleRobots) do
+		if speedError[robot] then
+			speedError[robot] = speedError[robot] - 1
+		end
+	end
+end
+
+function Error.getSpeedErrorCount(robot)
+	return speedError[robot] or 0
+end
+
 function Error._update()
 	local leavingStop = isLeavingStop()
 	for _, r in ipairs(World.FriendlyRobots) do
@@ -161,6 +195,7 @@ function Error._update()
 	updateRefereeState()
 	updateLastStopTime(leavingStop)
 	updateErrorTables(leavingStop)
+	updateSpeedError()
 end
 
 return Error

@@ -5,7 +5,7 @@ local ToTarget = require "trajectory/totarget"
 local PathHelper = require "trajectory/pathhelper"
 local G = World.Geometry
 
--- [robotId] => (firstLocationId, secoundLocationId)
+-- [robotId] => (firstLocationId, secondLocationId)
 local EXCHANGE_TARGET = {{firstPosI = 0, secPosI = 17},
 						{firstPosI = 1, secPosI = 16},
 						{firstPosI = 2, secPosI = 15},
@@ -17,6 +17,10 @@ local EXCHANGE_TARGET = {{firstPosI = 0, secPosI = 17},
 						{firstPosI = 8, secPosI = 21},
 						{firstPosI = 9, secPosI = 20},
 						{firstPosI = 10,secPosI = 19},
+						{firstPosI = 5, secPosI = 12},
+						{firstPosI = 2, secPosI = 15},
+						{firstPosI = 10,secPosI = 19},
+						{firstPosI = 0,secPosI = 17},
 						{firstPosI = 11,secPosI = 18}}
 local X0 = -1
 local B = 0.33

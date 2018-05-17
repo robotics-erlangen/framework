@@ -8,11 +8,16 @@ local ERROR_TOLERANCE_PER_SEC = 3 -- <- [0.5,1]
 local EXCHANGE_ERROR_ROBOTS = false
 local EXCHANGE_LOW_BAT_ROBOTS = false
 local EXCHANGE_LOW_BAT_DURING_GAME = false
+local EXCHANGE_ERROR_ROBOTS_SPEED = true
 
 function Error:check()
 	local errorTable = ErrorObserver.getErrorTable(self._robot)
 	if self._active and World.RefereeState == "Stop" then
 		return true
+	elseif self._active and ErrorObserver.getSpeedErrorCount(self._robot) > 100 then
+		return true
+	elseif ErrorObserver.getSpeedErrorCount(self._robot) >= 300 and self._robot ~= World.FriendlyKeeper then
+		return EXCHANGE_ERROR_ROBOTS_SPEED
 	elseif ErrorObserver.getAverageBatterySate(self._robot)< 0.11 and self._robot ~= World.FriendlyKeeper then
 		return EXCHANGE_LOW_BAT_DURING_GAME
 	elseif ErrorObserver.getAverageBatterySate(self._robot)< 0.20
