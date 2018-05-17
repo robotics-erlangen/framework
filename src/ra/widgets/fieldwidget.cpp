@@ -415,6 +415,7 @@ void FieldWidget::updateVisualizationVisibility()
     m_visibleVisSources[amun::StrategyYellow] = m_actionShowYellowVis->isChecked();
     m_visibleVisSources[amun::Controller] = m_actionShowControllerVis->isChecked();
     m_visibleVisSources[amun::Autoref] = true;
+    m_visibleVisSources[amun::Tracking] = true;
 
     m_visualizationsUpdated = true;
     m_guiTimer->requestTriggering();
