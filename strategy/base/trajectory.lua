@@ -27,6 +27,7 @@ local Class = require "../base/class"
 local Trajectory = Class("Trajectory") -- Trajectory manager
 
 local vis = require "../base/vis"
+local Coordinates = require "../base/coordinates"
 
 
 --- Initialises trajectory manager.
@@ -53,6 +54,14 @@ function Trajectory:update(handlerType, ...)
 	end
 	local splines, moveDest, moveTime = self._handler:update(...)
 
+	local splin = splines.spline and splines.spline[1] or nil
+	if splin then
+		local xCalc = splin.x.a0+splin.x.a1*moveTime+splin.x.a2*moveTime/2
+		local yCalc = splin.y.a0+splin.y.a1*moveTime+splin.y.a2*moveTime/2
+		self._robot.prevMoveTo = Coordinates.toLocal(Vector(xCalc, yCalc))
+	else
+		self._robot.prevMoveTo = nil
+	end
 	self._robot:setControllerInput(splines)
 	if self._robot.pos then
 		vis.addPath("MoveTo", {self._robot.pos, moveDest}, vis.colors.whiteHalf)

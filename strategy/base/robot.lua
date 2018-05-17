@@ -57,6 +57,7 @@ local vis = require "../base/vis"
 -- @field radioResponse table - response from the robot, only set if there is a current response *
 -- @field userControl table - command from input devices (fields: speed, omega, kickStyle, kickPower, dribblerSpeed) *
 -- @field moveCommand table - command used when robots are dragged with the mouse (fields: time, pos (global)) * (optional)
+-- @field prevMoveTo Vector - moveTo from previous trajectory call or nil
 Robot.constants = {
 	hasBallDistance = 0.04, -- 4 cm, robots where the balls distance to the dribbler is less than 2cm are considered to have the ball [m]
 	passSpeed = 3, -- speed with which the ball should arrive at the pass target  [m/s]
@@ -115,6 +116,7 @@ function Robot:init(data, isFriendly)
 	self.angularSpeed = nil
 	self.userControl = nil
 	self.moveCommand = nil
+	self.prevMoveTo = nil
 end
 
 function Robot:__tostring()
