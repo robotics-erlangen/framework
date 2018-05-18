@@ -401,7 +401,7 @@ QByteArray Simulator::createVisionPacket()
 void Simulator::sendVisionPacket()
 {
     QByteArray data = m_visionPackets.dequeue();
-    emit gotPacket(data, m_timer->currentTime()); // send "vision packet" and assume instant receiving
+    emit gotPacket(data, m_timer->currentTime(), "simulator"); // send "vision packet" and assume instant receiving
     // the receive time may be a bit jittered just like a real transmission
 
     QTimer *timer = m_visionTimers.dequeue();

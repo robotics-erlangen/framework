@@ -84,6 +84,7 @@ void Tracker::reset()
     m_visionPackets.clear();
     m_cameraInfo->cameraPosition.clear();
     m_cameraInfo->focalLength.clear();
+    m_cameraInfo->cameraSender.clear();
 }
 
 void Tracker::setFlip(bool flip)
@@ -109,14 +110,14 @@ void Tracker::process(qint64 currentTime)
 
     foreach (const Packet &p, m_visionPackets) {
         SSL_WrapperPacket wrapper;
-        if (!wrapper.ParseFromArray(p.first.data(), p.first.size())) {
+        if (!wrapper.ParseFromArray(p.data.data(), p.data.size())) {
             continue;
         }
 
         if (wrapper.has_geometry()) {
             updateGeometry(wrapper.geometry().field());
             for (int i = 0; i < wrapper.geometry().calib_size(); ++i) {
-                updateCamera(wrapper.geometry().calib(i));
+                updateCamera(wrapper.geometry().calib(i), p.sender);
             }
             m_geometryUpdated = true;
         }
@@ -129,7 +130,7 @@ void Tracker::process(qint64 currentTime)
         const qint64 visionProcessingTime = (detection.t_sent() - detection.t_capture()) * 1E9;
         // time on the field for which the frame was captured
         // with Timer::currentTime being now
-        const qint64 sourceTime = p.second - visionProcessingTime - m_systemDelay;
+        const qint64 sourceTime = p.time - visionProcessingTime - m_systemDelay;
 
         // drop frames older than the current state
         if (sourceTime <= m_lastUpdateTime) {
@@ -282,6 +283,15 @@ Status Tracker::worldState(qint64 currentTime)
     }
     status->mutable_debug()->set_source(amun::Tracking);
 #endif
+    if (m_errorMessages.size() > 0) {
+        for (QString message : m_errorMessages) {
+            amun::StatusLog *log = status->mutable_debug()->add_log();
+            log->set_timestamp(currentTime);
+            log->set_text(message.toStdString());
+        }
+        status->mutable_debug()->set_source(amun::Tracking);
+        m_errorMessages.clear();
+    }
 
     return status;
 }
@@ -340,7 +350,7 @@ void Tracker::updateGeometry(const SSL_GeometryFieldSize &g)
     }
 }
 
-void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c)
+void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c, QString sender)
 {
     if (!c.has_derived_camera_world_tx() || !c.has_derived_camera_world_ty()
             || !c.has_derived_camera_world_tz()) {
@@ -354,6 +364,13 @@ void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c)
     if (c.has_distortion() && (c.distortion() == 0.0f || c.distortion() == 1.0f)) {
         return;
     }
+
+    auto lastSender = m_cameraInfo->cameraSender.find(c.camera_id());
+    if (lastSender != m_cameraInfo->cameraSender.end() && *lastSender != sender) {
+        m_errorMessages.append(QString("<font color=\"red\">WARNING: </font> camera %1 is being sent\
+                                    from two different vision sources: %2 and %3!").arg(c.camera_id())
+                                   .arg(m_cameraInfo->cameraSender[c.camera_id()]).arg(sender));
+    }
     Eigen::Vector3f cameraPos;
     cameraPos(0) = -c.derived_camera_world_ty() / 1000.f;
     cameraPos(1) = c.derived_camera_world_tx() / 1000.f;
@@ -361,6 +378,7 @@ void Tracker::updateCamera(const SSL_GeometryCameraCalibration &c)
 
     m_cameraInfo->cameraPosition[c.camera_id()] = cameraPos;
     m_cameraInfo->focalLength[c.camera_id()] = c.focal_length();
+    m_cameraInfo->cameraSender[c.camera_id()] = sender;
 }
 
 template<class Filter>
@@ -534,9 +552,9 @@ void Tracker::trackRobot(RobotMap &robotMap, const SSL_DetectionRobot &robot, qi
     nearestFilter->addVisionFrame(cameraId, robot, receiveTime, visionProcessingDelay);
 }
 
-void Tracker::queuePacket(const QByteArray &packet, qint64 time)
+void Tracker::queuePacket(const QByteArray &packet, qint64 time, QString sender)
 {
-    m_visionPackets.append(qMakePair(packet, time));
+    m_visionPackets.append(Packet(packet, time, sender));
     m_hasVisionData = true;
 }
 

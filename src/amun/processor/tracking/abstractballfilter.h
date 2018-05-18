@@ -39,6 +39,7 @@ struct CameraInfo {
     // index for the map is cameraId
     QMap<int, Eigen::Vector3f> cameraPosition;
     QMap<int, float> focalLength;
+    QMap<int, QString> cameraSender;
 };
 
 typedef KalmanFilter<6, 3> Kalman;

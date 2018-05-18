@@ -54,7 +54,7 @@ public:
     void handleSimulatorTick(double timeStep);
 
 signals:
-    void gotPacket(const QByteArray &data, qint64 time);
+    void gotPacket(const QByteArray &data, qint64 time, QString sender);
     void sendStatus(const Status &status);
     void sendRadioResponses(const QList<robot::RadioResponse> &responses);
 

@@ -43,6 +43,12 @@ class Tracker
 {
 private:
     typedef QMap<uint, QList<RobotFilter*> > RobotMap;
+    struct Packet {
+        Packet(const QByteArray &data, qint64 time, QString sender) : data(data), time(time), sender(sender) {}
+        QByteArray data;
+        qint64 time;
+        QString sender;
+    };
 
 public:
     Tracker();
@@ -53,14 +59,14 @@ public:
     Status worldState(qint64 currentTime);
 
     void setFlip(bool flip);
-    void queuePacket(const QByteArray &packet, qint64 time);
+    void queuePacket(const QByteArray &packet, qint64 time, QString sender);
     void queueRadioCommands(const QList<robot::RadioCommand> &radio_commands, qint64 time);
     void handleCommand(const amun::CommandTracking &command);
     void reset();
 
 private:
     void updateGeometry(const SSL_GeometryFieldSize &g);
-    void updateCamera(const SSL_GeometryCameraCalibration &c);
+    void updateCamera(const SSL_GeometryCameraCalibration &c, QString sender);
 
     template<class Filter>
     static void invalidate(QList<Filter*> &filters, const qint64 maxTime, const qint64 maxTimeLast, qint64 currentTime);
@@ -72,7 +78,6 @@ private:
     void trackRobot(RobotMap& robotMap, const SSL_DetectionRobot &robot, qint64 receiveTime, qint32 cameraId, qint64 visionProcessingDelay);
 
 private:
-    typedef QPair<QByteArray, qint64> Packet;
     typedef QPair<robot::RadioCommand, qint64> RadioCommand;
     CameraInfo * const m_cameraInfo;
 
@@ -101,6 +106,8 @@ private:
     float m_aoi_y1;
     float m_aoi_x2;
     float m_aoi_y2;
+
+    QList<QString> m_errorMessages;
 };
 
 #endif // TRACKER_H

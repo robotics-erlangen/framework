@@ -33,7 +33,7 @@ public:
     ~Receiver() override;
 
 signals:
-    void gotPacket(const QByteArray &data, qint64 time);
+    void gotPacket(const QByteArray &data, qint64 time, QString sender);
     void sendStatus(const Status &status);
 
 public slots:

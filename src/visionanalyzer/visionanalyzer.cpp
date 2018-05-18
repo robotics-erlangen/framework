@@ -111,7 +111,7 @@ int main(int argc, char* argv[])
         do {
             // collect all packets until current system time
             if (msg_type == VisionLog::MessageType::MESSAGE_SSL_VISION_2014) {
-                tracker.queuePacket(visionFrame, receiveTimeNanos);
+                tracker.queuePacket(visionFrame, receiveTimeNanos, "logfile");
             } else if (msg_type == VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013) {
                 ref.handlePacket(visionFrame);
             }

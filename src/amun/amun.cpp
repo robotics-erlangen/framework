@@ -165,7 +165,7 @@ void Amun::start()
         setupReceiver(m_referee, QHostAddress("224.5.23.1"), 10003);
         connect(this, &Amun::updateRefereePort, m_referee, &Receiver::updatePort);
         // move referee packets to processor
-        connect(m_referee, SIGNAL(gotPacket(QByteArray, qint64)), m_processor, SLOT(handleRefereePacket(QByteArray, qint64)));
+        connect(m_referee, SIGNAL(gotPacket(QByteArray, qint64, QString)), m_processor, SLOT(handleRefereePacket(QByteArray, qint64)));
 
         // create vision
         setupReceiver(m_vision, QHostAddress("224.5.23.2"), 10002);
@@ -177,12 +177,12 @@ void Amun::start()
         // create network radio protocol receiver
         setupReceiver(m_networkCommand, QHostAddress(), 10010);
         // pass packets to processor
-        connect(m_networkCommand, SIGNAL(gotPacket(QByteArray, qint64)), m_processor, SLOT(handleNetworkCommand(QByteArray, qint64)));
+        connect(m_networkCommand, SIGNAL(gotPacket(QByteArray, qint64, QString)), m_processor, SLOT(handleNetworkCommand(QByteArray, qint64)));
 
         // create mixed team information receiver
         setupReceiver(m_mixedTeam, QHostAddress(), 10012);
         // pass packets to processor
-        connect(m_mixedTeam, SIGNAL(gotPacket(QByteArray,qint64)), m_processor, SLOT(handleMixedTeamInfo(QByteArray, qint64)));
+        connect(m_mixedTeam, SIGNAL(gotPacket(QByteArray, qint64, QString)), m_processor, SLOT(handleMixedTeamInfo(QByteArray, qint64)));
     }
 
     // create simulator
@@ -416,15 +416,15 @@ void Amun::setSimulatorEnabled(bool enabled, bool useNetworkTransceiver)
     }
 
     if (enabled) {
-        connect(m_simulator, SIGNAL(gotPacket(QByteArray, qint64)),
-                m_processor, SLOT(handleVisionPacket(QByteArray,qint64)));
+        connect(m_simulator, SIGNAL(gotPacket(QByteArray, qint64, QString)),
+                m_processor, SLOT(handleVisionPacket(QByteArray, qint64, QString)));
         connect(m_simulator, SIGNAL(sendRadioResponses(QList<robot::RadioResponse>)),
                 m_processor, SLOT(handleRadioResponses(QList<robot::RadioResponse>)));
         connect(m_processor, SIGNAL(sendRadioCommands(QList<robot::RadioCommand>,qint64)),
                 m_simulator, SLOT(handleRadioCommands(QList<robot::RadioCommand>,qint64)));
     } else {
-        connect(m_vision, SIGNAL(gotPacket(QByteArray, qint64)),
-                m_processor, SLOT(handleVisionPacket(QByteArray,qint64)));
+        connect(m_vision, SIGNAL(gotPacket(QByteArray, qint64, QString)),
+                m_processor, SLOT(handleVisionPacket(QByteArray, qint64, QString)));
         if (!useNetworkTransceiver) {
             connect(m_transceiver, SIGNAL(sendRadioResponses(QList<robot::RadioResponse>)),
                     m_processor, SLOT(handleRadioResponses(QList<robot::RadioResponse>)));

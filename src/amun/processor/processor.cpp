@@ -329,9 +329,9 @@ void Processor::handleRefereePacket(const QByteArray &data, qint64 /*time*/)
     m_referee->handlePacket(data);
 }
 
-void Processor::handleVisionPacket(const QByteArray &data, qint64 time)
+void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString sender)
 {
-    m_tracker->queuePacket(data, time);
+    m_tracker->queuePacket(data, time, sender);
     m_speedTracker->queuePacket(data, time);
 }
 

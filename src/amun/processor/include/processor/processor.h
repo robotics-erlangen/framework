@@ -55,7 +55,7 @@ signals:
 public slots:
     void setScaling(double scaling);
     void handleRefereePacket(const QByteArray &data, qint64 time);
-    void handleVisionPacket(const QByteArray &data, qint64 time);
+    void handleVisionPacket(const QByteArray &data, qint64 time, QString sender);
     void handleNetworkCommand(const QByteArray &data, qint64 time);
     void handleMixedTeamInfo(const QByteArray &data, qint64 time);
     void handleRadioResponses(const QList<robot::RadioResponse> &responses);

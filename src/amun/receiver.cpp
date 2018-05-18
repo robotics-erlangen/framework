@@ -23,6 +23,11 @@
 #include <QNetworkInterface>
 #include <QNetworkProxy>
 #include <QUdpSocket>
+#include <QtGlobal>
+
+#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
+#include <QNetworkDatagram>
+#endif
 
 /*!
  * \class Receiver
@@ -34,10 +39,11 @@
  */
 
 /*!
- * \fn void Receiver::gotPacket(QByteArray data, qint64 time)
+ * \fn void Receiver::gotPacket(QByteArray data, qint64 time, QString sender)
  * \brief This signal is emitted whenever a new packet has been received
  * \param data  The received packet
  * \param time  Timestamp at which the packet has been received
+ * \param sender The sender of the packet
  */
 
 /*!
@@ -140,9 +146,14 @@ void Receiver::updatePort(quint16 port)
 void Receiver::readData()
 {
     while (m_socket->hasPendingDatagrams()) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
+        QNetworkDatagram dataGram = m_socket->receiveDatagram();
+        emit gotPacket(dataGram.data(), Timer::systemTime(), dataGram.senderAddress().toString());
+#else
         QByteArray data;
         data.resize(m_socket->pendingDatagramSize());
         m_socket->readDatagram(data.data(), data.size());
-        emit gotPacket(data, Timer::systemTime());
+        emit gotPacket(data, Timer::systemTime(), "unknown");
+#endif
     }
 }
