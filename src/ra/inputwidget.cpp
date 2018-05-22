@@ -43,6 +43,7 @@ void InputWidget::saveConfig()
     s.setValue("SpeedLinear", ui->spinLinear->value());
     s.setValue("SpeedRotation", ui->spinRotation->value());
     s.setValue("Global", ui->checkGlobal->isChecked());
+    s.setValue("Deadzone", ui->gamepadDeadzone->value());
     s.endGroup();
 }
 
@@ -53,6 +54,7 @@ void InputWidget::init(InputManager *inputManager)
     connect(ui->checkGlobal, SIGNAL(toggled(bool)), inputManager, SLOT(setGlobal(bool)));
     connect(ui->dribblerPower, SIGNAL(valueChanged(double)), inputManager, SLOT(setDribblerPower(double)));
     connect(ui->shootPower, SIGNAL(valueChanged(double)), inputManager, SLOT(setShootPower(double)));
+    connect(ui->gamepadDeadzone, SIGNAL(valueChanged(double)), inputManager, SLOT(setDeadzone(double)));
 }
 
 void InputWidget::load()
@@ -62,5 +64,6 @@ void InputWidget::load()
     ui->spinLinear->setValue(s.value("SpeedLinear", 1.0).toDouble());
     ui->spinRotation->setValue(s.value("SpeedRotation", 1.0).toDouble());
     ui->checkGlobal->setChecked(s.value("Global").toBool());
+    ui->gamepadDeadzone->setValue(s.value("Deadzone", 0.02).toDouble());
     s.endGroup();
 }

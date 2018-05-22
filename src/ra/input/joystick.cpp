@@ -55,7 +55,8 @@ Joystick *Joystick::open(int deviceId) {
 Joystick::Joystick(const QString &name, SDL_GameController *controller, SDL_JoystickID id) :
     InputDevice(name),
     m_controller(controller),
-    m_id(id)
+    m_id(id),
+    m_deadzone(0.2f)
 { }
 
 Joystick::~Joystick() {
@@ -77,8 +78,7 @@ void Joystick::handleEvent(const SDL_Event &event) {
 
 void Joystick::handleAxis(SDL_GameControllerAxis axis, float value)
 {
-    const float deadzone = 0.02f;
-    value = std::copysign(std::max(0.f, std::abs(value) - deadzone) / (1-deadzone), value);
+    value = std::copysign(std::max(0.f, std::abs(value) - m_deadzone) / (1-m_deadzone), value);
 
     // axis are mapped by sdl
     switch (axis) {

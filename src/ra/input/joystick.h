@@ -37,6 +37,7 @@ public:
     SDL_JoystickID getId() const { return m_id; }
 
     void handleEvent(const SDL_Event &event) ;
+    void setDeadzone(float deadzone) { m_deadzone = deadzone; }
 private:
     Joystick(const QString &name, SDL_GameController *controller, SDL_JoystickID id);
 
@@ -48,6 +49,8 @@ private:
 
     SDL_GameController *m_controller;
     const SDL_JoystickID m_id;
+
+    float m_deadzone;
 };
 
 #endif // JOYSTICK_H

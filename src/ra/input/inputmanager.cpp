@@ -42,6 +42,7 @@ InputManager::InputManager(QObject *parent) :
     m_maxOmega(1.0f),
     m_dribblerPower(1.0f),
     m_shootPower(10.0f),
+    m_deadzone(0.02f),
     m_enabled(false),
     m_isLocal(true),
     m_lastCommandWasEmpty(true)
@@ -207,6 +208,7 @@ Joystick *InputManager::openJoystick(int deviceId) {
     if (joystick == NULL) {
         return NULL;
     }
+    joystick->setDeadzone(m_deadzone);
 
     if (m_joysticks.contains(joystick->getId())) {
         return joystick; // joystick is already setup
@@ -337,3 +339,13 @@ void InputManager::setLocal(bool local)
         device->setLocal(m_isLocal);
     }
 }
+
+#ifdef SDL2_FOUND
+void InputManager::setDeadzone(double deadzone)
+{
+    m_deadzone = deadzone;
+    for (auto element : m_joysticks) {
+        element->setDeadzone(deadzone);
+    }
+}
+#endif // SDL2_FOUND

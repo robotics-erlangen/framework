@@ -70,6 +70,9 @@ public slots:
     void setEnabled(bool enabled);
     void setLocal(bool local);
     void setGlobal(bool global);
+#ifdef SDL2_FOUND
+    void setDeadzone(double deadzone);
+#endif // SDL2_FOUND
 
 private slots:
     void update();
@@ -100,6 +103,7 @@ private:
     float m_maxOmega;
     float m_dribblerPower;
     float m_shootPower;
+    float m_deadzone;
     bool m_enabled;
     bool m_isLocal;
     bool m_lastCommandWasEmpty;
