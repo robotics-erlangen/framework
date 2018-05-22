@@ -21,12 +21,11 @@
 #include "abstractstrategyscript.h"
 
 AbstractStrategyScript::AbstractStrategyScript() :
+    m_debugStatus(new amun::Status),
     m_hasDebugger(false),
     m_debugHelper(nullptr),
     m_isInternalAutoref(false)
-{
-    takeDebugStatus();
-}
+{ }
 
 bool AbstractStrategyScript::triggerDebugger()
 {
@@ -36,8 +35,9 @@ bool AbstractStrategyScript::triggerDebugger()
 
 Status AbstractStrategyScript::takeDebugStatus()
 {
-    Status status = m_debugStatus;
-    m_debugStatus = Status(new amun::Status);
+    Status status(new amun::Status);
+    status->CopyFrom(*m_debugStatus);
+    m_debugStatus->Clear();
     return status;
 }
 
