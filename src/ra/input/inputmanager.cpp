@@ -211,7 +211,9 @@ Joystick *InputManager::openJoystick(int deviceId) {
     joystick->setDeadzone(m_deadzone);
 
     if (m_joysticks.contains(joystick->getId())) {
-        return joystick; // joystick is already setup
+        // joystick is already setup
+        delete joystick;
+        return m_joysticks[joystick->getId()];
     }
     // register for event passing
     m_joysticks.insert(joystick->getId(), joystick);
