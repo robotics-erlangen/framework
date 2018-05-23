@@ -4,6 +4,7 @@ local Coordinates = require "../base/coordinates"
 local Constants = require "../base/constants"
 local geom = require "../base/geom"
 local plot = require "../base/plot"
+local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local PathHelper = require "trajectory/pathhelper"
@@ -614,8 +615,7 @@ function CurvedMaxAccel:update(targetPos, targetDir, maxSpeed, endSpeed, accelSc
 
 	--insert default values
 	maxSpeed = maxSpeed or self._robot.maxSpeed
-	if World.RefereeState == "Stop" or World.RefereeState == "BallPlacementDefensive"
-			or World.RefereeState == "BallPlacementOffensive" then
+	if Referee.isSlowDriveState() then
 		maxSpeed = math.min(maxSpeed, (World.IsLargeField and Constants.stopSpeed or 1) - 0.25)
 	end
 	-- change endSpeed to global coordinates

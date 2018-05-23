@@ -1,5 +1,6 @@
 local Error = {}
 
+local Referee = require "../base/referee"
 local World = require "../base/world"
 
 local errorTables = {}
@@ -161,15 +162,17 @@ end
 --If the robot is invisible, speedError does tick down, this is to ensure that a exchanged robot that may have been repaired by humans is ok after reinsertion
 local speedError = {}
 local function updateSpeedError()
+	local halfSpeed = Referee.isSlowDriveState() and 0.75 or 1.5
 	for _,robot in ipairs(World.FriendlyRobots) do
 		if robot.prevMoveTo then
-			if robot.speed:lengthSq() < 1.5 * 1.5 and robot.pos:distanceToSq(robot.prevMoveTo) > 0.5 * 0.5 then
+			if robot.speed:lengthSq() < halfSpeed * halfSpeed and robot.pos:distanceToSq(robot.prevMoveTo) > 0.5 * 0.5 then
 				if speedError[robot] and speedError[robot] <= 450 then
 					speedError[robot] = speedError[robot] + 1
 				elseif not speedError[robot] then
 					speedError[robot] = 1
 				end
-			elseif speedError[robot] and speedError[robot] >= 10 and (speedError[robot] <= 300 or robot.speed:lengthSq() > 1.5 * 1.5) then
+			elseif speedError[robot] and speedError[robot] >= 10 and (speedError[robot] <= 300 or
+				robot.speed:lengthSq() > halfSpeed * halfSpeed) then
 				speedError[robot] = speedError[robot] - 10
 			end
 		end
