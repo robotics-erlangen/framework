@@ -40,6 +40,7 @@
 #include <QDropEvent>
 #include <QMimeData>
 #include <QUrl>
+#include <fieldwidget.h>
 
 class TouchStatusGesture : public QGesture
 {
@@ -134,7 +135,7 @@ FieldWidget::FieldWidget(QWidget *parent) :
     QAction *actionVertical = m_contextMenu->addAction("Vertical");
     connect(actionVertical, SIGNAL(triggered()), SLOT(setVertical()));
     QAction *actionFlip = m_contextMenu->addAction("Flip");
-    connect(actionFlip, SIGNAL(triggered()), SLOT(flip()));
+    connect(actionFlip, SIGNAL(triggered()), SLOT(flipField()));
     m_contextMenu->addSeparator();
     // add actions to allow hiding visualizations of a team
     m_actionShowBlueVis = m_contextMenu->addAction("Show blue visualizations");
@@ -303,6 +304,16 @@ void FieldWidget::handleStatus(const Status &status)
         m_referee.set_stage(state.stage());
         m_referee.mutable_yellow()->CopyFrom(state.yellow());
         m_referee.mutable_blue()->CopyFrom(state.blue());
+        if (state.has_goals_flipped()) {
+            if (m_flipped != state.goals_flipped()) {
+                QRectF flippedAoi;
+                flippedAoi.setTopLeft(-m_aoi.bottomRight());
+                flippedAoi.setBottomRight(-m_aoi.topLeft());
+                m_aoi = flippedAoi;
+                updateAOI();
+            }
+            m_flipped = state.goals_flipped();
+        }
     }
 
     if (status->has_game_state()) {
@@ -926,7 +937,7 @@ void FieldWidget::setVertical()
     setFieldOrientation(0.0f);
 }
 
-void FieldWidget::flip()
+void FieldWidget::flipField()
 {
     m_rotation += 180.0f;
     if (m_rotation >= 360.0f) {
@@ -958,15 +969,6 @@ void FieldWidget::setOpenGL(bool enable)
 void FieldWidget::setAOIVisible(bool visible)
 {
     m_aoiItem->setVisible(visible);
-    updateAOI();
-}
-
-void FieldWidget::flipAOI()
-{
-    QRectF flipped;
-    flipped.setTopLeft(-m_aoi.bottomRight());
-    flipped.setBottomRight(-m_aoi.topLeft());
-    m_aoi = flipped;
     updateAOI();
 }
 
@@ -1029,15 +1031,16 @@ void FieldWidget::sendRobotMoveCommands(const QPointF &p)
 {
     Command command(new amun::Command);
     amun::CommandSimulator *sim = command->mutable_simulator();
+    float flipFactor = m_flipped ? -1.0f : 1.0f;
     if (m_dragType == DragBall) {
         amun::SimulatorMoveBall *ball = sim->mutable_move_ball();
-        ball->set_p_x(p.x());
-        ball->set_p_y(p.y());
+        ball->set_p_x(p.x() * flipFactor);
+        ball->set_p_y(p.y() * flipFactor);
     } else if (m_dragType == DragBlue) {
         amun::SimulatorMoveRobot *robot = sim->add_move_blue();
         robot->set_id(m_dragId);
-        robot->set_p_x(p.x());
-        robot->set_p_y(p.y());
+        robot->set_p_x(p.x() * flipFactor);
+        robot->set_p_y(p.y() * flipFactor);
 
         amun::RobotMoveCommand *move = command->add_robot_move_blue();
         move->set_id(m_dragId);
@@ -1046,12 +1049,12 @@ void FieldWidget::sendRobotMoveCommands(const QPointF &p)
     } else if (m_dragType == DragYellow) {
         amun::SimulatorMoveRobot *robot = sim->add_move_yellow();
         robot->set_id(m_dragId);
-        robot->set_p_x(p.x());
-        robot->set_p_y(p.y());
+        robot->set_p_x(p.x() * flipFactor);
+        robot->set_p_y(p.y() * flipFactor);
 
         amun::RobotMoveCommand *move = command->add_robot_move_yellow();
         move->set_id(m_dragId);
-        move->set_p_x(p.x());
+        move->set_p_x(p.x() );
         move->set_p_y(p.y());
     }
     emit sendCommand(command);
@@ -1059,11 +1062,12 @@ void FieldWidget::sendRobotMoveCommands(const QPointF &p)
 
 void FieldWidget::sendSimulatorTeleportBall(const QPointF &p)
 {
+    float flipFactor = m_flipped ? -1.0f : 1.0f;
     Command command(new amun::Command);
     amun::CommandSimulator *sim = command->mutable_simulator();
     amun::SimulatorMoveBall *ball = sim->mutable_move_ball();
-    ball->set_p_x(p.x());
-    ball->set_p_y(p.y());
+    ball->set_p_x(p.x() * flipFactor);
+    ball->set_p_y(p.y() * flipFactor);
     ball->set_v_x(0);
     ball->set_v_y(0);
     ball->set_position(true);
@@ -1551,8 +1555,9 @@ void FieldWidget::saveSituation()
 void FieldWidget::ballPlacement(bool blue)
 {
     m_referee.set_command(blue ? SSL_Referee::BALL_PLACEMENT_BLUE : SSL_Referee::BALL_PLACEMENT_YELLOW);
-    m_referee.mutable_designated_position()->set_x(m_mouseBegin.y() * 1000.0f);
-    m_referee.mutable_designated_position()->set_y(-m_mouseBegin.x() * 1000.0f);
+    float flipFactor = m_flipped ? -1.0f : 1.0f;
+    m_referee.mutable_designated_position()->set_x(m_mouseBegin.y() * flipFactor * 1000.0f);
+    m_referee.mutable_designated_position()->set_y(-m_mouseBegin.x() * flipFactor * 1000.0f);
     assert(m_referee.IsInitialized());
 
     std::string referee;

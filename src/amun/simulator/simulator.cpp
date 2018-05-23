@@ -489,13 +489,13 @@ void Simulator::moveRobot(const Simulator::RobotMap &list, const amun::Simulator
     }
 }
 
+void Simulator::setFlipped(bool flipped)
+{
+    m_data->flip = flipped;
+}
+
 void Simulator::handleCommand(const Command &command)
 {
-    // is field flipped
-    if (command->has_flip()) {
-        m_data->flip = command->flip();
-    }
-
     if (command->has_simulator()) {
         const amun::CommandSimulator &sim = command->simulator();
         if (sim.has_enable()) {

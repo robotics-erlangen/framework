@@ -34,12 +34,13 @@ public:
 
 public:
     const amun::GameState& gameState() const { return m_gameState; }
+    bool getFlipped() const { return m_flipped; }
 
 public:
     void handlePacket(const QByteArray &data);
     void handleRemoteControlRequest(const SSL_RefereeRemoteControlRequest &request);
     void process(const world::State &worldState);
-    void setFlip(bool flip) { m_flip = flip; }
+    void setFlipped(bool flipped);
 
 private:
     void handleCommand(SSL_Referee::Command command);
@@ -49,7 +50,7 @@ private:
     amun::GameState m_gameState;
     world::Ball m_ball;
     quint32 m_counter;
-    bool m_flip;
+    bool m_flipped;
 };
 
 #endif // REFEREE_H

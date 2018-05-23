@@ -53,7 +53,7 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
 
     // setup icons
     ui->actionEnableTransceiver->setIcon(QIcon("icon:32/network-wireless.png"));
-    ui->actionFlipSides->setIcon(QIcon("icon:32/change-ends.png"));
+    ui->actionSidesFlipped->setIcon(QIcon("icon:32/change-ends.png"));
     ui->actionRecord->setIcon(QIcon("icon:32/media-record.png"));
     ui->actionChargeKicker->setIcon(QIcon("icon:32/capacitor.png"));
     ui->actionSimulator->setIcon(QIcon("icon:32/computer.png"));
@@ -120,7 +120,7 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     connect(ui->actionDisableTransceiver, SIGNAL(triggered(bool)), SLOT(disableTransceiver()));
     addAction(ui->actionDisableTransceiver); // only actions that are used somewhere are triggered
     connect(ui->actionChargeKicker, SIGNAL(toggled(bool)), SLOT(setCharge(bool)));
-    connect(ui->actionFlipSides, SIGNAL(triggered()), SLOT(toggleFlip()));
+    connect(ui->actionSidesFlipped, SIGNAL(toggled(bool)), SLOT(setFlipped(bool)));
     // reminder shown before second half time
     connect(ui->actionSideChangeNotify, &QAction::triggered, [=] () {
             ui->actionSideChangeNotify->setVisible(false);
@@ -220,8 +220,7 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     ui->actionInputDevices->setChecked(s.value("InputDevices/Enabled").toBool());
     ui->actionAutoPause->setChecked(s.value("Simulator/AutoPause", true).toBool());
 
-    m_flip = s.value("Flip").toBool();
-    sendFlip();
+    ui->actionSidesFlipped->setChecked(s.value("Flipped", false).toBool());
 
     // playback speed shortcuts
     QSignalMapper *mapper = new QSignalMapper(this);
@@ -297,6 +296,7 @@ void MainWindow::saveConfig()
     s.setValue("Simulator/Enabled", ui->actionSimulator->isChecked());
     s.setValue("Referee/Internal", ui->actionInternalReferee->isChecked());
     s.setValue("InputDevices/Enabled", ui->actionInputDevices->isChecked());
+    s.setValue("Flipped", ui->actionSidesFlipped->isChecked());
 }
 
 void MainWindow::ruleVersionChanged(QAction * action)
@@ -365,6 +365,10 @@ void MainWindow::handleStatus(const Status &status)
                 ui->actionSideChangeNotify->setVisible(true);
             }
             m_lastStageTime = state.stage_time_left();
+        }
+
+        if (state.has_goals_flipped()) {
+            ui->actionSidesFlipped->setChecked(state.goals_flipped());
         }
 
         m_lastRefState = state.state();
@@ -437,12 +441,12 @@ void MainWindow::setCharge(bool charge)
     sendCommand(command);
 }
 
-void MainWindow::toggleFlip()
+void MainWindow::setFlipped(bool flipped)
 {
-    m_flip = !m_flip;
-    QSettings s;
-    s.setValue("Flip", m_flip);
-    sendFlip();
+    Command command(new amun::Command);
+    amun::CommandReferee *referee = command->mutable_referee();
+    referee->set_flipped(flipped);
+    sendCommand(command);
 }
 
 void MainWindow::liveMode()
@@ -523,14 +527,6 @@ void MainWindow::toggleInstantReplay(bool enable)
     ui->referee->setEnabled(!enable);
     ui->simulator->setEnabled(!enable);
     ui->robots->enableContent(!enable);
-}
-
-void MainWindow::sendFlip()
-{
-    Command command(new amun::Command);
-    command->set_flip(m_flip);
-    sendCommand(command);
-    ui->field->flipAOI();
 }
 
 void MainWindow::showConfigDialog()

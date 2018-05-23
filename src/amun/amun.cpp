@@ -188,6 +188,7 @@ void Amun::start()
     // create simulator
     Q_ASSERT(m_simulator == NULL);
     createSimulator(amun::CommandSimulator::RULES2018);
+    connect(m_processor, SIGNAL(setFlipped(bool)), m_simulator, SLOT(setFlipped(bool)));
 
     if (!m_simulatorOnly) {
         Q_ASSERT(m_transceiver == NULL);

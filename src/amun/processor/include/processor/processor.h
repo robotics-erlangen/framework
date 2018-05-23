@@ -51,6 +51,7 @@ signals:
     void sendStatus(const Status &status);
     void sendStrategyStatus(const Status &status);
     void sendRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingStart);
+    void setFlipped(bool flipped);
 
 public slots:
     void setScaling(double scaling);
@@ -100,6 +101,7 @@ private:
     qint64 m_networkCommandTime;
     bool m_refereeInternalActive;
     bool m_simulatorEnabled;
+    bool m_lastFlipped;
 
     Team m_blueTeam;
     Team m_yellowTeam;

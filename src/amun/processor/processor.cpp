@@ -119,6 +119,7 @@ Processor::Processor(const Timer *timer) :
     m_networkCommandTime(0),
     m_refereeInternalActive(false),
     m_simulatorEnabled(false),
+    m_lastFlipped(false),
     m_transceiverEnabled(false)
 {
     // keep two separate referee states
@@ -169,6 +170,12 @@ void Processor::process()
     // run referee
     Referee* activeReferee = (m_refereeInternalActive) ? m_refereeInternal : m_referee;
     activeReferee->process(status->world_state());
+    if (activeReferee->getFlipped() != m_lastFlipped) {
+        m_lastFlipped = activeReferee->getFlipped();
+        m_tracker->setFlip(m_lastFlipped);
+        m_speedTracker->setFlip(m_lastFlipped);
+        emit setFlipped(m_lastFlipped);
+    }
     status->mutable_game_state()->CopyFrom(activeReferee->gameState());
 
     // add radio responses from robots and mixed team data
@@ -401,25 +408,23 @@ void Processor::handleCommand(const Command &command)
         sendTeams();
     }
 
-    if (command->has_flip()) {
-        m_tracker->setFlip(command->flip());
-        m_speedTracker->setFlip(command->flip());
-        m_referee->setFlip(command->flip());
-        m_refereeInternal->setFlip(command->flip());
-    }
-
     if (command->has_referee()) {
-        if (command->referee().has_active()) {
-            m_refereeInternalActive = command->referee().active();
+        const amun::CommandReferee &refereeCommand = command->referee();
+        if (refereeCommand.has_active()) {
+            m_refereeInternalActive = refereeCommand.active();
         }
 
-        if (command->referee().has_command()) {
-            const std::string &c = command->referee().command();
+        if (refereeCommand.has_command()) {
+            const std::string &c = refereeCommand.command();
             m_refereeInternal->handlePacket(QByteArray(c.data(), c.size()));
         }
 
-        if (command->referee().has_autoref_command()) {
-            m_refereeInternal->handleRemoteControlRequest(command->referee().autoref_command());
+        if (refereeCommand.has_autoref_command()) {
+            m_refereeInternal->handleRemoteControlRequest(refereeCommand.autoref_command());
+        }
+
+        if (refereeCommand.has_flipped()) {
+            m_refereeInternal->setFlipped(refereeCommand.flipped());
         }
     }
 

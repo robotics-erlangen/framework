@@ -62,6 +62,7 @@ public slots:
     void handleCommand(const Command &command);
     void handleRadioCommands(const QList<robot::RadioCommand> &commands, qint64 processingDelay);
     void setScaling(double scaling);
+    void setFlipped(bool flipped);
 
 private slots:
     void process();

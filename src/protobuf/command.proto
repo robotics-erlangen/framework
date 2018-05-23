@@ -53,6 +53,7 @@ message CommandReferee {
     optional bytes command = 2;
     optional bool use_internal_autoref = 3;
     optional SSL_RefereeRemoteControlRequest autoref_command = 4;
+    optional bool flipped = 5;
 }
 
 message CommandStrategyLoad {
@@ -144,7 +145,7 @@ message CommandDebuggerInput {
 message Command {
     optional CommandSimulator simulator = 1;
     optional CommandReferee referee = 2;
-    optional bool flip = 3;
+    // deprecated = 3
     optional robot.Team set_team_blue = 4;
     optional robot.Team set_team_yellow = 5;
     optional CommandStrategy strategy_blue = 6;

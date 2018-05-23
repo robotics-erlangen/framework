@@ -43,4 +43,6 @@ message GameState {
 
     optional .SSL_Referee.Point designated_position = 6;
     optional SSL_Referee_Game_Event game_event = 7;
+
+    optional bool goals_flipped = 8;
 }

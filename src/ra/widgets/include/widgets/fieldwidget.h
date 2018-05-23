@@ -90,7 +90,6 @@ public slots:
     void clearData();
     void clearTraces();
     void hideVisualizationToggles();
-    void flipAOI();
     void saveConfig();
     void enableDragMeasure(bool enable) { m_enableDragMeasure = enable; }
 
@@ -116,7 +115,7 @@ private slots:
     void updateTracesVisibility();
     void setHorizontal();
     void setVertical();
-    void flip();
+    void flipField();
     void setAntialiasing(bool enable);
     void setOpenGL(bool enable);
     void updateAll();
@@ -222,6 +221,7 @@ private:
 
     bool m_isLogplayer;
     bool m_enableDragMeasure;
+    bool m_flipped;
 
     SSL_Referee m_referee;
 };

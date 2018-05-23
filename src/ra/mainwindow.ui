@@ -86,7 +86,7 @@
     </property>
     <addaction name="actionEnableTransceiver"/>
     <addaction name="actionChargeKicker"/>
-    <addaction name="actionFlipSides"/>
+    <addaction name="actionSidesFlipped"/>
     <addaction name="separator"/>
     <addaction name="actionSaveConfiguration"/>
     <addaction name="actionQuit"/>
@@ -154,7 +154,7 @@
    </attribute>
    <addaction name="actionEnableTransceiver"/>
    <addaction name="actionChargeKicker"/>
-   <addaction name="actionFlipSides"/>
+   <addaction name="actionSidesFlipped"/>
    <addaction name="actionSideChangeNotify"/>
   </widget>
   <widget class="QDockWidget" name="dockReferee">
@@ -308,7 +308,10 @@
     <string>Esc</string>
    </property>
   </action>
-  <action name="actionFlipSides">
+  <action name="actionSidesFlipped">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
     <string>&amp;Flip sides</string>
    </property>

@@ -66,7 +66,7 @@ private slots:
     void setInternalRefereeEnabled(bool enabled);
     void setTransceiver(bool enabled);
     void disableTransceiver();
-    void toggleFlip();
+    void setFlipped(bool flipped);
     void setCharge(bool charge);
     void showConfigDialog();
     void liveMode();
@@ -75,7 +75,6 @@ private slots:
     void saveConfig();
 
 private:
-    void sendFlip();
     void toggleInstantReplay(bool enable);
 
 private:
@@ -86,7 +85,6 @@ private:
     InputManager *m_inputManager;
     InternalReferee *m_internalReferee;
     ConfigDialog *m_configDialog;
-    bool m_flip;
     QLabel *m_transceiverStatus;
     bool m_transceiverActive;
     qint32 m_lastStageTime;

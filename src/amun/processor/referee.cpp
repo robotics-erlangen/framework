@@ -31,7 +31,7 @@
  * \brief Create a new Referee instance
  */
 Referee::Referee(bool isInternalReferee) :
-    m_isInternalReferee(isInternalReferee), m_counter(-1), m_flip(false)
+    m_isInternalReferee(isInternalReferee), m_counter(-1), m_flipped(false)
 {
     // initialize with first half to simplify testing
     m_gameState.set_stage(SSL_Referee::NORMAL_FIRST_HALF);
@@ -39,6 +39,7 @@ Referee::Referee(bool isInternalReferee) :
     teamInfoSetDefault(m_gameState.mutable_blue());
     teamInfoSetDefault(m_gameState.mutable_yellow());
     m_gameState.set_stage_time_left(0);
+    m_gameState.set_goals_flipped(false);
 }
 
 /*!
@@ -58,9 +59,12 @@ void Referee::handlePacket(const QByteArray &data)
 
     m_gameState.set_stage_time_left(packet.stage_time_left());
     m_gameState.set_stage(packet.stage());
+    if (packet.has_blueteamonpositivehalf()) {
+        setFlipped(packet.blueteamonpositivehalf());
+    }
     if (packet.has_designated_position()) {
         m_gameState.mutable_designated_position()->CopyFrom(packet.designated_position());
-        if (m_flip) {
+        if (m_flipped) {
             m_gameState.mutable_designated_position()->set_x(-m_gameState.designated_position().x());
             m_gameState.mutable_designated_position()->set_y(-m_gameState.designated_position().y());
         }
@@ -81,6 +85,12 @@ void Referee::handlePacket(const QByteArray &data)
         m_counter = packet.command_counter();
         handleCommand(packet.command());
     }
+}
+
+void Referee::setFlipped(bool flipped)
+{
+    m_flipped = flipped;
+    m_gameState.set_goals_flipped(m_flipped);
 }
 
 void Referee::handleRemoteControlRequest(const SSL_RefereeRemoteControlRequest &request)
