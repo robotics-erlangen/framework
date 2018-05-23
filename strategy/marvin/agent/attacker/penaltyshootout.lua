@@ -163,7 +163,7 @@ function PenaltyShootout:_updateTask()
 		return ShootGoal--, nil, true
 	elseif lastContact and lastContact:distanceTo(World.Ball.pos) > 1 + 0.3 then
 		return ShootGoal
-	elseif not lastContact or robotPos:distanceTo(World.Ball.pos) > self._robot.radius + World.Ball.radius + freeway then --math.abs(geom.getAngleDiff(self._robot.dir, (World.Ball.pos - self._robot.pos):angle())) > 30 * math.pi/180 then
+	elseif not lastContact or robotPos:distanceTo(World.Ball.pos) > self._robot.radius + World.Ball.radius + freeway then
 		return MoveToBall, {0.01}
 	elseif lastContact and lastContact:distanceTo(World.Ball.pos) > 1 - 0.05 then
 		return StopAttack

@@ -1,5 +1,6 @@
 local RotateAndShoot = {}
 
+local geom = require "../base/geom"
 local World = require "../base/world"
 local Direct = require "trajectory/direct"
 
@@ -31,8 +32,7 @@ function RotateAndShoot:_rotateAndShoot(destAngle)
 	end
 
 	local rotate = 0.4 * (2*math.pi) * invert
-
-	if math.abs(self._robot.dir - destAngle) < 8 * math.pi/180 then
+	if math.abs(geom.getAngleDiff(self._robot.dir, destAngle)) < 8 * math.pi/180 then
 		self._robot:shoot(math.huge)
 	end
 
