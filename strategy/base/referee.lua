@@ -41,6 +41,13 @@ local stopStates = {
 	BallPlacementOffensive = true
 }
 
+-- states in which the maximum speed is 1.5 m/s
+local slowDriveStates = {
+	Stop = true,
+	BallPlacementDefensive = true,
+	BallPlacementOffensive = true
+}
+
 local friendlyFreeKickStates = {
 	DirectOffensive = true,
 	IndirectOffensive = true
@@ -85,6 +92,13 @@ local nonGameStages = {
 -- @return boolean - True if the current referee state is considered as stop
 function Referee.isStopState()
 	return stopStates[World.RefereeState]
+end
+
+--- Check whether the robot has to drive a maximum of 1.5 m/s (slow)
+-- @name isSlowDriveState
+-- @return boolean - True if all robots have to drive slowly (< 1.5 m/s)
+function Referee.isSlowDriveState()
+	return slowDriveStates[World.RefereeState]
 end
 
 --- Check whether we have a freekick
