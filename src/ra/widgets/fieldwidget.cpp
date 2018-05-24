@@ -1198,7 +1198,7 @@ void FieldWidget::mouseMoveEvent(QMouseEvent *event)
             if (m_dragItem) {
                 sendRobotMoveCommands(p);
             }
-        } else {
+        } else if (!event->modifiers().testFlag(Qt::ControlModifier)) {
             QPointF d = p - m_mouseBegin;
             translate(d.x(), d.y());
             m_mouseBegin = mapToScene(event->pos());
