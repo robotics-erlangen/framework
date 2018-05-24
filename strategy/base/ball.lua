@@ -64,24 +64,37 @@ function Ball:__tostring()
 		self.pos.x, self.pos.y, self.speed:length())
 end
 
+function Ball:_updateLostBall(time)
+	-- set lost timer
+	if self._isVisible then
+		self._isVisible = false
+		self.lostSince = time
+	end
+end
+
 -- Processes ball information from amun, passed by world
 function Ball:_update(data, time)
 	-- if no ball data is available then no ball was tracked
 	if not data then
-		-- set lost timer
-		if self._isVisible then
-			self._isVisible = false
-			self.lostSince = time
-		end
+		self:_updateLostBall(time)
 		return
 	end
-	self._isVisible = true
 
-	local lastSpeedLength = self.speed:length()
+	-- check if the ball pos or speed are invalid (might result from tracking) -> then ignore the update
+	local nextPos = Coordinates.toLocal(Vector.createReadOnly(data.p_x, data.p_y))
+	local nextSpeed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y))
+	local SIZE_LIMIT = 1000
+	if nextPos:isNan() or nextSpeed:isNan() or math.abs(nextPos.x) > SIZE_LIMIT or
+		math.abs(nextPos.y) > SIZE_LIMIT or math.abs(nextSpeed.x) > SIZE_LIMIT or math.abs(nextSpeed.y) > SIZE_LIMIT then
+		self:_updateLostBall(time)
+		return
+	end
 
 	-- data from amun is in global coordiantes
-	self.pos = Coordinates.toLocal(Vector.createReadOnly(data.p_x, data.p_y))
-	self.speed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y))
+	local lastSpeedLength = self.speed:length()
+	self._isVisible = true
+	self.pos = nextPos
+	self.speed = nextSpeed
 	self.posZ = data.p_z
 	self.speedZ = data.v_z
 	if data.touchdown_x and data.touchdown_y then
