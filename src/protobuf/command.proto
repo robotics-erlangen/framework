@@ -159,5 +159,5 @@ message Command {
     repeated RobotMoveCommand robot_move_blue = 14;
     repeated RobotMoveCommand robot_move_yellow = 15;
     optional CommandDebuggerInput debugger_input = 16;
-    optional HostAddress remote_control_destination = 17;
+    optional uint32 remote_control_port = 17;
 }

@@ -78,6 +78,8 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
 
     m_p->autorefEventHost = QHostAddress("224.5.23.1");
     m_p->autorefEventPort = 10008;
+    m_p->remoteControlHost = QHostAddress("localhost");
+    m_p->remoteControlPort = 10007;
 
     // used to delay processing until all status packets are processed
     m_idleTimer = new QTimer(this);
@@ -247,13 +249,21 @@ void Strategy::handleCommand(const Command &command)
         m_p->mixedTeamPort = command->mixed_team_destination().port();
     }
 
-    if (command->has_remote_control_destination()) {
-        m_p->remoteControlHost = QHostAddress(QString::fromStdString(command->remote_control_destination().host()));
-        m_p->remoteControlPort = command->remote_control_destination().port();
+    if (command->has_remote_control_port()) {
+        m_p->remoteControlPort = command->remote_control_port();
     }
 
     if (reloadStrategy && m_strategy) {
         reload();
+    }
+}
+
+void Strategy::handleRefereeHost(QString hostName)
+{
+    QHostAddress newAddress(hostName);
+    if (newAddress != m_p->remoteControlHost) {
+        m_p->remoteControlHost = hostName;
+        m_refboxSocket->close();
     }
 }
 

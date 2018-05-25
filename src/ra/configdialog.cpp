@@ -79,8 +79,7 @@ void ConfigDialog::sendConfiguration()
     command->mutable_mixed_team_destination()->set_host(ui->mixedHost->text().toStdString());
     command->mutable_mixed_team_destination()->set_port(ui->mixedPort->value());
 
-    command->mutable_remote_control_destination()->set_host(ui->remoteHost->text().toStdString());
-    command->mutable_remote_control_destination()->set_port(ui->remotePort->value());
+    command->set_remote_control_port(ui->remotePort->value());
 
     emit sendCommand(command);
 }
@@ -104,7 +103,6 @@ void ConfigDialog::load()
     ui->mixedHost->setText(s.value("Mixed/Host", DEFAULT_MIXED_HOST).toString());
     ui->mixedPort->setValue(s.value("Mixed/Port", DEFAULT_MIXED_PORT).toUInt());
 
-    ui->remoteHost->setText(s.value("RefereeRemoteControl/Host", DEFAULT_REMOTE_CONTROL_HOST).toString());
     ui->remotePort->setValue(s.value("RefereeRemoteControl/Port", DEFAULT_REMOTE_CONTROL_PORT).toUInt());
     sendConfiguration();
 }
@@ -122,7 +120,6 @@ void ConfigDialog::reset()
     ui->networkPort->setValue(DEFAULT_NETWORK_PORT);
     ui->mixedHost->setText(DEFAULT_MIXED_HOST);
     ui->mixedPort->setValue(DEFAULT_MIXED_PORT);
-    ui->remoteHost->setText(DEFAULT_REMOTE_CONTROL_HOST);
     ui->remotePort->setValue(DEFAULT_REMOTE_CONTROL_PORT);
 }
 
@@ -145,7 +142,6 @@ void ConfigDialog::apply()
     s.setValue("Mixed/Host", ui->mixedHost->text());
     s.setValue("Mixed/Port", ui->mixedPort->value());
 
-    s.setValue("RefereeRemoteControl/Host", ui->remoteHost->text());
     s.setValue("RefereeRemoteControl/Port", ui->remotePort->value());
     sendConfiguration();
 }

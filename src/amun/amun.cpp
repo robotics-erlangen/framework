@@ -151,6 +151,7 @@ void Amun::start()
                 m_processor, SLOT(handleStrategyCommand(bool, unsigned int, unsigned int, RobotCommand, qint64)));
         connect(m_strategy[i], SIGNAL(sendHalt(bool)),
                 m_processor, SLOT(handleStrategyHalt(bool)));
+        connect(this, SIGNAL(gotRefereeHost(QString)), m_strategy[i], SLOT(handleRefereeHost(QString)));
 
         // route commands from and to strategy
         connect(m_strategy[i], SIGNAL(gotCommand(Command)), SLOT(handleCommand(Command)));
@@ -166,6 +167,7 @@ void Amun::start()
         connect(this, &Amun::updateRefereePort, m_referee, &Receiver::updatePort);
         // move referee packets to processor
         connect(m_referee, SIGNAL(gotPacket(QByteArray, qint64, QString)), m_processor, SLOT(handleRefereePacket(QByteArray, qint64)));
+        connect(m_referee, SIGNAL(gotPacket(QByteArray,qint64,QString)), SLOT(handleRefereePacket(QByteArray,qint64,QString)));
 
         // create vision
         setupReceiver(m_vision, QHostAddress("224.5.23.2"), 10002);
@@ -357,6 +359,11 @@ void Amun::handleCommand(const Command &command)
     }
 
     emit gotCommand(command);
+}
+
+void Amun::handleRefereePacket(QByteArray, qint64, QString host)
+{
+    emit gotRefereeHost(host);
 }
 
 void Amun::enableAutoref(bool enable)

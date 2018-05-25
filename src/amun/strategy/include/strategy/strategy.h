@@ -59,6 +59,7 @@ public slots:
     void sendMixedTeamInfo(const QByteArray &data);
     void sendNetworkRefereeCommand(const QByteArray &data);
     void sendAutorefEvent(const QByteArray &data);
+    void handleRefereeHost(QString hostName);
 
 private slots:
     void process();
