@@ -145,21 +145,19 @@ message CommandDebuggerInput {
 message Command {
     optional CommandSimulator simulator = 1;
     optional CommandReferee referee = 2;
-    // deprecated = 3
-    optional robot.Team set_team_blue = 4;
-    optional robot.Team set_team_yellow = 5;
-    optional CommandStrategy strategy_blue = 6;
-    optional CommandStrategy strategy_yellow = 7;
-    optional CommandStrategy strategy_autoref = 13;
+    optional robot.Team set_team_blue = 3;
+    optional robot.Team set_team_yellow = 4;
+    optional CommandStrategy strategy_blue = 5;
+    optional CommandStrategy strategy_yellow = 6;
+    optional CommandStrategy strategy_autoref = 7;
     optional CommandControl control = 8;
     optional CommandTransceiver transceiver = 9;
-    // deprecated = 10;
-    optional float speed = 11;
-    optional CommandTracking tracking = 12;
-    optional CommandAmun amun = 14;
-    optional HostAddress mixed_team_destination = 15;
-    repeated RobotMoveCommand robot_move_blue = 16;
-    repeated RobotMoveCommand robot_move_yellow = 17;
-    optional CommandDebuggerInput debugger_input = 18;
-    optional HostAddress remote_control_destination = 19;
+    optional float speed = 10;
+    optional CommandTracking tracking = 11;
+    optional CommandAmun amun = 12;
+    optional HostAddress mixed_team_destination = 13;
+    repeated RobotMoveCommand robot_move_blue = 14;
+    repeated RobotMoveCommand robot_move_yellow = 15;
+    optional CommandDebuggerInput debugger_input = 16;
+    optional HostAddress remote_control_destination = 17;
 }
