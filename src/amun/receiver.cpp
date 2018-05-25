@@ -23,11 +23,6 @@
 #include <QNetworkInterface>
 #include <QNetworkProxy>
 #include <QUdpSocket>
-#include <QtGlobal>
-
-#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
-#include <QNetworkDatagram>
-#endif
 
 /*!
  * \class Receiver
@@ -146,14 +141,10 @@ void Receiver::updatePort(quint16 port)
 void Receiver::readData()
 {
     while (m_socket->hasPendingDatagrams()) {
-#if QT_VERSION >= QT_VERSION_CHECK(5, 8, 0)
-        QNetworkDatagram dataGram = m_socket->receiveDatagram();
-        emit gotPacket(dataGram.data(), Timer::systemTime(), dataGram.senderAddress().toString());
-#else
         QByteArray data;
         data.resize(m_socket->pendingDatagramSize());
-        m_socket->readDatagram(data.data(), data.size());
-        emit gotPacket(data, Timer::systemTime(), "unknown");
-#endif
+        QHostAddress senderAdddress;
+        m_socket->readDatagram(data.data(), data.size(), &senderAdddress);
+        emit gotPacket(data, Timer::systemTime(), senderAdddress.toString());
     }
 }
