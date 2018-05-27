@@ -46,7 +46,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 	local passTime = Shoot.ballPassTime(shootPos, pass.ballPos, pass.target, nil, robot)
 	local ballArrivalTime = shootTime + passTime + World.Time
 	if considerTiming then
-		rating = rating * Rating.valueToRating(ballArrivalTime - pass.time, -0.1, 0.1)
+		rating = rating * (0.1 + Rating.valueToRating(ballArrivalTime - pass.time, -0.1, 0.1) * 0.9)
 	end
 
 	-- rate volley
