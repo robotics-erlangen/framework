@@ -205,13 +205,23 @@ void VisualizationWidget::itemChanged(QStandardItem *item)
 
 void VisualizationWidget::filterTextChanged(QString text)
 {
-    QString regex = ".*";
-    for (int i = 0;i<text.length();i++) {
-        if (text.at(i) != ' ') {
-            regex += text.at(i);
-            regex += ".*";
+    QStringList options = text.split(";");
+    QString regex;
+    for (int optIndex = 0;optIndex<options.size();optIndex++) {
+        QString option = options.at(optIndex);
+        regex += ".*";
+        for (int i = 0;i<option.length();i++) {
+            if (text.at(i) != ' ') {
+                regex += option.at(i);
+                regex += ".*";
+            }
+        }
+        if (optIndex != options.size()-1) {
+            regex += "|";
         }
     }
     m_proxy->setSortByChecked(text.length() == 0);
     m_proxy->setFilterRegExp(regex);
+    m_proxy->invalidate();
+    m_proxy->sort(0);
 }
