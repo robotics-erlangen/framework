@@ -23,39 +23,50 @@ Defense.MARKING_DISTANCE = 0.6
 Defense.OFFENSIVE_MARKING_DISTANCE = 0.3
 
 local function manMarkPos(opponent)
-	local targetPos
-	if World.Ball.pos.y > World.Geometry.FieldHeightHalf * 0.7 and World.Ball.speed:length() < 0.5 and Referee.isStopState() then
+	-- use the position at which the robot would brake if it started immediately
+	local targetPos = Physics.robotBrakePos({pos = opponent.pos, speed = opponent.speed, radius = opponent.radius})
+	if World.Ball.pos.y > G.FieldHeightHalf * 0.7 and World.Ball.speed:length() < 0.5 and Referee.isStopState() then
 		local dist = opponent.radius + Constants.maxRobotRadius + Defense.OFFENSIVE_MARKING_DISTANCE
-		targetPos = opponent.pos + (World.Ball.pos - opponent.pos):setLength(dist)
+		targetPos = targetPos + (World.Ball.pos - targetPos):setLength(dist)
 	else
-		local oppDistToGoal = opponent.pos:distanceTo(World.Geometry.FriendlyGoal)
-		local markingDistance = Defense.MARKING_DISTANCE + math.max(0, (oppDistToGoal - World.Geometry.FieldHeightHalf * 0.8) * 0.5)
+		local oppDistToGoal = targetPos:distanceTo(G.FriendlyGoal)
+		local markingDistance = Defense.MARKING_DISTANCE + math.max(0, (oppDistToGoal - G.FieldHeightHalf * 0.8) * 0.5)
 		if Referee.isFriendlyFreeKickState() then
 			markingDistance = markingDistance + 0.4
 		end
 		local dist = opponent.radius + Constants.maxRobotRadius + markingDistance
-		targetPos = opponent.pos + (World.Geometry.FriendlyGoal - opponent.pos):setLength(dist)
+		dist = math.min(oppDistToGoal - 0.01, dist)
+		targetPos = targetPos + (G.FriendlyGoal - targetPos):setLength(dist)
 	end
 
-	-- use the position at which the robot would brake if it started immediately
-	targetPos = Physics.robotBrakePos({pos = targetPos, speed = opponent.speed, radius = opponent.radius})
-	targetPos = Field.limitToAllowedField(targetPos, Constants.maxRobotRadius)
+	if Field.isInFriendlyDefenseArea(targetPos, Constants.maxRobotRadius) then
+		local defenseIntersection = Field.intersectRayDefenseArea(targetPos,
+			targetPos - G.FriendlyGoal, Constants.maxRobotRadius, true)
+		-- just to be sure
+		if defenseIntersection then
+			targetPos = defenseIntersection
+		else
+			targetPos = Field.limitToAllowedField(targetPos, Constants.maxRobotRadius)
+		end
+	else
+		targetPos = Field.limitToAllowedField(targetPos, Constants.maxRobotRadius)
+	end
 
 	local intersectionDefenseArea = Field.intersectRayDefenseArea(targetPos,
-				World.Geometry.FriendlyGoal - targetPos,
+				G.FriendlyGoal - targetPos,
 				Constants.maxRobotRadius + 0.1, true)
 
 	if intersectionDefenseArea and not Referee.isStopState() then
-		targetPos = intersectionDefenseArea + (targetPos - intersectionDefenseArea) :scaleLength(0.3)
+		targetPos = intersectionDefenseArea + (targetPos - intersectionDefenseArea):scaleLength(0.3)
 	end
 
-	if Referee.isStopState() and not Referee.isKickoffState() or intersectionDefenseArea 
+	if Referee.isStopState() and not Referee.isKickoffState() or intersectionDefenseArea
 				and intersectionDefenseArea:distanceToSq(targetPos) < 0.75*0.75 then
 		targetPos = intersectionDefenseArea or targetPos
 	end
 
 	if World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive" then
-		targetPos.y = math.min(targetPos.y, World.Geometry.PenaltyLine - Defense.PENALTY_LINE_DISTANCE)
+		targetPos.y = math.min(targetPos.y, G.PenaltyLine - Defense.PENALTY_LINE_DISTANCE)
 	end
 
 	return targetPos
