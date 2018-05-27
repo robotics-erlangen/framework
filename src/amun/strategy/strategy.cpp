@@ -163,16 +163,11 @@ void Strategy::handleCommand(const Command &command)
     bool reloadStrategy = false;
 
     // update team robots, but only if something has changed
-    if (m_type == StrategyType::BLUE && command->has_set_team_blue()) {
-        if (command->set_team_blue().SerializeAsString() != m_team.SerializeAsString()) {
-            m_team.CopyFrom(command->set_team_blue());
-            reloadStrategy = true;
-        }
-    } else if (m_type == StrategyType::YELLOW && command->has_set_team_yellow()) {
-        if (command->set_team_yellow().SerializeAsString() != m_team.SerializeAsString()) {
-            m_team.CopyFrom(command->set_team_yellow());
-            reloadStrategy = true;
-        }
+    if (command->has_set_team_blue()) {
+        reloadStrategy |= updateTeam(command->set_team_blue(), StrategyType::BLUE);
+    }
+    if (command->has_set_team_yellow()) {
+        reloadStrategy |= updateTeam(command->set_team_yellow(), StrategyType::YELLOW);
     }
     // autoref has no robots
 
@@ -258,6 +253,29 @@ void Strategy::handleCommand(const Command &command)
     }
 }
 
+bool Strategy::updateTeam(const robot::Team &team, StrategyType teamType)
+{
+    if (team.robot_size() > 0) {
+        m_anyRobotSpec.CopyFrom(team.robot(0));
+    }
+    if ((team.robot_size() != 0 || !m_isReplay) && m_type == teamType && team.SerializeAsString() != m_team.SerializeAsString()) {
+        m_team.CopyFrom(team);
+        return true;
+    }
+    return false;
+}
+
+void Strategy::createDummyTeam()
+{
+    // when replaying a game that we played, there will always be robot specs for some team, so m_anyRobotSpec will be written properly
+    m_team.clear_robot();
+    for (int i = 0;i<16;i++) {
+        robot::Specs * robot = m_team.add_robot();
+        robot->CopyFrom(m_anyRobotSpec);
+        robot->set_id(i);
+    }
+}
+
 void Strategy::handleRefereeHost(QString hostName)
 {
     QHostAddress newAddress(hostName);
@@ -286,6 +304,12 @@ void Strategy::process()
 {
     if (!m_strategy || m_strategyFailed) {
         return;
+    }
+
+    // create a dummy team with 16 robots if replaying with no team information
+    if (m_isReplay && m_team.robot_size() == 0) {
+        createDummyTeam();
+        reload();
     }
 
     Q_ASSERT(m_status->game_state().IsInitialized() || m_status->execution_state().IsInitialized());

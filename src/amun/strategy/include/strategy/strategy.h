@@ -74,6 +74,8 @@ private:
     void setStrategyStatus(Status &status, amun::StatusStrategy::STATE state);
     Status takeStrategyDebugStatus();
     amun::DebugSource debugSource() const;
+    void createDummyTeam();
+    bool updateTeam(const robot::Team &team, StrategyType teamType);
 
 private:
     StrategyPrivate * const m_p;
@@ -105,6 +107,7 @@ private:
     DebugHelper *m_debugHelper;
     bool m_isInternalAutoref;
     bool m_isPerformanceMode;
+    robot::Specs m_anyRobotSpec;
 };
 
 #endif // STRATEGY_H
