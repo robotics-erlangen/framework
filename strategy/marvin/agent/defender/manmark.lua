@@ -17,6 +17,7 @@ function ManMark:_stop()
 	self._opp = nil
 	self._restartTask = true
 	self._wasCenterback = false
+	self._manmarkInfo = {}
 end
 
 function ManMark:check()
@@ -60,7 +61,10 @@ function ManMark:_updateTask()
 	if markingPosDefenseDist < markingPosThreshold or oppDefenseDist <= 0 or Referee.isStopState() or Referee.isFriendlyFreeKickState()
 			or World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
 		self._wasCenterback = true
-		return CenterBack, { self._opp }, self._restartTask
+		-- for interpreting debug outputs
+		self._manmarkInfo.id = self._opp.id
+		self._manmarkInfo.pos = dest
+		return CenterBack, { self._manmarkInfo }, self._restartTask
 	end
 
 	-- if we are still near the defense area but want to move away, disguise as a centerback
