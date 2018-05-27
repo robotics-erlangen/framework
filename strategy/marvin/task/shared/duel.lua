@@ -147,6 +147,7 @@ function Duel:_checkBlockingBall()
 	local moveTime = Robot.minTimeToBall(self._robot)
 	local minTime = math.min(moveTime, shortestTimeToBall)
 	self._futureBall = Physics.ballAtTime(World.Ball, minTime).pos
+	vis.addCircle("t/duel: future ball", self._futureBall, World.Ball.radius + 0.01, vis.colors.green)
 
 	-- pos before the defense area; the possibility of crashing into centerbacks was considered
 	-- but disregarded because blocking a shot on the goal is more important,
@@ -222,22 +223,18 @@ function Duel:_moveToBall()
 
 	debug.set("moveDest posOnLine", moveDest)
 
-	local ignoreBall = false
-
 	if self._blockingBall then
 		if closestOpponentRobot then
 			moveDest = self:_moveToNearBlock(closestOpponentRobot)
 		else
-			ignoreBall = true
 			moveDest = self._futureBall + (World.Geometry.FriendlyGoal - self._futureBall):setLength(
 				World.Ball.radius + self._robot.shootRadius)
 		end
 	end
-	debug.set("ignoreBall", ignoreBall)
 
 	local ignoreOpponents = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + 2 * self._robot.radius + 0.1
 	local obstacleTable = {
-		ignoreBall = ignoreBall,
+		ignoreBall = self._blockingBall,
 		inbox = self._inbox,
 		pathRadius = self._robot.shootRadius,
 		ignoreOpponents = ignoreOpponents,
