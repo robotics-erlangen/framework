@@ -79,6 +79,7 @@ public:
     ~FieldWidget() override;
 
     void setLogplayer();
+    void setRegularVisualizationsEnabled(bool blue, bool enabled);
 
 signals:
     void sendCommand(const Command &command);
@@ -92,6 +93,7 @@ public slots:
     void hideVisualizationToggles();
     void saveConfig();
     void enableDragMeasure(bool enable) { m_enableDragMeasure = enable; }
+    void toggleStrategyVisualizations();
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
@@ -165,7 +167,9 @@ private:
 
     QMenu *m_contextMenu;
     QAction *m_actionShowBlueVis;
+    QAction *m_actionShowBlueReplayVis;
     QAction *m_actionShowYellowVis;
+    QAction *m_actionShowYellowReplayVis;
     QAction *m_actionShowControllerVis;
     QAction *m_actionShowBallTraces;
     QAction *m_actionShowRobotTraces;

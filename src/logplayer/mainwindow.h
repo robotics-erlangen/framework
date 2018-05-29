@@ -65,8 +65,6 @@ protected:
 public slots:
     void handleStatus(const Status &status);
     void handleReplayStatus(const Status &status);
-    void gotPreStatus(const Status &status);
-    void gotPrePlayStatus(Status status);
     void openFile(const QString &filename);
 
 signals:
@@ -90,7 +88,6 @@ private slots:
 
 private:
     QString formatTime(qint64 time);
-    void processStatusDebug(const Status & status);
     void closeStrategy(int index);
     void createStrategy(int index);
     void sendResetDebugPacket(bool blue);

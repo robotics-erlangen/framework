@@ -90,6 +90,12 @@ void LogWidget::handleStatus(const Status &status)
             case amun::RadioResponse:
                 prefix = "R";
                 break;
+            case amun::ReplayBlue:
+                prefix = "BR";
+                break;
+            case amun::ReplayYellow:
+                prefix = "YR";
+                break;
             }
 
             qint64 ldate = log.timestamp() / 1000000000L / 60; // divide down to minutes

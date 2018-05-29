@@ -588,6 +588,11 @@ Status Strategy::takeStrategyDebugStatus()
 
 amun::DebugSource Strategy::debugSource() const
 {
+    if (m_isReplay && m_type == StrategyType::BLUE) {
+        return amun::ReplayBlue;
+    } else if (m_isReplay && m_type == StrategyType::YELLOW) {
+        return amun::ReplayYellow;
+    }
     switch (m_type) {
     case StrategyType::BLUE:
         return amun::StrategyBlue;

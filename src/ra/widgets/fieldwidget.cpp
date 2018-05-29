@@ -138,18 +138,27 @@ FieldWidget::FieldWidget(QWidget *parent) :
     connect(actionFlip, SIGNAL(triggered()), SLOT(flipField()));
     m_contextMenu->addSeparator();
     // add actions to allow hiding visualizations of a team
-    m_actionShowBlueVis = m_contextMenu->addAction("Show blue visualizations");
-    m_actionShowBlueVis->setCheckable(true);
-    m_actionShowBlueVis->setChecked(true);
-    connect(m_actionShowBlueVis, SIGNAL(triggered()), SLOT(updateVisualizationVisibility()));
-    m_actionShowYellowVis = m_contextMenu->addAction("Show yellow visualizations");
-    m_actionShowYellowVis->setCheckable(true);
-    m_actionShowYellowVis->setChecked(true);
-    connect(m_actionShowYellowVis, SIGNAL(triggered()), SLOT(updateVisualizationVisibility()));
-    m_actionShowControllerVis = m_contextMenu->addAction("Show controller visualizations");
-    m_actionShowControllerVis->setCheckable(true);
-    m_actionShowControllerVis->setChecked(true);
-    connect(m_actionShowControllerVis, SIGNAL(triggered()), SLOT(updateVisualizationVisibility()));
+    QList<QAction**> visualizationActions {&m_actionShowBlueVis, &m_actionShowBlueReplayVis, &m_actionShowYellowVis,
+                                         &m_actionShowYellowReplayVis, &m_actionShowControllerVis};
+    QList<QString> actionNames {"Show blue visualizations", "Show blue replay visualizations",
+                               "Show yellow visualizations", "Show yellow replay visualizations",
+                               "Show controller visualizations"};
+    for (int i = 0;i<visualizationActions.size();i++) {
+        QAction * action = m_contextMenu->addAction(actionNames[i]);
+        action->setCheckable(true);
+        action->setChecked(true);
+        connect(action, SIGNAL(toggled(bool)), SLOT(updateVisualizationVisibility()));
+        *(visualizationActions[i]) = action;
+    }
+    if (!m_isLogplayer) {
+        m_actionShowBlueReplayVis->setVisible(false);
+        m_actionShowYellowReplayVis->setVisible(false);
+    }
+    QAction *actionToggleVisualizations = new QAction(this);
+    actionToggleVisualizations->setShortcut(QKeySequence("R"));
+    connect(actionToggleVisualizations, SIGNAL(triggered()), SLOT(toggleStrategyVisualizations()));
+    addAction(actionToggleVisualizations);
+
     updateVisualizationVisibility(); // update the visibility map
 
     m_contextMenu->addSeparator();
@@ -288,6 +297,16 @@ void FieldWidget::setLogplayer()
     m_isLogplayer = true;
     m_actionBallPlacementBlue->setVisible(false);
     m_actionBallPlacementYellow->setVisible(false);
+    m_actionShowBlueReplayVis->setVisible(true);
+    m_actionShowYellowReplayVis->setVisible(true);
+}
+
+void FieldWidget::toggleStrategyVisualizations()
+{
+    m_actionShowBlueVis->setChecked(!m_actionShowBlueVis->isChecked());
+    m_actionShowBlueReplayVis->setChecked(!m_actionShowBlueReplayVis->isChecked());
+    m_actionShowYellowVis->setChecked(!m_actionShowYellowVis->isChecked());
+    m_actionShowYellowReplayVis->setChecked(!m_actionShowYellowReplayVis->isChecked());
 }
 
 void FieldWidget::handleStatus(const Status &status)
@@ -420,10 +439,21 @@ void FieldWidget::updateAll()
     updateInfoText();
 }
 
+void FieldWidget::setRegularVisualizationsEnabled(bool blue, bool enabled)
+{
+    if (blue) {
+        m_actionShowBlueVis->setChecked(enabled);
+    } else {
+        m_actionShowYellowVis->setChecked(enabled);
+    }
+}
+
 void FieldWidget::updateVisualizationVisibility()
 {
     m_visibleVisSources[amun::StrategyBlue] = m_actionShowBlueVis->isChecked();
+    m_visibleVisSources[amun::ReplayBlue] = m_actionShowBlueReplayVis->isChecked();
     m_visibleVisSources[amun::StrategyYellow] = m_actionShowYellowVis->isChecked();
+    m_visibleVisSources[amun::ReplayYellow] = m_actionShowYellowReplayVis->isChecked();
     m_visibleVisSources[amun::Controller] = m_actionShowControllerVis->isChecked();
     m_visibleVisSources[amun::Autoref] = true;
     m_visibleVisSources[amun::Tracking] = true;

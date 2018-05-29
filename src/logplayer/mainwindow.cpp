@@ -99,7 +99,7 @@ MainWindow::MainWindow(QWidget *parent) :
         QAction *action = speedActions[i];
         connect(action, SIGNAL(triggered()), mapper, SLOT(map()));
         mapper->setMapping(action, playSpeeds[i]);
-        // readd bug, see below
+        // read bug, see below
         addAction(action);
     }
 
@@ -112,8 +112,8 @@ MainWindow::MainWindow(QWidget *parent) :
     addAction(ui->actionForward);
 
     // setup data distribution
-    connect(ui->logManager, SIGNAL(gotStatus(Status)), SLOT(gotPreStatus(Status)));
-    connect(ui->logManager, SIGNAL(gotPlayStatus(Status)), SLOT(gotPrePlayStatus(Status)));
+    connect(ui->logManager, SIGNAL(gotStatus(Status)), SIGNAL(gotStatus(Status)));
+    connect(ui->logManager, SIGNAL(gotPlayStatus(Status)), SIGNAL(gotPlayStatus(Status)));
 
     connect(this, SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->visualization, SLOT(handleStatus(Status)));
@@ -246,11 +246,13 @@ void MainWindow::closeStrategy(int index)
     m_strategyBlocker[index]->deleteLater();
     m_strategyBlocker[index] = nullptr;
     sendResetDebugPacket(index != 0);
+    ui->field->setRegularVisualizationsEnabled(index != 0, true);
 }
 
 void MainWindow::createStrategy(int index)
 {
     Q_ASSERT(m_strategys[index] == nullptr);
+    ui->field->setRegularVisualizationsEnabled(index != 0, false);
     m_strategys[index] = new Strategy(m_playTimer, (index == 0) ? StrategyType::YELLOW : StrategyType::BLUE, nullptr);
     m_strategys[index]->moveToThread(m_strategyThreads[index]);
     m_strategyBlocker[index] = new BlockingStrategyReplay(m_strategys[index]);
@@ -291,27 +293,6 @@ void MainWindow::sendResetDebugPacket(bool blue)
     amun::DebugValues * debug = status->mutable_debug();
     debug->set_source(blue ? amun::StrategyBlue : amun::StrategyYellow);
     emit gotStatus(status);
-}
-
-void MainWindow::processStatusDebug(const Status & status)
-{
-    bool replayBlue = ui->replay->replayBlueEnabled();
-    bool replayYellow = ui->replay->replayYellowEnabled();
-    if (replayBlue || replayYellow) {
-        status->clear_debug();
-    }
-}
-
-void MainWindow::gotPreStatus(const Status &status)
-{
-    processStatusDebug(status);
-    emit gotStatus(status);
-}
-
-void MainWindow::gotPrePlayStatus(Status status)
-{
-    processStatusDebug(status);
-    emit gotPlayStatus(status);
 }
 
 void MainWindow::handleStatus(const Status &status)

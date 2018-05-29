@@ -74,6 +74,8 @@ enum DebugSource {
     Autoref = 4;
     Tracking = 5;
     RadioResponse = 6;
+    ReplayBlue = 7;
+    ReplayYellow = 8;
 }
 
 message RobotValue {
