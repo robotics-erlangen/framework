@@ -47,6 +47,7 @@ local Robot = require "../base/robot"
 -- @field Robots Robot[] - Every visible robot in an arbitary order
 -- @field TeamIsBlue bool - True if we are the blue team, otherwise we're yellow
 -- @field IsSimulated bool - True if the world is simulated
+-- @field IsReplay bool - True if the current strategy run is a replay run
 -- @field IsLargeField bool - True if playing on the large field
 -- @field Time number - Current unix timestamp in seconds (with nanoseconds precision)
 -- @field TimeDiff number - Time since last update
@@ -141,6 +142,7 @@ function World.update()
 	local hasVisionData = World._updateWorld(amun.getWorldState())
 	World._updateGameState(amun.getGameState())
 	World._updateUserInput(amun.getUserInput())
+	World.IsReplay = amun.isReplay and amun.isReplay() or false
 	return hasVisionData
 end
 

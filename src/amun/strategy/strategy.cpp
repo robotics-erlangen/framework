@@ -136,6 +136,9 @@ void Strategy::handleStatus(const Status &status)
             || (status->has_yellow_running() && status->yellow_running() && m_type == StrategyType::YELLOW)) {
         m_idleTimer->stop();
         m_isReplay = true;
+        if (m_strategy){
+            m_strategy->setIsReplay(true);
+        }
         m_status = status;
         process();
     }
@@ -450,6 +453,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     }
     m_strategy->setIsInternalAutoref(m_isInternalAutoref);
     m_strategy->setIsPerformanceMode(m_isPerformanceMode);
+    m_strategy->setIsReplay(m_isReplay);
 
     // delay reload until strategy is no longer running
     connect(m_strategy, SIGNAL(requestReload()), SLOT(reload()), Qt::QueuedConnection);

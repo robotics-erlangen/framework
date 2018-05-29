@@ -53,6 +53,12 @@ static int amunIsBlue(lua_State *state)
     return 1;
 }
 
+static int amunIsReplay(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    lua_pushboolean(state, thread->isReplay());
+    return 1;
+}
 static int amunGetSelectedOptions(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
@@ -390,6 +396,7 @@ static const luaL_Reg amunMethods[] = {
     {"getTeam",             amunGetTeam},
     {"getStrategyPath",     amunGetStrategyPath},
     {"isBlue",              amunIsBlue},
+    {"isReplay",            amunIsReplay},
     {"getSelectedOptions",  amunGetSelectedOptions},
     // dynamic
     {"getWorldState",       amunGetWorldState},

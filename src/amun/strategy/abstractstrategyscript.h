@@ -60,6 +60,7 @@ public:
     void setDebugHelper(DebugHelper *helper);
     void setIsInternalAutoref(bool internal) { m_isInternalAutoref = internal; }
     void setIsPerformanceMode(bool performance) { m_isPerformanceMode = performance; }
+    void setIsReplay(bool replay) { m_isReplay = replay; }
 
     // getter functions
     QString errorMsg() const { return m_errorMsg; }
@@ -74,6 +75,7 @@ public:
     bool hasDebugger() const { return m_hasDebugger; }
     bool isInternalAutoref() const { return m_isInternalAutoref; }
     bool isPerformanceMode() const { return m_isPerformanceMode; }
+    bool isReplay() const { return m_isReplay;}
 
 signals:
     // wrapper may listen to reload request, but doesn't have to
@@ -97,6 +99,7 @@ protected:
     DebugHelper *m_debugHelper;
     bool m_isInternalAutoref;
     bool m_isPerformanceMode;
+    bool m_isReplay;
 };
 
 #endif // ABSTRACTSTRATEGYSCRIPT_H
