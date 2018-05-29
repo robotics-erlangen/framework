@@ -10,10 +10,10 @@ local ZoneDefense = require "agent/defender/zonedefense"
 local Penalty = require "agent/defender/penalty"
 local Piggy = require "agent/defender/piggy"
 local BallEscort = require "agent/shared/ballescort"
-
-
+local RescueFromDefenseArea = require "agent/shared/rescuefromdefensearea"
 
 Defender._behaviors = {
+	RescueFromDefenseArea,
 	Penalty,
 	BallEscort,
 	HandleBall,

@@ -19,9 +19,11 @@ local Shoot = require "agent/attacker/shoot"
 local Stop = require "agent/attacker/stop"
 local BallEscort = require "agent/shared/ballescort"
 local DoubleTouchGuard = require "agent/attacker/doubletouchguard"
+local RescueFromDefenseArea = require "agent/shared/rescuefromdefensearea"
 
 Attacker._behaviors = {
 	ApplyForMainattacker,
+	RescueFromDefenseArea,
 	Move,
 	Stop,
 	PenaltyShootout,
