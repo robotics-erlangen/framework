@@ -160,11 +160,12 @@ end
 --We want the robot to stay at the error position if it was decided that it's broken. Therefore, we don't tick down due to position if the robot was
 --detected as failure, and will only tick down if a certain speed was reached.
 --If the robot is invisible, speedError does tick down, this is to ensure that a exchanged robot that may have been repaired by humans is ok after reinsertion
+--If the strategy is being replayed, there's no point in counting up or down. As starting the replay results in a fresh load this will disabled this detection during replays
 local speedError = {}
 local function updateSpeedError()
 	local halfSpeed = Referee.isSlowDriveState() and 0.75 or 1.5
 	for _,robot in ipairs(World.FriendlyRobots) do
-		if robot.prevMoveTo then
+		if robot.prevMoveTo and not World.IsReplay then
 			if robot.speed:lengthSq() < halfSpeed * halfSpeed and robot.pos:distanceToSq(robot.prevMoveTo) > 0.5 * 0.5 then
 				if speedError[robot] and speedError[robot] <= 450 then
 					speedError[robot] = speedError[robot] + 1
