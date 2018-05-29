@@ -258,6 +258,11 @@ void TeamWidget::handleStatus(const Status &status)
     }
 }
 
+void TeamWidget::enableDebugger(bool enable)
+{
+    m_debugAction->setVisible(enable);
+}
+
 void TeamWidget::addEntryPoint(QMenu *menu, const QString &name, const QString &entryPoint)
 {
     int idx = name.indexOf("/");

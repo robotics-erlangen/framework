@@ -36,6 +36,9 @@ ReplayTeamWidget::ReplayTeamWidget(QWidget *parent) :
     connect(this, SIGNAL(enableLogLogButton(bool)), ui->loglog, SLOT(setEnabled(bool)));
     connect(this, SIGNAL(enableBackLogLogButton(bool)), ui->backloglog, SLOT(setEnabled(bool)));
     connect(this, SIGNAL(setLogLogButton(bool)), ui->loglog, SLOT(setChecked(bool)));
+
+    ui->blue->enableDebugger(false);
+    ui->yellow->enableDebugger(false);
 }
 
 ReplayTeamWidget::~ReplayTeamWidget()

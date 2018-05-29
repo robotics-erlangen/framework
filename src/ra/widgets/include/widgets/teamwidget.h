@@ -52,6 +52,7 @@ public:
     void forceAutoReload(bool force);
     void shutdown();
     void enableContent(bool enable);
+    void enableDebugger(bool enable);
 
 public slots:
     void handleStatus(const Status &status);
