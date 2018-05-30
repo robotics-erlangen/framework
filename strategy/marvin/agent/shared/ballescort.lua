@@ -55,7 +55,6 @@ function BallEscort:check()
 	local shotHysteresis = self._active and 0.075 or 0.15
 
 	if not (World.RefereeState == "Game" or World.RefereeState == "GameForce")
-			or self._inbox.mainAttacker().trainer ~= self._robot
 			or not Referee.opponentTouchedLast()
 			or Ball.wasShot(shotHysteresis) then
 		return false
@@ -87,12 +86,14 @@ function BallEscort:check()
 
 	local icing = RefereeObs.opponentIcingPredicted(World.Ball)
 	debug.set("BallEscort/icing", icing)
-	if icing then
-		return true
-	end
 
 	-- If we can reach the ball we should try to
-	if ownTimeToBall < math.huge then
+	if not icing and ownTimeToBall < math.huge then
+		return false
+	end
+
+	self:_applyForMainAttacker()
+	if self._inbox.mainAttacker().trainer ~= self._robot then
 		return false
 	end
 
