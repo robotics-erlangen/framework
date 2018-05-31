@@ -99,9 +99,6 @@ local function calculateInterceptPos(robot)
 		useTime = minTime + i * (maxTime - minTime) / 10
 		futureBallPos = futureBallPos or Physics.ballAtTime(World.Ball, useTime).pos
 
-		local robMinEndSpeed = Physics.robotMinEndspeed(robot, futureBallPos, useTime)
-		vis.addPath("task/InterceptPass", {futureBallPos, futureBallPos + robMinEndSpeed}, vis.colors.darkPurple)
-
 		local evaluation, ownTime, bestOppTime = evaluateInterceptPos(robot, futureBallPos)
 
 		if evaluation >= 0 then
