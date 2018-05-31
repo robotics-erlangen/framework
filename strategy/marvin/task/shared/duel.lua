@@ -88,7 +88,7 @@ function Duel:_contestPush()
 	local obstacleTable = {
 		ignoreBall = true,
 		inbox = self._inbox,
-		ignoreOpponents = true
+		ignoreOpponentRobots = true
 	}
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, destinationPos, viewDir)
@@ -237,7 +237,7 @@ function Duel:_moveToBall()
 		ignoreBall = self._blockingBall,
 		inbox = self._inbox,
 		pathRadius = self._robot.shootRadius,
-		ignoreOpponents = ignoreOpponents,
+		ignoreOpponentRobots = ignoreOpponents,
 		disableOpponentPrediction = true
 	}
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)

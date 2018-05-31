@@ -385,6 +385,7 @@ end
 -- ignoreBall                       bool
 -- ignoreGoals                      bool
 -- ignoreDefenseArea                bool
+-- ignoreOpponentDefenseArea        bool
 -- noSeedTarget                     bool
 -- ignorePass                       bool
 -- ignoreFriendlyRobots             bool
