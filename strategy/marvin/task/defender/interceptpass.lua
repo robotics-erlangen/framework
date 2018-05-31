@@ -9,7 +9,6 @@ local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
-local vis = require "../base/vis"
 
 
 function InterceptPass:_init()
