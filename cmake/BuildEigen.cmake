@@ -34,6 +34,14 @@ ExternalProject_Add(project_eigen
         -DCMAKE_INSTALL_MESSAGE:STRING=NEVER
 )
 externalproject_get_property(project_eigen install_dir)
+ExternalProject_Add_Step(project_eigen cleanup
+  COMMAND rm -rf bin include lib share || true
+  WORKING_DIRECTORY "${install_dir}"
+  COMMENT "Cleanup old install"
+  DEPENDEES download
+  DEPENDERS configure
+)
+
 set_target_properties(project_eigen PROPERTIES EXCLUDE_FROM_ALL true)
 add_library(eigen INTERFACE)
 

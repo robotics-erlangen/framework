@@ -47,8 +47,15 @@ ExternalProject_Add(project_bullet
         "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}BulletCollision${CMAKE_STATIC_LIBRARY_SUFFIX}"
         "<INSTALL_DIR>/lib/${CMAKE_STATIC_LIBRARY_PREFIX}LinearMath${CMAKE_STATIC_LIBRARY_SUFFIX}"
 )
-
 externalproject_get_property(project_bullet install_dir)
+ExternalProject_Add_Step(project_bullet cleanup
+  COMMAND rm -rf bin include lib share || true
+  WORKING_DIRECTORY "${install_dir}"
+  COMMENT "Cleanup old install"
+  DEPENDEES download
+  DEPENDERS configure
+)
+
 set_target_properties(project_bullet PROPERTIES EXCLUDE_FROM_ALL true)
 add_library(lib::bullet STATIC IMPORTED)
 add_dependencies(lib::bullet project_bullet)
