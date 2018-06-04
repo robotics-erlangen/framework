@@ -29,6 +29,7 @@
 #include <QTcpSocket>
 #include <QTimer>
 #include <QUdpSocket>
+#include <QtEndian>
 
 /*!
  * \class Strategy
@@ -70,7 +71,8 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     m_isReplay(false),
     m_debugHelper(helper),
     m_isInternalAutoref(internalAutoref),
-    m_isPerformanceMode(true)
+    m_isPerformanceMode(true),
+    m_refboxReplyLength(-1)
 {
     m_udpSenderSocket = new QUdpSocket(this);
     m_refboxSocket = new QTcpSocket(this);
@@ -370,15 +372,14 @@ void Strategy::process()
             int origSize = m_p->remoteControlData.size();
             int bytesSent = m_refboxSocket->write(m_p->remoteControlData, origSize);
 
-            // discard responses, so they don't occupy ressources or block communication
-            // RefereeStatus is currently enough feedback for the autoref
-            m_refboxSocket->readAll();
-
             m_p->remoteControlData = QByteArray(); // reset
             if (bytesSent != origSize) {
                 fail("Failed to send referee command over network");
                 return;
             }
+        }
+        if (m_refboxSocket->state() == QAbstractSocket::ConnectedState) {
+            handleRefboxReply(m_refboxSocket->readAll());
         }
 
         double totalTime = (Timer::systemTime() - startTime) / 1E9;
@@ -406,6 +407,25 @@ void Strategy::process()
         emit sendStatus(status);
     } else {
         fail(m_strategy->errorMsg(), userInput);
+    }
+}
+
+void Strategy::handleRefboxReply(const QByteArray &data)
+{
+    m_refboxReplyPartialPacket.append(data);
+    if (m_refboxReplyLength == -1 && m_refboxReplyPartialPacket.size() >= 4) {
+        m_refboxReplyLength = qFromBigEndian<qint32>((unsigned char*)m_refboxReplyPartialPacket.data());
+        m_refboxReplyPartialPacket.remove(0, 4);
+    }
+    if (m_refboxReplyLength != -1 && m_refboxReplyPartialPacket.size() >= m_refboxReplyLength) {
+        SSL_RefereeRemoteControlReply  packet;
+        if (packet.ParseFromArray(m_refboxReplyPartialPacket.data(), m_refboxReplyLength)) {
+            if (m_strategy) {
+                m_strategy->addRefereeReply(packet);
+            }
+        }
+        m_refboxReplyPartialPacket.remove(0, m_refboxReplyLength);
+        m_refboxReplyLength = -1;
     }
 }
 

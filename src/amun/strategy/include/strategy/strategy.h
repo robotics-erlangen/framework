@@ -76,6 +76,7 @@ private:
     amun::DebugSource debugSource() const;
     void createDummyTeam();
     bool updateTeam(const robot::Team &team, StrategyType teamType);
+    void handleRefboxReply(const QByteArray &data);
 
 private:
     StrategyPrivate * const m_p;
@@ -108,6 +109,9 @@ private:
     bool m_isInternalAutoref;
     bool m_isPerformanceMode;
     robot::Specs m_anyRobotSpec;
+
+    qint32 m_refboxReplyLength;
+    QByteArray m_refboxReplyPartialPacket;
 };
 
 #endif // STRATEGY_H

@@ -76,6 +76,9 @@ public:
     bool isInternalAutoref() const { return m_isInternalAutoref; }
     bool isPerformanceMode() const { return m_isPerformanceMode; }
     bool isReplay() const { return m_isReplay;}
+    void addRefereeReply(SSL_RefereeRemoteControlReply reply) { m_refereeReplys.append(reply); }
+    SSL_RefereeRemoteControlReply nextRefereeReply() { return m_refereeReplys.takeFirst(); }
+    bool hasRefereeReply() const { return m_refereeReplys.size() > 0; }
 
 signals:
     // wrapper may listen to reload request, but doesn't have to
@@ -100,6 +103,8 @@ protected:
     bool m_isInternalAutoref;
     bool m_isPerformanceMode;
     bool m_isReplay;
+
+    QList<SSL_RefereeRemoteControlReply> m_refereeReplys;
 };
 
 #endif // ABSTRACTSTRATEGYSCRIPT_H

@@ -352,6 +352,17 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
     return 0;
 }
 
+static int amunNextRefboxReply(lua_State *state)
+{
+    Lua *thread = getStrategyThread(state);
+    if (thread->hasRefereeReply()) {
+        protobufPushMessage(state, thread->nextRefereeReply());
+    } else {
+        lua_pushnil(state);
+    }
+    return 1;
+}
+
 static int amunSetRobotExchangeSymbol(lua_State *state)
 {
     Lua *thread = getStrategyThread(state);
@@ -416,8 +427,10 @@ static const luaL_Reg amunMethods[] = {
     {"sendCommand",         amunSendCommand},
     {"sendRefereeCommand",  amunSendRefereeCommand},
     {"sendMixedTeamInfo",   amunSendMixedTeamInfo},
+    // autoref
     {"sendNetworkRefereeCommand",  amunSendNetworkRefereeCommand},
     {"sendAutorefEvent",    amunSendAutorefEvent},
+    {"nextRefboxReply",     amunNextRefboxReply},
     // debugger io
     {"debuggerRead",        amunDebuggerRead},
     {"debuggerWrite",       amunDebuggerWrite},

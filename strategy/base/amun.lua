@@ -230,6 +230,12 @@ separator for luadoc]]--
 -- @name getPerformanceMode
 -- @return mode boolean
 
+
+--- Fetch the last referee remote control request reply
+-- @class function
+-- @name nextRefboxReply
+-- @return reply table - the last reply or nil if none is available
+
 -- luacheck: globals amun log
 require "amun"
 log = amun.log
@@ -249,6 +255,7 @@ function amun._hideFunctions()
 	local sendCommand = amun.sendCommand
 	local sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand
 	local sendAutorefEvent = amun.sendAutorefEvent
+	local nextRefboxReply = amun.nextRefboxReply
 	local performanceMode = amun.isPerformanceMode
 
 	-- overwrite global amun
@@ -256,6 +263,7 @@ function amun._hideFunctions()
 		isDebug = isDebug,
 		strategyPath = strategyPath,
 		sendAutorefEvent = sendAutorefEvent,
+		nextRefboxReply = nextRefboxReply,
 		getCurrentTime = function ()
 			return getCurrentTime() * 1E-9
 		end,
