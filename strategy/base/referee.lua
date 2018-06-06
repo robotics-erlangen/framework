@@ -185,7 +185,9 @@ local noBallTouchStates = {
 	PenaltyOffensivePrepare = true,
 	PenaltyDefensivePrepare = true,
 	TimeoutOffensive = true,
-	TimeoutDefensive = true
+	TimeoutDefensive = true,
+	BallPlacementDefensive = true,
+	BallPlacementOffensive = true
 }
 
 function Referee.check()
