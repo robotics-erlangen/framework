@@ -11,7 +11,7 @@ local function calculateRescuePosition(robot)
 end
 
 function Move:check()
-	return math.abs(self._robot.pos.y) > World.Geometry.FieldHeightHalf and
+	return World.RefereeState ~= "BallPlacementOffensive" and math.abs(self._robot.pos.y) > World.Geometry.FieldHeightHalf and
 		math.abs(self._robot.pos.x) + 0.1 < math.abs(calculateRescuePosition(self._robot).x)
 end
 
