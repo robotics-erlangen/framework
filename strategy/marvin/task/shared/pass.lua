@@ -7,9 +7,11 @@ local World = require "../base/world"
 
 local ObserverShoot = require "observer/shoot"
 local PathHelper = require "trajectory/pathhelper"
+local UtilAttack = require "util/attack"
 
 local CHIP_PASS_DISTANCE_FACTOR = 0.5
-local MIN_PASS_SPEED = 3
+local MIN_PASS_SPEED = 1
+local DEFAULT_PASS_SPEED = 3
 
 function Pass:_init(targetRobot, targetPos, chip, ballReceiptPos, targetTime, targetSpeed)
 	self._targetRobot = targetRobot
@@ -17,7 +19,7 @@ function Pass:_init(targetRobot, targetPos, chip, ballReceiptPos, targetTime, ta
 	self._targetTime = targetTime
 	self._chipOverride = chip ~= nil
 	self._chip = chip
-	self._passSpeed = targetSpeed or targetRobot and self._targetRobot.constants.passSpeed or MIN_PASS_SPEED
+	self._passSpeed = targetSpeed or targetRobot and self._targetRobot.constants.passSpeed or DEFAULT_PASS_SPEED
 	self._ballReceiptPos = ballReceiptPos
 
 	-- retrieve targetPos from messages if no argument was given
@@ -36,7 +38,7 @@ end
 function Pass:updateTarget(targetRobot, targetPos, targetTime, targetSpeed)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
-	self._passSpeed = targetSpeed or targetRobot and self._targetRobot.constants.passSpeed or MIN_PASS_SPEED
+	self._passSpeed = targetSpeed or targetRobot and self._targetRobot.constants.passSpeed or DEFAULT_PASS_SPEED
 	self._targetTime = targetTime
 end
 
@@ -72,6 +74,15 @@ function Pass:run()
 
 	debug.set("chipOverride", self._chipOverride)
 	debug.set("chip", self._chip)
+
+	-- TODO: passes for goalshot volleys should still be fast
+	local passTable = {
+		robot = self._targetRobot,
+		ballPos = self._targetPos,
+		time = self._targetTime
+	}
+	local passSpeed = math.max((1 - UtilAttack.ratePass(self._robot, passTable, false)) * self._passSpeed, MIN_PASS_SPEED)
+	debug.set("passSpeed", passSpeed)
 
 	local targetPos = self._targetPos
 	if self._chip then
