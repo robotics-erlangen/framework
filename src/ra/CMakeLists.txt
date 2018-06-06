@@ -50,6 +50,15 @@ add_executable(ra WIN32 MACOSX_BUNDLE
     simulatorwidget.h
 )
 
+add_custom_command(
+    OUTPUT ${CMAKE_BINARY_DIR}/startRa.sh
+    COMMAND cp ${CMAKE_SOURCE_DIR}/cmake/startRa.sh ${CMAKE_BINARY_DIR}/startRa.sh
+    DEPENDS ${CMAKE_SOURCE_DIR}/cmake/startRa.sh
+)
+
+add_custom_target(generateStartRa DEPENDS ${CMAKE_BINARY_DIR}/startRa.sh)
+add_dependencies(ra generateStartRa)
+
 set(UI_SOURCES
     configdialog.ui
     inputwidget.ui
