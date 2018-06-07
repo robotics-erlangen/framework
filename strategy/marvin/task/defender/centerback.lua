@@ -121,6 +121,13 @@ function CenterBack:run()
 
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 
+	local mainAttacker = self._inbox.mainAttacker().trainer
+	if mainAttacker and Referee.isFriendlyFreeKickState() and World.Ball.pos.y < World.Geometry.FieldHeightHalf then
+		local startPos = World.Ball.pos
+		local endPos = mainAttacker.pos
+		self._robot.path:addLine(startPos.x, startPos.y, endPos.x, endPos.y, mainAttacker.radius * 2 + 0.1, 100)
+	end
+
 	self._robot.trajectory:update(ToTarget, destinationPos, dir, nil, endSpeed)
 	self._send.moveDest("all", destinationPos)
 end
