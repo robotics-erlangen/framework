@@ -2,6 +2,7 @@ local Base = require "agent/base/behavior"
 local FreeKick = Class("Agent.Attacker.FreeKick", Base)
 
 local debug = require "../base/debug"
+local Field = require "../base/field"
 local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local World = require "../base/world"
@@ -52,7 +53,8 @@ end
 function FreeKick:_updateTask()
 	local prevState = self._state
 
-	local distanceToBall = 0.15
+	local ballDefenseDist = Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0)
+	local distanceToBall = math.max(0.01, math.min(0.15, ballDefenseDist - 2*self._robot.radius - World.Ball.radius - 0.04))
 	local nearBall = self._robot.pos:distanceTo(World.Ball.pos)
 		< distanceToBall + self._robot.radius + World.Ball.radius + 0.02
 
