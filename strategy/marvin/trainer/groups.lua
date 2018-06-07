@@ -24,12 +24,9 @@ function Groups:_runGroups()
 
 	-- groupname -> { robot -> application }
 	local robotApplications = {}
-	-- groupname -> number
-	local robotApplicationsSize = {}
 
 	for _,group in ipairs(self._groupList) do
 		robotApplications[group.name] = {}
-		robotApplicationsSize[group.name] = 0
 	end
 	for robot, msg in pairs(groupApplications) do
 		for _, app in ipairs(msg) do
@@ -38,7 +35,6 @@ function Groups:_runGroups()
 				error("No group with name '" .. app.name .. "' found")
 			end
 			application[robot] = app.payload
-			robotApplicationsSize[app.name] = robotApplicationsSize[app.name] + 1
 		end
 	end
 
