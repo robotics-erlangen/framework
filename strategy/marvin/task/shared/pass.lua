@@ -7,7 +7,7 @@ local World = require "../base/world"
 
 local ObserverShoot = require "observer/shoot"
 local PathHelper = require "trajectory/pathhelper"
-local UtilAttack = require "util/attack"
+local Rating = require "util/rating"
 
 local CHIP_PASS_DISTANCE_FACTOR = 0.5
 local MIN_PASS_SPEED = 1
@@ -42,6 +42,18 @@ function Pass:updateTarget(targetRobot, targetPos, targetTime, targetSpeed)
 	self._targetTime = targetTime
 end
 
+local function ratePass(attackPos, targetPos)
+	local shortestDist = math.huge
+	for _, bot in pairs(World.OpponentRobots) do
+		local dist = bot.pos:distanceToLineSegment(attackPos, targetPos)
+		if dist < shortestDist then
+			shortestDist = dist
+		end
+	end
+
+	return Rating.valueToRating(shortestDist, 0.5, 3)
+end
+
 function Pass:run()
     local obstacleTable = {
         inbox = self._inbox,
@@ -74,17 +86,13 @@ function Pass:run()
 
 	debug.set("chipOverride", self._chipOverride)
 	debug.set("chip", self._chip)
+	debug.set("targetTime", self._targetTime)
 
-	-- TODO: passes for goalshot volleys should still be fast
-	local passTable = {
-		robot = self._targetRobot,
-		ballPos = self._targetPos,
-		time = self._targetTime
-	}
-	local passSpeed = math.max((1 - UtilAttack.ratePass(self._robot, passTable, false)) * self._passSpeed, MIN_PASS_SPEED)
+	local attackPos = self._ballReceiptPos or World.Ball.pos
+	local targetPos = self._targetPos
+	local passSpeed = math.max((1 - ratePass(attackPos, targetPos)) * self._passSpeed, MIN_PASS_SPEED)
 	debug.set("passSpeed", passSpeed)
 
-	local targetPos = self._targetPos
 	if self._chip then
 		self:_chipPass(targetPos, self._ballReceiptPos, self._targetTime, maxAngleError)
 	else
