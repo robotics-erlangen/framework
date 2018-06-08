@@ -71,9 +71,16 @@ local function estimateOpponentDynamics()
 end
 
 local hadBallTimes = {}
+local inverseHadBallTimes = {}
+
 -- Robot.hadBall(self._robot, 0) is equivalent to self._robot:hasBall(World.Ball)
 function Robot.hadBall(robot, time)
 	return hadBallTimes[robot] and World.Time - hadBallTimes[robot] <= time
+end
+
+-- returns true if the robot has the ball for at least <time> seconds, continuously
+function Robot.controlsBall(robot, time)
+	return inverseHadBallTimes[robot] and World.Time - inverseHadBallTimes[robot] >= time
 end
 
 local function updateHadBall()
@@ -82,6 +89,8 @@ local function updateHadBall()
 			hadBallTimes[r] = World.Time
 			vis.addCircle("o/robot: hasBall", r.pos, 0.15,
 				vis.fromRGBA(127, 191, 255, 63), true, true)
+		else
+			inverseHadBallTimes[r] = World.Time
 		end
 	end
 end

@@ -63,6 +63,13 @@ function Duel:genericCheck()
 		return false
 	end
 
+	-- if an opponent controls the ball
+	for _,opp in ipairs(World.OpponentRobots) do
+		if Robot.controlsBall(opp, 0.3) then
+			debug.set("duel check", "opponent controls ball")
+			return true
+		end
+	end
 
 	-- if the ball is shot fast at the opponent goal, dont duel it since it might be chipped by us
 	local ballSpeed = World.Ball.speed:length()
