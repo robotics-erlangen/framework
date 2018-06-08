@@ -118,7 +118,9 @@ end
 function StrikerSampling:distToGoal(ballPos)
 	local distToGoal = ballPos:distanceTo(World.Geometry.OpponentGoal)
 	local minDist = World.Geometry.DefenseRadius + 0.3
-	local rating = Rating.valueToRating(distToGoal, World.Geometry.FieldHeight * 0.7, minDist)
+	local ratingBase = Rating.valueToRating(distToGoal, World.Geometry.FieldHeight * 0.7, minDist)
+	local ratingBonus = Rating.valueToRating(distToGoal, minDist + 2, minDist)
+	local rating = 0.5 * ratingBase + 0.5 * ratingBonus
 
 	if not amun.isPerformanceMode then
 		visualizeRating("distToGoal", ballPos, rating)
