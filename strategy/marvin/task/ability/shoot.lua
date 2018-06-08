@@ -12,6 +12,7 @@ local World = require "../base/world"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
+local ObserverShoot = require "observer/shoot"
 local TrajectoryDirect = require "trajectory/direct"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
@@ -143,7 +144,7 @@ function Shoot:_catchBallNecessary(moveDest, futureBallTime)
 	return true
 end
 
-function Shoot:_getState(targetPos, futureBall, futureBallTime)
+function Shoot:_getState(targetPos, futureBall, futureBallTime, targetTime)
 	-- check if the ball can be chased
 	local restingBallSpeed = RESTING_BALL_SPEED + (self._state == "ChaseBall" and -1 or 1) * RESTING_BALL_SPEED_HYST
 	local shootVector = targetPos - futureBall.pos
@@ -179,7 +180,11 @@ function Shoot:_getState(targetPos, futureBall, futureBallTime)
 	-- check if the ball can be shot volley
 	local volleyAngle = VOLLEY_ANGLE + (self._state == "Volley" and 1 or -1) * VOLLEY_ANGLE_HYST
 	if math.pi - angleDiff < volleyAngle then
-		return "Volley"
+		local passTravelTime = ObserverShoot.ballPassTime(futureBall.pos, targetPos, nil, nil, self._robot)
+		local bufferTime = self._state == "Volley" and 0.3 or 0
+		if not targetTime or World.Time + futureBallTime + passTravelTime + bufferTime > targetTime then
+			return "Volley"
+		end
 	end
 
 	-- otherwise stop the ball
@@ -264,6 +269,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 		local ballTime = Physics.ballRollTime(shootBall, futureBall.pos:distanceTo(targetPos))
 		if World.Time + 0.2 + ballTime < targetTime then
 			self._directMovement = false
+			log("wait")
 		end
 	end
 
@@ -382,11 +388,11 @@ function Shoot._visualizeShoot(futureBall, targetPos, color)
 	vis.addPath("t/a/shoot: State", {futureBall.pos, targetPos}, color, nil, nil, 0.03)
 end
 
-function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, precision)
+function Shoot:_doShoot(targetPos, targetSpeed, targetTime, ballReceiptPos, linearShoot, precision)
 	local futureBall, futureBallTime = self:_calculateFutureBall(ballReceiptPos)
 	debug.set("Shoot/futureBallTime", futureBallTime)
 
-	self._state = self:_getState(targetPos, futureBall, futureBallTime)
+	self._state = self:_getState(targetPos, futureBall, futureBallTime, targetTime)
 	debug.set("Shoot/State", self._state)
 
 	self._linearShoot = linearShoot
@@ -394,7 +400,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, ballReceiptPos, linearShoot, pre
 
 	local color
 	if self._state == "StationaryBall" then
-		self:_shootStationaryBall(targetPos, targetSpeed, nil, futureBall)
+		self:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBall)
 		color = vis.colors.whiteHalf
 	elseif self._state == "ChaseBall" then
 		self:_shootChaseBall(targetPos, targetSpeed, futureBall)
@@ -425,8 +431,8 @@ end
 -- @param targetPos Vector - where to shoot at
 -- @param targetSpeed Vector - the velocity of the ball when it reaches targetPos
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
-function Shoot:_shoot(targetPos, targetSpeed, ballReceiptPos, precision)
-	self:_doShoot(targetPos, targetSpeed, ballReceiptPos, true, precision)
+function Shoot:_shoot(targetPos, targetSpeed, targetTime, ballReceiptPos, precision)
+	self:_doShoot(targetPos, targetSpeed, targetTime, ballReceiptPos, true, precision)
 end
 
 --- chips the ball such that it hits the ground at firstContactPos
@@ -434,8 +440,8 @@ end
 -- and ignoreOpponentRobots obstacle parameters
 -- @param firstContactPos Vector - where the ball hits the ground the first time
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
-function Shoot:_chipToPos(firstContactPos, ballReceiptPos, precision)
-	self:_doShoot(firstContactPos, 8, ballReceiptPos, false, precision)
+function Shoot:_chipToPos(firstContactPos, targetTime, ballReceiptPos, precision)
+	self:_doShoot(firstContactPos, 8, targetTime, ballReceiptPos, false, precision)
 end
 
 --- chips the ball such that it can be accepted at rollingBallPos
@@ -443,7 +449,7 @@ end
 -- and ignoreOpponentRobots obstacle parameters
 -- @param rollingBallPos Vector - where the ball is starting to roll
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
-function Shoot:_chipPass(rollingBallPos, ballReceiptPos, precision, manualChipDistFactor)
+function Shoot:_chipPass(rollingBallPos, ballReceiptPos, targetTime, precision, manualChipDistFactor)
 	local origin
 	if ballReceiptPos and (ballReceiptPos - World.Ball.pos):dot(World.Ball.speed) > 0
 		and World.Ball.speed:length() > 0.5 then
@@ -452,7 +458,7 @@ function Shoot:_chipPass(rollingBallPos, ballReceiptPos, precision, manualChipDi
 		origin = World.Ball.pos
 	end
 	local firstContactPos = origin + (rollingBallPos - origin):scaleLength(manualChipDistFactor or CHIP_PASS_DISTANCE_FACTOR)
-	self:_chipToPos(firstContactPos, ballReceiptPos, precision)
+	self:_chipToPos(firstContactPos, targetTime, ballReceiptPos, precision)
 end
 
 function Shoot:_shootFreeKick(targetPos, targetSpeed, targetTime, precision)

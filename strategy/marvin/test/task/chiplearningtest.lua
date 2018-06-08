@@ -35,7 +35,8 @@ function ChipLearningTest:run()
 		if self._framesSinceMove < 10 then
 			stayOnPos = true
 		else
-			self:_shoot(self._shootPos, self._shootSpeed, DO_LINEAR_SHOOT, 3 * math.pi/180, false)
+			-- FIXME: broken call to self:_shoot
+			self:_shoot(self._shootPos, self._shootSpeed, nil, DO_LINEAR_SHOOT, 3 * math.pi/180, false)
 		end
 	else
 		self._framesSinceMove = 0

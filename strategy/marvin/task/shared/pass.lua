@@ -75,12 +75,12 @@ function Pass:run()
 
 	local targetPos = self._targetPos
 	if self._chip then
-		self:_chipPass(targetPos, self._ballReceiptPos, maxAngleError)
+		self:_chipPass(targetPos, self._ballReceiptPos, self._targetTime, maxAngleError)
 	else
-		if self._targetTime then
+		if Referee.isFriendlyFreeKickState() or World.RefereeState == "KickoffOffensive" then
 			self:_shootFreeKick(targetPos, self._passSpeed, self._targetTime, maxAngleError)
 		else
-			self:_shoot(targetPos, self._passSpeed, self._ballReceiptPos, maxAngleError)
+			self:_shoot(targetPos, self._passSpeed, self._targetTime, self._ballReceiptPos, maxAngleError)
 		end
 	end
 end

@@ -111,7 +111,7 @@ function ShootGoal:run()
 
 	if not self._desperate then
 		-- perform a linear shot
-		self:_shoot(localTarget, math.huge, ballReceiptPos, math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
+		self:_shoot(localTarget, math.huge, nil, ballReceiptPos, math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
 	else
 		local maxAngleError = 10 * math.pi / 180
 		-- prevent icing
@@ -203,14 +203,14 @@ function ShootGoal:run()
 				self._desperateTargetID = selectedInterval[3][1].id
 				localTarget = Vector.fromAngle(selectedDir) + ballReceiptPos
 				mode = "desperate clean"
-				self:_shoot(localTarget, math.huge, ballReceiptPos, angleError)
+				self:_shoot(localTarget, math.huge, nil, ballReceiptPos, angleError)
 				::continue::
 			until (self._desperateTargetID ~= nil or #onlyOppOcc == 0)
 		end
 		if (ballReceiptPos.y < (self._desperateTargetPoint and 0.5 or 0)) and not linearOverride and not self._desperateTargetID then
 			mode = "desperate chip"
 			localTarget = Vector(0, (G.FieldHeightHalf + self._robot.pos.y) / 2)
-			self:_chipPass(localTarget, ballReceiptPos, maxAngleError, 0.5)
+			self:_chipPass(localTarget, ballReceiptPos, nil, maxAngleError, 0.5)
 			self._desperateTargetPoint = localTarget
 		else
 			self._desperateTargetPoint = nil
@@ -220,7 +220,7 @@ function ShootGoal:run()
 			--state: desperate desperate
 			--shoot at the center of the opponent goal
 			localTarget = Vector(0, G.FieldHeightHalf)
-			self:_shoot(localTarget, math.huge, ballReceiptPos, maxAngleError)
+			self:_shoot(localTarget, math.huge, nil, ballReceiptPos, maxAngleError)
 		end
 	end
 	_drawDebugInfo(self, localTarget, mode)
