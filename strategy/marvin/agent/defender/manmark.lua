@@ -39,8 +39,7 @@ function ManMark:_updateTask()
 	local _, _, _, passReceivers = Goal.predictShot()
 	local passReceiver = passReceivers[1] and passReceivers[1].robot
 	if Defense.dangerousBallTowardsDefense() or self._opp == passReceiver then
-		local defenseAreaIntersection = Field.intersectRayDefenseArea(World.Ball.pos,
-			World.Ball.pos + World.Ball.speed, 0, true)
+		local defenseAreaIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, 0, true)
 		if defenseAreaIntersection and World.Ball.pos:distanceTo(defenseAreaIntersection)
 			> World.Ball.pos:distanceTo(self._robot.pos)
 			and (self._robot.pos - World.Ball.pos):dot(World.Ball.speed) > 0 then
