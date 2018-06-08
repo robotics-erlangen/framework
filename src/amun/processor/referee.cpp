@@ -108,6 +108,9 @@ void Referee::handleRemoteControlRequest(const SSL_RefereeRemoteControlRequest &
     if (request.has_stage()) {
         m_gameState.set_stage(request.stage());
     }
+    if (request.has_gameevent()) {
+        m_gameState.mutable_game_event()->CopyFrom(request.gameevent());
+    }
     // ignore yellow, red cards for now
 }
 
