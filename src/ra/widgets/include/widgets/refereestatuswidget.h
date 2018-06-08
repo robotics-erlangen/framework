@@ -43,6 +43,7 @@ public slots:
 
 private:
     QString formatTime(int time);
+    QString gameEventMessage(const SSL_Referee_Game_Event &event);
 
 private:
     Ui::RefereeStatusWidget *ui;
