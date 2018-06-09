@@ -85,7 +85,7 @@ local function piggyPos(opponent)
 end
 Defense.piggyPos = Cache.forFrame(piggyPos)
 
-local function calculateBallPositionField(distanceToDefenseArea, robotRadius)
+local function calculateBallPositionField()
 	local targetPos, targetDir, isShot = Goal.predictShot()
 
 	if isShot and targetDir.y < 0 then
@@ -101,7 +101,7 @@ end
 Defense.calculateBallPositionField = Cache.forFrame(calculateBallPositionField)
 
 local function calculateBallPositionCB(distanceToDefenseArea, robotRadius)
-	local fieldPos, fieldDir = calculateBallPositionField(distanceToDefenseArea, robotRadius)
+	local fieldPos, fieldDir = calculateBallPositionField()
 	fieldDir = fieldDir or (G.FriendlyGoal - fieldPos)
 	local targetPos, targetWay, targetSec = Field.intersectRayDefenseArea(fieldPos, fieldDir, distanceToDefenseArea + robotRadius, true)
 	return targetPos, targetWay, targetSec
