@@ -165,7 +165,7 @@ local speedError = {}
 local function updateSpeedError()
 	local halfSpeed = Referee.isSlowDriveState() and 0.75 or 1.5
 	for _,robot in ipairs(World.FriendlyRobots) do
-		if robot.prevMoveTo and not World.IsReplay then
+		if robot.prevMoveTo and not World.IsReplay and not World.IsSimulated then
 			if robot.speed:lengthSq() < halfSpeed * halfSpeed and robot.pos:distanceToSq(robot.prevMoveTo) > 0.5 * 0.5 then
 				if speedError[robot] and speedError[robot] <= 450 then
 					speedError[robot] = speedError[robot] + 1
