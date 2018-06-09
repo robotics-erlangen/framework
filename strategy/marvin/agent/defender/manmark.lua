@@ -53,7 +53,7 @@ function ManMark:_updateTask()
 
 	-- use centerback positioning if the destination pos would be too close to our defense area
 	local markingPosDefenseDist = Field.distanceToFriendlyDefenseArea(dest, self._opp.radius)
-	local markingPosNearLow = CenterBack.distanceToDefenseArea() + Defense.MARKING_DISTANCE
+	local markingPosNearLow = Defense.centerBackDistanceToDefenseArea() + Defense.MARKING_DISTANCE
 	local markingPosNearHigh = markingPosNearLow + 2 * self._robot.radius
 	local markingPosThreshold = wasCenterback and markingPosNearHigh or markingPosNearLow
 	local oppDefenseDist = Field.distanceToFriendlyDefenseArea(self._opp.pos, self._opp.radius)
@@ -68,7 +68,7 @@ function ManMark:_updateTask()
 
 	-- if we are still near the defense area but want to move away, disguise as a centerback
 	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-	if selfDefenseDist < CenterBack.distanceToDefenseArea() + self._robot.radius + 0.03 then
+	if selfDefenseDist < Defense.centerBackDistanceToDefenseArea() + self._robot.radius + 0.03 then
 		local groupApplication = { name = "centerback", payload = nil }
 		self._send.groupApplication("trainer", groupApplication)
 	end

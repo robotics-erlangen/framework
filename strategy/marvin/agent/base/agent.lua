@@ -10,8 +10,8 @@ local MoveCommand = require "agent/shared/movecommand"
 local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
-local CenterBack = require "task/defender/centerback"
 local Rating = require "util/rating"
+local UtilDefense = require "util/defense"
 
 local MEASURE_TIMING = false
 local MAX_RATING_TIME_BOOST = 0.1
@@ -168,7 +168,7 @@ function Base:_applyForMainAttacker(task)
 		end
 
 		-- only the keeper can apply for MA if the ball is behind the centerbacks
-		if Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius + CenterBack.distanceToDefenseArea())  then
+		if Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius + UtilDefense.centerBackDistanceToDefenseArea())  then
 			return
 		end
 	end

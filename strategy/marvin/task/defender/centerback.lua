@@ -13,18 +13,6 @@ local ToTarget = require "trajectory/totarget"
 
 local G = World.Geometry
 
-function CenterBack.distanceToDefenseArea()
-	-- 0.18 (robot diameter) + 0.08 (default distance) + 0.50 (stop radius)
-	if Referee.isStopState() then
-		local dist = Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)
-		return math.bound(0.01, dist - 0.68, 0.08)
-	end
-	return 0.08
-end
-
-CenterBack.defaultPos = Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius + 0.09 + 0.02)
-
-
 function CenterBack:_init(centerbackTarget)
 	self._preliminaryCenterbackTarget = centerbackTarget or World.Ball
 	self._lookingToGoal = true
@@ -40,7 +28,7 @@ function CenterBack:run()
 
 	local pos_target = self._inbox.centerBackPosTarget().trainer
 
-	local destinationPos = pos_target and pos_target.pos or CenterBack.defaultPos
+	local destinationPos = pos_target and pos_target.pos or UtilDefense.centerBackDefaultPos
 	local destinationTarget = pos_target and pos_target.target or self._preliminaryCenterbackTarget
 
 	local toBallAngle = (World.Ball.pos - self._robot.pos):angle()
@@ -84,10 +72,10 @@ function CenterBack:run()
 	end
 
 	self._obstacleTable.ignoreOpponentRobots = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-		< 4 * self._robot.radius + self.distanceToDefenseArea() + 0.05
+		< 4 * self._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05
 
 	self._obstacleTable.ignoreFriendlyRobots = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-		< 2 * self._robot.radius + self.distanceToDefenseArea() + 0.05
+		< 2 * self._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05
 	self._obstacleTable.ignorePass = self._obstacleTable.ignoreFriendlyRobots
 	-- The centerback that is blocking the ball, that is shot towards the goal has to
 	-- -fully drive into the shot
@@ -96,7 +84,7 @@ function CenterBack:run()
 	local intersectionWithGoalLine = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, G.FriendlyGoal, Vector(1, 0))
 	if intersectionWithGoalLine and math.abs(intersectionWithGoalLine.x) < G.GoalWidth / 2 + 0.1
 			and World.Ball.speed:length() > 0.5 and World.Ball.speed.y < 0 and destinationTarget == World.Ball then
-		local blockingPos = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, self.distanceToDefenseArea() + self._robot.radius, true)
+		local blockingPos = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, UtilDefense.centerBackDistanceToDefenseArea() + self._robot.radius, true)
 		--destinationPos = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, destinationPos, (destinationPos - self._robot.pos))
 		if blockingPos then
 			destinationPos = blockingPos

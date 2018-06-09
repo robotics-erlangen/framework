@@ -1,6 +1,5 @@
 local CenterBack = Class("Group.CenterBack")
 
-local CenterBackTask = require "task/defender/centerback"
 local Field = require "../base/field"
 local UtilDefense = require "util/defense"
 local Rating = require "util/rating"
@@ -36,7 +35,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 
 	-- constants
 	local robot_radius = 0.09
-	local distanceToDefenseArea = CenterBackTask.distanceToDefenseArea()
+	local distanceToDefenseArea = UtilDefense.centerBackDistanceToDefenseArea()
 
 	-- parameters
 	local ballDistanceToDefenseArea = Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0)

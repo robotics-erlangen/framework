@@ -12,7 +12,6 @@ local Robot = require "observer/robot"
 local Physics = require "observer/physics"
 local DefUtil = require "util/defense"
 local Duel = require "task/shared/duel"
-local CenterBack = require "task/defender/centerback"
 local InterceptPass = require "task/defender/interceptpass"
 local debug = require "../base/debug"
 
@@ -186,7 +185,7 @@ end
 
 function HandleBall:_updateTask()
 	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-	if selfDefenseDist < CenterBack.distanceToDefenseArea() + self._robot.radius + 0.03 then
+	if selfDefenseDist < DefUtil.centerBackDistanceToDefenseArea() + self._robot.radius + 0.03 then
 		local groupApplication = { name = "centerback", payload = self._robot }
 		self._send.groupApplication("trainer", groupApplication)
 	end

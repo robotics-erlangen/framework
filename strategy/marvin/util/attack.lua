@@ -10,7 +10,7 @@ local Ball = require "observer/ball"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local Shoot = require "observer/shoot"
-local CenterBack = require "task/defender/centerback"
+local Defense = require "util/defense"
 local Rating = require "util/rating"
 
 local G = World.Geometry
@@ -68,7 +68,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 	-- this is to lower the chance of a centerback being in the way of a kick,
 	-- since they won't dodge the pass
 	local CROSSING_DEFENSE_AREA_FACTOR = 0.6
-	local defenseAreaDistance = CenterBack.distanceToDefenseArea() + robot.radius + World.Ball.radius + 0.02
+	local defenseAreaDistance = Defense.centerBackDistanceToDefenseArea() + robot.radius + World.Ball.radius + 0.02
 	local intersect = Field.intersectRayDefenseArea(shootPos, pass.ballPos - shootPos, defenseAreaDistance, true)
 	-- if there is an intersection in the line segment shootPos <-> pass.ballPos
 	if intersect and shootPos:distanceToSq(intersect) < shootPos:distanceToSq(pass.ballPos) then

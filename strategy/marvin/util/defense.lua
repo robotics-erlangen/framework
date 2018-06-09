@@ -11,10 +11,21 @@ local World = require "../base/world"
 local Goal = require "observer/goal"
 local Physics = require "observer/physics"
 local Robot = require "observer/robot"
-local CenterBack = require "task/defender/centerback"
 local Rating = require "util/rating"
 
 local G = World.Geometry
+
+
+function Defense.centerBackDistanceToDefenseArea()
+	-- 0.18 (robot diameter) + 0.08 (default distance) + 0.50 (stop radius)
+	if Referee.isStopState() then
+		local dist = Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)
+		return math.bound(0.01, dist - 0.68, 0.08)
+	end
+	return 0.08
+end
+
+Defense.centerBackDefaultPos = Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius + 0.09 + 0.02)
 
 Defense.POSITION_PADDING = 0.02 -- safety distance
 Defense.PENALTY_LINE_DISTANCE = 0.35 -- prevent robots from crossing the penalty line
@@ -109,9 +120,9 @@ end
 Defense.calculateBallPositionCB = Cache.forFrame(calculateBallPositionCB)
 
 local function centerBackPos(targetPos)
-	local dist = CenterBack.distanceToDefenseArea() + Constants.maxRobotRadius
+	local dist = Defense.centerBackDistanceToDefenseArea() + Constants.maxRobotRadius
 	local dir = World.Geometry.FriendlyGoal - targetPos
-	return Field.intersectRayDefenseArea(targetPos, dir, dist, true) or CenterBack.defaultPos
+	return Field.intersectRayDefenseArea(targetPos, dir, dist, true) or Defense.centerBackDefaultPos
 end
 Defense.centerBackPos = Cache.forFrame(centerBackPos)
 
