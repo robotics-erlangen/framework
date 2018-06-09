@@ -2,6 +2,7 @@ local Robot = {}
 
 local Cache = require "../base/cache"
 local Constants = require "../base/constants"
+local Field = require "../base/field"
 local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
@@ -163,6 +164,49 @@ function Robot.ownStandardShooter()
 	else
 		return nil
 	end
+end
+
+local function calculateWayForPosition(pos, goal, radius, friendly)
+	if pos.y < -World.Geometry.FieldHeightHalf then
+		if pos.x < 0 then
+			return 0
+		else
+			return Field.maxWay(radius)
+		end
+	end
+	local projectedPos = goal + (pos - goal) * 100
+	local _, robotWay = Field.intersectRayDefenseArea(projectedPos, goal - projectedPos, radius, friendly)
+	return robotWay
+end
+
+-- calculates the time a robot needs around the defense area
+-- if robotway is set it has to be the way of the intersection of robot.pos with
+-- the defense area in the direction of the goal with the given radius
+-- this function does not make sense when either robot.pos or targetPos are far away from the defense area
+-- either targetPos or targetWay is optional, but one of the two has to be given
+function Robot.timeAroundDefenseAreaByWay(robot, robotWay, targetPos, targetWay, radius, friendly)
+	if not targetPos and not targetWay then
+		error("target information have to be present")
+	end
+	local targetGoal = friendly and World.Geometry.FriendlyGoal or World.Geometry.OpponentGoal
+	if not robotWay then
+		robotWay = calculateWayForPosition(robot.pos, targetGoal, radius, friendly)
+	end
+	if not targetPos then
+		targetPos = Field.defenseIntersectionByWay(targetWay, radius, friendly)
+	elseif not targetWay then
+		targetWay = calculateWayForPosition(targetPos, targetGoal, radius, friendly)
+	end
+	local drivePoints = Field.cornerPointsBetweenWays(robotWay, targetWay, radius, friendly)
+	table.insert(drivePoints, 1, robot.pos)
+	table.insert(drivePoints, targetPos)
+	local totalTime = 0
+	local fakeRobot = {speed = Vector(0, 0), maxSpeed = robot.maxSpeed, acceleration = robot.acceleration}
+	for i = 2, #drivePoints do
+		fakeRobot.pos = drivePoints[i-1]
+		totalTime = totalTime + Physics.robotTimeToPos(fakeRobot, drivePoints[i], Vector(0, 0))
+	end
+	return totalTime
 end
 
 
