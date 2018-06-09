@@ -197,7 +197,7 @@ local function determineNumberOfPiggies(defenderCount, manmarkTargets, piggyTarg
 	end
 
 	local piggieCount = 0
-	if not Ball.ballHeadingForGoal(World.Ball, true) 
+	if not Ball.ballHeadingForGoal(World.Ball, true)
 			or World.Ball.speed:length() < 3 or (World.Ball.pos + World.Ball.speed).y > -1 then
 		local nRelevantManMarkTargets = 0
 		for _, dangerousness in pairs(manmarkTargets) do
