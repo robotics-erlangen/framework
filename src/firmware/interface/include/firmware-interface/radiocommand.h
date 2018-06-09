@@ -71,12 +71,14 @@ static const uint16_t transceiver_frequencies[16][2] = {
     { 2504, 2510 }  // Channel 15
 };
 
+// Avoid 0xA? / 0x5? as the MSB (here: last byte in the array) of the address
+// as the NRF might confuse this with the preamble
 // Target for radio response from robot
-static const uint8_t transceiver_address[] = { 0x33, 0xC0, 0xFF, 0xEE, 0xD7 };
+static const uint8_t transceiver_address[] = { 0, 0, 0, 0, 0 };
 // Target for datagram packet from robot
-static const uint8_t transceiver_datagram[] = { 0x54, 0xC0, 0xFF, 0xEE, 0xB5 };
-// Target for datagrom packet sent to the robot
+static const uint8_t transceiver_datagram[] = { 0, 0, 0, 0, 0 };
+// Target for datagram packet sent to the robot
 // the robot id is embedded in the first byte along with a robot generation tag
-static const uint8_t robot_datagram[] = { 0x00, 0xC0, 0xFF, 0xEE, 0x55 };
+static const uint8_t robot_datagram[] = { 0, 0, 0, 0, 0 };
 
 #endif // COMMON_RADIOCOMMAND_H

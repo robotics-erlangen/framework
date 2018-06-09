@@ -23,7 +23,7 @@
 
 #include <stdint.h>
 
-static const uint8_t robot2014_address[] = { 0xAA, 0xC0, 0xFF, 0xEE, 0x40 };
+static const uint8_t robot2014_address[] = { 0x40, 0xE8, 0xE4, 0x02, 0xC7 };
 
 static const int16_t RADIOCOMMAND2014_V_MAX = 32767;
 static const int16_t RADIOCOMMAND2014_OMEGA_MAX = 32767;

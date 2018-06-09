@@ -31,7 +31,7 @@
 static_assert(sizeof(RadioCommand2014) == 23, "Expected radio command packet of size 23");
 static_assert(sizeof(RadioResponse2014) == 10, "Expected radio response packet of size 10");
 
-const int PROTOCOL_VERSION = 2;
+const int PROTOCOL_VERSION = 4;
 
 typedef struct
 {
@@ -531,7 +531,7 @@ void Transceiver::addRobot2014Command(int id, const robot::Command &command, boo
 
     TransceiverSendNRF24Packet targetAddress;
     memcpy(targetAddress.address, robot2014_address, sizeof(targetAddress.address));
-    targetAddress.address[4] |= id;
+    targetAddress.address[0] |= id;
     targetAddress.expectedResponseSize = sizeof(RadioResponseHeader) + sizeof(RadioResponse2014);
 
     usb_packet.append((const char*) &senderCommand, sizeof(senderCommand));
