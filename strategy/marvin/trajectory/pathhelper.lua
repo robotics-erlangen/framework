@@ -98,12 +98,17 @@ local function addOpponentDefenseAreaObstacle(path, robot)
 	end
 end
 local function addOpponentFieldHalfObstacle(path)
-	path:addRect(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5,
-		-G.CenterCircleRadius, 0.02, "OppFieldHalf", Priorities.OPP_FIELD_HALF)
-	path:addRect(-G.CenterCircleRadius - 0.2, G.FieldHeightHalf + 0.5,
-		G.CenterCircleRadius + 0.2, G.CenterCircleRadius, "OppFieldHalf", Priorities.OPP_FIELD_HALF_INNER)
-	path:addRect(G.CenterCircleRadius, G.FieldHeightHalf + 0.5,
-		G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf", Priorities.OPP_FIELD_HALF)
+	if World.RefereeState == "KickoffOffensive" then
+		path:addRect(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5,
+			-G.CenterCircleRadius, 0.02, "OppFieldHalf", Priorities.OPP_FIELD_HALF)
+		path:addRect(-G.CenterCircleRadius - 0.2, G.FieldHeightHalf + 0.5,
+			G.CenterCircleRadius + 0.2, G.CenterCircleRadius, "OppFieldHalf", Priorities.OPP_FIELD_HALF_INNER)
+		path:addRect(G.CenterCircleRadius, G.FieldHeightHalf + 0.5,
+			G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf", Priorities.OPP_FIELD_HALF)
+	else
+		path:addRect(-G.FieldWidthHalf - 0.5, G.FieldHeightHalf + 0.5,
+			G.FieldWidthHalf + 0.5, 0.02, "OppFieldHalf", Priorities.OPP_FIELD_HALF)
+	end
 end
 
 local function addZonedBallObstacles(robot, innerBallDistance, outerBallDistance)
