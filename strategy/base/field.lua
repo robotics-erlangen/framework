@@ -465,6 +465,9 @@ local function intersectRayDefenseArea_2017(pos, dir, extraDistance, friendly)
 	return minIntersection, minWay
 end
 
+-- FIXME: Calling intercetRayDefenseArea twice is bad because of floats: Sometimes there is still an intersection (because the result ist marginally outside the Defense area)
+-- Or there is no intersecton (because the result is marginally inside the Defense area). To avoid this problem, one has to use a slightly larger radius in the first call.
+
 --- Returns one intersection of a given line with the (extended) defense area
 --- The intersection is the one with the smallest t in x = pos + t * dir, t >= 0
 -- @name intersectRayDefenseArea
