@@ -23,6 +23,10 @@
 
 #include <stdint.h>
 
+// macro from https://stackoverflow.com/a/3385694
+#define STATIC_ASSERT(COND,MSG) typedef char static_assertion_##MSG[(COND)?1:-1]
+#define NRF_ADDRESS_SIZE 5
+
 typedef struct
 {
     uint8_t command;
@@ -80,5 +84,9 @@ static const uint8_t transceiver_datagram[] = { 0, 0, 0, 0, 0 };
 // Target for datagram packet sent to the robot
 // the robot id is embedded in the first byte along with a robot generation tag
 static const uint8_t robot_datagram[] = { 0, 0, 0, 0, 0 };
+
+STATIC_ASSERT(sizeof(transceiver_address) == NRF_ADDRESS_SIZE,transceiver_address_has_wrong_size);
+STATIC_ASSERT(sizeof(transceiver_datagram) == NRF_ADDRESS_SIZE,transceiver_datagram_has_wrong_size);
+STATIC_ASSERT(sizeof(robot_datagram) == NRF_ADDRESS_SIZE,robot_datagram_has_wrong_size);
 
 #endif // COMMON_RADIOCOMMAND_H

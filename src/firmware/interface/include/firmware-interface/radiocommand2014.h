@@ -21,9 +21,11 @@
 #ifndef COMMON_RADIOCOMMAND2014_H
 #define COMMON_RADIOCOMMAND2014_H
 
+#include "radiocommand.h"
 #include <stdint.h>
 
 static const uint8_t robot2014_address[] = { 0x40, 0xE8, 0xE4, 0x02, 0xC7 };
+STATIC_ASSERT(sizeof(robot2014_address) == NRF_ADDRESS_SIZE,robot2014_address_has_wrong_size);
 
 static const int16_t RADIOCOMMAND2014_V_MAX = 32767;
 static const int16_t RADIOCOMMAND2014_OMEGA_MAX = 32767;
