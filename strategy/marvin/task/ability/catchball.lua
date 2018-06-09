@@ -137,18 +137,14 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	self._send.moveDest("all", moveDest)
 	self._send.attackPosition("all", predictedBall.pos)
 
-	-- update prediction
-	-- keep old time if no way was found
-	if time > 0 then
-		-- damp large value changes
-		-- the centerpiece of the catchball algorithm
-		-- FIXME better damping for small changes
-		if time < self._catchTime then
-			self._catchTime = 0.8 * self._catchTime + 0.2 * time
-		else
-			-- required for moving around the ball
-			self._catchTime = time
-		end
+	-- damp large value changes
+	-- the centerpiece of the catchball algorithm
+	-- FIXME better damping for small changes
+	if time < self._catchTime then
+		self._catchTime = 0.8 * self._catchTime + 0.2 * time
+	else
+		-- required for moving around the ball
+		self._catchTime = time
 	end
 	debug.set("CatchBall/method", method)
 	debug.set("CatchBall/time", time)
