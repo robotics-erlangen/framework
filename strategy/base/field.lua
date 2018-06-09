@@ -533,6 +533,25 @@ else
 	Field.cornerPointsBetweenWays = cornerPointsBetweenWays2017
 end
 
+
+local function maxWay2018(radius)
+	return G.DefenseHeight * 2 + G.DefenseWidth + math.pi * radius
+end
+
+local function maxWay2017(radius)
+	return G.DefenseStretch + math.pi * (radius + G.DefenseRadius)
+end
+
+-- return the maximum way that can be reached on the defense area with a given radius
+-- @name maxWay
+-- @param radius number - the radius for the defense area
+-- @return number - the maximum way
+if World.RULEVERSION == "2018" then
+	Field.maxWay = maxWay2018
+else
+	Field.maxWay = maxWay2017
+end
+
 --- Return all line segments of the line segment pos to pos + dir * maxLength which are in the allowed field part
 -- @name allowedLineSegments
 -- @param pos Vector - starting point of the line
