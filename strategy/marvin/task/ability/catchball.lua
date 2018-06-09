@@ -123,7 +123,7 @@ function CatchBall:_catchBall(targetPos, distanceToBall, targetSpeed, maxSpeed)
 	if method == AROUND_METHOD then
 		-- just be pessimistic and assume the robot could touch the ball right from the start
 		-- this prevents switching the side around which a moving ball is circumnavigated
-		self:_createMoveAroundBallObstacle(self._robot.path, ball, predictedBall)
+		self:_createMoveAroundBallObstacle(self._robot.path, moveDest, ball, predictedBall)
 		self:_createBallCorridor(self._robot.path, viewDir, predictedBall)
 	elseif method == HUNT_METHOD then
 		self:_createHuntingBallObstacle(self._robot.path, viewDir, predictedBall)
@@ -277,7 +277,7 @@ function CatchBall:_ballCatchMethod(currentBall, predictedBall, moveDest)
 	end
 end
 
-function CatchBall:_createMoveAroundBallObstacle(path, minBall, predictedBall)
+function CatchBall:_createMoveAroundBallObstacle(path, moveDest, minBall, predictedBall)
 	local ballDist = predictedBall.pos:distanceTo(minBall.pos)
 	-- block connection between first touch point and target catch pos
 	if ballDist > OBSTACLE_EPSILON then
@@ -289,7 +289,8 @@ function CatchBall:_createMoveAroundBallObstacle(path, minBall, predictedBall)
 
 		local lineDir = (minBall.pos - predictedBall.pos):setLength(extraDist)
 		local minBallShift = minBall.pos - lineDir
-		local predictedBallShift = predictedBall.pos + lineDir
+		-- predictedBallShift should be tangential to the ball in the direction where the robot will be
+		local predictedBallShift = predictedBall.pos + (predictedBall.pos - moveDest):setLength(extraDist)
 
 		-- if the robot is closer to the predicted ball then the ball I can shorten the obstacle
 		if (robotDistToPredictedBall + 2 * self._robot.radius + ball.radius) < ballDistToPredictedBall
