@@ -486,6 +486,53 @@ else
 	Field.intersectionsRayDefenseArea = intersectionsRayDefenseArea
 end
 
+local function cornerPointsBetweenWays2018(way1, way2, radius, friendly)
+	radius = radius or 0
+	local smallerWay = math.min(way1, way2)
+	local largerWay = math.max(way1, way2)
+	local cornerLeftWay = G.DefenseHeight + math.pi*radius/4
+	local cornerRightWay = G.DefenseHeight + G.DefenseWidth + 3*math.pi*radius/4
+	local result = {}
+	if smallerWay <= cornerLeftWay and largerWay >= cornerLeftWay then
+		local cornerLeft = Vector(-G.DefenseWidthHalf, -G.FieldHeightHalf+G.DefenseHeight) + Vector(-1, 1):setLength(radius)
+		if not friendly then
+			cornerLeft = -cornerLeft
+		end
+		table.insert(result, cornerLeft)
+	end
+	if smallerWay <= cornerRightWay and largerWay >= cornerRightWay then
+		local cornerRight = Vector(G.DefenseWidthHalf, -G.FieldHeightHalf+G.DefenseHeight) + Vector(1, 1):setLength(radius)
+		if not friendly then
+			cornerRight = -cornerRight
+		end
+		table.insert(result, cornerRight)
+	end
+	if #result == 2 and way1 > way2 then
+		result[1], result[2] = result[2], result[1]
+	end
+	return result
+end
+
+local function cornerPointsBetweenWays2017()
+	return {}
+end
+
+-- return a list of all cornerpoints between the given ways
+-- note that the radius has to be the same as with which the ways were calculated
+-- the resulting points are ordered in the same way as the in put ways
+-- @name cornerPointsBetweenWays
+-- @param way1 number - the first way, doesn't have to be the lower one
+-- @param way2 number - the second way
+-- @param radius number - the radius of the defense area to be considered
+-- @param friendly bool - whether to use the friendly or the opponent defense area
+-- @return table - list of all corner points between the two ways
+--					the resulting points are radius away from the defense area
+if World.RULEVERSION == "2018" then
+	Field.cornerPointsBetweenWays = cornerPointsBetweenWays2018
+else
+	Field.cornerPointsBetweenWays = cornerPointsBetweenWays2017
+end
+
 --- Return all line segments of the line segment pos to pos + dir * maxLength which are in the allowed field part
 -- @name allowedLineSegments
 -- @param pos Vector - starting point of the line
