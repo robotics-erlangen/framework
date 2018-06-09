@@ -128,6 +128,7 @@ private slots:
     void ballPlacementYellow();
 
 private:
+    void addToggleVisAction();
     void resizeAOI(QPointF pos);
     void updateAOI();
     void updateDetection();

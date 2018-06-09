@@ -153,11 +153,9 @@ FieldWidget::FieldWidget(QWidget *parent) :
     if (!m_isLogplayer) {
         m_actionShowBlueReplayVis->setVisible(false);
         m_actionShowYellowReplayVis->setVisible(false);
+    } else {
+        addToggleVisAction();
     }
-    QAction *actionToggleVisualizations = new QAction(this);
-    actionToggleVisualizations->setShortcut(QKeySequence("R"));
-    connect(actionToggleVisualizations, SIGNAL(triggered()), SLOT(toggleStrategyVisualizations()));
-    addAction(actionToggleVisualizations);
 
     updateVisualizationVisibility(); // update the visibility map
 
@@ -292,6 +290,14 @@ void FieldWidget::saveConfig()
     s.endGroup();
 }
 
+void FieldWidget::addToggleVisAction()
+{
+    QAction *actionToggleVisualizations = new QAction(this);
+    actionToggleVisualizations->setShortcut(QKeySequence("R"));
+    connect(actionToggleVisualizations, SIGNAL(triggered()), SLOT(toggleStrategyVisualizations()));
+    addAction(actionToggleVisualizations);
+}
+
 void FieldWidget::setLogplayer()
 {
     m_isLogplayer = true;
@@ -299,6 +305,7 @@ void FieldWidget::setLogplayer()
     m_actionBallPlacementYellow->setVisible(false);
     m_actionShowBlueReplayVis->setVisible(true);
     m_actionShowYellowReplayVis->setVisible(true);
+    addToggleVisAction();
 }
 
 void FieldWidget::toggleStrategyVisualizations()
