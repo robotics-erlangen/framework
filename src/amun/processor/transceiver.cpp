@@ -530,7 +530,7 @@ void Transceiver::addRobot2014Command(int id, const robot::Command &command, boo
     senderCommand.size = sizeof(data) + sizeof(TransceiverSendNRF24Packet);
 
     TransceiverSendNRF24Packet targetAddress;
-    memcpy(targetAddress.address, robot2014_address, sizeof(targetAddress.address));
+    memcpy(targetAddress.address, robot2014_address, sizeof(robot2014_address));
     targetAddress.address[0] |= id;
     targetAddress.expectedResponseSize = sizeof(RadioResponseHeader) + sizeof(RadioResponse2014);
 
@@ -566,7 +566,7 @@ void Transceiver::addRobot2014Sync(qint64 processingDelay, quint8 packetCounter,
     senderCommand.size = sizeof(data) + sizeof(TransceiverSendNRF24Packet);
 
     TransceiverSendNRF24Packet targetAddress;
-    memcpy(targetAddress.address, robot_datagram, sizeof(targetAddress.address));
+    memcpy(targetAddress.address, robot_datagram, sizeof(robot_datagram));
     // broadcast (0x1f) to generation 2014 (0x20)
     targetAddress.address[0] = 0x1f | 0x20;
     targetAddress.expectedResponseSize = 0;
