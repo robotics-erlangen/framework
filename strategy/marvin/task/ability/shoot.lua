@@ -269,7 +269,6 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 		local ballTime = Physics.ballRollTime(shootBall, futureBall.pos:distanceTo(targetPos))
 		if World.Time + 0.2 + ballTime < targetTime then
 			self._directMovement = false
-			log("wait")
 		end
 	end
 
