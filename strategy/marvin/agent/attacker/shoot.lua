@@ -268,7 +268,7 @@ function Shoot:_updateTask()
 		self._send.passInfo("all", {{ target = target,
 			ballPos = ballPos, time = passReceiveTime }})
 
-		return Pass, { target, ballPos, nil, self._lastIncomingPassInfoPos }
+		return Pass, { target, ballPos, nil, self._lastIncomingPassInfoPos, self._decision.time }
 	end
 
 	-- error: invalid decision
