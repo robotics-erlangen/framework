@@ -66,6 +66,8 @@ function FastBallPlacement:_init()
 	self._mainAttacker = self.SHOOTER
 
 	self._selectedEvadingPos = SHOOTER_EVADING_POSITIONS[1]
+
+	self._receiverBallDirection = nil
 end
 
 function FastBallPlacement:_updateTasks()
@@ -168,19 +170,21 @@ function FastBallPlacement:_updateTasks()
 
 		vis.addPath("g/m/fastballplacement", { self.RECEIVER.pos, intersection, World.Ball.pos }, vis.colors.red)
 
-		taskAssignments[self.RECEIVER] = {
-            class = MoveToPos,
-            params = { intersection, nil, nil, nil, nil, nil, true },
-            restart = true
-        }
 		-- Stop moving if the ball is near the receiver
 		-- We don't use halt because Halt could possibly stop the dribbler from spinning
 		if World.Ball.pos:distanceTo(self.RECEIVER.pos) < World.Ball.radius + self.RECEIVER.shootRadius + 0.1 then
 			taskAssignments[self.RECEIVER] = {
 				class = MoveToPos,
-				params = { self.RECEIVER.pos, self.RECEIVER.dir, nil, nil, nil, nil, true },
+				params = { self.RECEIVER.pos, self._receiverBallDirection, nil, nil, nil, nil, true, true },
 				restart = true
 			}
+		else
+			self._receiverBallDirection = (World.Ball.pos - self.RECEIVER.pos):angle()
+			taskAssignments[self.RECEIVER] = {
+            class = MoveToPos,
+            params = { intersection, nil, nil, nil, nil, nil, true },
+            restart = true
+        }
 		end
 	elseif self._state == STATE_WAIT_FOR_SET_BACK then
 		self._mainAttacker = self.RECEIVER
