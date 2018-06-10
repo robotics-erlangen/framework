@@ -5,6 +5,7 @@ local Field = require "../base/field"
 local geom = require "../base/geom"
 local Math = require "../base/math"
 local World = require "../base/world"
+local Physics = require "observer/physics"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 local UtilDefense = require "util/defense"
@@ -49,7 +50,7 @@ function StopAttack:run()
 		local minAngle = math.huge
 		local maxAngle = -math.huge
 		for _, robot in ipairs(passReceivers) do
-			local angle = getNormalizedAngle(Field.limitToAllowedField(robot.pos, robot.radius) - World.Ball.pos)
+			local angle = getNormalizedAngle(Field.limitToAllowedField(Physics.robotBrakePos(robot), robot.radius) - World.Ball.pos)
 			if World.Ball.pos.x > 0 then
 				angle = geom.normalizeAnglePositive(angle)
 			end
