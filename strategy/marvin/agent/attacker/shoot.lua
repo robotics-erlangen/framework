@@ -232,7 +232,11 @@ function Shoot:_updateTask()
 	debug.set("decision", self._decision.task)
 	for k, v in pairs(self._decision) do
 		if k ~= "task" then
-			debug.set("decision/" .. tostring(k), tostring(v))
+			local value = tostring(v)
+			if k == "time" then
+				value = tostring(value - World.Time) .. " (" .. value .. ")"
+			end
+			debug.set("decision/" .. tostring(k), value)
 		end
 	end
 
