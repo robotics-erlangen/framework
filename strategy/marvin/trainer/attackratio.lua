@@ -117,7 +117,17 @@ function AttackRatio:attackerDefenderDistribution()
 
 	if mainAttackerIsDefender and previousMainAttacker and not previousMainAttackerIsDefender
 			and Field.distanceToFriendlyDefenseArea(previousMainAttacker.pos, previousMainAttacker.radius) < 0.5 then
-		self._send.forcePoolChange("trainer", { robot = previousMainAttacker, destPool = "defender" })
+		-- being either a defender or an attacker is not a completet partitioning of an agents state
+		-- it could also be currently hidden
+		local isAttacker = false
+		for robot, _ in pairs(self._inbox.attackerFlag()) do
+			if robot == previousMainAttacker then
+				isAttacker = true
+			end
+		end
+		if isAttacker then
+			self._send.forcePoolChange("trainer", { robot = previousMainAttacker, destPool = "defender" })
+		end
 	end
 	if mainAttackerIsDefender then
 		local mainAttackerWantsToChange = false
