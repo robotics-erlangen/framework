@@ -263,6 +263,7 @@ void MainWindow::createStrategy(int index)
     connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->log, SLOT(handleStatus(Status)));
     connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->field, SLOT(handleStatus(Status)));
     connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), ui->replay, SIGNAL(gotStatus(Status)));
+    connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), m_plotter, SLOT(handleStatus(Status)));
     connect(m_strategyBlocker[index], SIGNAL(gotStatus(Status)), SLOT(handleReplayStatus(Status)));
 
     connect(ui->replay, SIGNAL(sendCommand(Command)), m_strategys[index], SLOT(handleCommand(Command)));

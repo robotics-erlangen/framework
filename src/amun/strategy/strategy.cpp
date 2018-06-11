@@ -592,7 +592,8 @@ Status Strategy::takeStrategyDebugStatus()
     status->mutable_debug()->set_source(debugSource());
     if (!m_status.isNull()) {
         status->set_time(m_status->time());
-        status->mutable_debug()->set_time(m_status->world_state().time());
+        auto &worldState = m_status->execution_state().IsInitialized() ? m_status->execution_state() : m_status->world_state();
+        status->mutable_debug()->set_time(worldState.time());
     }
     return status;
 }
