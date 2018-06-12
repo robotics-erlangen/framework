@@ -94,6 +94,7 @@ local msgDefs = {
 local exclusiveRoles = {
 	mainAttacker = "number",
 	duelAssistant = "number",
+	interceptPass = "number",
 }
 for role, _ in pairs(exclusiveRoles) do
 	msgDefs[role] = Robot

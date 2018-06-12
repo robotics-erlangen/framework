@@ -14,6 +14,7 @@ local Physics = require "observer/physics"
 local InterceptPass = require "task/defender/interceptpass"
 local Duel = require "task/shared/duel"
 local DefUtil = require "util/defense"
+local Rating = require "util/rating"
 
 
 local G = World.Geometry
@@ -85,9 +86,24 @@ function HandleBall:_checkAttacker()
 	return true
 end
 
+local function rateRobot(robot)
+	local bestPos, posTime, bestRatingOppTime = InterceptPass.calculateInterceptPos(robot)
+	local distanceToInterceptPos = robot.pos:distanceTo(bestPos)
+	local timeToInterceptPos = posTime
+	local timeOppToInterceptPos = bestRatingOppTime
+	local differenceSelfAndOppToInterceptPos = timeToInterceptPos - timeOppToInterceptPos
+
+	local rateDistanceToInterceptPos = Rating.valueToRating(distanceToInterceptPos, 3, 0)
+	local rateDifferenceSelfAndOppToInterceptPos = Rating.valueToRating(
+													differenceSelfAndOppToInterceptPos, 0, 1)
+
+	return (rateDistanceToInterceptPos + (2 * rateDifferenceSelfAndOppToInterceptPos)) / 3
+end
+
 function HandleBall:_checkInterceptPass()
 
 	local isInterceptPass = self._taskDecision == "interceptpass"
+							or (self._inbox.interceptPass().trainer == self._robot)
 
 	--TODO: don't if we want to intercept our own pass
 
@@ -132,7 +148,10 @@ function HandleBall:_checkInterceptPass()
 		return false
 	end
 
-	return true
+	local rating = rateRobot(self._robot)
+	self._send.exclusiveRole("trainer", { interceptPass = rating })
+	return (self._inbox.interceptPass().trainer == self._robot)
+
 end
 
 function HandleBall:_checkDuel()
@@ -173,15 +192,15 @@ function HandleBall:check()
 	debug.set("HandleBall", self._taskDecision)
 
 	if self._taskDecision ~= "forcedefender" then
-		if mainAttacker == self._robot
+		if (mainAttacker == self._robot
 				or self._taskDecision == "attacker"
-				or self._taskDecision == "interceptpass"
-				or self._taskDecision == "duel" then
+				or self._taskDecision == "duel")
+				and self._taskDecision ~= "interceptpass" then
 			self:_applyForMainAttacker()
 		end
 	end
 
-	return mainAttacker == self._robot
+	return (mainAttacker == self._robot) or (self._inbox.interceptPass().trainer == self._robot)
 end
 
 function HandleBall:_updateTask()
@@ -191,7 +210,7 @@ function HandleBall:_updateTask()
 		self._send.groupApplication("trainer", groupApplication)
 	end
 
-	if self._taskDecision == "attacker" or self._taskDecision == "interceptpass" then
+	if self._taskDecision == "attacker" then
 		self._send.poolChangeRequest("trainer", "attacker")
 	end
 
