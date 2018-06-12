@@ -118,9 +118,11 @@ end
 Defense.calculateBallPosition = Cache.forFrame(calculateBallPosition)
 
 local function centerBackPos(targetPos)
+	targetPos = Field.limitToField(targetPos, -0.01)
 	local dist = Defense.centerBackDistanceToDefenseArea() + Constants.maxRobotRadius
 	local dir = targetPos - World.Geometry.FriendlyGoal
-	return Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal, dir, dist, true) or Defense.centerBackDefaultPos
+	local pos, way, sec = Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal, dir, dist, true)
+	return pos or Defense.centerBackDefaultPos, way, sec
 end
 Defense.centerBackPos = Cache.forFrame(centerBackPos)
 

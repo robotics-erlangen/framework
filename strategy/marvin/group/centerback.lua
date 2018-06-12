@@ -93,8 +93,8 @@ local function calculateCenterBackPositions(centerBackApplications)
 			targetPos, way, sec = UtilDefense.calculateBallPosition(distanceToDefenseArea, robot_radius)
 		end
 		if not way then
-			targetPos = Field.limitToField(targetPos, -0.01)
-			_, way, sec = Field.intersectRayDefenseArea(G.FriendlyGoal, targetPos - G.FriendlyGoal, extraDistance, true)
+			-- centerBackPos will always return a way, as the target is limited to the field
+			_, way, sec = UtilDefense.centerBackPos(targetPos)
 		end
 		if adjustWay and sec then
 			way = UtilDefense.mulCornerFactor(way, sec, extraDistance)
@@ -202,21 +202,16 @@ local function calculateCenterBackPositions(centerBackApplications)
 	for robot, target in pairs(unimportantApplications) do
 		-- if the target is the ball, predict it
 		local targetPos = target.pos
-		local _, target_way, robot_way, robot_sec = nil
+		local _, target_way, target_sec, robot_way, robot_sec = nil
 		if target == World.Ball then
 			targetPos, target_way = UtilDefense.calculateBallPosition(distanceToDefenseArea, robot_radius)
 		end
 		if not target_way then
-			targetPos = Field.limitToField(targetPos, -0.01)
-			_, target_way = Field.intersectRayDefenseArea(G.FriendlyGoal, targetPos - G.FriendlyGoal,
-					distanceToDefenseArea + robot_radius, true)
+			_, target_way, target_sec = UtilDefense.centerBackPos(targetPos)
 		end
-		local dir = robot.pos - G.FriendlyGoal
-		if dir.y < 0 then
-			dir.y = 0.01
 		end
 		-- stay on one end of a group of CenterBacks
-		_, robot_way, robot_sec = Field.intersectRayDefenseArea(G.FriendlyGoal, dir, extraDistance, true)
+		_, robot_way, robot_sec = UtilDefense.centerBackPos(robot.pos)
 		if adjustWay and robot_sec then
 			robot_way = UtilDefense.mulCornerFactor(robot_way, robot_sec, extraDistance)
 		end
