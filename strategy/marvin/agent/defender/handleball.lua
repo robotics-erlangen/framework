@@ -1,6 +1,7 @@
 local Base = require "agent/base/behavior"
 local HandleBall = Class("Agent.Defender.HandleBall", Base)
 
+local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
 local Referee = require "../base/referee"
@@ -10,10 +11,10 @@ local Ball = require "observer/ball"
 local Goal = require "observer/goal"
 local Robot = require "observer/robot"
 local Physics = require "observer/physics"
-local DefUtil = require "util/defense"
-local Duel = require "task/shared/duel"
 local InterceptPass = require "task/defender/interceptpass"
-local debug = require "../base/debug"
+local Duel = require "task/shared/duel"
+local DefUtil = require "util/defense"
+
 
 local G = World.Geometry
 
