@@ -79,9 +79,9 @@ context("base.cache", function ()
 
 		local r1, r2, r3 = multiReturn()
 		-- multiple return values should be possible
-		assert_not_nil(r1)
-		assert_not_nil(r2)
-		assert_not_nil(r3)
+		assert_equal(r1,1)
+		assert_equal(r2,2)
+		assert_equal(r3,3)
 	end)
 
 	test("heavy", function ()
