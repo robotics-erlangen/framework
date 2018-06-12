@@ -120,6 +120,7 @@ local function calculateInterceptPos(robot)
 	return bestPos, posTime, bestRatingOppTime, bestRating
 end
 
+
 InterceptPass.calculateInterceptPos = Cache.forFrame(calculateInterceptPos)
 
 local obstacleTable = {
@@ -130,7 +131,7 @@ local obstacleTable = {
 
 
 function InterceptPass:run()
-	local moveDest, time, oppTime = self.calculateInterceptPos(self._robot)
+	local moveDest, time, oppTime = InterceptPass.calculateInterceptPos(self._robot)
 
 	if moveDest == nil then
 		local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir):scaleLength(
@@ -147,9 +148,11 @@ function InterceptPass:run()
 		end
 	end
 
+	local ballTime = Physics.ballTravelTime(World.Ball, World.Ball.pos:distanceTo(moveDest))
+
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	local dir = (-World.Ball.speed):angle()
-	local endSpeed = Physics.robotMinEndspeed(self._robot, moveDest, time)
+	local endSpeed = Physics.robotMinEndspeed(self._robot, moveDest, ballTime)
 
 	if oppTime - time > 0.3 and time < 0.8 then
 		self:setMainAttackerParameters(World.Ball.pos, endSpeed:length())
