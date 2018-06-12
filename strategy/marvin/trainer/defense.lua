@@ -288,8 +288,8 @@ function Defense:_assignDefenders()
 	-- not in opponent corner attacks: assign a ball centerback
 	local needDefaultCB = not Referee.isDefensiveCornerKick() and not Referee.isFriendlyFreeKickState()
 	if needDefaultCB then
-		local futureBallPos = UtilDefense.calculateBallPosition(UtilDefense.centerBackDistanceToDefenseArea(), 0.09)
-		local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(futureBallPos))
+		local futureBallPosCB = UtilDefense.calculateBallPosition()
+		local defaultCB = UtilDefense.getClosestRobot(defenders, futureBallPosCB)
 		if defaultCB then
 			table.removeValue(defenders, defaultCB)
 			self._send.roleAssignment(defaultCB,

@@ -96,24 +96,18 @@ local function piggyPos(opponent)
 end
 Defense.piggyPos = Cache.forFrame(piggyPos)
 
-local function calculateBallPosition(distanceToDefenseArea, robot_radius)
+local function calculateBallPosition()
 	local targetPos, targetDir, isShot = Goal.predictShot()
-	local targetWay, targetSec
 
 	if isShot and targetDir.y < 0 then
 		local goalLineIntersection = geom.intersectLineLine(targetPos,
 			targetDir, World.Geometry.FriendlyGoal, Vector(1, 0))
 		if goalLineIntersection and
 				math.abs(goalLineIntersection.x) < World.Geometry.GoalWidth / 2 + 0.15 then
-			-- FIXME: HACK FOR FLOATS
-			targetPos, targetWay, targetSec = Field.intersectRayDefenseArea(targetPos, targetDir, distanceToDefenseArea + robot_radius + 0.02, true)
+				return Defense.centerBackPos(targetPos, targetDir)
 		end
 	end
-	if not targetPos then
-		targetPos = World.Ball.pos
-	end
-
-	return targetPos, targetWay, targetSec
+	return Defense.centerBackPos(targetPos)
 end
 Defense.calculateBallPosition = Cache.forFrame(calculateBallPosition)
 

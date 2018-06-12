@@ -90,7 +90,8 @@ local function calculateCenterBackPositions(centerBackApplications)
 		local targetPos = target.pos
 		local _, way, sec
 		if target == World.Ball then
-			targetPos, way, sec = UtilDefense.calculateBallPosition(distanceToDefenseArea, robot_radius)
+			targetPos, way, sec = UtilDefense.calculateBallPosition()
+			assert(way, "calling centerBackPos/IntersectRayDefenseArea twice is bad")
 		end
 		if not way then
 			-- centerBackPos will always return a way, as the target is limited to the field
@@ -204,7 +205,8 @@ local function calculateCenterBackPositions(centerBackApplications)
 		local targetPos = target.pos
 		local _, target_way, target_sec, robot_way, robot_sec = nil
 		if target == World.Ball then
-			targetPos, target_way, target_sec = UtilDefense.calculateBallPosition(distanceToDefenseArea, robot_radius)
+			targetPos, target_way, target_sec = UtilDefense.calculateBallPosition()
+			assert(target_way, "calling centerBackPos / IntersectRayDefenseArea twice is bad")
 		end
 		if not target_way then
 			_, target_way, target_sec = UtilDefense.centerBackPos(targetPos)
