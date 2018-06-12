@@ -204,11 +204,13 @@ local function calculateCenterBackPositions(centerBackApplications)
 		local targetPos = target.pos
 		local _, target_way, target_sec, robot_way, robot_sec = nil
 		if target == World.Ball then
-			targetPos, target_way = UtilDefense.calculateBallPosition(distanceToDefenseArea, robot_radius)
+			targetPos, target_way, target_sec = UtilDefense.calculateBallPosition(distanceToDefenseArea, robot_radius)
 		end
 		if not target_way then
 			_, target_way, target_sec = UtilDefense.centerBackPos(targetPos)
 		end
+		if adjustWay and target_sec then
+			target_way = UtilDefense.mulCornerFactor(target_way, target_sec, extraDistance)
 		end
 		-- stay on one end of a group of CenterBacks
 		_, robot_way, robot_sec = UtilDefense.centerBackPos(robot.pos)
