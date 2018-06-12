@@ -117,9 +117,20 @@ local function calculateBallPosition(distanceToDefenseArea, robot_radius)
 end
 Defense.calculateBallPosition = Cache.forFrame(calculateBallPosition)
 
-local function centerBackPos(targetPos)
-	targetPos = Field.limitToField(targetPos, -0.01)
+--calculates the centerBackPos for a target
+--if targetDir is supplied, the CB will position itself between targetPos and intersectRayDefenseArea(pos, dir, ...)
+--if that intersection is empty or no dir is supplied, it wil position itself between the target and the center of the goal
+local function centerBackPos(targetPos, targetDir)
 	local dist = Defense.centerBackDistanceToDefenseArea() + Constants.maxRobotRadius
+	if targetDir then
+		--use targetPos even if it is slightly outside the field if it is going to be shot back in
+		--don't rely on the autoref to disqualify this shot
+		local pos, way, sec = Field.intersectRayDefenseArea(targetPos, targetDir, dist, true)
+		if pos then
+			return pos, way, sec
+		end
+	end
+	targetPos = Field.limitToField(targetPos, -0.01)
 	local dir = targetPos - World.Geometry.FriendlyGoal
 	local pos, way, sec = Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal, dir, dist, true)
 	return pos or Defense.centerBackDefaultPos, way, sec
