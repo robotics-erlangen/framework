@@ -55,7 +55,7 @@ QString RefereeStatusWidget::gameEventMessage(const SSL_Referee_Game_Event &even
          {SSL_Referee_Game_Event::GOAL, "goal by %1%2"},
          {SSL_Referee_Game_Event::KICK_TIMEOUT, "kick timeout by %1%2"},
          {SSL_Referee_Game_Event::NO_PROGRESS_IN_GAME, "no progress in game%1%2"},
-         {SSL_Referee_Game_Event::BOT_COLLISION, "bot collision by %1%2"},
+         {SSL_Referee_Game_Event::BOT_COLLISION, "bot collision/pushing by %1%2"},
          {SSL_Referee_Game_Event::ATTACKER_IN_DEFENSE_AREA, "%1 touched the ball in the opponent defense area%2"},
          {SSL_Referee_Game_Event::ICING, "icing, shot by %1%2"},
          {SSL_Referee_Game_Event::BALL_SPEED, "ball too fast, shot by %1%2"},
