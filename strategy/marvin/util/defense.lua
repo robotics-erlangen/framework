@@ -114,7 +114,7 @@ Defense.calculateBallPositionField = Cache.forFrame(calculateBallPositionField)
 local function calculateBallPosition()
 	return Defense.centerBackPos(calculateBallPositionField())
 end
-Defense.calculateBallPosition = Cache.forFrame(calculateBallPosition)
+Defense.calculateBallPosition = calculateBallPosition
 
 --calculates the centerBackPos for a target
 --if targetDir is supplied, the CB will position itself between targetPos and intersectRayDefenseArea(pos, dir, ...)
