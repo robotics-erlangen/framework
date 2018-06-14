@@ -96,7 +96,7 @@ local function piggyPos(opponent)
 end
 Defense.piggyPos = Cache.forFrame(piggyPos)
 
-local function calculateBallPosition()
+local function calculateBallPositionField()
 	local targetPos, targetDir, isShot = Goal.predictShot()
 
 	if isShot and targetDir.y < 0 then
@@ -104,10 +104,15 @@ local function calculateBallPosition()
 			targetDir, World.Geometry.FriendlyGoal, Vector(1, 0))
 		if goalLineIntersection and
 				math.abs(goalLineIntersection.x) < World.Geometry.GoalWidth / 2 + 0.15 then
-				return Defense.centerBackPos(targetPos, targetDir)
+				return targetPos, targetDir
 		end
 	end
-	return Defense.centerBackPos(targetPos)
+	return targetPos
+end
+Defense.calculateBallPositionField = Cache.forFrame(calculateBallPositionField)
+
+local function calculateBallPosition()
+	return Defense.centerBackPos(calculateBallPositionField())
 end
 Defense.calculateBallPosition = Cache.forFrame(calculateBallPosition)
 
