@@ -31,7 +31,7 @@ local function getDefaultPosition(boundaries)
 end
 
 local function visualizeZone(zone)
-	local visFlag = false
+	local visFlag = true
 
 	if visFlag then
 		local edge = 0.05
@@ -115,17 +115,17 @@ function Midfield:_updateZones(nMidfielders)
 	local remainingZones = nMidfielders
 
 	local robotRadius = Constants.maxRobotRadius
-	local zoneWidth = 2
+	local zoneWidth = 3
 	local top = isInTopHalf and -1 or 1
-	local verticalOffset = 2.2
-	local horizontalOffset = 0.5
+	local verticalOffset = 1.2
+	local horizontalOffset = 1.5
 
 	-- three hardcoded zones, depending on the number of robots we have
 	if remainingZones >= 1 then
 		local zone = {}
 		zone.boundaries = {
 			bottom = -3.5,
-			top = 0.5,
+			top = 1.5,
 			left = top * (totalLeft + robotRadius + verticalOffset)+ top,
 			right = top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top
 		}
@@ -138,7 +138,7 @@ function Midfield:_updateZones(nMidfielders)
 		local zone = {}
 		zone.boundaries = {
 			bottom = -3.5 + horizontalOffset,
-			top = 0.5 + horizontalOffset,
+			top = 1.5 + horizontalOffset,
 			right = -top * (totalLeft + robotRadius + verticalOffset) + top,
 			left = -top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top
 		}
