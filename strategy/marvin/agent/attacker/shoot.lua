@@ -109,8 +109,11 @@ function Shoot:_decide()
 		local CONE_WIDTH = 90 / 180 * math.pi
 		local ANGLE_STEP = 15 / 180 * math.pi
 
+		local OPPONENT_DISTANCE_THRESHOLD = 1.5
+
 		local attackAngle = (G.OpponentGoal - self._attackPosition):angle()
 		local bestRating = passRating
+		local furthestOppDist, bestDist = 0, 0
 		for dist = MIN_DISTANCE, MAX_DISTANCE, DISTANCE_STEP do
 			for angle = -CONE_WIDTH/2, CONE_WIDTH/2, ANGLE_STEP do
 
@@ -133,11 +136,36 @@ function Shoot:_decide()
 					self._inbox.passSuggestion(), self._prevPassPos, true)
 				local newPassRating = newPass and Attack.ratePass(self._robot, newPass, true) or 0
 
-				if newPassRating > bestRating then
+				if newPassRating > bestRating and newPassRating > MIN_RATING then
 					bestRating = newPassRating
 					pass = {target = self._robot, pos = newAttackPosition, time = World.Time}
 				end
+
+				-- look for close opponents
+				local closestOppDist = math.huge
+				for _, opp in pairs(World.OpponentRobots) do
+					local oppDist = opp.pos:distanceToSq(newAttackPosition)
+					if oppDist < closestOppDist then
+						closestOppDist = oppDist
+					end
+				end
+				if closestOppDist > furthestOppDist then
+					furthestOppDist = closestOppDist
+					bestDist = dist
+				end
 			end
+		end
+
+		if (not pass or Attack.ratePass(self._robot, pass, true) < MIN_RATING) and furthestOppDist > OPPONENT_DISTANCE_THRESHOLD then
+			local newAttackPosition = self._attackPosition + Vector.fromAngle(attackAngle):setLength(bestDist)
+			local passVector = newAttackPosition - self._attackPosition
+			return {
+				task = "pass",
+				target = self._robot,
+				pos = self._attackPosition + passVector:setLength(0.5),
+				time = World.Time,
+				quality = "clean"
+			}
 		end
 	end
 
