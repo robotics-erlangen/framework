@@ -1,5 +1,5 @@
 local ForceShoot = require "task/ability/forceshoot"
-local AggressiveKeeper = Class("Task.AggressiveKeeper",
+local AggressiveKeeperTest = Class("Task.AggressiveKeeperTest",
 	require "task/base", ForceShoot)
 
 local Field = require "../base/field"
@@ -19,7 +19,7 @@ local CHIP_IMPACT_DIST_FROM_BORDER = 0.5
 local CHIP_DIST_FACTOR = 0.25
 local CHIP_GOAL_LINE_DIST = 1
 
-function AggressiveKeeper:run()
+function AggressiveKeeperTest:run()
 	local safeGoalMid = World.Geometry.FriendlyGoal - Vector(0, 0.05)
 	local moveDest
 	local ignoreBall
@@ -86,7 +86,7 @@ local leftNearBasePoint = Vector(-World.Geometry.FieldWidthHalf, World.Geometry.
 local rightNearBasePoint = Vector(World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf-CHIP_GOAL_LINE_DIST)
 local nearBaseLineDir = rightNearBasePoint-leftNearBasePoint
 
-function AggressiveKeeper:_chipToBorderIfSafe()
+function AggressiveKeeperTest:_chipToBorderIfSafe()
 	local robotPos = self._robot.pos
 	local ballPos = World.Ball.pos
 	local robotDir = ballPos - robotPos
@@ -120,4 +120,4 @@ function AggressiveKeeper:_chipToBorderIfSafe()
 	end
 end
 
-return AggressiveKeeper
+return AggressiveKeeperTest
