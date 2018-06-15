@@ -263,8 +263,12 @@ function CatchBall:_ballCatchMethod(currentBall, predictedBall, moveDest)
 	local ballHit = lambda1 ~= nil and (lambda1 >= 0 and lambda1 <= 1) or lambda2 ~= nil and (lambda2 >= 0 and lambda2 <= 1)
 	local robotHit = lambda3 ~= nil and (lambda3 >= 0 and lambda3 <= 1) or lambda4 ~= nil and (lambda4 >= 0 and lambda4 <= 1)
 
+	local robotMovement = moveDest:distanceToSq(self._robot.pos) > self._robot.radius * self._robot.radius
+							and moveDest - self._robot.pos
+							or self._robot.speed
+
 	if ballHit and robotHit or lambda2 == math.huge and lambda4 == math.huge
-		or ((moveDest - self._robot.pos):absoluteAngleDiff(World.Ball.pos - moveDest) > 87/180*math.pi) then
+		or (robotMovement:absoluteAngleDiff(World.Ball.pos - moveDest) > 87/180*math.pi) then
 		-- the robot has to move around the predicted ball to reach the catch pos
 		return AROUND_METHOD
 	elseif moveDest:distanceTo(currentBall.pos) > robotTargetSpacing
