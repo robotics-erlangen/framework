@@ -13,6 +13,7 @@ local Robot = require "observer/robot"
 local Physics = require "observer/physics"
 local InterceptPass = require "task/defender/interceptpass"
 local Duel = require "task/shared/duel"
+local Attack = require "util/attack"
 local DefUtil = require "util/defense"
 local Rating = require "util/rating"
 
@@ -105,8 +106,11 @@ function HandleBall:_checkInterceptPass()
 	local isInterceptPass = self._taskDecision == "interceptpass"
 							or (self._inbox.interceptPass().trainer == self._robot)
 
-	--TODO: don't if we want to intercept our own pass
-
+	-- don't if we want to intercept our own pass
+	local sender, passInfoTable = next(self._inbox.passInfo())
+	if Attack.currentPlannedMainAttacker(sender, passInfoTable) then
+		return false
+	end
 
 	-- don't if the ball is too slow
 	local ballSpeedLimit = isInterceptPass and 1.5 or 2.0
