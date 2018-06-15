@@ -375,28 +375,25 @@ local function intersectDefenseArea_2018(pos, dir, extraDistance, friendly)
 	end
 end
 
+-- if the way is <0 or greater than the maximum way, the intersection is on
+-- the extended defense area side lines
 local function defenseIntersectionByWay_2018(way, extraDistance, friendly)
 	local corners = {}
 	corners[1] = Vector(G.DefenseWidthHalf+extraDistance, G.FieldHeightHalf)
 	corners[2] = Vector(G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight-extraDistance)
 	corners[3] = Vector(-G.DefenseWidthHalf-extraDistance, G.FieldHeightHalf-G.DefenseHeight)
-	-- corners[4] = Vector(-G.DefenseWidthHalf, G.FieldHeightHalf+extraDistance)
 	local directions = {}
 	directions[1] = Vector(0,-1)
 	directions[2] = Vector(-1,0)
 	directions[3] = Vector(0,1)
-	-- directions[4] = Vector(1,0)
 	local f = friendly and -1 or 1
 
 	for i,v in ipairs(corners) do
 		local length = (i%2 == 0) and G.DefenseWidth or G.DefenseHeight
-		if way <= length then
+		if way <= length or i == 3 then
 			return (v + directions[i]*way)*f
 		end
 		way = way - length - math.pi/2 * extraDistance
-		if i == 3 then
-			return Vector(-corners[1].x, corners[1].y)*f
-		end
 		if way < 0 then
 			local corner = Vector((3-i*2)*G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight)*f
 			local dir = Vector.fromAngle(-math.pi/2*i - way/extraDistance)*f
