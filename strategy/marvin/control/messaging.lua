@@ -71,7 +71,7 @@ local msgDefs = {
 	-- possible names are "CenterBack", "ManMark" and "ZoneDefense"
 	-- params is a list of parameters
 		-- Centerback:
-			-- params[1]: Table target, a ball-like or robot-like structure
+			-- params[1]: Table, target like {pos= Vector, dir=Vector, time = number}
 		-- ManMark:
 			-- params[1]: Robot manMarkTarget
 		-- ZoneDefense
