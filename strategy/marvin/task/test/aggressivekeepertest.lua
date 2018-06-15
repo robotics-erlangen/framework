@@ -54,7 +54,8 @@ function AggressiveKeeperTest:run()
 					vis.addCircle("t/a/ballintercept", moveDest, 0.04, vis.colors.gold, true)
 					log(alpha)
 					log(isShot)
-					if ballSpeed.y < -2 then
+					log(ballTime)
+					if ballSpeed.y < -2 and ballTime == 1 then
 						endspeed = (interceptPos-robotPos):setLength(2)+self._robot.speed
 						moveDest = robotPos + (self._robot.speed + endspeed) * ballTime / 2
 					else
