@@ -255,7 +255,7 @@ function Shoot:_updateTask()
 		-- creating a new task instance would mess up catchBall
 		if self._task and Class.instanceOf(self._task, Pass)
 				and self._decision.pos ~= self._prevPassPos then
-			self._task:updateTarget(self._decision.target, self._decision.pos, self._decision.time)
+			self._task:updateTarget(self._decision.target, self._decision.pos, nil, self._decision.time)
 		end
 		self._prevPassPos = self._decision.pos
 

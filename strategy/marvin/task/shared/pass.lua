@@ -35,11 +35,13 @@ function Pass:_init(targetRobot, targetPos, chip, ballReceiptPos, targetTime, ta
 	end
 end
 
-function Pass:updateTarget(targetRobot, targetPos, targetTime, targetSpeed)
+function Pass:updateTarget(targetRobot, targetPos, chip, targetTime, targetSpeed)
 	self._targetRobot = targetRobot
 	self._targetPos = targetPos
 	self._passSpeed = targetSpeed or targetRobot and self._targetRobot.constants.passSpeed or DEFAULT_PASS_SPEED
 	self._targetTime = targetTime
+	self._chipOverride = chip ~= nil
+	self._chip = chip
 end
 
 local function ratePass(attackPos, targetPos)
