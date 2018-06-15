@@ -93,6 +93,21 @@ function table.split(t, lastIndexOfFirstPart)
 	return part1, part2
 end
 
+function table.splitValue(t, element)
+	local first, second = {}, {}
+	local found = false
+	for _, e in ipairs(t) do
+		if e == element then
+			found = true
+		elseif found then
+			table.insert(second, e)
+		else
+			table.insert(first, e)
+		end
+	end
+	return first, second
+end
+
 --- Find the maximum in an array
 -- @name max
 -- @param t number[] - Table to search
