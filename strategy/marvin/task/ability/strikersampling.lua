@@ -1,5 +1,6 @@
 local StrikerSampling = {}
 
+local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
@@ -129,6 +130,16 @@ function StrikerSampling:distToGoal(ballPos)
 	return rating * 0.9 + 0.1
 end
 
+function StrikerSampling:volleyCircle(ballPos)
+	-- the smaller the radius is, the more positions are viable for volley
+
+	local minRating = 0.6
+	local _, _, radius = geom.inscribedAngle(ballPos, World.Geometry.OpponentGoal, 60 / 180 * math.pi)
+	local rating = Rating.valueToRating(radius, 2, 0.5)
+
+	return rating * (1 - minRating) + minRating
+end
+
 
 function StrikerSampling:evalLocation(ballPos, bestScore)
 	local score = 1
@@ -140,6 +151,9 @@ function StrikerSampling:evalLocation(ballPos, bestScore)
 	if score < bestScore then return score end
 
 	score = score * self:goalAngle(ballPos)
+	if score < bestScore then return score end
+
+	score = score * self:volleyCircle(ballPos)
 	if score < bestScore then return score end
 
 	score = score * self:passTooShort(ballPos)
