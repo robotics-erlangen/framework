@@ -10,6 +10,7 @@ local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
+local Goal = require "observer/goal"
 
 
 local POSITION_PADDING = 0.02 -- safety distance
@@ -22,16 +23,48 @@ function AggressiveKeeper:run()
 	local safeGoalMid = World.Geometry.FriendlyGoal - Vector(0, 0.05)
 	local moveDest
 	local ignoreBall
-	if World.Ball.pos.y < self._robot.pos.y + POSITION_PADDING then
+	local ballSpeed = World.Ball.speed
+	local robotPos = self._robot.pos
+	local viewDir = World.Ball.pos - safeGoalMid
+	local endspeed = Vector(0,0)
+	local ballTime = math.min(Robot.minTimeToBall(self._robot), 1)
+	if World.Ball.pos.y < robotPos.y + POSITION_PADDING then
 		-- get between ball and goal
 		local ballDist = self._robot.radius + World.Ball.radius
 		moveDest = World.Ball.pos + (safeGoalMid - World.Ball.pos):setLength(ballDist) + Vector(0, -POSITION_PADDING)
 		ignoreBall = false
 	else
-		local ballTime = Robot.minTimeToBall(self._robot)
 		moveDest = Physics.ballAtTime(World.Ball, ballTime).pos
-		moveDest = moveDest + (self._robot.pos - moveDest):setLength(World.Ball.radius)
+		moveDest = moveDest + (robotPos - moveDest):setLength(World.Ball.radius)
 		ignoreBall = true
+	end
+	if ballSpeed.y < 0 then
+		local pos, dir, isShot = Goal.predictShot()
+		if pos then
+			local x = geom.intersectLineLine(World.Geometry.FriendlyGoal, Vector(1,0), pos, dir).x
+			local dyky = math.max(math.abs(x)*2 / World.Geometry.GoalWidth/2, 1)
+			-- if math.abs(x) < World.Geometry.GoalWidth/2 then
+				-- local alpha = 1/(1+self._robot.pos:distanceTo(pos)/2)
+				local alpha = (1-(math.exp(-ballSpeed:length()/2)))/(1+self._robot.pos:distanceTo(pos)/2)
+				alpha = alpha / dyky
+				-- log(isShot)
+				local interceptPos = robotPos:orthogonalProjection(pos, pos+dir)
+				if interceptPos then
+					vis.addCircle("t/a/ballintercept", interceptPos, 0.04, vis.colors.gold, true)
+					vis.addCircle("t/a/ballintercept", moveDest, 0.04, vis.colors.gold, true)
+					log(alpha)
+					log(isShot)
+					if ballSpeed.y < -2 then
+						endspeed = (interceptPos-robotPos):setLength(2)+self._robot.speed
+						moveDest = robotPos + (self._robot.speed + endspeed) * ballTime / 2
+					else
+						moveDest = moveDest*(1-alpha) + interceptPos * alpha
+					end
+				end
+			-- end
+		end
+	else
+		endspeed = viewDir * 0.5
 	end
 
 	self:_chipToBorderIfSafe()
@@ -41,8 +74,7 @@ function AggressiveKeeper:run()
 		ignorePass = true
 	}
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
-	local viewDir = World.Ball.pos - safeGoalMid
-	self._robot.trajectory:update(ToTarget, moveDest, viewDir:angle(), nil, viewDir * 0.5)
+	self._robot.trajectory:update(ToTarget, moveDest, viewDir:angle(), nil, endspeed)
 end
 
 
