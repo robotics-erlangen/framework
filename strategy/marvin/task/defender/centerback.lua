@@ -6,7 +6,6 @@ local Field = require "../base/field"
 local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local World = require "../base/world"
-local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
@@ -33,7 +32,6 @@ function CenterBack:run()
 	local pos_target = self._inbox.centerBackPosTarget().trainer
 
 	local destinationPos = pos_target and pos_target.pos or UtilDefense.centerBackDefaultPos
-	local destinationTarget = pos_target and pos_target.target or self._preliminaryCenterbackTarget
 
 	local toBallAngle = (World.Ball.pos - self._robot.pos):angle()
 	local toGoalAngle = (World.Geometry.OpponentGoal - self._robot.pos):angle()
@@ -59,8 +57,6 @@ function CenterBack:run()
 	dir = geom.normalizeAnglePositive(dir + 0.5 * math.pi) - 0.5 * math.pi
 	dir = math.bound(fromGoalAngle - maxAngleTilt, dir, fromGoalAngle + maxAngleTilt)
 
-	debug.set("target", destinationTarget)
-
 	if not Robot.hadBall(self._robot, 0) then
 		self._forceShootTimer = nil
 	end
@@ -81,35 +77,6 @@ function CenterBack:run()
 	self._obstacleTable.ignoreFriendlyRobots = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 		< 2 * self._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05
 	self._obstacleTable.ignorePass = self._obstacleTable.ignoreFriendlyRobots
-	-- The centerback that is blocking the ball, that is shot towards the goal has to
-	-- -fully drive into the shot
-	-- -drive as fast as possible, because it doesn't matter if we have an endSpeed when we have blocked the ball
-	local endSpeed = nil
-	local intersectionWithGoalLine = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, G.FriendlyGoal, Vector(1, 0))
-	if intersectionWithGoalLine and math.abs(intersectionWithGoalLine.x) < G.GoalWidth / 2 + 0.1
-			and World.Ball.speed:length() > 0.5 and World.Ball.speed.y < 0 and destinationTarget == World.Ball then
-		local blockingPos = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, UtilDefense.centerBackDistanceToDefenseArea() + self._robot.radius, true)
-		--destinationPos = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, destinationPos, (destinationPos - self._robot.pos))
-		if blockingPos then
-			destinationPos = blockingPos
-		end
-		local ballTime = Physics.checkedBallRollTime(World.Ball, destinationPos + (World.Ball.pos - destinationPos):setLength(self._robot.shootRadius + World.Ball.radius))
-
-		if ballTime ~= -math.huge then
-			endSpeed = Physics.robotMinEndspeed(self._robot, destinationPos, ballTime)
-		end
-		if endSpeed then
-			local phi = (destinationPos - G.FriendlyGoal):angle()
-			endSpeed:rotate(-phi)
-
-			if endSpeed.x < 0 then
-				endSpeed.x = 0
-			end
-
-			endSpeed:rotate(phi)
-		end
-
-	end
 
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 
@@ -120,7 +87,7 @@ function CenterBack:run()
 		self._robot.path:addLine(startPos.x, startPos.y, endPos.x, endPos.y, mainAttacker.radius * 2 + 0.1, 100)
 	end
 
-	self._robot.trajectory:update(ToTarget, destinationPos, dir, nil, endSpeed)
+	self._robot.trajectory:update(ToTarget, destinationPos, dir)
 	self._send.moveDest("all", destinationPos)
 end
 
