@@ -95,6 +95,10 @@ function Pass:run()
 	local passSpeed = math.max((1 - ratePass(attackPos, targetPos)) * self._passSpeed, MIN_PASS_SPEED)
 	debug.set("passSpeed", passSpeed)
 
+	if self._targetRobot == self._robot then
+		self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
+	end
+
 	if self._chip then
 		self:_chipPass(targetPos, self._ballReceiptPos, self._targetTime, maxAngleError)
 	else
