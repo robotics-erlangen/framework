@@ -17,6 +17,8 @@ local ShootGoal = require "task/attacker/shootgoal"
 local Attack = require "util/attack"
 local ShootGoalUtil = require "util/shootgoal"
 
+local G = World.Geometry
+
 
 function Shoot:_stop()
 	self._nextDecisionTime = World.Time
@@ -43,18 +45,18 @@ function Shoot:check()
 	return self._inbox.mainAttacker().trainer == self._robot
 end
 
-function Shoot:_shootGoalPossible()
-	local sg_target, _, sg_dirty = ShootGoalUtil.updateTarget(self._robot, nil, false, self._attackPosition)
+function Shoot:_shootGoalPossible(robot, attackPosition)
+	local sg_target, _, sg_dirty = ShootGoalUtil.updateTarget(robot, nil, false, attackPosition)
 
 	if sg_dirty then
 		return false
 	end
 
 	if World.Ball.speed:length() > 1.2 then
-		return ObserverShoot.volleyPossible(self._robot, sg_target)
+		return ObserverShoot.volleyPossible(robot, sg_target)
 	end
 
-	if self._attackPosition and Field.distanceToOpponentDefenseArea(self._attackPosition, 0) > 1 and Robot.isPressed(self._robot, self._attackPosition) then
+	if attackPosition and Field.distanceToOpponentDefenseArea(attackPosition, 0) > 1 and Robot.isPressed(robot, attackPosition) then
 		return false
 	end
 
@@ -77,11 +79,13 @@ function Shoot:_checkForManualAlly()
 	end
 end
 
+local MIN_RATING = 0.3
+local ENABLE_PSEUDO_PASS = true
 function Shoot:_decide()
 	self._wasPressed = Robot.isPressed(self._robot)
 
 	-- perform clean goal shots if possible
-	if self:_shootGoalPossible() then
+	if self:_shootGoalPossible(self._robot, self._attackPosition) then
 		return {
 			task = "shootgoal",
 			pos = World.Geometry.OpponentGoal,
@@ -91,6 +95,52 @@ function Shoot:_decide()
 
 	local pass = Attack.choosePassFromSuggestions(self._robot,
 		self._inbox.passSuggestion(), self._prevPassPos, true)
+
+	-- consider chipping forward
+	local passRating = pass and Attack.ratePass(self._robot, pass, true) or 0
+	if ENABLE_PSEUDO_PASS and self._attackPosition and passRating < MIN_RATING 
+			and Field.distanceToDefenseAreaSq(self._attackPosition) > 2
+			and World.Ball.speed:length() < 1 then
+
+		local MIN_DISTANCE = 0.2
+		local MAX_DISTANCE = 1
+		local DISTANCE_STEP = 0.2
+
+		local CONE_WIDTH = 90 / 180 * math.pi
+		local ANGLE_STEP = 15 / 180 * math.pi
+
+		local attackAngle = (G.OpponentGoal - self._attackPosition):angle()
+		local bestRating = passRating
+		for dist = MIN_DISTANCE, MAX_DISTANCE, DISTANCE_STEP do
+			for angle = -CONE_WIDTH/2, CONE_WIDTH/2, ANGLE_STEP do
+
+				-- check for possible goalshot opportunity
+				local newAttackPosition = self._attackPosition + Vector.fromAngle(attackAngle + angle):setLength(dist)
+				--local dribblerOffset = (self._attackPosition - newAttackPosition):setLength(self._robot.shootRadius + World.Ball.radius)
+				if self:_shootGoalPossible(self._robot, newAttackPosition) then
+					local passVector = newAttackPosition - self._attackPosition
+					return {
+						task = "pass",
+						target = self._robot,
+						pos = self._attackPosition + passVector:setLength(0.5),
+						time = World.Time,
+						quality = "clean"
+					}
+				end
+
+				-- look for better pass opportunities
+				local newPass = Attack.choosePassFromSuggestions(self._robot,
+					self._inbox.passSuggestion(), self._prevPassPos, true)
+				local newPassRating = newPass and Attack.ratePass(self._robot, newPass, true) or 0
+
+				if newPassRating > bestRating then
+					bestRating = newPassRating
+					pass = {target = self._robot, pos = newAttackPosition, time = World.Time}
+				end
+			end
+		end
+	end
+
 	if pass then
 		return {
 			task = "pass",
@@ -251,11 +301,18 @@ function Shoot:_updateTask()
 		local target = self._decision.target
 		local ballPos = self._decision.pos
 
+		local chipOverride = nil
+		local targetSpeed = nil
+		if target == self._robot then
+			chipOverride = true
+			targetSpeed = 0.1
+		end
+
 		-- update target if the decision changed
 		-- creating a new task instance would mess up catchBall
 		if self._task and Class.instanceOf(self._task, Pass)
 				and self._decision.pos ~= self._prevPassPos then
-			self._task:updateTarget(self._decision.target, self._decision.pos, nil, self._decision.time)
+			self._task:updateTarget(self._decision.target, self._decision.pos, chipOverride, self._decision.time, targetSpeed)
 		end
 		self._prevPassPos = self._decision.pos
 
@@ -268,7 +325,7 @@ function Shoot:_updateTask()
 		self._send.passInfo("all", {{ target = target,
 			ballPos = ballPos, time = passReceiveTime }})
 
-		return Pass, { target, ballPos, nil, self._lastIncomingPassInfoPos, self._decision.time }
+		return Pass, { target, ballPos, chipOverride, self._lastIncomingPassInfoPos, self._decision.time, targetSpeed}
 	end
 
 	-- error: invalid decision
