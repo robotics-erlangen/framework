@@ -1,7 +1,6 @@
 local Base = require "agent/base/behavior"
 local Default = Class("Agent.Defender.Default", Base)
 
-local World = require "../base/world"
 local CenterBack = require "task/defender/centerback"
 local Defense = require "util/defense"
 
