@@ -326,6 +326,8 @@ function Shoot:_shootChaseBall(targetPos, targetSpeed)
 	end
 end
 
+local MIN_TIME = 0.2
+local DISTRACTION_PERCENTAGE = 0.9
 function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
 	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
@@ -336,6 +338,26 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 		moveDest = self._robot.pos
 	end
 	debug.set("ballinsiderobot", World.Time - self._lastBallInsideRobotTime)
+
+	-- don't look in the correct direction from the beginning
+	local ball = table.copy(World.Ball)
+	local distance = ball.pos:distanceTo(futureBall.pos)
+	local ballTravelTime = Physics.ballTravelTime(ball, distance)
+	if self._robot.pos:distanceTo(moveDest) < 0.05 and ballTravelTime > MIN_TIME then
+		local clockwiseRotation, counterClockwiseRotation = Physics.robotRotationRangeForTime(self._robot,
+				DISTRACTION_PERCENTAGE * ballTravelTime)
+		local shootVector = targetPos - moveDest
+		local shootAngle = shootVector:angle()
+		local angleDiff = math.abs(self._robot.dir - shootAngle)
+
+		local rotateClockwise = moveDest.x > 0
+		if rotateClockwise and counterClockwiseRotation > angleDiff then
+			shootVector:rotate(-clockwiseRotation)
+		elseif not rotateClockwise and clockwiseRotation > angleDiff then
+			shootVector:rotate(counterClockwiseRotation)
+		end
+		targetPos = moveDest + shootVector
+	end
 
 	if not self:_catchBallNecessary(moveDest, futureBallTime) then
 		self:_setObstacles(moveDest)
