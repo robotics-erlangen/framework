@@ -7,6 +7,9 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 
 local Ball = require "observer/ball"
+local Goal = require "observer/goal"
+local ObserverRobot = require "observer/robot"
+local Physics = require "observer/physics"
 local UtilDefense = require "util/defense"
 local Rating = require "util/rating"
 
@@ -16,12 +19,14 @@ local G = World.Geometry
 function Defense:init()
 	self._manmarkTargets = {} -- opponent -> rating
 	self._manmarkAssignments = {} -- opponent -> defender
+	self._centerbackAssignments = {}
 
 	self._piggyTargets = {} -- opponent -> rating
 	self._piggyAssignments = {} -- opponent -> defender
 
 	self._previousManmarkAssignments = {} -- opponent -> defender
 	self._previousPiggyAssignments = {} -- opponent -> defender
+	self._previousBallCenterbacks = {}
 
 	self._ballIsLeft = true
 
@@ -34,6 +39,7 @@ function Defense:init()
 	self._zoneDefenderPosRight = UtilDefense.manMarkPos(
 		{pos = zonePosRight, radius = Constants.maxRobotRadius, speed = Vector(0, 0)})
 	self._zonePosHysteresis = {}
+	self._centerbackIntersectionsRemoved = {false, false}
 end
 
 function Defense:_updateManmarkTargets()
@@ -271,9 +277,120 @@ function Defense:_assignPiggies(defenders, nPiggies)
 	end
 end
 
+-- inserts tables of: way, pos, startPos, startDirection of the ray into result
+function Defense:_createIntersections(result, pos, direction, radius, index)
+	local lastRemoved = self._centerbackIntersectionsRemoved[index]
+	self._centerbackIntersectionsRemoved[index] = false
+	local MAX_DEFENSE_DIST = 5
+	local intersections = Field.intersectionsRayDefenseArea(pos, direction, radius, true)
+	if intersections[1] and intersections[2] then
+		if intersections[1].pos:distanceToSq(pos) > intersections[2].pos:distanceToSq(pos) then
+			intersections[1], intersections[2] = intersections[2], intersections[1]
+		end
+		-- TODO: hysteresen
+		local maxDistance = lastRemoved and 0.3 or 0.2
+		if intersections[1].pos:distanceToSq(intersections[2].pos) < maxDistance * maxDistance then
+			intersections[2] = nil
+			self._centerbackIntersectionsRemoved[index] = true
+		end
+	end
+	if intersections[1] then
+		if intersections[1].pos:distanceToSq(pos) > MAX_DEFENSE_DIST * MAX_DEFENSE_DIST then
+			return
+		end
+		table.insert(result, {startPos = pos, startDirection = direction,
+			pos = intersections[1].pos, way = intersections[1].way})
+	end
+	if intersections[2] then
+		local toDefenseDist = pos:distanceTo(intersections[1].pos)
+		local insidePos = pos + direction:copy():setLength(toDefenseDist + 0.03)
+		table.insert(result, {startPos = insidePos, startDirection = direction,
+			pos = intersections[2].pos,way = intersections[2].way})
+	end
+end
+
+function Defense:_assignBallCenterbacks(defenders)
+	local ROBOT_TIME_MARGIN_LOW = 0.1
+	local ROBOT_TIME_MARGIN_HIGH = 0.2
+
+	if #defenders == 0 then
+		return
+	end
+
+	local ballDistance = Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0)
+	local distanceToDefenseArea = UtilDefense.centerBackDistanceToDefenseArea()
+	local defenseExtraRadius = distanceToDefenseArea + Constants.maxRobotRadius
+	local intersectionInfos = {}
+	if (ballDistance < 1 and World.Ball.speed:length() > 0.2) or not Ball.isSlowBall() then
+		self:_createIntersections(intersectionInfos, World.Ball.pos, World.Ball.speed, defenseExtraRadius, 1)
+	end
+	local predictedPos, predictedDir, isShot = Goal.predictShot()
+	if isShot and (predictedPos ~= World.Ball.pos or predictedDir ~= World.Ball.speed) then
+		local numBefore = #intersectionInfos
+		self:_createIntersections(intersectionInfos, predictedPos, predictedDir, defenseExtraRadius, 2)
+		if #intersectionInfos > numBefore then
+			intersectionInfos[numBefore + 1].resetSpeed = true
+		end
+	end
+	-- remove exit point of predictshot if enough points are available
+	if intersectionInfos[4] then
+		intersectionInfos[4] = nil
+	end
+
+	-- go over all intersections
+	self._centerbackAssignments = {}
+	local timeSum = 0
+	local currentBall = World.Ball
+	for _, info in ipairs(intersectionInfos) do
+		if info.resetSpeed then
+			timeSum = timeSum + Physics.ballTravelTime(currentBall, currentBall.pos:distanceTo(info.startPos))
+			currentBall = {pos = info.startPos, speed = Vector(Constants.maxBallSpeed, 0),
+				maxSpeed = Constants.maxBallSpeed, posZ = 0, initSpeedZ = 0}
+		end
+		local rollTime = timeSum + Physics.ballTravelTime(currentBall, currentBall.pos:distanceTo(info.pos))
+		if rollTime == math.huge then
+			-- no other intersection can be reached by the ball
+			break
+		end
+		local closestRobot = UtilDefense.getClosestRobot(defenders, info.pos)
+		local robotTime = ObserverRobot.timeAroundDefenseAreaByWay(closestRobot, nil, info.pos, info.way, defenseExtraRadius, true)
+		local robotTimeMargin = table.contains(self._centerbackAssignments, closestRobot) and
+			ROBOT_TIME_MARGIN_LOW or ROBOT_TIME_MARGIN_HIGH
+		if robotTime < rollTime + robotTimeMargin or
+				robotTime < rollTime and rollTime < ROBOT_TIME_MARGIN_HIGH then
+			table.insert(self._centerbackAssignments, closestRobot)
+			table.removeValue(defenders, closestRobot)
+			self._send.roleAssignment(closestRobot,
+				{name = "CenterBack", params = { pos = info.startPos, dir = info.startDirection, time = rollTime }})
+		end
+
+		if not amun.isPerformanceMode then
+			vis.addCircle("tr/defense: ball intersection", info.startPos, 0.08, vis.colors.yellow)
+			vis.addCircle("tr/defense: ball intersection", info.pos, 0.12, vis.colors.red)
+			vis.addPath("tr/defense: ball intersection", {info.startPos, info.pos}, vis.colors.red)
+		end
+	end
+
+	-- assign default centerbacks
+	if #intersectionInfos == 0 then
+		-- not in opponent corner attacks: assign a ball centerback
+		local needDefaultCB = not Referee.isDefensiveCornerKick() and not Referee.isFriendlyFreeKickState()
+		if needDefaultCB then
+			local futureBallPosCB = UtilDefense.calculateBallPosition()
+			local defaultCB = UtilDefense.getClosestRobot(defenders, futureBallPosCB)
+			if defaultCB then
+				table.removeValue(defenders, defaultCB)
+				self._send.roleAssignment(defaultCB,
+					{name = "CenterBack", params = { pos = World.Ball.pos }})
+			end
+		end
+	end
+end
+
 function Defense:_assignDefenders()
 	self._previousManmarkAssignments = table.copy(self._manmarkAssignments)
 	self._previousPiggyAssignments = table.copy(self._piggyAssignments)
+	self._previousBallCenterbacks = table.copy(self._centerbackAssignments)
 	self._manmarkAssignments = {}
 
 	if Referee.isNonGameStage() then
@@ -284,18 +401,6 @@ function Defense:_assignDefenders()
 	self:_updatePiggyTargets()
 
 	local defenders = table.keys(self._inbox.defenderFlag())
-
-	-- not in opponent corner attacks: assign a ball centerback
-	local needDefaultCB = not Referee.isDefensiveCornerKick() and not Referee.isFriendlyFreeKickState()
-	if needDefaultCB then
-		local futureBallPosCB = UtilDefense.calculateBallPosition()
-		local defaultCB = UtilDefense.getClosestRobot(defenders, futureBallPosCB)
-		if defaultCB then
-			table.removeValue(defenders, defaultCB)
-			self._send.roleAssignment(defaultCB,
-				{name = "CenterBack", params = { World.Ball }})
-		end
-	end
 
 	-- if needDefaultCB then
 	-- 	local volleyDangerousness = UtilDefense.rateVolleyGoalShotThreats()
@@ -313,6 +418,9 @@ function Defense:_assignDefenders()
 	-- 		end
 	-- 	end
 	-- end
+
+	self:_assignBallCenterbacks(defenders)
+
 	local nPiggies = determineNumberOfPiggies(#defenders, self._manmarkTargets, self._piggyTargets)
 	local nReservedDefenders = nPiggies
 

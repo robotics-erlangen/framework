@@ -16,7 +16,7 @@ end
 
 function Default:_updateTask()
 	local role = self._inbox.roleAssignment().trainer
-	local target = role and role.name == "CenterBack" and role.params[1] or self._customBall
+	local target = role and role.name == "CenterBack" and role.params or self._customBall
 	local restart = target ~= self._lastTarget
 	self._lastTarget = target
 
