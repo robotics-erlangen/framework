@@ -115,17 +115,17 @@ function Midfield:_updateZones(nMidfielders)
 	local remainingZones = nMidfielders
 
 	local robotRadius = Constants.maxRobotRadius
-	local zoneWidth = 3
+	local zoneWidth = G.FieldWidth / 3
 	local top = isInTopHalf and -1 or 1
-	local verticalOffset = 1.2
-	local horizontalOffset = 1.5
+	local verticalOffset = G.FieldWidthHalf / 4
+	local horizontalOffset = G.FieldHeightHalf / 4
 
-	-- three hardcoded zones, depending on the number of robots we have
+	-- two hardcoded zones, depending on the number of robots we have
 	if remainingZones >= 1 then
 		local zone = {}
 		zone.boundaries = {
-			bottom = -3.5,
-			top = 1.5,
+			bottom = -G.FieldHeightHalf * 3/5,
+			top = G.FieldWidthHalf / 3,
 			left = top * (totalLeft + robotRadius + verticalOffset)+ top,
 			right = top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top
 		}
@@ -137,8 +137,8 @@ function Midfield:_updateZones(nMidfielders)
 	if remainingZones >= 1 then
 		local zone = {}
 		zone.boundaries = {
-			bottom = -3.5 + horizontalOffset,
-			top = 1.5 + horizontalOffset,
+			bottom = -G.FieldHeightHalf * 3/5 + horizontalOffset,
+			top = G.FieldWidthHalf / 3 + horizontalOffset,
 			right = -top * (totalLeft + robotRadius + verticalOffset) + top,
 			left = -top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top
 		}
