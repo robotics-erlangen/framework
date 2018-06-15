@@ -4,6 +4,7 @@ local PlaceBall = Class("Task.PlaceBall", require "task/base")
 local Constants = require "../base/constants"
 local debug = require "../base/debug"
 local Field = require "../base/field"
+local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local Direct = require "trajectory/direct"
@@ -344,28 +345,10 @@ function PlaceBall:_getNextState(currentState)
 
 end
 
-local function vectorAverage(array, indexStart, indexEnd)
-	local sum = Vector(0, 0)
-	local n
-	if indexStart then
-		indexEnd = indexEnd or #array
-		for i = indexStart, indexEnd do
-			sum = sum + array[i]
-		end
-		n = indexEnd - indexStart + 1
-	else
-		for _, v in ipairs(array) do
-			sum = sum + v
-		end
-		n = #array
-	end
-	return sum/n
-end
-
 function PlaceBall:_calculateOffsets()
 
 	local ballVisible = self._ball:isPositionValid()
-	
+
 	local usedBallPos = BallObserver.getRealisticBallPos()
 	self._nearestFieldPos = Field.limitToField(usedBallPos)
 
@@ -375,7 +358,7 @@ function PlaceBall:_calculateOffsets()
 		if currentOffset:lengthSq() > 1e-9 then
 			self._placementOffsets[self._placementOffsetFrame] = currentOffset
 			self._placementOffsetFrame = (self._placementOffsetFrame % OFFSET_FRAME_COUNT) + 1
-			self._placementOffsetAverage = vectorAverage(self._placementOffsets):setLength(OFFSET_EXTRA_LENGTH)
+			self._placementOffsetAverage = geom.center(self._placementOffsets):setLength(OFFSET_EXTRA_LENGTH)
 		end
 	end
 
@@ -385,7 +368,7 @@ function PlaceBall:_calculateOffsets()
 		if currentOffset:lengthSq() > 1e-9 then
 			self._borderOffsets[self._borderOffsetFrame] = (usedBallPos - self._nearestFieldPos):normalize()
 			self._borderOffsetFrame = (self._borderOffsetFrame % OFFSET_FRAME_COUNT) + 1
-			self._borderOffsetAverage = vectorAverage(self._borderOffsets):setLength(OFFSET_EXTRA_LENGTH)
+			self._borderOffsetAverage = geom.center(self._borderOffsets):setLength(OFFSET_EXTRA_LENGTH)
 		end
 	end
 
