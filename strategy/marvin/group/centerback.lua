@@ -27,11 +27,23 @@ end
 local privateCenterBackPositions = {}
 local centerBackPositions = {}
 
+--TODO: Target are are the moment defined as table that contains a Vector (pos).
+--They should be {pos= Vector, dir=Vector, time = number}
+--where pos is the position in the field that should be covered,
+--dir is the direction that should be used for defenseIntersection
+--time is the time (in s) until the coverage of this position is NECESSARY and therefore a change or a shifted position is not ok
+--dir and time are optional, if they are ommitted, dir will always be G.FriendlyGoal-pos, and time will be math.huge
+--if two targets are both going to be NECESSARY soon, the first NECESSARY target will be covered and other targets will not be considered NECESSARY
+
 -- gets all CB applications as parameter (robot -> target)
 local function calculateCenterBackPositions(centerBackApplications)
 	-- important = if the centerbacks should take notice of that robot
 	-- -> centerBacks move away to let that robot join the defense line
 	-- -> must not happen to early
+	-- necessary = if the target should be locked.
+	-- -> locked targets may not be swapped
+	-- -> locked targets may not be shifted
+	-- -> there may be only one necessary target or zero.
 
 	-- constants
 	local robot_radius = 0.09
@@ -86,7 +98,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 	local extraDistance = distanceToDefenseArea + robot_radius
 	local intersections = {}
 	for target, rlist in pairs(robots) do
-		-- if the target is the ball, predict it
+		-- if the target is the ball, predict it TODO: Remove that line as soon as refactorisation has finished, because i'll be covered by dir.
 		local targetPos = target.pos
 		local _, way, sec
 		if target == World.Ball then
@@ -95,17 +107,12 @@ local function calculateCenterBackPositions(centerBackApplications)
 		end
 		if not way then
 			-- centerBackPos will always return a way, as the target is limited to the field
-			_, way, sec = UtilDefense.centerBackPos(targetPos)
+			_, way, sec = UtilDefense.centerBackPos(targetPos, target.dir)
 		end
 		if adjustWay and sec then
 			way = UtilDefense.mulCornerFactor(way, sec, extraDistance)
 		end
 		local occupiedWay = (#rlist) * (2 * robot_radius + distanceBetweenDefenders)
-
-		--shift position slightly to cover more of the opposite goal corner of the keeper position
-		if target == World.Ball and World.FriendlyKeeper then
-			way = way - (robot_radius / 2) * (Rating.valueToRating(World.FriendlyKeeper.pos.x, -0.2, 0.2) * 2 - 1)
-		end
 
 		way = math.bound(occupiedWay/2, way, waymaximum - occupiedWay/2)
 		table.insert(intersections, {
@@ -125,9 +132,9 @@ local function calculateCenterBackPositions(centerBackApplications)
 			local imin = i.waypos - i.wayrange/2
 			local imax = i.waypos + i.wayrange/2
 			for jx,j in ipairs(intersections) do
-				local jmin = j.waypos - j.wayrange/2
-				local jmax = j.waypos + j.wayrange/2
 				if ix ~= jx then
+					local jmin = j.waypos - j.wayrange/2
+					local jmax = j.waypos + j.wayrange/2
 					if imax > jmin and jmax > imin then
 						merged = true
 						local totalWay = i.wayrange + j.wayrange

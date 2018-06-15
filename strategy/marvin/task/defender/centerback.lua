@@ -14,8 +14,11 @@ local UtilDefense = require "util/defense"
 
 local G = World.Geometry
 
+-- centerbackTarget has to be updated by the caller
 function CenterBack:_init(centerbackTarget)
-	self._preliminaryCenterbackTarget = centerbackTarget or World.Ball
+	assert(centerbackTarget, "CB has to be called with a non null centerbackTarget")
+	self._preliminaryCenterbackTarget = centerbackTarget
+
 	self._lookingToGoal = true
 	self._obstacleTable = {
 		ignoreBall = true,

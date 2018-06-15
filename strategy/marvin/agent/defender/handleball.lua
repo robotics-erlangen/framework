@@ -206,7 +206,7 @@ end
 function HandleBall:_updateTask()
 	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 	if selfDefenseDist < DefUtil.centerBackDistanceToDefenseArea() + self._robot.radius + 0.03 then
-		local groupApplication = { name = "centerback", payload = self._robot }
+		local groupApplication = { name = "centerback", payload = nil } --TODO: EVACUATE or EVACUATING
 		self._send.groupApplication("trainer", groupApplication)
 	end
 
