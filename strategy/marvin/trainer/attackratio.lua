@@ -77,7 +77,11 @@ function AttackRatio:attackRatio()
 			attackRatio = 1
 		end
 	elseif refState == "Stop" then
-		attackRatio = 1
+		if self._ballInOpponentFieldHalf then
+			attackRatio = 3
+		else
+			attackRatio = 1
+		end
 	elseif World.GameStage == "PenaltyShootout" then
 		attackRatio = 8
 	else -- Game, GameForce
