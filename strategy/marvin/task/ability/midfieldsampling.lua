@@ -171,8 +171,8 @@ function MidfieldSampling:evalLocation(ballPos, bestScore)
 	score = score * self:movingAhead(ballPos)
 	if score < bestScore then return score end
 
-	score = score * self:passDistance(ballPos)
-	if score < bestScore then return score end
+	-- score = score * self:passDistance(ballPos)
+	-- if score < bestScore then return score end
 
 	score = score * self:closeOpponents(ballPos)
 	if score < bestScore then return score end
@@ -185,9 +185,6 @@ function MidfieldSampling:evalLocation(ballPos, bestScore)
 
 	score = score * self:canReachInTime(ballPos)
 	if score < bestScore then return score end
-
-
-	--score = score * self:canReachInTime(ballPos)
 
 	visualizeRating("total", ballPos, score)
 
