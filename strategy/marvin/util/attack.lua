@@ -140,6 +140,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 
 	return rating
 end
+Attack.ratePass = Cache.forFrame(Attack.ratePass)
 
 --- chooses a pass from a list of pass objects using Attack.ratePass
 -- @name choosePass
