@@ -287,9 +287,11 @@ function Defense:_createIntersections(result, pos, direction, radius, index)
 		if intersections[1].pos:distanceToSq(pos) > intersections[2].pos:distanceToSq(pos) then
 			intersections[1], intersections[2] = intersections[2], intersections[1]
 		end
-		-- TODO: hysteresen
 		local maxDistance = lastRemoved and 0.3 or 0.2
-		if intersections[1].pos:distanceToSq(intersections[2].pos) < maxDistance * maxDistance then
+		local value = direction:copy():setLength(1).y
+		local minFlatness = lastRemoved and 0.3 or 0.2
+		if intersections[1].pos:distanceToSq(intersections[2].pos) < maxDistance * maxDistance or
+				value < minFlatness and intersections[2].sec == 3 then
 			intersections[2] = nil
 			self._centerbackIntersectionsRemoved[index] = true
 		end
