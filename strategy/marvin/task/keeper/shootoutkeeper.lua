@@ -1,5 +1,5 @@
 local ForceShoot = require "task/ability/forceshoot"
-local AggressiveKeeperTest = Class("Task.AggressiveKeeperTest",
+local ShootoutKeeper = Class("Task.Keeper.ShootoutKeeper",
 	require "task/base", ForceShoot)
 
 local Field = require "../base/field"
@@ -26,7 +26,7 @@ local OBSTACLE_TABLE = {
 	ignorePass = true
 }
 
-function AggressiveKeeperTest:run()
+function ShootoutKeeper:run()
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, OBSTACLE_TABLE)
 
 	local moveDest
@@ -90,7 +90,7 @@ local leftNearBasePoint = Vector(-G.FieldWidthHalf, G.FieldHeightHalf-CHIP_GOAL_
 local rightNearBasePoint = Vector(G.FieldWidthHalf, G.FieldHeightHalf-CHIP_GOAL_LINE_DIST)
 local nearBaseLineDir = rightNearBasePoint-leftNearBasePoint
 
-function AggressiveKeeperTest:_chipToBorderIfSafe()
+function ShootoutKeeper:_chipToBorderIfSafe()
 	local robotPos = self._robot.pos
 	local ballPos = World.Ball.pos
 	local robotDir = ballPos - robotPos
@@ -124,4 +124,4 @@ function AggressiveKeeperTest:_chipToBorderIfSafe()
 	end
 end
 
-return AggressiveKeeperTest
+return ShootoutKeeper
