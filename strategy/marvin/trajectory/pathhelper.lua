@@ -370,9 +370,29 @@ local function addRobotObstacles(path, robot, ignoreFriendlyRobots, ignoreOppone
 	end
 end
 
+local ALLOWED_PARAMETERS = {
+	ignoreBall = true,
+	ignoreGoals = true,
+	ignoreDefenseArea = true,
+	ignoreOpponentDefenseArea = true,
+	noSeedTarget = true,
+	ignorePass = true,
+	ignoreFriendlyRobots = true,
+	ignoreOpponentRobots = true,
+	ignoreBallPlacementObstacle= true,
+	disableOpponentPrediction = true,
+	pathRadius = true,
+	stopBallDistance = true,
+	extraBallDistance = true,
+	inbox = true
+}
+
 local obstacles = {}
 
 function PathHelper.setObstacleParam(robot, name, value)
+	if amun.isDebug and not ALLOWED_PARAMETERS[name] then
+		error('setObstacleParam called with invalid parameter "' .. name .. '"')
+	end
 	if not obstacles[robot] then
 		error("setObstacleParam got called before setDefaultObstaclesByTable for robot " .. robot.id)
 	end
@@ -380,6 +400,9 @@ function PathHelper.setObstacleParam(robot, name, value)
 end
 
 function PathHelper.getObstacleParam(robot, name)
+	if amun.isDebug and not ALLOWED_PARAMETERS[name] then
+		error('getObstacleParam called with invalid parameter "' .. name .. '"')
+	end
 	if not obstacles[robot] then
 		error("getObstacleParam got called before setDefaultObstaclesByTable for robot " .. robot.id)
 	end
