@@ -17,8 +17,16 @@ local rotationAcclerationSmoothed = {}
 local accelerationSmoothed = {}
 local alpha = 0.02
 local function estimateOpponentDynamics()
+	if World.TimeDiff < 0.001 then
+		-- don't do anything if the timediff is far below the regular 10 ms
+		return
+	end
+
 	local nullVector = Vector(0,0)
 	local invTimeDiff = (1 / World.TimeDiff)
+	local currentLocalSpeed = {}
+	local currentRotation = {}
+
 	for _, robot in ipairs(World.OpponentRobots) do
 		local localRobotSpeed = robot.speed:copy():rotate(-robot.dir)
 		localRobotSpeed.x = math.abs(localRobotSpeed.x)
@@ -34,8 +42,8 @@ local function estimateOpponentDynamics()
 		end
 		speedSmoothed[robot] = robot.speed:length() * alpha + (speedSmoothed[robot] or 0) * (1 - alpha)
 		rotationSmoothed[robot] = localRobotDir * alpha + (rotationSmoothed[robot] or 0) * (1 - alpha)
-		lastLocalSpeed[robot] = localRobotSpeed
-		lastRotation[robot] = localRobotDir
+		currentLocalSpeed[robot] = localRobotSpeed
+		currentRotation[robot] = localRobotDir
 
 		if accelerationSmoothed[robot] then
 			local accel = accelerationSmoothed[robot]
@@ -68,6 +76,9 @@ local function estimateOpponentDynamics()
 			robot.maxAngularSpeed = rotationSmoothed[robot]
 		end
 	end
+
+	lastLocalSpeed = currentLocalSpeed
+	lastRotation = currentRotation
 end
 
 local hadBallTimes = {}
