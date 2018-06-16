@@ -312,8 +312,8 @@ function Defense:_createIntersections(result, pos, direction, radius, index)
 end
 
 function Defense:_assignBallCenterbacks(defenders)
-	local ROBOT_TIME_MARGIN_LOW = 0.1
-	local ROBOT_TIME_MARGIN_HIGH = 0.2
+	local ROBOT_TIME_MARGIN_LOW = 0
+	local ROBOT_TIME_MARGIN_HIGH = 0.1
 
 	if #defenders == 0 then
 		return
@@ -326,12 +326,13 @@ function Defense:_assignBallCenterbacks(defenders)
 	if (ballDistance < 1 and World.Ball.speed:length() > 0.2) or not Ball.isSlowBall() then
 		self:_createIntersections(intersectionInfos, World.Ball.pos, World.Ball.speed, defenseExtraRadius, 1)
 	end
-	local predictedPos, predictedDir, isShot = Goal.predictShot()
+	local predictedPos, predictedDir, isShot, _, isDribbling = Goal.predictShot()
 	if isShot and (predictedPos ~= World.Ball.pos or predictedDir ~= World.Ball.speed) then
 		local numBefore = #intersectionInfos
 		self:_createIntersections(intersectionInfos, predictedPos, predictedDir, defenseExtraRadius, 2)
 		if #intersectionInfos > numBefore then
 			intersectionInfos[numBefore + 1].resetSpeed = true
+			intersectionInfos[numBefore + 1].isDribbling = isDribbling
 		end
 	end
 	-- remove exit point of predictshot if enough points are available
@@ -350,6 +351,9 @@ function Defense:_assignBallCenterbacks(defenders)
 				maxSpeed = Constants.maxBallSpeed, posZ = 0, initSpeedZ = 0}
 		end
 		local rollTime = timeSum + Physics.ballTravelTime(currentBall, currentBall.pos:distanceTo(info.pos))
+		if info.isDribbling then
+			rollTime = rollTime + 0.4
+		end
 		if rollTime == math.huge then
 			-- no other intersection can be reached by the ball
 			break

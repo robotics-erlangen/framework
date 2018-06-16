@@ -197,12 +197,14 @@ function Goal.predictShot()
 	local ballSpeed = World.Ball.speed:copy() -- Defend ball by default
 	local pos = World.Ball.pos
 	local isShot = false
+	local isDribbling = false
 	local passReceivers = {}
 
 	local oppBallOwner = Ball.opponentBallOwner()
 	local oppBallDribbler = Ball.opponentBallDribbler()
 	if oppBallDribbler then
 		isShot = true
+		isDribbling = true
 		ballSpeed = Vector.fromAngle(oppBallDribbler.dir)
 		vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false)
 		vis.addPath("o/goal: predictShot: dribbling robot", {oppBallDribbler.pos, oppBallDribbler.pos + ballSpeed * 10}, vis.colors.blue)
@@ -308,7 +310,7 @@ function Goal.predictShot()
 		ballSpeed = left + right
 	end
 
-	return pos, ballSpeed, isShot, passReceivers
+	return pos, ballSpeed, isShot, passReceivers, isDribbling
 end
 Goal.predictShot = Cache.forFrame(Goal.predictShot)
 
