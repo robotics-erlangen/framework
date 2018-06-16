@@ -93,7 +93,7 @@ function table.split(t, lastIndexOfFirstPart)
 	return part1, part2
 end
 
-function table.splitValue(t, element)
+function table.splitByValue(t, element)
 	local first, second = {}, {}
 	local found = false
 	for _, e in ipairs(t) do
