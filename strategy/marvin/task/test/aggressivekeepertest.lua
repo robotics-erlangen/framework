@@ -12,6 +12,7 @@ local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 local Goal = require "observer/goal"
 
+local G = World.Geometry
 
 local POSITION_PADDING = 0.02 -- safety distance
 
@@ -19,50 +20,57 @@ local CHIP_IMPACT_DIST_FROM_BORDER = 0.5
 local CHIP_DIST_FACTOR = 0.25
 local CHIP_GOAL_LINE_DIST = 1
 
+local SAFE_GOAL_MID = G.FriendlyGoal - Vector(0, 0.05)
+
+local OBSTACLE_TABLE = {
+	ignorePass = true
+}
+
 function AggressiveKeeperTest:run()
-	local safeGoalMid = World.Geometry.FriendlyGoal - Vector(0, 0.05)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, OBSTACLE_TABLE)
+
 	local moveDest
-	local ignoreBall
-	local ballSpeed = World.Ball.speed
-	local robotPos = self._robot.pos
-	local viewDir = World.Ball.pos - safeGoalMid
 	local endspeed = Vector(0,0)
+	local ballSpeed = World.Ball.speed
+	local viewDir = World.Ball.pos - SAFE_GOAL_MID
+
 	local ballTime = math.min(Robot.minTimeToBall(self._robot), 1)
-	if World.Ball.pos.y < robotPos.y + POSITION_PADDING then
+
+	local ballCloserToGoal = World.Ball.pos.y < self._robot.pos.y + POSITION_PADDING
+	PathHelper.setObstacleParam(self._robot, "ignoreBall", not ballCloserToGoal)
+	if ballCloserToGoal then
 		-- get between ball and goal
 		local ballDist = self._robot.radius + World.Ball.radius
-		moveDest = World.Ball.pos + (safeGoalMid - World.Ball.pos):setLength(ballDist) + Vector(0, -POSITION_PADDING)
-		ignoreBall = false
+		moveDest = World.Ball.pos + (SAFE_GOAL_MID - World.Ball.pos):setLength(ballDist) + Vector(0, -POSITION_PADDING)
 	else
 		moveDest = Physics.ballAtTime(World.Ball, ballTime).pos
-		moveDest = moveDest + (robotPos - moveDest):setLength(World.Ball.radius)
-		ignoreBall = true
+		moveDest = moveDest + (self._robot.pos - moveDest):setLength(World.Ball.radius + self._robot.radius)
 	end
+
 	if ballSpeed.y < 0 then
-		local pos, dir, isShot = Goal.predictShot()
-		if pos then
-			local x = geom.intersectLineLine(World.Geometry.FriendlyGoal, Vector(1,0), pos, dir).x
-			local dyky = math.max(math.abs(x)*2 / World.Geometry.GoalWidth/2, 1)
-			-- if math.abs(x) < World.Geometry.GoalWidth/2 then
-				-- local alpha = 1/(1+self._robot.pos:distanceTo(pos)/2)
-				local alpha = (1-(math.exp(-ballSpeed:length()/2)))/(1+self._robot.pos:distanceTo(pos)/2)
-				alpha = alpha / dyky
-				-- log(isShot)
-				local interceptPos = robotPos:orthogonalProjection(pos, pos+dir)
-				if interceptPos then
-					vis.addCircle("t/a/ballintercept", interceptPos, 0.04, vis.colors.gold, true)
-					vis.addCircle("t/a/ballintercept", moveDest, 0.04, vis.colors.gold, true)
-					log(alpha)
-					log(isShot)
-					log(ballTime)
-					if ballSpeed.y < -2 and ballTime == 1 then
-						endspeed = (interceptPos-robotPos):setLength(2)+self._robot.speed
-						moveDest = robotPos + (self._robot.speed + endspeed) * ballTime / 2
-					else
-						moveDest = moveDest*(1-alpha) + interceptPos * alpha
-					end
-				end
-			-- end
+		local pos, dir = Goal.predictShot()
+
+		-- The x coordinate where the predicted ball will cross the goal line
+		local predictedGoallinePoint = geom.intersectLineLine(G.FriendlyGoal, Vector(1, 0), pos, dir).x
+		-- The distance of the predicted point as a percentage of the half goal width, is 1 if the point is inside the goal
+		local centerDistancePerc = math.max(2 * math.abs(predictedGoallinePoint) / G.GoalWidth, 1)
+
+		-- Used to determine a spot between predicted shot position and the catch position near the ball
+		local alpha = ( 1 - math.exp(-ballSpeed:length() / 2) ) / ( 1 + self._robot.pos:distanceTo(pos) / 2 )
+		-- It is unlikely that the opponent doesn't want to shoot the ball at our goal
+		alpha = alpha / centerDistancePerc
+
+		local interceptPos = self._robot.pos:orthogonalProjection(pos, pos+dir)
+
+		vis.addCircle("t/k/shootoutkeeper: intercept", interceptPos, World.Ball.radius, vis.colors.gold, true)
+		vis.addCircle("t/k/shootoutkeeper: intercept", moveDest, World.Ball.radius, vis.colors.gold, true)
+
+		-- If the ball was shot and we probably wont reach it in time, we go rambo
+		if ballSpeed.y < -2 and ballTime == 1 then
+			endspeed = (interceptPos - self._robot.pos):setLength(2) + self._robot.speed
+			moveDest = self._robot.pos + (self._robot.speed + endspeed) * ballTime / 2
+		else
+			moveDest = moveDest * (1 - alpha) + interceptPos * alpha
 		end
 	else
 		endspeed = viewDir * 0.5
@@ -70,21 +78,16 @@ function AggressiveKeeperTest:run()
 
 	self:_chipToBorderIfSafe()
 
-	local obstacleTable = {
-		["ignoreBall"] = ignoreBall,
-		ignorePass = true
-	}
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, moveDest, viewDir:angle(), nil, endspeed)
 end
 
 
-local leftFriendlyCorner = Vector(-World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
-local rightFriendlyCorner = Vector(World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
+local leftFriendlyCorner = Vector(-G.FieldWidthHalf, -G.FieldHeightHalf)
+local rightFriendlyCorner = Vector(G.FieldWidthHalf, -G.FieldHeightHalf)
 
 -- assume chips crossing this line might cross the goal line
-local leftNearBasePoint = Vector(-World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf-CHIP_GOAL_LINE_DIST)
-local rightNearBasePoint = Vector(World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf-CHIP_GOAL_LINE_DIST)
+local leftNearBasePoint = Vector(-G.FieldWidthHalf, G.FieldHeightHalf-CHIP_GOAL_LINE_DIST)
+local rightNearBasePoint = Vector(G.FieldWidthHalf, G.FieldHeightHalf-CHIP_GOAL_LINE_DIST)
 local nearBaseLineDir = rightNearBasePoint-leftNearBasePoint
 
 function AggressiveKeeperTest:_chipToBorderIfSafe()
@@ -105,7 +108,7 @@ function AggressiveKeeperTest:_chipToBorderIfSafe()
 		elseif touchLineIntersection then -- no nearBaseline
 			chipPos = touchLineIntersection
 		else -- probably because ball is out of field
-			chipPos = World.Geometry.OpponentGoal
+			chipPos = G.OpponentGoal
 		end
 		local chipDist = World.Ball.pos:distanceTo(chipPos) - CHIP_IMPACT_DIST_FROM_BORDER
 		if chipPos ~= touchLineIntersection then -- try to avoid icing if chipping towards the opponent goal line
