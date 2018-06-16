@@ -738,6 +738,7 @@ function debugger.dumpStack(offset, debugKey)
 		debugger.dumpLocals(i, extraParams)
 		baseDebug.pop()
 	end
+	baseDebug.pop() -- debugKey
 end
 
 debugger.getStackDepth = getStackDepth
