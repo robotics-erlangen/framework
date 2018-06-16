@@ -1,8 +1,9 @@
 local CenterBack = Class("Group.CenterBack")
 
-local Field = require "../base/field"
+local Robot = require "observer/robot"
 local UtilDefense = require "util/defense"
 local Rating = require "util/rating"
+local Field = require "../base/field"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
@@ -26,6 +27,84 @@ end
 
 local privateCenterBackPositions = {}
 local centerBackPositions = {}
+
+local function assignRobotsToPoints(robotList, pointList, resultAssignment, necessaryWay, isLeft, delta, radius)
+	if isLeft then
+		robotList = table.reverse(robotList)
+		pointList = table.reverse(pointList)
+	end
+	if #robotList >= #pointList then
+		--every point gets a robot, excess robots will be stored next to the necessaryWay. Consider merging problems.
+		--to solve merging problems, assign from necessaryWay towards outside. If one target gets overlapped by doing so, the robot will be inserted like the target had never existed.
+		local lastWay = necessaryWay
+		local offset = #robotList - #pointList
+		for i=1, offset do
+			local way = lastWay + delta*(isLeft and -1 or 1)
+			local point =  {
+				["pos"] = Field.defenseIntersectionByWay(way, radius, true),
+				["way"] = way,
+			}
+			resultAssignment[robotList[i]]=point
+			lastWay = way
+		end
+		for i,point in ipairs(pointList) do
+			if isLeft then
+				if point.way >= lastWay - delta then
+					local way = lastWay - delta
+					local newPoint = {
+						["pos"] = Field.defenseIntersectionByWay(way, radius, true),
+						["way"] = way,
+					}
+					resultAssignment[robotList[i+offset]] = newPoint
+					lastWay = way
+				else
+					resultAssignment[robotList[i+offset]] = point
+				end
+			else
+				if point.way <= lastWay + delta then
+					local way = lastWay + delta
+					local newPoint =  {
+						["pos"] = Field.defenseIntersectionByWay(way, radius, true),
+						["way"] = way,
+					}
+					resultAssignment[robotList[i+offset]] = newPoint
+					lastWay = way
+				else
+					resultAssignment[robotList[i+offset]] = point
+				end
+			end
+		end
+		--check integrety
+		if World.isDebug then
+			for _, point in ipairs(pointList) do
+				if not table.contains(resultAssignment, point) then
+					error("point that is not covered: " .. tostring(point))
+				end
+			end
+			for _, robot in ipairs(robotList) do
+				if not table.contains(table.keys(resultAssignment), robot) then
+					error("robot that is not covered: " .. tostring(robot))
+				end
+			end
+		end
+	else
+		-- #pointList > #robotList
+		-- greedely assign robots to points
+		-- We can use UtilDefense.closestRobotToPos, as closesRobot uses only .pos, which is supplied by every point too
+		for _, robot in ipairs(robotList) do
+			local point = UtilDefense.getClosestRobot(pointList, robot.pos)
+			resultAssignment[robot] = point
+		end
+
+		if World.isDebug then
+			for _, robot in ipairs(robotList) do
+				if not table.contains(table.keys(resultAssignment), robot) then
+					error("robot that is not covered: " .. tostring(robot))
+				end
+			end
+		end
+	end
+end
 
 --TODO: Target are are the moment defined as table that contains a Vector (pos).
 --They should be {pos= Vector, dir=Vector, time = number}
@@ -63,6 +142,8 @@ local function calculateCenterBackPositions(centerBackApplications)
 		distanceBetweenDefenders = 0
 	end
 
+	-- idealBot is the bot needed for the necessary target. It is nil, if no necessary target is needing attention now.
+	local idealBot, necessaryWay
 	-- collect all important targets and assign them the list of robots
 	-- only consider those as important that are within a certain range to their destination
 	local robots = {} -- all targets with their important robots (target -> [robot])
@@ -87,6 +168,14 @@ local function calculateCenterBackPositions(centerBackApplications)
 	end
 
 
+	--calculate the minimal time that was supplied (all other times are ignored)
+	local minTime = math.huge
+	for target,_ in pairs(robots) do
+		if target.time and target.time < minTime then
+			minTime = target.time
+		end
+	end
+
 	-- -- calculate middle position and way footprint
 	local waymaximum
 	if adjustWay then
@@ -100,17 +189,40 @@ local function calculateCenterBackPositions(centerBackApplications)
 	for target, rlist in pairs(robots) do
 		-- if the target is the ball, predict it TODO: Remove that line as soon as refactorisation has finished, because i'll be covered by dir.
 		local targetPos = target.pos
-		local _, way, sec
+		local cBPos, way, sec
 		if target == World.Ball then
-			targetPos, way, sec = UtilDefense.calculateBallPosition()
+			cBPos, way, sec = UtilDefense.calculateBallPosition()
 			assert(way, "calling centerBackPos/IntersectRayDefenseArea twice is bad")
 		end
 		if not way then
 			-- centerBackPos will always return a way, as the target is limited to the field
-			_, way, sec = UtilDefense.centerBackPos(targetPos, target.dir)
+			cBPos, way, sec = UtilDefense.centerBackPos(targetPos, target.dir)
+		end
+		--check if the target is necessary but reachable
+		local idealBotPrel = UtilDefense.getClosestRobot(robotSet,cBPos)
+		local timeAroundDefenseArea = Robot.timeAroundDefenseAreaByWay(idealBotPrel, nil, cBPos, way, extraDistance, true)
+		local targetTime = target.time or math.huge
+		--only consider the next timestamp
+		if targetTime > minTime then
+			targetTime = math.huge
 		end
 		if adjustWay and sec then
 			way = UtilDefense.mulCornerFactor(way, sec, extraDistance)
+		end
+		local n = #rlist
+		if targetTime > timeAroundDefenseArea and  targetTime + 0.6 < timeAroundDefenseArea then
+			--mark one intersection with one bot to be necessary, and continue with reduced n for the rest.
+			table.insert(intersections,{
+				["waypos"] =  way,
+				["wayrange"] = 2*robot_radius + distanceBetweenDefenders,
+				["n"] = 1,
+				["targets"] = {{["target"] = target, ["way"] = way, ["n"] = 1}},
+				["necessary"] = true
+			})
+			n = n - 1
+			idealBot = idealBotPrel
+			necessaryWay = way
+			--continue as usual
 		end
 		local occupiedWay = (#rlist) * (2 * robot_radius + distanceBetweenDefenders)
 
@@ -118,13 +230,14 @@ local function calculateCenterBackPositions(centerBackApplications)
 		table.insert(intersections, {
 			["waypos"] = way,
 			["wayrange"] = occupiedWay,
-			["n"] = #rlist,
-			["targets"] = {{["target"] = target, ["way"] = way, ["n"] = #rlist}}
+			["n"] = n,
+			["targets"] = {{["target"] = target, ["way"] = way, ["n"] = n}},
+			["necessary"] = false
 		})
 	end
 
 
-	-- merge overlapping way intervals (got-)merged
+	-- merge overlapping way intervals
 	local merged = true
 	while merged do
 		merged = false
@@ -136,23 +249,58 @@ local function calculateCenterBackPositions(centerBackApplications)
 					local jmin = j.waypos - j.wayrange/2
 					local jmax = j.waypos + j.wayrange/2
 					if imax > jmin and jmax > imin then
-						merged = true
-						local totalWay = i.wayrange + j.wayrange
-						local totalN = i.n + j.n
-						local totalPos = (i.waypos * i.n + j.waypos * j.n) / totalN
-						totalPos = math.max(totalPos, totalWay/2)
-						totalPos = math.min(totalPos, waymaximum-totalWay/2)
-						j.waypos = totalPos
-						j.wayrange = totalWay
-						j.n = totalN
-						if next(i.targets) == nil then
-							i.targets = j.targets
-						elseif next(j.targets) == nil then
-							j.targets = i.targets
+						if i.necessary or j.necessary then
+							--locals for n(ecessary) and u(nnecessary)
+							local n, ux, nmin, umin, nmax, umax
+							if j.necessary then
+								n = j
+								ux = ix
+								nmin, umin = jmin, imin
+								nmax, umax = jmax, imax
+							else
+								n = i
+								ux = jx
+								nmin, umin = imin, jmin
+								nmax, umax = imax, jmax
+							end
+							-- handle necessary object n. Two necessary are not possible
+							-- first, move full robots to one side
+							local disBetweenCenterOfCB = 2 * robot_radius + distanceBetweenDefenders
+							local fullRobotMax = math.max(math.floor((umax - n.waypos) / disBetweenCenterOfCB),0)
+							local fullRobotMin = math.max(math.floor((n.waypos - umin) / disBetweenCenterOfCB),0)
+							nmax = nmax + disBetweenCenterOfCB * fullRobotMax
+							nmin = nmin - disBetweenCenterOfCB * fullRobotMin
+							n.waypos = (nmax + nmin) /2
+							n.wayrange = (nmax - nmin)
+							n.n = n.n + fullRobotMax + fullRobotMin
+							if next(i.targets) == nil then
+								i.targets = j.targets
+							elseif next(j.targets) == nil then
+								j.targets = i.targets
+							end
+							j.targets = table.append(i.targets, j.targets)
+							table.remove(intersections, ux)
+							merged = true
+							break
+						else
+							merged = true
+							local totalWay = i.wayrange + j.wayrange
+							local totalN = i.n + j.n
+							local totalPos = (i.waypos * i.n + j.waypos * j.n) / totalN
+							totalPos = math.max(totalPos, totalWay/2)
+							totalPos = math.min(totalPos, waymaximum-totalWay/2)
+							j.waypos = totalPos
+							j.wayrange = totalWay
+							j.n = totalN
+							if next(i.targets) == nil then
+								i.targets = j.targets
+							elseif next(j.targets) == nil then
+								j.targets = i.targets
+							end
+							j.targets = table.append(i.targets, j.targets)
+							table.remove(intersections, ix)
+							break
 						end
-						j.targets = table.append(i.targets, j.targets)
-						table.remove(intersections, ix)
-						break
 					end
 				end
 			end
@@ -167,11 +315,13 @@ local function calculateCenterBackPositions(centerBackApplications)
 	for _,i in ipairs(intersections) do
 		table.sort(i.targets, lessthan_targets)
 	end
+	local EPSILON = 0.005
+	local necessaryDefensePoint = nil
 
 	-- calculate final positions for important robots
+	local delta = 2 * robot_radius + distanceBetweenDefenders
 	local defensePoints = {}
 	for _,i in ipairs(intersections) do
-		local delta = 2 * robot_radius + distanceBetweenDefenders
 		local way = i.waypos - i.wayrange/2 + delta/2
 		for _,t in ipairs(i.targets) do
 			for _ = 1,t.n do
@@ -179,13 +329,20 @@ local function calculateCenterBackPositions(centerBackApplications)
 				if adjustWay then
 					realWay = UtilDefense.divCornerFactor(way, extraDistance)
 				end
-				local final_pos = Field.defenseIntersectionByWay(realWay, extraDistance, true)
+				local final_pos = Field.defenseIntersectionByWay(realWay, extraDistance, true) --defenseIntersectionByWay can handle outOfBounds correctly (extended DefArea)
 				vis.addCircle("g/centerback: Positions", final_pos, 0.1, vis.colors.skyBlue)
-				table.insert(defensePoints, {
+				vis.addPath("g/centerback: Positions", {final_pos, t.target.pos},  vis.colors.skyBlue)
+				vis.addCircle("g/centerback: Target", t.target.pos, 0.1, vis.colors.red)
+				local point =  {
 					["pos"] = final_pos,
 					["target"] = t.target,
 					["way"] = way
-				})
+				}
+				if necessaryWay and math.abs(way-necessaryWay) < EPSILON then
+					assert (not necessaryDefensePoint, "two necessary Points are a problem")
+					necessaryDefensePoint = point
+				end
+				table.insert(defensePoints, point)
 				way = way + delta
 			end
 		end
@@ -196,13 +353,23 @@ local function calculateCenterBackPositions(centerBackApplications)
 	for _,r in ipairs(robotSet) do
 		table.insert(sortedRobots, r)
 	end
-	assert(#defensePoints == #sortedRobots)
 	table.sort(sortedRobots, lessthan_robots)
 
 	-- store result (robot -> (pos, target, way))
 	centerBackPositions = {}
-	for i = 1,#sortedRobots do
-		centerBackPositions[sortedRobots[i]] = defensePoints[i]
+	if not idealBot then
+		assert(#defensePoints == #sortedRobots)
+		for i = 1,#sortedRobots do
+			centerBackPositions[sortedRobots[i]] = defensePoints[i]
+		end
+	else
+		-- first: Assign the ideal bot to the necessary defense Point
+		centerBackPositions[idealBot] = necessaryDefensePoint
+		--second: partition the world in pre and post idealBot / defensePoint
+		local firstRobots, secondRobots = table.splitByValue(sortedRobots, idealBot)
+		local firstPoints, secondPoints = table.splitByValue(defensePoints, necessaryDefensePoint)
+		assignRobotsToPoints(firstRobots, firstPoints, centerBackPositions, necessaryDefensePoint.way, true, delta, extraDistance)
+		assignRobotsToPoints(secondRobots, secondPoints, centerBackPositions, necessaryDefensePoint.way, false, delta, extraDistance)
 	end
 
 	-- calculate final positions for unimportant robots

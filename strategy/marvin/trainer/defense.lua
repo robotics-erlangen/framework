@@ -356,7 +356,7 @@ function Defense:_assignBallCenterbacks(defenders)
 		local robotTime = ObserverRobot.timeAroundDefenseAreaByWay(closestRobot, nil, info.pos, info.way, defenseExtraRadius, true)
 		local robotTimeMargin = table.contains(self._centerbackAssignments, closestRobot) and
 			ROBOT_TIME_MARGIN_LOW or ROBOT_TIME_MARGIN_HIGH
-		if robotTime < rollTime + robotTimeMargin or
+		if robotTime + robotTimeMargin < rollTime or
 				robotTime < rollTime and rollTime < ROBOT_TIME_MARGIN_HIGH then
 			table.insert(self._centerbackAssignments, closestRobot)
 			table.removeValue(defenders, closestRobot)
