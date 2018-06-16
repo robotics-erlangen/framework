@@ -35,15 +35,18 @@ function ManMark:_updateTask()
 	debug.set("target", self._opp.id)
 	local dest = Defense.manMarkPos(self._opp)
 
-	-- try to intercept a possible goal shot
-	local _, _, _, passReceivers = Goal.predictShot()
-	local passReceiver = passReceivers[1] and passReceivers[1].robot
-	if Defense.dangerousBallTowardsDefense() or self._opp == passReceiver then
-		local defenseAreaIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, 0, true)
-		if defenseAreaIntersection and World.Ball.pos:distanceTo(defenseAreaIntersection)
-			> World.Ball.pos:distanceTo(self._robot.pos)
-			and (self._robot.pos - World.Ball.pos):dot(World.Ball.speed) > 0 then
-			return Duel
+	-- try to intercept a possible goal shot if we are no centerback
+	local isCB = self._inbox.centerBackPosTarget()
+	if not isCB then
+		local _, _, _, passReceivers = Goal.predictShot()
+		local passReceiver = passReceivers[1] and passReceivers[1].robot
+		if Defense.dangerousBallTowardsDefense() or self._opp == passReceiver then
+			local defenseAreaIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, 0, true)
+			if defenseAreaIntersection and World.Ball.pos:distanceTo(defenseAreaIntersection)
+				> World.Ball.pos:distanceTo(self._robot.pos)
+				and (self._robot.pos - World.Ball.pos):dot(World.Ball.speed) > 0 then
+				return Duel
+			end
 		end
 	end
 
