@@ -210,7 +210,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 			way = UtilDefense.mulCornerFactor(way, sec, extraDistance)
 		end
 		local n = #rlist
-		if targetTime > timeAroundDefenseArea and  targetTime + 0.6 < timeAroundDefenseArea then
+		if targetTime > timeAroundDefenseArea and timeAroundDefenseArea + 0.4 > targetTime then
 			--mark one intersection with one bot to be necessary, and continue with reduced n for the rest.
 			table.insert(intersections,{
 				["waypos"] =  way,
