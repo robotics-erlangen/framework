@@ -193,7 +193,8 @@ end
 -- the defense area in the direction of the goal with the given radius
 -- this function does not make sense when either robot.pos or targetPos are far away from the defense area
 -- either targetPos or targetWay is optional, but one of the two has to be given
-function Robot.timeAroundDefenseAreaByWay(robot, robotWay, targetPos, targetWay, radius, friendly)
+-- endSpeed is a number
+function Robot.timeAroundDefenseAreaByWay(robot, robotWay, targetPos, targetWay, radius, friendly, endSpeed)
 	if not targetPos and not targetWay then
 		error("target information have to be present")
 	end
@@ -210,10 +211,15 @@ function Robot.timeAroundDefenseAreaByWay(robot, robotWay, targetPos, targetWay,
 	table.insert(drivePoints, 1, robot.pos)
 	table.insert(drivePoints, targetPos)
 	local totalTime = 0
-	local fakeRobot = {speed = Vector(0, 0), maxSpeed = robot.maxSpeed, acceleration = robot.acceleration}
+	local fakeRobot = {speed = robot.speed, maxSpeed = robot.maxSpeed, acceleration = robot.acceleration}
 	for i = 2, #drivePoints do
 		fakeRobot.pos = drivePoints[i-1]
-		totalTime = totalTime + Physics.robotTimeToPos(fakeRobot, drivePoints[i], Vector(0, 0))
+		local es = Vector(0, 0)
+		if i == #drivePoints and endSpeed then
+			es = Vector(endSpeed, 0)
+		end
+		totalTime = totalTime + Physics.robotTimeToPos(fakeRobot, drivePoints[i], es)
+		fakeRobot.speed = Vector(0, 0)
 	end
 	return totalTime
 end

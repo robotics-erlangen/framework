@@ -363,7 +363,7 @@ function Defense:_assignBallCenterbacks(defenders)
 			break
 		end
 		local closestRobot = UtilDefense.getClosestRobot(defenders, info.pos)
-		local robotTime = ObserverRobot.timeAroundDefenseAreaByWay(closestRobot, nil, info.pos, info.way, defenseExtraRadius, true)
+		local robotTime = ObserverRobot.timeAroundDefenseAreaByWay(closestRobot, nil, info.pos, info.way, defenseExtraRadius, true, 3)
 		local robotTimeMargin = table.contains(self._centerbackAssignments, closestRobot) and
 			ROBOT_TIME_MARGIN_LOW or ROBOT_TIME_MARGIN_HIGH
 		if robotTime + robotTimeMargin < rollTime or
