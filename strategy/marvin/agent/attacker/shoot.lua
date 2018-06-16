@@ -15,7 +15,6 @@ local Pass = require "task/shared/pass"
 local ShootGoal = require "task/attacker/shootgoal"
 
 local Attack = require "util/attack"
-local Rating = require "util/rating"
 local ShootGoalUtil = require "util/shootgoal"
 
 local G = World.Geometry
