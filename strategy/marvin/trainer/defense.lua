@@ -327,7 +327,7 @@ function Defense:_assignBallCenterbacks(defenders)
 	if (ballDistance < 1 and World.Ball.speed:length() > 0.2) or not Ball.isSlowBall() then
 		self:_createIntersections(intersectionInfos, World.Ball.pos, World.Ball.speed, defenseExtraRadius, 1)
 	end
-	local predictedPos, predictedDir, isShot, _, isDribbling = Goal.predictShot()
+	local predictedPos, predictedDir, isShot, _, isDribbling = Goal.predictShot(true)
 	if isShot and (predictedPos ~= World.Ball.pos or predictedDir ~= World.Ball.speed) then
 		local numBefore = #intersectionInfos
 		self:_createIntersections(intersectionInfos, predictedPos, predictedDir, defenseExtraRadius, 2)
