@@ -14,6 +14,13 @@ local ToTarget = require "trajectory/totarget"
 local mu_x = 1.00
 local mu_y = 0.05
 
+local muXById = {[0] = mu_x, [1] = mu_x, [2] = mu_x, [3] = mu_x, [4] = mu_x, [5] = mu_x,
+				[6] = mu_x, [7] = mu_x, [8] = mu_x, [9] = mu_x, [10] = mu_x, [11] = mu_x,
+				[12] = mu_x, [13] = mu_x, [14] = mu_x, [15] = mu_x, opp = mu_x}
+local muYById = {[0] = mu_y, [1] = mu_y, [2] = mu_y, [3] = mu_y, [4] = mu_y, [5] = mu_y,
+				[6] = mu_y, [7] = mu_y, [8] = mu_y, [9] = mu_y, [10] = mu_y, [11] = mu_y,
+				[12] = mu_y, [13] = mu_y, [14] = mu_y, [15] = mu_y, opp = mu_y}
+
 local paramsUpdated = false
 
 local function setSimulatorParams()
@@ -44,8 +51,8 @@ function Volley:init()
 	self._ball_in = nil
 end
 
-function Volley.calcVOutFromVOutAbs(v_out_length, v_in, phi, alpha)
-	local v_refl_x, v_refl_y = Volley.calcVOutFromVS(0, v_in, phi, alpha)
+function Volley.calcVOutFromVOutAbs(v_out_length, v_in, phi, alpha, robotId)
+	local v_refl_x, v_refl_y = Volley.calcVOutFromVS(0, v_in, phi, alpha, robotId)
 	local sinp = math.sin(phi)
 	local cosp = math.cos(phi)
 	--calcVOut(x,v_in,phi,alpha) = cosp * x + v_refl_x, sinp * x + v_refl_y
@@ -60,31 +67,31 @@ function Volley.calcVOutFromVOutAbs(v_out_length, v_in, phi, alpha)
 	sqrt1 = sqrt1 * sqrt1
 	local sqrt2 = -4*(v_refl_x * v_refl_x + v_refl_y * v_refl_y - v_out_length * v_out_length)
 	local v_s = 0.5 * math.sqrt(sqrt1+sqrt2)-bcos-dsin
-	return Volley.calcVOutFromVS(v_s, v_in, phi, alpha)
+	return Volley.calcVOutFromVS(v_s, v_in, phi, alpha, robotId)
 end
 
-function Volley.calcVOutFromVS(v_s, v_in, phi, alpha)
+function Volley.calcVOutFromVS(v_s, v_in, phi, alpha, robotId)
 	local sinp = math.sin(phi)
 	local cosp = math.cos(phi)
 	local sinpa = math.sin(phi - alpha)
 	local cospa = math.cos(phi - alpha)
 
-	local x = cosp * v_s + sinp * sinpa * mu_x * v_in - cosp * cospa * mu_y * v_in
-	local y = sinp * v_s - cosp * sinpa * mu_x * v_in - sinp * cospa * mu_y * v_in
+	local x = cosp * v_s + sinp * sinpa * muXById[robotId] * v_in - cosp * cospa * muYById[robotId] * v_in
+	local y = sinp * v_s - cosp * sinpa * muXById[robotId] * v_in - sinp * cospa * muYById[robotId] * v_in
 
 	return x, y
 end
 
-local function volley_Jf(v_s, phi, alpha, v_in)
+local function volley_Jf(v_s, phi, alpha, v_in, robotId)
 	local sinp = math.sin(phi)
 	local cosp = math.cos(phi)
 	local sinpa = math.sin(phi - alpha)
 	local cospa = math.cos(phi - alpha)
 
 	local xdv_s = cosp
-	local xdphi = -sinp * v_s + (mu_x + mu_y) * v_in * (cosp * sinpa + sinp * cospa)
+	local xdphi = -sinp * v_s + (muXById[robotId] + muYById[robotId]) * v_in * (cosp * sinpa + sinp * cospa)
 	local ydv_s = sinp
-	local ydphi = cosp * v_s - (mu_x + mu_y) * v_in * (cosp * cospa - sinp * sinpa)
+	local ydphi = cosp * v_s - (muXById[robotId] + muYById[robotId]) * v_in * (cosp * cospa - sinp * sinpa)
 
 	return xdv_s, xdphi, ydv_s, ydphi
 end
@@ -116,14 +123,15 @@ function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 	local phi = (targetPos - viewPos):angle()
 	-- caching
 	local calcVOut = Volley.calcVOutFromVS
+	local robotId = self._robot.id
 	local visData = {}
 
 	for _ = 1, 5 do
-		local j11, j12, j21, j22 = volley_Jf(v_s, phi, alpha, v_in)
+		local j11, j12, j21, j22 = volley_Jf(v_s, phi, alpha, v_in, robotId)
 		local det = j11 * j22 - j21 * j12
 		local k11, k12, k21, k22 = j22/det, -j12/det, -j21/det, j11/det
 
-		local fx, fy = calcVOut(v_s, v_in, phi, alpha)
+		local fx, fy = calcVOut(v_s, v_in, phi, alpha, robotId)
 		fx = fx - v_out.x
 		fy = fy - v_out.y
 

@@ -207,7 +207,7 @@ function Goal.predictShot()
 		vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false)
 		vis.addPath("o/goal: predictShot: dribbling robot", {oppBallDribbler.pos, oppBallDribbler.pos + ballSpeed * 10}, vis.colors.blue)
 		local relativeSpeedLength = World.Ball.speed - oppBallDribbler.speed
-		local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeedLength:length(), oppBallDribbler.dir, World.Ball.speed:angle())
+		local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeedLength:length(), oppBallDribbler.dir, World.Ball.speed:angle(), "opp")
 		ballSpeed = Vector(dirx, diry):normalize()
 	elseif oppBallOwner and Ball.isSlowBall() then
 		-- if opponent is close to ball use its orientation
@@ -291,7 +291,8 @@ function Goal.predictShot()
 				local relativeSpeed = Physics.ballAtTime(World.Ball, ballRollTime).speed - minRobotSpeed
 				local ballAngle = World.Ball.speed:angle()
 				local robotAngle = passReceiver.robot.dir
-				local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeed:length(), robotAngle, ballAngle)
+				local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeed:length(), robotAngle,
+					ballAngle, "opp")
 				ballSpeed = Vector(dirx, diry):normalize()
 				vis.addPath("o/goal: predictShot: receives pass", {passReceiver.robot.pos, pos}, vis.colors.pink)
 				vis.addCircle("o/goal: predictShot: receives pass", pos, passReceiver.robot.radius, vis.colors.pink, false)
