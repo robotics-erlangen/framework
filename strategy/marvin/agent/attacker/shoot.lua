@@ -15,6 +15,7 @@ local Pass = require "task/shared/pass"
 local ShootGoal = require "task/attacker/shootgoal"
 
 local Attack = require "util/attack"
+local Rating = require "util/rating"
 local ShootGoalUtil = require "util/shootgoal"
 
 local G = World.Geometry
@@ -46,10 +47,10 @@ function Shoot:check()
 end
 
 function Shoot:_shootGoalPossible(robot, attackPosition)
-	local sg_target, _, sg_dirty = ShootGoalUtil.updateTarget(robot, nil, false, attackPosition)
+	local sg_target, angle, sg_dirty = ShootGoalUtil.updateTarget(robot, nil, false, attackPosition)
 
 	if sg_dirty then
-		return false
+		return false, angle
 	end
 
 	if World.Ball.speed:length() > 1.2 then
@@ -57,10 +58,10 @@ function Shoot:_shootGoalPossible(robot, attackPosition)
 	end
 
 	if attackPosition and Field.distanceToOpponentDefenseArea(attackPosition, 0) > 1 and Robot.isPressed(robot, attackPosition) then
-		return false
+		return false, angle
 	end
 
-	return true
+	return true, angle
 end
 
 function Shoot:_checkForManualAlly()
@@ -79,7 +80,7 @@ function Shoot:_checkForManualAlly()
 	end
 end
 
-local MIN_RATING = 0.3
+local MIN_PASS_RATING = 0.3
 local ENABLE_PSEUDO_PASS = true
 function Shoot:_decide()
 	self._wasPressed = Robot.isPressed(self._robot)
@@ -98,7 +99,7 @@ function Shoot:_decide()
 
 	-- consider chipping forward
 	local passRating = pass and Attack.ratePass(self._robot, pass, true) or 0
-	if ENABLE_PSEUDO_PASS and self._attackPosition and passRating < MIN_RATING 
+	if ENABLE_PSEUDO_PASS and self._attackPosition and passRating < MIN_PASS_RATING 
 			and Field.distanceToDefenseAreaSq(self._attackPosition) > 2
 			and World.Ball.speed:length() < 1 then
 
@@ -129,21 +130,17 @@ function Shoot:_decide()
 		local attackAngle = (G.OpponentGoal - self._attackPosition):angle()
 		local bestRating = passRating
 
+		local bestFreeAngle = 0
+		local bestAttackPosition = nil
 		for dist = MIN_DISTANCE, MAX_DISTANCE, DISTANCE_STEP do
 			for angle = -CONE_WIDTH/2, CONE_WIDTH/2, ANGLE_STEP do
 
 				-- check for possible goalshot opportunity
 				local newAttackPosition = self._attackPosition + Vector.fromAngle(attackAngle + angle):setLength(dist)
-				--local dribblerOffset = (self._attackPosition - newAttackPosition):setLength(self._robot.shootRadius + World.Ball.radius)
-				if self:_shootGoalPossible(self._robot, newAttackPosition) then
-					local passVector = newAttackPosition - self._attackPosition
-					return {
-						task = "pass",
-						target = self._robot,
-						pos = self._attackPosition + passVector:setLength(0.5),
-						time = World.Time,
-						quality = "clean"
-					}
+				local possible, freeAngle = self:_shootGoalPossible(self._robot, newAttackPosition)
+				if possible and freeAngle and freeAngle > bestFreeAngle then
+					bestFreeAngle = freeAngle
+					bestAttackPosition = newAttackPosition
 				end
 
 				-- look for better pass opportunities
@@ -151,14 +148,27 @@ function Shoot:_decide()
 					self._inbox.passSuggestion(), self._prevPassPos, true)
 				local newPassRating = newPass and Attack.ratePass(self._robot, newPass, true) or 0
 
-				if newPassRating > bestRating and newPassRating > MIN_RATING then
+				if newPassRating > bestRating and newPassRating > MIN_PASS_RATING then
 					bestRating = newPassRating
 					pass = {target = self._robot, pos = newAttackPosition, time = World.Time}
 				end
 			end
 		end
 
-		if not pass or Attack.ratePass(self._robot, pass, true) < MIN_RATING then
+		-- goalshot opportunity
+		if bestAttackPosition ~= nil then
+			local passVector = bestAttackPosition - self._attackPosition
+			return {
+				task = "pass",
+				target = self._robot,
+				pos = self._attackPosition + passVector:setLength(0.5),
+				time = World.Time,
+				quality = "clean"
+			}
+		end
+
+		-- short chip forward
+		if not pass or Attack.ratePass(self._robot, pass, true) < MIN_PASS_RATING then
 			local newAttackPosition = self._attackPosition + Vector.fromAngle(attackAngle):setLength((MAX_DISTANCE-MIN_DISTANCE)/2 + MIN_DISTANCE)
 			local passVector = newAttackPosition - self._attackPosition
 			return {
