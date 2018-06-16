@@ -87,8 +87,10 @@ function BallEscort:check()
 	local icing = RefereeObs.opponentIcingPredicted(World.Ball)
 	debug.set("BallEscort/icing", icing)
 
-	-- If we can reach the ball we should try to
-	if not icing and ownTimeToBall < math.huge then
+	local distToBorder = self._active and 0.7 or 0.5
+
+	-- If we can reach the ball we should try to if we are not already close to the field border
+	if not icing and ownTimeToBall < math.huge and math.abs(self._robot.pos.x) < World.Geometry.FieldWidthHalf - distToBorder and math.abs(self._robot.pos.y) < World.Geometry.FieldHeightHalf - distToBorder then
 		return false
 	end
 
