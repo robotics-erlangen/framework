@@ -16,7 +16,20 @@ local rotationSmoothed = {}
 local rotationAcclerationSmoothed = {}
 local accelerationSmoothed = {}
 local alpha = 0.02
-local function estimateOpponentDynamics()
+local opponentDynamics = {
+	maxSpeed = 0,
+	maxAngularSpeed = 0,
+	acceleration = {
+		aSpeedupFMax = 0,
+		aBrakeFMax = 0,
+		aSpeedupSMax = 0,
+		aBrakeSMax = 0,
+		aSpeedupPhiMax = 0,
+		aBrakePhiMax = 0,
+	}
+}
+
+function Robot.estimateOpponentDynamics()
 	if World.TimeDiff < 0.001 then
 		-- don't do anything if the timediff is far below the regular 10 ms
 		return
@@ -47,38 +60,42 @@ local function estimateOpponentDynamics()
 
 		if accelerationSmoothed[robot] then
 			local accel = accelerationSmoothed[robot]
-			if accel.x > 0 and accel.x > robot.acceleration.aSpeedupFMax then
-				robot.acceleration.aSpeedupFMax = accel.x
+			if accel.x > 0 and accel.x > opponentDynamics.acceleration.aSpeedupFMax then
+				opponentDynamics.acceleration.aSpeedupFMax = accel.x
 			end
-			if accel.x < 0 and -accel.x > robot.acceleration.aBrakeFMax then
-				robot.acceleration.aBrakeFMax = -accel.x
+			if accel.x < 0 and -accel.x > opponentDynamics.acceleration.aBrakeFMax then
+				opponentDynamics.acceleration.aBrakeFMax = -accel.x
 			end
-			if accel.y > 0 and accel.y > robot.acceleration.aSpeedupSMax then
-				robot.acceleration.aSpeedupSMax = accel.y
+			if accel.y > 0 and accel.y > opponentDynamics.acceleration.aSpeedupSMax then
+				opponentDynamics.acceleration.aSpeedupSMax = accel.y
 			end
-			if accel.y < 0 and -accel.y > robot.acceleration.aBrakeSMax then
-				robot.acceleration.aBrakeSMax = -accel.y
+			if accel.y < 0 and -accel.y > opponentDynamics.acceleration.aBrakeSMax then
+				opponentDynamics.acceleration.aBrakeSMax = -accel.y
 			end
 		end
 		if rotationAcclerationSmoothed[robot] then
 			local rot = rotationAcclerationSmoothed[robot]
-			if rot > 0 and rot > robot.acceleration.aSpeedupPhiMax then
-				robot.acceleration.aSpeedupPhiMax = rot
+			if rot > 0 and rot > opponentDynamics.acceleration.aSpeedupPhiMax then
+				opponentDynamics.acceleration.aSpeedupPhiMax = rot
 			end
-			if rot < 0 and -rot > robot.acceleration.aBrakePhiMax then
-				robot.acceleration.aBrakePhiMax = -rot
+			if rot < 0 and -rot > opponentDynamics.acceleration.aBrakePhiMax then
+				opponentDynamics.acceleration.aBrakePhiMax = -rot
 			end
 		end
-		if robot.maxSpeed < speedSmoothed[robot] then
-			robot.maxSpeed = speedSmoothed[robot]
+		if opponentDynamics.maxSpeed < speedSmoothed[robot] then
+			opponentDynamics.maxSpeed = speedSmoothed[robot]
 		end
-		if robot.maxAngularSpeed < rotationSmoothed[robot] then
-			robot.maxAngularSpeed = rotationSmoothed[robot]
+		if opponentDynamics.maxAngularSpeed < rotationSmoothed[robot] then
+			opponentDynamics.maxAngularSpeed = rotationSmoothed[robot]
 		end
 	end
 
 	lastLocalSpeed = currentLocalSpeed
 	lastRotation = currentRotation
+end
+
+function Robot.getOpponentDynamics()
+	return opponentDynamics
 end
 
 local hadBallTimes = {}
@@ -254,7 +271,6 @@ end
 Robot.isPressed = Cache.forFrame(Robot.isPressed)
 
 function Robot._update()
-	estimateOpponentDynamics()
 	resetMinTimeToBall()
 	updateHadBall()
 	updateTouchedBall()
