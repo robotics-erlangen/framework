@@ -2,6 +2,7 @@ local Defense = {}
 
 local Constants = require "../base/constants"
 local Field = require "../base/field"
+local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
@@ -345,6 +346,9 @@ function Defense:_assignBallCenterbacks(defenders)
 	local timeSum = 0
 	local currentBall = World.Ball
 	for _, info in ipairs(intersectionInfos) do
+		local intersection = geom.intersectLineLine(World.Geometry.FriendlyGoal, Vector(1, 0),
+			info.startPos, info.startDirection)
+		local intersectsGoal = intersection and math.abs(intersection.x) < World.Geometry.GoalWidth / 2 + 0.1
 		if info.resetSpeed then
 			timeSum = timeSum + Physics.ballTravelTime(currentBall, currentBall.pos:distanceTo(info.startPos))
 			currentBall = {pos = info.startPos, speed = Vector(Constants.maxBallSpeed, 0),
@@ -363,17 +367,17 @@ function Defense:_assignBallCenterbacks(defenders)
 		local robotTimeMargin = table.contains(self._centerbackAssignments, closestRobot) and
 			ROBOT_TIME_MARGIN_LOW or ROBOT_TIME_MARGIN_HIGH
 		if robotTime + robotTimeMargin < rollTime or
-				robotTime < rollTime and rollTime < ROBOT_TIME_MARGIN_HIGH then
+				robotTime < rollTime and rollTime < ROBOT_TIME_MARGIN_HIGH or
+				#self._centerbackAssignments == 0 and intersectsGoal then
 			table.insert(self._centerbackAssignments, closestRobot)
 			table.removeValue(defenders, closestRobot)
 			self._send.roleAssignment(closestRobot,
 				{name = "CenterBack", params = { pos = info.startPos, dir = info.startDirection, time = rollTime }})
-		end
-
-		if not amun.isPerformanceMode then
-			vis.addCircle("tr/defense: ball intersection", info.startPos, 0.08, vis.colors.yellow)
-			vis.addCircle("tr/defense: ball intersection", info.pos, 0.12, vis.colors.red)
-			vis.addPath("tr/defense: ball intersection", {info.startPos, info.pos}, vis.colors.red)
+			if not amun.isPerformanceMode then
+				vis.addCircle("tr/defense: ball intersection", info.startPos, 0.08, vis.colors.yellow)
+				vis.addCircle("tr/defense: ball intersection", info.pos, 0.12, vis.colors.red)
+				vis.addPath("tr/defense: ball intersection", {info.startPos, info.pos}, vis.colors.red)
+			end
 		end
 	end
 
