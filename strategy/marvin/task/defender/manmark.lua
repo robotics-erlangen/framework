@@ -79,8 +79,6 @@ function ManMark:run()
 
 	self._obstacleTable.ignoreOpponentRobots = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 		< 4 * self._robot.radius + 0.13
-	self._obstacleTable.ignoreFriendlyRobots = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-		< 2 * self._robot.radius + 0.13
 
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 
