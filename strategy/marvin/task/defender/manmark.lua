@@ -13,7 +13,7 @@ local BLOCK_DIST_MAX = 0.05
 local BLOCK_DIST_HYSTERESIS = 0.02
 local BLOCK_POS_ALPHA = 0.1
 local BLOCK_POS_PRECISION = 0.01
-local DEFENSE_AREA_MIN_DISTANCE = 0.04
+local DEFENSE_AREA_MIN_DISTANCE = 0.24
 
 
 function ManMark:_init(targetRobot)
