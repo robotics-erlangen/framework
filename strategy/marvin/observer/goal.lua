@@ -181,6 +181,7 @@ end
 
 --- Predicts the direction the ball will be shot into.
 -- Checks for ball movement, opponents near the ball, tries to predict passes
+-- @param allShots bool - whether or not to only count shots that can volley onto the goal and might hit the goal
 -- @return pos Vector - origin of movement
 -- @return dir Vector - ball movement direction and speed
 -- @return isShot bool - if the ball is fast (and should be considered as a threat)
@@ -193,7 +194,7 @@ local function comparePrediction(p1, p2)
 	end
 	return p1.dist > p2.dist
 end
-function Goal.predictShot()
+function Goal.predictShot(allShots)
 	local ballSpeed = World.Ball.speed:copy() -- Defend ball by default
 	local pos = World.Ball.pos
 	local isShot = false
@@ -206,8 +207,10 @@ function Goal.predictShot()
 		isShot = true
 		isDribbling = true
 		ballSpeed = Vector.fromAngle(oppBallDribbler.dir)
-		vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false)
-		vis.addPath("o/goal: predictShot: dribbling robot", {oppBallDribbler.pos, oppBallDribbler.pos + ballSpeed * 10}, vis.colors.blue)
+		if not allShots then
+			vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false)
+			vis.addPath("o/goal: predictShot: dribbling robot", {oppBallDribbler.pos, oppBallDribbler.pos + ballSpeed * 10}, vis.colors.blue)
+		end
 		local relativeSpeedLength = World.Ball.speed - oppBallDribbler.speed
 		local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeedLength:length(), oppBallDribbler.dir, World.Ball.speed:angle(), "opp")
 		ballSpeed = Vector(dirx, diry):normalize()
@@ -229,13 +232,17 @@ function Goal.predictShot()
 		local volleyPosDistance = ballLineDistance / math.tan(math.pi * 75 / 180)
 		local ballSpeedCopy = ballSpeed:copy()
 		local volleyPos = ballLinePos + ballSpeedCopy:setLength(volleyPosDistance)
-		vis.addCircle("o/goal: predictShot: last volley pos", volleyPos, 0.1)
+		if not allShots then
+			vis.addCircle("o/goal: predictShot: last volley pos", volleyPos, 0.1)
+		end
 
-		if Field.isInField(volleyPos, 0) then -- if a volley is possible
+		if allShots or Field.isInField(volleyPos, 0) then -- if a volley is possible
 			local lengthOfBallMovement = 0.5 * ballSpeed:lengthSq() / (-Constants.ballDeceleration)
 			local lineSegments = Field.allowedLineSegments(pos, ballSpeed, lengthOfBallMovement)
-			for _, line in ipairs(lineSegments) do
-				vis.addPath("o/goal: predictShot: allowed catch path", {line[1], line[2]}, vis.colors.cyan)
+			if not allShots then
+				for _, line in ipairs(lineSegments) do
+					vis.addPath("o/goal: predictShot: allowed catch path", {line[1], line[2]}, vis.colors.cyan)
+				end
 			end
 
 			for _, robot in ipairs(World.OpponentRobots) do
@@ -249,7 +256,7 @@ function Goal.predictShot()
 						bestPointOnLine = pointOnLine
 					end
 				end
-				if math.sin(robot.dir) > 0 then
+				if not allShots and math.sin(robot.dir) > 0 then
 					goto continue
 				end
 				local ballRollTime = Physics.checkedBallRollTime(World.Ball, bestPointOnLine)
@@ -276,7 +283,9 @@ function Goal.predictShot()
 				if weightedDistance > 0 then
 					table.insert(passReceivers, {robot = robot, dist = weightedDistance, ballTime = ballRollTime,
 						catchPos = catchPos})
-					vis.addPath("o/goal: predictShot: to catch position", {robot.pos, catchPos}, vis.colors.red)
+					if not allShots then
+						vis.addPath("o/goal: predictShot: to catch position", {robot.pos, catchPos}, vis.colors.red)
+					end
 				end
 ::continue::
 			end
@@ -296,9 +305,11 @@ function Goal.predictShot()
 				local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeed:length(), robotAngle,
 					ballAngle, "opp")
 				ballSpeed = Vector(dirx, diry):normalize()
-				vis.addPath("o/goal: predictShot: receives pass", {passReceiver.robot.pos, pos}, vis.colors.pink)
-				vis.addCircle("o/goal: predictShot: receives pass", pos, passReceiver.robot.radius, vis.colors.pink, false)
-				vis.addPath("o/goal: predictShot: receives pass", {pos, pos + ballSpeed * 10}, vis.colors.pink)
+				if not allShots then
+					vis.addPath("o/goal: predictShot: receives pass", {passReceiver.robot.pos, pos}, vis.colors.pink)
+					vis.addCircle("o/goal: predictShot: receives pass", pos, passReceiver.robot.radius, vis.colors.pink, false)
+					vis.addPath("o/goal: predictShot: receives pass", {pos, pos + ballSpeed * 10}, vis.colors.pink)
+				end
 			end
 		end
 		isShot = true
