@@ -161,9 +161,9 @@ function FreeKick:_updateTask()
 
 
 	if self._passList and self._state == "pass" then
-		self._send.passInfo("broadcast", {self._pass})
+		self._send.passInfo("all", {self._pass})
 	elseif self._passList then
-		self._send.passInfo("broadcast", self._passList)
+		self._send.passInfo("all", self._passList)
 	end
 
 	-- visualize decision
