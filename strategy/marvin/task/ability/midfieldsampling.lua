@@ -92,7 +92,7 @@ function MidfieldSampling:movingAhead(ballPos)
 end
 
 function MidfieldSampling:passDistance(ballPos)
-	local minRating = 0.4
+	local minRating = 0.7
 	local dist = self._attackPosition:distanceTo(ballPos)
 	local rating = (1 - minRating) * Rating.valueToRating(dist, 6, 3) + minRating
 
@@ -171,8 +171,8 @@ function MidfieldSampling:evalLocation(ballPos, bestScore)
 	score = score * self:movingAhead(ballPos)
 	if score < bestScore then return score end
 
-	-- score = score * self:passDistance(ballPos)
-	-- if score < bestScore then return score end
+	score = score * self:passDistance(ballPos)
+	if score < bestScore then return score end
 
 	score = score * self:closeOpponents(ballPos)
 	if score < bestScore then return score end
