@@ -28,7 +28,7 @@ function ApplyForMainattacker:check()
 	end
 
 	local applying = false
-	local sender, passInfoTable = next(self._inbox.passInfo())
+	local sender, passInfoTable = next(self._inbox.passInfo("broadcast"))
 	if Attack.currentPlannedMainAttacker(sender, passInfoTable) == self._robot then
 		self:_applyForMainAttacker(nil, nil, 2)
 		self._agent.beOffensive = true
