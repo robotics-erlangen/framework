@@ -35,6 +35,7 @@ local MAX_BALL_DISTANCE = 0.25
 local FINE_ADJUST_ZONE = 1.5
 local MAX_DRIBBLER_SPEED = 0.8
 local SETBACK_WAIT_TIME = 0.4
+local PASS_TARGET_SPEED = 1
 
 local SHOOTER_EVADING_POSITIONS = {
 	Vector(0.5 * World.Geometry.FieldWidthHalf, 0.5 * World.Geometry.FieldHeightHalf),
@@ -145,12 +146,9 @@ function FastBallPlacement:_updateTasks()
 	elseif self._state == STATE_EXECUTE_PASS then
 		self._mainAttacker = self.SHOOTER
 
-		local dist = (self.SHOOTER.pos - self.RECEIVER.pos):length()
-		local ballSpeed = math.max(2, 0.14 * dist + 1.3)
-
 		taskAssignments[self.SHOOTER] = {
 			class = Pass,
-			params = { self.RECEIVER, World.BallPlacementPos, false, nil, nil, ballSpeed},
+			params = { self.RECEIVER, World.BallPlacementPos, false, nil, nil, PASS_TARGET_SPEED},
 			restart = self._stateChanged
 		}
 		taskAssignments[self.RECEIVER] = {
