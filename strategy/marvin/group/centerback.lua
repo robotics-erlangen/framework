@@ -47,9 +47,10 @@ local function assignRobotsToPoints(robotList, pointList, resultAssignment, nece
 			resultAssignment[robotList[i]]=point
 			lastWay = way
 		end
+		local substitutedPoints = {}
 		for i,point in ipairs(pointList) do
 			if isLeft then
-				if point.way >= lastWay - delta then
+				if point.way > lastWay - delta then
 					local way = lastWay - delta
 					local newPoint = {
 						["pos"] = Field.defenseIntersectionByWay(way, radius, true),
@@ -57,11 +58,12 @@ local function assignRobotsToPoints(robotList, pointList, resultAssignment, nece
 					}
 					resultAssignment[robotList[i+offset]] = newPoint
 					lastWay = way
+					table.insert(substitutedPoints, point)
 				else
 					resultAssignment[robotList[i+offset]] = point
 				end
 			else
-				if point.way <= lastWay + delta then
+				if point.way < lastWay + delta then
 					local way = lastWay + delta
 					local newPoint =  {
 						["pos"] = Field.defenseIntersectionByWay(way, radius, true),
@@ -69,6 +71,7 @@ local function assignRobotsToPoints(robotList, pointList, resultAssignment, nece
 					}
 					resultAssignment[robotList[i+offset]] = newPoint
 					lastWay = way
+					table.insert(substitutedPoints, point)
 				else
 					resultAssignment[robotList[i+offset]] = point
 				end
@@ -77,7 +80,7 @@ local function assignRobotsToPoints(robotList, pointList, resultAssignment, nece
 		--check integrety
 		if amun.isDebug then
 			for _, point in ipairs(pointList) do
-				if not table.contains(table.values(resultAssignment), point) then
+				if not table.contains(table.values(resultAssignment), point) and not table.contains(substitutedPoints, point) then
 					error("point that is not covered: " .. tostring(point))
 				end
 			end
