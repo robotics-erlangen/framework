@@ -34,7 +34,7 @@ Constants.positionError = 0.005 -- possible position error from vision [m]
 
 Constants.maxBallSpeed = 6.5 -- maximum allowed shooting speed [m/s]
 
-Constants.maxDribbleDistance = 0.5
+Constants.maxDribbleDistance = 1
 
 Constants.maxRobotRadius = 0.09
 
