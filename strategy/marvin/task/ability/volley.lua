@@ -11,14 +11,14 @@ local Robot = require "observer/robot"
 local ToTarget = require "trajectory/totarget"
 
 
-local mu_x = 1.00
+local mu_x = 0.70
 local mu_y = 0.05
 
-local muXById = {[0] = mu_x, [1] = mu_x, [2] = mu_x, [3] = mu_x, [4] = mu_x, [5] = mu_x,
-				[6] = mu_x, [7] = mu_x, [8] = mu_x, [9] = mu_x, [10] = mu_x, [11] = mu_x,
+local muXById = {[0] = mu_x, [1] = mu_x, [2] = 0.60, [3] = mu_x, [4] = mu_x, [5] = 0.60,
+				[6] = mu_x, [7] = 0.70, [8] = mu_x, [9] = mu_x, [10] = mu_x, [11] = 0.50,
 				[12] = mu_x, [13] = mu_x, [14] = mu_x, [15] = mu_x, opp = mu_x}
-local muYById = {[0] = mu_y, [1] = mu_y, [2] = mu_y, [3] = mu_y, [4] = mu_y, [5] = mu_y,
-				[6] = mu_y, [7] = mu_y, [8] = mu_y, [9] = mu_y, [10] = mu_y, [11] = mu_y,
+local muYById = {[0] = mu_y, [1] = mu_y, [2] = 0.03, [3] = mu_y, [4] = mu_y, [5] = 0.04,
+				[6] = mu_y, [7] = 0.05, [8] = mu_y, [9] = mu_y, [10] = mu_y, [11] = 0.04,
 				[12] = mu_y, [13] = mu_y, [14] = mu_y, [15] = mu_y, opp = mu_y}
 
 local paramsUpdated = false
