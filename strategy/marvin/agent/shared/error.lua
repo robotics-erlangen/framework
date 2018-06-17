@@ -8,7 +8,7 @@ local ERROR_TOLERANCE_PER_SEC = 3 -- <- [0.5,1]
 local EXCHANGE_ERROR_ROBOTS = false
 local EXCHANGE_LOW_BAT_ROBOTS = false
 local EXCHANGE_LOW_BAT_DURING_GAME = false
-local EXCHANGE_ERROR_ROBOTS_SPEED = true
+local EXCHANGE_ERROR_ROBOTS_SPEED = false
 
 function Error:check()
 	local errorTable = ErrorObserver.getErrorTable(self._robot)
