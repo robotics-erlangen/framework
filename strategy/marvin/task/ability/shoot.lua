@@ -144,19 +144,19 @@ function Shoot:_catchBallNecessary(moveDest, futureBallTime)
 	return true
 end
 
-function Shoot:_getState(targetPos, futureBall, futureBallTime, targetTime)
+function Shoot:_getState(targetPos, futureBall, futureBallTime, targetTime, chaseFutureBall)
 	-- check if the ball can be chased
 	local restingBallSpeed = RESTING_BALL_SPEED + (self._state == "ChaseBall" and -1 or 1) * RESTING_BALL_SPEED_HYST
-	local shootVector = targetPos - futureBall.pos
-	local angleDiff = futureBall.speed:absoluteAngleDiff(shootVector)
+	local shootVector = targetPos - chaseFutureBall.pos
+	local angleDiff = chaseFutureBall.speed:absoluteAngleDiff(shootVector)
 	local relativeBallPos = World.Ball.pos - self._robot.pos
 	local sidewardsVector = shootVector:perpendicular():normalize()
 	local sidewardsBallSpeed = World.Ball.speed:dot(sidewardsVector)
 	local chaseBallAngle = CHASE_BALL_ANGLE + (self._state == "ChaseBall" and 1 or -1) * CHASE_BALL_ANGLE_HYST
 	local sidewardsSpeedLimit = CHASE_BALL_SIDE_SPEED + (self._state == "ChaseBall" and 1 or -1) * CHASE_BALL_SIDE_SPEED_HYST
-	if futureBall.speed:length() > restingBallSpeed
+	if chaseFutureBall.speed:length() > restingBallSpeed
 			and angleDiff < chaseBallAngle and (World.Ball.speed:dot(relativeBallPos) > 0 or World.Ball.posZ > 0)
-			and World.Ball.speed:dot(futureBall.pos - self._robot.pos) > 0
+			and World.Ball.speed:dot(chaseFutureBall.pos - self._robot.pos) > 0
 			and sidewardsBallSpeed < sidewardsSpeedLimit then
 		return "ChaseBall"
 	end
@@ -298,19 +298,24 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 	debug.set("Shoot/DirectMovement", self._directMovement)
 end
 
-function Shoot:_shootChaseBall(targetPos, targetSpeed)
+function Shoot:_calculateChaseFutureBall(targetPos)
+	local dribblerOffset = (targetPos - World.Ball.pos):setLength(self._robot.shootRadius + World.Ball.radius)
+	local moveDest = World.Ball.pos - dribblerOffset
+	local moveTime = moveDest:distanceTo(self._robot.pos) / math.min(self._robot.speed:length(), 1)
+	local futureBall =  Physics.ballAtTime(World.Ball, moveTime)
+	vis.addCircle("t/a/shoot chase future ball", futureBall.pos, 0.03, vis.colors.orange)
+	return futureBall
+end
+
+function Shoot:_shootChaseBall(targetPos, targetSpeed, futureBall)
 	local relativeEndSpeed = 1
 
 	self._precision = MIN_PRECISION_CHASE
 
-	local dribblerOffset = (targetPos - World.Ball.pos):setLength(self._robot.shootRadius + World.Ball.radius)
-	local moveDest = World.Ball.pos - dribblerOffset
-	local moveTime = moveDest:distanceTo(self._robot.pos) / math.min(self._robot.speed:length(), 1)
-	local futureBall = Physics.ballAtTime(World.Ball, moveTime)
 	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
 
-	dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
-	moveDest = futureBall.pos - dribblerOffset
+	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
+	local moveDest = futureBall.pos - dribblerOffset
 	local endSpeed = futureBall.speed:copy():setLength(futureBall.speed:length() + relativeEndSpeed)
 
 	endSpeed = self:limitEndSpeedToField(moveDest, endSpeed)
@@ -412,8 +417,9 @@ end
 function Shoot:_doShoot(targetPos, targetSpeed, targetTime, ballReceiptPos, linearShoot, precision)
 	local futureBall, futureBallTime = self:_calculateFutureBall(ballReceiptPos)
 	debug.set("Shoot/futureBallTime", futureBallTime)
+	local chaseFutureBall = self:_calculateChaseFutureBall(targetPos)
 
-	self._state = self:_getState(targetPos, futureBall, futureBallTime, targetTime)
+	self._state = self:_getState(targetPos, futureBall, futureBallTime, targetTime, chaseFutureBall)
 	debug.set("Shoot/State", self._state)
 
 	self._linearShoot = linearShoot
@@ -424,7 +430,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, targetTime, ballReceiptPos, line
 		self:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBall)
 		color = vis.colors.whiteHalf
 	elseif self._state == "ChaseBall" then
-		self:_shootChaseBall(targetPos, targetSpeed, futureBall)
+		self:_shootChaseBall(targetPos, targetSpeed, chaseFutureBall)
 		color = vis.colors.skyBlueHalf
 	elseif self._state == "Volley" then
 		self:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
