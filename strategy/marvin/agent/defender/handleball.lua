@@ -214,7 +214,8 @@ function HandleBall:_updateTask()
 		self._send.groupApplication("trainer", groupApplication)
 	end
 
-	if self._taskDecision == "attacker" then
+	if self._taskDecision == "attacker" or
+		((self._inbox.mainAttacker().trainer == self._robot) and (self._inbox.interceptPass().trainer == self._robot)) then
 		self._send.poolChangeRequest("trainer", "attacker")
 	end
 
