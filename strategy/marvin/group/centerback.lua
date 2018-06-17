@@ -190,12 +190,10 @@ local function calculateCenterBackPositions(centerBackApplications)
 	local extraDistance = distanceToDefenseArea + robot_radius
 	local intersections = {}
 	for target, rlist in pairs(robots) do
-		-- if the target is the ball, predict it TODO: Remove that line as soon as refactorisation has finished, because i'll be covered by dir.
 		local targetPos = target.pos
 		local cBPos, way, sec
 		if target == World.Ball then
-			cBPos, way, sec = UtilDefense.calculateBallPosition()
-			assert(way, "calling centerBackPos/IntersectRayDefenseArea twice is bad")
+			error("g/centerback interface changed")
 		end
 		if not way then
 			-- centerBackPos will always return a way, as the target is limited to the field
@@ -220,7 +218,8 @@ local function calculateCenterBackPositions(centerBackApplications)
 				["wayrange"] = 2*robot_radius + distanceBetweenDefenders,
 				["n"] = 1,
 				["targets"] = {{["target"] = target, ["way"] = way, ["n"] = 1}},
-				["necessary"] = true
+				["necessary"] = true,
+				["time"] = targetTime
 			})
 			n = n - 1
 			idealBot = idealBotPrel
@@ -235,7 +234,8 @@ local function calculateCenterBackPositions(centerBackApplications)
 			["wayrange"] = occupiedWay,
 			["n"] = n,
 			["targets"] = {{["target"] = target, ["way"] = way, ["n"] = n}},
-			["necessary"] = false
+			["necessary"] = false,
+			["time"] = targetTime
 		})
 	end
 
@@ -276,6 +276,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 							n.waypos = (nmax + nmin) /2
 							n.wayrange = (nmax - nmin)
 							n.n = n.n + fullRobotMax + fullRobotMin
+							--n.time shall not be modified
 							if next(i.targets) == nil then
 								i.targets = j.targets
 							elseif next(j.targets) == nil then
@@ -301,6 +302,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 								j.targets = i.targets
 							end
 							j.targets = table.append(i.targets, j.targets)
+							j.time = math.min(i.time, j.time)
 							table.remove(intersections, ix)
 							break
 						end
@@ -339,7 +341,8 @@ local function calculateCenterBackPositions(centerBackApplications)
 				local point =  {
 					["pos"] = final_pos,
 					["target"] = t.target,
-					["way"] = way
+					["way"] = way,
+					["time"] = (i.n == 1) and i.time or math.huge
 				}
 				if necessaryWay and math.abs(way-necessaryWay) < EPSILON then
 					assert (not necessaryDefensePoint, "two necessary Points are a problem")
@@ -382,12 +385,9 @@ local function calculateCenterBackPositions(centerBackApplications)
 		local targetPos = target.pos
 		local _, target_way, target_sec, robot_way, robot_sec = nil
 		if target == World.Ball then
-			targetPos, target_way, target_sec = UtilDefense.calculateBallPosition()
-			assert(target_way, "calling centerBackPos / IntersectRayDefenseArea twice is bad")
+			error("g/centerback interface changed")
 		end
-		if not target_way then
-			_, target_way, target_sec = UtilDefense.centerBackPos(targetPos)
-		end
+		_, target_way, target_sec = UtilDefense.centerBackPos(targetPos)
 		if adjustWay and target_sec then
 			target_way = UtilDefense.mulCornerFactor(target_way, target_sec, extraDistance)
 		end

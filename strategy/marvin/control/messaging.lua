@@ -51,7 +51,8 @@ local msgDefs = {
 
 	-- sent by gr/centerback to assign a target and a position to the centerback tasks
 	-- target can be any table (preferably a ball-like or robot-like object)
-	centerBackPosTarget = { pos = "vector", target = "table", way = "number" },
+	-- time is relativ time until the target should be reached
+	centerBackPosTarget = { pos = "vector", target = "table", way = "number", time = "number" },
 
 	-- sent by gr/moves to the participating agents
 	-- params is a list of parameters

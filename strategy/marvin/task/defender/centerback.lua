@@ -6,6 +6,7 @@ local Field = require "../base/field"
 local geom = require "../base/geom"
 local Referee = require "../base/referee"
 local World = require "../base/world"
+local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
@@ -32,6 +33,7 @@ function CenterBack:run()
 	local pos_target = self._inbox.centerBackPosTarget().trainer
 
 	local destinationPos = pos_target and pos_target.pos or UtilDefense.centerBackDefaultPos
+	local destinationTime = pos_target and pos_target.time or math.huge
 
 	local toBallAngle = (World.Ball.pos - self._robot.pos):angle()
 	local toGoalAngle = (World.Geometry.OpponentGoal - self._robot.pos):angle()
@@ -87,7 +89,7 @@ function CenterBack:run()
 		self._robot.path:addLine(startPos.x, startPos.y, endPos.x, endPos.y, mainAttacker.radius * 2 + 0.1, 100)
 	end
 
-	self._robot.trajectory:update(ToTarget, destinationPos, dir)
+	self._robot.trajectory:update(ToTarget, destinationPos, dir,nil, Physics.robotMinEndspeed(self._robot, destinationPos, destinationTime))
 	self._send.moveDest("all", destinationPos)
 end
 
