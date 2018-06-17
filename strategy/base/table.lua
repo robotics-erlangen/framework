@@ -310,6 +310,14 @@ function table.keys(t)
 	return keys
 end
 
+function table.values(t)
+	local values = {}
+	for _, value in pairs(t) do
+		table.insert(values, value)
+	end
+	return values
+end
+
 function table.reverse(t)
 	local result = {}
 	for i = #t, 1, -1 do
