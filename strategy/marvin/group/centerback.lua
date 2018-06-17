@@ -195,10 +195,8 @@ local function calculateCenterBackPositions(centerBackApplications)
 		if target == World.Ball then
 			error("g/centerback interface changed")
 		end
-		if not way then
-			-- centerBackPos will always return a way, as the target is limited to the field
-			cBPos, way, sec = UtilDefense.centerBackPos(targetPos, target.dir)
-		end
+		-- centerBackPos will always return a way, as the target is limited to the field
+		cBPos, way, sec = UtilDefense.centerBackPos(targetPos, target.dir)
 		--check if the target is necessary but reachable
 		local idealBotPrel = UtilDefense.getClosestRobot(robotSet,cBPos)
 		local timeAroundDefenseArea = Robot.timeAroundDefenseAreaByWay(idealBotPrel, nil, cBPos, way, extraDistance, true)
