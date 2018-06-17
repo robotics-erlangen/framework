@@ -117,6 +117,8 @@ function StrikerSampling:crossPass(ballPos)
 end
 
 function StrikerSampling:distToGoal(ballPos)
+	local minRating = World.Ball.speed:length() < 1 and 0.3 or 0.1
+
 	local distToGoal = ballPos:distanceTo(World.Geometry.OpponentGoal)
 	local minDist = World.Geometry.DefenseRadius + 0.7
 	local ratingBase = Rating.valueToRating(distToGoal, World.Geometry.FieldHeight * 0.7, minDist)
@@ -127,7 +129,7 @@ function StrikerSampling:distToGoal(ballPos)
 		visualizeRating("distToGoal", ballPos, rating)
 	end
 
-	return rating * 0.9 + 0.1
+	return rating * (1 - minRating) + minRating
 end
 
 function StrikerSampling:volleyCircle(ballPos)
