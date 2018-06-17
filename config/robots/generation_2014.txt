@@ -20,7 +20,7 @@ default {
     a_brake_s_max: 5
     a_brake_phi_max: 60
   }
-  ir_param: 0
+  ir_param: 40
   strategy {
     a_speedup_f_max: 3
     a_speedup_s_max: 3
@@ -45,6 +45,7 @@ robot {
   id: 3
 }
 robot {
+  generation: 3
   id: 4
 }
 robot {
@@ -57,6 +58,7 @@ robot {
   id: 7
 }
 robot {
+  generation: 3
   id: 8
 }
 robot {
