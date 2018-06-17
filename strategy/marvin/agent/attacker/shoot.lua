@@ -249,6 +249,17 @@ function Shoot:_redeciding()
 		return true
 	end
 
+	-- redecide if passTiming changed a lot
+	if self._decision.task == "pass" then
+		local oldTime = self._decision.time
+		local oldTarget = self._decision.target
+		local newSug = self._inbox.passSuggestion()[oldTarget]
+		if newSug and newSug.time > oldTime + 0.2 then
+			debug.set("redeciding", "TRUE(passTiming)")
+			return true
+		end
+	end
+
 	-- redecide if the attackPosition changed a lot
 	if self._attackPosition and self._prevAttackPosition
 			and self._attackPosition:distanceTo(self._prevAttackPosition) > 0.3 then
