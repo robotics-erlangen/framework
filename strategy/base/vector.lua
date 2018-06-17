@@ -376,4 +376,16 @@ local vector_class_mt = {
 }
 setmetatable(Vector, vector_class_mt)
 
+function vector_mt:insideSector(startVector, endVector)
+	local v1p = -startVector:perpendicular()
+	local v2p = endVector:perpendicular()
+	local b1 = self:dot(v1p) >= 0
+	local b2 = self:dot(v2p) >= 0
+	if v1p:dot(endVector) >= 0 then
+		return b1 and b2
+	else
+		return b1 or b2
+	end
+end
+
 return Vector
