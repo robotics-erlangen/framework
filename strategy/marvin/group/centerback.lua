@@ -76,11 +76,6 @@ local function assignRobotsToPoints(robotList, pointList, resultAssignment, nece
 		end
 		--check integrety
 		if amun.isDebug then
-			for _, point in ipairs(pointList) do
-				if not table.contains(resultAssignment, point) then
-					error("point that is not covered: " .. tostring(point))
-				end
-			end
 			for _, robot in ipairs(robotList) do
 				if not table.contains(table.keys(resultAssignment), robot) then
 					error("robot that is not covered: " .. tostring(robot))
