@@ -79,59 +79,45 @@ function PenaltyShootout:_updateShootGoal()
 	if self._state == "pass" then
 		self._futureKeeper.pos = self._futureKeeper.pos + (self._robot.pos - self._futureKeeper.pos):setLength(self._robot.speed:length()/3)
 	end
-	vis.addCircle("1test", self._futureKeeper.pos, 0.2, vis.colors.green, false)
-	local sector = Goal.largestFreeSector(World.Ball.pos, {self._futureKeeper}, true)
-	local width = sector and math.abs(sector[1] - sector[2]) or 0
 
 	debug.push("Shootgoal Criterias")
-	debug.push("Time Criteria")
-	debug.set("penaltyStartTime", self._penaltyStartTime)
 	if self._penaltyStartTime then
-		debug.set("timeSinceStart", World.Time - self._penaltyStartTime)
-		debug.set("criteriaMet", World.Time -self._penaltyStartTime > 8)
-	else
-		debug.set("time", "not set yet")
-		debug.set("criteriaMet", false)
-	end
-	debug.pop()
-	debug.push("Position Criteria")
-	debug.set("ballPosY", World.Ball.pos.y)
-	debug.set("DistanceToGoalLine", G.DefenseRadius + DISTANCE_TO_DEFENSE_AREA)
-	debug.set("CriticalMark", G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA)
-	debug.set("CriteriaMet", World.Ball.pos.y > G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA)
-	debug.pop()
-	debug.push("Angle Criteria")
-	debug.set("width", width*180)
-	debug.set("minRelativeSectorSize", MIN_RELATIVE_SECTOR_SIZE)
-	debug.set("maxAngleForPosition(in deg)", 180 * 2 * math.tan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y)))
-	debug.set("CriteriaMet", width < 2 * math.tan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y)) * MIN_RELATIVE_SECTOR_SIZE)
-	debug.pop()
-	debug.pop()
+		local timeSinceStart = World.Time - self._penaltyStartTime
+		local criteriaTime = timeSinceStart > 8
+		debug.push("Time Criteria (8s)", criteriaTime)
+		debug.set("timeSinceStart", timeSinceStart)
+		debug.pop()
 
+		local ballPosY = World.Ball.pos.y
+		local distanceToGoalLine = (World.RULEVERSION == "2017" and G.DefenseRadius or G.DefenseHeight) + DISTANCE_TO_DEFENSE_AREA
+		local criticalMark = G.FieldHeightHalf - distanceToGoalLine
+		local criteriaPos = ballPosY + addDistance > criticalMark
+		debug.push("Position Criteria", criteriaPos)
+		debug.set("ballPosY", ballPosY)
+		debug.set("addDistance", addDistance)
+		debug.set("DistanceToGoalLine", distanceToGoalLine)
+		debug.set("CriticalMark", criticalMark)
+		debug.pop()
+		vis.addCircle("a/a/penaltyshootout: futureKeeper", self._futureKeeper.pos, 0.1, vis.colors.green, false)
 
-	-- if (self._penltyStartTime and World.Time - self._penaltyStartTime > 8) then
-	-- 	log("2")
-	-- elseif World.Ball.pos.y > G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA then
-	-- 	log("3")
-	-- elseif width < 2 * math.tan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y)) * MIN_RELATIVE_SECTOR_SIZE then
-	-- 	log("4")
-	-- 	log("width = "..tostring(width * 180))
-	-- 	log("sector = "..tostring(sector))
-	-- 	log("threshold = "..tostring(2 * math.tan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y)) * MIN_RELATIVE_SECTOR_SIZE) * 180)
-	-- end
-	debug.set("addDistance",addDistance)
-	if self._penaltyStartTime then
-		if self._shootGoalFlag
-				or (self._penaltyStartTime and World.Time - self._penaltyStartTime > 8)
-				or World.Ball.pos.y > G.FieldHeightHalf - G.DefenseRadius - DISTANCE_TO_DEFENSE_AREA - addDistance then
-			self._shootGoalFlag = true
-		end
+		local sector = Goal.largestFreeSector(World.Ball.pos, {self._futureKeeper}, true)
+		local width = sector and math.abs(sector[1] - sector[2]) or 0
 		local angle = 2 * math.atan((G.GoalWidth / 2) / (G.FieldHeightHalf - self._robot.pos.y))
-		-- log(tostring(width *180/math.pi) .. " / " .. tostring(angle * 180/math.pi))
-		if width < angle * MIN_RELATIVE_SECTOR_SIZE then
+		local criteriaAngle = width < angle * MIN_RELATIVE_SECTOR_SIZE
+		debug.push("Angle Criteria", criteriaAngle)
+		debug.set("width", width*180/math.pi)
+		debug.set("minRelativeSectorSize", MIN_RELATIVE_SECTOR_SIZE)
+		debug.set("maxAngleForPosition(in deg)", 180/math.pi * angle)
+		debug.pop()
+		if self._shootGoalFlag or criteriaTime or criteriaTime or criteriaAngle then
 			self._shootGoalFlag = true
 		end
+	else
+		debug.push("Time Criteria (8s)")
+		debug.set("time", "not set yet")
+		debug.pop()
 	end
+	debug.pop()
 end
 
 function PenaltyShootout:_updateTask()
