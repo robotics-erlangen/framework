@@ -179,6 +179,8 @@ function Shoot:_getState(targetPos, futureBall, futureBallTime, targetTime, chas
 
 	-- check if the ball can be shot volley
 	local volleyAngle = VOLLEY_ANGLE + (self._state == "Volley" and 1 or -1) * VOLLEY_ANGLE_HYST
+	shootVector = targetPos - futureBall.pos
+	angleDiff = futureBall.speed:absoluteAngleDiff(shootVector)
 	if math.pi - angleDiff < volleyAngle then
 		local passTravelTime = ObserverShoot.ballPassTime(futureBall.pos, targetPos, nil, nil, self._robot)
 		local bufferTime = self._state == "Volley" and 0.3 or 0
