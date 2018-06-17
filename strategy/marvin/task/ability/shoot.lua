@@ -450,7 +450,7 @@ end
 -- This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
 -- and ignoreOpponentRobots obstacle parameters
 -- @param targetPos Vector - where to shoot at
--- @param targetSpeed Vector - the velocity of the ball when it reaches targetPos
+-- @param targetSpeed number - the velocity of the ball when it reaches targetPos
 -- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
 function Shoot:_shoot(targetPos, targetSpeed, targetTime, ballReceiptPos, precision)
 	self:_doShoot(targetPos, targetSpeed, targetTime, ballReceiptPos, true, precision)
