@@ -85,13 +85,13 @@ function Shoot:_decide()
 	self._wasPressed = Robot.isPressed(self._robot)
 
 	-- perform clean goal shots if possible
-	if self:_shootGoalPossible(self._robot, self._attackPosition) then
-		return {
-			task = "shootgoal",
-			pos = World.Geometry.OpponentGoal,
-			quality = "clean"
-		}
-	end
+	-- if self:_shootGoalPossible(self._robot, self._attackPosition) then
+	-- 	return {
+	-- 		task = "shootgoal",
+	-- 		pos = World.Geometry.OpponentGoal,
+	-- 		quality = "clean"
+	-- 	}
+	-- end
 
 	local pass = Attack.choosePassFromSuggestions(self._robot,
 		self._inbox.passSuggestion(), self._prevPassPos, true)
@@ -363,7 +363,7 @@ function Shoot:_updateTask()
 		local ballTravelTime = ObserverShoot.ballPassTime(shootPos, ballPos, target, nil, self._robot)
 		local passReceiveTime = math.max(suggestedTime, shootTime + ballTravelTime + World.Time)
 
-		self._send.passInfo("all", {{ target = target,
+		self._send.passInfo("broadcast", {{ target = target,
 			ballPos = ballPos, time = passReceiveTime }})
 
 		return Pass, { target, ballPos, chipOverride, self._lastIncomingPassInfoPos, self._decision.time, targetSpeed}

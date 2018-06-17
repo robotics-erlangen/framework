@@ -49,7 +49,7 @@ function Default:_shootBall()
 		return ShootGoal
 	else
 		local ballPos = self._shootTarget.pos + Vector.fromAngle(self._shootTarget.dir) * (World.Ball.radius + self._shootTarget.shootRadius)
-		self._send.passInfo("all", {{ target = self._shootTarget, ballPos = ballPos, time = World.Time }})
+		self._send.passInfo("broadcast", {{ target = self._shootTarget, ballPos = ballPos, time = World.Time }})
 		return Pass, { self._shootTarget }
 	end
 end

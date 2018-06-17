@@ -123,7 +123,7 @@ function Ally:_run()
 			for robot, _ in pairs(self._inbox.attackerFlag()) do
 				if robot.pos:distanceTo(msg) < MIN_DIST_FOR_PASS_POS then
 					vis.addCircle("a/ally/passpos", msg, 0.15, vis.colors.redHalf, true)
-					self._send.passInfo("all", { target = robot, ballPos = msg })
+					self._send.passInfo("broadcast", { target = robot, ballPos = msg })
 					passPosSent = true
 					break
 				end
