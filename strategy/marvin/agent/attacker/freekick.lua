@@ -187,6 +187,7 @@ function FreeKick:_updateTask()
 		debug.set("ballPos", self._pass.ballPos)
 		debug.set("time (rel)", self._pass.time - World.Time)
 		debug.set("time (abs)", self._pass.time)
+		debug.set("chip", self._pass.chip)
 		debug.pop()
 	else
 		debug.set("pass", nil)
