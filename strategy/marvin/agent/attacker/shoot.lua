@@ -19,6 +19,8 @@ local ShootGoalUtil = require "util/shootgoal"
 
 local G = World.Geometry
 
+local ENABLE_PSEUDO_PASS = true
+
 
 function Shoot:_stop()
 	self._nextDecisionTime = World.Time
@@ -80,7 +82,6 @@ function Shoot:_checkForManualAlly()
 end
 
 local MIN_PASS_RATING = 0.3
-local ENABLE_PSEUDO_PASS = true
 function Shoot:_decide()
 	self._wasPressed = Robot.isPressed(self._robot)
 
@@ -219,6 +220,22 @@ function Shoot:_redeciding()
 	if self._activeFrames < 2 or self._decision.task == "none" then
 		debug.set("redeciding", "TRUE (initial)")
 		return true
+	end
+
+	-- redecide if during a pseudo pass, the ball overtakes the pass pos
+	-- this is moderately likely to happen during chaseBall
+	if ENABLE_PSEUDO_PASS and self._decision.task == "pass" and self._decision.target == self._robot then
+		local attackPosition = self._attackPosition or World.Ball.pos
+		local passVector = (self._decision.pos - attackPosition):setLength(0.4)
+
+		local upperAngle = (Vector(-G.FieldWidthHalf, G.FieldHeightHalf) - attackPosition):angle()
+		local lowerAngle = (Vector(G.FieldWidthHalf, G.FieldHeightHalf) - attackPosition):angle()
+		local passAngle = passVector:angle()
+
+		if World.Ball.pos:distanceToSq(self._decision.pos) < 0.2*0.2 or (passAngle < upperAngle and passAngle > lowerAngle) then
+			debug.set("redeciding", "TRUE (passPos overtaken")
+			return true
+		end
 	end
 
 	-- never redecide if the ball is imminent
