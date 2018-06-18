@@ -203,7 +203,7 @@ function FreeKick:_updateTask()
 		return MoveToStaticBall, { math.pi / 2 }, stateChanged
 	elseif self._state == "pass" then
 		if self._task and Class.instanceOf(self._task, Pass) then
-			self._task:updateTarget(self._pass.target, self._pass.ballPos, self._pass.time)
+			self._task:updateTarget(self._pass.target, self._pass.ballPos, nil, self._pass.time)
 		end
 		return Pass, { self._pass.target, self._pass.ballPos, self._pass.chip, World.Ball.pos, self._pass.time }, restartTask
 	end
