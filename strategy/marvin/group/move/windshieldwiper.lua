@@ -96,7 +96,8 @@ function WindshieldWiper:_updateTasks()
 
 		for i=2,#self._robots do
 			if i~=nr then
-				taskAssignments[distances[i].robot] = {class = MoveToPos, params = {pos[i]}}
+				local acceptPos = geom.intersectLineCircle(posToShiftFrom, pos[i] - posToShiftFrom, circle, radius)
+				taskAssignments[distances[i].robot] = {class = Striker, params = {pos[i], acceptPos}, restart = true}
 			end
 		end
 	end
