@@ -3,7 +3,6 @@ local WindshieldWiper = Class("Group.Move.WindshieldWiper", require "group/move/
 local World = require "../base/world"
 local G = World.Geometry
 
-local MoveToPos = require "task/shared/movetopos"
 local Freekick = require "agent/attacker/freekick"
 local StopAttack = require "task/attacker/stopattack"
 
