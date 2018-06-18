@@ -88,7 +88,11 @@ function Pass:run()
 
 	debug.set("chipOverride", self._chipOverride)
 	debug.set("chip", self._chip)
-	debug.set("targetTime", self._targetTime)
+	local targetTime = self._targetTime
+	if self._targetTime then
+		debug.set("targetTime", targetTime - World.Time)
+	end
+	debug.set("targetTime", targetTime)
 
 	local attackPos = self._ballReceiptPos or World.Ball.pos
 	local targetPos = self._targetPos
