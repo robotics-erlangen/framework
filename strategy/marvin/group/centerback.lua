@@ -118,7 +118,7 @@ end
 --if two targets are both going to be NECESSARY soon, the first NECESSARY target will be covered and other targets will not be considered NECESSARY
 
 -- gets all CB applications as parameter (robot -> target)
-local function calculateCenterBackPositions(centerBackApplications)
+function CenterBack:calculateCenterBackPositions(centerBackApplications)
 	-- important = if the centerbacks should take notice of that robot
 	-- -> centerBacks move away to let that robot join the defense line
 	-- -> must not happen to early
@@ -209,7 +209,10 @@ local function calculateCenterBackPositions(centerBackApplications)
 			way = UtilDefense.mulCornerFactor(way, sec, extraDistance)
 		end
 		local n = #rlist
-		if targetTime > timeAroundDefenseArea and timeAroundDefenseArea + 0.4 > targetTime then
+		local biggerHyst = self._lastLocked and 0.2 or 0
+		local smallerHyst = self._lastLocked and 0.6 or 0.4
+		if targetTime + biggerHyst > timeAroundDefenseArea and
+			timeAroundDefenseArea + smallerHyst > targetTime then
 			--mark one intersection with one bot to be necessary, and continue with reduced n for the rest.
 			table.insert(intersections,{
 				["waypos"] =  way,
@@ -236,6 +239,7 @@ local function calculateCenterBackPositions(centerBackApplications)
 			["time"] = targetTime
 		})
 	end
+	self._lastLocked = idealBot ~= nil
 
 
 	-- merge overlapping way intervals
@@ -412,10 +416,11 @@ end
 
 function CenterBack:init()
 	self.name = "centerback"
+	self._lastLocked = false
 end
 
 function CenterBack:run(sender, _, messages)
-	calculateCenterBackPositions(messages)
+	self:calculateCenterBackPositions(messages)
 
 	for robot, _ in pairs(messages) do
 		local pos_target = centerBackPositions[robot]
