@@ -28,8 +28,10 @@ local opponentDynamics = {
 		aBrakePhiMax = 0,
 	}
 }
+local friendlyDynamics = table.copy(opponentDynamics)
+friendlyDynamics.acceleration = table.copy(friendlyDynamics.acceleration)
 
-function Robot.estimateOpponentDynamics()
+function Robot.estimateRobotDynamics()
 	if World.TimeDiff < 0.001 then
 		-- don't do anything if the timediff is far below the regular 10 ms
 		return
@@ -40,7 +42,7 @@ function Robot.estimateOpponentDynamics()
 	local currentLocalSpeed = {}
 	local currentRotation = {}
 
-	for _, robot in ipairs(World.OpponentRobots) do
+	for _, robot in ipairs(World.Robots) do
 		local localRobotSpeed = robot.speed:copy():rotate(-robot.dir)
 		localRobotSpeed.x = math.abs(localRobotSpeed.x)
 		localRobotSpeed.y = math.abs(localRobotSpeed.y)
@@ -58,40 +60,46 @@ function Robot.estimateOpponentDynamics()
 		currentLocalSpeed[robot] = localRobotSpeed
 		currentRotation[robot] = localRobotDir
 
+		local dynamics = robot.isFriendly and friendlyDynamics or opponentDynamics
+
 		if accelerationSmoothed[robot] then
 			local accel = accelerationSmoothed[robot]
-			if accel.x > 0 and accel.x > opponentDynamics.acceleration.aSpeedupFMax then
-				opponentDynamics.acceleration.aSpeedupFMax = accel.x
+			if accel.x > 0 and accel.x > dynamics.acceleration.aSpeedupFMax then
+				dynamics.acceleration.aSpeedupFMax = accel.x
 			end
-			if accel.x < 0 and -accel.x > opponentDynamics.acceleration.aBrakeFMax then
-				opponentDynamics.acceleration.aBrakeFMax = -accel.x
+			if accel.x < 0 and -accel.x > dynamics.acceleration.aBrakeFMax then
+				dynamics.acceleration.aBrakeFMax = -accel.x
 			end
-			if accel.y > 0 and accel.y > opponentDynamics.acceleration.aSpeedupSMax then
-				opponentDynamics.acceleration.aSpeedupSMax = accel.y
+			if accel.y > 0 and accel.y > dynamics.acceleration.aSpeedupSMax then
+				dynamics.acceleration.aSpeedupSMax = accel.y
 			end
-			if accel.y < 0 and -accel.y > opponentDynamics.acceleration.aBrakeSMax then
-				opponentDynamics.acceleration.aBrakeSMax = -accel.y
+			if accel.y < 0 and -accel.y > dynamics.acceleration.aBrakeSMax then
+				dynamics.acceleration.aBrakeSMax = -accel.y
 			end
 		end
 		if rotationAcclerationSmoothed[robot] then
 			local rot = rotationAcclerationSmoothed[robot]
-			if rot > 0 and rot > opponentDynamics.acceleration.aSpeedupPhiMax then
-				opponentDynamics.acceleration.aSpeedupPhiMax = rot
+			if rot > 0 and rot > dynamics.acceleration.aSpeedupPhiMax then
+				dynamics.acceleration.aSpeedupPhiMax = rot
 			end
-			if rot < 0 and -rot > opponentDynamics.acceleration.aBrakePhiMax then
-				opponentDynamics.acceleration.aBrakePhiMax = -rot
+			if rot < 0 and -rot > dynamics.acceleration.aBrakePhiMax then
+				dynamics.acceleration.aBrakePhiMax = -rot
 			end
 		end
-		if opponentDynamics.maxSpeed < speedSmoothed[robot] then
-			opponentDynamics.maxSpeed = speedSmoothed[robot]
+		if dynamics.maxSpeed < speedSmoothed[robot] then
+			dynamics.maxSpeed = speedSmoothed[robot]
 		end
-		if opponentDynamics.maxAngularSpeed < rotationSmoothed[robot] then
-			opponentDynamics.maxAngularSpeed = rotationSmoothed[robot]
+		if dynamics.maxAngularSpeed < rotationSmoothed[robot] then
+			dynamics.maxAngularSpeed = rotationSmoothed[robot]
 		end
 	end
 
 	lastLocalSpeed = currentLocalSpeed
 	lastRotation = currentRotation
+end
+
+function Robot.getFriendlyDynamics()
+	return friendlyDynamics
 end
 
 function Robot.getOpponentDynamics()
