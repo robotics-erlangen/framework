@@ -41,7 +41,7 @@ class Strategy : public QObject
     Q_OBJECT
 
 public:
-    Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, bool internalAutoref = false);
+    Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, bool internalAutoref = false, bool isLogplayer = false);
     ~Strategy() override;
     void resetIsReplay() { m_isReplay = false; }
     void setEnabled(bool enable) { m_isEnabled = enable; }
@@ -113,6 +113,7 @@ private:
 
     qint32 m_refboxReplyLength;
     QByteArray m_refboxReplyPartialPacket;
+    bool m_isInLogplayer;
 };
 
 #endif // STRATEGY_H

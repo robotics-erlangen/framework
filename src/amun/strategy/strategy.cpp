@@ -23,6 +23,7 @@
 #include "strategy.h"
 #include "core/timer.h"
 #include "protobuf/geometry.h"
+#include "protobuf/robot.h"
 #include <QDateTime>
 #include <QFileInfo>
 #include <QHostAddress>
@@ -54,7 +55,7 @@ public:
  * \param timer Timer to be used for time scaling
  * \param type can be blue or yellow team or autoref
  */
-Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, bool internalAutoref) :
+Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, bool internalAutoref, bool isLogplayer) :
     m_p(new StrategyPrivate),
     m_timer(timer),
     m_strategy(nullptr),
@@ -69,7 +70,8 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     m_isInternalAutoref(internalAutoref),
     m_isPerformanceMode(true),
     m_isFlipped(false),
-    m_refboxReplyLength(-1)
+    m_refboxReplyLength(-1),
+    m_isInLogplayer(isLogplayer)
 {
     m_udpSenderSocket = new QUdpSocket(this);
     m_refboxSocket = new QTcpSocket(this);
@@ -93,6 +95,8 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     // initialize geometry
     geometrySetDefault(&m_geometry);
     m_geometryString = m_geometry.SerializeAsString();
+
+    robotSetDefault(&m_anyRobotSpec);
 }
 
 Strategy::~Strategy()
@@ -302,7 +306,7 @@ void Strategy::process()
     }
 
     // create a dummy team with 16 robots if replaying with no team information
-    if (m_isReplay && m_team.robot_size() == 0) {
+    if ((m_isInLogplayer || m_isReplay) && m_team.robot_size() == 0) {
         createDummyTeam();
         reload();
     }

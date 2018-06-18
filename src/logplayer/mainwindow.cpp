@@ -253,7 +253,8 @@ void MainWindow::createStrategy(int index)
 {
     Q_ASSERT(m_strategys[index] == nullptr);
     ui->field->setRegularVisualizationsEnabled(index != 0, false);
-    m_strategys[index] = new Strategy(m_playTimer, (index == 0) ? StrategyType::YELLOW : StrategyType::BLUE, nullptr);
+    m_strategys[index] = new Strategy(m_playTimer, (index == 0) ? StrategyType::YELLOW : StrategyType::BLUE, nullptr,
+                                      false, true);
     m_strategys[index]->moveToThread(m_strategyThreads[index]);
     m_strategyBlocker[index] = new BlockingStrategyReplay(m_strategys[index]);
 
