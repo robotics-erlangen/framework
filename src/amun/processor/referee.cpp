@@ -97,6 +97,10 @@ void Referee::handleRemoteControlRequest(const SSL_RefereeRemoteControlRequest &
 {
     if (request.has_designated_position()) {
         m_gameState.mutable_designated_position()->CopyFrom(request.designated_position());
+        if (m_flipped) {
+            m_gameState.mutable_designated_position()->set_x(-m_gameState.designated_position().x());
+            m_gameState.mutable_designated_position()->set_y(-m_gameState.designated_position().y());
+        }
     }
     if (request.has_command()) {
         handleCommand(request.command());

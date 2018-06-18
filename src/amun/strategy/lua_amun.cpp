@@ -324,6 +324,13 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
         SSL_RefereeRemoteControlRequest * request = command->mutable_referee()->mutable_autoref_command();
         protobufToMessage(state, 1, *request, NULL);
 
+        // flip position if necessary
+        if (thread->isFlipped() && request->has_designated_position()) {
+            auto *pos = request->mutable_designated_position();
+            pos->set_x(-pos->x());
+            pos->set_y(-pos->y());
+        }
+
         if (!thread->sendCommand(command)) {
             luaL_error(state, "This function is only allowed in debug mode!");
         }
@@ -335,6 +342,13 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
 
         SSL_RefereeRemoteControlRequest request;
         protobufToMessage(state, 1, request, NULL);
+
+        // flip position if necessary
+        if (thread->isFlipped() && request.has_designated_position()) {
+            auto *pos = request.mutable_designated_position();
+            pos->set_x(pos->x());
+            pos->set_y(pos->y());
+        }
 
         QByteArray data;
         // the first 4 bytes denote the packet's size in big endian

@@ -152,6 +152,7 @@ void Amun::start()
         connect(m_strategy[i], SIGNAL(sendHalt(bool)),
                 m_processor, SLOT(handleStrategyHalt(bool)));
         connect(this, SIGNAL(gotRefereeHost(QString)), m_strategy[i], SLOT(handleRefereeHost(QString)));
+        connect(m_processor, SIGNAL(setFlipped(bool)), m_strategy[i], SLOT(setFlipped(bool)));
 
         // route commands from and to strategy
         connect(m_strategy[i], SIGNAL(gotCommand(Command)), SLOT(handleCommand(Command)));

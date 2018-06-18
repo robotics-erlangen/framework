@@ -46,6 +46,7 @@ public:
 
     explicit Processor(const Timer *timer);
     ~Processor() override;
+    bool getIsFlipped() const { return m_lastFlipped; }
 
 signals:
     void sendStatus(const Status &status);

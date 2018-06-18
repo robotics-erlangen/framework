@@ -72,6 +72,7 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     m_debugHelper(helper),
     m_isInternalAutoref(internalAutoref),
     m_isPerformanceMode(true),
+    m_isFlipped(false),
     m_refboxReplyLength(-1)
 {
     m_udpSenderSocket = new QUdpSocket(this);
@@ -429,6 +430,14 @@ void Strategy::handleRefboxReply(const QByteArray &data)
     }
 }
 
+void Strategy::setFlipped(bool flipped)
+{
+    m_isFlipped = flipped;
+    if (m_strategy) {
+        m_strategy->setFlipped(flipped);
+    }
+}
+
 void Strategy::reload()
 {
     if (!m_filename.isNull()) {
@@ -474,6 +483,7 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     m_strategy->setIsInternalAutoref(m_isInternalAutoref);
     m_strategy->setIsPerformanceMode(m_isPerformanceMode);
     m_strategy->setIsReplay(m_isReplay);
+    m_strategy->setFlipped(m_isFlipped);
 
     // delay reload until strategy is no longer running
     connect(m_strategy, SIGNAL(requestReload()), SLOT(reload()), Qt::QueuedConnection);

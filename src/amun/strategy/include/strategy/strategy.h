@@ -60,6 +60,7 @@ public slots:
     void sendNetworkRefereeCommand(const QByteArray &data);
     void sendAutorefEvent(const QByteArray &data);
     void handleRefereeHost(QString hostName);
+    void setFlipped(bool flipped);
 
 private slots:
     void process();
@@ -108,6 +109,7 @@ private:
     DebugHelper *m_debugHelper;
     bool m_isInternalAutoref;
     bool m_isPerformanceMode;
+    bool m_isFlipped;
     robot::Specs m_anyRobotSpec;
 
     qint32 m_refboxReplyLength;

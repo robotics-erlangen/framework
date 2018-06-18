@@ -61,6 +61,7 @@ public:
     void setIsInternalAutoref(bool internal) { m_isInternalAutoref = internal; }
     void setIsPerformanceMode(bool performance) { m_isPerformanceMode = performance; }
     void setIsReplay(bool replay) { m_isReplay = replay; }
+    void setFlipped(bool flipped) { m_isFlipped = flipped; }
 
     // getter functions
     QString errorMsg() const { return m_errorMsg; }
@@ -79,6 +80,7 @@ public:
     void addRefereeReply(SSL_RefereeRemoteControlReply reply) { m_refereeReplys.append(reply); }
     SSL_RefereeRemoteControlReply nextRefereeReply() { return m_refereeReplys.takeFirst(); }
     bool hasRefereeReply() const { return m_refereeReplys.size() > 0; }
+    bool isFlipped() const { return m_isFlipped; }
 
 signals:
     // wrapper may listen to reload request, but doesn't have to
@@ -103,6 +105,7 @@ protected:
     bool m_isInternalAutoref;
     bool m_isPerformanceMode;
     bool m_isReplay;
+    bool m_isFlipped;
 
     QList<SSL_RefereeRemoteControlReply> m_refereeReplys;
 };
