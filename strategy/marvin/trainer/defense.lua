@@ -279,7 +279,7 @@ function Defense:_assignPiggies(defenders, nPiggies)
 end
 
 -- inserts tables of: way, pos, startPos, startDirection of the ray into result
-function Defense:_createIntersections(result, pos, direction, radius, index)
+function Defense:_createIntersections(result, pos, direction, radius, index, isDribbling)
 	local lastRemoved = self._centerbackIntersectionsRemoved[index]
 	self._centerbackIntersectionsRemoved[index] = false
 	local MAX_DEFENSE_DIST = 5
@@ -301,8 +301,17 @@ function Defense:_createIntersections(result, pos, direction, radius, index)
 		if intersections[1].pos:distanceToSq(pos) > MAX_DEFENSE_DIST * MAX_DEFENSE_DIST then
 			return
 		end
-		table.insert(result, {startPos = pos, startDirection = direction,
-			pos = intersections[1].pos, way = intersections[1].way})
+		if isDribbling then
+			-- for dribbling robots, limit the first intersection to ones going into the goal
+			local goallineIntersection = geom.intersectLineLine(pos, direction, G.FriendlyGoal, Vector(1, 0))
+			if math.abs(goallineIntersection.x) > G.GoalWidth / 2 then
+				local goalSide = Vector(math.sign(goallineIntersection.x) * G.GoalWidth / 2, G.FriendlyGoal.y)
+				self:_createIntersections(result, pos, goalSide - pos, radius, index, false)
+			end
+		else
+			table.insert(result, {startPos = pos, startDirection = direction,
+				pos = intersections[1].pos, way = intersections[1].way})
+		end
 	end
 	if intersections[2] then
 		local toDefenseDist = pos:distanceTo(intersections[1].pos)
@@ -325,12 +334,12 @@ function Defense:_assignBallCenterbacks(defenders)
 	local defenseExtraRadius = distanceToDefenseArea + Constants.maxRobotRadius
 	local intersectionInfos = {}
 	if (ballDistance < 1 and World.Ball.speed:length() > 0.2) or not Ball.isSlowBall() then
-		self:_createIntersections(intersectionInfos, World.Ball.pos, World.Ball.speed, defenseExtraRadius, 1)
+		self:_createIntersections(intersectionInfos, World.Ball.pos, World.Ball.speed, defenseExtraRadius, 1, false)
 	end
 	local predictedPos, predictedDir, isShot, _, isDribbling = Goal.predictShot(true)
 	if isShot and (predictedPos ~= World.Ball.pos or predictedDir ~= World.Ball.speed) then
 		local numBefore = #intersectionInfos
-		self:_createIntersections(intersectionInfos, predictedPos, predictedDir, defenseExtraRadius, 2)
+		self:_createIntersections(intersectionInfos, predictedPos, predictedDir, defenseExtraRadius, 2, isDribbling)
 		if #intersectionInfos > numBefore then
 			intersectionInfos[numBefore + 1].resetSpeed = true
 			intersectionInfos[numBefore + 1].isDribbling = isDribbling
