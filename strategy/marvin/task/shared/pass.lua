@@ -9,7 +9,7 @@ local ObserverShoot = require "observer/shoot"
 local PathHelper = require "trajectory/pathhelper"
 local Rating = require "util/rating"
 
-local CHIP_PASS_DISTANCE_FACTOR = 0.5
+local CHIP_PASS_DISTANCE_FACTOR = 0.4
 local MIN_PASS_SPEED = 1
 local DEFAULT_PASS_SPEED = 3
 
