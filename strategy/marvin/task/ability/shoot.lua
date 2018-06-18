@@ -40,6 +40,7 @@ local CHASE_BALL_SIDE_SPEED_HYST = 0.25
 -- we can shoot the ball as soon as it touches the dribbler instead of stopping it
 local VOLLEY_ANGLE = 70 * math.pi / 180
 local VOLLEY_ANGLE_HYST = 5 * math.pi / 180
+local VOLLEY_ENABLED = true
 
 -- direct movement
 local EXTRA_MOVE_SPEED_LIMIT = 0.5
@@ -181,7 +182,7 @@ function Shoot:_getState(targetPos, futureBall, futureBallTime, targetTime, chas
 	local volleyAngle = VOLLEY_ANGLE + (self._state == "Volley" and 1 or -1) * VOLLEY_ANGLE_HYST
 	shootVector = targetPos - futureBall.pos
 	angleDiff = futureBall.speed:absoluteAngleDiff(shootVector)
-	if math.pi - angleDiff < volleyAngle then
+	if VOLLEY_ENABLED and (math.pi - angleDiff < volleyAngle) then
 		local passTravelTime = ObserverShoot.ballPassTime(futureBall.pos, targetPos, nil, nil, self._robot)
 		local bufferTime = self._state == "Volley" and 0.3 or 0
 		if not targetTime or World.Time + futureBallTime + passTravelTime + bufferTime > targetTime then
