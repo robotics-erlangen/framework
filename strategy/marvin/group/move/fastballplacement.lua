@@ -166,6 +166,11 @@ function FastBallPlacement:_updateTasks()
 		local intersection, ballLambda = geom.intersectLineLine(World.Ball.pos, ballSpeed, self.RECEIVER.pos, ballSpeed:perpendicular());
 		self._ballReceiverIntersects = ballLambda > 0
 
+		-- We don't want to receive a pass out of field because setback may not be possible there
+		if not Field.isInField(intersection) then
+			intersection = Field.nextLineCut(World.Ball.pos, ballSpeed)
+		end
+
 		vis.addPath("g/m/fastballplacement", { self.RECEIVER.pos, intersection, World.Ball.pos }, vis.colors.red)
 
 		-- Stop moving if the ball is near the receiver
@@ -275,9 +280,11 @@ function FastBallPlacement:_getNextState(currentState)
 	elseif currentState == STATE_ACCEPT_PASS then
 		nextState = STATE_ACCEPT_PASS
 		local ballDist = World.Ball.pos:distanceTo(self.RECEIVER.pos)
-		if (not self._ballReceiverIntersects and ballDist > MAX_BALL_DISTANCE)
-				or World.Ball.speed:length() < BALL_STOP_SPEED then
-			nextState = STATE_WAIT_FOR_SET_BACK
+		if World.Ball.speed:length() < BALL_STOP_SPEED then
+			nextState = ballDist > MAX_BALL_DISTANCE and STATE_WAIT_FOR_BALL_STOP or STATE_WAIT_FOR_SET_BACK
+		end
+		if not self._ballReceiverIntersects and ballDist > MAX_BALL_DISTANCE then
+			nextState = STATE_WAIT_FOR_BALL_STOP
 		end
 	elseif currentState == STATE_WAIT_FOR_SET_BACK then
 		nextState = STATE_WAIT_FOR_SET_BACK
