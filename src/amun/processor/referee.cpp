@@ -60,7 +60,7 @@ void Referee::handlePacket(const QByteArray &data)
     m_gameState.set_stage_time_left(packet.stage_time_left());
     m_gameState.set_stage(packet.stage());
     if (packet.has_blueteamonpositivehalf()) {
-        setFlipped(packet.blueteamonpositivehalf());
+        setFlipped(!packet.blueteamonpositivehalf());
     }
     if (packet.has_designated_position()) {
         m_gameState.mutable_designated_position()->CopyFrom(packet.designated_position());
