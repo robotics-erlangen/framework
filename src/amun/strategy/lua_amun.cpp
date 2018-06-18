@@ -336,7 +336,6 @@ static int amunSendNetworkRefereeCommand(lua_State *state)
         }
     } else {
         if (!thread->refboxControlEnabled()) {
-            thread->log("Warning: Command not sent to refbox! (Enable the config option if you wish to send)");
             return 0;
         }
 
