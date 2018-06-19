@@ -310,7 +310,7 @@ function Defense:_createIntersections(result, pos, direction, radius, index, isD
 		if isDribbling then
 			-- for dribbling robots, limit the first intersection to ones going into the goal
 			local goallineIntersection = geom.intersectLineLine(pos, direction, G.FriendlyGoal, Vector(1, 0))
-			if math.abs(goallineIntersection.x) > G.GoalWidth / 2 then
+			if goallineIntersection and math.abs(goallineIntersection.x) > G.GoalWidth / 2 then
 				local goalSide = Vector(math.sign(goallineIntersection.x) * G.GoalWidth / 2, G.FriendlyGoal.y)
 				self:_createIntersections(result, pos, goalSide - pos, radius, index, false)
 			end
