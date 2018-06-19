@@ -140,7 +140,6 @@ function ShootGoal.updateTarget(ownRobot, oldTarget, oldDirty, attackPosition)
 	local ballOwnershipDuration = Ball.friendlyBallOwnershipDuration()
 	local maxExtraAngle = 2.5/180 * math.pi
 	local dirtyCheckAngle = 2.5/180 * math.pi + maxExtraAngle * math.max(0, 1 - ballOwnershipDuration / TIME_UNTIL_MIN_ANGLE)
-	log("dirtyCheckAngle: "..tostring(dirtyCheckAngle/math.pi * 180))
 	local dirtyCheckAngleHysteresis = 0.3 * math.pi/180
 	local dirty = targetWidth < dirtyCheckAngle - dirtyCheckAngleHysteresis or
 		(oldDirty and targetWidth < dirtyCheckAngle + dirtyCheckAngleHysteresis)
