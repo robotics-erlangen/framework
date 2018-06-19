@@ -80,15 +80,15 @@ function Robot:init(data, isFriendly)
 		self.shootRadius = 0.067 -- shoot radius of 2014 generation
 		self.generation = -1
 		self.id = data
-		self.maxSpeed = 3 -- Init max speed and acceleration for opponents
+		self.maxSpeed = 3.7 -- Init max speed and acceleration for opponents
 		self.maxAngularSpeed = 11
 
 		self.acceleration = {}
-		self.acceleration.aSpeedupFMax = 2.5
-		self.acceleration.aSpeedupSMax = 3.5
+		self.acceleration.aSpeedupFMax = 3.0
+		self.acceleration.aSpeedupSMax = 3.0
 		self.acceleration.aSpeedupPhiMax = 31
-		self.acceleration.aBrakeFMax = 4.5
-		self.acceleration.aBrakeSMax = 3
+		self.acceleration.aBrakeFMax = 3.8
+		self.acceleration.aBrakeSMax = 3.8
 		self.acceleration.aBrakePhiMax = 14.5
 	end
 	self.lostSince = 0
