@@ -268,6 +268,13 @@ local function addFriendlyPassObstacle(path, robot, inbox, radius)
 	end
 end
 
+local function addPenaltyObstacle(path)
+	if World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive" then
+		path:addRect(-G.FieldWidth/2, G.OpponentGoalRight.y, 
+			G.FieldWidth/2, (G.OpponentGoalRight.y - (G.DefenseHeight + 0.45)))
+	end
+end
+
 local function addBallPlacementObstacle(path)
     if World.RefereeState == "BallPlacementOffensive" or World.RefereeState == "BallPlacementDefensive" then
         if World.Ball.pos:distanceToSq(World.BallPlacementPos) > 0.001 then
@@ -380,6 +387,7 @@ local ALLOWED_PARAMETERS = {
 	ignoreFriendlyRobots = true,
 	ignoreOpponentRobots = true,
 	ignoreBallPlacementObstacle= true,
+	ignorePenaltyDistance = true,
 	disableOpponentPrediction = true,
 	pathRadius = true,
 	stopBallDistance = true,
@@ -419,7 +427,9 @@ end
 -- ignoreFriendlyRobots             bool
 -- ignoreOpponentRobots             bool
 -- ignoreBallPlacementObstacle      bool
+-- ignorePenaltyDistance			bool
 -- disableOpponentPrediction        bool
+-- 
 -- pathRadius                       number
 -- stopBallDistance                 number
 -- extraBallDistance                number
@@ -451,6 +461,9 @@ function PathHelper.insertObstacles(robot)
 	end
     if not p.ignoreBallPlacementObstacle then
         addBallPlacementObstacle(p.path)
+    end
+    if not p.ignorePenaltyDistance then
+    	addPenaltyObstacle(p.path)
     end
 	addRobotObstacles(p.path, robot, p.ignoreFriendlyRobots, p.ignoreOpponentRobots, p.disableOpponentPrediction)
 	-- Clear obstacle params because obstacles gets kept over multiple frames

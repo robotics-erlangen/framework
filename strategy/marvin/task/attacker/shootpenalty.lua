@@ -22,7 +22,8 @@ local shootErrorThreshold = 4.0 * math.pi/180 -- maximum angle error
 local keeperMoveSpeedThreshold = 0.4 -- for random keeper movement detection
 
 local obstacleTable = {
-    ignorePass = true
+    ignorePass = true,
+    ignorePenaltyDistance = true
 }
 
 local goalLine = (G.OpponentGoalLeft - G.OpponentGoalRight):normalize()

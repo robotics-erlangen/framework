@@ -8,7 +8,7 @@ local ToTarget = require "trajectory/totarget"
 function MoveToStaticBall:_init(rotation, distanceToBall)
 	self._rotation = rotation or math.pi/2
 	self._distanceToBall = distanceToBall or 0.03
-	self._obstacleTable = {extraBallDistance = self._distanceToBall, ignorePass = true}
+	self._obstacleTable = {extraBallDistance = self._distanceToBall, ignorePass = true, ignorePenaltyDistance = true}
 end
 
 function MoveToStaticBall:run()
