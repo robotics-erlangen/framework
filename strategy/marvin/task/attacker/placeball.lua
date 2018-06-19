@@ -48,7 +48,6 @@ local PULL_LOST_BALL_HYSTERESIS = 1
 
 -- TODO test max speeds for push
 local PUSH_DRIBBLER_SPEED = 0.4
-local MAX_PUSH_SPEED = 1
 local FAR_NEAR_CUT
 local FAR_PUSH_SPEED = 1
 local NEAR_PUSH_SPEED = 0.25
@@ -69,6 +68,7 @@ function PlaceBall:_init(placementPos)
 	self._stateChanged = true
 	self._stateChangeTime = World.Time
 	self._ballStartPos = self._ball.pos
+	self._robotStartPos = self._robot.pos
 
 	self._currentTargetPos = nil
 
@@ -157,6 +157,7 @@ function PlaceBall:run()
 		self._currentTargetPos = self._ball.pos - self._borderOffsetAverage
 		-- TODO max speed based on distance?
 		self._robot.trajectory:update(ToTarget, self._currentTargetPos, self._borderOffsetAverage:angle())
+		self._robotStartPos = self._currentTargetPos
 
 	elseif self._state == STATE_ENSURE_PULL_CONTACT then
 
@@ -178,6 +179,7 @@ function PlaceBall:run()
 
 		self._currentTargetPos = self._ball.pos + self._placementOffsetAverage
 		self._robot.trajectory:update(ToTarget, self._currentTargetPos, (-self._placementOffsetAverage):angle())
+		self._robotStartPos = self._currentTargetPos
 
 	elseif self._state == STATE_PUSH_TO_POS then
 
@@ -201,17 +203,12 @@ function PlaceBall:run()
 
 	elseif self._state == STATE_BACK_UP then
 
-        if self._stateChanged then
-			-- Normally backup in direction where we came from
-			-- I choose not to make this dependent on the current ball position as it can teleport randomly
-			local offset = self._ballStartPos - self._robot.pos
-			-- Backup in reverse direction if the ball was pulled
-			if not self._pushedBefore then
-				offset = -offset
-			end
-            offset:setLength(OFFSET_EXTRA_LENGTH)
-            self._currentTargetPos = self._robot.pos + offset
-        end
+		-- Ever making the the offset dependent on something near the target position was a mistake
+		if self._stateChanged then
+			local offset = (self._robotStartPos - self._ballStartPos):setLength(OFFSET_EXTRA_LENGTH)
+			self._currentTargetPos = self._robot.pos + offset
+		end
+
 		self._robot.trajectory:update(ToTarget, self._currentTargetPos, self._robot.dir, BACK_UP_SPEED)
 
 	elseif self._state == STATE_MOVE_AWAY then
