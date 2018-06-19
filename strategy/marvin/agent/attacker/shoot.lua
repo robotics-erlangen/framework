@@ -391,6 +391,9 @@ function Shoot:_updateTask()
 		local ballTravelTime = ObserverShoot.ballPassTime(shootPos, ballPos, target, nil, self._robot)
 		local passReceiveTime = math.max(suggestedTime, shootTime + ballTravelTime + World.Time)
 
+		--save time for future use:
+		self._decision.time = passReceiveTime
+
 		self._send.passInfo("all", {{ target = target,
 			ballPos = ballPos, time = passReceiveTime }})
 
