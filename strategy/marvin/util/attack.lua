@@ -331,13 +331,15 @@ function Attack.shootGoalViewPos(shootDest, attackPos)
 end
 Attack.checkForGoalShot = Cache.forFrame(Attack.checkForGoalShot)
 
-local BUFFER_TIME = 0.6
+local BUFFER_TIME = 0.8
 local function printPassInfo(robot, passInfo, hysteresis, hysteresisPassInfo)
 	if passInfo then
 		local robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos):setLength(robot.shootRadius + World.Ball.radius)
 		local robotTime = math.max(Physics.robotTimeToPos(robot, robotPos, Vector(0, 0), true), 0.5)
+		local isInOpponentFieldHalf = passInfo.ballPos.y > 0
+		local bufferTime = isInOpponentFieldHalf and BUFFER_TIME or 1.5 * BUFFER_TIME
 		debug.push("PassInfo")
-		debug.set("robotTime", robotTime + BUFFER_TIME)
+		debug.set("robotTime", robotTime + bufferTime)
 		debug.set("messageTime", passInfo.time - World.Time)
 		debug.set("ballTime", Physics.ballTravelTime(World.Ball, World.Ball.pos:distanceTo(passInfo.ballPos)))
 		debug.set("passInfoTime", passInfo.time)
