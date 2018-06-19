@@ -7,11 +7,11 @@ function Moves:init()
 	self.moveList = {
 		require "group/move/kickoff",
 		require "group/move/kickoffdefensive",
-		require "group/move/mrltestcorner",
+--		require "group/move/mrltestcorner",
 		require "group/move/armada",
 		require "group/move/fastballplacement",
 		-- require "group/move/overchip",
-		require "group/move/windshieldwiper",
+--		require "group/move/windshieldwiper",
 		require "group/move/none"
 	}
 
