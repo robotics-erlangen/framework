@@ -91,7 +91,7 @@ function Pass:run()
 	debug.set("chip", self._chip)
 	local targetTime = self._targetTime
 	if self._targetTime then
-		debug.set("targetTime", targetTime - World.Time)
+		debug.set("targetTime (rel)", targetTime - World.Time)
 	end
 	debug.set("targetTime", targetTime)
 
