@@ -55,6 +55,7 @@ local PUSH_LOST_BALL_HYSTERESIS = 1
 local BACK_UP_WAIT_TIME = 1
 local BACK_UP_SPEED = 0.4
 
+local MIN_TIME_IN_STATE = 0.1
 
 function PlaceBall:_init(placementPos)
 	self._placementPos = placementPos or World.BallPlacementPos
@@ -211,6 +212,9 @@ function PlaceBall:run()
 end
 
 function PlaceBall:_getNextState(currentState)
+	if World.Time - self._stateChangeTime < MIN_TIME_IN_STATE then
+		return currentState
+	end
 
 	local nextState
 
