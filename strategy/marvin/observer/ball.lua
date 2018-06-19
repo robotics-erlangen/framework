@@ -143,37 +143,45 @@ end
 
 
 local lastBallOwnerFriendly
-local friendlyBallOwnerLastRun = 0
---- Wrapper function for ballOwner
--- @return ballOwner robot - a friendly robot, or nil
+local friendlyBallOwnerTime = 0
 function Ball.friendlyBallOwner()
-	if World.Time == friendlyBallOwnerLastRun then
-		return lastBallOwnerFriendly
-	end
-	ballOwnerCheckCache()
-	friendlyBallOwnerLastRun = World.Time
-	lastBallOwnerFriendly = getBallOwner(World.FriendlyRobots, lastBallOwnerFriendly)
-	debug.pushtop()
-	debug.set("last friendly ball owner", lastBallOwnerFriendly)
-	debug.pop()
 	return lastBallOwnerFriendly
 end
 
-local lastBallOwnerOpponent
-local opponentBallOwnerLastRun = 0
---- Wrapper function for ballOwner
--- @return ballOwner robot - an opponent robot, or nil
-function Ball.opponentBallOwner()
-	if World.Time == opponentBallOwnerLastRun then -- already calculated in this frame
-		return lastBallOwnerOpponent
-	end
+function Ball.friendlyBallOwnerTime()
+	return friendlyBallOwnerTime
+end
+
+local function updateFriendlyBallOwner()
 	ballOwnerCheckCache()
-	opponentBallOwnerLastRun = World.Time
+	lastBallOwnerFriendly = getBallOwner(World.FriendlyRobots, lastBallOwnerFriendly)
+	if lastBallOwnerFriendly then
+		friendlyBallOwnerTime = World.Time
+	end
+	debug.pushtop()
+	debug.set("last friendly ball owner", lastBallOwnerFriendly)
+	debug.pop()
+end
+
+local lastBallOwnerOpponent
+local opponentBallOwnerTime = 0
+function Ball.opponentBallOwner()
+	return lastBallOwnerOpponent
+end
+
+local function updateOpponentBallOwner()
+	ballOwnerCheckCache()
 	lastBallOwnerOpponent = getBallOwner(World.OpponentRobots, lastBallOwnerOpponent)
+	if lastBallOwnerOpponent then
+		opponentBallOwnerTime = World.Time
+	end
 	debug.pushtop()
 	debug.set("last opponent ball owner", lastBallOwnerOpponent)
 	debug.pop()
-	return lastBallOwnerOpponent
+end
+
+function Ball.opponentBallOwnerTime()
+	return opponentBallOwnerTime
 end
 
 ballOwnerCheckCache = function()
@@ -428,6 +436,8 @@ function Ball._update()
 	updateIsFlyingOrBouncing()
 	updateLastRealisticBall()
 	updateIsSlowBall()
+	updateOpponentBallOwner()
+	updateFriendlyBallOwner()
 end
 
 return Ball
