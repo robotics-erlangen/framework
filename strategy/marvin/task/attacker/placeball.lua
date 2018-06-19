@@ -49,6 +49,9 @@ local PULL_LOST_BALL_HYSTERESIS = 1
 -- TODO test max speeds for push
 local PUSH_DRIBBLER_SPEED = 0.4
 local MAX_PUSH_SPEED = 1
+local FAR_NEAR_CUT
+local FAR_PUSH_SPEED = 1
+local NEAR_PUSH_SPEED = 0.25
 local PUSH_ACCEL_SCALE = 0.2
 local PUSH_LOST_BALL_HYSTERESIS = 1
 
@@ -71,6 +74,8 @@ function PlaceBall:_init(placementPos)
 
 	OFFSET_SHOOT_LENGTH = self._robot.shootRadius + self._ball.radius
 	OFFSET_EXTRA_LENGTH = OFFSET_SHOOT_LENGTH + 0.1
+
+	FAR_NEAR_CUT = self._robot.shootRadius + self._ball.radius + 0.2
 
 	-- See _calculateOffsets()
 	self._placementOffsets = {}
@@ -180,7 +185,9 @@ function PlaceBall:run()
 		self._robot:setDribblerSpeed(PUSH_DRIBBLER_SPEED)
 		self._currentTargetPos = self._placementPos + self._placementOffsetAverage:copy():setLength(OFFSET_SHOOT_LENGTH)
 
-		self._robot.trajectory:update(ToTarget, self._currentTargetPos, (-self._placementOffsetAverage):angle(), MAX_PUSH_SPEED, nil, PUSH_ACCEL_SCALE)
+		local speed = self._robot.pos:distanceTo(self._currentTargetPos) > FAR_NEAR_CUT and FAR_PUSH_SPEED or NEAR_PUSH_SPEED
+
+		self._robot.trajectory:update(ToTarget, self._currentTargetPos, (-self._placementOffsetAverage):angle(), speed, nil, PUSH_ACCEL_SCALE)
 
 	elseif self._state == STATE_BACK_UP_WAIT then
 
