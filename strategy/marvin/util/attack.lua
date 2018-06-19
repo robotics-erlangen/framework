@@ -436,6 +436,22 @@ function Attack.relevantPassInfoMessage(robot, passInfoTable)
 	return relevantPassInfoMessage
 end
 
+local MAX_PASS_DESTINATION_FROM_DEFENSE_DISTANCE = 1.5
+function Attack.isPassAllowed(startPos, endPos)
+	local extraDistance = Defense.centerBackDistanceToDefenseArea() + World.Ball.radius + 0.2
+	local intersection = Field.intersectRayDefenseArea(startPos, endPos - startPos, extraDistance, true)
+	if not intersection then
+		return true
+	end
+	if endPos:distanceTo(intersection) < MAX_PASS_DESTINATION_FROM_DEFENSE_DISTANCE then
+		return false
+	end
+	if startPos:distanceToSq(intersection) < startPos:distanceToSq(endPos) then
+		return false
+	end
+	return true
+end
+
 ---returns last incoming passInfo for each robot
 --@param robot Robot
 --@param passInfo Message - passInfo-Message

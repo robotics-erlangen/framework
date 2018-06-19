@@ -99,7 +99,7 @@ function Shoot:_decide()
 
 	-- consider chipping forward
 	local passRating = pass and Attack.ratePass(self._robot, pass, true) or 0
-	if ENABLE_PSEUDO_PASS and self._attackPosition and passRating < MIN_PASS_RATING 
+	if ENABLE_PSEUDO_PASS and self._attackPosition and passRating < MIN_PASS_RATING
 			and Field.distanceToDefenseAreaSq(self._attackPosition) > 2
 			and World.Ball.speed:length() < 1 then
 			--and math.abs(self._attackPosition.y) < 5/6 * G.FieldWidthHalf then
@@ -159,31 +159,35 @@ function Shoot:_decide()
 		-- goalshot opportunity
 		if bestAttackPosition ~= nil then
 			local passVector = bestAttackPosition - self._attackPosition
-			return {
-				task = "pass",
-				target = self._robot,
-				pos = self._attackPosition + passVector:setLength(0.5),
-				time = World.Time,
-				quality = "clean"
-			}
+			if Attack.isPassAllowed(self._attackPosition, self._attackPosition + passVector:setLength(0.5)) then
+				return {
+					task = "pass",
+					target = self._robot,
+					pos = self._attackPosition + passVector:setLength(0.5),
+					time = World.Time,
+					quality = "clean"
+				}
+			end
 		end
 
 		-- short chip forward
 		if not pass or Attack.ratePass(self._robot, pass, true) < MIN_PASS_RATING then
 			local newAttackPosition = self._attackPosition + Vector.fromAngle(attackAngle):setLength((MAX_DISTANCE-MIN_DISTANCE)/2 + MIN_DISTANCE)
 			local passVector = newAttackPosition - self._attackPosition
-			return {
-				task = "pass",
-				target = self._robot,
-				pos = self._attackPosition + passVector:setLength(0.5),
-				time = World.Time,
-				quality = "clean"
-			}
+			if Attack.isPassAllowed(self._attackPosition, self._attackPosition + passVector:setLength(0.5)) then
+				return {
+					task = "pass",
+					target = self._robot,
+					pos = self._attackPosition + passVector:setLength(0.5),
+					time = World.Time,
+					quality = "clean"
+				}
+			end
 		end
 		::continue::
 	end
 
-	if pass then
+	if pass and Attack.isPassAllowed(self._attackPosition or World.Ball.pos, pass.ballPos) then
 		return {
 			task = "pass",
 			target = pass.target,
