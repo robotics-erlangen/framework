@@ -46,6 +46,22 @@ function Base:runDeferredBehavior(behavior, restart)
 	return self._deferredBehavior:_updateTask()
 end
 
+local function runpack(param, number, max)
+	if not max then
+		max = table.max(table.keys(param))
+	end
+	if not max then
+		max = 0
+	end
+	if not number then
+		number = 1
+	end
+	if number > max then
+		return
+	end
+	return param[number], runpack(param, number+1, max)
+end
+
 function Base:run()
 	self._deferredBehaviorRunning = false
 	local bestTask, parameters, forceNewTask = self:_updateTask()
@@ -56,7 +72,7 @@ function Base:run()
 	end
 	if not self._task or Class.toClass(self._task) ~= bestTask or forceNewTask then
 		if parameters then
-			self._task = bestTask(self._agent, unpack(parameters))
+			self._task = bestTask(self._agent, runpack(parameters))
 		else
 			self._task = bestTask(self._agent)
 		end
