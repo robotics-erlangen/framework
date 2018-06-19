@@ -256,14 +256,14 @@ function CenterBack:calculateCenterBackPositions(centerBackApplications)
 					if imax > jmin and jmax > imin then
 						if i.necessary or j.necessary then
 							--locals for n(ecessary) and u(nnecessary)
-							local n, ux, nmin, umin, nmax, umax
+							local n,u, ux, nmin, umin, nmax, umax
 							if j.necessary then
-								n = j
+								n,u = j,i
 								ux = ix
 								nmin, umin = jmin, imin
 								nmax, umax = jmax, imax
 							else
-								n = i
+								n,u = i,j
 								ux = jx
 								nmin, umin = imin, jmin
 								nmax, umax = imax, jmax
@@ -271,8 +271,8 @@ function CenterBack:calculateCenterBackPositions(centerBackApplications)
 							-- handle necessary object n. Two necessary are not possible
 							-- first, move full robots to one side
 							local disBetweenCenterOfCB = 2 * robot_radius + distanceBetweenDefenders
-							local fullRobotMax = math.max(math.floor((umax - n.waypos) / disBetweenCenterOfCB),0)
-							local fullRobotMin = math.max(math.floor((n.waypos - umin) / disBetweenCenterOfCB),0)
+							local fullRobotMax = math.min(math.max(math.floor((umax - n.waypos) / disBetweenCenterOfCB),0),u.n)
+							local fullRobotMin = math.min(math.max(math.floor((n.waypos - umin) / disBetweenCenterOfCB),0),u.n)
 							nmax = nmax + disBetweenCenterOfCB * fullRobotMax
 							nmin = nmin - disBetweenCenterOfCB * fullRobotMin
 							n.waypos = (nmax + nmin) /2
@@ -329,6 +329,7 @@ function CenterBack:calculateCenterBackPositions(centerBackApplications)
 	local delta = 2 * robot_radius + distanceBetweenDefenders
 	local defensePoints = {}
 	for _,i in ipairs(intersections) do
+		local nCounter = 0
 		local way = i.waypos - i.wayrange/2 + delta/2
 		for _,t in ipairs(i.targets) do
 			for _ = 1,t.n do
@@ -350,7 +351,10 @@ function CenterBack:calculateCenterBackPositions(centerBackApplications)
 					assert (not necessaryDefensePoint, "two necessary Points are a problem")
 					necessaryDefensePoint = point
 				end
-				table.insert(defensePoints, point)
+				if nCounter < i.n then
+					table.insert(defensePoints, point)
+				end
+				nCounter = nCounter + 1
 				way = way + delta
 			end
 		end
