@@ -473,7 +473,7 @@ function PathHelper.insertObstacles(robot)
         addBallPlacementObstacle(p.path)
     end
     if not p.ignorePenaltyDistance then
-    	addPenaltyObstacle(p.path)
+		addPenaltyObstacle(p.path)
     end
 	addRobotObstacles(p.path, robot, p.ignoreFriendlyRobots, p.ignoreOpponentRobots, p.disableOpponentPrediction)
 	-- Clear obstacle params because obstacles gets kept over multiple frames

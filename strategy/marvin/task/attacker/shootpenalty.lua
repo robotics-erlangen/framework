@@ -19,7 +19,7 @@ local distToPost = 0.08 -- distance of the target point on goal line to the post
 local changeThreshold = 0.5 -- set 0 if opponent keeper follows look Dir every time
 local KeeperPosTolerance = 0.04 -- if keeper's distance to the goals center is bigger, we will choose the big free sector
 local shootErrorThreshold = 4.0 * math.pi/180 -- maximum angle error
-local keeperMoveSpeedThreshold = 0.4 -- for random keeper movement detection
+local keeperMoveSpeedThreshold = 0.5 -- for random keeper movement detection
 
 local obstacleTable = {
     ignorePass = true,
