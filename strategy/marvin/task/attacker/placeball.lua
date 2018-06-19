@@ -47,12 +47,12 @@ local MAX_PULL_ACCEL = 0.15
 local PULL_LOST_BALL_HYSTERESIS = 1
 
 -- TODO test max speeds for push
-local PUSH_DRIBBLER_SPEED = 0.6
+local PUSH_DRIBBLER_SPEED = 0.4
 local MAX_PUSH_SPEED = 1
 local PUSH_ACCEL_SCALE = 0.2
 local PUSH_LOST_BALL_HYSTERESIS = 1
 
-local BACK_UP_WAIT_TIME = 1
+local BACK_UP_WAIT_TIME = 2
 local BACK_UP_SPEED = 0.4
 
 local MIN_TIME_IN_STATE = 0.1
@@ -185,6 +185,12 @@ function PlaceBall:run()
 	elseif self._state == STATE_BACK_UP_WAIT then
 
 		self._robot:halt()
+		local timeInState = World.Time - self._stateChangeTime
+		local m = -4 * PUSH_DRIBBLER_SPEED / BACK_UP_WAIT_TIME
+		local f0 = 3 * PUSH_DRIBBLER_SPEED
+		-- Linear dropoff between BACK_UP_WAIT_TIME / 4 and BACK_UP_WAIT_TIME / 2
+		local dribblerSpeed = math.bound(0, m * timeInState + f0, PUSH_DRIBBLER_SPEED)
+		self._robot:setDribblerSpeed(dribblerSpeed)
 
 	elseif self._state == STATE_BACK_UP then
 
