@@ -86,7 +86,7 @@ function Shoot:_decide()
 	self._wasPressed = Robot.isPressed(self._robot)
 
 	-- perform clean goal shots if possible
-	if false and self:_shootGoalPossible(self._robot, self._attackPosition) then
+	if self:_shootGoalPossible(self._robot, self._attackPosition) then
 		return {
 			task = "shootgoal",
 			pos = World.Geometry.OpponentGoal,
