@@ -378,6 +378,9 @@ function Defense:_assignBallCenterbacks(defenders)
 			break
 		end
 		local closestRobot = UtilDefense.getClosestRobot(defenders, info.pos)
+		if not closestRobot then
+			break
+		end
 		local robotTime = ObserverRobot.timeAroundDefenseAreaByWay(closestRobot, nil, info.pos, info.way, defenseExtraRadius, true, 3)
 		local robotTimeMargin = table.contains(self._centerbackAssignments, closestRobot) and
 			ROBOT_TIME_MARGIN_LOW or ROBOT_TIME_MARGIN_HIGH
@@ -398,7 +401,7 @@ function Defense:_assignBallCenterbacks(defenders)
 	end
 
 	-- assign default centerbacks
-	if #intersectionInfos == 0 then
+	if #intersectionInfos == 0 and #defenders > 0 then
 		-- not in opponent corner attacks: assign a ball centerback
 		local needDefaultCB = not Referee.isDefensiveCornerKick() and not Referee.isFriendlyFreeKickState()
 		if needDefaultCB then
