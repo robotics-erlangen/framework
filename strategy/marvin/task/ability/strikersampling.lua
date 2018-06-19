@@ -11,6 +11,8 @@ local ObserverShoot = require "observer/shoot"
 
 local Rating = require "util/rating"
 
+local G = World.Geometry
+
 
 local function visualizeRating(name, pos, rating)
 	vis.addCircle("t/a/strikersampling: "..name, pos, 0.06,
@@ -124,6 +126,14 @@ function StrikerSampling:distToGoal(ballPos)
 	local ratingBase = Rating.valueToRating(distToGoal, World.Geometry.FieldHeight * 0.7, minDist)
 	local ratingBonus = Rating.valueToRating(distToGoal, minDist + 2, minDist)
 	local rating = 0.2 * ratingBase + 0.8 * ratingBonus
+
+	-- rating demerit for steep passes, as these often miss due to volley inaccuracy
+	if G.DefenseWidth and math.abs(ballPos.x) > G.DefenseWidth/2
+			and World.Ball.pos.y > 1.5 * G.DefenseHeight then
+		local demeritWeight = 0.3
+		local distanceRatingDemerit = Rating.valueToRating(distToGoal, G.DefenseWidth, minDist * 1.2)
+		rating = (1 - demeritWeight) * rating + demeritWeight * distanceRatingDemerit
+	end
 
 	if not amun.isPerformanceMode then
 		visualizeRating("distToGoal", ballPos, rating)
