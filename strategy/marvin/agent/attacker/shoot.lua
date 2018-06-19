@@ -86,7 +86,7 @@ function Shoot:_decide()
 	self._wasPressed = Robot.isPressed(self._robot)
 
 	-- perform clean goal shots if possible
-	if self:_shootGoalPossible(self._robot, self._attackPosition) then
+	if false and self:_shootGoalPossible(self._robot, self._attackPosition) then
 		return {
 			task = "shootgoal",
 			pos = World.Geometry.OpponentGoal,
@@ -101,8 +101,8 @@ function Shoot:_decide()
 	local passRating = pass and Attack.ratePass(self._robot, pass, true) or 0
 	if ENABLE_PSEUDO_PASS and self._attackPosition and passRating < MIN_PASS_RATING 
 			and Field.distanceToDefenseAreaSq(self._attackPosition) > 2
-			and World.Ball.speed:length() < 1 
-			and math.abs(self._attackPosition.y) < 5/6 * G.FieldWidthHalf then
+			and World.Ball.speed:length() < 1 then
+			--and math.abs(self._attackPosition.y) < 5/6 * G.FieldWidthHalf then
 
 		local MIN_DISTANCE = 0.2
 		local MAX_DISTANCE = 1

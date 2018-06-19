@@ -3,6 +3,7 @@ local Shoot = {}
 local Physics = require "observer/physics"
 local Ball = require "observer/ball"
 local World = require "../base/world"
+local Rating = require "util/rating"
 
 local MIN_PASS_SPEED = 2.5
 function Shoot.ballPassTime(shootPos, passPos, targetRobot, destSpeedLength, shootRobot)
@@ -32,8 +33,9 @@ end
 -- @param shootPos Vector - the start point of the pass line
 -- @param endPos Vector - the end point of the pass line
 -- @param chipDistanceFactor number - the percentage of the pass distance at which the chipkick reaches the ground
+-- @param isFreekickLike bool - in a freekick like state, the beginning of the corridor is wider
 -- @return string {"linear", "chip", "blocked"}
-function Shoot.evaluatePassCorridor(shootPos, destPos, chipDistanceFactor)
+function Shoot.evaluatePassCorridor(shootPos, destPos, chipDistanceFactor, isFreekickLike)
 	chipDistanceFactor = chipDistanceFactor or 0.55
 
 	local corridorFree = true
@@ -42,7 +44,12 @@ function Shoot.evaluatePassCorridor(shootPos, destPos, chipDistanceFactor)
 		local robotPos = r.pos + r.speed * 0.2
 		if robotPos:distanceToSq(shootPos) < passDistSq and robotPos:distanceToSq(destPos) < passDistSq then
 			local projection, signedDistToLine = robotPos:orthogonalProjection(shootPos, destPos)
-			if math.abs(signedDistToLine) < r.radius + World.Ball.radius then
+			local corridorWidth = 0.01
+			if isFreekickLike then
+				local distToShot = shootPos:distanceTo(projection)
+				corridorWidth = Rating.valueToRating(distToShot, 1.1, 0.8) * 0.16 + 0.01
+			end
+			if math.abs(signedDistToLine) < r.radius + World.Ball.radius + corridorWidth then
 				corridorFree = false
 				local passDist = math.sqrt(passDistSq)
 				local projDistRatio = projection:distanceTo(shootPos) / passDist
