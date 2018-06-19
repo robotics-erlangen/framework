@@ -66,7 +66,8 @@ function Pass:run()
 	debug.set("targetPos", self._targetPos)
 
 	local maxAngleError = 3.5 * math.pi / 180
-	if Referee.isFriendlyFreeKickState() or World.RefereeState == "KickoffOffensive" then
+	local isFreekickLike = Referee.isFriendlyFreeKickState() or World.RefereeState == "KickoffOffensive"
+	if isFreekickLike then
 		maxAngleError = 1.5 * math.pi / 180
 	end
 
@@ -81,7 +82,7 @@ function Pass:run()
 		local lockDecision = self._chip ~= nil and attackTime and attackTime < World.Time + lockTime
 		if not lockDecision then
 			local corridor = ObserverShoot.evaluatePassCorridor(attackPosition,
-				self._targetPos, CHIP_PASS_DISTANCE_FACTOR)
+				self._targetPos, CHIP_PASS_DISTANCE_FACTOR, isFreekickLike)
 			self._chip = corridor == "chip"
 		end
 	end
