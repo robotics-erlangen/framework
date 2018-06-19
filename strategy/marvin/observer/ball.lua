@@ -187,11 +187,12 @@ end
 local friendlyBallOwnershipTime = 0
 local friendlyBallOwnershipDuration = 0
 local function updateFriendlyBallOwnershipTime()
+	local lastStateChangeTime = Referee.lastStateChangeTime()
 	if opponentBallOwnerTime > friendlyBallOwnerTime or Referee.isStopState() then
 		friendlyBallOwnershipTime = 0
 		friendlyBallOwnershipDuration = 0
 	elseif friendlyBallOwnershipTime == 0 and friendlyBallOwnerTime > opponentBallOwnerTime
-			and Referee.lastStateChangeTime() < friendlyBallOwnerTime then
+			and lastStateChangeTime and lastStateChangeTime < friendlyBallOwnerTime then
 		friendlyBallOwnershipTime = friendlyBallOwnerTime
 	elseif friendlyBallOwnershipTime ~= 0 then
 		friendlyBallOwnershipDuration = World.Time - friendlyBallOwnershipTime
