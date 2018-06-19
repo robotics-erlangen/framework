@@ -184,6 +184,24 @@ function Ball.opponentBallOwnerTime()
 	return opponentBallOwnerTime
 end
 
+local friendlyBallOwnershipTime = 0
+local friendlyBallOwnershipDuration = 0
+local function updateFriendlyBallOwnershipTime()
+	if opponentBallOwnerTime > friendlyBallOwnerTime or Referee.isStopState() then
+		friendlyBallOwnershipTime = 0
+		friendlyBallOwnershipDuration = 0
+	elseif friendlyBallOwnershipTime == 0 and friendlyBallOwnerTime > opponentBallOwnerTime
+			and Referee.lastStateChangeTime() < friendlyBallOwnerTime then
+		friendlyBallOwnershipTime = friendlyBallOwnerTime
+	elseif friendlyBallOwnershipTime ~= 0 then
+		friendlyBallOwnershipDuration = World.Time - friendlyBallOwnershipTime
+	end
+end
+
+function Ball.friendlyBallOwnershipDuration()
+	return friendlyBallOwnershipDuration
+end
+
 ballOwnerCheckCache = function()
 	if lastBallOwnerFriendly ~= World.Time and lastBallOwnerOpponent ~= World.Time then
 		ballOwnerEllipticCache = {}
@@ -438,6 +456,7 @@ function Ball._update()
 	updateIsSlowBall()
 	updateOpponentBallOwner()
 	updateFriendlyBallOwner()
+	updateFriendlyBallOwnershipTime()
 end
 
 return Ball
