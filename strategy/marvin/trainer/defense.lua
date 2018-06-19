@@ -1,7 +1,6 @@
 local Defense = {}
 
 local Constants = require "../base/constants"
-local debug = require "../base/debug"
 local Field = require "../base/field"
 local geom = require "../base/geom"
 local Referee = require "../base/referee"
@@ -186,8 +185,6 @@ function Defense:_updatePiggyTargets()
 end
 
 local function determineNumberOfPiggies(defenderCount, manmarkTargets, piggyTargets)
-	debug.push("piggy count")
-	debug.set("defender count", defenderCount)
 	local dangerousnessThreshold
 	local viabilityThreshold
 
@@ -215,7 +212,6 @@ local function determineNumberOfPiggies(defenderCount, manmarkTargets, piggyTarg
 				nRelevantManMarkTargets = nRelevantManMarkTargets + 1
 			end
 		end
-		debug.set("relevantManMarkTargets", nRelevantManMarkTargets)
 		piggieCount = math.max(0, defenderCount - nRelevantManMarkTargets)
 	end
 
@@ -226,10 +222,9 @@ local function determineNumberOfPiggies(defenderCount, manmarkTargets, piggyTarg
 				nRelevantPiggyTargets = nRelevantPiggyTargets + 1
 			end
 		end
-		debug.set("relevantPiggyTargets", nRelevantPiggyTargets)
 		piggieCount = math.min(piggieCount, nRelevantPiggyTargets)
 	end
-	debug.pop()
+
 	return piggieCount
 end
 
