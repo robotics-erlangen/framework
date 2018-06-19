@@ -231,6 +231,7 @@ local function rateOpponentDangerousness()
 		dangerousness[opp] = math.max(passDangerousness, math.max(goalDangerousness, proximityDangerousness))
 	end
 
+	debug.set("dangerousness", dangerousness)
 	return dangerousness
 end
 Defense.rateOpponentDangerousness = Cache.forFrame(rateOpponentDangerousness)
@@ -308,6 +309,7 @@ local function rateOpponentPassViability()
 		debug.pop()
 	end
 
+	debug.set("passViability", passViability)
 	return passViability
 end
 Defense.rateOpponentPassViability = Cache.forFrame(rateOpponentPassViability)
