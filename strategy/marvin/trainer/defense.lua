@@ -189,6 +189,7 @@ local function determineNumberOfPiggies(defenderCount, manmarkTargets, piggyTarg
 	local viabilityThreshold
 
 	if Referee.isKickoffState() then
+		debug.pop()
 		return 0
 	end
 
