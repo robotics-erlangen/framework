@@ -20,11 +20,11 @@ local MainTrainer = require "trainer/maintrainer"
 
 function MainCoordinator:init(trainer)
 	local pools = {
+		attack = AgentPool(Agent.Attacker),
 		manual = AgentPool(Agent.Manual),
 		ally = AgentPool(Agent.Ally),
 		keeper = AgentPool(Agent.Keeper),
 		defense = AgentPool(Agent.Defender),
-		attack = AgentPool(Agent.Attacker),
 		hidden = AgentPool(Agent.Hidden)
 	}
 	local poolGroups = {
