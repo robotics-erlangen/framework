@@ -6,6 +6,7 @@ local World = require "../base/world"
 local Ally = require "agent/ally"
 local Ball = require "observer/ball"
 local Robot = require "observer/robot"
+local Referee = require "observer/referee"
 
 
 function AttackRatio:init()
@@ -93,6 +94,12 @@ function AttackRatio:attackRatio()
 				attackRatio = attackRatio + 1
 			end
 		end
+	end
+
+	--increase attackRatio if we have more robots
+	local enemies = 8 - Referee.realisticCardsOpponent()
+	if enemies < math.min(8, #World.FriendlyRobots) then
+		attackRatio = math.max(attackRatio, math.min(attackRatio + 1 , 6))
 	end
 
 	return attackRatio
