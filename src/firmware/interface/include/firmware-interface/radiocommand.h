@@ -69,7 +69,7 @@ static const uint16_t transceiver_frequencies[16][2] = {
     { 2515, 2521 }, // Channel 8
     { 2516, 2522 }, // Channel 9
     { 2499, 2519 }, // Channel 10
-    { 2519, 2499 }, // Channel 11
+    { 2525, 2499 }, // Channel 11
     { 2505, 2525 }, // Channel 12
     { 2506, 2512 }, // Channel 13
     { 2503, 2511 }, // Channel 14
