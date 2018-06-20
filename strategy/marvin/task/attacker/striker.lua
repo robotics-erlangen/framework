@@ -3,12 +3,14 @@ local StrikerSampling = require "task/ability/strikersampling"
 local Striker = Class("Task.Striker", require "task/base", SuggestPass, StrikerSampling)
 
 local Field = require "../base/field"
+local Referee = require "../base/referee"
 local vis = require "../base/vis"
 local World = require "../base/world"
 local G = World.Geometry
 
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
+local UtilDefense = require "util/defense"
 
 local Attack = require "util/attack"
 
@@ -153,6 +155,15 @@ function Striker:run()
 	-- send a suggestion for a pass in the run
 	if self._passDestSuggestion and attackPosition then
 		self:_suggestPass(self._passDestSuggestion, attackPosition, moveTime)
+	end
+
+	-- be close to the defense area to catch possible stray shots
+	local cbDistToDefenseArea = UtilDefense.centerBackDistanceToDefenseArea()
+	if self._passDestSuggestion and not Referee.isFriendlyFreeKickState()
+			and Field.distanceToDefenseArea(self._passDestSuggestion, cbDistToDefenseArea) < 0.8 then
+
+		local intersection = Field.intersectRayDefenseArea(self._moveDest, G.OpponentGoal - self._moveDest, cbDistToDefenseArea + 0.3, false)
+		self._moveDest = intersection or self._moveDest
 	end
 
 	self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
