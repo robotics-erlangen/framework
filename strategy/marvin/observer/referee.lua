@@ -4,6 +4,8 @@ local BaseRef = require "../base/referee"
 local Field = require "../base/field"
 local World = require "../base/world"
 
+local Error = require "observer/error"
+
 local G = World.Geometry
 
 -- Returns true if the ball's next line cut would result in an icing
@@ -52,6 +54,27 @@ end
 -- @return bool - Wether icing is predicted
 function Referee.friendlyIcingPredicted(ball)
 	return Referee.icingPredicted(ball, true)
+end
+
+local cntO = 0
+--Tries to accept that not every signal by the refbox is correct
+--has to be called once and only once a frame
+function Referee.realisticCardsOpponent()
+	if #(World.OpponentRobots) <= 8 - #World.OpponentYellowCards - World.OponnentRedCards then
+		cntO = 0
+	elseif World.RefereeState ~= "Stop" and World.Time - Error.getLastRefChange() > 0.5 then
+		cntO = cntO + 1
+	end
+	if cntO % 1000 == 1 then
+		log("Warning: More Enemies than allowed by the refbox, check Referee")
+	end
+
+	--assumes that there is only one yellow card that is not beeing played
+	if cntO > 50 then
+		return math.min(0,#(World.OpponentYellowCards) + World.OponnentRedCards - 1)
+	end
+	return #(World.OpponentYellowCards) + World.OponnentRedCards
+
 end
 
 return Referee
