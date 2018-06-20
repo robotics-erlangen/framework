@@ -11,6 +11,7 @@ local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local ObserverShoot = require "observer/shoot"
 
+local ChipToPos = require "task/shared/chipToPos"
 local Pass = require "task/shared/pass"
 local ShootGoal = require "task/attacker/shootgoal"
 
@@ -193,6 +194,17 @@ function Shoot:_decide()
 			target = pass.target,
 			pos = pass.ballPos,
 			time = pass.time,
+			quality = "clean"
+		}
+	end
+
+	-- try to chip through opponent defense area
+	local attackPosition = self._attackPosition or World.Ball.pos
+	if attackPosition and attackPosition.y > G.FieldHeightHalf - G.DefenseHeight then
+		return {
+			task = "chipToPos",
+			pos = Vector(0, G.FieldHeightHalf - 0.5 * G.DefenseHeight),
+			time = World.Time,
 			quality = "clean"
 		}
 	end
@@ -409,6 +421,10 @@ function Shoot:_updateTask()
 			ballPos = ballPos, time = passReceiveTime }})
 
 		return Pass, { target, ballPos, chipOverride, self._lastIncomingPassInfoPos, self._decision.time, targetSpeed}
+	end
+
+	if self._decision.task == "chipToPos" then
+		return ChipToPos, {self._decision.pos, self._decision.time, self._attackPosition}
 	end
 
 	-- error: invalid decision
