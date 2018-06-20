@@ -161,7 +161,7 @@ void Processor::process()
     // run tracking
     m_tracker->process(current_time);
     m_speedTracker->process(current_time);
-    Status status = m_tracker->worldState(current_time);
+    Status status = m_tracker->worldState(current_time, false);
     Status radioStatus = m_speedTracker->worldState(current_time);
 
     // add information, about whether the world state is from the simulator or not
@@ -208,7 +208,7 @@ void Processor::process()
 
     // prediction which accounts for the strategy runtime
     // depends on the just created radio command
-    Status strategyStatus = m_tracker->worldState(current_time + tickDuration);
+    Status strategyStatus = m_tracker->worldState(current_time + tickDuration, true);
     strategyStatus->mutable_world_state()->set_is_simulated(m_simulatorEnabled);
     strategyStatus->mutable_game_state()->CopyFrom(activeReferee->gameState());
     injectExtraData(strategyStatus);
