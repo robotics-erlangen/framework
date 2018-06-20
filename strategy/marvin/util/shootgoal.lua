@@ -127,7 +127,7 @@ end
 -- @return Vector - the midpoint of the chosen sector
 -- @return angle - the witdh of the chosen sector
 -- @return bool - the dirty flag
-local TIME_UNTIL_MIN_ANGLE = 8
+local TIME_UNTIL_MIN_ANGLE = 10
 function ShootGoal.updateTarget(ownRobot, oldTarget, oldDirty, attackPosition)
 	-- compute viewPos relative to the current robot pos
 	local viewPos = attackPosition or (ownRobot.pos + Vector.fromAngle(ownRobot.dir) *
@@ -138,8 +138,9 @@ function ShootGoal.updateTarget(ownRobot, oldTarget, oldDirty, attackPosition)
 
 	-- update decision if we ignore the goalie and check for ricochets
 	local ballOwnershipDuration = Ball.friendlyBallOwnershipDuration()
-	local maxExtraAngle = 2.5/180 * math.pi
-	local dirtyCheckAngle = 2.5/180 * math.pi + maxExtraAngle * math.max(0, 1 - ballOwnershipDuration / TIME_UNTIL_MIN_ANGLE)
+	local maxExtraAngle = 7/180 * math.pi
+	local dirtyCheckAngle = 3/180 * math.pi + maxExtraAngle * math.max(0, 1 - ballOwnershipDuration / TIME_UNTIL_MIN_ANGLE)
+	--log("dirtyCheckAngle: "..tostring(dirtyCheckAngle/math.pi * 180))
 	local dirtyCheckAngleHysteresis = 0.3 * math.pi/180
 	local dirty = targetWidth < dirtyCheckAngle - dirtyCheckAngleHysteresis or
 		(oldDirty and targetWidth < dirtyCheckAngle + dirtyCheckAngleHysteresis)
