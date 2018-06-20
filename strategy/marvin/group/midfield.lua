@@ -126,7 +126,7 @@ function Midfield:_updateZones(nMidfielders)
 		zone.boundaries = {
 			bottom = -G.FieldHeightHalf * 3/5,
 			top = G.FieldWidthHalf / 3,
-			left = top * (totalLeft + robotRadius + verticalOffset)+ top,
+			left = top * (totalLeft + robotRadius + verticalOffset) + top,
 			right = top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top
 		}
 		zone.defaultPos = getDefaultPosition(zone.boundaries)
@@ -139,8 +139,8 @@ function Midfield:_updateZones(nMidfielders)
 		zone.boundaries = {
 			bottom = -G.FieldHeightHalf * 3/5 + horizontalOffset,
 			top = G.FieldWidthHalf / 3 + horizontalOffset,
-			right = -top * (totalLeft + robotRadius + verticalOffset) + top,
-			left = -top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top
+			right = -top * (totalLeft + robotRadius + verticalOffset + zoneWidth) + top,
+			left = -top * (totalLeft + robotRadius + verticalOffset) + top
 		}
 		zone.defaultPos = getDefaultPosition(zone.boundaries)
 		table.insert(self._zones, zone)
