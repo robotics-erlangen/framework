@@ -184,7 +184,7 @@ function Shoot:_decide()
 				}
 			end
 		end
-		::continue::
+		--::continue::
 	end
 
 	if pass and Attack.isPassAllowed(self._attackPosition or World.Ball.pos, pass.ballPos) then
