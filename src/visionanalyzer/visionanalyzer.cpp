@@ -136,7 +136,7 @@ int main(int argc, char* argv[])
 
         timer->setTime(systemTimeNanos, 1.0); // update timer for strategy
 
-        Status status = tracker.worldState(systemTimeNanos);
+        Status status = tracker.worldState(systemTimeNanos, true);
         status->set_time(systemTimeNanos);
 
         ref.process(status->world_state());
