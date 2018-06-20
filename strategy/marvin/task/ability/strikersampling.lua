@@ -131,7 +131,7 @@ function StrikerSampling:distToGoal(ballPos)
 	if G.DefenseWidth and math.abs(ballPos.x) > G.DefenseWidth/2
 			and World.Ball.pos.y > 1.5 * G.DefenseHeight then
 		local demeritWeight = 0.3
-		local distanceRatingDemerit = Rating.valueToRating(distToGoal, G.DefenseWidth, minDist * 1.2)
+		local distanceRatingDemerit = Rating.valueToRating(distToGoal, G.DefenseWidth/2, minDist * 1.2)
 		rating = (1 - demeritWeight) * rating + demeritWeight * distanceRatingDemerit
 	end
 
