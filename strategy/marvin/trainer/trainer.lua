@@ -14,8 +14,8 @@ function Trainer:setupMessaging(messaging)
 	self._send, self._inbox = messaging:registerTrainer()
 end
 
-function Trainer:_debugInbox()
-	debug.pushtop("Trainer Inbox")
+function Trainer:_debugInbox(str)
+	debug.pushtop(str or"Trainer Inbox")
 	for name, func in pairs(self._inbox) do
 		debug.push(name)
 		for sender, msg in pairs(func()) do
@@ -27,6 +27,7 @@ function Trainer:_debugInbox()
 end
 
 function Trainer:run()
+	self:_debugInbox("Preliminary Trainer Inbox")
 	self:_chooseExclusiveRoles()
 	self:_runGroups()
 	self:_debugInbox()
