@@ -401,6 +401,17 @@ function World._updateGameState(state)
 		// The number of microseconds of timeout this team can use.
 		required uint32 timeout_time = 7;
 	}]]
+
+	World.FriendlyYellowCards = {}
+	for _, time in ipairs(friendlyTeamInfo.yellow_card_times) do
+		table.insert(World.FriendlyYellowCards, time / 1000000)
+	end
+	World.OpponentYellowCards = {}
+	for _, time in ipairs(opponentTeamInfo.yellow_card_times) do
+		table.insert(World.OpponentYellowCards, time / 1000000)
+	end
+	World.FriendlyRedCards = friendlyTeamInfo.red_cards
+	World.OponnentRedCards = opponentTeamInfo.red_cards
 end
 
 -- update and handle user inputs set for own robots
