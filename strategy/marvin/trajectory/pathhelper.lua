@@ -20,6 +20,7 @@ local Priorities = {
 	-- The obstacle in t/a/shoot should have the same priority as the ball obstacle here
 	BALL = 84,
 	EVACUATE_GOAL = 76,
+	-- The obstacle in t/s/ballescort should have the same priority as the inner_ball obstacle here
 	INNER_BALL = 68,
 	OUTER_BALL = 66,
 	BALL_PLACEMENT = 52,
