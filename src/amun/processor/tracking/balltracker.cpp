@@ -150,7 +150,7 @@ void BallTracker::update(qint64 time)
 #endif
 }
 
-void BallTracker::get(world::Ball *ball, bool flip)
+void BallTracker::get(world::Ball *ball, bool flip, bool resetRaw)
 {
     ball->set_is_bouncing(false); // fly filter overwrites if appropriate
     if (m_flyFilter->isActive()) {
@@ -191,7 +191,9 @@ void BallTracker::get(world::Ball *ball, bool flip)
         raw->set_area(frame.ballArea);
         raw->set_vision_processing_time(frame.visionProcessingTime);
     }
-    m_rawMeasurements.clear();
+    if (resetRaw) {
+        m_rawMeasurements.clear();
+    }
 }
 
 void BallTracker::addVisionFrame(const SSL_DetectionBall &ball, qint64 time, qint32 cameraId, RobotInfo robotInfo, qint64 visionProcessingTime)

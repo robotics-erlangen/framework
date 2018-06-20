@@ -220,7 +220,7 @@ BallTracker* Tracker::bestBallFilter()
     return m_currentBallFilter;
 }
 
-Status Tracker::worldState(qint64 currentTime)
+Status Tracker::worldState(qint64 currentTime, bool resetRaw)
 {
     const qint64 resetTimeout = 500*1000*1000;
     // only return objects which have been tracked for more than minFrameCount frames
@@ -237,7 +237,7 @@ Status Tracker::worldState(qint64 currentTime)
 
     if (ball != NULL) {
         ball->update(currentTime);
-        ball->get(worldState->mutable_ball(), m_flip);
+        ball->get(worldState->mutable_ball(), m_flip, resetRaw);
     }
 
 

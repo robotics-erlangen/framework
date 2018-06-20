@@ -56,7 +56,7 @@ public:
 
 public:
     void process(qint64 currentTime);
-    Status worldState(qint64 currentTime);
+    Status worldState(qint64 currentTime, bool resetRaw);
 
     void setFlip(bool flip);
     void queuePacket(const QByteArray &packet, qint64 time, QString sender);
