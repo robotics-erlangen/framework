@@ -52,6 +52,18 @@ context("base.class", function()
 		Base(paramValue)
 	end)
 
+	test("class constructor parameter gap", function()
+		local paramValue = { "param" }
+		local Base = Class("ClassCP")
+		function Base:init(param, noParam, gapped)
+			-- check parameter forwarding
+			assert_equal(param, paramValue)
+			assert_nil(noParam)
+			assert_equal(gapped, "foobar")
+		end
+		Base(paramValue,nil,"foobar")
+	end)
+
 	test("class attribute override", function()
 		local Base = Class("ClassAO")
 		Base.overrideAttribute = "class"
