@@ -104,23 +104,35 @@ int main(int argc, char* argv[])
     logFile.open(parser.value(outputDirOption));
 
     Referee ref(false);
+    // if you want to execute the tracking only on a specific part of the visionlog,
+    // you can set enabled to true, and insert the first and last frame that should be processed here
+    int counter = 0;
+    int first_frame = 36955;
+    int last_frame = 39300;
+    bool enabled = false;
 
     // every 10ms in system time, execute tracking
     for (qint64 systemTimeNanos = receiveTimeNanos; receiveTimeNanos != -1; systemTimeNanos += 10000000) {
 
         do {
-            // collect all packets until current system time
-            if (msg_type == VisionLog::MessageType::MESSAGE_SSL_VISION_2014) {
-                tracker.queuePacket(visionFrame, receiveTimeNanos, "logfile");
-            } else if (msg_type == VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013) {
-                ref.handlePacket(visionFrame);
+            if (! enabled ||  (counter > first_frame && counter < last_frame)){
+                //std::cerr << "enque packet" << counter << "(" << (counter-first_frame) << ")" <<std::endl;
+                // collect all packets until current system time
+                if (msg_type == VisionLog::MessageType::MESSAGE_SSL_VISION_2014) {
+                    tracker.queuePacket(visionFrame, receiveTimeNanos, "logfile");
+                } else if (msg_type == VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013) {
+                    ref.handlePacket(visionFrame);
+                }
             }
             auto packet = logFileIn.nextVisionPacket(visionFrame);
             receiveTimeNanos = packet.first;
             msg_type = packet.second;
         } while(receiveTimeNanos <= systemTimeNanos && receiveTimeNanos != -1);
 
-        tracker.process(systemTimeNanos);
+        if(!enabled || (counter > first_frame && counter < last_frame))
+		{
+            tracker.process(systemTimeNanos);
+		}
 
         timer->setTime(systemTimeNanos, 1.0); // update timer for strategy
 
@@ -131,10 +143,13 @@ int main(int argc, char* argv[])
         status->mutable_game_state()->CopyFrom(ref.gameState());
 
         if (strategy != nullptr) {
+            if(! enabled || (counter > first_frame && counter < last_frame))
             logFile.writeStatus(strategyReplay->executeWithFeedback(status));
         } else {
+            if(!enabled || (counter > first_frame && counter < last_frame))
             logFile.writeStatus(status);
         }
+        counter++;
     }
 
     QThread::msleep(50); // wait for strategy thread to finish its work
