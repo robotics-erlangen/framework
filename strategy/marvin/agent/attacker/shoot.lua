@@ -237,7 +237,7 @@ function Shoot:_redeciding()
 		local passAngle = passVector:angle()
 
 		if World.Ball.pos:distanceToSq(self._decision.pos) < 0.2*0.2 or (passAngle < upperAngle and passAngle > lowerAngle) then
-			debug.set("redeciding", "TRUE (passPos overtaken")
+			debug.set("redeciding", "TRUE (passPos overtaken)")
 			return true
 		end
 	end
@@ -294,6 +294,17 @@ function Shoot:_redeciding()
 		return true
 	end
 
+	if not self._wasPressed and Robot.isPressed(self._robot) then
+		debug.set("redeciding", "TRUE (pressed)")
+		return true
+	end
+
+	-- don't redecide if we are close to shoot a stationary ball
+	if World.Ball.speed:lengthSq() < 0.5 * 0.5 and World.Ball.pos:distanceToSq(self._robot.pos) < (0.2+self._robot.radius) * (0.2 + self._robot.radius) then
+		debug.set("redeciding", "FALSE (stationary)")
+		return false
+	end
+
 	-- redecide if after a certain time
 	if World.Time >= self._nextDecisionTime then
 		debug.set("redeciding", "TRUE (nextDecisionTime)")
@@ -308,10 +319,6 @@ function Shoot:_redeciding()
 		end
 	end
 
-	if not self._wasPressed and Robot.isPressed(self._robot) then
-		debug.set("redeciding", "TRUE (pressed)")
-		return true
-	end
 
 	debug.set("redeciding", "FALSE (default)")
 	return false
