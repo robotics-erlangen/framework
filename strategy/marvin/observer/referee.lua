@@ -31,14 +31,13 @@ function Referee.icingPredicted(ball, friendly)
 		return false
 	end
 	-- Will it go out at the goal line?
-	if (friendly and math.abs(ballOutPos.y + G.FieldHeightHalf) or math.abs(ballOutPos.y - G.FieldHeightHalf)) > 0.001 then
+	if ((friendly and math.abs(ballOutPos.y - G.FieldHeightHalf) or math.abs(ballOutPos.y + G.FieldHeightHalf))) > 0.001 then
 		return false
 	end
 	-- Will it cross the line at the goal?
 	if math.abs(ballOutPos.x) < G.GoalWidth / 2 then
 		return false
 	end
-
 	return true
 end
 
