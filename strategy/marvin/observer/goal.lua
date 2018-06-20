@@ -217,6 +217,7 @@ function Goal.predictShot(allShots)
 	elseif oppBallOwner and Ball.isSlowBall() then
 		-- if opponent is close to ball use its orientation
 		ballSpeed = Vector.fromAngle(oppBallOwner.dir)
+		isDribbling = true
 	elseif not Ball.isSlowBall() then
 		-- FIXME as the ball is moving also use pass check if it slightly misses the goal
 		-- TODO check whether an opponent robot may deflect the ball inside the keeper area?

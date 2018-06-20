@@ -343,7 +343,7 @@ function Defense:_assignBallCenterbacks(defenders)
 		self:_createIntersections(intersectionInfos, World.Ball.pos, World.Ball.speed, defenseExtraRadius, 1, false)
 	end
 	local predictedPos, predictedDir, isShot, _, isDribbling = Goal.predictShot(true)
-	if isShot and (predictedPos ~= World.Ball.pos or predictedDir ~= World.Ball.speed) then
+	if (isShot or isDribbling)  and (predictedPos ~= World.Ball.pos or predictedDir ~= World.Ball.speed) then
 		local numBefore = #intersectionInfos
 		self:_createIntersections(intersectionInfos, predictedPos, predictedDir, defenseExtraRadius, 2, isDribbling)
 		if #intersectionInfos > numBefore then
