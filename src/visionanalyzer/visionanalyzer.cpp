@@ -82,6 +82,7 @@ int main(int argc, char* argv[])
     Strategy* strategy = nullptr;
     FeedbackStrategyReplay * strategyReplay = nullptr;
     QThread* strategyThread = nullptr;
+    bool lastFlipped = false;
     if (parser.isSet(autorefDirOption)) {
         strategy = new Strategy(timer, StrategyType::AUTOREF, nullptr);
 
@@ -122,6 +123,10 @@ int main(int argc, char* argv[])
                     tracker.queuePacket(visionFrame, receiveTimeNanos, "logfile");
                 } else if (msg_type == VisionLog::MessageType::MESSAGE_SSL_REFBOX_2013) {
                     ref.handlePacket(visionFrame);
+                    if (ref.getFlipped() != lastFlipped) {
+                        tracker.setFlip(ref.getFlipped());
+                        lastFlipped = ref.getFlipped();
+                    }
                 }
             }
             auto packet = logFileIn.nextVisionPacket(visionFrame);
