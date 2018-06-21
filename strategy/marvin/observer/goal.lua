@@ -212,6 +212,9 @@ local function getInvisibleBallPrediction()
 		local closestDistance = 0.5 -- no robots farther away from the ball than that
 		local closestDribblerPos, closestBallSpeed
 		for _, robot in ipairs(World.OpponentRobots) do
+			if not oldRobotPositions[robot] then
+				break
+			end
 			local oldDistance = oldRobotPositions[robot]:distanceTo(lastRawdataBallPos)
 			local newDistance = robot.pos:distanceTo(lastRawdataBallPos)
 			if oldDistance < closestDistance or newDistance < closestDistance then
@@ -259,7 +262,6 @@ function Goal.predictShot(allShots)
 	-- check for bad vision
 	local invisibleBallPos, invisibleBallSpeed, oppRobot = getInvisibleBallPrediction()
 	if invisibleBallPos then
-		vis.addPath("1Test", {oppRobot.pos, oppRobot.pos + Vector.fromAngle(oppRobot.dir) * 4}, vis.colors.red)
 		vis.addCircle("o/goal: predictShot: invisible ball", oppRobot.pos, oppRobot.radius, vis.colors.white, false)
 			vis.addPath("o/goal: predictShot: invisible ball", {oppRobot.pos, oppRobot.pos + invisibleBallSpeed * 10}, vis.colors.white)
 		return invisibleBallPos, invisibleBallSpeed, true, nil, true
