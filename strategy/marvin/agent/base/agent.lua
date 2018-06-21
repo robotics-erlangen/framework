@@ -142,6 +142,7 @@ function Base:_runTask(task)
 end
 
 function Base:_applyForMainAttacker(task)
+	debug.push("mainAttackerRating")
 	-- the keeper just overrides this
 	local parameters = nil
 	for _, behavior in ipairs(self._behaviors) do
@@ -157,6 +158,8 @@ function Base:_applyForMainAttacker(task)
 	end
 	if not parameters then
 		self._mainAttackerLastTime = nil
+		debug.set("return case 1", true)
+		debug.pop()
 		return
 	end
 
@@ -164,11 +167,15 @@ function Base:_applyForMainAttacker(task)
 		-- only the keeper can apply for MA if it could touch the ball inside the defense area
 		if Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius + World.Ball.radius + 0.02)
 			and World.Ball.pos.y < self._robot.pos.y + self._robot.radius * 3 then
+			debug.set("return case 2", true)
+			debug.pop()
 			return
 		end
 
 		-- only the keeper can apply for MA if the ball is behind the centerbacks
-		if Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius + UtilDefense.centerBackDistanceToDefenseArea())  then
+		if Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius + UtilDefense.centerBackDistanceToDefenseArea()) then
+			debug.set("return case 3", true)
+			debug.pop()
 			return
 		end
 	end
@@ -215,7 +222,8 @@ function Base:_applyForMainAttacker(task)
 			local cosAngle = World.Ball.speed:dot(ballToRobot) / ballToRobotLength / ballSpeedLength
 			ratingBoost = cosAngle * cosAngle * cosAngle * ballSpeedLength * 0.5
 		end
-		debug.set("mainAttackerRating/ratingBoost", ratingBoost)
+		debug.set("slowBall", Ball.isSlowBall())
+		debug.set("ratingBoost", ratingBoost)
 		timeToBall = timeToBall - ratingBoost
 
 		mainAttackerRating = Rating.timeToRating(timeToBall)
@@ -223,7 +231,11 @@ function Base:_applyForMainAttacker(task)
 	else
 		mainAttackerRating = overrideRating
 	end
-
+	-- debug.push("Locals dump")
+	-- --debugger.dumpLocals(0)
+	-- debug.pop()
+	debug.set("mainAttackerRating", mainAttackerRating)
+	debug.pop()
 	self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
 end
 
