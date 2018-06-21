@@ -115,6 +115,9 @@ function Ball:_update(data, time)
 end
 
 function Ball:_updateRawDetections(rawData)
+	if not rawData then
+		return
+	end
 	local count = math.min(1, #rawData)
 	self.detectionQuality = BALL_QUALITY_FILTER_FACTOR * count + (1 - BALL_QUALITY_FILTER_FACTOR) * self.detectionQuality
 	self.hasRawData = count > 0
