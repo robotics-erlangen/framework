@@ -2,6 +2,7 @@ local SuggestPass = require "task/ability/suggestpass"
 local StrikerSampling = require "task/ability/strikersampling"
 local Striker = Class("Task.Striker", require "task/base", SuggestPass, StrikerSampling)
 
+local geom = require "../base/geom"
 local Field = require "../base/field"
 local Referee = require "../base/referee"
 local vis = require "../base/vis"
@@ -85,18 +86,20 @@ function Striker:_searchForPassDest()
 				if y > bottom and y < top then
 					local candidatePoint = Vector(x, y)
 					candidatePoint = Field.limitToAllowedField(candidatePoint, 3 * self._robot.radius + 0.1)
-					local score = self:evalLocation(candidatePoint, bestScore)
-					local _, passInfoTable = next(self._inbox.passInfo())
-					if passInfoTable then
-						for _, passInfo in pairs(passInfoTable) do
-							if passInfo.ballPos:distanceToSq(candidatePoint) < 0.01*0.01 then
-								score = score + 0.1
+					if geom.insideRect(Vector(left, bottom), Vector(right, top), candidatePoint) then
+						local score = self:evalLocation(candidatePoint, bestScore)
+						local _, passInfoTable = next(self._inbox.passInfo())
+						if passInfoTable then
+							for _, passInfo in pairs(passInfoTable) do
+								if passInfo.ballPos:distanceToSq(candidatePoint) < 0.01*0.01 then
+									score = score + 0.1
+								end
 							end
 						end
-					end
-					if score > bestScore then
-						bestScore = score
-						bestPoint = candidatePoint
+						if score > bestScore then
+							bestScore = score
+							bestPoint = candidatePoint
+						end
 					end
 				end
 			end
