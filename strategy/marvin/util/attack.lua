@@ -298,6 +298,7 @@ function Attack.currentPlannedMainAttacker(passInfoSender, passInfoTable)
 			lastCPMA = lastPasser
 			lastCPMATime = World.Time
 			debug.pop()
+			return lastCPMA
 		end
 	end
 
