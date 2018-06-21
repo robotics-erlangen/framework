@@ -105,9 +105,9 @@ function Shoot:_decide()
 			and World.Ball.speed:length() < 1 then
 			--and math.abs(self._attackPosition.y) < 5/6 * G.FieldWidthHalf then
 
-		local MIN_DISTANCE = 0.2
-		local MAX_DISTANCE = 1
-		local DISTANCE_STEP = 0.2
+		local MIN_DISTANCE = 0.1
+		local MAX_DISTANCE = 0.5
+		local DISTANCE_STEP = 0.1
 
 		local CONE_WIDTH = 90 / 180 * math.pi
 		local ANGLE_STEP = 15 / 180 * math.pi
