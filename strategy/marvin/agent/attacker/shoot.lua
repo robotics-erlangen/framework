@@ -112,7 +112,7 @@ function Shoot:_decide()
 		local CONE_WIDTH = 90 / 180 * math.pi
 		local ANGLE_STEP = 15 / 180 * math.pi
 
-		-- local OPPONENT_DISTANCE_THRESHOLD = 1.5
+		local OPPONENT_DISTANCE_THRESHOLD = 1
 
 		-- look for close opponents
 		local closestOppDist = math.huge
@@ -125,9 +125,9 @@ function Shoot:_decide()
 			end
 		end
 
-		-- if closestOppDist < OPPONENT_DISTANCE_THRESHOLD then
-		-- 	goto continue
-		-- end
+		if closestOppDist < OPPONENT_DISTANCE_THRESHOLD then
+			goto continue
+		end
 
 		local attackAngle = (G.OpponentGoal - self._attackPosition):angle()
 		local bestRating = passRating
@@ -185,7 +185,7 @@ function Shoot:_decide()
 				}
 			end
 		end
-		--::continue::
+		::continue::
 	end
 
 	if pass and Attack.isPassAllowed(self._attackPosition or World.Ball.pos, pass.ballPos) then
