@@ -264,9 +264,11 @@ local lastPasser = nil
 local lastReceiver = nil
 local lastCPMATime = 0
 function Attack.currentPlannedMainAttacker(passInfoSender, passInfoTable)
+	debug.pushtop("plannedMA")
 	local passInfoMessage
 	if passInfoTable then
 		if #passInfoTable > 1 then
+			debug.pop()
 			return nil
 		end
 		local _
@@ -277,31 +279,39 @@ function Attack.currentPlannedMainAttacker(passInfoSender, passInfoTable)
 		end
 	end
 
-	debug.set("plannedMA/lastCPMA", lastCPMA)
-	debug.set("plannedMA/lastPasser", lastPasser)
+	debug.set("lastCPMA", lastCPMA)
+	debug.set("lastPasser", lastPasser)
 	if lastPasser then
-		debug.set("plannedMA/lastReceiver", lastReceiver or "anonymous")
+		debug.set("lastReceiver", lastReceiver or "anonymous")
 	else
-		debug.set("plannedMA/lastReceiver", lastReceiver)
+		debug.set("lastReceiver", lastReceiver)
 	end
 
-	if lastPasser and Ball.wasShot(0.5) == lastPasser
-			and World.Ball.speed:length() > 3 and lastReceiver and World.Ball.speed:absoluteAngleDiff(
+	if lastPasser and Ball.wasShot(0.5) == lastPasser then
+		if World.Ball.speed:length() > 3 and lastReceiver and World.Ball.speed:absoluteAngleDiff(
 				lastReceiver.pos - World.Ball.pos) < 45 / 180 * math.pi then
-		lastCPMA = lastReceiver
-		lastCPMATime = World.Time
-		return lastCPMA
+			lastCPMA = lastReceiver
+			lastCPMATime = World.Time
+			debug.pop()
+			return lastCPMA
+		elseif World.Ball.speed:length() < 2 then
+			lastCPMA = lastPasser
+			lastCPMATime = World.Time
+			debug.pop()
+		end
 	end
 
 	if lastCPMA and World.Ball.speed:length() > 1 and World.Ball.speed:absoluteAngleDiff(
 				lastCPMA.pos - World.Ball.pos) < 45 / 180 * math.pi then
 		lastCPMATime = World.Time
+		debug.pop()
 		return lastCPMA
 	end
 
 	if World.Time - lastCPMATime > 0.2 then
 		lastCPMA = nil
 	end
+	debug.pop()
 end
 Attack.currentPlannedMainAttacker = Cache.forFrame(Attack.currentPlannedMainAttacker)
 
