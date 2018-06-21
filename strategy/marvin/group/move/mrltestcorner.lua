@@ -1,6 +1,7 @@
 local MrlTestCorner = Class("Group.Move.MrlTestCorner", require "group/move/base")
 
 local geom = require "../base/geom"
+local vis = require "../base/vis"
 local World = require "../base/world"
 local Freekick = require "agent/attacker/freekick"
 local AcceptPass = require "task/attacker/acceptpass"
@@ -48,6 +49,7 @@ end
 
 local function getRobotsInRect(c1, c2, robots, buffer)
 	local r = {}
+	vis.addAxisAlignedRectangle("g/m/mrlTestCorner: Rect", c1+Vector(-buffer, buffer), c2+Vector(buffer, -buffer), vis.colors.red);
 	for _,v in ipairs(robots) do
 		if geom.insideRect(c1 + Vector(-buffer, buffer), c2 + Vector(buffer, -buffer), v.pos) then
 			table.insert(r, v)

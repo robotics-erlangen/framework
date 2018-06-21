@@ -341,7 +341,7 @@ function Attack.shootGoalViewPos(shootDest, attackPos)
 end
 Attack.checkForGoalShot = Cache.forFrame(Attack.checkForGoalShot)
 
-local BUFFER_TIME = 0.8
+local BUFFER_TIME = 1.0
 local function printPassInfo(robot, passInfo, hysteresis, hysteresisPassInfo)
 	if passInfo then
 		local robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos):setLength(robot.shootRadius + World.Ball.radius)
