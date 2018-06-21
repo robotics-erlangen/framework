@@ -60,7 +60,7 @@ function PenaltyShootout:_updateDribbling()
 		-- log("1")
 		self._contactPoint = self._robot.pos
 		self._changeContact = true
-	elseif self._contactPoint and World.Ball.pos:distanceTo(self._robot.pos) > DRIBBLING_DISTANCE + self._robot.radius then
+	elseif self._contactPoint and World.Ball.pos:distanceTo(self._robot.pos) > DRIBBLING_DISTANCE + self._robot.radius + World.Ball.radius then
 		-- log("2")
 		self._contactPoint = nil
 		self._changeContact = true
@@ -109,7 +109,7 @@ function PenaltyShootout:_updateShootGoal()
 		debug.set("minRelativeSectorSize", MIN_RELATIVE_SECTOR_SIZE)
 		debug.set("maxAngleForPosition(in deg)", 180/math.pi * angle)
 		debug.pop()
-		if self._shootGoalFlag or criteriaTime or criteriaTime or criteriaAngle then
+		if self._shootGoalFlag or criteriaTime or criteriaPos or criteriaAngle then
 			self._shootGoalFlag = true
 		end
 	else
