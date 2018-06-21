@@ -42,6 +42,7 @@ local plot = require "../base/plot"
 -- @field brakeTime number - Time in seconds until the ball stops moving
 -- @field lostSince number - Time when the ball was lost. Only has meaning when Ball isn't visible
 
+local BALL_QUALITY_FILTER_FACTOR = 0.05
 --- Initializes a new ball, must only be called by world!
 function Ball:init()
 	self.radius = 0.0215
@@ -57,6 +58,8 @@ function Ball:init()
 	self.touchdownPos = nil
 	self.isBouncing = false
 	self.framesDecelerating = math.huge
+	self.detectionQuality = 0.6 -- 0.6 is the largest value that can be reached with 60 fps cameras(?)
+	self.hasRawData = false
 end
 
 function Ball:__tostring()
@@ -70,10 +73,14 @@ function Ball:_updateLostBall(time)
 		self._isVisible = false
 		self.lostSince = time
 	end
+	self.detectionQuality = self.detectionQuality * (1 - BALL_QUALITY_FILTER_FACTOR)
 end
 
 -- Processes ball information from amun, passed by world
 function Ball:_update(data, time)
+	self.hasRawData = false
+	-- WARNING: this is the quality BEFORE the frame
+	plot.addPlot("Ball.quality", self.detectionQuality)
 	-- if no ball data is available then no ball was tracked
 	if not data then
 		self:_updateLostBall(time)
@@ -103,6 +110,14 @@ function Ball:_update(data, time)
 	self.isBouncing = data.is_bouncing
 
 	self:_updateTrackedState(lastSpeedLength)
+
+	self:_updateRawDetections(data.raw)
+end
+
+function Ball:_updateRawDetections(rawData)
+	local count = math.min(1, #rawData)
+	self.detectionQuality = BALL_QUALITY_FILTER_FACTOR * count + (1 - BALL_QUALITY_FILTER_FACTOR) * self.detectionQuality
+	self.hasRawData = count > 0
 end
 
 function Ball:_updateTrackedState(lastSpeedLength)

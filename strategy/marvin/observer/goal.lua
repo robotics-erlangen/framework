@@ -3,6 +3,7 @@ local Goal = {}
 local Cache = require "../base/cache"
 local Constants = require "../base/constants"
 local Field = require "../base/field"
+local geom = require "../base/geom"
 local vis = require "../base/vis"
 local World = require "../base/world"
 
@@ -179,6 +180,66 @@ function Goal.allFreeSectors(viewPos, robotList)
 	return freeSectors
 end
 
+local oldRobotPositions = {} -- robot -> position
+local lastRawdataBallPos = World.Ball.pos
+local function updateRobotPositions()
+	if World.Ball.hasRawData then
+		lastRawdataBallPos = World.Ball.pos
+		for _, robot in ipairs(World.OpponentRobots) do
+			oldRobotPositions[robot] = robot.pos
+		end
+	end
+end
+
+local function getInvisibleBallPrediction()
+	-- basically invisible ball
+	if World.Ball.detectionQuality < 0.05 then
+		-- get the last tracked ball state
+
+		-- check if it is close to the defense area
+		local MAX_DEFENSE_DIST = 2.5
+		if Field.distanceToFriendlyDefenseArea(lastRawdataBallPos, 0) > MAX_DEFENSE_DIST and
+			Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0) > MAX_DEFENSE_DIST then
+			return
+		end
+
+		-- TODO: check for fast ball and save predictShot
+		--if not Ball.isSlowBall() then
+		--end
+
+		-- search for robots that were close at that point in time
+		local closestRobot = nil
+		local closestDistance = 0.5 -- no robots farther away from the ball than that
+		local closestDribblerPos, closestBallSpeed
+		for _, robot in ipairs(World.OpponentRobots) do
+			local oldDistance = oldRobotPositions[robot]:distanceTo(lastRawdataBallPos)
+			local newDistance = robot.pos:distanceTo(lastRawdataBallPos)
+			if oldDistance < closestDistance or newDistance < closestDistance then
+				-- it has to roughly point at the goal
+				local robotDir = Vector.fromAngle(robot.dir)
+				-- as the robot might be dribbling the ball, use volley prediction
+				-- TODO: this volley prediction does not properly use the current robot speed
+				local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, 0, robot.dir, robot.speed:angle(), "opp")
+				local ballSpeed = Vector(dirx, diry) + robot.speed
+				local dribblerPos = robot.pos + robotDir:copy():setLength(robot.shootRadius)
+				local intersection = geom.intersectLineLine(G.FriendlyGoal, Vector(1, 0),
+					dribblerPos, ballSpeed)
+				if intersection and math.abs(intersection.x) < G.GoalWidth / 2 + 0.3 then
+					closestDistance = math.min(oldDistance, newDistance)
+					closestRobot = robot
+					closestDribblerPos = dribblerPos
+					closestBallSpeed = ballSpeed
+				end
+			end
+		end
+
+		if not closestRobot then
+			return
+		end
+		return closestDribblerPos, closestBallSpeed, closestRobot
+	end
+end
+
 --- Predicts the direction the ball will be shot into.
 -- Checks for ball movement, opponents near the ball, tries to predict passes
 -- @param allShots bool - whether or not to only count shots that can volley onto the goal and might hit the goal
@@ -195,6 +256,15 @@ local function comparePrediction(p1, p2)
 	return p1.dist > p2.dist
 end
 function Goal.predictShot(allShots)
+	-- check for bad vision
+	local invisibleBallPos, invisibleBallSpeed, oppRobot = getInvisibleBallPrediction()
+	if invisibleBallPos then
+		vis.addPath("1Test", {oppRobot.pos, oppRobot.pos + Vector.fromAngle(oppRobot.dir) * 4}, vis.colors.red)
+		vis.addCircle("o/goal: predictShot: invisible ball", oppRobot.pos, oppRobot.radius, vis.colors.white, false)
+			vis.addPath("o/goal: predictShot: invisible ball", {oppRobot.pos, oppRobot.pos + invisibleBallSpeed * 10}, vis.colors.white)
+		return invisibleBallPos, invisibleBallSpeed, true, nil, true
+	end
+
 	local ballSpeed = World.Ball.speed:copy() -- Defend ball by default
 	local pos = World.Ball.pos
 	local isShot = false
@@ -206,14 +276,13 @@ function Goal.predictShot(allShots)
 	if oppBallDribbler then
 		isShot = true
 		isDribbling = true
-		ballSpeed = Vector.fromAngle(oppBallDribbler.dir)
+		local relativeSpeedLength = World.Ball.speed - oppBallDribbler.speed
+		local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeedLength:length(), oppBallDribbler.dir, World.Ball.speed:angle(), "opp")
+		ballSpeed = (Vector(dirx, diry) + oppBallDribbler.speed):normalize()
 		if not allShots then
 			vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false)
 			vis.addPath("o/goal: predictShot: dribbling robot", {oppBallDribbler.pos, oppBallDribbler.pos + ballSpeed * 10}, vis.colors.blue)
 		end
-		local relativeSpeedLength = World.Ball.speed - oppBallDribbler.speed
-		local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeedLength:length(), oppBallDribbler.dir, World.Ball.speed:angle(), "opp")
-		ballSpeed = Vector(dirx, diry):normalize()
 	elseif oppBallOwner and Ball.isSlowBall() then
 		-- if opponent is close to ball use its orientation
 		ballSpeed = Vector.fromAngle(oppBallOwner.dir)
@@ -325,6 +394,10 @@ function Goal.predictShot(allShots)
 	return pos, ballSpeed, isShot, passReceivers, isDribbling
 end
 Goal.predictShot = Cache.forFrame(Goal.predictShot)
+
+function Goal._update()
+	updateRobotPositions()
+end
 
 
 return Goal
