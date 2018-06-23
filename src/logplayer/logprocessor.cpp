@@ -241,6 +241,19 @@ qint64 LogProcessor::filterLog(LogFileReader &reader, Exchanger *writer, Exchang
                 skipStatus = true;
             }
         }
+        if (m_options & CutStop) {
+            if (lastGameState.IsInitialized()
+                    && lastGameState.state() == amun::GameState::Stop) {
+                skipStatus = true;
+            }
+        }
+        if (m_options & CutBallplacement) {
+            if (lastGameState.IsInitialized()
+                    && (lastGameState.state() == amun::GameState::BallPlacementBlue
+                        || lastGameState.state() == amun::GameState::BallPlacementYellow)) {
+                    skipStatus = true;
+            }
+        }
 
         if (skipStatus) {
             // the frame contains team settings, these MUST be retained

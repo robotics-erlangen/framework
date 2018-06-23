@@ -66,6 +66,12 @@ void LogCutter::startProcess()
     if (ui->cutNonGameChk->isChecked()) {
         options |= LogProcessor::CutNonGame;
     }
+    if (ui->cutStop->isChecked()) {
+        options |= LogProcessor::CutStop;
+    }
+    if (ui->cutBallplacement->isChecked()) {
+        options |= LogProcessor::CutBallplacement;
+    }
 
     m_processor = new LogProcessor(inputFiles, outputFile, options, this);
     connect(m_processor, &LogProcessor::progressUpdate, this, &LogCutter::updateProgress);

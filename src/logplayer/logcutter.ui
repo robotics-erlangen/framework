@@ -88,6 +88,20 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="cutStop">
+     <property name="text">
+      <string>Remove stop</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QCheckBox" name="cutBallplacement">
+     <property name="text">
+      <string>Remove ball placement</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="processBtn">
      <property name="text">
       <string>Process</string>

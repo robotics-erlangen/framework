@@ -15,7 +15,9 @@ public:
     enum Option {
         NoOptions = 0x0,
         CutHalt = 0x1,
-        CutNonGame = 0x2
+        CutNonGame = 0x2,
+        CutStop = 0x4,
+        CutBallplacement = 0x8
     };
     Q_DECLARE_FLAGS(Options, Option)
 
