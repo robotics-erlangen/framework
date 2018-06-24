@@ -121,11 +121,6 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     addAction(ui->actionDisableTransceiver); // only actions that are used somewhere are triggered
     connect(ui->actionChargeKicker, SIGNAL(toggled(bool)), SLOT(setCharge(bool)));
     connect(ui->actionSidesFlipped, SIGNAL(toggled(bool)), SLOT(setFlipped(bool)));
-    // reminder shown before second half time
-    connect(ui->actionSideChangeNotify, &QAction::triggered, [=] () {
-            ui->actionSideChangeNotify->setVisible(false);
-        });
-    ui->actionSideChangeNotify->setVisible(false);
 
     connect(ui->actionSimulator, SIGNAL(toggled(bool)), SLOT(setSimulatorEnabled(bool)));
     connect(ui->actionInternalReferee, SIGNAL(toggled(bool)), SLOT(setInternalRefereeEnabled(bool)));
@@ -359,11 +354,6 @@ void MainWindow::handleStatus(const Status &status)
         const amun::GameState &state = status->game_state();
 
         if (state.has_stage() && state.has_stage_time_left()) {
-            const qint32 notificationTime = 60 * 1000 * 1000; // notify 60 seconds before end of halftime
-            if (state.stage() == SSL_Referee::NORMAL_HALF_TIME
-                    && state.stage_time_left() < notificationTime && m_lastStageTime >= notificationTime) {
-                ui->actionSideChangeNotify->setVisible(true);
-            }
             m_lastStageTime = state.stage_time_left();
         }
 
