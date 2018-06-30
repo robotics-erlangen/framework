@@ -307,13 +307,11 @@ function Defense:_createIntersections(result, pos, direction, radius, index, isD
 		if intersections[1].pos:distanceToSq(pos) > MAX_DEFENSE_DIST * MAX_DEFENSE_DIST then
 			return
 		end
-		if isDribbling then
-			-- for dribbling robots, limit the first intersection to ones going into the goal
-			local goallineIntersection = geom.intersectLineLine(pos, direction, G.FriendlyGoal, Vector(1, 0))
-			if goallineIntersection and math.abs(goallineIntersection.x) > G.GoalWidth / 2 then
-				local goalSide = Vector(math.sign(goallineIntersection.x) * G.GoalWidth / 2, G.FriendlyGoal.y)
-				self:_createIntersections(result, pos, goalSide - pos, radius, index, false)
-			end
+		-- for dribbling robots, limit the first intersection to ones going into the goal
+		local goallineIntersection = geom.intersectLineLine(pos, direction, G.FriendlyGoal, Vector(1, 0))
+		if isDribbling and goallineIntersection and math.abs(goallineIntersection.x) > G.GoalWidth / 2 then
+			local goalSide = Vector(math.sign(goallineIntersection.x) * G.GoalWidth / 2, G.FriendlyGoal.y)
+			self:_createIntersections(result, pos, goalSide - pos, radius, index, false)
 		else
 			table.insert(result, {startPos = pos, startDirection = direction,
 				pos = intersections[1].pos, way = intersections[1].way})
@@ -343,7 +341,7 @@ function Defense:_assignBallCenterbacks(defenders)
 		self:_createIntersections(intersectionInfos, World.Ball.pos, World.Ball.speed, defenseExtraRadius, 1, false)
 	end
 	local predictedPos, predictedDir, isShot, _, isDribbling = Goal.predictShot(true)
-	if (isShot or isDribbling)  and (predictedPos ~= World.Ball.pos or predictedDir ~= World.Ball.speed) then
+	if (isShot or isDribbling) and (predictedPos ~= World.Ball.pos or predictedDir ~= World.Ball.speed) then
 		local numBefore = #intersectionInfos
 		self:_createIntersections(intersectionInfos, predictedPos, predictedDir, defenseExtraRadius, 2, isDribbling)
 		if #intersectionInfos > numBefore then
@@ -374,8 +372,9 @@ function Defense:_assignBallCenterbacks(defenders)
 			rollTime = rollTime + 0.4
 		end
 		if rollTime == math.huge then
-			-- no other intersection can be reached by the ball
-			break
+			-- other intersections could reach the defense area,
+			-- since the ball could currently be dribbled
+			goto continue
 		end
 		local closestRobot = UtilDefense.getClosestRobot(defenders, info.pos)
 		if not closestRobot then
@@ -400,6 +399,7 @@ function Defense:_assignBallCenterbacks(defenders)
 				vis.addPath("tr/defense: ball intersection", {info.startPos, info.pos}, vis.colors.red)
 			end
 		end
+		::continue::
 	end
 
 	-- assign default centerbacks
