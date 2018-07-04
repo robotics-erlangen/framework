@@ -57,6 +57,8 @@ VisualizationWidget::VisualizationWidget(QWidget *parent) :
     // setup invalidate timer
     m_guiTimer = new GuiTimer(100, this);
     connect(m_guiTimer, &GuiTimer::timeout, this, &VisualizationWidget::invalidateItems);
+
+    connect(ui->enableFiltered, SIGNAL(clicked(bool)), SLOT(enableFilteredVisualizations(bool)));
 }
 
 VisualizationWidget::~VisualizationWidget()
@@ -105,6 +107,31 @@ void VisualizationWidget::showContextMenu(const QPoint &pos)
     m_contextMenu->popup(ui->list->mapToGlobal(pos));
 }
 
+void VisualizationWidget::addItem(const std::string &stdName, bool checked)
+{
+    const QByteArray name(stdName.data(), stdName.size());
+    QPair<QStandardItem*, qint64> &entry = m_items[name];
+    QStandardItem *&item = entry.first;
+    // add item if neccessary
+    if (item == NULL) {
+        item = new QStandardItem(QString::fromStdString(stdName));
+        item->setCheckable(true);
+        #ifdef AUTOREF_DIR
+        item->setCheckState(Qt::Checked);
+        #else
+        item->setCheckState(checked ? Qt::Checked : Qt::Unchecked);
+        #endif
+        entry = qMakePair(item, m_time);
+        m_model->appendRow(item);
+        // new visualizations are rarely added, just sort everything
+        m_proxy->sort(0);
+    }
+
+    // mark as visible
+    entry.second = m_time;
+    clearForeground(item);
+}
+
 void VisualizationWidget::handleStatus(const Status &status)
 {
     if (status->has_debug()) {
@@ -115,28 +142,7 @@ void VisualizationWidget::handleStatus(const Status &status)
             const amun::Visualization &vis = values.visualization(i);
             // avoid conversion to QString if not really neccessary
             const std::string &stdName = vis.name();
-            const QByteArray name(stdName.data(), stdName.size());
-
-            QPair<QStandardItem*, qint64> &entry = m_items[name];
-            QStandardItem *&item = entry.first;
-            // add item if neccessary
-            if (item == NULL) {
-                item = new QStandardItem(QString::fromStdString(vis.name()));
-                item->setCheckable(true);
-                #ifdef AUTOREF_DIR
-                item->setCheckState(Qt::Checked);
-                #else
-                item->setCheckState(Qt::Unchecked);
-                #endif
-                entry = qMakePair(item, m_time);
-                m_model->appendRow(item);
-                // new visualizations are rarely added, just sort everything
-                m_proxy->sort(0);
-            }
-
-            // mark as visible
-            entry.second = m_time;
-            clearForeground(item);
+            addItem(stdName, false);
         }
         m_guiTimer->requestTriggering();
     }
@@ -203,8 +209,25 @@ void VisualizationWidget::itemChanged(QStandardItem *item)
     }
 }
 
+void VisualizationWidget::enableFilteredVisualizations(bool enable)
+{
+    const std::string &stdName = ui->filter->text().toStdString();
+    const QByteArray name(stdName.data(), stdName.size());
+    QPair<QStandardItem*, qint64> &entry = m_items[name];
+    QStandardItem *&item = entry.first;
+    if (item == nullptr && enable) {
+        addItem(stdName, true);
+    } else if (enable) {
+        item->setCheckState(Qt::Checked);
+    } else if (item != nullptr) {
+        item->setCheckState(Qt::Unchecked);
+    }
+}
+
 void VisualizationWidget::filterTextChanged(QString text)
 {
+    ui->enableFiltered->setChecked(m_selection.contains(text));
+
     QStringList options = text.split(";");
     QString regex;
     for (int optIndex = 0;optIndex<options.size();optIndex++) {
