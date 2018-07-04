@@ -64,7 +64,7 @@ QString RefereeStatusWidget::gameEventMessage(const SSL_Referee_Game_Event &even
          {SSL_Referee_Game_Event::ATTACKER_TOUCH_KEEPER, "%1 touched the opponent keeper%2"},
          {SSL_Referee_Game_Event::DOUBLE_TOUCH, "double touch by %1%2"},
          {SSL_Referee_Game_Event::ATTACKER_TO_DEFENCE_AREA, "%1 did not hold distance to opponent defense area%2"},
-         {SSL_Referee_Game_Event::DEFENDER_TO_KICK_POINT_DISTANCE, "%1 was too far from kick point%2"},
+         {SSL_Referee_Game_Event::DEFENDER_TO_KICK_POINT_DISTANCE, "%1 was too close too kick point%2"},
          {SSL_Referee_Game_Event::BALL_HOLDING, "ball holding by %1%2"},
          {SSL_Referee_Game_Event::INDIRECT_GOAL, "indirect goal, shot by %1%2"},
          {SSL_Referee_Game_Event::BALL_PLACEMENT_FAILED, "%1 ball placement failed%2"},
