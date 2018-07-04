@@ -61,9 +61,11 @@ private slots:
     void showContextMenu(const QPoint &pos);
     void saveConfig();
     void filterTextChanged(QString text);
+    void enableFilteredVisualizations(bool enable);
 
 private:
     void clearForeground(QStandardItem *item) const;
+    void addItem(const std::string &stdName, bool checked);
 
 private:
     typedef QHash<QByteArray, QPair<QStandardItem*, qint64> > HashMap;
