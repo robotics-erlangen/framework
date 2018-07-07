@@ -92,8 +92,8 @@ private:
     CombinedLogWriter m_logWriter;
     amun::GameState::State m_lastRefState;
     QList<Status> m_replayStrategyBuffer;
-
     DebuggerConsole *m_console;
+    bool m_isTournamentMode;
 };
 
 #endif // MAINWINDOW_H

@@ -41,6 +41,7 @@ public:
     void handleRemoteControlRequest(const SSL_RefereeRemoteControlRequest &request);
     void process(const world::State &worldState);
     void setFlipped(bool flipped);
+    bool isGameRunning();
 
 private:
     void handleCommand(SSL_Referee::Command command);

@@ -177,6 +177,7 @@ void Processor::process()
         emit setFlipped(m_lastFlipped);
     }
     status->mutable_game_state()->CopyFrom(activeReferee->gameState());
+    status->mutable_game_state()->set_is_real_game_running(m_referee->isGameRunning());
 
     // add radio responses from robots and mixed team data
     injectExtraData(status);
@@ -334,6 +335,12 @@ void Processor::injectRawSpeedIfAvailable(robot::RadioCommand *radioCommand, con
 void Processor::handleRefereePacket(const QByteArray &data, qint64 /*time*/)
 {
     m_referee->handlePacket(data);
+    // ensure that tournament mode works even if the simulator is stopped
+    if (m_referee->isGameRunning() && m_simulatorEnabled && !m_trigger->isActive()) {
+        Status status = Status(new amun::Status);
+        status->mutable_game_state()->set_is_real_game_running(true);
+        emit sendStatus(status);
+    }
 }
 
 void Processor::handleVisionPacket(const QByteArray &data, qint64 time, QString sender)

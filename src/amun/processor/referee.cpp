@@ -258,3 +258,10 @@ void Referee::handleCommand(SSL_Referee::Command command)
         break;
     }
 }
+
+bool Referee::isGameRunning()
+{
+    return m_gameState.state() != amun::GameState::Halt
+            && m_gameState.state() != amun::GameState::TimeoutBlue
+            && m_gameState.state() != amun::GameState::TimeoutYellow;
+}

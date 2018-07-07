@@ -39,7 +39,8 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     ui(new Ui::MainWindow),
     m_transceiverActive(false),
     m_lastStageTime(0),
-    m_logWriter(false, 20)
+    m_logWriter(false, 20),
+    m_isTournamentMode(tournamentMode)
 {
     qRegisterMetaType<SSL_Referee::Command>("SSL_Referee::Command");
     qRegisterMetaType<SSL_Referee::Stage>("SSL_Referee::Stage");
@@ -359,6 +360,16 @@ void MainWindow::handleStatus(const Status &status)
 
         if (state.has_goals_flipped()) {
             ui->actionSidesFlipped->setChecked(state.goals_flipped());
+        }
+
+        if (m_isTournamentMode && state.has_is_real_game_running()
+                && state.is_real_game_running()) {
+            ui->actionSimulator->setChecked(false);
+            ui->actionInputDevices->setChecked(false);
+            ui->actionChargeKicker->setChecked(true);
+            ui->actionEnableTransceiver->setChecked(true);
+            ui->actionRecord->setChecked(true);
+            ui->actionInternalReferee->setChecked(false);
         }
 
         m_lastRefState = state.state();
