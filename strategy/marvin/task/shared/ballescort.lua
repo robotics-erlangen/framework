@@ -8,7 +8,7 @@ local ToTarget = require "trajectory/totarget"
 
 local obstacleTable = {
 	ignoreBall = false,
-	extraBallDistance = 0.3,
+	extraBallDistance = 0.25,
 	ignorePass = true,
 }
 
@@ -18,7 +18,7 @@ end
 
 function BallEscort:run()
 	local target = self._opponentRobot and self._opponentRobot.pos or World.Geometry.FriendlyGoal
-	local pos = World.Ball.pos + (target - World.Ball.pos):setLength(0.2 + self._robot.radius)
+	local pos = World.Ball.pos + (target - World.Ball.pos):setLength(0.3 + self._robot.radius)
 
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	local ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
@@ -26,7 +26,7 @@ function BallEscort:run()
 		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, ballOutPos.x, ballOutPos.y, self._robot.radius, "Ballescort", 68)
 	end
 
-	self._robot.trajectory:update(ToTarget, pos, (World.Ball.pos - self._robot.pos):angle())
+	self._robot.trajectory:update(ToTarget, pos, (self._robot.pos - World.Ball.pos):angle())
 end
 
 return BallEscort
