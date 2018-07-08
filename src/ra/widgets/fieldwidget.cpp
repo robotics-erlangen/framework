@@ -1238,6 +1238,7 @@ void FieldWidget::mouseMoveEvent(QMouseEvent *event)
         } else if (!event->modifiers().testFlag(Qt::ControlModifier)) {
             QPointF d = p - m_mouseBegin;
             translate(d.x(), d.y());
+            updateInfoText();
             m_mouseBegin = mapToScene(event->pos());
         }
     }
@@ -1296,6 +1297,7 @@ void FieldWidget::wheelEvent(QWheelEvent *event)
     translate(p.x(), p.y());
     scale(scaleFactor, scaleFactor);
     translate(-p.x(), -p.y());
+    updateInfoText();
 }
 
 void FieldWidget::resizeEvent(QResizeEvent *event)
@@ -1311,6 +1313,7 @@ bool FieldWidget::gestureEvent(QGestureEvent *event)
         QPanGesture *pan = static_cast<QPanGesture *>(event->gesture(Qt::PanGesture));
         QPointF delta = pan->delta();
         translate(delta.x(), delta.y());
+        updateInfoText();
     }
     if (event->gesture(Qt::PinchGesture)) {
         QPinchGesture *pinch = static_cast<QPinchGesture *>(event->gesture(Qt::PinchGesture));
@@ -1322,6 +1325,7 @@ bool FieldWidget::gestureEvent(QGestureEvent *event)
             translate(p.x(), p.y());
             scale(scaleChange, scaleChange);
             translate(-p.x(), -p.y());
+            updateInfoText();
         }
     }
     if (event->gesture(m_touchStatusType)) {
