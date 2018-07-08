@@ -91,6 +91,7 @@ private:
     void closeStrategy(int index);
     void createStrategy(int index);
     void sendResetDebugPacket(bool blue);
+    void makeRecentFileMenu();
 
 private:
     Ui::MainWindow *ui;
@@ -110,6 +111,12 @@ private:
     Timer *m_playTimer;
 
     LogFileReader * m_logfile;
+
+    QList<QString> m_recentFiles;
+    QMenu *m_recentFilesMenu;
+    QAction *m_recentFilesMenuAction;
+
+    const int MAX_RECENT_FILE_COUNT = 10;
 };
 
 #endif // MAINWINDOW_H

@@ -39,13 +39,13 @@
 #include "strategy/strategy.h"
 #include "strategy/strategyreplayhelper.h"
 
-
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow),
     m_lastTeamInfo(new amun::Command),
     m_lastTeamInfoUpdated(false),
-    m_logWriter(true, 20)
+    m_logWriter(true, 20),
+    m_recentFilesMenu(nullptr)
 {
     qRegisterMetaType<Status>("Status");
     qRegisterMetaType<Command>("Command");
@@ -138,6 +138,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->splitter->restoreState(s.value("Splitter").toByteArray());
     s.endGroup();
 
+    int recentFileCount = s.beginReadArray("recent files");
+    for (int i = 0;i<recentFileCount;i++) {
+        s.setArrayIndex(i);
+        m_recentFiles.append(s.value("filename").toString());
+    }
+    s.endArray();
+
     // create strategy threads
     for (int i = 0;i<2;i++) {
         m_strategyThreads[i] = new QThread(this);
@@ -171,6 +178,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     // connect buttons, ...
     connect(ui->btnOpen, SIGNAL(clicked()), SLOT(openFile()));
+
+    makeRecentFileMenu();
 }
 
 MainWindow::~MainWindow()
@@ -186,6 +195,32 @@ MainWindow::~MainWindow()
         m_strategyThreads[i]->wait();
     }
     delete ui;
+}
+
+void MainWindow::makeRecentFileMenu()
+{
+    if (m_recentFiles.size() > 0) {
+        QMenu *newMenu = new QMenu("Recent files", ui->menuFile);
+        if (m_recentFilesMenu == nullptr) {
+            m_recentFilesMenuAction = ui->menuFile->insertMenu(ui->actionLogCutter, newMenu);
+            ui->menuFile->insertSeparator(ui->actionLogCutter);
+        } else {
+            // just remove the old one and create a new one
+            m_recentFilesMenuAction = ui->menuFile->insertMenu(m_recentFilesMenuAction, newMenu);
+            m_recentFilesMenu->deleteLater();
+        }
+        m_recentFilesMenu = newMenu;
+        QSignalMapper *mapper = new QSignalMapper(newMenu);
+        connect(mapper, SIGNAL(mapped(QString)), SLOT(openFile(QString)));
+        for (int i = m_recentFiles.size()-1;i>=0;i--) {
+            QFileInfo file(m_recentFiles[i]);
+            QString fileName = file.fileName();
+            QAction *fileAction = new QAction(fileName, newMenu);
+            newMenu->addAction(fileAction);
+            connect(fileAction, SIGNAL(triggered()), mapper, SLOT(map()));
+            mapper->setMapping(fileAction, m_recentFiles[i]);
+        }
+    }
 }
 
 void MainWindow::openFile()
@@ -213,6 +248,14 @@ void MainWindow::openFile(const QString &filename)
                 m_strategys[1]->resetIsReplay();
             }
             ui->logManager->setStatusSource(m_logfile);
+
+            // move the file to the end of the recent files list
+            m_recentFiles.removeAll(filename);
+            m_recentFiles.append(filename);
+            if (m_recentFiles.size() > MAX_RECENT_FILE_COUNT) {
+                m_recentFiles.removeFirst();
+            }
+            makeRecentFileMenu();
         } else {
             QMessageBox::critical(this, "Error", m_logfile->errorMsg());
         }
@@ -339,6 +382,13 @@ void MainWindow::closeEvent(QCloseEvent *e)
     s.setValue("State", saveState());
     s.setValue("Splitter", ui->splitter->saveState());
     s.endGroup();
+
+    s.beginWriteArray("recent files", m_recentFiles.size());
+    for (int i = 0;i<m_recentFiles.size();i++) {
+        s.setArrayIndex(i);
+        s.setValue("filename", m_recentFiles.at(i));
+    }
+    s.endArray();
 
     // make sure the plotter is closed along with the mainwindow
     // this also ensure that a closeEvent is triggered
