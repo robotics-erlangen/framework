@@ -56,6 +56,7 @@ public:
     void shutdown();
     void enableContent(bool enable);
     void resend();
+    void setColor(bool blue);
 
 signals:
     void setTeam(uint generation, uint id, RobotWidget::Team team);

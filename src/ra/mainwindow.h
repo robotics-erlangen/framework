@@ -94,6 +94,8 @@ private:
     QList<Status> m_replayStrategyBuffer;
     DebuggerConsole *m_console;
     bool m_isTournamentMode;
+
+    const std::string TEAM_NAME = "Replace with your own team name!";
 };
 
 #endif // MAINWINDOW_H

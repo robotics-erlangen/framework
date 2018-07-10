@@ -136,6 +136,29 @@ void RobotSelectionWidget::saveConfig(bool saveTeams)
     }
 }
 
+void RobotSelectionWidget::setColor(bool blue)
+{
+    bool changed = false;
+    for (uint gen : m_generations.keys()) {
+        Generation &generation = m_generations[gen];
+        for (uint id : generation.robots.keys()) {
+            RobotWidget::Team t = generation.robots[id].team;
+            if (t == RobotWidget::Blue && !blue) {
+                changed = true;
+                generation.robots[id].team = RobotWidget::Yellow;
+                emit setTeam(gen, id, RobotWidget::Yellow);
+            } else if (t == RobotWidget::Yellow && blue) {
+                changed = true;
+                generation.robots[id].team = RobotWidget::Blue;
+                emit setTeam(gen, id, RobotWidget::Blue);
+            }
+        }
+    }
+    if (changed) {
+        sendTeams();
+    }
+}
+
 void RobotSelectionWidget::shutdown()
 {
     ui->yellow->shutdown();

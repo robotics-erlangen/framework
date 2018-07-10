@@ -373,6 +373,14 @@ void MainWindow::handleStatus(const Status &status)
         }
 
         m_lastRefState = state.state();
+
+        if (m_isTournamentMode && !ui->actionSimulator->isChecked()) {
+            if (state.has_blue() && state.blue().name() == TEAM_NAME) {
+                ui->robots->setColor(true);
+            } else if (state.has_yellow() && state.yellow().name() == TEAM_NAME) {
+                ui->robots->setColor(false);
+            }
+        }
     }
 
     if (status->has_amun_state() && status->amun_state().has_port_bind_error()) {
