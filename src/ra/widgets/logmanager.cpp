@@ -396,3 +396,8 @@ void LogManager::initializeLabels()
     ui->lblTimeCurrent->setText(formatTime(0));
     m_scroll = true;
 }
+
+uint LogManager::getFrame()
+{
+    return ui->spinPacketCurrent->value();
+}

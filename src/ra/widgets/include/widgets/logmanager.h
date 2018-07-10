@@ -48,6 +48,7 @@ public:
     void goToEnd();
     void setPaused(bool p);
     int getLastFrame();
+    uint getFrame();
 
 public slots:
     void seekPacket(int packet);

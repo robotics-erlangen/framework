@@ -46,11 +46,28 @@
        <number>0</number>
       </property>
       <item>
-       <widget class="QPushButton" name="btnOpen">
-        <property name="text">
-         <string>Open</string>
+       <layout class="QVBoxLayout" name="verticalLayout">
+        <property name="spacing">
+         <number>3</number>
         </property>
-       </widget>
+        <item>
+         <widget class="QPushButton" name="btnOpen">
+          <property name="text">
+           <string>Open</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="goToLastPosition">
+          <property name="text">
+           <string>0</string>
+          </property>
+          <property name="shortcut">
+           <string>L</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
       <item>
        <widget class="LogManager" name="logManager" native="true">

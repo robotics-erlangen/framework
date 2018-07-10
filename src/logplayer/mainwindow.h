@@ -85,6 +85,7 @@ private slots:
     void clearAll();
     void openFile();
     void openPlotter();
+    void goToLastFilePosition();
 
 private:
     QString formatTime(qint64 time);
@@ -113,6 +114,8 @@ private:
     LogFileReader * m_logfile;
 
     QList<QString> m_recentFiles;
+    QMap<QString, uint> m_lastFilePositions;
+    uint m_packetsSinceOpened;
     QMenu *m_recentFilesMenu;
     QAction *m_recentFilesMenuAction;
 
