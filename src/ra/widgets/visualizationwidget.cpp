@@ -234,7 +234,7 @@ void VisualizationWidget::filterTextChanged(QString text)
         QString option = options.at(optIndex);
         regex += ".*";
         for (int i = 0;i<option.length();i++) {
-            if (text.at(i) != ' ') {
+            if (option.at(i) != ' ') {
                 regex += option.at(i);
                 regex += ".*";
             }
