@@ -388,7 +388,7 @@ function Defense:_assignBallCenterbacks(defenders)
 				robotTime < rollTime and rollTime < ROBOT_TIME_MARGIN_HIGH or
 				#self._centerbackAssignments == 0 and intersectsGoal or
 				rollTime < 0.25 and robotTime < 0.4) and
-				not (toGoalLineDistance < 0.25 and not intersectsGoal) then
+				(toGoalLineDistance >= 0.25 or intersectsGoal) then
 			table.insert(self._centerbackAssignments, closestRobot)
 			table.removeValue(defenders, closestRobot)
 			self._send.roleAssignment(closestRobot,
