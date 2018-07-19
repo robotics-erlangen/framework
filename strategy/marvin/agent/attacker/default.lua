@@ -34,7 +34,7 @@ function Default:_updateTask()
 	local midfieldZone = self._inbox.midfieldZone().trainer
 	local Freebreaker = midfieldZone and Midfield or Striker
 
-	if false and relevantPassInfo and not acceptingPass then
+	if relevantPassInfo and not acceptingPass then
 		return SideStep, {relevantPassInfo}
 	end
 	return acceptingPass and AcceptPass or Freebreaker
