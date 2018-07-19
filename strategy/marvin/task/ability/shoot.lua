@@ -310,43 +310,16 @@ function Shoot:_calculateChaseFutureBall(targetPos)
 	return futureBall
 end
 
-function Shoot:_shootChaseBall(targetPos, targetSpeed, targetTime, futureBall)
-	debug.push("chaseBall")
-	debug.set("targetSpeed", targetSpeed)
-	if targetTime then
-		debug.set("targetTime", targetTime - World.Time)
-	end
+function Shoot:_shootChaseBall(targetPos, targetSpeed, futureBall)
 	local relativeEndSpeed = 1
 
 	self._precision = MIN_PRECISION_CHASE
 
-	local counter = 0
-	local MIN_SPEED = 0.1
-	local STEP_COUNT = 4
-	local STEP = (targetSpeed - MIN_SPEED) / STEP_COUNT
-	local targetDir, kickSpeed
-	local dribblerOffset, moveDest, endSpeed
-	repeat
-		targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
+	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
 
-		dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
-		moveDest = futureBall.pos - dribblerOffset
-		endSpeed = futureBall.speed:copy():setLength(futureBall.speed:length() + relativeEndSpeed)
-
-		local shootBall = {
-			pos = moveDest,
-			speed = (targetPos - moveDest):setLength(kickSpeed),
-			maxSpeed = kickSpeed,
-			radius = World.Ball.pos
-		}
-		local ballTravelTime = Physics.ballRollTime(shootBall, kickSpeed)
-		if targetTime and World.Time + ballTravelTime < targetTime and not (targetSpeed <= MIN_SPEED) then
-			targetSpeed = targetSpeed - STEP
-		end
-		debug.set(counter.." iteration", targetSpeed)
-		counter = counter + 1
-	until not (targetTime and World.Time + ballTravelTime < targetTime) or targetSpeed <= MIN_SPEED
-	debug.set("final targetSpeed", targetSpeed)
+	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
+	local moveDest = futureBall.pos - dribblerOffset
+	local endSpeed = futureBall.speed:copy():setLength(futureBall.speed:length() + relativeEndSpeed)
 
 	endSpeed = self:limitEndSpeedToField(moveDest, endSpeed)
 
@@ -359,7 +332,6 @@ function Shoot:_shootChaseBall(targetPos, targetSpeed, targetTime, futureBall)
 	if World.Ball.pos:distanceTo(currentDribblerPos) < 0.35 then
 		self:_sendShootCommand(kickSpeed, targetPos, targetDir)
 	end
-	debug.pop()
 end
 
 local MIN_TIME = 0.2
@@ -461,7 +433,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, targetTime, ballReceiptPos, line
 		self:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBall)
 		color = vis.colors.whiteHalf
 	elseif self._state == "ChaseBall" then
-		self:_shootChaseBall(targetPos, targetSpeed, targetTime, chaseFutureBall)
+		self:_shootChaseBall(targetPos, targetSpeed, chaseFutureBall)
 		color = vis.colors.skyBlueHalf
 	elseif self._state == "Volley" then
 		self:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
