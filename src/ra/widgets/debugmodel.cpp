@@ -37,7 +37,9 @@ public:
 };
 
 DebugModel::DebugModel(QObject *parent) :
-    QStandardItemModel(parent)
+    QStandardItemModel(parent),
+    m_filterKey(false),
+    m_filterValue(false)
 {
     setHorizontalHeaderLabels(QStringList() << "Name" << "Value");
 
@@ -51,6 +53,14 @@ DebugModel::DebugModel(QObject *parent) :
 
 DebugModel::~DebugModel() {
     qDeleteAll(m_entryMap);
+}
+
+void DebugModel::setFilterRegEx(const QString &filterKey, const QString &filterValue)
+{
+    m_filterKey = filterKey.size() > 0;
+    m_filterKeyExpression = QRegularExpression(filterKey, QRegularExpression::CaseInsensitiveOption);
+    m_filterValue = filterValue.size() > 0;
+    m_filterValueExpression = QRegularExpression(filterValue, QRegularExpression::CaseInsensitiveOption);
 }
 
 void DebugModel::addRootItem(const QString &name, int sourceId)
@@ -148,10 +158,10 @@ void DebugModel::setDebug(const amun::DebugValues &debug, const QSet<QString> &d
         }
     }
     // remove outdated items
-    testMap(map, entries);
+    testMap(map, entries, false);
 }
 
-void DebugModel::testMap(DebugModel::Map &map, const QSet<Entry*> &entries)
+void DebugModel::testMap(DebugModel::Map &map, const QSet<Entry*> &entries, bool parentMatched)
 {
     QMutableHashIterator<QString, Entry*> it(map);
     while (it.hasNext()) {
@@ -159,8 +169,10 @@ void DebugModel::testMap(DebugModel::Map &map, const QSet<Entry*> &entries)
 
         // cleanup when unwinding recursion
         Entry *entry = it.value();
-        testMap(entry->children, entries);
-        if (!entries.contains(entry)) {
+        bool filterKeyMatches = parentMatched || !m_filterKey || entry->id.contains(m_filterKeyExpression, nullptr);
+        bool filterValueMatches = parentMatched || !m_filterValue || entry->value->text().contains(m_filterValueExpression, nullptr);
+        testMap(entry->children, entries, parentMatched || (filterKeyMatches && filterValueMatches && (m_filterKey || m_filterValue)));
+        if (!entries.contains(entry) || !filterKeyMatches || !filterValueMatches) {
             if (entry->children.size() == 0) {
                 // remove unneccessary leaves
                 // a entry is only removed if all its children have been removed before
@@ -172,7 +184,7 @@ void DebugModel::testMap(DebugModel::Map &map, const QSet<Entry*> &entries)
                 it.remove();
                 m_entryMap.remove(entry->id);
                 delete entry;
-            } else {
+            } else if (!entries.contains(entry)) {
                 entry->value->setText("");
             }
         }

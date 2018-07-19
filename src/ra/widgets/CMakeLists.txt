@@ -20,7 +20,7 @@
 
 add_library(widgets
     include/widgets/debuggerconsole.h
-    include/widgets/debugtreewidget.h
+    include/widgets/debugwidget.h
     include/widgets/fieldwidget.h
     include/widgets/logwidget.h
     include/widgets/logmanager.h
@@ -34,6 +34,8 @@ add_library(widgets
     debugmodel.cpp
     debugmodel.h
     debugtreewidget.cpp
+    debugtreewidget.h
+    debugwidget.cpp
     fieldwidget.cpp
     logmanager.cpp
     logwidget.cpp
@@ -47,6 +49,7 @@ add_library(widgets
 )
 
 set(UI_SOURCES
+    debugwidget.ui
     logmanager.ui
     refereestatuswidget.ui
     timingwidget.ui

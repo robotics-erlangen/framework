@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer, Philipp Nordhus                       *
+ *   Copyright 2015 Michael Eischer                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,43 +18,43 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef DEBUGMODEL_H
-#define DEBUGMODEL_H
+#ifndef DEBUGTREEWIDGET_H
+#define DEBUGTREEWIDGET_H
 
-#include "protobuf/status.pb.h"
-#include <QStandardItemModel>
-#include <QRegularExpression>
+#include <QTreeView>
+#include <QHash>
+#include "protobuf/status.h"
 
-class DebugModel : public QStandardItemModel
+class DebugModel;
+class GuiTimer;
+
+class DebugTreeWidget : public QTreeView
 {
     Q_OBJECT
-
 public:
-    explicit DebugModel(QObject *parent = 0);
-    ~DebugModel() override;
+    explicit DebugTreeWidget(QWidget *parent = 0);
+    ~DebugTreeWidget() override;
+    void setFilterRegEx(const QString &keyFilter, const QString &valueFilter);
 
-signals:
-    void expand(const QModelIndex &index);
-
-public:
+public slots:
     void clearData();
-    void setDebug(const amun::DebugValues &debug, const QSet<QString> &debug_expanded);
-    void setFilterRegEx(const QString &filterKey, const QString &filterValue);
+    void handleStatus(const Status &status);
+
+private slots:
+    void updateTree();
+    void debugExpanded(const QModelIndex &index);
+    void debugCollapsed(const QModelIndex &index);
 
 private:
-    void addRootItem(const QString &name, int sourceId);
-    class Entry;
-    typedef QHash<QString, Entry*> Map;
-    void testMap(Map &map, const QSet<Entry*> &entries, bool parentMatched);
+    void load();
+    void save();
 
-private:
-    QHash<int, QStandardItem*> m_itemRoots;
-    QHash<int, int> m_debugSourceCounter;
-    Map m_entryMap;
-    QHash<int, Map> m_debug;
-    bool m_filterKey, m_filterValue;
-    QRegularExpression m_filterKeyExpression;
-    QRegularExpression m_filterValueExpression;
+    DebugModel *m_modelTree;
+    QTreeView *m_treeView;
+    QSet<QString> m_expanded;
+    QHash<int, Status> m_status;
+    QHash<int, Status> m_lastStatus;
+    GuiTimer *m_guiTimer;
 };
 
-#endif // DEBUGMODEL_H
+#endif // DEBUGTREEWIDGET_H

@@ -29,11 +29,7 @@
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
       </property>
-      <widget class="DebugTreeWidget" name="debugTree">
-       <property name="editTriggers">
-        <set>QAbstractItemView::NoEditTriggers</set>
-       </property>
-      </widget>
+      <widget class="DebugWidget" name="debugTree" native="true"/>
       <widget class="QSplitter" name="splitterV">
        <property name="orientation">
         <enum>Qt::Vertical</enum>
@@ -635,11 +631,6 @@
    <container>1</container>
   </customwidget>
   <customwidget>
-   <class>DebugTreeWidget</class>
-   <extends>QTreeView</extends>
-   <header>widgets/debugtreewidget.h</header>
-  </customwidget>
-  <customwidget>
    <class>LogManager</class>
    <extends>QWidget</extends>
    <header>widgets/logmanager.h</header>
@@ -678,6 +669,12 @@
    <class>DebuggerConsole</class>
    <extends>QWidget</extends>
    <header>widgets/debuggerconsole.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>DebugWidget</class>
+   <extends>QWidget</extends>
+   <header>widgets/debugwidget.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

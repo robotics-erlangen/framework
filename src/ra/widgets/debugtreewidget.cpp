@@ -49,6 +49,15 @@ DebugTreeWidget::~DebugTreeWidget()
     s.setValue("Debug/TreeHeader", header()->saveState());
 }
 
+void DebugTreeWidget::setFilterRegEx(const QString &keyFilter, const QString &valueFilter)
+{
+    m_modelTree->setFilterRegEx(keyFilter, valueFilter);
+    // publish last statuses again for filtering
+    for (auto status: m_lastStatus) {
+        m_modelTree->setDebug(status->debug(), m_expanded);
+    }
+}
+
 void DebugTreeWidget::handleStatus(const Status &status)
 {
     if (status->has_debug()) {
@@ -56,6 +65,9 @@ void DebugTreeWidget::handleStatus(const Status &status)
         const amun::DebugValues &debug = status->debug();
         m_status[debug.source()] = status;
         m_guiTimer->requestTriggering();
+
+        // save data for use in filtering
+        m_lastStatus[debug.source()] = status;
     }
 }
 

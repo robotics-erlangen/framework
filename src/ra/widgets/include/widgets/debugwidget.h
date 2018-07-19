@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer                                        *
+ *   Copyright 2018 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,41 +18,35 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef DEBUGTREEWIDGET_H
-#define DEBUGTREEWIDGET_H
+#ifndef DEBUGWIDGET_H
+#define DEBUGWIDGET_H
 
-#include <QTreeView>
-#include <QHash>
+#include <QWidget>
+
 #include "protobuf/status.h"
 
-class DebugModel;
-class GuiTimer;
+namespace Ui {
+class DebugWidget;
+}
 
-class DebugTreeWidget : public QTreeView
+class DebugWidget : public QWidget
 {
     Q_OBJECT
+
 public:
-    explicit DebugTreeWidget(QWidget *parent = 0);
-    ~DebugTreeWidget() override;
+    explicit DebugWidget(QWidget *parent = 0);
+    ~DebugWidget();
 
 public slots:
     void clearData();
 
 private slots:
-    void updateTree();
-    void debugExpanded(const QModelIndex &index);
-    void debugCollapsed(const QModelIndex &index);
     void handleStatus(const Status &status);
+    void filterChanged(const QString &filter);
 
 private:
-    void load();
-    void save();
-
-    DebugModel *m_modelTree;
-    QTreeView *m_treeView;
-    QSet<QString> m_expanded;
-    QHash<int, Status> m_status;
-    GuiTimer *m_guiTimer;
+    Ui::DebugWidget *ui;
+    QString m_filterDefaultStyleSheet;
 };
 
-#endif // DEBUGTREEWIDGET_H
+#endif // DEBUGWIDGET_H
