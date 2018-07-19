@@ -275,7 +275,6 @@ local function addPenaltyObstacle(path)
 			G.FieldWidth/2, (G.OpponentGoalRight.y - (G.DefenseHeight + 0.45)))
 	end
 end
-local ballPlacementRobots = {}
 
 local function addBallPlacementObstacle(path)
     if World.RefereeState == "BallPlacementOffensive" or World.RefereeState == "BallPlacementDefensive" then
@@ -290,12 +289,8 @@ local function addBallPlacementObstacle(path)
 				Priorities.BALL_PLACEMENT
 	        )
 		else
-			path:addCircle(World.Ball.pos.x, World.Ball.pos.y, Constants.stopBallDistance, "BallPlacement", Priorities.BALL_PLACEMENT)
+			path:addCircle(World.Ball.pos.x, World.Ball.pos.y, Constants.stopBallDistance, "BallPlacement")
 	    end
-
-		for _,robot in ipairs(ballPlacementRobots) do
-			path:addCircle(robot.pos.x, robot.pos.y, Constants.stopBallDistance, "BallPlacement", Priorities.BALL_PLACEMENT)
-		end
     end
 end
 
@@ -438,14 +433,9 @@ end
 -- stopBallDistance                 number
 -- extraBallDistance                number
 -- inbox                            agent inbox
-function PathHelper.setDefaultObstaclesByTable(path, robot, params, register)
-	table.removeValue(ballPlacementRobots, robot)
+function PathHelper.setDefaultObstaclesByTable(path, robot, params)
 	if not params then
 		error("setDefaultObstaclesByTable called with nil parameter table")
-	end
-
-	if register then
-		table.insert(ballPlacementRobots, robot)
 	end
 
 	path:clearObstacles()

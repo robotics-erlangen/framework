@@ -130,7 +130,7 @@ function PlaceBall:run()
 	elseif self._state == STATE_MOVE_AWAY or self._state == STATE_WAIT_FOR_BALL_STOP then
 		obstacleTable.extraBallDistance = self._robot.radius
 	end
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable, true)
+	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
 	-- Extend field boundary so that the robot can pull the ball to the field from further out
 	self._robot.path:setBoundary(
