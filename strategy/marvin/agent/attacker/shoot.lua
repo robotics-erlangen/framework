@@ -102,8 +102,8 @@ function Shoot:_decide()
 	local passRating = pass and Attack.ratePass(self._robot, pass, true) or 0
 	if ENABLE_PSEUDO_PASS and self._attackPosition and passRating < MIN_PASS_RATING
 			and Field.distanceToDefenseAreaSq(self._attackPosition) > 2
-			and World.Ball.speed:length() < 1 then
-			--and math.abs(self._attackPosition.y) < 5/6 * G.FieldWidthHalf then
+			and World.Ball.speed:length() < 1
+			and math.abs(self._attackPosition.y) < 5/6 * G.FieldWidthHalf then
 
 		local MIN_DISTANCE = 0.1
 		local MAX_DISTANCE = 0.5
