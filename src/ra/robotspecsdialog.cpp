@@ -44,6 +44,7 @@ public:
         QDoubleSpinBox *editor = new QDoubleSpinBox(parent);
         editor->setRange(-std::numeric_limits<double>::max(), std::numeric_limits<double>::max());
         editor->setDecimals(6);
+        editor->selectAll();
         return editor;
     }
 
