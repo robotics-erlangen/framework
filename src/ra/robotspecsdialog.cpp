@@ -182,6 +182,10 @@ void RobotSpecsDialog::itemChanged(QStandardItem *item)
     const QVariant value = item->data(Qt::EditRole);
     Q_ASSERT_X(value.isValid() || m_robot, "itemChanged", "Reset is only possible for robots");
 
+    // for sub-tables, no data is present
+    if (!item->data(DATA_FIELD).isValid()) {
+        return;
+    }
     const google::protobuf::FieldDescriptor *field = item->data(DATA_FIELD).value<const google::protobuf::FieldDescriptor*>();
     google::protobuf::Message *message = item->data(DATA_MESSAGE).value<google::protobuf::Message*>();
     const google::protobuf::Reflection *refl = message->GetReflection();
