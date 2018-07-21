@@ -65,6 +65,10 @@ local Robot = require "../base/robot"
 -- @field MixedTeam Table[] - Mixed team data sent by partner team, indexed by robot id, only set if data was received;
 -- Has the following fields: role string (values: Default, Goalie, Defense, Offense), targetPos* vector,
 -- targetDir* number, shootPos* vector, * = optional
+-- @field FriendlyYellowCards table - List of the remaining times for all active friendly yellow cards
+-- @field OpponentYellowCards table - List of the remaining times for all active opponent yellow cards
+-- @field FriendlyRedCards number - number of red cards received for the own team
+-- @field OpponentRedCards number - number of red cards the opponent received
 
 local World = {}
 
@@ -411,7 +415,7 @@ function World._updateGameState(state)
 		table.insert(World.OpponentYellowCards, time / 1000000)
 	end
 	World.FriendlyRedCards = friendlyTeamInfo.red_cards
-	World.OponnentRedCards = opponentTeamInfo.red_cards
+	World.OpponentRedCards = opponentTeamInfo.red_cards
 end
 
 -- update and handle user inputs set for own robots

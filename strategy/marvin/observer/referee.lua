@@ -59,7 +59,7 @@ local cntO = 0
 --Tries to accept that not every signal by the refbox is correct
 --has to be called once and only once a frame
 function Referee.realisticCardsOpponent()
-	if #(World.OpponentRobots) <= 8 - #World.OpponentYellowCards - World.OponnentRedCards then
+	if #(World.OpponentRobots) <= 8 - #World.OpponentYellowCards - World.OpponentRedCards then
 		cntO = 0
 	elseif World.RefereeState ~= "Stop" and World.Time - Error.getLastRefChange() > 0.5 then
 		cntO = cntO + 1
@@ -70,9 +70,9 @@ function Referee.realisticCardsOpponent()
 
 	--assumes that there is only one yellow card that is not beeing played
 	if cntO > 50 then
-		return math.min(0,#(World.OpponentYellowCards) + World.OponnentRedCards - 1)
+		return math.min(0,#(World.OpponentYellowCards) + World.OpponentRedCards - 1)
 	end
-	return #(World.OpponentYellowCards) + World.OponnentRedCards
+	return #(World.OpponentYellowCards) + World.OpponentRedCards
 
 end
 
