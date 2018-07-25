@@ -70,7 +70,6 @@ public:
     bool sendCommand(const Command &command);
     bool sendNetworkReferee(const QByteArray &referee);
     void sendMixedTeam(const QByteArray &info);
-    bool sendAutoref(const QByteArray &event);
     void watch(const QString &filename);
     QString debuggerRead();
     bool debuggerWrite(const QString& line);

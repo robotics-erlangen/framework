@@ -43,10 +43,6 @@ public:
     quint16 mixedTeamPort;
     QByteArray mixedTeamData;
 
-    QHostAddress autorefEventHost;
-    quint16 autorefEventPort;
-    QByteArray autorefEventData;
-
     QHostAddress remoteControlHost;
     quint16 remoteControlPort;
     QByteArray remoteControlData;
@@ -79,8 +75,6 @@ Strategy::Strategy(const Timer *timer, StrategyType type, DebugHelper *helper, b
     m_refboxSocket = new QTcpSocket(this);
     m_refboxSocket->setSocketOption(QAbstractSocket::LowDelayOption,1);
 
-    m_p->autorefEventHost = QHostAddress("224.5.23.1");
-    m_p->autorefEventPort = 10008;
     m_p->remoteControlHost = QHostAddress("localhost");
     m_p->remoteControlPort = 10007;
 
@@ -301,11 +295,6 @@ void Strategy::sendNetworkRefereeCommand(const QByteArray &data)
     m_p->remoteControlData = data;
 }
 
-void Strategy::sendAutorefEvent(const QByteArray &data)
-{
-    m_p->autorefEventData = data;
-}
-
 void Strategy::process()
 {
     if (!m_strategy || m_strategyFailed) {
@@ -346,17 +335,6 @@ void Strategy::process()
 
             if (bytesSent != origSize) {
                 fail("Failed to send mixed team info");
-                return;
-            }
-        }
-
-        if (!m_p->autorefEventData.isNull()) {
-            int bytesSent = m_udpSenderSocket->writeDatagram(m_p->autorefEventData, m_p->autorefEventHost, m_p->autorefEventPort);
-            int origSize = m_p->autorefEventData.size();
-            m_p->autorefEventData = QByteArray();
-
-            if (bytesSent != origSize) {
-                fail("Failed to send autoref event");
                 return;
             }
         }
@@ -493,7 +471,6 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     connect(m_strategy, SIGNAL(gotCommand(Command)), SLOT(sendCommand(Command)));
     connect(m_strategy, SIGNAL(sendMixedTeamInfo(QByteArray)), SLOT(sendMixedTeamInfo(QByteArray)));
     connect(m_strategy, SIGNAL(sendNetworkRefereeCommand(QByteArray)), SLOT(sendNetworkRefereeCommand(QByteArray)));
-    connect(m_strategy, SIGNAL(sendAutorefEvent(QByteArray)), SLOT(sendAutorefEvent(QByteArray)));
 
     if (m_strategy->loadScript(filename, entryPoint, m_geometry, m_team)) {
         m_entryPoint = m_strategy->entryPoint(); // remember loaded entrypoint

@@ -58,7 +58,6 @@ public slots:
     void handleCommand(const Command &command);
     void sendMixedTeamInfo(const QByteArray &data);
     void sendNetworkRefereeCommand(const QByteArray &data);
-    void sendAutorefEvent(const QByteArray &data);
     void handleRefereeHost(QString hostName);
     void setFlipped(bool flipped);
 
