@@ -102,6 +102,13 @@
     </widget>
    </item>
    <item>
+    <widget class="QCheckBox" name="cutSimulated">
+     <property name="text">
+      <string>Remove simulated game parts</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="processBtn">
      <property name="text">
       <string>Process</string>

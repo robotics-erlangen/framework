@@ -17,7 +17,8 @@ public:
         CutHalt = 0x1,
         CutNonGame = 0x2,
         CutStop = 0x4,
-        CutBallplacement = 0x8
+        CutBallplacement = 0x8,
+        CutSimulated = 0x10
     };
     Q_DECLARE_FLAGS(Options, Option)
 

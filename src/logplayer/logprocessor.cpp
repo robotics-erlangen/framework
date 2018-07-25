@@ -160,6 +160,7 @@ qint64 LogProcessor::filterLog(LogFileReader &reader, Exchanger *writer, Exchang
     amun::GameState lastGameState;
 
     Status modStatus;
+    bool isSimulated = false;
     for (int i = 0; i < reader.packetCount(); ++i) {
         if ((m_currentFrame % 1000) == 0) {
             emit progressUpdate(m_currentFrame, m_totalFrames);
@@ -207,6 +208,10 @@ qint64 LogProcessor::filterLog(LogFileReader &reader, Exchanger *writer, Exchang
             for (auto it = state->mutable_radio_response()->begin(); it != state->mutable_radio_response()->end(); ++it) {
                 it->set_time(it->time() - timeRemoved);
             }
+
+            if (state->has_is_simulated()) {
+                isSimulated = state->is_simulated();
+            }
         }
         if (status->has_debug()) {
             amun::DebugValues *debug = status->mutable_debug();
@@ -253,6 +258,9 @@ qint64 LogProcessor::filterLog(LogFileReader &reader, Exchanger *writer, Exchang
                         || lastGameState.state() == amun::GameState::BallPlacementYellow)) {
                     skipStatus = true;
             }
+        }
+        if (m_options & CutSimulated && isSimulated) {
+            skipStatus = true;
         }
 
         if (skipStatus) {

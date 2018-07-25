@@ -72,6 +72,9 @@ void LogCutter::startProcess()
     if (ui->cutBallplacement->isChecked()) {
         options |= LogProcessor::CutBallplacement;
     }
+    if (ui->cutSimulated->isChecked()) {
+        options |= LogProcessor::CutSimulated;
+    }
 
     m_processor = new LogProcessor(inputFiles, outputFile, options, this);
     connect(m_processor, &LogProcessor::progressUpdate, this, &LogCutter::updateProgress);
