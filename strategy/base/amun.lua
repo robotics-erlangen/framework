@@ -254,7 +254,6 @@ function amun._hideFunctions()
 	local getCurrentTime = amun.getCurrentTime
 	local sendCommand = amun.sendCommand
 	local sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand
-	local sendAutorefEvent = amun.sendAutorefEvent
 	local nextRefboxReply = amun.nextRefboxReply
 	local performanceMode = amun.isPerformanceMode
 
@@ -262,7 +261,6 @@ function amun._hideFunctions()
 	amun = {
 		isDebug = isDebug,
 		strategyPath = strategyPath,
-		sendAutorefEvent = sendAutorefEvent,
 		nextRefboxReply = nextRefboxReply,
 		getCurrentTime = function ()
 			return getCurrentTime() * 1E-9
