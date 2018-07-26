@@ -34,9 +34,9 @@ DebugWidget::DebugWidget(QWidget *parent) :
             "Seperate filters for key and value by using ':'\n"\
             "At the beginning of each filter, if there is a '#' present,\n"\
             "the rest of the filter will be interpreted as a regular expression.\n"\
-            "If not, the value filter uses a fuzzy search,\n"\
-            "in the key filter, use / at the beginning to match the start of the\n"\
-            "toplevel item and in the middle to seperate hirarchy parts.\n"\
+            "If not, the value filter uses a fuzzy search.\n"\
+            "In the key filter, use / at the beginning to match the start of the\n"\
+            "toplevel item and in the middle to seperate hierarchy parts.\n"\
             "Use '*' to match any character beginning from the next level.\n"\
             "Everything else behaves similar to fuzzy search (should be intuitive).";
     ui->filter->setToolTip(filterDescription);
