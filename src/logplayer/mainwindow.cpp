@@ -192,6 +192,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->goToLastPosition, SIGNAL(clicked(bool)), SLOT(goToLastFilePosition()));
 
     makeRecentFileMenu();
+
+    ui->field->setFocus();
 }
 
 MainWindow::~MainWindow()

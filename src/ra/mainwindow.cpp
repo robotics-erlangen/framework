@@ -249,6 +249,8 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->timing, SLOT(saveConfig()));
     connect(ui->actionSaveConfiguration, SIGNAL(triggered(bool)), ui->visualization, SLOT(saveConfig()));
 
+    ui->field->setFocus();
+
     if (tournamentMode) {
         ui->actionRecord->setChecked(true);
         ui->actionChargeKicker->setChecked(true);
