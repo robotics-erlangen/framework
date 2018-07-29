@@ -22,6 +22,7 @@
 #include "ui_logmanager.h"
 
 #include <QThread>
+#include <QStyleOptionButton>
 
 LogManager::LogManager(QWidget *parent) :
     QWidget(parent),

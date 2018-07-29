@@ -23,6 +23,7 @@
 #include "protobuf/command.pb.h"
 #include <QCheckBox>
 #include <QDoubleSpinBox>
+#include <QAction>
 
 SimulatorWidget::SimulatorWidget(QWidget *parent) :
     QWidget(parent),
