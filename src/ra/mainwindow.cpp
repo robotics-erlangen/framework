@@ -465,7 +465,6 @@ void MainWindow::liveMode()
     ui->field->enableDragMeasure(false);
     for (const Status &status : m_replayStrategyBuffer) {
         handleStatus(status);
-        m_logWriter.handleStatus(status);
     }
     m_replayStrategyBuffer.clear();
     if (ui->actionSimulator->isChecked()) {
@@ -491,11 +490,11 @@ void MainWindow::showBacklogMode()
         ui->logManager->setEnabled(true);
         ui->logManager->show();
         ui->logManager->setStatusSource(m_logWriter.makeStatusSource());
+        disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
         disconnect(&m_amun, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
         connect(&m_amun, SIGNAL(gotStatus(Status)), SLOT(handleCheckHaltStatus(Status)));
         connect(ui->logManager, SIGNAL(gotStatus(Status)), SLOT(handleStatus(Status)));
         ui->logManager->goToEnd();
-        disconnect(this, SIGNAL(gotStatus(Status)), &m_logWriter, SLOT(handleStatus(Status)));
 
         toggleInstantReplay(true);
     }
@@ -503,6 +502,7 @@ void MainWindow::showBacklogMode()
 
 void MainWindow::handleCheckHaltStatus(const Status &status)
 {
+    m_logWriter.handleStatus(status);
     if (status->has_game_state()) {
         const amun::GameState &gameState = status->game_state();
         if (gameState.state() != amun::GameState::Halt) {
