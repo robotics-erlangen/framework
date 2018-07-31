@@ -107,7 +107,7 @@ void RefereeStatusWidget::handleStatus(const Status &status)
 
         QString teamNames = "";
         if (game_state.yellow().name().size() > 0 || game_state.blue().name().size() > 0) {
-            teamNames = QString("%1 vs. %2 ").arg(QString::fromStdString(game_state.yellow().name()),
+            teamNames = QString("<font color=\"Yellow\">&#x265F;</font>%1 vs. <font color=\"Blue\">&#x265F;</font>%2 ").arg(QString::fromStdString(game_state.yellow().name()),
                                                   QString::fromStdString(game_state.blue().name()));
         }
 
