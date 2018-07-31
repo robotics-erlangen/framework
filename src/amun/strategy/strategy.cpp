@@ -384,6 +384,7 @@ void Strategy::process()
         }
         status->mutable_execution_state()->CopyFrom(m_status->execution_state().IsInitialized() ?
                                                         m_status->execution_state() : m_status->world_state());
+        status->mutable_execution_state()->clear_vision_frames();
         status->mutable_execution_game_state()->CopyFrom(m_status->execution_game_state().IsInitialized() ?
                                                              m_status->execution_game_state() : m_status->game_state());
         status->mutable_execution_user_input()->CopyFrom(userInput);

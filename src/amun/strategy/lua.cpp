@@ -414,6 +414,7 @@ bool Lua::process(double &pathPlanning, const world::State &worldState, const am
     Q_ASSERT(!m_entryPoint.isNull());
 
     m_worldState.CopyFrom(worldState);
+    m_worldState.clear_vision_frames();
     m_refereeState.CopyFrom(refereeState);
     m_userInput.CopyFrom(userInput);
     takeDebugStatus();
