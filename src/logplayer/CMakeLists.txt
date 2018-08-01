@@ -24,6 +24,8 @@ add_executable(logplayer WIN32 MACOSX_BUNDLE
     mainwindow.h
     logcutter.cpp
     logcutter.h
+    logopener.cpp
+    logopener.h
     logprocessor.cpp
     logprocessor.h
     replayteamwidget.cpp
