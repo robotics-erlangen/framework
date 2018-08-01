@@ -20,8 +20,6 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QFileDialog>
-#include <QMessageBox>
 #include <QSettings>
 #include <QThread>
 #include <QSignalMapper>
@@ -32,10 +30,10 @@
 #include <QMimeData>
 #include <QUrl>
 #include "widgets/refereestatuswidget.h"
-#include "logfile/logfilereader.h"
 #include "plotter/plot.h"
 #include "plotter/plotter.h"
 #include "logcutter.h"
+#include "logopener.h"
 #include "strategy/strategy.h"
 #include "strategy/strategyreplayhelper.h"
 
@@ -44,9 +42,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow),
     m_lastTeamInfo(new amun::Command),
     m_lastTeamInfoUpdated(false),
-    m_logWriter(true, 20),
-    m_packetsSinceOpened(0),
-    m_recentFilesMenu(nullptr)
+    m_logWriter(true, 20)
 {
     qRegisterMetaType<Status>("Status");
     qRegisterMetaType<Command>("Command");
@@ -59,22 +55,15 @@ MainWindow::MainWindow(QWidget *parent) :
     m_plotter = new Plotter();
 
     LogCutter *logCutter = new LogCutter();
+    m_logOpener = new LogOpener(ui, this);
 
     m_playTimer = ui->logManager->getPlayTimer();
 
     setAcceptDrops(true);
-    connect(ui->field, SIGNAL(fileDropped(QString)), this, SLOT(openFile(QString)));
-
-    ui->goToLastPosition->setVisible(false);
 
     // setup status bar
     m_refereeStatus = new RefereeStatusWidget;
     statusBar()->addPermanentWidget(m_refereeStatus);
-
-    m_logfile = new LogFileReader();
-
-    // setup icons
-    ui->btnOpen->setIcon(QIcon::fromTheme("document-open"));
 
     // setup visualization parts of the ui
     connect(ui->visualization, SIGNAL(itemsChanged(QStringList)), ui->field, SLOT(visualizationsChanged(QStringList)));
@@ -82,7 +71,6 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->visualization->load();
 
     // add shortcuts
-    connect(ui->actionOpen_Logfile, SIGNAL(triggered()), SLOT(openFile()));
     connect(ui->actionExit, SIGNAL(triggered()), qApp, SLOT(quit()));
     connect(ui->actionStepBackward, SIGNAL(triggered()), ui->logManager, SIGNAL(stepBackward()));
     connect(ui->actionStepForward, SIGNAL(triggered()), ui->logManager, SIGNAL(stepForward()));
@@ -123,6 +111,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(this, SIGNAL(gotStatus(Status)), ui->timing, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), ui->debugTree, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), m_refereeStatus, SLOT(handleStatus(Status)));
+    connect(this, SIGNAL(gotStatus(Status)), m_logOpener, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotPlayStatus(Status)), ui->log, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotPlayStatus(Status)), m_plotter, SLOT(handleStatus(Status)));
     connect(this, SIGNAL(gotStatus(Status)), this, SLOT(handleStatus(Status)));
@@ -140,21 +129,6 @@ MainWindow::MainWindow(QWidget *parent) :
     restoreState(s.value("State").toByteArray());
     ui->splitter->restoreState(s.value("Splitter").toByteArray());
     s.endGroup();
-
-    int recentFileCount = s.beginReadArray("recent files");
-    for (int i = 0;i<recentFileCount;i++) {
-        s.setArrayIndex(i);
-        m_recentFiles.append(s.value("filename").toString());
-    }
-    s.endArray();
-    int lastFilePositionCount = s.beginReadArray("last positions");
-    for (int i = 0;i<lastFilePositionCount;i++) {
-        s.setArrayIndex(i);
-        QString name = s.value("filename").toString();
-        uint index = s.value("position").toUInt();
-        m_lastFilePositions[name] = index;
-    }
-    s.endArray();
 
     // create strategy threads
     for (int i = 0;i<2;i++) {
@@ -187,12 +161,6 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionStepBackward, SIGNAL(triggered(bool)), &m_logWriter, SIGNAL(resetBacklog()));
     connect(ui->logManager, SIGNAL(resetBacklog()), &m_logWriter, SIGNAL(resetBacklog()));
 
-    // connect buttons, ...
-    connect(ui->btnOpen, SIGNAL(clicked()), SLOT(openFile()));
-    connect(ui->goToLastPosition, SIGNAL(clicked(bool)), SLOT(goToLastFilePosition()));
-
-    makeRecentFileMenu();
-
     ui->field->setFocus();
 }
 
@@ -211,87 +179,13 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::makeRecentFileMenu()
+void MainWindow::logOpened()
 {
-    if (m_recentFiles.size() > 0) {
-        QMenu *newMenu = new QMenu("Recent files", ui->menuFile);
-        if (m_recentFilesMenu == nullptr) {
-            m_recentFilesMenuAction = ui->menuFile->insertMenu(ui->actionLogCutter, newMenu);
-            ui->menuFile->insertSeparator(ui->actionLogCutter);
-        } else {
-            // just remove the old one and create a new one
-            m_recentFilesMenuAction = ui->menuFile->insertMenu(m_recentFilesMenuAction, newMenu);
-            m_recentFilesMenu->deleteLater();
-        }
-        m_recentFilesMenu = newMenu;
-        QSignalMapper *mapper = new QSignalMapper(newMenu);
-        connect(mapper, SIGNAL(mapped(QString)), SLOT(openFile(QString)));
-        for (int i = m_recentFiles.size()-1;i>=0;i--) {
-            QFileInfo file(m_recentFiles[i]);
-            QString fileName = file.fileName();
-            QAction *fileAction = new QAction(fileName, newMenu);
-            newMenu->addAction(fileAction);
-            connect(fileAction, SIGNAL(triggered()), mapper, SLOT(map()));
-            mapper->setMapping(fileAction, m_recentFiles[i]);
-        }
+    if (m_strategys[0] != nullptr) {
+        m_strategys[0]->resetIsReplay();
     }
-}
-
-void MainWindow::openFile()
-{
-    QString previousDir;
-    // open again in previously used folder
-    if (m_logfile->isOpen()) {
-        m_lastFilePositions[m_logfile->filename()] = ui->logManager->getFrame();
-        QFileInfo finfo(m_logfile->filename());
-        previousDir = finfo.dir().path();
-    }
-
-    QString filename = QFileDialog::getOpenFileName(this, "Select log file", previousDir, "Log files (*.log)");
-    openFile(filename);
-}
-
-void MainWindow::goToLastFilePosition()
-{
-    ui->goToLastPosition->setVisible(false);
-    ui->logManager->seekPacket(m_lastFilePositions[m_logfile->filename()]);
-}
-
-void MainWindow::openFile(const QString &filename)
-{
-    // don't do anything if the user couldn't decide for a new log file
-    if (!filename.isEmpty()) {
-        if (m_logfile->open(filename)) {
-            if (m_strategys[0] != nullptr) {
-                m_strategys[0]->resetIsReplay();
-            }
-            if (m_strategys[1] != nullptr) {
-                m_strategys[1]->resetIsReplay();
-            }
-            ui->logManager->setStatusSource(m_logfile);
-
-            // move the file to the end of the recent files list
-            m_recentFiles.removeAll(filename);
-            m_recentFiles.append(filename);
-            if (m_recentFiles.size() > MAX_RECENT_FILE_COUNT) {
-                m_recentFiles.removeFirst();
-            }
-            makeRecentFileMenu();
-
-            // add button to go to the last position (if log is long enough, around 1:30 min)
-            if (m_logfile->timings().size() > 50000 &&
-                    m_lastFilePositions.contains(filename)) {
-                ui->goToLastPosition->setVisible(true);
-                ui->goToLastPosition->setText(QString::number(m_lastFilePositions[filename]));
-            } else {
-                ui->goToLastPosition->setVisible(false);
-            }
-            m_packetsSinceOpened = 0;
-        } else {
-            QMessageBox::critical(this, "Error", m_logfile->errorMsg());
-        }
-
-        setWindowTitle("Log Player - " + QFileInfo(filename).fileName());
+    if (m_strategys[1] != nullptr) {
+        m_strategys[1]->resetIsReplay();
     }
 }
 
@@ -391,11 +285,6 @@ void MainWindow::handleStatus(const Status &status)
         m_lastTeamInfoUpdated = true;
         emit sendCommand(command);
     }
-    // around 10 seconds
-    if (m_packetsSinceOpened > 5000) {
-        ui->goToLastPosition->setVisible(false);
-    }
-    m_packetsSinceOpened++;
 }
 
 void MainWindow::handleReplayStatus(const Status &status)
@@ -408,7 +297,6 @@ void MainWindow::handleReplayStatus(const Status &status)
 
 void MainWindow::closeEvent(QCloseEvent *e)
 {
-    m_lastFilePositions[m_logfile->filename()] = ui->logManager->getFrame();
     ui->logManager->setPaused(true);
 
     // save configuration
@@ -420,20 +308,7 @@ void MainWindow::closeEvent(QCloseEvent *e)
     s.setValue("Splitter", ui->splitter->saveState());
     s.endGroup();
 
-    s.beginWriteArray("recent files", m_recentFiles.size());
-    for (int i = 0;i<m_recentFiles.size();i++) {
-        s.setArrayIndex(i);
-        s.setValue("filename", m_recentFiles.at(i));
-    }
-    s.endArray();
-    s.beginWriteArray("last positions", m_lastFilePositions.size());
-    int i = 0;
-    for (QString filename : m_lastFilePositions.keys()) {
-        s.setArrayIndex(i++);
-        s.setValue("filename", filename);
-        s.setValue("position", m_lastFilePositions[filename]);
-    }
-    s.endArray();
+    m_logOpener->close();
 
     // make sure the plotter is closed along with the mainwindow
     // this also ensure that a closeEvent is triggered
@@ -457,6 +332,11 @@ void MainWindow::dragLeaveEvent(QDragLeaveEvent *event)
     event->accept();
 }
 
+void MainWindow::openFile(const QString &filename)
+{
+    m_logOpener->openFile(filename);
+}
+
 void MainWindow::dropEvent(QDropEvent *event)
 {
     const QMimeData* mimeData = event->mimeData();
@@ -464,7 +344,7 @@ void MainWindow::dropEvent(QDropEvent *event)
     if (mimeData->hasUrls()) {
         QList<QUrl> urlList = mimeData->urls();
         if (urlList.size() > 0) {
-            openFile(urlList.at(0).toLocalFile());
+            m_logOpener->openFile(urlList.at(0).toLocalFile());
             event->acceptProposedAction();
         }
     }

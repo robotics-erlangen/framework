@@ -22,21 +22,14 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QMap>
-#include <QFile>
-#include <QQueue>
-#include <QPair>
 #include <QList>
 #include "logfile/combinedlogwriter.h"
 #include "core/timer.h"
 #include "protobuf/status.h"
 #include "protobuf/command.h"
-#include "widgets/logmanager.h"
 
-class LogFileReader;
-class LogManager;
+class LogOpener;
 class RefereeStatusWidget;
-class QLabel;
 class QThread;
 class Plotter;
 class Strategy;
@@ -65,6 +58,7 @@ protected:
 public slots:
     void handleStatus(const Status &status);
     void handleReplayStatus(const Status &status);
+    void logOpened();
     void openFile(const QString &filename);
 
 signals:
@@ -83,16 +77,13 @@ private slots:
     void enableStrategyYellow(bool enable);
     void clearPlayConsumers();
     void clearAll();
-    void openFile();
     void openPlotter();
-    void goToLastFilePosition();
 
 private:
     QString formatTime(qint64 time);
     void closeStrategy(int index);
     void createStrategy(int index);
     void sendResetDebugPacket(bool blue);
-    void makeRecentFileMenu();
 
 private:
     Ui::MainWindow *ui;
@@ -111,15 +102,7 @@ private:
 
     Timer *m_playTimer;
 
-    LogFileReader * m_logfile;
-
-    QList<QString> m_recentFiles;
-    QMap<QString, uint> m_lastFilePositions;
-    uint m_packetsSinceOpened;
-    QMenu *m_recentFilesMenu;
-    QAction *m_recentFilesMenuAction;
-
-    const int MAX_RECENT_FILE_COUNT = 10;
+    LogOpener * m_logOpener;
 };
 
 #endif // MAINWINDOW_H
