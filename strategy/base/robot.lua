@@ -328,13 +328,16 @@ function Robot:setStandby(standby)
 	end
 end
 
---- Calculate shoot speed neccessary for linear shoot to reach the target with a certain speed
+--- Calculate shoot speed neccessary for linear shoot to reach the target with a certain speed.
+-- This is limited to maxShootLinear and maxBallSpeed.
 -- @param destSpeed number - Ball speed at destination [m/s]
 -- @param distance number - Distance to chip [m]
+-- @param ignoreLimit bool - Don't enforce rule given shoot speed limit, if true
 -- @return number - Speed to shoot with [m/s]
-function Robot:calculateShootSpeed(destSpeed, distance)
-	if destSpeed >= self.maxShotLinear then
-		return self.maxShotLinear
+function Robot:calculateShootSpeed(destSpeed, distance, ignoreLimit)
+	local maxShot = ignoreLimit and self.maxShotLinear or math.min(self.maxShotLinear, Constants.maxBallSpeed)
+	if destSpeed >= maxShot then
+		return maxShot
 	end
 
 	local fastBallBrake = Constants.fastBallDeceleration
@@ -345,7 +348,7 @@ function Robot:calculateShootSpeed(destSpeed, distance)
 	-- solve(integrate(v_0+t*a_f,t, 0, t_end)=d,v_0);
 	local v_fast = math.sqrt(destSpeed * destSpeed - 2 * fastBallBrake * distance)
 
-	if v_fast < self.maxShotLinear and v_fast * ballSwitchRatio < destSpeed then
+	if v_fast < maxShot and v_fast * ballSwitchRatio < destSpeed then
 		return v_fast
 	end
 
@@ -359,8 +362,8 @@ function Robot:calculateShootSpeed(destSpeed, distance)
 	local v_d = destSpeed
 	local v_0 = math.sqrt( a_f*(2*a_s*d - v_d*v_d) / ((a_s - a_f)*switch*switch - a_s))
 
-	if v_0 > self.maxShotLinear then
-		return self.maxShotLinear
+	if v_0 > maxShot then
+		return maxShot
 	else
 		return v_0
 	end
