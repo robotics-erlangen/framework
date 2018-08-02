@@ -360,7 +360,7 @@ function Robot:calculateShootSpeed(destSpeed, distance)
 	local v_0 = math.sqrt((2*a_f*a_s*d)/(a_s*switch*switch-a_f*switch*switch-a_s)
 		-(a_f*v_d*v_d)/(a_s*switch*switch-a_f*switch*switch-a_s))
 
-	if not v_0 then
+	if v_0 > self.maxShotLinear then
 		return self.maxShotLinear
 	else
 		return v_0
