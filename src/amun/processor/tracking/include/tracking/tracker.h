@@ -108,7 +108,7 @@ private:
     float m_aoi_y2;
 
     QList<QString> m_errorMessages;
-    QList<SSL_DetectionFrame> m_detectionFrames;
+    QList<SSL_WrapperPacket> m_detectionWrappers;
 };
 
 #endif // TRACKER_H

@@ -127,7 +127,7 @@ void Tracker::process(qint64 currentTime)
         }
 
         const SSL_DetectionFrame &detection = wrapper.detection();
-        m_detectionFrames.append(detection);
+        m_detectionWrappers.append(wrapper);
         const qint64 visionProcessingTime = (detection.t_sent() - detection.t_capture()) * 1E9;
         // time on the field for which the frame was captured
         // with Timer::currentTime being now
@@ -234,10 +234,10 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
     worldState->set_time(currentTime);
     worldState->set_has_vision_data(m_hasVisionData);
 
-    for (SSL_DetectionFrame &frame : m_detectionFrames) {
-        worldState->add_vision_frames()->CopyFrom(frame);
+    for (SSL_WrapperPacket &wrapper : m_detectionWrappers) {
+        worldState->add_vision_frames()->CopyFrom(wrapper);
     }
-    m_detectionFrames.clear();
+    m_detectionWrappers.clear();
 
     BallTracker *ball = bestBallFilter();
 

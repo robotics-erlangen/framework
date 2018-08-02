@@ -2,7 +2,7 @@ syntax = "proto2";
 import "command.proto";
 import "robot.proto";
 import "ssl_mixed_team.proto";
-import "ssl_detection.proto";
+import "ssl_wrapper.proto";
 
 package world;
 
@@ -93,5 +93,5 @@ message State {
     optional bool has_vision_data = 7;
     optional ssl.TeamPlan mixed_team_info = 8;
     optional amun.TrackingAOI tracking_aoi = 9;
-    repeated SSL_DetectionFrame vision_frames = 10;
+    repeated SSL_WrapperPacket vision_frames = 10;
 }
