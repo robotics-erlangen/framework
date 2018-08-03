@@ -222,6 +222,10 @@ local function getInvisibleBallPrediction()
 				local robotDir = Vector.fromAngle(robot.dir)
 				-- as the robot might be dribbling the ball, use volley prediction
 				-- TODO: this volley prediction does not properly use the current robot speed
+				-- FIXME: the comment above is misleading: We use the current robot speed correctly.
+				-- However, the volley modell is only in relative coordinates to the robot, and therefore ignoring the friction
+				-- of the carpet.
+				-- "0" as param for v_in is choosen, because that is the best estimate for the relative speed if there is no visible ball
 				local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, 0, robot.dir, robot.speed:angle(), "opp")
 				local ballSpeed = Vector(dirx, diry) + robot.speed
 				local dribblerPos = robot.pos + robotDir:copy():setLength(robot.shootRadius)
@@ -278,8 +282,9 @@ function Goal.predictShot(allShots)
 	if oppBallDribbler then
 		isShot = true
 		isDribbling = true
+		--NOTE: use World.Ball instead of futureBall is fine, as the shot is assumed to be imminent.
 		local relativeSpeedLength = World.Ball.speed - oppBallDribbler.speed
-		local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeedLength:length(), oppBallDribbler.dir, World.Ball.speed:angle(), "opp")
+		local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeedLength:length(), oppBallDribbler.dir, relativeSpeedLength:angle(), "opp")
 		ballSpeed = (Vector(dirx, diry) + oppBallDribbler.speed):normalize()
 		if not allShots then
 			vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false)

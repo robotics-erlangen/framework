@@ -265,7 +265,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 
 	debug.set("Shoot/AngleError", geom.normalizeAngle(math.abs(self._robot.dir - shootDir)) * 180 / math.pi)
 
-	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
+	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed) -- TODO: calcPhi with stopped ball is questionable
 	if targetTime then
 		local kickSpeedVector = (targetPos - futureBall.pos):setLength(kickSpeed)
 		local shootBall = { maxSpeed = kickSpeed, speed = kickSpeedVector }
@@ -315,7 +315,7 @@ function Shoot:_shootChaseBall(targetPos, targetSpeed, futureBall)
 
 	self._precision = MIN_PRECISION_CHASE
 
-	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed)
+	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed) -- TODO: calcPhi with no relaitve speed is questionable
 
 	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
 	local moveDest = futureBall.pos - dribblerOffset

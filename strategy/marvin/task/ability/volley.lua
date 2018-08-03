@@ -130,7 +130,7 @@ end
 --@return v_s number - see @calcVOutFromVS
 function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 	-- relative ball speed
-	ballSpeed = ballSpeed - self._robot.speed
+	ballSpeed = ballSpeed - self._robot.speed --FIXME: future robot speed not current robot speed
 	local v_in = ballSpeed:length()
 	local alpha = ballSpeed:angle()
 
