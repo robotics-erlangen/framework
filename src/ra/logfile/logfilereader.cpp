@@ -38,8 +38,24 @@ LogFileReader::~LogFileReader()
     close();
 }
 
+QPair<StatusSource*, QString> LogFileReader::tryOpen(QString filename)
+{
+    LogFileReader *reader = new LogFileReader();
+    if (reader->open(filename)) {
+        return QPair<StatusSource*, QString>(reader, "");
+    }
+    QString errorMessage = reader->errorMsg();
+    delete reader;
+    if(reader->m_headerCorrect) {
+        return QPair<StatusSource*, QString>(nullptr, errorMessage);
+    } else {
+        return QPair<StatusSource*, QString>(nullptr, "");
+    }
+}
+
 bool LogFileReader::open(const QString &filename)
 {
+    m_headerCorrect = false;
     // lock for atomar opening
     QMutexLocker locker(m_mutex);
     if (m_file.isOpen()) {
@@ -59,6 +75,7 @@ bool LogFileReader::open(const QString &filename)
         m_file.close();
         return false;
     }
+    m_headerCorrect = true;
 
     // initialize variables
     m_packageGroupStartIndex = -1;

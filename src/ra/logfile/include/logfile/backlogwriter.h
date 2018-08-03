@@ -34,6 +34,7 @@ class BacklogStatusSource : public StatusSource
     Q_OBJECT
 public:
     BacklogStatusSource(QContiguousCache<QByteArray> &backlog, QContiguousCache<qint64> &timings);
+    ~BacklogStatusSource() override {}
     bool isOpen() const override { return true; }
 
     const QList<qint64>& timings() const override { return m_timings; }

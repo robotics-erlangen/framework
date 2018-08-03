@@ -1,5 +1,27 @@
+/***************************************************************************
+ *   Copyright 2018 Andreas Wendler                                        *
+ *   Robotics Erlangen e.V.                                                *
+ *   http://www.robotics-erlangen.de/                                      *
+ *   info@robotics-erlangen.de                                             *
+ *                                                                         *
+ *   This program is free software: you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation, either version 3 of the License, or     *
+ *   any later version.                                                    *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+ ***************************************************************************/
+
 #include "logopener.h"
 #include "logfile/logfilereader.h"
+#include "logfile/visionlogliveconverter.h"
+#include "logfile/statussource.h"
 #include "ui_mainwindow.h"
 
 #include <QSettings>
@@ -12,7 +34,7 @@
 LogOpener::LogOpener(Ui::MainWindow *ui, QObject *parent) :
     QObject(parent),
     ui(ui),
-    m_logfile(new LogFileReader()),
+    m_logFile(nullptr),
     m_packetsSinceOpened(0),
     m_recentFilesMenu(nullptr)
 {
@@ -49,7 +71,7 @@ LogOpener::LogOpener(Ui::MainWindow *ui, QObject *parent) :
 
 void LogOpener::close()
 {
-    m_lastFilePositions[m_logfile->filename()] = ui->logManager->getFrame();
+    m_lastFilePositions[m_openFileName] = ui->logManager->getFrame();
 
     QSettings s;
     s.beginWriteArray("recent files", m_recentFiles.size());
@@ -82,9 +104,9 @@ void LogOpener::openFile()
 {
     QString previousDir;
     // open again in previously used folder
-    if (m_logfile->isOpen()) {
-        m_lastFilePositions[m_logfile->filename()] = ui->logManager->getFrame();
-        QFileInfo finfo(m_logfile->filename());
+    if (m_logFile != nullptr) {
+        m_lastFilePositions[m_openFileName] = ui->logManager->getFrame();
+        QFileInfo finfo(m_openFileName);
         previousDir = finfo.dir().path();
     }
 
@@ -96,32 +118,48 @@ void LogOpener::openFile(const QString &filename)
 {
     // don't do anything if the user couldn't decide for a new log file
     if (!filename.isEmpty()) {
-        if (m_logfile->open(filename)) {
-            emit logOpened();
-            ui->logManager->setStatusSource(m_logfile);
+        QList<std::function<QPair<StatusSource*, QString>(QString)>> openFunctions =
+            { &VisionLogLiveConverter::tryOpen, &LogFileReader::tryOpen};
+        for (auto openFunction : openFunctions) {
+            auto openResult = openFunction(filename);
 
-            // move the file to the end of the recent files list
-            m_recentFiles.removeAll(filename);
-            m_recentFiles.append(filename);
-            if (m_recentFiles.size() > MAX_RECENT_FILE_COUNT) {
-                m_recentFiles.removeFirst();
-            }
-            makeRecentFileMenu();
+            if (openResult.first != nullptr) {
+                // the logfile was successfully opened
+                // the old logfile is deleted by the logmanager
+                m_logFile = openResult.first;
 
-            // add button to go to the last position (if log is long enough, around 1:30 min)
-            if (m_logfile->timings().size() > 50000 &&
-                    m_lastFilePositions.contains(filename)) {
-                ui->goToLastPosition->setVisible(true);
-                ui->goToLastPosition->setText(QString::number(m_lastFilePositions[filename]));
-            } else {
-                ui->goToLastPosition->setVisible(false);
+                m_openFileName = filename;
+                emit logOpened();
+                ui->logManager->setStatusSource(m_logFile);
+
+                // move the file to the end of the recent files list
+                m_recentFiles.removeAll(filename);
+                m_recentFiles.append(filename);
+                if (m_recentFiles.size() > MAX_RECENT_FILE_COUNT) {
+                    m_recentFiles.removeFirst();
+                }
+                makeRecentFileMenu();
+
+                // add button to go to the last position (if log is long enough, around 1:30 min)
+                if (m_logFile->timings().size() > 50000 &&
+                        m_lastFilePositions.contains(filename)) {
+                    ui->goToLastPosition->setVisible(true);
+                    ui->goToLastPosition->setText(QString::number(m_lastFilePositions[filename]));
+                } else {
+                    ui->goToLastPosition->setVisible(false);
+                }
+                m_packetsSinceOpened = 0;
+
+                ((QMainWindow*)parent())->setWindowTitle("Horus - " + QFileInfo(filename).fileName());
+                return;
+
+            } else if (!openResult.second.isEmpty()) {
+                // the header matched, but the log file is corrupt
+                QMessageBox::critical((QMainWindow*)parent(), "Error", openResult.second);
+                return;
             }
-            m_packetsSinceOpened = 0;
-        } else {
-            QMessageBox::critical((QMainWindow*)parent(), "Error", m_logfile->errorMsg());
         }
-
-        ((QMainWindow*)parent())->setWindowTitle("Horus - " + QFileInfo(filename).fileName());
+        QMessageBox::critical((QMainWindow*)parent(), "Error", "Could not open log file - no matching format found");
     }
 }
 
@@ -154,5 +192,5 @@ void LogOpener::makeRecentFileMenu()
 void LogOpener::goToLastFilePosition()
 {
     ui->goToLastPosition->setVisible(false);
-    ui->logManager->seekPacket(m_lastFilePositions[m_logfile->filename()]);
+    ui->logManager->seekPacket(m_lastFilePositions[m_openFileName]);
 }

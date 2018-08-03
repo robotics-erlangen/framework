@@ -24,6 +24,8 @@
 #include <QObject>
 #include <QString>
 #include <QByteArray>
+#include <QMap>
+#include <QList>
 
 #include <iostream>
 
@@ -35,10 +37,19 @@ class VisionLogReader : public QObject
 public:
     explicit VisionLogReader(const QString& filename);
     ~VisionLogReader() override;
+    QList<std::pair<qint64, VisionLog::MessageType>> indexFile();
+    // only call this function if the file has been indexed by indexFile
+    std::pair<qint64, VisionLog::MessageType> visionPacketByIndex(int packet, QByteArray& data);
     std::pair<qint64, VisionLog::MessageType> nextVisionPacket(QByteArray& data);
+    QString errorMessage() const { return m_errorMessage; }
+
+private:
+    std::pair<qint64, VisionLog::MessageType> readPacket(long fileOffset, QByteArray& data);
 
 private:
     std::ifstream* in_stream;
+    QMap<int, long> m_index; // packet number to position in the file (just before the packet header)
+    QString m_errorMessage;
 };
 
 #endif // VISIONLOGREADER_H

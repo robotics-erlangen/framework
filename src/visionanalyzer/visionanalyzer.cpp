@@ -64,6 +64,10 @@ int main(int argc, char* argv[])
     }
 
     VisionLogReader logFileIn(parser.positionalArguments().first());
+    if (!logFileIn.errorMessage().isEmpty()) {
+        qDebug() <<logFileIn.errorMessage();
+        app.exit(-1);
+    }
 
     QByteArray visionFrame;
     auto packet = logFileIn.nextVisionPacket(visionFrame);

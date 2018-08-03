@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2015 Michael Eischer                                        *
+ *   Copyright 2018 Andreas Wendler                                        *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -18,66 +18,52 @@
  *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
  ***************************************************************************/
 
-#ifndef LOGFILEREADER_H
-#define LOGFILEREADER_H
+#ifndef VISIONLOGLIVECONVERTER_H
+#define VISIONLOGLIVECONVERTER_H
 
-#include "protobuf/status.h"
 #include "statussource.h"
+#include "processor/referee.h"
+#include "tracking/tracker.h"
+
 #include <QObject>
 #include <QString>
-#include <QDataStream>
-#include <QFile>
-#include <QList>
+#include <QMap>
+#include <QByteArray>
 
-class QMutex;
+class VisionLogReader;
 
-class LogFileReader : public StatusSource
+class VisionLogLiveConverter : public StatusSource
 {
-    Q_OBJECT
+private:
+    VisionLogLiveConverter(VisionLogReader *file);
 public:
+    ~VisionLogLiveConverter() override;
     // checks if the format matches and opens the log file if it applies
     static QPair<StatusSource*, QString> tryOpen(QString filename);
-    explicit LogFileReader(const QList<qint64> &timings = QList<qint64>(), const QList<qint64> &offsets = QList<qint64>());
-    ~LogFileReader() override;
 
-    bool open(const QString &filename);
-    bool isOpen() const override { return m_file.isOpen(); }
-
-    QString filename() const { return m_file.fileName(); }
-    QString errorMsg() const { return m_errorMsg; }
-
+    bool isOpen() const override { return true; }
     const QList<qint64>& timings() const override { return m_timings; }
-    // equals timings().size()
-    int packetCount() const override { return m_packets.size(); }
+    int packetCount() const override { return m_timings.size(); }
     Status readStatus(int packet) override;
 
 public slots:
     void readPackets(int startPacket, int count) override;
 
 private:
-    bool indexFile();
-    void close();
-    bool readVersion();
-    qint64 readTimestampVersion0();
-    qint64 readTimestampVersion1();
-    qint64 readTimestampVersion2(int packetIndex);
+    qint64 processPacket(int packet, qint64 nextProcess); // in logfile packets, return the time of the read packet
 
-    mutable QMutex *m_mutex;
-    QString m_errorMsg;
-
-    QFile m_file;
-    QDataStream m_stream;
-
-    enum Version { Version0, Version1, Version2 };
-    Version m_version;
-    QList<qint64> m_packets;
+private:
+    VisionLogReader *m_logFile;
+    Referee m_referee;
+    Tracker m_tracker;
+    // uniform times between the start and end of the logfile
     QList<qint64> m_timings;
-    // a group of Status packages and an array of offsets
-    QByteArray m_currentGroup;
-    QList<qint32> m_currentGroupOffsets;
-    int m_packageGroupStartIndex;
-    qint32 m_packageGroupSize;
-    bool m_headerCorrect;
+    // index in m_timings to the packet number in the logfile with the first time that is larger than the index time
+    QMap<int, int> m_timeIndex;
+    int m_lastPacket;
+    QByteArray m_visionFrame;
+    bool m_lastFlipped;
+    QString m_indexError;
 };
 
-#endif // LOGFILEREADER_H
+#endif // VISIONLOGLIVECONVERTER_H

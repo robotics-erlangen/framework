@@ -29,6 +29,7 @@ class StatusSource : public QObject
 {
     Q_OBJECT
 public:
+    virtual ~StatusSource() {}
     virtual bool isOpen() const = 0;
 
     virtual const QList<qint64>& timings() const = 0;

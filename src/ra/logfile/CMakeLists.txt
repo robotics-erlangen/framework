@@ -24,14 +24,18 @@ add_library(logfile
     include/logfile/logfilereader.h
     include/logfile/logfilewriter.h
     include/logfile/statussource.h
+    include/logfile/visionlogliveconverter.h
 
     backlogwriter.cpp
     combinedlogwriter.cpp
     logfilereader.cpp
     logfilewriter.cpp
+    visionlogliveconverter.cpp
 )
 target_link_libraries(logfile
-	PUBLIC shared::protobuf
+    PUBLIC shared::protobuf
+    PUBLIC amun::processor
+    PUBLIC visionlog
 )
 target_include_directories(logfile
     INTERFACE include
