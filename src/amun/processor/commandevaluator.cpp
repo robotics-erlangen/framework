@@ -54,13 +54,16 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
 
     // falls back to local coordinates if robot is invisible
     const float robotPhi = robotToPhi(robot);
-    GlobalSpeed output = evaluateInput(hasRobot, robotPhi, worldTime, command, debug, true);
+
+    // If the command contains desired local robot speeds, the robot is being controlled manually.
+    bool hasManualCommand = command.has_v_s() && command.has_v_f() && command.has_omega();
+    GlobalSpeed output = evaluateInput(hasRobot, robotPhi, worldTime, command, debug, true, hasManualCommand);
 
     prepareBaseSpeed(robot, worldTime);
     LocalSpeed localOutputBase = m_baseSpeed.toLocal(robotPhi);
     // equal to CONTROL_STEP as long as the robot is tracked
     float timeStep = (worldTime - m_baseSpeedTime) * 1E-9;
-    GlobalSpeed limitedOutput = limitAcceleration(robotPhi, output, m_baseSpeed, timeStep);
+    GlobalSpeed limitedOutput = limitAcceleration(robotPhi, output, m_baseSpeed, timeStep, hasManualCommand);
     updateBaseSpeed(worldTime, limitedOutput);
 
     // predict robot rotation, assume the robot managed to follow the command
@@ -69,9 +72,9 @@ void CommandEvaluator::calculateCommand(const world::Robot *robot, qint64 worldT
     LocalSpeed localOutput = limitedOutput.toLocal(robotPhiOne);
 
     const qint64 worldTimeTwo = worldTime + (qint64)(CONTROL_STEP * 1000 * 1000 * 1000);
-    GlobalSpeed outputTwo = evaluateInput(hasRobot, robotPhiOne, worldTimeTwo, command, debug, false);
+    GlobalSpeed outputTwo = evaluateInput(hasRobot, robotPhiOne, worldTimeTwo, command, debug, false, hasManualCommand);
     float timeStepTwo = CONTROL_STEP;
-    GlobalSpeed limitedOutputTwo = limitAcceleration(robotPhiOne, outputTwo, limitedOutput, timeStepTwo);
+    GlobalSpeed limitedOutputTwo = limitAcceleration(robotPhiOne, outputTwo, limitedOutput, timeStepTwo, hasManualCommand);
 
     const float robotPhiTwo = robotPhiOne + (limitedOutput.omega + limitedOutputTwo.omega) / 2 * CONTROL_STEP;
     LocalSpeed localOutputTwo = limitedOutputTwo.toLocal(robotPhiTwo);
@@ -96,13 +99,10 @@ float CommandEvaluator::robotToPhi(const world::Robot *robot)
 }
 
 GlobalSpeed CommandEvaluator::evaluateInput(bool hasTrackedRobot, float robotPhi, qint64 worldTime, const robot::Command &command,
-                                            amun::DebugValues *debug, bool drawSplines)
+                                            amun::DebugValues *debug, bool drawSplines, bool hasManualCommand)
 {
     // default to stopping
     GlobalSpeed output(0, 0, 0);
-
-    // If the command contains desired local robot speeds, the robot is being controlled manually.
-    bool hasManualCommand = command.has_v_s() && command.has_v_f() && command.has_omega();
 
     if (hasManualCommand) {
         if (command.local() || !hasTrackedRobot) {
@@ -259,7 +259,8 @@ void CommandEvaluator::drawSpline(amun::DebugValues *debug)
 
 // Limit acceleration and velocities in global coordinates
 // as the robots momentum is relative to the global frame
-GlobalSpeed CommandEvaluator::limitAcceleration(float robotPhi, const GlobalSpeed &command, const GlobalSpeed &baseSpeed, float timeStep)
+GlobalSpeed CommandEvaluator::limitAcceleration(float robotPhi, const GlobalSpeed &command, const GlobalSpeed &baseSpeed, float timeStep,
+                                                bool hasManualCommand)
 {
     if (timeStep == 0) {
         return baseSpeed;
@@ -274,7 +275,7 @@ GlobalSpeed CommandEvaluator::limitAcceleration(float robotPhi, const GlobalSpee
     LocalAcceleration localAccel = desiredAccel.toLocal(robotPhi);
 
     LocalSpeed localCommand = command.toLocal(robotPhi);
-    const robot::LimitParameters& a_limits = m_specs.acceleration();
+    const robot::LimitParameters& a_limits = hasManualCommand ? m_specs.strategy() : m_specs.acceleration();
 
     // Robot has different speed up / slow down accelerations
     localAccel.a_s = boundAcceleration(localAccel.a_s, localCommand.v_s, a_limits.a_speedup_s_max(), a_limits.a_brake_s_max());
