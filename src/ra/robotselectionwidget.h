@@ -72,6 +72,7 @@ public slots:
     void selectTeamForGeneration(uint generation, uint id, RobotWidget::Team team);
     void selectInputDeviceForGeneration(uint generation, const QString &inputDevice);
     void saveConfig(bool saveTeams = true);
+    void setIsSimulator(bool simulator);
 
 public:
     void init(QWidget *window, InputManager *inputManager);
@@ -98,6 +99,7 @@ private:
     void updateGenerationTeam();
     void sanitizeRecentScripts();
     void searchForStrategies();
+    void unsetAll();
 
 private:
     Ui::RobotSelectionWidget *ui;
@@ -106,6 +108,8 @@ private:
     QStringList m_recentScripts;
     ItemDelegate *m_itemDelegate;
     bool m_contentDisabled;
+    bool m_isSimulator;
+    bool m_isInitialized;
 };
 
 #endif // ROBOTSELECTIONWIDGET_H

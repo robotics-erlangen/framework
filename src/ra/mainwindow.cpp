@@ -95,6 +95,7 @@ MainWindow::MainWindow(bool tournamentMode, QWidget *parent) :
     ui->input->init(m_inputManager);
 
     connect(ui->robots, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
+    connect(ui->actionSimulator, SIGNAL(toggled(bool)), ui->robots, SLOT(setIsSimulator(bool)));
     ui->robots->init(this, m_inputManager);
 
     connect(ui->simulator, SIGNAL(sendCommand(Command)), SLOT(sendCommand(Command)));
