@@ -20,13 +20,14 @@
 
 #include "js_protobuf.h"
 
+#include <QDebug>
+
 using namespace v8;
 
 // protobuf to js
 
 static Local<Value> protobufFieldToJs(Isolate *isolate, const google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field)
 {
-    EscapableHandleScope handleScope(isolate);
     const google::protobuf::Reflection *refl = message.GetReflection();
     if (!refl->HasField(message, field)) {
         return Undefined(isolate);
@@ -37,13 +38,16 @@ static Local<Value> protobufFieldToJs(Isolate *isolate, const google::protobuf::
         return Int32::New(isolate, refl->GetInt32(message, field));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
-        return BigInt::New(isolate, refl->GetInt64(message, field));
+        // TODO: why can't v8 serialize BigInts???, fix
+        return Number::New(isolate, refl->GetInt64(message, field));
+        //return BigInt::New(isolate, refl->GetInt64(message, field));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT32:
         return Uint32::NewFromUnsigned(isolate, refl->GetUInt32(message, field));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
-        return BigInt::NewFromUnsigned(isolate, refl->GetUInt64(message, field));
+        //return BigInt::NewFromUnsigned(isolate, refl->GetUInt64(message, field));
+        return Number::New(isolate, refl->GetUInt64(message, field));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE:
         return Number::New(isolate, refl->GetDouble(message, field));
@@ -55,10 +59,12 @@ static Local<Value> protobufFieldToJs(Isolate *isolate, const google::protobuf::
         return Boolean::New(isolate, refl->GetBool(message, field));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_STRING:
-        return String::NewFromUtf8(isolate, refl->GetString(message, field).c_str());
+        return String::NewFromUtf8(isolate, refl->GetString(message, field).c_str(),
+                                   NewStringType::kNormal).ToLocalChecked();
 
     case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
-        return String::NewFromUtf8(isolate, refl->GetEnum(message, field)->name().c_str());
+        return String::NewFromUtf8(isolate, refl->GetEnum(message, field)->name().c_str(),
+                                   NewStringType::kNormal).ToLocalChecked();
 
     case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
         return protobufToJs(isolate, refl->GetMessage(message, field));
@@ -68,7 +74,6 @@ static Local<Value> protobufFieldToJs(Isolate *isolate, const google::protobuf::
 
 static Local<Value> repeatedFieldToJs(Isolate *isolate, const google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field, int index)
 {
-    EscapableHandleScope handleScope(isolate);
     const google::protobuf::Reflection *refl = message.GetReflection();
 
     switch (field->cpp_type()) {
@@ -76,13 +81,15 @@ static Local<Value> repeatedFieldToJs(Isolate *isolate, const google::protobuf::
         return Int32::New(isolate, refl->GetRepeatedInt32(message, field, index));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_INT64:
-        return BigInt::New(isolate, refl->GetRepeatedInt64(message, field, index));
+        //return BigInt::New(isolate, refl->GetRepeatedInt64(message, field, index));
+        return Number::New(isolate, refl->GetRepeatedInt64(message, field, index));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT32:
         return Uint32::NewFromUnsigned(isolate, refl->GetRepeatedUInt32(message, field, index));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_UINT64:
-        return BigInt::NewFromUnsigned(isolate, refl->GetRepeatedUInt64(message, field, index));
+        //return BigInt::NewFromUnsigned(isolate, refl->GetRepeatedUInt64(message, field, index));
+        return Number::New(isolate, refl->GetRepeatedUInt64(message, field, index));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_DOUBLE:
         return Number::New(isolate, refl->GetRepeatedDouble(message, field, index));
@@ -94,10 +101,12 @@ static Local<Value> repeatedFieldToJs(Isolate *isolate, const google::protobuf::
         return Boolean::New(isolate, refl->GetRepeatedBool(message, field, index));
 
     case google::protobuf::FieldDescriptor::CPPTYPE_STRING:
-        return String::NewFromUtf8(isolate, refl->GetRepeatedString(message, field, index).c_str());
+        return String::NewFromUtf8(isolate, refl->GetRepeatedString(message, field, index).c_str(),
+                                   NewStringType::kNormal).ToLocalChecked();
 
     case google::protobuf::FieldDescriptor::CPPTYPE_ENUM:
-        return String::NewFromUtf8(isolate, refl->GetRepeatedEnum(message, field, index)->name().c_str());
+        return String::NewFromUtf8(isolate, refl->GetRepeatedEnum(message, field, index)->name().c_str(),
+                                   NewStringType::kNormal).ToLocalChecked();
 
     case google::protobuf::FieldDescriptor::CPPTYPE_MESSAGE:
         return protobufToJs(isolate, refl->GetRepeatedMessage(message, field, index));
@@ -107,15 +116,14 @@ static Local<Value> repeatedFieldToJs(Isolate *isolate, const google::protobuf::
 
 Local<Value> protobufToJs(Isolate *isolate, const google::protobuf::Message &message)
 {
-    EscapableHandleScope handleScope(isolate);
-
-    Local<Object> result;
+    Local<Object> result = Object::New(isolate);
 
     // iterate over message fields
     for (int i = 0; i < message.GetDescriptor()->field_count(); i++) {
         const google::protobuf::FieldDescriptor *field = message.GetDescriptor()->field(i);
 
-        Local<String> name = String::NewFromUtf8(isolate, field->name().c_str());
+        Local<String> name = String::NewFromUtf8(isolate, field->name().c_str(),
+                                                 NewStringType::kNormal).ToLocalChecked();
         if (field->is_repeated()) {
             const google::protobuf::Reflection *refl = message.GetReflection();
             Local<Array> array = Array::New(isolate, refl->FieldSize(message, field));
@@ -246,10 +254,9 @@ static void jsValueToRepeatedProtobufField(Isolate *isolate, Local<Value> value,
 void jsToProtobuf(Isolate *isolate, Local<Value> value, Local<Context> c, google::protobuf::Message &message)
 {
     // TODO: add error messages?
-    HandleScope scope(isolate);
 
     Local<Object> object;
-    if (!value->ToObject(c).ToLocal(&value)) {
+    if (!value->ToObject(c).ToLocal(&object)) {
         return;
     }
 
@@ -258,8 +265,8 @@ void jsToProtobuf(Isolate *isolate, Local<Value> value, Local<Context> c, google
         const google::protobuf::FieldDescriptor *field = message.GetDescriptor()->field(i);
 
         // get value from table and check its existence
-        Local<String> name = String::NewFromUtf8(isolate, field->name().c_str());
-        if (!object->Has(name)) {
+        Local<String> name = String::NewFromUtf8(isolate, field->name().c_str(), NewStringType::kNormal).ToLocalChecked();
+        if (object->Has(c, name).ToChecked()) {
             Local<Value> v = object->Get(name);
             if (field->is_repeated()) {
                 if (!v->IsArray()) {
