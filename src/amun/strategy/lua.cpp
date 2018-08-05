@@ -292,10 +292,7 @@ static int luaInstallKillHook(lua_State* state)
 }
 
 Lua::Lua(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) :
-    m_timer(timer),
-    m_type(type),
-    m_debugEnabled(debugEnabled),
-    m_refboxControlEnabled(refboxControlEnabled)
+    AbstractStrategyScript (timer, type, debugEnabled, refboxControlEnabled)
 {
     // create lua instance and load libraries
     m_state = luaL_newstate();
@@ -455,11 +452,6 @@ bool Lua::triggerDebugger()
     return true;
 }
 
-qint64 Lua::time() const
-{
-    return m_timer->currentTime();
-}
-
 void Lua::setCommand(uint generation, uint robotId, const RobotCommand &command)
 {
     if (m_type != StrategyType::BLUE && m_type != StrategyType::YELLOW) {
@@ -469,38 +461,6 @@ void Lua::setCommand(uint generation, uint robotId, const RobotCommand &command)
     // movement commands are immediatelly forwarded to the processor
     // that is while the strategy is still running
     emit sendStrategyCommand(m_type == StrategyType::BLUE, generation, robotId, command, m_worldState.time());
-}
-
-void Lua::log(const QString &text)
-{
-    amun::StatusLog *log = m_debugStatus->mutable_debug()->add_log();
-    log->set_timestamp(time());
-    log->set_text(text.toStdString());
-}
-
-amun::Visualization *Lua::addVisualization()
-{
-    return m_debugStatus->mutable_debug()->add_visualization();
-}
-
-void Lua::removeVisualizations()
-{
-    m_debugStatus->mutable_debug()->clear_visualization();
-}
-
-amun::DebugValue *Lua::addDebug()
-{
-    return m_debugStatus->mutable_debug()->add_value();
-}
-
-amun::PlotValue *Lua::addPlot()
-{
-    return m_debugStatus->mutable_debug()->add_plot();
-}
-
-amun::RobotValue *Lua::addRobotValue()
-{
-    return m_debugStatus->mutable_debug()->add_robot();
 }
 
 bool Lua::sendCommand(const Command &command)

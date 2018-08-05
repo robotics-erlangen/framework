@@ -31,7 +31,6 @@
 class DebugHelper;
 class FileWatcher;
 class Lua;
-class Timer;
 
 Lua *getStrategyThread(lua_State *state);
 
@@ -56,17 +55,10 @@ public:
     const amun::GameState& refereeState() const { return m_refereeState; }
     const amun::UserInput& userInput() const { return m_userInput; }
     qint64 startTime() const { return m_startTime; }
-    qint64 time() const;
     bool isBlue() const { return m_type == StrategyType::BLUE; }
     const QDir baseDir() const { return m_baseDir; }
     bool refboxControlEnabled() const { return m_refboxControlEnabled; }
     void setCommand(uint generation, uint robotId, const RobotCommand &command);
-    void log(const QString &text);
-    amun::Visualization *addVisualization();
-    void removeVisualizations();
-    amun::DebugValue *addDebug();
-    amun::PlotValue *addPlot();
-    amun::RobotValue *addRobotValue();
     bool sendCommand(const Command &command);
     bool sendNetworkReferee(const QByteArray &referee);
     void sendMixedTeam(const QByteArray &info);
@@ -85,10 +77,6 @@ private:
 private:
     lua_State *m_state;
     FileWatcher *m_watcher;
-    const Timer *m_timer;
-    const StrategyType m_type;
-    const bool m_debugEnabled;
-    const bool m_refboxControlEnabled;
 
     QString m_filename;
     QDir m_baseDir;

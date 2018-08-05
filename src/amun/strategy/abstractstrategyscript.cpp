@@ -19,8 +19,13 @@
  ***************************************************************************/
 
 #include "abstractstrategyscript.h"
+#include "core/timer.h"
 
-AbstractStrategyScript::AbstractStrategyScript() :
+AbstractStrategyScript::AbstractStrategyScript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) :
+    m_timer(timer),
+    m_type(type),
+    m_debugEnabled(debugEnabled),
+    m_refboxControlEnabled(refboxControlEnabled),
     m_debugStatus(new amun::Status),
     m_hasDebugger(false),
     m_debugHelper(nullptr),
@@ -48,4 +53,59 @@ void AbstractStrategyScript::setSelectedOptions(const QStringList &options)
 
 void AbstractStrategyScript::setDebugHelper(DebugHelper *helper) {
     m_debugHelper = helper;
+}
+
+bool AbstractStrategyScript::chooseEntryPoint(QString entryPoint)
+{
+    // cleanup entrypoints list
+    m_entryPoints.sort();
+    m_entryPoints.removeDuplicates();
+    if (m_entryPoints.isEmpty()) {
+        m_errorMsg = "<font color=\"red\">No entry points defined!</font>";
+        return false;
+    }
+
+    m_entryPoint = entryPoint;
+    // use first entry point as fallback
+    if (!m_entryPoints.contains(m_entryPoint)) {
+        m_entryPoint = m_entryPoints.first();
+    }
+    return true;
+}
+
+qint64 AbstractStrategyScript::time() const
+{
+    return m_timer->currentTime();
+}
+
+void AbstractStrategyScript::log(const QString &text)
+{
+    amun::StatusLog *log = m_debugStatus->mutable_debug()->add_log();
+    log->set_timestamp(time());
+    log->set_text(text.toStdString());
+}
+
+amun::Visualization *AbstractStrategyScript::addVisualization()
+{
+    return m_debugStatus->mutable_debug()->add_visualization();
+}
+
+void AbstractStrategyScript::removeVisualizations()
+{
+    m_debugStatus->mutable_debug()->clear_visualization();
+}
+
+amun::DebugValue *AbstractStrategyScript::addDebug()
+{
+    return m_debugStatus->mutable_debug()->add_value();
+}
+
+amun::PlotValue *AbstractStrategyScript::addPlot()
+{
+    return m_debugStatus->mutable_debug()->add_plot();
+}
+
+amun::RobotValue *AbstractStrategyScript::addRobotValue()
+{
+    return m_debugStatus->mutable_debug()->add_robot();
 }

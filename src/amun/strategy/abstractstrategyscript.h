@@ -41,7 +41,7 @@ class AbstractStrategyScript : public QObject
 {
     Q_OBJECT
 public:
-    AbstractStrategyScript();
+    AbstractStrategyScript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled);
     ~AbstractStrategyScript() override {}
 
     // simple factory to allow for different strategy handlers
@@ -82,6 +82,15 @@ public:
     bool hasRefereeReply() const { return m_refereeReplys.size() > 0; }
     bool isFlipped() const { return m_isFlipped; }
 
+    qint64 time() const;
+
+    void log(const QString &text);
+    amun::Visualization *addVisualization();
+    void removeVisualizations();
+    amun::DebugValue *addDebug();
+    amun::PlotValue *addPlot();
+    amun::RobotValue *addRobotValue();
+
 signals:
     // wrapper may listen to reload request, but doesn't have to
     void requestReload();
@@ -96,6 +105,11 @@ protected:
     QString m_name;
     QStringList m_options;
     QStringList m_selectedOptions;
+
+    const Timer *m_timer;
+    const StrategyType m_type;
+    const bool m_debugEnabled;
+    const bool m_refboxControlEnabled;
 
     QString m_errorMsg;
     Status m_debugStatus;

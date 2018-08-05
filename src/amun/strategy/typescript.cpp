@@ -6,11 +6,12 @@
 
 #include "v8.h"
 #include "libplatform/libplatform.h"
+#include "js_amun.h"
 
 using namespace v8;
 
-// TODO: factor most of these information out
-Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled)
+Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled, bool refboxControlEnabled) :
+    AbstractStrategyScript (timer, type, debugEnabled, refboxControlEnabled)
 {
     Isolate::CreateParams create_params;
     create_params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
