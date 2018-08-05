@@ -19,6 +19,7 @@
  ***************************************************************************/
 
 #include "lua.h"
+#include "typescript.h"
 #include "debughelper.h"
 #include "strategy.h"
 #include "core/timer.h"
@@ -453,6 +454,8 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
     // hardcoded factory pattern
     if (Lua::canHandle(filename)) {
         m_strategy = Lua::createStrategy(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
+    } else if (Typescript::canHandle(filename)) {
+        m_strategy = Typescript::createStrategy(m_timer, m_type, m_debugEnabled, m_refboxControlEnabled);
     } else {
         fail(QString("No strategy handler for file %1").arg(filename));
         return;
