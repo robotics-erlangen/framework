@@ -33,6 +33,7 @@
 #include <QObject>
 #include <QString>
 #include <QStringList>
+#include <QDir>
 
 class DebugHelper;
 class Timer;
@@ -90,6 +91,18 @@ public:
     amun::DebugValue *addDebug();
     amun::PlotValue *addPlot();
     amun::RobotValue *addRobotValue();
+    bool refboxControlEnabled() const { return m_refboxControlEnabled; }
+    void setCommand(uint generation, uint robotId, const RobotCommand &command);
+    bool sendCommand(const Command &command);
+    bool sendNetworkReferee(const QByteArray &referee);
+    void sendMixedTeam(const QByteArray &info);
+    const world::Geometry& geometry() const { return m_geometry; }
+    const robot::Team& team() const { return m_team; }
+    const world::State& worldState() const { return m_worldState; }
+    const amun::GameState& refereeState() const { return m_refereeState; }
+    const amun::UserInput& userInput() const { return m_userInput; }
+    bool isBlue() const { return m_type == StrategyType::BLUE; }
+    const QDir baseDir() const { return m_baseDir; }
 
 signals:
     // wrapper may listen to reload request, but doesn't have to
@@ -119,6 +132,14 @@ protected:
     bool m_isPerformanceMode;
     bool m_isReplay;
     bool m_isFlipped;
+    QDir m_baseDir;
+    QString m_filename;
+
+    world::Geometry m_geometry;
+    robot::Team m_team;
+    world::State m_worldState;
+    amun::GameState m_refereeState;
+    amun::UserInput m_userInput;
 
     QList<SSL_RefereeRemoteControlReply> m_refereeReplys;
 };

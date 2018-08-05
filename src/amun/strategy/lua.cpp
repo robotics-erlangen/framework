@@ -452,40 +452,6 @@ bool Lua::triggerDebugger()
     return true;
 }
 
-void Lua::setCommand(uint generation, uint robotId, const RobotCommand &command)
-{
-    if (m_type != StrategyType::BLUE && m_type != StrategyType::YELLOW) {
-        log("Only blue or yellow strategy may send robot commands!");
-        return;
-    }
-    // movement commands are immediatelly forwarded to the processor
-    // that is while the strategy is still running
-    emit sendStrategyCommand(m_type == StrategyType::BLUE, generation, robotId, command, m_worldState.time());
-}
-
-bool Lua::sendCommand(const Command &command)
-{
-    if (!m_debugEnabled) {
-        return false;
-    }
-    emit gotCommand(command);
-    return true;
-}
-
-bool Lua::sendNetworkReferee(const QByteArray &referee)
-{
-    if (!m_debugEnabled || !m_refboxControlEnabled) {
-        return false;
-    }
-    emit sendNetworkRefereeCommand(referee);
-    return true;
-}
-
-void Lua::sendMixedTeam(const QByteArray &info)
-{
-    emit sendMixedTeamInfo(info);
-}
-
 void Lua::watch(const QString &filename)
 {
     m_watcher->addFile(filename);

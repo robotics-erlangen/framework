@@ -24,7 +24,6 @@
 #include <lua.hpp>
 #include <QString>
 #include <QStringList>
-#include <QDir>
 #include "abstractstrategyscript.h"
 #include "strategytype.h"
 
@@ -49,19 +48,7 @@ public:
     bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput) override;
     bool triggerDebugger() override;
 
-    const world::Geometry& geometry() const { return m_geometry; }
-    const robot::Team& team() const { return m_team; }
-    const world::State& worldState() const { return m_worldState; }
-    const amun::GameState& refereeState() const { return m_refereeState; }
-    const amun::UserInput& userInput() const { return m_userInput; }
     qint64 startTime() const { return m_startTime; }
-    bool isBlue() const { return m_type == StrategyType::BLUE; }
-    const QDir baseDir() const { return m_baseDir; }
-    bool refboxControlEnabled() const { return m_refboxControlEnabled; }
-    void setCommand(uint generation, uint robotId, const RobotCommand &command);
-    bool sendCommand(const Command &command);
-    bool sendNetworkReferee(const QByteArray &referee);
-    void sendMixedTeam(const QByteArray &info);
     void watch(const QString &filename);
     QString debuggerRead();
     bool debuggerWrite(const QString& line);
@@ -78,15 +65,7 @@ private:
     lua_State *m_state;
     FileWatcher *m_watcher;
 
-    QString m_filename;
-    QDir m_baseDir;
     qint64 m_startTime;
-
-    world::Geometry m_geometry;
-    robot::Team m_team;
-    world::State m_worldState;
-    amun::GameState m_refereeState;
-    amun::UserInput m_userInput;
 };
 
 #endif // LUA_H
