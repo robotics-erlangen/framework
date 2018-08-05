@@ -47,6 +47,8 @@ add_library(strategy
     debughelper.cpp
     filewatcher.cpp
     filewatcher.h
+    js_protobuf.cpp
+    js_protobuf.h
     lua.cpp
     lua.h
     lua_amun.cpp
