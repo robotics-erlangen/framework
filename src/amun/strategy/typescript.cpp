@@ -68,6 +68,19 @@ AbstractStrategyScript* Typescript::createStrategy(const Timer *timer, StrategyT
 
 bool Typescript::loadScript(const QString &filename, const QString &entryPoint, const world::Geometry &geometry, const robot::Team &team)
 {
+    // TODO: factor this common code to a function in AbstractStrategyScript
+    Q_ASSERT(m_filename.isNull());
+
+    // startup strategy information
+    m_filename = filename;
+    m_name = "<no script>";
+    // strategy modules are loaded relative to the init script
+    m_baseDir = QFileInfo(m_filename).absoluteDir();
+
+    m_geometry.CopyFrom(geometry);
+    m_team.CopyFrom(team);
+    takeDebugStatus();
+
     QFile file(filename);
     if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream in(&file);
@@ -113,6 +126,8 @@ bool Typescript::loadScript(const QString &filename, const QString &entryPoint, 
             return false;
         }
 
+        // TODO: Has will be deprecated
+        // TODO: Get will be deprecated
         Local<Value> maybeName = resultObject->Get(nameString);
         if (!maybeName->IsString()) {
             m_errorMsg = "<font color=\"red\">Script name must be a string!</font>";
@@ -160,6 +175,18 @@ bool Typescript::loadScript(const QString &filename, const QString &entryPoint, 
 
 bool Typescript::process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput)
 {
+    Q_ASSERT(!m_entryPoint.isNull());
+
+    m_worldState.CopyFrom(worldState);
+    m_worldState.clear_vision_frames();
+    m_refereeState.CopyFrom(refereeState);
+    m_userInput.CopyFrom(userInput);
+    takeDebugStatus();
+
+    // TODO: script timeout
+    // used to check for script timeout
+    //m_startTime = Timer::systemTime();
+
     HandleScope handleScope(m_isolate);
     Local<Context> context = Local<Context>::New(m_isolate, m_context);
     Context::Scope contextScope(context);
