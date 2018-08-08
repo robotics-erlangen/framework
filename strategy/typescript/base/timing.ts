@@ -1,62 +1,37 @@
-/**
- * @module timing
- * Provides timers per robot.
- */
+local timing = {}
 
-/**************************************************************************
-*   Copyright 2018 Andreas Wendler                                        *
-*   Robotics Erlangen e.V.                                                *
-*   http://www.robotics-erlangen.de/                                      *
-*   info@robotics-erlangen.de                                             *
-*                                                                         *
-*   This program is free software: you can redistribute it and/or modify  *
-*   it under the terms of the GNU General Public License as published by  *
-*   the Free Software Foundation, either version 3 of the License, or     *
-*   any later version.                                                    *
-*                                                                         *
-*   This program is distributed in the hope that it will be useful,       *
-*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-*   GNU General Public License for more details.                          *
-*                                                                         *
-*   You should have received a copy of the GNU General Public License     *
-*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+local debug = require "../base/debug"
+local plot = require "../base/plot"
 
-import * as debug from "base/debug";
-import * as plot from "base/plot";
+local startTimes = {}
 
-export type AbsTime = number;
-export type RelTime = number;
+function timing.start(name, robotId)
+	local key = name .. "." .. tostring(robotId)
+	if startTimes[key] then
+		error("multiple start calls")
+	end
 
-let startTimes: { [name: string]: number } = {};
+	startTimes[key] = amun.getCurrentTime()
+end
 
-export function start(name: string, robotId: number) {
-	let key = `${name}.${robotId}`;
-	if (startTimes[key] != undefined) {
-		throw new Error("timing: multiple start calls");
-	}
+function timing.finish(name, robotId)
+	local key = name .. "." .. tostring(robotId)
+	if not startTimes[key] then
+		error("no start call")
+	end
 
-	startTimes[key] = amun.getCurrentTime();
-}
+	local timeDiffMs = (amun.getCurrentTime() - startTimes[key]) * 1000
+	if timeDiffMs < 0.001 then
+		timeDiffMs = 0
+	end
 
-export function finish(name: string, robotId: number) {
-	let key = `${name}.${robotId}`;
-	if (startTimes[key] == undefined) {
-		throw new Error("timing: no start call");
-	}
+	debug.push("Timing")
+	debug.set(name, string.sub(tostring(timeDiffMs), 0, 5) .. "ms")
+	debug.pop()
 
-	let timeDiffMs = (amun.getCurrentTime() - startTimes[key]) * 1000;
-	if (timeDiffMs < 0.001) {
-		timeDiffMs = 0;
-	}
+	plot.addPlot(key, timeDiffMs)
 
-	debug.push("Timing");
-	debug.set(name, `${String(timeDiffMs).slice(0, 5)}  ms`);
-	debug.pop();
+	startTimes[key] = nil
+end
 
-	plot.addPlot(key, timeDiffMs);
-
-	delete startTimes[key];
-}
-
+return timing

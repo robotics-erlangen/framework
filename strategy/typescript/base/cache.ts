@@ -1,10 +1,10 @@
-/**
- * @module cache
- * Provides a caching mechanism for function calls
- */
+--[[
+--- Provides a caching mechanism for function calls
+module "Cache"
+]]--
 
-/**************************************************************************
-*   Copyright 2018 Michael Eischer, Andreas Wendler                       *
+--[[***********************************************************************
+*   Copyright 2015 Michael Eischer                                        *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -21,121 +21,95 @@
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
-import { Vector } from "base/vector";
+*************************************************************************]]
 
-let cleanup: Function[] = [];
-let undefinedObj = Object.freeze([]);
-let undefinedVec = Object.freeze(new Vector(NaN, NaN));
+local Cache = {}
 
-function getFromCache(cached: Map<any, any>, params: any[]): any {
-	let pcount = params.length;
-	params.unshift(pcount);
+local cleanup = {}
+local nilObj = {}
 
-	let entry = cached;
-	for (let i = 0; i < pcount + 1; i++) {
-		let param = params[i];
-		if (param == undefined) {
-			param = undefinedObj;
-		} else if (param instanceof Vector) {
-			pcount += 2;
-			params.splice(i + 1, 0, param.x, param.y);
-			param = undefinedVec;
-		}
-		if (!(entry instanceof Map)) {
-			return undefined;
-		}
-		entry = entry.get(param);
-		if (entry == undefined) {
-			return undefined;
-		}
-	}
-	return entry;
-}
+local function getFromCache(cached, params)
+	local pcount = table.maxn(params)
+	params[0] = pcount
 
-function setInCache(cached: Map<any, any>, params: any[], result: any | any[]) {
-	let pcount = params.length;
-	params.unshift(pcount);
+	local entry = cached
+	for i = 0, pcount do
+		local param = params[i]
+		if param == nil then
+			param = nilObj
+		end
+		entry = entry[param]
+		if entry == nil then
+			return nil
+		end
+	end
+	return entry
+end
 
-	let entry: Map<any, any> | any = cached;
-	for (let i = 0; i < pcount + 1; i++) {
-		let param = params[i];
-		// undefined can't be used as a map index
-		if (param == undefined) {
-			param = undefinedObj;
-		} else if (param instanceof Vector) {
-			let v: Vector = <Vector> param;
-			entry.set(undefinedVec, new Map<any, any>());
-			entry = entry.get(undefinedVec);
+local function setInCache(cached, params, result)
+	local pcount = table.maxn(params)
+	params[0] = pcount
 
-			entry.set(v.x, new Map<any, any>());
-			entry = entry.get(v.x);
+	local entry = cached
+	for i = 0, pcount do
+		local param = params[i]
+		-- nil can't be used as array index
+		if param == nil then
+			param = nilObj
+		end
+		if i == pcount then
+			entry[param] = result
+			return
+		elseif entry[param] == nil then
+			local newEntry = {}
+			setmetatable(newEntry, {__mode = "k"})
+			entry[param] = newEntry
+		end
+		entry = entry[param]
+	end
+end
 
-			param = v.y;
-		}
-		if (i === pcount) {
-			entry.set(param, result);
-			return;
-		} else if (!entry.has(param)) {
-			let newEntry = new Map<any, any>();
-			entry.set(param, newEntry);
-		}
-		entry = entry.get(param);
-	}
-}
+local function makeCached(f, keepForever)
+	local cached = {}
+	if not keepForever then
+		table.insert(cleanup,
+			function()
+				cached = {}
+			end
+		)
+	end
+	return function(...)
+		local result = getFromCache(cached, {...})
+		if not result then
+			result = { f(...) }
+			setInCache(cached, {...}, result)
+		end
+		return unpack(result)
+	end
+end
 
-let undefResult = Object.freeze([]);
+--- Wraps a function call, the returned value is cached for this strategy run
+-- @name forFrame
+-- @param f function - function to wrap
+-- @return function - wrapped function
+function Cache.forFrame(f)
+	return makeCached(f, false)
+end
 
-function makeCached <F extends Function>(f: F, keepForever: boolean): F {
-	let cached: Map<any, any> = new Map<any, any>();
-	if (!keepForever) {
-		cleanup.push(
-			function() {
-				cached = new Map<any, any>();
-			}
-		);
-	}
-	let cachedFunc: F = <F> <any> (function(...args: any[]): any[] | any {
-		// getFromCache modifies args in case there is a vector inside, so make a copy
-		let result = getFromCache(cached, args.slice());
-		if (result == undefined) {
-			result = f(...args);
-			if (result === undefined) {
-				result = undefResult;
-			}
-			setInCache(cached, args, result);
-		}
-		if (result === undefResult) {
-			return undefined;
-		}
-		return result;
-	});
-	Object.defineProperty(cachedFunc, "name", { value: f.name, writable: false });
-	return cachedFunc;
-}
+--- Wraps a function call, the returned value is cached until the strategy is reloaded
+-- @name forever
+-- @param f function - function to wrap
+-- @return function - wrapped function
+function Cache.forever(f)
+	return makeCached(f, true)
+end
 
-/**
- * Wraps a function call, the returned value is cached for this strategy run
- * @param f - The function to wrap
- * @returns The wrapped function
- */
-export function forFrame <F extends Function>(f: F): F {
-	return makeCached(f, false);
-}
+--- Clears the value cache for the current frame
+-- @name resetFrame
+function Cache.resetFrame()
+	for i = 1, #cleanup do
+		cleanup[i]()
+	end
+end
 
-/**
- * Wraps a function call, the returned value is cached until the strategy is reloaded
- * @param f - The function to wrap
- * @returns The wrapped function
- */
-export function forever <F extends Function>(f: F): F {
-	return makeCached(f, true);
-}
-
-/** Clears the value cache for the current frame */
-export function resetFrame() {
-	for (let obj of cleanup) {
-		obj();
-	}
-}
-
+return Cache

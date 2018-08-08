@@ -1,10 +1,10 @@
-/**
- * @module process
- * Is run by the processor before/after each strategy run.
- * Subclass the class to create a new process.
- */
+--[[
+--- Is run be the processor before / after each strategy run.
+-- Subclass the class to create a new process
+module "Process"
+]]--
 
-/**************************************************************************
+--[[***********************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -22,17 +22,22 @@
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
 
-export interface Process {
-	/** Execute the process actions here */
-	run(): void;
+local Process = (require "../base/class")("Process")
 
-	/**
-	 * Tells whether the process is finished.
-	 * Is called after each call to run
-	 * @returns Process is removed if true
-	 */
-	isFinished(): boolean;
-}
+--- Execute the process actions here
+-- @name run
+function Process:run()
+	error("stub")
+end
 
+--- Tells whether the process is finished.
+-- Is called after each call to run
+-- @name run
+-- @return bool - Process is removed if true
+function Process:isFinished()
+	error("stub")
+end
+
+return Process

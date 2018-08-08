@@ -1,14 +1,14 @@
-/**
- * @module amun
- * API for Ra.
- * Amun offers serveral guarantees to the strategy: <br/>
- * The values returned by getGeometry, getTeam, isBlue are guaranteed to remain constant for the whole strategy runtime.
- * That is if any of the values changes the strategy is restarted! <br/>
- * If coordinates are passed via the API these values are using <strong>global</strong> coordinates!
- * This API may only be used by coded that provides a mapping between Amun and Strategy
- */
+--[[
+--- API for Ra. <br/>
+-- Amun offers serveral guarantees to the strategy: <br/>
+-- The values returned by getGeometry, getTeam, isBlue are guaranteed to remain constant for the whole strategy runtime.
+-- That is if any of the values changes the strategy is restarted! <br/>
+-- If coordinates are passed via the API these values are using <strong>global</strong> coordinates!
+-- This API may only be used by coded that provides a mapping between Amun and Strategy
+module "amun"
+]]--
 
-/**************************************************************************
+--[[***********************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -26,235 +26,268 @@
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
+
+--- Returns world state
+-- @class function
+-- @name getWorldState
+-- @return protobuf.world.State - converted to lua table
+
+--[[
+separator for luadoc]]--
+
+--- Returns world geometry
+-- @class function
+-- @name getGeometry
+-- @return protobuf.world.Geometry - converted to lua table
+
+--[[
+separator for luadoc]]--
+
+--- Returns team information
+-- @class function
+-- @name getTeam
+-- @return protobuf.robot.Team - converted to lua table
+
+--[[
+separator for luadoc]]--
+
+--- Query team color
+-- @class function
+-- @name isBlue
+-- @return bool - true if this is the blue team, false otherwise
+
+--[[
+separator for luadoc]]--
+
+--- Add a visualization
+-- @class function
+-- @name addVisualization
+-- @param vis protobuf.amun.Visualization as table
+
+--[[
+separator for luadoc]]--
+
+--- Add a circle
+-- @class function
+-- @name addVisualizationCircle
+-- @param string name
+-- @param number centerX
+-- @param number centerY
+-- @param number radius
+-- @param number colorRed
+-- @param number colorGreen
+-- @param number colorBlue
+-- @param number colorAlpha
+-- @param bool isFilled
+-- @param bool background
+-- @param number linewidth
+
+--[[
+separator for luadoc]]--
+
+--- Set commands for a robot
+-- @class function
+-- @name setCommand
+-- @param int generation
+-- @param int robotid
+-- @param cmd protobuf.robot.StrategyCommand
+
+--[[
+separator for luadoc]]--
+
+--- Log function.
+-- If data is a string use ... as parameters for format.
+-- Otherweise logs tostring(data)
+-- @class function
+-- @name log
+-- @param data any - data to log
+-- @param ... any - params for format (optional)
+
+--[[
+separator for luadoc]]--
+
+--- Returns game state and referee information
+-- @class function
+-- @name getGameState
+-- @return protobuf.GameState - converted to lua table
+
+--[[
+separator for luadoc]]--
+
+--- Returns the user input
+-- @class function
+-- @name getUserInput
+-- @return protobuf.UserInput - converted to lua table
+
+--[[
+separator for luadoc]]--
+
+--- Returns current time
+-- @class function
+-- @name getCurrentTime
+-- @return Number - time in nanoseconds (amun), seconds(strategy)
+
+--[[
+separator for luadoc]]--
+
+--- Returns the absolute path to the folder containing the init script
+-- @class function
+-- @name getStrategyPath
+-- @return String - path
+
+--[[
+separator for luadoc]]--
+
+--- Returns list with names of enabled options
+-- @class function
+-- @name getSelectedOptions
+-- @return String[] - options
+
+--[[
+separator for luadoc]]--
+
+--- Sets a value in the debug tree
+-- @class function
+-- @name addDebug
+-- @param key string
+-- @param value number|bool|string|nil
+
+--[[
+separator for luadoc]]--
+
+--- Add a value to the plotter
+-- @class function
+-- @name addPlot
+-- @param name string
+-- @param value number
+
+--[[
+separator for luadoc]]--
+
+--- Set the exchange symbol for a robot
+-- @class function
+-- @name setRobotExchangeSymbol
+-- @param generation number
+-- @param id number
+-- @param exchange bool
+
+--[[
+separator for luadoc]]--
+
+--- Send arbitrary commands. Only works in debug mode
+-- @class function
+-- @name sendCommand
+-- @param command amun.Command
+
+--[[
+separator for luadoc]]--
+
+--- Send internal referee command. Only works in debug mode. Must be fully populated
+-- @class function
+-- @name sendRefereeCommand
+-- @param command SSL_Referee
+
+--[[
+separator for luadoc]]--
+
+--- Send mixed team info packet
+-- @class function
+-- @name sendMixedTeamInfo
+-- @param data ssl::TeamPlan
+
+--[[
+separator for luadoc]]--
+
+--- Send referee command over network. Only works in debug mode or as autoref. Must be fully populated
+-- Only sends the data passed to the last call of this function during a strategy run.
+-- The command_counter must be increased for every command change
+-- @class function
+-- @name sendNetworkRefereeCommand
+-- @param command SSL_Referee
+
+--[[
+separator for luadoc]]--
+
+--- Write output to debugger console
+-- @class function
+-- @name debuggerWrite
+-- @param line string
+
+--[[
+separator for luadoc]]--
+
+--- Wait for and read input from debugger console
+-- @class function
+-- @name debuggerRead
+-- @return line string
+
+--[[
+separator for luadoc]]--
+
+--- Check if performance mode is active
+-- @class function
+-- @name getPerformanceMode
+-- @return mode boolean
 
 
-import * as pb from "base/protobuf";
+--- Fetch the last referee remote control request reply
+-- @class function
+-- @name nextRefboxReply
+-- @return reply table - the last reply or nil if none is available
 
-/**
- * Interface of all the public functions the amun framework provides.
- * These are actually meant to be used by the strategy code in contrast to the functions added in {@link Amun}.
- */
-interface AmunPublic {
-	/**
-	 * The debug mode is supposed to be used for both functions that are not usable in real world circumstances (e.g. teleporting the ball) {@link sendCommand}
-	 * and for extra checks that might be too expensive to have them running all the time
-	 */
-	isDebug: boolean;
-	strategyPath: string;
-	/** The Performance mode is supposed to be used to toggle some optional parts of the code e.g. visualizations off to increase performance */
-	isPerformanceMode: boolean;
-	/**
-	 * Logs the equivalent of new String(value) to the log widget for each value of data, seperated by spaces
-	 * @param data - The data to be logged, will be printed seperated by a space
-	 */
-	log(...data: any[]): void;
-	/**
-	 * Returns current time
-	 * @returns time in nanoseconds (amun), seconds(strategy)
-	 */
-	getCurrentTime(): number;
-	/** Set the exchange symbol for a robot */
-	setRobotExchangeSymbol(generation: number, id: number, exchange: boolean): void;
+-- luacheck: globals amun log
+require "amun"
+log = amun.log
+-- publish debug status
+local hasDebugTable = pcall(require, "debug")
+amun.isDebug = hasDebugTable and debug.sethook ~= nil
+amun.isPerformanceMode = true
+if amun.getPerformanceMode then
+	amun.isPerformanceMode = amun.getPerformanceMode()
+end
 
-	// game controller communication
-	connectGameController(): boolean;
-	sendGameControllerMessage(type: "TeamRegistration", message: pb.gameController.TeamRegistration): void;
-	sendGameControllerMessage(type: "AutoRefRegistration", message: pb.gameController.AutoRefRegistration): void;
-	sendGameControllerMessage(type: "TeamToController", message: pb.gameController.TeamToController): void;
-	sendGameControllerMessage(type: "AutoRefToController", message: pb.gameController.AutoRefToController): void;
-	getGameControllerMessage(): pb.gameController.ControllerToTeam | pb.gameController.ControllerToAutoRef | undefined;
+-- prevent direct access to the amun api by other code
+function amun._hideFunctions()
+	local isDebug = amun.isDebug
+	local strategyPath = amun.getStrategyPath()
+	local getCurrentTime = amun.getCurrentTime
+	local sendCommand = amun.sendCommand
+	local sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand
+	local nextRefboxReply = amun.nextRefboxReply
+	local performanceMode = amun.isPerformanceMode
 
-	// only in debug
-	/** Send arbitrary commands. Only works in debug mode */
-	sendCommand(command: pb.amun.Command): void;
-
-	// ra version/feature tags
-	readonly SUPPORTS_OPTION_DEFAULT: boolean | undefined;
-	readonly SUPPORTS_EFFICIENT_PATHVIS: boolean | undefined;
-}
-
-/**
- * Interface of all the private functions the amun framework provides.
- * These are only meant for initializing the state of all the base modules and should not be used outside of them.
- * This means e.g. instead of directly reading amun.getWorldState() in strategy code you should just read the state of the base/world.
- */
-interface Amun extends AmunPublic {
-	/** Returns world state */
-	getWorldState(): pb.world.State;
-	/** Returns world geometry */
-	getGeometry(): pb.world.Geometry;
-	/** Returns team information */
-	getTeam(): pb.robot.Team;
-	/**
-	 * Query team color
-	 * @returns true if this is the blue team, false otherwise
-	 */
-	isBlue(): boolean;
-	/** Add a visualization */
-	addVisualization(vis: pb.amun.Visualization): void;
-	/** Adds a circle visualization, this is faster than the generic addVisualization */
-	addCircleSimple(name: string, x: number, y: number, radius: number, r: number,
-		g: number, b: number, alpha: number, filled: boolean, background: boolean, lineWidth: number): void;
-	/**
-	 * Adds a path visualization, pointCoordinates takes consecutive x and y coordinates of the points
-	 * Two different version depending on what features the amun instance supports
-	 * The one using the Float32Array is only available if amun.SUPPORTS_EFFICIENT_PATHVIS is true
-	 * In that case, the values have to be given in the exact same order as the parameters for the second version
-	 */
-	addPathSimple(name: string, data: Float32Array): void;
-	addPathSimple(name: string, r: number, g: number, b: number, alpha: number, width: number, background: boolean,
-		pointCoordinates: number[]): void;
-	/** Adds a polygon visualization, pointCoordinates takes consecutive x and y coordinates of the points */
-	addPolygonSimple(name: string, r: number, g: number, b: number, alpha: number, filled: boolean,
-		background: boolean, pointCoordinates: number[]): void;
-	/** Set commands for a robot */
-	setCommand(generation: number, id: number, cmd: pb.robot.Command): void;
-	/** Takes an array of tuples of generation, id, and command. */
-	setCommands(commands: [number, number, pb.robot.Command][]): void;
-	/** Returns game state and referee information */
-	getGameState(): pb.amun.GameState;
-	/** Returns the user input */
-	getUserInput(): pb.amun.UserInput;
-	/** Returns the absolute path to the folder containing the init script */
-	getStrategyPath(): string;
-	/** Returns list with names of enabled options */
-	getSelectedOptions(): string[];
-	/** Sets a value in the debug tree */
-	addDebug(key: string, value?: number | boolean | string): void;
-	/** Add a value to the plotter */
-	addPlot(name: string, value: number): void;
-	/** Add a metric value */
-	addMetric?: (name: string, value: number, divisor: number) => void;
-	/** Send internal referee command. Only works in debug mode. Must be fully populated */
-	sendRefereeCommand(command: pb.SSL_Referee): void;
-	/** Check if performance mode is active */
-	getPerformanceMode(): boolean;
-	/**
-	 * Connect to the v8 debugger
-	 * this function can be called as often as one wishes, if the debugger is
-	 * already connected, it will do nothing and return false
-	 * @param handleResponse - function to be called on a message response
-	 * @param handleNotification - function to be called on a notification
-	 * @param messageLoop - called when regular javascript is blocked as the debugger is paused
-	 * @returns success - if the connection was successfull
-	 */
-	connectDebugger(handleResponse: (message: string) => void, handleNotification: (notification: string) => void,
-		messageLoop: () => void): boolean;
-	/**
-	 * Send a command to the debugger
-	 * only call this if the debugger is connected
-	 */
-	debuggerSend(command: string): void;
-	tryCatch: <T>(tryBlock: () => void, thenBlock: (e: T) => void, catchBlock: (error: any, e: T) => void, e: T, printStackTrace: boolean) => void;
-	/** Terminates the javascript execution immediately. Should only be used for script timeout or debugging */
-	terminateExecution(): void;
-	/**
-	 * Resolve a javascript file, line and column number to the corresponding values in the typescript file
-	 * The result is given as a string that is nicely human readable
-	 */
-	resolveJsToTs(filename: string, line: number, column: number): string;
-
-	// undocumented
-	luaRandomSetSeed(seed: number): void;
-	luaRandom(): number;
-	isReplay?: () => boolean;
-}
-
-declare global {
-	let amun: Amun;
-}
-
-amun = {
-	...amun,
-	isDebug: (<any> amun.isDebug)(),
-	isPerformanceMode: amun.getPerformanceMode!()
-};
-
-// only to be used for unit tests
-export let fullAmun: Amun;
-
-/** This function is used to turn the amun object of type {@link Amun} to an object of type {@link AmunPublic} */
-export function _hideFunctions() {
-	fullAmun = amun;
-	let isDebug = amun.isDebug;
-	let isPerformanceMode = amun.isPerformanceMode;
-	let strategyPath = amun.getStrategyPath!();
-	let getCurrentTime = amun.getCurrentTime;
-	let setRobotExchangeSymbol = amun.setRobotExchangeSymbol;
-	let log = amun.log;
-	let sendCommand = amun.sendCommand;
-	let supportsOptionDefault = amun.SUPPORTS_OPTION_DEFAULT;
-	let supportsEfficientPath = amun.SUPPORTS_EFFICIENT_PATHVIS;
-
-	const makeDisabledFunction = function(name: string) {
-		// eslint-disable-next-line @typescript-eslint/naming-convention
-		function DISABLED_FUNCTION(..._: any[]): any {
-			throw new Error(`Usage of disabled amun function ${name}`);
-		}
-		return DISABLED_FUNCTION;
-	};
-
+	-- overwrite global amun
 	amun = {
-		isDebug: isDebug,
-		isPerformanceMode: isPerformanceMode,
-		strategyPath: strategyPath,
-		getCurrentTime: function() {
-			return getCurrentTime() * 1E-9;
-		},
-		setRobotExchangeSymbol: setRobotExchangeSymbol,
-		log: log,
-		connectGameController: amun.connectGameController,
-		sendGameControllerMessage: amun.sendGameControllerMessage,
-		getGameControllerMessage: amun.getGameControllerMessage,
-		sendCommand: isDebug ? sendCommand : makeDisabledFunction("sendCommand"),
-
-		getWorldState: makeDisabledFunction("getWorldState"),
-		getGeometry: makeDisabledFunction("getGeometry"),
-		getTeam: makeDisabledFunction("getTeam"),
-		isBlue: makeDisabledFunction("isBlue"),
-		addVisualization: makeDisabledFunction("addVisualization"),
-		addCircleSimple: makeDisabledFunction("addCircleSimple"),
-		addPathSimple: makeDisabledFunction("addPathSimple"),
-		addPolygonSimple: makeDisabledFunction("addPolygonSimple"),
-		setCommand: makeDisabledFunction("setCommand"),
-		setCommands: makeDisabledFunction("setCommands"),
-		getGameState: makeDisabledFunction("getGameState"),
-		getUserInput: makeDisabledFunction("getUserInput"),
-		getStrategyPath: makeDisabledFunction("getStrategyPath"),
-		getSelectedOptions: makeDisabledFunction("getSelectedOptions"),
-		addDebug: makeDisabledFunction("addDebug"),
-		addPlot: makeDisabledFunction("addPlot"),
-		addMetric: makeDisabledFunction("addMetric"),
-		sendRefereeCommand: makeDisabledFunction("sendRefereeCommand"),
-		getPerformanceMode: makeDisabledFunction("getPerformanceMode"),
-		connectDebugger: makeDisabledFunction("connectDebugger"),
-		debuggerSend: makeDisabledFunction("debuggerSend"),
-		terminateExecution: makeDisabledFunction("terminateExecution"),
-		resolveJsToTs: makeDisabledFunction("resolveJsToTs"),
-
-		luaRandomSetSeed: makeDisabledFunction("luaRandomSetSeed"),
-		luaRandom: makeDisabledFunction("luaRandom"),
-		tryCatch: makeDisabledFunction("tryCatch"),
-
-		SUPPORTS_OPTION_DEFAULT: supportsOptionDefault,
-		SUPPORTS_EFFICIENT_PATHVIS: supportsEfficientPath
-	};
-}
-
-// short cut for the commonly used log function
-export const log = amun.log;
-
-/**
- * Throws an error with the given message if the strategy is in debug mode.
- * Otherwise it just logs the error
- * @param msg - An error message
- */
-export function throwInDebug(msg: string) {
-	if (amun.isDebug) {
-		throw new Error(msg);
-	} else {
-		log(msg);
+		isDebug = isDebug,
+		strategyPath = strategyPath,
+		nextRefboxReply = nextRefboxReply,
+		getCurrentTime = function ()
+			return getCurrentTime() * 1E-9
+		end,
+		setRobotExchangeSymbol = amun.setRobotExchangeSymbol,
+		isPerformanceMode = performanceMode
 	}
-}
+	if isDebug then
+		amun.sendCommand = sendCommand
+		amun.sendNetworkRefereeCommand = sendNetworkRefereeCommand
+	else
+		amun.sendNetworkRefereeCommand = function()
+			error "you must enable debug in order to send referee commands"
+		end
+	end
 
+	-- prevent reloading original api
+	package.preload["amun"] = nil
+	-- update reference used by require
+	package.loaded["amun"] = amun
+
+	-- lua debug funcitons are only accessible with enabled debug
+	if not isDebug and hasDebugTable then
+		-- luacheck: push globals debug
+		debug = nil
+		-- luacheck: pop
+		package.preload["debug"] = nil
+		package.loaded["debug"] = nil
+	end
+end

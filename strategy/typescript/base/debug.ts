@@ -1,21 +1,10 @@
-/**
- * @module debug
- * Provides functions to set values on the debug tree
- * The hierarchy is defined by '/' so e.g. "robot 2/pos" is a branch of "robot 2" in the debug tree.
- * For ease of use a common prefix for the following calls to set can be pushed and later popped.
- * @example
- * // using only set
- * debug.set("robot 2/pos", pos);
- * debug.set("robot 2/speed", speed);
- * // using push/pop
- * debug.push("robot 2");
- * debug.set("pos", pos);
- * debug.set("speed", speed);
- * debug.pop();
- */
+--[[
+--- Provides functions to set values on the debug tree
+module "debug"
+]]--
 
-/**************************************************************************
-*   Copyright 2018 Michael Eischer, Philipp Nordhus, Andreas Wendler      *
+--[[***********************************************************************
+*   Copyright 2017 Michael Eischer, Philipp Nordhus                       *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -31,199 +20,163 @@
 *   GNU General Public License for more details.                          *
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
-*   along with this program.  if not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+*************************************************************************]]
 
-let addDebug: Function = amun.addDebug;
-import { log } from "base/amun";
+local luaDebug = debug
+local debug = {}
 
-let debugStack: string[] = [""];
+local amun = amun
+local Class = require "../base/class"
 
-let joinCache: { [prefix: string]: { [name: string]: string } } = {};
 
-function prefixName(name?: string): string {
-	let prefix = debugStack[debugStack.length - 1];
-	if (name == undefined) {
-		return prefix;
-	} else if (prefix.length === 0) {
-		return name;
-	}
+local debugStack = { "" }
 
-	// caching to avoid joining the debug keys over and over
-	if (joinCache[prefix] != undefined && joinCache[prefix][name] != undefined) {
-		return joinCache[prefix][name];
-	}
-	let joined = `${prefix}/${name}`;
-	if (joinCache[prefix] == undefined) {
-		joinCache[prefix] = {};
-	}
-	joinCache[prefix][name] = joined;
-	return joined;
-}
+local joinCache = {}
 
-/**
- * Pushes a new key on the debug stack
- * @param name - Name of the new subtree
- * @param value - Value for the subtree header
- */
-export function push(name: string, value?: string) {
-	debugStack.push(prefixName(name));
-	if (value != undefined) {
-		set(undefined, value);
-	}
-}
+local function prefixName(name)
+	local prefix = debugStack[#debugStack]
+	if name == nil then
+		return prefix
+	elseif #prefix == 0 then
+		return name
+	end
 
-/**
- * Pushes a root key on the debug stack.
- * @param name - Name of the new root tree or undefined to push root
- */
-export function pushtop(name?: string) {
-	if (!name) {
-		debugStack.push("");
-	} else {
-		debugStack.push(name);
-	}
-}
+	-- caching to avoid joining the debug keys over and over
+	if joinCache[prefix] and joinCache[prefix][name] then
+		return joinCache[prefix][name]
+	end
+	local joined = prefix .. "/" .. name
+	if not joinCache[prefix] then
+		joinCache[prefix] = {}
+	end
+	joinCache[prefix][name] = joined
+	return joined
+end
 
-/** Pops last key from the debug stack */
-export function pop() {
-	if (debugStack.length > 0) {
-		debugStack.pop();
-	}
-}
+--- Pushes a new key on the debug stack.
+-- @name push
+-- @param name string - Name of the new subtree
+-- @param [value string - Value for the subtree header]
+function debug.push(name, value)
+	table.insert(debugStack, prefixName(name))
+	if value then
+		debug.set(nil, value)
+	end
+end
 
-/**
- * Get extra params for debug set.
- * This can be used to keep the table # stable across calls to debug.set
- * Usage: let extraParams = getInitialExtraParams()
- * debug.set(key, value, unpack(extraParams))
- */
-export function getInitialExtraParams(): object {
-	let visited = new Map<object, string>();
-	let tableCounter = [0];
-	return [visited, tableCounter];
-}
+--- Pushes a root key on the debug stack.
+-- @name pushtop
+-- @param name string - Name of the new root tree or nil to push root
+function debug.pushtop(name)
+	table.insert(debugStack, name or "")
+end
 
-/**
- * Sets value for the given name.
- * if (value is undefined store it as text
- * For the special value undefined the value is set for the current key
- * @param name - Name of the value
- * @param value - Value to set
- */
-export function set(name: string | undefined, value: any, visited: Map<object, string> = new Map(), tableCounter?: number[]) {
-	// visited and tableCounter must be compatible with getInitialExtraParams
+--- Pops last key from the debug stack.
+-- @name pop
+function debug.pop()
+	if #debugStack > 1 then
+		table.remove(debugStack)
+	end
+end
 
-	let result: any;
-	if (typeof(value) === "object") {
-		if (visited.get(value)) {
-			set(name, `${visited.get(value)} (duplicate)`);
-			return;
-		}
-		let suffix = "";
-		if (tableCounter) {
-			suffix = ` [# ${tableCounter[0]} ]`;
-			tableCounter[0] = tableCounter[0] + 1;
-		}
-		visited.set(value, suffix);
 
-		// custom toString for Vector, Robot
-		//
-		// We sometimes want a custom string representation for objects. We can
-		// not just check for the existence of a toString method directly,
-		// because every Javascript object already has a toString method. We
-		// thus need a different kind of marker for objects that want a custom
-		// representation.
-		//
-		// It would probably more idiomatic to use a
-		// Symbol("USE_TOSTRING_REPR") for this, but for now, this works.
-		if (value._toString) {
-			let origValue = value;
-			result = value._toString() + suffix;
-			visited.set(origValue, result);
-		} else {
-			let friendlyName;
-			let isMap = false;
-			if (value.constructor != undefined && Object.keys(value).length === 0) {
-				if (value instanceof Map) {
-					isMap = true;
-					friendlyName = "Map";
-				} else {
-					friendlyName = `empty object (${value.constructor.name})`;
-				}
-			} else if (value.constructor != undefined) {
-				friendlyName = value.constructor.name;
-			} else {
-				friendlyName = "";
-			}
+--- Get extra params for debug.set.
+-- This can be used to keep the table # stable across calls to debug.set
+-- Usage: local extraParams = debug.getInitialExtraParams()
+-- debug.set(key, value, unpack(extraParams))
+-- @name getInitialExtraParams
+-- @return Initial extra params
+function debug.getInitialExtraParams()
+	local visited = {}
+	local tableCounter = { 0 }
+	return { visited, tableCounter }
+end
 
-			push(String(name));
-			friendlyName = friendlyName + suffix;
-			set(undefined, friendlyName);
-			visited.set(value, friendlyName);
 
-			if (isMap) {
-				let counter = 0;
-				for (let [k, v] of value.entries()) {
-					push(`map entry ${counter++}`);
-					set("key", k, visited, tableCounter);
-					set("value", v, visited, tableCounter);
-					pop();
-				}
-			} else {
-				for (let k in value) {
-					let v = value[k];
-					set(String(k), v, visited, tableCounter);
-				}
-			}
-			pop();
-			return;
-		}
-	} else if (typeof(value) === "function") {
-		result = `function ${value.name}`;
-	} else {
-		result = value;
-	}
+--- Sets value for the given name.
+-- If value is nil store it as text
+-- For the special value nil the value is set for the current key
+-- @name set
+-- @param name string - Name of the value
+-- @param value string - Value to set
+function debug.set(name, value, visited, tableCounter)
+	-- must be compatible with getInitialExtraParams
+	visited = visited or {}
+	tableCounter = tableCounter
 
-	addDebug(prefixName(name), result);
-}
+	if type(value) == "table" then
+		if visited[value] then
+			debug.set(name, visited[value] .. " (duplicate)")
+			return
+		end
+		local suffix = ""
+		if tableCounter then
+			suffix = " [#"..tostring(tableCounter[1]).."]"
+			tableCounter[1] = tableCounter[1] + 1
+		end
+		visited[value] = suffix
 
-/**
- * Wrap a function call with a push/pop. This ensures that, no matter where
- * fn returns, the debug tree is properly balanced.
- * @param key - The key to push onto the debug tree
- * @param fn - The function to wrap
- * @returns A wrapper function which will push and pop properly
- */
-export function wrap<T extends Function>(key: string, fn: T): T {
-	// must not be an arrow-function
-	// otherwise the returned function will will have the local this as this
-	const newFn = function(this: any) {
-		push(key);
-		// eslint-disable-next-line no-invalid-this
-		const ret = fn.apply(this, arguments);
-		pop();
-		return ret;
-	};
-	// copy over [[prototype]] and own fields
-	// note that this should rarely be needed
-	// who changes the prototype of a function anyways?
-	const fnProto = Object.getPrototypeOf(fn);
-	if (Object.getPrototypeOf(newFn) !== fnProto) {
-		Object.setPrototypeOf(newFn, fnProto);
-	}
-	Object.assign(newFn, fn);
-	return newFn as any;
-}
+		if rawget(getmetatable(value) or {}, "__tostring") then
+			local origValue = value
+			value = tostring(value)..suffix
+			visited[origValue] = value
+		else
+			local class = Class.toClass(value, true)
+			local hasValues = next(value) ~= nil
 
-/** Clears the debug stack */
-export function resetStack() {
-	if (debugStack.length !== 1 || debugStack[0] !== "") {
-		log("Unbalanced push/pop on debug stack");
-		for (let v of debugStack) {
-			log(v);
-		}
-	}
-	debugStack = [""];
-}
+			local friendlyName
+			if class then
+				friendlyName = Class.name(class)
+			elseif not hasValues then
+				friendlyName = "empty table"
+			else
+				friendlyName = ""
+			end
 
+			debug.push(tostring(name))
+			friendlyName = friendlyName..suffix
+			debug.set(nil, friendlyName)
+			visited[value] = friendlyName
+
+			local mt = tableCounter and luaDebug and luaDebug.getmetatable(value)
+			if mt then
+				debug.set("[__metatable]", mt, visited, tableCounter)
+			end
+
+			local entryCounter = 1
+			for k, v in pairs(value) do
+				if type(k) == "table" then
+					local baseName = "[entry-"..tostring(entryCounter).."]"
+					debug.set(baseName.."/key", k, visited, tableCounter)
+					debug.set(baseName.."/value", v, visited, tableCounter)
+					debug.set(baseName, "MapEntry")
+					entryCounter = entryCounter + 1
+				else
+					debug.set(tostring(k), v, visited, tableCounter)
+				end
+			end
+			debug.pop()
+			return
+		end
+	elseif type(value) == "userdata" or type(value) == "cdata"
+			or type(value) == "function" or type(value) == "thread" then
+		value = tostring(value)
+	end
+
+	amun.addDebug(prefixName(name), value)
+end
+
+--- Clears the debug stack
+-- @name resetStack
+function debug.resetStack()
+	if #debugStack ~= 1 or debugStack[1] ~= "" then
+		log("Unbalanced push/pop on debug stack")
+		for _,v in ipairs(debugStack) do
+			log(v)
+		end
+	end
+	debugStack = { "" }
+end
+
+return debug

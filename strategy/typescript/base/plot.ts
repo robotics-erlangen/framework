@@ -1,10 +1,10 @@
-/**
- * @module plot
- * Send plot data to Ra
- */
+--[[
+--- Send plot data to ra
+module "plot"
+]]--
 
-/**************************************************************************
-*   Copyright 2018 Michael Eischer, Andreas Wendler                       *
+--[[***********************************************************************
+*   Copyright 2015 Michael Eischer                                        *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -21,41 +21,44 @@
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
 
-let amunLocal = amun;
+local plot = {}
 
-
-/**
- * Add data to a plot. Value is used to create a point at the current time
- * @param name - Plot name, seperated layers by '.'
- * @param value - value for data point
- */
-export function addPlot(name: string, value: number) {
-	amunLocal.addPlot(name, value);
-}
+local amun = amun
 
 
-let aggregated: { [name: string]: number } = {};
-let lastAggregated: { [name: string]: number } = {};
-export function _plotAggregated() {
-	for (let k in aggregated) {
-		addPlot(k, aggregated[k]);
-	}
-	for (let k in lastAggregated) {
-		if (aggregated[k] == undefined) {
-			// line down to zero
-			addPlot(k, 0);
-		}
-	}
-	lastAggregated = aggregated;
-	aggregated = {};
-}
+--- Add data to a plot. Value is used to create a point at the current time
+-- @name addPlot
+-- @param name string - Plot name, seperated layers by '.'
+-- @param value number - value for data point
+function plot.addPlot(name, value)
+	amun.addPlot(name, value)
+end
 
-export function aggregate(key: string, value: number) {
-	if (aggregated[key] == undefined) {
-		aggregated[key] = 0;
-	}
-	aggregated[key] = aggregated[key] + value;
-}
 
+local aggregated = {}
+local lastAggregated = {}
+function plot._plotAggregated()
+	for k,v in pairs(aggregated) do
+		plot.addPlot(k, v)
+	end
+	for k,_ in pairs(lastAggregated) do
+		if not aggregated[k] then
+			-- line down to zero
+			plot.addPlot(k, 0)
+		end
+	end
+	lastAggregated = aggregated
+	aggregated = {}
+end
+
+function plot.aggregate(key, value)
+	if not aggregated[key] then
+		aggregated[key] = 0
+	end
+	aggregated[key] = aggregated[key] + value
+end
+
+
+return plot

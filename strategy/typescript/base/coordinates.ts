@@ -1,212 +1,95 @@
-/**
- * @module coordinates
- * Functions to convert from global to strategy local coordinates and back.
- * Only use to convert values from or for amun!
- */
+--[[
+--- Functions to convert from global to strategy local coordinates and back.
+-- Only use to convert values from or for amun!
+module "Coordinates"
+]]--
 
-/**************************************************************************
-*   Copyright 2018 Alexander Danzer, Michael Eischer, Andreas Wendler     *
+--[[***********************************************************************
+*   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
 *                                                                         *
 *   This program is free software: you can redistribute it and/or modify  *
 *   it under the terms of the GNU General Public License as published by  *
-*   the Free Software Foundation, either version 3 of the License, ||     *
+*   the Free Software Foundation, either version 3 of the License, or     *
 *   any later version.                                                    *
 *                                                                         *
 *   This program is distributed in the hope that it will be useful,       *
 *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-*   MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.  See the        *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
 *   GNU General Public License for more details.                          *
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
 
+local Coordinates = {}
 
-import { Vector } from "base/vector";
+--- Converts global coordinates from amun to strategy local coordinates
+-- @class function
+-- @name toLocal
+-- @param data Vector/number - vector or angle to convert
+-- @return Vector/number
 
-interface CoordinatesType {
-	/**
-	 * Converts strategy local coordinates to global coordinates for amun
-	 * @param data - vector to convert
-	 */
-	toGlobal(pos: Vector): Vector;
-	/**
-	 * Converts strategy local coordinates to global coordinates for amun
-	 * @param data - vector to convert
-	 */
-	toGlobal(pos: Readonly<Vector>): Readonly<Vector>;
-	/**
-	 * Converts strategy local coordinates to global coordinates for amun
-	 * @param num - angle to convert
-	 */
-	toGlobal(num: number): number;
-	/**
-	 * Converts global coordinates from amun to strategy local coordinates
-	 * @param pos - vector to convert
-	 */
-	toLocal(pos: Vector): Vector;
-	/**
-	 * Converts global coordinates from amun to strategy local coordinates
-	 * @param pos - vector to convert
-	 */
-	toLocal(pos: Readonly<Vector>): Readonly<Vector>;
-	/**
-	 * Converts global coordinates from amun to strategy local coordinates
-	 * @param num - angle to convert
-	 */
-	toLocal(num: number): number;
-	/**
-	 * Does toGlobal conversion for a list
-	 * @param data - list to map
-	 */
-	listToGlobal(pos: Vector[]): Vector[];
-	/**
-	 * Does toGlobal conversion for a list
-	 * @param data - list to map
-	 */
-	listToGlobal(pos: Readonly<Vector>[]): Readonly<Vector>[];
-	/**
-	 * Does toGlobal conversion for a list
-	 * @param data - list to map
-	 */
-	listToGlobal(num: number[]): number[];
-	/**
-	 * Converts strategy local coordinates to vision coordinates for amun
-	 * @param data - vector to convert
-	 */
-	toVision(pos: Vector): Vector;
-	/**
-	 * Converts strategy local coordinates to vision coordinates for amun
-	 * @param data - vector to convert
-	 */
-	toVision(pos: Readonly<Vector>): Readonly<Vector>;
-	/**
-	 * Converts strategy local coordinates to vision coordinates for amun
-	 * @param data - angle to convert
-	 */
-	toVision(num: number): number;
-	/**
-	 * Converts vision coordinates to strategy local coordinates
-	 * @param data - vector to convert
-	 */
-	fromVision(pos: Vector): Vector;
-	/**
-	 * Converts vision coordinates to strategy local coordinates
-	 * @param data - vector to convert
-	 */
-	fromVision(pos: Readonly<Vector>): Readonly<Vector>;
-	/**
-	 * Converts vision coordinates to strategy local coordinates
-	 * @param data - angle to convert
-	 */
-	fromVision(pos: number): number;
-}
+--[[
+separator for luadoc]]--
 
-class Invert implements CoordinatesType {
-	public toGlobal(data: any): any {
-		if (typeof(data) === "number") {
-			let num = data as number;
-			if (num > 0) {
-				return num - Math.PI;
-			} else {
-				return num + Math.PI;
-			}
-		} else {
-			let vector = data as Vector;
-			return new Vector(-vector.x, -vector.y);
-		}
-	}
-	public toLocal(data: any): any {
-		return this.toGlobal(data);
-	}
-	public listToGlobal(data: any[]): any[] {
-		let inverted = [];
-		for (let v of data) {
-			inverted.push(this.toGlobal(v));
-		}
-		return inverted;
-	}
-	public toVision(data: any): any {
-		if (typeof(data) === "number") {
-			// rotate 270 degrees
-			let num = data as number - Math.PI * 1.5;
-			if (num < 0) {
-				num += 2.0 * Math.PI;
-			}
-			return num;
-		} else {
-			// meter to millimeter
-			let vector = data as Vector * 1000;
-			return new Vector(-vector.y, vector.x);
-		}
-	}
-	public fromVision(data: any): any {
-		if (typeof(data) === "number") {
-			// rotate 270 degrees
-			let num = data as number + Math.PI * 1.5;
-			if (num > 2.0 * Math.PI) {
-				num -= 2.0 * Math.PI;
-			}
-			return num;
-		} else {
-			// meter to millimeter
-			let vector = data as Vector * 0.001;
-			return new Vector(vector.y, -vector.x);
-		}
-	}
-}
+--- Converts strategy local coordinates to global coordinates for amun
+-- @class function
+-- @name toGlobal
+-- @param data Vector/number - vector or angle to convert
+-- @return Vector/number
 
-class Pass implements CoordinatesType {
-	public toGlobal(value: any): any {
-		return value;
-	}
-	public toLocal(value: any): any {
-		return value;
-	}
-	public listToGlobal(value: any): any {
-		return value;
-	}
-	public toVision(data: any): any {
-		if (typeof(data) === "number") {
-			// rotate 90 degrees
-			let num = data as number - Math.PI * 0.5;
-			if (num < 0) {
-				num += 2.0 * Math.PI;
-			}
-			return num;
-		} else {
-			// meter to millimeter
-			let vector = data as Vector * 1000;
-			return new Vector(vector.y, -vector.x);
-		}
-	}
-	public fromVision(data: any): any {
-		if (typeof(data) === "number") {
-			// rotate 90 degrees
-			let num = data as number + Math.PI * 0.5;
-			if (num > 2.0 * Math.PI) {
-				num -= 2.0 * Math.PI;
-			}
-			return num;
-		} else {
-			// meter to millimeter
-			let vector = data as Vector * 0.001;
-			return new Vector(-vector.y, vector.x);
-		}
-	}
-}
+--[[
+separator for luadoc]]--
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-export let Coordinates: CoordinatesType;
+--- Does toGlobal conversion for a list
+-- @class function
+-- @name listToGlobal
+-- @param data (Vector/number)[] - list to map
+-- @return (Vector/number)[]
 
-export function _setIsBlue(teamIsBlue: boolean) {
-	if (teamIsBlue) {
-		Coordinates = new Invert();
-	} else {
-		Coordinates = new Pass();
-	}
-}
+--[[
+separator for luadoc]]--
 
+local function invertCoordinates(data)
+	local dtype = type(data)
+	if dtype == "number" then
+		if data > math.pi then
+			return data - math.pi
+		else
+			return data + math.pi
+		end
+	elseif dtype == "nil" then
+		error("nil isn't a coordinate")
+	else
+		return Vector(-data.x, -data.y, data:isReadonly())
+	end
+end
+
+local function invertList(data)
+	local inverted = {}
+	for k,v in ipairs(data) do
+		inverted[k] = invertCoordinates(v)
+	end
+	return inverted
+end
+
+local function passthrough(data)
+	return data
+end
+
+function Coordinates._setIsBlue(teamIsBlue)
+	if teamIsBlue then
+		Coordinates.toGlobal = invertCoordinates
+		Coordinates.toLocal = invertCoordinates
+		Coordinates.listToGlobal = invertList
+	else
+		Coordinates.toGlobal = passthrough
+		Coordinates.toLocal = passthrough
+		Coordinates.listToGlobal = passthrough
+	end
+end
+
+return Coordinates

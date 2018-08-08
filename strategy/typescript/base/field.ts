@@ -1,12 +1,9 @@
-/**
- * @module field
- * Some field related utility functions
- * A lot of these functions have separate implementations for the field setup pre 2018 and post 2018,
- * because 2018 the defense area changed to being rectangular, but the exported functions should automatically
- * choose the correct implementation.
- */
+--[[
+--- Some field related utility functions
+module "Field"
+]]--
 
-/**************************************************************************
+--[[***********************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier, *
 *       André Pscherer                                                    *
 *   Robotics Erlangen e.V.                                                *
@@ -25,933 +22,892 @@
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
-
-/* eslint-disable @typescript-eslint/naming-convention */
-
-import * as geom from "base/geom";
-import * as MathUtil from "base/mathutil";
-import * as Referee from "base/referee";
-import { Position, RelativePosition, Vector } from "base/vector";
-import * as World from "base/world";
-
-const G: Readonly<World.GeometryType> = World.Geometry;
-
-/**
- * Returns the nearest position inside the field (extended by boundaryWidth)
- * @param pos - The position to limit
- * @param boundaryWidthTouchLine - How much the field should be extended beyond the borders in x
- * @param boundaryWidthGoalLine - How much the field should be extended beyond the borders in y. Defaults to boundaryWidthTouchLine if undefined.
- * @returns The limited Vector
- */
-export function limitToField(pos: Readonly<Position>, boundaryWidthTouchLine: number = 0, boundaryWidthGoalLine: number | undefined = undefined) {
-
-	boundaryWidthGoalLine = boundaryWidthGoalLine ?? boundaryWidthTouchLine;
-	let allowedHeight = G.FieldHeightHalf + boundaryWidthGoalLine; // limit height to field
-	let y = MathUtil.bound(-allowedHeight, pos.y, allowedHeight);
-
-	let allowedWidth = G.FieldWidthHalf + boundaryWidthTouchLine; // limit width to field
-	let x = MathUtil.bound(-allowedWidth, pos.x, allowedWidth);
-
-	return new Vector(x, y);
-}
-
-function limitToAllowedField_2017(pos: Readonly<Position>, boundaryWidth: number = 0): Position {
-	const extraLimit = -boundaryWidth;
-	let oppExtraLimit = extraLimit;
-	if (Referee.isStopState() || Referee.isFriendlyFreeKickState()) {
-		oppExtraLimit = oppExtraLimit + G.FreeKickDefenseDist + 0.10;
-	}
-	pos = limitToField(pos, -extraLimit);
-	if (isInFriendlyDefenseArea(pos, extraLimit)) {
-		if (Math.abs(pos.x) <= G.DefenseStretchHalf) {
-			pos = new Vector(pos.x, -G.FieldHeightHalf + G.DefenseRadius + extraLimit);
-		} else {
-			let circleMidpoint = new Vector(
-				G.DefenseStretchHalf * MathUtil.sign(pos.x), -G.FieldHeightHalf);
-			pos = circleMidpoint + (pos - circleMidpoint).withLength(G.DefenseRadius + extraLimit);
-		}
-		return pos;
-	} else if (isInOpponentDefenseArea(pos, oppExtraLimit)) {
-		if (Math.abs(pos.x) <= G.DefenseStretchHalf) {
-			pos = new Vector(pos.x, G.FieldHeightHalf - G.DefenseRadius - oppExtraLimit);
-		} else {
-			let circleMidpoint = new Vector(
-				G.DefenseStretchHalf * MathUtil.sign(pos.x), G.FieldHeightHalf);
-			pos = circleMidpoint + (pos - circleMidpoint).withLength(G.DefenseRadius + oppExtraLimit);
-		}
-		return pos;
-	}
-	return pos;
-}
-
-function limitToAllowedField_2018(pos: Readonly<Position>, boundaryWidth: number = 0): Position {
-	const extraLimit = -boundaryWidth;
-	let oppExtraLimit = extraLimit;
-	if (Referee.isStopState() || Referee.isFriendlyFreeKickState()) {
-		oppExtraLimit = oppExtraLimit + G.FreeKickDefenseDist + 0.10;
-	}
-	pos = limitToField(pos, -extraLimit);
-	if (isInFriendlyDefenseArea(pos, extraLimit)) {
-		let targety = -G.FieldHeightHalf + G.DefenseHeight + extraLimit;
-		let targetx = G.DefenseWidthHalf + extraLimit;
-		let dy = targety - pos.y;
-		let dx = targetx - Math.abs(pos.x);
-		if (dx > dy) {
-			return new Vector(pos.x, targety);
-		} else {
-			return new Vector(MathUtil.sign(pos.x) * targetx, pos.y);
-		}
-	} else if (isInOpponentDefenseArea(pos, oppExtraLimit)) {
-		let targety = G.FieldHeightHalf - G.DefenseHeight - oppExtraLimit;
-		let targetx = G.DefenseWidthHalf + oppExtraLimit;
-		let dy = pos.y - targety;
-		let dx = targetx - Math.abs(pos.x);
-		if (dx > dy) {
-			return new Vector(pos.x, targety);
-		} else {
-			return new Vector(MathUtil.sign(pos.x) * targetx, pos.y);
-		}
-	}
-	return pos;
-}
-
-/**
- * Check if pos is inside the field (extended by boundaryWidth)
- * @param pos - The position to limit
- * @param boundaryWidth - How much the field should be extended beyond the borders
- * @returns Is in field
- */
-export function isInField(pos: Readonly<Position>, boundaryWidth: number = 0): boolean {
-	let allowedHeight = G.FieldHeightHalf + boundaryWidth; // limit height to field
-	if (Math.abs(pos.x) > G.GoalWidth / 2 && Math.abs(pos.y) > allowedHeight // check whether robot is inside the goal
-			|| Math.abs(pos.y) > allowedHeight + G.GoalDepth) { // handle area behind goal
-		return false;
-	}
-
-	let allowedWidth = G.FieldWidthHalf + boundaryWidth; // limit width to field
-	if (Math.abs(pos.x) > allowedWidth) {
-		return false;
-	}
-
-	return true;
-}
-
-/**
- * Returns the minimum distance to the field borders (extended by boundaryWidth)
- * @param pos - The position to limit
- * @param boundaryWidth - How much the field should be extended beyond the borders
- * @returns The distance to field borders
- */
-export function distanceToFieldBorder(pos: Readonly<Position>, boundaryWidth: number = 0): number {
-	let allowedWidth = G.FieldWidthHalf + boundaryWidth;
-	let dx = allowedWidth - Math.abs(pos.x);
-
-	let allowedHeight = G.FieldHeightHalf + boundaryWidth;
-	let dy = allowedHeight - Math.abs(pos.y);
-
-	// returns the minimum of dx and dy
-	return MathUtil.bound(0, dx, dy);
-}
-
-function distanceToDefenseAreaSq_2018(pos: Readonly<Position>, friendly: boolean): number {
-	let defenseMin = new Vector(-G.DefenseWidthHalf, G.FieldHeightHalf - G.DefenseHeight);
-	let defenseMax = new Vector(G.DefenseWidthHalf, G.FieldHeightHalf);
-	if (friendly) {
-		let temp = defenseMin;
-		defenseMin = -defenseMax;
-		defenseMax = -temp;
-	}
-	return pos.distanceToSq(geom.boundRect(defenseMin, pos, defenseMax));
-}
-
-function isInDefenseArea_2018(pos: Readonly<Position>, radius: number, friendly: boolean): boolean {
-	if (radius < 0) {
-		let defenseMin = new Vector(-G.DefenseWidthHalf - radius, G.FieldHeightHalf - G.DefenseHeight - radius);
-		let defenseMax = new Vector(G.DefenseWidthHalf + radius, G.FieldHeightHalf + radius);
-		if (friendly) {
-			let temp = defenseMin;
-			defenseMin = -defenseMax;
-			defenseMax = -temp;
-		}
-		if (defenseMin.x > defenseMax.x || defenseMin.y > defenseMax.y) {
-			return false;
-		}
-		return geom.insideRect(defenseMin, defenseMax, pos);
-	}
-	return distanceToDefenseAreaSq_2018(pos, friendly) <= radius * radius;
-}
-
-function distanceToDefenseArea_2018(pos: Readonly<Position>, radius: number, friendly: boolean): number {
-	let defenseMin = new Vector(-G.DefenseWidthHalf, G.FieldHeightHalf - G.DefenseHeight);
-	let defenseMax = new Vector(G.DefenseWidthHalf, G.FieldHeightHalf);
-	let distance;
-	if (friendly) {
-		pos = -pos;
-	}
-	if (radius < 0 && isInDefenseArea_2018(pos, 0, friendly)) {
-		let min = defenseMax.x - pos.x;
-		min = Math.min(min, pos.x - defenseMin.x);
-		min = Math.min(min, defenseMax.y - pos.y);
-		min = Math.min(min, pos.y - defenseMin.y);
-		distance = min + radius;
-		return Math.max(-distance, 0);
-	}
-	distance = pos.distanceTo(geom.boundRect(defenseMin, pos, defenseMax)) - radius;
-	return Math.max(distance, 0);
-}
-
-function distanceToDefenseArea_2017(pos: Readonly<Position>, radius: number, friendly: boolean): number {
-	radius = radius + G.DefenseRadius;
-	let defenseY = friendly ? -G.FieldHeightHalf : G.FieldHeightHalf;
-	let inside = new Vector(MathUtil.bound(-G.DefenseStretchHalf, pos.x, G.DefenseStretchHalf), defenseY);
-	let distance = pos.distanceTo(inside) - radius;
-	return (distance < 0) ? 0 : distance;
-}
-function distanceToDefenseAreaSq_2017(pos: Readonly<Position>, friendly: boolean): number {
-	let d = distanceToDefenseArea_2017(pos, 0, friendly);
-	return d * d;
-}
-
-function isInDefenseArea_2017(pos: Readonly<Position>, radius: number, friendly: boolean): boolean {
-	if (radius < -G.DefenseRadius) {
-		return false;
-	}
-	radius = radius + G.DefenseRadius;
-	let defenseY = friendly ? -G.FieldHeightHalf : G.FieldHeightHalf;
-	let inside = new Vector(MathUtil.bound(-G.DefenseStretchHalf, pos.x, G.DefenseStretchHalf), defenseY);
-	return pos.distanceToSq(inside) <= radius * radius;
-}
-
-export let distanceToDefenseAreaSq: (pos: Readonly<Position>, friendly: boolean) => number;
-export let distanceToDefenseArea: (pos: Readonly<Position>, radius: number, friendly: boolean) => number;
-/**
- * Check if position is inside/touching the (friendly) defense area
- * @param pos - The position to check
- * @param radius - Radius of object to check
- * @param friendly - Selection of Own/Opponent area
- */
-export let isInDefenseArea: (pos: Readonly<Position>, radius: number, friendly: boolean) => boolean;
-
-/**
- * Limit the given position to inside the allowed field (the defense area is not allowed)
- * @param pos - The position to limit
- * @param boundaryWidth - How much the field should be extended beyond the borders
- */
-export let limitToAllowedField: (pos: Readonly<Position>, boundaryWidth?: number) => Position;
-if (World.RULEVERSION === "2018") {
-	distanceToDefenseAreaSq = distanceToDefenseAreaSq_2018;
-	distanceToDefenseArea = distanceToDefenseArea_2018;
-	isInDefenseArea = isInDefenseArea_2018;
-	limitToAllowedField = limitToAllowedField_2018;
-} else {
-	distanceToDefenseAreaSq = distanceToDefenseAreaSq_2017;
-	distanceToDefenseArea = distanceToDefenseArea_2017;
-	isInDefenseArea = isInDefenseArea_2017;
-	limitToAllowedField = limitToAllowedField_2017;
-}
-
-
-/**
- * Check if pos is inside the field (extended by boundaryWidth)
- * @param pos - The position to check
- * @param boundaryWidth - How much the field should be extended beyond the borders
- * @returns Is in field
- */
-export function isInAllowedField(pos: Readonly<Position>, boundaryWidth: number): boolean {
-	return isInField(pos, boundaryWidth) &&
-		!isInDefenseArea(pos, -boundaryWidth, true) &&
-		!isInDefenseArea(pos, -boundaryWidth, false) &&
-		!isInFriendlyGoal(pos) &&
-		!isInOpponentGoal(pos);
-}
-
-/**
- * Returns true if the position is inside/touching the friendly defense area
- * @param pos - The position to check
- * @param radius - Radius of object to check
- */
-export function isInFriendlyDefenseArea(pos: Readonly<Position>, radius: number): boolean {
-	return isInDefenseArea(pos, radius, true);
-}
-
-/**
- * Returns true if the position is inside/touching the opponent defense area
- * @param pos - The position to check
- * @param radius - Radius of object to check
- */
-export function isInOpponentDefenseArea(pos: Readonly<Position>, radius: number): boolean {
-	return isInDefenseArea(pos, radius, false);
-}
-
-/**
- * Calculates the distance (between robot hull and field line) to the friendly defense area
- * @param pos - The position to check
- * @param radius - Radius of object to check
- */
-export function distanceToFriendlyDefenseArea(pos: Readonly<Position>, radius: number) {
-	return distanceToDefenseArea(pos, radius, true);
-}
-
-/**
- * Calculates the distance (between robot hull and field line) to the opponent defense area
- * @param pos - The position to check
- * @param radius - Radius of object to check
- * @returns Distance
- */
-export function distanceToOpponentDefenseArea(pos: Readonly<Position>, radius: number) {
-	return distanceToDefenseArea(pos, radius, false);
-}
-
-function intersectRayArc(pos: Position, dir: RelativePosition, m: Position, r: number, minangle: number, maxangle: number): [Vector, number, number][] {
-	let intersections: [Vector, number, number][] = [];
-	let [i1, i2, l1, l2] = geom.intersectLineCircle(pos, dir, m, r);
-	let interval = geom.normalizeAnglePositive(maxangle - minangle);
-	if (i1 && l1! >= 0) {
-		let a1 = geom.normalizeAnglePositive((i1 - m).angle() - minangle);
-		if (a1 < interval) {
-			intersections.push([i1, a1, l1!]);
-		}
-	}
-	if (i2 && l2 != undefined && l2 >= 0) {
-		let a2 = geom.normalizeAnglePositive((i2 - m).angle() - minangle);
-		if (a2 < interval) {
-			intersections.push([i2, a2, l2]);
-		}
-	}
-	return intersections;
-}
-
-interface IntersectionsType {
-	pos: Position;
-	way?: number;
-	sec?: number;
-	l1?: number;
-}
-
-function intersectionsRayDefenseArea_2018(pos: Position, dir: RelativePosition, extraDistance: number, friendly: boolean):
-		{ pos: Position; way: number; sec: number }[] {
-	let corners: Vector[] = [];
-	corners[0] = new Vector(G.DefenseWidthHalf + extraDistance, G.FieldHeightHalf);
-	corners[1] = new Vector(G.DefenseWidthHalf, G.FieldHeightHalf - G.DefenseHeight - extraDistance);
-	corners[2] = new Vector(-G.DefenseWidthHalf - extraDistance, G.FieldHeightHalf - G.DefenseHeight);
-	let directions: Vector[] = [];
-	directions[0] = new Vector(0, -1);
-	directions[1] = new Vector(-1, 0);
-	directions[2] = new Vector(0, 1);
-
-	let f = friendly ? -1 : 1;
-	let way = 0;
-	let intersections: { pos: Position; way: number; sec: number }[] = [];
-	for (let i = 0; i < corners.length; i++) {
-		let v = corners[i];
-		// intersections on lines
-		let length = (i % 2 === 1) ? G.DefenseWidth : G.DefenseHeight;
-		let [ipos, l1, l2] = geom.intersectLineLine(pos, dir, v * f, directions[i] * f);
-		if (l1 != undefined && l1 >= 0 && l2! >= 0 && l2! <= length
-				// no intersections with parallel lines
-				&& (!(l1 === 0 && l2 === 0) || ipos!.distanceToSq(v * f) < 0.0001)) {
-			intersections.push({ pos: ipos!, way: way + l2!, sec: (i + 1) * 2 - 1 });
-		}
-		way = way + length;
-		// intersections with arc segments
-		if (i < 2 && extraDistance > 0) {
-			let corner = new Vector((3 - (i + 1) * 2) * G.DefenseWidthHalf, G.FieldHeightHalf - G.DefenseHeight) * f;
-			let oppRotation = friendly ? 0 : Math.PI;
-			let circleIntersections = intersectRayArc(pos, dir, corner, extraDistance,
-				Math.PI - (i + 1) * 0.5 * Math.PI + oppRotation, 1.5 * Math.PI - (i + 1) * 0.5 * Math.PI + oppRotation);
-			for (let intersection of circleIntersections) {
-				intersections.push({ pos: intersection[0], way: way + (Math.PI / 2 - intersection[1]) * extraDistance, sec: (i + 1) * 2 });
-			}
-		}
-		way = way + Math.PI * extraDistance / 2;
-		if (intersections.length === 2) {
-			break;
-		}
-	}
-	return intersections;
-}
-
-function intersectDefenseArea_2018(pos: Position, dir: RelativePosition, extraDistance: number, friendly: boolean, invertedPos: boolean = false):
-		[Position, number, number] | [undefined, number] {
-	let intersections = intersectionsRayDefenseArea_2018(pos, dir, extraDistance, friendly);
-	if (intersections[1] && (pos.distanceToSq(intersections[0].pos) > pos.distanceToSq(intersections[1].pos) !== invertedPos)) {
-		return [intersections[1].pos, intersections[1].way, intersections[1].sec];
-	} else if (intersections[0]) {
-		return [intersections[0].pos, intersections[0].way, intersections[0].sec];
-	}
-	return [undefined, G.DefenseHeight + G.DefenseWidthHalf + extraDistance * Math.PI / 4];
-}
-
-// if the way is <0 or greater than the maximum way, the intersection is on
-// the extended defense area side lines
-function defenseIntersectionByWay_2018(way: number, extraDistance: number, friendly: boolean): Position | undefined {
-	let corners: Vector[] = [];
-	corners[0] = new Vector(G.DefenseWidthHalf + extraDistance, G.FieldHeightHalf);
-	corners[1] = new Vector(G.DefenseWidthHalf, G.FieldHeightHalf - G.DefenseHeight - extraDistance);
-	corners[2] = new Vector(-G.DefenseWidthHalf - extraDistance, G.FieldHeightHalf - G.DefenseHeight);
-	let directions: Vector[] = [];
-	directions[0] = new Vector(0, -1);
-	directions[1] = new Vector(-1, 0);
-	directions[2] = new Vector(0, 1);
-	let f = friendly ? -1 : 1;
-
-	for (let i = 0; i < 3; i++) {
-		let v = corners[i];
-		let length = (i % 2 === 1) ? G.DefenseWidth : G.DefenseHeight;
-		if (way <= length || i === 2) {
-			return (v + directions[i] * way) * f;
-		}
-		way = way - length - Math.PI / 2 * extraDistance;
-		if (way < 0) {
-			let corner = new Vector((3 - (i + 1) * 2) * G.DefenseWidthHalf, G.FieldHeightHalf - G.DefenseHeight) * f;
-			let dir = Vector.fromPolar(-Math.PI / 2 * (i + 1) - way / extraDistance, f);
-			return corner + dir * extraDistance;
-		}
-	}
-	return undefined;
-}
-
-function intersectionsRayDefenseArea_2017(pos: Position, dir: RelativePosition, extraDistance: number = 0,
-		friendly: boolean = false): [{ pos: Position; l1: number }[], number] {
-	// calculate defense radius
-	let radius = G.DefenseRadius + extraDistance;
-	if (radius < 0) {
-		throw new Error("extraDistance must not be smaller than -G.DefenseRadius");
-	}
-
-	// calculate length of defense border (arc - line - arc)
-	let arcway = radius * Math.PI / 2;
-	let lineway = G.DefenseStretch;
-	let totalway = 2 * arcway + lineway;
-
-	// calculate global positions
-	let oppfac = friendly ? 1 : -1;
-	let leftCenter = new Vector(-G.DefenseStretchHalf, -G.FieldHeightHalf) * oppfac;
-	let rightCenter = new Vector(G.DefenseStretchHalf, -G.FieldHeightHalf) * oppfac;
-
-	// calclulate global angles
-	let oppadd = friendly ? 0 : Math.PI;
-	let to_opponent = geom.normalizeAnglePositive(oppadd + Math.PI / 2);
-	let to_friendly = geom.normalizeAnglePositive(oppadd - Math.PI / 2);
-
-	// calculate intersection points with defense arcs
-	let intersections: { pos: Vector; l1: number }[] = [];
-	let ileft = intersectRayArc(pos, dir, leftCenter, radius, to_opponent, to_friendly);
-	for (let i of ileft) {
-		intersections.push({ pos: i[0], l1: (Math.PI / 2 - i[1]) * radius });
-	}
-	let iright = intersectRayArc(pos, dir, rightCenter, radius, to_friendly, to_opponent);
-	for (let i of iright) {
-		intersections.push({ pos: i[0], l1: (Math.PI - i[1]) * radius + arcway + lineway });
-	}
-
-	// calculate intersection point with defense stretch
-	let defenseLineOnpoint = new Vector(0, -G.FieldHeightHalf + radius) * oppfac;
-	let [lineIntersection, l1, l2] = geom.intersectLineLine(pos, dir, defenseLineOnpoint, new Vector(1, 0));
-	if (lineIntersection && l1! >= 0 && Math.abs(l2!) <= G.DefenseStretchHalf) {
-		intersections.push({ pos: lineIntersection, l1: l2! + totalway / 2 });
-	}
-	return [intersections, totalway];
-}
-
-function intersectionsRayDefenseArea_2017Wrapper(pos: Position, dir: RelativePosition, extraDistance: number = 0,
-		friendly: boolean = false): { pos: Position; l1: number }[] {
-	return intersectionsRayDefenseArea_2017(pos, dir, extraDistance, friendly)[0];
-}
-
-function intersectRayDefenseArea_2017(pos: Position, dir: RelativePosition, extraDistance: number, friendly: boolean, invertedPos: boolean = false):
-		[Position | undefined, number] {
-	let [intersections, totalway] = intersectionsRayDefenseArea_2017(pos, dir, extraDistance, friendly);
-
-	// choose nearest intersection
-	let minDistance = invertedPos ? 0 : Infinity;
-	let minIntersection = undefined;
-	let minWay = totalway / 2;
-	for (let i of intersections) {
-		let dist = pos.distanceTo(i.pos);
-		if (dist < minDistance !== invertedPos) {
-			minDistance = dist;
-			minIntersection = i.pos;
-			minWay = i.l1;
-		}
-	}
-	return [minIntersection, minWay];
-}
-
-// FIXME: Calling intercetRayDefenseArea twice is bad because of floats: Sometimes there is still an intersection (because the result ist marginally outside the Defense area)
-// Or there is no intersecton (because the result is marginally inside the Defense area). To avoid this problem, one has to use a slightly larger radius in the first call.
-
-/**
- * Returns one intersection of a given line with the (extended) defense area
- * The intersection is the one with the smallest t in x = pos + t * dir, t >= 0
- * the sectors are ordered as followes:
- * 2  3  4
- * 1     5
- * @param pos - Starting point of the line
- * @param dir - The direction of the line
- * @param extraDistance - Gets added to G.DefenseRadius
- * @param opp - Whether the opponent or the friendly defense area is considered
- * @returns The intersection position (May also be behind the goalline)
- * @returns The length of the way from the very left of the defense area to the
- * @returns Sector in which the intersection lies, left to right
- */
-export let intersectRayDefenseArea: (pos: Position, dir: RelativePosition, extraDist: number, friendly: boolean, invertedPos?: boolean) => [Position | undefined, number, number?];
-export let intersectionsRayDefenseArea: (pos: Position, dir: RelativePosition, extraDist: number, friendly: boolean) => IntersectionsType[];
-if (World.RULEVERSION === "2018") {
-	intersectRayDefenseArea = intersectDefenseArea_2018;
-	intersectionsRayDefenseArea = intersectionsRayDefenseArea_2018;
-} else {
-	intersectRayDefenseArea = intersectRayDefenseArea_2017;
-	intersectionsRayDefenseArea = intersectionsRayDefenseArea_2017Wrapper;
-}
-
-function cornerPointsBetweenWays2018(way1: number, way2: number, radius: number = 0, friendly: boolean): Position[] {
-	let smallerWay = Math.min(way1, way2);
-	let largerWay = Math.max(way1, way2);
-	let cornerLeftWay = G.DefenseHeight + Math.PI * radius / 4;
-	let cornerRightWay = G.DefenseHeight + G.DefenseWidth + 3 * Math.PI * radius / 4;
-	let result: Position[] = [];
-	if (smallerWay <= cornerLeftWay && largerWay >= cornerLeftWay) {
-		let cornerLeft = new Vector(-G.DefenseWidthHalf, -G.FieldHeightHalf + G.DefenseHeight) + new Vector(-1, 1).withLength(radius);
-		if (!friendly) {
-			cornerLeft = -cornerLeft;
-		}
-		result.push(cornerLeft);
-	}
-	if (smallerWay <= cornerRightWay && largerWay >= cornerRightWay) {
-		let cornerRight = new Vector(G.DefenseWidthHalf, -G.FieldHeightHalf + G.DefenseHeight) + new Vector(1, 1).withLength(radius);
-		if (!friendly) {
-			cornerRight = -cornerRight;
-		}
-		result.push(cornerRight);
-	}
-	if (result.length === 2 && way1 > way2) {
-		let temp = result[0];
-		result[0] = result[1];
-		result[1] = temp;
-	}
-	return result;
-}
-
-function cornerPointsBetweenWays2017() {
-	return [];
-}
-
-/**
- * Return a list of all cornerpoints between the given ways
- * note that the radius has to be the same as with which the ways were calculated
- * the resulting points are ordered in the same way as the in put ways
- * @param way1 - The first way, doesn't have to be the lower one
- * @param way2 - The second way
- * @param radius - The radius of the defense area to be considered
- * @param friendly - Whether to use the friendly or the opponent defense area
- * @returns A list of all corner points between the two ways the resulting points are radius away from the defense area
- */
-export let cornerPointsBetweenWays: (way1: number, way2: number, radius: number, friendly: boolean) => Position[];
-if (World.RULEVERSION === "2018") {
-	cornerPointsBetweenWays = cornerPointsBetweenWays2018;
-} else {
-	cornerPointsBetweenWays = cornerPointsBetweenWays2017;
-}
-
-
-function maxWay2018(radius: number): number {
-	return G.DefenseHeight * 2 + G.DefenseWidth + Math.PI * radius;
-}
-
-function maxWay2017(radius: number): number {
-	return G.DefenseStretch + Math.PI * (radius + G.DefenseRadius);
-}
-
-/**
- * Return the maximum way that can be reached on the defense area with a given radius
- * @param radius - The radius for the defense area
- * @returns The maximum way
- */
-export let maxWay: (radius: number) => number;
-if (World.RULEVERSION === "2018") {
-	maxWay = maxWay2018;
-} else {
-	maxWay = maxWay2017;
-}
-
-/**
- * Return all line segments of the line segment pos to pos + dir * maxLength which are in the allowed field part
- * @param pos - Starting point of the line
- * @param dir - The direction of the line
- * @param maxLength - Length of the line segment, optional
- * @returns Contains n {pos1, pos2} tables representing the resulting line segments
- */
-export function allowedLineSegments(pos: Position, dir: RelativePosition, maxLength: number = Infinity): [Position, Position][] {
-	let direction = dir.normalized();
-	let [pos1, lambda1] = geom.intersectLineLine(pos, direction, new Vector(G.FieldWidthHalf, 0), new Vector(0, 1));
-	let [pos2, lambda2] = geom.intersectLineLine(pos, direction, new Vector(-G.FieldWidthHalf, 0), new Vector(0, 1));
-	let [pos3, lambda3] = geom.intersectLineLine(pos, direction, new Vector(0, G.FieldHeightHalf), new Vector(1, 0));
-	let [pos4, lambda4] = geom.intersectLineLine(pos, direction, new Vector(0, -G.FieldHeightHalf), new Vector(1, 0));
-	let lambdas: number[] = [];
-	let fieldLambdas = [lambda1, lambda2, lambda3, lambda4];
-	let fieldPos = [pos1, pos2, pos3, pos4];
-	for (let i = 0; i < fieldLambdas.length; i++) {
-		let lambda = fieldLambdas[i];
-		if (lambda != undefined) {
-			if (lambda > maxLength) {
-				lambda = maxLength;
-			}
-			// an offset 0f 0.05 is used here and below as the calculated point is on
-			// the border of the field anyways, otherwise it might flicker due to floating
-			// point inaccuracies
-			if (isInField(fieldPos[i]!, 0.05) && lambda > 0) {
-				lambdas.push(lambda);
-			}
-		}
-	}
-
-	let intersectionsOwn = intersectionsRayDefenseArea(pos, direction, 0, true);
-	let intersectionsOpp = intersectionsRayDefenseArea(pos, direction, 0, false);
-	intersectionsOwn = intersectionsOwn.concat(intersectionsOpp);
-	for (let intersection of intersectionsOwn) {
-		let lambda = pos.distanceTo(intersection.pos);
-		if (lambda > maxLength) {
-			lambda = maxLength;
-		}
-		if (isInField(intersection.pos, 0.05) && lambda > 0) {
-			lambdas.push(lambda);
-		}
-	}
-
-	if (isInAllowedField(pos, 0)) {
-		lambdas.push(0);
-	}
-
-	lambdas.sort((a, b) => a - b);
-
-	let result: [Position, Position][] = [];
-	for (let i = 0; i < Math.floor(lambdas.length / 2); i++) {
-		let p1 = pos + direction * lambdas[i * 2];
-		let p2 = pos + direction * lambdas[i * 2 + 1];
-		if (p1.distanceTo(p2) > 0) {
-			result.push([p1, p2]);
-		}
-	}
-	return result;
-}
-function defenseIntersectionByWay_2017(way: number, extraDistance: number = 0, friendly: boolean): Position {
-	// calculate defense radius
-	let radius = G.DefenseRadius + extraDistance;
-	if (radius < 0) {
-		throw new Error(`extraDistance must not be smaller thhan -G.DefenseRadius: ${extraDistance}`);
-	}
-
-	// calculate length of defense border (arc - line - arc)
-	let arcway = radius * Math.PI / 2;
-	let lineway = G.DefenseStretch;
-	let totalway = 2 * arcway + lineway;
-
-	// bind way to [0, totalway] by mirroring it
-	// inserted way can be in [-2*totalway, 2*totalway]
-	if (way < 0) {
-		way = -way;
-	}
-	if (way > totalway) {
-		way = 2 * totalway - way; // if abs(way) > 2*totalway, way will be negative and be eaten by the folling assert
-	}
-
-	if (way < 0) {
-		throw new Error(`way is out of bounds (${way}, ${extraDistance}, ${friendly})`);
-	}
-
-	let intersection;
-	if (way < arcway) {
-		let angle = way / radius;
-		intersection = Vector.fromPolar(-angle, radius) +
-			new Vector(G.DefenseStretchHalf, G.FieldHeightHalf);
-	} else if (way <= arcway + lineway) {
-		intersection = new Vector(-way + arcway + G.DefenseStretchHalf, G.FieldHeightHalf - radius);
-	} else {
-		let angle = (way - arcway - lineway) / radius;
-		intersection = Vector.fromPolar(-Math.PI / 2 - angle, radius) +
-			new Vector(-G.DefenseStretchHalf, G.FieldHeightHalf);
-	}
-
-	if (friendly) {
-		intersection = -intersection;
-	}
-
-	return intersection;
-}
-
-/**
- * Calculates the point on the (extended) defense area when given the way along its border
- * @param way - The way along the border
- * @param extraDistance - Gets added to G.DefenseRadius
- * @param friendly - Whether the opponent or the friendly defense area is considered
- * @returns The position
- */
-export let defenseIntersectionByWay: (way: number, extraDistance: number, friendly: boolean) => Position | undefined;
-if (World.RULEVERSION === "2018") {
-	defenseIntersectionByWay = defenseIntersectionByWay_2018;
-} else {
-	defenseIntersectionByWay = defenseIntersectionByWay_2017;
-}
-
-function intersectCircleDefenseArea_2017(pos: Position, radius: number, extraDistance: number, friendly: boolean): Position[] {
-	// invert coordinates if opp-flag is set
-	if (friendly) {
-		pos = pos * -1;
-	}
-
-	let leftCenter = new Vector(-G.DefenseStretchHalf, G.FieldHeightHalf);
-	let rightCenter = new Vector(G.DefenseStretchHalf, G.FieldHeightHalf);
-	let defenseRadius = G.DefenseRadius + extraDistance;
-
-	let intersections: Position[] = [];
-
-	// get intersections with circles
-	let [li1, li2] = geom.intersectCircleCircle(leftCenter, defenseRadius, pos, radius);
-	let [ri1, ri2] = geom.intersectCircleCircle(rightCenter, defenseRadius, pos, radius);
-	if (li1 && li1.x < G.DefenseStretchHalf && li1.y < G.FieldHeightHalf) {
-		intersections.push(li1);
-	}
-	if (li2 && li2.x < G.DefenseStretchHalf && li2.y < G.FieldHeightHalf) {
-		intersections.push(li2);
-	}
-	if (ri1 && ri1.x > G.DefenseStretchHalf && ri1.y < G.FieldHeightHalf) {
-		intersections.push(ri1);
-	}
-	if (ri2 && ri2.x > G.DefenseStretchHalf && ri2.y < G.FieldHeightHalf) {
-		intersections.push(ri2);
-	}
-
-	// get intersections with line
-	let [mi1, mi2] = geom.intersectLineCircle(
-				new Vector(0, G.FieldHeightHalf - defenseRadius), new Vector(1, 0), pos, radius);
-	if (mi1 && Math.abs(mi1.x) <= G.DefenseStretchHalf) {
-		intersections.push(mi1);
-	}
-	if (mi2 && Math.abs(mi2.x) <= G.DefenseStretchHalf) {
-		intersections.push(mi2);
-	}
-
-
-	// invert coordinates if opp-flag is set
-	if (friendly) {
-		for (let i = 0; i < intersections.length; i++) {
-			intersections[i] = intersections[i] * -1;
-		}
-	}
-
-	return intersections;
-}
-
-function intersectCircleDefenseArea_2018(pos: Position, radius: number, extraDistance: number, friendly: boolean): Position[] {
-	if (!isInDefenseArea_2018(pos, radius + extraDistance, friendly)) {
-		return [];
-	}
-	let corners: Position[] = [];
-	corners[0] = new Vector(G.DefenseWidthHalf, G.FieldHeightHalf);
-	corners[1] = new Vector(G.DefenseWidthHalf, G.FieldHeightHalf - G.DefenseHeight);
-	corners[2] = new Vector(-G.DefenseWidthHalf, G.FieldHeightHalf - G.DefenseHeight);
-	corners[3] = new Vector(-G.DefenseWidthHalf, G.FieldHeightHalf);
-	corners[4] = new Vector(corners[0].x + extraDistance, corners[0].y);
-	corners[5] = new Vector(corners[1].x, corners[1].y - extraDistance);
-	corners[6] = new Vector(corners[2].x - extraDistance, corners[2].y);
-	corners[7] = new Vector(corners[3].x, corners[3].y + extraDistance);
-	// invert coordinates if friendly-flag is set
-	if (friendly) {
-		pos = pos * -1;
-	}
-
-	let intersections: Position[] = [];
-
-	let ci1, ci2;
-	let zero = new Vector(0, 0);
-	let li1, li2, lambda1, lambda2;
-	let dirPrev = corners[0] - corners[3];
-	for (let i = 0; i < 3; i++) {
-		let dir = corners[i + 1] - corners[i];
-		// get intersections with circles
-		if (i > 0 && i < 2) {
-			[ci1, ci2] = geom.intersectCircleCircle(zero, extraDistance, pos - corners[i], radius);
-			if (ci1 && ci1.insideSector(dirPrev, -dir)) {
-				intersections.push(ci1 + corners[i]);
-			}
-			if (ci2 && ci2.insideSector(dirPrev, -dir)) {
-				intersections.push(ci2 + corners[i]);
-			}
-		}
-		dirPrev = dir;
-		// get intersections with line
-		[li1, li2, lambda1, lambda2] = geom.intersectLineCircle(corners[i + 4], dir, pos, radius);
-		if (lambda1 != undefined && lambda1 >= 0 && lambda1 * lambda1 < dir.lengthSq()) {
-			intersections.push(li1!);
-		}
-		if (lambda2 != undefined && lambda2 >= 0 && lambda2 * lambda2 < dir.lengthSq()) {
-			intersections.push(li2!);
-		}
-	}
-	// invert coordinates if opp-flag is set
-	if (friendly) {
-		for (let i = 0; i < intersections.length; i++) {
-			intersections[i] = intersections[i] * -1;
-		}
-	}
-
-	return intersections;
-}
-
-/**
- * Calculates all intersections (0 to 4) of a given circle with the (extended) defense area
- * @param pos - Center point of the circle
- * @param radius - Radius of the circle
- * @param extraDistance - Gets added to G.DefenseRadius
- * @param friendly - Whether the opponent or the friendly defense area is considered
- * @returns A list of intersection points, not sorted
- */
-export let intersectCircleDefenseArea: (pos: Position, radius: number, extraDistance: number, friendly: boolean) => Position[];
-if (World.RULEVERSION === "2018") {
-	intersectCircleDefenseArea = intersectCircleDefenseArea_2018;
-} else {
-	intersectCircleDefenseArea = intersectCircleDefenseArea_2017;
-}
-
-/**
- * Calculates the distance (between robot hull and field line) to the own goal line
- * @param pos - The position to check
- * @param radius - Radius of object to check
- * @returns distance
- */
-export function distanceToFriendlyGoalLine(pos: Position, radius: number): number {
-	if (Math.abs(pos.x) < G.GoalWidth / 2) {
-		return Math.max(G.FieldHeightHalf + pos.y - radius, 0);
-	}
-	let goalpost = new Vector(pos.x > 0 ? G.GoalWidth / 2 : -G.GoalWidth / 2, -G.FieldHeightHalf);
-	return goalpost.distanceTo(pos) - radius;
-}
-
-/**
- * Check whether to position is in the teams own corner
- * @param pos - The position to check
- * @param opp - Do the check from the opponents point of view
- */
-export function isInOwnCorner(pos: Position, opp: boolean): boolean {
-	let oppfac = opp ? 1 : -1;
-	let a = (G.FieldWidthHalf - Math.abs(pos.x));
-	let b = (oppfac * G.FieldHeightHalf - pos.y);
-	return a * a + b * b < 1;
-}
-
-/**
- * The position, where the half-line given by startPos and dir intersects the next field boundary
- * @param startPos - The initial point of the half-line (the position must be INSIDE the field with the offset)
- * @param dir - The direction of the half-line
- * @param offset - Additional offset to move field lines further outwards]
- */
-export function nextLineCut(startPos: Position, dir: RelativePosition, offset: number = 0): Position | undefined {
-	if (dir.x === 0 && dir.y === 0) {
-		return undefined;
-	}
-	let width = new Vector((dir.x > 0 ? 1 : -1) * (G.FieldWidthHalf + offset), 0);
-	let height = new Vector(0, (dir.y > 0 ? 1 : -1) * (G.FieldHeightHalf + offset));
-	let [sideCut, sideLambda] = geom.intersectLineLine(startPos, dir, width, height);
-	let [frontCut, frontLambda] = geom.intersectLineLine(startPos, dir, height, width);
-	if (sideCut) {
-		if (frontCut) {
-			if (sideLambda! < frontLambda!) {
-				return sideCut;
-			} else {
-				return frontCut;
-			}
-		} else {
-			return sideCut;
-		}
-	} else {
-		return frontCut;
-	}
-}
-
-
-/**
- * Calculates the next intersection with the field boundaries or the defense areas
- * @param startPos - The initial point of the half-line
- * @param dir - The direction of the half-line
- * @param extraDistance - The radius of the object (gets added to G.DefenseRadius)
- * @returns minLineCut
- * @returns The lambda for the line cut
- */
-export function nextAllowedFieldLineCut(startPos: Position, dir: RelativePosition, extraDistance: number): [Position, number] | [] {
-	let normalizedDir = dir.normalized();
-	let perpendicularDir = normalizedDir.perpendicular();
-
-	let boundaryLineCut = nextLineCut(startPos, normalizedDir, -extraDistance);
-	let [friendlyDefenseLineCut] = intersectRayDefenseArea(startPos, normalizedDir, extraDistance, false);
-	let [opponentDefenseLineCut] = intersectRayDefenseArea(startPos, normalizedDir, extraDistance, true);
-
-	let lineCuts: Position[] = [];
-	if (boundaryLineCut != undefined) {
-		lineCuts.push(boundaryLineCut);
-	}
-	if (friendlyDefenseLineCut != undefined) {
-		lineCuts.push(friendlyDefenseLineCut);
-	}
-	if (opponentDefenseLineCut != undefined) {
-		lineCuts.push(opponentDefenseLineCut);
-	}
-
-	let minLambda = Infinity;
-	let minLineCut: Position | undefined = undefined;
-	for (let lineCut of lineCuts) {
-		let [_, lambda] = geom.intersectLineLine(startPos, normalizedDir, lineCut, perpendicularDir);
-		if (lambda != undefined && lambda > 0 && lambda < minLambda) {
-			minLambda = lambda;
-			minLineCut = lineCut;
-		}
-	}
-
-	if (minLineCut == undefined) {
-		return [];
-	}
-	return [minLineCut, minLambda];
-}
-
-/**
- * Checks wether a position lies inside the friendly goal
- * @param pos - The position to check
- * @returns Is in friendly goal
- */
-export function isInFriendlyGoal(pos: Position): boolean {
+*************************************************************************]]
+
+local Field = {}
+
+local geom = require "../base/geom"
+local math = require "../base/math"
+local Referee = require "../base/referee"
+local World = require "../base/world"
+
+local G = World.Geometry
+
+--- returns the nearest position inside the field (extended by boundaryWidth)
+-- @name limitToField
+-- @param pos Vector - the position to limit
+-- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @return Vector - limited vector
+function Field.limitToField(pos, boundaryWidth)
+	boundaryWidth = boundaryWidth or 0
+
+	local allowedHeight = G.FieldHeightHalf + boundaryWidth -- limit height to field
+	local y = math.bound(-allowedHeight, pos.y, allowedHeight)
+
+	local allowedWidth = G.FieldWidthHalf + boundaryWidth -- limit width to field
+	local x = math.bound(-allowedWidth, pos.x, allowedWidth)
+
+	return Vector(x, y)
+end
+
+--- returns the nearest position inside the field without defense areas
+-- @name limitToAllowedField
+-- @param extraLimit number - how much the field should be additionally limited
+-- @param pos Vector - the position to limit
+-- @return Vector - limited vector
+local function limitToAllowedField_2017(pos, extraLimit)
+	extraLimit = extraLimit or 0
+	local oppExtraLimit = extraLimit
+	if Referee.isStopState() or Referee.isFriendlyFreeKickState() then
+		oppExtraLimit = oppExtraLimit + G.FreeKickDefenseDist + 0.10
+	end
+	pos = Field.limitToField(pos, -extraLimit)
+	if Field.isInFriendlyDefenseArea(pos, extraLimit) then
+		if math.abs(pos.x) <= G.DefenseStretchHalf then
+			pos = Vector(pos.x, -G.FieldHeightHalf + G.DefenseRadius + extraLimit)
+		else
+			local circleMidpoint = Vector(
+				G.DefenseStretchHalf * math.sign(pos.x), -G.FieldHeightHalf)
+			pos = circleMidpoint + (pos - circleMidpoint):setLength(G.DefenseRadius + extraLimit)
+		end
+		return pos
+	elseif Field.isInOpponentDefenseArea(pos, oppExtraLimit) then
+		if math.abs(pos.x) <= G.DefenseStretchHalf then
+			pos = Vector(pos.x, G.FieldHeightHalf-G.DefenseRadius-oppExtraLimit)
+		else
+			local circleMidpoint = Vector(
+				G.DefenseStretchHalf*math.sign(pos.x), G.FieldHeightHalf)
+			pos = circleMidpoint + (pos - circleMidpoint):setLength(G.DefenseRadius+oppExtraLimit)
+		end
+		return pos
+	end
+	return pos
+end
+local function limitToAllowedField_2018(pos, extraLimit)
+	extraLimit = extraLimit or 0
+	local oppExtraLimit = extraLimit
+	if Referee.isStopState() or Referee.isFriendlyFreeKickState() then
+		oppExtraLimit = oppExtraLimit + G.FreeKickDefenseDist + 0.10
+	end
+	pos = Field.limitToField(pos, -extraLimit)
+	if Field.isInFriendlyDefenseArea(pos, extraLimit) then
+		local targety = -G.FieldHeightHalf + G.DefenseHeight + extraLimit
+		local targetx = G.DefenseWidthHalf + extraLimit
+		local dy = targety - pos.y
+		local dx = targetx - math.abs(pos.x)
+		if dx > dy then
+			return Vector(pos.x, targety)
+		else
+			return Vector(math.sign(pos.x)*targetx, pos.y)
+		end
+	elseif Field.isInOpponentDefenseArea(pos, oppExtraLimit) then
+		local targety = G.FieldHeightHalf - G.DefenseHeight - oppExtraLimit
+		local targetx = G.DefenseWidthHalf + oppExtraLimit
+		local dy = pos.y - targety
+		local dx = targetx - math.abs(pos.x)
+		if dx > dy then
+			return Vector(pos.x, targety)
+		else
+			return Vector(math.sign(pos.x)*targetx, pos.y)
+		end
+	end
+	return pos
+end
+
+--- check if pos is inside the field (extended by boundaryWidth)
+-- @name isInField
+-- @param pos Vector - the position to limit
+-- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @return bool - is in field
+function Field.isInField(pos, boundaryWidth)
+	boundaryWidth = boundaryWidth or 0
+
+	local allowedHeight = G.FieldHeightHalf + boundaryWidth -- limit height to field
+	if math.abs(pos.x) > G.GoalWidth / 2 and math.abs(pos.y) > allowedHeight -- check whether robot is inside the goal
+			or math.abs(pos.y) > allowedHeight + G.GoalDepth then -- handle area behind goal
+		return false
+	end
+
+	local allowedWidth = G.FieldWidthHalf + boundaryWidth -- limit width to field
+	if math.abs(pos.x) > allowedWidth then
+		return false
+	end
+
+	return true
+end
+
+--- Returns the minimum distance to the field borders (extended by boundaryWidth)
+-- @name distanceToFieldBorders
+-- @param pos Vector - the position to limit
+-- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @return number - distance to field borders
+function Field.distanceToFieldBorder(pos, boundaryWidth)
+	boundaryWidth = boundaryWidth or 0
+
+	local allowedWidth = G.FieldWidthHalf + boundaryWidth
+	local dx = allowedWidth - math.abs(pos.x)
+
+	local allowedHeight = G.FieldHeightHalf + boundaryWidth
+	local dy = allowedHeight - math.abs(pos.y)
+
+	-- returns the minimum of dx and dy
+	return math.bound(0, dx, dy)
+end
+
+local function distanceToDefenseAreaSq_2018(pos, friendly)
+	local defenseMin = Vector(-G.DefenseWidthHalf,G.FieldHeightHalf-G.DefenseHeight)
+	local defenseMax = Vector(G.DefenseWidthHalf,G.FieldHeightHalf)
+	if friendly then
+		defenseMin, defenseMax = -defenseMax, -defenseMin
+	end
+	return pos:distanceToSq(geom.boundRect(defenseMin, pos, defenseMax))
+end
+
+local function isInDefenseArea_2018(pos, radius, friendly)
+	if radius < 0 then
+		local defenseMin = Vector(-G.DefenseWidthHalf-radius, G.FieldHeightHalf-G.DefenseHeight-radius)
+		local defenseMax = Vector(G.DefenseWidthHalf+radius, G.FieldHeightHalf+radius)
+		if friendly then
+			defenseMin, defenseMax = -defenseMax, -defenseMin
+		end
+		if defenseMin.x > defenseMax.x or defenseMin.y > defenseMax.y then
+			return false
+		end
+		return geom.insideRect(defenseMin, defenseMax, pos)
+	end
+	return distanceToDefenseAreaSq_2018(pos, friendly) <= radius * radius
+end
+
+local function distanceToDefenseArea_2018(pos, radius, friendly)
+	local defenseMin = Vector(-G.DefenseWidthHalf,G.FieldHeightHalf-G.DefenseHeight)
+	local defenseMax = Vector(G.DefenseWidthHalf,G.FieldHeightHalf)
+	local distance
+	if friendly then
+		pos = -pos
+	end
+	if radius < 0 and isInDefenseArea_2018(pos, 0) then
+		local min = defenseMax.x-pos.x
+		min = math.min(min, pos.x-defenseMin.x)
+		min = math.min(min, defenseMax.y-pos.y)
+		min = math.min(min, pos.y-defenseMin.y)
+		distance = min + radius
+		return math.max(-distance, 0)
+	end
+	distance = pos:distanceTo(geom.boundRect(defenseMin, pos, defenseMax)) - radius
+	return math.max(distance, 0)
+end
+
+local function distanceToDefenseArea_2017(pos, radius, friendly)
+	radius = radius + G.DefenseRadius
+	local defenseY = friendly and -G.FieldHeightHalf or G.FieldHeightHalf
+	local inside = Vector(math.bound(-G.DefenseStretchHalf, pos.x, G.DefenseStretchHalf), defenseY)
+	local distance = pos:distanceTo(inside) - radius
+	return (distance < 0) and 0 or distance
+end
+local function distanceToDefenseAreaSq_2017(pos, friendly)
+	local d = distanceToDefenseArea_2017(pos, 0, friendly)
+	return d * d
+end
+
+--- check if position is inside/touching the (friendly) defense area
+-- @name isInDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @param friendly bool - selection of Own/Opponent area
+-- @return bool
+
+local function isInDefenseArea_2017(pos, radius, friendly)
+	if radius < -G.DefenseRadius then
+		return false
+	end
+	radius = radius + G.DefenseRadius
+	local defenseY = friendly and -G.FieldHeightHalf or G.FieldHeightHalf
+	local inside = Vector(math.bound(-G.DefenseStretchHalf, pos.x, G.DefenseStretchHalf), defenseY)
+	return pos:distanceToSq(inside) <= radius * radius
+end
+
+if World.RULEVERSION == "2018" then
+	Field.distanceToDefenseAreaSq = distanceToDefenseAreaSq_2018
+	Field.distanceToDefenseArea = distanceToDefenseArea_2018
+	Field.isInDefenseArea = isInDefenseArea_2018
+	Field.limitToAllowedField = limitToAllowedField_2018
+else
+	Field.distanceToDefenseAreaSq = distanceToDefenseAreaSq_2017
+	Field.distanceToDefenseArea = distanceToDefenseArea_2017
+	Field.isInDefenseArea = isInDefenseArea_2017
+	Field.limitToAllowedField = limitToAllowedField_2017
+end
+
+
+--- check if pos is inside the field (extended by boundaryWidth)
+-- @name isInAllowedField
+-- @param pos Vector - the position to check
+-- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @return bool - is in field
+function Field.isInAllowedField(pos, boundaryWidth)
+	return Field.isInField(pos, boundaryWidth) and
+		not Field.isInDefenseArea(pos, -boundaryWidth, true) and
+		not Field.isInDefenseArea(pos, -boundaryWidth, false)
+end
+
+--- Returns true if the position is inside/touching the friendly defense area
+-- @name isInFriendlyDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return bool
+function Field.isInFriendlyDefenseArea(pos, radius)
+	return Field.isInDefenseArea(pos, radius, true)
+end
+
+--- Returns true if the position is inside/touching the opponent defense area
+-- @name isInOpponentDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return bool
+function Field.isInOpponentDefenseArea(pos, radius)
+	return Field.isInDefenseArea(pos, radius, false)
+end
+
+--- Calculates the distance (between robot hull and field line) to the friendly defense area
+-- @name distanceToFriendlyDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return number - distance
+function Field.distanceToFriendlyDefenseArea(pos, radius)
+	return Field.distanceToDefenseArea(pos, radius, true)
+end
+
+--- Calculates the distance (between robot hull and field line) to the opponent defense area
+-- @name distanceToOpponentDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return number - distance
+function Field.distanceToOpponentDefenseArea(pos, radius)
+	return Field.distanceToDefenseArea(pos, radius, false)
+end
+
+local function insideSector(s, a)
+	local v1,v2 = (-s[1]):perpendicular(), s[2]:perpendicular()
+	local b1 = v1:dot(a) >= 0
+	local b2 = v2:dot(a) >= 0
+	if v1:dot(s[2]) >= 0 then
+		return b1 and b2
+	else
+		return b1 or b2
+	end
+end
+
+local normalize = function(angle)
+	while angle >= 2*math.pi do angle = angle - 2*math.pi end
+	while angle < 0 do angle = angle + 2*math.pi end
+	return angle
+end
+
+local intersectRayArc = function(pos, dir, m, r, minangle, maxangle)
+	local intersections = {}
+	local i1, i2, l1, l2 = geom.intersectLineCircle(pos, dir, m, r)
+	local interval = normalize(maxangle - minangle)
+	if i1 and l1 >= 0 then
+		local a1 = normalize((i1 - m):angle() - minangle)
+		if a1 < interval then
+			table.insert(intersections, {i1, a1, l1})
+		end
+	end
+	if i2 and l2 >= 0 then
+		local a2 = normalize((i2 - m):angle() - minangle)
+		if a2 < interval then
+			table.insert(intersections, {i2, a2, l2})
+		end
+	end
+	return intersections
+end
+
+local function intersectionsRayDefenseArea_2018(pos, dir, extraDistance, friendly)
+	local corners = {}
+	corners[1] = Vector(G.DefenseWidthHalf+extraDistance, G.FieldHeightHalf)
+	corners[2] = Vector(G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight-extraDistance)
+	corners[3] = Vector(-G.DefenseWidthHalf-extraDistance, G.FieldHeightHalf-G.DefenseHeight)
+	-- corners[4] = Vector(-G.DefenseWidthHalf, G.FieldHeightHalf+extraDistance)
+	local directions = {}
+	directions[1] = Vector(0,-1)
+	directions[2] = Vector(-1,0)
+	directions[3] = Vector(0,1)
+	-- directions[4] = Vector(1,0)
+	local f = friendly and -1 or 1
+	local way = 0
+	local intersections = {}
+	for i,v in ipairs(corners) do
+		-- intersections on lines
+		local length = (i%2 == 0) and G.DefenseWidth or G.DefenseHeight
+		local ipos, l1, l2 = geom.intersectLineLine(pos, dir, v*f, directions[i]*f)
+		if l1 and l1 >= 0 and l2 >= 0 and l2 <= length then
+			-- no intersections with parallel lines
+			if not (l1 == 0 and l2 == 0) or ipos:distanceToSq(v*f) < 0.0001 then
+				table.insert(intersections, {pos = ipos, way = way + l2, sec = i*2-1})
+			end
+		end
+		way = way + length
+		-- intersections with arc segments
+		if i < 3 and extraDistance > 0 then
+			local corner = Vector((3 - i*2) * G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight) * f
+			local circleIntersections
+			local oppRotation = friendly and 0 or math.pi
+			circleIntersections = intersectRayArc(pos, dir, corner, extraDistance,
+				math.pi - i * 0.5 * math.pi + oppRotation, 1.5 * math.pi - i * 0.5 * math.pi + oppRotation)
+			for _, intersection in ipairs(circleIntersections) do
+				table.insert(intersections, {pos = intersection[1], way = way + (math.pi / 2 - intersection[2]) * extraDistance, sec = i*2})
+			end
+		end
+		way = way + math.pi*extraDistance/2
+		if #intersections == 2 then
+			break
+		end
+	end
+	return intersections
+end
+
+local function intersectDefenseArea_2018(pos, dir, extraDistance, friendly)
+	local intersections = intersectionsRayDefenseArea_2018(pos, dir, extraDistance, friendly)
+	if intersections[2] and pos:distanceToSq(intersections[1].pos) > pos:distanceToSq(intersections[2].pos) then
+		return intersections[2].pos, intersections[2].way, intersections[2].sec
+	elseif intersections[1] then
+		return intersections[1].pos, intersections[1].way, intersections[1].sec
+	end
+end
+
+-- if the way is <0 or greater than the maximum way, the intersection is on
+-- the extended defense area side lines
+local function defenseIntersectionByWay_2018(way, extraDistance, friendly)
+	local corners = {}
+	corners[1] = Vector(G.DefenseWidthHalf+extraDistance, G.FieldHeightHalf)
+	corners[2] = Vector(G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight-extraDistance)
+	corners[3] = Vector(-G.DefenseWidthHalf-extraDistance, G.FieldHeightHalf-G.DefenseHeight)
+	local directions = {}
+	directions[1] = Vector(0,-1)
+	directions[2] = Vector(-1,0)
+	directions[3] = Vector(0,1)
+	local f = friendly and -1 or 1
+
+	for i,v in ipairs(corners) do
+		local length = (i%2 == 0) and G.DefenseWidth or G.DefenseHeight
+		if way <= length or i == 3 then
+			return (v + directions[i]*way)*f
+		end
+		way = way - length - math.pi/2 * extraDistance
+		if way < 0 then
+			local corner = Vector((3-i*2)*G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight)*f
+			local dir = Vector.fromAngle(-math.pi/2*i - way/extraDistance)*f
+			return corner + dir * extraDistance
+		end
+	end
+end
+
+
+local intersectionsRayDefenseArea = function(pos, dir, extraDistance, friendly)
+	-- calculate defense radius
+	extraDistance = extraDistance or 0
+	local radius = G.DefenseRadius + extraDistance
+	assert(radius >= 0, "extraDistance must not be smaller than -G.DefenseRadius")
+
+	-- calculate length of defense border (arc - line - arc)
+	local arcway = radius * math.pi/2
+	local lineway = G.DefenseStretch
+	local totalway = 2 * arcway + lineway
+
+	-- calculate global positions
+	local oppfac = friendly and 1 or -1
+	local leftCenter = Vector(-G.DefenseStretchHalf, -G.FieldHeightHalf) * oppfac
+	local rightCenter = Vector(G.DefenseStretchHalf, -G.FieldHeightHalf) * oppfac
+
+	-- calclulate global angles
+	local oppadd = friendly and 0 or math.pi
+	local to_opponent = normalize(oppadd + math.pi/2)
+	local to_friendly = normalize(oppadd - math.pi/2)
+
+	-- calculate intersection points with defense arcs
+	local intersections = {}
+	local ileft = intersectRayArc(pos, dir, leftCenter, radius, to_opponent, to_friendly)
+	for _,i in ipairs(ileft) do
+		table.insert(intersections, {pos = i[1], l1 = (math.pi/2-i[2]) * radius})
+	end
+	local iright = intersectRayArc(pos, dir, rightCenter, radius, to_friendly, to_opponent)
+	for _,i in ipairs(iright) do
+		table.insert(intersections, {pos = i[1], l1 = (math.pi-i[2]) * radius + arcway + lineway})
+	end
+
+	-- calculate intersection point with defense stretch
+	local defenseLineOnpoint = Vector(0, -G.FieldHeightHalf + radius) * oppfac
+	local lineIntersection,l1,l2 = geom.intersectLineLine(pos, dir, defenseLineOnpoint, Vector(1,0))
+	if lineIntersection and l1 >= 0 and math.abs(l2) <= G.DefenseStretchHalf then
+		table.insert(intersections, {pos = lineIntersection, l1 = l2 + totalway/2})
+	end
+	return intersections, totalway
+end
+
+local function intersectRayDefenseArea_2017(pos, dir, extraDistance, friendly)
+	local intersections, totalway = intersectionsRayDefenseArea(pos, dir, extraDistance, friendly)
+
+	-- choose nearest intersection
+	local minDistance = math.huge
+	local minIntersection = nil
+	local minWay = totalway/2
+	for _,i in ipairs(intersections) do
+		local dist = pos:distanceTo(i.pos)
+		if dist < minDistance then
+			minDistance = dist
+			minIntersection = i.pos
+			minWay = i.l1
+		end
+	end
+	return minIntersection, minWay
+end
+
+-- FIXME: Calling intercetRayDefenseArea twice is bad because of floats: Sometimes there is still an intersection (because the result ist marginally outside the Defense area)
+-- Or there is no intersecton (because the result is marginally inside the Defense area). To avoid this problem, one has to use a slightly larger radius in the first call.
+
+--- Returns one intersection of a given line with the (extended) defense area
+--- The intersection is the one with the smallest t in x = pos + t * dir, t >= 0
+-- @name intersectRayDefenseArea
+-- @param pos Vector - starting point of the line
+-- @param dir Vector - the direction of the line
+-- @param extraDistance number - gets added to G.DefenseRadius
+-- @param opp bool - whether the opponent or the friendly defense area is considered
+-- @return Vector - the intersection position (May also be behind the goalline)
+-- @return number - the length of the way from the very left of the defense area to the
+-- @return number - sector in which the intersection lies, left to right
+-- 	the sectors are ordered as followes:
+-- 2  3  4
+-- 1     5
+if World.RULEVERSION == "2018" then
+	Field.intersectRayDefenseArea = intersectDefenseArea_2018
+	Field.intersectionsRayDefenseArea = intersectionsRayDefenseArea_2018
+else
+	Field.intersectRayDefenseArea = intersectRayDefenseArea_2017
+	Field.intersectionsRayDefenseArea = intersectionsRayDefenseArea
+end
+
+local function cornerPointsBetweenWays2018(way1, way2, radius, friendly)
+	radius = radius or 0
+	local smallerWay = math.min(way1, way2)
+	local largerWay = math.max(way1, way2)
+	local cornerLeftWay = G.DefenseHeight + math.pi*radius/4
+	local cornerRightWay = G.DefenseHeight + G.DefenseWidth + 3*math.pi*radius/4
+	local result = {}
+	if smallerWay <= cornerLeftWay and largerWay >= cornerLeftWay then
+		local cornerLeft = Vector(-G.DefenseWidthHalf, -G.FieldHeightHalf+G.DefenseHeight) + Vector(-1, 1):setLength(radius)
+		if not friendly then
+			cornerLeft = -cornerLeft
+		end
+		table.insert(result, cornerLeft)
+	end
+	if smallerWay <= cornerRightWay and largerWay >= cornerRightWay then
+		local cornerRight = Vector(G.DefenseWidthHalf, -G.FieldHeightHalf+G.DefenseHeight) + Vector(1, 1):setLength(radius)
+		if not friendly then
+			cornerRight = -cornerRight
+		end
+		table.insert(result, cornerRight)
+	end
+	if #result == 2 and way1 > way2 then
+		result[1], result[2] = result[2], result[1]
+	end
+	return result
+end
+
+local function cornerPointsBetweenWays2017()
+	return {}
+end
+
+-- return a list of all cornerpoints between the given ways
+-- note that the radius has to be the same as with which the ways were calculated
+-- the resulting points are ordered in the same way as the in put ways
+-- @name cornerPointsBetweenWays
+-- @param way1 number - the first way, doesn't have to be the lower one
+-- @param way2 number - the second way
+-- @param radius number - the radius of the defense area to be considered
+-- @param friendly bool - whether to use the friendly or the opponent defense area
+-- @return table - list of all corner points between the two ways
+--					the resulting points are radius away from the defense area
+if World.RULEVERSION == "2018" then
+	Field.cornerPointsBetweenWays = cornerPointsBetweenWays2018
+else
+	Field.cornerPointsBetweenWays = cornerPointsBetweenWays2017
+end
+
+
+local function maxWay2018(radius)
+	return G.DefenseHeight * 2 + G.DefenseWidth + math.pi * radius
+end
+
+local function maxWay2017(radius)
+	return G.DefenseStretch + math.pi * (radius + G.DefenseRadius)
+end
+
+-- return the maximum way that can be reached on the defense area with a given radius
+-- @name maxWay
+-- @param radius number - the radius for the defense area
+-- @return number - the maximum way
+if World.RULEVERSION == "2018" then
+	Field.maxWay = maxWay2018
+else
+	Field.maxWay = maxWay2017
+end
+
+--- Return all line segments of the line segment pos to pos + dir * maxLength which are in the allowed field part
+-- @name allowedLineSegments
+-- @param pos Vector - starting point of the line
+-- @param dir Vector - the direction of the line
+-- @param maxLength number - length of the line segment, optional
+-- @return table - contains n {pos1, pos2} tables representing the resulting line segments
+function Field.allowedLineSegments(pos, dir, maxLength)
+	maxLength = maxLength or math.inf
+	local direction = dir:copy()
+	direction:setLength(1)
+	local pos1, lambda1 = geom.intersectLineLine(pos, direction, Vector(G.FieldWidthHalf, 0), Vector(0, 1))
+	local pos2, lambda2 = geom.intersectLineLine(pos, direction, Vector(-G.FieldWidthHalf, 0), Vector(0, 1))
+	local pos3, lambda3 = geom.intersectLineLine(pos, direction, Vector(0, G.FieldHeightHalf), Vector(1, 0))
+	local pos4, lambda4 = geom.intersectLineLine(pos, direction, Vector(0, -G.FieldHeightHalf), Vector(1, 0))
+	local lambdas = {}
+	local fieldLambdas = {lambda1, lambda2, lambda3, lambda4}
+	local fieldPos = {pos1, pos2, pos3, pos4}
+	for i, lambda in ipairs(fieldLambdas) do
+		if lambda > maxLength then
+			lambda = maxLength
+		end
+		-- an offset 0f 0.05 is used here and below as the calculated point is on
+		-- the border of the field anyways, otherwise it might flicker due to floating
+		-- point inaccuracies
+		if lambda and Field.isInField(fieldPos[i], 0.05) and lambda > 0 then
+			table.insert(lambdas, lambda)
+		end
+	end
+
+	local intersectionsOwn = Field.intersectionsRayDefenseArea(pos, direction, 0, true)
+	local intersectionsOpp = Field.intersectionsRayDefenseArea(pos, direction, 0, false)
+	table.append(intersectionsOwn, intersectionsOpp)
+	for _, intersection in ipairs(intersectionsOwn) do
+		local lambda = pos:distanceTo(intersection.pos)
+		if lambda > maxLength then
+			lambda = maxLength
+		end
+		if Field.isInField(intersection.pos, 0.05) and lambda > 0 then
+			table.insert(lambdas, lambda)
+		end
+	end
+
+	if Field.isInAllowedField(pos, 0) then
+		table.insert(lambdas, 0)
+	end
+
+	table.sort(lambdas)
+
+	local result = {}
+	for i = 1, math.floor(#lambdas / 2) do
+		local p1 = pos + direction * lambdas[i * 2 - 1]
+		local p2 = pos + direction * lambdas[i * 2]
+		if p1:distanceTo(p2) > 0 then
+			table.insert(result, {p1, p2})
+		end
+	end
+	return result
+end
+
+--- Calculates the point on the (extended) defense area when given the way along its border
+-- @name defenseIntersectionByWay
+-- @param way number - the way along the border
+-- @param extraDistance number - gets added to G.DefenseRadius
+-- @param friendly bool - whether the opponent or the friendly defense area is considered
+-- @return Vector - the position
+local function defenseIntersectionByWay_2017(way, extraDistance, friendly)
+	-- calculate defense radius
+	extraDistance = extraDistance or 0
+	local radius = G.DefenseRadius + extraDistance
+	if radius < 0 then
+		error("extraDistance must not be smaller than -G.DefenseRadius: "..tostring(extraDistance))
+	end
+
+	-- calculate length of defense border (arc - line - arc)
+	local arcway = radius * math.pi/2
+	local lineway = G.DefenseStretch
+	local totalway = 2 * arcway + lineway
+
+	-- bind way to [0, totalway] by mirroring it
+	-- inserted way can be in [-2*totalway, 2*totalway]
+	if way < 0 then
+		way = -way
+	end
+	if way > totalway then
+		way = 2*totalway - way -- if abs(way) > 2*totalway, way will be negative and be eaten by the folling assert
+	end
+
+	if way < 0 then
+		error("way is out of bounds ("..tostring(way)..", "..tostring(extraDistance)..", "..tostring(friendly))
+	end
+
+	local intersection
+	if way < arcway then
+		local angle = way / radius
+		intersection = Vector.fromAngle( - angle) * radius +
+			Vector(G.DefenseStretchHalf, G.FieldHeightHalf)
+	elseif way <= arcway + lineway then
+		intersection = Vector( -way + arcway + G.DefenseStretchHalf, G.FieldHeightHalf - radius)
+	else
+		local angle = (way - arcway - lineway) / radius
+		intersection = Vector.fromAngle(- math.pi/2 - angle) * radius +
+			Vector(-G.DefenseStretchHalf, G.FieldHeightHalf)
+	end
+
+	if friendly then
+		intersection = -intersection
+	end
+
+	return intersection
+end
+
+if World.RULEVERSION == "2018" then
+	Field.defenseIntersectionByWay = defenseIntersectionByWay_2018
+else
+	Field.defenseIntersectionByWay = defenseIntersectionByWay_2017
+end
+
+--- Calculates all intersections (0 to 4) of a given circle with the (extended) defense area
+-- @name intersectCircleDefenseArea
+-- @param pos Vector - center point of the circle
+-- @param radius number - radius of the circle
+-- @param extraDistance number - gets added to G.DefenseRadius
+-- @param friendly bool - whether the opponent or the friendly defense area is considered
+-- @return [Vector] - a list of intersection points, not sorted
+local function intersectCircleDefenseArea_2017(pos, radius, extraDistance, friendly)
+	-- invert coordinates if opp-flag is set
+	if friendly then pos = pos * -1 end
+
+	local leftCenter = Vector(-G.DefenseStretchHalf, G.FieldHeightHalf)
+	local rightCenter = Vector(G.DefenseStretchHalf, G.FieldHeightHalf)
+	local defenseRadius = G.DefenseRadius + extraDistance
+
+	local intersections = {}
+
+	-- get intersections with circles
+	local li1, li2 = geom.intersectCircleCircle(leftCenter, defenseRadius, pos, radius)
+	local ri1, ri2 = geom.intersectCircleCircle(rightCenter, defenseRadius, pos, radius)
+	if li1 and li1.x < G.DefenseStretchHalf and li1.y < G.FieldHeightHalf then
+		table.insert(intersections, li1)
+	end
+	if li2 and li2.x < G.DefenseStretchHalf and li2.y < G.FieldHeightHalf then
+		table.insert(intersections, li2)
+	end
+	if ri1 and ri1.x > G.DefenseStretchHalf and ri1.y < G.FieldHeightHalf then
+		table.insert(intersections, ri1)
+	end
+	if ri2 and ri2.x > G.DefenseStretchHalf and ri2.y < G.FieldHeightHalf then
+		table.insert(intersections, ri2)
+	end
+
+	-- get intersections with line
+	local mi1, mi2 = geom.intersectLineCircle(
+				Vector(0, G.FieldHeightHalf-defenseRadius), Vector(1, 0), pos, radius)
+	if mi1 and math.abs(mi1.x) <= G.DefenseStretchHalf then
+		table.insert(intersections, li1)
+	end
+	if mi2 and math.abs(mi1.x) <= G.DefenseStretchHalf then
+		table.insert(intersections, li2)
+	end
+
+
+	-- invert coordinates if opp-flag is set
+	if friendly then
+		for i, intersection in ipairs(intersections) do
+			intersections[i] = intersection * -1
+		end
+	end
+
+	return intersections
+end
+
+local function intersectCircleDefenseArea_2018(pos, radius, extraDistance, friendly)
+	if not isInDefenseArea_2018(pos, radius+extraDistance, friendly) then
+		return {}
+	end
+	local corners = {}
+	corners[1] = Vector(G.DefenseWidthHalf, G.FieldHeightHalf)
+	corners[2] = Vector(G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight)
+	corners[3] = Vector(-G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight)
+	corners[4] = Vector(-G.DefenseWidthHalf, G.FieldHeightHalf)
+	corners[5] = Vector(corners[1].x + extraDistance, corners[1].y)
+	corners[6] = Vector(corners[2].x, corners[2].y - extraDistance)
+	corners[7] = Vector(corners[3].x - extraDistance, corners[3].y)
+	corners[8] = Vector(corners[4].x, corners[4].y + extraDistance)
+	-- invert coordinates if friendly-flag is set
+	if friendly then pos = pos * -1 end
+
+	local intersections = {}
+
+	local ci1, ci2
+	local zero = Vector(0, 0)
+	local li1, li2, lambda1, lambda2
+	local dirPrev = corners[1] - corners[4]
+	for i=1,3 do
+		local dir = corners[i%4+1]-corners[i]
+		-- get intersections with circles
+		if i > 1 and i < 4 then
+			ci1, ci2 = geom.intersectCircleCircle(zero, extraDistance, pos-corners[i], radius)
+			if ci1 and insideSector({dirPrev, -dir}, ci1) then
+				table.insert(intersections, ci1 + corners[i])
+			end
+			if ci2 and insideSector({dirPrev, -dir}, ci2) then
+				table.insert(intersections, ci2 + corners[i])
+			end
+		end
+		dirPrev = dir
+		-- get intersections with line
+		li1, li2, lambda1, lambda2 = geom.intersectLineCircle(corners[i+4], dir, pos, radius)
+		if lambda1 and lambda1 >= 0 and lambda1*lambda1 < dir:lengthSq() then
+			table.insert(intersections, li1)
+		end
+		if lambda2 and lambda2 >= 0 and lambda2*lambda2 < dir:lengthSq() then
+			table.insert(intersections, li2)
+		end
+	end
+	-- invert coordinates if opp-flag is set
+	if friendly then
+		for i, intersection in ipairs(intersections) do
+			intersections[i] = intersection * -1
+		end
+	end
+
+	return intersections
+end
+
+if World.RULEVERSION == "2018" then
+	Field.intersectCircleDefenseArea = intersectCircleDefenseArea_2018
+else
+	Field.intersectCircleDefenseArea = intersectCircleDefenseArea_2017
+end
+
+--- Calculates the distance (between robot hull and field line) to the own goal line
+-- @name distanceToFriendlyGoalLine
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return number - distance
+function Field.distanceToFriendlyGoalLine(pos, radius)
+	if math.abs(pos.x) < G.GoalWidth/2 then
+		return math.max(G.FieldHeightHalf + pos.y - radius, 0)
+	end
+	local goalpost = Vector(pos.x > 0 and G.GoalWidth/2 or - G.GoalWidth/2, -G.FieldHeightHalf)
+	return goalpost:distanceTo(pos) - radius
+end
+
+--- Check whether to position is in the teams own corner
+-- @name isInOwnCorner
+-- @param pos Vector - the position to check
+-- @param opp bool - Do the check from the opponents point of view
+-- @return bool
+function Field.isInOwnCorner(pos, opp)
+	local oppfac = opp and 1 or -1
+	return (G.FieldWidthHalf - math.abs(pos.x))^2
+		+ (oppfac * G.FieldHeightHalf - pos.y)^2 < 1
+end
+
+--- The position, where the half-line given by startPos and dir intersects the next field boundary
+-- @param startPos vector - the initial point of the half-line
+-- @param dir vector - the direction of the half-line
+-- @param [offset number - additional offset to move field lines further outwards]
+-- @return [vector]
+function Field.nextLineCut(startPos, dir, offset)
+	if dir.x == 0 and dir.y == 0 then
+		return
+	end
+	offset = offset or 0
+	local width = Vector((dir.x > 0 and 1 or -1) * (G.FieldWidthHalf + offset), 0)
+	local height = Vector(0, (dir.y > 0 and 1 or -1) * (G.FieldHeightHalf + offset))
+	local sideCut, sideLambda = geom.intersectLineLine(startPos, dir, width, height)
+	local frontCut, frontLambda = geom.intersectLineLine(startPos, dir, height, width)
+	if sideCut then
+		if frontCut then
+			if sideLambda < frontLambda then
+				return sideCut
+			else
+				return frontCut
+			end
+		else
+			return sideCut
+		end
+	else
+		return frontCut
+	end
+end
+
+
+--- Calculates the next intersection with the field boundaries or the defense areas
+-- @name nextAllowedFieldLineCut
+-- @param startPos vector - the initial point of the half-line
+-- @param dir vector - the direction of the half-line
+-- @param extraDistance number - the radius of the object (gets added to G.DefenseRadius)
+-- @return Vector - minLineCut
+-- @return Number - the lambda for the line cut
+function Field.nextAllowedFieldLineCut(startPos, dir, extraDistance)
+	local normalizedDir = dir:copy():normalize()
+	local perpendicularDir = normalizedDir:perpendicular()
+
+	local boundaryLineCut = Field.nextLineCut(startPos, normalizedDir, -extraDistance)
+	local friendlyDefenseLineCut = Field.intersectRayDefenseArea(startPos, normalizedDir, extraDistance, false)
+	local opponentDefenseLineCut = Field.intersectRayDefenseArea(startPos, normalizedDir, extraDistance, true)
+
+	local lineCuts = {}
+	if boundaryLineCut then table.insert(lineCuts, boundaryLineCut) end
+	if friendlyDefenseLineCut then table.insert(lineCuts, friendlyDefenseLineCut) end
+	if opponentDefenseLineCut then table.insert(lineCuts, opponentDefenseLineCut) end
+
+	local minLambda = math.huge
+	local minLineCut = nil
+	for _, lineCut in ipairs(lineCuts) do
+		local _, lambda = geom.intersectLineLine(startPos, normalizedDir, lineCut, perpendicularDir)
+		if lambda and lambda > 0 and lambda < minLambda then
+			minLambda = lambda
+			minLineCut = lineCut
+		end
+	end
+
+	return minLineCut, minLineCut and minLambda or 0
+end
+
+-- Checks wether a position lies inside the friendly goal
+-- @name isInFriendlyGoal
+-- @param pos vector - the position to check
+-- @return bool - is in friendly goal
+function Field.isInFriendlyGoal(pos)
 	return geom.insideRect(
-		G.FriendlyGoalLeft - new Vector(0, G.GoalDepth),
+		G.FriendlyGoalLeft - Vector(0, G.GoalDepth),
 		G.FriendlyGoalRight,
 		pos
-	);
-}
+	)
+end
 
-/**
- * Checks whether a position lies inside the opponent goal
- * @param pos - The position to check
- * @returns is in friendly goal
- */
-export function isInOpponentGoal(pos: Position): boolean {
+-- Checks wether a position lies inside the opponent goal
+-- @name isInOpponentGoal
+-- @param pos vector - the position to check
+-- @return bool - is in friendly goal
+function Field.isInOpponentGoal(pos)
 	return geom.insideRect(
-		G.OpponentGoalRight + new Vector(0, G.GoalDepth),
+		G.OpponentGoalRight + Vector(0, G.GoalDepth),
 		G.OpponentGoalLeft,
 		pos
-	);
-}
+	)
+end
 
 
-function defenseBaselineIntersectionDistance_2017(): number {
-	return World.Geometry.DefenseRadius + (World.Geometry.DefenseStretch / 2);
-}
+local function defenseBaselineIntersectionDistance_2017()
+	return World.Geometry.DefenseRadius + (World.Geometry.DefenseStretch / 2)
+end
 
-function defenseBaselineIntersectionDistance_2018(): number {
-	return World.Geometry.DefenseWidth / 2;
-}
+local function defenseBaselineIntersectionDistance_2018()
+	return World.Geometry.DefenseWidth / 2
+end
 
-export let defenseBaselineIntersectionDistance: () => number;
-if (World.RULEVERSION === "2018") {
-	defenseBaselineIntersectionDistance = defenseBaselineIntersectionDistance_2018;
-} else {
-	defenseBaselineIntersectionDistance = defenseBaselineIntersectionDistance_2017;
-}
+if World.RULEVERSION == "2018" then
+	Field.defenseBaselineIntersectionDistance = defenseBaselineIntersectionDistance_2018
+else
+	Field.defenseBaselineIntersectionDistance = defenseBaselineIntersectionDistance_2017
+end
+
+
+return Field

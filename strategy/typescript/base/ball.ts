@@ -1,10 +1,10 @@
-/**
- * @module ball
- * Ball class
- */
+--[[
+--- Ball class.
+module "Ball"
+]]--
 
-/**************************************************************************
-*   Copyright 2018 Alexander Danzer, Michael Eischer, Andreas Wendler     *
+--[[***********************************************************************
+*   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -21,190 +21,142 @@
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
 
-import * as Constants from "base/constants";
-import { Coordinates } from "base/coordinates";
-import * as plot from "base/plot";
-import { world } from "base/protobuf";
-import { Robot } from "base/robot";
-import { Position, Speed, Vector } from "base/vector";
-import { GeometryType } from "base/world";
+local Ball = (require "../base/class")("Ball")
 
-const BALL_QUALITY_FILTER_FACTOR = 0.05;
-const MAXSPEED_MIN_ROBOT_DIST = 0.1;
+local Constants = require "../base/constants"
+local Coordinates = require "../base/coordinates"
+local plot = require "../base/plot"
 
-export class Ball {
-	/** Ball radius */
-	public radius: number = 0.0215;
-	/** Time when the ball was lost. Only has meaning when Ball is not visible */
-	public lostSince: number = 0;
-	/** Current ball position */
-	public pos: Readonly<Position> = new Vector(0, 0);
-	/** Movement direction, length is speed in m/s */
-	public speed: Readonly<Speed> = new Vector(0, 0);
-	/** Ball height above the field */
-	public posZ: number = 0;
-	/** Upwards speed in m/s */
-	public speedZ: number = 0;
-	public maxSpeed: number = 0;
-	public initSpeedZ: number = 0;
-	public touchdownPos: Vector | undefined;
-	public isBouncing: boolean = false;
-	public framesDeceleration: number = Infinity;
-	public detectionQuality: number = 0.6;
-	public hasRawData: boolean = false;
-	public framesDecelerating: number = 0;
 
-	// private attributes
-	private _isVisible: boolean = false;
-	private _hadRawData: boolean = false; // used for detecting old simulator logs with no recoded ball raw data
-	private _ballPosInFrame: Position[] = [];
-	private _counter: number = 0;
-	private _ballIsNearToRobot: boolean = false;
-	// constructor must only be called by world!
-	public constructor() {
-		//
-	}
+--- Values provided by Ball
+-- @class table
+-- @name Ball
+-- @field pos Vector - Current ball position
+-- @field posZ number - Ball height above the field
+-- @field speed Vector - Movement direction, length is speed in m/s
+-- @field speedZ number - Upwards speed in m/s
+-- @field radius number - Ball radius
+-- @field deceleration Vector - Current deceleration that is assumed to brake the ball
+-- @field brakeTime number - Time in seconds until the ball stops moving
+-- @field lostSince number - Time when the ball was lost. Only has meaning when Ball isn't visible
 
-	// eslint-disable-next-line @typescript-eslint/naming-convention
-	public _toString() {
-		const x = this.pos.x.toFixed(3).padStart(6);
-		const y = this.pos.x.toFixed(3).padStart(6);
-		const speed = this.speed.length().toFixed(1).padStart(3);
-		return `Ball(pos = (${x}, ${y}), speed = ${speed})`;
-	}
+local BALL_QUALITY_FILTER_FACTOR = 0.05
+--- Initializes a new ball, must only be called by world!
+function Ball:init()
+	self.radius = 0.0215
+	self._isVisible = false
+	self.lostSince = 0
+	self.pos = Vector.createReadOnly(0, 0)
+	self.speed = Vector.createReadOnly(0, 0)
+	self.posZ = 0
+	self.speedZ = 0
+	self.deceleration = 0
+	self.maxSpeed = 0
+	self.initSpeedZ = 0
+	self.touchdownPos = nil
+	self.isBouncing = false
+	self.framesDecelerating = math.huge
+	self.detectionQuality = 0.6 -- 0.6 is the largest value that can be reached with 60 fps cameras(?)
+	self.hasRawData = false
+end
 
-	public toString() {
-		return this._toString();
-	}
+function Ball:__tostring()
+	return string.format("Ball(pos = (%6.3f, %6.3f), speed = %3.1f)",
+		self.pos.x, self.pos.y, self.speed:length())
+end
 
-	private _updateLostBall(time: number) {
-		// set lost timer
-		if (this._isVisible) {
-			this._isVisible = false;
-			this.lostSince = time;
-		}
-		if (this._hadRawData) {
-			this.detectionQuality *= 1 - BALL_QUALITY_FILTER_FACTOR; // only reduce quality if ball raw data exists
-		}
-	}
+function Ball:_updateLostBall(time)
+	-- set lost timer
+	if self._isVisible then
+		self._isVisible = false
+		self.lostSince = time
+	end
+	self.detectionQuality = self.detectionQuality * (1 - BALL_QUALITY_FILTER_FACTOR)
+end
 
-	// Processes ball information from amun, passed by world
-	public update(data: world.Ball | undefined, time: number, geom?: GeometryType, robots?: readonly Robot[]) {
-		this.hasRawData = false;
-		// WARNING: this is the quality BEFORE the frame
-		plot.addPlot("Ball.quality", this.detectionQuality);
-		// if no ball data is available then no ball was tracked
-		if (data == undefined) {
-			this._updateLostBall(time);
-			return;
-		}
+-- Processes ball information from amun, passed by world
+function Ball:_update(data, time)
+	self.hasRawData = false
+	-- WARNING: this is the quality BEFORE the frame
+	plot.addPlot("Ball.quality", self.detectionQuality)
+	-- if no ball data is available then no ball was tracked
+	if not data then
+		self:_updateLostBall(time)
+		return
+	end
 
-		// check if the ball pos or speed are invalid (might result from tracking) -> then ignore the update
-		const nextPos = Coordinates.toLocal(new Vector(data.p_x, data.p_y));
-		const nextSpeed = Coordinates.toLocal(new Vector(data.v_x, data.v_y));
-		const extraDist = 2;
-		const SIZE_LIMIT = 1000;
-		if (nextPos.isNan() || nextSpeed.isNan() || Math.abs(nextPos.x) > SIZE_LIMIT ||
-			Math.abs(nextPos.y) > SIZE_LIMIT || Math.abs(nextSpeed.x) > SIZE_LIMIT || Math.abs(nextSpeed.y) > SIZE_LIMIT) {
-			this._updateLostBall(time);
-			return;
-		}
+	-- check if the ball pos or speed are invalid (might result from tracking) -> then ignore the update
+	local nextPos = Coordinates.toLocal(Vector.createReadOnly(data.p_x, data.p_y))
+	local nextSpeed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y))
+	local SIZE_LIMIT = 1000
+	if nextPos:isNan() or nextSpeed:isNan() or math.abs(nextPos.x) > SIZE_LIMIT or
+		math.abs(nextPos.y) > SIZE_LIMIT or math.abs(nextSpeed.x) > SIZE_LIMIT or math.abs(nextSpeed.y) > SIZE_LIMIT then
+		self:_updateLostBall(time)
+		return
+	end
 
-		if (geom && ((Math.abs(nextPos.y) > geom.FieldHeightHalf + extraDist) || Math.abs(nextPos.x) > geom.FieldWidthHalf + extraDist)) {
-			this._updateLostBall(time);
-			return;
-		}
+	-- data from amun is in global coordiantes
+	local lastSpeedLength = self.speed:length()
+	self._isVisible = true
+	self.pos = nextPos
+	self.speed = nextSpeed
+	self.posZ = data.p_z
+	self.speedZ = data.v_z
+	if data.touchdown_x and data.touchdown_y then
+		self.touchdownPos = Coordinates.toLocal(Vector.createReadOnly(data.touchdown_x, data.touchdown_y))
+	end
+	self.isBouncing = data.is_bouncing
 
-		let speedLimit = 10;
-		if (nextSpeed.lengthSq() > speedLimit * speedLimit) {
-			this._updateLostBall(time);
-			return;
-		}
+	self:_updateTrackedState(lastSpeedLength)
 
-		// data from amun is in global coordiantes
-		let lastSpeedLength = this.speed.length();
-		this._isVisible = true;
-		this.pos = nextPos;
-		this.speed = nextSpeed;
-		this.posZ = data.p_z || 0;
-		this.speedZ = data.v_z || 0;
-		if (data.touchdown_x != undefined && data.touchdown_y != undefined) {
-			this.touchdownPos = Coordinates.toLocal(new Vector(data.touchdown_x, data.touchdown_y));
-		}
-		this.isBouncing = !!data.is_bouncing;
+	self:_updateRawDetections(data.raw)
+end
 
-		this._updateTrackedState(data, lastSpeedLength, robots);
+function Ball:_updateRawDetections(rawData)
+	if not rawData then
+		return
+	end
+	local count = math.min(1, #rawData)
+	self.detectionQuality = BALL_QUALITY_FILTER_FACTOR * count + (1 - BALL_QUALITY_FILTER_FACTOR) * self.detectionQuality
+	self.hasRawData = count > 0
+end
 
-		this._updateRawDetections(data.raw);
-	}
+function Ball:_updateTrackedState(lastSpeedLength)
+	-- speed tracking
+	-- framesDecelerating counts the number of frames since the last extreme acceleration
+	-- so even if the ball slowly accelerates, framesDecelerating will not reset
+	if self.speed:length() - lastSpeedLength > 0.2 then
+		self.framesDecelerating = 0
+	else
+		self.framesDecelerating = self.framesDecelerating + 1
+	end
+	-- if the ball does not accelerate extremely for 3 frames straight, the current velocity
+	-- is taken as the maximum ball speed
+	if self.framesDecelerating == 3 then
+		self.maxSpeed = self.speed:length()
+	end
+	if self.maxSpeed < self.speed:length() then
+		self.maxSpeed = self.maxSpeed + 0.3 * (self.speed:length() - self.maxSpeed)
+	end
+	plot.addPlot("Ball.maxSpeed", self.maxSpeed);
 
-	private _updateRawDetections(rawData: world.BallPosition[] | undefined) {
-		let count = 0;
-		if (rawData !== undefined && rawData.length > 0) {
-			this._hadRawData = true;
-			this.hasRawData = true;
-			count = Math.min(1, rawData.length);
-		}
-		if (this._hadRawData === true) {
-			this.detectionQuality = BALL_QUALITY_FILTER_FACTOR * count + (1 - BALL_QUALITY_FILTER_FACTOR) * this.detectionQuality;
-		}
-	}
+	-- set the deceleration depending on the ball's state (sliding or rolling)
+	if self.speed:length() > Constants.ballSwitchRatio * self.maxSpeed then
+		self.deceleration = Constants.fastBallDeceleration
+	else
+		self.deceleration = Constants.ballDeceleration
+	end
+end
 
-	private _updateTrackedState(data: world.Ball, lastSpeedLength: number, robots?: readonly Robot[]) {
-		// speed tracking
+--- Checks whether the ball position is valid
+-- @return boolean - True if ball is visible and position and speed are not NaN
+function Ball:isPositionValid()
+	if not self._isVisible then
+		return false
+	end
+	return not self.pos:isNan() and not self.speed:isNan()
+end
 
-		if (data.max_speed != undefined) {
-			this.maxSpeed = data.max_speed;
-		} else {
-			// WARNING: do not update this code, the max speed calculation is now in the tracking
-
-			// framesDecelerating counts the number of frames since the last extreme acceleration
-			// so even if the ball slowly accelerates, framesDecelerating will not reset
-			if (this.speed.length() - lastSpeedLength > 0.2) {
-				this.framesDecelerating = 0;
-			} else {
-				this._ballPosInFrame[this._counter] = this.pos;
-				this._counter += 1;
-				this.framesDecelerating = this.framesDecelerating + 1;
-			}
-			// if the ball does not accelerate extremely for 3 frames straight, the current velocity
-			// is taken as the maximum ball speed
-			if (robots != undefined) {
-				for (let framepos of this._ballPosInFrame) {
-					for (let r of robots) {
-						if (r.pos.distanceToSq(framepos) < MAXSPEED_MIN_ROBOT_DIST * MAXSPEED_MIN_ROBOT_DIST) {
-							this._ballIsNearToRobot = true;
-							break;
-						}
-					}
-				}
-			}
-			if (this.framesDecelerating === 3 && this._ballIsNearToRobot) {
-				this._ballIsNearToRobot = false;
-				this._counter = 0;
-				this.maxSpeed = this.speed.length();
-			}
-			if (this._counter === 3) {
-				this._counter = 0;
-			}
-			if (this.maxSpeed < this.speed.length()) {
-				this.maxSpeed = this.maxSpeed + 0.3 * (this.speed.length() - this.maxSpeed);
-			}
-		}
-
-		plot.addPlot("Ball.maxSpeed", this.maxSpeed);
-	}
-
-	/**
-	 * Checks whether the ball position is valid
-	 * @returns True if ball is visible and position and speed are not NaN
-	 */
-	public isPositionValid() {
-		if (!this._isVisible) {
-			return false;
-		}
-		return !this.pos.isNan() && !this.speed.isNan();
-	}
-}
+return Ball

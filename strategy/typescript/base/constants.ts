@@ -1,10 +1,10 @@
-/**
- * @module constants
- * Contains system specific constants. THat is constants that are due to intrinsic properties of the robots/camera system/game rules.
- * See source for constant and description
- */
+--[[
+--- Contains system specific constants. That is constants that are due to intrinsic properties of the robots / camera system / game rules.
+-- See source for constant and description
+module "Constants"
+]]--
 
-/**************************************************************************
+--[[***********************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -22,67 +22,41 @@
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
 
-/* It is important for this to be a type only import. Since base/world imports
- * base/constants this would be a cyclic import.
- */
-import type { DIVISION } from "base/world";
+local Constants = {}
 
+Constants.stopBallDistance = 0.5 -- distance to ball during stop [m]
 
-/** distance to ball during stop [m] */
-export const stopBallDistance = 0.5;
+Constants.systemLatency = 0.04 -- total system latency [s]
 
-/** total system latency [s] */
-export const systemLatency = 0.04;
+Constants.positionError = 0.005 -- possible position error from vision [m]
 
-/** possible position error from vision [m] */
-export const positionError = 0.005;
+Constants.maxBallSpeed = 6.3 -- maximum allowed shooting speed [m/s]
 
-/** maximum shooting speed [m/s] to use for safe shooting */
-export const maxBallSpeed = 6.1;
-/** maximum allowed shooting speed [m/s] */
-export const allowedMaxBallSpeed = 6.5;
+Constants.maxDribbleDistance = 1
 
-/** maximum chip distance [m/s] (assuming a 45 degree chip angle!) */
-export const allowedMaxChipDist = 4.31; // (6.5 ** 2) / 9.81;
-/** maximum used chip distance [m] */
-export const maxChipDist = 3.5;
+Constants.maxRobotRadius = 0.09
 
-/** maximum allowed dribble distance before dribbled too far foul triggers [m] */
-export const maxDribbleDistance = 1;
+Constants.maxRobotHeight = 0.15
 
-export const maxRobotRadius = 0.09;
+Constants.floorDamping = 0.55 -- vertical speed damping coeffient for a ball hitting the ground
 
-export const maxRobotHeight = 0.15;
+Constants.stopSpeed = 1.5 -- maximum allowed driving speed during stop states [m/s]
 
-/** maximum time keeper may keep the ball in defence area [s] */
-export const maxTimeBallDefenseArea: ReadonlyRec<{ [K in typeof DIVISION]: number }> = {
-	/**
-	 * 5 is given as default for the empty string. Old logs don't have
-	 * World.DIVISION set and are assumed to be division A
-	 */
-	"": 5,
-	"A": 5,
-	"B": 10,
-};
+function Constants.switchSimulatorConstants(isSimulated)
+	if isSimulated then
+		Constants.ballDeceleration = -0.35
+		Constants.fastBallDeceleration = -4.5
+		Constants.ballSwitchRatio = 0.69
+	else
+		-- measured by looking at the ball speed graph in the plotter
+		Constants.ballDeceleration = -0.3 -- acceleration which brakes the ball [m/s^2]
+		Constants.fastBallDeceleration = -2.5 -- accerlation which brakes the ball until it is rolling [m/s^2]
+		Constants.ballSwitchRatio = 0.6 -- if ball is slower than switchRatio * shootSpeed then switch from fast to normal ball deceleration
+	end
+end
 
-/** maximum allowed driving speed during stop states [m/s] */
-export const stopSpeed = 1.0;
+Constants.switchSimulatorConstants(false)
 
-/** minimum speed difference with which a collision foul is considered crashing [m/s] */
-export const crashingSpeedDifference = 1.5;
-
-/** Get the maximum allowed number of robots for the given division. */
-export const maxTeamSize: ReadonlyRec<{ [K in typeof DIVISION]: number }> = {
-	/**
-	 * 11 is given as default for the empty string. Old logs don't have
-	 * World.DIVISION set and are assumed to be division A
-	 */
-	"": 11,
-	"A": 11,
-	"B": 6,
-};
-
-/** expected time between two strategy frames [s] */
-export const expectedFrameTime = 0.01;
+return Constants

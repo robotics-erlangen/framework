@@ -1,10 +1,10 @@
-/**
- * @module processor
- * Allows running an analysis module before/after each strategy run
- */
+--[[
+--- Allows running an analysis module before / after each strategy run
+module "Processor"
+]]--
 
-/**************************************************************************
-*   Copyright 2018 Michael Eischer, Christian Lobmeier, Andreas Wendler   *
+--[[***********************************************************************
+*   Copyright 2015 Michael Eischer, Christian Lobmeier                    *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -21,52 +21,58 @@
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
 
-import { Process } from "base/process";
+local Processor = {}
+
+local Class = require "../base/class"
+local Process = require "../base/process"
 
 
-let preprocs: Process[] = [];
-let postprocs: Process[] = [];
+local preprocs = {}
+local postprocs = {}
 
-/**
- * Adds a process for runnning before the strategy
- * @param proc - Process object to be run
- */
-export function addPre(proc: Process) {
-	preprocs.push(proc);
-}
+local function add(procs, proc)
+	assert(proc and Class.instanceOf(proc, Process), "no valid process!")
+	table.insert(procs, proc)
+end
 
-/**
- * Adds a process for runnning after the strategy
- * @param proc - Process object to be run
- */
-export function addPost(proc: Process) {
-	postprocs.push(proc);
-}
+--- Adds a process for runnning before the strategy
+-- @name addPre
+-- @param proc Process - Process object to be run
+function Processor.addPre(proc)
+	add(preprocs, proc)
+end
 
-function run(procs: Process[]) {
-	for (let proc of procs) {
-		proc.run();
-		if (proc.isFinished()) {
-			procs.splice(procs.indexOf(proc), 1);
-		}
-	}
-}
+--- Adds a process for runnning after the strategy
+-- @name addPost
+-- @param proc Process - Process object to be run
+function Processor.addPost(proc)
+	add(postprocs, proc)
+end
 
-/**
- * Runs all proccess object scheduled before the strategy.
- * Should be called by the entrypoint wrapper
- */
-export function pre() {
-	run(preprocs);
-}
+local function run(procs)
+	for i = #procs,1,-1 do
+		local proc = procs[i]
+		proc:run()
+		if proc:isFinished() then
+			table.remove(procs, i)
+		end
+	end
+end
 
-/**
- * Runs all proccess object scheduled after the strategy.
- * Should be called by the entrypoint wrapper
- */
-export function post() {
-	run(postprocs);
-}
+--- Runs all proccess object scheduled before the strategy.
+-- Should be called by the entrypoint wrapper
+-- @name pre
+function Processor.pre()
+	run(preprocs)
+end
 
+--- Runs all proccess object scheduled after the strategy.
+-- Should be called by the entrypoint wrapper
+-- @name post
+function Processor.post()
+	run(postprocs)
+end
+
+return Processor

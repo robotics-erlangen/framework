@@ -1,9 +1,9 @@
-/**
- * @module referee
- * Referee utility functions
- */
+--[[
+--- Referee utility functions
+module "Referee"
+]]--
 
-/**************************************************************************
+--[[***********************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -21,318 +21,231 @@
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
 
-import { maxRobotRadius } from "base/constants";
-import { Robot } from "base/robot";
-import { AbsTime } from "base/timing";
-import { Position, Vector } from "base/vector";
-import * as vis from "base/vis";
-import * as World from "base/world";
+local Referee = {}
 
-// states, in which we must keep a dist of 50cm
-const stopStates: { [state: string]: boolean } = {
-	Stop: true,
-	KickoffDefensivePrepare: true,
-	KickoffDefensive: true,
-	DirectDefensive: true,
-	IndirectDefensive: true,
-	BallPlacementDefensive: true,
-	BallPlacementOffensive: true
-};
+local robotRadius = (require "../base/constants").maxRobotRadius -- avoid table lookups for speed reasons
+local vis = require "../base/vis"
+local World = require "../base/world"
 
-// states in which the maximum speed is 1.5 m/s
-const slowDriveStates: { [state: string]: boolean } = {
-	Stop: true
-};
 
-const friendlyFreeKickStates: { [state: string]: boolean } = {
-	DirectOffensive: true,
-	IndirectOffensive: true
-};
-
-const opponentFreeKickStates: { [state: string]: boolean } = {
-	DirectDefensive: true,
-	IndirectDefensive: true
-};
-
-const friendlyKickoffStates: { [state: string]: boolean } = {
-	KickoffOffensivePrepare: true,
-	KickoffOffensive: true
-};
-
-const opponentKickoffStates: { [state: string]: boolean } = {
-	KickoffDefensivePrepare: true,
-	KickoffDefensive: true
-};
-
-const opponentPenaltyStates: { [state: string]: boolean } = {
-	PenaltyDefensivePrepare: true,
-	PenaltyDefensive: true,
-	PenaltyDefensiveRunning: true
-};
-
-const friendlyPenaltyStates: { [state: string]: boolean } = {
-	PenaltyOffensivePrepare: true,
-	PenaltyOffensive: true,
-	PenaltyOffensiveRunning: true
-};
-
-const gameStates: { [state: string]: boolean } = {
-	Game: true,
-	GameForce: true
-};
-
-const nonGameStages: { [state: string]: boolean } = {
-	FirstHalfPre: true,
-	HalfTime: true,
-	SecondHalfPre: true,
-	ExtraTimeBreak: true,
-	ExtraFirstHalfPre: true,
-	ExtraHalfTime: true,
-	ExtraSecondHalfPre: true,
-	PenaltyShootoutBreak: true,
-	PostGame: true
-};
-
-/**
- * Check whether the stop rules apply
- * @returns True if the current referee state is considered as stop
- */
-export function isStopState(state = World.RefereeState): boolean {
-	return stopStates[state];
+-- states, in which we must keep a dist of 50cm
+local stopStates = {
+	Stop = true,
+	KickoffDefensivePrepare = true,
+	KickoffDefensive = true,
+	DirectDefensive = true,
+	IndirectDefensive = true,
+	BallPlacementDefensive = true,
+	BallPlacementOffensive = true
 }
 
-/**
- * Check whether the robot has to drive a maximum of 1.5 m/s (slow)
- * @returns True if all robots have to drive slowly (< 1.5 m/s)
- */
-export function isSlowDriveState(state = World.RefereeState): boolean {
-	return slowDriveStates[state];
+-- states in which the maximum speed is 1.5 m/s
+local slowDriveStates = {
+	Stop = true,
+	BallPlacementDefensive = true,
+	BallPlacementOffensive = true
 }
 
-/**
- * Check whether we have a freekick
- * @returns True if the current referee state is a freekick for us
- */
-export function isFriendlyFreeKickState(state = World.RefereeState): boolean {
-	return friendlyFreeKickStates[state];
+local friendlyFreeKickStates = {
+	DirectOffensive = true,
+	IndirectOffensive = true
 }
 
-/**
- * Check whether the opponent has a freekick
- * @returns true if the current referee state is an freekick for the opponent
- */
-export function isOpponentFreeKickState(state = World.RefereeState): boolean {
-	return opponentFreeKickStates[state];
+local kickoffStates = {
+	KickoffDefensivePrepare = true,
+	KickoffDefensive = true,
+	KickoffOffensivePrepare = true,
+	KickoffOffensive = true
 }
 
-/**
- * Check whether this is a friendly kickoff
- * @returns true if the current referee state is a friendly kickoff
- */
-export function isFriendlyKickoffState(state = World.RefereeState): boolean {
-	return friendlyKickoffStates[state];
+local opponentPenaltyStates = {
+	PenaltyDefensivePrepare = true,
+	PenaltyDefensive = true
 }
 
-/**
- * Check whether this is an opponent kickoff
- * @returns true if the current referee state is an opponent kickoff
- */
-export function isOpponentKickoffState(state = World.RefereeState): boolean {
-	return opponentKickoffStates[state];
+local friendlyPenaltyStates = {
+	PenaltyOffensivePrepare = true,
+	PenaltyOffensive = true
 }
 
-/**
- * Check whether this is a kickoff
- * @returns True if the current referee state is a kickoff
- */
-export function isKickoffState(state = World.RefereeState): boolean {
-	return isFriendlyKickoffState(state) || isOpponentKickoffState(state);
+local gameStates = {
+	Game = true,
+	GameForce = true
 }
 
-/**
- * Check whether the opponent has a penalty
- * @returns True if the opponent has a penalty
- */
-export function isOpponentPenaltyState(state = World.RefereeState): boolean {
-	return opponentPenaltyStates[state];
+local nonGameStages = {
+	FirstHalfPre = true,
+	HalfTime = true,
+	SecondHalfPre = true,
+	ExtraTimeBreak = true,
+	ExtraFirstHalfPre = true,
+	ExtraHalfTime = true,
+	ExtraSecondHalfPre = true,
+	PenaltyShootoutBreak = true,
+	PostGame = true
 }
 
-export function isFriendlyPenaltyState(state = World.RefereeState): boolean {
-	return friendlyPenaltyStates[state];
+--- Check whether the stop rules apply
+-- @name isStopState
+-- @return boolean - True if the current referee state is considered as stop
+function Referee.isStopState()
+	return stopStates[World.RefereeState]
+end
+
+--- Check whether the robot has to drive a maximum of 1.5 m/s (slow)
+-- @name isSlowDriveState
+-- @return boolean - True if all robots have to drive slowly (< 1.5 m/s)
+function Referee.isSlowDriveState()
+	return slowDriveStates[World.RefereeState]
+end
+
+--- Check whether we have a freekick
+-- @name isFriendlyFreeKickState
+-- @return boolean - True if the current referee state is a freekick for us
+function Referee.isFriendlyFreeKickState()
+	return friendlyFreeKickStates[World.RefereeState]
+end
+
+--- Check whether this is a kickoff
+-- @name isKickoffState
+-- @return boolean - True if the current referee state is a kickoff
+function Referee.isKickoffState()
+	return kickoffStates[World.RefereeState]
+end
+
+--- Check whether the opponent has a penalty
+-- @name isOpponentPenaltyState
+-- @return boolean - True if the opponent has a penalty
+function Referee.isOpponentPenaltyState()
+	return opponentPenaltyStates[World.RefereeState]
+end
+
+function Referee.isFriendlyPenaltyState()
+	return friendlyPenaltyStates[World.RefereeState]
+end
+
+function Referee.isGameState()
+	return gameStates[World.RefereeState]
+end
+
+function Referee.isNonGameStage()
+	return nonGameStages[World.GameStage]
+end
+
+local rightLine = World.Geometry.FieldWidthHalf
+local leftLine = -rightLine
+local goalLine = World.Geometry.FieldHeightHalf
+local cornerDist = 0.7 -- some tolerance, rules say 10cm
+--- Check whether there is a freekick in the opponent corner
+-- @name isOffensiveCornerKick
+-- @return boolean - True if a corner kick in the opponents corner
+function Referee.isOffensiveCornerKick()
+	local ballPos = World.Ball.pos
+	local refState = World.RefereeState
+	return (refState == "DirectOffensive" or refState == "IndirectOffensive")
+		and goalLine - ballPos.y < cornerDist
+		and (leftLine - ballPos.x > -cornerDist or rightLine - ballPos.x < cornerDist)
+end
+
+--- Check whether there is a freekick in our corner
+-- @name isDefensiveCornerKick
+-- @return boolean - True if a corner kick in our corner
+function Referee.isDefensiveCornerKick()
+	local ballPos = World.Ball.pos
+	local refState = World.RefereeState
+	return (refState == "DirectDefensive" or refState == "IndirectDefensive" or refState == "Stop")
+		and -goalLine - ballPos.y > -cornerDist
+		and (leftLine - ballPos.x > -cornerDist or rightLine - ballPos.x < cornerDist)
+end
+
+--- Draw areas forbidden by the current referee command
+-- @name illustrateRefereeStates
+function Referee.illustrateRefereeStates()
+	if World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive" then
+		vis.addPath("penaltyDistanceAllowed", {Vector(-2,World.Geometry.OwnPenaltyLine), Vector(2,World.Geometry.OwnPenaltyLine)}, vis.colors.red)
+	elseif World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive" then
+		vis.addPath("penaltyDistanceAllowed", {Vector(-2,World.Geometry.PenaltyLine), Vector(2,World.Geometry.PenaltyLine)}, vis.colors.red)
+	elseif Referee.isStopState() then
+		vis.addCircle("stopstateBallDist", World.Ball.pos, 0.5, vis.colors.redHalf, true)
+	end
+end
+
+local lastTeam = true -- true for the friendly team, false for the opponent
+local lastRobot, lastTouchPos
+local touchDist = World.Ball.radius+robotRadius
+local fieldHeightHalf = World.Geometry.FieldHeightHalf
+local fieldWidthHalf = World.Geometry.FieldWidthHalf
+local noBallTouchStates = {
+	Halt = true,
+	Stop = true,
+	KickoffOffensivePrepare = true,
+	KickoffDefensivePrepare = true,
+	PenaltyOffensivePrepare = true,
+	PenaltyDefensivePrepare = true,
+	TimeoutOffensive = true,
+	TimeoutDefensive = true,
+	BallPlacementDefensive = true,
+	BallPlacementOffensive = true
 }
 
-export function isGameState(state = World.RefereeState): boolean {
-	return gameStates[state];
-}
+function Referee.check()
+	Referee.checkTouching()
+	Referee.checkStateChange()
+end
 
-export function isNonGameStage(): boolean {
-	return nonGameStages[World.GameStage];
-}
+local lastState
+local lastChangedTime
+function Referee.checkStateChange()
+	if World.RefereeState ~= lastState then
+		lastChangedTime = World.Time
+		lastState = World.RefereeState
+	end
+end
 
-let rightLine = World.Geometry.FieldWidthHalf;
-let leftLine = -rightLine;
-let goalLine = World.Geometry.FieldHeightHalf;
-let cornerDist = 0.7; // some tolerance, rules say 10cm
+function Referee.lastStateChangeTime()
+	return lastChangedTime
+end
 
-/**
- * Check whether there is a freekick in the opponent corner
- * @returns True if a corner kick in the opponents corner
- */
-export function isOffensiveCornerKick(): boolean {
-	let ballPos = World.Ball.pos;
-	let refState = World.RefereeState;
-	return (refState === "DirectOffensive" ||
-			refState === "IndirectOffensive")
-		&& goalLine - ballPos.y < cornerDist
-		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
-}
+--- Update the status of which team touched the ball last
+-- @name checkTouching
+function Referee.checkTouching()
+	local ballPos = World.Ball.pos
+	-- only consider touches when playing
+	if noBallTouchStates[World.RefereeState] or
+			math.abs(ballPos.x) > fieldWidthHalf or math.abs(ballPos.y) > fieldHeightHalf then
+		return
+	end
 
-/**
- * Check whether there is a freekick in our corner
- * @returns True if a corner kick in our corner
- */
-export function isDefensiveCornerKick(): boolean {
-	let ballPos = World.Ball.pos;
-	let refState = World.RefereeState;
-	return (refState === "DirectDefensive" ||
-		refState === "IndirectDefensive" || refState === "Stop")
-		&& -goalLine - ballPos.y > -cornerDist
-		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
-}
+	-- pessimistic approach: when we are at the ball, our team is considered touching
+	for _, robot in ipairs(World.FriendlyRobots) do
+		if robot.pos:distanceTo(ballPos) <= touchDist then
+			lastTeam = true
+			lastRobot = robot
+			lastTouchPos = Vector.createReadOnly(ballPos.x, ballPos.y)
+			return
+		end
+	end
+	for _, robot in ipairs(World.OpponentRobots) do
+		if robot.pos:distanceTo(ballPos) <= touchDist then
+			lastTeam = false
+			lastRobot = robot
+			lastTouchPos = Vector.createReadOnly(ballPos.x, ballPos.y)
+			return
+		end
+	end
+end
 
-/** Draw areas forbidden by the current referee command */
-export function illustrateRefereeStates() {
-	if (World.RefereeState === "PenaltyDefensivePrepare" || World.RefereeState === "PenaltyDefensive") {
-		vis.addPath("penaltyDistanceAllowed", [new Vector(-2, World.Geometry.OwnPenaltyLine), new Vector(2, World.Geometry.OwnPenaltyLine)], vis.colors.red);
-	} else if (World.RefereeState === "PenaltyOffensivePrepare" || World.RefereeState === "PenaltyOffensive") {
-		vis.addPath("penaltyDistanceAllowed", [new Vector(-2, World.Geometry.PenaltyLine), new Vector(2, World.Geometry.PenaltyLine)], vis.colors.red);
-	} else if (isStopState()) {
-		vis.addCircle("stopstateBallDist", World.Ball.pos, 0.5, vis.colors.redHalf, true);
-	}
-}
+function Referee.friendlyTouchedLast()
+	return lastTeam
+end
+function Referee.opponentTouchedLast()
+	return not Referee.friendlyTouchedLast()
+end
 
-let couldStillBeFreekick = false;
-export function isPlausiblyStillOppFreekick(): boolean {
-	return couldStillBeFreekick;
-}
+function Referee.robotAndPosOfLastBallTouch()
+	return lastRobot, lastTouchPos
+end
 
-let posInFreekick: Position | undefined;
-let freekickStartTime = World.Time;
-function updateStillFreekick() {
-	if ((isOpponentFreeKickState() || isOpponentKickoffState()) && !posInFreekick) {
-		posInFreekick = World.Ball.pos;
-		freekickStartTime = World.Time;
-	}
-	const maxFreekickTime = World.DIVISION === "A" ? 5 : 10;
-	if (!isGameState() && !isOpponentFreeKickState() &&
-			!isOpponentKickoffState()) {
-		couldStillBeFreekick = false;
-	} else if (World.Time - freekickStartTime > maxFreekickTime) {
-		couldStillBeFreekick = false;
-		posInFreekick = undefined;
-	} else if (posInFreekick) {
-		// same as in amun/processor/referee
-		const maxDist = 0.1;
-		couldStillBeFreekick = World.Ball.pos.distanceToSq(posInFreekick) < maxDist * maxDist;
-	} else {
-		couldStillBeFreekick = false;
-	}
-}
-
-let lastTeam = true; // true for the friendly team, false for the opponent
-let lastRobot: Robot;
-let lastTouchPos: Position;
-let touchDist = World.Ball.radius + maxRobotRadius;
-let fieldHeightHalf = World.Geometry.FieldHeightHalf;
-let fieldWidthHalf = World.Geometry.FieldWidthHalf;
-let noBallTouchStates: { [name: string]: boolean } = {
-	Halt: true,
-	Stop: true,
-	KickoffOffensivePrepare: true,
-	KickoffDefensivePrepare: true,
-	PenaltyOffensivePrepare: true,
-	PenaltyDefensivePrepare: true,
-	TimeoutOffensive: true,
-	TimeoutDefensive: true,
-	BallPlacementDefensive: true,
-	BallPlacementOffensive: true
-};
-
-export function check() {
-	checkTouching();
-	checkStateChange();
-	updateStillFreekick();
-}
-
-let lastState: World.RefereeStateType;
-let lastChangedTime: AbsTime;
-export function checkStateChange() {
-	if (World.RefereeState !== lastState) {
-		lastChangedTime = World.Time;
-		lastState = World.RefereeState;
-	}
-}
-
-export function lastStateChangeTime(): AbsTime {
-	return lastChangedTime;
-}
-
-/** Update the status of which team touched the ball last */
-let lastFlightTime = 0;
-export function checkTouching() {
-	let ballPos = World.Ball.pos;
-	// only consider touches when playing
-	if (noBallTouchStates[World.RefereeState] ||
-			Math.abs(ballPos.x) > fieldWidthHalf || Math.abs(ballPos.y) > fieldHeightHalf) {
-		return;
-	}
-
-	if (World.Ball.posZ !== 0) {
-		lastFlightTime = World.Time;
-		return;
-	}
-	// add an additional time after a chip detection, since it can sometimes flicker
-	if (World.Time - lastFlightTime < 0.1) {
-		return;
-	}
-
-	// pessimistic approach: when we are at the ball, our team is considered touching
-	for (let robot of World.FriendlyRobots) {
-		if (robot.pos.distanceTo(ballPos) <= touchDist) {
-			lastTeam = true;
-			lastRobot = robot;
-			lastTouchPos = new Vector(ballPos.x, ballPos.y);
-			return;
-		}
-	}
-	for (let robot of World.OpponentRobots) {
-		if (robot.pos.distanceTo(ballPos) <= touchDist) {
-			lastTeam = false;
-			lastRobot = robot;
-			lastTouchPos = new Vector(ballPos.x, ballPos.y);
-			return;
-		}
-	}
-}
-
-export function friendlyTouchedLast(): boolean {
-	return lastTeam;
-}
-
-export function opponentTouchedLast(): boolean {
-	return !friendlyTouchedLast();
-}
-
-export function robotAndPosOfLastBallTouch(): [Robot, Position] {
-	return [lastRobot, lastTouchPos];
-}
-
-export function hasTooManyFriendlyRobots(): boolean {
-	return World.FriendlyRobots.length > World.MaxAllowedFriendlyRobots;
-}
-
-export function hasTooManyOpponentRobots(): boolean {
-	return World.OpponentRobots.length > World.MaxAllowedOpponentRobots;
-}
+return Referee
