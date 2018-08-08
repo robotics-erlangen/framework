@@ -2,5 +2,7 @@
 /build*
 /src/html/
 Makefile
+/strategy/lua/marvin/learning/parameters/*
+/autoref
 error.html
 *.swp
