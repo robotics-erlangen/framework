@@ -1,0 +1,99 @@
+Inertial system:
+	v_in and v_out are relative to the robot speed (see below for derivation)
+
+	-> v_in := v_in^orig - v_r
+	-> v_out := v_out^orig - v_r
+
+Input:
+	v_r		vector	robot speed
+	phi		angle	where the shooter looks at
+	v_in	vector	the "pass receive" ball speed
+	alpha	angle	direction of v_in
+	v_s		speed 	how fast the robot shoots
+	mu_x/y  factor  damping factor, mu_x is along the dribbler, mu_y perpendicular to it
+
+Output
+	v_out	vector	the actual ball speed output after shooting
+
+Other symbols:
+	S		vector	the momentum the shoot action gives
+	R		vector	the reflection of the ball (components are called R_x, R_y)
+
+from_angle(phi) := { cos(phi), sin(phi) }
+
+
+
+Idea:
+	Use gradient descent to solve the formula for v_out. Variables are robot direction (phi) and shoot speed (v_s).
+
+
+Coordinate system: (Field coordinates rotated by robot orientation)
+	e_x = from_angle(phi)
+	e_y = from_angle(phi + pi/2)
+
+
+Formula:
+1	v_out = S + R_y + R_x
+2	S = e_x * v_s                                   (shoot in forward direction)
+3	R_y = e_y *  sin(phi - alpha) * mu_x * |v_in|   (sideward reflection)
+4	R_x = e_x * -cos(phi - alpha) * mu_y * |v_in|   (forward reflection)
+
+
+In global coordinates:
+	v_out_x = 	cos(phi) * v_s
+			+	sin(phi) * sin(phi - alpha) * mu_x * |v_in|
+			-	cos(phi) * cos(phi - alpha) * mu_y * |v_in|
+	v_out_y =	sin(phi) * v_s
+			-	cos(phi) * sin(phi - alpha) * mu_x * |v_in|
+			-	sin(phi) * cos(phi - alpha) * mu_y * |v_in|
+
+
+
+Equivalent formulation:
+	rot(phi) := {{cos(phi), -sin(phi)},{sin(phi), cos(phi)}}
+	A . B := matrix multiplication
+	A * B := componentwise scalar multiplication
+
+	v_out = rot(phi) . ((1,0)*v_s + {{-mu_y,0},{0,mu_x}} . rot(-phi) . (cos(alpha), sin(alpha)) * |v_in|)
+	Interpretation:
+		- Calculate incoming ball speed with alpha and v_in
+		- Transform to robot local coordinate system (1, 0) is forward, (0, 1) sidewards
+		- Deflect and apply damping using mu_x and mu_y
+		- Add shoot by robot with speed v_s
+		- Rotate back to global coordinate system
+
+
+
+Gradient:
+	(v_s, phi) -> v_out_x
+	(v_s, phi) -> v_out_y
+
+	Grad(v_out_x) =	{
+		cos(phi),
+		-sin(phi) * v_s
+		+ mu_x * |v_in| * (cos(phi) * sin(phi - alpha) + sin(phi) * cos(phi - alpha))
+		+ mu_y * |v_in| * (cos(phi) * sin(phi - alpha) + sin(phi) * cos(phi - alpha))
+	} = {
+		cos(phi),
+		- sin(phi) * v_s + (mu_x + mu_y) * |v_in| * (cos(phi) * sin(phi - alpha) + sin(phi) * cos(phi - alpha))
+	}
+	Grad(v_out_y) = {
+		sin(phi),
+		cos(phi) * v_s - (mu_x + mu_y) * |v_in| * (cos(phi) * cos(phi - alpha) - sin(phi) * sin(phi - alpha))
+	}
+
+
+
+Derivation of inertial system:
+	rot(phi) := {{cos(phi), -sin(phi)},{sin(phi), cos(phi)}}
+	A . B := matrix multiplication
+	A * B := componentwise scalar multiplication
+	^fs := robot local coordinate system
+
+	v_in^fs := rot(-phi) . v_in
+	v_r^fs  := rot(-phi) . v_r
+	R^fs    := {{-mu_y, 0},{0, mu_x}} . (v_in^fs - v_r^fs) = {{-mu_y, 0},{0, mu_x}} . rot(-phi) . (v_in - v_r)
+	S^fs    := (1,0) * v_s
+
+	b_out         =   S + R + v_r   =   rot(phi) . (S^fs + R^fs) + v_r
+	b_out - v_r   =   rot(phi) . ((1,0) * v_s + {{-mu_y, 0},{0, mu_x}} . rot(-phi) . (v_in - v_r))

@@ -1,0 +1,28 @@
+local Base = require "agent/base/behavior"
+local Penalty = Class("Agent.Attacker.Penalty", Base)
+
+local World = require "../base/world"
+local G = World.Geometry
+
+local MoveToStaticBall = require "task/attacker/movetostaticball"
+local ShootPenalty = require "task/attacker/shootpenalty"
+
+function Penalty:_stop()
+	self.lookDir = nil
+end
+
+function Penalty:check()
+	local mainAttacker = self._inbox.mainAttacker().trainer == self._robot
+	local isPenalty = World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive"
+	return isPenalty and mainAttacker
+end
+
+function Penalty:_updateTask()
+	if World.RefereeState == "PenaltyOffensivePrepare" then
+		return MoveToStaticBall, {(G.OpponentGoal - World.Ball.pos):angle(), 0.08}
+	else -- PenaltyOffensive
+		return ShootPenalty
+	end
+end
+
+return Penalty
