@@ -250,13 +250,9 @@ end
 --- helper functions ---
 
 -- used to stop the simulator while execution is suspended
-local function setScaling(pause)
-	local reason = amun.isBlue() and "DebugBlueStrategy" or "DebugYellowStrategy"
+local function setScaling(scaling)
 	amun.sendCommand({
-		pause_simulator = {
-			reason = reason,
-			pause = pause
-		}
+		speed = scaling
 	})
 end
 
@@ -427,12 +423,12 @@ local function initHandler(_args)
 		printerrln(string.format("At %s:%d in %s %s", shortPath(info.source), info.currentline, info.namewhat, info.name))
 	end
 	-- stop the simulator while execution is suspended
-	setScaling(true)
+	setScaling(0)
 end
 
 local function exitHandler(_args)
 	-- handle continuation commands
-	setScaling(false)
+	setScaling(1)
 	return true
 end
 
@@ -641,7 +637,7 @@ local function quitHandler(_args)
 	clearBreakpoints()
 	-- don't puzzle the user with strategy no longer running
 	-- after killing the strategy if it was suspended
-	setScaling(false)
+	setScaling(1)
 	-- try to exit
 	os.exit(0)
 	return true

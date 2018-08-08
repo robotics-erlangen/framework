@@ -25,8 +25,7 @@ module "Robot.Generation"
 
 local Robot = require "../base/robot"
 local Generation = {
-	Gen2014_3 = require "../base/robots/generation2014",
-	Gen2020_4 = require "../base/robots/generation2020"
+	Gen2014_3 = require "../base/robots/generation2014"
 }
 
 local constantsMt = { __index = Robot.constants }
@@ -45,7 +44,6 @@ function Generation.factory(specs)
 	if robotGen then
 		return robotGen(specs, true)
 	end
-	log("Unknown generation " .. tostring(specs.generation))
 	return Robot(specs.id, true)
 end
 

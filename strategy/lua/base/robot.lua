@@ -66,7 +66,6 @@ Robot.constants = {
 }
 Robot.ALLY_GENERATION_ID = 9999
 Robot.GENERATION_2014_ID = 3
-Robot.GENERATION_2020_ID = 4
 
 --- Creates a new robot object.
 -- Init function must be called for EVERY robot.
@@ -83,7 +82,6 @@ function Robot:init(data, isFriendly)
 		self.id = data
 		self.maxSpeed = 3.5 -- Init max speed and acceleration for opponents
 		self.maxAngularSpeed = 12
-		self.maxShotLinear = 6.5
 
 		self.acceleration = {}
 		self.acceleration.aSpeedupFMax = 3.75
@@ -212,7 +210,7 @@ function Robot:_setSpecs(specs)
 	end
 	self.maxSpeed = specs.v_max or 2
 	self.maxAngularSpeed = specs.omega_max or 5
-	self.maxShotLinear = specs.shot_linear_max or 8 -- TODO: 6.5????
+	self.maxShotLinear = specs.shot_linear_max or 8
 	self.maxShotChip = specs.shot_chip_max or 3
 	self.acceleration = {}
 	local accelData = specs.strategy or {}
@@ -229,10 +227,10 @@ function Robot:_updatePathBoundaries(geometry, aoi)
 		self.path:setBoundary(aoi.x1, aoi.y1, aoi.x2, aoi.y2)
 	else
 		self.path:setBoundary(
-			-geometry.FieldWidthHalf  - geometry.BoundaryWidthTouchLine - 0.02,
-			-geometry.FieldHeightHalf - geometry.BoundaryWidthGoalLine - 0.02,
-			 geometry.FieldWidthHalf  + geometry.BoundaryWidthTouchLine + 0.02,
-			 geometry.FieldHeightHalf + geometry.BoundaryWidthGoalLine + 0.02)
+			-geometry.FieldWidthHalf  - geometry.BoundaryWidth - 0.02,
+			-geometry.FieldHeightHalf - geometry.BoundaryWidth - 0.02,
+			 geometry.FieldWidthHalf  + geometry.BoundaryWidth + 0.02,
+			 geometry.FieldHeightHalf + geometry.BoundaryWidth + 0.02)
 	end
 end
 

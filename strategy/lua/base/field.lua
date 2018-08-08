@@ -36,17 +36,15 @@ local G = World.Geometry
 --- returns the nearest position inside the field (extended by boundaryWidth)
 -- @name limitToField
 -- @param pos Vector - the position to limit
--- @param boundaryWidthTouchLine number - How much the field should be extended beyond the borders in x
--- @param boundaryWidthGoalLine number - How much the field should be extended beyond the borders in y. Defaults to boundaryWidthTouchLine if undefined.
+-- @param boundaryWidth number - how much the field should be extended beyond the borders
 -- @return Vector - limited vector
-function Field.limitToField(pos, boundaryWidthTouchLine, boundaryWidthGoalLine)
-	boundaryWidthTouchLine = boundaryWidthTouchLine or 0
-	boundaryWidthGoalLine = boundaryWidthGoalLine or boundaryWidthTouchLine
+function Field.limitToField(pos, boundaryWidth)
+	boundaryWidth = boundaryWidth or 0
 
-	local allowedHeight = G.FieldHeightHalf + boundaryWidthGoalLine -- limit height to field
+	local allowedHeight = G.FieldHeightHalf + boundaryWidth -- limit height to field
 	local y = math.bound(-allowedHeight, pos.y, allowedHeight)
 
-	local allowedWidth = G.FieldWidthHalf + boundaryWidthTouchLine -- limit width to field
+	local allowedWidth = G.FieldWidthHalf + boundaryWidth -- limit width to field
 	local x = math.bound(-allowedWidth, pos.x, allowedWidth)
 
 	return Vector(x, y)

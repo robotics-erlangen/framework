@@ -60,8 +60,6 @@ function Ball:init()
 	self.framesDecelerating = math.huge
 	self.detectionQuality = 0.6 -- 0.6 is the largest value that can be reached with 60 fps cameras(?)
 	self.hasRawData = false
-	self._hadRawData = false -- used for detecting old simulator logs with no recoded ball raw data
-	self.rawPositions = {}
 end
 
 function Ball:__tostring()
@@ -75,9 +73,7 @@ function Ball:_updateLostBall(time)
 		self._isVisible = false
 		self.lostSince = time
 	end
-	if self._hadRawData then
-		self.detectionQuality = self.detectionQuality * (1 - BALL_QUALITY_FILTER_FACTOR) -- only reduce quality if ball raw data exists
-	end
+	self.detectionQuality = self.detectionQuality * (1 - BALL_QUALITY_FILTER_FACTOR)
 end
 
 -- Processes ball information from amun, passed by world
@@ -119,19 +115,12 @@ function Ball:_update(data, time)
 end
 
 function Ball:_updateRawDetections(rawData)
-	if not rawData or #rawData == 0 then
+	if not rawData then
 		return
 	end
 	local count = math.min(1, #rawData)
-	self._hadRawData = true
-	self.hasRawData = true
 	self.detectionQuality = BALL_QUALITY_FILTER_FACTOR * count + (1 - BALL_QUALITY_FILTER_FACTOR) * self.detectionQuality
-
-	self.rawPositions = {}
-	for _, detection in ipairs(rawData) do
-		local pos = Coordinates.toLocal(Vector.createReadOnly(detection.p_x, detection.p_y))
-		table.insert(self.rawPositions, pos)
-	end
+	self.hasRawData = count > 0
 end
 
 function Ball:_updateTrackedState(lastSpeedLength)

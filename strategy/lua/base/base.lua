@@ -37,7 +37,6 @@ if math.mod ~= nil then
 	log("Warning: Using LuaJIT without lua 5.2 compatibility mode. Strategy behaviour on replay may be unstable")
 end
 require "../base/path"
-require "../base/eigen"
 -- amun.isDebug must already be set, thus load after amun
 require("../base/globalschecker")._init(amun.isDebug)
 require("../base/class")._setDebug(amun.isDebug)
@@ -51,11 +50,9 @@ require("../base/coordinates")._setIsBlue(amun.isBlue())
 require "../base/debug"
 require "../base/debugcommands"
 require "../base/plot"
-require "../base/metric"
 require "../base/robot"
 require "../base/vis"
 require "../base/world"
-require "../base/option"
 debugger._loadBaseDebug()
 
 -- prevent access to internal APIs

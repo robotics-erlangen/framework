@@ -199,6 +199,16 @@ separator for luadoc]]--
 --[[
 separator for luadoc]]--
 
+--- Send referee command over network. Only works in debug mode or as autoref. Must be fully populated
+-- Only sends the data passed to the last call of this function during a strategy run.
+-- The command_counter must be increased for every command change
+-- @class function
+-- @name sendNetworkRefereeCommand
+-- @param command SSL_Referee
+
+--[[
+separator for luadoc]]--
+
 --- Write output to debugger console
 -- @class function
 -- @name debuggerWrite
@@ -220,14 +230,11 @@ separator for luadoc]]--
 -- @name getPerformanceMode
 -- @return mode boolean
 
---[[
-separator for luadoc]]--
 
---- Returns true if and only if this strategy is the internal autoref embedded in a Ra instance
--- it returns false if this is the actual autoref running a dedicated program
+--- Fetch the last referee remote control request reply
 -- @class function
--- @name isInternalAutoref
--- @return isAutoref boolean
+-- @name nextRefboxReply
+-- @return reply table - the last reply or nil if none is available
 
 -- luacheck: globals amun log
 require "amun"
@@ -246,28 +253,28 @@ function amun._hideFunctions()
 	local strategyPath = amun.getStrategyPath()
 	local getCurrentTime = amun.getCurrentTime
 	local sendCommand = amun.sendCommand
+	local sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand
+	local nextRefboxReply = amun.nextRefboxReply
 	local performanceMode = amun.isPerformanceMode
-	local connectGameController = amun.connectGameController
-	local sendGameController = amun.sendGameControllerMessage
-	local receiveGameController = amun.getGameControllerMessage
-	local isInternalAutoref = amun.isInternalAutoref
 
 	-- overwrite global amun
 	amun = {
 		isDebug = isDebug,
-		isInternalAutoref = isInternalAutoref,
 		strategyPath = strategyPath,
+		nextRefboxReply = nextRefboxReply,
 		getCurrentTime = function ()
 			return getCurrentTime() * 1E-9
 		end,
 		setRobotExchangeSymbol = amun.setRobotExchangeSymbol,
-		isPerformanceMode = performanceMode,
-		connectGameController = connectGameController,
-		sendGameControllerMessage = sendGameController,
-		getGameControllerMessage = receiveGameController
+		isPerformanceMode = performanceMode
 	}
 	if isDebug then
 		amun.sendCommand = sendCommand
+		amun.sendNetworkRefereeCommand = sendNetworkRefereeCommand
+	else
+		amun.sendNetworkRefereeCommand = function()
+			error "you must enable debug in order to send referee commands"
+		end
 	end
 
 	-- prevent reloading original api
