@@ -27,6 +27,7 @@
 #include "v8.h"
 #include "libplatform/libplatform.h"
 #include "js_amun.h"
+#include "js_path.h"
 
 using namespace v8;
 
@@ -41,6 +42,7 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
     HandleScope handleScope(m_isolate);
     Local<ObjectTemplate> global = v8::ObjectTemplate::New(m_isolate);
     registerAmunJsCallbacks(m_isolate, global, this);
+    registerPathJsCallbacks(m_isolate, global, this);
     Local<Context> context = Context::New(m_isolate, nullptr, global);
     m_context.Reset(m_isolate, context);
 
@@ -104,8 +106,12 @@ bool Typescript::loadScript(const QString &filename, const QString &entryPoint, 
         }
 
         // execute the script once to get entrypoints etc.
-        // TODO: handle run-time errors
         MaybeLocal<Value> maybeResult = script->Run(context);
+        if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
+            String::Utf8Value error(m_isolate, tryCatch.Exception());
+            m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
+            return false;
+        }
         Local<Value> result;
         if (!maybeResult.ToLocal(&result)) {
             // the script returns nothing
@@ -173,6 +179,11 @@ bool Typescript::loadScript(const QString &filename, const QString &entryPoint, 
     }
 }
 
+void Typescript::addPathTime(double time)
+{
+    m_totalPathTime += time;
+}
+
 bool Typescript::process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput)
 {
     Q_ASSERT(!m_entryPoint.isNull());
@@ -184,16 +195,20 @@ bool Typescript::process(double &pathPlanning, const world::State &worldState, c
     takeDebugStatus();
 
     // TODO: script timeout
-    // used to check for script timeout
-    //m_startTime = Timer::systemTime();
+    m_totalPathTime = 0;
 
     HandleScope handleScope(m_isolate);
     Local<Context> context = Local<Context>::New(m_isolate, m_context);
     Context::Scope contextScope(context);
 
-    // TODO: handle run-time errors
+    TryCatch tryCatch(m_isolate);
     Local<Function> function = Local<Function>::New(m_isolate, m_function);
-    MaybeLocal<Value> result = function->Call(context, context->Global(), 0, nullptr);
-
+    function->Call(context, context->Global(), 0, nullptr);
+    if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
+        String::Utf8Value error(m_isolate, tryCatch.Exception());
+        m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
+        return false;
+    }
+    pathPlanning = m_totalPathTime;
     return true;
 }
