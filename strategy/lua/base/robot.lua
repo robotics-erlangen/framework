@@ -80,16 +80,16 @@ function Robot:init(data, isFriendly)
 		self.shootRadius = 0.067 -- shoot radius of 2014 generation
 		self.generation = -1
 		self.id = data
-		self.maxSpeed = 2 -- Init max speed and acceleration for opponents
-		self.maxAngularSpeed = 4
+		self.maxSpeed = 3.5 -- Init max speed and acceleration for opponents
+		self.maxAngularSpeed = 12
 
 		self.acceleration = {}
-		self.acceleration.aSpeedupFMax = 2
-		self.acceleration.aSpeedupSMax = 2
-		self.acceleration.aSpeedupPhiMax = 20
-		self.acceleration.aBrakeFMax = 3
-		self.acceleration.aBrakeSMax = 3
-		self.acceleration.aBrakePhiMax = 20
+		self.acceleration.aSpeedupFMax = 3.75
+		self.acceleration.aSpeedupSMax = 4.5
+		self.acceleration.aSpeedupPhiMax = 41.5
+		self.acceleration.aBrakeFMax = 5.75
+		self.acceleration.aBrakeSMax = 4
+		self.acceleration.aBrakePhiMax = 21.5
 	end
 	self.lostSince = 0
 	self.lastResponseTime = 0
@@ -210,7 +210,7 @@ function Robot:_setSpecs(specs)
 	end
 	self.maxSpeed = specs.v_max or 2
 	self.maxAngularSpeed = specs.omega_max or 5
-	self.maxShotLinear = specs.shot_linear_max or 8 // TODO: 6.5????
+	self.maxShotLinear = specs.shot_linear_max or 8 -- TODO: 6.5????
 	self.maxShotChip = specs.shot_chip_max or 3
 	self.acceleration = {}
 	local accelData = specs.strategy or {}
