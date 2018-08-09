@@ -1,0 +1,23 @@
+{
+    "compilerOptions": {
+        "allowUnreachableCode": false,
+		"baseUrl": ".",
+		"module": "none",
+		"moduleResolution": "node",
+		"noImplicitAny": true,
+		"noImplicitReturns": true,
+		"noFallthroughCasesInSwitch": true,
+		"preserveConstEnums": true,
+		"pretty": true,
+		"removeComments": true,
+		"sourceMap": true,
+		"target": "esnext",
+		"outDir": "built"
+    },
+    "files": [
+        "init.ts",
+        "../base/entrypoints.ts",
+        "../base/amun.ts",
+        "../base/globals.ts"
+    ]
+}
