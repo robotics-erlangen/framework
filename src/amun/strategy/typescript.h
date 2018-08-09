@@ -25,6 +25,7 @@
 #include "v8.h"
 
 #include <QString>
+#include <QMap>
 
 class Typescript : public AbstractStrategyScript
 {
@@ -40,11 +41,17 @@ public:
     bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput) override;
 
 private:
+    void registerModuleResolver(v8::Local<v8::ObjectTemplate> global);
+    static void performRequire(const v8::FunctionCallbackInfo<v8::Value>& args);
+
+private:
     v8::Isolate* m_isolate;
     // TODO: global instead of persistent?
     v8::Persistent<v8::Context> m_context;
     v8::Persistent<v8::Function> m_function;
     double m_totalPathTime;
+
+    QMap<QString, v8::Global<v8::Value>*> m_requireCache;
 };
 
 #endif // TYPESCRIPT_H

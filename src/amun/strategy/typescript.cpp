@@ -40,13 +40,12 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
     m_isolate->Enter();
 
     HandleScope handleScope(m_isolate);
-    Local<ObjectTemplate> global = v8::ObjectTemplate::New(m_isolate);
+    Local<ObjectTemplate> global = ObjectTemplate::New(m_isolate);
     registerAmunJsCallbacks(m_isolate, global, this);
     registerPathJsCallbacks(m_isolate, global, this);
+    registerModuleResolver(global);
     Local<Context> context = Context::New(m_isolate, nullptr, global);
     m_context.Reset(m_isolate, context);
-
-    // TODO: alle v8:: entfernen
 }
 
 Typescript::~Typescript()
@@ -94,21 +93,25 @@ bool Typescript::loadScript(const QString &filename, const QString &entryPoint, 
         Context::Scope contextScope(context);
 
         Local<String> source = String::NewFromUtf8(m_isolate,
-                                            contentBytes.data(), v8::NewStringType::kNormal).ToLocalChecked();
+                                            contentBytes.data(), NewStringType::kNormal).ToLocalChecked();
 
         // Compile the source code.
         Local<Script> script;
         TryCatch tryCatch(m_isolate);
         if (!Script::Compile(context, source).ToLocal(&script)) {
-            String::Utf8Value error(m_isolate, tryCatch.Exception());
+            String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
             m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
             return false;
         }
 
+        Local<Object> exportsValue = v8::Object::New(m_isolate);
+        Local<String> exportsName = String::NewFromUtf8(m_isolate, "exports", NewStringType::kNormal).ToLocalChecked();
+        context->Global()->Set(context, exportsName, exportsValue);
+
         // execute the script once to get entrypoints etc.
         MaybeLocal<Value> maybeResult = script->Run(context);
         if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
-            String::Utf8Value error(m_isolate, tryCatch.Exception());
+            String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
             m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
             return false;
         }
@@ -179,6 +182,60 @@ bool Typescript::loadScript(const QString &filename, const QString &entryPoint, 
     }
 }
 
+void Typescript::performRequire(const v8::FunctionCallbackInfo<v8::Value>& args)
+{
+    Isolate* isolate = args.GetIsolate();
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    QString name = *String::Utf8Value(args[0]);
+    if (!t->m_requireCache.contains(name)) {
+        // TODO: may or may not work under windows
+        QFileInfo initInfo(t->m_filename);
+        QFileInfo fileInfo(name);
+        QDir buildBaseDir = initInfo.absoluteDir();
+        buildBaseDir.cdUp();
+        QDir jsBaseDir = initInfo.absoluteDir();
+        jsBaseDir.cd("../../..");
+        QString relativePath = fileInfo.absolutePath().replace(jsBaseDir.absolutePath(), "");
+
+        // for future use
+        QFile file(buildBaseDir.absolutePath() + relativePath + "/" + fileInfo.fileName() + ".js");
+        file.open(QIODevice::ReadOnly);
+        QTextStream in(&file);
+        QString content = in.readAll();
+        QByteArray contentBytes = content.toLatin1();
+
+        Local<String> source = String::NewFromUtf8(isolate,
+                                            contentBytes.data(), NewStringType::kNormal).ToLocalChecked();
+        Local<Context> context = isolate->GetCurrentContext();
+
+        Local<Object> global = context->Global();
+        Local<String> exportsName = String::NewFromUtf8(isolate, "exports", NewStringType::kNormal).ToLocalChecked();
+        Local<Value> exportsBefore = global->Get(context, exportsName).ToLocalChecked();
+        Local<Object> exportsValue = v8::Object::New(isolate);
+        global->Set(context, exportsName, exportsValue);
+
+        // Compile the source code.
+        Local<Script> script;
+        TryCatch tryCatch(isolate);
+        if (!Script::Compile(context, source).ToLocal(&script)) {
+            String::Utf8Value error(isolate, tryCatch.StackTrace(context).ToLocalChecked());
+            return;
+        }
+
+        // execute the script once to get entrypoints etc.
+        script->Run(context);
+        global->Set(exportsName, exportsBefore);
+        t->m_requireCache[name] = new Global<Value>(isolate, exportsValue);
+    }
+    args.GetReturnValue().Set(*t->m_requireCache[name]);
+}
+
+void Typescript::registerModuleResolver(Local<ObjectTemplate> global)
+{
+    Local<String> name = String::NewFromUtf8(m_isolate, "require", NewStringType::kNormal).ToLocalChecked();
+    global->Set(name, FunctionTemplate::New(m_isolate, performRequire, External::New(m_isolate, this)));
+}
+
 void Typescript::addPathTime(double time)
 {
     m_totalPathTime += time;
@@ -205,7 +262,7 @@ bool Typescript::process(double &pathPlanning, const world::State &worldState, c
     Local<Function> function = Local<Function>::New(m_isolate, m_function);
     function->Call(context, context->Global(), 0, nullptr);
     if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
-        String::Utf8Value error(m_isolate, tryCatch.Exception());
+        String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
         m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
         return false;
     }
