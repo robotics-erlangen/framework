@@ -210,7 +210,7 @@ function Robot:_setSpecs(specs)
 	end
 	self.maxSpeed = specs.v_max or 2
 	self.maxAngularSpeed = specs.omega_max or 5
-	self.maxShotLinear = specs.shot_linear_max or 8
+	self.maxShotLinear = specs.shot_linear_max or 8 -- TODO: 6.5????
 	self.maxShotChip = specs.shot_chip_max or 3
 	self.acceleration = {}
 	local accelData = specs.strategy or {}
