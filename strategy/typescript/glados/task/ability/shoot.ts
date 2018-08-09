@@ -26,7 +26,7 @@ local RESTING_BALL_SPEED_HYST = 0.1
 
 -- if the ball speed is lower than WOBBLING_BALL_SPEED
 -- the ball is probably resting
-local WOBBLING_BALL_SPEED = 0.8
+local WOBBLING_BALL_SPEED = 0.5
 local WOBBLING_BALL_SPEED_HYST = 0.3
 
 -- if the ball movement direction and the shoot direction differ less than CHASE_BALL_ANGLE
