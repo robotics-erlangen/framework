@@ -7,7 +7,7 @@ local ShootGoal = require "task/attacker/shootgoal"
 local Trainer = require "trainer/trainer"
 
 
--- needs one yellow and one blue robot, must be run for both strategies
+// needs one yellow and one blue robot, must be run for both strategies
 local Dueler = Class("Test.Task.Duel.Duel", require "agent/base/behavior")
 
 function Dueler:check()
@@ -18,7 +18,7 @@ function Dueler:_updateTask()
 	if World.TeamIsBlue then
 		return Duel, {}
 	else
-		return ShootGoal --MoveToStaticBall, {1.5 * math.pi, 0}
+		return ShootGoal //MoveToStaticBall, {1.5 * math.pi, 0}
 	end
 
 end

@@ -7,48 +7,48 @@ local TrajectoryHidden = require "trajectory/hidden"
 
 function RescueRobot:_init()
 	self._rotation = nil
-	-- list of local speeds: (speedForward, speedSide)
+	// list of local speeds: (speedForward, speedSide)
 	self._speeds = nil
 end
 
 function RescueRobot:run()
-	-- ignore visible robots
+	// ignore visible robots
 	if self._robot.isVisible or not self._robot.speed then
 		return
 	end
 
 	if not self._rotation then
-		-- align forward direction with the opposite speed the robot had when it was lost
+		// align forward direction with the opposite speed the robot had when it was lost
 		local robotSpeed = self._robot.speed:copy()
 		if robotSpeed:length() < 0.0001 then
-			-- ensure that backwardsDir points to the opponent goal, if the robot doesn't move
+			// ensure that backwardsDir points to the opponent goal, if the robot doesn't move
 			robotSpeed = Vector(0, -1)
 		end
 		local backwardsDir = robotSpeed:scaleLength(-1):angle()
 		local frontDir = self._robot.dir
 		self._rotation = geom.getAngleDiff(frontDir, backwardsDir)
 
-		-- if field center is on the left while moving forward
+		// if field center is on the left while moving forward
 		if geom.checkTriangleOrientation(self._robot.pos, self._robot.pos + Vector.fromAngle(backwardsDir), Vector(0,0)) >= 0 then
 			self._speeds = {
-				Vector(1, 0), -- forward
-				Vector(-1, 0), -- backward
-				Vector(0, -1), -- left
-				Vector(0 , 1) -- right
+				Vector(1, 0), // forward
+				Vector(-1, 0), // backward
+				Vector(0, -1), // left
+				Vector(0 , 1) // right
 			}
 		else
 			self._speeds = {
-				Vector(1, 0), -- forward
-				Vector(-1, 0), -- backward
-				Vector(0 , 1), -- right
-				Vector(0, -1) -- left
+				Vector(1, 0), // forward
+				Vector(-1, 0), // backward
+				Vector(0 , 1), // right
+				Vector(0, -1) // left
 			}
 		end
 	end
 
-	-- use time as index, one new vector every second
+	// use time as index, one new vector every second
 	local timeDiff = World.Time - self._robot.lostSince
-	local idx = math.floor(timeDiff) + 1 -- offset for array start index
+	local idx = math.floor(timeDiff) + 1 // offset for array start index
 	local speed = self._speeds[idx]
 
 	if speed then

@@ -22,7 +22,7 @@ function RandomKeeper:run()
 	local moveDest = Vector(self._nextX,
 			-World.Geometry.FieldHeightHalf + self._robot.radius + GOAL_DISTANCE)
 
-	-- ignore goal walls if ball is shot
+	// ignore goal walls if ball is shot
 	local obstacleTable = {
 		ignoreBall = true,
 		ignoreGoals = false,

@@ -1,10 +1,10 @@
---[[
---- Functions to convert from global to strategy local coordinates and back.
--- Only use to convert values from or for amun!
+/*
+//- Functions to convert from global to strategy local coordinates and back.
+// Only use to convert values from or for amun!
 module "Coordinates"
-]]--
+*///
 
---[[***********************************************************************
+/************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -22,36 +22,36 @@ module "Coordinates"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-*************************************************************************]]
+**************************************************************************/
 
 local Coordinates = {}
 
---- Converts global coordinates from amun to strategy local coordinates
--- @class function
--- @name toLocal
--- @param data Vector/number - vector or angle to convert
--- @return Vector/number
+//- Converts global coordinates from amun to strategy local coordinates
+// @class function
+// @name toLocal
+// @param data Vector/number - vector or angle to convert
+// @return Vector/number
 
---[[
-separator for luadoc]]--
+/*
+separator for luadoc*///
 
---- Converts strategy local coordinates to global coordinates for amun
--- @class function
--- @name toGlobal
--- @param data Vector/number - vector or angle to convert
--- @return Vector/number
+//- Converts strategy local coordinates to global coordinates for amun
+// @class function
+// @name toGlobal
+// @param data Vector/number - vector or angle to convert
+// @return Vector/number
 
---[[
-separator for luadoc]]--
+/*
+separator for luadoc*///
 
---- Does toGlobal conversion for a list
--- @class function
--- @name listToGlobal
--- @param data (Vector/number)[] - list to map
--- @return (Vector/number)[]
+//- Does toGlobal conversion for a list
+// @class function
+// @name listToGlobal
+// @param data (Vector/number)[] - list to map
+// @return (Vector/number)[]
 
---[[
-separator for luadoc]]--
+/*
+separator for luadoc*///
 
 local function invertCoordinates(data)
 	local dtype = type(data)

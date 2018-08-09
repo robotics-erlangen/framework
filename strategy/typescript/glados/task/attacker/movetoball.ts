@@ -22,7 +22,7 @@ function moveToBall:run()
 	local offset = (self._robot.pos - ball.pos):setLength(self._robot.shootRadius + World.Ball.radius)
 	offset.y = 0
 	local pos = ball.pos - offset
-	-- self._robot.pos * 0.5 + ball.pos/2 - Vector(0, self._robot.radius/3) + ball.speed/10
+	// self._robot.pos * 0.5 + ball.pos/2 - Vector(0, self._robot.radius/3) + ball.speed/10
 	vis.addCircle("toball", pos, ball.pos:distanceTo(pos), vis.colors.redHalf, true)
 	local dir = ball.pos - pos
 	local dir2 = World.Geometry.OpponentGoal - pos

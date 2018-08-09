@@ -53,7 +53,7 @@ function Race:_updateTasks()
 	end
 
 	for i = 1, #self._robots do
-		taskAssignments[self._robots[i]] = { class = MoveToPos,
+		taskAssignments[self._robots[i*/ = { class = MoveToPos,
 			params = { Vector(-0.5 * (#self._robots + 1) + i + 2, self._atStart and Y_END or Y_START) }, restart = restart}
 		end
 	return taskAssignments

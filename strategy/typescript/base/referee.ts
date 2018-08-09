@@ -1,9 +1,9 @@
---[[
---- Referee utility functions
+/*
+//- Referee utility functions
 module "Referee"
-]]--
+*///
 
---[[***********************************************************************
+/************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -21,16 +21,16 @@ module "Referee"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-*************************************************************************]]
+**************************************************************************/
 
 local Referee = {}
 
-local robotRadius = (require "../base/constants").maxRobotRadius -- avoid table lookups for speed reasons
+local robotRadius = (require "../base/constants").maxRobotRadius // avoid table lookups for speed reasons
 local vis = require "../base/vis"
 local World = require "../base/world"
 
 
--- states, in which we must keep a dist of 50cm
+// states, in which we must keep a dist of 50cm
 local stopStates = {
 	Stop = true,
 	KickoffDefensivePrepare = true,
@@ -41,7 +41,7 @@ local stopStates = {
 	BallPlacementOffensive = true
 }
 
--- states in which the maximum speed is 1.5 m/s
+// states in which the maximum speed is 1.5 m/s
 local slowDriveStates = {
 	Stop = true,
 	BallPlacementDefensive = true,
@@ -87,37 +87,37 @@ local nonGameStages = {
 	PostGame = true
 }
 
---- Check whether the stop rules apply
--- @name isStopState
--- @return boolean - True if the current referee state is considered as stop
+//- Check whether the stop rules apply
+// @name isStopState
+// @return boolean - True if the current referee state is considered as stop
 function Referee.isStopState()
 	return stopStates[World.RefereeState]
 end
 
---- Check whether the robot has to drive a maximum of 1.5 m/s (slow)
--- @name isSlowDriveState
--- @return boolean - True if all robots have to drive slowly (< 1.5 m/s)
+//- Check whether the robot has to drive a maximum of 1.5 m/s (slow)
+// @name isSlowDriveState
+// @return boolean - True if all robots have to drive slowly (< 1.5 m/s)
 function Referee.isSlowDriveState()
 	return slowDriveStates[World.RefereeState]
 end
 
---- Check whether we have a freekick
--- @name isFriendlyFreeKickState
--- @return boolean - True if the current referee state is a freekick for us
+//- Check whether we have a freekick
+// @name isFriendlyFreeKickState
+// @return boolean - True if the current referee state is a freekick for us
 function Referee.isFriendlyFreeKickState()
 	return friendlyFreeKickStates[World.RefereeState]
 end
 
---- Check whether this is a kickoff
--- @name isKickoffState
--- @return boolean - True if the current referee state is a kickoff
+//- Check whether this is a kickoff
+// @name isKickoffState
+// @return boolean - True if the current referee state is a kickoff
 function Referee.isKickoffState()
 	return kickoffStates[World.RefereeState]
 end
 
---- Check whether the opponent has a penalty
--- @name isOpponentPenaltyState
--- @return boolean - True if the opponent has a penalty
+//- Check whether the opponent has a penalty
+// @name isOpponentPenaltyState
+// @return boolean - True if the opponent has a penalty
 function Referee.isOpponentPenaltyState()
 	return opponentPenaltyStates[World.RefereeState]
 end
@@ -137,10 +137,10 @@ end
 local rightLine = World.Geometry.FieldWidthHalf
 local leftLine = -rightLine
 local goalLine = World.Geometry.FieldHeightHalf
-local cornerDist = 0.7 -- some tolerance, rules say 10cm
---- Check whether there is a freekick in the opponent corner
--- @name isOffensiveCornerKick
--- @return boolean - True if a corner kick in the opponents corner
+local cornerDist = 0.7 // some tolerance, rules say 10cm
+//- Check whether there is a freekick in the opponent corner
+// @name isOffensiveCornerKick
+// @return boolean - True if a corner kick in the opponents corner
 function Referee.isOffensiveCornerKick()
 	local ballPos = World.Ball.pos
 	local refState = World.RefereeState
@@ -149,9 +149,9 @@ function Referee.isOffensiveCornerKick()
 		and (leftLine - ballPos.x > -cornerDist or rightLine - ballPos.x < cornerDist)
 end
 
---- Check whether there is a freekick in our corner
--- @name isDefensiveCornerKick
--- @return boolean - True if a corner kick in our corner
+//- Check whether there is a freekick in our corner
+// @name isDefensiveCornerKick
+// @return boolean - True if a corner kick in our corner
 function Referee.isDefensiveCornerKick()
 	local ballPos = World.Ball.pos
 	local refState = World.RefereeState
@@ -160,8 +160,8 @@ function Referee.isDefensiveCornerKick()
 		and (leftLine - ballPos.x > -cornerDist or rightLine - ballPos.x < cornerDist)
 end
 
---- Draw areas forbidden by the current referee command
--- @name illustrateRefereeStates
+//- Draw areas forbidden by the current referee command
+// @name illustrateRefereeStates
 function Referee.illustrateRefereeStates()
 	if World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive" then
 		vis.addPath("penaltyDistanceAllowed", {Vector(-2,World.Geometry.OwnPenaltyLine), Vector(2,World.Geometry.OwnPenaltyLine)}, vis.colors.red)
@@ -172,7 +172,7 @@ function Referee.illustrateRefereeStates()
 	end
 end
 
-local lastTeam = true -- true for the friendly team, false for the opponent
+local lastTeam = true // true for the friendly team, false for the opponent
 local lastRobot, lastTouchPos
 local touchDist = World.Ball.radius+robotRadius
 local fieldHeightHalf = World.Geometry.FieldHeightHalf
@@ -208,17 +208,17 @@ function Referee.lastStateChangeTime()
 	return lastChangedTime
 end
 
---- Update the status of which team touched the ball last
--- @name checkTouching
+//- Update the status of which team touched the ball last
+// @name checkTouching
 function Referee.checkTouching()
 	local ballPos = World.Ball.pos
-	-- only consider touches when playing
+	// only consider touches when playing
 	if noBallTouchStates[World.RefereeState] or
 			math.abs(ballPos.x) > fieldWidthHalf or math.abs(ballPos.y) > fieldHeightHalf then
 		return
 	end
 
-	-- pessimistic approach: when we are at the ball, our team is considered touching
+	// pessimistic approach: when we are at the ball, our team is considered touching
 	for _, robot in ipairs(World.FriendlyRobots) do
 		if robot.pos:distanceTo(ballPos) <= touchDist then
 			lastTeam = true

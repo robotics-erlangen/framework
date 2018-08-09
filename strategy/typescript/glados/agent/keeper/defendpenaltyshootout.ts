@@ -15,10 +15,10 @@ function DefendPenaltyShootout:_stop()
 end
 
 function DefendPenaltyShootout:check()
-	-- log("1: "..tostring(World.GameStage == "PenaltyShootout"))
-	-- log("2: "..tostring(World.RefereeState == "PenaltyDefensivePrepare"))
-	-- log("3: "..tostring(World.RefereeState == "PenaltyDefensive"))
-	-- log("4: "..tostring(self:_checkPenaltyOngoing()))
+	// log("1: "..tostring(World.GameStage == "PenaltyShootout"))
+	// log("2: "..tostring(World.RefereeState == "PenaltyDefensivePrepare"))
+	// log("3: "..tostring(World.RefereeState == "PenaltyDefensive"))
+	// log("4: "..tostring(self:_checkPenaltyOngoing()))
 	return World.GameStage == "PenaltyShootout"
 		and (World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive" or self:_checkPenaltyOngoing())
 end

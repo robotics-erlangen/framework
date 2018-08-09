@@ -1,6 +1,6 @@
 local PlaceBall = Class("Task.PlaceBall", require "task/base")
 
--- Requires
+// Requires
 local Constants = require "../base/constants"
 local debug = require "../base/debug"
 local Field = require "../base/field"
@@ -12,7 +12,7 @@ local BallObserver = require "observer/ball"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
--- States
+// States
 local STATE_WAIT_FOR_BALL_STOP = "STATE_WAIT_FOR_BALL_STOP"
 local STATE_GO_TO_PULL = "STATE_GO_TO_PULL"
 local STATE_ENSURE_PULL_CONTACT = "STATE_ENSURE_PULL_CONTACT"
@@ -23,14 +23,14 @@ local STATE_BACK_UP_WAIT = "STATE_BACK_UP_WAIT"
 local STATE_BACK_UP = "STATE_BACK_UP"
 local STATE_MOVE_AWAY = "STATE_MOVE_AWAY"
 
--- Other constants
+// Other constants
 
--- Maximum final distance from ball to placement pos
+// Maximum final distance from ball to placement pos
 local END_DISTANCE = 0.1
 local BALL_STOP_SPEED = 0.2
 local MAX_BALL_DISTANCE = 0.25
 
--- If ball distance is larger than this, the corresponding offset gets recalculated
+// If ball distance is larger than this, the corresponding offset gets recalculated
 local OFFSET_DISTANCE = 0.07
 local OFFSET_FRAME_COUNT = 50
 local OFFSET_SHOOT_LENGTH
@@ -46,7 +46,7 @@ local MAX_PULL_SPEED = 0.15
 local MAX_PULL_ACCEL = 0.15
 local PULL_LOST_BALL_HYSTERESIS = 1
 
--- TODO test max speeds for push
+// TODO test max speeds for push
 local PUSH_DRIBBLER_SPEED = 0.4
 local FAR_NEAR_CUT
 local FAR_PUSH_SPEED = 1
@@ -77,7 +77,7 @@ function PlaceBall:_init(placementPos)
 
 	FAR_NEAR_CUT = self._robot.shootRadius + self._ball.radius + 0.2
 
-	-- See _calculateOffsets()
+	// See _calculateOffsets()
 	self._placementOffsets = {}
 	self._placementOffsetAverage = -self._robot.pos:copy():setLength(OFFSET_EXTRA_LENGTH)
 	self._placementOffsetFrame = 1
@@ -92,9 +92,9 @@ function PlaceBall:_init(placementPos)
 	self._hasBallTime = nil
 	self._lostBallTime = nil
 
-	-- Needed for back up
-	-- True if the previous ball moving state was STATE_PUSH_TO_POS, false otherwise
-	-- If additional ball moving states are to be added in the future, this boolean probably won't be enough
+	// Needed for back up
+	// True if the previous ball moving state was STATE_PUSH_TO_POS, false otherwise
+	// If additional ball moving states are to be added in the future, this boolean probably won't be enough
 	self._pushedBefore = false
 end
 
@@ -114,7 +114,7 @@ function PlaceBall:run()
 	end
 	debug.set("state", self._state)
 
-	-- Path helping
+	// Path helping
 	local obstacleTable = {
 		ignoreDefenseArea = true,
 		ignoreOpponentDefenseArea = true,
@@ -132,7 +132,7 @@ function PlaceBall:run()
 	end
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
-	-- Extend field boundary so that the robot can pull the ball to the field from further out
+	// Extend field boundary so that the robot can pull the ball to the field from further out
 	self._robot.path:setBoundary(
 		-(World.Geometry.FieldWidthHalf + 5),
 		-(World.Geometry.FieldHeightHalf + 5),
@@ -155,7 +155,7 @@ function PlaceBall:run()
 	elseif self._state == STATE_GO_TO_PULL then
 
 		self._currentTargetPos = self._ball.pos - self._borderOffsetAverage
-		-- TODO max speed based on distance?
+		// TODO max speed based on distance?
 		self._robot.trajectory:update(ToTarget, self._currentTargetPos, self._borderOffsetAverage:angle())
 		self._robotStartPos = self._currentTargetPos
 
@@ -169,7 +169,7 @@ function PlaceBall:run()
 	elseif self._state == STATE_PULL_TO_FIELD then
 
 		self._robot:setDribblerSpeed(PULL_DRIBBLER_SPEED)
-		-- For _nearestFieldPos, see in calculateOffset
+		// For _nearestFieldPos, see in calculateOffset
 		if self._stateChanged then
 			self._currentTargetPos = Field.limitToField(self._robot.pos) - self._borderOffsetAverage
 		end
@@ -183,7 +183,7 @@ function PlaceBall:run()
 
 	elseif self._state == STATE_PUSH_TO_POS then
 
-		--TODO faster push at higher distance
+		//TODO faster push at higher distance
 		self._robot:setDribblerSpeed(PUSH_DRIBBLER_SPEED)
 		self._currentTargetPos = self._placementPos + self._placementOffsetAverage:copy():setLength(OFFSET_SHOOT_LENGTH)
 
@@ -197,13 +197,13 @@ function PlaceBall:run()
 		local timeInState = World.Time - self._stateChangeTime
 		local m = -4 * PUSH_DRIBBLER_SPEED / BACK_UP_WAIT_TIME
 		local f0 = 3 * PUSH_DRIBBLER_SPEED
-		-- Linear dropoff between BACK_UP_WAIT_TIME / 4 and BACK_UP_WAIT_TIME / 2
+		// Linear dropoff between BACK_UP_WAIT_TIME / 4 and BACK_UP_WAIT_TIME / 2
 		local dribblerSpeed = math.bound(0, m * timeInState + f0, PUSH_DRIBBLER_SPEED)
 		self._robot:setDribblerSpeed(dribblerSpeed)
 
 	elseif self._state == STATE_BACK_UP then
 
-		-- Ever making the the offset dependent on something near the target position was a mistake
+		// Ever making the the offset dependent on something near the target position was a mistake
 		if self._stateChanged then
 			local offset = (self._robotStartPos - self._ballStartPos):setLength(OFFSET_EXTRA_LENGTH)
 			self._currentTargetPos = self._robot.pos + offset

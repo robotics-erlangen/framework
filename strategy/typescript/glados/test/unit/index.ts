@@ -44,10 +44,10 @@ local function initializeTest(name)
 		error("Debugging not enabled!")
 	end
 
-	-- local timeout = 1000000000 -- number of instructions before hook is called
-	-- debug.sethook(function() error("Timeout (adjustable in tests/unit/index.lua)") end, "", timeout)
+	// local timeout = 1000000000 // number of instructions before hook is called
+	// debug.sethook(function() error("Timeout (adjustable in tests/unit/index.lua)") end, "", timeout)
 
-	-- just load to ensure autoreloading is enabled
+	// just load to ensure autoreloading is enabled
 	pcall(require, name)
 	telescope.load_contexts(name, testContexts)
 	initialized = true
@@ -75,7 +75,7 @@ local function colored_report(contexts, results)
 	local function format_status(result)
 		local runTime = math.round(result.timing*1000000)/1000
 		local formatRunTime = "(" .. tostring(runTime) .. "ms)"
-		-- TODO: error messages and tracebacks
+		// TODO: error messages and tracebacks
 		if result.status_code == telescope.status_codes.pass then
 			return " <font color=\"darkgreen\">success ".. formatRunTime .."</font>"
 		elseif result.status_code == telescope.status_codes.fail then

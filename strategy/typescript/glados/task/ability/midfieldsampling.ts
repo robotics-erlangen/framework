@@ -60,7 +60,7 @@ function MidfieldSampling:closeOpponents(ballPos)
 	local minRating = 0.3
 	local closestDistance = math.huge
 
-	--TODO count all close robots, not just the closest
+	//TODO count all close robots, not just the closest
 	for _, bot in ipairs(World.OpponentRobots) do
 		local distToPos = bot.pos:distanceToSq(ballPos)
 		if distToPos < closestDistance then
@@ -116,7 +116,7 @@ function MidfieldSampling:volleyToStriker(ballPos)
 	for _, msg in pairs(passSuggestions) do
 		local passPos = msg.ballPos
 		local volleyAngle = passReceiveVec:absoluteAngleDiff(passPos - ballPos)
-		-- Note: 90 degrees is not a good volley, but pass opportunities to strikers should still be rewarded 
+		// Note: 90 degrees is not a good volley, but pass opportunities to strikers should still be rewarded 
 		local volleySuccessProbability = Rating.valueToRating(volleyAngle, 90 / 180 * math.pi, 50 / 180 * math.pi)
 		rating = rating + ratingWeight * volleySuccessProbability
 	end

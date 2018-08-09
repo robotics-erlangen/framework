@@ -8,7 +8,7 @@ local G = World.Geometry
 Dribble.MIN_ROBOTS = 1
 Dribble.MAX_ROBOTS = 1
 
--- the armada has 4 steps to form stairs, depending on ball distance
+// the armada has 4 steps to form stairs, depending on ball distance
 local POSITIONS_ORIG = {
 	Vector(G.FieldWidthHalf * -0.2, G.FieldWidthHalf *  0   ),
 	Vector(G.FieldWidthHalf *  0.2, G.FieldWidthHalf *  0.25),
@@ -48,7 +48,7 @@ function Dribble:_updateTasks()
 		state_changed = true
 	end
 	local taskAssignments = {}
-	taskAssignments[self._robots[1]] = { class = DribbleTask, params = {POSITIONS_ORIG[self._state]}, restart = state_changed }
+	taskAssignments[self._robots[1*/ = { class = DribbleTask, params = {POSITIONS_ORIG[self._state]}, restart = state_changed }
 	return taskAssignments, self._robots[1]
 end
 

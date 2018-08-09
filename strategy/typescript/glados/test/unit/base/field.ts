@@ -24,7 +24,7 @@ context("base.field", function()
 				GoalWidth = 1,
 				GoalDepth = 0.18,
 			},
-			RULEVERSION = nil -- keep unset for now
+			RULEVERSION = nil // keep unset for now
 		}
 		G = World.Geometry
 		G.DefenseStretchHalf = G.DefenseStretch / 2
@@ -64,8 +64,8 @@ context("base.field", function()
 		assert_true(Field.isInDefenseArea(pos, 0.2, false))
 
 		pos = Vector(G.DefenseWidthHalf - 0.01, G.FieldHeightHalf-G.DefenseHeight/2)
-		-- log(Field.distanceToDefenseArea(pos, -0.02))
-		-- log(Field.distanceToDefenseArea(pos, -0.02))
+		// log(Field.distanceToDefenseArea(pos, -0.02))
+		// log(Field.distanceToDefenseArea(pos, -0.02))
 		assert_true(math.abs(Field.distanceToDefenseArea(pos, -0.02)-0.01)<0.000001)
 		assert_false(Field.isInDefenseArea(pos, -0.02))
 		assert_true(Field.distanceToDefenseArea(pos, -0.005)<=0)
@@ -91,8 +91,8 @@ context("base.field", function()
 
 
 		pos = Vector(G.DefenseStretchHalf + G.DefenseRadius - 0.01, G.FieldHeightHalf)
-		-- log(Field.distanceToDefenseArea(pos, -0.02))
-		-- log(Field.distanceToDefenseArea(pos, -0.02))
+		// log(Field.distanceToDefenseArea(pos, -0.02))
+		// log(Field.distanceToDefenseArea(pos, -0.02))
 		assert_true(math.abs(Field.distanceToDefenseArea(pos, -0.02)-0.01)<0.000001)
 		assert_false(Field.isInDefenseArea(pos, -0.02))
 		assert_true(Field.distanceToDefenseArea(pos, -0.005)<=0)
@@ -108,7 +108,7 @@ context("base.field", function()
 
 		local pos = Vector(0,0)
 		local dir = Vector(0,-1)
-		-- log("hi")
+		// log("hi")
 		local d = 0.2
 		local v = Vector(0, -G.FieldHeightHalf+G.DefenseHeight+d)
 		local intersection = Field.intersectRayDefenseArea(pos,dir,d,true)

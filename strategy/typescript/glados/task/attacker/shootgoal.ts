@@ -87,7 +87,7 @@ function ShootGoal:run()
 			ShootGoalUtil.updateTarget(self._robot, self._shootTargetPoint, self._dirty, attackPosition)
 	end
 
-	-- aim at the center of the goal when shooting from too far away
+	// aim at the center of the goal when shooting from too far away
 	local maxDistance = 0.75 * G.FieldHeight
 	local minDistance = 0.25 * G.FieldHeight
 	local distance = self._robot.pos:distanceTo(self._shootTargetPoint)
@@ -110,11 +110,11 @@ function ShootGoal:run()
 	local mode = nil
 
 	if not self._desperate then
-		-- perform a linear shot
+		// perform a linear shot
 		self:_shoot(localTarget, math.huge, nil, ballReceiptPos, math.min(10 * math.pi / 180, self._shootTargetWidth or math.huge))
 	else
 		local maxAngleError = 10 * math.pi / 180
-		-- prevent icing
+		// prevent icing
 		if World.Ball.pos.y < 0 then
 			maxAngleError = 2 * math.pi / 180
 		end
@@ -127,16 +127,16 @@ function ShootGoal:run()
 		debug.set("ballReceiptPos", ballReceiptPos)
 
 		local onlyOppOcc = {}
-		local disabled = true --FIXME after solving TODO
+		local disabled = true //FIXME after solving TODO
 		localTarget = nil
 
 		if not disabled then
 
-			local occupied = Goal.getOccupiedSectors(ballReceiptPos, World.OpponentRobots,  0, math.pi, true) --TODO extrapolate them
+			local occupied = Goal.getOccupiedSectors(ballReceiptPos, World.OpponentRobots,  0, math.pi, true) //TODO extrapolate them
 			Interval.sort(occupied)
 			Interval.merge(occupied)
 
-			local bothOcc = Goal.getOccupiedSectors(ballReceiptPos, World.Robots, 0, math.pi, true) -- TODO extrapolate them
+			local bothOcc = Goal.getOccupiedSectors(ballReceiptPos, World.Robots, 0, math.pi, true) // TODO extrapolate them
 			Interval.sort(bothOcc)
 			Interval.merge(bothOcc)
 
@@ -147,7 +147,7 @@ function ShootGoal:run()
 				end
 				local intervalB = bothOcc[bothCnt]
 				local intervalE = occupied[occCnt]
-				--floatEq is correct here
+				//floatEq is correct here
 				if intervalB[1] == intervalE[1] and intervalB[2] == intervalE[2] then
 					table.insert(onlyOppOcc, intervalB)
 					occCnt = occCnt + 1
@@ -166,12 +166,12 @@ function ShootGoal:run()
 
 		if #onlyOppOcc > 0 and not self._desperateTargetPoint then
 			local EPSILON = 0.0001
-			--state: desperate clean
+			//state: desperate clean
 			repeat
 				local selectedInterval = nil
 				if self._desperateTargetID then
-					--try to continue shooting at the same bot
-					--TODO: don't pretend its always going to be that side
+					//try to continue shooting at the same bot
+					//TODO: don't pretend its always going to be that side
 					for _,v in ipairs(onlyOppOcc) do
 						if v[3][1].id == self._desperateTargetID then
 							selectedInterval = v
@@ -181,10 +181,10 @@ function ShootGoal:run()
 				end
 				if not selectedInterval then
 					self._desperateTargetID = nil
-					--TODO: Use heuristic instead of random
+					//TODO: Use heuristic instead of random
 					selectedInterval = onlyOppOcc[math.random(#onlyOppOcc)]
 				end
-				local selectedDir = selectedInterval[1] + 1/2 * ((selectedInterval[3][1].pos - ballReceiptPos):angle() - selectedInterval[1]) --TODO: select side
+				local selectedDir = selectedInterval[1] + 1/2 * ((selectedInterval[3][1].pos - ballReceiptPos):angle() - selectedInterval[1]) //TODO: select side
 				local angleError = selectedDir - selectedInterval[1]
 				local avoidIcing = ballReceiptPos.y < 0.3
 				if avoidIcing then
@@ -217,8 +217,8 @@ function ShootGoal:run()
 		end
 		if localTarget == nil then
 			mode = "desperate desperate"
-			--state: desperate desperate
-			--shoot at the center of the opponent goal
+			//state: desperate desperate
+			//shoot at the center of the opponent goal
 			localTarget = Vector(0, G.FieldHeightHalf)
 			self:_shoot(localTarget, math.huge, nil, ballReceiptPos, maxAngleError)
 		end

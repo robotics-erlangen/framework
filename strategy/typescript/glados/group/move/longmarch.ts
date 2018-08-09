@@ -48,19 +48,19 @@ function LongMarch:_updateTasks()
 	local taskAssignments = {}
 
 	if World.RefereeState == "Stop" then
-		taskAssignments[self._robots[1]] = { class = StopAttack, params = { } }
-		taskAssignments[self._robots[2]] = { class = Circuit, params = { Vector(0, G.FieldHeightHalf/2), math.pi } }
-		taskAssignments[self._robots[3]] = { class = Circuit, params = { Vector(0, G.FieldHeightHalf/2), math.pi * 2 } }
-		taskAssignments[self._robots[4]] = { class = Circuit, params = { Vector(0, -G.FieldHeightHalf/2), math.pi  } }
-		taskAssignments[self._robots[5]] = { class = Circuit, params = { Vector(0, -G.FieldHeightHalf/2), math.pi *2 } }
-	else--if self._state == "pass1" then
-		taskAssignments[self._robots[1]] = { class = Pass, params = { self._robots[2] } }
-		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { POSITIONS[1], nil, true} }
-		taskAssignments[self._robots[3]] = { class = MoveToPos, params = { POSITIONS[2], nil, true} }
-		taskAssignments[self._robots[4]] = { class = MoveToPos, params = { POSITIONS[3], nil, true} }
-		taskAssignments[self._robots[5]] = { class = MoveToPos, params = { POSITIONS[4], nil, true} }
-	--elseif self._state == "pass2" then
-	--elseif self._state == "goal" then
+		taskAssignments[self._robots[1*/ = { class = StopAttack, params = { } }
+		taskAssignments[self._robots[2*/ = { class = Circuit, params = { Vector(0, G.FieldHeightHalf/2), math.pi } }
+		taskAssignments[self._robots[3*/ = { class = Circuit, params = { Vector(0, G.FieldHeightHalf/2), math.pi * 2 } }
+		taskAssignments[self._robots[4*/ = { class = Circuit, params = { Vector(0, -G.FieldHeightHalf/2), math.pi  } }
+		taskAssignments[self._robots[5*/ = { class = Circuit, params = { Vector(0, -G.FieldHeightHalf/2), math.pi *2 } }
+	else//if self._state == "pass1" then
+		taskAssignments[self._robots[1*/ = { class = Pass, params = { self._robots[2] } }
+		taskAssignments[self._robots[2*/ = { class = MoveToPos, params = { POSITIONS[1], nil, true} }
+		taskAssignments[self._robots[3*/ = { class = MoveToPos, params = { POSITIONS[2], nil, true} }
+		taskAssignments[self._robots[4*/ = { class = MoveToPos, params = { POSITIONS[3], nil, true} }
+		taskAssignments[self._robots[5*/ = { class = MoveToPos, params = { POSITIONS[4], nil, true} }
+	//elseif self._state == "pass2" then
+	//elseif self._state == "goal" then
 	end
 
 	if World.RefereeState == "Game" then

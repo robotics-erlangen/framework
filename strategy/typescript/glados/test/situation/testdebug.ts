@@ -10,9 +10,9 @@ local startTime
 local function testRef()
 	if not init then
 		debugcommands.sendRefereeCommand("Halt", "FirstHalf")
-		-- this works:
-		-- debugcommands.sendRefereeCommand(nil, "FirstHalf")
-		-- debugcommands.sendRefereeCommand("Halt")
+		// this works:
+		// debugcommands.sendRefereeCommand(nil, "FirstHalf")
+		// debugcommands.sendRefereeCommand("Halt")
 		init = true
 		startTime = World.Time
 	end

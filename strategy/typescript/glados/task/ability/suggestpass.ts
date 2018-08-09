@@ -5,7 +5,7 @@ local World = require "../base/world"
 local Physics = require "observer/physics"
 
 function SuggestPass:_suggestPass(destBallPos, attackPos, relativeTime, anonymous, chip)
-	-- check for mainAttacker
+	// check for mainAttacker
 	local mainAttacker = self._inbox.mainAttacker().trainer
 	if not mainAttacker then
 		return
@@ -14,7 +14,7 @@ function SuggestPass:_suggestPass(destBallPos, attackPos, relativeTime, anonymou
 	local currentBallPos = attackPos or World.Ball.pos
 	local robotPos = destBallPos + (destBallPos - currentBallPos):setLength(self._robot.shootRadius + World.Ball.radius)
 
-	-- calculate receive time
+	// calculate receive time
 	local extraTime = 0.0
 	local moveTime = relativeTime or Physics.robotTimeToPos(self._robot, robotPos, Vector(0, 0)) + extraTime
 	local receiveTime = World.Time + moveTime

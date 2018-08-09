@@ -25,7 +25,7 @@ local STATE_WAIT_FOR_SET_BACK = "STATE_WAIT_FOR_SET_BACK"
 local STATE_SET_BACK = "STATE_SET_BACK"
 local STATE_FINE_ADJUST = "STATE_FINE_ADJUST"
 
--- Tolerance according to the rules
+// Tolerance according to the rules
 local TOLERANCE = 0.1
 
 
@@ -166,15 +166,15 @@ function FastBallPlacement:_updateTasks()
 		local intersection, ballLambda = geom.intersectLineLine(World.Ball.pos, ballSpeed, self.RECEIVER.pos, ballSpeed:perpendicular());
 		self._ballReceiverIntersects = ballLambda > 0
 
-		-- We don't want to receive a pass out of field because setback may not be possible there
+		// We don't want to receive a pass out of field because setback may not be possible there
 		if not Field.isInField(intersection) then
 			intersection = Field.nextLineCut(World.Ball.pos, ballSpeed)
 		end
 
 		vis.addPath("g/m/fastballplacement", { self.RECEIVER.pos, intersection, World.Ball.pos }, vis.colors.red)
 
-		-- Stop moving if the ball is near the receiver
-		-- We don't use halt because Halt could possibly stop the dribbler from spinning
+		// Stop moving if the ball is near the receiver
+		// We don't use halt because Halt could possibly stop the dribbler from spinning
 		if World.Ball.pos:distanceTo(self.RECEIVER.pos) < World.Ball.radius + self.RECEIVER.shootRadius + 0.1 then
 			taskAssignments[self.RECEIVER] = {
 				class = MoveToPos,
@@ -211,8 +211,8 @@ function FastBallPlacement:_updateTasks()
 			restart = self._stateChanged
 		}
 		if self._stateChanged then
-			-- Simple sampling from some preselected positions
-			-- If no fitting position could be found (because the field is too small) the last used position is chosen as fallback
+			// Simple sampling from some preselected positions
+			// If no fitting position could be found (because the field is too small) the last used position is chosen as fallback
 			for _, pos in ipairs(SHOOTER_EVADING_POSITIONS) do
 				if pos:distanceTo(World.BallPlacementPos) > FINE_ADJUST_ZONE then
 					self._selectedEvadingPos = pos

@@ -19,15 +19,15 @@ local G = World.Geometry
 
 
 function Defense:init()
-	self._manmarkTargets = {} -- opponent -> rating
-	self._manmarkAssignments = {} -- opponent -> defender
+	self._manmarkTargets = {} // opponent -> rating
+	self._manmarkAssignments = {} // opponent -> defender
 	self._centerbackAssignments = {}
 
-	self._piggyTargets = {} -- opponent -> rating
-	self._piggyAssignments = {} -- opponent -> defender
+	self._piggyTargets = {} // opponent -> rating
+	self._piggyAssignments = {} // opponent -> defender
 
-	self._previousManmarkAssignments = {} -- opponent -> defender
-	self._previousPiggyAssignments = {} -- opponent -> defender
+	self._previousManmarkAssignments = {} // opponent -> defender
+	self._previousPiggyAssignments = {} // opponent -> defender
 	self._previousBallCenterbacks = {}
 
 	self._ballIsLeft = true
@@ -54,26 +54,26 @@ function Defense:_updateManmarkTargets()
 	for _, robot in ipairs(World.OpponentRobots) do
 		local alreadyTargeted = self._previousManmarkAssignments[robot] ~= nil
 
-		-- if we are already dueling the robot
-		-- the duel robot has to block the shot already
+		// if we are already dueling the robot
+		// the duel robot has to block the shot already
 		local sender, msg = next(self._inbox.defendedOpponent())
 		if msg == robot and sender.pos:distanceToLineSegment(msg.pos + Vector.fromAngle(msg.dir) * (msg.shootRadius + World.Ball.radius), World.Geometry.FriendlyGoal) < sender.radius then
 			goto continue
 		end
 
-		-- if the robot is the (not aggressive) opponent keeper
+		// if the robot is the (not aggressive) opponent keeper
 		local extraDist = alreadyTargeted and 0.2 or 0.4
 		if robot == World.OpponentKeeper and Field.isInOpponentDefenseArea(robot.pos, extraDist) then
 			goto continue
 		end
 
-		-- if in STOP, don't mark opponents who are close to the stop circle
+		// if in STOP, don't mark opponents who are close to the stop circle
 		local stopCircleMarkRadius = alreadyTargeted and 0.7 or 0.85
 		if Referee.isStopState() and robot.pos:distanceTo(World.Ball.pos) < stopCircleMarkRadius then
 			goto continue
 		end
 
-		-- otherwise, target the opponent
+		// otherwise, target the opponent
 		self._manmarkTargets[robot] = dangerousness[robot]
 ::continue::
 	end
@@ -105,8 +105,8 @@ function Defense:_nextManmarkAssignment(defenders)
 		local intersectionDefenseArea = Field.intersectRayDefenseArea(targetBot.pos, G.FriendlyGoal - targetBot.pos, 0.2, true)
 		local manMarkPos = UtilDefense.manMarkPos(mostDangerousRobot)
 		if intersectionDefenseArea then
-			-- manmark should quickly move into the goalline
-			-- whichever robot is close to the goalline and close to the defense area is preferred
+			// manmark should quickly move into the goalline
+			// whichever robot is close to the goalline and close to the defense area is preferred
 			local bestDistance = math.huge
 			for _, bot in ipairs(defenders) do
 				local posOnGoalLine, distanceToGoalLine = bot.pos:orthogonalProjection(intersectionDefenseArea, targetBot.pos)
@@ -116,8 +116,8 @@ function Defense:_nextManmarkAssignment(defenders)
 					posOnGoalLine = Field.intersectRayDefenseArea(posOnGoalLine, targetBot.pos-posOnGoalLine, 0.2, true) or posOnGoalLine
 				end
 
-				-- a figurative distance, the distance to the goalline is weighted more than the distance to the manMarkPos
-				-- this is because a manMark will first try to intercept the goal line
+				// a figurative distance, the distance to the goalline is weighted more than the distance to the manMarkPos
+				// this is because a manMark will first try to intercept the goal line
 				local totalDistance = distanceToGoalLine * 1.5 + posOnGoalLine:distanceTo(manMarkPos)
 				if self._previousManmarkAssignments[targetBot] == bot then
 					totalDistance = 0.75 * totalDistance
@@ -170,12 +170,12 @@ function Defense:_assignManmarkDefenders(defenders, nReservedDefenders)
 end
 
 function Defense:_updatePiggyTargets()
-	local passViability = UtilDefense.rateOpponentPassViability() -- opponent -> rating
+	local passViability = UtilDefense.rateOpponentPassViability() // opponent -> rating
 	for robot, rating in pairs(passViability) do
 		vis.addCircle("tr/defense: passViability", robot.pos, 0.2, vis.fromTemperature(rating), true)
 	end
 
-	-- remove targets with lowest rating
+	// remove targets with lowest rating
 	for opp, rating in pairs(passViability) do
 		if rating < 0.1 then
 			passViability[opp] = nil
@@ -196,8 +196,8 @@ local function determineNumberOfPiggies(defenderCount, manmarkTargets, piggyTarg
 		return 0
 	end
 
-	-- prioritize manmarks over piggies when in own field half
-	-- TODO hysteresis
+	// prioritize manmarks over piggies when in own field half
+	// TODO hysteresis
 
 	if World.Ball.pos.y < 0 then
 		dangerousnessThreshold = 0.3
@@ -239,7 +239,7 @@ local function findMostViableTarget(piggyTargets, defenders, previousAssignments
 	local mostViableTarget = nil
 	for target, viability in pairs(piggyTargets) do
 
-		-- hysteresis
+		// hysteresis
 		if previousAssignments[target] then
 			for _, defender in ipairs(defenders) do
 				if previousAssignments[target] == defender then
@@ -259,7 +259,7 @@ local function findMostViableTarget(piggyTargets, defenders, previousAssignments
 end
 
 function Defense:_assignPiggies(defenders, nPiggies)
-	-- assign piggies
+	// assign piggies
 	while #defenders > 0 and nPiggies > 0 do
 
 		local target = findMostViableTarget(self._piggyTargets, defenders, self._previousPiggyAssignments)
@@ -284,7 +284,7 @@ function Defense:_assignPiggies(defenders, nPiggies)
 	end
 end
 
--- inserts tables of: way, pos, startPos, startDirection of the ray into result
+// inserts tables of: way, pos, startPos, startDirection of the ray into result
 function Defense:_createIntersections(result, pos, direction, radius, index, isDribbling)
 	local lastRemoved = self._centerbackIntersectionsRemoved[index]
 	self._centerbackIntersectionsRemoved[index] = false
@@ -307,7 +307,7 @@ function Defense:_createIntersections(result, pos, direction, radius, index, isD
 		if intersections[1].pos:distanceToSq(pos) > MAX_DEFENSE_DIST * MAX_DEFENSE_DIST then
 			return
 		end
-		-- for dribbling robots, limit the first intersection to ones going into the goal
+		// for dribbling robots, limit the first intersection to ones going into the goal
 		local goallineIntersection = geom.intersectLineLine(pos, direction, G.FriendlyGoal, Vector(1, 0))
 		if isDribbling and goallineIntersection and math.abs(goallineIntersection.x) > G.GoalWidth / 2 then
 			local goalSide = Vector(math.sign(goallineIntersection.x) * G.GoalWidth / 2, G.FriendlyGoal.y)
@@ -349,12 +349,12 @@ function Defense:_assignBallCenterbacks(defenders)
 			intersectionInfos[numBefore + 1].isDribbling = isDribbling
 		end
 	end
-	-- remove exit point of predictshot if enough points are available
+	// remove exit point of predictshot if enough points are available
 	if intersectionInfos[4] then
 		intersectionInfos[4] = nil
 	end
 
-	-- go over all intersections
+	// go over all intersections
 	self._centerbackAssignments = {}
 	local timeSum = 0
 	local currentBall = World.Ball
@@ -372,8 +372,8 @@ function Defense:_assignBallCenterbacks(defenders)
 			rollTime = rollTime + 0.4
 		end
 		if rollTime == math.huge then
-			-- other intersections could reach the defense area,
-			-- since the ball could currently be dribbled
+			// other intersections could reach the defense area,
+			// since the ball could currently be dribbled
 			goto continue
 		end
 		local closestRobot = UtilDefense.getClosestRobot(defenders, info.pos)
@@ -402,9 +402,9 @@ function Defense:_assignBallCenterbacks(defenders)
 		::continue::
 	end
 
-	-- assign default centerbacks
+	// assign default centerbacks
 	if #intersectionInfos == 0 and #defenders > 0 then
-		-- not in opponent corner attacks: assign a ball centerback
+		// not in opponent corner attacks: assign a ball centerback
 		local needDefaultCB = not Referee.isDefensiveCornerKick() and not Referee.isFriendlyFreeKickState()
 		if needDefaultCB then
 			local futureBallPosCB = UtilDefense.calculateBallPosition()
@@ -433,22 +433,22 @@ function Defense:_assignDefenders()
 
 	local defenders = table.keys(self._inbox.defenderFlag())
 
-	-- if needDefaultCB then
-	-- 	local volleyDangerousness = UtilDefense.rateVolleyGoalShotThreats()
-	-- 	for _, robot in ipairs(World.OpponentRobots) do
-	-- 		if volleyDangerousness[robot] and volleyDangerousness[robot] > 0.5 then
-	-- 			for _ = 1,2 do
-	-- 				local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
-	-- 				if defaultCB then
-	-- 					table.removeValue(defenders, defaultCB)
-	-- 					self._send.roleAssignment(defaultCB,
-	-- 						{name = "CenterBack", params = { World.Ball }})
-	-- 				end
-	-- 			end
-	-- 			break
-	-- 		end
-	-- 	end
-	-- end
+	// if needDefaultCB then
+	// 	local volleyDangerousness = UtilDefense.rateVolleyGoalShotThreats()
+	// 	for _, robot in ipairs(World.OpponentRobots) do
+	// 		if volleyDangerousness[robot] and volleyDangerousness[robot] > 0.5 then
+	// 			for _ = 1,2 do
+	// 				local defaultCB = UtilDefense.getClosestRobot(defenders, UtilDefense.centerBackPos(World.Ball.pos))
+	// 				if defaultCB then
+	// 					table.removeValue(defenders, defaultCB)
+	// 					self._send.roleAssignment(defaultCB,
+	// 						{name = "CenterBack", params = { World.Ball }})
+	// 				end
+	// 			end
+	// 			break
+	// 		end
+	// 	end
+	// end
 
 	self:_assignBallCenterbacks(defenders)
 

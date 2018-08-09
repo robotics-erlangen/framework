@@ -116,9 +116,9 @@ local function printTable(balls)
 	log("table:")
 	if balls[1] then
 	log(tostring(balls[1].ball).." | "..tostring(balls[1].time))
-	end-- for _, entry in ipairs(balls) do
-	-- 	log(tostring(entry.ball).." | "..tostring(entry.time))
-	-- end
+	end// for _, entry in ipairs(balls) do
+	// 	log(tostring(entry.ball).." | "..tostring(entry.time))
+	// end
 	log("")
 end
 
@@ -128,7 +128,7 @@ local function evaluate(self)
 		self._wasShot = true
 	end
 
-	-- infinitesimal test
+	// infinitesimal test
 	if not self._lastBall and self._lastTimestamp then
 		self._lastBall = World.Ball
 		self._lastTimestamp = World.Time
@@ -138,7 +138,7 @@ local function evaluate(self)
 		plotErrorTwoBalls(self._lastBall, time, string)
 	end
 
-	-- mid term prediction
+	// mid term prediction
 	if #self._midTermBallTable == 10 then
 		local sumHorErr, sumHorSpeedErr, sumVertErr, sumVertSpeedErr = 0, 0, 0, 0
 		for id, entry in ipairs(self._midTermBallTable) do
@@ -162,14 +162,14 @@ local function evaluate(self)
 		table.insert(self._midTermBallTable, {ball = table.copy(World.Ball), time = World.Time})
 	end
 
-	-- half second prediction
+	// half second prediction
 	local halfSecTable = self._oneSecondBallTable
 	printTable(self._oneSecondBallTable)
-	-- if halfSecTable[1] then
-	-- 	--log(World.Time - halfSecTable[1].time.." ||| "..tostring(#halfSecTable)
-	-- end
+	// if halfSecTable[1] then
+	// 	//log(World.Time - halfSecTable[1].time.." ||| "..tostring(#halfSecTable)
+	// end
 	if #halfSecTable == 5 and World.Time - halfSecTable[1].time > 0.5 then
-		--log("hallo")
+		//log("hallo")
 		local ball = halfSecTable[1].ball
 		local time = World.Time - halfSecTable[1].time
 		local errTable = compareBalls(Physics.ballAtTimeExperimental(ball, time), World.Ball)
@@ -202,9 +202,9 @@ function DebugChip:_updateTasks()
 	end
 
 	if not self._ballPlacement then
-		taskAssignments[self._robots[1]] = { class = ChipTask, params = {self._idlePos, self._distance }, restart = restartNecessary }
+		taskAssignments[self._robots[1*/ = { class = ChipTask, params = {self._idlePos, self._distance }, restart = restartNecessary }
 	else
-		taskAssignments[self._robots[1]] = { class = PlaceBall, params = {self._initBall.pos}, restart = restartNecessary }
+		taskAssignments[self._robots[1*/ = { class = PlaceBall, params = {self._initBall.pos}, restart = restartNecessary }
 	end
 
 	if World.Ball.pos:distanceTo(self._initBall.pos) < 0.3 then

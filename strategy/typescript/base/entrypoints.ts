@@ -1,9 +1,9 @@
---[[
---- Class to add new Entrypoints
+/*
+//- Class to add new Entrypoints
 module "Entrypoints"
-]]--
+*///
 
---[[***********************************************************************
+/************************************************************************
 *   Copyright 2015 Michael Eischer, Christian Lobmeier                    *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -21,16 +21,16 @@ module "Entrypoints"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-*************************************************************************]]
+**************************************************************************/
 
 local Entrypoints = {}
 
 local entries = {}
 
---- Adds an entrypoint
--- @name add
--- @param name string - Entrypoint name parts are separated with '/'
--- @param func function - Function to call for this entrypoint
+//- Adds an entrypoint
+// @name add
+// @param name string - Entrypoint name parts are separated with '/'
+// @param func function - Function to call for this entrypoint
 function Entrypoints.add(name, func)
 	if entries[name] ~= nil then
 		error("An entrypoint with name "..tostring(name).." already exists")
@@ -38,10 +38,10 @@ function Entrypoints.add(name, func)
 	entries[name] = func
 end
 
---- Returns the entrypoint list.
--- The functions are wrapped using the wrapper function which should
--- call the basic runtime functions
--- @return table<string, function> - Entrypoints table for passing to ra
+//- Returns the entrypoint list.
+// The functions are wrapped using the wrapper function which should
+// call the basic runtime functions
+// @return table<string, function> - Entrypoints table for passing to ra
 function Entrypoints.get(wrapper)
 	local wrapped = {}
 	for name, func in pairs(entries) do

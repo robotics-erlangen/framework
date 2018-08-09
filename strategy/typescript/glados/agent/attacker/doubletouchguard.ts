@@ -9,11 +9,11 @@ local Robot = require "observer/robot"
 local StopAttack = require "task/attacker/stopattack"
 
 
---prevents freekicking robot from moving away after failed shot
+//prevents freekicking robot from moving away after failed shot
 local lastFreekickTime = 1
 function DoubleTouchGuard:check()
 	if Referee.isFriendlyFreeKickState() then
-		-- subtract half a second to ensure that the freekick shot gets detected
+		// subtract half a second to ensure that the freekick shot gets detected
 		lastFreekickTime = World.Time - 0.5
 	end
 

@@ -1,9 +1,9 @@
---[[
---- Provides informations about game state
+/*
+//- Provides informations about game state
 module "World"
-]]--
+*///
 
---[[***********************************************************************
+/************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier, *
 *       Philipp Nordhus                                                   *
 *   Robotics Erlangen e.V.                                                *
@@ -22,7 +22,7 @@ module "World"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-*************************************************************************]]
+**************************************************************************/
 
 local amun = amun
 local Ball = require "../base/ball"
@@ -32,43 +32,43 @@ local Generation = require "../base/generation"
 local mixedTeam = require "../base/mixedteam"
 local Robot = require "../base/robot"
 
---- Ball and team informations.
--- @class table
--- @name World
--- @field Ball Ball - current Ball
--- @field FriendlyRobots Robot[] - List of own robots in an arbitary order
--- @field FriendlyInvisibleRobots Robot[] - Own robots which currently aren't tracked
--- @field FriendlyRobotsById Map<int,Robot> - List of own robots with robot id as index
--- @field FriendlyRobotsAll Robot[] - List of all own robots in an arbitary order
--- @field FriendlyKeeper Robot - Own keeper if on field or nil
--- @field OpponentRobots Robot[] - List of opponent robots in an arbitary order
--- @field OpponentRobotsById Robot[] - List of opponent robots with robot id as index
--- @field OpponentKeeper Robot - Opponent keeper if on field or nil
--- @field Robots Robot[] - Every visible robot in an arbitary order
--- @field TeamIsBlue bool - True if we are the blue team, otherwise we're yellow
--- @field IsSimulated bool - True if the world is simulated
--- @field IsReplay bool - True if the current strategy run is a replay run
--- @field IsLargeField bool - True if playing on the large field
--- @field Time number - Current unix timestamp in seconds (with nanoseconds precision)
--- @field TimeDiff number - Time since last update
--- @field BallPlacementPos - Position where the ball has to be placed
--- @field RefereeState string - current refereestate, can be one of these:
--- Halt, Stop, Game, GameForce,
--- KickoffOffensivePrepare, KickoffDefensivePrepare, KickoffOffensive, KickoffDefensive,
--- PenaltyOffensivePrepare, PenaltyDefensivePrepare, PenaltyOffensive, PenaltyDefensive,
--- DirectOffensive, DirectDefensive, IndirectOffensive, IndirectDefensive,
--- TimeoutOffensive, TimeoutDefensive, BallPlacementOffensive, BallPlacementDefensive
--- @field GameStage string - current game stage, can be one of these:
--- FirstHalfPre, FirstHalf, HalfTime, SecondHalfPre, SecondHalf,
--- ExtraTimeBreak, ExtraFirstHalfPre, ExtraFirstHalf, ExtraHalfTime, ExtraSecondHalfPre, ExtraSecondHalf,
--- PenaltyShootoutBreak, PenaltyShootout, PostGame
--- @field MixedTeam Table[] - Mixed team data sent by partner team, indexed by robot id, only set if data was received;
--- Has the following fields: role string (values: Default, Goalie, Defense, Offense), targetPos* vector,
--- targetDir* number, shootPos* vector, * = optional
--- @field FriendlyYellowCards table - List of the remaining times for all active friendly yellow cards
--- @field OpponentYellowCards table - List of the remaining times for all active opponent yellow cards
--- @field FriendlyRedCards number - number of red cards received for the own team
--- @field OpponentRedCards number - number of red cards the opponent received
+//- Ball and team informations.
+// @class table
+// @name World
+// @field Ball Ball - current Ball
+// @field FriendlyRobots Robot[] - List of own robots in an arbitary order
+// @field FriendlyInvisibleRobots Robot[] - Own robots which currently aren't tracked
+// @field FriendlyRobotsById Map<int,Robot> - List of own robots with robot id as index
+// @field FriendlyRobotsAll Robot[] - List of all own robots in an arbitary order
+// @field FriendlyKeeper Robot - Own keeper if on field or nil
+// @field OpponentRobots Robot[] - List of opponent robots in an arbitary order
+// @field OpponentRobotsById Robot[] - List of opponent robots with robot id as index
+// @field OpponentKeeper Robot - Opponent keeper if on field or nil
+// @field Robots Robot[] - Every visible robot in an arbitary order
+// @field TeamIsBlue bool - True if we are the blue team, otherwise we're yellow
+// @field IsSimulated bool - True if the world is simulated
+// @field IsReplay bool - True if the current strategy run is a replay run
+// @field IsLargeField bool - True if playing on the large field
+// @field Time number - Current unix timestamp in seconds (with nanoseconds precision)
+// @field TimeDiff number - Time since last update
+// @field BallPlacementPos - Position where the ball has to be placed
+// @field RefereeState string - current refereestate, can be one of these:
+// Halt, Stop, Game, GameForce,
+// KickoffOffensivePrepare, KickoffDefensivePrepare, KickoffOffensive, KickoffDefensive,
+// PenaltyOffensivePrepare, PenaltyDefensivePrepare, PenaltyOffensive, PenaltyDefensive,
+// DirectOffensive, DirectDefensive, IndirectOffensive, IndirectDefensive,
+// TimeoutOffensive, TimeoutDefensive, BallPlacementOffensive, BallPlacementDefensive
+// @field GameStage string - current game stage, can be one of these:
+// FirstHalfPre, FirstHalf, HalfTime, SecondHalfPre, SecondHalf,
+// ExtraTimeBreak, ExtraFirstHalfPre, ExtraFirstHalf, ExtraHalfTime, ExtraSecondHalfPre, ExtraSecondHalf,
+// PenaltyShootoutBreak, PenaltyShootout, PostGame
+// @field MixedTeam Table[] - Mixed team data sent by partner team, indexed by robot id, only set if data was received;
+// Has the following fields: role string (values: Default, Goalie, Defense, Offense), targetPos* vector,
+// targetDir* number, shootPos* vector, * = optional
+// @field FriendlyYellowCards table - List of the remaining times for all active friendly yellow cards
+// @field OpponentYellowCards table - List of the remaining times for all active opponent yellow cards
+// @field FriendlyRedCards number - number of red cards received for the own team
+// @field OpponentRedCards number - number of red cards the opponent received
 
 local World = {}
 
@@ -92,41 +92,41 @@ World.SelectedOptions = nil
 World.RULEVERSION = nil
 
 World.Geometry = {}
---- Field geometry.
--- Lengths in meter
--- @class table
--- @name World.Geometry
--- @field FieldWidth number - Width of the playing field (short side)
--- @field FieldHeight number - Height of the playing field (long side)
--- @field FieldWidthHalf number - Half width of the playing field (short side)
--- @field FieldHeightHalf number - Half height of the playing field (long side)
--- @field FieldWidthQuarter number - Quarter width of the playing field (short side)
--- @field FieldHeightQuarter number - Quarter height of the playing field (long side)
--- @field GoalWidth number - Inner width of the goals
--- @field GoalWallWidth number - Width of the goal walls
--- @field GoalDepth number - Depth of the goal
--- @field GoalHeight number - Height of the goals
--- @field LineWidth number - Width of the game field lines
--- @field CenterCircleRadius number - Radius of the center circle
--- @field FreeKickDefenseDist number - Distance to keep to opponent defense area during a freekick
--- @field DefenseRadius number - Radius of the defense area corners (pre 2018)
--- @field DefenseStretch number - Distance between the defense areas quarter circles (pre 2018)
--- @field DefenseWidth number - Width of the rectangular defense area (longer side) (since 2018)
--- @field DefenseHeight number - Height of the rectangular defense area (shorter side) (since 2018)
--- @field FriendlyPenaltySpot Vector - Position of our own penalty spot
--- @field OpponentPenaltySpot Vector - Position of the opponent's penalty spot
--- @field PenaltyLine number - Maximal distance from centerline during an offensive penalty
--- @field OwnPenaltyLine number - Maximal distance from centerline during an defensive penalty
--- @field FriendlyGoal Vector - Center point of the goal on the line
--- @field FriendlyGoalLeft Vector
--- @field FriendlyGoalRight Vector
--- @field OpponentGoal Vector - Center point of the goal on the line
--- @field OpponentGoalLeft Vector
--- @field OpponentGoalRight Vector
--- @field BoundaryWidth number - Free distance around the playing field
--- @field RefereeWidth number - Width of area reserved for referee
+//- Field geometry.
+// Lengths in meter
+// @class table
+// @name World.Geometry
+// @field FieldWidth number - Width of the playing field (short side)
+// @field FieldHeight number - Height of the playing field (long side)
+// @field FieldWidthHalf number - Half width of the playing field (short side)
+// @field FieldHeightHalf number - Half height of the playing field (long side)
+// @field FieldWidthQuarter number - Quarter width of the playing field (short side)
+// @field FieldHeightQuarter number - Quarter height of the playing field (long side)
+// @field GoalWidth number - Inner width of the goals
+// @field GoalWallWidth number - Width of the goal walls
+// @field GoalDepth number - Depth of the goal
+// @field GoalHeight number - Height of the goals
+// @field LineWidth number - Width of the game field lines
+// @field CenterCircleRadius number - Radius of the center circle
+// @field FreeKickDefenseDist number - Distance to keep to opponent defense area during a freekick
+// @field DefenseRadius number - Radius of the defense area corners (pre 2018)
+// @field DefenseStretch number - Distance between the defense areas quarter circles (pre 2018)
+// @field DefenseWidth number - Width of the rectangular defense area (longer side) (since 2018)
+// @field DefenseHeight number - Height of the rectangular defense area (shorter side) (since 2018)
+// @field FriendlyPenaltySpot Vector - Position of our own penalty spot
+// @field OpponentPenaltySpot Vector - Position of the opponent's penalty spot
+// @field PenaltyLine number - Maximal distance from centerline during an offensive penalty
+// @field OwnPenaltyLine number - Maximal distance from centerline during an defensive penalty
+// @field FriendlyGoal Vector - Center point of the goal on the line
+// @field FriendlyGoalLeft Vector
+// @field FriendlyGoalRight Vector
+// @field OpponentGoal Vector - Center point of the goal on the line
+// @field OpponentGoalLeft Vector
+// @field OpponentGoalRight Vector
+// @field BoundaryWidth number - Free distance around the playing field
+// @field RefereeWidth number - Width of area reserved for referee
 
--- initializes Team and Geometry data
+// initializes Team and Geometry data
 function World._init()
 	World.TeamIsBlue = amun.isBlue()
 	local geom = amun.getGeometry()
@@ -135,10 +135,10 @@ function World._init()
 	World._updateTeam(amun.getTeam())
 end
 
---- Update world state.
--- Has to be called once each frame
--- @name update
--- @return bool - false if no vision data was received since strategy start
+//- Update world state.
+// Has to be called once each frame
+// @name update
+// @return bool - false if no vision data was received since strategy start
 function World.update()
 	if World.SelectedOptions == nil then
 		World.SelectedOptions = amun.getSelectedOptions()
@@ -150,7 +150,7 @@ function World.update()
 	return hasVisionData
 end
 
--- Creates generation specific robot object for own team
+// Creates generation specific robot object for own team
 function World._updateTeam(state)
 	local friendlyRobotsById = {}
 	local friendlyRobotsAll = {}
@@ -163,7 +163,7 @@ function World._updateTeam(state)
 	World.FriendlyRobotsAll = friendlyRobotsAll
 end
 
--- Get rule version from geometry
+// Get rule version from geometry
 function World._updateRuleVersion(geom)
 	if not geom.type or geom.type == "TYPE_2014" then
 		World.RULEVERSION = "2017"
@@ -172,7 +172,7 @@ function World._updateRuleVersion(geom)
 	end
 end
 
--- Setup field geometry
+// Setup field geometry
 function World._updateGeometry(geom)
 	local wgeom = World.Geometry
 	wgeom.FieldWidth = geom.field_width
@@ -203,7 +203,7 @@ function World._updateGeometry(geom)
 	wgeom.PenaltyLine = wgeom.OpponentPenaltySpot.y - geom.penalty_line_from_spot_dist
 	wgeom.OwnPenaltyLine = wgeom.FriendlyPenaltySpot.y + geom.penalty_line_from_spot_dist
 
-	-- The goal posts are on the field lines
+	// The goal posts are on the field lines
 	wgeom.FriendlyGoal = Vector.createReadOnly(0, - wgeom.FieldHeightHalf)
 	wgeom.FriendlyGoalLeft = Vector.createReadOnly(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
 	wgeom.FriendlyGoalRight = Vector.createReadOnly(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
@@ -221,7 +221,7 @@ function World._updateGeometry(geom)
 end
 
 function World._updateWorld(state)
-	-- Get time
+	// Get time
 	if World.Time then
 		World.TimeDiff = state.time * 1E-9 - World.Time
 	else
@@ -237,23 +237,23 @@ function World._updateWorld(state)
 
 	local radioResponses = state.radio_response
 
-	-- update ball if available
+	// update ball if available
 	World.Ball:_update(state.ball, World.Time)
 
 	local dataFriendly = World.TeamIsBlue and state.blue or state.yellow
 	if dataFriendly then
-		-- sort data by robot id
+		// sort data by robot id
 		local dataById = {}
 		for _,rdata in ipairs(dataFriendly) do
 			dataById[rdata.id] = rdata
 		end
 
-		-- Update data of every own robot
+		// Update data of every own robot
 		World.FriendlyRobots = {}
 		World.FriendlyInvisibleRobots = {}
 		for _, robot in ipairs(World.FriendlyRobotsAll) do
-			-- get responses for the current robot
-			-- these are identified by the robot generation and id
+			// get responses for the current robot
+			// these are identified by the robot generation and id
 			local robotResponses = {}
 			for _, response in ipairs(radioResponses) do
 				if response.generation == robot.generation
@@ -264,7 +264,7 @@ function World._updateWorld(state)
 
 			robot:_update(dataById[robot.id], World.Time, robotResponses)
 			robot:_updatePathBoundaries(World.Geometry, World.AoI)
-			-- sort robot into visible / not visible
+			// sort robot into visible / not visible
 			if robot.isVisible then
 				table.insert(World.FriendlyRobots, robot)
 			else
@@ -275,12 +275,12 @@ function World._updateWorld(state)
 
 	local dataOpponent = World.TeamIsBlue and state.yellow or state.blue
 	if dataOpponent then
-		-- only keep robots that are still existent
+		// only keep robots that are still existent
 		local opponentRobotsById = World.OpponentRobotsById
 		World.OpponentRobots = {}
 		World.OpponentRobotsById = {}
-		-- just update every opponent robot
-		-- robots that are invisible for more than one second are dropped by amun
+		// just update every opponent robot
+		// robots that are invisible for more than one second are dropped by amun
 		for _,rdata in ipairs(dataOpponent) do
 			local robot = opponentRobotsById[rdata.id]
 			opponentRobotsById[rdata.id] = nil
@@ -291,7 +291,7 @@ function World._updateWorld(state)
 			table.insert(World.OpponentRobots, robot)
 			World.OpponentRobotsById[rdata.id] = robot
 		end
-		-- mark dropped robots as invisible
+		// mark dropped robots as invisible
 		for _,robot in pairs(opponentRobotsById) do
 			robot:_update(nil, World.Time)
 		end
@@ -300,17 +300,17 @@ function World._updateWorld(state)
 	World.Robots = table.copy(World.FriendlyRobots)
 	table.append(World.Robots, World.OpponentRobots)
 
-	-- convert mixed team info
+	// convert mixed team info
 	if state.mixed_team_info and state.mixed_team_info.plans then
 		World.MixedTeam = mixedTeam.decodeData(state.mixed_team_info.plans)
 	else
 		World.MixedTeam = nil
 	end
 
-	-- update aoi data
+	// update aoi data
 	World.AoI = state.tracking_aoi
 
-	-- no vision data only if the parameter is false
+	// no vision data only if the parameter is false
 	return state.has_vision_data ~= false
 end
 
@@ -333,18 +333,18 @@ World.gameStageMapping = {
 	POST_GAME = "PostGame"
 }
 
--- keep for use by debugcommands.sendRefereeCommand
+// keep for use by debugcommands.sendRefereeCommand
 local fullRefereeState = nil
 
 function World._getFullRefereeState()
 	return fullRefereeState
 end
 
--- updates referee command and keeper information
+// updates referee command and keeper information
 function World._updateGameState(state)
 	fullRefereeState = state
 	local refState = state.state
-	-- map referee command to own team
+	// map referee command to own team
 	if World.TeamIsBlue then
 		World.RefereeState = refState:gsub("Blue", "Offensive"):gsub("Yellow", "Defensive")
 	else
@@ -357,8 +357,8 @@ function World._updateGameState(state)
 
 	if state.designated_position and state.designated_position.x then
 		World.BallPlacementPos = Coordinates.toLocal(Vector.createReadOnly(
-			-- refbox position message uses millimeters
-			-- ssl-vision's coordinate system is rotated by 90 degrees
+			// refbox position message uses millimeters
+			// ssl-vision's coordinate system is rotated by 90 degrees
 			-state.designated_position.y / 1000,
 			state.designated_position.x / 1000))
 	end
@@ -384,7 +384,7 @@ function World._updateGameState(state)
 	World.FriendlyKeeper = friendlyKeeper
 	World.OpponentKeeper = opponentKeeper
 
-	--[[
+	/*
 	optional sint32 stage_time_left = 2;
 	message TeamInfo {
 		// The team's name (empty string if operator has not typed anything).
@@ -404,7 +404,7 @@ function World._updateGameState(state)
 		required uint32 timeouts = 6;
 		// The number of microseconds of timeout this team can use.
 		required uint32 timeout_time = 7;
-	}]]
+	}*/
 
 	World.FriendlyYellowCards = {}
 	for _, time in ipairs(friendlyTeamInfo.yellow_card_times) do
@@ -418,11 +418,11 @@ function World._updateGameState(state)
 	World.OpponentRedCards = opponentTeamInfo.red_cards
 end
 
--- update and handle user inputs set for own robots
+// update and handle user inputs set for own robots
 function World._updateUserInput(input)
 	if input.radio_command then
 		for _, robot in ipairs(World.FriendlyRobotsAll) do
-			robot:_updateUserControl(nil) -- clear
+			robot:_updateUserControl(nil) // clear
 		end
 		for _, cmd in ipairs(input.radio_command) do
 			local robot = World.FriendlyRobotsById[cmd.id]
@@ -432,9 +432,9 @@ function World._updateUserInput(input)
 		end
 	end
 	if input.move_command then
-		-- cache the movecommands for 0.3 seconds if it not there every frame
+		// cache the movecommands for 0.3 seconds if it not there every frame
 		for _, robot in ipairs(World.FriendlyRobotsAll) do
-			-- < 0 for going back in logfiles while replaying
+			// < 0 for going back in logfiles while replaying
 			if robot.moveCommand and (World.Time - robot.moveCommand.time > 0.3 or
 				World.Time - robot.moveCommand.time < 0) then
 				robot.moveCommand = nil
@@ -453,8 +453,8 @@ function World._updateUserInput(input)
 end
 
 
---- Stops own robots and enables standby
--- @name haltOwnRobots
+//- Stops own robots and enables standby
+// @name haltOwnRobots
 function World.haltOwnRobots()
 	for _, robot in ipairs(World.FriendlyRobotsAll) do
 		if not robot.moveCommand then
@@ -464,9 +464,9 @@ function World.haltOwnRobots()
 	end
 end
 
---- Set generated commands for our robots.
--- Robots without a command stop by default
--- @name setRobotCommands
+//- Set generated commands for our robots.
+// Robots without a command stop by default
+// @name setRobotCommands
 function World.setRobotCommands()
 	for _, robot in ipairs(World.FriendlyRobotsAll) do
 		amun.setCommand(robot.generation, robot.id, robot:_command())

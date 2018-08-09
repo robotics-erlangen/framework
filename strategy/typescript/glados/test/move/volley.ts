@@ -31,19 +31,19 @@ function Volley:_updateTasks()
 
 	if World.RefereeState == "Stop" then
 		vis.addCircle("ball placement", self._freekickPos, 0.2, vis.colors.red)
-		taskAssignments[self._robots[1]] = { behavior = Stop, restart = self._freekickFlag }
+		taskAssignments[self._robots[1*/ = { behavior = Stop, restart = self._freekickFlag }
 		self._freekickFlag = false
 	else
-		taskAssignments[self._robots[1]] = { behavior = Freekick, restart = not self._freekickFlag }
+		taskAssignments[self._robots[1*/ = { behavior = Freekick, restart = not self._freekickFlag }
 		self._freekickFlag = true
 	end
 
 	local _, passInfoTable = next(self._inbox.passInfo())
 	local startMoving = Attack.checkPassInfos(self._robots[2], passInfoTable, false)
 	if startMoving then
-		taskAssignments[self._robots[2]] = { class = AcceptPass }
+		taskAssignments[self._robots[2*/ = { class = AcceptPass }
 	else
-		taskAssignments[self._robots[2]] = { class = Striker, params = { self._startPos, self._shootPos } }
+		taskAssignments[self._robots[2*/ = { class = Striker, params = { self._startPos, self._shootPos } }
 	end
 
 	return taskAssignments, self._robots[1]

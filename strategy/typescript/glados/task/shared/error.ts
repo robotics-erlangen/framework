@@ -5,7 +5,7 @@ local ToTarget = require "trajectory/totarget"
 local PathHelper = require "trajectory/pathhelper"
 local G = World.Geometry
 
--- [robotId] => (firstLocationId, secondLocationId)
+// [robotId] => (firstLocationId, secondLocationId)
 local EXCHANGE_TARGET = {{firstPosI = 0, secPosI = 17},
 						{firstPosI = 1, secPosI = 16},
 						{firstPosI = 2, secPosI = 15},
@@ -42,7 +42,7 @@ function Error:run()
 	else
 		y0 = -G.FieldWidthHalf
 	end
-	-- check Ball
+	// check Ball
 	if self._goToTopBlock and
 			G.FieldWidthHalf-1.5 < World.Ball.pos.x  and World.Ball.pos.x < G.FieldWidthHalf+0.5 and
 			-1.5< World.Ball.pos.y and World.Ball.pos.y < 1.5  then

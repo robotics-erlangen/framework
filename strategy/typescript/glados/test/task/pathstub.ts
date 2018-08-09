@@ -17,9 +17,9 @@ function PathStub.setWaypoints(waypoints)
 	end
 end
 
--- PathStub.setWaypoints( { Vector(1, -1), Vector(1, 1), Vector(-2, -2), Vector(0, 0) })
+// PathStub.setWaypoints( { Vector(1, -1), Vector(1, 1), Vector(-2, -2), Vector(0, 0) })
 
--- PathStub.setWaypoints( { Vector(0, 0), Vector(0, 1), Vector(1, 1), Vector(1, 0), Vector(0, 0) })
+// PathStub.setWaypoints( { Vector(0, 0), Vector(0, 1), Vector(1, 1), Vector(1, 0), Vector(0, 0) })
 
 local wps = {}
 local parts = 20
@@ -98,7 +98,7 @@ function PathStub:get(start_x, start_y, _end_x, _end_y)
 end
 
 
--- Just run MoveToPos
+// Just run MoveToPos
 local Position = Class("Test.Task.PathStub.Position", require "agent/base/behavior")
 function Position:check()
 	return true

@@ -31,9 +31,9 @@ function ManMark:run()
 	local preferredPos = Defense.manMarkPos(self._targetRobot)
 	local preferredDir = (World.Ball.pos - self._robot.pos):angle()
 
-	-- pos before the defense area; the possibility of crashing into centerbacks was considered
-	-- but disregarded because blocking a shot on the goal is more important,
-	-- and the probabilty of it being the final position is small
+	// pos before the defense area; the possibility of crashing into centerbacks was considered
+	// but disregarded because blocking a shot on the goal is more important,
+	// and the probabilty of it being the final position is small
 	local intersectionDefenseArea = Field.intersectRayDefenseArea(preferredPos,
 			World.Geometry.FriendlyGoal - preferredPos,
 			self._robot.radius + DEFENSE_AREA_MIN_DISTANCE, true)
@@ -41,18 +41,18 @@ function ManMark:run()
 	local moveDest
 	local basePos
 	if intersectionDefenseArea then
-		-- calculate new position between ball (regarding robot shootRadius) and the intersection with defense area
-		moveDest = preferredPos --+ (intersectionDefenseArea - preferredPos):setLength(0)--self._robot.shootRadius + World.Ball.radius)
+		// calculate new position between ball (regarding robot shootRadius) and the intersection with defense area
+		moveDest = preferredPos //+ (intersectionDefenseArea - preferredPos):setLength(0)//self._robot.shootRadius + World.Ball.radius)
 		moveDest = Defense.fastestPointInInterval(self._robot, moveDest, intersectionDefenseArea,
 							self._oldPosition, BLOCK_POS_PRECISION, BLOCK_POS_ALPHA)
 		basePos = intersectionDefenseArea
 	else
-		-- case if there isn't an intersection with the defense area
+		// case if there isn't an intersection with the defense area
 		moveDest = preferredPos + (self._robot.pos-preferredPos):setLength(self._robot.shootRadius + World.Ball.radius)
 		basePos = self._robot.pos
 	end
 
-	-- remember position for the next iteration
+	// remember position for the next iteration
 	self._oldPosition = moveDest
 
 	local distToLine = self._robot.pos:distanceToLineSegment(basePos, preferredPos)
@@ -65,16 +65,16 @@ function ManMark:run()
 	debug.set("moveDest posOnLine", moveDest)
 	debug.set("moveDest distToLine", distToLine)
 
-	-- local ignoreBall = false
+	// local ignoreBall = false
 
 	if self._blockingShot then
-		--if closestOpponentRobot then
-		--	moveDest = self:_moveToNearBlock(futureBall, closestOpponentRobot)
-		--else
-		--	ignoreBall = true
+		//if closestOpponentRobot then
+		//	moveDest = self:_moveToNearBlock(futureBall, closestOpponentRobot)
+		//else
+		//	ignoreBall = true
 			moveDest = preferredPos + (World.Geometry.FriendlyGoal - preferredPos):setLength(
 						World.Ball.radius + self._robot.shootRadius)
-		--end
+		//end
 	end
 
 	self._obstacleTable.ignoreOpponentRobots = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)

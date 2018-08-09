@@ -22,11 +22,11 @@ function CommChallengeMaster:_canContinue()
 	return true
 end
 
-local wayLength = 2.7 -- meters, only correct for official field
+local wayLength = 2.7 // meters, only correct for official field
 local function defAreaPos(num, opponentGoal)
 	local pos = Field.defenseIntersectionByWay(wayLength*((num+1)/8), 0.23, not opponentGoal)
 	vis.addCircle("defAreaPos", pos, 0.1, vis.colors.orangeHalf, true)
-	-- return position at defense area, determined by robot id
+	// return position at defense area, determined by robot id
 	return pos
 end
 
@@ -34,13 +34,13 @@ local function task1()
 	local taskAssignments = {}
 	local partnerPlan = {}
 
-	-- alle eigenen hinter, alle gegnerischen vor
+	// alle eigenen hinter, alle gegnerischen vor
 	for id, robot in pairs(World.FriendlyRobotsById) do
 		if robot == World.FriendlyRobot then
 			partnerPlan[id] = { targetPos = World.Geometry.FriendlyGoal, role = "Goalie" }
 		elseif robot.generation == robot.ALLY_GENERATION_ID then
 			partnerPlan[id] = { targetPos = defAreaPos(id, true), role = "Offense" }
-		else -- own robot
+		else // own robot
 			local pos = defAreaPos(id, false)
 			partnerPlan[id] = { targetPos = pos, role = "Defense" }
 			taskAssignments[robot] =  { class = MoveToPos, params = {pos}, restart = true }
@@ -55,13 +55,13 @@ local function task2()
 	local taskAssignments = {}
 	local partnerPlan = {}
 
-	-- alle hinter
+	// alle hinter
 	for id, robot in pairs(World.FriendlyRobotsById) do
 		if robot == World.FriendlyRobot then
 			partnerPlan[id] = { targetPos = World.Geometry.FriendlyGoal, role = "Goalie" }
 		elseif robot.generation == robot.ALLY_GENERATION_ID then
 			partnerPlan[id] = { targetPos = defAreaPos(id, false), role = "Defense" }
-		else -- own robot
+		else // own robot
 			local pos = defAreaPos(id, false)
 			partnerPlan[id] = { targetPos = pos, role = "Defense" }
 			taskAssignments[robot] =  { class = MoveToPos, params = {pos}, restart=true }
@@ -86,7 +86,7 @@ local function task3()
 		return {}
 	end
 
-	if not passKicker then -- do choice only once
+	if not passKicker then // do choice only once
 
 		local minDist = math.huge
 		local maxPartnerY = -math.huge

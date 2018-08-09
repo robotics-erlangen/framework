@@ -20,7 +20,7 @@ end
 function Penalty:_updateTask()
 	if World.RefereeState == "PenaltyOffensivePrepare" then
 		return MoveToStaticBall, {(G.OpponentGoal - World.Ball.pos):angle(), 0.08}
-	else -- PenaltyOffensive
+	else // PenaltyOffensive
 		return ShootPenalty
 	end
 end

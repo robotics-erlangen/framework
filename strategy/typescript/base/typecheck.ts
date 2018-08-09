@@ -1,9 +1,9 @@
---[[
---- Typecheck helper
--- module "Typecheck"
-]]--
+/*
+//- Typecheck helper
+// module "Typecheck"
+*///
 
---[[***********************************************************************
+/************************************************************************
 *   Copyright 2015 Alexander Danzer                                       *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -21,15 +21,15 @@
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-*************************************************************************]]
+**************************************************************************/
 
 local Class = require "../base/class"
 
---- tests a given value for a type
--- if the value is not of the requested Type, the function crashes with an error
--- @param value - the value to test
--- @param requestedType - the type value should have
--- @return value - if test was successfull
+//- tests a given value for a type
+// if the value is not of the requested Type, the function crashes with an error
+// @param value - the value to test
+// @param requestedType - the type value should have
+// @return value - if test was successfull
 return function(value, requestedType)
 	local tval = type(value)
 	if type(requestedType) == "string" then

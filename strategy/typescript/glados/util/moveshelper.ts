@@ -3,9 +3,9 @@ local MovesHelper = {}
 local geom = require "../base/geom"
 local vis = require "../base/vis"
 
--- this function draws the two circles, in which a volley pass is not possible
--- it also returns the values from the indiscribed angle theorem
--- this MUST be considered in every static freekick
+// this function draws the two circles, in which a volley pass is not possible
+// it also returns the values from the indiscribed angle theorem
+// this MUST be considered in every static freekick
 function MovesHelper.volleyCircle(point1, point2, theta)
 	local center1, center2, radius = geom.inscribedAngle(point1, point2, theta)
 	vis.addCircle("volleyCycle", center1, radius, vis.colors.redHalf, true)
@@ -29,13 +29,13 @@ local function createOptionsTableRec(options)
 	return resultTable
 end
 
--- this function performs a least squares optimization of the distance
--- between each robot and the assigned position
--- as it uses brute force, it should not be called with more than 4 positions
--- @param robots table - list of robots to assign. the first ignoreFirstNRobots are assigned to their index
--- @param positions table - list of positions to assign the remaining robots to
--- @param ignoreFirstNRobots number - ignore the first n robots in robots during assignment
--- @return table - assignments. use like this: robots[assignment[i]] -> assign to positions[i]
+// this function performs a least squares optimization of the distance
+// between each robot and the assigned position
+// as it uses brute force, it should not be called with more than 4 positions
+// @param robots table - list of robots to assign. the first ignoreFirstNRobots are assigned to their index
+// @param positions table - list of positions to assign the remaining robots to
+// @param ignoreFirstNRobots number - ignore the first n robots in robots during assignment
+// @return table - assignments. use like this: robots[assignment[i*/ -> assign to positions[i]
 function MovesHelper.assignRobots(robots, positions, ignoreFirstNRobots)
 	if #robots - ignoreFirstNRobots ~= #positions then
 		log("Moveshelper: unmatching number of robots and positions!")

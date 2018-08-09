@@ -7,13 +7,13 @@ local Messaging = require "control/messaging"
 
 function Coordinator:init(trainer, pools, poolGroups)
 	self._trainer = trainer
-	-- list of agentPools
+	// list of agentPools
 	self._pools = pools
-	-- list of lists with pools
+	// list of lists with pools
 	self._poolGroups = poolGroups
 
 	self._poolsList = {}
-	-- get rid of calling pairs over and over again
+	// get rid of calling pairs over and over again
 	for _, pool in pairs(self._pools) do
 		table.insert(self._poolsList, pool)
 	end
@@ -28,23 +28,23 @@ function Coordinator:run()
 
 	self._messaging:deliverMessages()
 	self:_updatePoolRobots()
-	-- run every pool and thus every agent
+	// run every pool and thus every agent
 	for _, pool in ipairs(self._poolsList) do
 		pool:run()
 	end
 end
 
 function Coordinator:_postTrainerHook()
-	-- overwrite in subclasses
+	// overwrite in subclasses
 end
 
 function Coordinator:_updatePoolRobots()
-	-- remove no longer needed / surplus robots from pools
+	// remove no longer needed / surplus robots from pools
 	for _, pool in ipairs(self._poolsList) do
 		pool:cleanupRobots()
 	end
 
-	-- find unassigned robots
+	// find unassigned robots
 	local occupiedRobots = {}
 	for _, pool in ipairs(self._poolsList) do
 		for _, robot in ipairs(pool:robots()) do
@@ -58,10 +58,10 @@ function Coordinator:_updatePoolRobots()
 		end
 	end
 
-	-- assign robots to pools by pool groups
-	-- assign to first group until these pools don't want any further robots
-	-- the continue with the second group and so on
-	-- if a group has multiple pools assignment alternates between them
+	// assign robots to pools by pool groups
+	// assign to first group until these pools don't want any further robots
+	// the continue with the second group and so on
+	// if a group has multiple pools assignment alternates between them
 	for _, group in ipairs(self._poolGroups) do
 		local groupFinished
 		repeat

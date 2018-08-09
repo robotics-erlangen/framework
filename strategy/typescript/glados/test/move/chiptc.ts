@@ -23,11 +23,11 @@ local distances = {
 	3.5
 }
 
--- ==========================================
+// ==========================================
 
 local CURRENT_POS = positions[1]
 
--- ==========================================
+// ==========================================
 
 
 function ChipTC.canStart()
@@ -59,9 +59,9 @@ function ChipTC:_updateTasks()
 	if World.RefereeState == "DirectOffensive" then
 		local ballPos = CURRENT_POS + Vector(0, self._robots[1].shootRadius + World.Ball.radius)
 		local target = ballPos + Vector(0, self._distance * 2.5)
-		taskAssignments[self._robots[1]] = { class = Pass, params = {self._robots[1], target, true, self._distance * 2.5} }
+		taskAssignments[self._robots[1*/ = { class = Pass, params = {self._robots[1], target, true, self._distance * 2.5} }
 	else
-		taskAssignments[self._robots[1]] = { class = MoveToPos, params = { CURRENT_POS, math.pi/2 } }
+		taskAssignments[self._robots[1*/ = { class = MoveToPos, params = { CURRENT_POS, math.pi/2 } }
 	end
 
 	return taskAssignments, self._robots[1]

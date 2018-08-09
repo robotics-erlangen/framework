@@ -22,9 +22,9 @@ function BallEscort:_checkOpponentTimings()
 	local minOppRobot, minOppTime = Ball.firstRobotAtBall(World.OpponentRobots)
 
 	if minOppTime == math.huge then
-		-- firstRobotAtBall calls minTimeToBall which assumes the robot wants to look at it's opponent's goal
-		-- This can lead to situations where the function returns math.huge even though it wouldn't if we checked
-		-- with a different position (here: the ball position while receiving a pass)
+		// firstRobotAtBall calls minTimeToBall which assumes the robot wants to look at it's opponent's goal
+		// This can lead to situations where the function returns math.huge even though it wouldn't if we checked
+		// with a different position (here: the ball position while receiving a pass)
 		for _, robot in pairs(World.OpponentRobots) do
 			if Ball.receivesPass(robot) then
 				local time = Physics.robotTimeToBall(robot, World.Ball, World.Ball.pos, robot.maxSpeed)
@@ -64,7 +64,7 @@ function BallEscort:check()
 
 	debug.set("BallEscort/ballOutPos", ballOutPos)
 
-	-- ballOutPos should not be in defense area
+	// ballOutPos should not be in defense area
 	if not ballOutPos or math.abs(ballOutPos.x) <= Field.defenseBaselineIntersectionDistance() then
 		return false
 	end
@@ -89,7 +89,7 @@ function BallEscort:check()
 
 	local distToBorder = self._active and 0.7 or 0.5
 
-	-- If we can reach the ball we should try to if we are not already close to the field border
+	// If we can reach the ball we should try to if we are not already close to the field border
 	if not icing and ownTimeToBall < math.huge and math.abs(self._robot.pos.x) < World.Geometry.FieldWidthHalf - distToBorder and math.abs(self._robot.pos.y) < World.Geometry.FieldHeightHalf - distToBorder then
 		return false
 	end

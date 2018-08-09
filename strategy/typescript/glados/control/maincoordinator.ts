@@ -38,18 +38,18 @@ function MainCoordinator:init(trainer)
 end
 
 function MainCoordinator:_postTrainerHook()
-	-- the trainer inbox is empty after deliverMessages
+	// the trainer inbox is empty after deliverMessages
 	local attackers, defenders = self._trainer:attackerDefenderDistribution()
 	debug.set("#attackers", attackers)
 
-	-- process pool change requests
+	// process pool change requests
 	local changingRobots = self._trainer:changingRobots()
 	for _, changingRobotEntry in ipairs(changingRobots) do
 		self:_changeRobot(attackers, defenders,
 			changingRobotEntry.robot, changingRobotEntry.isAttacker)
 	end
 
-	-- limit robot counts on attack/defense pool, causes automatic robot balancing
+	// limit robot counts on attack/defense pool, causes automatic robot balancing
 	self._pools.attack:setRobotLimit(attackers)
 	self._pools.defense:setRobotLimit(defenders)
 end
@@ -60,10 +60,10 @@ function MainCoordinator:_changeRobot(attackers, defenders, changingRobot, isAtt
 	local newPool = isAttacker and "defense" or "attack"
 	local poolLimit = isAttacker and defenders or attackers
 
-	-- kick the least suitable robot
+	// kick the least suitable robot
 	self._pools[newPool]:setRobotLimit(poolLimit-1)
 	self._pools[newPool]:cleanupRobots()
-	-- ensure a new robot can be added
+	// ensure a new robot can be added
 	self._pools[newPool]:setRobotLimit(poolLimit)
 
 	if self._pools[oldPool]:removeRobot(changingRobot) then

@@ -32,23 +32,23 @@ function InterceptPass:_updateTasks()
 	if Ball.receivesPass(self._robots[1]) or (not Ball.receivesPass(self._robots[2]) and
 			World.Ball.pos.x > 0) then
 		if self._lastMainAttacker == self._robots[1] then
-			taskAssignments[self._robots[1]] = {class = Pass, params = {self._robots[2]}}
+			taskAssignments[self._robots[1*/ = {class = Pass, params = {self._robots[2]}}
 		else
-			taskAssignments[self._robots[1]] = {class = Striker, params = {default1, default1}}
+			taskAssignments[self._robots[1*/ = {class = Striker, params = {default1, default1}}
 		end
 		mainAttacker = self._robots[1]
 	else
-		taskAssignments[self._robots[1]] = {class = Striker, params = {default1, default1}}
+		taskAssignments[self._robots[1*/ = {class = Striker, params = {default1, default1}}
 	end
 	if not mainAttacker then
 		if self._lastMainAttacker == self._robots[2] then
-			taskAssignments[self._robots[2]] = {class = Pass, params = {self._robots[1]}}
+			taskAssignments[self._robots[2*/ = {class = Pass, params = {self._robots[1]}}
 		else
-			taskAssignments[self._robots[2]] = {class = Striker, params = {default2, default2}}
+			taskAssignments[self._robots[2*/ = {class = Striker, params = {default2, default2}}
 		end
 		mainAttacker = self._robots[2]
 	else
-		taskAssignments[self._robots[2]] = {class = Striker, params = {default2, default2}}
+		taskAssignments[self._robots[2*/ = {class = Striker, params = {default2, default2}}
 	end
 	self._lastMainAttacker = mainAttacker
 	return taskAssignments, mainAttacker

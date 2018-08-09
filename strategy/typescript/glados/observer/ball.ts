@@ -12,10 +12,10 @@ local Physics = require "observer/physics"
 local ObserverRobot = require "observer/robot"
 
 
---- Returns the first robot that can reach the ball, along with the estimated time
--- @param robotlist Robot[] - all robots that should be considered (e.g. World.FriendlyRobots)
--- @return Robot - the fastest robot
--- @return number - the estimated time (the robot will look towards its opponent goal)
+//- Returns the first robot that can reach the ball, along with the estimated time
+// @param robotlist Robot[] - all robots that should be considered (e.g. World.FriendlyRobots)
+// @return Robot - the fastest robot
+// @return number - the estimated time (the robot will look towards its opponent goal)
 function Ball.firstRobotAtBall(robotlist)
 	local minTime = math.huge
 	local minRobot = nil
@@ -54,11 +54,11 @@ function Ball.opponentBallDribbler()
 end
 Ball.opponentBallDribbler = Cache.forFrame(Ball.opponentBallDribbler)
 
---- Returns wether or not the ball is heading for a goal
--- WARNING: this function has no hysteresis and must be used with care
--- @param ball - a ball like structure
--- @param ownGoal - wether to use the friendly goal or the opponent goal
--- @return bool - wether or not the ball is heading for the goal
+//- Returns wether or not the ball is heading for a goal
+// WARNING: this function has no hysteresis and must be used with care
+// @param ball - a ball like structure
+// @param ownGoal - wether to use the friendly goal or the opponent goal
+// @return bool - wether or not the ball is heading for the goal
 function Ball.ballHeadingForGoal(ball, ownGoal)
 	local friendlyFactor = ownGoal and 1  or -1
 	local goalCenter = ownGoal and World.Geometry.FriendlyGoal or World.Geometry.OpponentGoal
@@ -68,11 +68,11 @@ end
 
 
 
---- Calculates the effective distance between ball and dribbler
--- find an ellipsis with the left and right dribbler edge points as focal points
--- dist is the length of the semi-minor axis
--- @param robot robot - the robot to calculate
--- @param ballPos vector - position of the ball
+//- Calculates the effective distance between ball and dribbler
+// find an ellipsis with the left and right dribbler edge points as focal points
+// dist is the length of the semi-minor axis
+// @param robot robot - the robot to calculate
+// @param ballPos vector - position of the ball
 local function ellipticDistance(robot, ballPos)
 	local dribblerPos = robot.pos + Vector.fromAngle(robot.dir):scaleLength(robot.shootRadius)
 	local dribblerWidthHalf = Vector.fromAngle(robot.dir - math.pi/2):scaleLength(robot.dribblerWidth/2)
@@ -81,21 +81,21 @@ local function ellipticDistance(robot, ballPos)
 	return 0.5*math.sqrt((leftDribblerEdge:distanceTo(ballPos) + rightDribblerEdge:distanceTo(ballPos))^2 - robot.dribblerWidth*robot.dribblerWidth)
 end
 
---- Returns the ball owner or nil if no one is nearer than Settings.ballOwnDistance(hysteresis)
--- @param robotlist robot[] - the robots which are qualified for being a ball owner (default: World.Robots)
--- @param lastBallOwner - the robot that was the ball owner before, used for hysteresis
--- @return ballOwner robot - the robot that can be seen as ball owner, or nil, if no robot is near the ball
+//- Returns the ball owner or nil if no one is nearer than Settings.ballOwnDistance(hysteresis)
+// @param robotlist robot[] - the robots which are qualified for being a ball owner (default: World.Robots)
+// @param lastBallOwner - the robot that was the ball owner before, used for hysteresis
+// @return ballOwner robot - the robot that can be seen as ball owner, or nil, if no robot is near the ball
 local BALL_OWN_HYSTERESIS = 0.03
 local ballOwnerEllipticCache = {}
-local ballOwnerCheckCache -- function is defined belwo
+local ballOwnerCheckCache // function is defined belwo
 local function getBallOwner(robotlist, lastBallOwner)
 	if not ballOwnerEllipticCache["ballInDangerRating"] then
 		local ballInDangerRating = 0
 		for _, r in ipairs(World.Robots) do
 			local dist
-			-- pre filter robots
-			-- dist = max(ballInDangerMaxDist, ballOwnDistance) + 2 * robot.radius
-			-- = 0.3 + 0.18 = 0.5
+			// pre filter robots
+			// dist = max(ballInDangerMaxDist, ballOwnDistance) + 2 * robot.radius
+			// = 0.3 + 0.18 = 0.5
 			if r.pos:distanceToSq(World.Ball.pos) > 0.5 * 0.5 then
 				dist = 0.5
 			else
@@ -105,17 +105,17 @@ local function getBallOwner(robotlist, lastBallOwner)
 			if dist < 0.05 then
 				ballInDangerRating = ballInDangerRating + 1
 			elseif dist < 0.30 then
-				-- distance must correlate to pre filter distance
+				// distance must correlate to pre filter distance
 				ballInDangerRating = ballInDangerRating + (0.30 - dist)*4
 			end
 		end
 		ballOwnerEllipticCache["ballInDangerRating"] = ballInDangerRating
 	end
 	local ballInDangerRating = ballOwnerEllipticCache["ballInDangerRating"]
-	-- distance must correlate to pre filter distance
+	// distance must correlate to pre filter distance
 	local ballOwnDistance = 0.2 - math.min(ballInDangerRating, 2)*0.04
 
-	-- search robot with min dist to ball
+	// search robot with min dist to ball
 	local minDist = math.huge
 	local ballOwner = nil
 	for _, r in ipairs(robotlist) do
@@ -126,13 +126,13 @@ local function getBallOwner(robotlist, lastBallOwner)
 		end
 	end
 
-	-- calculate dist from lastBallOwner to ball
+	// calculate dist from lastBallOwner to ball
 	local lastDist = math.huge
 	if lastBallOwner then
 		lastDist = ballOwnerEllipticCache[lastBallOwner] or lastDist
 	end
 
-	-- set new lastBallOwner or nil, if no robot is near ball
+	// set new lastBallOwner or nil, if no robot is near ball
 	if (minDist + BALL_OWN_HYSTERESIS) < lastDist
 			or (not ballOwner and lastDist >= ballOwnDistance + BALL_OWN_HYSTERESIS) then
 		lastBallOwner = ballOwner
@@ -226,7 +226,7 @@ local function updateReceivesPass()
 	local newBallRecipients = {}
 	for _,robot in ipairs(World.Robots) do
 
-		-- check if the robot is inside the cone (hysteresis)
+		// check if the robot is inside the cone (hysteresis)
 		local coneWidth = ballRecipients[robot] and coneWidthLarge or coneWidthSmall
 		local coneAngleMin = ballRecipients[robot] and coneAngleMinLarge or coneAngleMinSmall
 
@@ -246,7 +246,7 @@ local function updateReceivesPass()
 			goto continue
 		end
 
-		-- check if the arriving ball is fast enough (hysteresis)
+		// check if the arriving ball is fast enough (hysteresis)
 		local minBallSpeed = ballRecipients[robot] and 0.5 or 1.0
 		local dribblerPos = extrapolatedRobotPos + Vector.fromAngle(robot.dir) * robot.shootRadius
 		local distanceToRobot = World.Ball.pos:distanceTo(dribblerPos)
@@ -270,7 +270,7 @@ function Ball.receivesPass(robot)
 	return ballRecipients[robot]
 end
 
-local lastBallSpeedLength = 0 -- used for both isAccelerating() and isShot()
+local lastBallSpeedLength = 0 // used for both isAccelerating() and isShot()
 local ballIsAccelerating = false
 function Ball.isAccelerating()
 	return ballIsAccelerating
@@ -306,17 +306,17 @@ local function updateIsShot()
 
 	local ballSpeedLength = World.Ball.speed:length()
 
-	-- if the ball was not shot in the last tenth second
+	// if the ball was not shot in the last tenth second
 	local condCooldown = (World.Time > lastShootTime + 0.3)
-	-- if the ball accelerates
+	// if the ball accelerates
 	local condAccelerates = Ball.isAccelerating()
-	-- if the ball is fast
+	// if the ball is fast
 	local condFast = (ballSpeedLength > 0.5)
-	-- if one robot had the ball the last 0.1 seconds (equal to cooldown time)
+	// if one robot had the ball the last 0.1 seconds (equal to cooldown time)
 	local condHadBall = false
-	-- if this robot looks about in the same direction as the ball rolls
+	// if this robot looks about in the same direction as the ball rolls
 	local condDirection = false
-	-- if the ball is distinctly faster than this robot
+	// if the ball is distinctly faster than this robot
 	local condFasterThanRobot = false
 
 	debug.pushtop("Ball.isShot")
@@ -326,9 +326,9 @@ local function updateIsShot()
 			if ObserverRobot.hadBall(r, 0.3) then
 				condHadBall = true
 				local anglediff = math.abs(geom.getAngleDiff(r.dir, World.Ball.speed:angle()))
-				-- the ball has to be shot in the approximate direction the robot is facing
+				// the ball has to be shot in the approximate direction the robot is facing
 				condDirection = (anglediff < 45 / 180 * math.pi)
-				-- the ball has to be 0.1m/s faster than the robot
+				// the ball has to be 0.1m/s faster than the robot
 				condFasterThanRobot = (ballSpeedLength > 0.1 + r.speed:length())
 				debug.set("robot speed", r.speed:length())
 				if condDirection and condFasterThanRobot then
@@ -339,7 +339,7 @@ local function updateIsShot()
 		end
 	end
 
-	-- lastShootTime is used for the cooldown
+	// lastShootTime is used for the cooldown
 	if robot then
 		lastShootTime = World.Time
 		lastShootRobot = robot
@@ -371,12 +371,12 @@ local function updateIsDangerousDuelSituation()
 		end
 	end
 
-	-- if World.Ball.speed:length() < ballPosBufferMaxBallSpeed then
+	// if World.Ball.speed:length() < ballPosBufferMaxBallSpeed then
 		ballPosBuffer[World.Time] = World.Ball.pos
-	-- end
+	// end
 end
 
-local ballPosHysteresis = 0.5 -- to each side
+local ballPosHysteresis = 0.5 // to each side
 local function isDangerousDuelSituation(lastDecision)
 	local max_y = -math.huge
 	local min_time = math.huge
@@ -418,7 +418,7 @@ function Ball.isFlyingOrBouncing()
 	return World.Time - flyingOrBouncingTimestamp < 0.1
 end
 
--- TODO: might be better to implement a more refined version in the tracking
+// TODO: might be better to implement a more refined version in the tracking
 local MAX_FRAME_DISTANCE = 1.5
 local MAX_INVISIBLE_TIME = 1.5
 local lastRealisticBallPos

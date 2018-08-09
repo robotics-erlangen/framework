@@ -7,9 +7,9 @@ local Physics = require "observer/physics"
 local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
--- Warning: This task has some very strict precoditions.
--- 1. It will only work if you have the ball in the dribbler at the start
--- 2. you have to make sure (somehow) that the (robotPos - waypoint[2]  {returned by path}):absoluteAngleDiff(viewDir) is pretty small
+// Warning: This task has some very strict precoditions.
+// 1. It will only work if you have the ball in the dribbler at the start
+// 2. you have to make sure (somehow) that the (robotPos - waypoint[2]  {returned by path}):absoluteAngleDiff(viewDir) is pretty small
 
 local obstacleTable = {
 	ignoreBall = true,

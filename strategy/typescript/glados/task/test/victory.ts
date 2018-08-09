@@ -6,7 +6,7 @@ local ToTarget = require "trajectory/totarget"
 local PathHelper = require "trajectory/pathhelper"
 
 local NUM_OF_REVOLUTIONS = 3
-local ANGULAR_SPEED_FACTOR = 0.8 -- the higher it is, the longer it takes
+local ANGULAR_SPEED_FACTOR = 0.8 // the higher it is, the longer it takes
 
 local obstacleTable = {
 	ignoreBall = true,

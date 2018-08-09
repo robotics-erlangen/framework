@@ -27,7 +27,7 @@ function HandleBall:_stop()
 end
 
 function HandleBall:_checkDefender()
-	-- stay defender if the ball is currently being shot at our goal
+	// stay defender if the ball is currently being shot at our goal
 	if not DefUtil.dangerousBallTowardsDefense() and not Ball.isAccelerating() then
 		self._forceDefenderFrameCounter = self._forceDefenderFrameCounter + 1
 	else
@@ -47,14 +47,14 @@ end
 function HandleBall:_checkAttacker()
 	local isAttacker = self._taskDecision == "attacker"
 
-	-- don't if we take too long to get the ball
+	// don't if we take too long to get the ball
 	local timeDiff = isAttacker and 0.5 or 1.0
 	local distanceFactor = isAttacker and 1 or 1.5
 	local distanceOffset = isAttacker and 3 * self._robot.radius or 5* self._robot.radius
 	local firstOpp, firstOppTime = Ball.firstRobotAtBall(World.OpponentRobots)
 
 	if firstOppTime < Robot.minTimeToBall(self._robot) + timeDiff then
-		-- do if we are pretty close to our acceptPos
+		// do if we are pretty close to our acceptPos
 		local acceptPos = Physics.ballAtTime(World.Ball, Robot.minTimeToBall(self._robot)).pos
 		local enemyPos = Physics.ballAtTime(World.Ball, firstOppTime).pos
 		if self._robot.pos:distanceTo(acceptPos) * distanceFactor + distanceOffset > firstOpp.pos:distanceTo(enemyPos) then
@@ -65,19 +65,19 @@ function HandleBall:_checkAttacker()
 		end
 	end
 
-	-- true if we are in opponentFieldHalf
+	// true if we are in opponentFieldHalf
 	if self._robot.pos.y > G.FieldHeightHalf * 0.1  then
 		return true
 	end
 
-	-- don't if an opponent is close to us
+	// don't if an opponent is close to us
 	local distToOppLimit = isAttacker and 0.3 or 0.5
 	local _,closestOppDist = DefUtil.getClosestRobot(World.OpponentRobots, self._robot.pos)
 	if closestOppDist < distToOppLimit then
 		return false
 	end
 
-	-- don't if an opponent receives a pass
+	// don't if an opponent receives a pass
 	for _,r in ipairs(World.OpponentRobots) do
 		if Ball.receivesPass(r) and (r.pos:distanceTo(World.Ball.pos) < 1.0 or r.pos:distanceTo(self._robot.pos) < 1.0)then
 			return false
@@ -106,19 +106,19 @@ function HandleBall:_checkInterceptPass()
 	local isInterceptPass = self._taskDecision == "interceptpass"
 							or (self._inbox.interceptPass().trainer == self._robot)
 
-	-- don't if we want to intercept our own pass
+	// don't if we want to intercept our own pass
 	local sender, passInfoTable = next(self._inbox.passInfo())
 	if Attack.currentPlannedMainAttacker(sender, passInfoTable) then
 		return false
 	end
 
-	-- don't if the ball is too slow
+	// don't if the ball is too slow
 	local ballSpeedLimit = isInterceptPass and 1.5 or 2.0
 	if World.Ball.speed:length() < ballSpeedLimit then
 		return false
 	end
 
-	-- don't intercept chip kicks
+	// don't intercept chip kicks
 	if Ball.isFlyingOrBouncing() then
 		return false
 	end
@@ -128,7 +128,7 @@ function HandleBall:_checkInterceptPass()
 		return false
 	end
 
-	-- don't if the time to intercept the pass is too high
+	// don't if the time to intercept the pass is too high
 	local interceptionTimeLimit = isInterceptPass and 1.5 or 1.0
 	if moveTime > interceptionTimeLimit then
 		return false
@@ -138,13 +138,13 @@ function HandleBall:_checkInterceptPass()
 	vis.addPath("InterceptPassPos", {self._robot.pos, moveDest}, vis.colors.cyan)
 	debug.set("moveTime", moveTime)
 
-	-- don't intercept if there is no pass receiver
+	// don't intercept if there is no pass receiver
 	local _, _, _, receivers = Goal.predictShot()
 	if not receivers or #receivers == 0 then
 		return false
 	end
 
-	-- don't intercept if it might have been kicked by our goalie
+	// don't intercept if it might have been kicked by our goalie
 	local defenseIntersection = geom.intersectLineLine(World.Geometry.FriendlyGoal, Vector(1, 0),
 				World.Ball.pos, -World.Ball.speed)
 	local defenseWidthHalf = Field.defenseBaselineIntersectionDistance() + 0.2
@@ -159,13 +159,13 @@ function HandleBall:_checkInterceptPass()
 end
 
 function HandleBall:_checkDuel()
-	-- don't if we are not close to the ball
+	// don't if we are not close to the ball
 	local ballDistLimit = self._taskDecision == "duel" and 1.2 or 0.8
 	if self._robot.pos:distanceTo(World.Ball.pos) > ballDistLimit then
 		return false
 	end
 
-	-- don't if the ball is moving horizontally (e.g. for a pass)
+	// don't if the ball is moving horizontally (e.g. for a pass)
 	if math.abs(World.Ball.speed.x) > 2 then
 		return false
 	end
@@ -210,7 +210,7 @@ end
 function HandleBall:_updateTask()
 	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 	if selfDefenseDist < DefUtil.centerBackDistanceToDefenseArea() + self._robot.radius + 0.03 then
-		local groupApplication = { name = "centerback", payload = nil } --TODO: EVACUATE or EVACUATING
+		local groupApplication = { name = "centerback", payload = nil } //TODO: EVACUATE or EVACUATING
 		self._send.groupApplication("trainer", groupApplication)
 	end
 

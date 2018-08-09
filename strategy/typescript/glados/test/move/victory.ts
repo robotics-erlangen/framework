@@ -11,7 +11,7 @@ local vis = require "../base/vis"
 Victory.MIN_ROBOTS = 3
 Victory.MAX_ROBOTS = 12
 
-function Victory.canStart() -- TODO
+function Victory.canStart() // TODO
 	return true
 end
 
@@ -19,7 +19,7 @@ function Victory:_init()
 	self._state = "init"
 end
 
-function Victory:_canContinue() -- TODO
+function Victory:_canContinue() // TODO
 	return true
 end
 
@@ -27,19 +27,19 @@ function Victory:_updateTasks()
 	local taskAssignments = {}
 
 	local nRobots = #self._robots
-	-- TODO: radius sinnvoller
+	// TODO: radius sinnvoller
 	local radius = (G.FieldHeightHalf - G.DefenseRadius) / 2
 	local center = Vector(0, -radius - 0.75)
 	radius = radius - 0.5
 	vis.addCircle("test", center, 0.05, vis.colors.yellow, true)
 	local angleStep = 2 * math.pi / nRobots
 
-	if self._state == "init" then -- todo startposition fixen
+	if self._state == "init" then // todo startposition fixen
 		for i, _ in ipairs(self._robots) do
 			local angle = i * angleStep
 			local moveLine = Vector.fromAngle(angle):setLength(radius/2)
 			local pos = center - Vector(0, -radius/2) + moveLine
-			taskAssignments[self._robots[i]] = { class = MoveToPos, params = {pos}}
+			taskAssignments[self._robots[i*/ = { class = MoveToPos, params = {pos}}
 			if self._robots[i].pos:distanceTo(pos) > 0.1 then
 				self._state = "circle"
 			end
@@ -47,7 +47,7 @@ function Victory:_updateTasks()
 	elseif self._state == "circle" then
 		for i, _ in ipairs(self._robots) do
 			local angle = (i-1) * angleStep
-			taskAssignments[self._robots[i]] = { class = VictoryTask, params = {center, 0, angle, radius}}
+			taskAssignments[self._robots[i*/ = { class = VictoryTask, params = {center, 0, angle, radius}}
 		end
 	end
 

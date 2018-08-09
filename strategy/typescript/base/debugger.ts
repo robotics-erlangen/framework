@@ -1,9 +1,9 @@
---[[
---- Simple command line debugger.
+/*
+//- Simple command line debugger.
 module "debugger"
-]]--
+*///
 
---[[***********************************************************************
+/************************************************************************
 *   Copyright 2016 Michael Eischer                                        *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -21,7 +21,7 @@ module "debugger"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-*************************************************************************]]
+**************************************************************************/
 
 local debugger = {}
 local Class = require "../base/class"
@@ -35,7 +35,7 @@ end
 
 
 if not debug then
-	-- compatibility with old ra versions by default which provide no lua debug at all
+	// compatibility with old ra versions by default which provide no lua debug at all
 	function debugger.debug()
 		error("Debugger is only available in debug mode!")
 	end
@@ -58,7 +58,7 @@ end
 
 
 
---- io helper ---
+//- io helper //-
 
 local function printerr(str)
 	amun.debuggerWrite(str)
@@ -71,7 +71,7 @@ end
 
 
 
---- commmand handling ---
+//- commmand handling //-
 
 local commands = {}
 local helpList = {}
@@ -109,20 +109,20 @@ local function parseCommand(input)
 	local args = nil
 
 	if #chunks == 0 then
-		-- nop
+		// nop
 		cmd = ""
 		args = {}
 	end
 
 	for i = 1, #chunks do
-		-- join commands
+		// join commands
 		if cmd ~= nil then
 			cmd = cmd .. " " .. chunks[i]
 		else
 			cmd = chunks[i]
 		end
 		if commands[cmd] then
-			-- copy arguments when command is found
+			// copy arguments when command is found
 			args = {}
 			for j = i+1, #chunks do
 				table.insert(args, chunks[j])
@@ -132,7 +132,7 @@ local function parseCommand(input)
 	end
 
 	if args == nil then
-		-- command not found
+		// command not found
 		return nil, nil
 	end
 	return commands[cmd], args
@@ -140,7 +140,7 @@ end
 
 
 
---- hook helper ---
+//- hook helper //-
 
 local debugLoop = nil
 local hookCtr = 0
@@ -182,7 +182,7 @@ end
 
 local function setupHook()
 	debug.sethook(mainHook, "l")
-	-- disable jit as the hook is not called from jit compiled code
+	// disable jit as the hook is not called from jit compiled code
 	jit.off()
 	jit.flush()
 end
@@ -202,7 +202,7 @@ local function removeBreakpoint(file, line)
 		return false
 	end
 	lineTable[file] = nil
-	-- remove lineTable if it is empty
+	// remove lineTable if it is empty
 	local isEmpty = (next(lineTable) == nil)
 	if isEmpty then
 		breakpoints[line] = nil
@@ -238,7 +238,7 @@ function debugLoop()
 				autoCommands = { "__exit__" }
 			end
 		end
-		-- exit after calling __exit__ handler
+		// exit after calling __exit__ handler
 		if input == "__exit__" then
 			break
 		end
@@ -247,9 +247,9 @@ end
 
 
 
---- helper functions ---
+//- helper functions //-
 
--- used to stop the simulator while execution is suspended
+// used to stop the simulator while execution is suspended
 local function setScaling(scaling)
 	amun.sendCommand({
 		speed = scaling
@@ -262,11 +262,11 @@ local function getBaseStackLevel()
 	local speculative = 0
 	while true do
 		local info = debug.getinfo(i, "Sn")
-		-- try to skip pcall
+		// try to skip pcall
 		if info and info.source == "=[C]" and info.name == "pcall" and info.namewhat == "global" then
 			speculative = 1
 		elseif info == nil or info.source ~= this then
-			-- subtract this function
+			// subtract this function
 			return i - 1 - speculative
 		else
 			speculative = 0
@@ -297,13 +297,13 @@ local function getLocals(offset)
 			break
 		end
 		i = i + 1
-		-- ignore variables like "(*temporary)" and "(for index)"
+		// ignore variables like "(*temporary)" and "(for index)"
 		if varname:sub(1, 1) ~= "(" then
-			-- wrap value to allow storing nil
+			// wrap value to allow storing nil
 			locals[varname] = {value}
 		end
 	end
-	-- TODO: varargs, using negative indices
+	// TODO: varargs, using negative indices
 	return locals
 end
 
@@ -317,7 +317,7 @@ local function getClosureParameters(offset)
 	end
 	for i = 1, info.nups do
 		local varname, value = debug.getupvalue(info.func, i)
-		-- wrap value to allow storing nil
+		// wrap value to allow storing nil
 		parameters[varname] = {value}
 	end
 	return parameters
@@ -328,7 +328,7 @@ local function evalFunction(code, offset)
 	local values = {}
 	for varname, value in pairs(getClosureParameters(offset)) do
 		table.insert(varnames, varname)
-		-- support storing nil
+		// support storing nil
 		values[#varnames] = value[1]
 	end
 	for varname, value in pairs(getLocals(offset)) do
@@ -349,10 +349,10 @@ local function evalFunction(code, offset)
 		return false, "Invalid expression\n" .. tostring(errormsg)
 	end
 
-	-- provide function environment from current function
+	// provide function environment from current function
 	func = debug.setfenv(func, debug.getfenv(info.func))
 
-	-- call wrapper function returned by loadstring, supports nil parameters
+	// call wrapper function returned by loadstring, supports nil parameters
 	func = func()(unpack(values, 1, #varnames))
 
 	return true, func
@@ -374,7 +374,7 @@ local function prettyPrint(name, value, visited, indent)
 		end
 		visited[value] = true
 
-		-- try to be as informative as possible
+		// try to be as informative as possible
 		local tableValue = value
 		local class = Class.toClass(value, true)
 		if rawget(getmetatable(value) or {}, "__tostring") then
@@ -410,8 +410,8 @@ end
 
 
 
---- handler functions ---
--- a handler function must return true to continue to programm's execution
+//- handler functions //-
+// a handler function must return true to continue to programm's execution
 
 local stackLevelOffset = 0
 
@@ -422,12 +422,12 @@ local function initHandler(_args)
 	if info ~= nil then
 		printerrln(string.format("At %s:%d in %s %s", shortPath(info.source), info.currentline, info.namewhat, info.name))
 	end
-	-- stop the simulator while execution is suspended
+	// stop the simulator while execution is suspended
 	setScaling(0)
 end
 
 local function exitHandler(_args)
-	-- handle continuation commands
+	// handle continuation commands
 	setScaling(1)
 	return true
 end
@@ -464,7 +464,7 @@ local function filteredBacktrace()
 	for line in string.gmatch(str, "[^\n]+") do
 		local isFrame = string.sub(line, 1, 4) == "   >"
 
-		-- skip backtrace frames belonging to the debugger
+		// skip backtrace frames belonging to the debugger
 		if isFrame and skipFrames > 0 then
 			skipFrames = skipFrames - 1
 		else
@@ -556,10 +556,10 @@ local function stackLevelHandler(args)
 	return
 end
 
--- TODO: conditional breakpoints
+// TODO: conditional breakpoints
 local function breakpointHandler(args)
 	if #args == 1 then
-		-- try to get the current file name if only a line is passed
+		// try to get the current file name if only a line is passed
 		local baseFrame = getBaseStackLevel()
 		local info = debug.getinfo(baseFrame, "S")
 		if info and info.source then
@@ -635,33 +635,33 @@ end
 local function quitHandler(_args)
 	hookSpecial = nil
 	clearBreakpoints()
-	-- don't puzzle the user with strategy no longer running
-	-- after killing the strategy if it was suspended
+	// don't puzzle the user with strategy no longer running
+	// after killing the strategy if it was suspended
 	setScaling(1)
-	-- try to exit
+	// try to exit
 	os.exit(0)
 	return true
 end
 
 
--- special hooks
+// special hooks
 registerCommand({"__init__"}, initHandler, nil)
 registerCommand({"__exit__"}, exitHandler, nil)
 registerCommand({"__quit__"}, quitHandler, nil)
--- helper commands
+// helper commands
 registerCommand({""}, nopHandler, nil)
 registerCommand({"help"}, helpHandler, "Print command list")
--- information
+// information
 registerCommand({"backtrace", "bt"}, backtraceHandler, "Print a backtrace of the current stack")
 registerCommand({"locals", "l"}, localInfoHandler, "Print local variables")
 registerCommand({"eval", "e"}, evalHandler, "Evaluate the given expression an print the result")
 registerCommand({"level"}, stackLevelHandler, "Select the active stack level")
--- breakpoints
+// breakpoints
 registerCommand({"breakpoint add", "bp"}, breakpointHandler, "Add breakpoints")
 registerCommand({"breakpoint remove"}, removeBreakpointHandler, "Remove breakpoint")
 registerCommand({"breakpoint clear"}, clearBreakpointsHandler, "Remove all breakpoints")
 registerCommand({"breakpoint list"}, listBreakpointsHandler, "List breakpoints")
--- execution control
+// execution control
 registerCommand({"continue", "c"}, continueHandler, "Continue execution")
 registerCommand({"step", "s"}, stepHandler, "Single step code")
 registerCommand({"next", "n"}, nextHandler, "Step over code")
@@ -670,12 +670,12 @@ registerCommand({"quit", "q"}, quitHandler, "Quit debugger")
 
 if debug.sethook then
 	function debugger.debug()
-		-- disable hooks
+		// disable hooks
 		hookCtr = -1
-		-- ensure that our hook is installed
+		// ensure that our hook is installed
 		setupHook()
 		debugLoop()
-		-- skip first line breakpoint (exit from this function!)
+		// skip first line breakpoint (exit from this function!)
 		hookCtr = 1
 	end
 else
@@ -732,13 +732,13 @@ function debugger.dumpStack(offset, debugKey)
 	local extraParams = baseDebug.getInitialExtraParams()
 	local backtrace = filteredBacktrace()
 	for i = offset, debugger.getStackDepth() do
-		-- stack offset is 0-based, backtrace is 1-based
+		// stack offset is 0-based, backtrace is 1-based
 		baseDebug.push(tostring(i))
 		baseDebug.set(nil, backtrace[i+1])
 		debugger.dumpLocals(i, extraParams)
 		baseDebug.pop()
 	end
-	baseDebug.pop() -- debugKey
+	baseDebug.pop() // debugKey
 end
 
 debugger.getStackDepth = getStackDepth
@@ -746,8 +746,8 @@ debugger.getStackDepth = getStackDepth
 function debugger.dumpLocalsOnError(f)
 	local tracebackSave = nil
 	local function dumpError(a, b, c)
-		-- save traceback before dumping the stack
-		-- this ensure that we always get a traceback even if the stack dump fails
+		// save traceback before dumping the stack
+		// this ensure that we always get a traceback even if the stack dump fails
 		tracebackSave = debug.traceback(a, b, c)
 		debugger.dumpStack()
 		return
@@ -759,15 +759,15 @@ function debugger.dumpLocalsOnError(f)
 			if result ~= nil then
 				log(result)
 			end
-			-- silent error propagation
+			// silent error propagation
 			error()
 		end
 	end
 end
 
--- luacheck: push globals debug
--- register debugger
+// luacheck: push globals debug
+// register debugger
 debug.debugger = debugger
--- luacheck: pop
+// luacheck: pop
 
 return debugger

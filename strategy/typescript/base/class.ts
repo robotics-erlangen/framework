@@ -1,9 +1,9 @@
---[[
---- Class implementation.
+/*
+//- Class implementation.
 module "Class"
-]]--
+*///
 
---[[***********************************************************************
+/************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -21,14 +21,14 @@ module "Class"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-*************************************************************************]]
+**************************************************************************/
 
 local Class = {}
 
 local isDebug = false
 local registeredClassNames = {}
 
---- Only affects objects constructed after calling this function
+//- Only affects objects constructed after calling this function
 function Class._setDebug(enableDebugMode)
 	isDebug = enableDebugMode
 end
@@ -68,20 +68,20 @@ function Class.parent(obj)
 	return rawget(getmetatable(class), "__index")
 end
 
---- Checks whether the given instance is of type class.
--- Also checks parent class.
--- @usage local a = Class("a")
--- local b = Class("b", a)
--- local o = b()
--- instanceOf(o, a) == true
--- instanceOf(o, b) == true
--- local p = a()
--- instanceOf(p, a) == true
--- instanceOf(p, b) == false
--- @param inst table - Instance to check
--- @param class Class - Class object as created by define
--- @see Class
--- @return bool
+//- Checks whether the given instance is of type class.
+// Also checks parent class.
+// @usage local a = Class("a")
+// local b = Class("b", a)
+// local o = b()
+// instanceOf(o, a) == true
+// instanceOf(o, b) == true
+// local p = a()
+// instanceOf(p, a) == true
+// instanceOf(p, b) == false
+// @param inst table - Instance to check
+// @param class Class - Class object as created by define
+// @see Class
+// @return bool
 function Class.instanceOf(obj, class)
 	local iclass = Class.toClass(obj)
 	if iclass == class then
@@ -106,7 +106,7 @@ local function forbidNewAttributes(table, key, value)
 end
 
 local function forbidUnsetReading(table, key)
-	-- only called if key doesn't exist in table
+	// only called if key doesn't exist in table
 	local mt = getmetatable(table)
 	local val = mt.class[key]
 	if val ~= nil or mt.attributes[key] then
@@ -135,7 +135,7 @@ local function constructInstance(class, ...)
 		__index = isDebug and forbidUnsetReading or class,
 		__newindex = registerAttributes,
 		__tostring = class.__tostring,
-		attributes = {}, -- remember attributes from init functions
+		attributes = {}, // remember attributes from init functions
 		class = class,
 		type = "instance",
 	}
@@ -146,7 +146,7 @@ local function constructInstance(class, ...)
 	end
 	local mixinInits = getmetatable(class).mixinInits
 	if mixinInits then
-		-- local instance to allow instancing classes with mixin in the mixin constructor
+		// local instance to allow instancing classes with mixin in the mixin constructor
 		local proxyMt = {
 			__index = instance,
 			__newindex = forbidReassignments,
@@ -175,7 +175,7 @@ local function addMixin(class, mixin, mixinInits)
 			for _, dependencyMixin in ipairs(field) do
 				mixinInits = addMixin(class, dependencyMixin, mixinInits)
 			end
-		elseif class[name] then -- check superclasses
+		elseif class[name] then // check superclasses
 			error("Cannot include mixin: field " .. name .. " already exists")
 		else
 			class[name] = field
@@ -184,14 +184,14 @@ local function addMixin(class, mixin, mixinInits)
 	return mixinInits
 end
 
---- Creates and registers a new class.
--- Supports single inheritance and mixins.
--- @see Class
--- @param not used but there because of __call-metatable entry
--- @param name string - name for new class, split at '.'
--- @param parent Class - parent class object
--- @param mixins tables - arbitrary number of mixin modules
--- @return class object
+//- Creates and registers a new class.
+// Supports single inheritance and mixins.
+// @see Class
+// @param not used but there because of __call-metatable entry
+// @param name string - name for new class, split at '.'
+// @param parent Class - parent class object
+// @param mixins tables - arbitrary number of mixin modules
+// @return class object
 local function newClass(_, name, parent, ...)
 	if registeredClassNames[name] then
 		error("class names must be unique: "..tostring(name))
@@ -217,7 +217,7 @@ local function newClass(_, name, parent, ...)
 	end
 	if parent then
 		local parentMInits = getmetatable(parent)["mixinInits"]
-		if parentMInits then -- contains all inits of its parent
+		if parentMInits then // contains all inits of its parent
 			for _, mInit in ipairs(parentMInits) do
 				if not mixinInits then
 					mixinInits = {}

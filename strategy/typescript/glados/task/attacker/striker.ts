@@ -74,9 +74,9 @@ function Striker:_searchForPassDest()
 	local top = boundaries.top
 	local bottom = boundaries.bottom
 
-	-- TODO hysteresis
-	-- TODO only consider well-timed pass positions
-	-- TODO am strafraum stehen ist geil! -> score anpassen
+	// TODO hysteresis
+	// TODO only consider well-timed pass positions
+	// TODO am strafraum stehen ist geil! -> score anpassen
 
 	local bestPoint = nil
 	local bestScore = -math.huge
@@ -115,11 +115,11 @@ function Striker:run()
 	if self._manualDefaultPos then
 		self._moveDest = self._manualDefaultPos
 	else
-		-- participate in the striker group
+		// participate in the striker group
 		local groupApplication = { name = "striker", payload = {} }
 		self._send.groupApplication("trainer", groupApplication)
 
-		-- retrieve the assigned zone from the striker group
+		// retrieve the assigned zone from the striker group
 		self._zone = self._inbox.strikerZone().trainer
 		if not self._zone then
 			return
@@ -127,12 +127,12 @@ function Striker:run()
 		self._moveDest = self._zone.defaultPos
 	end
 
-	-- search for a good pass dest
+	// search for a good pass dest
 	if self:_revaluatePassDest() then
 		self:_searchForPassDest()
 	end
 
-	-- check whether the agent would change its state to accepting an incoming pass (striker should not be active then)
+	// check whether the agent would change its state to accepting an incoming pass (striker should not be active then)
 	local _, passInfoTable = next(self._inbox.passInfo())
 	assert(Attack.checkPassInfos(self._robot, passInfoTable, false) == false, "Striker shouldn't accept passes")
 
@@ -150,17 +150,17 @@ function Striker:run()
 			end
 		end
 	end
-	-- set path obstacles to not interfere with the current attack
+	// set path obstacles to not interfere with the current attack
 	local moveTime = nil
 	local _, attackPosition = next(self._inbox.attackPosition())
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 
-	-- send a suggestion for a pass in the run
+	// send a suggestion for a pass in the run
 	if self._passDestSuggestion and attackPosition then
 		self:_suggestPass(self._passDestSuggestion, attackPosition, moveTime)
 	end
 
-	-- be close to the defense area to catch possible stray shots
+	// be close to the defense area to catch possible stray shots
 	local cbDistToDefenseArea = UtilDefense.centerBackDistanceToDefenseArea()
 	if self._passDestSuggestion and not Referee.isFriendlyFreeKickState()
 			and Field.distanceToDefenseArea(self._passDestSuggestion, cbDistToDefenseArea) < 0.8 then

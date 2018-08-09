@@ -70,7 +70,7 @@ local function taskAssignment( passInfoTable, pos1, pos2, robot, enemyAmm)
 end
 function MrlTestCorner:_updateTasks()
 
-	-- draw circles where robots cannot shoot a volley
+	// draw circles where robots cannot shoot a volley
 	local center1, center2, radius = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, 55 / 180 * math.pi)
 	local circle = center1.y < center2.y and center1 or center2
 
@@ -82,20 +82,20 @@ function MrlTestCorner:_updateTasks()
 	local taskAssignments = {}
 
 	if World.RefereeState == "Stop" then
-		taskAssignments[self._robots[1]] = { class = StopAttack, params = { } }
+		taskAssignments[self._robots[1*/ = { class = StopAttack, params = { } }
 	elseif MrlTestCorner.Referee.isFriendlyFreeKickState() then
-		taskAssignments[self._robots[1]] = { behavior = Freekick }
+		taskAssignments[self._robots[1*/ = { behavior = Freekick }
 		self._restart = false
 	end
 
 	local _, passInfoTable = next(self._inbox.passInfo())
 
 	local buffer = 0.1
-	taskAssignments[self._robots[2]] = taskAssignment(passInfoTable, self._activeRobotInitPos, self._activeRobotShootPos, self._robots[2], 0)
+	taskAssignments[self._robots[2*/ = taskAssignment(passInfoTable, self._activeRobotInitPos, self._activeRobotShootPos, self._robots[2], 0)
 
 	local enemyRobots = getRobotsInRect(self._distractorPositions[1], self._distractorPositions[3] + Vector(-0.6,0.4), World.OpponentRobots, buffer)
 	for i=1,3 do
-		taskAssignments[self._robots[i+2]] = taskAssignment(passInfoTable, self._distractorPositions[i], self._distractorAttackPos[i], self._robots[i+2], #enemyRobots)
+		taskAssignments[self._robots[i+2*/ = taskAssignment(passInfoTable, self._distractorPositions[i], self._distractorAttackPos[i], self._robots[i+2], #enemyRobots)
 	end
 
 	return taskAssignments, self._robots[1]

@@ -19,10 +19,10 @@ function Groups:setGroups(groupList)
 end
 
 function Groups:_runGroups()
-	-- robot -> { groupname -> application }
+	// robot -> { groupname -> application }
 	local groupApplications = self._inbox.groupApplication()
 
-	-- groupname -> { robot -> application }
+	// groupname -> { robot -> application }
 	local robotApplications = {}
 
 	for _,group in ipairs(self._groupList) do

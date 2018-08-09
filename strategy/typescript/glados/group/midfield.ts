@@ -9,8 +9,8 @@ local G = World.Geometry
 function Midfield:init()
 	self.name = "midfield"
 
-	self._farAwayHyst = false -- the ball is far in our own half and we need midfielders to move forward
-	self._noMidfielderHyst = false -- we are attacking the goal and dont want midfielders at all
+	self._farAwayHyst = false // the ball is far in our own half and we need midfielders to move forward
+	self._noMidfielderHyst = false // we are attacking the goal and dont want midfielders at all
 
 	self._zones = {}
 	self._topHalfHyst = false
@@ -120,7 +120,7 @@ function Midfield:_updateZones(nMidfielders)
 	local verticalOffset = G.FieldWidthHalf / 4
 	local horizontalOffset = G.FieldHeightHalf / 4
 
-	-- two hardcoded zones, depending on the number of robots we have
+	// two hardcoded zones, depending on the number of robots we have
 	if remainingZones >= 1 then
 		local zone = {}
 		zone.boundaries = {
@@ -155,7 +155,7 @@ function Midfield:run(sender, inbox, messages)
 	local robots = table.keys(messages)
 	local mainAttacker = inbox.mainAttacker().trainer
 
-	-- update assignments if necessary
+	// update assignments if necessary
 	local updateAssignments = not self._lastRobots or not self._lastAssignments or #robots ~= #self._lastRobots
 	if not updateAssignments then
 		for i, r in ipairs(robots) do
@@ -176,8 +176,8 @@ function Midfield:run(sender, inbox, messages)
 	
 
 
-	-- assign the zones to the nearest Midfields
-	local robotPositions = {} -- robot -> pos
+	// assign the zones to the nearest Midfields
+	local robotPositions = {} // robot -> pos
 	local _, passInfoTable = next(inbox.passInfo())
 	for _, r in ipairs(robots) do
 		local pos = r.pos
@@ -195,7 +195,7 @@ function Midfield:run(sender, inbox, messages)
 		robotPositions[mainAttacker] = mainAttacker.pos
 	end
 
-	local zoneList = {} -- { zone }
+	local zoneList = {} // { zone }
 	for _, zone in ipairs(self._zones) do
 		visualizeZone(zone)
 		table.insert(zoneList, zone)
@@ -203,7 +203,7 @@ function Midfield:run(sender, inbox, messages)
 
 	local robotZones
 	if mainAttacker and updateAssignments then
-		robotZones = assignRobotsToZones(robotPositions, zoneList)-- updateAssignments and <- or self._lastAssignments
+		robotZones = assignRobotsToZones(robotPositions, zoneList)// updateAssignments and <- or self._lastAssignments
 	else
 		robotZones = self._lastAssignments
 	end

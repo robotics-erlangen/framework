@@ -12,7 +12,7 @@ local Referee = require "observer/referee"
 function AttackRatio:init()
 	self._friendlyFreeKickOngoing = false
 	self._opponentFreeKickOngoing = false
-	self._ballInOpponentFieldHalf = false -- remember for hysteresis
+	self._ballInOpponentFieldHalf = false // remember for hysteresis
 	self._dangerousDuelSituation = false
 end
 
@@ -61,14 +61,14 @@ function AttackRatio:attackRatio()
 	elseif refState == "DirectOffensive" or refState == "IndirectOffensive" then
 		local friendlyCorner = Field.isInOwnCorner(ball.pos, false)
 		local opponentCorner = Field.isInOwnCorner(ball.pos, true)
-		if friendlyCorner then -- Goal-Kick Offensive
+		if friendlyCorner then // Goal-Kick Offensive
 			attackRatio = 4
-		elseif opponentCorner then -- Corner-Kick Offensive
+		elseif opponentCorner then // Corner-Kick Offensive
 			attackRatio = 7
 		elseif ball.pos.y > 1.2 then
-			attackRatio = 6 -- Throw-In Offensive
+			attackRatio = 6 // Throw-In Offensive
 		else
-			attackRatio = 4 -- Throw-In Offensive
+			attackRatio = 4 // Throw-In Offensive
 		end
 	elseif refState == "DirectDefensive" or refState == "IndirectDefensive" or refState == "BallPlacementDefensive" then
 		local opponentCorner = Field.isInOwnCorner(ball.pos, true)
@@ -85,7 +85,7 @@ function AttackRatio:attackRatio()
 		end
 	elseif World.GameStage == "PenaltyShootout" then
 		attackRatio = 8
-	else -- Game, GameForce
+	else // Game, GameForce
 		if self._opponentFreeKickOngoing then
 			attackRatio = 1
 		else
@@ -96,7 +96,7 @@ function AttackRatio:attackRatio()
 		end
 	end
 
-	--increase attackRatio if we have more robots
+	//increase attackRatio if we have more robots
 	local enemies = 8 - Referee.realisticCardsOpponent()
 	if enemies < math.min(8, #World.FriendlyRobots) then
 		attackRatio = math.max(attackRatio, math.min(attackRatio + 1 , 6))
@@ -128,8 +128,8 @@ function AttackRatio:attackerDefenderDistribution()
 
 	if mainAttackerIsDefender and previousMainAttacker and not previousMainAttackerIsDefender
 			and Field.distanceToFriendlyDefenseArea(previousMainAttacker.pos, previousMainAttacker.radius) < 0.5 then
-		-- being either a defender or an attacker is not a completet partitioning of an agents state
-		-- it could also be currently hidden
+		// being either a defender or an attacker is not a completet partitioning of an agents state
+		// it could also be currently hidden
 		local isAttacker = false
 		for robot, _ in pairs(self._inbox.attackerFlag()) do
 			if robot == previousMainAttacker then

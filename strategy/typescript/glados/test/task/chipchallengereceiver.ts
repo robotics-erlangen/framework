@@ -18,7 +18,7 @@ local obstacleTable = {
 
 function ChipChallengeReceiver:_init()
 	self._ballKicked = false
-	self._moveDest =  World.Geometry.FriendlyGoal -- random fallback
+	self._moveDest =  World.Geometry.FriendlyGoal // random fallback
 end
 
 function ChipChallengeReceiver:run()

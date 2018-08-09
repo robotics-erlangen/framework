@@ -12,18 +12,18 @@ local OverchipReceiver = require "task/attacker/overchipreceiver"
 local Shootgoal = require "task/attacker/shootgoal"
 local Striker = require "task/attacker/striker"
 
--- "runway" refers to the way on which we have to accelerate to receive the rolling ball
-local MIN_RUNWAY_LENGTH = 1.5 -- how much room we need (measured horizontally)
-local DISTANCE_TO_DEFENSE_AREA = 1.5 -- how far our runway should go, running into the defenders won't help
-local MAX_CHIP_DISTANCE = 2 -- how far we can (reliably) chip
+// "runway" refers to the way on which we have to accelerate to receive the rolling ball
+local MIN_RUNWAY_LENGTH = 1.5 // how much room we need (measured horizontally)
+local DISTANCE_TO_DEFENSE_AREA = 1.5 // how far our runway should go, running into the defenders won't help
+local MAX_CHIP_DISTANCE = 2 // how far we can (reliably) chip
 
 Overchip.MIN_ROBOTS = 2
 Overchip.MAX_ROBOTS = 2
 
 function Overchip.canStart()
 	return Referee.isFriendlyFreeKickState()
-			and World.Time - Referee.lastStateChangeTime() < 2 -- move should not start if freekick state is already running for some time
-			and G.FieldHeightHalf - (G.DefenseRadius + DISTANCE_TO_DEFENSE_AREA) - World.Ball.pos.y > MIN_RUNWAY_LENGTH -- how much room we need
+			and World.Time - Referee.lastStateChangeTime() < 2 // move should not start if freekick state is already running for some time
+			and G.FieldHeightHalf - (G.DefenseRadius + DISTANCE_TO_DEFENSE_AREA) - World.Ball.pos.y > MIN_RUNWAY_LENGTH // how much room we need
 			and not (World.Ball.pos.y < -G.FieldHeightHalf * 1/3)
 			and math.abs(World.Ball.pos.x) > G.FieldWidthHalf * 3/4
 			and not Overchip._runwayObstructed()
@@ -41,7 +41,7 @@ function Overchip:_canContinue()
 	for sender, msg in pairs(self._inbox.passSuggestion()) do
 		if sender == self._robots[2] then
 
-			-- if we can't get the ball before reaching the defense area
+			// if we can't get the ball before reaching the defense area
 			if Field.isInOpponentDefenseArea(msg.ballPos, 0) then
 				return false
 			end
@@ -56,7 +56,7 @@ function Overchip:_canContinue()
 end
 
 function Overchip._runwayObstructed()
-	-- if there are robots in the way that we can't overchip
+	// if there are robots in the way that we can't overchip
 	local goalVector = G.OpponentGoal - World.Ball.pos
 	local criticalStart = World.Ball.pos + goalVector:copy():setLength(MAX_CHIP_DISTANCE)
 	local distToGoal = G.DefenseRadius + DISTANCE_TO_DEFENSE_AREA
@@ -82,14 +82,14 @@ function Overchip:_updateTasks()
 	local closeToPosition = self._robots[2].pos:orthogonalDistance(ballPos, goal) < robotRadius
 
 	if closeToBall and closeToPosition then
-		taskAssignments[self._robots[1]] = { behavior = Freekick}
-		taskAssignments[self._robots[2]] = { class = OverchipReceiver, params = {}}
+		taskAssignments[self._robots[1*/ = { behavior = Freekick}
+		taskAssignments[self._robots[2*/ = { class = OverchipReceiver, params = {}}
 	elseif World.Time - Referee.lastStateChangeTime() > 9 then
-		taskAssignments[self._robots[1]] = { class = Shootgoal, params = {}}
-		taskAssignments[self._robots[2]] = { class = Striker, params = {}}
+		taskAssignments[self._robots[1*/ = { class = Shootgoal, params = {}}
+		taskAssignments[self._robots[2*/ = { class = Striker, params = {}}
 	else
-		taskAssignments[self._robots[1]] = { class = MoveToStaticBall, params = {}}
-		taskAssignments[self._robots[2]] = { class = OverchipReceiver, params = {}}
+		taskAssignments[self._robots[1*/ = { class = MoveToStaticBall, params = {}}
+		taskAssignments[self._robots[2*/ = { class = OverchipReceiver, params = {}}
 	end
 
 	return taskAssignments

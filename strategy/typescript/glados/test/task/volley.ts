@@ -34,7 +34,7 @@ function VolleyProcess:init(robot)
 end
 
 function VolleyProcess:run()
-	-- abort if another robot touches the ball or the ball has nearly stopped
+	// abort if another robot touches the ball or the ball has nearly stopped
 	if World.Ball.speed:length() < 1 or (Ball.friendlyBallOwner() ~= nil and Ball.friendlyBallOwner() ~= self._robot) or Ball.opponentBallOwner() then
 		self._isFinished = true
 		return
@@ -44,7 +44,7 @@ function VolleyProcess:run()
 		log("hadBall")
 		self._hadBall = true
 	end
-	-- If ball has traveled the target distance or left the field
+	// If ball has traveled the target distance or left the field
 	if self._hadBall and self._viewPos
 			and (World.Ball.pos:distanceTo(self._viewPos) > self._targetPos:distanceTo(self._viewPos)
 			or not Field.isInField(World.Ball.pos)) then
@@ -75,7 +75,7 @@ function VolleyProcess:isFinished()
 end
 
 function VolleyProcess:setData(ballSpeed, viewPos, targetPos, expectedTargetSpeed)
-	-- only update parameters until the ball touched the robot
+	// only update parameters until the ball touched the robot
 	if self._hadBall then
 		return
 	end
@@ -83,7 +83,7 @@ function VolleyProcess:setData(ballSpeed, viewPos, targetPos, expectedTargetSpee
 	self._viewPos = viewPos
 	self._targetPos = targetPos
 	self._expectedTargetSpeed = expectedTargetSpeed
-	--log(string.format("Data %s %s %s %f", ballSpeed, viewPos, targetPos, expectedTargetSpeed))
+	//log(string.format("Data %s %s %s %f", ballSpeed, viewPos, targetPos, expectedTargetSpeed))
 end
 
 

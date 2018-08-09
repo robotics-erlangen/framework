@@ -16,7 +16,7 @@ end
 
 function PenaltyPassive:check()
 	local isOffensivePenalty = World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive"
-	-- local isDefensivePenalty = World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive"
+	// local isDefensivePenalty = World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive"
 	local isShootout = World.GameStage == "PenaltyShootout"
 	return isShootout and (isOffensivePenalty or self:_checkPenaltyOngoing())
 end
@@ -27,7 +27,7 @@ end
 
 function PenaltyPassive:_updateTask()
 	if World.RefereeState == "PenaltyOffensive" and not self._penaltyStartTime then
-		-- log("Start Time set")
+		// log("Start Time set")
 		self._penaltyStartTime = World.Time
 	end
 

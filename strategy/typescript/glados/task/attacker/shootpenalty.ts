@@ -12,14 +12,14 @@ local World = require "../base/world"
 local PathHelper = require "trajectory/pathhelper"
 
 local G = World.Geometry
---=====================--
--- Tournament Settings --
---=====================--
-local distToPost = 0.08 -- distance of the target point on goal line to the post
-local changeThreshold = 0.5 -- set 0 if opponent keeper follows look Dir every time
-local KeeperPosTolerance = 0.04 -- if keeper's distance to the goals center is bigger, we will choose the big free sector
-local shootErrorThreshold = 4.0 * math.pi/180 -- maximum angle error
-local keeperMoveSpeedThreshold = 0.5 -- for random keeper movement detection
+//=====================//
+// Tournament Settings //
+//=====================//
+local distToPost = 0.08 // distance of the target point on goal line to the post
+local changeThreshold = 0.5 // set 0 if opponent keeper follows look Dir every time
+local KeeperPosTolerance = 0.04 // if keeper's distance to the goals center is bigger, we will choose the big free sector
+local shootErrorThreshold = 4.0 * math.pi/180 // maximum angle error
+local keeperMoveSpeedThreshold = 0.5 // for random keeper movement detection
 
 local obstacleTable = {
     ignorePass = true,
@@ -55,7 +55,7 @@ function ShootPenalty:run()
 		debug.set("keeperInsideDefArea", keeperInsideDefArea)
 		if World.Time - self._startTime < self._waitTime then
 			self:_catchBall(cornerPoint(self._lookDir), constants.positionError + DIST_TO_BALL)
-			if keeperInsideDefArea then -- detect random keeper movement
+			if keeperInsideDefArea then // detect random keeper movement
 				if (keeper.speed.x > keeperMoveSpeedThreshold and self._lookDir == "Left") or
 					(keeper.speed.x < -keeperMoveSpeedThreshold and self._lookDir == "Right")
 				then
@@ -63,7 +63,7 @@ function ShootPenalty:run()
 					self._targetPos = cornerPoint(self._lookDir)
 				end
 			end
-		else -- choose a corner
+		else // choose a corner
 			if keeperInsideDefArea then
 				if math.abs(keeper.pos.x) > KeeperPosTolerance then
 					if keeper.pos.x > 0 then

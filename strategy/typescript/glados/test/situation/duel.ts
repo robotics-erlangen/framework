@@ -11,7 +11,7 @@ local situation = {
 			angularSpeed = Vector.fromAngle(-3.26864e-06)
 		},
 		[1] = {
-		--	task = ShootGoal,
+		//	task = ShootGoal,
 			pos = Vector(1.03088,1.29415),
 			dir = Vector.fromAngle(-1.78715),
 			speed = Vector(3.23482e-06,3.85203e-06),

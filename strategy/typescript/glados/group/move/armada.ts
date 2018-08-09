@@ -16,7 +16,7 @@ local G = World.Geometry
 Armada.MIN_ROBOTS = 5
 Armada.MAX_ROBOTS = 5
 
--- the armada has 4 steps to form stairs, depending on ball distance
+// the armada has 4 steps to form stairs, depending on ball distance
 local POSITIONS_ORIG = {
 	Vector(G.FieldWidthHalf * -0.6, G.FieldWidthHalf * -0.25),
 	Vector(G.FieldWidthHalf * -0.2, G.FieldWidthHalf *  0   ),
@@ -33,7 +33,7 @@ local function getRandomOffsetVector()
 	return result
 end
 
--- biased random for setting the position backwards
+// biased random for setting the position backwards
 local function randomExtension(min)
 	return math.round(min + MAX_RANDOM_POSITION_OFFSET * math.pow(math.random(), 2), 1)
 end
@@ -62,7 +62,7 @@ function Armada:_canContinue()
 end
 
 function Armada:_updateTasks()
-	-- draw circles where robots cannot shoot a volley
+	// draw circles where robots cannot shoot a volley
 	local center1, center2, radius = MovesHelper.volleyCircle(World.Ball.pos, G.OpponentGoal, self._maxShootingAngle)
 	local circle = center1.y < center2.y and center1 or center2
 	local _, passInfoTable = next(self._inbox.passInfo())
@@ -75,14 +75,14 @@ function Armada:_updateTasks()
 		self._positions = {}
 		self._assignment = nil
 	elseif Armada.Referee.isFriendlyFreeKickState() and #self._positions == 0 then
-		-- calculate position
+		// calculate position
 		for i = 1, 4 do
 			local pos = POSITIONS_ORIG[i]:copy()
 			if World.Ball.pos.x > 0 then
 				pos.x = -pos.x
 			end
 			pos = pos + getRandomOffsetVector()
-			-- shift positions to make volley possible
+			// shift positions to make volley possible
 			if pos:distanceTo(circle) <= radius then
 				local posToShiftFrom = (World.Ball.pos + G.OpponentGoal) / 2
 				local intersectionWithCircle = geom.intersectLineCircle(posToShiftFrom, pos - posToShiftFrom, circle, radius)
@@ -92,33 +92,33 @@ function Armada:_updateTasks()
 		end
 	end
 	if startMoving and not self._assignment then
-		-- assign robots to positions
+		// assign robots to positions
 		self._assignment = MovesHelper.assignRobots(self._robots, self._positions, 1)
 	end
 
 	local taskAssignments = {}
 	if World.RefereeState == "Stop" then
-		taskAssignments[self._robots[1]] = { class = StopAttack, params = { } }
-		taskAssignments[self._robots[2]] = { class = Circuit, params = { self._circleCenter, math.pi * 0.0 }, restart = self._startedSendPassPos }
-		taskAssignments[self._robots[3]] = { class = Circuit, params = { self._circleCenter, math.pi * 0.5 }, restart = self._startedSendPassPos }
-		taskAssignments[self._robots[4]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.0 }, restart = self._startedSendPassPos }
-		taskAssignments[self._robots[5]] = { class = Circuit, params = { self._circleCenter, math.pi * 1.5 }, restart = self._startedSendPassPos }
+		taskAssignments[self._robots[1*/ = { class = StopAttack, params = { } }
+		taskAssignments[self._robots[2*/ = { class = Circuit, params = { self._circleCenter, math.pi * 0.0 }, restart = self._startedSendPassPos }
+		taskAssignments[self._robots[3*/ = { class = Circuit, params = { self._circleCenter, math.pi * 0.5 }, restart = self._startedSendPassPos }
+		taskAssignments[self._robots[4*/ = { class = Circuit, params = { self._circleCenter, math.pi * 1.0 }, restart = self._startedSendPassPos }
+		taskAssignments[self._robots[5*/ = { class = Circuit, params = { self._circleCenter, math.pi * 1.5 }, restart = self._startedSendPassPos }
 		self._startedSendPassPos = false
 	elseif startMoving then
-		taskAssignments[self._robots[1]] = { behavior = FreeKick, params = { } }
+		taskAssignments[self._robots[1*/ = { behavior = FreeKick, params = { } }
 		for i = 2,5 do
 			if self._positions[i-1]:distanceTo(passInfo.ballPos) < 0.1 then
-				taskAssignments[self._robots[self._assignment[i]]]
+				taskAssignments[self._robots[self._assignment[i*/]
 				= {class = AcceptPass, params = {self._positions[i-1], 0.1}}
 			else
-			taskAssignments[self._robots[self._assignment[i]]]
-				= {class = MoveToPos, params = { self._positions[i-1], nil, true } } --offer other positions for redeciding
+			taskAssignments[self._robots[self._assignment[i*/]
+				= {class = MoveToPos, params = { self._positions[i-1], nil, true } } //offer other positions for redeciding
 			end
 		end
 	else
-		taskAssignments[self._robots[1]] = { behavior = FreeKick, params = { } }
+		taskAssignments[self._robots[1*/ = { behavior = FreeKick, params = { } }
 		for i = 2,5 do
-			taskAssignments[self._robots[i]] = { class = Circuit, params = { self._circleCenter,
+			taskAssignments[self._robots[i*/ = { class = Circuit, params = { self._circleCenter,
 				math.pi * 0.5 * (i-2), nil, self._positions[i-1], true }, restart = not self._startedSendPassPos }
 		end
 		self._startedSendPassPos = true

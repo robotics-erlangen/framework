@@ -86,7 +86,7 @@ local MIN_PASS_RATING = 0.3
 function Shoot:_decide()
 	self._wasPressed = Robot.isPressed(self._robot)
 
-	-- perform clean goal shots if possible
+	// perform clean goal shots if possible
 	if self:_shootGoalPossible(self._robot, self._attackPosition) then
 		return {
 			task = "shootgoal",
@@ -98,7 +98,7 @@ function Shoot:_decide()
 	local pass = Attack.choosePassFromSuggestions(self._robot,
 		self._inbox.passSuggestion(), self._prevPassPos, true)
 
-	-- consider chipping forward
+	// consider chipping forward
 	local passRating = pass and Attack.ratePass(self._robot, pass, true) or 0
 	if ENABLE_PSEUDO_PASS and self._attackPosition and passRating < MIN_PASS_RATING
 			and Field.distanceToDefenseAreaSq(self._attackPosition) > 2
@@ -114,7 +114,7 @@ function Shoot:_decide()
 
 		local OPPONENT_DISTANCE_THRESHOLD = 1
 
-		-- look for close opponents
+		// look for close opponents
 		local closestOppDist = math.huge
 		for _, opp in pairs(World.OpponentRobots) do
 			local toGoal = (G.OpponentGoal - self._attackPosition):setLength((MAX_DISTANCE-MIN_DISTANCE)/2 + MIN_DISTANCE)
@@ -137,7 +137,7 @@ function Shoot:_decide()
 		for dist = MIN_DISTANCE, MAX_DISTANCE, DISTANCE_STEP do
 			for angle = -CONE_WIDTH/2, CONE_WIDTH/2, ANGLE_STEP do
 
-				-- check for possible goalshot opportunity
+				// check for possible goalshot opportunity
 				local newAttackPosition = self._attackPosition + Vector.fromAngle(attackAngle + angle):setLength(dist)
 				local possible, freeAngle = self:_shootGoalPossible(self._robot, newAttackPosition)
 				if possible and freeAngle and freeAngle > bestFreeAngle then
@@ -145,7 +145,7 @@ function Shoot:_decide()
 					bestAttackPosition = newAttackPosition
 				end
 
-				-- look for better pass opportunities
+				// look for better pass opportunities
 				local newPass = Attack.choosePassFromSuggestions(self._robot,
 					self._inbox.passSuggestion(), self._prevPassPos, true)
 				local newPassRating = newPass and Attack.ratePass(self._robot, newPass, true) or 0
@@ -157,7 +157,7 @@ function Shoot:_decide()
 			end
 		end
 
-		-- goalshot opportunity
+		// goalshot opportunity
 		if bestAttackPosition ~= nil then
 			local passVector = bestAttackPosition - self._attackPosition
 			if Attack.isPassAllowed(self._attackPosition, self._attackPosition + passVector:setLength(0.5)) then
@@ -171,7 +171,7 @@ function Shoot:_decide()
 			end
 		end
 
-		-- short chip forward
+		// short chip forward
 		if not pass or Attack.ratePass(self._robot, pass, true) < MIN_PASS_RATING then
 			local newAttackPosition = self._attackPosition + Vector.fromAngle(attackAngle):setLength((MAX_DISTANCE-MIN_DISTANCE)/2 + MIN_DISTANCE)
 			local passVector = newAttackPosition - self._attackPosition
@@ -198,7 +198,7 @@ function Shoot:_decide()
 		}
 	end
 
-	-- try to chip through opponent defense area
+	// try to chip through opponent defense area
 	local attackPosition = self._attackPosition or World.Ball.pos
 	if attackPosition and attackPosition.y > G.FieldHeightHalf - G.DefenseHeight then
 		return {
@@ -209,7 +209,7 @@ function Shoot:_decide()
 		}
 	end
 
-	-- fallback to shoot goal
+	// fallback to shoot goal
 	return {
 		task = "shootgoal",
 		pos = World.Geometry.OpponentGoal,
@@ -232,14 +232,14 @@ function Shoot:_redeciding()
 		return false
 	end
 
-	-- always redecide if no decision has been made yet
+	// always redecide if no decision has been made yet
 	if self._activeFrames < 2 or self._decision.task == "none" then
 		debug.set("redeciding", "TRUE (initial)")
 		return true
 	end
 
-	-- redecide if during a pseudo pass, the ball overtakes the pass pos
-	-- this is moderately likely to happen during chaseBall
+	// redecide if during a pseudo pass, the ball overtakes the pass pos
+	// this is moderately likely to happen during chaseBall
 	if ENABLE_PSEUDO_PASS and self._decision.task == "pass" and self._decision.target == self._robot then
 		local attackPosition = self._attackPosition or World.Ball.pos
 		local passVector = (self._decision.pos - attackPosition):setLength(0.4)
@@ -254,7 +254,7 @@ function Shoot:_redeciding()
 		end
 	end
 
-	-- never redecide if the ball is imminent
+	// never redecide if the ball is imminent
 	local dribblerPos = self._robot.pos + (World.Ball.pos - self._robot.pos):setLength(
 		World.Ball.radius + self._robot.shootRadius)
 	if Ball.receivesPass(self._robot) and Physics.checkedBallRollTime(World.Ball, dribblerPos) < 0.5 then
@@ -262,27 +262,27 @@ function Shoot:_redeciding()
 		return false
 	end
 
-	-- redecide if rebound
+	// redecide if rebound
 	if self._touchedBall and self._hadBallCounter > 5 and self._robot.pos:distanceTo(World.Ball.pos) > 0.13 then
 		debug.set("redeciding", "TRUE (rebound)")
 		self._hadBallCounter = 0
 		return true
 	end
 
-	-- never redecide if the ball is being shot (but isShot did not trigger yet)
+	// never redecide if the ball is being shot (but isShot did not trigger yet)
 	if Robot.hadBall(self._robot, 0.25) then
 		self._hadBallCounter = self._hadBallCounter + 1
 		debug.set("redeciding", "FALSE (hadBall)")
 		return false
 	end
 
-	-- redecide if the ball is still accelerating due to the tracking
+	// redecide if the ball is still accelerating due to the tracking
 	if Ball.isAccelerating() then
 		debug.set("redeciding", "TRUE (accelerating)")
 		return true
 	end
 
-	-- redecide if passTiming changed a lot
+	// redecide if passTiming changed a lot
 	if self._decision.task == "pass" then
 		local oldTime = self._decision.time
 		local oldTarget = self._decision.target
@@ -293,14 +293,14 @@ function Shoot:_redeciding()
 		end
 	end
 
-	-- redecide if the attackPosition changed a lot
+	// redecide if the attackPosition changed a lot
 	if self._attackPosition and self._prevAttackPosition
 			and self._attackPosition:distanceTo(self._prevAttackPosition) > 0.3 then
 		debug.set("redeciding", "TRUE (attackPosition)")
 		return true
 	end
 
-	-- redecide if the last decision was the fallback one
+	// redecide if the last decision was the fallback one
 	if self._decision.quality == "fallback" then
 		debug.set("redeciding", "TRUE (fallback)")
 		return true
@@ -311,13 +311,13 @@ function Shoot:_redeciding()
 		return true
 	end
 
-	-- don't redecide if we are close to shoot a stationary ball
+	// don't redecide if we are close to shoot a stationary ball
 	if World.Ball.speed:lengthSq() < 0.5 * 0.5 and World.Ball.pos:distanceToSq(self._robot.pos) < (0.2+self._robot.radius) * (0.2 + self._robot.radius) then
 		debug.set("redeciding", "FALSE (stationary)")
 		return false
 	end
 
-	-- redecide if after a certain time
+	// redecide if after a certain time
 	if World.Time >= self._nextDecisionTime then
 		debug.set("redeciding", "TRUE (nextDecisionTime)")
 		return true
@@ -351,26 +351,26 @@ function Shoot:_updateTask()
 	self._forceKeepingInPool = true
 	self._activeFrames = self._activeFrames + 1
 
-	-- update attack position
+	// update attack position
 	self._prevAttackPosition = self._attackPosition
 	local _, attackPosition = next(self._inbox.attackPosition("broadcast"))
 	self._attackPosition = attackPosition
 
 	self:_checkForManualAlly()
 
-	-- redecide if necessary
+	// redecide if necessary
 	local redeciding = self:_redeciding()
 	if redeciding then
 		self._decision = self:_decide()
 		self._nextDecisionTime = World.Time + 1.5
 	end
 
-	-- visualize decision
+	// visualize decision
 	if self._decision.pos then
 		Attack.visualizeAttack(self._robot.pos, self._decision.pos)
 	end
 
-	-- write decision to debug tree
+	// write decision to debug tree
 	debug.set("decision", self._decision.task)
 	for k, v in pairs(self._decision) do
 		if k ~= "task" then
@@ -382,12 +382,12 @@ function Shoot:_updateTask()
 		end
 	end
 
-	-- return shoot goal if the decision says so
+	// return shoot goal if the decision says so
 	if self._decision.task == "shootgoal" then
 		return ShootGoal, { self._lastIncomingPassInfoPos }
 	end
 
-	-- time the pass
+	// time the pass
 	if self._decision.task == "pass" then
 		local suggestedTime = self._decision.time
 		local target = self._decision.target
@@ -400,8 +400,8 @@ function Shoot:_updateTask()
 			targetSpeed = 0.1
 		end
 
-		-- update target if the decision changed
-		-- creating a new task instance would mess up catchBall
+		// update target if the decision changed
+		// creating a new task instance would mess up catchBall
 		if self._task and Class.instanceOf(self._task, Pass)
 				and self._decision.pos ~= self._prevPassPos then
 			self._task:updateTarget(self._decision.target, self._decision.pos, chipOverride, self._decision.time, targetSpeed)
@@ -414,7 +414,7 @@ function Shoot:_updateTask()
 		local ballTravelTime = ObserverShoot.ballPassTime(shootPos, ballPos, target, nil, self._robot)
 		local passReceiveTime = math.max(suggestedTime, shootTime + ballTravelTime + World.Time)
 
-		--save time for future use:
+		//save time for future use:
 		self._decision.time = passReceiveTime
 
 		self._send.passInfo("all", {{ target = target,
@@ -427,7 +427,7 @@ function Shoot:_updateTask()
 		return ChipToPos, {self._decision.pos, self._decision.time, self._attackPosition}
 	end
 
-	-- error: invalid decision
+	// error: invalid decision
 end
 
 return Shoot

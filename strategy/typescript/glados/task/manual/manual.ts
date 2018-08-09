@@ -14,7 +14,7 @@ function Manual:_limitRobotSpeed(v)
 	local fastSpeed = 2
 	local pos = self._robot.pos
 
-	local a = 2 -- 1/a m is slow zone
+	local a = 2 // 1/a m is slow zone
 	local kleft = math.bound(0, 1 - a*World.Geometry.FieldWidthHalf - a*pos.x, 1)
 	local kright = math.bound(0, a*pos.x - a*World.Geometry.FieldWidthHalf + 1, 1)
 	local kdown = math.bound(0, 1 - a*World.Geometry.FieldHeightHalf - a*pos.y, 1)
@@ -48,7 +48,7 @@ function Manual:run()
 	local input = self._robot.userControl
 
 	if input.kickPower and input.kickPower > 0 and Ball.friendlyBallOwner() == self._robot then
-		-- shoot
+		// shoot
 		local shootDistance = 1.5
 		local shootPos = self._robot.pos + Vector.fromAngle(self._robot.dir):scaleLength(shootDistance)
 		local linear = input.kickStyle == "Linear"
@@ -66,12 +66,12 @@ function Manual:run()
 		local omega = math.bound(-omegamax, input.omega, omegamax)
 		self._robot.trajectory:update(Hidden, limitedSpeed.y, limitedSpeed.x, omega)
 	else
-		-- don't let the robots crash
+		// don't let the robots crash
 		local limitedSpeed = self:_limitRobotSpeed(input.speed)
 		self._robot.trajectory:update(Direct, limitedSpeed, nil, input.omega)
 	end
 
-	-- play attacker
+	// play attacker
 	self._send.attackerFlag("all")
 end
 

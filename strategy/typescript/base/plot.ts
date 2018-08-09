@@ -1,9 +1,9 @@
---[[
---- Send plot data to ra
+/*
+//- Send plot data to ra
 module "plot"
-]]--
+*///
 
---[[***********************************************************************
+/************************************************************************
 *   Copyright 2015 Michael Eischer                                        *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -21,17 +21,17 @@ module "plot"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-*************************************************************************]]
+**************************************************************************/
 
 local plot = {}
 
 local amun = amun
 
 
---- Add data to a plot. Value is used to create a point at the current time
--- @name addPlot
--- @param name string - Plot name, seperated layers by '.'
--- @param value number - value for data point
+//- Add data to a plot. Value is used to create a point at the current time
+// @name addPlot
+// @param name string - Plot name, seperated layers by '.'
+// @param value number - value for data point
 function plot.addPlot(name, value)
 	amun.addPlot(name, value)
 end
@@ -45,7 +45,7 @@ function plot._plotAggregated()
 	end
 	for k,_ in pairs(lastAggregated) do
 		if not aggregated[k] then
-			-- line down to zero
+			// line down to zero
 			plot.addPlot(k, 0)
 		end
 	end

@@ -1,9 +1,9 @@
---[[
---- Ball class.
+/*
+//- Ball class.
 module "Ball"
-]]--
+*///
 
---[[***********************************************************************
+/************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -21,7 +21,7 @@ module "Ball"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-*************************************************************************]]
+**************************************************************************/
 
 local Ball = (require "../base/class")("Ball")
 
@@ -30,20 +30,20 @@ local Coordinates = require "../base/coordinates"
 local plot = require "../base/plot"
 
 
---- Values provided by Ball
--- @class table
--- @name Ball
--- @field pos Vector - Current ball position
--- @field posZ number - Ball height above the field
--- @field speed Vector - Movement direction, length is speed in m/s
--- @field speedZ number - Upwards speed in m/s
--- @field radius number - Ball radius
--- @field deceleration Vector - Current deceleration that is assumed to brake the ball
--- @field brakeTime number - Time in seconds until the ball stops moving
--- @field lostSince number - Time when the ball was lost. Only has meaning when Ball isn't visible
+//- Values provided by Ball
+// @class table
+// @name Ball
+// @field pos Vector - Current ball position
+// @field posZ number - Ball height above the field
+// @field speed Vector - Movement direction, length is speed in m/s
+// @field speedZ number - Upwards speed in m/s
+// @field radius number - Ball radius
+// @field deceleration Vector - Current deceleration that is assumed to brake the ball
+// @field brakeTime number - Time in seconds until the ball stops moving
+// @field lostSince number - Time when the ball was lost. Only has meaning when Ball isn't visible
 
 local BALL_QUALITY_FILTER_FACTOR = 0.05
---- Initializes a new ball, must only be called by world!
+//- Initializes a new ball, must only be called by world!
 function Ball:init()
 	self.radius = 0.0215
 	self._isVisible = false
@@ -58,7 +58,7 @@ function Ball:init()
 	self.touchdownPos = nil
 	self.isBouncing = false
 	self.framesDecelerating = math.huge
-	self.detectionQuality = 0.6 -- 0.6 is the largest value that can be reached with 60 fps cameras(?)
+	self.detectionQuality = 0.6 // 0.6 is the largest value that can be reached with 60 fps cameras(?)
 	self.hasRawData = false
 end
 
@@ -68,7 +68,7 @@ function Ball:__tostring()
 end
 
 function Ball:_updateLostBall(time)
-	-- set lost timer
+	// set lost timer
 	if self._isVisible then
 		self._isVisible = false
 		self.lostSince = time
@@ -76,18 +76,18 @@ function Ball:_updateLostBall(time)
 	self.detectionQuality = self.detectionQuality * (1 - BALL_QUALITY_FILTER_FACTOR)
 end
 
--- Processes ball information from amun, passed by world
+// Processes ball information from amun, passed by world
 function Ball:_update(data, time)
 	self.hasRawData = false
-	-- WARNING: this is the quality BEFORE the frame
+	// WARNING: this is the quality BEFORE the frame
 	plot.addPlot("Ball.quality", self.detectionQuality)
-	-- if no ball data is available then no ball was tracked
+	// if no ball data is available then no ball was tracked
 	if not data then
 		self:_updateLostBall(time)
 		return
 	end
 
-	-- check if the ball pos or speed are invalid (might result from tracking) -> then ignore the update
+	// check if the ball pos or speed are invalid (might result from tracking) -> then ignore the update
 	local nextPos = Coordinates.toLocal(Vector.createReadOnly(data.p_x, data.p_y))
 	local nextSpeed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y))
 	local SIZE_LIMIT = 1000
@@ -97,7 +97,7 @@ function Ball:_update(data, time)
 		return
 	end
 
-	-- data from amun is in global coordiantes
+	// data from amun is in global coordiantes
 	local lastSpeedLength = self.speed:length()
 	self._isVisible = true
 	self.pos = nextPos
@@ -124,16 +124,16 @@ function Ball:_updateRawDetections(rawData)
 end
 
 function Ball:_updateTrackedState(lastSpeedLength)
-	-- speed tracking
-	-- framesDecelerating counts the number of frames since the last extreme acceleration
-	-- so even if the ball slowly accelerates, framesDecelerating will not reset
+	// speed tracking
+	// framesDecelerating counts the number of frames since the last extreme acceleration
+	// so even if the ball slowly accelerates, framesDecelerating will not reset
 	if self.speed:length() - lastSpeedLength > 0.2 then
 		self.framesDecelerating = 0
 	else
 		self.framesDecelerating = self.framesDecelerating + 1
 	end
-	-- if the ball does not accelerate extremely for 3 frames straight, the current velocity
-	-- is taken as the maximum ball speed
+	// if the ball does not accelerate extremely for 3 frames straight, the current velocity
+	// is taken as the maximum ball speed
 	if self.framesDecelerating == 3 then
 		self.maxSpeed = self.speed:length()
 	end
@@ -142,7 +142,7 @@ function Ball:_updateTrackedState(lastSpeedLength)
 	end
 	plot.addPlot("Ball.maxSpeed", self.maxSpeed);
 
-	-- set the deceleration depending on the ball's state (sliding or rolling)
+	// set the deceleration depending on the ball's state (sliding or rolling)
 	if self.speed:length() > Constants.ballSwitchRatio * self.maxSpeed then
 		self.deceleration = Constants.fastBallDeceleration
 	else
@@ -150,8 +150,8 @@ function Ball:_updateTrackedState(lastSpeedLength)
 	end
 end
 
---- Checks whether the ball position is valid
--- @return boolean - True if ball is visible and position and speed are not NaN
+//- Checks whether the ball position is valid
+// @return boolean - True if ball is visible and position and speed are not NaN
 function Ball:isPositionValid()
 	if not self._isVisible then
 		return false

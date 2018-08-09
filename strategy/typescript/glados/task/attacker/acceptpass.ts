@@ -8,7 +8,7 @@ local ToTarget = require "trajectory/totarget"
 
 
 function AcceptPass:_init(manualPassPos, manualDistance)
-	self._passPos = manualPassPos -- if manualPassPos is set, acceptPass will only try to accept passes close to passPoss
+	self._passPos = manualPassPos // if manualPassPos is set, acceptPass will only try to accept passes close to passPoss
 	self._distance = manualDistance or 0.1
 	self._obstacleTable = {
 		ignoreBall = false,

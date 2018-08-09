@@ -31,7 +31,7 @@ function FreeKick:start()
 end
 
 function FreeKick:check()
-	-- we have to be main attacker
+	// we have to be main attacker
 	if self._inbox.mainAttacker().trainer ~= self._robot then
 		return false
 	end
@@ -41,8 +41,8 @@ function FreeKick:check()
 		return true
 	end
 
-	-- stay active for one additional frame to avoid flickering to a different task
-	-- rely on being killed by applyForMainAttacker
+	// stay active for one additional frame to avoid flickering to a different task
+	// rely on being killed by applyForMainAttacker
 	if Robot.ownStandardShooter() == self._robot then
 		return true
 	end
@@ -62,14 +62,14 @@ function FreeKick:_updateTask()
 	local shootgoalPossible = not self._dirty and World.Ball.pos.y > -0.2 and
 		(World.RefereeState == "DirectOffensive" or World.RefereeState == "KickoffOffensive")
 
-	-- prepare -> wait
+	// prepare -> wait
 	if self._state == "prepare" and nearBall then
 		self._state = "wait"
 		self._waitStartTime = World.Time
 	end
 
-	-- wait -> shootgoal
-	-- wait -> pass_prepare
+	// wait -> shootgoal
+	// wait -> pass_prepare
 	local MIN_WAIT_TIME = 1.5
 	local MAX_TIMEFRAME = 8
 	local timeRunningOut = World.Time - Referee.lastStateChangeTime() >= MAX_TIMEFRAME
@@ -85,19 +85,19 @@ function FreeKick:_updateTask()
 				local _; _, self._pass = next(self._passList)
 				if self._pass then
 					self._state = "pass_prepare"
-					-- make sure that timing is not an issue for the strikers
+					// make sure that timing is not an issue for the strikers
 					self._pass.time = self._pass.time + 1.5
 				end
 			end
 		end
 	end
 
-	--check for anonymous pass
+	//check for anonymous pass
 	local restartTask = self._redeciding
 	if self._state == "pass_prepare" or self._state == "pass" then
 		if not self._pass.target then
-			-- try to find the target
-			-- look for a suggestion that matches our pass
+			// try to find the target
+			// look for a suggestion that matches our pass
 			local passes = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false, 0)
 			if passes then
 				for _,pass in ipairs(passes) do
@@ -127,7 +127,7 @@ function FreeKick:_updateTask()
 		self._state = "wait"
 	end
 
-	-- pass_prepare -> pass
+	// pass_prepare -> pass
 	if self._state == "pass_prepare" then
 		local shootPos = self._pass.ballPos
 		local ballTime = Shoot.ballPassTime(World.Ball.pos, shootPos, self._pass.target, nil, self._robot)
@@ -137,19 +137,19 @@ function FreeKick:_updateTask()
 			self._state = "pass"
 		end
 
-		-- redecide if beneficial
+		// redecide if beneficial
 		local enoughTime = World.Time - Referee.lastStateChangeTime() <= 5
 		if enoughTime then
 			local hysteresis = 0.05
 			local newPass = Attack.choosePassFromSuggestions(self._robot, self._inbox.passSuggestion(),
 					self._pass.ballPos, false, hysteresis)
 			if newPass and newPass.ballPos:distanceTo(self._pass.ballPos) > 0.2 then
-				self._state = "wait" -- wait state will deal with setting up a new pass
+				self._state = "wait" // wait state will deal with setting up a new pass
 			end
 		end
 	end
 
-	-- delay the pass if the receiver is not ready yet
+	// delay the pass if the receiver is not ready yet
 	if self._state == "pass" then
 		local passSuggestion = self._inbox.passSuggestion()[self._pass.target]
 		if passSuggestion and passSuggestion.ballPos == self._pass.ballPos then
@@ -166,7 +166,7 @@ function FreeKick:_updateTask()
 		self._send.passInfo("all", self._passList)
 	end
 
-	-- visualize decision
+	// visualize decision
 	local visTarget
 	if self._pass then
 		visTarget = self._pass.ballPos

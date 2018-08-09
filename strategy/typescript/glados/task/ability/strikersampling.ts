@@ -95,16 +95,16 @@ function StrikerSampling:goalAngle(ballPos)
 	return rating
 end
 
--- function StrikerSampling:advance(ballPos)
--- 	local distToGoal = ballPos:distanceTo(World.Geometry.OpponentGoal)
--- 	local currentDistToGoal = self._attackPosition:distanceTo(World.Geometry.OpponentGoal)
--- 	local bestAdvance = World.Geometry.FieldHeightHalf * 0.3
--- 	local
--- 	local distAdvance = currentDistToGoal - distToGoal - bestAdvance
--- 	local rating = 1 / (distAdvance * distAdvance / World.Geometry.FieldHeight + 1)
--- 	visualizeRating("advance", ballPos, rating)
--- 	return rating
--- end
+// function StrikerSampling:advance(ballPos)
+// 	local distToGoal = ballPos:distanceTo(World.Geometry.OpponentGoal)
+// 	local currentDistToGoal = self._attackPosition:distanceTo(World.Geometry.OpponentGoal)
+// 	local bestAdvance = World.Geometry.FieldHeightHalf * 0.3
+// 	local
+// 	local distAdvance = currentDistToGoal - distToGoal - bestAdvance
+// 	local rating = 1 / (distAdvance * distAdvance / World.Geometry.FieldHeight + 1)
+// 	visualizeRating("advance", ballPos, rating)
+// 	return rating
+// end
 
 function StrikerSampling:crossPass(ballPos)
 	local angleAttackGoalBall = (ballPos - World.Geometry.OpponentGoal):absoluteAngleDiff(
@@ -127,7 +127,7 @@ function StrikerSampling:distToGoal(ballPos)
 	local ratingBonus = Rating.valueToRating(distToGoal, minDist + 2, minDist)
 	local rating = 0.2 * ratingBase + 0.8 * ratingBonus
 
-	-- rating demerit for steep passes, as these often miss due to volley inaccuracy
+	// rating demerit for steep passes, as these often miss due to volley inaccuracy
 	if G.DefenseWidth and math.abs(ballPos.x) > G.DefenseWidth/2
 			and World.Ball.pos.y > 1.5 * G.DefenseHeight then
 		local demeritWeight = 0.3
@@ -143,7 +143,7 @@ function StrikerSampling:distToGoal(ballPos)
 end
 
 function StrikerSampling:volleyCircle(ballPos)
-	-- the smaller the radius is, the more positions are viable for volley
+	// the smaller the radius is, the more positions are viable for volley
 
 	local minRating = 0.6
 	local _, _, radius = geom.inscribedAngle(ballPos, World.Geometry.OpponentGoal, 60 / 180 * math.pi)

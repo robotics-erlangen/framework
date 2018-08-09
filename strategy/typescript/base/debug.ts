@@ -1,9 +1,9 @@
---[[
---- Provides functions to set values on the debug tree
+/*
+//- Provides functions to set values on the debug tree
 module "debug"
-]]--
+*///
 
---[[***********************************************************************
+/************************************************************************
 *   Copyright 2017 Michael Eischer, Philipp Nordhus                       *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -21,7 +21,7 @@ module "debug"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-*************************************************************************]]
+**************************************************************************/
 
 local luaDebug = debug
 local debug = {}
@@ -42,7 +42,7 @@ local function prefixName(name)
 		return name
 	end
 
-	-- caching to avoid joining the debug keys over and over
+	// caching to avoid joining the debug keys over and over
 	if joinCache[prefix] and joinCache[prefix][name] then
 		return joinCache[prefix][name]
 	end
@@ -54,10 +54,10 @@ local function prefixName(name)
 	return joined
 end
 
---- Pushes a new key on the debug stack.
--- @name push
--- @param name string - Name of the new subtree
--- @param [value string - Value for the subtree header]
+//- Pushes a new key on the debug stack.
+// @name push
+// @param name string - Name of the new subtree
+// @param [value string - Value for the subtree header]
 function debug.push(name, value)
 	table.insert(debugStack, prefixName(name))
 	if value then
@@ -65,15 +65,15 @@ function debug.push(name, value)
 	end
 end
 
---- Pushes a root key on the debug stack.
--- @name pushtop
--- @param name string - Name of the new root tree or nil to push root
+//- Pushes a root key on the debug stack.
+// @name pushtop
+// @param name string - Name of the new root tree or nil to push root
 function debug.pushtop(name)
 	table.insert(debugStack, name or "")
 end
 
---- Pops last key from the debug stack.
--- @name pop
+//- Pops last key from the debug stack.
+// @name pop
 function debug.pop()
 	if #debugStack > 1 then
 		table.remove(debugStack)
@@ -81,12 +81,12 @@ function debug.pop()
 end
 
 
---- Get extra params for debug.set.
--- This can be used to keep the table # stable across calls to debug.set
--- Usage: local extraParams = debug.getInitialExtraParams()
--- debug.set(key, value, unpack(extraParams))
--- @name getInitialExtraParams
--- @return Initial extra params
+//- Get extra params for debug.set.
+// This can be used to keep the table # stable across calls to debug.set
+// Usage: local extraParams = debug.getInitialExtraParams()
+// debug.set(key, value, unpack(extraParams))
+// @name getInitialExtraParams
+// @return Initial extra params
 function debug.getInitialExtraParams()
 	local visited = {}
 	local tableCounter = { 0 }
@@ -94,14 +94,14 @@ function debug.getInitialExtraParams()
 end
 
 
---- Sets value for the given name.
--- If value is nil store it as text
--- For the special value nil the value is set for the current key
--- @name set
--- @param name string - Name of the value
--- @param value string - Value to set
+//- Sets value for the given name.
+// If value is nil store it as text
+// For the special value nil the value is set for the current key
+// @name set
+// @param name string - Name of the value
+// @param value string - Value to set
 function debug.set(name, value, visited, tableCounter)
-	-- must be compatible with getInitialExtraParams
+	// must be compatible with getInitialExtraParams
 	visited = visited or {}
 	tableCounter = tableCounter
 
@@ -167,8 +167,8 @@ function debug.set(name, value, visited, tableCounter)
 	amun.addDebug(prefixName(name), value)
 end
 
---- Clears the debug stack
--- @name resetStack
+//- Clears the debug stack
+// @name resetStack
 function debug.resetStack()
 	if #debugStack ~= 1 or debugStack[1] ~= "" then
 		log("Unbalanced push/pop on debug stack")

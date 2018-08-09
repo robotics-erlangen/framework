@@ -7,8 +7,8 @@ local geom = require "../base/geom"
 function Direct:_init()
 end
 
--- only targetDir or rotateSpeed may be passed!
--- accel is optional
+// only targetDir or rotateSpeed may be passed!
+// accel is optional
 function Direct:update(speed, targetDir, rotateSpeed, accel)
 	speed = Coordinates.toGlobal(speed)
 	if accel then
@@ -16,7 +16,7 @@ function Direct:update(speed, targetDir, rotateSpeed, accel)
 	else
 		accel = Vector(0, 0)
 	end
-	-- play motion controller
+	// play motion controller
 	local robotSpeed = Coordinates.toGlobal(self._robot.speed)
 	local k_v = 0.5
 	speed = speed + (speed - robotSpeed) * k_v

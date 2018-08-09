@@ -19,7 +19,7 @@ function MoveToStaticBall:run()
 
 	self._robot.trajectory:update(ToTarget, pos, self._rotation)
 
-	-- send the position of the ball
+	// send the position of the ball
 	self._send.attackPosition("all", World.Ball.pos)
 end
 

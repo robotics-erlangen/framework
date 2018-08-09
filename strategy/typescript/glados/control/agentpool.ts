@@ -2,7 +2,7 @@ local AgentPool = Class("AgentPool")
 
 
 function AgentPool:init(agentType, robotLimit)
-	-- robots and agents are mapped 1:1 to each other
+	// robots and agents are mapped 1:1 to each other
 	self._agents = {}
 	self._agentType = agentType
 	if robotLimit == nil then
@@ -22,18 +22,18 @@ local function sortByRating(a1, a2)
 	return a1:rateRobot() > a2:rateRobot()
 end
 
--- remove agents and associated robots we no longer want to keep
+// remove agents and associated robots we no longer want to keep
 function AgentPool:cleanupRobots()
-	local agents = {} -- agents to keep
+	local agents = {} // agents to keep
 	for _, agent in ipairs(self._agents) do
 		if(agent:keepRobot()) then
 			table.insert(agents, agent)
 		end
 	end
 
-	-- only sort if we have too many robots
+	// only sort if we have too many robots
 	if self._robotLimit < #agents then
-		-- sort with by decreasing importance
+		// sort with by decreasing importance
 		table.sort(agents, sortByRating)
 		table.truncate(agents, self._robotLimit)
 	end

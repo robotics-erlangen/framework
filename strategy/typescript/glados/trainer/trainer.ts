@@ -21,9 +21,9 @@ function Trainer:_debugInbox(str)
 		for sender, msg in pairs(func()) do
 			debug.set(sender.id or sender, msg)
 		end
-		debug.pop() -- name
+		debug.pop() // name
 	end
-	debug.pop() -- Trainer Inbox
+	debug.pop() // Trainer Inbox
 end
 
 function Trainer:run()

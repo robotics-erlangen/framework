@@ -31,7 +31,7 @@ context("base.typecheck", function ()
 		assert_error(function() typecheck(42, "class") end)
 		assert_error(function() typecheck(nil, "class") end)
 
-		-- test value passthrough
+		// test value passthrough
 		local inputString = "testValue"
 		assert_equal(typecheck(inputString, "string"), inputString)
 	end)

@@ -30,7 +30,7 @@ function Roles:_chooseExclusiveRoles()
 		end
 	end
 
-	local exclusiveRoles = {} -- ensure that special roles are removed if no one applies
+	local exclusiveRoles = {} // ensure that special roles are removed if no one applies
 	for role, applications in pairs(roleApplications) do
 		local bestRobot = nil
 		local bestRating = -math.huge

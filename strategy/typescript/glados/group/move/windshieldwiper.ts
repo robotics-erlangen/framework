@@ -21,7 +21,7 @@ function WindshieldWiper.canStart()
 	if WindshieldWiper.Referee.isFriendlyFreeKickState() then
 		return math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2
 			and World.Ball.pos.y > 3 * G.FieldHeightHalf / 5
-		--return true
+		//return true
 	end
 		return false
 end
@@ -69,7 +69,7 @@ end
 
 function WindshieldWiper:_updateTasks()
 	local distances = self._distances
-	--sort(distances,World.Ball)
+	//sort(distances,World.Ball)
 	local mainrobot = distances[1].robot
 	local taskAssignments = {}
 

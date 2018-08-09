@@ -36,7 +36,7 @@ function BallAnalyzer:run()
 		else
 			self._recording = true
 		end
-		self._stopTime = World.Time + 8 -- stop one acquisition and start the next, when the ball is shot again before the 8 sec countdown
+		self._stopTime = World.Time + 8 // stop one acquisition and start the next, when the ball is shot again before the 8 sec countdown
 	end
 	if self._recording then
 		if self._record[#self._record] and (self._ball.speed - self._record[#self._record]):lengthSq() > maxDiffSquared then
@@ -46,7 +46,7 @@ function BallAnalyzer:run()
 			self._times = {}
 			log("deflected")
 		else
-			--log("add "..tostring(self._ball.speed))
+			//log("add "..tostring(self._ball.speed))
 			table.insert(self._record, self._ball.speed)
 			table.insert(self._times, World.TimeDiff)
 			if World.Time > self._stopTime then
@@ -74,9 +74,9 @@ function BallAnalyzer:run()
 end
 
 local minRecord = 20
-local fps = 100 -- 100 frames per second
+local fps = 100 // 100 frames per second
 function BallAnalyzer:analyze()
-	-- luacheck: ignore endSliding2 deviation2 slippingFriction2 rollingFriction2
+	// luacheck: ignore endSliding2 deviation2 slippingFriction2 rollingFriction2
 	log("#self._record: "..#self._record)
 	if #self._record < minRecord then
 		return nil, nil
@@ -92,8 +92,8 @@ function BallAnalyzer:analyze()
 		nEntries = nEntries + nFrames
 	end
 	log("#accelerationArray: "..nEntries)
-	--IO.save("ballAnalyzer/"..tostring(World.Time).."_v.csv", self._record)
-	--IO.save("ballAnalyzer/"..tostring(World.Time).."_a.csv", accelerationArray)
+	//IO.save("ballAnalyzer/"..tostring(World.Time).."_v.csv", self._record)
+	//IO.save("ballAnalyzer/"..tostring(World.Time).."_a.csv", accelerationArray)
 	local overallFriction = math.average(accelerationArray)
 	local ratio = (self._rollingFriction - overallFriction)/(self._rollingFriction - self._slippingFriction)
 	local startRolling = math.ceil(math.bound(0.5, #accelerationArray*ratio, #accelerationArray))
@@ -105,18 +105,18 @@ function BallAnalyzer:analyze()
 	local slippingFriction2, rollingFriction2 = math.average(accelerationArray, 1, endSliding2), math.average(accelerationArray, startRolling2)
 	local deviation2 = math.variance(accelerationArray, slippingFriction2, 1, endSliding2) + math.variance(accelerationArray, rollingFriction2, startRolling2)
 	if deviation2 < deviation then
-		deviation, deviation2 = deviation2, deviation -- deviation is the better point
+		deviation, deviation2 = deviation2, deviation // deviation is the better point
 		startRolling, endSliding, startRolling2, endSliding2 = startRolling2, endSliding2, startRolling, endSliding
 		slippingFriction, rollingFriction, slippingFriction2, rollingFriction2 = slippingFriction2, rollingFriction2, slippingFriction, rollingFriction
 	end
-	--[[
+	/*
 	for i = 2, #accelerationArray do
 		startRolling, endSliding = i, i-1
 		slippingFriction, rollingFriction = math.average(accelerationArray, 1, endSliding), math.average(accelerationArray, startRolling)
 		deviation = math.variance(accelerationArray, slippingFriction, 1, endSliding) + math.variance(accelerationArray, rollingFriction, startRolling)
 		log("startRolling: "..i.." | deviation: "..deviation)
 	end
-	]]--
+	*///
 	local running = true
 	while running do
 		log("startRolling: "..startRolling)
@@ -124,10 +124,10 @@ function BallAnalyzer:analyze()
 		log("sl: "..slippingFriction.." | ro: "..rollingFriction)
 		if startRolling > startRolling2 then
 			startRolling2 = startRolling + 1
-			running = not (startRolling2 > #accelerationArray) -- out of boundaries
+			running = not (startRolling2 > #accelerationArray) // out of boundaries
 		else
 			startRolling2 = startRolling - 1
-			running = not (startRolling2 < 1) -- out of boundaries
+			running = not (startRolling2 < 1) // out of boundaries
 		end
 		if running then
 			endSliding2 = startRolling2 - 1
@@ -143,13 +143,13 @@ function BallAnalyzer:analyze()
 		end
 	end
 	log("startrolling danach: "..startRolling)
-	--[[
+	/*
 	local deviation, limit = math.huge, #accelerationArray/10
 	local overallFriction = math.average(accelerationArray)
 	local slippingFriction, rollingFriction = self._slippingFriction, self._rollingFriction
 	local startRolling, lastDeviation
-	local lastXdeviations = MovingAverage.get("dev", 25, math.huge) --andere Variablen aufräumen
-	lastXdeviations:addValue(math.huge) --hack
+	local lastXdeviations = MovingAverage.get("dev", 25, math.huge) //andere Variablen aufräumen
+	lastXdeviations:addValue(math.huge) //hack
 	repeat
 		lastDeviation = deviation
 		local ratio = (rollingFriction - overallFriction)/(rollingFriction - slippingFriction)
@@ -174,9 +174,9 @@ function BallAnalyzer:analyze()
 		end
 		lastXdeviations:addValue(deviation)
 		log("Deviation: "..deviation)
-		-- vorsicht, bei starkem rauschen kann deviation gar nicht beliebig klein werden, daher eher mit der ableitung von deviation nach der anzahl der iterationen arbeiten
+		// vorsicht, bei starkem rauschen kann deviation gar nicht beliebig klein werden, daher eher mit der ableitung von deviation nach der anzahl der iterationen arbeiten
 	until lastXdeviations:value() - deviation < 0.01
-	]]--
+	*///
 	local slFrSmoothed, roFrSmoothed
 	if startRolling <= #accelerationArray-3 then
 		if startRolling >= 3 then
@@ -213,7 +213,7 @@ function BallAnalyzer.cutAndSmoothen(array)
 	local deviation = maxDeviation
 	local avgDeviationHalf, closeEnough, cutStart, cutEnd, cutIndex = maxDeviation/(2*#diff), false, true, true, 1
 	repeat
-		--log("d")
+		//log("d")
 		if deviation < 0.5*maxDeviation then
 			closeEnough = true
 		else

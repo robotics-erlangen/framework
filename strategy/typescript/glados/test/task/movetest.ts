@@ -26,7 +26,7 @@ function MoveTestTask:_init(idx, total)
 	self._atTargetSince = nil
 	self._angle = START_ANGLE
 	self._orientation = ROBOT_ORIENTATION
-	-- line up robots
+	// line up robots
 	self._startPos = START_POS + Vector((idx - total/2) * 0.5, 0)
 end
 
@@ -70,7 +70,7 @@ end
 local Position = Class("Test.Task.MoveTest.Behavior", require "agent/base/behavior")
 function Position:check()
 	self._send.attackerFlag("all")
-	-- also receive own message
+	// also receive own message
 	return next(self._inbox.attackerFlag("broadcast")) ~= nil
 end
 
