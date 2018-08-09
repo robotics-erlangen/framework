@@ -1,4 +1,4 @@
-require("../base/globalschecker").enable()
+/*require("../base/globalschecker").enable()
 require "../base/base"
 // luacheck: push globals Class
 Class = require "../base/class"
@@ -92,3 +92,26 @@ local wrapper = function (func)
 end
 
 return {name = "Marvin", entrypoints = Entrypoints.get(wrapper)}
+*/
+
+import * as Entrypoints from "../base/entrypoints";
+import {log} from "../base/globals";
+import * as amunFunctions from "../base/amun";
+
+amunFunctions._hideFunctions();
+
+function initTest() {
+	log("test");
+	return true;
+}
+
+Entrypoints.add("test", initTest);
+
+function wrapper(func: ()=> boolean) {
+	return function() {
+		func();
+	}
+}
+
+let result = {name: "GLaDOS", entrypoints: Entrypoints.get(wrapper)};
+result

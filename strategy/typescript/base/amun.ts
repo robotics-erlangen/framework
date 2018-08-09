@@ -8,7 +8,7 @@
 module "amun"
 *///
 
-/************************************************************************
+/**************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -236,58 +236,39 @@ separator for luadoc*///
 // @name nextRefboxReply
 // @return reply table - the last reply or nil if none is available
 
-// luacheck: globals amun log
-require "amun"
-log = amun.log
-// publish debug status
-local hasDebugTable = pcall(require, "debug")
-amun.isDebug = hasDebugTable and debug.sethook ~= nil
-amun.isPerformanceMode = true
-if amun.getPerformanceMode then
-	amun.isPerformanceMode = amun.getPerformanceMode()
-end
+// TODO: declare proper typed interface for amun
+declare var amun: any;
+amun.isDebug = false; //TODO
+amun.isPerformanceMode = amun.getPerformanceMode()
 
-// prevent direct access to the amun api by other code
-function amun._hideFunctions()
-	local isDebug = amun.isDebug
-	local strategyPath = amun.getStrategyPath()
-	local getCurrentTime = amun.getCurrentTime
-	local sendCommand = amun.sendCommand
-	local sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand
-	local nextRefboxReply = amun.nextRefboxReply
-	local performanceMode = amun.isPerformanceMode
+export function _hideFunctions() {
+	let isDebug = amun.isDebug;
+	let strategyPath = amun.getStrategyPath();
+	let getCurrentTime = amun.getCurrentTime;
+	let sendCommand = amun.sendCommand;
+	let sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand;
+	let nextRefboxReply = amun.nextRefboxReply;
+	let performanceMode = amun.isPerformanceMode;
+	let log = amun.log;
 
 	// overwrite global amun
 	amun = {
-		isDebug = isDebug,
-		strategyPath = strategyPath,
-		nextRefboxReply = nextRefboxReply,
-		getCurrentTime = function ()
-			return getCurrentTime() * 1E-9
-		end,
-		setRobotExchangeSymbol = amun.setRobotExchangeSymbol,
-		isPerformanceMode = performanceMode
+		isDebug: isDebug,
+		strategyPath: strategyPath,
+		nextRefboxReply: nextRefboxReply,
+		getCurrentTime: function () {
+			return getCurrentTime() * 1E-9;
+		},
+		setRobotExchangeSymbol: amun.setRobotExchangeSymbol,
+		isPerformanceMode: performanceMode,
+		log: log
+	};
+	if (isDebug) {
+		amun.sendCommand = sendCommand;
+		amun.sendNetworkRefereeCommand = sendNetworkRefereeCommand;
+	} else {
+		amun.sendNetworkRefereeCommand = function() {
+			throw "you must enable debug in order to send referee commands";
+		}
 	}
-	if isDebug then
-		amun.sendCommand = sendCommand
-		amun.sendNetworkRefereeCommand = sendNetworkRefereeCommand
-	else
-		amun.sendNetworkRefereeCommand = function()
-			error "you must enable debug in order to send referee commands"
-		end
-	end
-
-	// prevent reloading original api
-	package.preload["amun"] = nil
-	// update reference used by require
-	package.loaded["amun"] = amun
-
-	// lua debug funcitons are only accessible with enabled debug
-	if not isDebug and hasDebugTable then
-		// luacheck: push globals debug
-		debug = nil
-		// luacheck: pop
-		package.preload["debug"] = nil
-		package.loaded["debug"] = nil
-	end
-end
+}
