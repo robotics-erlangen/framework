@@ -25,6 +25,6 @@
 
 class Typescript;
 
-void registerPathJsCallbacks(v8::Isolate *isolate, v8::Local<v8::ObjectTemplate> global, Typescript *t);
+void registerPathJsCallbacks(v8::Isolate *isolate, v8::Local<v8::Object> global, Typescript *t);
 
 #endif // JS_PATH_H

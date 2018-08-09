@@ -25,6 +25,6 @@
 
 class Typescript;
 
-void registerAmunJsCallbacks(v8::Isolate *isolate, v8::Local<v8::ObjectTemplate> global, Typescript *t);
+void registerAmunJsCallbacks(v8::Isolate *isolate, v8::Local<v8::Object> global, Typescript *t);
 
 #endif // JS_AMUN_H

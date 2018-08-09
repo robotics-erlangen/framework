@@ -40,11 +40,13 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
     m_isolate->Enter();
 
     HandleScope handleScope(m_isolate);
-    Local<ObjectTemplate> global = ObjectTemplate::New(m_isolate);
+    Local<ObjectTemplate> globalTemplate = ObjectTemplate::New(m_isolate);
+    registerModuleResolver(globalTemplate);
+    Local<Context> context = Context::New(m_isolate, nullptr, globalTemplate);
+    Context::Scope contextScope(context);
+    Local<Object> global = context->Global();
     registerAmunJsCallbacks(m_isolate, global, this);
     registerPathJsCallbacks(m_isolate, global, this);
-    registerModuleResolver(global);
-    Local<Context> context = Context::New(m_isolate, nullptr, global);
     m_context.Reset(m_isolate, context);
 }
 

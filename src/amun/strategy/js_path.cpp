@@ -245,27 +245,31 @@ struct FunctionInfo {
     void(*function)(FunctionCallbackInfo<Value> const &);
 };
 
-void registerPathJsCallbacks(Isolate *isolate, Local<ObjectTemplate> global, Typescript *t)
+void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript *t)
 {
     // TODO: set side effect property
     QList<FunctionInfo> callbacks = {
-        { "pathCreate",             pathCreate},
-        { "pathDestroy",            pathDestroy},
-        { "pathReset",              pathReset},
-        { "pathClearObstacles",     pathClearObstacles},
-        { "pathSetBoundary",        pathSetBoundary},
-        { "pathSetRadius",          pathSetRadius},
-        { "pathAddCircle",          pathAddCircle},
-        { "pathAddLine",            pathAddLine},
-        { "pathSetProbabilities",   pathSetProbabilities},
-        { "pathAddSeedTarget",      pathAddSeedTarget},
-        { "pathAddRect",            pathAddRect},
-        { "pathAddTriangle",        pathAddTriangle},
-        { "pathTest",               pathTest},
-        { "pathGet",                pathGet}};
+        { "create",             pathCreate},
+        { "destroy",            pathDestroy},
+        { "reset",              pathReset},
+        { "clearObstacles",     pathClearObstacles},
+        { "setBoundary",        pathSetBoundary},
+        { "setRadius",          pathSetRadius},
+        { "addCircle",          pathAddCircle},
+        { "addLine",            pathAddLine},
+        { "setProbabilities",   pathSetProbabilities},
+        { "addSeedTarget",      pathAddSeedTarget},
+        { "addRect",            pathAddRect},
+        { "addTriangle",        pathAddTriangle},
+        { "test",               pathTest},
+        { "get",                pathGet}};
 
+    Local<Object> pathObject = Object::New(isolate);
+    Local<String> pathStr = String::NewFromUtf8(isolate, "path", NewStringType::kNormal).ToLocalChecked();
     for (auto callback : callbacks) {
         Local<String> name = String::NewFromUtf8(isolate, callback.name, NewStringType::kNormal).ToLocalChecked();
-        global->Set(name, FunctionTemplate::New(isolate, callback.function, External::New(isolate, t)));
+        auto functionTemplate = FunctionTemplate::New(isolate, callback.function, External::New(isolate, t));
+        pathObject->Set(name, functionTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     }
+    global->Set(pathStr, pathObject);
 }

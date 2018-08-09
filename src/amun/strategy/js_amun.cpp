@@ -187,28 +187,32 @@ struct FunctionInfo {
     void(*function)(FunctionCallbackInfo<Value> const &);
 };
 
-void registerAmunJsCallbacks(Isolate *isolate, Local<ObjectTemplate> global, Typescript *t)
+void registerAmunJsCallbacks(Isolate *isolate, Local<Object> global, Typescript *t)
 {
     // TODO: set side effect property
     QList<FunctionInfo> callbacks = {
-        { "amunGetGeometry",        amunGetGeometry},
-        { "amunGetTeam",            amunGetTeam},
-        { "amunGetStrategyPath",    amunGetStrategyPath},
-        { "amunIsBlue",             amunIsBlue},
-        { "amunIsReplay",           amunIsReplay},
-        { "amunGetWorldState",      amunGetWorldState},
-        { "amunGetGameState",       amunGetGameState},
-        { "amunGetUserInput",       amunGetUserInput},
-        { "amunLog",                amunLog},
-        { "amunAddVisualization",   amunAddVisualization},
-        { "amunAddDebug",           amunAddDebug},
-        { "amunAddPlot",            amunAddPlot},
-        { "amunGetPerformanceMode", amunGetPerformanceMode},
-        { "amunSetCommand",         amunSetCommand},
-        { "amunGetCurrentTime",     amunGetCurrentTime}};
+        { "getGeometry",        amunGetGeometry},
+        { "getTeam",            amunGetTeam},
+        { "getStrategyPath",    amunGetStrategyPath},
+        { "isBlue",             amunIsBlue},
+        { "isReplay",           amunIsReplay},
+        { "getWorldState",      amunGetWorldState},
+        { "getGameState",       amunGetGameState},
+        { "getUserInput",       amunGetUserInput},
+        { "log",                amunLog},
+        { "addVisualization",   amunAddVisualization},
+        { "addDebug",           amunAddDebug},
+        { "addPlot",            amunAddPlot},
+        { "getPerformanceMode", amunGetPerformanceMode},
+        { "setCommand",         amunSetCommand},
+        { "getCurrentTime",     amunGetCurrentTime}};
 
+    Local<Object> amunObject = Object::New(isolate);
+    Local<String> amunStr = String::NewFromUtf8(isolate, "amun", NewStringType::kNormal).ToLocalChecked();
     for (auto callback : callbacks) {
         Local<String> name = String::NewFromUtf8(isolate, callback.name, NewStringType::kNormal).ToLocalChecked();
-        global->Set(name, FunctionTemplate::New(isolate, callback.function, External::New(isolate, t)));
+        auto functionTemplate = FunctionTemplate::New(isolate, callback.function, External::New(isolate, t));
+        amunObject->Set(name, functionTemplate->GetFunction(isolate->GetCurrentContext()).ToLocalChecked());
     }
+    global->Set(amunStr, amunObject);
 }
