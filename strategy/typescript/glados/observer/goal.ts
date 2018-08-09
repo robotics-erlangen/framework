@@ -374,10 +374,12 @@ function Goal.predictShot(allShots)
 				pos = passReceiver.catchPos
 				local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(pos))
 				-- assume that the opponent will try to stop for the volley and brake from now
+				-- TODO: Don't use 4 m/s*s as constant, at least not hidden like this
 				local oppBrakeSpeed = math.max(0, passReceiver.robot.speed:length() - 4 * ballRollTime)
 				local minRobotSpeed = passReceiver.robot.speed:copy():setLength(oppBrakeSpeed)
 				local relativeSpeed = Physics.ballAtTime(World.Ball, ballRollTime).speed - minRobotSpeed
-				local ballAngle = World.Ball.speed:angle()
+				-- TODO: Hysteresis
+				local ballAngle = relativeSpeed:length() > 0.5 and relativeSpeed:angle() or World.Ball.speed:angle()
 				local robotAngle = passReceiver.robot.dir
 				local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeed:length(), robotAngle,
 					ballAngle, "opp")
