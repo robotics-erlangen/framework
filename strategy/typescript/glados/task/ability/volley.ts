@@ -59,8 +59,52 @@ function Volley:init()
 end
 
 
+//- calculates vOut from known (team coordinates) v_out_length, orientation, future ball and future robot speed vector
+// @param v_out_length number - how fast the ball will be after the shot in team coordinates
+// @param ballSpeed Vector - how fast the ball will be when hitting the robot (futureBall.speed)
+// @param phi number - orientation of the robot
+// @param robotSpeed Vector - velocity of the robot when hitting the ball
+// @param robotId variant<String, int> - the robot that is going to shoot or "opp" for opponent / unknown robots
+// @return x,y - the velocity of the shot ball is Vector(x,y) (in team coordinates)
+function Volley.calcVOutTeamCoordinates(v_out_length, ballSpeed, phi, robotSpeed, robotId)
+	local relativeSpeed = ballSpeed - robotSpeed
+	local v_refl_x, v_refl_y = Volley.calcVOutFromVS(0, relativeSpeed:length(), phi, relativeSpeed:angle(), robotId)
+	local sinp = math.sin(phi)
+	local cosp = math.cos(phi)
+	//calcVOut(x,v_in, phi, alpha) = cosp * x + v_refl_x, sinp * x + v_refl_y
+	//calcVOut returns velocity relative to robotSpeed, so to get the speed in team coordinates, one has to add robotSpeed
+	//so we want to find x, so that (Vector(cosp * x + v_refl_x, sinp * x + v_refl_y) + robotSpeed):length() = v_out_length
+	//first, simplify vector addition: Vector(cosp * x + v_refl_glob_x, sinp * x + v_refl_glob_y):length() = v_out_length
+	local v_refl_glob_x = v_refl_x + robotSpeed.x
+	local v_refl_glob_y = v_refl_y + robotSpeed.y
+	//wolphramalpha: sqrt((cos(p)*x+b)^2 + (sin(p)*x+d)^2)-v = 0 solve for x
+	//tells you x = (sqrt((2 b cos(p) + 2 d sin(p))^2 - 4 (b^2 + d^2 - v^2) (sin^2(p) + cos^2(p))) - 2 b cos(p) - 2 d sin(p))/(2 (sin^2(p) + cos^2(p)))
+	// using sin^2(p) + cos^2(p) = 1, that simplifies to
+	// x = (sqrt((2 b cos(p) + 2 d sin(p))^2 - 4 (b^2 + d^2 - v^2)) - 2 b cos(p) - 2 d sin(p))/2
+	local b = v_refl_glob_x
+	local d = v_refl_glob_y
+	local bcos = b * cosp
+	local dsin = d * sinp
+	local sqrt1 = 2 * bcos + 2 * dsin
+	sqrt1 = sqrt1 * sqrt1
+	local sqrt2 = -4 * (b * b + d * d - v_out_length * v_out_length)
+	local v_s = 0.5 * (math.sqrt(sqrt1 + sqrt2) - 2 * bcos - 2 * dsin)
+	local x_res = cosp * v_s + v_refl_glob_x
+	local y_res = sinp * v_s + v_refl_glob_y
+	if assert then
+		local x,y = Volley.calcVOutFromVS(v_s, relativeSpeed:length(), phi, relativeSpeed:angle(), robotId)
+		x = x + robotSpeed.x
+		y = y + robotSpeed.y
+		assert(math.abs(math.sqrt(x*x+y*y) - v_out_length) < 1e-5)
+		assert(math.abs(x - x_res) < 1e-5)
+		assert(math.abs(y - y_res) < 1e-5)
+	end
+	return x_res, y_res
+end
+
+
 //- calculates vOut from known v_out_length, orientation and future ball.
-// @param v_out_length number - how fast the ball will be after the shot
+// @param v_out_length number - how fast the ball will be after the shot (relative to the robot)
 // @param v_in number - how fast the ball approaches the robot (futureBall.relativeSpeed:length())
 // @param phi number - orientation of the robot
 // @param alpha number - angle of relative ball speed (futureBall.relativeSpeed:angle())

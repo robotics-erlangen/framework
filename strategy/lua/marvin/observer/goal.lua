@@ -221,13 +221,13 @@ local function getInvisibleBallPrediction()
 				-- it has to roughly point at the goal
 				local robotDir = Vector.fromAngle(robot.dir)
 				-- as the robot might be dribbling the ball, use volley prediction
-				-- TODO: this volley prediction does not properly use the current robot speed
-				-- FIXME: the comment above is misleading: We use the current robot speed correctly.
-				-- However, the volley modell is only in relative coordinates to the robot, and therefore ignoring the friction
-				-- of the carpet.
-				-- "0" as param for v_in is choosen, because that is the best estimate for the relative speed if there is no visible ball
-				local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, 0, robot.dir, robot.speed:angle(), "opp")
-				local ballSpeed = Vector(dirx, diry) + robot.speed
+				-- TODO: check if that is really a good idea! When using a relative speed of 0, volley calculations are useless.
+				-- This can be different in the future.
+				-- FIXME: volley for moving robots does not consider the friction of the carpet, because it is calculating everything
+				-- in robot coordinates
+				-- robot.speed as param for ballspeed is choosen, because that is the best estimate if there is no visible ball
+				local dirx, diry = Volley.calcVOutTeamCoordinates(Constants.maxBallSpeed, robot.speed, robot.dir, robot.speed, "opp")
+				local ballSpeed = Vector(dirx, diry)
 				local dribblerPos = robot.pos + robotDir:copy():setLength(robot.shootRadius)
 				local intersection = geom.intersectLineLine(G.FriendlyGoal, Vector(1, 0),
 					dribblerPos, ballSpeed)
@@ -283,9 +283,8 @@ function Goal.predictShot(allShots)
 		isShot = true
 		isDribbling = true
 		--NOTE: use World.Ball instead of futureBall is fine, as the shot is assumed to be imminent.
-		local relativeSpeedLength = World.Ball.speed - oppBallDribbler.speed
-		local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeedLength:length(), oppBallDribbler.dir, relativeSpeedLength:angle(), "opp")
-		ballSpeed = (Vector(dirx, diry) + oppBallDribbler.speed):normalize()
+		local dirx, diry = Volley.calcVOutTeamCoordinates(Constants.maxBallSpeed, World.Ball.speed, oppBallDribbler.dir, oppBallDribbler.speed, "opp")
+		ballSpeed = Vector(dirx, diry):normalize()
 		if not allShots then
 			vis.addCircle("o/goal: predictShot: dribbling robot", oppBallDribbler.pos, oppBallDribbler.radius, vis.colors.blue, false)
 			vis.addPath("o/goal: predictShot: dribbling robot", {oppBallDribbler.pos, oppBallDribbler.pos + ballSpeed * 10}, vis.colors.blue)
@@ -377,12 +376,11 @@ function Goal.predictShot(allShots)
 				-- TODO: Don't use 4 m/s*s as constant, at least not hidden like this
 				local oppBrakeSpeed = math.max(0, passReceiver.robot.speed:length() - 4 * ballRollTime)
 				local minRobotSpeed = passReceiver.robot.speed:copy():setLength(oppBrakeSpeed)
-				local relativeSpeed = Physics.ballAtTime(World.Ball, ballRollTime).speed - minRobotSpeed
-				-- TODO: Hysteresis
-				local ballAngle = relativeSpeed:length() > 0.5 and relativeSpeed:angle() or World.Ball.speed:angle()
+				local futureBallSpeed = Physics.ballAtTime(World.Ball, ballRollTime).speed
+				-- TODO: Check what happens if futureBallSpeed:length() is zero
 				local robotAngle = passReceiver.robot.dir
-				local dirx, diry = Volley.calcVOutFromVOutAbs(Constants.maxBallSpeed, relativeSpeed:length(), robotAngle,
-					ballAngle, "opp")
+				local dirx, diry = Volley.calcVOutTeamCoordinates(Constants.maxBallSpeed, futureBallSpeed, robotAngle,
+					minRobotSpeed, "opp")
 				ballSpeed = Vector(dirx, diry):normalize()
 				if not allShots then
 					vis.addPath("o/goal: predictShot: receives pass", {passReceiver.robot.pos, pos}, vis.colors.pink)
