@@ -17,7 +17,7 @@ local MEASURE_TIMING = false
 local MAX_RATING_TIME_BOOST = 0.1
 
 
-// static method for pool
+-- static method for pool
 function Base.takeRobot(_robots)
 	error("stub")
 end
@@ -25,7 +25,7 @@ end
 function Base:init(robot, messaging)
 	self._robot = robot
 	self._send, self._inbox = messaging:registerAgent(self)
-	// behaviors are ordered by decreasing priority
+	-- behaviors are ordered by decreasing priority
 	self._behaviors = {
 		MoveCommand(self),
 		Halt(self),
@@ -53,7 +53,7 @@ function Base:run()
 	self:_applyForMainAttacker(task)
 	self:_run()
 
-	debug.pop() // Agent
+	debug.pop() -- Agent
 end
 
 function Base:_runBehavior()
@@ -61,7 +61,7 @@ function Base:_runBehavior()
 		timing.start("Behavior check", self._robot.id)
 	end
 
-	// choose best behavior, that is the behavior with the highest priority of all useable ones
+	-- choose best behavior, that is the behavior with the highest priority of all useable ones
 	local bestBehavior = nil
 	for _, behavior in ipairs(self._behaviors) do
 		behavior:clearMainAttackerParameters()
@@ -71,7 +71,7 @@ function Base:_runBehavior()
 			break
 		end
 	end
-	// check if the behavior has changed
+	-- check if the behavior has changed
 	if bestBehavior ~= self._activeBehavior then
 		if self._activeBehavior then
 			self._activeBehavior:stop()
@@ -87,7 +87,7 @@ function Base:_runBehavior()
 		timing.start("Behavior run", self._robot.id)
 	end
 
-	// run behavior
+	-- run behavior
 	if self._activeBehavior then
 		debug.set("Behavior", Class.name(self._activeBehavior, true))
 		self._activeBehavior:run()
@@ -116,9 +116,9 @@ function Base:_dumpInbox()
 				debug.set(sender.id or sender, msg)
 			end
 		end
-		debug.pop() // name
+		debug.pop() -- name
 	end
-	debug.pop() // Inbox
+	debug.pop() -- Inbox
 end
 
 function Base:_runTask(task)
@@ -134,7 +134,7 @@ function Base:_runTask(task)
 	else
 		debug.set(nil, "none")
 	end
-	debug.pop() // Task
+	debug.pop() -- Task
 
 	if MEASURE_TIMING then
 		timing.finish("Task", self._robot.id)
@@ -143,7 +143,7 @@ end
 
 function Base:_applyForMainAttacker(task)
 	debug.push("mainAttackerRating")
-	// the keeper just overrides this
+	-- the keeper just overrides this
 	local parameters = nil
 	for _, behavior in ipairs(self._behaviors) do
 		parameters = behavior:mainAttackerParameters() or parameters
@@ -153,7 +153,7 @@ function Base:_applyForMainAttacker(task)
 	end
 	local overrideRating = parameters and parameters[3]
 	if parameters and task and not overrideRating then
-		// only use task parameters if behavior asked for main attacker application
+		-- only use task parameters if behavior asked for main attacker application
 		parameters = task:mainAttackerParameters() or parameters
 	end
 	if not parameters then
@@ -164,7 +164,7 @@ function Base:_applyForMainAttacker(task)
 	end
 
 	if self._robot ~= World.FriendlyKeeper and World.RefereeState ~= "BallPlacementOffensive" then
-		// only the keeper can apply for MA if it could touch the ball inside the defense area
+		-- only the keeper can apply for MA if it could touch the ball inside the defense area
 		if Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius + World.Ball.radius + 0.02)
 			and World.Ball.pos.y < self._robot.pos.y + self._robot.radius * 3 then
 			debug.set("return case 2", true)
@@ -172,7 +172,7 @@ function Base:_applyForMainAttacker(task)
 			return
 		end
 
-		// only the keeper can apply for MA if the ball is behind the centerbacks
+		-- only the keeper can apply for MA if the ball is behind the centerbacks
 		if Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius + UtilDefense.centerBackDistanceToDefenseArea()) then
 			debug.set("return case 3", true)
 			debug.pop()
@@ -192,7 +192,7 @@ function Base:_applyForMainAttacker(task)
 			timeToBall = Robot.minTimeToBall(self._robot)
 		end
 
-		// if we have the ball, the time is 0
+		-- if we have the ball, the time is 0
 		if timeToBall == math.huge then
 			local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir) * self._robot.shootRadius
 			if World.Ball.pos:distanceTo(dribblerPos) < 0.15 then
@@ -212,11 +212,11 @@ function Base:_applyForMainAttacker(task)
 		local ballSpeedLength = World.Ball.speed:length()
 		local ratingBoost
 		if Ball.isSlowBall() then
-			// slow ball: being behind the ball is better
+			-- slow ball: being behind the ball is better
 			local relativeYPos = World.Ball.pos.y - self._robot.pos.y
 			ratingBoost = math.min(timeToBall / 2, math.sin(math.bound(0, relativeYPos * math.pi, math.pi / 2)) * MAX_RATING_TIME_BOOST)
 		else
-			// fast ball: being in the direction of the ball is better
+			-- fast ball: being in the direction of the ball is better
 			local ballToRobot = self._robot.pos - World.Ball.pos
 			local ballToRobotLength = ballToRobot:length()
 			local cosAngle = World.Ball.speed:dot(ballToRobot) / ballToRobotLength / ballSpeedLength
@@ -231,21 +231,21 @@ function Base:_applyForMainAttacker(task)
 	else
 		mainAttackerRating = overrideRating
 	end
-	// debug.push("Locals dump")
-	// //debugger.dumpLocals(0)
-	// debug.pop()
+	-- debug.push("Locals dump")
+	-- --debugger.dumpLocals(0)
+	-- debug.pop()
 	debug.set("mainAttackerRating", mainAttackerRating)
 	debug.pop()
 	self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
 end
 
-// controls whether the robot may be kept in its pool
+-- controls whether the robot may be kept in its pool
 function Base:keepRobot()
 	error("stub")
 end
 
-// rate robot for deciding which robots to keep in the pool
-// the robots with the lowest rating are removed until the robot limit is satisfied
+-- rate robot for deciding which robots to keep in the pool
+-- the robots with the lowest rating are removed until the robot limit is satisfied
 function Base:rateRobot()
 	error("stub")
 end

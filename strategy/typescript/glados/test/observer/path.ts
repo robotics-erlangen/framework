@@ -6,14 +6,14 @@ local vis = require "../base/vis"
 local World = require "../base/world"
 
 
-//declare start, end and obstacles here
+--declare start, end and obstacles here
 local pointStart = Coordinates.toGlobal(Vector.create(0, -0.35))
 local pointEnd = Coordinates.toGlobal(Vector.create(0, 1))
 local obstacles = {}
-// table.insert(obstacles, {type='Line',
-	// posStart=Vector.create(-0.5,0.1), posEnd=Vector.create(1,0.1), radius=0.02})
-// table.insert(obstacles, {type='Line',
-	// posStart=Vector.create(-0.5,-0.5), posEnd=Vector.create(0.5,-0.5), radius=0.02})
+-- table.insert(obstacles, {type='Line',
+	-- posStart=Vector.create(-0.5,0.1), posEnd=Vector.create(1,0.1), radius=0.02})
+-- table.insert(obstacles, {type='Line',
+	-- posStart=Vector.create(-0.5,-0.5), posEnd=Vector.create(0.5,-0.5), radius=0.02})
 table.insert(obstacles, {type='Triangle',
 	p1=Vector(0.4,0), p2=Vector(-1,0.3), p3=Vector(-1,-0.3), lineWidth=0.3})
 

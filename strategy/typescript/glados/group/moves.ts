@@ -10,7 +10,7 @@ function Moves:init()
 		require "group/move/mrltestcorner",
 		require "group/move/armada",
 		require "group/move/fastballplacement",
-		// require "group/move/overchip",
+		-- require "group/move/overchip",
 		require "group/move/windshieldwiper",
 		require "group/move/none"
 	}
@@ -29,12 +29,12 @@ function Moves:init()
 end
 
 local function validateAssignment(assignment)
-	// don't assing a task and a behavior
+	-- don't assing a task and a behavior
 	if assignment.behavior and assignment.class then
 		return false
 	end
 
-	//don't assing nothing
+	--don't assing nothing
 	if not assignment.behavior and not assignment.class then
 		return false
 	end
@@ -43,7 +43,7 @@ local function validateAssignment(assignment)
 end
 
 function Moves:run(sender, inbox, messages)
-	// check if all participating robots are still available
+	-- check if all participating robots are still available
 	if self._currentMove then
 		for _,r in ipairs(self._participatingRobots) do
 			if not messages[r] then
@@ -54,7 +54,7 @@ function Moves:run(sender, inbox, messages)
 		end
 	end
 
-	// check if current move can be continued
+	-- check if current move can be continued
 	if self._currentMove and not self._currentMove:_canContinue() then
 		self._currentMove = nil
 		self._chosenMove = nil
@@ -62,7 +62,7 @@ function Moves:run(sender, inbox, messages)
 	end
 
 	local n_attackers
-	// choose a new move
+	-- choose a new move
 	if not self._chosenMove then
 		local candidates = {}
 		local numCandidateRobots = 0
@@ -103,11 +103,11 @@ function Moves:run(sender, inbox, messages)
 	end
 
 
-	// reset participating robots
+	-- reset participating robots
 	local prevParticipatingRobots = self._participatingRobots
 	self._participatingRobots = {}
 
-	// run
+	-- run
 	if self._currentMove then
 		debug.push("Move")
 		local taskAssignments, mainAttacker = self._currentMove:updateTasks()

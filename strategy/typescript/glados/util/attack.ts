@@ -15,25 +15,25 @@ local Rating = require "util/rating"
 
 local G = World.Geometry
 
-//- evaluates a given pass object
-// @name ratePass
-// @param robot Robot - the pass sender / main attacker
-// @param pass table - a pass object (target: Robot, ballPos: Vector, time: number)
-// @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
-// @return number - a rating between 0 and 1 (1 = perfect, 0 = poor)
+--- evaluates a given pass object
+-- @name ratePass
+-- @param robot Robot - the pass sender / main attacker
+-- @param pass table - a pass object (target: Robot, ballPos: Vector, time: number)
+-- @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
+-- @return number - a rating between 0 and 1 (1 = perfect, 0 = poor)
 function Attack.ratePass(robot, pass, considerTiming)
 	local rating = 1
 
-	// if the robot is controlled manually
+	-- if the robot is controlled manually
 	if pass.manual then
 		return 2
 	end
 
-	// rate distance
+	-- rate distance
 	local distanceToMA = robot.pos:distanceTo(pass.ballPos)
 	rating = rating * (Rating.valueToRating(distanceToMA, 1.5, 2.5) - Rating.valueToRating(distanceToMA, 4, 8))
 
-	// rate timing
+	-- rate timing
 	local shootTime
 	if Ball.receivesPass(robot) then
 		local dribblerPos = robot.pos + (World.Ball.pos - robot.pos):setLength(
@@ -49,7 +49,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 		rating = rating * (0.1 + Rating.valueToRating(ballArrivalTime - pass.time, -0.1, 0.1) * 0.9)
 	end
 
-	// rate volley
+	-- rate volley
 	if Ball.receivesPass(robot) then
 		local volleyAngle = World.Ball.speed:absoluteAngleDiff(shootPos - pass.ballPos)
 		local volleyWeight = 0.3
@@ -57,28 +57,28 @@ function Attack.ratePass(robot, pass, considerTiming)
 		rating = rating * (1 - volleyWeight + volleyWeight * volleyRating)
 	end
 
-	// rate angle shooter-goal-receiver
+	-- rate angle shooter-goal-receiver
 	local shooterGoalReceiverAngle = (shootPos - G.OpponentGoal):absoluteAngleDiff(
 			pass.ballPos - G.OpponentGoal)
 	local shooterGoalReceiverRating = Rating.valueToRating(shooterGoalReceiverAngle, 0, 180 / 180 * math.pi)
 	local shooterGoalReceiverWeight = 0.5
 	rating = rating * (1 - shooterGoalReceiverWeight + shooterGoalReceiverWeight * shooterGoalReceiverRating)
 
-	// rate passes going through or near our own defense area lower
-	// this is to lower the chance of a centerback being in the way of a kick,
-	// since they won't dodge the pass
+	-- rate passes going through or near our own defense area lower
+	-- this is to lower the chance of a centerback being in the way of a kick,
+	-- since they won't dodge the pass
 	local CROSSING_DEFENSE_AREA_FACTOR = 0.6
 	local defenseAreaDistance = Defense.centerBackDistanceToDefenseArea() + robot.radius + World.Ball.radius + 0.02
 	local intersect = Field.intersectRayDefenseArea(shootPos, pass.ballPos - shootPos, defenseAreaDistance, true)
-	// if there is an intersection in the line segment shootPos <-> pass.ballPos
+	-- if there is an intersection in the line segment shootPos <-> pass.ballPos
 	if intersect and shootPos:distanceToSq(intersect) < shootPos:distanceToSq(pass.ballPos) then
 		rating = rating * CROSSING_DEFENSE_AREA_FACTOR
 	end
 
-	// rate possible interceptions
+	-- rate possible interceptions
 	for _,opp in ipairs(World.OpponentRobots) do
 
-		// check if robot would have to move through defense area to intercept the pass
+		-- check if robot would have to move through defense area to intercept the pass
 		local orthogonalProjection = opp.pos:orthogonalProjection(shootPos, pass.ballPos)
 		local intersection = Field.intersectRayDefenseArea(opp.pos, orthogonalProjection - opp.pos, 0, false)
 		local validIntersection = false
@@ -90,7 +90,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 			end
 		end
 
-		// rate opponent's ability to intercept the pass
+		-- rate opponent's ability to intercept the pass
 		if not validIntersection and orthogonalProjection:distanceToLineSegment(shootPos, pass.ballPos) < 1
 					and opp ~= World.OpponentKeeper then
 			local passInterception = orthogonalProjection:distanceToLineSegment(shootPos, pass.ballPos) > 0.5
@@ -99,13 +99,13 @@ function Attack.ratePass(robot, pass, considerTiming)
 				vis.addPath("u/a/ratePass", {opp.pos, passInterception}, vis.colors.blue, true)
 			end
 
-			// calculate the time the ball needs to arrive at the intersection point
-			local shootSpeed = Vector(1,1):setLength(robot:calculateShootSpeed(3, shootPos:distanceTo(pass.ballPos))) // direction doesn't actually matter
+			-- calculate the time the ball needs to arrive at the intersection point
+			local shootSpeed = Vector(1,1):setLength(robot:calculateShootSpeed(3, shootPos:distanceTo(pass.ballPos))) -- direction doesn't actually matter
 			local fakeBall = {speed = shootSpeed, maxSpeed = shootSpeed:length()}
 			local ballRollTime = Physics.ballRollTime(fakeBall, passInterception:distanceTo(shootPos) - World.Ball.radius - opp.shootRadius)
 
-			// calculate the time the robot needs to arrive at the intersection point
-			// to achieve more relevant results, the speed component parallel to the pass trajectory is ignored
+			-- calculate the time the robot needs to arrive at the intersection point
+			-- to achieve more relevant results, the speed component parallel to the pass trajectory is ignored
 			local projectedSpeed = opp.speed - ((opp.pos + opp.speed):orthogonalProjection(shootPos, pass.ballPos) - orthogonalProjection)
 			if not amun.isPerformanceMode then
 				vis.addPath("u/a/ratePass", {opp.pos, opp.pos + projectedSpeed}, vis.colors.pink, true)
@@ -120,7 +120,7 @@ function Attack.ratePass(robot, pass, considerTiming)
 			end
 
 			local passRating = Rating.valueToRating(timeToPos, ballRollTime - 1, ballRollTime + 0.5)
-			// uncomment to debug: log("Rating: "..tostring(opp)..", ballRollTime: "..tostring(ballRollTime)..", timeToPos: "..tostring(timeToPos)..", passRating: "..tostring(passRating))
+			-- uncomment to debug: log("Rating: "..tostring(opp)..", ballRollTime: "..tostring(ballRollTime)..", timeToPos: "..tostring(timeToPos)..", passRating: "..tostring(passRating))
 			rating = rating * (passRating / 2 + 0.5)
 
 		end
@@ -142,21 +142,21 @@ function Attack.ratePass(robot, pass, considerTiming)
 end
 Attack.ratePass = Cache.forFrame(Attack.ratePass)
 
-//- chooses a pass from a list of pass objects using Attack.ratePass
-// @name choosePass
-// @param robot Robot - the pass sender / main attacker
-// @param passes table - a list of pass objects
-// @param currentPassPos - the ballPos of the last frame, used for stability
-// @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
-// @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
-// @return table - the best pass object
+--- chooses a pass from a list of pass objects using Attack.ratePass
+-- @name choosePass
+-- @param robot Robot - the pass sender / main attacker
+-- @param passes table - a list of pass objects
+-- @param currentPassPos - the ballPos of the last frame, used for stability
+-- @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
+-- @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
+-- @return table - the best pass object
 function Attack.choosePass(robot, passes, currentPassPos, considerTiming, customHysteresis)
 	local bestPass
 	local bestPassRating = -math.huge
 	for _,pass in ipairs(passes) do
 		local rating = Attack.ratePass(robot, pass, considerTiming)
 		if rating > 0 then
-			// give a bonus if the pos is near the currentPassPos
+			-- give a bonus if the pos is near the currentPassPos
 			if currentPassPos then
 				local ratingHystDistance = customHysteresis or 0.1
 				local ratingHystPercentage = customHysteresis or 0.1
@@ -174,14 +174,14 @@ function Attack.choosePass(robot, passes, currentPassPos, considerTiming, custom
 	return bestPass, bestPassRating
 end
 
-//- chooses a pass from a list of pass suggestions using Attack.ratePass
-// @name choosePassFromSuggestions
-// @param robot Robot - the pass sender / main attacker
-// @param passSuggestions table - all incoming passSuggestion messages
-// @param currentPassPos - the ballPos of the last frame, used for stability
-// @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
-// @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
-// @return table - the best pass object
+--- chooses a pass from a list of pass suggestions using Attack.ratePass
+-- @name choosePassFromSuggestions
+-- @param robot Robot - the pass sender / main attacker
+-- @param passSuggestions table - all incoming passSuggestion messages
+-- @param currentPassPos - the ballPos of the last frame, used for stability
+-- @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
+-- @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
+-- @return table - the best pass object
 function Attack.choosePassFromSuggestions(robot, passSuggestions, currentPassPos, considerTiming, customHysteresis)
 	local passes = {}
 	for sender, sugg in pairs(passSuggestions) do
@@ -198,22 +198,22 @@ local function sortByRating(a, b)
 	return a.rating > b.rating
 end
 
-//- sorts the passes by their rating
-// @name sortPassesFromSuggestions
-// @param robot Robot - the pass sender / main attacker
-// @param passSuggestions table - all incoming passSuggestion messages
-// @param currentPassPositions table - the ballPositions of the last frame, used for stability
-// @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
-// @param threshold - number between 0 and 1, ratings lower than the threshold won't be included (unless we would have none otherwise)
-// @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
-// @return table - list of passes, sorted by their rating
+--- sorts the passes by their rating
+-- @name sortPassesFromSuggestions
+-- @param robot Robot - the pass sender / main attacker
+-- @param passSuggestions table - all incoming passSuggestion messages
+-- @param currentPassPositions table - the ballPositions of the last frame, used for stability
+-- @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
+-- @param threshold - number between 0 and 1, ratings lower than the threshold won't be included (unless we would have none otherwise)
+-- @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
+-- @return table - list of passes, sorted by their rating
 function Attack.sortPassesFromSuggestions(robot, passSuggestions, currentPassPositions, considerTiming, threshold, customHysteresis)
 	local passes = {}
 	threshold = threshold or 0.5
 	for sender, sugg in pairs(passSuggestions) do
 		local pass = {target = sender, ballPos = sugg.ballPos, time = sugg.time}
 		local rating = Attack.ratePass(robot, pass, considerTiming)
-		// give a bonus if the pos is near the currentPassPos
+		-- give a bonus if the pos is near the currentPassPos
 		if currentPassPositions then
 			local ratingHystDistance = customHysteresis or 0.1
 			local ratingHystPercentage = customHysteresis or 0.1
@@ -245,20 +245,20 @@ function Attack.sortPassesFromSuggestions(robot, passSuggestions, currentPassPos
 	return next(passes) and passes or nil
 end
 
-//- draws a broad line beween the main attacker (robotPos) and the next attack destination (shootDest)
-// @name visualizeAttack
-// @param robotPos Vector - the position of the main attacker
-// @param shootDest Vector - the position of the next shoot destination
+--- draws a broad line beween the main attacker (robotPos) and the next attack destination (shootDest)
+-- @name visualizeAttack
+-- @param robotPos Vector - the position of the main attacker
+-- @param shootDest Vector - the position of the next shoot destination
 function Attack.visualizeAttack(robotPos, shootDest)
 	local color = World.TeamIsBlue and vis.fromRGBA(38, 48, 217, 63) or vis.fromRGBA(244, 214, 31, 63)
 	vis.addPath("u/a/Attack", {robotPos, shootDest}, color, nil, nil, 0.1)
 end
 
-//- decides whether a robot has to be a main attacker because it will receive a pass
-// used in a/a/applyformainattacker
-// @param passInfoSender Robot - the sender of the passInfo message
-// @param passInfoMessage table - passInfo, for format details see messaging.lua
-// @return Robot - the main attacker that receives a pass, or nil
+--- decides whether a robot has to be a main attacker because it will receive a pass
+-- used in a/a/applyformainattacker
+-- @param passInfoSender Robot - the sender of the passInfo message
+-- @param passInfoMessage table - passInfo, for format details see messaging.lua
+-- @return Robot - the main attacker that receives a pass, or nil
 local lastCPMA = nil
 local lastPasser = nil
 local lastReceiver = nil
@@ -305,19 +305,19 @@ function Attack.currentPlannedMainAttacker(passInfoSender, passInfoTable)
 end
 Attack.currentPlannedMainAttacker = Cache.forFrame(Attack.currentPlannedMainAttacker)
 
-//- checks whether we are shooting a goal and returns a position for a path obstacle, or nil
-// @param shootDest Vector - the content of the shootDestination message
-// @param attackPos Vector - the content of the attackPosition message
-// @return Vector - robots should not move between the returned position and the opponent goal
+--- checks whether we are shooting a goal and returns a position for a path obstacle, or nil
+-- @param shootDest Vector - the content of the shootDestination message
+-- @param attackPos Vector - the content of the attackPosition message
+-- @return Vector - robots should not move between the returned position and the opponent goal
 function Attack.shootGoalViewPos(shootDest, attackPos)
-	// if we want to shoot a goal
+	-- if we want to shoot a goal
 	if shootDest then
 		if G.OpponentGoal:distanceToSq(shootDest) <= G.GoalWidth * G.GoalWidth / 4 then
 			return attackPos
 		end
 	end
 
-	// if the ball is rolling towards the opponent goal
+	-- if the ball is rolling towards the opponent goal
 	if World.Ball.speed:length() > 3 then
 		local intersection, l1, l2 = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, G.OpponentGoal, Vector(1, 0))
 		if intersection and math.abs(l2) < G.GoalWidth / 2 + 0.2 and l1 > 0 then
@@ -356,7 +356,7 @@ local function printPassInfo(robot, passInfo, hysteresis, hysteresisPassInfo)
 	end
 end
 
-// the time between the arrival of the robot and the ball
+-- the time between the arrival of the robot and the ball
 local function calculatePassInfoTiming(robot, passInfo, passIncoming)
 	if passInfo then
 		local robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos):setLength(robot.shootRadius + World.Ball.radius)
@@ -370,11 +370,11 @@ local function calculatePassInfoTiming(robot, passInfo, passIncoming)
 	return math.huge
 end
 
-//checks if an attacker has to start to move towards its pass
-//@param robot Robot
-//@param passInfoTable table - all of the passInfos currently being sent out
-//@param lastResult bool - the return value of the last call to this function, or false
-//@return bool - if we have to start to move
+--checks if an attacker has to start to move towards its pass
+--@param robot Robot
+--@param passInfoTable table - all of the passInfos currently being sent out
+--@param lastResult bool - the return value of the last call to this function, or false
+--@return bool - if we have to start to move
 local function checkPassInfos(robot, passInfoTable, lastResult, lastPassInfo, passIncoming)
 	local relevantPassInfoMessage = Attack.relevantPassInfoMessage(robot, passInfoTable)
 	printPassInfo(robot, relevantPassInfoMessage, lastResult, lastPassInfo)
@@ -397,12 +397,12 @@ function Attack.checkPassInfos(robot, passInfoTable, passIncoming)
 	return result
 end
 
-//checks if an attacker has to start to move towards its pass
-//@param robot Robot - to copy its specs
-//@param passInfo Message - the passInfo-Message
-//@param position Vector - an alternative starting position for the timing calculations
-//@param speed Vector - an alternative starting speed for timing, or Vector(0,0)
-//@return bool - if we have to start to move
+--checks if an attacker has to start to move towards its pass
+--@param robot Robot - to copy its specs
+--@param passInfo Message - the passInfo-Message
+--@param position Vector - an alternative starting position for the timing calculations
+--@param speed Vector - an alternative starting speed for timing, or Vector(0,0)
+--@return bool - if we have to start to move
 function Attack.checkPassInfoFromPosition(robot, passInfo, position, speed, passIncoming)
 	if position then
 		speed = speed or Vector(0,0)
@@ -419,10 +419,10 @@ function Attack.checkPassInfoFromPosition(robot, passInfo, position, speed, pass
 	return false
 end
 
-// returns the passInfo that targets the robot
-// @param robot Robot
-// @param passInfoTable table - all of the passInfos currently being sent out
-// @return Message relevantPassInfoMessage (the passInfo message that targets the robot), nil if there isn't one
+-- returns the passInfo that targets the robot
+-- @param robot Robot
+-- @param passInfoTable table - all of the passInfos currently being sent out
+-- @return Message relevantPassInfoMessage (the passInfo message that targets the robot), nil if there isn't one
 function Attack.relevantPassInfoMessage(robot, passInfoTable)
 	local relevantPassInfoMessage = nil
 	if passInfoTable then
@@ -452,10 +452,10 @@ function Attack.isPassAllowed(startPos, endPos)
 	return true
 end
 
-//-returns last incoming passInfo for each robot
-//@param robot Robot
-//@param passInfo Message - passInfo-Message
-//@return passInfo Message - last passInfo-Message
+---returns last incoming passInfo for each robot
+--@param robot Robot
+--@param passInfo Message - passInfo-Message
+--@return passInfo Message - last passInfo-Message
 local InvalidationCounter = {}
 local lastIncomingPassInfo = {}
 local lastIPIUpdateTime = {}
@@ -469,7 +469,7 @@ function Attack.lastIncomingPassInfo(robot, passInfo)
 	end
 	if passInfoTable then
 		for _, passInfoEntry in ipairs(passInfoTable) do
-//			TODO?: this code ignores annonymous passes
+--			TODO?: this code ignores annonymous passes
 			if passInfoEntry.target == robot then
 				incomingPassInfo = passInfoEntry
 			end

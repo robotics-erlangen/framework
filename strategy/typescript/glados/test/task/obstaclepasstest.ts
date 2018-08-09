@@ -86,10 +86,10 @@ local function run()
 		local trainer = Trainer()
 		local pools
 		if World.TeamIsBlue then
-			// these robots do the passing
+			-- these robots do the passing
 			pools = { pass = AgentPool(ObstaclePassAgent, 2) }
 		else
-			// just position the robots randomly
+			-- just position the robots randomly
 			pools = { pass = AgentPool(RandomPosAgent, 4) }
 		end
 		local poolGroups = { { pools.pass } }

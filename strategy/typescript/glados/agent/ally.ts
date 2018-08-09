@@ -19,22 +19,22 @@ end
 
 function Ally:init(robot, messaging)
 	Base.init(self, robot, messaging)
-	self._suggestPass = PassSuggestion._suggestPass // HACK
+	self._suggestPass = PassSuggestion._suggestPass -- HACK
 	self._noOppDisturbing = PassSuggestion._noOppDisturbing
 end
 
-// below this distance from dribbler to ball, an ally is considered mainAttacker
+-- below this distance from dribbler to ball, an ally is considered mainAttacker
 
-//
+--
 local MASTER = true
 local ALLY_MAINATTACKER_DIST = MASTER and 0 or 10
 local MIN_DIST_FOR_PASS_POS = 0.2
-local timeSentToPartnerTeam = 0 // messaging the allied team should only happen once per frame
+local timeSentToPartnerTeam = 0 -- messaging the allied team should only happen once per frame
 function Ally:_run()
 	self._send.allyFlag("all")
 
-	// send messages from own robots to partner team
-	// should only be done once and if there is at least one ally
+	-- send messages from own robots to partner team
+	-- should only be done once and if there is at least one ally
 	if timeSentToPartnerTeam ~= World.Time then
 		local mixedTeamMessage = {}
 		local allies = self._inbox.allyFlag()
@@ -97,7 +97,7 @@ function Ally:_run()
 		timeSentToPartnerTeam = World.Time
 	end
 
-	// send messages from partner team to own robots
+	-- send messages from partner team to own robots
 	local allyMessages = World.MixedTeam and World.MixedTeam[self._robot.id] or {}
 	for msgType, msg in pairs(allyMessages) do
 		if msgType == "role" then
@@ -136,7 +136,7 @@ function Ally:_run()
 		end
 	end
 
-	// mainAttacker application
+	-- mainAttacker application
 	local ballPos = World.Ball.pos
 	local dirVector = Vector.fromAngle(self._robot.dir)
 	local dribblerPos = self._robot.pos + dirVector*self._robot.shootRadius
@@ -144,7 +144,7 @@ function Ally:_run()
 	if ballDist < ALLY_MAINATTACKER_DIST and World.Ball.speed:length() < 1 then
 		for _, robot in ipairs(World.FriendlyRobots) do
 			if robot ~= self._robot and robot.pos:distanceTo(World.Ball.pos) < 0.15 then
-				return // no application if someone already has the ball
+				return -- no application if someone already has the ball
 			end
 		end
 		self._send.exclusiveRole("trainer", {mainAttacker = 2})
@@ -152,7 +152,7 @@ function Ally:_run()
 end
 
 local robotsDefinitelyInOurTeam = {
-	// in case of radio problems, list ids here in format id = true
+	-- in case of radio problems, list ids here in format id = true
 }
 
 function Ally.takeRobot(robots)

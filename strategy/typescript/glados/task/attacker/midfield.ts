@@ -9,7 +9,7 @@ local ToTarget = require "trajectory/totarget"
 function Midfield:_init()
 	self._passPos = nil
 
-	// ewwwww hack
+	-- ewwwww hack
 	self._frameCount = 0
 
 	local ignore = false
@@ -54,30 +54,30 @@ function Midfield:_samplePassPosition()
 	return bestPoint
 end
 
-// local disco = {
-// 	vis.colors.red,
-// 	vis.colors.blue,
-// 	vis.colors.green,
-// 	vis.colors.pink,
-// 	vis.colors.turquoise,
-// 	vis.colors.yellow,
-// 	vis.colors.skyBlue,
-// 	vis.colors.mediumPurple
-// }
+-- local disco = {
+-- 	vis.colors.red,
+-- 	vis.colors.blue,
+-- 	vis.colors.green,
+-- 	vis.colors.pink,
+-- 	vis.colors.turquoise,
+-- 	vis.colors.yellow,
+-- 	vis.colors.skyBlue,
+-- 	vis.colors.mediumPurple
+-- }
 
 function Midfield:run()
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 
 	self:precalculate()
 
-	// Hacky quickfix for messaging delay problems
+	-- Hacky quickfix for messaging delay problems
 	if (self._frameCount % 2) == 0 then
 		self._passPos = self:_samplePassPosition()
 	end
 	self._frameCount = self._frameCount + 1
 
-	// local random = math.round(math.random() * #disco)
-	// vis.addCircle("middy", self._robot.pos, 0.1, disco[random] or vis.colors.orange, true)
+	-- local random = math.round(math.random() * #disco)
+	-- vis.addCircle("middy", self._robot.pos, 0.1, disco[random] or vis.colors.orange, true)
 
 	local zone = self._inbox.midfieldZone().trainer
 	local defaultPos = zone.defaultPos

@@ -10,17 +10,17 @@ local Physics = require "observer/physics"
 local Robot = require "observer/robot"
 local ToTarget = require "trajectory/totarget"
 
-// mu_x and mu_y are the default values for muXByID and muYByID, that are choosen if no additional information is available
+-- mu_x and mu_y are the default values for muXByID and muYByID, that are choosen if no additional information is available
 local mu_x = 0.70
 local mu_y = 0.05
 
-//See eveything in robot coordinates,
-//vectical / y beeing the component towards the robot and horizontal / x beeing the other component.
-//muX describes the damping factor in x for sidewards reflection, as described in d/volley.txt ln. 30-32 & 38
-//muY describes the damping factor in y for horizontal reflection, as described in d/volley.txt ln. 30-32 & 39
-//
-//ById is used to use different parameters for different robots. The table has to be indexed by the robot id or the string "opp"
-//"opp" is used, when information about an opposing robot is needed, where no further damping values are known.
+--See eveything in robot coordinates,
+--vectical / y beeing the component towards the robot and horizontal / x beeing the other component.
+--muX describes the damping factor in x for sidewards reflection, as described in d/volley.txt ln. 30-32 & 38
+--muY describes the damping factor in y for horizontal reflection, as described in d/volley.txt ln. 30-32 & 39
+--
+--ById is used to use different parameters for different robots. The table has to be indexed by the robot id or the string "opp"
+--"opp" is used, when information about an opposing robot is needed, where no further damping values are known.
 local muXById = {[0] = mu_x, [1] = mu_x, [2] = 0.60, [3] = mu_x, [4] = mu_x, [5] = 0.60,
 				[6] = mu_x, [7] = 0.70, [8] = mu_x, [9] = mu_x, [10] = mu_x, [11] = 0.50,
 				[12] = mu_x, [13] = mu_x, [14] = mu_x, [15] = mu_x, opp = mu_x}
@@ -59,13 +59,13 @@ function Volley:init()
 end
 
 
-//- calculates vOut from known (team coordinates) v_out_length, orientation, future ball and future robot speed vector
-// @param v_out_length number - how fast the ball will be after the shot in team coordinates
-// @param ballSpeed Vector - how fast the ball will be when hitting the robot (futureBall.speed)
-// @param phi number - orientation of the robot
-// @param robotSpeed Vector - velocity of the robot when hitting the ball
-// @param robotId variant<String, int> - the robot that is going to shoot or "opp" for opponent / unknown robots
-// @return x,y - the velocity of the shot ball is Vector(x,y) (in team coordinates)
+--- calculates vOut from known (team coordinates) v_out_length, orientation, future ball and future robot speed vector
+-- @param v_out_length number - how fast the ball will be after the shot in team coordinates
+-- @param ballSpeed Vector - how fast the ball will be when hitting the robot (futureBall.speed)
+-- @param phi number - orientation of the robot
+-- @param robotSpeed Vector - velocity of the robot when hitting the ball
+-- @param robotId variant<String, int> - the robot that is going to shoot or "opp" for opponent / unknown robots
+-- @return x,y - the velocity of the shot ball is Vector(x,y) (in team coordinates)
 function Volley.calcVOutTeamCoordinates(v_out_length, ballSpeed, phi, robotSpeed, robotId)
 	local relativeSpeed = ballSpeed - robotSpeed
 	local v_refl_x, v_refl_y = Volley.calcVOutFromVS(0, relativeSpeed:length(), phi, relativeSpeed:angle(), robotId)
@@ -102,24 +102,23 @@ function Volley.calcVOutTeamCoordinates(v_out_length, ballSpeed, phi, robotSpeed
 	return x_res, y_res
 end
 
-
-//- calculates vOut from known v_out_length, orientation and future ball.
-// @param v_out_length number - how fast the ball will be after the shot (relative to the robot)
-// @param v_in number - how fast the ball approaches the robot (futureBall.relativeSpeed:length())
-// @param phi number - orientation of the robot
-// @param alpha number - angle of relative ball speed (futureBall.relativeSpeed:angle())
-// @param robotId variant<String, int> - the robot that is going to shoot or "opp" for opponent / unknown robots
-// @return x,y - the velocity of the shot ball relative to the robot's velocity is Vector(x,y)
+--- calculates vOut from known v_out_length, orientation and future ball.
+-- @param v_out_length number - how fast the ball will be after the shot
+-- @param v_in number - how fast the ball approaches the robot (futureBall.relativeSpeed:length())
+-- @param phi number - orientation of the robot
+-- @param alpha number - angle of relative ball speed (futureBall.relativeSpeed:angle())
+-- @param robotId variant<String, int> - the robot that is going to shoot or "opp" for opponent / unknown robots
+-- @return x,y - the velocity of the shot ball relative to the robot's velocity is Vector(x,y)
 function Volley.calcVOutFromVOutAbs(v_out_length, v_in, phi, alpha, robotId)
 	local v_refl_x, v_refl_y = Volley.calcVOutFromVS(0, v_in, phi, alpha, robotId)
 	local sinp = math.sin(phi)
 	local cosp = math.cos(phi)
-	//calcVOut(x,v_in,phi,alpha) = cosp * x + v_refl_x, sinp * x + v_refl_y
-	//we want to find x, so that Vector(cops * x + v_refl_x, sinp * x + v_refl_y):length() = v_out_length
-	//wolphramalpha: sqrt((cos(p)*x+b)^2 + (sin(p)*x+d)^2)-v = 0 solve for x
-	//tells you x = (sqrt((2 b cos(p) + 2 d sin(p))^2 - 4 (b^2 + d^2 - v^2) (sin^2(p) + cos^2(p))) - 2 b cos(p) - 2 d sin(p))/(2 (sin^2(p) + cos^2(p)))
-	// using sin^2(p) + cos^2(p) = 1, that simplifies to
-	// x = (sqrt((2 b cos(p) + 2 d sin(p))^2 - 4 (b^2 + d^2 - v^2)) - 2 b cos(p) - 2 d sin(p))/2
+	--calcVOut(x,v_in,phi,alpha) = cosp * x + v_refl_x, sinp * x + v_refl_y
+	--we want to find x, so that Vector(cops * x + v_refl_x, sinp * x + v_refl_y):length() = v_out_length
+	--wolphramalpha: sqrt((cos(p)*x+b)^2 + (sin(p)*x+d)^2)-v = 0 solve for x
+	--tells you x = (sqrt((2 b cos(p) + 2 d sin(p))^2 - 4 (b^2 + d^2 - v^2) (sin^2(p) + cos^2(p))) - 2 b cos(p) - 2 d sin(p))/(2 (sin^2(p) + cos^2(p)))
+	-- using sin^2(p) + cos^2(p) = 1, that simplifies to
+	-- x = (sqrt((2 b cos(p) + 2 d sin(p))^2 - 4 (b^2 + d^2 - v^2)) - 2 b cos(p) - 2 d sin(p))/2
 	local bcos = v_refl_x * cosp
 	local dsin = v_refl_y * sinp
 	local sqrt1 = 2*bcos + 2* dsin
@@ -129,15 +128,15 @@ function Volley.calcVOutFromVOutAbs(v_out_length, v_in, phi, alpha, robotId)
 	return Volley.calcVOutFromVS(v_s, v_in, phi, alpha, robotId)
 end
 
-// calculates vOut from known v_s, orientation and future ball.
-// @param v_s number - how fast would the ball be if shot while resting relative to the robot(shotBall.relativeSpeed:length())
-// @param v_in number - how fast the ball approches the robot (futureBall.relativeSpeed:length())
-// @param phi number - orientation of the robot
-// @param alpha number - angle of relative ball speed (futureBall.relativeSpeed:angle())
-// @param robotId variant<String, int> - the robot that is going to shoot or "opp" for opponent / unknown robots
-// @return x,y - the velocity of the shot ball relative to the robot's velocity is Vector(x,y)
-//
-// for extended documentation see doc/volley.txt
+-- calculates vOut from known v_s, orientation and future ball.
+-- @param v_s number - how fast would the ball be if shot while resting relative to the robot(shotBall.relativeSpeed:length())
+-- @param v_in number - how fast the ball approches the robot (futureBall.relativeSpeed:length())
+-- @param phi number - orientation of the robot
+-- @param alpha number - angle of relative ball speed (futureBall.relativeSpeed:angle())
+-- @param robotId variant<String, int> - the robot that is going to shoot or "opp" for opponent / unknown robots
+-- @return x,y - the velocity of the shot ball relative to the robot's velocity is Vector(x,y)
+--
+-- for extended documentation see doc/volley.txt
 function Volley.calcVOutFromVS(v_s, v_in, phi, alpha, robotId)
 	local sinp = math.sin(phi)
 	local cosp = math.cos(phi)
@@ -164,25 +163,25 @@ local function volley_Jf(v_s, phi, alpha, v_in, robotId)
 	return xdv_s, xdphi, ydv_s, ydphi
 end
 
-//Calculates robot orientation and v_s, given a futurBall and a target and targetSpeed
-//@param ballSpeed Vector - the ball's speed when it touches the dribbler (global speed)
-//@param viewPos Vector - the ball's position when it touches the dribbler
-//@param targetPos Vector - the desired position to shoot at
-//@param targetSpeed number - the desired speed for the ball when reaching targetPos
-//@return phi, v_s
-//@return phi number - the orientation of the robot to perform that shot
-//@return v_s number - see @calcVOutFromVS
+--Calculates robot orientation and v_s, given a futurBall and a target and targetSpeed
+--@param ballSpeed Vector - the ball's speed when it touches the dribbler (global speed)
+--@param viewPos Vector - the ball's position when it touches the dribbler
+--@param targetPos Vector - the desired position to shoot at
+--@param targetSpeed number - the desired speed for the ball when reaching targetPos
+--@return phi, v_s
+--@return phi number - the orientation of the robot to perform that shot
+--@return v_s number - see @calcVOutFromVS
 function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
-	// relative ball speed
-	ballSpeed = ballSpeed - self._robot.speed //FIXME: future robot speed not current robot speed
+	-- relative ball speed
+	ballSpeed = ballSpeed - self._robot.speed --FIXME: future robot speed not current robot speed
 	local v_in = ballSpeed:length()
 	local alpha = ballSpeed:angle()
 
-	// calculate required shoot speed
+	-- calculate required shoot speed
 	local dist = targetPos:distanceTo(viewPos)
 	local abs_v_out = self._robot:calculateShootSpeed(targetSpeed, dist)
-	if targetSpeed == math.huge then // FIXME: Robocup HACK. Necessary would be a detection that increases abs_v_out by a value, because we can rely on some reflection-speed. Only v_s is limited by self._robot.maxShotLinear.
-		abs_v_out = self._robot.maxShotLinear + mu_y * v_in // FIXME: This calculation is bullshit
+	if targetSpeed == math.huge then -- FIXME: Robocup HACK. Necessary would be a detection that increases abs_v_out by a value, because we can rely on some reflection-speed. Only v_s is limited by self._robot.maxShotLinear.
+		abs_v_out = self._robot.maxShotLinear + mu_y * v_in -- FIXME: This calculation is bullshit
 	end
 	abs_v_out = math.min(Constants.maxBallSpeed, abs_v_out)
 	if self._volleyObserver ~= nil then
@@ -191,13 +190,13 @@ function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 		self._volleyObserver(ballSpeed, viewPos, targetPos, expectedTargetSpeed)
 	end
 
-	// relative output speed
+	-- relative output speed
 	local v_out = (targetPos - viewPos):setLength(abs_v_out) - self._robot.speed
 
-	// guess initial values for v_s and phi
+	-- guess initial values for v_s and phi
 	local v_s = abs_v_out
 	local phi = (targetPos - viewPos):angle()
-	// caching
+	-- caching
 	local calcVOut = Volley.calcVOutFromVS
 	local robotId = self._robot.id
 	local visData = {}
@@ -217,13 +216,13 @@ function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 		v_s = v_s_new
 		phi = phi_new
 
-		// avoid negative shoot speed by inverting the angle
+		-- avoid negative shoot speed by inverting the angle
 		if v_s < 0 then
 			v_s = -v_s
 			phi = phi + math.pi
 		end
 
-		// clamp the angle (stitch is towards own goal)
+		-- clamp the angle (stitch is towards own goal)
 		if phi > 3/2*math.pi then
 			phi = phi - 2*math.pi
 		elseif phi < -1/2*math.pi then
@@ -232,7 +231,7 @@ function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 
 		table.insert(visData, phi)
 	end
-	// don't block the jit by calling c code
+	-- don't block the jit by calling c code
 	for _, visPhi in ipairs(visData) do
 		vis.addPath("t/a/volley: Iterations",
 				{self._robot.pos, self._robot.pos + Vector.fromAngle(visPhi):scaleLength(100)},
@@ -241,21 +240,21 @@ function Volley:calcPhi(ballSpeed, viewPos, targetPos, targetSpeed)
 
 	local baseAngle = (targetPos - viewPos):angle()
 	if math.abs(geom.getAngleDiff(baseAngle, phi)) > math.pi/2 then
-		// FIXME: correct fallback for wrong direction
-		// Angle differs more than 90 degrees from the base angle
-		// this is only possible if v_s was negative
+		-- FIXME: correct fallback for wrong direction
+		-- Angle differs more than 90 degrees from the base angle
+		-- this is only possible if v_s was negative
 		return geom.normalizeAngle(phi + math.pi), 0
 	end
 	return phi, v_s
 end
 
-//- performs a volley shot without actively catching the ball
-// @param viewPos Vector - the ball's position when it touches the dribbler
-// @param targetPos Vector - where to shoot at
-// @param targetSpeed number - how fast the Ball should arrive at targetPos
+--- performs a volley shot without actively catching the ball
+-- @param viewPos Vector - the ball's position when it touches the dribbler
+-- @param targetPos Vector - where to shoot at
+-- @param targetSpeed number - how fast the Ball should arrive at targetPos
 function Volley:_volley(viewPos, targetPos, targetSpeed)
 	self:setMainAttackerParameters(targetPos, self._robot.maxSpeed)
-	// init ball_in speed
+	-- init ball_in speed
 	if self._ballIncoming then
 		local ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos:distanceTo(viewPos))
 		local futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
@@ -264,12 +263,12 @@ function Volley:_volley(viewPos, targetPos, targetSpeed)
 
 	local phi, v_s = self:calcPhi(self._ball_in, viewPos, targetPos, targetSpeed)
 
-	// position the robot to receive the pass
+	-- position the robot to receive the pass
 	local robotPos = viewPos - Vector.fromAngle(phi):scaleLength(
 				World.Ball.radius + self._robot.shootRadius)
 	self._robot.trajectory:update(ToTarget, robotPos, phi, nil, nil)
 
-	// only shoot if the robot looks about in the right direction
+	-- only shoot if the robot looks about in the right direction
 	local angle_error = math.abs(geom.getAngleDiff(self._robot.dir, phi))
 	if angle_error < 4 / 180 * math.pi then
 		self._shooting = true

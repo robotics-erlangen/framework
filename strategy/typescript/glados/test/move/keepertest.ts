@@ -30,34 +30,34 @@ local HALLUCINATE_SIMULATOR = false
 local HALT = true
 
 
-// Instructions:
+-- Instructions:
 
-// Using a preexisting balldata file:
-// move a .balldata file you want to use to the folder "marvin/test/move/balldata"
-// .balldata files can be found on the NAS or recorded manually (more on that later)
-// change the FILENAME constant to the name of the .balldata file
-// On an actual field the robot will proceed to chase the imaginary ball
-// If you want to have to robot hallucinate even in the simulator, set the HALLUCINATE_SIMULATOR flag to true
+-- Using a preexisting balldata file:
+-- move a .balldata file you want to use to the folder "marvin/test/move/balldata"
+-- .balldata files can be found on the NAS or recorded manually (more on that later)
+-- change the FILENAME constant to the name of the .balldata file
+-- On an actual field the robot will proceed to chase the imaginary ball
+-- If you want to have to robot hallucinate even in the simulator, set the HALLUCINATE_SIMULATOR flag to true
 
-// Recording a balldata file:
-// Specify a filename in the FILENAME constant and set the RECORD flag to true
-// NOTE: If the name already exists it will be overwritten
-// The move will record as long as the strategy is running and the RECORD flag is true,
-// the test will run on repeat indefinitely
+-- Recording a balldata file:
+-- Specify a filename in the FILENAME constant and set the RECORD flag to true
+-- NOTE: If the name already exists it will be overwritten
+-- The move will record as long as the strategy is running and the RECORD flag is true,
+-- the test will run on repeat indefinitely
 
-// Specifying test shots:
-// Shots will always alternate between the left and right side of the goal
-// After both sides of the goal have been hit, the angle, starting from MIN_ANGLE, will increment by ANGLE_INCREMENT
-// Should the new angle then exceed the MAX_ANGLE, it will be reset to MIN_ANGLE and the distance will be incremented
-// Distance will start at MIN_DISTANCE and increment by DISTANCE_INCREMENT
-// Should the new distance exceed the MAX_DISTANCE, it will be reset to MIN_DISTANCE
-// Shoot speed can be specified in the constant SHOOT_SPEED
+-- Specifying test shots:
+-- Shots will always alternate between the left and right side of the goal
+-- After both sides of the goal have been hit, the angle, starting from MIN_ANGLE, will increment by ANGLE_INCREMENT
+-- Should the new angle then exceed the MAX_ANGLE, it will be reset to MIN_ANGLE and the distance will be incremented
+-- Distance will start at MIN_DISTANCE and increment by DISTANCE_INCREMENT
+-- Should the new distance exceed the MAX_DISTANCE, it will be reset to MIN_DISTANCE
+-- Shoot speed can be specified in the constant SHOOT_SPEED
 
-// Visualisations:
-// the visualisation "test/move/keepertest: Imaginary Ball" will display the ball from the .balldata file
-// the visualisation "test/move/keepertest: Hit" will put a red marker on the keeper if it has touched the ball
-// This is to evaluate how centrally the ball would have been caught
-// This marker will be reset every shot
+-- Visualisations:
+-- the visualisation "test/move/keepertest: Imaginary Ball" will display the ball from the .balldata file
+-- the visualisation "test/move/keepertest: Hit" will put a red marker on the keeper if it has touched the ball
+-- This is to evaluate how centrally the ball would have been caught
+-- This marker will be reset every shot
 
 function KeeperTest.canStart()
 	return true
@@ -105,7 +105,7 @@ function KeeperTest:_update()
 	local goal = G.FriendlyGoal
 	local startPos = goal + Vector.fromAngle(self._angle):setLength(self._distance)
 
-	// append
+	-- append
 	if RECORD then
 		local speedVector = World.Ball.speed
 		local spdX = speedVector.x
@@ -128,7 +128,7 @@ function KeeperTest:_update()
 			pos = startPos,
 			posZ = 0,
 			speedZ = 0,
-			speed = (targetPos - startPos):setLength(SHOOT_SPEED) // shoot with max speed
+			speed = (targetPos - startPos):setLength(SHOOT_SPEED) -- shoot with max speed
 		}
 		DebugCommands.moveObjects(ball)
 		self:_increment()
@@ -153,11 +153,11 @@ function KeeperTest:_updateTasks()
 
 	if World.IsSimulated and not HALLUCINATE_SIMULATOR then
 		self:_update()
-		taskAssignments[self._robots[1*/ = {class = HALT and Halt or Keeper, params = {}, restart = false}
+		taskAssignments[self._robots[1]] = {class = HALT and Halt or Keeper, params = {}, restart = false}
 	elseif not RECORD then
-		taskAssignments[self._robots[1*/ = {class = HallucinatingKeeper, params = {DESTINATION}}
+		taskAssignments[self._robots[1]] = {class = HallucinatingKeeper, params = {DESTINATION}}
 	else
-		taskAssignments[self._robots[1*/ = {class = Halt, params = {}}
+		taskAssignments[self._robots[1]] = {class = Halt, params = {}}
 	end
 
 	return taskAssignments, self._robots[1]

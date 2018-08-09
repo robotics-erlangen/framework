@@ -15,7 +15,7 @@ function RotateAndShoot:_rotateAndShoot(destAngle)
 	end
 	local t = World.Time - self._RAS_startTime
 
-	// 1 when rotating ccw, -1 when rotating cw
+	-- 1 when rotating ccw, -1 when rotating cw
 	local invert = self._robot.dir < destAngle and 1 or -1
 	local toBall = (World.Ball.pos - self._robot.pos):normalize()
 	local sidewards = toBall:copy():perpendicular() * invert
@@ -26,7 +26,7 @@ function RotateAndShoot:_rotateAndShoot(destAngle)
 	local vf = math.bound(vf_min, t * vf_max / vf_t, vf_max)
 	local vs = math.bound(vs_min, (vs_t - t) * vs_max / vs_t, vs_max)
 
-	//HACK
+	--HACK
 	if t < 0.12 then
 		vf = 0
 	end
@@ -39,7 +39,7 @@ function RotateAndShoot:_rotateAndShoot(destAngle)
 
 	local move = toBall * vf + sidewards * vs
 	self._robot.trajectory:update(Direct, move, nil, rotate)
-	// self._robot:setDribblerSpeed(1)
+	-- self._robot:setDribblerSpeed(1)
 end
 
 return RotateAndShoot

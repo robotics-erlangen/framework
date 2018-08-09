@@ -1,9 +1,9 @@
-/*
-//- Allows running an analysis module before / after each strategy run
+--[[
+--- Allows running an analysis module before / after each strategy run
 module "Processor"
-*///
+]]--
 
-/************************************************************************
+--[[***********************************************************************
 *   Copyright 2015 Michael Eischer, Christian Lobmeier                    *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -21,7 +21,7 @@ module "Processor"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
 
 local Processor = {}
 
@@ -37,16 +37,16 @@ local function add(procs, proc)
 	table.insert(procs, proc)
 end
 
-//- Adds a process for runnning before the strategy
-// @name addPre
-// @param proc Process - Process object to be run
+--- Adds a process for runnning before the strategy
+-- @name addPre
+-- @param proc Process - Process object to be run
 function Processor.addPre(proc)
 	add(preprocs, proc)
 end
 
-//- Adds a process for runnning after the strategy
-// @name addPost
-// @param proc Process - Process object to be run
+--- Adds a process for runnning after the strategy
+-- @name addPost
+-- @param proc Process - Process object to be run
 function Processor.addPost(proc)
 	add(postprocs, proc)
 end
@@ -61,16 +61,16 @@ local function run(procs)
 	end
 end
 
-//- Runs all proccess object scheduled before the strategy.
-// Should be called by the entrypoint wrapper
-// @name pre
+--- Runs all proccess object scheduled before the strategy.
+-- Should be called by the entrypoint wrapper
+-- @name pre
 function Processor.pre()
 	run(preprocs)
 end
 
-//- Runs all proccess object scheduled after the strategy.
-// Should be called by the entrypoint wrapper
-// @name post
+--- Runs all proccess object scheduled after the strategy.
+-- Should be called by the entrypoint wrapper
+-- @name post
 function Processor.post()
 	run(postprocs)
 end

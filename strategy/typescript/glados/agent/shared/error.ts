@@ -4,7 +4,7 @@ local ErrorTask = require "task/shared/error"
 local World = require "../base/world"
 local Referee = require "../base/referee"
 local ErrorObserver = require "observer/error"
-local ERROR_TOLERANCE_PER_SEC = 3 // <- [0.5,1]
+local ERROR_TOLERANCE_PER_SEC = 3 -- <- [0.5,1]
 local EXCHANGE_ERROR_ROBOTS = false
 local EXCHANGE_LOW_BAT_ROBOTS = false
 local EXCHANGE_LOW_BAT_DURING_GAME = false
@@ -43,7 +43,7 @@ function Error:check()
 		if gameTimespan > 2 and v > ERROR_TOLERANCE_PER_SEC * gameTimespan
 				and k ~= "temperature" and k~="main_sensor_error" then
 			if World.RefereeState == "Stop" then
-				//log(self._robot.id .. " ////////   " .. k ..  "  //////////////  " .. v)
+				--log(self._robot.id .. " --------   " .. k ..  "  --------------  " .. v)
 				return EXCHANGE_ERROR_ROBOTS
 			end
 		end
@@ -106,10 +106,10 @@ end
 
 
 function Error:_updateTask()
-	//local errorFound = next(ErrorObserver.getErrorTable(self._robot)) ~= nil
-	//if errorFound and World.Time == ErrorObserver.getLastRefChange() then
-	//	log(self:errorMsg())
-	//end
+	--local errorFound = next(ErrorObserver.getErrorTable(self._robot)) ~= nil
+	--if errorFound and World.Time == ErrorObserver.getLastRefChange() then
+	--	log(self:errorMsg())
+	--end
 	return ErrorTask
 end
 

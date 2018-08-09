@@ -1,4 +1,4 @@
-// taken from the game against Robodragons at Robocup 2013, we were the yellow team
+-- taken from the game against Robodragons at Robocup 2013, we were the yellow team
 local situation = {
 	refereeState = "DirectYellow",
 	gameStage = "NORMAL_FIRST_HALF",

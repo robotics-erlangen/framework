@@ -18,11 +18,11 @@ function TimeToPos:_init()
 	self._state = 1
 
 	self._positions = {
-		// Vector(1, -2), Vector(-3, -2), Vector(1, -2)
-		// Vector(1, -2), Vector(-3, -2), Vector(1, 3)
-		// Vector(0.2, -2), Vector(-3, -2), Vector(-0.4, -2)
-		// Vector(1, -2), Vector(-2, -2), Vector(2, -2),
-		// Vector(1, -2), Vector(-2, -2), Vector(-1, -1.7),
+		-- Vector(1, -2), Vector(-3, -2), Vector(1, -2)
+		-- Vector(1, -2), Vector(-3, -2), Vector(1, 3)
+		-- Vector(0.2, -2), Vector(-3, -2), Vector(-0.4, -2)
+		-- Vector(1, -2), Vector(-2, -2), Vector(2, -2),
+		-- Vector(1, -2), Vector(-2, -2), Vector(-1, -1.7),
 		Vector(0.1, -2), Vector(-1, -2), Vector(-0.07, -1.7)
 	}
 
@@ -85,7 +85,7 @@ function TimeToPos:_updateTasks()
 
 	local endSpeedLength = state == 3 and self._endSpeedLength or 0
 
-	taskAssignments[self._robots[1*/ = { class = MoveToPos,
+	taskAssignments[self._robots[1]] = { class = MoveToPos,
 		params = { self._positions[self._state], nil, nil, endSpeedLength }, restart = restart}
 	return taskAssignments
 end

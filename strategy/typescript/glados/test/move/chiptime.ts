@@ -25,7 +25,7 @@ end
 function ChipTimeTest:_updateTasks()
 	local taskAssignments = {}
 
-	taskAssignments[self._robots[1*/ = { class = Pass,
+	taskAssignments[self._robots[1]] = { class = Pass,
 		params = { nil, self._endPos, true, 0 } }
 	return taskAssignments
 end

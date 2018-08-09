@@ -18,12 +18,12 @@ end
 local function evaluateInterceptPos(robot, pos)
 	local OPP_EXTRA_TIME = 0.05
 
-	// checks if the pos is behind our robot
+	-- checks if the pos is behind our robot
 	if pos.y < robot.pos.y + 2 * robot.radius then
 		return -math.huge, math.huge
 	end
 
-	// checks if the pos is in the allowed field
+	-- checks if the pos is in the allowed field
 	if not Field.isInAllowedField(pos, -2 * robot.radius) then
 		return -math.huge, math.huge
 	end
@@ -31,7 +31,7 @@ local function evaluateInterceptPos(robot, pos)
 	local ownTime = Physics.robotTimeToPos(robot, pos, (pos - robot.pos):setLength(robot.maxSpeed))
 	local bestOppTime = math.huge
 
-	// search the closest opponent
+	-- search the closest opponent
 	for _, oppRobot in ipairs(World.OpponentRobots) do
 		if oppRobot.pos:distanceTo(pos) < 3 * robot.pos:distanceTo(pos) then
 			local oppTime = Physics.robotTimeToPos(oppRobot, pos, (pos - oppRobot.pos):setLength(robot.maxSpeed))
@@ -49,14 +49,14 @@ local function evaluateInterceptPos(robot, pos)
 end
 
 
-// lastPositions[robot][1] - Vector pos
-// lastPositions[robot][2] - number time (of pos)
+-- lastPositions[robot][1] - Vector pos
+-- lastPositions[robot][2] - number time (of pos)
 local lastPositions = {}
 local function calculateInterceptPos(robot)
 	local BALL_EXTRA_TIME = 0.05
 	local HYST_TIME = 0.1
 
-	// make sure the last position is reasonable and valid
+	-- make sure the last position is reasonable and valid
 	if lastPositions[robot] and World.Ball.speed:lengthSq() > 0.5 * 0.5 then
 		local pos, dist = lastPositions[robot][1]:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
 		if dist > 0.2 or World.Time - lastPositions[robot][2] > 0.5 or
@@ -67,7 +67,7 @@ local function calculateInterceptPos(robot)
 		end
 	end
 
-	// evaluate a few positions on the line
+	-- evaluate a few positions on the line
 	local minTime = Robot.minTimeToBall(robot) + BALL_EXTRA_TIME
 	local ballOutTime = Physics.ballOutTime(World.Ball, 0)
 	local predictedBallOriginPos,_,_,passReceiver = Goal.predictShot()
@@ -86,7 +86,7 @@ local function calculateInterceptPos(robot)
 		local futureBallPos
 		local rating = 0
 
-		// reevaluate the previous result
+		-- reevaluate the previous result
 		if i == -1 then
 			rating = rating + (lastPositions[robot] and HYST_TIME or 0)
 			if lastPositions[robot] then
@@ -102,7 +102,7 @@ local function calculateInterceptPos(robot)
 		local evaluation, ownTime, bestOppTime = evaluateInterceptPos(robot, futureBallPos)
 
 		if evaluation >= 0 then
-			rating = rating + evaluation //TODO consider endspeed together with the current time advantage
+			rating = rating + evaluation --TODO consider endspeed together with the current time advantage
 			if rating > bestRating then
 				bestRating = rating
 				bestPos = futureBallPos

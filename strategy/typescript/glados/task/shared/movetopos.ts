@@ -6,9 +6,9 @@ local ToTarget = require "trajectory/totarget"
 local World = require "../base/world"
 
 
-// customObstacles is a table of obstacle tables
-// An obstacle table contains a string field called type and parameters relevant for Path:addX
-// Type can be "circle", "line", "rect" and "triangle"
+-- customObstacles is a table of obstacle tables
+-- An obstacle table contains a string field called type and parameters relevant for Path:addX
+-- Type can be "circle", "line", "rect" and "triangle"
 function MoveToPos:_init(pos, dir, suggestPass, endSpeedLength, ignoreDefaultObstacles, customObstacles, ignoreBallPlacement, ignoreBall)
 	self._pos = pos
 	self._dir = dir or (World.Ball.pos - pos):angle()
@@ -44,7 +44,7 @@ end
 
 function MoveToPos:_addCustomObstacle(obstInfo)
 	local path = self._robot.path
-	// If this gets changed, the comment before _init also needs to be updated
+	-- If this gets changed, the comment before _init also needs to be updated
 	if obstInfo.type == "circle" then
 		path:addCircle(obstInfo.x, obstInfo.y, obstInfo.radius, obstInfo.name)
 	elseif obstInfo.type == "line" then

@@ -37,7 +37,7 @@ test("Messaging", function()
 	assert_nil(agent1inbox.moveDest()[agent1:robot()],
 			"broadcasts shall not be received by the sender")
 
-	//agent1send(agent2:robot(), "moveDest", Vector(0,0))
+	--agent1send(agent2:robot(), "moveDest", Vector(0,0))
 	agent3send.moveDest("all", Vector(0,0))
 	messaging:deliverMessages()
 	agent2 = agentStub(agent2:robot())
@@ -51,7 +51,7 @@ test("Messaging", function()
 	agent2send.exclusiveRole("trainer", {mainAttacker = 1})
 	agent1send.exclusiveRole("trainer", {mainAttacker = 0.5})
 
-	// note that trainer can receive without calling deliverMessages() before
+	-- note that trainer can receive without calling deliverMessages() before
 	local applications = trainerInbox.exclusiveRole()
 	assert_equal(fold(applications[agent1:robot()]).mainAttacker, 0.5,
 			"mainAttacker rating of robot 1 shall be 0.5")

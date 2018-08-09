@@ -30,7 +30,7 @@ function DebugChip:run()
 	end
 
 	local target = self._robot.pos + World.Ball.pos:copy():setLength(self._distance) * -1
-	if self._wasShot or self._timer > 0 then//self._robot.pos:distanceTo(self._pos) > 0.15 then
+	if self._wasShot or self._timer > 0 then--self._robot.pos:distanceTo(self._pos) > 0.15 then
 		self._robot.trajectory:update(ToTarget, self._pos, math.pi/2, nil, Vector(0,0))
 		self._timer = self._timer - 1
 	else

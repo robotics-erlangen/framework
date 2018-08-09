@@ -27,7 +27,7 @@ context("base.processor", function()
 	end)
 
 	test("invalid type", function()
-		// must be of type processor
+		-- must be of type processor
 		assert_error(function() Processor.addPre({}) end)
 		assert_error(function() Processor.addPost({}) end)
 	end)
@@ -63,11 +63,11 @@ context("base.processor", function()
 		instance.finished = true
 		Processor.pre()
 		assert_equal(instance.counter, 2)
-		// check that process is removed
+		-- check that process is removed
 		Processor.pre()
 		assert_equal(instance.counter, 2)
 
-		// an already finished process is run exactly once
+		-- an already finished process is run exactly once
 		Processor.addPre(instance)
 		Processor.pre()
 		assert_equal(instance.counter, 3)

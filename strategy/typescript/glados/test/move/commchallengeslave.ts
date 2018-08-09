@@ -21,7 +21,7 @@ function CommChallengeSlave:_canContinue()
 	return true
 end
 
-local wayLength = 2.7 // meters, only correct for official field
+local wayLength = 2.7 -- meters, only correct for official field
 local function defAreaPos(robotId, opponentGoal)
 	local pos = Field.defenseIntersectionByWay(wayLength*((robotId+1)/8), 0.23, not opponentGoal)
 	vis.addCircle("defAreaPos", pos, 0.1, vis.colors.orangeHalf, true)

@@ -99,7 +99,7 @@ local function addErrorTables(errorTable1, errorTable2)
 	end
 	for k,v in pairs(errorTable2) do
 		if type(v) == "number" then
-			//errorTable2 is newer than errorTable1, so override errorTable1
+			--errorTable2 is newer than errorTable1, so override errorTable1
 			newTable[k] = v
 		elseif v then
 			if newTable[k] then
@@ -119,7 +119,7 @@ local function updateErrorTables(isLeavingStop)
 
 	for _, r in ipairs(World.FriendlyRobots) do
 		if r.radioResponse and r.radioResponse.error_present then
-			// we have an error, save it for debugging purposes
+			-- we have an error, save it for debugging purposes
 			errorTables[r] = addErrorTables(errorTables[r], r.radioResponse.extended_error)
 		end
 	end
@@ -152,15 +152,15 @@ local function isLeavingStop()
 	return refereeState == "Stop" and World.RefereeState ~= "Stop"
 end
 
-//we don't have any feedback by our robots. At least we have to assume its like that
-//We still want to be able to detect broken bots.
-//To do so, we use the previous moveTo. If it is far (~0.5m) from our current pos while our speed is slow we increase a counter.
-//If that stays true for 4.5 s (that is, 450 runs), we consider the robot to be damaged.
-//We reset this counter if the robot gets fast eanough, or reaches its destination.
-//We want the robot to stay at the error position if it was decided that it's broken. Therefore, we don't tick down due to position if the robot was
-//detected as failure, and will only tick down if a certain speed was reached.
-//If the robot is invisible, speedError does tick down, this is to ensure that a exchanged robot that may have been repaired by humans is ok after reinsertion
-//If the strategy is being replayed, there's no point in counting up or down. As starting the replay results in a fresh load this will disabled this detection during replays
+--we don't have any feedback by our robots. At least we have to assume its like that
+--We still want to be able to detect broken bots.
+--To do so, we use the previous moveTo. If it is far (~0.5m) from our current pos while our speed is slow we increase a counter.
+--If that stays true for 4.5 s (that is, 450 runs), we consider the robot to be damaged.
+--We reset this counter if the robot gets fast eanough, or reaches its destination.
+--We want the robot to stay at the error position if it was decided that it's broken. Therefore, we don't tick down due to position if the robot was
+--detected as failure, and will only tick down if a certain speed was reached.
+--If the robot is invisible, speedError does tick down, this is to ensure that a exchanged robot that may have been repaired by humans is ok after reinsertion
+--If the strategy is being replayed, there's no point in counting up or down. As starting the replay results in a fresh load this will disabled this detection during replays
 local speedError = {}
 local function updateSpeedError()
 	local halfSpeed = Referee.isSlowDriveState() and 0.75 or 1.5

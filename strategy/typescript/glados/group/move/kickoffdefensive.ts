@@ -77,24 +77,24 @@ function KickOffDefensive:_updateTasks()
 	self._targetRight, restartRight = getTarget(self._targetRight, self._fallbackPos[2])
 
 	local taskAssignments = {}
-	taskAssignments[self._robots[self._assignments[1*/] = { class = StopAttack, params = {} }
+	taskAssignments[self._robots[self._assignments[1]]] = { class = StopAttack, params = {} }
 
 	if #self._robots > 1 then
 		if self._targetLeft then
-			taskAssignments[self._robots[self._assignments[2*/] = { class = ManMark, params = { self._targetLeft }, restart = restartLeft }
+			taskAssignments[self._robots[self._assignments[2]]] = { class = ManMark, params = { self._targetLeft }, restart = restartLeft }
 		else
-			taskAssignments[self._robots[self._assignments[2*/] = { class = MoveToPos, params = { self._fallbackPos[1] } }
+			taskAssignments[self._robots[self._assignments[2]]] = { class = MoveToPos, params = { self._fallbackPos[1] } }
 		end
 	end
 	if #self._robots > 2 then
 		if self._targetRight then
-			taskAssignments[self._robots[self._assignments[3*/] = { class = ManMark, params = { self._targetRight }, restart = restartRight }
+			taskAssignments[self._robots[self._assignments[3]]] = { class = ManMark, params = { self._targetRight }, restart = restartRight }
 		else
-			taskAssignments[self._robots[self._assignments[3*/] = { class = MoveToPos, params = { self._fallbackPos[2] } }
+			taskAssignments[self._robots[self._assignments[3]]] = { class = MoveToPos, params = { self._fallbackPos[2] } }
 		end
 	end
 
-	return taskAssignments, self._robots[self._assignments[1*/
+	return taskAssignments, self._robots[self._assignments[1]]
 end
 
 return KickOffDefensive

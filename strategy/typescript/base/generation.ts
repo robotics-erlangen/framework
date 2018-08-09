@@ -1,9 +1,9 @@
-/*
-//- Provides robot generations specific classes
+--[[
+--- Provides robot generations specific classes
 module "Robot.Generation"
-*///
+]]--
 
-/************************************************************************
+--[[***********************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer                      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -21,7 +21,7 @@ module "Robot.Generation"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
 
 local Robot = require "../base/robot"
 local Generation = {
@@ -33,12 +33,12 @@ for _, cls in pairs(Generation) do
 	setmetatable(cls.constants, constantsMt)
 end
 
-//- Creates a new generation specific robot object.
-// For these robot objects the constants table of robot is overlayed with generations specific constants.
-// This functions is a factory for constructing robots.
-// @name create
-// @param specs table - Specs as returned by getTeam()
-// @return Robot - Specific generation if available or generic robot object
+--- Creates a new generation specific robot object.
+-- For these robot objects the constants table of robot is overlayed with generations specific constants.
+-- This functions is a factory for constructing robots.
+-- @name create
+-- @param specs table - Specs as returned by getTeam()
+-- @return Robot - Specific generation if available or generic robot object
 function Generation.factory(specs)
 	local robotGen = Generation["Gen" .. tostring(specs.year) .. "_" .. tostring(specs.generation)]
 	if robotGen then

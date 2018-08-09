@@ -35,7 +35,7 @@ function ManMark:_updateTask()
 	debug.set("target", self._opp.id)
 	local dest = Defense.manMarkPos(self._opp)
 
-	// try to intercept a possible goal shot if we are no centerback
+	-- try to intercept a possible goal shot if we are no centerback
 	local isCB = self._inbox.centerBackPosTarget()
 	if not isCB then
 		local _, _, _, passReceivers = Goal.predictShot()
@@ -54,7 +54,7 @@ function ManMark:_updateTask()
 	vis.addCircle("a/d/manmark: Target", dest, 0.1, color)
 	vis.addPath("a/d/manmark: Target", {self._robot.pos, dest, self._opp.pos}, color)
 
-	// use centerback positioning if the destination pos would be too close to our defense area
+	-- use centerback positioning if the destination pos would be too close to our defense area
 	local markingPosDefenseDist = Field.distanceToFriendlyDefenseArea(dest, self._opp.radius)
 	local markingPosNearLow = Defense.centerBackDistanceToDefenseArea() + Defense.MARKING_DISTANCE
 	local markingPosNearHigh = markingPosNearLow + 2 * self._robot.radius
@@ -63,16 +63,16 @@ function ManMark:_updateTask()
 	if markingPosDefenseDist < markingPosThreshold or oppDefenseDist <= 0 or Referee.isStopState() or Referee.isFriendlyFreeKickState()
 			or World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
 		self._wasCenterback = true
-		// for interpreting debug outputs
+		-- for interpreting debug outputs
 		self._manmarkInfo.id = self._opp.id
 		self._manmarkInfo.pos = dest
 		return CenterBack, { self._manmarkInfo }, self._restartTask
 	end
 
-	// if we are still near the defense area but want to move away, disguise as a centerback
+	-- if we are still near the defense area but want to move away, disguise as a centerback
 	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
 	if selfDefenseDist < Defense.centerBackDistanceToDefenseArea() + self._robot.radius + 0.03 then
-		local groupApplication = { name = "centerback", payload = nil } //TODO EVACUATE
+		local groupApplication = { name = "centerback", payload = nil } --TODO EVACUATE
 		self._send.groupApplication("trainer", groupApplication)
 	end
 

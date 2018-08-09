@@ -27,7 +27,7 @@ local POS_LIST = {
 		Vector(widthHalf, heightHalf),
 		Vector(-widthHalf, -heightHalf)
 }
-//{ Vector(-1.8, 3.9), Vector(0, 3.9), Vector(0, -3.9), Vector(1.8, -3.9), Vector(1.8, 3.9), Vector(-1.8, -3.9) }
+--{ Vector(-1.8, 3.9), Vector(0, 3.9), Vector(0, -3.9), Vector(1.8, -3.9), Vector(1.8, 3.9), Vector(-1.8, -3.9) }
 
 local obstacleTable = {
 	ignoreBall = true,
@@ -77,7 +77,7 @@ function VisionTestTask:run()
 	local dir = self._orientation
 
 	local targetDist = self._robot.pos:distanceTo(pos)
-	//log(targetDist)
+	--log(targetDist)
 	if targetDist < 0.2 and self._atTargetSince == nil then
 		self._atTargetSince = World.Time
 	elseif targetDist > 0.01 then
@@ -107,7 +107,7 @@ end
 local Position = Class("Test.Task.VisionTest.Behavior", require "agent/base/behavior")
 function Position:check()
 	self._send.attackerFlag("all")
-	// also receive own message
+	-- also receive own message
 	return next(self._inbox.attackerFlag("broadcast")) ~= nil
 end
 

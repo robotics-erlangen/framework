@@ -11,7 +11,7 @@ local ToTarget = require "trajectory/totarget"
 local UtilDefense = require "util/defense"
 local RobotList = require "util/robotlist"
 
-local POSITION_PADDING = 0.2 // safety distance
+local POSITION_PADDING = 0.2 -- safety distance
 
 function StopAttack:_init(minDistToBall)
 	self._focusPoint = Vector(0, -World.Geometry.FieldHeightHalf + 4 * self._robot.radius)
@@ -20,7 +20,7 @@ function StopAttack:_init(minDistToBall)
 	self._minDistToBall = minDistToBall or Constants.stopBallDistance
 end
 
-// normalize angle created by direction to be always relative to segment ball to field border
+-- normalize angle created by direction to be always relative to segment ball to field border
 local function getNormalizedAngle(direction)
 	local angle = direction:angle()
 	if World.Ball.pos.x > 0 then
@@ -36,12 +36,12 @@ function StopAttack:run()
 
 	local opponentShooter, dist = UtilDefense.getClosestRobot(World.OpponentRobots, World.Ball.pos)
 
-	// hysteresis on distance between opponent shooter and ball
+	-- hysteresis on distance between opponent shooter and ball
 	if self._defenseHysteresis then
 		dist = dist - 0.5
 	end
 
-	// try to always be where the opponent shooter will try to shoot
+	-- try to always be where the opponent shooter will try to shoot
 	local isOpponentFreekickState = World.RefereeState == "IndirectDefensive" or World.RefereeState == "DirectDefensive"
 	local defendOpponentPasses = World.Ball.pos.y > 0 and isOpponentFreekickState
 
@@ -68,13 +68,13 @@ function StopAttack:run()
 		local middleAngle = (boundedAngle + boundedOppDirection) / 2
 
 		pos = World.Ball.pos + Vector.fromAngle(middleAngle):setLength(stopRadius)
-		// try to hit the side of the opponent robot to reflect the ball out of the field
+		-- try to hit the side of the opponent robot to reflect the ball out of the field
 		driveAngle = (opponentShooter.pos - pos):angle() + 0.02
 
 		self._defenseHysteresis = true
-		self._robot:setDribblerSpeed(0.8) // might be quite loud
+		self._robot:setDribblerSpeed(0.8) -- might be quite loud
 	else
-		// position between ball and goal
+		-- position between ball and goal
 		self._defenseHysteresis = false
 		if Field.isInFriendlyDefenseArea(pos, 4 * self._robot.radius + 0.05) then
 			local intersections = Field.intersectCircleDefenseArea(World.Ball.pos,
@@ -89,11 +89,11 @@ function StopAttack:run()
 						distanceToSqMin = distanceToSqCur
 					end
 
-//					TODO: Think!
-//					if not pos or (self._side == "left" and p.x < pos.x) or
-//							(self._side == "right" and p.x > pos.x) then
-//						pos = p
-//					end
+--					TODO: Think!
+--					if not pos or (self._side == "left" and p.x < pos.x) or
+--							(self._side == "right" and p.x > pos.x) then
+--						pos = p
+--					end
 				end
 			end
 		end

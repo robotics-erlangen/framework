@@ -11,12 +11,12 @@ local function decodeDirection(dir)
 	return dir + math.pi/2
 end
 
-// convert ssl::TeamInfo to internal representation
+-- convert ssl::TeamInfo to internal representation
 function mixedteam.decodeData(data)
 	local robotInfo = {}
 
 	for _, robotPlan in ipairs(data) do
-		//debug.set("dt", robotPlan)
+		--debug.set("dt", robotPlan)
 		local plan = {}
 		if robotPlan.role then
 			plan.role = robotPlan.role

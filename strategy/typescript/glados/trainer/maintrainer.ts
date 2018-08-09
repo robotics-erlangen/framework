@@ -6,7 +6,7 @@ local MainTrainer = Class("MainTrainer", Trainer, AttackRatio, Defense)
 
 function MainTrainer:init(mode)
 	Trainer.init(self)
-	// the instance function 'attackRatio' overwrites the method
+	-- the instance function 'attackRatio' overwrites the method
 	if mode == "passive" then
 		self.attackRatio = function() return 0 end
 	elseif mode == "aggressive" then

@@ -1,9 +1,9 @@
-/*
-//- Extensions to lua tables
+--[[
+--- Extensions to lua tables
 module "table"
-*///
+]]--
 
-/************************************************************************
+--[[***********************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, André Pscherer      *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -21,14 +21,14 @@ module "table"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
 
-// luacheck: globals table
+-- luacheck: globals table
 
-//- Create a shallow copy of the table.
-// @name copy
-// @param t table - Table to copy
-// @return table - shallow copy
+--- Create a shallow copy of the table.
+-- @name copy
+-- @param t table - Table to copy
+-- @return table - shallow copy
 function table.copy(t)
 	local c = {}
 	for k,v in pairs(t) do
@@ -37,23 +37,23 @@ function table.copy(t)
 	return c
 end
 
-//- Truncates the given array to given length.
-// If array has less entrys the len, do nothing. Modifies the passed array!
-// @name truncate
-// @param array table - Array to truncate
-// @param len number - target length
-function table.truncate(array, len) // truncates an array to the first len elements
+--- Truncates the given array to given length.
+-- If array has less entrys the len, do nothing. Modifies the passed array!
+-- @name truncate
+-- @param array table - Array to truncate
+-- @param len number - target length
+function table.truncate(array, len) -- truncates an array to the first len elements
 	for _ = #array, len + 1, -1 do
 		table.remove(array)
 	end
 end
 
-//- Appends the given array to an array.
-// @name append
-// @param t1 table - Array to append to
-// @param ... table[] - Arrays to append to t1
-// @return table - appended array
-function table.append(t1, ...) // for arrays (non nil)
+--- Appends the given array to an array.
+-- @name append
+-- @param t1 table - Array to append to
+-- @param ... table[] - Arrays to append to t1
+-- @return table - appended array
+function table.append(t1, ...) -- for arrays (non nil)
 	local param = {...}
 	if #param == 1 then
 		for _, value in ipairs(param[1]) do
@@ -65,11 +65,11 @@ function table.append(t1, ...) // for arrays (non nil)
 	return t1
 end
 
-//- Combine two given arrays to a new one
-// @name combine
-// @param t1 table - first array
-// @param t2 table - second array
-// @return table - combined array
+--- Combine two given arrays to a new one
+-- @name combine
+-- @param t1 table - first array
+-- @param t2 table - second array
+-- @return table - combined array
 function table.combine(t1, t2)
 	local combined = {}
 	for _, v in ipairs(t1) do
@@ -108,10 +108,10 @@ function table.splitByValue(t, element)
 	return first, second
 end
 
-//- Find the maximum in an array
-// @name max
-// @param t number[] - Table to search
-// @return number - maximum
+--- Find the maximum in an array
+-- @name max
+-- @param t number[] - Table to search
+-- @return number - maximum
 function table.max(t)
 	local max = t[1]
 	for _,v in ipairs(t) do
@@ -122,10 +122,10 @@ function table.max(t)
 	return max
 end
 
-//- Find the minimum in an array
-// @name min
-// @param t number[] - Table to search
-// @return number - minimum
+--- Find the minimum in an array
+-- @name min
+-- @param t number[] - Table to search
+-- @return number - minimum
 function table.min(t)
 	local min = t[1]
 	for _,v in ipairs(t) do
@@ -136,11 +136,11 @@ function table.min(t)
 	return min
 end
 
-//- Maps a function over an array.
-// @name map
-// @param array table - Array to map over
-// @param f function - map function
-// @return table - mapped array
+--- Maps a function over an array.
+-- @name map
+-- @param array table - Array to map over
+-- @param f function - map function
+-- @return table - mapped array
 function table.map(array, f)
 	local mapped = {}
 	for _, entry in ipairs(array) do
@@ -149,12 +149,12 @@ function table.map(array, f)
 	return mapped
 end
 
-//- Reduce an array with a function.
-// @name reduce
-// @param array table - Array to reduce
-// @param f function - reduce function
-// @param [initialValue any - use as start value for reduction if not nil]
-// @return table - reduced value
+--- Reduce an array with a function.
+-- @name reduce
+-- @param array table - Array to reduce
+-- @param f function - reduce function
+-- @param [initialValue any - use as start value for reduction if not nil]
+-- @return table - reduced value
 function table.reduce(array, f, initialValue)
 	local value = initialValue
 	local isFirst = initialValue == nil
@@ -168,11 +168,11 @@ function table.reduce(array, f, initialValue)
 	return value
 end
 
-//- Filters an array with a predicate function.
-// @name filter
-// @param array table - Array to filter
-// @param p function - predicate function
-// @return table - filtered array
+--- Filters an array with a predicate function.
+-- @name filter
+-- @param array table - Array to filter
+-- @param p function - predicate function
+-- @return table - filtered array
 function table.filter(array, p)
 	local filtered = {}
 	for _, entry in ipairs(array) do
@@ -183,11 +183,11 @@ function table.filter(array, p)
 	return filtered
 end
 
-//- Tests if any element of an array complies with a predicate
-// @name any
-// @param t table - Array to test
-// @para func function - predicate function
-// @return entry - an arbitrary element that complies with the predicate, nil otherwise
+--- Tests if any element of an array complies with a predicate
+-- @name any
+-- @param t table - Array to test
+-- @para func function - predicate function
+-- @return entry - an arbitrary element that complies with the predicate, nil otherwise
 function table.any(t, func)
 	for _, v in ipairs(t) do
 		if func(v) then
@@ -197,11 +197,11 @@ function table.any(t, func)
 	return nil
 end
 
-//- Checks if an array contains a given value
-// @name contains
-// @param t table
-// @param value
-// @return boolean
+--- Checks if an array contains a given value
+-- @name contains
+-- @param t table
+-- @param value
+-- @return boolean
 function table.contains(t, value)
 	for _, entry in ipairs(t) do
 		if entry == value then
@@ -211,10 +211,10 @@ function table.contains(t, value)
 	return false
 end
 
-//- Remove first occurence of a value from the given array
-// @name removeValue
-// @param t array - Array to remove from
-// @param value any - Value to remove
+--- Remove first occurence of a value from the given array
+-- @name removeValue
+-- @param t array - Array to remove from
+-- @param value any - Value to remove
 function table.removeValue(t, value)
 	for i, v in ipairs(t) do
 		if v == value then
@@ -228,10 +228,10 @@ local function shuffleSort(a,b)
 	return a.rnd < b.rnd
 end
 
-//- Shuffles a table
-// @name shuffle
-// @param t table - Array to shuffle
-// @return table - table with elements in random order
+--- Shuffles a table
+-- @name shuffle
+-- @param t table - Array to shuffle
+-- @return table - table with elements in random order
 function table.shuffle(t)
 	local n, order, res = #t, {}, {}
 	for i=1,n do
@@ -244,11 +244,11 @@ function table.shuffle(t)
 	return res
 end
 
-//- Copy the given table into another table.
-// @name extend
-// @param t1 table - Table to copy into
-// @param t2 table - Table to insert into t1
-// @return table - combined table
+--- Copy the given table into another table.
+-- @name extend
+-- @param t1 table - Table to copy into
+-- @param t2 table - Table to insert into t1
+-- @return table - combined table
 function table.extend(t1, t2)
 	for k, v in pairs(t2) do
 		t1[k] = v
@@ -256,11 +256,11 @@ function table.extend(t1, t2)
 	return t1
 end
 
-//- Deep copy the given array into an array.
-// @name extend
-// @param t1 table - Array to copy into
-// @param t2 table - Array to insert into t1
-// @return table - combined array
+--- Deep copy the given array into an array.
+-- @name extend
+-- @param t1 table - Array to copy into
+-- @param t2 table - Array to insert into t1
+-- @return table - combined array
 function table.extendDeep(t1, t2)
 	for k, v in pairs(t2) do
 		if t1[k] and type(t1[k]) == "table" and type(v) == "table" then
@@ -272,10 +272,10 @@ function table.extendDeep(t1, t2)
 	return t1
 end
 
-//- Returns a readonly proxy table.
-// @name readonlytable
-// @param table table - Table to write-protect
-// @return table - readonly proxy table
+--- Returns a readonly proxy table.
+-- @name readonlytable
+-- @param table table - Table to write-protect
+-- @return table - readonly proxy table
 function table.readonlytable(table)
 	return setmetatable({}, {
 	__index = table,
@@ -286,10 +286,10 @@ function table.readonlytable(table)
 	});
 end
 
-//- Counts the number of elements in a table, iterated with pairs()
-// @name count
-// @param t table
-// @return number
+--- Counts the number of elements in a table, iterated with pairs()
+-- @name count
+-- @param t table
+-- @return number
 function table.count(t)
 	local count = 0
 	for _,_ in pairs(t) do
@@ -298,10 +298,10 @@ function table.count(t)
 	return count
 end
 
-//- Returns an array containing the keys of a table
-// @name keys
-// @param t table
-// @return array
+--- Returns an array containing the keys of a table
+-- @name keys
+-- @param t table
+-- @return array
 function table.keys(t)
 	local keys = {}
 	for key, _ in pairs(t) do

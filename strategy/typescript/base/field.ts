@@ -1,9 +1,9 @@
-/*
-//- Some field related utility functions
+--[[
+--- Some field related utility functions
 module "Field"
-*///
+]]--
 
-/************************************************************************
+--[[***********************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier, *
 *       André Pscherer                                                    *
 *   Robotics Erlangen e.V.                                                *
@@ -22,7 +22,7 @@ module "Field"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
 
 local Field = {}
 
@@ -33,28 +33,28 @@ local World = require "../base/world"
 
 local G = World.Geometry
 
-//- returns the nearest position inside the field (extended by boundaryWidth)
-// @name limitToField
-// @param pos Vector - the position to limit
-// @param boundaryWidth number - how much the field should be extended beyond the borders
-// @return Vector - limited vector
+--- returns the nearest position inside the field (extended by boundaryWidth)
+-- @name limitToField
+-- @param pos Vector - the position to limit
+-- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @return Vector - limited vector
 function Field.limitToField(pos, boundaryWidth)
 	boundaryWidth = boundaryWidth or 0
 
-	local allowedHeight = G.FieldHeightHalf + boundaryWidth // limit height to field
+	local allowedHeight = G.FieldHeightHalf + boundaryWidth -- limit height to field
 	local y = math.bound(-allowedHeight, pos.y, allowedHeight)
 
-	local allowedWidth = G.FieldWidthHalf + boundaryWidth // limit width to field
+	local allowedWidth = G.FieldWidthHalf + boundaryWidth -- limit width to field
 	local x = math.bound(-allowedWidth, pos.x, allowedWidth)
 
 	return Vector(x, y)
 end
 
-//- returns the nearest position inside the field without defense areas
-// @name limitToAllowedField
-// @param extraLimit number - how much the field should be additionally limited
-// @param pos Vector - the position to limit
-// @return Vector - limited vector
+--- returns the nearest position inside the field without defense areas
+-- @name limitToAllowedField
+-- @param extraLimit number - how much the field should be additionally limited
+-- @param pos Vector - the position to limit
+-- @return Vector - limited vector
 local function limitToAllowedField_2017(pos, extraLimit)
 	extraLimit = extraLimit or 0
 	local oppExtraLimit = extraLimit
@@ -114,21 +114,21 @@ local function limitToAllowedField_2018(pos, extraLimit)
 	return pos
 end
 
-//- check if pos is inside the field (extended by boundaryWidth)
-// @name isInField
-// @param pos Vector - the position to limit
-// @param boundaryWidth number - how much the field should be extended beyond the borders
-// @return bool - is in field
+--- check if pos is inside the field (extended by boundaryWidth)
+-- @name isInField
+-- @param pos Vector - the position to limit
+-- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @return bool - is in field
 function Field.isInField(pos, boundaryWidth)
 	boundaryWidth = boundaryWidth or 0
 
-	local allowedHeight = G.FieldHeightHalf + boundaryWidth // limit height to field
-	if math.abs(pos.x) > G.GoalWidth / 2 and math.abs(pos.y) > allowedHeight // check whether robot is inside the goal
-			or math.abs(pos.y) > allowedHeight + G.GoalDepth then // handle area behind goal
+	local allowedHeight = G.FieldHeightHalf + boundaryWidth -- limit height to field
+	if math.abs(pos.x) > G.GoalWidth / 2 and math.abs(pos.y) > allowedHeight -- check whether robot is inside the goal
+			or math.abs(pos.y) > allowedHeight + G.GoalDepth then -- handle area behind goal
 		return false
 	end
 
-	local allowedWidth = G.FieldWidthHalf + boundaryWidth // limit width to field
+	local allowedWidth = G.FieldWidthHalf + boundaryWidth -- limit width to field
 	if math.abs(pos.x) > allowedWidth then
 		return false
 	end
@@ -136,11 +136,11 @@ function Field.isInField(pos, boundaryWidth)
 	return true
 end
 
-//- Returns the minimum distance to the field borders (extended by boundaryWidth)
-// @name distanceToFieldBorders
-// @param pos Vector - the position to limit
-// @param boundaryWidth number - how much the field should be extended beyond the borders
-// @return number - distance to field borders
+--- Returns the minimum distance to the field borders (extended by boundaryWidth)
+-- @name distanceToFieldBorders
+-- @param pos Vector - the position to limit
+-- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @return number - distance to field borders
 function Field.distanceToFieldBorder(pos, boundaryWidth)
 	boundaryWidth = boundaryWidth or 0
 
@@ -150,7 +150,7 @@ function Field.distanceToFieldBorder(pos, boundaryWidth)
 	local allowedHeight = G.FieldHeightHalf + boundaryWidth
 	local dy = allowedHeight - math.abs(pos.y)
 
-	// returns the minimum of dx and dy
+	-- returns the minimum of dx and dy
 	return math.bound(0, dx, dy)
 end
 
@@ -209,12 +209,12 @@ local function distanceToDefenseAreaSq_2017(pos, friendly)
 	return d * d
 end
 
-//- check if position is inside/touching the (friendly) defense area
-// @name isInDefenseArea
-// @param pos Vector - the position to check
-// @param radius number - Radius of object to check
-// @param friendly bool - selection of Own/Opponent area
-// @return bool
+--- check if position is inside/touching the (friendly) defense area
+-- @name isInDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @param friendly bool - selection of Own/Opponent area
+-- @return bool
 
 local function isInDefenseArea_2017(pos, radius, friendly)
 	if radius < -G.DefenseRadius then
@@ -239,49 +239,49 @@ else
 end
 
 
-//- check if pos is inside the field (extended by boundaryWidth)
-// @name isInAllowedField
-// @param pos Vector - the position to check
-// @param boundaryWidth number - how much the field should be extended beyond the borders
-// @return bool - is in field
+--- check if pos is inside the field (extended by boundaryWidth)
+-- @name isInAllowedField
+-- @param pos Vector - the position to check
+-- @param boundaryWidth number - how much the field should be extended beyond the borders
+-- @return bool - is in field
 function Field.isInAllowedField(pos, boundaryWidth)
 	return Field.isInField(pos, boundaryWidth) and
 		not Field.isInDefenseArea(pos, -boundaryWidth, true) and
 		not Field.isInDefenseArea(pos, -boundaryWidth, false)
 end
 
-//- Returns true if the position is inside/touching the friendly defense area
-// @name isInFriendlyDefenseArea
-// @param pos Vector - the position to check
-// @param radius number - Radius of object to check
-// @return bool
+--- Returns true if the position is inside/touching the friendly defense area
+-- @name isInFriendlyDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return bool
 function Field.isInFriendlyDefenseArea(pos, radius)
 	return Field.isInDefenseArea(pos, radius, true)
 end
 
-//- Returns true if the position is inside/touching the opponent defense area
-// @name isInOpponentDefenseArea
-// @param pos Vector - the position to check
-// @param radius number - Radius of object to check
-// @return bool
+--- Returns true if the position is inside/touching the opponent defense area
+-- @name isInOpponentDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return bool
 function Field.isInOpponentDefenseArea(pos, radius)
 	return Field.isInDefenseArea(pos, radius, false)
 end
 
-//- Calculates the distance (between robot hull and field line) to the friendly defense area
-// @name distanceToFriendlyDefenseArea
-// @param pos Vector - the position to check
-// @param radius number - Radius of object to check
-// @return number - distance
+--- Calculates the distance (between robot hull and field line) to the friendly defense area
+-- @name distanceToFriendlyDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return number - distance
 function Field.distanceToFriendlyDefenseArea(pos, radius)
 	return Field.distanceToDefenseArea(pos, radius, true)
 end
 
-//- Calculates the distance (between robot hull and field line) to the opponent defense area
-// @name distanceToOpponentDefenseArea
-// @param pos Vector - the position to check
-// @param radius number - Radius of object to check
-// @return number - distance
+--- Calculates the distance (between robot hull and field line) to the opponent defense area
+-- @name distanceToOpponentDefenseArea
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return number - distance
 function Field.distanceToOpponentDefenseArea(pos, radius)
 	return Field.distanceToDefenseArea(pos, radius, false)
 end
@@ -327,27 +327,27 @@ local function intersectionsRayDefenseArea_2018(pos, dir, extraDistance, friendl
 	corners[1] = Vector(G.DefenseWidthHalf+extraDistance, G.FieldHeightHalf)
 	corners[2] = Vector(G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight-extraDistance)
 	corners[3] = Vector(-G.DefenseWidthHalf-extraDistance, G.FieldHeightHalf-G.DefenseHeight)
-	// corners[4] = Vector(-G.DefenseWidthHalf, G.FieldHeightHalf+extraDistance)
+	-- corners[4] = Vector(-G.DefenseWidthHalf, G.FieldHeightHalf+extraDistance)
 	local directions = {}
 	directions[1] = Vector(0,-1)
 	directions[2] = Vector(-1,0)
 	directions[3] = Vector(0,1)
-	// directions[4] = Vector(1,0)
+	-- directions[4] = Vector(1,0)
 	local f = friendly and -1 or 1
 	local way = 0
 	local intersections = {}
 	for i,v in ipairs(corners) do
-		// intersections on lines
+		-- intersections on lines
 		local length = (i%2 == 0) and G.DefenseWidth or G.DefenseHeight
 		local ipos, l1, l2 = geom.intersectLineLine(pos, dir, v*f, directions[i]*f)
 		if l1 and l1 >= 0 and l2 >= 0 and l2 <= length then
-			// no intersections with parallel lines
+			-- no intersections with parallel lines
 			if not (l1 == 0 and l2 == 0) or ipos:distanceToSq(v*f) < 0.0001 then
 				table.insert(intersections, {pos = ipos, way = way + l2, sec = i*2-1})
 			end
 		end
 		way = way + length
-		// intersections with arc segments
+		-- intersections with arc segments
 		if i < 3 and extraDistance > 0 then
 			local corner = Vector((3 - i*2) * G.DefenseWidthHalf, G.FieldHeightHalf-G.DefenseHeight) * f
 			local circleIntersections
@@ -375,8 +375,8 @@ local function intersectDefenseArea_2018(pos, dir, extraDistance, friendly)
 	end
 end
 
-// if the way is <0 or greater than the maximum way, the intersection is on
-// the extended defense area side lines
+-- if the way is <0 or greater than the maximum way, the intersection is on
+-- the extended defense area side lines
 local function defenseIntersectionByWay_2018(way, extraDistance, friendly)
 	local corners = {}
 	corners[1] = Vector(G.DefenseWidthHalf+extraDistance, G.FieldHeightHalf)
@@ -404,27 +404,27 @@ end
 
 
 local intersectionsRayDefenseArea = function(pos, dir, extraDistance, friendly)
-	// calculate defense radius
+	-- calculate defense radius
 	extraDistance = extraDistance or 0
 	local radius = G.DefenseRadius + extraDistance
 	assert(radius >= 0, "extraDistance must not be smaller than -G.DefenseRadius")
 
-	// calculate length of defense border (arc - line - arc)
+	-- calculate length of defense border (arc - line - arc)
 	local arcway = radius * math.pi/2
 	local lineway = G.DefenseStretch
 	local totalway = 2 * arcway + lineway
 
-	// calculate global positions
+	-- calculate global positions
 	local oppfac = friendly and 1 or -1
 	local leftCenter = Vector(-G.DefenseStretchHalf, -G.FieldHeightHalf) * oppfac
 	local rightCenter = Vector(G.DefenseStretchHalf, -G.FieldHeightHalf) * oppfac
 
-	// calclulate global angles
+	-- calclulate global angles
 	local oppadd = friendly and 0 or math.pi
 	local to_opponent = normalize(oppadd + math.pi/2)
 	local to_friendly = normalize(oppadd - math.pi/2)
 
-	// calculate intersection points with defense arcs
+	-- calculate intersection points with defense arcs
 	local intersections = {}
 	local ileft = intersectRayArc(pos, dir, leftCenter, radius, to_opponent, to_friendly)
 	for _,i in ipairs(ileft) do
@@ -435,7 +435,7 @@ local intersectionsRayDefenseArea = function(pos, dir, extraDistance, friendly)
 		table.insert(intersections, {pos = i[1], l1 = (math.pi-i[2]) * radius + arcway + lineway})
 	end
 
-	// calculate intersection point with defense stretch
+	-- calculate intersection point with defense stretch
 	local defenseLineOnpoint = Vector(0, -G.FieldHeightHalf + radius) * oppfac
 	local lineIntersection,l1,l2 = geom.intersectLineLine(pos, dir, defenseLineOnpoint, Vector(1,0))
 	if lineIntersection and l1 >= 0 and math.abs(l2) <= G.DefenseStretchHalf then
@@ -447,7 +447,7 @@ end
 local function intersectRayDefenseArea_2017(pos, dir, extraDistance, friendly)
 	local intersections, totalway = intersectionsRayDefenseArea(pos, dir, extraDistance, friendly)
 
-	// choose nearest intersection
+	-- choose nearest intersection
 	local minDistance = math.huge
 	local minIntersection = nil
 	local minWay = totalway/2
@@ -462,22 +462,22 @@ local function intersectRayDefenseArea_2017(pos, dir, extraDistance, friendly)
 	return minIntersection, minWay
 end
 
-// FIXME: Calling intercetRayDefenseArea twice is bad because of floats: Sometimes there is still an intersection (because the result ist marginally outside the Defense area)
-// Or there is no intersecton (because the result is marginally inside the Defense area). To avoid this problem, one has to use a slightly larger radius in the first call.
+-- FIXME: Calling intercetRayDefenseArea twice is bad because of floats: Sometimes there is still an intersection (because the result ist marginally outside the Defense area)
+-- Or there is no intersecton (because the result is marginally inside the Defense area). To avoid this problem, one has to use a slightly larger radius in the first call.
 
-//- Returns one intersection of a given line with the (extended) defense area
-//- The intersection is the one with the smallest t in x = pos + t * dir, t >= 0
-// @name intersectRayDefenseArea
-// @param pos Vector - starting point of the line
-// @param dir Vector - the direction of the line
-// @param extraDistance number - gets added to G.DefenseRadius
-// @param opp bool - whether the opponent or the friendly defense area is considered
-// @return Vector - the intersection position (May also be behind the goalline)
-// @return number - the length of the way from the very left of the defense area to the
-// @return number - sector in which the intersection lies, left to right
-// 	the sectors are ordered as followes:
-// 2  3  4
-// 1     5
+--- Returns one intersection of a given line with the (extended) defense area
+--- The intersection is the one with the smallest t in x = pos + t * dir, t >= 0
+-- @name intersectRayDefenseArea
+-- @param pos Vector - starting point of the line
+-- @param dir Vector - the direction of the line
+-- @param extraDistance number - gets added to G.DefenseRadius
+-- @param opp bool - whether the opponent or the friendly defense area is considered
+-- @return Vector - the intersection position (May also be behind the goalline)
+-- @return number - the length of the way from the very left of the defense area to the
+-- @return number - sector in which the intersection lies, left to right
+-- 	the sectors are ordered as followes:
+-- 2  3  4
+-- 1     5
 if World.RULEVERSION == "2018" then
 	Field.intersectRayDefenseArea = intersectDefenseArea_2018
 	Field.intersectionsRayDefenseArea = intersectionsRayDefenseArea_2018
@@ -517,16 +517,16 @@ local function cornerPointsBetweenWays2017()
 	return {}
 end
 
-// return a list of all cornerpoints between the given ways
-// note that the radius has to be the same as with which the ways were calculated
-// the resulting points are ordered in the same way as the in put ways
-// @name cornerPointsBetweenWays
-// @param way1 number - the first way, doesn't have to be the lower one
-// @param way2 number - the second way
-// @param radius number - the radius of the defense area to be considered
-// @param friendly bool - whether to use the friendly or the opponent defense area
-// @return table - list of all corner points between the two ways
-//					the resulting points are radius away from the defense area
+-- return a list of all cornerpoints between the given ways
+-- note that the radius has to be the same as with which the ways were calculated
+-- the resulting points are ordered in the same way as the in put ways
+-- @name cornerPointsBetweenWays
+-- @param way1 number - the first way, doesn't have to be the lower one
+-- @param way2 number - the second way
+-- @param radius number - the radius of the defense area to be considered
+-- @param friendly bool - whether to use the friendly or the opponent defense area
+-- @return table - list of all corner points between the two ways
+--					the resulting points are radius away from the defense area
 if World.RULEVERSION == "2018" then
 	Field.cornerPointsBetweenWays = cornerPointsBetweenWays2018
 else
@@ -542,22 +542,22 @@ local function maxWay2017(radius)
 	return G.DefenseStretch + math.pi * (radius + G.DefenseRadius)
 end
 
-// return the maximum way that can be reached on the defense area with a given radius
-// @name maxWay
-// @param radius number - the radius for the defense area
-// @return number - the maximum way
+-- return the maximum way that can be reached on the defense area with a given radius
+-- @name maxWay
+-- @param radius number - the radius for the defense area
+-- @return number - the maximum way
 if World.RULEVERSION == "2018" then
 	Field.maxWay = maxWay2018
 else
 	Field.maxWay = maxWay2017
 end
 
-//- Return all line segments of the line segment pos to pos + dir * maxLength which are in the allowed field part
-// @name allowedLineSegments
-// @param pos Vector - starting point of the line
-// @param dir Vector - the direction of the line
-// @param maxLength number - length of the line segment, optional
-// @return table - contains n {pos1, pos2} tables representing the resulting line segments
+--- Return all line segments of the line segment pos to pos + dir * maxLength which are in the allowed field part
+-- @name allowedLineSegments
+-- @param pos Vector - starting point of the line
+-- @param dir Vector - the direction of the line
+-- @param maxLength number - length of the line segment, optional
+-- @return table - contains n {pos1, pos2} tables representing the resulting line segments
 function Field.allowedLineSegments(pos, dir, maxLength)
 	maxLength = maxLength or math.inf
 	local direction = dir:copy()
@@ -573,9 +573,9 @@ function Field.allowedLineSegments(pos, dir, maxLength)
 		if lambda > maxLength then
 			lambda = maxLength
 		end
-		// an offset 0f 0.05 is used here and below as the calculated point is on
-		// the border of the field anyways, otherwise it might flicker due to floating
-		// point inaccuracies
+		-- an offset 0f 0.05 is used here and below as the calculated point is on
+		-- the border of the field anyways, otherwise it might flicker due to floating
+		-- point inaccuracies
 		if lambda and Field.isInField(fieldPos[i], 0.05) and lambda > 0 then
 			table.insert(lambdas, lambda)
 		end
@@ -611,32 +611,32 @@ function Field.allowedLineSegments(pos, dir, maxLength)
 	return result
 end
 
-//- Calculates the point on the (extended) defense area when given the way along its border
-// @name defenseIntersectionByWay
-// @param way number - the way along the border
-// @param extraDistance number - gets added to G.DefenseRadius
-// @param friendly bool - whether the opponent or the friendly defense area is considered
-// @return Vector - the position
+--- Calculates the point on the (extended) defense area when given the way along its border
+-- @name defenseIntersectionByWay
+-- @param way number - the way along the border
+-- @param extraDistance number - gets added to G.DefenseRadius
+-- @param friendly bool - whether the opponent or the friendly defense area is considered
+-- @return Vector - the position
 local function defenseIntersectionByWay_2017(way, extraDistance, friendly)
-	// calculate defense radius
+	-- calculate defense radius
 	extraDistance = extraDistance or 0
 	local radius = G.DefenseRadius + extraDistance
 	if radius < 0 then
 		error("extraDistance must not be smaller than -G.DefenseRadius: "..tostring(extraDistance))
 	end
 
-	// calculate length of defense border (arc - line - arc)
+	-- calculate length of defense border (arc - line - arc)
 	local arcway = radius * math.pi/2
 	local lineway = G.DefenseStretch
 	local totalway = 2 * arcway + lineway
 
-	// bind way to [0, totalway] by mirroring it
-	// inserted way can be in [-2*totalway, 2*totalway]
+	-- bind way to [0, totalway] by mirroring it
+	-- inserted way can be in [-2*totalway, 2*totalway]
 	if way < 0 then
 		way = -way
 	end
 	if way > totalway then
-		way = 2*totalway - way // if abs(way) > 2*totalway, way will be negative and be eaten by the folling assert
+		way = 2*totalway - way -- if abs(way) > 2*totalway, way will be negative and be eaten by the folling assert
 	end
 
 	if way < 0 then
@@ -669,15 +669,15 @@ else
 	Field.defenseIntersectionByWay = defenseIntersectionByWay_2017
 end
 
-//- Calculates all intersections (0 to 4) of a given circle with the (extended) defense area
-// @name intersectCircleDefenseArea
-// @param pos Vector - center point of the circle
-// @param radius number - radius of the circle
-// @param extraDistance number - gets added to G.DefenseRadius
-// @param friendly bool - whether the opponent or the friendly defense area is considered
-// @return [Vector] - a list of intersection points, not sorted
+--- Calculates all intersections (0 to 4) of a given circle with the (extended) defense area
+-- @name intersectCircleDefenseArea
+-- @param pos Vector - center point of the circle
+-- @param radius number - radius of the circle
+-- @param extraDistance number - gets added to G.DefenseRadius
+-- @param friendly bool - whether the opponent or the friendly defense area is considered
+-- @return [Vector] - a list of intersection points, not sorted
 local function intersectCircleDefenseArea_2017(pos, radius, extraDistance, friendly)
-	// invert coordinates if opp-flag is set
+	-- invert coordinates if opp-flag is set
 	if friendly then pos = pos * -1 end
 
 	local leftCenter = Vector(-G.DefenseStretchHalf, G.FieldHeightHalf)
@@ -686,7 +686,7 @@ local function intersectCircleDefenseArea_2017(pos, radius, extraDistance, frien
 
 	local intersections = {}
 
-	// get intersections with circles
+	-- get intersections with circles
 	local li1, li2 = geom.intersectCircleCircle(leftCenter, defenseRadius, pos, radius)
 	local ri1, ri2 = geom.intersectCircleCircle(rightCenter, defenseRadius, pos, radius)
 	if li1 and li1.x < G.DefenseStretchHalf and li1.y < G.FieldHeightHalf then
@@ -702,7 +702,7 @@ local function intersectCircleDefenseArea_2017(pos, radius, extraDistance, frien
 		table.insert(intersections, ri2)
 	end
 
-	// get intersections with line
+	-- get intersections with line
 	local mi1, mi2 = geom.intersectLineCircle(
 				Vector(0, G.FieldHeightHalf-defenseRadius), Vector(1, 0), pos, radius)
 	if mi1 and math.abs(mi1.x) <= G.DefenseStretchHalf then
@@ -713,7 +713,7 @@ local function intersectCircleDefenseArea_2017(pos, radius, extraDistance, frien
 	end
 
 
-	// invert coordinates if opp-flag is set
+	-- invert coordinates if opp-flag is set
 	if friendly then
 		for i, intersection in ipairs(intersections) do
 			intersections[i] = intersection * -1
@@ -736,7 +736,7 @@ local function intersectCircleDefenseArea_2018(pos, radius, extraDistance, frien
 	corners[6] = Vector(corners[2].x, corners[2].y - extraDistance)
 	corners[7] = Vector(corners[3].x - extraDistance, corners[3].y)
 	corners[8] = Vector(corners[4].x, corners[4].y + extraDistance)
-	// invert coordinates if friendly-flag is set
+	-- invert coordinates if friendly-flag is set
 	if friendly then pos = pos * -1 end
 
 	local intersections = {}
@@ -747,7 +747,7 @@ local function intersectCircleDefenseArea_2018(pos, radius, extraDistance, frien
 	local dirPrev = corners[1] - corners[4]
 	for i=1,3 do
 		local dir = corners[i%4+1]-corners[i]
-		// get intersections with circles
+		-- get intersections with circles
 		if i > 1 and i < 4 then
 			ci1, ci2 = geom.intersectCircleCircle(zero, extraDistance, pos-corners[i], radius)
 			if ci1 and insideSector({dirPrev, -dir}, ci1) then
@@ -758,7 +758,7 @@ local function intersectCircleDefenseArea_2018(pos, radius, extraDistance, frien
 			end
 		end
 		dirPrev = dir
-		// get intersections with line
+		-- get intersections with line
 		li1, li2, lambda1, lambda2 = geom.intersectLineCircle(corners[i+4], dir, pos, radius)
 		if lambda1 and lambda1 >= 0 and lambda1*lambda1 < dir:lengthSq() then
 			table.insert(intersections, li1)
@@ -767,7 +767,7 @@ local function intersectCircleDefenseArea_2018(pos, radius, extraDistance, frien
 			table.insert(intersections, li2)
 		end
 	end
-	// invert coordinates if opp-flag is set
+	-- invert coordinates if opp-flag is set
 	if friendly then
 		for i, intersection in ipairs(intersections) do
 			intersections[i] = intersection * -1
@@ -783,11 +783,11 @@ else
 	Field.intersectCircleDefenseArea = intersectCircleDefenseArea_2017
 end
 
-//- Calculates the distance (between robot hull and field line) to the own goal line
-// @name distanceToFriendlyGoalLine
-// @param pos Vector - the position to check
-// @param radius number - Radius of object to check
-// @return number - distance
+--- Calculates the distance (between robot hull and field line) to the own goal line
+-- @name distanceToFriendlyGoalLine
+-- @param pos Vector - the position to check
+-- @param radius number - Radius of object to check
+-- @return number - distance
 function Field.distanceToFriendlyGoalLine(pos, radius)
 	if math.abs(pos.x) < G.GoalWidth/2 then
 		return math.max(G.FieldHeightHalf + pos.y - radius, 0)
@@ -796,22 +796,22 @@ function Field.distanceToFriendlyGoalLine(pos, radius)
 	return goalpost:distanceTo(pos) - radius
 end
 
-//- Check whether to position is in the teams own corner
-// @name isInOwnCorner
-// @param pos Vector - the position to check
-// @param opp bool - Do the check from the opponents point of view
-// @return bool
+--- Check whether to position is in the teams own corner
+-- @name isInOwnCorner
+-- @param pos Vector - the position to check
+-- @param opp bool - Do the check from the opponents point of view
+-- @return bool
 function Field.isInOwnCorner(pos, opp)
 	local oppfac = opp and 1 or -1
 	return (G.FieldWidthHalf - math.abs(pos.x))^2
 		+ (oppfac * G.FieldHeightHalf - pos.y)^2 < 1
 end
 
-//- The position, where the half-line given by startPos and dir intersects the next field boundary
-// @param startPos vector - the initial point of the half-line
-// @param dir vector - the direction of the half-line
-// @param [offset number - additional offset to move field lines further outwards]
-// @return [vector]
+--- The position, where the half-line given by startPos and dir intersects the next field boundary
+-- @param startPos vector - the initial point of the half-line
+-- @param dir vector - the direction of the half-line
+-- @param [offset number - additional offset to move field lines further outwards]
+-- @return [vector]
 function Field.nextLineCut(startPos, dir, offset)
 	if dir.x == 0 and dir.y == 0 then
 		return
@@ -837,13 +837,13 @@ function Field.nextLineCut(startPos, dir, offset)
 end
 
 
-//- Calculates the next intersection with the field boundaries or the defense areas
-// @name nextAllowedFieldLineCut
-// @param startPos vector - the initial point of the half-line
-// @param dir vector - the direction of the half-line
-// @param extraDistance number - the radius of the object (gets added to G.DefenseRadius)
-// @return Vector - minLineCut
-// @return Number - the lambda for the line cut
+--- Calculates the next intersection with the field boundaries or the defense areas
+-- @name nextAllowedFieldLineCut
+-- @param startPos vector - the initial point of the half-line
+-- @param dir vector - the direction of the half-line
+-- @param extraDistance number - the radius of the object (gets added to G.DefenseRadius)
+-- @return Vector - minLineCut
+-- @return Number - the lambda for the line cut
 function Field.nextAllowedFieldLineCut(startPos, dir, extraDistance)
 	local normalizedDir = dir:copy():normalize()
 	local perpendicularDir = normalizedDir:perpendicular()
@@ -870,10 +870,10 @@ function Field.nextAllowedFieldLineCut(startPos, dir, extraDistance)
 	return minLineCut, minLineCut and minLambda or 0
 end
 
-// Checks wether a position lies inside the friendly goal
-// @name isInFriendlyGoal
-// @param pos vector - the position to check
-// @return bool - is in friendly goal
+-- Checks wether a position lies inside the friendly goal
+-- @name isInFriendlyGoal
+-- @param pos vector - the position to check
+-- @return bool - is in friendly goal
 function Field.isInFriendlyGoal(pos)
 	return geom.insideRect(
 		G.FriendlyGoalLeft - Vector(0, G.GoalDepth),
@@ -882,10 +882,10 @@ function Field.isInFriendlyGoal(pos)
 	)
 end
 
-// Checks wether a position lies inside the opponent goal
-// @name isInOpponentGoal
-// @param pos vector - the position to check
-// @return bool - is in friendly goal
+-- Checks wether a position lies inside the opponent goal
+-- @name isInOpponentGoal
+-- @param pos vector - the position to check
+-- @return bool - is in friendly goal
 function Field.isInOpponentGoal(pos)
 	return geom.insideRect(
 		G.OpponentGoalRight + Vector(0, G.GoalDepth),

@@ -48,12 +48,12 @@ end
 
 local instanceMap = {}
 
-// returns an Entry object for the given name
-// if it didn't exist before then it's setup using nPoints and default values
-// to just get the Entry object these two parameters are optional
-// however omitting these values before the Entry is created will trigger an asserting
-function MovingAverage.get(name, nPoints, default) // -> factory
-	// check if an entry object for this name was already created
+-- returns an Entry object for the given name
+-- if it didn't exist before then it's setup using nPoints and default values
+-- to just get the Entry object these two parameters are optional
+-- however omitting these values before the Entry is created will trigger an asserting
+function MovingAverage.get(name, nPoints, default) -- -> factory
+	-- check if an entry object for this name was already created
 	local entry = instanceMap[name]
 	if entry then
 		return entry

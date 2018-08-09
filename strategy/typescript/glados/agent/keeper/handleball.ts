@@ -28,10 +28,10 @@ function HandleBall:check()
 	if Referee.isStopState() or Referee.isOpponentPenaltyState() or World.GameStage == "PenaltyShootout" then
 		return false
 	end
-	// if a slow ball enters the defense area
+	-- if a slow ball enters the defense area
 	local active = self:behindCenterbacks(World.Ball) and Ball.isSlowBall()
 	if active then
-		// force being mainAttacker
+		-- force being mainAttacker
 		self._hysteresis = true
 		self:_applyForMainAttacker(nil, nil, 2)
 	else
@@ -47,25 +47,25 @@ function HandleBall:_updateTask()
 	local startInside = Field.isInFriendlyDefenseArea(World.Ball.pos, -World.Ball.radius-self._robot.radius)
 	local endInside = Field.isInFriendlyDefenseArea(endPos, -World.Ball.radius-self._robot.radius)
 
-	// check if there is a danger of a own goal
+	-- check if there is a danger of a own goal
 	local ballDist = Field.distanceToFriendlyGoalLine(World.Ball.pos, 0)
 	local robotDist = Field.distanceToFriendlyGoalLine(self._robot.pos, 0)
 	local ballBehindKeeper = ballDist < robotDist
 
 	if startInside and endPos.y < World.Geometry.FriendlyGoal.y + 0.01 then
-		// if ball is inside defense area and will enter the goal -> block the ball
+		-- if ball is inside defense area and will enter the goal -> block the ball
 		return Keeper
 	elseif startInside and endInside and not ballBehindKeeper and self._inbox.passSuggestion() then
-		// if ball is inside defense area and will not leave it -> we have time to act
-		// try to find a good pass
+		-- if ball is inside defense area and will not leave it -> we have time to act
+		-- try to find a good pass
 		self._pass = Attack.choosePassFromSuggestions(self._robot, self._inbox.passSuggestion(), self._pass and self._pass.ballPos, false)
-		if self._pass then //check if there is a good pass, else chip away
+		if self._pass then --check if there is a good pass, else chip away
 			return Pass, { self._pass.target, self._pass.ballPos, true }
 		else
 			return KeeperChipAway
 		end
 	else
-		// if inside and ball will leave or outside -> get rid of the ball
+		-- if inside and ball will leave or outside -> get rid of the ball
 		return AggressiveKeeper
 	end
 end
