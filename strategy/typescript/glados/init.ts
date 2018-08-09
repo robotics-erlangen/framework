@@ -1,8 +1,8 @@
 /*require("../base/globalschecker").enable()
 require "../base/base"
-// luacheck: push globals Class
+-- luacheck: push globals Class
 Class = require "../base/class"
-// luacheck: pop
+-- luacheck: pop
 local Entrypoints = require "../base/entrypoints"
 local World = require "../base/world"
 
@@ -39,19 +39,19 @@ function preproc:isFinished()
 	return false
 end
 Processor.addPre(preproc)
-// local BallAnalyzer = require "observer/ballAnalyzer"
-// Processor.addPre(BallAnalyzer())
+-- local BallAnalyzer = require "observer/ballAnalyzer"
+-- Processor.addPre(BallAnalyzer())
 
 local lastMemoryUsage = 0
 local function deferredGarbageCollection()
 	local currentMemoryUsage = collectgarbage("count")
-	// plot.addPlot("memInGB", currentMemoryUsage/1024/1024)
+	-- plot.addPlot("memInGB", currentMemoryUsage/1024/1024)
 	local gcPauseThreshold = 2
 	if currentMemoryUsage > gcPauseThreshold * lastMemoryUsage then
 		local debt = currentMemoryUsage - lastMemoryUsage
-		// trigger collection of some amount of memory
+		-- trigger collection of some amount of memory
 		local cycleCompleted = collectgarbage("step", debt)
-		// disable gc again, it should only run after the strategy commands are passed on
+		-- disable gc again, it should only run after the strategy commands are passed on
 		collectgarbage("stop")
 		if cycleCompleted then
 			lastMemoryUsage = collectgarbage("count")
@@ -68,14 +68,14 @@ local wrapper = function (func)
 			if (frameCount % 100) == 0 then
 				log("Waiting for vision data...")
 			end
-			return // skip processing if no vision data is available yet
+			return -- skip processing if no vision data is available yet
 		end
 		debug.set("frame", frameCount)
-		//local time0 = amun.getCurrentTime()
+		--local time0 = amun.getCurrentTime()
 		Processor.pre()
-		//local time1 = amun.getCurrentTime()
-		//plot.addPlot("preproc time", (time1 - time0))
-		if not func() then // Entrypoint has to return true if robots shouldn't be stopped on halt
+		--local time1 = amun.getCurrentTime()
+		--plot.addPlot("preproc time", (time1 - time0))
+		if not func() then -- Entrypoint has to return true if robots shouldn't be stopped on halt
 			if World.RefereeState == "Halt" then
 				World.haltOwnRobots()
 			end

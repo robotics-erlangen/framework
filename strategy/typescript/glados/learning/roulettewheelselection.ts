@@ -3,11 +3,11 @@ local RouletteWheelSelection = {}
 local IO = require "util/io"
 
 
-//- creates a list of ratings with length n and a success rate of 50%
-// at the first report, the rating changes +- 10% (2 out of 4 -> 2 or 3 out of 5)
-// @param n number - the number of possible choices
-// @param module string - the name of the file in learning/parameters/
-// @return table[] - the array of success ratings (consisting of total, successful and percentage)
+--- creates a list of ratings with length n and a success rate of 50%
+-- at the first report, the rating changes +- 10% (2 out of 4 -> 2 or 3 out of 5)
+-- @param n number - the number of possible choices
+-- @param module string - the name of the file in learning/parameters/
+-- @return table[] - the array of success ratings (consisting of total, successful and percentage)
 function RouletteWheelSelection._readRatings(n, module)
 	module = "learning/parameters/"..module
 	local params = IO.read(module)
@@ -21,12 +21,12 @@ function RouletteWheelSelection._readRatings(n, module)
 	return successRates
 end
 
-//- decides randomly what to do
-// @param n number - the number of possible choices
-// @param module string - the name of the file in learning/parameters/
-// @param bitmap table [optional] - a bitmap, wheather a choice is currently allowed or not.
-// 			if not present, it is assumed, that all choices are allowed
-// @return number - the index of the choice
+--- decides randomly what to do
+-- @param n number - the number of possible choices
+-- @param module string - the name of the file in learning/parameters/
+-- @param bitmap table [optional] - a bitmap, wheather a choice is currently allowed or not.
+-- 			if not present, it is assumed, that all choices are allowed
+-- @return number - the index of the choice
 function RouletteWheelSelection.decide(module, n, bitmap)
 	local successRates = RouletteWheelSelection._readRatings(n, module)
 	local percSum = 0
@@ -48,11 +48,11 @@ function RouletteWheelSelection.decide(module, n, bitmap)
 	error("RouletteWheelSelection/decide - SHOULD NEVER HAPPEN")
 end
 
-//- tells the learning algorithm if the choice was successful
-// @param module string - the name of the file in learning/parameters/
-// @param n number - the number of possible choices
-// @param i number - the performed choice
-// @param success bool - if the choice was successful
+--- tells the learning algorithm if the choice was successful
+-- @param module string - the name of the file in learning/parameters/
+-- @param n number - the number of possible choices
+-- @param i number - the performed choice
+-- @param success bool - if the choice was successful
 function RouletteWheelSelection.report(module, n, i, success)
 	local successRates = RouletteWheelSelection._readRatings(n, module)
 	local rate = successRates[i]

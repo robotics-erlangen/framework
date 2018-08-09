@@ -15,16 +15,16 @@ context("base.class", function()
 	end)
 
 	test("class instance separation", function()
-		// check for basic class / instance semantic
+		-- check for basic class / instance semantic
 		local Base = Class("ClassIS")
 		Base.classAttribute = 14
 		Base.falseClassAttribute = false
 		function Base:init()
-			// class attributes must be visible
+			-- class attributes must be visible
 			assert_equal(self.classAttribute, 14)
 			assert_false(self.falseClassAttribute)
 
-			// instance attributes must not leak into the class
+			-- instance attributes must not leak into the class
 			self.instanceAttribute = 42
 			assert_equal(self.instanceAttribute, 42)
 		end
@@ -35,7 +35,7 @@ context("base.class", function()
 		assert_equal(instance.instanceAttribute, 42)
 		assert_nil(Base.instanceAttribute)
 
-		// Updated class attributes leak into the instance
+		-- Updated class attributes leak into the instance
 		Base.classAttribute = 42
 		assert_equal(Base.classAttribute, 42)
 		assert_equal(instance.classAttribute, 42)
@@ -45,7 +45,7 @@ context("base.class", function()
 		local paramValue = { "param" }
 		local Base = Class("ClassCP")
 		function Base:init(param, noParam)
-			// check parameter forwarding
+			-- check parameter forwarding
 			assert_equal(param, paramValue)
 			assert_nil(noParam)
 		end
@@ -56,7 +56,7 @@ context("base.class", function()
 		local paramValue = { "param" }
 		local Base = Class("ClassCP")
 		function Base:init(param, noParam, gapped)
-			// check parameter forwarding
+			-- check parameter forwarding
 			assert_equal(param, paramValue)
 			assert_nil(noParam)
 			assert_equal(gapped, "foobar")
@@ -68,7 +68,7 @@ context("base.class", function()
 		local Base = Class("ClassAO")
 		Base.overrideAttribute = "class"
 		function Base:init()
-			// overriding class attributes redefines them only for this instance
+			-- overriding class attributes redefines them only for this instance
 			assert_equal(self.overrideAttribute, "class")
 			self.overrideAttribute = "instance"
 			assert_equal(self.overrideAttribute, "instance")
@@ -78,14 +78,14 @@ context("base.class", function()
 		assert_equal(instance.overrideAttribute, "instance")
 		assert_equal(Base.overrideAttribute, "class")
 
-		// Updated class attributes leak into the instance unless shadowed by it
+		-- Updated class attributes leak into the instance unless shadowed by it
 		Base.overrideAttribute = "replaced"
 		assert_equal(Base.overrideAttribute, "replaced")
 		assert_equal(instance.overrideAttribute, "instance")
 	end)
 
 	test("unique class names", function()
-		// define class Unique
+		-- define class Unique
 		Class("Unique")
 		assert_error(function() Class("Unique") end,
 				"Class names must be unique")
@@ -105,7 +105,7 @@ context("base.class", function()
 		local instance = Super()
 		assert_equal(Class.toClass(Super), Super)
 		assert_equal(Class.toClass(instance), Super)
-		// error handling for non class things
+		-- error handling for non class things
 		assert_nil(Class.toClass(true, true), nil)
 		assert_error(function() Class.toClass(true) end)
 	end)
@@ -114,12 +114,12 @@ context("base.class", function()
 		local Middle = Class("MiddleCI", Super)
 		Middle.classAttribute = false
 		function Middle:init()
-			// attributes of super classes are immediatelly available
+			-- attributes of super classes are immediatelly available
 			assert_false(self.superClassAttribute)
-			// instance attributes only after calling the constructor
+			-- instance attributes only after calling the constructor
 			Super.init(self)
 			assert_nil(self.superInstanceAttribute)
-			// own attributes
+			-- own attributes
 			assert_false(self.classAttribute)
 			self.instanceAttribute = "middle"
 			assert_equal(self.instanceAttribute, "middle")
@@ -127,7 +127,7 @@ context("base.class", function()
 
 		local Child = Class("ChildCI", Middle)
 		function Child:init()
-			// instance attributes only after calling the constructor
+			-- instance attributes only after calling the constructor
 			Middle.init(self)
 
 			assert_false(self.superClassAttribute)
@@ -137,13 +137,13 @@ context("base.class", function()
 		end
 
 		local instance = Child()
-		// check for inherited attributes
+		-- check for inherited attributes
 		assert_false(instance.superClassAttribute)
 		assert_nil(instance.superInstanceAttribute)
 		assert_false(instance.classAttribute)
 		assert_equal(instance.instanceAttribute, "middle")
 
-		// Updated class attributes leak into the instance
+		-- Updated class attributes leak into the instance
 		Middle.classAttribute = "replaced"
 		assert_nil(Super.classAttribute)
 		assert_equal(Middle.classAttribute, "replaced")
@@ -175,14 +175,14 @@ context("base.class", function()
 		assert_equal(Child.overrideAttribute, "middle")
 		assert_equal(instance.overrideAttribute, "instance")
 
-		// Updated class attributes leak into the instance unless shadowed by it
+		-- Updated class attributes leak into the instance unless shadowed by it
 		Middle.overrideAttribute = "replaced"
 		assert_nil(Super.overrideAttribute)
 		assert_equal(Middle.overrideAttribute, "replaced")
 		assert_equal(Child.overrideAttribute, "replaced")
 		assert_equal(instance.overrideAttribute, "instance")
 
-		// only allow overwriting class attributes if they were shadowed by the constructor
+		-- only allow overwriting class attributes if they were shadowed by the constructor
 		assert_error(function() instance:writeClassAttribute() end,
 				"overwriting an class attribute outside the constructor must fail")
 		assert_not_error(function() instance:writeOverride() end,
@@ -237,7 +237,7 @@ context("base.class", function()
 			self.undefined = true
 		end
 		function Writer:writeDefined()
-			// check for correct nil and false handling
+			-- check for correct nil and false handling
 			self.isNil = nil
 			self.isNil = false
 			self.isNil = true
@@ -302,7 +302,7 @@ context("base.class", function()
 	test("mixin init params", function()
 		local Mixin = {}
 		function Mixin:init(noParam)
-			// mixin init gets no parameters
+			-- mixin init gets no parameters
 			assert_nil(noParam)
 			self.executed = true
 		end
@@ -417,7 +417,7 @@ context("base.class", function()
 
 	test("mixin reading undefined attributes", function()
 		local Mixin = {}
-		// luacheck: ignore tmp
+		-- luacheck: ignore tmp
 		function Mixin:init()
 			local tmp = self.undefined
 		end
@@ -454,7 +454,7 @@ context("base.class", function()
 	end)
 
 	test("mixin init reentrancy", function()
-		// Check that the proxy object can handle nested initializations
+		-- Check that the proxy object can handle nested initializations
 		local M3 = {}
 		function M3:init()
 			self.mixinAttribute = 4

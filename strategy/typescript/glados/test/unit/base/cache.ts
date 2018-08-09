@@ -24,11 +24,11 @@ context("base.cache", function ()
 		end
 		bar = Cache.forFrame(bar)
 
-		// unused and nil parameters should not pose problems (multiple calls are ok)
+		-- unused and nil parameters should not pose problems (multiple calls are ok)
 		local a = bar()
 		local b = bar("bla")
 		local c = bar(nil, 7)
-		// equal to a
+		-- equal to a
 		local d = bar(nil, nil, nil)
 		assert_equal(a, 4)
 		assert_equal(b, 4)
@@ -78,7 +78,7 @@ context("base.cache", function ()
 		multiReturn = Cache.forFrame(multiReturn)
 
 		local r1, r2, r3 = multiReturn()
-		// multiple return values should be possible
+		-- multiple return values should be possible
 		assert_equal(r1,1)
 		assert_equal(r2,2)
 		assert_equal(r3,3)
@@ -93,7 +93,7 @@ context("base.cache", function ()
 		end
 		heavy = Cache.forFrame(heavy)
 
-		// some number-crunching for time-measuring
+		-- some number-crunching for time-measuring
 		for _ = 1, 100000 do
 			heavy()
 		end

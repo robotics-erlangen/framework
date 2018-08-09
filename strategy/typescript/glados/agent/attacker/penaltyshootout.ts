@@ -19,9 +19,9 @@ local vis = require "../base/vis"
 local debug = require "../base/debug"
 
 
-local DISTANCE_TO_DEFENSE_AREA = 0.6 // the furthest we'll go before we shoot
+local DISTANCE_TO_DEFENSE_AREA = 0.6 -- the furthest we'll go before we shoot
 local MIN_RELATIVE_SECTOR_SIZE = 1/3
-local DRIBBLING_DISTANCE = 0.075 // Ball and Robot must be at least this far apart to reset dribbling
+local DRIBBLING_DISTANCE = 0.075 -- Ball and Robot must be at least this far apart to reset dribbling
 
 
 function PenaltyShootout:_stop()
@@ -41,12 +41,12 @@ function PenaltyShootout:check()
 	local mainAttacker = self._inbox.mainAttacker().trainer == self._robot
 	local isPenalty = World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive"
 	local isShootout = World.GameStage == "PenaltyShootout"
-	// log("")
-	// log("check")
-	// log("mainAttacker: "..tostring(mainAttacker))
-	// log("isPenalty: "..tostring(isPenalty))
-	// log("isShootout: "..tostring(isShootout))
-	// log("onGoing: "..tostring(self:_checkPenaltyOngoing()))
+	-- log("")
+	-- log("check")
+	-- log("mainAttacker: "..tostring(mainAttacker))
+	-- log("isPenalty: "..tostring(isPenalty))
+	-- log("isShootout: "..tostring(isShootout))
+	-- log("onGoing: "..tostring(self:_checkPenaltyOngoing()))
 	return mainAttacker and isShootout and (isPenalty or self:_checkPenaltyOngoing())
 end
 
@@ -55,13 +55,13 @@ function PenaltyShootout:_checkPenaltyOngoing()
 end
 
 function PenaltyShootout:_updateDribbling()
-	// log("update")
+	-- log("update")
 	if not self._contactPoint and Robot.hadBall(self._robot, 0) then
-		// log("1")
+		-- log("1")
 		self._contactPoint = self._robot.pos
 		self._changeContact = true
 	elseif self._contactPoint and World.Ball.pos:distanceTo(self._robot.pos) > DRIBBLING_DISTANCE + self._robot.radius + World.Ball.radius then
-		// log("2")
+		-- log("2")
 		self._contactPoint = nil
 		self._changeContact = true
 	else
@@ -133,20 +133,20 @@ function PenaltyShootout:_updateTask()
 	self:_updateDribbling()
 	self:_updateShootGoal()
 	debug.set("ShootGoalFlag", self._shootGoalFlag)
-	//log(self._shootGoalFlag)
+	--log(self._shootGoalFlag)
 	if lastContact then
 		vis.addCircle("1test", lastContact, 1, vis.colors.green, false)
 	end
 
 	if World.RefereeState == "PenaltyOffensive" and not self._penaltyStartTime then
-		// log("Start Time set")
+		-- log("Start Time set")
 		self._penaltyStartTime = World.Time
 	end
 
 	if World.RefereeState == "PenaltyOffensivePrepare" then
 		return MoveToStaticBall, {math.pi / 2, 0.1}
 	elseif self._shootGoalFlag then
-		return ShootGoal//, nil, true
+		return ShootGoal--, nil, true
 	elseif lastContact and lastContact:distanceTo(World.Ball.pos) > 1 + 0.3 then
 		return ShootGoal
 	elseif not lastContact or robotPos:distanceTo(World.Ball.pos) > self._robot.radius + World.Ball.radius + freeway then
@@ -154,7 +154,7 @@ function PenaltyShootout:_updateTask()
 	elseif lastContact and lastContact:distanceTo(World.Ball.pos) > 1 - 0.05 then
 		return StopAttack
 	elseif lastContact and lastContact:distanceTo(World.Ball.pos) > 1 - 0.3 then
-		//log("distance: "..lastContact:distanceTo(robotPos))
+		--log("distance: "..lastContact:distanceTo(robotPos))
 		local shootlength = (0.1 + self._robot.speed:length())
 		if self._lastKeeper.speed.y > 0.5 and self._robot.pos.y > 2 then
 			return Pass, {nil, World.Ball.pos + Vector(0.4, 0.5), false, nil, nil, shootlength*0.6}
@@ -167,18 +167,18 @@ function PenaltyShootout:_updateTask()
 		return MoveToBall, {0.00}
 	else
 		self._state = "dribble"
-		// self._robot:setDribblerSpeed(0.5)
-		// return MoveToBall, {-0.1}, self._changeContact
+		-- self._robot:setDribblerSpeed(0.5)
+		-- return MoveToBall, {-0.1}, self._changeContact
 		local rate = 0.02 * robotPos:distanceTo(keeperPos)
-		// if lastContact:distanceTo(World.Ball.pos) < 1 - 0.2 then
+		-- if lastContact:distanceTo(World.Ball.pos) < 1 - 0.2 then
 			if keeperPos.x < 0 then
 				self._addPos.x = (self._addPos.x + rate) / (1+math.abs(robotPos.x - keeperPos.x))
 			else
 				self._addPos.x = (self._addPos.x - rate) / (1+math.abs(robotPos.x - keeperPos.x))
 			end
-		// else
-		// 	self._addPos.x = 0
-		// end
+		-- else
+		-- 	self._addPos.x = 0
+		-- end
 		local dribblePoint = self._baseDribblePos + self._addPos
 		local intersection = Field.intersectRayDefenseArea(dribblePoint, robotPos - dribblePoint, 0.2, false)
 		if intersection then

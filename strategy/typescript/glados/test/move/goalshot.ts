@@ -10,7 +10,7 @@ local ShootGoal = require "task/attacker/shootgoal"
 GoalShot.MIN_ROBOTS = 1
 GoalShot.MAX_ROBOTS = 1
 
-local TIMES = 3 // number of goalshots per distance
+local TIMES = 3 -- number of goalshots per distance
 local INTERVAL = 0.5
 
 function GoalShot.canStart()
@@ -55,16 +55,16 @@ function GoalShot:_updateTasks()
 	local pos = Vector(0, self._distance)
 	if abort then
 		self._shotTime = nil
-		taskAssignments[self._robots[1*/ = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
+		taskAssignments[self._robots[1]] = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
 	elseif prep then
-		taskAssignments[self._robots[1*/ = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
+		taskAssignments[self._robots[1]] = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
 	elseif Ball.isShot() then
 		self._shotTime = World.Time
-		taskAssignments[self._robots[1*/ = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
+		taskAssignments[self._robots[1]] = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
 	elseif shoot then
-		taskAssignments[self._robots[1*/ = {class = ShootGoal}
+		taskAssignments[self._robots[1]] = {class = ShootGoal}
 	else
-		taskAssignments[self._robots[1*/ = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
+		taskAssignments[self._robots[1]] = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
 	end
 
 

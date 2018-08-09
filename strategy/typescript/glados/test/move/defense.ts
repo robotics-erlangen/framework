@@ -1,4 +1,4 @@
-/*
+--[[
 A move to test the defense.
 
 Usage:
@@ -21,7 +21,7 @@ If you want to include your newly written move in this test, please make sure to
 * Your canContnue should not continue forever, but stop as soon as the move is over. If canContinue is false, the attack will continue using dynamic attack. So it's very likely that you don't want to include your final goalshoot in your move, but only the first few passes and positions. At least you should stop your move in "Stop" and "GameForce".
 
 To add your move, simply add it to the MOVES table, like the other moves.
-*/
+]]
 
 
 local Defense = Class("Group.Move.Defense", require "group/move/base")
@@ -132,7 +132,7 @@ function Defense:_updateTasks()
 	elseif World.RefereeState == "BallPlacementDefensive" then
 		debug.set("distanceToSq", World.Ball.pos:distanceToSq(World.BallPlacementPos))
 		debug.set("speedSp", World.Ball.speed:lengthSq())
-		self._stopTime = nil // don't use parts of the graceTime for BallPlacement, relevant in the first run of this move
+		self._stopTime = nil -- don't use parts of the graceTime for BallPlacement, relevant in the first run of this move
 		UtilDebug.moveBall("Stop")
 	end
 	if self._visPolygon then
@@ -153,7 +153,7 @@ function Defense:_updateTasks()
 	end
 	debug.pop()
 	local graceTime = ((G.FieldWidth + G.FieldHeight) / Constants.stopSpeed)
-	if self._stopTime and (World.Time - self._stopTime) > graceTime then // wait for both teams to prepare
+	if self._stopTime and (World.Time - self._stopTime) > graceTime then -- wait for both teams to prepare
 		DebugCommands.sendRefereeCommand("IndirectOffensive")
 		self._stopTime = nil
 	elseif self._stopTime then

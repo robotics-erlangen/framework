@@ -12,7 +12,7 @@ local PathHelper = require "trajectory/pathhelper"
 local ToTarget = require "trajectory/totarget"
 
 
-local POSITION_PADDING = 0.02 // safety distance
+local POSITION_PADDING = 0.02 -- safety distance
 
 local CHIP_IMPACT_DIST_FROM_BORDER = 0.5
 local CHIP_DIST_FACTOR = 0.25
@@ -23,7 +23,7 @@ function AggressiveKeeper:run()
 	local moveDest
 	local ignoreBall
 	if World.Ball.pos.y < self._robot.pos.y + POSITION_PADDING then
-		// get between ball and goal
+		-- get between ball and goal
 		local ballDist = self._robot.radius + World.Ball.radius
 		moveDest = World.Ball.pos + (safeGoalMid - World.Ball.pos):setLength(ballDist) + Vector(0, -POSITION_PADDING)
 		ignoreBall = false
@@ -49,7 +49,7 @@ end
 local leftFriendlyCorner = Vector(-World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
 local rightFriendlyCorner = Vector(World.Geometry.FieldWidthHalf, -World.Geometry.FieldHeightHalf)
 
-// assume chips crossing this line might cross the goal line
+-- assume chips crossing this line might cross the goal line
 local leftNearBasePoint = Vector(-World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf-CHIP_GOAL_LINE_DIST)
 local rightNearBasePoint = Vector(World.Geometry.FieldWidthHalf, World.Geometry.FieldHeightHalf-CHIP_GOAL_LINE_DIST)
 local nearBaseLineDir = rightNearBasePoint-leftNearBasePoint
@@ -61,7 +61,7 @@ function AggressiveKeeper:_chipToBorderIfSafe()
 	local viewAngle = robotDir:angle()
 	local rigthCornerAngle = (rightFriendlyCorner - robotPos):angle()
 	local leftCornerAngle = (leftFriendlyCorner - robotPos):angle()
-	if viewAngle > rigthCornerAngle or viewAngle < leftCornerAngle then // not towards own goal line
+	if viewAngle > rigthCornerAngle or viewAngle < leftCornerAngle then -- not towards own goal line
 		local touchLineIntersection = Field.nextLineCut(robotPos, robotDir)
 		local chipPos = geom.intersectLineLine(robotPos, robotDir, leftNearBasePoint, nearBaseLineDir)
 
@@ -69,13 +69,13 @@ function AggressiveKeeper:_chipToBorderIfSafe()
 			if robotPos:distanceTo(touchLineIntersection) < robotPos:distanceTo(chipPos) then
 				chipPos = touchLineIntersection
 			end
-		elseif touchLineIntersection then // no nearBaseline
+		elseif touchLineIntersection then -- no nearBaseline
 			chipPos = touchLineIntersection
-		else // probably because ball is out of field
+		else -- probably because ball is out of field
 			chipPos = World.Geometry.OpponentGoal
 		end
 		local chipDist = World.Ball.pos:distanceTo(chipPos) - CHIP_IMPACT_DIST_FROM_BORDER
-		if chipPos ~= touchLineIntersection then // try to avoid icing if chipping towards the opponent goal line
+		if chipPos ~= touchLineIntersection then -- try to avoid icing if chipping towards the opponent goal line
 			chipDist = chipDist*CHIP_DIST_FACTOR
 		end
 

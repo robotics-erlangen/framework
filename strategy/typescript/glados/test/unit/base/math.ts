@@ -73,8 +73,8 @@ context("base.math", function()
 		assert_equal(x1, 2)
 		assert_equal(x2, 3)
 
-		// verify numeric stability
-		// (x-a)(x-b) = x*x-(a+b)*x+a*b = 0
+		-- verify numeric stability
+		-- (x-a)(x-b) = x*x-(a+b)*x+a*b = 0
 		local x1, x2 = math.solveSq(1, -1e9-1e-9, 1e9*1e-9)
 		assert_equal(x1, 1e-9)
 		assert_equal(x2, 1e9)

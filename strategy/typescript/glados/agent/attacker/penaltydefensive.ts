@@ -26,7 +26,7 @@ end
 
 function PenaltyShootoutDefensive:_updateTask()
 	if World.RefereeState == "PenaltyDefensive" and not self._penaltyStartTime then
-		// log("Start Time set")
+		-- log("Start Time set")
 		self._penaltyStartTime = World.Time
 	end
 

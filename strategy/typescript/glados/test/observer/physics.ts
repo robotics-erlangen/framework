@@ -34,8 +34,8 @@ function PhysicsTest.testBallVsRobotTime()
 	local s_max = 4
 	local s_step = 0.01
 
-	// local mintime = Physics.robotTimeToBall(robot, ball, targetPos, robot.maxSpeed)
-	// local balldist = Physics.ballAtTime(ball, mintime).pos.y
+	-- local mintime = Physics.robotTimeToBall(robot, ball, targetPos, robot.maxSpeed)
+	-- local balldist = Physics.ballAtTime(ball, mintime).pos.y
 
 	local values = {}
 	local optimum = nil
@@ -47,10 +47,10 @@ function PhysicsTest.testBallVsRobotTime()
 			optimum = t_ball
 		end
 
-		// local mttb_flag = "NaN"
-		// if s < balldist and s + s_step > balldist then
-		// 	mttb_flag = 0
-		// end
+		-- local mttb_flag = "NaN"
+		-- if s < balldist and s + s_step > balldist then
+		-- 	mttb_flag = 0
+		-- end
 		table.insert(values, t_diff .. " " .. s .. " 0")
 	end
 

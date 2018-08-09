@@ -1,9 +1,9 @@
-/*
-//- Provides a caching mechanism for function calls
+--[[
+--- Provides a caching mechanism for function calls
 module "Cache"
-*///
+]]--
 
-/************************************************************************
+--[[***********************************************************************
 *   Copyright 2015 Michael Eischer                                        *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -21,7 +21,7 @@ module "Cache"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
 
 local Cache = {}
 
@@ -53,7 +53,7 @@ local function setInCache(cached, params, result)
 	local entry = cached
 	for i = 0, pcount do
 		local param = params[i]
-		// nil can't be used as array index
+		-- nil can't be used as array index
 		if param == nil then
 			param = nilObj
 		end
@@ -88,24 +88,24 @@ local function makeCached(f, keepForever)
 	end
 end
 
-//- Wraps a function call, the returned value is cached for this strategy run
-// @name forFrame
-// @param f function - function to wrap
-// @return function - wrapped function
+--- Wraps a function call, the returned value is cached for this strategy run
+-- @name forFrame
+-- @param f function - function to wrap
+-- @return function - wrapped function
 function Cache.forFrame(f)
 	return makeCached(f, false)
 end
 
-//- Wraps a function call, the returned value is cached until the strategy is reloaded
-// @name forever
-// @param f function - function to wrap
-// @return function - wrapped function
+--- Wraps a function call, the returned value is cached until the strategy is reloaded
+-- @name forever
+-- @param f function - function to wrap
+-- @return function - wrapped function
 function Cache.forever(f)
 	return makeCached(f, true)
 end
 
-//- Clears the value cache for the current frame
-// @name resetFrame
+--- Clears the value cache for the current frame
+-- @name resetFrame
 function Cache.resetFrame()
 	for i = 1, #cleanup do
 		cleanup[i]()

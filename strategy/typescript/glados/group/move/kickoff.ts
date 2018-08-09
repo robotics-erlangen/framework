@@ -44,24 +44,24 @@ function KickOff:_updateTasks()
 	local taskAssignments = {}
 
 	if World.RefereeState == "KickoffOffensivePrepare" then
-		taskAssignments[self._robots[self._assignments[1*/] = { class = StopAttack, params = {} }
-		taskAssignments[self._robots[self._assignments[2*/] = { class = MoveToPos, params = { self._assistantPos[1] } }
+		taskAssignments[self._robots[self._assignments[1]]] = { class = StopAttack, params = {} }
+		taskAssignments[self._robots[self._assignments[2]]] = { class = MoveToPos, params = { self._assistantPos[1] } }
 		if #self._robots == 3 then
-			taskAssignments[self._robots[self._assignments[3*/] = { class = MoveToPos, params = { self._assistantPos[2] } }
+			taskAssignments[self._robots[self._assignments[3]]] = { class = MoveToPos, params = { self._assistantPos[2] } }
 		end
 	else
 		local _, passInfoTable = next(self._inbox.passInfo())
-		taskAssignments[self._robots[self._assignments[1*/] = { behavior = Freekick }
+		taskAssignments[self._robots[self._assignments[1]]] = { behavior = Freekick }
 		for i=1,#self._robots-1 do
-			if Attack.checkPassInfos(self._robots[self._assignments[i+1*/, passInfoTable, false) then
-				taskAssignments[self._robots[self._assignments[i+1*/] = { class = AcceptPass }
+			if Attack.checkPassInfos(self._robots[self._assignments[i+1]], passInfoTable, false) then
+				taskAssignments[self._robots[self._assignments[i+1]]] = { class = AcceptPass }
 			else
-				taskAssignments[self._robots[self._assignments[i+1*/] = { class = Striker, params = { self._assistantPos[i], self._passDest[i] } }
+				taskAssignments[self._robots[self._assignments[i+1]]] = { class = Striker, params = { self._assistantPos[i], self._passDest[i] } }
 			end
 		end
 	end
 
-	return taskAssignments, self._robots[self._assignments[1*/
+	return taskAssignments, self._robots[self._assignments[1]]
 end
 
 return KickOff

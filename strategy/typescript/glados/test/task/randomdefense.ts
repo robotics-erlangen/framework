@@ -7,19 +7,19 @@ local TestHelper = require "test/helper/agent"
 local G = World.Geometry
 local N = 3
 
-////////////////////////////-
-//////// ! CAUTION ! ////////
-////////////////////////////-
-// in task/centerback:     //
-// increase "getImportant" //
-// drastically to avoid    //
-// collisions              //
-////////////////////////////-
+-----------------------------
+-------- ! CAUTION ! --------
+-----------------------------
+-- in task/centerback:     --
+-- increase "getImportant" --
+-- drastically to avoid    --
+-- collisions              --
+-----------------------------
 
 local Defend = Class("Test.Task.RandomDefense.Defend", require "agent/base/behavior")
 
 function Defend:check()
-	// disable behavior to trigger a reset
+	-- disable behavior to trigger a reset
 	return math.random() >= 0.003
 end
 

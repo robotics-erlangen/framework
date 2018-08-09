@@ -1,12 +1,12 @@
 /*
-//- API for Ra. <br/>
+/// API for Ra. <br/>
 // Amun offers serveral guarantees to the strategy: <br/>
 // The values returned by getGeometry, getTeam, isBlue are guaranteed to remain constant for the whole strategy runtime.
 // That is if any of the values changes the strategy is restarted! <br/>
 // If coordinates are passed via the API these values are using <strong>global</strong> coordinates!
 // This API may only be used by coded that provides a mapping between Amun and Strategy
 module "amun"
-*///
+*/
 
 /**************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
@@ -28,47 +28,47 @@ module "amun"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-//- Returns world state
+/// Returns world state
 // @class function
 // @name getWorldState
 // @return protobuf.world.State - converted to lua table
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Returns world geometry
+/// Returns world geometry
 // @class function
 // @name getGeometry
 // @return protobuf.world.Geometry - converted to lua table
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Returns team information
+/// Returns team information
 // @class function
 // @name getTeam
 // @return protobuf.robot.Team - converted to lua table
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Query team color
+/// Query team color
 // @class function
 // @name isBlue
 // @return bool - true if this is the blue team, false otherwise
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Add a visualization
+/// Add a visualization
 // @class function
 // @name addVisualization
 // @param vis protobuf.amun.Visualization as table
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Add a circle
+/// Add a circle
 // @class function
 // @name addVisualizationCircle
 // @param string name
@@ -84,9 +84,9 @@ separator for luadoc*///
 // @param number linewidth
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Set commands for a robot
+/// Set commands for a robot
 // @class function
 // @name setCommand
 // @param int generation
@@ -94,9 +94,9 @@ separator for luadoc*///
 // @param cmd protobuf.robot.StrategyCommand
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Log function.
+/// Log function.
 // If data is a string use ... as parameters for format.
 // Otherweise logs tostring(data)
 // @class function
@@ -105,67 +105,67 @@ separator for luadoc*///
 // @param ... any - params for format (optional)
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Returns game state and referee information
+/// Returns game state and referee information
 // @class function
 // @name getGameState
 // @return protobuf.GameState - converted to lua table
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Returns the user input
+/// Returns the user input
 // @class function
 // @name getUserInput
 // @return protobuf.UserInput - converted to lua table
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Returns current time
+/// Returns current time
 // @class function
 // @name getCurrentTime
 // @return Number - time in nanoseconds (amun), seconds(strategy)
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Returns the absolute path to the folder containing the init script
+/// Returns the absolute path to the folder containing the init script
 // @class function
 // @name getStrategyPath
 // @return String - path
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Returns list with names of enabled options
+/// Returns list with names of enabled options
 // @class function
 // @name getSelectedOptions
 // @return String[] - options
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Sets a value in the debug tree
+/// Sets a value in the debug tree
 // @class function
 // @name addDebug
 // @param key string
 // @param value number|bool|string|nil
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Add a value to the plotter
+/// Add a value to the plotter
 // @class function
 // @name addPlot
 // @param name string
 // @param value number
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Set the exchange symbol for a robot
+/// Set the exchange symbol for a robot
 // @class function
 // @name setRobotExchangeSymbol
 // @param generation number
@@ -173,33 +173,33 @@ separator for luadoc*///
 // @param exchange bool
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Send arbitrary commands. Only works in debug mode
+/// Send arbitrary commands. Only works in debug mode
 // @class function
 // @name sendCommand
 // @param command amun.Command
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Send internal referee command. Only works in debug mode. Must be fully populated
+/// Send internal referee command. Only works in debug mode. Must be fully populated
 // @class function
 // @name sendRefereeCommand
 // @param command SSL_Referee
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Send mixed team info packet
+/// Send mixed team info packet
 // @class function
 // @name sendMixedTeamInfo
 // @param data ssl::TeamPlan
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Send referee command over network. Only works in debug mode or as autoref. Must be fully populated
+/// Send referee command over network. Only works in debug mode or as autoref. Must be fully populated
 // Only sends the data passed to the last call of this function during a strategy run.
 // The command_counter must be increased for every command change
 // @class function
@@ -207,31 +207,31 @@ separator for luadoc*///
 // @param command SSL_Referee
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Write output to debugger console
+/// Write output to debugger console
 // @class function
 // @name debuggerWrite
 // @param line string
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Wait for and read input from debugger console
+/// Wait for and read input from debugger console
 // @class function
 // @name debuggerRead
 // @return line string
 
 /*
-separator for luadoc*///
+separator for luadoc*/
 
-//- Check if performance mode is active
+/// Check if performance mode is active
 // @class function
 // @name getPerformanceMode
 // @return mode boolean
 
 
-//- Fetch the last referee remote control request reply
+/// Fetch the last referee remote control request reply
 // @class function
 // @name nextRefboxReply
 // @return reply table - the last reply or nil if none is available

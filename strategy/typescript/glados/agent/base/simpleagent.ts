@@ -4,8 +4,8 @@ local SimpleAgent = Class("Agent.Base.SimpleAgent", Base)
 local World = require "../base/world"
 
 
-// Child class must set _behaviors
-// SimpleAgent._behaviors = {}
+-- Child class must set _behaviors
+-- SimpleAgent._behaviors = {}
 
 function SimpleAgent:init(robot, messaging)
 	Base.init(self, robot, messaging)

@@ -3,13 +3,13 @@ local BallRotate = Class("Trajectory.BallRotate", (require "../base/trajectory")
 local Coordinates = require "../base/coordinates"
 
 
-// only works for hidden robots
+-- only works for hidden robots
 function BallRotate:_init()
 end
 
 function BallRotate:update(speedForward, radius, turnRight)
-	local mu = 0.15  // friction between ball and floor
-	local g = 9.81  // gravity
+	local mu = 0.15  -- friction between ball and floor
+	local g = 9.81  -- gravity
 	local omega = speedForward / radius
 	local dirSign = turnRight and -1 or 1
 
@@ -17,8 +17,8 @@ function BallRotate:update(speedForward, radius, turnRight)
 	local localSpeed = Vector.fromAngle(dirSign * phi) * speedForward
 	self._robot:setDribblerSpeed(0.08)
 
-	// assert(not self._robot.isVisible, "can only control invisible robots")
-	//return { v_f = localSpeed.x, v_s = localSpeed.y, omega = dirSign * omega }, self._robot.pos, 0
+	-- assert(not self._robot.isVisible, "can only control invisible robots")
+	--return { v_f = localSpeed.x, v_s = localSpeed.y, omega = dirSign * omega }, self._robot.pos, 0
 
 
 	local robotPos = Coordinates.toGlobal(self._robot.pos)

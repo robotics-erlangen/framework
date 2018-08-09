@@ -33,7 +33,7 @@ friendlyDynamics.acceleration = table.copy(friendlyDynamics.acceleration)
 
 function Robot.estimateRobotDynamics()
 	if World.TimeDiff < 0.001 then
-		// don't do anything if the timediff is far below the regular 10 ms
+		-- don't do anything if the timediff is far below the regular 10 ms
 		return
 	end
 
@@ -48,8 +48,8 @@ function Robot.estimateRobotDynamics()
 		localRobotSpeed.y = math.abs(localRobotSpeed.y)
 		local localRobotDir = math.abs(robot.angularSpeed)
 		if lastLocalSpeed[robot] then
-			local accel = (localRobotSpeed - lastLocalSpeed[robot]):scaleLength(invTimeDiff)  // classic derivative without smoothing
-			accelerationSmoothed[robot] = accel:scaleLength(alpha) + (accelerationSmoothed[robot] or nullVector) * (1 - alpha) // smoothed acceleration curve
+			local accel = (localRobotSpeed - lastLocalSpeed[robot]):scaleLength(invTimeDiff)  -- classic derivative without smoothing
+			accelerationSmoothed[robot] = accel:scaleLength(alpha) + (accelerationSmoothed[robot] or nullVector) * (1 - alpha) -- smoothed acceleration curve
 		end
 		if lastRotation[robot] then
 			local accel = (localRobotDir - lastRotation[robot]) * invTimeDiff
@@ -109,12 +109,12 @@ end
 local hadBallTimes = {}
 local inverseHadBallTimes = {}
 
-// Robot.hadBall(self._robot, 0) is equivalent to self._robot:hasBall(World.Ball)
+-- Robot.hadBall(self._robot, 0) is equivalent to self._robot:hasBall(World.Ball)
 function Robot.hadBall(robot, time)
 	return hadBallTimes[robot] and World.Time - hadBallTimes[robot] <= time
 end
 
-// returns true if the robot has the ball for at least <time> seconds, continuously
+-- returns true if the robot has the ball for at least <time> seconds, continuously
 function Robot.controlsBall(robot, time)
 	return inverseHadBallTimes[robot] and World.Time - inverseHadBallTimes[robot] >= time
 end
@@ -191,14 +191,14 @@ local function updateOwnStandardShooter()
 			end
 		end
 	elseif World.RefereeState == "Game" and standardShooterRobot then
-		// reset when any other robot touches the ball
+		-- reset when any other robot touches the ball
 		for _, robot in ipairs(World.Robots) do
 			if robot ~= standardShooterRobot and Robot.touchedBall(robot, 0) then
 				standardShooterRobot = nil
 			end
 		end
 	else
-		// reset in any other states
+		-- reset in any other states
 		standardShooterRobot = nil
 	end
 end
@@ -224,12 +224,12 @@ local function calculateWayForPosition(pos, goal, radius, friendly)
 	return robotWay
 end
 
-// calculates the time a robot needs around the defense area
-// if robotway is set it has to be the way of the intersection of robot.pos with
-// the defense area in the direction of the goal with the given radius
-// this function does not make sense when either robot.pos or targetPos are far away from the defense area
-// either targetPos or targetWay is optional, but one of the two has to be given
-// endSpeed is a number
+-- calculates the time a robot needs around the defense area
+-- if robotway is set it has to be the way of the intersection of robot.pos with
+-- the defense area in the direction of the goal with the given radius
+-- this function does not make sense when either robot.pos or targetPos are far away from the defense area
+-- either targetPos or targetWay is optional, but one of the two has to be given
+-- endSpeed is a number
 function Robot.timeAroundDefenseAreaByWay(robot, robotWay, targetPos, targetWay, radius, friendly, endSpeed)
 	if not targetPos and not targetWay then
 		error("target information have to be present")

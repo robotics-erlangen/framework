@@ -60,10 +60,10 @@ local function assignRobotsToZones(robotPositions, zones)
 
 	local zoneAssignment = {}
 	for i, zone in ipairs(zones) do
-		zoneAssignment[zone] = robots[assignment[i*/
+		zoneAssignment[zone] = robots[assignment[i]]
 	end
 
-	// visualize assignments
+	-- visualize assignments
 	if not amun.isPerformanceMode then
 		for zone, robot in pairs(zoneAssignment) do
 			vis.addPath("g/striker: zone assignment", {zone.defaultPos, robot.pos}, vis.colors.white)
@@ -79,16 +79,16 @@ function Striker:_updateZones(robots)
 	local totalBottom = -G.FieldHeightQuarter
 
 	local nStrikers = #robots
-	local remainingZones = nStrikers + 1 // one zone will stay empty
+	local remainingZones = nStrikers + 1 -- one zone will stay empty
 	self._strikerCount = nStrikers
 
-	// reset the zones
+	-- reset the zones
 	self._zones = {}
 	if remainingZones == 0 then
 		return
 	end
 
-	// create midfield zone
+	-- create midfield zone
 	do
 		local boundaries = { left = totalLeft, right = totalRight, top = G.FieldHeightHalf/4, bottom = totalBottom }
 		local defaultPos = getDefaultPosition(boundaries)
@@ -96,7 +96,7 @@ function Striker:_updateZones(robots)
 		remainingZones = remainingZones - 1
 	end
 
-	// create offensive zones
+	-- create offensive zones
 	local zoneWidth = (totalRight - totalLeft) / remainingZones
 	for i = 1, remainingZones do
 		local boundaries = { left = totalLeft + (i - 1) * zoneWidth, right = totalLeft + i * zoneWidth,
@@ -105,7 +105,7 @@ function Striker:_updateZones(robots)
 		table.insert(self._zones, {boundaries = boundaries, defaultPos = defaultPos})
 	end
 
-	// reset empty zone hysteresis
+	-- reset empty zone hysteresis
 	self._emptyZone = nil
 end
 
@@ -123,7 +123,7 @@ function Striker:_chooseEmptyZone(mainAttackerPos)
 		end
 	end
 
-	// default: midfield zone is empty
+	-- default: midfield zone is empty
 	if not self._emptyZone and #self._zones > 0 then
 		self._emptyZone = self._zones[1]
 	end
@@ -134,7 +134,7 @@ function Striker:run(sender, inbox, messages)
 	local mainAttacker = inbox.mainAttacker().trainer
 	local prevEmptyZone = self._emptyZone
 
-	// if the mainAttacker changes, assume that the previous mainAttacker becomes a striker instead
+	-- if the mainAttacker changes, assume that the previous mainAttacker becomes a striker instead
 	local robotsTmp = {}
 	for _, robot in ipairs(robots) do
 		if robot == mainAttacker and self._lastMainAttacker then
@@ -145,7 +145,7 @@ function Striker:run(sender, inbox, messages)
 	end
 	robots = robotsTmp
 
-	// update assignments if necessary
+	-- update assignments if necessary
 	local updateAssignments = not self._lastRobots or not self._lastAssignments or #robots ~= #self._lastRobots
 	if not updateAssignments then
 		for i, r in ipairs(robots) do
@@ -156,24 +156,24 @@ function Striker:run(sender, inbox, messages)
 		end
 	end
 
-	// update zones if necessary
+	-- update zones if necessary
 	if #robots ~= self._strikerCount then
 		updateAssignments = true
 		self:_updateZones(robots)
 	end
 
-	// choose which zone is occupied by the mainAttacker
+	-- choose which zone is occupied by the mainAttacker
 	local mainAttackerPos = nil
 	if mainAttacker then
 		mainAttackerPos = inbox.attackPosition()[mainAttacker] or mainAttacker.pos
 	end
 	self:_chooseEmptyZone(mainAttackerPos)
 
-	//update assignments if empty zone changed
+	--update assignments if empty zone changed
 	updateAssignments = updateAssignments or self._emptyZone ~= prevEmptyZone
 
-	// assign the zones to the nearest strikers
-	local robotPositions = {} // robot -> pos
+	-- assign the zones to the nearest strikers
+	local robotPositions = {} -- robot -> pos
 	local _, passInfoTable = next(inbox.passInfo())
 	for _, r in ipairs(robots) do
 		local pos = r.pos
@@ -187,7 +187,7 @@ function Striker:run(sender, inbox, messages)
 		robotPositions[r] = pos
 	end
 
-	local zoneList = {} // { zone }
+	local zoneList = {} -- { zone }
 	for _, zone in ipairs(self._zones) do
 		if zone ~= self._emptyZone then
 			table.insert(zoneList, zone)

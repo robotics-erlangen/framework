@@ -27,10 +27,10 @@ local BallAgent = Class("Test.Task.BallRotate.Agent", require "agent/base/simple
 BallAgent._behaviors = {
 	TestBehaviour
 }
-// local SimpleAgent = require "agent/base/simpleagent"
-// function SimpleAgent.checkRobot(robot)
-// 	return robot ~= World.FriendlyKeeper and not robot.userControl
-// end
+-- local SimpleAgent = require "agent/base/simpleagent"
+-- function SimpleAgent.checkRobot(robot)
+-- 	return robot ~= World.FriendlyKeeper and not robot.userControl
+-- end
 
 
 

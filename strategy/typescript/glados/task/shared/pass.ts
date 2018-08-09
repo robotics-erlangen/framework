@@ -22,7 +22,7 @@ function Pass:_init(targetRobot, targetPos, chip, ballReceiptPos, targetTime, ta
 	self._passSpeed = targetSpeed or targetRobot and self._targetRobot.constants.passSpeed or DEFAULT_PASS_SPEED
 	self._ballReceiptPos = ballReceiptPos
 
-	// retrieve targetPos from messages if no argument was given
+	-- retrieve targetPos from messages if no argument was given
 	if not targetPos then
 		assert(targetRobot,"anonymous passes need to have a targetPos")
 		local sugg = self._inbox.passSuggestion()[targetRobot]

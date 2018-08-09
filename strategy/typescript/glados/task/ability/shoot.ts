@@ -1,7 +1,7 @@
 local CatchBall = require "task/ability/catchball"
 local ForceShoot = require "task/ability/forceshoot"
 local Shoot = {}
-// note: CatchBall depends on Volley
+-- note: CatchBall depends on Volley
 Shoot.depends = { CatchBall, ForceShoot }
 
 local debug = require "../base/debug"
@@ -19,49 +19,49 @@ local ToTarget = require "trajectory/totarget"
 local Rating = require "util/rating"
 
 
-// if the ball speed is lower than RESTING_BALL_SPEED
-// the ball is resting or at least very slow
+-- if the ball speed is lower than RESTING_BALL_SPEED
+-- the ball is resting or at least very slow
 local RESTING_BALL_SPEED = 0.2
 local RESTING_BALL_SPEED_HYST = 0.1
 
-// if the ball speed is lower than WOBBLING_BALL_SPEED
-// the ball is probably resting
-local WOBBLING_BALL_SPEED = 0.8
+-- if the ball speed is lower than WOBBLING_BALL_SPEED
+-- the ball is probably resting
+local WOBBLING_BALL_SPEED = 0.5
 local WOBBLING_BALL_SPEED_HYST = 0.3
 
-// if the ball movement direction and the shoot direction differ less than CHASE_BALL_ANGLE
-// we chase the ball instead of stopping it
+-- if the ball movement direction and the shoot direction differ less than CHASE_BALL_ANGLE
+-- we chase the ball instead of stopping it
 local CHASE_BALL_ANGLE = 70 * math.pi / 180
 local CHASE_BALL_ANGLE_HYST = 5 * math.pi / 180
 local CHASE_BALL_SIDE_SPEED = 1.25
 local CHASE_BALL_SIDE_SPEED_HYST = 0.25
 
-// if inverse ball movement direction and the shoot direction differ less than VOLLEY_ANGLE
-// we can shoot the ball as soon as it touches the dribbler instead of stopping it
+-- if inverse ball movement direction and the shoot direction differ less than VOLLEY_ANGLE
+-- we can shoot the ball as soon as it touches the dribbler instead of stopping it
 local VOLLEY_ANGLE = 70 * math.pi / 180
 local VOLLEY_ANGLE_HYST = 5 * math.pi / 180
 local VOLLEY_ENABLED = true
 
-// direct movement
+-- direct movement
 local EXTRA_MOVE_SPEED_LIMIT = 0.5
 local SIDEWARDS_KP = 9
 local SIDEWARDS_KI = 2.4
 local SIDEWARDS_SPEED_LIMIT = 0.5
 
-// chip distance scaling factor for passes
+-- chip distance scaling factor for passes
 local CHIP_PASS_DISTANCE_FACTOR = 0.4
 
-// if the robot view direction and the shoot direction differ less than MIN_PRECISION
-// the robot is allowed to shoot the ball
+-- if the robot view direction and the shoot direction differ less than MIN_PRECISION
+-- the robot is allowed to shoot the ball
 local MIN_PRECISION = 3.5 * math.pi / 180
 local MIN_PRECISION_CHASE = 6 * math.pi / 180
 
 
 function Shoot:init()
-	// possible values = { StationaryBall, ChaseBall, Volley, StopBall }
+	-- possible values = { StationaryBall, ChaseBall, Volley, StopBall }
 	self._state = nil
 
-	// direct movement
+	-- direct movement
 	self._directExtraSpeed = 0
 	self._sideOffsetErrorSum = 0
 
@@ -87,7 +87,7 @@ function Shoot:_setObstacles(moveDest)
 		local distToBall = moveDest:distanceTo(World.Ball.pos)
 		local obstacleSize = Rating.valueToRating(distToBall, 0.2, 0.4) * (World.Ball.radius + 0.01)
 		if obstacleSize > 0 then
-			// This obstacle should have the same priority as the ball obstacle in pathhelper
+			-- This obstacle should have the same priority as the ball obstacle in pathhelper
 			self._robot.path:addCircle(World.Ball.pos.x, World.Ball.pos.y, obstacleSize, "t/a/shoot ball", 84)
 		end
 	end
@@ -111,8 +111,8 @@ function Shoot:_calculateFutureBall(ballReceiptPos)
 	local ballTime = math.max(0, Physics.checkedBallTravelTime(World.Ball, futureBallPos))
 	local futureBall = Physics.ballAtTime(World.Ball, ballTime)
 
-	// if futureBall.pos:distanceTo(self._robot.pos) < self._robot.shootRadius + World.Ball.radius then
-	// end
+	-- if futureBall.pos:distanceTo(self._robot.pos) < self._robot.shootRadius + World.Ball.radius then
+	-- end
 
 	if World.Ball.pos:distanceTo(self._robot.pos) < self._robot.shootRadius + World.Ball.radius then
 		futureBall.pos = self._robot.pos + Vector.fromAngle(self._robot.dir) * (self._robot.shootRadius + World.Ball.radius)
@@ -146,7 +146,7 @@ function Shoot:_catchBallNecessary(moveDest, futureBallTime)
 end
 
 function Shoot:_getState(targetPos, futureBall, futureBallTime, targetTime, chaseFutureBall)
-	// check if the ball can be chased
+	-- check if the ball can be chased
 	local restingBallSpeed = RESTING_BALL_SPEED + (self._state == "ChaseBall" and -1 or 1) * RESTING_BALL_SPEED_HYST
 	local shootVector = targetPos - chaseFutureBall.pos
 	local angleDiff = chaseFutureBall.speed:absoluteAngleDiff(shootVector)
@@ -162,23 +162,23 @@ function Shoot:_getState(targetPos, futureBall, futureBallTime, targetTime, chas
 		return "ChaseBall"
 	end
 
-	// check if the ball is stationary
+	-- check if the ball is stationary
 	local wobblingBallSpeed = WOBBLING_BALL_SPEED + (self._state == "StationaryBall" and 1 or -1) * WOBBLING_BALL_SPEED_HYST
 	if not Ball.wasShot(0.5) and futureBall.speed:length() < wobblingBallSpeed then
 		return "StationaryBall"
 	end
 
-	// if the targetPos changed significantly, reset to stopBall
+	-- if the targetPos changed significantly, reset to stopBall
 	if self._lastTargetPos and targetPos:distanceTo(self._lastTargetPos) > 0.05 and futureBallTime > 0.35 then
 		self._state = "StopBall"
 	end
 
-	// don't redecide if the ball is very close
+	-- don't redecide if the ball is very close
 	if self._state ~= nil and futureBallTime < 0.3 then
 		return self._state
 	end
 
-	// check if the ball can be shot volley
+	-- check if the ball can be shot volley
 	local volleyAngle = VOLLEY_ANGLE + (self._state == "Volley" and 1 or -1) * VOLLEY_ANGLE_HYST
 	shootVector = targetPos - futureBall.pos
 	angleDiff = futureBall.speed:absoluteAngleDiff(shootVector)
@@ -190,7 +190,7 @@ function Shoot:_getState(targetPos, futureBall, futureBallTime, targetTime, chas
 		end
 	end
 
-	// otherwise stop the ball
+	-- otherwise stop the ball
 	return "StopBall"
 end
 
@@ -204,7 +204,7 @@ function Shoot:_correctSidewardsOffset()
 	self._sideOffsetErrorSum = math.bound(errorMin, self._sideOffsetErrorSum + SIDEWARDS_KI * p_out * World.TimeDiff, errorMax)
 	debug.set("Shoot/sideIntegral", self._sideOffsetErrorSum)
 
-	// correct sidewards pos error
+	-- correct sidewards pos error
 	return Vector.fromAngle(self._robot.dir):perpendicular():setLength(
 			math.bound(-SIDEWARDS_SPEED_LIMIT, p_out + self._sideOffsetErrorSum, SIDEWARDS_SPEED_LIMIT))
 end
@@ -251,7 +251,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 		speedupFactor = 0.8
 	end
 
-	// hysteresis to cope with mediocre vision
+	-- hysteresis to cope with mediocre vision
 	if self._directMovement then
 		maxSidewardsAngle = maxSidewardsAngle * 1.5
 		maxOrientationAngle = maxOrientationAngle * 1.5
@@ -265,7 +265,7 @@ function Shoot:_shootStationaryBall(targetPos, targetSpeed, targetTime, futureBa
 
 	debug.set("Shoot/AngleError", geom.normalizeAngle(math.abs(self._robot.dir - shootDir)) * 180 / math.pi)
 
-	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed) // TODO: calcPhi with stopped ball is questionable
+	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed) -- TODO: calcPhi with stopped ball is questionable
 	if targetTime then
 		local kickSpeedVector = (targetPos - futureBall.pos):setLength(kickSpeed)
 		local shootBall = { maxSpeed = kickSpeed, speed = kickSpeedVector }
@@ -315,7 +315,7 @@ function Shoot:_shootChaseBall(targetPos, targetSpeed, futureBall)
 
 	self._precision = MIN_PRECISION_CHASE
 
-	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed) // TODO: calcPhi with no relaitve speed is questionable
+	local targetDir, kickSpeed = self:calcPhi(futureBall.speed, futureBall.pos, targetPos, targetSpeed) -- TODO: calcPhi with no relaitve speed is questionable
 
 	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
 	local moveDest = futureBall.pos - dribblerOffset
@@ -341,13 +341,13 @@ function Shoot:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 	local dribblerOffset = Vector.fromAngle(targetDir) * (self._robot.shootRadius + World.Ball.radius)
 	local moveDest = futureBall.pos - dribblerOffset
 
-	// don't follow the ball if it is inside the robot (because of the ball extrapolation)
+	-- don't follow the ball if it is inside the robot (because of the ball extrapolation)
 	if World.Time - self._lastBallInsideRobotTime < 0.1 then
 		moveDest = self._robot.pos
 	end
 	debug.set("ballinsiderobot", World.Time - self._lastBallInsideRobotTime)
 
-	// don't look in the correct direction from the beginning
+	-- don't look in the correct direction from the beginning
 	local ball = table.copy(World.Ball)
 	local distance = ball.pos:distanceTo(futureBall.pos)
 	local ballTravelTime = Physics.ballTravelTime(ball, distance)
@@ -403,7 +403,7 @@ function Shoot:_shootStopBall(futureBall, futureBallTime)
 		self._catchBallActive = true
 	end
 
-	// activate dribbler to stop the ball
+	-- activate dribbler to stop the ball
 	if futureBallTime < 0.3 then
 		self._robot:setDribblerSpeed(0.6)
 	end
@@ -438,7 +438,7 @@ function Shoot:_doShoot(targetPos, targetSpeed, targetTime, ballReceiptPos, line
 	elseif self._state == "Volley" then
 		self:_shootVolley(targetPos, targetSpeed, futureBall, futureBallTime)
 		color = vis.colors.greenHalf
-	else // "StopBall"
+	else -- "StopBall"
 		self:_shootStopBall(futureBall, futureBallTime)
 		color = vis.colors.redHalf
 	end
@@ -455,30 +455,30 @@ function Shoot:_doShoot(targetPos, targetSpeed, targetTime, ballReceiptPos, line
 	self._lastTargetPos = targetPos
 end
 
-//- shoot the ball such that it reaches targetPos with a speed of targetSpeed
-// This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
-// and ignoreOpponentRobots obstacle parameters
-// @param targetPos Vector - where to shoot at
-// @param targetSpeed number - the velocity of the ball when it reaches targetPos
-// @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
+--- shoot the ball such that it reaches targetPos with a speed of targetSpeed
+-- This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
+-- and ignoreOpponentRobots obstacle parameters
+-- @param targetPos Vector - where to shoot at
+-- @param targetSpeed number - the velocity of the ball when it reaches targetPos
+-- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
 function Shoot:_shoot(targetPos, targetSpeed, targetTime, ballReceiptPos, precision)
 	self:_doShoot(targetPos, targetSpeed, targetTime, ballReceiptPos, true, precision)
 end
 
-//- chips the ball such that it hits the ground at firstContactPos
-// This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
-// and ignoreOpponentRobots obstacle parameters
-// @param firstContactPos Vector - where the ball hits the ground the first time
-// @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
+--- chips the ball such that it hits the ground at firstContactPos
+-- This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
+-- and ignoreOpponentRobots obstacle parameters
+-- @param firstContactPos Vector - where the ball hits the ground the first time
+-- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
 function Shoot:_chipToPos(firstContactPos, targetTime, ballReceiptPos, precision)
 	self:_doShoot(firstContactPos, 8, targetTime, ballReceiptPos, false, precision)
 end
 
-//- chips the ball such that it can be accepted at rollingBallPos
-// This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
-// and ignoreOpponentRobots obstacle parameters
-// @param rollingBallPos Vector - where the ball is starting to roll
-// @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
+--- chips the ball such that it can be accepted at rollingBallPos
+-- This ability will overwrite the ignoreBall, ignorePass, ignoreFriendlyRobots
+-- and ignoreOpponentRobots obstacle parameters
+-- @param rollingBallPos Vector - where the ball is starting to roll
+-- @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
 function Shoot:_chipPass(rollingBallPos, ballReceiptPos, targetTime, precision, manualChipDistFactor)
 	local origin
 	if ballReceiptPos and (ballReceiptPos - World.Ball.pos):dot(World.Ball.speed) > 0

@@ -20,10 +20,10 @@ function Duel:_stop()
 end
 
 local SAFTY_SPACE = 0.05
-local DIST_HYSTERESIS = 0.02 // must be always smaller than SAFTY_SPACE
+local DIST_HYSTERESIS = 0.02 -- must be always smaller than SAFTY_SPACE
 local MAX_BALL_SPEED = 1
 function Duel:genericCheck()
-	// if we receive the ball first, try shootgoal or something
+	-- if we receive the ball first, try shootgoal or something
 	local receivesPass = Ball.receivesPass(self._robot)
 	if receivesPass then
 		local firstAtBall = true
@@ -56,14 +56,14 @@ function Duel:genericCheck()
 		return false
 	end
 
-	// duel is not beneficial in opponent corners
+	-- duel is not beneficial in opponent corners
 	local cornerMinX = World.Geometry.FieldWidthHalf * (self._active and 0.7 or 0.6)
 	local cornerMinY = World.Geometry.FieldHeightHalf * (self._active and 0.6 or 0.5)
 	if World.Ball.pos.y > cornerMinY and math.abs(World.Ball.pos.x) > cornerMinX then
 		return false
 	end
 
-	// if an opponent controls the ball
+	-- if an opponent controls the ball
 	for _,opp in ipairs(World.OpponentRobots) do
 		if Robot.controlsBall(opp, 0.3) then
 			debug.set("duel check", "opponent controls ball")
@@ -71,7 +71,7 @@ function Duel:genericCheck()
 		end
 	end
 
-	// if the ball is shot fast at the opponent goal, dont duel it since it might be chipped by us
+	-- if the ball is shot fast at the opponent goal, dont duel it since it might be chipped by us
 	local ballSpeed = World.Ball.speed:length()
 	if ballSpeed > MAX_BALL_SPEED + (self._lastChippedHysteresis and 0 or 0.5) then
 		local intersection = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, World.Geometry.OpponentGoal, Vector(1, 0))
@@ -86,7 +86,7 @@ function Duel:genericCheck()
 		self._lastChippedHysteresis = false
 	end
 
-	// prefer passing instead of duelling when being in the opponent half of the field
+	-- prefer passing instead of duelling when being in the opponent half of the field
 	local ballYHysteresis = self._active and 1.0 or 0.0
 	local ballDefAreaHysteresis = self._active and 0.8 or 0.4
 	if World.Ball.pos.y > ballYHysteresis and Field.distanceToOpponentDefenseArea(World.Ball.pos, 0) > ballDefAreaHysteresis then
@@ -94,13 +94,13 @@ function Duel:genericCheck()
 		return false
 	end
 
-	// if the opponent controls the ball, duel him
+	-- if the opponent controls the ball, duel him
 	local ballOwner = Ball.opponentBallOwner() or Ball.opponentBallDribbler()
 	if ballOwner then
 		local dist = self._closerThanOpp and -SAFTY_SPACE or (-SAFTY_SPACE - DIST_HYSTERESIS)
 		local dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir) * self._robot.shootRadius
 		local ballOwnerDribblerPos = ballOwner.pos + Vector.fromAngle(ballOwner.dir) * ballOwner.shootRadius
-		// we are closer to the ball, so dont duel
+		-- we are closer to the ball, so dont duel
 		if (dribblerPos:distanceTo(World.Ball.pos) - ballOwnerDribblerPos:distanceTo(World.Ball.pos)) < dist then
 			self._closerThanOpp = true
 		else
@@ -114,8 +114,8 @@ function Duel:genericCheck()
 		self._closerThanOpp = false
 	end
 
-	// if any opponent receives the ball (and we don't), duel him
-	// this may cause duel to get active A LOT
+	-- if any opponent receives the ball (and we don't), duel him
+	-- this may cause duel to get active A LOT
 	for _,r in ipairs(World.OpponentRobots) do
 		if Ball.receivesPass(r) and r.pos:distanceTo(self._robot.pos) < 1 then
 			debug.set("duel check", "oppGetsBall")

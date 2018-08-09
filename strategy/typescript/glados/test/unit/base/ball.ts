@@ -62,7 +62,7 @@ context("base.ball", function()
 
 	test("speed tracking", function()
 		local ball = Ball()
-		// just a random value
+		-- just a random value
 		local time = 1234
 		assert_equal(ball.maxSpeed, 0)
 
@@ -74,7 +74,7 @@ context("base.ball", function()
 		assert_equal(ball.framesDecelerating, 3)
 		assert_equal(ball.maxSpeed, ballSpeed:length())
 
-		// stop ball
+		-- stop ball
 		ballSpeed = Vector(0, 0)
 		ball:_update(ballData(ballPos, ballSpeed, 0, 0), time)
 		assert_equal(ball.framesDecelerating, 4)
@@ -88,7 +88,7 @@ context("base.ball", function()
 
 		assert_equal(ball.deceleration, Constants.fastBallDeceleration)
 
-		// stop ball
+		-- stop ball
 		ballSpeed.x = ballSpeed.x * Constants.ballSwitchRatio - 0.01
 		ball:_update(ballData(ballPos, ballSpeed, 0, 0), time)
 		assert_equal(ball.deceleration, Constants.ballDeceleration)

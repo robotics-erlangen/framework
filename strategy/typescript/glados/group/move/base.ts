@@ -37,7 +37,7 @@ end
 function Base:updateTasks()
 	local assignments, mainAttacker = self:_updateTasks()
 	for _, assignment in pairs(assignments) do
-		assignment.restart = assignment.restart or self._firstFrame // TODO: test
+		assignment.restart = assignment.restart or self._firstFrame -- TODO: test
 	end
 	self._firstFrame = false
 	return assignments, mainAttacker

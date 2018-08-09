@@ -1,9 +1,9 @@
-/*
-//- Provides several useful geometric functions
+--[[
+--- Provides several useful geometric functions
 module "geom"
-*///
+]]--
 
-/************************************************************************
+--[[***********************************************************************
 *   Copyright 2017 Alexander Danzer, Michael Eischer, Michael Niebisch,   *
 *                  André Pscherer                                         *
 *   Robotics Erlangen e.V.                                                *
@@ -22,19 +22,19 @@ module "geom"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-**************************************************************************/
+*************************************************************************]]
 
 local geom = {}
 
-//- Intersects two circles.
-// Returns up to two intersections or nothing if no intersections exist.
-// @name intersectCircleCircle
-// @param c1 Vector - Center of first circle
-// @param r1 number - Radius of first circle
-// @param c2 Vector - Center of second circle
-// @param r2 number - Radius of second circle
-// @return [Vector] - first intersection if exists (the one with higher x-value)
-// @return [Vector] - second intersection if exists (the one with lower x-value)
+--- Intersects two circles.
+-- Returns up to two intersections or nothing if no intersections exist.
+-- @name intersectCircleCircle
+-- @param c1 Vector - Center of first circle
+-- @param r1 number - Radius of first circle
+-- @param c2 Vector - Center of second circle
+-- @param r2 number - Radius of second circle
+-- @return [Vector] - first intersection if exists (the one with higher x-value)
+-- @return [Vector] - second intersection if exists (the one with lower x-value)
 function geom.intersectCircleCircle(c1, r1, c2, r2)
 	local dist = c1:distanceTo(c2)
 	if dist > r1 + r2 then return nil
@@ -58,25 +58,25 @@ end
 
 function geom.boundRect(p1, pos, p2)
 	return Vector(math.bound(math.min(p1.x,p2.x), pos.x, math.max(p1.x,p2.x)), math.bound(math.min(p1.y,p2.y), pos.y, math.max(p1.y,p2.y)))
-	// return Vector(math.bound(min.x, pos.x, max.x), math.bound(min.y, pos.y, max.y))
+	-- return Vector(math.bound(min.x, pos.x, max.x), math.bound(min.y, pos.y, max.y))
 end
 
-//- Intersects a line with a circle.
-// Returns up to two intersections or nothing if no intersections exist.
-// @name intersectLineCircle
-// @param offset Vector - Start point of the line
-// @param dir Vector - Direction of the line
-// @param center Vector - Center of circle
-// @param radius number - Radius of circle
-// @return [Vector] - first intersection if exists
-// @return [Vector] - second intersection if exists
-// @return number - first lambda
-// @return number - second lambda, which is always less then first lambda
+--- Intersects a line with a circle.
+-- Returns up to two intersections or nothing if no intersections exist.
+-- @name intersectLineCircle
+-- @param offset Vector - Start point of the line
+-- @param dir Vector - Direction of the line
+-- @param center Vector - Center of circle
+-- @param radius number - Radius of circle
+-- @return [Vector] - first intersection if exists
+-- @return [Vector] - second intersection if exists
+-- @return number - first lambda
+-- @return number - second lambda, which is always less then first lambda
 function geom.intersectLineCircle(offset, dir, center, radius)
 	dir = dir:copy():normalize()
 	local const = offset - center
-	// |offset + lambda*dir - center| = radius
-	// l^2 VxV + l 2(CxV) + CxC == R^2
+	-- |offset + lambda*dir - center| = radius
+	-- l^2 VxV + l 2(CxV) + CxC == R^2
 
 	local a = dir:dot(dir)
 	local b = 2 * dir:dot(const)
@@ -100,22 +100,22 @@ function geom.intersectLineCircle(offset, dir, center, radius)
 	return point1, point2, lambda1, lambda2
 end
 
-//- Calculates the intersection between a line and a corridor created by a line and a width
-// Returns two intersections and lambdas
-// @name intersectLineCorridor
-// @param offset Vector - point on the line
-// @param direction Vector - direction of the line
-// @param offsetCorridor Vector - position on the line in the middle of the corridor
-// @param directionCorridor Vector - direction of the corridor
-// @param widthHalf number - half the width of the corridor
-// @return [Vector] - first intersection if exists
-// @return [Vector] - second intersection if exists
-// @return number - lambda1, intersection1 = offset + lambda1*direction (lambda of first point on the line)
-// @return number - lambda2, intersection2 = offset + lambda2*direction (lambda of second point on the line)
-// @return number - lambda3, intersection1 = offsetCorridor + lambda3*directionCorridor (lambda in the corridor)
-// @return number - lambda4, intersection2 = offsetCorridor + lambda4*directionCorridor (lambda in the corridor)
-// lambda1, lambda2, lambda3, lambda4 can be nil if no intersection exists or +/-math.huge if the line is inside the corridor
-// the intersection with their lambdas are sorted so that lambda1 <= lambda2
+--- Calculates the intersection between a line and a corridor created by a line and a width
+-- Returns two intersections and lambdas
+-- @name intersectLineCorridor
+-- @param offset Vector - point on the line
+-- @param direction Vector - direction of the line
+-- @param offsetCorridor Vector - position on the line in the middle of the corridor
+-- @param directionCorridor Vector - direction of the corridor
+-- @param widthHalf number - half the width of the corridor
+-- @return [Vector] - first intersection if exists
+-- @return [Vector] - second intersection if exists
+-- @return number - lambda1, intersection1 = offset + lambda1*direction (lambda of first point on the line)
+-- @return number - lambda2, intersection2 = offset + lambda2*direction (lambda of second point on the line)
+-- @return number - lambda3, intersection1 = offsetCorridor + lambda3*directionCorridor (lambda in the corridor)
+-- @return number - lambda4, intersection2 = offsetCorridor + lambda4*directionCorridor (lambda in the corridor)
+-- lambda1, lambda2, lambda3, lambda4 can be nil if no intersection exists or +/-math.huge if the line is inside the corridor
+-- the intersection with their lambdas are sorted so that lambda1 <= lambda2
 function geom.intersectLineCorridor(offset, direction, offsetCorridor, directionCorridor, widthHalf)
 	assert(directionCorridor ~= Vector(0, 0))
 	local corridorPerpendicular = directionCorridor:perpendicular():setLength(widthHalf)
@@ -124,7 +124,7 @@ function geom.intersectLineCorridor(offset, direction, offsetCorridor, direction
 	local intersectionLeft, lambdaLeftLine, lambdaLeft = geom.intersectLineLine(offset, direction,
 															offsetCorridorLeft, directionCorridor)
 	if not intersectionLeft or direction == Vector(0, 0) then
-		// Either no intersection or line is in corridor
+		-- Either no intersection or line is in corridor
 		local leftDistance = offset:orthogonalDistance(offsetCorridorLeft, offsetCorridorLeft + directionCorridor)
 		local rightDistance = offset:orthogonalDistance(offsetCorridorRight, offsetCorridorRight + directionCorridor)
 		if math.abs(leftDistance) <= widthHalf * 2 and math.abs(rightDistance) <= widthHalf * 2 then
@@ -140,28 +140,28 @@ function geom.intersectLineCorridor(offset, direction, offsetCorridor, direction
 	return intersectionLeft, intersectionRight, lambdaLeftLine, lambdaRightLine, lambdaRight, lambdaLeft
 end
 
-//- Calcualtes tangents to circle.
-// Returns tangents on circle for point.
-// @name getTangentsToCircle
-// @param point Vector - Point for which the tangents are calculated
-// @param centerpoint Vector - Center of circle
-// @param radius number - Radius of circle
-// @return [Vector] - first tangent point on the circle if exists
-// @return [Vector] - second tangent point on the circle if exists
+--- Calcualtes tangents to circle.
+-- Returns tangents on circle for point.
+-- @name getTangentsToCircle
+-- @param point Vector - Point for which the tangents are calculated
+-- @param centerpoint Vector - Center of circle
+-- @param radius number - Radius of circle
+-- @return [Vector] - first tangent point on the circle if exists
+-- @return [Vector] - second tangent point on the circle if exists
 function geom.getTangentsToCircle(point, centerpoint, radius)
 	return geom.intersectCircleCircle(centerpoint, radius, centerpoint+(point-centerpoint):scaleLength(0.5), 0.5*(centerpoint):distanceTo(point))
 end
 
-//- Calculates the inner tangents of two circles.
-// Returns the point where the tangents intersect and the two points where they touch circle1. If the two circles are too close to each other, returns nil.
-// @name getInnerTangentsToCircle
-// @param centerpoint1 Vector - Centerpoint of circle1
-// @param radius1 number - Radius of circle1
-// @param centerpoint2 Vector - Centerpoint of circle2
-// @param radius2 number - Radius of circle2
-// @return schnittpunkt Vector - The point, where the two tangents intersect
-// @return [Vector] - Point, where the first tangent touches circle1
-// @return [Vector] - Point, where the second tangent touches circle1
+--- Calculates the inner tangents of two circles.
+-- Returns the point where the tangents intersect and the two points where they touch circle1. If the two circles are too close to each other, returns nil.
+-- @name getInnerTangentsToCircle
+-- @param centerpoint1 Vector - Centerpoint of circle1
+-- @param radius1 number - Radius of circle1
+-- @param centerpoint2 Vector - Centerpoint of circle2
+-- @param radius2 number - Radius of circle2
+-- @return schnittpunkt Vector - The point, where the two tangents intersect
+-- @return [Vector] - Point, where the first tangent touches circle1
+-- @return [Vector] - Point, where the second tangent touches circle1
 function geom.getInnerTangentsToCircles(centerpoint1, radius1, centerpoint2, radius2)
 	local d = centerpoint2 - centerpoint1
 	if d:length() > radius1 + radius2 then
@@ -170,22 +170,22 @@ function geom.getInnerTangentsToCircles(centerpoint1, radius1, centerpoint2, rad
 	end
 end
 
-//- Intersects two lines.
-// Returns intersection and lambdas for each line.
-// If no intersection exists return nothing!
-// If two lines are the same they are considered parallel, so no intersection exists
-// @name intersectLineLine
-// @param pos1 Vector - Start point of line 1
-// @param dir1 Vector - Direction of line 1
-// @param pos2 Vector - Start point of line 2
-// @param dir2 Vector - Direction of line 2
-// @return [Vector - intersection
-// @return number - lambda1, intersection = pos1 + lambda1*dir1
-// @return number] - lambda2, intersection = pos2 + lambda2*dir2
+--- Intersects two lines.
+-- Returns intersection and lambdas for each line.
+-- If no intersection exists return nothing!
+-- If two lines are the same they are considered parallel, so no intersection exists
+-- @name intersectLineLine
+-- @param pos1 Vector - Start point of line 1
+-- @param dir1 Vector - Direction of line 1
+-- @param pos2 Vector - Start point of line 2
+-- @param dir2 Vector - Direction of line 2
+-- @return [Vector - intersection
+-- @return number - lambda1, intersection = pos1 + lambda1*dir1
+-- @return number] - lambda2, intersection = pos2 + lambda2*dir2
 function geom.intersectLineLine(pos1, dir1, pos2, dir2)
-	// check whether the directions are collinear
+	-- check whether the directions are collinear
 	if math.abs(dir1:perpendicular():dot(dir2)) / (dir1:length() * dir2:length()) < 0.0001 then
-		// check whether connection vector of pos is collinear to dir
+		-- check whether connection vector of pos is collinear to dir
 		local d = pos2 - pos1
 		if math.abs(d:perpendicular():dot(dir1)) / (dir1:length() * d:length()) < 0.0001 then
 			return pos1, 0, 0
@@ -203,78 +203,78 @@ function geom.intersectLineLine(pos1, dir1, pos2, dir2)
 	return pos1 + (dir1 * t1), t1, t2
 end
 
-//- Intersects two lines given as points.
-// @name intersectLinesByPoints
-// @see intersectLineLine
-// @param p1 Vector - point on line 1
-// @param p2 Vector - point on line 1
-// @param q1 Vector - point on line 2
-// @param q2 Vector - point on line 2
+--- Intersects two lines given as points.
+-- @name intersectLinesByPoints
+-- @see intersectLineLine
+-- @param p1 Vector - point on line 1
+-- @param p2 Vector - point on line 1
+-- @param q1 Vector - point on line 2
+-- @param q2 Vector - point on line 2
 function geom.intersectLinesByPoints(p1, p2, q1, q2)
 	return geom.intersectLineLine(p1, p2-p1, q1, q2-q1)
 end
 
-//- Calculates area of a triangle.
-// Using cross product.
-// @name calcTriangleArea
-// @param p1 Vector - first corner of triangle
-// @param p2 Vector - second corner of triangle
-// @param p3 Vector - third corner of triangle
-// @return number - area of triangle
+--- Calculates area of a triangle.
+-- Using cross product.
+-- @name calcTriangleArea
+-- @param p1 Vector - first corner of triangle
+-- @param p2 Vector - second corner of triangle
+-- @param p3 Vector - third corner of triangle
+-- @return number - area of triangle
 function geom.calcTriangleArea(p1, p2, p3)
 	local p21 = p2 - p1
 	local p31 = p3 - p1
 	return 0.5 * math.abs(p21.x * p31.y - p21.y * p31.x)
 end
 
-//- Checks whether the points of a triangle are given clockwise or counterclockwise
-// using determinant
-// @name checkTriangleOrientation
-// @param p1 Vector - first corner of triangle
-// @param p2 Vector - second corner of triangle
-// @param p3 Vector - third corner of triangle
-// @return number - -1 for clockwise, 1 for counterclockwise, 0 for all points in a line
+--- Checks whether the points of a triangle are given clockwise or counterclockwise
+-- using determinant
+-- @name checkTriangleOrientation
+-- @param p1 Vector - first corner of triangle
+-- @param p2 Vector - second corner of triangle
+-- @param p3 Vector - third corner of triangle
+-- @return number - -1 for clockwise, 1 for counterclockwise, 0 for all points in a line
 function geom.checkTriangleOrientation(p1, p2, p3)
 	local v21 = p2 - p1
 	local v31 = p3 - p1
 	return math.sign(v21.x * v31.y - v21.y * v31.x)
 end
 
-//- Calculates area of a quadrangle.
-// Expects corner to be order cw or ccw. Uses calcTriangleArea.
-// @name calcQuadrangleArea
-// @param p1 Vector - first corner of quadrangle
-// @param p2 Vector - second corner of quadrangle
-// @param p3 Vector - third corner of quadrangle
-// @param p4 Vector - fourth corner of quadrangle
-// @return number - area of quadrangle
+--- Calculates area of a quadrangle.
+-- Expects corner to be order cw or ccw. Uses calcTriangleArea.
+-- @name calcQuadrangleArea
+-- @param p1 Vector - first corner of quadrangle
+-- @param p2 Vector - second corner of quadrangle
+-- @param p3 Vector - third corner of quadrangle
+-- @param p4 Vector - fourth corner of quadrangle
+-- @return number - area of quadrangle
 function geom.calcQuadrangleArea(p1, p2, p3, p4)
 	return geom.calcTriangleArea(p1, p2, p3) + geom.calcTriangleArea(p1, p3, p4)
 end
 
-//- Calculates geometric center of points in array.
-// @name center
-// @param pointArray Vector[] - points
-// @return Vector - geometric center of points
+--- Calculates geometric center of points in array.
+-- @name center
+-- @param pointArray Vector[] - points
+-- @return Vector - geometric center of points
 function geom.center(pointArray)
 	local pos = Vector(0,0)
 	for _, point in ipairs(pointArray) do
-		pos = pos + point // sum up all points
+		pos = pos + point -- sum up all points
 	end
 	return pos / #pointArray
 end
 
-//- Checks if p is inside the triangle defined by a b c.
-// The triangle borders are considered as inside.
-// Uses the formulas from http://www.blackpawn.com/texts/pointinpoly/
-// @name isInTriangle
-// @param a Vector - first corner of triangle
-// @param b Vector - second corner of triangle
-// @param c Vector - third corner of triangle
-// @param p Vector - point to check
-// @return bool - Is p in triangle
+--- Checks if p is inside the triangle defined by a b c.
+-- The triangle borders are considered as inside.
+-- Uses the formulas from http://www.blackpawn.com/texts/pointinpoly/
+-- @name isInTriangle
+-- @param a Vector - first corner of triangle
+-- @param b Vector - second corner of triangle
+-- @param c Vector - third corner of triangle
+-- @param p Vector - point to check
+-- @return bool - Is p in triangle
 function geom.isInTriangle(a, b, c, p)
-	// convert to barycentric coordinates
+	-- convert to barycentric coordinates
 	local v0 = c - a
 	local v1 = b - a
 	local v2 = p - a
@@ -299,10 +299,10 @@ function geom.isInTriangle(a, b, c, p)
 	end
 end
 
-//- Normalizes angle to value in interval [-pi, +pi].
-// @name normalizeAngle
-// @param angle number - angle in radians
-// @return number - normalized angle
+--- Normalizes angle to value in interval [-pi, +pi].
+-- @name normalizeAngle
+-- @param angle number - angle in radians
+-- @return number - normalized angle
 function geom.normalizeAngle(angle)
 	while angle > math.pi do
 		angle = angle - 2 * math.pi
@@ -313,10 +313,10 @@ function geom.normalizeAngle(angle)
 	return angle
 end
 
-//- Normalizes angle to value in interval [0, +2pi]
-// @name normalizeAnglePositive
-// @param angle number - angle in radians
-// @return number - normalized angle
+--- Normalizes angle to value in interval [0, +2pi]
+-- @name normalizeAnglePositive
+-- @param angle number - angle in radians
+-- @return number - normalized angle
 function geom.normalizeAnglePositive(angle)
 	while angle > 2 * math.pi do
 		angle = angle - 2 * math.pi
@@ -327,26 +327,26 @@ function geom.normalizeAnglePositive(angle)
 	return angle
 end
 
-//- Normalized difference between angles.
-// Return value is in interval [-pi, +pi].
-// angle2 = angle1 + angleDiff (normalized)
-// @name getAngleDiff
-// @param angle1 number - first angle in radians
-// @param angle2 number - second angle in radians
-// @return number - angleDiff in radians
+--- Normalized difference between angles.
+-- Return value is in interval [-pi, +pi].
+-- angle2 = angle1 + angleDiff (normalized)
+-- @name getAngleDiff
+-- @param angle1 number - first angle in radians
+-- @param angle2 number - second angle in radians
+-- @return number - angleDiff in radians
 function geom.getAngleDiff(angle1, angle2)
 	local diff = angle2 - angle1
 	return geom.normalizeAngle(diff)
 end
 
-// Applies the inscribed angle theorem.
-// @name inscribedAngle
-// @param point1 vector - first point on cirle
-// @param point2 vector - second point on cirle
-// @param theta number - angle inside in radians
-// @return number - center of circle one
-// @return number - center of circle two
-// @return number - radius of circle
+-- Applies the inscribed angle theorem.
+-- @name inscribedAngle
+-- @param point1 vector - first point on cirle
+-- @param point2 vector - second point on cirle
+-- @param theta number - angle inside in radians
+-- @return number - center of circle one
+-- @return number - center of circle two
+-- @return number - radius of circle
 function geom.inscribedAngle(point1, point2, theta)
 	local radius = point1:distanceTo(point2) / (2 * math.sin(theta))
 	local centerOfCircleOne = point1 + ((point2 - point1):rotate(math.pi/2 - theta)):setLength(radius)

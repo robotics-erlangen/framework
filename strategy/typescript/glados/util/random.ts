@@ -9,7 +9,7 @@ function Random.standardNormalDistributedNumber()
 		if neg then u = -u end
 	until u ~= 0
 
-	// box-muller transform
+	-- box-muller transform
 	local z = math.sqrt(-2 * math.log(u))
 	if neg then z = -z end
 

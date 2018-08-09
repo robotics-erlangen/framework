@@ -51,20 +51,20 @@ function MoveSRC1:_updateTasks()
 		self._state = (self._state + 1 )
 		changed = true
 	end
-	taskAssignments[self._robots[1*/ = {class = MoveToPos, params = {POS1[(self._state % 5) +1]}, restart = changed}
-	taskAssignments[self._robots[2*/ = {class = MoveToPos, params = {POS2[(self._state % 5) +1]}, restart = changed}
-	taskAssignments[self._robots[3*/ = {class = MoveToPos, params = {POS3[(self._state % 5) +1]}, restart = changed}
+	taskAssignments[self._robots[1]] = {class = MoveToPos, params = {POS1[(self._state % 5) +1]}, restart = changed}
+	taskAssignments[self._robots[2]] = {class = MoveToPos, params = {POS2[(self._state % 5) +1]}, restart = changed}
+	taskAssignments[self._robots[3]] = {class = MoveToPos, params = {POS3[(self._state % 5) +1]}, restart = changed}
 	if (self._state%5) == 3 then
-		taskAssignments[self._robots[4*/ = {class = Pass, params = {self._robots[5]}, restart = changed}
+		taskAssignments[self._robots[4]] = {class = Pass, params = {self._robots[5]}, restart = changed}
 		
 	else
-		taskAssignments[self._robots[4*/ = {class = MoveToPos, params = {POS4[(self._state % 5) +1]}, restart = changed}
+		taskAssignments[self._robots[4]] = {class = MoveToPos, params = {POS4[(self._state % 5) +1]}, restart = changed}
 	end
 	if (self._state %5) == 4 then
-		taskAssignments[self._robots[5*/ = {class = ShootGoal, params = {}, restart = changed}
+		taskAssignments[self._robots[5]] = {class = ShootGoal, params = {}, restart = changed}
 		
 	else
-		taskAssignments[self._robots[5*/ = {class = MoveToPos, params = {POS5[(self._state % 5) +1]}, restart = changed}
+		taskAssignments[self._robots[5]] = {class = MoveToPos, params = {POS5[(self._state % 5) +1]}, restart = changed}
 	end
 
 	if self._state%5 == 3 then

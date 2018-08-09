@@ -225,7 +225,7 @@ context("base.vector", function()
 		assert_equal_eps(vec5:absoluteAngleDiff(vec1), math.pi/4, EPS)
 		assert_equal_eps(vec5:absoluteAngleDiff(vec2), math.pi/4, EPS)
 
-		// special cases
+		-- special cases
 		assert_equal(vec0:angleDiff(vec5), 0)
 		assert_equal(vec0:angleDiff(vec2), 0)
 		assert_equal(vec5:angleDiff(vec0), 0)
@@ -387,14 +387,14 @@ context("base.vector", function()
 	test("random", function()
 		for _ = 1, 100 do
 			local rand = Vector.random(1)
-			// should be unlikely enough to never happen
+			-- should be unlikely enough to never happen
 			assert_less_than(rand:length(), 100)
 		end
 
 		local center = Vector(10000, 10000)
 		for _ = 1, 100 do
 			local rand = Vector.random(1, center)
-			// should be unlikely enough to never happen
+			-- should be unlikely enough to never happen
 			assert_less_than(rand:distanceTo(center), 100)
 		end
 
