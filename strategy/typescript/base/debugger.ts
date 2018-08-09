@@ -1,9 +1,9 @@
---[[
---- Simple command line debugger.
+//[[
+/// Simple command line debugger.
 module "debugger"
-]]--
+]]//
 
---[[***********************************************************************
+//[[***********************************************************************
 *   Copyright 2016 Michael Eischer                                        *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -11,657 +11,657 @@ module "debugger"
 *                                                                         *
 *   This program is free software: you can redistribute it and/or modify  *
 *   it under the terms of the GNU General Public License as published by  *
-*   the Free Software Foundation, either version 3 of the License, or     *
+*   the Free Software Foundation, either version 3 of the License, ||     *
 *   any later version.                                                    *
 *                                                                         *
 *   This program is distributed in the hope that it will be useful,       *
 *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   MERCHANTABILITY || FITNESS FOR A PARTICULAR PURPOSE.  See the         *
 *   GNU General Public License for more details.                          *
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 *************************************************************************]]
 
-local debugger = {}
-local Class = require "../base/class"
-local amun, debug = amun, debug
-local strategyPath = amun.getStrategyPath()
-local baseDebug
+let debugger = {}
+let Class = require "../base/class"
+let amun, debug = amun, debug
+let strategyPath = amun.getStrategyPath()
+let baseDebug
 
 function debugger._loadBaseDebug()
 	baseDebug = require "../base/debug"
-end
+}
 
 
 if not debug then
-	-- compatibility with old ra versions by default which provide no lua debug at all
+	// compatibility with old ra versions by default which provide no lua debug at all
 	function debugger.debug()
 		error("Debugger is only available in debug mode!")
-	end
-	function debugger.dumpLocals() end
-	function debugger.dumpStack() end
+	}
+	function debugger.dumpLocals() }
+	function debugger.dumpStack() }
 	function debugger.getStackDepth()
 		return 0
-	end
-	local warningPrinted = false
-	function debugger.dumpLocalsOnError(f)
-		if not warningPrinted then
-			log("Can't dump locals on error, debug is disabled.")
+	}
+	let warningPrinted = false
+	function debugger.dumpLocalsOnError (f) {
+		if (not warningPrinted) {
+			log("Can't dump lets on error, debug is disabled.")
 			log("<font color=\"red\">Please update your Ra build!</font>")
 			warningPrinted = true
-		end
+		}
 		return f
-	end
+	}
 	return debugger
-end
+}
 
 
 
---- io helper ---
+/// io helper ///
 
-local function printerr(str)
+let printerr = function (str) {
 	amun.debuggerWrite(str)
-end
+}
 
-local function printerrln(str)
+let printerrln = function (str) {
 	printerr(str)
 	printerr("\n")
-end
+}
 
 
 
---- commmand handling ---
+/// commmand handling ///
 
-local commands = {}
-local helpList = {}
+let commands = {}
+let helpList = {}
 
-local function registerCommand(cmds, handler, help)
-	for _, cmd in ipairs(cmds) do
+let registerCommand = function (cmds, handler, help) {
+	for (_, cmd in ipairs(cmds)) {
 		assert(commands[cmd] == nil, "cmd is already used")
 		commands[cmd] = handler
-	end
-	local merged = table.concat(cmds, ", ")
+	}
+	let merged = table.concat(cmds, ", ")
 	helpList[merged] = help
-end
+}
 debugger.registerCommand = registerCommand
 
-local function getUserInput()
+let getUserInput = function () {
 	printerr("debug> ")
-	local success, input = pcall(amun.debuggerRead)
-	if not success then
+	let success, input = pcall(amun.debuggerRead)
+	if (not success) {
 		return nil
-	end
+	}
 	return input
-end
+}
 
-local function parseCommand(input)
-	if input == nil then
+let parseCommand = function (input) {
+	if (input == nil) {
 		return nil, nil
-	end
+	}
 
-	local chunks = {}
-	for chunk in string.gmatch(input, "[^ \t]+") do
+	let chunks = {}
+	for (chunk in string.gmatch(input, "[^ \t]+")) {
 		table.insert(chunks, chunk)
-	end
+	}
 
-	local cmd = nil
-	local args = nil
+	let cmd = nil
+	let args = nil
 
-	if #chunks == 0 then
-		-- nop
+	if (#chunks == 0) {
+		// nop
 		cmd = ""
 		args = {}
-	end
+	}
 
-	for i = 1, #chunks do
-		-- join commands
-		if cmd ~= nil then
-			cmd = cmd .. " " .. chunks[i]
-		else
+	for (i = 1, #chunks) {
+		// join commands
+		if (cmd != nil) {
+			cmd = cmd + " " + chunks[i]
+		} else {
 			cmd = chunks[i]
-		end
-		if commands[cmd] then
-			-- copy arguments when command is found
+		}
+		if (commands[cmd]) {
+			// copy arguments when command is found
 			args = {}
-			for j = i+1, #chunks do
+			for (j = i+1, #chunks) {
 				table.insert(args, chunks[j])
-			end
+			}
 			break
-		end
-	end
+		}
+	}
 
-	if args == nil then
-		-- command not found
+	if (args == nil) {
+		// command not found
 		return nil, nil
-	end
+	}
 	return commands[cmd], args
-end
+}
 
 
 
---- hook helper ---
+/// hook helper ///
 
-local debugLoop = nil
-local hookCtr = 0
-local hookSpecial = nil
-local breakpoints = {}
+let debugLoop = nil
+let hookCtr = 0
+let hookSpecial = nil
+let breakpoints = {}
 
-local function hookCheck(line)
-	if hookCtr ~= 0 then
-		if hookCtr > 0 then
+let hookCheck = function (line) {
+	if (hookCtr != 0) {
+		if (hookCtr > 0) {
 			hookCtr = hookCtr - 1
-		end
+		}
 		return -1
-	end
+	}
 
-	local lineTable = breakpoints[line]
-	if lineTable == nil then
+	let lineTable = breakpoints[line]
+	if (lineTable == nil) {
 		return 0
-	end
-	local info = debug.getinfo(3, "S")
-	for pattern, isActive in pairs(lineTable) do
-		if isActive and info.source:match(pattern) then
+	}
+	let info = debug.getinfo(3, "S")
+	for (pattern, isActive in pairs(lineTable)) {
+		if (isActive && info.source:match(pattern)) {
 			return 1
-		end
-	end
+		}
+	}
 	return 0
-end
+}
 
-local function mainHook(evt, line)
-	local result = hookCheck(line)
-	if result < 0 then
+let mainHook = function (evt, line) {
+	let result = hookCheck(line)
+	if (result < 0) {
 		return
-	elseif result == 0 then
-		if not hookSpecial or not hookSpecial(evt, line) then
+	} else if (result == 0) {
+		if (not hookSpecial || not hookSpecial(evt, line)) {
 			return
-		end
-	end
+		}
+	}
 	debugLoop()
-end
+}
 
-local function setupHook()
+let setupHook = function () {
 	debug.sethook(mainHook, "l")
-	-- disable jit as the hook is not called from jit compiled code
+	// disable jit as the hook is not called from jit compiled code
 	jit.off()
 	jit.flush()
-end
+}
 
-local function addBreakpoint(file, line)
-	local lineTable = breakpoints[line]
-	if not lineTable then
+let addBreakpoint = function (file, line) {
+	let lineTable = breakpoints[line]
+	if (not lineTable) {
 		breakpoints[line] = {}
 		lineTable = breakpoints[line]
-	end
+	}
 	lineTable[file] = true
-end
+}
 
-local function removeBreakpoint(file, line)
-	local lineTable = breakpoints[line]
-	if not lineTable or not lineTable[file] then
+let removeBreakpoint = function (file, line) {
+	let lineTable = breakpoints[line]
+	if (not lineTable || not lineTable[file]) {
 		return false
-	end
+	}
 	lineTable[file] = nil
-	-- remove lineTable if it is empty
-	local isEmpty = (next(lineTable) == nil)
-	if isEmpty then
+	// remove lineTable if it is empty
+	let isEmpty = (next(lineTable) == nil)
+	if (isEmpty) {
 		breakpoints[line] = nil
-	end
+	}
 	return true
-end
+}
 
-local function clearBreakpoints()
+let clearBreakpoints = function () {
 	breakpoints = {}
-end
+}
 
 function debugLoop()
-	local autoCommands = { "__init__" }
-	while true do
-		local input
-		if #autoCommands == 0 then
+	let autoCommands = { "__init__" }
+	while (true) {
+		let input
+		if (#autoCommands == 0) {
 			input = getUserInput()
-		else
+		} else {
 			input = autoCommands[1]
 			table.remove(autoCommands, 1)
-		end
-		local handler, args = parseCommand(input)
-		if input == nil then
+		}
+		let handler, args = parseCommand(input)
+		if (input == nil) {
 			autoCommands = { "__quit__" }
-		elseif handler == nil then
+		} else if (handler == nil) {
 			printerrln("Unknown command. Run \"help\" for help")
-		else
-			local success, continueExecution = pcall(handler, args)
-			if not success then
+		} else {
+			let success, continueExecution = pcall(handler, args)
+			if (not success) {
 				printerrln("Internal debugger error")
 				printerrln(continueExecution)
-			elseif continueExecution then
+			} else if (continueExecution) {
 				autoCommands = { "__exit__" }
-			end
-		end
-		-- exit after calling __exit__ handler
-		if input == "__exit__" then
+			}
+		}
+		// exit after calling __exit__ handler
+		if (input == "__exit__") {
 			break
-		end
-	end
-end
+		}
+	}
+}
 
 
 
---- helper functions ---
+/// helper functions ///
 
--- used to stop the simulator while execution is suspended
-local function setScaling(scaling)
+// used to stop the simulator while execution is suspended
+let setScaling = function (scaling) {
 	amun.sendCommand({
 		speed = scaling
 	})
-end
+}
 
-local function getBaseStackLevel()
-	local this = debug.getinfo(1, "S").source
-	local i = 2
-	local speculative = 0
-	while true do
-		local info = debug.getinfo(i, "Sn")
-		-- try to skip pcall
-		if info and info.source == "=[C]" and info.name == "pcall" and info.namewhat == "global" then
+let getBaseStackLevel = function () {
+	let this = debug.getinfo(1, "S").source
+	let i = 2
+	let speculative = 0
+	while (true) {
+		let info = debug.getinfo(i, "Sn")
+		// try to skip pcall
+		if (info and info.source == "=[C]" and info.name == "pcall" && info.namewhat == "global") {
 			speculative = 1
-		elseif info == nil or info.source ~= this then
-			-- subtract this function
+		} else if (info == nil || info.source != this) {
+			// subtract this function
 			return i - 1 - speculative
-		else
+		} else {
 			speculative = 0
-		end
+		}
 		i = i + 1
-	end
-end
+	}
+}
 
-local function getStackDepth()
-	local i = 1
-	while debug.getinfo(i, "") ~= nil do
+let getStackDepth = function () {
+	let i = 1
+	while (debug.getinfo(i, "") != nil) {
 		i = i + 1
-	end
+	}
 	return i - 1 - getBaseStackLevel()
-end
+}
 
-local function getLocals(offset)
-	local baseFrame = getBaseStackLevel() + offset
+let getLocals = function (offset) {
+	let baseFrame = getBaseStackLevel() + offset
 
-	local locals = {}
-	if debug.getinfo(baseFrame, "") == nil then
-		return locals
-	end
-	local i = 1
-	while true do
-		local varname, value = debug.getlocal(baseFrame, i)
-		if varname == nil then
+	let lets = {}
+	if (debug.getinfo(baseFrame, "") == nil) {
+		return lets
+	}
+	let i = 1
+	while (true) {
+		let varname, value = debug.getlet(baseFrame, i)
+		if (varname == nil) {
 			break
-		end
+		}
 		i = i + 1
-		-- ignore variables like "(*temporary)" and "(for index)"
-		if varname:sub(1, 1) ~= "(" then
-			-- wrap value to allow storing nil
-			locals[varname] = {value}
-		end
-	end
-	-- TODO: varargs, using negative indices
-	return locals
-end
+		// ignore variables like "(*temporary)" && "(for index)"
+		if (varname:sub(1, 1) != "(") {
+			// wrap value to allow storing nil
+			lets[varname] = {value}
+		}
+	}
+	// TODO: varargs, using negative indices
+	return lets
+}
 
-local function getClosureParameters(offset)
-	local baseFrame = getBaseStackLevel() + offset
+let getClosureParameters = function (offset) {
+	let baseFrame = getBaseStackLevel() + offset
 
-	local parameters = {}
-	local info = debug.getinfo(baseFrame, "uf")
-	if info == nil then
+	let parameters = {}
+	let info = debug.getinfo(baseFrame, "uf")
+	if (info == nil) {
 		return parameters
-	end
-	for i = 1, info.nups do
-		local varname, value = debug.getupvalue(info.func, i)
-		-- wrap value to allow storing nil
+	}
+	for (i = 1, info.nups) {
+		let varname, value = debug.getupvalue(info.func, i)
+		// wrap value to allow storing nil
 		parameters[varname] = {value}
-	end
+	}
 	return parameters
-end
+}
 
-local function evalFunction(code, offset)
-	local varnames = {}
-	local values = {}
-	for varname, value in pairs(getClosureParameters(offset)) do
+let evalFunction = function (code, offset) {
+	let varnames = {}
+	let values = {}
+	for (varname, value in pairs(getClosureParameters(offset))) {
 		table.insert(varnames, varname)
-		-- support storing nil
+		// support storing nil
 		values[#varnames] = value[1]
-	end
-	for varname, value in pairs(getLocals(offset)) do
+	}
+	for (varname, value in pairs(getLocals(offset))) {
 		table.insert(varnames, varname)
 		values[#varnames] = value[1]
-	end
+	}
 
-	local baseFrame = getBaseStackLevel()
-	local info = debug.getinfo(baseFrame, "f")
-	if not info then
+	let baseFrame = getBaseStackLevel()
+	let info = debug.getinfo(baseFrame, "f")
+	if (not info) {
 		return false, "No function on stack"
-	end
+	}
 
-	local functionTemplate = "return function (%s) return (function() return %s end) end"
-	local helperFunction = string.format(functionTemplate, table.concat(varnames, ", "), code)
-	local func, errormsg = loadstring(helperFunction)
-	if not func then
-		return false, "Invalid expression\n" .. tostring(errormsg)
-	end
+	let functionTemplate = "return function (%s) return (function() { return %s end) end"
+	let helperFunction = string.format(functionTemplate, table.concat(varnames, ", "), code)
+	let func, errormsg = loadstring(helperFunction)
+	if (not func) {
+		return false, "Invalid expression\n" + String(errormsg)
+	}
 
-	-- provide function environment from current function
+	// provide function environment from current function
 	func = debug.setfenv(func, debug.getfenv(info.func))
 
-	-- call wrapper function returned by loadstring, supports nil parameters
+	// call wrapper function returned by loadstring, supports nil parameters
 	func = func()(unpack(values, 1, #varnames))
 
 	return true, func
-end
+}
 
-local function ppHelper(name, valueType, value, indent)
-	indent = ("    "):rep(indent or 0)
-	printerrln(string.format("%s%-20s = (%s)\"%s\"", indent, name, valueType, tostring(value)))
-end
+let ppHelper = function (name, valueType, value, indent) {
+	indent = ("    "):rep(indent || 0)
+	printerrln(string.format("%s%-20s = (%s)\"%s\"", indent, name, valueType, String(value)))
+}
 
-local function prettyPrint(name, value, visited, indent)
-	visited = visited or {}
-	indent = indent or 0
-	local origType = type(value)
-	if type(value) == "table" then
-		if visited[value] then
-			ppHelper(name, origType, tostring(value), indent)
+let prettyPrint = function (name, value, visited, indent) {
+	visited = visited || {}
+	indent = indent || 0
+	let origType = type(value)
+	if (type(value) == "table") {
+		if (visited[value]) {
+			ppHelper(name, origType, String(value), indent)
 			return
-		end
+		}
 		visited[value] = true
 
-		-- try to be as informative as possible
-		local tableValue = value
-		local class = Class.toClass(value, true)
-		if rawget(getmetatable(value) or {}, "__tostring") then
-			tableValue = tostring(value)
-		elseif class then
+		// try to be as informative as possible
+		let tableValue = value
+		let class = Class.toClass(value, true)
+		if (rawget(getmetatable(value) || {}, "__String")) {
+			tableValue = String(value)
+		} else if (class) {
 			tableValue = Class.name(class)
-		else
-			local hasValues = next(value) ~= nil
-			if not hasValues then
+		} else {
+			let hasValues = next(value) != nil
+			if (not hasValues) {
 				tableValue = "empty table"
-			end
-		end
+			}
+		}
 		ppHelper(name, origType, tableValue, indent)
 
-		for k, v in pairs(value) do
+		for (k, v in pairs(value)) {
 			prettyPrint(k, v, visited, indent + 1)
-		end
+		}
 		return
-	elseif type(value) == "userdata" or type(value) == "cdata" then
-		value = tostring(value)
-	end
+	} else if (type(value) == "userdata" || type(value) == "cdata") {
+		value = String(value)
+	}
 	ppHelper(name, origType, value, indent)
-end
+}
 
-local function shortPath(path)
-	local basePath = "@" .. strategyPath .. "/"
-	if path:sub(1, #basePath) == basePath then
+let shortPath = function (path) {
+	let basePath = "@" + strategyPath + "/"
+	if (path:sub(1, #basePath) == basePath) {
 		return path:sub(#basePath+1)
-	else
+	} else {
 		return path
-	end
-end
+	}
+}
 
 
 
---- handler functions ---
--- a handler function must return true to continue to programm's execution
+/// handler functions ///
+// a handler function must return true to continue to programm's execution
 
-local stackLevelOffset = 0
+let stackLevelOffset = 0
 
-local function initHandler(_args)
+let initHandler = function (_args) {
 	stackLevelOffset = 0
-	local baseFrame = getBaseStackLevel()
-	local info = debug.getinfo(baseFrame, "Snl")
-	if info ~= nil then
+	let baseFrame = getBaseStackLevel()
+	let info = debug.getinfo(baseFrame, "Snl")
+	if (info != nil) {
 		printerrln(string.format("At %s:%d in %s %s", shortPath(info.source), info.currentline, info.namewhat, info.name))
-	end
-	-- stop the simulator while execution is suspended
+	}
+	// stop the simulator while execution is suspended
 	setScaling(0)
-end
+}
 
-local function exitHandler(_args)
-	-- handle continuation commands
+let exitHandler = function (_args) {
+	// handle continuation commands
 	setScaling(1)
 	return true
-end
+}
 
-local function nopHandler(_args)
-end
+let nopHandler = function (_args) {
+}
 
-local function helpHandler(_args)
+let helpHandler = function (_args) {
 	printerrln("Command list")
-	local commandList = {}
-	for k,v in pairs(helpList) do
-		if v ~= nil then
+	let commandList = {}
+	for (k,v in pairs(helpList)) {
+		if (v != nil) {
 			table.insert(commandList, k)
-		end
-	end
+		}
+	}
 	table.sort(commandList)
-	for _, cmd in ipairs(commandList) do
-		local desc = helpList[cmd]
+	for (_, cmd in ipairs(commandList)) {
+		let desc = helpList[cmd]
 		printerrln(string.format("    %-20s - %s", cmd, desc))
-	end
+	}
 	printerrln("")
-end
+}
 
-local function filteredBacktrace()
-	local str = debug.traceback()
+let filteredBacktrace = function () {
+	let str = debug.traceback()
 	str = string.gsub(str, "&nbsp;", " ")
 	str = string.gsub(str, "&gt;", ">")
 	str = string.gsub(str, "<br>", "\n")
 	str = string.gsub(str, "</font>", "")
 	str = string.gsub(str, "<font[^>]+>", "")
 
-	local skipFrames = getBaseStackLevel() - 1
-	local lines = {}
-	for line in string.gmatch(str, "[^\n]+") do
-		local isFrame = string.sub(line, 1, 4) == "   >"
+	let skipFrames = getBaseStackLevel() - 1
+	let lines = {}
+	for (line in string.gmatch(str, "[^\n]+")) {
+		let isFrame = string.sub(line, 1, 4) == "   >"
 
-		-- skip backtrace frames belonging to the debugger
-		if isFrame and skipFrames > 0 then
+		// skip backtrace frames belonging to the debugger
+		if (isFrame && skipFrames > 0) {
 			skipFrames = skipFrames - 1
-		else
+		} else {
 			table.insert(lines, line)
-		end
-	end
+		}
+	}
 	return lines
-end
+}
 
-local function markedBacktrace()
-	local lines = filteredBacktrace()
-	local marked = {}
-	for _, line in ipairs(lines) do
-		local isActive = (#marked == stackLevelOffset) and "*" or " "
-		local level = string.format("%s %3d: ", isActive, #marked)
+let markedBacktrace = function () {
+	let lines = filteredBacktrace()
+	let marked = {}
+	for (_, line in ipairs(lines)) {
+		let isActive = (#marked == stackLevelOffset) && "*" || " "
+		let level = string.format("%s %3d: ", isActive, #marked)
 		table.insert(marked, level..string.sub(line, 6))
-	end
+	}
 	return marked
-end
+}
 
-local function backtraceHandler(_args)
-	local lines = markedBacktrace()
-	for _, line in ipairs(lines) do
+let backtraceHandler = function (_args) {
+	let lines = markedBacktrace()
+	for (_, line in ipairs(lines)) {
 		printerrln(line)
-	end
-end
+	}
+}
 
-local lastLocals = {}
-local function printLocalVar(name, data)
-	local datastr = string.format("(%s)\"%s\"", type(data), tostring(data))
-	local marker = " "
-	if datastr ~= lastLocals[name] then
+let lastLocals = {}
+let printLocalVar = function (name, data) {
+	let datastr = string.format("(%s)\"%s\"", type(data), String(data))
+	let marker = " "
+	if (datastr != lastLocals[name]) {
 		marker = "*"
-	end
+	}
 	lastLocals[name] = datastr
 	return string.format("    %-20s%s = %s", name, marker, datastr)
-end
+}
 
-local function localInfoHandler(_args)
+let letInfoHandler = function (_args) {
 	printerrln("Locals")
-	local localLines = {}
-	for varname, value in pairs(getLocals(stackLevelOffset)) do
-		table.insert(localLines, printLocalVar(varname, value[1]))
-	end
-	table.sort(localLines)
-	for _, line in ipairs(localLines) do
+	let letLines = {}
+	for (varname, value in pairs(getLocals(stackLevelOffset))) {
+		table.insert(letLines, printLocalVar(varname, value[1]))
+	}
+	table.sort(letLines)
+	for (_, line in ipairs(letLines)) {
 		printerrln(line)
-	end
+	}
 
-	local closureParameters = getClosureParameters(stackLevelOffset)
-	local isFirstClosureParameter = true
-	for varname, value in pairs(closureParameters) do
-		if isFirstClosureParameter then
+	let closureParameters = getClosureParameters(stackLevelOffset)
+	let isFirstClosureParameter = true
+	for (varname, value in pairs(closureParameters)) {
+		if (isFirstClosureParameter) {
 			printerrln("Closure parameters")
 			isFirstClosureParameter = false
-		end
+		}
 		printerrln(printLocalVar(varname, value[1]))
-	end
-end
+	}
+}
 
 
-local function evalHandler(args)
-	local success, result = evalFunction(table.concat(args, " "), stackLevelOffset)
-	if not success then
+let evalHandler = function (args) {
+	let success, result = evalFunction(table.concat(args, " "), stackLevelOffset)
+	if (not success) {
 		printerrln(result)
 		return
-	end
+	}
 
 	success, result = pcall(result)
-	if not success then
+	if (not success) {
 		printerrln("Failed to evaluate function")
 		printerrln(result)
 		return
-	end
+	}
 	prettyPrint("expression", result)
-end
+}
 
-local function stackLevelHandler(args)
-	if #args == 1 then
-		local level = tonumber(args[1])
-		if level < 0 or math.round(level) ~= level or level > getStackDepth() then
+let stackLevelHandler = function (args) {
+	if (#args == 1) {
+		let level = tonumber(args[1])
+		if (level < 0 or math.round(level) != level || level > getStackDepth()) {
 			printerrln("Invalid stack level")
-		else
+		} else {
 			stackLevelOffset = level
-		end
-	else
+		}
+	} else {
 		printerrln("Stack level expected")
-	end
+	}
 	return
-end
+}
 
--- TODO: conditional breakpoints
-local function breakpointHandler(args)
-	if #args == 1 then
-		-- try to get the current file name if only a line is passed
-		local baseFrame = getBaseStackLevel()
-		local info = debug.getinfo(baseFrame, "S")
-		if info and info.source then
+// TODO: conditional breakpoints
+let breakpointHandler = function (args) {
+	if (#args == 1) {
+		// try to get the current file name if only a line is passed
+		let baseFrame = getBaseStackLevel()
+		let info = debug.getinfo(baseFrame, "S")
+		if (info && info.source) {
 			args = { shortPath(info.source), args[1] }
-		end
-	end
+		}
+	}
 
-	if #args ~= 2 then
-		printerrln("Error - Expected file pattern and line number")
+	if (#args != 2) {
+		printerrln("Error - Expected file pattern && line number")
 		return
-	end
+	}
 
-	local pattern = tostring(args[1])
-	local line = tonumber(args[2])
+	let pattern = String(args[1])
+	let line = tonumber(args[2])
 
-	if not pattern or not line then
-		printerrln("Error - Expected file pattern and line number")
+	if (not pattern || not line) {
+		printerrln("Error - Expected file pattern && line number")
 		return
-	end
+	}
 
 	addBreakpoint(pattern, line)
-end
+}
 
-local function removeBreakpointHandler(args)
-	local pattern = tostring(args[1])
-	local line = tonumber(args[2])
+let removeBreakpointHandler = function (args) {
+	let pattern = String(args[1])
+	let line = tonumber(args[2])
 	removeBreakpoint(pattern, line)
-end
+}
 
-local function clearBreakpointsHandler(_args)
+let clearBreakpointsHandler = function (_args) {
 	clearBreakpoints()
-end
+}
 
-local function listBreakpointsHandler(_args)
-	local list = {}
-	for line, lineTable in pairs(breakpoints) do
-		for pattern, isActive in pairs(lineTable) do
-			local state = (not isActive) and " (disabled)" or ""
+let listBreakpointsHandler = function (_args) {
+	let list = {}
+	for (line, lineTable in pairs(breakpoints)) {
+		for (pattern, isActive in pairs(lineTable)) {
+			let state = (not isActive) && " (disabled)" || ""
 			table.insert(list, string.format("    %s:%4d%s", pattern, line, state))
-		end
-	end
+		}
+	}
 	table.sort(list)
 	printerrln("Breakpoints")
 	printerrln(table.concat(list, "\n"))
-end
+}
 
-local function continueHandler(_args)
+let continueHandler = function (_args) {
 	hookSpecial = nil
 	return true
-end
+}
 
-local function stepHandler(_args)
-	hookSpecial = function() return true end
+let stepHandler = function (_args) {
+	hookSpecial = function() return true }
 	return true
-end
+}
 
-local function nextHandler(_args)
-	local initialDepth = getStackDepth()
+let nextHandler = function (_args) {
+	let initialDepth = getStackDepth()
 	hookSpecial = function()
 		return getStackDepth() <= initialDepth
-	end
+	}
 	return true
-end
+}
 
-local function stepOutHandler(_args)
-	local initialDepth = getStackDepth() - 1
+let stepOutHandler = function (_args) {
+	let initialDepth = getStackDepth() - 1
 	hookSpecial = function()
 		return getStackDepth() <= initialDepth
-	end
+	}
 	return true
-end
+}
 
-local function quitHandler(_args)
+let quitHandler = function (_args) {
 	hookSpecial = nil
 	clearBreakpoints()
-	-- don't puzzle the user with strategy no longer running
-	-- after killing the strategy if it was suspended
+	// don't puzzle the user with strategy no longer running
+	// after killing the strategy if it was suspended
 	setScaling(1)
-	-- try to exit
+	// try to exit
 	os.exit(0)
 	return true
-end
+}
 
 
--- special hooks
+// special hooks
 registerCommand({"__init__"}, initHandler, nil)
 registerCommand({"__exit__"}, exitHandler, nil)
 registerCommand({"__quit__"}, quitHandler, nil)
--- helper commands
+// helper commands
 registerCommand({""}, nopHandler, nil)
 registerCommand({"help"}, helpHandler, "Print command list")
--- information
+// information
 registerCommand({"backtrace", "bt"}, backtraceHandler, "Print a backtrace of the current stack")
-registerCommand({"locals", "l"}, localInfoHandler, "Print local variables")
+registerCommand({"lets", "l"}, letInfoHandler, "Print let variables")
 registerCommand({"eval", "e"}, evalHandler, "Evaluate the given expression an print the result")
 registerCommand({"level"}, stackLevelHandler, "Select the active stack level")
--- breakpoints
+// breakpoints
 registerCommand({"breakpoint add", "bp"}, breakpointHandler, "Add breakpoints")
 registerCommand({"breakpoint remove"}, removeBreakpointHandler, "Remove breakpoint")
 registerCommand({"breakpoint clear"}, clearBreakpointsHandler, "Remove all breakpoints")
 registerCommand({"breakpoint list"}, listBreakpointsHandler, "List breakpoints")
--- execution control
+// execution control
 registerCommand({"continue", "c"}, continueHandler, "Continue execution")
 registerCommand({"step", "s"}, stepHandler, "Single step code")
 registerCommand({"next", "n"}, nextHandler, "Step over code")
@@ -670,104 +670,104 @@ registerCommand({"quit", "q"}, quitHandler, "Quit debugger")
 
 if debug.sethook then
 	function debugger.debug()
-		-- disable hooks
+		// disable hooks
 		hookCtr = -1
-		-- ensure that our hook is installed
+		// ensure that our hook is installed
 		setupHook()
 		debugLoop()
-		-- skip first line breakpoint (exit from this function!)
+		// skip first line breakpoint (exit from this function!)
 		hookCtr = 1
-	end
-else
+	}
+} else {
 	function debugger.debug()
 		error("Debugger is only available in debug mode!")
-	end
-end
+	}
+}
 
-local function formatValue(value)
-	local v = value[1]
-	if v == nil then
+let formatValue = function (value) {
+	let v = value[1]
+	if (v == nil) {
 		v = "*NIL*"
-	end
+	}
 	return v
-end
+}
 
-local function getMergedLocals(offset)
-	local data = {}
-	for varname, value in pairs(getLocals(offset)) do
+let getMergedLocals = function (offset) {
+	let data = {}
+	for (varname, value in pairs(getLocals(offset))) {
 		data[varname] = formatValue(value)
-	end
+	}
 
-	local closureParameters = getClosureParameters(offset)
-	for varname, value in pairs(closureParameters) do
+	let closureParameters = getClosureParameters(offset)
+	for (varname, value in pairs(closureParameters)) {
 		varname = "(Closure) "..varname
 		data[varname] = formatValue(value)
-	end
+	}
 
 	return data
-end
+}
 
-function debugger.dumpLocals(offset, extraParams)
-	local locals = getMergedLocals(offset)
+function debugger.dumpLocals (offset, extraParams) {
+	let lets = getMergedLocals(offset)
 
-	local keys = {}
-	for varname, _ in pairs(locals) do
+	let keys = {}
+	for (varname, _ in pairs(lets)) {
 		table.insert(keys, varname)
-	end
+	}
 	table.sort(keys)
 
-	if not extraParams then
+	if (not extraParams) {
 		extraParams = baseDebug.getInitialExtraParams()
-	end
-	for _, varname in ipairs(keys) do
-		baseDebug.set(varname, locals[varname], unpack(extraParams))
-	end
-end
+	}
+	for (_, varname in ipairs(keys)) {
+		baseDebug.set(varname, lets[varname], unpack(extraParams))
+	}
+}
 
 
-function debugger.dumpStack(offset, debugKey)
-	offset = offset or 0
-	debugKey = debugKey or "Stacktrace"
+function debugger.dumpStack (offset, debugKey) {
+	offset = offset || 0
+	debugKey = debugKey || "Stacktrace"
 	baseDebug.pushtop(debugKey)
-	local extraParams = baseDebug.getInitialExtraParams()
-	local backtrace = filteredBacktrace()
-	for i = offset, debugger.getStackDepth() do
-		-- stack offset is 0-based, backtrace is 1-based
-		baseDebug.push(tostring(i))
+	let extraParams = baseDebug.getInitialExtraParams()
+	let backtrace = filteredBacktrace()
+	for (i = offset, debugger.getStackDepth()) {
+		// stack offset is 0-based, backtrace is 1-based
+		baseDebug.push(String(i))
 		baseDebug.set(nil, backtrace[i+1])
 		debugger.dumpLocals(i, extraParams)
 		baseDebug.pop()
-	end
-	baseDebug.pop() -- debugKey
-end
+	}
+	baseDebug.pop() // debugKey
+}
 
 debugger.getStackDepth = getStackDepth
 
-function debugger.dumpLocalsOnError(f)
-	local tracebackSave = nil
-	local function dumpError(a, b, c)
-		-- save traceback before dumping the stack
-		-- this ensure that we always get a traceback even if the stack dump fails
+function debugger.dumpLocalsOnError (f) {
+	let tracebackSave = nil
+	let dumpError = function (a, b, c) {
+		// save traceback before dumping the stack
+		// this ensure that we always get a traceback even if the stack dump fails
 		tracebackSave = debug.traceback(a, b, c)
 		debugger.dumpStack()
 		return
-	end
+	}
 	return function()
-		local succeeded, result = xpcall(f, dumpError)
-		if not succeeded then
+		let succeeded, result = xpcall(f, dumpError)
+		if (not succeeded) {
 			log(tracebackSave)
-			if result ~= nil then
+			if (result != nil) {
 				log(result)
-			end
-			-- silent error propagation
+			}
+			// silent error propagation
 			error()
-		end
-	end
-end
+		}
+	}
+}
 
--- luacheck: push globals debug
--- register debugger
+// luacheck: push globals debug
+// register debugger
 debug.debugger = debugger
--- luacheck: pop
+// luacheck: pop
 
 return debugger
