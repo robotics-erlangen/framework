@@ -190,17 +190,8 @@ void Typescript::performRequire(const v8::FunctionCallbackInfo<v8::Value>& args)
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
     QString name = *String::Utf8Value(args[0]);
     if (!t->m_requireCache.contains(name)) {
-        // TODO: may or may not work under windows
         QFileInfo initInfo(t->m_filename);
-        QFileInfo fileInfo(name);
-        QDir buildBaseDir = initInfo.absoluteDir();
-        buildBaseDir.cdUp();
-        QDir jsBaseDir = initInfo.absoluteDir();
-        jsBaseDir.cd("../../..");
-        QString relativePath = fileInfo.absolutePath().replace(jsBaseDir.absolutePath(), "");
-
-        // for future use
-        QFile file(buildBaseDir.absolutePath() + relativePath + "/" + fileInfo.fileName() + ".js");
+        QFile file(initInfo.absolutePath() + "/" + name + ".js");
         file.open(QIODevice::ReadOnly);
         QTextStream in(&file);
         QString content = in.readAll();
