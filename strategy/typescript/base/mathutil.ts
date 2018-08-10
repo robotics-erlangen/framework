@@ -1,11 +1,11 @@
-//[[
-/// Extensions to lua math functions
-module "math"
-]]//
+/*
+/// Extensions to typescript Math functions
+module "MathUtil"
+*/
 
-//[[***********************************************************************
-*   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
-*       André Pscherer                                                    *
+/**************************************************************************
+*   Copyright 2018 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
+*       André Pscherer, Andreas Wendler                                   *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -22,11 +22,10 @@ module "math"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-*************************************************************************]]
+**************************************************************************/
 
-// luacheck: globals math
-// luacheck: no unused secondaries
-let max, min = math.max, math.min
+let min = Math.min;
+let max = Math.max;
 
 /// Limits value to interval [min, max].
 // @name bound
@@ -34,23 +33,23 @@ let max, min = math.max, math.min
 // @param par number - value to limit to interval
 // @param max number - upper bound of interval
 // @return number - par limited to interval [min, max]
-function math.bound (vmin, par, vmax) {
-	return min(max(vmin, par), vmax)
+export function bound (vmin: number, par: number, vmax: number): number {
+	return min(max(vmin, par), vmax);
 }
 
 /// Rounds value towards dest.
 // The function provides a helper to implement hysteresis for certain functions.
 // If the value is in the interval [dest-0.5-spacing/2, dest+0.5+spacing/2] then dest is returned.
-// Otherwise it behaves like math.round.
+// Otherwise it behaves like Math.round.
 // @name roundTowards
 // @param val number - value to round
 // @param dest number - value to round towards, must be an integer
 // @param spacing number - spacing between to numbers where we round towards dest
-function math.roundTowards (val, dest, spacing) {
+export function roundTowards (val: number, dest: number, spacing: number) {
 	if (val > dest + 0.5 + spacing/2 || val < dest - 0.5 - spacing/2) {
-		return math.round(val)
+		return Math.round(val);
 	} else {
-		return dest
+		return dest;
 	}
 }
 
@@ -60,11 +59,11 @@ function math.roundTowards (val, dest, spacing) {
 // @name roundUpwards
 // @param val number - value to round
 // @param spacing number - tolerance for rounding up
-function math.roundUpwards (val, spacing) {
-	if (val + spacing + 0.5 >= math.ceil(val)) {
-		return math.ceil(val)
+export function roundUpwards (val: number, spacing: number): number {
+	if (val + spacing + 0.5 >= Math.ceil(val)) {
+		return Math.ceil(val);
 	} else {
-		return math.floor(val)
+		return Math.floor(val);
 	}
 }
 
@@ -74,19 +73,9 @@ function math.roundUpwards (val, spacing) {
 // @param val number
 // @param digits number - digits to keep after decimal dot
 // @return number - rounded value
-function math.round (val, digits) {
-	let fac = 10^(digits || 0)
-	return math.floor(val * fac + 0.5) / fac
-}
-
-// generates a random number in (0, 1]
-// @return number - random number
-function math.uniformRandom()
-	let value = 0
-	while (value == 0) {
-		value = math.random()
-	}
-	return value
+export function round (val: number, digits: number = 0): number {
+	let fac = Math.pow(10, digits);
+	return Math.floor(val * fac + 0.5) / fac;
 }
 
 
@@ -95,19 +84,19 @@ function math.uniformRandom()
 //@param a number
 //@param b number
 //@return [number]
-function math.solveLin (a, b) {
+export function solveLin (a: number, b: number): number | undefined {
 	if (a == 0) {
-		return
+		return;
 	}
-	return -b/a
+	return -b/a;
 }
 
 
-let sgn = function (number) {
-	if (number >= 0) {
-		return 1
+function sgn (value: number): 1 | -1 {
+	if (value >= 0) {
+		return 1;
 	} else {
-		return -1
+		return -1;
 	}
 }
 
@@ -118,34 +107,34 @@ let sgn = function (number) {
 // @param c number
 // @return [number - smallest positive solution or largest
 // @return [number]]
-function math.solveSq (a, b, c) {
+export function solveSq (a: number, b: number, c: number): [number, number?] | undefined {
 	if (a == 0) {
-		// return math.solveLin(b, c)
+		// return Math.solveLin(b, c)
 		if (b == 0) {
-			return
+			return;
 		} else {
-			return -c/b
+			return [-c/b];
 		}
 	}
 
-	let det = b*b - 4*a*c
+	let det = b*b - 4*a*c;
 	if (det < 0) {
-		return
+		return;
 	} else if (det == 0) {
-		return -b/(2*a)
+		return [-b/(2*a)];
 	}
-	det = math.sqrt(det)
-	let t2 = (-b-sgn(b)*det)/(2*a)
-	let t1 = c/(a*t2)
-	let minTi = math.min(t1, t2)
+	det = Math.sqrt(det);
+	let t2 = (-b-sgn(b)*det)/(2*a);
+	let t1 = c/(a*t2);
+	let minTi = Math.min(t1, t2);
 
 	// if both are >= 0 return smallest
 	// if only one is >= 0 the it's the larger value of both
 	// && the smallest positive solution
-	if ((minTi >= 0 and t1 < t2) || (minTi < 0 && t1 >= t2)) {
-		return t1, t2
+	if ((minTi >= 0 && t1 < t2) || (minTi < 0 && t1 >= t2)) {
+		return [t1, t2];
 	} else {
-		return t2, t1
+		return [t2, t1];
 	}
 }
 
@@ -153,45 +142,32 @@ function math.solveSq (a, b, c) {
 // @name sign
 // @param number number
 // @return number - 1 for postive number, -1 for negative number, 0 for 0
-function math.sign (number) {
-	if (number > 0) {
-		return 1
-	} else if (number < 0) {
-		return -1
+export function sign (value: number): -1 | 0 | 1 {
+	if (value > 0) {
+		return 1;
+	} else if (value < 0) {
+		return -1;
 	} else {
-		return 0
+		return 0;
 	}
 }
 
-function math.average (array, indexStart, indexEnd) {
-	let sum = 0
-	let n
-	if (indexStart) {
-		indexEnd = indexEnd || #array
-		for (i = indexStart, indexEnd) {
-			sum = sum + array[i]
-		}
-		n = indexEnd - indexStart + 1
-	} else {
-		for (_, v in ipairs(array)) {
-			sum = sum + v
-		}
-		n = #array
+export function average (array: [number], indexStart: number = 0, indexEnd: number = array.length): number {
+	let sum = 0;
+	for (let i = indexStart;i<indexEnd;i++) {
+		sum += array[i];
 	}
-	return sum/n
+	return sum / (indexEnd - indexStart);
 }
 
-function math.variance (array, average, indexStart, indexEnd) {
-	indexStart = indexStart || 1
-	indexEnd = indexEnd || #array
-	average = average || math.average(array, indexStart, indexEnd)
-	let variance = 0
-	for (i = indexStart, indexEnd) {
-		let diff = array[i] - average
-		variance = variance + diff*diff
+export function variance (array: [number], avg?: number, indexStart: number = 0, indexEnd: number = array.length): number {
+	if (avg == undefined) {
+		avg = average(array, indexStart, indexEnd);
 	}
-	let n = indexEnd - indexStart + 1
-	return variance/n
+	let variance = 0;
+	for (let i = indexStart; i<indexEnd; i++) {
+		let diff = array[i] - avg;
+		variance = variance + diff*diff;
+	}
+	return variance / (indexEnd - indexStart);
 }
-
-return math

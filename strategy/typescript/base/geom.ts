@@ -1,11 +1,11 @@
-//[[
+/*
 /// Provides several useful geometric functions
 module "geom"
-]]//
+*/
 
-//[[***********************************************************************
+/**************************************************************************
 *   Copyright 2017 Alexander Danzer, Michael Eischer, Michael Niebisch,   *
-*                  André Pscherer                                         *
+*                  André Pscherer, Andreas Wendler                        *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -22,9 +22,10 @@ module "geom"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-*************************************************************************]]
+**************************************************************************/
 
-let geom = {}
+import {Vector, Position, RelativePosition} from "../base/vector";
+import * as MathUtil from "../base/mathutil";
 
 /// Intersects two circles.
 // Returns up to two intersections or nothing if no intersections exist.
@@ -35,30 +36,34 @@ let geom = {}
 // @param r2 number - Radius of second circle
 // @return [Vector] - first intersection if exists (the one with higher x-value)
 // @return [Vector] - second intersection if exists (the one with lower x-value)
-function geom.intersectCircleCircle (c1, r1, c2, r2) {
-	let dist = c1:distanceTo(c2)
-	if (dist > r1 + r2) { return nil
-	} else if (dist == r1 + r2) { return c1 + (c2-c1):scaleLength(0.5)
+export function intersectCircleCircle (c1: Position, r1: number, c2: Position, r2: number): [Position?, Position?] {
+	let dist = c1.distanceTo(c2);
+	if (dist > r1 + r2) {
+		return [];
+	} else if (dist == r1 + r2) {
+		return [c1 + (c2-c1).scaleLength(0.5)];
 	} else if (dist < r1 + r2) {
-		let c1x, c1y, c2x, c2y = c1.x, c1.y, c2.x, c2.y
-		let a1 = (r1*r1 - r2*r2 - c1x*c1x + c2x*c2x - c1y*c1y + c2y*c2y) / (2*c2x - 2*c1x)
-		let a2 = (c1y - c2y) / (c2x - c1x)
-		let k1 = 1 + (1 / (a2*a2))
-		let k2 = 2*c1x + (2*c1y)/a2 + (2*a1)/(a2*a2)
-		let k3 = c1x*c1x + (a1*a1)/(a2*a2) + (2*c1y*a1)/a2 + (c1y*c1y) - (r1*r1)
+		let c1x = c1.x, c1y = c1.y, c2x = c2.x, c2y = c2.y;
+		let a1 = (r1*r1 - r2*r2 - c1x*c1x + c2x*c2x - c1y*c1y + c2y*c2y) / (2*c2x - 2*c1x);
+		let a2 = (c1y - c2y) / (c2x - c1x);
+		let k1 = 1 + (1 / (a2*a2));
+		let k2 = 2*c1x + (2*c1y)/a2 + (2*a1)/(a2*a2);
+		let k3 = c1x*c1x + (a1*a1)/(a2*a2) + (2*c1y*a1)/a2 + (c1y*c1y) - (r1*r1);
 
-		let finalX1 = ((k2/k1) / 2) + math.sqrt( ((k2/k1)*(k2/k1) / 4) - (k3/k1) )
-		let finalX2 = ((k2/k1) / 2) - math.sqrt( ((k2/k1)*(k2/k1) / 4) - (k3/k1) )
-		let finalY1 = 1 / a2 * finalX1 - (a1/a2)
-		let finalY2 = 1 / a2 * finalX2 - (a1/a2)
+		let finalX1 = ((k2/k1) / 2) + Math.sqrt( ((k2/k1)*(k2/k1) / 4) - (k3/k1) );
+		let finalX2 = ((k2/k1) / 2) - Math.sqrt( ((k2/k1)*(k2/k1) / 4) - (k3/k1) );
+		let finalY1 = 1 / a2 * finalX1 - (a1/a2);
+		let finalY2 = 1 / a2 * finalX2 - (a1/a2);
 
-		return Vector(finalX1, finalY1), Vector(finalX2, finalY2)
+		return [new Vector(finalX1, finalY1), new Vector(finalX2, finalY2)];
 	}
+	return [];
 }
 
-function geom.boundRect (p1, pos, p2) {
-	return Vector(math.bound(math.min(p1.x,p2.x), pos.x, math.max(p1.x,p2.x)), math.bound(math.min(p1.y,p2.y), pos.y, math.max(p1.y,p2.y)))
-	// return Vector(math.bound(min.x, pos.x, max.x), math.bound(min.y, pos.y, max.y))
+export function boundRect (p1: Position, pos: Position, p2: Position): Position {
+	return new Vector(MathUtil.bound(Math.min(p1.x,p2.x), pos.x, Math.max(p1.x,p2.x)),
+						MathUtil.bound(Math.min(p1.y,p2.y), pos.y, Math.max(p1.y,p2.y)))
+	// return Vector(Math.bound(min.x, pos.x, max.x), Math.bound(min.y, pos.y, max.y))
 }
 
 /// Intersects a line with a circle.
@@ -72,32 +77,33 @@ function geom.boundRect (p1, pos, p2) {
 // @return [Vector] - second intersection if exists
 // @return number - first lambda
 // @return number - second lambda, which is always less then first lambda
-function geom.intersectLineCircle (offset, dir, center, radius) {
-	dir = dir:copy():normalize()
-	let const = offset - center
+export function intersectLineCircle (offset: Position, dir: RelativePosition, center: Position, radius: number):
+		[Position, Position?, number?, number?] | undefined {
+	dir = dir.copy().normalize();
+	let constPart = offset - center;
 	// |offset + lambda*dir - center| = radius
 	// l^2 VxV + l 2(CxV) + CxC == R^2
 
-	let a = dir:dot(dir)
-	let b = 2 * dir:dot(const)
-	let c = const:dot(const) - radius * radius
+	let a = dir.dot(dir);
+	let b = 2 * dir.dot(constPart);
+	let c = constPart.dot(constPart) - radius * radius;
 
-	let det = b * b - 4 * a * c
+	let det = b * b - 4 * a * c;
 
 	if (det < 0) {
-		return
+		return;
 	}
 
 	if (det < 0.00001) {
-		let lambda1 = (-b)/(2*a)
-		return offset + dir * lambda1, nil, lambda1, nil
+		let lambda1 = (-b)/(2*a);
+		return [offset + dir * lambda1, undefined, lambda1];
 	}
 
-	let lambda1 = (-b + math.sqrt(det))/(2*a)
-	let lambda2 = (-b - math.sqrt(det))/(2*a)
-	let point1 = offset + dir * lambda1
-	let point2 = offset + dir * lambda2
-	return point1, point2, lambda1, lambda2
+	let lambda1 = (-b + Math.sqrt(det))/(2*a);
+	let lambda2 = (-b - Math.sqrt(det))/(2*a);
+	let point1 = offset + dir * lambda1;
+	let point2 = offset + dir * lambda2;
+	return [point1, point2, lambda1, lambda2];
 }
 
 /// Calculates the intersection between a line and a corridor created by a line and a width
@@ -114,30 +120,34 @@ function geom.intersectLineCircle (offset, dir, center, radius) {
 // @return number - lambda2, intersection2 = offset + lambda2*direction (lambda of second point on the line)
 // @return number - lambda3, intersection1 = offsetCorridor + lambda3*directionCorridor (lambda in the corridor)
 // @return number - lambda4, intersection2 = offsetCorridor + lambda4*directionCorridor (lambda in the corridor)
-// lambda1, lambda2, lambda3, lambda4 can be nil if no intersection exists or +/-math.huge if the line is inside the corridor
+// lambda1, lambda2, lambda3, lambda4 can be nil if no intersection exists or +/-Infinity if the line is inside the corridor
 // the intersection with their lambdas are sorted so that lambda1 <= lambda2
-function geom.intersectLineCorridor (offset, direction, offsetCorridor, directionCorridor, widthHalf) {
-	assert(directionCorridor != Vector(0, 0))
-	let corridorPerpendicular = directionCorridor:perpendicular():setLength(widthHalf)
-	let offsetCorridorLeft = offsetCorridor + corridorPerpendicular
-	let offsetCorridorRight = offsetCorridor - corridorPerpendicular
-	let intersectionLeft, lambdaLeftLine, lambdaLeft = geom.intersectLineLine(offset, direction,
-															offsetCorridorLeft, directionCorridor)
-	if (not intersectionLeft || direction == Vector(0, 0)) {
+export function intersectLineCorridor (offset : Position, direction: RelativePosition, offsetCorridor: Position,
+		directionCorridor: RelativePosition, widthHalf: number): [Position?, Position?, number?, number?, number?, number?] {
+	if (directionCorridor != new Vector(0, 0)) {
+		throw new Error("intersectLineCorridor: directionCorridor can not be a 0 vector");
+	}
+	let corridorPerpendicular = directionCorridor.perpendicular().setLength(widthHalf);
+	let offsetCorridorLeft = offsetCorridor + corridorPerpendicular;
+	let offsetCorridorRight = offsetCorridor - corridorPerpendicular;
+	let [intersectionLeft, lambdaLeftLine, lambdaLeft] = intersectLineLine(offset, direction,
+															offsetCorridorLeft, directionCorridor);
+	if (intersectionLeft || direction == new Vector(0, 0)) { // TODO: ==???
 		// Either no intersection || line is in corridor
-		let leftDistance = offset:orthogonalDistance(offsetCorridorLeft, offsetCorridorLeft + directionCorridor)
-		let rightDistance = offset:orthogonalDistance(offsetCorridorRight, offsetCorridorRight + directionCorridor)
-		if (math.abs(leftDistance) <= widthHalf * 2 && math.abs(rightDistance) <= widthHalf * 2) {
-			return nil, nil, -math.huge, math.huge, -math.huge, math.huge
+		let leftDistance = offset.orthogonalDistance(offsetCorridorLeft, offsetCorridorLeft + directionCorridor);
+		let rightDistance = offset.orthogonalDistance(offsetCorridorRight, offsetCorridorRight + directionCorridor);
+		if (Math.abs(leftDistance) <= widthHalf * 2 && Math.abs(rightDistance) <= widthHalf * 2) {
+			return [undefined, undefined, -Infinity, Infinity, -Infinity, Infinity];
 		}
-		return nil, nil, nil, nil, nil, nil
+		return [];
 	}
-	let intersectionRight, lambdaRightLine, lambdaRight = geom.intersectLineLine(offset, direction,
-																	offsetCorridorRight, directionCorridor)
-	if (lambdaRightLine < lambdaLeftLine) {
-		return intersectionRight, intersectionLeft, lambdaRightLine, lambdaLeftLine, lambdaRight, lambdaLeft
+	let [intersectionRight, lambdaRightLine, lambdaRight] = intersectLineLine(offset, direction,
+																	offsetCorridorRight, directionCorridor);
+	if (lambdaRightLine != undefined && lambdaLeftLine != undefined &&
+			lambdaRightLine < lambdaLeftLine) {
+		return [intersectionRight, intersectionLeft, lambdaRightLine, lambdaLeftLine, lambdaRight, lambdaLeft];
 	}
-	return intersectionLeft, intersectionRight, lambdaLeftLine, lambdaRightLine, lambdaRight, lambdaLeft
+	return [intersectionLeft, intersectionRight, lambdaLeftLine, lambdaRightLine, lambdaRight, lambdaLeft];
 }
 
 /// Calcualtes tangents to circle.
@@ -148,8 +158,9 @@ function geom.intersectLineCorridor (offset, direction, offsetCorridor, directio
 // @param radius number - Radius of circle
 // @return [Vector] - first tangent point on the circle if exists
 // @return [Vector] - second tangent point on the circle if exists
-function geom.getTangentsToCircle (point, centerpoint, radius) {
-	return geom.intersectCircleCircle(centerpoint, radius, centerpoint+(point-centerpoint):scaleLength(0.5), 0.5*(centerpoint):distanceTo(point))
+export function getTangentsToCircle (point: Position, centerpoint: Position, radius: number): [Position?, Position?] {
+	return intersectCircleCircle(centerpoint, radius, centerpoint+(point-centerpoint).scaleLength(0.5),
+		0.5*(centerpoint).distanceTo(point));
 }
 
 /// Calculates the inner tangents of two circles.
@@ -159,15 +170,17 @@ function geom.getTangentsToCircle (point, centerpoint, radius) {
 // @param radius1 number - Radius of circle1
 // @param centerpoint2 Vector - Centerpoint of circle2
 // @param radius2 number - Radius of circle2
-// @return schnittpunkt Vector - The point, where the two tangents intersect
+// @return intersection Vector - The point, where the two tangents intersect
 // @return [Vector] - Point, where the first tangent touches circle1
 // @return [Vector] - Point, where the second tangent touches circle1
-function geom.getInnerTangentsToCircles (centerpoint1, radius1, centerpoint2, radius2) {
-	let d = centerpoint2 - centerpoint1
-	if (d:length() > radius1 + radius2) {
-		let schnittpunkt = centerpoint1 + d*(radius1/(radius1 + radius2))
-		return schnittpunkt, geom.getTangentsToCircle(schnittpunkt, centerpoint1, radius1)
+export function getInnerTangentsToCircles (centerpoint1: Position, radius1: number, centerpoint2: Position, radius2: number):
+		[Vector, Vector?] | undefined {
+	let d = centerpoint2 - centerpoint1;
+	if (d.length() > radius1 + radius2) {
+		let intersection = centerpoint1 + d*(radius1/(radius1 + radius2));
+		return [intersection, getTangentsToCircle(intersection, centerpoint1, radius1)[0]];
 	}
+	return undefined;
 }
 
 /// Intersects two lines.
@@ -182,25 +195,26 @@ function geom.getInnerTangentsToCircles (centerpoint1, radius1, centerpoint2, ra
 // @return [Vector - intersection
 // @return number - lambda1, intersection = pos1 + lambda1*dir1
 // @return number] - lambda2, intersection = pos2 + lambda2*dir2
-function geom.intersectLineLine (pos1, dir1, pos2, dir2) {
+export function intersectLineLine (pos1: Position, dir1: RelativePosition, pos2: Position, dir2: RelativePosition):
+		[Vector, number, number] | [] {
 	// check whether the directions are collinear
-	if (math.abs(dir1:perpendicular():dot(dir2)) / (dir1:length() * dir2:length()) < 0.0001) {
+	if (Math.abs(dir1.perpendicular().dot(dir2)) / (dir1.length() * dir2.length()) < 0.0001) {
 		// check whether connection vector of pos is collinear to dir
-		let d = pos2 - pos1
-		if (math.abs(d:perpendicular():dot(dir1)) / (dir1:length() * d:length()) < 0.0001) {
-			return pos1, 0, 0
+		let d = pos2 - pos1;
+		if (Math.abs(d.perpendicular().dot(dir1)) / (dir1.length() * d.length()) < 0.0001) {
+			return [pos1, 0, 0];
 		} else {
-			return
+			return [];
 		}
 	}
 
-	let normal1 = dir1:perpendicular()
-	let normal2 = dir2:perpendicular()
-	let diff = pos2 - pos1
-	let t1 = normal2:dot(diff) / normal2:dot(dir1)
-	let t2 = -normal1:dot(diff) / normal1:dot(dir2)
+	let normal1 = dir1.perpendicular();
+	let normal2 = dir2.perpendicular();
+	let diff = pos2 - pos1;
+	let t1 = normal2.dot(diff) / normal2.dot(dir1);
+	let t2 = -normal1.dot(diff) / normal1.dot(dir2);
 
-	return pos1 + (dir1 * t1), t1, t2
+	return [pos1 + (dir1 * t1), t1, t2];
 }
 
 /// Intersects two lines given as points.
@@ -210,8 +224,9 @@ function geom.intersectLineLine (pos1, dir1, pos2, dir2) {
 // @param p2 Vector - point on line 1
 // @param q1 Vector - point on line 2
 // @param q2 Vector - point on line 2
-function geom.intersectLinesByPoints (p1, p2, q1, q2) {
-	return geom.intersectLineLine(p1, p2-p1, q1, q2-q1)
+export function intersectLinesByPoints (p1: Position, p2: Position, q1: Position, q2: Position):
+		[Position?, number?, number?] {
+	return intersectLineLine(p1, p2-p1, q1, q2-q1);
 }
 
 /// Calculates area of a triangle.
@@ -221,10 +236,10 @@ function geom.intersectLinesByPoints (p1, p2, q1, q2) {
 // @param p2 Vector - second corner of triangle
 // @param p3 Vector - third corner of triangle
 // @return number - area of triangle
-function geom.calcTriangleArea (p1, p2, p3) {
-	let p21 = p2 - p1
-	let p31 = p3 - p1
-	return 0.5 * math.abs(p21.x * p31.y - p21.y * p31.x)
+export function calcTriangleArea (p1: Position, p2: Position, p3: Position): number {
+	let p21 = p2 - p1;
+	let p31 = p3 - p1;
+	return 0.5 * Math.abs(p21.x * p31.y - p21.y * p31.x);
 }
 
 /// Checks whether the points of a triangle are given clockwise or counterclockwise
@@ -234,10 +249,10 @@ function geom.calcTriangleArea (p1, p2, p3) {
 // @param p2 Vector - second corner of triangle
 // @param p3 Vector - third corner of triangle
 // @return number - -1 for clockwise, 1 for counterclockwise, 0 for all points in a line
-function geom.checkTriangleOrientation (p1, p2, p3) {
-	let v21 = p2 - p1
-	let v31 = p3 - p1
-	return math.sign(v21.x * v31.y - v21.y * v31.x)
+export function checkTriangleOrientation (p1: Position, p2: Position, p3: Position): -1 | 0 | 1 {
+	let v21 = p2 - p1;
+	let v31 = p3 - p1;
+	return MathUtil.sign(v21.x * v31.y - v21.y * v31.x);
 }
 
 /// Calculates area of a quadrangle.
@@ -248,20 +263,20 @@ function geom.checkTriangleOrientation (p1, p2, p3) {
 // @param p3 Vector - third corner of quadrangle
 // @param p4 Vector - fourth corner of quadrangle
 // @return number - area of quadrangle
-function geom.calcQuadrangleArea (p1, p2, p3, p4) {
-	return geom.calcTriangleArea(p1, p2, p3) + geom.calcTriangleArea(p1, p3, p4)
+export function calcQuadrangleArea (p1: Position, p2: Position, p3: Position, p4: Position): number {
+	return calcTriangleArea(p1, p2, p3) + calcTriangleArea(p1, p3, p4);
 }
 
 /// Calculates geometric center of points in array.
 // @name center
 // @param pointArray Vector[] - points
 // @return Vector - geometric center of points
-function geom.center (pointArray) {
-	let pos = Vector(0,0)
-	for (_, point in ipairs(pointArray)) {
-		pos = pos + point // sum up all points
+export function center (pointArray: Position[]): Position {
+	let pos = new Vector(0, 0);
+	for (let p of pointArray) {
+		pos = pos + p;
 	}
-	return pos / #pointArray
+	return pos / pointArray.length;
 }
 
 /// Checks if p is inside the triangle defined by a b c.
@@ -273,58 +288,54 @@ function geom.center (pointArray) {
 // @param c Vector - third corner of triangle
 // @param p Vector - point to check
 // @return bool - Is p in triangle
-function geom.isInTriangle (a, b, c, p) {
+export function isInTriangle (a: Position, b: Position, c: Position, p: Position): boolean {
 	// convert to barycentric coordinates
-	let v0 = c - a
-	let v1 = b - a
-	let v2 = p - a
+	let v0 = c - a;
+	let v1 = b - a;
+	let v2 = p - a;
 
-	let dot00 = v0:dot(v0)
-	let dot01 = v0:dot(v1)
-	let dot02 = v0:dot(v2)
-	let dot11 = v1:dot(v1)
-	let dot12 = v1:dot(v2)
+	let dot00 = v0.dot(v0);
+	let dot01 = v0.dot(v1);
+	let dot02 = v0.dot(v2);
+	let dot11 = v1.dot(v1);
+	let dot12 = v1.dot(v2);
 
-	let invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
-	let u = (dot11 * dot02 - dot01 * dot12) * invDenom
+	let invDenom = 1 / (dot00 * dot11 - dot01 * dot01);
+	let u = (dot11 * dot02 - dot01 * dot12) * invDenom;
 	if (u < 0) {
-		return false
+		return false;
 	}
-	let v = (dot00 * dot12 - dot01 * dot02) * invDenom
+	let v = (dot00 * dot12 - dot01 * dot02) * invDenom;
 
-	if (v < 0 || u + v > 1) {
-		return false
-	} else {
-		return true
-	}
+	return v >= 0 && u + v <= 1;
 }
 
 /// Normalizes angle to value in interval [-pi, +pi].
 // @name normalizeAngle
 // @param angle number - angle in radians
 // @return number - normalized angle
-function geom.normalizeAngle (angle) {
-	while (angle > math.pi) {
-		angle = angle - 2 * math.pi
+export function normalizeAngle (angle: number): number {
+	while (angle > Math.PI) {
+		angle = angle - 2 * Math.PI;
 	}
-	while (angle < -math.pi) {
-		angle = angle + 2 * math.pi
+	while (angle < -Math.PI) {
+		angle = angle + 2 * Math.PI;
 	}
-	return angle
+	return angle;
 }
 
 /// Normalizes angle to value in interval [0, +2pi]
 // @name normalizeAnglePositive
 // @param angle number - angle in radians
 // @return number - normalized angle
-function geom.normalizeAnglePositive (angle) {
-	while (angle > 2 * math.pi) {
-		angle = angle - 2 * math.pi
+export function normalizeAnglePositive (angle: number): number {
+	while (angle > 2 * Math.PI) {
+		angle = angle - 2 * Math.PI;
 	}
 	while (angle < 0) {
-		angle = angle + 2 * math.pi
+		angle = angle + 2 * Math.PI;
 	}
-	return angle
+	return angle;
 }
 
 /// Normalized difference between angles.
@@ -334,9 +345,9 @@ function geom.normalizeAnglePositive (angle) {
 // @param angle1 number - first angle in radians
 // @param angle2 number - second angle in radians
 // @return number - angleDiff in radians
-function geom.getAngleDiff (angle1, angle2) {
-	let diff = angle2 - angle1
-	return geom.normalizeAngle(diff)
+export function getAngleDiff (angle1: number, angle2: number): number {
+	let diff = angle2 - angle1;
+	return normalizeAngle(diff);
 }
 
 // Applies the inscribed angle theorem.
@@ -344,30 +355,29 @@ function geom.getAngleDiff (angle1, angle2) {
 // @param point1 vector - first point on cirle
 // @param point2 vector - second point on cirle
 // @param theta number - angle inside in radians
-// @return number - center of circle one
-// @return number - center of circle two
+// @return vector - center of circle one
+// @return vector - center of circle two
 // @return number - radius of circle
-function geom.inscribedAngle (point1, point2, theta) {
-	let radius = point1:distanceTo(point2) / (2 * math.sin(theta))
-	let centerOfCircleOne = point1 + ((point2 - point1):rotate(math.pi/2 - theta)):setLength(radius)
-	let centerOfCircleTwo = point1 + ((point2 - point1):rotate(-(math.pi/2 - theta))):setLength(radius)
-	return centerOfCircleOne, centerOfCircleTwo, radius
+export function inscribedAngle (point1: Position, point2: Position, theta: number):
+		[Vector, Vector, number] {
+	let radius = point1.distanceTo(point2) / (2 * Math.sin(theta));
+	let centerOfCircleOne = point1 + ((point2 - point1).rotate(Math.PI/2 - theta)).setLength(radius);
+	let centerOfCircleTwo = point1 + ((point2 - point1).rotate(-(Math.PI/2 - theta))).setLength(radius);
+	return [centerOfCircleOne, centerOfCircleTwo, radius];
 }
 
-function geom.insideRect (corner1, corner2, x) {
-	let minCornerX, maxCornerX, minCornerY, maxCornerY
+export function insideRect (corner1: Position, corner2: Position, x: Position): boolean {
+	let minCornerX, maxCornerX, minCornerY, maxCornerY;
 	if (corner1.x < corner2.x) {
-		minCornerX, maxCornerX = corner1.x, corner2.x
+		minCornerX = corner1.x, maxCornerX = corner2.x;
 	} else {
-		minCornerX, maxCornerX = corner2.x, corner1.x
+		minCornerX = corner2.x, maxCornerX = corner1.x;
 	}
 	if (corner1.y < corner2.y) {
-		minCornerY, maxCornerY = corner1.y, corner2.y
+		minCornerY = corner1.y, maxCornerY = corner2.y;
 	} else {
-		minCornerY, maxCornerY = corner2.y, corner1.y
+		minCornerY = corner2.y, maxCornerY = corner1.y;
 	}
-	return minCornerX < x.x and x.x < maxCornerX &&
-			minCornerY < x.y && x.y < maxCornerY
+	return minCornerX < x.x && x.x < maxCornerX &&
+			minCornerY < x.y && x.y < maxCornerY;
 }
-
-return geom
