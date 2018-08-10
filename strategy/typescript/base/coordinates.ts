@@ -1,11 +1,11 @@
-//[[
+/*
 /// Functions to convert from global to strategy let coordinates and back.
 // Only use to convert values from or for amun!
 module "Coordinates"
-]]//
+*/
 
-//[[***********************************************************************
-*   Copyright 2015 Alexander Danzer, Michael Eischer                      *
+/**************************************************************************
+*   Copyright 2018 Alexander Danzer, Michael Eischer, Andreas Wendler     *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
 *   info@robotics-erlangen.de                                             *
@@ -22,9 +22,7 @@ module "Coordinates"
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-*************************************************************************]]
-
-let Coordinates = {}
+**************************************************************************/
 
 /// Converts global coordinates from amun to strategy let coordinates
 // @class function
@@ -32,8 +30,8 @@ let Coordinates = {}
 // @param data Vector/number - vector or angle to convert
 // @return Vector/number
 
-//[[
-separator for luadoc]]//
+/*
+separator for luadoc*/
 
 /// Converts strategy let coordinates to global coordinates for amun
 // @class function
@@ -41,8 +39,8 @@ separator for luadoc]]//
 // @param data Vector/number - vector or angle to convert
 // @return Vector/number
 
-//[[
-separator for luadoc]]//
+/*
+separator for luadoc*/
 
 /// Does toGlobal conversion for a list
 // @class function
@@ -50,46 +48,68 @@ separator for luadoc]]//
 // @param data (Vector/number)[] - list to map
 // @return (Vector/number)[]
 
-//[[
-separator for luadoc]]//
+/*
+separator for luadoc*/
 
-let invertCoordinates = function (data) {
-	let dtype = type(data)
-	if (dtype == "number") {
-		if (data > math.pi) {
-			return data - math.pi
+import {Vector} from "../base/vector";
+
+interface CoordinatesType {
+	toGlobal(pos: Vector): Vector;
+	toGlobal(pos: Readonly<Vector>): Readonly<Vector>;
+	toGlobal(num: number): number;
+	toLocal(pos: Vector): Vector;
+	toLocal(pos: Readonly<Vector>): Readonly<Vector>;
+	toLocal(num: number): number;
+	listToGlobal(pos: Vector[]): Vector[];
+	listToGlobal(pos: Readonly<Vector>[]): Readonly<Vector>[];
+	listToGlobal(num: number[]): number[];
+};
+
+class Invert implements CoordinatesType {
+	toGlobal (data: any): any {
+		if (typeof(data) === "number") {
+			let num = data as number;
+			if (num > Math.PI) {
+				return num - Math.PI;
+			} else {
+				return num + Math.PI;
+			}
 		} else {
-			return data + math.pi
+			let vector = data as Vector;
+			return new Vector(-vector.x, -vector.y);
 		}
-	} else if (dtype == "nil") {
-		error("nil isn't a coordinate")
-	} else {
-		return Vector(-data.x, -data.y, data:isReadonly())
+	}
+	toLocal (data: any): any {
+		return this.toGlobal(data);
+	}
+	listToGlobal (data: any[]): any[] {
+		let inverted = [];
+		for (let v of data) {
+			inverted.push(this.toGlobal(v));
+		}
+		return inverted;
 	}
 }
 
-let invertList = function (data) {
-	let inverted = {}
-	for (k,v in ipairs(data)) {
-		inverted[k] = invertCoordinates(v)
+class Pass implements CoordinatesType {
+	toGlobal(value: any): any {
+		return value;
 	}
-	return inverted
+	toLocal (value: any): any {
+		return value;
+	}
+	listToGlobal (value: any): any {
+		return value;
+	}
 }
 
-let passthrough = function (data) {
-	return data
-}
+export let Coordinates: CoordinatesType;
 
-function Coordinates._setIsBlue (teamIsBlue) {
+export function _setIsBlue (teamIsBlue: boolean) {
 	if (teamIsBlue) {
-		Coordinates.toGlobal = invertCoordinates
-		Coordinates.toLocal = invertCoordinates
-		Coordinates.listToGlobal = invertList
+		Coordinates = new Invert();
 	} else {
-		Coordinates.toGlobal = passthrough
-		Coordinates.toLocal = passthrough
-		Coordinates.listToGlobal = passthrough
+		Coordinates = new Pass();
 	}
 }
 
-return Coordinates

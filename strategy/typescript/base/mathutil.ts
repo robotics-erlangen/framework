@@ -1,7 +1,7 @@
-/**
- * @module math
- * Extensions to javascript math functions
- */
+/*
+/// Extensions to typescript Math functions
+module "MathUtil"
+*/
 
 /**************************************************************************
 *   Copyright 2018 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
@@ -12,12 +12,12 @@
 *                                                                         *
 *   This program is free software: you can redistribute it and/or modify  *
 *   it under the terms of the GNU General Public License as published by  *
-*   the Free Software Foundation, either version 3 of the License, or     *
+*   the Free Software Foundation, either version 3 of the License, ||     *
 *   any later version.                                                    *
 *                                                                         *
 *   This program is distributed in the hope that it will be useful,       *
 *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   MERCHANTABILITY || FITNESS FOR A PARTICULAR PURPOSE.  See the         *
 *   GNU General Public License for more details.                          *
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
@@ -26,123 +26,40 @@
 
 let min = Math.min;
 let max = Math.max;
-import * as Option from "base/option";
-import { Random } from "base/random";
-import { Vector } from "base/vector";
 
-let amunCopy = amun;
-
-interface RandomLike {
-	nextNumber53(): number;
-	nextInt32(range?: [number, number]): number;
-}
-
-interface RandomMinor {
-	nextNumber53(): number;
-}
-
-class ExtendedRandom {
-	private _random: RandomMinor;
-	public constructor(random: RandomMinor) {
-		this._random = random;
-	}
-	public nextNumber53(): number {
-		return this._random.nextNumber53();
-	}
-	public nextInt32(range?: [number, number]): number {
-		if (range == undefined) {
-			throw new Error("nextInt32 without range is not possible for ExtendedRandom");
-		}
-		return Math.floor(this._random.nextNumber53() * (range[1] - range[0] + 1) + range[0]);
-	}
-}
-
-const USE_LUA_PRNG = Option.addOption("Enable Lua PRNG", false);
-
-function produceRandom(seed?: number): RandomLike {
-	if (seed == undefined) {
-		seed = new Date().getTime();
-	}
-	if (USE_LUA_PRNG) {
-		amunCopy.luaRandomSetSeed(seed);
-		// as changing luaRandom fires a strategy reload, we can safely assume that _random is either a luaPRNG or undefined
-		return _random == undefined ? new ExtendedRandom({ nextNumber53: amunCopy.luaRandom }) : _random;
-	} else {
-		return new Random(seed);
-	}
-}
-
-let _random: RandomLike | undefined = undefined;
-
-/** Seeds the PRNG with the given seed */
-export function randomseed(seed: number): void {
-	_random = produceRandom(seed);
-}
-
-function initRandom(): void {
-	if (_random == undefined) {
-		if (amun.isDebug) {
-			throw new Error("Unseeded Random was tried");
-		}
-		_random = produceRandom();
-	}
-}
-
-/** Generates a random number on [0,1) with 53-bit resolution */
-export function random(): number {
-	initRandom();
-	return _random!.nextNumber53();
-}
-
-/**
- * Generates an int32 pseudo random number, faster than random()
- * @param range - An optional [from, to] range, if not specified the result will be in range [0,0xffffffff]
- * from and to are inclusive in the range
- */
-export function randomInt(range?: [number, number]): number {
-	if (range != undefined && range[1] - range[0] < 0) {
-		throw new Error("randomInt: range size can't be negative or zero");
-	}
-	initRandom();
-	return _random!.nextInt32(range);
-}
-
-/**
- * Limits value to interval [min, max].
- * @param vmin - Lower bound of interval
- * @param par - Value to limit to interval
- * @param vmax - Upper bound of interval
- * @returns par limited to interval [min, max]
- */
-export function bound(vmin: number, par: number, vmax: number): number {
+/// Limits value to interval [min, max].
+// @name bound
+// @param min number - lower bound of interval
+// @param par number - value to limit to interval
+// @param max number - upper bound of interval
+// @return number - par limited to interval [min, max]
+export function bound (vmin: number, par: number, vmax: number): number {
 	return min(max(vmin, par), vmax);
 }
 
-/**
- * Rounds value towards dest.
- * The function provides a helper to implement hysteresis for certain functions.
- * If the value is in the interval [dest-0.5-spacing/2, dest+0.5+spacing/2] then dest is returned.
- * Otherwise it behaves like Math.round.
- * @param val - value to round
- * @param dest - value to round towards, must be an integer
- * @param spacing - spacing between to numbers where we round towards dest
- */
-export function roundTowards(val: number, dest: number, spacing: number) {
-	if (val > dest + 0.5 + spacing / 2 || val < dest - 0.5 - spacing / 2) {
+/// Rounds value towards dest.
+// The function provides a helper to implement hysteresis for certain functions.
+// If the value is in the interval [dest-0.5-spacing/2, dest+0.5+spacing/2] then dest is returned.
+// Otherwise it behaves like Math.round.
+// @name roundTowards
+// @param val number - value to round
+// @param dest number - value to round towards, must be an integer
+// @param spacing number - spacing between to numbers where we round towards dest
+export function roundTowards (val: number, dest: number, spacing: number) {
+	if (val > dest + 0.5 + spacing/2 || val < dest - 0.5 - spacing/2) {
 		return Math.round(val);
 	} else {
 		return dest;
 	}
 }
 
-/**
- * Rounds value upwards.
- * The function provides a helper to implement hysteresis for certain functions.
- * Rounds the suffixes in [0.5 - spacing, 1] upwards
- * @param val - Value to round
- * @param spacing - Tolerance for rounding up
- */
-export function roundUpwards(val: number, spacing: number): number {
+/// Rounds value upwards.
+// The function provides a helper to implement hysteresis for certain functions.
+// Rounds the suffixes in [0.5 - spacing, 1] upwards
+// @name roundUpwards
+// @param val number - value to round
+// @param spacing number - tolerance for rounding up
+export function roundUpwards (val: number, spacing: number): number {
 	if (val + spacing + 0.5 >= Math.ceil(val)) {
 		return Math.ceil(val);
 	} else {
@@ -150,49 +67,65 @@ export function roundUpwards(val: number, spacing: number): number {
 	}
 }
 
-/**
- * Round value to idp digits
- * @example round(1.23, 1) -> 1.2
- * @param val - Number
- * @param digits - Digits to keep after decimal dot
- * @returns The rounded value
- */
-export function round(val: number, digits: number = 0): number {
-	let fac = 10 ** digits;
+/// Round value to idp digits
+// @usage round(1.23, 1) // 1.2
+// @name round
+// @param val number
+// @param digits number - digits to keep after decimal dot
+// @return number - rounded value
+export function round (val: number, digits: number = 0): number {
+	let fac = Math.pow(10, digits);
 	return Math.floor(val * fac + 0.5) / fac;
 }
 
-/** Solves a*t + b for t */
-export function solveLin(a: number, b: number): number | undefined {
-	if (a === 0) {
+
+/// Solves a*t + b for t
+//@name solveLin
+//@param a number
+//@param b number
+//@return [number]
+export function solveLin (a: number, b: number): number | undefined {
+	if (a == 0) {
 		return;
 	}
-	return -b / a;
+	return -b/a;
 }
 
-/**
- * Solves a*t^2 + b*t + c for t
- * @returns All real-number solutions (up to two), sorted
- */
-export function solveSq(a: number, b: number, c: number): number[] {
-	if (a === 0) {
+
+function sgn (value: number): 1 | -1 {
+	if (value >= 0) {
+		return 1;
+	} else {
+		return -1;
+	}
+}
+
+/// Solves a*t^2 + b*t + c for t
+// @name solveSq
+// @param a number
+// @param b number
+// @param c number
+// @return [number - smallest positive solution or largest
+// @return [number]]
+export function solveSq (a: number, b: number, c: number): [number, number?] | undefined {
+	if (a == 0) {
 		// return Math.solveLin(b, c)
-		if (b === 0) {
-			return [];
+		if (b == 0) {
+			return;
 		} else {
-			return [-c / b];
+			return [-c/b];
 		}
 	}
 
-	let det = b * b - 4 * a * c;
+	let det = b*b - 4*a*c;
 	if (det < 0) {
-		return [];
-	} else if (det === 0) {
-		return [-b / (2 * a)];
+		return;
+	} else if (det == 0) {
+		return [-b/(2*a)];
 	}
 	det = Math.sqrt(det);
-	let t2 = (-b - (b < 0 ? -1 : 1) * det) / (2 * a);
-	let t1 = c / (a * t2);
+	let t2 = (-b-sgn(b)*det)/(2*a);
+	let t1 = c/(a*t2);
 	let minTi = Math.min(t1, t2);
 
 	// if both are >= 0 return smallest
@@ -205,149 +138,11 @@ export function solveSq(a: number, b: number, c: number): number[] {
 	}
 }
 
-/**
- * Solves a*t^2 + b*t + c for t
- * @returns All solutions in the form Vector(re, im) (up to two, deduplicated)
- */
-export function solveSqComplex(a: number, b: number, c: number): Vector[] {
-	// TODO: Ported from https://github.com/rawify/RootFinder.js under the MIT license (modified)
-	if (Math.abs(a) < 1e-14) {
-		if (Math.abs(b) > 1e-14) {
-			// Linear solution
-			const x = -c / b;
-			return [new Vector(x, 0)];
-		}
-	} else {
-		const D = b * b - 4 * a * c;
-		if (Math.abs(D) < 1e-14) {
-			const x = -b / (2 * a);
-			return [new Vector(x, 0)];
-		} else if (D > 0) {
-			const sqrtD = Math.sqrt(D);
-			const x1 = (-b + sqrtD) / (2 * a);
-			const x2 = (-b - sqrtD) / (2 * a);
-			if (x1 === x2) return [new Vector(x1, 0)];
-			else return [new Vector(x1, 0), new Vector(x2, 0)];
-		} else {
-			const re = -b / (2 * a);
-			const im = Math.sqrt(-D) / (2 * a);
-			if (im === 0) return [new Vector(re, im)];
-			else return [new Vector(re, im), new Vector(re, -im)];
-		}
-	}
-	return [];
-}
-
-/**
- * Solves a*t^3 + b*t^2 + c*t + d for t
- * @returns All real-number solutions (up to three, deduplicated)
- */
-export function solveCub(a: number, b: number, c: number, d: number): number[] {
-	// Solving the equation is already slow enough that the slight speedup from duplicating the code here isn't really worth it
-	let result: number[] = [];
-	for (const complex of solveCubComplex(a, b, c, d)) {
-		if (Math.abs(complex.y) < 1e-14) {
-			result.push(complex.x);
-		}
-	}
-	return result;
-}
-
-/**
- * Solves a*t^3 + b*t^2 + c*t + d for t
- * @returns All solutions in the form Vector(re, im) (up to three, deduplicated)
- */
-export function solveCubComplex(a: number, b: number, c: number, d: number): Vector[] {
-	function maybeVectorEq(v: Vector | undefined, u: Vector | undefined): boolean {
-		if (v !== undefined && u !== undefined) {
-			return v.equals(u);
-		} else {
-			return v === undefined && u === undefined;
-		}
-	}
-
-	// TODO: Ported from https://github.com/rawify/RootFinder.js under the MIT license (modified)
-	if (a === 0) {
-		return solveSqComplex(b, c, d);
-	}
-
-	if (d === 0) {
-		let tmp = solveSqComplex(a, b, c);
-		if (!maybeVectorEq(tmp[0], new Vector(0, 0)) && !maybeVectorEq(tmp[1], new Vector(0, 0))) {
-			tmp.push(new Vector(0, 0));
-		}
-		return tmp;
-	}
-
-	// Normalize coefficients
-	const denom = a;
-	a = b / denom;
-	b = c / denom;
-	c = d / denom;
-
-	// Depressed cubic coefficients
-	const roots = [];
-	const p = b - a * a / 3;
-	const q = (2 * a * a * a) / 27 - (a * b) / 3 + c;
-	const D = (q / 2) ** 2 + (p / 3) ** 3;
-
-	if (Math.abs(D) < 1e-14) {
-		if (Math.abs(q) < 1e-14) {
-			// Triple root
-			roots.push(new Vector(-a / 3, 0));
-		} else {
-			// One single and one double root
-			const u = Math.cbrt(-q / 2);
-			const t1 = 2 * u - a / 3;
-			const t2 = -u - a / 3;
-			roots.push(new Vector(t1, 0), new Vector(t2, 0));
-		}
-	} else if (D > 0) {
-		// One real root and two complex conjugate roots
-		const sqrtD = Math.sqrt(D);
-		const u = Math.cbrt(-q / 2 + sqrtD);
-		const v = Math.cbrt(-q / 2 - sqrtD);
-		const t = u + v;
-		const realRoot = t - a / 3;
-		// Real root
-		roots.push(new Vector(realRoot, 0));
-
-		// Complex conjugate roots
-		const realPart = -0.5 * (u + v) - a / 3;
-		const imaginaryPart = (Math.sqrt(3) / 2) * (u - v);
-		roots.push(
-			new Vector(realPart, imaginaryPart),
-			new Vector(realPart, -imaginaryPart)
-		);
-	} else {
-		// Three real roots
-		const r = Math.sqrt(-p / 3);
-		const phi = Math.acos(-q / (2 * r ** 3));
-		for (let k = 0; k < 3; k++) {
-			const angle = (phi + 2 * Math.PI * k) / 3;
-			const t = 2 * r * Math.cos(angle);
-			const x = t - a / 3;
-			roots.push(new Vector(x, 0));
-		}
-	}
-
-	// Deduplicate solutions
-	if (maybeVectorEq(roots[0], roots[1]) && maybeVectorEq(roots[0], roots[2])) {
-		return [roots[0]];
-	} else if (maybeVectorEq(roots[0], roots[1])) {
-		return [roots[1], roots[2]];
-	} else if (maybeVectorEq(roots[0], roots[2])) {
-		return [roots[0], roots[1]];
-	} else {
-		return roots;
-	}
-}
-
-/**
- * Calculates" the signum of a number
- * @returns 1 for postive number, -1 for negative number, 0 for 0
- */
-export function sign(value: number): -1 | 0 | 1 {
+/// "Calculates" the signum of a number
+// @name sign
+// @param number number
+// @return number - 1 for postive number, -1 for negative number, 0 for 0
+export function sign (value: number): -1 | 0 | 1 {
 	if (value > 0) {
 		return 1;
 	} else if (value < 0) {
@@ -357,22 +152,22 @@ export function sign(value: number): -1 | 0 | 1 {
 	}
 }
 
-export function average(array: number[], indexStart: number = 0, indexEnd: number = array.length): number {
+export function average (array: [number], indexStart: number = 0, indexEnd: number = array.length): number {
 	let sum = 0;
-	for (let i = indexStart; i < indexEnd; i++) {
+	for (let i = indexStart;i<indexEnd;i++) {
 		sum += array[i];
 	}
 	return sum / (indexEnd - indexStart);
 }
 
-export function variance(array: number[], avg?: number, indexStart: number = 0, indexEnd: number = array.length): number {
+export function variance (array: [number], avg?: number, indexStart: number = 0, indexEnd: number = array.length): number {
 	if (avg == undefined) {
 		avg = average(array, indexStart, indexEnd);
 	}
 	let variance = 0;
-	for (let i = indexStart; i < indexEnd; i++) {
+	for (let i = indexStart; i<indexEnd; i++) {
 		let diff = array[i] - avg;
-		variance = variance + diff * diff;
+		variance = variance + diff*diff;
 	}
 	return variance / (indexEnd - indexStart);
 }
