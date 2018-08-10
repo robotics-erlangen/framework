@@ -1,10 +1,10 @@
-/*
-/// Contains system specific constants. That is constants that are due to intrinsic properties of the robots / camera system / game rules.
-// See source for constant and description
+--[[
+--- Contains system specific constants. That is constants that are due to intrinsic properties of the robots / camera system / game rules.
+-- See source for constant and description
 module "Constants"
-*/
+]]--
 
-/**************************************************************************
+--[[***********************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -12,12 +12,12 @@ module "Constants"
 *                                                                         *
 *   This program is free software: you can redistribute it and/or modify  *
 *   it under the terms of the GNU General Public License as published by  *
-*   the Free Software Foundation, either version 3 of the License, ||     *
+*   the Free Software Foundation, either version 3 of the License, or     *
 *   any later version.                                                    *
 *                                                                         *
 *   This program is distributed in the hope that it will be useful,       *
 *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-*   MERCHANTABILITY || FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
 *   GNU General Public License for more details.                          *
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
@@ -48,8 +48,7 @@ export let ballDeceleration; // acceleration which brakes the ball [m/s^2]
 
 export let fastBallDeceleration; // accerlation which brakes the ball until it is rolling [m/s^2]
 
-export let ballSwitchRatio; // if (ball is slower than switchRatio * shootSpeed) { switch from fast to normal ball deceleration
-
+export let ballSwitchRatio; -- if ball is slower than switchRatio * shootSpeed then switch from fast to normal ball deceleration
 export function switchSimulatorConstants (isSimulated: boolean) {
 	if (isSimulated) {
 		ballDeceleration = -0.35;
@@ -62,5 +61,8 @@ export function switchSimulatorConstants (isSimulated: boolean) {
 		ballSwitchRatio = 0.6;
 	}
 }
+		Constants.ballSwitchRatio = 0.6 
+	end
+end
 
 switchSimulatorConstants(false);
