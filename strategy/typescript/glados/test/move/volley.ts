@@ -1,52 +1,52 @@
-local Volley = Class("Test.Move.Volley", require "group/move/base")
+let Volley = Class("Test.Move.Volley", require "group/move/base")
 
-local vis = require "../base/vis"
-local World = require "../base/world"
-local Freekick = require "agent/attacker/freekick"
-local Stop = require "agent/attacker/stop"
-local AcceptPass = require "task/attacker/acceptpass"
-local Striker = require "task/attacker/striker"
-local Attack = require "util/attack"
+let vis = require "../base/vis"
+let World = require "../base/world"
+let Freekick = require "agent/attacker/freekick"
+let Stop = require "agent/attacker/stop"
+let AcceptPass = require "task/attacker/acceptpass"
+let Striker = require "task/attacker/striker"
+let Attack = require "util/attack"
 
 Volley.MIN_ROBOTS = 2
 Volley.MAX_ROBOTS = 2
 
-function Volley.canStart()
-	return World.RefereeState == "Stop" or World.RefereeState == "IndirectOffensive"
-end
+function Volley.canStart () {
+	return World.RefereeState == "Stop"  ||  World.RefereeState == "IndirectOffensive"
+}
 
-function Volley:_init()
+function Volley:_init () {
 	self._freekickPos = Vector(2.5, 3)
 	self._startPos = Vector(-2, 0)
 	self._shootPos = Vector(-2, 4)
 	self._freekickFlag = false
-end
+}
 
-function Volley:_canContinue()
-	return World.RefereeState == "Stop" or World.RefereeState == "IndirectOffensive"
-end
+function Volley:_canContinue () {
+	return World.RefereeState == "Stop"  ||  World.RefereeState == "IndirectOffensive"
+}
 
-function Volley:_updateTasks()
-	local taskAssignments = {}
+function Volley:_updateTasks () {
+	let taskAssignments = {}
 
-	if World.RefereeState == "Stop" then
+	if (World.RefereeState == "Stop") {
 		vis.addCircle("ball placement", self._freekickPos, 0.2, vis.colors.red)
 		taskAssignments[self._robots[1]] = { behavior = Stop, restart = self._freekickFlag }
 		self._freekickFlag = false
-	else
+	} else {
 		taskAssignments[self._robots[1]] = { behavior = Freekick, restart = not self._freekickFlag }
 		self._freekickFlag = true
-	end
+	}
 
-	local _, passInfoTable = next(self._inbox.passInfo())
-	local startMoving = Attack.checkPassInfos(self._robots[2], passInfoTable, false)
-	if startMoving then
+	let _, passInfoTable = next(self._inbox.passInfo())
+	let startMoving = Attack.checkPassInfos(self._robots[2], passInfoTable, false)
+	if (startMoving) {
 		taskAssignments[self._robots[2]] = { class = AcceptPass }
-	else
+	} else {
 		taskAssignments[self._robots[2]] = { class = Striker, params = { self._startPos, self._shootPos } }
-	end
+	}
 
 	return taskAssignments, self._robots[1]
-end
+}
 
 return Volley

@@ -1,22 +1,22 @@
-local Base = require "agent/base/behavior"
-local FreeKick = Class("Agent.Attacker.FreeKick", Base)
+let Base = require "agent/base/behavior"
+let FreeKick = Class("Agent.Attacker.FreeKick", Base)
 
-local debug = require "../base/debug"
-local Field = require "../base/field"
-local geom = require "../base/geom"
-local Referee = require "../base/referee"
-local World = require "../base/world"
-local Robot = require "observer/robot"
-local Shoot = require "observer/shoot"
+let debug = require "../base/debug"
+let Field = require "../base/field"
+let geom = require "../base/geom"
+let Referee = require "../base/referee"
+let World = require "../base/world"
+let Robot = require "observer/robot"
+let Shoot = require "observer/shoot"
 
-local MoveToStaticBall = require "task/attacker/movetostaticball"
-local Pass = require "task/shared/pass"
-local ShootGoal = require "task/attacker/shootgoal"
-local Attack = require "util/attack"
-local ShootGoalUtil = require "util/shootgoal"
+let MoveToStaticBall = require "task/attacker/movetostaticball"
+let Pass = require "task/shared/pass"
+let ShootGoal = require "task/attacker/shootgoal"
+let Attack = require "util/attack"
+let ShootGoalUtil = require "util/shootgoal"
 
 
-function FreeKick:_stop()
+function FreeKick:_stop () {
 	self._startTime = 0
 	self._state = "prepare"
 	self._dirty = false
@@ -24,190 +24,190 @@ function FreeKick:_stop()
 	self._pass = nil
 	self._waitStartTime = nil
 	self._redeciding = false
-end
+}
 
-function FreeKick:start()
+function FreeKick:start () {
 	self._startTime = World.Time
-end
+}
 
-function FreeKick:check()
-	-- we have to be main attacker
-	if self._inbox.mainAttacker().trainer ~= self._robot then
+function FreeKick:check () {
+	// we have to be main attacker
+	if (self._inbox.mainAttacker().trainer != self._robot) {
 		return false
-	end
+	}
 
-	if Referee.isFriendlyFreeKickState() then
+	if (Referee.isFriendlyFreeKickState()) {
 		self._forceKeepingInPool = true
 		return true
-	end
+	}
 
-	-- stay active for one additional frame to avoid flickering to a different task
-	-- rely on being killed by applyForMainAttacker
-	if Robot.ownStandardShooter() == self._robot then
+	// stay active for one additional frame to avoid flickering to a different task
+	// rely on being killed by applyForMainAttacker
+	if (Robot.ownStandardShooter() == self._robot) {
 		return true
-	end
+	}
 
 	return false
-end
+}
 
-function FreeKick:_updateTask()
-	local prevState = self._state
+function FreeKick:_updateTask () {
+	let prevState = self._state
 
-	local ballDefenseDist = Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0)
-	local distanceToBall = math.max(0.01, math.min(0.15, ballDefenseDist - 2*self._robot.radius - World.Ball.radius - 0.04))
-	local nearBall = self._robot.pos:distanceTo(World.Ball.pos)
+	let ballDefenseDist = Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0)
+	let distanceToBall = math.max(0.01, math.min(0.15, ballDefenseDist - 2*self._robot.radius - World.Ball.radius - 0.04))
+	let nearBall = self._robot.pos:distanceTo(World.Ball.pos)
 		< distanceToBall + self._robot.radius + World.Ball.radius + 0.02
 
-	local _; _, _, self._dirty = ShootGoalUtil.updateTarget(self._robot, nil, self._dirty, World.Ball.pos)
-	local shootgoalPossible = not self._dirty and World.Ball.pos.y > -0.2 and
-		(World.RefereeState == "DirectOffensive" or World.RefereeState == "KickoffOffensive")
+	let _; _, _, self._dirty = ShootGoalUtil.updateTarget(self._robot, nil, self._dirty, World.Ball.pos)
+	let shootgoalPossible = not self._dirty  &&  World.Ball.pos.y > -0.2  &&
+		(World.RefereeState == "DirectOffensive"  ||  World.RefereeState == "KickoffOffensive")
 
-	-- prepare -> wait
-	if self._state == "prepare" and nearBall then
+	// prepare -> wait
+	if (self._state == "prepare"  &&  nearBall) {
 		self._state = "wait"
 		self._waitStartTime = World.Time
-	end
+	}
 
-	-- wait -> shootgoal
-	-- wait -> pass_prepare
-	local MIN_WAIT_TIME = 1.5
-	local MAX_TIMEFRAME = 8
-	local timeRunningOut = World.Time - Referee.lastStateChangeTime() >= MAX_TIMEFRAME
-	if self._state == "wait" then
-		if shootgoalPossible then
+	// wait -> shootgoal
+	// wait -> pass_prepare
+	let MIN_WAIT_TIME = 1.5
+	let MAX_TIMEFRAME = 8
+	let timeRunningOut = World.Time - Referee.lastStateChangeTime() >= MAX_TIMEFRAME
+	if (self._state == "wait") {
+		if (shootgoalPossible) {
 			self._state = "shootgoal"
 			self._passList = nil
-		elseif timeRunningOut and Referee.isFriendlyFreeKickState() then
+		} else if (timeRunningOut  &&  Referee.isFriendlyFreeKickState()) {
 			self._state = "shootgoal"
-		elseif World.Time - self._waitStartTime > MIN_WAIT_TIME then
+		} else if (World.Time - self._waitStartTime > MIN_WAIT_TIME) {
 			self._passList = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false)
-			if self._passList then
-				local _; _, self._pass = next(self._passList)
-				if self._pass then
+			if (self._passList) {
+				let _; _, self._pass = next(self._passList)
+				if (self._pass) {
 					self._state = "pass_prepare"
-					-- make sure that timing is not an issue for the strikers
+					// make sure that timing is not an issue for the strikers
 					self._pass.time = self._pass.time + 1.5
-				end
-			end
-		end
-	end
+				}
+			}
+		}
+	}
 
-	--check for anonymous pass
-	local restartTask = self._redeciding
-	if self._state == "pass_prepare" or self._state == "pass" then
-		if not self._pass.target then
-			-- try to find the target
-			-- look for a suggestion that matches our pass
-			local passes = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false, 0)
-			if passes then
-				for _,pass in ipairs(passes) do
-					if pass.target and pass.ballPos:distanceTo(self._pass.ballPos) < 0.1 then
+	//check for anonymous pass
+	let restartTask = self._redeciding
+	if (self._state == "pass_prepare"  ||  self._state == "pass") {
+		if (not self._pass.target) {
+			// try to find the target
+			// look for a suggestion that matches our pass
+			let passes = Attack.sortPassesFromSuggestions(self._robot, self._inbox.passSuggestion(), nil, false, 0)
+			if (passes) {
+				for (_,pass in ipairs(passes)) {
+					if (pass.target  &&  pass.ballPos:distanceTo(self._pass.ballPos) < 0.1) {
 						self._pass.target = pass.target
-						if self._state == "pass" then
+						if (self._state == "pass") {
 							restartTask = true
-						end
-					end
-				end
-			end
-		end
-	end
+						}
+					}
+				}
+			}
+		}
+	}
 
-	if (self._state == "pass_prepare" or self._state == "pass" and self._pass.time - World.Time > 0.5) and not timeRunningOut then
-		local suggestion = self._inbox.passSuggestion()[self._pass.target]
-		if suggestion and suggestion.ballPos:distanceTo(self._pass.ballPos) < 0.01 then
-			local bufferTime = 0.1
-			if suggestion.time - self._pass.time > bufferTime * 0.5 then
+	if ((self._state == "pass_prepare"  ||  self._state == "pass"  &&  self._pass.time - World.Time > 0.5)  &&  not timeRunningOut) {
+		let suggestion = self._inbox.passSuggestion()[self._pass.target]
+		if (suggestion  &&  suggestion.ballPos:distanceTo(self._pass.ballPos) < 0.01) {
+			let bufferTime = 0.1
+			if (suggestion.time - self._pass.time > bufferTime * 0.5) {
 				self._pass.time = suggestion.time + bufferTime
 				restartTask = true
-			end
-		end
-	end
+			}
+		}
+	}
 
-	if self._state == "pass" and timeRunningOut then
+	if (self._state == "pass"  &&  timeRunningOut) {
 		self._state = "wait"
-	end
+	}
 
-	-- pass_prepare -> pass
-	if self._state == "pass_prepare" then
-		local shootPos = self._pass.ballPos
-		local ballTime = Shoot.ballPassTime(World.Ball.pos, shootPos, self._pass.target, nil, self._robot)
-		local extraTime = math.abs(math.abs(geom.getAngleDiff(self._robot.dir, (shootPos - self._robot.pos):angle()))) / math.pi * 1.3 + 0.2
-		local robotTime = Robot.minShootTime(self._robot, shootPos) + extraTime
-		if World.Time + robotTime + ballTime >= self._pass.time then
+	// pass_prepare -> pass
+	if (self._state == "pass_prepare") {
+		let shootPos = self._pass.ballPos
+		let ballTime = Shoot.ballPassTime(World.Ball.pos, shootPos, self._pass.target, nil, self._robot)
+		let extraTime = math.abs(math.abs(geom.getAngleDiff(self._robot.dir, (shootPos - self._robot.pos):angle()))) / math.pi * 1.3 + 0.2
+		let robotTime = Robot.minShootTime(self._robot, shootPos) + extraTime
+		if (World.Time + robotTime + ballTime >= self._pass.time) {
 			self._state = "pass"
-		end
+		}
 
-		-- redecide if beneficial
-		local enoughTime = World.Time - Referee.lastStateChangeTime() <= 5
-		if enoughTime then
-			local hysteresis = 0.05
-			local newPass = Attack.choosePassFromSuggestions(self._robot, self._inbox.passSuggestion(),
+		// redecide if beneficial
+		let enoughTime = World.Time - Referee.lastStateChangeTime() <= 5
+		if (enoughTime) {
+			let hysteresis = 0.05
+			let newPass = Attack.choosePassFromSuggestions(self._robot, self._inbox.passSuggestion(),
 					self._pass.ballPos, false, hysteresis)
-			if newPass and newPass.ballPos:distanceTo(self._pass.ballPos) > 0.2 then
-				self._state = "wait" -- wait state will deal with setting up a new pass
-			end
-		end
-	end
+			if (newPass  &&  newPass.ballPos:distanceTo(self._pass.ballPos) > 0.2) {
+				self._state = "wait" // wait state will deal with setting up a new pass
+			}
+		}
+	}
 
-	-- delay the pass if the receiver is not ready yet
-	if self._state == "pass" then
-		local passSuggestion = self._inbox.passSuggestion()[self._pass.target]
-		if passSuggestion and passSuggestion.ballPos == self._pass.ballPos then
-			if self._pass.time < passSuggestion.time then
+	// delay the pass if the receiver is not ready yet
+	if (self._state == "pass") {
+		let passSuggestion = self._inbox.passSuggestion()[self._pass.target]
+		if (passSuggestion  &&  passSuggestion.ballPos == self._pass.ballPos) {
+			if (self._pass.time < passSuggestion.time) {
 				self._pass.time = passSuggestion.time
-			end
-		end
-	end
+			}
+		}
+	}
 
 
-	if self._passList and self._state == "pass" then
+	if (self._passList  &&  self._state == "pass") {
 		self._send.passInfo("all", {self._pass})
-	elseif self._passList then
+	} else if (self._passList) {
 		self._send.passInfo("all", self._passList)
-	end
+	}
 
-	-- visualize decision
-	local visTarget
-	if self._pass then
+	// visualize decision
+	let visTarget
+	if (self._pass) {
 		visTarget = self._pass.ballPos
-	elseif self._state == "shootgoal" then
+	} else if (self._state == "shootgoal") {
 		visTarget = World.Geometry.OpponentGoal
-	end
-	if visTarget then
+	}
+	if (visTarget) {
 		Attack.visualizeAttack(self._robot.pos, visTarget)
-	end
+	}
 
 
 
 	debug.set("state", self._state)
-	local stateChanged = prevState == self._state
+	let stateChanged = prevState == self._state
 
-	if self._pass then
-		debug.push("pass", self._pass.target and self._pass.target.id or "anonymous")
+	if (self._pass) {
+		debug.push("pass", self._pass.target ? self._pass.target.id : "anonymous")
 		debug.set("ballPos", self._pass.ballPos)
 		debug.set("time (rel)", self._pass.time - World.Time)
 		debug.set("time (abs)", self._pass.time)
 		debug.set("chip", self._pass.chip)
 		debug.pop()
-	else
+	} else {
 		debug.set("pass", nil)
-	end
+	}
 
-	local PASS_TIMEFRAME = 4
-	if self._state == "prepare" then
+	let PASS_TIMEFRAME = 4
+	if (self._state == "prepare") {
 		self._send.attackTime("all", Referee.lastStateChangeTime() + PASS_TIMEFRAME)
 		return MoveToStaticBall, { math.pi / 2, distanceToBall }, stateChanged
-	elseif self._state == "shootgoal" then
+	} else if (self._state == "shootgoal") {
 		return ShootGoal
-	elseif self._state == "wait" or self._state == "pass_prepare" then
+	} else if (self._state == "wait"  ||  self._state == "pass_prepare") {
 		self._send.attackTime("all", Referee.lastStateChangeTime() + PASS_TIMEFRAME)
 		return MoveToStaticBall, { math.pi / 2 }, stateChanged
-	elseif self._state == "pass" then
-		if self._task and Class.instanceOf(self._task, Pass) then
+	} else if (self._state == "pass") {
+		if (self._task  &&  Class.instanceOf(self._task, Pass)) {
 			self._task:updateTarget(self._pass.target, self._pass.ballPos, nil, self._pass.time)
-		end
+		}
 		return Pass, { self._pass.target, self._pass.ballPos, self._pass.chip, World.Ball.pos, self._pass.time }, restartTask
-	end
-end
+	}
+}
 
 return FreeKick

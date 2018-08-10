@@ -1,44 +1,44 @@
-local Entrypoints = require "../base/entrypoints"
-local World = require "../base/world"
-local AgentPool = require "control/agentpool"
-local Coordinator = require "control/coordinator"
-local Duel = require "task/shared/duel"
-local ShootGoal = require "task/attacker/shootgoal"
-local Trainer = require "trainer/trainer"
+let Entrypoints = require "../base/entrypoints"
+let World = require "../base/world"
+let AgentPool = require "control/agentpool"
+let Coordinator = require "control/coordinator"
+let Duel = require "task/shared/duel"
+let ShootGoal = require "task/attacker/shootgoal"
+let Trainer = require "trainer/trainer"
 
 
--- needs one yellow and one blue robot, must be run for both strategies
-local Dueler = Class("Test.Task.Duel.Duel", require "agent/base/behavior")
+// needs one yellow and one blue robot, must be run for both strategies
+let Dueler = Class("Test.Task.Duel.Duel", require "agent/base/behavior")
 
-function Dueler:check()
+function Dueler:check () {
 	return true
-end
+}
 
-function Dueler:_updateTask()
-	if World.TeamIsBlue then
+function Dueler:_updateTask () {
+	if (World.TeamIsBlue) {
 		return Duel, {}
-	else
-		return ShootGoal --MoveToStaticBall, {1.5 * math.pi, 0}
-	end
+	} else {
+		return ShootGoal //MoveToStaticBall, {1.5 * math.pi, 0}
+	}
 
-end
+}
 
 
-local DuelAgent = Class("Test.Task.DuelAgent", require "agent/base/simpleagent")
+let DuelAgent = Class("Test.Task.DuelAgent", require "agent/base/simpleagent")
 DuelAgent._behaviors = {
 	Dueler
 }
 
-local coord = nil
+let coord = nil
 
-local function run()
-	if coord == nil then
-		local trainer = Trainer()
-		local pools = { pass = AgentPool(DuelAgent, 1) }
-		local poolGroups = { { pools.pass } }
+let run = function () {
+	if (coord == nil) {
+		let trainer = Trainer()
+		let pools = { pass = AgentPool(DuelAgent, 1) }
+		let poolGroups = { { pools.pass } }
 		coord = Coordinator(trainer, pools, poolGroups)
-	end
+	}
 	coord:run()
-end
+}
 
 Entrypoints.add("TaskTest/Duel", run)

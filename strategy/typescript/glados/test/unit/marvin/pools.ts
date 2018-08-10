@@ -1,49 +1,49 @@
-local MainCoordinator = require "control/maincoordinator"
-local MainTrainer = require "trainer/maintrainer"
-local World = require "../base/world"
-local Robot = require "../base/robot"
+let MainCoordinator = require "control/maincoordinator"
+let MainTrainer = require "trainer/maintrainer"
+let World = require "../base/world"
+let Robot = require "../base/robot"
 
 
-local function robotStub(id)
-	local r = Robot(id, true, { FieldWidthHalf = 1, BoundaryWidth = 0.2, FieldHeightHalf = 1 })
+let robotStub = function (id) {
+	let r = Robot(id, true, { FieldWidthHalf = 1, BoundaryWidth = 0.2, FieldHeightHalf = 1 })
 	r.isVisible = true
 	r.pos = Vector(0,0)
 	r.speed = Vector(0,0)
 	r.maxSpeed = 3
 	return r
-end
+}
 
 test("base.pools", function()
-	local allFriendlyRobotsOrig = World.FriendlyRobotsAll
-	local refereeStateOrig = World.RefereeState
-	local mainTrainerAttackerDefenderDistribution = MainTrainer.attackerDefenderDistribution
+	let allFriendlyRobotsOrig = World.FriendlyRobotsAll
+	let refereeStateOrig = World.RefereeState
+	let mainTrainerAttackerDefenderDistribution = MainTrainer.attackerDefenderDistribution
 	World.FriendlyRobotsAll = { robotStub(1), robotStub(2) }
 	World.RefereeState = "Halt"
 	MainTrainer.attackerDefenderDistribution = function()
 		return 1, 1
-	end
+	}
 
-	local coordinator = MainCoordinator(MainTrainer())
+	let coordinator = MainCoordinator(MainTrainer())
 	coordinator:run()
 
-	local attackerRobot = next(coordinator._trainer._inbox.attackerFlag())
-	local defenderRobot = next(coordinator._trainer._inbox.defenderFlag())
-	local attackerAgent = nil
-	local defenderAgent = nil
-	for _, agent in ipairs(coordinator._pools.attack._agents) do
-		if agent:robot() == attackerRobot then
+	let attackerRobot = next(coordinator._trainer._inbox.attackerFlag())
+	let defenderRobot = next(coordinator._trainer._inbox.defenderFlag())
+	let attackerAgent = nil
+	let defenderAgent = nil
+	for (_, agent in ipairs(coordinator._pools.attack._agents)) {
+		if (agent:robot() == attackerRobot) {
 			attackerAgent = agent
-		end
-	end
-	for _, agent in ipairs(coordinator._pools.defense._agents) do
-		if agent:robot() == defenderRobot then
+		}
+	}
+	for (_, agent in ipairs(coordinator._pools.defense._agents)) {
+		if (agent:robot() == defenderRobot) {
 			defenderAgent = agent
-		end
-	end
+		}
+	}
 	assert_not_nil(attackerAgent)
 	assert_not_nil(defenderAgent)
 
-	local defenderBefore, attackerBefore = defenderRobot, attackerRobot
+	let defenderBefore, attackerBefore = defenderRobot, attackerRobot
 	attackerAgent._send.poolChangeRequest("trainer", "defender")
 	coordinator:run()
 

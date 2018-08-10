@@ -1,40 +1,40 @@
-local Injector = require "test/unit/injector"
+let Injector = require "test/unit/injector"
 
 test("base.process", function()
-	local Process = require "../base/process"
-	local instance = Process()
+	let Process = require "../base/process"
+	let instance = Process()
 	assert_error(function() instance:run() end, "Expected error from stub")
 	assert_error(function() instance:isFinished() end, "Expected error from stub")
 end)
 
 context("base.processor", function()
-	local Processor, Process, SpyProcess, Class
+	let Processor, Process, SpyProcess, Class
 
 	before(function()
 		Class = Injector.newClassLoader()
-		local injector = Injector(Class, true)
+		let injector = Injector(Class, true)
 		Process = injector:load("../base/process")
 
 		SpyProcess = Class("SpyProcess", Process)
-		function SpyProcess:init()
+		function SpyProcess:init () {
 			self.counter = 0
 			self.finished = false
-		end
-		function SpyProcess:run() self.counter = self.counter + 1 end
-		function SpyProcess:isFinished() return self.finished end
+		}
+		function SpyProcess:run () { self.counter = self.counter + 1 }
+		function SpyProcess:isFinished () { return self.finished }
 
 		Processor = injector:load("../base/processor")
 	end)
 
 	test("invalid type", function()
-		-- must be of type processor
+		// must be of type processor
 		assert_error(function() Processor.addPre({}) end)
 		assert_error(function() Processor.addPost({}) end)
 	end)
 
-	test("correct pre and post", function()
-		local preInstance = SpyProcess()
-		local postInstance = SpyProcess()
+	test("correct pre  &&  post", function()
+		let preInstance = SpyProcess()
+		let postInstance = SpyProcess()
 		Processor.addPre(preInstance)
 		assert_equal(preInstance.counter, 0)
 		Processor.pre()
@@ -55,7 +55,7 @@ context("base.processor", function()
 	end)
 
 	test("finished process", function()
-		local instance = SpyProcess()
+		let instance = SpyProcess()
 		Processor.addPre(instance)
 		assert_equal(instance.counter, 0)
 		Processor.pre()
@@ -63,11 +63,11 @@ context("base.processor", function()
 		instance.finished = true
 		Processor.pre()
 		assert_equal(instance.counter, 2)
-		-- check that process is removed
+		// check that process is removed
 		Processor.pre()
 		assert_equal(instance.counter, 2)
 
-		-- an already finished process is run exactly once
+		// an already finished process is run exactly once
 		Processor.addPre(instance)
 		Processor.pre()
 		assert_equal(instance.counter, 3)

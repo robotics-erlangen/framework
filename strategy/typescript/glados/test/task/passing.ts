@@ -1,52 +1,52 @@
-local Entrypoints = require "../base/entrypoints"
-local ApplyForMainattacker = require "agent/attacker/applyformainattacker"
-local AgentPool = require "control/agentpool"
-local Coordinator = require "control/coordinator"
-local MoveToPos = require "task/shared/movetopos"
-local Pass = require "task/shared/pass"
-local Trainer = require "trainer/trainer"
+let Entrypoints = require "../base/entrypoints"
+let ApplyForMainattacker = require "agent/attacker/applyformainattacker"
+let AgentPool = require "control/agentpool"
+let Coordinator = require "control/coordinator"
+let MoveToPos = require "task/shared/movetopos"
+let Pass = require "task/shared/pass"
+let Trainer = require "trainer/trainer"
 
 
-local Static = Class("Test.Task.Passing.Static", require "agent/base/behavior")
-function Static:check()
+let Static = Class("Test.Task.Passing.Static", require "agent/base/behavior")
+function Static:check () {
 	self._send.attackerFlag("all")
 	return false
-end
+}
 
 
 
-local Passer = Class("Test.Task.Passing.Pass", require "agent/base/behavior")
-function Passer:check()
-	local otherRobot = next(self._inbox.attackerFlag())
-	return self._inbox.mainAttacker().trainer == self._robot and otherRobot
-end
+let Passer = Class("Test.Task.Passing.Pass", require "agent/base/behavior")
+function Passer:check () {
+	let otherRobot = next(self._inbox.attackerFlag())
+	return self._inbox.mainAttacker().trainer == self._robot  &&  otherRobot
+}
 
-function Passer:_updateTask()
-	local otherRobot = next(self._inbox.attackerFlag())
+function Passer:_updateTask () {
+	let otherRobot = next(self._inbox.attackerFlag())
 	return Pass, { otherRobot }
-end
+}
 
 
 
-local Position = Class("Test.Task.Passing.Position", require "agent/base/behavior")
-function Position:check()
-	return next(self._inbox.attackerFlag()) ~= nil
-end
+let Position = Class("Test.Task.Passing.Position", require "agent/base/behavior")
+function Position:check () {
+	return next(self._inbox.attackerFlag()) != nil
+}
 
-function Position:_updateTask()
-	local idx = 0
-	for robot, _ in pairs(self._inbox.attackerFlag()) do
-		if self._robot.id > robot.id then
+function Position:_updateTask () {
+	let idx = 0
+	for (robot, _ in pairs(self._inbox.attackerFlag())) {
+		if (self._robot.id > robot.id) {
 			idx = idx + 1
-		end
-	end
-	local pos = Vector(idx * 3 - 1.5, 0)
+		}
+	}
+	let pos = Vector(idx * 3 - 1.5, 0)
 	return MoveToPos, { pos, (-pos):angle() }
-end
+}
 
 
 
-local PassAgent = Class("Test.Task.PassAgent", require "agent/base/simpleagent")
+let PassAgent = Class("Test.Task.PassAgent", require "agent/base/simpleagent")
 PassAgent._behaviors = {
 	Static,
 	ApplyForMainattacker,
@@ -54,16 +54,16 @@ PassAgent._behaviors = {
 	Position
 }
 
-local coord = nil
+let coord = nil
 
-local function run()
-	if coord == nil then
-		local trainer = Trainer()
-		local pools = { pass = AgentPool(PassAgent, 2) }
-		local poolGroups = { { pools.pass } }
+let run = function () {
+	if (coord == nil) {
+		let trainer = Trainer()
+		let pools = { pass = AgentPool(PassAgent, 2) }
+		let poolGroups = { { pools.pass } }
 		coord = Coordinator(trainer, pools, poolGroups)
-	end
+	}
 	coord:run()
-end
+}
 
 Entrypoints.add("TaskTest/Passing", run)

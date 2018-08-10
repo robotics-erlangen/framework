@@ -1,28 +1,28 @@
-local Base = require "agent/base/agent"
-local Manual = Class("Agent.Manual", Base)
+let Base = require "agent/base/agent"
+let Manual = Class("Agent.Manual", Base)
 
-local Default = require "agent/manual/default"
+let Default = require "agent/manual/default"
 
 
 Manual._behaviors = {
 	Default
 }
 
-function Manual.takeRobot(robots)
-	for _, robot in ipairs(robots) do
-		-- take robots which get command from an input device
-		if robot.userControl then
+function Manual.takeRobot (robots) {
+	for (_, robot in ipairs(robots)) {
+		// take robots which get command from an input device
+		if (robot.userControl) {
 			return robot
-		end
-	end
-end
+		}
+	}
+}
 
-function Manual:keepRobot()
+function Manual:keepRobot () {
 	return self._robot.userControl
-end
+}
 
-function Manual:rateRobot()
+function Manual:rateRobot () {
 	return 0
-end
+}
 
 return Manual

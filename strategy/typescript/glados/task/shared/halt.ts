@@ -1,8 +1,8 @@
-local Halt = Class("Task.Halt", require "task/base")
+let Halt = Class("Task.Halt", require "task/base")
 
 
-function Halt:run()
+function Halt:run () {
 	self._robot:halt()
-end
+}
 
 return Halt

@@ -1,70 +1,70 @@
-local Base = require "agent/base/behavior"
-local DuelAssistant = Class("Agent.Attacker.DuelAssistant", Base)
+let Base = require "agent/base/behavior"
+let DuelAssistant = Class("Agent.Attacker.DuelAssistant", Base)
 
-local World = require "../base/world"
-local Rating = require "util/rating"
-
-
-local TaskDuelAssistant = require "task/attacker/duelassistant"
+let World = require "../base/world"
+let Rating = require "util/rating"
 
 
-function DuelAssistant:_stop()
+let TaskDuelAssistant = require "task/attacker/duelassistant"
+
+
+function DuelAssistant:_stop () {
 	self._opponentHasBall = false
 	self._closerThanOpp = false
 	self._lastChippedHysteresis = false
 	self._lastTrue = nil
-end
+}
 
-function DuelAssistant:rateRobot(sender)
-	local distanceToDuelRobot = self._robot.pos:distanceTo(sender.pos)
-	local distanceToOwnGoal = World.Geometry.FriendlyGoal:distanceTo(self._robot.pos)
-	local distanceBallToOwnGoal = World.Geometry.FriendlyGoal:distanceTo(World.Ball.pos)
-	local distanceRobotToBall = World.Ball.pos:distanceTo(self._robot.pos)
+function DuelAssistant:rateRobot (sender) {
+	let distanceToDuelRobot = self._robot.pos:distanceTo(sender.pos)
+	let distanceToOwnGoal = World.Geometry.FriendlyGoal:distanceTo(self._robot.pos)
+	let distanceBallToOwnGoal = World.Geometry.FriendlyGoal:distanceTo(World.Ball.pos)
+	let distanceRobotToBall = World.Ball.pos:distanceTo(self._robot.pos)
 
-	local rateDistanceToDuelRobot = Rating.valueToRating(distanceToDuelRobot, 4, 0)
-	local rateDistanceToOwnGoal = Rating.valueToRating(distanceToOwnGoal, 8, 1)
-	local rateDistanceBallToOwnGoal = Rating.valueToRating(distanceBallToOwnGoal, 8, 1)
-	local rateDistanceRobotToBall = Rating.valueToRating(distanceRobotToBall, 4, 0)
+	let rateDistanceToDuelRobot = Rating.valueToRating(distanceToDuelRobot, 4, 0)
+	let rateDistanceToOwnGoal = Rating.valueToRating(distanceToOwnGoal, 8, 1)
+	let rateDistanceBallToOwnGoal = Rating.valueToRating(distanceBallToOwnGoal, 8, 1)
+	let rateDistanceRobotToBall = Rating.valueToRating(distanceRobotToBall, 4, 0)
 
 	return (rateDistanceToDuelRobot + rateDistanceToOwnGoal
 		+ rateDistanceBallToOwnGoal + rateDistanceRobotToBall) / 4
 
-end
+}
 
-function DuelAssistant:check()
-	if self._robot == self._inbox.mainAttacker().trainer then
+function DuelAssistant:check () {
+	if (self._robot == self._inbox.mainAttacker().trainer) {
 		self._lastTrue = nil
 		return false
-	end
+	}
 
-	local sender, _ = next(self._inbox.defendedOpponent())
-	if not sender and not self._lastTrue then
+	let sender, _ = next(self._inbox.defendedOpponent())
+	if (not sender  &&  not self._lastTrue) {
 		return false
-	end
-	if sender then
-		local duellingRobot = sender
-		if duellingRobot.pos:distanceTo(World.Ball.pos) > 1 then
+	}
+	if (sender) {
+		let duellingRobot = sender
+		if (duellingRobot.pos:distanceTo(World.Ball.pos) > 1) {
 			self._lastTrue = nil
 			return false
-		end
-		local rating = self:rateRobot(duellingRobot)
+		}
+		let rating = self:rateRobot(duellingRobot)
 		self._send.exclusiveRole("trainer", { duelAssistant = rating })
-	end
+	}
 
-	local isDuelAssistant = (self._inbox.duelAssistant().trainer == self._robot)
+	let isDuelAssistant = (self._inbox.duelAssistant().trainer == self._robot)
 
-	if isDuelAssistant then
+	if (isDuelAssistant) {
 		self._lastTrue = World.Time
-	elseif not (self._lastTrue and (World.Time - self._lastTrue) <= 1) then
+	} else if (not (self._lastTrue  &&  (World.Time - self._lastTrue) <= 1)) {
 		self._lastTrue = nil
-	end
+	}
 
 	return self._lastTrue
-end
+}
 
 
-function DuelAssistant:_updateTask()
+function DuelAssistant:_updateTask () {
 	return TaskDuelAssistant
-end
+}
 
 return DuelAssistant

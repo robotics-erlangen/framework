@@ -1,22 +1,22 @@
-local Robot = {}
+let Robot = {}
 
-local Cache = require "../base/cache"
-local Constants = require "../base/constants"
-local Field = require "../base/field"
-local Referee = require "../base/referee"
-local vis = require "../base/vis"
-local World = require "../base/world"
-local Physics = require "observer/physics"
+let Cache = require "../base/cache"
+let Constants = require "../base/constants"
+let Field = require "../base/field"
+let Referee = require "../base/referee"
+let vis = require "../base/vis"
+let World = require "../base/world"
+let Physics = require "observer/physics"
 
 
-local lastLocalSpeed = {}
-local lastRotation = {}
-local speedSmoothed = {}
-local rotationSmoothed = {}
-local rotationAcclerationSmoothed = {}
-local accelerationSmoothed = {}
-local alpha = 0.02
-local opponentDynamics = {
+let lastLocalSpeed = {}
+let lastRotation = {}
+let speedSmoothed = {}
+let rotationSmoothed = {}
+let rotationAcclerationSmoothed = {}
+let accelerationSmoothed = {}
+let alpha = 0.02
+let opponentDynamics = {
 	maxSpeed = 0,
 	maxAngularSpeed = 0,
 	acceleration = {
@@ -28,261 +28,261 @@ local opponentDynamics = {
 		aBrakePhiMax = 0,
 	}
 }
-local friendlyDynamics = table.copy(opponentDynamics)
+let friendlyDynamics = table.copy(opponentDynamics)
 friendlyDynamics.acceleration = table.copy(friendlyDynamics.acceleration)
 
-function Robot.estimateRobotDynamics()
-	if World.TimeDiff < 0.001 then
-		-- don't do anything if the timediff is far below the regular 10 ms
+function Robot.estimateRobotDynamics () {
+	if (World.TimeDiff < 0.001) {
+		// don't do anything if the timediff is far below the regular 10 ms
 		return
-	end
+	}
 
-	local nullVector = Vector(0,0)
-	local invTimeDiff = (1 / World.TimeDiff)
-	local currentLocalSpeed = {}
-	local currentRotation = {}
+	let nullVector = Vector(0,0)
+	let invTimeDiff = (1 / World.TimeDiff)
+	let currentLocalSpeed = {}
+	let currentRotation = {}
 
-	for _, robot in ipairs(World.Robots) do
-		local localRobotSpeed = robot.speed:copy():rotate(-robot.dir)
-		localRobotSpeed.x = math.abs(localRobotSpeed.x)
-		localRobotSpeed.y = math.abs(localRobotSpeed.y)
-		local localRobotDir = math.abs(robot.angularSpeed)
-		if lastLocalSpeed[robot] then
-			local accel = (localRobotSpeed - lastLocalSpeed[robot]):scaleLength(invTimeDiff)  -- classic derivative without smoothing
-			accelerationSmoothed[robot] = accel:scaleLength(alpha) + (accelerationSmoothed[robot] or nullVector) * (1 - alpha) -- smoothed acceleration curve
-		end
-		if lastRotation[robot] then
-			local accel = (localRobotDir - lastRotation[robot]) * invTimeDiff
-			rotationAcclerationSmoothed[robot] = accel * alpha + (rotationAcclerationSmoothed[robot] or 0) * (1 - alpha)
-		end
-		speedSmoothed[robot] = robot.speed:length() * alpha + (speedSmoothed[robot] or 0) * (1 - alpha)
-		rotationSmoothed[robot] = localRobotDir * alpha + (rotationSmoothed[robot] or 0) * (1 - alpha)
-		currentLocalSpeed[robot] = localRobotSpeed
-		currentRotation[robot] = localRobotDir
+	for (_, robot in ipairs(World.Robots)) {
+		let letRobotSpeed = robot.speed:copy():rotate(-robot.dir)
+		letRobotSpeed.x = math.abs(letRobotSpeed.x)
+		letRobotSpeed.y = math.abs(letRobotSpeed.y)
+		let letRobotDir = math.abs(robot.angularSpeed)
+		if (lastLocalSpeed[robot]) {
+			let accel = (letRobotSpeed - lastLocalSpeed[robot]):scaleLength(invTimeDiff)  // classic derivative without smoothing
+			accelerationSmoothed[robot] = accel:scaleLength(alpha) + (accelerationSmoothed[robot]  ||  nullVector) * (1 - alpha) // smoothed acceleration curve
+		}
+		if (lastRotation[robot]) {
+			let accel = (letRobotDir - lastRotation[robot]) * invTimeDiff
+			rotationAcclerationSmoothed[robot] = accel * alpha + (rotationAcclerationSmoothed[robot]  ||  0) * (1 - alpha)
+		}
+		speedSmoothed[robot] = robot.speed:length() * alpha + (speedSmoothed[robot]  ||  0) * (1 - alpha)
+		rotationSmoothed[robot] = letRobotDir * alpha + (rotationSmoothed[robot]  ||  0) * (1 - alpha)
+		currentLocalSpeed[robot] = letRobotSpeed
+		currentRotation[robot] = letRobotDir
 
-		local dynamics = robot.isFriendly and friendlyDynamics or opponentDynamics
+		let dynamics = robot.isFriendly ? friendlyDynamics : opponentDynamics
 
-		if accelerationSmoothed[robot] then
-			local accel = accelerationSmoothed[robot]
-			if accel.x > 0 and accel.x > dynamics.acceleration.aSpeedupFMax then
+		if (accelerationSmoothed[robot]) {
+			let accel = accelerationSmoothed[robot]
+			if (accel.x > 0  &&  accel.x > dynamics.acceleration.aSpeedupFMax) {
 				dynamics.acceleration.aSpeedupFMax = accel.x
-			end
-			if accel.x < 0 and -accel.x > dynamics.acceleration.aBrakeFMax then
+			}
+			if (accel.x < 0  &&  -accel.x > dynamics.acceleration.aBrakeFMax) {
 				dynamics.acceleration.aBrakeFMax = -accel.x
-			end
-			if accel.y > 0 and accel.y > dynamics.acceleration.aSpeedupSMax then
+			}
+			if (accel.y > 0  &&  accel.y > dynamics.acceleration.aSpeedupSMax) {
 				dynamics.acceleration.aSpeedupSMax = accel.y
-			end
-			if accel.y < 0 and -accel.y > dynamics.acceleration.aBrakeSMax then
+			}
+			if (accel.y < 0  &&  -accel.y > dynamics.acceleration.aBrakeSMax) {
 				dynamics.acceleration.aBrakeSMax = -accel.y
-			end
-		end
-		if rotationAcclerationSmoothed[robot] then
-			local rot = rotationAcclerationSmoothed[robot]
-			if rot > 0 and rot > dynamics.acceleration.aSpeedupPhiMax then
+			}
+		}
+		if (rotationAcclerationSmoothed[robot]) {
+			let rot = rotationAcclerationSmoothed[robot]
+			if (rot > 0  &&  rot > dynamics.acceleration.aSpeedupPhiMax) {
 				dynamics.acceleration.aSpeedupPhiMax = rot
-			end
-			if rot < 0 and -rot > dynamics.acceleration.aBrakePhiMax then
+			}
+			if (rot < 0  &&  -rot > dynamics.acceleration.aBrakePhiMax) {
 				dynamics.acceleration.aBrakePhiMax = -rot
-			end
-		end
-		if dynamics.maxSpeed < speedSmoothed[robot] then
+			}
+		}
+		if (dynamics.maxSpeed < speedSmoothed[robot]) {
 			dynamics.maxSpeed = speedSmoothed[robot]
-		end
-		if dynamics.maxAngularSpeed < rotationSmoothed[robot] then
+		}
+		if (dynamics.maxAngularSpeed < rotationSmoothed[robot]) {
 			dynamics.maxAngularSpeed = rotationSmoothed[robot]
-		end
-	end
+		}
+	}
 
 	lastLocalSpeed = currentLocalSpeed
 	lastRotation = currentRotation
-end
+}
 
-function Robot.getFriendlyDynamics()
+function Robot.getFriendlyDynamics () {
 	return friendlyDynamics
-end
+}
 
-function Robot.getOpponentDynamics()
+function Robot.getOpponentDynamics () {
 	return opponentDynamics
-end
+}
 
-local hadBallTimes = {}
-local inverseHadBallTimes = {}
+let hadBallTimes = {}
+let inverseHadBallTimes = {}
 
--- Robot.hadBall(self._robot, 0) is equivalent to self._robot:hasBall(World.Ball)
-function Robot.hadBall(robot, time)
-	return hadBallTimes[robot] and World.Time - hadBallTimes[robot] <= time
-end
+// Robot.hadBall(self._robot, 0) is equivalent to self._robot:hasBall(World.Ball)
+function Robot.hadBall (robot, time) {
+	return hadBallTimes[robot]  &&  World.Time - hadBallTimes[robot] <= time
+}
 
--- returns true if the robot has the ball for at least <time> seconds, continuously
-function Robot.controlsBall(robot, time)
-	return inverseHadBallTimes[robot] and World.Time - inverseHadBallTimes[robot] >= time
-end
+// returns true if the robot has the ball for at least <time> seconds, continuously
+function Robot.controlsBall (robot, time) {
+	return inverseHadBallTimes[robot]  &&  World.Time - inverseHadBallTimes[robot] >= time
+}
 
-local function updateHadBall()
-	for _,r in ipairs(World.Robots) do
-		if r:hasBall(World.Ball) then
+let updateHadBall = function () {
+	for (_,r in ipairs(World.Robots)) {
+		if (r:hasBall(World.Ball)) {
 			hadBallTimes[r] = World.Time
 			vis.addCircle("o/robot: hasBall", r.pos, 0.15,
 				vis.fromRGBA(127, 191, 255, 63), true, true)
-		else
+		} else {
 			inverseHadBallTimes[r] = World.Time
-		end
-	end
-end
+		}
+	}
+}
 
-local touchedByBall = {}
-function Robot.touchedBall(robot, time)
-	return touchedByBall[robot] and World.Time - touchedByBall[robot] <= time
-end
+let touchedByBall = {}
+function Robot.touchedBall (robot, time) {
+	return touchedByBall[robot]  &&  World.Time - touchedByBall[robot] <= time
+}
 
-local function updateTouchedBall()
-	for _,r in ipairs(World.Robots) do
-		local touchDist = World.Ball.radius + Constants.positionError + r.radius
-		if r.pos:distanceToSq(World.Ball.pos) < touchDist * touchDist then
+let updateTouchedBall = function () {
+	for (_,r in ipairs(World.Robots)) {
+		let touchDist = World.Ball.radius + Constants.positionError + r.radius
+		if (r.pos:distanceToSq(World.Ball.pos) < touchDist * touchDist) {
 			touchedByBall[r] = World.Time
-		end
-	end
-end
+		}
+	}
+}
 
 
-local minTimeToBall = {}
-local oldMinTimeToBall = {}
-local function resetMinTimeToBall()
+let minTimeToBall = {}
+let oldMinTimeToBall = {}
+let resetMinTimeToBall = function () {
 	oldMinTimeToBall = minTimeToBall
 	minTimeToBall = {}
-end
+}
 
-function Robot.minTimeToBall(robot)
-	if minTimeToBall[robot] then
+function Robot.minTimeToBall (robot) {
+	if (minTimeToBall[robot]) {
 		return minTimeToBall[robot]
-	end
+	}
 
-	local targetPos = robot.isFriendly and World.Geometry.OpponentGoal or World.Geometry.FriendlyGoal
+	let targetPos = robot.isFriendly ? World.Geometry.OpponentGoal : World.Geometry.FriendlyGoal
 	minTimeToBall[robot] = Physics.robotTimeToBall(robot, World.Ball, targetPos, robot.maxSpeed, oldMinTimeToBall[robot])
 	return minTimeToBall[robot]
-end
+}
 
-local previousMinShootTimes = {}
-function Robot.minShootTime(robot, shootPos)
-	local minDelay = 0.1
-	local prevTime = previousMinShootTimes[robot]
-	local time
-	if Robot.hadBall(robot, 0) then
+let previousMinShootTimes = {}
+function Robot.minShootTime (robot, shootPos) {
+	let minDelay = 0.1
+	let prevTime = previousMinShootTimes[robot]
+	let time
+	if (Robot.hadBall(robot, 0)) {
 		time = minDelay
-	else
+	} else {
 		time = math.max(minDelay, Physics.robotTimeToBall(robot, World.Ball,
 			shootPos, robot.maxSpeed, prevTime))
-	end
+	}
 	previousMinShootTimes[robot] = time
 	return time
-end
+}
 Robot.minShootTime = Cache.forFrame(Robot.minShootTime)
 
-local standardShooterRobot = nil
-local function updateOwnStandardShooter()
-	if Referee.isFriendlyFreeKickState() or World.RefereeState == "KickoffOffensive" then
-		if not standardShooterRobot or not Robot.hadBall(standardShooterRobot, 0) then
-			for _, robot in ipairs(World.FriendlyRobots) do
-				if Robot.hadBall(robot, 0) then
+let standardShooterRobot = nil
+let updateOwnStandardShooter = function () {
+	if (Referee.isFriendlyFreeKickState()  ||  World.RefereeState == "KickoffOffensive") {
+		if (not standardShooterRobot  ||  not Robot.hadBall(standardShooterRobot, 0)) {
+			for (_, robot in ipairs(World.FriendlyRobots)) {
+				if (Robot.hadBall(robot, 0)) {
 					standardShooterRobot = robot
 					break
-				end
-			end
-		end
-	elseif World.RefereeState == "Game" and standardShooterRobot then
-		-- reset when any other robot touches the ball
-		for _, robot in ipairs(World.Robots) do
-			if robot ~= standardShooterRobot and Robot.touchedBall(robot, 0) then
+				}
+			}
+		}
+	} else if (World.RefereeState == "Game"  &&  standardShooterRobot) {
+		// reset when any other robot touches the ball
+		for (_, robot in ipairs(World.Robots)) {
+			if (robot != standardShooterRobot  &&  Robot.touchedBall(robot, 0)) {
 				standardShooterRobot = nil
-			end
-		end
-	else
-		-- reset in any other states
+			}
+		}
+	} else {
+		// reset in any other states
 		standardShooterRobot = nil
-	end
-end
+	}
+}
 
-function Robot.ownStandardShooter()
-	if World.RefereeState == "Game" then
+function Robot.ownStandardShooter () {
+	if (World.RefereeState == "Game") {
 		return standardShooterRobot
-	else
+	} else {
 		return nil
-	end
-end
+	}
+}
 
-local function calculateWayForPosition(pos, goal, radius, friendly)
-	if pos.y < -World.Geometry.FieldHeightHalf then
-		if pos.x < 0 then
+let calculateWayForPosition = function (pos, goal, radius, friendly) {
+	if (pos.y < -World.Geometry.FieldHeightHalf) {
+		if (pos.x < 0) {
 			return 0
-		else
+		} else {
 			return Field.maxWay(radius)
-		end
-	end
-	local projectedPos = goal + (pos - goal) * 100
-	local _, robotWay = Field.intersectRayDefenseArea(projectedPos, goal - projectedPos, radius, friendly)
+		}
+	}
+	let projectedPos = goal + (pos - goal) * 100
+	let _, robotWay = Field.intersectRayDefenseArea(projectedPos, goal - projectedPos, radius, friendly)
 	return robotWay
-end
+}
 
--- calculates the time a robot needs around the defense area
--- if robotway is set it has to be the way of the intersection of robot.pos with
--- the defense area in the direction of the goal with the given radius
--- this function does not make sense when either robot.pos or targetPos are far away from the defense area
--- either targetPos or targetWay is optional, but one of the two has to be given
--- endSpeed is a number
-function Robot.timeAroundDefenseAreaByWay(robot, robotWay, targetPos, targetWay, radius, friendly, endSpeed)
-	if not targetPos and not targetWay then
+// calculates the time a robot needs around the defense area
+// if robotway is set it has to be the way of the intersection of robot.pos with
+// the defense area in the direction of the goal with the given radius
+// this function does not make sense when either robot.pos or targetPos are far away from the defense area
+// either targetPos or targetWay is optional, but one of the two has to be given
+// endSpeed is a number
+function Robot.timeAroundDefenseAreaByWay (robot, robotWay, targetPos, targetWay, radius, friendly, endSpeed) {
+	if (not targetPos  &&  not targetWay) {
 		error("target information have to be present")
-	end
-	local targetGoal = friendly and World.Geometry.FriendlyGoal or World.Geometry.OpponentGoal
-	if not robotWay then
+	}
+	let targetGoal = friendly ? World.Geometry.FriendlyGoal : World.Geometry.OpponentGoal
+	if (not robotWay) {
 		robotWay = calculateWayForPosition(robot.pos, targetGoal, radius, friendly)
-	end
-	if not targetPos then
+	}
+	if (not targetPos) {
 		targetPos = Field.defenseIntersectionByWay(targetWay, radius, friendly)
-	elseif not targetWay then
+	} else if (not targetWay) {
 		targetWay = calculateWayForPosition(targetPos, targetGoal, radius, friendly)
-	end
-	local drivePoints = Field.cornerPointsBetweenWays(robotWay, targetWay, radius, friendly)
+	}
+	let drivePoints = Field.cornerPointsBetweenWays(robotWay, targetWay, radius, friendly)
 	table.insert(drivePoints, 1, robot.pos)
 	table.insert(drivePoints, targetPos)
-	local totalTime = 0
-	local fakeRobot = {speed = robot.speed, maxSpeed = robot.maxSpeed, acceleration = robot.acceleration}
-	for i = 2, #drivePoints do
+	let totalTime = 0
+	let fakeRobot = {speed = robot.speed, maxSpeed = robot.maxSpeed, acceleration = robot.acceleration}
+	for (i = 2, #drivePoints) {
 		fakeRobot.pos = drivePoints[i-1]
-		local es = Vector(0, 0)
-		if i == #drivePoints and endSpeed then
+		let es = Vector(0, 0)
+		if (i == #drivePoints  &&  endSpeed) {
 			es = Vector(endSpeed, 0)
-		end
+		}
 		totalTime = totalTime + Physics.robotTimeToPos(fakeRobot, drivePoints[i], es)
 		fakeRobot.speed = Vector(0, 0)
-	end
+	}
 	return totalTime
-end
+}
 
 
-function Robot.isPressed(robot, attackPos)
-	local directionOffset = (World.Geometry.OpponentGoal - robot.pos):setLength(robot.shootRadius + World.Ball.radius)
-	local ballPos = attackPos or robot.pos + directionOffset
-	local blockPos = ballPos + directionOffset
+function Robot.isPressed (robot, attackPos) {
+	let directionOffset = (World.Geometry.OpponentGoal - robot.pos):setLength(robot.shootRadius + World.Ball.radius)
+	let ballPos = attackPos  ||  robot.pos + directionOffset
+	let blockPos = ballPos + directionOffset
 
-	local radius = 2.5
-	for _,opp in ipairs(World.OpponentRobots) do
-		if opp.pos:distanceToSq(blockPos) < radius * radius then
-			if Physics.robotTimeToPos(opp, blockPos, Vector(0, 0)) < 1 then
+	let radius = 2.5
+	for (_,opp in ipairs(World.OpponentRobots)) {
+		if (opp.pos:distanceToSq(blockPos) < radius * radius) {
+			if (Physics.robotTimeToPos(opp, blockPos, Vector(0, 0)) < 1) {
 				return true
-			end
-		end
-	end
+			}
+		}
+	}
 	return false
-end
+}
 Robot.isPressed = Cache.forFrame(Robot.isPressed)
 
-function Robot._update()
+function Robot._update () {
 	resetMinTimeToBall()
 	updateHadBall()
 	updateTouchedBall()
 	updateOwnStandardShooter()
-end
+}
 
 return Robot

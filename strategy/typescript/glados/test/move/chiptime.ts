@@ -1,33 +1,33 @@
-local ChipTimeTest = Class("Test.Move.ChipTimeTest", require "group/move/base")
+let ChipTimeTest = Class("Test.Move.ChipTimeTest", require "group/move/base")
 
-local World = require "../base/world"
-local Physics = require "observer/physics"
-local Pass = require "task/shared/pass"
+let World = require "../base/world"
+let Physics = require "observer/physics"
+let Pass = require "task/shared/pass"
 
 ChipTimeTest.MIN_ROBOTS = 1
 ChipTimeTest.MAX_ROBOTS = 1
 
-function ChipTimeTest.canStart()
+function ChipTimeTest.canStart () {
 	return true
-end
+}
 
-function ChipTimeTest:_init()
-	local startPos = World.Ball.pos:copy()
+function ChipTimeTest:_init () {
+	let startPos = World.Ball.pos:copy()
 	self._endPos = Vector(0, 0)
-	local timePredicted = Physics.chipPassTime(startPos, self._endPos)
-	log("Time needed: ".. timePredicted)
-end
+	let timePredicted = Physics.chipPassTime(startPos, self._endPos)
+	log("Time needed: " +  timePredicted)
+}
 
-function ChipTimeTest:_canContinue()
+function ChipTimeTest:_canContinue () {
 	return true
-end
+}
 
-function ChipTimeTest:_updateTasks()
-	local taskAssignments = {}
+function ChipTimeTest:_updateTasks () {
+	let taskAssignments = {}
 
 	taskAssignments[self._robots[1]] = { class = Pass,
 		params = { nil, self._endPos, true, 0 } }
 	return taskAssignments
-end
+}
 
 return ChipTimeTest

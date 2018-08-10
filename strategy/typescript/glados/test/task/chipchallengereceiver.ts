@@ -1,14 +1,14 @@
-local Entrypoints = require "../base/entrypoints"
-local World = require "../base/world"
-local Shoot = require "task/ability/shoot"
-local PathHelper = require "trajectory/pathhelper"
-local ToTarget = require "trajectory/totarget"
-local TestHelper = require "test/helper/agent"
-local debug = require "../base/debug"
+let Entrypoints = require "../base/entrypoints"
+let World = require "../base/world"
+let Shoot = require "task/ability/shoot"
+let PathHelper = require "trajectory/pathhelper"
+let ToTarget = require "trajectory/totarget"
+let TestHelper = require "test/helper/agent"
+let debug = require "../base/debug"
 
-local ChipChallengeReceiver = Class("Test.Task.ChipChallengeReceiver", require "task/base", Shoot)
+let ChipChallengeReceiver = Class("Test.Task.ChipChallengeReceiver", require "task/base", Shoot)
 
-local obstacleTable = {
+let obstacleTable = {
 	ignoreGoals = true,
 	ignoreDefenseArea = true,
 	ignorePass = true,
@@ -16,40 +16,40 @@ local obstacleTable = {
 	stopBallDistance = 0.1
 }
 
-function ChipChallengeReceiver:_init()
+function ChipChallengeReceiver:_init () {
 	self._ballKicked = false
-	self._moveDest =  World.Geometry.FriendlyGoal -- random fallback
-end
+	self._moveDest =  World.Geometry.FriendlyGoal // random fallback
+}
 
-function ChipChallengeReceiver:run()
-	local ball = World.Ball
+function ChipChallengeReceiver:run () {
+	let ball = World.Ball
 
-	if World.Ball.posZ > 0 then
+	if (World.Ball.posZ > 0) {
 		self._ballKicked = true
-	end
+	}
 
 
-	local kickingRobot = World.OpponentRobots[1]
-	if self._ballKicked and kickingRobot and kickingRobot.pos:distanceTo(World.Ball.pos) > 1.5 then
+	let kickingRobot = World.OpponentRobots[1]
+	if (self._ballKicked  &&  kickingRobot  &&  kickingRobot.pos:distanceTo(World.Ball.pos) > 1.5) {
 		self._moveDest = World.Ball.touchdownPos
-	elseif kickingRobot and World.Ball.speed:length() < 0.3 then
+	} else if (kickingRobot  &&  World.Ball.speed:length() < 0.3) {
 		debug.set("ball speed", World.Ball.speed:length())
-		local bp = World.Ball.pos
+		let bp = World.Ball.pos
 		self._moveDest = bp + Vector.fromAngle(kickingRobot.dir):setLength(3.1)
-	end
+	}
 
-	local toBall = (ball.pos - self._robot.pos):angle()
+	let toBall = (ball.pos - self._robot.pos):angle()
 
 	PathHelper.setDefaultObstaclesByTable(self._robot, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, self._moveDest, toBall)
-end
+}
 
 
-local Agent = Class("Test.Task.ChipChallengeReceiver.Agent", require "agent/base/simpleagent")
+let Agent = Class("Test.Task.ChipChallengeReceiver.Agent", require "agent/base/simpleagent")
 Agent._behaviors = {
 	TestHelper.staticBehavior(ChipChallengeReceiver, { 1 })
 }
 
 
-local run = TestHelper.defaultCoordinator("attack", Agent, 1)
+let run = TestHelper.defaultCoordinator("attack", Agent, 1)
 Entrypoints.add("TaskTest/ChipChallengeReceiver", run)

@@ -1,7 +1,7 @@
-local Entrypoints = require "../base/entrypoints"
+let Entrypoints = require "../base/entrypoints"
 
-local function init()
+let init = function () {
 	log("No function for debug chosen!")
-end
+}
 
 Entrypoints.add("ObserverReplay", init)

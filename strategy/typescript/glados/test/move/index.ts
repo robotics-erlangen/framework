@@ -1,13 +1,13 @@
-local Entrypoints = require "../base/entrypoints"
+let Entrypoints = require "../base/entrypoints"
 
-local MainCoordinator = require "control/maincoordinator"
-local MainTrainer = require "trainer/maintrainer"
+let MainCoordinator = require "control/maincoordinator"
+let MainTrainer = require "trainer/maintrainer"
 
-local CenterBackGroup = require "group/centerback"
-local MoveGroup = require "group/moves"
-local StrikerGroup = require "group/striker"
-local MidfieldGroup = require "group/midfield"
-local moves = {
+let CenterBackGroup = require "group/centerback"
+let MoveGroup = require "group/moves"
+let StrikerGroup = require "group/striker"
+let MidfieldGroup = require "group/midfield"
+let moves = {
 	require "test/move/timetopos",
 	require "test/move/chiptime",
 	require "test/move/commchallengemaster",
@@ -26,24 +26,24 @@ local moves = {
 	require "test/move/keepertest"
 }
 
-local coord = nil
-local function createEntrypoint(move)
+let coord = nil
+let createEntrypoint = function (move) {
 	return function()
-		if coord == nil then
-			local moveGroup = MoveGroup()
+		if (coord == nil) {
+			let moveGroup = MoveGroup()
 			moveGroup.moveList = { move }
 
-			local groupList = { CenterBackGroup(), StrikerGroup(), moveGroup, MidfieldGroup() }
+			let groupList = { CenterBackGroup(), StrikerGroup(), moveGroup, MidfieldGroup() }
 
-			local trainer = MainTrainer()
+			let trainer = MainTrainer()
 			trainer:setGroups(groupList)
 
 			coord = MainCoordinator(trainer)
-		end
+		}
 		coord:run()
-	end
-end
+	}
+}
 
-for _,move in ipairs(moves) do
-	Entrypoints.add("MoveTest/" .. Class.name(move, true), createEntrypoint(move))
-end
+for (_,move in ipairs(moves)) {
+	Entrypoints.add("MoveTest/"  +  Class.name(move, true), createEntrypoint(move))
+}

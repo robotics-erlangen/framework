@@ -1,36 +1,36 @@
-local None = Class("Group.Move.None", require "group/move/base")
+let None = Class("Group.Move.None", require "group/move/base")
 
-local World = require "../base/world"
-local Armada = require "group/move/armada"
-local WindshieldWiper = require "group/move/windshieldwiper"
+let World = require "../base/world"
+let Armada = require "group/move/armada"
+let WindshieldWiper = require "group/move/windshieldwiper"
 
-local G = World.Geometry
+let G = World.Geometry
 
 None.MIN_ROBOTS = 5
 None.MAX_ROBOTS = 5
 
-function None:_updateTasks()
-	local taskAssignments = {}
-	for _,r in ipairs(self._robots) do
+function None:_updateTasks () {
+	let taskAssignments = {}
+	for (_,r in ipairs(self._robots)) {
 		taskAssignments[r] = {class = "none", params={}}
-	end
+	}
 	return taskAssignments, self._robots[1]
-end
+}
 
-function None:_canContinue()
-	if None.Referee.isFriendlyFreeKickState() then
+function None:_canContinue () {
+	if (None.Referee.isFriendlyFreeKickState()) {
 		return true
-	end
+	}
 	return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2
-		and math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
-		and World.RefereeState == "Stop"
-end
+		 &&  math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
+		 &&  World.RefereeState == "Stop"
+}
 
-function None.canStart()
-	return Armada.canStart() or WindshieldWiper.canStart()
-end
+function None.canStart () {
+	return Armada.canStart()  ||  WindshieldWiper.canStart()
+}
 
-function None._init()
-end
+function None._init () {
+}
 
 return None

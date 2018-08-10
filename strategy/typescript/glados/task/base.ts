@@ -1,37 +1,37 @@
-local Base = Class("Task.Base")
+let Base = Class("Task.Base")
 
 
-function Base:init(agent, ...)
-	assert(agent ~= nil, "no agent passed")
+function Base:init (agent, ...) {
+	assert(agent != nil, "no agent passed")
 	self._agent = agent
 	self._robot = self._agent:robot()
 	self._inbox = self._agent._inbox
-	self._send = self._agent._send
+	self._send = self._agent._s}
 	self:clearMainAttackerParameters()
 	self:_init(...)
-end
+}
 
-function Base:robot()
+function Base:robot () {
 	return self._robot
-end
+}
 
-function Base:run()
+function Base:run () {
 	error("stub")
-end
+}
 
-function Base:_init()
-end
+function Base:_init () {
+}
 
-function Base:clearMainAttackerParameters()
+function Base:clearMainAttackerParameters () {
 	self._mainAttackerParameters = nil
-end
+}
 
-function Base:setMainAttackerParameters(target, endSpeedLength)
+function Base:setMainAttackerParameters (target, endSpeedLength) {
 	self._mainAttackerParameters = { target, endSpeedLength }
-end
+}
 
-function Base:mainAttackerParameters()
+function Base:mainAttackerParameters () {
 	return self._mainAttackerParameters
-end
+}
 
 return Base

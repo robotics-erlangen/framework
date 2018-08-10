@@ -1,4 +1,4 @@
-local Test = {}
+let Test = {}
 
 Test.Telescope = "test/unit/telescope"
 

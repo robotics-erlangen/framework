@@ -1,229 +1,229 @@
-local Base = require "agent/base/behavior"
-local HandleBall = Class("Agent.Defender.HandleBall", Base)
+let Base = require "agent/base/behavior"
+let HandleBall = Class("Agent.Defender.HandleBall", Base)
 
-local debug = require "../base/debug"
-local Field = require "../base/field"
-local geom = require "../base/geom"
-local Referee = require "../base/referee"
-local vis = require "../base/vis"
-local World = require "../base/world"
-local Ball = require "observer/ball"
-local Goal = require "observer/goal"
-local Robot = require "observer/robot"
-local Physics = require "observer/physics"
-local InterceptPass = require "task/defender/interceptpass"
-local Duel = require "task/shared/duel"
-local Attack = require "util/attack"
-local DefUtil = require "util/defense"
-local Rating = require "util/rating"
-
-
-local G = World.Geometry
+let debug = require "../base/debug"
+let Field = require "../base/field"
+let geom = require "../base/geom"
+let Referee = require "../base/referee"
+let vis = require "../base/vis"
+let World = require "../base/world"
+let Ball = require "observer/ball"
+let Goal = require "observer/goal"
+let Robot = require "observer/robot"
+let Physics = require "observer/physics"
+let InterceptPass = require "task/defender/interceptpass"
+let Duel = require "task/shared/duel"
+let Attack = require "util/attack"
+let DefUtil = require "util/defense"
+let Rating = require "util/rating"
 
 
-function HandleBall:_stop()
+let G = World.Geometry
+
+
+function HandleBall:_stop () {
 	self._taskDecision = nil
 	self._forceDefenderFrameCounter = 0
-end
+}
 
-function HandleBall:_checkDefender()
-	-- stay defender if the ball is currently being shot at our goal
-	if not DefUtil.dangerousBallTowardsDefense() and not Ball.isAccelerating() then
+function HandleBall:_checkDefender () {
+	// stay defender if the ball is currently being shot at our goal
+	if (not DefUtil.dangerousBallTowardsDefense()  &&  not Ball.isAccelerating()) {
 		self._forceDefenderFrameCounter = self._forceDefenderFrameCounter + 1
-	else
+	} else {
 		self._forceDefenderFrameCounter = 0
-	end
+	}
 
-	if self._forceDefenderFrameCounter < 5 then
-		local assignment = self._inbox.roleAssignment().trainer
-		if assignment and assignment.name == "CenterBack" then
+	if (self._forceDefenderFrameCounter < 5) {
+		let assignment = self._inbox.roleAssignment().trainer
+		if (assignment  &&  assignment.name == "CenterBack") {
 			return true
-		end
-	end
+		}
+	}
 
 	return false
-end
+}
 
-function HandleBall:_checkAttacker()
-	local isAttacker = self._taskDecision == "attacker"
+function HandleBall:_checkAttacker () {
+	let isAttacker = self._taskDecision == "attacker"
 
-	-- don't if we take too long to get the ball
-	local timeDiff = isAttacker and 0.5 or 1.0
-	local distanceFactor = isAttacker and 1 or 1.5
-	local distanceOffset = isAttacker and 3 * self._robot.radius or 5* self._robot.radius
-	local firstOpp, firstOppTime = Ball.firstRobotAtBall(World.OpponentRobots)
+	// don't if we take too long to get the ball
+	let timeDiff = isAttacker ? 0.5 : 1.0
+	let distanceFactor = isAttacker ? 1 : 1.5
+	let distanceOffset = isAttacker ? 3 * self._robot.radius : 5* self._robot.radius
+	let firstOpp, firstOppTime = Ball.firstRobotAtBall(World.OpponentRobots)
 
-	if firstOppTime < Robot.minTimeToBall(self._robot) + timeDiff then
-		-- do if we are pretty close to our acceptPos
-		local acceptPos = Physics.ballAtTime(World.Ball, Robot.minTimeToBall(self._robot)).pos
-		local enemyPos = Physics.ballAtTime(World.Ball, firstOppTime).pos
-		if self._robot.pos:distanceTo(acceptPos) * distanceFactor + distanceOffset > firstOpp.pos:distanceTo(enemyPos) then
+	if (firstOppTime < Robot.minTimeToBall(self._robot) + timeDiff) {
+		// do if we are pretty close to our acceptPos
+		let acceptPos = Physics.ballAtTime(World.Ball, Robot.minTimeToBall(self._robot)).pos
+		let enemyPos = Physics.ballAtTime(World.Ball, firstOppTime).pos
+		if (self._robot.pos:distanceTo(acceptPos) * distanceFactor + distanceOffset > firstOpp.pos:distanceTo(enemyPos)) {
 			return false
-		end
-		if World.Ball.pos:distanceTo(acceptPos) + distanceOffset > World.Ball.pos:distanceTo(enemyPos) and not Ball.isSlowBall() then
+		}
+		if (World.Ball.pos:distanceTo(acceptPos) + distanceOffset > World.Ball.pos:distanceTo(enemyPos)  &&  not Ball.isSlowBall()) {
 			return false
-		end
-	end
+		}
+	}
 
-	-- true if we are in opponentFieldHalf
-	if self._robot.pos.y > G.FieldHeightHalf * 0.1  then
+	// true if we are in opponentFieldHalf
+	if (self._robot.pos.y > G.FieldHeightHalf * 0.1) {
 		return true
-	end
+	}
 
-	-- don't if an opponent is close to us
-	local distToOppLimit = isAttacker and 0.3 or 0.5
-	local _,closestOppDist = DefUtil.getClosestRobot(World.OpponentRobots, self._robot.pos)
-	if closestOppDist < distToOppLimit then
+	// don't if an opponent is close to us
+	let distToOppLimit = isAttacker ? 0.3 : 0.5
+	let _,closestOppDist = DefUtil.getClosestRobot(World.OpponentRobots, self._robot.pos)
+	if (closestOppDist < distToOppLimit) {
 		return false
-	end
+	}
 
-	-- don't if an opponent receives a pass
-	for _,r in ipairs(World.OpponentRobots) do
-		if Ball.receivesPass(r) and (r.pos:distanceTo(World.Ball.pos) < 1.0 or r.pos:distanceTo(self._robot.pos) < 1.0)then
+	// don't if an opponent receives a pass
+	for (_,r in ipairs(World.OpponentRobots)) {
+		if (Ball.receivesPass(r) ? (r.pos:distanceTo(World.Ball.pos) < 1.0 : r.pos:distanceTo(self._robot.pos) < 1.0)then
 			return false
-		end
-	end
+		}
+	}
 
 	return true
-end
+}
 
-local function rateRobot(robot)
-	local bestPos, posTime, bestRatingOppTime = InterceptPass.calculateInterceptPos(robot)
-	local distanceToInterceptPos = robot.pos:distanceTo(bestPos)
-	local timeToInterceptPos = posTime
-	local timeOppToInterceptPos = bestRatingOppTime
-	local differenceSelfAndOppToInterceptPos = timeToInterceptPos - timeOppToInterceptPos
+let rateRobot = function (robot) {
+	let bestPos, posTime, bestRatingOppTime = InterceptPass.calculateInterceptPos(robot)
+	let distanceToInterceptPos = robot.pos:distanceTo(bestPos)
+	let timeToInterceptPos = posTime
+	let timeOppToInterceptPos = bestRatingOppTime
+	let differenceSelfAndOppToInterceptPos = timeToInterceptPos - timeOppToInterceptPos
 
-	local rateDistanceToInterceptPos = Rating.valueToRating(distanceToInterceptPos, 3, 0)
-	local rateDifferenceSelfAndOppToInterceptPos = Rating.valueToRating(
+	let rateDistanceToInterceptPos = Rating.valueToRating(distanceToInterceptPos, 3, 0)
+	let rateDifferenceSelfAndOppToInterceptPos = Rating.valueToRating(
 													differenceSelfAndOppToInterceptPos, 0, 1)
 
 	return (rateDistanceToInterceptPos + (2 * rateDifferenceSelfAndOppToInterceptPos)) / 3
-end
+}
 
-function HandleBall:_checkInterceptPass()
+function HandleBall:_checkInterceptPass () {
 
-	local isInterceptPass = self._taskDecision == "interceptpass"
-							or (self._inbox.interceptPass().trainer == self._robot)
+	let isInterceptPass = self._taskDecision == "interceptpass"
+							 ||  (self._inbox.interceptPass().trainer == self._robot)
 
-	-- don't if we want to intercept our own pass
-	local sender, passInfoTable = next(self._inbox.passInfo())
-	if Attack.currentPlannedMainAttacker(sender, passInfoTable) then
+	// don't if we want to intercept our own pass
+	let sender, passInfoTable = next(self._inbox.passInfo())
+	if Attack.currentPlannedMainAttacker(sender, passInfoTable)) {
 		return false
-	end
+	}
 
-	-- don't if the ball is too slow
-	local ballSpeedLimit = isInterceptPass and 1.5 or 2.0
-	if World.Ball.speed:length() < ballSpeedLimit then
+	// don't if the ball is too slow
+	let ballSpeedLimit = isInterceptPass ? 1.5 : 2.0
+	if (World.Ball.speed:length() < ballSpeedLimit) {
 		return false
-	end
+	}
 
-	-- don't intercept chip kicks
-	if Ball.isFlyingOrBouncing() then
+	// don't intercept chip kicks
+	if (Ball.isFlyingOrBouncing()) {
 		return false
-	end
+	}
 
-	local moveDest, moveTime = InterceptPass.calculateInterceptPos(self._robot)
-	if not moveDest then
+	let moveDest, moveTime = InterceptPass.calculateInterceptPos(self._robot)
+	if (not moveDest) {
 		return false
-	end
+	}
 
-	-- don't if the time to intercept the pass is too high
-	local interceptionTimeLimit = isInterceptPass and 1.5 or 1.0
-	if moveTime > interceptionTimeLimit then
+	// don't if the time to intercept the pass is too high
+	let interceptionTimeLimit = isInterceptPass ? 1.5 : 1.0
+	if (moveTime > interceptionTimeLimit) {
 		return false
-	end
+	}
 
 	vis.addCircle("InterceptPassPos", moveDest, 0.05, vis.colors.cyan, true)
 	vis.addPath("InterceptPassPos", {self._robot.pos, moveDest}, vis.colors.cyan)
 	debug.set("moveTime", moveTime)
 
-	-- don't intercept if there is no pass receiver
-	local _, _, _, receivers = Goal.predictShot()
-	if not receivers or #receivers == 0 then
+	// don't intercept if there is no pass receiver
+	let _, _, _, receivers = Goal.predictShot()
+	if (not receivers  ||  #receivers == 0) {
 		return false
-	end
+	}
 
-	-- don't intercept if it might have been kicked by our goalie
-	local defenseIntersection = geom.intersectLineLine(World.Geometry.FriendlyGoal, Vector(1, 0),
+	// don't intercept if it might have been kicked by our goalie
+	let defenseIntersection = geom.intersectLineLine(World.Geometry.FriendlyGoal, Vector(1, 0),
 				World.Ball.pos, -World.Ball.speed)
-	local defenseWidthHalf = Field.defenseBaselineIntersectionDistance() + 0.2
-	if defenseIntersection and math.abs(defenseIntersection.x) < defenseWidthHalf then
+	let defenseWidthHalf = Field.defenseBaselineIntersectionDistance() + 0.2
+	if (defenseIntersection  &&  math.abs(defenseIntersection.x) < defenseWidthHalf) {
 		return false
-	end
+	}
 
-	local rating = rateRobot(self._robot)
+	let rating = rateRobot(self._robot)
 	self._send.exclusiveRole("trainer", { interceptPass = rating })
 	return (self._inbox.interceptPass().trainer == self._robot)
 
-end
+}
 
-function HandleBall:_checkDuel()
-	-- don't if we are not close to the ball
-	local ballDistLimit = self._taskDecision == "duel" and 1.2 or 0.8
-	if self._robot.pos:distanceTo(World.Ball.pos) > ballDistLimit then
+function HandleBall:_checkDuel () {
+	// don't if we are not close to the ball
+	let ballDistLimit = self._taskDecision == "duel" ? 1.2 : 0.8
+	if (self._robot.pos:distanceTo(World.Ball.pos) > ballDistLimit) {
 		return false
-	end
+	}
 
-	-- don't if the ball is moving horizontally (e.g. for a pass)
-	if math.abs(World.Ball.speed.x) > 2 then
+	// don't if the ball is moving horizontally (e.g. for a pass)
+	if (math.abs(World.Ball.speed.x) > 2) {
 		return false
-	end
+	}
 
 	return true
-end
+}
 
-function HandleBall:check()
-	if Referee.isFriendlyFreeKickState() or Referee.isStopState() or Referee.isKickoffState()
-			or Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius) then
+function HandleBall:check () {
+	if (Referee.isFriendlyFreeKickState()  ||  Referee.isStopState()  ||  Referee.isKickoffState()
+			 ||  Field.isInFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)) {
 		return false
-	end
+	}
 
-	local mainAttacker = self._inbox.mainAttacker().trainer
+	let mainAttacker = self._inbox.mainAttacker().trainer
 
-	if self:_checkDefender() then
+	if (self:_checkDefender()) {
 		self._taskDecision = "forcedefender"
-	elseif self:_checkInterceptPass() then
+	} else if (self:_checkInterceptPass()) {
 		self._taskDecision = "interceptpass"
-	elseif self:_checkAttacker() then
+	} else if (self:_checkAttacker()) {
 		self._taskDecision = "attacker"
-	elseif self:_checkDuel() then
+	} else if (self:_checkDuel()) {
 		self._taskDecision = "duel"
-	else
+	} else {
 		self._taskDecision = "defender"
-	end
+	}
 
 	debug.set("HandleBall", self._taskDecision)
 
-	if self._taskDecision ~= "forcedefender" then
-		if (mainAttacker == self._robot
-				or self._taskDecision == "attacker"
-				or self._taskDecision == "duel")
-				and self._taskDecision ~= "interceptpass" then
+	if (self._taskDecision != "forcedefender") {
+		if ((mainAttacker == self._robot
+				 ||  self._taskDecision == "attacker"
+				 ||  self._taskDecision == "duel")
+				 &&  self._taskDecision != "interceptpass") {
 			self:_applyForMainAttacker()
-		end
-	end
+		}
+	}
 
-	return (mainAttacker == self._robot) or (self._inbox.interceptPass().trainer == self._robot)
-end
+	return (mainAttacker == self._robot)  ||  (self._inbox.interceptPass().trainer == self._robot)
+}
 
-function HandleBall:_updateTask()
-	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-	if selfDefenseDist < DefUtil.centerBackDistanceToDefenseArea() + self._robot.radius + 0.03 then
-		local groupApplication = { name = "centerback", payload = nil } --TODO: EVACUATE or EVACUATING
+function HandleBall:_updateTask () {
+	let selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+	if (selfDefenseDist < DefUtil.centerBackDistanceToDefenseArea() + self._robot.radius + 0.03) {
+		let groupApplication = { name = "centerback", payload = nil } //TODO: EVACUATE or EVACUATING
 		self._send.groupApplication("trainer", groupApplication)
-	end
+	}
 
-	if self._taskDecision == "attacker" or
-		((self._inbox.mainAttacker().trainer == self._robot) and (self._inbox.interceptPass().trainer == self._robot)) then
+	if (self._taskDecision == "attacker"  ||
+		((self._inbox.mainAttacker().trainer == self._robot)  &&  (self._inbox.interceptPass().trainer == self._robot))) {
 		self._send.poolChangeRequest("trainer", "attacker")
-	end
+	}
 
-	if self._taskDecision == "interceptpass" then
+	if (self._taskDecision == "interceptpass") {
 		return InterceptPass
-	else
+	} else {
 		return Duel
-	end
-end
+	}
+}
 
 return HandleBall

@@ -1,116 +1,116 @@
-local Base = require "agent/base/behavior"
-local Error = Class("Agent.Shared.Error",Base)
-local ErrorTask = require "task/shared/error"
-local World = require "../base/world"
-local Referee = require "../base/referee"
-local ErrorObserver = require "observer/error"
-local ERROR_TOLERANCE_PER_SEC = 3 -- <- [0.5,1]
-local EXCHANGE_ERROR_ROBOTS = false
-local EXCHANGE_LOW_BAT_ROBOTS = false
-local EXCHANGE_LOW_BAT_DURING_GAME = false
-local EXCHANGE_ERROR_ROBOTS_SPEED = false
+let Base = require "agent/base/behavior"
+let Error = Class("Agent.Shared.Error",Base)
+let ErrorTask = require "task/shared/error"
+let World = require "../base/world"
+let Referee = require "../base/referee"
+let ErrorObserver = require "observer/error"
+let ERROR_TOLERANCE_PER_SEC = 3 // <- [0.5,1]
+let EXCHANGE_ERROR_ROBOTS = false
+let EXCHANGE_LOW_BAT_ROBOTS = false
+let EXCHANGE_LOW_BAT_DURING_GAME = false
+let EXCHANGE_ERROR_ROBOTS_SPEED = false
 
-function Error:check()
-	local errorTable = ErrorObserver.getErrorTable(self._robot)
-	if self._active and World.RefereeState == "Stop" then
+function Error:check () {
+	let errorTable = ErrorObserver.getErrorTable(self._robot)
+	if (self._active  &&  World.RefereeState == "Stop") {
 		return true
-	elseif self._active and ErrorObserver.getSpeedErrorCount(self._robot) > 100 then
+	} else if (self._active  &&  ErrorObserver.getSpeedErrorCount(self._robot) > 100) {
 		return true
-	elseif ErrorObserver.getSpeedErrorCount(self._robot) >= 300 and self._robot ~= World.FriendlyKeeper then
+	} else if (ErrorObserver.getSpeedErrorCount(self._robot) >= 300  &&  self._robot != World.FriendlyKeeper) {
 		return EXCHANGE_ERROR_ROBOTS_SPEED
-	elseif ErrorObserver.getAverageBatterySate(self._robot)< 0.11 and self._robot ~= World.FriendlyKeeper then
+	} else if (ErrorObserver.getAverageBatterySate(self._robot)< 0.11  &&  self._robot != World.FriendlyKeeper) {
 		return EXCHANGE_LOW_BAT_DURING_GAME
-	elseif ErrorObserver.getAverageBatterySate(self._robot)< 0.20
-		and World.RefereeState == "Stop" then
-		if self._robot == World.FriendlyKeeper then
-			if Referee.lastStateChangeTime() == World.Time then
-				log("keeper ".. self:errorMsg())
-			end
+	} else if (ErrorObserver.getAverageBatterySate(self._robot)< 0.20
+		 &&  World.RefereeState == "Stop") {
+		if (self._robot == World.FriendlyKeeper) {
+			if (Referee.lastStateChangeTime() == World.Time) {
+				log("keeper " +  self:errorMsg())
+			}
 			return false
-		end
+		}
 		return EXCHANGE_LOW_BAT_ROBOTS
-	elseif not errorTable then
+	} else if (not errorTable) {
 		return false
-	elseif self._robot == World.FriendlyKeeper then
-		if Referee.lastStateChangeTime() == World.Time then
-			log("keeper " .. self:errorMsg())
-		end
+	} else if (self._robot == World.FriendlyKeeper) {
+		if (Referee.lastStateChangeTime() == World.Time) {
+			log("keeper "  +  self:errorMsg())
+		}
 		return false
-	end
-	local gameTimespan = World.Time - ErrorObserver.getLastStopTime()
+	}
+	let gameTimespan = World.Time - ErrorObserver.getLastStopTime()
 
-	for k,v in pairs(errorTable) do
-		if gameTimespan > 2 and v > ERROR_TOLERANCE_PER_SEC * gameTimespan
-				and k ~= "temperature" and k~="main_sensor_error" then
-			if World.RefereeState == "Stop" then
-				--log(self._robot.id .. " --------   " .. k ..  "  --------------  " .. v)
+	for (k,v in pairs(errorTable)) {
+		if (gameTimespan > 2  &&  v > ERROR_TOLERANCE_PER_SEC * gameTimespan
+				 &&  k != "temperature"  &&  k!="main_sensor_error") {
+			if (World.RefereeState == "Stop") {
+				//log(self._robot.id .. " ////////   " .. k ..  "  //////////////  " .. v)
 				return EXCHANGE_ERROR_ROBOTS
-			end
-		end
-	end
+			}
+		}
+	}
 	return false
-end
+}
 
-function Error:start()
+function Error:start () {
 	log(self:errorMsg())
 	self._active = true
-end
+}
 
-function Error:_stop()
+function Error:_stop () {
 	self._active = false
-end
+}
 
-function Error:errorMsg()
-	local out = tostring(self._robot.id) .. ": "
-	local msgParts = {}
-	local errorData = ErrorObserver.getErrorTable(self._robot)
-	out = out .. "battery: " .. tostring(ErrorObserver.getAverageBatterySate(self._robot)) .." "
-	if not errorData then
+function Error:errorMsg () {
+	let out = String(self._robot.id)  +  ": "
+	let msgParts = {}
+	let errorData = ErrorObserver.getErrorTable(self._robot)
+	out = out  +  "battery: "  +  String(ErrorObserver.getAverageBatterySate(self._robot))  + " "
+	if (not errorData) {
 		return out
-	end
-	if errorData.motor_1_error then
-		table.insert(msgParts, "motor 1 error" .. tostring(errorData.motor_1_error))
-	end
-	if errorData.motor_2_error then
-		table.insert(msgParts, "motor 2 error" .. tostring(errorData.motor_2_error))
-	end
-	if errorData.motor_3_error then
-		table.insert(msgParts, "motor 3 error" .. tostring(errorData.motor_3_error))
-	end
-	if errorData.motor_4_error then
-		table.insert(msgParts, "motor 4 error" .. tostring(errorData.motor_4_error))
-	end
-	if errorData.dribbler_error then
-		table.insert(msgParts, "dribber error" .. tostring(errorData.dribbler_error))
-	end
-	if errorData.kicker_error then
-		table.insert(msgParts, "kicker error" .. tostring(errorData.kicker_error))
-	end
-	if errorData.motorOverheatedError then
-		table.insert(msgParts, "motor overheat" .. tostring(errorData.motorOverheatedError))
-	end
-	if errorData.motor_encoder_error then
-		table.insert(msgParts, "motor encoder" .. tostring(errorData.motor_encoder_error))
-	end
-	if errorData.main_sensor_error then
-		table.insert(msgParts, "main sensor" .. tostring(errorData.main_sensor_error))
-	end
-	if errorData.kicker_beak_beam_error then
-		table.insert(msgParts, "kicker beam error" .. tostring(errorData.kicker_beak_beam_error))
-	end
-	if errorData.temperature then
-		table.insert(msgParts, "temperature: " .. tostring(errorData.temperature))
-	end
-	return out .. table.concat(msgParts, ",")
-end
+	}
+	if (errorData.motor_1_error) {
+		table.insert(msgParts, "motor 1 error"  +  String(errorData.motor_1_error))
+	}
+	if (errorData.motor_2_error) {
+		table.insert(msgParts, "motor 2 error"  +  String(errorData.motor_2_error))
+	}
+	if (errorData.motor_3_error) {
+		table.insert(msgParts, "motor 3 error"  +  String(errorData.motor_3_error))
+	}
+	if (errorData.motor_4_error) {
+		table.insert(msgParts, "motor 4 error"  +  String(errorData.motor_4_error))
+	}
+	if (errorData.dribbler_error) {
+		table.insert(msgParts, "dribber error"  +  String(errorData.dribbler_error))
+	}
+	if (errorData.kicker_error) {
+		table.insert(msgParts, "kicker error"  +  String(errorData.kicker_error))
+	}
+	if (errorData.motorOverheatedError) {
+		table.insert(msgParts, "motor overheat"  +  String(errorData.motorOverheatedError))
+	}
+	if (errorData.motor_encoder_error) {
+		table.insert(msgParts, "motor encoder"  +  String(errorData.motor_encoder_error))
+	}
+	if (errorData.main_sensor_error) {
+		table.insert(msgParts, "main sensor"  +  String(errorData.main_sensor_error))
+	}
+	if (errorData.kicker_beak_beam_error) {
+		table.insert(msgParts, "kicker beam error"  +  String(errorData.kicker_beak_beam_error))
+	}
+	if (errorData.temperature) {
+		table.insert(msgParts, "temperature: "  +  String(errorData.temperature))
+	}
+	return out  +  table.concat(msgParts, ",")
+}
 
 
-function Error:_updateTask()
-	--local errorFound = next(ErrorObserver.getErrorTable(self._robot)) ~= nil
-	--if errorFound and World.Time == ErrorObserver.getLastRefChange() then
-	--	log(self:errorMsg())
-	--end
+function Error:_updateTask () {
+	//local errorFound = next(ErrorObserver.getErrorTable(self._robot)) ~= nil
+	//if errorFound and World.Time == ErrorObserver.getLastRefChange() then
+	//	log(self:errorMsg())
+	//end
 	return ErrorTask
-end
+}
 
 return Error

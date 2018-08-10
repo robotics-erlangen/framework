@@ -1,31 +1,31 @@
-local Base = require "agent/base/behavior"
-local Move = Class("Agent.Attacker.Move", Base)
+let Base = require "agent/base/behavior"
+let Move = Class("Agent.Attacker.Move", Base)
 
-function Move:check()
-	return self._inbox.moveAssignment().trainer ~= nil
-end
+function Move:check () {
+	return self._inbox.moveAssignment().trainer != nil
+}
 
-function Move:_updateTask()
-	local _, passInfoTable = next(self._inbox.passInfo())
-	if passInfoTable then
-		for _, passInfo in ipairs(passInfoTable) do
-			if passInfo.target == self._robot then
+function Move:_updateTask () {
+	let _, passInfoTable = next(self._inbox.passInfo())
+	if (passInfoTable) {
+		for (_, passInfo in ipairs(passInfoTable)) {
+			if (passInfo.target == self._robot) {
 				self._forceKeepingInPool = true
 				break
-			end
-		end
-	end
+			}
+		}
+	}
 
-	local assignment = self._inbox.moveAssignment().trainer
+	let assignment = self._inbox.moveAssignment().trainer
 
-	if assignment.mainAttacker then
+	if (assignment.mainAttacker) {
 		self:_applyForMainAttacker(nil, nil, 2)
-	end
-	if assignment.behavior then
+	}
+	if (assignment.behavior) {
 		return self:runDeferredBehavior(assignment.behavior, assignment.restart)
-	end
+	}
 
 	return assignment.class, assignment.params, assignment.restart
-end
+}
 
 return Move

@@ -1,57 +1,57 @@
-local Roles = {}
+let Roles = {}
 
-local Referee = require "../base/referee"
-local vis = require "../base/vis"
-local World = require "../base/world"
+let Referee = require "../base/referee"
+let vis = require "../base/vis"
+let World = require "../base/world"
 
 
-local ROLE_HYSTERESIS = 0.05
+let ROLE_HYSTERESIS = 0.05
 
-function Roles:init()
+function Roles:init () {
 	self._exclusiveRoles = {}
-end
+}
 
-function Roles:_chooseExclusiveRoles()
-	local roleHysteresis = ROLE_HYSTERESIS
-	if Referee.isStopState() then
+function Roles:_chooseExclusiveRoles () {
+	let roleHysteresis = ROLE_HYSTERESIS
+	if (Referee.isStopState()) {
 		roleHysteresis = 1
-	end
+	}
 
-	local roleMsgs = self._inbox.exclusiveRole()
-	local roleApplications = {}
-	for robot, applications in pairs(roleMsgs) do
-		for _, application in ipairs(applications) do
-			for role, rating in pairs(application) do
-				if not roleApplications[role] then
+	let roleMsgs = self._inbox.exclusiveRole()
+	let roleApplications = {}
+	for (robot, applications in pairs(roleMsgs)) {
+		for (_, application in ipairs(applications)) {
+			for (role, rating in pairs(application)) {
+				if (not roleApplications[role]) {
 					roleApplications[role] = {}
-				end
+				}
 				roleApplications[role][robot] = rating
-			end
-		end
-	end
+			}
+		}
+	}
 
-	local exclusiveRoles = {} -- ensure that special roles are removed if no one applies
-	for role, applications in pairs(roleApplications) do
-		local bestRobot = nil
-		local bestRating = -math.huge
-		for robot, rating in pairs(applications) do
-			if self._exclusiveRoles[role] == robot then
+	let exclusiveRoles = {} // ensure that special roles are removed if no one applies
+	for (role, applications in pairs(roleApplications)) {
+		let bestRobot = nil
+		let bestRating = -math.huge
+		for (robot, rating in pairs(applications)) {
+			if (self._exclusiveRoles[role] == robot) {
 				rating = rating + roleHysteresis
-			end
-			if rating > bestRating then
+			}
+			if (rating > bestRating) {
 				bestRobot = robot
 				bestRating = rating
-			end
-		end
-		if bestRobot then
+			}
+		}
+		if (bestRobot) {
 			exclusiveRoles[role] = bestRobot
 			self._send[role]("all", bestRobot)
 
 			vis.addCircle("tr/roles: "..role, bestRobot.pos, 0.12,
-				World.TeamIsBlue and vis.colors.blue or vis.colors.yellow, true, true)
-		end
-	end
+				World.TeamIsBlue ? vis.colors.blue : vis.colors.yellow, true, true)
+		}
+	}
 	self._exclusiveRoles = exclusiveRoles
-end
+}
 
 return Roles

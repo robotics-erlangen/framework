@@ -1,40 +1,40 @@
-local Duel = Class("Task.Duel", require "task/base")
+let Duel = Class("Task.Duel", require "task/base")
 
-local debug = require "../base/debug"
-local Field = require "../base/field"
-local geom = require "../base/geom"
-local math = require "../base/math"
-local vis = require "../base/vis"
-local World = require "../base/world"
-local Ball = require "observer/ball"
-local Physics = require "observer/physics"
-local Robot = require "observer/robot"
-local Direct = require "trajectory/direct"
-local PathHelper = require "trajectory/pathhelper"
-local ToTarget = require "trajectory/totarget"
-local UtilDefense = require "util/defense"
-
-
-local STAY_BEHIND_OPP_ANGLE = 120/180 * math.pi
-local STAY_BEHIND_OPP_HYSTERESIS = 10/180 * math.pi
-local SIDEWARDS_ANGLE_MAX = 30/180 * math.pi
-local SIDEWARDS_ANGLE_SCALE = 1/3
-
-local BLOCK_DIST_MAX = 0.08
-local BLOCK_DIST_HYSTERESIS = 0.02
-
-local BLOCK_POS_ALPHA = 0.1
-local BLOCK_POS_PRECISION = 0.01
-
-local DEFENSE_AREA_MIN_DISTANCE = 0.04
-
-local BEFORE_OPPONENT_HYSTERESIS = 0.2
-local BEFORE_OPPONENT_TIME = 0.3
-
-local OPPONENT_DEFENSE_AREA_MIN_DISTANCE = 0.1
+let debug = require "../base/debug"
+let Field = require "../base/field"
+let geom = require "../base/geom"
+let math = require "../base/math"
+let vis = require "../base/vis"
+let World = require "../base/world"
+let Ball = require "observer/ball"
+let Physics = require "observer/physics"
+let Robot = require "observer/robot"
+let Direct = require "trajectory/direct"
+let PathHelper = require "trajectory/pathhelper"
+let ToTarget = require "trajectory/totarget"
+let UtilDefense = require "util/defense"
 
 
-function Duel:_init()
+let STAY_BEHIND_OPP_ANGLE = 120/180 * math.pi
+let STAY_BEHIND_OPP_HYSTERESIS = 10/180 * math.pi
+let SIDEWARDS_ANGLE_MAX = 30/180 * math.pi
+let SIDEWARDS_ANGLE_SCALE = 1/3
+
+let BLOCK_DIST_MAX = 0.08
+let BLOCK_DIST_HYSTERESIS = 0.02
+
+let BLOCK_POS_ALPHA = 0.1
+let BLOCK_POS_PRECISION = 0.01
+
+let DEFENSE_AREA_MIN_DISTANCE = 0.04
+
+let BEFORE_OPPONENT_HYSTERESIS = 0.2
+let BEFORE_OPPONENT_TIME = 0.3
+
+let OPPONENT_DEFENSE_AREA_MIN_DISTANCE = 0.1
+
+
+function Duel:_init () {
 	self._opposer = nil
 	self._defendedOpponentMessageSent = false
 	self._blockingBall = false
@@ -43,197 +43,197 @@ function Duel:_init()
 	self._beforeOpp = false
 	self._futureBall = nil
 	self._rotating = false
-end
+}
 
-function Duel:run()
-	-- search for the best duel target (can be nil!)
-	-- 1. get the opponent ball owner, if possible
-	-- 2. get the opponent, that reaches the ball first inside the field boundaries
+function Duel:run () {
+	// search for the best duel target (can be nil!)
+	// 1. get the opponent ball owner, if possible
+	// 2. get the opponent, that reaches the ball first inside the field boundaries
 	self._opposer = Ball.opponentBallOwner()
-	if not self._opposer then
+	if (not self._opposer) {
 		self._opposer = Ball.firstRobotAtBall(World.OpponentRobots)
-	end
+	}
 
-	-- notify all that we are duelling
-	local distToOpp = self._opposer and self._robot.pos:distanceTo(self._opposer.pos) or math.huge
-	self._defendedOpponentMessageSent = distToOpp < (self._defendedOpponentMessageSent and 0.6 or 0.3)
-	if self._defendedOpponentMessageSent then
+	// notify all that we are duelling
+	let distToOpp = self._opposer ? self._robot.pos:distanceTo(self._opposer.pos) : math.huge
+	self._defendedOpponentMessageSent = distToOpp < (self._defendedOpponentMessageSent ? 0.6 : 0.3)
+	if (self._defendedOpponentMessageSent) {
 		self._send.defendedOpponent("all", self._opposer)
-	end
+	}
 
 
-	if self._opposer and self._blockingBall and Robot.hadBall(self._robot, 0) then
+	if (self._opposer  &&  self._blockingBall  &&  Robot.hadBall(self._robot, 0)) {
 		self:_contest()
 		debug.set("duel-state", "contest")
-	else
+	} else {
 		self:_moveToBall()
 		debug.set("duel-state", "move to ball")
-	end
-end
+	}
+}
 
-function Duel:_contestRotate()
-	--decide if we should rotate cw or ccw
-	local toOpponentDir = self._opposer.pos - self._robot.pos
-	local intersection = geom.intersectLineLine(
+function Duel:_contestRotate () {
+	//decide if we should rotate cw or ccw
+	let toOpponentDir = self._opposer.pos - self._robot.pos
+	let intersection = geom.intersectLineLine(
 			self._robot.pos, toOpponentDir, World.Geometry.FriendlyGoal, Vector(1, 0))
-	local ccw = intersection and -math.sign(intersection.x) or -1 --negative = ccw, positive = cw
-	local toBall = World.Ball.speed + (World.Ball.pos - self._robot.pos):setLength(0.4)
+	let ccw = intersection ? -math.sign(intersection.x) : -1 //negative = ccw, positive = cw
+	let toBall = World.Ball.speed + (World.Ball.pos - self._robot.pos):setLength(0.4)
 	self._robot:setDribblerSpeed(0.8)
-	self._robot.trajectory:update(Direct, toBall, nil, ccw * 2*math.pi) -- 1 turn per second
-end
+	self._robot.trajectory:update(Direct, toBall, nil, ccw * 2*math.pi) // 1 turn per second
+}
 
-function Duel:_contestPush()
-	local viewDir = (World.Ball.pos - World.Geometry.FriendlyGoal):angle()
-	local destinationPos = World.Ball.pos - Vector.fromAngle(viewDir) * self._robot.shootRadius
-	local obstacleTable = {
+function Duel:_contestPush () {
+	let viewDir = (World.Ball.pos - World.Geometry.FriendlyGoal):angle()
+	let destinationPos = World.Ball.pos - Vector.fromAngle(viewDir) * self._robot.shootRadius
+	let obstacleTable = {
 		ignoreBall = true,
 		inbox = self._inbox,
 		ignoreOpponentRobots = true
 	}
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, destinationPos, viewDir)
-end
+}
 
-function Duel:_contest()
-	self._rotating = self._rotating and World.Ball.pos.y > -World.Geometry.FieldHeightHalf / 3
-		or World.Ball.pos.y > -World.Geometry.FieldHeightHalf / 6
+function Duel:_contest () {
+	self._rotating = self._rotating  &&  World.Ball.pos.y > -World.Geometry.FieldHeightHalf / 3
+		 ||  World.Ball.pos.y > -World.Geometry.FieldHeightHalf / 6
 
-	if self._rotating then
+	if (self._rotating) {
 		self:_contestRotate()
-	else
+	} else {
 		self:_contestPush()
-	end
+	}
 
-	if self._robot.dir > 0 and self._robot.dir < math.pi and World.Ball.pos.y > 0.2
-			and not Robot.hadBall(self._opposer, 0) then
+	if (self._robot.dir > 0  &&  self._robot.dir < math.pi  &&  World.Ball.pos.y > 0.2
+			 &&  not Robot.hadBall(self._opposer, 0)) {
 		self._robot:shoot(7.5)
-	end
+	}
 
-	-- send the position of the ball
+	// send the position of the ball
 	self._send.attackPosition("all", World.Ball.pos)
 	self:_checkBlockingBall()
-end
+}
 
-function Duel:_moveToNearBlock(closestOpponentRobot)
-	-- all decisions are made to keep the own goal covered
-	local baseDir = (self._futureBall - World.Geometry.FriendlyGoal):angle()
-	local oppViewDir = (self._futureBall - closestOpponentRobot.pos):angle()
-	local oppDir = geom.normalizeAngle(oppViewDir - baseDir)
+function Duel:_moveToNearBlock (closestOpponentRobot) {
+	// all decisions are made to keep the own goal covered
+	let baseDir = (self._futureBall - World.Geometry.FriendlyGoal):angle()
+	let oppViewDir = (self._futureBall - closestOpponentRobot.pos):angle()
+	let oppDir = geom.normalizeAngle(oppViewDir - baseDir)
 
-	if math.abs(oppDir) < math.pi - STAY_BEHIND_OPP_ANGLE then
+	if (math.abs(oppDir) < math.pi - STAY_BEHIND_OPP_ANGLE) {
 		self._stayBehindOpp = true
-	elseif math.abs(oppDir) > math.pi - STAY_BEHIND_OPP_ANGLE + STAY_BEHIND_OPP_HYSTERESIS then
+	} else if (math.abs(oppDir) > math.pi - STAY_BEHIND_OPP_ANGLE + STAY_BEHIND_OPP_HYSTERESIS) {
 		self._stayBehindOpp = false
-	end
+	}
 
-	local targetAngle, ballDist
-	if self._stayBehindOpp then
+	let targetAngle, ballDist
+	if (self._stayBehindOpp) {
 		targetAngle = 0
-		-- if opponent doesn't exactly look away from our goal, close the gap
+		// if opponent doesn't exactly look away from our goal, close the gap
 		ballDist = self._robot.radius + math.cos(oppDir) * 2*closestOpponentRobot.radius + World.Ball.radius
-	else
-		local sidewardsAngle = math.min(
+	} else {
+		let sidewardsAngle = math.min(
 			(math.pi - math.abs(oppDir)) * SIDEWARDS_ANGLE_SCALE, SIDEWARDS_ANGLE_MAX)
 		targetAngle = sidewardsAngle * (- math.sign(oppDir))
 		ballDist = self._robot.radius + World.Ball.radius
-	end
+	}
 
 	return self._futureBall - Vector.fromAngle(baseDir + targetAngle) * ballDist
-end
+}
 
-function Duel:_checkBlockingBall()
-	local closestOpponentRobot, shortestTimeToBall = Ball.firstRobotAtBall(World.OpponentRobots)
+function Duel:_checkBlockingBall () {
+	let closestOpponentRobot, shortestTimeToBall = Ball.firstRobotAtBall(World.OpponentRobots)
 
-	local moveTime = Robot.minTimeToBall(self._robot)
-	local minTime = math.min(moveTime, shortestTimeToBall)
+	let moveTime = Robot.minTimeToBall(self._robot)
+	let minTime = math.min(moveTime, shortestTimeToBall)
 	self._futureBall = Physics.ballAtTime(World.Ball, minTime).pos
 	vis.addCircle("t/duel: future ball", self._futureBall, World.Ball.radius + 0.01, vis.colors.green)
 
-	-- pos before the defense area; the possibility of crashing into centerbacks was considered
-	-- but disregarded because blocking a shot on the goal is more important,
-	-- and the probabilty of it being the final position is small
-	local intersectionDefenseArea = Field.intersectRayDefenseArea(self._futureBall,
+	// pos before the defense area; the possibility of crashing into centerbacks was considered
+	// but disregarded because blocking a shot on the goal is more important,
+	// and the probabilty of it being the final position is small
+	let intersectionDefenseArea = Field.intersectRayDefenseArea(self._futureBall,
 			World.Geometry.FriendlyGoal - self._futureBall,
 			self._robot.radius + DEFENSE_AREA_MIN_DISTANCE, true)
-	local basePos
+	let basePos
 
-	if intersectionDefenseArea then
+	if (intersectionDefenseArea) {
 		basePos = intersectionDefenseArea
-	else
+	} else {
 		basePos = self._robot.pos
-	end
+	}
 
-	local distToLine = self._robot.pos:distanceToLineSegment(basePos, self._futureBall)
-	if distToLine <= BLOCK_DIST_MAX then
+	let distToLine = self._robot.pos:distanceToLineSegment(basePos, self._futureBall)
+	if (distToLine <= BLOCK_DIST_MAX) {
 		self._blockingBall = true
-	elseif distToLine > BLOCK_DIST_MAX + BLOCK_DIST_HYSTERESIS then
+	} else if (distToLine > BLOCK_DIST_MAX + BLOCK_DIST_HYSTERESIS) {
 		self._blockingBall = false
-	end
+	}
 
 	debug.set("moveDest distToLine", distToLine)
 
 	return moveTime, shortestTimeToBall, closestOpponentRobot, intersectionDefenseArea
 
-end
+}
 
 
-function Duel:_moveToBall()
-	local moveTime, shortestTimeToBall, closestOpponentRobot, intersectionDefenseArea = self:_checkBlockingBall()
+function Duel:_moveToBall () {
+	let moveTime, shortestTimeToBall, closestOpponentRobot, intersectionDefenseArea = self:_checkBlockingBall()
 
 	debug.set("oppTime", shortestTimeToBall)
 	debug.set("moveTime", moveTime)
 
-	-- ignore opponent if we are earlier at the ball by some margin
-	if moveTime < shortestTimeToBall - BEFORE_OPPONENT_TIME - BEFORE_OPPONENT_HYSTERESIS then
+	// ignore opponent if we are earlier at the ball by some margin
+	if (moveTime < shortestTimeToBall - BEFORE_OPPONENT_TIME - BEFORE_OPPONENT_HYSTERESIS) {
 		self._beforeOpp = true
-	elseif moveTime > shortestTimeToBall - BEFORE_OPPONENT_TIME then
+	} else if (moveTime > shortestTimeToBall - BEFORE_OPPONENT_TIME) {
 		self._beforeOpp = false
-	end
-	if self._beforeOpp then
+	}
+	if (self._beforeOpp) {
 		closestOpponentRobot = nil
-	end
+	}
 
-	-- ensure the ball isn't predicted to be behind / inside the opponent
-	local minTime = math.min(moveTime, shortestTimeToBall)
+	// ensure the ball isn't predicted to be behind / inside the opponent
+	let minTime = math.min(moveTime, shortestTimeToBall)
 
-	if minTime == math.huge then
+	if (minTime == math.huge) {
 		self._futureBall = World.Ball.pos
-	end
-	local viewDir = (self._futureBall - self._robot.pos):angle()
+	}
+	let viewDir = (self._futureBall - self._robot.pos):angle()
 
-	local moveDest
-	if intersectionDefenseArea then
-		-- calculate new position between ball (regarding robot shootRadius) and the intersection with defense area
+	let moveDest
+	if (intersectionDefenseArea) {
+		// calculate new position between ball (regarding robot shootRadius) and the intersection with defense area
 		moveDest = self._futureBall + (intersectionDefenseArea - self._futureBall):setLength(self._robot.shootRadius + World.Ball.radius)
-		local defenseIntersectionRadius = self._robot.radius * 3 +  OPPONENT_DEFENSE_AREA_MIN_DISTANCE
-		if Field.isInOpponentDefenseArea(moveDest, defenseIntersectionRadius) then
-			local opponentDefenseIntersection = Field.intersectRayDefenseArea(moveDest, World.Geometry.FriendlyGoal - moveDest,
+		let defenseIntersectionRadius = self._robot.radius * 3 +  OPPONENT_DEFENSE_AREA_MIN_DISTANCE
+		if (Field.isInOpponentDefenseArea(moveDest, defenseIntersectionRadius)) {
+			let opponentDefenseIntersection = Field.intersectRayDefenseArea(moveDest, World.Geometry.FriendlyGoal - moveDest,
 													defenseIntersectionRadius, false)
-			moveDest = opponentDefenseIntersection or moveDest
-		end
+			moveDest = opponentDefenseIntersection  ||  moveDest
+		}
 		moveDest = UtilDefense.fastestPointInInterval(self._robot, moveDest, intersectionDefenseArea,
 						self._oldPosition, BLOCK_POS_PRECISION, BLOCK_POS_ALPHA)
-	else
-		-- case if there isn't an intersection with the defense area
+	} else {
+		// case if there isn't an intersection with the defense area
 		moveDest = self._futureBall + (self._robot.pos - self._futureBall):setLength(self._robot.shootRadius + World.Ball.radius)
-	end
+	}
 
-	-- remember position for the next iteration
+	// remember position for the next iteration
 	self._oldPosition = moveDest
 
 	debug.set("moveDest posOnLine", moveDest)
 
-	if self._blockingBall then
-		if closestOpponentRobot then
+	if (self._blockingBall) {
+		if (closestOpponentRobot) {
 			moveDest = self:_moveToNearBlock(closestOpponentRobot)
-		else
+		} else {
 			moveDest = self._futureBall + (World.Geometry.FriendlyGoal - self._futureBall):setLength(
 				World.Ball.radius + self._robot.shootRadius)
-		end
-	end
+		}
+	}
 
-	local ignoreOpponents = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + 2 * self._robot.radius + 0.1
-	local obstacleTable = {
+	let ignoreOpponents = World.Ball.pos:distanceTo(self._robot.pos) < World.Ball.radius + 2 * self._robot.radius + 0.1
+	let obstacleTable = {
 		ignoreBall = self._blockingBall,
 		inbox = self._inbox,
 		pathRadius = self._robot.shootRadius,
@@ -247,8 +247,8 @@ function Duel:_moveToBall()
 	self._robot.trajectory:update(ToTarget, moveDest, viewDir)
 	vis.addCircle("t/duel: ClearRobot", self._robot.pos, 0.15, vis.colors.redHalf, true)
 
-	-- send the position of the ball
+	// send the position of the ball
 	self._send.attackPosition("all", self._futureBall)
-end
+}
 
 return Duel

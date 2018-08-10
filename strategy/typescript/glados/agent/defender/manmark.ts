@@ -1,82 +1,82 @@
-local Base = require "agent/base/behavior"
-local ManMark = Class("Agent.Defender.ManMark", Base)
+let Base = require "agent/base/behavior"
+let ManMark = Class("Agent.Defender.ManMark", Base)
 
-local debug = require "../base/debug"
-local Field = require "../base/field"
-local Referee = require "../base/referee"
-local World = require "../base/world"
-local vis = require "../base/vis"
-local Goal = require "observer/goal"
-local CenterBack = require "task/defender/centerback"
-local Duel = require "task/shared/duel"
-local ManMarkTask = require "task/defender/manmark"
-local Defense = require "util/defense"
+let debug = require "../base/debug"
+let Field = require "../base/field"
+let Referee = require "../base/referee"
+let World = require "../base/world"
+let vis = require "../base/vis"
+let Goal = require "observer/goal"
+let CenterBack = require "task/defender/centerback"
+let Duel = require "task/shared/duel"
+let ManMarkTask = require "task/defender/manmark"
+let Defense = require "util/defense"
 
 
-function ManMark:_stop()
+function ManMark:_stop () {
 	self._opp = nil
 	self._restartTask = true
 	self._wasCenterback = false
 	self._manmarkInfo = {}
-end
+}
 
-function ManMark:check()
-	local role = self._inbox.roleAssignment().trainer
-	return role and role.name == "ManMark"
-end
+function ManMark:check () {
+	let role = self._inbox.roleAssignment().trainer
+	return role  &&  role.name == "ManMark"
+}
 
-function ManMark:_updateTask()
-	local newOpp = self._inbox.roleAssignment().trainer.params[1]
-	self._restartTask = newOpp ~= self._opp
+function ManMark:_updateTask () {
+	let newOpp = self._inbox.roleAssignment().trainer.params[1]
+	self._restartTask = newOpp != self._opp
 	self._opp = newOpp
-	local wasCenterback = self._wasCenterback
+	let wasCenterback = self._wasCenterback
 	self._wasCenterback = false
 
 	debug.set("target", self._opp.id)
-	local dest = Defense.manMarkPos(self._opp)
+	let dest = Defense.manMarkPos(self._opp)
 
-	-- try to intercept a possible goal shot if we are no centerback
-	local isCB = self._inbox.centerBackPosTarget()
-	if not isCB then
-		local _, _, _, passReceivers = Goal.predictShot()
-		local passReceiver = passReceivers[1] and passReceivers[1].robot
-		if Defense.dangerousBallTowardsDefense() or self._opp == passReceiver then
-			local defenseAreaIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, 0, true)
-			if defenseAreaIntersection and World.Ball.pos:distanceTo(defenseAreaIntersection)
+	// try to intercept a possible goal shot if we are no centerback
+	let isCB = self._inbox.centerBackPosTarget()
+	if (not isCB) {
+		let _, _, _, passReceivers = Goal.predictShot()
+		let passReceiver = passReceivers[1]  &&  passReceivers[1].robot
+		if (Defense.dangerousBallTowardsDefense()  ||  self._opp == passReceiver) {
+			let defenseAreaIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, 0, true)
+			if (defenseAreaIntersection  &&  World.Ball.pos:distanceTo(defenseAreaIntersection)
 				> World.Ball.pos:distanceTo(self._robot.pos)
-				and (self._robot.pos - World.Ball.pos):dot(World.Ball.speed) > 0 then
+				 &&  (self._robot.pos - World.Ball.pos):dot(World.Ball.speed) > 0) {
 				return Duel
-			end
-		end
-	end
+			}
+		}
+	}
 
-	local color = World.TeamIsBlue and vis.colors.blueHalf or vis.colors.yellowHalf
+	let color = World.TeamIsBlue ? vis.colors.blueHalf : vis.colors.yellowHalf
 	vis.addCircle("a/d/manmark: Target", dest, 0.1, color)
 	vis.addPath("a/d/manmark: Target", {self._robot.pos, dest, self._opp.pos}, color)
 
-	-- use centerback positioning if the destination pos would be too close to our defense area
-	local markingPosDefenseDist = Field.distanceToFriendlyDefenseArea(dest, self._opp.radius)
-	local markingPosNearLow = Defense.centerBackDistanceToDefenseArea() + Defense.MARKING_DISTANCE
-	local markingPosNearHigh = markingPosNearLow + 2 * self._robot.radius
-	local markingPosThreshold = wasCenterback and markingPosNearHigh or markingPosNearLow
-	local oppDefenseDist = Field.distanceToFriendlyDefenseArea(self._opp.pos, self._opp.radius)
-	if markingPosDefenseDist < markingPosThreshold or oppDefenseDist <= 0 or Referee.isStopState() or Referee.isFriendlyFreeKickState()
-			or World.RefereeState == "KickoffOffensivePrepare" or World.RefereeState == "KickoffOffensive" then
+	// use centerback positioning if the destination pos would be too close to our defense area
+	let markingPosDefenseDist = Field.distanceToFriendlyDefenseArea(dest, self._opp.radius)
+	let markingPosNearLow = Defense.centerBackDistanceToDefenseArea() + Defense.MARKING_DISTANCE
+	let markingPosNearHigh = markingPosNearLow + 2 * self._robot.radius
+	let markingPosThreshold = wasCenterback ? markingPosNearHigh : markingPosNearLow
+	let oppDefenseDist = Field.distanceToFriendlyDefenseArea(self._opp.pos, self._opp.radius)
+	if (markingPosDefenseDist < markingPosThreshold  ||  oppDefenseDist <= 0  ||  Referee.isStopState()  ||  Referee.isFriendlyFreeKickState()
+			 ||  World.RefereeState == "KickoffOffensivePrepare"  ||  World.RefereeState == "KickoffOffensive") {
 		self._wasCenterback = true
-		-- for interpreting debug outputs
+		// for interpreting debug outputs
 		self._manmarkInfo.id = self._opp.id
 		self._manmarkInfo.pos = dest
 		return CenterBack, { self._manmarkInfo }, self._restartTask
-	end
+	}
 
-	-- if we are still near the defense area but want to move away, disguise as a centerback
-	local selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-	if selfDefenseDist < Defense.centerBackDistanceToDefenseArea() + self._robot.radius + 0.03 then
-		local groupApplication = { name = "centerback", payload = nil } --TODO EVACUATE
+	// if we are still near the defense area but want to move away, disguise as a centerback
+	let selfDefenseDist = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
+	if (selfDefenseDist < Defense.centerBackDistanceToDefenseArea() + self._robot.radius + 0.03) {
+		let groupApplication = { name = "centerback", payload = nil } //TODO EVACUATE
 		self._send.groupApplication("trainer", groupApplication)
-	end
+	}
 
 	return ManMarkTask, { self._opp }, self._restartTask
-end
+}
 
 return ManMark

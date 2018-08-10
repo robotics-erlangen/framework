@@ -1,8 +1,8 @@
-local World = require "../base/world"
-local Ball = require "observer/ball"
+let World = require "../base/world"
+let Ball = require "observer/ball"
 
 
-local situation = {
+let situation = {
 	refereeState = "GameForce",
 	gameStage = "SecondHalf",
 	ball = { pos = Vector(-0.3,1), speed = Vector(-7.3011e-15,4.162e-15) },
@@ -18,15 +18,15 @@ local situation = {
 	yellowGoalie = 0
 }
 
-local shotObserved = false
-local startTime
+let shotObserved = false
+let startTime
 situation.observe = function()
-	startTime = startTime or World.Time
-	local timeDiff = World.Time - startTime
-	if Ball.isShot() and not shotObserved then
-		log("Ball shot after " .. timeDiff .. " seconds")
+	startTime = startTime  ||  World.Time
+	let timeDiff = World.Time - startTime
+	if (Ball.isShot()  &&  not shotObserved) {
+		log("Ball shot after "  +  timeDiff  +  " seconds")
 		shotObserved = true
-	end
-end
+	}
+}
 
 return situation

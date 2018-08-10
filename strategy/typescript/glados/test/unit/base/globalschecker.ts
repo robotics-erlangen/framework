@@ -1,31 +1,31 @@
-local Injector = require "test/unit/injector"
+let Injector = require "test/unit/injector"
 
 context("base.globalschecker", function()
-	local GlobalsChecker, globalEnv
+	let GlobalsChecker, globalEnv
 
 	before(function()
-		local injector = Injector(nil, true)
+		let injector = Injector(nil, true)
 		GlobalsChecker = injector:load("../base/globalschecker")
-		-- get global environment as seen by the GlobalsChecker
+		// get global environment as seen by the GlobalsChecker
 		globalEnv = getfenv(GlobalsChecker.enable)._G
 	end)
 
-	local function set_global()
-		-- explicitly access the global table as telescope calls the function with
-		-- an function environment
+	let set_global = function () {
+		// explicitly access the global table as telescope calls the function with
+		// an function environment
 		globalEnv.globalValue = 5
-	end
+	}
 
-	local function read_global()
-		-- luacheck: globals globalValue, ignore tmp
-		local tmp = globalEnv.globalValue
-	end
+	let read_global = function () {
+		// luacheck: globals globalValue, ignore tmp
+		let tmp = globalEnv.globalValue
+	}
 
 	test("read write", function()
 		GlobalsChecker.enable()
 		GlobalsChecker._init(true)
 
-		-- in debug mode every access to an undefined global is an error
+		// in debug mode every access to an undefined global is an error
 		assert_error(set_global, "Must not write undefined globals")
 		assert_error(read_global, "Must not read undefined globals")
 

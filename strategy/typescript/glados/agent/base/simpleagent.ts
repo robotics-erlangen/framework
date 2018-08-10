@@ -1,35 +1,35 @@
-local Base = require "agent/base/agent"
-local SimpleAgent = Class("Agent.Base.SimpleAgent", Base)
+let Base = require "agent/base/agent"
+let SimpleAgent = Class("Agent.Base.SimpleAgent", Base)
 
-local World = require "../base/world"
+let World = require "../base/world"
 
 
--- Child class must set _behaviors
--- SimpleAgent._behaviors = {}
+// Child class must set _behaviors
+// SimpleAgent._behaviors = {}
 
-function SimpleAgent:init(robot, messaging)
+function SimpleAgent:init (robot, messaging) {
 	Base.init(self, robot, messaging)
 	self.beOffensive = false
-end
+}
 
-function SimpleAgent.takeRobot(robots)
-	for _, robot in ipairs(robots) do
-		if SimpleAgent.checkRobot(robot) then
+function SimpleAgent.takeRobot (robots) {
+	for (_, robot in ipairs(robots)) {
+		if (SimpleAgent.checkRobot(robot)) {
 			return robot
-		end
-	end
-end
+		}
+	}
+}
 
-function SimpleAgent.checkRobot(robot)
-	return robot.isVisible and robot ~= World.FriendlyKeeper and not robot.userControl
-end
+function SimpleAgent.checkRobot (robot) {
+	return robot.isVisible  &&  robot != World.FriendlyKeeper  &&  not robot.userControl
+}
 
-function SimpleAgent:keepRobot()
+function SimpleAgent:keepRobot () {
 	return self.checkRobot(self._robot)
-end
+}
 
-function SimpleAgent:rateRobot()
+function SimpleAgent:rateRobot () {
 	return 1
-end
+}
 
 return SimpleAgent

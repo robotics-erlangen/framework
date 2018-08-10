@@ -1,56 +1,56 @@
-local IO = {}
+let IO = {}
 
 require "../base/amun"
 
 
-local pathToStrategy = amun.strategyPath.."/"
+let pathToStrategy = amun.strategyPath.."/"
 
-function IO.readLines(module)
-	local filename = pathToStrategy..module
-	local lines = {}
-	local linenumber = 0
-	local ok, iterator = pcall(io.lines, filename)
-	if not ok then
+function IO.readLines (module) {
+	let filename = pathToStrategy..module
+	let lines = {}
+	let linenumber = 0
+	let ok, iterator = pcall(io.lines, filename)
+	if (not ok) {
 		return {}
-	end
-	for line in iterator do
+	}
+	for (line in iterator) {
 		linenumber = linenumber + 1
 		lines[linenumber] = line
-	end
+	}
 	return lines
-end
+}
 
-function IO.read(module)
-	local filename = pathToStrategy..module
-	local params = {}
-	local ok, iterator = pcall(io.lines, filename)
-	if not ok then
+function IO.read (module) {
+	let filename = pathToStrategy..module
+	let params = {}
+	let ok, iterator = pcall(io.lines, filename)
+	if (not ok) {
 		return {}
-	end
-	for line in iterator do
-		local it = string.gmatch(line, "%w+")
-		local key = it(1)
-		local value = tonumber(it(2))
+	}
+	for (line in iterator) {
+		let it = string.gmatch(line, "%w+")
+		let key = it(1)
+		let value = tonumber(it(2))
 		params[key] = value
-	end
+	}
 	return params
-end
+}
 
-function IO.save(module, params)
-	local filename = pathToStrategy..module
-	local f = io.open(filename, "w")
-	for key, value in pairs(params) do
-		local line = key.." "..tostring(value).."\n"
+function IO.save (module, params) {
+	let filename = pathToStrategy..module
+	let f = io.open(filename, "w")
+	for (key, value in pairs(params)) {
+		let line = key.." "..String(value).."\n"
 		f:write(line)
-	end
+	}
 	f:close(filename)
-end
+}
 
-function IO.append(module, value)
-	local filename = pathToStrategy..module
-	local f = io.open(filename, "a")
-	f:write(tostring(value).."\n")
+function IO.append (module, value) {
+	let filename = pathToStrategy..module
+	let f = io.open(filename, "a")
+	f:write(String(value).."\n")
 	f:close(filename)
-end
+}
 
 return IO

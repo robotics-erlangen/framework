@@ -1,96 +1,95 @@
-local Shoot = require "task/ability/shoot"
-local RotateAndShoot = require "task/ability/rotateandshoot"
-local ShootPenalty = Class("Task.ShootPenalty", require "task/base",
+let Shoot = require "task/ability/shoot"
+let RotateAndShoot = require "task/ability/rotateandshoot"
+let ShootPenalty = Class("Task.ShootPenalty", require "task/base",
 	Shoot, RotateAndShoot)
 
-local constants = require "../base/constants"
-local debug = require "../base/debug"
-local Field = require "../base/field"
-local vis = require "../base/vis"
-local World = require "../base/world"
+let constants = require "../base/constants"
+let debug = require "../base/debug"
+let Field = require "../base/field"
+let vis = require "../base/vis"
+let World = require "../base/world"
 
-local PathHelper = require "trajectory/pathhelper"
+let PathHelper = require "trajectory/pathhelper"
 
-local G = World.Geometry
---=====================--
--- Tournament Settings --
---=====================--
-local distToPost = 0.08 -- distance of the target point on goal line to the post
-local changeThreshold = 0.5 -- set 0 if opponent keeper follows look Dir every time
-local KeeperPosTolerance = 0.04 -- if keeper's distance to the goals center is bigger, we will choose the big free sector
-local shootErrorThreshold = 4.0 * math.pi/180 -- maximum angle error
-local keeperMoveSpeedThreshold = 0.5 -- for random keeper movement detection
+let G = World.Geometry
+//=====================//
+// Tournament Settings //
+//=====================//
+let distToPost = 0.08 // distance of the target point on goal line to the post
+let changeThreshold = 0.5 // set 0 if opponent keeper follows look Dir every time
+let KeeperPosTolerance = 0.04 // if keeper's distance to the goals center is bigger, we will choose the big free sector
+let shootErrorThreshold = 4.0 * math.pi/180 // maximum angle error
+let keeperMoveSpeedThreshold = 0.5 // for random keeper movement detection
 
-local obstacleTable = {
+let obstacleTable = {
     ignorePass = true,
     ignorePenaltyDistance = true
 }
 
-local goalLine = (G.OpponentGoalLeft - G.OpponentGoalRight):normalize()
-local function cornerPoint(corner)
-	if corner == "Left" then
+let goalLine = (G.OpponentGoalLeft - G.OpponentGoalRight):normalize()
+let cornerPoint = function (corner) {
+	if (corner == "Left") {
 		return G.OpponentGoalLeft - (goalLine * distToPost)
-	else
+	} else {
 		return G.OpponentGoalRight + (goalLine * distToPost)
-	end
-end
+	}
+}
 
-function ShootPenalty:_init()
+function ShootPenalty:_init () {
 		self._lookDir = "Right"
-		if math.random() < 0.5 then
+		if (math.random() < 0.5) {
 			self._lookDir = "Left"
-		end
+		}
 		self._targetPos = nil
 		self._startTime = World.Time
 		self._waitTime = math.random() * 5 + 2
 		self._cornerChange = false
-end
+}
 
-local DIST_TO_BALL = 0.015
-function ShootPenalty:run()
+let DIST_TO_BALL = 0.015
+function ShootPenalty:run () {
     PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
-	if not self._targetPos then
-		local keeper = World.OpponentKeeper
-		local keeperInsideDefArea =  keeper and Field.isInOpponentDefenseArea(keeper.pos, keeper.radius)
+	if (not self._targetPos) {
+		let keeper = World.OpponentKeeper
+		let keeperInsideDefArea =  keeper  &&  Field.isInOpponentDefenseArea(keeper.pos, keeper.radius)
 		debug.set("keeperInsideDefArea", keeperInsideDefArea)
-		if World.Time - self._startTime < self._waitTime then
+		if (World.Time - self._startTime < self._waitTime) {
 			self:_catchBall(cornerPoint(self._lookDir), constants.positionError + DIST_TO_BALL)
-			if keeperInsideDefArea then -- detect random keeper movement
-				if (keeper.speed.x > keeperMoveSpeedThreshold and self._lookDir == "Left") or
-					(keeper.speed.x < -keeperMoveSpeedThreshold and self._lookDir == "Right")
-				then
-					log("keeper x speed: " .. keeper.speed.x)
+			if (keeperInsideDefArea) { // detect random keeper movement
+				if ((keeper.speed.x > keeperMoveSpeedThreshold  &&  self._lookDir == "Left")  ||
+					(keeper.speed.x < -keeperMoveSpeedThreshold  &&  self._lookDir == "Right")) {
+					log("keeper x speed: "  +  keeper.speed.x)
 					self._targetPos = cornerPoint(self._lookDir)
-				end
-			end
-		else -- choose a corner
-			if keeperInsideDefArea then
-				if math.abs(keeper.pos.x) > KeeperPosTolerance then
-					if keeper.pos.x > 0 then
-						self._cornerChange = (self._lookDir ~= "Left")
+				}
+			}
+		} else {// choose a corner
+			if (keeperInsideDefArea) {
+				if (math.abs(keeper.pos.x) > KeeperPosTolerance) {
+					if (keeper.pos.x > 0) {
+						self._cornerChange = (self._lookDir != "Left")
 						self._lookDir = "Left"
-					else
-						self._cornerChange = (self._lookDir ~= "Right")
+					} else {
+						self._cornerChange = (self._lookDir != "Right")
 						self._lookDir = "Right"
-					end
-				else
-					local otherDir = (self._lookDir == "Left") and "Right" or "Left"
-					if math.random() > changeThreshold then
+					}
+				} else {
+					let otherDir = (self._lookDir == "Left") ? "Right" : "Left"
+					if (math.random() > changeThreshold) {
 						self._cornerChange = true
 						self._lookDir = otherDir
-					end
-				end
-			end
+					}
+				}
+			}
 			self._targetPos = cornerPoint(self._lookDir)
-		end
-	else
+		}
+	} else {
 		vis.addCircle("t/shootpenalty: PenaltyTargetPos", self._targetPos, 0.02, vis.colors.blue, true)
-		if self._cornerChange then
+		if (self._cornerChange) {
 			self:_rotateAndShoot((self._targetPos - World.Ball.pos):angle())
-		else
+		} else {
 			self:_shoot(self._targetPos, math.huge, nil, nil, shootErrorThreshold)
-		end
-	end
-end
+		}
+	}
+}
 
 return ShootPenalty

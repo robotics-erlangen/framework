@@ -1,34 +1,34 @@
-local Entrypoints = require "../base/entrypoints"
-local PlaceBall = require "task/attacker/placeball"
-local Coordinator = require "control/coordinator"
-local Trainer = require "trainer/trainer"
-local AgentPool = require "control/agentpool"
+let Entrypoints = require "../base/entrypoints"
+let PlaceBall = require "task/attacker/placeball"
+let Coordinator = require "control/coordinator"
+let Trainer = require "trainer/trainer"
+let AgentPool = require "control/agentpool"
 
-local Placer = Class("Test.Task.PlaceBall.Placer", require "agent/base/behavior")
+let Placer = Class("Test.Task.PlaceBall.Placer", require "agent/base/behavior")
 
-function Placer:check()
+function Placer:check () {
 	return true
-end
+}
 
-function Placer:_updateTask()
+function Placer:_updateTask () {
 	return PlaceBall
-end
+}
 
-local PlacerAgent = Class("Test.Task.PlaceBall.PlacerAgent", require "agent/base/simpleagent")
+let PlacerAgent = Class("Test.Task.PlaceBall.PlacerAgent", require "agent/base/simpleagent")
 PlacerAgent._behaviors = {
 	Placer
 }
 
-local coord = nil
+let coord = nil
 
-local function run()
-	if coord == nil then
-		local trainer = Trainer()
-		local pools = { pass = AgentPool(PlacerAgent, 1) }
-		local poolGroups = { { pools.pass } }
+let run = function () {
+	if (coord == nil) {
+		let trainer = Trainer()
+		let pools = { pass = AgentPool(PlacerAgent, 1) }
+		let poolGroups = { { pools.pass } }
 		coord = Coordinator(trainer, pools, poolGroups)
-	end
+	}
 	coord:run()
-end
+}
 
 Entrypoints.add("TaskTest/PlaceBall", run)

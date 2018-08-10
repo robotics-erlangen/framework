@@ -1,25 +1,25 @@
-local Entrypoints = require "../base/entrypoints"
-local plot = require "../base/plot"
-local World = require "../base/world"
-local AgentPool = require "control/agentpool"
-local Coordinator = require "control/coordinator"
-local Trainer = require "trainer/trainer"
-local PathHelper = require "trajectory/pathhelper"
-local ToTarget = require "trajectory/totarget"
+let Entrypoints = require "../base/entrypoints"
+let plot = require "../base/plot"
+let World = require "../base/world"
+let AgentPool = require "control/agentpool"
+let Coordinator = require "control/coordinator"
+let Trainer = require "trainer/trainer"
+let PathHelper = require "trajectory/pathhelper"
+let ToTarget = require "trajectory/totarget"
 
-local G = World.Geometry
+let G = World.Geometry
 
-local CENTER_DIST = 7.8
-local START_ANGLE = 90/180*math.pi
-local ANGLE_STEP = 360/180*math.pi
-local WAIT_TIME = 3
-local ROBOT_ORIENTATION = 90/180*math.pi
-local ROBOT_ORIENTATION_STEP = 0/180*math.pi
+let CENTER_DIST = 7.8
+let START_ANGLE = 90/180*math.pi
+let ANGLE_STEP = 360/180*math.pi
+let WAIT_TIME = 3
+let ROBOT_ORIENTATION = 90/180*math.pi
+let ROBOT_ORIENTATION_STEP = 0/180*math.pi
 
-local heightHalf = G.FieldHeightHalf * 7/8
-local widthHalf = G.FieldWidthHalf * 3/5
+let heightHalf = G.FieldHeightHalf * 7/8
+let widthHalf = G.FieldWidthHalf * 3/5
 
-local POS_LIST = { 
+let POS_LIST = { 
 		Vector(-widthHalf, heightHalf),
 		Vector(0, heightHalf),
 		Vector(0, -heightHalf), 
@@ -27,29 +27,29 @@ local POS_LIST = {
 		Vector(widthHalf, heightHalf),
 		Vector(-widthHalf, -heightHalf)
 }
---{ Vector(-1.8, 3.9), Vector(0, 3.9), Vector(0, -3.9), Vector(1.8, -3.9), Vector(1.8, 3.9), Vector(-1.8, -3.9) }
+//{ Vector(-1.8, 3.9), Vector(0, 3.9), Vector(0, -3.9), Vector(1.8, -3.9), Vector(1.8, 3.9), Vector(-1.8, -3.9) }
 
-local obstacleTable = {
+let obstacleTable = {
 	ignoreBall = true,
 	ignorePass = true,
 	ignoreDefenseArea = true,
 	ignoreOpponentDefenseArea = true
 }
 
-local function indexCalculation(inbox, robotId)
-	local idx = 0
-	local total = 0
-	for robot, _ in pairs(inbox.attackerFlag("broadcast")) do
-		if robotId > robot.id then
+let indexCalculation = function (inbox, robotId) {
+	let idx = 0
+	let total = 0
+	for (robot, _ in pairs(inbox.attackerFlag("broadcast"))) {
+		if (robotId > robot.id) {
 			idx = idx + 1
-		end
+		}
 		total = total + 1
-	end
+	}
 	return idx, total
-end
+}
 
-local VisionTestTask = Class("Test.Task.VisionTest.Task", require "task/base")
-function VisionTestTask:_init()
+let VisionTestTask = Class("Test.Task.VisionTest.Task", require "task/base")
+function VisionTestTask:_init () {
 	self._dest = nil
 	self._atTargetSince = nil
 	self._startPos = POS_LIST[1]
@@ -60,78 +60,78 @@ function VisionTestTask:_init()
 	self._robbotOrientationStep = ROBOT_ORIENTATION_STEP
 	self._orientation = ROBOT_ORIENTATION
 	self._robotState = 0
-end
+}
 
-function VisionTestTask:run()
+function VisionTestTask:run () {
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
-	local idx, total = indexCalculation(self._inbox, self._robot.id)
-	local offset = Vector((idx - total/2) * 0.25, 0)
+	let idx, total = indexCalculation(self._inbox, self._robot.id)
+	let offset = Vector((idx - total/2) * 0.25, 0)
 
-	local pos
-	if self._dest then
+	let pos
+	if (self._dest) {
 		pos = self._dest + offset
-	else
+	} else {
 		pos = self._startPos + offset
-	end
-	local dir = self._orientation
+	}
+	let dir = self._orientation
 
-	local targetDist = self._robot.pos:distanceTo(pos)
-	--log(targetDist)
-	if targetDist < 0.2 and self._atTargetSince == nil then
+	let targetDist = self._robot.pos:distanceTo(pos)
+	//log(targetDist)
+	if (targetDist < 0.2  &&  self._atTargetSince == nil) {
 		self._atTargetSince = World.Time
-	elseif targetDist > 0.01 then
+	} else if (targetDist > 0.01) {
 		self._atTargetSince = nil
-	end
-	local synchronized = false
-	if self._atTargetSince and World.Time - self._atTargetSince > WAIT_TIME then
+	}
+	let synchronized = false
+	if (self._atTargetSince  &&  World.Time - self._atTargetSince > WAIT_TIME) {
 		self._send.defenderFlag("all")
 		synchronized = (table.count(self._inbox.attackerFlag("broadcast")) - table.count(self._inbox.defenderFlag("broadcast"))) == 0
-	end
+	}
 
-	if synchronized then
-		if self._dest then
+	if (synchronized) {
+		if (self._dest) {
 			self._dest = nil
-		else
+		} else {
 			self._startPos = POS_LIST[self._robotState+1]
 			self._robotState = (self._robotState + 1) % #POS_LIST
-		end
+		}
 		self._orientation = self._orientation + ROBOT_ORIENTATION_STEP
-	end
+	}
 
-	plot.addPlot("positionError." .. tostring(self._robot.id), self._robot.pos:distanceTo(pos))
+	plot.addPlot("positionError."  +  String(self._robot.id), self._robot.pos:distanceTo(pos))
 	self._robot.trajectory:update(ToTarget, pos, dir, 1)
-end
+}
 
 
-local Position = Class("Test.Task.VisionTest.Behavior", require "agent/base/behavior")
-function Position:check()
+let Position = Class("Test.Task.VisionTest.Behavior", require "agent/base/behavior")
+function Position:check () {
 	self._send.attackerFlag("all")
-	-- also receive own message
-	return next(self._inbox.attackerFlag("broadcast")) ~= nil
-end
+	// also receive own message
+	return next(self._inbox.attackerFlag("broadcast")) != nil
+}
 
-function Position:_updateTask()
+function Position:_updateTask () {
 	return VisionTestTask, {}
-end
+}
 
 
-local MoveAgent = Class("Test.Task.VisionTest", require "agent/base/simpleagent")
+let MoveAgent = Class("Test.Task.VisionTest", require "agent/base/simpleagent")
 MoveAgent._behaviors = {
 	Position
 }
 
 
-local coord = nil
+let coord = nil
 
-local function run()
-	if coord == nil then
-		local trainer = Trainer()
-		local pools = { path = AgentPool(MoveAgent, #World.FriendlyRobotsAll) }
-		local poolGroups = { { pools.path } }
+let run = function () {
+	if (coord == nil) {
+		let trainer = Trainer()
+		let pools = { path = AgentPool(MoveAgent, #World.FriendlyRobotsAll) }
+		let poolGroups = { { pools.path } }
 		coord = Coordinator(trainer, pools, poolGroups)
-	end
+	}
 	coord:run()
-end
+}
 
 Entrypoints.add("TaskTest/VisionTest", run)

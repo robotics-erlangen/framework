@@ -1,28 +1,28 @@
-local Base = require "agent/base/behavior"
-local Penalty = Class("Agent.Attacker.Penalty", Base)
+let Base = require "agent/base/behavior"
+let Penalty = Class("Agent.Attacker.Penalty", Base)
 
-local World = require "../base/world"
-local G = World.Geometry
+let World = require "../base/world"
+let G = World.Geometry
 
-local MoveToStaticBall = require "task/attacker/movetostaticball"
-local ShootPenalty = require "task/attacker/shootpenalty"
+let MoveToStaticBall = require "task/attacker/movetostaticball"
+let ShootPenalty = require "task/attacker/shootpenalty"
 
-function Penalty:_stop()
+function Penalty:_stop () {
 	self.lookDir = nil
-end
+}
 
-function Penalty:check()
-	local mainAttacker = self._inbox.mainAttacker().trainer == self._robot
-	local isPenalty = World.RefereeState == "PenaltyOffensivePrepare" or World.RefereeState == "PenaltyOffensive"
-	return isPenalty and mainAttacker
-end
+function Penalty:check () {
+	let mainAttacker = self._inbox.mainAttacker().trainer == self._robot
+	let isPenalty = World.RefereeState == "PenaltyOffensivePrepare"  ||  World.RefereeState == "PenaltyOffensive"
+	return isPenalty  &&  mainAttacker
+}
 
-function Penalty:_updateTask()
-	if World.RefereeState == "PenaltyOffensivePrepare" then
+function Penalty:_updateTask () {
+	if (World.RefereeState == "PenaltyOffensivePrepare") {
 		return MoveToStaticBall, {(G.OpponentGoal - World.Ball.pos):angle(), 0.08}
-	else -- PenaltyOffensive
+	} else {// PenaltyOffensive
 		return ShootPenalty
-	end
-end
+	}
+}
 
 return Penalty

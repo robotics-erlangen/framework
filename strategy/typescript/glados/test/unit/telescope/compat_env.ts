@@ -1,391 +1,391 @@
---[[
 
-	compat_env v$(_VERSION) - Lua 5.1/5.2 environment compatibility functions
 
-SYNOPSIS
+//	compat_env v$(_VERSION) - Lua 5.1/5.2 environment compatibility functions
 
-	-- Get load/loadfile compatibility functions only if using 5.1.
-	local CL = pcall(load, '') and _G or require 'compat_env'
-	local load     = CL.load
-	local loadfile = CL.loadfile
+//SYNOPSIS
 
-	-- The following now works in both Lua 5.1 and 5.2:
-	assert(load('return 2*pi', nil, 't', {pi=math.pi}))()
-	assert(loadfile('ex.lua', 't', {print=print}))()
+//	// Get load/loadfile compatibility functions only if using 5.1.
+//	local CL = pcall(load, '') and _G or require 'compat_env'
+//	local load     = CL.load
+//	local loadfile = CL.loadfile
 
-	-- Get getfenv/setfenv compatibility functions only if using 5.2.
-	local getfenv = _G.getfenv or require 'compat_env'.getfenv
-	local setfenv = _G.setfenv or require 'compat_env'.setfenv
-	local function f() return x end
-	setfenv(f, {x=2})
-	print(x, getfenv(f).x) --> 2, 2
+//	// The following now works in both Lua 5.1 and 5.2:
+//	assert(load('return 2*pi', nil, 't', {pi=math.pi}))()
+//	assert(loadfile('ex.lua', 't', {print=print}))()
 
-DESCRIPTION
+//	// Get getfenv/setfenv compatibility functions only if using 5.2.
+//	local getfenv = _G.getfenv or require 'compat_env'.getfenv
+//	local setfenv = _G.setfenv or require 'compat_env'.setfenv
+//	local function f() return x end
+//	setfenv(f, {x=2})
+//	print(x, getfenv(f).x) //> 2, 2
 
-	This module provides Lua 5.1/5.2 environment related compatibility functions.
-	This includes implementations of Lua 5.2 style `load` and `loadfile`
-	for use in Lua 5.1.  It also includes Lua 5.1 style `getfenv` and `setfenv`
-	for use in Lua 5.2.
+//DESCRIPTION
 
-API
+//	This module provides Lua 5.1/5.2 environment related compatibility functions.
+//	This includes implementations of Lua 5.2 style `load` and `loadfile`
+//	for use in Lua 5.1.  It also includes Lua 5.1 style `getfenv` and `setfenv`
+//	for use in Lua 5.2.
 
-	local CL = require 'compat_env'
+//API
 
-	CL.load (ld [, source [, mode [, env] ] ]) --> f [, err]
+//	local CL = require 'compat_env'
 
-		This behaves the same as the Lua 5.2 `load` in both
-		Lua 5.1 and 5.2.
-		http://www.lua.org/manual/5.2/manual.html#pdf-load
+//	CL.load (ld [, source [, mode [, env] ] ]) //> f [, err]
 
-	CL.loadfile ([filename [, mode [, env] ] ]) --> f [, err]
+//		This behaves the same as the Lua 5.2 `load` in both
+//		Lua 5.1 and 5.2.
+//		http://www.lua.org/manual/5.2/manual.html#pdf-load
 
-		This behaves the same as the Lua 5.2 `loadfile` in both
-		Lua 5.1 and 5.2.
-		http://www.lua.org/manual/5.2/manual.html#pdf-loadfile
+//	CL.loadfile ([filename [, mode [, env] ] ]) //> f [, err]
 
-	CL.getfenv ([f]) --> t
+//		This behaves the same as the Lua 5.2 `loadfile` in both
+//		Lua 5.1 and 5.2.
+//		http://www.lua.org/manual/5.2/manual.html#pdf-loadfile
 
-		This is identical to the Lua 5.1 `getfenv` in Lua 5.1.
-		This behaves similar to the Lua 5.1 `getfenv` in Lua 5.2.
-		When a global environment is to be returned, or when `f` is a
-		C function, this returns `_G`  since Lua 5.2 doesn't have
-		(thread) global and C function environments.  This will also
-		return `_G` if the Lua function `f` lacks an `_ENV`
-		upvalue, but it will raise an error if uncertain due to lack of
-		debug info.  It is not normally considered good design to use
-		this function; when possible, use `load` or `loadfile` instead.
-		http://www.lua.org/manual/5.1/manual.html#pdf-getfenv
+//	CL.getfenv ([f]) //> t
 
-	CL.setfenv (f, t)
+//		This is identical to the Lua 5.1 `getfenv` in Lua 5.1.
+//		This behaves similar to the Lua 5.1 `getfenv` in Lua 5.2.
+//		When a global environment is to be returned, or when `f` is a
+//		C function, this returns `_G`  since Lua 5.2 doesn't have
+//		(thread) global and C function environments.  This will also
+//		return `_G` if the Lua function `f` lacks an `_ENV`
+//		upvalue, but it will raise an error if uncertain due to lack of
+//		debug info.  It is not normally considered good design to use
+//		this function; when possible, use `load` or `loadfile` instead.
+//		http://www.lua.org/manual/5.1/manual.html#pdf-getfenv
 
-		This is identical to the Lua 5.1 `setfenv` in Lua 5.1.
-		This behaves similar to the Lua 5.1 `setfenv` in Lua 5.2.
-		This will do nothing if `f` is a Lua function that
-		lacks an `_ENV` upvalue, but it will raise an error if uncertain
-		due to lack of debug info.  See also Design Notes below.
-		It is not normally considered good design to use
-		this function; when possible, use `load` or `loadfile` instead.
-		http://www.lua.org/manual/5.1/manual.html#pdf-setfenv
+//	CL.setfenv (f, t)
 
-DESIGN NOTES
+//		This is identical to the Lua 5.1 `setfenv` in Lua 5.1.
+//		This behaves similar to the Lua 5.1 `setfenv` in Lua 5.2.
+//		This will do nothing if `f` is a Lua function that
+//		lacks an `_ENV` upvalue, but it will raise an error if uncertain
+//		due to lack of debug info.  See also Design Notes below.
+//		It is not normally considered good design to use
+//		this function; when possible, use `load` or `loadfile` instead.
+//		http://www.lua.org/manual/5.1/manual.html#pdf-setfenv
 
-	This module intends to provide robust and fairly complete reimplementations
-	of the environment related Lua 5.1 and Lua 5.2 functions.
-	No effort is made, however, to simulate rare or difficult to simulate features,
-	such as thread environments, although this is liable to change in the future.
-	Such 5.1 capabilities are discouraged and ideally
-	removed from 5.1 code, thereby allowing your code to work in both 5.1 and 5.2.
+//DESIGN NOTES
 
-	In Lua 5.2, a `setfenv(f, {})`, where `f` lacks any upvalues, will be silently
-	ignored since there is no `_ENV` in this function to write to, and the
-	environment will have no effect inside the function anyway.  However,
-	this does mean that `getfenv(setfenv(f, t))` does not necessarily equal `t`,
-	which is incompatible with 5.1 code (a possible workaround would be [1]).
-	If `setfenv(f, {})` has an upvalue but no debug info, then this will raise
-	an error to prevent inadvertently executing potentially untrusted code in the
-	global environment.
+//	This module intends to provide robust and fairly complete reimplementations
+//	of the environment related Lua 5.1 and Lua 5.2 functions.
+//	No effort is made, however, to simulate rare or difficult to simulate features,
+//	such as thread environments, although this is liable to change in the future.
+//	Such 5.1 capabilities are discouraged and ideally
+//	removed from 5.1 code, thereby allowing your code to work in both 5.1 and 5.2.
 
-	It is not normally considered good design to use `setfenv` and `getfenv`
-	(one reason they were removed in 5.2).  When possible, consider replacing
-	these with `load` or `loadfile`, which are more restrictive and have native
-	implementations in 5.2.
+//	In Lua 5.2, a `setfenv(f, {})`, where `f` lacks any upvalues, will be silently
+//	ignored since there is no `_ENV` in this function to write to, and the
+//	environment will have no effect inside the function anyway.  However,
+//	this does mean that `getfenv(setfenv(f, t))` does not necessarily equal `t`,
+//	which is incompatible with 5.1 code (a possible workaround would be [1]).
+//	If `setfenv(f, {})` has an upvalue but no debug info, then this will raise
+//	an error to prevent inadvertently executing potentially untrusted code in the
+//	global environment.
 
-	This module might be merged into a more general Lua 5.1/5.2 compatibility
-	library (e.g. a full reimplementation of Lua 5.2 `_G`).  However,
-	`load/loadfile/getfenv/setfenv` perhaps are among the more cumbersome
-	functions not to have.
+//	It is not normally considered good design to use `setfenv` and `getfenv`
+//	(one reason they were removed in 5.2).  When possible, consider replacing
+//	these with `load` or `loadfile`, which are more restrictive and have native
+//	implementations in 5.2.
 
-INSTALLATION
+//	This module might be merged into a more general Lua 5.1/5.2 compatibility
+//	library (e.g. a full reimplementation of Lua 5.2 `_G`).  However,
+//	`load/loadfile/getfenv/setfenv` perhaps are among the more cumbersome
+//	functions not to have.
 
-	Download compat_env.lua:
+//INSTALLATION
 
-		wget https://raw.github.com/gist/1654007/compat_env.lua
+//	Download compat_env.lua:
 
-	Copy compat_env.lua into your LUA_PATH.
+//		wget https://raw.github.com/gist/1654007/compat_env.lua
 
-	Alternately, unpack, test, and install into LuaRocks:
+//	Copy compat_env.lua into your LUA_PATH.
 
-		wget https://raw.github.com/gist/1422205/sourceunpack.lua
-		lua sourceunpack.lua compat_env.lua
-		(cd out && luarocks make)
+//	Alternately, unpack, test, and install into LuaRocks:
 
-Related work
+//		wget https://raw.github.com/gist/1422205/sourceunpack.lua
+//		lua sourceunpack.lua compat_env.lua
+//		(cd out && luarocks make)
 
-	http://lua-users.org/wiki/LuaVersionCompatibility
-	https://github.com/stevedonovan/Penlight/blob/master/lua/pl/utils.lua
-		- penlight implementations of getfenv/setfenv
-	http://lua-users.org/lists/lua-l/2010-06/msg00313.html
-		- initial getfenv/setfenv implementation
+//Related work
 
-References
+//	http://lua-users.org/wiki/LuaVersionCompatibility
+//	https://github.com/stevedonovan/Penlight/blob/master/lua/pl/utils.lua
+//		- penlight implementations of getfenv/setfenv
+//	http://lua-users.org/lists/lua-l/2010-06/msg00313.html
+//		- initial getfenv/setfenv implementation
 
-	[1] http://lua-users.org/lists/lua-l/2010-06/msg00315.html
+//References
 
-Copyright
+//	[1] http://lua-users.org/lists/lua-l/2010-06/msg00315.html
 
-(c) 2012 David Manura.  Licensed under the same terms as Lua 5.1/5.2 (MIT license).
+//Copyright
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+//(c) 2012 David Manura.  Licensed under the same terms as Lua 5.1/5.2 (MIT license).
 
-The above copyright notice and this permission notice shall be included in
-all copies or substantial portions of the Software.
+//Permission is hereby granted, free of charge, to any person obtaining a copy
+//of this software and associated documentation files (the "Software"), to deal
+//in the Software without restriction, including without limitation the rights
+//to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+//copies of the Software, and to permit persons to whom the Software is
+//furnished to do so, subject to the following conditions:
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-THE SOFTWARE.
+//The above copyright notice and this permission notice shall be included in
+//all copies or substantial portions of the Software.
 
---]]---------------------------------------------------------------------
+//THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+//IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+//FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.  IN NO EVENT SHALL THE
+//AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+//LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+//OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+//THE SOFTWARE.
 
-local M = {_TYPE='module', _NAME='compat_env', _VERSION='0.2.20120124'}
+/////////////////////////////////////////////////////////////////////////
 
-local function check_chunk_type(s, mode)
-	local nmode = mode or 'bt'
-	local is_binary = s and #s > 0 and s:byte(1) == 27
-	if is_binary and not nmode:match'b' then
+let M = {_TYPE='module', _NAME='compat_env', _VERSION='0.2.20120124'}
+
+let check_chunk_type = function (s, mode) {
+	let nmode = mode  ||  'bt'
+	let is_binary = s  &&  #s > 0  &&  s:byte(1) == 27
+	if (is_binary  &&  not nmode:match'b') {
 		return nil, ("attempt to load a binary chunk (mode is '%s')"):format(mode)
-	elseif not is_binary and not nmode:match't' then
+	} else if (not is_binary  &&  not nmode:match't') {
 		return nil, ("attempt to load a text chunk (mode is '%s')"):format(mode)
-	end
+	}
 	return true
-end
+}
 
-local IS_52_LOAD = pcall(load, '')
+let IS_52_LOAD = pcall(load, '')
 if IS_52_LOAD then
 	M.load     = _G.load
 	M.loadfile = _G.loadfile
-else
-	-- 5.2 style `load` implemented in 5.1
-	function M.load(ld, source, mode, env)
-		local f
-		if type(ld) == 'string' then
-			local s = ld
-			local ok, err = check_chunk_type(s, mode); if not ok then return ok, err end
-			local err; f, err = loadstring(s, source); if not f then return f, err end
-		elseif type(ld) == 'function' then
-			local ld2 = ld
-			if (mode or 'bt') ~= 'bt' then
-				local first = ld()
-				local ok, err = check_chunk_type(first, mode); if not ok then return ok, err end
+} else {
+	// 5.2 style `load` implemented in 5.1
+	function M.load (ld, source, mode, env) {
+		let f
+		if (type(ld) == 'string') {
+			let s = ld
+			let ok, err = check_chunk_type(s, mode); if not ok then return ok, err }
+			let err; f, err = loadstring(s, source); if not f then return f, err }
+		} else if (type(ld) == 'function') {
+			let ld2 = ld
+			if ((mode  ||  'bt') != 'bt') {
+				let first = ld()
+				let ok, err = check_chunk_type(first, mode); if not ok then return ok, err }
 				ld2 = function()
-					if first then
-						local chunk=first; first=nil; return chunk
-					else return ld() end
-				end
-			end
-			local err; f, err = load(ld2, source); if not f then return f, err end
-		else
-			error(("bad argument #1 to 'load' (function expected, got %s)"):format(type(ld)), 2)
-		end
-		if env then setfenv(f, env) end
+					if (first) {
+						let chunk=first; first=nil; return chunk
+					} else {return ld() }
+				}
+			}
+			let err; f, err = load(ld2, source); if not f then return f, err }
+		} else {
+			error(("bad argument #1 to 'load' (function expected, got %s)"):format (type(ld) {), 2)
+		}
+		if (env) { setfenv(f, env) }
 		return f
-	end
+	}
 
-	-- 5.2 style `loadfile` implemented in 5.1
-	function M.loadfile(filename, mode, env)
-		if (mode or 'bt') ~= 'bt' then
-			local ioerr
-			local fh, err = io.open(filename, 'rb'); if not fh then return fh, err end
-			local function ld() local chunk; chunk,ioerr = fh:read(4096); return chunk end
-			local f, err = M.load(ld, filename and '@'..filename, mode, env)
+	// 5.2 style `loadfile` implemented in 5.1
+	function M.loadfile (filename, mode, env) {
+		if ((mode  ||  'bt') != 'bt') {
+			let ioerr
+			let fh, err = io.open(filename, 'rb'); if not fh then return fh, err }
+			let ld() let chunk; chunk,ioerr = fh:read = function (4096) {; return chunk }
+			let f, err = M.load(ld, filename  &&  '@'..filename, mode, env)
 			fh:close()
-			if not f then return f, err end
-			if ioerr then return nil, ioerr end
+			if (not f) { return f, err }
+			if (ioerr) { return nil, ioerr }
 			return f
-		else
-			local f, err = loadfile(filename); if not f then return f, err end
-			if env then setfenv(f, env) end
+		} else {
+			let f, err = loadfile(filename); if not f then return f, err }
+			if (env) { setfenv(f, env) }
 			return f
-		end
-	end
-end
+		}
+	}
+}
 
-if _G.setfenv then -- Lua 5.1
+if _G.setfenv then // Lua 5.1
 	M.setfenv = _G.setfenv
 	M.getfenv = _G.getfenv
-else -- >= Lua 5.2
-	-- helper function for `getfenv`/`setfenv`
-	local function envlookup(f)
-		local name, val
-		local up = 0
-		local unknown
+} else {// >= Lua 5.2
+	// helper function for `getfenv`/`setfenv`
+	let envlookup = function (f) {
+		let name, val
+		let up = 0
+		let unknown
 		repeat
 			up=up+1; name, val = debug.getupvalue(f, up)
-			if name == '' then unknown = true end
-		until name == '_ENV' or name == nil
-		if name ~= '_ENV' then
+			if (name == '') { unknown = true }
+		until name == '_ENV'  ||  name == nil
+		if (name != '_ENV') {
 			up = nil
-			if unknown then error("upvalues not readable in Lua 5.2 when debug info missing", 3) end
-		end
-		return (name == '_ENV') and up, val, unknown
-	end
+			if (unknown) { error("upvalues not readable in Lua 5.2 when debug info missing", 3) }
+		}
+		return (name == '_ENV')  &&  up, val, unknown
+	}
 
-	-- helper function for `getfenv`/`setfenv`
-	local function envhelper(f, name)
-		if type(f) == 'number' then
-			if f < 0 then
+	// helper function for `getfenv`/`setfenv`
+	let envhelper = function (f, name) {
+		if (type(f) == 'number') {
+			if (f < 0) {
 				error(("bad argument #1 to '%s' (level must be non-negative)"):format(name), 3)
-			elseif f < 1 then
-				error("thread environments unsupported in Lua 5.2", 3) --[*]
-			end
+			} else if (f < 1) {
+				error("thread environments unsupported in Lua 5.2", 3) //[*]
+			}
 			f = debug.getinfo(f+2, 'f').func
-		elseif type(f) ~= 'function' then
+		} else if (type(f) != 'function') {
 			error(("bad argument #1 to '%s' (number expected, got %s)"):format(type(name, f)), 2)
-		end
+		}
 		return f
-	end
-	-- [*] might simulate with table keyed by coroutine.running()
+	}
+	// [*] might simulate with table keyed by coroutine.running()
 
-	-- 5.1 style `setfenv` implemented in 5.2
-	function M.setfenv(f, t)
-		local f = envhelper(f, 'setfenv')
-		local up, _, _ = envlookup(f)
-		if up then
-			debug.upvaluejoin(f, up, function() return up end, 1) -- unique upvalue [*]
+	// 5.1 style `setfenv` implemented in 5.2
+	function M.setfenv (f, t) {
+		let f = envhelper(f, 'setfenv')
+		let up, _, _ = envlookup(f)
+		if (up) {
+			debug.upvaluejoin(f, up, function() return up end, 1) // unique upvalue [*]
 			debug.setupvalue(f, up, t)
-		else
-			local what = debug.getinfo(f, 'S').what
-			if what ~= 'Lua' and what ~= 'main' then -- not Lua func
+		} else {
+			let what = debug.getinfo(f, 'S').what
+			if (what != 'Lua'  &&  what != 'main') { // not Lua func
 				error("'setfenv' cannot change environment of given object", 2)
-			end -- else ignore no _ENV upvalue (warning: incompatible with 5.1)
-		end
-		-- added in https://gist.github.com/2255007
+			}// else ignore no _ENV upvalue (warning: incompatible with 5.1)
+		}
+		// added in https://gist.github.com/2255007
 		return f
-	end
-	-- [*] http://lua-users.org/lists/lua-l/2010-06/msg00313.html
+	}
+	// [*] http://lua-users.org/lists/lua-l/2010-06/msg00313.html
 
-	-- 5.1 style `getfenv` implemented in 5.2
-	function M.getfenv(f)
-		if f == 0 or f == nil then return _G end -- simulated behavior
-		local f = envhelper(f, 'setfenv')
-		local up, val = envlookup(f)
-		if not up then return _G end -- simulated behavior [**]
+	// 5.1 style `getfenv` implemented in 5.2
+	function M.getfenv (f) {
+		if (f == 0  ||  f == nil) { return _G }// simulated behavior
+		let f = envhelper(f, 'setfenv')
+		let up, val = envlookup(f)
+		if (not up) { return _G }// simulated behavior [**]
 		return val
-	end
-	-- [**] possible reasons: no _ENV upvalue, C function
-end
+	}
+	// [**] possible reasons: no _ENV upvalue, C function
+}
 
 
 return M
 
---[[ FILE rockspec.in
+// FILE rockspec.in
 
-package = 'compat_env'
-version = '$(_VERSION)-1'
-source = {
-	url = 'https://raw.github.com/gist/1654007/$(GITID)/compat_env.lua',
-	--url = 'https://raw.github.com/gist/1654007/compat_env.lua', -- latest raw
-	--url = 'https://gist.github.com/gists/1654007/download',
-	md5 = '$(MD5)'
-}
-description = {
-	summary = 'Lua 5.1/5.2 environment compatibility functions',
-	detailed = [=[
-		Provides Lua 5.1/5.2 environment related compatibility functions.
-		This includes implementations of Lua 5.2 style `load` and `loadfile`
-		for use in Lua 5.1.  It also includes Lua 5.1 style `getfenv` and `setfenv`
-		for use in Lua 5.2.
-	]=],
-	license = 'MIT/X11',
-	homepage = 'https://gist.github.com/1654007',
-	maintainer = 'David Manura'
-}
-dependencies = {}  -- Lua 5.1 or 5.2
-build = {
-	type = 'builtin',
-	modules = {
-		['compat_env'] = 'compat_env.lua'
-	}
-}
+//package = 'compat_env'
+//version = '$(_VERSION)-1'
+//source = {
+//	url = 'https://raw.github.com/gist/1654007/$(GITID)/compat_env.lua',
+//	//url = 'https://raw.github.com/gist/1654007/compat_env.lua', // latest raw
+//	//url = 'https://gist.github.com/gists/1654007/download',
+//	md5 = '$(MD5)'
+//}
+//description = {
+//	summary = 'Lua 5.1/5.2 environment compatibility functions',
+//	detailed = [=[
+//		Provides Lua 5.1/5.2 environment related compatibility functions.
+//		This includes implementations of Lua 5.2 style `load` and `loadfile`
+//		for use in Lua 5.1.  It also includes Lua 5.1 style `getfenv` and `setfenv`
+//		for use in Lua 5.2.
+//	]=],
+//	license = 'MIT/X11',
+//	homepage = 'https://gist.github.com/1654007',
+//	maintainer = 'David Manura'
+//}
+//dependencies = {}  // Lua 5.1 or 5.2
+//build = {
+//	type = 'builtin',
+//	modules = {
+//		['compat_env'] = 'compat_env.lua'
+//	}
+//}
 
---]]---------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////
 
---[[ FILE test.lua
+// FILE test.lua
 
--- test.lua - test suite for compat_env module.
+//// test.lua - test suite for compat_env module.
 
-local CL = require 'compat_env'
-local load     = CL.load
-local loadfile = CL.loadfile
-local setfenv  = CL.setfenv
-local getfenv  = CL.getfenv
+//local CL = require 'compat_env'
+//local load     = CL.load
+//local loadfile = CL.loadfile
+//local setfenv  = CL.setfenv
+//local getfenv  = CL.getfenv
 
-local function checkeq(a, b, e)
-	if a ~= b then error(
-		'not equal ['..tostring(a)..'] ['..tostring(b)..'] ['..tostring(e)..']')
-	end
-end
-local function checkerr(pat, ok, err)
-	assert(not ok, 'checkerr')
-	assert(type(err) == 'string' and err:match(pat), err)
-end
+//local function checkeq(a, b, e)
+//	if (a ~= b) { error(
+//		'not equal ['..tostring(a)..'] ['..tostring(b)..'] ['..tostring(e)..']')
+//	end
+//end
+//local function checkerr(pat, ok, err)
+//	assert(not ok, 'checkerr')
+//	assert(type(err) == 'string' and err:match(pat), err)
+//end
 
--- test `load`
-checkeq(load('return 2')(), 2)
-checkerr('expected near', load'return 2 2')
-checkerr('text chunk', load('return 2', nil, 'b'))
-checkerr('text chunk', load('', nil, 'b'))
-checkerr('binary chunk', load('\027', nil, 't'))
-checkeq(load('return 2*x',nil,'bt',{x=5})(), 10)
-checkeq(debug.getinfo(load('')).source, '')
-checkeq(debug.getinfo(load('', 'foo')).source, 'foo')
+//// test `load`
+//checkeq(load('return 2')(), 2)
+//checkerr('expected near', load'return 2 2')
+//checkerr('text chunk', load('return 2', nil, 'b'))
+//checkerr('text chunk', load('', nil, 'b'))
+//checkerr('binary chunk', load('\027', nil, 't'))
+//checkeq(load('return 2*x',nil,'bt',{x=5})(), 10)
+//checkeq(debug.getinfo(load('')).source, '')
+//checkeq(debug.getinfo(load('', 'foo')).source, 'foo')
 
--- test `loadfile`
-local fh = assert(io.open('tmp.lua', 'wb'))
-fh:write('return (...) or x')
-fh:close()
-checkeq(loadfile('tmp.lua')(2), 2)
-checkeq(loadfile('tmp.lua', 't')(2), 2)
-checkerr('text chunk', loadfile('tmp.lua', 'b'))
-checkeq(loadfile('tmp.lua', nil, {x=3})(), 3)
-checkeq(debug.getinfo(loadfile('tmp.lua')).source, '@tmp.lua')
-checkeq(debug.getinfo(loadfile('tmp.lua', 't', {})).source, '@tmp.lua')
-os.remove'tmp.lua'
+//// test `loadfile`
+//local fh = assert(io.open('tmp.lua', 'wb'))
+//fh:write('return (...) or x')
+//fh:close()
+//checkeq(loadfile('tmp.lua')(2), 2)
+//checkeq(loadfile('tmp.lua', 't')(2), 2)
+//checkerr('text chunk', loadfile('tmp.lua', 'b'))
+//checkeq(loadfile('tmp.lua', nil, {x=3})(), 3)
+//checkeq(debug.getinfo(loadfile('tmp.lua')).source, '@tmp.lua')
+//checkeq(debug.getinfo(loadfile('tmp.lua', 't', {})).source, '@tmp.lua')
+//os.remove'tmp.lua'
 
--- test `setfenv`/`getfenv`
-x = 5
-local a,b=true; local function f(c) if a then return x,b,c end end
-setfenv(f, {x=3})
-checkeq(f(), 3)
-checkeq(getfenv(f).x, 3)
-checkerr('cannot change', pcall(setfenv, string.len, {})) -- C function
-checkeq(getfenv(string.len), _G) -- C function
-local function g()
-	setfenv(1, {x=4})
-	checkeq(getfenv(1).x, 4)
-	return x
-end
-checkeq(g(), 4) -- numeric level
-if _G._VERSION ~= 'Lua 5.1' then
-	checkerr('unsupported', pcall(setfenv, 0, {}))
-end
-checkeq(getfenv(0), _G)
-checkeq(getfenv(), _G) -- no arg
-checkeq(x, 5) -- main unaltered
-setfenv(function()end, {}) -- no upvalues, ignore
-checkeq(getfenv(function()end), _G) -- no upvaluse
-if _G._VERSION ~= 'Lua 5.1' then
-	checkeq(getfenv(setfenv(function()end, {})), _G) -- warning: incompatible with 5.1
-end
-x = nil
+//// test `setfenv`/`getfenv`
+//x = 5
+//local a,b=true; local function f(c) if a then return x,b,c end end
+//setfenv(f, {x=3})
+//checkeq(f(), 3)
+//checkeq(getfenv(f).x, 3)
+//checkerr('cannot change', pcall(setfenv, string.len, {})) // C function
+//checkeq(getfenv(string.len), _G) // C function
+//local function g()
+//	setfenv(1, {x=4})
+//	checkeq(getfenv(1).x, 4)
+//	return x
+//end
+//checkeq(g(), 4) // numeric level
+//if _G._VERSION ~= 'Lua 5.1' then
+//	checkerr('unsupported', pcall(setfenv, 0, {}))
+//end
+//checkeq(getfenv(0), _G)
+//checkeq(getfenv(), _G) // no arg
+//checkeq(x, 5) // main unaltered
+//setfenv(function()end, {}) // no upvalues, ignore
+//checkeq(getfenv(function()end), _G) // no upvaluse
+//if _G._VERSION ~= 'Lua 5.1' then
+//	checkeq(getfenv(setfenv(function()end, {})), _G) // warning: incompatible with 5.1
+//end
+//x = nil
 
-print 'OK'
+//print 'OK'
 
---]]---------------------------------------------------------------------
+/////////////////////////////////////////////////////////////////////////
 
---[[ FILE CHANGES.txt
-0.2.20120124
-	Renamed module to compat_env (from compat_load)
-	Add getfenv/setfenv functions
+// FILE CHANGES.txt
+//0.2.20120124
+//	Renamed module to compat_env (from compat_load)
+//	Add getfenv/setfenv functions
 
-0.1.20120121
-	Initial public release
---]]
+//0.1.20120121
+//	Initial public release
+////

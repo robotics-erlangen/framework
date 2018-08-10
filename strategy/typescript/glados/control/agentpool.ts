@@ -1,77 +1,77 @@
-local AgentPool = Class("AgentPool")
+let AgentPool = Class("AgentPool")
 
 
-function AgentPool:init(agentType, robotLimit)
-	-- robots and agents are mapped 1:1 to each other
+function AgentPool:init (agentType, robotLimit) {
+	// robots and agents are mapped 1:1 to each other
 	self._agents = {}
 	self._agentType = agentType
-	if robotLimit == nil then
+	if (robotLimit == nil) {
 		self._robotLimit = math.huge
-	else
+	} else {
 		self._robotLimit = robotLimit
-	end
-end
+	}
+}
 
-function AgentPool:run()
-	for _, agent in ipairs(self._agents) do
+function AgentPool:run () {
+	for (_, agent in ipairs(self._agents)) {
 		agent:run()
-	end
-end
+	}
+}
 
-local function sortByRating(a1, a2)
+let sortByRating = function (a1, a2) {
 	return a1:rateRobot() > a2:rateRobot()
-end
+}
 
--- remove agents and associated robots we no longer want to keep
-function AgentPool:cleanupRobots()
-	local agents = {} -- agents to keep
-	for _, agent in ipairs(self._agents) do
+// remove agents and associated robots we no longer want to keep
+function AgentPool:cleanupRobots () {
+	let agents = {} // agents to keep
+	for (_, agent in ipairs(self._agents)) {
 		if(agent:keepRobot()) then
 			table.insert(agents, agent)
-		end
-	end
+		}
+	}
 
-	-- only sort if we have too many robots
-	if self._robotLimit < #agents then
-		-- sort with by decreasing importance
+	// only sort if we have too many robots
+	if (self._robotLimit < #agents) {
+		// sort with by decreasing importance
 		table.sort(agents, sortByRating)
 		table.truncate(agents, self._robotLimit)
-	end
+	}
 	self._agents = agents
-end
+}
 
-function AgentPool:takeRobot(robots, messaging)
-	if #self._agents >= self._robotLimit then
+function AgentPool:takeRobot (robots, messaging) {
+	if (#self._agents >= self._robotLimit) {
 		return
-	end
+	}
 
-	local robot = self._agentType.takeRobot(robots)
-	if robot then
+	let robot = self._agentType.takeRobot(robots)
+	if (robot) {
 		table.insert(self._agents, self._agentType(robot, messaging))
-	end
+	}
 	return robot
-end
+}
 
-function AgentPool:robots()
-	local robots = {}
-	for _, agent in ipairs(self._agents) do
+function AgentPool:robots () {
+	let robots = {}
+	for (_, agent in ipairs(self._agents)) {
 		table.insert(robots, agent:robot())
-	end
+	}
 	return robots
-end
+}
 
-function AgentPool:removeRobot(robot)
-	for _, agent in ipairs(self._agents) do
-		if agent:robot() == robot then
+function AgentPool:removeRobot (robot) {
+	for (_, agent in ipairs(self._agents)) {
+		if (agent:robot() == robot) {
 			table.removeValue(self._agents, agent)
 			return true
-		end
-	end
+		}
+	}
 	return false
-end
+}
 
-function AgentPool:setRobotLimit(robotLimit)
+function AgentPool:setRobotLimit (robotLimit) {
 	self._robotLimit = robotLimit
-end
+}
 
 return AgentPool

@@ -1,8 +1,8 @@
-local Moves = Class("Group.Moves")
+let Moves = Class("Group.Moves")
 
-local debug = require "../base/debug"
+let debug = require "../base/debug"
 
-function Moves:init()
+function Moves:init () {
 	self.name = "moves"
 	self.moveList = {
 		require "group/move/kickoff",
@@ -10,141 +10,141 @@ function Moves:init()
 		require "group/move/mrltestcorner",
 		require "group/move/armada",
 		require "group/move/fastballplacement",
-		-- require "group/move/overchip",
+		// require "group/move/overchip",
 		require "group/move/windshieldwiper",
 		require "group/move/none"
 	}
 
-	for _,move in ipairs(self.moveList) do
-		if not move.MIN_ROBOTS or move.MIN_ROBOTS < 0
-			or not move.MAX_ROBOTS or move.MAX_ROBOTS < move.MIN_ROBOTS then
-			error("MIN_ROBOTS and/or MAX_ROBOT are invalid or not set!")
-		end
-	end
+	for (_,move in ipairs(self.moveList)) {
+		if (not move.MIN_ROBOTS  ||  move.MIN_ROBOTS < 0
+			 ||  not move.MAX_ROBOTS  ||  move.MAX_ROBOTS < move.MIN_ROBOTS) {
+			error("MIN_ROBOTS and/or MAX_ROBOT are invalid  ||  not set!")
+		}
+	}
 
 	self._numAttackersSent = false
 	self._chosenMove = nil
 	self._currentMove = nil
 	self._participatingRobots = {}
-end
+}
 
-local function validateAssignment(assignment)
-	-- don't assing a task and a behavior
-	if assignment.behavior and assignment.class then
+let validateAssignment = function (assignment) {
+	// don't assing a task and a behavior
+	if (assignment.behavior  &&  assignment.class) {
 		return false
-	end
+	}
 
-	--don't assing nothing
-	if not assignment.behavior and not assignment.class then
+	//don't assing nothing
+	if (not assignment.behavior  &&  not assignment.class) {
 		return false
-	end
+	}
 
 	return true
-end
+}
 
-function Moves:run(sender, inbox, messages)
-	-- check if all participating robots are still available
-	if self._currentMove then
-		for _,r in ipairs(self._participatingRobots) do
-			if not messages[r] then
+function Moves:run (sender, inbox, messages) {
+	// check if all participating robots are still available
+	if (self._currentMove) {
+		for (_,r in ipairs(self._participatingRobots)) {
+			if (not messages[r]) {
 				self._currentMove = nil
 				self._chosenMove = nil
 				break
-			end
-		end
-	end
+			}
+		}
+	}
 
-	-- check if current move can be continued
-	if self._currentMove and not self._currentMove:_canContinue() then
+	// check if current move can be continued
+	if (self._currentMove  &&  not self._currentMove:_canContinue()) {
 		self._currentMove = nil
 		self._chosenMove = nil
 		self._numAttackersSent = false
-	end
+	}
 
-	local n_attackers
-	-- choose a new move
-	if not self._chosenMove then
-		local candidates = {}
-		local numCandidateRobots = 0
-		for _,_ in pairs(inbox.attackerFlag()) do
+	let n_attackers
+	// choose a new move
+	if (not self._chosenMove) {
+		let candidates = {}
+		let numCandidateRobots = 0
+		for (_,_ in pairs(inbox.attackerFlag())) {
 			numCandidateRobots = numCandidateRobots + 1
-		end
-		for _,_ in pairs(inbox.defenderFlag()) do
+		}
+		for (_,_ in pairs(inbox.defenderFlag())) {
 			numCandidateRobots = numCandidateRobots + 1
-		end
-		for _,move in ipairs(self.moveList) do
-			if move.canStart() then
-				if numCandidateRobots >= move.MIN_ROBOTS then
+		}
+		for (_,move in ipairs(self.moveList)) {
+			if (move.canStart()) {
+				if (numCandidateRobots >= move.MIN_ROBOTS) {
 					table.insert(candidates, move)
-				end
-			end
-		end
+				}
+			}
+		}
 
-		if #candidates > 0 then
-			local index = math.random(#candidates)
+		if (#candidates > 0) {
+			let index = math.random(#candidates)
 			self._chosenMove = candidates[index]
 			n_attackers = math.min(numCandidateRobots, candidates[index].MAX_ROBOTS)
-		end
-	end
+		}
+	}
 
-	if not self._currentMove and self._chosenMove then
-		local availableRobots = {}
-		for r,_ in pairs(messages) do
+	if (not self._currentMove  &&  self._chosenMove) {
+		let availableRobots = {}
+		for (r,_ in pairs(messages)) {
 			table.insert(availableRobots, r)
-		end
+		}
 
-		if #availableRobots >= self._chosenMove.MIN_ROBOTS and
-			#availableRobots <= self._chosenMove.MAX_ROBOTS and
-			self._numAttackersSent then
+		if (#availableRobots >= self._chosenMove.MIN_ROBOTS  &&
+			#availableRobots <= self._chosenMove.MAX_ROBOTS  &&
+			self._numAttackersSent) {
 			table.sort(availableRobots, function(a, b) return a.id < b.id end)
 			self._currentMove = self._chosenMove(availableRobots, inbox)
 			self._participatingRobots = availableRobots
-		end
-	end
+		}
+	}
 
 
-	-- reset participating robots
-	local prevParticipatingRobots = self._participatingRobots
+	// reset participating robots
+	let prevParticipatingRobots = self._participatingRobots
 	self._participatingRobots = {}
 
-	-- run
-	if self._currentMove then
+	// run
+	if (self._currentMove) {
 		debug.push("Move")
-		local taskAssignments, mainAttacker = self._currentMove:updateTasks()
-		for _, robot in ipairs(prevParticipatingRobots) do
-			local assignment = taskAssignments[robot]
-			if assignment then
-				if not validateAssignment(assignment) then
-					for key,value in pairs(assignment) do
-						log(tostring(key) .. " -> " .. tostring(value))
-					end
-					error("invalid assignment for robot " .. tostring(robot.id))
-				end
+		let taskAssignments, mainAttacker = self._currentMove:updateTasks()
+		for (_, robot in ipairs(prevParticipatingRobots)) {
+			let assignment = taskAssignments[robot]
+			if (assignment) {
+				if (not validateAssignment(assignment)) {
+					for (key,value in pairs(assignment)) {
+						log(String(key)  +  " -> "  +  String(value))
+					}
+					error("invalid assignment for robot "  +  String(robot.id))
+				}
 				assignment.mainAttacker = robot == mainAttacker
-				if assignment.class ~= "none" then
+				if (assignment.class != "none") {
 					sender.moveAssignment(robot, assignment)
-				end
+				}
 				table.insert(self._participatingRobots, robot)
-			else
+			} else {
 				sender.forcePoolChange("trainer", { robot = robot, destPool = "defender" })
-			end
-		end
+			}
+		}
 		n_attackers = #self._participatingRobots
 		debug.pop()
-	end
+	}
 
-	if self._chosenMove and n_attackers then
+	if (self._chosenMove  &&  n_attackers) {
 		assert(n_attackers)
 		self._numAttackersSent = true
 		sender.moveNumAttackers("trainer", n_attackers)
-	end
+	}
 
 	debug.push("Move")
 	debug.set("ParticipatingRobots", self._participatingRobots)
-	if self._currentMove then
+	if (self._currentMove) {
 		debug.set(nil, Class.name(self._currentMove, true))
-	end
+	}
 	debug.pop()
-end
+}
 
 return Moves

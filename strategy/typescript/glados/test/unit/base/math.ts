@@ -1,4 +1,4 @@
-local EPS = 1E-12
+let EPS = 1E-12
 
 context("base.math", function()
 	test("bound", function()
@@ -48,11 +48,11 @@ context("base.math", function()
 	end)
 
 	test("uniformRandom", function()
-		for _ = 1, 100 do
-			local rand = math.uniformRandom()
+		for (_ = 1, 100) {
+			let rand = math.uniformRandom()
 			assert_greater_than(rand, 0)
 			assert_lte(rand, 1)
-		end
+		}
 	end)
 
 	test("solveLin", function ()
@@ -65,39 +65,39 @@ context("base.math", function()
 	end)
 
 	test("solveSq", function ()
-		local x1, x2 = math.solveSq(1, 0, -1)
+		let x1, x2 = math.solveSq(1, 0, -1)
 		assert_equal(x1, 1)
 		assert_equal(x2, -1)
 
-		local x1, x2 = math.solveSq(3, -15, 18)
+		let x1, x2 = math.solveSq(3, -15, 18)
 		assert_equal(x1, 2)
 		assert_equal(x2, 3)
 
-		-- verify numeric stability
-		-- (x-a)(x-b) = x*x-(a+b)*x+a*b = 0
-		local x1, x2 = math.solveSq(1, -1e9-1e-9, 1e9*1e-9)
+		// verify numeric stability
+		// (x-a)(x-b) = x*x-(a+b)*x+a*b = 0
+		let x1, x2 = math.solveSq(1, -1e9-1e-9, 1e9*1e-9)
 		assert_equal(x1, 1e-9)
 		assert_equal(x2, 1e9)
 
-		local x1, x2 = math.solveSq(1, 0, 0)
+		let x1, x2 = math.solveSq(1, 0, 0)
 		assert_equal(x1, 0)
 		assert_equal(x2, nil)
-		local x1, x2 = math.solveSq(1, -2, 1)
+		let x1, x2 = math.solveSq(1, -2, 1)
 		assert_equal(x1, 1)
 		assert_equal(x2, nil)
-		local x1, x2 = math.solveSq(1, -2, 1)
+		let x1, x2 = math.solveSq(1, -2, 1)
 		assert_equal(x1, 1)
 		assert_equal(x2, nil)
 
-		local x1, x2 = math.solveSq(1, 0, 1)
+		let x1, x2 = math.solveSq(1, 0, 1)
 		assert_equal(x1, nil)
 		assert_equal(x2, nil)
 
-		local x1, x2 = math.solveSq(0, 1, 2)
+		let x1, x2 = math.solveSq(0, 1, 2)
 		assert_equal(x1, -2)
 		assert_equal(x2, nil)
 
-		local x1, x2 = math.solveSq(0, 0, 2)
+		let x1, x2 = math.solveSq(0, 0, 2)
 		assert_equal(x1, nil)
 		assert_equal(x2, nil)
 	end)
@@ -112,7 +112,7 @@ context("base.math", function()
 	end)
 
 	test("average", function ()
-		local array = { 1, 2, 3, 4, 0 }
+		let array = { 1, 2, 3, 4, 0 }
 		assert_equal(math.average(array), 2)
 		assert_equal(math.average(array, 1, 5), 2)
 		assert_equal(math.average(array, 2, 4), 3)
@@ -120,7 +120,7 @@ context("base.math", function()
 	end)
 
 	test("variance", function ()
-		local array = { 1, 2, 3, 4, 0 }
+		let array = { 1, 2, 3, 4, 0 }
 		assert_equal(math.variance(array), 2)
 		assert_equal(math.variance(array, 2), 2)
 		assert_equal(math.variance(array, nil, 1, 5), 2)

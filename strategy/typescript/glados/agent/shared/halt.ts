@@ -1,16 +1,16 @@
-local Base = require "agent/base/behavior"
-local Halt = Class("Agent.Shared.Halt", Base)
+let Base = require "agent/base/behavior"
+let Halt = Class("Agent.Shared.Halt", Base)
 
-local World = require "../base/world"
-local HaltTask = require "task/shared/halt"
+let World = require "../base/world"
+let HaltTask = require "task/shared/halt"
 
 
-function Halt:check()
+function Halt:check () {
 	return World.RefereeState == "Halt"
-end
+}
 
-function Halt:_updateTask()
+function Halt:_updateTask () {
 	return HaltTask
-end
+}
 
 return Halt

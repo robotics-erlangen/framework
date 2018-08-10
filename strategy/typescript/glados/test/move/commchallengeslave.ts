@@ -1,86 +1,86 @@
-local CommChallengeSlave = Class("Test.Move.CommChallengeSlave", require "group/move/base")
+let CommChallengeSlave = Class("Test.Move.CommChallengeSlave", require "group/move/base")
 
-local World = require "../base/world"
-local MoveToPos = require "task/shared/movetopos"
-local vis = require "../base/vis"
-local Field = require "../base/field"
-local Ball = require "observer/ball"
-local ShootGoal = require "task/attacker/shootgoal"
+let World = require "../base/world"
+let MoveToPos = require "task/shared/movetopos"
+let vis = require "../base/vis"
+let Field = require "../base/field"
+let Ball = require "observer/ball"
+let ShootGoal = require "task/attacker/shootgoal"
 
 CommChallengeSlave.MIN_ROBOTS = 1
 CommChallengeSlave.MAX_ROBOTS = 6
 
-function CommChallengeSlave.canStart()
+function CommChallengeSlave.canStart () {
 	return true
-end
+}
 
-function CommChallengeSlave:_init()
-end
+function CommChallengeSlave:_init () {
+}
 
-function CommChallengeSlave:_canContinue()
+function CommChallengeSlave:_canContinue () {
 	return true
-end
+}
 
-local wayLength = 2.7 -- meters, only correct for official field
-local function defAreaPos(robotId, opponentGoal)
-	local pos = Field.defenseIntersectionByWay(wayLength*((robotId+1)/8), 0.23, not opponentGoal)
+let wayLength = 2.7 // meters, only correct for official field
+let defAreaPos = function (robotId, opponentGoal) {
+	let pos = Field.defenseIntersectionByWay(wayLength*((robotId+1)/8), 0.23, not opponentGoal)
 	vis.addCircle("defAreaPos", pos, 0.1, vis.colors.orangeHalf, true)
 	return pos
-end
+}
 
-local ballWasShot = false
-local passReceiver = nil
-function CommChallengeSlave:_updateTasks()
-	local taskAssignments = {}
+let ballWasShot = false
+let passReceiver = nil
+function CommChallengeSlave:_updateTasks () {
+	let taskAssignments = {}
 
-	if World.RefereeState == "Stop" then
+	if (World.RefereeState == "Stop") {
 		ballWasShot = false
 		passReceiver = nil
-	end
+	}
 
-	if Ball.isShot() then
+	if (Ball.isShot()) {
 		ballWasShot = true
-	end
+	}
 
-	if World.MixedTeam then
+	if (World.MixedTeam) {
 
 
-		for robotId, msg in pairs(World.MixedTeam) do
-			local robot = World.FriendlyRobotsById[robotId]
-			if robot and robot.generation == robot.GENERATION_2014_ID then
-				local pos
-				if msg.shootPos then
+		for (robotId, msg in pairs(World.MixedTeam)) {
+			let robot = World.FriendlyRobotsById[robotId]
+			if (robot  &&  robot.generation == robot.GENERATION_2014_ID) {
+				let pos
+				if (msg.shootPos) {
 					passReceiver = robot
 					log(robot.id)
-				end
-				if msg.targetPos then
+				}
+				if (msg.targetPos) {
 					pos = msg.targetPos
-				else
+				} else {
 					pos = defAreaPos(robotId, msg.role == "Offense")
-				end
+				}
 
 
 				taskAssignments[robot] =  { class = MoveToPos,
 					params = {pos}, restart = true }
 
-			end
-		end
-	end
+			}
+		}
+	}
 
-	if ballWasShot and passReceiver then
+	if (ballWasShot  &&  passReceiver) {
 		taskAssignments[passReceiver] = { class = ShootGoal }
-	end
+	}
 
-	for _, robot in pairs(World.FriendlyRobots) do
-		if World.RefereeState == "Stop" or not taskAssignments[robot] then
-			local pos = Vector(
+	for (_, robot in pairs(World.FriendlyRobots)) {
+		if (World.RefereeState == "Stop"  ||  not taskAssignments[robot]) {
+			let pos = Vector(
 				-World.Geometry.FieldWidthHalf+1+robot.id*0.4,
 				-0.7)
 			taskAssignments[robot] = { class = MoveToPos, params = {pos}, restart=true }
-		end
-	end
+		}
+	}
 
 	return taskAssignments
-end
+}
 
 return CommChallengeSlave

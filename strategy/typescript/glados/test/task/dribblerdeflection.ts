@@ -1,87 +1,87 @@
-local Entrypoints = require "../base/entrypoints"
-local World = require "../base/world"
+let Entrypoints = require "../base/entrypoints"
+let World = require "../base/world"
 
-local AgentPool = require "control/agentpool"
-local Coordinator = require "control/coordinator"
-local Pass = require "task/shared/pass"
-local Trainer = require "trainer/trainer"
-local PathHelper = require "trajectory/pathhelper"
-local ToTarget = require "trajectory/totarget"
+let AgentPool = require "control/agentpool"
+let Coordinator = require "control/coordinator"
+let Pass = require "task/shared/pass"
+let Trainer = require "trainer/trainer"
+let PathHelper = require "trajectory/pathhelper"
+let ToTarget = require "trajectory/totarget"
 
 
-local DRIBBLER_SPEED = 1
+let DRIBBLER_SPEED = 1
 
-local obstacleTable = {
+let obstacleTable = {
 	ignorePass = true
 }
 
-local Position = Class("Test.Task.DribblerDeflection.Position", require "agent/base/behavior")
-function Position:run()
+let Position = Class("Test.Task.DribblerDeflection.Position", require "agent/base/behavior")
+function Position:run () {
 	self._robot:setDribblerSpeed(DRIBBLER_SPEED)
 
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 	self._robot.trajectory:update(ToTarget, self._robot.pos, (World.Ball.pos - self._robot.pos):angle())
-end
+}
 
-local ShooterBehaviour = Class("Test.Task.DribblerDeflection.ShooterBehaviour", require "agent/base/behavior")
-function ShooterBehaviour:check()
+let ShooterBehaviour = Class("Test.Task.DribblerDeflection.ShooterBehaviour", require "agent/base/behavior")
+function ShooterBehaviour:check () {
 	self._send.attackerFlag("all")
-	local mainAttacker = self._inbox.mainAttacker().trainer
-	if mainAttacker and false then
-		log(tostring(self._robot).." "..tostring(self._inbox.mainAttacker()))
-	end
-	if not mainAttacker or mainAttacker == self._robot then
+	let mainAttacker = self._inbox.mainAttacker().trainer
+	if (mainAttacker  &&  false) {
+		log(String(self._robot).." "..String(self._inbox.mainAttacker()))
+	}
+	if (not mainAttacker  ||  mainAttacker == self._robot) {
 		self:_applyForMainAttacker()
 		return true
-	end
+	}
 	return false
-end
+}
 
-function ShooterBehaviour:_stop()
+function ShooterBehaviour:_stop () {
 	self._framesSinceMove = 0
-end
+}
 
-function ShooterBehaviour:_updateTask()
-	if (World.Ball.speed:length() < 0.4 or self._robot.pos:distanceTo(World.Ball.pos) < 0.3)  and
-			math.abs(World.Ball.pos.x) < World.Geometry.FieldWidthHalf and
-			math.abs(World.Ball.pos.y) < World.Geometry.FieldHeightHalf then
+function ShooterBehaviour:_updateTask () {
+	if ((World.Ball.speed:length() < 0.4  ||  self._robot.pos:distanceTo(World.Ball.pos) < 0.3)   &&
+			math.abs(World.Ball.pos.x) < World.Geometry.FieldWidthHalf  &&
+			math.abs(World.Ball.pos.y) < World.Geometry.FieldHeightHalf) {
 
 		self._framesSinceMove = self._framesSinceMove + 1
-		if self._framesSinceMove > 10 then
-			local otherRobot = next(self._inbox.attackerFlag())
+		if (self._framesSinceMove > 10) {
+			let otherRobot = next(self._inbox.attackerFlag())
 			return Pass, {otherRobot}
-		end
-	else
+		}
+	} else {
 		self._framesSinceMove = 0
-	end
+	}
 	return Position, {}
-end
+}
 
-local PositionBehaviour = Class("Test.Task.DribblerDeflection.PositionBehaviour", require "agent/base/behavior")
-function PositionBehaviour:check()
+let PositionBehaviour = Class("Test.Task.DribblerDeflection.PositionBehaviour", require "agent/base/behavior")
+function PositionBehaviour:check () {
 	return true
-end
+}
 
-function PositionBehaviour:_updateTask()
+function PositionBehaviour:_updateTask () {
 	return Position, {}
-end
+}
 
-local DribblerDeflectionAgent = Class("Test.Task.DribblerDeflectionAgent", require "agent/base/simpleagent")
+let DribblerDeflectionAgent = Class("Test.Task.DribblerDeflectionAgent", require "agent/base/simpleagent")
 DribblerDeflectionAgent._behaviors = {
 	ShooterBehaviour,
 	PositionBehaviour
 }
 
-local coord = nil
+let coord = nil
 
-local function run()
-	if coord == nil then
-		local trainer = Trainer()
-		local pools = { pass = AgentPool(DribblerDeflectionAgent, 2) }
-		local poolGroups = { { pools.pass } }
+let run = function () {
+	if (coord == nil) {
+		let trainer = Trainer()
+		let pools = { pass = AgentPool(DribblerDeflectionAgent, 2) }
+		let poolGroups = { { pools.pass } }
 		coord = Coordinator(trainer, pools, poolGroups)
-	end
+	}
 	coord:run()
-end
+}
 
 Entrypoints.add("TaskTest/DribblerDeflection", run)

@@ -1,96 +1,96 @@
-local SuggestPass = require "task/ability/suggestpass"
-local MidfieldSampling = require "task/ability/midfieldsampling"
-local Midfield = Class("Task.Midfield", require "task/base", SuggestPass, MidfieldSampling)
+let SuggestPass = require "task/ability/suggestpass"
+let MidfieldSampling = require "task/ability/midfieldsampling"
+let Midfield = Class("Task.Midfield", require "task/base", SuggestPass, MidfieldSampling)
 
-local Physics = require "observer/physics"
-local PathHelper = require "trajectory/pathhelper"
-local ToTarget = require "trajectory/totarget"
+let Physics = require "observer/physics"
+let PathHelper = require "trajectory/pathhelper"
+let ToTarget = require "trajectory/totarget"
 
-function Midfield:_init()
+function Midfield:_init () {
 	self._passPos = nil
 
-	-- ewwwww hack
+	// ewwwww hack
 	self._frameCount = 0
 
-	local ignore = false
+	let ignore = false
 	self._obstacleTable = {
 		ignoreBall = ignore,
 		ignoreGoals = ignore,
 		ignoreDefenseArea = ignore,
 		ignoreOpponentDefenseArea = ignore,
 		inbox = self._inbox,
-		ignorePass = (not self._inbox) or ignore,
+		ignorePass = (not self._inbox)  ||  ignore,
 		ignoreBallPlacementObstacle = false
 	}
-end
+}
 
-function Midfield:_samplePassPosition()
-	local zone = self._inbox.midfieldZone().trainer
+function Midfield:_samplePassPosition () {
+	let zone = self._inbox.midfieldZone().trainer
 
-	local left = zone.boundaries.left
-	local right = zone.boundaries.right
-	local top = zone.boundaries.top
-	local bottom = zone.boundaries.bottom
+	let left = zone.boundaries.left
+	let right = zone.boundaries.right
+	let top = zone.boundaries.top
+	let bottom = zone.boundaries.bottom
 
-	local width = right - left
-	local height = top - bottom
+	let width = right - left
+	let height = top - bottom
 
-	local xStep = width / 3
-	local yStep = height / 6
+	let xStep = width / 3
+	let yStep = height / 6
 
-	local bestScore = -math.huge
-	local bestPoint = nil
-	for x = left, left + width, xStep do
-		for y = bottom, bottom + height, yStep do
-			local candidatePoint = Vector(x, y)
-			local rating = self:evalLocation(candidatePoint, bestScore)
-			if rating > bestScore then
+	let bestScore = -math.huge
+	let bestPoint = nil
+	for (x = left, left + width, xStep) {
+		for (y = bottom, bottom + height, yStep) {
+			let candidatePoint = Vector(x, y)
+			let rating = self:evalLocation(candidatePoint, bestScore)
+			if (rating > bestScore) {
 				bestScore = rating
 				bestPoint = candidatePoint
-			end
-		end
-	end
+			}
+		}
+	}
 
 	return bestPoint
-end
+}
 
--- local disco = {
--- 	vis.colors.red,
--- 	vis.colors.blue,
--- 	vis.colors.green,
--- 	vis.colors.pink,
--- 	vis.colors.turquoise,
--- 	vis.colors.yellow,
--- 	vis.colors.skyBlue,
--- 	vis.colors.mediumPurple
--- }
+// local disco = {
+// 	vis.colors.red,
+// 	vis.colors.blue,
+// 	vis.colors.green,
+// 	vis.colors.pink,
+// 	vis.colors.turquoise,
+// 	vis.colors.yellow,
+// 	vis.colors.skyBlue,
+// 	vis.colors.mediumPurple
+// }
 
-function Midfield:run()
+function Midfield:run () {
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
 
 	self:precalculate()
 
-	-- Hacky quickfix for messaging delay problems
-	if (self._frameCount % 2) == 0 then
+	// Hacky quickfix for messaging delay problems
+	if ((self._frameCount % 2) == 0) {
 		self._passPos = self:_samplePassPosition()
-	end
+	}
 	self._frameCount = self._frameCount + 1
 
-	-- local random = math.round(math.random() * #disco)
-	-- vis.addCircle("middy", self._robot.pos, 0.1, disco[random] or vis.colors.orange, true)
+	// local random = math.round(math.random() * #disco)
+	// vis.addCircle("middy", self._robot.pos, 0.1, disco[random] or vis.colors.orange, true)
 
-	local zone = self._inbox.midfieldZone().trainer
-	local defaultPos = zone.defaultPos
+	let zone = self._inbox.midfieldZone().trainer
+	let defaultPos = zone.defaultPos
 
-	local _, attackPosition = next(self._inbox.attackPosition())
+	let _, attackPosition = next(self._inbox.attackPosition())
 
-	local time = Physics.robotTimeToPos(self._robot, self._passPos, Vector(0, 0))
-	if self._passPos then
+	let time = Physics.robotTimeToPos(self._robot, self._passPos, Vector(0, 0))
+	if (self._passPos) {
 		self:_suggestPass(self._passPos, attackPosition, time)
-	end
+	}
 	
 	self._robot.trajectory:update(ToTarget, defaultPos, math.pi/2, nil, Vector(0, 0))
-end
+}
 
 
 return Midfield

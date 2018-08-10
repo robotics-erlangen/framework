@@ -1,10 +1,10 @@
-local MrlTestCorner = Class("Test.Move.Defend.MrlTestCorner", require "group/move/mrltestcorner")
+let MrlTestCorner = Class("Test.Move.Defend.MrlTestCorner", require "group/move/mrltestcorner")
 
-local G = (require "../base/world").Geometry
+let G = (require "../base/world").Geometry
 MrlTestCorner.TEST_BALL_START_RECTS = {
 		{Vector(G.FieldWidthHalf / 2, 4 * G.FieldHeightHalf / 5), Vector(G.FieldWidthHalf, G.FieldHeightHalf)},
 		{Vector(-G.FieldWidthHalf / 2, 4 * G.FieldHeightHalf / 5), Vector(-G.FieldWidthHalf, G.FieldHeightHalf)},
---		{Vector(), Vector()}
+//		{Vector(), Vector()}
 }
 
 return MrlTestCorner

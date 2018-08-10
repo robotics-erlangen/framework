@@ -1,16 +1,16 @@
-local Base = require "agent/base/behavior"
-local Penalty = Class("Agent.Defender.Penalty", Base)
+let Base = require "agent/base/behavior"
+let Penalty = Class("Agent.Defender.Penalty", Base)
 
-local World = require "../base/world"
-local DefendPenalty = require "task/defender/defendpenalty"
+let World = require "../base/world"
+let DefendPenalty = require "task/defender/defendpenalty"
 
 
-function Penalty:check()
-	return World.RefereeState == "PenaltyDefensivePrepare" or World.RefereeState == "PenaltyDefensive"
-end
+function Penalty:check () {
+	return World.RefereeState == "PenaltyDefensivePrepare"  ||  World.RefereeState == "PenaltyDefensive"
+}
 
-function Penalty:_updateTask()
+function Penalty:_updateTask () {
 	return DefendPenalty
-end
+}
 
 return Penalty

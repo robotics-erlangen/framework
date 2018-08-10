@@ -1,18 +1,18 @@
-local Hidden = Class("Trajectory.Hidden", (require "../base/trajectory").Base)
+let Hidden = Class("Trajectory.Hidden", (require "../base/trajectory").Base)
 
 
--- only works for hidden robots
-function Hidden:_init()
-end
+// only works for hidden robots
+function Hidden:_init () {
+}
 
-function Hidden:update(speedForward, speedSide, omega)
+function Hidden:update (speedForward, speedSide, omega) {
 	assert(not self._robot.isVisible, "can only control invisible robots")
-	assert(speedForward ~= nil and speedSide ~= nil and omega ~= nil, "missing parameters!")
+	assert(speedForward != nil  &&  speedSide != nil  &&  omega != nil, "missing parameters!")
 	return { v_f = speedForward, v_s = speedSide, omega = omega }, self._robot.pos, 0
-end
+}
 
-function Hidden:canHandle()
+function Hidden:canHandle () {
 	return true
-end
+}
 
 return Hidden

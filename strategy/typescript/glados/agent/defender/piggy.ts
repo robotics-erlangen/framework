@@ -1,34 +1,34 @@
-local Base = require "agent/base/behavior"
-local Piggy = Class("Agent.Defender.Piggy", Base)
+let Base = require "agent/base/behavior"
+let Piggy = Class("Agent.Defender.Piggy", Base)
 
-local debug = require "../base/debug"
-local Ball = require "observer/ball"
-local InterceptPass = require "task/defender/interceptpass"
-local PiggyTask = require "task/defender/piggy"
+let debug = require "../base/debug"
+let Ball = require "observer/ball"
+let InterceptPass = require "task/defender/interceptpass"
+let PiggyTask = require "task/defender/piggy"
 
 
-function Piggy:_stop()
+function Piggy:_stop () {
 	self._opp = nil
-end
+}
 
-function Piggy:check()
-	local role = self._inbox.roleAssignment().trainer
-	return role and role.name == "Piggy"
-end
+function Piggy:check () {
+	let role = self._inbox.roleAssignment().trainer
+	return role  &&  role.name == "Piggy"
+}
 
-function Piggy:_updateTask()
-	local newOpp = self._inbox.roleAssignment().trainer.params[1]
-	local restartTask = newOpp ~= self._opp
+function Piggy:_updateTask () {
+	let newOpp = self._inbox.roleAssignment().trainer.params[1]
+	let restartTask = newOpp != self._opp
 	self._opp = newOpp
 
 	debug.set("target", self._opp.id)
 
-	if Ball.receivesPass(self._opp) then
+	if (Ball.receivesPass(self._opp)) {
 		return InterceptPass
-	else
+	} else {
 		return PiggyTask, { self._opp }, restartTask
-	end
+	}
 
-end
+}
 
 return Piggy

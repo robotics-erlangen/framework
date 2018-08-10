@@ -1,4 +1,4 @@
-local situation = {
+let situation = {
 	refereeState = "GameForce",
 	gameStage = "NORMAL_FIRST_HALF",
 	ball = { pos = Vector(1.01828,1.04611), speed = Vector(-7.3011e-15,4.162e-15) },
@@ -11,7 +11,7 @@ local situation = {
 			angularSpeed = Vector.fromAngle(-3.26864e-06)
 		},
 		[1] = {
-		--	task = ShootGoal,
+		//	task = ShootGoal,
 			pos = Vector(1.03088,1.29415),
 			dir = Vector.fromAngle(-1.78715),
 			speed = Vector(3.23482e-06,3.85203e-06),

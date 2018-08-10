@@ -1,16 +1,16 @@
-local Base = require "agent/base/agent"
-local Defender = Class("Agent.Defender", Base)
+let Base = require "agent/base/agent"
+let Defender = Class("Agent.Defender", Base)
 
-local World = require "../base/world"
+let World = require "../base/world"
 
-local Default = require "agent/defender/default"
-local HandleBall = require "agent/defender/handleball"
-local ManMark = require "agent/defender/manmark"
-local ZoneDefense = require "agent/defender/zonedefense"
-local Penalty = require "agent/defender/penalty"
-local Piggy = require "agent/defender/piggy"
-local BallEscort = require "agent/shared/ballescort"
-local RescueFromDefenseArea = require "agent/shared/rescuefromdefensearea"
+let Default = require "agent/defender/default"
+let HandleBall = require "agent/defender/handleball"
+let ManMark = require "agent/defender/manmark"
+let ZoneDefense = require "agent/defender/zonedefense"
+let Penalty = require "agent/defender/penalty"
+let Piggy = require "agent/defender/piggy"
+let BallEscort = require "agent/shared/ballescort"
+let RescueFromDefenseArea = require "agent/shared/rescuefromdefensearea"
 
 Defender._behaviors = {
 	RescueFromDefenseArea,
@@ -23,28 +23,28 @@ Defender._behaviors = {
 	Default
 }
 
-function Defender:_run()
+function Defender:_run () {
 	self._activeBehavior._send.defenderFlag("all")
-end
+}
 
-function Defender.takeRobot(robots)
-	for _, robot in ipairs(robots) do
-		if robot.isVisible then
+function Defender.takeRobot (robots) {
+	for (_, robot in ipairs(robots)) {
+		if (robot.isVisible) {
 			return robot
-		end
-	end
-end
+		}
+	}
+}
 
-function Defender:keepRobot()
-	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper and not self._robot.userControl
-end
+function Defender:keepRobot () {
+	return self._robot.isVisible  &&  self._robot != World.FriendlyKeeper  &&  not self._robot.userControl
+}
 
--- worse rating if robot if farther away from own goal
-function Defender:rateRobot()
-	if self._activeBehavior and self._activeBehavior:forceKeepingInPool() then
+// worse rating if robot if farther away from own goal
+function Defender:rateRobot () {
+	if (self._activeBehavior  &&  self._activeBehavior:forceKeepingInPool()) {
 		return math.huge
-	end
+	}
 	return -World.Geometry.FriendlyGoal:distanceTo(self._robot.pos)
-end
+}
 
 return Defender

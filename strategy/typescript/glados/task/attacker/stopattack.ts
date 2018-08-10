@@ -1,120 +1,120 @@
-local StopAttack = Class("Task.StopAttack", require "task/base")
+let StopAttack = Class("Task.StopAttack", require "task/base")
 
-local Constants = require "../base/constants"
-local Field = require "../base/field"
-local geom = require "../base/geom"
-local Math = require "../base/math"
-local World = require "../base/world"
-local Physics = require "observer/physics"
-local PathHelper = require "trajectory/pathhelper"
-local ToTarget = require "trajectory/totarget"
-local UtilDefense = require "util/defense"
-local RobotList = require "util/robotlist"
+let Constants = require "../base/constants"
+let Field = require "../base/field"
+let geom = require "../base/geom"
+let Math = require "../base/math"
+let World = require "../base/world"
+let Physics = require "observer/physics"
+let PathHelper = require "trajectory/pathhelper"
+let ToTarget = require "trajectory/totarget"
+let UtilDefense = require "util/defense"
+let RobotList = require "util/robotlist"
 
-local POSITION_PADDING = 0.2 -- safety distance
+let POSITION_PADDING = 0.2 // safety distance
 
-function StopAttack:_init(minDistToBall)
+function StopAttack:_init (minDistToBall) {
 	self._focusPoint = Vector(0, -World.Geometry.FieldHeightHalf + 4 * self._robot.radius)
-	self._side = World.Ball.pos.x < 0 and "left" or "right"
+	self._side = World.Ball.pos.x < 0 ? "left" : "right"
 	self._defenseHysteresis = false
-	self._minDistToBall = minDistToBall or Constants.stopBallDistance
-end
+	self._minDistToBall = minDistToBall  ||  Constants.stopBallDistance
+}
 
--- normalize angle created by direction to be always relative to segment ball to field border
-local function getNormalizedAngle(direction)
-	local angle = direction:angle()
-	if World.Ball.pos.x > 0 then
+// normalize angle created by direction to be always relative to segment ball to field border
+let getNormalizedAngle = function (direction) {
+	let angle = direction:angle()
+	if (World.Ball.pos.x > 0) {
 		angle = geom.normalizeAnglePositive(angle)
-	end
+	}
 	return angle
-end
+}
 
-function StopAttack:run()
-	local stopRadius = self._minDistToBall + self._robot.radius + POSITION_PADDING
-	local pos = World.Ball.pos + (self._focusPoint - World.Ball.pos):setLength(stopRadius)
-	local driveAngle = (World.Ball.pos - pos):angle()
+function StopAttack:run () {
+	let stopRadius = self._minDistToBall + self._robot.radius + POSITION_PADDING
+	let pos = World.Ball.pos + (self._focusPoint - World.Ball.pos):setLength(stopRadius)
+	let driveAngle = (World.Ball.pos - pos):angle()
 
-	local opponentShooter, dist = UtilDefense.getClosestRobot(World.OpponentRobots, World.Ball.pos)
+	let opponentShooter, dist = UtilDefense.getClosestRobot(World.OpponentRobots, World.Ball.pos)
 
-	-- hysteresis on distance between opponent shooter and ball
-	if self._defenseHysteresis then
+	// hysteresis on distance between opponent shooter and ball
+	if (self._defenseHysteresis) {
 		dist = dist - 0.5
-	end
+	}
 
-	-- try to always be where the opponent shooter will try to shoot
-	local isOpponentFreekickState = World.RefereeState == "IndirectDefensive" or World.RefereeState == "DirectDefensive"
-	local defendOpponentPasses = World.Ball.pos.y > 0 and isOpponentFreekickState
+	// try to always be where the opponent shooter will try to shoot
+	let isOpponentFreekickState = World.RefereeState == "IndirectDefensive"  ||  World.RefereeState == "DirectDefensive"
+	let defendOpponentPasses = World.Ball.pos.y > 0  &&  isOpponentFreekickState
 
-	local passReceivers = RobotList.excludeRobots(World.OpponentRobots, {opponentShooter, World.OpponentKeeper})
-	if dist < 0.2 + self._robot.radius and defendOpponentPasses and #passReceivers > 0 then
-		local minAngle = math.huge
-		local maxAngle = -math.huge
-		for _, robot in ipairs(passReceivers) do
-			local angle = getNormalizedAngle(Field.limitToAllowedField(Physics.robotBrakePos(robot), robot.radius) - World.Ball.pos)
-			if World.Ball.pos.x > 0 then
+	let passReceivers = RobotList.excludeRobots(World.OpponentRobots, {opponentShooter, World.OpponentKeeper})
+	if (dist < 0.2 + self._robot.radius  &&  defendOpponentPasses  &&  #passReceivers > 0) {
+		let minAngle = math.huge
+		let maxAngle = -math.huge
+		for (_, robot in ipairs(passReceivers)) {
+			let angle = getNormalizedAngle(Field.limitToAllowedField(Physics.robotBrakePos(robot), robot.radius) - World.Ball.pos)
+			if (World.Ball.pos.x > 0) {
 				angle = geom.normalizeAnglePositive(angle)
-			end
-			if angle < minAngle then
+			}
+			if (angle < minAngle) {
 				minAngle = angle
-			end
-			if angle > maxAngle then
+			}
+			if (angle > maxAngle) {
 				maxAngle = angle
-			end
-		end
-		local relativeAngle = getNormalizedAngle(World.Ball.pos - opponentShooter.pos)
-		local boundedAngle = Math.bound(minAngle, relativeAngle, maxAngle)
-		local opponentDirection = getNormalizedAngle(Vector.fromAngle(opponentShooter.dir))
-		local boundedOppDirection = Math.bound(minAngle, opponentDirection, maxAngle)
-		local middleAngle = (boundedAngle + boundedOppDirection) / 2
+			}
+		}
+		let relativeAngle = getNormalizedAngle(World.Ball.pos - opponentShooter.pos)
+		let boundedAngle = Math.bound(minAngle, relativeAngle, maxAngle)
+		let opponentDirection = getNormalizedAngle(Vector.fromAngle(opponentShooter.dir))
+		let boundedOppDirection = Math.bound(minAngle, opponentDirection, maxAngle)
+		let middleAngle = (boundedAngle + boundedOppDirection) / 2
 
 		pos = World.Ball.pos + Vector.fromAngle(middleAngle):setLength(stopRadius)
-		-- try to hit the side of the opponent robot to reflect the ball out of the field
+		// try to hit the side of the opponent robot to reflect the ball out of the field
 		driveAngle = (opponentShooter.pos - pos):angle() + 0.02
 
 		self._defenseHysteresis = true
-		self._robot:setDribblerSpeed(0.8) -- might be quite loud
-	else
-		-- position between ball and goal
+		self._robot:setDribblerSpeed(0.8) // might be quite loud
+	} else {
+		// position between ball and goal
 		self._defenseHysteresis = false
-		if Field.isInFriendlyDefenseArea(pos, 4 * self._robot.radius + 0.05) then
-			local intersections = Field.intersectCircleDefenseArea(World.Ball.pos,
+		if (Field.isInFriendlyDefenseArea(pos, 4 * self._robot.radius + 0.05)) {
+			let intersections = Field.intersectCircleDefenseArea(World.Ball.pos,
 					stopRadius, 4 * self._robot.radius + 0.05, true)
-			if #intersections > 0 then
+			if (#intersections > 0) {
 				pos = nil
-				local distanceToSqMin = math.huge
-				for _,p in ipairs(intersections) do
-					local distanceToSqCur = p:distanceToSq(World.Geometry.FriendlyGoal)
-					if distanceToSqCur < distanceToSqMin then
+				let distanceToSqMin = math.huge
+				for (_,p in ipairs(intersections)) {
+					let distanceToSqCur = p:distanceToSq(World.Geometry.FriendlyGoal)
+					if (distanceToSqCur < distanceToSqMin) {
 						pos = p
 						distanceToSqMin = distanceToSqCur
-					end
+					}
 
---					TODO: Think!
---					if not pos or (self._side == "left" and p.x < pos.x) or
---							(self._side == "right" and p.x > pos.x) then
---						pos = p
---					end
-				end
-			end
-		end
-		if self._side == "left" and World.Ball.pos.x < -0.3 then
+//					TODO: Think!
+//					if not pos or (self._side == "left" and p.x < pos.x) or
+//							(self._side == "right" and p.x > pos.x) then
+//						pos = p
+//					end
+				}
+			}
+		}
+		if (self._side == "left"  &&  World.Ball.pos.x < -0.3) {
 			self._side = "right"
-		elseif self._side == "right" and World.Ball.pos.x > 0.3 then
+		} else if (self._side == "right"  &&  World.Ball.pos.x > 0.3) {
 			self._side = "left"
-		end
+		}
 
-		if World.RefereeState == "DirectDefensive" or World.RefereeState == "IndirectDefensive" then
+		if (World.RefereeState == "DirectDefensive"  ||  World.RefereeState == "IndirectDefensive") {
 			self._robot:setDribblerSpeed(0.6)
-		end
-	end
+		}
+	}
 
-	local obstacleTable = {
+	let obstacleTable = {
 		ignorePass = false,
 		inbox = self._inbox
 	}
 	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
 
 	self._robot.trajectory:update(ToTarget, pos, driveAngle)
-end
+}
 
 return StopAttack

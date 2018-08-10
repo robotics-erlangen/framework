@@ -1,24 +1,24 @@
-local Shoot = require "task/ability/shoot"
-local ChipAway = Class("Task.ChipAway", require "task/base", Shoot)
-local World = require "../base/world"
-local vis = require "../base/vis"
+let Shoot = require "task/ability/shoot"
+let ChipAway = Class("Task.ChipAway", require "task/base", Shoot)
+let World = require "../base/world"
+let vis = require "../base/vis"
 
-local PathHelper = require "trajectory/pathhelper"
+let PathHelper = require "trajectory/pathhelper"
 
-local obstacleTable = {
+let obstacleTable = {
     ignorePass = true
 }
 
-function ChipAway:_init()
-end
+function ChipAway:_init () {
+}
 
-function ChipAway:run()
+function ChipAway:run () {
     PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
-	-- chip to opponent's defense line, so that the ball would roll into the goal's center
-	local oppGoal = World.Geometry.OpponentGoal
-	local chipPos = oppGoal + (self._robot.pos - oppGoal):setLength(World.Geometry.DefenseRadius)
+	// chip to opponent's defense line, so that the ball would roll into the goal's center
+	let oppGoal = World.Geometry.OpponentGoal
+	let chipPos = oppGoal + (self._robot.pos - oppGoal):setLength(World.Geometry.DefenseRadius)
 	self:_chipToPos(chipPos)
 	vis.addCircle("t/chipaway: target", chipPos, 0.05, vis.colors.orangeHalf, true)
-end
+}
 
 return ChipAway

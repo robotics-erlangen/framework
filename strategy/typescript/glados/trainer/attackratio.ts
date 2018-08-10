@@ -1,204 +1,203 @@
-local AttackRatio = {}
+let AttackRatio = {}
 
-local debug = require "../base/debug"
-local Field = require "../base/field"
-local World = require "../base/world"
-local Ally = require "agent/ally"
-local Ball = require "observer/ball"
-local Robot = require "observer/robot"
-local Referee = require "observer/referee"
+let debug = require "../base/debug"
+let Field = require "../base/field"
+let World = require "../base/world"
+let Ally = require "agent/ally"
+let Ball = require "observer/ball"
+let Robot = require "observer/robot"
+let Referee = require "observer/referee"
 
 
-function AttackRatio:init()
+function AttackRatio:init () {
 	self._friendlyFreeKickOngoing = false
 	self._opponentFreeKickOngoing = false
-	self._ballInOpponentFieldHalf = false -- remember for hysteresis
+	self._ballInOpponentFieldHalf = false // remember for hysteresis
 	self._dangerousDuelSituation = false
-end
+}
 
-function AttackRatio:attackRatio()
-	local ball = World.Ball
-	local refState = World.RefereeState
-	if (self._ballInOpponentFieldHalf and ball.pos.y < -1.5) or
-		(not self._ballInOpponentFieldHalf and ball.pos.y > 1.5)
-	then
+function AttackRatio:attackRatio () {
+	let ball = World.Ball
+	let refState = World.RefereeState
+	if ((self._ballInOpponentFieldHalf  &&  ball.pos.y < -1.5)  ||
+		(not self._ballInOpponentFieldHalf  &&  ball.pos.y > 1.5)) {
 		self._ballInOpponentFieldHalf = not self._ballInOpponentFieldHalf
-	end
+	}
 
-	if refState == "DirectDefensive" or refState == "IndirectDefensive" then
+	if (refState == "DirectDefensive"  ||  refState == "IndirectDefensive") {
 		self._opponentFreeKickOngoing = true
-	elseif refState ~= "Game" then
+	} else if (refState != "Game") {
 		self._opponentFreeKickOngoing = false
-	else
-		for _, robot in ipairs(World.FriendlyRobots) do
-			if Robot.hadBall(robot, 0) then
+	} else {
+		for (_, robot in ipairs(World.FriendlyRobots)) {
+			if (Robot.hadBall(robot, 0)) {
 				self._opponentFreeKickOngoing = false
 				break
-			end
-		end
-	end
+			}
+		}
+	}
 
-	if refState == "DirectOffensive" or refState == "IndirectOffensive"
-		or refState == "KickoffOffensive" then
+	if (refState == "DirectOffensive"  ||  refState == "IndirectOffensive"
+		 ||  refState == "KickoffOffensive") {
 		self._friendlyFreeKickOngoing = true
-	elseif refState ~= "Game" then
+	} else if (refState != "Game") {
 		self._friendlyFreeKickOngoing = false
-	else
-		for _, robot in ipairs(World.OpponentRobots) do
-			if Robot.hadBall(robot, 0) then
+	} else {
+		for (_, robot in ipairs(World.OpponentRobots)) {
+			if (Robot.hadBall(robot, 0)) {
 				self._friendlyFreeKickOngoing = false
 				break
-			end
-		end
-	end
+			}
+		}
+	}
 
 
-	local attackRatio
-	if refState == "KickoffOffensivePrepare" or refState == "KickoffOffensive" then
+	let attackRatio
+	if (refState == "KickoffOffensivePrepare"  ||  refState == "KickoffOffensive") {
 		attackRatio = 6
-	elseif refState == "KickoffDefensivePrepare" or refState == "KickoffDefensive" then
+	} else if (refState == "KickoffDefensivePrepare"  ||  refState == "KickoffDefensive") {
 		attackRatio = 3
-	elseif refState == "DirectOffensive" or refState == "IndirectOffensive" then
-		local friendlyCorner = Field.isInOwnCorner(ball.pos, false)
-		local opponentCorner = Field.isInOwnCorner(ball.pos, true)
-		if friendlyCorner then -- Goal-Kick Offensive
+	} else if (refState == "DirectOffensive"  ||  refState == "IndirectOffensive") {
+		let friendlyCorner = Field.isInOwnCorner(ball.pos, false)
+		let opponentCorner = Field.isInOwnCorner(ball.pos, true)
+		if (friendlyCorner) { // Goal-Kick Offensive
 			attackRatio = 4
-		elseif opponentCorner then -- Corner-Kick Offensive
+		} else if (opponentCorner) { // Corner-Kick Offensive
 			attackRatio = 7
-		elseif ball.pos.y > 1.2 then
-			attackRatio = 6 -- Throw-In Offensive
-		else
-			attackRatio = 4 -- Throw-In Offensive
-		end
-	elseif refState == "DirectDefensive" or refState == "IndirectDefensive" or refState == "BallPlacementDefensive" then
-		local opponentCorner = Field.isInOwnCorner(ball.pos, true)
-		if opponentCorner then
+		} else if (ball.pos.y > 1.2) {
+			attackRatio = 6 // Throw-In Offensive
+		} else {
+			attackRatio = 4 // Throw-In Offensive
+		}
+	} else if (refState == "DirectDefensive"  ||  refState == "IndirectDefensive"  ||  refState == "BallPlacementDefensive") {
+		let opponentCorner = Field.isInOwnCorner(ball.pos, true)
+		if (opponentCorner) {
 			attackRatio = 2
-		else
+		} else {
 			attackRatio = 1
-		end
-	elseif refState == "Stop" then
-		if self._ballInOpponentFieldHalf then
+		}
+	} else if (refState == "Stop") {
+		if (self._ballInOpponentFieldHalf) {
 			attackRatio = 3
-		else
+		} else {
 			attackRatio = 1
-		end
-	elseif World.GameStage == "PenaltyShootout" then
+		}
+	} else if (World.GameStage == "PenaltyShootout") {
 		attackRatio = 8
-	else -- Game, GameForce
-		if self._opponentFreeKickOngoing then
+	} else {// Game, GameForce
+		if (self._opponentFreeKickOngoing) {
 			attackRatio = 1
-		else
-			attackRatio = self._ballInOpponentFieldHalf and 4 or 3
-			if self._friendlyFreeKickOngoing then
+		} else {
+			attackRatio = self._ballInOpponentFieldHalf ? 4 : 3
+			if (self._friendlyFreeKickOngoing) {
 				attackRatio = attackRatio + 1
-			end
-		end
-	end
+			}
+		}
+	}
 
-	--increase attackRatio if we have more robots
-	local enemies = 8 - Referee.realisticCardsOpponent()
-	if enemies < math.min(8, #World.FriendlyRobots) then
+	//increase attackRatio if we have more robots
+	let enemies = 8 - Referee.realisticCardsOpponent()
+	if (enemies < math.min(8, #World.FriendlyRobots)) {
 		attackRatio = math.max(attackRatio, math.min(attackRatio + 1 , 6))
-	end
+	}
 
 	return attackRatio
-end
+}
 
-local previousMainAttacker = nil
-function AttackRatio:attackerDefenderDistribution()
-	local attackRatio = self:attackRatio()
+let previousMainAttacker = nil
+function AttackRatio:attackerDefenderDistribution () {
+	let attackRatio = self:attackRatio()
 
-	local attackers = attackRatio > 0 and math.max(1, math.floor(attackRatio/8 * #World.FriendlyRobots)) or 0
+	let attackers = attackRatio > 0 ? math.max(1, math.floor(attackRatio/8 * #World.FriendlyRobots)) : 0
 
-	local _, mainAttacker = next(self._inbox.mainAttacker())
+	let _, mainAttacker = next(self._inbox.mainAttacker())
 
-	local mainAttackerIsDefender = false
-	local previousMainAttackerIsDefender = false
-	if mainAttacker then
-		for robot, _ in pairs(self._inbox.defenderFlag()) do
-			if robot == mainAttacker then
+	let mainAttackerIsDefender = false
+	let previousMainAttackerIsDefender = false
+	if (mainAttacker) {
+		for (robot, _ in pairs(self._inbox.defenderFlag())) {
+			if (robot == mainAttacker) {
 				mainAttackerIsDefender = true
-			end
-			if robot == previousMainAttacker then
+			}
+			if (robot == previousMainAttacker) {
 				previousMainAttackerIsDefender = true
-			end
-		end
-	end
+			}
+		}
+	}
 
-	if mainAttackerIsDefender and previousMainAttacker and not previousMainAttackerIsDefender
-			and Field.distanceToFriendlyDefenseArea(previousMainAttacker.pos, previousMainAttacker.radius) < 0.5 then
-		-- being either a defender or an attacker is not a completet partitioning of an agents state
-		-- it could also be currently hidden
-		local isAttacker = false
-		for robot, _ in pairs(self._inbox.attackerFlag()) do
-			if robot == previousMainAttacker then
+	if (mainAttackerIsDefender  &&  previousMainAttacker  &&  not previousMainAttackerIsDefender
+			 &&  Field.distanceToFriendlyDefenseArea(previousMainAttacker.pos, previousMainAttacker.radius) < 0.5) {
+		// being either a defender or an attacker is not a completet partitioning of an agents state
+		// it could also be currently hidden
+		let isAttacker = false
+		for (robot, _ in pairs(self._inbox.attackerFlag())) {
+			if (robot == previousMainAttacker) {
 				isAttacker = true
-			end
-		end
-		if isAttacker then
+			}
+		}
+		if (isAttacker) {
 			self._send.forcePoolChange("trainer", { robot = previousMainAttacker, destPool = "defender" })
-		end
-	end
-	if mainAttackerIsDefender then
-		local mainAttackerWantsToChange = false
-		for _,poolChangeEntry in ipairs(self:changingRobots()) do
-			if poolChangeEntry.robot == mainAttacker then
+		}
+	}
+	if (mainAttackerIsDefender) {
+		let mainAttackerWantsToChange = false
+		for (_,poolChangeEntry in ipairs(self:changingRobots())) {
+			if (poolChangeEntry.robot == mainAttacker) {
 				mainAttackerWantsToChange = true
 				break
-			end
-		end
-		if not mainAttackerWantsToChange then
+			}
+		}
+		if (not mainAttackerWantsToChange) {
 			attackers = attackers - 1
-		end
-	end
+		}
+	}
 
 	self._dangerousDuelSituation = Ball.isDangerousDuelSituation(self._dangerousDuelSituation)
-	if self._dangerousDuelSituation then
+	if (self._dangerousDuelSituation) {
 		attackers = attackers - 1
-	end
+	}
 	debug.set("Dangerous Duel", self._dangerousDuelSituation)
 
-	if mainAttacker and mainAttacker ~= previousMainAttacker then
+	if (mainAttacker  &&  mainAttacker != previousMainAttacker) {
 		previousMainAttacker = mainAttacker
-	end
+	}
 
 	attackers = math.max(0, attackers)
 
 	debug.set("MainAttackerIsDefender", mainAttackerIsDefender)
 	debug.set("AttackRatio", attackRatio)
 
-	local moveNumAttackers = self._inbox.moveNumAttackers().trainer
-	if moveNumAttackers then
+	let moveNumAttackers = self._inbox.moveNumAttackers().trainer
+	if (moveNumAttackers) {
 		attackers = moveNumAttackers
-	end
+	}
 
-	local defenders = #World.FriendlyRobots - attackers
-	if World.FriendlyKeeper and World.FriendlyKeeper.isVisible then
+	let defenders = #World.FriendlyRobots - attackers
+	if (World.FriendlyKeeper  &&  World.FriendlyKeeper.isVisible) {
 		defenders = math.max(0, defenders - 1)
-	end
+	}
 	attackers, defenders = Ally.updateRoleNumbers(attackers, defenders)
 	return attackers, defenders
-end
+}
 
-function AttackRatio:changingRobots()
-	local robots = {}
-	local _,forcePoolChangeMsg = next(self._inbox.forcePoolChange())
-	if forcePoolChangeMsg then
-		for _,forcedChange in pairs(forcePoolChangeMsg) do
+function AttackRatio:changingRobots () {
+	let robots = {}
+	let _,forcePoolChangeMsg = next(self._inbox.forcePoolChange())
+	if (forcePoolChangeMsg) {
+		for (_,forcedChange in pairs(forcePoolChangeMsg)) {
 			table.insert(robots, forcedChange.robot)
-		end
-	end
-	for sender,_ in pairs(self._inbox.poolChangeRequest()) do
+		}
+	}
+	for (sender,_ in pairs(self._inbox.poolChangeRequest())) {
 		table.insert(robots, sender)
-	end
+	}
 
-	local robotList = {}
-	for _,r in ipairs(robots) do
+	let robotList = {}
+	for (_,r in ipairs(robots)) {
 		table.insert(robotList, { robot = r, isAttacker = self._inbox.attackerFlag()[r]})
-	end
+	}
 
 	return robotList
-end
+}
 
 return AttackRatio

@@ -1,4 +1,4 @@
-local situation = {
+let situation = {
 	refereeState = "GameForce",
 	gameStage = "NORMAL_FIRST_HALF",
 	ball = { pos = Vector(-0.614928,-1.92774), speed = Vector(-3.60174e-15,3.09447e-15) },

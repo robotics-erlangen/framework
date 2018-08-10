@@ -1,13 +1,13 @@
-local DefenseTest = {}
+let DefenseTest = {}
 
-local vis = require "../base/vis"
-local Defense = require "util/defense"
+let vis = require "../base/vis"
+let Defense = require "util/defense"
 
-function DefenseTest.testDangerousness()
-	local ratings = Defense.rateOpponentDangerousness()
-	for robot, rating in pairs(ratings) do
+function DefenseTest.testDangerousness () {
+	let ratings = Defense.rateOpponentDangerousness()
+	for (robot, rating in pairs(ratings)) {
 		vis.addCircle("test: Dangerousness", robot.pos, 0.2, vis.fromTemperature(rating), true)
-	end
-end
+	}
+}
 
 return DefenseTest

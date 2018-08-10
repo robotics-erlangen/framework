@@ -1,5 +1,5 @@
--- taken from the game against Robodragons at Robocup 2013, we were the yellow team
-local situation = {
+// taken from the game against Robodragons at Robocup 2013, we were the yellow team
+let situation = {
 	refereeState = "DirectYellow",
 	gameStage = "NORMAL_FIRST_HALF",
 	ball = { pos = Vector(1.90294,-2.55562), speed = Vector(-0.00070032,0.000634986) },

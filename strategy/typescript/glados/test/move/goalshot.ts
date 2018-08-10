@@ -1,74 +1,74 @@
-local GoalShot = Class("Test.Move.GoalShot", require "group/move/base")
+let GoalShot = Class("Test.Move.GoalShot", require "group/move/base")
 
-local MoveToPos = require "task/shared/movetopos"
-local World = require "../base/world"
-local G = World.Geometry
-local Ball = require "observer/ball"
+let MoveToPos = require "task/shared/movetopos"
+let World = require "../base/world"
+let G = World.Geometry
+let Ball = require "observer/ball"
 
-local ShootGoal = require "task/attacker/shootgoal"
+let ShootGoal = require "task/attacker/shootgoal"
 
 GoalShot.MIN_ROBOTS = 1
 GoalShot.MAX_ROBOTS = 1
 
-local TIMES = 3 -- number of goalshots per distance
-local INTERVAL = 0.5
+let TIMES = 3 // number of goalshots per distance
+let INTERVAL = 0.5
 
-function GoalShot.canStart()
+function GoalShot.canStart () {
 	return true
-end
+}
 
-function GoalShot:_init()
+function GoalShot:_init () {
 	self._shotTime = nil
 	self._distance = 0
 	self._times = 0
 	log("")
-	log("Distance: "..tostring(G.FieldHeightHalf - self._distance))
-end
+	log("Distance: "..String(G.FieldHeightHalf - self._distance))
+}
 
-function GoalShot:_canContinue()
+function GoalShot:_canContinue () {
 	return true
-end
+}
 
-function GoalShot:_update()
-	if self._shotTime and (World.Ball.pos.y < -G.FieldHeightHalf or World.Ball.pos:distanceTo(World.OpponentKeeper.pos) < self._robots[1].radius + World.Ball.radius + 0.02) then
-		log("Try No. "..tostring(self._times+1)..":")
-		log("Ball travel time: "..tostring(World.Time - self._shotTime))
+function GoalShot:_update () {
+	if (self._shotTime ? (World.Ball.pos.y < -G.FieldHeightHalf : World.Ball.pos:distanceTo(World.OpponentKeeper.pos) < self._robots[1].radius + World.Ball.radius + 0.02)) {
+		log("Try No. "..String(self._times+1)..":")
+		log("Ball travel time: "..String(World.Time - self._shotTime))
 		self._shotTime = nil
 		self._times = self._times + 1
-		if self._times == TIMES then
+		if (self._times == TIMES) {
 			self._distance = self._distance + INTERVAL
 			self._times = 0
 			log("")
-			log("Distance: "..tostring(G.FieldHeightHalf - self._distance))
-		end
-	end
-end
+			log("Distance: "..String(G.FieldHeightHalf - self._distance))
+		}
+	}
+}
 
-function GoalShot:_updateTasks()
-	local taskAssignments = {}
+function GoalShot:_updateTasks () {
+	let taskAssignments = {}
 	self:_update()
 
-	local prep = World.RefereeState == "IndirectOffensive"
-	local shoot = World.RefereeState == "DirectOffensive"
-	local abort = World.RefereeState == "KickoffOffensivePrepare"
+	let prep = World.RefereeState == "IndirectOffensive"
+	let shoot = World.RefereeState == "DirectOffensive"
+	let abort = World.RefereeState == "KickoffOffensivePrepare"
 
-	local pos = Vector(0, self._distance)
-	if abort then
+	let pos = Vector(0, self._distance)
+	if (abort) {
 		self._shotTime = nil
 		taskAssignments[self._robots[1]] = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
-	elseif prep then
+	} else if (prep) {
 		taskAssignments[self._robots[1]] = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
-	elseif Ball.isShot() then
+	} else if (Ball.isShot()) {
 		self._shotTime = World.Time
 		taskAssignments[self._robots[1]] = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
-	elseif shoot then
+	} else if (shoot) {
 		taskAssignments[self._robots[1]] = {class = ShootGoal}
-	else
+	} else {
 		taskAssignments[self._robots[1]] = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
-	end
+	}
 
 
 	return taskAssignments, self._robots[1]
-end
+}
 
 return GoalShot

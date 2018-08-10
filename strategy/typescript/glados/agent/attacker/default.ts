@@ -1,43 +1,43 @@
-local Base = require "agent/base/behavior"
-local Default = Class("Agent.Attacker.Default", Base)
+let Base = require "agent/base/behavior"
+let Default = Class("Agent.Attacker.Default", Base)
 
-local AcceptPass = require "task/attacker/acceptpass"
-local Midfield = require "task/attacker/midfield"
-local SideStep = require "task/attacker/sidestep"
-local Striker = require "task/attacker/striker"
-local Attack = require "util/attack"
+let AcceptPass = require "task/attacker/acceptpass"
+let Midfield = require "task/attacker/midfield"
+let SideStep = require "task/attacker/sidestep"
+let Striker = require "task/attacker/striker"
+let Attack = require "util/attack"
 
-function Default:_stop()
+function Default:_stop () {
 	self._forceKeepingInPool = false
-end
+}
 
-function Default:check()
+function Default:check () {
 	self._forceKeepingInPool = false
-	local _, passInfoTable = next(self._inbox.passInfo())
-	if passInfoTable then
-		for _, passInfo in pairs(passInfoTable) do
-			if passInfo and passInfo.target == self._robot then
+	let _, passInfoTable = next(self._inbox.passInfo())
+	if (passInfoTable) {
+		for (_, passInfo in pairs(passInfoTable)) {
+			if (passInfo  &&  passInfo.target == self._robot) {
 				self._forceKeepingInPool = true
-			end
-		end
-	end
+			}
+		}
+	}
 	self._send.groupApplication("trainer", { name = "midfield", payload = {} })
 
 	return true
-end
+}
 
-function Default:_updateTask()
-	local _, passInfoTable = next(self._inbox.passInfo())
-	local relevantPassInfo = Attack.relevantPassInfoMessage(self._robot, passInfoTable)
-	local acceptingPass = Attack.checkPassInfos(self._robot, passInfoTable, false)
+function Default:_updateTask () {
+	let _, passInfoTable = next(self._inbox.passInfo())
+	let relevantPassInfo = Attack.relevantPassInfoMessage(self._robot, passInfoTable)
+	let acceptingPass = Attack.checkPassInfos(self._robot, passInfoTable, false)
 
-	local midfieldZone = self._inbox.midfieldZone().trainer
-	local Freebreaker = midfieldZone and Midfield or Striker
+	let midfieldZone = self._inbox.midfieldZone().trainer
+	let Freebreaker = midfieldZone ? Midfield : Striker
 
-	if relevantPassInfo and not acceptingPass then
+	if (relevantPassInfo  &&  not acceptingPass) {
 		return SideStep, {relevantPassInfo}
-	end
-	return acceptingPass and AcceptPass or Freebreaker
-end
+	}
+	return acceptingPass ? AcceptPass : Freebreaker
+}
 
 return Default

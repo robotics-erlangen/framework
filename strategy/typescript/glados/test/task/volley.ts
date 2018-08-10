@@ -1,29 +1,29 @@
-local Entrypoints = require "../base/entrypoints"
-local Field = require "../base/field"
-local Processor = require "../base/processor"
-local Referee = require "../base/referee"
-local World = require "../base/world"
-local ApplyForMainattacker = require "agent/attacker/applyformainattacker"
-local AgentPool = require "control/agentpool"
-local Coordinator = require "control/coordinator"
-local Ball = require "observer/ball"
-local Robot = require "observer/robot"
-local Volley = require "task/ability/volley"
-local MoveToPos = require "task/shared/movetopos"
-local Pass = require "task/shared/pass"
-local ShootGoal = require "task/attacker/shootgoal"
-local Trainer = require "trainer/trainer"
+let Entrypoints = require "../base/entrypoints"
+let Field = require "../base/field"
+let Processor = require "../base/processor"
+let Referee = require "../base/referee"
+let World = require "../base/world"
+let ApplyForMainattacker = require "agent/attacker/applyformainattacker"
+let AgentPool = require "control/agentpool"
+let Coordinator = require "control/coordinator"
+let Ball = require "observer/ball"
+let Robot = require "observer/robot"
+let Volley = require "task/ability/volley"
+let MoveToPos = require "task/shared/movetopos"
+let Pass = require "task/shared/pass"
+let ShootGoal = require "task/attacker/shootgoal"
+let Trainer = require "trainer/trainer"
 
-local Static = Class("Test.Task.Volley.Static", require "agent/base/behavior")
-function Static:check()
+let Static = Class("Test.Task.Volley.Static", require "agent/base/behavior")
+function Static:check () {
 	self._send.attackerFlag("all")
 	return false
-end
+}
 
 
 
-local VolleyProcess = Class("Tesk.Task.Volley.VolleyProcess", require "../base/process")
-function VolleyProcess:init(robot)
+let VolleyProcess = Class("Tesk.Task.Volley.VolleyProcess", require "../base/process")
+function VolleyProcess:init (robot) {
 	self._isFinished = false
 	self._ballSpeed = nil
 	self._viewPos = nil
@@ -31,149 +31,149 @@ function VolleyProcess:init(robot)
 	self._expectedTargetSpeed = nil
 	self._hadBall = false
 	self._robot = robot
-end
+}
 
-function VolleyProcess:run()
-	-- abort if another robot touches the ball or the ball has nearly stopped
-	if World.Ball.speed:length() < 1 or (Ball.friendlyBallOwner() ~= nil and Ball.friendlyBallOwner() ~= self._robot) or Ball.opponentBallOwner() then
+function VolleyProcess:run () {
+	// abort if another robot touches the ball or the ball has nearly stopped
+	if (World.Ball.speed:length() < 1  ||  (Ball.friendlyBallOwner() != nil ? Ball.friendlyBallOwner() != self._robot) : Ball.opponentBallOwner()) {
 		self._isFinished = true
 		return
-	end
+	}
 
-	if not self._hadBall and Robot.touchedBall(self._robot, 0) then
+	if (not self._hadBall  &&  Robot.touchedBall(self._robot, 0)) {
 		log("hadBall")
 		self._hadBall = true
-	end
-	-- If ball has traveled the target distance or left the field
-	if self._hadBall and self._viewPos
-			and (World.Ball.pos:distanceTo(self._viewPos) > self._targetPos:distanceTo(self._viewPos)
-			or not Field.isInField(World.Ball.pos)) then
-		local dirError = (World.Ball.pos - self._viewPos):angleDiff(self._targetPos - self._viewPos)
-		local speedError = World.Ball.speed:length() - self._expectedTargetSpeed
-		local volleyAngle = self._ballSpeed:angleDiff(self._targetPos - self._viewPos)/math.pi*180
+	}
+	// If ball has traveled the target distance or left the field
+	if (self._hadBall  &&  self._viewPos
+			 &&  (World.Ball.pos:distanceTo(self._viewPos) > self._targetPos:distanceTo(self._viewPos)
+			 ||  not Field.isInField(World.Ball.pos))) {
+		let dirError = (World.Ball.pos - self._viewPos):angleDiff(self._targetPos - self._viewPos)
+		let speedError = World.Ball.speed:length() - self._expectedTargetSpeed
+		let volleyAngle = self._ballSpeed:angleDiff(self._targetPos - self._viewPos)/math.pi*180
 
-		local lowError = 1.5/180*math.pi
-		local lowSpeedError = 0.5
-		local mu_x, mu_y = Volley.getParams()
+		let lowError = 1.5/180*math.pi
+		let lowSpeedError = 0.5
+		let mu_x, mu_y = Volley.getParams()
 		log(string.format("Old volley params %f %f", mu_x, mu_y))
 		log(string.format("Volley angle %f", volleyAngle))
-		if math.abs(dirError) > lowError then
+		if (math.abs(dirError) > lowError) {
 			mu_x = mu_x + 0.01 * math.sign(volleyAngle) * math.sign(dirError)
-		elseif math.abs(speedError) > lowSpeedError then
+		} else if (math.abs(speedError) > lowSpeedError) {
 			mu_x = mu_x + 0.01 * math.sign(speedError)
 			mu_y = mu_y + 0.01 * math.sign(speedError)
-		end
+		}
 		Volley.setParams(mu_x, mu_y)
 		log(string.format("dirError %f speedError %f", dirError/math.pi*180, speedError))
 		log(string.format("Updated volley params %f %f", mu_x, mu_y))
 		self._isFinished = true
-	end
-end
+	}
+}
 
-function VolleyProcess:isFinished()
+function VolleyProcess:isFinished () {
 	return self._isFinished
-end
+}
 
-function VolleyProcess:setData(ballSpeed, viewPos, targetPos, expectedTargetSpeed)
-	-- only update parameters until the ball touched the robot
-	if self._hadBall then
+function VolleyProcess:setData (ballSpeed, viewPos, targetPos, expectedTargetSpeed) {
+	// only update parameters until the ball touched the robot
+	if (self._hadBall) {
 		return
-	end
+	}
 	self._ballSpeed = ballSpeed
 	self._viewPos = viewPos
 	self._targetPos = targetPos
 	self._expectedTargetSpeed = expectedTargetSpeed
-	--log(string.format("Data %s %s %s %f", ballSpeed, viewPos, targetPos, expectedTargetSpeed))
-end
+	//log(string.format("Data %s %s %s %f", ballSpeed, viewPos, targetPos, expectedTargetSpeed))
+}
 
 
-local ModShootGoal = Class("Test.Task.Volley.ModShootGoalTask", ShootGoal)
-function ModShootGoal:_init(...)
+let ModShootGoal = Class("Test.Task.Volley.ModShootGoalTask", ShootGoal)
+function ModShootGoal:_init (...) {
 	ShootGoal._init(self, ...)
 	self._analysisProcess = nil
-end
+}
 
-function ModShootGoal:run()
-	if self._analysisProcess ~= nil and self._analysisProcess:isFinished() then
+function ModShootGoal:run () {
+	if (self._analysisProcess != nil  &&  self._analysisProcess:isFinished()) {
 		self._analysisProcess = nil
-	end
-	if self._analysisProcess == nil then
+	}
+	if (self._analysisProcess == nil) {
 		self._analysisProcess = VolleyProcess(self._robot)
 		Processor.addPost(self._analysisProcess)
-	end
+	}
 
 	self._volleyObserver = function(...)
 		self._analysisProcess:setData(...)
-	end
+	}
 
 	ShootGoal.run(self)
-end
+}
 
 
-local Shooter = Class("Test.Task.Volley.Shooter", require "agent/base/behavior")
-function Shooter:_stop()
+let Shooter = Class("Test.Task.Volley.Shooter", require "agent/base/behavior")
+function Shooter:_stop () {
 	self.lastPassReceiptTime = 0
-end
+}
 
-function Shooter:check()
-	if not next(self._inbox.attackerFlag()) then
+function Shooter:check () {
+	if (not next(self._inbox.attackerFlag())) {
 		return false
-	end
+	}
 
-	if self._inbox.mainAttacker().trainer ~= self._robot then
+	if (self._inbox.mainAttacker().trainer != self._robot) {
 		return false
-	end
+	}
 
-	if Ball.receivesPass(self._robot) then
+	if (Ball.receivesPass(self._robot)) {
 		self.lastPassReceiptTime = World.Time
-	end
+	}
 	return World.Time - self.lastPassReceiptTime < 0.2
-end
+}
 
-function Shooter:_updateTask()
+function Shooter:_updateTask () {
 	return ModShootGoal
-end
+}
 
 
-local Passer = Class("Test.Task.Volley.Passer", require "agent/base/behavior")
-function Passer:check()
-	if not next(self._inbox.attackerFlag()) then
+let Passer = Class("Test.Task.Volley.Passer", require "agent/base/behavior")
+function Passer:check () {
+	if (not next(self._inbox.attackerFlag())) {
 		return false
-	end
+	}
 
-	if self._inbox.mainAttacker().trainer ~= self._robot then
+	if (self._inbox.mainAttacker().trainer != self._robot) {
 		return false
-	end
+	}
 
 	return Referee.isFriendlyFreeKickState()
-end
+}
 
-function Passer:_updateTask()
-	local targetRobot = next(self._inbox.attackerFlag())
+function Passer:_updateTask () {
+	let targetRobot = next(self._inbox.attackerFlag())
 	return Pass, {targetRobot, nil, true}
-end
+}
 
 
-local Position = Class("Test.Task.Volley.Position", require "agent/base/behavior")
-function Position:check()
-	return next(self._inbox.attackerFlag()) ~= nil
-end
+let Position = Class("Test.Task.Volley.Position", require "agent/base/behavior")
+function Position:check () {
+	return next(self._inbox.attackerFlag()) != nil
+}
 
-function Position:_updateTask()
-	local idx = 0
-	for robot, _ in pairs(self._inbox.attackerFlag()) do
-		if self._robot.id > robot.id then
+function Position:_updateTask () {
+	let idx = 0
+	for (robot, _ in pairs(self._inbox.attackerFlag())) {
+		if (self._robot.id > robot.id) {
 			idx = idx + 1
-		end
-	end
-	local x = World.Geometry.FieldWidthHalf * 2 / 3
-	local y = World.Geometry.FieldHeightHalf * 1 / 4
-	local pos = Vector((idx * 2 - 1) * x, y)
+		}
+	}
+	let x = World.Geometry.FieldWidthHalf * 2 / 3
+	let y = World.Geometry.FieldHeightHalf * 1 / 4
+	let pos = Vector((idx * 2 - 1) * x, y)
 	return MoveToPos, { pos, (World.Geometry.OpponentGoal - pos):angle() }
-end
+}
 
 
-local PassAgent = Class("Test.Task.VolleyAgent", require "agent/base/simpleagent")
+let PassAgent = Class("Test.Task.VolleyAgent", require "agent/base/simpleagent")
 PassAgent._behaviors = {
 	Static,
 	ApplyForMainattacker,
@@ -182,16 +182,16 @@ PassAgent._behaviors = {
 	Position
 }
 
-local coord = nil
+let coord = nil
 
-local function run()
-	if coord == nil then
-		local trainer = Trainer()
-		local pools = { pass = AgentPool(PassAgent, 2) }
-		local poolGroups = { { pools.pass } }
+let run = function () {
+	if (coord == nil) {
+		let trainer = Trainer()
+		let pools = { pass = AgentPool(PassAgent, 2) }
+		let poolGroups = { { pools.pass } }
 		coord = Coordinator(trainer, pools, poolGroups)
-	end
+	}
 	coord:run()
-end
+}
 
 Entrypoints.add("TaskTest/Volley", run)

@@ -1,25 +1,25 @@
-local Base = require "agent/base/agent"
-local Attacker = Class("Agent.Attacker", Base)
+let Base = require "agent/base/agent"
+let Attacker = Class("Agent.Attacker", Base)
 
-local World = require "../base/world"
-local debug = require "../base/debug"
+let World = require "../base/world"
+let debug = require "../base/debug"
 
-local ApplyForMainattacker = require "agent/attacker/applyformainattacker"
-local Default = require "agent/attacker/default"
-local Duel = require "agent/attacker/duel"
-local DuelAssistant = require "agent/attacker/duelassistant"
-local FreeKick = require "agent/attacker/freekick"
-local Move = require "agent/attacker/move"
-local PassTiming = require "agent/attacker/passtiming"
-local Penalty = require "agent/attacker/penalty"
-local PenaltyDefensive = require "agent/attacker/penaltydefensive"
-local PenaltyPassive = require "agent/shared/penaltypassive"
-local PenaltyShootout = require "agent/attacker/penaltyshootout"
-local Shoot = require "agent/attacker/shoot"
-local Stop = require "agent/attacker/stop"
-local BallEscort = require "agent/shared/ballescort"
-local DoubleTouchGuard = require "agent/attacker/doubletouchguard"
-local RescueFromDefenseArea = require "agent/shared/rescuefromdefensearea"
+let ApplyForMainattacker = require "agent/attacker/applyformainattacker"
+let Default = require "agent/attacker/default"
+let Duel = require "agent/attacker/duel"
+let DuelAssistant = require "agent/attacker/duelassistant"
+let FreeKick = require "agent/attacker/freekick"
+let Move = require "agent/attacker/move"
+let PassTiming = require "agent/attacker/passtiming"
+let Penalty = require "agent/attacker/penalty"
+let PenaltyDefensive = require "agent/attacker/penaltydefensive"
+let PenaltyPassive = require "agent/shared/penaltypassive"
+let PenaltyShootout = require "agent/attacker/penaltyshootout"
+let Shoot = require "agent/attacker/shoot"
+let Stop = require "agent/attacker/stop"
+let BallEscort = require "agent/shared/ballescort"
+let DoubleTouchGuard = require "agent/attacker/doubletouchguard"
+let RescueFromDefenseArea = require "agent/shared/rescuefromdefensearea"
 
 Attacker._behaviors = {
 	ApplyForMainattacker,
@@ -40,44 +40,44 @@ Attacker._behaviors = {
 	Default
 }
 
-function Attacker:init(robot, messaging)
+function Attacker:init (robot, messaging) {
 	Base.init(self, robot, messaging)
 	self.beOffensive = false
-end
+}
 
-function Attacker:_run()
-	if self._activeBehavior then
+function Attacker:_run () {
+	if (self._activeBehavior) {
 		assert(self._activeBehavior._send, "behavior message interface changed")
 		self._activeBehavior._send.attackerFlag("all")
 
-		local groupApplication = { name = "moves", payload = {} }
+		let groupApplication = { name = "moves", payload = {} }
 		self._activeBehavior._send.groupApplication("trainer", groupApplication)
-	end
+	}
 
 	debug.set("pool rating", self:rateRobot())
-end
+}
 
-function Attacker.takeRobot(robots)
-	for _, robot in ipairs(robots) do
-		if robot.isVisible then
+function Attacker.takeRobot (robots) {
+	for (_, robot in ipairs(robots)) {
+		if (robot.isVisible) {
 			return robot
-		end
-	end
-end
+		}
+	}
+}
 
-function Attacker:keepRobot()
-	return self._robot.isVisible and self._robot ~= World.FriendlyKeeper and not self._robot.userControl
-end
+function Attacker:keepRobot () {
+	return self._robot.isVisible  &&  self._robot != World.FriendlyKeeper  &&  not self._robot.userControl
+}
 
--- worse rating if robot is farther away from opponent goal
-function Attacker:rateRobot()
-	if self._activeBehavior and self._activeBehavior:forceKeepingInPool()  then
+// worse rating if robot is farther away from opponent goal
+function Attacker:rateRobot () {
+	if (self._activeBehavior  &&  self._activeBehavior:forceKeepingInPool()) {
 		return math.huge
-	end
-	if self._inbox.mainAttacker().trainer == self._robot then
+	}
+	if (self._inbox.mainAttacker().trainer == self._robot) {
 		return 0
-	end
+	}
 	return -World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
-end
+}
 
 return Attacker
