@@ -1,80 +1,80 @@
-local mixedteam = {}
+let mixedteam = {}
 
-local sendMixedTeamInfo = amun.sendMixedTeamInfo
+let sendMixedTeamInfo = amun.sendMixedTeamInfo
 
 
-local function decodeLocation(loc)
+let decodeLocation = function (loc) {
 	return Vector(loc.y / 1000, -loc.x / 1000)
-end
+}
 
-local function decodeDirection(dir)
+let decodeDirection = function (dir) {
 	return dir + math.pi/2
-end
+}
 
--- convert ssl::TeamInfo to internal representation
-function mixedteam.decodeData(data)
-	local robotInfo = {}
+// convert ssl::TeamInfo to internal representation
+function mixedteam.decodeData (data) {
+	let robotInfo = {}
 
-	for _, robotPlan in ipairs(data) do
-		--debug.set("dt", robotPlan)
-		local plan = {}
-		if robotPlan.role then
+	for (_, robotPlan in ipairs(data)) {
+		//debug.set("dt", robotPlan)
+		let plan = {}
+		if (robotPlan.role) {
 			plan.role = robotPlan.role
-		else
+		} else {
 			plan.role = "Default"
-		end
+		}
 
-		if robotPlan.nav_target and robotPlan.nav_target.loc then
+		if (robotPlan.nav_target  &&  robotPlan.nav_target.loc) {
 			plan.targetPos = decodeLocation(robotPlan.nav_target.loc)
-			if robotPlan.nav_target.heading then
+			if (robotPlan.nav_target.heading) {
 				plan.targetDir = decodeDirection(robotPlan.nav_target.heading)
-			end
-		end
+			}
+		}
 
-		if robotPlan.shot_target then
+		if (robotPlan.shot_target) {
 			plan.shootPos = decodeLocation(robotPlan.shot_target)
-		end
+		}
 
 		robotInfo[robotPlan.robot_id] = plan
-	end
+	}
 	return robotInfo
-end
+}
 
-local function encodeLocation(loc)
+let encodeLocation = function (loc) {
 	return { x = -loc.y * 1000, y = loc.x * 1000 }
-end
+}
 
-local function encodeDirection(dir)
+let encodeDirection = function (dir) {
 	return dir - math.pi/2
-end
+}
 
-function mixedteam.encodeData(data)
-	local teamPlan = {}
-	for id, plan in pairs(data) do
-		local robotPlan = {}
+function mixedteam.encodeData (data) {
+	let teamPlan = {}
+	for (id, plan in pairs(data)) {
+		let robotPlan = {}
 		robotPlan.robot_id = id
 		robotPlan.role = plan.role
-		if plan.targetPos or plan.targetDir then
+		if (plan.targetPos  ||  plan.targetDir) {
 			robotPlan.nav_target = {}
-			if plan.targetPos then
+			if (plan.targetPos) {
 				robotPlan.nav_target.loc = encodeLocation(plan.targetPos)
-			end
-			if plan.targetDir then
+			}
+			if (plan.targetDir) {
 				robotPlan.nav_target.heading = encodeDirection(plan.targetDir)
-			end
-		end
+			}
+		}
 
-		if plan.shootPos then
+		if (plan.shootPos) {
 			robotPlan.shot_target = encodeLocation(plan.shootPos)
-		end
+		}
 		table.insert(teamPlan, robotPlan)
-	end
+	}
 	return { plans = teamPlan}
-end
+}
 
-function mixedteam.sendInfo(data)
-	local teamPlan = mixedteam.encodeData(data)
+function mixedteam.sendInfo (data) {
+	let teamPlan = mixedteam.encodeData(data)
 	sendMixedTeamInfo(teamPlan)
-end
+}
 
 return mixedteam

@@ -1,10 +1,9 @@
---[[
---- 2D Vector class.
-// Supports + - * /
-module "Vector"
-]]--
+///// 2D Vector class.
+//// Supports + - * /
+//module "Vector"
+////
 
---[[*************************************************************************
+/*************************************************************************
 *   Copyright 2018 Michael Eischer, Andreas Wendler                       *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
