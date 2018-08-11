@@ -44,24 +44,22 @@ export const floorDamping = 0.55; // vertical speed damping coeffient for a ball
 export const stopSpeed = 1.5; // maximum allowed driving speed during stop states [m/s]
 
 // measured by looking at the ball speed graph in the plotter
-export let ballDeceleration; // acceleration which brakes the ball [m/s^2]
+export let ballDeceleration: number; // acceleration which brakes the ball [m/s^2]
 
-export let fastBallDeceleration; // accerlation which brakes the ball until it is rolling [m/s^2]
+export let fastBallDeceleration: number; // accerlation which brakes the ball until it is rolling [m/s^2]
 
-export let ballSwitchRatio; // if ball is slower than switchRatio * shootSpeed then switch from fast to normal ball deceleration
-export function switchSimulatorConstants (isSimulated: boolean) { {
+export let ballSwitchRatio: number; // if ball is slower than switchRatio * shootSpeed then switch from fast to normal ball deceleration
+
+export function switchSimulatorConstants (isSimulated: boolean) {
 	if (isSimulated) {
 		ballDeceleration = -0.35;
 		fastBallDeceleration = -4.5;
 		ballSwitchRatio = 0.69;
-	} } else {{
+	} else {
 		
 		ballDeceleration = -0.3;
 		fastBallDeceleration = -2.5;
 		ballSwitchRatio = 0.6;
-	}
-}
-		Constants.ballSwitchRatio = 0.6 
 	}
 }
 

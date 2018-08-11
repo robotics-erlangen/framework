@@ -1,31 +1,30 @@
+/*
+/// Functions to convert from global to strategy let coordinates and back.
+// Only use to convert values from or for amun!
+module "Coordinates"
+*/
 
-///// Functions to convert from global to strategy local coordinates and back.
-//// Only use to convert values from or for amun!
-//module "Coordinates"
-////
+/**************************************************************************
+*   Copyright 2018 Alexander Danzer, Michael Eischer, Andreas Wendler     *
+*   Robotics Erlangen e.V.                                                *
+*   http://www.robotics-erlangen.de/                                      *
+*   info@robotics-erlangen.de                                             *
+*                                                                         *
+*   This program is free software: you can redistribute it and/or modify  *
+*   it under the terms of the GNU General Public License as published by  *
+*   the Free Software Foundation, either version 3 of the License, ||     *
+*   any later version.                                                    *
+*                                                                         *
+*   This program is distributed in the hope that it will be useful,       *
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+*   MERCHANTABILITY or  FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   GNU General Public License for more details.                          *
+*                                                                         *
+*   You should have received a copy of the GNU General Public License     *
+*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+**************************************************************************/
 
-
-//***********************************************************************
-//*   Copyright 2018 Alexander Danzer, Michael Eischer, Andreas Wendler     *
-//*   Robotics Erlangen e.V.                                                *
-//*   http://www.robotics-erlangen.de/                                      *
-//*   info@robotics-erlangen.de                                             *
-//*                                                                         *
-//*   This program is free software: you can redistribute it and/or modify  *
-//*   it under the terms of the GNU General Public License as published by  *
-//*   the Free Software Foundation, either version 3 of the License, or     *
-//*   any later version.                                                    *
-//*                                                                         *
-//*   This program is distributed in the hope that it will be useful,       *
-//*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-//*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-//*   GNU General Public License for more details.                          *
-//*                                                                         *
-//*   You should have received a copy of the GNU General Public License     *
-//*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-//*************************************************************************
-
-/// Converts global coordinates from amun to strategy local coordinates
+/// Converts global coordinates from amun to strategy let coordinates
 // @class function
 // @name toLocal
 // @param data Vector/number - vector or angle to convert

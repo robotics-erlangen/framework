@@ -26,13 +26,13 @@ module "Entrypoints"
 type EntryPointFunction = () => boolean;
 type EntryPointWrapper = (f: EntryPointFunction) => Function;
 
-let entries: { [name: string]: EntryPointFunction; } = {};
+let entries: { [name: string]: EntryPointFunction } = {};
 
 /// Adds an entrypoint
 // @name add
 // @param name string - Entrypoint name parts are separated with '/'
 // @param func function - Function to call for this entrypoint
-export function add (name: string, func: EntryPointFunction) { {
+export function add (name: string, func: EntryPointFunction) {
 	if (entries[name]) {
 		throw("An entrypoint with name " + String(name) + " already exists");
 	}
@@ -43,8 +43,8 @@ export function add (name: string, func: EntryPointFunction) { {
 // The functions are wrapped using the wrapper function which should
 // call the basic runtime functions
 // @return table<string, function> - Entrypoints table for passing to ra
-export function get (wrapper: EntryPointWrapper) {: { [name: string]: Function} {
-	let wrapped: { [name: string]: Function} = {}
+export function get (wrapper: EntryPointWrapper): { [name: string]: Function} {
+	let wrapped: { [name: string]: Function} = {};
 	for (let name in entries) {
 		wrapped[name] = wrapper(entries[name]);
 	}

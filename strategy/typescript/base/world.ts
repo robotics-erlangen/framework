@@ -24,13 +24,14 @@
 //*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 //*************************************************************************
 
-let amun = amun
-let Ball = require "../base/ball"
-let Constants = require "../base/constants"
-let Coordinates = require "../base/coordinates"
-let Generation = require "../base/generation"
-let mixedTeam = require "../base/mixedteam"
-let Robot = require "../base/robot"
+declare var amun: any;
+let amunLocal = amun
+import {Ball as BallClass} from "../base/ball";
+import * as Constants from "../base/constants";
+import {Coordinates} from "../base/coordinates";
+//let mixedTeam = require "../base/mixedteam"
+import {Robot, FriendlyRobot} from "../base/robot";
+import {Vector, Position} from "../base/vector";
 
 /// Ball and team informations.
 // @class table
@@ -70,32 +71,77 @@ let Robot = require "../base/robot"
 // @field FriendlyRedCards number - number of red cards received for the own team
 // @field OpponentRedCards number - number of red cards the opponent received
 
-let World = {}
 
-World.AoI = nil
-World.Ball = Ball()
-World.FriendlyRobots = {}
-World.FriendlyInvisibleRobots = {}
-World.FriendlyRobotsById = {}
-World.FriendlyRobotsAll = {}
-World.FriendlyKeeper = nil
-World.OpponentRobots = {}
-World.OpponentRobotsById = {}
-World.OpponentKeeper = nil
-World.Robots = {}
-World.TeamIsBlue = false
-World.IsSimulated = false
-World.IsLargeField = false
-World.MixedTeam = nil
-World.SelectedOptions = nil
+export let Time: number = 0;
+export let TimeDiff: number = 0;
+export let AoI = undefined;
+export let Ball: BallClass = new BallClass();
+export let FriendlyRobots: FriendlyRobot[] = [];
+export let FriendlyInvisibleRobots: FriendlyRobot[] = [];
+export let FriendlyRobotsById: {[index: number]: FriendlyRobot} = {};
+export let FriendlyRobotsAll: FriendlyRobot[] = [];
+export let FriendlyKeeper: FriendlyRobot | undefined;
+export let OpponentRobots: Robot[] = [];
+export let OpponentRobotsById: {[index: number]: Robot} = {};
+export let OpponentKeeper: Robot | undefined;
+export let Robots: Robot[] = [];
+export let TeamIsBlue: boolean = false;
+export let IsSimulated: boolean = false;
+export let IsLargeField: boolean = false;
+export let IsReplay: boolean = false;
+export let MixedTeam: any = undefined;
+export let SelectedOptions = undefined;
 
-World.RULEVERSION = nil
+export let RefereeState: string = "";
+export let GameStage: string = "";
+export let FriendlyYellowCards: number[] = [];
+export let OpponentYellowCards: number[] = [];
+export let FriendlyRedCards: number = 0;
+export let OpponentRedCards: number = 0;
+export let BallPlacementPos: Readonly<Position> | undefined;
 
-World.Geometry = {}
+export let RULEVERSION: string = "";
+
+interface GeometryType {
+	FieldWidth: number;
+	FieldHeight: number;
+	FieldWidthHalf: number;
+	FieldHeightHalf: number;
+	FieldWidthQuarter: number;
+	FieldHeightQuarter: number;
+	GoalWidth: number;
+	GoalWallWidth: number;
+	GoalDepth: number;
+	GoalHeight: number;
+	LineWidth: number;
+	CenterCircleRadius: number;
+	FreeKickDefenseDist: number;
+	DefenseRadius: number;
+	DefenseStretch: number;
+	DefenseStretchHalf: number;
+	DefenseWidth: number;
+	DefenseWidthHalf: number;
+	DefenseHeight: number;
+	FriendlyPenaltySpot: Readonly<Position>;
+	OpponentPenaltySpot: Readonly<Position>;
+	PenaltyLine: number;
+	OwnPenaltyLine: number;
+	FriendlyGoal: Readonly<Position>;
+	FriendlyGoalLeft: Readonly<Position>;
+	FriendlyGoalRight: Readonly<Position>;
+	OpponentGoal: Readonly<Position>;
+	OpponentGoalLeft: Readonly<Position>;
+	OpponentGoalRight: Readonly<Position>;
+	BoundaryWidth: number;
+	RefereeWidth: number;
+}
+
+// it is guaranteed to be set before being read, so casting is fine
+export let Geometry: Readonly<GeometryType> = <GeometryType>{};
 /// Field geometry.
 // Lengths in meter
 // @class table
-// @name World.Geometry
+// @name Geometry
 // @field FieldWidth number - Width of the playing field (short side)
 // @field FieldHeight number - Height of the playing field (long side)
 // @field FieldWidthHalf number - Half width of the playing field (short side)
@@ -127,262 +173,265 @@ World.Geometry = {}
 // @field RefereeWidth number - Width of area reserved for referee
 
 // initializes Team and Geometry data
-function World._init () {
-	World.TeamIsBlue = amun.isBlue()
-	let geom = amun.getGeometry()
-	World._updateGeometry(geom)
-	World._updateRuleVersion(geom)
-	World._updateTeam(amun.getTeam())
+export function _init () {
+	TeamIsBlue = amunLocal.isBlue();
+	let geom = amunLocal.getGeometry();
+	_updateGeometry(geom);
+	_updateRuleVersion(geom);
+	_updateTeam(amunLocal.getTeam());
 }
 
 /// Update world state.
 // Has to be called once each frame
 // @name update
 // @return bool - false if no vision data was received since strategy start
-function World.update () {
-	if (World.SelectedOptions == nil) {
-		World.SelectedOptions = amun.getSelectedOptions()
+export function update () {
+	if (SelectedOptions == undefined) {
+		// TODO: getSelectedOptions is not yet implemented for typescript
+		//SelectedOptions = amunLocal.getSelectedOptions();
 	}
-	let hasVisionData = World._updateWorld(amun.getWorldState())
-	World._updateGameState(amun.getGameState())
-	World._updateUserInput(amun.getUserInput())
-	World.IsReplay = amun.isReplay ? amun.isReplay() : false
-	return hasVisionData
+	let hasVisionData = _updateWorld(amunLocal.getWorldState());
+	_updateGameState(amunLocal.getGameState());
+	_updateUserInput(amunLocal.getUserInput());
+	IsReplay = amunLocal.isReplay ? amunLocal.isReplay() : false;
+	return hasVisionData;
 }
 
 // Creates generation specific robot object for own team
-function World._updateTeam (state) {
-	let friendlyRobotsById = {}
-	let friendlyRobotsAll = {}
-	for (_, rdata in ipairs(state.robot)) {
-		let robot = Generation.factory(rdata)
-		friendlyRobotsById[rdata.id] = robot
-		table.insert(friendlyRobotsAll, robot)
+export function _updateTeam (state: any) {
+	let friendlyRobotsById: {[index: number]: FriendlyRobot} = {};
+	let friendlyRobotsAll: FriendlyRobot[] = [];
+	for (let rdata of state.robot) {
+		let robot = new FriendlyRobot(rdata); // No generation types for now
+		friendlyRobotsById[rdata.id] = robot;
+		friendlyRobotsAll.push(robot);
 	}
-	World.FriendlyRobotsById = friendlyRobotsById
-	World.FriendlyRobotsAll = friendlyRobotsAll
+	FriendlyRobotsById = friendlyRobotsById;
+	FriendlyRobotsAll = friendlyRobotsAll;
 }
 
 // Get rule version from geometry
-function World._updateRuleVersion (geom) {
-	if (not geom.type  ||  geom.type == "TYPE_2014") {
-		World.RULEVERSION = "2017"
+export function _updateRuleVersion (geom: any) {
+	if (!geom.type || geom.type == "TYPE_2014") {
+		RULEVERSION = "2017";
 	} else {
-		World.RULEVERSION = "2018"
+		RULEVERSION = "2018";
 	}
 }
 
 // Setup field geometry
-function World._updateGeometry (geom) {
-	let wgeom = World.Geometry
-	wgeom.FieldWidth = geom.field_width
-	wgeom.FieldWidthHalf = geom.field_width / 2
-	wgeom.FieldWidthQuarter = geom.field_width / 4
-	wgeom.FieldHeight = geom.field_height
-	wgeom.FieldHeightHalf = geom.field_height / 2
-	wgeom.FieldHeightQuarter = geom.field_height / 4
+function _updateGeometry (geom: any) {
+	let wgeom = <GeometryType>Geometry;
+	wgeom.FieldWidth = geom.field_width;
+	wgeom.FieldWidthHalf = geom.field_width / 2;
+	wgeom.FieldWidthQuarter = geom.field_width / 4;
+	wgeom.FieldHeight = geom.field_height;
+	wgeom.FieldHeightHalf = geom.field_height / 2;
+	wgeom.FieldHeightQuarter = geom.field_height / 4;
 
-	wgeom.GoalWidth = geom.goal_width
-	wgeom.GoalWallWidth = geom.goal_wall_width
-	wgeom.GoalDepth = geom.goal_depth
-	wgeom.GoalHeight = geom.goal_height
+	wgeom.GoalWidth = geom.goal_width;
+	wgeom.GoalWallWidth = geom.goal_wall_width;
+	wgeom.GoalDepth = geom.goal_depth;
+	wgeom.GoalHeight = geom.goal_height;
 
-	wgeom.LineWidth = geom.line_width
-	wgeom.CenterCircleRadius = geom.center_circle_radius
-	wgeom.FreeKickDefenseDist = geom.free_kick_from_defense_dist
+	wgeom.LineWidth = geom.line_width;
+	wgeom.CenterCircleRadius = geom.center_circle_radius;
+	wgeom.FreeKickDefenseDist = geom.free_kick_from_defense_dist;
 
-	wgeom.DefenseRadius = geom.defense_radius
-	wgeom.DefenseStretch = geom.defense_stretch
-	wgeom.DefenseStretchHalf = geom.defense_stretch / 2
-	wgeom.DefenseWidth = geom.defense_width  ||  geom.defense_stretch
-	wgeom.DefenseHeight = geom.defense_height  ||  geom.defense_radius
-	wgeom.DefenseWidthHalf = (geom.defense_width  ||  geom.defense_stretch) / 2
+	wgeom.DefenseRadius = geom.defense_radius;
+	wgeom.DefenseStretch = geom.defense_stretch;
+	wgeom.DefenseStretchHalf = geom.defense_stretch / 2;
+	wgeom.DefenseWidth = geom.defense_width  ||  geom.defense_stretch;
+	wgeom.DefenseHeight = geom.defense_height  ||  geom.defense_radius;
+	wgeom.DefenseWidthHalf = (geom.defense_width  ||  geom.defense_stretch) / 2;
 
-	wgeom.FriendlyPenaltySpot = Vector.createReadOnly(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist)
-	wgeom.OpponentPenaltySpot = Vector.createReadOnly(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist)
-	wgeom.PenaltyLine = wgeom.OpponentPenaltySpot.y - geom.penalty_line_from_spot_dist
-	wgeom.OwnPenaltyLine = wgeom.FriendlyPenaltySpot.y + geom.penalty_line_from_spot_dist
+	wgeom.FriendlyPenaltySpot = Vector.createReadOnly(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist);
+	wgeom.OpponentPenaltySpot = Vector.createReadOnly(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist);
+	wgeom.PenaltyLine = wgeom.OpponentPenaltySpot.y - geom.penalty_line_from_spot_dist;
+	wgeom.OwnPenaltyLine = wgeom.FriendlyPenaltySpot.y + geom.penalty_line_from_spot_dist;
 
 	// The goal posts are on the field lines
-	wgeom.FriendlyGoal = Vector.createReadOnly(0, - wgeom.FieldHeightHalf)
-	wgeom.FriendlyGoalLeft = Vector.createReadOnly(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
-	wgeom.FriendlyGoalRight = Vector.createReadOnly(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y)
+	wgeom.FriendlyGoal = Vector.createReadOnly(0, - wgeom.FieldHeightHalf);
+	wgeom.FriendlyGoalLeft = Vector.createReadOnly(- wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y);
+	wgeom.FriendlyGoalRight = Vector.createReadOnly(wgeom.GoalWidth / 2, wgeom.FriendlyGoal.y);
 
-	wgeom.OpponentGoal = Vector.createReadOnly(0, wgeom.FieldHeightHalf)
-	wgeom.OpponentGoalLeft = Vector.createReadOnly(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
-	wgeom.OpponentGoalRight = Vector.createReadOnly(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y)
+	wgeom.OpponentGoal = Vector.createReadOnly(0, wgeom.FieldHeightHalf);
+	wgeom.OpponentGoalLeft = Vector.createReadOnly(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
+	wgeom.OpponentGoalRight = Vector.createReadOnly(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
 
 	wgeom.BoundaryWidth = geom.boundary_width
 	wgeom.RefereeWidth = geom.referee_width
 
-	World.Geometry = table.readonlytable(World.Geometry)
-
-	World.IsLargeField = wgeom.FieldWidth > 5  &&  wgeom.FieldHeight > 7
+	IsLargeField = wgeom.FieldWidth > 5  &&  wgeom.FieldHeight > 7;
 }
 
-function World._updateWorld (state) {
+export function _updateWorld (state: any) {
 	// Get time
-	if (World.Time) {
-		World.TimeDiff = state.time * 1E-9 - World.Time
+	if (Time) {
+		TimeDiff = state.time * 1E-9 - Time;
 	} else {
-		World.TimeDiff = 0
+		TimeDiff = 0;
 	}
-	World.Time = state.time * 1E-9
-	math.randomseed(World.Time)
-	assert(World.Time > 0, "Invalid World.Time. Outdated ra version!")
-	if (World.IsSimulated != state.is_simulated) {
-		World.IsSimulated = state.is_simulated
-		Constants.switchSimulatorConstants(World.IsSimulated)
+	Time = state.time * 1E-9;
+	// TODO: you can't seed the random number generator
+	// Math.randomseed(Time);
+	if (Time <= 0) {
+		throw "Invalid Time. Outdated ra version!";
+	}
+	if (IsSimulated != state.is_simulated) {
+		IsSimulated = state.is_simulated;
+		Constants.switchSimulatorConstants(IsSimulated);
 	}
 
-	let radioResponses = state.radio_response
+	let radioResponses: any[] = state.radio_response;
 
 	// update ball if available
-	World.Ball:_update(state.ball, World.Time)
+	Ball._update(state.ball, Time);
 
-	let dataFriendly = World.TeamIsBlue ? state.blue : state.yellow
+	let dataFriendly = TeamIsBlue ? state.blue : state.yellow;
 	if (dataFriendly) {
 		// sort data by robot id
-		let dataById = {}
-		for (_,rdata in ipairs(dataFriendly)) {
-			dataById[rdata.id] = rdata
+		let dataById: {[id: number]: any} = {};
+		for (let rdata of dataFriendly) {
+			dataById[rdata.id] = rdata;
 		}
 
 		// Update data of every own robot
-		World.FriendlyRobots = {}
-		World.FriendlyInvisibleRobots = {}
-		for (_, robot in ipairs(World.FriendlyRobotsAll)) {
+		FriendlyRobots = [];
+		FriendlyInvisibleRobots = [];
+		for (let robot of FriendlyRobotsAll) {
 			// get responses for the current robot
 			// these are identified by the robot generation and id
-			let robotResponses = {}
-			for (_, response in ipairs(radioResponses)) {
+			let robotResponses: any[] = [];
+			for (let response of radioResponses) {
 				if (response.generation == robot.generation
 						 &&  response.id == robot.id) {
-					table.insert(robotResponses, response)
+					robotResponses.push(response);
 				}
 			}
 
-			robot:_update(dataById[robot.id], World.Time, robotResponses)
-			robot:_updatePathBoundaries(World.Geometry, World.AoI)
+			robot._update(dataById[robot.id], Time, robotResponses);
+			robot._updatePathBoundaries(Geometry, AoI);
 			// sort robot into visible / not visible
 			if (robot.isVisible) {
-				table.insert(World.FriendlyRobots, robot)
+				FriendlyRobots.push(robot);
 			} else {
-				table.insert(World.FriendlyInvisibleRobots, robot)
+				FriendlyInvisibleRobots.push(robot);
 			}
 		}
 	}
 
-	let dataOpponent = World.TeamIsBlue ? state.yellow : state.blue
+	let dataOpponent = TeamIsBlue ? state.yellow : state.blue;
 	if (dataOpponent) {
 		// only keep robots that are still existent
-		let opponentRobotsById = World.OpponentRobotsById
-		World.OpponentRobots = {}
-		World.OpponentRobotsById = {}
+		let opponentRobotsById = OpponentRobotsById;
+		OpponentRobots = [];
+		OpponentRobotsById = {};
 		// just update every opponent robot
 		// robots that are invisible for more than one second are dropped by amun
-		for (_,rdata in ipairs(dataOpponent)) {
-			let robot = opponentRobotsById[rdata.id]
-			opponentRobotsById[rdata.id] = nil
-			if (not robot) {
-				robot = Robot(rdata.id, false)
+		for (let rdata of dataOpponent) {
+			let robot = opponentRobotsById[rdata.id];
+			delete opponentRobotsById[rdata.id];
+			if (!robot) {
+				robot = new Robot(rdata.id);
 			}
-			robot:_update(rdata, World.Time)
-			table.insert(World.OpponentRobots, robot)
-			World.OpponentRobotsById[rdata.id] = robot
+			robot._updateOpponent(rdata, Time);
+			OpponentRobots.push(robot);
+			OpponentRobotsById[rdata.id] = robot;
 		}
 		// mark dropped robots as invisible
-		for (_,robot in pairs(opponentRobotsById)) {
-			robot:_update(nil, World.Time)
+		for (let robotId in opponentRobotsById) {
+			opponentRobotsById[robotId]._updateOpponent(undefined, Time);
 		}
 	}
 
-	World.Robots = table.copy(World.FriendlyRobots)
-	table.append(World.Robots, World.OpponentRobots)
+	Robots = FriendlyRobots.slice();
+	Robots = Robots.concat(OpponentRobots);
 
 	// convert mixed team info
 	if (state.mixed_team_info  &&  state.mixed_team_info.plans) {
-		World.MixedTeam = mixedTeam.decodeData(state.mixed_team_info.plans)
+		//MixedTeam = mixedTeam.decodeData(state.mixed_team_info.plans);
+		MixedTeam = undefined;
 	} else {
-		World.MixedTeam = nil
+		MixedTeam = undefined;
 	}
 
 	// update aoi data
-	World.AoI = state.tracking_aoi
+	AoI = state.tracking_aoi;
 
 	// no vision data only if the parameter is false
-	return state.has_vision_data != false
+	return state.has_vision_data != false;
 }
 
-World.gameStageMapping = {
-	NORMAL_FIRST_HALF_PRE = "FirstHalfPre",
-	NORMAL_FIRST_HALF = "FirstHalf",
-	NORMAL_HALF_TIME = "HalfTime",
-	NORMAL_SECOND_HALF_PRE = "SecondHalfPre",
-	NORMAL_SECOND_HALF = "SecondHalf",
+let gameStageMapping: {[name: string]: string} = {
+	NORMAL_FIRST_HALF_PRE: "FirstHalfPre",
+	NORMAL_FIRST_HALF: "FirstHalf",
+	NORMAL_HALF_TIME: "HalfTime",
+	NORMAL_SECOND_HALF_PRE: "SecondHalfPre",
+	NORMAL_SECOND_HALF: "SecondHalf",
 
-	EXTRA_TIME_BREAK = "ExtraTimeBreak",
-	EXTRA_FIRST_HALF_PRE = "ExtraFirstHalfPre",
-	EXTRA_FIRST_HALF = "ExtraFirstHalf",
-	EXTRA_HALF_TIME = "ExtraHalfTime",
-	EXTRA_SECOND_HALF_PRE = "ExtraSecondHalfPre",
-	EXTRA_SECOND_HALF = "ExtraSecondHalf",
+	EXTRA_TIME_BREAK: "ExtraTimeBreak",
+	EXTRA_FIRST_HALF_PRE: "ExtraFirstHalfPre",
+	EXTRA_FIRST_HALF: "ExtraFirstHalf",
+	EXTRA_HALF_TIME: "ExtraHalfTime",
+	EXTRA_SECOND_HALF_PRE: "ExtraSecondHalfPre",
+	EXTRA_SECOND_HALF: "ExtraSecondHalf",
 
-	PENALTY_SHOOTOUT_BREAK = "PenaltyShootoutBreak",
-	PENALTY_SHOOTOUT = "PenaltyShootout",
-	POST_GAME = "PostGame"
+	PENALTY_SHOOTOUT_BREAK: "PenaltyShootoutBreak",
+	PENALTY_SHOOTOUT: "PenaltyShootout",
+	POST_GAME: "PostGame"
 }
 
 // keep for use by debugcommands.sendRefereeCommand
-let fullRefereeState = nil
+let fullRefereeState: any = undefined;
 
-function World._getFullRefereeState () {
-	return fullRefereeState
+function _getFullRefereeState () {
+	return fullRefereeState;
 }
 
 // updates referee command and keeper information
-function World._updateGameState (state) {
-	fullRefereeState = state
-	let refState = state.state
+function _updateGameState (state: any) {
+	fullRefereeState = state;
+	let refState = state.state;
 	// map referee command to own team
-	if (World.TeamIsBlue) {
-		World.RefereeState = refState:gsub("Blue", "Offensive"):gsub("Yellow", "Defensive")
+	if (TeamIsBlue) {
+		RefereeState = refState.replace("Blue", "Offensive").replace("Yellow", "Defensive");
 	} else {
-		World.RefereeState = refState:gsub("Yellow", "Offensive"):gsub("Blue", "Defensive")
+		RefereeState = refState.replace("Yellow", "Offensive").replace("Blue", "Defensive");
 	}
 
-	if (World.RefereeState == "TimeoutOffensive"  ||  World.RefereeState == "TimeoutDefensive") {
-		World.RefereeState = "Halt"
+	if (RefereeState == "TimeoutOffensive" || RefereeState == "TimeoutDefensive") {
+		RefereeState = "Halt";
 	}
 
 	if (state.designated_position  &&  state.designated_position.x) {
-		World.BallPlacementPos = Coordinates.toLocal(Vector.createReadOnly(
+		BallPlacementPos = Coordinates.toLocal(Vector.createReadOnly(
 			// refbox position message uses millimeters
 			// ssl-vision's coordinate system is rotated by 90 degrees
 			-state.designated_position.y / 1000,
-			state.designated_position.x / 1000))
+			state.designated_position.x / 1000));
 	}
 
-	World.GameStage = World.gameStageMapping[state.stage]
+	GameStage = gameStageMapping[state.stage];
 
-	let friendlyTeamInfo = World.TeamIsBlue ? state.blue : state.yellow
-	let opponentTeamInfo = World.TeamIsBlue ? state.yellow : state.blue
+	let friendlyTeamInfo = TeamIsBlue ? state.blue : state.yellow;
+	let opponentTeamInfo = TeamIsBlue ? state.yellow : state.blue;
 
-	let friendlyKeeperId = friendlyTeamInfo.goalie
-	let opponentKeeperId = opponentTeamInfo.goalie
+	let friendlyKeeperId = friendlyTeamInfo.goalie;
+	let opponentKeeperId = opponentTeamInfo.goalie;
 
-	let friendlyKeeper = World.FriendlyRobotsById[friendlyKeeperId]
-	if (friendlyKeeper  &&  not friendlyKeeper.isVisible) {
-		friendlyKeeper = nil
+	let friendlyKeeper: FriendlyRobot | undefined = FriendlyRobotsById[friendlyKeeperId];
+	if (friendlyKeeper && !friendlyKeeper.isVisible) {
+		friendlyKeeper = undefined;
 	}
 
-	let opponentKeeper = World.OpponentRobotsById[opponentKeeperId]
-	if (opponentKeeper  &&  not opponentKeeper.isVisible) {
-		opponentKeeper = nil
+	let opponentKeeper: Robot | undefined = OpponentRobotsById[opponentKeeperId];
+	if (opponentKeeper && !opponentKeeper.isVisible) {
+		opponentKeeper = undefined;
 	}
 
-	World.FriendlyKeeper = friendlyKeeper
-	World.OpponentKeeper = opponentKeeper
+	FriendlyKeeper = friendlyKeeper;
+	OpponentKeeper = opponentKeeper;
 
 	
 //	optional sint32 stage_time_left = 2;
@@ -406,47 +455,47 @@ function World._updateGameState (state) {
 //		required uint32 timeout_time = 7;
 //	}
 
-	World.FriendlyYellowCards = {}
-	for (_, time in ipairs(friendlyTeamInfo.yellow_card_times)) {
-		table.insert(World.FriendlyYellowCards, time / 1000000)
+	FriendlyYellowCards = [];
+	for (let time of friendlyTeamInfo.yellow_card_times) {
+		FriendlyYellowCards.push(time / 1000000);
 	}
-	World.OpponentYellowCards = {}
-	for (_, time in ipairs(opponentTeamInfo.yellow_card_times)) {
-		table.insert(World.OpponentYellowCards, time / 1000000)
+	OpponentYellowCards = [];
+	for (let time of opponentTeamInfo.yellow_card_times) {
+		OpponentYellowCards.push(time / 1000000);
 	}
-	World.FriendlyRedCards = friendlyTeamInfo.red_cards
-	World.OpponentRedCards = opponentTeamInfo.red_cards
+	FriendlyRedCards = friendlyTeamInfo.red_cards;
+	OpponentRedCards = opponentTeamInfo.red_cards;
 }
 
 // update and handle user inputs set for own robots
-function World._updateUserInput (input) {
+export function _updateUserInput (input: any) {
 	if (input.radio_command) {
-		for (_, robot in ipairs(World.FriendlyRobotsAll)) {
-			robot:_updateUserControl(nil) // clear
+		for (let robot of FriendlyRobotsAll) {
+			robot._updateUserControl(undefined); // clear
 		}
-		for (_, cmd in ipairs(input.radio_command)) {
-			let robot = World.FriendlyRobotsById[cmd.id]
+		for (let cmd of input.radio_command) {
+			let robot = FriendlyRobotsById[cmd.id];
 			if (robot) {
-				robot:_updateUserControl(cmd.command)
+				robot._updateUserControl(cmd.command);
 			}
 		}
 	}
 	if (input.move_command) {
 		// cache the movecommands for 0.3 seconds if it not there every frame
-		for (_, robot in ipairs(World.FriendlyRobotsAll)) {
+		for (let robot of FriendlyRobotsAll) {
 			// < 0 for going back in logfiles while replaying
-			if (robot.moveCommand  &&  (World.Time - robot.moveCommand.time > 0.3  ||
-				World.Time - robot.moveCommand.time < 0)) {
-				robot.moveCommand = nil
+			if (robot.moveCommand && (Time - robot.moveCommand.time > 0.3  ||
+					Time - robot.moveCommand.time < 0)) {
+				robot.moveCommand = undefined;
 			}
 		}
-		for (_, cmd in ipairs(input.move_command)) {
-			if (World.FriendlyRobotsById[cmd.id]) {
-				World.FriendlyRobotsById[cmd.id].moveCommand = {time = World.Time, pos = Coordinates.toGlobal(Vector(cmd.p_x, cmd.p_y))}
+		for (let cmd of input.move_command) {
+			if (FriendlyRobotsById[cmd.id]) {
+				FriendlyRobotsById[cmd.id].moveCommand = {time: Time, pos: Coordinates.toGlobal(new Vector(cmd.p_x, cmd.p_y))};
 			} else {
-				let teamColorString = World.TeamIsBlue ? "blue" : "yellow"
-				log("<font color=\"red\">WARNING: </font>please select robot "..cmd.id.." for team "..teamColorString..
-					" for pulling it!")
+				let teamColorString = TeamIsBlue ? "blue" : "yellow";
+				amunLocal.log("<font color=\"red\">WARNING: </font>please select robot "+cmd.id+" for team "+teamColorString+
+					" for pulling it!");
 			}
 		}
 	}
@@ -455,11 +504,11 @@ function World._updateUserInput (input) {
 
 /// Stops own robots and enables standby
 // @name haltOwnRobots
-function World.haltOwnRobots () {
-	for (_, robot in ipairs(World.FriendlyRobotsAll)) {
-		if (not robot.moveCommand) {
-			robot:setStandby(true)
-			robot:halt()
+export function haltOwnRobots () {
+	for (let robot of FriendlyRobotsAll) {
+		if (robot.moveCommand == undefined) {
+			robot.setStandby(true);
+			robot.halt();
 		}
 	}
 }
@@ -467,12 +516,10 @@ function World.haltOwnRobots () {
 /// Set generated commands for our robots.
 // Robots without a command stop by default
 // @name setRobotCommands
-function World.setRobotCommands () {
-	for (_, robot in ipairs(World.FriendlyRobotsAll)) {
-		amun.setCommand(robot.generation, robot.id, robot:_command())
+export function setRobotCommands () {
+	for (let robot of FriendlyRobotsAll) {
+		amun.setCommand(robot.generation, robot.id, robot._command());
 	}
 }
 
-World._init()
-
-return World
+_init();

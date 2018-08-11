@@ -31,11 +31,11 @@ let debugStack: string[] = [""];
 
 let joinCache: {[prefix: string]: {[name: string]: string}} = {};
 
-function prefixName (name?: string) {: string {
+function prefixName (name?: string): string {
 	let prefix = debugStack[debugStack.length-1];
 	if (name == undefined) {
 		return prefix;
-	} } else {if (prefix.length == 0) {
+	} else if (prefix.length == 0) {
 		return name;
 	}
 
@@ -55,7 +55,7 @@ function prefixName (name?: string) {: string {
 // @name push
 // @param name string - Name of the new subtree
 // @param [value string - Value for the subtree header]
-export function push (name: string, value?: string) { {
+export function push (name: string, value?: string) {
 	debugStack.push(prefixName(name));
 	if (value != undefined) {
 		set(undefined, value);
@@ -65,17 +65,17 @@ export function push (name: string, value?: string) { {
 /// Pushes a root key on the debug stack.
 // @name pushtop
 // @param name string - Name of the new root tree or nil to push root
-export function pushtop (name: string) { {
+export function pushtop (name: string) {
 	if (!name) {
 		debugStack.push("");
-	} } else {{
+	} else {
 		debugStack.push(name);
 	}
 }
 
 /// Pops last key from the debug stack.
 // @name pop
-export function pop () { {
+export function pop () {
 	if (debugStack.length > 0) {
 		debugStack.pop();
 	}
@@ -87,7 +87,7 @@ export function pop () { {
 // debug.set(key, value, unpack(extraParams))
 // @name getInitialExtraParams
 // @return Initial extra params
-export function getInitialExtraParams () {: object {
+export function getInitialExtraParams (): object {
 	let visited = {};
 	let tableCounter = [0];
 	return { visited, tableCounter };
@@ -100,7 +100,7 @@ export function getInitialExtraParams () {: object {
 // @name set
 // @param name string - Name of the value
 // @param value string - Value to set
-export function set (name: string|undefined, value: any, visited: Map<object, string> = new Map() {, tableCounter?: number[]) {
+export function set (name: string|undefined, value: any, visited: Map<object, string> = new Map(), tableCounter?: number[]) {
 	// visited and tableCounter must be compatible with getInitialExtraParams
 
 	let result: any;
@@ -121,13 +121,13 @@ export function set (name: string|undefined, value: any, visited: Map<object, st
 			let origValue = value;
 			result = value._toString() + suffix;
 			visited.set(origValue, result);
-		} } else {{
+		} else {
 			let friendlyName;
-			if (value.constructor !== "Object") {
-				friendlyName = value.constructor.name;
-			} } else {if (Object.keys(value).length === 0 && value.constructor === Object) {
+			if (value.constructor != undefined && Object.keys(value).length === 0) {
 				friendlyName = "empty object";
-			} } else {{
+			} else if (value.constructor != undefined) {
+				friendlyName = value.constructor.name;
+			} else {
 				friendlyName = "";
 			}
 
@@ -139,22 +139,14 @@ export function set (name: string|undefined, value: any, visited: Map<object, st
 			let entryCounter = 1;
 			for (let k in value) {
 				let v = value[k];
-				if (typeof(k) == "object") {
-					let baseName = "[entry-"+String(entryCounter)+"]";
-					set(baseName+"/key", k, visited, tableCounter);
-					set(baseName+"/value", v, visited, tableCounter);
-					set(baseName, "ObjectEntry");
-					entryCounter = entryCounter + 1;
-				} } else {{
-					set(String(k), v, visited, tableCounter);
-				}
+				set(String(k), v, visited, tableCounter);
 			}
 			pop();
 			return;
 		}
-	} } else {if (typeof(value) == "function") {
+	} else if (typeof(value) == "function") {
 		result = "function " + value.name;
-	} } else {{
+	} else {
 		result = value;
 	}
 
@@ -163,7 +155,7 @@ export function set (name: string|undefined, value: any, visited: Map<object, st
 
 /// Clears the debug stack
 // @name resetStack
-export function resetStack () { {
+export function resetStack () {
 	if (debugStack.length != 0 || debugStack[0] != "") {
 		log("Unbalanced push/pop on debug stack");
 		for (let v in debugStack) {
