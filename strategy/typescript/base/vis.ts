@@ -1,44 +1,52 @@
+/*
+/// Provides functions to draw on the game field
+module "vis"
+*/
 
-///// Provides functions to draw on the game field
-//module "vis"
-////
+/**************************************************************************
+*   Copyright 2018 Florian Bauer, Michael Eischer, Christian Lobmeier,    *
+*       Philipp Nordhus, Andreas Wendler                                  *
+*   Robotics Erlangen e.V.                                                *
+*   http://www.robotics-erlangen.de/                                      *
+*   info@robotics-erlangen.de                                             *
+*                                                                         *
+*   This program is free software: you can redistribute it and/or modify  *
+*   it under the terms of the GNU General Public License as published by  *
+*   the Free Software Foundation, either version 3 of the License, ||     *
+*   any later version.                                                    *
+*                                                                         *
+*   This program is distributed in the hope that it will be useful,       *
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+*   MERCHANTABILITY || FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   GNU General Public License for more details.                          *
+*                                                                         *
+*   You should have received a copy of the GNU General Public License     *
+*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+**************************************************************************/
+declare var amun: any;
+let amunLocal = amun;
 
-//***********************************************************************
-//*   Copyright 2015 Florian Bauer, Michael Eischer, Christian Lobmeier,    *
-//*       Philipp Nordhus                                                   *
-//*   Robotics Erlangen e.V.                                                *
-//*   http://www.robotics-erlangen.de/                                      *
-//*   info@robotics-erlangen.de                                             *
-//*                                                                         *
-//*   This program is free software: you can redistribute it and/or modify  *
-//*   it under the terms of the GNU General Public License as published by  *
-//*   the Free Software Foundation, either version 3 of the License, or     *
-//*   any later version.                                                    *
-//*                                                                         *
-//*   This program is distributed in the hope that it will be useful,       *
-//*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-//*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-//*   GNU General Public License for more details.                          *
-//*                                                                         *
-//*   You should have received a copy of the GNU General Public License     *
-//*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-//*************************************************************************
-
-let vis = {}
-
-let amun = amun
-let Coordinates = require "../base/coordinates"
+import {Coordinates} from "../base/coordinates";
+import {Vector, Position} from "../base/vector";
 
 
-let gcolor = {}
-let gisFilled = true
+export class Color {
+	public readonly red: number;
+	public readonly green: number;
+	public readonly blue: number;
+	public readonly alpha: number;
 
-let ffi = require("ffi")
-ffi.cdef[[
-typedef struct { const unsigned char red, green, blue, alpha; } RGBA;
-]]
-let color_type_mt = {}
-let color_type = ffi.metatype("RGBA", color_type_mt)
+	constructor(r: number, g: number, b: number, a: number) {
+		this.red = r, this.green = g, this.blue = b, this.alpha = a;
+	}
+
+	setAlpha(a: number) {
+		return new Color(this.red, this.green, this.blue, a);
+	}
+}
+
+let gcolor: Color;
+let gisFilled: boolean = true;
 
 /// Joins rgba-value to a color.
 // Values from 0 to 255
@@ -48,8 +56,8 @@ let color_type = ffi.metatype("RGBA", color_type_mt)
 // @param blue number
 // @param alpha number
 // @return table color
-function vis.fromRGBA (red, green, blue, alpha) {
-	return color_type(red, green, blue, alpha)
+export function fromRGBA (red: number, green: number, blue: number, alpha: number): Color {
+	return new Color(red, green, blue, alpha);
 }
 
 /// Implements a red-yellow-green gradient
@@ -57,32 +65,28 @@ function vis.fromRGBA (red, green, blue, alpha) {
 // @param value a normalized temperature [0, 1]
 // @param alpha the alpha value, default is 127
 // @return table color
-function vis.fromTemperature (value, alpha) {
+export function fromTemperature (value: number, alpha: number = 127): Color {
 	if (value < 0) {
-		error("vis temperature too low: "  +  value)
+		throw "vis temperature too low: " + value;
 	}
 	if (value > 1) {
-		error("vis temperature too high: "  +  value)
+		throw "vis temperature too high: " + value;
 	}
-	let red = 1
-	let green = 1
+	let red = 1;
+	let green = 1;
 	if (value < 0.5) {
-		red = 2 * value
+		red = 2 * value;
 	} else {
-		green = 2 - 2 * value
+		green = 2 - 2 * value;
 	}
-	return color_type(255 * red, 255 * green, 0, alpha  ||  127)
+	return new Color(255 * red, 255 * green, 0, alpha);
 }
 
-/// Modifies alpha value on a copy of the given color
-// @name setAlpha
-// @param color table - source color
-// @param alpha number - new alpha value
-// @return table - color with new alpha
-function vis.setAlpha (color, alpha) {
-	let copy = table.copy(color)
-	copy.alpha = alpha
-	return copy
+export enum Style {
+	DashLine = "DashLine",
+	DotLine = "DotLine",
+	DashDotLine = "DashDotLine",
+	DashDotDotLine = "DashDotDotLine"
 }
 
 /// List of predefined colors.
@@ -115,48 +119,48 @@ function vis.setAlpha (color, alpha) {
 // @field brownHalf (127, 63, 0)
 // @field skyBlueHalf (127, 191, 255)
 
-vis.colors = {}
+export let colors: {[name: string]: Color} = {};
 
-vis.colors.black = vis.fromRGBA(0, 0, 0, 255)
-vis.colors.blackHalf = vis.fromRGBA(0, 0, 0, 127)
-vis.colors.white = vis.fromRGBA(255, 255, 255, 255)
-vis.colors.whiteHalf = vis.fromRGBA(255, 255, 255, 127)
-vis.colors.grey = vis.fromRGBA(127, 127, 127, 255)
-vis.colors.greyHalf = vis.fromRGBA(127, 127, 127, 127)
+colors.black = fromRGBA(0, 0, 0, 255);
+colors.blackHalf = fromRGBA(0, 0, 0, 127);
+colors.white = fromRGBA(255, 255, 255, 255);
+colors.whiteHalf = fromRGBA(255, 255, 255, 127);
+colors.grey = fromRGBA(127, 127, 127, 255);
+colors.greyHalf = fromRGBA(127, 127, 127, 127);
 
-vis.colors.red = vis.fromRGBA(255, 0, 0, 255)
-vis.colors.redHalf = vis.fromRGBA(255, 0, 0, 127)
-vis.colors.green = vis.fromRGBA(0, 255, 0, 255)
-vis.colors.greenHalf = vis.fromRGBA(0, 255, 0, 127)
-vis.colors.blue = vis.fromRGBA(0, 0, 255, 255)
-vis.colors.blueHalf = vis.fromRGBA(0, 0, 255, 127)
+colors.red = fromRGBA(255, 0, 0, 255);
+colors.redHalf = fromRGBA(255, 0, 0, 127);
+colors.green = fromRGBA(0, 255, 0, 255);
+colors.greenHalf = fromRGBA(0, 255, 0, 127);
+colors.blue = fromRGBA(0, 0, 255, 255);
+colors.blueHalf = fromRGBA(0, 0, 255, 127);
 
-vis.colors.yellow = vis.fromRGBA(255, 255, 0, 255)
-vis.colors.yellowHalf = vis.fromRGBA(255, 255, 0, 127)
-vis.colors.pink = vis.fromRGBA(255, 0, 255, 255)
-vis.colors.pinkHalf = vis.fromRGBA(255, 0, 255, 127)
-vis.colors.turquoise = vis.fromRGBA(0, 255, 255, 255)
-vis.colors.turquoiseHalf = vis.fromRGBA(0, 255, 255, 127)
+colors.yellow = fromRGBA(255, 255, 0, 255);
+colors.yellowHalf = fromRGBA(255, 255, 0, 127);
+colors.pink = fromRGBA(255, 0, 255, 255);
+colors.pinkHalf = fromRGBA(255, 0, 255, 127);
+colors.turquoise = fromRGBA(0, 255, 255, 255);
+colors.turquoiseHalf = fromRGBA(0, 255, 255, 127);
 
-vis.colors.orange = vis.fromRGBA(255, 127, 0, 255)
-vis.colors.orangeHalf = vis.fromRGBA(255, 127, 0, 127)
-vis.colors.magenta = vis.fromRGBA(255, 0, 127, 255)
-vis.colors.magentaHalf = vis.fromRGBA(255, 0, 127, 127)
-vis.colors.brown = vis.fromRGBA(127, 63, 0, 255)
-vis.colors.brownHalf = vis.fromRGBA(127, 63, 0, 127)
-vis.colors.skyBlue = vis.fromRGBA(127, 191, 255, 255)
-vis.colors.skyBlueHalf = vis.fromRGBA(127, 191, 255, 127)
+colors.orange = fromRGBA(255, 127, 0, 255);
+colors.orangeHalf = fromRGBA(255, 127, 0, 127);
+colors.magenta = fromRGBA(255, 0, 127, 255);
+colors.magentaHalf = fromRGBA(255, 0, 127, 127);
+colors.brown = fromRGBA(127, 63, 0, 255);
+colors.brownHalf = fromRGBA(127, 63, 0, 127);
+colors.skyBlue = fromRGBA(127, 191, 255, 255);
+colors.skyBlueHalf = fromRGBA(127, 191, 255, 127);
 
-vis.colors.slate = vis.fromRGBA(112, 118, 144, 255)
-vis.colors.slateHalf = vis.fromRGBA(112, 118, 144, 127)
-vis.colors.orchid = vis.fromRGBA(218, 94, 224, 255)
-vis.colors.orchidHalf = vis.fromRGBA(218, 94, 224, 127)
-vis.colors.gold = vis.fromRGBA(239, 185, 15, 255)
-vis.colors.goldHalf = vis.fromRGBA(239, 185, 15, 127)
-vis.colors.mediumPurple = vis.fromRGBA(171, 130, 255, 255)
-vis.colors.mediumPurpleHalf = vis.fromRGBA(171, 130, 255, 127)
-vis.colors.darkPurple = vis.fromRGBA(93, 71, 139, 255)
-vis.colors.darkPurpleHalf = vis.fromRGBA(93, 71, 139, 127)
+colors.slate = fromRGBA(112, 118, 144, 255);
+colors.slateHalf = fromRGBA(112, 118, 144, 127);
+colors.orchid = fromRGBA(218, 94, 224, 255);
+colors.orchidHalf = fromRGBA(218, 94, 224, 127);
+colors.gold = fromRGBA(239, 185, 15, 255);
+colors.goldHalf = fromRGBA(239, 185, 15, 127);
+colors.mediumPurple = fromRGBA(171, 130, 255, 255);
+colors.mediumPurpleHalf = fromRGBA(171, 130, 255, 127);
+colors.darkPurple = fromRGBA(93, 71, 139, 255);
+colors.darkPurpleHalf = fromRGBA(93, 71, 139, 127);
 
 
 /// Sets line and fill color.
@@ -164,9 +168,9 @@ vis.colors.darkPurpleHalf = vis.fromRGBA(93, 71, 139, 127)
 // @name setColor
 // @param color table
 // @param isFilled bool
-function vis.setColor (color, isFilled) {
-	gcolor = color
-	gisFilled = isFilled
+export function setColor (color: Color, isFilled: boolean) {
+	gcolor = color;
+	gisFilled = isFilled;
 }
 
 /// Adds a circle.
@@ -177,48 +181,32 @@ function vis.setColor (color, isFilled) {
 // @param radius number - radius of the circle
 // @param color table - color (optional)
 // @param isFilled bool - fill circle (optional)
-function vis.addCircle (name, center, radius, color, isFilled, background, style, lineWidth) {
-	assert(radius, "missing radius parameter")
-	vis.addCircleRaw(name, Coordinates.toGlobal(center), radius, color, isFilled, background, style, lineWidth)
+export function addCircle (name: string, center: Position, radius: number, color?: Color,
+		isFilled?: boolean, background?: boolean, style?: Style, lineWidth?: number) {
+	addCircleRaw(name, Coordinates.toGlobal(center), radius, color, isFilled, background, style, lineWidth);
 }
 
 /// Adds a circle. Requires global coordinates.
 // @name addCircleRaw
 // @see addCircle
-function vis.addCircleRawGeneric (name, center, radius, color, isFilled, background, style, lineWidth) {
+export function addCircleRaw (name: string, center: Position, radius: number, color?: Color,
+		isFilled?: boolean, background?: boolean, style?: Style, lineWidth: number = 0.01) {
 	// if color is set use passed isFilled
-	if (not color) {
-		isFilled = gisFilled
-		color = gcolor
+	if (color == undefined) {
+		isFilled = gisFilled;
+		color = gcolor;
 	}
-	amun.addVisualization({
-		name = name, pen = { color=color, style=style },
-		brush = isFilled ? color : nil, width = lineWidth  ||  0.01,
-		circle = {p_x = center.x, p_y = center.y, radius = radius},
-		background = background
-	})
-}
-
-if amun.addVisualizationCircle then
-	/// Adds a circle. Requires global coordinates.
-	// @name addCircleRaw
-	// @see addCircle
-	function vis.addCircleRaw (name, center, radius, color, isFilled, background, style, lineWidth) {
-		if (style != nil) {
-			return vis.addCircleRawGeneric(name, center, radius, color, isFilled, background, style, lineWidth)
-		}
-
-		// if color is set use passed isFilled
-		if (not color) {
-			isFilled = gisFilled
-			color = gcolor
-		}
-		amun.addVisualizationCircle(name, center.x, center.y, radius,
-				color.red, color.green, color.blue, color.alpha,
-				isFilled, background, lineWidth  ||  0.01)
+	let brush: Color | undefined;
+	if (isFilled) {
+		brush = color;
 	}
-} else {
-	vis.addCircleRaw = vis.addCircleRawGeneric
+	let t: any = {
+		name: name, pen: { color: color, style: style },
+		brush: brush, width: lineWidth,
+		circle: {p_x: center.x, p_y: center.y, radius: radius},
+		background: background
+	};
+	amunLocal.addVisualization(t);
 }
 
 /// Adds a polygon.
@@ -228,25 +216,31 @@ if amun.addVisualizationCircle then
 // @param points Vector[] - Points of the polygon
 // @param color table - color (optional)
 // @param isFilled bool - fill circle (optional)
-function vis.addPolygon (name, points, color, isFilled, background, style) {
-	vis.addPolygonRaw(name, Coordinates.listToGlobal(points), color, isFilled, background, style)
+export function addPolygon (name: string, points: Position[], color?: Color,
+		isFilled?: boolean, background?: boolean, style?: Style) {
+	addPolygonRaw(name, Coordinates.listToGlobal(points), color, isFilled, background, style);
 }
 
 /// Adds a polygon. Requires global coordinates.
 // @name addPolygonRaw
 // @see addPolygon
-function vis.addPolygonRaw (name, points, color, isFilled, background, style) {
+export function addPolygonRaw (name: string, points: Position[], color?: Color,
+		isFilled?: boolean, background?: boolean, style?: Style) {
 	// if color is set use passed isFilled
-	if (not color) {
-		isFilled = gisFilled
-		color = gcolor
+	if (color == undefined) {
+		isFilled = gisFilled;
+		color = gcolor;
 	}
-	amun.addVisualization({
-		name = name, pen = { color=color, style=style },
-		brush = isFilled ? color : nil, width = 0.01,
-		polygon = {point = points},
-		background = background
-	})
+	let brush: Color | undefined;
+	if (isFilled) {
+		brush = color;
+	}
+	amunLocal.addVisualization({
+		name: name, pen: { color:color, style:style },
+		brush: brush, width: 0.01,
+		polygon: {point: points},
+		background: background
+	});
 }
 
 
@@ -259,18 +253,19 @@ function vis.addPolygonRaw (name, points, color, isFilled, background, style) {
 //@param isFilled bool - see @addPolygon
 //@param background - see @addPolygon
 //@param style - see @addPolygon
-function vis.addAxisAlignedRectangle (name, corner1, corner2, color, isFilled, background, style) {
+export function addAxisAlignedRectangle (name: string, corner1: Position, corner2: Position,
+		color?: Color, isFilled?: boolean, background?: boolean, style?: Style) {
 	let minX, minY, maxX, maxY
-	minX = math.min(corner1.x, corner2.x)
-	minY = math.min(corner1.y, corner2.y)
-	maxX = math.max(corner1.x, corner2.x)
-	maxY = math.max(corner1.y, corner2.y)
-	let path = {}
-	table.insert(path, Vector(minX, minY));
-	table.insert(path, Vector(minX, maxY));
-	table.insert(path, Vector(maxX, maxY));
-	table.insert(path, Vector(maxX, minY));
-	vis.addPolygon(name, path, color, isFilled, background, style)
+	minX = Math.min(corner1.x, corner2.x);
+	minY = Math.min(corner1.y, corner2.y);
+	maxX = Math.max(corner1.x, corner2.x);
+	maxY = Math.max(corner1.y, corner2.y);
+	let path: Position[] = [];
+	path[0] = new Vector(minX, minY);
+	path[1] = new Vector(minX, maxY);
+	path[2] = new Vector(maxX, maxY);
+	path[3] = new Vector(maxX, minY);
+	addPolygon(name, path, color, isFilled, background, style);
 }
 
 /// Paints a Pizza where everything outside of [startAngle, endAngle] is filled
@@ -280,22 +275,23 @@ function vis.addAxisAlignedRectangle (name, corner1, corner2, color, isFilled, b
 // @param radius number - radius of the pizza
 // @param startAngle number - the starting angle of the missing pizza piece
 // @param endAngle number - the end angle of the missing pizza piece
-let N_corners = 25
-function vis.addPizza (name, center, radius, startAngle, endAngle, color, isFilled, background, style) {
-	let points = {center + Vector.fromAngle(startAngle)*radius, center, center + Vector.fromAngle(endAngle)*radius}
-	if ((startAngle - endAngle)%(2*math.pi) < 2*math.pi/N_corners) {
-		vis.addPolygon(name, points, color, isFilled, background, style)
+let N_corners = 25;
+export function addPizza (name: string, center: Position, radius: number,
+		startAngle: number, endAngle: number, color?: Color, isFilled?: boolean, background?: boolean, style?: Style) {
+	let points = [center + Vector.fromAngle(startAngle)*radius, center, center + Vector.fromAngle(endAngle)*radius];
+	if ((startAngle - endAngle)%(2*Math.PI) < 2*Math.PI/N_corners) {
+		addPolygon(name, points, color, isFilled, background, style);
 	} else {
-		let wStart = math.ceil(N_corners*endAngle/(2*math.pi))
-		let wEnd = math.floor(N_corners*startAngle/(2*math.pi))
+		let wStart = Math.ceil(N_corners*endAngle/(2*Math.PI));
+		let wEnd = Math.floor(N_corners*startAngle/(2*Math.PI));
 		if (wEnd < wStart) {
-			wEnd = wEnd + N_corners
+			wEnd = wEnd + N_corners;
 		}
-		for (w = wStart, wEnd) {
-			let angle = w*math.pi*2/N_corners
-			table.insert(points, center + Vector.fromAngle(angle)*radius)
+		for (let w = wStart; w<wEnd; w++) {
+			let angle = w*Math.PI*2/N_corners;
+			points.push(center + Vector.fromAngle(angle)*radius);
 		}
-		vis.addPolygon(name, points, color, isFilled, background, style)
+		addPolygon(name, points, color, isFilled, background, style);
 	}
 }
 
@@ -305,21 +301,19 @@ function vis.addPizza (name, center, radius, startAngle, endAngle, color, isFill
 // @param name string - Visualization group
 // @param points Vector[] - Points of the path
 // @param color table - line color (optional)
-function vis.addPath (name, points, color, background, style, lineWidth) {
-	vis.addPathRaw(name, Coordinates.listToGlobal(points), color, background, style, lineWidth)
+export function addPath (name: string, points: Position[], color?: Color, background?: boolean, style?: Style, lineWidth?: number) {
+	addPathRaw(name, Coordinates.listToGlobal(points), color, background, style, lineWidth);
 }
 
 /// Adds a path. Requires global coordinates.
 // @name addPathRaw
 // @see addPath
-function vis.addPathRaw (name, points, color, background, style, lineWidth) {
-	color = color  ||  gcolor
-	amun.addVisualization({
-		name = name, pen = { color=color, style=style },
-		width = lineWidth  ||  0.01,
-		path = {point = points},
-		background = background
-	})
+export function addPathRaw (name: string, points: Position[], color: Color = gcolor, background?: boolean,
+		style?: Style, lineWidth: number = 0.01) {
+	amunLocal.addVisualization({
+		name: name, pen: { color:color, style:style },
+		width: lineWidth,
+		path: {point: points},
+		background: background
+	});
 }
-
-return vis

@@ -26,7 +26,6 @@
 import * as geom from "../base/geom";
 import * as MathUtil from "../base/mathutil";
 
-// TODO: readonly
 export class Vector {
 	public x: number;
 	public y: number;

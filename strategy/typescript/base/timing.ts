@@ -1,37 +1,54 @@
-let timing = {}
+/**************************************************************************
+*   Copyright 2018 Andreas Wendler                                        *
+*   Robotics Erlangen e.V.                                                *
+*   http://www.robotics-erlangen.de/                                      *
+*   info@robotics-erlangen.de                                             *
+*                                                                         *
+*   This program is free software: you can redistribute it and/or modify  *
+*   it under the terms of the GNU General Public License as published by  *
+*   the Free Software Foundation, either version 3 of the License, or     *
+*   any later version.                                                    *
+*                                                                         *
+*   This program is distributed in the hope that it will be useful,       *
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   GNU General Public License for more details.                          *
+*                                                                         *
+*   You should have received a copy of the GNU General Public License     *
+*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+**************************************************************************/
 
-let debug = require "../base/debug"
-let plot = require "../base/plot"
+import * as debug from "../base/debug";
+import * as plot from "../base/plot";
+import {amunFunction} from "../base/amun";
 
-let startTimes = {}
+let startTimes: {[name: string]: number} = {};
 
-function timing.start (name, robotId) {
-	let key = name  +  "."  +  String(robotId)
+export function start (name: string, robotId: number) {
+	let key = name + "." + String(robotId);
 	if (startTimes[key]) {
-		error("multiple start calls")
+		throw "timing: multiple start calls";
 	}
 
-	startTimes[key] = amun.getCurrentTime()
+	startTimes[key] = amunFunction.getCurrentTime();
 }
 
-function timing.finish (name, robotId) {
-	let key = name  +  "."  +  String(robotId)
-	if (not startTimes[key]) {
-		error("no start call")
+export function finish (name: string, robotId: number) {
+	let key = name + "." + robotId;
+	if (startTimes[key] == undefined) {
+		throw "timing: no start call";
 	}
 
-	let timeDiffMs = (amun.getCurrentTime() - startTimes[key]) * 1000
+	let timeDiffMs = (amunFunction.getCurrentTime() - startTimes[key]) * 1000;
 	if (timeDiffMs < 0.001) {
-		timeDiffMs = 0
+		timeDiffMs = 0;
 	}
 
-	debug.push("Timing")
-	debug.set(name, string.sub(String(timeDiffMs), 0, 5)  +  "ms")
-	debug.pop()
+	debug.push("Timing");
+	debug.set(name, String(timeDiffMs).slice(0, 5)  +  " ms");
+	debug.pop();
 
-	plot.addPlot(key, timeDiffMs)
+	plot.addPlot(key, timeDiffMs);
 
-	startTimes[key] = nil
+	delete startTimes[key];
 }
-
-return timing
