@@ -35,12 +35,13 @@ export class Vector {
 		this.y = y;
 	}
 
+	// functions used for operator overloading
 	add (other: Vector): Vector {
-		return new Vector(this.x + other.y, this.y + other.y);
+		return new Vector(this.x + other.x, this.y + other.y);
 	}
 
 	sub (other: Vector): Vector {
-		return new Vector(this.x - other.y, this.y - other.y);
+		return new Vector(this.x - other.x, this.y - other.y);
 	}
 
 	mul (factor: number): Vector {
@@ -49,6 +50,10 @@ export class Vector {
 
 	div (factor: number): Vector {
 		return new Vector(this.x / factor, this.y / factor);
+	}
+
+	unm(): Vector {
+		return new Vector(-this.x, -this.y);
 	}
 
 	/// Creates a copy of the current vector.
