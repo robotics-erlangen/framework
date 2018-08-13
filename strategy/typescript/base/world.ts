@@ -102,7 +102,7 @@ export let BallPlacementPos: Readonly<Position> | undefined;
 
 export let RULEVERSION: string = "";
 
-interface GeometryType {
+export interface GeometryType {
 	FieldWidth: number;
 	FieldHeight: number;
 	FieldWidthHalf: number;

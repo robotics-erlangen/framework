@@ -78,7 +78,7 @@ export function boundRect (p1: Position, pos: Position, p2: Position): Position 
 // @return number - first lambda
 // @return number - second lambda, which is always less then first lambda
 export function intersectLineCircle (offset: Position, dir: RelativePosition, center: Position, radius: number):
-		[Position, Position?, number?, number?] | undefined {
+		[] | [Position, undefined, number, undefined] | [Position, Position, number, number] {
 	dir = dir.copy().normalize();
 	let constPart = offset - center;
 	// |offset + lambda*dir - center| = radius
@@ -91,12 +91,12 @@ export function intersectLineCircle (offset: Position, dir: RelativePosition, ce
 	let det = b * b - 4 * a * c;
 
 	if (det < 0) {
-		return;
+		return [];
 	}
 
 	if (det < 0.00001) {
 		let lambda1 = (-b)/(2*a);
-		return [offset + dir * lambda1, undefined, lambda1];
+		return [offset + dir * lambda1, undefined, lambda1, undefined];
 	}
 
 	let lambda1 = (-b + Math.sqrt(det))/(2*a);
