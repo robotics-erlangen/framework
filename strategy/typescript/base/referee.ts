@@ -23,11 +23,11 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import {maxRobotRadius} from "../base/constants";
-import * as vis from "../base/vis";
-import * as World from "../base/world";
-import {Vector, Position} from "../base/vector";
-import {Robot} from "../base/robot";
+import {maxRobotRadius} from "base/constants";
+import * as vis from "base/vis";
+import * as World from "base/world";
+import {Vector, Position} from "base/vector";
+import {Robot} from "base/robot";
 
 export const enum RefereeState {
 	Halt = "Halt",

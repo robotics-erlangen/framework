@@ -25,7 +25,7 @@ module "debug"
 
 declare var amun: any;
 let addDebug:Function = amun.addDebug;
-import {log} from "../base/globals";
+import {log} from "base/globals";
 
 let debugStack: string[] = [""];
 

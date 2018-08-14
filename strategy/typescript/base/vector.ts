@@ -23,8 +23,8 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import * as geom from "../base/geom";
-import * as MathUtil from "../base/mathutil";
+import * as geom from "base/geom";
+import * as MathUtil from "base/mathutil";
 
 export class Vector {
 	public x: number;
@@ -56,6 +56,26 @@ export class Vector {
 		return new Vector(-this.x, -this.y);
 	}
 
+	addEq (other: Vector) {
+		this.x += other.x;
+		this.y += other.y;
+	}
+
+	subEq (other: Vector) {
+		this.x -= other.x;
+		this.y -= other.y;
+	}
+
+	mulEq (factor: number) {
+		this.x *= factor;
+		this.y *= factor;
+	}
+
+	divEq (factor: number) {
+		this.x /= factor;
+		this.y /= factor;
+	}
+
 	/// Creates a copy of the current vector.
 	// Doesn't copy read-only flag
 	// @return Vector - copy
@@ -79,6 +99,10 @@ export class Vector {
 		let x = this.x;
 		let y = this.y;
 		return Math.sqrt(x * x + y * y)
+	}
+
+	equals (other: Vector): boolean {
+		return this.x == other.x && this.y == other.y;
 	}
 
 	/// Get squared vector length

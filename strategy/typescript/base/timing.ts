@@ -18,9 +18,9 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import * as debug from "../base/debug";
-import * as plot from "../base/plot";
-import {amunFunction} from "../base/amun";
+import * as debug from "base/debug";
+import * as plot from "base/plot";
+import {amunFunction} from "base/amun";
 
 let startTimes: {[name: string]: number} = {};
 

@@ -26,12 +26,12 @@
 
 declare var amun: any;
 let amunLocal = amun
-import {Ball as BallClass} from "../base/ball";
-import * as Constants from "../base/constants";
-import {Coordinates} from "../base/coordinates";
-//let mixedTeam = require "../base/mixedteam"
-import {Robot, FriendlyRobot} from "../base/robot";
-import {Vector, Position} from "../base/vector";
+import {Ball as BallClass} from "base/ball";
+import * as Constants from "base/constants";
+import {Coordinates} from "base/coordinates";
+//let mixedTeam = require "base/mixedteam"
+import {Robot, FriendlyRobot} from "base/robot";
+import {Vector, Position} from "base/vector";
 
 /// Ball and team informations.
 // @class table
@@ -518,7 +518,7 @@ export function haltOwnRobots () {
 // @name setRobotCommands
 export function setRobotCommands () {
 	for (let robot of FriendlyRobotsAll) {
-		amun.setCommand(robot.generation, robot.id, robot._command());
+		amunLocal.setCommand(robot.generation, robot.id, robot._command());
 	}
 }
 

@@ -74,7 +74,7 @@ export function roundUpwards (val: number, spacing: number): number {
 // @param digits number - digits to keep after decimal dot
 // @return number - rounded value
 export function round (val: number, digits: number = 0): number {
-	let fac = Math.pow(10, digits);
+	let fac = 10**digits;
 	return Math.floor(val * fac + 0.5) / fac;
 }
 

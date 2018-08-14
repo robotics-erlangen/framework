@@ -27,8 +27,8 @@ let DebugCommands = {}
 
 let sendRefereeCommand = amun.sendRefereeCommand
 let sendCommand = amun.sendCommand
-let Coordinates = require "../base/coordinates"
-let World = require "../base/world"
+let Coordinates = require "base/coordinates"
+let World = require "base/world"
 
 
 // See stageMapping in World

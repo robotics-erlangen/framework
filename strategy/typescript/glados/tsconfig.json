@@ -1,7 +1,6 @@
 {
     "compilerOptions": {
         "allowUnreachableCode": false,
-		"baseUrl": ".",
 		"module": "AMD",
 		"lib": ["ESNext", "ES2018", "ES2017", "ES2016", "ES2015"],
 		"moduleResolution": "node",
@@ -15,13 +14,10 @@
 		"strictNullChecks": true,
 		"strict": true,
 		"target": "esnext",
-		"outDir": "built"
+		"outDir": "built",
+		"baseUrl": ".."
     },
     "files": [
-        "init.ts",
-        "../base/entrypoints.ts",
-        "../base/amun.ts",
-        "../base/globals.ts",
-        "../base/debug.ts"
+        "init.ts"
     ]
 }
