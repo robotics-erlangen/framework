@@ -222,9 +222,9 @@ static void pathGet(const FunctionCallbackInfo<Value>& args)
     unsigned int i = 0;
     Local<Array> result = Array::New(isolate, list.size());
     Local<String> pxString = String::NewFromUtf8(isolate, "p_x", NewStringType::kNormal).ToLocalChecked();
-    Local<String> pyString = String::NewFromUtf8(isolate, "p_x", NewStringType::kNormal).ToLocalChecked();
-    Local<String> leftString = String::NewFromUtf8(isolate, "p_x", NewStringType::kNormal).ToLocalChecked();
-    Local<String> rightString = String::NewFromUtf8(isolate, "p_x", NewStringType::kNormal).ToLocalChecked();
+    Local<String> pyString = String::NewFromUtf8(isolate, "p_y", NewStringType::kNormal).ToLocalChecked();
+    Local<String> leftString = String::NewFromUtf8(isolate, "left", NewStringType::kNormal).ToLocalChecked();
+    Local<String> rightString = String::NewFromUtf8(isolate, "right", NewStringType::kNormal).ToLocalChecked();
     for (const Path::Waypoint &wp : list) {
         Local<Object> wayPoint = Object::New(isolate);
         wayPoint->Set(pxString, Number::New(isolate, double(wp.x)));
@@ -236,6 +236,7 @@ static void pathGet(const FunctionCallbackInfo<Value>& args)
 
     Typescript *ts = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
     ts->addPathTime((Timer::systemTime() - t) / 1E9);
+    args.GetReturnValue().Set(result);
 }
 
 // TODO: drawTreeVisualization
@@ -262,7 +263,7 @@ void registerPathJsCallbacks(Isolate *isolate, Local<Object> global, Typescript 
         { "addRect",            pathAddRect},
         { "addTriangle",        pathAddTriangle},
         { "test",               pathTest},
-        { "get",                pathGet}};
+        { "getPath",            pathGet}};
 
     Local<Object> pathObject = Object::New(isolate);
     Local<String> pathStr = String::NewFromUtf8(isolate, "path", NewStringType::kNormal).ToLocalChecked();

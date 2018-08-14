@@ -143,6 +143,9 @@ Local<Value> protobufToJs(Isolate *isolate, const google::protobuf::Message &mes
 
 static void jsValueToProtobufField(Isolate *isolate, Local<Value> value, Local<Context> c, google::protobuf::Message &message, const google::protobuf::FieldDescriptor *field)
 {
+    if (value->IsNullOrUndefined()) {
+        return;
+    }
     const google::protobuf::Reflection *refl = message.GetReflection();
 
     // TODO: ra will crash when the type doesn't match
@@ -256,7 +259,7 @@ void jsToProtobuf(Isolate *isolate, Local<Value> value, Local<Context> c, google
     // TODO: add error messages?
 
     Local<Object> object;
-    if (!value->ToObject(c).ToLocal(&object)) {
+    if (value->IsNullOrUndefined() || !value->ToObject(c).ToLocal(&object)) {
         return;
     }
 
