@@ -1,90 +1,88 @@
+/*
+// Provides a caching mechanism for function calls
+// module "Cache"
+*/
 
-///// Provides a caching mechanism for function calls
-//module "Cache"
-////
+/**************************************************************************
+*   Copyright 2018 Michael Eischer, Andreas Wendler                       *
+*   Robotics Erlangen e.V.                                                *
+*   http://www.robotics-erlangen.de/                                      *
+*   info@robotics-erlangen.de                                             *
+*                                                                         *
+*   This program is free software: you can redistribute it and/or modify  *
+*   it under the terms of the GNU General Public License as published by  *
+*   the Free Software Foundation, either version 3 of the License, or     *
+*   any later version.                                                    *
+*                                                                         *
+*   This program is distributed in the hope that it will be useful,       *
+*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   GNU General Public License for more details.                          *
+*                                                                         *
+*   You should have received a copy of the GNU General Public License     *
+*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+**************************************************************************/
 
-//***********************************************************************
-//*   Copyright 2015 Michael Eischer                                        *
-//*   Robotics Erlangen e.V.                                                *
-//*   http://www.robotics-erlangen.de/                                      *
-//*   info@robotics-erlangen.de                                             *
-//*                                                                         *
-//*   This program is free software: you can redistribute it and/or modify  *
-//*   it under the terms of the GNU General Public License as published by  *
-//*   the Free Software Foundation, either version 3 of the License, or     *
-//*   any later version.                                                    *
-//*                                                                         *
-//*   This program is distributed in the hope that it will be useful,       *
-//*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-//*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-//*   GNU General Public License for more details.                          *
-//*                                                                         *
-//*   You should have received a copy of the GNU General Public License     *
-//*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-//*************************************************************************
+let cleanup: Function[] = [];
+let undefinedObj = [];
 
-let Cache = {}
+function getFromCache (cached, params: any[]): any[] {
+	let pcount = table.maxn(params);
+	params[0] = pcount;
 
-let cleanup = {}
-let nilObj = {}
-
-let getFromCache = function (cached, params) {
-	let pcount = table.maxn(params)
-	params[0] = pcount
-
-	let entry = cached
+	let entry = cached;
 	for (i = 0, pcount) {
-		let param = params[i]
-		if (param == nil) {
-			param = nilObj
+		let param = params[i];
+		if (param == undefined) {
+			param = undefinedObj;
 		}
-		entry = entry[param]
-		if (entry == nil) {
-			return nil
+		entry = entry[param];
+		if (entry == undefined) {
+			return undefined;
 		}
 	}
-	return entry
+	return entry;
 }
 
-let setInCache = function (cached, params, result) {
-	let pcount = table.maxn(params)
-	params[0] = pcount
+function setInCache (cached, params, result) {
+	let pcount = table.maxn(params);
+	params[0] = pcount;
 
-	let entry = cached
+	let entry = cached;
 	for (i = 0, pcount) {
-		let param = params[i]
-		// nil can't be used as array index
-		if (param == nil) {
-			param = nilObj
+		let param = params[i];
+		// undefined can't be used as array index
+		if (param == undefined) {
+			param = undefinedObj;
 		}
 		if (i == pcount) {
-			entry[param] = result
-			return
-		} else if (entry[param] == nil) {
-			let newEntry = {}
-			setmetatable(newEntry, {__mode = "k"})
-			entry[param] = newEntry
+			entry[param] = result;
+			return;
+		} else if (entry[param] == undefined) {
+			let newEntry = {};
+			setmetatable(newEntry, {__mode = "k"});
+			entry[param] = newEntry;
 		}
-		entry = entry[param]
+		entry = entry[param];
 	}
 }
 
-let makeCached = function (f, keepForever) {
-	let cached = {}
-	if (not keepForever) {
-		table.insert(cleanup,
-			function()
-				cached = {}
+function makeCached (f: Function, keepForever: boolean) {
+	let cached = {};
+	if (!keepForever) {
+		cleanup.push(
+			function() {
+				cached = {};
 			}
-		)
+		);
 	}
-	return function(...)
-		let result = getFromCache(cached, {...})
-		if (not result) {
-			result = { f(...) }
-			setInCache(cached, {...}, result)
+	return function(...args: any[]): any[] {
+		let result = getFromCache(cached, args);
+		if (result == undefined) {
+			result = { f(...args) };
+			setInCache(cached, args, result);
 		}
-		return unpack(result)
+		return result;
 	}
 }
 
@@ -92,24 +90,32 @@ let makeCached = function (f, keepForever) {
 // @name forFrame
 // @param f function - function to wrap
 // @return function - wrapped function
-function Cache.forFrame (f) {
-	return makeCached(f, false)
+export function forFrame (f: Function): Function {
+	return makeCached(f, false);
+}
+
+// the function argument must only have one return value
+export function forFrameSingle (f: Function): Function {
+	return makeCachedSingle(f, false);
 }
 
 /// Wraps a function call, the returned value is cached until the strategy is reloaded
 // @name forever
 // @param f function - function to wrap
 // @return function - wrapped function
-function Cache.forever (f) {
-	return makeCached(f, true)
+export function forever (f: Function): Function {
+	return makeCached(f, true);
+}
+
+// the function argument must only have one return value
+export function foreverSingle (f: Function): Function {
+	return makeCachedSingle(f, true);
 }
 
 /// Clears the value cache for the current frame
 // @name resetFrame
-function Cache.resetFrame () {
-	for (i = 1, #cleanup) {
-		cleanup[i]()
+export function resetFrame () {
+	for (let obj of cleanup) {
+		obj();
 	}
 }
-
-return Cache

@@ -24,8 +24,8 @@
 //*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 //*************************************************************************
 
-import {Vector, Position, RelativePosition} from "../base/vector";
-import * as MathUtil from "../base/mathutil";
+import {Vector, Position, RelativePosition} from "base/vector";
+import * as MathUtil from "base/mathutil";
 
 /// Intersects two circles.
 // Returns up to two intersections or nothing if no intersections exist.
@@ -124,7 +124,7 @@ export function intersectLineCircle (offset: Position, dir: RelativePosition, ce
 // the intersection with their lambdas are sorted so that lambda1 <= lambda2
 export function intersectLineCorridor (offset : Position, direction: RelativePosition, offsetCorridor: Position,
 		directionCorridor: RelativePosition, widthHalf: number): [Position?, Position?, number?, number?, number?, number?] {
-	if (directionCorridor != new Vector(0, 0)) {
+	if (directionCorridor.equals(new Vector(0, 0))) {
 		throw new Error("intersectLineCorridor: directionCorridor can not be a 0 vector");
 	}
 	let corridorPerpendicular = directionCorridor.perpendicular().setLength(widthHalf);
@@ -132,7 +132,7 @@ export function intersectLineCorridor (offset : Position, direction: RelativePos
 	let offsetCorridorRight = offsetCorridor - corridorPerpendicular;
 	let [intersectionLeft, lambdaLeftLine, lambdaLeft] = intersectLineLine(offset, direction,
 															offsetCorridorLeft, directionCorridor);
-	if (intersectionLeft || direction == new Vector(0, 0)) { // TODO: ==???
+	if (intersectionLeft || direction.equals(new Vector(0, 0))) {
 		// Either no intersection || line is in corridor
 		let leftDistance = offset.orthogonalDistance(offsetCorridorLeft, offsetCorridorLeft + directionCorridor);
 		let rightDistance = offset.orthogonalDistance(offsetCorridorRight, offsetCorridorRight + directionCorridor);

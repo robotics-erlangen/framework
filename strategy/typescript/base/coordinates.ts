@@ -51,7 +51,7 @@ module "Coordinates"
 
 //separator for luadoc//
 
-import {Vector} from "../base/vector";
+import {Vector} from "base/vector";
 
 interface CoordinatesType {
 	toGlobal(pos: Vector): Vector;

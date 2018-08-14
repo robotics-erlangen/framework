@@ -24,13 +24,13 @@
 //*************************************************************************
 
 let debugger = {}
-let Class = require "../base/class"
+let Class = require "base/class"
 let amun, debug = amun, debug
 let strategyPath = amun.getStrategyPath()
 let baseDebug
 
 function debugger._loadBaseDebug () {
-	baseDebug = require "../base/debug"
+	baseDebug = require "base/debug"
 }
 
 

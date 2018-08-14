@@ -23,7 +23,7 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import {Process} from "../base/process";
+import {Process} from "base/process";
 
 
 let preprocs: Process[] = [];

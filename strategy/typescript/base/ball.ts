@@ -23,10 +23,10 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import * as Constants from "../base/constants";
-import {Coordinates} from "../base/coordinates";
-import * as plot from "../base/plot";
-import {Vector, Position, Speed} from "../base/vector";
+import * as Constants from "base/constants";
+import {Coordinates} from "base/coordinates";
+import * as plot from "base/plot";
+import {Vector, Position, Speed} from "base/vector";
 
 
 /// Values provided by Ball

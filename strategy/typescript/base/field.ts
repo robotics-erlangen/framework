@@ -24,13 +24,13 @@ module "Field"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import * as geom from "../base/geom";
-import * as MathUtil from "../base/mathutil";
-import * as Referee from "../base/referee";
-import * as World from "../base/world";
-import {Vector, Position, RelativePosition} from "../base/vector";
-import * as vis from "../base/vis";
-import {log} from "../base/globals";
+import * as geom from "base/geom";
+import * as MathUtil from "base/mathutil";
+import * as Referee from "base/referee";
+import * as World from "base/world";
+import {Vector, Position, RelativePosition} from "base/vector";
+import * as vis from "base/vis";
+import {log} from "base/globals";
 
 let G: Readonly<World.GeometryType> = World.Geometry;
 
@@ -230,7 +230,7 @@ export let distanceToDefenseAreaSq: (pos: Readonly<Position>, friendly: boolean)
 export let distanceToDefenseArea: (pos: Readonly<Position>, radius: number, friendly: boolean)=> number;
 export let isInDefenseArea: (pos: Readonly<Position>, radius: number, friendly: boolean)=> boolean;
 export let limitToAllowedField: (pos: Readonly<Position>, radius?: number)=> Position;
-if (World.RULEVERSION == "2018") {
+if (World.RULEVERSION === "2018") {
 	distanceToDefenseAreaSq = distanceToDefenseAreaSq_2018;
 	distanceToDefenseArea = distanceToDefenseArea_2018;
 	isInDefenseArea = isInDefenseArea_2018;

@@ -23,15 +23,24 @@ module "Trajectory"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import * as vis from "../base/vis";
-import {Coordinates} from "../base/coordinates";
-import {Position, Vector} from "../base/vector";
+import * as vis from "base/vis";
+import {Coordinates} from "base/coordinates";
+import {Position, Speed, Vector} from "base/vector";
+import {Path} from "base/path";
 
 export interface RobotLike {
 	pos: Position;
+	speed: Speed;
+	id: number;
 	radius: number;
+	maxSpeed: number;
+	dir: number;
+	maxAngularSpeed: number;
+	angularSpeed: number;
+	acceleration: any; // TODO: better types
 	prevMoveTo: Position | undefined;
 	setControllerInput (spline: any): any;
+	path: Path;
 }
 
 // base class for trajectory planning

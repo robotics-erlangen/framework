@@ -31,28 +31,28 @@
 //*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 //*************************************************************************
 
-require "../base/amun"
-let debugger = require "../base/debugger" // preload debugger to allow triggering it later
+require "base/amun"
+let debugger = require "base/debugger" // preload debugger to allow triggering it later
 if math.mod != nil then
 	log("Warning: Using LuaJIT without lua 5.2 compatibility mode. Strategy behaviour on replay may be unstable")
 }
-require "../base/path"
+require "base/path"
 // amun.isDebug must already be set, thus load after amun
-require("../base/globalschecker")._init(amun.isDebug)
-require("../base/class")._setDebug(amun.isDebug)
-require "../base/math"
-require "../base/table"
-require "../base/vector"
+require("base/globalschecker")._init(amun.isDebug)
+require("base/class")._setDebug(amun.isDebug)
+require "base/math"
+require "base/table"
+require "base/vector"
 Vector._loadGeom()
 
 // preload classes that require access to the amun API
-require("../base/coordinates")._setIsBlue(amun.isBlue())
-require "../base/debug"
-require "../base/debugcommands"
-require "../base/plot"
-require "../base/robot"
-require "../base/vis"
-require "../base/world"
+require("base/coordinates")._setIsBlue(amun.isBlue())
+require "base/debug"
+require "base/debugcommands"
+require "base/plot"
+require "base/robot"
+require "base/vis"
+require "base/world"
 debugger._loadBaseDebug()
 
 // prevent access to internal APIs

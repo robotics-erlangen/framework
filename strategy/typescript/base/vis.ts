@@ -26,8 +26,8 @@ module "vis"
 declare var amun: any;
 let amunLocal = amun;
 
-import {Coordinates} from "../base/coordinates";
-import {Vector, Position} from "../base/vector";
+import {Coordinates} from "base/coordinates";
+import {Vector, Position} from "base/vector";
 
 
 export class Color {

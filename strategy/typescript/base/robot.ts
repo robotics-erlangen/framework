@@ -23,13 +23,13 @@ module "Robot"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import * as Constants from "../base/constants";
-import {Coordinates} from "../base/coordinates";
-import {Path} from "../base/path";
-import {Trajectory} from "../base/trajectory";
-import * as vis from "../base/vis";
-import {Vector, Position, Speed} from "../base/vector";
-import * as MathUtil from "../base/mathutil";
+import * as Constants from "base/constants";
+import {Coordinates} from "base/coordinates";
+import {Path} from "base/path";
+import {Trajectory} from "base/trajectory";
+import * as vis from "base/vis";
+import {Vector, Position, Speed} from "base/vector";
+import * as MathUtil from "base/mathutil";
 
 
 interface RobotConstants {
@@ -240,7 +240,7 @@ export class Robot {
 		relpos.x = relpos.x - this.shootRadius - ball.radius;
 		// calculate position on the dribbler that would have been hit
 		let offset = Math.abs(relpos.y - relpos.x * latencyCompensation.y / latencyCompensation.x);
-		// local debug = require "../base/debug"
+		// local debug = require "base/debug"
 		// debug.set("latencyCompensation", latencyCompensation)
 		// debug.set("offset", offset)
 
