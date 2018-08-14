@@ -23,6 +23,7 @@
 #include <QFileInfo>
 #include <QTextStream>
 #include <QDebug>
+#include <vector>
 
 #include "v8.h"
 #include "libplatform/libplatform.h"
@@ -37,11 +38,12 @@ Typescript::Typescript(const Timer *timer, StrategyType type, bool debugEnabled,
     Isolate::CreateParams create_params;
     create_params.array_buffer_allocator = ArrayBuffer::Allocator::NewDefaultAllocator();
     m_isolate = Isolate::New(create_params);
+    m_isolate->SetRAILMode(PERFORMANCE_LOAD);
     m_isolate->Enter();
 
     HandleScope handleScope(m_isolate);
     Local<ObjectTemplate> globalTemplate = ObjectTemplate::New(m_isolate);
-    registerModuleResolver(globalTemplate);
+    registerDefineFunction(globalTemplate);
     Local<Context> context = Context::New(m_isolate, nullptr, globalTemplate);
     Context::Scope contextScope(context);
     Local<Object> global = context->Global();
@@ -106,26 +108,25 @@ bool Typescript::loadScript(const QString &filename, const QString &entryPoint, 
             return false;
         }
 
-        Local<Object> exportsValue = v8::Object::New(m_isolate);
-        Local<String> exportsName = String::NewFromUtf8(m_isolate, "exports", NewStringType::kNormal).ToLocalChecked();
-        context->Global()->Set(context, exportsName, exportsValue);
-
         // execute the script once to get entrypoints etc.
-        MaybeLocal<Value> maybeResult = script->Run(context);
+        m_currentExecutingModule = m_filename;
+        script->Run(context);
         if (tryCatch.HasTerminated() || tryCatch.HasCaught()) {
-            String::Utf8Value error(m_isolate, tryCatch.StackTrace(context).ToLocalChecked());
+            String::Utf8Value error(m_isolate, tryCatch.Exception());
             m_errorMsg = "<font color=\"red\">" + QString(*error) + "</font>";
             return false;
         }
-        Local<Value> result;
-        if (!maybeResult.ToLocal(&result)) {
+        Local<Object> initExport = Local<Value>::New(m_isolate, *m_requireCache[m_filename])->ToObject(context).ToLocalChecked();
+        Local<String> scriptInfoString = String::NewFromUtf8(m_isolate, "scriptInfo", NewStringType::kNormal).ToLocalChecked();
+        if (!initExport->Has(context, scriptInfoString).ToChecked()) {
             // the script returns nothing
-            m_errorMsg = "<font color=\"red\">No entrypoints defined!</font>";
+            m_errorMsg = "<font color=\"red\">Script must export scriptInfo object!</font>";
             return false;
         }
+        Local<Value> result = initExport->Get(context, scriptInfoString).ToLocalChecked();
 
         if (!result->IsObject()) {
-            m_errorMsg = "<font color=\"red\">Script doesn't return an object!</font>";
+            m_errorMsg = "<font color=\"red\">scriptInfo export must be an object!</font>";
             return false;
         }
 
@@ -133,7 +134,7 @@ bool Typescript::loadScript(const QString &filename, const QString &entryPoint, 
         Local<String> nameString = String::NewFromUtf8(m_isolate, "name", NewStringType::kNormal).ToLocalChecked();
         Local<String> entrypointsString = String::NewFromUtf8(m_isolate, "entrypoints", NewStringType::kNormal).ToLocalChecked();
         if (!resultObject->Has(nameString) || !resultObject->Has(entrypointsString)) {
-            m_errorMsg = "<font color=\"red\">Script must return object containing 'name' and 'entrypoints'!</font>";
+            m_errorMsg = "<font color=\"red\">scriptInfo export must be an object containing 'name' and 'entrypoints'!</font>";
             return false;
         }
 
@@ -184,49 +185,92 @@ bool Typescript::loadScript(const QString &filename, const QString &entryPoint, 
     }
 }
 
-void Typescript::performRequire(const v8::FunctionCallbackInfo<v8::Value>& args)
+void Typescript::defineModule(const FunctionCallbackInfo<Value> &args)
 {
-    Isolate* isolate = args.GetIsolate();
     Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
-    QString name = *String::Utf8Value(args[0]);
-    if (!t->m_requireCache.contains(name)) {
-        QFileInfo initInfo(t->m_filename);
+    Isolate *isolate = args.GetIsolate();
+    Local<Array> imports = Local<Array>::Cast(args[0]);
+    Local<Function> module = Local<Function>::Cast(args[1]);
+
+    std::vector<Local<Value>> parameters;
+
+    Local<FunctionTemplate> requireTemplate = Local<FunctionTemplate>::New(isolate, t->m_requireTemplate);
+    Local<Context> context = isolate->GetCurrentContext();
+    parameters.push_back(requireTemplate->GetFunction(context).ToLocalChecked());
+
+    Local<Object> exports = Object::New(isolate);
+    parameters.push_back(exports);
+    t->m_requireCache[t->m_currentExecutingModule] = new Global<Value>(isolate, exports);
+
+
+    for (unsigned int i = 2;i<imports->Length();i++) {
+        QString name = *String::Utf8Value(imports->Get(context, i).ToLocalChecked());
+        if (!t->loadModule(name)) {
+            return;
+        }
+        Local<Value> mod = Local<Value>::New(isolate, *t->m_requireCache[name]);
+        parameters.push_back(mod);
+    }
+
+    TryCatch tryCatch(isolate);
+    module->Call(context, context->Global(), parameters.size(), parameters.data());
+    if (tryCatch.HasCaught() || tryCatch.HasTerminated()) {
+        tryCatch.ReThrow();
+        return;
+    }
+}
+
+void Typescript::registerDefineFunction(Local<ObjectTemplate> global)
+{
+    Local<String> name = String::NewFromUtf8(m_isolate, "define", NewStringType::kNormal).ToLocalChecked();
+    global->Set(name, FunctionTemplate::New(m_isolate, defineModule, External::New(m_isolate, this)));
+
+    Local<FunctionTemplate> requireTemplate = FunctionTemplate::New(m_isolate, performRequire, External::New(m_isolate, this));
+    m_requireTemplate.Reset(m_isolate, requireTemplate);
+}
+
+bool Typescript::loadModule(QString name)
+{
+    if (!m_requireCache.contains(name)) {
+        QFileInfo initInfo(m_filename);
         QFile file(initInfo.absolutePath() + "/" + name + ".js");
         file.open(QIODevice::ReadOnly);
         QTextStream in(&file);
         QString content = in.readAll();
         QByteArray contentBytes = content.toLatin1();
 
-        Local<String> source = String::NewFromUtf8(isolate,
+        Local<String> source = String::NewFromUtf8(m_isolate,
                                             contentBytes.data(), NewStringType::kNormal).ToLocalChecked();
-        Local<Context> context = isolate->GetCurrentContext();
-
-        Local<Object> global = context->Global();
-        Local<String> exportsName = String::NewFromUtf8(isolate, "exports", NewStringType::kNormal).ToLocalChecked();
-        Local<Value> exportsBefore = global->Get(context, exportsName).ToLocalChecked();
-        Local<Object> exportsValue = v8::Object::New(isolate);
-        global->Set(context, exportsName, exportsValue);
+        Local<Context> context = m_isolate->GetCurrentContext();
 
         // Compile the source code.
         Local<Script> script;
-        TryCatch tryCatch(isolate);
+        TryCatch tryCatch(m_isolate);
         if (!Script::Compile(context, source).ToLocal(&script)) {
-            String::Utf8Value error(isolate, tryCatch.StackTrace(context).ToLocalChecked());
-            return;
+            tryCatch.ReThrow();
+            return false;
         }
 
         // execute the script once to get entrypoints etc.
+        QString moduleBefore = m_currentExecutingModule;
+        m_currentExecutingModule = name;
         script->Run(context);
-        global->Set(exportsName, exportsBefore);
-        t->m_requireCache[name] = new Global<Value>(isolate, exportsValue);
+        if (tryCatch.HasCaught() || tryCatch.HasTerminated()) {
+            qDebug() <<"Run exception!";
+            tryCatch.ReThrow();
+            return false;
+        }
+        m_currentExecutingModule = moduleBefore;
     }
-    args.GetReturnValue().Set(*t->m_requireCache[name]);
+    return true;
 }
 
-void Typescript::registerModuleResolver(Local<ObjectTemplate> global)
+void Typescript::performRequire(const FunctionCallbackInfo<Value> &args)
 {
-    Local<String> name = String::NewFromUtf8(m_isolate, "require", NewStringType::kNormal).ToLocalChecked();
-    global->Set(name, FunctionTemplate::New(m_isolate, performRequire, External::New(m_isolate, this)));
+    Typescript *t = static_cast<Typescript*>(Local<External>::Cast(args.Data())->Value());
+    QString name = *String::Utf8Value(args[0]);
+    t->loadModule(name);
+    args.GetReturnValue().Set(*t->m_requireCache[name]);
 }
 
 void Typescript::addPathTime(double time)

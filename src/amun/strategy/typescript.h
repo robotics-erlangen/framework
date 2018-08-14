@@ -41,8 +41,10 @@ public:
     bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput) override;
 
 private:
-    void registerModuleResolver(v8::Local<v8::ObjectTemplate> global);
     static void performRequire(const v8::FunctionCallbackInfo<v8::Value>& args);
+    static void defineModule(const v8::FunctionCallbackInfo<v8::Value> &args);
+    void registerDefineFunction(v8::Local<v8::ObjectTemplate> global);
+    bool loadModule(QString name);
 
 private:
     v8::Isolate* m_isolate;
@@ -52,6 +54,8 @@ private:
     double m_totalPathTime;
 
     QMap<QString, v8::Global<v8::Value>*> m_requireCache;
+    v8::Persistent<v8::FunctionTemplate> m_requireTemplate;
+    QString m_currentExecutingModule;
 };
 
 #endif // TYPESCRIPT_H
