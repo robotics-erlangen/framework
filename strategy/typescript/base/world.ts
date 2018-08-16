@@ -32,6 +32,7 @@ import {Coordinates} from "base/coordinates";
 //let mixedTeam = require "base/mixedteam"
 import {Robot, FriendlyRobot} from "base/robot";
 import {Vector, Position} from "base/vector";
+import {AbsTime, RelTime} from "base/globals";
 
 /// Ball and team informations.
 // @class table
@@ -72,8 +73,8 @@ import {Vector, Position} from "base/vector";
 // @field OpponentRedCards number - number of red cards the opponent received
 
 
-export let Time: number = 0;
-export let TimeDiff: number = 0;
+export let Time: AbsTime = 0;
+export let TimeDiff: RelTime = 0;
 export let AoI = undefined;
 export let Ball: BallClass = new BallClass();
 export let FriendlyRobots: FriendlyRobot[] = [];
