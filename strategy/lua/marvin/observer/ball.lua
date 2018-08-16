@@ -204,9 +204,7 @@ function Ball.friendlyBallOwnershipDuration()
 end
 
 ballOwnerCheckCache = function()
-	if lastBallOwnerFriendly ~= World.Time and lastBallOwnerOpponent ~= World.Time then
-		ballOwnerEllipticCache = {}
-	end
+	ballOwnerEllipticCache = {}
 end
 
 local ballRecipients = {}
