@@ -65,7 +65,7 @@ export function push (name: string, value?: string) {
 /// Pushes a root key on the debug stack.
 // @name pushtop
 // @param name string - Name of the new root tree or nil to push root
-export function pushtop (name: string) {
+export function pushtop (name?: string) {
 	if (!name) {
 		debugStack.push("");
 	} else {
