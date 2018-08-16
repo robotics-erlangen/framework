@@ -1,22 +1,20 @@
-let Rating = {}
+import * as Physics from "../observer/physics";
+import * as MathUtil from "../../base/mathutil";
+import {Position} from "../../base/vector";
 
-let Physics = require "observer/physics"
 
-
-function Rating.timeToRating (time) {
+export function timeToRating (time: number): number {
 	if (time < 0) {
-		return 1
+		return 1;
 	} else {
-		return 1/(time+1)^2
+		return 1/(time+1)**2;
 	}
 }
 
-function Rating.posToRating (robot, targetPos) {
-	return Rating.timeToRating(Physics.robotTimeToPos(robot, targetPos, Vector(0, 0)))
+export function posToRating (robot: Physics.RobotLike, targetPos: Position) {
+	return timeToRating(Physics.robotTimeToPos(robot, targetPos, new Vector(0, 0))[0]);
 }
 
-function Rating.valueToRating (value, zero, one) {
-	return math.bound(0, (value - zero) / (one - zero), 1)
+export function valueToRating (value: number, zero: number, one: number): number {
+	return MathUtil.bound(0, (value - zero) / (one - zero), 1);
 }
-
-return Rating
