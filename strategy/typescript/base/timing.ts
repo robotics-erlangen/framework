@@ -20,7 +20,7 @@
 
 import * as debug from "base/debug";
 import * as plot from "base/plot";
-import {amunFunction} from "base/amun";
+import {amunFunctions} from "base/amun";
 
 let startTimes: {[name: string]: number} = {};
 
@@ -30,7 +30,7 @@ export function start (name: string, robotId: number) {
 		throw "timing: multiple start calls";
 	}
 
-	startTimes[key] = amunFunction.getCurrentTime();
+	startTimes[key] = amunFunctions.getCurrentTime();
 }
 
 export function finish (name: string, robotId: number) {
@@ -39,7 +39,7 @@ export function finish (name: string, robotId: number) {
 		throw "timing: no start call";
 	}
 
-	let timeDiffMs = (amunFunction.getCurrentTime() - startTimes[key]) * 1000;
+	let timeDiffMs = (amunFunctions.getCurrentTime() - startTimes[key]) * 1000;
 	if (timeDiffMs < 0.001) {
 		timeDiffMs = 0;
 	}
