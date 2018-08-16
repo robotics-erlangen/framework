@@ -28,6 +28,7 @@ import * as vis from "base/vis";
 import * as World from "base/world";
 import {Vector, Position} from "base/vector";
 import {Robot} from "base/robot";
+import {AbsTime} from "base/globals";
 
 export const enum RefereeState {
 	Halt = "Halt",
@@ -221,15 +222,15 @@ export function check () {
 }
 
 let lastState: RefereeState;
-let lastChangedTime: number;
-export function checkStateChange () {
+let lastChangedTime: AbsTime;
+export function checkStateChange() {
 	if (World.RefereeState != lastState) {
 		lastChangedTime = World.Time;
 		lastState = <RefereeState>World.RefereeState;
 	}
 }
 
-export function lastStateChangeTime () {
+export function lastStateChangeTime(): AbsTime {
 	return lastChangedTime;
 }
 
