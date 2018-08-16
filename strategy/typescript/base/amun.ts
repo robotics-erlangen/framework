@@ -242,7 +242,7 @@ declare var amun: any;
 amun.isDebug = false; //TODO
 amun.isPerformanceMode = amun.getPerformanceMode()
 
-export let amunFunction: any = amun;
+export let amunFunctions: any = amun;
 export function _hideFunctions() {
 	let isDebug = amun.isDebug;
 	let strategyPath = amun.getStrategyPath();
