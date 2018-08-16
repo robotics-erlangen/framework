@@ -1,5 +1,6 @@
 /CMakeLists.txt.user
 /build*
+/strategy/typescript/*/built
 /src/html/
 Makefile
 /strategy/lua/marvin/learning/parameters/*
