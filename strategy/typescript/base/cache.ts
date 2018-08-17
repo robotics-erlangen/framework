@@ -24,19 +24,22 @@
 **************************************************************************/
 
 let cleanup: Function[] = [];
-let undefinedObj = [];
+let undefinedObj = Object.freeze([]);
 
-function getFromCache (cached, params: any[]): any[] {
-	let pcount = table.maxn(params);
-	params[0] = pcount;
+function getFromCache (cached: Map<any, any>, params: any[]): any {
+	let pcount = params.length;
+	params.unshift(pcount);
 
 	let entry = cached;
-	for (i = 0, pcount) {
+	for (let i = 0; i<pcount+1;i++) {
 		let param = params[i];
 		if (param == undefined) {
 			param = undefinedObj;
 		}
-		entry = entry[param];
+		if (!(entry instanceof Map)) {
+			return undefined;
+		}
+		entry = entry.get(param);
 		if (entry == undefined) {
 			return undefined;
 		}
@@ -44,43 +47,50 @@ function getFromCache (cached, params: any[]): any[] {
 	return entry;
 }
 
-function setInCache (cached, params, result) {
-	let pcount = table.maxn(params);
-	params[0] = pcount;
+function setInCache (cached: Map<any, any>, params: any[], result: any | any[]) {
+	let pcount = params.length;
+	params.unshift(pcount);
 
-	let entry = cached;
-	for (i = 0, pcount) {
+	let entry: Map<any, any> | any = cached;
+	for (let i = 0;i<pcount+1;i++) {
 		let param = params[i];
-		// undefined can't be used as array index
+		// undefined can't be used as a map index
 		if (param == undefined) {
 			param = undefinedObj;
 		}
 		if (i == pcount) {
-			entry[param] = result;
+			entry.set(param, result);
 			return;
-		} else if (entry[param] == undefined) {
-			let newEntry = {};
-			setmetatable(newEntry, {__mode = "k"});
-			entry[param] = newEntry;
+		} else if (!entry.has(param)) {
+			let newEntry = new Map<any, any>();
+			entry.set(param, newEntry);
 		}
-		entry = entry[param];
+		entry = entry.get(param);
 	}
 }
 
-function makeCached (f: Function, keepForever: boolean) {
-	let cached = {};
+let undefResult = Object.freeze([]);
+
+function makeCached (f: Function, keepForever: boolean): ((...args: any[])=> any[] | any[]) {
+	let cached: Map<any, any> = new Map<any, any>();
 	if (!keepForever) {
 		cleanup.push(
 			function() {
-				cached = {};
+				cached = new Map<any, any>();
 			}
 		);
 	}
-	return function(...args: any[]): any[] {
+	return function(...args: any[]): any[] | any {
 		let result = getFromCache(cached, args);
 		if (result == undefined) {
-			result = { f(...args) };
+			result = f(...args);
+			if (result === undefined) {
+				result = undefResult;
+			}
 			setInCache(cached, args, result);
+		}
+		if (result === undefResult) {
+			return undefined;
 		}
 		return result;
 	}
@@ -90,26 +100,16 @@ function makeCached (f: Function, keepForever: boolean) {
 // @name forFrame
 // @param f function - function to wrap
 // @return function - wrapped function
-export function forFrame (f: Function): Function {
+export function forFrame (f: Function): ((...args: any[])=> any[] | any) {
 	return makeCached(f, false);
-}
-
-// the function argument must only have one return value
-export function forFrameSingle (f: Function): Function {
-	return makeCachedSingle(f, false);
 }
 
 /// Wraps a function call, the returned value is cached until the strategy is reloaded
 // @name forever
 // @param f function - function to wrap
 // @return function - wrapped function
-export function forever (f: Function): Function {
+export function forever (f: Function): ((...args: any[])=> any[] | any) {
 	return makeCached(f, true);
-}
-
-// the function argument must only have one return value
-export function foreverSingle (f: Function): Function {
-	return makeCachedSingle(f, true);
 }
 
 /// Clears the value cache for the current frame
