@@ -1,7 +1,8 @@
-let Entrypoints = require "../base/entrypoints"
+import * as Entrypoints from "base/entrypoints";
+import {log} from "base/globals";
 
-let init = function () {
-	log("No function for debug chosen!")
+function init () {
+	log("No function for debug chosen!");
 }
 
-Entrypoints.add("ObserverReplay", init)
+Entrypoints.add("ObserverReplay", init);

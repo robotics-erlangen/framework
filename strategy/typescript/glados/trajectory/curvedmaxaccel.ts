@@ -4,13 +4,14 @@ import * as geom from "base/geom";
 import * as plot from "base/plot";
 import * as Referee from "base/referee";
 import * as vis from "base/vis";
+import {FriendlyRobot} from "base/robot";
 import * as World from "base/world";
 import {TrajectoryHandler} from "base/trajectory";
 import {Vector, Position, Speed} from "base/vector";
 import * as MathUtil from "base/mathutil";
-//import * as PathHelper from "glados/trajectory/pathhelper";
 import * as debug from "base/debug";
 import {log} from "base/globals";
+import * as PathHelper from "glados/trajectory/pathhelper";
 
 // preprocess the waypoints to ensure that the first corner is more or less
 // in the direction the robot is currently moving into
@@ -61,7 +62,7 @@ function _calculateCurveSpeedLimits (waypoints: Position[], accelLimit: number, 
 		if (angleDiff < 0.001 || lastPathDir.length() < 0.005) {
 			if (xRemaining > 0) { // don't create empty segments
 				maxSpeedProfile.push([maxSpeed, maxSpeed, xRemaining]); // just a straight line segment
-				// vis.addPathRaw("waypoints"..tostring(i), {prev - lastPathDir, prev}, vis.colors.blue)
+				// vis.addPathRaw("waypoints"+tostring(i), {prev - lastPathDir, prev}, vis.colors.blue)
 			}
 			// no curve -> new path segment can be used completely
 			xRemaining = newPathDir.length();
@@ -97,7 +98,7 @@ function _calculateCurveSpeedLimits (waypoints: Position[], accelLimit: number, 
 			let actualDist = angleDiff * (startRadius + endRadius) * 0.5;
 			if (xRemaining > startDist) {
 				maxSpeedProfile.push([maxSpeed, maxSpeed, xRemaining - startDist]); // straight line segment
-				// vis.addPathRaw("waypoints"..tostring(i), {prev - lastPathDir.copy().setLength(xRemaining), prev - lastPathDir.copy().setLength(startDist)}, vis.colors.blue)
+				// vis.addPathRaw("waypoints"+tostring(i), {prev - lastPathDir.copy().setLength(xRemaining), prev - lastPathDir.copy().setLength(startDist)}, vis.colors.blue)
 			}
 			maxSpeedProfile.push([maxStartSpeed, maxEndSpeed, actualDist, true]); // curved part
 			vis.addPathRaw("waypoints"
@@ -112,7 +113,7 @@ function _calculateCurveSpeedLimits (waypoints: Position[], accelLimit: number, 
 
 	if (xRemaining > 0) {
 		maxSpeedProfile.push([maxSpeed, endSpeed, xRemaining]); // end segment
-		//vis.addPathRaw("waypoints".."End", {prev - lastPathDir.copy().setLength(xRemaining), prev}, vis.colors.blue)
+		//vis.addPathRaw("waypoints"+"End", {prev - lastPathDir.copy().setLength(xRemaining), prev}, vis.colors.blue)
 	}
 
 	return maxSpeedProfile;
@@ -181,7 +182,7 @@ function _backpropagateSpeedLimit (speedProfile: number[][], maxSpeed: number, b
 				//ratsimp(integrate(v_0+a*t,t,0,t_mid)+integrate(v_0+a*t_mid+b*(t-t_mid),t,t_mid,t_end)=d);
 				let v_0 = switchSpeed, a = oldAccel, b = brake,d = missingDistance;
 				let t1, _ = MathUtil.solveSq(b-a, 2*(b-a)*v_0, -2*b*d);
-				if (t1  &&  t1 > 0) {
+				if (t1 && t1 > 0) {
 					switchTime = switchTime + t1;
 					switchSpeed = switchSpeed + t1 * oldAccel;
 					injectTime = 0;
@@ -226,7 +227,7 @@ function _addLinearSpeedSegment (speedProfile: number[][], startSpeed: number, e
 	let accel = accelerate;
 
 	let linearAccel = (endSpeed - speed) / distance * (endSpeed + speed) / 2;
-	if (linearAccel > accelerate  ||  linearAccel < brake) {
+	if (linearAccel > accelerate || linearAccel < brake) {
 		// too slow or too fast to reach endSpeed
 		accel = MathUtil.bound(brake, linearAccel, accelerate);
 		// linearAccel is either brake or accelerate
@@ -313,7 +314,7 @@ function _decreaseDistance (speedProfile: number[][], cutoffDistance: number): n
 	for (let i = speedProfile.length-2;i>=0;i--) {
 		let segmentDistance = (speedProfile[i+1][1] + speedProfile[i][1]) / 2 * (speedProfile[i+1][0] - speedProfile[i][0]);
 
-		if (currentDistance <= cutoffDistance  &&  cutoffDistance < currentDistance+segmentDistance) {
+		if (currentDistance <= cutoffDistance && cutoffDistance < currentDistance+segmentDistance) {
 			let accel = (speedProfile[i+1][1] - speedProfile[i][1]) / (speedProfile[i+1][0] - speedProfile[i][0]);
 			let endSpeed = speedProfile[i+1][1];
 			let distLeft = cutoffDistance - currentDistance;
@@ -556,7 +557,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 
 		this._robot.path.setProbabilities(0.15, 0.65);
 		// TODO: port pathhelper and enable this
-		//PathHelper.insertObstacles(this._robot);
+		PathHelper.insertObstacles(this._robot as FriendlyRobot);
 		// first waypoint is the current robot position
 		// if reaching the end is possible there's a waypoint at the end
 		let waypoints: any[] = this._robot.path.getPath(robotPos.x, robotPos.y, targetPos.x, targetPos.y);
@@ -713,7 +714,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 			let sgn = 1;
 			let sin = Math.sin(accelVector.angleDiff(speedVector));
 			// if acceleration is not large eanough or is almost parallel, we assume we're not going to drive a curve.
-			if (Math.abs(sin) < 0.1  ||  accelVector.length() < 0.1) {
+			if (Math.abs(sin) < 0.1 || accelVector.length() < 0.1) {
 				sgn = 0;
 			} else if (sin < 0) {
 				sgn = -1;

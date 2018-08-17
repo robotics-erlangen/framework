@@ -1,170 +1,357 @@
-let Messaging = Class("Control.Messaging")
+import {Robot, FriendlyRobot} from "base/robot";
+import {Position, RelativePosition} from "base/vector";
 
-let Robot = require "../base/robot"
-let checkType = require "../base/typecheck"
+// TODO: document the messages in a more native format
+/*
+local msgDefs = {
+	-- ========================
+	-- === multiple senders ===
+	-- ========================
 
-
-let msgDefs = {
-	// ========================
-	// === multiple senders ===
-	// ========================
-
-	// sent by robots we don't control (mixed team challenge)
+	-- sent by robots we don't control (mixed team challenge)
 	allyFlag = "flag",
 
-	// sent by all attackers
+	-- sent by all attackers
 	attackerFlag = "flag",
 
-	// sent by t/duel to make sure that the opponent duelist does not get marked as well
+	-- sent by t/duel to make sure that the opponent duelist does not get marked as well
 	defendedOpponent = Robot,
 
-	// sent by all defenders
+	-- sent by all defenders
 	defenderFlag = "flag",
 
-	// sent by various tasks to notify other robots about their future positioning
+	-- sent by various tasks to notify other robots about their future positioning
 	moveDest = "vector",
 
-	// sent by strikers to the MA to propose a possible pass
-	// requests that the ball is at msg.ballPos when the time reaches msg.time
+	-- sent by strikers to the MA to propose a possible pass
+	-- requests that the ball is at msg.ballPos when the time reaches msg.time
 	passSuggestion = { ballPos = "vector", time = "number", anonymous = "boolean", chip = "boolean", manual = "boolean" },
 
-	// sent by various behaviors which want to change the pool
-	// the string can be "attacker" or "defender"
+	-- sent by various behaviors which want to change the pool
+	-- the string can be "attacker" or "defender"
 	poolChangeRequest = "string",
 
-	// sent by all strikers
+	-- sent by all strikers
 	strikerFlag = "flag",
 
-	// sent by t/striker to tell all other strikers about the currency of the sampled pass position
+	-- sent by t/striker to tell all other strikers about the currency of the sampled pass position
 	strikerSamplingTimestamp = "number",
 
 
-	// =====================
-	// === single sender ===
-	// =====================
+	-- =====================
+	-- === single sender ===
+	-- =====================
 
-	// sent by the MA to tell other attackers about the origin of the next shot
+	-- sent by the MA to tell other attackers about the origin of the next shot
 	attackPosition = "vector",
 
-	// sent by the MA to tell other attackers about the time of the next shot
+	-- sent by the MA to tell other attackers about the time of the next shot
 	attackTime = "number",
 
-	// sent by gr/centerback to assign a target and a position to the centerback tasks
-	// target can be any table (preferably a ball-like or robot-like object)
-	// time is relativ time until the target should be reached
+	-- sent by gr/centerback to assign a target and a position to the centerback tasks
+	-- target can be any table (preferably a ball-like or robot-like object)
+	-- time is relativ time until the target should be reached
 	centerBackPosTarget = { pos = "vector", target = "table", way = "number", time = "number" },
 
-	// sent by gr/moves to the participating agents
-	// params is a list of parameters
-	moveAssignment = { behavior = "class", class = "class", params = "table", restart = "boolean", mainAttacker = "boolean" },
+	-- sent by gr/moves to the participating agents
+	-- params is a list of parameters
+	moveAssignment = { behavior: "class", class = "class", params: "table", restart: "boolean", mainAttacker = "boolean" },
 
-	// sent by gr/moves to tr/attackratio to overwrite the number of attackers
+	-- sent by gr/moves to tr/attackratio to overwrite the number of attackers
 	moveNumAttackers = "number",
 
-	// sent by the MA to notify all agents about an upcoming pass
-	// when the ball is actually shot, there should only be one entry in the table
-	// this is needed to choose the correct mainAttacker
-	// the ball is at msg.ballPos when the time reaches msg.time
-	// table is of entries of the format: { target = Robot, ballPos = "vector", time = "number" }
+	-- sent by the MA to notify all agents about an upcoming pass
+	-- when the ball is actually shot, there should only be one entry in the table
+	-- this is needed to choose the correct mainAttacker
+	-- the ball is at msg.ballPos when the time reaches msg.time
+	-- table is of entries of the format: { target = Robot, ballPos = "vector", time = "number" }
 	passInfo = "table",
 
-	// sent by tr/defense to assign a behavior to each defender
-	// possible names are "CenterBack", "ManMark" and "ZoneDefense"
-	// params is a list of parameters
-		// Centerback:
-			// params[1]: Table, target like {pos= Vector, dir=Vector, time = number}
-		// ManMark:
-			// params[1]: Robot manMarkTarget
-		// ZoneDefense
-			// params[1]: Vector movePos
-	roleAssignment = { name = "string", params = "table" },
+	-- sent by tr/defense to assign a behavior to each defender
+	-- possible names are "CenterBack", "ManMark" and "ZoneDefense"
+	-- params is a list of parameters
+		-- Centerback:
+			-- params[1]: Table, target like {pos= Vector, dir=Vector, time = number}
+		-- ManMark:
+			-- params[1]: Robot manMarkTarget
+		-- ZoneDefense
+			-- params[1]: Vector movePos
+	roleAssignment = { name = "string", params: "table" },
 
-	// sent by the MA to tell other attackers about the destination of the next shot
+	-- sent by the MA to tell other attackers about the destination of the next shot
 	shootDestination = "vector",
 
-	// sent by gr/striker to assign zones to the striker tasks
-	// msg.boundaries = { left: number, right: number }
+	-- sent by gr/striker to assign zones to the striker tasks
+	-- msg.boundaries = { left: number, right: number }
 	strikerZone = { defaultPos = "vector", boundaries = "table" },
 
-	// sent by gr/midfield to assign zones to the midfield tasks
-	// msg.boundaries = { left: number, right: number }
+	-- sent by gr/midfield to assign zones to the midfield tasks
+	-- msg.boundaries = { left: number, right: number }
 	midfieldZone = { defaultPos = "vector", boundaries = "table" },
 }
 
 
-let exclusiveRoles = {
+local exclusiveRoles = {
 	mainAttacker = "number",
 	duelAssistant = "number",
 	interceptPass = "number",
 }
-for (role, _ in pairs(exclusiveRoles)) {
+for role, _ in pairs(exclusiveRoles) do
 	msgDefs[role] = Robot
-}
+end
 
 
-let repeatedMessages = {
-	// sent by agents that want to apply for an exclusive role
-	// the list of exclusive roles is defined below
-	// format: msg.<role>: number
+local repeatedMessages = {
+	-- sent by agents that want to apply for an exclusive role
+	-- the list of exclusive roles is defined below
+	-- format: msg.<role>: number
 	exclusiveRole = "table",
 
-	// sent by gr/moves to make sure that unassigned robots become defenders
+	-- sent by gr/moves to make sure that unassigned robots become defenders
 	forcePoolChange = { robot = Robot, destPool = "string" },
 
-	// sent by agents that want to join a specific group
-	// the list of groups is defined in tr/groups
+	-- sent by agents that want to join a specific group
+	-- the list of groups is defined in tr/groups
 	groupApplication = { name = "string", payload = "table" },
 }
+*/
 
-for (msg, msgType in pairs(repeatedMessages)) {
-	msgDefs[msg] = msgType
+
+type Rec = "all" | "trainer" | FriendlyRobot;
+
+export enum MessageType {
+	// multiple sender
+	allyFlag, attackerFlag, defendedOpponent, defenderFlag,
+	moveDest, passSuggestion, poolChangeRequest, strikerFlag,
+	strikerSamplingTimestamp,
+
+	// single sender
+	attackPosition, attackTime, centerBackPosTarget, moveAssignment,
+	moveNumAttackers, passInfo, roleAssignment, shootDestination,
+	strikerZone, midfieldZone,
+
+	// exclusive roles
+	mainAttacker, duelAssistant, interceptPass,
+
+	// repeated messages
+	exclusiveRole, forcePoolChange, groupApplication
 }
 
+type MessageOrigin = "trainer" | FriendlyRobot;
 
-// extract types of typed tuples
-let msgDefsTypedTuple = {}
-for (msg, msgType in pairs(msgDefs)) {
-	if (type(msgType) == "table"  &&  not Class.toClass(msgType, true)) {
-		msgDefsTypedTuple[msg] = msgType
-		msgDefs[msg] = "table"
+interface BehaviourLike {
+	isBehaviour(): boolean;
+}
+
+interface TaskLike {
+	isTask(): boolean;
+}
+
+interface AgentLike {
+	isAgent(): boolean;
+	robot(): FriendlyRobot;
+}
+
+const empty: {} = {};
+
+export class MessageBox {
+	private messaging: Messaging;
+	private origin: MessageOrigin;
+
+
+	constructor (messaging: Messaging, origin: MessageOrigin) {
+		this.messaging = messaging;
+		this.origin = origin;
+	}
+
+	send (type: MessageType.centerBackPosTarget, dest: FriendlyRobot, target: {pos: Position, target: any, way: number, time: number}): void;
+	send (type: MessageType.moveAssignment, dest: FriendlyRobot, assignment: {behavior: BehaviourLike, class: BehaviourLike | TaskLike, params: any, restart: boolean, mainAttacker: boolean}): void;
+	send (type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number}[] }): void;
+	send (type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "ManMark", params: Robot[] }): void;
+	send (type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "ZoneDefense", params: Position[] }): void;
+	send (type: MessageType.strikerZone, dest: FriendlyRobot, zone: { defaultPos: Position, boundaries: {left: number, right: number} }): void;
+	send (type: MessageType.midfieldZone, dest: FriendlyRobot, zone: { defaultPos: Position, boundaries: {left: number, right: number} }): void;
+	send (type: MessageType, dest: FriendlyRobot, data?: any): void {
+		this.sendGeneric(type, dest, data, false);
+	}
+
+	sendRepeated (type: MessageType, dest: FriendlyRobot, data?: any): void {
+		this.sendGeneric(type, dest, data, true);
+	}
+
+	sendToTrainer (type: MessageType.poolChangeRequest, changeTo: "attacker" | "defender"): void;
+	sendToTrainer (type: MessageType.moveNumAttackers, count: number): void;
+	sendToTrainer (type: MessageType, data?: any): void {
+		this.sendGeneric(type, "trainer", data, false);
+	}
+
+	sendToTrainerRepeated (type: MessageType.exclusiveRole, role: {mainAttacker: number}): void;
+	sendToTrainerRepeated (type: MessageType.exclusiveRole, role: {duelAssistant: number}): void;
+	sendToTrainerRepeated (type: MessageType.exclusiveRole, role: {interceptPass: number}): void;
+	sendToTrainerRepeated (type: MessageType.forcePoolChange, info: { robot: FriendlyRobot, destPool: "manual" | "ally" | "keeper" | "defense" | "attack" | "hidden" }): void;
+	sendToTrainerRepeated (type: MessageType.groupApplication, group: { name: "centerback" | "moves" | "striker" | "midfield", payload: any }): void;
+	sendToTrainerRepeated (type: MessageType, data?: any): void {
+		this.sendGeneric(type, "trainer", data, true);
+	}
+
+	sendBroadcast (type: MessageType.allyFlag, data?: undefined): void;
+	sendBroadcast (type: MessageType.attackerFlag, data?: undefined): void;
+	sendBroadcast (type: MessageType.defendedOpponent, data: Robot): void;
+	sendBroadcast (type: MessageType.defenderFlag, data?: undefined): void;
+	sendBroadcast (type: MessageType.moveDest, pos: Position): void;
+	sendBroadcast (type: MessageType.passSuggestion, suggestion: {ballPos: Position, time: number, anonymous: boolean, chip: boolean, manual: boolean}): void;
+	sendBroadcast (type: MessageType.strikerFlag, data?: undefined): void;
+	sendBroadcast (type: MessageType.strikerSamplingTimestamp, time: number): void;
+	sendBroadcast (type: MessageType.attackPosition, pos: Position): void;
+	sendBroadcast (type: MessageType.attackTime, time: number): void;
+	sendBroadcast (type: MessageType.passInfo, info: {target: Robot, ballPos: Position, time: number}[]): void;
+	sendBroadcast (type: MessageType.shootDestination, dest: Position): void;
+	sendBroadcast (type: MessageType, data?: any): void {
+		this.sendGeneric(type, "all", data, false);
+	}
+
+	// TODO: more specific send methods for the different cases to improve performance
+	private sendGeneric(type: MessageType, receiver: "all" | "trainer" | FriendlyRobot, data: any, repeated: boolean) {
+		// although a sender is adressing a robot, a message is delivered
+		// to the corresponding agent. This ensures that a robot only receives
+		// messages sent in frames where he has had the current agent
+		if (receiver !== "all" && receiver !== "trainer") {
+			receiver = (this.messaging._robotToAgent.get(receiver) as AgentLike).robot();
+			if (receiver == undefined) {
+				return; // not registered yet
+			}
+		}
+		let messageBox = this.messaging._newMessages[type];
+		if (messageBox == undefined) {
+			messageBox = new Map<MessageOrigin, any>();
+			this.messaging._newMessages[type] = messageBox;
+		}
+		let receiveBox = messageBox.get(receiver);
+		if (receiveBox == undefined) {
+			receiveBox = new Map<FriendlyRobot, any>();
+			messageBox.set(receiver, receiveBox);
+		}
+		let senderRobot = (this.origin === "trainer") ? "trainer" : this.origin;
+
+		if (repeated) {
+			let collection = receiveBox.get(senderRobot);
+			if (collection == undefined) {
+				collection = [];
+			}
+			collection.push(data);
+			receiveBox.set(senderRobot, collection);
+		} else {
+			receiveBox.set(senderRobot, data);
+		}
+	}
+
+
+	// receive code
+	// allyFlag, attackerFlag
+	receive (type: MessageType.allyFlag, broadcast?: boolean): Map<FriendlyRobot, true>;
+	receive (type: MessageType.attackerFlag, broadcast?: boolean): Map<FriendlyRobot, true>;
+	receive (type: MessageType.defendedOpponent, ownMessage?: boolean): Map<FriendlyRobot, Robot>;
+	receive (type: MessageType.defenderFlag, broadcast?: boolean): Map<FriendlyRobot, true>;
+	receive (type: MessageType.moveDest, broadcast?: boolean): Map<FriendlyRobot, Position>;
+	receive (type: MessageType.passSuggestion, broadcast?: boolean): Map<FriendlyRobot, {ballPos: Position, time: number, anonymous: boolean, chip: boolean, manual: boolean}>;
+	receive (type: MessageType.poolChangeRequest, broadcast?: boolean): Map<FriendlyRobot, "attacker" | "defender">;
+	receive (type: MessageType.strikerFlag, broadcast?: boolean): Map<FriendlyRobot, true>;
+	receive (type: MessageType.strikerSamplingTimestamp, broadcast?: boolean): Map<FriendlyRobot, number>;
+	receive (type: MessageType, broadcast?: boolean): Map<FriendlyRobot, any> {
+		return this.receiveGeneric(type, broadcast);
+	}
+
+	receiveSingleSender (type: MessageType.attackPosition, broadcast?: boolean): [FriendlyRobot, Position] | [];
+	receiveSingleSender (type: MessageType.attackTime, broadcast?: boolean): [FriendlyRobot, number] | [];
+	receiveSingleSender (type: MessageType.passInfo, broadcast?: boolean): [FriendlyRobot, {target: Robot, ballPos: Position, time: number}[]] | [];
+	receiveSingleSender (type: MessageType.shootDestination, broadcast?: boolean): [FriendlyRobot, Position] | [];
+	receiveSingleSender(type: MessageType, broadcast?: boolean): [FriendlyRobot, any] | [] {
+		let map: Map<FriendlyRobot, any> = this.receiveGeneric(type, broadcast);
+		if (map.size > 1) {
+			throw new Error("Single sender message " + type + " sent by " + map.size + " robots!");
+		}
+		let it = map.entries().next();
+		if (it.done) {
+			return [];
+		}
+		return it.value;
+	}
+
+	receiveRepeated (type: MessageType.groupApplication, broadcast?: boolean): Map<FriendlyRobot, { name: "centerback" | "moves" | "striker" | "midfield", payload: any }[]>;
+	receiveRepeated (type: MessageType, broadcast?: boolean): Map<FriendlyRobot, any[]> {
+		return this.receiveGeneric(type, broadcast);
+	}
+
+	receiveTrainer (type: MessageType.centerBackPosTarget, broadcast?: boolean): {pos: Position, target: any, way: number, time: number};
+	receiveTrainer (type: MessageType.moveAssignment, broadcast?: boolean): {behavior: BehaviourLike, class: TaskLike | BehaviourLike, params: any, restart: boolean, mainAttacker: boolean};
+	receiveTrainer (type: MessageType.moveNumAttackers, broadcast?: boolean): number;
+	receiveTrainer (type: MessageType.roleAssignment, broadcast?: boolean): { name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number}[] };
+	receiveTrainer (type: MessageType.roleAssignment, broadcast?: boolean): { name: "ManMark", params: Robot[] };
+	receiveTrainer (type: MessageType.roleAssignment, broadcast?: boolean): { name: "ZoneDefense", params: Position[] };
+	receiveTrainer (type: MessageType.strikerZone, broadcast?: boolean): { defaultPos: Position, boundaries: {left: number, right: number} };
+	receiveTrainer (type: MessageType.midfieldZone, broadcast?: boolean): { defaultPos: Position, boundaries: {left: number, right: number} };
+	receiveTrainer (type: MessageType.mainAttacker, broadcast?: boolean): FriendlyRobot| undefined;
+	receiveTrainer (type: MessageType.duelAssistant, broadcast?: boolean): FriendlyRobot | undefined;
+	receiveTrainer (type: MessageType.interceptPass, broadcast?: boolean): FriendlyRobot | undefined;
+	receiveTrainer (type: MessageType, broadcast?: boolean): any {
+		return this.receiveGeneric(type, broadcast).get("trainer");
+	}
+
+	receiveTrainerRepeated (type: MessageType, broadcast?: boolean): any[] {
+		return this.receiveGeneric(type, broadcast).get("trainer");
+	}
+
+	private receiveGeneric (type: MessageType, broadcast?: boolean) {
+		let mtypeBox = this.messaging._deliveredMessages[type];
+		if (this.origin === "trainer") {
+			mtypeBox = this.messaging._newMessages[type];
+		}
+		if (mtypeBox == undefined) {
+			return empty;
+		}
+		// returns all messages of "type" which were sent to "all"
+		if (broadcast) {
+			if (mtypeBox.get("all") == undefined) {
+				return empty;
+			}
+			return mtypeBox.get("all");
+		}
+		let receiveBox = mtypeBox.get(this.origin);
+		let allBox: Map<MessageOrigin, any> | undefined = mtypeBox.get("all");
+		if (receiveBox == undefined && allBox == undefined) {
+			return empty;
+		} else {
+			if (receiveBox == undefined) {
+				receiveBox = new Map<FriendlyRobot, any>();
+				mtypeBox.set(this.origin, receiveBox);
+			}
+			if (allBox) {
+				let allMerged = mtypeBox.get("allBoxMerged");
+				if (allMerged == undefined) {
+					allMerged = {};
+					mtypeBox.set("allBoxMerged", allMerged);
+				}
+				if (allMerged.get(this.origin) == undefined) { // merge broadcasts into receiveBox
+					let receiverRobot = (this.origin === "trainer") ? "trainer" : this.origin;
+					for (let sender of allBox.keys()) {
+						let data = allBox.get(sender);
+						if (sender != receiverRobot || this.origin === "trainer") {
+							receiveBox.set(sender, data);
+						}
+					}
+					allMerged.set(this.origin, true);
+				}
+			}
+
+			return receiveBox;
+		}
 	}
 }
 
+export class Messaging {
 
-let empty = {}
-setmetatable(empty, { __newindex = function()
-	error("this table is supposed to be empty")
-end })
-
-let typedTuple = function (description) {
-	return setmetatable({}, {
-		__index = function(_table, key)
-			if (not description[key]) {
-				error("Trying to read invalid key "..String(key))
-			}
-		end,
-		__newindex = function(table, key, value)
-			if (not description[key]) {
-				error("Trying to write invalid key "..String(key))
-			}
-			checkType(value, description[key])
-			rawset(table, key, value)
-		end,
-	})
-}
-
-let convertToTypedTuple = function (value, description) {
-	let tuple = typedTuple(description)
-	for (k, v in pairs(value)) {
-		tuple[k] = v
-	}
-	return tuple
-}
-
-
-function Messaging:init () {
-	self._newMessages = {} // is reset every frame
-	self._deliveredMessages = {} // reference to the newMessages table of the last last frame
+	_newMessages: {[type: number]: Map<MessageOrigin | "all" | "allBoxMerged", any | any[]>} = {}; // is reset every frame
+	_deliveredMessages: {[type: number]: Map<MessageOrigin | "all" | "allBoxMerged", any | any[]>} = {}; // reference to the newMessages table of the last last frame
 	// messages are stored in the following format:
 	// messages = {
 	// 	messageTypeA = {
@@ -172,159 +359,27 @@ function Messaging:init () {
 	// 	},
 	// 	messageTypeB = { Agent3 = { senderRobot4 = data} }
 	// }
-	self._robotToAgent = {} // track registered agents
-	self._trainerRegistered = false
-}
+	_robotToAgent: Map<FriendlyRobot, AgentLike> = new Map<FriendlyRobot, AgentLike>();
+	_trainerRegistered = false;
 
-function Messaging:registerAgent (agent) {
-	self._robotToAgent[agent:robot()] = agent
-	return self:_constructSender(agent), self:_constructInbox(agent)
-}
+	constructor () {}
 
-function Messaging:registerTrainer () {
-	assert(not self._trainerRegistered, "trainer is already registered!")
-	self._trainerRegistered = true
-	return self:_constructSender("trainer"), self:_constructInbox("trainer")
-}
+	registerAgent (agent: AgentLike): MessageBox {
+		this._robotToAgent.set(agent.robot(), agent);
+		return new MessageBox(this, agent.robot());
+	}
 
-// this method should be called once every frame
-function Messaging:deliverMessages () {
-	self._deliveredMessages = self._newMessages
-	self._newMessages = {}
-}
-
-// to work properly this requires LUA 5.2, in luajit this needs to be explicitely enabled an then recompiled
-let messageMT = {
-	__pairs = function(messageTable)
-		let pairs_it = function (t, lastRobot) {
-			let minRobot = nil
-			let minID = 17
-			for (robot, _ in next, t) {
-				if (robot.id < minID  &&  robot.id > lastRobot.id) {
-					minRobot = robot
-					minID = robot.id
-				}
-			}
-			return minRobot, minRobot  &&  t[minRobot]
+	registerTrainer (): MessageBox {
+		if (this._trainerRegistered) {
+			throw new Error("trainer is already registered!");
 		}
-		return pairs_it, messageTable, {id = -1}
+		this._trainerRegistered = true;
+		return new MessageBox(this, "trainer");
+	}
+
+	// this method should be called once every frame
+	deliverMessages () {
+		this._deliveredMessages = this._newMessages;
+		this._newMessages = {};
 	}
 }
-
-let makeSortedPairsTable = function (messages) {
-	let index = next(messages)
-	if (index  &&  index != "trainer") {
-		setmetatable(messages, messageMT)
-	}
-	return messages
-}
-
-function Messaging:_constructInbox (receiver) {
-	let inbox = {}
-	for (messageType, _ in pairs(msgDefs)) {
-		inbox[messageType] = function(mode)
-			let mtypeBox = self._deliveredMessages[messageType]
-			if (receiver == "trainer") {
-				mtypeBox = self._newMessages[messageType]
-			}
-			if (not mtypeBox) {
-				return empty
-			}
-			// returns all messages of "messageType" which were sent to "all"
-			if (mode == "broadcast") {
-				if (not mtypeBox.all) {
-					return empty
-				}
-				return makeSortedPairsTable(mtypeBox.all)
-			} else if (mode != nil) {
-				error("Invalid request mode only nil  ||  \"broadcast\" is allowed")
-			}
-			let receiveBox = mtypeBox[receiver]
-			let allBox = mtypeBox.all
-			if (not receiveBox  &&  not allBox) {
-				return empty
-			} else {
-				if (not receiveBox) {
-					receiveBox = {}
-					mtypeBox[receiver] = receiveBox
-				}
-				if (allBox) {
-					let allMerged = mtypeBox.allBoxMerged
-					if (not allMerged) {
-						allMerged = {}
-						mtypeBox.allBoxMerged = allMerged
-					}
-					if (not allMerged[receiver]) { // merge broadcasts into receiveBox
-						let receiverRobot = (receiver == "trainer") ? "trainer" : receiver:robot()
-						for (sender, data in pairs(allBox)) {
-							if (sender != receiverRobot  ||  sender == "trainer") {
-								receiveBox[sender] = data
-							}
-						}
-						allMerged[receiver] = true
-					}
-				}
-
-				return makeSortedPairsTable(receiveBox)
-			}
-		}
-	}
-	return inbox
-}
-
-function Messaging:_constructSender (sender) {
-	let sendObj = {}
-	for (messageType, requiredType in pairs(msgDefs)) {
-		sendObj[messageType] = function(receiver, data)
-			// although a sender is adressing a robot, a message is delivered
-			// to the corresponding agent. This ensures that a robot only receives
-			// messages sent in frames where he has had the current agent
-			if (receiver == nil) {
-				error("nil is not a valid receiver")
-			} else if (receiver != "all"  &&  receiver != "trainer") {
-				receiver = self._robotToAgent[receiver]
-				if (not receiver) {
-					return // not registered yet
-				}
-			}
-			if (requiredType == "flag") {
-				if (data) {
-					error("flag messages take no arguments")
-				} else {
-					data = true
-				}
-			} else {
-				checkType(data, requiredType)
-				if (msgDefsTypedTuple[messageType]) {
-					data = convertToTypedTuple(data, msgDefsTypedTuple[messageType])
-				}
-			}
-			let mtypeBox = self._newMessages[messageType]
-			if (not mtypeBox) {
-				mtypeBox = {}
-				self._newMessages[messageType] = mtypeBox
-			}
-			let receiveBox = mtypeBox[receiver]
-			if (not receiveBox) {
-				receiveBox = {}
-				mtypeBox[receiver] = receiveBox
-			}
-			let senderRobot = (sender == "trainer") ? "trainer" : sender:robot()
-
-			if (repeatedMessages[messageType]) {
-				let collection = receiveBox[senderRobot]
-				if (not collection) {
-					collection = {}
-				}
-				table.insert(collection, data)
-				receiveBox[senderRobot] = collection
-			} else {
-				receiveBox[senderRobot] = data
-			}
-		}
-	}
-	return sendObj
-}
-
-
-return Messaging

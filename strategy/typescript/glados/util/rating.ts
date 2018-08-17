@@ -1,6 +1,6 @@
-import * as Physics from "../observer/physics";
-import * as MathUtil from "../../base/mathutil";
-import {Position} from "../../base/vector";
+import * as Physics from "glados/observer/physics";
+import * as MathUtil from "base/mathutil";
+import {Position, Vector} from "base/vector";
 
 
 export function timeToRating (time: number): number {
