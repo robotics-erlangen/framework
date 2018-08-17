@@ -31,7 +31,7 @@ module "Coordinates"
 // @return Vector/number
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Converts strategy local coordinates to global coordinates for amun
 // @class function
@@ -40,7 +40,7 @@ module "Coordinates"
 // @return Vector/number
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Does toGlobal conversion for a list
 // @class function
@@ -49,9 +49,9 @@ module "Coordinates"
 // @return (Vector/number)[]
 
 
-//separator for luadoc//
+// separator for luadoc//
 
-import {Vector} from "base/vector";
+import { Vector } from "base/vector";
 
 interface CoordinatesType {
 	toGlobal(pos: Vector): Vector;
@@ -63,10 +63,10 @@ interface CoordinatesType {
 	listToGlobal(pos: Vector[]): Vector[];
 	listToGlobal(pos: Readonly<Vector>[]): Readonly<Vector>[];
 	listToGlobal(num: number[]): number[];
-};
+}
 
 class Invert implements CoordinatesType {
-	toGlobal (data: any): any {
+	toGlobal(data: any): any {
 		if (typeof(data) === "number") {
 			let num = data as number;
 			if (num > Math.PI) {
@@ -79,10 +79,10 @@ class Invert implements CoordinatesType {
 			return new Vector(-vector.x, -vector.y);
 		}
 	}
-	toLocal (data: any): any {
+	toLocal(data: any): any {
 		return this.toGlobal(data);
 	}
-	listToGlobal (data: any[]): any[] {
+	listToGlobal(data: any[]): any[] {
 		let inverted = [];
 		for (let v of data) {
 			inverted.push(this.toGlobal(v));
@@ -95,17 +95,17 @@ class Pass implements CoordinatesType {
 	toGlobal(value: any): any {
 		return value;
 	}
-	toLocal (value: any): any {
+	toLocal(value: any): any {
 		return value;
 	}
-	listToGlobal (value: any): any {
+	listToGlobal(value: any): any {
 		return value;
 	}
 }
 
 export let Coordinates: CoordinatesType;
 
-export function _setIsBlue (teamIsBlue: boolean) {
+export function _setIsBlue(teamIsBlue: boolean) {
 	if (teamIsBlue) {
 		Coordinates = new Invert();
 	} else {

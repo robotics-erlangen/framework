@@ -33,21 +33,21 @@ module "path"
 // @return path - path object
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Resets path planner object. Clears obstacles and waypoints. Field boundaries won't be changed
 // @class function
 // @name path:reset
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Clears obstacles
 // @class function
 // @name path:clearObstacles
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Set probabilities. Sum should be less or equal to 1
 // @class function
@@ -56,7 +56,7 @@ module "path"
 // @name path:setProbabilities
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Sets field boundaries.
 // The two points span up a rectangle whose borders are used as field boundaries. The boundaries must be specified in global coordinates.
@@ -68,7 +68,7 @@ module "path"
 // @param y2 number
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Adds a circle as an obstacle.
 // The circle <strong>must</strong> be passed in strategy coordinates!
@@ -80,7 +80,7 @@ module "path"
 // @param name string - name of the obstacle
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Adds a line as an obstacle.
 // The line <strong>must</strong> be passed in strategy coordinates!
@@ -94,7 +94,7 @@ module "path"
 // @param name string - name of the obstacle
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Adds a rectangle as an obstacle.
 // The rectangle <strong>must</strong> be passed in strategy coordinates!
@@ -107,7 +107,7 @@ module "path"
 // @param name string - name of the obstacle
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Adds a triangle as an obstacle.
 // The triangle <strong>must</strong> be passed in strategy coordinates!
@@ -123,7 +123,7 @@ module "path"
 // @param name string - name of the obstacle
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Tests a given path for collisions with any obstacle.
 // The spline is based on the global coordinate system!
@@ -134,7 +134,7 @@ module "path"
 // @return bool isOk - true if no collision is detected
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Sets robot radius for obstacle checking
 // @class function
@@ -142,7 +142,7 @@ module "path"
 // @param radius number - minimum required corridor size
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Generates a new path using RRT.
 // Accounts for obstacles. The returned waypoints include the start point. This functions requires and returns global coordinates!
@@ -155,7 +155,7 @@ module "path"
 // @return {p_x, p_y, left, right}[] - waypoints and corridor widths for the way to a waypoint
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Add a new target for seeding the RRT search tree.
 // Seeding is done by rasterizing a path from rrt start to the given point
@@ -165,7 +165,7 @@ module "path"
 // @param y number - y coordinate of seed point
 
 
-//separator for luadoc//
+// separator for luadoc//
 
 /// Generates a visualization of the tree.
 // @class function
@@ -178,8 +178,8 @@ let pathLocal: any = path;
 
 path = undefined;
 
+import { log, Vector } from "base/globals";
 import * as vis from "base/vis";
-import {log, Vector} from "base/globals";
 
 let teamIsBlue = amun.isBlue();
 let isPerformanceMode = amun.getPerformanceMode();
@@ -192,23 +192,23 @@ export class Path {
 		this._robotId = robotId;
 	}
 
-	robotId () {
+	robotId() {
 		return this._robotId;
 	}
 
-	getPath (x1: number, y1: number, x2: number, y2: number): any[] {
+	getPath(x1: number, y1: number, x2: number, y2: number): any[] {
 		return pathLocal.getPath(this._inst, x1, y1, x2, y2);
 	}
 
-	setProbabilities (a: number, b: number) {
+	setProbabilities(a: number, b: number) {
 		pathLocal.setProbabilities(this._inst, a, b);
 	}
 
-	setBoundary (x1: number, y1: number, x2: number, y2: number) {
+	setBoundary(x1: number, y1: number, x2: number, y2: number) {
 		pathLocal.setBoundary(this._inst, x1, y1, x2, y2);
 	}
 
-	clearObstacles () {
+	clearObstacles() {
 		pathLocal.clearObstacles(this._inst);
 	}
 
@@ -217,13 +217,13 @@ export class Path {
 	}
 
 	// wrap add obstacle functions for automatic strategy to global coordinates conversion
-	addCircle (x: number, y: number, radius: number, name?: string, prio: number = 0) {
+	addCircle(x: number, y: number, radius: number, name?: string, prio: number = 0) {
 		if (teamIsBlue) {
 			x = -x;
 			y = -y;
 		}
 		if (!isPerformanceMode) {
-			vis.addCircleRaw("obstacles: " + String(this._robotId), new Vector(x, y), radius, vis.colors.redHalf, true);
+			vis.addCircleRaw(`obstacles: ${this._robotId}`, new Vector(x, y), radius, vis.colors.redHalf, true);
 		} else {
 			// avoid string allocations in ra
 			name = undefined;
@@ -231,7 +231,7 @@ export class Path {
 		pathLocal.addCircle(this._inst, x, y, radius, name, prio);
 	}
 
-	addLine (start_x: number, start_y: number, stop_x: number, stop_y: number, radius: number, name?: string, prio: number = 0) {
+	addLine(start_x: number, start_y: number, stop_x: number, stop_y: number, radius: number, name?: string, prio: number = 0) {
 		if (start_x == stop_x  &&  start_y == stop_y) {
 			log("WARNING: start  &&  end points for a line obstacle are the same!");
 			return;
@@ -243,7 +243,7 @@ export class Path {
 			stop_y = -stop_y;
 		}
 		if (!isPerformanceMode) {
-			vis.addPathRaw("obstacles: " + String(this._robotId), [new Vector(start_x, start_y), new Vector(stop_x, stop_y)],
+			vis.addPathRaw(`obstacles: ${this._robotId}`, [new Vector(start_x, start_y), new Vector(stop_x, stop_y)],
 					vis.colors.redHalf, undefined, undefined, 2 * radius);
 		} else {
 			// avoid string allocations in ra
@@ -252,7 +252,7 @@ export class Path {
 		pathLocal.addLine(this._inst, start_x, start_y, stop_x, stop_y, radius, name, prio);
 	}
 
-	addRect (start_x: number, start_y: number, stop_x: number, stop_y: number, name?: string, prio: number = 0) {
+	addRect(start_x: number, start_y: number, stop_x: number, stop_y: number, name?: string, prio: number = 0) {
 		if (teamIsBlue) {
 			start_x = -start_x;
 			start_y = -start_y;
@@ -260,7 +260,7 @@ export class Path {
 			stop_y = -stop_y;
 		}
 		if (!isPerformanceMode) {
-			vis.addPolygonRaw("obstacles: " + String(this._robotId),
+			vis.addPolygonRaw(`obstacles: ${this._robotId}`,
 					[new Vector(start_x, start_y), new Vector(start_x, stop_y), new Vector(stop_x, stop_y),
 					new Vector(stop_x, start_y)], vis.colors.redHalf, true);
 		} else {
@@ -270,7 +270,7 @@ export class Path {
 		pathLocal.addRect(this._inst, start_x, start_y, stop_x, stop_y, name, prio);
 	}
 
-	addTriangle (x1: number, y1: number, x2: number, y2: number, x3: number, y3: number,
+	addTriangle(x1: number, y1: number, x2: number, y2: number, x3: number, y3: number,
 			lineWidth: number, name?: string, prio: number = 0) {
 		if (teamIsBlue) {
 			x1 = -x1;
@@ -284,7 +284,7 @@ export class Path {
 			let p1 = new Vector(x1, y1);
 			let p2 = new Vector(x2, y2);
 			let p3 = new Vector(x3, y3);
-			vis.addPolygonRaw("obstacles: " + String(this._robotId), [p1, p2, p3], vis.colors.redHalf, true);
+			vis.addPolygonRaw(`obstacles: ${this._robotId}`, [p1, p2, p3], vis.colors.redHalf, true);
 		} else {
 			// avoid string allocations in ra
 			name = undefined;
@@ -292,7 +292,7 @@ export class Path {
 		pathLocal.addTriangle(this._inst, x1, y1, x2, y2, x3, y3, lineWidth, name, prio);
 	}
 
-	addSeedTarget (x: number, y: number) {
+	addSeedTarget(x: number, y: number) {
 		if (teamIsBlue) {
 			x = -x;
 			y = -y;

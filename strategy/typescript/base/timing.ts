@@ -18,25 +18,25 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
+import { amunFunctions } from "base/amun";
 import * as debug from "base/debug";
 import * as plot from "base/plot";
-import {amunFunctions} from "base/amun";
 
 let startTimes: {[name: string]: number} = {};
 
-export function start (name: string, robotId: number) {
-	let key = name + "." + String(robotId);
+export function start(name: string, robotId: number) {
+	let key = `${name}.${robotId}`;
 	if (startTimes[key]) {
-		throw "timing: multiple start calls";
+		throw new Error("timing: multiple start calls");
 	}
 
 	startTimes[key] = amunFunctions.getCurrentTime();
 }
 
-export function finish (name: string, robotId: number) {
-	let key = name + "." + robotId;
+export function finish(name: string, robotId: number) {
+	let key = `${name}.${robotId}`;
 	if (startTimes[key] == undefined) {
-		throw "timing: no start call";
+		throw new Error("timing: no start call");
 	}
 
 	let timeDiffMs = (amunFunctions.getCurrentTime() - startTimes[key]) * 1000;
@@ -45,7 +45,7 @@ export function finish (name: string, robotId: number) {
 	}
 
 	debug.push("Timing");
-	debug.set(name, String(timeDiffMs).slice(0, 5)  +  " ms");
+	debug.set(name, `${String(timeDiffMs).slice(0, 5)}  ms`);
 	debug.pop();
 
 	plot.addPlot(key, timeDiffMs);

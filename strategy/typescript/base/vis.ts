@@ -26,8 +26,8 @@ module "vis"
 declare var amun: any;
 let amunLocal = amun;
 
-import {Coordinates} from "base/coordinates";
-import {Vector, Position} from "base/vector";
+import { Coordinates } from "base/coordinates";
+import { Position, Vector } from "base/vector";
 
 
 export class Color {
@@ -56,7 +56,7 @@ let gisFilled: boolean = true;
 // @param blue number
 // @param alpha number
 // @return table color
-export function fromRGBA (red: number, green: number, blue: number, alpha: number): Color {
+export function fromRGBA(red: number, green: number, blue: number, alpha: number): Color {
 	return new Color(red, green, blue, alpha);
 }
 
@@ -65,12 +65,12 @@ export function fromRGBA (red: number, green: number, blue: number, alpha: numbe
 // @param value a normalized temperature [0, 1]
 // @param alpha the alpha value, default is 127
 // @return table color
-export function fromTemperature (value: number, alpha: number = 127): Color {
+export function fromTemperature(value: number, alpha: number = 127): Color {
 	if (value < 0) {
-		throw "vis temperature too low: " + value;
+		throw new Error(`vis temperature too low: ${value}`);
 	}
 	if (value > 1) {
-		throw "vis temperature too high: " + value;
+		throw new Error(`vis temperature too high: ${value}`);
 	}
 	let red = 1;
 	let green = 1;
@@ -168,7 +168,7 @@ colors.darkPurpleHalf = fromRGBA(93, 71, 139, 127);
 // @name setColor
 // @param color table
 // @param isFilled bool
-export function setColor (color: Color, isFilled: boolean) {
+export function setColor(color: Color, isFilled: boolean) {
 	gcolor = color;
 	gisFilled = isFilled;
 }
@@ -181,7 +181,7 @@ export function setColor (color: Color, isFilled: boolean) {
 // @param radius number - radius of the circle
 // @param color table - color (optional)
 // @param isFilled bool - fill circle (optional)
-export function addCircle (name: string, center: Position, radius: number, color?: Color,
+export function addCircle(name: string, center: Position, radius: number, color?: Color,
 		isFilled?: boolean, background?: boolean, style?: Style, lineWidth?: number) {
 	addCircleRaw(name, Coordinates.toGlobal(center), radius, color, isFilled, background, style, lineWidth);
 }
@@ -189,7 +189,7 @@ export function addCircle (name: string, center: Position, radius: number, color
 /// Adds a circle. Requires global coordinates.
 // @name addCircleRaw
 // @see addCircle
-export function addCircleRaw (name: string, center: Position, radius: number, color?: Color,
+export function addCircleRaw(name: string, center: Position, radius: number, color?: Color,
 		isFilled?: boolean, background?: boolean, style?: Style, lineWidth: number = 0.01) {
 	// if color is set use passed isFilled
 	if (color == undefined) {
@@ -216,7 +216,7 @@ export function addCircleRaw (name: string, center: Position, radius: number, co
 // @param points Vector[] - Points of the polygon
 // @param color table - color (optional)
 // @param isFilled bool - fill circle (optional)
-export function addPolygon (name: string, points: Position[], color?: Color,
+export function addPolygon(name: string, points: Position[], color?: Color,
 		isFilled?: boolean, background?: boolean, style?: Style) {
 	addPolygonRaw(name, Coordinates.listToGlobal(points), color, isFilled, background, style);
 }
@@ -224,7 +224,7 @@ export function addPolygon (name: string, points: Position[], color?: Color,
 /// Adds a polygon. Requires global coordinates.
 // @name addPolygonRaw
 // @see addPolygon
-export function addPolygonRaw (name: string, points: Position[], color?: Color,
+export function addPolygonRaw(name: string, points: Position[], color?: Color,
 		isFilled?: boolean, background?: boolean, style?: Style) {
 	// if color is set use passed isFilled
 	if (color == undefined) {
@@ -236,7 +236,7 @@ export function addPolygonRaw (name: string, points: Position[], color?: Color,
 		brush = color;
 	}
 	amunLocal.addVisualization({
-		name: name, pen: { color:color, style:style },
+		name: name, pen: { color: color, style: style },
 		brush: brush, width: 0.01,
 		polygon: {point: points},
 		background: background
@@ -244,18 +244,18 @@ export function addPolygonRaw (name: string, points: Position[], color?: Color,
 }
 
 
-//Paints an axis aligned rectangle
-//@name addAxisAlignedRectangle
-//@param name string - Visualization group
-//@param corner1 Vector - One corner of the rectangle
-//@param corner2 Vector - The other corner of the rectangle
-//@param color table - see @addPolygon
-//@param isFilled bool - see @addPolygon
-//@param background - see @addPolygon
-//@param style - see @addPolygon
-export function addAxisAlignedRectangle (name: string, corner1: Position, corner2: Position,
+// Paints an axis aligned rectangle
+// @name addAxisAlignedRectangle
+// @param name string - Visualization group
+// @param corner1 Vector - One corner of the rectangle
+// @param corner2 Vector - The other corner of the rectangle
+// @param color table - see @addPolygon
+// @param isFilled bool - see @addPolygon
+// @param background - see @addPolygon
+// @param style - see @addPolygon
+export function addAxisAlignedRectangle(name: string, corner1: Position, corner2: Position,
 		color?: Color, isFilled?: boolean, background?: boolean, style?: Style) {
-	let minX, minY, maxX, maxY
+	let minX, minY, maxX, maxY;
 	minX = Math.min(corner1.x, corner2.x);
 	minY = Math.min(corner1.y, corner2.y);
 	maxX = Math.max(corner1.x, corner2.x);
@@ -276,20 +276,20 @@ export function addAxisAlignedRectangle (name: string, corner1: Position, corner
 // @param startAngle number - the starting angle of the missing pizza piece
 // @param endAngle number - the end angle of the missing pizza piece
 let N_corners = 25;
-export function addPizza (name: string, center: Position, radius: number,
+export function addPizza(name: string, center: Position, radius: number,
 		startAngle: number, endAngle: number, color?: Color, isFilled?: boolean, background?: boolean, style?: Style) {
-	let points = [center + Vector.fromAngle(startAngle)*radius, center, center + Vector.fromAngle(endAngle)*radius];
-	if ((startAngle - endAngle)%(2*Math.PI) < 2*Math.PI/N_corners) {
+	let points = [center + Vector.fromAngle(startAngle) * radius, center, center + Vector.fromAngle(endAngle) * radius];
+	if ((startAngle - endAngle) % (2 * Math.PI) < 2 * Math.PI / N_corners) {
 		addPolygon(name, points, color, isFilled, background, style);
 	} else {
-		let wStart = Math.ceil(N_corners*endAngle/(2*Math.PI));
-		let wEnd = Math.floor(N_corners*startAngle/(2*Math.PI));
+		let wStart = Math.ceil(N_corners * endAngle / (2 * Math.PI));
+		let wEnd = Math.floor(N_corners * startAngle / (2 * Math.PI));
 		if (wEnd < wStart) {
 			wEnd = wEnd + N_corners;
 		}
-		for (let w = wStart; w<wEnd; w++) {
-			let angle = w*Math.PI*2/N_corners;
-			points.push(center + Vector.fromAngle(angle)*radius);
+		for (let w = wStart; w < wEnd; w++) {
+			let angle = w * Math.PI * 2 / N_corners;
+			points.push(center + Vector.fromAngle(angle) * radius);
 		}
 		addPolygon(name, points, color, isFilled, background, style);
 	}
@@ -301,17 +301,17 @@ export function addPizza (name: string, center: Position, radius: number,
 // @param name string - Visualization group
 // @param points Vector[] - Points of the path
 // @param color table - line color (optional)
-export function addPath (name: string, points: Position[], color?: Color, background?: boolean, style?: Style, lineWidth?: number) {
+export function addPath(name: string, points: Position[], color?: Color, background?: boolean, style?: Style, lineWidth?: number) {
 	addPathRaw(name, Coordinates.listToGlobal(points), color, background, style, lineWidth);
 }
 
 /// Adds a path. Requires global coordinates.
 // @name addPathRaw
 // @see addPath
-export function addPathRaw (name: string, points: Position[], color: Color = gcolor, background?: boolean,
+export function addPathRaw(name: string, points: Position[], color: Color = gcolor, background?: boolean,
 		style?: Style, lineWidth: number = 0.01) {
 	amunLocal.addVisualization({
-		name: name, pen: { color:color, style:style },
+		name: name, pen: { color: color, style: style },
 		width: lineWidth,
 		path: {point: points},
 		background: background

@@ -1,38 +1,38 @@
 
 ///// Provides informations about game state
-//module "World"
+// module "World"
 ////
 
-//***********************************************************************
-//*   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier, *
-//*       Philipp Nordhus                                                   *
-//*   Robotics Erlangen e.V.                                                *
-//*   http://www.robotics-erlangen.de/                                      *
-//*   info@robotics-erlangen.de                                             *
-//*                                                                         *
-//*   This program is free software: you can redistribute it and/or modify  *
-//*   it under the terms of the GNU General Public License as published by  *
-//*   the Free Software Foundation, either version 3 of the License, or     *
-//*   any later version.                                                    *
-//*                                                                         *
-//*   This program is distributed in the hope that it will be useful,       *
-//*   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-//*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
-//*   GNU General Public License for more details.                          *
-//*                                                                         *
-//*   You should have received a copy of the GNU General Public License     *
-//*   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
-//*************************************************************************
+// ***********************************************************************
+// *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier, *
+// *       Philipp Nordhus                                                   *
+// *   Robotics Erlangen e.V.                                                *
+// *   http://www.robotics-erlangen.de/                                      *
+// *   info@robotics-erlangen.de                                             *
+// *                                                                         *
+// *   This program is free software: you can redistribute it and/or modify  *
+// *   it under the terms of the GNU General Public License as published by  *
+// *   the Free Software Foundation, either version 3 of the License, or     *
+// *   any later version.                                                    *
+// *                                                                         *
+// *   This program is distributed in the hope that it will be useful,       *
+// *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+// *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+// *   GNU General Public License for more details.                          *
+// *                                                                         *
+// *   You should have received a copy of the GNU General Public License     *
+// *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
+// *************************************************************************
 
 declare var amun: any;
-let amunLocal = amun
-import {Ball as BallClass} from "base/ball";
+let amunLocal = amun;
+import {Ball as BallClass } from "base/ball";
 import * as Constants from "base/constants";
-import {Coordinates} from "base/coordinates";
-//let mixedTeam = require "base/mixedteam"
-import {Robot, FriendlyRobot} from "base/robot";
-import {Vector, Position} from "base/vector";
-import {AbsTime, RelTime} from "base/globals";
+import { Coordinates } from "base/coordinates";
+import { AbsTime, RelTime } from "base/globals";
+// let mixedTeam = require "base/mixedteam"
+import { FriendlyRobot, Robot } from "base/robot";
+import { Position, Vector } from "base/vector";
 
 /// Ball and team informations.
 // @class table
@@ -138,7 +138,7 @@ export interface GeometryType {
 }
 
 // it is guaranteed to be set before being read, so casting is fine
-export let Geometry: Readonly<GeometryType> = <GeometryType>{};
+export let Geometry: Readonly<GeometryType> = <GeometryType> {};
 /// Field geometry.
 // Lengths in meter
 // @class table
@@ -174,7 +174,7 @@ export let Geometry: Readonly<GeometryType> = <GeometryType>{};
 // @field RefereeWidth number - Width of area reserved for referee
 
 // initializes Team and Geometry data
-export function _init () {
+export function _init() {
 	TeamIsBlue = amunLocal.isBlue();
 	let geom = amunLocal.getGeometry();
 	_updateGeometry(geom);
@@ -186,10 +186,10 @@ export function _init () {
 // Has to be called once each frame
 // @name update
 // @return bool - false if no vision data was received since strategy start
-export function update () {
+export function update() {
 	if (SelectedOptions == undefined) {
 		// TODO: getSelectedOptions is not yet implemented for typescript
-		//SelectedOptions = amunLocal.getSelectedOptions();
+		// SelectedOptions = amunLocal.getSelectedOptions();
 	}
 	let hasVisionData = _updateWorld(amunLocal.getWorldState());
 	_updateGameState(amunLocal.getGameState());
@@ -199,7 +199,7 @@ export function update () {
 }
 
 // Creates generation specific robot object for own team
-export function _updateTeam (state: any) {
+export function _updateTeam(state: any) {
 	let friendlyRobotsById: {[index: number]: FriendlyRobot} = {};
 	let friendlyRobotsAll: FriendlyRobot[] = [];
 	for (let rdata of state.robot) {
@@ -212,7 +212,7 @@ export function _updateTeam (state: any) {
 }
 
 // Get rule version from geometry
-export function _updateRuleVersion (geom: any) {
+export function _updateRuleVersion(geom: any) {
 	if (!geom.type || geom.type == "TYPE_2014") {
 		RULEVERSION = "2017";
 	} else {
@@ -221,8 +221,8 @@ export function _updateRuleVersion (geom: any) {
 }
 
 // Setup field geometry
-function _updateGeometry (geom: any) {
-	let wgeom = <GeometryType>Geometry;
+function _updateGeometry(geom: any) {
+	let wgeom = <GeometryType> Geometry;
 	wgeom.FieldWidth = geom.field_width;
 	wgeom.FieldWidthHalf = geom.field_width / 2;
 	wgeom.FieldWidthQuarter = geom.field_width / 4;
@@ -260,13 +260,13 @@ function _updateGeometry (geom: any) {
 	wgeom.OpponentGoalLeft = Vector.createReadOnly(- wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
 	wgeom.OpponentGoalRight = Vector.createReadOnly(wgeom.GoalWidth / 2, wgeom.OpponentGoal.y);
 
-	wgeom.BoundaryWidth = geom.boundary_width
-	wgeom.RefereeWidth = geom.referee_width
+	wgeom.BoundaryWidth = geom.boundary_width;
+	wgeom.RefereeWidth = geom.referee_width;
 
 	IsLargeField = wgeom.FieldWidth > 5  &&  wgeom.FieldHeight > 7;
 }
 
-export function _updateWorld (state: any) {
+export function _updateWorld(state: any) {
 	// Get time
 	if (Time) {
 		TimeDiff = state.time * 1E-9 - Time;
@@ -277,7 +277,7 @@ export function _updateWorld (state: any) {
 	// TODO: you can't seed the random number generator
 	// Math.randomseed(Time);
 	if (Time <= 0) {
-		throw "Invalid Time. Outdated ra version!";
+		throw new Error("Invalid Time. Outdated ra version!");
 	}
 	if (IsSimulated != state.is_simulated) {
 		IsSimulated = state.is_simulated;
@@ -306,7 +306,7 @@ export function _updateWorld (state: any) {
 			let robotResponses: any[] = [];
 			for (let response of radioResponses) {
 				if (response.generation == robot.generation
-						 &&  response.id == robot.id) {
+						&&  response.id == robot.id) {
 					robotResponses.push(response);
 				}
 			}
@@ -351,7 +351,7 @@ export function _updateWorld (state: any) {
 
 	// convert mixed team info
 	if (state.mixed_team_info  &&  state.mixed_team_info.plans) {
-		//MixedTeam = mixedTeam.decodeData(state.mixed_team_info.plans);
+		// MixedTeam = mixedTeam.decodeData(state.mixed_team_info.plans);
 		MixedTeam = undefined;
 	} else {
 		MixedTeam = undefined;
@@ -381,17 +381,17 @@ let gameStageMapping: {[name: string]: string} = {
 	PENALTY_SHOOTOUT_BREAK: "PenaltyShootoutBreak",
 	PENALTY_SHOOTOUT: "PenaltyShootout",
 	POST_GAME: "PostGame"
-}
+};
 
 // keep for use by debugcommands.sendRefereeCommand
 let fullRefereeState: any = undefined;
 
-function _getFullRefereeState () {
+function _getFullRefereeState() {
 	return fullRefereeState;
 }
 
 // updates referee command and keeper information
-function _updateGameState (state: any) {
+function _updateGameState(state: any) {
 	fullRefereeState = state;
 	let refState = state.state;
 	// map referee command to own team
@@ -434,27 +434,27 @@ function _updateGameState (state: any) {
 	FriendlyKeeper = friendlyKeeper;
 	OpponentKeeper = opponentKeeper;
 
-	
-//	optional sint32 stage_time_left = 2;
-//	message TeamInfo {
-//		// The team's name (empty string if operator has not typed anything).
-//		required string name = 1;
-//		// The number of goals scored by the team during normal play and overtime.
-//		required uint32 score = 2;
-//		// The number of red cards issued to the team since the beginning of the game.
-//		required uint32 red_cards = 3;
-//		// The amount of time (in microseconds) left on each yellow card issued to the team.
-//		// If no yellow cards are issued, this array has no elements.
-//		// Otherwise, times are ordered from smallest to largest.
-//		repeated uint32 yellow_card_times = 4 [packed=true];
-//		// The total number of yellow cards ever issued to the team.
-//		required uint32 yellow_cards = 5;
-//		// The number of timeouts this team can still call.
-//		// If in a timeout right now, that timeout is excluded.
-//		required uint32 timeouts = 6;
-//		// The number of microseconds of timeout this team can use.
-//		required uint32 timeout_time = 7;
-//	}
+
+// 	optional sint32 stage_time_left = 2;
+// 	message TeamInfo {
+// 		// The team's name (empty string if operator has not typed anything).
+// 		required string name = 1;
+// 		// The number of goals scored by the team during normal play and overtime.
+// 		required uint32 score = 2;
+// 		// The number of red cards issued to the team since the beginning of the game.
+// 		required uint32 red_cards = 3;
+// 		// The amount of time (in microseconds) left on each yellow card issued to the team.
+// 		// If no yellow cards are issued, this array has no elements.
+// 		// Otherwise, times are ordered from smallest to largest.
+// 		repeated uint32 yellow_card_times = 4 [packed=true];
+// 		// The total number of yellow cards ever issued to the team.
+// 		required uint32 yellow_cards = 5;
+// 		// The number of timeouts this team can still call.
+// 		// If in a timeout right now, that timeout is excluded.
+// 		required uint32 timeouts = 6;
+// 		// The number of microseconds of timeout this team can use.
+// 		required uint32 timeout_time = 7;
+// 	}
 
 	FriendlyYellowCards = [];
 	for (let time of friendlyTeamInfo.yellow_card_times) {
@@ -469,7 +469,7 @@ function _updateGameState (state: any) {
 }
 
 // update and handle user inputs set for own robots
-export function _updateUserInput (input: any) {
+export function _updateUserInput(input: any) {
 	if (input.radio_command) {
 		for (let robot of FriendlyRobotsAll) {
 			robot._updateUserControl(undefined); // clear
@@ -495,8 +495,7 @@ export function _updateUserInput (input: any) {
 				FriendlyRobotsById[cmd.id].moveCommand = {time: Time, pos: Coordinates.toGlobal(new Vector(cmd.p_x, cmd.p_y))};
 			} else {
 				let teamColorString = TeamIsBlue ? "blue" : "yellow";
-				amunLocal.log("<font color=\"red\">WARNING: </font>please select robot "+cmd.id+" for team "+teamColorString+
-					" for pulling it!");
+				amunLocal.log(`<font color="red">WARNING: </font>please select robot ${cmd.id} for team ${teamColorString} for pulling it`);
 			}
 		}
 	}
@@ -505,7 +504,7 @@ export function _updateUserInput (input: any) {
 
 /// Stops own robots and enables standby
 // @name haltOwnRobots
-export function haltOwnRobots () {
+export function haltOwnRobots() {
 	for (let robot of FriendlyRobotsAll) {
 		if (robot.moveCommand == undefined) {
 			robot.setStandby(true);
@@ -517,7 +516,7 @@ export function haltOwnRobots () {
 /// Set generated commands for our robots.
 // Robots without a command stop by default
 // @name setRobotCommands
-export function setRobotCommands () {
+export function setRobotCommands() {
 	for (let robot of FriendlyRobotsAll) {
 		amunLocal.setCommand(robot.generation, robot.id, robot._command());
 	}

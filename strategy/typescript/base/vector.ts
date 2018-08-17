@@ -1,6 +1,6 @@
 ///// 2D Vector class.
 //// Supports + - * /
-//module "Vector"
+// module "Vector"
 ////
 
 /*************************************************************************
@@ -30,25 +30,25 @@ export class Vector {
 	public x: number;
 	public y: number;
 
-	constructor (x: number, y: number) {
+	constructor(x: number, y: number) {
 		this.x = x;
 		this.y = y;
 	}
 
 	// functions used for operator overloading
-	add (other: Vector): Vector {
+	add(other: Vector): Vector {
 		return new Vector(this.x + other.x, this.y + other.y);
 	}
 
-	sub (other: Vector): Vector {
+	sub(other: Vector): Vector {
 		return new Vector(this.x - other.x, this.y - other.y);
 	}
 
-	mul (factor: number): Vector {
+	mul(factor: number): Vector {
 		return new Vector(this.x * factor, this.y * factor);
 	}
 
-	div (factor: number): Vector {
+	div(factor: number): Vector {
 		return new Vector(this.x / factor, this.y / factor);
 	}
 
@@ -56,22 +56,22 @@ export class Vector {
 		return new Vector(-this.x, -this.y);
 	}
 
-	addEq (other: Vector) {
+	addEq(other: Vector) {
 		this.x += other.x;
 		this.y += other.y;
 	}
 
-	subEq (other: Vector) {
+	subEq(other: Vector) {
 		this.x -= other.x;
 		this.y -= other.y;
 	}
 
-	mulEq (factor: number) {
+	mulEq(factor: number) {
 		this.x *= factor;
 		this.y *= factor;
 	}
 
-	divEq (factor: number) {
+	divEq(factor: number) {
 		this.x /= factor;
 		this.y /= factor;
 	}
@@ -81,13 +81,13 @@ export class Vector {
 	// @return Vector - copy
 	// @class function
 	// @name Vector.copy
-	copy (): Vector {
+	copy(): Vector {
 		return new Vector(this.x, this.y);
 	}
 
 	/// Checks for invalid vector
 	// @return bool - True if a coordinate is NaN
-	isNan (): boolean {
+	isNan(): boolean {
 		return (this.x != this.x) || (this.y != this.y);
 	}
 
@@ -95,19 +95,19 @@ export class Vector {
 	// @class function
 	// @name Vector:length
 	// @return number - length
-	length (): number {
+	length(): number {
 		let x = this.x;
 		let y = this.y;
-		return Math.sqrt(x * x + y * y)
+		return Math.sqrt(x * x + y * y);
 	}
 
-	equals (other: Vector): boolean {
+	equals(other: Vector): boolean {
 		return this.x == other.x && this.y == other.y;
 	}
 
 	/// Get squared vector length
 	// @return number - squared length
-	lengthSq (): number {
+	lengthSq(): number {
 		let x = this.x;
 		let y = this.y;
 		return x * x + y * y;
@@ -119,7 +119,7 @@ export class Vector {
 	// @class function
 	// @name Vector:normalize
 	// @return Vector - reference to this
-	normalize (): Vector {
+	normalize(): Vector {
 		let x = this.x;
 		let y = this.y;
 		let l = Math.sqrt(x * x + y * y);
@@ -134,7 +134,7 @@ export class Vector {
 	/// Change length of current vector to given value
 	// @param len number - New length of current vector
 	// @return Vector - reference to this
-	setLength (len: number): Vector {
+	setLength(len: number): Vector {
 		if (len == 0) {
 			this.x = 0;
 			this.y = 0;
@@ -154,7 +154,7 @@ export class Vector {
 	/// Scale the current vectors length
 	// @param scale number - factor to scale vector length with
 	// @return Vector - reference to this
-	scaleLength (scale: number) {
+	scaleLength(scale: number) {
 		this.x *= scale;
 		this.y *= scale;
 		return this;
@@ -166,10 +166,10 @@ export class Vector {
 	// @return number - distance
 	// @class function
 	// @name Vector:distanceTo
-	distanceTo (other: Vector): number {
+	distanceTo(other: Vector): number {
 		let dx = other.x - this.x;
 		let dy = other.y - this.y;
-		return Math.sqrt(dx*dx + dy*dy);
+		return Math.sqrt(dx * dx + dy * dy);
 	}
 
 	/// Distance between vectors squared.
@@ -177,29 +177,29 @@ export class Vector {
 	// @param other Vector
 	// @return number - distance squared
 	// @name Vector:distanceToSq
-	distanceToSq (other: Vector): number {
+	distanceToSq(other: Vector): number {
 		let dx = other.x - this.x;
 		let dy = other.y - this.y;
-		return dx*dx + dy*dy;
+		return dx * dx + dy * dy;
 	}
 
 	/// Calcualates dot product
 	// @param other Vector
 	// @return number - dot product
-	dot (other: Vector): number {
+	dot(other: Vector): number {
 		return this.x * other.x + this.y * other.y;
 	}
 
 	/// Vector direction in radians
 	// @return number - angle in interval [-pi, +pi]
-	angle (): number {
+	angle(): number {
 		return Math.atan2(this.y, this.x);
 	}
 
 	/// Angle from current to other vector
 	// @param other Vector
 	// @return number - angle in interval [-pi, +pi]
-	angleDiff (other: Vector): number {
+	angleDiff(other: Vector): number {
 		if (this.lengthSq() == 0 || other.lengthSq() == 0) {
 			return 0;
 		}
@@ -209,7 +209,7 @@ export class Vector {
 	/// Absolute angle between current and other vector
 	// @param other Vector
 	// @return number - absolute angle in interval [0, +pi]
-	absoluteAngleDiff (other: Vector): number {
+	absoluteAngleDiff(other: Vector): number {
 		let thisLength = this.lengthSq();
 		let otherLength = other.lengthSq();
 		if (thisLength == 0 || otherLength == 0) {
@@ -224,7 +224,7 @@ export class Vector {
 	// @class function
 	// @name Vector:perpendicular
 	// @return Vector - perpendicular
-	perpendicular (): Vector {
+	perpendicular(): Vector {
 		// rotate by 90 degree cw
 		return new Vector(this.y, -this.x);
 	}
@@ -233,7 +233,7 @@ export class Vector {
 	// Angles are oriented counterclockwise
 	// @param angle number - angle in radians
 	// @return Vector - this (rotated) vector
-	rotate (angle: number): Vector {
+	rotate(angle: number): Vector {
 		let x = this.x;
 		let y = this.y;
 
@@ -249,7 +249,7 @@ export class Vector {
 	// @param linePoint2 Vector - point of line
 	// @return Vector - projected point
 	// @return number - (signed) distance to line
-	orthogonalProjection (linePoint1: Vector, linePoint2: Vector): [Vector, number] {
+	orthogonalProjection(linePoint1: Vector, linePoint2: Vector): [Vector, number] {
 		let rv = linePoint2 - linePoint1;
 		if (rv.lengthSq() < 0.00001 * 0.00001) {
 			return [linePoint1, this.distanceTo(linePoint1)];
@@ -267,7 +267,7 @@ export class Vector {
 	// @param linePoint1 Vector - point of line
 	// @param linePoint2 Vector - point of line
 	// @return number - distance to line
-	orthogonalDistance (linePoint1: Vector, linePoint2: Vector): number {
+	orthogonalDistance(linePoint1: Vector, linePoint2: Vector): number {
 		let [_, dist] = this.orthogonalProjection(linePoint1, linePoint2);
 		return dist;
 	}
@@ -279,7 +279,7 @@ export class Vector {
 	// @param lineStart Vector - start of line
 	// @param lineEnd Vector - end of line
 	// @return number - distance
-	distanceToLineSegment (lineStart: Vector, lineEnd: Vector): number {
+	distanceToLineSegment(lineStart: Vector, lineEnd: Vector): number {
 		let dir = (lineEnd - lineStart).normalize();
 		let d = this - lineStart;
 		if (d.dot(dir) < 0) {
@@ -290,8 +290,8 @@ export class Vector {
 			return d.length();
 		}
 
-		//let normal = dir:perpendicular()
-		//return math.abs(d:dot(normal))
+		// let normal = dir:perpendicular()
+		// return math.abs(d:dot(normal))
 		return Math.abs(d.x * dir.y - d.y * dir.x);
 	}
 
@@ -299,29 +299,29 @@ export class Vector {
 	// The distance between the line and the point equals the result of distanceToLineSegment
 	// @param lineStart Vector - the start point of the line
 	// @param lineEnd Vector - the end point of the line
-	nearestPosOnLine (lineStart: Vector, lineEnd: Vector): Vector {
+	nearestPosOnLine(lineStart: Vector, lineEnd: Vector): Vector {
 		let dir = (lineEnd - lineStart).normalize();
 		if ((this - lineStart).dot(dir) <= 0) {
 			return lineStart;
 		} else if ((this - lineEnd).dot(dir) >= 0) {
 			return lineEnd;
 		}
-		//the code below this line does the same as Vector.orthogonalProjection
+		// the code below this line does the same as Vector.orthogonalProjection
 		let d1 = dir.x, d2 = dir.y;
 		let p1 = lineStart.x, p2 = lineStart.y;
 		let a1 = this.x, a2 = this.y;
-		let x1 = (d1*d1*a1 + d1*d2*(a2-p2) + d2*d2*p1)/(d1*d1 + d2*d2);
-		let x2 = (d2*d2*a2 + d2*d1*(a1-p1) + d1*d1*p2)/(d2*d2 + d1*d1);
+		let x1 = (d1 * d1 * a1 + d1 * d2 * (a2 - p2) + d2 * d2 * p1) / (d1 * d1 + d2 * d2);
+		let x2 = (d2 * d2 * a2 + d2 * d1 * (a1 - p1) + d1 * d1 * p2) / (d2 * d2 + d1 * d1);
 		return new Vector(x1, x2);
 	}
 
-	complexMultiplication (other: Vector): Vector {
+	complexMultiplication(other: Vector): Vector {
 		return new Vector(this.x * other.x - this.y * other.y, this.x * other.y + this.y * other.x);
 	}
 
 	// used for base debug
 	_toString() {
-		return "Vector(" + this.x + ", " + this.y + ")";
+		return `Vector(${this.x}, ${this.y})`;
 	}
 
 	/// Creates a new read-only vector
@@ -329,14 +329,14 @@ export class Vector {
 	// @param x number - x coordinate
 	// @param y number - y coordinate
 	// @return Vector
-	static createReadOnly (x: number, y: number): Readonly<Vector> {
+	static createReadOnly(x: number, y: number): Readonly<Vector> {
 		return new Vector(x, y);
 	}
 
 	/// Create unit vector with given direction
 	// @param angle number - Direction in radians
 	// @return Vector
-	static fromAngle (angle: number): Vector {
+	static fromAngle(angle: number): Vector {
 		return new Vector(Math.cos(angle), Math.sin(angle));
 	}
 
@@ -344,7 +344,7 @@ export class Vector {
 	// @param sigma number - the sigma of the distribution
 	// @param mean Vector - the middle point of the distribution
 	// @return Vector - the random point
-	static random (sigma: number, mean: Vector = new Vector(0, 0)): Vector {
+	static random(sigma: number, mean: Vector = new Vector(0, 0)): Vector {
 		let u: number, v: number, s: number;
 
 		do {
@@ -363,7 +363,7 @@ export class Vector {
 	/// Check whether a given value is a vector
 	// @param data any - The value to test
 	// @return bool - True, if data is a vector
-	static isVector (data: any): boolean {
+	static isVector(data: any): boolean {
 		return typeof(data) === "object" && data.constructor.name === "Vector";
 	}
 }

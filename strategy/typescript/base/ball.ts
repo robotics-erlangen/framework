@@ -24,9 +24,9 @@
 **************************************************************************/
 
 import * as Constants from "base/constants";
-import {Coordinates} from "base/coordinates";
+import { Coordinates } from "base/coordinates";
 import * as plot from "base/plot";
-import {Vector, Position, Speed} from "base/vector";
+import { Position, Speed, Vector } from "base/vector";
 
 
 /// Values provided by Ball
@@ -64,16 +64,18 @@ export class Ball {
 	private _isVisible: boolean = false;
 
 	// constructor must only be called by world!
-	constructor() {}
-
-	__tostring () {
-		//return string.format("Ball(pos = (%6.3f, %6.3f), speed = %3.1f)",
-		//	this.pos.x, this.pos.y, this.speed.length());
-		// TODO: string.format doesn't exist, but number of digits would be nice
-		return "Ball(pos = (" + this.pos.x + ", " + this.pos.y + "), speed = " + this.speed.length + ")";
+	constructor() {
+		//
 	}
 
-	_updateLostBall (time: number) {
+	__tostring() {
+		// return string.format("Ball(pos = (%6.3f, %6.3f), speed = %3.1f)",
+		// 	this.pos.x, this.pos.y, this.speed.length());
+		// TODO: string.format doesn't exist, but number of digits would be nice
+		return `Ball(pos = (${this.pos.x}, ${this.pos.y}), speed = ${this.speed.length})`;
+	}
+
+	_updateLostBall(time: number) {
 		// set lost timer
 		if (this._isVisible) {
 			this._isVisible = false;
@@ -83,7 +85,7 @@ export class Ball {
 	}
 
 	// Processes ball information from amun, passed by world
-	_update (data: any, time: number) {
+	_update(data: any, time: number) {
 		this.hasRawData = false;
 		// WARNING: this is the quality BEFORE the frame
 		plot.addPlot("Ball.quality", this.detectionQuality);
@@ -120,7 +122,7 @@ export class Ball {
 		this._updateRawDetections(data.raw);
 	}
 
-	_updateRawDetections (rawData: any[] | undefined) {
+	_updateRawDetections(rawData: any[] | undefined) {
 		if (rawData == undefined) {
 			return;
 		}
@@ -129,7 +131,7 @@ export class Ball {
 		this.hasRawData = count > 0;
 	}
 
-	_updateTrackedState (lastSpeedLength: number) {
+	_updateTrackedState(lastSpeedLength: number) {
 		// speed tracking
 		// framesDecelerating counts the number of frames since the last extreme acceleration
 		// so even if the ball slowly accelerates, framesDecelerating will not reset
@@ -158,7 +160,7 @@ export class Ball {
 
 	/// Checks whether the ball position is valid
 	// @return boolean - True if ball is visible and position and speed are not NaN
-	isPositionValid () {
+	isPositionValid() {
 		if (!this._isVisible) {
 			return false;
 		}

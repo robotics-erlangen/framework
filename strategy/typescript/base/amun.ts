@@ -239,8 +239,8 @@ separator for luadoc]]--
 
 // TODO: declare proper typed interface for amun
 declare var amun: any;
-amun.isDebug = false; //TODO
-amun.isPerformanceMode = amun.getPerformanceMode()
+amun.isDebug = false; // TODO
+amun.isPerformanceMode = amun.getPerformanceMode();
 
 export let amunFunctions: any = amun;
 export function _hideFunctions() {
@@ -258,7 +258,7 @@ export function _hideFunctions() {
 		isDebug: isDebug,
 		strategyPath: strategyPath,
 		nextRefboxReply: nextRefboxReply,
-		getCurrentTime: function () {
+		getCurrentTime: function() {
 			return getCurrentTime() * 1E-9;
 		},
 		setRobotExchangeSymbol: amun.setRobotExchangeSymbol,
@@ -270,8 +270,8 @@ export function _hideFunctions() {
 		amun.sendNetworkRefereeCommand = sendNetworkRefereeCommand;
 	} else {
 		amun.sendNetworkRefereeCommand = function() {
-			throw "you must enable debug in order to send referee commands";
-		}
+			throw new Error("you must enable debug in order to send referee commands");
+		};
 	}
 	if isDebug then
 		amun.sendCommand = sendCommand
