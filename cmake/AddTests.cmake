@@ -6,6 +6,10 @@ add_test(NAME luacheck-marvin
     COMMAND luacheck -q .
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/strategy/lua/marvin")
 
+add_test(NAME tslint-base
+	COMMAND tslint -p tsconfig.json -c ../tslint.yaml
+	WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}/strategy/typescript/base")
+
 add_test(NAME unittest-marvin
     COMMAND amun-cli "strategy/lua/marvin/init.lua" "Unit Tests/ all"
     WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}")
