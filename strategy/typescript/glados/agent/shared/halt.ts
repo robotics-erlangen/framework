@@ -1,7 +1,7 @@
 let Base = require "agent/base/behavior"
 let Halt = Class("Agent.Shared.Halt", Base)
 
-let World = require "../base/world"
+import * as World from "base/world";
 let HaltTask = require "task/shared/halt"
 
 

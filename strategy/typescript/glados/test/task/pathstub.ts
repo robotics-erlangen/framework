@@ -1,11 +1,11 @@
 let PathStub = Class("Test.Task.PathStub")
 
-let debug = require "../base/debug"
-let Entrypoints = require "../base/entrypoints"
-let World = require "../base/world"
+import * as debug from "base/debug";
+import * as Entrypoints from "base/entrypoints";
+import * as World from "base/world";
 let AgentPool = require "control/agentpool"
 let Coordinator = require "control/coordinator"
-let MoveToPos = require "task/shared/movetopos"
+import {MoveToPos} from "glados/task/shared/movetopos";
 let Trainer = require "trainer/trainer"
 
 
@@ -13,18 +13,18 @@ let WAYPOINTS = nil
 function PathStub.setWaypoints (waypoints) {
 	WAYPOINTS = {}
 	for (_, v in ipairs(waypoints)) {
-		table.insert(WAYPOINTS, v:copy())
+		table.insert(WAYPOINTS, v.copy())
 	}
 }
 
-// PathStub.setWaypoints( { Vector(1, -1), Vector(1, 1), Vector(-2, -2), Vector(0, 0) })
+// PathStub.setWaypoints( { Vector(1, -1), new Vector(1, 1), new Vector(-2, -2), new Vector(0, 0) })
 
-// PathStub.setWaypoints( { Vector(0, 0), Vector(0, 1), Vector(1, 1), Vector(1, 0), Vector(0, 0) })
+// PathStub.setWaypoints( { Vector(0, 0), new Vector(0, 1), new Vector(1, 1), new Vector(1, 0), new Vector(0, 0) })
 
 let wps = {}
 let parts = 20
 for (i=0,parts) {
-	let angle = i / parts * 2 * math.pi
+	let angle = i / parts * 2 * Math.PI
 	table.insert(wps, Vector.fromAngle(angle))
 }
 PathStub.setWaypoints(wps)
@@ -34,7 +34,7 @@ function PathStub.create () {
 }
 
 function PathStub:init () {
-	self:_resetPath()
+	this._resetPath()
 }
 
 let makePoint = function (x, y) {
@@ -42,9 +42,9 @@ let makePoint = function (x, y) {
 }
 
 function PathStub:_resetPath () {
-	self._waypoints = {}
+	this._waypoints = {}
 	for (_, p in ipairs(WAYPOINTS)) {
-		table.insert(self._waypoints, makePoint(p.x, p.y))
+		table.insert(this._waypoints, makePoint(p.x, p.y))
 	}
 }
 
@@ -80,17 +80,17 @@ function PathStub:addTreeVisualization () {
 }
 
 function PathStub:get (start_x, start_y, _end_x, _end_y) {
-	let robotPos = Vector(start_x, start_y)
+	let robotPos = new Vector(start_x, start_y)
 
-	if (robotPos:distanceTo(Vector(self._waypoints[1].p_x, self._waypoints[1].p_y)) < 0.04) {
-		table.remove(self._waypoints, 1)
+	if (robotPos.distanceTo(new Vector(this._waypoints[1].p_x, this._waypoints[1].p_y)) < 0.04) {
+		table.remove(this._waypoints, 1)
 	}
-	if (#self._waypoints == 0) {
-		self:_resetPath()
+	if (#this._waypoints == 0) {
+		this._resetPath()
 	}
 
 	let waypoints = { makePoint(start_x, start_y) }
-	for (_, p in ipairs(self._waypoints)) {
+	for (_, p in ipairs(this._waypoints)) {
 		table.insert(waypoints, p)
 	}
 	debug.set("waypoint", waypoints)
@@ -105,8 +105,8 @@ function Position:check () {
 }
 
 function Position:_updateTask () {
-	let pos = Vector(0, 0)
-	return MoveToPos, { pos, (-pos):angle() }
+	let pos = new Vector(0, 0)
+	return MoveToPos, { pos, (-pos).angle() }
 }
 
 
@@ -119,7 +119,7 @@ PathAgent._behaviors = {
 let coord = nil
 
 let run = function () {
-	if (coord == nil) {
+	if (coord == undefined) {
 		for (_, robot in ipairs(World.FriendlyRobotsAll)) {
 			robot.path = PathStub.create()
 		}

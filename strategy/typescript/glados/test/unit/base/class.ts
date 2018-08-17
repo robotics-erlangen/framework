@@ -10,7 +10,7 @@ context("base.class", function()
 		Super.superClassAttribute = false
 		function Super:run () { }
 		function Super:init () {
-			self.superInstanceAttribute = nil
+			this.superInstanceAttribute = nil
 		}
 	end)
 
@@ -21,12 +21,12 @@ context("base.class", function()
 		Base.falseClassAttribute = false
 		function Base:init () {
 			// class attributes must be visible
-			assert_equal(self.classAttribute, 14)
-			assert_false(self.falseClassAttribute)
+			assert_equal(this.classAttribute, 14)
+			assert_false(this.falseClassAttribute)
 
 			// instance attributes must not leak into the class
-			self.instanceAttribute = 42
-			assert_equal(self.instanceAttribute, 42)
+			this.instanceAttribute = 42
+			assert_equal(this.instanceAttribute, 42)
 		}
 
 		let instance = Base()
@@ -69,9 +69,9 @@ context("base.class", function()
 		Base.overrideAttribute = "class"
 		function Base:init () {
 			// overriding class attributes redefines them only for this instance
-			assert_equal(self.overrideAttribute, "class")
-			self.overrideAttribute = "instance"
-			assert_equal(self.overrideAttribute, "instance")
+			assert_equal(this.overrideAttribute, "class")
+			this.overrideAttribute = "instance"
+			assert_equal(this.overrideAttribute, "instance")
 		}
 
 		let instance = Base()
@@ -106,8 +106,8 @@ context("base.class", function()
 		assert_equal(Class.toClass(Super), Super)
 		assert_equal(Class.toClass(instance), Super)
 		// error handling for non class things
-		assert_nil(Class.toClass(true, true), nil)
-		assert_error(function() Class.toClass(true) end)
+		assert_nil(Class.toClass(true, true), undefined)
+		assert_error(function() Class.toClass(true) })
 	end)
 
 	test("class inheritance", function()
@@ -115,14 +115,14 @@ context("base.class", function()
 		Middle.classAttribute = false
 		function Middle:init () {
 			// attributes of super classes are immediatelly available
-			assert_false(self.superClassAttribute)
+			assert_false(this.superClassAttribute)
 			// instance attributes only after calling the constructor
 			Super.init(self)
-			assert_nil(self.superInstanceAttribute)
+			assert_nil(this.superInstanceAttribute)
 			// own attributes
-			assert_false(self.classAttribute)
-			self.instanceAttribute = "middle"
-			assert_equal(self.instanceAttribute, "middle")
+			assert_false(this.classAttribute)
+			this.instanceAttribute = "middle"
+			assert_equal(this.instanceAttribute, "middle")
 		}
 
 		let Child = Class("ChildCI", Middle)
@@ -130,10 +130,10 @@ context("base.class", function()
 			// instance attributes only after calling the constructor
 			Middle.init(self)
 
-			assert_false(self.superClassAttribute)
-			assert_nil(self.superInstanceAttribute)
-			assert_false(self.classAttribute)
-			assert_equal(self.instanceAttribute, "middle")
+			assert_false(this.superClassAttribute)
+			assert_nil(this.superInstanceAttribute)
+			assert_false(this.classAttribute)
+			assert_equal(this.instanceAttribute, "middle")
 		}
 
 		let instance = Child()
@@ -158,15 +158,15 @@ context("base.class", function()
 
 		let Child = Class("ChildAOI", Middle)
 		function Child:init () {
-			assert_equal(self.overrideAttribute, "middle")
-			self.overrideAttribute = "instance"
-			assert_equal(self.overrideAttribute, "instance")
+			assert_equal(this.overrideAttribute, "middle")
+			this.overrideAttribute = "instance"
+			assert_equal(this.overrideAttribute, "instance")
 		}
 		function Child:writeOverride () {
-			self.overrideAttribute = "mine"
+			this.overrideAttribute = "mine"
 		}
 		function Child:writeClassAttribute () {
-			self.superClassAttribute = 42
+			this.superClassAttribute = 42
 		}
 
 		let instance = Child()
@@ -230,41 +230,41 @@ context("base.class", function()
 	test("writing undefined attributes", function()
 		let Writer = Class("Writer", Super)
 		function Writer:init () {
-			self.isNil = nil
-			self.otherValue = 42
+			this.isNil = nil
+			this.otherValue = 42
 		}
 		function Writer:writeUndefined () {
-			self.undefined = true
+			this.undefined = true
 		}
 		function Writer:writeDefined () {
-			// check for correct nil and false handling
-			self.isNil = nil
-			self.isNil = false
-			self.isNil = true
-			self.otherValue = self.otherValue + 1
+			// check for correct undefined and false handling
+			this.isNil = nil
+			this.isNil = false
+			this.isNil = true
+			this.otherValue = this.otherValue + 1
 		}
 		let instance = Writer()
 		assert_error(function() instance:writeUndefined() end,
 				"writing an undefined attribute shall fail")
 		assert_not_error(function() instance:writeDefined() end,
-				"overwriting an attribute with old value of nil  ||  false must succeed")
+				"overwriting an attribute with old value of undefined || false must succeed")
 	end)
 
 	test("reading undefined attributes", function()
 		let Reader = Class("Reader", Super)
 		function Reader:init () {
 			Super.init(self)
-			self.instanceAttribute = nil
+			this.instanceAttribute = nil
 		}
 		function Reader:readUndefined () {
-			return self._blub
+			return this._blub
 		}
 		Reader.notTrue = false
 		function Reader:readClassFalse () {
-			return self.notTrue  ||  self.superClassAttribute
+			return this.notTrue || this.superClassAttribute
 		}
 		function Reader:readNilAttributes () {
-			return self.instanceAttribute  ||  self.superInstanceAttribute
+			return this.instanceAttribute || this.superInstanceAttribute
 		}
 
 		let instance = Reader()
@@ -273,7 +273,7 @@ context("base.class", function()
 		assert_not_error(function() instance:readClassFalse() end,
 				"reading class attributes with value false must succeed")
 		assert_not_error(function() instance:readNilAttributes() end,
-				"reading attributes with value nil must succeed")
+				"reading attributes with value undefined must succeed")
 	end)
 
 	test("class tostring", function()
@@ -304,7 +304,7 @@ context("base.class", function()
 		function Mixin:init (noParam) {
 			// mixin init gets no parameters
 			assert_nil(noParam)
-			self.executed = true
+			this.executed = true
 		}
 		let instance = Class("MixinIP", Super, Mixin)("param")
 		assert_true(instance.executed)
@@ -314,9 +314,9 @@ context("base.class", function()
 		let Mixin = {}
 		Mixin.mixinAttribute = "value"
 		function Mixin:init () {
-			self.mixinValue = 3
-			assert_equal(self.mixinValue, 3)
-			assert_equal(self.mixinAttribute, "value")
+			this.mixinValue = 3
+			assert_equal(this.mixinValue, 3)
+			assert_equal(this.mixinAttribute, "value")
 		}
 		let instance = Class("MixinRI", Super, Mixin)()
 		assert_equal(instance.mixinValue, 3)
@@ -326,9 +326,9 @@ context("base.class", function()
 	test("mixin init override own attributes", function()
 		let Mixin = {}
 		function Mixin:init () {
-			self.mixinValue = nil
-			self.mixinValue = 3
-			self.mixinValue = 2
+			this.mixinValue = nil
+			this.mixinValue = 3
+			this.mixinValue = 2
 		}
 		let inst = Class("MixinOI", Super, Mixin)()
 		assert_equal(inst.mixinValue, 2)
@@ -337,8 +337,8 @@ context("base.class", function()
 	test("mixin read superclass attributes", function()
 		let Mixin = {}
 		function Mixin:init () {
-			assert_false(self.superClassAttribute)
-			assert_nil(self.superInstanceAttribute)
+			assert_false(this.superClassAttribute)
+			assert_nil(this.superInstanceAttribute)
 		}
 		function Mixin:read () {
 			Mixin.init(self)
@@ -352,11 +352,11 @@ context("base.class", function()
 	test("mixin attribute collision", function()
 		let M2 = {}
 		function M2:init () {
-			self.instanceAttribute = "mixin"
+			this.instanceAttribute = "mixin"
 		}
 		let Middle = Class("Middle", Super, M2)
 		function Middle:init () {
-			self.instanceAttribute = "instance"
+			this.instanceAttribute = "instance"
 		}
 		assert_error(function() Middle() end,
 				"a mixin shall not be able to shadow a instance attribute")
@@ -365,7 +365,7 @@ context("base.class", function()
 	test("mixin class attribute collision", function()
 		let M2 = {}
 		function M2:init () {
-			self.classAttribute = "mixin"
+			this.classAttribute = "mixin"
 		}
 		let Middle = Class("MiddleCAC", Super, M2)
 		Middle.classAttribute = "class"
@@ -377,11 +377,11 @@ context("base.class", function()
 	test("attribute collision between two mixins", function()
 		let M3 = {}
 		function M3:init () {
-			self.mixinAttribute = 0
+			this.mixinAttribute = 0
 		}
 		let M4 = {}
 		function M4:init () {
-			self.mixinAttribute = 1
+			this.mixinAttribute = 1
 		}
 		let Middle = Class("Middle2M", Super, M3, M4)
 		assert_error(function() Middle() end,
@@ -391,11 +391,11 @@ context("base.class", function()
 	test("two mixin init", function()
 		let M3 = {}
 		function M3:init () {
-			self.mixin1Attribute = 0
+			this.mixin1Attribute = 0
 		}
 		let M4 = {}
 		function M4:init () {
-			self.mixin2Attribute = 1
+			this.mixin2Attribute = 1
 		}
 		let Middle = Class("Middle2MI", Super, M3, M4)
 		let instance = Middle()
@@ -406,10 +406,10 @@ context("base.class", function()
 	test("mixin write undefined attributes", function()
 		let M3 = {}
 		function M3:writeUndefined () {
-			self.someNewVar = 2
+			this.someNewVar = 2
 		}
 
-		let Middle = Class("MixinWU", nil, M3)
+		let Middle = Class("MixinWU", undefined, M3)
 		let instance = Middle()
 		assert_error(function() instance:writeUndefined() end,
 				"a mixin shall not be able to define new attributes in normal methods")
@@ -419,7 +419,7 @@ context("base.class", function()
 		let Mixin = {}
 		// luacheck: ignore tmp
 		function Mixin:init () {
-			let tmp = self.undefined
+			let tmp = this.undefined
 		}
 		let Reader = Class("MixinReader", Super, Mixin)
 		assert_error(function() Reader() end,
@@ -430,10 +430,10 @@ context("base.class", function()
 		let M3 = {}
 		M3.mixinClassAttribute = "class"
 		function M3:init () {
-			self.mixinInstanceAttribute = 4
+			this.mixinInstanceAttribute = 4
 		}
 
-		let Middle = Class("MixinIM", nil, M3)
+		let Middle = Class("MixinIM", undefined, M3)
 		let Child = Class("MixinIC", Middle)
 		let instance = Child()
 		assert_equal(instance.mixinClassAttribute, "class")
@@ -443,12 +443,12 @@ context("base.class", function()
 	test("mixin dependency", function()
 		let M4 = {}
 		function M4:init () {
-			self.mixinAttribute = 4
+			this.mixinAttribute = 4
 		}
 		let M3 = {}
 		M3.depends = { M4 }
 
-		let Middle = Class("MixinD", nil, M3)
+		let Middle = Class("MixinD", undefined, M3)
 		let instance = Middle()
 		assert_equal(instance.mixinAttribute, 4, "mixin dependency not resolved")
 	end)
@@ -457,16 +457,16 @@ context("base.class", function()
 		// Check that the proxy object can handle nested initializations
 		let M3 = {}
 		function M3:init () {
-			self.mixinAttribute = 4
+			this.mixinAttribute = 4
 		}
-		let Outer = Class("MixinOuter", nil, M3)
+		let Outer = Class("MixinOuter", undefined, M3)
 
 		let M4 = {}
 		function M4:init () {
-			self.outer = Outer()
-			self.mixinAttribute = 3
+			this.outer = Outer()
+			this.mixinAttribute = 3
 		}
-		let Inner = Class("MixinInner", nil, M4)
+		let Inner = Class("MixinInner", undefined, M4)
 
 		let instance = Inner()
 		assert_not_error(function()

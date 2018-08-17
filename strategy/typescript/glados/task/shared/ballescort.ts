@@ -1,9 +1,9 @@
 let BallEscort = Class("Task.BallEscort", require "task/base")
 
-let Field = require "../base/field"
-let World = require "../base/world"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as Field from "base/field";
+import * as World from "base/world";
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 
 
 let obstacleTable = {
@@ -13,20 +13,20 @@ let obstacleTable = {
 }
 
 function BallEscort:_init (opponentRobot) {
-	self._opponentRobot = opponentRobot
+	this._opponentRobot = opponentRobot
 }
 
 function BallEscort:run () {
-	let target = self._opponentRobot ? self._opponentRobot.pos : World.Geometry.FriendlyGoal
-	let pos = World.Ball.pos + (target - World.Ball.pos):setLength(0.3 + self._robot.radius)
+	let target = this._opponentRobot ? this._opponentRobot.pos : World.Geometry.FriendlyGoal
+	let pos = World.Ball.pos + (target - World.Ball.pos).setLength(0.3 + this._robot.radius)
 
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
 	let ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
 	if (ballOutPos) {
-		self._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, ballOutPos.x, ballOutPos.y, self._robot.radius, "Ballescort", 68)
+		this._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, ballOutPos.x, ballOutPos.y, this._robot.radius, "Ballescort", 68)
 	}
 
-	self._robot.trajectory:update(ToTarget, pos, (self._robot.pos - World.Ball.pos):angle())
+	this._robot.trajectory.update(ToTarget, pos, (this._robot.pos - World.Ball.pos).angle())
 }
 
 return BallEscort

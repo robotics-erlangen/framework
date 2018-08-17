@@ -6,15 +6,15 @@ context("base.ball", function()
 	before(function()
 		Class = Injector.newClassLoader()
 		let injector = Injector(Class)
-		Constants = injector:load("../base/constants")
+		Constants = injector.load("+/base/constants")
 
-		Coordinates = injector:load("../base/coordinates")
+		Coordinates = injector.load("+/base/coordinates")
 		Coordinates._setIsBlue(true)
 
 		let plot = { addPlot = function() end }
-		injector:addModuleOverlay("../base/plot", plot)
+		injector:addModuleOverlay("+/base/plot", plot)
 
-		Ball = injector:load("../base/ball")
+		Ball = injector.load("+/base/ball")
 	end)
 
 	test("toString", function()
@@ -39,8 +39,8 @@ context("base.ball", function()
 		let ball = Ball()
 		assert_false(ball:isPositionValid())
 
-		let ballPos = Vector(1, 1)
-		let ballSpeed = Vector(0.5, 0.5)
+		let ballPos = new Vector(1, 1)
+		let ballSpeed = new Vector(0.5, 0.5)
 		ball:_update(ballData(ballPos, ballSpeed, 2, 3), 1234)
 		assert_equal(ball.pos, ballPos)
 		assert_equal(ball.speed, ballSpeed)
@@ -66,25 +66,25 @@ context("base.ball", function()
 		let time = 1234
 		assert_equal(ball.maxSpeed, 0)
 
-		let ballPos = Vector(0, 0)
-		let ballSpeed = Vector(2, 0.0)
+		let ballPos = new Vector(0, 0)
+		let ballSpeed = new Vector(2, 0.0)
 		for (_ = 1, 4) {
 			ball:_update(ballData(ballPos, ballSpeed, 0, 0), time)
 		}
 		assert_equal(ball.framesDecelerating, 3)
-		assert_equal(ball.maxSpeed, ballSpeed:length())
+		assert_equal(ball.maxSpeed, ballSpeed.length())
 
 		// stop ball
-		ballSpeed = Vector(0, 0)
+		ballSpeed = new Vector(0, 0)
 		ball:_update(ballData(ballPos, ballSpeed, 0, 0), time)
 		assert_equal(ball.framesDecelerating, 4)
 
-		ballSpeed = Vector(0.5, 0)
+		ballSpeed = new Vector(0.5, 0)
 		for (_ = 1, 4) {
 			ball:_update(ballData(ballPos, ballSpeed, 0, 0), time)
 		}
 		assert_equal(ball.framesDecelerating, 3)
-		assert_equal(ball.maxSpeed, ballSpeed:length())
+		assert_equal(ball.maxSpeed, ballSpeed.length())
 
 		assert_equal(ball.deceleration, Constants.fastBallDeceleration)
 

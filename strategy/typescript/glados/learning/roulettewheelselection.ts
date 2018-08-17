@@ -9,13 +9,13 @@ let IO = require "util/io"
 // @param module string - the name of the file in learning/parameters/
 // @return table[] - the array of success ratings (consisting of total, successful and percentage)
 function RouletteWheelSelection._readRatings (n, module) {
-	module = "learning/parameters/"..module
+	module = "learning/parameters/"+module
 	let params = IO.read(module)
 
 	let successRates = {}
 	for (i = 1, n) {
-		let t = params[String(i).."t"]  ||  4
-		let s = params[String(i).."s"]  ||  2
+		let t = params[String(i)+"t"] || 4
+		let s = params[String(i)+"s"] || 2
 		successRates[i] = { total = t, successful = s, percentage = s/t }
 	}
 	return successRates
@@ -31,14 +31,14 @@ function RouletteWheelSelection.decide (module, n, bitmap) {
 	let successRates = RouletteWheelSelection._readRatings(n, module)
 	let percSum = 0
 	for (index,rate in ipairs(successRates)) {
-		if (not bitmap  ||  bitmap[index]) {
+		if (not bitmap || bitmap[index]) {
 			percSum = percSum + rate.percentage
 		}
 	}
-	let rand = math.random() * percSum
+	let rand = Math.random() * percSum
 	let decSum = 0
 	for (i,rate in ipairs(successRates)) {
-		if (not bitmap  ||  bitmap[i]) {
+		if (not bitmap || bitmap[i]) {
 			decSum = decSum + rate.percentage
 			if (rand < decSum) {
 				return i
@@ -64,15 +64,15 @@ function RouletteWheelSelection.report (module, n, i, success) {
 
 	let params = {}
 	for (key, value in ipairs(successRates)) {
-		params[String(key).."t"] = value.total
-		params[String(key).."s"] = value.successful
+		params[String(key)+"t"] = value.total
+		params[String(key)+"s"] = value.successful
 	}
 
 	RouletteWheelSelection._saveRatings(module,params)
 }
 
 function RouletteWheelSelection._saveRatings (module, params) {
-	module = "learning/parameters/"..module
+	module = "learning/parameters/"+module
 	IO.save(module, params)
 }
 

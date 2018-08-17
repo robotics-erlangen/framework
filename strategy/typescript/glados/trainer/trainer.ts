@@ -1,25 +1,25 @@
 let Groups = require "trainer/groups"
 let Roles = require "trainer/roles"
-let Trainer = Class("Trainer", nil, Roles, Groups)
+let Trainer = Class("Trainer", undefined, Roles, Groups)
 
-let debug = require "../base/debug"
+import * as debug from "base/debug";
 
 
 function Trainer:init () {
-	self._send, self._inbox = nil, nil
+	this._send, this._inbox = undefined, nil
 }
 
 function Trainer:setupMessaging (messaging) {
-	assert(self._send == nil  &&  self._inbox == nil, "Messaging may only be set once")
-	self._send, self._inbox = messaging:registerTrainer()
+	assert(this._send == undefined && this._inbox == undefined, "Messaging may only be set once")
+	this._send, this._inbox = messaging:registerTrainer()
 }
 
 function Trainer:_debugInbox (str) {
 	debug.pushtop(str or"Trainer Inbox")
-	for (name, func in pairs(self._inbox)) {
+	for (name, func in pairs(this._inbox)) {
 		debug.push(name)
 		for (sender, msg in pairs(func())) {
-			debug.set(sender.id  ||  sender, msg)
+			debug.set(sender.id || sender, msg)
 		}
 		debug.pop() // name
 	}
@@ -27,10 +27,10 @@ function Trainer:_debugInbox (str) {
 }
 
 function Trainer:run () {
-	self:_debugInbox("Preliminary Trainer Inbox")
-	self:_chooseExclusiveRoles()
-	self:_runGroups()
-	self:_debugInbox()
+	this._debugInbox("Preliminary Trainer Inbox")
+	this._chooseExclusiveRoles()
+	this._runGroups()
+	this._debugInbox()
 }
 
 return Trainer

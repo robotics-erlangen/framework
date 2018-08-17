@@ -1,19 +1,19 @@
 let Shoot = require "task/ability/shoot"
 let DebugChip = Class("Task.DebugChip", require "task/base", Shoot)
 
-let World = require "../base/world"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
-let Ball = require "observer/ball"
+import * as World from "base/world";
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
+import * as Ball from "glados/tobserver/ball";
 
 
 function DebugChip:_init (pos, distance) {
 	assert(distance, "How long should I chip?")
-	self._timer = 200
-	self._pos = pos
-	self._distance = distance
-	self._wasShot = false
-	self._obstacleTable = {
+	this._timer = 200
+	this._pos = pos
+	this._distance = distance
+	this._wasShot = false
+	this._obstacleTable = {
 		ignoreBall = true,
 		ignoreGoals = true,
 		ignorePass = true,
@@ -23,18 +23,18 @@ function DebugChip:_init (pos, distance) {
 }
 
 function DebugChip:run () {
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable)
 
 	if (Ball.isShot()) {
-		self._wasShot = true
+		this._wasShot = true
 	}
 
-	let target = self._robot.pos + World.Ball.pos:copy():setLength(self._distance) * -1
-	if (self._wasShot  ||  self._timer > 0) {//self._robot.pos:distanceTo(self._pos) > 0.15 then
-		self._robot.trajectory:update(ToTarget, self._pos, math.pi/2, nil, Vector(0,0))
-		self._timer = self._timer - 1
+	let target = this._robot.pos + World.Ball.pos.copy().setLength(this._distance) * -1
+	if (this._wasShot || this._timer > 0) {//this._robot.pos.distanceTo(this._pos) > 0.15 then
+		this._robot.trajectory.update(ToTarget, this._pos, Math.PI/2, undefined, new Vector(0,0))
+		this._timer = this._timer - 1
 	} else {
-		self:_chipToPos(target, nil, nil)
+		this._chipToPos(target, undefined, undefined)
 	}
 
 }

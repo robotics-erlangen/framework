@@ -1,12 +1,12 @@
 let ShootGoal = {}
 
-let Cache = require "../base/cache"
-let geom = require "../base/geom"
-let World = require "../base/world"
+import * as Cache from "base/cache";
+import * as geom from "base/geom";
+import * as World from "base/world";
 let G = World.Geometry
 
-let Ball = require "observer/ball"
-let Goal = require "observer/goal"
+import * as Ball from "glados/tobserver/ball";
+import * as Goal from "glados/observer/goal";
 
 /// returns the lists of interfering robots (with and without the keeper)
 // @name getRobotLists
@@ -24,12 +24,12 @@ function ShootGoal.getRobotLists (ownRobot) {
 	let robotListWithoutKeeper = {}
 
 	// consider all robots (also our ones)
-	for (_,r in ipairs(World.Robots)) {
+	for (let r of World.Robots) {
 		if (r != ownRobot) {
 			// crude estimate of how much time the robot has before the ball has passed it
 			// robots near the ball won't have moved for the full extrapolation time by then
-			let ballTimeToRobot = r.pos:distanceTo(World.Ball.pos) / averageKickedBallSpeed
-			let futureRobot = { ["pos"] = r.pos + r.speed * math.min(ballTimeToRobot, extrapolationTime),
+			let ballTimeToRobot = r.pos.distanceTo(World.Ball.pos) / averageKickedBallSpeed
+			let futureRobot = { ["pos"] = r.pos + r.speed * Math.min(ballTimeToRobot, extrapolationTime),
 				["radius"] = r.radius, ["speed"] = r.speed, ["isFriendly"] = r.isFriendly }
 
 			table.insert(robotList, futureRobot)
@@ -51,7 +51,7 @@ function ShootGoal.rateSector (sector, oldSectorMid) {
 	let sectorWidth = sector[2] - sector[1]
 
 	let hysteresisFactor = 1
-	if (oldSectorMid  &&  oldSectorMid > sector[1]  &&  oldSectorMid < sector[2]) {
+	if (oldSectorMid && oldSectorMid > sector[1] && oldSectorMid < sector[2]) {
 		hysteresisFactor = 3
 	}
 
@@ -67,10 +67,10 @@ function ShootGoal.rateSector (sector, oldSectorMid) {
 // @return Vector - the midpoint of the chosen sector
 // @return angle - the witdh of the chosen sector
 function ShootGoal.findTarget (ownRobot, viewPos, ignoreGoalie, oldTarget) {
-	let goalStart = (G.OpponentGoalRight - viewPos):angle()
-	let goalEnd = (G.OpponentGoalLeft - viewPos):angle()
+	let goalStart = (G.OpponentGoalRight - viewPos).angle()
+	let goalEnd = (G.OpponentGoalLeft - viewPos).angle()
 
-	let ballDiameterAngle = (2 * World.Ball.radius) / G.OpponentGoalRight:distanceTo(viewPos)
+	let ballDiameterAngle = (2 * World.Ball.radius) / G.OpponentGoalRight.distanceTo(viewPos)
 	if (viewPos.x > G.OpponentGoalRight.x) {
 		goalStart = goalStart + ballDiameterAngle
 	} else if (viewPos.x < G.OpponentGoalLeft.x) {
@@ -89,7 +89,7 @@ function ShootGoal.findTarget (ownRobot, viewPos, ignoreGoalie, oldTarget) {
 	// compute angle of old target (used for hysteresis)
 	let oldSectorMid = nil
 	if (oldTarget) {
-		oldSectorMid = (oldTarget - viewPos):angle()
+		oldSectorMid = (oldTarget - viewPos).angle()
 	}
 
 	// find best sector
@@ -110,7 +110,7 @@ function ShootGoal.findTarget (ownRobot, viewPos, ignoreGoalie, oldTarget) {
 	let targetPoint = G.OpponentGoal
 	if (bestSectorMid) {
 		let intersection = geom.intersectLineLine(viewPos,
-			Vector.fromAngle(bestSectorMid), G.OpponentGoal, Vector(1, 0))
+			Vector.fromAngle(bestSectorMid), G.OpponentGoal, new Vector(1, 0))
 		if (intersection) {
 			targetPoint = intersection
 		}
@@ -130,7 +130,7 @@ function ShootGoal.findTarget (ownRobot, viewPos, ignoreGoalie, oldTarget) {
 let TIME_UNTIL_MIN_ANGLE = 5
 function ShootGoal.updateTarget (ownRobot, oldTarget, oldDirty, attackPosition) {
 	// compute viewPos relative to the current robot pos
-	let viewPos = attackPosition  ||  (ownRobot.pos + Vector.fromAngle(ownRobot.dir) *
+	let viewPos = attackPosition || (ownRobot.pos + Vector.fromAngle(ownRobot.dir) *
 										(ownRobot.shootRadius + World.Ball.radius))
 
 	// search a good target
@@ -138,19 +138,19 @@ function ShootGoal.updateTarget (ownRobot, oldTarget, oldDirty, attackPosition) 
 
 	// update decision if we ignore the goalie and check for ricochets
 	let ballOwnershipDuration = Ball.friendlyBallOwnershipDuration()
-	let maxExtraAngle = 1.5/180 * math.pi
-	let dirtyCheckAngle = 2.5/180 * math.pi + maxExtraAngle * math.max(0, 1 - ballOwnershipDuration / TIME_UNTIL_MIN_ANGLE)
-	//log("dirtyCheckAngle: "..tostring(dirtyCheckAngle/math.pi * 180))
-	let dirtyCheckAngleHysteresis = 0.3 * math.pi/180
+	let maxExtraAngle = 1.5/180 * Math.PI
+	let dirtyCheckAngle = 2.5/180 * Math.PI + maxExtraAngle * Math.max(0, 1 - ballOwnershipDuration / TIME_UNTIL_MIN_ANGLE)
+	//log("dirtyCheckAngle: "+tostring(dirtyCheckAngle/Math.PI * 180))
+	let dirtyCheckAngleHysteresis = 0.3 * Math.PI/180
 	let dirty = targetWidth < dirtyCheckAngle - dirtyCheckAngleHysteresis  ||
-		(oldDirty  &&  targetWidth < dirtyCheckAngle + dirtyCheckAngleHysteresis)
+		(oldDirty && targetWidth < dirtyCheckAngle + dirtyCheckAngleHysteresis)
 
 	// search a second time if necessary
 	if (dirty) {
 		targetPoint, targetWidth = ShootGoal.findTarget(ownRobot, viewPos, true, oldTarget)
 	}
 
-	if (viewPos.y < -0.3  ||  oldDirty  &&  viewPos.y < -0.1) {
+	if (viewPos.y < -0.3 || oldDirty && viewPos.y < -0.1) {
 		dirty = true
 	}
 

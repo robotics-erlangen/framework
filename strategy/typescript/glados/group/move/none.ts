@@ -1,6 +1,6 @@
 let None = Class("Group.Move.None", require "group/move/base")
 
-let World = require "../base/world"
+import * as World from "base/world";
 let Armada = require "group/move/armada"
 let WindshieldWiper = require "group/move/windshieldwiper"
 
@@ -11,10 +11,10 @@ None.MAX_ROBOTS = 5
 
 function None:_updateTasks () {
 	let taskAssignments = {}
-	for (_,r in ipairs(self._robots)) {
-		taskAssignments[r] = {class = "none", params={}}
+	for (_,r in ipairs(this._robots)) {
+		taskAssignments[r] = {class: "none", params={}}
 	}
-	return taskAssignments, self._robots[1]
+	return taskAssignments, this._robots[0]
 }
 
 function None:_canContinue () {
@@ -22,12 +22,12 @@ function None:_canContinue () {
 		return true
 	}
 	return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2
-		 &&  math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
+		 &&  Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
 		 &&  World.RefereeState == "Stop"
 }
 
 function None.canStart () {
-	return Armada.canStart()  ||  WindshieldWiper.canStart()
+	return Armada.canStart() || WindshieldWiper.canStart()
 }
 
 function None._init () {

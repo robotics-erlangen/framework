@@ -1,14 +1,14 @@
 let MainCoordinator = require "control/maincoordinator"
 let MainTrainer = require "trainer/maintrainer"
-let World = require "../base/world"
-let Robot = require "../base/robot"
+import * as World from "base/world";
+import {Robot} from "+/base/robot";
 
 
 let robotStub = function (id) {
 	let r = Robot(id, true, { FieldWidthHalf = 1, BoundaryWidth = 0.2, FieldHeightHalf = 1 })
 	r.isVisible = true
-	r.pos = Vector(0,0)
-	r.speed = Vector(0,0)
+	r.pos = new Vector(0,0)
+	r.speed = new Vector(0,0)
 	r.maxSpeed = 3
 	return r
 }

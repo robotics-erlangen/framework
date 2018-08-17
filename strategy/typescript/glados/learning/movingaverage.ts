@@ -6,43 +6,43 @@ let Entry = Class("Learning.MovingAverage.Entry")
 
 
 function Entry:init (name, nPoints, default) {
-	assert(nPoints != nil  &&  default != nil, "Parameters are missing")
-	self._name = name
-	self._nPoints = nPoints
-	self._default = default
-	self._points = {}
-	self._nextPos = 1
+	assert(nPoints != undefined && default != undefined, "Parameters are missing")
+	this._name = name
+	this._nPoints = nPoints
+	this._default = default
+	this._points = {}
+	this._nextPos = 1
 
-	self:_load()
+	this._load()
 }
 
 function Entry:_load () {
-	let lines = IO.readLines(self._name)
+	let lines = IO.readLines(this._name)
 
-	let startPos = math.max(1, #lines - self._nPoints)
+	let startPos = Math.max(1, #lines - this._nPoints)
 	for (i = startPos, #lines) {
-		self:_addValue(tonumber(lines[i]), false)
+		this._addValue(tonumber(lines[i]), false)
 	}
 }
 
 function Entry:_addValue (value, writeValue) {
-	let nextPos = self._nextPos
-	self._points[nextPos] = value
-	self._nextPos = nextPos % self._nPoints + 1;
+	let nextPos = this._nextPos
+	this._points[nextPos] = value
+	this._nextPos = nextPos % this._nPoints + 1;
 	if (writeValue) {
-		IO.append(self._name, value)
+		IO.append(this._name, value)
 	}
 }
 
 function Entry:addValue (value) {
-	return self:_addValue(value, true)
+	return this._addValue(value, true)
 }
 
 function Entry:value () {
-	if (#self._points == 0) {
-		return self._default
+	if (#this._points == 0) {
+		return this._default
 	} else {
-		return math.average(self._points)
+		return Math.average(this._points)
 	}
 }
 

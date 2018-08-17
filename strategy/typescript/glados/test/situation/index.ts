@@ -1,12 +1,12 @@
-let debugtree = require "../base/debug"
-let debugcommands = require "../base/debugcommands"
-let Entrypoints = require "../base/entrypoints"
-let vis = require "../base/vis"
-let World = require "../base/world"
+let debugtree = require "+/base/debug"
+let debugcommands = require "+/base/debugcommands"
+import * as Entrypoints from "base/entrypoints";
+import * as vis from "base/vis";
+import * as World from "base/world";
 
 let Coordinator = require "control/maincoordinator"
 let Messaging = require "control/messaging"
-let MoveToPos = require "task/shared/movetopos"
+import {MoveToPos} from "glados/task/shared/movetopos";
 let TestHelper = require "test/helper/agent"
 
 let situations = {
@@ -18,8 +18,8 @@ let situations = {
 
 
 let positionThreshold = 0.1 // the precision for considering a position to be occupied
-let angleThreshold = math.pi / 18
-let goalies = { blue = nil, yellow = nil }
+let angleThreshold = Math.PI / 18
+let goalies = { blue = undefined, yellow = undefined }
 let destinations = { yellow = {}, blue = {} } // for setup, inner objects indexed by robot
 let messaging = nil
 let setupAgents = {}
@@ -29,13 +29,13 @@ let situation, initialized
 let invertCoordinates = function () {
 	situation.ball.pos = -situation.ball.pos
 	situation.ball.speed = -situation.ball.speed
-	for (_, dest in pairs(situation.yellowRobots  ||  {})) {
+	for (_, dest in pairs(situation.yellowRobots || {})) {
 		dest.pos = -dest.pos
 		dest.dir = -dest.dir
 		dest.speed = -dest.speed
 		dest.angularSpeed = -dest.angularSpeed
 	}
-	for (_, dest in pairs(situation.blueRobots  ||  {})) {
+	for (_, dest in pairs(situation.blueRobots || {})) {
 		dest.pos = -dest.pos
 		dest.dir = -dest.dir
 		dest.speed = -dest.speed
@@ -46,9 +46,9 @@ let invertCoordinates = function () {
 let checkNumberOfRobots = function () {
 	let ownColor = World.TeamIsBlue ? "blue" : "yellow"
 	let otherColor = World.TeamIsBlue ? "yellow" : "blue"
-	let ownRequired = table.count(situation[ownColor  +  "Robots"]  ||  {})
-	let otherRequired = table.count(situation[otherColor  +  "Robots"]  ||  {})
-	let ownRobotCount = #World.FriendlyRobotsAll
+	let ownRequired = table.count(situation[ownColor  +  "Robots"] || {})
+	let otherRequired = table.count(situation[otherColor  +  "Robots"] || {})
+	let ownRobotCount = World.FriendlyRobots.lengthAll
 	if (ownRobotCount < ownRequired) {
 		let num = (ownRequired - ownRobotCount)
 		let robot_s = num == 1 ? " robot" : " robots"
@@ -70,7 +70,7 @@ let computeDestinations = function () {
 	}
 	for (color, robots in pairs(fieldRobots)) {
 		let index = 1
-		for (id, dest in pairs(situation[color  +  "Robots"]  ||  {})) {
+		for (id, dest in pairs(situation[color  +  "Robots"] || {})) {
 			if (robots[index]) {
 				destinations[color][robots[index]] = dest
 				if (id == situation[color  +  "Goalie"]) {
@@ -85,7 +85,7 @@ let computeDestinations = function () {
 let createAgentsAndMoveTasks = function () {
 	for (robot, destination in pairs(destinations[World.TeamIsBlue ? "blue" : "yellow"])) {
 		table.insert(setupAgents, TestHelper.staticAgent(robot,
-			TestHelper.staticBehavior(MoveToPos, { destination.pos, destination.dir:angle() }),
+			TestHelper.staticBehavior(MoveToPos, { destination.pos, destination.dir.angle() }),
 			messaging)
 		)
 	}
@@ -93,8 +93,8 @@ let createAgentsAndMoveTasks = function () {
 
 let haveRobotsArrived = function () {
 	for (robot, destination in pairs(destinations[World.TeamIsBlue ? "blue" : "yellow"])) {
-		if (robot.pos:distanceTo(destination.pos) > positionThreshold  ||
-				destination.dir:angleDiff(Vector.fromAngle(robot.dir)) > angleThreshold) {
+		if (robot.pos.distanceTo(destination.pos) > positionThreshold  ||
+				destination.dir.angleDiff(Vector.fromAngle(robot.dir)) > angleThreshold) {
 			return false
 		}
 	}
@@ -107,7 +107,7 @@ let isBallPositioned = function () {
 	if (not World.TeamIsBlue) {
 		return true // blue team cares about ball
 	}
-	if (World.Ball.pos:distanceTo(situation.ball.pos) > positionThreshold) {
+	if (World.Ball.pos.distanceTo(situation.ball.pos) > positionThreshold) {
 		vis.addCircle("test: Manual Ball Position", situation.ball.pos, 0.05, vis.colors.red, true)
 		if (not ballMessagePrinted) {
 			log("Please place the ball at "  +  String(situation.ball.pos)
@@ -138,7 +138,7 @@ let init = function (situation_) {
 		situation.gameStage = World.gameStageMapping[situation.gameStage]
 	}
 	createAgentsAndMoveTasks()
-	debugcommands.sendRefereeCommand("GameForce", nil, goalies.blue, goalies.yellow)
+	debugcommands.sendRefereeCommand("GameForce", undefined, goalies.blue, goalies.yellow)
 	state = "prepare"
 	messaging:deliverMessages() // initialize the module
 	initialized = true
@@ -149,18 +149,18 @@ let run = function () {
 	debugtree.set("situation state", state)
 	if (state == "prepare") {
 		if (World.RefereeState != "GameForce") {
-			debugcommands.sendRefereeCommand("GameForce", nil)
+			debugcommands.sendRefereeCommand("GameForce", undefined)
 		}
 		for (_, agent in ipairs(setupAgents)) {
 			agent:run()
 		}
-		if (isBallPositioned()  &&  haveRobotsArrived()) {
+		if (isBallPositioned() && haveRobotsArrived()) {
 			state = "arrived"
 			arrivedTime = World.Time
-			debugcommands.sendRefereeCommand("Halt", nil)
+			debugcommands.sendRefereeCommand("Halt", undefined)
 		}
 	} else if (state == "arrived") {
-		if (not (isBallPositioned()  &&  haveRobotsArrived())) {
+		if (not (isBallPositioned() && haveRobotsArrived())) {
 			state = "prepare"
 		}
 		if (World.RefereeState == "Halt") {
@@ -173,7 +173,7 @@ let run = function () {
 			arrivedTime = World.Time
 		}
 	} else if (state == "waitForForce") {
-		if (not (haveRobotsArrived()  &&  isBallPositioned())) {
+		if (not (haveRobotsArrived() && isBallPositioned())) {
 			state = "prepare"
 		}
 		if (World.RefereeState == "GameForce") {
@@ -191,7 +191,7 @@ let run = function () {
 }
 
 for (name, situation in pairs(situations)) {
-	Entrypoints.add("Situations/"..name, function()
+	Entrypoints.add("Situations/"+name, function()
 		if (not initialized) {
 			init(situation)
 		} else {

@@ -8,15 +8,15 @@ function MainTrainer:init (mode) {
 	Trainer.init(self)
 	// the instance function 'attackRatio' overwrites the method
 	if (mode == "passive") {
-		self.attackRatio = function() return 0 }
+		this.attackRatio = function() { return 0; }
 	} else if (mode == "aggressive") {
-		self.attackRatio = function() return 8 }
+		this.attackRatio = function() { return 8; }
 	}
 }
 
 function MainTrainer:run () {
 	Trainer.run(self)
-	self:_assignDefenders()
+	this._assignDefenders()
 }
 
 return MainTrainer

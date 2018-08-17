@@ -1,40 +1,42 @@
 let ForceShoot = require "task/ability/forceshoot"
 let Keeper = Class("Task.Keeper", require "task/base", ForceShoot)
 
-let debug = require "../base/debug"
-let Field = require "../base/field"
-let geom = require "../base/geom"
-let vis = require "../base/vis"
-let World = require "../base/world"
-let Goal = require "observer/goal"
-let Physics = require "observer/physics"
-let Robot = require "observer/robot"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as debug from "base/debug";
+import * as Field from "base/field";
+import * as geom from "base/geom";
+import * as MathUtil from "base/mathutil";
+import {Vector} from "base/vector";
+import * as vis from "base/vis";
+import * as World from "base/world";
+import * as Goal from "glados/observer/goal";
+import * as Physics from "glados/observer/physics";
+import * as Robot from "glados/observer/robot";
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 
 
-let G = World.Geometry
-let KEEPER_GOAL_DISTANCE = 0.06
-let GOAL_NORMAL = Vector(0, 1)
+let G = World.Geometry;
+let KEEPER_GOAL_DISTANCE = 0.06;
+let GOAL_NORMAL = new Vector(0, 1);
 
 function Keeper:_init () {
-	self._defendCorner = false
+	this._defendCorner = false;
 }
 
 //moves keeper do defending possition
 function Keeper:run () {
 	let atkPos, atkDir, isShot = Goal.predictShot()
-	atkDir = atkDir:copy():setLength(30)
-	let side = math.sign(atkPos.x)
+	atkDir = atkDir.copy().setLength(30)
+	let side = MathUtil.sign(atkPos.x)
 
 	// check if opponent would shoot at the goal from somewhere near the field corners
 	// how far the ball is off to the sides
 	// use hysteresis to prevent flickering between positions
-	let sideAngle = GOAL_NORMAL:absoluteAngleDiff(atkPos - G.FriendlyGoal)
-	if (sideAngle > 45/180*math.pi) {
-		self._defendCorner = true
-	} else if (sideAngle < 30/180*math.pi) {
-		self._defendCorner = false
+	let sideAngle = GOAL_NORMAL.absoluteAngleDiff(atkPos - G.FriendlyGoal)
+	if (sideAngle > 45/180*Math.PI) {
+		this._defendCorner = true
+	} else if (sideAngle < 30/180*Math.PI) {
+		this._defendCorner = false
 	}
 
 	// keep the goalie inside the goal to exploit its full diameter for blocking incoming balls
@@ -43,32 +45,32 @@ function Keeper:run () {
 	// line to move along for defending
 	let defenseLineStart, defenseLineEnd, fallbackPos
 	// corners should be defended and atkPos is outside the goal
-	if (self._defendCorner  &&  (math.abs(atkPos.x) > goalWidthHalf
+	if (this._defendCorner && (Math.abs(atkPos.x) > goalWidthHalf
 			 ||  atkPos.y < G.FriendlyGoal.y - G.GoalDepth)) {
 		debug.set("mode", "defend corner")
 		// defend short corner
 		// line starts a goal post, stay as near to the goal as possible
-		defenseLineStart = Vector(side*goalWidthHalf, G.FriendlyGoal.y)
-		let lineDir = ((Vector(0, defenseLineStart.y) - atkPos):perpendicular() * side):normalize()
+		defenseLineStart = new Vector(side*goalWidthHalf, G.FriendlyGoal.y)
+		let lineDir = ((new Vector(0, defenseLineStart.y) - atkPos).perpendicular() * side):normalize()
 		if (side*lineDir.x > 0) {
-			lineDir = Vector(0, 1)
+			lineDir = new Vector(0, 1)
 		}
 		// move startpoint out of the goal along the direction
-		defenseLineStart = defenseLineStart + lineDir * (self._robot.radius + 0.005)
+		defenseLineStart = defenseLineStart + lineDir * (this._robot.radius + 0.005)
 
 		// opposite corner
-		let otherGoalPost = Vector(-side*goalWidthHalf, G.FriendlyGoal.y)
+		let otherGoalPost = new Vector(-side*goalWidthHalf, G.FriendlyGoal.y)
 		// position where the robot would block the otherGoalPost
 		// lambdaLine is distance from defenseLineStart in direction of lineDir
 		let _, lambdaLine = geom.intersectLineLine(defenseLineStart, lineDir,
 				otherGoalPost, atkPos - otherGoalPost)
 
 		// allow moving behind ball when it's shot
-		lambdaLine = lambdaLine  ||  0
+		lambdaLine = lambdaLine || 0
 		if (not isShot) {
-			lambdaLine = lambdaLine - self._robot.radius
+			lambdaLine = lambdaLine - this._robot.radius
 		}
-		defenseLineEnd = defenseLineStart + lineDir * math.max(0, lambdaLine)
+		defenseLineEnd = defenseLineStart + lineDir * Math.max(0, lambdaLine)
 
 		// stick to goal post as fallback
 		fallbackPos = defenseLineStart
@@ -77,29 +79,29 @@ function Keeper:run () {
 		// defend along the goal line and occupy as much space in the goal as possible
 		// idea: cut defense line with line from goal posts to ball (attack pos)
 		// account for robot radius
-		let goalCornerLeft = Vector(-goalWidthHalf, G.FriendlyGoal.y)
-		let goalCornerRight = Vector(goalWidthHalf, G.FriendlyGoal.y)
-		let goalLineY = G.FriendlyGoal.y + KEEPER_GOAL_DISTANCE + self._robot.radius
-		let lineDist = math.abs(goalLineY - goalCornerLeft.y)
+		let goalCornerLeft = new Vector(-goalWidthHalf, G.FriendlyGoal.y)
+		let goalCornerRight = new Vector(goalWidthHalf, G.FriendlyGoal.y)
+		let goalLineY = G.FriendlyGoal.y + KEEPER_GOAL_DISTANCE + this._robot.radius
+		let lineDist = Math.abs(goalLineY - goalCornerLeft.y)
 
 		let leftBound = -goalWidthHalf
-		let angleLeft = GOAL_NORMAL:angleDiff(atkPos - goalCornerLeft)
-		if (math.abs(angleLeft) < math.pi / 2) {
+		let angleLeft = GOAL_NORMAL.angleDiff(atkPos - goalCornerLeft)
+		if (Math.abs(angleLeft) < Math.PI / 2) {
 			// distance cutoff by angle to atkPos + distance blocked by robot radius
 			// ignore robot radius when isShot is set, in order to allow the robot to get behind the ball
-			let leftDist = -math.tan(angleLeft) * lineDist + (isShot ? 0 : self._robot.radius / math.cos(angleLeft))
-			leftBound = leftBound + math.max(0, leftDist)
+			let leftDist = -Math.tan(angleLeft) * lineDist + (isShot ? 0 : this._robot.radius / Math.cos(angleLeft))
+			leftBound = leftBound + Math.max(0, leftDist)
 		}
 
 		let rightBound = goalWidthHalf
-		let angleRight = GOAL_NORMAL:angleDiff(atkPos - goalCornerRight)
-		if (math.abs(angleRight) < math.pi / 2) {
-			let rightDist = -math.tan(angleRight) * lineDist - (isShot ? 0 : self._robot.radius / math.cos(angleRight))
-			rightBound = rightBound + math.min(0, rightDist)
+		let angleRight = GOAL_NORMAL.angleDiff(atkPos - goalCornerRight)
+		if (Math.abs(angleRight) < Math.PI / 2) {
+			let rightDist = -Math.tan(angleRight) * lineDist - (isShot ? 0 : this._robot.radius / Math.cos(angleRight))
+			rightBound = rightBound + Math.min(0, rightDist)
 		}
 
-		defenseLineStart = Vector(leftBound, goalLineY)
-		defenseLineEnd = Vector(rightBound, goalLineY)
+		defenseLineStart = new Vector(leftBound, goalLineY)
+		defenseLineEnd = new Vector(rightBound, goalLineY)
 		// center
 		fallbackPos = (defenseLineEnd + defenseLineStart) * 0.5
 	}
@@ -112,11 +114,11 @@ function Keeper:run () {
 	let successfulIntersection // is original intersection point on the defense line
 	if (lambdaDef) {
 		debug.set("lambdaDef", lambdaDef)
-		let lambdaBounded = math.bound(0, lambdaDef, 1)
+		let lambdaBounded = MathUtil.bound(0, lambdaDef, 1)
 		successfulIntersection = (lambdaDef == lambdaBounded)
 		if (lambdaDef == lambdaBounded
 				// add some safety cm to detect shots towards the goal posts even without precise ball direction
-				 ||  defenseDir:length() >= 0.01  &&  math.abs(lambdaDef - lambdaBounded) < 0.05 / defenseDir:length()) {
+				 ||  defenseDir.length() >= 0.01 && Math.abs(lambdaDef - lambdaBounded) < 0.05 / defenseDir.length()) {
 			successfulIntersection = true
 		}
 		// limit to positions on the line segment!
@@ -127,36 +129,36 @@ function Keeper:run () {
 		intersectPos = fallbackPos
 	}
 
-	vis.addPath("t/keeper: KeeperShotPrediction",{atkPos,atkPos+atkDir}, vis.colors.green)
+	vis.addPath("t/keeper: KeeperShotPrediction", [atkPos,atkPos+atkDir], vis.colors.green)
 	vis.addCircle("t/keeper: KeeperDefenseLineIntersect", intersectPos, 0.03, vis.colors.green)
-	vis.addPath("t/keeper: KeeperDefenseLine",{defenseLineStart, defenseLineEnd}, vis.colors.green)
+	vis.addPath("t/keeper: KeeperDefenseLine", [defenseLineStart, defenseLineEnd], vis.colors.green)
 
 	let moveTo
 	let endSpeed
 	// ball is shot at the goal: take the shortest way to stop the ball
-	if (isShot  &&  atkDir.y < 0  &&  successfulIntersection  &&
-			Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius)) {
+	if (isShot && atkDir.y < 0 && successfulIntersection &&
+			Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius)) {
 		// nearest pos on the ball trajectory
-		moveTo = self._robot.pos:nearestPosOnLine(atkPos, atkPos+atkDir)
+		moveTo = this._robot.pos.nearestPosOnLine(atkPos, atkPos+atkDir);
 		// prevent moving into the goal
 		if (moveTo.y < defenseLineStart.y) {
-			moveTo = intersectPos
+			moveTo = intersectPos;
 		}
 
 		//get to position as fast as possible
-		let ballRollDistance = math.max(0, moveTo:distanceTo(World.Ball.pos)-World.Ball.radius-self._robot.shootRadius)
-		let availableTime = Physics.ballRollTime(World.Ball, ballRollDistance)
+		let ballRollDistance = Math.max(0, moveTo.distanceTo(World.Ball.pos)-World.Ball.radius-this._robot.shootRadius);
+		let availableTime = Physics.ballRollTime(World.Ball, ballRollDistance);
 		// use moveTo position to be there as fast as possible
-		endSpeed = Physics.robotMinEndspeed(self._robot, moveTo, availableTime)
+		endSpeed = Physics.robotMinEndspeed(this._robot, moveTo, availableTime);
 
-		debug.set("endSpeed", endSpeed)
+		debug.set("endSpeed", endSpeed);
 
 	// block estimated shoot line
 	} else if (atkDir.y < 0) {
-		let k = math.bound(0, (atkPos.y+2)/2 * 0.6, 0.5)
-		moveTo = intersectPos * (1-k) + Vector(0, -G.FieldHeightHalf + KEEPER_GOAL_DISTANCE + self._robot.radius) * k
+		let k = MathUtil.bound(0, (atkPos.y+2)/2 * 0.6, 0.5);
+		moveTo = intersectPos * (1-k) + new Vector(0, -G.FieldHeightHalf + KEEPER_GOAL_DISTANCE + this._robot.radius) * k;
 	} else {// don't know where to go, just center in the goal / corner
-		moveTo = fallbackPos
+		moveTo = fallbackPos;
 	}
 
 	// ignore goal walls if ball is shot
@@ -166,26 +168,26 @@ function Keeper:run () {
 		ignoreDefenseArea = true,
 		stopBallDistance = 0.05,
 		ignorePass = true
-	}
+	};
 	// don't add obstacles if inside keeper area, when drivin to goal initially
-	if (Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius)) {
-		obstacleTable.ignoreFriendlyRobots = true
-		obstacleTable.ignoreOpponentRobots = true
+	if (Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius)) {
+		obstacleTable.ignoreFriendlyRobots = true;
+		obstacleTable.ignoreOpponentRobots = true;
 	}
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
-	self._robot.trajectory:update(ToTarget, moveTo, (atkPos - moveTo):angle(), nil, endSpeed)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
+	this._robot.trajectory.update(ToTarget, moveTo, (atkPos - moveTo).angle(), undefined, endSpeed)
 
-	if (not Robot.hadBall(self._robot, 0)) {
-		self._forceShootTimer = nil
+	if (not Robot.hadBall(this._robot, 0)) {
+		this._forceShootTimer = nil
 	}
-	let chipActivationAngle = math.pi / 6
-	let ballToRobot = self._robot.pos - World.Ball.pos
-	if ((World.RefereeState == "Game"  ||  World.RefereeState == "GameForce")  &&
-			World.Ball.speed:absoluteAngleDiff(ballToRobot) < chipActivationAngle
-			 &&  World.Ball.pos:distanceTo(self._robot.pos) < 1) {
+	let chipActivationAngle = Math.PI / 6
+	let ballToRobot = this._robot.pos - World.Ball.pos
+	if ((World.RefereeState == "Game" || World.RefereeState == "GameForce")  &&
+			World.Ball.speed.absoluteAngleDiff(ballToRobot) < chipActivationAngle
+			 &&  World.Ball.pos.distanceTo(this._robot.pos) < 1) {
 		debug.set("chip", true)
-		self._robot:chip(3)
-		self:_doForceShoot()
+		this._robot.chip(3)
+		this._doForceShoot()
 	}
 }
 

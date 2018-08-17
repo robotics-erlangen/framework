@@ -1,17 +1,17 @@
 let Defense = {}
 
-let Ball = require "observer/ball"
-let Cache = require "../base/cache"
-let Constants = require "../base/constants"
-let debug = require "../base/debug"
-let Field = require "../base/field"
-let geom = require "../base/geom"
-let Referee = require "../base/referee"
-let World = require "../base/world"
-let Goal = require "observer/goal"
-let Physics = require "observer/physics"
-let Robot = require "observer/robot"
-let Rating = require "util/rating"
+import * as Ball from "glados/tobserver/ball";
+import * as Cache from "base/cache";
+import * as Constants from "base/constants";
+import * as debug from "base/debug";
+import * as Field from "base/field";
+import * as geom from "base/geom";
+import * as Referee from "base/referee";
+import * as World from "base/world";
+import * as Goal from "glados/observer/goal";
+import * as Physics from "glados/observer/physics";
+import * as Robot from "glados/observer/robot";
+import * as Rating from "glados/util/rating";
 
 let G = World.Geometry
 
@@ -20,12 +20,12 @@ function Defense.centerBackDistanceToDefenseArea () {
 	// 0.18 (robot diameter) + 0.08 (default distance) + 0.50 (stop radius)
 	if (Referee.isStopState()) {
 		let dist = Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius)
-		return math.bound(0.01, dist - 0.68, 0.08)
+		return MathUtil.bound(0.01, dist - 0.68, 0.08)
 	}
 	return 0.08
 }
 
-Defense.centerBackDefaultPos = Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius + 0.09 + 0.02)
+Defense.centerBackDefaultPos = new Vector(0, -World.Geometry.FieldHeightHalf + World.Geometry.DefenseRadius + 0.09 + 0.02)
 
 Defense.POSITION_PADDING = 0.02 // safety distance
 Defense.PENALTY_LINE_DISTANCE = 0.35 // prevent robots from crossing the penalty line
@@ -35,19 +35,19 @@ Defense.OFFENSIVE_MARKING_DISTANCE = 0.3
 
 let manMarkPos = function (opponent) {
 	// use the position at which the robot would brake if it started immediately
-	let targetPos = Physics.robotBrakePos({pos = opponent.pos, speed = opponent.speed, radius = opponent.radius})
-	if (World.Ball.pos.y > G.FieldHeightHalf * 0.7  &&  World.Ball.speed:length() < 0.5  &&  Referee.isStopState()) {
+	let targetPos = Physics.robotBrakePos({pos: opponent.pos, speed = opponent.speed, radius = opponent.radius})
+	if (World.Ball.pos.y > G.FieldHeightHalf * 0.7 && World.Ball.speed.length() < 0.5 && Referee.isStopState()) {
 		let dist = opponent.radius + Constants.maxRobotRadius + Defense.OFFENSIVE_MARKING_DISTANCE
-		targetPos = targetPos + (World.Ball.pos - targetPos):setLength(dist)
+		targetPos = targetPos + (World.Ball.pos - targetPos).setLength(dist)
 	} else {
-		let oppDistToGoal = targetPos:distanceTo(G.FriendlyGoal)
-		let markingDistance = Defense.MARKING_DISTANCE + math.max(0, (oppDistToGoal - G.FieldHeightHalf * 0.8) * 0.5)
+		let oppDistToGoal = targetPos.distanceTo(G.FriendlyGoal)
+		let markingDistance = Defense.MARKING_DISTANCE + Math.max(0, (oppDistToGoal - G.FieldHeightHalf * 0.8) * 0.5)
 		if (Referee.isFriendlyFreeKickState()) {
 			markingDistance = markingDistance + 0.4
 		}
 		let dist = opponent.radius + Constants.maxRobotRadius + markingDistance
-		dist = math.min(oppDistToGoal - 0.01, dist)
-		targetPos = targetPos + (G.FriendlyGoal - targetPos):setLength(dist)
+		dist = Math.min(oppDistToGoal - 0.01, dist)
+		targetPos = targetPos + (G.FriendlyGoal - targetPos).setLength(dist)
 	}
 
 	if (Field.isInFriendlyDefenseArea(targetPos, Constants.maxRobotRadius)) {
@@ -67,17 +67,17 @@ let manMarkPos = function (opponent) {
 				G.FriendlyGoal - targetPos,
 				Constants.maxRobotRadius + 0.1, true)
 
-	if (intersectionDefenseArea  &&  not Referee.isStopState()) {
-		targetPos = intersectionDefenseArea + (targetPos - intersectionDefenseArea):scaleLength(0.3)
+	if (intersectionDefenseArea && not Referee.isStopState()) {
+		targetPos = intersectionDefenseArea + (targetPos - intersectionDefenseArea).scaleLength(0.3)
 	}
 
 	if (Referee.isStopState() ? not Referee.isKickoffState() : intersectionDefenseArea
-				 &&  intersectionDefenseArea:distanceToSq(targetPos) < 0.75*0.75) {
-		targetPos = intersectionDefenseArea  ||  targetPos
+				 &&  intersectionDefenseArea.distanceToSq(targetPos) < 0.75*0.75) {
+		targetPos = intersectionDefenseArea || targetPos
 	}
 
-	if (World.RefereeState == "PenaltyOffensivePrepare"  ||  World.RefereeState == "PenaltyOffensive") {
-		targetPos.y = math.min(targetPos.y, G.PenaltyLine - Defense.PENALTY_LINE_DISTANCE)
+	if (World.RefereeState == "PenaltyOffensivePrepare" || World.RefereeState == "PenaltyOffensive") {
+		targetPos.y = Math.min(targetPos.y, G.PenaltyLine - Defense.PENALTY_LINE_DISTANCE)
 	}
 
 	return targetPos
@@ -87,10 +87,10 @@ Defense.manMarkPos = Cache.forFrame(manMarkPos)
 let piggyPos = function (opponent) {
 	let passLine = World.Ball.pos-opponent.pos
 
-	let perpendicularOffset = passLine:perpendicular():setLength(0.3)
+	let perpendicularOffset = passLine.perpendicular().setLength(0.3)
 
 
-	let offset = passLine:setLength(0.3) + perpendicularOffset
+	let offset = passLine.setLength(0.3) + perpendicularOffset
 
 	return opponent.pos + offset
 }
@@ -99,12 +99,12 @@ Defense.piggyPos = Cache.forFrame(piggyPos)
 let wasGoalLineIntersection = false
 let calculateBallPositionField = function () {
 	let targetPos, targetDir, isShot = Goal.predictShot()
-	if (isShot  &&  targetDir.y < 0) {
+	if (isShot && targetDir.y < 0) {
 		let goalLineIntersection = geom.intersectLineLine(targetPos,
-			targetDir, World.Geometry.FriendlyGoal, Vector(1, 0))
+			targetDir, World.Geometry.FriendlyGoal, new Vector(1, 0))
 		let extraWidth = wasGoalLineIntersection ? 0.25 : 0.15
 		if (goalLineIntersection  &&
-				math.abs(goalLineIntersection.x) < World.Geometry.GoalWidth / 2 + extraWidth) {
+				Math.abs(goalLineIntersection.x) < World.Geometry.GoalWidth / 2 + extraWidth) {
 			wasGoalLineIntersection = true
 			return targetPos, targetDir
 		}
@@ -135,7 +135,7 @@ let centerBackPos = function (targetPos, targetDir) {
 	targetPos = Field.limitToField(targetPos, -0.01)
 	let dir = targetPos - World.Geometry.FriendlyGoal
 	let pos, way, sec = Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal, dir, dist, true)
-	return pos  ||  Defense.centerBackDefaultPos, way, sec
+	return pos || Defense.centerBackDefaultPos, way, sec
 }
 Defense.centerBackPos = Cache.forFrame(centerBackPos)
 
@@ -146,8 +146,8 @@ function Defense.dangerousBallTowardsDefense (opp) {
 	let defenseLineIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, 0, not opp)
 	if (defenseLineIntersection) {
 		let timeToDefenseLine = Physics.ballRollTime(World.Ball,
-			World.Ball.pos:distanceTo(defenseLineIntersection))
-		let speedAtDefenseLine = Physics.ballAtTime(World.Ball, timeToDefenseLine).speed:length()
+			World.Ball.pos.distanceTo(defenseLineIntersection))
+		let speedAtDefenseLine = Physics.ballAtTime(World.Ball, timeToDefenseLine).speed.length()
 		if (speedAtDefenseLine > DANGEROUS_BALL_SPEED) {
 			return true
 		}
@@ -156,10 +156,10 @@ function Defense.dangerousBallTowardsDefense (opp) {
 }
 
 function Defense.getClosestRobot (robotlist, pos) {
-	let minDist = math.huge
+	let minDist = Infinity
 	let minRobot = nil
 	for (_, r in ipairs(robotlist)) {
-		let dist = r.pos:distanceTo(pos)
+		let dist = r.pos.distanceTo(pos)
 		if (dist < minDist) {
 			minDist = dist
 			minRobot = r
@@ -171,15 +171,15 @@ function Defense.getClosestRobot (robotlist, pos) {
 let ratePassThreats = function () {
 	let dangerousness = {}
 	let futureBallPos = Goal.predictShot()
-	for (_,opp in ipairs(World.OpponentRobots)) {
+	for (let opp of World.OpponentRobots) {
 		// TODO comment
-		let angleBallOppGoal = (futureBallPos - opp.pos):absoluteAngleDiff(
+		let angleBallOppGoal = (futureBallPos - opp.pos).absoluteAngleDiff(
 			World.Geometry.FriendlyGoal - opp.pos)
-		let angleOppGoalY = (opp.pos - World.Geometry.FriendlyGoal):absoluteAngleDiff(Vector(0, 1))
-		let distOppGoal = opp.pos:distanceTo(World.Geometry.FriendlyGoal)
+		let angleOppGoalY = (opp.pos - World.Geometry.FriendlyGoal).absoluteAngleDiff(new Vector(0, 1))
+		let distOppGoal = opp.pos.distanceTo(World.Geometry.FriendlyGoal)
 
-		let ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 120 * math.pi/180, 80 * math.pi/180)
-		let ratingAngleOppGoalY = Rating.valueToRating(angleOppGoalY, 85 * math.pi/180, 70 * math.pi/180)
+		let ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 120 * Math.PI/180, 80 * Math.PI/180)
+		let ratingAngleOppGoalY = Rating.valueToRating(angleOppGoalY, 85 * Math.PI/180, 70 * Math.PI/180)
 		let ratingDistOppGoal = Rating.valueToRating(distOppGoal,
 			World.Geometry.FieldHeight * 0.85, World.Geometry.FieldHeight * 0.4)
 
@@ -192,20 +192,20 @@ Defense.ratePassThreats = Cache.forFrame(ratePassThreats)
 
 let rateVolleyGoalShotThreats = function () {
 	let dangerousness = {}
-	if (World.Ball.speed:length() > 1.5) {
-		for (_,opp in ipairs(World.OpponentRobots)) {
+	if (World.Ball.speed.length() > 1.5) {
+		for (let opp of World.OpponentRobots) {
 			let rating = 1
 			if (not Robot.hadBall(opp, 0.2)) {
-				let angleBallOppGoal = (World.Ball.pos - opp.pos):absoluteAngleDiff(
+				let angleBallOppGoal = (World.Ball.pos - opp.pos).absoluteAngleDiff(
 						World.Geometry.FriendlyGoal - opp.pos)
-				let angleBallSpeedOpp = World.Ball.speed:absoluteAngleDiff(opp.pos - World.Ball.pos)
-				let ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 85 * math.pi/180, 65 * math.pi/180)
-				let ratingAngleBallSpeedOpp = Rating.valueToRating(angleBallSpeedOpp, 45 * math.pi/180, 30 * math.pi/180)
+				let angleBallSpeedOpp = World.Ball.speed.absoluteAngleDiff(opp.pos - World.Ball.pos)
+				let ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 85 * Math.PI/180, 65 * Math.PI/180)
+				let ratingAngleBallSpeedOpp = Rating.valueToRating(angleBallSpeedOpp, 45 * Math.PI/180, 30 * Math.PI/180)
 				rating = ratingAngleBallOppGoal * ratingAngleBallSpeedOpp
 			}
-			let absAngleOppDirGoal = math.abs(geom.normalizeAngle(
-					opp.dir - (World.Geometry.FriendlyGoal - opp.pos):angle()))
-			let ratingAbsAngleOppDirGoal = Rating.valueToRating(absAngleOppDirGoal, 60 * math.pi/180, 20 * math.pi/180)
+			let absAngleOppDirGoal = Math.abs(geom.normalizeAngle(
+					opp.dir - (World.Geometry.FriendlyGoal - opp.pos).angle()))
+			let ratingAbsAngleOppDirGoal = Rating.valueToRating(absAngleOppDirGoal, 60 * Math.PI/180, 20 * Math.PI/180)
 			dangerousness[opp] = rating * ratingAbsAngleOppDirGoal
 		}
 	}
@@ -215,8 +215,8 @@ Defense.rateVolleyGoalShotThreats = Cache.forFrame(rateVolleyGoalShotThreats)
 
 let rateProximityThreats = function () {
 	let dangerousness = {}
-	for (_,opp in ipairs(World.OpponentRobots)) {
-		dangerousness[opp] = 0.01 * Rating.valueToRating(opp.pos:distanceTo(World.Geometry.FriendlyGoal), World.Geometry.FieldHeightHalf, 0)
+	for (let opp of World.OpponentRobots) {
+		dangerousness[opp] = 0.01 * Rating.valueToRating(opp.pos.distanceTo(World.Geometry.FriendlyGoal), World.Geometry.FieldHeightHalf, 0)
 	}
 	return dangerousness
 }
@@ -227,11 +227,11 @@ let rateOpponentDangerousness = function () {
 	let proximityThreats = rateProximityThreats()
 
 	let dangerousness = {}
-	for (_,opp in ipairs(World.OpponentRobots)) {
-		let passDangerousness = passThreats[opp]  ||  0
-		let goalDangerousness = goalThreats[opp]  ||  0
+	for (let opp of World.OpponentRobots) {
+		let passDangerousness = passThreats[opp] || 0
+		let goalDangerousness = goalThreats[opp] || 0
 		let proximityDangerousness = proximityThreats[opp]
-		dangerousness[opp] = math.max(passDangerousness, math.max(goalDangerousness, proximityDangerousness))
+		dangerousness[opp] = Math.max(passDangerousness, Math.max(goalDangerousness, proximityDangerousness))
 	}
 
 	debug.set("dangerousness", dangerousness)
@@ -248,40 +248,40 @@ let rateOpponentPassViability = function () {
 	let passViability = {} // opponent -> rating
 
 	let ballPos = World.Ball.pos + World.Ball.speed/2
-	for (_, opp in ipairs(World.OpponentRobots)) {
+	for (let opp of World.OpponentRobots) {
 
 		// ignore the ball owner
-		if (opp.pos:distanceToSq(ballPos) < 0.5) {
+		if (opp.pos.distanceToSq(ballPos) < 0.5) {
 			passViability[opp] = 0
-			goto continue
+			continue;
 		}
 
 		// ignore opponents close to enemy defense area
 		if (opp.pos.y > G.FieldHeightHalf - G.DefenseHeight - 1) {
 			passViability[opp] = 0
-			goto continue
+			continue;
 		}
 
 		// ignore opponents that are too close to the defense area
 		if (Field.distanceToDefenseAreaSq(opp.pos, true) < 1.5 * 1.5) {
 			passViability[opp] = 0
-			goto continue
+			continue;
 		}
 
 		// ignore opponents that are too close to the defense area
 		if (Field.distanceToDefenseAreaSq(opp.pos, true) < 1.5 * 1.5) {
 			passViability[opp] = 0
-			goto continue
+			continue;
 		}
 
 		// ignore opponents that are behind the ball
 		if (opp.pos.y - World.Ball.pos.y > 2 * Constants.maxRobotRadius) {
 			passViability[opp] = 0
-			goto continue
+			continue;
 		}
 
 		// we can successfully intercept long passes more easily
-		let distToBallOwner = opp.pos:distanceTo(ballPos)
+		let distToBallOwner = opp.pos.distanceTo(ballPos)
 		let distToBallOwnerRating = Rating.valueToRating(distToBallOwner, 2, 5)
 
 		// we do not want the enemy to move the ball closer to our goal
@@ -303,8 +303,6 @@ let rateOpponentPassViability = function () {
 			debug.set("total rating", rating)
 			debug.pop()
 		}
-
-		::continue::
 	}
 
 	if (not amun.isPerformanceMode) {
@@ -321,8 +319,8 @@ Defense.rateOpponentPassViability = Cache.forFrame(rateOpponentPassViability)
 // the shortest amount of time, up to a precision value, using a ternary algorithm
 function Defense.findBestPointToBlockOpponentShot (robot, boundaryOne, boundaryTwo, timeToBoundaryOne, timeToBoundaryTwo, precision) {
 	// time diff between the two bounds
-	if (math.abs(timeToBoundaryOne - timeToBoundaryTwo) < precision  ||
-			boundaryOne:distanceTo(boundaryTwo) < 0.005) {
+	if (Math.abs(timeToBoundaryOne - timeToBoundaryTwo) < precision  ||
+			boundaryOne.distanceTo(boundaryTwo) < 0.005) {
 		return boundaryOne
 	}
 
@@ -331,8 +329,8 @@ function Defense.findBestPointToBlockOpponentShot (robot, boundaryOne, boundaryT
 	let rightThird = (boundaryOne + boundaryTwo * 2) / 3
 
 	// calculate time to the new positions
-	let timeToLeftThird = Physics.robotTimeToPos(robot, leftThird, Vector(0, 0), false, false)
-	let timeToRightThird = Physics.robotTimeToPos(robot, rightThird, Vector(0,0), false, false)
+	let timeToLeftThird = Physics.robotTimeToPos(robot, leftThird, new Vector(0, 0), false, false)
+	let timeToRightThird = Physics.robotTimeToPos(robot, rightThird, new Vector(0,0), false, false)
 
 	// depending on which time is smaller recursively call the function with new boundaries
 	if (timeToLeftThird < timeToRightThird) {
@@ -345,12 +343,12 @@ function Defense.findBestPointToBlockOpponentShot (robot, boundaryOne, boundaryT
 // this function calculates a new position between boundaryOne and boundaryTwo regarding the oldPosition
 function Defense.fastestPointInInterval (robot, boundaryOne, boundaryTwo, oldPos, precision, blockAlpha) {
 	// time to the boundaries
-	let timeToBoundaryOne = Physics.robotTimeToPos(robot, boundaryOne, Vector(0, 0), false, false)
-	let timeToBoundaryTwo = Physics.robotTimeToPos(robot, boundaryTwo, Vector(0, 0), false, false)
+	let timeToBoundaryOne = Physics.robotTimeToPos(robot, boundaryOne, new Vector(0, 0), false, false)
+	let timeToBoundaryTwo = Physics.robotTimeToPos(robot, boundaryTwo, new Vector(0, 0), false, false)
 
 	let newPos = Defense.findBestPointToBlockOpponentShot(robot, boundaryOne, boundaryTwo, timeToBoundaryOne, timeToBoundaryTwo, precision)
 	if (oldPos) {
-		oldPos = oldPos:nearestPosOnLine(boundaryOne, boundaryTwo)
+		oldPos = oldPos.nearestPosOnLine(boundaryOne, boundaryTwo)
 	} else {
 		oldPos = newPos
 	}
@@ -362,7 +360,7 @@ function Defense.fastestPointInInterval (robot, boundaryOne, boundaryTwo, oldPos
 let calculateDefenseCornerFactor = function (robot_radius, buffer, distance) {
 	let distanceRHalf = robot_radius + buffer/2
 	let extraDistance = distance + robot_radius
-	return distanceRHalf/extraDistance / math.asin(distanceRHalf/ extraDistance)
+	return distanceRHalf/extraDistance / Math.asin(distanceRHalf/ extraDistance)
 }
 Defense.cornerFactor = calculateDefenseCornerFactor(0.09, 0.02, 0.08)
 
@@ -383,13 +381,13 @@ function Defense.mulCornerFactor (way, sec, distance) {
 			return defenseHeight + (_way - defenseHeight) * factor
 		}
 		switchSecMul[3] = function(_way, _distance)
-			return _way + (math.pi/2 * _distance * (factor-1))
+			return _way + (Math.PI/2 * _distance * (factor-1))
 		}
 		switchSecMul[4] = function(_way)
 			return defenseHeight + defenseWidth + (_way - defenseHeight - defenseWidth) * factor
 		}
 		switchSecMul[5] = function(_way, _distance)
-			return _way + (math.pi * _distance * (factor-1))
+			return _way + (Math.PI * _distance * (factor-1))
 		}
 	}
 	return switchSecMul[sec](way, distance)
@@ -398,7 +396,7 @@ function Defense.divCornerFactor (way, distance) {
 	let defenseHeight = G.DefenseHeight
 	let defenseWidth = G.DefenseWidth
 	let factor = Defense.cornerFactor
-	let corner = distance * math.pi/2
+	let corner = distance * Math.PI/2
 	let maxCornerWay = corner * factor
 	let restWay = way
 

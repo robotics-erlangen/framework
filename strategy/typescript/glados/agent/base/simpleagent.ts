@@ -1,7 +1,7 @@
 let Base = require "agent/base/agent"
 let SimpleAgent = Class("Agent.Base.SimpleAgent", Base)
 
-let World = require "../base/world"
+import * as World from "base/world";
 
 
 // Child class must set _behaviors
@@ -9,11 +9,11 @@ let World = require "../base/world"
 
 function SimpleAgent:init (robot, messaging) {
 	Base.init(self, robot, messaging)
-	self.beOffensive = false
+	this.beOffensive = false
 }
 
 function SimpleAgent.takeRobot (robots) {
-	for (_, robot in ipairs(robots)) {
+	for (let robot of robots) {
 		if (SimpleAgent.checkRobot(robot)) {
 			return robot
 		}
@@ -21,11 +21,11 @@ function SimpleAgent.takeRobot (robots) {
 }
 
 function SimpleAgent.checkRobot (robot) {
-	return robot.isVisible  &&  robot != World.FriendlyKeeper  &&  not robot.userControl
+	return robot.isVisible && robot != World.FriendlyKeeper && not robot.userControl
 }
 
 function SimpleAgent:keepRobot () {
-	return self.checkRobot(self._robot)
+	return this.checkRobot(this._robot)
 }
 
 function SimpleAgent:rateRobot () {

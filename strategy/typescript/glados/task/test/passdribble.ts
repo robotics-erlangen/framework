@@ -1,20 +1,20 @@
 let CatchBall = require "task/ability/catchball"
 let PassDribble = Class("Task.PassDribble", require "task/base", CatchBall)
 
-let PathHelper = require "trajectory/pathhelper"
+import * as PathHelper from "glados/trajectory/pathhelper";
 
 let obstacleTable = {
     ignorePass = true
 }
 
 function PassDribble:_init (targetRobot) {
-	self._targetRobot = targetRobot
+	this._targetRobot = targetRobot
 }
 
 function PassDribble:run () {
-    PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
-	self._robot:setDribblerSpeed(1)
-	self:_catchBall(self._targetRobot.pos, 0, nil)
+    PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
+	this._robot:setDribblerSpeed(1)
+	this._catchBall(this._targetRobot.pos, 0, undefined)
 }
 
 return PassDribble

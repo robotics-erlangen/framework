@@ -1,9 +1,9 @@
 let InterceptPass = Class("Test.Move.InterceptPass", require "group/move/base")
 
-let World = require "../base/world"
-let Pass = require "task/shared/pass"
-let Striker = require "task/attacker/striker"
-let Ball = require "observer/ball"
+import * as World from "base/world";
+import {Pass} from "glados/task/shared/pass";
+import {Striker} from "glados/task/attacker/striker";
+import * as Ball from "glados/tobserver/ball";
 
 InterceptPass.MIN_ROBOTS = 2
 InterceptPass.MAX_ROBOTS = 2
@@ -16,7 +16,7 @@ function InterceptPass.canStart () {
 }
 
 function InterceptPass:_init () {
-	self._lastMainAttacker = nil
+	this._lastMainAttacker = nil
 }
 
 function InterceptPass:_canContinue () {
@@ -27,30 +27,30 @@ function InterceptPass:_updateTasks () {
 	let taskAssignments = {}
 
 	let mainAttacker
-	let default1 = Vector(HEIGHT_POS, LEFT_POS)
-	let default2 = Vector(-HEIGHT_POS, LEFT_POS)
-	if (Ball.receivesPass(self._robots[1])  ||  (not Ball.receivesPass(self._robots[2])  &&
+	let default1 = new Vector(HEIGHT_POS, LEFT_POS)
+	let default2 = new Vector(-HEIGHT_POS, LEFT_POS)
+	if (Ball.receivesPass(this._robots[0]) || (not Ball.receivesPass(this._robots[1])  &&
 			World.Ball.pos.x > 0)) {
-		if (self._lastMainAttacker == self._robots[1]) {
-			taskAssignments[self._robots[1]] = {class = Pass, params = {self._robots[2]}}
+		if (this._lastMainAttacker == this._robots[0]) {
+			taskAssignments[this._robots[0]] = {class: Pass, params: {this._robots[1]}}
 		} else {
-			taskAssignments[self._robots[1]] = {class = Striker, params = {default1, default1}}
+			taskAssignments[this._robots[0]] = {class: Striker, params: {default1, default1}}
 		}
-		mainAttacker = self._robots[1]
+		mainAttacker = this._robots[0]
 	} else {
-		taskAssignments[self._robots[1]] = {class = Striker, params = {default1, default1}}
+		taskAssignments[this._robots[0]] = {class: Striker, params: {default1, default1}}
 	}
 	if (not mainAttacker) {
-		if (self._lastMainAttacker == self._robots[2]) {
-			taskAssignments[self._robots[2]] = {class = Pass, params = {self._robots[1]}}
+		if (this._lastMainAttacker == this._robots[1]) {
+			taskAssignments[this._robots[1]] = {class: Pass, params: {this._robots[0]}}
 		} else {
-			taskAssignments[self._robots[2]] = {class = Striker, params = {default2, default2}}
+			taskAssignments[this._robots[1]] = {class: Striker, params: {default2, default2}}
 		}
-		mainAttacker = self._robots[2]
+		mainAttacker = this._robots[1]
 	} else {
-		taskAssignments[self._robots[2]] = {class = Striker, params = {default2, default2}}
+		taskAssignments[this._robots[1]] = {class: Striker, params: {default2, default2}}
 	}
-	self._lastMainAttacker = mainAttacker
+	this._lastMainAttacker = mainAttacker
 	return taskAssignments, mainAttacker
 }
 

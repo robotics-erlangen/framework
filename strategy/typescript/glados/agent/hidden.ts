@@ -9,7 +9,7 @@ Hidden._behaviors = {
 }
 
 function Hidden.takeRobot (robots) {
-	for (_, robot in ipairs(robots)) {
+	for (let robot of robots) {
 		if (not robot.isVisible) {
 			return robot
 		}
@@ -17,7 +17,7 @@ function Hidden.takeRobot (robots) {
 }
 
 function Hidden:keepRobot () {
-	return not self._robot.isVisible  &&  not self._robot.userControl
+	return not this._robot.isVisible && not this._robot.userControl
 }
 
 function Hidden:rateRobot () {

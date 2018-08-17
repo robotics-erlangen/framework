@@ -1,4 +1,4 @@
-let Entrypoints = require "../base/entrypoints"
+import * as Entrypoints from "base/entrypoints";
 
 let MainCoordinator = require "control/maincoordinator"
 let MainTrainer = require "trainer/maintrainer"
@@ -29,7 +29,7 @@ let moves = {
 let coord = nil
 let createEntrypoint = function (move) {
 	return function()
-		if (coord == nil) {
+		if (coord == undefined) {
 			let moveGroup = MoveGroup()
 			moveGroup.moveList = { move }
 

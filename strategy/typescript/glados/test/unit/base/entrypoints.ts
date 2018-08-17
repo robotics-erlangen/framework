@@ -15,7 +15,7 @@ context("base.entrypoints", function()
 	let Entrypoints
 	before(function()
 		let injector = Injector(nil, true)
-		Entrypoints = injector:load("../base/entrypoints")
+		Entrypoints = injector.load("+/base/entrypoints")
 	end)
 
 	test("wrapper", function ()

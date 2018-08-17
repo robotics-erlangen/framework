@@ -1,33 +1,33 @@
 let Midfield = Class("Group.Midfield")
 
-let Constants = require "../base/constants"
-let debug = require "../base/debug"
-let vis = require "../base/vis"
-let World = require "../base/world"
+import * as Constants from "base/constants";
+import * as debug from "base/debug";
+import * as vis from "base/vis";
+import * as World from "base/world";
 let G = World.Geometry
 
 function Midfield:init () {
-	self.name = "midfield"
+	this.name = "midfield"
 
-	self._farAwayHyst = false // the ball is far in our own half and we need midfielders to move forward
-	self._noMidfielderHyst = false // we are attacking the goal and dont want midfielders at all
+	this._farAwayHyst = false // the ball is far in our own half and we need midfielders to move forward
+	this._noMidfielderHyst = false // we are attacking the goal and dont want midfielders at all
 
-	self._zones = {}
-	self._topHalfHyst = false
+	this._zones = {}
+	this._topHalfHyst = false
 
-	self._lastMainAttacker = nil
-	self._lastRobots = nil
-	self._lastAssignments = nil
+	this._lastMainAttacker = nil
+	this._lastRobots = nil
+	this._lastAssignments = nil
 }
 
 let getDefaultPosition = function (boundaries) {
-	let zoneWidth = math.abs(boundaries.right - boundaries.left)
-	let zoneHeight = math.abs(boundaries.top - boundaries.bottom)
+	let zoneWidth = Math.abs(boundaries.right - boundaries.left)
+	let zoneHeight = Math.abs(boundaries.top - boundaries.bottom)
 
-	let isInTopHalf = math.abs(boundaries.right) > math.abs(boundaries.left)
+	let isInTopHalf = Math.abs(boundaries.right) > Math.abs(boundaries.left)
 	let fraction = isInTopHalf ? 1/8 : 7/8
 
-	return Vector(boundaries.right - zoneWidth * fraction, boundaries.bottom + zoneHeight * 2/3)
+	return new Vector(boundaries.right - zoneWidth * fraction, boundaries.bottom + zoneHeight * 2/3)
 }
 
 let visualizeZone = function (zone) {
@@ -39,8 +39,8 @@ let visualizeZone = function (zone) {
 		let right = zone.boundaries.right - edge
 		let top = zone.boundaries.top - edge
 		let bottom = zone.boundaries.bottom + edge
-		let points = { Vector(left, top), Vector(left, bottom), Vector(right, bottom), Vector(right, top) }
-		vis.addPolygon("g/Midfield: Zones", points, vis.colors.orchid, nil, nil, 0.02)
+		let points = { Vector(left, top), new Vector(left, bottom), new Vector(right, bottom), new Vector(right, top) }
+		vis.addPolygon("g/Midfield: Zones", points, vis.colors.orchid, undefined, undefined, 0.02)
 	}
 }
 
@@ -52,13 +52,13 @@ let assignRobotsToZones = function (robotPositions, zones) {
 
 	let zoneAssignment = {}
 	for (_, zone in ipairs(zones)) {
-		let minDist = math.huge
+		let minDist = Infinity
 		let closestRobot = nil
 		for (robot, pos in pairs(robotPositions)) {
 			if (not pos) {
 				break
 			}
-			let dist = pos:distanceToSq(zone.defaultPos)
+			let dist = pos.distanceToSq(zone.defaultPos)
 			if (dist < minDist) {
 				minDist = dist
 				closestRobot = robot
@@ -75,22 +75,22 @@ let assignRobotsToZones = function (robotPositions, zones) {
 
 let determineMidfielderCount = function (self, nAttackers) {
 	let nMidfielders
-	let thresholdY = self._farAwayHyst ? -1 : -2.5
+	let thresholdY = this._farAwayHyst ? -1 : -2.5
 	if (World.Ball.pos.y < thresholdY) {
-		self._farAwayHyst = true
+		this._farAwayHyst = true
 		nMidfielders = 2
 	} else {
-		self._farAwayHyst = false
+		this._farAwayHyst = false
 		nMidfielders = 1
 	}
 
-	thresholdY = self._noMidfielderHyst ? 0 : 1
+	thresholdY = this._noMidfielderHyst ? 0 : 1
 	if (World.Ball.pos.y > thresholdY) {
-		self._noMidfielderHyst = true
+		this._noMidfielderHyst = true
 		nMidfielders = 0
 	} else {
-		self._noMidfielderHyst = false
-		nMidfielders = nMidfielders  ||  1
+		this._noMidfielderHyst = false
+		nMidfielders = nMidfielders || 1
 	}
 
 	if (nAttackers <= nMidfielders) {
@@ -101,14 +101,14 @@ let determineMidfielderCount = function (self, nAttackers) {
 }
 
 function Midfield:_updateZones (nMidfielders) {
-	self._zones = {}
+	this._zones = {}
 
-	let topHalfThreshold = self._topHalfHyst ? 1 : 0
+	let topHalfThreshold = this._topHalfHyst ? 1 : 0
 	let isInTopHalf = World.Ball.pos.x < topHalfThreshold
 
-	let updateAssignments = self._topHalfHyst != isInTopHalf
+	let updateAssignments = this._topHalfHyst != isInTopHalf
 
-	self._topHalfHyst = isInTopHalf
+	this._topHalfHyst = isInTopHalf
 
 	let totalLeft = -G.FieldWidthHalf
 
@@ -131,7 +131,7 @@ function Midfield:_updateZones (nMidfielders) {
 		}
 		zone.defaultPos = getDefaultPosition(zone.boundaries)
 		remainingZones = remainingZones - 1
-		table.insert(self._zones, zone)
+		table.insert(this._zones, zone)
 	}
 
 	if (remainingZones >= 1) {
@@ -143,7 +143,7 @@ function Midfield:_updateZones (nMidfielders) {
 			left = -top * (totalLeft + robotRadius + verticalOffset) + top
 		}
 		zone.defaultPos = getDefaultPosition(zone.boundaries)
-		table.insert(self._zones, zone)
+		table.insert(this._zones, zone)
 	}
 
 	return updateAssignments
@@ -156,10 +156,10 @@ function Midfield:run (sender, inbox, messages) {
 	let mainAttacker = inbox.mainAttacker().trainer
 
 	// update assignments if necessary
-	let updateAssignments = not self._lastRobots  ||  not self._lastAssignments  ||  #robots != #self._lastRobots
+	let updateAssignments = not this._lastRobots || not this._lastAssignments || #robots != #this._lastRobots
 	if (not updateAssignments) {
 		for (i, r in ipairs(robots)) {
-			if (r != self._lastRobots[i]) {
+			if (r != this._lastRobots[i]) {
 				updateAssignments = true
 				break
 			}
@@ -168,10 +168,10 @@ function Midfield:run (sender, inbox, messages) {
 
 	let numAttackers = #table.keys(inbox.attackerFlag())
 	let remainingMidfielders = determineMidfielderCount(self, numAttackers)
-	if (self._lastAssignments  &&  #self._lastAssignments != remainingMidfielders) {
-		updateAssignments = self:_updateZones(remainingMidfielders)  ||  updateAssignments
+	if (this._lastAssignments && #this._lastAssignments != remainingMidfielders) {
+		updateAssignments = this._updateZones(remainingMidfielders) || updateAssignments
 	}
-	updateAssignments = updateAssignments  ||  self._lastRobots  &&  #self._lastRobots != remainingMidfielders
+	updateAssignments = updateAssignments || this._lastRobots && #this._lastRobots != remainingMidfielders
 
 	
 
@@ -184,7 +184,7 @@ function Midfield:run (sender, inbox, messages) {
 		if (passInfoTable) {
 			for (_, passInfo in ipairs(passInfoTable)) {
 				if (passInfo.target == r) {
-					pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos):setLength(r.shootRadius + World.Ball.radius)
+					pos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(r.shootRadius + World.Ball.radius)
 				}
 			}
 		}
@@ -196,16 +196,16 @@ function Midfield:run (sender, inbox, messages) {
 	}
 
 	let zoneList = {} // { zone }
-	for (_, zone in ipairs(self._zones)) {
+	for (_, zone in ipairs(this._zones)) {
 		visualizeZone(zone)
 		table.insert(zoneList, zone)
 	}
 
 	let robotZones
-	if (mainAttacker  &&  updateAssignments) {
-		robotZones = assignRobotsToZones(robotPositions, zoneList)// updateAssignments and <- or self._lastAssignments
+	if (mainAttacker && updateAssignments) {
+		robotZones = assignRobotsToZones(robotPositions, zoneList)// updateAssignments and <- or this._lastAssignments
 	} else {
-		robotZones = self._lastAssignments
+		robotZones = this._lastAssignments
 	}
 
 	debug.set("Midfield Zones", robotZones)
@@ -220,9 +220,9 @@ function Midfield:run (sender, inbox, messages) {
 		}
 	}
 
-	self._lastMainAttacker = mainAttacker
-	self._lastRobots = robots
-	self._lastAssignments = robotZones
+	this._lastMainAttacker = mainAttacker
+	this._lastRobots = robots
+	this._lastAssignments = robotZones
 }
 
 return Midfield

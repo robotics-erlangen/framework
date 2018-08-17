@@ -1,16 +1,16 @@
 let PlaceBall = Class("Task.PlaceBall", require "task/base")
 
 // Requires
-let Constants = require "../base/constants"
-let debug = require "../base/debug"
-let Field = require "../base/field"
-let geom = require "../base/geom"
-let vis = require "../base/vis"
-let World = require "../base/world"
+import * as Constants from "base/constants";
+import * as debug from "base/debug";
+import * as Field from "base/field";
+import * as geom from "base/geom";
+import * as vis from "base/vis";
+import * as World from "base/world";
 let Direct = require "trajectory/direct"
 let BallObserver = require "observer/ball"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 
 // States
 let STATE_WAIT_FOR_BALL_STOP = "STATE_WAIT_FOR_BALL_STOP"
@@ -60,59 +60,59 @@ let BACK_UP_SPEED = 0.4
 let MIN_TIME_IN_STATE = 0.1
 
 function PlaceBall:_init (placementPos) {
-	self._placementPos = placementPos  ||  World.BallPlacementPos
+	this._placementPos = placementPos || World.BallPlacementPos
 
-	self._ball = World.Ball
+	this._ball = World.Ball
 
-	self._state = STATE_WAIT_FOR_BALL_STOP
-	self._stateChanged = true
-	self._stateChangeTime = World.Time
-	self._ballStartPos = self._ball.pos
-	self._robotStartPos = self._robot.pos
+	this._state = STATE_WAIT_FOR_BALL_STOP
+	this._stateChanged = true
+	this._stateChangeTime = World.Time
+	this._ballStartPos = this._ball.pos
+	this._robotStartPos = this._robot.pos
 
-	self._currentTargetPos = nil
+	this._currentTargetPos = nil
 
-	OFFSET_SHOOT_LENGTH = self._robot.shootRadius + self._ball.radius
+	OFFSET_SHOOT_LENGTH = this._robot.shootRadius + this._ball.radius
 	OFFSET_EXTRA_LENGTH = OFFSET_SHOOT_LENGTH + 0.1
 
-	FAR_NEAR_CUT = self._robot.shootRadius + self._ball.radius + 0.2
+	FAR_NEAR_CUT = this._robot.shootRadius + this._ball.radius + 0.2
 
 	// See _calculateOffsets()
-	self._placementOffsets = {}
-	self._placementOffsetAverage = -self._robot.pos:copy():setLength(OFFSET_EXTRA_LENGTH)
-	self._placementOffsetFrame = 1
+	this._placementOffsets = {}
+	this._placementOffsetAverage = -this._robot.pos.copy().setLength(OFFSET_EXTRA_LENGTH)
+	this._placementOffsetFrame = 1
 
-	self._nearestFieldPos = nil
-	self._borderOffsets = {}
-	self._borderOffsetAverage = self._robot.pos:copy():setLength(OFFSET_EXTRA_LENGTH)
-	self._borderOffsetFrame = 1
+	this._nearestFieldPos = nil
+	this._borderOffsets = {}
+	this._borderOffsetAverage = this._robot.pos.copy().setLength(OFFSET_EXTRA_LENGTH)
+	this._borderOffsetFrame = 1
 
-	self._barrierDetects = false
-	self._ballInDribbler = false
-	self._hasBallTime = nil
-	self._lostBallTime = nil
+	this._barrierDetects = false
+	this._ballInDribbler = false
+	this._hasBallTime = nil
+	this._lostBallTime = nil
 
 	// Needed for back up
 	// True if the previous ball moving state was STATE_PUSH_TO_POS, false otherwise
 	// If additional ball moving states are to be added in the future, this boolean probably won't be enough
-	self._pushedBefore = false
+	this._pushedBefore = false
 }
 
 function PlaceBall:run () {
 
-	self:_calculateOffsets()
-	vis.addCircle("PlaceBall Placement Pos", self._placementPos, OFFSET_DISTANCE, vis.colors.orange)
-	vis.addPath("PlaceBall Placement Pos", { self._placementPos, self._placementPos + self._placementOffsetAverage }, vis.colors.black)
-	vis.addCircle("PlaceBall Border Pos", self._nearestFieldPos, OFFSET_DISTANCE, vis.colors.orange)
-	vis.addPath("PlaceBall Border Pos", { self._nearestFieldPos, self._nearestFieldPos + self._borderOffsetAverage }, vis.colors.black)
+	this._calculateOffsets()
+	vis.addCircle("PlaceBall Placement Pos", this._placementPos, OFFSET_DISTANCE, vis.colors.orange)
+	vis.addPath("PlaceBall Placement Pos", { this._placementPos, this._placementPos + this._placementOffsetAverage }, vis.colors.black)
+	vis.addCircle("PlaceBall Border Pos", this._nearestFieldPos, OFFSET_DISTANCE, vis.colors.orange)
+	vis.addPath("PlaceBall Border Pos", { this._nearestFieldPos, this._nearestFieldPos + this._borderOffsetAverage }, vis.colors.black)
 
-	let oldState = self._state
-	self._state = self:_getNextState(self._state)
-	self._stateChanged = self._state != oldState
-	if (self._stateChanged) {
-		self._stateChangeTime = World.Time
+	let oldState = this._state
+	this._state = this._getNextState(this._state)
+	this._stateChanged = this._state != oldState
+	if (this._stateChanged) {
+		this._stateChangeTime = World.Time
 	}
-	debug.set("state", self._state)
+	debug.set("state", this._state)
 
 	// Path helping
 	let obstacleTable = {
@@ -121,108 +121,108 @@ function PlaceBall:run () {
 		ignorePass = true,
         ignoreBallPlacementObstacle = true
 	}
-	obstacleTable.ignoreBall = self._state == STATE_ENSURE_PULL_CONTACT
-					 ||  self._state == STATE_PULL_TO_FIELD
-					 ||  self._state == STATE_BACK_UP_WAIT
-					 ||  self._state == STATE_PUSH_TO_POS
-	if (self._state == STATE_GO_TO_PUSH) {
-		obstacleTable.extraBallDistance = 2 * self._ball.radius
-	} else if (self._state == STATE_MOVE_AWAY  ||  self._state == STATE_WAIT_FOR_BALL_STOP) {
-		obstacleTable.extraBallDistance = self._robot.radius
+	obstacleTable.ignoreBall = this._state == STATE_ENSURE_PULL_CONTACT
+					 ||  this._state == STATE_PULL_TO_FIELD
+					 ||  this._state == STATE_BACK_UP_WAIT
+					 ||  this._state == STATE_PUSH_TO_POS
+	if (this._state == STATE_GO_TO_PUSH) {
+		obstacleTable.extraBallDistance = 2 * this._ball.radius
+	} else if (this._state == STATE_MOVE_AWAY || this._state == STATE_WAIT_FOR_BALL_STOP) {
+		obstacleTable.extraBallDistance = this._robot.radius
 	}
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
 
 	// Extend field boundary so that the robot can pull the ball to the field from further out
-	self._robot.path:setBoundary(
+	this._robot.path:setBoundary(
 		-(World.Geometry.FieldWidthHalf + 5),
 		-(World.Geometry.FieldHeightHalf + 5),
 		World.Geometry.FieldWidthHalf + 5,
 		World.Geometry.FieldHeightHalf + 5
 	)
 
-	if (self._state == STATE_WAIT_FOR_BALL_STOP) {
+	if (this._state == STATE_WAIT_FOR_BALL_STOP) {
 
-		let ballVisible = self._ball:isPositionValid()
+		let ballVisible = this._ball:isPositionValid()
 
-		let specificOffset = self._placementOffsetAverage:copy():setLength(0.5)
+		let specificOffset = this._placementOffsetAverage.copy().setLength(0.5)
 		if (ballVisible) {
-			self._currentTargetPos = self._ball.pos - specificOffset
+			this._currentTargetPos = this._ball.pos - specificOffset
 		} else {
-			self._currentTargetPos = self._robot.pos - specificOffset
+			this._currentTargetPos = this._robot.pos - specificOffset
 		}
-		self._robot.trajectory:update(ToTarget, self._currentTargetPos, specificOffset:angle())
+		this._robot.trajectory.update(ToTarget, this._currentTargetPos, specificOffset.angle())
 
-	} else if (self._state == STATE_GO_TO_PULL) {
+	} else if (this._state == STATE_GO_TO_PULL) {
 
-		self._currentTargetPos = self._ball.pos - self._borderOffsetAverage
+		this._currentTargetPos = this._ball.pos - this._borderOffsetAverage
 		// TODO max speed based on distance?
-		self._robot.trajectory:update(ToTarget, self._currentTargetPos, self._borderOffsetAverage:angle())
-		self._robotStartPos = self._currentTargetPos
+		this._robot.trajectory.update(ToTarget, this._currentTargetPos, this._borderOffsetAverage.angle())
+		this._robotStartPos = this._currentTargetPos
 
-	} else if (self._state == STATE_ENSURE_PULL_CONTACT) {
+	} else if (this._state == STATE_ENSURE_PULL_CONTACT) {
 
-		self._robot:setDribblerSpeed(ENSURE_CONTACT_DRIBBLER_SPEED)
+		this._robot:setDribblerSpeed(ENSURE_CONTACT_DRIBBLER_SPEED)
 
-		let speed = self._borderOffsetAverage:copy():setLength(ENSURE_CONTACT_DIRECT_SPEED)
-		self._robot.trajectory:update(Direct, speed, speed:angle())
+		let speed = this._borderOffsetAverage.copy().setLength(ENSURE_CONTACT_DIRECT_SPEED)
+		this._robot.trajectory.update(Direct, speed, speed.angle())
 
-	} else if (self._state == STATE_PULL_TO_FIELD) {
+	} else if (this._state == STATE_PULL_TO_FIELD) {
 
-		self._robot:setDribblerSpeed(PULL_DRIBBLER_SPEED)
+		this._robot:setDribblerSpeed(PULL_DRIBBLER_SPEED)
 		// For _nearestFieldPos, see in calculateOffset
-		if (self._stateChanged) {
-			self._currentTargetPos = Field.limitToField(self._robot.pos) - self._borderOffsetAverage
+		if (this._stateChanged) {
+			this._currentTargetPos = Field.limitToField(this._robot.pos) - this._borderOffsetAverage
 		}
-		self._robot.trajectory:update(ToTarget, self._currentTargetPos, self._borderOffsetAverage:angle(), MAX_PULL_SPEED, nil, MAX_PULL_ACCEL)
+		this._robot.trajectory.update(ToTarget, this._currentTargetPos, this._borderOffsetAverage.angle(), MAX_PULL_SPEED, undefined, MAX_PULL_ACCEL)
 
-	} else if (self._state == STATE_GO_TO_PUSH) {
+	} else if (this._state == STATE_GO_TO_PUSH) {
 
-		self._currentTargetPos = self._ball.pos + self._placementOffsetAverage
-		self._robot.trajectory:update(ToTarget, self._currentTargetPos, (-self._placementOffsetAverage):angle())
-		self._robotStartPos = self._currentTargetPos
+		this._currentTargetPos = this._ball.pos + this._placementOffsetAverage
+		this._robot.trajectory.update(ToTarget, this._currentTargetPos, (-this._placementOffsetAverage).angle())
+		this._robotStartPos = this._currentTargetPos
 
-	} else if (self._state == STATE_PUSH_TO_POS) {
+	} else if (this._state == STATE_PUSH_TO_POS) {
 
 		//TODO faster push at higher distance
-		self._robot:setDribblerSpeed(PUSH_DRIBBLER_SPEED)
-		self._currentTargetPos = self._placementPos + self._placementOffsetAverage:copy():setLength(OFFSET_SHOOT_LENGTH)
+		this._robot:setDribblerSpeed(PUSH_DRIBBLER_SPEED)
+		this._currentTargetPos = this._placementPos + this._placementOffsetAverage.copy().setLength(OFFSET_SHOOT_LENGTH)
 
-		let speed = self._robot.pos:distanceTo(self._currentTargetPos) > FAR_NEAR_CUT ? FAR_PUSH_SPEED : NEAR_PUSH_SPEED
+		let speed = this._robot.pos.distanceTo(this._currentTargetPos) > FAR_NEAR_CUT ? FAR_PUSH_SPEED : NEAR_PUSH_SPEED
 
-		self._robot.trajectory:update(ToTarget, self._currentTargetPos, (-self._placementOffsetAverage):angle(), speed, nil, PUSH_ACCEL_SCALE)
+		this._robot.trajectory.update(ToTarget, this._currentTargetPos, (-this._placementOffsetAverage).angle(), speed, undefined, PUSH_ACCEL_SCALE)
 
-	} else if (self._state == STATE_BACK_UP_WAIT) {
+	} else if (this._state == STATE_BACK_UP_WAIT) {
 
-		self._robot:halt()
-		let timeInState = World.Time - self._stateChangeTime
+		this._robot:halt()
+		let timeInState = World.Time - this._stateChangeTime
 		let m = -4 * PUSH_DRIBBLER_SPEED / BACK_UP_WAIT_TIME
 		let f0 = 3 * PUSH_DRIBBLER_SPEED
 		// Linear dropoff between BACK_UP_WAIT_TIME / 4 and BACK_UP_WAIT_TIME / 2
-		let dribblerSpeed = math.bound(0, m * timeInState + f0, PUSH_DRIBBLER_SPEED)
-		self._robot:setDribblerSpeed(dribblerSpeed)
+		let dribblerSpeed = MathUtil.bound(0, m * timeInState + f0, PUSH_DRIBBLER_SPEED)
+		this._robot:setDribblerSpeed(dribblerSpeed)
 
-	} else if (self._state == STATE_BACK_UP) {
+	} else if (this._state == STATE_BACK_UP) {
 
 		// Ever making the the offset dependent on something near the target position was a mistake
-		if (self._stateChanged) {
-			let offset = (self._robotStartPos - self._ballStartPos):setLength(OFFSET_EXTRA_LENGTH)
-			self._currentTargetPos = self._robot.pos + offset
+		if (this._stateChanged) {
+			let offset = (this._robotStartPos - this._ballStartPos).setLength(OFFSET_EXTRA_LENGTH)
+			this._currentTargetPos = this._robot.pos + offset
 		}
 
-		self._robot.trajectory:update(ToTarget, self._currentTargetPos, self._robot.dir, BACK_UP_SPEED)
+		this._robot.trajectory.update(ToTarget, this._currentTargetPos, this._robot.dir, BACK_UP_SPEED)
 
-	} else if (self._state == STATE_MOVE_AWAY) {
+	} else if (this._state == STATE_MOVE_AWAY) {
 
-		let offset = (World.Geometry.FriendlyGoal - self._ball.pos):setLength(Constants.stopBallDistance + 0.1)
-		self._currentTargetPos = self._ball.pos + offset
-		self._robot.trajectory:update(ToTarget, self._currentTargetPos, -offset:angle())
+		let offset = (World.Geometry.FriendlyGoal - this._ball.pos).setLength(Constants.stopBallDistance + 0.1)
+		this._currentTargetPos = this._ball.pos + offset
+		this._robot.trajectory.update(ToTarget, this._currentTargetPos, -offset.angle())
 
 	}
 
 }
 
 function PlaceBall:_getNextState (currentState) {
-	if (World.Time - self._stateChangeTime < MIN_TIME_IN_STATE) {
+	if (World.Time - this._stateChangeTime < MIN_TIME_IN_STATE) {
 		return currentState
 	}
 
@@ -232,15 +232,15 @@ function PlaceBall:_getNextState (currentState) {
 
 		nextState = STATE_WAIT_FOR_BALL_STOP
 
-		if (self._ball.speed:length() < BALL_STOP_SPEED) {
+		if (this._ball.speed.length() < BALL_STOP_SPEED) {
 
-            self._ballStartPos = self._ball.pos
+            this._ballStartPos = this._ball.pos
 
-			if (self._ball.pos:distanceTo(self._placementPos) < END_DISTANCE) {
+			if (this._ball.pos.distanceTo(this._placementPos) < END_DISTANCE) {
 				nextState = STATE_MOVE_AWAY
-			} else if (not Field.isInField(self._ball.pos)
-					 ||  Field.isInFriendlyGoal(self._ball.pos)
-					 ||  Field.isInOpponentGoal(self._ball.pos)) {
+			} else if (not Field.isInField(this._ball.pos)
+					 ||  Field.isInFriendlyGoal(this._ball.pos)
+					 ||  Field.isInOpponentGoal(this._ball.pos)) {
 				nextState = STATE_GO_TO_PULL
 			} else {
 				nextState = STATE_GO_TO_PUSH
@@ -252,10 +252,10 @@ function PlaceBall:_getNextState (currentState) {
 
 		nextState = STATE_GO_TO_PULL
 
-		if (self._ball.speed:length() > BALL_STOP_SPEED
-                 ||  self._ball.pos:distanceTo(self._ballStartPos) > MAX_BALL_DISTANCE) {
+		if (this._ball.speed.length() > BALL_STOP_SPEED
+                || this._ball.pos.distanceTo(this._ballStartPos) > MAX_BALL_DISTANCE) {
 			nextState = STATE_WAIT_FOR_BALL_STOP
-		} else if (self._robot.pos:distanceTo(self._currentTargetPos) < 0.01) {
+		} else if (this._robot.pos.distanceTo(this._currentTargetPos) < 0.01) {
 			nextState = STATE_ENSURE_PULL_CONTACT
 		}
 
@@ -263,37 +263,37 @@ function PlaceBall:_getNextState (currentState) {
 
 		nextState = STATE_ENSURE_PULL_CONTACT
 
-		if (World.Time - self._stateChangeTime > ENSURE_CONTACT_MAX_TIME) {
-			self._hasBallTime = nil
+		if (World.Time - this._stateChangeTime > ENSURE_CONTACT_MAX_TIME) {
+			this._hasBallTime = nil
 			nextState = STATE_PULL_TO_FIELD
-		} else if (self._barrierDetects) {
-			if (not self._hasBallTime) {
-				self._hasBallTime = World.Time
-			} else if (World.Time - self._hasBallTime > ENSURE_CONTACT_TIME) {
-				self._hasBallTime = nil
+		} else if (this._barrierDetects) {
+			if (not this._hasBallTime) {
+				this._hasBallTime = World.Time
+			} else if (World.Time - this._hasBallTime > ENSURE_CONTACT_TIME) {
+				this._hasBallTime = nil
 				nextState = STATE_PULL_TO_FIELD
 			}
 		} else {
-			self._hasBallTime = nil
+			this._hasBallTime = nil
 		}
 
 	} else if (currentState == STATE_PULL_TO_FIELD) {
 
-		self._pushedBefore = false
+		this._pushedBefore = false
 
 		nextState = STATE_PULL_TO_FIELD
-		let ballVisible = self._ball:isPositionValid()
+		let ballVisible = this._ball:isPositionValid()
 
-		if (ballVisible  &&  self._ball.pos:distanceTo(self._robot.pos) > self._robot.radius + 0.1) {
-			if (not self._lostBallTime) {
-				self._lostBallTime = World.Time
-			} else if (World.Time - self._lostBallTime > PULL_LOST_BALL_HYSTERESIS) {
-				self._lostBallTime = nil
+		if (ballVisible && this._ball.pos.distanceTo(this._robot.pos) > this._robot.radius + 0.1) {
+			if (not this._lostBallTime) {
+				this._lostBallTime = World.Time
+			} else if (World.Time - this._lostBallTime > PULL_LOST_BALL_HYSTERESIS) {
+				this._lostBallTime = nil
 				nextState = STATE_WAIT_FOR_BALL_STOP
 			}
 		} else {
-			self._lostBallTime = nil
-			if (self._robot.pos:distanceTo(self._currentTargetPos) < 0.01) {
+			this._lostBallTime = nil
+			if (this._robot.pos.distanceTo(this._currentTargetPos) < 0.01) {
 				nextState = STATE_BACK_UP_WAIT
 			}
 		}
@@ -301,30 +301,30 @@ function PlaceBall:_getNextState (currentState) {
 	} else if (currentState == STATE_GO_TO_PUSH) {
 
 		nextState = STATE_GO_TO_PUSH
-		if (self._ball.speed:length() > BALL_STOP_SPEED
-                 ||  self._ball.pos:distanceTo(self._ballStartPos) > MAX_BALL_DISTANCE) {
+		if (this._ball.speed.length() > BALL_STOP_SPEED
+                || this._ball.pos.distanceTo(this._ballStartPos) > MAX_BALL_DISTANCE) {
 			nextState = STATE_WAIT_FOR_BALL_STOP
-		} else if (self._robot.pos:distanceTo(self._currentTargetPos) < 0.01) {
+		} else if (this._robot.pos.distanceTo(this._currentTargetPos) < 0.01) {
 			nextState = STATE_PUSH_TO_POS
 		}
 
 	} else if (currentState == STATE_PUSH_TO_POS) {
 
-		self._pushedBefore = true
+		this._pushedBefore = true
 
 		nextState = STATE_PUSH_TO_POS
-		let ballVisible = self._ball:isPositionValid()
+		let ballVisible = this._ball:isPositionValid()
 
-		if (ballVisible  &&  self._ball.pos:distanceTo(self._robot.pos) > self._robot.radius + 0.1) {
-			if (not self._lostBallTime) {
-				self._lostBallTime = World.Time
-			} else if (World.Time - self._lostBallTime > PUSH_LOST_BALL_HYSTERESIS) {
-				self._lostBallTime = nil
+		if (ballVisible && this._ball.pos.distanceTo(this._robot.pos) > this._robot.radius + 0.1) {
+			if (not this._lostBallTime) {
+				this._lostBallTime = World.Time
+			} else if (World.Time - this._lostBallTime > PUSH_LOST_BALL_HYSTERESIS) {
+				this._lostBallTime = nil
 				nextState = STATE_WAIT_FOR_BALL_STOP
 			}
 		} else {
-			self._lostBallTime = nil
-			if (self._robot.pos:distanceTo(self._currentTargetPos) < 0.01) {
+			this._lostBallTime = nil
+			if (this._robot.pos.distanceTo(this._currentTargetPos) < 0.01) {
 				nextState = STATE_BACK_UP_WAIT
 			}
 		}
@@ -332,28 +332,28 @@ function PlaceBall:_getNextState (currentState) {
 	} else if (currentState == STATE_BACK_UP_WAIT) {
 
 		nextState = STATE_BACK_UP_WAIT
-		if (World.Time - self._stateChangeTime > BACK_UP_WAIT_TIME) {
+		if (World.Time - this._stateChangeTime > BACK_UP_WAIT_TIME) {
 			nextState = STATE_BACK_UP
 		}
 
 	} else if (currentState == STATE_BACK_UP) {
 
 		nextState = STATE_BACK_UP
-		if (self._robot.pos:distanceTo(self._currentTargetPos) < 0.01) {
+		if (this._robot.pos.distanceTo(this._currentTargetPos) < 0.01) {
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		}
 
 	} else if (currentState == STATE_MOVE_AWAY) {
 
 		nextState = STATE_MOVE_AWAY
-		if (self._ball.pos:distanceTo(self._placementPos) > END_DISTANCE) {
+		if (this._ball.pos.distanceTo(this._placementPos) > END_DISTANCE) {
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		}
 
 	}
 
 	if (not nextState) {
-		error("nextState can't be nil, currentState="  +  currentState  +  " is probably invalid")
+		error("nextState can't be undefined, currentState="  +  currentState  +  " is probably invalid")
 	}
 	return nextState
 
@@ -361,28 +361,28 @@ function PlaceBall:_getNextState (currentState) {
 
 function PlaceBall:_calculateOffsets () {
 
-	let ballVisible = self._ball:isPositionValid()
+	let ballVisible = this._ball:isPositionValid()
 
 	let usedBallPos = BallObserver.getRealisticBallPos()
-	self._nearestFieldPos = Field.limitToField(usedBallPos)
+	this._nearestFieldPos = Field.limitToField(usedBallPos)
 
-	if ((not self._placementOffsetAverage  ||  usedBallPos:distanceTo(self._placementPos) > OFFSET_DISTANCE)
+	if ((not this._placementOffsetAverage || usedBallPos.distanceTo(this._placementPos) > OFFSET_DISTANCE)
 			 &&  ballVisible) {
-		let currentOffset = (usedBallPos - self._placementPos):normalize()
-		if (currentOffset:lengthSq() > 1e-9) {
-			self._placementOffsets[self._placementOffsetFrame] = currentOffset
-			self._placementOffsetFrame = (self._placementOffsetFrame % OFFSET_FRAME_COUNT) + 1
-			self._placementOffsetAverage = geom.center(self._placementOffsets):setLength(OFFSET_EXTRA_LENGTH)
+		let currentOffset = (usedBallPos - this._placementPos):normalize()
+		if (currentOffset.lengthSq() > 1e-9) {
+			this._placementOffsets[this._placementOffsetFrame] = currentOffset
+			this._placementOffsetFrame = (this._placementOffsetFrame % OFFSET_FRAME_COUNT) + 1
+			this._placementOffsetAverage = geom.center(this._placementOffsets).setLength(OFFSET_EXTRA_LENGTH)
 		}
 	}
 
-	if ((not self._borderOffsetAverage  ||  usedBallPos:distanceTo(self._nearestFieldPos) > OFFSET_DISTANCE)
+	if ((not this._borderOffsetAverage || usedBallPos.distanceTo(this._nearestFieldPos) > OFFSET_DISTANCE)
 			 &&  ballVisible) {
-		let currentOffset = (usedBallPos - self._placementPos):normalize()
-		if (currentOffset:lengthSq() > 1e-9) {
-			self._borderOffsets[self._borderOffsetFrame] = (usedBallPos - self._nearestFieldPos):normalize()
-			self._borderOffsetFrame = (self._borderOffsetFrame % OFFSET_FRAME_COUNT) + 1
-			self._borderOffsetAverage = geom.center(self._borderOffsets):setLength(OFFSET_EXTRA_LENGTH)
+		let currentOffset = (usedBallPos - this._placementPos):normalize()
+		if (currentOffset.lengthSq() > 1e-9) {
+			this._borderOffsets[this._borderOffsetFrame] = (usedBallPos - this._nearestFieldPos):normalize()
+			this._borderOffsetFrame = (this._borderOffsetFrame % OFFSET_FRAME_COUNT) + 1
+			this._borderOffsetAverage = geom.center(this._borderOffsets).setLength(OFFSET_EXTRA_LENGTH)
 		}
 	}
 
@@ -390,10 +390,10 @@ function PlaceBall:_calculateOffsets () {
 
 
 function PlaceBall:_updateBallStatus () {
-	if (self._robot.radioResponse) {
-		self._barrierDetects = self._robot.radioResponse.ball_detected
+	if (this._robot.radioResponse) {
+		this._barrierDetects = this._robot.radioResponse.ball_detected
 	}
-	debug.set("barrier detects", self._barrierDetects)
+	debug.set("barrier detects", this._barrierDetects)
 }
 
 return PlaceBall

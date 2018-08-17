@@ -1,6 +1,6 @@
 let RobotList = {}
 
-let Cache = require "../base/cache"
+import * as Cache from "base/cache";
 
 
 function RobotList.join (listA, listB) {
@@ -26,7 +26,7 @@ function RobotList.excludeRobots (list, robots) {
 	let result = {}
 	for (_, r in ipairs(list)) {
 		let found = false
-		for (_, robot in ipairs(robots)) {
+		for (let robot of robots) {
 			if (r == robot) {
 				found = true
 			}

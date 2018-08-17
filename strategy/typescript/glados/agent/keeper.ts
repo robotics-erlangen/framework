@@ -1,7 +1,7 @@
 let Base = require "agent/base/agent"
 let Keeper = Class("Agent.Keeper", Base)
 
-let World = require "../base/world"
+import * as World from "base/world";
 let Default = require "agent/keeper/default"
 let HandleBall = require "agent/keeper/handleball"
 let DefendPenaltyShootout = require "agent/keeper/defendpenaltyshootout"
@@ -11,21 +11,21 @@ Keeper._behaviors = {
 	DefendPenaltyShootout,
 	HandleBall,
 	Default
-}
+};
 function Keeper.takeRobot (robots) {
-	for (_, robot in ipairs(robots)) {
+	for (let robot of robots) {
 		if (robot == World.FriendlyKeeper) {
-			return robot
+			return robot;
 		}
 	}
 }
 
 function Keeper:keepRobot () {
-	return self._robot.isVisible  &&  self._robot == World.FriendlyKeeper  &&  not self._robot.userControl
+	return this._robot.isVisible && this._robot == World.FriendlyKeeper && not this._robot.userControl;
 }
 
 function Keeper:rateRobot () {
-	return 1
+	return 1;
 }
 
-return Keeper
+return Keeper;

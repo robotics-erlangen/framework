@@ -4,13 +4,13 @@ let testfuncs = function (teamIsBlue) {
 	return function()
 		let Coordinates
 		before(function()
-			let injector = Injector(nil)
-			Coordinates = injector:load("../base/coordinates")
+			let injector = Injector(undefined)
+			Coordinates = injector.load("+/base/coordinates")
 			Coordinates._setIsBlue(teamIsBlue)
 		end)
 
 		test("vector", function()
-			let vec = Vector(1, 2)
+			let vec = new Vector(1, 2)
 			let vec2 = Coordinates.toGlobal(vec)
 			let vec3 = Coordinates.toLocal(vec)
 			if (teamIsBlue) {
@@ -28,7 +28,7 @@ let testfuncs = function (teamIsBlue) {
 				assert_false(vec2:isReadonly())
 				assert_false(vec3:isReadonly())
 			}
-			let vec = Vector(1, 2, true)
+			let vec = new Vector(1, 2, true)
 			let vec2 = Coordinates.toGlobal(vec)
 			let vec3 = Coordinates.toLocal(vec)
 			if (teamIsBlue) {
@@ -49,22 +49,22 @@ let testfuncs = function (teamIsBlue) {
 		end)
 
 		test("direction", function()
-			let dir = math.pi/4
+			let dir = Math.PI/4
 			let dir2 = Coordinates.toGlobal(dir)
 			let dir3 = Coordinates.toLocal(dir)
 			if (teamIsBlue) {
-				assert_equal(dir2, dir + math.pi)
-				assert_equal(dir3, dir + math.pi)
+				assert_equal(dir2, dir + Math.PI)
+				assert_equal(dir3, dir + Math.PI)
 			} else {
 				assert_equal(dir2, dir)
 				assert_equal(dir3, dir)
 			}
-			let dir = math.pi*5/4
+			let dir = Math.PI*5/4
 			let dir2 = Coordinates.toGlobal(dir)
 			let dir3 = Coordinates.toLocal(dir)
 			if (teamIsBlue) {
-				assert_equal(dir2, dir - math.pi)
-				assert_equal(dir3, dir - math.pi)
+				assert_equal(dir2, dir - Math.PI)
+				assert_equal(dir3, dir - Math.PI)
 			} else {
 				assert_equal(dir2, dir)
 				assert_equal(dir3, dir)
@@ -72,11 +72,11 @@ let testfuncs = function (teamIsBlue) {
 		end)
 
 		test("list", function()
-			let list = { Vector(0, 1), Vector(1, 2), math.pi/4 }
+			let list = { Vector(0, 1), new Vector(1, 2), Math.PI/4 }
 			let list2 = Coordinates.listToGlobal(list)
 
 			if (teamIsBlue) {
-				assert_deep_equal({ -list[1], -list[2], math.pi*5/4 }, list2)
+				assert_deep_equal({ -list[1], -list[2], Math.PI*5/4 }, list2)
 			} else {
 				assert_deep_equal(list, list2)
 			}

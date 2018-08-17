@@ -1,10 +1,10 @@
 let ChipDribble = Class("Test.Move.ChipDribble", require "group/move/base")
 
-let MoveToPos = require "task/shared/movetopos"
+import {MoveToPos} from "glados/task/shared/movetopos";
 let PassDribble = require "task/test/passdribble"
-let Pass = require "task/shared/pass"
-let World = require "../base/world"
-let Ball = require "observer/ball"
+import {Pass} from "glados/task/shared/pass";
+import * as World from "base/world";
+import * as Ball from "glados/tobserver/ball";
 
 ChipDribble.MIN_ROBOTS = 2
 ChipDribble.MAX_ROBOTS = 2
@@ -15,11 +15,11 @@ function ChipDribble.canStart () {
 }
 
 function ChipDribble:_init () {
-	self._state = 1
-	self._distance = 2
-	self._positionRobot2 = Vector(0,0)
-	self._positionRobot1 = Vector(0, -(self._distance + self._robots[2].radius*2))
-	self._ballWasShot = false
+	this._state = 1
+	this._distance = 2
+	this._positionRobot2 = new Vector(0,0)
+	this._positionRobot1 = new Vector(0, -(this._distance + this._robots[1].radius*2))
+	this._ballWasShot = false
 }
 
 function ChipDribble:_canContinue () {
@@ -29,34 +29,34 @@ function ChipDribble:_canContinue () {
 function ChipDribble:_updateTasks () {
 	let taskAssignments = {}
 
-	if (self._state == 2  ||  World.RefereeState == "DirectOffensive") {
-		self._state = 2
-		self._ballWasShot = false
-		taskAssignments[self._robots[1]] = { class = Pass, params = { self._robots[2], self._positionRobot2, true } }
-		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._positionRobot2, nil, true } }
+	if (this._state == 2 || World.RefereeState == "DirectOffensive") {
+		this._state = 2
+		this._ballWasShot = false
+		taskAssignments[this._robots[0]] = { class: Pass, params: { this._robots[1], this._positionRobot2, true } }
+		taskAssignments[this._robots[1]] = { class: MoveToPos, params: { this._positionRobot2, undefined, true } }
 	}
 
-	if (self._state == 3  ||  (self._ballWasShot  &&  self._robots[2].pos:distanceTo(World.Ball.pos) <= 0.4)) {
-		self._state = 3
-		self._ballWasShot = false
-		taskAssignments[self._robots[1]] = { class = MoveToPos, params = { self._shootPosition, nil } }
-		taskAssignments[self._robots[2]] = { class = PassDribble, params = {self._robots[1]} }
+	if (this._state == 3 || (this._ballWasShot && this._robots[1].pos.distanceTo(World.Ball.pos) <= 0.4)) {
+		this._state = 3
+		this._ballWasShot = false
+		taskAssignments[this._robots[0]] = { class: MoveToPos, params: { this._shootPosition, undefined } }
+		taskAssignments[this._robots[1]] = { class: PassDribble, params: {this._robots[0]} }
 	}
 
-	if (self._state == 4  ||  Ball.wasShot(0.25)) {
-		self._state = 4
-		self._ballWasShot = true
-		taskAssignments[self._robots[1]] = { class = MoveToPos, params = { self._positionRobot1, nil } }
-		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._positionRobot2, nil, true } }
+	if (this._state == 4 || Ball.wasShot(0.25)) {
+		this._state = 4
+		this._ballWasShot = true
+		taskAssignments[this._robots[0]] = { class: MoveToPos, params: { this._positionRobot1, undefined } }
+		taskAssignments[this._robots[1]] = { class: MoveToPos, params: { this._positionRobot2, undefined, true } }
 	}
 
-	if (self._state == 1  ||  World.RefereeState == "IndirectOffensive") {
-		self._state = 1
-		taskAssignments[self._robots[1]] = { class = MoveToPos, params = { self._positionRobot1, nil, true } }
-		taskAssignments[self._robots[2]] = { class = MoveToPos, params = { self._positionRobot2, nil, true } }
+	if (this._state == 1 || World.RefereeState == "IndirectOffensive") {
+		this._state = 1
+		taskAssignments[this._robots[0]] = { class: MoveToPos, params: { this._positionRobot1, undefined, true } }
+		taskAssignments[this._robots[1]] = { class: MoveToPos, params: { this._positionRobot2, undefined, true } }
 	}
 
-	return taskAssignments, self._robots[1]
+	return taskAssignments, this._robots[0]
 }
 
 return ChipDribble

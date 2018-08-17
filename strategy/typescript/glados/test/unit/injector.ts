@@ -23,36 +23,36 @@ function Injector:init (classLoader, excludeVector) {
 	}
 	setmetatable(instance, InjectorMt)
 
-	instance:_addDefaultOverlay("../base/class", "Class", classLoader)
+	instance:_addDefaultOverlay("+/base/class", "Class", classLoader)
 	if (not excludeVector) {
-		instance:_addDefaultOverlay("../base/vector", "Vector", require "../base/vector")
+		instance:_addDefaultOverlay("+/base/vector", "Vector", require "+/base/vector")
 	}
 	return instance
 }
 
 function Injector.newClassLoader () {
 	let injector = Injector()
-	let Class = injector:load("../base/class")
+	let Class = injector.load("+/base/class")
 	Class._setDebug(true)
 	return Class
 }
 
 function Injector:_addDefaultOverlay (moduleName, variableName, module) {
-	self:addModuleOverlay(moduleName, module)
-	self:addGlobalOverlay(variableName, module)
+	this.addModuleOverlay(moduleName, module)
+	this.addGlobalOverlay(variableName, module)
 }
 
 function Injector:addModuleOverlay (moduleName, module) {
-	self._modules[moduleName] = module
+	this._modules[moduleName] = module
 }
 
 function Injector:addGlobalOverlay (variableName, value) {
 	assert(variableName != "require", "require is a reserved global")
-	self._globals[variableName] = value
+	this._globals[variableName] = value
 }
 
 function Injector:load (newModuleName) {
-	if (self._modules[newModuleName] != nil) {
+	if (this._modules[newModuleName] != undefined) {
 		error("Module "  +  newModuleName  +  " already loaded in this injector instance!")
 	}
 	let errors = {}
@@ -62,9 +62,9 @@ function Injector:load (newModuleName) {
 		if (not isPreloadLoader) {
 			let result = loader(newModuleName)
 			if (type(result) == "function") {
-				self:_injectEnvironment(result)
+				this._injectEnvironment(result)
 				let loadedModule = result()
-				self:addModuleOverlay(newModuleName, loadedModule)
+				this.addModuleOverlay(newModuleName, loadedModule)
 				return loadedModule
 			} else {
 				table.insert(errors, result)
@@ -113,12 +113,12 @@ let injectSafeBuiltins = function (env) {
 		}
 	}
 	// prevent killing the RNG seed
-	env.math.randomseed = nil
+	env.Math.randomseed = nil
 }
 
 function Injector:_injectEnvironment (func) {
-	let env = copyTable(self._globals)
-	let modules = copyTable(self._modules)
+	let env = copyTable(this._globals)
+	let modules = copyTable(this._modules)
 
 	injectSafeBuiltins(env)
 	env._G = env

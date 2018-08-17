@@ -2,65 +2,65 @@ let SuggestPass = require "task/ability/suggestpass"
 let StrikerSampling = require "task/ability/strikersampling"
 let Striker = Class("Task.Striker", require "task/base", SuggestPass, StrikerSampling)
 
-let geom = require "../base/geom"
-let Field = require "../base/field"
-let Referee = require "../base/referee"
-let vis = require "../base/vis"
-let World = require "../base/world"
+import * as geom from "base/geom";
+import * as Field from "base/field";
+import * as Referee from "base/referee";
+import * as vis from "base/vis";
+import * as World from "base/world";
 let G = World.Geometry
 
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
-let UtilDefense = require "util/defense"
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
+import * as UtilDefense from "glados/util/defense";
 
-let Attack = require "util/attack"
+import * as Attack from "glados/util/attack";
 
 
 function Striker:_init (manualDefaultPos, manualPassDest) {
-	self._manualDefaultPos = manualDefaultPos
-	self._manualPassDest = manualPassDest
-	self._passDestSuggestion = manualPassDest
+	this._manualDefaultPos = manualDefaultPos
+	this._manualPassDest = manualPassDest
+	this._passDestSuggestion = manualPassDest
 
-	self._moveDest = nil
+	this._moveDest = nil
 
-	self._zone = nil
+	this._zone = nil
 
-	self._revaluateTimestamp = 0
+	this._revaluateTimestamp = 0
 
-	self._obstacleTable  = {
+	this._obstacleTable  = {
 		ignoreBall = true,
-		inbox = self._inbox
+		inbox = this._inbox
 	}
 }
 
 function Striker:_revaluatePassDest () {
-	if (self._manualPassDest) {
+	if (this._manualPassDest) {
 		return false
 	}
 
-	let timestamps = self._inbox.strikerSamplingTimestamp("broadcast")
+	let timestamps = this._inbox.strikerSamplingTimestamp("broadcast")
 	let nextCandidate = nil
-	let nextCandidateTimestamp = math.huge
+	let nextCandidateTimestamp = Infinity
 	for (r, time in pairs(timestamps)) {
-		if (not nextCandidate  ||  time < nextCandidateTimestamp
-				 ||  time == nextCandidateTimestamp  &&  r.id < nextCandidate.id) {
+		if (not nextCandidate || time < nextCandidateTimestamp
+				 ||  time == nextCandidateTimestamp && r.id < nextCandidate.id) {
 			nextCandidate = r
 			nextCandidateTimestamp = time
 		}
 	}
 
-	let revaluate = self._robot == nextCandidate
+	let revaluate = this._robot == nextCandidate
 	if (revaluate) {
-		self._revaluateTimestamp = World.Time
+		this._revaluateTimestamp = World.Time
 	}
 
-	self._send.strikerSamplingTimestamp("all", self._revaluateTimestamp)
+	this._send.strikerSamplingTimestamp("all", this._revaluateTimestamp)
 
 	return revaluate
 }
 
 function Striker:_searchForPassDest () {
-	self:precalculate()
+	this.precalculate()
 
 	let grid_point_count_x = 6
 	let grid_point_count_y = 10
@@ -68,7 +68,7 @@ function Striker:_searchForPassDest () {
 	let grid_point_dist_x = G.FieldWidth / grid_point_count_x
 	let grid_point_dist_y = G.FieldHeight / grid_point_count_y
 
-	let boundaries = self._zone.boundaries
+	let boundaries = this._zone.boundaries
 	let left = boundaries.left
 	let right = boundaries.right
 	let top = boundaries.top
@@ -79,19 +79,19 @@ function Striker:_searchForPassDest () {
 	// TODO am strafraum stehen ist geil! -> score anpassen
 
 	let bestPoint = nil
-	let bestScore = -math.huge
+	let bestScore = -Infinity
 	for (x = grid_point_dist_x * 0.5 - G.FieldWidthHalf, G.FieldWidthHalf, grid_point_dist_x) {
-		if (x > left  &&  x < right) {
+		if (x > left && x < right) {
 			for (y = grid_point_dist_y * 0.5 - G.FieldHeightHalf, G.FieldHeightHalf, grid_point_dist_y) {
-				if (y > bottom  &&  y < top) {
-					let candidatePoint = Vector(x, y)
-					candidatePoint = Field.limitToAllowedField(candidatePoint, 3 * self._robot.radius + 0.1)
-					if (geom.insideRect(Vector(left, bottom), Vector(right, top), candidatePoint)) {
-						let score = self:evalLocation(candidatePoint, bestScore)
-						let _, passInfoTable = next(self._inbox.passInfo())
+				if (y > bottom && y < top) {
+					let candidatePoint = new Vector(x, y)
+					candidatePoint = Field.limitToAllowedField(candidatePoint, 3 * this._robot.radius + 0.1)
+					if (geom.insideRect(new Vector(left, bottom), new Vector(right, top), candidatePoint)) {
+						let score = this.evalLocation(candidatePoint, bestScore)
+						let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 						if (passInfoTable) {
 							for (_, passInfo in pairs(passInfoTable)) {
-								if (passInfo.ballPos:distanceToSq(candidatePoint) < 0.01*0.01) {
+								if (passInfo.ballPos.distanceToSq(candidatePoint) < 0.01*0.01) {
 									score = score + 0.1
 								}
 							}
@@ -106,70 +106,70 @@ function Striker:_searchForPassDest () {
 		}
 	}
 
-	self._passDestSuggestion = bestPoint
+	this._passDestSuggestion = bestPoint
 }
 
 function Striker:run () {
-	self._send.strikerFlag("all")
+	this._send.strikerFlag("all")
 
-	if (self._manualDefaultPos) {
-		self._moveDest = self._manualDefaultPos
+	if (this._manualDefaultPos) {
+		this._moveDest = this._manualDefaultPos
 	} else {
 		// participate in the striker group
 		let groupApplication = { name = "striker", payload = {} }
-		self._send.groupApplication("trainer", groupApplication)
+		this._send.groupApplication("trainer", groupApplication)
 
 		// retrieve the assigned zone from the striker group
-		self._zone = self._inbox.strikerZone().trainer
-		if (not self._zone) {
+		this._zone = this._inbox.strikerZone().trainer
+		if (not this._zone) {
 			return
 		}
-		self._moveDest = self._zone.defaultPos
+		this._moveDest = this._zone.defaultPos
 	}
 
 	// search for a good pass dest
-	if (self:_revaluatePassDest()) {
-		self:_searchForPassDest()
+	if (this._revaluatePassDest()) {
+		this._searchForPassDest()
 	}
 
 	// check whether the agent would change its state to accepting an incoming pass (striker should not be active then)
-	let _, passInfoTable = next(self._inbox.passInfo())
-	assert(Attack.checkPassInfos(self._robot, passInfoTable, false) == false, "Striker shouldn't accept passes")
+	let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
+	assert(Attack.checkPassInfos(this._robot, passInfoTable, false) == false, "Striker shouldn't accept passes")
 
 	if (passInfoTable) {
 		for (_, passInfo in ipairs(passInfoTable)) {
-			vis.addCircle("t/striker", self._moveDest, 0.1, vis.colors.slateHalf, true)
-			if (self._passDestSuggestion) {
-				let color = passInfo.target == self._robot
+			vis.addCircle("t/striker", this._moveDest, 0.1, vis.colors.slateHalf, true)
+			if (this._passDestSuggestion) {
+				let color = passInfo.target == this._robot
  ? vis.colors.turquoiseHalf : vis.colors.whiteHalf
 				vis.addCircle("t/striker", passInfo.ballPos, 0.1, color, true)
-				vis.addCircle("t/striker", self._passDestSuggestion, 0.14,
-					vis.colors.whiteHalf, false, nil, nil, 0.03)
-				vis.addPath("t/striker", {self._moveDest, self._passDestSuggestion},
-					vis.colors.slateHalf, nil, nil, 0.02)
+				vis.addCircle("t/striker", this._passDestSuggestion, 0.14,
+					vis.colors.whiteHalf, false, undefined, undefined, 0.03)
+				vis.addPath("t/striker", {this._moveDest, this._passDestSuggestion},
+					vis.colors.slateHalf, undefined, undefined, 0.02)
 			}
 		}
 	}
 	// set path obstacles to not interfere with the current attack
 	let moveTime = nil
-	let _, attackPosition = next(self._inbox.attackPosition())
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
+	let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable)
 
 	// send a suggestion for a pass in the run
-	if (self._passDestSuggestion  &&  attackPosition) {
-		self:_suggestPass(self._passDestSuggestion, attackPosition, moveTime)
+	if (this._passDestSuggestion && attackPosition) {
+		this._suggestPass(this._passDestSuggestion, attackPosition, moveTime)
 	}
 
 	// be close to the defense area to catch possible stray shots
 	let cbDistToDefenseArea = UtilDefense.centerBackDistanceToDefenseArea()
-	if (self._passDestSuggestion  &&  not Referee.isFriendlyFreeKickState()
-			 &&  Field.distanceToDefenseArea(self._passDestSuggestion, cbDistToDefenseArea) < 0.8) {
+	if (this._passDestSuggestion && not Referee.isFriendlyFreeKickState()
+			 &&  Field.distanceToDefenseArea(this._passDestSuggestion, cbDistToDefenseArea) < 0.8) {
 
-		let intersection = Field.intersectRayDefenseArea(self._moveDest, G.OpponentGoal - self._moveDest, cbDistToDefenseArea + 0.3, false)
-		self._moveDest = intersection  ||  self._moveDest
+		let intersection = Field.intersectRayDefenseArea(this._moveDest, G.OpponentGoal - this._moveDest, cbDistToDefenseArea + 0.3, false)
+		this._moveDest = intersection || this._moveDest
 	}
 
-	self._robot.trajectory:update(ToTarget, self._moveDest, (World.Ball.pos - self._robot.pos):angle())
+	this._robot.trajectory.update(ToTarget, this._moveDest, (World.Ball.pos - this._robot.pos).angle())
 }
 
 

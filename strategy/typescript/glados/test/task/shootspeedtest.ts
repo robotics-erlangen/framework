@@ -1,7 +1,7 @@
-let Entrypoints = require "../base/entrypoints"
-let World = require "../base/world"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as Entrypoints from "base/entrypoints";
+import * as World from "base/world";
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 let TestHelper = require "test/helper/agent"
 
 let obstacleTable = {
@@ -11,24 +11,24 @@ let obstacleTable = {
 let ShootSpeedTest = Class("Test.Task.ShootSpeedTest", require "task/base")
 
 function ShootSpeedTest:_init (speed) {
-	self._shootSpeed = speed
-	self._ballInHalf = self._robot.pos.y * World.Ball.pos.y > 0
+	this._shootSpeed = speed
+	this._ballInHalf = this._robot.pos.y * World.Ball.pos.y > 0
 }
 
 function ShootSpeedTest:run () {
-	let ballInHalf = self._robot.pos.y * World.Ball.pos.y > 0
-	let shootDistance = math.max(0, math.abs(self._robot.pos.y) - self._robot.shootRadius - World.Ball.radius)
-	if (not ballInHalf  &&  self._ballInHalf) {
+	let ballInHalf = this._robot.pos.y * World.Ball.pos.y > 0
+	let shootDistance = Math.max(0, Math.abs(this._robot.pos.y) - this._robot.shootRadius - World.Ball.radius)
+	if (not ballInHalf && this._ballInHalf) {
 		log("Ball speed:  Look at the raw values in the plotter")
-		log("Shoot speed: "  +  String(self._robot:calculateShootSpeed(self._shootSpeed, math.abs(self._robot.pos.y))))
+		log("Shoot speed: "  +  String(this._robot.calculateShootSpeed(this._shootSpeed, Math.abs(this._robot.pos.y))))
 		log("Distance:    "  +  String(shootDistance))
 	}
-	self._ballInHalf = ballInHalf
+	this._ballInHalf = ballInHalf
 
-	let shootSpeed = self._robot:calculateShootSpeed(self._shootSpeed, shootDistance)
-	self._robot:shoot(shootSpeed)
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
-	self._robot.trajectory:update(ToTarget, self._robot.pos, self._robot.pos.y < 0 ? math.pi/2 : -math.pi/2)
+	let shootSpeed = this._robot.calculateShootSpeed(this._shootSpeed, shootDistance)
+	this._robot.shoot(shootSpeed)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
+	this._robot.trajectory.update(ToTarget, this._robot.pos, this._robot.pos.y < 0 ? Math.PI/2 : -Math.PI/2)
 }
 
 

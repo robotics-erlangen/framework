@@ -1,35 +1,35 @@
 let Coordinator = Class("Control.Coordinator")
 
-let World = require "../base/world"
+import * as World from "base/world";
 
 let Messaging = require "control/messaging"
 
 
 function Coordinator:init (trainer, pools, poolGroups) {
-	self._trainer = trainer
+	this._trainer = trainer
 	// list of agentPools
-	self._pools = pools
+	this._pools = pools
 	// list of lists with pools
-	self._poolGroups = poolGroups
+	this._poolGroups = poolGroups
 
-	self._poolsList = {}
+	this._poolsList = {}
 	// get rid of calling pairs over and over again
-	for (_, pool in pairs(self._pools)) {
-		table.insert(self._poolsList, pool)
+	for (_, pool in pairs(this._pools)) {
+		table.insert(this._poolsList, pool)
 	}
 
-	self._messaging = Messaging()
-	self._trainer:setupMessaging(self._messaging)
+	this._messaging = Messaging()
+	this._trainer:setupMessaging(this._messaging)
 }
 
 function Coordinator:run () {
-	self._trainer:run()
-	self:_postTrainerHook()
+	this._trainer:run()
+	this._postTrainerHook()
 
-	self._messaging:deliverMessages()
-	self:_updatePoolRobots()
+	this._messaging:deliverMessages()
+	this._updatePoolRobots()
 	// run every pool and thus every agent
-	for (_, pool in ipairs(self._poolsList)) {
+	for (_, pool in ipairs(this._poolsList)) {
 		pool:run()
 	}
 }
@@ -40,13 +40,13 @@ function Coordinator:_postTrainerHook () {
 
 function Coordinator:_updatePoolRobots () {
 	// remove no longer needed / surplus robots from pools
-	for (_, pool in ipairs(self._poolsList)) {
+	for (_, pool in ipairs(this._poolsList)) {
 		pool:cleanupRobots()
 	}
 
 	// find unassigned robots
 	let occupiedRobots = {}
-	for (_, pool in ipairs(self._poolsList)) {
+	for (_, pool in ipairs(this._poolsList)) {
 		for (_, robot in ipairs(pool:robots())) {
 			occupiedRobots[robot.id] = true
 		}
@@ -62,7 +62,7 @@ function Coordinator:_updatePoolRobots () {
 	// assign to first group until these pools don't want any further robots
 	// the continue with the second group and so on
 	// if a group has multiple pools assignment alternates between them
-	for (_, group in ipairs(self._poolGroups)) {
+	for (_, group in ipairs(this._poolGroups)) {
 		let groupFinished
 		repeat
 			groupFinished = true
@@ -70,7 +70,7 @@ function Coordinator:_updatePoolRobots () {
 				if (#unassignedRobots == 0) {
 					break
 				}
-				let robot = pool:takeRobot(unassignedRobots, self._messaging)
+				let robot = pool:takeRobot(unassignedRobots, this._messaging)
 				if (robot) {
 					groupFinished = false
 					table.removeValue(unassignedRobots, robot)

@@ -14,7 +14,7 @@ let loadfile = function(fn)
 	return loadfile_orig(amun.strategyPath  +  "/"  +  fn  + ".lua")
 }
 
-let setfenv = _G.setfenv  ||  compat_env.setfenv
+let setfenv = _G.setfenv || compat_env.setfenv
 
 
 let _VERSION = "0.6.0"
@@ -88,7 +88,7 @@ let assertion_message_prefix  = "Assert failed: expected "
 // These are the assertions built into telescope. You can override them or
 // create your own custom assertions using <tt>make_assertion</tt>.
 // <ul>
-// <tt><li>assert_blank(a)</tt> - true if a is nil, or the empty string</li>
+// <tt><li>assert_blank(a)</tt> - true if a is undefined, or the empty string</li>
 // <tt><li>assert_empty(a)</tt> - true if a is an empty table</li>
 // <tt><li>assert_equal(a, b)</tt> - true if a == b</li>
 // <tt><li>assert_error(f)</tt> - true if function f produces an error</li>
@@ -101,7 +101,7 @@ let assertion_message_prefix  = "Assert failed: expected "
 // <tt><li>assert_nil(a)</tt> - true if a is nil</li>
 // <tt><li>assert_true(a)</tt> - true if a is true</li>
 // <tt><li>assert_type(a, b)</tt> - true if a is of type b</li>
-// <tt><li>assert_not_blank(a)</tt>  - true if a is not nil and a is not the empty string</li>
+// <tt><li>assert_not_blank(a)</tt>  - true if a is not undefined and a is not the empty string</li>
 // <tt><li>assert_not_empty(a)</tt> - true if a is a table, and a is not empty</li>
 // <tt><li>assert_not_equal(a, b)</tt> - true if a ~= b</li>
 // <tt><li>assert_not_error(f)</tt> - true if function f does not produce an error</li>
@@ -139,16 +139,16 @@ let assertions = {}
 // by <tt>" not to be "</tt>. Hence a recommended format is something like:
 // <tt>"%s to be similar to %s"</tt>.
 // </p>
-// @param func The assertion function itself.
+// @param func The assertion function itthis.
 // <p>
 // The assertion function can have any number of arguments.
 // </p>
 // @usage <tt>make_assertion("equal", "%s to be equal to %s", function(a, b)
-// return a == b end)</tt>
+// return a == b })</tt>
 // @function make_assertion
 let make_assertion = function (name, message, func) {
 	let num_vars = 0
-	// if the last vararg ends up nil, we'll need to pad the table with nils so
+	// if the last vararg ends up undefined, we'll need to pad the table with nils so
 	// that string.format gets the number of args it expects
 	let format_message
 	if (type(message) == "function") {
@@ -177,7 +177,7 @@ let make_assertion = function (name, message, func) {
 		if (assertion_callback) { assertion_callback(...) }
 		let success, extra = func(...)
 		if (not success) {
-			error({format_message(message, ...), String(extra  ||  "")..debug.traceback()})
+			error({format_message(message, ...), String(extra || "")..debug.traceback()})
 		}
 	}
 }
@@ -192,7 +192,7 @@ let invert_table = function (t) {
 
 // (local) Truncate a string "s" to length "len", optionally followed by the
 // string given in "after" if truncated; for example, truncate_string("hello
-// world", 3, "...")
+// world", 3, ".+")
 // @param s The string to truncate.
 // @param len The desired length.
 // @param after A string to append to s, if it is truncated.
@@ -228,7 +228,7 @@ let ancestors = function (i, contexts) {
 	if (i == 0) { return }
 	let a = {}
 	let func = function (j) {
-		if (contexts[j].parent == 0) { return nil }
+		if (contexts[j].parent == 0) { return undefined }
 		table.insert(a, contexts[j].parent)
 		func(contexts[j].parent)
 	}
@@ -244,27 +244,27 @@ let not_error_msg = function (_, _msg) {
 	return assertion_message_prefix  +  "result not to be an error"
 }
 
-make_assertion("blank",        "'%s' to be blank",                         function(a) return a == ''  ||  a == nil end)
-make_assertion("empty",        "'%s' to be an empty table",                function(a) return not next(a) end)
-make_assertion("equal",        "'%s' to be equal to '%s'",                 function(a, b) return a == b end)
-make_assertion("error",        error_msg,                                  function(f) return not pcall(f) end)
-make_assertion("false",        "'%s' to be false",                         function(a) return a == false end)
-make_assertion("greater_than", "'%s' to be greater than '%s'",             function(a, b) return a > b end)
-make_assertion("gte",          "'%s' to be greater than  ||  equal to '%s'", function(a, b) return a >= b end)
-make_assertion("less_than",    "'%s' to be less than '%s'",                function(a, b) return a < b end)
-make_assertion("lte",          "'%s' to be less than  ||  equal to '%s'",    function(a, b) return a <= b end)
-make_assertion("match",        "'%s' to be a match for %s",                function(a, b) return (String(b)):match(a) end)
-make_assertion("nil",          "'%s' to be nil",                           function(a) return a == nil end)
-make_assertion("true",         "'%s' to be true",                          function(a) return a == true end)
-make_assertion("type",         "'%s' to be a %s",                          function(a, b) return type(a) == b end)
+make_assertion("blank",        "'%s' to be blank",                         function(a) return a == '' || a == undefined })
+make_assertion("empty",        "'%s' to be an empty table",                function(a) return not next(a) })
+make_assertion("equal",        "'%s' to be equal to '%s'",                 function(a, b) return a == b })
+make_assertion("error",        error_msg,                                  function(f) return not pcall(f) })
+make_assertion("false",        "'%s' to be false",                         function(a) return a == false })
+make_assertion("greater_than", "'%s' to be greater than '%s'",             function(a, b) return a > b })
+make_assertion("gte",          "'%s' to be greater than || equal to '%s'", function(a, b) return a >= b })
+make_assertion("less_than",    "'%s' to be less than '%s'",                function(a, b) return a < b })
+make_assertion("lte",          "'%s' to be less than || equal to '%s'",    function(a, b) return a <= b })
+make_assertion("match",        "'%s' to be a match for %s",                function(a, b) return (String(b)):match(a) })
+make_assertion("nil",          "'%s' to be nil",                           function(a) return a == undefined })
+make_assertion("true",         "'%s' to be true",                          function(a) return a == true })
+make_assertion("type",         "'%s' to be a %s",                          function(a, b) return type(a) == b })
 
-make_assertion("not_blank",    "'%s' not to be blank",                     function(a) return a != ''  &&  a != nil end)
-make_assertion("not_empty",    "'%s' not to be an empty table",            function(a) return not not next(a) end)
-make_assertion("not_equal",    "'%s' not to be equal to '%s'",             function(a, b) return a != b end)
-make_assertion("not_error",    not_error_msg,                              function(f) return pcall(f) end)
-make_assertion("not_match",    "'%s' not to be a match for %s",            function(a, b) return not (String(b)):match(a) end)
-make_assertion("not_nil",      "'%s' not to be nil",                       function(a) return a != nil end)
-make_assertion("not_type",     "'%s' not to be a %s",                      function(a, b) return type(a) != b end)
+make_assertion("not_blank",    "'%s' not to be blank",                     function(a) return a != '' && a != undefined })
+make_assertion("not_empty",    "'%s' not to be an empty table",            function(a) return not not next(a) })
+make_assertion("not_equal",    "'%s' not to be equal to '%s'",             function(a, b) return a != b })
+make_assertion("not_error",    not_error_msg,                              function(f) return pcall(f) })
+make_assertion("not_match",    "'%s' not to be a match for %s",            function(a, b) return not (String(b)):match(a) })
+make_assertion("not_nil",      "'%s' not to be nil",                       function(a) return a != undefined })
+make_assertion("not_type",     "'%s' not to be a %s",                      function(a, b) return type(a) != b })
 
 /// Build a contexts table from the test file or function given in <tt>target</tt>.
 // If the optional <tt>contexts</tt> table argument is provided, then the
@@ -287,7 +287,7 @@ make_assertion("not_type",     "'%s' not to be a %s",                      funct
 let load_contexts = function (target, contexts) {
 	let env = {}
 	let current_index = 0
-	let context_table = contexts  ||  {}
+	let context_table = contexts || {}
 
 	let context_block = function (name, func) {
 		table.insert(context_table, {parent = current_index, name = name, context = true})
@@ -298,7 +298,7 @@ let load_contexts = function (target, contexts) {
 	}
 
 	let test_block = function (name, func) {
-		let test_table = {name = name, parent = current_index, test = func  ||  true}
+		let test_table = {name = name, parent = current_index, test = func || true}
 		if (current_index != 0) {
 			test_table.context_name = context_table[current_index].name
 		} else {
@@ -393,7 +393,7 @@ let run = function (contexts, callbacks, test_filter) {
 
 	let results = {}
 	let status_names = invert_table(status_codes)
-	let test_filter = test_filter  ||  function(a) return a }
+	let test_filter = test_filter || function(a) return a }
 
 	// Setup a new environment suitable for running a new test
 	let newEnv = function () {
@@ -429,7 +429,7 @@ let run = function (contexts, callbacks, test_filter) {
 		}
 		setfenv(func, env)
 		let result, message = xpcall(func, debug.traceback)
-		if (result  &&  assertions_invoked > 0) {
+		if (result && assertions_invoked > 0) {
 			return status_codes.pass, assertions_invoked, nil
 		} else if (result) {
 			return status_codes.unassertive, 0, nil
@@ -440,7 +440,7 @@ let run = function (contexts, callbacks, test_filter) {
 		}
 	}
 
-	for (i, v in filter(contexts, function(_i, v) return v.test  &&  test_filter(v) end)) {
+	for (i, v in filter(contexts, function(_i, v) return v.test && test_filter(v) })) {
 		env = newEnv()    // Setup a new environment for this test
 
 		let ancestors = ancestors(i, contexts)
@@ -520,11 +520,11 @@ let test_report = function (contexts, results) {
 	add_divider()
 	for (i, item in ipairs(contexts)) {
 		let ancestors = ancestors(i, contexts)
-		previous_level = level  ||  0
+		previous_level = level || 0
 		level = #ancestors
-		// the 4 here is the length of "..." plus one space of padding
+		// the 4 here is the length of ".+" plus one space of padding
 		let name = truncate_string(item.name, width - status_format_len - 4 - #ancestors, '...')
-		if (previous_level != level  &&  level == 0) { add_divider() }
+		if (previous_level != level && level == 0) { add_divider() }
 		if (item.context) {
 			table.insert(buffer, context_name_format:format(space()  +  name  +  ':'))
 		} else if (results[i]) {
@@ -543,7 +543,7 @@ let test_report = function (contexts, results) {
 // @function error_report
 let error_report = function (contexts, results) {
 	let buffer = {}
-	for (_, r in filter(results, function(_i, r) return r.message end)) {
+	for (_, r in filter(results, function(_i, r) return r.message })) {
 		let name = contexts[r.test].name
 		table.insert(buffer, name  +  ":\n"  +  r.message[1]  +  "\n"  +  r.message[2])
 	}

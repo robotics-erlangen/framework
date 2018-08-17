@@ -1,26 +1,26 @@
 let RandomKeeper = Class("Task.RandomKeeper", require "task/base")
 
-let Field = require "../base/field"
-let World = require "../base/world"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as Field from "base/field";
+import * as World from "base/world";
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 
 
 let DEST_SWITCH_DISTANCE = 0.02
 let GOAL_DISTANCE = 0.06
 
 function RandomKeeper:_init () {
-	self._nextX = nil
+	this._nextX = nil
 }
 
 function RandomKeeper:run () {
-	if (not self._nextX  ||  math.abs(self._robot.pos.x - self._nextX) < DEST_SWITCH_DISTANCE) {
-		let bound = World.Geometry.GoalWidth/2 - self._robot.radius
-		self._nextX = math.random() * bound * 2 - bound
+	if (not this._nextX || Math.abs(this._robot.pos.x - this._nextX) < DEST_SWITCH_DISTANCE) {
+		let bound = World.Geometry.GoalWidth/2 - this._robot.radius
+		this._nextX = Math.random() * bound * 2 - bound
 	}
 
-	let moveDest = Vector(self._nextX,
-			-World.Geometry.FieldHeightHalf + self._robot.radius + GOAL_DISTANCE)
+	let moveDest = new Vector(this._nextX,
+			-World.Geometry.FieldHeightHalf + this._robot.radius + GOAL_DISTANCE)
 
 	// ignore goal walls if ball is shot
 	let obstacleTable = {
@@ -29,12 +29,12 @@ function RandomKeeper:run () {
 		ignoreDefenseArea = true,
 		stopBallDistance = 0.05
 	}
-	if (Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius)) {
+	if (Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius)) {
 		obstacleTable.ignoreFriendlyRobots = true
 		obstacleTable.ignoreOpponentRobots = true
 	}
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
-	self._robot.trajectory:update(ToTarget, moveDest, math.pi/2)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
+	this._robot.trajectory.update(ToTarget, moveDest, Math.PI/2)
 }
 
 return RandomKeeper

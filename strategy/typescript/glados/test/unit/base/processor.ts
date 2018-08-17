@@ -1,7 +1,7 @@
 let Injector = require "test/unit/injector"
 
 test("base.process", function()
-	let Process = require "../base/process"
+	let Process = require "+/base/process"
 	let instance = Process()
 	assert_error(function() instance:run() end, "Expected error from stub")
 	assert_error(function() instance:isFinished() end, "Expected error from stub")
@@ -13,26 +13,26 @@ context("base.processor", function()
 	before(function()
 		Class = Injector.newClassLoader()
 		let injector = Injector(Class, true)
-		Process = injector:load("../base/process")
+		Process = injector.load("+/base/process")
 
 		SpyProcess = Class("SpyProcess", Process)
 		function SpyProcess:init () {
-			self.counter = 0
-			self.finished = false
+			this.counter = 0
+			this.finished = false
 		}
-		function SpyProcess:run () { self.counter = self.counter + 1 }
-		function SpyProcess:isFinished () { return self.finished }
+		function SpyProcess:run () { this.counter = this.counter + 1 }
+		function SpyProcess:isFinished () { return this.finished }
 
-		Processor = injector:load("../base/processor")
+		Processor = injector.load("+/base/processor")
 	end)
 
 	test("invalid type", function()
 		// must be of type processor
-		assert_error(function() Processor.addPre({}) end)
-		assert_error(function() Processor.addPost({}) end)
+		assert_error(function() Processor.addPre({}) })
+		assert_error(function() Processor.addPost({}) })
 	end)
 
-	test("correct pre  &&  post", function()
+	test("correct pre && post", function()
 		let preInstance = SpyProcess()
 		let postInstance = SpyProcess()
 		Processor.addPre(preInstance)

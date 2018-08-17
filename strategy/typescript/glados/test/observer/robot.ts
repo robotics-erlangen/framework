@@ -1,19 +1,19 @@
 let RobotTest = {}
 
-let World = require "../base/world"
-let robot = require "observer/robot"
+import * as World from "base/world";
+import * as Robot from "glados/observer/robot";
 
 let ctr = 0
 
 let printDynamics = function (dyn) {
-	log("self.maxSpeed = "  +  String(dyn.maxSpeed))
-	log("self.maxAngularSpeed = "  +  String(dyn.maxAngularSpeed))
-	log("self.acceleration.aSpeedupFMax = "  +  String(dyn.acceleration.aSpeedupFMax))
-	log("self.acceleration.aSpeedupSMax = "  +  String(dyn.acceleration.aSpeedupSMax))
-	log("self.acceleration.aSpeedupPhiMax = "  +  String(dyn.acceleration.aSpeedupPhiMax))
-	log("self.acceleration.aBrakeFMax = "  +  String(dyn.acceleration.aBrakeFMax))
-	log("self.acceleration.aBrakeSMax = "  +  String(dyn.acceleration.aBrakeSMax))
-	log("self.acceleration.aBrakePhiMax = "  +  String(dyn.acceleration.aBrakePhiMax))
+	log("this.maxSpeed = "  +  String(dyn.maxSpeed))
+	log("this.maxAngularSpeed = "  +  String(dyn.maxAngularSpeed))
+	log("this.acceleration.aSpeedupFMax = "  +  String(dyn.acceleration.aSpeedupFMax))
+	log("this.acceleration.aSpeedupSMax = "  +  String(dyn.acceleration.aSpeedupSMax))
+	log("this.acceleration.aSpeedupPhiMax = "  +  String(dyn.acceleration.aSpeedupPhiMax))
+	log("this.acceleration.aBrakeFMax = "  +  String(dyn.acceleration.aBrakeFMax))
+	log("this.acceleration.aBrakeSMax = "  +  String(dyn.acceleration.aBrakeSMax))
+	log("this.acceleration.aBrakePhiMax = "  +  String(dyn.acceleration.aBrakePhiMax))
 	log("")
 }
 

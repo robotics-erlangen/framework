@@ -1,6 +1,6 @@
-let Entrypoints = require "../base/entrypoints"
+import * as Entrypoints from "base/entrypoints";
 let TestHelper = require "test/helper/agent"
-let PathHelper = require "trajectory/pathhelper"
+import * as PathHelper from "glados/trajectory/pathhelper";
 let BallRotate = require "trajectory/ballrotate"
 
 
@@ -14,9 +14,9 @@ function Task:_init () {
 }
 
 function Task:run () {
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
 
-	self._robot.trajectory:update(BallRotate, 0.3, 0.2, true)
+	this._robot.trajectory.update(BallRotate, 0.3, 0.2, true)
 }
 
 

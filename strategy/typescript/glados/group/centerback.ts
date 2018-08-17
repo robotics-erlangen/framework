@@ -1,11 +1,11 @@
 let CenterBack = Class("Group.CenterBack")
 
-let Robot = require "observer/robot"
-let UtilDefense = require "util/defense"
-let Rating = require "util/rating"
-let Field = require "../base/field"
-let vis = require "../base/vis"
-let World = require "../base/world"
+import * as Robot from "glados/observer/robot";
+import * as UtilDefense from "glados/util/defense";
+import * as Rating from "glados/util/rating";
+import * as Field from "base/field";
+import * as vis from "base/vis";
+import * as World from "base/world";
 
 let G = World.Geometry
 let adjustWay = World.RULEVERSION == "2018"
@@ -18,10 +18,10 @@ let lessthan_targets = function(t1, t2)
 }
 
 let lessthan_robots = function(r1, r2)
-	let a1 = (r1.pos - World.Geometry.FriendlyGoal):angle()
-	let a2 = (r2.pos - World.Geometry.FriendlyGoal):angle()
-	if (a1 < -math.pi/2) { a1 = a1 + 2 * math.pi }
-	if (a2 < -math.pi/2) { a2 = a2 + 2 * math.pi }
+	let a1 = (r1.pos - World.Geometry.FriendlyGoal).angle()
+	let a2 = (r2.pos - World.Geometry.FriendlyGoal).angle()
+	if (a1 < -Math.PI/2) { a1 = a1 + 2 * Math.PI }
+	if (a2 < -Math.PI/2) { a2 = a2 + 2 * Math.PI }
 	return a1 > a2
 }
 
@@ -80,7 +80,7 @@ let assignRobotsToPoints = function (robotList, pointList, resultAssignment, nec
 		//check integrety
 		if (amun.isDebug) {
 			for (_, point in ipairs(pointList)) {
-				if (not table.contains(table.values(resultAssignment), point)  &&  not table.contains(substitutedPoints, point)) {
+				if (not table.contains(table.values(resultAssignment), point) && not table.contains(substitutedPoints, point)) {
 					error("point that is not covered: "  +  String(point))
 				}
 			}
@@ -114,7 +114,7 @@ let assignRobotsToPoints = function (robotList, pointList, resultAssignment, nec
 //where pos is the position in the field that should be covered,
 //dir is the direction that should be used for defenseIntersection
 //time is the time (in s) until the coverage of this position is NECESSARY and therefore a change or a shifted position is not ok
-//dir and time are optional, if they are ommitted, dir will always be G.FriendlyGoal-pos, and time will be math.huge
+//dir and time are optional, if they are ommitted, dir will always be G.FriendlyGoal-pos, and time will be Infinity
 //if two targets are both going to be NECESSARY soon, the first NECESSARY target will be covered and other targets will not be considered NECESSARY
 
 // gets all CB applications as parameter (robot -> target)
@@ -137,7 +137,7 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 	let minDistanceBetweenDefenders = 0.01
 	let distanceBetweenDefenders = minDistanceBetweenDefenders + extraDistanceBetweenDefenders
 	if (World.RefereeState == "Stop") {
-		distanceBetweenDefenders = math.max(distanceBetweenDefenders, 0.03)
+		distanceBetweenDefenders = Math.max(distanceBetweenDefenders, 0.03)
 	}
 	let getImportant = 2 * robot_radius + 0.02 + distanceToDefenseArea
 
@@ -145,7 +145,7 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 		distanceBetweenDefenders = 0
 	}
 
-	// idealBot is the bot needed for the necessary target. It is nil, if no necessary target is needing attention now.
+	// idealBot is the bot needed for the necessary target. It is undefined, if no necessary target is needing attention now.
 	let idealBot, necessaryWay
 	// collect all important targets and assign them the list of robots
 	// only consider those as important that are within a certain range to their destination
@@ -160,7 +160,7 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 		//               for calculating the positions for important robots
 		// otherwise: calculate their position after the important ones
 		if (important) {
-			if (robots[target] == nil) {
+			if (robots[target] == undefined) {
 				robots[target] = {}
 			}
 			table.insert(robots[target], robot)
@@ -172,9 +172,9 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 
 
 	//calculate the minimal time that was supplied (all other times are ignored)
-	let minTime = math.huge
+	let minTime = Infinity
 	for (target,_ in pairs(robots)) {
-		if (target.time  &&  target.time < minTime) {
+		if (target.time && target.time < minTime) {
 			minTime = target.time
 		}
 	}
@@ -182,9 +182,9 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 	// // calculate middle position and way footprint
 	let waymaximum
 	if (adjustWay) {
-		waymaximum = math.pi * (distanceToDefenseArea + robot_radius) * UtilDefense.cornerFactor + G.DefenseWidth + 2* G.DefenseHeight
+		waymaximum = Math.PI * (distanceToDefenseArea + robot_radius) * UtilDefense.cornerFactor + G.DefenseWidth + 2* G.DefenseHeight
 	} else {
-		waymaximum = math.pi * (World.Geometry.DefenseRadius + distanceToDefenseArea + robot_radius) +
+		waymaximum = Math.PI * (World.Geometry.DefenseRadius + distanceToDefenseArea + robot_radius) +
 				World.Geometry.DefenseStretch
 	}
 	let extraDistance = distanceToDefenseArea + robot_radius
@@ -199,18 +199,18 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 		cBPos, way, sec = UtilDefense.centerBackPos(targetPos, target.dir)
 		//check if the target is necessary but reachable
 		let idealBotPrel = UtilDefense.getClosestRobot(robotSet,cBPos)
-		let timeAroundDefenseArea = Robot.timeAroundDefenseAreaByWay(idealBotPrel, nil, cBPos, way, extraDistance, true)
-		let targetTime = target.time  ||  math.huge
+		let timeAroundDefenseArea = Robot.timeAroundDefenseAreaByWay(idealBotPrel, undefined, cBPos, way, extraDistance, true)
+		let targetTime = target.time || Infinity
 		//only consider the next timestamp
 		if (targetTime > minTime) {
-			targetTime = math.huge
+			targetTime = Infinity
 		}
-		if (adjustWay  &&  sec) {
+		if (adjustWay && sec) {
 			way = UtilDefense.mulCornerFactor(way, sec, extraDistance)
 		}
 		let n = #rlist
-		let biggerHyst = self._lastLocked ? 0.2 : 0
-		let smallerHyst = self._lastLocked ? 0.6 : 0.4
+		let biggerHyst = this._lastLocked ? 0.2 : 0
+		let smallerHyst = this._lastLocked ? 0.6 : 0.4
 		if (targetTime + biggerHyst > timeAroundDefenseArea  &&
 			timeAroundDefenseArea + smallerHyst > targetTime) {
 			//mark one intersection with one bot to be necessary, and continue with reduced n for the rest.
@@ -229,7 +229,7 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 		}
 		let occupiedWay = (#rlist) * (2 * robot_radius + distanceBetweenDefenders)
 
-		way = math.bound(occupiedWay/2, way, waymaximum - occupiedWay/2)
+		way = MathUtil.bound(occupiedWay/2, way, waymaximum - occupiedWay/2)
 		table.insert(intersections, {
 			["waypos"] = way,
 			["wayrange"] = occupiedWay,
@@ -239,7 +239,7 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 			["time"] = targetTime
 		})
 	}
-	self._lastLocked = idealBot != nil
+	this._lastLocked = idealBot != nil
 
 
 	// merge overlapping way intervals
@@ -253,8 +253,8 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 				if (ix != jx) {
 					let jmin = j.waypos - j.wayrange/2
 					let jmax = j.waypos + j.wayrange/2
-					if (imax > jmin  &&  jmax > imin) {
-						if (i.necessary  ||  j.necessary) {
+					if (imax > jmin && jmax > imin) {
+						if (i.necessary || j.necessary) {
 							//locals for n(ecessary) and u(nnecessary)
 							let n,u, ux, nmin, umin, nmax, umax
 							if (j.necessary) {
@@ -271,17 +271,17 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 							// handle necessary object n. Two necessary are not possible
 							// first, move full robots to one side
 							let disBetweenCenterOfCB = 2 * robot_radius + distanceBetweenDefenders
-							let fullRobotMax = math.min(math.max(math.floor((umax - n.waypos) / disBetweenCenterOfCB),0),u.n)
-							let fullRobotMin = math.min(math.max(math.floor((n.waypos - umin) / disBetweenCenterOfCB),0),u.n)
+							let fullRobotMax = Math.min(Math.max(Math.floor((umax - n.waypos) / disBetweenCenterOfCB),0),u.n)
+							let fullRobotMin = Math.min(Math.max(Math.floor((n.waypos - umin) / disBetweenCenterOfCB),0),u.n)
 							nmax = nmax + disBetweenCenterOfCB * fullRobotMax
 							nmin = nmin - disBetweenCenterOfCB * fullRobotMin
 							n.waypos = (nmax + nmin) /2
 							n.wayrange = (nmax - nmin)
 							n.n = n.n + fullRobotMax + fullRobotMin
 							//n.time shall not be modified
-							if (next(i.targets) == nil) {
+							if (next(i.targets) == undefined) {
 								i.targets = j.targets
-							} else if (next(j.targets) == nil) {
+							} else if (next(j.targets) == undefined) {
 								j.targets = i.targets
 							}
 							j.targets = table.append(i.targets, j.targets)
@@ -293,18 +293,18 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 							let totalWay = i.wayrange + j.wayrange
 							let totalN = i.n + j.n
 							let totalPos = (i.waypos * i.n + j.waypos * j.n) / totalN
-							totalPos = math.max(totalPos, totalWay/2)
-							totalPos = math.min(totalPos, waymaximum-totalWay/2)
+							totalPos = Math.max(totalPos, totalWay/2)
+							totalPos = Math.min(totalPos, waymaximum-totalWay/2)
 							j.waypos = totalPos
 							j.wayrange = totalWay
 							j.n = totalN
-							if (next(i.targets) == nil) {
+							if (next(i.targets) == undefined) {
 								i.targets = j.targets
-							} else if (next(j.targets) == nil) {
+							} else if (next(j.targets) == undefined) {
 								j.targets = i.targets
 							}
 							j.targets = table.append(i.targets, j.targets)
-							j.time = math.min(i.time, j.time)
+							j.time = Math.min(i.time, j.time)
 							table.remove(intersections, ix)
 							break
 						}
@@ -345,9 +345,9 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 					["pos"] = final_pos,
 					["target"] = t.target,
 					["way"] = way,
-					["time"] = (i.n == 1) ? i.time : math.huge
+					["time"] = (i.n == 1) ? i.time : Infinity
 				}
-				if (necessaryWay  &&  math.abs(way-necessaryWay) < EPSILON) {
+				if (necessaryWay && Math.abs(way-necessaryWay) < EPSILON) {
 					assert (not necessaryDefensePoint, "two necessary Points are a problem")
 					necessaryDefensePoint = point
 				}
@@ -394,22 +394,22 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 			error("g/centerback interface changed")
 		}
 		_, target_way, target_sec = UtilDefense.centerBackPos(targetPos)
-		if (adjustWay  &&  target_sec) {
+		if (adjustWay && target_sec) {
 			target_way = UtilDefense.mulCornerFactor(target_way, target_sec, extraDistance)
 		}
 		// stay on one end of a group of CenterBacks
 		_, robot_way, robot_sec = UtilDefense.centerBackPos(robot.pos)
-		if (adjustWay  &&  robot_sec) {
+		if (adjustWay && robot_sec) {
 			robot_way = UtilDefense.mulCornerFactor(robot_way, robot_sec, extraDistance)
 		}
 		for (_,i in ipairs(intersections)) {
 			if (target_way - robot_radius < i.waypos + i.wayrange/2
 					 &&  target_way + robot_radius > i.waypos - i.wayrange/2) {
-				target_way = math.bound(i.waypos - i.wayrange/2 - robot_radius,
+				target_way = MathUtil.bound(i.waypos - i.wayrange/2 - robot_radius,
 						robot_way, i.waypos + i.wayrange/2 + robot_radius)
 			}
 		}
-		if (adjustWay  &&  robot_sec) {
+		if (adjustWay && robot_sec) {
 			target_way = UtilDefense.divCornerFactor(target_way, extraDistance)
 		}
 		let pos = Field.defenseIntersectionByWay(target_way, extraDistance, true)
@@ -419,16 +419,16 @@ function CenterBack:calculateCenterBackPositions (centerBackApplications) {
 }
 
 function CenterBack:init () {
-	self.name = "centerback"
-	self._lastLocked = false
+	this.name = "centerback"
+	this._lastLocked = false
 }
 
 function CenterBack:run (sender, _, messages) {
-	self:calculateCenterBackPositions(messages)
+	this.calculateCenterBackPositions(messages)
 
 	for (robot, _ in pairs(messages)) {
 		let pos_target = centerBackPositions[robot]
-		pos_target = pos_target  ||  privateCenterBackPositions[robot]
+		pos_target = pos_target || privateCenterBackPositions[robot]
 		sender.centerBackPosTarget(robot, pos_target)
 	}
 }

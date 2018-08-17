@@ -1,43 +1,43 @@
 let RescueRobot = Class("Task.RescueRobot", require "task/base")
 
-let geom = require "../base/geom"
-let World = require "../base/world"
+import * as geom from "base/geom";
+import * as World from "base/world";
 let TrajectoryHidden = require "trajectory/hidden"
 
 
 function RescueRobot:_init () {
-	self._rotation = nil
+	this._rotation = nil
 	// list of local speeds: (speedForward, speedSide)
-	self._speeds = nil
+	this._speeds = nil
 }
 
 function RescueRobot:run () {
 	// ignore visible robots
-	if (self._robot.isVisible  ||  not self._robot.speed) {
+	if (this._robot.isVisible || not this._robot.speed) {
 		return
 	}
 
-	if (not self._rotation) {
+	if (not this._rotation) {
 		// align forward direction with the opposite speed the robot had when it was lost
-		let robotSpeed = self._robot.speed:copy()
-		if (robotSpeed:length() < 0.0001) {
+		let robotSpeed = this._robot.speed.copy()
+		if (robotSpeed.length() < 0.0001) {
 			// ensure that backwardsDir points to the opponent goal, if the robot doesn't move
-			robotSpeed = Vector(0, -1)
+			robotSpeed = new Vector(0, -1)
 		}
-		let backwardsDir = robotSpeed:scaleLength(-1):angle()
-		let frontDir = self._robot.dir
-		self._rotation = geom.getAngleDiff(frontDir, backwardsDir)
+		let backwardsDir = robotSpeed.scaleLength(-1).angle()
+		let frontDir = this._robot.dir
+		this._rotation = geom.getAngleDiff(frontDir, backwardsDir)
 
 		// if field center is on the left while moving forward
-		if (geom.checkTriangleOrientation(self._robot.pos, self._robot.pos + Vector.fromAngle(backwardsDir), Vector(0,0)) >= 0) {
-			self._speeds = {
+		if (geom.checkTriangleOrientation(this._robot.pos, this._robot.pos + Vector.fromAngle(backwardsDir), new Vector(0,0)) >= 0) {
+			this._speeds = {
 				Vector(1, 0), // forward
 				Vector(-1, 0), // backward
 				Vector(0, -1), // left
 				Vector(0 , 1) // right
 			}
 		} else {
-			self._speeds = {
+			this._speeds = {
 				Vector(1, 0), // forward
 				Vector(-1, 0), // backward
 				Vector(0 , 1), // right
@@ -47,13 +47,13 @@ function RescueRobot:run () {
 	}
 
 	// use time as index, one new vector every second
-	let timeDiff = World.Time - self._robot.lostSince
-	let idx = math.floor(timeDiff) + 1 // offset for array start index
-	let speed = self._speeds[idx]
+	let timeDiff = World.Time - this._robot.lostSince
+	let idx = Math.floor(timeDiff) + 1 // offset for array start index
+	let speed = this._speeds[idx]
 
 	if (speed) {
-		speed = speed:copy():rotate(self._rotation)
-		self._robot.trajectory:update(TrajectoryHidden, speed.x, speed.y, 0)
+		speed = speed.copy().rotate(this._rotation)
+		this._robot.trajectory.update(TrajectoryHidden, speed.x, speed.y, 0)
 	}
 }
 

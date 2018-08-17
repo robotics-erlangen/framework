@@ -10,7 +10,7 @@
 //	local loadfile = CL.loadfile
 
 //	// The following now works in both Lua 5.1 and 5.2:
-//	assert(load('return 2*pi', nil, 't', {pi=math.pi}))()
+//	assert(load('return 2*pi', undefined, 't', {pi=Math.PI}))()
 //	assert(loadfile('ex.lua', 't', {print=print}))()
 
 //	// Get getfenv/setfenv compatibility functions only if using 5.2.
@@ -148,12 +148,12 @@
 let M = {_TYPE='module', _NAME='compat_env', _VERSION='0.2.20120124'}
 
 let check_chunk_type = function (s, mode) {
-	let nmode = mode  ||  'bt'
-	let is_binary = s  &&  #s > 0  &&  s:byte(1) == 27
-	if (is_binary  &&  not nmode:match'b') {
-		return nil, ("attempt to load a binary chunk (mode is '%s')"):format(mode)
-	} else if (not is_binary  &&  not nmode:match't') {
-		return nil, ("attempt to load a text chunk (mode is '%s')"):format(mode)
+	let nmode = mode || 'bt'
+	let is_binary = s && #s > 0 && s:byte(1) == 27
+	if (is_binary && not nmode:match'b') {
+		return undefined, ("attempt to load a binary chunk (mode is '%s')"):format(mode)
+	} else if (not is_binary && not nmode:match't') {
+		return undefined, ("attempt to load a text chunk (mode is '%s')"):format(mode)
 	}
 	return true
 }
@@ -172,7 +172,7 @@ if IS_52_LOAD then
 			let err; f, err = loadstring(s, source); if not f then return f, err }
 		} else if (type(ld) == 'function') {
 			let ld2 = ld
-			if ((mode  ||  'bt') != 'bt') {
+			if ((mode || 'bt') != 'bt') {
 				let first = ld()
 				let ok, err = check_chunk_type(first, mode); if not ok then return ok, err }
 				ld2 = function()
@@ -191,14 +191,14 @@ if IS_52_LOAD then
 
 	// 5.2 style `loadfile` implemented in 5.1
 	function M.loadfile (filename, mode, env) {
-		if ((mode  ||  'bt') != 'bt') {
+		if ((mode || 'bt') != 'bt') {
 			let ioerr
 			let fh, err = io.open(filename, 'rb'); if not fh then return fh, err }
 			let ld() let chunk; chunk,ioerr = fh:read = function (4096) {; return chunk }
-			let f, err = M.load(ld, filename  &&  '@'..filename, mode, env)
+			let f, err = M.load(ld, filename && '@'..filename, mode, env)
 			fh:close()
 			if (not f) { return f, err }
-			if (ioerr) { return nil, ioerr }
+			if (ioerr) { return undefined, ioerr }
 			return f
 		} else {
 			let f, err = loadfile(filename); if not f then return f, err }
@@ -220,12 +220,12 @@ if _G.setfenv then // Lua 5.1
 		repeat
 			up=up+1; name, val = debug.getupvalue(f, up)
 			if (name == '') { unknown = true }
-		until name == '_ENV'  ||  name == nil
+		until name == '_ENV' || name == nil
 		if (name != '_ENV') {
 			up = nil
 			if (unknown) { error("upvalues not readable in Lua 5.2 when debug info missing", 3) }
 		}
-		return (name == '_ENV')  &&  up, val, unknown
+		return (name == '_ENV') && up, val, unknown
 	}
 
 	// helper function for `getfenv`/`setfenv`
@@ -253,7 +253,7 @@ if _G.setfenv then // Lua 5.1
 			debug.setupvalue(f, up, t)
 		} else {
 			let what = debug.getinfo(f, 'S').what
-			if (what != 'Lua'  &&  what != 'main') { // not Lua func
+			if (what != 'Lua' && what != 'main') { // not Lua func
 				error("'setfenv' cannot change environment of given object", 2)
 			}// else ignore no _ENV upvalue (warning: incompatible with 5.1)
 		}
@@ -264,7 +264,7 @@ if _G.setfenv then // Lua 5.1
 
 	// 5.1 style `getfenv` implemented in 5.2
 	function M.getfenv (f) {
-		if (f == 0  ||  f == nil) { return _G }// simulated behavior
+		if (f == 0 || f == undefined) { return _G }// simulated behavior
 		let f = envhelper(f, 'setfenv')
 		let up, val = envlookup(f)
 		if (not up) { return _G }// simulated behavior [**]
@@ -331,9 +331,9 @@ return M
 //// test `load`
 //checkeq(load('return 2')(), 2)
 //checkerr('expected near', load'return 2 2')
-//checkerr('text chunk', load('return 2', nil, 'b'))
-//checkerr('text chunk', load('', nil, 'b'))
-//checkerr('binary chunk', load('\027', nil, 't'))
+//checkerr('text chunk', load('return 2', undefined, 'b'))
+//checkerr('text chunk', load('', undefined, 'b'))
+//checkerr('binary chunk', load('\027', undefined, 't'))
 //checkeq(load('return 2*x',nil,'bt',{x=5})(), 10)
 //checkeq(debug.getinfo(load('')).source, '')
 //checkeq(debug.getinfo(load('', 'foo')).source, 'foo')
@@ -345,7 +345,7 @@ return M
 //checkeq(loadfile('tmp.lua')(2), 2)
 //checkeq(loadfile('tmp.lua', 't')(2), 2)
 //checkerr('text chunk', loadfile('tmp.lua', 'b'))
-//checkeq(loadfile('tmp.lua', nil, {x=3})(), 3)
+//checkeq(loadfile('tmp.lua', undefined, {x=3})(), 3)
 //checkeq(debug.getinfo(loadfile('tmp.lua')).source, '@tmp.lua')
 //checkeq(debug.getinfo(loadfile('tmp.lua', 't', {})).source, '@tmp.lua')
 //os.remove'tmp.lua'

@@ -26,11 +26,11 @@
 
 let Defense = Class("Group.Move.Defense", require "group/move/base")
 
-let Constants = require "../base/constants"
-let debug = require "../base/debug"
-let DebugCommands = require "../base/debugcommands"
-let vis = require "../base/vis"
-let World = require "../base/world"
+import * as Constants from "base/constants";
+import * as debug from "base/debug";
+let DebugCommands = require "+/base/debugcommands"
+import * as vis from "base/vis";
+import * as World from "base/world";
 
 let DefenderDefault = require "agent/defender/default"
 let UtilDebug = require "util/debug"
@@ -47,7 +47,7 @@ let injectReferee = function (move) {
 		return true
 	}
 	let pseudoRefMeta = {}
-	pseudoRefMeta.__index = require "../base/referee"
+	pseudoRefMeta.__index = require "+/base/referee"
 	setmetatable(pseudoRef, pseudoRefMeta)
 	let originalCanStart = move.canStart
 	let canStartInjectedReferee = function () {
@@ -75,11 +75,11 @@ function Defense.canStart () {
 }
 
 function Defense:_init () {
-	self._selectedMove = nil
-	self._number = #MOVES
-	self._activeRobots = {}
-	self._visPolygon = nil
-	self._stopTime = nil
+	this._selectedMove = nil
+	this._number = #MOVES
+	this._activeRobots = {}
+	this._visPolygon = nil
+	this._stopTime = nil
 }
 
 function Defense:_canContinue () {
@@ -89,75 +89,75 @@ function Defense:_canContinue () {
 function Defense:_updateTasks () {
 	let taskAssignments = {}
 	let innerMainAttacker = nil
-	for (_, r in ipairs(self._robots)) {
-		taskAssignments[r] = {behavior = DefenderDefault, params = {} }
+	for (_, r in ipairs(this._robots)) {
+		taskAssignments[r] = {behavior = DefenderDefault, params: {} }
 	}
-	for (_, r in  ipairs(self._activeRobots)) {
-		taskAssignments[r] = {class = "none", params = {}}
+	for (_, r in  ipairs(this._activeRobots)) {
+		taskAssignments[r] = {class: "none", params: {}}
 	}
-	if (self._selectedMove  &&  not self._selectedMove:_canContinue()) {
-		self._selectedMove = nil
+	if (this._selectedMove && not this._selectedMove:_canContinue()) {
+		this._selectedMove = nil
 	}
 	debug.push("Inner Move")
-	debug.set(nil, Class.name(MOVES[self._number], true))
+	debug.set(nil, Class.name(MOVES[this._number], true))
 
 	let running = false
 
-	if (self._selectedMove) {
+	if (this._selectedMove) {
 		running = true
-		debug.set("ParticipatingRobots", self._activeRobots)
+		debug.set("ParticipatingRobots", this._activeRobots)
 		let innerTaskAssignment
-		innerTaskAssignment, innerMainAttacker = self._selectedMove:updateTasks()
+		innerTaskAssignment, innerMainAttacker = this._selectedMove:updateTasks()
 		table.extend(taskAssignments, innerTaskAssignment)
-	} else if (World.RefereeState == "GameForce"  ||  not self._visPolygon) {
-		self._number = self._number % #MOVES +1
-		self._activeRobots = {}
-		let startRectList = MOVES[self._number].TEST_BALL_START_RECTS
+	} else if (World.RefereeState == "GameForce" || not this._visPolygon) {
+		this._number = this._number % #MOVES +1
+		this._activeRobots = {}
+		let startRectList = MOVES[this._number].TEST_BALL_START_RECTS
 		if (#startRectList == 0) {
 			error("Impossible to use a move for defense testing if there are no good positions")
 		}
-		let selectedRect = startRectList[math.random(#startRectList)]
-		let xMin = math.min(selectedRect[1].x, selectedRect[2].x)
-		let xMax = math.max(selectedRect[1].x, selectedRect[2].x)
-		let yMin = math.min(selectedRect[1].y, selectedRect[2].y)
-		let yMax = math.max(selectedRect[1].y, selectedRect[2].y)
-		self._visPolygon = {Vector(xMin, yMin), Vector(xMin, yMax), Vector(xMax, yMax), Vector(xMax, yMin)}
-		let xRand = xMin + math.random() * (xMax - xMin)
-		let yRand = yMin + math.random() * (yMax - yMin)
-		UtilDebug.moveBall("Stop", Vector(xRand, yRand))
-		self._stopTime = nil
+		let selectedRect = startRectList[Math.random(#startRectList)]
+		let xMin = Math.min(selectedRect[1].x, selectedRect[2].x)
+		let xMax = Math.max(selectedRect[1].x, selectedRect[2].x)
+		let yMin = Math.min(selectedRect[1].y, selectedRect[2].y)
+		let yMax = Math.max(selectedRect[1].y, selectedRect[2].y)
+		this._visPolygon = {new Vector(xMin, yMin), new Vector(xMin, yMax), new Vector(xMax, yMax), new Vector(xMax, yMin)}
+		let xRand = xMin + Math.random() * (xMax - xMin)
+		let yRand = yMin + Math.random() * (yMax - yMin)
+		UtilDebug.moveBall("Stop", new Vector(xRand, yRand))
+		this._stopTime = nil
 	}
-	if (World.RefereeState == "Stop"  &&  not self._stopTime) {
-		self._stopTime = World.Time
+	if (World.RefereeState == "Stop" && not this._stopTime) {
+		this._stopTime = World.Time
 	} else if (World.RefereeState == "BallPlacementDefensive") {
-		debug.set("distanceToSq", World.Ball.pos:distanceToSq(World.BallPlacementPos))
-		debug.set("speedSp", World.Ball.speed:lengthSq())
-		self._stopTime = nil // don't use parts of the graceTime for BallPlacement, relevant in the first run of this move
+		debug.set("distanceToSq", World.Ball.pos.distanceToSq(World.BallPlacementPos))
+		debug.set("speedSp", World.Ball.speed.lengthSq())
+		this._stopTime = undefined // don't use parts of the graceTime for BallPlacement, relevant in the first run of this move
 		UtilDebug.moveBall("Stop")
 	}
-	if (self._visPolygon) {
-		vis.addPolygon("t/m/defend: selectedRect", self._visPolygon, vis.colors.red, true, true)
+	if (this._visPolygon) {
+		vis.addPolygon("t/m/defend: selectedRect", this._visPolygon, vis.colors.red, true, true)
 	}
 	debug.set("running", running)
-	if (not self._selectedMove  &&  MOVES[self._number].canStart()  &&  #self._robots >= MOVES[self._number].MIN_ROBOTS) {
-		let class = MOVES[self._number]
-		let maxRobots = math.min(class.MAX_ROBOTS, #self._robots)
-		let amm = math.random(class.MIN_ROBOTS, maxRobots)
+	if (not this._selectedMove && MOVES[this._number].canStart() && #this._robots >= MOVES[this._number].MIN_ROBOTS) {
+		let class = MOVES[this._number]
+		let maxRobots = Math.min(class.MAX_ROBOTS, #this._robots)
+		let amm = Math.random(class.MIN_ROBOTS, maxRobots)
 		let truncatedRobots = {}
 		for (i=1, amm) {
-			truncatedRobots[i] = self._robots[i]
+			truncatedRobots[i] = this._robots[i]
 		}
-		self._selectedMove = class(truncatedRobots, self._inbox)
-		self._activeRobots = truncatedRobots
-		debug.set("lastRobots", self._activeRobots)
+		this._selectedMove = class(truncatedRobots, this._inbox)
+		this._activeRobots = truncatedRobots
+		debug.set("lastRobots", this._activeRobots)
 	}
 	debug.pop()
 	let graceTime = ((G.FieldWidth + G.FieldHeight) / Constants.stopSpeed)
-	if (self._stopTime  &&  (World.Time - self._stopTime) > graceTime) { // wait for both teams to prepare
+	if (this._stopTime && (World.Time - this._stopTime) > graceTime) { // wait for both teams to prepare
 		DebugCommands.sendRefereeCommand("IndirectOffensive")
-		self._stopTime = nil
-	} else if (self._stopTime) {
-		debug.set("Time to refStateChange",  - World.Time + self._stopTime + graceTime)
+		this._stopTime = nil
+	} else if (this._stopTime) {
+		debug.set("Time to refStateChange",  - World.Time + this._stopTime + graceTime)
 	}
 	return taskAssignments, innerMainAttacker
 }

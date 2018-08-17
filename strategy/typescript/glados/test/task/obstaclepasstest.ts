@@ -1,12 +1,12 @@
-let Entrypoints = require "../base/entrypoints"
-let Vector = require "../base/vector"
-let World = require "../base/world"
+import * as Entrypoints from "base/entrypoints";
+let Vector = require "+/base/vector"
+import * as World from "base/world";
 let AgentPool = require "control/agentpool"
 let Coordinator = require "control/coordinator"
-let Ball = require "observer/ball"
-let MoveToPos = require "task/shared/movetopos"
-let Pass = require "task/shared/pass"
-let Striker = require "task/attacker/striker"
+import * as Ball from "glados/tobserver/ball";
+import {MoveToPos} from "glados/task/shared/movetopos";
+import {Pass} from "glados/task/shared/pass";
+import {Striker} from "glados/task/attacker/striker";
 let Trainer = require "trainer/trainer"
 
 
@@ -14,13 +14,13 @@ let lastShotBy = nil
 
 let Static = Class("Test.Task.ObstaclePassing.Static", require "agent/base/behavior")
 function Static:check () {
-	self._send.attackerFlag("all")
+	this._send.attackerFlag("all")
 	let lastRobot = Ball.isShot()
 	if (lastRobot) {
 		lastShotBy = lastRobot
 	}
-	if (self._robot != lastShotBy) {
-		self:_applyForMainAttacker()
+	if (this._robot != lastShotBy) {
+		this._applyForMainAttacker()
 	}
 	return false
 }
@@ -29,20 +29,20 @@ function Static:check () {
 
 let Passer = Class("Test.Task.ObstaclePassing.Pass", require "agent/base/behavior")
 function Passer:check () {
-	let otherRobot = next(self._inbox.attackerFlag())
-	return self._inbox.mainAttacker().trainer == self._robot  &&  otherRobot
+	let otherRobot = next(this._inbox.attackerFlag())
+	return this._inbox.mainAttacker().trainer == this._robot && otherRobot
 }
 
 
 function Passer:_updateTask () {
-	let otherRobot = next(self._inbox.attackerFlag())
+	let otherRobot = next(this._inbox.attackerFlag())
 	return Pass, { otherRobot }
 }
 
 
 let Position = Class("Test.Task.ObstaclePassing.Position", require "agent/base/behavior")
 function Position:check () {
-	let otherRobot = next(self._inbox.attackerFlag())
+	let otherRobot = next(this._inbox.attackerFlag())
 	return otherRobot
 }
 
@@ -61,8 +61,8 @@ let RETURN_LINES = {1.5,-1.5}
 
 let DriveToRandom = Class("Test.Task.ObstaclePassing.DriveToRandom", require "agent/base/behavior")
 function DriveToRandom:_stop () {
-	self._randomPos = Vector((math.random()-0.5)* 2 * (RETURN_LINES[1]-0.2),
-							(math.random()-0.5) * 2 * (World.Geometry.FieldHeightHalf-1))
+	this._randomPos = new Vector((Math.random()-0.5)* 2 * (RETURN_LINES[1]-0.2),
+							(Math.random()-0.5) * 2 * (World.Geometry.FieldHeightHalf-1))
 }
 
 function DriveToRandom:check () {
@@ -71,7 +71,7 @@ function DriveToRandom:check () {
 
 
 function DriveToRandom:_updateTask () {
-	return MoveToPos, { self._randomPos, (-self._randomPos):angle() }
+	return MoveToPos, { this._randomPos, (-this._randomPos).angle() }
 }
 
 let RandomPosAgent = Class("Test.Task.RandomPosAgent", require "agent/base/simpleagent")
@@ -82,7 +82,7 @@ RandomPosAgent._behaviors = {
 let coord = nil
 
 let run = function () {
-	if (coord == nil) {
+	if (coord == undefined) {
 		let trainer = Trainer()
 		let pools
 		if (World.TeamIsBlue) {

@@ -1,34 +1,34 @@
 let BallEvadingMoveToPos = Class("Task.BallEvadingMoveToPos", require "task/base")
 
-let Constants = require "../base/constants"
-let geom = require "../base/geom"
-let World = require "../base/world"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as Constants from "base/constants";
+import * as geom from "base/geom";
+import * as World from "base/world";
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 
 
 function BallEvadingMoveToPos:_init (pos, dir) {
-	self._pos = pos
-	self._dir = dir
-	self._obstacleTable = {
+	this._pos = pos
+	this._dir = dir
+	this._obstacleTable = {
 		ignoreBall = false,
-		inbox = self._inbox
+		inbox = this._inbox
 	}
 }
 
 function BallEvadingMoveToPos:run () {
-	let minDist = Constants.stopBallDistance + World.Ball.radius + self._robot.radius
+	let minDist = Constants.stopBallDistance + World.Ball.radius + this._robot.radius
 
-	let pos = self._pos
-	if (pos:distanceTo(World.Ball.pos) < minDist - 0.01) {
+	let pos = this._pos
+	if (pos.distanceTo(World.Ball.pos) < minDist - 0.01) {
 		pos = geom.intersectLineCircle(World.Geometry.FriendlyGoal,
-			World.Geometry.FriendlyGoal - self._pos, World.Ball.pos, minDist)
+			World.Geometry.FriendlyGoal - this._pos, World.Ball.pos, minDist)
 	}
 
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable)
 
-	let dir = self._dir  ||  (World.Ball.pos - pos):angle()
-	self._robot.trajectory:update(ToTarget, pos, dir)
+	let dir = this._dir || (World.Ball.pos - pos).angle()
+	this._robot.trajectory.update(ToTarget, pos, dir)
 }
 
 return BallEvadingMoveToPos

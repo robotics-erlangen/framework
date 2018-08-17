@@ -1,8 +1,8 @@
 let Base = require "agent/base/behavior"
 let Error = Class("Agent.Shared.Error",Base)
 let ErrorTask = require "task/shared/error"
-let World = require "../base/world"
-let Referee = require "../base/referee"
+import * as World from "base/world";
+import * as Referee from "base/referee";
 let ErrorObserver = require "observer/error"
 let ERROR_TOLERANCE_PER_SEC = 3 // <- [0.5,1]
 let EXCHANGE_ERROR_ROBOTS = false
@@ -11,39 +11,39 @@ let EXCHANGE_LOW_BAT_DURING_GAME = false
 let EXCHANGE_ERROR_ROBOTS_SPEED = false
 
 function Error:check () {
-	let errorTable = ErrorObserver.getErrorTable(self._robot)
-	if (self._active  &&  World.RefereeState == "Stop") {
+	let errorTable = ErrorObserver.getErrorTable(this._robot)
+	if (this._active && World.RefereeState == "Stop") {
 		return true
-	} else if (self._active  &&  ErrorObserver.getSpeedErrorCount(self._robot) > 100) {
+	} else if (this._active && ErrorObserver.getSpeedErrorCount(this._robot) > 100) {
 		return true
-	} else if (ErrorObserver.getSpeedErrorCount(self._robot) >= 300  &&  self._robot != World.FriendlyKeeper) {
+	} else if (ErrorObserver.getSpeedErrorCount(this._robot) >= 300 && this._robot != World.FriendlyKeeper) {
 		return EXCHANGE_ERROR_ROBOTS_SPEED
-	} else if (ErrorObserver.getAverageBatterySate(self._robot)< 0.11  &&  self._robot != World.FriendlyKeeper) {
+	} else if (ErrorObserver.getAverageBatterySate(this._robot)< 0.11 && this._robot != World.FriendlyKeeper) {
 		return EXCHANGE_LOW_BAT_DURING_GAME
-	} else if (ErrorObserver.getAverageBatterySate(self._robot)< 0.20
+	} else if (ErrorObserver.getAverageBatterySate(this._robot)< 0.20
 		 &&  World.RefereeState == "Stop") {
-		if (self._robot == World.FriendlyKeeper) {
+		if (this._robot == World.FriendlyKeeper) {
 			if (Referee.lastStateChangeTime() == World.Time) {
-				log("keeper " +  self:errorMsg())
+				log("keeper " +  this.errorMsg())
 			}
 			return false
 		}
 		return EXCHANGE_LOW_BAT_ROBOTS
 	} else if (not errorTable) {
 		return false
-	} else if (self._robot == World.FriendlyKeeper) {
+	} else if (this._robot == World.FriendlyKeeper) {
 		if (Referee.lastStateChangeTime() == World.Time) {
-			log("keeper "  +  self:errorMsg())
+			log("keeper "  +  this.errorMsg())
 		}
 		return false
 	}
 	let gameTimespan = World.Time - ErrorObserver.getLastStopTime()
 
 	for (k,v in pairs(errorTable)) {
-		if (gameTimespan > 2  &&  v > ERROR_TOLERANCE_PER_SEC * gameTimespan
-				 &&  k != "temperature"  &&  k!="main_sensor_error") {
+		if (gameTimespan > 2 && v > ERROR_TOLERANCE_PER_SEC * gameTimespan
+				 &&  k != "temperature" && k!="main_sensor_error") {
 			if (World.RefereeState == "Stop") {
-				//log(self._robot.id .. " ////////   " .. k ..  "  //////////////  " .. v)
+				//log(this._robot.id .. " ////////   " .. k ..  "  //////////////  " .. v)
 				return EXCHANGE_ERROR_ROBOTS
 			}
 		}
@@ -52,19 +52,19 @@ function Error:check () {
 }
 
 function Error:start () {
-	log(self:errorMsg())
-	self._active = true
+	log(this.errorMsg())
+	this._active = true
 }
 
 function Error:_stop () {
-	self._active = false
+	this._active = false
 }
 
 function Error:errorMsg () {
-	let out = String(self._robot.id)  +  ": "
+	let out = String(this._robot.id)  +  ": "
 	let msgParts = {}
-	let errorData = ErrorObserver.getErrorTable(self._robot)
-	out = out  +  "battery: "  +  String(ErrorObserver.getAverageBatterySate(self._robot))  + " "
+	let errorData = ErrorObserver.getErrorTable(this._robot)
+	out = out  +  "battery: "  +  String(ErrorObserver.getAverageBatterySate(this._robot))  + " "
 	if (not errorData) {
 		return out
 	}
@@ -106,9 +106,9 @@ function Error:errorMsg () {
 
 
 function Error:_updateTask () {
-	//local errorFound = next(ErrorObserver.getErrorTable(self._robot)) ~= nil
+	//local errorFound = next(ErrorObserver.getErrorTable(this._robot)) ~= nil
 	//if errorFound and World.Time == ErrorObserver.getLastRefChange() then
-	//	log(self:errorMsg())
+	//	log(this.errorMsg())
 	//end
 	return ErrorTask
 }

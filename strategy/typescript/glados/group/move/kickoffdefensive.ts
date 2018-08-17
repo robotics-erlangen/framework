@@ -1,10 +1,10 @@
 let KickOffDefensive = Class("Group.Move.KickOffDefensive", require "group/move/base")
 
-let World = require "../base/world"
+import * as World from "base/world";
 let G = World.Geometry
 
 let ManMark = require "task/defender/manmark"
-let MoveToPos = require "task/shared/movetopos"
+import {MoveToPos} from "glados/task/shared/movetopos";
 let StopAttack = require "task/attacker/stopattack"
 let MovesHelper = require "util/moveshelper"
 
@@ -17,18 +17,18 @@ function KickOffDefensive.canStart () {
 }
 
 function KickOffDefensive:_init () {
-	self._fallbackPos = {
-		Vector(-G.FieldWidthHalf * 0.5, -0.4),
-		Vector(G.FieldWidthHalf * 0.5, -0.4),
+	this._fallbackPos = {
+		new Vector(-G.FieldWidthHalf * 0.5, -0.4),
+		new Vector(G.FieldWidthHalf * 0.5, -0.4),
 	}
 
 	let positions = { Vector(0, 0) }
-	for (i = 1, #self._robots-1) {
-		table.insert(positions, self._fallbackPos[i])
+	for (i = 1, #this._robots-1) {
+		table.insert(positions, this._fallbackPos[i])
 	}
-	self._assignments = MovesHelper.assignRobots(self._robots, positions, 0)
-	self._targetLeft = nil
-	self._targetRight = nil
+	this._assignments = MovesHelper.assignRobots(this._robots, positions, 0)
+	this._targetLeft = nil
+	this._targetRight = nil
 }
 
 function KickOffDefensive:_canContinue () {
@@ -40,16 +40,16 @@ let getTarget = function (prevTarget, fallbackPos) {
 	let maxDist = 2.5
 	let distHysteresis = 1
 
-	let prevDist = prevTarget ? prevTarget.pos:distanceTo(fallbackPos) : math.huge
-	if (prevDist > maxDist  ||  (prevTarget  &&  math.abs(prevTarget.pos.x) < G.CenterCircleRadius)) {
-		prevDist = math.huge
+	let prevDist = prevTarget ? prevTarget.pos.distanceTo(fallbackPos) : Infinity
+	if (prevDist > maxDist || (prevTarget && Math.abs(prevTarget.pos.x) < G.CenterCircleRadius)) {
+		prevDist = Infinity
 	}
 
 	let closestTarget
-	let closestDist = math.huge
+	let closestDist = Infinity
 	for (_,r in ipairs(World.OpponentRobots)) {
-		if (r.pos.x * fallbackPos.x > 0  &&  math.abs(r.pos.x) > G.CenterCircleRadius + 0.3) {
-			let dist = r.pos:distanceTo(fallbackPos)
+		if (r.pos.x * fallbackPos.x > 0 && Math.abs(r.pos.x) > G.CenterCircleRadius + 0.3) {
+			let dist = r.pos.distanceTo(fallbackPos)
 			if (dist < closestDist) {
 				closestTarget = r
 				closestDist = dist
@@ -64,7 +64,7 @@ let getTarget = function (prevTarget, fallbackPos) {
 		target = closestTarget
 	}
 
-	if (dist < math.huge) {
+	if (dist < Infinity) {
 		return target, target != prevTarget
 	}
 
@@ -73,28 +73,28 @@ let getTarget = function (prevTarget, fallbackPos) {
 
 function KickOffDefensive:_updateTasks () {
 	let restartLeft, restartRight
-	self._targetLeft, restartLeft = getTarget(self._targetLeft, self._fallbackPos[1])
-	self._targetRight, restartRight = getTarget(self._targetRight, self._fallbackPos[2])
+	this._targetLeft, restartLeft = getTarget(this._targetLeft, this._fallbackPos[1])
+	this._targetRight, restartRight = getTarget(this._targetRight, this._fallbackPos[2])
 
 	let taskAssignments = {}
-	taskAssignments[self._robots[self._assignments[1]]] = { class = StopAttack, params = {} }
+	taskAssignments[this._robots[this._assignments[1]]] = { class: StopAttack, params: {} }
 
-	if (#self._robots > 1) {
-		if (self._targetLeft) {
-			taskAssignments[self._robots[self._assignments[2]]] = { class = ManMark, params = { self._targetLeft }, restart = restartLeft }
+	if (#this._robots > 1) {
+		if (this._targetLeft) {
+			taskAssignments[this._robots[this._assignments[2]]] = { class: ManMark, params: { this._targetLeft }, restart: restartLeft }
 		} else {
-			taskAssignments[self._robots[self._assignments[2]]] = { class = MoveToPos, params = { self._fallbackPos[1] } }
+			taskAssignments[this._robots[this._assignments[2]]] = { class: MoveToPos, params: { this._fallbackPos[1] } }
 		}
 	}
-	if (#self._robots > 2) {
-		if (self._targetRight) {
-			taskAssignments[self._robots[self._assignments[3]]] = { class = ManMark, params = { self._targetRight }, restart = restartRight }
+	if (#this._robots > 2) {
+		if (this._targetRight) {
+			taskAssignments[this._robots[this._assignments[3]]] = { class: ManMark, params: { this._targetRight }, restart: restartRight }
 		} else {
-			taskAssignments[self._robots[self._assignments[3]]] = { class = MoveToPos, params = { self._fallbackPos[2] } }
+			taskAssignments[this._robots[this._assignments[3]]] = { class: MoveToPos, params: { this._fallbackPos[2] } }
 		}
 	}
 
-	return taskAssignments, self._robots[self._assignments[1]]
+	return taskAssignments, this._robots[this._assignments[1]]
 }
 
 return KickOffDefensive

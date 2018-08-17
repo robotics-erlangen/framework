@@ -1,10 +1,10 @@
-let Entrypoints = require "../base/entrypoints"
-let World = require "../base/world"
+import * as Entrypoints from "base/entrypoints";
+import * as World from "base/world";
 let Shoot = require "task/ability/shoot"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 let TestHelper = require "test/helper/agent"
-let debug = require "../base/debug"
+import * as debug from "base/debug";
 
 let ChipChallengeReceiver = Class("Test.Task.ChipChallengeReceiver", require "task/base", Shoot)
 
@@ -17,31 +17,31 @@ let obstacleTable = {
 }
 
 function ChipChallengeReceiver:_init () {
-	self._ballKicked = false
-	self._moveDest =  World.Geometry.FriendlyGoal // random fallback
+	this._ballKicked = false
+	this._moveDest =  World.Geometry.FriendlyGoal // random fallback
 }
 
 function ChipChallengeReceiver:run () {
 	let ball = World.Ball
 
 	if (World.Ball.posZ > 0) {
-		self._ballKicked = true
+		this._ballKicked = true
 	}
 
 
 	let kickingRobot = World.OpponentRobots[1]
-	if (self._ballKicked  &&  kickingRobot  &&  kickingRobot.pos:distanceTo(World.Ball.pos) > 1.5) {
-		self._moveDest = World.Ball.touchdownPos
-	} else if (kickingRobot  &&  World.Ball.speed:length() < 0.3) {
-		debug.set("ball speed", World.Ball.speed:length())
+	if (this._ballKicked && kickingRobot && kickingRobot.pos.distanceTo(World.Ball.pos) > 1.5) {
+		this._moveDest = World.Ball.touchdownPos
+	} else if (kickingRobot && World.Ball.speed.length() < 0.3) {
+		debug.set("ball speed", World.Ball.speed.length())
 		let bp = World.Ball.pos
-		self._moveDest = bp + Vector.fromAngle(kickingRobot.dir):setLength(3.1)
+		this._moveDest = bp + Vector.fromAngle(kickingRobot.dir).setLength(3.1)
 	}
 
-	let toBall = (ball.pos - self._robot.pos):angle()
+	let toBall = (ball.pos - this._robot.pos).angle()
 
-	PathHelper.setDefaultObstaclesByTable(self._robot, self._robot, obstacleTable)
-	self._robot.trajectory:update(ToTarget, self._moveDest, toBall)
+	PathHelper.setDefaultObstaclesByTable(this._robot, this._robot, obstacleTable)
+	this._robot.trajectory.update(ToTarget, this._moveDest, toBall)
 }
 
 

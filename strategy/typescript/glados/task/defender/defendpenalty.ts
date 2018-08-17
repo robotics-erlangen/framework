@@ -1,10 +1,10 @@
 let DefendPenalty = Class("Task.DefendPenalty", require "task/base")
 
-let geom = require "../base/geom"
-let vis = require "../base/vis"
-let World = require "../base/world"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as geom from "base/geom";
+import * as vis from "base/vis";
+import * as World from "base/world";
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 let Interval = require "util/interval"
 
 
@@ -17,31 +17,31 @@ let obstacleTable = {
 
 
 function DefendPenalty:run () {
-	let rr = self._robot.radius //assume all robots have the same radius
+	let rr = this._robot.radius //assume all robots have the same radius
 	let penaltyLine = World.Geometry.OwnPenaltyLine + PENALTY_LINE_DISTANCE
-	vis.addPath("t/defendpenalty: penaltyDistance", {Vector(-2,penaltyLine), Vector(2,penaltyLine)}, vis.colors.whiteHalf)
+	vis.addPath("t/defendpenalty: penaltyDistance", {new Vector(-2,penaltyLine), new Vector(2,penaltyLine)}, vis.colors.whiteHalf)
 	// NOTE: All spots are on the penaltyline, so only x-values are processed
 
 	let occupiedSpotsFriendly = {}
-	for (robot, pos in pairs(self._inbox.moveDest())) {
-		if (math.abs(pos.y - penaltyLine) < 2*rr  &&  robot.id > self._robot.id) {
+	for (robot, pos in pairs(this._inbox.moveDest())) {
+		if (Math.abs(pos.y - penaltyLine) < 2*rr && robot.id > this._robot.id) {
 			table.insert(occupiedSpotsFriendly, pos.x)
 		}
 	}
 
 	let occupiedSpotsOpp = {} // positions of opponents on the line
-	for (_, robot in ipairs(World.OpponentRobots)) {
-		if (math.abs(robot.pos.y - penaltyLine) < rr) {
+	for (let robot of World.OpponentRobots) {
+		if (Math.abs(robot.pos.y - penaltyLine) < rr) {
 			table.insert(occupiedSpotsOpp, robot.pos.x)
 		}
 	}
 	let preferredSpots = {}
-	for (_, robot in ipairs(World.OpponentRobots)) {
-		if (robot != World.OpponentKeeper  &&  (robot.pos.y+rr) > penaltyLine) {
+	for (let robot of World.OpponentRobots) {
+		if (robot != World.OpponentKeeper && (robot.pos.y+rr) > penaltyLine) {
 			// prefer spot between own keeper and opponent to catch rebound
 			let ownKeeperPos = World.FriendlyKeeper ? World.FriendlyKeeper.pos : World.Geometry.FriendlyGoal
 			let keeperOppDir = robot.pos - ownKeeperPos
-			let prefSpot = (geom.intersectLineLine(ownKeeperPos, keeperOppDir, Vector(0, penaltyLine), Vector.fromAngle(math.pi)))
+			let prefSpot = (geom.intersectLineLine(ownKeeperPos, keeperOppDir, new Vector(0, penaltyLine), Vector.fromAngle(Math.PI)))
 			if (prefSpot) {
 				table.insert(preferredSpots, prefSpot.x)
 			}
@@ -55,14 +55,14 @@ function DefendPenalty:run () {
 		// ignore if other defender is there
 		let alreadyMarked = false
 		for (_, defX in ipairs(occupiedSpotsFriendly)) {
-			if (math.abs(occupiedSpotsOpp[i] - defX) < 2.5* rr) {
+			if (Math.abs(occupiedSpotsOpp[i] - defX) < 2.5* rr) {
 				alreadyMarked = true
 			}
 		}
 		if (not alreadyMarked) {
 			// check dist to next occupied spot
-			let left = occupiedSpotsOpp[i-1]  &&  math.abs(occupiedSpotsOpp[i-1] - occupiedSpotsOpp[i]) < 2.5* rr
-			let right = occupiedSpotsOpp[i+1]  &&  math.abs(occupiedSpotsOpp[i+1] - occupiedSpotsOpp[i]) < 2.5* rr
+			let left = occupiedSpotsOpp[i-1] && Math.abs(occupiedSpotsOpp[i-1] - occupiedSpotsOpp[i]) < 2.5* rr
+			let right = occupiedSpotsOpp[i+1] && Math.abs(occupiedSpotsOpp[i+1] - occupiedSpotsOpp[i]) < 2.5* rr
 			let leftPos = occupiedSpotsOpp[i] - 2*rr
 			let rightPos = occupiedSpotsOpp[i] + 2*rr
 			// prefer side to the middle
@@ -91,7 +91,7 @@ function DefendPenalty:run () {
 		for (_, prefX in ipairs(preferredSpots)) {
 			let noOneNear = true
 			for (_, occX in ipairs(occupiedSpotsAll)) {
-				if (math.abs(prefX - occX) < 2*rr) {
+				if (Math.abs(prefX - occX) < 2*rr) {
 					noOneNear = false
 					break
 				}
@@ -102,24 +102,24 @@ function DefendPenalty:run () {
 		}
 	}
 	if (not targetPos) { // fallback: search free point on penaltyLine, which is closest to the middle
-		let occupiedSectors = table.map(occupiedSpotsAll, function(x) return {x-rr,x+rr} end)
+		let occupiedSectors = table.map(occupiedSpotsAll, function(x) return {x-rr,x+rr} })
 		Interval.sort(occupiedSectors)
 		Interval.merge(occupiedSectors)
-		let widthLimit = World.Geometry.FieldWidthHalf - 2 * self._robot.radius
+		let widthLimit = World.Geometry.FieldWidthHalf - 2 * this._robot.radius
 		let freeSectors = Interval.negate(occupiedSectors, -widthLimit, widthLimit)
 		targetPos = Interval.getClosestPoint(freeSectors, 0, rr)
 	}
 
 	if (not targetPos) { //should only occur when all the whole penalty line is full with robots (i.e never)
-		targetPos = Vector(0, 0)
+		targetPos = new Vector(0, 0)
 	} else {
-		targetPos = Vector(targetPos, penaltyLine)
+		targetPos = new Vector(targetPos, penaltyLine)
 	}
 
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
-	self._robot.trajectory:update(ToTarget, targetPos, (World.Ball.pos - self._robot.pos):angle())
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
+	this._robot.trajectory.update(ToTarget, targetPos, (World.Ball.pos - this._robot.pos).angle())
 
-	self._send.moveDest("all", targetPos)
+	this._send.moveDest("all", targetPos)
 }
 
 return DefendPenalty

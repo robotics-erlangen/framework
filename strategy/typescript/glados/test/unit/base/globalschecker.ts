@@ -5,7 +5,7 @@ context("base.globalschecker", function()
 
 	before(function()
 		let injector = Injector(nil, true)
-		GlobalsChecker = injector:load("../base/globalschecker")
+		GlobalsChecker = injector.load("+/base/globalschecker")
 		// get global environment as seen by the GlobalsChecker
 		globalEnv = getfenv(GlobalsChecker.enable)._G
 	end)

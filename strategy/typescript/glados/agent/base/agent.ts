@@ -1,17 +1,17 @@
 let Base = Class("Agent.Base.Agent")
 
-let debug = require "../base/debug"
-let Field = require "../base/field"
-let timing = require "../base/timing"
-let World = require "../base/world"
+import * as debug from "base/debug";
+import * as Field from "base/field";
+let timing = require "+/base/timing"
+import * as World from "base/world";
 let Halt = require "agent/shared/halt"
 let Error = require "agent/shared/error"
 let MoveCommand = require "agent/shared/movecommand"
-let Ball = require "observer/ball"
-let Physics = require "observer/physics"
-let Robot = require "observer/robot"
-let Rating = require "util/rating"
-let UtilDefense = require "util/defense"
+import * as Ball from "glados/tobserver/ball";
+import * as Physics from "glados/observer/physics";
+import * as Robot from "glados/observer/robot";
+import * as Rating from "glados/util/rating";
+import * as UtilDefense from "glados/util/defense";
 
 let MEASURE_TIMING = false
 let MAX_RATING_TIME_BOOST = 0.1
@@ -23,47 +23,51 @@ function Base.takeRobot (_robots) {
 }
 
 function Base:init (robot, messaging) {
-	self._robot = robot
-	self._send, self._inbox = messaging:registerAgent(self)
+	this._robot = robot
+	this._send, this._inbox = messaging:registerAgent(self)
 	// behaviors are ordered by decreasing priority
-	self._behaviors = {
+	this._behaviors = {
 		MoveCommand(self),
 		Halt(self),
 		Error(self),
-		unpack(table.map(self._behaviors,
-			function (B) return B (self) { end)
+		unpack(table.map(this._behaviors,
+			function (B) return B (self) { })
 		)
 	}
-	self._activeBehavior = nil
-	self._mainAttackerParameters = nil
-	self._mainAttackerLastTime = nil
-	self._debugIdStr = "Agent "  +  self._robot.id
+	this._activeBehavior = nil
+	this._mainAttackerParameters = nil
+	this._mainAttackerLastTime = nil
+	this._debugIdStr = "Agent "  +  this._robot.id
 }
 
 function Base:_run () {
 }
 
-function Base:run () {
-	debug.pushtop(self._debugIdStr)
-	debug.set(nil, Class.name(self, true))
-	self:_dumpInbox()
+function Base:isAgent(): boolean {
+	return true;
+}
 
-	let task = self:_runBehavior()
-	self:_runTask(task)
-	self:_applyForMainAttacker(task)
-	self:_run()
+function Base:run () {
+	debug.pushtop(this._debugIdStr)
+	debug.set(nil, Class.name(self, true))
+	this._dumpInbox()
+
+	let task = this._runBehavior()
+	this._runTask(task)
+	this._applyForMainAttacker(task)
+	this._run()
 
 	debug.pop() // Agent
 }
 
 function Base:_runBehavior () {
 	if (MEASURE_TIMING) {
-		timing.start("Behavior check", self._robot.id)
+		timing.start("Behavior check", this._robot.id)
 	}
 
 	// choose best behavior, that is the behavior with the highest priority of all useable ones
 	let bestBehavior = nil
-	for (_, behavior in ipairs(self._behaviors)) {
+	for (_, behavior in ipairs(this._behaviors)) {
 		behavior:clearMainAttackerParameters()
 		let result = behavior:check()
 		if (result) {
@@ -72,48 +76,48 @@ function Base:_runBehavior () {
 		}
 	}
 	// check if the behavior has changed
-	if (bestBehavior != self._activeBehavior) {
-		if (self._activeBehavior) {
-			self._activeBehavior:stop()
+	if (bestBehavior != this._activeBehavior) {
+		if (this._activeBehavior) {
+			this._activeBehavior:stop()
 		}
-		self._activeBehavior = bestBehavior
-		if (self._activeBehavior) {
-			self._activeBehavior:start()
+		this._activeBehavior = bestBehavior
+		if (this._activeBehavior) {
+			this._activeBehavior:start()
 		}
 	}
 
 	if (MEASURE_TIMING) {
-		timing.finish("Behavior check", self._robot.id)
-		timing.start("Behavior run", self._robot.id)
+		timing.finish("Behavior check", this._robot.id)
+		timing.start("Behavior run", this._robot.id)
 	}
 
 	// run behavior
-	if (self._activeBehavior) {
-		debug.set("Behavior", Class.name(self._activeBehavior, true))
-		self._activeBehavior:run()
+	if (this._activeBehavior) {
+		debug.set("Behavior", Class.name(this._activeBehavior, true))
+		this._activeBehavior:run()
 	} else {
 		debug.set("Behavior", "none")
 	}
 
 	if (MEASURE_TIMING) {
-		timing.finish("Behavior run", self._robot.id)
+		timing.finish("Behavior run", this._robot.id)
 	}
 
-	return self._activeBehavior  &&  self._activeBehavior:task()
+	return this._activeBehavior && this._activeBehavior:task()
 }
 
 function Base:_dumpInbox () {
 	debug.push("Inbox")
-	for (name, func in pairs(self._inbox)) {
+	for (name, func in pairs(this._inbox)) {
 		debug.push(name)
 		for (sender, msg in pairs(func())) {
-			if (type(msg) == "table"  &&  rawget(msg, "time")) {
+			if (type(msg) == "table" && rawget(msg, "time")) {
 				let msgTmp = table.copy(msg)
 				let relTime = String(msg.time - World.Time)
 				msgTmp.time = string.sub(relTime, 1, 5)  +  " ("  +  msg.time  +  ")"
-				debug.set(sender.id  ||  sender, msgTmp)
+				debug.set(sender.id || sender, msgTmp)
 			} else {
-				debug.set(sender.id  ||  sender, msg)
+				debug.set(sender.id || sender, msg)
 			}
 		}
 		debug.pop() // name
@@ -123,7 +127,7 @@ function Base:_dumpInbox () {
 
 function Base:_runTask (task) {
 	if (MEASURE_TIMING) {
-		timing.start("Task", self._robot.id)
+		timing.start("Task", this._robot.id)
 	}
 
 	debug.push("Task")
@@ -137,7 +141,7 @@ function Base:_runTask (task) {
 	debug.pop() // Task
 
 	if (MEASURE_TIMING) {
-		timing.finish("Task", self._robot.id)
+		timing.finish("Task", this._robot.id)
 	}
 }
 
@@ -145,28 +149,28 @@ function Base:_applyForMainAttacker (task) {
 	debug.push("mainAttackerRating")
 	// the keeper just overrides this
 	let parameters = nil
-	for (_, behavior in ipairs(self._behaviors)) {
-		parameters = behavior:mainAttackerParameters()  ||  parameters
-		if (behavior == self._activeBehavior) {
+	for (_, behavior in ipairs(this._behaviors)) {
+		parameters = behavior:mainAttackerParameters() || parameters
+		if (behavior == this._activeBehavior) {
 			break
 		}
 	}
-	let overrideRating = parameters  &&  parameters[3]
-	if (parameters  &&  task  &&  not overrideRating) {
+	let overrideRating = parameters && parameters[3]
+	if (parameters && task && not overrideRating) {
 		// only use task parameters if behavior asked for main attacker application
-		parameters = task:mainAttackerParameters()  ||  parameters
+		parameters = task:mainAttackerParameters() || parameters
 	}
 	if (not parameters) {
-		self._mainAttackerLastTime = nil
+		this._mainAttackerLastTime = nil
 		debug.set("return case 1", true)
 		debug.pop()
 		return
 	}
 
-	if (self._robot != World.FriendlyKeeper  &&  World.RefereeState != "BallPlacementOffensive") {
+	if (this._robot != World.FriendlyKeeper && World.RefereeState != "BallPlacementOffensive") {
 		// only the keeper can apply for MA if it could touch the ball inside the defense area
-		if (Field.isInFriendlyDefenseArea(self._robot.pos, self._robot.radius + World.Ball.radius + 0.02)
-			 &&  World.Ball.pos.y < self._robot.pos.y + self._robot.radius * 3) {
+		if (Field.isInFriendlyDefenseArea(this._robot.pos, this._robot.radius + World.Ball.radius + 0.02)
+			 &&  World.Ball.pos.y < this._robot.pos.y + this._robot.radius * 3) {
 			debug.set("return case 2", true)
 			debug.pop()
 			return
@@ -183,42 +187,42 @@ function Base:_applyForMainAttacker (task) {
 	let mainAttackerRating
 	if (not overrideRating) {
 		let timeToBall
-		if (parameters[1]  ||  parameters[2]) {
-			let targetPos = parameters[1]  ||  World.Geometry.OpponentGoal
-			let endSpeedLength = parameters[2]  ||  self._robot.maxSpeed
-			timeToBall = Physics.robotTimeToBall(self._robot,
-				World.Ball, targetPos, endSpeedLength, self._mainAttackerLastTime)
+		if (parameters[1] || parameters[2]) {
+			let targetPos = parameters[1] || World.Geometry.OpponentGoal
+			let endSpeedLength = parameters[2] || this._robot.maxSpeed
+			timeToBall = Physics.robotTimeToBall(this._robot,
+				World.Ball, targetPos, endSpeedLength, this._mainAttackerLastTime)
 		} else {
-			timeToBall = Robot.minTimeToBall(self._robot)
+			timeToBall = Robot.minTimeToBall(this._robot)
 		}
 
 		// if we have the ball, the time is 0
-		if (timeToBall == math.huge) {
-			let dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir) * self._robot.shootRadius
-			if (World.Ball.pos:distanceTo(dribblerPos) < 0.15) {
-				if (World.Ball.speed:dot(self._robot.pos - World.Ball.pos) > 0) {
+		if (timeToBall == Infinity) {
+			let dribblerPos = this._robot.pos + Vector.fromAngle(this._robot.dir) * this._robot.shootRadius
+			if (World.Ball.pos.distanceTo(dribblerPos) < 0.15) {
+				if (World.Ball.speed:dot(this._robot.pos - World.Ball.pos) > 0) {
 					timeToBall = 0
 				}
 			}
 		}
 
-		if (timeToBall == math.huge) {
+		if (timeToBall == Infinity) {
 			let ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
-			if (math.abs(ballOutPos.x) > World.Geometry.DefenseStretch / 2  + World.Geometry.DefenseRadius) {
-				timeToBall = Physics.robotTimeToPos(self._robot, ballOutPos, Vector(0, 0))
+			if (Math.abs(ballOutPos.x) > World.Geometry.DefenseStretch / 2  + World.Geometry.DefenseRadius) {
+				timeToBall = Physics.robotTimeToPos(this._robot, ballOutPos, new Vector(0, 0))
 			}
 		}
 
-		let ballSpeedLength = World.Ball.speed:length()
+		let ballSpeedLength = World.Ball.speed.length()
 		let ratingBoost
 		if (Ball.isSlowBall()) {
 			// slow ball: being behind the ball is better
-			let relativeYPos = World.Ball.pos.y - self._robot.pos.y
-			ratingBoost = math.min(timeToBall / 2, math.sin(math.bound(0, relativeYPos * math.pi, math.pi / 2)) * MAX_RATING_TIME_BOOST)
+			let relativeYPos = World.Ball.pos.y - this._robot.pos.y
+			ratingBoost = Math.min(timeToBall / 2, Math.sin(MathUtil.bound(0, relativeYPos * Math.PI, Math.PI / 2)) * MAX_RATING_TIME_BOOST)
 		} else {
 			// fast ball: being in the direction of the ball is better
-			let ballToRobot = self._robot.pos - World.Ball.pos
-			let ballToRobotLength = ballToRobot:length()
+			let ballToRobot = this._robot.pos - World.Ball.pos
+			let ballToRobotLength = ballToRobot.length()
 			let cosAngle = World.Ball.speed:dot(ballToRobot) / ballToRobotLength / ballSpeedLength
 			ratingBoost = cosAngle * cosAngle * cosAngle * ballSpeedLength * 0.5
 		}
@@ -236,7 +240,7 @@ function Base:_applyForMainAttacker (task) {
 	// debug.pop()
 	debug.set("mainAttackerRating", mainAttackerRating)
 	debug.pop()
-	self._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
+	this._send.exclusiveRole("trainer", {mainAttacker = mainAttackerRating})
 }
 
 // controls whether the robot may be kept in its pool
@@ -251,7 +255,7 @@ function Base:rateRobot () {
 }
 
 function Base:robot () {
-	return self._robot
+	return this._robot
 }
 
 return Base

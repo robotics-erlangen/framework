@@ -1,1 +1,1 @@
-return require "trajectory/curvedmaxaccel"
+export {CurvedMaxAccel} from "glados/trajectory/curvedmaxaccel";

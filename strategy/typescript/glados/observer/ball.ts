@@ -19,7 +19,7 @@ import * as ObserverRobot from "glados/observer/robot";
 // @param robotlist Robot[] - all robots that should be considered (e.g. World.FriendlyRobots)
 // @return Robot - the fastest robot
 // @return number - the estimated time (the robot will look towards its opponent goal)
-export function firstRobotAtBall(robotlist: Robot[]): [Robot|undefined, RelTime] {
+function _firstRobotAtBall(robotlist: Robot[]): [Robot|undefined, RelTime] {
 	let minTime: RelTime = Infinity;
 	let minRobot: Robot|undefined = undefined;
 	for (let r of robotlist) {
@@ -31,9 +31,9 @@ export function firstRobotAtBall(robotlist: Robot[]): [Robot|undefined, RelTime]
 	}
 	return [minRobot, minTime];
 }
-Ball.firstRobotAtBall = Cache.forFrame(Ball.firstRobotAtBall)
+export let firstRobotAtBall: ((robotlist: Robot[])=> [Robot|undefined, RelTime]) = Cache.forFrame(_firstRobotAtBall);
 
-export function opponentBallDribbler(): Robot|undefined {
+function _opponentBallDribbler(): Robot|undefined {
 	let MAX_SPEED_DIFF = 1.5;
 	let MAX_DISTANCE = 0.5;
 	let MAX_ANGLE_TO_BALL_POS = 60 / 180 * Math.PI;
@@ -46,7 +46,7 @@ export function opponentBallDribbler(): Robot|undefined {
 		let direction = Vector.fromAngle(robot.dir);
 		if (robot.speed.distanceTo(World.Ball.speed) < MAX_SPEED_DIFF 
 				&& (slowBall || robot.speed.angleDiff(World.Ball.speed) < MAX_ANGLE_TO_BALL_SPEED)
-				&&  distance < MAX_DISTANCE  &&  distance < bestDist
+				&&  distance < MAX_DISTANCE && distance < bestDist
 				&&  World.Ball.posZ < 0.1
 				&&  direction.absoluteAngleDiff(World.Ball.pos - robot.pos) < MAX_ANGLE_TO_BALL_POS) {
 			bestRobot = robot;
@@ -55,7 +55,7 @@ export function opponentBallDribbler(): Robot|undefined {
 	}
 	return bestRobot;
 }
-Ball.opponentBallDribbler = Cache.forFrame(Ball.opponentBallDribbler)
+export let opponentBallDribbler: (()=> Robot|undefined) = Cache.forFrame(_opponentBallDribbler);
 
 /// Returns wether or not the ball is heading for a goal
 // WARNING: this function has no hysteresis and must be used with care
@@ -66,7 +66,7 @@ export function ballHeadingForGoal(ball: Ball, ownGoal: boolean): boolean {
 	let friendlyFactor = ownGoal ? 1 : -1;
 	let goalCenter = ownGoal ? World.Geometry.FriendlyGoal : World.Geometry.OpponentGoal;
 	let [_, lambda] = geom.intersectLineLine(goalCenter, new Vector(1, 0), ball.pos, ball.speed);
-	return lambda != undefined &&  Math.abs(lambda) < World.Geometry.GoalWidth / 2 + 0.2  &&  World.Ball.speed.y * friendlyFactor < 0
+	return lambda != undefined &&  Math.abs(lambda) < World.Geometry.GoalWidth / 2 + 0.2 && World.Ball.speed.y * friendlyFactor < 0
 }
 
 
@@ -123,7 +123,7 @@ function getBallOwner(robotlist: Robot[], lastBallOwner?: Robot) {
 	let ballOwner: Robot|undefined = undefined;
 	for (let r of robotlist) {
 		let dist = ballOwnerEllipticCache.get(r);
-		if (dist != undefined  &&  dist < minDist  &&  dist <= ballOwnDistance) {
+		if (dist != undefined && dist < minDist && dist <= ballOwnDistance) {
 			minDist = dist;
 			ballOwner = r;
 		}
@@ -191,11 +191,11 @@ let friendlyBallOwnershipTime: AbsTime = 0
 let curFriendlyBallOwnershipDuration: RelTime = 0
 function updateFriendlyBallOwnershipTime() {
 	let lastStateChangeTime: AbsTime = Referee.lastStateChangeTime();
-	if (opponentBallOwnerTime() > friendlyBallOwnerTime()  ||  Referee.isStopState()) {
+	if (opponentBallOwnerTime() > friendlyBallOwnerTime() || Referee.isStopState()) {
 		friendlyBallOwnershipTime = 0;
 		curFriendlyBallOwnershipDuration = 0;
-	} else if (friendlyBallOwnershipTime == 0  &&  friendlyBallOwnerTime() > opponentBallOwnerTime()
-			 &&  lastStateChangeTime  &&  lastStateChangeTime < friendlyBallOwnerTime()) {
+	} else if (friendlyBallOwnershipTime == 0 && friendlyBallOwnerTime() > opponentBallOwnerTime()
+			 &&  lastStateChangeTime && lastStateChangeTime < friendlyBallOwnerTime()) {
 		friendlyBallOwnershipTime = friendlyBallOwnerTime();
 	} else if (friendlyBallOwnershipTime != 0) {
 		curFriendlyBallOwnershipDuration = World.Time - friendlyBallOwnershipTime;
@@ -321,7 +321,7 @@ function updateIsShot() {
 
 	debug.pushtop("Ball.isShot");
 	let robot: Robot|undefined = undefined;
-	if (condCooldown  &&  condAccelerates  &&  condFast) {
+	if (condCooldown && condAccelerates && condFast) {
 		for (let r of World.Robots) {
 			if (ObserverRobot.hadBall(r, 0.3)) {
 				condHadBall = true;
@@ -331,7 +331,7 @@ function updateIsShot() {
 				// the ball has to be 0.1m/s faster than the robot
 				condFasterThanRobot = (ballSpeedLength > 0.1 + r.speed.length());
 				debug.set("robot speed", r.speed.length());
-				if (condDirection  &&  condFasterThanRobot) {
+				if (condDirection && condFasterThanRobot) {
 					robot = r;
 					break;
 				}
@@ -360,7 +360,7 @@ let ballPosBuffer: Map<AbsTime, Position> = new Map<AbsTime, Position>();
 let ballPosBufferTimeFrame = 1
 let ballPosBufferMaxBallSpeed = 1
 function updateIsDangerousDuelSituation() {
-	if (!Referee.isGameState()  ||  World.Ball.speed.length() > ballPosBufferMaxBallSpeed) {
+	if (!Referee.isGameState() || World.Ball.speed.length() > ballPosBufferMaxBallSpeed) {
 		ballPosBuffer = new Map<AbsTime, Position>();
 		return;
 	}
@@ -371,13 +371,13 @@ function updateIsDangerousDuelSituation() {
 		}
 	}
 
-	// if World.Ball.speed:length() < ballPosBufferMaxBallSpeed then
+	// if World.Ball.speed.length() < ballPosBufferMaxBallSpeed then
 		ballPosBuffer.set(World.Time, World.Ball.pos);
 	// end
 }
 
 let ballPosHysteresis = 0.5; // to each side
-function isDangerousDuelSituation(lastDecision: boolean){
+function _isDangerousDuelSituation(lastDecision: boolean): boolean {
 	let max_y = -Infinity;
 	let min_time: AbsTime = Infinity;
 	let max_time: AbsTime = 0;
@@ -394,7 +394,7 @@ function isDangerousDuelSituation(lastDecision: boolean){
 	}
 
 	let time_interval: RelTime = max_time - min_time
-	if (time_interval == Infinity  ||  time_interval <= 0.5) {
+	if (time_interval == Infinity || time_interval <= 0.5) {
 		return false;
 	}
 
@@ -407,7 +407,7 @@ function isDangerousDuelSituation(lastDecision: boolean){
 
 	return false;
 }
-Ball.isDangerousDuelSituation = Cache.forFrame(isDangerousDuelSituation)
+export let isDangerousDuelSituation: (lastDecision: boolean)=> boolean = Cache.forFrame(_isDangerousDuelSituation);
 
 let flyingOrBouncingTimestamp: AbsTime = 0;
 function updateIsFlyingOrBouncing() {

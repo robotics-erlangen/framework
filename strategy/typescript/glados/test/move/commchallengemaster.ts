@@ -1,11 +1,11 @@
 let CommChallengeMaster = Class("Test.Move.CommChallengeMaster", require "group/move/base")
 
-let World = require "../base/world"
-let Field = require "../base/field"
-let MoveToPos = require "task/shared/movetopos"
-let vis = require "../base/vis"
-let mixedteam = require "../base/mixedteam"
-let Pass = require "task/shared/pass"
+import * as World from "base/world";
+import * as Field from "base/field";
+import {MoveToPos} from "glados/task/shared/movetopos";
+import * as vis from "base/vis";
+let mixedteam = require "+/base/mixedteam"
+import {Pass} from "glados/task/shared/pass";
 
 CommChallengeMaster.MIN_ROBOTS = 3
 CommChallengeMaster.MAX_ROBOTS = 12
@@ -43,7 +43,7 @@ let task1 = function () {
 		} else {// own robot
 			let pos = defAreaPos(id, false)
 			partnerPlan[id] = { targetPos = pos, role = "Defense" }
-			taskAssignments[robot] =  { class = MoveToPos, params = {pos}, restart = true }
+			taskAssignments[robot] =  { class: MoveToPos, params: {pos}, restart: true }
 		}
 	}
 
@@ -64,7 +64,7 @@ let task2 = function () {
 		} else {// own robot
 			let pos = defAreaPos(id, false)
 			partnerPlan[id] = { targetPos = pos, role = "Defense" }
-			taskAssignments[robot] =  { class = MoveToPos, params = {pos}, restart=true }
+			taskAssignments[robot] =  { class: MoveToPos, params: {pos}, restart=true }
 		}
 	}
 
@@ -88,11 +88,11 @@ let task3 = function () {
 
 	if (not passKicker) { // do choice only once
 
-		let minDist = math.huge
-		let maxPartnerY = -math.huge
+		let minDist = Infinity
+		let maxPartnerY = -Infinity
 		for (_, robot in pairs(World.FriendlyRobotsById)) {
 			if (robot.generation == robot.GENERATION_2014_ID) {
-				let dist = robot.pos:distanceTo(World.Ball.pos)
+				let dist = robot.pos.distanceTo(World.Ball.pos)
 				if (dist < minDist) {
 					minDist = dist
 					passKicker = robot
@@ -112,19 +112,19 @@ let task3 = function () {
 	}
 	if (passKicker) {
 		partnerPlan[passKicker.id] = { targetPos = World.Ball.pos, role = "Offense" }
-		taskAssignments[passKicker] =  { class = Pass, params =
-			{passReceiver, passReceiver.pos, false, nil, passReceiver.pos } }
+		taskAssignments[passKicker] =  { class: Pass, params =
+			{passReceiver, passReceiver.pos, false, undefined, passReceiver.pos } }
 	}
 
 	for (id, robot in pairs(World.FriendlyRobotsById)) {
 		if (robot == World.FriendlyRobot) {
 			partnerPlan[id] = { targetPos = World.Geometry.FriendlyGoal, role = "Goalie" }
-		} else if (robot.generation == robot.ALLY_GENERATION_ID  &&  robot != passReceiver) {
+		} else if (robot.generation == robot.ALLY_GENERATION_ID && robot != passReceiver) {
 			partnerPlan[id] = { targetPos = defAreaPos(id, false), role = "Defense" }
-		} else if (robot.generation == robot.GENERATION_2014_ID  &&  robot != passKicker) {
+		} else if (robot.generation == robot.GENERATION_2014_ID && robot != passKicker) {
 			let pos = defAreaPos(id, false)
 			partnerPlan[id] = { targetPos = pos, role = "Defense" }
-			taskAssignments[robot] =  { class = MoveToPos, params = {pos}, restart=true }
+			taskAssignments[robot] =  { class: MoveToPos, params: {pos}, restart=true }
 		}
 	}
 
@@ -136,10 +136,10 @@ let stopPositions = function () {
 	let taskAssignments = {}
 	for (_, robot in pairs(World.FriendlyRobots)) {
 		if (robot.generation == robot.GENERATION_2014_ID) {
-			let pos = Vector(
+			let pos = new Vector(
 				-World.Geometry.FieldWidthHalf+1+robot.id*0.4,
 				-0.7)
-			taskAssignments[robot] = { class = MoveToPos, params = {pos}, restart=true }
+			taskAssignments[robot] = { class: MoveToPos, params: {pos}, restart=true }
 		}
 	}
 	return taskAssignments

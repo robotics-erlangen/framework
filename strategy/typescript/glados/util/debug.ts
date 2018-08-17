@@ -1,8 +1,8 @@
 let Debug = {}
 
 
-let DebugCommands = require "../base/debugcommands"
-let World = require "../base/world"
+let DebugCommands = require "+/base/debugcommands"
+import * as World from "base/world";
 
 /// moves the ball to a given position, using teleportation or ballPlacement.
 //@name moveBall
@@ -13,8 +13,8 @@ let World = require "../base/world"
 //@param offensive bool - if the placement should be given to the own team, defaults to false
 //This function should be called every frame until the refereeState changes to state
 function Debug.moveBall (state, target, distanceTo, speed, offensive) {
-	distanceTo = distanceTo  ||  0.05
-	speed = speed  ||  0.05
+	distanceTo = distanceTo || 0.05
+	speed = speed || 0.05
 	if (not amun.isDebug) {
 		error("moveBall is only available during debug")
 	}
@@ -25,15 +25,15 @@ function Debug.moveBall (state, target, distanceTo, speed, offensive) {
 		placementState = placementState  +  "Defensive"
 	}
 	if (World.IsSimulated) {
-		let ball = {pos = target, speed = Vector(0,0)}
+		let ball = {pos: target, speed = new Vector(0,0)}
 		DebugCommands.moveObjects(ball)
 		DebugCommands.sendRefereeCommand(state)
-	} else if (World.RefereeState != placementState  ||  (target  &&  target:distanceToSq(World.BallPlacementPos) < 0.05 * 0.05)) {
+	} else if (World.RefereeState != placementState || (target && target.distanceToSq(World.BallPlacementPos) < 0.05 * 0.05)) {
 		assert(target, "moveBall needs a target in the first run")
-		DebugCommands.sendRefereeCommand(placementState, nil, nil, nil, target)
+		DebugCommands.sendRefereeCommand(placementState, undefined, undefined, undefined, target)
 	}
-	target = target  ||  World.BallPlacementPos
-	if (World.Ball.pos:distanceToSq(target) < distanceTo * distanceTo  &&  World.Ball.speed:lengthSq() < speed * speed) {
+	target = target || World.BallPlacementPos
+	if (World.Ball.pos.distanceToSq(target) < distanceTo * distanceTo && World.Ball.speed.lengthSq() < speed * speed) {
 		DebugCommands.sendRefereeCommand(state)
 	}
 }

@@ -2,12 +2,12 @@ let Base = require "agent/base/behavior"
 let PassTiming = Class("Agent.Attacker.PassTiming", Base)
 
 let Sidestep = require "task/attacker/sidestep"
-let Attack = require "util/attack"
+import * as Attack from "glados/util/attack";
 
 function PassTiming:check () {
-	let lastIncomingPassInfo = Attack.lastIncomingPassInfo(self._robot, self._inbox.passInfo())
+	let lastIncomingPassInfo = Attack.lastIncomingPassInfo(this._robot, this._inbox.passInfo())
 
-	if (self._inbox.mainAttacker().trainer != self._robot) {
+	if (this._inbox.mainAttacker().trainer != this._robot) {
 		return false
 	}
 
@@ -17,7 +17,7 @@ function PassTiming:check () {
 		lastIncomingPassInfoPos = lastIncomingPassInfo.ballPos
 	}
 
-	if (lastIncomingPassInfoPos  &&  not Attack.checkPassInfos(self._robot, {lastIncomingPassInfo}, true)) {
+	if (lastIncomingPassInfoPos && not Attack.checkPassInfos(this._robot, {lastIncomingPassInfo}, true)) {
 		return true
 	}
 
@@ -25,7 +25,7 @@ function PassTiming:check () {
 }
 
 function PassTiming:_updateTask () {
-	return Sidestep, {Attack.lastIncomingPassInfo(self._robot, self._inbox.passInfo())}
+	return Sidestep, {Attack.lastIncomingPassInfo(this._robot, this._inbox.passInfo())}
 }
 
 return PassTiming

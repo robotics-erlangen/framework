@@ -1,26 +1,26 @@
 let MoveToStaticBall = Class("Task.MoveToStaticBall", require "task/base")
 
-let World = require "../base/world"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as World from "base/world";
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 
 
 function MoveToStaticBall:_init (rotation, distanceToBall) {
-	self._rotation = rotation  ||  math.pi/2
-	self._distanceToBall = distanceToBall  ||  0.03
-	self._obstacleTable = {extraBallDistance = self._distanceToBall, ignorePass = true, ignorePenaltyDistance = true}
+	this._rotation = rotation || Math.PI/2
+	this._distanceToBall = distanceToBall || 0.03
+	this._obstacleTable = {extraBallDistance = this._distanceToBall, ignorePass = true, ignorePenaltyDistance = true}
 }
 
 function MoveToStaticBall:run () {
-	let absDistToBall = self._distanceToBall + self._robot.radius + World.Ball.radius
-	let pos = World.Ball.pos - Vector.fromAngle(self._rotation) * absDistToBall
+	let absDistToBall = this._distanceToBall + this._robot.radius + World.Ball.radius
+	let pos = World.Ball.pos - Vector.fromAngle(this._rotation) * absDistToBall
 
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable)
 
-	self._robot.trajectory:update(ToTarget, pos, self._rotation)
+	this._robot.trajectory.update(ToTarget, pos, this._rotation)
 
 	// send the position of the ball
-	self._send.attackPosition("all", World.Ball.pos)
+	this._send.attackPosition("all", World.Ball.pos)
 }
 
 return MoveToStaticBall

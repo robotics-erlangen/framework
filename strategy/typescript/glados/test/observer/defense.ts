@@ -1,7 +1,7 @@
 let DefenseTest = {}
 
-let vis = require "../base/vis"
-let Defense = require "util/defense"
+import * as vis from "base/vis";
+import * as Defense from "glados/util/defense";
 
 function DefenseTest.testDangerousness () {
 	let ratings = Defense.rateOpponentDangerousness()

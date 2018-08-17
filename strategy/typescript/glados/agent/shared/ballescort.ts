@@ -1,18 +1,18 @@
 let Base = require "agent/base/behavior"
 let BallEscort = Class("Agent.Shared.BallEscort", Base)
 
-let debug = require "../base/debug"
-let Field = require "../base/field"
-let Referee = require "../base/referee"
-let World = require "../base/world"
-let Ball = require "observer/ball"
-let Physics = require "observer/physics"
+import * as debug from "base/debug";
+import * as Field from "base/field";
+import * as Referee from "base/referee";
+import * as World from "base/world";
+import * as Ball from "glados/tobserver/ball";
+import * as Physics from "glados/observer/physics";
 let RefereeObs = require "observer/referee"
-let Robot = require "observer/robot"
+import * as Robot from "glados/observer/robot";
 let BallEscortTask = require "task/shared/ballescort"
 
 function BallEscort:_init () {
-	self._minRobot = nil
+	this._minRobot = nil
 }
 
 function BallEscort:_stop () {
@@ -21,9 +21,9 @@ function BallEscort:_stop () {
 function BallEscort:_checkOpponentTimings () {
 	let minOppRobot, minOppTime = Ball.firstRobotAtBall(World.OpponentRobots)
 
-	if (minOppTime == math.huge) {
+	if (minOppTime == Infinity) {
 		// firstRobotAtBall calls minTimeToBall which assumes the robot wants to look at it's opponent's goal
-		// This can lead to situations where the function returns math.huge even though it wouldn't if we checked
+		// This can lead to situations where the function returns Infinity even though it wouldn't if we checked
 		// with a different position (here: the ball position while receiving a pass)
 		for (_, robot in pairs(World.OpponentRobots)) {
 			if (Ball.receivesPass(robot)) {
@@ -40,11 +40,11 @@ function BallEscort:_checkOpponentTimings () {
 }
 
 function BallEscort:_isReachabilityOk (oppTime, ownTime) {
-	if (not (oppTime < math.huge)) {
+	if (not (oppTime < Infinity)) {
 		return true
 	}
 
-	if (not self._active) {
+	if (not this._active) {
 		return false
 	}
 
@@ -52,9 +52,9 @@ function BallEscort:_isReachabilityOk (oppTime, ownTime) {
 }
 
 function BallEscort:check () {
-	let shotHysteresis = self._active ? 0.075 : 0.15
+	let shotHysteresis = this._active ? 0.075 : 0.15
 
-	if (not (World.RefereeState == "Game"  ||  World.RefereeState == "GameForce")
+	if (not (World.RefereeState == "Game" || World.RefereeState == "GameForce")
 			 ||  not Referee.opponentTouchedLast()
 			 ||  Ball.wasShot(shotHysteresis)) {
 		return false
@@ -65,37 +65,37 @@ function BallEscort:check () {
 	debug.set("BallEscort/ballOutPos", ballOutPos)
 
 	// ballOutPos should not be in defense area
-	if (not ballOutPos  ||  math.abs(ballOutPos.x) <= Field.defenseBaselineIntersectionDistance()) {
+	if (not ballOutPos || Math.abs(ballOutPos.x) <= Field.defenseBaselineIntersectionDistance()) {
 		return false
 	}
 
-	let minOppRobot, minOppTime = self:_checkOpponentTimings()
-	let ownTimeToBall = Robot.minTimeToBall(self._robot)
+	let minOppRobot, minOppTime = this._checkOpponentTimings()
+	let ownTimeToBall = Robot.minTimeToBall(this._robot)
 
 	debug.set("BallEscort/ownTimeToBall", ownTimeToBall)
 	debug.set("BallEscort/minRobot", minOppRobot)
 	debug.set("BallEscort/minOppTime", minOppTime)
 
 	if (minOppRobot) {
-		self._minRobot = minOppRobot
+		this._minRobot = minOppRobot
 	}
 
-	if (not self:_isReachabilityOk(minOppTime, ownTimeToBall)) {
+	if (not this._isReachabilityOk(minOppTime, ownTimeToBall)) {
 		return false
 	}
 
 	let icing = RefereeObs.opponentIcingPredicted(World.Ball)
 	debug.set("BallEscort/icing", icing)
 
-	let distToBorder = self._active ? 0.7 : 0.5
+	let distToBorder = this._active ? 0.7 : 0.5
 
 	// If we can reach the ball we should try to if we are not already close to the field border
-	if (not icing  &&  ownTimeToBall < math.huge  &&  math.abs(self._robot.pos.x) < World.Geometry.FieldWidthHalf - distToBorder  &&  math.abs(self._robot.pos.y) < World.Geometry.FieldHeightHalf - distToBorder) {
+	if (not icing && ownTimeToBall < Infinity && Math.abs(this._robot.pos.x) < World.Geometry.FieldWidthHalf - distToBorder && Math.abs(this._robot.pos.y) < World.Geometry.FieldHeightHalf - distToBorder) {
 		return false
 	}
 
-	self:_applyForMainAttacker()
-	if (self._inbox.mainAttacker().trainer != self._robot) {
+	this._applyForMainAttacker()
+	if (this._inbox.mainAttacker().trainer != this._robot) {
 		return false
 	}
 
@@ -103,7 +103,7 @@ function BallEscort:check () {
 }
 
 function BallEscort:_updateTask () {
-	return BallEscortTask, {self._minRobot}
+	return BallEscortTask, {this._minRobot}
 }
 
 return BallEscort

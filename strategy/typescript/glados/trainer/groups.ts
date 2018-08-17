@@ -8,24 +8,24 @@ function Groups:init () {
 		require "group/midfield"
 	}
 
-	self._groupList = {}
+	this._groupList = {}
 	for (_,group in ipairs(groupClasses)) {
-		table.insert(self._groupList, group())
+		table.insert(this._groupList, group())
 	}
 }
 
 function Groups:setGroups (groupList) {
-	self._groupList = groupList
+	this._groupList = groupList
 }
 
 function Groups:_runGroups () {
 	// robot -> { groupname -> application }
-	let groupApplications = self._inbox.groupApplication()
+	let groupApplications = this._inbox.groupApplication()
 
 	// groupname -> { robot -> application }
 	let robotApplications = {}
 
-	for (_,group in ipairs(self._groupList)) {
+	for (_,group in ipairs(this._groupList)) {
 		robotApplications[group.name] = {}
 	}
 	for (robot, msg in pairs(groupApplications)) {
@@ -38,10 +38,10 @@ function Groups:_runGroups () {
 		}
 	}
 
-	for (_,group in ipairs(self._groupList)) {
+	for (_,group in ipairs(this._groupList)) {
 		let messages = robotApplications[group.name]
 
-		group:run(self._send, self._inbox, messages)
+		group:run(this._send, this._inbox, messages)
 	}
 }
 

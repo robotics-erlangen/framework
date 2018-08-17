@@ -1,14 +1,14 @@
 let Base = require "agent/base/behavior"
 let Stop = Class("Agent.Attacker.Stop", Base)
 
-let World = require "../base/world"
-let Referee = require "../base/referee"
+import * as World from "base/world";
+import * as Referee from "base/referee";
 let StopAttack = require "task/attacker/stopattack"
 let PlaceBall = require "task/attacker/placeball"
 
 
 function Stop:check () {
-	return Referee.isStopState()  &&  self._inbox.mainAttacker().trainer == self._robot
+	return Referee.isStopState() && this._inbox.mainAttacker().trainer == this._robot
 }
 
 function Stop:_updateTask () {

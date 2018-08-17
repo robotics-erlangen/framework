@@ -3,38 +3,38 @@ let Default = Class("Agent.Attacker.Default", Base)
 
 let AcceptPass = require "task/attacker/acceptpass"
 let Midfield = require "task/attacker/midfield"
-let SideStep = require "task/attacker/sidestep"
-let Striker = require "task/attacker/striker"
-let Attack = require "util/attack"
+import {SideStep} from "glados/task/attacker/sidestep";
+import {Striker} from "glados/task/attacker/striker";
+import * as Attack from "glados/util/attack";
 
 function Default:_stop () {
-	self._forceKeepingInPool = false
+	this._forceKeepingInPool = false
 }
 
 function Default:check () {
-	self._forceKeepingInPool = false
-	let _, passInfoTable = next(self._inbox.passInfo())
+	this._forceKeepingInPool = false
+	let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 	if (passInfoTable) {
 		for (_, passInfo in pairs(passInfoTable)) {
-			if (passInfo  &&  passInfo.target == self._robot) {
-				self._forceKeepingInPool = true
+			if (passInfo && passInfo.target == this._robot) {
+				this._forceKeepingInPool = true
 			}
 		}
 	}
-	self._send.groupApplication("trainer", { name = "midfield", payload = {} })
+	this._send.groupApplication("trainer", { name = "midfield", payload = {} })
 
 	return true
 }
 
 function Default:_updateTask () {
-	let _, passInfoTable = next(self._inbox.passInfo())
-	let relevantPassInfo = Attack.relevantPassInfoMessage(self._robot, passInfoTable)
-	let acceptingPass = Attack.checkPassInfos(self._robot, passInfoTable, false)
+	let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
+	let relevantPassInfo = Attack.relevantPassInfoMessage(this._robot, passInfoTable)
+	let acceptingPass = Attack.checkPassInfos(this._robot, passInfoTable, false)
 
-	let midfieldZone = self._inbox.midfieldZone().trainer
+	let midfieldZone = this._inbox.midfieldZone().trainer
 	let Freebreaker = midfieldZone ? Midfield : Striker
 
-	if (relevantPassInfo  &&  not acceptingPass) {
+	if (relevantPassInfo && not acceptingPass) {
 		return SideStep, {relevantPassInfo}
 	}
 	return acceptingPass ? AcceptPass : Freebreaker

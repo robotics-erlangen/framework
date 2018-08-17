@@ -1,77 +1,77 @@
 let MoveSRC1 = Class("Group.Move.MoveSRC1", require "group/move/base")
 
-let MoveToPos = require "task/shared/movetopos"
-let Pass = require "task/shared/pass"
-let Ball = require "observer/ball"
-let ShootGoal = require "task/attacker/shootgoal"
-let Referee = require "../base/referee"
-let World =   require "../base/world"
-let debug = require "../base/debug"
+import {MoveToPos} from "glados/task/shared/movetopos";
+import {Pass} from "glados/task/shared/pass";
+import * as Ball from "glados/tobserver/ball";
+import {ShootGoal} from "glados/task/attacker/shootgoal";
+import * as Referee from "base/referee";
+let World =   require "+/base/world"
+import * as debug from "base/debug";
 
-let G = World.Geometry
+let G = World.Geometry;
 
-let XFACTOR = G.FieldWidthHalf / 3
-let YFACTOR = G.FieldHeightHalf / 4.5
+let XFACTOR = G.FieldWidthHalf / 3;
+let YFACTOR = G.FieldHeightHalf / 4.5;
 
-let POS1 = {Vector(-1.5 * XFACTOR, 3.5 * YFACTOR), Vector(-1.5 * XFACTOR, 3.5 * YFACTOR), Vector(-1.4 * XFACTOR, 2.9 * YFACTOR), Vector(-1.01 * XFACTOR, 1.47 * YFACTOR), Vector(0.6 * XFACTOR, -3.4 * YFACTOR)}
-let POS2 = {Vector(-0.7 * XFACTOR, 2.5 * YFACTOR), Vector(-0.7 * XFACTOR, 2.5 * YFACTOR), Vector(-1.7 * XFACTOR, 3.6 * YFACTOR), Vector(-2.7 * XFACTOR, 2.0 * YFACTOR), Vector(0.3 * XFACTOR, -2.9 * YFACTOR)}
-let POS3 = {Vector(0.5 * XFACTOR, 0.9 * YFACTOR), Vector(2.5 * XFACTOR, 2.7 * YFACTOR), Vector(2.5 * XFACTOR, 2.7 * YFACTOR), Vector(0.6 * XFACTOR, 3.0 * YFACTOR), Vector(0.4 * XFACTOR, 3.0 * YFACTOR)}
-let POS4 = {Vector(3.0 * XFACTOR, 3.8 * YFACTOR), Vector(3.0 * XFACTOR, 4.5 * YFACTOR), Vector(3.0 * XFACTOR, 4.5 * YFACTOR), Vector(3.0 * XFACTOR, 4.5 * YFACTOR), Vector(3.0 * XFACTOR, 4.5 * YFACTOR)} 
-let POS5 = {Vector(0.4 * XFACTOR, -3.4 * YFACTOR), Vector(0.4 * XFACTOR, -3.4 * YFACTOR), Vector(0.14 * XFACTOR, 1.2 * YFACTOR), Vector(-0.04 * XFACTOR, 1.7 * YFACTOR), Vector(-0.04 * XFACTOR, 1.7 * YFACTOR)} 
+let POS1 = [new Vector(-1.5 * XFACTOR, 3.5 * YFACTOR), new Vector(-1.5 * XFACTOR, 3.5 * YFACTOR), new Vector(-1.4 * XFACTOR, 2.9 * YFACTOR), new Vector(-1.01 * XFACTOR, 1.47 * YFACTOR), new Vector(0.6 * XFACTOR, -3.4 * YFACTOR)];
+let POS2 = [new Vector(-0.7 * XFACTOR, 2.5 * YFACTOR), new Vector(-0.7 * XFACTOR, 2.5 * YFACTOR), new Vector(-1.7 * XFACTOR, 3.6 * YFACTOR), new Vector(-2.7 * XFACTOR, 2.0 * YFACTOR), new Vector(0.3 * XFACTOR, -2.9 * YFACTOR)];
+let POS3 = [new Vector(0.5 * XFACTOR, 0.9 * YFACTOR), new Vector(2.5 * XFACTOR, 2.7 * YFACTOR), new Vector(2.5 * XFACTOR, 2.7 * YFACTOR), new Vector(0.6 * XFACTOR, 3.0 * YFACTOR), new Vector(0.4 * XFACTOR, 3.0 * YFACTOR)];
+let POS4 = [new Vector(3.0 * XFACTOR, 3.8 * YFACTOR), new Vector(3.0 * XFACTOR, 4.5 * YFACTOR), new Vector(3.0 * XFACTOR, 4.5 * YFACTOR), new Vector(3.0 * XFACTOR, 4.5 * YFACTOR), new Vector(3.0 * XFACTOR, 4.5 * YFACTOR)];
+let POS5 = [new Vector(0.4 * XFACTOR, -3.4 * YFACTOR), new Vector(0.4 * XFACTOR, -3.4 * YFACTOR), new Vector(0.14 * XFACTOR, 1.2 * YFACTOR), new Vector(-0.04 * XFACTOR, 1.7 * YFACTOR), new Vector(-0.04 * XFACTOR, 1.7 * YFACTOR)];
 
-MoveSRC1.MIN_ROBOTS = 5
-MoveSRC1.MAX_ROBOTS = 5
+MoveSRC1.MIN_ROBOTS = 5;
+MoveSRC1.MAX_ROBOTS = 5;
 
 
 MoveSRC1.TEST_BALL_START_RECTS = {
-		{Vector(4*G.FieldWidthHalf / 5,4*G.FieldHeightHalf / 5), Vector(G.FieldWidthHalf, G.FieldHeightHalf)},
+		{new Vector(4*G.FieldWidthHalf / 5,4*G.FieldHeightHalf / 5), new Vector(G.FieldWidthHalf, G.FieldHeightHalf)},
 }
 
 function MoveSRC1.canStart () {
-	return World.RefereeState == "Stop"  ||  Referee.isFriendlyFreeKickState()
+	return World.RefereeState == "Stop" || Referee.isFriendlyFreeKickState()
 }
 
 function MoveSRC1:_init () {
-	self._state = 0
-	self._stopStart = Referee.lastStateChangeTime()
+	this._state = 0
+	this._stopStart = Referee.lastStateChangeTime()
 }
 
 
 function MoveSRC1:_canContinue () {
-	return self._state < 5 ? (World.RefereeState == "Stop"  &&  Referee.lastStateChangeTime() == self._stopStart : Referee.isFriendlyFreeKickState()  ||  World.RefereeState == "Game")
+	return this._state < 5 ? (World.RefereeState == "Stop" && Referee.lastStateChangeTime() == this._stopStart : Referee.isFriendlyFreeKickState() || World.RefereeState == "Game")
 }
 
 function MoveSRC1:_updateTasks () {
 	let taskAssignments = {}
 	let changed = false
-	debug.set("state", self._state)
+	debug.set("state", this._state)
 	
-	if (self._robots[1].pos:distanceTo(POS1[(self._state % 5) +1]) < 0.1 ? self._robots[2].pos:distanceTo(POS2[(self._state % 5) +1]) < 0.1  &&  self._robots[3].pos:distanceTo(POS3[(self._state % 5) +1]) < 0.1  &&  self._robots[4].pos:distanceTo(POS4[(self._state % 5) +1]) < 0.1  &&  self._robots[5].pos:distanceTo(POS5[(self._state % 5) +1]) < 0.1  &&  (Referee.isFriendlyFreeKickState() : self._state != 0) 
+	if (this._robots[0].pos.distanceTo(POS1[(this._state % 5) +1]) < 0.1 ? this._robots[1].pos.distanceTo(POS2[(this._state % 5) +1]) < 0.1 && this._robots[2].pos.distanceTo(POS3[(this._state % 5) +1]) < 0.1 && this._robots[3].pos.distanceTo(POS4[(this._state % 5) +1]) < 0.1 && this._robots[4].pos.distanceTo(POS5[(this._state % 5) +1]) < 0.1 && (Referee.isFriendlyFreeKickState() : this._state != 0) 
 		 ||  Ball.isShot()) {
-		self._state = (self._state + 1 )
+		this._state = (this._state + 1 )
 		changed = true
 	}
-	taskAssignments[self._robots[1]] = {class = MoveToPos, params = {POS1[(self._state % 5) +1]}, restart = changed}
-	taskAssignments[self._robots[2]] = {class = MoveToPos, params = {POS2[(self._state % 5) +1]}, restart = changed}
-	taskAssignments[self._robots[3]] = {class = MoveToPos, params = {POS3[(self._state % 5) +1]}, restart = changed}
-	if ((self._state%5) == 3) {
-		taskAssignments[self._robots[4]] = {class = Pass, params = {self._robots[5]}, restart = changed}
+	taskAssignments[this._robots[0]] = {class: MoveToPos, params: {POS1[(this._state % 5) +1]}, restart: changed}
+	taskAssignments[this._robots[1]] = {class: MoveToPos, params: {POS2[(this._state % 5) +1]}, restart: changed}
+	taskAssignments[this._robots[2]] = {class: MoveToPos, params: {POS3[(this._state % 5) +1]}, restart: changed}
+	if ((this._state%5) == 3) {
+		taskAssignments[this._robots[3]] = {class: Pass, params: {this._robots[4]}, restart: changed}
 		
 	} else {
-		taskAssignments[self._robots[4]] = {class = MoveToPos, params = {POS4[(self._state % 5) +1]}, restart = changed}
+		taskAssignments[this._robots[3]] = {class: MoveToPos, params: {POS4[(this._state % 5) +1]}, restart: changed}
 	}
-	if ((self._state %5) == 4) {
-		taskAssignments[self._robots[5]] = {class = ShootGoal, params = {}, restart = changed}
+	if ((this._state %5) == 4) {
+		taskAssignments[this._robots[4]] = {class: ShootGoal, params: {}, restart: changed}
 		
 	} else {
-		taskAssignments[self._robots[5]] = {class = MoveToPos, params = {POS5[(self._state % 5) +1]}, restart = changed}
+		taskAssignments[this._robots[4]] = {class: MoveToPos, params: {POS5[(this._state % 5) +1]}, restart: changed}
 	}
 
-	if (self._state%5 == 3) {
-		return taskAssignments, self._robots[4]
+	if (this._state%5 == 3) {
+		return taskAssignments, this._robots[3]
 	}
-	if (self._state%5 == 4) {
-		return taskAssignments, self._robots[5]
+	if (this._state%5 == 4) {
+		return taskAssignments, this._robots[4]
 	}
 	return taskAssignments
 }

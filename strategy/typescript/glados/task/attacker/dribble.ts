@@ -2,42 +2,42 @@ let CatchBall = require "task/ability/catchball"
 let SuggestPass = require "task/ability/suggestpass"
 let Dribble = Class("Task.Dribble", require "task/base", SuggestPass, CatchBall)
 
-let World = require "../base/world"
-let Physics = require "observer/physics"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as World from "base/world";
+import * as Physics from "glados/observer/physics";
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 
 // Warning: This task has some very strict precoditions.
 // 1. It will only work if you have the ball in the dribbler at the start
-// 2. you have to make sure (somehow) that the (robotPos - waypoint[2]  {returned by path}):absoluteAngleDiff(viewDir) is pretty small
+// 2. you have to make sure (somehow) that the (robotPos - waypoint[2]  {returned by path}).absoluteAngleDiff(viewDir) is pretty small
 
 let obstacleTable = {
 	ignoreBall = true,
 	ignorePass = true
 }
 function Dribble:_init (pos, suggestPass, endSpeedLength) {
-	self._pos = pos
-	self._dir = (pos - self._robot.pos):angle()
-	self._suggestPassFlag = suggestPass
-	self._endSpeedLength = endSpeedLength  ||  0
+	this._pos = pos
+	this._dir = (pos - this._robot.pos).angle()
+	this._suggestPassFlag = suggestPass
+	this._endSpeedLength = endSpeedLength || 0
 }
 
 function Dribble:run () {
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
-	self._robot:setDribblerSpeed(0.7)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
+	this._robot:setDribblerSpeed(0.7)
 
 	let time
-	if (World.Ball.pos:distanceTo(self._robot.pos) > self._robot.radius + World.Ball.radius + 0.05) {
-		let catchTime = self:_catchBall(self._pos, 0)
-		time = catchTime + Physics.robotTimeToPos(self._robot, self._pos, Vector(0, 0))
+	if (World.Ball.pos.distanceTo(this._robot.pos) > this._robot.radius + World.Ball.radius + 0.05) {
+		let catchTime = this._catchBall(this._pos, 0)
+		time = catchTime + Physics.robotTimeToPos(this._robot, this._pos, new Vector(0, 0))
 	} else {
-		let endSpeed = (self._pos - self._robot.pos):setLength(self._endSpeedLength)
-		let _; _, time = self._robot.trajectory:update(ToTarget, self._pos, self._dir, 1.0, endSpeed, nil, true)
+		let endSpeed = (this._pos - this._robot.pos).setLength(this._endSpeedLength)
+		let _; _, time = this._robot.trajectory.update(ToTarget, this._pos, this._dir, 1.0, endSpeed, undefined, true)
 	}
 
 
-	if (self._suggestPassFlag) {
-		self:_suggestPass(self._pos, nil, time)
+	if (this._suggestPassFlag) {
+		this._suggestPass(this._pos, undefined, time)
 	}
 }
 

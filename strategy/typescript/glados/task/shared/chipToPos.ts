@@ -1,21 +1,21 @@
 let AbilityShoot = require "task/ability/shoot"
 let ChipToPos = Class("Task.ChipToPos", require "task/base", AbilityShoot)
 
-let PathHelper = require "trajectory/pathhelper"
+import * as PathHelper from "glados/trajectory/pathhelper";
 
 function ChipToPos:_init (firstContactPos, targetTime, ballReceiptPos, precision) {
-	self._firstContactPos = firstContactPos
-	self._targetTime = targetTime
-	self._ballReceiptPos = ballReceiptPos
-	self._chipPrecision = precision
+	this._firstContactPos = firstContactPos
+	this._targetTime = targetTime
+	this._ballReceiptPos = ballReceiptPos
+	this._chipPrecision = precision
 }
 
 function ChipToPos:run () {
 	let obstacleTable = {
-		inbox = self._inbox
+		inbox = this._inbox
 	}
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
-	self:_chipToPos(self._firstContactPos, self._targetTime, self._ballReceiptPos, self._chipPrecision)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
+	this._chipToPos(this._firstContactPos, this._targetTime, this._ballReceiptPos, this._chipPrecision)
 }
 
 return ChipToPos

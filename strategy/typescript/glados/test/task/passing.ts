@@ -1,15 +1,15 @@
-let Entrypoints = require "../base/entrypoints"
+import * as Entrypoints from "base/entrypoints";
 let ApplyForMainattacker = require "agent/attacker/applyformainattacker"
 let AgentPool = require "control/agentpool"
 let Coordinator = require "control/coordinator"
-let MoveToPos = require "task/shared/movetopos"
-let Pass = require "task/shared/pass"
+import {MoveToPos} from "glados/task/shared/movetopos";
+import {Pass} from "glados/task/shared/pass";
 let Trainer = require "trainer/trainer"
 
 
 let Static = Class("Test.Task.Passing.Static", require "agent/base/behavior")
 function Static:check () {
-	self._send.attackerFlag("all")
+	this._send.attackerFlag("all")
 	return false
 }
 
@@ -17,12 +17,12 @@ function Static:check () {
 
 let Passer = Class("Test.Task.Passing.Pass", require "agent/base/behavior")
 function Passer:check () {
-	let otherRobot = next(self._inbox.attackerFlag())
-	return self._inbox.mainAttacker().trainer == self._robot  &&  otherRobot
+	let otherRobot = next(this._inbox.attackerFlag())
+	return this._inbox.mainAttacker().trainer == this._robot && otherRobot
 }
 
 function Passer:_updateTask () {
-	let otherRobot = next(self._inbox.attackerFlag())
+	let otherRobot = next(this._inbox.attackerFlag())
 	return Pass, { otherRobot }
 }
 
@@ -30,18 +30,18 @@ function Passer:_updateTask () {
 
 let Position = Class("Test.Task.Passing.Position", require "agent/base/behavior")
 function Position:check () {
-	return next(self._inbox.attackerFlag()) != nil
+	return next(this._inbox.attackerFlag()) != nil
 }
 
 function Position:_updateTask () {
 	let idx = 0
-	for (robot, _ in pairs(self._inbox.attackerFlag())) {
-		if (self._robot.id > robot.id) {
+	for (robot, _ in pairs(this._inbox.attackerFlag())) {
+		if (this._robot.id > robot.id) {
 			idx = idx + 1
 		}
 	}
-	let pos = Vector(idx * 3 - 1.5, 0)
-	return MoveToPos, { pos, (-pos):angle() }
+	let pos = new Vector(idx * 3 - 1.5, 0)
+	return MoveToPos, { pos, (-pos).angle() }
 }
 
 
@@ -57,7 +57,7 @@ PassAgent._behaviors = {
 let coord = nil
 
 let run = function () {
-	if (coord == nil) {
+	if (coord == undefined) {
 		let trainer = Trainer()
 		let pools = { pass = AgentPool(PassAgent, 2) }
 		let poolGroups = { { pools.pass } }

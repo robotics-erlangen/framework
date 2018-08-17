@@ -1,9 +1,9 @@
 let PathTest = {}
 
-let Coordinates = require "../base/coordinates"
-let path = require "../base/path"
-let vis = require "../base/vis"
-let World = require "../base/world"
+let Coordinates = require "+/base/coordinates"
+let path = require "+/base/path"
+import * as vis from "base/vis";
+import * as World from "base/world";
 
 
 //declare start, end and obstacles here
@@ -21,7 +21,7 @@ table.insert(obstacles, {type='Triangle',
 let pathInstance = nil
 
 let setupPath = function () {
-	if (pathInstance != nil) {
+	if (pathInstance != undefined) {
 		return
 	}
 
@@ -42,7 +42,7 @@ let setupPath = function () {
 				obstacle.posEnd.x, obstacle.posEnd.y, obstacle.radius)
 		} else if (obstacle.type == 'Triangle') {
 			pathInstance:addTriangle(obstacle.p1.x, obstacle.p1.y, obstacle.p2.x, obstacle.p2.y,
-				obstacle.p3.x, obstacle.p3.y, obstacle.lineWidth  ||  0)
+				obstacle.p3.x, obstacle.p3.y, obstacle.lineWidth || 0)
 		}
 	}
 
@@ -71,7 +71,7 @@ let drawWaypoints = function (waypoints) {
 	for (i=1,#waypoints) {
 		let cur = Vector.create(waypoints[i].p_x, waypoints[i].p_y)
 		vis.addPathRaw("waypoints", {prev, cur}, vis.colors.yellow)
-		dist = dist + cur:distanceTo(prev)
+		dist = dist + cur.distanceTo(prev)
 		prev = cur
 	}
 	return dist

@@ -1,6 +1,6 @@
 let Base = Class("Group.Move.Base")
 
-Base.Referee = require "../base/referee"
+Base.Referee = require "+/base/referee"
 
 Base.MIN_ROBOTS = -1
 Base.MAX_ROBOTS = -1
@@ -28,18 +28,18 @@ function Base:_updateTasks () {
 
 
 function Base:init (robots, inbox) {
-	self._firstFrame = true
-	self._robots = robots
-	self._inbox = inbox
-	self:_init()
+	this._firstFrame = true
+	this._robots = robots
+	this._inbox = inbox
+	this._init()
 }
 
 function Base:updateTasks () {
-	let assignments, mainAttacker = self:_updateTasks()
+	let assignments, mainAttacker = this._updateTasks()
 	for (_, assignment in pairs(assignments)) {
-		assignment.restart = assignment.restart  ||  self._firstFrame // TODO: test
+		assignment.restart = assignment.restart || this._firstFrame // TODO: test
 	}
-	self._firstFrame = false
+	this._firstFrame = false
 	return assignments, mainAttacker
 }
 

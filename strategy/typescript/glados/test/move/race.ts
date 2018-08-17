@@ -1,7 +1,7 @@
 let Race = Class("Test.Move.Race", require "group/move/base")
 
-let World = require "../base/world"
-let MoveToPos = require "task/shared/movetopos"
+import * as World from "base/world";
+import {MoveToPos} from "glados/task/shared/movetopos";
 
 Race.MIN_ROBOTS = 1
 Race.MAX_ROBOTS = 1
@@ -15,7 +15,7 @@ function Race.canStart () {
 }
 
 function Race:_init () {
-	self._atStart = true
+	this._atStart = true
 }
 
 function Race:_canContinue () {
@@ -26,35 +26,35 @@ function Race:_updateTasks () {
 	let taskAssignments = {}
 
 	let restart = false
-	if (self._atStart) {
+	if (this._atStart) {
 		let finished = true
-		for (_,r in ipairs(self._robots)) {
+		for (_,r in ipairs(this._robots)) {
 			if (r.pos.y + TOLERANCE < Y_END) {
 				finished = false
 				break
 			}
 		}
 		if (finished) {
-			self._atStart = false
+			this._atStart = false
 			restart = true
 		}
 	} else {
 		let finished = true
-		for (_,r in ipairs(self._robots)) {
+		for (_,r in ipairs(this._robots)) {
 			if (r.pos.y - TOLERANCE > Y_START) {
 				finished = false
 				break
 			}
 		}
 		if (finished) {
-			self._atStart = true
+			this._atStart = true
 			restart = true
 		}
 	}
 
-	for (i = 1, #self._robots) {
-		taskAssignments[self._robots[i]] = { class = MoveToPos,
-			params = { Vector(-0.5 * (#self._robots + 1) + i + 2, self._atStart ? Y_END : Y_START) }, restart = restart}
+	for (i = 1, #this._robots) {
+		taskAssignments[this._robots[i]] = { class: MoveToPos,
+			params = { Vector(-0.5 * (#this._robots + 1) + i + 2, this._atStart ? Y_END : Y_START) }, restart: restart}
 		}
 	return taskAssignments
 }

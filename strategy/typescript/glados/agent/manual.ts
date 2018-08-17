@@ -9,7 +9,7 @@ Manual._behaviors = {
 }
 
 function Manual.takeRobot (robots) {
-	for (_, robot in ipairs(robots)) {
+	for (let robot of robots) {
 		// take robots which get command from an input device
 		if (robot.userControl) {
 			return robot
@@ -18,7 +18,7 @@ function Manual.takeRobot (robots) {
 }
 
 function Manual:keepRobot () {
-	return self._robot.userControl
+	return this._robot.userControl
 }
 
 function Manual:rateRobot () {

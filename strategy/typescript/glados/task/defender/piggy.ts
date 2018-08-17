@@ -1,25 +1,25 @@
 let Piggy = Class("Task.Piggy", require "task/base")
 
-let World = require "../base/world"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
-let UtilDefense = require "util/defense"
+import * as World from "base/world";
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
+import * as UtilDefense from "glados/util/defense";
 
 function Piggy:_init (targetRobot) {
 	assert(targetRobot, "Piggy task needs a target robot")
-	self._targetRobot = targetRobot
+	this._targetRobot = targetRobot
 }
 
 function Piggy:run () {
-	let obstacleTable = { inbox = self._inbox}
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
+	let obstacleTable = { inbox = this._inbox}
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
 
-	let piggyPos = UtilDefense.piggyPos(self._targetRobot)
+	let piggyPos = UtilDefense.piggyPos(this._targetRobot)
 
-	self._send.moveDest("all", piggyPos)
+	this._send.moveDest("all", piggyPos)
 
-	let dir = (World.Ball.pos - self._targetRobot.pos):angle()
-	self._robot.trajectory:update(ToTarget, piggyPos, dir, nil, self._targetRobot.speed)
+	let dir = (World.Ball.pos - this._targetRobot.pos).angle()
+	this._robot.trajectory.update(ToTarget, piggyPos, dir, undefined, this._targetRobot.speed)
 }
 
 return Piggy

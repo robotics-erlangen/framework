@@ -1,4 +1,4 @@
-let Entrypoints = require "../base/entrypoints"
+import * as Entrypoints from "base/entrypoints";
 let PlaceBall = require "task/attacker/placeball"
 let Coordinator = require "control/coordinator"
 let Trainer = require "trainer/trainer"
@@ -22,7 +22,7 @@ PlacerAgent._behaviors = {
 let coord = nil
 
 let run = function () {
-	if (coord == nil) {
+	if (coord == undefined) {
 		let trainer = Trainer()
 		let pools = { pass = AgentPool(PlacerAgent, 1) }
 		let poolGroups = { { pools.pass } }

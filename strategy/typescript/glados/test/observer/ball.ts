@@ -1,11 +1,11 @@
 let BallTest = {}
 
-let vis = require "../base/vis"
-let Constants = require "../base/constants"
-let Field = require "../base/field"
-let World = require "../base/world"
-let Ball = require "observer/ball"
-let Physics = require "observer/physics"
+import * as vis from "base/vis";
+import * as Constants from "base/constants";
+import * as Field from "base/field";
+import * as World from "base/world";
+import * as Ball from "glados/tobserver/ball";
+import * as Physics from "glados/observer/physics";
 
 
 function BallTest.testBallOwner () {
@@ -22,12 +22,12 @@ function BallTest.testBallOwner () {
 
 
 function BallTest.testBallCatchProbability () {
-	if (World.Ball.speed:length() > 0.1) {
+	if (World.Ball.speed.length() > 0.1) {
 		let endOfField = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
-		let corridorHalf = World.Ball.speed:perpendicular():setLength(World.Ball.radius + Constants.positionError) * 2
+		let corridorHalf = World.Ball.speed.perpendicular().setLength(World.Ball.radius + Constants.positionError) * 2
 		for (_,robot in ipairs(World.OpponentRobots)) {
-			let pointOnLine = robot.pos:nearestPosOnLine(World.Ball.pos, endOfField)
-			let ballRollTime = Physics.ballRollTime(World.Ball, pointOnLine:distanceTo(World.Ball.pos))
+			let pointOnLine = robot.pos.nearestPosOnLine(World.Ball.pos, endOfField)
+			let ballRollTime = Physics.ballRollTime(World.Ball, pointOnLine.distanceTo(World.Ball.pos))
 			let chance = Ball.ballCatchProbability(robot, 0, ballRollTime, pointOnLine, corridorHalf)
 			if (chance == chance) {
 				vis.addCircle("test: BallCatchProb", robot.pos, 0.2, vis.fromTemperature(chance), true)

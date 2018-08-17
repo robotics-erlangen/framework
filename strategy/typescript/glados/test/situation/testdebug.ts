@@ -1,6 +1,6 @@
-let debugcommands = require "../base/debugcommands"
-let Entrypoints = require "../base/entrypoints"
-let World = require "../base/world"
+let debugcommands = require "+/base/debugcommands"
+import * as Entrypoints from "base/entrypoints";
+import * as World from "base/world";
 
 
 let init = false
@@ -17,7 +17,7 @@ let testRef = function () {
 		startTime = World.Time
 	}
 
-	if (World.Time - startTime > 3  &&  not changed) {
+	if (World.Time - startTime > 3 && not changed) {
 		changed = true
 		debugcommands.sendRefereeCommand("DirectOffensive", "SecondHalf")
 	}

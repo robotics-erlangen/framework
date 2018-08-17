@@ -1,8 +1,8 @@
 let KeeperTest = Class("Test.Move.KeeperTest", require "group/move/base")
 
-let DebugCommands = require "../base/debugcommands"
-let World = require "../base/world"
-let Goal = require "observer/goal"
+let DebugCommands = require "+/base/debugcommands"
+import * as World from "base/world";
+import * as Goal from "glados/observer/goal";
 let Halt = require "task/shared/halt"
 let Keeper = require "task/keeper/keeper"
 let HallucinatingKeeper = require "task/test/hallucinatingkeeper"
@@ -14,9 +14,9 @@ KeeperTest.MAX_ROBOTS = 1
 
 let SHOOT_SPEED = 6.5
 
-let MIN_ANGLE = 1/4 * math.pi
-let MAX_ANGLE = 3/4 * math.pi
-let ANGLE_INCREMENT = 1/12 * math.pi
+let MIN_ANGLE = 1/4 * Math.PI
+let MAX_ANGLE = 3/4 * Math.PI
+let ANGLE_INCREMENT = 1/12 * Math.PI
 
 let MIN_DISTANCE = 3.8
 let MAX_DISTANCE = 3.8
@@ -24,7 +24,7 @@ let DISTANCE_INCREMENT = 0
 
 let RECORD = false
 let FILENAME = "crescent"
-let DESTINATION = "test/move/balldata/"..FILENAME..".balldata"
+let DESTINATION = "test/move/balldata/"+FILENAME+".balldata"
 
 let HALLUCINATE_SIMULATOR = false
 let HALT = true
@@ -64,11 +64,11 @@ function KeeperTest.canStart () {
 }
 
 function KeeperTest:_init () {
-	self._startTime = World.Time
-	self._state = "Prepare"
-	self._distance = MIN_DISTANCE
-	self._angle = MIN_ANGLE
-	self._shootLeft = false
+	this._startTime = World.Time
+	this._state = "Prepare"
+	this._distance = MIN_DISTANCE
+	this._angle = MIN_ANGLE
+	this._shootLeft = false
 	if (RECORD) {
 		IO.save(DESTINATION, {})
 	}
@@ -79,22 +79,22 @@ function KeeperTest:_canContinue () {
 }
 
 function KeeperTest:_increment () {
-	self._shootLeft = not self._shootLeft
+	this._shootLeft = not this._shootLeft
 
-	if (self._shootLeft == false) {
-		self._angle = self._angle + ANGLE_INCREMENT
-		if (self._angle > MAX_ANGLE) {
-			self._angle = MIN_ANGLE
+	if (this._shootLeft == false) {
+		this._angle = this._angle + ANGLE_INCREMENT
+		if (this._angle > MAX_ANGLE) {
+			this._angle = MIN_ANGLE
 		}
 
-		self._distance = self._distance + DISTANCE_INCREMENT
-		if (self._distance > MAX_DISTANCE) {
-			self._distance = MIN_DISTANCE
+		this._distance = this._distance + DISTANCE_INCREMENT
+		if (this._distance > MAX_DISTANCE) {
+			this._distance = MIN_DISTANCE
 		}
 	}
 
-	let angle = self._angle / math.pi
-	let message = "New Shot from distance "..String(self._distance).."  &&  angle "..String(angle)
+	let angle = this._angle / Math.PI
+	let message = "New Shot from distance "+String(this._distance)+" && angle "+String(angle)
 	log(message)
 	if (RECORD) {
 		IO.append(DESTINATION, message)
@@ -103,7 +103,7 @@ function KeeperTest:_increment () {
 
 function KeeperTest:_update () {
 	let goal = G.FriendlyGoal
-	let startPos = goal + Vector.fromAngle(self._angle):setLength(self._distance)
+	let startPos = goal + Vector.fromAngle(this._angle).setLength(this._distance)
 
 	// append
 	if (RECORD) {
@@ -115,31 +115,31 @@ function KeeperTest:_update () {
 		let relY = relativePos.y
 
 		let atkPos, atkDir, isShot = Goal.predictShot()
-		IO.append(DESTINATION, String(relX).." "..String(relY).." "..String(spdX)
-				 + " "..String(spdY).." "..String(atkPos.x).." "..String(atkPos.y)
-				 + " "..String(atkDir.x).." "..String(atkDir.y).." "..String(isShot))
+		IO.append(DESTINATION, String(relX)+" "+String(relY)+" "+String(spdX)
+				 + " "+String(spdY)+" "+String(atkPos.x)+" "+String(atkPos.y)
+				 + " "+String(atkDir.x)+" "+String(atkDir.y)+" "+String(isShot))
 	}
 
-	if (self._state == "Prepare"  &&  World.Time - self._startTime > 2) {
-		self._state = "Shot"
-		self._startTime = World.Time
-		let targetPos = self._shootLeft ? Vector(goal.x + 0.5, goal.y) : Vector(goal.x - 0.5, goal.y)
+	if (this._state == "Prepare" && World.Time - this._startTime > 2) {
+		this._state = "Shot"
+		this._startTime = World.Time
+		let targetPos = this._shootLeft ? Vector(goal.x + 0.5, goal.y) : Vector(goal.x - 0.5, goal.y)
 		let ball = {
 			pos = startPos,
 			posZ = 0,
 			speedZ = 0,
-			speed = (targetPos - startPos):setLength(SHOOT_SPEED) // shoot with max speed
+			speed = (targetPos - startPos).setLength(SHOOT_SPEED) // shoot with max speed
 		}
 		DebugCommands.moveObjects(ball)
-		self:_increment()
-	} else if (self._state == "Shot"  &&  World.Time - self._startTime > 3) {
-		self._state = "Prepare"
-		self._startTime = World.Time
+		this._increment()
+	} else if (this._state == "Shot" && World.Time - this._startTime > 3) {
+		this._state = "Prepare"
+		this._startTime = World.Time
 		let ball = {
 			pos = startPos,
 			posZ = 0,
 			speedZ = 0,
-			speed = Vector(0, 0)
+			speed = new Vector(0, 0)
 		}
 		if (World.IsSimulated) {
 			DebugCommands.moveObjects(ball)
@@ -151,16 +151,16 @@ function KeeperTest:_update () {
 function KeeperTest:_updateTasks () {
 	let taskAssignments = {}
 
-	if (World.IsSimulated  &&  not HALLUCINATE_SIMULATOR) {
-		self:_update()
-		taskAssignments[self._robots[1]] = {class = HALT ? Halt : Keeper, params = {}, restart = false}
+	if (World.IsSimulated && not HALLUCINATE_SIMULATOR) {
+		this._update()
+		taskAssignments[this._robots[0]] = {class: HALT ? Halt : Keeper, params: {}, restart: false}
 	} else if (not RECORD) {
-		taskAssignments[self._robots[1]] = {class = HallucinatingKeeper, params = {DESTINATION}}
+		taskAssignments[this._robots[0]] = {class: HallucinatingKeeper, params: {DESTINATION}}
 	} else {
-		taskAssignments[self._robots[1]] = {class = Halt, params = {}}
+		taskAssignments[this._robots[0]] = {class: Halt, params: {}}
 	}
 
-	return taskAssignments, self._robots[1]
+	return taskAssignments, this._robots[0]
 }
 
 return KeeperTest

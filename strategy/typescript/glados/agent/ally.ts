@@ -1,11 +1,11 @@
 let Base = require "agent/base/agent"
 let Ally = Class("Agent.Ally", Base)
 
-let MixedTeam = require "../base/mixedteam"
-let vis = require "../base/vis"
-let World = require "../base/world"
+let MixedTeam = require "+/base/mixedteam"
+import * as vis from "base/vis";
+import * as World from "base/world";
 
-let Physics = require "observer/physics"
+import * as Physics from "glados/observer/physics";
 
 let PassSuggestion = require "task/ability/suggestpass"
 
@@ -19,8 +19,8 @@ function Ally.updateRoleNumbers (attackers, defenders) {
 
 function Ally:init (robot, messaging) {
 	Base.init(self, robot, messaging)
-	self._suggestPass = PassSuggestion._suggestPass // HACK
-	self._noOppDisturbing = PassSuggestion._noOppDisturbing
+	this._suggestPass = PassSuggestion._suggestPass // HACK
+	this._noOppDisturbing = PassSuggestion._noOppDisturbing
 }
 
 // below this distance from dribbler to ball, an ally is considered mainAttacker
@@ -31,14 +31,14 @@ let ALLY_MAINATTACKER_DIST = MASTER ? 0 : 10
 let MIN_DIST_FOR_PASS_POS = 0.2
 let timeSentToPartnerTeam = 0 // messaging the allied team should only happen once per frame
 function Ally:_run () {
-	self._send.allyFlag("all")
+	this._send.allyFlag("all")
 
 	// send messages from own robots to partner team
 	// should only be done once and if there is at least one ally
 	if (timeSentToPartnerTeam != World.Time) {
 		let mixedTeamMessage = {}
-		let allies = self._inbox.allyFlag()
-		for (name, func in pairs(self._inbox)) {
+		let allies = this._inbox.allyFlag()
+		for (name, func in pairs(this._inbox)) {
 			if (name == "moveDest") {
 				for (sender, msg in pairs(func())) {
 					if (not allies[sender]) {
@@ -87,7 +87,7 @@ function Ally:_run () {
 				}
 			}
 		}
-		if (World.FriendlyKeeper  &&  not allies[World.FriendlyKeeper]) {
+		if (World.FriendlyKeeper && not allies[World.FriendlyKeeper]) {
 			if (not mixedTeamMessage[World.FriendlyKeeper.id]) {
 				mixedTeamMessage[World.FriendlyKeeper.id] = {}
 			}
@@ -98,56 +98,56 @@ function Ally:_run () {
 	}
 
 	// send messages from partner team to own robots
-	let allyMessages = World.MixedTeam ? World.MixedTeam[self._robot.id] : {}
+	let allyMessages = World.MixedTeam ? World.MixedTeam[this._robot.id] : {}
 	for (msgType, msg in pairs(allyMessages)) {
 		if (msgType == "role") {
 			if (msg == "Offense") {
-				self._send.attackerFlag("all")
-				self:_suggestPassRobotPosition(self._robot.pos)
-				attackerAllies[self._robot] = true
-				defenderAllies[self._robot] = nil
+				this._send.attackerFlag("all")
+				this._suggestPassRobotPosition(this._robot.pos)
+				attackerAllies[this._robot] = true
+				defenderAllies[this._robot] = nil
 			} else if (msg == "Defense") {
-				self._send.defenderFlag("all")
-				attackerAllies[self._robot] = nil
-				defenderAllies[self._robot] = true
+				this._send.defenderFlag("all")
+				attackerAllies[this._robot] = nil
+				defenderAllies[this._robot] = true
 			} else {
-				attackerAllies[self._robot] = nil
-				defenderAllies[self._robot] = nil
+				attackerAllies[this._robot] = nil
+				defenderAllies[this._robot] = nil
 			}
 		} else if (msgType == "targetPos") {
-			vis.addPath("MoveTo", {self._robot.pos, msg}, vis.colors.whiteHalf)
+			vis.addPath("MoveTo", {this._robot.pos, msg}, vis.colors.whiteHalf)
 			vis.addCircle("MoveTo", msg, 0.15, vis.colors.orangeHalf, true)
-			self._send.moveDest("all", msg)
+			this._send.moveDest("all", msg)
 		} else if (msgType == "shootPos") {
 			let passPosSent = false
-			for (robot, _ in pairs(self._inbox.attackerFlag())) {
-				if (robot.pos:distanceTo(msg) < MIN_DIST_FOR_PASS_POS) {
+			for (robot, _ in pairs(this._inbox.attackerFlag())) {
+				if (robot.pos.distanceTo(msg) < MIN_DIST_FOR_PASS_POS) {
 					vis.addCircle("a/ally/passpos", msg, 0.15, vis.colors.redHalf, true)
-					self._send.passInfo("all", { target = robot, ballPos = msg })
+					this._send.passInfo("all", { target = robot, ballPos = msg })
 					passPosSent = true
 					break
 				}
 			}
 			if (not passPosSent) {
 				vis.addCircle("a/ally/attackposition", msg, 0.15, vis.colors.magentaHalf, true)
-				self._send.attackPosition("all", msg)
-				self._send.attackTime("all", World.Time + Physics.robotTimeToPos(self._robot, msg, Vector(0, 0)))
+				this._send.attackPosition("all", msg)
+				this._send.attackTime("all", World.Time + Physics.robotTimeToPos(this._robot, msg, new Vector(0, 0)))
 			}
 		}
 	}
 
 	// mainAttacker application
 	let ballPos = World.Ball.pos
-	let dirVector = Vector.fromAngle(self._robot.dir)
-	let dribblerPos = self._robot.pos + dirVector*self._robot.shootRadius
-	let ballDist = dribblerPos:distanceTo(ballPos)
-	if (ballDist < ALLY_MAINATTACKER_DIST  &&  World.Ball.speed:length() < 1) {
-		for (_, robot in ipairs(World.FriendlyRobots)) {
-			if (robot != self._robot  &&  robot.pos:distanceTo(World.Ball.pos) < 0.15) {
+	let dirVector = Vector.fromAngle(this._robot.dir)
+	let dribblerPos = this._robot.pos + dirVector*this._robot.shootRadius
+	let ballDist = dribblerPos.distanceTo(ballPos)
+	if (ballDist < ALLY_MAINATTACKER_DIST && World.Ball.speed.length() < 1) {
+		for (let robot of World.FriendlyRobots) {
+			if (robot != this._robot && robot.pos.distanceTo(World.Ball.pos) < 0.15) {
 				return // no application if someone already has the ball
 			}
 		}
-		self._send.exclusiveRole("trainer", {mainAttacker = 2})
+		this._send.exclusiveRole("trainer", {mainAttacker = 2})
 	}
 }
 
@@ -156,8 +156,8 @@ let robotsDefinitelyInOurTeam = {
 }
 
 function Ally.takeRobot (robots) {
-	for (_, robot in ipairs(robots)) {
-		if (robot.isVisible  &&  robot.generation == robot.ALLY_GENERATION_ID
+	for (let robot of robots) {
+		if (robot.isVisible && robot.generation == robot.ALLY_GENERATION_ID
 				 &&  not robotsDefinitelyInOurTeam[robot.id]) {
 			return robot
 		}
@@ -165,9 +165,9 @@ function Ally.takeRobot (robots) {
 }
 
 function Ally:keepRobot () {
-	return self._robot.isVisible  &&  self._robot.generation == self._robot.ALLY_GENERATION_ID
-		 &&  not self._robot.userControl
-		 &&  not robotsDefinitelyInOurTeam[self._robot.id]
+	return this._robot.isVisible && this._robot.generation == this._robot.ALLY_GENERATION_ID
+		 &&  not this._robot.userControl
+		 &&  not robotsDefinitelyInOurTeam[this._robot.id]
 }
 
 function Ally:rateRobot () {

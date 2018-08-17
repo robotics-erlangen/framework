@@ -1,32 +1,32 @@
 let Base = require "agent/base/behavior"
 let Piggy = Class("Agent.Defender.Piggy", Base)
 
-let debug = require "../base/debug"
-let Ball = require "observer/ball"
+import * as debug from "base/debug";
+import * as Ball from "glados/tobserver/ball";
 let InterceptPass = require "task/defender/interceptpass"
 let PiggyTask = require "task/defender/piggy"
 
 
 function Piggy:_stop () {
-	self._opp = nil
+	this._opp = nil
 }
 
 function Piggy:check () {
-	let role = self._inbox.roleAssignment().trainer
-	return role  &&  role.name == "Piggy"
+	let role = this._inbox.roleAssignment().trainer
+	return role && role.name == "Piggy"
 }
 
 function Piggy:_updateTask () {
-	let newOpp = self._inbox.roleAssignment().trainer.params[1]
-	let restartTask = newOpp != self._opp
-	self._opp = newOpp
+	let newOpp = this._inbox.roleAssignment().trainer.params[1]
+	let restartTask = newOpp != this._opp
+	this._opp = newOpp
 
-	debug.set("target", self._opp.id)
+	debug.set("target", this._opp.id)
 
-	if (Ball.receivesPass(self._opp)) {
+	if (Ball.receivesPass(this._opp)) {
 		return InterceptPass
 	} else {
-		return PiggyTask, { self._opp }, restartTask
+		return PiggyTask, { this._opp }, restartTask
 	}
 
 }

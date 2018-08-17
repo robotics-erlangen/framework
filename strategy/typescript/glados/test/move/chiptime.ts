@@ -1,8 +1,8 @@
 let ChipTimeTest = Class("Test.Move.ChipTimeTest", require "group/move/base")
 
-let World = require "../base/world"
-let Physics = require "observer/physics"
-let Pass = require "task/shared/pass"
+import * as World from "base/world";
+import * as Physics from "glados/observer/physics";
+import {Pass} from "glados/task/shared/pass";
 
 ChipTimeTest.MIN_ROBOTS = 1
 ChipTimeTest.MAX_ROBOTS = 1
@@ -12,9 +12,9 @@ function ChipTimeTest.canStart () {
 }
 
 function ChipTimeTest:_init () {
-	let startPos = World.Ball.pos:copy()
-	self._endPos = Vector(0, 0)
-	let timePredicted = Physics.chipPassTime(startPos, self._endPos)
+	let startPos = World.Ball.pos.copy()
+	this._endPos = new Vector(0, 0)
+	let timePredicted = Physics.chipPassTime(startPos, this._endPos)
 	log("Time needed: " +  timePredicted)
 }
 
@@ -25,8 +25,8 @@ function ChipTimeTest:_canContinue () {
 function ChipTimeTest:_updateTasks () {
 	let taskAssignments = {}
 
-	taskAssignments[self._robots[1]] = { class = Pass,
-		params = { nil, self._endPos, true, 0 } }
+	taskAssignments[this._robots[0]] = { class: Pass,
+		params = [ undefined, this._endPos, true, 0 ] }
 	return taskAssignments
 }
 

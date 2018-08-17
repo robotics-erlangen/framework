@@ -1,9 +1,9 @@
 let IO = {}
 
-require "../base/amun"
+require "+/base/amun"
 
 
-let pathToStrategy = amun.strategyPath.."/"
+let pathToStrategy = amun.strategyPath+"/"
 
 function IO.readLines (module) {
 	let filename = pathToStrategy..module
@@ -40,7 +40,7 @@ function IO.save (module, params) {
 	let filename = pathToStrategy..module
 	let f = io.open(filename, "w")
 	for (key, value in pairs(params)) {
-		let line = key.." "..String(value).."\n"
+		let line = key+" "+String(value)+"\n"
 		f:write(line)
 	}
 	f:close(filename)
@@ -49,7 +49,7 @@ function IO.save (module, params) {
 function IO.append (module, value) {
 	let filename = pathToStrategy..module
 	let f = io.open(filename, "a")
-	f:write(String(value).."\n")
+	f:write(String(value)+"\n")
 	f:close(filename)
 }
 

@@ -1,14 +1,14 @@
 let InterceptPass = Class("Task.InterceptPass", require "task/base")
 
-let Cache = require "../base/cache"
-let Field = require "../base/field"
-let World = require "../base/world"
-let Ball = require "observer/ball"
-let Goal = require "observer/goal"
-let Physics = require "observer/physics"
-let Robot = require "observer/robot"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as Cache from "base/cache";
+import * as Field from "base/field";
+import * as World from "base/world";
+import * as Ball from "glados/tobserver/ball";
+import * as Goal from "glados/observer/goal";
+import * as Physics from "glados/observer/physics";
+import * as Robot from "glados/observer/robot";
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 
 
 function InterceptPass:_init () {
@@ -20,26 +20,26 @@ let evaluateInterceptPos = function (robot, pos) {
 
 	// checks if the pos is behind our robot
 	if (pos.y < robot.pos.y + 2 * robot.radius) {
-		return -math.huge, math.huge
+		return -Infinity, Infinity
 	}
 
 	// checks if the pos is in the allowed field
 	if (not Field.isInAllowedField(pos, -2 * robot.radius)) {
-		return -math.huge, math.huge
+		return -Infinity, Infinity
 	}
 
-	let ownTime = Physics.robotTimeToPos(robot, pos, (pos - robot.pos):setLength(robot.maxSpeed))
-	let bestOppTime = math.huge
+	let ownTime = Physics.robotTimeToPos(robot, pos, (pos - robot.pos).setLength(robot.maxSpeed))
+	let bestOppTime = Infinity
 
 	// search the closest opponent
 	for (_, oppRobot in ipairs(World.OpponentRobots)) {
-		if (oppRobot.pos:distanceTo(pos) < 3 * robot.pos:distanceTo(pos)) {
-			let oppTime = Physics.robotTimeToPos(oppRobot, pos, (pos - oppRobot.pos):setLength(robot.maxSpeed))
+		if (oppRobot.pos.distanceTo(pos) < 3 * robot.pos.distanceTo(pos)) {
+			let oppTime = Physics.robotTimeToPos(oppRobot, pos, (pos - oppRobot.pos).setLength(robot.maxSpeed))
 			if (oppTime < ownTime + OPP_EXTRA_TIME) {
-				return -math.huge, ownTime, bestOppTime
+				return -Infinity, ownTime, bestOppTime
 			}
 
-			bestOppTime = math.min(bestOppTime, oppTime)
+			bestOppTime = Math.min(bestOppTime, oppTime)
 
 		}
 	}
@@ -57,9 +57,9 @@ let calculateInterceptPos = function (robot) {
 	let HYST_TIME = 0.1
 
 	// make sure the last position is reasonable and valid
-	if (lastPositions[robot]  &&  World.Ball.speed:lengthSq() > 0.5 * 0.5) {
-		let pos, dist = lastPositions[robot][1]:orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
-		if (dist > 0.2  ||  World.Time - lastPositions[robot][2] > 0.5  ||
+	if (lastPositions[robot] && World.Ball.speed.lengthSq() > 0.5 * 0.5) {
+		let pos, dist = lastPositions[robot][1].orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
+		if (dist > 0.2 || World.Time - lastPositions[robot][2] > 0.5  ||
 				World.Ball.speed:dot(lastPositions[robot][1] - World.Ball.pos) < -0.1) {
 			lastPositions[robot] = nil
 		} else {
@@ -74,12 +74,12 @@ let calculateInterceptPos = function (robot) {
 	if (not passReceiver) {
 		error("InterceptPass is running with no pass to intercept")
 	}
-	let minTimeToOpp = Physics.ballTravelTime(World.Ball, predictedBallOriginPos:distanceTo(World.Ball.pos))
-	let maxTime = math.min(ballOutTime, minTimeToOpp)
+	let minTimeToOpp = Physics.ballTravelTime(World.Ball, predictedBallOriginPos.distanceTo(World.Ball.pos))
+	let maxTime = Math.min(ballOutTime, minTimeToOpp)
 
 	let bestPos
-	let bestRating = -math.huge
-	let bestRatingOppTime = math.huge
+	let bestRating = -Infinity
+	let bestRatingOppTime = Infinity
 	let posTime
 	for (i = -1, 10) {
 		let useTime
@@ -97,7 +97,7 @@ let calculateInterceptPos = function (robot) {
 		}
 
 		useTime = minTime + i * (maxTime - minTime) / 10
-		futureBallPos = futureBallPos  ||  Physics.ballAtTime(World.Ball, useTime).pos
+		futureBallPos = futureBallPos || Physics.ballAtTime(World.Ball, useTime).pos
 
 		let evaluation, ownTime, bestOppTime = evaluateInterceptPos(robot, futureBallPos)
 
@@ -132,35 +132,35 @@ let obstacleTable = {
 
 
 function InterceptPass:run () {
-	let moveDest, time, oppTime = InterceptPass.calculateInterceptPos(self._robot)
+	let moveDest, time, oppTime = InterceptPass.calculateInterceptPos(this._robot)
 
-	if (moveDest == nil) {
-		let dribblerPos = self._robot.pos + Vector.fromAngle(self._robot.dir):scaleLength(
-				self._robot.shootRadius + World.Ball.radius)
-		moveDest = dribblerPos:nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed * 3)
-		time = Physics.robotTimeToPos(self._robot, moveDest, moveDest:copy():setLength(self._robot.maxSpeed * 0.5))
+	if (moveDest == undefined) {
+		let dribblerPos = this._robot.pos + Vector.fromAngle(this._robot.dir).scaleLength(
+				this._robot.shootRadius + World.Ball.radius)
+		moveDest = dribblerPos.nearestPosOnLine(World.Ball.pos, World.Ball.pos + World.Ball.speed * 3)
+		time = Physics.robotTimeToPos(this._robot, moveDest, moveDest.copy().setLength(this._robot.maxSpeed * 0.5))
 		let firstEnemy = Ball.firstRobotAtBall(World.OpponentRobots)
 		if (not firstEnemy) {
-			oppTime = math.huge
+			oppTime = Infinity
 		} else {
-			let nearestPosOnLine = firstEnemy.pos:nearestPosOnLine(
+			let nearestPosOnLine = firstEnemy.pos.nearestPosOnLine(
 						World.Ball.pos, World.Ball.pos + World.Ball.speed * 3)
 			oppTime = Physics.checkedBallTravelTime(World.Ball, nearestPosOnLine)
 		}
 	}
 
-	let ballTime = Physics.ballTravelTime(World.Ball, World.Ball.pos:distanceTo(moveDest))
+	let ballTime = Physics.ballTravelTime(World.Ball, World.Ball.pos.distanceTo(moveDest))
 
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
-	let dir = (-World.Ball.speed):angle()
-	let endSpeed = Physics.robotMinEndspeed(self._robot, moveDest, ballTime)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
+	let dir = (-World.Ball.speed).angle()
+	let endSpeed = Physics.robotMinEndspeed(this._robot, moveDest, ballTime)
 
-	if (oppTime - time > 0.3  &&  time < 0.8) {
-		self:setMainAttackerParameters(World.Ball.pos, endSpeed:length())
-		self._agent._activeBehavior:_applyForMainAttacker()
+	if (oppTime - time > 0.3 && time < 0.8) {
+		this.setMainAttackerParameters(World.Ball.pos, endSpeed.length())
+		this._agent._activeBehavior:_applyForMainAttacker()
 	}
 
-	self._robot.trajectory:update(ToTarget, moveDest, dir, nil, endSpeed)
+	this._robot.trajectory.update(ToTarget, moveDest, dir, undefined, endSpeed)
 }
 
 return InterceptPass

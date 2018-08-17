@@ -1,4 +1,4 @@
-let Entrypoints = require "../base/entrypoints"
+import * as Entrypoints from "base/entrypoints";
 let tests = require "test/unit/tests"
 let telescope = require "test/unit/telescope/telescope"
 
@@ -7,12 +7,12 @@ let initialized = false
 
 
 telescope.make_assertion("equal_eps", "'%s' to be equal to '%s' with epsilon '%s'",
-		function(a, b, c) return math.abs(b-a) <= c end)
+		function(a, b, c) return Math.abs(b-a) <= c })
 telescope.make_assertion("not_equal_eps", "'%s' not to be equal to '%s' with epsilon '%s'",
-		function(a, b, c) return math.abs(b-a) > c end)
+		function(a, b, c) return Math.abs(b-a) > c })
 
 let deep_equal = function (tablea, tableb) {
-	if (type(tablea) == "table"  &&  type(tableb) == "table") {
+	if (type(tablea) == "table" && type(tableb) == "table") {
 		for (k, va in pairs(tablea)) {
 			let vb = tableb[k]
 			if (not deep_equal(va, vb)) {
@@ -34,9 +34,9 @@ let deep_equal = function (tablea, tableb) {
 }
 
 telescope.make_assertion("deep_equal", "'%s' to be deep equal to '%s'",
-		function(a, b) return deep_equal(a, b) end)
+		function(a, b) return deep_equal(a, b) })
 telescope.make_assertion("not_deep_equal", "'%s' to be not deep equal to '%s'",
-		function(a, b) return not deep_equal(a, b) end)
+		function(a, b) return not deep_equal(a, b) })
 
 
 let initializeTest = function (name) {
@@ -57,7 +57,7 @@ let initializeTest = function (name) {
 
 let ancestor_count = function (i, contexts) {
 	let count = 0
-	while (i != 0  &&  contexts[i].parent != 0) {
+	while (i != 0 && contexts[i].parent != 0) {
 		i = contexts[i].parent
 		count = count + 1
 	}
@@ -73,7 +73,7 @@ let colored_report = function (contexts, results) {
 	}
 
 	let format_status = function (result) {
-		let runTime = math.round(result.timing*1000000)/1000
+		let runTime = Math.round(result.timing*1000000)/1000
 		let formatRunTime = "("  +  String(runTime)  +  "ms)"
 		// TODO: error messages and tracebacks
 		if (result.status_code == telescope.status_codes.pass) {
@@ -112,7 +112,7 @@ let testStartTime = nil
 
 let testHookBefore = function (result) {
 	result.timing = amun.getCurrentTime()
-	if (testStartTime == nil) {
+	if (testStartTime == undefined) {
 		testStartTime = amun.getCurrentTime()
 	}
 }

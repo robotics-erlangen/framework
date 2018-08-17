@@ -1,17 +1,17 @@
 let FastBallPlacement = Class("Group.Move.FastBallPlacement", require "group/move/base")
 
 let BallObserver = require "observer/ball"
-let Constants = require "../base/constants"
-let debug = require "../base/debug"
-let Field = require "../base/field"
-let geom = require "../base/geom"
+import * as Constants from "base/constants";
+import * as debug from "base/debug";
+import * as Field from "base/field";
+import * as geom from "base/geom";
 let Halt = require "task/shared/halt"
-let MoveToPos = require "task/shared/movetopos"
-let Physics = require "observer/physics"
-let Pass = require "task/shared/pass"
+import {MoveToPos} from "glados/task/shared/movetopos";
+import * as Physics from "glados/observer/physics";
+import {Pass} from "glados/task/shared/pass";
 let PlaceBall = require "task/attacker/placeball"
-let vis = require "../base/vis"
-let World = require "../base/world"
+import * as vis from "base/vis";
+import * as World from "base/world";
 
 FastBallPlacement.MIN_ROBOTS = 2
 FastBallPlacement.MAX_ROBOTS = 2
@@ -53,22 +53,22 @@ function FastBallPlacement:_canContinue () {
 }
 
 function FastBallPlacement:_init () {
-	self._state = STATE_WAIT_FOR_BALL_STOP
-	self._stateChanged = true
-	self._stateChangeTime = World.Time
+	this._state = STATE_WAIT_FOR_BALL_STOP
+	this._stateChanged = true
+	this._stateChangeTime = World.Time
 
-	self._ballStartPos = World.Ball.pos
-	self._ballTeleportTime = nil
+	this._ballStartPos = World.Ball.pos
+	this._ballTeleportTime = nil
 
-	self._ballReceiverIntersects = false
+	this._ballReceiverIntersects = false
 
-	self:_determineRoles()
-	self:_determinePositions()
-	self._mainAttacker = self.SHOOTER
+	this._determineRoles()
+	this._determinePositions()
+	this._mainAttacker = this.SHOOTER
 
-	self._selectedEvadingPos = SHOOTER_EVADING_POSITIONS[1]
+	this._selectedEvadingPos = SHOOTER_EVADING_POSITIONS[1]
 
-	self._receiverBallDirection = nil
+	this._receiverBallDirection = nil
 }
 
 function FastBallPlacement:_updateTasks () {
@@ -92,148 +92,148 @@ function FastBallPlacement:_updateTasks () {
 	}
 
 
-	let oldState = self._state
-	self._state = self:_getNextState(self._state)
-	self._stateChanged = self._state != oldState
-	if (self._stateChanged) {
-		self._stateChangeTime = World.Time
+	let oldState = this._state
+	this._state = this._getNextState(this._state)
+	this._stateChanged = this._state != oldState
+	if (this._stateChanged) {
+		this._stateChangeTime = World.Time
 	}
 
 	debug.push("Ball Placement")
-	debug.set("State", self._state)
+	debug.set("State", this._state)
 	debug.pop()
 
 	vis.addCircle("g/m/fastballplacement", World.BallPlacementPos, TOLERANCE, vis.colors.red, true)
 	vis.addCircle("g/m/fastballplacement", World.BallPlacementPos, FINE_ADJUST_ZONE, vis.colors.orange)
 
-	if (self._state == STATE_WAIT_FOR_BALL_STOP) {
-		self:_determinePositions()
-		taskAssignments[self.RECEIVER] = {
+	if (this._state == STATE_WAIT_FOR_BALL_STOP) {
+		this._determinePositions()
+		taskAssignments[this.RECEIVER] = {
 			class = MoveToPos,
-			params = { self._computedReceiverPos, nil, nil, nil, nil, nil, true },
+			params = { this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true },
 			restart = true
 		}
-		taskAssignments[self.SHOOTER] = {
+		taskAssignments[this.SHOOTER] = {
 			class = MoveToPos,
-			params = { Field.limitToField(self._computedShooterPos), nil, nil, nil, true, SHOOTER_OBSTACLES, true },
+			params = { Field.limitToField(this._computedShooterPos), undefined, undefined, undefined, true, SHOOTER_OBSTACLES, true },
 			restart = true
 		}
-	} else if (self._state == STATE_PULL_TO_FIELD) {
-		self._mainAttacker = self.SHOOTER
-		taskAssignments[self.RECEIVER] = {
+	} else if (this._state == STATE_PULL_TO_FIELD) {
+		this._mainAttacker = this.SHOOTER
+		taskAssignments[this.RECEIVER] = {
 			class = MoveToPos,
-			params = { self._computedReceiverPos, nil, nil, nil, nil, nil, true },
-			restart = self._stateChanged
+			params = { this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true },
+			restart = this._stateChanged
 		}
-		taskAssignments[self.SHOOTER] = {
+		taskAssignments[this.SHOOTER] = {
 			class = PlaceBall,
 			params = { Field.limitToField(World.Ball.pos, -TOLERANCE) },
-			restart = self._stateChanged
+			restart = this._stateChanged
 		}
-	} else if (self._state == STATE_GET_INTO_POSITION) {
-		self._mainAttacker = self.SHOOTER
-		self:_determinePositions()
-		taskAssignments[self.RECEIVER] = {
+	} else if (this._state == STATE_GET_INTO_POSITION) {
+		this._mainAttacker = this.SHOOTER
+		this._determinePositions()
+		taskAssignments[this.RECEIVER] = {
 			class = MoveToPos,
-			params = { self._computedReceiverPos, nil, nil, nil, nil, nil, true },
+			params = { this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true },
 			restart = true
 		}
-		taskAssignments[self.SHOOTER] = {
+		taskAssignments[this.SHOOTER] = {
 			class = MoveToPos,
-			params = { self._computedShooterPos, nil, nil, nil, true, SHOOTER_OBSTACLES, true },
+			params = { this._computedShooterPos, undefined, undefined, undefined, true, SHOOTER_OBSTACLES, true },
 			restart = true
 		}
-	} else if (self._state == STATE_EXECUTE_PASS) {
-		self._mainAttacker = self.SHOOTER
+	} else if (this._state == STATE_EXECUTE_PASS) {
+		this._mainAttacker = this.SHOOTER
 
-		taskAssignments[self.SHOOTER] = {
+		taskAssignments[this.SHOOTER] = {
 			class = Pass,
-			params = { self.RECEIVER, World.BallPlacementPos, false, nil, nil, PASS_TARGET_SPEED},
-			restart = self._stateChanged
+			params = { this.RECEIVER, World.BallPlacementPos, false, undefined, undefined, PASS_TARGET_SPEED},
+			restart = this._stateChanged
 		}
-		taskAssignments[self.RECEIVER] = {
+		taskAssignments[this.RECEIVER] = {
 			class = MoveToPos,
-			params = { self._computedReceiverPos, nil, nil, nil, nil, nil, true },
-			restart = self._stateChanged
+			params = { this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true },
+			restart = this._stateChanged
 		}
-	} else if (self._state == STATE_ACCEPT_PASS) {
-		self._mainAttacker = self.RECEIVER
-		taskAssignments[self.SHOOTER] = { class = Halt, restart = self._stateChanged }
+	} else if (this._state == STATE_ACCEPT_PASS) {
+		this._mainAttacker = this.RECEIVER
+		taskAssignments[this.SHOOTER] = { class: Halt, restart: this._stateChanged }
 
-		self.RECEIVER:setDribblerSpeed(MAX_DRIBBLER_SPEED)
+		this.RECEIVER:setDribblerSpeed(MAX_DRIBBLER_SPEED)
 
 		let ballSpeed = World.Ball.speed
-		let intersection, ballLambda = geom.intersectLineLine(World.Ball.pos, ballSpeed, self.RECEIVER.pos, ballSpeed:perpendicular());
-		self._ballReceiverIntersects = ballLambda > 0
+		let intersection, ballLambda = geom.intersectLineLine(World.Ball.pos, ballSpeed, this.RECEIVER.pos, ballSpeed.perpendicular());
+		this._ballReceiverIntersects = ballLambda > 0
 
 		// We don't want to receive a pass out of field because setback may not be possible there
 		if (not Field.isInField(intersection)) {
 			intersection = Field.nextLineCut(World.Ball.pos, ballSpeed)
 		}
 
-		vis.addPath("g/m/fastballplacement", { self.RECEIVER.pos, intersection, World.Ball.pos }, vis.colors.red)
+		vis.addPath("g/m/fastballplacement", { this.RECEIVER.pos, intersection, World.Ball.pos }, vis.colors.red)
 
 		// Stop moving if the ball is near the receiver
 		// We don't use halt because Halt could possibly stop the dribbler from spinning
-		if (World.Ball.pos:distanceTo(self.RECEIVER.pos) < World.Ball.radius + self.RECEIVER.shootRadius + 0.1) {
-			taskAssignments[self.RECEIVER] = {
+		if (World.Ball.pos.distanceTo(this.RECEIVER.pos) < World.Ball.radius + this.RECEIVER.shootRadius + 0.1) {
+			taskAssignments[this.RECEIVER] = {
 				class = MoveToPos,
-				params = { self.RECEIVER.pos, self._receiverBallDirection, nil, nil, nil, nil, true, true },
+				params = { this.RECEIVER.pos, this._receiverBallDirection, undefined, undefined, undefined, undefined, true, true },
 				restart = true
 			}
 		} else {
-			self._receiverBallDirection = (World.Ball.pos - self.RECEIVER.pos):angle()
-			taskAssignments[self.RECEIVER] = {
+			this._receiverBallDirection = (World.Ball.pos - this.RECEIVER.pos).angle()
+			taskAssignments[this.RECEIVER] = {
             class = MoveToPos,
-            params = { intersection, nil, nil, nil, nil, nil, true },
+            params = { intersection, undefined, undefined, undefined, undefined, undefined, true },
             restart = true
         }
 		}
-	} else if (self._state == STATE_WAIT_FOR_SET_BACK) {
-		self._mainAttacker = self.RECEIVER
-		taskAssignments[self.SHOOTER] = { class = Halt, restart = self._stateChanged }
-		taskAssignments[self.RECEIVER] = { class = Halt, restart = self._stateChanged }
-	} else if (self._state == STATE_SET_BACK) {
-		self._mainAttacker = self.RECEIVER
-		taskAssignments[self.SHOOTER] = { class = Halt, restart = self._stateChanged }
-		if (self._stateChanged) {
-			self._computedReceiverPos = self.RECEIVER.pos + (self.RECEIVER.pos - World.Ball.pos):setLength(2 * self.RECEIVER.radius)
+	} else if (this._state == STATE_WAIT_FOR_SET_BACK) {
+		this._mainAttacker = this.RECEIVER
+		taskAssignments[this.SHOOTER] = { class: Halt, restart: this._stateChanged }
+		taskAssignments[this.RECEIVER] = { class: Halt, restart: this._stateChanged }
+	} else if (this._state == STATE_SET_BACK) {
+		this._mainAttacker = this.RECEIVER
+		taskAssignments[this.SHOOTER] = { class: Halt, restart: this._stateChanged }
+		if (this._stateChanged) {
+			this._computedReceiverPos = this.RECEIVER.pos + (this.RECEIVER.pos - World.Ball.pos).setLength(2 * this.RECEIVER.radius)
 		}
-		taskAssignments[self.RECEIVER] = {
+		taskAssignments[this.RECEIVER] = {
 			class = MoveToPos,
-			params = { self._computedReceiverPos, nil, nil, nil, nil, nil, true },
-			restart = self._stateChanged
+			params = { this._computedReceiverPos, undefined, undefined, undefined, undefined, undefined, true },
+			restart = this._stateChanged
 		}
-	} else if (self._state == STATE_FINE_ADJUST) {
-		self._mainAttacker = self.RECEIVER
-		taskAssignments[self.RECEIVER] = {
+	} else if (this._state == STATE_FINE_ADJUST) {
+		this._mainAttacker = this.RECEIVER
+		taskAssignments[this.RECEIVER] = {
 			class = PlaceBall,
-			restart = self._stateChanged
+			restart = this._stateChanged
 		}
-		if (self._stateChanged) {
+		if (this._stateChanged) {
 			// Simple sampling from some preselected positions
 			// If no fitting position could be found (because the field is too small) the last used position is chosen as fallback
 			for (_, pos in ipairs(SHOOTER_EVADING_POSITIONS)) {
-				if (pos:distanceTo(World.BallPlacementPos) > FINE_ADJUST_ZONE) {
-					self._selectedEvadingPos = pos
+				if (pos.distanceTo(World.BallPlacementPos) > FINE_ADJUST_ZONE) {
+					this._selectedEvadingPos = pos
 					break
 				}
 			}
 		}
-		taskAssignments[self.SHOOTER] = {
+		taskAssignments[this.SHOOTER] = {
 			class = MoveToPos,
-			params = { self._selectedEvadingPos, nil, nil, nil, nil, SHOOTER_OBSTACLES, true},
-			restart = self._stateChanged
+			params = { this._selectedEvadingPos, undefined, undefined, undefined, undefined, SHOOTER_OBSTACLES, true},
+			restart = this._stateChanged
 		}
 	}
 
-	if (not taskAssignments[self.SHOOTER]) {
-		error("SHOOTER has no task assigned in state="  +  self._state)
+	if (not taskAssignments[this.SHOOTER]) {
+		error("SHOOTER has no task assigned in state="  +  this._state)
 	}
-	if (not taskAssignments[self.RECEIVER]) {
-		error("RECEIVER has not task assigned in state="  +  self._state)
+	if (not taskAssignments[this.RECEIVER]) {
+		error("RECEIVER has not task assigned in state="  +  this._state)
 	}
-	return taskAssignments, self._mainAttacker
+	return taskAssignments, this._mainAttacker
 }
 
 function FastBallPlacement:_getNextState (currentState) {
@@ -242,13 +242,13 @@ function FastBallPlacement:_getNextState (currentState) {
 	let usedBallPos = BallObserver.getRealisticBallPos()
 	if (currentState == STATE_WAIT_FOR_BALL_STOP) {
 		nextState = STATE_WAIT_FOR_BALL_STOP
-		if (World.Ball.speed:length() < BALL_STOP_SPEED) {
-			self._ballStartPos = usedBallPos
-			if (usedBallPos:distanceTo(World.BallPlacementPos) < FINE_ADJUST_ZONE) {
+		if (World.Ball.speed.length() < BALL_STOP_SPEED) {
+			this._ballStartPos = usedBallPos
+			if (usedBallPos.distanceTo(World.BallPlacementPos) < FINE_ADJUST_ZONE) {
 				nextState = STATE_FINE_ADJUST
 			} else if (not Field.isInField(usedBallPos)
-                     ||  Field.isInFriendlyGoal(usedBallPos)
-                     ||  Field.isInOpponentGoal(usedBallPos)) {
+                    || Field.isInFriendlyGoal(usedBallPos)
+                    || Field.isInOpponentGoal(usedBallPos)) {
 				nextState = STATE_PULL_TO_FIELD
 			} else {
 				nextState = STATE_GET_INTO_POSITION
@@ -258,47 +258,47 @@ function FastBallPlacement:_getNextState (currentState) {
 		nextState = STATE_PULL_TO_FIELD
 		if (Field.isInField(usedBallPos)
  ? not (Field.isInFriendlyGoal(usedBallPos) : Field.isInOpponentGoal(usedBallPos))
-				 &&  self.SHOOTER.pos:distanceTo(usedBallPos) > Constants.stopBallDistance / 3) {
+				 &&  this.SHOOTER.pos.distanceTo(usedBallPos) > Constants.stopBallDistance / 3) {
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		}
 	} else if (currentState == STATE_GET_INTO_POSITION) {
 		nextState = STATE_GET_INTO_POSITION
-		if (World.Ball.speed:length() > BALL_STOP_SPEED
-				 ||  usedBallPos:distanceTo(self._ballStartPos) > MAX_BALL_DISTANCE) {
+		if (World.Ball.speed.length() > BALL_STOP_SPEED
+				 ||  usedBallPos.distanceTo(this._ballStartPos) > MAX_BALL_DISTANCE) {
 			nextState = STATE_WAIT_FOR_BALL_STOP
-		} else if (self.SHOOTER.pos:distanceTo(self._computedShooterPos) < ARRIVED_DISTANCE
-				 &&  self.RECEIVER.pos:distanceTo(self._computedReceiverPos) < ARRIVED_DISTANCE) {
+		} else if (this.SHOOTER.pos.distanceTo(this._computedShooterPos) < ARRIVED_DISTANCE
+				 &&  this.RECEIVER.pos.distanceTo(this._computedReceiverPos) < ARRIVED_DISTANCE) {
 			nextState = STATE_EXECUTE_PASS
 		}
 	} else if (currentState == STATE_EXECUTE_PASS) {
 		nextState = STATE_EXECUTE_PASS
 		if (BallObserver.isShot()) {
 			nextState = STATE_ACCEPT_PASS
-		} else if (usedBallPos:distanceTo(self._ballStartPos) > MAX_BALL_DISTANCE) {
+		} else if (usedBallPos.distanceTo(this._ballStartPos) > MAX_BALL_DISTANCE) {
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		}
 	} else if (currentState == STATE_ACCEPT_PASS) {
 		nextState = STATE_ACCEPT_PASS
-		let ballDist = World.Ball.pos:distanceTo(self.RECEIVER.pos)
-		if (World.Ball.speed:length() < BALL_STOP_SPEED) {
+		let ballDist = World.Ball.pos.distanceTo(this.RECEIVER.pos)
+		if (World.Ball.speed.length() < BALL_STOP_SPEED) {
 			nextState = ballDist > MAX_BALL_DISTANCE ? STATE_WAIT_FOR_BALL_STOP : STATE_WAIT_FOR_SET_BACK
 		}
-		if (not self._ballReceiverIntersects  &&  ballDist > MAX_BALL_DISTANCE) {
+		if (not this._ballReceiverIntersects && ballDist > MAX_BALL_DISTANCE) {
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		}
 	} else if (currentState == STATE_WAIT_FOR_SET_BACK) {
 		nextState = STATE_WAIT_FOR_SET_BACK
-		if (World.Time - self._stateChangeTime > SETBACK_WAIT_TIME) {
+		if (World.Time - this._stateChangeTime > SETBACK_WAIT_TIME) {
 			nextState = STATE_SET_BACK
 		}
 	} else if (currentState == STATE_SET_BACK) {
 		nextState = STATE_SET_BACK
-		if (self.RECEIVER.pos:distanceTo(self._computedReceiverPos) < ARRIVED_DISTANCE) {
+		if (this.RECEIVER.pos.distanceTo(this._computedReceiverPos) < ARRIVED_DISTANCE) {
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		}
 	} else if (currentState == STATE_FINE_ADJUST) {
 		nextState = STATE_FINE_ADJUST
-		if (usedBallPos:distanceTo(World.BallPlacementPos) > FINE_ADJUST_ZONE) {
+		if (usedBallPos.distanceTo(World.BallPlacementPos) > FINE_ADJUST_ZONE) {
 			nextState = STATE_WAIT_FOR_BALL_STOP
 		}
 	}
@@ -316,29 +316,29 @@ let estimateBallStopPosition = function (ball) {
 
 function FastBallPlacement:_determineRoles () {
 	let ballStopPos = estimateBallStopPosition(World.Ball)
-	let oneBallDist = self._robots[1].pos:distanceToSq(ballStopPos)
-	let twoBallDist = self._robots[2].pos:distanceToSq(ballStopPos)
-	let onePlacementDist = self._robots[1].pos:distanceToSq(World.BallPlacementPos)
-	let twoPlacementDist = self._robots[2].pos:distanceToSq(World.BallPlacementPos)
+	let oneBallDist = this._robots[0].pos.distanceToSq(ballStopPos)
+	let twoBallDist = this._robots[1].pos.distanceToSq(ballStopPos)
+	let onePlacementDist = this._robots[0].pos.distanceToSq(World.BallPlacementPos)
+	let twoPlacementDist = this._robots[1].pos.distanceToSq(World.BallPlacementPos)
 
 	let firstIsReceiver = oneBallDist < twoBallDist
-	if (ballStopPos:distanceTo(World.BallPlacementPos) > FINE_ADJUST_ZONE) {
-		firstIsReceiver = math.max(twoBallDist, onePlacementDist) < math.max(oneBallDist, twoPlacementDist)
+	if (ballStopPos.distanceTo(World.BallPlacementPos) > FINE_ADJUST_ZONE) {
+		firstIsReceiver = Math.max(twoBallDist, onePlacementDist) < Math.max(oneBallDist, twoPlacementDist)
 	}
 
 	if (firstIsReceiver) {
-		self.RECEIVER = self._robots[1]
-		self.SHOOTER = self._robots[2]
+		this.RECEIVER = this._robots[0]
+		this.SHOOTER = this._robots[1]
 	} else {
-		self.RECEIVER = self._robots[2]
-		self.SHOOTER = self._robots[1]
+		this.RECEIVER = this._robots[1]
+		this.SHOOTER = this._robots[0]
 	}
 }
 
 function FastBallPlacement:_determinePositions () {
-	let offset = (World.Ball.pos - World.BallPlacementPos):setLength(self.RECEIVER.shootRadius + World.Ball.radius + 0.05)
-	self._computedShooterPos = World.Ball.pos + offset
-	self._computedReceiverPos = World.BallPlacementPos - offset
+	let offset = (World.Ball.pos - World.BallPlacementPos).setLength(this.RECEIVER.shootRadius + World.Ball.radius + 0.05)
+	this._computedShooterPos = World.Ball.pos + offset
+	this._computedReceiverPos = World.BallPlacementPos - offset
 }
 
 return FastBallPlacement

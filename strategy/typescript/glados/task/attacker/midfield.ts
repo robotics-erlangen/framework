@@ -2,30 +2,30 @@ let SuggestPass = require "task/ability/suggestpass"
 let MidfieldSampling = require "task/ability/midfieldsampling"
 let Midfield = Class("Task.Midfield", require "task/base", SuggestPass, MidfieldSampling)
 
-let Physics = require "observer/physics"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as Physics from "glados/observer/physics";
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 
 function Midfield:_init () {
-	self._passPos = nil
+	this._passPos = nil
 
 	// ewwwww hack
-	self._frameCount = 0
+	this._frameCount = 0
 
 	let ignore = false
-	self._obstacleTable = {
+	this._obstacleTable = {
 		ignoreBall = ignore,
 		ignoreGoals = ignore,
 		ignoreDefenseArea = ignore,
 		ignoreOpponentDefenseArea = ignore,
-		inbox = self._inbox,
-		ignorePass = (not self._inbox)  ||  ignore,
+		inbox = this._inbox,
+		ignorePass = (not this._inbox) || ignore,
 		ignoreBallPlacementObstacle = false
 	}
 }
 
 function Midfield:_samplePassPosition () {
-	let zone = self._inbox.midfieldZone().trainer
+	let zone = this._inbox.midfieldZone().trainer
 
 	let left = zone.boundaries.left
 	let right = zone.boundaries.right
@@ -38,12 +38,12 @@ function Midfield:_samplePassPosition () {
 	let xStep = width / 3
 	let yStep = height / 6
 
-	let bestScore = -math.huge
+	let bestScore = -Infinity
 	let bestPoint = nil
 	for (x = left, left + width, xStep) {
 		for (y = bottom, bottom + height, yStep) {
-			let candidatePoint = Vector(x, y)
-			let rating = self:evalLocation(candidatePoint, bestScore)
+			let candidatePoint = new Vector(x, y)
+			let rating = this.evalLocation(candidatePoint, bestScore)
 			if (rating > bestScore) {
 				bestScore = rating
 				bestPoint = candidatePoint
@@ -66,30 +66,30 @@ function Midfield:_samplePassPosition () {
 // }
 
 function Midfield:run () {
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable)
 
-	self:precalculate()
+	this.precalculate()
 
 	// Hacky quickfix for messaging delay problems
-	if ((self._frameCount % 2) == 0) {
-		self._passPos = self:_samplePassPosition()
+	if ((this._frameCount % 2) == 0) {
+		this._passPos = this._samplePassPosition()
 	}
-	self._frameCount = self._frameCount + 1
+	this._frameCount = this._frameCount + 1
 
-	// local random = math.round(math.random() * #disco)
-	// vis.addCircle("middy", self._robot.pos, 0.1, disco[random] or vis.colors.orange, true)
+	// local random = Math.round(Math.random() * #disco)
+	// vis.addCircle("middy", this._robot.pos, 0.1, disco[random] or vis.colors.orange, true)
 
-	let zone = self._inbox.midfieldZone().trainer
+	let zone = this._inbox.midfieldZone().trainer
 	let defaultPos = zone.defaultPos
 
-	let _, attackPosition = next(self._inbox.attackPosition())
+	let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 
-	let time = Physics.robotTimeToPos(self._robot, self._passPos, Vector(0, 0))
-	if (self._passPos) {
-		self:_suggestPass(self._passPos, attackPosition, time)
+	let time = Physics.robotTimeToPos(this._robot, this._passPos, new Vector(0, 0))
+	if (this._passPos) {
+		this._suggestPass(this._passPos, attackPosition, time)
 	}
 	
-	self._robot.trajectory:update(ToTarget, defaultPos, math.pi/2, nil, Vector(0, 0))
+	this._robot.trajectory.update(ToTarget, defaultPos, Math.PI/2, undefined, new Vector(0, 0))
 }
 
 

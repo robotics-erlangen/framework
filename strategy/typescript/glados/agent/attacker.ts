@@ -1,8 +1,8 @@
 let Base = require "agent/base/agent"
 let Attacker = Class("Agent.Attacker", Base)
 
-let World = require "../base/world"
-let debug = require "../base/debug"
+import * as World from "base/world";
+import * as debug from "base/debug";
 
 let ApplyForMainattacker = require "agent/attacker/applyformainattacker"
 let Default = require "agent/attacker/default"
@@ -42,23 +42,23 @@ Attacker._behaviors = {
 
 function Attacker:init (robot, messaging) {
 	Base.init(self, robot, messaging)
-	self.beOffensive = false
+	this.beOffensive = false
 }
 
 function Attacker:_run () {
-	if (self._activeBehavior) {
-		assert(self._activeBehavior._send, "behavior message interface changed")
-		self._activeBehavior._send.attackerFlag("all")
+	if (this._activeBehavior) {
+		assert(this._activeBehavior._send, "behavior message interface changed")
+		this._activeBehavior._send.attackerFlag("all")
 
 		let groupApplication = { name = "moves", payload = {} }
-		self._activeBehavior._send.groupApplication("trainer", groupApplication)
+		this._activeBehavior._send.groupApplication("trainer", groupApplication)
 	}
 
-	debug.set("pool rating", self:rateRobot())
+	debug.set("pool rating", this.rateRobot())
 }
 
 function Attacker.takeRobot (robots) {
-	for (_, robot in ipairs(robots)) {
+	for (let robot of robots) {
 		if (robot.isVisible) {
 			return robot
 		}
@@ -66,18 +66,18 @@ function Attacker.takeRobot (robots) {
 }
 
 function Attacker:keepRobot () {
-	return self._robot.isVisible  &&  self._robot != World.FriendlyKeeper  &&  not self._robot.userControl
+	return this._robot.isVisible && this._robot != World.FriendlyKeeper && not this._robot.userControl
 }
 
 // worse rating if robot is farther away from opponent goal
 function Attacker:rateRobot () {
-	if (self._activeBehavior  &&  self._activeBehavior:forceKeepingInPool()) {
-		return math.huge
+	if (this._activeBehavior && this._activeBehavior:forceKeepingInPool()) {
+		return Infinity
 	}
-	if (self._inbox.mainAttacker().trainer == self._robot) {
+	if (this._inbox.mainAttacker().trainer == this._robot) {
 		return 0
 	}
-	return -World.Geometry.OpponentGoal:distanceTo(self._robot.pos)
+	return -World.Geometry.OpponentGoal.distanceTo(this._robot.pos)
 }
 
 return Attacker

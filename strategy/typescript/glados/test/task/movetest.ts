@@ -1,20 +1,20 @@
-let Entrypoints = require "../base/entrypoints"
-let plot = require "../base/plot"
-let World = require "../base/world"
+import * as Entrypoints from "base/entrypoints";
+import * as plot from "base/plot";
+import * as World from "base/world";
 let AgentPool = require "control/agentpool"
 let Coordinator = require "control/coordinator"
 let Trainer = require "trainer/trainer"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 
 
-let START_POS = Vector(0, 0.5)
+let START_POS = new Vector(0, 0.5)
 let CENTER_DIST = 1.3
-let START_ANGLE = 60/180*math.pi
-let ANGLE_STEP = 360/180*math.pi
+let START_ANGLE = 60/180*Math.PI
+let ANGLE_STEP = 360/180*Math.PI
 let WAIT_TIME = 3
-let ROBOT_ORIENTATION = 0/180*math.pi
-let ROBOT_ORIENTATION_STEP = 300/180*math.pi
+let ROBOT_ORIENTATION = 0/180*Math.PI
+let ROBOT_ORIENTATION_STEP = 300/180*Math.PI
 
 let obstacleTable = {
 	ignorePass = true
@@ -22,63 +22,63 @@ let obstacleTable = {
 
 let MoveTestTask = Class("Test.Task.MoveTest.Task", require "task/base")
 function MoveTestTask:_init (idx, total) {
-	self._dest = nil
-	self._atTargetSince = nil
-	self._angle = START_ANGLE
-	self._orientation = ROBOT_ORIENTATION
+	this._dest = nil
+	this._atTargetSince = nil
+	this._angle = START_ANGLE
+	this._orientation = ROBOT_ORIENTATION
 	// line up robots
-	self._startPos = START_POS + Vector((idx - total/2) * 0.5, 0)
+	this._startPos = START_POS + new Vector((idx - total/2) * 0.5, 0)
 }
 
 function MoveTestTask:run () {
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
 
 	let pos
-	if (self._dest) {
-		pos = self._dest
+	if (this._dest) {
+		pos = this._dest
 	} else {
-		pos = self._startPos
+		pos = this._startPos
 	}
-	let dir = self._orientation
+	let dir = this._orientation
 
-	let targetDist = self._robot.pos:distanceTo(pos)
-	if (targetDist < 0.05  &&  self._atTargetSince == nil) {
-		self._atTargetSince = World.Time
+	let targetDist = this._robot.pos.distanceTo(pos)
+	if (targetDist < 0.05 && this._atTargetSince == undefined) {
+		this._atTargetSince = World.Time
 	} else if (targetDist > 0.01) {
-		self._atTargetSince = nil
+		this._atTargetSince = nil
 	}
 	let synchronized = false
-	if (self._atTargetSince  &&  World.Time - self._atTargetSince > WAIT_TIME) {
-		self._send.defenderFlag("all")
-		synchronized = (table.count(self._inbox.attackerFlag("broadcast")) - table.count(self._inbox.defenderFlag("broadcast"))) == 0
+	if (this._atTargetSince && World.Time - this._atTargetSince > WAIT_TIME) {
+		this._send.defenderFlag("all")
+		synchronized = (table.count(this._inbox.attackerFlag("broadcast")) - table.count(this._inbox.defenderFlag("broadcast"))) == 0
 	}
 	if (synchronized) {
-		if (self._dest) {
-			self._dest = nil
+		if (this._dest) {
+			this._dest = nil
 		} else {
-			self._dest = self._startPos + Vector.fromAngle(self._angle):scaleLength(CENTER_DIST)
-			self._angle = self._angle + ANGLE_STEP
+			this._dest = this._startPos + Vector.fromAngle(this._angle).scaleLength(CENTER_DIST)
+			this._angle = this._angle + ANGLE_STEP
 		}
-		self._orientation = self._orientation + ROBOT_ORIENTATION_STEP
+		this._orientation = this._orientation + ROBOT_ORIENTATION_STEP
 	}
 
-	plot.addPlot("positionError."  +  String(self._robot.id), self._robot.pos:distanceTo(pos))
-	self._robot.trajectory:update(ToTarget, pos, dir)
+	plot.addPlot("positionError."  +  String(this._robot.id), this._robot.pos.distanceTo(pos))
+	this._robot.trajectory.update(ToTarget, pos, dir)
 }
 
 
 let Position = Class("Test.Task.MoveTest.Behavior", require "agent/base/behavior")
 function Position:check () {
-	self._send.attackerFlag("all")
+	this._send.attackerFlag("all")
 	// also receive own message
-	return next(self._inbox.attackerFlag("broadcast")) != nil
+	return next(this._inbox.attackerFlag("broadcast")) != nil
 }
 
 function Position:_updateTask () {
 	let idx = 0
 	let total = 0
-	for (robot, _ in pairs(self._inbox.attackerFlag())) {
-		if (self._robot.id > robot.id) {
+	for (robot, _ in pairs(this._inbox.attackerFlag())) {
+		if (this._robot.id > robot.id) {
 			idx = idx + 1
 		}
 		total = total + 1
@@ -96,9 +96,9 @@ MoveAgent._behaviors = {
 let coord = nil
 
 let run = function () {
-	if (coord == nil) {
+	if (coord == undefined) {
 		let trainer = Trainer()
-		let pools = { path = AgentPool(MoveAgent, #World.FriendlyRobotsAll) }
+		let pools = { path = AgentPool(MoveAgent, World.FriendlyRobots.lengthAll) }
 		let poolGroups = { { pools.path } }
 		coord = Coordinator(trainer, pools, poolGroups)
 	}

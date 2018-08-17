@@ -1,11 +1,11 @@
 let Base = require "agent/base/behavior"
 let DoubleTouchGuard = Class("Agent.Attacker.DoubleTouchGuard", Base)
 
-let debug = require "../base/debug"
-let Referee = require "../base/referee"
-let World = require "../base/world"
-let Ball = require "observer/ball"
-let Robot = require "observer/robot"
+import * as debug from "base/debug";
+import * as Referee from "base/referee";
+import * as World from "base/world";
+import * as Ball from "glados/tobserver/ball";
+import * as Robot from "glados/observer/robot";
 let StopAttack = require "task/attacker/stopattack"
 
 
@@ -23,7 +23,7 @@ function DoubleTouchGuard:check () {
 	debug.set("wasShot Condition", not Ball.wasShot(World.Time - lastFreekickTime))
 	debug.pop()
 
-	if (World.RefereeState == "Game"  &&  Robot.ownStandardShooter() == self._robot  &&  not Ball.wasShot(World.Time-lastFreekickTime)) {
+	if (World.RefereeState == "Game" && Robot.ownStandardShooter() == this._robot && not Ball.wasShot(World.Time-lastFreekickTime)) {
 		return true
 	}
 	return false

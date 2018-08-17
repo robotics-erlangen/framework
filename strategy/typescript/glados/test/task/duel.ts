@@ -1,9 +1,9 @@
-let Entrypoints = require "../base/entrypoints"
-let World = require "../base/world"
+import * as Entrypoints from "base/entrypoints";
+import * as World from "base/world";
 let AgentPool = require "control/agentpool"
 let Coordinator = require "control/coordinator"
-let Duel = require "task/shared/duel"
-let ShootGoal = require "task/attacker/shootgoal"
+import {Duel} from "glados/task/shared/duel";
+import {ShootGoal} from "glados/task/attacker/shootgoal";
 let Trainer = require "trainer/trainer"
 
 
@@ -18,7 +18,7 @@ function Dueler:_updateTask () {
 	if (World.TeamIsBlue) {
 		return Duel, {}
 	} else {
-		return ShootGoal //MoveToStaticBall, {1.5 * math.pi, 0}
+		return ShootGoal //MoveToStaticBall, {1.5 * Math.PI, 0}
 	}
 
 }
@@ -32,7 +32,7 @@ DuelAgent._behaviors = {
 let coord = nil
 
 let run = function () {
-	if (coord == nil) {
+	if (coord == undefined) {
 		let trainer = Trainer()
 		let pools = { pass = AgentPool(DuelAgent, 1) }
 		let poolGroups = { { pools.pass } }

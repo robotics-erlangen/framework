@@ -1,4 +1,4 @@
-let Entrypoints = require "../base/entrypoints"
+import * as Entrypoints from "base/entrypoints";
 
 /// Loads every test
 let Tests = {
@@ -18,7 +18,7 @@ for (name,s in pairs(Tests)) {
 	}
 
 	for (fn,f in pairs(s)) {
-		if (type(fn) == "string"  &&  type(f) == "function") {
+		if (type(fn) == "string" && type(f) == "function") {
 			let testname = fn:match("^test(.+)")
 			if (testname) {
 				Entrypoints.add("ObserverTest/"  +  name  +  "/"  +  testname, f)

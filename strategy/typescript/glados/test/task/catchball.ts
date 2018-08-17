@@ -1,8 +1,8 @@
-let Entrypoints = require "../base/entrypoints"
-let World = require "../base/world"
+import * as Entrypoints from "base/entrypoints";
+import * as World from "base/world";
 
 let TestHelper = require "test/helper/agent"
-let PathHelper = require "trajectory/pathhelper"
+import * as PathHelper from "glados/trajectory/pathhelper";
 let CatchballAbility = require "task/ability/catchball"
 
 let CatchballTask = Class("Test.Task.Catchball.Task", require "task/base", CatchballAbility)
@@ -15,9 +15,9 @@ function CatchballTask:_init () {
 }
 
 function CatchballTask:run () {
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
-	self._robot:setDribblerSpeed(1)
-	self:_catchBall(World.Geometry.OpponentGoal)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
+	this._robot:setDribblerSpeed(1)
+	this._catchBall(World.Geometry.OpponentGoal)
 }
 
 let CatchballBehavior = TestHelper.staticBehavior(CatchballTask, {})

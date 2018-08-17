@@ -6,13 +6,13 @@ context("base.field", function()
 
 	let initHelper = function (ruleversion) {
 		World.RULEVERSION = ruleversion
-		Field = injector:load("../base/field")
+		Field = injector.load("+/base/field")
 	}
 
 	before(function()
-		injector = Injector(nil)
-		injector:load("../base/math")
-		injector:load("../base/geom")
+		injector = Injector(undefined)
+		injector.load("+/base/math")
+		injector.load("+/base/geom")
 
 		World = {
 			Geometry = {
@@ -24,7 +24,7 @@ context("base.field", function()
 				GoalWidth = 1,
 				GoalDepth = 0.18,
 			},
-			RULEVERSION = nil // keep unset for now
+			RULEVERSION = undefined // keep unset for now
 		}
 		G = World.Geometry
 		G.DefenseStretchHalf = G.DefenseStretch / 2
@@ -41,36 +41,36 @@ context("base.field", function()
 			}
 		}
 
-		injector:addModuleOverlay("../base/world", World)
-		injector:addModuleOverlay("../base/referee", Referee)
+		injector:addModuleOverlay("+/base/world", World)
+		injector:addModuleOverlay("+/base/referee", Referee)
 	end)
 
 	test("distanceToDefenseArea_2018", function()
 		initHelper("2018")
 
-		let pos = Vector(0, 0)
+		let pos = new Vector(0, 0)
 		assert_equal(Field.distanceToDefenseArea(pos, 3, false), 0.5)
 		assert_equal(Field.distanceToDefenseArea(pos, 3, true), 0.5)
 
 		assert_false(Field.isInDefenseArea(pos, 0.18, false))
 		assert_false(Field.isInDefenseArea(pos, 0.18, true))
-		pos = Vector(0.1, G.FieldHeightHalf)
+		pos = new Vector(0.1, G.FieldHeightHalf)
 		assert_true(Field.isInDefenseArea(pos, 0.18, false))
 		assert_false(Field.isInDefenseArea(pos, 0.18, true))
-		pos = Vector(G.DefenseWidthHalf + 0.2, -G.FieldHeightHalf + 0.4)
+		pos = new Vector(G.DefenseWidthHalf + 0.2, -G.FieldHeightHalf + 0.4)
 		assert_true(Field.isInDefenseArea(pos, 0.3, true))
 		assert_false(Field.isInDefenseArea(pos, 0.3, false))
-		pos = Vector(G.DefenseWidthHalf + 0.1, G.FieldHeightHalf - G.DefenseHeight - 0.1)
+		pos = new Vector(G.DefenseWidthHalf + 0.1, G.FieldHeightHalf - G.DefenseHeight - 0.1)
 		assert_true(Field.isInDefenseArea(pos, 0.2, false))
 
-		pos = Vector(G.DefenseWidthHalf - 0.01, G.FieldHeightHalf-G.DefenseHeight/2)
+		pos = new Vector(G.DefenseWidthHalf - 0.01, G.FieldHeightHalf-G.DefenseHeight/2)
 		// log(Field.distanceToDefenseArea(pos, -0.02))
 		// log(Field.distanceToDefenseArea(pos, -0.02))
-		assert_true(math.abs(Field.distanceToDefenseArea(pos, -0.02)-0.01)<0.000001)
+		assert_true(Math.abs(Field.distanceToDefenseArea(pos, -0.02)-0.01)<0.000001)
 		assert_false(Field.isInDefenseArea(pos, -0.02))
 		assert_true(Field.distanceToDefenseArea(pos, -0.005)<=0)
 		assert_true(Field.isInDefenseArea(pos, -0.005))
-		pos = Vector(0, G.FieldHeightHalf - G.DefenseHeight/2)
+		pos = new Vector(0, G.FieldHeightHalf - G.DefenseHeight/2)
 		assert_true(Field.distanceToDefenseArea(pos, -G.DefenseHeight/2 + 0.0001)<=0)
 		assert_true(Field.isInDefenseArea(pos, -G.DefenseHeight/2 + 0.0001))
 		assert_true(Field.distanceToDefenseArea(pos, -G.DefenseHeight/2 - 0.0001)>0)
@@ -80,24 +80,24 @@ context("base.field", function()
 	test("distanceToDefenseArea_2017", function()
 		initHelper("2017")
 
-		let pos = Vector(0, 0)
+		let pos = new Vector(0, 0)
 		assert_equal(Field.distanceToDefenseArea(pos, 3, false), 0.5)
 		assert_equal(Field.distanceToDefenseArea(pos, 3, true), 0.5)
 		assert_false(Field.isInDefenseArea(pos, 0.18, false))
 		assert_false(Field.isInDefenseArea(pos, 0.18, true))
-		pos = Vector(0.1, G.FieldHeightHalf)
+		pos = new Vector(0.1, G.FieldHeightHalf)
 		assert_true(Field.isInDefenseArea(pos, 0.18, false))
 		assert_false(Field.isInDefenseArea(pos, 0.18, true))
 
 
-		pos = Vector(G.DefenseStretchHalf + G.DefenseRadius - 0.01, G.FieldHeightHalf)
+		pos = new Vector(G.DefenseStretchHalf + G.DefenseRadius - 0.01, G.FieldHeightHalf)
 		// log(Field.distanceToDefenseArea(pos, -0.02))
 		// log(Field.distanceToDefenseArea(pos, -0.02))
-		assert_true(math.abs(Field.distanceToDefenseArea(pos, -0.02)-0.01)<0.000001)
+		assert_true(Math.abs(Field.distanceToDefenseArea(pos, -0.02)-0.01)<0.000001)
 		assert_false(Field.isInDefenseArea(pos, -0.02))
 		assert_true(Field.distanceToDefenseArea(pos, -0.005)<=0)
 		assert_true(Field.isInDefenseArea(pos, -0.005))
-		pos = Vector(0, G.FieldHeightHalf)
+		pos = new Vector(0, G.FieldHeightHalf)
 		assert_true(Field.distanceToDefenseArea(pos, -G.DefenseRadius + 0.0001)<=0)
 		assert_true(Field.isInDefenseArea(pos, -G.DefenseRadius + 0.0001))
 		assert_true(Field.distanceToDefenseArea(pos, -G.DefenseRadius - 0.0001)>0)
@@ -106,12 +106,12 @@ context("base.field", function()
 	test("intersectDefenseArea_2018", function()
 		initHelper("2018")
 
-		let pos = Vector(0,0)
-		let dir = Vector(0,-1)
+		let pos = new Vector(0,0)
+		let dir = new Vector(0,-1)
 		// log("hi")
 		let d = 0.2
-		let v = Vector(0, -G.FieldHeightHalf+G.DefenseHeight+d)
+		let v = new Vector(0, -G.FieldHeightHalf+G.DefenseHeight+d)
 		let intersection = Field.intersectRayDefenseArea(pos,dir,d,true)
-		assert_true(v:distanceToSq(intersection) == 0)
+		assert_true(v.distanceToSq(intersection) == 0)
 	end)
 end)

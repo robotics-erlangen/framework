@@ -1,7 +1,7 @@
 let MovesHelper = {}
 
-let geom = require "../base/geom"
-let vis = require "../base/vis"
+import * as geom from "base/geom";
+import * as vis from "base/vis";
 
 // this function draws the two circles, in which a volley pass is not possible
 // it also returns the values from the indiscribed angle theorem
@@ -38,7 +38,7 @@ let createOptionsTableRec = function (options) {
 // @return table - assignments. use like this: robots[assignment[i]] -> assign to positions[i]
 function MovesHelper.assignRobots (robots, positions, ignoreFirstNRobots) {
 	if (#robots - ignoreFirstNRobots != #positions) {
-		log("Moveshelper: unmatching number of robots  &&  positions!")
+		log("Moveshelper: unmatching number of robots && positions!")
 		return
 	}
 	let assignment = {}
@@ -48,11 +48,11 @@ function MovesHelper.assignRobots (robots, positions, ignoreFirstNRobots) {
 
 	let options = createOptionsTableRec(#positions)
 	let bestOptionIndex
-	let bestOptionScore = math.huge
+	let bestOptionScore = Infinity
 	for (i, option in ipairs(options)) {
 		let totalDistance = 0
 		for (b, id in ipairs(option)) {
-			totalDistance = totalDistance + robots[ignoreFirstNRobots + id].pos:distanceToSq(positions[b])
+			totalDistance = totalDistance + robots[ignoreFirstNRobots + id].pos.distanceToSq(positions[b])
 		}
 		if (totalDistance < bestOptionScore) {
 			bestOptionScore = totalDistance

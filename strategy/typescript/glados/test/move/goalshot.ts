@@ -1,11 +1,11 @@
 let GoalShot = Class("Test.Move.GoalShot", require "group/move/base")
 
-let MoveToPos = require "task/shared/movetopos"
-let World = require "../base/world"
+import {MoveToPos} from "glados/task/shared/movetopos";
+import * as World from "base/world";
 let G = World.Geometry
-let Ball = require "observer/ball"
+import * as Ball from "glados/tobserver/ball";
 
-let ShootGoal = require "task/attacker/shootgoal"
+import {ShootGoal} from "glados/task/attacker/shootgoal";
 
 GoalShot.MIN_ROBOTS = 1
 GoalShot.MAX_ROBOTS = 1
@@ -18,11 +18,11 @@ function GoalShot.canStart () {
 }
 
 function GoalShot:_init () {
-	self._shotTime = nil
-	self._distance = 0
-	self._times = 0
+	this._shotTime = nil
+	this._distance = 0
+	this._times = 0
 	log("")
-	log("Distance: "..String(G.FieldHeightHalf - self._distance))
+	log("Distance: "+String(G.FieldHeightHalf - this._distance))
 }
 
 function GoalShot:_canContinue () {
@@ -30,45 +30,45 @@ function GoalShot:_canContinue () {
 }
 
 function GoalShot:_update () {
-	if (self._shotTime ? (World.Ball.pos.y < -G.FieldHeightHalf : World.Ball.pos:distanceTo(World.OpponentKeeper.pos) < self._robots[1].radius + World.Ball.radius + 0.02)) {
-		log("Try No. "..String(self._times+1)..":")
-		log("Ball travel time: "..String(World.Time - self._shotTime))
-		self._shotTime = nil
-		self._times = self._times + 1
-		if (self._times == TIMES) {
-			self._distance = self._distance + INTERVAL
-			self._times = 0
+	if (this._shotTime ? (World.Ball.pos.y < -G.FieldHeightHalf : World.Ball.pos.distanceTo(World.OpponentKeeper.pos) < this._robots[0].radius + World.Ball.radius + 0.02)) {
+		log("Try No. "+String(this._times+1)+":")
+		log("Ball travel time: "+String(World.Time - this._shotTime))
+		this._shotTime = nil
+		this._times = this._times + 1
+		if (this._times == TIMES) {
+			this._distance = this._distance + INTERVAL
+			this._times = 0
 			log("")
-			log("Distance: "..String(G.FieldHeightHalf - self._distance))
+			log("Distance: "+String(G.FieldHeightHalf - this._distance))
 		}
 	}
 }
 
 function GoalShot:_updateTasks () {
 	let taskAssignments = {}
-	self:_update()
+	this._update()
 
 	let prep = World.RefereeState == "IndirectOffensive"
 	let shoot = World.RefereeState == "DirectOffensive"
 	let abort = World.RefereeState == "KickoffOffensivePrepare"
 
-	let pos = Vector(0, self._distance)
+	let pos = new Vector(0, this._distance)
 	if (abort) {
-		self._shotTime = nil
-		taskAssignments[self._robots[1]] = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
+		this._shotTime = nil
+		taskAssignments[this._robots[0]] = {class: MoveToPos, params: {pos, Math.PI/2}, restart: true}
 	} else if (prep) {
-		taskAssignments[self._robots[1]] = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
+		taskAssignments[this._robots[0]] = {class: MoveToPos, params: {pos, Math.PI/2}, restart: true}
 	} else if (Ball.isShot()) {
-		self._shotTime = World.Time
-		taskAssignments[self._robots[1]] = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
+		this._shotTime = World.Time
+		taskAssignments[this._robots[0]] = {class: MoveToPos, params: {pos, Math.PI/2}, restart: true}
 	} else if (shoot) {
-		taskAssignments[self._robots[1]] = {class = ShootGoal}
+		taskAssignments[this._robots[0]] = {class: ShootGoal}
 	} else {
-		taskAssignments[self._robots[1]] = {class = MoveToPos, params = {pos, math.pi/2}, restart = true}
+		taskAssignments[this._robots[0]] = {class: MoveToPos, params: {pos, Math.PI/2}, restart: true}
 	}
 
 
-	return taskAssignments, self._robots[1]
+	return taskAssignments, this._robots[0]
 }
 
 return GoalShot

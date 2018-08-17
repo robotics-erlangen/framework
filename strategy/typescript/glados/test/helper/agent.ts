@@ -8,8 +8,8 @@ let Trainer = require "trainer/trainer"
 let StaticBehavior = Class("test.helper.agent.StaticBehavior", require "agent/base/behavior")
 
 function StaticBehavior:_init () {
-	self._staticTask = nil
-	self._staticParameters = nil
+	this._staticTask = nil
+	this._staticParameters = nil
 }
 
 function StaticBehavior:check () {
@@ -17,12 +17,12 @@ function StaticBehavior:check () {
 }
 
 function StaticBehavior:_updateTask () {
-	return self._staticTask, self._staticParameters
+	return this._staticTask, this._staticParameters
 }
 
 function StaticBehavior:_setStatic (staticTask, staticParameters) {
-	self._staticTask = staticTask
-	self._staticParameters = staticParameters
+	this._staticTask = staticTask
+	this._staticParameters = staticParameters
 }
 
 
@@ -50,7 +50,7 @@ function AgentHelper.defaultCoordinator (poolname, agent, agentCount) {
 	let coord = nil
 
 	let run = function () {
-		if (coord == nil) {
+		if (coord == undefined) {
 			let trainer = Trainer()
 			let pools = { [poolname] = AgentPool(agent, agentCount) }
 			let poolGroups = { { pools[poolname] } }

@@ -1,11 +1,11 @@
 let CommChallengeSlave = Class("Test.Move.CommChallengeSlave", require "group/move/base")
 
-let World = require "../base/world"
-let MoveToPos = require "task/shared/movetopos"
-let vis = require "../base/vis"
-let Field = require "../base/field"
-let Ball = require "observer/ball"
-let ShootGoal = require "task/attacker/shootgoal"
+import * as World from "base/world";
+import {MoveToPos} from "glados/task/shared/movetopos";
+import * as vis from "base/vis";
+import * as Field from "base/field";
+import * as Ball from "glados/tobserver/ball";
+import {ShootGoal} from "glados/task/attacker/shootgoal";
 
 CommChallengeSlave.MIN_ROBOTS = 1
 CommChallengeSlave.MAX_ROBOTS = 6
@@ -47,7 +47,7 @@ function CommChallengeSlave:_updateTasks () {
 
 		for (robotId, msg in pairs(World.MixedTeam)) {
 			let robot = World.FriendlyRobotsById[robotId]
-			if (robot  &&  robot.generation == robot.GENERATION_2014_ID) {
+			if (robot && robot.generation == robot.GENERATION_2014_ID) {
 				let pos
 				if (msg.shootPos) {
 					passReceiver = robot
@@ -60,23 +60,23 @@ function CommChallengeSlave:_updateTasks () {
 				}
 
 
-				taskAssignments[robot] =  { class = MoveToPos,
-					params = {pos}, restart = true }
+				taskAssignments[robot] =  { class: MoveToPos,
+					params = {pos}, restart: true }
 
 			}
 		}
 	}
 
-	if (ballWasShot  &&  passReceiver) {
-		taskAssignments[passReceiver] = { class = ShootGoal }
+	if (ballWasShot && passReceiver) {
+		taskAssignments[passReceiver] = { class: ShootGoal }
 	}
 
 	for (_, robot in pairs(World.FriendlyRobots)) {
-		if (World.RefereeState == "Stop"  ||  not taskAssignments[robot]) {
-			let pos = Vector(
+		if (World.RefereeState == "Stop" || not taskAssignments[robot]) {
+			let pos = new Vector(
 				-World.Geometry.FieldWidthHalf+1+robot.id*0.4,
 				-0.7)
-			taskAssignments[robot] = { class = MoveToPos, params = {pos}, restart=true }
+			taskAssignments[robot] = { class: MoveToPos, params: {pos}, restart=true }
 		}
 	}
 

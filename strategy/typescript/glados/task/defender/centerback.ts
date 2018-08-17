@@ -1,96 +1,96 @@
 let ForceShoot = require "task/ability/forceshoot"
 let CenterBack = Class("Task.CenterBack", require "task/base", ForceShoot)
 
-let debug = require "../base/debug"
-let Field = require "../base/field"
-let geom = require "../base/geom"
-let Referee = require "../base/referee"
-let World = require "../base/world"
-let Physics = require "observer/physics"
-let Robot = require "observer/robot"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
-let UtilDefense = require "util/defense"
+import * as debug from "base/debug";
+import * as Field from "base/field";
+import * as geom from "base/geom";
+import * as Referee from "base/referee";
+import * as World from "base/world";
+import * as Physics from "glados/observer/physics";
+import * as Robot from "glados/observer/robot";
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
+import * as UtilDefense from "glados/util/defense";
 
 let G = World.Geometry
 
 // centerbackTarget has to be updated by the caller
 function CenterBack:_init (centerbackTarget) {
 	assert(centerbackTarget, "CB has to be called with a non null centerbackTarget")
-	self._preliminaryCenterbackTarget = centerbackTarget
+	this._preliminaryCenterbackTarget = centerbackTarget
 
-	self._lookingToGoal = true
-	self._obstacleTable = {
+	this._lookingToGoal = true
+	this._obstacleTable = {
 		ignoreBall = true,
-		inbox = self._inbox
+		inbox = this._inbox
 	}
 }
 
 function CenterBack:run () {
-	let groupApplication = { name = "centerback", payload = self._preliminaryCenterbackTarget }
-	self._send.groupApplication("trainer", groupApplication)
+	let groupApplication = { name = "centerback", payload = this._preliminaryCenterbackTarget }
+	this._send.groupApplication("trainer", groupApplication)
 
-	let pos_target = self._inbox.centerBackPosTarget().trainer
+	let pos_target = this._inbox.centerBackPosTarget().trainer
 
 	let destinationPos = pos_target ? pos_target.pos : UtilDefense.centerBackDefaultPos
-	let destinationTime = pos_target ? pos_target.time : math.huge
+	let destinationTime = pos_target ? pos_target.time : Infinity
 
-	let toBallAngle = (World.Ball.pos - self._robot.pos):angle()
-	let toGoalAngle = (World.Geometry.OpponentGoal - self._robot.pos):angle()
-	let toCornerLeftAngle = (Vector(-World.Geometry.FieldWidthHalf,
-			World.Geometry.FieldHeightHalf) - self._robot.pos):angle()
-	let toCornerRightAngle = (Vector(World.Geometry.FieldWidthHalf,
-			World.Geometry.FieldHeightHalf) - self._robot.pos):angle()
-	let fromGoalAngle = (self._robot.pos - World.Geometry.FriendlyGoal):angle()
+	let toBallAngle = (World.Ball.pos - this._robot.pos).angle()
+	let toGoalAngle = (World.Geometry.OpponentGoal - this._robot.pos).angle()
+	let toCornerLeftAngle = (new Vector(-World.Geometry.FieldWidthHalf,
+			World.Geometry.FieldHeightHalf) - this._robot.pos).angle()
+	let toCornerRightAngle = (new Vector(World.Geometry.FieldWidthHalf,
+			World.Geometry.FieldHeightHalf) - this._robot.pos).angle()
+	let fromGoalAngle = (this._robot.pos - World.Geometry.FriendlyGoal).angle()
 
-	let hystAngle = 5 * math.pi/180
+	let hystAngle = 5 * Math.PI/180
 	let dir = toBallAngle
-	if ((self._lookingToGoal  &&  toBallAngle < toCornerLeftAngle + hystAngle  &&
+	if ((this._lookingToGoal && toBallAngle < toCornerLeftAngle + hystAngle  &&
 			toBallAngle > toCornerRightAngle + hystAngle)  ||
 			(toBallAngle < toCornerLeftAngle - hystAngle  &&
 			toBallAngle > toCornerRightAngle - hystAngle)) {
 		dir = toGoalAngle
-		self._lookingToGoal = true
+		this._lookingToGoal = true
 	} else {
-		self._lookingToGoal = false
+		this._lookingToGoal = false
 	}
 
-	let maxAngleTilt = 40 * math.pi / 180
-	dir = geom.normalizeAnglePositive(dir + 0.5 * math.pi) - 0.5 * math.pi
-	dir = math.bound(fromGoalAngle - maxAngleTilt, dir, fromGoalAngle + maxAngleTilt)
+	let maxAngleTilt = 40 * Math.PI / 180
+	dir = geom.normalizeAnglePositive(dir + 0.5 * Math.PI) - 0.5 * Math.PI
+	dir = MathUtil.bound(fromGoalAngle - maxAngleTilt, dir, fromGoalAngle + maxAngleTilt)
 
-	if (not Robot.hadBall(self._robot, 0)) {
-		self._forceShootTimer = nil
+	if (not Robot.hadBall(this._robot, 0)) {
+		this._forceShootTimer = nil
 	}
-	let chipActivationAngle = math.pi / 6
-	let isGame = World.RefereeState == "Game"  ||  World.RefereeState == "GameForce"
-	if (isGame  &&  dir > chipActivationAngle  &&  dir < math.pi - chipActivationAngle  &&
-			Vector.fromAngle(dir):absoluteAngleDiff(destinationPos - G.FriendlyGoal) < math.pi
-			 &&  World.Ball.pos:distanceTo(self._robot.pos) < 1
-			 &&  self._robot.pos:distanceTo(destinationPos) < 1) {
+	let chipActivationAngle = Math.PI / 6
+	let isGame = World.RefereeState == "Game" || World.RefereeState == "GameForce"
+	if (isGame && dir > chipActivationAngle && dir < Math.PI - chipActivationAngle  &&
+			Vector.fromAngle(dir).absoluteAngleDiff(destinationPos - G.FriendlyGoal) < Math.PI
+			 &&  World.Ball.pos.distanceTo(this._robot.pos) < 1
+			 &&  this._robot.pos.distanceTo(destinationPos) < 1) {
 		debug.set("chip", true)
-		self:_doForceShoot()
-		self._robot:chip(2)
+		this._doForceShoot()
+		this._robot.chip(2)
 	}
 
-	self._obstacleTable.ignoreOpponentRobots = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-		< 4 * self._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05
+	this._obstacleTable.ignoreOpponentRobots = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius)
+		< 4 * this._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05
 
-	self._obstacleTable.ignoreFriendlyRobots = Field.distanceToFriendlyDefenseArea(self._robot.pos, self._robot.radius)
-		< 2 * self._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05
-	self._obstacleTable.ignorePass = self._obstacleTable.ignoreFriendlyRobots
+	this._obstacleTable.ignoreFriendlyRobots = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius)
+		< 2 * this._robot.radius + UtilDefense.centerBackDistanceToDefenseArea() + 0.05
+	this._obstacleTable.ignorePass = this._obstacleTable.ignoreFriendlyRobots
 
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, self._obstacleTable)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable)
 
-	let mainAttacker = self._inbox.mainAttacker().trainer
-	if (mainAttacker  &&  Referee.isFriendlyFreeKickState()  &&  World.Ball.pos.y < World.Geometry.FieldHeightHalf) {
+	let mainAttacker = this._inbox.mainAttacker().trainer
+	if (mainAttacker && Referee.isFriendlyFreeKickState() && World.Ball.pos.y < World.Geometry.FieldHeightHalf) {
 		let startPos = World.Ball.pos
 		let endPos = mainAttacker.pos
-		self._robot.path:addLine(startPos.x, startPos.y, endPos.x, endPos.y, mainAttacker.radius * 2 + 0.1, 100)
+		this._robot.path:addLine(startPos.x, startPos.y, endPos.x, endPos.y, mainAttacker.radius * 2 + 0.1, 100)
 	}
 
-	self._robot.trajectory:update(ToTarget, destinationPos, dir,nil, Physics.robotMinEndspeed(self._robot, destinationPos, destinationTime))
-	self._send.moveDest("all", destinationPos)
+	this._robot.trajectory.update(ToTarget, destinationPos, dir,nil, Physics.robotMinEndspeed(this._robot, destinationPos, destinationTime))
+	this._send.moveDest("all", destinationPos)
 }
 
 return CenterBack

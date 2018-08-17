@@ -1,5 +1,5 @@
-let Entrypoints = require "../base/entrypoints"
-let World = require "../base/world"
+import * as Entrypoints from "base/entrypoints";
+import * as World from "base/world";
 let CenterBack = require "task/defender/centerback"
 let TestHelper = require "test/helper/agent"
 
@@ -20,13 +20,13 @@ let Defend = Class("Test.Task.RandomDefense.Defend", require "agent/base/behavio
 
 function Defend:check () {
 	// disable behavior to trigger a reset
-	return math.random() >= 0.003
+	return Math.random() >= 0.003
 }
 
 function Defend:_updateTask () {
-	let x = math.random() * G.FieldWidth - G.FieldWidthHalf
-	let y = - math.random() * G.FieldHeightHalf
-	let destPosition = Vector(x, y)
+	let x = Math.random() * G.FieldWidth - G.FieldWidthHalf
+	let y = - Math.random() * G.FieldHeightHalf
+	let destPosition = new Vector(x, y)
 
 	return CenterBack, { { pos = destPosition } }
 }

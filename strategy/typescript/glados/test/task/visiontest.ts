@@ -1,20 +1,20 @@
-let Entrypoints = require "../base/entrypoints"
-let plot = require "../base/plot"
-let World = require "../base/world"
+import * as Entrypoints from "base/entrypoints";
+import * as plot from "base/plot";
+import * as World from "base/world";
 let AgentPool = require "control/agentpool"
 let Coordinator = require "control/coordinator"
 let Trainer = require "trainer/trainer"
-let PathHelper = require "trajectory/pathhelper"
-let ToTarget = require "trajectory/totarget"
+import * as PathHelper from "glados/trajectory/pathhelper";
+import * as ToTarget from "glados/trajectory/totarget";
 
 let G = World.Geometry
 
 let CENTER_DIST = 7.8
-let START_ANGLE = 90/180*math.pi
-let ANGLE_STEP = 360/180*math.pi
+let START_ANGLE = 90/180*Math.PI
+let ANGLE_STEP = 360/180*Math.PI
 let WAIT_TIME = 3
-let ROBOT_ORIENTATION = 90/180*math.pi
-let ROBOT_ORIENTATION_STEP = 0/180*math.pi
+let ROBOT_ORIENTATION = 90/180*Math.PI
+let ROBOT_ORIENTATION_STEP = 0/180*Math.PI
 
 let heightHalf = G.FieldHeightHalf * 7/8
 let widthHalf = G.FieldWidthHalf * 3/5
@@ -27,7 +27,7 @@ let POS_LIST = {
 		Vector(widthHalf, heightHalf),
 		Vector(-widthHalf, -heightHalf)
 }
-//{ Vector(-1.8, 3.9), Vector(0, 3.9), Vector(0, -3.9), Vector(1.8, -3.9), Vector(1.8, 3.9), Vector(-1.8, -3.9) }
+//{ Vector(-1.8, 3.9), new Vector(0, 3.9), new Vector(0, -3.9), new Vector(1.8, -3.9), new Vector(1.8, 3.9), new Vector(-1.8, -3.9) }
 
 let obstacleTable = {
 	ignoreBall = true,
@@ -50,65 +50,65 @@ let indexCalculation = function (inbox, robotId) {
 
 let VisionTestTask = Class("Test.Task.VisionTest.Task", require "task/base")
 function VisionTestTask:_init () {
-	self._dest = nil
-	self._atTargetSince = nil
-	self._startPos = POS_LIST[1]
-	self._centerDist = CENTER_DIST
-	self._angle = START_ANGLE
-	self._angleStep = ANGLE_STEP
-	self._robotOrientation = ROBOT_ORIENTATION
-	self._robbotOrientationStep = ROBOT_ORIENTATION_STEP
-	self._orientation = ROBOT_ORIENTATION
-	self._robotState = 0
+	this._dest = nil
+	this._atTargetSince = nil
+	this._startPos = POS_LIST[1]
+	this._centerDist = CENTER_DIST
+	this._angle = START_ANGLE
+	this._angleStep = ANGLE_STEP
+	this._robotOrientation = ROBOT_ORIENTATION
+	this._robbotOrientationStep = ROBOT_ORIENTATION_STEP
+	this._orientation = ROBOT_ORIENTATION
+	this._robotState = 0
 }
 
 function VisionTestTask:run () {
-	PathHelper.setDefaultObstaclesByTable(self._robot.path, self._robot, obstacleTable)
+	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
 
-	let idx, total = indexCalculation(self._inbox, self._robot.id)
-	let offset = Vector((idx - total/2) * 0.25, 0)
+	let idx, total = indexCalculation(this._inbox, this._robot.id)
+	let offset = new Vector((idx - total/2) * 0.25, 0)
 
 	let pos
-	if (self._dest) {
-		pos = self._dest + offset
+	if (this._dest) {
+		pos = this._dest + offset
 	} else {
-		pos = self._startPos + offset
+		pos = this._startPos + offset
 	}
-	let dir = self._orientation
+	let dir = this._orientation
 
-	let targetDist = self._robot.pos:distanceTo(pos)
+	let targetDist = this._robot.pos.distanceTo(pos)
 	//log(targetDist)
-	if (targetDist < 0.2  &&  self._atTargetSince == nil) {
-		self._atTargetSince = World.Time
+	if (targetDist < 0.2 && this._atTargetSince == undefined) {
+		this._atTargetSince = World.Time
 	} else if (targetDist > 0.01) {
-		self._atTargetSince = nil
+		this._atTargetSince = nil
 	}
 	let synchronized = false
-	if (self._atTargetSince  &&  World.Time - self._atTargetSince > WAIT_TIME) {
-		self._send.defenderFlag("all")
-		synchronized = (table.count(self._inbox.attackerFlag("broadcast")) - table.count(self._inbox.defenderFlag("broadcast"))) == 0
+	if (this._atTargetSince && World.Time - this._atTargetSince > WAIT_TIME) {
+		this._send.defenderFlag("all")
+		synchronized = (table.count(this._inbox.attackerFlag("broadcast")) - table.count(this._inbox.defenderFlag("broadcast"))) == 0
 	}
 
 	if (synchronized) {
-		if (self._dest) {
-			self._dest = nil
+		if (this._dest) {
+			this._dest = nil
 		} else {
-			self._startPos = POS_LIST[self._robotState+1]
-			self._robotState = (self._robotState + 1) % #POS_LIST
+			this._startPos = POS_LIST[this._robotState+1]
+			this._robotState = (this._robotState + 1) % #POS_LIST
 		}
-		self._orientation = self._orientation + ROBOT_ORIENTATION_STEP
+		this._orientation = this._orientation + ROBOT_ORIENTATION_STEP
 	}
 
-	plot.addPlot("positionError."  +  String(self._robot.id), self._robot.pos:distanceTo(pos))
-	self._robot.trajectory:update(ToTarget, pos, dir, 1)
+	plot.addPlot("positionError."  +  String(this._robot.id), this._robot.pos.distanceTo(pos))
+	this._robot.trajectory.update(ToTarget, pos, dir, 1)
 }
 
 
 let Position = Class("Test.Task.VisionTest.Behavior", require "agent/base/behavior")
 function Position:check () {
-	self._send.attackerFlag("all")
+	this._send.attackerFlag("all")
 	// also receive own message
-	return next(self._inbox.attackerFlag("broadcast")) != nil
+	return next(this._inbox.attackerFlag("broadcast")) != nil
 }
 
 function Position:_updateTask () {
@@ -125,9 +125,9 @@ MoveAgent._behaviors = {
 let coord = nil
 
 let run = function () {
-	if (coord == nil) {
+	if (coord == undefined) {
 		let trainer = Trainer()
-		let pools = { path = AgentPool(MoveAgent, #World.FriendlyRobotsAll) }
+		let pools = { path = AgentPool(MoveAgent, World.FriendlyRobots.lengthAll) }
 		let poolGroups = { { pools.path } }
 		coord = Coordinator(trainer, pools, poolGroups)
 	}
