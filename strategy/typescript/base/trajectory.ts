@@ -23,10 +23,10 @@ module "Trajectory"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
+import { Coordinates } from "base/coordinates";
+import { Path } from "base/path";
+import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
-import {Coordinates} from "base/coordinates";
-import {Position, Speed, Vector} from "base/vector";
-import {Path} from "base/path";
 
 export interface RobotLike {
 	pos: Position;
@@ -39,7 +39,7 @@ export interface RobotLike {
 	angularSpeed: number;
 	acceleration: any; // TODO: better types
 	prevMoveTo: Position | undefined;
-	setControllerInput (spline: any): any;
+	setControllerInput(spline: any): any;
 	path: Path;
 }
 
@@ -80,12 +80,12 @@ export class Trajectory {
 	// @param handlerType Table - must be a subclass of Trajectory.Base
 	// @param ... any - passed on to trajectory handler
 	// @return Vector, number - move destination and time as returned by the trajectory handler
-	update (handlerType: typeof TrajectoryHandler, ...args: any[]): [Position, number] {
+	update(handlerType: typeof TrajectoryHandler, ...args: any[]): [Position, number] {
 		if (this._handler == undefined || !this._handler.canHandle(...args)) {
 			this._handler = new (handlerType as any)(this._robot);
 			// mostly for the typechecker
 			if (!this._handler) {
-				throw "Malformed trajectory handler constructor!";
+				throw new Error("Malformed trajectory handler constructor!");
 			}
 		}
 		let [splines, moveDest, moveTime] = this._handler.update(...args);
@@ -95,8 +95,8 @@ export class Trajectory {
 			splin = splines.spline[0];
 		}
 		if (splin != undefined) {
-			let xCalc = splin.x.a0+splin.x.a1*moveTime+splin.x.a2*moveTime/2;
-			let yCalc = splin.y.a0+splin.y.a1*moveTime+splin.y.a2*moveTime/2;
+			let xCalc = splin.x.a0 + splin.x.a1 * moveTime + splin.x.a2 * moveTime / 2;
+			let yCalc = splin.y.a0 + splin.y.a1 * moveTime + splin.y.a2 * moveTime / 2;
 			this._robot.prevMoveTo = Coordinates.toLocal(new Vector(xCalc, yCalc));
 		} else {
 			this._robot.prevMoveTo = undefined;

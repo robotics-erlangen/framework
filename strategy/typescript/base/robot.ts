@@ -24,12 +24,12 @@ module "Robot"
 **************************************************************************/
 
 import * as Constants from "base/constants";
-import {Coordinates} from "base/coordinates";
-import {Path} from "base/path";
-import {Trajectory} from "base/trajectory";
-import * as vis from "base/vis";
-import {Vector, Position, Speed} from "base/vector";
+import { Coordinates } from "base/coordinates";
 import * as MathUtil from "base/mathutil";
+import { Path } from "base/path";
+import { Trajectory } from "base/trajectory";
+import { Position, Speed, Vector } from "base/vector";
+import * as vis from "base/vis";
 
 
 interface RobotConstants {
@@ -110,7 +110,7 @@ export class Robot {
 		hasBallDistance: 0.04, // 4 cm, robots where the balls distance to the dribbler is less than 2cm are considered to have the ball [m]
 		passSpeed: 3, // speed with which the ball should arrive at the pass target  [m/s]
 		shootDriveSpeed: 0.2, // how fast the shoot task drives at the ball [m/s]
-		minAngleError: 4/180 * Math.PI // minimal angular precision that the shoot task guarantees [in radians]
+		minAngleError: 4 / 180 * Math.PI // minimal angular precision that the shoot task guarantees [in radians]
 	};
 	id: number;
 	pos: Readonly<Position> = new Vector(0, 0);
@@ -136,9 +136,9 @@ export class Robot {
 	/// Creates a new robot object.
 	// @param data table/number - data from amun.getTeam or robot id for opponents
 	// @param isFriendly boolean - true if own robot
-	constructor (id: number) {
+	constructor(id: number) {
 		this.radius = 0.09; // set default radius if no specs are available
-		this.dribblerWidth = 0.07; //just a good default guess
+		this.dribblerWidth = 0.07; // just a good default guess
 		this.shootRadius = 0.067; // shoot radius of 2014 generation
 		this.id = id;
 		this.maxSpeed = 3.5; // Init max speed and acceleration for opponents
@@ -155,20 +155,20 @@ export class Robot {
 		this.isFriendly = false;
 	}
 
-	_tostring (): string {
+	_tostring(): string {
 		if (this._toStringCache !== "") {
 			return this._toStringCache;
 		}
 		if (this.pos == undefined || this.id == undefined) {
-			this._toStringCache = "Robot(" + (this.id ? String(this.id) : "?") + ")";
+			this._toStringCache = `Robot(${this.id ? this.id : "?"})`;
 		} else {
-			this._toStringCache = "Robot(" + this.id + ", pos " + this.pos._toString() + ")";
+			this._toStringCache = `Robot(${this.id}, pos ${this.pos._toString})`;
 		}
 		return this._toStringCache;
 	}
 
 	// reset robot commands and update data
-	_updateOpponent (state: any, time: number) {
+	_updateOpponent(state: any, time: number) {
 		// check if robot is tracked
 		if (state == undefined) {
 			if (this.isVisible != false) {
@@ -191,8 +191,8 @@ export class Robot {
 	// @param ball Ball - must be World.Ball to make sure hysteresis will work
 	// @param [sideOffset number - extends the hasBall area sidewards]
 	// @return boolean - has ball
-	hasBall (ball: BallLike, sideOffset: number = 0, manualHasBallDistance: number = this.constants.hasBallDistance) {
-		let hasBallDistance = manualHasBallDistance;;
+	hasBall(ball: BallLike, sideOffset: number = 0, manualHasBallDistance: number = this.constants.hasBallDistance) {
+		let hasBallDistance = manualHasBallDistance;
 
 		// handle sidewards balls, add extra time for strategy timing jitter
 		let latencyCompensation = (ball.speed - this.speed).scaleLength(Constants.systemLatency + 0.03);
@@ -208,10 +208,10 @@ export class Robot {
 
 		// interpolate vector used for correction to circumvent noise
 		let MIN_COMPENSATION = 0.005;
-		let BOUND_COMPENSATION_ANGLE = 70/180*Math.PI;
+		let BOUND_COMPENSATION_ANGLE = 70 / 180 * Math.PI;
 		if (lclen < MIN_COMPENSATION) {
 			latencyCompensation = new Vector(0, 0);
-		} else if (lclen < 2*MIN_COMPENSATION) {
+		} else if (lclen < 2 * MIN_COMPENSATION) {
 			let scale = (lclen - MIN_COMPENSATION) / MIN_COMPENSATION;
 			latencyCompensation.scaleLength(scale);
 		}
@@ -250,13 +250,13 @@ export class Robot {
 			this._hasBall[sideOffset] = false;
 			return false;
 		// in hysteresis area without having had the ball
-		} else if (offset >= this.dribblerWidth / 2 - 2*Constants.positionError + sideOffset
-				 &&  !this._hasBall[sideOffset]) {
+		} else if (offset >= this.dribblerWidth / 2 - 2 * Constants.positionError + sideOffset
+					&&  !this._hasBall[sideOffset]) {
 			return false;
 		}
 
 		this._hasBall[sideOffset] = relpos.x > this.shootRadius * (-1.5)
-				 &&  relpos.x < latencyCompensation.x  &&  ball.posZ < Constants.maxRobotHeight*1.2; //*1.2 to compensate for vision error
+					&&  relpos.x < latencyCompensation.x  &&  ball.posZ < Constants.maxRobotHeight * 1.2; // *1.2 to compensate for vision error
 		return this._hasBall[sideOffset];
 	}
 }
@@ -286,7 +286,7 @@ export class FriendlyRobot extends Robot {
 
 	constructor(specs: any) {
 		super(specs.id);
-		
+
 		// set the robot specs
 		this.generation = specs.generation;
 		this.year = specs.year;
@@ -307,7 +307,7 @@ export class FriendlyRobot extends Robot {
 		}
 		this.maxSpeed = specs.v_max != undefined ? specs.v_max : 2;
 		this.maxAngularSpeed = specs.omega_max != undefined ? specs.omega_max : 5;
-		this.maxShotLinear = specs.shot_linear_max != undefined ? specs.shot_linear_max : 8; // TODO: 6.5???? 
+		this.maxShotLinear = specs.shot_linear_max != undefined ? specs.shot_linear_max : 8; // TODO: 6.5????
 		this.maxShotChip = specs.shot_chip_max != undefined ? specs.shot_chip_max : 3;
 		if (!specs.strategy) {
 			this.acceleration = {
@@ -329,19 +329,19 @@ export class FriendlyRobot extends Robot {
 		this.path = new Path(this.id);
 	}
 
-	_updatePathBoundaries (geometry: any, aoi: any) {
+	_updatePathBoundaries(geometry: any, aoi: any) {
 		if (aoi != undefined) {
 			this.path.setBoundary(aoi.x1, aoi.y1, aoi.x2, aoi.y2);
 		} else {
 			this.path.setBoundary(
 				-geometry.FieldWidthHalf  - geometry.BoundaryWidth - 0.02,
 				-geometry.FieldHeightHalf - geometry.BoundaryWidth - 0.02,
-				 geometry.FieldWidthHalf  + geometry.BoundaryWidth + 0.02,
-				 geometry.FieldHeightHalf + geometry.BoundaryWidth + 0.02);
+				geometry.FieldWidthHalf  + geometry.BoundaryWidth + 0.02,
+				geometry.FieldHeightHalf + geometry.BoundaryWidth + 0.02);
 		}
 	}
 
-	_updateUserControl (command: any) {
+	_updateUserControl(command: any) {
 		if (command == undefined) {
 			this.userControl = undefined;
 			return;
@@ -352,8 +352,8 @@ export class FriendlyRobot extends Robot {
 		if (command.local) {
 			// correctly align local and strategy coordinate system
 			// this.dir can be undefined if robot was not yet visible
-			let dir = this.isVisible ? this.dir : Math.PI/2;
-			v = v.rotate(dir - Math.PI/2);
+			let dir = this.isVisible ? this.dir : Math.PI / 2;
+			v = v.rotate(dir - Math.PI / 2);
 		} else {
 			// global to strategy coordinate mapping
 			v = Coordinates.toLocal(v);
@@ -363,7 +363,7 @@ export class FriendlyRobot extends Robot {
 			dribblerSpeed: command.dribbler };
 	}
 
-	_command () {
+	_command() {
 		let STANDBY_DELAY = 30;
 		let standby = this._standbyTimer >= 0  &&  (this._currentTime - this._standbyTimer > STANDBY_DELAY);
 
@@ -375,7 +375,7 @@ export class FriendlyRobot extends Robot {
 			standby: standby
 		};
 		if (this._controllerInput != {}) {
-			let input: ControllerInput = <ControllerInput>this._controllerInput;
+			let input: ControllerInput = <ControllerInput> this._controllerInput;
 			result.controller = input;
 			result.v_f = input.v_f;
 			result.v_s = input.v_s;
@@ -384,7 +384,7 @@ export class FriendlyRobot extends Robot {
 		return result;
 	}
 
-	_update (state: any, time: number, radioResponses?: any[]) {
+	_update(state: any, time: number, radioResponses?: any[]) {
 		// keep current time for use by setStandby
 		this._currentTime = time;
 		// bypass override check in setControllerInput
@@ -395,7 +395,7 @@ export class FriendlyRobot extends Robot {
 
 		if (radioResponses && radioResponses.length > 0) {
 			// only keep the last and most current radio response
-			this.radioResponse = radioResponses[radioResponses.length-1];
+			this.radioResponse = radioResponses[radioResponses.length - 1];
 			this.lastResponseTime = time;
 		} else {
 			// clear reponse field if response is missing
@@ -408,16 +408,16 @@ export class FriendlyRobot extends Robot {
 	/// Set output from trajectory planing on robot
 	// The robot is halted by default if no command is set for it. To tell a robot to follow its old trajectory call robot:setControllerInput(undefined)
 	// @param input Spline - Target points for the controller, in global coordinates!
-	setControllerInput (input: any) {
+	setControllerInput(input: any) {
 		// Forbid overriding controller input except with halt
-		if (input && input.spline  &&  (this._controllerInput == {} || (<ControllerInput>this._controllerInput).spline)) {
-			throw "Setting controller input twice";
+		if (input && input.spline  &&  (this._controllerInput == {} || (<ControllerInput> this._controllerInput).spline)) {
+			throw new Error("Setting controller input twice");
 		}
 		this._controllerInput = input;
 	}
 
 	/// Disable shoot
-	shootDisable () {
+	shootDisable() {
 		this._kickStyle = undefined;
 		this._kickPower = 0;
 		this._forceKick = false;
@@ -427,7 +427,7 @@ export class FriendlyRobot extends Robot {
 	// The different kick styles are exclusive, that is only one of them can be active at a time.
 	// @param speed number - Shoot speed [m/s]
 	// @param ignoreLimit bool - Don't enforce shoot speed limit, if true
-	shoot (speed: number, ignoreLimit: boolean) {
+	shoot(speed: number, ignoreLimit: boolean) {
 		if (!ignoreLimit) {
 			speed = Math.min(Constants.maxBallSpeed, speed);
 		}
@@ -440,33 +440,32 @@ export class FriendlyRobot extends Robot {
 	/// Enable chip kick.
 	// The different kick styles are exclusive, that is only one of them can be active at a time.
 	// @param distance number - Chip distance [m]
-	chip (distance: number) {
-		distance = MathUtil.bound(0.05, distance, this.maxShotChip)
+	chip(distance: number) {
+		distance = MathUtil.bound(0.05, distance, this.maxShotChip);
 		this._kickStyle = KickStyle.chip;
 		this._kickPower = distance;
 		vis.addCircle("shoot command", this.pos, this.radius + 0.04, vis.colors.darkPurple, undefined, undefined, undefined, 0.03);
 	}
 
 	/// Force the robot to shoot even if the IR isn't triggered
-	forceShoot () {
+	forceShoot() {
 		this._forceKick = true;
 	}
 
 	/// Enable dribbler
-	// (0=off, 1=on)
-	// @param power number - robotspecific value between 0 and 1
-	setDribblerSpeed (speed: number) {
+	// (0=off, 1=on) @param power number - robotspecific value between 0 and 1
+	setDribblerSpeed(speed: number) {
 		this._dribblerSpeed = speed;
 	}
 
 	/// Halts robot
-	halt () {
+	halt() {
 		this.setControllerInput({});
 	}
 
 	/// Set standby
 	// @param standby boolean - enable standby for robot if true
-	setStandby (standby: boolean) {
+	setStandby(standby: boolean) {
 		if (standby) {
 			// start timer
 			if (this._standbyTimer < 0) {
@@ -488,7 +487,7 @@ export class FriendlyRobot extends Robot {
 	// @param distance number - Distance to chip [m]
 	// @param ignoreLimit bool - Don't enforce rule given shoot speed limit, if true
 	// @return number - Speed to shoot with [m/s]
-	calculateShootSpeed (destSpeed: number, distance: number, ignoreLimit: boolean): number {
+	calculateShootSpeed(destSpeed: number, distance: number, ignoreLimit: boolean): number {
 		let maxShot = ignoreLimit ? this.maxShotLinear : Math.min(this.maxShotLinear, Constants.maxBallSpeed);
 		if (destSpeed >= maxShot) {
 			return maxShot;
@@ -514,7 +513,7 @@ export class FriendlyRobot extends Robot {
 		let sw = ballSwitchRatio;
 		let d = distance;
 		let v_d = destSpeed;
-		let v_0 = Math.sqrt( a_f*(2*a_s*d - v_d*v_d) / ((a_s - a_f)*sw*sw - a_s));
+		let v_0 = Math.sqrt(a_f * (2 * a_s * d - v_d * v_d) / ((a_s - a_f) * sw * sw - a_s));
 
 		if (v_0 > maxShot) {
 			return maxShot;

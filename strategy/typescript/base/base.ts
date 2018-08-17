@@ -32,12 +32,12 @@
 **************************************************************************/
 
 import * as amun from "base/amun";
-import "base/path";
 import "base/math";
+import "base/path";
 import "base/vector";
 
 // preload classes that require access to the amun API
-import {_setIsBlue} from "base/coordinates";
+import { _setIsBlue } from "base/coordinates";
 _setIsBlue(amun.amunFunctions.isBlue());
 import "base/debug";
 import "base/plot";
@@ -46,4 +46,4 @@ import "base/vis";
 import "base/world";
 
 // prevent access to internal APIs
-amun._hideFunctions()
+amun._hideFunctions();

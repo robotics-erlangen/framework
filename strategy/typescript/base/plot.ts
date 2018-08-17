@@ -31,14 +31,14 @@ let amunLocal = amun;
 // @name addPlot
 // @param name string - Plot name, seperated layers by '.'
 // @param value number - value for data point
-export function addPlot (name: string, value: number) {
+export function addPlot(name: string, value: number) {
 	amunLocal.addPlot(name, value);
 }
 
 
 let aggregated: {[name: string]: number} = {};
 let lastAggregated: {[name: string]: number} = {};
-export function _plotAggregated () {
+export function _plotAggregated() {
 	for (let k in aggregated) {
 		addPlot(k, aggregated[k]);
 	}
@@ -52,7 +52,7 @@ export function _plotAggregated () {
 	aggregated = {};
 }
 
-export function aggregate (key: string, value: number) {
+export function aggregate(key: string, value: number) {
 	if (aggregated[key] == undefined) {
 		aggregated[key] = 0;
 	}

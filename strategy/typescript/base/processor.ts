@@ -23,7 +23,7 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import {Process} from "base/process";
+import { Process } from "base/process";
 
 
 let preprocs: Process[] = [];
@@ -32,18 +32,18 @@ let postprocs: Process[] = [];
 /// Adds a process for runnning before the strategy
 // @name addPre
 // @param proc Process - Process object to be run
-export function addPre (proc: Process) {
+export function addPre(proc: Process) {
 	preprocs.push(proc);
 }
 
 /// Adds a process for runnning after the strategy
 // @name addPost
 // @param proc Process - Process object to be run
-export function addPost (proc: Process) {
+export function addPost(proc: Process) {
 	preprocs.push(proc);
 }
 
-function run (procs: Process[]) {
+function run(procs: Process[]) {
 	for (let proc of procs) {
 		proc.run();
 		if (proc.isFinished) {
@@ -55,13 +55,13 @@ function run (procs: Process[]) {
 /// Runs all proccess object scheduled before the strategy.
 // Should be called by the entrypoint wrapper
 // @name pre
-export function pre () {
+export function pre() {
 	run(preprocs);
 }
 
 /// Runs all proccess object scheduled after the strategy.
 // Should be called by the entrypoint wrapper
 // @name post
-export function post () {
+export function post() {
 	run(postprocs);
 }

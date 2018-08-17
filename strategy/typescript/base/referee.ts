@@ -23,12 +23,12 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import {maxRobotRadius} from "base/constants";
+import { maxRobotRadius } from "base/constants";
+import { AbsTime } from "base/globals";
+import { Robot } from "base/robot";
+import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
-import {Vector, Position} from "base/vector";
-import {Robot} from "base/robot";
-import {AbsTime} from "base/globals";
 
 export const enum RefereeState {
 	Halt = "Halt",
@@ -37,20 +37,20 @@ export const enum RefereeState {
 	GameForce = "GameForce",
 
 	KickoffFriendlyPrepare = "KickoffFriendlyPrepare",
-    KickoffOffensive = "KickoffOffensive",
-    PenaltyOffensivePrepare = "PenaltyOffensivePrepare",
-    PenaltyOffensive = "PenaltyOffensive",
-    DirectOffensive = "DirectOffensive",
-    IndirectOffensive = "IndirectOffensive",
-    BallPlacementOffensive = "BallPlacementOffensive",
+	KickoffOffensive = "KickoffOffensive",
+	PenaltyOffensivePrepare = "PenaltyOffensivePrepare",
+	PenaltyOffensive = "PenaltyOffensive",
+	DirectOffensive = "DirectOffensive",
+	IndirectOffensive = "IndirectOffensive",
+	BallPlacementOffensive = "BallPlacementOffensive",
 
-    KickoffDefensivePrepare = "KickoffDefensivePrepare",
-    KickoffDefensive = "KickoffDefensive",
-    PenaltyDefensivePrepare = "PenaltyDefensivePrepare",
-    PenaltyDefensive = "PenaltyDefensive",
-    DirectDefensive = "DirectDefensive",
-    IndirectDefensive = "IndirectDefensive",
-    BallPlacementDefensive = "BallPlacementDefensive"
+	KickoffDefensivePrepare = "KickoffDefensivePrepare",
+	KickoffDefensive = "KickoffDefensive",
+	PenaltyDefensivePrepare = "PenaltyDefensivePrepare",
+	PenaltyDefensive = "PenaltyDefensive",
+	DirectDefensive = "DirectDefensive",
+	IndirectDefensive = "IndirectDefensive",
+	BallPlacementDefensive = "BallPlacementDefensive"
 }
 
 // states, in which we must keep a dist of 50cm
@@ -113,47 +113,47 @@ const nonGameStages: {[state: string]: boolean} = {
 /// Check whether the stop rules apply
 // @name isStopState
 // @return boolean - True if the current referee state is considered as stop
-export function isStopState (): boolean {
+export function isStopState(): boolean {
 	return stopStates[World.RefereeState];
 }
 
 /// Check whether the robot has to drive a maximum of 1.5 m/s (slow)
 // @name isSlowDriveState
 // @return boolean - True if all robots have to drive slowly (< 1.5 m/s)
-export function isSlowDriveState (): boolean {
+export function isSlowDriveState(): boolean {
 	return slowDriveStates[World.RefereeState];
 }
 
 /// Check whether we have a freekick
 // @name isFriendlyFreeKickState
 // @return boolean - True if the current referee state is a freekick for us
-export function isFriendlyFreeKickState (): boolean {
+export function isFriendlyFreeKickState(): boolean {
 	return friendlyFreeKickStates[World.RefereeState];
 }
 
 /// Check whether this is a kickoff
 // @name isKickoffState
 // @return boolean - True if the current referee state is a kickoff
-export function isKickoffState (): boolean {
+export function isKickoffState(): boolean {
 	return kickoffStates[World.RefereeState];
 }
 
 /// Check whether the opponent has a penalty
 // @name isOpponentPenaltyState
 // @return boolean - True if the opponent has a penalty
-export function isOpponentPenaltyState (): boolean {
+export function isOpponentPenaltyState(): boolean {
 	return opponentPenaltyStates[World.RefereeState];
 }
 
-export function isFriendlyPenaltyState (): boolean {
+export function isFriendlyPenaltyState(): boolean {
 	return friendlyPenaltyStates[World.RefereeState];
 }
 
-export function isGameState (): boolean {
+export function isGameState(): boolean {
 	return gameStates[World.RefereeState];
 }
 
-export function isNonGameStage (): boolean {
+export function isNonGameStage(): boolean {
 	return nonGameStages[World.GameStage];
 }
 
@@ -164,30 +164,30 @@ let cornerDist = 0.7; // some tolerance, rules say 10cm
 /// Check whether there is a freekick in the opponent corner
 // @name isOffensiveCornerKick
 // @return boolean - True if a corner kick in the opponents corner
-export function isOffensiveCornerKick (): boolean {
+export function isOffensiveCornerKick(): boolean {
 	let ballPos = World.Ball.pos;
 	let refState = World.RefereeState;
 	return (refState == RefereeState.DirectOffensive ||
 			refState == RefereeState.IndirectOffensive)
 		&&  goalLine - ballPos.y < cornerDist
- 		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
+		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
 }
 
 /// Check whether there is a freekick in our corner
 // @name isDefensiveCornerKick
 // @return boolean - True if a corner kick in our corner
-export function isDefensiveCornerKick (): boolean {
+export function isDefensiveCornerKick(): boolean {
 	let ballPos = World.Ball.pos;
 	let refState = World.RefereeState;
-	return (refState == RefereeState.DirectDefensive || 
+	return (refState == RefereeState.DirectDefensive ||
 		refState == RefereeState.IndirectDefensive || refState == RefereeState.Stop)
 		&&  -goalLine - ballPos.y > -cornerDist
- 		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
+		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
 }
 
 /// Draw areas forbidden by the current referee command
 // @name illustrateRefereeStates
-export function illustrateRefereeStates () {
+export function illustrateRefereeStates() {
 	if (World.RefereeState == RefereeState.PenaltyDefensivePrepare  ||  World.RefereeState == RefereeState.PenaltyDefensive) {
 		vis.addPath("penaltyDistanceAllowed", [new Vector(-2,World.Geometry.OwnPenaltyLine), new Vector(2,World.Geometry.OwnPenaltyLine)], vis.colors.red);
 	} else if (World.RefereeState == RefereeState.PenaltyOffensivePrepare  ||  World.RefereeState == RefereeState.PenaltyOffensive) {
@@ -216,7 +216,7 @@ let noBallTouchStates: {[name: string]: boolean} = {
 	BallPlacementOffensive: true
 };
 
-export function check () {
+export function check() {
 	checkTouching();
 	checkStateChange();
 }
@@ -226,7 +226,7 @@ let lastChangedTime: AbsTime;
 export function checkStateChange() {
 	if (World.RefereeState != lastState) {
 		lastChangedTime = World.Time;
-		lastState = <RefereeState>World.RefereeState;
+		lastState = <RefereeState> World.RefereeState;
 	}
 }
 
@@ -236,7 +236,7 @@ export function lastStateChangeTime(): AbsTime {
 
 /// Update the status of which team touched the ball last
 // @name checkTouching
-export function checkTouching () {
+export function checkTouching() {
 	let ballPos = World.Ball.pos;
 	// only consider touches when playing
 	if (noBallTouchStates[World.RefereeState]  ||
@@ -263,14 +263,14 @@ export function checkTouching () {
 	}
 }
 
-export function friendlyTouchedLast (): boolean {
+export function friendlyTouchedLast(): boolean {
 	return lastTeam;
 }
 
-export function opponentTouchedLast (): boolean {
+export function opponentTouchedLast(): boolean {
 	return !friendlyTouchedLast();
 }
 
-export function robotAndPosOfLastBallTouch (): [Robot, Position] {
+export function robotAndPosOfLastBallTouch(): [Robot, Position] {
 	return [lastRobot, lastTouchPos];
 }
