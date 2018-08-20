@@ -82,6 +82,7 @@ function makeCached (f: Function, keepForever: boolean): ((...args: any[])=> any
 	}
 	return function(...args: any[]): any[] | any {
 		let result = getFromCache(cached, args);
+		args.shift();
 		if (result == undefined) {
 			result = f(...args);
 			if (result === undefined) {
