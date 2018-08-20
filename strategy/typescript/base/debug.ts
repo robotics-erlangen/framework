@@ -11,17 +11,17 @@ module "debug"
 *                                                                         *
 *   This program is free software: you can redistribute it and/or modify  *
 *   it under the terms of the GNU General Public License as published by  *
-*   the Free Software Foundation, either version 3 of the License,  ||      *
+*   the Free Software Foundation, either version 3 of the License, or     *
 *   any later version.                                                    *
 *                                                                         *
 *   This program is distributed in the hope that it will be useful,       *
 *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-*   MERCHANTABILITY  ||  FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
 *   GNU General Public License for more details.                          *
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
-*   along with this program.  if not, see <http://www.gnu.org/licenses/>.*
-**************************************************************************///
+*   along with this program.  if not, see <http://www.gnu.org/licenses/>. *
+**************************************************************************/
 
 declare var amun: any;
 let addDebug: Function = amun.addDebug;
@@ -64,7 +64,7 @@ export function push(name: string, value?: string) {
 
 /// Pushes a root key on the debug stack.
 // @name pushtop
-// @param name string - Name of the new root tree or nil to push root
+// @param name string - Name of the new root tree or undefined to push root
 export function pushtop(name?: string) {
 	if (!name) {
 		debugStack.push("");
@@ -95,8 +95,8 @@ export function getInitialExtraParams(): object {
 
 
 /// Sets value for the given name.
-// if (value is nil store it as text
-// For the special value nil the value is set for the current key
+// if (value is undefined store it as text
+// For the special value undefined the value is set for the current key
 // @name set
 // @param name string - Name of the value
 // @param value string - Value to set
@@ -123,8 +123,14 @@ export function set(name: string | undefined, value: any, visited: Map<object, s
 			visited.set(origValue, result);
 		} else {
 			let friendlyName;
+			let isMap = false;
 			if (value.constructor != undefined && Object.keys(value).length === 0) {
-				friendlyName = "empty object";
+				if (value instanceof Map) {
+					isMap = true;
+					friendlyName = "Map";
+				} else {
+					friendlyName = "empty object (" + value.constructor.name + ")";
+				}
 			} else if (value.constructor != undefined) {
 				friendlyName = value.constructor.name;
 			} else {
@@ -137,9 +143,19 @@ export function set(name: string | undefined, value: any, visited: Map<object, s
 			visited.set(value, friendlyName);
 
 			let entryCounter = 1;
-			for (let k in value) {
-				let v = value[k];
-				set(String(k), v, visited, tableCounter);
+			if (isMap) {
+				let counter = 0;
+				for (let [k, v] of value.entries()) {
+					push("map entry " + counter++);
+					set("key", k, visited, tableCounter);
+					set("value", v, visited, tableCounter);
+					pop();
+				}
+			} else {
+				for (let k in value) {
+					let v = value[k];
+					set(String(k), v, visited, tableCounter);
+				}
 			}
 			pop();
 			return;
