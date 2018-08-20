@@ -81,7 +81,7 @@ export class Trajectory {
 	// @param ... any - passed on to trajectory handler
 	// @return Vector, number - move destination and time as returned by the trajectory handler
 	update(handlerType: typeof TrajectoryHandler, ...args: any[]): [Position, number] {
-		if (this._handler == undefined || !this._handler.canHandle(...args)) {
+		if (this._handler == undefined || !(this._handler instanceof handlerType) || !this._handler.canHandle(...args)) {
 			this._handler = new (handlerType as any)(this._robot);
 			// mostly for the typechecker
 			if (!this._handler) {

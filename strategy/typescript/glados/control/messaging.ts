@@ -137,6 +137,17 @@ export enum MessageType {
 	exclusiveRole, forcePoolChange, groupApplication
 }
 
+export const MessageTypeList = [
+	MessageType.allyFlag, MessageType.attackerFlag, MessageType.defendedOpponent, MessageType.defenderFlag,
+	MessageType.moveDest, MessageType.passSuggestion, MessageType.poolChangeRequest, MessageType.strikerFlag,
+	MessageType.strikerSamplingTimestamp,
+	MessageType.attackPosition, MessageType.attackTime, MessageType.centerBackPosTarget, MessageType.moveAssignment,
+	MessageType.moveNumAttackers, MessageType.passInfo, MessageType.roleAssignment, MessageType.shootDestination,
+	MessageType.strikerZone, MessageType.midfieldZone,
+	MessageType.mainAttacker, MessageType.duelAssistant, MessageType.interceptPass,
+	MessageType.exclusiveRole, MessageType.forcePoolChange, MessageType.groupApplication
+];
+
 type MessageOrigin = "trainer" | FriendlyRobot;
 
 interface BehaviourLike {
@@ -152,7 +163,7 @@ interface AgentLike {
 	robot(): FriendlyRobot;
 }
 
-const empty: {} = {};
+const emptyMap: Readonly<Map<FriendlyRobot, any>> = Object.freeze(new Map<FriendlyRobot, any>());;
 
 export class MessageBox {
 	private messaging: Messaging;
@@ -277,6 +288,7 @@ export class MessageBox {
 		return it.value;
 	}
 
+	receiveRepeated (type: MessageType.exclusiveRole, broadcast?: boolean): Map<FriendlyRobot, ({mainAttacker: number} | {duelAssistant: number} | {interceptPass: number})[]>;
 	receiveRepeated (type: MessageType.groupApplication, broadcast?: boolean): Map<FriendlyRobot, { name: "centerback" | "moves" | "striker" | "midfield", payload: any }[]>;
 	receiveRepeated (type: MessageType, broadcast?: boolean): Map<FriendlyRobot, any[]> {
 		return this.receiveGeneric(type, broadcast);
@@ -301,25 +313,25 @@ export class MessageBox {
 		return this.receiveGeneric(type, broadcast).get("trainer");
 	}
 
-	private receiveGeneric (type: MessageType, broadcast?: boolean) {
+	receiveGeneric (type: MessageType, broadcast?: boolean) {
 		let mtypeBox = this.messaging._deliveredMessages[type];
 		if (this.origin === "trainer") {
 			mtypeBox = this.messaging._newMessages[type];
 		}
 		if (mtypeBox == undefined) {
-			return empty;
+			return emptyMap;
 		}
 		// returns all messages of "type" which were sent to "all"
 		if (broadcast) {
 			if (mtypeBox.get("all") == undefined) {
-				return empty;
+				return emptyMap;
 			}
 			return mtypeBox.get("all");
 		}
 		let receiveBox = mtypeBox.get(this.origin);
 		let allBox: Map<MessageOrigin, any> | undefined = mtypeBox.get("all");
 		if (receiveBox == undefined && allBox == undefined) {
-			return empty;
+			return emptyMap;
 		} else {
 			if (receiveBox == undefined) {
 				receiveBox = new Map<FriendlyRobot, any>();

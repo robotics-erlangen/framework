@@ -107,11 +107,11 @@ function sgn(value: number): 1 | -1 {
 // @param c number
 // @return [number - smallest positive solution or largest
 // @return [number]]
-export function solveSq(a: number, b: number, c: number): [number, number?] | undefined {
+export function solveSq(a: number, b: number, c: number): [number, number?] | [] {
 	if (a == 0) {
 		// return Math.solveLin(b, c)
 		if (b == 0) {
-			return;
+			return [];
 		} else {
 			return [-c / b];
 		}
@@ -119,7 +119,7 @@ export function solveSq(a: number, b: number, c: number): [number, number?] | un
 
 	let det = b * b - 4 * a * c;
 	if (det < 0) {
-		return;
+		return [];
 	} else if (det == 0) {
 		return [-b / (2 * a)];
 	}
