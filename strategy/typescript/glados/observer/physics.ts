@@ -2,11 +2,11 @@ import * as Cache from "base/cache";
 import * as Constants from "base/constants";
 import * as Field from "base/field";
 import * as geom from "base/geom";
-import * as World from "base/world";
-import {Robot, RobotAccelerationProfile} from "base/robot";
-import {Vector, Position, Speed} from "base/vector";
 import * as MathUtil from "base/mathutil";
-//import * as Roboobserver from "glados/observer/robot";
+import { Robot, RobotAccelerationProfile } from "base/robot";
+import { Position, Speed, Vector } from "base/vector";
+import * as World from "base/world";
+// import * as Roboobserver from "glados/observer/robot";
 
 export interface BallLike {
 	pos: Readonly<Position>;
@@ -24,19 +24,19 @@ export interface BallLike {
 // @return number - the switch time
 // @return number - the absolute ball speed at switch time
 // @return number - the distance the ball travels until switch time
-export function ballSwitchParameters (ball: BallLike): [number, number, number] {
+export function ballSwitchParameters(ball: BallLike): [number, number, number] {
 	let a_slide = Constants.fastBallDeceleration;
 	let a_roll = Constants.ballDeceleration;
 	let v_max = ball.maxSpeed;
-	let v_switch = Constants.ballSwitchRatio*v_max;
+	let v_switch = Constants.ballSwitchRatio * v_max;
 	let v_current = ball.speed.length();
 	let t_switch, s_switch;
 	if (v_current > v_switch) {
-		t_switch = (v_switch - v_current)/a_slide;
-		s_switch = (v_current + 0.5*a_slide*t_switch)*t_switch;
+		t_switch = (v_switch - v_current) / a_slide;
+		s_switch = (v_current + 0.5 * a_slide * t_switch) * t_switch;
 	} else {
-		t_switch = (v_switch - v_current)/a_roll;
-		s_switch = (v_current + 0.5*a_roll*t_switch)*t_switch;
+		t_switch = (v_switch - v_current) / a_roll;
+		s_switch = (v_current + 0.5 * a_roll * t_switch) * t_switch;
 	}
 	return [t_switch, v_switch, s_switch];
 }
@@ -45,7 +45,7 @@ export function ballSwitchParameters (ball: BallLike): [number, number, number] 
 // @param ball Ball - a ball-like structure, must contain the fields pos, speed, maxSpeed and radius
 // @param time number - the number of seconds from now on
 // @return Ball - the predicted ball as a ball-like structure
-export function ballAtTime (ball: BallLike, time: number): BallLike & {radius: number} {
+export function ballAtTime(ball: BallLike, time: number): BallLike & {radius: number} {
 	// formulas used:
 	// v = a * t + v0
 	// t = (v - v0) / a
@@ -69,7 +69,7 @@ export function ballAtTime (ball: BallLike, time: number): BallLike & {radius: n
 	let s_switch;
 
 	// result: the ball-like returned object
-	let result: BallLike = <BallLike>{};
+	let result: BallLike = <BallLike> {};
 
 	// since we don't do collision calculation, maxSpeed always stays the same
 	result.maxSpeed = ball.maxSpeed;
@@ -119,7 +119,7 @@ export function ballAtTime (ball: BallLike, time: number): BallLike & {radius: n
 // @param ball Ball - a ball-like structure, must contain the fields pos, speed, maxSpeed, posZ, speedZ and radius
 // @param time number - the number of seconds from now on
 // @return Ball - the predicted ball as a ball-like structure
-export function ballAtTimeExperimental (ball: BallLike & {posZ: number, speedZ: number}, time: number): BallLike {
+export function ballAtTimeExperimental(ball: BallLike & {posZ: number, speedZ: number}, time: number): BallLike {
 	// formulas used:
 	// v = a * t + v0
 	// t = (v - v0) / a
@@ -143,7 +143,7 @@ export function ballAtTimeExperimental (ball: BallLike & {posZ: number, speedZ: 
 	let s_switch;
 
 	// result: the ball-like returned object
-	let result: BallLike = <BallLike>{};
+	let result: BallLike = <BallLike> {};
 
 	// since we don't do collision calculation, maxSpeed always stays the same
 	result.maxSpeed = ball.maxSpeed;
@@ -163,7 +163,7 @@ export function ballAtTimeExperimental (ball: BallLike & {posZ: number, speedZ: 
 
 		// h(t) = (t^2 / 2) * (-9.81) + t * v0 + h0
 		// h(t) == 0; midnight formula
-		let impactTime = (-v0 + Math.sqrt(v0*v0 + (4 * (-9.81/2) * h0))) / (-9.81);
+		let impactTime = (-v0 + Math.sqrt(v0 * v0 + (4 * (-9.81 / 2) * h0))) / (-9.81);
 		let impactSpeed = impactTime * 9.81 - v0;
 		let timePassed = 0;
 
@@ -173,22 +173,22 @@ export function ballAtTimeExperimental (ball: BallLike & {posZ: number, speedZ: 
 			h0 = 0;
 
 			let liftTime = v0 / 9.81;
-			let flightHeight = liftTime*liftTime * (-9.81) / 2 + liftTime * v0;
+			let flightHeight = liftTime * liftTime * (-9.81) / 2 + liftTime * v0;
 			if (flightHeight < 0.03) { // consider ball rolling
 				break;
 			}
 
 			result.pos = result.pos + ball.speed * impactTime;
 
-			impactTime = (-v0 + Math.sqrt(v0*v0 + (2 * (-9.81) * h0))) / (-9.81);
+			impactTime = (-v0 + Math.sqrt(v0 * v0 + (2 * (-9.81) * h0))) / (-9.81);
 			impactSpeed = impactTime * 9.81 - v0;
 		}
 
 		if (impactTime > time - timePassed) { // flight or bouncing not finished
 			let t = time - timePassed;
 			result.pos = result.pos + ball.speed * t;
-			result.posZ = h0 + v0*t - 0.5*9.81*t*t;
-			result.speedZ = v0 - t*9.81;
+			result.posZ = h0 + v0 * t - 0.5 * 9.81 * t * t;
+			result.speedZ = v0 - t * 9.81;
 			return result;
 		}
 		time = time - timePassed;
@@ -239,10 +239,10 @@ export function ballAtTimeExperimental (ball: BallLike & {posZ: number, speedZ: 
 // @param distance number - the distance in meter
 // @return Ball, number, number - predicted ball, time, distance left
 // The third return value indicates how much distance is left when the ball stopped bouncing
-function ballFlightTime (ball: BallLike & {initSpeedZ: number, speedZ: number, posZ: number}, distance: number): [BallLike, number, number] {
+function ballFlightTime(ball: BallLike & {initSpeedZ: number, speedZ: number, posZ: number}, distance: number): [BallLike, number, number] {
 	let liftTime = ball.initSpeedZ / 9.81;
-	let timeAlreadyFlying = (ball.initSpeedZ-ball.speedZ) / 9.81;
-	let flightTime = (2*liftTime) - timeAlreadyFlying;
+	let timeAlreadyFlying = (ball.initSpeedZ - ball.speedZ) / 9.81;
+	let flightTime = (2 * liftTime) - timeAlreadyFlying;
 	let flightDist = ball.maxSpeed * flightTime;
 	let flightDistDone = 0;
 	let timePassed = 0;
@@ -251,26 +251,26 @@ function ballFlightTime (ball: BallLike & {initSpeedZ: number, speedZ: number, p
 		timePassed = timePassed + flightTime;
 		ball.initSpeedZ = ball.initSpeedZ * Constants.floorDamping;
 		liftTime = ball.initSpeedZ / 9.81;
-		let flightHeight = ball.initSpeedZ*liftTime - (9.81/2)*liftTime*liftTime;
+		let flightHeight = ball.initSpeedZ * liftTime - (9.81 / 2) * liftTime * liftTime;
 		if (flightHeight < 0.03) { // consider ball rolling
 			break;
 		}
-		flightTime = 2*liftTime;
+		flightTime = 2 * liftTime;
 		flightDistDone = flightDist;
 		flightDist = flightDist + ball.speed.length() * flightTime;
 	}
 
 	if (flightDist > distance) { // flight or bouncing not finished
-		let t = (distance-flightDistDone) / ball.speed.length();
+		let t = (distance - flightDistDone) / ball.speed.length();
 		ball.pos = ball.pos + ball.speed.copy().setLength(distance);
-		ball.posZ = ball.posZ + ball.initSpeedZ*t - 0.5*9.81*t*t;
-		ball.speedZ = ball.speedZ - t*9.81;
+		ball.posZ = ball.posZ + ball.initSpeedZ * t - 0.5 * 9.81 * t * t;
+		ball.speedZ = ball.speedZ - t * 9.81;
 		return [ball, timePassed, 0];
 	} else {// ball is rolling
-		ball.pos = ball.pos + ball.speed*timePassed;
+		ball.pos = ball.pos + ball.speed * timePassed;
 		ball.posZ = 0;
 		ball.speedZ = 0;
-		return [ball, timePassed, distance-flightDistDone];
+		return [ball, timePassed, distance - flightDistDone];
 	}
 }
 
@@ -280,7 +280,7 @@ function ballFlightTime (ball: BallLike & {initSpeedZ: number, speedZ: number, p
 // @param ball Ball - a ball-like structure, must contain the fields pos, speed, maxSpeed and radius
 // @param time number - the number of seconds from now on
 // @return number - the predicted ball travel distance
-export function ballTravelledDistance (ball: BallLike, time: number): number {
+export function ballTravelledDistance(ball: BallLike, time: number): number {
 	// formulas used:
 	// v = a * t + v0
 	// t = (v - v0) / a
@@ -332,7 +332,7 @@ export function ballTravelledDistance (ball: BallLike, time: number): number {
 	return a_roll / 2 * t_roll * t_roll + v_switch * t_roll + s_switch;
 }
 
-export function calculateChipSpeed (dist: number): number {
+export function calculateChipSpeed(dist: number): number {
 	// this flightDistance can be further investigated
 	// also, a spinning ball could be considered
 	let flightDistance = Constants.floorDamping * dist;
@@ -341,10 +341,10 @@ export function calculateChipSpeed (dist: number): number {
 	// t = distance / vground                     (2)
 	// assume 45 degree chip angle => vz = vground
 	// (2) in (1): v = sqrt(distance*g / 2)
-	return Math.sqrt((flightDistance*9.81) / 2);
+	return Math.sqrt((flightDistance * 9.81) / 2);
 }
 
-export function robotBrakePos (robot: {pos: Position, speed: Speed, acceleration?: RobotAccelerationProfile}): Position {
+export function robotBrakePos(robot: {pos: Position, speed: Speed, acceleration?: RobotAccelerationProfile}): Position {
 	let BREAK_DEFAULT = 5; // rather overestimate than underestimte the opponent
 	let brkAcc = robot.acceleration ? robot.acceleration.aBrakeFMax : BREAK_DEFAULT;
 	let robotSpeed = robot.speed.length();
@@ -353,7 +353,7 @@ export function robotBrakePos (robot: {pos: Position, speed: Speed, acceleration
 }
 
 /// estimates the time the ball needs to travel for a chip pass from startPos to endPos
-export function chipPassTime (startPos: Position, endPos: Position): number {
+export function chipPassTime(startPos: Position, endPos: Position): number {
 	let dist = endPos.distanceTo(startPos);
 	let zSpeed = calculateChipSpeed(dist);
 	let ball = {
@@ -372,7 +372,7 @@ export function chipPassTime (startPos: Position, endPos: Position): number {
 // @param ball Ball - a ball-like structure
 // @param distance number - the distance in meter
 // @return number - the estimated time
-export function ballTravelTime (ball: BallLike & {posZ: number, initSpeedZ: number, speedZ: number}, distance: number): number {
+export function ballTravelTime(ball: BallLike & {posZ: number, initSpeedZ: number, speedZ: number}, distance: number): number {
 	if (ball.posZ > 0 || ball.initSpeedZ > 0) { // ball is flying
 		let [newBall, time, restDist] = ballFlightTime(ball, distance);
 		if (restDist) { // bouncing over
@@ -388,7 +388,7 @@ export function ballTravelTime (ball: BallLike & {posZ: number, initSpeedZ: numb
 /// estimates the time the ball needs to travel to a given position
 // checks if the position lies in front of the ball +- 90 degrees
 // if the pos is behind the ball, negative infinity is returned
-export function checkedBallTravelTime (ball: BallLike & {posZ: number, initSpeedZ: number, speedZ: number}, pos: Position): number {
+export function checkedBallTravelTime(ball: BallLike & {posZ: number, initSpeedZ: number, speedZ: number}, pos: Position): number {
 	let toPos = pos - ball.pos;
 	if (ball.speed.dot(toPos) > 0) {
 		let distance = ball.pos.distanceTo(pos);
@@ -403,7 +403,7 @@ export function checkedBallTravelTime (ball: BallLike & {posZ: number, initSpeed
 // @param ball Ball - a ball-like structure
 // @param distance number - the distance in meter
 // @return number - the estimated time
-export function ballRollTime (ball: {speed: Speed, maxSpeed: number}, distance: number): number {
+export function ballRollTime(ball: {speed: Speed, maxSpeed: number}, distance: number): number {
 	// a_slide: the negative acceleration while the ball is sliding [m/s^2]
 	// a_roll: the negative acceleration while the ball is rolling [m/s^2]
 	let a_slide = Constants.fastBallDeceleration;
@@ -456,7 +456,7 @@ export function ballRollTime (ball: {speed: Speed, maxSpeed: number}, distance: 
 /// estimates the time the ball needs to travel to a given position
 // checks if the position lies in front of the ball +- 90 degrees
 // if the pos is behind the ball, negative infinity is returned
-export function checkedBallRollTime (ball: BallLike, pos: Position): number {
+export function checkedBallRollTime(ball: BallLike, pos: Position): number {
 	let toPos = pos - ball.pos;
 	if (ball.speed.dot(toPos) > 0) {
 		let distance = ball.pos.distanceTo(pos);
@@ -469,7 +469,7 @@ export function checkedBallRollTime (ball: BallLike, pos: Position): number {
 /// calculates the time the ball needs to fully stop
 // @param ball Ball - a ball-like structure
 // @return number - the estimated stop time
-export function ballStopTime (ball: {speed: Speed, maxSpeed: number}): number {
+export function ballStopTime(ball: {speed: Speed, maxSpeed: number}): number {
 	// a_slide: the negative acceleration while the ball is sliding [m/s^2]
 	// a_roll: the negative acceleration while the ball is rolling [m/s^2]
 	let a_slide = Constants.fastBallDeceleration;
@@ -498,7 +498,7 @@ export function ballStopTime (ball: {speed: Speed, maxSpeed: number}): number {
 // @param ball Ball - a ball-like structure
 // @param [offset number - additional offset to move field lines further outwards]
 // @return number - the estimated out time
-function _ballOutTime (ball: BallLike, offset?: number): number {
+function _ballOutTime(ball: BallLike, offset?: number): number {
 	if (ball.speed.length() < 0.01) {
 		return Infinity;
 	}
@@ -509,13 +509,13 @@ function _ballOutTime (ball: BallLike, offset?: number): number {
 	let distToLine = ball.pos.distanceTo(lineCut);
 	return ballRollTime(ball, distToLine);
 }
-export const ballOutTime: ((ball: BallLike, offset?: number)=> number) = Cache.forFrame(_ballOutTime);
+export const ballOutTime: ((ball: BallLike, offset?: number) => number) = Cache.forFrame(_ballOutTime);
 
 
 /// first position where the ball will hit the ground again
 // @param ball Ball - a ball-like structure
 // @return Vector - the estimated landing position
-export function ballLandPos (ball: BallLike & {speedZ: number, posZ: number}): Position {
+export function ballLandPos(ball: BallLike & {speedZ: number, posZ: number}): Position {
 	let topHeight = Math.max(0, ball.posZ + ball.speedZ * ball.speedZ / (2 * 9.81));
 	let timeToTop = ball.speedZ / 9.81;
 	let timeToFloor = Math.sqrt(2 * topHeight / 9.81);
@@ -533,7 +533,7 @@ export interface RobotLike {
 
 
 // assumes that the path is a direct line from robot.pos to endPos
-export function robotTimeToPos (robot: RobotLike, endPos: Position, endSpeedVector: Speed): [number, number] { //, debugFlag)
+export function robotTimeToPos(robot: RobotLike, endPos: Position, endSpeedVector: Speed): [number, number] { // , debugFlag)
 	// acceleration parameters
 	let hardBrakeAccel = 4.7;
 	let brakeAccelFactor = 1;
@@ -582,7 +582,7 @@ export function robotTimeToPos (robot: RobotLike, endPos: Position, endSpeedVect
 
 	// sin(Angle ABM) * length([BM]) = length([AM]) <=> sin(Angle ABM) * (e+r) = r <=> sin(ABM) * e + sin(ABM) * r = r
 	// <=> sin(ABM) * e = r - sin(ABM) r <=> sin(ABM) * e = r (1-sin(ABM)) <=> sin(ABM) * e / (1-sin(ABM)) = r
-	let angleSin = Math.sin((Math.PI - absAngleDiff)/2);
+	let angleSin = Math.sin((Math.PI - absAngleDiff) / 2);
 	let radius = maxError * angleSin / (1 - angleSin) * 0.5;
 
 
@@ -704,14 +704,12 @@ export function robotTimeToPos (robot: RobotLike, endPos: Position, endSpeedVect
 // Then the robot must do a full stop and return to pos with zero endSpeed!
 // @param lowAccel - assume reduced acceleration
 // @return number - the estimated time
-export function robotTimeToPosOLD (robot: Robot, pos: Position, endSpeed: Speed, brakeAndReturn: boolean, lowAccel: number): number {
+export function robotTimeToPosOLD(robot: Robot, pos: Position, endSpeed: Speed, brakeAndReturn: boolean, lowAccel: number): number {
 	let accelerationFactor = lowAccel ? 0.7 : 0.7; // factor for max forward speedup and braking
 	let tolerance = 0.01; // cutoff low distances to prevent instabilities
 	// forward acceleration and deceleration
-	let accelerate = Math.abs(robot.acceleration
- ? robot.acceleration.aSpeedupFMax : 1.0) * accelerationFactor;
-	let brake = Math.abs(robot.acceleration
- ? robot.acceleration.aBrakeFMax : 1.0) * accelerationFactor;
+	let accelerate = Math.abs(robot.acceleration ? robot.acceleration.aSpeedupFMax : 1.0) * accelerationFactor;
+	let brake = Math.abs(robot.acceleration ? robot.acceleration.aBrakeFMax : 1.0) * accelerationFactor;
 
 	let lineDist = Math.max(pos.distanceTo(robot.pos) - tolerance, 0);
 	let lineDir = (pos - robot.pos).normalize();
@@ -735,7 +733,7 @@ export function robotTimeToPosOLD (robot: Robot, pos: Position, endSpeed: Speed,
 			let minAccelDist = robotSpeed * minAccelTime + accelerate * minAccelTime * minAccelTime / 2;
 			if (minAccelDist >= lineDist) {
 				// won't be able to reach endSpeed
-				return (-robotSpeed + Math.sqrt(robotSpeed*robotSpeed+2*accelerate*lineDist)) / accelerate;
+				return (-robotSpeed + Math.sqrt(robotSpeed * robotSpeed + 2 * accelerate * lineDist)) / accelerate;
 			}
 		} else if (destSpeed <= robotSpeed) {
 			let minBrakeTime = (robotSpeed - destSpeed) / brake;
@@ -743,7 +741,7 @@ export function robotTimeToPosOLD (robot: Robot, pos: Position, endSpeed: Speed,
 			if (minBrakeDist >= lineDist) {
 				if (!brakeAndReturn) {
 					// won't be able to brake down to endSpeed
-					return (-robotSpeed + Math.sqrt(robotSpeed*robotSpeed-2*brake*lineDist)) / (-brake);
+					return (-robotSpeed + Math.sqrt(robotSpeed * robotSpeed - 2 * brake * lineDist)) / (-brake);
 				}
 
 				// create a fake robot at the position where the robot is able to brake
@@ -762,8 +760,8 @@ export function robotTimeToPosOLD (robot: Robot, pos: Position, endSpeed: Speed,
 		// d = v_max - v_cut
 		// v_max(d/accel + d/brake)-accel/2*(d/accel)^2-brake/2*(d/brake)^2=-remaining
 		// solve: d^2 * (-1/(2*accel)-1/(2*brake)) + d * v_max * (1/accel + 1/brake) + remaining = 0
-		let [v_delta] = MathUtil.solveSq(-0.5*(1/accelerate+1/brake),
-				robot.maxSpeed*(1/accelerate+1/brake), remainingDist);
+		let [v_delta] = MathUtil.solveSq(-0.5 * (1 / accelerate + 1 / brake),
+				robot.maxSpeed * (1 / accelerate + 1 / brake), remainingDist);
 		if (v_delta == undefined) {
 			// b^2 - 4*a*c < 0 -> rounding error
 			v_delta = robot.maxSpeed;
@@ -780,7 +778,7 @@ export function robotTimeToPosOLD (robot: Robot, pos: Position, endSpeed: Speed,
 // @param pos Vector
 // @param time number
 // @return Vector - the endspeed vector (in the direction from robot to pos)
-export function robotMinEndspeed (robot: Robot, pos: Position, time: number): Speed {
+export function robotMinEndspeed(robot: Robot, pos: Position, time: number): Speed {
 	let direction = (pos - robot.pos).normalize();
 	let maxSpeed = robot.maxSpeed;
 
@@ -820,7 +818,7 @@ export function robotMinEndspeed (robot: Robot, pos: Position, time: number): Sp
 
 
 /// calculates the time the robot needs to move to the position next to the ball at given t_ball
-export function robotTimeForBallTime (robot: Robot, ball: BallLike & {radius: number}, targetPos: Position,
+export function robotTimeForBallTime(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position,
 		endSpeedLength: number, t_ball: number): number {
 	let x_ball = ballAtTime(ball, t_ball).pos;
 	let axis = (x_ball - targetPos).normalize();
@@ -836,12 +834,12 @@ export function robotTimeForBallTime (robot: Robot, ball: BallLike & {radius: nu
 	return robotTimeToPos(robot, x_robot, endSpeed)[0];
 }
 
-function dist (v0: number, v1: number, a: number): [number, number] {
+function dist(v0: number, v1: number, a: number): [number, number] {
 	let t = Math.abs(v0 - v1) / a;
 	return [(v0 + v1) * t / 2, t];
 }
 
-function angleForTime (accA: number, accB: number, time: number, startSpeed: number): number {
+function angleForTime(accA: number, accB: number, time: number, startSpeed: number): number {
 	// y1 = t * accA + startSpeed
 	// y2 = (t - time) * -accB + endSpeed
 
@@ -857,7 +855,7 @@ function angleForTime (accA: number, accB: number, time: number, startSpeed: num
 // @param time Number - how much time (in seconds) the robot has to turn
 // @return dist1 Number - the angle the robot can turn clockwise
 // @return dist2 Number - the angle the robot can turn counter-clockwise
-export function robotRotationRangeForTime (robot: Robot, time: number): [number, number] {
+export function robotRotationRangeForTime(robot: Robot, time: number): [number, number] {
 	let angularSpeed = robot.angularSpeed;
 	let maxAccel = robot.acceleration.aSpeedupPhiMax;
 	let maxDecel = robot.acceleration.aBrakePhiMax;
@@ -868,7 +866,7 @@ export function robotRotationRangeForTime (robot: Robot, time: number): [number,
 	if (brakeTime < time) {
 		dist2 = angleForTime(maxAccel, maxDecel, time - brakeTime, 0) - extraDist;
 	} else {
-		let minEndSpeed = Math.abs(angularSpeed) - time*maxDecel;
+		let minEndSpeed = Math.abs(angularSpeed) - time * maxDecel;
 		dist2 = -dist(Math.abs(angularSpeed), minEndSpeed, maxDecel)[0];
 	}
 
@@ -879,7 +877,7 @@ export function robotRotationRangeForTime (robot: Robot, time: number): [number,
 	}
 }
 
-function rttbSpecialCases (robot: Robot, ball: BallLike & {radius: number}, targetPos: Position, endSpeedLength: number,
+function rttbSpecialCases(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position, endSpeedLength: number,
 		t_max: number, t_out: number): [number | undefined, number | undefined] {
 	// calculate time required when the robot is directly hit by the ball
 	let frontOffset = (targetPos - robot.pos).setLength(ball.radius + robot.shootRadius);
@@ -910,8 +908,8 @@ function rttbSpecialCases (robot: Robot, ball: BallLike & {radius: number}, targ
 	// In the end the sampling is no longer able to find a valid time
 	// The instability is increased as predicting the fasted position
 	// where to catch the ball on the dribber gets more important.
-	if (Math.abs(lambda) < robot.dribblerWidth/2+0.01 && ballTimeToHitPos < 0.25
-			 &&  ball.speed.dot(ballHitPos - ball.pos) > 0) {
+	if (Math.abs(lambda) < robot.dribblerWidth / 2 + 0.01 && ballTimeToHitPos < 0.25
+			&&  ball.speed.dot(ballHitPos - ball.pos) > 0) {
 		if (ballTimeToHitPos <= t_max) {
 			return [undefined, ballTimeToHitPos];
 		} else {
@@ -931,16 +929,16 @@ function rttbSpecialCases (robot: Robot, ball: BallLike & {radius: number}, targ
 	return [t_max, undefined];
 }
 
-function rttbQuadraticSampling (robot: Robot, ball: BallLike & {radius: number}, targetPos: Position, endSpeedLength: number,
+function rttbQuadraticSampling(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position, endSpeedLength: number,
 		t_max: number, t_stop: number, t_out: number): [undefined, number] | [number, number | undefined] {
 	const N_SAMPLES = 10;
 
 	let robot_times: number[] = [];
 	let ball_times: number[] = [];
 
-	for (let i = 0;i<N_SAMPLES;i++) {
+	for (let i = 0;i < N_SAMPLES;i++) {
 		// calculate interval
-		let i_normalized = i / (N_SAMPLES-1);
+		let i_normalized = i / (N_SAMPLES - 1);
 		let step_quadratic = 0.5 * i_normalized * i_normalized + 0.5 * i_normalized;
 		let t_ball = step_quadratic * t_max;
 		let t_robot = robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball);
@@ -954,12 +952,12 @@ function rttbQuadraticSampling (robot: Robot, ball: BallLike & {radius: number},
 	// check if the first maximum is > 0 (if it exists)
 	let t_ball_bsearch_start = undefined;
 	let t_ball_bsearch_end = undefined;
-	for (let i = 1;i<N_SAMPLES;i++) {
+	for (let i = 1;i < N_SAMPLES;i++) {
 		// search the first zero crossing
-		let timediff0 = ball_times[i-1] - robot_times[i-1];
+		let timediff0 = ball_times[i - 1] - robot_times[i - 1];
 		let timediff1 = ball_times[i] - robot_times[i];
 		if (timediff0 <= 0 && timediff1 >= 0) {
-			t_ball_bsearch_start = ball_times[i-1];
+			t_ball_bsearch_start = ball_times[i - 1];
 			t_ball_bsearch_end = ball_times[i];
 			break;
 		}
@@ -978,7 +976,7 @@ function rttbQuadraticSampling (robot: Robot, ball: BallLike & {radius: number},
 	return [t_ball_bsearch_start, t_ball_bsearch_end];
 }
 
-function rttbBinarySearch (robot: Robot, ball: BallLike & {radius: number}, targetPos: Position, endSpeedLength: number,
+function rttbBinarySearch(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position, endSpeedLength: number,
 		t_ball_bsearch_start: number, t_ball_bsearch_end: number): number {
 	if (t_ball_bsearch_start < 0 || t_ball_bsearch_end < t_ball_bsearch_start) {
 		throw new Error("");
@@ -1013,14 +1011,14 @@ function rttbBinarySearch (robot: Robot, ball: BallLike & {radius: number}, targ
 // @param endSpeedLength - the maximal velocity of the robot when reaching the destination
 // @param lastTime - last result of robotTimeToBall for the given parameters
 // @return number - the estimated time
-export function robotTimeToBall (robot: Robot, ball: BallLike & {radius: number}, targetPos: Position,
+export function robotTimeToBall(robot: Robot, ball: BallLike & {radius: number}, targetPos: Position,
 		endSpeedLength: number, lastTime?: number): number {
-	//local time0 = amun.getCurrentTime()
+	// local time0 = amun.getCurrentTime()
 	// if the ball is extremely slow, consider it as stationary
 	if (ball.speed.length() < 0.01) {
 		let result = robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, 0);
-		//local time1 = amun.getCurrentTime()
-		//plot.aggregate("robotTimeToBall", time1 - time0)
+		// local time1 = amun.getCurrentTime()
+		// plot.aggregate("robotTimeToBall", time1 - time0)
 		return result;
 	}
 
@@ -1032,17 +1030,17 @@ export function robotTimeToBall (robot: Robot, ball: BallLike & {radius: number}
 	let t_max = Math.min(t_out, t_stop);
 
 	let specialCaseResult: number | undefined;
-	[t_max, specialCaseResult] = <[number, any]>rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t_out);
+	[t_max, specialCaseResult] = <[number, any]> rttbSpecialCases(robot, ball, targetPos, endSpeedLength, t_max, t_out);
 	if (specialCaseResult) {
-		//local time1 = amun.getCurrentTime()
-		//plot.aggregate("robotTimeToBall", time1 - time0)
+		// local time1 = amun.getCurrentTime()
+		// plot.aggregate("robotTimeToBall", time1 - time0)
 		return specialCaseResult;
 	}
 
 	let t_ball_bsearch_start, t_ball_bsearch_end;
 	if (lastTime != undefined && lastTime < Infinity && lastTime > 0) {
 		// try to reuse the sample from last frame
-		let t_ball1 = Math.max(0, lastTime-World.TimeDiff-0.035);
+		let t_ball1 = Math.max(0, lastTime - World.TimeDiff - 0.035);
 		let t_diff1 = t_ball1 - robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball1);
 		let t_ball2 = lastTime;
 		let t_diff2 = t_ball2 - robotTimeForBallTime(robot, ball, targetPos, endSpeedLength, t_ball2);
@@ -1061,15 +1059,15 @@ export function robotTimeToBall (robot: Robot, ball: BallLike & {radius: number}
 				= rttbQuadraticSampling(robot, ball, targetPos, endSpeedLength, t_max, t_stop, t_out);
 
 		if (t_ball_bsearch_start == undefined) {
-			//local time1 = amun.getCurrentTime()
-			//plot.aggregate("robotTimeToBall", time1 - time0)
-			return <number>t_ball_bsearch_end;
+			// local time1 = amun.getCurrentTime()
+			// plot.aggregate("robotTimeToBall", time1 - time0)
+			return <number> t_ball_bsearch_end;
 		}
 	}
 
 	let t_ball = rttbBinarySearch(robot, ball, targetPos, endSpeedLength,
-			t_ball_bsearch_start, <number>t_ball_bsearch_end);
-	//local time1 = amun.getCurrentTime()
-	//plot.aggregate("robotTimeToBall", time1 - time0)
+			t_ball_bsearch_start, <number> t_ball_bsearch_end);
+	// local time1 = amun.getCurrentTime()
+	// plot.aggregate("robotTimeToBall", time1 - time0)
 	return t_ball;
 }

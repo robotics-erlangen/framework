@@ -1,6 +1,6 @@
-import {Vector} from "base/vector";
+import { Vector } from "base/vector";
 
-export function standardNormalDistributedNumber (): number {
+export function standardNormalDistributedNumber(): number {
 	let u: number;
 	let neg: boolean;
 	do {
@@ -20,7 +20,7 @@ export function standardNormalDistributedNumber (): number {
 	return z;
 }
 
-export function standardNormalDistributedVector (): Vector {
+export function standardNormalDistributedVector(): Vector {
 	let r = standardNormalDistributedNumber();
 	return Vector.fromAngle(Math.random() * 2 * Math.PI) * r;
 }

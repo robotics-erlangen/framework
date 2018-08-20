@@ -1,15 +1,15 @@
-import {amunFunctions} from "base/amun";
-import * as Ball from "glados/observer/ball";
+import { amunFunctions } from "base/amun";
 import * as Cache from "base/cache";
 import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
-import {Robot, FriendlyRobot} from "base/robot";
-import * as MathUtil from "base/mathutil";
 import * as geom from "base/geom";
+import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
-import {Vector, Position, RelativePosition} from "base/vector";
+import { FriendlyRobot, Robot } from "base/robot";
+import { Position, RelativePosition, Vector } from "base/vector";
 import * as World from "base/world";
+import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
 import * as ObserverRobot from "glados/observer/robot";
@@ -18,7 +18,7 @@ import * as Rating from "glados/util/rating";
 let G = World.Geometry;
 
 
-export function centerBackDistanceToDefenseArea () {
+export function centerBackDistanceToDefenseArea() {
 	// 0.18 (robot diameter) + 0.08 (default distance) + 0.50 (stop radius)
 	if (Referee.isStopState()) {
 		let dist = Field.distanceToFriendlyDefenseArea(World.Ball.pos, World.Ball.radius);
@@ -35,7 +35,7 @@ export let PENALTY_LINE_DISTANCE = 0.35; // prevent robots from crossing the pen
 export let MARKING_DISTANCE = 0.6;
 export let OFFENSIVE_MARKING_DISTANCE = 0.3;
 
-function _manMarkPos (opponent: Robot): Position {
+function _manMarkPos(opponent: Robot): Position {
 	// use the position at which the robot would brake if it started immediately
 	let targetPos = Physics.robotBrakePos({pos: opponent.pos, speed: opponent.speed});
 	if (World.Ball.pos.y > G.FieldHeightHalf * 0.7 && World.Ball.speed.length() < 0.5 && Referee.isStopState()) {
@@ -74,7 +74,7 @@ function _manMarkPos (opponent: Robot): Position {
 	}
 
 	if (Referee.isStopState() && !Referee.isKickoffState() || intersectionDefenseArea
-				&& intersectionDefenseArea.distanceToSq(targetPos) < 0.75*0.75) {
+				&& intersectionDefenseArea.distanceToSq(targetPos) < 0.75 * 0.75) {
 		targetPos = intersectionDefenseArea || targetPos;
 	}
 
@@ -84,10 +84,10 @@ function _manMarkPos (opponent: Robot): Position {
 
 	return targetPos;
 }
-export let manMarkPos: (opponent: Robot)=> Position = Cache.forFrame(_manMarkPos);
+export let manMarkPos: (opponent: Robot) => Position = Cache.forFrame(_manMarkPos);
 
-function _piggyPos (opponent: Robot): Position {
-	let passLine = World.Ball.pos-opponent.pos;
+function _piggyPos(opponent: Robot): Position {
+	let passLine = World.Ball.pos - opponent.pos;
 
 	let perpendicularOffset = passLine.perpendicular().setLength(0.3);
 
@@ -96,10 +96,10 @@ function _piggyPos (opponent: Robot): Position {
 
 	return opponent.pos + offset;
 }
-export let piggyPos: (opponent: Robot)=> Position = Cache.forFrame(_piggyPos);
+export let piggyPos: (opponent: Robot) => Position = Cache.forFrame(_piggyPos);
 
 let wasGoalLineIntersection = false;
-function _calculateBallPositionField (): [Position, RelativePosition | undefined] {
+function _calculateBallPositionField(): [Position, RelativePosition | undefined] {
 	let [targetPos, targetDir, isShot] = Goal.predictShot();
 	if (isShot && targetDir.y < 0) {
 		let goalLineIntersection = geom.intersectLineLine(targetPos,
@@ -114,22 +114,22 @@ function _calculateBallPositionField (): [Position, RelativePosition | undefined
 	wasGoalLineIntersection = false;
 	return [targetPos, undefined];
 }
-export let calculateBallPositionField: ()=> [Position, RelativePosition | undefined] = Cache.forFrame(_calculateBallPositionField);
+export let calculateBallPositionField: () => [Position, RelativePosition | undefined] = Cache.forFrame(_calculateBallPositionField);
 
-export function calculateBallPosition () {
+export function calculateBallPosition() {
 	let [pos, dir] = calculateBallPositionField();
 	return centerBackPos(pos, dir);
 }
 
-//calculates the centerBackPos for a target
-//if targetDir is supplied, the CB will position itself between targetPos and intersectRayDefenseArea(pos, dir, ...)
-//if that intersection is empty or no dir is supplied, it wil position itself between the target and the center of the goal
-function _centerBackPos (targetPos: Position, targetDir: RelativePosition | undefined): [Position, number, number | undefined] {
+// calculates the centerBackPos for a target
+// if targetDir is supplied, the CB will position itself between targetPos and intersectRayDefenseArea(pos, dir, ...)
+// if that intersection is empty or no dir is supplied, it wil position itself between the target and the center of the goal
+function _centerBackPos(targetPos: Position, targetDir: RelativePosition | undefined): [Position, number, number | undefined] {
 	let dist = centerBackDistanceToDefenseArea() + Constants.maxRobotRadius;
 	if (targetDir != undefined) {
-		//use targetPos even if it is slightly outside the field if it is going to be shot back in
-		//don't rely on the autoref to disqualify this shot
-		let [pos, way, sec] = Field.intersectRayDefenseArea(targetPos, targetDir, dist, true)
+		// use targetPos even if it is slightly outside the field if it is going to be shot back in
+		// don't rely on the autoref to disqualify this shot
+		let [pos, way, sec] = Field.intersectRayDefenseArea(targetPos, targetDir, dist, true);
 		if (pos) {
 			return [pos, way, sec];
 		}
@@ -139,12 +139,12 @@ function _centerBackPos (targetPos: Position, targetDir: RelativePosition | unde
 	let [pos, way, sec] = Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal, dir, dist, true);
 	return [pos || centerBackDefaultPos, way, sec];
 }
-export let centerBackPos: (targetPos: Position, targetDir: RelativePosition | undefined)=> [Position, number, number | undefined] =
+export let centerBackPos: (targetPos: Position, targetDir: RelativePosition | undefined) => [Position, number, number | undefined] =
 	Cache.forFrame(_centerBackPos);
 
 // if the ball will reach our defense area with at least that speed, stay defender
 let DANGEROUS_BALL_SPEED = 3.0;
-export function dangerousBallTowardsDefense (opp: boolean): boolean {
+export function dangerousBallTowardsDefense(opp: boolean): boolean {
 	// if the ball rolls towards our defense area with high speed, stay defender
 	let defenseLineIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, 0, !opp)[0];
 	if (defenseLineIntersection) {
@@ -158,7 +158,7 @@ export function dangerousBallTowardsDefense (opp: boolean): boolean {
 	return false;
 }
 
-export function getClosestRobot (robotlist: Robot[], pos: Position): [Robot | undefined, number] {
+export function getClosestRobot(robotlist: Robot[], pos: Position): [Robot | undefined, number] {
 	let minDist = Infinity;
 	let minRobot = undefined;
 	for (let r of robotlist) {
@@ -171,7 +171,7 @@ export function getClosestRobot (robotlist: Robot[], pos: Position): [Robot | un
 	return [minRobot, minDist];
 }
 
-function _ratePassThreats (): Map<Robot, number> {
+function _ratePassThreats(): Map<Robot, number> {
 	let dangerousness: Map<Robot, number> = new Map<Robot, number>();
 	let futureBallPos = Goal.predictShot()[0];
 	for (let opp of World.OpponentRobots) {
@@ -181,19 +181,19 @@ function _ratePassThreats (): Map<Robot, number> {
 		let angleOppGoalY = (opp.pos - World.Geometry.FriendlyGoal).absoluteAngleDiff(new Vector(0, 1));
 		let distOppGoal = opp.pos.distanceTo(World.Geometry.FriendlyGoal);
 
-		let ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 120 * Math.PI/180, 80 * Math.PI/180);
-		let ratingAngleOppGoalY = Rating.valueToRating(angleOppGoalY, 85 * Math.PI/180, 70 * Math.PI/180);
+		let ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 120 * Math.PI / 180, 80 * Math.PI / 180);
+		let ratingAngleOppGoalY = Rating.valueToRating(angleOppGoalY, 85 * Math.PI / 180, 70 * Math.PI / 180);
 		let ratingDistOppGoal = Rating.valueToRating(distOppGoal,
 			World.Geometry.FieldHeight * 0.85, World.Geometry.FieldHeight * 0.4);
 
-		let rating = ratingAngleBallOppGoal * ratingAngleOppGoalY * ratingDistOppGoal
+		let rating = ratingAngleBallOppGoal * ratingAngleOppGoalY * ratingDistOppGoal;
 		dangerousness.set(opp, rating);
 	}
 	return dangerousness;
 }
-export let ratePassThreats: ()=> Map<Robot, number> = Cache.forFrame(_ratePassThreats);
+export let ratePassThreats: () => Map<Robot, number> = Cache.forFrame(_ratePassThreats);
 
-function _rateVolleyGoalShotThreats (): Map<Robot, number> {
+function _rateVolleyGoalShotThreats(): Map<Robot, number> {
 	let dangerousness: Map<Robot, number> = new Map<Robot, number>();
 	if (World.Ball.speed.length() > 1.5) {
 		for (let opp of World.OpponentRobots) {
@@ -202,21 +202,21 @@ function _rateVolleyGoalShotThreats (): Map<Robot, number> {
 				let angleBallOppGoal = (World.Ball.pos - opp.pos).absoluteAngleDiff(
 						World.Geometry.FriendlyGoal - opp.pos);
 				let angleBallSpeedOpp = World.Ball.speed.absoluteAngleDiff(opp.pos - World.Ball.pos);
-				let ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 85 * Math.PI/180, 65 * Math.PI/180);
-				let ratingAngleBallSpeedOpp = Rating.valueToRating(angleBallSpeedOpp, 45 * Math.PI/180, 30 * Math.PI/180);
+				let ratingAngleBallOppGoal = Rating.valueToRating(angleBallOppGoal, 85 * Math.PI / 180, 65 * Math.PI / 180);
+				let ratingAngleBallSpeedOpp = Rating.valueToRating(angleBallSpeedOpp, 45 * Math.PI / 180, 30 * Math.PI / 180);
 				rating = ratingAngleBallOppGoal * ratingAngleBallSpeedOpp;
 			}
 			let absAngleOppDirGoal = Math.abs(geom.normalizeAngle(
 					opp.dir - (World.Geometry.FriendlyGoal - opp.pos).angle()));
-			let ratingAbsAngleOppDirGoal = Rating.valueToRating(absAngleOppDirGoal, 60 * Math.PI/180, 20 * Math.PI/180);
+			let ratingAbsAngleOppDirGoal = Rating.valueToRating(absAngleOppDirGoal, 60 * Math.PI / 180, 20 * Math.PI / 180);
 			dangerousness.set(opp, rating * ratingAbsAngleOppDirGoal);
 		}
 	}
 	return dangerousness;
 }
-export let rateVolleyGoalShotThreats: ()=> Map<Robot, number> = Cache.forFrame(_rateVolleyGoalShotThreats);
+export let rateVolleyGoalShotThreats: () => Map<Robot, number> = Cache.forFrame(_rateVolleyGoalShotThreats);
 
-function rateProximityThreats (): Map<Robot, number> {
+function rateProximityThreats(): Map<Robot, number> {
 	let dangerousness: Map<Robot, number> = new Map<Robot, number>();
 	for (let opp of World.OpponentRobots) {
 		dangerousness.set(opp, 0.01 * Rating.valueToRating(opp.pos.distanceTo(World.Geometry.FriendlyGoal), World.Geometry.FieldHeightHalf, 0));
@@ -224,7 +224,7 @@ function rateProximityThreats (): Map<Robot, number> {
 	return dangerousness;
 }
 
-function _rateOpponentDangerousness (): Map<Robot, number> {
+function _rateOpponentDangerousness(): Map<Robot, number> {
 	let passThreats = ratePassThreats();
 	let goalThreats = rateVolleyGoalShotThreats();
 	let proximityThreats = rateProximityThreats();
@@ -233,16 +233,16 @@ function _rateOpponentDangerousness (): Map<Robot, number> {
 	for (let opp of World.OpponentRobots) {
 		let passDangerousness = passThreats.get(opp) || 0;
 		let goalDangerousness = goalThreats.get(opp) || 0;
-		let proximityDangerousness = <number>proximityThreats.get(opp);
+		let proximityDangerousness = <number> proximityThreats.get(opp);
 		dangerousness.set(opp, Math.max(passDangerousness, Math.max(goalDangerousness, proximityDangerousness)));
 	}
 
 	debug.set("dangerousness", dangerousness);
 	return dangerousness;
 }
-export let rateOpponentDangerousness: ()=> Map<Robot, number> = Cache.forFrame(_rateOpponentDangerousness);
+export let rateOpponentDangerousness: () => Map<Robot, number> = Cache.forFrame(_rateOpponentDangerousness);
 
-function _rateOpponentPassViability (): Map<Robot, number> {
+function _rateOpponentPassViability(): Map<Robot, number> {
 	if (!amunFunctions.isPerformanceMode) {
 		debug.push("Util Defense");
 		debug.push("passViability");
@@ -250,7 +250,7 @@ function _rateOpponentPassViability (): Map<Robot, number> {
 
 	let passViability: Map<Robot, number> = new Map<Robot, number>(); // opponent -> rating
 
-	let ballPos = World.Ball.pos + World.Ball.speed/2;
+	let ballPos = World.Ball.pos + World.Ball.speed / 2;
 	for (let opp of World.OpponentRobots) {
 
 		// ignore the ball owner
@@ -289,7 +289,7 @@ function _rateOpponentPassViability (): Map<Robot, number> {
 
 		// we do not want the enemy to move the ball closer to our goal
 		let minRating = 0.6;
-		let distToGoal = opp.pos.y + opp.speed.y/2 + G.FieldHeightHalf;
+		let distToGoal = opp.pos.y + opp.speed.y / 2 + G.FieldHeightHalf;
 		let distToGoalRating = (1 - minRating) * Rating.valueToRating(distToGoal, G.FieldHeight - G.DefenseHeight, G.DefenseHeight + 1) + minRating;
 
 		let rating = distToGoalRating * distToBallOwnerRating;
@@ -300,7 +300,7 @@ function _rateOpponentPassViability (): Map<Robot, number> {
 		}
 
 		if (!amunFunctions.isPerformanceMode) {
-			debug.push(String(opp.id))
+			debug.push(String(opp.id));
 			debug.set("distToBallOwnerRating", distToBallOwnerRating);
 			debug.set("distToGoalRating", distToGoalRating);
 			debug.set("total rating", rating);
@@ -316,11 +316,11 @@ function _rateOpponentPassViability (): Map<Robot, number> {
 	debug.set("passViability", passViability);
 	return passViability;
 }
-export let rateOpponentPassViability: ()=> Map<Robot, number> = Cache.forFrame(_rateOpponentPassViability);
+export let rateOpponentPassViability: () => Map<Robot, number> = Cache.forFrame(_rateOpponentPassViability);
 
 // this function searches for a position between boundaryOne and boundaryTwo to which the robot will take
 // the shortest amount of time, up to a precision value, using a ternary algorithm
-export function findBestPointToBlockOpponentShot (robot: FriendlyRobot, boundaryOne: Position, boundaryTwo: Position,
+export function findBestPointToBlockOpponentShot(robot: FriendlyRobot, boundaryOne: Position, boundaryTwo: Position,
 		timeToBoundaryOne: number, timeToBoundaryTwo: number, precision: number): Position {
 	// time diff between the two bounds
 	if (Math.abs(timeToBoundaryOne - timeToBoundaryTwo) < precision ||
@@ -345,7 +345,7 @@ export function findBestPointToBlockOpponentShot (robot: FriendlyRobot, boundary
 }
 
 // this function calculates a new position between boundaryOne and boundaryTwo regarding the oldPosition
-export function fastestPointInInterval (robot: FriendlyRobot, boundaryOne: Position, boundaryTwo: Position,
+export function fastestPointInInterval(robot: FriendlyRobot, boundaryOne: Position, boundaryTwo: Position,
 		oldPos: Position | undefined, precision: number, blockAlpha: number): Position {
 	// time to the boundaries
 	let timeToBoundaryOne = Physics.robotTimeToPos(robot, boundaryOne, new Vector(0, 0))[0];
@@ -359,20 +359,20 @@ export function fastestPointInInterval (robot: FriendlyRobot, boundaryOne: Posit
 	}
 
 	// don't let the postion jump to much between frames
-	return newPos * blockAlpha + oldPos * (1-blockAlpha);
+	return newPos * blockAlpha + oldPos * (1 - blockAlpha);
 }
 
-function calculateDefenseCornerFactor (robot_radius: number, buffer: number, distance: number): number {
-	let distanceRHalf = robot_radius + buffer/2;
+function calculateDefenseCornerFactor(robot_radius: number, buffer: number, distance: number): number {
+	let distanceRHalf = robot_radius + buffer / 2;
 	let extraDistance = distance + robot_radius;
-	return distanceRHalf/extraDistance / Math.asin(distanceRHalf/ extraDistance);
+	return distanceRHalf / extraDistance / Math.asin(distanceRHalf / extraDistance);
 }
 export let cornerFactor = calculateDefenseCornerFactor(0.09, 0.02, 0.08);
 
 // sec - Sector:
 // 2  3  4
 // 1     5
-export function mulCornerFactor (way: number, sec: number, distance: number) {
+export function mulCornerFactor(way: number, sec: number, distance: number) {
 	let defenseHeight = G.DefenseHeight;
 	let defenseWidth = G.DefenseWidth;
 	let factor = cornerFactor;
@@ -383,20 +383,20 @@ export function mulCornerFactor (way: number, sec: number, distance: number) {
 		case 2:
 			return defenseHeight + (way - defenseHeight) * factor;
 		case 3:
-			return way + (Math.PI/2 * distance * (factor-1));
+			return way + (Math.PI / 2 * distance * (factor - 1));
 		case 4:
 			return defenseHeight + defenseWidth + (way - defenseHeight - defenseWidth) * factor;
 		case 5:
-			return way + (Math.PI * distance * (factor-1));
+			return way + (Math.PI * distance * (factor - 1));
 		default:
-			throw new Error("Invalid sector: " + sec);
+			throw new Error(`Invalid sector: ${sec}`);
 	}
 }
-export function divCornerFactor (way: number, distance: number): number {
+export function divCornerFactor(way: number, distance: number): number {
 	let defenseHeight = G.DefenseHeight;
 	let defenseWidth = G.DefenseWidth;
 	let factor = cornerFactor;
-	let corner = distance * Math.PI/2;
+	let corner = distance * Math.PI / 2;
 	let maxCornerWay = corner * factor;
 	let restWay = way;
 
@@ -406,7 +406,7 @@ export function divCornerFactor (way: number, distance: number): number {
 	restWay = restWay - defenseHeight;
 
 	if (restWay <= maxCornerWay) {
-		return defenseHeight + restWay/factor;
+		return defenseHeight + restWay / factor;
 	}
 	restWay = restWay - maxCornerWay;
 
@@ -416,8 +416,8 @@ export function divCornerFactor (way: number, distance: number): number {
 	restWay = restWay - defenseWidth;
 
 	if (restWay <= maxCornerWay) {
-		return defenseHeight + defenseWidth + corner + restWay/factor;
+		return defenseHeight + defenseWidth + corner + restWay / factor;
 	}
 	restWay = restWay - maxCornerWay;
-	return defenseHeight + defenseWidth + corner*2 + restWay;
+	return defenseHeight + defenseWidth + corner * 2 + restWay;
 }

@@ -1,17 +1,17 @@
-import {TrajectoryHandler} from "base/trajectory";
-import {Coordinates} from "base/coordinates";
+import { Coordinates } from "base/coordinates";
 import * as geom from "base/geom";
-import {Vector, Speed, Position} from "base/vector";
 import * as MathUtil from "base/mathutil";
+import { TrajectoryHandler } from "base/trajectory";
+import { Position, Speed, Vector } from "base/vector";
 
 export class Direct extends TrajectoryHandler {
-	update (...args: any[]): [any, Position, number] {
+	update(...args: any[]): [any, Position, number] {
 		return this._update(args[0], args[1], args[2], args[3]);
 	}
 
 	// only targetDir or rotateSpeed may be passed!
 	// accel is optional
-	_update (speed: Speed, targetDir: number | undefined, rotateSpeed: number | undefined, accel: Vector = new Vector(0, 0)): [any, Position, number] {
+	_update(speed: Speed, targetDir: number | undefined, rotateSpeed: number | undefined, accel: Vector = new Vector(0, 0)): [any, Position, number] {
 		speed = Coordinates.toGlobal(speed);
 		accel = Coordinates.toGlobal(accel);
 		// play motion controller
@@ -31,8 +31,8 @@ export class Direct extends TrajectoryHandler {
 		if (rotateSpeed == undefined) {
 			let limitRot = 4 * Math.PI;
 			let k_omega = 10;
-			targetDir = Coordinates.toGlobal(<number>targetDir);
-			let error_phi = geom.getAngleDiff(robotDir, <number>targetDir);
+			targetDir = Coordinates.toGlobal(<number> targetDir);
+			let error_phi = geom.getAngleDiff(robotDir, <number> targetDir);
 			rotateSpeed = MathUtil.bound(-limitRot, error_phi * k_omega, limitRot);
 		}
 
@@ -45,7 +45,7 @@ export class Direct extends TrajectoryHandler {
 		return [{spline: spline}, this._robot.pos, 0];
 	}
 
-	canHandle (...args: any[]) {
+	canHandle(...args: any[]) {
 		return true;
 	}
 }

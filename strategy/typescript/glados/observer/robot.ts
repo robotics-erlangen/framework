@@ -2,15 +2,15 @@ import * as Cache from "base/cache";
 import * as Constants from "base/constants";
 import * as Field from "base/field";
 import * as Referee from "base/referee";
-import {Robot} from "base/robot";
-import {Vector, Position, Speed} from "base/vector";
+import { Robot } from "base/robot";
+import { Position, Speed, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 import * as Physics from "glados/observer/physics";
 
 export interface RobotDynamics {
-	maxSpeed: number,
-	maxAngularSpeed: number,
+	maxSpeed: number;
+	maxAngularSpeed: number;
 	acceleration: {
 		aSpeedupFMax: number,
 		aBrakeFMax: number,
@@ -18,7 +18,7 @@ export interface RobotDynamics {
 		aBrakeSMax: number,
 		aSpeedupPhiMax: number,
 		aBrakePhiMax: number,
-	}
+	};
 }
 
 
@@ -44,7 +44,7 @@ let opponentDynamics: RobotDynamics = {
 let friendlyDynamics: RobotDynamics = {...opponentDynamics};
 friendlyDynamics.acceleration = {...friendlyDynamics.acceleration};
 
-export function estimateRobotDynamics () {
+export function estimateRobotDynamics() {
 	if (World.TimeDiff < 0.001) {
 		// don't do anything if the timediff is far below the regular 10 ms
 		return;
@@ -61,11 +61,11 @@ export function estimateRobotDynamics () {
 		letRobotSpeed.y = Math.abs(letRobotSpeed.y);
 		let letRobotDir = Math.abs(robot.angularSpeed);
 		if (lastLocalSpeed.has(robot)) {
-			let accel = (letRobotSpeed - <Speed>lastLocalSpeed.get(robot)).scaleLength(invTimeDiff);  // classic derivative without smoothing
+			let accel = (letRobotSpeed - <Speed> lastLocalSpeed.get(robot)).scaleLength(invTimeDiff);  // classic derivative without smoothing
 			accelerationSmoothed.set(robot, accel.scaleLength(alpha) + (accelerationSmoothed.get(robot) || nullVector) * (1 - alpha)); // smoothed acceleration curve
 		}
 		if (lastRotation.has(robot)) {
-			let accel = (letRobotDir - <number>lastRotation.get(robot)) * invTimeDiff;
+			let accel = (letRobotDir - <number> lastRotation.get(robot)) * invTimeDiff;
 			rotationAcclerationSmoothed.set(robot, accel * alpha + (rotationAcclerationSmoothed.get(robot) || 0) * (1 - alpha));
 		}
 		speedSmoothed.set(robot, robot.speed.length() * alpha + (speedSmoothed.get(robot) || 0) * (1 - alpha));
@@ -99,11 +99,11 @@ export function estimateRobotDynamics () {
 				dynamics.acceleration.aBrakePhiMax = -rot;
 			}
 		}
-		if (dynamics.maxSpeed < <number>speedSmoothed.get(robot)) {
-			dynamics.maxSpeed = <number>speedSmoothed.get(robot);
+		if (dynamics.maxSpeed < <number> speedSmoothed.get(robot)) {
+			dynamics.maxSpeed = <number> speedSmoothed.get(robot);
 		}
-		if (dynamics.maxAngularSpeed < <number>rotationSmoothed.get(robot)) {
-			dynamics.maxAngularSpeed = <number>rotationSmoothed.get(robot);
+		if (dynamics.maxAngularSpeed < <number> rotationSmoothed.get(robot)) {
+			dynamics.maxAngularSpeed = <number> rotationSmoothed.get(robot);
 		}
 	}
 
@@ -111,11 +111,11 @@ export function estimateRobotDynamics () {
 	lastRotation = currentRotation;
 }
 
-export function getFriendlyDynamics (): RobotDynamics {
+export function getFriendlyDynamics(): RobotDynamics {
 	return friendlyDynamics;
 }
 
-export function getOpponentDynamics (): RobotDynamics {
+export function getOpponentDynamics(): RobotDynamics {
 	return opponentDynamics;
 }
 
@@ -123,16 +123,16 @@ let hadBallTimes: Map<Robot, number> = new Map<Robot, number>();
 let inverseHadBallTimes: Map<Robot, number> = new Map<Robot, number>();
 
 // Robot.hadBall(this._robot, 0) is equivalent to this._robot:hasBall(World.Ball)
-export function hadBall (robot: Robot, time: number): boolean {
-	return hadBallTimes.has(robot) && World.Time - <number>hadBallTimes.get(robot) <= time;
+export function hadBall(robot: Robot, time: number): boolean {
+	return hadBallTimes.has(robot) && World.Time - <number> hadBallTimes.get(robot) <= time;
 }
 
 // returns true if the robot has the ball for at least <time> seconds, continuously
-export function controlsBall (robot: Robot, time: number): boolean {
-	return inverseHadBallTimes.has(robot) && World.Time - <number>inverseHadBallTimes.get(robot) >= time;
+export function controlsBall(robot: Robot, time: number): boolean {
+	return inverseHadBallTimes.has(robot) && World.Time - <number> inverseHadBallTimes.get(robot) >= time;
 }
 
-function updateHadBall () {
+function updateHadBall() {
 	for (let r of World.Robots) {
 		if (r.hasBall(World.Ball)) {
 			hadBallTimes.set(r, World.Time);
@@ -145,11 +145,11 @@ function updateHadBall () {
 }
 
 let touchedByBall: Map<Robot, number> = new Map<Robot, number>();
-export function touchedBall (robot: Robot, time: number): boolean {
-	return touchedByBall.has(robot) && World.Time - <number>touchedByBall.get(robot) <= time;
+export function touchedBall(robot: Robot, time: number): boolean {
+	return touchedByBall.has(robot) && World.Time - <number> touchedByBall.get(robot) <= time;
 }
 
-function updateTouchedBall () {
+function updateTouchedBall() {
 	for (let r of World.Robots) {
 		let touchDist = World.Ball.radius + Constants.positionError + r.radius;
 		if (r.pos.distanceToSq(World.Ball.pos) < touchDist * touchDist) {
@@ -161,23 +161,23 @@ function updateTouchedBall () {
 
 let _minTimeToBall: Map<Robot, number> = new Map<Robot, number>();
 let _oldMinTimeToBall: Map<Robot, number> = new Map<Robot, number>();
-function resetMinTimeToBall () {
+function resetMinTimeToBall() {
 	_oldMinTimeToBall = _minTimeToBall;
 	_minTimeToBall = new Map<Robot, number>();
 }
 
-export function minTimeToBall (robot: Robot): number {
+export function minTimeToBall(robot: Robot): number {
 	if (_minTimeToBall.has(robot)) {
-		return <number>_minTimeToBall.get(robot);
+		return <number> _minTimeToBall.get(robot);
 	}
 
 	let targetPos = robot.isFriendly ? World.Geometry.OpponentGoal : World.Geometry.FriendlyGoal;
 	_minTimeToBall.set(robot, Physics.robotTimeToBall(robot, World.Ball, targetPos, robot.maxSpeed, _oldMinTimeToBall.get(robot)));
-	return <number>_minTimeToBall.get(robot);
+	return <number> _minTimeToBall.get(robot);
 }
 
 let previousMinShootTimes: Map<Robot, number> = new Map<Robot, number>();
-function _minShootTime (robot: Robot, shootPos: Position): number {
+function _minShootTime(robot: Robot, shootPos: Position): number {
 	let minDelay = 0.1;
 	let prevTime = previousMinShootTimes.get(robot);
 	let time;
@@ -190,10 +190,10 @@ function _minShootTime (robot: Robot, shootPos: Position): number {
 	previousMinShootTimes.set(robot, time);
 	return time;
 }
-export let minShootTime: (robot: Robot, shootPos: Position)=> number = Cache.forFrame(_minShootTime);
+export let minShootTime: (robot: Robot, shootPos: Position) => number = Cache.forFrame(_minShootTime);
 
 let standardShooterRobot: Robot | undefined = undefined;
-function updateOwnStandardShooter () {
+function updateOwnStandardShooter() {
 	if (Referee.isFriendlyFreeKickState() || World.RefereeState === "KickoffOffensive") {
 		if (!standardShooterRobot || !hadBall(standardShooterRobot, 0)) {
 			for (let robot of World.FriendlyRobots) {
@@ -216,7 +216,7 @@ function updateOwnStandardShooter () {
 	}
 }
 
-export function ownStandardShooter (): Robot | undefined {
+export function ownStandardShooter(): Robot | undefined {
 	if (World.RefereeState === "Game") {
 		return standardShooterRobot;
 	} else {
@@ -224,7 +224,7 @@ export function ownStandardShooter (): Robot | undefined {
 	}
 }
 
-function calculateWayForPosition (pos: Position, goal: Position, radius: number, friendly: boolean): number {
+function calculateWayForPosition(pos: Position, goal: Position, radius: number, friendly: boolean): number {
 	if (pos.y < -World.Geometry.FieldHeightHalf) {
 		if (pos.x < 0) {
 			return 0;
@@ -242,30 +242,30 @@ function calculateWayForPosition (pos: Position, goal: Position, radius: number,
 // this function does not make sense when either robot.pos or targetPos are far away from the defense area
 // either targetPos or targetWay is optional, but one of the two has to be given
 // endSpeed is a number
-export function timeAroundDefenseAreaByWay (robot: Robot, robotWay: number | undefined, targetPos: Position,
+export function timeAroundDefenseAreaByWay(robot: Robot, robotWay: number | undefined, targetPos: Position,
 		targetWay: undefined, radius: number, friendly: boolean, endSpeed?: number): number;
-export function timeAroundDefenseAreaByWay (robot: Robot, robotWay: number | undefined, targetPos: undefined,
+export function timeAroundDefenseAreaByWay(robot: Robot, robotWay: number | undefined, targetPos: undefined,
 		targetWay: number, radius: number, friendly: boolean, endSpeed?: number): number;
-export function timeAroundDefenseAreaByWay (robot: Robot, robotWay: number | undefined, targetPos: Position | undefined,
+export function timeAroundDefenseAreaByWay(robot: Robot, robotWay: number | undefined, targetPos: Position | undefined,
 		targetWay: number | undefined, radius: number, friendly: boolean, endSpeed?: number): number {
 	let targetGoal = friendly ? World.Geometry.FriendlyGoal : World.Geometry.OpponentGoal;
 	if (robotWay == undefined) {
 		robotWay = calculateWayForPosition(robot.pos, targetGoal, radius, friendly);
 	}
 	if (targetPos == undefined) {
-		targetPos = Field.defenseIntersectionByWay(<number>targetWay, radius, friendly);
+		targetPos = Field.defenseIntersectionByWay(<number> targetWay, radius, friendly);
 	} else if (targetWay == undefined) {
 		targetWay = calculateWayForPosition(targetPos, targetGoal, radius, friendly);
 	}
-	let drivePoints = Field.cornerPointsBetweenWays(robotWay, <number>targetWay, radius, friendly);
+	let drivePoints = Field.cornerPointsBetweenWays(robotWay, <number> targetWay, radius, friendly);
 	drivePoints.unshift(robot.pos);
-	drivePoints.push(<Position>targetPos);
+	drivePoints.push(<Position> targetPos);
 	let totalTime = 0;
 	let fakeRobot = {speed: robot.speed, maxSpeed: robot.maxSpeed, acceleration: robot.acceleration, pos: robot.pos};
-	for (let i = 1;i<drivePoints.length;i++) {
-		fakeRobot.pos = drivePoints[i-1]
+	for (let i = 1;i < drivePoints.length;i++) {
+		fakeRobot.pos = drivePoints[i - 1];
 		let es = new Vector(0, 0);
-		if (i == drivePoints.length-1 && endSpeed != undefined) {
+		if (i == drivePoints.length - 1 && endSpeed != undefined) {
 			es = new Vector(endSpeed, 0);
 		}
 		totalTime = totalTime + Physics.robotTimeToPos(fakeRobot, drivePoints[i], es)[0];
@@ -275,7 +275,7 @@ export function timeAroundDefenseAreaByWay (robot: Robot, robotWay: number | und
 }
 
 
-function _isPressed (robot: Robot, attackPos?: Position): boolean {
+function _isPressed(robot: Robot, attackPos?: Position): boolean {
 	let directionOffset = (World.Geometry.OpponentGoal - robot.pos).setLength(robot.shootRadius + World.Ball.radius);
 	let ballPos = attackPos || robot.pos + directionOffset;
 	let blockPos = ballPos + directionOffset;
@@ -290,9 +290,9 @@ function _isPressed (robot: Robot, attackPos?: Position): boolean {
 	}
 	return false;
 }
-export let isPressed: (robot: Robot, attackPos?: Position)=> boolean = Cache.forFrame(_isPressed);
+export let isPressed: (robot: Robot, attackPos?: Position) => boolean = Cache.forFrame(_isPressed);
 
-export function _update () {
+export function _update() {
 	resetMinTimeToBall();
 	updateHadBall();
 	updateTouchedBall();
