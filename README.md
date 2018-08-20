@@ -121,15 +121,24 @@ The plotter and the log window is also included. As both require continuous
 data their data is deleted when restarting playback after seeking. Thus only
 the last timespan which was played back without interim seeking is displayed.
 
+# Linting
+Both Lua and Typescript strategy scripts are linted to perform some basic validity and style checks.
+For Lua, this is done by _luacheck_, for Typescript by _tslint_.
+Both are best run by using the _check_ target. Inside your build folder execute `make check`
 
-# LUA Strategy Linter
-The strategy scripts are written in LUA. As it is a dynamic, scripting language
-there are no compile time checks for missing or unused variables and further
-possible problems. This job can however be taken over by a linter, which
-performs some basic validity checks. Our current AI and the base strategy
-scripts can be checked with _luacheck_. Run the following command inside a
-strategy or the base folder:
-> luacheck -q .
+## tslint installation
+
+_tslint_ should be installed with _npm_. To use _npm_ you first need
+to install (NodeJS)[https://nodejs.org]. (On most modern Linux Systems
+it should also be possible to install it with your distributions respective
+package manager).
+If you choose to install manually, it is necessary to add _Node_'s binary folder to your PATH
+
+Now you can install tslint
+```
+npm -g install typescript tslint
+```
+Depending on where you installed _Node_, you may need administrative/root rights.
 
 ## Luacheck installation
 
@@ -172,14 +181,13 @@ Add to *User* variables:
 Install the _linter-luacheck_ package.
 
 ### Sublime Text 3
-Install _Package Control_, see https://packagecontrol.io/installation for
-instructions. Tohen use it to install _SublimeLinter_ and _SublimeLinter-luacheck_.
+Install _(Package Control)[https://packagecontrol.io/installation]_. Then use it to install
+- _SublimeLinter_
+- _SublimeLinter-luacheck_
+- _SublimeLinter-tslint_
 
 # Tests
-The lualinter checks and the strategy unit tests can be executed by running the
-following command inside the build folder
-
+To run the unit tests and linter, execute the following in your build folder
 ```
-cd build
 make check
 ```
