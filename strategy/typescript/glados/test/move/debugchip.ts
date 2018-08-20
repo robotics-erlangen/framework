@@ -5,7 +5,7 @@ let Plotter = require "+/base/plot"
 import * as World from "base/world";
 let ChipTask = require "task/test/debugchip"
 let PlaceBall = require "task/attacker/placeball"
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 
 DebugChip.MIN_ROBOTS = 1

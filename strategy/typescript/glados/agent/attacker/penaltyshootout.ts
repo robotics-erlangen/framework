@@ -1,4 +1,4 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let PenaltyShootout = Class("Agent.Attacker.PenaltyShootout", Base)
 
 import * as Referee from "base/referee";

@@ -1,4 +1,4 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let FreeKick = Class("Agent.Attacker.FreeKick", Base)
 
 import * as debug from "base/debug";

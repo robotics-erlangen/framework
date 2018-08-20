@@ -1,4 +1,4 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let Default = Class("Agent.Defender.Default", Base)
 
 let CenterBack = require "task/defender/centerback"

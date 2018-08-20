@@ -26,7 +26,7 @@ let obstacleTable = {
     ignorePenaltyDistance = true
 }
 
-let goalLine = (G.OpponentGoalLeft - G.OpponentGoalRight):normalize()
+let goalLine = (G.OpponentGoalLeft - G.OpponentGoalRight).normalize()
 let cornerPoint = function (corner) {
 	if (corner == "Left") {
 		return G.OpponentGoalLeft - (goalLine * distToPost)

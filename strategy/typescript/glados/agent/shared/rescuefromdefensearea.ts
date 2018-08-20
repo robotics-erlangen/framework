@@ -1,4 +1,4 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let Move = Class("Agent.Shared.RescueFromDefenseArea", Base)
 
 import * as World from "base/world";

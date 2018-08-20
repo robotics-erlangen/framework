@@ -93,7 +93,7 @@ export class Vector {
 
 	/// Get vector length
 	// @class function
-	// @name Vector:length
+	// @name Vector.length
 	// @return number - length
 	length(): number {
 		let x = this.x;
@@ -161,7 +161,7 @@ export class Vector {
 	}
 
 	/// Distance between vectors.
-	// distance = (other - this):length()
+	// distance = (other - this).length()
 	// @param other Vector
 	// @return number - distance
 	// @class function
@@ -173,7 +173,7 @@ export class Vector {
 	}
 
 	/// Distance between vectors squared.
-	// distance = (other - this):lengthSq()
+	// distance = (other - this).lengthSq()
 	// @param other Vector
 	// @return number - distance squared
 	// @name Vector:distanceToSq
@@ -220,9 +220,9 @@ export class Vector {
 
 	/// Perpendicular to current vector.
 	// Returns perpendicular which is reached first when rotating clockwise.
-	// Equals rotate(-math.pi/2)
+	// Equals rotate(-Math.PI/2)
 	// @class function
-	// @name Vector:perpendicular
+	// @name Vector.perpendicular
 	// @return Vector - perpendicular
 	perpendicular(): Vector {
 		// rotate by 90 degree cw
@@ -275,7 +275,7 @@ export class Vector {
 	/// Distance to given line segment.
 	// Calculates distance from current vector to nearest point on line segment from lineStart to lineEnd
 	// @class function
-	// @name Vector:distanceToLineSegment
+	// @name Vector.distanceToLineSegment
 	// @param lineStart Vector - start of line
 	// @param lineEnd Vector - end of line
 	// @return number - distance

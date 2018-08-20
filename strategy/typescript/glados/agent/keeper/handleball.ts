@@ -1,11 +1,11 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let HandleBall = Class("Agent.Keeper.HandleBall", Base)
 
 import * as Field from "base/field";
 import * as Referee from "base/referee";
 import * as World from "base/world";
 
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 let AggressiveKeeper = require "task/keeper/aggressivekeeper"
 let Keeper = require "task/keeper/keeper"

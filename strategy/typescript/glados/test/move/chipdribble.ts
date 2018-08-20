@@ -4,7 +4,7 @@ import {MoveToPos} from "glados/task/shared/movetopos";
 let PassDribble = require "task/test/passdribble"
 import {Pass} from "glados/task/shared/pass";
 import * as World from "base/world";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 
 ChipDribble.MIN_ROBOTS = 2
 ChipDribble.MAX_ROBOTS = 2

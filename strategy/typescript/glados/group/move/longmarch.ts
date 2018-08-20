@@ -6,7 +6,7 @@ import {MoveToPos} from "glados/task/shared/movetopos";
 let StopAttack = require "task/attacker/stopattack"
 let Circuit = require "task/attacker/circuit"
 import {Pass} from "glados/task/shared/pass";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 let G = World.Geometry
 
 LongMarch.MIN_ROBOTS = 5

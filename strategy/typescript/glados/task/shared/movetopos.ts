@@ -46,13 +46,13 @@ function MoveToPos:_addCustomObstacle (obstInfo) {
 	let path = this._robot.path
 	// If this gets changed, the comment before _init also needs to be updated
 	if (obstInfo.type == "circle") {
-		path:addCircle(obstInfo.x, obstInfo.y, obstInfo.radius, obstInfo.name)
+		path.addCircle(obstInfo.x, obstInfo.y, obstInfo.radius, obstInfo.name)
 	} else if (obstInfo.type == "line") {
-		path:addLine(obstInfo.start_x, obstInfo.start_y, obstInfo.end_x, obstInfo.end_y, obstInfo.radius, obstInfo.name)
+		path.addLine(obstInfo.start_x, obstInfo.start_y, obstInfo.end_x, obstInfo.end_y, obstInfo.radius, obstInfo.name)
 	} else if (obstInfo.type == "rect") {
-		path:addRect(obstInfo.start_x, obstInfo.start_y, obstInfo.end_x, obstInfo.end_y, obstInfo.name)
+		path.addRect(obstInfo.start_x, obstInfo.start_y, obstInfo.end_x, obstInfo.end_y, obstInfo.name)
 	} else if (obstInfo.type == "triangle") {
-		path:addTriangle(obstInfo.x1, obstInfo.y1, obstInfo.x2, obstInfo.y2, obstInfo.x3, obstInfo.y3, obstInfo.lineWidth. obstInfo.name)
+		path.addTriangle(obstInfo.x1, obstInfo.y1, obstInfo.x2, obstInfo.y2, obstInfo.x3, obstInfo.y3, obstInfo.lineWidth. obstInfo.name)
 	}
 }
 

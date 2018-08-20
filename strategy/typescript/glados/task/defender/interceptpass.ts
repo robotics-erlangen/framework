@@ -3,7 +3,7 @@ let InterceptPass = Class("Task.InterceptPass", require "task/base")
 import * as Cache from "base/cache";
 import * as Field from "base/field";
 import * as World from "base/world";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
@@ -60,7 +60,7 @@ let calculateInterceptPos = function (robot) {
 	if (lastPositions[robot] && World.Ball.speed.lengthSq() > 0.5 * 0.5) {
 		let pos, dist = lastPositions[robot][1].orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)
 		if (dist > 0.2 || World.Time - lastPositions[robot][2] > 0.5  ||
-				World.Ball.speed:dot(lastPositions[robot][1] - World.Ball.pos) < -0.1) {
+				World.Ball.speed.dot(lastPositions[robot][1] - World.Ball.pos) < -0.1) {
 			lastPositions[robot] = nil
 		} else {
 			lastPositions[robot] = {pos, World.Time}

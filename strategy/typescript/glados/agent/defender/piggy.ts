@@ -1,8 +1,8 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let Piggy = Class("Agent.Defender.Piggy", Base)
 
 import * as debug from "base/debug";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 let InterceptPass = require "task/defender/interceptpass"
 let PiggyTask = require "task/defender/piggy"
 

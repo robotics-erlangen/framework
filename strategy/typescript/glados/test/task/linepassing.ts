@@ -3,7 +3,7 @@ let Vector = require "+/base/vector"
 import * as World from "base/world";
 let AgentPool = require "control/agentpool"
 let Coordinator = require "control/coordinator"
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import {Pass} from "glados/task/shared/pass";
 let Trainer = require "trainer/trainer"

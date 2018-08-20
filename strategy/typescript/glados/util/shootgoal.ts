@@ -5,7 +5,7 @@ import * as geom from "base/geom";
 import * as World from "base/world";
 let G = World.Geometry
 
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
 
 /// returns the lists of interfering robots (with and without the keeper)

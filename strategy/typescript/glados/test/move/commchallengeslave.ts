@@ -4,7 +4,7 @@ import * as World from "base/world";
 import {MoveToPos} from "glados/task/shared/movetopos";
 import * as vis from "base/vis";
 import * as Field from "base/field";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 import {ShootGoal} from "glados/task/attacker/shootgoal";
 
 CommChallengeSlave.MIN_ROBOTS = 1

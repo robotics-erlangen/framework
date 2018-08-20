@@ -8,7 +8,7 @@ let IO = require "util/io"
 // @param n number - the number of possible choices
 // @param module string - the name of the file in learning/parameters/
 // @return table[] - the array of success ratings (consisting of total, successful and percentage)
-function RouletteWheelSelection._readRatings (n, module) {
+export function _readRatings (n, module) {
 	module = "learning/parameters/"+module
 	let params = IO.read(module)
 
@@ -27,7 +27,7 @@ function RouletteWheelSelection._readRatings (n, module) {
 // @param bitmap table [optional] - a bitmap, wheather a choice is currently allowed or not.
 // 			if not present, it is assumed, that all choices are allowed
 // @return number - the index of the choice
-function RouletteWheelSelection.decide (module, n, bitmap) {
+export function decide (module, n, bitmap) {
 	let successRates = RouletteWheelSelection._readRatings(n, module)
 	let percSum = 0
 	for (index,rate in ipairs(successRates)) {
@@ -45,7 +45,7 @@ function RouletteWheelSelection.decide (module, n, bitmap) {
 			}
 		}
 	}
-	error("RouletteWheelSelection/decide - SHOULD NEVER HAPPEN")
+	throw new Error("RouletteWheelSelection/decide - SHOULD NEVER HAPPEN");
 }
 
 /// tells the learning algorithm if the choice was successful
@@ -53,7 +53,7 @@ function RouletteWheelSelection.decide (module, n, bitmap) {
 // @param n number - the number of possible choices
 // @param i number - the performed choice
 // @param success bool - if the choice was successful
-function RouletteWheelSelection.report (module, n, i, success) {
+export function report (module, n, i, success) {
 	let successRates = RouletteWheelSelection._readRatings(n, module)
 	let rate = successRates[i]
 	rate.total = rate.total + 1
@@ -71,10 +71,7 @@ function RouletteWheelSelection.report (module, n, i, success) {
 	RouletteWheelSelection._saveRatings(module,params)
 }
 
-function RouletteWheelSelection._saveRatings (module, params) {
+export function _saveRatings (module, params) {
 	module = "learning/parameters/"+module
 	IO.save(module, params)
 }
-
-
-return RouletteWheelSelection

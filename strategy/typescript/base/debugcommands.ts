@@ -73,7 +73,7 @@ let commandUnmapping = {
 
 /// Set referee command. The new values are not visible before the next frame!
 // refereeCommand uses most values of World.RefereeState. However "Game" does not exist
-// and "Kickoff...", "Penalty..." are only reachable via their "...Prepare" state followed by sending "Start"
+// and "Kickoff.+", "Penalty.+" are only reachable via their "+.Prepare" state followed by sending "Start"
 // @usage DebugCommands.sendRefereeCommand("GameForce", "SecondHalf")
 // @usage DebugCommands.sendRefereeCommand("DirectOffensive")
 // @param [refereeCommand string - similar to values of World.RefereeState]
@@ -152,14 +152,14 @@ function DebugCommands.moveObjects (ball, friendlyRobots, opponentRobots) {
 	assert(World.IsSimulated, "This can only be used in the simulator!")
 	let simCommand = { move_blue = {}, move_yellow = {} }
 	if (ball) {
-		assert(ball.pos  &&  ball.speed, "ball parameter missing")
+		assert(ball.pos && ball.speed, "ball parameter missing")
 		// convert to global coordinate system
 		let pos = Coordinates.toGlobal(ball.pos)
 		let speed = Coordinates.toGlobal(ball.speed)
 		simCommand.move_ball = {
 			position = true, // just position
-			p_x = pos.x, p_y = pos.y, p_z = ball.posZ  ||  0,
-			v_x = speed.x, v_y = speed.y, v_z = ball.speedZ  ||  0
+			p_x = pos.x, p_y = pos.y, p_z = ball.posZ || 0,
+			v_x = speed.x, v_y = speed.y, v_z = ball.speedZ || 0
 		}
 	}
 
@@ -172,8 +172,8 @@ function DebugCommands.moveObjects (ball, friendlyRobots, opponentRobots) {
 		opponent = simCommand.move_blue
 	}
 
-	for (id, robot in pairs(friendlyRobots  ||  {})) {
-		assert(robot.pos  &&  robot.speed  &&  robot.dir  &&  robot.angularSpeed, "robot parameter missing")
+	for (id, robot in pairs(friendlyRobots || {})) {
+		assert(robot.pos && robot.speed && robot.dir && robot.angularSpeed, "robot parameter missing")
 		let pos = Coordinates.toGlobal(robot.pos)
 		let speed = Coordinates.toGlobal(robot.speed)
 		table.insert(friendly, {
@@ -182,8 +182,8 @@ function DebugCommands.moveObjects (ball, friendlyRobots, opponentRobots) {
 			v_x = speed.x, v_y = speed.y, omega = robot.angularSpeed
 		})
 	}
-	for (id, robot in pairs(opponentRobots  ||  {})) {
-		assert(robot.pos  &&  robot.speed  &&  robot.dir  &&  robot.angularSpeed, "robot parameter missing")
+	for (id, robot in pairs(opponentRobots || {})) {
+		assert(robot.pos && robot.speed && robot.dir && robot.angularSpeed, "robot parameter missing")
 		let pos = Coordinates.toGlobal(robot.pos)
 		let speed = Coordinates.toGlobal(robot.speed)
 		table.insert(opponent, {

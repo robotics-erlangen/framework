@@ -1,4 +1,4 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let Default = Class("Agent.Manual.Default", Base)
 
 import * as geom from "base/geom";

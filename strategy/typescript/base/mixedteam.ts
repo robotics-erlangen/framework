@@ -4,11 +4,11 @@ let sendMixedTeamInfo = amun.sendMixedTeamInfo
 
 
 let decodeLocation = function (loc) {
-	return Vector(loc.y / 1000, -loc.x / 1000)
+	return new Vector(loc.y / 1000, -loc.x / 1000)
 }
 
 let decodeDirection = function (dir) {
-	return dir + math.pi/2
+	return dir + Math.PI/2
 }
 
 // convert ssl::TeamInfo to internal representation
@@ -24,7 +24,7 @@ function mixedteam.decodeData (data) {
 			plan.role = "Default"
 		}
 
-		if (robotPlan.nav_target  &&  robotPlan.nav_target.loc) {
+		if (robotPlan.nav_target && robotPlan.nav_target.loc) {
 			plan.targetPos = decodeLocation(robotPlan.nav_target.loc)
 			if (robotPlan.nav_target.heading) {
 				plan.targetDir = decodeDirection(robotPlan.nav_target.heading)
@@ -45,7 +45,7 @@ let encodeLocation = function (loc) {
 }
 
 let encodeDirection = function (dir) {
-	return dir - math.pi/2
+	return dir - Math.PI/2
 }
 
 function mixedteam.encodeData (data) {
@@ -54,7 +54,7 @@ function mixedteam.encodeData (data) {
 		let robotPlan = {}
 		robotPlan.robot_id = id
 		robotPlan.role = plan.role
-		if (plan.targetPos  ||  plan.targetDir) {
+		if (plan.targetPos || plan.targetDir) {
 			robotPlan.nav_target = {}
 			if (plan.targetPos) {
 				robotPlan.nav_target.loc = encodeLocation(plan.targetPos)

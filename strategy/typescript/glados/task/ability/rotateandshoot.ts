@@ -17,7 +17,7 @@ function RotateAndShoot:_rotateAndShoot (destAngle) {
 
 	// 1 when rotating ccw, -1 when rotating cw
 	let invert = this._robot.dir < destAngle ? 1 : -1
-	let toBall = (World.Ball.pos - this._robot.pos):normalize()
+	let toBall = (World.Ball.pos - this._robot.pos).normalize()
 	let sidewards = toBall.copy().perpendicular() * invert
 
 

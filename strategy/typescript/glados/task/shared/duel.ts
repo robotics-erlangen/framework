@@ -6,7 +6,7 @@ import * as geom from "base/geom";
 let math = require "+/base/math"
 import * as vis from "base/vis";
 import * as World from "base/world";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 let Direct = require "trajectory/direct"

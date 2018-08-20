@@ -23,7 +23,7 @@ function BallEscort:run () {
 	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
 	let ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
 	if (ballOutPos) {
-		this._robot.path:addLine(World.Ball.pos.x, World.Ball.pos.y, ballOutPos.x, ballOutPos.y, this._robot.radius, "Ballescort", 68)
+		this._robot.path.addLine(World.Ball.pos.x, World.Ball.pos.y, ballOutPos.x, ballOutPos.y, this._robot.radius, "Ballescort", 68)
 	}
 
 	this._robot.trajectory.update(ToTarget, pos, (this._robot.pos - World.Ball.pos).angle())

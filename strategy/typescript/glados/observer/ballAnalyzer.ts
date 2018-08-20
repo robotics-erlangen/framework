@@ -3,7 +3,7 @@ let BallAnalyzer = Class("Observer.BallAnalyzer", require "+/base/process")
 import * as debug from "base/debug";
 import * as World from "base/world";
 let MovingAverage = require "learning/movingaverage"
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 
 
 function BallAnalyzer:init (ball, movingAverageSlipping, movingAverageRolling, slippingFrictionStart, rollingFrictionStart) {

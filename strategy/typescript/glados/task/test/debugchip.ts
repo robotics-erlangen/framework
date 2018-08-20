@@ -4,7 +4,7 @@ let DebugChip = Class("Task.DebugChip", require "task/base", Shoot)
 import * as World from "base/world";
 import * as PathHelper from "glados/trajectory/pathhelper";
 import * as ToTarget from "glados/trajectory/totarget";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 
 
 function DebugChip:_init (pos, distance) {

@@ -1,4 +1,4 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let ManMark = Class("Agent.Defender.ManMark", Base)
 
 import * as debug from "base/debug";
@@ -44,7 +44,7 @@ function ManMark:_updateTask () {
 			let defenseAreaIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, 0, true)
 			if (defenseAreaIntersection && World.Ball.pos.distanceTo(defenseAreaIntersection)
 				> World.Ball.pos.distanceTo(this._robot.pos)
-				 &&  (this._robot.pos - World.Ball.pos):dot(World.Ball.speed) > 0) {
+				 &&  (this._robot.pos - World.Ball.pos).dot(World.Ball.speed) > 0) {
 				return Duel
 			}
 		}

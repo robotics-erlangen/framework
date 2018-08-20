@@ -133,7 +133,7 @@ function PlaceBall:run () {
 	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
 
 	// Extend field boundary so that the robot can pull the ball to the field from further out
-	this._robot.path:setBoundary(
+	this._robot.path.setBoundary(
 		-(World.Geometry.FieldWidthHalf + 5),
 		-(World.Geometry.FieldHeightHalf + 5),
 		World.Geometry.FieldWidthHalf + 5,
@@ -368,7 +368,7 @@ function PlaceBall:_calculateOffsets () {
 
 	if ((not this._placementOffsetAverage || usedBallPos.distanceTo(this._placementPos) > OFFSET_DISTANCE)
 			 &&  ballVisible) {
-		let currentOffset = (usedBallPos - this._placementPos):normalize()
+		let currentOffset = (usedBallPos - this._placementPos).normalize()
 		if (currentOffset.lengthSq() > 1e-9) {
 			this._placementOffsets[this._placementOffsetFrame] = currentOffset
 			this._placementOffsetFrame = (this._placementOffsetFrame % OFFSET_FRAME_COUNT) + 1
@@ -378,9 +378,9 @@ function PlaceBall:_calculateOffsets () {
 
 	if ((not this._borderOffsetAverage || usedBallPos.distanceTo(this._nearestFieldPos) > OFFSET_DISTANCE)
 			 &&  ballVisible) {
-		let currentOffset = (usedBallPos - this._placementPos):normalize()
+		let currentOffset = (usedBallPos - this._placementPos).normalize()
 		if (currentOffset.lengthSq() > 1e-9) {
-			this._borderOffsets[this._borderOffsetFrame] = (usedBallPos - this._nearestFieldPos):normalize()
+			this._borderOffsets[this._borderOffsetFrame] = (usedBallPos - this._nearestFieldPos).normalize()
 			this._borderOffsetFrame = (this._borderOffsetFrame % OFFSET_FRAME_COUNT) + 1
 			this._borderOffsetAverage = geom.center(this._borderOffsets).setLength(OFFSET_EXTRA_LENGTH)
 		}

@@ -1,4 +1,4 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let DuelAssistant = Class("Agent.Attacker.DuelAssistant", Base)
 
 import * as World from "base/world";

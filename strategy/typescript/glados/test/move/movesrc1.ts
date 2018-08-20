@@ -2,7 +2,7 @@ let MoveSRC1 = Class("Group.Move.MoveSRC1", require "group/move/base")
 
 import {MoveToPos} from "glados/task/shared/movetopos";
 import {Pass} from "glados/task/shared/pass";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 import {ShootGoal} from "glados/task/attacker/shootgoal";
 import * as Referee from "base/referee";
 let World =   require "+/base/world"

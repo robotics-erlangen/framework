@@ -3,7 +3,7 @@ let InterceptPass = Class("Test.Move.InterceptPass", require "group/move/base")
 import * as World from "base/world";
 import {Pass} from "glados/task/shared/pass";
 import {Striker} from "glados/task/attacker/striker";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 
 InterceptPass.MIN_ROBOTS = 2
 InterceptPass.MAX_ROBOTS = 2

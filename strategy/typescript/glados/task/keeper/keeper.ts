@@ -51,7 +51,7 @@ function Keeper:run () {
 		// defend short corner
 		// line starts a goal post, stay as near to the goal as possible
 		defenseLineStart = new Vector(side*goalWidthHalf, G.FriendlyGoal.y)
-		let lineDir = ((new Vector(0, defenseLineStart.y) - atkPos).perpendicular() * side):normalize()
+		let lineDir = ((new Vector(0, defenseLineStart.y) - atkPos).perpendicular() * side).normalize()
 		if (side*lineDir.x > 0) {
 			lineDir = new Vector(0, 1)
 		}

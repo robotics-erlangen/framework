@@ -1,9 +1,9 @@
-import * as Constants from "base/constants";
+/*import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as geom from "base/geom";
 import * as vis from "base/vis";
 import * as World from "base/world";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import * as ToTarget from "glados/trajectory/totarget";
@@ -296,4 +296,4 @@ export class Volley {
 		}
 		this._send.shootDestination("all", targetPos)
 	}
-}
+}*/

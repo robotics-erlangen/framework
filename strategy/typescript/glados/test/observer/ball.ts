@@ -4,7 +4,7 @@ import * as vis from "base/vis";
 import * as Constants from "base/constants";
 import * as Field from "base/field";
 import * as World from "base/world";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 
 

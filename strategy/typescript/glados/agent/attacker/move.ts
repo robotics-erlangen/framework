@@ -1,4 +1,4 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let Move = Class("Agent.Attacker.Move", Base)
 
 function Move:check () {

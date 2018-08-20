@@ -86,7 +86,7 @@ function CenterBack:run () {
 	if (mainAttacker && Referee.isFriendlyFreeKickState() && World.Ball.pos.y < World.Geometry.FieldHeightHalf) {
 		let startPos = World.Ball.pos
 		let endPos = mainAttacker.pos
-		this._robot.path:addLine(startPos.x, startPos.y, endPos.x, endPos.y, mainAttacker.radius * 2 + 0.1, 100)
+		this._robot.path.addLine(startPos.x, startPos.y, endPos.x, endPos.y, mainAttacker.radius * 2 + 0.1, 100)
 	}
 
 	this._robot.trajectory.update(ToTarget, destinationPos, dir,nil, Physics.robotMinEndspeed(this._robot, destinationPos, destinationTime))

@@ -1,10 +1,10 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let DoubleTouchGuard = Class("Agent.Attacker.DoubleTouchGuard", Base)
 
 import * as debug from "base/debug";
 import * as Referee from "base/referee";
 import * as World from "base/world";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 import * as Robot from "glados/observer/robot";
 let StopAttack = require "task/attacker/stopattack"
 

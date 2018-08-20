@@ -1,4 +1,4 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let Shoot = Class("Agent.Attacker.Shoot", Base)
 
 import * as debug from "base/debug";
@@ -6,7 +6,7 @@ import * as Field from "base/field";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 let ObserverShoot = require "observer/shoot"

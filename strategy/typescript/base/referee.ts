@@ -3,7 +3,7 @@
 // module "Referee"
 */
 
-/************************************************************************
+/**************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier  *
 *   Robotics Erlangen e.V.                                                *
 *   http://www.robotics-erlangen.de/                                      *
@@ -11,12 +11,12 @@
 *                                                                         *
 *   This program is free software: you can redistribute it and/or modify  *
 *   it under the terms of the GNU General Public License as published by  *
-*   the Free Software Foundation, either version 3 of the License, ||     *
+*   the Free Software Foundation, either version 3 of the License, or     *
 *   any later version.                                                    *
 *                                                                         *
 *   This program is distributed in the hope that it will be useful,       *
 *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-*   MERCHANTABILITY || FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
 *   GNU General Public License for more details.                          *
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
@@ -188,9 +188,9 @@ export function isDefensiveCornerKick(): boolean {
 /// Draw areas forbidden by the current referee command
 // @name illustrateRefereeStates
 export function illustrateRefereeStates() {
-	if (World.RefereeState == RefereeState.PenaltyDefensivePrepare  ||  World.RefereeState == RefereeState.PenaltyDefensive) {
+	if (World.RefereeState == RefereeState.PenaltyDefensivePrepare || World.RefereeState == RefereeState.PenaltyDefensive) {
 		vis.addPath("penaltyDistanceAllowed", [new Vector(-2,World.Geometry.OwnPenaltyLine), new Vector(2,World.Geometry.OwnPenaltyLine)], vis.colors.red);
-	} else if (World.RefereeState == RefereeState.PenaltyOffensivePrepare  ||  World.RefereeState == RefereeState.PenaltyOffensive) {
+	} else if (World.RefereeState == RefereeState.PenaltyOffensivePrepare || World.RefereeState == RefereeState.PenaltyOffensive) {
 		vis.addPath("penaltyDistanceAllowed", [new Vector(-2,World.Geometry.PenaltyLine), new Vector(2,World.Geometry.PenaltyLine)], vis.colors.red);
 	} else if (isStopState()) {
 		vis.addCircle("stopstateBallDist", World.Ball.pos, 0.5, vis.colors.redHalf, true);
@@ -240,7 +240,7 @@ export function checkTouching() {
 	let ballPos = World.Ball.pos;
 	// only consider touches when playing
 	if (noBallTouchStates[World.RefereeState]  ||
-			Math.abs(ballPos.x) > fieldWidthHalf  ||  Math.abs(ballPos.y) > fieldHeightHalf) {
+			Math.abs(ballPos.x) > fieldWidthHalf || Math.abs(ballPos.y) > fieldHeightHalf) {
 		return;
 	}
 

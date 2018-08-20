@@ -3,7 +3,7 @@ let Shoot = require "task/ability/shoot"
 let Manual = Class("Task.Manual", Task, Shoot)
 
 import * as World from "base/world";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 let Direct = require "trajectory/direct"
 let Hidden = require "trajectory/hidden"
 import * as PathHelper from "glados/trajectory/pathhelper";

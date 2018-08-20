@@ -3,7 +3,7 @@ let GoalShot = Class("Test.Move.GoalShot", require "group/move/base")
 import {MoveToPos} from "glados/task/shared/movetopos";
 import * as World from "base/world";
 let G = World.Geometry
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 
 import {ShootGoal} from "glados/task/attacker/shootgoal";
 

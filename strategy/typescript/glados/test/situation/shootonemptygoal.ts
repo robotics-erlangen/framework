@@ -1,5 +1,5 @@
 import * as World from "base/world";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 
 
 let situation = {

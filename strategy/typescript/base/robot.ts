@@ -11,7 +11,7 @@ module "Robot"
 *                                                                         *
 *   This program is free software: you can redistribute it and/or modify  *
 *   it under the terms of the GNU General Public License as published by  *
-*   the Free Software Foundation, either version 3 of the License, ||     *
+*   the Free Software Foundation, either version 3 of the License, or     *
 *   any later version.                                                    *
 *                                                                         *
 *   This program is distributed in the hope that it will be useful,       *
@@ -39,7 +39,7 @@ interface RobotConstants {
 	minAngleError: number;
 }
 
-interface RobotAccelerationProfile {
+export interface RobotAccelerationProfile {
 	aSpeedupFMax: number;
 	aSpeedupSMax: number;
 	aSpeedupPhiMax: number;
@@ -223,7 +223,7 @@ export class Robot {
 		}
 		// bound angle
 		lclen = latencyCompensation.length();
-		if (lclen > 0.001  &&  Math.abs(latencyCompensation.angle()) > BOUND_COMPENSATION_ANGLE) {
+		if (lclen > 0.001 && Math.abs(latencyCompensation.angle()) > BOUND_COMPENSATION_ANGLE) {
 			let boundAngle = MathUtil.bound(-BOUND_COMPENSATION_ANGLE, latencyCompensation.angle(), BOUND_COMPENSATION_ANGLE);
 			latencyCompensation = Vector.fromAngle(boundAngle).scaleLength(lclen);
 		}
@@ -365,7 +365,7 @@ export class FriendlyRobot extends Robot {
 
 	_command() {
 		let STANDBY_DELAY = 30;
-		let standby = this._standbyTimer >= 0  &&  (this._currentTime - this._standbyTimer > STANDBY_DELAY);
+		let standby = this._standbyTimer >= 0 && (this._currentTime - this._standbyTimer > STANDBY_DELAY);
 
 		let result: any = {
 			kick_style: this._kickStyle,
@@ -410,7 +410,7 @@ export class FriendlyRobot extends Robot {
 	// @param input Spline - Target points for the controller, in global coordinates!
 	setControllerInput(input: any) {
 		// Forbid overriding controller input except with halt
-		if (input && input.spline  &&  (this._controllerInput == {} || (<ControllerInput> this._controllerInput).spline)) {
+		if (input && input.spline && (this._controllerInput == {} || (<ControllerInput> this._controllerInput).spline)) {
 			throw new Error("Setting controller input twice");
 		}
 		this._controllerInput = input;
@@ -501,7 +501,7 @@ export class FriendlyRobot extends Robot {
 		// solve(integrate(v_0+t*a_f,t, 0, t_end)=d,v_0);
 		let v_fast = Math.sqrt(destSpeed * destSpeed - 2 * fastBallBrake * distance);
 
-		if (v_fast < maxShot  &&  v_fast * ballSwitchRatio < destSpeed) {
+		if (v_fast < maxShot && v_fast * ballSwitchRatio < destSpeed) {
 			return v_fast;
 		}
 

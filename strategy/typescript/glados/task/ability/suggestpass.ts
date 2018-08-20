@@ -1,6 +1,7 @@
 let SuggestPass = {}
 
 import * as vis from "base/vis";
+import {Vector, Position} from "base/vector";
 import * as World from "base/world";
 import * as Physics from "glados/observer/physics";
 

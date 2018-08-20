@@ -1,4 +1,4 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let PassTiming = Class("Agent.Attacker.PassTiming", Base)
 
 let Sidestep = require "task/attacker/sidestep"

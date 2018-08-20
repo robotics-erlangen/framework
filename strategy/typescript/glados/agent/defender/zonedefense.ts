@@ -1,4 +1,4 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let ZoneDefense = Class("Agent.Defender.ZoneDefense", Base)
 
 let BallEvadingMoveToPos = require "task/defender/ballevadingmovetopos"

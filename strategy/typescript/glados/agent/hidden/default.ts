@@ -1,4 +1,4 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let Default = Class("Agent.Hidden.Default", Base)
 
 let RescueRobot = require "task/hidden/rescuerobot"

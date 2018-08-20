@@ -1,4 +1,4 @@
-let Base = require "agent/base/behavior"
+import {Behavior} from "glados/agent/base/behavior";
 let Stop = Class("Agent.Attacker.Stop", Base)
 
 import * as World from "base/world";

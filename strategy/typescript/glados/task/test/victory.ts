@@ -64,7 +64,7 @@ function Victory:run () {
 		this._ticks = this._ticks - 0.002
 		this._increment = this._ticks < 0
 	}
-	this._robot.path:clearObstacles()
+	this._robot.path.clearObstacles()
 	let endSpeed = new Vector(0, 0)
 	let dir = (pos - this._robot.pos).angle()
 	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)

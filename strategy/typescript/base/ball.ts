@@ -99,8 +99,8 @@ export class Ball {
 		let nextPos = Coordinates.toLocal(Vector.createReadOnly(data.p_x, data.p_y));
 		let nextSpeed = Coordinates.toLocal(Vector.createReadOnly(data.v_x, data.v_y));
 		let SIZE_LIMIT = 1000;
-		if (nextPos.isNan()  ||  nextSpeed.isNan()  ||  Math.abs(nextPos.x) > SIZE_LIMIT  ||
-			Math.abs(nextPos.y) > SIZE_LIMIT  ||  Math.abs(nextSpeed.x) > SIZE_LIMIT  ||  Math.abs(nextSpeed.y) > SIZE_LIMIT) {
+		if (nextPos.isNan() || nextSpeed.isNan() || Math.abs(nextPos.x) > SIZE_LIMIT  ||
+			Math.abs(nextPos.y) > SIZE_LIMIT || Math.abs(nextSpeed.x) > SIZE_LIMIT || Math.abs(nextSpeed.y) > SIZE_LIMIT) {
 			this._updateLostBall(time);
 			return;
 		}
@@ -112,7 +112,7 @@ export class Ball {
 		this.speed = nextSpeed;
 		this.posZ = data.p_z;
 		this.speedZ = data.v_z;
-		if (data.touchdown_x  &&  data.touchdown_y) {
+		if (data.touchdown_x && data.touchdown_y) {
 			this.touchdownPos = Coordinates.toLocal(Vector.createReadOnly(data.touchdown_x, data.touchdown_y));
 		}
 		this.isBouncing = data.is_bouncing;
