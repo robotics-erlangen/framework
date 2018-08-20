@@ -1,16 +1,13 @@
-let Base = require "agent/base/behavior"
-let Halt = Class("Agent.Shared.Halt", Base)
-
+import {Behavior} from "glados/agent/base/behavior";
 import * as World from "base/world";
-let HaltTask = require "task/shared/halt"
+import {HaltTask} from "glados/task/shared/halt";
 
+export class Halt extends Behavior {
+	check (): boolean {
+		return World.RefereeState === "Halt";
+	}
 
-function Halt:check () {
-	return World.RefereeState == "Halt"
+	_updateTask () {
+		return HaltTask;
+	}
 }
-
-function Halt:_updateTask () {
-	return HaltTask
-}
-
-return Halt

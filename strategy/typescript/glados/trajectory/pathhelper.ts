@@ -17,7 +17,7 @@ let POSITION_PADDING = 0.02;
 let SEED_ANGLE_MOD = 2/180*Math.PI;
 let SEED_PREDICT_TIME = 0.5;
 
-export let Priorities = {
+export const Priorities = {
 	GOAL: 100,
 	ROBOT: 92,
 	// The obstacle in t/a/shoot should have the same priority as the ball obstacle here
@@ -52,8 +52,8 @@ let _GoalArea = [
 	new Vector(G.GoalWidth/2 + 0.04,G.FieldHeightHalf - G.GoalDepth - 0.04)
 ];
 let _GoalAreaFriendly = [
-	-_GoalArea[1],
-	-_GoalArea[2]
+	-_GoalArea[0],
+	-_GoalArea[1]
 ];
 function addFriendlyDefenseAreaObstacle (path: Path, robot: FriendlyRobot) {
 	// only keeper may enter friendly defense area
@@ -72,8 +72,8 @@ function addFriendlyDefenseAreaObstacle (path: Path, robot: FriendlyRobot) {
 					G.FriendlyGoal.x + G.DefenseStretch / 2, G.FriendlyGoal.y,
 					G.DefenseRadius + POSITION_PADDING, "DefenseArea", Priorities.DEFENSE_AREA);
 		}
-		if (geom.insideRect(_GoalAreaFriendly[1], _GoalAreaFriendly[2], robot.pos) || Field.isInFriendlyDefenseArea(robot.pos, robot.radius * 2)) {
-			path.addRect(_GoalAreaFriendly[1].x, _GoalAreaFriendly[1].y, _GoalAreaFriendly[2].x, _GoalAreaFriendly[2].y, "EvacuateGoal", Priorities.EVACUATE_GOAL);
+		if (geom.insideRect(_GoalAreaFriendly[0], _GoalAreaFriendly[1], robot.pos) || Field.isInFriendlyDefenseArea(robot.pos, robot.radius * 2)) {
+			path.addRect(_GoalAreaFriendly[0].x, _GoalAreaFriendly[0].y, _GoalAreaFriendly[1].x, _GoalAreaFriendly[1].y, "EvacuateGoal", Priorities.EVACUATE_GOAL);
 		}
 	}
 }
@@ -96,8 +96,8 @@ function addOpponentDefenseAreaObstacle (path: Path, robot: FriendlyRobot) {
 					G.OpponentGoal.x + G.DefenseStretch / 2, G.OpponentGoal.y,
 					G.DefenseRadius + POSITION_PADDING, "DefenseArea", Priorities.DEFENSE_AREA);
 		}
-		if (geom.insideRect(_GoalArea[1], _GoalArea[2], robot.pos) || Field.isInOpponentDefenseArea(robot.pos, robot.radius * 2)) {
-			path.addRect(_GoalArea[1].x, _GoalArea[1].y, _GoalArea[2].x, _GoalArea[2].y, "EvacuateGoal", Priorities.EVACUATE_GOAL);
+		if (geom.insideRect(_GoalArea[0], _GoalArea[1], robot.pos) || Field.isInOpponentDefenseArea(robot.pos, robot.radius * 2)) {
+			path.addRect(_GoalArea[0].x, _GoalArea[0].y, _GoalArea[1].x, _GoalArea[1].y, "EvacuateGoal", Priorities.EVACUATE_GOAL);
 		}
 	}
 }
@@ -437,7 +437,7 @@ export function getObstacleParam (robot: FriendlyRobot, type: ParameterType): an
 	return (obstacles.get(robot) as {[name: string]: any})[type];
 }
 
-export function setDefaultObstaclesByTable (path: Path, robot: FriendlyRobot, params: PathHelperParameters) {
+export function setDefaultObstaclesByTable (path: Path, robot: FriendlyRobot, params: PathHelperParameters & {inbox: MessageBox}) {
 	if (!params) {
 		throw new Error("setDefaultObstaclesByTable called with undefined parameter table");
 	}
@@ -452,6 +452,9 @@ export function setDefaultObstaclesByTable (path: Path, robot: FriendlyRobot, pa
 }
 
 export function insertObstacles (robot: FriendlyRobot) {
+	if (!obstacles.has(robot)) {
+		throw new Error("insertObstacles called without setDefaultObstacles");
+	}
 	let p = obstacles.get(robot) as PathHelperParameters & {path: Path, inbox: MessageBox};
 	setDefaultObstacles(p.path, robot, p.ignoreBall, p.ignoreGoals, p.ignoreDefenseArea,
 		p.pathRadius, p.stopBallDistance, p.noSeedTarget, p.ignoreOpponentDefenseArea, p.extraBallDistance);

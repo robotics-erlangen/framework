@@ -1,16 +1,16 @@
-let Base = require "agent/base/behavior"
-let MoveCommand = Class("Agent.Shared.MoveCommand", Base)
+import {Behavior} from "glados/agent/base/behavior";
 
 import * as World from "base/world";
+import {Position} from "base/vector";
 import {MoveToPos} from "glados/task/shared/movetopos";
+import {Task} from "glados/task/base";
 
+export class MoveCommand extends Behavior {
+	check () {
+		return this._robot.moveCommand != undefined && !World.IsSimulated;
+	}
 
-function MoveCommand:check () {
-	return this._robot.moveCommand != undefined && not World.IsSimulated
+	_updateTask (): [Task, any[], boolean] {
+		return [MoveToPos, [(this._robot.moveCommand as {pos: Position}).pos, undefined, undefined, undefined, true], true];
+	}
 }
-
-function MoveCommand:_updateTask () {
-	return MoveToPos, {this._robot.moveCommand.pos, undefined, undefined, undefined, true}, true
-}
-
-return MoveCommand
