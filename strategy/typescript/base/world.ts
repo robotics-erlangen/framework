@@ -242,9 +242,9 @@ function _updateGeometry(geom: any) {
 	wgeom.DefenseRadius = geom.defense_radius;
 	wgeom.DefenseStretch = geom.defense_stretch;
 	wgeom.DefenseStretchHalf = geom.defense_stretch / 2;
-	wgeom.DefenseWidth = geom.defense_width  ||  geom.defense_stretch;
-	wgeom.DefenseHeight = geom.defense_height  ||  geom.defense_radius;
-	wgeom.DefenseWidthHalf = (geom.defense_width  ||  geom.defense_stretch) / 2;
+	wgeom.DefenseWidth = geom.defense_width || geom.defense_stretch;
+	wgeom.DefenseHeight = geom.defense_height || geom.defense_radius;
+	wgeom.DefenseWidthHalf = (geom.defense_width || geom.defense_stretch) / 2;
 
 	wgeom.FriendlyPenaltySpot = Vector.createReadOnly(0, - wgeom.FieldHeightHalf + geom.penalty_spot_from_field_line_dist);
 	wgeom.OpponentPenaltySpot = Vector.createReadOnly(0, wgeom.FieldHeightHalf - geom.penalty_spot_from_field_line_dist);
@@ -263,7 +263,7 @@ function _updateGeometry(geom: any) {
 	wgeom.BoundaryWidth = geom.boundary_width;
 	wgeom.RefereeWidth = geom.referee_width;
 
-	IsLargeField = wgeom.FieldWidth > 5  &&  wgeom.FieldHeight > 7;
+	IsLargeField = wgeom.FieldWidth > 5 && wgeom.FieldHeight > 7;
 }
 
 export function _updateWorld(state: any) {
@@ -350,7 +350,7 @@ export function _updateWorld(state: any) {
 	Robots = Robots.concat(OpponentRobots);
 
 	// convert mixed team info
-	if (state.mixed_team_info  &&  state.mixed_team_info.plans) {
+	if (state.mixed_team_info && state.mixed_team_info.plans) {
 		// MixedTeam = mixedTeam.decodeData(state.mixed_team_info.plans);
 		MixedTeam = undefined;
 	} else {
@@ -405,7 +405,7 @@ function _updateGameState(state: any) {
 		RefereeState = "Halt";
 	}
 
-	if (state.designated_position  &&  state.designated_position.x) {
+	if (state.designated_position && state.designated_position.x) {
 		BallPlacementPos = Coordinates.toLocal(Vector.createReadOnly(
 			// refbox position message uses millimeters
 			// ssl-vision's coordinate system is rotated by 90 degrees

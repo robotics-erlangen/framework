@@ -12,12 +12,12 @@ module "Field"
 *                                                                         *
 *   This program is free software: you can redistribute it and/or modify  *
 *   it under the terms of the GNU General Public License as published by  *
-*   the Free Software Foundation, either version 3 of the License, ||     *
+*   the Free Software Foundation, either version 3 of the License, or     *
 *   any later version.                                                    *
 *                                                                         *
 *   This program is distributed in the hope that it will be useful,       *
 *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
-*   MERCHANTABILITY || FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+*   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
 *   GNU General Public License for more details.                          *
 *                                                                         *
 *   You should have received a copy of the GNU General Public License     *
@@ -57,7 +57,7 @@ export function limitToField(pos: Readonly<Position>, boundaryWidth: number = 0)
 // @return Vector - limited vector
 function limitToAllowedField_2017(pos: Readonly<Position>, extraLimit: number = 0): Position {
 	let oppExtraLimit = extraLimit;
-	if (Referee.isStopState()  ||  Referee.isFriendlyFreeKickState()) {
+	if (Referee.isStopState() || Referee.isFriendlyFreeKickState()) {
 		oppExtraLimit = oppExtraLimit + G.FreeKickDefenseDist + 0.10;
 	}
 	pos = limitToField(pos, -extraLimit);
@@ -121,7 +121,7 @@ function limitToAllowedField_2018(pos: Readonly<Position>, extraLimit: number = 
 // @return bool - is in field
 export function isInField(pos: Readonly<Position>, boundaryWidth: number = 0): boolean {
 	let allowedHeight = G.FieldHeightHalf + boundaryWidth; // limit height to field
-	if (Math.abs(pos.x) > G.GoalWidth / 2  &&  Math.abs(pos.y) > allowedHeight // check whether robot is inside the goal
+	if (Math.abs(pos.x) > G.GoalWidth / 2 && Math.abs(pos.y) > allowedHeight // check whether robot is inside the goal
 			||  Math.abs(pos.y) > allowedHeight + G.GoalDepth) { // handle area behind goal
 		return false;
 	}
@@ -459,8 +459,8 @@ function intersectionsRayDefenseArea_2017(pos: Position, dir: RelativePosition, 
 	// calculate intersection point with defense stretch
 	let defenseLineOnpoint = new Vector(0, -G.FieldHeightHalf + radius) * oppfac;
 	let [lineIntersection,l1,l2] = geom.intersectLineLine(pos, dir, defenseLineOnpoint, new Vector(1,0));
-	if (lineIntersection && l1 >= 0  &&  Math.abs(l2) <= G.DefenseStretchHalf) {
-		intersections.push({pos: lineIntersection, l1: l2 + totalway / 2});
+	if (lineIntersection && l1 >= 0 && Math.abs(l2) <= G.DefenseStretchHalf) {
+		intersections.push({pos: lineIntersection, l1: l2 + totalway/2});
 	}
 	return [intersections, totalway];
 }

@@ -53,7 +53,7 @@ function table.truncate (array, len) { // truncates an array to the first len el
 // @param t1 table - Array to append to
 // @param ... table[] - Arrays to append to t1
 // @return table - appended array
-function table.append (t1, ...) { // for arrays (non nil)
+function table.append (t1, ...) { // for arrays (non undefined)
 	let param = {...}
 	if (#param == 1) {
 		for (_, value in ipairs(param[1])) {
@@ -187,7 +187,7 @@ function table.filter (array, p) {
 // @name any
 // @param t table - Array to test
 // @para func function - predicate function
-// @return entry - an arbitrary element that complies with the predicate, nil otherwise
+// @return entry - an arbitrary element that complies with the predicate, undefined otherwise
 function table.any (t, func) {
 	for (_, v in ipairs(t)) {
 		if (func(v)) {
@@ -235,7 +235,7 @@ let shuffleSort = function (a,b) {
 function table.shuffle (t) {
 	let n, order, res = #t, {}, {}
 	for (i=1,n) {
-		table.insert(order, { rnd = math.random(), idx = i })
+		table.insert(order, { rnd = Math.random(), idx = i })
 	}
 	table.sort(order, shuffleSort)
 	for (i=1,n) {
@@ -263,7 +263,7 @@ function table.extend (t1, t2) {
 // @return table - combined array
 function table.extendDeep (t1, t2) {
 	for (k, v in pairs(t2)) {
-		if (t1[k]  &&  type(t1[k]) == "table"  &&  type(v) == "table") {
+		if (t1[k] && type(t1[k]) == "table" && type(v) == "table") {
 			table.extendDeep(t1[k], v)
 		} else {
 			t1[k] = v
