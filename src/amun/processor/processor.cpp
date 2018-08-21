@@ -116,6 +116,7 @@ const int Processor::FREQUENCY(100);
  */
 Processor::Processor(const Timer *timer) :
     m_timer(timer),
+    m_mixedTeamInfoSet(false),
     m_networkCommandTime(0),
     m_refereeInternalActive(false),
     m_simulatorEnabled(false),
