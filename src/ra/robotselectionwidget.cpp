@@ -236,7 +236,7 @@ void RobotSelectionWidget::sanitizeRecentScripts()
 
 void RobotSelectionWidget::searchForStrategies()
 {
-    QDir strategyFolder(ERFORCE_STRATEGYDIR);
+    QDir strategyFolder(ERFORCE_STRATEGYDIR + "lua/");
     if (!strategyFolder.exists()) {
         return;
     }
