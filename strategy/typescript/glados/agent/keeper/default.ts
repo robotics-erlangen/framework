@@ -1,21 +1,19 @@
-import {Behavior} from "glados/agent/base/behavior";
-let Default = Class("Agent.Keeper.Default", Base)
-
 import * as World from "base/world";
-let Keeper = require "task/keeper/keeper"
-// local RandomKeeper = require "task/keeper/randomkeeper"
+import {Behavior} from "glados/agent/base/behavior";
+import {Keeper} from "glados/task/keeper/keeper";
+import {Task} from "glados/task/base";
+// import {RandomKeeper} from "glados/task/keeper/randomkeeper";
 
+export class Default extends Behavior {
+	check (): boolean {
+		return true;
+	}
 
-function Default:check () {
-	return true
-}
-
-function Default:_updateTask () {
-	if (World.GameStage == "PenaltyShootout" && World.RefereeState == "PenaltyDefensive") {
-		return Keeper // RandomKeeper
-	} else {
-		return Keeper
+	_updateTask (): [Task] {
+		if (World.GameStage == "PenaltyShootout" && World.RefereeState === "PenaltyDefensive") {
+			return [Keeper]; // RandomKeeper;
+		} else {
+			return [Keeper];
+		}
 	}
 }
-
-return Default

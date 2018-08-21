@@ -1,37 +1,46 @@
-let SuggestPass = {}
-
 import * as vis from "base/vis";
+import {FriendlyRobot} from "base/robot";
 import {Vector, Position} from "base/vector";
 import * as World from "base/world";
 import * as Physics from "glados/observer/physics";
+import {MessageBox, MessageType} from "glados/control/messaging";
 
-function SuggestPass:_suggestPass (destBallPos, attackPos, relativeTime, anonymous, chip) {
-	// check for mainAttacker
-	let mainAttacker = this._inbox.mainAttacker().trainer
-	if (not mainAttacker) {
-		return
+export class SuggestPass {
+	_robot: FriendlyRobot;
+	_messaging: MessageBox;
+
+	constructor (robot: FriendlyRobot, messaging: MessageBox) {
+		this._robot = robot;
+		this._messaging = messaging;
 	}
 
-	let currentBallPos = attackPos || World.Ball.pos
-	let robotPos = destBallPos + (destBallPos - currentBallPos).setLength(this._robot.shootRadius + World.Ball.radius)
+	_suggestPass (destBallPos: Position, attackPos: Position = World.Ball.pos,
+			relativeTime?: number, anonymous: boolean = false, chip: boolean = false) {
+		// check for mainAttacker
+		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
+		if (mainAttacker == undefined) {
+			return;
+		}
 
-	// calculate receive time
-	let extraTime = 0.0
-	let moveTime = relativeTime || Physics.robotTimeToPos(this._robot, robotPos, new Vector(0, 0)) + extraTime
-	let receiveTime = World.Time + moveTime
+		let currentBallPos = attackPos;
+		let robotPos = destBallPos + (destBallPos - currentBallPos).setLength(this._robot.shootRadius + World.Ball.radius);
 
-	vis.addCircle("t/a/suggestpass: passSuggestion", robotPos, 0.1, vis.colors.redHalf, true)
-	vis.addCircle("t/a/suggestpass: passSuggestion", destBallPos, World.Ball.radius, vis.colors.redHalf, true)
+		// calculate receive time
+		let extraTime = 0.0;
+		let moveTime = relativeTime || Physics.robotTimeToPos(this._robot, robotPos, new Vector(0, 0))[0] + extraTime;
+		let receiveTime = World.Time + moveTime;
 
-	anonymous = anonymous || false
-	this._send.passSuggestion("all",
-		{ ballPos = destBallPos, time = receiveTime , anonymous = anonymous, chip = chip})
+		vis.addCircle("t/a/suggestpass: passSuggestion", robotPos, 0.1, vis.colors.redHalf, true);
+		vis.addCircle("t/a/suggestpass: passSuggestion", destBallPos, World.Ball.radius, vis.colors.redHalf, true);
+
+		anonymous = anonymous || false;
+		this._messaging.sendBroadcast(MessageType.passSuggestion,
+			{ ballPos: destBallPos, time: receiveTime , anonymous: anonymous, chip: chip, manual: false});
+	}
+
+	_suggestPassRobotPosition (destRobotPos: Position, attackPos: Position = World.Ball.pos, relativeTime: number,
+			anonymous: boolean) {
+		let destBallPos = destRobotPos + (attackPos - destRobotPos).setLength(this._robot.shootRadius + World.Ball.radius);
+		this._suggestPass(destBallPos, attackPos, relativeTime, anonymous);
+	}
 }
-
-function SuggestPass:_suggestPassRobotPosition (destRobotPos, attackPos, relativeTime, anonymous) {
-	let currentBallPos = attackPos || World.Ball.pos
-	let destBallPos = destRobotPos + (currentBallPos - destRobotPos).setLength(this._robot.shootRadius + World.Ball.radius)
-	this._suggestPass(destBallPos, attackPos, relativeTime, anonymous)
-}
-
-return SuggestPass

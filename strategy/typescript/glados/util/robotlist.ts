@@ -1,42 +1,38 @@
-let RobotList = {}
-
 import * as Cache from "base/cache";
+import {Robot} from "base/robot";
 
 
-function RobotList.join (listA, listB) {
-	let joined = table.copy(listA)
-	table.append(joined, listB)
-	return joined
+function _join (listA: Robot[], listB: Robot[]): Robot[] {
+	return listA.concat(listB);
 }
-RobotList.join = Cache.forFrame(RobotList.join)
+export let join: (listA: Robot[], listB: Robot[])=> Robot[] = Cache.forFrame(_join);
 
-function RobotList.excludeRobot (list, robot) {
-	let result = table.copy(list)
-	for (i, r in ipairs(list)) {
+function _excludeRobot (list: Robot[], robot: Robot): Robot[] {
+	let result = list.slice();
+	for (let i = 0;i<list.length;i++) {
+		let r = list[i];
 		if (r == robot) {
-			table.remove(result, i)
-			break
+			result.splice(i, 1);
+			break;
 		}
 	}
-	return result
+	return result;
 }
-RobotList.excludeRobot = Cache.forFrame(RobotList.excludeRobot)
+export let excludeRobot: (list: Robot[], robot: Robot)=> Robot[] = Cache.forFrame(_excludeRobot);
 
-function RobotList.excludeRobots (list, robots) {
-	let result = {}
-	for (_, r in ipairs(list)) {
-		let found = false
+function _excludeRobots (list: Robot[], robots: Robot[]): Robot[] {
+	let result: Robot[] = [];
+	for (let r of list) {
+		let found = false;
 		for (let robot of robots) {
 			if (r == robot) {
-				found = true
+				found = true;
 			}
 		}
-		if (not found) {
-			table.insert(result, r)
+		if (!found) {
+			result.push(r);
 		}
 	}
-	return result
+	return result;
 }
-RobotList.excludeRobots = Cache.forFrame(RobotList.excludeRobots)
-
-return RobotList
+export let excludeRobots: (list: Robot[], robots: Robot[])=> Robot[] = Cache.forFrame(_excludeRobots);
