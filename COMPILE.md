@@ -54,8 +54,7 @@ cmake -DCMAKE_PREFIX_PATH=~/Qt/5.6/gcc_64/lib/cmake ..
 ## Windows
 Get dependencies (tested using the given versions):
 * cmake 3.9.2 - https://cmake.org/files/v3.9/cmake-3.9.2-win32-x86.msi
-* mingw-get - http://sourceforge.net/projects/mingw/files/Installer/mingw-get-setup.exe
-* ninja - https://github.com/ninja-build/ninja/releases/download/v1.8.2/ninja-win.zip
+* MSYS2 - http://repo.msys2.org/distrib/x86_64/msys2-x86_64-20180531.exe
 * Qt 5 - http://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe
 
 ### install compiler environment
@@ -64,28 +63,27 @@ Get dependencies (tested using the given versions):
 use the installer, select add to PATH
 
 #### install qt
-Use the online installer! run installer (use default install path! ), install "Qt 5.9.3 > MinGW 5.3.0" and "Tools > MinGW 5.3.0". Qt 5.9.3 is a LTS release and thus should stay supported for some time.
-In case you use the offline installer, change to install path such that Qt 5.9.3 ends up in `c:\Qt\5.9.3`
+Use the online installer! run installer (use default install path! ), install "Qt 5.11.1 > MinGW 5.3.0" and "Tools > MinGW 5.3.0". Qt 5.11.1 is a LTS release and thus should stay supported for some time.
+In case you use the offline installer, change to install path such that Qt 5.11.1 ends up in `c:\Qt\5.11.1`
 
-#### install mingw-get
-Run installer (use default path C:\MinGW !) and install `msys-base, msys-patch`
-
-Add the following line at the end of `C:\mingw\msys\1.0\etc\fstab`:
+#### install MSYS2
+Run installer (use default path C:\msys64 !)
+Open `MSYS2 MSYS` and run the following commands
 ```
-c:/Qt/Tools/mingw530_32 /mingw
+pacman -Syu
 ```
-Make sure that only one line with /mingw exists! Try to run `g++` to verify that the compiler is found!
-The compiler should complain about missing input files; if 'command not found' is printed then the path
-to the compiler is wrong or you forgot to install MinGW along with Qt.
-
-use `msys.bat` in `msys\1.0` to open msys console
-
-#### install ninja
-Extract `ninja.exe` to `C:\MinGW\msys\1.0\bin`
+Close the console when promted and open it again
+```
+pacman -Su
+# dependencies for ra
+pacman -S patch make mingw-w64-i686-gcc mingw-w64-i686-cmake mingw-w64-i686-ninja
+# dependencies for v8
+pacman -S python2
+```
 
 ### compile ra
 *Do:*
-- **!!! USE THE MSYS CONSOLE TO COMPILE EVERYTHING !!!**
+- **!!! USE THE `MSYS2 MinGW 32-bit` CONSOLE TO COMPILE EVERYTHING !!!**
 - Use a folder with a short path like `C:\Robocup` as base folder
 - Recreate the build folder after updating Qt or the Compiler
 
@@ -95,7 +93,7 @@ Extract `ninja.exe` to `C:\MinGW\msys\1.0\bin`
 
 ```
 mkdir build-win && cd build-win
-cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.9.3/mingw53_32/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.11.1/mingw53_32/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
 cmake --build . --target assemble
 ```
