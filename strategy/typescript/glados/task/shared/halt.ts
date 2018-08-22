@@ -1,8 +1,7 @@
-let Halt = Class("Task.Halt", require "task/base")
+import {Task} from "glados/task/base";
 
-
-function Halt:run () {
-	this._robot:halt()
+class Halt extends Task {
+	run() {
+		this._robot.halt();
+	}
 }
-
-return Halt

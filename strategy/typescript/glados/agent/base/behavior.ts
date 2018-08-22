@@ -1,126 +1,110 @@
-let Base = Class("Behavior.Base")
-
 import * as debug from "base/debug";
+import {Position} from "base/vector";
+import {FriendlyRobot} from "base/robot";
+import {Agent} from "glados/agent/base/agent";
+import {MessageBox, MessageType} from "glados/control/messaging";
+import {Task} from "glados/task/base";
 
+export abstract class Behavior {
+	_agent: Agent;
+	_robot: FriendlyRobot;
+	_messaging: MessageBox;
+	_mainAttackerParameters: [Position, number, number | undefined] | undefined = undefined;
+	_task: Task | undefined;
+	_active: boolean = false;
+	_forceKeepingInPool: boolean = false;
+	_deferredBehavior: Behavior | undefined;
+	_deferredBehaviorRunning: boolean = false;
 
-function Base:init (agent) {
-	this._agent = agent
-	this._robot = this._agent:robot()
-	this._send = this._agent._s}
-	this._inbox = this._agent._inbox
-	this._mainAttackerParameters = nil
-	this._init()
-	this.stop()
-}
-
-function Base:_init () {
-	// overwrite if necessary
-}
-
-// is called when another behavior is being chosen
-function Base:stop () {
-	this._task = undefined // reset task
-	this._active = false
-	this._forceKeepingInPool = false
-	//stopping _deferredBehavior is unnecessary, as it goes out of scope.
-	this._deferredBehavior = nil
-	this._deferredBehaviorRunning = false
-	this._stop()
-}
-
-function Base:isBehaviour(): boolean {
-	return true;
-}
-
-function Base:start () {
-	//override if necessary
-}
-
-// when running a deferred behavior the results of this function should then be returned
-// by the main behavior in order to use the task assignment of the deferred behavior
-// a deferred behavior will be terminated as soon as it is not called in at least one frame
-// this function MUST only be called in _updateTask
-function Base:runDeferredBehavior (behavior, restart) {
-	if (not this._deferredBehavior || Class.toClass(this._deferredBehavior) != behavior || restart) {
-		this._deferredBehavior = behavior(this._agent)
-		this._deferredBehavior:start()
+	constructor (agent: Agent) {
+		this._agent = agent;
+		this._robot = this._agent.robot();
+		this._messaging = agent._messaging;
+		this.stop();
 	}
-	this._deferredBehaviorRunning = true
-	debug.set("deferred behavior", Class.name(this._deferredBehavior, true))
-	return this._deferredBehavior:_updateTask()
-}
 
-let runpack = function (param, number, max) {
-	if (not max) {
-		max = table.max(table.keys(param))
-	}
-	if (not max) {
-		max = 0
-	}
-	if (not number) {
-		number = 1
-	}
-	if (number > max) {
-		return
-	}
-	return param[number], runpack(param, number+1, max)
-}
-
-function Base:run () {
-	this._deferredBehaviorRunning = false
-	let bestTask, parameters, forceNewTask = this._updateTask()
-	// terminate the deferred behavior if it has not been run this frame
-	if (not this._deferredBehaviorRunning && this._deferredBehavior) {
+	// is called when another behavior is being chosen
+	stop () {
+		this._task = undefined; // reset task
+		this._active = false;
+		this._forceKeepingInPool = false;
 		//stopping _deferredBehavior is unnecessary, as it goes out of scope.
-		this._deferredBehavior = nil
+		this._deferredBehavior = undefined;
+		this._deferredBehaviorRunning = false;
+		this._stop();
 	}
-	if (not this._task || Class.toClass(this._task) != bestTask || forceNewTask) {
-		if (parameters) {
-			this._task = bestTask(this._agent, runpack(parameters))
-		} else {
-			this._task = bestTask(this._agent)
+
+	isBehaviour(): boolean {
+		return true;
+	}
+
+	//override if necessary
+	start () { }
+
+	// when running a deferred behavior the results of this function should then be returned
+	// by the main behavior in order to use the task assignment of the deferred behavior
+	// a deferred behavior will be terminated as soon as it is not called in at least one frame
+	// this function MUST only be called in _updateTask
+	runDeferredBehavior (behavior: typeof Behavior, restart: boolean):
+			[typeof Task, any[] | undefined, boolean | undefined] {
+		if (this._deferredBehavior == undefined || !(this._deferredBehavior instanceof behavior) || restart) {
+			this._deferredBehavior = new (behavior as any)(this._agent);
+			(this._deferredBehavior as Behavior).start();
 		}
+		this._deferredBehaviorRunning = true;
+		debug.set("deferred behavior", (this._deferredBehavior as Behavior).constructor.name);
+		return (this._deferredBehavior as Behavior)._updateTask();
 	}
-	this._active = true
-}
 
-// is called on every run, if no higher prioritized behavior is chosen
-// return true if behavior is appropriate
-function Base:check () {
-	error("stub")
-}
+	run () {
+		this._deferredBehaviorRunning = false;
+		let [bestTask, parameters, forceNewTask] = this._updateTask();
+		// terminate the deferred behavior if it has not been run this frame
+		if (!this._deferredBehaviorRunning && this._deferredBehavior != undefined) {
+			//stopping _deferredBehavior is unnecessary, as it goes out of scope.
+			this._deferredBehavior = undefined;
+		}
+		if (this._task == undefined || !(this._task instanceof bestTask) || forceNewTask) {
+			if (parameters != undefined) {
+				this._task = new (bestTask as any)(this._agent, ...parameters);
+			} else {
+				this._task = new (bestTask as any)(this._agent);
+			}
+		}
+		this._active = true;
+	}
 
-function Base:forceKeepingInPool () {
-	return this._deferredBehavior ? this._deferredBehavior:forceKeepingInPool() : this._forceKeepingInPool
-}
+	// is called on every run, if no higher prioritized behavior is chosen
+	// return true if behavior is appropriate
+	abstract check (): boolean;
 
-function Base:task () {
-	return this._task
-}
+	forceKeepingInPool (): boolean {
+		return this._deferredBehavior ? this._deferredBehavior.forceKeepingInPool() : this._forceKeepingInPool;
+	}
 
-function Base:robot () {
-	return this._robot
-}
+	task (): Task {
+		return <Task>this._task;
+	}
 
-// chooses and returns a task and its parameters
-function Base:_updateTask () {
-	error("stub")
-}
+	robot (): FriendlyRobot {
+		return this._robot;
+	}
 
-function Base:_applyForMainAttacker (target, endSpeedLength, overrideRating) {
-	this._mainAttackerParameters = { target, endSpeedLength, overrideRating }
-}
+	// chooses and returns a task and its parameters
+	abstract _updateTask (): [typeof Task, any[] | undefined, boolean | undefined];
 
-function Base:mainAttackerParameters () {
-	return this._mainAttackerParameters
-}
+	_applyForMainAttacker (target: Position, endSpeedLength: number, overrideRating?: number) {
+		this._mainAttackerParameters = [ target, endSpeedLength, overrideRating ];
+	}
 
-function Base:clearMainAttackerParameters () {
-	this._mainAttackerParameters = nil
-}
+	mainAttackerParameters (): [Position, number, number | undefined] | undefined {
+		return this._mainAttackerParameters;
+	}
 
-// can be overwritten for custom cleanups
-function Base:_stop () {
-}
+	clearMainAttackerParameters () {
+		this._mainAttackerParameters = undefined;
+	}
 
-return Base
+	// can be overwritten for custom cleanups
+	_stop () { }
+}

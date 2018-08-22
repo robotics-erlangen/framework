@@ -1,22 +1,33 @@
-let AttackRatio = require "trainer/attackratio"
-let Defense = require "trainer/defense"
-let Trainer = require "trainer/trainer"
-let MainTrainer = Class("MainTrainer", Trainer, AttackRatio, Defense)
+import {AttackRatio} from "glados/trainer/attackratio";
+import {Defense} from "glados/trainer/defense";
+import {Trainer} from "glados/trainer/trainer";
 
 
-function MainTrainer:init (mode) {
-	Trainer.init(self)
-	// the instance function 'attackRatio' overwrites the method
-	if (mode == "passive") {
-		this.attackRatio = function() { return 0; }
-	} else if (mode == "aggressive") {
-		this.attackRatio = function() { return 8; }
+class MainTrainer extends Trainer {
+	_defense: Defense;
+	_attackRatio: AttackRatio;
+	_mode: "passive" | "aggressive" | undefined;
+
+	constructor (mode: "passive" | "aggressive" | undefined) {
+		super();
+		this._mode = mode;
+
+		this._defense = new Defense();
+		this._attackRatio = new AttackRatio(this._messaging);
+	}
+
+	attackRatio (): number {
+		if (this._mode === "passive") {
+			return 0;
+		} else if (this._mode === "aggressive") {
+			return 8;
+		} else {
+			return this._attackRatio.attackRatio();
+		}
+	}
+
+	run () {
+		super.run();
+		this._defense._assignDefenders();
 	}
 }
-
-function MainTrainer:run () {
-	Trainer.run(self)
-	this._assignDefenders()
-}
-
-return MainTrainer

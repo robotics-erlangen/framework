@@ -1,36 +1,40 @@
-let Groups = require "trainer/groups"
-let Roles = require "trainer/roles"
-let Trainer = Class("Trainer", undefined, Roles, Groups)
-
 import * as debug from "base/debug";
+import {MessageBox, Messaging, MessageTypeList} from "glados/control/messaging";
+import {Groups} from "glados/trainer/groups";
+import {Roles} from "glados/trainer/roles";
 
+export class Trainer {
+	_messaging: MessageBox;
+	_allMessaging: Messaging;
 
-function Trainer:init () {
-	this._send, this._inbox = undefined, nil
-}
+	_groups: Groups;
+	_roles: Roles;
 
-function Trainer:setupMessaging (messaging) {
-	assert(this._send == undefined && this._inbox == undefined, "Messaging may only be set once")
-	this._send, this._inbox = messaging:registerTrainer()
-}
+	constructor() {
+		this._allMessaging = new Messaging();
+		this._messaging = this._allMessaging.registerTrainer();
 
-function Trainer:_debugInbox (str) {
-	debug.pushtop(str or"Trainer Inbox")
-	for (name, func in pairs(this._inbox)) {
-		debug.push(name)
-		for (sender, msg in pairs(func())) {
-			debug.set(sender.id || sender, msg)
-		}
-		debug.pop() // name
+		this._groups = new Groups(this._messaging);
+		this._roles = new Roles(this._messaging);
 	}
-	debug.pop() // Trainer Inbox
-}
 
-function Trainer:run () {
-	this._debugInbox("Preliminary Trainer Inbox")
-	this._chooseExclusiveRoles()
-	this._runGroups()
-	this._debugInbox()
-}
+	_debugInbox (str?: string) {
+		debug.pushtop(str || "Trainer Inbox");
+		for (let name of MessageTypeList) {
+			// TODO: this will print out numbers for now
+			debug.push(String(name));
+			for (let [sender, msg] of this._messaging.receiveGeneric(name)) {
+				debug.set(sender.id == undefined ? sender : sender.id, msg);
+			}
+			debug.pop(); // name
+		}
+		debug.pop(); // Trainer Inbox
+	}
 
-return Trainer
+	run () {
+		this._debugInbox("Preliminary Trainer Inbox");
+		this._roles._chooseExclusiveRoles();
+		this._groups._runGroups();
+		this._debugInbox();
+	}
+}

@@ -1,48 +1,72 @@
-let Groups = {}
+import {Centerback} from "glados/group/centerback";
+import {Moves} from "glados/group/moves";
+import {Striker} from "glados/group/striker";
+import {MidField} from "glados/group/midfield";
 
-function Groups:init () {
-	let groupClasses = {
-		require "group/centerback",
-		require "group/moves",
-		require "group/striker",
-		require "group/midfield"
-	}
+import {FriendlyRobot} from "base/robot";
+import {MessageBox, MessageType} from "glados/control/messaging";
 
-	this._groupList = {}
-	for (_,group in ipairs(groupClasses)) {
-		table.insert(this._groupList, group())
-	}
+type GroupName = "centerback" | "moves" | "striker" | "midfield";
+
+interface Group {
+	name: GroupName;
+	run (messaging: MessageBox, messages: Map<FriendlyRobot, any>): void;
 }
 
-function Groups:setGroups (groupList) {
-	this._groupList = groupList
+interface Application {
+	name: GroupName;
+	payload: any;
 }
 
-function Groups:_runGroups () {
-	// robot -> { groupname -> application }
-	let groupApplications = this._inbox.groupApplication()
+export class Groups {
+	_groupList: Group[];
 
-	// groupname -> { robot -> application }
-	let robotApplications = {}
+	_messaging: MessageBox;
 
-	for (_,group in ipairs(this._groupList)) {
-		robotApplications[group.name] = {}
+	constructor(messaging: MessageBox) {
+		let groupClasses = [
+			Centerback,
+			Moves,
+			Striker,
+			MidField
+		];
+
+		this._groupList = [];
+		for (let group of groupClasses) {
+			this._groupList.push(new group());
+		}
+
+		this._messaging = messaging;
 	}
-	for (robot, msg in pairs(groupApplications)) {
-		for (_, app in ipairs(msg)) {
-			let application = robotApplications[app.name]
-			if (not application) {
-				error("No group with name '"  +  app.name  +  "' found")
+
+	setGroups (groupList: Group[]) {
+		this._groupList = groupList;
+	}
+
+	_runGroups () {
+		// robot -> { groupname -> application }
+		let groupApplications = this._messaging.receiveRepeated(MessageType.groupApplication);
+
+		// groupname -> { robot -> application }
+		let robotApplications: {[groupName: string]: Map<FriendlyRobot, Application>} = {};
+
+		for (let group of this._groupList) {
+			robotApplications[group.name] = new Map<FriendlyRobot, Application>();
+		}
+		for (let [robot, msg] of groupApplications.entries()) {
+			for (let app of msg) {
+				let application = robotApplications[app.name];
+				if (application == undefined) {
+					throw new Error("No group with name '"  +  app.name  +  "' found");
+				}
+				application.set(robot, app.payload);
 			}
-			application[robot] = app.payload
+		}
+
+		for (let group of this._groupList) {
+			let messages = robotApplications[group.name];
+
+			group.run(this._messaging, messages);
 		}
 	}
-
-	for (_,group in ipairs(this._groupList)) {
-		let messages = robotApplications[group.name]
-
-		group:run(this._send, this._inbox, messages)
-	}
 }
-
-return Groups
