@@ -1,12 +1,15 @@
-/*import * as Constants from "base/constants";
+import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as geom from "base/geom";
+import { FriendlyRobot } from "base/robot";
 import * as vis from "base/vis";
+import { Vector, Position, Speed } from "base/vector";
 import * as World from "base/world";
+import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
-import * as ToTarget from "glados/trajectory/totarget";
+import {ToTarget} from "glados/trajectory/totarget";
 
 // mu_x and mu_y are the default values for muXByID and muYByID, that are choosen if no additional information is available
 let mu_x = 0.70;
@@ -19,42 +22,57 @@ let mu_y = 0.05;
 
 //ById is used to use different parameters for different robots. The table has to be indexed by the robot id or the string "opp"
 //"opp" is used, when information about an opposing robot is needed, where no further damping values are known.
-let muXById = {[0] = mu_x, [1] = mu_x, [2] = 0.60, [3] = mu_x, [4] = mu_x, [5] = 0.60,
-				[6] = mu_x, [7] = 0.70, [8] = mu_x, [9] = mu_x, [10] = mu_x, [11] = 0.50,
-				[12] = mu_x, [13] = mu_x, [14] = mu_x, [15] = mu_x, opp = mu_x};
-let muYById = {[0] = mu_y, [1] = mu_y, [2] = 0.03, [3] = mu_y, [4] = mu_y, [5] = 0.04,
-				[6] = mu_y, [7] = 0.05, [8] = mu_y, [9] = mu_y, [10] = mu_y, [11] = 0.04,
-				[12] = mu_y, [13] = mu_y, [14] = mu_y, [15] = mu_y, opp = mu_y};
+let muXById: Map<number | "opp", number>;
+let muYById: Map<number | "opp", number>;
 
-let paramsUpdated = false
+function setMuValues() {
+	muXById = new Map<number | "opp", number>([[0, mu_x], [1, mu_x], [2, 0.60], [3, mu_x],
+		[4, mu_x], [5, 0.60], [6, mu_x], [7, 0.70], [8, mu_x], [9, mu_x], [10, mu_x],
+		[11, 0.50], [12, mu_x], [13, mu_x], [14, mu_x], [15, mu_x], ["opp", mu_x]]);
+	muYById = new Map<number | "opp", number>([[0, mu_y], [1, mu_y], [2, 0.03], [3, mu_y],
+		[4, mu_y], [5, 0.04], [6, mu_y], [7, 0.05], [8, mu_y], [9, mu_y], [10, mu_y],
+		[11, 0.04], [12, mu_y], [13, mu_y], [14, mu_y], [15, mu_y], ["opp", mu_y]]);
+}
+setMuValues();
+
+let paramsUpdated = false;
 
 function setSimulatorParams () {
-	if (not World.IsSimulated || paramsUpdated) {
-		return
+	if (!World.IsSimulated || paramsUpdated) {
+		return;
 	}
-	mu_x = 0.93
-	mu_y = 0.26
-	paramsUpdated = true
+	mu_x = 0.93;
+	mu_y = 0.26;
+	setMuValues();
+	paramsUpdated = true;
 }
+
+type VolleyObserver = (ballSpeed: Speed, viewPos: Position, targetPos: Position,
+		expectedTargetSpeed: number)=> void;
 
 export class Volley {
 	static getParams () {
-		return mu_x, mu_y
+		return [mu_x, mu_y];
 	}
 
-	static setParams (new_mu_x, new_mu_y) {
+	static setParams (new_mu_x: number, new_mu_y: number) {
 		mu_x = new_mu_x
 		mu_y = new_mu_y
 	}
 
+	_ballIncoming: boolean = true;
+	_shooting: boolean = false;
+	_ball_in: Speed | undefined;
+	_setMainAttackerParameters: (p: Position, n: number)=> void;
 
-	constructor () {
-		setSimulatorParams()
-		this._ballIncoming = true
-		this._shooting = false
-		this._volleyObserver = nil
+	_robot: FriendlyRobot;
+	_messaging: MessageBox;
 
-		this._ball_in = nil
+	constructor (robot: FriendlyRobot, messaging: MessageBox, setMaParams: (p: Position, n: number)=> void) {
+		setSimulatorParams();
+		this._robot = robot;
+		this._messaging = messaging;
+		this._setMainAttackerParameters = setMaParams;
 	}
 
 
@@ -65,9 +83,10 @@ export class Volley {
 	// @param robotSpeed Vector - velocity of the robot when hitting the ball
 	// @param robotId variant<String, int> - the robot that is going to shoot or "opp" for opponent / unknown robots
 	// @return x,y - the velocity of the shot ball is Vector(x,y) (in team coordinates)
-	static calcVOutTeamCoordinates (v_out_length, ballSpeed, phi, robotSpeed, robotId) {
+	static calcVOutTeamCoordinates (v_out_length: number, ballSpeed: Speed, phi: number,
+			robotSpeed: Speed, robotId: number): [number, number] {
 		let relativeSpeed = ballSpeed - robotSpeed
-		let v_refl_x, v_refl_y = Volley.calcVOutFromVS(0, relativeSpeed.length(), phi, relativeSpeed.angle(), robotId)
+		let [v_refl_x, v_refl_y] = Volley.calcVOutFromVS(0, relativeSpeed.length(), phi, relativeSpeed.angle(), robotId)
 		let sinp = Math.sin(phi)
 		let cosp = Math.cos(phi)
 		//calcVOut(x,v_in, phi, alpha) = cosp * x + v_refl_x, sinp * x + v_refl_y
@@ -90,15 +109,18 @@ export class Volley {
 		let v_s = 0.5 * (Math.sqrt(sqrt1 + sqrt2) - 2 * bcos - 2 * dsin)
 		let x_res = cosp * v_s + v_refl_glob_x
 		let y_res = sinp * v_s + v_refl_glob_y
-		if (assert) {
-			let x,y = Volley.calcVOutFromVS(v_s, relativeSpeed.length(), phi, relativeSpeed.angle(), robotId)
+		// TODO: remove these sanity checks if they don't fail for a while
+		{
+			let [x,y] = Volley.calcVOutFromVS(v_s, relativeSpeed.length(), phi, relativeSpeed.angle(), robotId)
 			x = x + robotSpeed.x
 			y = y + robotSpeed.y
-			assert(Math.abs(Math.sqrt(x*x+y*y) - v_out_length) < 1e-5)
-			assert(Math.abs(x - x_res) < 1e-5)
-			assert(Math.abs(y - y_res) < 1e-5)
+			if (Math.abs(Math.sqrt(x*x+y*y) - v_out_length) > 1e-5
+					|| Math.abs(x - x_res) > 1e-5
+					|| Math.abs(y - y_res) > 1e-5) {
+				throw new Error("Volley sanitity check failed!");
+			}
 		}
-		return x_res, y_res
+		return [x_res, y_res];
 	}
 
 	/// calculates vOut from known v_out_length, orientation and future ball.
@@ -108,8 +130,8 @@ export class Volley {
 	// @param alpha number - angle of relative ball speed (futureBall.relativeSpeed.angle())
 	// @param robotId variant<String, int> - the robot that is going to shoot or "opp" for opponent / unknown robots
 	// @return x,y - the velocity of the shot ball relative to the robot's velocity is Vector(x,y)
-	static calcVOutFromVOutAbs (v_out_length, v_in, phi, alpha, robotId) {
-		let v_refl_x, v_refl_y = Volley.calcVOutFromVS(0, v_in, phi, alpha, robotId)
+	static calcVOutFromVOutAbs (v_out_length: number, v_in: number, phi: number, alpha: number, robotId: number | "opp"): [number, number] {
+		let [v_refl_x, v_refl_y] = Volley.calcVOutFromVS(0, v_in, phi, alpha, robotId)
 		let sinp = Math.sin(phi)
 		let cosp = Math.cos(phi)
 		//calcVOut(x,v_in,phi,alpha) = cosp * x + v_refl_x, sinp * x + v_refl_y
@@ -136,30 +158,31 @@ export class Volley {
 	// @return x,y - the velocity of the shot ball relative to the robot's velocity is Vector(x,y)
 
 	// for extended documentation see doc/volley.txt
-	static calcVOutFromVS (v_s, v_in, phi, alpha, robotId) {
+	static calcVOutFromVS (v_s: number, v_in: number, phi: number, alpha: number, robotId: number | "opp"): [number, number] {
 		let sinp = Math.sin(phi)
 		let cosp = Math.cos(phi)
 		let sinpa = Math.sin(phi - alpha)
 		let cospa = Math.cos(phi - alpha)
 
-		let x = cosp * v_s + sinp * sinpa * muXById[robotId] * v_in - cosp * cospa * muYById[robotId] * v_in
-		let y = sinp * v_s - cosp * sinpa * muXById[robotId] * v_in - sinp * cospa * muYById[robotId] * v_in
+		let x = cosp * v_s + sinp * sinpa * <number>muXById.get(robotId) * v_in - cosp * cospa * <number>muYById.get(robotId) * v_in
+		let y = sinp * v_s - cosp * sinpa * <number>muXById.get(robotId) * v_in - sinp * cospa * <number>muYById.get(robotId) * v_in
 
-		return x, y
+		return [x, y];
 	}
 
-	private static volley_Jf (v_s, phi, alpha, v_in, robotId) {
+	private static volley_Jf (v_s: number, phi: number, alpha: number, v_in: number,
+			robotId: number | "opp"): [number, number, number, number] {
 		let sinp = Math.sin(phi)
 		let cosp = Math.cos(phi)
 		let sinpa = Math.sin(phi - alpha)
 		let cospa = Math.cos(phi - alpha)
 
 		let xdv_s = cosp
-		let xdphi = -sinp * v_s + (muXById[robotId] + muYById[robotId]) * v_in * (cosp * sinpa + sinp * cospa)
+		let xdphi = -sinp * v_s + (<number>muXById.get(robotId) + <number>muYById.get(robotId)) * v_in * (cosp * sinpa + sinp * cospa)
 		let ydv_s = sinp
-		let ydphi = cosp * v_s - (muXById[robotId] + muYById[robotId]) * v_in * (cosp * cospa - sinp * sinpa)
+		let ydphi = cosp * v_s - (<number>muXById.get(robotId) + <number>muYById.get(robotId)) * v_in * (cosp * cospa - sinp * sinpa)
 
-		return xdv_s, xdphi, ydv_s, ydphi
+		return [xdv_s, xdphi, ydv_s, ydphi];
 	}
 
 	//Calculates robot orientation and v_s, given a futurBall and a target and targetSpeed
@@ -170,42 +193,47 @@ export class Volley {
 	//@return phi, v_s
 	//@return phi number - the orientation of the robot to perform that shot
 	//@return v_s number - see @calcVOutFromVS
-	static calcPhi (ballSpeed, viewPos, targetPos, targetSpeed) {
+	static calcPhi (robot: FriendlyRobot, ballSpeed: Speed, viewPos: Position, targetPos: Position,
+			targetSpeed: number, volleyObserver?: VolleyObserver): [number, number] {
 		// relative ball speed
-		ballSpeed = ballSpeed - this._robot.speed //FIXME: future robot speed not current robot speed
+		ballSpeed -= robot.speed //FIXME: future robot speed not current robot speed
 		let v_in = ballSpeed.length()
 		let alpha = ballSpeed.angle()
 
 		// calculate required shoot speed
 		let dist = targetPos.distanceTo(viewPos)
-		let abs_v_out = this._robot.calculateShootSpeed(targetSpeed, dist)
+		let abs_v_out = robot.calculateShootSpeed(targetSpeed, dist)
 		if (targetSpeed == Infinity) { // FIXME: Robocup HACK. Necessary would be a detection that increases abs_v_out by a value, because we can rely on some reflection-speed. Only v_s is limited by this._robot.maxShotLinear.
-			abs_v_out = this._robot.maxShotLinear + mu_y * v_in // FIXME: This calculation is bullshit
+			abs_v_out = robot.maxShotLinear + mu_y * v_in // FIXME: This calculation is bullshit
 		}
 		abs_v_out = Math.min(Constants.maxBallSpeed, abs_v_out)
-		if (this._volleyObserver != undefined) {
-			let ball = { pos = viewPos, speed = (targetPos - viewPos).setLength(abs_v_out), radius = World.Ball.radius, maxSpeed = abs_v_out }
+		if (volleyObserver != undefined) {
+			let ball = { pos: viewPos, speed: (targetPos - viewPos).setLength(abs_v_out), radius: World.Ball.radius,
+				maxSpeed: abs_v_out }
 			let expectedTargetSpeed = Physics.ballAtTime(ball, Physics.ballRollTime(ball, dist)).speed.length()
-			this._volleyObserver(ballSpeed, viewPos, targetPos, expectedTargetSpeed)
+			volleyObserver(ballSpeed, viewPos, targetPos, expectedTargetSpeed)
 		}
 
 		// relative output speed
-		let v_out = (targetPos - viewPos).setLength(abs_v_out) - this._robot.speed
+		let v_out = (targetPos - viewPos).setLength(abs_v_out) - robot.speed
 
 		// guess initial values for v_s and phi
 		let v_s = abs_v_out
 		let phi = (targetPos - viewPos).angle()
 		// caching
 		let calcVOut = Volley.calcVOutFromVS
-		let robotId = this._robot.id
-		let visData = {}
+		let robotId = robot.id
+		let visData: number[] = [];
 
-		for (_ = 1, 5) {
-			let j11, j12, j21, j22 = Volley.volley_Jf(v_s, phi, alpha, v_in, robotId)
+		for (let i = 1;i<=5;i++) {
+			let [j11, j12, j21, j22] = Volley.volley_Jf(v_s, phi, alpha, v_in, robotId)
 			let det = j11 * j22 - j21 * j12
-			let k11, k12, k21, k22 = j22/det, -j12/det, -j21/det, j11/det
+			let k11 = j22/det;
+			let k12 = -j12/det;
+			let k21 = -j21/det;
+			let k22 = j11/det;
 
-			let fx, fy = calcVOut(v_s, v_in, phi, alpha, robotId)
+			let [fx, fy] = calcVOut(v_s, v_in, phi, alpha, robotId)
 			fx = fx - v_out.x
 			fy = fy - v_out.y
 
@@ -228,12 +256,12 @@ export class Volley {
 				phi = phi + 2*Math.PI
 			}
 
-			table.insert(visData, phi)
+			visData.push(phi)
 		}
 		// don't block the jit by calling c code
-		for (_, visPhi in ipairs(visData)) {
+		for (let visPhi of visData) {
 			vis.addPath("t/a/volley: Iterations",
-					{this._robot.pos, this._robot.pos + Vector.fromAngle(visPhi).scaleLength(100)},
+					[robot.pos, robot.pos + Vector.fromAngle(visPhi).scaleLength(100)],
 					vis.colors.greenHalf)
 		}
 
@@ -242,25 +270,25 @@ export class Volley {
 			// FIXME: correct fallback for wrong direction
 			// Angle differs more than 90 degrees from the base angle
 			// this is only possible if v_s was negative
-			return geom.normalizeAngle(phi + Math.PI), 0
+			return [geom.normalizeAngle(phi + Math.PI), 0];
 		}
-		return phi, v_s
+		return [phi, v_s];
 	}
 
 	/// performs a volley shot without actively catching the ball
 	// @param viewPos Vector - the ball's position when it touches the dribbler
 	// @param targetPos Vector - where to shoot at
 	// @param targetSpeed number - how fast the Ball should arrive at targetPos
-	function Volley._volley (viewPos, targetPos, targetSpeed) {
-		this.setMainAttackerParameters(targetPos, this._robot.maxSpeed)
+	_volley (viewPos: Position, targetPos: Position, targetSpeed: number) {
+		this._setMainAttackerParameters(targetPos, this._robot.maxSpeed)
 		// init ball_in speed
-		if (this._ballIncoming) {
+		if (this._ballIncoming || !this._ball_in) {
 			let ballRollTime = Physics.ballRollTime(World.Ball, World.Ball.pos.distanceTo(viewPos))
 			let futureBall = Physics.ballAtTime(World.Ball, ballRollTime)
 			this._ball_in = futureBall.speed
 		}
 
-		let phi, v_s = this.calcPhi(this._ball_in, viewPos, targetPos, targetSpeed)
+		let [phi, v_s] = Volley.calcPhi(this._robot, this._ball_in, viewPos, targetPos, targetSpeed)
 
 		// position the robot to receive the pass
 		let robotPos = viewPos - Vector.fromAngle(phi).scaleLength(
@@ -284,9 +312,9 @@ export class Volley {
 		vis.addCircle("t/a/volley: Volley", targetPos, 0.1, vis.colors.redHalf, true)
 		let viewPoint = viewPos + Vector.fromAngle(phi).scaleLength(10000)
 		let currentDir = viewPos + Vector.fromAngle(this._robot.dir).scaleLength(10000)
-		vis.addPath("t/a/volley: Volley", {viewPos, viewPoint}, vis.colors.green)
-		vis.addPath("t/a/volley: Volley", {viewPos, targetPos}, vis.colors.red)
-		vis.addPath("t/a/volley: Volley", {viewPos, currentDir}, vis.colors.orange)
+		vis.addPath("t/a/volley: Volley", [viewPos, viewPoint], vis.colors.green)
+		vis.addPath("t/a/volley: Volley", [viewPos, targetPos], vis.colors.red)
+		vis.addPath("t/a/volley: Volley", [viewPos, currentDir], vis.colors.orange)
 
 
 		if (Robot.hadBall(this._robot, 0)) {
@@ -294,6 +322,6 @@ export class Volley {
 		} else if (Ball.isShot()) {
 			this._ballIncoming = true
 		}
-		this._send.shootDestination("all", targetPos)
+		this._messaging.sendBroadcast(MessageType.shootDestination, targetPos);
 	}
-}*/
+}

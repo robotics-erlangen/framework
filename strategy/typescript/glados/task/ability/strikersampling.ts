@@ -1,184 +1,203 @@
-let StrikerSampling = {}
-
 import * as geom from "base/geom";
+import {amunFunctions as amun} from "base/amun";
+import {FriendlyRobot} from "base/robot";
 import * as vis from "base/vis";
+import {Vector, Position} from "base/vector";
 import * as World from "base/world";
 
-import * as Ball from "glados/tobserver/ball";
+import {MessageBox, MessageType} from "glados/control/messaging";
+import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
-let ObserverShoot = require "observer/shoot"
-
+import * as ObserverShoot from "glados/observer/shoot";
 import * as Rating from "glados/util/rating";
 
-let G = World.Geometry
+let G = World.Geometry;
 
 
-let visualizeRating = function (name, pos, rating) {
+function visualizeRating (name: string, pos: Position, rating: number) {
 	vis.addCircle("t/a/strikersampling: "+name, pos, 0.06,
-		vis.fromTemperature(1 - rating), true)
+		vis.fromTemperature(1 - rating), true);
 }
 
-function StrikerSampling:init () {
-	this._attackPosition = nil
-	this._attackTime = nil
-	this._mainAttacker = nil
-}
+export class StrikerSampling {
+	_attackPosition: Position = new Vector(0, 0);
+	_attackTime: number = 0;
+	_mainAttacker: FriendlyRobot | undefined;
 
-function StrikerSampling:precalculate () {
-	this._mainAttacker = this._inbox.mainAttacker().trainer
-	let _, pos = next(this._inbox.attackPosition())
-	let _, time = next(this._inbox.attackTime())
-	this._attackPosition = pos || World.Ball.pos
-	this._attackTime = time || (this._mainAttacker ? World.Time + Robot.minTimeToBall(this._mainAttacker)) : World.Time
+	_robot: FriendlyRobot;
+	_messaging: MessageBox;
 
-	vis.addCircle("t/a/strikersampling: attackPosition", this._attackPosition, 0.13,
-		vis.colors.orchidHalf, false, undefined, undefined, 0.02)
-}
-
-
-function StrikerSampling:canReachInTime (ballPos) {
-	if (not this._mainAttacker) {
-		return 1
+	constructor (robot: FriendlyRobot, messaging: MessageBox) {
+		this._robot = robot;
+		this._messaging = messaging;
 	}
 
-	let robotPos = ballPos + (ballPos - this._attackPosition).setLength(this._robot.shootRadius + World.Ball.radius)
-	let robotTime = Physics.robotTimeToPos(this._robot, robotPos,
-		(robotPos - this._robot.pos).setLength(this._robot.maxSpeed))
-	let shootTime = this._attackTime - World.Time
-	let ballTime = ObserverShoot.ballPassTime(this._attackPosition, ballPos, this._robot, undefined, this._mainAttacker)
+	precalculate () {
+		this._mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker);
+		let pos = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
+		let time = this._messaging.receiveSingleSender(MessageType.attackTime)[1];
+		this._attackPosition = pos || World.Ball.pos;
+		this._attackTime = time || (this._mainAttacker ? World.Time + Robot.minTimeToBall(this._mainAttacker)) : World.Time;
 
-	let rating = Rating.valueToRating(shootTime + ballTime - robotTime, 0.2, 0.5)
-	
-	if (not amun.isPerformanceMode) {
-		visualizeRating("canReachInTime", ballPos, rating)
+		vis.addCircle("t/a/strikersampling: attackPosition", this._attackPosition, 0.13,
+			vis.colors.orchidHalf, false, undefined, undefined, 0.02);
 	}
 
-	return rating
-}
 
-function StrikerSampling:passTooShort (ballPos) {
-	let rating = Rating.valueToRating(ballPos.distanceTo(this._attackPosition), 3, 5)
+	canReachInTime (ballPos: Position): number {
+		if (!this._mainAttacker) {
+			return 1
+		}
 
-	if (not amun.isPerformanceMode) {
-		visualizeRating("passTooShort", ballPos, rating)
+		let robotPos = ballPos + (ballPos - this._attackPosition).setLength(this._robot.shootRadius + World.Ball.radius);
+		let robotTime = Physics.robotTimeToPos(this._robot, robotPos,
+			(robotPos - this._robot.pos).setLength(this._robot.maxSpeed))[0];
+		let shootTime = this._attackTime - World.Time;
+		let ballTime = ObserverShoot.ballPassTime(this._attackPosition, ballPos, this._robot, undefined, this._mainAttacker);
+
+		let rating = Rating.valueToRating(shootTime + ballTime - robotTime, 0.2, 0.5);
+		
+		if (!amun.isPerformanceMode) {
+			visualizeRating("canReachInTime", ballPos, rating);
+		}
+
+		return rating;
 	}
 
-	return rating
-}
+	passTooShort (ballPos: Position): number {
+		let rating = Rating.valueToRating(ballPos.distanceTo(this._attackPosition), 3, 5);
 
-function StrikerSampling:volleyPass (ballPos) {
-	if (not Ball.receivesPass(this._mainAttacker)) {
-		return 1
+		if (!amun.isPerformanceMode) {
+			visualizeRating("passTooShort", ballPos, rating);
+		}
+
+		return rating;
 	}
 
-	let minRating = 0.5
-	let volleyAngle = World.Ball.speed.absoluteAngleDiff(this._attackPosition - ballPos)
-	let volleySuccessProbability = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI)
-	let rating = volleySuccessProbability * (1 - minRating) + minRating
-	
-	if (not amun.isPerformanceMode) {
-		visualizeRating("volleyPass", ballPos, rating)
+	volleyPass (ballPos: Position): number {
+		if (!this._mainAttacker || !Ball.receivesPass(this._mainAttacker)) {
+			return 1;
+		}
+
+		let minRating = 0.5;
+		let volleyAngle = World.Ball.speed.absoluteAngleDiff(this._attackPosition - ballPos);
+		let volleySuccessProbability = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI);
+		let rating = volleySuccessProbability * (1 - minRating) + minRating;
+		
+		if (!amun.isPerformanceMode) {
+			visualizeRating("volleyPass", ballPos, rating);
+		}
+
+		return rating;
 	}
 
-	return rating
-}
+	goalAngle (ballPos: Position): number {
+		let minRating = 0.0;
+		let angle = (World.Geometry.OpponentGoalRight - ballPos).absoluteAngleDiff(World.Geometry.OpponentGoalLeft - ballPos);
+		let rating = Rating.valueToRating(angle, 0, 20 / 180 * Math.PI) * (1 - minRating) + minRating;
 
-function StrikerSampling:goalAngle (ballPos) {
-	let minRating = 0.0
-	let angle = (World.Geometry.OpponentGoalRight - ballPos).absoluteAngleDiff(World.Geometry.OpponentGoalLeft - ballPos)
-	let rating = Rating.valueToRating(angle, 0, 20 / 180 * Math.PI) * (1 - minRating) + minRating
-
-	if (not amun.isPerformanceMode) {
-		visualizeRating("goalAngle", ballPos, rating)
-	}
-	return rating
-}
-
-// function StrikerSampling:advance(ballPos)
-// 	local distToGoal = ballPos.distanceTo(World.Geometry.OpponentGoal)
-// 	local currentDistToGoal = this._attackPosition.distanceTo(World.Geometry.OpponentGoal)
-// 	local bestAdvance = World.Geometry.FieldHeightHalf * 0.3
-// 	local
-// 	local distAdvance = currentDistToGoal - distToGoal - bestAdvance
-// 	local rating = 1 / (distAdvance * distAdvance / World.Geometry.FieldHeight + 1)
-// 	visualizeRating("advance", ballPos, rating)
-// 	return rating
-// end
-
-function StrikerSampling:crossPass (ballPos) {
-	let angleAttackGoalBall = (ballPos - World.Geometry.OpponentGoal).absoluteAngleDiff(
-		this._attackPosition - World.Geometry.OpponentGoal)
-	let rating = Rating.valueToRating(angleAttackGoalBall, 0, Math.PI * 0.5)
-
-	if (not amun.isPerformanceMode) {
-		visualizeRating("crossPass", ballPos, rating)
+		if (!amun.isPerformanceMode) {
+			visualizeRating("goalAngle", ballPos, rating);
+		}
+		return rating;
 	}
 
-	return rating * 0.5 + 0.5
-}
+	// function StrikerSampling:advance(ballPos)
+	// 	local distToGoal = ballPos.distanceTo(World.Geometry.OpponentGoal)
+	// 	local currentDistToGoal = this._attackPosition.distanceTo(World.Geometry.OpponentGoal)
+	// 	local bestAdvance = World.Geometry.FieldHeightHalf * 0.3
+	// 	local
+	// 	local distAdvance = currentDistToGoal - distToGoal - bestAdvance
+	// 	local rating = 1 / (distAdvance * distAdvance / World.Geometry.FieldHeight + 1)
+	// 	visualizeRating("advance", ballPos, rating)
+	// 	return rating
+	// end
 
-function StrikerSampling:distToGoal (ballPos) {
-	let minRating = World.Ball.speed.length() < 1 ? 0.3 : 0.1
+	crossPass (ballPos: Position): number {
+		let angleAttackGoalBall = (ballPos - World.Geometry.OpponentGoal).absoluteAngleDiff(
+			this._attackPosition - World.Geometry.OpponentGoal);
+		let rating = Rating.valueToRating(angleAttackGoalBall, 0, Math.PI * 0.5);
 
-	let distToGoal = ballPos.distanceTo(World.Geometry.OpponentGoal)
-	let minDist = World.Geometry.DefenseRadius + 0.7
-	let ratingBase = Rating.valueToRating(distToGoal, World.Geometry.FieldHeight * 0.7, minDist)
-	let ratingBonus = Rating.valueToRating(distToGoal, minDist + 2, minDist)
-	let rating = 0.2 * ratingBase + 0.8 * ratingBonus
+		if (!amun.isPerformanceMode) {
+			visualizeRating("crossPass", ballPos, rating);
+		}
 
-	// rating demerit for steep passes, as these often miss due to volley inaccuracy
-	if (G.DefenseWidth && Math.abs(ballPos.x) > G.DefenseWidth/2
-			 &&  World.Ball.pos.y > 1.5 * G.DefenseHeight) {
-		let demeritWeight = 0.3
-		let distanceRatingDemerit = Rating.valueToRating(distToGoal, G.DefenseWidth/2, minDist * 1.2)
-		rating = (1 - demeritWeight) * rating + demeritWeight * distanceRatingDemerit
+		return rating * 0.5 + 0.5;
 	}
 
-	if (not amun.isPerformanceMode) {
-		visualizeRating("distToGoal", ballPos, rating)
+	distToGoal (ballPos: Position): number {
+		let minRating = World.Ball.speed.length() < 1 ? 0.3 : 0.1;
+
+		let distToGoal = ballPos.distanceTo(World.Geometry.OpponentGoal);
+		let minDist = World.Geometry.DefenseRadius + 0.7;
+		let ratingBase = Rating.valueToRating(distToGoal, World.Geometry.FieldHeight * 0.7, minDist);
+		let ratingBonus = Rating.valueToRating(distToGoal, minDist + 2, minDist);
+		let rating = 0.2 * ratingBase + 0.8 * ratingBonus;
+
+		// rating demerit for steep passes, as these often miss due to volley inaccuracy
+		if (G.DefenseWidth && Math.abs(ballPos.x) > G.DefenseWidth/2
+				 &&  World.Ball.pos.y > 1.5 * G.DefenseHeight) {
+			let demeritWeight = 0.3;
+			let distanceRatingDemerit = Rating.valueToRating(distToGoal, G.DefenseWidth/2, minDist * 1.2);
+			rating = (1 - demeritWeight) * rating + demeritWeight * distanceRatingDemerit;
+		}
+
+		if (!amun.isPerformanceMode) {
+			visualizeRating("distToGoal", ballPos, rating);
+		}
+
+		return rating * (1 - minRating) + minRating;
 	}
 
-	return rating * (1 - minRating) + minRating
+	volleyCircle (ballPos: Position): number {
+		// the smaller the radius is, the more positions are viable for volley
+
+		let minRating = 0.6;
+		let radius = geom.inscribedAngle(ballPos, World.Geometry.OpponentGoal, 60 / 180 * Math.PI)[2];
+		let rating = Rating.valueToRating(radius, 2, 0.5);
+
+		return rating * (1 - minRating) + minRating;
+	}
+
+
+	evalLocation (ballPos: Position, bestScore: number): number {
+		let score = 1;
+
+		score *= this.distToGoal(ballPos);
+		if (score < bestScore) {
+			return score;
+		}
+
+		score *= this.crossPass(ballPos);
+		if (score < bestScore) {
+			return score;
+		}
+
+		score *= this.goalAngle(ballPos);
+		if (score < bestScore) {
+			return score;
+		}
+
+		score *= this.volleyCircle(ballPos);
+		if (score < bestScore) {
+			return score;
+		}
+
+		score *= this.passTooShort(ballPos);
+		if (score < bestScore) {
+			return score;
+		}
+
+		score *= this.volleyPass(ballPos);
+		if (score < bestScore) {
+			return score;
+		}
+
+		score *= this.canReachInTime(ballPos);
+
+		visualizeRating("total", ballPos, score);
+
+		return score;
+	}
 }
-
-function StrikerSampling:volleyCircle (ballPos) {
-	// the smaller the radius is, the more positions are viable for volley
-
-	let minRating = 0.6
-	let _, _, radius = geom.inscribedAngle(ballPos, World.Geometry.OpponentGoal, 60 / 180 * Math.PI)
-	let rating = Rating.valueToRating(radius, 2, 0.5)
-
-	return rating * (1 - minRating) + minRating
-}
-
-
-function StrikerSampling:evalLocation (ballPos, bestScore) {
-	let score = 1
-
-	score = score * this.distToGoal(ballPos)
-	if (score < bestScore) { return score }
-
-	score = score * this.crossPass(ballPos)
-	if (score < bestScore) { return score }
-
-	score = score * this.goalAngle(ballPos)
-	if (score < bestScore) { return score }
-
-	score = score * this.volleyCircle(ballPos)
-	if (score < bestScore) { return score }
-
-	score = score * this.passTooShort(ballPos)
-	if (score < bestScore) { return score }
-
-	score = score * this.volleyPass(ballPos)
-	if (score < bestScore) { return score }
-
-	score = score * this.canReachInTime(ballPos)
-
-	visualizeRating("total", ballPos, score)
-
-	return score
-}
-
-return StrikerSampling
