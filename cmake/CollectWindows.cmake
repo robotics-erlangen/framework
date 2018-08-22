@@ -61,9 +61,9 @@ add_custom_target(assemble
 		$<TARGET_FILE:Qt5::QWindowsIntegrationPlugin>
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/platforms
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-		$<TARGET_FILE_DIR:Qt5::Core>/libgcc_s_dw2-1.dll
-		$<TARGET_FILE_DIR:Qt5::Core>/libstdc++-6.dll
-		$<TARGET_FILE_DIR:Qt5::Core>/libwinpthread-1.dll
+		$ENV{MINGW_PREFIX}/bin/libgcc_s_dw2-1.dll
+		$ENV{MINGW_PREFIX}/bin/libstdc++-6.dll
+		$ENV{MINGW_PREFIX}/bin/libwinpthread-1.dll
             ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}
 )
 

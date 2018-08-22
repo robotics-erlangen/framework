@@ -39,7 +39,7 @@ find_path(V8_INCLUDE_DIR
     PATH_SUFFIXES include
     NO_DEFAULT_PATH
     PATHS
-        v8
+        ${CMAKE_SOURCE_DIR}/libs/v8/v8
 )
 
 if(V8_INCLUDE_DIR AND EXISTS "${V8_INCLUDE_DIR}/v8-version.h")
@@ -60,31 +60,36 @@ endif()
 
 set(V8_STATIC_LIBRARY_PREFIX ${CMAKE_STATIC_LIBRARY_PREFIX})
 set(V8_STATIC_LIBRARY_SUFFIX ${CMAKE_STATIC_LIBRARY_SUFFIX})
+if(MINGW)
+    set(V8_ARCHITECTURE x86)
+else()
+    set(V8_ARCHITECTURE x64)
+endif()
 
 # FIXME x64/x86 bit switch
-find_path(V8_LIBRARY_DIR
-    NAMES ${V8_STATIC_LIBRARY_PREFIX}v8_base${V8_STATIC_LIBRARY_SUFFIX}
-    HINTS $ENV{V8_LIBRARY_DIR}
+find_path(V8_OUTPUT_DIR
+    NAMES obj/${V8_STATIC_LIBRARY_PREFIX}v8_base${V8_STATIC_LIBRARY_SUFFIX}
+    HINTS $ENV{V8_OUTPUT_DIR}
     NO_DEFAULT_PATH
     PATHS
-        v8/out/x64.release/obj
-        v8/out/x86.release/obj
+        ${CMAKE_SOURCE_DIR}/libs/v8/v8/out/${V8_ARCHITECTURE}.release
 )
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(V8
     FOUND_VAR V8_FOUND
     REQUIRED_VARS
-        V8_LIBRARY_DIR
+        V8_OUTPUT_DIR
         V8_INCLUDE_DIR
     VERSION_VAR V8_VERSION
 )
 mark_as_advanced(
     V8_INCLUDE_DIR
-    V8_LIBRARY_DIR
+    V8_OUTPUT_DIR
 )
 
 if(V8_FOUND)
+    set(V8_LIBRARY_DIR "${V8_OUTPUT_DIR}/obj")
     add_library(lib::v8 UNKNOWN IMPORTED)
     set_target_properties(lib::v8 PROPERTIES
         IMPORTED_LOCATION "${V8_LIBRARY_DIR}/${V8_STATIC_LIBRARY_PREFIX}v8_libbase${V8_STATIC_LIBRARY_SUFFIX}"
