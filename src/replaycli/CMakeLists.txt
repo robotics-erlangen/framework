@@ -1,5 +1,5 @@
 # ***************************************************************************
-# *   Copyright 2016 Michael Eischer                                        *
+# *   Copyright 2018 Andreas Wendler                                        *
 # *   Robotics Erlangen e.V.                                                *
 # *   http://www.robotics-erlangen.de/                                      *
 # *   info@robotics-erlangen.de                                             *
@@ -18,22 +18,24 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-add_executable(amun-cli
-    amuncli.cpp
-    connector.cpp
-    connector.h
+add_executable(replay-cli
+    replaycli.cpp
+    timingstatistics.h
+    timingstatistics.cpp
 )
-target_link_libraries(amun-cli
-    amun::amun
+target_link_libraries(replay-cli
+    amun::strategy
     shared::protobuf
+    ra::logfile
+    shared::core
     ${CMAKE_THREAD_LIBS_INIT}
     Qt5::Core
 )
-v8_copy_deps(amun-cli)
-target_include_directories(amun-cli
+v8_copy_deps(replay-cli)
+target_include_directories(replay-cli
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 if (TARGET lib::jemalloc)
-    target_link_libraries(amun-cli lib::jemalloc)
+    target_link_libraries(replay-cli lib::jemalloc)
 endif()

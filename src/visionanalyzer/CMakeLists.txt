@@ -31,6 +31,7 @@ target_link_libraries(visionanalyzer
     PRIVATE visionlog::visionlog
     PUBLIC Qt5::Core
 )
+v8_copy_deps(visionanalyzer)
 target_include_directories(visionanalyzer
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"

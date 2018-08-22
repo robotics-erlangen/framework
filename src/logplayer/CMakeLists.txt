@@ -65,6 +65,7 @@ target_link_libraries(logplayer
     Qt5::Widgets
     Qt5::OpenGL
 )
+v8_copy_deps(logplayer)
 target_include_directories(logplayer
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
     PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}"

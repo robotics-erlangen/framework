@@ -135,4 +135,14 @@ if(V8_FOUND)
     #set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
         #Threads::Threads
     #)
+
+    macro(v8_copy_deps target)
+        add_custom_command(TARGET ${target} POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                ${V8_OUTPUT_DIR}/icudtl.dat
+                ${V8_OUTPUT_DIR}/natives_blob.bin
+                ${V8_OUTPUT_DIR}/snapshot_blob.bin
+                    $<TARGET_FILE_DIR:${target}>
+        )
+    endmacro()
 endif()
