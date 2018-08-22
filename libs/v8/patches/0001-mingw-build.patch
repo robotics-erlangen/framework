@@ -1,0 +1,233 @@
+From 4a99e33374c389056f26bc30991756319c631f65 Mon Sep 17 00:00:00 2001
+From: Michael Eischer <michael.eischer@robotics-erlangen.de>
+Date: Wed, 22 Aug 2018 00:23:06 +0200
+Subject: [PATCH] mingw-build
+
+---
+ BUILD.gn                            | 22 +++++++++++++---------
+ DEPS                                | 15 ---------------
+ src/base/export-template.h          |  1 -
+ src/base/platform/platform-win32.cc |  3 +--
+ src/base/platform/time.cc           | 13 ++++++++++---
+ test/cctest/BUILD.gn                |  2 +-
+ test/unittests/BUILD.gn             |  2 +-
+ third_party/googletest/BUILD.gn     |  2 +-
+ 8 files changed, 27 insertions(+), 33 deletions(-)
+
+diff --git a/BUILD.gn b/BUILD.gn
+index 01308b852a..e01cc33702 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -522,7 +522,10 @@ config("toolchain") {
+ 
+   if (v8_current_cpu == "x86") {
+     defines += [ "V8_TARGET_ARCH_IA32" ]
+-    if (is_win) {
++    if (is_mingw) {
++      # Ensure no surprising artifacts from 80bit double math with x86.
++      cflags += [ "-msse2", "-mfpmath=sse" ]
++    } else if (is_win) {
+       # Ensure no surprising artifacts from 80bit double math with x86.
+       cflags += [ "/arch:SSE2" ]
+     }
+@@ -590,7 +593,7 @@ config("toolchain") {
+     }
+   }
+ 
+-  if (is_win) {
++  if (is_win && !is_mingw) {
+     cflags += [
+       "/wd4245",  # Conversion with signed/unsigned mismatch.
+       "/wd4267",  # Conversion with possible loss of data.
+@@ -612,7 +615,7 @@ config("toolchain") {
+     ]
+   }
+ 
+-  if (!is_clang && !is_win) {
++  if (!is_clang && !is_win || is_mingw) {
+     cflags += [
+       # Disable gcc warnings for optimizations based on the assumption that
+       # signed overflow does not occur. Generates false positives (see
+@@ -1478,7 +1481,8 @@ v8_source_set("v8_base") {
+   visibility = [ ":*" ]  # Only targets in this file can depend on this.
+ 
+   # Split static libraries on windows into two.
+-  split_count = 2
++  # MinGW can handle the huge static library, thus behave just like the other platforms
++  # split_count = 2
+ 
+   sources = [
+     "//base/trace_event/common/trace_event_common.h",
+@@ -3072,13 +3076,13 @@ v8_component("v8_libbase") {
+     defines += [ "_CRT_RAND_S" ]  # for rand_s()
+ 
+     libs = [
+-      "dbghelp.lib",
+-      "shlwapi.lib",
+-      "winmm.lib",
+-      "ws2_32.lib",
++      "dbghelp",
++      "shlwapi",
++      "winmm",
++      "ws2_32",
+     ]
+ 
+-    data_deps += [ "//build/win:runtime_libs" ]
++    # data_deps += [ "//build/win:runtime_libs" ]
+   }
+ 
+   if (is_tsan && !build_with_chromium) {
+diff --git a/DEPS b/DEPS
+index 08153b8c5e..05b0cfef05 100644
+--- a/DEPS
++++ b/DEPS
+@@ -327,13 +327,6 @@ hooks = [
+                 '-s', 'v8/third_party/instrumented_libraries/binaries/msan-no-origins-trusty.tgz.sha1',
+               ],
+   },
+-  {
+-    # Update the Windows toolchain if necessary.
+-    'name': 'win_toolchain',
+-    'pattern': '.',
+-    'condition': 'checkout_win',
+-    'action': ['python', 'v8/build/vs_toolchain.py', 'update'],
+-  },
+   # Pull binutils for linux, enabled debug fission for faster linking /
+   # debugging when used with clang on Ubuntu Precise.
+   # https://code.google.com/p/chromium/issues/detail?id=352046
+@@ -346,14 +339,6 @@ hooks = [
+         'v8/third_party/binutils/download.py',
+     ],
+   },
+-  {
+-    # Note: On Win, this should run after win_toolchain, as it may use it.
+-    'name': 'clang',
+-    'pattern': '.',
+-    # clang not supported on aix
+-    'condition': 'host_os != "aix"',
+-    'action': ['python', 'v8/tools/clang/scripts/update.py'],
+-  },
+   {
+     'name': 'fuchsia_sdk',
+     'pattern': '.',
+diff --git a/src/base/export-template.h b/src/base/export-template.h
+index 861cfe4027..0211fd522e 100644
+--- a/src/base/export-template.h
++++ b/src/base/export-template.h
+@@ -153,7 +153,6 @@
+ 
+ EXPORT_TEMPLATE_TEST(DEFAULT, );
+ EXPORT_TEMPLATE_TEST(DEFAULT, __attribute__((visibility("default"))));
+-EXPORT_TEMPLATE_TEST(MSVC_HACK, __declspec(dllexport));
+ EXPORT_TEMPLATE_TEST(DEFAULT, __declspec(dllimport));
+ 
+ #undef EXPORT_TEMPLATE_TEST
+diff --git a/src/base/platform/platform-win32.cc b/src/base/platform/platform-win32.cc
+index f618c65fb6..8907ab719f 100644
+--- a/src/base/platform/platform-win32.cc
++++ b/src/base/platform/platform-win32.cc
+@@ -46,8 +46,6 @@ inline void MemoryFence() {
+   __asm__ __volatile__("xchgl %%eax,%0 ":"=r" (barrier));
+ }
+ 
+-#endif  // __MINGW64_VERSION_MAJOR
+-
+ 
+ int localtime_s(tm* out_tm, const time_t* time) {
+   tm* posix_local_time_struct = localtime_r(time, out_tm);
+@@ -55,6 +53,7 @@ int localtime_s(tm* out_tm, const time_t* time) {
+   return 0;
+ }
+ 
++#endif  // __MINGW64_VERSION_MAJOR
+ 
+ int fopen_s(FILE** pFile, const char* filename, const char* mode) {
+   *pFile = fopen(filename, mode);
+diff --git a/src/base/platform/time.cc b/src/base/platform/time.cc
+index 1ab56f42b5..30d070b315 100644
+--- a/src/base/platform/time.cc
++++ b/src/base/platform/time.cc
+@@ -48,7 +48,7 @@ int64_t ComputeThreadTicks() {
+                       thread_info_data.system_time.microseconds);
+   return absolute_micros.ValueOrDie();
+ }
+-#elif V8_OS_POSIX
++#elif V8_OS_POSIX || V8_OS_WIN
+ // Helper function to get results from clock_gettime() and convert to a
+ // microsecond timebase. Minimum requirement is MONOTONIC_CLOCK to be supported
+ // on the system. FreeBSD 6 has CLOCK_MONOTONIC but defines
+@@ -105,8 +105,9 @@ V8_INLINE bool IsHighResolutionTimer(clockid_t clk_id) {
+   } while (delta > 1 && start < end);
+   return delta <= 1;
+ }
++#endif // V8_OS_MACOSX
+ 
+-#elif V8_OS_WIN
++#if V8_OS_WIN
+ V8_INLINE bool IsQPCReliable() {
+   v8::base::CPU cpu;
+   // On Athlon X2 CPUs (e.g. model 15) QueryPerformanceCounter is unreliable.
+@@ -124,7 +125,7 @@ V8_INLINE uint64_t QPCNowRaw() {
+   USE(result);
+   return perf_counter_now.QuadPart;
+ }
+-#endif  // V8_OS_MACOSX
++#endif
+ 
+ 
+ }  // namespace
+@@ -829,6 +830,12 @@ void ThreadTicks::WaitUntilInitializedWin() {
+     ::Sleep(10);
+ }
+ 
++#ifdef __MINGW64_VERSION_MAJOR
++extern "C" {
++	extern unsigned __int64 __rdtsc(void);
++}
++#endif
++
+ double ThreadTicks::TSCTicksPerSecond() {
+   DCHECK(IsSupported());
+ 
+diff --git a/test/cctest/BUILD.gn b/test/cctest/BUILD.gn
+index 175ac3d6ba..c353864c05 100644
+--- a/test/cctest/BUILD.gn
++++ b/test/cctest/BUILD.gn
+@@ -418,7 +418,7 @@ v8_source_set("cctest_sources") {
+     cflags += [ "-ffp-contract=off" ]
+   }
+ 
+-  if (is_win) {
++  if (is_win && !is_mingw) {
+     # This warning is benignly triggered by the U16 and U32 macros in
+     # bytecode-utils.h.
+     # C4309: 'static_cast': truncation of constant value
+diff --git a/test/unittests/BUILD.gn b/test/unittests/BUILD.gn
+index df71c9f6fd..b0aa93d1f5 100644
+--- a/test/unittests/BUILD.gn
++++ b/test/unittests/BUILD.gn
+@@ -273,7 +273,7 @@ v8_source_set("unittests_sources") {
+     "//testing/gtest",
+   ]
+ 
+-  if (is_win) {
++  if (is_win && !is_mingw) {
+     # This warning is benignly triggered by the U16 and U32 macros in
+     # bytecode-utils.h.
+     # C4309: 'static_cast': truncation of constant value
+diff --git a/third_party/googletest/BUILD.gn b/third_party/googletest/BUILD.gn
+index 1c761a7620..6b34533837 100644
+--- a/third_party/googletest/BUILD.gn
++++ b/third_party/googletest/BUILD.gn
+@@ -31,7 +31,7 @@ config("gtest_config") {
+   ]
+ 
+   if (is_win) {
+-    cflags = [ "/wd4800" ]  # Unused variable warning.
++    cflags = [ "-Wno-unused-variable", ]  # Unused variable warning.
+   }
+ }
+ 
+-- 
+2.18.0
+

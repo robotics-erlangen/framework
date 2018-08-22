@@ -28,8 +28,8 @@ The recommended way of building a project with CMake is by doing an
 out-of-source build. This can be done like this:
 
 ```
-mkdir build
-cd build
+libs/v8/build.sh
+mkdir build && cd build
 cmake ..
 make
 ```
@@ -78,7 +78,7 @@ pacman -Su
 # dependencies for ra
 pacman -S patch make mingw-w64-i686-gcc mingw-w64-i686-cmake mingw-w64-i686-ninja
 # dependencies for v8
-pacman -S python2
+pacman -S python2 git
 ```
 
 ### compile ra
@@ -92,6 +92,7 @@ pacman -S python2
 - Use a base folder with a path name longer than 30 characters
 
 ```
+libs/v8/build.sh
 mkdir build-win && cd build-win
 cmake -GNinja -DCMAKE_PREFIX_PATH=/c/Qt/5.11.1/mingw53_32/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
 cmake --build .
@@ -133,6 +134,7 @@ WARNING: DO NOT install Qt 5.4.0-5.5.0; Qt 5.5.1 is ok
 Build using:
 ```
 cd path/to/framework
+libs/v8/build.sh
 mkdir build-mac && cd build-mac
 cmake -DCMAKE_PREFIX_PATH=~/Qt/5.6/clang_64/lib/cmake -DCMAKE_BUILD_TYPE=Release ..
 make

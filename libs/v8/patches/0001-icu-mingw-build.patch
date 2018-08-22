@@ -1,0 +1,43 @@
+From 3c3f96a8f76c897586d35443f6c091c9fe47b9f9 Mon Sep 17 00:00:00 2001
+From: Michael Eischer <michael.eischer@robotics-erlangen.de>
+Date: Wed, 22 Aug 2018 00:26:50 +0200
+Subject: [PATCH] mingw-build
+
+---
+ BUILD.gn | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/BUILD.gn b/BUILD.gn
+index f69d5003..a881533b 100644
+--- a/BUILD.gn
++++ b/BUILD.gn
+@@ -74,7 +74,7 @@ config("icu_code") {
+     "U_CHARSET_IS_UTF8=1",
+   ]
+ 
+-  if (is_win) {
++  if (is_win && !is_mingw) {
+     # Disable some compiler warnings.
+     cflags += [
+       "/wd4005",  # Macro redefinition.
+@@ -82,7 +82,7 @@ config("icu_code") {
+       "/wd4267",  # Conversion from size_t on 64-bits.
+       "/utf-8",   # ICU source files are in UTF-8.
+     ]
+-  } else if (is_linux || is_android) {
++  } else if (is_linux || is_android || is_mingw) {
+     cflags += [
+       "-Wno-unused-function",
+     ]
+@@ -98,7 +98,7 @@ config("icu_code") {
+       "-Wno-unused-function",
+     ]
+   }
+-  if (is_clang || is_linux || is_android) {
++  if (is_clang || is_linux || is_android || is_mingw) {
+     cflags += [
+       # ICU uses its own deprecated functions.
+       "-Wno-deprecated-declarations",
+-- 
+2.18.0
+
