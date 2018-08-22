@@ -20,22 +20,6 @@
 
 add_subdirectory(path)
 
-add_library(v8 STATIC IMPORTED)
-set_target_properties(v8 PROPERTIES
-    IMPORTED_LOCATION /somewhere/v8/out.gn/x64.release/obj/libv8_base.a
-    IMPORTED_LOCATION /somewhere/v8/out.gn/x64.release/obj/libv8_libbase.a
-    IMPORTED_LOCATION /somewhere/v8/out.gn/x64.release/obj/libv8_external_snapshot.a
-    IMPORTED_LOCATION /somewhere/v8/out.gn/x64.release/obj/libv8_libplatform.a
-    IMPORTED_LOCATION /somewhere/v8/out.gn/x64.release/obj/libv8_libsampler.a
-    IMPORTED_LOCATION /somewhere/v8/out.gn/x64.release/obj/third_party/icu/libicuuc.a
-    IMPORTED_LOCATION /somewhere/v8/out.gn/x64.release/obj/third_party/icu/libicui18n.a
-    IMPORTED_LOCATION /somewhere/v8/out.gn/x64.release/obj/src/inspector/libinspector.a
-    INTERFACE_INCLUDE_DIRECTORIES /somewhere/v8/include
-)
-
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
-
 add_library(strategy
     include/strategy/debughelper.h
     include/strategy/strategy.h
@@ -73,26 +57,12 @@ target_link_libraries(strategy
     PUBLIC shared::protobuf
     PUBLIC Qt5::Core
     PRIVATE Qt5::Network
-    #PRIVATE v8
-    -Wl,--start-group
-    /somewhere/v8/out.gn/x64.release/obj/libv8_base.a
-    /somewhere/v8/out.gn/x64.release/obj/libv8_libbase.a
-    /somewhere/v8/out.gn/x64.release/obj/libv8_external_snapshot.a
-    /somewhere/v8/out.gn/x64.release/obj/libv8_libplatform.a
-    /somewhere/v8/out.gn/x64.release/obj/libv8_libsampler.a
-    /somewhere/v8/out.gn/x64.release/obj/third_party/icu/libicuuc.a
-    /somewhere/v8/out.gn/x64.release/obj/third_party/icu/libicui18n.a
-    /somewhere/v8/out.gn/x64.release/obj/src/inspector/libinspector.a
-    -Wl,--end-group
-    -lrt
-    -ldl
-    Threads::Threads
+    PRIVATE lib::v8
 )
 
 target_include_directories(strategy
     INTERFACE include
     PRIVATE include/strategy
-    PRIVATE /somewhere/v8/include
 )
 
 add_library(amun::strategy ALIAS strategy)
