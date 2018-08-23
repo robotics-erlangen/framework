@@ -69,12 +69,17 @@ fi
 cd v8
 
 if [[ "$IS_MINGW" == 1 ]]; then
+    function fakeuser {
+        git config user.name "patch"
+        git config user.email "noreply@robotics-erlangen.de"
+    }
     if [[ ! -e .patched || "$(cat .patched)" != "$V8_BASE_REVISION" ]]; then
         function v8base {
             git checkout $V8_BASE_REVISION
         }
         trap v8base EXIT
         v8base
+        fakeuser
         git am ../patches/0001-mingw-build.patch
         # only run gclient once on mingw as it's rather slow
         gclient sync
@@ -88,6 +93,7 @@ if [[ "$IS_MINGW" == 1 ]]; then
         }
         trap buildbase EXIT
         buildbase
+        fakeuser
         git am ../../patches/0001-build-mingw-build.patch
         trap '-' EXIT
     fi
@@ -99,6 +105,7 @@ if [[ "$IS_MINGW" == 1 ]]; then
         }
         trap icubase EXIT
         icubase
+        fakeuser
         git am ../../../patches/0001-icu-mingw-build.patch
         trap '-' EXIT
     fi
