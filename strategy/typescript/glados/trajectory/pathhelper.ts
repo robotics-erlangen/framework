@@ -379,7 +379,7 @@ function addRobotObstacles(path: Path, robot: FriendlyRobot, ignoreFriendlyRobot
 	}
 }
 
-export interface PathHelperParameters {
+interface PathHelperParametersRaw {
 	ignoreBall?: boolean;
 	ignoreGoals?: boolean;
 	ignoreDefenseArea?: boolean;
@@ -397,6 +397,7 @@ export interface PathHelperParameters {
 	messaging?: MessageBox;
 	path?: Path;
 }
+export type PathHelperParameters = PathHelperParametersRaw & ({ignorePass: true} | {messaging: MessageBox})
 
 export enum ParameterType {
 	ignoreBall = "ignoreBall", ignoreGoals = "ignoreGoals", ignoreDefenseArea = "ignoreDefenseArea",
@@ -437,7 +438,7 @@ export function getObstacleParam(robot: FriendlyRobot, type: ParameterType): any
 	return (obstacles.get(robot) as {[name: string]: any})[type];
 }
 
-export function setDefaultObstaclesByTable(path: Path, robot: FriendlyRobot, params: PathHelperParameters & {inbox: MessageBox}) {
+export function setDefaultObstaclesByTable(path: Path, robot: FriendlyRobot, params: PathHelperParameters) {
 	if (!params) {
 		throw new Error("setDefaultObstaclesByTable called with undefined parameter table");
 	}
@@ -455,13 +456,17 @@ export function insertObstacles(robot: FriendlyRobot) {
 	if (!obstacles.has(robot)) {
 		throw new Error("insertObstacles called without setDefaultObstacles");
 	}
-	let p = obstacles.get(robot) as PathHelperParameters & {path: Path, inbox: MessageBox};
+	let p = obstacles.get(robot) as PathHelperParameters & {path: Path};
 	setDefaultObstacles(p.path, robot, p.ignoreBall, p.ignoreGoals, p.ignoreDefenseArea,
 		p.pathRadius, p.stopBallDistance, p.noSeedTarget, p.ignoreOpponentDefenseArea, p.extraBallDistance);
 	if (!p.ignorePass) {
-		let disablePass = addGoalObstacleShot(p.path, robot, p.inbox) || World.RefereeState == "Stop";
+		if(p.messaging == undefined){
+			throw new Error("");
+			
+		}
+		let disablePass = addGoalObstacleShot(p.path, robot, p.messaging) || World.RefereeState == "Stop";
 		if (!disablePass) {
-			addFriendlyPassObstacle(p.path, robot, p.inbox);
+			addFriendlyPassObstacle(p.path, robot, p.messaging);
 		}
 	}
 	if (!p.ignoreBallPlacementObstacle) {
