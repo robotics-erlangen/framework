@@ -66,7 +66,6 @@ else()
     set(V8_ARCHITECTURE x64)
 endif()
 
-# FIXME x64/x86 bit switch
 find_path(V8_OUTPUT_DIR
     NAMES obj/${V8_STATIC_LIBRARY_PREFIX}v8_base${V8_STATIC_LIBRARY_SUFFIX}
     HINTS $ENV{V8_OUTPUT_DIR}
@@ -102,8 +101,6 @@ if(V8_FOUND)
         set(USING_GCC FALSE)
     endif()
 
-    #set(THREADS_PREFER_PTHREAD_FLAG ON)
-    #find_package(Threads REQUIRED)
     if(USING_GCC)
         set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES -Wl,--start-group)
     endif()
@@ -131,10 +128,13 @@ if(V8_FOUND)
             # strip binary to keep file size below 1,2GB
             -Wl,-s
         )
-    endif()
-    #set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
-        #Threads::Threads
-    #)
+    elseif(LINUX)
+        set_property(TARGET lib::v8 APPEND PROPERTY INTERFACE_LINK_LIBRARIES
+            -lrt
+            -ldl
+            Threads::Threads
+        )
+   endif()
 
     macro(v8_copy_deps target)
         add_custom_command(TARGET ${target} POST_BUILD

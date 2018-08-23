@@ -58,6 +58,7 @@ endif()
 include(EnvHelper)
 
 find_package(OpenGL REQUIRED)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 sanitize_env()
 find_package(Protobuf)

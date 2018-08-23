@@ -30,6 +30,7 @@ target_link_libraries(visionanalyzer
     PRIVATE shared::protobuf
     PRIVATE visionlog::visionlog
     PUBLIC Qt5::Core
+    Threads::Threads
 )
 v8_copy_deps(visionanalyzer)
 target_include_directories(visionanalyzer
