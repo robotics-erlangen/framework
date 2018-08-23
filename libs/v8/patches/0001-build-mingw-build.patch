@@ -1,9 +1,10 @@
-From c0a8017ced932d38c412501f6ceb66c86897f4ff Mon Sep 17 00:00:00 2001
+From eee5345fd42778dd4a2403ba6f2216510223527a Mon Sep 17 00:00:00 2001
 From: Michael Eischer <michael.eischer@robotics-erlangen.de>
 Date: Wed, 22 Aug 2018 00:41:18 +0200
 Subject: [PATCH] mingw-build
 
 ---
+ .patched                             |  1 +
  config/BUILD.gn                      | 48 ++++++++++++------------
  config/BUILDCONFIG.gn                |  1 +
  config/compiler/BUILD.gn             | 55 +++++++++++++++-------------
@@ -12,8 +13,17 @@ Subject: [PATCH] mingw-build
  config/win/visual_studio_version.gni |  2 +
  toolchain/win/BUILD.gn               | 22 +++++++++++
  win/BUILD.gn                         |  2 +-
- 8 files changed, 112 insertions(+), 51 deletions(-)
+ 9 files changed, 113 insertions(+), 51 deletions(-)
+ create mode 100644 .patched
 
+diff --git a/.patched b/.patched
+new file mode 100644
+index 000000000..e1e8f4b04
+--- /dev/null
++++ b/.patched
+@@ -0,0 +1 @@
++6a41721a2889b84cb2f3b920fbdc40b96347597a
+\ No newline at end of file
 diff --git a/config/BUILD.gn b/config/BUILD.gn
 index 997cdc85e..65317a980 100644
 --- a/config/BUILD.gn

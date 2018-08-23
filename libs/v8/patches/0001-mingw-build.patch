@@ -1,9 +1,10 @@
-From 4a99e33374c389056f26bc30991756319c631f65 Mon Sep 17 00:00:00 2001
+From 2f56c5f30b3827e0c7dc689439a907e5fdf732ce Mon Sep 17 00:00:00 2001
 From: Michael Eischer <michael.eischer@robotics-erlangen.de>
 Date: Wed, 22 Aug 2018 00:23:06 +0200
 Subject: [PATCH] mingw-build
 
 ---
+ .patched                            |  1 +
  BUILD.gn                            | 22 +++++++++++++---------
  DEPS                                | 15 ---------------
  src/base/export-template.h          |  1 -
@@ -12,8 +13,17 @@ Subject: [PATCH] mingw-build
  test/cctest/BUILD.gn                |  2 +-
  test/unittests/BUILD.gn             |  2 +-
  third_party/googletest/BUILD.gn     |  2 +-
- 8 files changed, 27 insertions(+), 33 deletions(-)
+ 9 files changed, 28 insertions(+), 33 deletions(-)
+ create mode 100644 .patched
 
+diff --git a/.patched b/.patched
+new file mode 100644
+index 0000000000..e1e8f4b048
+--- /dev/null
++++ b/.patched
+@@ -0,0 +1 @@
++6a41721a2889b84cb2f3b920fbdc40b96347597a
+\ No newline at end of file
 diff --git a/BUILD.gn b/BUILD.gn
 index 01308b852a..e01cc33702 100644
 --- a/BUILD.gn

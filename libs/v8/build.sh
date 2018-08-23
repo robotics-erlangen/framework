@@ -70,25 +70,37 @@ cd v8
 
 if [[ "$IS_MINGW" == 1 ]]; then
     if [[ ! -e .patched || "$(cat .patched)" != "$V8_BASE_REVISION" ]]; then
-        git checkout $V8_BASE_REVISION
+        function v8base {
+            git checkout $V8_BASE_REVISION
+        }
+        trap v8base EXIT
+        v8base
         git am ../patches/0001-mingw-build.patch
         # only run gclient once on mingw as it's rather slow
         gclient sync
-        printf "$V8_BASE_REVISION" > .patched
+        trap '-' EXIT
     fi
 
     cd build
     if [[ ! -e .patched || "$(cat .patched)" != "$V8_BASE_REVISION" ]]; then
-        git checkout $BUILD_REVISION
+        function buildbase {
+            git checkout $BUILD_REVISION
+        }
+        trap buildbase EXIT
+        buildbase
         git am ../../patches/0001-build-mingw-build.patch
-        printf "$V8_BASE_REVISION" > .patched
+        trap '-' EXIT
     fi
 
     cd ../third_party/icu
     if [[ ! -e .patched || "$(cat .patched)" != "$V8_BASE_REVISION" ]]; then
-        git checkout $ICU_REVISION
+        function icubase {
+            git checkout $ICU_REVISION
+        }
+        trap icubase EXIT
+        icubase
         git am ../../../patches/0001-icu-mingw-build.patch
-        printf "$V8_BASE_REVISION" > .patched
+        trap '-' EXIT
     fi
     cd ../..
 else
