@@ -45,7 +45,7 @@ export function ballSwitchParameters(ball: BallLike): [number, number, number] {
 // @param ball Ball - a ball-like structure, must contain the fields pos, speed, maxSpeed and radius
 // @param time number - the number of seconds from now on
 // @return Ball - the predicted ball as a ball-like structure
-export function ballAtTime(ball: BallLike, time: number): BallLike & {radius: number} {
+export function ballAtTime(ball: BallLike, time: number): BallLike {
 	// formulas used:
 	// v = a * t + v0
 	// t = (v - v0) / a
