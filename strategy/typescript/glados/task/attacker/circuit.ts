@@ -20,7 +20,7 @@ export class Circuit extends Task{
 			ignorePass: true
 	};
 
-	constructor(agent: Agent, center: Position, angleOffset: number, radius: number = 0.5, passPos: Position, anonym: boolean = false){
+	constructor(agent: Agent, center: Position, angleOffset: number, radius: number = 0.5, passPos?: Position, anonym: boolean = false){
 		super(agent);
 		this._suggestPass = new SuggestPass(this._robot, this._messaging)
 		this._center = center
