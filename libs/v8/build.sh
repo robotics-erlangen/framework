@@ -130,3 +130,40 @@ else
     gn gen out/x64.release --args="is_debug=false target_cpu=\"x64\" is_component_build=false v8_static_library=true use_custom_libcxx=false use_custom_libcxx_for_host=false"
     ninja -C out/x64.release
 fi
+
+# # Building V8 with clang on windows
+
+# ## Get depot_tools
+# Reference: http://commondatastorage.googleapis.com/chrome-infra-docs/flat/depot_tools/docs/html/depot_tools_tutorial.html#_setting_up
+
+# ### Windows
+# Download depot_tools from https://storage.googleapis.com/chrome-infra/depot_tools.zip
+# Unpack to C:\V8\depot_tools
+# Open a cmd-Terminal at C:\V8
+# ```
+# set PATH=C:\V8\depot_tools;%PATH%
+# set DEPOT_TOOLS_WIN_TOOLCHAIN=0
+# ```
+
+# ## Pre-Install dependencies
+# Reference: https://chromium.googlesource.com/chromium/src/+/master/docs/windows_build_instructions.md
+
+# Download Visual Studio Community 2017: https://visualstudio.microsoft.com/de/vs/community/
+# ```
+# vs_community.exe --add Microsoft.VisualStudio.Workload.NativeDesktop --add Microsoft.VisualStudio.Component.VC.ATLMFC --add Microsoft.VisualStudio.Component.Windows10SDK.17134 --includeRecommended
+# "C:\ProgramData\Package Cache\{5f83ccda-0498-4b97-a298-16a642bf49f2}\winsdksetup.exe" /features OptionId.WindowsDesktopDebuggers /ceip off
+# ```
+
+# ## Get V8
+# ```
+# fetch v8
+# cd v8
+# git checkout ...
+# gclient sync
+# ```
+# If the download process get stuck on asking for a username to _chrome-internal.googlesource.com_ make sure to set the DEPOT_TOOLS_WIN_TOOLCHAIN environment variable as described in _Get depot_tools_!
+
+# ## Build V8
+# mkdir out\\x86.release
+# gn gen out/x86.release --args="is_debug=false target_cpu=\"x86\" is_component_build=false v8_static_library=true use_custom_libcxx=false use_custom_libcxx_for_host=false"
+# ninja -C out/x86.release
