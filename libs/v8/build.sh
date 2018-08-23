@@ -8,6 +8,7 @@ ICU_REVISION=297a4dd02b9d36c92ab9b4f121e433c9c3bc14f8
 # predictable working directory
 cd "$(dirname "$0")"
 
+INSTALL_DEPS=1
 IS_LINUX=0
 IS_MAC=0
 IS_MINGW=0
@@ -21,6 +22,10 @@ elif [[ "$unamestr" =~ MINGW ]]; then
 else
     echo "Unsupported operating system"
     exit 1
+fi
+
+if [[ "$1" == "--no-install-deps" ]]; then
+    INSTALL_DEPS=0
 fi
 
 if [[ "$IS_MAC" == 1 ]]; then
@@ -117,7 +122,7 @@ else
     gclient sync
 fi
 
-if [[ "$IS_LINUX" == 1 ]]; then
+if [[ "$INSTALL_DEPS" == 1 && "$IS_LINUX" == 1 ]]; then
     ./build/install-build-deps.sh --no-arm --no-nacl
 fi
 
