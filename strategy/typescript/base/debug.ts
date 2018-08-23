@@ -129,7 +129,7 @@ export function set(name: string | undefined, value: any, visited: Map<object, s
 					isMap = true;
 					friendlyName = "Map";
 				} else {
-					friendlyName = "empty object (" + value.constructor.name + ")";
+					friendlyName = `empty object (${value.constructor.name})`;
 				}
 			} else if (value.constructor != undefined) {
 				friendlyName = value.constructor.name;
@@ -146,7 +146,7 @@ export function set(name: string | undefined, value: any, visited: Map<object, s
 			if (isMap) {
 				let counter = 0;
 				for (let [k, v] of value.entries()) {
-					push("map entry " + counter++);
+					push(`map entry ${counter++}`);
 					set("key", k, visited, tableCounter);
 					set("value", v, visited, tableCounter);
 					pop();

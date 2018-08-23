@@ -460,7 +460,7 @@ function intersectionsRayDefenseArea_2017(pos: Position, dir: RelativePosition, 
 	let defenseLineOnpoint = new Vector(0, -G.FieldHeightHalf + radius) * oppfac;
 	let [lineIntersection,l1,l2] = geom.intersectLineLine(pos, dir, defenseLineOnpoint, new Vector(1,0));
 	if (lineIntersection && l1 >= 0 && Math.abs(l2) <= G.DefenseStretchHalf) {
-		intersections.push({pos: lineIntersection, l1: l2 + totalway/2});
+		intersections.push({pos: lineIntersection, l1: l2 + totalway / 2});
 	}
 	return [intersections, totalway];
 }
