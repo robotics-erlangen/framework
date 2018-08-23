@@ -1,19 +1,26 @@
-let Attack = {}
-
 import * as Cache from "base/cache";
 import * as debug from "base/debug";
 import * as Field from "base/field";
+import {FriendlyRobot} from "base/robot";
 import * as geom from "base/geom";
 import * as vis from "base/vis";
+import {Vector, Position} from "base/vector";
 import * as World from "base/world";
-import * as Ball from "glados/tobserver/ball";
+import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import * as Shoot from "glados/observer/shoot";
 import * as Defense from "glados/util/defense";
 import * as Rating from "glados/util/rating";
 
-let G = World.Geometry
+let G = World.Geometry;
+
+interface PassObject {
+	target: FriendlyRobot;
+	ballPos: Position;
+	time: number;
+	manual: boolean
+}
 
 /// evaluates a given pass object
 // @name ratePass
@@ -21,126 +28,126 @@ let G = World.Geometry
 // @param pass table - a pass object (target: Robot, ballPos: Vector, time: number)
 // @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
 // @return number - a rating between 0 and 1 (1 = perfect, 0 = poor)
-function Attack.ratePass (robot, pass, considerTiming) {
-	let rating = 1
+export function _ratePass (robot: FriendlyRobot, pass: PassObject, considerTiming: boolean): number {
+	let rating = 1;
 
 	// if the robot is controlled manually
 	if (pass.manual) {
-		return 2
+		return 2;
 	}
 
 	// rate distance
-	let distanceToMA = robot.pos.distanceTo(pass.ballPos)
-	rating = rating * (Rating.valueToRating(distanceToMA, 1.5, 2.5) - Rating.valueToRating(distanceToMA, 4, 8))
+	let distanceToMA = robot.pos.distanceTo(pass.ballPos);
+	rating = rating * (Rating.valueToRating(distanceToMA, 1.5, 2.5) - Rating.valueToRating(distanceToMA, 4, 8));
 
 	// rate timing
-	let shootTime
+	let shootTime;
 	if (Ball.receivesPass(robot)) {
 		let dribblerPos = robot.pos + (World.Ball.pos - robot.pos).setLength(
-			robot.shootRadius + World.Ball.radius)
-		shootTime = Physics.checkedBallRollTime(World.Ball, dribblerPos)
+			robot.shootRadius + World.Ball.radius);
+		shootTime = Physics.checkedBallRollTime(World.Ball, dribblerPos);
 	} else {
-		shootTime = Robot.minShootTime(robot, pass.ballPos)
+		shootTime = Robot.minShootTime(robot, pass.ballPos);
 	}
-	let shootPos = Physics.ballAtTime(World.Ball, shootTime).pos
-	let passTime = Shoot.ballPassTime(shootPos, pass.ballPos, pass.target, undefined, robot)
-	let ballArrivalTime = shootTime + passTime + World.Time
+	let shootPos = Physics.ballAtTime(World.Ball, shootTime).pos;
+	let passTime = Shoot.ballPassTime(shootPos, pass.ballPos, pass.target, undefined, robot);
+	let ballArrivalTime = shootTime + passTime + World.Time;
 	if (considerTiming) {
-		rating = rating * (0.1 + Rating.valueToRating(ballArrivalTime - pass.time, -0.1, 0.1) * 0.9)
+		rating = rating * (0.1 + Rating.valueToRating(ballArrivalTime - pass.time, -0.1, 0.1) * 0.9);
 	}
 
 	// rate volley
 	if (Ball.receivesPass(robot)) {
-		let volleyAngle = World.Ball.speed.absoluteAngleDiff(shootPos - pass.ballPos)
-		let volleyWeight = 0.3
-		let volleyRating = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI)
-		rating = rating * (1 - volleyWeight + volleyWeight * volleyRating)
+		let volleyAngle = World.Ball.speed.absoluteAngleDiff(shootPos - pass.ballPos);
+		let volleyWeight = 0.3;
+		let volleyRating = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI);
+		rating = rating * (1 - volleyWeight + volleyWeight * volleyRating);
 	}
 
 	// rate angle shooter-goal-receiver
 	let shooterGoalReceiverAngle = (shootPos - G.OpponentGoal).absoluteAngleDiff(
-			pass.ballPos - G.OpponentGoal)
-	let shooterGoalReceiverRating = Rating.valueToRating(shooterGoalReceiverAngle, 0, 180 / 180 * Math.PI)
-	let shooterGoalReceiverWeight = 0.5
-	rating = rating * (1 - shooterGoalReceiverWeight + shooterGoalReceiverWeight * shooterGoalReceiverRating)
+			pass.ballPos - G.OpponentGoal);
+	let shooterGoalReceiverRating = Rating.valueToRating(shooterGoalReceiverAngle, 0, 180 / 180 * Math.PI);
+	let shooterGoalReceiverWeight = 0.5;
+	rating = rating * (1 - shooterGoalReceiverWeight + shooterGoalReceiverWeight * shooterGoalReceiverRating);
 
 	// rate passes going through or near our own defense area lower
 	// this is to lower the chance of a centerback being in the way of a kick,
 	// since they won't dodge the pass
-	let CROSSING_DEFENSE_AREA_FACTOR = 0.6
-	let defenseAreaDistance = Defense.centerBackDistanceToDefenseArea() + robot.radius + World.Ball.radius + 0.02
-	let intersect = Field.intersectRayDefenseArea(shootPos, pass.ballPos - shootPos, defenseAreaDistance, true)
+	let CROSSING_DEFENSE_AREA_FACTOR = 0.6;
+	let defenseAreaDistance = Defense.centerBackDistanceToDefenseArea() + robot.radius + World.Ball.radius + 0.02;
+	let intersect = Field.intersectRayDefenseArea(shootPos, pass.ballPos - shootPos, defenseAreaDistance, true)[0];
 	// if there is an intersection in the line segment shootPos <-> pass.ballPos
 	if (intersect && shootPos.distanceToSq(intersect) < shootPos.distanceToSq(pass.ballPos)) {
-		rating = rating * CROSSING_DEFENSE_AREA_FACTOR
+		rating = rating * CROSSING_DEFENSE_AREA_FACTOR;
 	}
 
 	// rate possible interceptions
 	for (let opp of World.OpponentRobots) {
 
 		// check if robot would have to move through defense area to intercept the pass
-		let orthogonalProjection = opp.pos.orthogonalProjection(shootPos, pass.ballPos)
-		let intersection = Field.intersectRayDefenseArea(opp.pos, orthogonalProjection - opp.pos, 0, false)
-		let validIntersection = false
+		let orthogonalProjection = opp.pos.orthogonalProjection(shootPos, pass.ballPos)[0];
+		let intersection = Field.intersectRayDefenseArea(opp.pos, orthogonalProjection - opp.pos, 0, false)[0];
+		let validIntersection = false;
 		if (intersection) {
-			validIntersection = Field.isInField(intersection) && opp.pos.distanceTo(intersection) < opp.pos.distanceTo(orthogonalProjection)
-			if (validIntersection && not amun.isPerformanceMode) {
-				vis.addCircle("u/a/ratePass", intersection, 0.05, vis.colors.red, true)
-				vis.addPath("u/a/ratePass", {opp.pos, intersection}, vis.colors.slate, true)
+			validIntersection = Field.isInField(intersection) && opp.pos.distanceTo(intersection) < opp.pos.distanceTo(orthogonalProjection);
+			if (validIntersection && !amun.isPerformanceMode) {
+				vis.addCircle("u/a/ratePass", intersection, 0.05, vis.colors.red, true);
+				vis.addPath("u/a/ratePass", [opp.pos, intersection], vis.colors.slate, true);
 			}
 		}
 
 		// rate opponent's ability to intercept the pass
-		if (not validIntersection && orthogonalProjection.distanceToLineSegment(shootPos, pass.ballPos) < 1
+		if (!validIntersection && orthogonalProjection.distanceToLineSegment(shootPos, pass.ballPos) < 1
 					 &&  opp != World.OpponentKeeper) {
 			let passInterception = orthogonalProjection.distanceToLineSegment(shootPos, pass.ballPos) > 0.5
- ? pass.ballPos : orthogonalProjection
-			if (not amun.isPerformanceMode) {
-				vis.addPath("u/a/ratePass", {opp.pos, passInterception}, vis.colors.blue, true)
+				? pass.ballPos : orthogonalProjection;
+			if (!amun.isPerformanceMode) {
+				vis.addPath("u/a/ratePass", [opp.pos, passInterception], vis.colors.blue, true);
 			}
 
 			// calculate the time the ball needs to arrive at the intersection point
-			let shootSpeed = new Vector(1,1).setLength(robot.calculateShootSpeed(3, shootPos.distanceTo(pass.ballPos))) // direction doesn't actually matter
-			let fakeBall = {speed = shootSpeed, maxSpeed = shootSpeed.length()}
-			let ballRollTime = Physics.ballRollTime(fakeBall, passInterception.distanceTo(shootPos) - World.Ball.radius - opp.shootRadius)
+			let shootSpeed = new Vector(1,1).setLength(robot.calculateShootSpeed(3, shootPos.distanceTo(pass.ballPos))); // direction doesn't actually matter
+			let fakeBall = {speed: shootSpeed, maxSpeed: shootSpeed.length()};
+			let ballRollTime = Physics.ballRollTime(fakeBall, passInterception.distanceTo(shootPos) - World.Ball.radius - opp.shootRadius);
 
 			// calculate the time the robot needs to arrive at the intersection point
 			// to achieve more relevant results, the speed component parallel to the pass trajectory is ignored
-			let projectedSpeed = opp.speed - ((opp.pos + opp.speed).orthogonalProjection(shootPos, pass.ballPos) - orthogonalProjection)
-			if (not amun.isPerformanceMode) {
-				vis.addPath("u/a/ratePass", {opp.pos, opp.pos + projectedSpeed}, vis.colors.pink, true)
+			let projectedSpeed = opp.speed - ((opp.pos + opp.speed).orthogonalProjection(shootPos, pass.ballPos) - orthogonalProjection)[0];
+			if (!amun.isPerformanceMode) {
+				vis.addPath("u/a/ratePass", [opp.pos, opp.pos + projectedSpeed], vis.colors.pink, true);
 			}
-			let fakeRobot = {acceleration = opp.acceleration, pos = opp.pos, maxSpeed = opp.maxSpeed, speed = projectedSpeed}
+			let fakeRobot = {acceleration: opp.acceleration, pos: opp.pos, maxSpeed: opp.maxSpeed, speed: projectedSpeed};
 
-			let timeToPos = 0
-			let minDist = World.Ball.radius + opp.radius
+			let timeToPos = 0;
+			let minDist = World.Ball.radius + opp.radius;
 			if (opp.pos.distanceTo(passInterception) > minDist) {
-				let hitPoint = passInterception + (opp.pos - passInterception).setLength(minDist)
-				timeToPos = Physics.robotTimeToPos(fakeRobot, hitPoint, new Vector(0,0), false)
+				let hitPoint = passInterception + (opp.pos - passInterception).setLength(minDist);
+				timeToPos = Physics.robotTimeToPos(fakeRobot, hitPoint, new Vector(0,0))[0];
 			}
 
-			let passRating = Rating.valueToRating(timeToPos, ballRollTime - 1, ballRollTime + 0.5)
+			let passRating = Rating.valueToRating(timeToPos, ballRollTime - 1, ballRollTime + 0.5);
 			// uncomment to debug: log("Rating: "+tostring(opp)+", ballRollTime: "+tostring(ballRollTime)+", timeToPos: "+tostring(timeToPos)+", passRating: "+tostring(passRating))
-			rating = rating * (passRating / 2 + 0.5)
+			rating = rating * (passRating / 2 + 0.5);
 
 		}
 	}
 
-	let goalAngle = (G.OpponentGoalRight - pass.ballPos).absoluteAngleDiff(G.OpponentGoalLeft - pass.ballPos)
-	let goalAngleWeight = 0.5
-	let goalAngleRating = Rating.valueToRating(goalAngle, 0, 50 / 180 * Math.PI)
-	rating = rating * (1 - goalAngleWeight + goalAngleWeight * goalAngleRating)
+	let goalAngle = (G.OpponentGoalRight - pass.ballPos).absoluteAngleDiff(G.OpponentGoalLeft - pass.ballPos);
+	let goalAngleWeight = 0.5;
+	let goalAngleRating = Rating.valueToRating(goalAngle, 0, 50 / 180 * Math.PI);
+	rating = rating * (1 - goalAngleWeight + goalAngleWeight * goalAngleRating);
 
-	if (not amun.isPerformanceMode) {
-		vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true)
-		vis.addPath("u/a/ratePass", {shootPos, pass.ballPos}, vis.colors.red)
+	if (!amun.isPerformanceMode) {
+		vis.addCircle("u/a/ratePass", shootPos, 0.1, vis.colors.blue, true);
+		vis.addPath("u/a/ratePass", [shootPos, pass.ballPos], vis.colors.red);
 	}
 	vis.addCircle("u/a/ratePass: rating", pass.ballPos, 0.2,
-			vis.fromTemperature(1 - rating, 127), true)
+			vis.fromTemperature(1 - rating, 127), true);
 
-	return rating
+	return rating;
 }
-Attack.ratePass = Cache.forFrame(Attack.ratePass)
+export let ratePass: (robot: FriendlyRobot, pass: PassObject, considerTiming: boolean)=> number = Cache.forFrame(_ratePass);
 
 /// chooses a pass from a list of pass objects using Attack.ratePass
 // @name choosePass
@@ -150,28 +157,29 @@ Attack.ratePass = Cache.forFrame(Attack.ratePass)
 // @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
 // @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
 // @return table - the best pass object
-function Attack.choosePass (robot, passes, currentPassPos, considerTiming, customHysteresis) {
-	let bestPass
-	let bestPassRating = -Infinity
-	for (_,pass in ipairs(passes)) {
-		let rating = Attack.ratePass(robot, pass, considerTiming)
+export function choosePass (robot: FriendlyRobot, passes: Pass[], currentPassPos: Position,
+		considerTiming: boolean, customHysteresis: number = 0.1): [Pass | undefined, number] {
+	let bestPass: Pass | undefined;
+	let bestPassRating = -Infinity;
+	for (let pass of passes) {
+		let rating = ratePass(robot, pass, considerTiming);
 		if (rating > 0) {
 			// give a bonus if the pos is near the currentPassPos
 			if (currentPassPos) {
-				let ratingHystDistance = customHysteresis || 0.1
-				let ratingHystPercentage = customHysteresis || 0.1
+				let ratingHystDistance = customHysteresis;
+				let ratingHystPercentage = customHysteresis;
 				rating = Math.min(1, rating * (1 + ratingHystPercentage *
-					Rating.valueToRating(pass.ballPos.distanceTo(currentPassPos), ratingHystDistance, 0)))
+					Rating.valueToRating(pass.ballPos.distanceTo(currentPassPos), ratingHystDistance, 0)));
 			}
 
 			if (rating > bestPassRating) {
-				bestPass = pass
-				bestPassRating = rating
+				bestPass = pass;
+				bestPassRating = rating;
 			}
 		}
 	}
 
-	return bestPass, bestPassRating
+	return [bestPass, bestPassRating];
 }
 
 /// chooses a pass from a list of pass suggestions using Attack.ratePass
@@ -182,20 +190,20 @@ function Attack.choosePass (robot, passes, currentPassPos, considerTiming, custo
 // @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
 // @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
 // @return table - the best pass object
-function Attack.choosePassFromSuggestions (robot, passSuggestions, currentPassPos, considerTiming, customHysteresis) {
-	let passes = {}
+export function choosePassFromSuggestions (robot: FriendlyRobot, passSuggestions, currentPassPos, considerTiming, customHysteresis) {
+	let passes: Pass[] = [];
 	for (sender, sugg in pairs(passSuggestions)) {
 		let target = sender
 		if (sugg.anonymous) {
-			target = nil
+			target = undefined
 		}
-		table.insert(passes, {target = target, ballPos = sugg.ballPos, time = sugg.time, manual = sugg.manual })
+		passes.push({target: target, ballPos: sugg.ballPos, time: sugg.time, manual: sugg.manual });
 	}
-	return Attack.choosePass(robot, passes, currentPassPos, considerTiming, customHysteresis)
+	return choosePass(robot, passes, currentPassPos, considerTiming, customHysteresis)
 }
 
-let sortByRating = function (a, b) {
-	return a.rating > b.rating
+function sortByRating (a: {rating: number}, b: {rating: number}): number {
+	return a.rating > b.rating;
 }
 
 /// sorts the passes by their rating
@@ -207,18 +215,18 @@ let sortByRating = function (a, b) {
 // @param threshold - number between 0 and 1, ratings lower than the threshold won't be included (unless we would have none otherwise)
 // @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
 // @return table - list of passes, sorted by their rating
-function Attack.sortPassesFromSuggestions (robot, passSuggestions, currentPassPositions, considerTiming, threshold, customHysteresis) {
-	let passes = {}
+export function sortPassesFromSuggestions (robot, passSuggestions, currentPassPositions, considerTiming, threshold, customHysteresis) {
+	let passes: Suggestion[] = [];
 	threshold = threshold || 0.5
 	for (sender, sugg in pairs(passSuggestions)) {
-		let pass = {target = sender, ballPos = sugg.ballPos, time = sugg.time}
-		let rating = Attack.ratePass(robot, pass, considerTiming)
+		let pass = {target: sender, ballPos: sugg.ballPos, time: sugg.time}
+		let rating = ratePass(robot, pass, considerTiming)
 		// give a bonus if the pos is near the currentPassPos
 		if (currentPassPositions) {
 			let ratingHystDistance = customHysteresis || 0.1
 			let ratingHystPercentage = customHysteresis || 0.1
 			let hystBonus = -Infinity
-			for (_, pos in ipairs(currentPassPositions)) {
+			for (let pos of currentPassPositions) {
 				let bonus = (1 + ratingHystPercentage *
 					Rating.valueToRating(sugg.ballPos.distanceTo(pos), ratingHystDistance, 0))
 				if (bonus > hystBonus) {
@@ -232,12 +240,12 @@ function Attack.sortPassesFromSuggestions (robot, passSuggestions, currentPassPo
 		if (sugg.anonymous) {
 			target = nil
 		}
-		table.insert(passes, {target = target, ballPos = sugg.ballPos, time = sugg.time, rating = rating, chip = sugg.chip})
+		passes.push({target: target, ballPos: sugg.ballPos, time: sugg.time, rating: rating, chip: sugg.chip})
 	}
 
 	table.sort(passes, sortByRating)
 
-	for (i = 2, #passes) {
+	for (i = 2, passes.length) {
 		if (passes[i].rating < threshold) {
 			passes[i] = nil
 		}
@@ -249,7 +257,7 @@ function Attack.sortPassesFromSuggestions (robot, passSuggestions, currentPassPo
 // @name visualizeAttack
 // @param robotPos Vector - the position of the main attacker
 // @param shootDest Vector - the position of the next shoot destination
-function Attack.visualizeAttack (robotPos, shootDest) {
+export function visualizeAttack (robotPos, shootDest) {
 	let color = World.TeamIsBlue ? vis.fromRGBA(38, 48, 217, 63) : vis.fromRGBA(244, 214, 31, 63)
 	vis.addPath("u/a/Attack", {robotPos, shootDest}, color, undefined, undefined, 0.1)
 }
@@ -263,10 +271,10 @@ let lastCPMA = nil
 let lastPasser = nil
 let lastReceiver = nil
 let lastCPMATime = 0
-function Attack.currentPlannedMainAttacker (passInfoSender, passInfoTable) {
+export function currentPlannedMainAttacker (passInfoSender, passInfoTable) {
 	let passInfoMessage
 	if (passInfoTable) {
-		if (#passInfoTable > 1) {
+		if (passInfoTable.length > 1) {
 			return nil
 		}
 		let _
@@ -309,7 +317,7 @@ Attack.currentPlannedMainAttacker = Cache.forFrame(Attack.currentPlannedMainAtta
 // @param shootDest Vector - the content of the shootDestination message
 // @param attackPos Vector - the content of the attackPosition message
 // @return Vector - robots should not move between the returned position and the opponent goal
-function Attack.shootGoalViewPos (shootDest, attackPos) {
+export function shootGoalViewPos (shootDest, attackPos) {
 	// if we want to shoot a goal
 	if (shootDest) {
 		if (G.OpponentGoal.distanceToSq(shootDest) <= G.GoalWidth * G.GoalWidth / 4) {
@@ -388,7 +396,7 @@ let checkPassInfos = function (robot, passInfoTable, lastResult, lastPassInfo, p
 
 let checkedPassInfoPerRobot = {}
 
-function Attack.checkPassInfos (robot, passInfoTable, passIncoming) {
+export function checkPassInfos (robot, passInfoTable, passIncoming) {
 	let cachedPassInfo = checkedPassInfoPerRobot[robot]
 	let preResult = cachedPassInfo && cachedPassInfo.result
 	let preMessage = cachedPassInfo && cachedPassInfo.message
@@ -403,7 +411,7 @@ function Attack.checkPassInfos (robot, passInfoTable, passIncoming) {
 //@param position Vector - an alternative starting position for the timing calculations
 //@param speed Vector - an alternative starting speed for timing, or Vector(0,0)
 //@return bool - if we have to start to move
-function Attack.checkPassInfoFromPosition (robot, passInfo, position, speed, passIncoming) {
+export function checkPassInfoFromPosition (robot, passInfo, position, speed, passIncoming) {
 	if (position) {
 		speed = speed || Vector(0,0)
 		let fakeRobot = {
@@ -423,7 +431,7 @@ function Attack.checkPassInfoFromPosition (robot, passInfo, position, speed, pas
 // @param robot Robot
 // @param passInfoTable table - all of the passInfos currently being sent out
 // @return Message relevantPassInfoMessage (the passInfo message that targets the robot), undefined if there isn't one
-function Attack.relevantPassInfoMessage (robot, passInfoTable) {
+export function relevantPassInfoMessage (robot, passInfoTable) {
 	let relevantPassInfoMessage = nil
 	if (passInfoTable) {
 		for (_, passInfo in ipairs(passInfoTable)) {
@@ -437,7 +445,7 @@ function Attack.relevantPassInfoMessage (robot, passInfoTable) {
 }
 
 let MAX_PASS_DESTINATION_FROM_DEFENSE_DISTANCE = 1.5
-function Attack.isPassAllowed (startPos, endPos) {
+export function isPassAllowed (startPos, endPos) {
 	let extraDistance = Defense.centerBackDistanceToDefenseArea() + World.Ball.radius + 0.2
 	let intersection = Field.intersectRayDefenseArea(startPos, endPos - startPos, extraDistance, true)
 	if (not intersection) {
@@ -460,7 +468,7 @@ let InvalidationCounter = {}
 let lastIncomingPassInfo = {}
 let lastIPIUpdateTime = {}
 
-function Attack.lastIncomingPassInfo (robot, passInfo) {
+export function lastIncomingPassInfo (robot, passInfo) {
 	let incomingPassInfo = nil
 	let _, passInfoTable = next(passInfo)
 
@@ -491,4 +499,3 @@ function Attack.lastIncomingPassInfo (robot, passInfo) {
 	}
 	return lastIncomingPassInfo[robot]
 }
-return Attack
