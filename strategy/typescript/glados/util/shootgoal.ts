@@ -1,27 +1,34 @@
-let ShootGoal = {}
-
 import * as Cache from "base/cache";
 import * as geom from "base/geom";
+import {FriendlyRobot, Robot} from "base/robot";
+import {Vector, Position, Speed} from "base/vector";
 import * as World from "base/world";
 let G = World.Geometry
 
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
 
+interface FutureRobot {
+	pos: Position;
+	speed: Speed;
+	radius: number;
+	isFriendly: boolean;
+}
+
 /// returns the lists of interfering robots (with and without the keeper)
 // @name getRobotLists
 // @param ownRobot Robot - the robot that will shoot the ball
 // @return { Robot } - the list of all interfering robots
 // @return { Robot } - the above list without the opponent keeper
-function ShootGoal.getRobotLists (ownRobot) {
+function _getRobotLists (ownRobot: FriendlyRobot): [FutureRobot[], FutureRobot[]] {
 	// constant extrapolation time
 	// after this reaction time the robots tend to block the shot
 	// thus further extrapolation does not really make sense
 	let extrapolationTime = 0.2
 	let averageKickedBallSpeed = 6
 
-	let robotList = {}
-	let robotListWithoutKeeper = {}
+	let robotList: FutureRobot[] = []
+	let robotListWithoutKeeper: FutureRobot[] = []
 
 	// consider all robots (also our ones)
 	for (let r of World.Robots) {
@@ -29,29 +36,29 @@ function ShootGoal.getRobotLists (ownRobot) {
 			// crude estimate of how much time the robot has before the ball has passed it
 			// robots near the ball won't have moved for the full extrapolation time by then
 			let ballTimeToRobot = r.pos.distanceTo(World.Ball.pos) / averageKickedBallSpeed
-			let futureRobot = { ["pos"] = r.pos + r.speed * Math.min(ballTimeToRobot, extrapolationTime),
-				["radius"] = r.radius, ["speed"] = r.speed, ["isFriendly"] = r.isFriendly }
+			let futureRobot = { pos: r.pos + r.speed * Math.min(ballTimeToRobot, extrapolationTime),
+				radius: r.radius, speed: r.speed, isFriendly: r.isFriendly }
 
-			table.insert(robotList, futureRobot)
+			robotList.push(futureRobot)
 			if (r != World.OpponentKeeper) {
-				table.insert(robotListWithoutKeeper, futureRobot)
+				robotListWithoutKeeper.push(futureRobot)
 			}
 		}
 	}
-	return robotList, robotListWithoutKeeper
+	return [robotList, robotListWithoutKeeper]
 }
-ShootGoal.getRobotLists = Cache.forFrame(ShootGoal.getRobotLists)
+export let getRobotLists: (ownRobot: FriendlyRobot)=> [FutureRobot[], FutureRobot[]] = Cache.forFrame(_getRobotLists)
 
 /// returns a rating for a given sector, prioritizing already chosen ones
 // @name rateSector
 // @param sector { number } - the sector to rate
 // @param oldSectorMid number - the position that was chosen in the last frame
 // @return number - rating
-function ShootGoal.rateSector (sector, oldSectorMid) {
-	let sectorWidth = sector[2] - sector[1]
+export function rateSector (sector: [number, number], oldSectorMid?: number): number {
+	let sectorWidth = sector[1] - sector[0]
 
 	let hysteresisFactor = 1
-	if (oldSectorMid && oldSectorMid > sector[1] && oldSectorMid < sector[2]) {
+	if (oldSectorMid != undefined && oldSectorMid > sector[0] && oldSectorMid < sector[1]) {
 		hysteresisFactor = 3
 	}
 
@@ -66,7 +73,8 @@ function ShootGoal.rateSector (sector, oldSectorMid) {
 // @param oldTarget Vector - the target position that was chosen in the last frame
 // @return Vector - the midpoint of the chosen sector
 // @return angle - the witdh of the chosen sector
-function ShootGoal.findTarget (ownRobot, viewPos, ignoreGoalie, oldTarget) {
+export function findTarget (ownRobot: FriendlyRobot, viewPos: Position, ignoreGoalie: boolean,
+		oldTarget?: Position): [Position, number] {
 	let goalStart = (G.OpponentGoalRight - viewPos).angle()
 	let goalEnd = (G.OpponentGoalLeft - viewPos).angle()
 
@@ -78,45 +86,45 @@ function ShootGoal.findTarget (ownRobot, viewPos, ignoreGoalie, oldTarget) {
 	}
 
 	if (goalEnd < goalStart) {
-		return G.OpponentGoal, 0
+		return [G.OpponentGoal, 0]
 	}
 
 	// get all free sectors
-	let robotListWithKeeper, robotListWithoutKeeper = ShootGoal.getRobotLists(ownRobot)
+	let [robotListWithKeeper, robotListWithoutKeeper] = getRobotLists(ownRobot)
 	let robotList = ignoreGoalie ? robotListWithoutKeeper : robotListWithKeeper
 	let freeSectors = Goal.getFreeSectors(viewPos, robotList, goalStart, goalEnd)
 
 	// compute angle of old target (used for hysteresis)
-	let oldSectorMid = nil
-	if (oldTarget) {
+	let oldSectorMid: number | undefined = undefined
+	if (oldTarget != undefined) {
 		oldSectorMid = (oldTarget - viewPos).angle()
 	}
 
 	// find best sector
 	let bestRating = 0
-	let bestSectorMid = nil
+	let bestSectorMid = undefined
 	let bestSectorWidth = 0
-	for (_,sector in ipairs(freeSectors)) {
-		let rating = ShootGoal.rateSector(sector, oldSectorMid)
+	for (let sector of freeSectors) {
+		let rating = rateSector(sector, oldSectorMid)
 		if (rating > bestRating) {
 			bestRating = rating
-			bestSectorMid = (sector[1] + sector[2]) * 0.5
-			bestSectorWidth = sector[2] - sector[1]
+			bestSectorMid = (sector[0] + sector[1]) * 0.5
+			bestSectorWidth = sector[1] - sector[0]
 		}
 	}
 
 	// calculate target point
 	// default to shooting at the goal center
 	let targetPoint = G.OpponentGoal
-	if (bestSectorMid) {
+	if (bestSectorMid != undefined) {
 		let intersection = geom.intersectLineLine(viewPos,
-			Vector.fromAngle(bestSectorMid), G.OpponentGoal, new Vector(1, 0))
+			Vector.fromAngle(bestSectorMid), G.OpponentGoal, new Vector(1, 0))[0]
 		if (intersection) {
 			targetPoint = intersection
 		}
 	}
 
-	return targetPoint, bestSectorWidth
+	return [targetPoint, bestSectorWidth]
 }
 
 /// decides on where to shoot
@@ -128,13 +136,14 @@ function ShootGoal.findTarget (ownRobot, viewPos, ignoreGoalie, oldTarget) {
 // @return angle - the witdh of the chosen sector
 // @return bool - the dirty flag
 let TIME_UNTIL_MIN_ANGLE = 5
-function ShootGoal.updateTarget (ownRobot, oldTarget, oldDirty, attackPosition) {
+function _updateTarget (ownRobot: FriendlyRobot, oldTarget: Position, oldDirty: boolean,
+		attackPosition?: Position): [Position, number, boolean] {
 	// compute viewPos relative to the current robot pos
 	let viewPos = attackPosition || (ownRobot.pos + Vector.fromAngle(ownRobot.dir) *
 										(ownRobot.shootRadius + World.Ball.radius))
 
 	// search a good target
-	let targetPoint, targetWidth = ShootGoal.findTarget(ownRobot, viewPos, false, oldTarget)
+	let [targetPoint, targetWidth] = findTarget(ownRobot, viewPos, false, oldTarget)
 
 	// update decision if we ignore the goalie and check for ricochets
 	let ballOwnershipDuration = Ball.friendlyBallOwnershipDuration()
@@ -147,15 +156,14 @@ function ShootGoal.updateTarget (ownRobot, oldTarget, oldDirty, attackPosition) 
 
 	// search a second time if necessary
 	if (dirty) {
-		targetPoint, targetWidth = ShootGoal.findTarget(ownRobot, viewPos, true, oldTarget)
+		[targetPoint, targetWidth] = findTarget(ownRobot, viewPos, true, oldTarget)
 	}
 
 	if (viewPos.y < -0.3 || oldDirty && viewPos.y < -0.1) {
 		dirty = true
 	}
 
-	return targetPoint, targetWidth, dirty
+	return [targetPoint, targetWidth, dirty]
 }
-ShootGoal.updateTarget = Cache.forFrame(ShootGoal.updateTarget)
-
-return ShootGoal
+export let updateTarget: (ownRobot: FriendlyRobot, oldTarget: Position, oldDirty: boolean,
+		attackPosition?: Position)=> [Position, number, boolean] = Cache.forFrame(_updateTarget)

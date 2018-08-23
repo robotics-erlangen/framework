@@ -1,44 +1,47 @@
-import {Behavior} from "glados/agent/base/behavior";
-let DefendPenaltyShootout = Class("Agent.Defender.DefendPenaltyShootout", Base)
-
 import * as Referee from "base/referee";
 import * as World from "base/world";
-let G = World.Geometry
-let Keeper = require "task/keeper/keeper"
-let ShootoutKeeper = require "task/keeper/shootoutkeeper"
+import {Behavior} from "glados/agent/base/behavior";
+import {Keeper} from "glados/task/keeper/keeper";
+import {RandomKeeper} from "glados/task/keeper/randomkeeper";
+import {ShootoutKeeper} from "glados/task/keeper/shootoutkeeper";
+import {Task} from "glados/task/base";
 
-let CRITICAL_DISTANCE = 4
+const G = World.Geometry;
 
-
-function DefendPenaltyShootout:_stop () {
-	this._penaltyStartTime = nil
-}
-
-function DefendPenaltyShootout:check () {
-	// log("1: "+tostring(World.GameStage == "PenaltyShootout"))
-	// log("2: "+tostring(World.RefereeState == "PenaltyDefensivePrepare"))
-	// log("3: "+tostring(World.RefereeState == "PenaltyDefensive"))
-	// log("4: "+tostring(this._checkPenaltyOngoing()))
-	return World.GameStage == "PenaltyShootout"
- ? (World.RefereeState == "PenaltyDefensivePrepare" : World.RefereeState == "PenaltyDefensive" || this._checkPenaltyOngoing())
-}
-
-function DefendPenaltyShootout:_checkPenaltyOngoing () {
-	return this._penaltyStartTime && World.Time - this._penaltyStartTime < 15 && not Referee.isStopState()
-}
+const CRITICAL_DISTANCE = 4;
 
 
-function DefendPenaltyShootout:_updateTask () {
-	if (World.RefereeState == "PenaltyDefensive" && not this._penaltyStartTime) {
-		this._penaltyStartTime = World.Time
+export class DefendPenaltyShootout extends Behavior {
+	_penaltyStartTime: number | undefined;
+
+	_stop () {
+		this._penaltyStartTime = undefined;
 	}
 
-	for (_, r in ipairs(World.OpponentRobots)) {
-		if (World.RefereeState == "Game" && r.pos.distanceTo(G.FriendlyGoal) < CRITICAL_DISTANCE) {
-			return ShootoutKeeper
+	check () {
+		// log("1: "+tostring(World.GameStage == "PenaltyShootout"))
+		// log("2: "+tostring(World.RefereeState == "PenaltyDefensivePrepare"))
+		// log("3: "+tostring(World.RefereeState == "PenaltyDefensive"))
+		// log("4: "+tostring(this._checkPenaltyOngoing()))
+		return World.GameStage === "PenaltyShootout"
+	 		&& (World.RefereeState === "PenaltyDefensivePrepare" || World.RefereeState === "PenaltyDefensive" || this._checkPenaltyOngoing());
+	}
+
+	_checkPenaltyOngoing (): boolean {
+		return this._penaltyStartTime != undefined && World.Time - this._penaltyStartTime < 15 && !Referee.isStopState();
+	}
+
+
+	_updateTask (): [typeof Task] {
+		if (World.RefereeState === "PenaltyDefensive" && this._penaltyStartTime == undefined) {
+			this._penaltyStartTime = World.Time;
 		}
-	}
-	return Keeper
-}
 
-return DefendPenaltyShootout
+		for (let r of World.OpponentRobots) {
+			if (World.RefereeState === "Game" && r.pos.distanceTo(G.FriendlyGoal) < CRITICAL_DISTANCE) {
+				return [ShootoutKeeper];
+			}
+		}
+		return [Keeper];
+	}
+}

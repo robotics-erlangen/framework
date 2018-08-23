@@ -1,10 +1,14 @@
 import {FriendlyRobot} from "base/robot";
 
-function sortByRating (a1, a2): number {
-	return a1.rateRobot() - a2.rateRobot();
+import {Agent} from "glados/agent/base/agent";
+import {Messaging} from "glados/control/messaging";
+
+// sort in descending order
+function sortByRating (a1: Agent, a2: Agent): number {
+	return a2.rateRobot() - a1.rateRobot();
 }
 
-class AgentPool {
+export class AgentPool {
 	private _agents: Agent[] = [];
 	private _agentType: typeof Agent;
 	private _robotLimit: number;
@@ -34,19 +38,19 @@ class AgentPool {
 		if (this._robotLimit < agents.length) {
 			// sort with by decreasing importance
 			agents.sort(sortByRating);
-			table.truncate(agents, this._robotLimit);
+			agents.splice(this._robotLimit, agents.length - this._robotLimit);
 		}
 		this._agents = agents;
 	}
 
-	takeRobot (robots: FriendlyRobot[], messaging: Messaging): FriendlyRobot {
+	takeRobot (robots: FriendlyRobot[], messaging: Messaging): FriendlyRobot | undefined {
 		if (this._agents.length >= this._robotLimit) {
 			return;
 		}
 
 		let robot = this._agentType.takeRobot(robots);
 		if (robot) {
-			this._agents.push(this._agentType(robot, messaging));
+			this._agents.push(new (this._agentType as any)(robot, messaging));
 		}
 		return robot;
 	}
@@ -61,8 +65,8 @@ class AgentPool {
 
 	removeRobot (robot: FriendlyRobot): boolean {
 		for (let agent of this._agents) {
-			if (agent.robot() == robot) {
-				table.removeValue(this._agents, agent);
+			if (agent.robot() === robot) {
+				this._agents.splice(this._agents.indexOf(agent), 1);
 				return true;
 			}
 		}

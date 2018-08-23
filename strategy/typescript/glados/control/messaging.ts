@@ -199,7 +199,7 @@ export class MessageBox {
 	sendToTrainerRepeated(type: MessageType.exclusiveRole, role: {mainAttacker: number}): void;
 	sendToTrainerRepeated(type: MessageType.exclusiveRole, role: {duelAssistant: number}): void;
 	sendToTrainerRepeated(type: MessageType.exclusiveRole, role: {interceptPass: number}): void;
-	sendToTrainerRepeated(type: MessageType.forcePoolChange, info: { robot: FriendlyRobot, destPool: "manual" | "ally" | "keeper" | "defense" | "attack" | "hidden" }): void;
+	sendToTrainerRepeated(type: MessageType.forcePoolChange, info: { robot: FriendlyRobot, destPool: "manual" | "ally" | "keeper" | "defender" | "attacker" | "hidden" }): void;
 	sendToTrainerRepeated(type: MessageType.groupApplication, group: { name: "centerback" | "moves" | "striker" | "midfield", payload: any }): void;
 	sendToTrainerRepeated(type: MessageType, data?: any): void {
 		this.sendGeneric(type, "trainer", data, true);
@@ -309,7 +309,8 @@ export class MessageBox {
 		return this.receiveGeneric(type, broadcast).get("trainer");
 	}
 
-	receiveTrainerRepeated(type: MessageType, broadcast?: boolean): any[] {
+	receiveTrainerRepeated(type: MessageType.forcePoolChange): { robot: FriendlyRobot, destPool: "manual" | "ally" | "keeper" | "defender" | "attacker" | "hidden" }[] | undefined;
+	receiveTrainerRepeated(type: MessageType, broadcast?: boolean): any[] | undefined {
 		return this.receiveGeneric(type, broadcast).get("trainer");
 	}
 
