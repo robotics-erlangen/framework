@@ -61,9 +61,9 @@ target_link_libraries(logplayer
     ra::widgets
     amun::strategy
     ${OPENGL_LIBRARIES}
-    ${CMAKE_THREAD_LIBS_INIT}
     Qt5::Widgets
     Qt5::OpenGL
+    Threads::Threads
 )
 v8_copy_deps(logplayer)
 target_include_directories(logplayer

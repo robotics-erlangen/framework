@@ -28,8 +28,8 @@ target_link_libraries(replay-cli
     shared::protobuf
     ra::logfile
     shared::core
-    ${CMAKE_THREAD_LIBS_INIT}
     Qt5::Core
+    Threads::Threads
 )
 v8_copy_deps(replay-cli)
 target_include_directories(replay-cli

@@ -94,10 +94,10 @@ target_link_libraries(ra
     ra::plotter
     ra::widgets
     ${OPENGL_LIBRARIES}
-    ${CMAKE_THREAD_LIBS_INIT}
     Qt5::Widgets
     Qt5::OpenGL
 	lib::v8
+    Threads::Threads
 )
 v8_copy_deps(ra)
 target_include_directories(ra

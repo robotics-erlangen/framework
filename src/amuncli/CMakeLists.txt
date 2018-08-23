@@ -26,8 +26,8 @@ add_executable(amun-cli
 target_link_libraries(amun-cli
     amun::amun
     shared::protobuf
-    ${CMAKE_THREAD_LIBS_INIT}
     Qt5::Core
+    Threads::Threads
 )
 v8_copy_deps(amun-cli)
 target_include_directories(amun-cli
