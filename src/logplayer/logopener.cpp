@@ -30,6 +30,7 @@
 #include <QFileDialog>
 #include <QMessageBox>
 #include <QAction>
+#include <functional>
 
 LogOpener::LogOpener(Ui::MainWindow *ui, QObject *parent) :
     QObject(parent),
