@@ -38,8 +38,8 @@ export class SuggestPass {
 			{ ballPos: destBallPos, time: receiveTime , anonymous: anonymous, chip: chip, manual: false});
 	}
 
-	_suggestPassRobotPosition (destRobotPos: Position, attackPos: Position = World.Ball.pos, relativeTime: number,
-			anonymous: boolean) {
+	_suggestPassRobotPosition (destRobotPos: Position, attackPos: Position = World.Ball.pos, relativeTime?: number,
+			anonymous?: boolean) {
 		let destBallPos = destRobotPos + (attackPos - destRobotPos).setLength(this._robot.shootRadius + World.Ball.radius);
 		this._suggestPass(destBallPos, attackPos, relativeTime, anonymous);
 	}
