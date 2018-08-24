@@ -28,6 +28,7 @@ The recommended way of building a project with CMake is by doing an
 out-of-source build. This can be done like this:
 
 ```
+libs/v8/build.sh --install-deps
 libs/v8/build.sh
 mkdir build && cd build
 cmake ..
