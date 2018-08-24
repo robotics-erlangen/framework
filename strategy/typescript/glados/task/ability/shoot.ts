@@ -109,12 +109,12 @@ export class Shoot {
 		}
 	}
 
-	private _calculateFutureBall (ballReceiptPos: Position): [Physics.BallLike, number] {
-		let futureBallPos;
+	private _calculateFutureBall (ballReceiptPos?: Position): [Physics.BallLike, number] {
+		let futureBallPos: Position;
 
 		if (World.Ball.speed.length() > 0.1) {
-			if (ballReceiptPos && (ballReceiptPos - World.Ball.pos).dot(World.Ball.speed) > 0) {
-				futureBallPos = ballReceiptPos.orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed);
+			if (ballReceiptPos != undefined && (ballReceiptPos - World.Ball.pos).dot(World.Ball.speed) > 0) {
+				futureBallPos = ballReceiptPos.orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)[0];
 			} else {
 				let dribblerPos = this._robot.pos + Vector.fromAngle(this._robot.dir).scaleLength(
 					this._robot.shootRadius + World.Ball.radius);
@@ -162,7 +162,7 @@ export class Shoot {
 	}
 
 	private _getState (targetPos: Position, futureBall: Physics.BallLike, futureBallTime: number,
-			targetTime: number, chaseFutureBall: Physics.BallLike): ShootState {
+			targetTime: number | undefined, chaseFutureBall: Physics.BallLike): ShootState {
 		// check if the ball can be chased
 		let restingBallSpeed = RESTING_BALL_SPEED + (this._state == ShootState.ChaseBall ? -1 : 1) * RESTING_BALL_SPEED_HYST;
 		let shootVector = targetPos - chaseFutureBall.pos;
@@ -245,7 +245,7 @@ export class Shoot {
 		}
 	}
 
-	private _shootStationaryBall (targetPos: Position, targetSpeed: number, targetTime: number, futureBall: Physics.BallLike) {
+	private _shootStationaryBall (targetPos: Position, targetSpeed: number, targetTime: number | undefined, futureBall: Physics.BallLike) {
 		let shootDir = (targetPos - this._robot.pos).angle();
 
 		let maxSidewardsAngle;
@@ -283,7 +283,7 @@ export class Shoot {
 		debug.set("Shoot/AngleError", geom.normalizeAngle(Math.abs(this._robot.dir - shootDir)) * 180 / Math.PI);
 
 		let [targetDir, kickSpeed] = Volley.calcPhi(this._robot, futureBall.speed, futureBall.pos, targetPos, targetSpeed); // TODO: calcPhi with stopped ball is questionable
-		if (targetTime) {
+		if (targetTime != undefined) {
 			let kickSpeedVector = (targetPos - futureBall.pos).setLength(kickSpeed);
 			let shootBall = { maxSpeed: kickSpeed, speed: kickSpeedVector };
 			let ballTime = Physics.ballRollTime(shootBall, futureBall.pos.distanceTo(targetPos));
@@ -433,8 +433,8 @@ export class Shoot {
 		vis.addPath("t/a/shoot: State", [futureBall.pos, targetPos], color, undefined, undefined, 0.03);
 	}
 
-	_doShoot (targetPos: Position, targetSpeed: number, targetTime: number, ballReceiptPos: Position,
-			linearShoot: boolean, precision: number) {
+	_doShoot (targetPos: Position, targetSpeed: number, targetTime?: number, ballReceiptPos?: Position,
+			linearShoot: boolean = false, precision: number = MIN_PRECISION) {
 		let [futureBall, futureBallTime] = this._calculateFutureBall(ballReceiptPos);
 		debug.set("Shoot/futureBallTime", futureBallTime);
 		let chaseFutureBall = this._calculateChaseFutureBall(targetPos);
@@ -443,7 +443,6 @@ export class Shoot {
 		debug.set("Shoot/State", this._state);
 
 		this._linearShoot = linearShoot;
-		this._precision = precision || MIN_PRECISION;
 
 		let color: vis.Color;
 		if (this._state == ShootState.StationaryBall) {
@@ -487,7 +486,7 @@ export class Shoot {
 	// and ignoreOpponentRobots obstacle parameters
 	// @param firstContactPos Vector - where the ball hits the ground the first time
 	// @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
-	_chipToPos (firstContactPos: Position, targetTime: number, ballReceiptPos: Position, precision: number) {
+	_chipToPos (firstContactPos: Position, targetTime?: number, ballReceiptPos?: Position, precision?: number) {
 		this._doShoot(firstContactPos, 8, targetTime, ballReceiptPos, false, precision);
 	}
 
