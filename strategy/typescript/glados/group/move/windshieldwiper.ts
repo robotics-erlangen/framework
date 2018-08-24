@@ -36,7 +36,7 @@ function sort (distances: {distance: number, robot: FriendlyRobot}[]) {
 		}
 	}
 
-class WindshieldWiper extends Move {
+export class WindshieldWiper extends Move {
 	public static MIN_ROBOTS: number = 1
 	public static MAX_ROBOTS: number = 5
 

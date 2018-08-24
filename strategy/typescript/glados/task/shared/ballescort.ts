@@ -1,32 +1,37 @@
-let BallEscort = Class("Task.BallEscort", require "task/base")
-
 import * as Field from "base/field";
+import {Robot} from "base/robot";
 import * as World from "base/world";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import * as ToTarget from "glados/trajectory/totarget";
+import {ToTarget} from "glados/trajectory/totarget";
+import {Task, Agent} from "glados/task/base";
 
 
-let obstacleTable = {
-	ignoreBall = false,
-	extraBallDistance = 0.25,
-	ignorePass = true,
-}
+export class BallEscort extends Task {
+	private _opponentRobot: Robot;
+	private _obstacleTable: PathHelper.PathHelperParameters;
 
-function BallEscort:_init (opponentRobot) {
-	this._opponentRobot = opponentRobot
-}
-
-function BallEscort:run () {
-	let target = this._opponentRobot ? this._opponentRobot.pos : World.Geometry.FriendlyGoal
-	let pos = World.Ball.pos + (target - World.Ball.pos).setLength(0.3 + this._robot.radius)
-
-	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable)
-	let ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed)
-	if (ballOutPos) {
-		this._robot.path.addLine(World.Ball.pos.x, World.Ball.pos.y, ballOutPos.x, ballOutPos.y, this._robot.radius, "Ballescort", 68)
+	constructor (agent: Agent, opponentRobot: Robot) {
+		super(agent);
+		this._opponentRobot = opponentRobot;
+		this._obstacleTable = {
+			ignoreBall: false,
+			extraBallDistance: 0.25,
+			ignorePass: true,
+			messaging: this._messaging
+		}
 	}
 
-	this._robot.trajectory.update(ToTarget, pos, (this._robot.pos - World.Ball.pos).angle())
-}
+	public run () {
+		let target = this._opponentRobot ? this._opponentRobot.pos : World.Geometry.FriendlyGoal;
+		let pos = World.Ball.pos + (target - World.Ball.pos).setLength(0.3 + this._robot.radius);
 
-return BallEscort
+		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable);
+		let ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed);
+		if (ballOutPos) {
+			this._robot.path.addLine(World.Ball.pos.x, World.Ball.pos.y, ballOutPos.x, ballOutPos.y, this._robot.radius,
+				"Ballescort", PathHelper.Priorities.INNER_BALL);
+		}
+
+		this._robot.trajectory.update(ToTarget, pos, (this._robot.pos - World.Ball.pos).angle());
+	}
+}

@@ -38,7 +38,7 @@ function taskAssignment (passInfoTable: any, pos1: Position, pos2: Position, rob
 	}
 }
 
-class MrlTestCorner extends Move {
+export class MrlTestCorner extends Move {
 	public static MIN_ROBOTS: number = 5;
 	public static MAX_ROBOTS: number = 5;
 

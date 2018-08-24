@@ -6,7 +6,7 @@ import {Move, Assignment} from "glados/group/move/base";
 
 import {KickOff} from "glados/group/move/kickoff";
 import {KickOffDefensive} from "glados/group/move/kickoffdefensive";
-import {MrlTestCorner} "glados/group/move/mrltestcorner";
+import {MrlTestCorner} from "glados/group/move/mrltestcorner";
 import {Armada} from "glados/group/move/armada";
 import {FastBallPlacement} from "glados/group/move/fastballplacement";
 // import {OverChip} from "glados/group/move/overchip";
