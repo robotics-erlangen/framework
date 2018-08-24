@@ -1,42 +1,17 @@
-let KickOffDefensive = Class("Group.Move.KickOffDefensive", require "group/move/base")
-
+import {FriendlyRobot, Robot} from "base/robot";
+import {Vector, Position} from "base/vector";
 import * as World from "base/world";
-let G = World.Geometry
 
-let ManMark = require "task/defender/manmark"
+import {ManMark} from "glados/task/defender/manmark"
 import {MoveToPos} from "glados/task/shared/movetopos";
-let StopAttack = require "task/attacker/stopattack"
-let MovesHelper = require "util/moveshelper"
+import {StopAttack} from "glados/task/attacker/stopattack"
+import {MovesHelper} from "glados/util/moveshelper"
+import {Move, Assignment} from "glados/group/move/base";
+import {MessageBox, MessageType} from "glados/control/messaging";
 
-KickOffDefensive.MIN_ROBOTS = 1
-KickOffDefensive.MAX_ROBOTS = 3
+let G = World.Geometry;
 
-function KickOffDefensive.canStart () {
-	return World.RefereeState == "KickoffDefensivePrepare"
-			 ||  World.RefereeState == "KickoffDefensive"
-}
-
-function KickOffDefensive:_init () {
-	this._fallbackPos = {
-		new Vector(-G.FieldWidthHalf * 0.5, -0.4),
-		new Vector(G.FieldWidthHalf * 0.5, -0.4),
-	}
-
-	let positions = { Vector(0, 0) }
-	for (i = 1, #this._robots-1) {
-		table.insert(positions, this._fallbackPos[i])
-	}
-	this._assignments = MovesHelper.assignRobots(this._robots, positions, 0)
-	this._targetLeft = nil
-	this._targetRight = nil
-}
-
-function KickOffDefensive:_canContinue () {
-	return World.RefereeState == "KickoffDefensivePrepare"
-			 ||  World.RefereeState == "KickoffDefensive"
-}
-
-let getTarget = function (prevTarget, fallbackPos) {
+function getTarget (prevTarget: Robot | undefined, fallbackPos: Position): [Robot, boolean] | [] {
 	let maxDist = 2.5
 	let distHysteresis = 1
 
@@ -47,12 +22,12 @@ let getTarget = function (prevTarget, fallbackPos) {
 
 	let closestTarget
 	let closestDist = Infinity
-	for (_,r in ipairs(World.OpponentRobots)) {
+	for (let r of World.OpponentRobots) {
 		if (r.pos.x * fallbackPos.x > 0 && Math.abs(r.pos.x) > G.CenterCircleRadius + 0.3) {
-			let dist = r.pos.distanceTo(fallbackPos)
+			let dist = r.pos.distanceTo(fallbackPos);
 			if (dist < closestDist) {
-				closestTarget = r
-				closestDist = dist
+				closestTarget = r;
+				closestDist = dist;
 			}
 		}
 	}
@@ -65,36 +40,69 @@ let getTarget = function (prevTarget, fallbackPos) {
 	}
 
 	if (dist < Infinity) {
-		return target, target != prevTarget
+		return [<Robot>target, target != prevTarget];
 	}
 
-	return nil
+	return [];
 }
 
-function KickOffDefensive:_updateTasks () {
-	let restartLeft, restartRight
-	this._targetLeft, restartLeft = getTarget(this._targetLeft, this._fallbackPos[1])
-	this._targetRight, restartRight = getTarget(this._targetRight, this._fallbackPos[2])
+export class KickOffDefensive extends Move {
+	public static MIN_ROBOTS: number = 1;
+	public static MAX_ROBOTS: number = 3;
 
-	let taskAssignments = {}
-	taskAssignments[this._robots[this._assignments[1]]] = { class: StopAttack, params: {} }
-
-	if (#this._robots > 1) {
-		if (this._targetLeft) {
-			taskAssignments[this._robots[this._assignments[2]]] = { class: ManMark, params: { this._targetLeft }, restart: restartLeft }
-		} else {
-			taskAssignments[this._robots[this._assignments[2]]] = { class: MoveToPos, params: { this._fallbackPos[1] } }
-		}
-	}
-	if (#this._robots > 2) {
-		if (this._targetRight) {
-			taskAssignments[this._robots[this._assignments[3]]] = { class: ManMark, params: { this._targetRight }, restart: restartRight }
-		} else {
-			taskAssignments[this._robots[this._assignments[3]]] = { class: MoveToPos, params: { this._fallbackPos[2] } }
-		}
+	public static canStart (): boolean {
+		return World.RefereeState === "KickoffDefensivePrepare"
+				 ||  World.RefereeState === "KickoffDefensive"
 	}
 
-	return taskAssignments, this._robots[this._assignments[1]]
+	private _fallbackPos = [
+		new Vector(-G.FieldWidthHalf * 0.5, -0.4),
+		new Vector(G.FieldWidthHalf * 0.5, -0.4),
+	];
+	private _assignments: number[];
+	private _targetLeft: Robot | undefined;
+	private _targetRight: Robot | undefined;
+
+
+	constructor (robots: FriendlyRobot[], messaging: MessageBox) {
+		super(robots, messaging);
+		
+
+		let positions = [ new Vector(0, 0) ];
+		for (let i = 0;i<this._robots.length-1;i++) {
+			positions.push(this._fallbackPos[i])
+		}
+		this._assignments = MovesHelper.assignRobots(this._robots, positions, 0)
+	}
+
+	_canContinue (): boolean {
+		return World.RefereeState === "KickoffDefensivePrepare"
+				 ||  World.RefereeState === "KickoffDefensive"
+	}
+
+	_updateTasks (): [Map<FriendlyRobot, Assignment>, FriendlyRobot] {
+		let restartLeft: boolean | undefined, restartRight: boolean | undefined;
+		[this._targetLeft, restartLeft] = getTarget(this._targetLeft, this._fallbackPos[0]);
+		[this._targetRight, restartRight] = getTarget(this._targetRight, this._fallbackPos[1]);
+
+		let taskAssignments = new Map<FriendlyRobot, Assignment>();
+		taskAssignments[this._robots[this._assignments[0]]] = { class: StopAttack, params: [] }
+
+		if (this._robots.length > 1) {
+			if (this._targetLeft) {
+				taskAssignments[this._robots[this._assignments[1]]] = { class: ManMark, params: [ this._targetLeft ], restart: restartLeft }
+			} else {
+				taskAssignments[this._robots[this._assignments[1]]] = { class: MoveToPos, params: [ this._fallbackPos[0] ] }
+			}
+		}
+		if (this._robots.length > 2) {
+			if (this._targetRight) {
+				taskAssignments[this._robots[this._assignments[2]]] = { class: ManMark, params: [ this._targetRight ], restart: restartRight }
+			} else {
+				taskAssignments[this._robots[this._assignments[2]]] = { class: MoveToPos, params: [ this._fallbackPos[1] ] }
+			}
+		}
+
+		return [taskAssignments, this._robots[this._assignments[0]]];
+	}
 }
-
-return KickOffDefensive

@@ -13,7 +13,7 @@ export class None extends Move {
 	_updateTasks (): [Map<FriendlyRobot, Assignment>, FriendlyRobot] {
 		let taskAssignments = new Map<FriendlyRobot, Assignment>();
 		for (let r of this._robots) {
-			taskAssignments[r] = {class: "none", params: {}};
+			taskAssignments[r] = {class: "none", params: []};
 		}
 		return [taskAssignments, this._robots[0]];
 	}
