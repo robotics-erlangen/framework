@@ -1,36 +1,33 @@
-let None = Class("Group.Move.None", require "group/move/base")
-
+import {FriendlyRobot} from "base/robot";
 import * as World from "base/world";
-let Armada = require "group/move/armada"
-let WindshieldWiper = require "group/move/windshieldwiper"
+import {Move, Assignment} from "glados/group/move/base";
+import {Armada} from "glados/group/move/armada";
+import {WindshieldWiper} from "glados/group/move/windshieldwiper";
 
-let G = World.Geometry
+let G = World.Geometry;
 
-None.MIN_ROBOTS = 5
-None.MAX_ROBOTS = 5
+export class None extends Move {
+	static MIN_ROBOTS: number = 5;
+	static MAX_ROBOTS: number = 5;
 
-function None:_updateTasks () {
-	let taskAssignments = {}
-	for (_,r in ipairs(this._robots)) {
-		taskAssignments[r] = {class: "none", params={}}
+	_updateTasks (): [Map<FriendlyRobot, Assignment>, FriendlyRobot] {
+		let taskAssignments = new Map<FriendlyRobot, Assignment>();
+		for (let r of this._robots) {
+			taskAssignments[r] = {class: "none", params: {}};
+		}
+		return [taskAssignments, this._robots[0]];
 	}
-	return taskAssignments, this._robots[0]
-}
 
-function None:_canContinue () {
-	if (None.Referee.isFriendlyFreeKickState()) {
-		return true
+	_canContinue (): boolean {
+		if (None.Referee.isFriendlyFreeKickState()) {
+			return true
+		}
+		return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2
+			 &&  Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
+			 &&  World.RefereeState === "Stop"
 	}
-	return World.Ball.pos.y > 4 * G.FieldHeightHalf / 5 - 0.2
-		 &&  Math.abs(World.Ball.pos.x) > G.FieldWidthHalf / 2 - 0.2
-		 &&  World.RefereeState == "Stop"
-}
 
-function None.canStart () {
-	return Armada.canStart() || WindshieldWiper.canStart()
+	static canStart (): boolean {
+		return Armada.canStart() || WindshieldWiper.canStart()
+	}
 }
-
-function None._init () {
-}
-
-return None

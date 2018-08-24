@@ -1,47 +1,53 @@
-let Base = Class("Group.Move.Base")
+import {FriendlyRobot} from "base/robot";
+import {Task} from "glados/task/base";
+import {Behavior} from "glados/agent/base/behavior";
+import {MessageBox, MessageType} from "glados/control/messaging";
+import * as Referee from "base/referee";
 
-Base.Referee = require "+/base/referee"
+export {MessageBox} from "glados/control/messaging";
 
-Base.MIN_ROBOTS = -1
-Base.MAX_ROBOTS = -1
-
-
-function Base.canStart () {
-	error("stub")
+export type Assignment = {
+	class: any,
+	params?: any[],
+	restart?: boolean
+} | {
+	behavior: any,
+	params?: any[],
+	restart?: boolean
 }
 
-function Base.injectReferee (pseudoRef) {
-	Base.Referee = pseudoRef
-}
+export abstract class Move {
+	private _firstFrame: boolean = true;
+	protected _robots: FriendlyRobot[];
+	protected _messaging: MessageBox;
 
-function Base:_init () {
-	error("stub")
-}
+	protected static Referee: typeof Referee = Referee;
 
-function Base:_canContinue () {
-	error("stub")
-}
-
-function Base:_updateTasks () {
-	error("stub")
-}
-
-
-function Base:init (robots, inbox) {
-	this._firstFrame = true
-	this._robots = robots
-	this._inbox = inbox
-	this._init()
-}
-
-function Base:updateTasks () {
-	let assignments, mainAttacker = this._updateTasks()
-	for (_, assignment in pairs(assignments)) {
-		assignment.restart = assignment.restart || this._firstFrame // TODO: test
+	constructor (robots: FriendlyRobot[], messaging: MessageBox) {
+		this._firstFrame = true
+		this._robots = robots
+		this._messaging = messaging
 	}
-	this._firstFrame = false
-	return assignments, mainAttacker
+
+	public updateTasks (): [Map<FriendlyRobot, Assignment>, FriendlyRobot | undefined] {
+		let [assignments, mainAttacker] = this._updateTasks()
+		for (let assignment of assignments.values()) {
+			assignment.restart = assignment.restart || this._firstFrame // TODO: test
+		}
+		this._firstFrame = false
+		return [assignments, mainAttacker]
+	}
+
+	static injectReferee (pseudoRef: typeof Referee) {
+		Base.Referee = pseudoRef;
+	}
+
+	// abstract members
+
+	public abstract static MAX_ROBOTS: number;
+	public abstract static MIN_ROBOTS: number;
+
+	public abstract static canStart(): boolean;
+	public abstract _canContinue(): boolean;
+	protected abstract _updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot | undefined];
 }
-
-
-return Base
