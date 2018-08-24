@@ -116,7 +116,7 @@ if [[ "$IS_MINGW" == 1 ]]; then
     fi
     cd ../..
 else
-    if [[ "$(git show-ref -s --verify HEAD)" != "$V8_BASE_REVISION" ]]; then
+    if [[ "$(git rev-parse --verify HEAD)" != "$V8_BASE_REVISION" ]]; then
         git checkout $V8_BASE_REVISION
     fi
     gclient sync
