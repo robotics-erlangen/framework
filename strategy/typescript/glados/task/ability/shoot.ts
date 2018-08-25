@@ -477,7 +477,7 @@ export class Shoot {
 	// @param targetPos Vector - where to shoot at
 	// @param targetSpeed number - the velocity of the ball when it reaches targetPos
 	// @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
-	_shoot (targetPos: Position, targetSpeed: number, targetTime: number, ballReceiptPos: Position, precision: number) {
+	_shoot (targetPos: Position, targetSpeed: number, targetTime?: number, ballReceiptPos?: Position, precision?: number) {
 		this._doShoot(targetPos, targetSpeed, targetTime, ballReceiptPos, true, precision);
 	}
 

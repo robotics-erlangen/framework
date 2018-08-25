@@ -1,60 +1,57 @@
-let RescueRobot = Class("Task.RescueRobot", require "task/base")
-
 import * as geom from "base/geom";
+import {Vector, Speed} from "base/vector";
 import * as World from "base/world";
-let TrajectoryHidden = require "trajectory/hidden"
+import {Task} from "glados/task/base";
+import {Hidden} from "glados/trajectory/hidden";
 
-
-function RescueRobot:_init () {
-	this._rotation = nil
+export class RescueRobot extends Task {
+	private _rotation: number | undefined;
 	// list of local speeds: (speedForward, speedSide)
-	this._speeds = nil
-}
+	private _speeds: Speed[] | undefined;
 
-function RescueRobot:run () {
-	// ignore visible robots
-	if (this._robot.isVisible || not this._robot.speed) {
-		return
-	}
-
-	if (not this._rotation) {
-		// align forward direction with the opposite speed the robot had when it was lost
-		let robotSpeed = this._robot.speed.copy()
-		if (robotSpeed.length() < 0.0001) {
-			// ensure that backwardsDir points to the opponent goal, if the robot doesn't move
-			robotSpeed = new Vector(0, -1)
+	public run () {
+		// ignore visible robots
+		if (this._robot.isVisible || this._robot.speed == undefined) {
+			return
 		}
-		let backwardsDir = robotSpeed.scaleLength(-1).angle()
-		let frontDir = this._robot.dir
-		this._rotation = geom.getAngleDiff(frontDir, backwardsDir)
 
-		// if field center is on the left while moving forward
-		if (geom.checkTriangleOrientation(this._robot.pos, this._robot.pos + Vector.fromAngle(backwardsDir), new Vector(0,0)) >= 0) {
-			this._speeds = {
-				Vector(1, 0), // forward
-				Vector(-1, 0), // backward
-				Vector(0, -1), // left
-				Vector(0 , 1) // right
+		if (this._rotation == undefined || this._speeds == undefined) {
+			// align forward direction with the opposite speed the robot had when it was lost
+			let robotSpeed = this._robot.speed.copy();
+			if (robotSpeed.length() < 0.0001) {
+				// ensure that backwardsDir points to the opponent goal, if the robot doesn't move
+				robotSpeed = new Vector(0, -1);
 			}
-		} else {
-			this._speeds = {
-				Vector(1, 0), // forward
-				Vector(-1, 0), // backward
-				Vector(0 , 1), // right
-				Vector(0, -1) // left
+			let backwardsDir = robotSpeed.scaleLength(-1).angle();
+			let frontDir = this._robot.dir;
+			this._rotation = geom.getAngleDiff(frontDir, backwardsDir);
+
+			// if field center is on the left while moving forward
+			if (geom.checkTriangleOrientation(this._robot.pos, this._robot.pos + Vector.fromAngle(backwardsDir), new Vector(0,0)) >= 0) {
+				this._speeds = [
+					new Vector(1, 0), // forward
+					new Vector(-1, 0), // backward
+					new Vector(0, -1), // left
+					new Vector(0 , 1) // right
+				];
+			} else {
+				this._speeds = [
+					new Vector(1, 0), // forward
+					new Vector(-1, 0), // backward
+					new Vector(0 , 1), // right
+					new Vector(0, -1) // left
+				];
 			}
 		}
-	}
 
-	// use time as index, one new vector every second
-	let timeDiff = World.Time - this._robot.lostSince
-	let idx = Math.floor(timeDiff) + 1 // offset for array start index
-	let speed = this._speeds[idx]
+		// use time as index, one new vector every second
+		let timeDiff = World.Time - this._robot.lostSince;
+		let idx = Math.floor(timeDiff); // offset for array start index
+		let speed = this._speeds[idx];
 
-	if (speed) {
-		speed = speed.copy().rotate(this._rotation)
-		this._robot.trajectory.update(TrajectoryHidden, speed.x, speed.y, 0)
+		if (speed) {
+			speed = speed.copy().rotate(this._rotation);
+			this._robot.trajectory.update(Hidden, speed.x, speed.y, 0);
+		}
 	}
 }
-
-return RescueRobot

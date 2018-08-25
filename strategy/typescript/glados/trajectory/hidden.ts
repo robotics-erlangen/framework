@@ -1,18 +1,19 @@
-let Hidden = Class("Trajectory.Hidden", (require "+/base/trajectory").Base)
-
+import {Position} from "base/vector";
+import {TrajectoryHandler} from "base/trajectory";
 
 // only works for hidden robots
-function Hidden:_init () {
-}
+export class Hidden extends TrajectoryHandler {
+	update (speedForward: number, speedSide: number, omega: number): [any, Position, number] {
+		if (this._robot.isVisible) {
+			throw new Error("can only control invisible robots");
+		}
+		if (speedForward == undefined || speedSide == undefined || omega == undefined) {
+			throw new Error("missing parameters!");
+		}
+		return [{ v_f: speedForward, v_s: speedSide, omega: omega }, this._robot.pos, 0];
+	}
 
-function Hidden:update (speedForward, speedSide, omega) {
-	assert(not this._robot.isVisible, "can only control invisible robots")
-	assert(speedForward != undefined && speedSide != undefined && omega != undefined, "missing parameters!")
-	return { v_f = speedForward, v_s = speedSide, omega = omega }, this._robot.pos, 0
+	canHandle (): boolean {
+		return true;
+	}
 }
-
-function Hidden:canHandle () {
-	return true
-}
-
-return Hidden

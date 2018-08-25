@@ -8,10 +8,11 @@ export interface Agent {
 	isAgent: ()=> boolean;
 	_messaging: MessageBox;
 	robot:()=> FriendlyRobot;
+	_activeBehavior: any;
 };
 
 export abstract class Task {
-	_agent: {isAgent(): boolean};
+	_agent: Agent;
 	_robot: FriendlyRobot;
 	_messaging: MessageBox;
 	_mainAttackerParameters: MainAttackerParameters | undefined;

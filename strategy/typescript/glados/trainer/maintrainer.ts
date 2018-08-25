@@ -3,7 +3,7 @@ import {Defense} from "glados/trainer/defense";
 import {Trainer} from "glados/trainer/trainer";
 
 
-class MainTrainer extends Trainer {
+export class MainTrainer extends Trainer {
 	_defense: Defense;
 	_attackRatio: AttackRatio;
 	_mode: "passive" | "aggressive" | undefined;
