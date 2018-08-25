@@ -1,31 +1,35 @@
-let Base = require "agent/base/agent"
-let Keeper = Class("Agent.Keeper", Base)
-
+import {FriendlyRobot} from "base/robot";
 import * as World from "base/world";
-let Default = require "agent/keeper/default"
-let HandleBall = require "agent/keeper/handleball"
-let DefendPenaltyShootout = require "agent/keeper/defendpenaltyshootout"
+import {Behavior} from "glados/agent/base/behavior";
+import {Agent} from "glados/agent/base/agent";
+import {Default} from "glados/agent/keeper/default"
+import {HandleBall} from "glados/agent/keeper/handleball"
+import {DefendPenaltyShootout} from "glados/agent/keeper/defendpenaltyshootout"
 
+export class Keeper extends Agent {
 
-Keeper._behaviors = {
-	DefendPenaltyShootout,
-	HandleBall,
-	Default
-};
-function Keeper.takeRobot (robots) {
-	for (let robot of robots) {
-		if (robot == World.FriendlyKeeper) {
-			return robot;
+	getBehaviors(): typeof Behavior[] {
+		return [
+			DefendPenaltyShootout,
+			HandleBall,
+			Default
+		];
+	}
+
+	static takeRobot (robots: FriendlyRobot[]): FriendlyRobot | undefined {
+		for (let robot of robots) {
+			if (robot == World.FriendlyKeeper) {
+				return robot;
+			}
 		}
+		return undefined;
+	}
+
+	public keepRobot (): boolean {
+		return this._robot.isVisible && this._robot == World.FriendlyKeeper && this._robot.userControl == undefined;
+	}
+
+	public rateRobot (): number {
+		return 1;
 	}
 }
-
-function Keeper:keepRobot () {
-	return this._robot.isVisible && this._robot == World.FriendlyKeeper && not this._robot.userControl;
-}
-
-function Keeper:rateRobot () {
-	return 1;
-}
-
-return Keeper;
