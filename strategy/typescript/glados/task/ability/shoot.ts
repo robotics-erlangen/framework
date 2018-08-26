@@ -495,10 +495,10 @@ export class Shoot {
 	// and ignoreOpponentRobots obstacle parameters
 	// @param rollingBallPos Vector - where the ball is starting to roll
 	// @param ballReceiptPos Vector - in case of incoming passes, where to shoot from (optional)
-	_chipPass (rollingBallPos: Position, ballReceiptPos: Position, targetTime: number,
-			precision: number, manualChipDistFactor: number = CHIP_PASS_DISTANCE_FACTOR) {
+	_chipPass (rollingBallPos: Position, ballReceiptPos?: Position, targetTime?: number,
+			precision?: number, manualChipDistFactor: number = CHIP_PASS_DISTANCE_FACTOR) {
 		let origin: Position;
-		if (ballReceiptPos && (ballReceiptPos - World.Ball.pos).dot(World.Ball.speed) > 0
+		if (ballReceiptPos != undefined && (ballReceiptPos - World.Ball.pos).dot(World.Ball.speed) > 0
 				&& World.Ball.speed.length() > 0.5) {
 			origin = ballReceiptPos.orthogonalProjection(World.Ball.pos, World.Ball.pos + World.Ball.speed)[0];
 		} else {
@@ -508,7 +508,7 @@ export class Shoot {
 		this._chipToPos(firstContactPos, targetTime, ballReceiptPos, precision);
 	}
 
-	_shootFreeKick (targetPos: Position, targetSpeed: number, targetTime: number, precision: number = MIN_PRECISION) {
+	_shootFreeKick (targetPos: Position, targetSpeed: number, targetTime?: number, precision: number = MIN_PRECISION) {
 		this._linearShoot = true;
 		this._precision = precision;
 		this._shootStationaryBall(targetPos, targetSpeed, targetTime, World.Ball);

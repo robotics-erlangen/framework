@@ -39,7 +39,6 @@ export class CatchBall {
 	private _recalculateCatchTimeCounter: number = 0;
 	private _ignoringOpponents: boolean = false;
 
-	// TODO: these are as a mixin
 	_robot: FriendlyRobot;
 	_messaging: MessageBox;
 

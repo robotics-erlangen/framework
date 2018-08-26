@@ -8,7 +8,7 @@ import {Task} from "glados/task/base";
 const DEST_SWITCH_DISTANCE = 0.02;
 const GOAL_DISTANCE = 0.06;
 
-class RandomKeeper extends Task {
+export class RandomKeeper extends Task {
 	_nextX: number | undefined;
 
 	run () {

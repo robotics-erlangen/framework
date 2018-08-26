@@ -8,7 +8,7 @@ import {DefendPenaltyShootout} from "glados/agent/keeper/defendpenaltyshootout"
 
 export class Keeper extends Agent {
 
-	getBehaviors(): typeof Behavior[] {
+	getBehaviors(): any[] {
 		return [
 			DefendPenaltyShootout,
 			HandleBall,

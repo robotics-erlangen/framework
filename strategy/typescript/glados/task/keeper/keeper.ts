@@ -18,7 +18,7 @@ let G = World.Geometry;
 let KEEPER_GOAL_DISTANCE = 0.06;
 let GOAL_NORMAL = new Vector(0, 1);
 
-class Keeper extends Task {
+export class Keeper extends Task {
 	private _defendCorner: boolean = false;
 	private _forceShoot: ForceShoot;
 

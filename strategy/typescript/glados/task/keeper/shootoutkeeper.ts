@@ -33,7 +33,7 @@ const leftNearBasePoint = new Vector(-G.FieldWidthHalf, G.FieldHeightHalf-CHIP_G
 const rightNearBasePoint = new Vector(G.FieldWidthHalf, G.FieldHeightHalf-CHIP_GOAL_LINE_DIST);
 const nearBaseLineDir = rightNearBasePoint-leftNearBasePoint;
 
-class ShootoutKeeper extends Task {
+export class ShootoutKeeper extends Task {
 	private _forceShoot: ForceShoot;
 
 	constructor(agent: Agent) {

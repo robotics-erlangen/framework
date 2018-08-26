@@ -1,50 +1,55 @@
-let Base = require "agent/base/agent"
-let Defender = Class("Agent.Defender", Base)
-
+import {FriendlyRobot} from "base/robot";
 import * as World from "base/world";
 
-let Default = require "agent/defender/default"
-let HandleBall = require "agent/defender/handleball"
-let ManMark = require "agent/defender/manmark"
-let ZoneDefense = require "agent/defender/zonedefense"
-let Penalty = require "agent/defender/penalty"
-let Piggy = require "agent/defender/piggy"
-let BallEscort = require "agent/shared/ballescort"
-let RescueFromDefenseArea = require "agent/shared/rescuefromdefensearea"
+import {Agent} from "glados/agent/base/agent";
+import {Behavior} from "glados/agent/base/behavior";
+import {Default} from "glados/agent/defender/default";
+import {HandleBall} from "glados/agent/defender/handleball";
+import {ManMark} from "glados/agent/defender/manmark";
+import {ZoneDefense} from "glados/agent/defender/zonedefense";
+import {Penalty} from "glados/agent/defender/penalty";
+import {Piggy} from "glados/agent/defender/piggy";
+import {BallEscort} from "glados/agent/shared/ballescort";
+import {RescueFromDefenseArea} from "glados/agent/shared/rescuefromdefensearea";
+import {MessageType} from "glados/control/messaging";
 
-Defender._behaviors = {
-	RescueFromDefenseArea,
-	Penalty,
-	BallEscort,
-	HandleBall,
-	ManMark,
-	Piggy,
-	ZoneDefense,
-	Default
-}
+export class Defender extends Agent {
 
-function Defender:_run () {
-	this._activeBehavior._send.defenderFlag("all")
-}
+	public getBehaviors(): any[] {
+		return [
+			RescueFromDefenseArea,
+			Penalty,
+			BallEscort,
+			HandleBall,
+			ManMark,
+			Piggy,
+			ZoneDefense,
+			Default
+		];
+	}
 
-function Defender.takeRobot (robots) {
-	for (let robot of robots) {
-		if (robot.isVisible) {
-			return robot
+	public _run () {
+		(this._activeBehavior as Behavior)._messaging.sendBroadcast(MessageType.defenderFlag);
+	}
+
+	public static takeRobot (robots: FriendlyRobot[]): FriendlyRobot | undefined {
+		for (let robot of robots) {
+			if (robot.isVisible) {
+				return robot;
+			}
 		}
+		return undefined;
+	}
+
+	public keepRobot (): boolean {
+		return this._robot.isVisible && this._robot != World.FriendlyKeeper && this._robot.userControl == undefined;
+	}
+
+	// worse rating if robot if farther away from own goal
+	public rateRobot (): number {
+		if (this._activeBehavior != undefined && this._activeBehavior.forceKeepingInPool()) {
+			return Infinity;
+		}
+		return -World.Geometry.FriendlyGoal.distanceTo(this._robot.pos);
 	}
 }
-
-function Defender:keepRobot () {
-	return this._robot.isVisible && this._robot != World.FriendlyKeeper && not this._robot.userControl
-}
-
-// worse rating if robot if farther away from own goal
-function Defender:rateRobot () {
-	if (this._activeBehavior && this._activeBehavior:forceKeepingInPool()) {
-		return Infinity
-	}
-	return -World.Geometry.FriendlyGoal.distanceTo(this._robot.pos)
-}
-
-return Defender

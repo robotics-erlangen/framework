@@ -1,27 +1,29 @@
-let Base = require "agent/base/agent"
-let Hidden = Class("Agent.Hidden", Base)
+import {FriendlyRobot} from "base/robot";
+import {Agent} from "glados/agent/base/agent";
+import {Behavior} from "glados/agent/base/behavior";
+import {Default} from "glados/agent/hidden/default"
 
-let Default = require "agent/hidden/default"
 
+export class Hidden extends Agent {
 
-Hidden._behaviors = {
-	Default
-}
+	public getBehaviors(): typeof Behavior[] {
+		return [Default];
+	}
 
-function Hidden.takeRobot (robots) {
-	for (let robot of robots) {
-		if (not robot.isVisible) {
-			return robot
+	public static takeRobot (robots: FriendlyRobot[]): FriendlyRobot | undefined {
+		for (let robot of robots) {
+			if (!robot.isVisible) {
+				return robot;
+			}
 		}
+		return undefined;
+	}
+
+	public keepRobot (): boolean {
+		return !this._robot.isVisible && this._robot.userControl == undefined;
+	}
+
+	public rateRobot (): number {
+		return 0;
 	}
 }
-
-function Hidden:keepRobot () {
-	return not this._robot.isVisible && not this._robot.userControl
-}
-
-function Hidden:rateRobot () {
-	return 0
-}
-
-return Hidden

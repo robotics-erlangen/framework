@@ -1,28 +1,30 @@
-let Base = require "agent/base/agent"
-let Manual = Class("Agent.Manual", Base)
+import {FriendlyRobot} from "base/robot";
+import {Agent} from "glados/agent/base/agent";
+import {Behavior} from "glados/agent/base/behavior";
+import {Default} from "glados/agent/manual/default"
 
-let Default = require "agent/manual/default"
 
+export class Manual extends Agent {
 
-Manual._behaviors = {
-	Default
-}
+	public getBehaviors(): typeof Behavior[] {
+		return [Default];
+	}
 
-function Manual.takeRobot (robots) {
-	for (let robot of robots) {
-		// take robots which get command from an input device
-		if (robot.userControl) {
-			return robot
+	public static takeRobot (robots: FriendlyRobot[]): FriendlyRobot | undefined {
+		for (let robot of robots) {
+			// take robots which get command from an input device
+			if (robot.userControl) {
+				return robot;
+			}
 		}
+		return undefined;
+	}
+
+	public keepRobot (): boolean {
+		return this._robot.userControl != undefined;
+	}
+
+	public rateRobot (): number {
+		return 0;
 	}
 }
-
-function Manual:keepRobot () {
-	return this._robot.userControl
-}
-
-function Manual:rateRobot () {
-	return 0
-}
-
-return Manual
