@@ -10,7 +10,7 @@ export class MoveCommand extends Behavior {
 		return this._robot.moveCommand != undefined && !World.IsSimulated;
 	}
 
-	_updateTask(): [Task, any[], boolean] {
+	_updateTask(): [typeof Task, any[], boolean] {
 		return [MoveToPos, [(this._robot.moveCommand as {pos: Position}).pos, undefined, undefined, undefined, true], true];
 	}
 }

@@ -9,9 +9,10 @@ export class Default extends Behavior {
 		return true;
 	}
 
-	_updateTask (): [Task] {
+	_updateTask (): [typeof Task] {
 		if (World.GameStage == "PenaltyShootout" && World.RefereeState === "PenaltyDefensive") {
-			return [Keeper]; // RandomKeeper;
+			return [Keeper];
+			//return [RandomKeeper];
 		} else {
 			return [Keeper];
 		}
