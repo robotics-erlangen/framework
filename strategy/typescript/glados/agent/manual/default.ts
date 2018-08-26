@@ -12,7 +12,7 @@ import {Task} from "glados/task/base";
 
 
 export class Default extends Behavior {
-	_shootTarget: {pos: Position} | undefined = undefined;
+	private _shootTarget: {pos: Position} | undefined = undefined;
 
 	_stop () {
 		this._shootTarget = undefined
@@ -23,7 +23,7 @@ export class Default extends Behavior {
 		return true
 	}
 
-	_chooseShootTarget () {
+	private _chooseShootTarget () {
 		let targets: {pos: Position}[] = [];
 
 		targets.push({ pos: World.Geometry.OpponentGoal })
@@ -44,7 +44,7 @@ export class Default extends Behavior {
 		this._shootTarget = bestTarget;
 	}
 
-	_shootBall (): [typeof Task, any[] | undefined] {
+	private _shootBall (): [typeof Task, any[] | undefined] {
 		if (this._shootTarget == undefined) {
 			this._chooseShootTarget();
 		}

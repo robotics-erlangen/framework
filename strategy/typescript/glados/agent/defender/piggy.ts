@@ -1,34 +1,40 @@
-import {Behavior} from "glados/agent/base/behavior";
-let Piggy = Class("Agent.Defender.Piggy", Base)
-
 import * as debug from "base/debug";
+import {Robot} from "base/robot";
+import {Behavior} from "glados/agent/base/behavior";
+import {MessageType} from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
-let InterceptPass = require "task/defender/interceptpass"
-let PiggyTask = require "task/defender/piggy"
+import {Task} from "glados/task/base";
+import {InterceptPass} from "glados/task/defender/interceptpass"
+import {Piggy as PiggyTask} from "glados/task/defender/piggy"
 
+export class Piggy extends Behavior {
+	_opp: Robot | undefined = undefined;
 
-function Piggy:_stop () {
-	this._opp = nil
-}
-
-function Piggy:check () {
-	let role = this._inbox.roleAssignment().trainer
-	return role && role.name == "Piggy"
-}
-
-function Piggy:_updateTask () {
-	let newOpp = this._inbox.roleAssignment().trainer.params[1]
-	let restartTask = newOpp != this._opp
-	this._opp = newOpp
-
-	debug.set("target", this._opp.id)
-
-	if (Ball.receivesPass(this._opp)) {
-		return InterceptPass
-	} else {
-		return PiggyTask, { this._opp }, restartTask
+	_stop () {
+		this._opp = undefined;
 	}
 
-}
+	check (): boolean {
+		let role = this._messaging.receiveTrainer(MessageType.roleAssignment);
+		return role != undefined && role.name === "Piggy";
+	}
 
-return Piggy
+	_updateTask (): [typeof Task, any[], boolean] | [typeof Task] {
+		let assignment = this._messaging.receiveTrainer(MessageType.roleAssignment);
+		if (assignment == undefined || assignment.name !== "Piggy") {
+			throw new Error();
+		}
+		let newOpp = assignment.params[0];
+		let restartTask = newOpp != this._opp;
+		this._opp = newOpp;
+
+		debug.set("target", this._opp.id);
+
+		if (Ball.receivesPass(this._opp)) {
+			return [InterceptPass];
+		} else {
+			return [PiggyTask, [ this._opp ], restartTask];
+		}
+
+	}
+}

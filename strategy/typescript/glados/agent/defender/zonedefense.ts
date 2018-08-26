@@ -1,23 +1,30 @@
+import {Position} from "base/vector";
 import {Behavior} from "glados/agent/base/behavior";
-let ZoneDefense = Class("Agent.Defender.ZoneDefense", Base)
+import {MessageType} from "glados/control/messaging";
+import {Task} from "glados/task/base";
+import {BallEvadingMoveToPos} from "glados/task/defender/ballevadingmovetopos";
 
-let BallEvadingMoveToPos = require "task/defender/ballevadingmovetopos"
+export class ZoneDefense extends Behavior {
+	_movePos: Position | undefined = undefined;
 
-function ZoneDefense:_stop () {
-	this._movePos = nil
+	_stop () {
+		this._movePos = undefined;
+	}
+
+	check (): boolean {
+		let role = this._messaging.receiveTrainer(MessageType.roleAssignment);
+		return role != undefined && role.name === "ZoneDefense";
+	}
+
+	_updateTask (): [typeof Task, any[], boolean] {
+		let assignment = this._messaging.receiveTrainer(MessageType.roleAssignment);
+		if (assignment == undefined || assignment.name !== "ZoneDefense") {
+			throw new Error();
+		}
+		let movePos = assignment.params[0];
+		let restartTask = movePos != this._movePos;
+		this._movePos = movePos;
+
+		return [BallEvadingMoveToPos, [this._movePos, undefined], restartTask];
+	}
 }
-
-function ZoneDefense:check () {
-	let role = this._inbox.roleAssignment().trainer
-	return role && role.name == "ZoneDefense"
-}
-
-function ZoneDefense:_updateTask () {
-	let movePos = this._inbox.roleAssignment().trainer.params[1]
-	let restartTask = movePos != this._movePos
-	this._movePos = movePos
-
-	return BallEvadingMoveToPos, {this._movePos, nil}, restartTask
-}
-
-return ZoneDefense

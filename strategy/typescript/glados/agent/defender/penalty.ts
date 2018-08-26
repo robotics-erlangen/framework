@@ -1,16 +1,14 @@
-import {Behavior} from "glados/agent/base/behavior";
-let Penalty = Class("Agent.Defender.Penalty", Base)
-
 import * as World from "base/world";
-let DefendPenalty = require "task/defender/defendpenalty"
+import {Behavior} from "glados/agent/base/behavior";
+import {Task} from "glados/task/base";
+import {DefendPenalty} from "glados/task/defender/defendpenalty";
 
+export class Penalty extends Behavior {
+	check (): boolean {
+		return World.RefereeState === "PenaltyDefensivePrepare" || World.RefereeState === "PenaltyDefensive";
+	}
 
-function Penalty:check () {
-	return World.RefereeState == "PenaltyDefensivePrepare" || World.RefereeState == "PenaltyDefensive"
+	_updateTask (): [typeof Task] {
+		return [DefendPenalty];
+	}
 }
-
-function Penalty:_updateTask () {
-	return DefendPenalty
-}
-
-return Penalty

@@ -1,15 +1,14 @@
+import {RescueRobot} from "glados/task/hidden/rescuerobot";
 import {Behavior} from "glados/agent/base/behavior";
-let Default = Class("Agent.Hidden.Default", Base)
-
-let RescueRobot = require "task/hidden/rescuerobot"
+import {Task} from "glados/task/base";
 
 
-function Default:check () {
-	return true
+export class Default extends Behavior {
+	check (): boolean {
+		return true;
+	}
+
+	_updateTask (): [typeof Task] {
+		return [RescueRobot];
+	}
 }
-
-function Default:_updateTask () {
-	return RescueRobot
-}
-
-return Default
