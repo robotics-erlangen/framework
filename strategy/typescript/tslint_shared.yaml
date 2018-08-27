@@ -33,6 +33,7 @@ rules:
   no-var-keyword: true
   prefer-object-spread: true
   radix: true
+  triple-equals: [ true, allow-undefined-check ]
   use-isnan: true
   # maintainability
   eofline: true
@@ -58,7 +59,7 @@ rules:
   ordered-imports: [ true, grouped-imports: true, module-source-path: full ]
   prefer-method-signature: true
   prefer-switch: [ true, min-cases: 5 ]
-  prefer-template: true
+  prefer-template: [ true, allow-single-concat ]
   prefer-while: true
   quotemark: [ true, double, avoid-template, avoid-escape ]
   semicolon: [ true, always ]
