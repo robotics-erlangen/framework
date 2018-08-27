@@ -76,6 +76,7 @@ int main(int argc, char* argv[])
     QCommandLineOption runs({"r", "runs"}, "Ammount of runs, optional. Uses 1 if missing", "numRuns", "1");
     QCommandLineOption prefix({"p", "prefix"}, "Prefix for outputFiles. Uses std::cout for output if missing", "prefix");
     QCommandLineOption disablePerformanceMode("disable-performance-mode", "Disable performance mode for the strategy.");
+    QCommandLineOption showLogOption({"l", "show-log"}, "Print log output to std::cout");
 
     parser.addOption(asBlueOption);
     parser.addOption(showHistogramOption);
@@ -83,6 +84,7 @@ int main(int argc, char* argv[])
     parser.addOption(prefix);
     parser.addOption(printAllTimings);
     parser.addOption(disablePerformanceMode);
+    parser.addOption(showLogOption);
 
     // parse command line
     parser.process(app);
@@ -92,7 +94,8 @@ int main(int argc, char* argv[])
         parser.showHelp(1);
     }
 
-    bool asBlue = parser.isSet(asBlueOption);
+    const bool asBlue = parser.isSet(asBlueOption);
+    const bool showLog = parser.isSet(showLogOption);
 
     qRegisterMetaType<Status>("Status");
     qRegisterMetaType<Command>("Command");
@@ -152,6 +155,16 @@ int main(int argc, char* argv[])
 
         TimingStatistics statistics(asBlue, parser.isSet(printAllTimings), logfile.packetCount() + 1);
         statistics.connect(strategy, &Strategy::sendStatus, &statistics, &TimingStatistics::handleStatus);
+        if(showLog)
+            strategy->connect(strategy, &Strategy::sendStatus, [](const Status& s){
+                    if(s->has_debug()){
+                        const amun::DebugValues& debugValues = s->debug();
+                        for(int i=0; i < debugValues.log_size(); ++i){
+                            const amun::StatusLog& log = debugValues.log(i);
+                            std::cout << log.text() << std::endl;
+                        }
+                    }
+            });
         BlockingStrategyReplay replayBlocker(strategy);
 
         int packetCount = logfile.packetCount();
