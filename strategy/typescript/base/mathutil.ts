@@ -26,6 +26,43 @@
 
 let min = Math.min;
 let max = Math.max;
+declare let amun: any;
+import {Random} from "base/random";
+
+let _random: Random | undefined = undefined;
+/**
+ * seeds the PRNG with the given seed
+ */
+export function randomseed(seed: number): void {
+	_random = new Random(seed);
+}
+
+function initRandom(): void{
+	if (_random == undefined) {
+		if (amun.isDebug) {
+			throw new Error("Unseeded Random was tried")
+		}
+		_random = new Random();
+	}
+}
+
+/**
+ * generates a random number on [0,1) with 53-bit resolution
+ */
+export function random(): number {
+	initRandom();
+	return _random!.nextNumber53();
+}
+
+/**
+ * generates an int32 pseudo random number, faster than random()
+ * @param range: an optional [from, to] range, if not specified the result will be in range [0,0xffffffff]
+ * @return {number}
+ */
+export function randomInt(range?:[number, number]): number {
+	initRandom();
+	return _random!.nextInt32(range);
+}
 
 /// Limits value to interval [min, max].
 // @name bound
