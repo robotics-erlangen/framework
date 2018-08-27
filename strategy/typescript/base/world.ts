@@ -4,8 +4,8 @@
 ////
 
 // ***********************************************************************
-// *   Copyright 2015 Alexander Danzer, Michael Eischer, Christian Lobmeier, *
-// *       Philipp Nordhus                                                   *
+// *   Copyright 2018 Alexander Danzer, Michael Eischer, Tobias Heineken     *
+// *                  Christian Lobmeier, Philipp Nordhus, Andreas Wendler   *
 // *   Robotics Erlangen e.V.                                                *
 // *   http://www.robotics-erlangen.de/                                      *
 // *   info@robotics-erlangen.de                                             *
@@ -30,6 +30,7 @@ import {Ball as BallClass } from "base/ball";
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
 import { AbsTime, RelTime } from "base/globals";
+import * as MathUtil from "base/mathutil";
 // let mixedTeam = require "base/mixedteam"
 import { FriendlyRobot, Robot } from "base/robot";
 import { Position, Vector } from "base/vector";
@@ -274,8 +275,7 @@ export function _updateWorld(state: any) {
 		TimeDiff = 0;
 	}
 	Time = state.time * 1E-9;
-	// TODO: you can't seed the random number generator
-	// Math.randomseed(Time);
+	MathUtil.randomseed(Time);
 	if (Time <= 0) {
 		throw new Error("Invalid Time. Outdated ra version!");
 	}

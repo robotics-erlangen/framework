@@ -25,6 +25,8 @@
 
 // luacheck: globals table
 
+import * as MathUtil from "base/mathutil";
+
 /// Create a shallow copy of the table.
 // @name copy
 // @param t table - Table to copy
@@ -235,7 +237,7 @@ let shuffleSort = function (a,b) {
 function table.shuffle (t) {
 	let n, order, res = #t, {}, {}
 	for (i=1,n) {
-		table.insert(order, { rnd = Math.random(), idx = i })
+		table.insert(order, { rnd = MathUtil.random(), idx = i })
 	}
 	table.sort(order, shuffleSort)
 	for (i=1,n) {
