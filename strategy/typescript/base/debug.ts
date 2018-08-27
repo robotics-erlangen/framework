@@ -35,7 +35,7 @@ function prefixName(name?: string): string {
 	let prefix = debugStack[debugStack.length - 1];
 	if (name == undefined) {
 		return prefix;
-	} else if (prefix.length == 0) {
+	} else if (prefix.length === 0) {
 		return name;
 	}
 
@@ -104,7 +104,7 @@ export function set(name: string | undefined, value: any, visited: Map<object, s
 	// visited and tableCounter must be compatible with getInitialExtraParams
 
 	let result: any;
-	if (typeof(value) == "object") {
+	if (typeof(value) === "object") {
 		if (visited.get(value)) {
 			set(name, `${visited.get(value)} (duplicate)`);
 			return;
@@ -160,7 +160,7 @@ export function set(name: string | undefined, value: any, visited: Map<object, s
 			pop();
 			return;
 		}
-	} else if (typeof(value) == "function") {
+	} else if (typeof(value) === "function") {
 		result = `function ${value.name}`;
 	} else {
 		result = value;
@@ -172,7 +172,7 @@ export function set(name: string | undefined, value: any, visited: Map<object, s
 /// Clears the debug stack
 // @name resetStack
 export function resetStack() {
-	if (debugStack.length != 0 || debugStack[0] != "") {
+	if (debugStack.length !== 0 || debugStack[0] !== "") {
 		log("Unbalanced push/pop on debug stack");
 		for (let v in debugStack) {
 			log(v);

@@ -213,7 +213,7 @@ export function _updateTeam(state: any) {
 
 // Get rule version from geometry
 export function _updateRuleVersion(geom: any) {
-	if (!geom.type || geom.type == "TYPE_2014") {
+	if (!geom.type || geom.type === "TYPE_2014") {
 		RULEVERSION = "2017";
 	} else {
 		RULEVERSION = "2018";
@@ -279,7 +279,7 @@ export function _updateWorld(state: any) {
 	if (Time <= 0) {
 		throw new Error("Invalid Time. Outdated ra version!");
 	}
-	if (IsSimulated != state.is_simulated) {
+	if (IsSimulated !== state.is_simulated) {
 		IsSimulated = state.is_simulated;
 		Constants.switchSimulatorConstants(IsSimulated);
 	}
@@ -305,8 +305,8 @@ export function _updateWorld(state: any) {
 			// these are identified by the robot generation and id
 			let robotResponses: any[] = [];
 			for (let response of radioResponses) {
-				if (response.generation == robot.generation
-						&&  response.id == robot.id) {
+				if (response.generation === robot.generation
+						&&  response.id === robot.id) {
 					robotResponses.push(response);
 				}
 			}
@@ -361,7 +361,7 @@ export function _updateWorld(state: any) {
 	AoI = state.tracking_aoi;
 
 	// no vision data only if the parameter is false
-	return state.has_vision_data != false;
+	return state.has_vision_data !== false;
 }
 
 let gameStageMapping: {[name: string]: string} = {
@@ -401,7 +401,7 @@ function _updateGameState(state: any) {
 		RefereeState = refState.replace("Yellow", "Offensive").replace("Blue", "Defensive");
 	}
 
-	if (RefereeState == "TimeoutOffensive" || RefereeState == "TimeoutDefensive") {
+	if (RefereeState === "TimeoutOffensive" || RefereeState === "TimeoutDefensive") {
 		RefereeState = "Halt";
 	}
 

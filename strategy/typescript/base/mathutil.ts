@@ -85,7 +85,7 @@ export function round(val: number, digits: number = 0): number {
 // @param b number
 // @return [number]
 export function solveLin(a: number, b: number): number | undefined {
-	if (a == 0) {
+	if (a === 0) {
 		return;
 	}
 	return -b / a;
@@ -108,9 +108,9 @@ function sgn(value: number): 1 | -1 {
 // @return [number - smallest positive solution or largest
 // @return [number]]
 export function solveSq(a: number, b: number, c: number): [number, number?] | [] {
-	if (a == 0) {
+	if (a === 0) {
 		// return Math.solveLin(b, c)
-		if (b == 0) {
+		if (b === 0) {
 			return [];
 		} else {
 			return [-c / b];
@@ -120,7 +120,7 @@ export function solveSq(a: number, b: number, c: number): [number, number?] | []
 	let det = b * b - 4 * a * c;
 	if (det < 0) {
 		return [];
-	} else if (det == 0) {
+	} else if (det === 0) {
 		return [-b / (2 * a)];
 	}
 	det = Math.sqrt(det);

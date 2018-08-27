@@ -167,8 +167,8 @@ let cornerDist = 0.7; // some tolerance, rules say 10cm
 export function isOffensiveCornerKick(): boolean {
 	let ballPos = World.Ball.pos;
 	let refState = World.RefereeState;
-	return (refState == RefereeState.DirectOffensive ||
-			refState == RefereeState.IndirectOffensive)
+	return (refState === RefereeState.DirectOffensive ||
+			refState === RefereeState.IndirectOffensive)
 		&&  goalLine - ballPos.y < cornerDist
 		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
 }
@@ -179,8 +179,8 @@ export function isOffensiveCornerKick(): boolean {
 export function isDefensiveCornerKick(): boolean {
 	let ballPos = World.Ball.pos;
 	let refState = World.RefereeState;
-	return (refState == RefereeState.DirectDefensive ||
-		refState == RefereeState.IndirectDefensive || refState == RefereeState.Stop)
+	return (refState === RefereeState.DirectDefensive ||
+		refState === RefereeState.IndirectDefensive || refState === RefereeState.Stop)
 		&&  -goalLine - ballPos.y > -cornerDist
 		&& (leftLine - ballPos.x > -cornerDist || rightLine - ballPos.x < cornerDist);
 }
@@ -188,9 +188,9 @@ export function isDefensiveCornerKick(): boolean {
 /// Draw areas forbidden by the current referee command
 // @name illustrateRefereeStates
 export function illustrateRefereeStates() {
-	if (World.RefereeState == RefereeState.PenaltyDefensivePrepare || World.RefereeState == RefereeState.PenaltyDefensive) {
+	if (World.RefereeState === RefereeState.PenaltyDefensivePrepare || World.RefereeState === RefereeState.PenaltyDefensive) {
 		vis.addPath("penaltyDistanceAllowed", [new Vector(-2,World.Geometry.OwnPenaltyLine), new Vector(2,World.Geometry.OwnPenaltyLine)], vis.colors.red);
-	} else if (World.RefereeState == RefereeState.PenaltyOffensivePrepare || World.RefereeState == RefereeState.PenaltyOffensive) {
+	} else if (World.RefereeState === RefereeState.PenaltyOffensivePrepare || World.RefereeState === RefereeState.PenaltyOffensive) {
 		vis.addPath("penaltyDistanceAllowed", [new Vector(-2,World.Geometry.PenaltyLine), new Vector(2,World.Geometry.PenaltyLine)], vis.colors.red);
 	} else if (isStopState()) {
 		vis.addCircle("stopstateBallDist", World.Ball.pos, 0.5, vis.colors.redHalf, true);
@@ -224,7 +224,7 @@ export function check() {
 let lastState: RefereeState;
 let lastChangedTime: AbsTime;
 export function checkStateChange() {
-	if (World.RefereeState != lastState) {
+	if (World.RefereeState !== lastState) {
 		lastChangedTime = World.Time;
 		lastState = <RefereeState> World.RefereeState;
 	}
