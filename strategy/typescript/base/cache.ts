@@ -71,7 +71,7 @@ function setInCache (cached: Map<any, any>, params: any[], result: any | any[]) 
 
 let undefResult = Object.freeze([]);
 
-function makeCached (f: Function, keepForever: boolean): ((...args: any[])=> any[] | any[]) {
+function makeCached <F extends Function>(f: F, keepForever: boolean): F {
 	let cached: Map<any, any> = new Map<any, any>();
 	if (!keepForever) {
 		cleanup.push(
@@ -80,7 +80,7 @@ function makeCached (f: Function, keepForever: boolean): ((...args: any[])=> any
 			}
 		);
 	}
-	return function(...args: any[]): any[] | any {
+	return <F><any>(function(...args: any[]): any[] | any {
 		let result = getFromCache(cached, args);
 		args.shift();
 		if (result == undefined) {
@@ -94,14 +94,14 @@ function makeCached (f: Function, keepForever: boolean): ((...args: any[])=> any
 			return undefined;
 		}
 		return result;
-	}
+	});
 }
 
 /// Wraps a function call, the returned value is cached for this strategy run
 // @name forFrame
 // @param f function - function to wrap
 // @return function - wrapped function
-export function forFrame (f: Function): ((...args: any[])=> any[] | any) {
+export function forFrame <F extends Function>(f: F): F {
 	return makeCached(f, false);
 }
 
@@ -109,7 +109,7 @@ export function forFrame (f: Function): ((...args: any[])=> any[] | any) {
 // @name forever
 // @param f function - function to wrap
 // @return function - wrapped function
-export function forever (f: Function): ((...args: any[])=> any[] | any) {
+export function forever <F extends Function>(f: F): F {
 	return makeCached(f, true);
 }
 
