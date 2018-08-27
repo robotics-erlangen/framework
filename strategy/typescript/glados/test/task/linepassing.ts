@@ -1,4 +1,5 @@
 import * as Entrypoints from "base/entrypoints";
+import * as MathUtil from "base/mathutil";
 let Vector = require "+/base/vector"
 import * as World from "base/world";
 let AgentPool = require "control/agentpool"
@@ -53,7 +54,7 @@ let obstacleTable = {
 
 let MoveToRandom = Class("Test.Task.LinePassing.MoveToRandom", require "task/base")
 function MoveToRandom:_init () {
-	this._ypos = (Math.random() - 0.5) * 2 * (World.Geometry.FieldHeightHalf - 1)
+	this._ypos = (MathUtil.random() - 0.5) * 2 * (World.Geometry.FieldHeightHalf - 1)
 }
 
 function MoveToRandom:run () {

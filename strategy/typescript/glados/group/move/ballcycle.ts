@@ -9,6 +9,7 @@ let MovesHelper = require "util/moveshelper"
 import {MoveToPos} from "glados/task/shared/movetopos";
 import * as Referee from "base/referee";
 import * as World from "base/world";
+import * as MathUtil from "base/mathutil";
 
 let G = World.Geometry
 
@@ -25,7 +26,7 @@ function BallCycle.canStart () {
 
 // biased random for setting the position backwards
 let randomExtension = function (min) {
-	return Math.round(min + MAX_RANDOM_POSITION_OFFSET * Math.pow(Math.random(), 2), 1)
+	return Math.round(min + MAX_RANDOM_POSITION_OFFSET * Math.pow(MathUtil.random(), 2), 1)
 }
 
 // calculates good recieving possions for our attackers

@@ -1,4 +1,5 @@
 import * as Entrypoints from "base/entrypoints";
+import * as MathUtil from "base/mathutil";
 import * as World from "base/world";
 let Shoot = require "task/ability/shoot"
 import * as PathHelper from "glados/trajectory/pathhelper";
@@ -27,10 +28,10 @@ function ChipLearningTest:run () {
 		Math.abs(World.Ball.pos.y) < World.Geometry.FieldHeightHalf) {
 		this._framesSinceMove = this._framesSinceMove + 1
 		if (this._framesSinceMove == 9) {
-			let randX = World.Geometry.FieldWidthHalf * (Math.random() * 2 - 1) * 0.8
-			let randY = World.Geometry.FieldHeightHalf * (Math.random() * 2 - 1) * 0.8
+			let randX = World.Geometry.FieldWidthHalf * (MathUtil.random() * 2 - 1) * 0.8
+			let randY = World.Geometry.FieldHeightHalf * (MathUtil.random() * 2 - 1) * 0.8
 			this._shootPos = new Vector(randX, randY)
-			this._shootSpeed = Math.random() * this._maxShootSpeed
+			this._shootSpeed = MathUtil.random() * this._maxShootSpeed
 		}
 		if (this._framesSinceMove < 10) {
 			stayOnPos = true

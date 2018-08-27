@@ -1,4 +1,5 @@
 import * as debug from "base/debug";
+import * as MathUtil from "base/mathutil";
 import {FriendlyRobot} from "base/robot";
 
 import {MessageBox, MessageType} from "glados/control/messaging";
@@ -82,7 +83,7 @@ export class Moves {
 			}
 
 			if (candidates.length > 0) {
-				let index = Math.floor(Math.random() * candidates.length);
+				let index = MathUtil.randomInt([1,candidates.length]);
 				this._chosenMove = candidates[index]
 				n_attackers = Math.min(numCandidateRobots, candidates[index].MAX_ROBOTS)
 			}

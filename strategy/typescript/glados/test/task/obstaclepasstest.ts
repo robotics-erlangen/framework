@@ -1,4 +1,5 @@
 import * as Entrypoints from "base/entrypoints";
+import * as MathUtil from "base/mathutil";
 let Vector = require "+/base/vector"
 import * as World from "base/world";
 let AgentPool = require "control/agentpool"
@@ -61,8 +62,8 @@ let RETURN_LINES = {1.5,-1.5}
 
 let DriveToRandom = Class("Test.Task.ObstaclePassing.DriveToRandom", require "agent/base/behavior")
 function DriveToRandom:_stop () {
-	this._randomPos = new Vector((Math.random()-0.5)* 2 * (RETURN_LINES[1]-0.2),
-							(Math.random()-0.5) * 2 * (World.Geometry.FieldHeightHalf-1))
+	this._randomPos = new Vector((MathUtil.random()-0.5)* 2 * (RETURN_LINES[1]-0.2),
+							(MathUtil.random()-0.5) * 2 * (World.Geometry.FieldHeightHalf-1))
 }
 
 function DriveToRandom:check () {

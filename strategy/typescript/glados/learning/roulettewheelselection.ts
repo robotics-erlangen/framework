@@ -1,6 +1,7 @@
 let RouletteWheelSelection = {}
 
 let IO = require "util/io"
+import * as MathUtil from "base/mathutil";
 
 
 /// creates a list of ratings with length n and a success rate of 50%
@@ -35,7 +36,7 @@ export function decide (module, n, bitmap) {
 			percSum = percSum + rate.percentage
 		}
 	}
-	let rand = Math.random() * percSum
+	let rand = MathUtil.random() * percSum
 	let decSum = 0
 	for (i,rate in ipairs(successRates)) {
 		if (not bitmap || bitmap[i]) {

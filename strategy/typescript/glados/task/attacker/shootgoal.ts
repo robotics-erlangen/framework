@@ -3,6 +3,7 @@ let ShootGoal = Class("Task.ShootGoal", require "task/base", Shoot)
 
 import * as debug from "base/debug";
 import * as Field from "base/field";
+import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
 import * as vis from "base/vis";
 import * as World from "base/world";
@@ -182,7 +183,7 @@ function ShootGoal:run () {
 				if (not selectedInterval) {
 					this._desperateTargetID = nil
 					//TODO: Use heuristic instead of random
-					selectedInterval = onlyOppOcc[Math.random(#onlyOppOcc)]
+					selectedInterval = onlyOppOcc[MathUtil.randomInt([1,#onlyOppOcc])]
 				}
 				let selectedDir = selectedInterval[1] + 1/2 * ((selectedInterval[3][1].pos - ballReceiptPos).angle() - selectedInterval[1]) //TODO: select side
 				let angleError = selectedDir - selectedInterval[1]

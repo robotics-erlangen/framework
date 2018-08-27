@@ -29,14 +29,14 @@ const MAX_RANDOM_POSITION_OFFSET = 0.8
 
 function getRandomOffsetVector (): Vector {
 	let result = new Vector(0,0);
-	result.x = (Math.random() - 0.5) * 2 * (MAX_RANDOM_POSITION_OFFSET - 0.5);
-	result.y = (Math.random() - 0.5) * 2 * (MAX_RANDOM_POSITION_OFFSET - 0.5);
+	result.x = (MathUtil.random() - 0.5) * 2 * (MAX_RANDOM_POSITION_OFFSET - 0.5);
+	result.y = (MathUtil.random() - 0.5) * 2 * (MAX_RANDOM_POSITION_OFFSET - 0.5);
 	return result;
 }
 
 // biased random for setting the position backwards
 function randomExtension (min: number): number {
-	return MathUtil.round(min + MAX_RANDOM_POSITION_OFFSET * Math.pow(Math.random(), 2), 1);
+	return MathUtil.round(min + MAX_RANDOM_POSITION_OFFSET * Math.pow(MathUtil.random(), 2), 1);
 }
 
 export class Armada extends Move {

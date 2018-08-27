@@ -348,8 +348,8 @@ export class Vector {
 		let u: number, v: number, s: number;
 
 		do {
-			u = -1.0 + 2.0 * Math.random();
-			v = -1.0 + 2.0 * Math.random();
+			u = -1.0 + 2.0 * MathUtil.random();
+			v = -1.0 + 2.0 * MathUtil.random();
 
 			s = u * u + v * v;
 		} while (s === 0.0 || s >= 1.0);

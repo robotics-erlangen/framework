@@ -1,8 +1,9 @@
 import {amunFunctions as amun} from "base/amun";
 import * as Field from "base/field";
-import * as vis from "base/vis";
+import * as MathUtil from "base/mathutil";
 import {FriendlyRobot} from "base/robot";
 import {Vector, Position} from "base/vector";
+import * as vis from "base/vis";
 import * as World from "base/world";
 
 import {MessageBox, MessageType} from "glados/control/messaging";
@@ -27,8 +28,8 @@ function getDefaultPosition (boundaries: Boundaries): Position {
 	const zoneHeight = boundaries.top - boundaries.bottom;
 	let x, y;
 	do {
-		x = (Math.random() * 0.6 + 0.2) * zoneWidth + boundaries.left;
-		y = (Math.random() * 0.6 + 0.2) * zoneHeight + boundaries.bottom;
+		x = (MathUtil.random() * 0.6 + 0.2) * zoneWidth + boundaries.left;
+		y = (MathUtil.random() * 0.6 + 0.2) * zoneHeight + boundaries.bottom;
 	} while (Field.isInOpponentDefenseArea(new Vector(x, y), 0.2));
 	return new Vector(x, y);
 }

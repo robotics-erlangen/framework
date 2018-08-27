@@ -1,5 +1,7 @@
 let ChipTC = Class("Test.Move.ChipTC", require "group/move/base")
 
+
+import * as MathUtil from "base/mathutil";
 import * as World from "base/world";
 let G = World.Geometry
 import {MoveToPos} from "glados/task/shared/movetopos";
@@ -48,7 +50,7 @@ function ChipTC:_updateTasks () {
 
 	if (World.RefereeState == "DirectOffensive") {
 		if (this._recalculate) {
-			this._distance = distances[Math.random(5)];
+			this._distance = distances[MathUtil.randomInt([1,5])];
 			this._recalculate = false;
 			log(this._distance);
 		}

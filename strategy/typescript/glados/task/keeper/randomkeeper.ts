@@ -1,4 +1,5 @@
 import * as Field from "base/field";
+import * as MathUtil from "base/mathutil";
 import {Vector} from "base/vector";
 import * as World from "base/world";
 import * as PathHelper from "glados/trajectory/pathhelper";
@@ -14,7 +15,7 @@ export class RandomKeeper extends Task {
 	run () {
 		if (this._nextX == undefined || Math.abs(this._robot.pos.x - this._nextX) < DEST_SWITCH_DISTANCE) {
 			let bound = World.Geometry.GoalWidth/2 - this._robot.radius;
-			this._nextX = Math.random() * bound * 2 - bound;
+			this._nextX = MathUtil.random() * bound * 2 - bound;
 		}
 
 		let moveDest = new Vector(this._nextX,

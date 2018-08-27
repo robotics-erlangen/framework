@@ -6,6 +6,7 @@ let ShootPenalty = Class("Task.ShootPenalty", require "task/base",
 import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
+import * as MathUtil from "base/mathutil";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
@@ -37,12 +38,12 @@ let cornerPoint = function (corner) {
 
 function ShootPenalty:_init () {
 		this._lookDir = "Right"
-		if (Math.random() < 0.5) {
+		if (MathUtil.randomInt([1,2]) < 2) {
 			this._lookDir = "Left"
 		}
 		this._targetPos = nil
 		this._startTime = World.Time
-		this._waitTime = Math.random() * 5 + 2
+		this._waitTime = MathUtil.random() * 5 + 2
 		this._cornerChange = false
 }
 
@@ -74,7 +75,7 @@ function ShootPenalty:run () {
 					}
 				} else {
 					let otherDir = (this._lookDir == "Left") ? "Right" : "Left"
-					if (Math.random() > changeThreshold) {
+					if (MathUtil.random() > changeThreshold) {
 						this._cornerChange = true
 						this._lookDir = otherDir
 					}

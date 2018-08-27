@@ -1,10 +1,11 @@
+import * as MathUtil from "base/mathutil";
 import { Vector } from "base/vector";
 
 export function standardNormalDistributedNumber(): number {
 	let u: number;
 	let neg: boolean;
 	do {
-		u = Math.random() * 2 - 1;
+		u = MathUtil.random() * 2 - 1;
 		neg = u < 0;
 		if (neg) {
 			u = -u;
@@ -22,5 +23,5 @@ export function standardNormalDistributedNumber(): number {
 
 export function standardNormalDistributedVector(): Vector {
 	let r = standardNormalDistributedNumber();
-	return Vector.fromAngle(Math.random() * 2 * Math.PI) * r;
+	return Vector.fromAngle(MathUtil.random() * 2 * Math.PI) * r;
 }

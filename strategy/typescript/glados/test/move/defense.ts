@@ -29,6 +29,7 @@ let Defense = Class("Group.Move.Defense", require "group/move/base")
 import * as Constants from "base/constants";
 import * as debug from "base/debug";
 let DebugCommands = require "+/base/debugcommands"
+import * as MathUtil from "base/mathutil";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
@@ -116,14 +117,14 @@ function Defense:_updateTasks () {
 		if (#startRectList == 0) {
 			error("Impossible to use a move for defense testing if there are no good positions")
 		}
-		let selectedRect = startRectList[Math.random(#startRectList)]
+		let selectedRect = startRectList[MathUtil.randomInt([1,#startRectList])]
 		let xMin = Math.min(selectedRect[1].x, selectedRect[2].x)
 		let xMax = Math.max(selectedRect[1].x, selectedRect[2].x)
 		let yMin = Math.min(selectedRect[1].y, selectedRect[2].y)
 		let yMax = Math.max(selectedRect[1].y, selectedRect[2].y)
 		this._visPolygon = {new Vector(xMin, yMin), new Vector(xMin, yMax), new Vector(xMax, yMax), new Vector(xMax, yMin)}
-		let xRand = xMin + Math.random() * (xMax - xMin)
-		let yRand = yMin + Math.random() * (yMax - yMin)
+		let xRand = xMin + MathUtil.random() * (xMax - xMin)
+		let yRand = yMin + MathUtil.random() * (yMax - yMin)
 		UtilDebug.moveBall("Stop", new Vector(xRand, yRand))
 		this._stopTime = nil
 	}
@@ -142,7 +143,7 @@ function Defense:_updateTasks () {
 	if (not this._selectedMove && MOVES[this._number].canStart() && #this._robots >= MOVES[this._number].MIN_ROBOTS) {
 		let class = MOVES[this._number]
 		let maxRobots = Math.min(class.MAX_ROBOTS, #this._robots)
-		let amm = Math.random(class.MIN_ROBOTS, maxRobots)
+		let amm = MathUtil.randomInt([class.MIN_ROBOTS, maxRobots])
 		let truncatedRobots = {}
 		for (i=1, amm) {
 			truncatedRobots[i] = this._robots[i]
