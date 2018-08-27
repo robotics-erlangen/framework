@@ -171,7 +171,7 @@ export class Robot {
 	_updateOpponent(state: any, time: number) {
 		// check if robot is tracked
 		if (state == undefined) {
-			if (this.isVisible != false) {
+			if (this.isVisible !== false) {
 				this.isVisible = false;
 				this.lostSince = time;
 			}
@@ -374,7 +374,7 @@ export class FriendlyRobot extends Robot {
 			dribbler: this._dribblerSpeed,
 			standby: standby
 		};
-		if (this._controllerInput != {}) {
+		if (this._controllerInput !== {}) {
 			let input: ControllerInput = <ControllerInput> this._controllerInput;
 			result.controller = input;
 			result.v_f = input.v_f;
@@ -410,7 +410,7 @@ export class FriendlyRobot extends Robot {
 	// @param input Spline - Target points for the controller, in global coordinates!
 	setControllerInput(input: any) {
 		// Forbid overriding controller input except with halt
-		if (input && input.spline && (this._controllerInput == {} || (<ControllerInput> this._controllerInput).spline)) {
+		if (input && input.spline && (this._controllerInput === {} || (<ControllerInput> this._controllerInput).spline)) {
 			throw new Error("Setting controller input twice");
 		}
 		this._controllerInput = input;

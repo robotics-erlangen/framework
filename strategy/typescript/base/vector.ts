@@ -88,7 +88,7 @@ export class Vector {
 	/// Checks for invalid vector
 	// @return bool - True if a coordinate is NaN
 	isNan(): boolean {
-		return (this.x != this.x) || (this.y != this.y);
+		return isNaN(this.x) || isNaN(this.y);
 	}
 
 	/// Get vector length
@@ -102,7 +102,7 @@ export class Vector {
 	}
 
 	equals(other: Vector): boolean {
-		return this.x == other.x && this.y == other.y;
+		return this.x === other.x && this.y === other.y;
 	}
 
 	/// Get squared vector length
@@ -135,7 +135,7 @@ export class Vector {
 	// @param len number - New length of current vector
 	// @return Vector - reference to this
 	setLength(len: number): Vector {
-		if (len == 0) {
+		if (len === 0) {
 			this.x = 0;
 			this.y = 0;
 			return this;
@@ -200,7 +200,7 @@ export class Vector {
 	// @param other Vector
 	// @return number - angle in interval [-pi, +pi]
 	angleDiff(other: Vector): number {
-		if (this.lengthSq() == 0 || other.lengthSq() == 0) {
+		if (this.lengthSq() === 0 || other.lengthSq() === 0) {
 			return 0;
 		}
 		return geom.getAngleDiff(this.angle(), other.angle());
@@ -212,7 +212,7 @@ export class Vector {
 	absoluteAngleDiff(other: Vector): number {
 		let thisLength = this.lengthSq();
 		let otherLength = other.lengthSq();
-		if (thisLength == 0 || otherLength == 0) {
+		if (thisLength === 0 || otherLength === 0) {
 			return 0;
 		}
 		return Math.acos(MathUtil.bound(-1, this.dot(other) / (Math.sqrt(thisLength) * Math.sqrt(otherLength)), 1));
@@ -352,7 +352,7 @@ export class Vector {
 			v = -1.0 + 2.0 * Math.random();
 
 			s = u * u + v * v;
-		} while (s == 0.0 || s >= 1.0);
+		} while (s === 0.0 || s >= 1.0);
 
 		// Box-Muller transform (polar)
 		let tmp = sigma * Math.sqrt(-2.0 * Math.log(s) / s);

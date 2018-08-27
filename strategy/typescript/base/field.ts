@@ -354,12 +354,12 @@ function intersectionsRayDefenseArea_2018(pos: Position, dir: RelativePosition, 
 	for (let i = 0;i < corners.length;i++) {
 		let v = corners[i];
 		// intersections on lines
-		let length = (i % 2 == 1) ? G.DefenseWidth : G.DefenseHeight;
+		let length = (i % 2 === 1) ? G.DefenseWidth : G.DefenseHeight;
 		let [ipos, l1, l2] = geom.intersectLineLine(pos, dir, v * f, directions[i] * f);
 		vis.addPath("1Test", [pos, pos + dir], vis.colors.green);
 		if (l1 && l1 >= 0 && l2 >= 0 && l2 <= length) {
 			// no intersections with parallel lines
-			if (!(l1 == 0 && l2 == 0) || ipos.distanceToSq(v * f) < 0.0001) {
+			if (!(l1 === 0 && l2 === 0) || ipos.distanceToSq(v * f) < 0.0001) {
 				intersections.push({pos: ipos, way: way + l2, sec: i * 2 - 1});
 			}
 		}
@@ -375,7 +375,7 @@ function intersectionsRayDefenseArea_2018(pos: Position, dir: RelativePosition, 
 			}
 		}
 		way = way + Math.PI * extraDistance / 2;
-		if (intersections.length == 2) {
+		if (intersections.length === 2) {
 			break;
 		}
 	}
@@ -408,8 +408,8 @@ function defenseIntersectionByWay_2018(way: number, extraDistance: number, frien
 
 	for (let i = 0;i < 3;i++) {
 		let v = corners[i];
-		let length = (i % 2 == 1) ? G.DefenseWidth : G.DefenseHeight;
-		if (way <= length || i == 1) {
+		let length = (i % 2 === 1) ? G.DefenseWidth : G.DefenseHeight;
+		if (way <= length || i === 1) {
 			return (v + directions[i] * way) * f;
 		}
 		way = way - length - Math.PI / 2 * extraDistance;
@@ -535,7 +535,7 @@ function cornerPointsBetweenWays2018(way1: number, way2: number, radius: number 
 		}
 		result.push(cornerRight);
 	}
-	if (result.length == 2 && way1 > way2) {
+	if (result.length === 2 && way1 > way2) {
 		let temp = result[1];
 		result[1] = result[2];
 		result[2] = temp;
@@ -578,7 +578,7 @@ function maxWay2017(radius: number): number {
 // @param radius number - the radius for the defense area
 // @return number - the maximum way
 export let maxWay: (radius: number) => number;
-if (World.RULEVERSION == "2018") {
+if (World.RULEVERSION === "2018") {
 	maxWay = maxWay2018;
 } else {
 	maxWay = maxWay2017;
@@ -851,7 +851,7 @@ export function isInOwnCorner(pos: Position, opp: boolean): boolean {
 // @param [offset number - additional offset to move field lines further outwards]
 // @return [vector]
 export function nextLineCut(startPos: Position, dir: RelativePosition, offset: number = 0): Position | undefined {
-	if (dir.x == 0 && dir.y == 0) {
+	if (dir.x === 0 && dir.y === 0) {
 		return undefined;
 	}
 	let width = new Vector((dir.x > 0 ? 1 : -1) * (G.FieldWidthHalf + offset), 0);

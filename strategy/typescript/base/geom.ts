@@ -40,7 +40,7 @@ export function intersectCircleCircle(c1: Position, r1: number, c2: Position, r2
 	let dist = c1.distanceTo(c2);
 	if (dist > r1 + r2) {
 		return [];
-	} else if (dist == r1 + r2) {
+	} else if (dist === r1 + r2) {
 		return [c1 + (c2 - c1).scaleLength(0.5)];
 	} else if (dist < r1 + r2) {
 		let c1x = c1.x, c1y = c1.y, c2x = c2.x, c2y = c2.y;

@@ -142,7 +142,7 @@ export class Ball {
 		}
 		// if the ball does not accelerate extremely for 3 frames straight, the current velocity
 		// is taken as the maximum ball speed
-		if (this.framesDecelerating == 3) {
+		if (this.framesDecelerating === 3) {
 			this.maxSpeed = this.speed.length();
 		}
 		if (this.maxSpeed < this.speed.length()) {
