@@ -27,9 +27,15 @@
 let min = Math.min;
 let max = Math.max;
 declare let amun: any;
-import {Random} from "base/random";
+import { Random } from "base/random";
 
-let _random: Random | undefined = undefined;
+
+interface RandomLike {
+	nextNumber53(): number;
+	nextInt32(range?: [number, number]): number;
+}
+
+let _random: RandomLike | undefined = undefined;
 /**
  * seeds the PRNG with the given seed
  */
@@ -37,10 +43,10 @@ export function randomseed(seed: number): void {
 	_random = new Random(seed);
 }
 
-function initRandom(): void{
+function initRandom(): void {
 	if (_random == undefined) {
 		if (amun.isDebug) {
-			throw new Error("Unseeded Random was tried")
+			throw new Error("Unseeded Random was tried");
 		}
 		_random = new Random();
 	}
@@ -59,7 +65,7 @@ export function random(): number {
  * @param range: an optional [from, to] range, if not specified the result will be in range [0,0xffffffff]
  * @return {number}
  */
-export function randomInt(range?:[number, number]): number {
+export function randomInt(range?: [number, number]): number {
 	initRandom();
 	return _random!.nextInt32(range);
 }
