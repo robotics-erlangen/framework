@@ -1,36 +1,36 @@
-import {Behavior} from "glados/agent/base/behavior";
-let PenaltyShootoutDefensive = Class("Agent.Attacker.PenaltyShootoutDefensive", Base)
-
 import * as Referee from "base/referee";
+import {Vector} from "base/vector";
 import * as World from "base/world";
-let G = World.Geometry
 
+import {Behavior} from "glados/agent/base/behavior";
+import {Task} from "glados/task/base";
 import {MoveToPos} from "glados/task/shared/movetopos";
 
-function PenaltyShootoutDefensive:_stop () {
-	this._penaltyStartTime = nil
-	this._contactPoint = nil
-	this._shootGoalFlag = false
-	this._forceDesperate = false
-}
+const G = World.Geometry;
 
-function PenaltyShootoutDefensive:check () {
-	let isPenalty = World.RefereeState == "PenaltyDefensivePrepare" || World.RefereeState == "PenaltyDefensive"
-	let isShootout = World.GameStage == "PenaltyShootout"
-	return isShootout ? (isPenalty : this._checkPenaltyOngoing())
-}
+export class PenaltyShootoutDefensive extends Behavior {
+	private _penaltyStartTime: number | undefined = undefined;
 
-function PenaltyShootoutDefensive:_checkPenaltyOngoing () {
-	return this._penaltyStartTime && World.Time - this._penaltyStartTime < 15 && not Referee.isStopState()
-}
-
-function PenaltyShootoutDefensive:_updateTask () {
-	if (World.RefereeState == "PenaltyDefensive" && not this._penaltyStartTime) {
-		// log("Start Time set")
-		this._penaltyStartTime = World.Time
+	_stop () {
+		this._penaltyStartTime = undefined
 	}
 
-	return MoveToPos, {new Vector(G.FieldWidthHalf - 0.75, G.FieldHeightHalf - 0.75)}
-}
+	check (): boolean {
+		let isPenalty = World.RefereeState === "PenaltyDefensivePrepare" || World.RefereeState === "PenaltyDefensive";
+		let isShootout = World.GameStage === "PenaltyShootout";
+		return isShootout && (isPenalty || this._checkPenaltyOngoing());
+	}
 
-return PenaltyShootoutDefensive
+	private _checkPenaltyOngoing (): boolean {
+		return this._penaltyStartTime != undefined && World.Time - this._penaltyStartTime < 15 && !Referee.isStopState();
+	}
+
+	_updateTask (): [typeof Task, any[]] {
+		if (World.RefereeState == "PenaltyDefensive" && this._penaltyStartTime == undefined) {
+			// log("Start Time set")
+			this._penaltyStartTime = World.Time;
+		}
+
+		return [MoveToPos, [new Vector(G.FieldWidthHalf - 0.75, G.FieldHeightHalf - 0.75)]];
+	}
+}

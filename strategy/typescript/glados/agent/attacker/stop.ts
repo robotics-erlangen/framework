@@ -1,22 +1,22 @@
-import {Behavior} from "glados/agent/base/behavior";
-let Stop = Class("Agent.Attacker.Stop", Base)
-
 import * as World from "base/world";
 import * as Referee from "base/referee";
-let StopAttack = require "task/attacker/stopattack"
-let PlaceBall = require "task/attacker/placeball"
+import {Behavior} from "glados/agent/base/behavior";
+import {MessageType} from "glados/control/messaging";
+import {Task} from "glados/task/base";
+import {StopAttack} from "glados/task/attacker/stopattack"
+import {PlaceBall} from "glados/task/attacker/placeball"
 
 
-function Stop:check () {
-	return Referee.isStopState() && this._inbox.mainAttacker().trainer == this._robot
-}
+export class Stop extends Behavior {
+	check (): boolean {
+		return Referee.isStopState() && this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
+	}
 
-function Stop:_updateTask () {
-	if (World.RefereeState == "BallPlacementOffensive") {
-		return PlaceBall
-	} else {
-		return StopAttack
+	_updateTask (): [typeof Task] {
+		if (World.RefereeState === "BallPlacementOffensive") {
+			return [PlaceBall]
+		} else {
+			return [StopAttack];
+		}
 	}
 }
-
-return Stop

@@ -1,28 +1,25 @@
-import {Behavior} from "glados/agent/base/behavior";
-let Penalty = Class("Agent.Attacker.Penalty", Base)
-
 import * as World from "base/world";
-let G = World.Geometry
 
-let MoveToStaticBall = require "task/attacker/movetostaticball"
-let ShootPenalty = require "task/attacker/shootpenalty"
+import {Behavior} from "glados/agent/base/behavior";
+import {MessageType} from "glados/control/messaging";
+import {Task} from "glados/task/base";
+import {MoveToStaticBall} from "glados/task/attacker/movetostaticball";
+import {ShootPenalty} from "glados/task/attacker/shootpenalty";
 
-function Penalty:_stop () {
-	this.lookDir = nil
-}
+const G = World.Geometry;
 
-function Penalty:check () {
-	let mainAttacker = this._inbox.mainAttacker().trainer == this._robot
-	let isPenalty = World.RefereeState == "PenaltyOffensivePrepare" || World.RefereeState == "PenaltyOffensive"
-	return isPenalty && mainAttacker
-}
+export class Penalty extends Behavior {
+	public check (): boolean {
+		let mainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
+		let isPenalty = World.RefereeState === "PenaltyOffensivePrepare" || World.RefereeState === "PenaltyOffensive";
+		return isPenalty && mainAttacker;
+	}
 
-function Penalty:_updateTask () {
-	if (World.RefereeState == "PenaltyOffensivePrepare") {
-		return MoveToStaticBall, {(G.OpponentGoal - World.Ball.pos).angle(), 0.08}
-	} else {// PenaltyOffensive
-		return ShootPenalty
+	_updateTask (): [typeof Task] | [typeof Task, any[]] {
+		if (World.RefereeState == "PenaltyOffensivePrepare") {
+			return [MoveToStaticBall, [(G.OpponentGoal - World.Ball.pos).angle(), 0.08]];
+		} else {// PenaltyOffensive
+			return [ShootPenalty];
+		}
 	}
 }
-
-return Penalty
