@@ -29,10 +29,42 @@ let max = Math.max;
 declare let amun: any;
 import { Random } from "base/random";
 
+let luaRandom: boolean = false // TODO: Read via strategy-option
+
 
 interface RandomLike {
 	nextNumber53(): number;
 	nextInt32(range?: [number, number]): number;
+}
+
+interface RandomMinor{
+	nextNumber53(): number;
+}
+
+class ExtendedRandom{
+	private _random: RandomMinor
+	constructor(random: RandomMinor){
+		this._random = random;
+	}
+	nextNumber53(): number {
+		return this._random.nextNumber53();
+	}
+	nextInt32(range?: [number, number]): number {
+		if (range == undefined)
+			throw new Error("nextInt32 without range is not possible for ExtendedRandom");
+		return Math.floor(this._random.nextNumber53() * (range[1] - range[0] + 1) + range[0]);
+	}
+}
+
+function produceRandom(seed?: number): RandomLike {
+	if(luaRandom) {
+		amun.luaRandomSetSeed(seed); //TODO: check these amun functions as soon as they are available
+		//as changing luaRandom fires a strategy reload, we can safely assume that _random is either a luaPRNG or undefined
+		return _random == undefined ? new ExtendedRandom({nextNumber53: amun.luaRandom}) : _random;
+	}
+	else{
+		return new Random(seed);
+	}
 }
 
 let _random: RandomLike | undefined = undefined;
@@ -40,7 +72,7 @@ let _random: RandomLike | undefined = undefined;
  * seeds the PRNG with the given seed
  */
 export function randomseed(seed: number): void {
-	_random = new Random(seed);
+	_random = produceRandom(seed);
 }
 
 function initRandom(): void {
@@ -48,7 +80,7 @@ function initRandom(): void {
 		if (amun.isDebug) {
 			throw new Error("Unseeded Random was tried");
 		}
-		_random = new Random();
+		_random = produceRandom();
 	}
 }
 
