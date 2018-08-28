@@ -1,155 +1,169 @@
-let Error = {}
-
 import * as Referee from "base/referee";
+import {FriendlyRobot} from "base/robot";
 import * as World from "base/world";
 
-let errorTables = {}
-let batteryTable = {}
-let BATTERY_TABLE_SIZE = 50
-let lastStopTime = 0
+interface Outliers {
+	size: number;
+	next: number;
+	sum: number;
+}
+interface RingBuffer {
+	size: number;
+	sum: number;
+	next: number;
+	outliers: Outliers;
+	[index: number]: number;
+}
+type ErrorTable = {[name: string]: number};
 
-function Error.getAverageBatterySate (robot) {
-	if (not batteryTable[robot] || batteryTable[robot].size == 0) {
-		return 1
+let errorTables = new Map<FriendlyRobot, ErrorTable>();
+let batteryTable: Map<FriendlyRobot, RingBuffer> = new Map<FriendlyRobot, RingBuffer>();
+let BATTERY_TABLE_SIZE = 50;
+let lastStopTime = 0;
+
+export function getAverageBatterySate (robot: FriendlyRobot): number {
+	if (!batteryTable.has(robot) || batteryTable.get(robot)!.size == 0) {
+		return 1;
 	}
-	return batteryTable[robot].sum / batteryTable[robot].size
+	return batteryTable.get(robot)!.sum / batteryTable.get(robot)!.size;
 }
 
-let initBatteryTable = function (robot) {
-	batteryTable[robot] = {size= 0, next = 1, sum = 0, outlayers = {size = 0, next = 1, sum = 0}}
+function initBatteryTable (robot: FriendlyRobot) {
+	batteryTable.set(robot, {size: 0, next: 1, sum: 0, outliers: {size: 0, next: 1, sum: 0}});
 }
 
-let insertRingBuffer = function (ringbuffer, value) {
-	if (not ringbuffer) {
-		return
+function insertRingBuffer (ringbuffer: RingBuffer | undefined, value: number) {
+	if (ringbuffer == undefined) {
+		return;
 	}
 
-	if (not ringbuffer.next) {
-		ringbuffer.size = 0
-		ringbuffer.next = 1
-		ringbuffer.sum = 0
+	if (ringbuffer.next == undefined) {
+		ringbuffer.size = 0;
+		ringbuffer.next = 1;
+		ringbuffer.sum = 0;
 	}
 
 	if (ringbuffer.size < BATTERY_TABLE_SIZE) {
-		ringbuffer.sum = ringbuffer.sum + value
-		ringbuffer.size = ringbuffer.size + 1
+		ringbuffer.sum = ringbuffer.sum + value;
+		ringbuffer.size = ringbuffer.size + 1;
 	} else {
-		ringbuffer.sum = ringbuffer.sum + value - ringbuffer[ringbuffer.next]
+		ringbuffer.sum = ringbuffer.sum + value - ringbuffer[ringbuffer.next];
 	}
-	ringbuffer[ringbuffer.next] = value
-	ringbuffer.next = Math.fmod(ringbuffer.next + 1, BATTERY_TABLE_SIZE)
+	ringbuffer[ringbuffer.next] = value;
+	ringbuffer.next = ringbuffer.next + 1 %  BATTERY_TABLE_SIZE;
 }
 
-let addBatteryState = function (robot, newBatteryState) {
-	let robotBatteryTable = batteryTable[robot]
-	if (not robotBatteryTable) {
-		initBatteryTable(robot)
-		robotBatteryTable = batteryTable[robot]
+function addBatteryState (robot: FriendlyRobot, newBatteryState: number) {
+	let robotBatteryTable = batteryTable[robot];
+	if (robotBatteryTable == undefined) {
+		initBatteryTable(robot);
+		robotBatteryTable = batteryTable[robot];
 	}
 	if (robotBatteryTable.size == BATTERY_TABLE_SIZE) {
-		let avg = Error.getAverageBatterySate(robot)
+		let avg = getAverageBatterySate(robot);
 		if (Math.abs(avg - newBatteryState) > 0.2) {
-			if (robotBatteryTable.outlayers.size > 15) {
-				batteryTable[robot] = robotBatteryTable.outlayers
-				batteryTable[robot].outlayers = {size = 0}
-				addBatteryState(robot, newBatteryState)
-				return
+			if (robotBatteryTable.outliers.size > 15) {
+				batteryTable[robot] = robotBatteryTable.outliers;
+				batteryTable[robot]!.outliers = {size: 0};
+				addBatteryState(robot, newBatteryState);
+				return;
 			}
-			insertRingBuffer(robotBatteryTable.outlayers, newBatteryState)
-			return
+			insertRingBuffer(robotBatteryTable.outliers, newBatteryState);
+			return;
 		}
 	}
-	robotBatteryTable.outlayers = {size = 0}
-	insertRingBuffer(robotBatteryTable, newBatteryState)
+	robotBatteryTable.outliers = {size: 0};
+	insertRingBuffer(robotBatteryTable, newBatteryState);
 }
 
-function Error.getErrorTable (robot) {
+export function getErrorTable (robot: FriendlyRobot) {
 	return errorTables[robot]
 }
 
-let convertErrorTable = function (errorTable) {
-	let newTable = {}
-	for (k,v in pairs(errorTable)) {
-		if (type(v) == "number") {
-			newTable[k] = v
-		} else if (v) {
-			newTable[k] = 1
+function convertErrorTable (errorTable: ErrorTable): ErrorTable {
+	let newTable: ErrorTable = {};
+	for (let [k, v] of Object.entries(errorTable)) {
+		if (typeof(v) === "number") {
+			newTable[k] = v;
+		} else if (v != undefined) {
+			newTable[k] = 1;
 		}
 	}
-	return newTable
+	return newTable;
 }
 
-let addErrorTables = function (errorTable1, errorTable2) {
-	if (not errorTable1 && not errorTable2) {
-		return {}
+function addErrorTables (errorTable1: ErrorTable | undefined, errorTable2: ErrorTable | undefined): ErrorTable {
+	if (errorTable1 == undefined && errorTable2 == undefined) {
+		return {};
 	}
-	if (not errorTable1) {
-		return convertErrorTable(errorTable2)
+	if (errorTable1 == undefined) {
+		return convertErrorTable(errorTable2!);
 	}
-	if (not errorTable2) {
-		return convertErrorTable(errorTable1)
+	if (errorTable2 == undefined) {
+		return convertErrorTable(errorTable1);
 	}
-	let newTable = {}
-	for (k,v in pairs(errorTable1)) {
-		if (type(v) == "number") {
-			newTable[k] = v
-		} else if (v) {
-			newTable[k] = 1
+	let newTable: ErrorTable = {};
+	for (let [k, v] of Object.entries(errorTable1)) {
+		if (typeof(v) === "number") {
+			newTable[k] = v;
+		} else if (v != undefined) {
+			newTable[k] = 1;
 		}
 	}
-	for (k,v in pairs(errorTable2)) {
-		if (type(v) == "number") {
+	for (let [k, v] of Object.entries(errorTable2)) {
+		if (typeof(v) === "number") {
 			//errorTable2 is newer than errorTable1, so override errorTable1
-			newTable[k] = v
-		} else if (v) {
-			if (newTable[k]) {
-				newTable[k] = newTable[k] + 1
+			newTable[k] = v;
+		} else if (v != undefined) {
+			if (newTable[k] != undefined) {
+				newTable[k] = newTable[k] + 1;
 			} else {
-				newTable[k] = 1
+				newTable[k] = 1;
 			}
 		}
 	}
-	return newTable
+	return newTable;
 }
 
-let updateErrorTables = function (isLeavingStop) {
+function updateErrorTables (isLeavingStop: boolean) {
 	if (isLeavingStop) {
-		errorTables = {}
+		errorTables = new Map<FriendlyRobot, ErrorTable>();
 	}
 
-	for (_, r in ipairs(World.FriendlyRobots)) {
+	for (let r of World.FriendlyRobots) {
 		if (r.radioResponse && r.radioResponse.error_present) {
 			// we have an error, save it for debugging purposes
-			errorTables[r] = addErrorTables(errorTables[r], r.radioResponse.extended_error)
+			errorTables[r] = addErrorTables(errorTables[r], r.radioResponse.extended_error);
 		}
 	}
 }
 
-let lastRefChange, refereeState
+let lastRefChange: number;
+let refereeState: string;
 
-let updateRefereeState = function () {
+function updateRefereeState () {
 	if (refereeState != World.RefereeState) {
-		refereeState = World.RefereeState
-		lastRefChange = World.Time
+		refereeState = World.RefereeState;
+		lastRefChange = World.Time;
 	}
 }
 
-let updateLastStopTime = function (isLeavingStop) {
+function updateLastStopTime (isLeavingStop: boolean) {
 	if (isLeavingStop) {
-		lastStopTime = World.Time
+		lastStopTime = World.Time;
 	}
 }
 
-function Error.getLastRefChange () {
-	return lastRefChange
+export function getLastRefChange (): number {
+	return lastRefChange;
 }
 
-function Error.getLastStopTime () {
-	return lastStopTime
+export function getLastStopTime (): number {
+	return lastStopTime;
 }
 
-let isLeavingStop = function () {
-	return refereeState == "Stop" && World.RefereeState != "Stop"
+function isLeavingStop () {
+	return refereeState === "Stop" && World.RefereeState !== "Stop";
 }
 
 //we don't have any feedback by our robots. At least we have to assume its like that
@@ -161,45 +175,43 @@ let isLeavingStop = function () {
 //detected as failure, and will only tick down if a certain speed was reached.
 //If the robot is invisible, speedError does tick down, this is to ensure that a exchanged robot that may have been repaired by humans is ok after reinsertion
 //If the strategy is being replayed, there's no point in counting up or down. As starting the replay results in a fresh load this will disabled this detection during replays
-let speedError = {}
-let updateSpeedError = function () {
-	let halfSpeed = Referee.isSlowDriveState() ? 0.75 : 1.5
-	for (_,robot in ipairs(World.FriendlyRobots)) {
-		if (robot.prevMoveTo && not World.IsReplay && not World.IsSimulated) {
+let speedError: Map<FriendlyRobot, number> = new Map<FriendlyRobot, number>();
+function updateSpeedError () {
+	let halfSpeed = Referee.isSlowDriveState() ? 0.75 : 1.5;
+	for (let robot of World.FriendlyRobots) {
+		if (robot.prevMoveTo && !World.IsReplay && !World.IsSimulated) {
 			if (robot.speed.lengthSq() < halfSpeed * halfSpeed && robot.pos.distanceToSq(robot.prevMoveTo) > 0.5 * 0.5) {
-				if (speedError[robot] && speedError[robot] <= 450) {
-					speedError[robot] = speedError[robot] + 1
-				} else if (not speedError[robot]) {
-					speedError[robot] = 1
+				if (speedError.has(robot) && speedError[robot] <= 450) {
+					speedError[robot] = speedError[robot]! + 1;
+				} else if (!speedError.has(robot)) {
+					speedError[robot] = 1;
 				}
-			} else if (speedError[robot] && speedError[robot] >= 10 && (speedError[robot] <= 300  ||
+			} else if (speedError.has(robot) && speedError[robot] >= 10 && (speedError[robot] <= 300  ||
 				robot.speed.lengthSq() > halfSpeed * halfSpeed)) {
-				speedError[robot] = speedError[robot] - 10
+				speedError[robot] = speedError[robot]! - 10;
 			}
 		}
 	}
-	for (_, robot in ipairs(World.FriendlyInvisibleRobots)) {
-		if (speedError[robot]) {
-			speedError[robot] = speedError[robot] - 1
+	for (let robot of World.FriendlyInvisibleRobots) {
+		if (speedError.has(robot)) {
+			speedError[robot] = speedError[robot]! - 1;
 		}
 	}
 }
 
-function Error.getSpeedErrorCount (robot) {
-	return speedError[robot] || 0
+export function getSpeedErrorCount (robot: FriendlyRobot): number {
+	return speedError.get(robot) || 0;
 }
 
-function Error._update () {
-	let leavingStop = isLeavingStop()
-	for (_, r in ipairs(World.FriendlyRobots)) {
+export function _update () {
+	let leavingStop = isLeavingStop();
+	for (let r of World.FriendlyRobots) {
 		if (r.radioResponse && r.radioResponse.battery) {
-			addBatteryState(r,r.radioResponse.battery)
+			addBatteryState(r,r.radioResponse.battery);
 		}
 	}
-	updateRefereeState()
-	updateLastStopTime(leavingStop)
-	updateErrorTables(leavingStop)
-	updateSpeedError()
+	updateRefereeState();
+	updateLastStopTime(leavingStop);
+	updateErrorTables(leavingStop);
+	updateSpeedError();
 }
-
-return Error
