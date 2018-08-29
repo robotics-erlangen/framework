@@ -135,7 +135,7 @@ if [[ "$IS_MINGW" == 1 ]]; then
 else
     mkdir -p out/x64.release
     gn gen out/x64.release --args="is_debug=false target_cpu=\"x64\" is_component_build=false v8_static_library=true use_custom_libcxx=false use_custom_libcxx_for_host=false"
-    ninja -C out/x64.release
+    ../depot_tools/ninja -C out/x64.release
 fi
 
 # # Building V8 with clang on windows
