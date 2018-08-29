@@ -1,176 +1,188 @@
-let SuggestPass = require "task/ability/suggestpass"
-let StrikerSampling = require "task/ability/strikersampling"
-let Striker = Class("Task.Striker", require "task/base", SuggestPass, StrikerSampling)
-
 import * as geom from "base/geom";
 import * as Field from "base/field";
+import {Vector, Position} from "base/vector";
 import * as Referee from "base/referee";
 import * as vis from "base/vis";
 import * as World from "base/world";
-let G = World.Geometry
+const G = World.Geometry;
 
+import {MessageType} from "glados/control/messaging";
+import {Task, Agent} from "glados/task/base";
+import {SuggestPass} from "glados/task/ability/suggestpass";
+import {StrikerSampling} from "glados/task/ability/strikersampling";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import * as ToTarget from "glados/trajectory/totarget";
+import {ToTarget} from "glados/trajectory/totarget";
 import * as UtilDefense from "glados/util/defense";
 
 import * as Attack from "glados/util/attack";
 
 
-function Striker:_init (manualDefaultPos, manualPassDest) {
-	this._manualDefaultPos = manualDefaultPos
-	this._manualPassDest = manualPassDest
-	this._passDestSuggestion = manualPassDest
+export class Striker extends Task {
+	private _manualDefaultPos: Position | undefined;
+	private _manualPassDest: Position | undefined;
+	private _passDestSuggestion: Position | undefined;
 
-	this._moveDest = nil
+	private _moveDest: Position | undefined = undefined;
+	private _zone: Zone | undefined = undefined;
+	private _reEvaluateTimestamp: number = 0;
 
-	this._zone = nil
+	private _obstacleTable: PathHelper.PathHelperParameters;
 
-	this._revaluateTimestamp = 0
+	private _suggestPass: SuggestPass;
+	private _strikerSampling: StrikerSampling;
 
-	this._obstacleTable  = {
-		ignoreBall = true,
-		inbox = this._inbox
-	}
-}
+	constructor(agent: Agent, manualDefaultPos?: Position, manualPassDest?: Position) {
+		super(agent);
+		this._manualDefaultPos = manualDefaultPos;
+		this._manualPassDest = manualPassDest;
+		this._passDestSuggestion = manualPassDest;
 
-function Striker:_revaluatePassDest () {
-	if (this._manualPassDest) {
-		return false
-	}
-
-	let timestamps = this._inbox.strikerSamplingTimestamp("broadcast")
-	let nextCandidate = nil
-	let nextCandidateTimestamp = Infinity
-	for (r, time in pairs(timestamps)) {
-		if (not nextCandidate || time < nextCandidateTimestamp
-				 ||  time == nextCandidateTimestamp && r.id < nextCandidate.id) {
-			nextCandidate = r
-			nextCandidateTimestamp = time
+		this._obstacleTable  = {
+			ignoreBall: true,
+			messaging: this._messaging
 		}
+
+		this._suggestPass = new SuggestPass(this._robot, this._messaging);
+		this._strikerSampling = new StrikerSampling(this._robot, this._messaging);
 	}
 
-	let revaluate = this._robot == nextCandidate
-	if (revaluate) {
-		this._revaluateTimestamp = World.Time
+	private _reEvaluatePassDest (): boolean {
+		if (this._manualPassDest != undefined) {
+			return false
+		}
+
+		let timestamps = this._messaging.receive(MessageType.strikerSamplingTimestamp, true);
+		let nextCandidate = undefined;
+		let nextCandidateTimestamp = Infinity
+		for (let [r, time] of timestamps.entries()) {
+			if (nextCandidate == undefined || time < nextCandidateTimestamp
+					 ||  time === nextCandidateTimestamp && r.id < nextCandidate.id) {
+				nextCandidate = r;
+				nextCandidateTimestamp = time;
+			}
+		}
+
+		let revaluate = this._robot === nextCandidate;
+		if (revaluate) {
+			this._reEvaluateTimestamp = World.Time
+		}
+
+		this._messaging.sendBroadcast(MessageType.strikerSamplingTimestamp, this._reEvaluateTimestamp);
+
+		return revaluate
 	}
 
-	this._send.strikerSamplingTimestamp("all", this._revaluateTimestamp)
+	private _searchForPassDest () {
+		this._strikerSampling.precalculate()
 
-	return revaluate
-}
+		let grid_point_count_x = 6
+		let grid_point_count_y = 10
 
-function Striker:_searchForPassDest () {
-	this.precalculate()
+		let grid_point_dist_x = G.FieldWidth / grid_point_count_x
+		let grid_point_dist_y = G.FieldHeight / grid_point_count_y
 
-	let grid_point_count_x = 6
-	let grid_point_count_y = 10
+		let boundaries = this._zone.boundaries
+		let left = boundaries.left
+		let right = boundaries.right
+		let top = boundaries.top
+		let bottom = boundaries.bottom
 
-	let grid_point_dist_x = G.FieldWidth / grid_point_count_x
-	let grid_point_dist_y = G.FieldHeight / grid_point_count_y
+		// TODO hysteresis
+		// TODO only consider well-timed pass positions
+		// TODO am strafraum stehen ist geil! -> score anpassen
 
-	let boundaries = this._zone.boundaries
-	let left = boundaries.left
-	let right = boundaries.right
-	let top = boundaries.top
-	let bottom = boundaries.bottom
-
-	// TODO hysteresis
-	// TODO only consider well-timed pass positions
-	// TODO am strafraum stehen ist geil! -> score anpassen
-
-	let bestPoint = nil
-	let bestScore = -Infinity
-	for (x = grid_point_dist_x * 0.5 - G.FieldWidthHalf, G.FieldWidthHalf, grid_point_dist_x) {
-		if (x > left && x < right) {
-			for (y = grid_point_dist_y * 0.5 - G.FieldHeightHalf, G.FieldHeightHalf, grid_point_dist_y) {
-				if (y > bottom && y < top) {
-					let candidatePoint = new Vector(x, y)
-					candidatePoint = Field.limitToAllowedField(candidatePoint, 3 * this._robot.radius + 0.1)
-					if (geom.insideRect(new Vector(left, bottom), new Vector(right, top), candidatePoint)) {
-						let score = this.evalLocation(candidatePoint, bestScore)
-						let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
-						if (passInfoTable) {
-							for (_, passInfo in pairs(passInfoTable)) {
-								if (passInfo.ballPos.distanceToSq(candidatePoint) < 0.01*0.01) {
-									score = score + 0.1
+		let bestPoint = undefined;
+		let bestScore = -Infinity;
+		for (x = grid_point_dist_x * 0.5 - G.FieldWidthHalf, G.FieldWidthHalf, grid_point_dist_x) {
+			if (x > left && x < right) {
+				for (y = grid_point_dist_y * 0.5 - G.FieldHeightHalf, G.FieldHeightHalf, grid_point_dist_y) {
+					if (y > bottom && y < top) {
+						let candidatePoint = new Vector(x, y);
+						candidatePoint = Field.limitToAllowedField(candidatePoint, 3 * this._robot.radius + 0.1)
+						if (geom.insideRect(new Vector(left, bottom), new Vector(right, top), candidatePoint)) {
+							let score = this._strikerSampling.evalLocation(candidatePoint, bestScore)
+							let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
+							if (passInfoTable) {
+								for (let passInfo of passInfoTable) {
+									if (passInfo.ballPos.distanceToSq(candidatePoint) < 0.01*0.01) {
+										score = score + 0.1
+									}
 								}
 							}
-						}
-						if (score > bestScore) {
-							bestScore = score
-							bestPoint = candidatePoint
+							if (score > bestScore) {
+								bestScore = score
+								bestPoint = candidatePoint
+							}
 						}
 					}
 				}
 			}
 		}
+
+		this._passDestSuggestion = bestPoint
 	}
 
-	this._passDestSuggestion = bestPoint
-}
+	public run () {
+		this._messaging.sendBroadcast(MessageType.strikerFlag);
 
-function Striker:run () {
-	this._send.strikerFlag("all")
+		if (this._manualDefaultPos) {
+			this._moveDest = this._manualDefaultPos
+		} else {
+			// participate in the striker group
+			this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "striker", payload: {} });
 
-	if (this._manualDefaultPos) {
-		this._moveDest = this._manualDefaultPos
-	} else {
-		// participate in the striker group
-		let groupApplication = { name = "striker", payload = {} }
-		this._send.groupApplication("trainer", groupApplication)
-
-		// retrieve the assigned zone from the striker group
-		this._zone = this._inbox.strikerZone().trainer
-		if (not this._zone) {
-			return
+			// retrieve the assigned zone from the striker group
+			this._zone = this._messaging.receiveTrainer(MessageType.strikerZone);
+			if (this._zone == undefined) {
+				return;
+			}
+			this._moveDest = this._zone.defaultPos
 		}
-		this._moveDest = this._zone.defaultPos
-	}
 
-	// search for a good pass dest
-	if (this._revaluatePassDest()) {
-		this._searchForPassDest()
-	}
+		// search for a good pass dest
+		if (this._reEvaluatePassDest()) {
+			this._searchForPassDest()
+		}
 
-	// check whether the agent would change its state to accepting an incoming pass (striker should not be active then)
-	let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
-	assert(Attack.checkPassInfos(this._robot, passInfoTable, false) == false, "Striker shouldn't accept passes")
+		// check whether the agent would change its state to accepting an incoming pass (striker should not be active then)
+		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
+		if (Attack.checkPassInfos(this._robot, passInfoTable, false) == true) {
+			throw new Error("Striker shouldn't accept passes");
+		}
 
-	if (passInfoTable) {
-		for (_, passInfo in ipairs(passInfoTable)) {
-			vis.addCircle("t/striker", this._moveDest, 0.1, vis.colors.slateHalf, true)
-			if (this._passDestSuggestion) {
-				let color = passInfo.target == this._robot
- ? vis.colors.turquoiseHalf : vis.colors.whiteHalf
-				vis.addCircle("t/striker", passInfo.ballPos, 0.1, color, true)
-				vis.addCircle("t/striker", this._passDestSuggestion, 0.14,
-					vis.colors.whiteHalf, false, undefined, undefined, 0.03)
-				vis.addPath("t/striker", {this._moveDest, this._passDestSuggestion},
-					vis.colors.slateHalf, undefined, undefined, 0.02)
+		if (passInfoTable) {
+			for (let passInfo of passInfoTable) {
+				vis.addCircle("t/striker", this._moveDest!, 0.1, vis.colors.slateHalf, true)
+				if (this._passDestSuggestion) {
+					let color = passInfo.target == this._robot
+						? vis.colors.turquoiseHalf : vis.colors.whiteHalf
+					vis.addCircle("t/striker", passInfo.ballPos, 0.1, color, true)
+					vis.addCircle("t/striker", this._passDestSuggestion, 0.14,
+						vis.colors.whiteHalf, false, undefined, undefined, 0.03)
+					vis.addPath("t/striker", [this._moveDest!, this._passDestSuggestion],
+						vis.colors.slateHalf, undefined, undefined, 0.02)
+				}
 			}
 		}
+		// set path obstacles to not interfere with the current attack
+		let moveTime = undefined;
+		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
+		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable)
+
+		// send a suggestion for a pass in the run
+		if (this._passDestSuggestion && attackPosition) {
+			this._suggestPass._suggestPass(this._passDestSuggestion, attackPosition, moveTime)
+		}
+
+		// be close to the defense area to catch possible stray shots
+		let cbDistToDefenseArea = UtilDefense.centerBackDistanceToDefenseArea()
+		if (this._passDestSuggestion && !Referee.isFriendlyFreeKickState()
+				 &&  Field.distanceToDefenseArea(this._passDestSuggestion, cbDistToDefenseArea, false) < 0.8) {
+
+			let intersection = Field.intersectRayDefenseArea(this._moveDest!, G.OpponentGoal - this._moveDest, cbDistToDefenseArea + 0.3, false)[0];
+			this._moveDest = intersection || this._moveDest
+		}
+
+		this._robot.trajectory.update(ToTarget, this._moveDest, (World.Ball.pos - this._robot.pos).angle())
 	}
-	// set path obstacles to not interfere with the current attack
-	let moveTime = nil
-	let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
-	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable)
-
-	// send a suggestion for a pass in the run
-	if (this._passDestSuggestion && attackPosition) {
-		this._suggestPass(this._passDestSuggestion, attackPosition, moveTime)
-	}
-
-	// be close to the defense area to catch possible stray shots
-	let cbDistToDefenseArea = UtilDefense.centerBackDistanceToDefenseArea()
-	if (this._passDestSuggestion && not Referee.isFriendlyFreeKickState()
-			 &&  Field.distanceToDefenseArea(this._passDestSuggestion, cbDistToDefenseArea) < 0.8) {
-
-		let intersection = Field.intersectRayDefenseArea(this._moveDest, G.OpponentGoal - this._moveDest, cbDistToDefenseArea + 0.3, false)
-		this._moveDest = intersection || this._moveDest
-	}
-
-	this._robot.trajectory.update(ToTarget, this._moveDest, (World.Ball.pos - this._robot.pos).angle())
 }
-
-
-return Striker
