@@ -49,7 +49,7 @@ export class AgentPool {
 		}
 
 		let robot = this._agentType.takeRobot(robots);
-		if (robot) {
+		if (robot != undefined) {
 			this._agents.push(new (this._agentType as any)(robot, messaging));
 		}
 		return robot;

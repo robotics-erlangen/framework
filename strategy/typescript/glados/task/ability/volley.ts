@@ -84,7 +84,7 @@ export class Volley {
 	// @param robotId variant<String, int> - the robot that is going to shoot or "opp" for opponent / unknown robots
 	// @return x,y - the velocity of the shot ball is Vector(x,y) (in team coordinates)
 	static calcVOutTeamCoordinates (v_out_length: number, ballSpeed: Speed, phi: number,
-			robotSpeed: Speed, robotId: number): [number, number] {
+			robotSpeed: Speed, robotId: number | "opp"): [number, number] {
 		let relativeSpeed = ballSpeed - robotSpeed
 		let [v_refl_x, v_refl_y] = Volley.calcVOutFromVS(0, relativeSpeed.length(), phi, relativeSpeed.angle(), robotId)
 		let sinp = Math.sin(phi)

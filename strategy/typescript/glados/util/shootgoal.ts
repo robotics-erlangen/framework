@@ -7,6 +7,7 @@ let G = World.Geometry
 
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
+import {Interval} from "glados/util/interval";
 
 interface FutureRobot {
 	pos: Position;
@@ -54,7 +55,7 @@ export let getRobotLists: (ownRobot: FriendlyRobot)=> [FutureRobot[], FutureRobo
 // @param sector { number } - the sector to rate
 // @param oldSectorMid number - the position that was chosen in the last frame
 // @return number - rating
-export function rateSector (sector: [number, number], oldSectorMid?: number): number {
+export function rateSector (sector: Interval, oldSectorMid?: number): number {
 	let sectorWidth = sector[1] - sector[0]
 
 	let hysteresisFactor = 1
@@ -136,7 +137,7 @@ export function findTarget (ownRobot: FriendlyRobot, viewPos: Position, ignoreGo
 // @return angle - the witdh of the chosen sector
 // @return bool - the dirty flag
 let TIME_UNTIL_MIN_ANGLE = 5
-function _updateTarget (ownRobot: FriendlyRobot, oldTarget: Position, oldDirty: boolean,
+function _updateTarget (ownRobot: FriendlyRobot, oldTarget: Position | undefined, oldDirty: boolean,
 		attackPosition?: Position): [Position, number, boolean] {
 	// compute viewPos relative to the current robot pos
 	let viewPos = attackPosition || (ownRobot.pos + Vector.fromAngle(ownRobot.dir) *
@@ -165,5 +166,5 @@ function _updateTarget (ownRobot: FriendlyRobot, oldTarget: Position, oldDirty: 
 
 	return [targetPoint, targetWidth, dirty]
 }
-export let updateTarget: (ownRobot: FriendlyRobot, oldTarget: Position, oldDirty: boolean,
+export let updateTarget: (ownRobot: FriendlyRobot, oldTarget: Position | undefined, oldDirty: boolean,
 		attackPosition?: Position)=> [Position, number, boolean] = Cache.forFrame(_updateTarget)

@@ -114,7 +114,7 @@ export class PenaltyShootout extends Behavior {
 			vis.addCircle("a/a/penaltyshootout: futureKeeper", this._futureKeeper.pos, 0.1, vis.colors.green, false);
 
 			let sector = Goal.largestFreeSector(World.Ball.pos, [this._futureKeeper], true);
-			let width = sector ? Math.abs(sector[1] - sector[2]) : 0;
+			let width = sector ? Math.abs(sector[0] - sector[1]) : 0;
 			let angle = 2 * Math.atan((G.GoalWidth / 2) / (G.FieldHeightHalf - this._robot.pos.y));
 			let criteriaAngle = width < angle * MIN_RELATIVE_SECTOR_SIZE;
 			debug.push("Angle Criteria", String(criteriaAngle));

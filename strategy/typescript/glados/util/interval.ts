@@ -1,4 +1,5 @@
-export type Interval = [number, number, [any, any]?];
+import {Robot} from "base/robot";
+export type Interval = [number, number, [Robot, Robot]?];
 
 /// Merges a list of intervals
 // @param sortedIntervals list (by reference) - the initial intervals ordered by increasing interval start

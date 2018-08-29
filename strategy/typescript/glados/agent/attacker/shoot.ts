@@ -415,7 +415,7 @@ export class Shoot extends Behavior {
 		}
 
 		// return shoot goal if the decision says so
-		if (this._decision.task == "shootgoal") {
+		if (this._decision.task === "shootgoal") {
 			return [ShootGoal, [ this._lastIncomingPassInfoPos ]];
 		}
 

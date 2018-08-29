@@ -6,7 +6,7 @@ import * as Entrypoints from "base/entrypoints";
 import * as World from "base/world";
 import {Trainer} from "glados/trainer/trainer";
 
-import {Ally} from "glados/agent/ally";
+// import {Ally} from "glados/agent/ally";
 import {Attacker} from "glados/agent/attacker";
 import {Defender} from "glados/agent/defender";
 import {Hidden} from "glados/agent/hidden";
@@ -14,7 +14,7 @@ import {Keeper} from "glados/agent/keeper";
 import {Manual} from "glados/agent/manual";
 
 let Agents = {
-	Ally: Ally,
+	// Ally: Ally,
 	Attacker: Attacker,
 	Defender: Defender,
 	Hidden: Hidden,
@@ -29,7 +29,7 @@ class MainCoordinator extends Coordinator {
 	constructor (trainer: MainTrainer) {
 		let pools: {[name: string]: AgentPool} = {
 			manual: new AgentPool(Agents.Manual),
-			ally: new AgentPool(Agents.Ally),
+			// ally: new AgentPool(Agents.Ally),
 			keeper: new AgentPool(Agents.Keeper),
 			defense: new AgentPool(Agents.Defender),
 			attack: new AgentPool(Agents.Attacker),
@@ -37,7 +37,7 @@ class MainCoordinator extends Coordinator {
 		};
 		let poolGroups: AgentPool[][] = [
 			[ pools.manual ],
-			[ pools.ally ],
+			// [ pools.ally ],
 			[ pools.keeper ],
 			[ pools.defense, pools.attack ],
 			[ pools.hidden ]

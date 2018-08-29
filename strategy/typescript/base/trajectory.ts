@@ -32,6 +32,7 @@ export interface RobotLike {
 	pos: Position;
 	speed: Speed;
 	id: number;
+	isVisible: boolean;
 	radius: number;
 	maxSpeed: number;
 	dir: number;

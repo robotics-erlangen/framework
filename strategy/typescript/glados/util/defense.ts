@@ -124,7 +124,7 @@ export function calculateBallPosition() {
 // calculates the centerBackPos for a target
 // if targetDir is supplied, the CB will position itself between targetPos and intersectRayDefenseArea(pos, dir, ...)
 // if that intersection is empty or no dir is supplied, it wil position itself between the target and the center of the goal
-function _centerBackPos(targetPos: Position, targetDir: RelativePosition | undefined): [Position, number, number | undefined] {
+function _centerBackPos(targetPos: Position, targetDir?: RelativePosition): [Position, number, number | undefined] {
 	let dist = centerBackDistanceToDefenseArea() + Constants.maxRobotRadius;
 	if (targetDir != undefined) {
 		// use targetPos even if it is slightly outside the field if it is going to be shot back in
@@ -139,12 +139,12 @@ function _centerBackPos(targetPos: Position, targetDir: RelativePosition | undef
 	let [pos, way, sec] = Field.intersectRayDefenseArea(World.Geometry.FriendlyGoal, dir, dist, true);
 	return [pos || centerBackDefaultPos, way, sec];
 }
-export let centerBackPos: (targetPos: Position, targetDir: RelativePosition | undefined) => [Position, number, number | undefined] =
+export let centerBackPos: (targetPos: Position, targetDir?: RelativePosition) => [Position, number, number | undefined] =
 	Cache.forFrame(_centerBackPos);
 
 // if the ball will reach our defense area with at least that speed, stay defender
 let DANGEROUS_BALL_SPEED = 3.0;
-export function dangerousBallTowardsDefense(opp: boolean): boolean {
+export function dangerousBallTowardsDefense(opp: boolean = false): boolean {
 	// if the ball rolls towards our defense area with high speed, stay defender
 	let defenseLineIntersection = Field.intersectRayDefenseArea(World.Ball.pos, World.Ball.speed, 0, !opp)[0];
 	if (defenseLineIntersection) {

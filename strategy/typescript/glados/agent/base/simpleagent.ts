@@ -1,4 +1,4 @@
-let Base = require "agent/base/agent"
+let Base from "glados/agent/base/agent"
 let SimpleAgent = Class("Agent.Base.SimpleAgent", Base)
 
 import * as World from "base/world";

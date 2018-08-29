@@ -157,7 +157,7 @@ export class HandleBall extends Behavior {
 		}
 
 		let rating = rateRobot(this._robot);
-		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, { interceptPass: rating });
+		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.interceptPass, rating ]);
 		return (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot);
 
 	}

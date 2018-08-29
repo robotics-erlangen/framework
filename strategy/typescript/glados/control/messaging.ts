@@ -137,6 +137,8 @@ export enum MessageType {
 	exclusiveRole, forcePoolChange, groupApplication
 }
 
+export type ExclusiveRole = MessageType.mainAttacker | MessageType.duelAssistant | MessageType.interceptPass;
+
 export const MessageTypeList = [
 	MessageType.allyFlag, MessageType.attackerFlag, MessageType.defendedOpponent, MessageType.defenderFlag,
 	MessageType.moveDest, MessageType.passSuggestion, MessageType.poolChangeRequest, MessageType.strikerFlag,
@@ -149,14 +151,6 @@ export const MessageTypeList = [
 ];
 
 type MessageOrigin = "trainer" | FriendlyRobot;
-
-interface BehaviourLike {
-	isBehaviour(): boolean;
-}
-
-interface TaskLike {
-	isTask(): boolean;
-}
 
 interface AgentLike {
 	isAgent(): boolean;
@@ -176,13 +170,13 @@ export class MessageBox {
 	}
 
 	send(type: MessageType.centerBackPosTarget, dest: FriendlyRobot, target: {pos: Position, target: any, way: number, time: number}): void;
-	send(type: MessageType.moveAssignment, dest: FriendlyRobot, assignment: {behavior: BehaviourLike, class: BehaviourLike | TaskLike, params: any, restart: boolean, mainAttacker: boolean}): void;
-	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number}[] }): void;
+	send(type: MessageType.moveAssignment, dest: FriendlyRobot, assignment: {behavior?: any, class?: any, params: any, restart: boolean, mainAttacker: boolean}): void;
+	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number} }): void;
 	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "ManMark", params: Robot[] }): void;
 	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "ZoneDefense", params: Position[] }): void;
 	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "Piggy", params: Robot[] }): void;
 	send(type: MessageType.strikerZone, dest: FriendlyRobot, zone: { defaultPos: Position, boundaries: {left: number, right: number} }): void;
-	send(type: MessageType.midfieldZone, dest: FriendlyRobot, zone: { defaultPos: Position, boundaries: {left: number, right: number} }): void;
+	send(type: MessageType.midfieldZone, dest: FriendlyRobot, zone: { defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number} }): void;
 	send(type: MessageType, dest: FriendlyRobot, data?: any): void {
 		this.sendGeneric(type, dest, data, false);
 	}
@@ -197,9 +191,7 @@ export class MessageBox {
 		this.sendGeneric(type, "trainer", data, false);
 	}
 
-	sendToTrainerRepeated(type: MessageType.exclusiveRole, role: {mainAttacker: number}): void;
-	sendToTrainerRepeated(type: MessageType.exclusiveRole, role: {duelAssistant: number}): void;
-	sendToTrainerRepeated(type: MessageType.exclusiveRole, role: {interceptPass: number}): void;
+	sendToTrainerRepeated(type: MessageType.exclusiveRole, role: [ExclusiveRole, number]): void;
 	sendToTrainerRepeated(type: MessageType.forcePoolChange, info: { robot: FriendlyRobot, destPool: "manual" | "ally" | "keeper" | "defender" | "attacker" | "hidden" }): void;
 	sendToTrainerRepeated(type: MessageType.groupApplication, group: { name: "centerback" | "moves" | "striker" | "midfield", payload: any }): void;
 	sendToTrainerRepeated(type: MessageType, data?: any): void {
@@ -216,8 +208,9 @@ export class MessageBox {
 	sendBroadcast(type: MessageType.strikerSamplingTimestamp, time: number): void;
 	sendBroadcast(type: MessageType.attackPosition, pos: Position): void;
 	sendBroadcast(type: MessageType.attackTime, time: number): void;
-	sendBroadcast(type: MessageType.passInfo, info: {target: Robot, ballPos: Position, time: number}[]): void;
+	sendBroadcast(type: MessageType.passInfo, info: {target: FriendlyRobot, ballPos: Position, time: number}[]): void;
 	sendBroadcast(type: MessageType.shootDestination, dest: Position): void;
+	sendBroadcast(type: ExclusiveRole, dest: FriendlyRobot | undefined): void;
 	sendBroadcast(type: MessageType, data?: any): void {
 		this.sendGeneric(type, "all", data, false);
 	}
@@ -275,7 +268,7 @@ export class MessageBox {
 
 	receiveSingleSender(type: MessageType.attackPosition, broadcast?: boolean): [FriendlyRobot, Position] | [];
 	receiveSingleSender(type: MessageType.attackTime, broadcast?: boolean): [FriendlyRobot, number] | [];
-	receiveSingleSender(type: MessageType.passInfo, broadcast?: boolean): [FriendlyRobot, {target: Robot, ballPos: Position, time: number}[]] | [];
+	receiveSingleSender(type: MessageType.passInfo, broadcast?: boolean): [FriendlyRobot, {target: FriendlyRobot, ballPos: Position, time: number}[]] | [];
 	receiveSingleSender(type: MessageType.shootDestination, broadcast?: boolean): [FriendlyRobot, Position] | [];
 	receiveSingleSender(type: MessageType, broadcast?: boolean): [FriendlyRobot, any] | [] {
 		let map: Map<FriendlyRobot, any> = this.receiveGeneric(type, broadcast);
@@ -289,20 +282,21 @@ export class MessageBox {
 		return it.value;
 	}
 
-	receiveRepeated(type: MessageType.exclusiveRole, broadcast?: boolean): Map<FriendlyRobot, ({mainAttacker: number} | {duelAssistant: number} | {interceptPass: number})[]>;
+	receiveRepeated(type: MessageType.exclusiveRole, broadcast?: boolean): Map<FriendlyRobot, [ExclusiveRole, number][]>;
 	receiveRepeated(type: MessageType.groupApplication, broadcast?: boolean): Map<FriendlyRobot, { name: "centerback" | "moves" | "striker" | "midfield", payload: any }[]>;
 	receiveRepeated(type: MessageType, broadcast?: boolean): Map<FriendlyRobot, any[]> {
 		return this.receiveGeneric(type, broadcast);
 	}
 
-	receiveTrainer(type: MessageType.centerBackPosTarget, broadcast?: boolean): {pos: Position, target: any, way: number, time: number};
-	receiveTrainer(type: MessageType.moveAssignment, broadcast?: boolean): {behavior: BehaviourLike, class: TaskLike | BehaviourLike, params: any, restart: boolean, mainAttacker: boolean};
-	receiveTrainer(type: MessageType.moveNumAttackers, broadcast?: boolean): number;
-	receiveTrainer(type: MessageType.roleAssignment, broadcast?: boolean): { name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number}[] };
-	receiveTrainer(type: MessageType.roleAssignment, broadcast?: boolean): { name: "ManMark", params: Robot[] };
-	receiveTrainer(type: MessageType.roleAssignment, broadcast?: boolean): { name: "ZoneDefense", params: Position[] };
-	receiveTrainer(type: MessageType.strikerZone, broadcast?: boolean): { defaultPos: Position, boundaries: {left: number, right: number} };
-	receiveTrainer(type: MessageType.midfieldZone, broadcast?: boolean): { defaultPos: Position, boundaries: {left: number, right: number} };
+	receiveTrainer(type: MessageType.centerBackPosTarget, broadcast?: boolean): {pos: Position, target: any, way: number, time: number} | undefined;
+	receiveTrainer(type: MessageType.moveAssignment, broadcast?: boolean): {behavior: any, class: any, params: any, restart: boolean, mainAttacker: boolean} | undefined;
+	receiveTrainer(type: MessageType.moveNumAttackers, broadcast?: boolean): number | undefined;
+	receiveTrainer(type: MessageType.roleAssignment, broadcast?: boolean):
+		{ name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number} }
+		| { name: "ManMark", params: Robot[] } | { name: "ZoneDefense", params: [Position] }
+		| { name: "Piggy", params: [Robot] } | undefined;
+	receiveTrainer(type: MessageType.strikerZone, broadcast?: boolean): { defaultPos: Position, boundaries: {left: number, right: number} } | undefined;
+	receiveTrainer(type: MessageType.midfieldZone, broadcast?: boolean): { defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number } } | undefined;
 	receiveTrainer(type: MessageType.mainAttacker, broadcast?: boolean): FriendlyRobot | undefined;
 	receiveTrainer(type: MessageType.duelAssistant, broadcast?: boolean): FriendlyRobot | undefined;
 	receiveTrainer(type: MessageType.interceptPass, broadcast?: boolean): FriendlyRobot | undefined;
@@ -315,7 +309,7 @@ export class MessageBox {
 		return this.receiveGeneric(type, broadcast).get("trainer");
 	}
 
-	receiveGeneric(type: MessageType, broadcast?: boolean) {
+	public receiveGeneric(type: MessageType, broadcast?: boolean) {
 		let mtypeBox = this.messaging._deliveredMessages[type];
 		if (this.origin === "trainer") {
 			mtypeBox = this.messaging._newMessages[type];

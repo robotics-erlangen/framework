@@ -14,7 +14,7 @@ const obstacleTable: PathHelper.PathHelperParameters = {
 	ignoreDefenseArea: true,
 	stopBallDistance: 0,
 	ignoreOpponentDefenseArea: true,
-	ignorePass :true
+	ignorePass: true
 }
 
 export class Manual extends Task {

@@ -75,7 +75,7 @@ export function realisticCardsOpponent () {
 
 	//assumes that there is only one yellow card that is not beeing played
 	if (cntO > 50) {
-		return Math.min(0,#(World.OpponentYellowCards) + World.OpponentRedCards - 1);
+		return Math.min(0, World.OpponentYellowCards.length + World.OpponentRedCards - 1);
 	}
 	return World.OpponentYellowCards.length + World.OpponentRedCards;
 

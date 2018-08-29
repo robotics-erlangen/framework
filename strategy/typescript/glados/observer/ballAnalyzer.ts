@@ -2,7 +2,7 @@ let BallAnalyzer = Class("Observer.BallAnalyzer", require "+/base/process")
 
 import * as debug from "base/debug";
 import * as World from "base/world";
-let MovingAverage = require "learning/movingaverage"
+let MovingAverage from "glados/learning/movingaverage"
 import * as Ball from "glados/observer/ball";
 
 

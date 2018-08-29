@@ -1,4 +1,5 @@
 import { Ball } from "base/ball";
+import * as MathUtil from "base/mathutil";
 import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
@@ -9,9 +10,9 @@ import * as World from "base/world";
 
 import * as BallObserver from "glados/observer/ball"
 import { Agent, Task } from "glados/task/base";
-import * as Direct from "glados/trajectory/direct";
+import { Direct } from "glados/trajectory/direct";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import * as ToTarget from "glados/trajectory/totarget";
+import { ToTarget } from "glados/trajectory/totarget";
 
 const enum State {
 	WAIT_FOR_BALL_STOP	= "WAIT_FOR_BALL_STOP",
@@ -119,11 +120,11 @@ export class PlaceBall extends Task {
 
 		vis.addCircle("PlaceBall/Placement Pos", this._placementPos, OFFSET_DISTANCE, vis.colors.orange);
 		vis.addPath("PlaceBall/Placement Pos", [ this._placementPos, this._placementPos + this._placementOffsetAverage], vis.colors.black);
-		vis.addCircle("PlaceBall/Border Pos", this.this._nearestFieldPos, OFFSET_DISTANCE, vis.colors.orange);
-		vis.addPath("PlaceBall Border Pos", [ self._nearestFieldPos, self._nearestFieldPos + self._borderOffsetAverage ], vis.colors.black);
+		vis.addCircle("PlaceBall/Border Pos", this._nearestFieldPos!, OFFSET_DISTANCE, vis.colors.orange);
+		vis.addPath("PlaceBall Border Pos", [ this._nearestFieldPos!, this._nearestFieldPos! + this._borderOffsetAverage ], vis.colors.black);
 
 		let oldState = this._state;
-		this._state = this._getNextState();
+		this._state = this._getNextState(this._state);
 		this._stateChanged = this._state !== oldState;
 		if (this._stateChanged) {
 			this._stateChangeTime = World.Time;
@@ -131,10 +132,10 @@ export class PlaceBall extends Task {
 		debug.set("state", this._state);
 
 		let obstacleTable: PathHelper.PathHelperParameters = {
-			ignoreDefenseArea = true,
-			ignoreOpponentDefenseArea = true,
-			ignorePass = true,
-			ignoreBallPlacementObstacle = true
+			ignoreDefenseArea: true,
+			ignoreOpponentDefenseArea: true,
+			ignorePass: true,
+			ignoreBallPlacementObstacle: true
 		};
 		obstacleTable.ignoreBall = this._state === State.ENSURE_PULL_CONTACT
 								|| this._state === State.PULL_TO_FIELD
@@ -145,7 +146,7 @@ export class PlaceBall extends Task {
 		} else if (this._state === State.MOVE_AWAY || this._state === State.WAIT_FOR_BALL_STOP) {
 			obstacleTable.extraBallDistance = this._robot.radius;
 		}
-		PathHelper.setDefaulPasetDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
+		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, obstacleTable);
 
 		// Extend field boundary so that the robot can pull the ball to the field from further out
 		this._robot.path.setBoundary(
@@ -157,15 +158,15 @@ export class PlaceBall extends Task {
 
 		switch (this._state) {
 			case State.WAIT_FOR_BALL_STOP: {
-				let ballVisible = self._ball.isPositionValid();
+				let ballVisible = this._ball.isPositionValid();
 
-				let specificOffset = self._placementOffsetAverage.copy().setLength(0.5);
+				let specificOffset = this._placementOffsetAverage.copy().setLength(0.5);
 				if (ballVisible) {
-					self._currentTargetPos = self._ball.pos - specificOffset;
+					this._currentTargetPos = this._ball.pos - specificOffset;
 				} else {
-					self._currentTargetPos = self._robot.pos - specificOffset;
+					this._currentTargetPos = this._robot.pos - specificOffset;
 				}
-				this._robot.trajectory.update(ToTarget, self._currentTargetPos, specificOffset.angle());
+				this._robot.trajectory.update(ToTarget, this._currentTargetPos, specificOffset.angle());
 
 				break;
 			}
@@ -191,7 +192,7 @@ export class PlaceBall extends Task {
 				if (this._stateChanged) {
 					this._currentTargetPos = Field.limitToField(this._robot.pos) - this._borderOffsetAverage;
 				}
-				this._robot.trajectory.update(ToTarget, this._currentTargetPos, this._borderOffsetAverage.angle(), MAX_PULL_SPEED, nil, MAX_PULL_ACCEL);
+				this._robot.trajectory.update(ToTarget, this._currentTargetPos, this._borderOffsetAverage.angle(), MAX_PULL_SPEED, undefined, MAX_PULL_ACCEL);
 
 				break;
 			}
@@ -202,15 +203,15 @@ export class PlaceBall extends Task {
 
 				break;
 			}
-			case STATE_PUSH_TO_POS: {
+			case State.PUSH_TO_POS: {
 
 				// TODO faster push at higher distance
 				this._robot.setDribblerSpeed(PUSH_DRIBBLER_SPEED);
-				this._currentTargetPos = this._placementPos + this._placementOffsetAverage.copy().setLength(OFFSET_SHOOT_LENGTH);
+				this._currentTargetPos = this._placementPos + this._placementOffsetAverage.copy().setLength(this.OFFSET_SHOOT_LENGTH);
 
-				let speed = this.this._robot.pos.distanceTo(this._currentTargetPos) > FAR_NEAR_CUT ? FAR_PUSH_SPEED : NEAR_PUSH_SPEED;
+				let speed = this._robot.pos.distanceTo(this._currentTargetPos) > this.FAR_NEAR_CUT ? FAR_PUSH_SPEED : NEAR_PUSH_SPEED;
 
-				this._robot.trajectory.update(ToTarget, this._currentTargetPos, (-this._placementOffsetAverage).angle(), speed, nil, PUSH_ACCEL_SCALE);
+				this._robot.trajectory.update(ToTarget, this._currentTargetPos, (-this._placementOffsetAverage).angle(), speed, undefined, PUSH_ACCEL_SCALE);
 
 				break;
 			}
@@ -220,7 +221,7 @@ export class PlaceBall extends Task {
 				let m = -4 * PUSH_DRIBBLER_SPEED / BACK_UP_WAIT_TIME;
 				let f0 = 3 * PUSH_DRIBBLER_SPEED;
 				// Linear dropoff between BACK_UP_WAIT_TIME / 4 and BACK_UP_WAIT_TIME / 2
-				let dribblerSpeed = math.bound(0, m * timeInState + f0, PUSH_DRIBBLER_SPEED);
+				let dribblerSpeed = MathUtil.bound(0, m * timeInState + f0, PUSH_DRIBBLER_SPEED);
 				this._robot.setDribblerSpeed(dribblerSpeed);
 
 				break;
@@ -228,7 +229,7 @@ export class PlaceBall extends Task {
 			case State.BACK_UP: {
 				// Ever making the the offset dependent on something near the target position was a mistake
 				if (this._stateChanged) {
-					let offset = (this._robotStartPos - this._ballStartPos).setLength(OFFSET_EXTRA_LENGTH);
+					let offset = (this._robotStartPos - this._ballStartPos).setLength(this.OFFSET_EXTRA_LENGTH);
 					this._currentTargetPos = this._robot.pos + offset;
 				}
 				this._robot.trajectory.update(ToTarget, this._currentTargetPos, this._robot.dir, BACK_UP_SPEED);
@@ -242,7 +243,7 @@ export class PlaceBall extends Task {
 
 				break;
 			}
-
+		}
 	}
 
 	private _getNextState(currentState: State): State {

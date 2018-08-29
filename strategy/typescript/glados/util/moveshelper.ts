@@ -37,7 +37,7 @@ function createOptionsTableRec (options: number): number[][] {
 // @param positions table - list of positions to assign the remaining robots to
 // @param ignoreFirstNRobots number - ignore the first n robots in robots during assignment
 // @return table - assignments. use like this: robots[assignment[i]] -> assign to positions[i]
-export function assignRobots (robots: Robot[], positions: Position[], ignoreFirstNRobots: number): number[] {
+export function assignRobots (robots: {pos: Position}[], positions: Position[], ignoreFirstNRobots: number): number[] {
 	if (robots.length - ignoreFirstNRobots != positions.length) {
 		throw new Error("Moveshelper: unmatching number of robots and positions!");
 	}

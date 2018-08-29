@@ -93,9 +93,9 @@ export class Striker extends Task {
 
 		let bestPoint = undefined;
 		let bestScore = -Infinity;
-		for (x = grid_point_dist_x * 0.5 - G.FieldWidthHalf, G.FieldWidthHalf, grid_point_dist_x) {
+		for (let x = grid_point_dist_x * 0.5 - G.FieldWidthHalf;x<= G.FieldWidthHalf; x+=grid_point_dist_x) {
 			if (x > left && x < right) {
-				for (y = grid_point_dist_y * 0.5 - G.FieldHeightHalf, G.FieldHeightHalf, grid_point_dist_y) {
+				for (let y = grid_point_dist_y * 0.5 - G.FieldHeightHalf; y<=G.FieldHeightHalf; y+=grid_point_dist_y) {
 					if (y > bottom && y < top) {
 						let candidatePoint = new Vector(x, y);
 						candidatePoint = Field.limitToAllowedField(candidatePoint, 3 * this._robot.radius + 0.1)

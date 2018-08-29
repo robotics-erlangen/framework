@@ -30,9 +30,7 @@ export abstract class Agent {
 	_debugIdStr: string;
 
 	// static method for pool
-	static takeRobot (_robots: FriendlyRobot[]): void {
-		throw new Error("stub");
-	}
+	abstract static takeRobot (_robots: FriendlyRobot[]): FriendlyRobot | undefined;
 
 	constructor (robot: FriendlyRobot, messaging: Messaging) {
 		this._robot = robot;

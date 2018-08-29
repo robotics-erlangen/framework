@@ -124,7 +124,6 @@ function _calculateCurveSpeedLimits (waypoints: Position[], accelLimit: number, 
 // if braking is necessary this is down with the deceleration brake
 function _backpropagateSpeedLimit (speedProfile: number[][], maxSpeed: number, brake: number) {
 	// no need to slow down
-	debug.set("asdf", speedProfile);
 	if (speedProfile[speedProfile.length-1][1] <= maxSpeed) {
 		return;
 	}
@@ -556,12 +555,11 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		let robotPos = Coordinates.toGlobal(this._robot.pos);
 
 		this._robot.path.setProbabilities(0.15, 0.65);
-		// TODO: port pathhelper and enable this
 		PathHelper.insertObstacles(this._robot as FriendlyRobot);
 		// first waypoint is the current robot position
 		// if reaching the end is possible there's a waypoint at the end
 		let waypoints: any[] = this._robot.path.getPath(robotPos.x, robotPos.y, targetPos.x, targetPos.y);
-		debug.set("waypoints_result", waypoints);
+		// debug.set("waypoints_result", waypoints);
 
 		// convert waypoints to vectors and draw
 		let waypointsVector: Position[] = [];
@@ -683,9 +681,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 	//	end
 
 		// smooth first corner
-		debug.set("waypoints_before", waypoints);
 		_preprocessPath(waypoints, maxError, robotPos, robotSpeed);
-		debug.set("waypoints_after", waypoints);
 		for (let w of waypoints) {
 			vis.addCircleRaw("waypoints_raw", w, 0.1, vis.colors.green);
 		}
@@ -694,18 +690,18 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 		// unexpected sidewards speed is handled in _calculateSpeed
 		// handling it here doesn't work as this adds a phantom speed
 		let startSpeed = (waypoints[1] - waypoints[0]).normalize().dot(robotSpeed);
-		debug.set("startSpeed", startSpeed);
+		// debug.set("startSpeed", startSpeed);
 		// handle endSpeed
 		let endSpeedLen = Math.max(0, (waypoints[waypoints.length-1] - waypoints[waypoints.length - 2]).normalize().dot(endSpeed));
 		// calculate speed limits for curve segments based on sidewards acceleration limits while driving curves
 		let maxSpeedProfile = _calculateCurveSpeedLimits(waypoints, accelLimit, maxSpeed, maxError, startSpeed, endSpeedLen)
-		debug.set("maxSpeedProfile", maxSpeedProfile)
+		// debug.set("maxSpeedProfile", maxSpeedProfile)
 		// convert to actual speed curve
 		let speedProfile = _calculate1DSpeedProfile(maxSpeedProfile, accelerate, brake);
-		debug.set("speedProfile", speedProfile)
+		// debug.set("speedProfile", speedProfile)
 
 		_injectExponentialFalloff(speedProfile, exponentialTime, exponentialError, brake, endSpeedLen);
-		debug.set("speedProfile2", speedProfile)
+		// debug.set("speedProfile2", speedProfile)
 
 		let [speedVector, accelVector] = _calculateSpeed(this._robot.id, waypoints, maxSpeedProfile, speedProfile, robotSpeed, accelLimit, sidewardsErrorFactor);
 

@@ -47,8 +47,8 @@ function generateLineup (lineStart: Position, lineupDir: number) {
 			opponentIndex = opponentIndex + 1;
 		} else {
 			let pseudoagent = {robot: function() { return r; } }; //FIXME hack;
-			let task = new MoveToPos(pseudoagent, intendedPos, viewDir);
-			task.run(task);
+			let task = new MoveToPos(<any>pseudoagent, intendedPos, viewDir);
+			task.run();
 			friendlyIndex = friendlyIndex + 1;
 			distToStart = distToStart + mindist;
 		}

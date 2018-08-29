@@ -55,7 +55,7 @@ export class MoveToPos extends Task {
 	// An obstacle table contains a string field called type and parameters relevant for Path:addX
 	// Type can be "circle", "line", "rect" and "triangle"
 	constructor (agent: Agent, pos: Position, dir: number = (World.Ball.pos - pos).angle(), suggestPass: boolean = false,
-			endSpeedLength: number = 0, ignoreDefaultObstacles: boolean = false, customObstacles: Obstacle[],
+			endSpeedLength: number = 0, ignoreDefaultObstacles: boolean = false, customObstacles: Obstacle[] = [],
 			ignoreBallPlacement: boolean = false, ignoreBall: boolean = false) {
 		super(agent);
 		this._pos = pos;

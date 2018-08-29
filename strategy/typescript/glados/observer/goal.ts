@@ -25,7 +25,7 @@ let G = World.Geometry;
 // @param endAngle number - end angle of the sector to scan
 // @param insertRobots - set to true iff you want the robots included in its sector
 // @return occupiedSectors list - all unsorted, unmerged occupied sectors
-export function getOccupiedSectors (viewPos: Position, robotList: Robot[], startAngle: number,
+export function getOccupiedSectors (viewPos: Position, robotList: {pos: Position, radius: number}[], startAngle: number,
 		endAngle: number, insertRobots: boolean = false): Interval.Interval[] {
 	if (endAngle < startAngle) { // normalize angles
 		endAngle = endAngle + 2 * Math.PI;
@@ -66,7 +66,7 @@ export function getOccupiedSectors (viewPos: Position, robotList: Robot[], start
 	return occupiedSectors;
 }
 
-export function getFreeSectors (viewPos: Position, robotList: Robot[], startAngle: number, endAngle: number): Interval.Interval[] {
+export function getFreeSectors (viewPos: Position, robotList: {pos: Position, radius: number}[], startAngle: number, endAngle: number): Interval.Interval[] {
 	if (endAngle < startAngle) { // normalize angles
 		endAngle = endAngle + 2 * Math.PI;
 	}
@@ -81,7 +81,7 @@ export function getFreeSectors (viewPos: Position, robotList: Robot[], startAngl
 // @param robotList list - all robot objects that should be considered
 // @param opp boolean - true for opponent goal, false for friendly goal
 // @return list - list of free sectors [startAngle, endAngle] ascending by start angle
-export function freeSectors (viewPos: Position, robotList: Robot[], opp: boolean): Interval.Interval[] {
+export function freeSectors (viewPos: Position, robotList: {pos: Position, radius: number}[], opp: boolean): Interval.Interval[] {
 	if ((opp ? 1 : -1)*viewPos.y > G.FieldHeightHalf) {
 		//log("viewPos is behind the goal.")
 		return [];
@@ -101,7 +101,7 @@ export function freeSectors (viewPos: Position, robotList: Robot[], opp: boolean
 // @param robotList list - all robot objects that should be considered
 // @param opp boolean - true for opponent goal, false for friendly goal
 // @return largestFreeSector interval - the largest free sector
-export function largestFreeSector (viewPos: Position, robotList: Robot[], opp: boolean): Interval.Interval | undefined {
+export function largestFreeSector (viewPos: Position, robotList: {pos: Position, radius: number}[], opp: boolean): Interval.Interval | undefined {
 	let unoccupiedSectors = freeSectors(viewPos, robotList, opp); // get list of all unoccupied sectors
 	return Interval.getLargest(unoccupiedSectors);
 }
@@ -109,7 +109,7 @@ export function largestFreeSector (viewPos: Position, robotList: Robot[], opp: b
 /// Returns a list of all sectors not covered by any robot from robotList (not limited to the goal)
 // @param viewPos vector - position from which the free angles should be found
 // @param robotList list - all robot objects that should be considered
-export function allFreeSectors (viewPos: Position, robotList: Robot[]): Interval.Interval[] {
+export function allFreeSectors (viewPos: Position, robotList: {pos: Position, radius: number}[]): Interval.Interval[] {
 	let occupiedSectors = getOccupiedSectors(viewPos, robotList, 0, 2*Math.PI);
 	//for i,sector in ipairs(occupiedSectors) do
 	//	debug.set("osectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")
