@@ -1,5 +1,5 @@
 /***************************************************************************
- *   Copyright 2018 Andreas Wendler                                        *
+ *   Copyright 2018 Tobias Heineken, Andreas Wendler                       *
  *   Robotics Erlangen e.V.                                                *
  *   http://www.robotics-erlangen.de/                                      *
  *   info@robotics-erlangen.de                                             *
@@ -77,6 +77,7 @@ int main(int argc, char* argv[])
     QCommandLineOption prefix({"p", "prefix"}, "Prefix for outputFiles. Uses std::cout for output if missing", "prefix");
     QCommandLineOption disablePerformanceMode("disable-performance-mode", "Disable performance mode for the strategy.");
     QCommandLineOption showLogOption({"l", "show-log"}, "Print log output to std::cout");
+    QCommandLineOption abortExecution({"d", "die-on-error"}, "Die when a strategy problem occurs");
 
     parser.addOption(asBlueOption);
     parser.addOption(showHistogramOption);
@@ -85,6 +86,7 @@ int main(int argc, char* argv[])
     parser.addOption(printAllTimings);
     parser.addOption(disablePerformanceMode);
     parser.addOption(showLogOption);
+    parser.addOption(abortExecution);
 
     // parse command line
     parser.process(app);
@@ -151,11 +153,10 @@ int main(int argc, char* argv[])
         if (parser.isSet(disablePerformanceMode)) {
             strategyCommand->set_performance_mode(false);
         }
-        strategy->handleCommand(command);
 
         TimingStatistics statistics(asBlue, parser.isSet(printAllTimings), logfile.packetCount() + 1);
         statistics.connect(strategy, &Strategy::sendStatus, &statistics, &TimingStatistics::handleStatus);
-        if(showLog)
+        if (showLog)
             strategy->connect(strategy, &Strategy::sendStatus, [](const Status& s){
                     if(s->has_debug()){
                         const amun::DebugValues& debugValues = s->debug();
@@ -165,10 +166,24 @@ int main(int argc, char* argv[])
                         }
                     }
             });
+        if (parser.isSet(abortExecution))
+            strategy->connect(strategy, &Strategy::sendStatus, [asBlue](const Status& s){
+                    const amun::StatusStrategy* replayStatus = nullptr;
+                    if(s->has_strategy_blue() && asBlue) {
+                        replayStatus = &s->strategy_blue();
+                    }
+                    else if(s->has_strategy_yellow() && !asBlue) {
+                        replayStatus = &s->strategy_yellow();
+                    }
+                    if(replayStatus && replayStatus->state() == amun::StatusStrategy::FAILED){
+                        exit(1);
+                    }
+            });
+        strategy->handleCommand(command);
         BlockingStrategyReplay replayBlocker(strategy);
 
         int packetCount = logfile.packetCount();
-        for (int i = 0;i<packetCount;i++) {
+        for (int i = 0; i<packetCount; i++) {
             Status status = logfile.readStatus(i);
 
             // give the team information to the strategy
