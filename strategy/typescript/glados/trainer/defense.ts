@@ -1,98 +1,122 @@
+import { amunFunctions } from "base/amun";
 import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
-import * as MathUtil from "base/mathutil";
 import * as geom from "base/geom";
-import {Robot, FriendlyRobot} from "base/robot";
+import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
-import {Vector, Position} from "base/vector";
+import { FriendlyRobot, Robot } from "base/robot";
+import { Position, RelativePosition, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";
 
+import { MessageBox, MessageType } from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
-import * as ObserverRobot from "glados/observer/robot";
 import * as Physics from "glados/observer/physics";
+import * as ObserverRobot from "glados/observer/robot";
 import * as UtilDefense from "glados/util/defense";
 import * as Rating from "glados/util/rating";
 
 let G = World.Geometry;
 
+interface Ray {
+	startPos: Position;
+	startDirection: RelativePosition;
+	pos: Position;
+	way?: number;
+	resetSpeed?: boolean;
+	isDribbling?: boolean;
+}
+
 class Defense {
-	_manmarkTargets: Map<Robot, number>(); // opponent -> rating
-	_manmarkAssignments: Map<Robot, FriendlyRobot>(); // opponent -> defender
-	_centerbackAssignments: Map<Robot, FriendlyRobot>();
+	private ZONE_POS_LEFT: Position = new Vector(-G.FieldWidthQuarter, G.FieldHeightQuarter / 2);
+	private ZONE_POS_RIGHT: Position = new Vector(G.FieldWidthQuarter, G.FieldHeightQuarter / 2);
 
-	_piggyTargets: Map<Robot, number>(); // opponent -> rating
-	_piggyAssignments: Map<Robot, FriendlyRobot>();  // opponent -> defender
+	private _manmarkTargets: Map<Robot, number> = new Map(); 					// opponent -> rating
+	private _manmarkAssignments: Map<Robot, FriendlyRobot> = new Map(); 		// opponent -> defender
+	private _centerbackAssignments: FriendlyRobot[] = [];
 
-	_previousManmarkAssignments: Map<Robot, FriendlyRobot>(); // opponent -> defender
-	_previousPiggyAssignments: Map<Robot, FriendlyRobot>(); // opponent -> defender
-	_previousBallCenterbacks: FriendlyRobot[];
+	private _piggyTargets: Map<Robot, number> = new Map(); 						// opponent -> rating
+	private _piggyAssignments: Map<Robot, FriendlyRobot> = new Map();  			// opponent -> defender
 
-	_ballIsLeft: boolean = false;
+	private _previousManmarkAssignments: Map<Robot, FriendlyRobot> = new Map(); // opponent -> defender
+	private _previousPiggyAssignments: Map<Robot, FriendlyRobot> = new Map(); 	// opponent -> defender
+	private _previousBallCenterbacks: FriendlyRobot[] = [];
 
-	constructor () {
+	private _ballIsLeft: boolean = false;
 
-		let zonePosLeft = new Vector(-World.Geometry.FieldWidthHalf/2, -World.Geometry.FieldHeightHalf/4)
-		let zonePosRight = new Vector(World.Geometry.FieldWidthHalf/2, -World.Geometry.FieldHeightHalf/4)
-		this._zonePosLeft = zonePosLeft
-		this._zonePosRight = zonePosRight
-		this._zoneDefenderPosLeft = UtilDefense.manMarkPos(
-			{pos: zonePosLeft, radius: Constants.maxRobotRadius, speed: new Vector(0, 0)})
-		this._zoneDefenderPosRight = UtilDefense.manMarkPos(
-			{pos: zonePosRight, radius: Constants.maxRobotRadius, speed: new Vector(0, 0)})
-		this._zonePosHysteresis = {}
-		this._centerbackIntersectionsRemoved = [false, false]
+	private _zoneDefenderPosLeft: Position;
+	private _zoneDefenderPosRight: Position;
+
+	private _centerbackIntersectionsRemoved = [false, false];
+
+	private _messaging: MessageBox;
+
+	constructor(messaging: MessageBox) {
+		this._messaging = messaging;
+
+		this._zoneDefenderPosLeft = UtilDefense.manMarkPos({
+			pos: this.ZONE_POS_LEFT,
+			radius: Constants.maxRobotRadius,
+			speed: new Vector(0, 0)
+		});
+		this._zoneDefenderPosRight = UtilDefense.manMarkPos({
+			pos: this.ZONE_POS_RIGHT,
+			radius: Constants.maxRobotRadius,
+			speed: new Vector(0, 0)
+		});
+		// TODO Zonenverteidigung porten
+		// this._zonePosHysteresis = {}
 	}
 
-	_updateManmarkTargets () {
-		let dangerousness = UtilDefense.rateOpponentDangerousness()
+	private _updateManmarkTargets(): void {
+		let dangerousness = UtilDefense.rateOpponentDangerousness();
 
-		for (robot, rating in pairs(dangerousness)) {
-			vis.addCircle("tr/defense: Dangerousness", robot.pos, 0.2, vis.fromTemperature(rating), true)
+		for (let [robot, rating] of dangerousness.entries()) {
+			vis.addCircle("tr/defense: Dangerousness", robot.pos, 0.2, vis.fromTemperature(rating), true);
 		}
 
 		for (let robot of World.OpponentRobots) {
-			let alreadyTargeted = this._previousManmarkAssignments[robot] != nil
-
 			// if we are already dueling the robot
 			// the duel robot has to block the shot already
-			let sender, msg = next(this._inbox.defendedOpponent())
-			if (msg == robot && sender.pos.distanceToLineSegment(msg.pos + Vector.fromAngle(msg.dir) * (msg.shootRadius + World.Ball.radius), World.Geometry.FriendlyGoal) < sender.radius) {
+			// TODO shouldn't all defended opponents be checked? Did not change while porting but why wouldn't we?
+			let [sender, opponent] = this._messaging.receive(MessageType.defendedOpponent).entries().next().value;
+
+			if (opponent === robot && sender.pos.distanceToLineSegment(opponent.pos + Vector.fromAngle(opponent.dir) * (opponent.shootRadius + World.Ball.radius), G.FriendlyGoal) < sender.radius) {
 				continue;
 			}
 
+			let alreadyTargeted = this._previousManmarkAssignments.has(robot);
 			// if the robot is the (not aggressive) opponent keeper
-			let extraDist = alreadyTargeted ? 0.2 : 0.4
-			if (robot == World.OpponentKeeper && Field.isInOpponentDefenseArea(robot.pos, extraDist)) {
+			let extraDist = alreadyTargeted ? 0.2 : 0.4;
+			if (robot === World.OpponentKeeper && Field.isInOpponentDefenseArea(robot.pos, extraDist)) {
 				continue;
 			}
 
 			// if in STOP, don't mark opponents who are close to the stop circle
-			let stopCircleMarkRadius = alreadyTargeted ? 0.7 : 0.85
+			let stopCircleMarkRadius = alreadyTargeted ? 0.7 : 0.85;
 			if (Referee.isStopState() && robot.pos.distanceTo(World.Ball.pos) < stopCircleMarkRadius) {
 				continue;
 			}
 
 			// otherwise, target the opponent
-			this._manmarkTargets[robot] = dangerousness[robot]
+			// rate as not dangerous if UtilDefense did not give a value
+			this._manmarkTargets.set(robot, dangerousness.get(robot) || 0);
 		}
 	}
 
-	_nextManmarkAssignment (defenders: FriendlyRobot[]) {
-		if (defenders.length == 0) {
-			return;
+	private _nextManmarkAssignment(defenders: FriendlyRobot[]): [Robot, FriendlyRobot] | undefined {
+		if (defenders.length === 0) {
+			return undefined;
 		}
 
-		let mostDangerousRobot = undefined;
+		let mostDangerousRobot: Robot | undefined = undefined;
 		let highestDangerousness = -Infinity;
 		for (let [robot, dangerousness] of this._manmarkTargets.entries()) {
-			for (let defender of defenders) {
-				if (this._previousManmarkAssignments.get(robot) === defender) {
-					dangerousness = dangerousness + 0.2;
-				}
-			}
+			defenders
+				.filter((defender) => defender === this._previousManmarkAssignments[robot])
+				.forEach((_) => dangerousness += 0.2);
 			if (dangerousness > highestDangerousness) {
 				highestDangerousness = dangerousness;
 				mostDangerousRobot = robot;
@@ -102,263 +126,268 @@ class Defense {
 		if (mostDangerousRobot != undefined && highestDangerousness > 0) {
 			let targetBot = mostDangerousRobot;
 			let bestDefender = targetBot;
-
-			let intersectionDefenseArea = Field.intersectRayDefenseArea(targetBot.pos, G.FriendlyGoal - targetBot.pos, 0.2, true);
+			let intersectionDefenseArea = Field.intersectRayDefenseArea(
+				targetBot.pos,
+				targetBot.pos,
+				0.2,
+				true
+			)[0];
 			let manMarkPos = UtilDefense.manMarkPos(mostDangerousRobot);
-			if (intersectionDefenseArea) {
+			if (intersectionDefenseArea != undefined) {
 				// manmark should quickly move into the goalline
 				// whichever robot is close to the goalline and close to the defense area is preferred
 				let bestDistance = Infinity;
-				for (let bot of defenders) {
-					let posOnGoalLine, distanceToGoalLine = bot.pos.orthogonalProjection(intersectionDefenseArea, targetBot.pos);
+				defenders.forEach((bot) => {
+					let [posOnGoalLine, distanceToGoalLine] = bot.pos.orthogonalProjection(intersectionDefenseArea, targetBot.pos);
 					distanceToGoalLine = Math.abs(distanceToGoalLine);
 
 					if (Field.isInDefenseArea(posOnGoalLine, 0.05, true)) {
-						posOnGoalLine = Field.intersectRayDefenseArea(posOnGoalLine, targetBot.pos-posOnGoalLine, 0.2, true) || posOnGoalLine
+						posOnGoalLine = Field.intersectRayDefenseArea(posOnGoalLine, targetBot.pos - posOnGoalLine, 0.2, true)[0]
+							|| posOnGoalLine;
 					}
 
 					// a figurative distance, the distance to the goalline is weighted more than the distance to the manMarkPos
 					// this is because a manMark will first try to intercept the goal line
-					let totalDistance = distanceToGoalLine * 1.5 + posOnGoalLine.distanceTo(manMarkPos)
-					if (this._previousManmarkAssignments[targetBot] == bot) {
-						totalDistance = 0.75 * totalDistance
+					let totalDistance = distanceToGoalLine * 1.5 + posOnGoalLine.distanceTo(manMarkPos);
+					if (this._previousManmarkAssignments[targetBot] === bot) {
+						totalDistance *= 0.75;
 					}
 
-					if (this._previousPiggyAssignments[mostDangerousRobot] == bot) {
-						totalDistance = totalDistance * 1.2
+					if (this._previousPiggyAssignments[<Robot> mostDangerousRobot] === bot) {
+						totalDistance *= 1.2;
 					}
 
 					if (totalDistance < bestDistance) {
-						bestDistance = totalDistance
-						bestDefender = bot
+						bestDistance = totalDistance;
+						bestDefender = bot;
 					}
-				}
+
+				});
 			} else {
-				bestDefender = UtilDefense.getClosestRobot(defenders, manMarkPos)
+				bestDefender = <FriendlyRobot> UtilDefense.getClosestRobot(defenders, manMarkPos)[0];
 			}
+			this._manmarkAssignments[mostDangerousRobot] = <FriendlyRobot> bestDefender;
 
-
-			this._manmarkAssignments[mostDangerousRobot] = bestDefender
-			this._manmarkTargets[mostDangerousRobot] = nil
-
-			return mostDangerousRobot, bestDefender
+			return [mostDangerousRobot, <FriendlyRobot> bestDefender];
 		}
+
+		return undefined;
 	}
 
+	// _checkZoneDefender (zonePos) {
+	// 	let rating = 0
+	// 	for (robot, _ in pairs(this._manmarkAssignments)) {
+	// 		let dist = zonePos.distanceTo(robot.pos)
+	// 		rating = rating + Rating.valueToRating(dist, World.Geometry.FieldHeightHalf / 3, 0)
+	// 	}
+	// 	let decision = this._zonePosHysteresis[zonePos] ? rating < 0.6 : rating < 0.3 || not Referee.isStopState()
+	// 	this._zonePosHysteresis[zonePos] = decision
+	// 	return decision
+	// }
 
-	_checkZoneDefender (zonePos) {
-		let rating = 0
-		for (robot, _ in pairs(this._manmarkAssignments)) {
-			let dist = zonePos.distanceTo(robot.pos)
-			rating = rating + Rating.valueToRating(dist, World.Geometry.FieldHeightHalf / 3, 0)
-		}
-		let decision = this._zonePosHysteresis[zonePos] ? rating < 0.6 : rating < 0.3 || not Referee.isStopState()
-		this._zonePosHysteresis[zonePos] = decision
-		return decision
-	}
-
-	_assignManmarkDefenders (defenders, nReservedDefenders) {
-		while (#defenders - nReservedDefenders > 0) {
-			let manmarkTarget, manmarker = this._nextManmarkAssignment(defenders)
-			if (not manmarkTarget || not manmarker) {
-				break
+	private _assignManmarkDefenders(defenders: FriendlyRobot[], nReservedDefenders: number) {
+		while (defenders.length - nReservedDefenders > 0) {
+			let assignment = this._nextManmarkAssignment(defenders);
+			if (assignment == undefined) {
+				break;
 			}
-
-			table.removeValue(defenders, manmarker)
-			this._send.roleAssignment(manmarker,
-				{name = "ManMark", params: { manmarkTarget }})
+			let [manmarkTarget, manmarker] = assignment;
+			defenders.splice(defenders.indexOf(manmarker), 1);
+			this._messaging.send(MessageType.roleAssignment, manmarker, { name: "ManMark", params: [manmarkTarget] });
 		}
 	}
 
-	_updatePiggyTargets () {
-		let passViability = UtilDefense.rateOpponentPassViability() // opponent -> rating
-		for (robot, rating in pairs(passViability)) {
-			vis.addCircle("tr/defense: passViability", robot.pos, 0.2, vis.fromTemperature(rating), true)
+	private _updatePiggyTargets(): void {
+		let passViability = UtilDefense.rateOpponentPassViability(); // opponent -> rating
+		for (let [robot, rating] of passViability.entries()) {
+			vis.addCircle("tr/defense: passViability", robot.pos, 0.2, vis.fromTemperature(rating), true);
 		}
 
-		// remove targets with lowest rating
-		for (opp, rating in pairs(passViability)) {
+		// remove targets with lowest ratings
+		for (let [opp, rating] of passViability.entries()) {
 			if (rating < 0.1) {
-				passViability[opp] = nil
+				passViability.delete(opp);
 			}
 		}
 
-		this._piggyTargets = passViability
+		this._piggyTargets = passViability;
 	}
 
-	function Defense:_assignPiggies (defenders, nPiggies) {
+	private _assignPiggies(defenders: FriendlyRobot[], nPiggies: number): void {
 		// assign piggies
-		while (#defenders > 0 && nPiggies > 0) {
+		while (defenders.length > 0 && nPiggies > 0) {
+			let target = findMostViableTarget(this._piggyTargets, defenders, this._previousPiggyAssignments);
+			if (target == undefined) {
+				break;
+			}
+			this._piggyTargets.delete(target);
 
-			let target = findMostViableTarget(this._piggyTargets, defenders, this._previousPiggyAssignments)
-			if (not target) {
-				break
+			let piggyPos = UtilDefense.piggyPos(target);
+			let piggy = UtilDefense.getClosestRobot(defenders, piggyPos)[0];
+
+			if (piggy == undefined || target == undefined) {
+				break;
 			}
 
-			this._piggyTargets[target] = nil
-
-			let piggyPos = UtilDefense.piggyPos(target)
-			let piggy = UtilDefense.getClosestRobot(defenders, piggyPos)
-
-			if (not piggy || not target) {
-				break
-			}
-
-			this._piggyAssignments[target] = piggy
-			table.removeValue(defenders, piggy)
-			this._send.roleAssignment(piggy,
-				{name = "Piggy", params: { target }})
-			nPiggies = nPiggies - 1
+			this._piggyAssignments[target] = <FriendlyRobot> piggy;
+			defenders.splice(defenders.indexOf(<FriendlyRobot> piggy), 1);
+			this._messaging.send(MessageType.roleAssignment, piggy, { name: "Piggy", params: [target] });
+			nPiggies--;
 		}
 	}
 
-	// inserts tables of: way, pos, startPos, startDirection of the ray into result
-	_createIntersections (result, pos, direction, radius, index, isDribbling) {
-		let lastRemoved = this._centerbackIntersectionsRemoved[index]
-		this._centerbackIntersectionsRemoved[index] = false
-		let MAX_DEFENSE_DIST = 5
-		let intersections = Field.intersectionsRayDefenseArea(pos, direction, radius, true)
-		if (intersections[1] && intersections[2]) {
-			if (intersections[1].pos.distanceToSq(pos) > intersections[2].pos.distanceToSq(pos)) {
-				intersections[1], intersections[2] = intersections[2], intersections[1]
+	private _createIntersections(result: Ray[], pos: Position, direction: RelativePosition, radius: number, index: number, isDribbling: boolean): void {
+		let lastRemoved = this._centerbackIntersectionsRemoved[index];
+		this._centerbackIntersectionsRemoved[index] = false;
+		const MAX_DEFENSE_DIST = 5;
+		let intersections = Field.intersectionsRayDefenseArea(pos, direction, radius, true);
+		if (intersections[0] != undefined && intersections[1] != undefined) {
+			if (intersections[0].pos.distanceToSq(pos) > intersections[1].pos.distanceToSq(pos)) {
+				let temp = intersections[0];
+				intersections[0] = intersections[1];
+				intersections[1] = temp;
 			}
-			let maxDistance = lastRemoved ? 0.3 : 0.2
-			let value = direction.copy().setLength(1).y
-			let minFlatness = lastRemoved ? 0.3 : 0.2
-			if (intersections[1].pos.distanceToSq(intersections[2].pos) < maxDistance * maxDistance  ||
-					value < minFlatness && intersections[2].sec == 3) {
-				intersections[2] = nil
-				this._centerbackIntersectionsRemoved[index] = true
+			let maxDistance = lastRemoved ? 0.3 : 0.2;
+			let value = direction.copy().setLength(1).y;
+			let minFlatness = lastRemoved ? 0.3 : 0.2;
+			if (intersections[0].pos.distanceToSq(intersections[1].pos) < maxDistance ** 2 || value < minFlatness && intersections[1].sec === 3) {
+				intersections.splice(1, 1);
+				this._centerbackIntersectionsRemoved[index] = true;
 			}
 		}
-		if (intersections[1]) {
-			if (intersections[1].pos.distanceToSq(pos) > MAX_DEFENSE_DIST * MAX_DEFENSE_DIST) {
-				return
+
+		if (intersections[0] != undefined) {
+			if (intersections[0].pos.distanceToSq(pos) > MAX_DEFENSE_DIST ** 2) {
+				return;
 			}
 			// for dribbling robots, limit the first intersection to ones going into the goal
-			let goallineIntersection = geom.intersectLineLine(pos, direction, G.FriendlyGoal, new Vector(1, 0))
-			if (isDribbling && goallineIntersection && Math.abs(goallineIntersection.x) > G.GoalWidth / 2) {
-				let goalSide = new Vector(MathUtil.sign(goallineIntersection.x) * G.GoalWidth / 2, G.FriendlyGoal.y)
-				this._createIntersections(result, pos, goalSide - pos, radius, index, false)
+			let goallineIntersection = geom.intersectLineLine(pos, direction, G.FriendlyGoal, new Vector(1, 0))[0];
+			if (isDribbling && goallineIntersection != undefined && Math.abs(goallineIntersection.x) > G.GoalWidth / 2) {
+				let goalSide = new Vector(MathUtil.sign(goallineIntersection.x) * G.GoalWidth / 2, G.FriendlyGoal.y);
+				this._createIntersections(result, pos, goalSide - pos, radius, index, false);
 			} else {
-				table.insert(result, {startPos: pos, startDirection: direction,
-					pos: intersections[1].pos, way: intersections[1].way})
+				result.push({ startPos: pos, startDirection: direction, pos: intersections[0].pos, way: intersections[0].way});
 			}
 		}
-		if (intersections[2]) {
-			let toDefenseDist = pos.distanceTo(intersections[1].pos)
-			let insidePos = pos + direction.copy().setLength(toDefenseDist + 0.03)
-			table.insert(result, {startPos: insidePos, startDirection: direction,
-				pos: intersections[2].pos, way: intersections[2].way})
+
+		if (intersections[1] != undefined) {
+			let toDefenseDist = pos.distanceTo(intersections[0].pos);
+			let insidePos = pos + direction.copy().setLength(toDefenseDist + 0.03);
+			result.push({ startPos: insidePos, startDirection: direction, pos: intersections[1].pos, way: intersections[1].way });
 		}
 	}
 
-	_assignBallCenterbacks (defenders) {
-		let ROBOT_TIME_MARGIN_LOW = 0
-		let ROBOT_TIME_MARGIN_HIGH = 0.1
+	private _assignBallCenterbacks(defenders: FriendlyRobot[]): void {
+		const ROBOT_TIME_MARGIN_LOW = 0;
+		const ROBOT_TIME_MARGIN_HIGH = 0.1;
 
-		if (defenders.length == 0) {
-			return
+		if (defenders.length === 0) {
+			return;
 		}
 
-		let ballDistance = Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0)
-		let distanceToDefenseArea = UtilDefense.centerBackDistanceToDefenseArea()
-		let defenseExtraRadius = distanceToDefenseArea + Constants.maxRobotRadius
-		let intersectionInfos = {}
-		if ((ballDistance < 1 ? World.Ball.speed.length() > 0.2) : not Ball.isSlowBall()) {
-			this._createIntersections(intersectionInfos, World.Ball.pos, World.Ball.speed, defenseExtraRadius, 1, false)
+		let ballDistance = Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0);
+		let distanceToDefenseArea = UtilDefense.centerBackDistanceToDefenseArea();
+		let defenseExtraRadius = distanceToDefenseArea + Constants.maxRobotRadius;
+		let intersectionInfos: Ray[] = [];
+		if (ballDistance < 1 ? World.Ball.speed.length() > 0.2 : !Ball.isSlowBall()) {
+			this._createIntersections(intersectionInfos, World.Ball.pos, World.Ball.speed, defenseExtraRadius, 1, false);
 		}
-		let predictedPos, predictedDir, isShot, _, isDribbling = Goal.predictShot(true)
-		if ((isShot || isDribbling) ? (predictedPos != World.Ball.pos : predictedDir != World.Ball.speed)) {
-			let numBefore = #intersectionInfos
-			this._createIntersections(intersectionInfos, predictedPos, predictedDir, defenseExtraRadius, 2, isDribbling)
-			if (#intersectionInfos > numBefore) {
-				intersectionInfos[numBefore + 1].resetSpeed = true
-				intersectionInfos[numBefore + 1].isDribbling = isDribbling
+		let [predicedPos, predicedDir, isShot, _, isDribbling] = Goal.predictShot(true);
+		if ((isShot || isDribbling) ? (predicedPos !== World.Ball.pos) : (predicedDir !== World.Ball.speed)) {
+			let numBefore = intersectionInfos.length;
+			this._createIntersections(intersectionInfos, predicedPos, predicedDir, defenseExtraRadius, 2, isDribbling);
+			if (intersectionInfos.length > numBefore) {
+				intersectionInfos[numBefore].resetSpeed = true;
+				intersectionInfos[numBefore].isDribbling = isDribbling;
 			}
 		}
-		// remove exit point of predictshot if enough points are available
-		if (intersectionInfos[4]) {
-			intersectionInfos[4] = nil
+
+		// remove exit point of predictShot if enough points are available
+		if (intersectionInfos[3] != undefined) {
+			intersectionInfos.splice(3, 1);
 		}
 
 		// go over all intersections
-		this._centerbackAssignments = {}
-		let timeSum = 0
-		let currentBall = World.Ball
+		this._centerbackAssignments = [];
+		let timeSum = 0;
+		let currentBall: Physics.BallLike & { posZ: number, initSpeedZ: number, speedZ: number } = World.Ball;
 		for (let info of intersectionInfos) {
-			let intersection = geom.intersectLineLine(World.Geometry.FriendlyGoal, new Vector(1, 0),
-				info.startPos, info.startDirection)
-			let intersectsGoal = intersection && Math.abs(intersection.x) < World.Geometry.GoalWidth / 2 + 0.1
+			let intersection = geom.intersectLineLine(World.Geometry.FriendlyGoal, new Vector(1, 0), info.startPos, info.startDirection);
+			let intersectsGoal = intersection[0] != undefined && Math.abs(intersection[0].x) < World.Geometry.GoalWidth / 2 + 0.1;
 			if (info.resetSpeed) {
-				timeSum = timeSum + Physics.ballTravelTime(currentBall, currentBall.pos.distanceTo(info.startPos))
-				currentBall = {pos: info.startPos, speed: new Vector(Constants.maxBallSpeed, 0),
-					maxSpeed: Constants.maxBallSpeed, posZ: 0, initSpeedZ: 0}
+				timeSum += Physics.ballTravelTime(currentBall, currentBall.pos.distanceTo(info.startPos));
+				currentBall = {
+					pos: info.startPos,
+					speed: new Vector(Constants.maxBallSpeed, 0), maxSpeed: Constants.maxBallSpeed,
+					posZ: 0, initSpeedZ: 0, speedZ: currentBall.speedZ
+				};
 			}
-			let rollTime = timeSum + Physics.ballTravelTime(currentBall, currentBall.pos.distanceTo(info.pos))
+			let rollTime = timeSum + Physics.ballTravelTime(currentBall, currentBall.pos.distanceTo(info.pos));
 			if (info.isDribbling) {
-				rollTime = rollTime + 0.4
+				rollTime += 0.4;
 			}
-			if (rollTime == Infinity) {
+			if (rollTime === Infinity) {
 				// other intersections could reach the defense area,
 				// since the ball could currently be dribbled
 				continue;
 			}
-			let closestRobot = UtilDefense.getClosestRobot(defenders, info.pos)
-			if (not closestRobot) {
-				break
+			let closestRobot = UtilDefense.getClosestRobot(defenders, info.pos)[0];
+			if (closestRobot == undefined) {
+				break;
 			}
-			let toGoalLineDistance = intersection ? info.pos.distanceTo(intersection) : 10
-			let robotTime = ObserverRobot.timeAroundDefenseAreaByWay(closestRobot, undefined, info.pos, info.way, defenseExtraRadius, true, 3)
-			let robotTimeMargin = table.contains(this._centerbackAssignments, closestRobot)  &&
-				ROBOT_TIME_MARGIN_LOW || ROBOT_TIME_MARGIN_HIGH
-			if ((robotTime + robotTimeMargin < rollTime  ||
-					robotTime < rollTime && rollTime < ROBOT_TIME_MARGIN_HIGH  ||
-					#this._centerbackAssignments == 0 && intersectsGoal  ||
-					rollTime < 0.25 && robotTime < 0.4)  &&
-					(toGoalLineDistance >= 0.25 || intersectsGoal)) {
-				table.insert(this._centerbackAssignments, closestRobot)
-				table.removeValue(defenders, closestRobot)
-				this._send.roleAssignment(closestRobot,
-					{name = "CenterBack", params: { pos = info.startPos, dir = info.startDirection, time = rollTime }})
-				if (not amun.isPerformanceMode) {
-					vis.addCircle("tr/defense: ball intersection", info.startPos, 0.08, vis.colors.yellow)
-					vis.addCircle("tr/defense: ball intersection", info.pos, 0.12, vis.colors.red)
-					vis.addPath("tr/defense: ball intersection", {info.startPos, info.pos}, vis.colors.red)
+			let toGoalLineDistance = intersection ? info.pos.distanceTo(intersection[0]) : 10;
+			let robotTime = ObserverRobot.timeAroundDefenseAreaByWay(closestRobot, undefined, info.pos, info.way, defenseExtraRadius, true, 3);
+			let robotTimeMargin = this._centerbackAssignments.has(closestRobot) ? ROBOT_TIME_MARGIN_LOW : ROBOT_TIME_MARGIN_HIGH;
+			if ((robotTime + robotTimeMargin < rollTime
+					|| robotTime < rollTime && rollTime < ROBOT_TIME_MARGIN_HIGH
+					|| this._centerbackAssignments.length === 0 && intersectsGoal
+					|| rollTime < 0.25 && robotTime < 0.4)
+					&& (toGoalLineDistance >= 0.25 || intersectsGoal)) {
+				let closestAsFriendly = <FriendlyRobot> closestRobot;
+				this._centerbackAssignments.push(closestAsFriendly);
+				defenders.splice(defenders.indexOf(closestAsFriendly), 1);
+				this._messaging.send(
+					MessageType.roleAssignment,
+					closestAsFriendly,
+					{ name: "CenterBack", params: { pos: info.startPos, dir: info.startDirection, time: rollTime }}
+				);
+				if (!amunFunctions.isPerformanceMode) {
+					vis.addCircle("tr/defense: ball intersection", info.startPos, 0.08, vis.colors.yellow);
+					vis.addCircle("tr/defense: ball intersection", info.pos, 0.12, vis.colors.red);
+					vis.addPath("tr/defense: ball intersection", [ info.startPos, info.pos ], vis.colors.red);
 				}
 			}
 		}
 
 		// assign default centerbacks
-		if (intersectionInfos.length == 0 && defenders.length > 0) {
+		if (intersectionInfos.length === 0 && defenders.length > 0) {
 			// not in opponent corner attacks: assign a ball centerback
-			let needDefaultCB = !Referee.isDefensiveCornerKick() && !Referee.isFriendlyFreeKickState()
-			if (needDefaultCB) {
-				let futureBallPosCB = UtilDefense.calculateBallPosition()
-				let defaultCB = UtilDefense.getClosestRobot(defenders, futureBallPosCB)
-				if (defaultCB) {
-					table.removeValue(defenders, defaultCB)
-					this._send.roleAssignment(defaultCB,
-						{name = "CenterBack", params: { pos: World.Ball.pos }})
+			let needDefaultDB = !Referee.isDefensiveCornerKick() && !Referee.isFriendlyFreeKickState();
+			if (needDefaultDB) {
+				let futureBallPosCB = UtilDefense.calculateBallPosition()[0];
+				let defaultCB = UtilDefense.getClosestRobot(defenders, futureBallPosCB)[0];
+				if (defaultCB != undefined) {
+					defenders.splice(defenders.indexOf(defaultCB), 1);
+					this._messaging.send(MessageType.roleAssignment, defaultCB, { name: "CenterBack", params: { pos: World.Ball.pos } });
 				}
 			}
 		}
 	}
 
-	_assignDefenders () {
-		this._previousManmarkAssignments = table.copy(this._manmarkAssignments)
-		this._previousPiggyAssignments = table.copy(this._piggyAssignments)
-		this._previousBallCenterbacks = table.copy(this._centerbackAssignments)
-		this._manmarkAssignments = {}
+	private _assignDefenders(): void {
+		this._previousManmarkAssignments = new Map(this._manmarkAssignments);
+		this._previousPiggyAssignments = new Map(this._piggyAssignments);
+		this._previousBallCenterbacks = this._centerbackAssignments.slice();
+		this._manmarkAssignments = new Map();
 
 		if (Referee.isNonGameStage()) {
-			return
+			return;
 		}
 
-		this._updateManmarkTargets()
-		this._updatePiggyTargets()
+		this._updateManmarkTargets();
+		this._updatePiggyTargets();
 
-		let defenders = table.keys(this._inbox.defenderFlag())
+		let defenders = [...this._messaging.receive(MessageType.defenderFlag).keys()];
 
 		// if needDefaultCB then
 		// 	local volleyDangerousness = UtilDefense.rateVolleyGoalShotThreats()
@@ -377,30 +406,29 @@ class Defense {
 		// 	end
 		// end
 
-		this._assignBallCenterbacks(defenders)
+		this._assignBallCenterbacks(defenders);
 
-		let nPiggies = determineNumberOfPiggies(#defenders, this._manmarkTargets, this._piggyTargets)
-		let nReservedDefenders = nPiggies
+		let nPiggies = determineNumberOfPiggies(defenders.length, this._manmarkTargets, this._piggyTargets);
+		let nReservedDefenders = nPiggies;
 
-		this._assignManmarkDefenders(defenders, nReservedDefenders)
-		this._assignPiggies(defenders, nPiggies)
+		this._assignManmarkDefenders(defenders, nReservedDefenders);
+		this._assignPiggies(defenders, nPiggies);
 	}
 }
 
-function determineNumberOfPiggies (defenderCount: number, manmarkTargets, piggyTargets): number {
+function determineNumberOfPiggies(defenderCount: number, manmarkTargets: Map<Robot, number>, piggyTargets: Map<Robot, number>): number {
 	debug.push("piggy count");
 	debug.set("defender count", defenderCount);
-	let dangerousnessThreshold: number;
-	let viabilityThreshold: number;
 
 	if (Referee.isKickoffState()) {
-		debug.pop();
 		return 0;
 	}
 
+	let dangerousnessThreshold: number;
+	let viabilityThreshold: number;
+
 	// prioritize manmarks over piggies when in own field half
 	// TODO hysteresis
-
 	if (World.Ball.pos.y < 0) {
 		dangerousnessThreshold = 0.3;
 		viabilityThreshold = 0.8;
@@ -410,12 +438,12 @@ function determineNumberOfPiggies (defenderCount: number, manmarkTargets, piggyT
 	}
 
 	let piggieCount = 0;
-	if (!Ball.ballHeadingForGoal(World.Ball, true)
-			 ||  World.Ball.speed.length() < 3 || (World.Ball.pos + World.Ball.speed).y > -1) {
+	if (!Ball.headingForGoal(World.Ball, true)
+			|| World.Ball.speed.length() < 3 || (World.Ball.pos + World.Ball.speed).y > -1) {
 		let nRelevantManMarkTargets = 0;
 		for (let dangerousness of manmarkTargets.values()) {
 			if (dangerousness > dangerousnessThreshold) {
-				nRelevantManMarkTargets = nRelevantManMarkTargets + 1;
+				nRelevantManMarkTargets++;
 			}
 		}
 		debug.set("relevantManMarkTargets", nRelevantManMarkTargets);
@@ -426,7 +454,7 @@ function determineNumberOfPiggies (defenderCount: number, manmarkTargets, piggyT
 		let nRelevantPiggyTargets = 0;
 		for (let viability of piggyTargets.values()) {
 			if (viability > viabilityThreshold) {
-				nRelevantPiggyTargets = nRelevantPiggyTargets + 1;
+				nRelevantPiggyTargets++;
 			}
 		}
 		debug.set("relevantPiggyTargets", nRelevantPiggyTargets);
@@ -436,25 +464,20 @@ function determineNumberOfPiggies (defenderCount: number, manmarkTargets, piggyT
 	return piggieCount;
 }
 
-function findMostViableTarget (piggyTargets, defenders, previousAssignments: Map<Robot, FriendlyRobot>) {
+function findMostViableTarget(piggyTargets: Map<Robot, number>, defenders: FriendlyRobot[], previousAssignments: Map<Robot, FriendlyRobot>): Robot | undefined {
 	let highestViability = -Infinity;
-	let mostViableTarget = undefined;
-	for (target, viability in pairs(piggyTargets)) {
-
+	let mostViableTarget: Robot | undefined = undefined;
+	for (let [target, viability] of piggyTargets.entries()) {
 		// hysteresis
-		if (previousAssignments[target]) {
-			for (let defender of defenders.values()) {
-				if (previousAssignments.get(target) === defender) {
-					viability = viability + 0.3;
-				}
-			}
+		if (previousAssignments.has(target)) {
+			defenders
+				.filter((def) => previousAssignments[target] === def)
+				.forEach((_) => viability += 0.3);
 		}
-
 		if (viability > highestViability) {
 			highestViability = viability;
 			mostViableTarget = target;
 		}
-
 	}
 
 	return mostViableTarget;

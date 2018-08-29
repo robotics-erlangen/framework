@@ -7,7 +7,7 @@ import * as geom from "base/geom";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
 import { FriendlyRobot, Robot } from "base/robot";
-import { Position, RelativePosition, Vector } from "base/vector";
+import { Position, RelativePosition, Speed, Vector } from "base/vector";
 import * as World from "base/world";
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
@@ -35,7 +35,7 @@ export let PENALTY_LINE_DISTANCE = 0.35; // prevent robots from crossing the pen
 export let MARKING_DISTANCE = 0.6;
 export let OFFENSIVE_MARKING_DISTANCE = 0.3;
 
-function _manMarkPos(opponent: Robot): Position {
+function _manMarkPos(opponent: { pos: Position, radius: number, speed: Speed }): Position {
 	// use the position at which the robot would brake if it started immediately
 	let targetPos = Physics.robotBrakePos({pos: opponent.pos, speed: opponent.speed});
 	if (World.Ball.pos.y > G.FieldHeightHalf * 0.7 && World.Ball.speed.length() < 0.5 && Referee.isStopState()) {
@@ -84,7 +84,7 @@ function _manMarkPos(opponent: Robot): Position {
 
 	return targetPos;
 }
-export let manMarkPos: (opponent: Robot) => Position = Cache.forFrame(_manMarkPos);
+export let manMarkPos: (opponent: { pos: Position, radius: number, speed: Speed }) => Position = Cache.forFrame(_manMarkPos);
 
 function _piggyPos(opponent: Robot): Position {
 	let passLine = World.Ball.pos - opponent.pos;
@@ -158,7 +158,9 @@ export function dangerousBallTowardsDefense(opp: boolean): boolean {
 	return false;
 }
 
-export function getClosestRobot(robotlist: Robot[], pos: Position): [Robot | undefined, number] {
+export function getClosestRobot(robotlist: FriendlyRobot[], pos: Position): [FriendlyRobot | undefined, number];
+export function getClosestRobot(robotlist: Robot[], pos: Position): [Robot | undefined, number];
+export function getClosestRobot(robotlist: Robot[] | FriendlyRobot[], pos: Position): [Robot | FriendlyRobot | undefined, number] {
 	let minDist = Infinity;
 	let minRobot = undefined;
 	for (let r of robotlist) {

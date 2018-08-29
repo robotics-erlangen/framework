@@ -180,6 +180,7 @@ export class MessageBox {
 	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number}[] }): void;
 	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "ManMark", params: Robot[] }): void;
 	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "ZoneDefense", params: Position[] }): void;
+	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "Piggy", params: Robot[] }): void;
 	send(type: MessageType.strikerZone, dest: FriendlyRobot, zone: { defaultPos: Position, boundaries: {left: number, right: number} }): void;
 	send(type: MessageType.midfieldZone, dest: FriendlyRobot, zone: { defaultPos: Position, boundaries: {left: number, right: number} }): void;
 	send(type: MessageType, dest: FriendlyRobot, data?: any): void {
