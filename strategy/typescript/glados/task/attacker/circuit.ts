@@ -3,13 +3,12 @@ import * as PathHelper from "glados/trajectory/pathhelper";
 import {ToTarget} from "glados/trajectory/totarget";
 import {Vector, Position} from "base/vector"
 
-
 import {Task, Agent} from "glados/task/base";
 import {SuggestPass} from "glados/task/ability/suggestpass"
 import {PathHelperParameters} from "glados/trajectory/pathhelper"
 
 
-export class Circuit extends Task{
+export class Circuit extends Task {
 	private _suggestPass: SuggestPass;
 	private _center: Position;
 	private _angleOffset: number;
@@ -17,7 +16,7 @@ export class Circuit extends Task{
 	private _passPos: Position | undefined;
 	private _anonym: boolean;
 	private _obstacleTable : PathHelperParameters = {
-			ignorePass: true
+		ignorePass: true
 	};
 
 	constructor(agent: Agent, center: Position, angleOffset: number, radius: number = 0.5, passPos?: Position, anonym: boolean = false){

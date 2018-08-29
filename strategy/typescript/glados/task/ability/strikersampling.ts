@@ -38,7 +38,7 @@ export class StrikerSampling {
 		let pos = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
 		let time = this._messaging.receiveSingleSender(MessageType.attackTime)[1];
 		this._attackPosition = pos || World.Ball.pos;
-		this._attackTime = time || (this._mainAttacker ? World.Time + Robot.minTimeToBall(this._mainAttacker)) : World.Time;
+		this._attackTime = time || (this._mainAttacker ? World.Time + Robot.minTimeToBall(this._mainAttacker) : World.Time);
 
 		vis.addCircle("t/a/strikersampling: attackPosition", this._attackPosition, 0.13,
 			vis.colors.orchidHalf, false, undefined, undefined, 0.02);

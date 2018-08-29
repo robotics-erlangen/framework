@@ -1,96 +1,107 @@
-let SuggestPass = require "task/ability/suggestpass"
-let MidfieldSampling = require "task/ability/midfieldsampling"
-let Midfield = Class("Task.Midfield", require "task/base", SuggestPass, MidfieldSampling)
-
+import {Vector, Position} from "base/vector";
+import {MessageType} from "glados/control/messaging";
+import {Task, Agent} from "glados/task/base";
+import {SuggestPass} from "glados/task/ability/suggestpass";
+import {MidfieldSampling} from "glados/task/ability/midfieldsampling";
 import * as Physics from "glados/observer/physics";
 import * as PathHelper from "glados/trajectory/pathhelper";
-import * as ToTarget from "glados/trajectory/totarget";
+import {ToTarget} from "glados/trajectory/totarget";
 
-function Midfield:_init () {
-	this._passPos = nil
 
-	// ewwwww hack
-	this._frameCount = 0
+export class Midfield extends Task {
+	private _passPos: Position | undefined = undefined; // ewwwww hack
+	private _frameCount: number = 0;
+	private _obstacleTable: PathHelper.PathHelperParameters;
 
-	let ignore = false
-	this._obstacleTable = {
-		ignoreBall = ignore,
-		ignoreGoals = ignore,
-		ignoreDefenseArea = ignore,
-		ignoreOpponentDefenseArea = ignore,
-		inbox = this._inbox,
-		ignorePass = (not this._inbox) || ignore,
-		ignoreBallPlacementObstacle = false
+	private _suggestPass: SuggestPass;
+	private _midfieldSampling: MidfieldSampling;
+
+	constructor (agent: Agent) {
+		super(agent);
+
+		let ignore = false
+		this._obstacleTable = {
+			ignoreBall: ignore,
+			ignoreGoals: ignore,
+			ignoreDefenseArea: ignore,
+			ignoreOpponentDefenseArea: ignore,
+			messaging: this._messaging,
+			ignorePass: ignore,
+			ignoreBallPlacementObstacle: false
+		}
+
+		this._suggestPass = new SuggestPass(this._robot, this._messaging);
+		this._midfieldSampling = new MidfieldSampling(this._robot, this._messaging);
 	}
-}
 
-function Midfield:_samplePassPosition () {
-	let zone = this._inbox.midfieldZone().trainer
+	private _samplePassPosition (): Position {
+		let zone = this._messaging.receiveTrainer(MessageType.midfieldZone);
+		if (zone == undefined) {
+			throw new Error("midfield task running without zone assignment");
+		}
 
-	let left = zone.boundaries.left
-	let right = zone.boundaries.right
-	let top = zone.boundaries.top
-	let bottom = zone.boundaries.bottom
+		let left = zone.boundaries.left;
+		let right = zone.boundaries.right;
+		let top = zone.boundaries.top;
+		let bottom = zone.boundaries.bottom;
 
-	let width = right - left
-	let height = top - bottom
+		let width = right - left;
+		let height = top - bottom;
 
-	let xStep = width / 3
-	let yStep = height / 6
+		let xStep = width / 3;
+		let yStep = height / 6;
 
-	let bestScore = -Infinity
-	let bestPoint = nil
-	for (x = left, left + width, xStep) {
-		for (y = bottom, bottom + height, yStep) {
-			let candidatePoint = new Vector(x, y)
-			let rating = this.evalLocation(candidatePoint, bestScore)
-			if (rating > bestScore) {
-				bestScore = rating
-				bestPoint = candidatePoint
+		let bestScore = -Infinity;
+		let bestPoint = undefined;
+		for (let x = left; x<=left+width;x += xStep) {
+			for (let y = bottom; y<=bottom + height; y += yStep) {
+				let candidatePoint = new Vector(x, y)
+				let rating = this._midfieldSampling.evalLocation(candidatePoint, bestScore);
+				if (rating > bestScore) {
+					bestScore = rating;
+					bestPoint = candidatePoint;
+				}
 			}
 		}
+
+		return bestPoint!;
 	}
 
-	return bestPoint
+	// local disco = [
+	// 	vis.colors.red,
+	// 	vis.colors.blue,
+	// 	vis.colors.green,
+	// 	vis.colors.pink,
+	// 	vis.colors.turquoise,
+	// 	vis.colors.yellow,
+	// 	vis.colors.skyBlue,
+	// 	vis.colors.mediumPurple
+	// ]
+
+	run () {
+		PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable)
+
+		this._midfieldSampling.precalculate()
+
+		// Hacky quickfix for messaging delay problems
+		if ((this._frameCount % 2) == 0) {
+			this._passPos = this._samplePassPosition()
+		}
+		this._frameCount = this._frameCount + 1
+
+		// local random = Math.round(Math.random() * #disco)
+		// vis.addCircle("middy", this._robot.pos, 0.1, disco[random] or vis.colors.orange, true)
+
+		let zone = this._messaging.receiveTrainer(MessageType.midfieldZone);
+		let defaultPos = zone!.defaultPos
+
+		let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
+
+		let time = Physics.robotTimeToPos(this._robot, this._passPos!, new Vector(0, 0))[0];
+		if (this._passPos) {
+			this._suggestPass._suggestPass(this._passPos, attackPosition, time);
+		}
+		
+		this._robot.trajectory.update(ToTarget, defaultPos, Math.PI/2, undefined, new Vector(0, 0))
+	}
 }
-
-// local disco = {
-// 	vis.colors.red,
-// 	vis.colors.blue,
-// 	vis.colors.green,
-// 	vis.colors.pink,
-// 	vis.colors.turquoise,
-// 	vis.colors.yellow,
-// 	vis.colors.skyBlue,
-// 	vis.colors.mediumPurple
-// }
-
-function Midfield:run () {
-	PathHelper.setDefaultObstaclesByTable(this._robot.path, this._robot, this._obstacleTable)
-
-	this.precalculate()
-
-	// Hacky quickfix for messaging delay problems
-	if ((this._frameCount % 2) == 0) {
-		this._passPos = this._samplePassPosition()
-	}
-	this._frameCount = this._frameCount + 1
-
-	// local random = Math.round(Math.random() * #disco)
-	// vis.addCircle("middy", this._robot.pos, 0.1, disco[random] or vis.colors.orange, true)
-
-	let zone = this._inbox.midfieldZone().trainer
-	let defaultPos = zone.defaultPos
-
-	let attackPosition = this._messaging.receiveSingleSender(MessageType.attackPosition)[1];
-
-	let time = Physics.robotTimeToPos(this._robot, this._passPos, new Vector(0, 0))
-	if (this._passPos) {
-		this._suggestPass(this._passPos, attackPosition, time)
-	}
-	
-	this._robot.trajectory.update(ToTarget, defaultPos, Math.PI/2, undefined, new Vector(0, 0))
-}
-
-
-return Midfield
