@@ -1,5 +1,5 @@
 /**
- * @author bennyl, https://stackoverflow.com/a/32537932
+ * @author bennyl, https://stackoverflow.com/a/32537932, with slight adaptations by Tobias Heineken <tobias.heineken@robotics-erlangen.de>
  * copied almost directly from Mersenne Twister implementation found in https://gist.github.com/banksean/300494
  * all rights reserved to him.
  */
@@ -86,8 +86,8 @@ export class Random {
     mti = Random.N + 1;
     /* mti==N+1 means mt[N] is not initialized */
 
-    constructor(seed:number = null) {
-        if (seed == null) {
+    constructor(seed?: number) {
+        if (seed == undefined) {
             seed = new Date().getTime();
         }
 
@@ -155,9 +155,9 @@ export class Random {
      * @param range: an optional [from, to] range, if not specified the result will be in range [0,0xffffffff]
      * @return {number}
      */
-    nextInt32(range:[number, number] = null):number {
-        var result = this._nextInt32();
-        if (range == null) {
+    nextInt32(range?:[number, number]):number {
+        let result = this._nextInt32();
+        if (range == undefined) {
             return result;
         }
 
