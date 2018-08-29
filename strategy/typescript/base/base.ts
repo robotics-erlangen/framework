@@ -32,7 +32,7 @@
 **************************************************************************/
 
 import * as amun from "base/amun";
-import "base/math";
+import "base/mathutil";
 import "base/path";
 import "base/vector";
 

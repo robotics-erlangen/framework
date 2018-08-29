@@ -62,7 +62,7 @@ interface ControllerInput {
 	spline: any;
 }
 
-interface UserControl {
+export interface UserControl {
 	speed: Speed;
 	omega: number;
 	kickStyle: KickStyle;
@@ -126,10 +126,10 @@ export class Robot {
 	maxAngularSpeed: number = 0;
 	acceleration: RobotAccelerationProfile;
 	lastResponseTime: number = 0;
+	lostSince: number = 0;
 
 	// private attributes
 	private _toStringCache: string = "";
-	protected lostSince: number = 0;
 	protected _currentTime: number = 0;
 	protected _hasBall: {[offset: number]: boolean} = {};
 
@@ -240,7 +240,6 @@ export class Robot {
 		relpos.x = relpos.x - this.shootRadius - ball.radius;
 		// calculate position on the dribbler that would have been hit
 		let offset = Math.abs(relpos.y - relpos.x * latencyCompensation.y / latencyCompensation.x);
-		// local debug = require "base/debug"
 		// debug.set("latencyCompensation", latencyCompensation)
 		// debug.set("offset", offset)
 
@@ -427,7 +426,7 @@ export class FriendlyRobot extends Robot {
 	// The different kick styles are exclusive, that is only one of them can be active at a time.
 	// @param speed number - Shoot speed [m/s]
 	// @param ignoreLimit bool - Don't enforce shoot speed limit, if true
-	shoot(speed: number, ignoreLimit: boolean) {
+	shoot(speed: number, ignoreLimit: boolean = false) {
 		if (!ignoreLimit) {
 			speed = Math.min(Constants.maxBallSpeed, speed);
 		}
@@ -487,7 +486,7 @@ export class FriendlyRobot extends Robot {
 	// @param distance number - Distance to chip [m]
 	// @param ignoreLimit bool - Don't enforce rule given shoot speed limit, if true
 	// @return number - Speed to shoot with [m/s]
-	calculateShootSpeed(destSpeed: number, distance: number, ignoreLimit: boolean): number {
+	calculateShootSpeed(destSpeed: number, distance: number, ignoreLimit: boolean = false): number {
 		let maxShot = ignoreLimit ? this.maxShotLinear : Math.min(this.maxShotLinear, Constants.maxBallSpeed);
 		if (destSpeed >= maxShot) {
 			return maxShot;
