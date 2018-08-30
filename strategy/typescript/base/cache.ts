@@ -22,9 +22,11 @@
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
+import {Vector} from "base/vector";
 
 let cleanup: Function[] = [];
 let undefinedObj = Object.freeze([]);
+let undefinedVec = Object.freeze(new Vector(NaN, NaN));
 
 function getFromCache (cached: Map<any, any>, params: any[]): any {
 	let pcount = params.length;
@@ -35,6 +37,10 @@ function getFromCache (cached: Map<any, any>, params: any[]): any {
 		let param = params[i];
 		if (param == undefined) {
 			param = undefinedObj;
+		} else if (param instanceof Vector) {
+			pcount += 2;
+			params.splice(i+1, 0, param.x, param.y);
+			param = undefinedVec;
 		}
 		if (!(entry instanceof Map)) {
 			return undefined;
@@ -57,6 +63,15 @@ function setInCache (cached: Map<any, any>, params: any[], result: any | any[]) 
 		// undefined can't be used as a map index
 		if (param == undefined) {
 			param = undefinedObj;
+		} else if (param instanceof Vector) {
+			let v: Vector = <Vector>param;
+			entry.set(undefinedVec, new Map<any, any>());
+			entry = entry.get(undefinedVec);
+
+			entry.set(v.x, new Map<any, any>());
+			entry = entry.get(v.x);
+
+			param = v.y;
 		}
 		if (i == pcount) {
 			entry.set(param, result);
