@@ -1,6 +1,7 @@
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import * as geom from "base/geom";
+import {Position} from "base/vector";
 import * as MathUtil from "base/mathutil";
 import {Robot} from "base/robot";
 import * as Referee from "base/referee";
@@ -18,13 +19,13 @@ import {Task, Agent} from "glados/task/base";
 const G = World.Geometry;
 
 export class CenterBack extends Task {
-	private _preliminaryCenterbackTarget: [Robot];
+	private _preliminaryCenterbackTarget: [{pos: Position}];
 	private _lookingToGoal: boolean = true;
 	private _obstacleTable: PathHelper.PathHelperParameters;
 	private _forceShoot: ForceShoot;
 
 	// centerbackTarget has to be updated by the caller
-	constructor(agent: Agent, centerbackTarget: [Robot]) {
+	constructor(agent: Agent, centerbackTarget: [{pos: Position}]) {
 		super(agent);
 
 		if (centerbackTarget == undefined) {

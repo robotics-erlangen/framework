@@ -81,7 +81,7 @@ export class Armada extends Move {
 		if (passInfoTable != undefined) {
 			passInfo = passInfoTable.values().next().value;
 		}
-		let startMoving = Attack.checkPassInfoFromPosition(this._robots[0], passInfo, this._circleCenter, false)
+		let startMoving = Attack.checkPassInfoFromPosition(this._robots[0], passInfo, this._circleCenter, undefined, false)
 		if (World.RefereeState == "Stop") {
 			this._positions = []
 			this._assignment = undefined

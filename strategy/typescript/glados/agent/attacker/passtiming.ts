@@ -18,7 +18,7 @@ export class PassTiming extends Behavior {
 			lastIncomingPassInfoPos = lastIncomingPassInfo.ballPos;
 		}
 
-		if (lastIncomingPassInfoPos && !Attack.checkPassInfos(this._robot, [lastIncomingPassInfo], true)) {
+		if (lastIncomingPassInfoPos != undefined && !Attack.checkPassInfos(this._robot, [lastIncomingPassInfo!], true)) {
 			return true;
 		}
 

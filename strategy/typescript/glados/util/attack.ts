@@ -1,10 +1,11 @@
+import {amunFunctions as amun} from "base/amun";
 import * as Cache from "base/cache";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import {FriendlyRobot} from "base/robot";
 import * as geom from "base/geom";
 import * as vis from "base/vis";
-import {Vector, Position} from "base/vector";
+import {Vector, Position, Speed} from "base/vector";
 import * as World from "base/world";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
@@ -15,11 +16,27 @@ import * as Rating from "glados/util/rating";
 
 let G = World.Geometry;
 
-interface PassObject {
+interface PassInfo {
 	target: FriendlyRobot;
 	ballPos: Position;
 	time: number;
-	manual: boolean
+}
+
+interface PassSuggestion {
+	ballPos: Position;
+	time: number;
+	anonymous: boolean;
+	chip: boolean;
+	manual: boolean;
+};
+
+interface PassObject {
+	target?: FriendlyRobot;
+	ballPos: Position;
+	time: number;
+	anonymous?: boolean;
+	chip?: boolean;
+	manual?: boolean;
 }
 
 /// evaluates a given pass object
@@ -113,7 +130,7 @@ export function _ratePass (robot: FriendlyRobot, pass: PassObject, considerTimin
 
 			// calculate the time the robot needs to arrive at the intersection point
 			// to achieve more relevant results, the speed component parallel to the pass trajectory is ignored
-			let projectedSpeed = opp.speed - ((opp.pos + opp.speed).orthogonalProjection(shootPos, pass.ballPos) - orthogonalProjection)[0];
+			let projectedSpeed = opp.speed - ((opp.pos + opp.speed).orthogonalProjection(shootPos, pass.ballPos)[0] - orthogonalProjection);
 			if (!amun.isPerformanceMode) {
 				vis.addPath("u/a/ratePass", [opp.pos, opp.pos + projectedSpeed], vis.colors.pink, true);
 			}
@@ -147,7 +164,7 @@ export function _ratePass (robot: FriendlyRobot, pass: PassObject, considerTimin
 
 	return rating;
 }
-export let ratePass: (robot: FriendlyRobot, pass: PassObject, considerTiming: boolean)=> number = Cache.forFrame(_ratePass);
+export let ratePass = Cache.forFrame(_ratePass);
 
 /// chooses a pass from a list of pass objects using Attack.ratePass
 // @name choosePass
@@ -157,9 +174,9 @@ export let ratePass: (robot: FriendlyRobot, pass: PassObject, considerTiming: bo
 // @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
 // @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
 // @return table - the best pass object
-export function choosePass (robot: FriendlyRobot, passes: Pass[], currentPassPos: Position,
-		considerTiming: boolean, customHysteresis: number = 0.1): [Pass | undefined, number] {
-	let bestPass: Pass | undefined;
+export function choosePass (robot: FriendlyRobot, passes: PassObject[], currentPassPos?: Position,
+		considerTiming: boolean = false, customHysteresis: number = 0.1): [PassObject | undefined, number] {
+	let bestPass: PassObject | undefined;
 	let bestPassRating = -Infinity;
 	for (let pass of passes) {
 		let rating = ratePass(robot, pass, considerTiming);
@@ -190,20 +207,21 @@ export function choosePass (robot: FriendlyRobot, passes: Pass[], currentPassPos
 // @param considerTiming bool - true if the pass is given as soon as possible, false if we can wait
 // @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
 // @return table - the best pass object
-export function choosePassFromSuggestions (robot: FriendlyRobot, passSuggestions, currentPassPos, considerTiming, customHysteresis) {
-	let passes: Pass[] = [];
-	for (sender, sugg in pairs(passSuggestions)) {
-		let target = sender
+export function choosePassFromSuggestions (robot: FriendlyRobot, passSuggestions: Map<FriendlyRobot, PassSuggestion>,
+		currentPassPos?: Position, considerTiming?: boolean, customHysteresis?: number): [PassObject | undefined, number] {
+	let passes: PassObject[] = [];
+	for (let [sender, sugg] of passSuggestions.entries()) {
+		let target: FriendlyRobot | undefined = sender
 		if (sugg.anonymous) {
 			target = undefined
 		}
 		passes.push({target: target, ballPos: sugg.ballPos, time: sugg.time, manual: sugg.manual });
 	}
-	return choosePass(robot, passes, currentPassPos, considerTiming, customHysteresis)
+	return choosePass(robot, passes, currentPassPos, considerTiming, customHysteresis);
 }
 
 function sortByRating (a: {rating: number}, b: {rating: number}): number {
-	return a.rating > b.rating;
+	return b.rating - a.rating;
 }
 
 /// sorts the passes by their rating
@@ -215,51 +233,51 @@ function sortByRating (a: {rating: number}, b: {rating: number}): number {
 // @param threshold - number between 0 and 1, ratings lower than the threshold won't be included (unless we would have none otherwise)
 // @param customHysteresis number - optional: sets the hysteresis bonus, defaults to 0.1
 // @return table - list of passes, sorted by their rating
-export function sortPassesFromSuggestions (robot, passSuggestions, currentPassPositions, considerTiming, threshold, customHysteresis) {
-	let passes: Suggestion[] = [];
-	threshold = threshold || 0.5
-	for (sender, sugg in pairs(passSuggestions)) {
-		let pass = {target: sender, ballPos: sugg.ballPos, time: sugg.time}
-		let rating = ratePass(robot, pass, considerTiming)
+export function sortPassesFromSuggestions (robot: FriendlyRobot, passSuggestions: Map<FriendlyRobot, PassSuggestion>,
+		currentPassPositions: Position[] | undefined, considerTiming: boolean, threshold: number = 0.5, customHysteresis: number = 0.1) {
+	let passes: (PassObject & {rating: number})[] = [];
+	for (let [sender, sugg] of passSuggestions.entries()) {
+		let pass = {target: sender, ballPos: sugg.ballPos, time: sugg.time};
+		let rating = ratePass(robot, pass, considerTiming);
 		// give a bonus if the pos is near the currentPassPos
-		if (currentPassPositions) {
-			let ratingHystDistance = customHysteresis || 0.1
-			let ratingHystPercentage = customHysteresis || 0.1
-			let hystBonus = -Infinity
+		if (currentPassPositions != undefined) {
+			let ratingHystDistance = customHysteresis;
+			let ratingHystPercentage = customHysteresis;
+			let hystBonus = -Infinity;
 			for (let pos of currentPassPositions) {
 				let bonus = (1 + ratingHystPercentage *
-					Rating.valueToRating(sugg.ballPos.distanceTo(pos), ratingHystDistance, 0))
+					Rating.valueToRating(sugg.ballPos.distanceTo(pos), ratingHystDistance, 0));
 				if (bonus > hystBonus) {
-					hystBonus = bonus
+					hystBonus = bonus;
 				}
 			}
-			rating = rating * hystBonus
+			rating = rating * hystBonus;
 		}
 
-		let target = sender
+		let target: FriendlyRobot | undefined = sender;
 		if (sugg.anonymous) {
-			target = nil
+			target = undefined;
 		}
 		passes.push({target: target, ballPos: sugg.ballPos, time: sugg.time, rating: rating, chip: sugg.chip})
 	}
 
-	table.sort(passes, sortByRating)
+	passes.sort(sortByRating);
 
-	for (i = 2, passes.length) {
+	for (let i = 1;i<passes.length;i++) {
 		if (passes[i].rating < threshold) {
-			passes[i] = nil
+			passes.splice(i, 1);
 		}
 	}
-	return next(passes) ? passes : nil
+	return passes.length > 0 ? passes : undefined;
 }
 
 /// draws a broad line beween the main attacker (robotPos) and the next attack destination (shootDest)
 // @name visualizeAttack
 // @param robotPos Vector - the position of the main attacker
 // @param shootDest Vector - the position of the next shoot destination
-export function visualizeAttack (robotPos, shootDest) {
+export function visualizeAttack (robotPos: Position, shootDest: Position) {
 	let color = World.TeamIsBlue ? vis.fromRGBA(38, 48, 217, 63) : vis.fromRGBA(244, 214, 31, 63)
-	vis.addPath("u/a/Attack", {robotPos, shootDest}, color, undefined, undefined, 0.1)
+	vis.addPath("u/a/Attack", [robotPos, shootDest], color, undefined, undefined, 0.1)
 }
 
 /// decides whether a robot has to be a main attacker because it will receive a pass
@@ -267,26 +285,25 @@ export function visualizeAttack (robotPos, shootDest) {
 // @param passInfoSender Robot - the sender of the passInfo message
 // @param passInfoMessage table - passInfo, for format details see messaging.lua
 // @return Robot - the main attacker that receives a pass, or nil
-let lastCPMA = nil
-let lastPasser = nil
-let lastReceiver = nil
-let lastCPMATime = 0
-export function currentPlannedMainAttacker (passInfoSender, passInfoTable) {
+let lastCPMA: FriendlyRobot | undefined = undefined;
+let lastPasser: FriendlyRobot | undefined = undefined;
+let lastReceiver: FriendlyRobot | undefined = undefined;
+let lastCPMATime = 0;
+function _currentPlannedMainAttacker (passInfoSender: FriendlyRobot, passInfoTable: PassInfo[]): FriendlyRobot | undefined {
 	let passInfoMessage
 	if (passInfoTable) {
 		if (passInfoTable.length > 1) {
-			return nil
+			return undefined;
 		}
-		let _
-		_, passInfoMessage = next(passInfoTable)
-		if (passInfoSender && Robot.hadBall(passInfoSender, 0)) {
-			lastPasser = passInfoSender
-			lastReceiver = passInfoMessage.target
+		let passInfoMessage = passInfoTable[0];
+		if (passInfoSender != undefined && Robot.hadBall(passInfoSender, 0)) {
+			lastPasser = passInfoSender;
+			lastReceiver = passInfoMessage.target;
 		}
 	}
 
-	debug.set("plannedMA/lastCPMA", lastCPMA)
-	debug.set("plannedMA/lastPasser", lastPasser)
+	debug.set("plannedMA/lastCPMA", lastCPMA);
+	debug.set("plannedMA/lastPasser", lastPasser);
 	if (lastPasser) {
 		debug.set("plannedMA/lastReceiver", lastReceiver || "anonymous")
 	} else {
@@ -308,26 +325,27 @@ export function currentPlannedMainAttacker (passInfoSender, passInfoTable) {
 	}
 
 	if (World.Time - lastCPMATime > 0.2) {
-		lastCPMA = nil
+		lastCPMA = undefined;
 	}
+	return undefined;
 }
-Attack.currentPlannedMainAttacker = Cache.forFrame(Attack.currentPlannedMainAttacker)
+export let currentPlannedMainAttacker = Cache.forFrame(_currentPlannedMainAttacker);
 
 /// checks whether we are shooting a goal and returns a position for a path obstacle, or nil
 // @param shootDest Vector - the content of the shootDestination message
 // @param attackPos Vector - the content of the attackPosition message
 // @return Vector - robots should not move between the returned position and the opponent goal
-export function shootGoalViewPos (shootDest, attackPos) {
+export function shootGoalViewPos (shootDest: Position, attackPos: Position): Position | undefined {
 	// if we want to shoot a goal
 	if (shootDest) {
 		if (G.OpponentGoal.distanceToSq(shootDest) <= G.GoalWidth * G.GoalWidth / 4) {
-			return attackPos
+			return attackPos;
 		}
 	}
 
 	// if the ball is rolling towards the opponent goal
 	if (World.Ball.speed.length() > 3) {
-		let intersection, l1, l2 = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, G.OpponentGoal, new Vector(1, 0))
+		let [intersection, l1, l2] = geom.intersectLineLine(World.Ball.pos, World.Ball.speed, G.OpponentGoal, new Vector(1, 0))
 		if (intersection && Math.abs(l2) < G.GoalWidth / 2 + 0.2 && l1 > 0) {
 			if (Physics.checkedBallRollTime(World.Ball, intersection) < Infinity) {
 				return World.Ball.pos
@@ -335,47 +353,48 @@ export function shootGoalViewPos (shootDest, attackPos) {
 		}
 	}
 
-	return nil
+	return undefined;
 }
-Attack.checkForGoalShot = Cache.forFrame(Attack.checkForGoalShot)
+//Attack.checkForGoalShot = Cache.forFrame(Attack.checkForGoalShot)
 
-let BUFFER_TIME = 0.8
-let printPassInfo = function (robot, passInfo, hysteresis, hysteresisPassInfo) {
+const BUFFER_TIME = 0.8;
+function printPassInfo (robot: {shootRadius: number} & Physics.RobotLike, passInfo: PassInfo | undefined, hysteresis: boolean | undefined,
+		hysteresisPassInfo: PassInfo | undefined) {
 	if (passInfo) {
 		let robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(robot.shootRadius + World.Ball.radius)
-		let robotTime = Math.max(Physics.robotTimeToPos(robot, robotPos, new Vector(0, 0), true), 0.5)
-		let isInOpponentFieldHalf = passInfo.ballPos.y > 0
-		let bufferTime = isInOpponentFieldHalf ? BUFFER_TIME : 1.5 * BUFFER_TIME
-		debug.push("PassInfo")
-		debug.set("robotTime", robotTime + bufferTime)
-		debug.set("messageTime", passInfo.time - World.Time)
+		let robotTime = Math.max(Physics.robotTimeToPos(robot, robotPos, new Vector(0, 0))[0], 0.5)
+		let isInOpponentFieldHalf = passInfo.ballPos.y > 0;
+		let bufferTime = isInOpponentFieldHalf ? BUFFER_TIME : 1.5 * BUFFER_TIME;
+		debug.push("PassInfo");
+		debug.set("robotTime", robotTime + bufferTime);
+		debug.set("messageTime", passInfo.time - World.Time);
 		debug.set("ballTime", Physics.ballTravelTime(World.Ball, World.Ball.pos.distanceTo(passInfo.ballPos)))
-		debug.set("passInfoTime", passInfo.time)
-		debug.set("hysteresis", hysteresis)
-		debug.push("hysteresisPassInfo")
-		debug.set("passInfo", hysteresisPassInfo)
+		debug.set("passInfoTime", passInfo.time);
+		debug.set("hysteresis", hysteresis);
+		debug.push("hysteresisPassInfo");
+		debug.set("passInfo", hysteresisPassInfo);
 		if (hysteresisPassInfo) {
-			for (k,v in pairs(hysteresisPassInfo)) {
-				debug.set("hyseresis "+String(k), v)
+			for (let [k, v] of Object.entries(hysteresisPassInfo)) {
+				debug.set("hyseresis "+String(k), v);
 			}
 		}
-		debug.pop()
-		debug.pop()
+		debug.pop();
+		debug.pop();
 	}
 }
 
 // the time between the arrival of the robot and the ball
-let calculatePassInfoTiming = function (robot, passInfo, passIncoming) {
-	if (passInfo) {
-		let robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(robot.shootRadius + World.Ball.radius)
-		let robotTime = Math.max(Physics.robotTimeToPos(robot, robotPos, new Vector(0, 0), true), 0.5)
-		let ballTime = passIncoming ? Physics.ballTravelTime(World.Ball, World.Ball.pos.distanceTo(passInfo.ballPos)) : Infinity
-		let messageTime = passInfo.time - World.Time
-		let isInOpponentFieldHalf = passInfo.ballPos.y > 0
-		let bufferTime = isInOpponentFieldHalf ? BUFFER_TIME : 1.5 * BUFFER_TIME
-		return Math.min(messageTime, ballTime) - (robotTime + bufferTime)
+function calculatePassInfoTiming (robot: {shootRadius: number} & Physics.RobotLike, passInfo: PassInfo | undefined, passIncoming?: boolean): number {
+	if (passInfo != undefined) {
+		let robotPos = passInfo.ballPos + (passInfo.ballPos - World.Ball.pos).setLength(robot.shootRadius + World.Ball.radius);
+		let robotTime = Math.max(Physics.robotTimeToPos(robot, robotPos, new Vector(0, 0))[0], 0.5);
+		let ballTime = passIncoming ? Physics.ballTravelTime(World.Ball, World.Ball.pos.distanceTo(passInfo.ballPos)) : Infinity;
+		let messageTime = passInfo.time - World.Time;
+		let isInOpponentFieldHalf = passInfo.ballPos.y > 0;
+		let bufferTime = isInOpponentFieldHalf ? BUFFER_TIME : 1.5 * BUFFER_TIME;
+		return Math.min(messageTime, ballTime) - (robotTime + bufferTime);
 	}
-	return Infinity
+	return Infinity;
 }
 
 //checks if an attacker has to start to move towards its pass
@@ -383,26 +402,27 @@ let calculatePassInfoTiming = function (robot, passInfo, passIncoming) {
 //@param passInfoTable table - all of the passInfos currently being sent out
 //@param lastResult bool - the return value of the last call to this function, or false
 //@return bool - if we have to start to move
-let checkPassInfos = function (robot, passInfoTable, lastResult, lastPassInfo, passIncoming) {
-	let relevantPassInfoMessage = Attack.relevantPassInfoMessage(robot, passInfoTable)
-	printPassInfo(robot, relevantPassInfoMessage, lastResult, lastPassInfo)
-	if (not relevantPassInfoMessage) {
-		return undefined, false
+function _checkPassInfos (robot: FriendlyRobot, passInfoTable: PassInfo[], lastResult: boolean | undefined, lastPassInfo: PassInfo | undefined,
+		passIncoming?: boolean): [PassInfo | undefined, boolean] {
+	let _relevantPassInfoMessage = relevantPassInfoMessage(robot, passInfoTable)
+	printPassInfo(robot, _relevantPassInfoMessage, lastResult, lastPassInfo)
+	if (relevantPassInfoMessage == undefined) {
+		return [undefined, false]
 	} else {
-		let timeLeft = calculatePassInfoTiming(robot, relevantPassInfoMessage, passIncoming)
-		return relevantPassInfoMessage, lastResult ? timeLeft < 0.5 : timeLeft < 0
+		let timeLeft = calculatePassInfoTiming(robot, _relevantPassInfoMessage, passIncoming)
+		return [_relevantPassInfoMessage, lastResult ? timeLeft < 0.5 : timeLeft < 0];
 	}
 }
 
-let checkedPassInfoPerRobot = {}
+let checkedPassInfoPerRobot = new Map<FriendlyRobot, {result: boolean, message: PassInfo | undefined}>();
 
-export function checkPassInfos (robot, passInfoTable, passIncoming) {
-	let cachedPassInfo = checkedPassInfoPerRobot[robot]
-	let preResult = cachedPassInfo && cachedPassInfo.result
-	let preMessage = cachedPassInfo && cachedPassInfo.message
-	let message, result = checkPassInfos(robot, passInfoTable, preResult, preMessage, passIncoming)
-	checkedPassInfoPerRobot[robot] = {message = message, result = result}
-	return result
+export function checkPassInfos (robot: FriendlyRobot, passInfoTable: PassInfo[], passIncoming?: boolean): boolean {
+	let cachedPassInfo = checkedPassInfoPerRobot[robot];
+	let preResult = cachedPassInfo ? cachedPassInfo.result : undefined;
+	let preMessage = cachedPassInfo ? cachedPassInfo.message : undefined;
+	let [message, result] = _checkPassInfos(robot, passInfoTable, preResult, preMessage, passIncoming);
+	checkedPassInfoPerRobot[robot] = {message: message, result: result};
+	return result;
 }
 
 //checks if an attacker has to start to move towards its pass
@@ -411,15 +431,15 @@ export function checkPassInfos (robot, passInfoTable, passIncoming) {
 //@param position Vector - an alternative starting position for the timing calculations
 //@param speed Vector - an alternative starting speed for timing, or Vector(0,0)
 //@return bool - if we have to start to move
-export function checkPassInfoFromPosition (robot, passInfo, position, speed, passIncoming) {
+export function checkPassInfoFromPosition (robot: FriendlyRobot, passInfo: PassInfo | undefined, position: Position,
+		speed: Speed = new Vector(0,0), passIncoming?: boolean) {
 	if (position) {
-		speed = speed || Vector(0,0)
 		let fakeRobot = {
-			acceleration = robot.acceleration,
-			pos = position,
-			maxSpeed = robot.maxSpeed,
-			speed = speed,
-			shootRadius = robot.shootRadius
+			acceleration: robot.acceleration,
+			pos: position,
+			maxSpeed: robot.maxSpeed,
+			speed: speed,
+			shootRadius: robot.shootRadius
 		}
 		printPassInfo(fakeRobot, passInfo, false, undefined)
 		return calculatePassInfoTiming(fakeRobot, passInfo, passIncoming) < 0
@@ -431,10 +451,10 @@ export function checkPassInfoFromPosition (robot, passInfo, position, speed, pas
 // @param robot Robot
 // @param passInfoTable table - all of the passInfos currently being sent out
 // @return Message relevantPassInfoMessage (the passInfo message that targets the robot), undefined if there isn't one
-export function relevantPassInfoMessage (robot, passInfoTable) {
-	let relevantPassInfoMessage = nil
-	if (passInfoTable) {
-		for (_, passInfo in ipairs(passInfoTable)) {
+export function relevantPassInfoMessage (robot: FriendlyRobot, passInfoTable: PassInfo[]): PassInfo | undefined {
+	let relevantPassInfoMessage = undefined
+	if (passInfoTable != undefined) {
+		for (let passInfo of passInfoTable) {
 			if (passInfo.target == robot) {
 				relevantPassInfoMessage = passInfo
 				break
@@ -444,58 +464,58 @@ export function relevantPassInfoMessage (robot, passInfoTable) {
 	return relevantPassInfoMessage
 }
 
-let MAX_PASS_DESTINATION_FROM_DEFENSE_DISTANCE = 1.5
-export function isPassAllowed (startPos, endPos) {
-	let extraDistance = Defense.centerBackDistanceToDefenseArea() + World.Ball.radius + 0.2
-	let intersection = Field.intersectRayDefenseArea(startPos, endPos - startPos, extraDistance, true)
-	if (not intersection) {
-		return true
+const MAX_PASS_DESTINATION_FROM_DEFENSE_DISTANCE = 1.5;
+export function isPassAllowed (startPos: Position, endPos: Position): boolean {
+	let extraDistance = Defense.centerBackDistanceToDefenseArea() + World.Ball.radius + 0.2;
+	let intersection = Field.intersectRayDefenseArea(startPos, endPos - startPos, extraDistance, true)[0];
+	if (intersection == undefined) {
+		return true;
 	}
 	if (endPos.distanceTo(intersection) < MAX_PASS_DESTINATION_FROM_DEFENSE_DISTANCE) {
-		return false
+		return false;
 	}
 	if (startPos.distanceToSq(intersection) < startPos.distanceToSq(endPos)) {
-		return false
+		return false;
 	}
-	return true
+	return true;
 }
 
 ///returns last incoming passInfo for each robot
 //@param robot Robot
 //@param passInfo Message - passInfo-Message
 //@return passInfo Message - last passInfo-Message
-let InvalidationCounter = {}
-let lastIncomingPassInfo = {}
-let lastIPIUpdateTime = {}
+let InvalidationCounter = new Map<FriendlyRobot, number>();
+let _lastIncomingPassInfo = new Map<FriendlyRobot, PassInfo>();
+let lastIPIUpdateTime = new Map<FriendlyRobot, number>();
 
-export function lastIncomingPassInfo (robot, passInfo) {
-	let incomingPassInfo = nil
-	let _, passInfoTable = next(passInfo)
+export function lastIncomingPassInfo (robot: FriendlyRobot, passInfo: [FriendlyRobot, PassInfo[]] | []) {
+	let incomingPassInfo = undefined;
+	let passInfoTable = passInfo[1];
 
-	if (not InvalidationCounter[robot]) {
-		InvalidationCounter[robot] = 0
+	if (!InvalidationCounter.has(robot)) {
+		InvalidationCounter[robot] = 0;
 	}
-	if (passInfoTable) {
-		for (_, passInfoEntry in ipairs(passInfoTable)) {
+	if (passInfoTable != undefined) {
+		for (let passInfoEntry of passInfoTable) {
 //			TODO?: this code ignores annonymous passes
 			if (passInfoEntry.target == robot) {
-				incomingPassInfo = passInfoEntry
+				incomingPassInfo = passInfoEntry;
 			}
 		}
 	}
 	if (lastIPIUpdateTime[robot] && lastIPIUpdateTime[robot] == World.Time) {
-		return lastIncomingPassInfo[robot]
+		return _lastIncomingPassInfo[robot];
 	} else if (incomingPassInfo) {
-		lastIncomingPassInfo[robot] = incomingPassInfo
-		InvalidationCounter[robot] = 0
-		lastIPIUpdateTime[robot] = World.Time
-	} else if (not Ball.isAccelerating() && not Ball.receivesPass(robot)) {
-		InvalidationCounter[robot] = InvalidationCounter[robot] + 1
-		lastIPIUpdateTime[robot] = World.Time
+		_lastIncomingPassInfo[robot] = incomingPassInfo;
+		InvalidationCounter[robot] = 0;
+		lastIPIUpdateTime[robot] = World.Time;
+	} else if (!Ball.isAccelerating() && !Ball.receivesPass(robot)) {
+		InvalidationCounter[robot] = InvalidationCounter[robot]! + 1;
+		lastIPIUpdateTime[robot] = World.Time;
 	}
 	if (InvalidationCounter[robot] == 5) {
-		lastIncomingPassInfo[robot] = nil
-		InvalidationCounter[robot] = 0
+		_lastIncomingPassInfo.delete(robot);
+		InvalidationCounter[robot] = 0;
 	}
-	return lastIncomingPassInfo[robot]
+	return _lastIncomingPassInfo[robot];
 }

@@ -15,7 +15,7 @@ import {Pass} from "glados/task/shared/pass";
 import * as Attack from "glados/util/attack";
 
 export class HandleBall extends Behavior {
-	private _pass: {target: FriendlyRobot, ballPos: Position} | undefined;
+	private _pass: {target?: FriendlyRobot, ballPos: Position} | undefined;
 	private _hysteresis: boolean = false;
 
 	behindCenterbacks (object: {pos: Position, radius: number}): boolean {

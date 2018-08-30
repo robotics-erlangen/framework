@@ -50,7 +50,7 @@ export class Shoot extends Behavior {
 	private _attackPosition: Position | undefined = undefined;
 	private _prevAttackPosition: Position | undefined = undefined;
 	private _activeFrames: number = 0;
-	private _lastIncomingPassInfoPos: asdf = undefined;
+	private _lastIncomingPassInfoPos: Position | undefined = undefined;
 	private _hadBallCounter: number = 0;
 	private _touchedBall: boolean = false;
 	private _wasPressed: boolean = false;
@@ -181,7 +181,7 @@ export class Shoot extends Behavior {
 
 						if (newPassRating > bestRating && newPassRating > MIN_PASS_RATING) {
 							bestRating = newPassRating;
-							pass = {target: this._robot, pos: newAttackPosition, time: World.Time};
+							pass = {target: this._robot, ballPos: newAttackPosition, time: World.Time};
 						}
 					}
 				}

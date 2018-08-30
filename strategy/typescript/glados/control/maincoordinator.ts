@@ -11,7 +11,7 @@ import {Attacker} from "glados/agent/attacker";
 import {Defender} from "glados/agent/defender";
 import {Hidden} from "glados/agent/hidden";
 import {Keeper} from "glados/agent/keeper";
-import {Manual} from "glados/agent/manual";
+// import {Manual} from "glados/agent/manual";
 
 let Agents = {
 	// Ally: Ally,
@@ -19,7 +19,7 @@ let Agents = {
 	Defender: Defender,
 	Hidden: Hidden,
 	Keeper: Keeper,
-	Manual: Manual
+	// Manual: Manual
 };
 
 import {AgentPool} from "glados/control/agentpool";
@@ -28,7 +28,7 @@ import {MainTrainer} from "glados/trainer/maintrainer";
 class MainCoordinator extends Coordinator {
 	constructor (trainer: MainTrainer) {
 		let pools: {[name: string]: AgentPool} = {
-			manual: new AgentPool(Agents.Manual),
+			//manual: new AgentPool(Agents.Manual),
 			// ally: new AgentPool(Agents.Ally),
 			keeper: new AgentPool(Agents.Keeper),
 			defense: new AgentPool(Agents.Defender),

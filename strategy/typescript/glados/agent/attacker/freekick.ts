@@ -23,8 +23,15 @@ enum State {
 	ShootGoal,
 	PassPrepare,
 	Pass,
-}
-type Pass = {target: FriendlyRobot, ballPos: Position, time: number, chip: boolean | undefined};
+};
+
+interface Pass {
+	target?: FriendlyRobot;
+	ballPos: Position;
+	time: number;
+	chip?: boolean;
+};
+
 export class FreeKick extends Behavior {
 	_startTime: number = 0;
 	_state: State = State.Prepare;
@@ -133,7 +140,7 @@ export class FreeKick extends Behavior {
 
 		let pass: Pass = <Pass>this._pass;
 		if ((this._state === State.PassPrepare || this._state === State.Pass && pass.time - World.Time > 0.5) && !timeRunningOut) {
-			let suggestion = this._messaging.receive(MessageType.passSuggestion).get(pass.target);;
+			let suggestion = this._messaging.receive(MessageType.passSuggestion).get(pass.target!);
 			if (suggestion && suggestion.ballPos.distanceTo(pass.ballPos) < 0.01) {
 				let bufferTime = 0.1;
 				if (suggestion.time - pass.time > bufferTime * 0.5) {
@@ -171,7 +178,7 @@ export class FreeKick extends Behavior {
 
 		// delay the pass if the receiver is not ready yet
 		if (this._state === State.Pass) {
-			let passSuggestion = this._messaging.receive(MessageType.passSuggestion).get(pass.target);
+			let passSuggestion = this._messaging.receive(MessageType.passSuggestion).get(pass.target!);
 			if (passSuggestion && passSuggestion.ballPos === pass.ballPos) {
 				if (pass.time < passSuggestion.time) {
 					pass.time = passSuggestion.time;
@@ -180,10 +187,11 @@ export class FreeKick extends Behavior {
 		}
 
 
+		type PassInfo = {target: FriendlyRobot, ballPos: Position, time: number};
 		if (this._passList != undefined && this._state === State.Pass) {
-			this._messaging.sendBroadcast(MessageType.passInfo, [<Pass>this._pass]);
+			this._messaging.sendBroadcast(MessageType.passInfo, [<PassInfo>this._pass]);
 		} else if (this._passList != undefined) {
-			this._messaging.sendBroadcast(MessageType.passInfo, this._passList);
+			this._messaging.sendBroadcast(MessageType.passInfo, <PassInfo[]>this._passList);
 		}
 
 		// visualize decision
@@ -225,7 +233,7 @@ export class FreeKick extends Behavior {
 		} else if (this._state === State.Pass) {
 			const pass = <Pass>this._pass;
 			if (this._task != undefined && this._task instanceof TaskPass) {
-				this._task.updateTarget(pass.target, pass.ballPos, undefined, pass.time);
+				this._task.updateTarget(pass.target!, pass.ballPos, undefined, pass.time);
 			}
 			return [TaskPass, [ pass.target, pass.ballPos, pass.chip, World.Ball.pos, pass.time ], restartTask];
 		}

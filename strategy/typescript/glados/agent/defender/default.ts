@@ -30,6 +30,6 @@ export class Default extends Behavior {
 			this._customBall.dir = fieldDir;
 		}
 
-		return [CenterBack, [ target ], restart];
+		return [CenterBack, [[ target ]], restart];
 	}
 }
