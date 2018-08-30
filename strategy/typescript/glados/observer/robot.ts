@@ -246,6 +246,8 @@ export function timeAroundDefenseAreaByWay(robot: Robot, robotWay: number | unde
 		targetWay: undefined, radius: number, friendly: boolean, endSpeed?: number): number;
 export function timeAroundDefenseAreaByWay(robot: Robot, robotWay: number | undefined, targetPos: undefined,
 		targetWay: number, radius: number, friendly: boolean, endSpeed?: number): number;
+export function timeAroundDefenseAreaByWay(robot: Robot, robotWay: number | undefined, targetPos: Position,
+		targetWay: number, radius: number, friendly: boolean, endSpeed?: number): number;
 export function timeAroundDefenseAreaByWay(robot: Robot, robotWay: number | undefined, targetPos: Position | undefined,
 		targetWay: number | undefined, radius: number, friendly: boolean, endSpeed?: number): number {
 	let targetGoal = friendly ? World.Geometry.FriendlyGoal : World.Geometry.OpponentGoal;
