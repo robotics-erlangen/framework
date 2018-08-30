@@ -118,18 +118,21 @@ export abstract class Agent {
 	_dumpInbox () {
 		debug.push("Inbox");
 		for (let type of MessageTypeList) {
-			debug.push(String(type));
-			for (let [sender, msg] of this._messaging.receiveGeneric(type).entries()) {
-				if (typeof msg === "object" && msg.time != undefined) {
-					let msgTmp = {...msg};
-					let relTime = String(msg.time - World.Time);
-					msgTmp.time = relTime.substring(0, 4) +  " ("  +  msg.time  +  ")";
-					debug.set(sender.id || sender, msgTmp);
-				} else {
-					debug.set(sender.id || sender, msg);
+			let messages = this._messaging.receiveGeneric(type);
+			if (messages.size > 0) {
+				debug.push(MessageType[type]);
+				for (let [sender, msg] of messages.entries()) {
+					if (typeof msg === "object" && msg.time != undefined) {
+						let msgTmp = {...msg};
+						let relTime = String(msg.time - World.Time);
+						msgTmp.time = relTime.substring(0, 4) +  " ("  +  msg.time  +  ")";
+						debug.set(sender.id || sender, msgTmp);
+					} else {
+						debug.set(sender.id || sender, msg);
+					}
 				}
+				debug.pop(); // name
 			}
-			debug.pop(); // name
 		}
 		debug.pop(); // Inbox
 	}

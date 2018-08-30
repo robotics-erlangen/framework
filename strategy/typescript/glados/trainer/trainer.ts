@@ -1,5 +1,5 @@
 import * as debug from "base/debug";
-import {MessageBox, Messaging, MessageTypeList} from "glados/control/messaging";
+import {MessageBox, Messaging, MessageTypeList, MessageType} from "glados/control/messaging";
 import {Groups} from "glados/trainer/groups";
 import {Roles} from "glados/trainer/roles";
 
@@ -20,13 +20,15 @@ export class Trainer {
 
 	_debugInbox (str?: string) {
 		debug.pushtop(str || "Trainer Inbox");
-		for (let name of MessageTypeList) {
-			// TODO: this will print out numbers for now
-			debug.push(String(name));
-			for (let [sender, msg] of this._messaging.receiveGeneric(name)) {
-				debug.set(sender.id == undefined ? sender : sender.id, msg);
+		for (let type of MessageTypeList) {
+			let messages = this._messaging.receiveGeneric(type);
+			if (messages.size > 0) {
+				debug.push(MessageType[type]);
+				for (let [sender, msg] of messages.entries()) {
+					debug.set(sender.id == undefined ? sender : sender.id, msg);
+				}
+				debug.pop(); // name
 			}
-			debug.pop(); // name
 		}
 		debug.pop(); // Trainer Inbox
 	}
