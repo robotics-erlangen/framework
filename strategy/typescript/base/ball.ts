@@ -82,7 +82,6 @@ export class Ball {
 			this._isVisible = false;
 			this.lostSince = time;
 		}
-		this.detectionQuality = this.detectionQuality * (1 - BALL_QUALITY_FILTER_FACTOR);
 		if (this._hadRawData) {
 			this.detectionQuality *= 1 - BALL_QUALITY_FILTER_FACTOR; // only reduce quality if ball raw data exists
 		}
