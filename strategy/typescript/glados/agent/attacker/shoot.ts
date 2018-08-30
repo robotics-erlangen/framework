@@ -158,62 +158,60 @@ export class Shoot extends Behavior {
 				}
 			}
 
-			if (closestOppDist < OPPONENT_DISTANCE_THRESHOLD) {
-				continue;
-			}
+			if (closestOppDist >= OPPONENT_DISTANCE_THRESHOLD) {
+				let attackAngle = (G.OpponentGoal - this._attackPosition).angle();
+				let bestRating = passRating;
 
-			let attackAngle = (G.OpponentGoal - this._attackPosition).angle();
-			let bestRating = passRating;
+				let bestFreeAngle = 0;
+				let bestAttackPosition = undefined;
+				for (let dist = MIN_DISTANCE;dist<=MAX_DISTANCE;dist += DISTANCE_STEP) {
+					for (let angle = -CONE_WIDTH/2;angle<=CONE_WIDTH/2;angle += ANGLE_STEP) {
+						// check for possible goalshot opportunity
+						let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle + angle).setLength(dist);
+						let [possible, freeAngle] = Shoot._shootGoalPossible(this._robot, newAttackPosition);
+						if (possible && freeAngle != undefined && freeAngle > bestFreeAngle) {
+							bestFreeAngle = freeAngle;
+							bestAttackPosition = newAttackPosition;
+						}
 
-			let bestFreeAngle = 0;
-			let bestAttackPosition = undefined;
-			for (let dist = MIN_DISTANCE;dist<=MAX_DISTANCE;dist += DISTANCE_STEP) {
-				for (let angle = -CONE_WIDTH/2;angle<=CONE_WIDTH/2;angle += ANGLE_STEP) {
-					// check for possible goalshot opportunity
-					let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle + angle).setLength(dist);
-					let [possible, freeAngle] = Shoot._shootGoalPossible(this._robot, newAttackPosition);
-					if (possible && freeAngle != undefined && freeAngle > bestFreeAngle) {
-						bestFreeAngle = freeAngle;
-						bestAttackPosition = newAttackPosition;
-					}
+						// look for better pass opportunities
+						let newPass = Attack.choosePassFromSuggestions(this._robot,
+							this._messaging.receive(MessageType.passSuggestion), this._prevPassPos, true)[0];
+						let newPassRating = newPass ? Attack.ratePass(this._robot, newPass, true) : 0;
 
-					// look for better pass opportunities
-					let newPass = Attack.choosePassFromSuggestions(this._robot,
-						this._messaging.receive(MessageType.passSuggestion), this._prevPassPos, true)[0];
-					let newPassRating = newPass ? Attack.ratePass(this._robot, newPass, true) : 0;
-
-					if (newPassRating > bestRating && newPassRating > MIN_PASS_RATING) {
-						bestRating = newPassRating;
-						pass = {target: this._robot, pos: newAttackPosition, time: World.Time};
+						if (newPassRating > bestRating && newPassRating > MIN_PASS_RATING) {
+							bestRating = newPassRating;
+							pass = {target: this._robot, pos: newAttackPosition, time: World.Time};
+						}
 					}
 				}
-			}
 
-			// goalshot opportunity
-			if (bestAttackPosition != undefined) {
-				let passVector = bestAttackPosition - this._attackPosition
-				if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector.setLength(0.5))) {
-					return {
-						task: "pass",
-						target: this._robot,
-						pos: this._attackPosition + passVector.setLength(0.5),
-						time: World.Time,
-						quality: "clean"
+				// goalshot opportunity
+				if (bestAttackPosition != undefined) {
+					let passVector = bestAttackPosition - this._attackPosition
+					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector.setLength(0.5))) {
+						return {
+							task: "pass",
+							target: this._robot,
+							pos: this._attackPosition + passVector.setLength(0.5),
+							time: World.Time,
+							quality: "clean"
+						}
 					}
 				}
-			}
 
-			// short chip forward
-			if (pass == undefined || Attack.ratePass(this._robot, pass, true) < MIN_PASS_RATING) {
-				let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle).setLength((MAX_DISTANCE-MIN_DISTANCE)/2 + MIN_DISTANCE)
-				let passVector = newAttackPosition - this._attackPosition
-				if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector.setLength(0.5))) {
-					return {
-						task: "pass",
-						target: this._robot,
-						pos: this._attackPosition + passVector.setLength(0.5),
-						time: World.Time,
-						quality: "clean"
+				// short chip forward
+				if (pass == undefined || Attack.ratePass(this._robot, pass, true) < MIN_PASS_RATING) {
+					let newAttackPosition = this._attackPosition + Vector.fromAngle(attackAngle).setLength((MAX_DISTANCE-MIN_DISTANCE)/2 + MIN_DISTANCE)
+					let passVector = newAttackPosition - this._attackPosition
+					if (Attack.isPassAllowed(this._attackPosition, this._attackPosition + passVector.setLength(0.5))) {
+						return {
+							task: "pass",
+							target: this._robot,
+							pos: this._attackPosition + passVector.setLength(0.5),
+							time: World.Time,
+							quality: "clean"
+						}
 					}
 				}
 			}
