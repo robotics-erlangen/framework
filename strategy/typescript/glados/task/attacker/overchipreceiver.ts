@@ -1,4 +1,4 @@
-let SuggestPass = require "task/ability/suggestpass"
+let SuggestPass} from "glados/task/ability/suggestpass"
 let OverchipReceiver = Class("Task.OverchipReceiver", require "task/base", SuggestPass)
 
 import * as PathHelper from "glados/trajectory/pathhelper";

@@ -1,9 +1,10 @@
-import {Robot} from "base/robot";
-export type Interval = [number, number, [Robot, Robot]?];
+import {Position} from "base/vector";
+export type Interval<T> = [number, number, [T, T]?];
+type AnyInterval = Interval<any>;
 
 /// Merges a list of intervals
 // @param sortedIntervals list (by reference) - the initial intervals ordered by increasing interval start
-export function merge (sortedIntervals: Interval[]) {
+export function merge (sortedIntervals: AnyInterval[]) {
 	let currentInterval = sortedIntervals[0];
 	let n = 0;
 	for (let i = 1;i<sortedIntervals.length;i++) {
@@ -36,9 +37,9 @@ export function merge (sortedIntervals: Interval[]) {
 // @param mergedIntervals interval[] - list of intervals as returned by merge
 // @param outerStart number - start of the outer limit of the result
 // @param outerEnd number - end of the outer limit of the result
-export function negate (mergedIntervals: Interval[], outerStart: number, outerEnd: number): Interval[] {
+export function negate<T> (mergedIntervals: Interval<T>[], outerStart: number, outerEnd: number): Interval<T>[] {
 	let chunkStart = outerStart // end of previous sector
-	let negated: Interval[] = [];
+	let negated: Interval<T>[] = [];
 
 	for (let i = 0;i<mergedIntervals.length;i++) {
 		let interval = mergedIntervals[i];
@@ -58,20 +59,20 @@ export function negate (mergedIntervals: Interval[], outerStart: number, outerEn
 	return negated;
 }
 
-function intervalOrder (t1: Interval, t2: Interval): number {
+function intervalOrder (t1: AnyInterval, t2: AnyInterval): number {
 	return t1[0] - t2[0];
 }
 
 /// Sorts the given list of intervals, by increasing interval start
 // @param intervals interval[] - list of intervals (by reference)
-export function sort (intervals: Interval[]) {
+export function sort (intervals: AnyInterval[]) {
 	intervals.sort(intervalOrder);
 }
 
 /// Returns the largest interval
 // @param intervals interval[] - list of intervals
 // @return [interval - largest interval, if one exists]
-export function getLargest (intervals: Interval[]): Interval | undefined {
+export function getLargest<T> (intervals: Interval<T>[]): Interval<T> | undefined {
 	let largestInterval = undefined;
 	let valueLargest = -1 // size of the largest interval
 	for (let interval of intervals) { // find the largest interval
@@ -89,7 +90,7 @@ export function getLargest (intervals: Interval[]): Interval | undefined {
 // @param Q number - point to which the distance of the searched point is minimal
 // @param D number - minimum distance of the searched point to its nearest boarder.
 // This means that it can only lie in an interval with size 2*D or bigger
-export function getClosestPoint (mergedIntervals: Interval[], Q: number, D: number): number | undefined {
+export function getClosestPoint (mergedIntervals: AnyInterval[], Q: number, D: number): number | undefined {
 	let biggestSector = undefined;
 	let bestMinDist = Infinity;
 	for (let sector of mergedIntervals) {
@@ -121,7 +122,7 @@ export function getClosestPoint (mergedIntervals: Interval[], Q: number, D: numb
 // @param Q number - point to which the distance of the searched point is maximal
 // @param D number - minimum distance of the searched point to its nearest boarder.
 // This means that it can only lie in an interval with size 2*D or bigger
-export function getFurthestPoint (mergedIntervals: Interval[], Q: number, D: number): number | undefined {
+export function getFurthestPoint (mergedIntervals: AnyInterval[], Q: number, D: number): number | undefined {
 	let nearestSector = undefined;
 	let bestMaxDist = -Infinity;
 	for (let sector of mergedIntervals) {

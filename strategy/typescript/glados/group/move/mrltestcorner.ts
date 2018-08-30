@@ -3,7 +3,7 @@ import * as vis from "base/vis";
 import {FriendlyRobot, Robot} from "base/robot";
 import {Vector, Position} from "base/vector";
 import * as World from "base/world";
-import {Freekick} from "glados/agent/attacker/freekick"
+import {FreeKick} from "glados/agent/attacker/freekick"
 import {MessageBox, MessageType} from "glados/control/messaging";
 import {AcceptPass} from "glados/task/attacker/acceptpass"
 import {MoveToPos} from "glados/task/shared/movetopos";
@@ -97,7 +97,7 @@ export class MrlTestCorner extends Move {
 		if (World.RefereeState == "Stop") {
 			taskAssignments[this._robots[0]] = { class: StopAttack, params: [] }
 		} else if (MrlTestCorner.Referee.isFriendlyFreeKickState()) {
-			taskAssignments[this._robots[0]] = { behavior: Freekick };
+			taskAssignments[this._robots[0]] = { behavior: FreeKick };
 			this._restart = false;
 		}
 

@@ -55,7 +55,7 @@ export let getRobotLists: (ownRobot: FriendlyRobot)=> [FutureRobot[], FutureRobo
 // @param sector { number } - the sector to rate
 // @param oldSectorMid number - the position that was chosen in the last frame
 // @return number - rating
-export function rateSector (sector: Interval, oldSectorMid?: number): number {
+export function rateSector (sector: Interval<any>, oldSectorMid?: number): number {
 	let sectorWidth = sector[1] - sector[0]
 
 	let hysteresisFactor = 1

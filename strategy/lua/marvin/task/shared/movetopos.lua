@@ -52,7 +52,7 @@ function MoveToPos:_addCustomObstacle(obstInfo)
 	elseif obstInfo.type == "rect" then
 		path:addRect(obstInfo.start_x, obstInfo.start_y, obstInfo.end_x, obstInfo.end_y, obstInfo.name)
 	elseif obstInfo.type == "triangle" then
-		path:addTriangle(obstInfo.x1, obstInfo.y1, obstInfo.x2, obstInfo.y2, obstInfo.x3, obstInfo.y3, obstInfo.lineWidth. obstInfo.name)
+		path:addTriangle(obstInfo.x1, obstInfo.y1, obstInfo.x2, obstInfo.y2, obstInfo.x3, obstInfo.y3, obstInfo.lineWidth, obstInfo.name)
 	end
 end
 

@@ -75,7 +75,7 @@ export class Duel extends Task {
 		//decide if we should rotate cw or ccw
 		let toOpponentDir = (this._opposer as Robot).pos - this._robot.pos;
 		let intersection = geom.intersectLineLine(
-				this._robot.pos, toOpponentDir, World.Geometry.FriendlyGoal, new Vector(1, 0));
+				this._robot.pos, toOpponentDir, World.Geometry.FriendlyGoal, new Vector(1, 0))[0];
 		let ccw = intersection ? -MathUtil.sign(intersection.x) : -1 //negative = ccw, positive = cw
 		let toBall = World.Ball.speed + (World.Ball.pos - this._robot.pos).setLength(0.4)
 		this._robot.setDribblerSpeed(0.8)

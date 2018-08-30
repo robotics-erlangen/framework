@@ -12,7 +12,7 @@ export class MainTrainer extends Trainer {
 		super();
 		this._mode = mode;
 
-		this._defense = new Defense();
+		this._defense = new Defense(this._messaging);
 		this._attackRatio = new AttackRatio(this._messaging);
 	}
 

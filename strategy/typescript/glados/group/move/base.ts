@@ -39,7 +39,7 @@ export abstract class Move {
 	}
 
 	static injectReferee (pseudoRef: typeof Referee) {
-		Base.Referee = pseudoRef;
+		Move.Referee = pseudoRef;
 	}
 
 	// abstract members

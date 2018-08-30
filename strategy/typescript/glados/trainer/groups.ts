@@ -1,7 +1,7 @@
-import {Centerback} from "glados/group/centerback";
+import {CenterBack} from "glados/group/centerback";
 import {Moves} from "glados/group/moves";
 import {Striker} from "glados/group/striker";
-import {MidField} from "glados/group/midfield";
+import {Midfield} from "glados/group/midfield";
 
 import {FriendlyRobot} from "base/robot";
 import {MessageBox, MessageType} from "glados/control/messaging";
@@ -10,6 +10,7 @@ type GroupName = "centerback" | "moves" | "striker" | "midfield";
 
 interface Group {
 	name: GroupName;
+	new (): Group;
 	run (messaging: MessageBox, messages: Map<FriendlyRobot, any>): void;
 }
 
@@ -25,15 +26,15 @@ export class Groups {
 
 	constructor(messaging: MessageBox) {
 		let groupClasses = [
-			Centerback,
+			CenterBack,
 			Moves,
 			Striker,
-			MidField
+			Midfield
 		];
 
 		this._groupList = [];
 		for (let group of groupClasses) {
-			this._groupList.push(new group());
+			this._groupList.push(new (group as any)());
 		}
 
 		this._messaging = messaging;

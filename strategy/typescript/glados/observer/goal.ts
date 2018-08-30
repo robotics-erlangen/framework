@@ -25,8 +25,8 @@ let G = World.Geometry;
 // @param endAngle number - end angle of the sector to scan
 // @param insertRobots - set to true iff you want the robots included in its sector
 // @return occupiedSectors list - all unsorted, unmerged occupied sectors
-export function getOccupiedSectors (viewPos: Position, robotList: {pos: Position, radius: number}[], startAngle: number,
-		endAngle: number, insertRobots: boolean = false): Interval.Interval[] {
+export function getOccupiedSectors<R extends {pos: Position, radius: number}> (viewPos: Position, robotList: R[],
+		startAngle: number, endAngle: number, insertRobots: boolean = false): Interval.Interval<R>[] {
 	if (endAngle < startAngle) { // normalize angles
 		endAngle = endAngle + 2 * Math.PI;
 	}
@@ -45,7 +45,7 @@ export function getOccupiedSectors (viewPos: Position, robotList: {pos: Position
 		let robotStart = robotAngle - robotAngleDiff; // can be < 0
 		let robotEnd = robotAngle + robotAngleDiff; // can be > 2pi
 		if (robotStart < endAngle && robotEnd > startAngle) { // if the robot covers a part of the goal
-			let resultList: Interval.Interval = [Math.max(robotStart, startAngle), Math.min(robotEnd, endAngle)];
+			let resultList: Interval.Interval<R> = [Math.max(robotStart, startAngle), Math.min(robotEnd, endAngle)];
 			if (insertRobots) {
 				resultList[2] = [robot, robot];
 			}
@@ -56,7 +56,7 @@ export function getOccupiedSectors (viewPos: Position, robotList: {pos: Position
 			// and thus is always true
 			robotStart = robotStart + 2 * Math.PI;
 			robotEnd = robotEnd + 2 * Math.PI;
-			let resultList: Interval.Interval = [Math.max(robotStart, startAngle), Math.min(robotEnd, endAngle)];
+			let resultList: Interval.Interval<R> = [Math.max(robotStart, startAngle), Math.min(robotEnd, endAngle)];
 			if (insertRobots) {
 				resultList[2] = [robot, robot];
 			}
@@ -66,7 +66,8 @@ export function getOccupiedSectors (viewPos: Position, robotList: {pos: Position
 	return occupiedSectors;
 }
 
-export function getFreeSectors (viewPos: Position, robotList: {pos: Position, radius: number}[], startAngle: number, endAngle: number): Interval.Interval[] {
+export function getFreeSectors<R extends {pos: Position, radius: number}> (viewPos: Position, robotList: R[],
+		startAngle: number, endAngle: number): Interval.Interval<R>[] {
 	if (endAngle < startAngle) { // normalize angles
 		endAngle = endAngle + 2 * Math.PI;
 	}
@@ -81,7 +82,7 @@ export function getFreeSectors (viewPos: Position, robotList: {pos: Position, ra
 // @param robotList list - all robot objects that should be considered
 // @param opp boolean - true for opponent goal, false for friendly goal
 // @return list - list of free sectors [startAngle, endAngle] ascending by start angle
-export function freeSectors (viewPos: Position, robotList: {pos: Position, radius: number}[], opp: boolean): Interval.Interval[] {
+export function freeSectors<R extends {pos: Position, radius: number}> (viewPos: Position, robotList: R[], opp: boolean): Interval.Interval<R>[] {
 	if ((opp ? 1 : -1)*viewPos.y > G.FieldHeightHalf) {
 		//log("viewPos is behind the goal.")
 		return [];
@@ -101,7 +102,7 @@ export function freeSectors (viewPos: Position, robotList: {pos: Position, radiu
 // @param robotList list - all robot objects that should be considered
 // @param opp boolean - true for opponent goal, false for friendly goal
 // @return largestFreeSector interval - the largest free sector
-export function largestFreeSector (viewPos: Position, robotList: {pos: Position, radius: number}[], opp: boolean): Interval.Interval | undefined {
+export function largestFreeSector<R extends {pos: Position, radius: number}> (viewPos: Position, robotList: R[], opp: boolean): Interval.Interval<R> | undefined {
 	let unoccupiedSectors = freeSectors(viewPos, robotList, opp); // get list of all unoccupied sectors
 	return Interval.getLargest(unoccupiedSectors);
 }
@@ -109,7 +110,7 @@ export function largestFreeSector (viewPos: Position, robotList: {pos: Position,
 /// Returns a list of all sectors not covered by any robot from robotList (not limited to the goal)
 // @param viewPos vector - position from which the free angles should be found
 // @param robotList list - all robot objects that should be considered
-export function allFreeSectors (viewPos: Position, robotList: {pos: Position, radius: number}[]): Interval.Interval[] {
+export function allFreeSectors<R extends {pos: Position, radius: number}> (viewPos: Position, robotList: R[]): Interval.Interval<R>[] {
 	let occupiedSectors = getOccupiedSectors(viewPos, robotList, 0, 2*Math.PI);
 	//for i,sector in ipairs(occupiedSectors) do
 	//	debug.set("osectors["+i+"]", "{"+sector[1]+", "+sector[2]+"}")

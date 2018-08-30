@@ -29,7 +29,7 @@ interface Ray {
 	isDribbling?: boolean;
 }
 
-class Defense {
+export class Defense {
 	private ZONE_POS_LEFT: Position = new Vector(-G.FieldWidthQuarter, G.FieldHeightQuarter / 2);
 	private ZONE_POS_RIGHT: Position = new Vector(G.FieldWidthQuarter, G.FieldHeightQuarter / 2);
 
@@ -138,7 +138,7 @@ class Defense {
 				// whichever robot is close to the goalline and close to the defense area is preferred
 				let bestDistance = Infinity;
 				defenders.forEach((bot) => {
-					let [posOnGoalLine, distanceToGoalLine] = bot.pos.orthogonalProjection(intersectionDefenseArea, targetBot.pos);
+					let [posOnGoalLine, distanceToGoalLine] = bot.pos.orthogonalProjection(intersectionDefenseArea!, targetBot.pos);
 					distanceToGoalLine = Math.abs(distanceToGoalLine);
 
 					if (Field.isInDefenseArea(posOnGoalLine, 0.05, true)) {
@@ -336,8 +336,8 @@ class Defense {
 				break;
 			}
 			let toGoalLineDistance = intersection ? info.pos.distanceTo(intersection[0]) : 10;
-			let robotTime = ObserverRobot.timeAroundDefenseAreaByWay(closestRobot, undefined, info.pos, info.way, defenseExtraRadius, true, 3);
-			let robotTimeMargin = this._centerbackAssignments.has(closestRobot) ? ROBOT_TIME_MARGIN_LOW : ROBOT_TIME_MARGIN_HIGH;
+			let robotTime = ObserverRobot.timeAroundDefenseAreaByWay(closestRobot, undefined, <any>info.pos, info.way!, defenseExtraRadius, true, 3);
+			let robotTimeMargin = this._centerbackAssignments.indexOf(closestRobot) >= 0 ? ROBOT_TIME_MARGIN_LOW : ROBOT_TIME_MARGIN_HIGH;
 			if ((robotTime + robotTimeMargin < rollTime
 					|| robotTime < rollTime && rollTime < ROBOT_TIME_MARGIN_HIGH
 					|| this._centerbackAssignments.length === 0 && intersectsGoal
@@ -374,7 +374,7 @@ class Defense {
 		}
 	}
 
-	private _assignDefenders(): void {
+	public _assignDefenders(): void {
 		this._previousManmarkAssignments = new Map(this._manmarkAssignments);
 		this._previousPiggyAssignments = new Map(this._piggyAssignments);
 		this._previousBallCenterbacks = this._centerbackAssignments.slice();
@@ -438,7 +438,7 @@ function determineNumberOfPiggies(defenderCount: number, manmarkTargets: Map<Rob
 	}
 
 	let piggieCount = 0;
-	if (!Ball.headingForGoal(World.Ball, true)
+	if (!Ball.ballHeadingForGoal(World.Ball, true)
 			|| World.Ball.speed.length() < 3 || (World.Ball.pos + World.Ball.speed).y > -1) {
 		let nRelevantManMarkTargets = 0;
 		for (let dangerousness of manmarkTargets.values()) {

@@ -1,7 +1,7 @@
 import * as World from "base/world";
 import {Vector, Position} from "base/vector";
 import {FriendlyRobot} from "base/robot";
-import {Freekick} from "glados/agent/attacker/freekick"
+import {FreeKick} from "glados/agent/attacker/freekick"
 import {MessageBox, MessageType} from "glados/control/messaging";
 import {AcceptPass} from "glados/task/attacker/acceptpass"
 import {MoveToPos} from "glados/task/shared/movetopos";
@@ -56,7 +56,7 @@ export class KickOff extends Move {
 			}
 		} else {
 			let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
-			taskAssignments[this._robots[this._assignments[1]]] = { behavior: Freekick }
+			taskAssignments[this._robots[this._assignments[1]]] = { behavior: FreeKick }
 			for (let i=0;i<this._robots.length-1;i++) {
 				if (Attack.checkPassInfos(this._robots[this._assignments[i+1]], passInfoTable, false)) {
 					taskAssignments[this._robots[this._assignments[i+1]]] = { class: AcceptPass }

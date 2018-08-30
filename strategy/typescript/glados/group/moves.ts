@@ -9,7 +9,7 @@ import {KickOff} from "glados/group/move/kickoff";
 import {KickOffDefensive} from "glados/group/move/kickoffdefensive";
 import {MrlTestCorner} from "glados/group/move/mrltestcorner";
 import {Armada} from "glados/group/move/armada";
-import {FastBallPlacement} from "glados/group/move/fastballplacement";
+import {FastBallPlacement} from "glados/group/move/ballplacement";
 // import {OverChip} from "glados/group/move/overchip";
 import {WindshieldWiper} from "glados/group/move/windshieldwiper";
 import {None} from "glados/group/move/none";
@@ -19,7 +19,7 @@ function sortById(a: {id: number}, b: {id: number}): number {
 }
 
 export class Moves {
-	name: string;
+	readonly name: string = "moves";
 	moveList: typeof Move[];
 	_numAttackersSent: boolean = false;
 	_chosenMove: typeof Move | undefined;
@@ -27,7 +27,6 @@ export class Moves {
 	_participatingRobots: FriendlyRobot[] = [];
 
 	constructor () {
-		this.name = "moves"
 		this.moveList = [
 			KickOff,
 			KickOffDefensive,

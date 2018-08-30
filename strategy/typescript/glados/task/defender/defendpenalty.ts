@@ -16,7 +16,7 @@ let obstacleTable: PathHelper.PathHelperParameters = {
 	ignorePass: true
 }
 
-class DefendPenalty extends Task {
+export class DefendPenalty extends Task {
 	run () {
 		let rr = this._robot.radius; //assume all robots have the same radius
 		let penaltyLine = World.Geometry.OwnPenaltyLine + PENALTY_LINE_DISTANCE;

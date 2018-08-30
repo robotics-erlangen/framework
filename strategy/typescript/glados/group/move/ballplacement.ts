@@ -65,7 +65,7 @@ export class FastBallPlacement extends Move {
 		return World.RefereeState === "BallPlacementOffensive";
 	}
 
-	private _state = State.WAIT_FOR_BALL_STOP;
+	private _state: State = State.WAIT_FOR_BALL_STOP;
 	private _stateChanged: boolean = true;
 	private _stateChangeTime: number = World.Time;
 
@@ -134,7 +134,7 @@ export class FastBallPlacement extends Move {
 		vis.addCircle("g/m/fastballplacement", this._ballPlacementPos, FINE_ADJUST_ZONE, vis.colors.orange);
 
 		switch (this._state) {
-			case STATE_WAIT_FOR_BALL_STOP): {
+			case State.WAIT_FOR_BALL_STOP: {
 				this._determinePositions();
 				taskAssignments[this.RECEIVER] = {
 					class: MoveToPos,
@@ -149,7 +149,7 @@ export class FastBallPlacement extends Move {
 
 				break;
 			}
-			case STATE_PULL_TO_FIELD: {
+			case State.PULL_TO_FIELD: {
 				this._mainAttacker = this.SHOOTER;
 				taskAssignments[this.RECEIVER] = {
 					class: MoveToPos,
@@ -164,7 +164,7 @@ export class FastBallPlacement extends Move {
 
 				break;
 			}
-			case STATE_GET_INTO_POSITION: {
+			case State.GET_INTO_POSITION: {
 				this._mainAttacker = this.SHOOTER;
 				this._determinePositions();
 				taskAssignments[this.RECEIVER] = {
@@ -180,7 +180,7 @@ export class FastBallPlacement extends Move {
 
 				break;
 			}
-			case STATE_EXECUTE_PASS: {
+			case State.EXECUTE_PASS: {
 				this._mainAttacker = this.SHOOTER;
 
 				taskAssignments[this.SHOOTER] = {
@@ -196,7 +196,7 @@ export class FastBallPlacement extends Move {
 
 				break;
 			}
-			case STATE_ACCEPT_PASS: {
+			case State.ACCEPT_PASS: {
 				this._mainAttacker = this.RECEIVER;
 				taskAssignments[this.SHOOTER] = { class: Halt, restart: this._stateChanged };
 
@@ -232,14 +232,14 @@ export class FastBallPlacement extends Move {
 
 				break;
 			}
-			case STATE_WAIT_FOR_SET_BACK: {
+			case State.WAIT_FOR_SET_BACK: {
 				this._mainAttacker = this.RECEIVER;
 				taskAssignments[this.SHOOTER] = { class: Halt, restart: this._stateChanged };
 				taskAssignments[this.RECEIVER] = { class: Halt, restart: this._stateChanged };
 
 				break;
 			}
-			case STATE_SET_BACK: {
+			case State.SET_BACK: {
 				this._mainAttacker = this.RECEIVER;
 				taskAssignments[this.SHOOTER] = { class: Halt, restart: this._stateChanged };
 				if (this._stateChanged) {
@@ -253,7 +253,7 @@ export class FastBallPlacement extends Move {
 
 				break;
 			}
-			case STATE_FINE_ADJUST: {
+			case State.FINE_ADJUST: {
 				this._mainAttacker = this.RECEIVER;
 				taskAssignments[this.RECEIVER] = {
 					class: PlaceBall,
@@ -288,7 +288,7 @@ export class FastBallPlacement extends Move {
 		return [taskAssignments, this._mainAttacker];
 	}
 
-	_getNextState(currentState: string): string {
+	_getNextState(currentState: string): State {
 		let nextState = State.INVALID;
 
 		let usedBallPos = BallObserver.getRealisticBallPos();

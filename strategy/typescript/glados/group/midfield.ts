@@ -73,7 +73,7 @@ function assignRobotsToZones (robotPositions: Map<FriendlyRobot, Position>, zone
 	return zoneAssignment;
 }
 
-class Midfield {
+export class Midfield {
 	public name: string = "midfield";
 	private _farAwayHyst: boolean = false; // the ball is far in our own half and we need midfielders to move forward
 	private _noMidfielderHyst: boolean = false; // we are attacking the goal and dont want midfielders at all

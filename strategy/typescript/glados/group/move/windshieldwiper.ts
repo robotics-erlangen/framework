@@ -4,7 +4,7 @@ import {Vector, Position} from "base/vector";
 import {FriendlyRobot} from "base/robot";
 import * as World from "base/world";
 
-import {Freekick} from "glados/agent/attacker/freekick"
+import {FreeKick} from "glados/agent/attacker/freekick"
 import {MessageBox, MessageType} from "glados/control/messaging";
 import {StopAttack} from "glados/task/attacker/stopattack"
 import {AcceptPass} from "glados/task/attacker/acceptpass"
@@ -85,7 +85,7 @@ export class WindshieldWiper extends Move {
 		if (World.RefereeState == "Stop") {
 			taskAssignments[mainrobot] = { class: StopAttack, params: [] }
 		} else if (WindshieldWiper.Referee.isFriendlyFreeKickState()) {
-			taskAssignments[mainrobot] = { behavior: Freekick }
+			taskAssignments[mainrobot] = { behavior: FreeKick }
 		}
 
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];

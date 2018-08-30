@@ -23,7 +23,7 @@ export class Striker extends Task {
 	private _passDestSuggestion: Position | undefined;
 
 	private _moveDest: Position | undefined = undefined;
-	private _zone: Zone | undefined = undefined;
+	private _zone: {defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number}} | undefined = undefined;
 	private _reEvaluateTimestamp: number = 0;
 
 	private _obstacleTable: PathHelper.PathHelperParameters;
@@ -81,11 +81,11 @@ export class Striker extends Task {
 		let grid_point_dist_x = G.FieldWidth / grid_point_count_x
 		let grid_point_dist_y = G.FieldHeight / grid_point_count_y
 
-		let boundaries = this._zone.boundaries
-		let left = boundaries.left
-		let right = boundaries.right
-		let top = boundaries.top
-		let bottom = boundaries.bottom
+		let boundaries = this._zone!.boundaries;
+		let left = boundaries.left;
+		let right = boundaries.right;
+		let top = boundaries.top;
+		let bottom = boundaries.bottom;
 
 		// TODO hysteresis
 		// TODO only consider well-timed pass positions
@@ -136,7 +136,7 @@ export class Striker extends Task {
 			if (this._zone == undefined) {
 				return;
 			}
-			this._moveDest = this._zone.defaultPos
+			this._moveDest = this._zone!.defaultPos
 		}
 
 		// search for a good pass dest
@@ -179,7 +179,7 @@ export class Striker extends Task {
 		if (this._passDestSuggestion && !Referee.isFriendlyFreeKickState()
 				 &&  Field.distanceToDefenseArea(this._passDestSuggestion, cbDistToDefenseArea, false) < 0.8) {
 
-			let intersection = Field.intersectRayDefenseArea(this._moveDest!, G.OpponentGoal - this._moveDest, cbDistToDefenseArea + 0.3, false)[0];
+			let intersection = Field.intersectRayDefenseArea(this._moveDest!, G.OpponentGoal - this._moveDest!, cbDistToDefenseArea + 0.3, false)[0];
 			this._moveDest = intersection || this._moveDest
 		}
 

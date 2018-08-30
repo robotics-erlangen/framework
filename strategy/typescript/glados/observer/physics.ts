@@ -45,7 +45,7 @@ export function ballSwitchParameters(ball: BallLike): [number, number, number] {
 // @param ball Ball - a ball-like structure, must contain the fields pos, speed, maxSpeed and radius
 // @param time number - the number of seconds from now on
 // @return Ball - the predicted ball as a ball-like structure
-export function ballAtTime(ball: BallLike, time: number): BallLike {
+export function ballAtTime(ball: BallLike, time: number): BallLike & {radius: number} {
 	// formulas used:
 	// v = a * t + v0
 	// t = (v - v0) / a
@@ -69,11 +69,8 @@ export function ballAtTime(ball: BallLike, time: number): BallLike {
 	let s_switch;
 
 	// result: the ball-like returned object
-	let result: BallLike = <BallLike> {};
-
 	// since we don't do collision calculation, maxSpeed always stays the same
-	result.maxSpeed = ball.maxSpeed;
-	result.radius = ball.radius;
+	let result: BallLike & {radius: number} = <BallLike & {radius: number}> {radius: ball.radius, maxSpeed: ball.maxSpeed};
 
 	// the sliding stage
 	if (v_current > v_switch) {

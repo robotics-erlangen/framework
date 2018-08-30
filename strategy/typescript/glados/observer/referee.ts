@@ -50,14 +50,14 @@ export function icingPredicted (ball: BallLike, friendly: boolean): boolean {
 // @param ball - a ball like structure
 // @return bool - Wether icing is predicted
 export function opponentIcingPredicted (ball: BallLike): boolean {
-	return Referee.icingPredicted(ball, false);
+	return icingPredicted(ball, false);
 }
 
 // Returns true if the ball's next line cut would result in a friendly icing
 // @param ball - A ball like structure
 // @return bool - Wether icing is predicted
 export function friendlyIcingPredicted (ball: BallLike): boolean {
-	return Referee.icingPredicted(ball, true);
+	return icingPredicted(ball, true);
 }
 
 let cntO = 0

@@ -5,7 +5,7 @@ import * as World from "base/world";
 import {ManMark} from "glados/task/defender/manmark"
 import {MoveToPos} from "glados/task/shared/movetopos";
 import {StopAttack} from "glados/task/attacker/stopattack"
-import {MovesHelper} from "glados/util/moveshelper"
+import * as MovesHelper from "glados/util/moveshelper"
 import {Move, Assignment} from "glados/group/move/base";
 import {MessageBox, MessageType} from "glados/control/messaging";
 

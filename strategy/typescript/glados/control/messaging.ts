@@ -171,11 +171,11 @@ export class MessageBox {
 
 	send(type: MessageType.centerBackPosTarget, dest: FriendlyRobot, target: {pos: Position, target: any, way: number, time: number}): void;
 	send(type: MessageType.moveAssignment, dest: FriendlyRobot, assignment: {behavior?: any, class?: any, params: any, restart: boolean, mainAttacker: boolean}): void;
-	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number} }): void;
+	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "CenterBack", params: {pos: Position, dir?: RelativePosition, time?: number} }): void;
 	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "ManMark", params: Robot[] }): void;
 	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "ZoneDefense", params: Position[] }): void;
 	send(type: MessageType.roleAssignment, dest: FriendlyRobot, assignment: { name: "Piggy", params: Robot[] }): void;
-	send(type: MessageType.strikerZone, dest: FriendlyRobot, zone: { defaultPos: Position, boundaries: {left: number, right: number} }): void;
+	send(type: MessageType.strikerZone, dest: FriendlyRobot, zone: { defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number} }): void;
 	send(type: MessageType.midfieldZone, dest: FriendlyRobot, zone: { defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number} }): void;
 	send(type: MessageType, dest: FriendlyRobot, data?: any): void {
 		this.sendGeneric(type, dest, data, false);
@@ -295,7 +295,7 @@ export class MessageBox {
 		{ name: "CenterBack", params: {pos: Position, dir: RelativePosition, time: number} }
 		| { name: "ManMark", params: Robot[] } | { name: "ZoneDefense", params: [Position] }
 		| { name: "Piggy", params: [Robot] } | undefined;
-	receiveTrainer(type: MessageType.strikerZone, broadcast?: boolean): { defaultPos: Position, boundaries: {left: number, right: number} } | undefined;
+	receiveTrainer(type: MessageType.strikerZone, broadcast?: boolean): { defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number} } | undefined;
 	receiveTrainer(type: MessageType.midfieldZone, broadcast?: boolean): { defaultPos: Position, boundaries: {left: number, right: number, top: number, bottom: number } } | undefined;
 	receiveTrainer(type: MessageType.mainAttacker, broadcast?: boolean): FriendlyRobot | undefined;
 	receiveTrainer(type: MessageType.duelAssistant, broadcast?: boolean): FriendlyRobot | undefined;
