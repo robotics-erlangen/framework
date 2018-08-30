@@ -62,7 +62,7 @@ export class Ball {
 
 	// private attributes
 	private _isVisible: boolean = false;
-	private _hadRawData: boolean = false // used for detecting old simulator logs with no recoded ball raw data
+	private _hadRawData: boolean = false; // used for detecting old simulator logs with no recoded ball raw data
 
 	// constructor must only be called by world!
 	constructor() {
@@ -84,7 +84,7 @@ export class Ball {
 		}
 		this.detectionQuality = this.detectionQuality * (1 - BALL_QUALITY_FILTER_FACTOR);
 		if (this._hadRawData) {
-			this.detectionQuality *= 1 - BALL_QUALITY_FILTER_FACTOR // only reduce quality if ball raw data exists
+			this.detectionQuality *= 1 - BALL_QUALITY_FILTER_FACTOR; // only reduce quality if ball raw data exists
 		}
 	}
 
