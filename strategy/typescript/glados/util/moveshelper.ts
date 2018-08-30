@@ -54,7 +54,7 @@ export function assignRobots (robots: {pos: Position}[], positions: Position[], 
 		let totalDistance = 0;
 		for (let b = 0;b<option.length;b++) {
 			let id = option[b];
-			totalDistance = totalDistance + robots[ignoreFirstNRobots + id].pos.distanceToSq(positions[b]);
+			totalDistance = totalDistance + robots[ignoreFirstNRobots + id - 1].pos.distanceToSq(positions[b]);
 		}
 		if (totalDistance < bestOptionScore) {
 			bestOptionScore = totalDistance;
@@ -62,8 +62,9 @@ export function assignRobots (robots: {pos: Position}[], positions: Position[], 
 		}
 	}
 
+
 	for (let index of options[bestOptionIndex]) {
-		assignment.push(index + ignoreFirstNRobots);
+		assignment.push(index + ignoreFirstNRobots - 1);
 	}
 
 	return assignment;
