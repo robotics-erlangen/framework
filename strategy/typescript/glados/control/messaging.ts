@@ -336,7 +336,7 @@ export class MessageBox {
 			if (allBox) {
 				let allMerged = mtypeBox.get("allBoxMerged");
 				if (allMerged == undefined) {
-					allMerged = {};
+					allMerged = new Map();
 					mtypeBox.set("allBoxMerged", allMerged);
 				}
 				if (allMerged.get(this.origin) == undefined) { // merge broadcasts into receiveBox
