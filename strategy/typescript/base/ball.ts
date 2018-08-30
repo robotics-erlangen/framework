@@ -62,6 +62,7 @@ export class Ball {
 
 	// private attributes
 	private _isVisible: boolean = false;
+	private _hadRawData: boolean = false // used for detecting old simulator logs with no recoded ball raw data
 
 	// constructor must only be called by world!
 	constructor() {
@@ -82,6 +83,9 @@ export class Ball {
 			this.lostSince = time;
 		}
 		this.detectionQuality = this.detectionQuality * (1 - BALL_QUALITY_FILTER_FACTOR);
+		if (this._hadRawData) {
+			this.detectionQuality *= 1 - BALL_QUALITY_FILTER_FACTOR // only reduce quality if ball raw data exists
+		}
 	}
 
 	// Processes ball information from amun, passed by world
@@ -123,12 +127,13 @@ export class Ball {
 	}
 
 	_updateRawDetections(rawData: any[] | undefined) {
-		if (rawData == undefined) {
+		if (rawData == undefined || rawData.length === 0) {
 			return;
 		}
 		let count = Math.min(1, rawData.length);
+		this._hadRawData = true;
+		this.hasRawData = true;
 		this.detectionQuality = BALL_QUALITY_FILTER_FACTOR * count + (1 - BALL_QUALITY_FILTER_FACTOR) * this.detectionQuality;
-		this.hasRawData = count > 0;
 	}
 
 	_updateTrackedState(lastSpeedLength: number) {
