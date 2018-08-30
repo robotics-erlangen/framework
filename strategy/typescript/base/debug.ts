@@ -172,9 +172,8 @@ export function set(name: string | undefined, value: any, visited: Map<object, s
 /// Clears the debug stack
 // @name resetStack
 export function resetStack() {
-	if (debugStack.length !== 0 || debugStack[0] !== "") {
-		log("Unbalanced push/pop on debug stack");
-		for (let v in debugStack) {
+	if (debugStack.length !== 1 || debugStack[0] !== "") {
+		for (let v of debugStack) {
 			log(v);
 		}
 	}
