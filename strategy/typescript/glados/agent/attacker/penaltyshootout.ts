@@ -4,11 +4,10 @@ import * as Referee from "base/referee";
 import {Vector, Position, Speed} from "base/vector";
 import * as World from "base/world";
 
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {MessageType} from "glados/control/messaging";
 import * as Goal from "glados/observer/goal";
 import * as Robot from "glados/observer/robot";
-import {Task} from "glados/task/base";
 import {MoveToStaticBall} from "glados/task/attacker/movetostaticball"
 import {ShootGoal} from "glados/task/attacker/shootgoal";
 import {StopAttack} from "glados/task/attacker/stopattack"
@@ -133,7 +132,9 @@ export class PenaltyShootout extends Behavior {
 		debug.pop();
 	}
 
-	_updateTask (): [typeof Task] | [typeof Task, any[]] | [typeof Task, any[], boolean] {
+	_updateTask (): TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof MoveToStaticBall>
+			| TaskAssignment<typeof MoveToBall> | TaskAssignment<typeof StopAttack> | TaskAssignment<typeof Dribble>
+			| TaskAssignment<typeof Pass> {
 		let lastContact = this._contactPoint;
 		let robotPos = this._robot.pos;
 		let freeway = this._state === "pass" ? 0.1 : 0;

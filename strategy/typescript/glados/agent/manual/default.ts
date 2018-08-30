@@ -7,9 +7,7 @@ import {MessageType} from "glados/control/messaging";
 import {Manual} from "glados/task/manual/manual"
 import {Pass} from "glados/task/shared/pass";
 import {ShootGoal} from "glados/task/attacker/shootgoal";
-import {Behavior} from "glados/agent/base/behavior";
-import {Task} from "glados/task/base";
-
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 
 export class Default extends Behavior {
 	private _shootTarget: {pos: Position} | undefined = undefined;
@@ -44,22 +42,22 @@ export class Default extends Behavior {
 		this._shootTarget = bestTarget;
 	}
 
-	private _shootBall (): [typeof Task, any[] | undefined] {
+	private _shootBall (): TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof Pass> {
 		if (this._shootTarget == undefined) {
 			this._chooseShootTarget();
 		}
 
-		if ((this._shootTarget as {pos: Position}).pos == World.Geometry.OpponentGoal) {
-			return [ShootGoal, undefined];
+		if ((this._shootTarget!).pos.equals(World.Geometry.OpponentGoal)) {
+			return [ShootGoal];
 		} else {
 			let target = <FriendlyRobot>this._shootTarget;
 			let ballPos = target.pos + Vector.fromAngle(target.dir) * (World.Ball.radius + target.shootRadius)
 			this._messaging.sendBroadcast(MessageType.passInfo, [{ target: target, ballPos: ballPos, time: World.Time }]);
-			return [Pass, [ this._shootTarget ]];
+			return [Pass, [ this._shootTarget! ]];
 		}
 	}
 
-	_updateTask (): [typeof Task, any[] | undefined] {
+	_updateTask (): TaskAssignment<typeof Pass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof Manual> {
 		let input = <UserControl>this._robot.userControl
 		let requestBallFlag = input.dribblerSpeed && input.dribblerSpeed > 0
 		let shootBallFlag = input.kickPower != undefined && input.kickPower > 0
@@ -75,6 +73,6 @@ export class Default extends Behavior {
 			this._messaging.sendBroadcast(MessageType.passSuggestion, { ballPos: ballPos, time: 0 , manual: true, chip: false, anonymous: false });
 		}
 
-		return [Manual, undefined];
+		return [Manual];
 	}
 }

@@ -6,7 +6,7 @@ import * as Referee from "base/referee";
 import * as vis from "base/vis";
 import {Position, Vector} from "base/vector";
 import * as World from "base/world";
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {MessageType} from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Goal from "glados/observer/goal";
@@ -17,7 +17,6 @@ import {Duel} from "glados/task/shared/duel";
 import * as Attack from "glados/util/attack";
 import * as DefUtil from "glados/util/defense";
 import * as Rating from "glados/util/rating";
-import {Task} from "glados/task/base";
 
 const G = World.Geometry;
 
@@ -211,7 +210,7 @@ export class HandleBall extends Behavior {
 		return (mainAttacker == this._robot) || (this._messaging.receiveTrainer(MessageType.interceptPass) === this._robot);
 	}
 
-	_updateTask (): [typeof Task] {
+	_updateTask (): TaskAssignment<typeof InterceptPass> | TaskAssignment<typeof Duel> {
 		let selfDefenseDist = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius)
 		if (selfDefenseDist < DefUtil.centerBackDistanceToDefenseArea() + this._robot.radius + 0.03) {
 			// TODO: EVACUATE or EVACUATING

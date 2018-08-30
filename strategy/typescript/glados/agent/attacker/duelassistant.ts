@@ -2,9 +2,8 @@ import * as World from "base/world";
 import {FriendlyRobot} from "base/robot";
 
 import * as Rating from "glados/util/rating";
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {MessageType} from "glados/control/messaging";
-import {Task} from "glados/task/base";
 import {DuelAssistant as TaskDuelAssistant} from "glados/task/attacker/duelassistant"
 
 
@@ -69,7 +68,7 @@ export class DuelAssistant extends Behavior {
 	}
 
 
-	_updateTask (): [typeof Task] {
+	_updateTask (): TaskAssignment<typeof TaskDuelAssistant> {
 		return [TaskDuelAssistant];
 	}
 }

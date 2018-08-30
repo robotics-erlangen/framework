@@ -1,13 +1,12 @@
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, BaseTaskAssignment} from "glados/agent/base/behavior";
 import {MessageType} from "glados/control/messaging";
-import {Task} from "glados/task/base";
 
 export class Move extends Behavior {
 	check (): boolean {
 		return this._messaging.receiveTrainer(MessageType.moveAssignment) != undefined;
 	}
 
-	_updateTask (): [typeof Task, any[] | undefined, boolean | undefined] {
+	_updateTask (): BaseTaskAssignment {
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		if (passInfoTable) {
 			for (let passInfo of passInfoTable) {

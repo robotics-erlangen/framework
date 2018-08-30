@@ -1,9 +1,8 @@
 import * as debug from "base/debug";
 import {Robot} from "base/robot";
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {MessageType} from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
-import {Task} from "glados/task/base";
 import {InterceptPass} from "glados/task/defender/interceptpass"
 import {Piggy as PiggyTask} from "glados/task/defender/piggy"
 
@@ -19,7 +18,7 @@ export class Piggy extends Behavior {
 		return role != undefined && role.name === "Piggy";
 	}
 
-	_updateTask (): [typeof Task, any[], boolean] | [typeof Task] {
+	_updateTask (): TaskAssignment<typeof InterceptPass> | TaskAssignment<typeof PiggyTask> {
 		let assignment = this._messaging.receiveTrainer(MessageType.roleAssignment);
 		if (assignment == undefined || assignment.name !== "Piggy") {
 			throw new Error();

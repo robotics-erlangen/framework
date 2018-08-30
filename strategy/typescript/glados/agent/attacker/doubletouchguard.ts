@@ -1,10 +1,9 @@
 import * as debug from "base/debug";
 import * as Referee from "base/referee";
 import * as World from "base/world";
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import * as Ball from "glados/observer/ball";
 import * as Robot from "glados/observer/robot";
-import {Task} from "glados/task/base";
 import {StopAttack} from "glados/task/attacker/stopattack"
 
 //prevents freekicking robot from moving away after failed shot
@@ -30,7 +29,7 @@ export class DoubleTouchGuard extends Behavior {
 		return false;
 	}
 
-	_updateTask (): [typeof Task, any[]] {
+	_updateTask (): TaskAssignment<typeof StopAttack> {
 		return [StopAttack, [0.15]];
 	}
 }

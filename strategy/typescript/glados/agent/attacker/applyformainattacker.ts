@@ -51,7 +51,7 @@ export class ApplyForMainattacker extends Behavior {
 		return false;
 	}
 
-	_updateTask (): [any] {
+	_updateTask (): any {
 		throw new Error("This behavior is not supposed to run");
 	}
 }

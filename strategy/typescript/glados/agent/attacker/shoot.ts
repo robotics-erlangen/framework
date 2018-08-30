@@ -5,14 +5,13 @@ import {FriendlyRobot} from "base/robot";
 import {Vector, Position} from "base/vector";
 import * as World from "base/world";
 
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {MessageType} from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
 import * as ObserverShoot from "glados/observer/shoot";
 
-import {Task} from "glados/task/base";
 import {ChipToPos} from "glados/task/shared/chiptopos"
 import {Pass} from "glados/task/shared/pass";
 import {ShootGoal} from "glados/task/attacker/shootgoal";
@@ -223,7 +222,7 @@ export class Shoot extends Behavior {
 		if (pass != undefined && Attack.isPassAllowed(this._attackPosition || World.Ball.pos, pass.ballPos)) {
 			return {
 				task: "pass",
-				target: pass.target,
+				target: pass.target!,
 				pos: pass.ballPos,
 				time: pass.time,
 				quality: "clean"
@@ -368,7 +367,7 @@ export class Shoot extends Behavior {
 		return false;
 	}
 
-	_updateTask (): [typeof Task, any[]] {
+	_updateTask (): TaskAssignment<typeof Pass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof ChipToPos> {
 		let pressed = Robot.isPressed(this._robot);
 		let color = pressed ? vis.colors.redHalf : vis.colors.greenHalf;
 		vis.addCircle("a/a/shoot: pressed", this._robot.pos, 0.3, color, true);

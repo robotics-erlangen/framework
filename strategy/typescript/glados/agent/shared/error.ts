@@ -1,10 +1,9 @@
 import * as World from "base/world";
 import {log} from "base/globals";
 import * as Referee from "base/referee";
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {Error as ErrorTask} from "glados/task/shared/error";
 import * as ErrorObserver from "glados/observer/error";
-import {Task} from "glados/task/base";
 
 const ERROR_TOLERANCE_PER_SEC = 3; // <- [0.5,1]
 const EXCHANGE_ERROR_ROBOTS = false;
@@ -108,7 +107,7 @@ export class Error extends Behavior {
 	}
 
 
-	_updateTask (): [typeof Task] {
+	_updateTask (): TaskAssignment<typeof ErrorTask> {
 		//local errorFound = next(ErrorObserver.getErrorTable(this._robot)) ~= nil
 		//if errorFound and World.Time == ErrorObserver.getLastRefChange() then
 		//	log(this.errorMsg())

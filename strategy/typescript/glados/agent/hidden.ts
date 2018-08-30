@@ -6,7 +6,7 @@ import {Default} from "glados/agent/hidden/default"
 
 export class Hidden extends Agent {
 
-	public getBehaviors(): typeof Behavior[] {
+	public getBehaviors(): any[] {
 		return [Default];
 	}
 

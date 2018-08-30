@@ -41,12 +41,12 @@ export abstract class Agent {
 			new MoveCommand(this),
 			new Halt(this),
 			new AgentError(this),
-			...(this.getBehaviors().map(function (B: typeof Behavior): Behavior { return new (B as any) (obj); }))
+			...(this.getBehaviors().map(function (B: any): Behavior { return new B(obj); }))
 		];
 		this._debugIdStr = "Agent " + this._robot.id;
 	}
 
-	abstract getBehaviors(): typeof Behavior[];
+	abstract getBehaviors(): any[];
 
 	_run () {
 	}
@@ -165,7 +165,7 @@ export abstract class Agent {
 			}
 		}
 		let overrideRating = parameters && parameters[2]
-		if (parameters && task && !overrideRating) {
+		if (parameters && task != undefined && !overrideRating) {
 			// only use task parameters if behavior asked for main attacker application
 			parameters = task.mainAttackerParameters() || parameters;
 		}
@@ -195,7 +195,7 @@ export abstract class Agent {
 
 		let mainAttackerRating: number;
 		if (!overrideRating) {
-			let timeToBall;
+			let timeToBall: number;
 			if (parameters[0] || parameters[1]) {
 				let targetPos = parameters[0] || World.Geometry.OpponentGoal;
 				let endSpeedLength = parameters[1] || this._robot.maxSpeed;
@@ -218,7 +218,7 @@ export abstract class Agent {
 			if (timeToBall == Infinity) {
 				let ballOutPos = Field.nextLineCut(World.Ball.pos, World.Ball.speed);
 				if (ballOutPos && Math.abs(ballOutPos.x) > World.Geometry.DefenseStretch / 2  + World.Geometry.DefenseRadius) {
-					timeToBall = Physics.robotTimeToPos(this._robot, ballOutPos, new Vector(0, 0));
+					timeToBall = Physics.robotTimeToPos(this._robot, ballOutPos, new Vector(0, 0))[0];
 				}
 			}
 
@@ -249,7 +249,7 @@ export abstract class Agent {
 		// debug.pop()
 		debug.set("mainAttackerRating", mainAttackerRating);
 		debug.pop();
-		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, {mainAttacker: mainAttackerRating});
+		this._messaging.sendToTrainerRepeated(MessageType.exclusiveRole, [ MessageType.mainAttacker, mainAttackerRating]);
 	}
 
 	// controls whether the robot may be kept in its pool

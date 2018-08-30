@@ -1,7 +1,6 @@
 import * as World from "base/world";
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {Keeper} from "glados/task/keeper/keeper";
-import {Task} from "glados/task/base";
 // import {RandomKeeper} from "glados/task/keeper/randomkeeper";
 
 export class Default extends Behavior {
@@ -9,7 +8,7 @@ export class Default extends Behavior {
 		return true;
 	}
 
-	_updateTask (): [typeof Task] {
+	_updateTask (): TaskAssignment<typeof Keeper> { // | TaskAssignment<typeof RandomKeeper> {
 		if (World.GameStage == "PenaltyShootout" && World.RefereeState === "PenaltyDefensive") {
 			return [Keeper];
 			//return [RandomKeeper];

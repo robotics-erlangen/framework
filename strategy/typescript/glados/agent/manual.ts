@@ -6,7 +6,7 @@ import {Default} from "glados/agent/manual/default"
 
 export class Manual extends Agent {
 
-	public getBehaviors(): typeof Behavior[] {
+	public getBehaviors(): any[] {
 		return [Default];
 	}
 

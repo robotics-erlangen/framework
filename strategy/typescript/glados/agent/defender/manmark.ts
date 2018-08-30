@@ -5,13 +5,12 @@ import * as Field from "base/field";
 import * as Referee from "base/referee";
 import * as World from "base/world";
 import * as vis from "base/vis";
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {MessageType} from "glados/control/messaging";
 import * as Goal from "glados/observer/goal";
 import {CenterBack} from "glados/task/defender/centerback"
 import {Duel} from "glados/task/shared/duel";
 import {ManMark as ManMarkTask} from "glados/task/defender/manmark";
-import {Task} from "glados/task/base";
 import * as Defense from "glados/util/defense";
 
 
@@ -33,7 +32,7 @@ export class ManMark extends Behavior {
 		return role != undefined && role.name === "ManMark";
 	}
 
-	_updateTask (): [typeof Task] {
+	_updateTask (): TaskAssignment<typeof ManMarkTask> | TaskAssignment<typeof CenterBack> | TaskAssignment<typeof Duel> {
 		let roleAssignment = this._messaging.receiveTrainer(MessageType.roleAssignment);
 		if (roleAssignment == undefined || roleAssignment.name !== "ManMark") {
 			throw new Error();

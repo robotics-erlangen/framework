@@ -3,13 +3,12 @@ import {Robot} from "base/robot";
 import * as Field from "base/field";
 import * as Referee from "base/referee";
 import * as World from "base/world";
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {MessageType} from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as RefereeObs from "glados/observer/referee"
 import * as ObserverRobot from "glados/observer/robot";
-import {Task} from "glados/task/base";
 import {BallEscort as BallEscortTask} from "glados/task/shared/ballescort";
 
 export class BallEscort extends Behavior {
@@ -99,7 +98,7 @@ export class BallEscort extends Behavior {
 		return true;
 	}
 
-	_updateTask (): [typeof Task, any[]] {
-		return [BallEscortTask, [this._minRobot]];
+	_updateTask (): TaskAssignment<typeof BallEscortTask> {
+		return [BallEscortTask, this._minRobot ? [this._minRobot] : undefined];
 	}
 }

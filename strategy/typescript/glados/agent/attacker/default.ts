@@ -1,6 +1,5 @@
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {MessageType} from "glados/control/messaging";
-import {Task} from "glados/task/base";
 import {AcceptPass} from "glados/task/attacker/acceptpass";
 import {Midfield} from "glados/task/attacker/midfield";
 import {SideStep} from "glados/task/attacker/sidestep";
@@ -29,10 +28,10 @@ export class Default extends Behavior {
 		return true;
 	}
 
-	_updateTask (): [typeof Task] | [typeof Task, any[]] {
+	_updateTask (): TaskAssignment<typeof SideStep> | TaskAssignment<typeof AcceptPass> | TaskAssignment<typeof Freebreaker> {
 		let passInfoTable = this._messaging.receiveSingleSender(MessageType.passInfo)[1];
 		let relevantPassInfo = Attack.relevantPassInfoMessage(this._robot, passInfoTable);
-		let acceptingPass = Attack.checkPassInfos(this._robot, passInfoTable, false)[0];
+		let acceptingPass = Attack.checkPassInfos(this._robot, passInfoTable, false);
 
 		let midfieldZone = this._messaging.receiveTrainer(MessageType.midfieldZone);
 		let Freebreaker = midfieldZone ? Midfield : Striker;
@@ -40,6 +39,6 @@ export class Default extends Behavior {
 		if (relevantPassInfo && acceptingPass == undefined) {
 			return [SideStep, [relevantPassInfo]];
 		}
-		return [acceptingPass ? AcceptPass : Freebreaker];
+		return acceptingPass ? [AcceptPass] : [Freebreaker];
 	}
 }

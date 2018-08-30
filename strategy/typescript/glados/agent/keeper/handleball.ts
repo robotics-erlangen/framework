@@ -7,8 +7,7 @@ import * as World from "base/world";
 import {MessageType} from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
-import {Task} from "glados/task/base";
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {AggressiveKeeper} from "glados/task/keeper/aggressivekeeper";
 import {Keeper} from "glados/task/keeper/keeper";
 import {ChipAway as KeeperChipAway} from "glados/task/keeper/chipaway";
@@ -43,7 +42,8 @@ export class HandleBall extends Behavior {
 		return mainAttackerFlag;
 	}
 
-	_updateTask (): [typeof Task, any[] | undefined] | [typeof Task] {
+	_updateTask (): TaskAssignment<typeof Keeper> | TaskAssignment<typeof Pass> | TaskAssignment<typeof KeeperChipAway>
+			| TaskAssignment<typeof AggressiveKeeper> {
 		let endPos = Physics.ballAtTime(World.Ball, Infinity).pos
 		let startInside = Field.isInFriendlyDefenseArea(World.Ball.pos, -World.Ball.radius-this._robot.radius)
 		let endInside = Field.isInFriendlyDefenseArea(endPos, -World.Ball.radius-this._robot.radius)

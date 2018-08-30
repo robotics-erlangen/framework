@@ -1,10 +1,9 @@
 import * as Referee from "base/referee";
 import * as World from "base/world";
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {Keeper} from "glados/task/keeper/keeper";
 import {RandomKeeper} from "glados/task/keeper/randomkeeper";
 import {ShootoutKeeper} from "glados/task/keeper/shootoutkeeper";
-import {Task} from "glados/task/base";
 
 const G = World.Geometry;
 
@@ -32,7 +31,7 @@ export class DefendPenaltyShootout extends Behavior {
 	}
 
 
-	_updateTask (): [typeof Task] {
+	_updateTask (): TaskAssignment<typeof ShootoutKeeper> | TaskAssignment<typeof Keeper> {
 		if (World.RefereeState === "PenaltyDefensive" && this._penaltyStartTime == undefined) {
 			this._penaltyStartTime = World.Time;
 		}

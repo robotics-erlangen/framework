@@ -3,12 +3,11 @@ import * as Field from "base/field";
 import {Vector} from "base/vector";
 import * as geom from "base/geom";
 import * as World from "base/world";
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {MessageType} from "glados/control/messaging";
 import * as Ball from "glados/observer/ball";
 import * as Physics from "glados/observer/physics";
 import * as Robot from "glados/observer/robot";
-import {Task} from "glados/task/base";
 import {Duel as TaskDuel} from "glados/task/shared/duel"
 
 
@@ -156,7 +155,7 @@ export class Duel extends Behavior {
 	}
 
 
-	_updateTask (): [typeof Task] {
+	_updateTask (): TaskAssignment<typeof TaskDuel> {
 		return [TaskDuel];
 	}
 }

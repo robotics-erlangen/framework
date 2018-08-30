@@ -12,7 +12,7 @@ import {FreeKick} from "glados/agent/attacker/freekick";
 import {Move} from "glados/agent/attacker/move";
 import {PassTiming} from "glados/agent/attacker/passtiming";
 import {Penalty} from "glados/agent/attacker/penalty";
-import {PenaltyDefensive} from "glados/agent/attacker/penaltydefensive";
+import {PenaltyShootoutDefensive as PenaltyDefensive} from "glados/agent/attacker/penaltydefensive";
 import {PenaltyPassive} from "glados/agent/shared/penaltypassive";
 import {PenaltyShootout} from "glados/agent/attacker/penaltyshootout";
 import {Shoot} from "glados/agent/attacker/shoot";
@@ -34,7 +34,7 @@ export class Attacker extends Agent {
 		debug.set("pool rating", this.rateRobot());
 	}
 
-	getBehaviors(): typeof Behavior[] {
+	getBehaviors(): any[] {
 		return [
 			ApplyForMainattacker,
 			RescueFromDefenseArea,

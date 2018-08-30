@@ -1,9 +1,8 @@
 import {Position, RelativePosition, Vector} from "base/vector";
 import {MessageType} from "glados/control/messaging";
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {CenterBack} from "glados/task/defender/centerback"
 import * as Defense from "glados/util/defense";
-import {Task} from "glados/task/base";
 
 
 export class Default extends Behavior {
@@ -19,7 +18,7 @@ export class Default extends Behavior {
 		return true;
 	}
 
-	_updateTask (): [typeof Task, any[], boolean] {
+	_updateTask (): TaskAssignment<typeof CenterBack> {
 		let role = this._messaging.receiveTrainer(MessageType.roleAssignment);
 		let target = (role != undefined && role.name == "CenterBack") ? role.params : this._customBall;
 		let restart = target != this._lastTarget;

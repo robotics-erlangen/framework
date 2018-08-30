@@ -2,8 +2,7 @@ import * as Referee from "base/referee";
 import {Vector} from "base/vector";
 import * as World from "base/world";
 
-import {Behavior} from "glados/agent/base/behavior";
-import {Task} from "glados/task/base";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {MoveToPos} from "glados/task/shared/movetopos";
 
 const G = World.Geometry;
@@ -25,7 +24,7 @@ export class PenaltyShootoutDefensive extends Behavior {
 		return this._penaltyStartTime != undefined && World.Time - this._penaltyStartTime < 15 && !Referee.isStopState();
 	}
 
-	_updateTask (): [typeof Task, any[]] {
+	_updateTask (): TaskAssignment<typeof MoveToPos> {
 		if (World.RefereeState == "PenaltyDefensive" && this._penaltyStartTime == undefined) {
 			// log("Start Time set")
 			this._penaltyStartTime = World.Time;

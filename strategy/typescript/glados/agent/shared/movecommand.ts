@@ -1,8 +1,7 @@
-import { Behavior } from "glados/agent/base/behavior";
+import { Behavior, TaskAssignment } from "glados/agent/base/behavior";
 
 import { Position } from "base/vector";
 import * as World from "base/world";
-import { Task } from "glados/task/base";
 import { MoveToPos } from "glados/task/shared/movetopos";
 
 export class MoveCommand extends Behavior {
@@ -10,7 +9,7 @@ export class MoveCommand extends Behavior {
 		return this._robot.moveCommand != undefined && !World.IsSimulated;
 	}
 
-	_updateTask(): [typeof Task, any[], boolean] {
-		return [MoveToPos, [(this._robot.moveCommand as {pos: Position}).pos, undefined, undefined, undefined, true], true];
+	_updateTask(): TaskAssignment<typeof MoveToPos> {
+		return [MoveToPos, [this._robot.moveCommand!.pos, undefined, undefined, undefined, true], true];
 	}
 }

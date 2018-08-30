@@ -6,11 +6,10 @@ import * as Referee from "base/referee";
 import {Position} from "base/vector";
 import * as World from "base/world";
 
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {MessageType} from "glados/control/messaging";
 import {MoveToStaticBall} from "glados/task/attacker/movetostaticball"
 import {Pass as TaskPass} from "glados/task/shared/pass";
-import {Task} from "glados/task/base";
 import {ShootGoal} from "glados/task/attacker/shootgoal";
 import * as Attack from "glados/util/attack";
 import * as ShootGoalUtil from "glados/util/shootgoal";
@@ -70,7 +69,7 @@ export class FreeKick extends Behavior {
 		return false;
 	}
 
-	_updateTask (): [typeof Task] | [typeof Task, any[], boolean] {
+	_updateTask (): TaskAssignment<typeof TaskPass> | TaskAssignment<typeof ShootGoal> | TaskAssignment<typeof MoveToStaticBall> {
 		let prevState = this._state;
 
 		let ballDefenseDist = Field.distanceToFriendlyDefenseArea(World.Ball.pos, 0);

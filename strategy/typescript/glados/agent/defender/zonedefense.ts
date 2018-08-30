@@ -1,7 +1,6 @@
 import {Position} from "base/vector";
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {MessageType} from "glados/control/messaging";
-import {Task} from "glados/task/base";
 import {BallEvadingMoveToPos} from "glados/task/defender/ballevadingmovetopos";
 
 export class ZoneDefense extends Behavior {
@@ -16,7 +15,7 @@ export class ZoneDefense extends Behavior {
 		return role != undefined && role.name === "ZoneDefense";
 	}
 
-	_updateTask (): [typeof Task, any[], boolean] {
+	_updateTask (): TaskAssignment<typeof BallEvadingMoveToPos> {
 		let assignment = this._messaging.receiveTrainer(MessageType.roleAssignment);
 		if (assignment == undefined || assignment.name !== "ZoneDefense") {
 			throw new Error();

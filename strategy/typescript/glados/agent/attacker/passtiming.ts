@@ -1,7 +1,6 @@
-import {Behavior} from "glados/agent/base/behavior";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {MessageType} from "glados/control/messaging";
-import {Task} from "glados/task/base";
-import {Sidestep} from "glados/task/attacker/sidestep";
+import {SideStep} from "glados/task/attacker/sidestep";
 import * as Attack from "glados/util/attack";
 
 
@@ -19,14 +18,14 @@ export class PassTiming extends Behavior {
 			lastIncomingPassInfoPos = lastIncomingPassInfo.ballPos;
 		}
 
-		if (lastIncomingPassInfoPos && Attack.checkPassInfos(this._robot, [lastIncomingPassInfo], true)[0] == undefined) {
+		if (lastIncomingPassInfoPos && !Attack.checkPassInfos(this._robot, [lastIncomingPassInfo], true)) {
 			return true;
 		}
 
 		return false;
 	}
 
-	_updateTask (): [typeof Task, any[]] {
-		return [Sidestep, [Attack.lastIncomingPassInfo(this._robot, this._messaging.receiveSingleSender(MessageType.passInfo))]];
+	_updateTask (): TaskAssignment<typeof SideStep> {
+		return [SideStep, [Attack.lastIncomingPassInfo(this._robot, this._messaging.receiveSingleSender(MessageType.passInfo))!]];
 	}
 }

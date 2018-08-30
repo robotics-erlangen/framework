@@ -1,6 +1,5 @@
 import {RescueRobot} from "glados/task/hidden/rescuerobot";
-import {Behavior} from "glados/agent/base/behavior";
-import {Task} from "glados/task/base";
+import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 
 
 export class Default extends Behavior {
@@ -8,7 +7,7 @@ export class Default extends Behavior {
 		return true;
 	}
 
-	_updateTask (): [typeof Task] {
+	_updateTask (): TaskAssignment<typeof RescueRobot> {
 		return [RescueRobot];
 	}
 }
