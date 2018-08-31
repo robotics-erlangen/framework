@@ -84,7 +84,7 @@ export class ManMark extends Behavior {
 		let selfDefenseDist = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius);
 		if (selfDefenseDist < Defense.centerBackDistanceToDefenseArea() + this._robot.radius + 0.03) {
 			// TODO EVACUATE
-			this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "centerback", payload: undefined });
+			// this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "centerback", payload: {} });
 		}
 
 		return [ManMarkTask, [ this._opp ], this._restartTask];

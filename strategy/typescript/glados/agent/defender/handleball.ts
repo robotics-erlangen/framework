@@ -214,7 +214,7 @@ export class HandleBall extends Behavior {
 		let selfDefenseDist = Field.distanceToFriendlyDefenseArea(this._robot.pos, this._robot.radius)
 		if (selfDefenseDist < DefUtil.centerBackDistanceToDefenseArea() + this._robot.radius + 0.03) {
 			// TODO: EVACUATE or EVACUATING
-			this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "centerback", payload: undefined });
+			// this._messaging.sendToTrainerRepeated(MessageType.groupApplication, { name: "centerback", payload: {} });
 		}
 
 		if (this._taskDecision == "attacker"  ||
