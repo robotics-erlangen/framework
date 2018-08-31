@@ -360,12 +360,12 @@ function intersectionsRayDefenseArea_2018(pos: Position, dir: RelativePosition, 
 		if (l1 && l1 >= 0 && l2 >= 0 && l2 <= length) {
 			// no intersections with parallel lines
 			if (!(l1 === 0 && l2 === 0) || ipos.distanceToSq(v * f) < 0.0001) {
-				intersections.push({pos: ipos, way: way + l2, sec: i * 2 - 1});
+				intersections.push({pos: ipos, way: way + l2, sec: (i + 1) * 2 - 1});
 			}
 		}
 		way = way + length;
 		// intersections with arc segments
-		if (i < 1 && extraDistance > 0) {
+		if (i < 2 && extraDistance > 0) {
 			let corner = new Vector((3 - (i + 1) * 2) * G.DefenseWidthHalf, G.FieldHeightHalf - G.DefenseHeight) * f;
 			let oppRotation = friendly ? 0 : Math.PI;
 			let circleIntersections = intersectRayArc(pos, dir, corner, extraDistance,
