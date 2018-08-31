@@ -96,8 +96,8 @@ function makeCached <F extends Function>(f: F, keepForever: boolean): F {
 		);
 	}
 	return <F><any>(function(...args: any[]): any[] | any {
-		let result = getFromCache(cached, args);
-		args.shift();
+		// getFromCache modifies args in case there is a vector inside, so make a copy
+		let result = getFromCache(cached, args.slice());
 		if (result == undefined) {
 			result = f(...args);
 			if (result === undefined) {
