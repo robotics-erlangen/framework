@@ -51,7 +51,7 @@ export class Roles {
 				exclusiveRoles[role] = bestRobot;
 				this._messaging.sendBroadcast(role, bestRobot);
 
-				vis.addCircle("tr/roles: "+role, bestRobot.pos, 0.12,
+				vis.addCircle("tr/roles: "+MessageType[role], bestRobot.pos, 0.12,
 					World.TeamIsBlue ? vis.colors.blue : vis.colors.yellow, true, true);
 			}
 		}

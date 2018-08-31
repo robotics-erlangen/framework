@@ -273,7 +273,7 @@ export class MessageBox {
 	receiveSingleSender(type: MessageType, broadcast?: boolean): [FriendlyRobot, any] | [] {
 		let map: Map<FriendlyRobot, any> = this.receiveGeneric(type, broadcast);
 		if (map.size > 1) {
-			throw new Error(`Single sender message ${type} sent by ${map.size} robots!`);
+			throw new Error(`Single sender message ${MessageType[type]} sent by ${map.size} robots!`);
 		}
 		let it = map.entries().next();
 		if (it.done) {
