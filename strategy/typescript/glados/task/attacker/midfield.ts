@@ -53,8 +53,8 @@ export class Midfield extends Task {
 
 		let bestScore = -Infinity;
 		let bestPoint = undefined;
-		for (let x = left; x<=left+width;x += xStep) {
-			for (let y = bottom; y<=bottom + height; y += yStep) {
+		for (let x = left; width < 0 ? x>=left+width : x<=left+width;x += xStep) {
+			for (let y = bottom; height < 0 ? y>=bottom+height : y<=bottom + height; y += yStep) {
 				let candidatePoint = new Vector(x, y)
 				let rating = this._midfieldSampling.evalLocation(candidatePoint, bestScore);
 				if (rating > bestScore) {
