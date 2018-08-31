@@ -42,7 +42,11 @@ export class DuelAssistant extends Behavior {
 			return false;
 		}
 
-		let sender = this._messaging.receive(MessageType.defendedOpponent).keys().next().value;
+		let sender: FriendlyRobot | undefined;
+		let messages = this._messaging.receive(MessageType.defendedOpponent);
+		if (messages.size > 0) {
+			sender = messages.keys().next().value;
+		}
 		if (sender == undefined && this._lastTrue == undefined) {
 			return false;
 		}
