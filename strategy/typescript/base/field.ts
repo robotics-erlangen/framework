@@ -602,14 +602,16 @@ export function allowedLineSegments(pos: Position, dir: RelativePosition, maxLen
 	let fieldPos = [pos1, pos2, pos3, pos4];
 	for (let i = 0;i < fieldLambdas.length;i++) {
 		let lambda = fieldLambdas[i];
-		if (lambda > maxLength) {
-			lambda = maxLength;
-		}
-		// an offset 0f 0.05 is used here and below as the calculated point is on
-		// the border of the field anyways, otherwise it might flicker due to floating
-		// point inaccuracies
-		if (isInField(fieldPos[i], 0.05) && lambda > 0) {
-			lambdas.push(lambda);
+		if (lambda != undefined) {
+			if (lambda > maxLength) {
+				lambda = maxLength;
+			}
+			// an offset 0f 0.05 is used here and below as the calculated point is on
+			// the border of the field anyways, otherwise it might flicker due to floating
+			// point inaccuracies
+			if (isInField(fieldPos[i], 0.05) && lambda > 0) {
+				lambdas.push(lambda);
+			}
 		}
 	}
 
