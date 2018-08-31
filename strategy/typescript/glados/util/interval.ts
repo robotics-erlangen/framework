@@ -5,6 +5,9 @@ type AnyInterval = Interval<any>;
 /// Merges a list of intervals
 // @param sortedIntervals list (by reference) - the initial intervals ordered by increasing interval start
 export function merge (sortedIntervals: AnyInterval[]) {
+	if (sortedIntervals.length === 0) {
+		return;
+	}
 	let currentInterval = sortedIntervals[0];
 	let n = 0;
 	for (let i = 1;i<sortedIntervals.length;i++) {
