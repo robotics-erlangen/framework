@@ -152,7 +152,7 @@ export class Random {
 
     /**
      * generates an int32 pseudo random number
-     * @param range: an optional [from, to] range, if not specified the result will be in range [0,0xffffffff]
+     * @param range: an optional [from, to] range (from and to inclusive), if not specified the result will be in range [0,0xffffffff]
      * @return {number}
      */
     nextInt32(range?:[number, number]):number {
@@ -161,7 +161,7 @@ export class Random {
             return result;
         }
 
-        return (result % (range[1] - range[0])) + range[0];
+        return (result % (range[1] - range[0] + 1)) + range[0];
     }
 
     /**
