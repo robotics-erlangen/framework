@@ -46,7 +46,7 @@ export function addPost(proc: Process) {
 function run(procs: Process[]) {
 	for (let proc of procs) {
 		proc.run();
-		if (proc.isFinished) {
+		if (proc.isFinished()) {
 			procs.splice(procs.indexOf(proc), 1);
 		}
 	}
