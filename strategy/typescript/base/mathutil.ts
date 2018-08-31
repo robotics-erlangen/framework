@@ -95,11 +95,11 @@ export function random(): number {
 /**
  * generates an int32 pseudo random number, faster than random()
  * @param range: an optional [from, to] range, if not specified the result will be in range [0,0xffffffff]
- *		from and to are inclusive in the range
+ *  from and to are inclusive in the range
  * @return {number}
  */
 export function randomInt(range?: [number, number]): number {
-	if (range != undefined && range[1] - range[0] <= 0) {
+	if (range != undefined && range[1] - range[0] < 0) {
 		throw new Error("randomInt: range size can't be negative or zero");
 	}
 	initRandom();
