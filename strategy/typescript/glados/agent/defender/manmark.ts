@@ -77,7 +77,7 @@ export class ManMark extends Behavior {
 			// for interpreting debug outputs
 			this._manmarkInfo.id = this._opp.id;
 			this._manmarkInfo.pos = dest;
-			return [CenterBack, [[ this._manmarkInfo ]], this._restartTask];
+			return [CenterBack, [ this._manmarkInfo ], this._restartTask];
 		}
 
 		// if we are still near the defense area but want to move away, disguise as a centerback

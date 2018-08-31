@@ -19,13 +19,13 @@ import {Task, Agent} from "glados/task/base";
 const G = World.Geometry;
 
 export class CenterBack extends Task {
-	private _preliminaryCenterbackTarget: [{pos: Position}];
+	private _preliminaryCenterbackTarget: {pos: Position};
 	private _lookingToGoal: boolean = true;
 	private _obstacleTable: PathHelper.PathHelperParameters;
 	private _forceShoot: ForceShoot;
 
 	// centerbackTarget has to be updated by the caller
-	constructor(agent: Agent, centerbackTarget: [{pos: Position}]) {
+	constructor(agent: Agent, centerbackTarget: {pos: Position}) {
 		super(agent);
 
 		if (centerbackTarget == undefined) {
@@ -42,8 +42,8 @@ export class CenterBack extends Task {
 	}
 
 	run () {
-		let groupApplication: {name: "centerback", payload: any} = { name: "centerback", payload: this._preliminaryCenterbackTarget };
-		this._messaging.sendToTrainerRepeated(MessageType.groupApplication, groupApplication);
+		this._messaging.sendToTrainerRepeated(MessageType.groupApplication,
+			{ name: "centerback", payload: this._preliminaryCenterbackTarget });
 
 		const pos_target = this._messaging.receiveTrainer(MessageType.centerBackPosTarget);
 
