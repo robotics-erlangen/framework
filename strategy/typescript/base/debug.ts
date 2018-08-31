@@ -173,6 +173,7 @@ export function set(name: string | undefined, value: any, visited: Map<object, s
 // @name resetStack
 export function resetStack() {
 	if (debugStack.length !== 1 || debugStack[0] !== "") {
+		log("Unbalanced push/pop on debug stack");
 		for (let v of debugStack) {
 			log(v);
 		}

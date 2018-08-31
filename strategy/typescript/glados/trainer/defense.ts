@@ -424,6 +424,7 @@ function determineNumberOfPiggies(defenderCount: number, manmarkTargets: Map<Rob
 	debug.set("defender count", defenderCount);
 
 	if (Referee.isKickoffState()) {
+		debug.pop();
 		return 0;
 	}
 
