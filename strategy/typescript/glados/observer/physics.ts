@@ -965,7 +965,7 @@ function rttbQuadraticSampling(robot: Robot, ball: BallLike & {radius: number}, 
 	// or if the ball is too fast, the robot cannot catch it at all
 	if (t_ball_bsearch_start == undefined) {
 		if (t_stop < t_out) {
-			return [undefined, robot_times[N_SAMPLES]];
+			return [undefined, robot_times[N_SAMPLES - 1]];
 		} else {
 			return [undefined, Infinity];
 		}
