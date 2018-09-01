@@ -23,8 +23,8 @@ set(PROTOC_SUBPATH "bin/protoc${CMAKE_EXECUTABLE_SUFFIX}")
 
 include(ExternalProject)
 ExternalProject_Add(project_protobuf
-    URL http://www.robotics-erlangen.de/downloads/libraries/protobuf-cpp-3.4.1.tar.gz
-    URL_HASH SHA256=2bb34b4a8211a30d12ef29fd8660995023d119c99fbab2e5fe46f17528c9cc78
+    URL http://www.robotics-erlangen.de/downloads/libraries/protobuf-cpp-3.6.1.tar.gz
+    URL_HASH SHA256=b3732e471a9bb7950f090fd0457ebd2536a9ba0891b7f3785919c654fe2a2529
     DOWNLOAD_NO_PROGRESS true
     SOURCE_SUBDIR cmake
     CMAKE_ARGS
@@ -53,7 +53,7 @@ set_target_properties(project_protobuf PROPERTIES EXCLUDE_FROM_ALL true)
 file(MAKE_DIRECTORY "${install_dir}/include")
 
 set(PROTOBUF_FOUND true)
-set(PROTOBUF_VERSION "3.4.1")
+set(PROTOBUF_VERSION "3.6.1")
 set(PROTOBUF_INCLUDE_DIR "${install_dir}/include")
 set(PROTOBUF_INCLUDE_DIRS "${PROTOBUF_INCLUDE_DIR}")
 set(PROTOBUF_LIBRARY "${install_dir}/${PROTOBUF_SUBPATH}")
