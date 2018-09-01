@@ -63,6 +63,9 @@ export function _ratePass (robot: FriendlyRobot, pass: PassObject, considerTimin
 		let dribblerPos = robot.pos + (World.Ball.pos - robot.pos).setLength(
 			robot.shootRadius + World.Ball.radius);
 		shootTime = Physics.checkedBallRollTime(World.Ball, dribblerPos);
+		if (shootTime == -Infinity) {
+			shootTime = Robot.minShootTime(robot, pass.ballPos);
+		}
 	} else {
 		shootTime = Robot.minShootTime(robot, pass.ballPos);
 	}
