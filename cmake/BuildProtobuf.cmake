@@ -18,10 +18,6 @@
 # *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 # ***************************************************************************
 
-if(NOT MINGW)
-    message(FATAL_ERROR "Protobuf not found")
-endif()
-
 set(PROTOBUF_SUBPATH "lib/${CMAKE_STATIC_LIBRARY_PREFIX}protobuf${CMAKE_STATIC_LIBRARY_SUFFIX}")
 set(PROTOC_SUBPATH "bin/protoc${CMAKE_EXECUTABLE_SUFFIX}")
 
@@ -64,7 +60,10 @@ set(PROTOBUF_LIBRARY "${install_dir}/${PROTOBUF_SUBPATH}")
 set(PROTOBUF_LIBRARIES "${PROTOBUF_LIBRARY}")
 set(Protobuf_PROTOC_EXECUTABLE "${install_dir}/${PROTOC_SUBPATH}")
 # compatibility with cmake 3.10
-add_executable(protobuf::protoc IMPORTED)
+if(NOT TARGET protobuf::protoc)
+    # avoid error if target was already created for an older version
+    add_executable(protobuf::protoc IMPORTED)
+endif()
 set_target_properties(protobuf::protoc PROPERTIES
     IMPORTED_LOCATION "${Protobuf_PROTOC_EXECUTABLE}"
 )
