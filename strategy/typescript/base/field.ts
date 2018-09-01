@@ -536,9 +536,9 @@ function cornerPointsBetweenWays2018(way1: number, way2: number, radius: number 
 		result.push(cornerRight);
 	}
 	if (result.length === 2 && way1 > way2) {
-		let temp = result[1];
-		result[1] = result[2];
-		result[2] = temp;
+		let temp = result[0];
+		result[0] = result[1];
+		result[1] = temp;
 	}
 	return result;
 }
