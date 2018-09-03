@@ -63,7 +63,9 @@ find_package(Threads REQUIRED)
 sanitize_env()
 find_package(Protobuf 3.0.0)
 restore_env()
-if(NOT ${PROTOBUF_FOUND})
+# old cmake versions can't detect the protobuf version number
+# the protobuf version on such systems is too old to be useful
+if(NOT ${PROTOBUF_FOUND} OR ${CMAKE_VERSION} VERSION_LESS 3.6.0)
     include(BuildProtobuf)
 endif()
 
