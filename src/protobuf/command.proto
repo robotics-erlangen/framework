@@ -84,6 +84,8 @@ message CommandStrategy {
     optional CommandStrategySetOptions options = 7;
     optional CommandStrategyTriggerDebugger debug = 8;
     optional bool performance_mode = 9;
+    optional bool start_profiling = 10;
+    optional string finish_and_save_profile = 11;
 }
 
 message CommandControl {

@@ -69,6 +69,8 @@ public:
     // must only be called after loadScript was executed successfully
     bool process(double &pathPlanning, const world::State &worldState, const amun::GameState &refereeState, const amun::UserInput &userInput);
     virtual bool triggerDebugger();
+    virtual void startProfiling() {}
+    virtual void endProfiling(const std::string &filename) {}
 
     void setSelectedOptions(const QStringList &options);
     void setDebugHelper(DebugHelper *helper);

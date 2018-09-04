@@ -22,6 +22,8 @@
 #define TYPESCRIPT_H
 
 #include "abstractstrategyscript.h"
+#include "v8.h"
+#include "v8-profiler.h"
 
 #include <QString>
 #include <QMap>
@@ -71,6 +73,8 @@ private:
     static void defineModule(const v8::FunctionCallbackInfo<v8::Value> &args);
     void registerDefineFunction(v8::Local<v8::ObjectTemplate> global);
     bool loadModule(QString name);
+    v8::ScriptOrigin *scriptOriginFromFileName(QString name);
+    static void saveNode(QTextStream &file, const v8::CpuProfileNode *node, QString functionStack);
 
 private:
     v8::Isolate* m_isolate;

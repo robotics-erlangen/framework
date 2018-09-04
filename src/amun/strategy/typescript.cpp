@@ -21,7 +21,6 @@
 #include "typescript.h"
 
 #include <QFileInfo>
-#include <QTextStream>
 #include <QDebug>
 #include <QThread>
 #include <vector>

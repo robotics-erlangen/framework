@@ -32,6 +32,8 @@
 #include "strategy/strategyreplayhelper.h"
 #include "timingstatistics.h"
 #include "core/timer.h"
+#include "v8.h"
+#include "libplatform/libplatform.h"
 
 std::ofstream fileStream;
 
@@ -56,6 +58,13 @@ void myMessageOutput(QtMsgType type, const QMessageLogContext &context, const QS
 
 int main(int argc, char* argv[])
 {
+    // TODO: deduplify from ra.cpp
+    v8::V8::InitializeICUDefaultLocation(argv[0]);
+    v8::V8::InitializeExternalStartupData(argv[0]);
+    std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
+    v8::V8::InitializePlatform(platform.get());
+    v8::V8::Initialize();
+
     QCoreApplication app(argc, argv);
     app.setApplicationName("Replay-CLI");
     app.setOrganizationName("ER-Force");
@@ -78,6 +87,9 @@ int main(int argc, char* argv[])
     QCommandLineOption disablePerformanceMode("disable-performance-mode", "Disable performance mode for the strategy.");
     QCommandLineOption showLogOption({"l", "show-log"}, "Print log output to std::cout");
     QCommandLineOption abortExecution({"d", "die-on-error"}, "Die when a strategy problem occurs");
+    QCommandLineOption profileFile("profileOutfile", "Perform profiling and output the the result to the specified file", "filename");
+    QCommandLineOption profileStart("profileStart", "Only has effect together with profileOutfile: in which log frame to start profiling", "start frame", "0");
+    QCommandLineOption profileLength("profileLength", "Only has effect together with profileOutfile: for how many log frames to profile", "end frame");
 
     parser.addOption(asBlueOption);
     parser.addOption(showHistogramOption);
@@ -87,6 +99,9 @@ int main(int argc, char* argv[])
     parser.addOption(disablePerformanceMode);
     parser.addOption(showLogOption);
     parser.addOption(abortExecution);
+    parser.addOption(profileFile);
+    parser.addOption(profileStart);
+    parser.addOption(profileLength);
 
     // parse command line
     parser.process(app);
@@ -179,7 +194,9 @@ int main(int argc, char* argv[])
         BlockingStrategyReplay replayBlocker(strategy);
 
         int packetCount = logfile.packetCount();
-        for (int i = 0; i<packetCount; i++) {
+        int startPosition = parser.value(profileStart).toInt();
+        int endPosition = parser.isSet(profileLength) ? startPosition + parser.value(profileLength).toInt() : packetCount - 1;
+        for (int i = 0;i<packetCount;i++) {
             Status status = logfile.readStatus(i);
 
             // give the team information to the strategy
@@ -196,8 +213,28 @@ int main(int argc, char* argv[])
                 emit replayBlocker.gotCommand(command);
             }
 
+            if (parser.isSet(profileFile) && i == startPosition) {
+                Command command(new amun::Command);
+                if (asBlue) {
+                    command->mutable_strategy_blue()->set_start_profiling(true);
+                } else {
+                    command->mutable_strategy_yellow()->set_start_profiling(true);
+                }
+                emit replayBlocker.gotCommand(command);
+            }
+
             replayBlocker.handleStatus(status);
             app.processEvents();
+
+            if (parser.isSet(profileFile) && i == endPosition) {
+                Command command(new amun::Command);
+                if (asBlue) {
+                    command->mutable_strategy_blue()->set_finish_and_save_profile(parser.value(profileFile).toStdString());
+                } else {
+                    command->mutable_strategy_yellow()->set_finish_and_save_profile(parser.value(profileFile).toStdString());
+                }
+                emit replayBlocker.gotCommand(command);
+            }
         }
 
         statistics.printStatistics(parser.isSet(showHistogramOption));

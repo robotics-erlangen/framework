@@ -311,6 +311,14 @@ void Strategy::handleCommand(const Command &command)
         if (cmd->has_debug()) {
             triggerDebugger();
         }
+
+        if (cmd->has_start_profiling() && m_strategy) {
+            m_strategy->startProfiling();
+        }
+
+        if (cmd->has_finish_and_save_profile() && m_strategy) {
+            m_strategy->endProfiling(cmd->finish_and_save_profile());
+        }
     }
 
     if (command->has_mixed_team_destination()) {
