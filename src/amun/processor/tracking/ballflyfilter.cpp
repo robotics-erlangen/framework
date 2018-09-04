@@ -1,5 +1,6 @@
 #include "ballflyfilter.h"
 #include <cmath>
+#include <numeric>
 #include <iostream>
 #include <Eigen/Core>
 #include <Eigen/SVD>
