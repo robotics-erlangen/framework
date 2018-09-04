@@ -45,8 +45,9 @@ QPair<StatusSource*, QString> LogFileReader::tryOpen(QString filename)
         return QPair<StatusSource*, QString>(reader, "");
     }
     QString errorMessage = reader->errorMsg();
+    bool headerCorrect = reader->m_headerCorrect;
     delete reader;
-    if(reader->m_headerCorrect) {
+    if(headerCorrect) {
         return QPair<StatusSource*, QString>(nullptr, errorMessage);
     } else {
         return QPair<StatusSource*, QString>(nullptr, "");
