@@ -26,7 +26,7 @@ ExternalProject_Add(project_protobuf
     URL http://www.robotics-erlangen.de/downloads/libraries/protobuf-cpp-3.6.1.tar.gz
     URL_HASH SHA256=b3732e471a9bb7950f090fd0457ebd2536a9ba0891b7f3785919c654fe2a2529
     DOWNLOAD_NO_PROGRESS true
-    SOURCE_SUBDIR cmake
+    PATCH_COMMAND cp ${CMAKE_SOURCE_DIR}/cmake/protobuf.CMakeLists.txt CMakeLists.txt
     CMAKE_ARGS
         -DCMAKE_INSTALL_PREFIX:PATH=<INSTALL_DIR>
         -DCMAKE_C_COMPILER:PATH=${CMAKE_C_COMPILER}
@@ -58,6 +58,7 @@ set(PROTOBUF_INCLUDE_DIR "${install_dir}/include")
 set(PROTOBUF_INCLUDE_DIRS "${PROTOBUF_INCLUDE_DIR}")
 set(PROTOBUF_LIBRARY "${install_dir}/${PROTOBUF_SUBPATH}")
 set(PROTOBUF_LIBRARIES "${PROTOBUF_LIBRARY}")
+set(PROTOBUF_PROTOC_EXECUTABLE "${install_dir}/${PROTOC_SUBPATH}")
 set(Protobuf_PROTOC_EXECUTABLE "${install_dir}/${PROTOC_SUBPATH}")
 # compatibility with cmake 3.10
 if(NOT TARGET protobuf::protoc)
