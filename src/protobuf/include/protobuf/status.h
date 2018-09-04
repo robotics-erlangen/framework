@@ -75,7 +75,7 @@ public:
 
 private:
     QSharedPointer<amun::Status> m_status;
-    amun::Status *m_arenaStatus;
+    amun::Status *m_arenaStatus = nullptr;
     QSharedPointer<google::protobuf::Arena> m_arena;
 };
 
