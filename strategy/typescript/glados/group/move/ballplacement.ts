@@ -88,6 +88,7 @@ export class FastBallPlacement extends Move {
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
+		this._ballPlacementPos = World.BallPlacementPos!;
 		this.SHOOTER = this._robots[0];
 		this.RECEIVER = this._robots[1];
 		this._determineRoles();
@@ -95,7 +96,6 @@ export class FastBallPlacement extends Move {
 		this._mainAttacker = this.SHOOTER;
 		this._selectedEvadingPos = SHOOTER_EVADING_POSITIONS[1];
 
-		this._ballPlacementPos = <Position> World.BallPlacementPos;
 	}
 
 	_updateTasks(): [Map<FriendlyRobot, Assignment>, FriendlyRobot] {
