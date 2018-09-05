@@ -88,7 +88,7 @@ export class FastBallPlacement extends Move {
 
 	constructor(robots: FriendlyRobot[], messaging: MessageBox) {
 		super(robots, messaging);
-		this._ballPlacementPos = World.BallPlacementPos!;
+		this._ballPlacementPos = <Position> World.BallPlacementPos;
 		this.SHOOTER = this._robots[0];
 		this.RECEIVER = this._robots[1];
 		this._determineRoles();
