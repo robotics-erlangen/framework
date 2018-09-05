@@ -23,16 +23,15 @@ export function merge (sortedIntervals: AnyInterval[]) {
 			}
 		} else {
 			// save interval if not overlapping
-			n++;
 			sortedIntervals[n] = currentInterval;
+			n++;
 			// get next one for merging
 			currentInterval = interval;
 		}
 	}
 	// last interval
-	n++;
 	sortedIntervals[n] = currentInterval;
-
+	n++;
 	sortedIntervals.splice(n, sortedIntervals.length-n);
 }
 
@@ -46,7 +45,7 @@ export function negate<T> (mergedIntervals: Interval<T>[], outerStart: number, o
 
 	for (let i = 0;i<mergedIntervals.length;i++) {
 		let interval = mergedIntervals[i];
-		if (interval[1] > chunkStart) {
+		if (interval[0] > chunkStart) {
 			negated.push([chunkStart, interval[0]]);
 		}
 		// limit start to outer limits
