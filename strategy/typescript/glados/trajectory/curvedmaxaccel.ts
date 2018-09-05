@@ -705,7 +705,7 @@ export class CurvedMaxAccel extends TrajectoryHandler {
 
 		let [speedVector, accelVector] = _calculateSpeed(this._robot.id, waypoints, maxSpeedProfile, speedProfile, robotSpeed, accelLimit, sidewardsErrorFactor);
 
-		if (dribble && waypoints.length > 1 && waypoints[1].distanceTo(waypoints[2]) > 0.01) {
+		if (dribble && waypoints.length > 1 && waypoints[0].distanceTo(waypoints[1]) > 0.01) {
 			targetDir = (waypoints[1] - waypoints[0]).angle();
 			let sgn = 1;
 			let sin = Math.sin(accelVector.angleDiff(speedVector));
