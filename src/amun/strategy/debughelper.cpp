@@ -29,7 +29,7 @@ DebugHelper::DebugHelper(StrategyType strategy) : QObject(),
 void DebugHelper::sendOutput(const QString &line)
 {
     Status status(new amun::Status);
-    amun::DebugValues *debug = status->mutable_debug();
+    amun::DebugValues *debug = status->add_debug();
     debug->set_source(toDebugSource(m_strategy));
     debug->mutable_debugger_output()->set_line(line.toStdString());
     emit sendStatus(status);

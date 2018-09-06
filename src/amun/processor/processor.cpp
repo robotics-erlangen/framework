@@ -195,13 +195,14 @@ void Processor::process()
     // just ignore the referee for timing
     status_debug->mutable_timing()->set_tracking((controller_start - tracker_start) / 1E9);
 
-    status_debug->mutable_debug()->set_source(amun::Controller);
+    amun::DebugValues *debug = status_debug->add_debug();
+    debug->set_source(amun::Controller);
     QList<robot::RadioCommand> radio_commands;
 
     // assume that current_time is still "now"
     const qint64 controllerTime = current_time + tickDuration;
-    processTeam(m_blueTeam, true, status->world_state().blue(), radio_commands, status_debug, controllerTime, radioStatus->world_state().blue());
-    processTeam(m_yellowTeam, false, status->world_state().yellow(), radio_commands, status_debug, controllerTime, radioStatus->world_state().yellow());
+    processTeam(m_blueTeam, true, status->world_state().blue(), radio_commands, status_debug, controllerTime, radioStatus->world_state().blue(), debug);
+    processTeam(m_yellowTeam, false, status->world_state().yellow(), radio_commands, status_debug, controllerTime, radioStatus->world_state().yellow(), debug);
 
     if (m_transceiverEnabled) {
         // the command is active starting from now
@@ -297,7 +298,7 @@ void Processor::injectUserControl(Status &status, bool isBlue)
     }
 }
 
-void Processor::processTeam(Team &team, bool isBlue, const RobotList &robots, QList<robot::RadioCommand> &radio_commands, Status &status, qint64 time, const RobotList &radioRobots)
+void Processor::processTeam(Team &team, bool isBlue, const RobotList &robots, QList<robot::RadioCommand> &radio_commands, Status &status, qint64 time, const RobotList &radioRobots, amun::DebugValues *debug)
 {
     foreach (Robot *robot, team.robots) {
         robot::RadioCommand *radio_command = status->add_radio_command();
@@ -310,7 +311,7 @@ void Processor::processTeam(Team &team, bool isBlue, const RobotList &robots, QL
 
         // Get current robot
         const world::Robot* currentRobot = getWorldRobot(robots, robot->id);
-        robot->controller.calculateCommand(currentRobot, time, command, status->mutable_debug());
+        robot->controller.calculateCommand(currentRobot, time, command, debug);
 
         injectRawSpeedIfAvailable(radio_command, radioRobots);
 

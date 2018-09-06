@@ -372,10 +372,10 @@ void FieldWidget::handleStatus(const Status &status)
             m_guiTimer->requestTriggering();
         }
     }
-    if (status->has_debug()) {
+    for (auto debug: status->debug()) {
         // just save status to avoid copying the visualizations
-        m_visualizations[status->debug().source()] = status;
-        m_debugSourceCounter[status->debug().source()] = 0;
+        m_visualizations[debug.source()] = status;
+        m_debugSourceCounter[debug.source()] = 0;
         m_visualizationsUpdated = true;
         m_guiTimer->requestTriggering();
     }
@@ -493,8 +493,10 @@ void FieldWidget::updateVisualizations()
     m_visualizationItems.clear();
 
     foreach (const Status &v, m_visualizations) {
-        if (m_visibleVisSources.value(v->debug().source())) {
-            updateVisualizations(v->debug());
+        for (auto debug: v->debug()) {
+            if (m_visibleVisSources.value(debug.source())) {
+                updateVisualizations(debug);
+            }
         }
     }
 }

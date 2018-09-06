@@ -343,8 +343,8 @@ void Plotter::handleStatus(const Status &status, bool backlogStatus)
         parseMessage(timing, QStringLiteral("Timing"), time);
     }
 
-    if (status->has_debug()) {
-        const amun::DebugValues &debug = status->debug();
+    for (int j=0; j < status->debug_size(); ++j) {
+        const amun::DebugValues &debug = status->debug(j);
         // ignore controller as it can create plots via RadioCommand.%1.debug
         if (debug.source() != amun::Controller) {
             float debugTime = (debug.has_time()) ? (debug.time() - m_startTime) / 1E9 : time;

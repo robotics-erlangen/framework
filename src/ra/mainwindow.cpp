@@ -539,7 +539,7 @@ void MainWindow::handleCheckHaltStatus(const Status &status)
         }
     }
     if (status->has_strategy_blue() || status->has_strategy_yellow() ||
-            status->has_strategy_autoref() || status->has_debug()) {
+            status->has_strategy_autoref() || status->debug_size() > 0) {
         // use 50 as some upper limit, the exact number is irrelevant
         if (m_replayStrategyBuffer.size() < 50) {
             m_replayStrategyBuffer.push_back(status);

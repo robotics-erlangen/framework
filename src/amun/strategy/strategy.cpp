@@ -32,6 +32,7 @@
 #include <QTimer>
 #include <QUdpSocket>
 #include <QtEndian>
+#include <QtGlobal>
 
 #ifdef V8_FOUND
 #include "typescript.h"
@@ -542,7 +543,14 @@ void Strategy::loadScript(const QString &filename, const QString &entryPoint)
         setStrategyStatus(status, amun::StatusStrategy::RUNNING);
 
         // inform about successful load
-        amun::StatusLog *log = status->mutable_debug()->add_log();
+        amun::StatusLog *log;
+        if (status->debug_size() > 0) {
+            Q_ASSERT(status->debug_size() == 1);
+            //TODO: This assumes that there is at most one debug in this status
+            log = status->mutable_debug(0)->add_log();
+        } else {
+            log = status->add_debug()->add_log();
+        }
         log->set_timestamp(m_timer->currentTime());
         log->set_text(QString("<font color=\"darkgreen\">Successfully loaded %1 with entry point %2!</font>").arg(m_filename, m_entryPoint).toStdString());
 
@@ -565,7 +573,7 @@ void Strategy::close()
     Status status(new amun::Status);
     setStrategyStatus(status, amun::StatusStrategy::CLOSED);
     // clear debug output
-    status->mutable_debug()->set_source(debugSource());
+    status->add_debug()->set_source(debugSource());
 
     emit sendStatus(status);
 }
@@ -593,7 +601,14 @@ void Strategy::fail(const QString &error, const amun::UserInput & userInput)
     }
 
     // log error
-    amun::StatusLog *log = status->mutable_debug()->add_log();
+    amun::StatusLog *log;
+    if (status->debug_size() > 0) {
+        Q_ASSERT(status->debug_size() == 1);
+        //TODO: This assumes that there is at most one debug in this status
+        log = status->mutable_debug(0)->add_log();
+    } else {
+        log = status->add_debug()->add_log();
+    }
     log->set_timestamp(m_timer->currentTime());
     log->set_text(error.toStdString());
 
@@ -650,7 +665,7 @@ Status Strategy::takeStrategyDebugStatus()
         return Status(new amun::Status);
     }
     Status status = Status::createArena();
-    amun::DebugValues* debugValues = status->mutable_debug();
+    amun::DebugValues* debugValues = status->add_debug();
     m_strategy->takeDebugStatus(debugValues);
     debugValues->set_source(debugSource());
     if (!m_status.isNull()) {

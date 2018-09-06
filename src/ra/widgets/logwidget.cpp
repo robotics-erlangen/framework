@@ -45,7 +45,7 @@ void LogWidget::hideLogToggles()
 
 void LogWidget::handleStatus(const Status &status)
 {
-    if (status->has_debug()) {
+    for (const amun::DebugValues& debug : status->debug()) {
         while (m_lastTimes.size() > 0 && m_lastTimes.last() >= status->time()) {
             m_lastTimes.removeLast();
             QTextBlock block = document()->lastBlock();
@@ -53,8 +53,6 @@ void LogWidget::handleStatus(const Status &status)
             cursor.select(QTextCursor::BlockUnderCursor);
             cursor.removeSelectedText();
         }
-
-        const amun::DebugValues &debug = status->debug();
 
         QString logAppend;
         for (int i = 0; i < debug.log_size(); i++) {

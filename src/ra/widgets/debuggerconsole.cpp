@@ -87,8 +87,7 @@ void DebuggerConsole::closeEvent(QCloseEvent *event)
 
 void DebuggerConsole::handleStatus(const Status &status)
 {
-    if (status->has_debug()) {
-        const amun::DebugValues &debug = status->debug();
+    for (const amun::DebugValues &debug : status->debug()) {
         if (debug.source() == m_debugSource && debug.has_debugger_output()) {
             QString line = QString::fromStdString(debug.debugger_output().line());
             outputLine(line);

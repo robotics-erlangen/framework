@@ -374,9 +374,10 @@ void Transceiver::handleStatusPacket(const char *data, uint size)
 void Transceiver::handleDatagramPacket(const char *data, uint size)
 {
     Status status(new amun::Status);
-    status->mutable_debug()->set_source(amun::RadioResponse);
+    amun::DebugValues *debug = status->add_debug();
+    debug->set_source(amun::RadioResponse);
     QString debugMessage = QString("[Length: %1] %2").arg(size).arg(QString::fromUtf8(data, size));
-    amun::StatusLog *logEntry = status->mutable_debug()->add_log();
+    amun::StatusLog *logEntry = debug->add_log();
     logEntry->set_timestamp(Timer::systemTime());
     logEntry->set_text(debugMessage.toStdString());
     emit sendStatus(status);

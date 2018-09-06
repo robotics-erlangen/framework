@@ -213,10 +213,9 @@ qint64 LogProcessor::filterLog(LogFileReader &reader, Exchanger *writer, Exchang
                 isSimulated = state->is_simulated();
             }
         }
-        if (status->has_debug()) {
-            amun::DebugValues *debug = status->mutable_debug();
-            if (debug->has_time()) {
-                 debug->set_time(debug->time() - timeRemoved);
+        for (amun::DebugValues debug : *status->mutable_debug()) {
+            if (debug.has_time()) {
+                 debug.set_time(debug.time() - timeRemoved);
             }
         }
 

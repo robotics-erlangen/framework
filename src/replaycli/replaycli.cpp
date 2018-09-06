@@ -158,8 +158,7 @@ int main(int argc, char* argv[])
         statistics.connect(strategy, &Strategy::sendStatus, &statistics, &TimingStatistics::handleStatus);
         if (showLog)
             strategy->connect(strategy, &Strategy::sendStatus, [](const Status& s){
-                    if(s->has_debug()){
-                        const amun::DebugValues& debugValues = s->debug();
+                    for(const auto debugValues : s->debug()){
                         for(int i=0; i < debugValues.log_size(); ++i){
                             const amun::StatusLog& log = debugValues.log(i);
                             std::cout << log.text() << std::endl;

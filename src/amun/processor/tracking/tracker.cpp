@@ -275,15 +275,16 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
         aoi->set_y2(m_aoi_y2);
     }
 
+    amun::DebugValues *debug = status->add_debug();
 #ifdef ENABLE_TRACKING_DEBUG
     for (auto& filter : m_ballFilter) {
         if (filter == ball) {
-            amun::DebugValue *debugValue = status->mutable_debug()->add_value();
+            amun::DebugValue *debugValue = debug->add_value();
             debugValue->set_key("active cam");
             debugValue->set_float_value(ball->primaryCamera());
-            status->mutable_debug()->MergeFrom(filter->debugValues());
+            debug->MergeFrom(filter->debugValues());
         } else {
-            status->mutable_debug()->MergeFrom(filter->debugValues());
+            debug->MergeFrom(filter->debugValues());
         }
         filter->clearDebugValues();
     }
@@ -291,11 +292,11 @@ Status Tracker::worldState(qint64 currentTime, bool resetRaw)
 #endif
     if (m_errorMessages.size() > 0) {
         for (QString message : m_errorMessages) {
-            amun::StatusLog *log = status->mutable_debug()->add_log();
+            amun::StatusLog *log = debug->add_log();
             log->set_timestamp(currentTime);
             log->set_text(message.toStdString());
         }
-        status->mutable_debug()->set_source(amun::Tracking);
+        debug->set_source(amun::Tracking);
         m_errorMessages.clear();
     }
 

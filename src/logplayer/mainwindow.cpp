@@ -260,7 +260,7 @@ void MainWindow::sendResetDebugPacket(bool blue)
 {
     Status status(new amun::Status);
     status->set_time(m_playTimer->currentTime());
-    amun::DebugValues * debug = status->mutable_debug();
+    amun::DebugValues * debug = status->add_debug();
     debug->set_source(blue ? amun::StrategyBlue : amun::StrategyYellow);
     emit gotStatus(status);
 }

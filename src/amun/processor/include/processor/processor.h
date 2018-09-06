@@ -80,7 +80,7 @@ private:
     typedef google::protobuf::RepeatedPtrField<world::Robot> RobotList;
 
     void setTeam(const robot::Team &t, Team &team);
-    void processTeam(Team &team, bool isBlue, const RobotList &robots, QList<robot::RadioCommand> &radio_commands, Status &status, qint64 time, const RobotList &radioRobots);
+    void processTeam(Team &team, bool isBlue, const RobotList &robots, QList<robot::RadioCommand> &radio_commands, Status &status, qint64 time, const RobotList &radioRobots, amun::DebugValues *debug);
     void injectRawSpeedIfAvailable(robot::RadioCommand *radioCommand, const RobotList &radioRobots);
     void handleControl(Team &team, const amun::CommandControl &control);
     const world::Robot *getWorldRobot(const RobotList &robots, uint id);
