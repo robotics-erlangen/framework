@@ -180,7 +180,7 @@ function _backpropagateSpeedLimit (speedProfile: number[][], maxSpeed: number, b
 				//assume(a > 0);assume(b < 0);assume(d > 0);assume(t_end>t_mid);
 				//ratsimp(integrate(v_0+a*t,t,0,t_mid)+integrate(v_0+a*t_mid+b*(t-t_mid),t,t_mid,t_end)=d);
 				let v_0 = switchSpeed, a = oldAccel, b = brake,d = missingDistance;
-				let t1, _ = MathUtil.solveSq(b-a, 2*(b-a)*v_0, -2*b*d);
+				let t1 = MathUtil.solveSq(b-a, 2*(b-a)*v_0, -2*b*d)[0];
 				if (t1 && t1 > 0) {
 					switchTime = switchTime + t1;
 					switchSpeed = switchSpeed + t1 * oldAccel;
@@ -452,11 +452,11 @@ function _calculateRotation (currentDir: number, currentOmega: number, targetDir
 		let brakeDist = expDistance + -brake * brakeTime * brakeTime / 2 + expStartSpeed * brakeTime;
 
 		if (Math.abs(dirChange) <= brakeDist) {
-			let remainingBrakeTime = MathUtil.solveSq(-brake/2, expStartSpeed, expDistance - brakeDist);
-			if (remainingBrakeTime == undefined || remainingBrakeTime[0] < 0) {
+			let remainingBrakeTime = MathUtil.solveSq(-brake/2, expStartSpeed, expDistance - brakeDist)[0];
+			if (remainingBrakeTime == undefined || remainingBrakeTime < 0) {
 				throw "";
 			}
-			outSpeed = MathUtil.sign(dirChange) * (expStartSpeed + remainingBrakeTime[0] * -brake);
+			outSpeed = MathUtil.sign(dirChange) * (expStartSpeed + remainingBrakeTime * -brake);
 			outAccel = MathUtil.sign(dirChange) * brake;
 		} else {
 			// speed-up
