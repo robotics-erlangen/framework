@@ -28,10 +28,10 @@ let amunLocal = amun;
 import {Ball as BallClass } from "base/ball";
 import * as Constants from "base/constants";
 import { Coordinates } from "base/coordinates";
-import { AbsTime, RelTime } from "base/globals";
 import * as MathUtil from "base/mathutil";
 // let mixedTeam = require "base/mixedteam"
 import { FriendlyRobot, Robot } from "base/robot";
+import { AbsTime, RelTime } from "base/timing";
 import { Position, Vector } from "base/vector";
 
 /// Ball and team informations.

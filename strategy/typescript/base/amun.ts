@@ -345,3 +345,5 @@ export function _hideFunctions() {
 		luaRandom: DISABLED_FUNCTION
 	};
 }
+
+export const log = amun.log;

@@ -1,8 +1,8 @@
-import * as BaseRef from "base/referee";
+import { log } from "base/amun";
 import * as Field from "base/field";
+import * as BaseRef from "base/referee";
+import { Position, Speed } from "base/vector";
 import * as World from "base/world";
-import {Position, Speed} from "base/vector";
-import {log} from "base/globals";
 
 import * as Error from "glados/observer/error";
 

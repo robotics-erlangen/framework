@@ -1,5 +1,5 @@
+import { log } from "base/amun";
 import * as World from "base/world";
-import {log} from "base/globals";
 import * as Referee from "base/referee";
 import {Behavior, TaskAssignment} from "glados/agent/base/behavior";
 import {Error as ErrorTask} from "glados/task/shared/error";

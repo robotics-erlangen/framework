@@ -11,10 +11,10 @@ import "glados/observer/initReplay";
 // require "test/unit/index";
 import "glados/util/lineup";
 
+import { log } from "base/amun";
 import * as Cache from "base/cache";
 import * as debug from "base/debug";
-import {log} from "base/globals";
-import {Process} from "base/process";
+import { Process } from "base/process";
 import * as Processor from "base/processor";
 import * as plot from "base/plot";
 import * as  Referee from "base/referee";

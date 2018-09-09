@@ -10,7 +10,7 @@ import {TrajectoryHandler} from "base/trajectory";
 import {Vector, Position, Speed} from "base/vector";
 import * as MathUtil from "base/mathutil";
 import * as debug from "base/debug";
-import {log} from "base/globals";
+import { log } from "base/amun";
 import * as PathHelper from "glados/trajectory/pathhelper";
 
 // preprocess the waypoints to ensure that the first corner is more or less

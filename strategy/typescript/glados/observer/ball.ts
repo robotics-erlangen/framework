@@ -8,7 +8,7 @@ import * as World from "base/world";
 import * as MathUtil from "base/mathutil";
 
 import {Robot} from "base/robot";
-import {RelTime, AbsTime} from "base/globals";
+import {RelTime, AbsTime} from "base/timing";
 import {Vector, Position} from "base/vector";
 import {Ball} from "base/ball";
 
@@ -44,7 +44,7 @@ function _opponentBallDribbler(): Robot|undefined {
 	for (let robot of World.OpponentRobots) {
 		let distance = robot.pos.distanceTo(World.Ball.pos);
 		let direction = Vector.fromAngle(robot.dir);
-		if (robot.speed.distanceTo(World.Ball.speed) < MAX_SPEED_DIFF 
+		if (robot.speed.distanceTo(World.Ball.speed) < MAX_SPEED_DIFF
 				&& (slowBall || robot.speed.angleDiff(World.Ball.speed) < MAX_ANGLE_TO_BALL_SPEED)
 				&&  distance < MAX_DISTANCE && distance < bestDist
 				&&  World.Ball.posZ < 0.1

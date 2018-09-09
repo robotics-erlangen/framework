@@ -1,5 +1,5 @@
 import * as Constants from "base/constants";
-import {log} from "base/globals";
+import { log } from "base/amun";
 import * as debug from "base/debug";
 import * as Field from "base/field";
 import {Position} from "base/vector";

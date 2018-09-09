@@ -1,5 +1,5 @@
 import * as geom from "base/geom";
-import {log} from "base/globals";
+import { log } from "base/amun";
 import {Robot} from "base/robot";
 import {Position} from "base/vector";
 import * as vis from "base/vis";
