@@ -173,7 +173,6 @@ module "path"
 
 // luacheck: globals path
 declare var path: any;
-declare var amun: any;
 let pathLocal: any = path;
 
 path = undefined;

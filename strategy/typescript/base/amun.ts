@@ -1,12 +1,15 @@
---[[
---- API for Ra. <br/>
--- Amun offers serveral guarantees to the strategy: <br/>
--- The values returned by getGeometry, getTeam, isBlue are guaranteed to remain constant for the whole strategy runtime.
--- That is if any of the values changes the strategy is restarted! <br/>
--- If coordinates are passed via the API these values are using <strong>global</strong> coordinates!
--- This API may only be used by coded that provides a mapping between Amun and Strategy
+
+/* tslint:disable:prefer-method-signature */
+
+/*
+/// API for Ra. <br/>
+// Amun offers serveral guarantees to the strategy: <br/>
+// The values returned by getGeometry, getTeam, isBlue are guaranteed to remain constant for the whole strategy runtime.
+// That is if any of the values changes the strategy is restarted! <br/>
+// If coordinates are passed via the API these values are using <strong>global</strong> coordinates!
+// This API may only be used by coded that provides a mapping between Amun and Strategy
 module "amun"
-]]--
+*/
 
 /**************************************************************************
 *   Copyright 2015 Alexander Danzer, Michael Eischer, Philipp Nordhus     *
@@ -235,64 +238,112 @@ separator for luadoc]]--
 -- @class function
 -- @name nextRefboxReply
 -- @return reply table - the last reply or nil if none is available
+*/
 
+import * as pb from "base/protobuf";
 
-// TODO: declare proper typed interface for amun
-declare var amun: any;
-amun.isDebug = false; // TODO
-amun.isPerformanceMode = amun.getPerformanceMode();
+interface AmunPublic {
+	isDebug: boolean;
+	strategyPath: string;
+	isPerformanceMode: boolean;
+	log(data: any, ...params: any[]): void;
+	getCurrentTime(): number;
+	setRobotExchangeSymbol(generation: number, id: number, exchange: boolean): void;
+	nextRefboxReply(): pb.SSL_RefereeRemoteControlReply;
 
-export let amunFunctions: any = amun;
+	// only in debug
+	sendCommand(command: pb.amun.Command): void;
+	sendNetworkRefereeCommand(command: pb.SSL_Referee): void;
+}
+
+interface Amun extends AmunPublic {
+	getWorldState(): pb.world.State;
+	getGeometry(): pb.world.Geometry;
+	getTeam(): pb.robot.Team;
+	isBlue(): boolean;
+	addVisualization(vis: pb.amun.Visualization): void;
+	addVisualizationCircle(name: string,
+		centerX: number, centerY: number, radius: number,
+		colorRed: number, colorGreen: number, colorBlue: number, colorAlpha: number,
+		isFilled: boolean, background: boolean, linewidth: number
+	): void;
+	setCommand(generation: number, id: number, cmd: pb.robot.Command): void;
+	getGameState(): pb.amun.GameState;
+	getUserInput(): pb.amun.UserInput;
+	getStrategyPath(): string;
+	getSelectedOptions(): string[];
+	addDebug(key: string, value?: number | boolean | string): void;
+	addPlot(name: string, value: number): void;
+	sendRefereeCommand(command: pb.SSL_Referee): void;
+	sendMixedTeamInfo(data: pb.ssl.TeamPlan): void;
+	debuggerWrite(line: string): void;
+	debuggerRead(line: string): void;
+	getPerformanceMode(): boolean;
+
+	// undocumented
+	luaRandomSetSeed(seed: number | undefined): void;
+	luaRandom(): number;
+	isReplay?: () => boolean;
+}
+
+declare global {
+	let amun: Amun;
+}
+
+amun = {
+	...amun,
+	isDebug: false, // TODO
+	isPerformanceMode: amun.getPerformanceMode!()
+};
+
 export function _hideFunctions() {
 	let isDebug = amun.isDebug;
-	let strategyPath = amun.getStrategyPath();
+	let isPerformanceMode = amun.isPerformanceMode;
+	let strategyPath = amun.getStrategyPath!();
 	let getCurrentTime = amun.getCurrentTime;
+	let setRobotExchangeSymbol = amun.setRobotExchangeSymbol;
+	let nextRefboxReply = amun.nextRefboxReply;
+	let log = amun.log;
 	let sendCommand = amun.sendCommand;
 	let sendNetworkRefereeCommand = amun.sendNetworkRefereeCommand;
-	let nextRefboxReply = amun.nextRefboxReply;
-	let performanceMode = amun.isPerformanceMode;
-	let log = amun.log;
 
-	-- overwrite global amun
+	const DISABLED_FUNCTION = function(..._: any[]): any {
+		throw new Error("Usage of disabled amun function");
+	};
+
 	amun = {
 		isDebug: isDebug,
+		isPerformanceMode: isPerformanceMode,
 		strategyPath: strategyPath,
-		nextRefboxReply: nextRefboxReply,
 		getCurrentTime: function() {
 			return getCurrentTime() * 1E-9;
 		},
-		setRobotExchangeSymbol: amun.setRobotExchangeSymbol,
-		isPerformanceMode: performanceMode,
-		log: log
+		setRobotExchangeSymbol: setRobotExchangeSymbol,
+		nextRefboxReply: nextRefboxReply,
+		log: log,
+		sendCommand: isDebug ? sendCommand : DISABLED_FUNCTION,
+		sendNetworkRefereeCommand: isDebug ? sendNetworkRefereeCommand : DISABLED_FUNCTION,
+
+		getWorldState: DISABLED_FUNCTION,
+		getGeometry: DISABLED_FUNCTION,
+		getTeam: DISABLED_FUNCTION,
+		isBlue: DISABLED_FUNCTION,
+		addVisualization: DISABLED_FUNCTION,
+		addVisualizationCircle: DISABLED_FUNCTION,
+		setCommand: DISABLED_FUNCTION,
+		getGameState: DISABLED_FUNCTION,
+		getUserInput: DISABLED_FUNCTION,
+		getStrategyPath: DISABLED_FUNCTION,
+		getSelectedOptions: DISABLED_FUNCTION,
+		addDebug: DISABLED_FUNCTION,
+		addPlot: DISABLED_FUNCTION,
+		sendRefereeCommand: DISABLED_FUNCTION,
+		sendMixedTeamInfo: DISABLED_FUNCTION,
+		debuggerWrite: DISABLED_FUNCTION,
+		debuggerRead: DISABLED_FUNCTION,
+		getPerformanceMode: DISABLED_FUNCTION,
+
+		luaRandomSetSeed: DISABLED_FUNCTION,
+		luaRandom: DISABLED_FUNCTION
 	};
-	if (isDebug) {
-		amun.sendCommand = sendCommand;
-		amun.sendNetworkRefereeCommand = sendNetworkRefereeCommand;
-	} else {
-		amun.sendNetworkRefereeCommand = function() {
-			throw new Error("you must enable debug in order to send referee commands");
-		};
-	}
-	if isDebug then
-		amun.sendCommand = sendCommand
-		amun.sendNetworkRefereeCommand = sendNetworkRefereeCommand
-	else
-		amun.sendNetworkRefereeCommand = function()
-			error "you must enable debug in order to send referee commands"
-		end
-	end
-
-	-- prevent reloading original api
-	package.preload["amun"] = nil
-	-- update reference used by require
-	package.loaded["amun"] = amun
-
-	-- lua debug funcitons are only accessible with enabled debug
-	if not isDebug and hasDebugTable then
-		-- luacheck: push globals debug
-		debug = nil
-		-- luacheck: pop
-		package.preload["debug"] = nil
-		package.loaded["debug"] = nil
-	end
-end
+}

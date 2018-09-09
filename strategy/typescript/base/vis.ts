@@ -23,10 +23,10 @@ module "vis"
 *   You should have received a copy of the GNU General Public License     *
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
-declare var amun: any;
 let amunLocal = amun;
 
 import { Coordinates } from "base/coordinates";
+import * as pb from "base/protobuf";
 import { Position, Vector } from "base/vector";
 
 
@@ -82,12 +82,7 @@ export function fromTemperature(value: number, alpha: number = 127): Color {
 	return new Color(255 * red, 255 * green, 0, alpha);
 }
 
-export enum Style {
-	DashLine = "DashLine",
-	DotLine = "DotLine",
-	DashDotLine = "DashDotLine",
-	DashDotDotLine = "DashDotDotLine"
-}
+type Style = pb.amun.Pen.Style;
 
 /// List of predefined colors.
 // with alpha = 255. Colors ending with half have alpha = 127.
