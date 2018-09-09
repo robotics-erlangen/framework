@@ -43,6 +43,7 @@ function Duel:_init()
 	self._beforeOpp = false
 	self._futureBall = nil
 	self._rotating = false
+	self._isMainAttacker = false
 end
 
 function Duel:run()
@@ -54,6 +55,7 @@ function Duel:run()
 		self._opposer = Ball.firstRobotAtBall(World.OpponentRobots)
 	end
 
+	self._isMainAttacker = self._inbox.mainAttacker().trainer == self._robot
 	-- notify all that we are duelling
 	local distToOpp = self._opposer and self._robot.pos:distanceTo(self._opposer.pos) or math.huge
 	self._defendedOpponentMessageSent = distToOpp < (self._defendedOpponentMessageSent and 0.6 or 0.3)
@@ -110,7 +112,9 @@ function Duel:_contest()
 	end
 
 	-- send the position of the ball
-	self._send.attackPosition("all", World.Ball.pos)
+	if self._isMainAttacker then
+		self._send.attackPosition("all", World.Ball.pos)
+	end
 	self:_checkBlockingBall()
 end
 
@@ -248,7 +252,9 @@ function Duel:_moveToBall()
 	vis.addCircle("t/duel: ClearRobot", self._robot.pos, 0.15, vis.colors.redHalf, true)
 
 	-- send the position of the ball
-	self._send.attackPosition("all", self._futureBall)
+	if self._isMainAttacker then
+		self._send.attackPosition("all", self._futureBall)
+	end
 end
 
 return Duel

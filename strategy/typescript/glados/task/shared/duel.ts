@@ -44,6 +44,7 @@ export class Duel extends Task {
 	private _beforeOpp: boolean = false;
 	private _futureBall: Position | undefined;
 	private _rotating: boolean = false;
+	private _isMainAttacker: boolean = false;
 
 	public run () {
 		// search for the best duel target (can be nil!)
@@ -54,6 +55,7 @@ export class Duel extends Task {
 			this._opposer = Ball.firstRobotAtBall(World.OpponentRobots)[0];
 		}
 
+		this._isMainAttacker = this._messaging.receiveTrainer(MessageType.mainAttacker) === this._robot;
 		// notify all that we are duelling
 		let distToOpp = this._opposer != undefined ? this._robot.pos.distanceTo(this._opposer.pos) : Infinity
 		this._defendedOpponentMessageSent = distToOpp < (this._defendedOpponentMessageSent ? 0.6 : 0.3)
@@ -110,7 +112,9 @@ export class Duel extends Task {
 		}
 
 		// send the position of the ball
-		this._messaging.sendBroadcast(MessageType.attackPosition, World.Ball.pos);
+		if (this._isMainAttacker){
+			this._messaging.sendBroadcast(MessageType.attackPosition, World.Ball.pos);
+		}
 		this._checkBlockingBall()
 	}
 
@@ -250,6 +254,8 @@ export class Duel extends Task {
 		vis.addCircle("t/duel: ClearRobot", this._robot.pos, 0.15, vis.colors.redHalf, true)
 
 		// send the position of the ball
-		this._messaging.sendBroadcast(MessageType.attackPosition, futureBall);
+		if(this._isMainAttacker){
+			this._messaging.sendBroadcast(MessageType.attackPosition, futureBall);
+		}
 	}
 }
