@@ -1,4 +1,3 @@
-import { amunFunctions } from "base/amun";
 import * as Cache from "base/cache";
 import * as Constants from "base/constants";
 import * as debug from "base/debug";
@@ -243,7 +242,7 @@ function _rateOpponentDangerousness(): Map<Robot, number> {
 export let rateOpponentDangerousness: () => Map<Robot, number> = Cache.forFrame(_rateOpponentDangerousness);
 
 function _rateOpponentPassViability(): Map<Robot, number> {
-	if (!amunFunctions.isPerformanceMode) {
+	if (!amun.isPerformanceMode) {
 		debug.push("Util Defense");
 		debug.push("passViability");
 	}
@@ -299,7 +298,7 @@ function _rateOpponentPassViability(): Map<Robot, number> {
 			rating = rating + 0.5;
 		}
 
-		if (!amunFunctions.isPerformanceMode) {
+		if (!amun.isPerformanceMode) {
 			debug.push(String(opp.id));
 			debug.set("distToBallOwnerRating", distToBallOwnerRating);
 			debug.set("distToGoalRating", distToGoalRating);
@@ -308,7 +307,7 @@ function _rateOpponentPassViability(): Map<Robot, number> {
 		}
 	}
 
-	if (!amunFunctions.isPerformanceMode) {
+	if (!amun.isPerformanceMode) {
 		debug.pop();
 		debug.pop();
 	}

@@ -23,7 +23,6 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-declare var amun: any;
 let amunLocal = amun;
 
 

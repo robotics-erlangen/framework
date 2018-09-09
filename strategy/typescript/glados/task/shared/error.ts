@@ -1,4 +1,3 @@
-import {amunFunctions as amun} from "base/amun";
 import {Vector} from "base/vector";
 import * as World from "base/world";
 import {Direct} from "glados/trajectory/direct"

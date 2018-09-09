@@ -1,5 +1,4 @@
 import * as vis from "base/vis";
-import {amunFunctions as amun} from "base/amun";
 import {FriendlyRobot} from "base/robot";
 import {Vector, Position} from "base/vector";
 import * as World from "base/world";
@@ -135,7 +134,7 @@ export class MidfieldSampling {
 		for (let msg of passSuggestions.values()) {
 			let passPos = msg.ballPos;
 			let volleyAngle = passReceiveVec.absoluteAngleDiff(passPos - ballPos);
-			// Note: 90 degrees is not a good volley, but pass opportunities to strikers should still be rewarded 
+			// Note: 90 degrees is not a good volley, but pass opportunities to strikers should still be rewarded
 			let volleySuccessProbability = Rating.valueToRating(volleyAngle, 90 / 180 * Math.PI, 50 / 180 * Math.PI);
 			rating = rating + ratingWeight * volleySuccessProbability;
 		}
@@ -176,7 +175,7 @@ export class MidfieldSampling {
 		let ballTime = ObserverShoot.ballPassTime(this._attackPosition, ballPos, this._robot, undefined, this._mainAttacker);
 
 		let rating = Rating.valueToRating(shootTime + ballTime - robotTime, 0.2, 0.5);
-		
+
 		if (!amun.isPerformanceMode) {
 			visualizeRating("canReachInTime", ballPos, rating);
 		}

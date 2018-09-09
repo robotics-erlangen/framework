@@ -24,7 +24,6 @@
 // *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 // *************************************************************************
 
-declare var amun: any;
 let amunLocal = amun;
 import {Ball as BallClass } from "base/ball";
 import * as Constants from "base/constants";

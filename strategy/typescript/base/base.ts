@@ -31,14 +31,15 @@
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-import * as amun from "base/amun";
+import * as amunModule from "base/amun";
+
 import "base/mathutil";
 import "base/path";
 import "base/vector";
 
 // preload classes that require access to the amun API
 import { _setIsBlue } from "base/coordinates";
-_setIsBlue(amun.amunFunctions.isBlue());
+_setIsBlue(amun.isBlue());
 import "base/debug";
 import "base/plot";
 import "base/robot";
@@ -46,4 +47,4 @@ import "base/vis";
 import "base/world";
 
 // prevent access to internal APIs
-amun._hideFunctions();
+amunModule._hideFunctions();

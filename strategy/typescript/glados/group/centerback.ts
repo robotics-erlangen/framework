@@ -1,4 +1,3 @@
-import {amunFunctions as amun } from "base/amun";
 import * as Field from "base/field";
 import * as MathUtil from "base/mathutil";
 import { FriendlyRobot } from "base/robot";

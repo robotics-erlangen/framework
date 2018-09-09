@@ -1,5 +1,4 @@
 import * as geom from "base/geom";
-import {amunFunctions as amun} from "base/amun";
 import {FriendlyRobot} from "base/robot";
 import * as vis from "base/vis";
 import {Vector, Position} from "base/vector";
@@ -57,7 +56,7 @@ export class StrikerSampling {
 		let ballTime = ObserverShoot.ballPassTime(this._attackPosition, ballPos, this._robot, undefined, this._mainAttacker);
 
 		let rating = Rating.valueToRating(shootTime + ballTime - robotTime, 0.2, 0.5);
-		
+
 		if (!amun.isPerformanceMode) {
 			visualizeRating("canReachInTime", ballPos, rating);
 		}
@@ -84,7 +83,7 @@ export class StrikerSampling {
 		let volleyAngle = World.Ball.speed.absoluteAngleDiff(this._attackPosition - ballPos);
 		let volleySuccessProbability = Rating.valueToRating(volleyAngle, 65 / 180 * Math.PI, 50 / 180 * Math.PI);
 		let rating = volleySuccessProbability * (1 - minRating) + minRating;
-		
+
 		if (!amun.isPerformanceMode) {
 			visualizeRating("volleyPass", ballPos, rating);
 		}

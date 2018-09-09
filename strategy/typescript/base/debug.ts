@@ -23,7 +23,6 @@ module "debug"
 *   along with this program.  if not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
-declare var amun: any;
 let addDebug: Function = amun.addDebug;
 import { log } from "base/globals";
 

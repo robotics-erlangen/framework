@@ -1,4 +1,3 @@
-import {amunFunctions as amun} from "base/amun";
 import * as Cache from "base/cache";
 import * as debug from "base/debug";
 import * as Field from "base/field";

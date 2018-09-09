@@ -1,4 +1,3 @@
-import { amunFunctions } from "base/amun";
 import * as Constants from "base/constants";
 import * as debug from "base/debug";
 import * as Field from "base/field";
@@ -354,7 +353,7 @@ export class Defense {
 					closestAsFriendly,
 					{ name: "CenterBack", params: { pos: info.startPos, dir: info.startDirection, time: rollTime }}
 				);
-				if (!amunFunctions.isPerformanceMode) {
+				if (!amun.isPerformanceMode) {
 					vis.addCircle("tr/defense: ball intersection", info.startPos, 0.08, vis.colors.yellow);
 					vis.addCircle("tr/defense: ball intersection", info.pos, 0.12, vis.colors.red);
 					vis.addPath("tr/defense: ball intersection", [ info.startPos, info.pos ], vis.colors.red);

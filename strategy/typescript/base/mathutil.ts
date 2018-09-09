@@ -26,7 +26,6 @@
 
 let min = Math.min;
 let max = Math.max;
-declare let amun: any;
 import { Random } from "base/random";
 
 let luaRandom: boolean = false; // TODO: Read via strategy-option
