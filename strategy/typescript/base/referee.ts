@@ -24,8 +24,8 @@
 **************************************************************************/
 
 import { maxRobotRadius } from "base/constants";
-import { AbsTime } from "base/globals";
 import { Robot } from "base/robot";
+import { AbsTime } from "base/timing";
 import { Position, Vector } from "base/vector";
 import * as vis from "base/vis";
 import * as World from "base/world";

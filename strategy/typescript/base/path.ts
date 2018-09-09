@@ -177,7 +177,8 @@ let pathLocal: any = path;
 
 path = undefined;
 
-import { log, Vector } from "base/globals";
+import { log } from "base/amun";
+import { Vector } from "base/vector";
 import * as vis from "base/vis";
 
 let teamIsBlue = amun.isBlue();

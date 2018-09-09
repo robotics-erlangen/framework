@@ -24,8 +24,8 @@ module "Field"
 *   along with this program.  If not, see <http://www.gnu.org/licenses/>. *
 **************************************************************************/
 
+import { log } from "base/amun";
 import * as geom from "base/geom";
-import { log } from "base/globals";
 import * as MathUtil from "base/mathutil";
 import * as Referee from "base/referee";
 import { Position, RelativePosition, Vector } from "base/vector";
