@@ -409,7 +409,7 @@ function _checkPassInfos (robot: FriendlyRobot, passInfoTable: PassInfo[], lastR
 		passIncoming?: boolean): [PassInfo | undefined, boolean] {
 	let _relevantPassInfoMessage = relevantPassInfoMessage(robot, passInfoTable)
 	printPassInfo(robot, _relevantPassInfoMessage, lastResult, lastPassInfo)
-	if (relevantPassInfoMessage == undefined) {
+	if (_relevantPassInfoMessage == undefined) {
 		return [undefined, false]
 	} else {
 		let timeLeft = calculatePassInfoTiming(robot, _relevantPassInfoMessage, passIncoming)
